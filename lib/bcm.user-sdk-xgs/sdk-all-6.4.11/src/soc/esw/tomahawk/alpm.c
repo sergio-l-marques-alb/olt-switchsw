@@ -1,0 +1,10106 @@
+/*
+ * $Copyright: Copyright 2016 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ * $Id: alpm.c$
+ * File:    alpm.c
+ * Purpose: Tomahawk Primitives for LPM management in ALPM - Mode.
+ * Requires:
+ */
+
+/* Implementation notes:
+ */
+#include <shared/bsl.h>
+
+#include <soc/mem.h>
+#include <soc/drv.h>
+#include <soc/debug.h>
+#include <soc/error.h>
+#include <soc/lpm.h>
+#include <soc/trident2.h>
+#include <soc/tomahawk.h>
+#include <shared/bsl.h>
+
+#ifdef ALPM_ENABLE
+#include <shared/util.h>
+#include <shared/l3.h>
+#include <soc/alpm.h>
+#include <soc/esw/alpm_int.h>
+#include <soc/esw/trie.h>
+
+
+#define SHR_SHIFT_LEFT(val, count) \
+    (((count) == 32) ? 0 : (val) << (count))
+
+#define SHR_SHIFT_RIGHT(val, count) \
+    (((count) == 32) ? 0 : (val) >> (count))
+
+#define SOC_ALPM_LPM_CACHE_FIELD_CREATE(m, f) soc_field_info_t * m##f
+#define SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(m_u, s, m, f) \
+              (s)->m##f = soc_mem_fieldinfo_get(m_u, m, f)
+
+/* Add support for Extended based on Flex Counter support type */
+#define SOC_ALPM_TABLE_MEM(_u_, _v6_, _mem_)             \
+            _mem_ = (_v6_) ? L3_DEFIP_ALPM_IPV6_64m : L3_DEFIP_ALPM_IPV4m
+
+/* Add suport for Extended */
+#define SOC_ALPM_ENTRY_BUF(_v6_, _mem_, _buf_, _v4ent_, _v6ent_)  \
+            _buf_ = ((_v6_) ? ((uint32 *)&(_v6ent_)) : ((uint32 *)&(_v4ent_)))
+
+/* Add suport for Extended */
+#define SOC_ALPM_ENTRY_BUF_128(_v6_, _mem_, _buf_, _v4ent_, _v6ent_)  \
+            _buf_ = ((uint32 *) &(_v6ent_))
+
+/* this is a left shift of the prefix by 32/64 - length  and convert to
+   brcm order of ip words */
+#define ALPM_TRIE_TO_NORMAL_IP(prefix, length, v6) \
+    do {\
+        if (!(v6)) {\
+            prefix[0] = SHR_SHIFT_LEFT(prefix[1], 32 - length);\
+            prefix[1] = 0;\
+        } else {\
+            int macro_pfx_shift = 64 - length;\
+            int macro_tmp;\
+            if (macro_pfx_shift < 32) {\
+                /* get upper half shifted */\
+                macro_tmp = prefix[3] << macro_pfx_shift;\
+                /* isolate shifted stuff off lower half */\
+                macro_tmp |= SHR_SHIFT_RIGHT(prefix[4], 32 - macro_pfx_shift);\
+                /* swap the order of words */\
+                prefix[0] = prefix[4] << macro_pfx_shift;\
+                prefix[1] = macro_tmp;\
+                prefix[2] = prefix[3] = prefix[4] = 0;\
+            } else {\
+                prefix[1] = SHR_SHIFT_LEFT(prefix[4], macro_pfx_shift - 32);\
+                prefix[0] = prefix[2] = prefix[3] = prefix[4] = 0;\
+            }\
+        }\
+    } while (0)
+
+#define SOC_ALPM_MOVE_PIVOT_HALF(u, v1, src, dst)\
+    do {\
+        int _src = soc_th_alpm_physical_idx((u), L3_DEFIPm, (src), 1)*2; \
+        int _dst = soc_th_alpm_physical_idx((u), L3_DEFIPm, (dst), 1)*2; \
+        if ((v1)) {\
+            _src++;\
+        }\
+        ALPM_TCAM_PIVOT((u), _dst) = ALPM_TCAM_PIVOT((u), _src);\
+        if (ALPM_TCAM_PIVOT((u), _dst)) { \
+            PIVOT_TCAM_INDEX(ALPM_TCAM_PIVOT((u), _dst)) = _dst;\
+            soc_th_alpm_lpm_move_bu_upd(u, PIVOT_BUCKET_INDEX(ALPM_TCAM_PIVOT((u), \
+                                        _dst)), _dst);\
+        } \
+        ALPM_TCAM_PIVOT((u), _src) = NULL;\
+    } while (0)
+
+/* used for moving either 2 v4 entries or 1 v6 entry. */
+#define SOC_ALPM_MOVE_PIVOT_FULL(u, src, dst)\
+    do {\
+        int _src = soc_th_alpm_physical_idx((u), L3_DEFIPm, (src), 1);\
+        int _dst = soc_th_alpm_physical_idx((u), L3_DEFIPm, (dst), 1);\
+        /* Track full-entry move */\
+        ALPM_TCAM_PIVOT(u, _dst<<1) = ALPM_TCAM_PIVOT(u, _src<<1);\
+        ALPM_TCAM_PIVOT(u, (_dst<<1) + 1) = \
+                                ALPM_TCAM_PIVOT(u, (_src<<1) + 1);\
+        if (ALPM_TCAM_PIVOT((u), _dst<<1)) { \
+            PIVOT_TCAM_INDEX(ALPM_TCAM_PIVOT((u), _dst<<1)) = _dst<<1;\
+            soc_th_alpm_lpm_move_bu_upd(u, PIVOT_BUCKET_INDEX(ALPM_TCAM_PIVOT((u), \
+                                        (_dst<<1))), (_dst<<1));\
+        } \
+        if (ALPM_TCAM_PIVOT((u), (_dst<<1) + 1)) { \
+            PIVOT_TCAM_INDEX(ALPM_TCAM_PIVOT((u), (_dst<<1) + 1)) = \
+                             (_dst<<1) + 1;\
+            soc_th_alpm_lpm_move_bu_upd(u, PIVOT_BUCKET_INDEX(ALPM_TCAM_PIVOT((u), \
+                                        (_dst<<1) + 1)), (_dst<<1) + 1);\
+        } \
+        ALPM_TCAM_PIVOT(u, _src<<1) = NULL;\
+        ALPM_TCAM_PIVOT(u, (_src<<1) + 1) = NULL;\
+    } while (0)
+
+#define FB_LPM_HASH_SUPPORT 1
+
+typedef struct soc_th_alpm_lpm_state_s {
+    int start;  /* start index for this prefix length */
+    int end;    /* End index for this prefix length */
+    int prev;   /* Previous (Lo to Hi) prefix length with non zero entry count*/
+    int next;   /* Next (Hi to Lo) prefix length with non zero entry count */
+    int vent;   /* valid entries */
+    int fent;   /* free entries */
+} soc_th_alpm_lpm_state_t, *soc_th_alpm_lpm_state_p;
+
+/* Can move to SOC Control structures */
+static soc_th_alpm_lpm_state_p soc_th_alpm_lpm_state[SOC_MAX_NUM_DEVICES];
+
+#define ALPM_IPV6_PFX_ZERO                33
+#define ALPM_MAX_PFX_ENTRIES              (3 * (64 + 32 + 2 + 1))
+#define ALPM_MAX_PFX_INDEX                (ALPM_MAX_PFX_ENTRIES - 1)
+#define MAX_VRF_PFX_INDEX            ((ALPM_MAX_PFX_ENTRIES/3) - 1)
+#define SOC_ALPM_LPM_INIT_CHECK(u)        (soc_th_alpm_lpm_state[(u)] != NULL)
+#define SOC_ALPM_LPM_STATE(u)             (soc_th_alpm_lpm_state[(u)])
+#define SOC_ALPM_LPM_STATE_START(u, pfx)  (soc_th_alpm_lpm_state[(u)][(pfx)].start)
+#define SOC_ALPM_LPM_STATE_END(u, pfx)    (soc_th_alpm_lpm_state[(u)][(pfx)].end)
+#define SOC_ALPM_LPM_STATE_PREV(u, pfx)  (soc_th_alpm_lpm_state[(u)][(pfx)].prev)
+#define SOC_ALPM_LPM_STATE_NEXT(u, pfx)  (soc_th_alpm_lpm_state[(u)][(pfx)].next)
+#define SOC_ALPM_LPM_STATE_VENT(u, pfx)  (soc_th_alpm_lpm_state[(u)][(pfx)].vent)
+#define SOC_ALPM_LPM_STATE_FENT(u, pfx)  (soc_th_alpm_lpm_state[(u)][(pfx)].fent)
+
+typedef struct soc_th_lpm_field_cache_s {
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, CLASS_ID0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, CLASS_ID1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, DST_DISCARD0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, DST_DISCARD1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ECMP0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ECMP1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ECMP_COUNT0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ECMP_COUNT1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ECMP_PTR0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ECMP_PTR1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, GLOBAL_ROUTE0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, GLOBAL_ROUTE1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, HIT0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, HIT1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, IP_ADDR0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, IP_ADDR1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, IP_ADDR_MASK0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, IP_ADDR_MASK1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, MODE0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, MODE1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, MODE_MASK0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, MODE_MASK1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, NEXT_HOP_INDEX0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, NEXT_HOP_INDEX1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, PRI0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, PRI1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, RPE0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, RPE1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, VALID0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, VALID1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, VRF_ID_0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, VRF_ID_1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, VRF_ID_MASK0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, VRF_ID_MASK1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, GLOBAL_HIGH0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, GLOBAL_HIGH1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ALG_HIT_IDX0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ALG_HIT_IDX1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ALG_BKT_PTR0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ALG_BKT_PTR1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ALG_SUB_BKT_PTR0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ALG_SUB_BKT_PTR1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, DEFAULT_MISS0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, DEFAULT_MISS1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, FLEX_CTR_BASE_COUNTER_IDX0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, FLEX_CTR_BASE_COUNTER_IDX1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, FLEX_CTR_POOL_NUMBER0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, FLEX_CTR_POOL_NUMBER1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, SRC_DISCARD0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, SRC_DISCARD1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ENTRY_TYPE_MASK0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ENTRY_TYPE_MASK1f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ENTRY_TYPE0f);
+    SOC_ALPM_LPM_CACHE_FIELD_CREATE(L3_DEFIPm, ENTRY_TYPE1f);
+} soc_th_lpm_field_cache_t, *soc_lpm_field_cache_p;
+static soc_lpm_field_cache_p soc_lpm_field_cache_state[SOC_MAX_NUM_DEVICES];
+
+#define SOC_MEM_OPT_F32_GET(m_unit, m_mem, m_entry_data, m_field) \
+        soc_meminfo_fieldinfo_field32_get((&SOC_MEM_INFO(m_unit, m_mem)), \
+            (m_entry_data), (soc_lpm_field_cache_state[(m_unit)]->m_mem##m_field))
+
+#define SOC_MEM_OPT_F32_SET(m_unit, m_mem, m_entry_data, m_field, m_val) \
+        soc_meminfo_fieldinfo_field32_set((&SOC_MEM_INFO(m_unit, m_mem)), \
+            (m_entry_data), (soc_lpm_field_cache_state[(m_unit)]->m_mem##m_field), (m_val))
+
+
+#define SOC_MEM_OPT_FIELD_VALID(m_unit, m_mem, m_field) \
+                ((soc_lpm_field_cache_state[(m_unit)]->m_mem##m_field) != NULL)
+
+#ifdef FB_LPM_HASH_SUPPORT
+typedef struct _soc_th_alpm_lpm_hash_s {
+    int         unit;
+    int         entry_count;    /* Number entries in hash table */
+    int         index_count;    /* Hash index max value + 1 */
+    uint16      *table;         /* Hash table with 16 bit index */
+    uint16      *link_table;    /* To handle collisions */
+} _soc_th_alpm_lpm_hash_t;
+
+typedef uint32 _soc_th_alpm_lpm_hash_entry_t[5];
+typedef int (*_soc_th_alpm_lpm_hash_compare_fn)(_soc_th_alpm_lpm_hash_entry_t key1,
+                                           _soc_th_alpm_lpm_hash_entry_t key2);
+static _soc_th_alpm_lpm_hash_t *_fb_lpm_hash_tab[SOC_MAX_NUM_DEVICES];
+#define SOC_ALPM_LPM_STATE_HASH(u)           (_fb_lpm_hash_tab[(u)])
+
+#define TD2_ALPM_HASH_INDEX_NULL (0xFFFF)
+#define TD2_ALPM_HASH_INDEX_MASK (0x7FFF)
+#define TD2_ALPM_HASH_IPV6_MASK  (0x8000)
+
+#define SOC_FB_LPM_HASH_ENTRY_IPV6_GET(u, entry_data, odata)                 \
+    odata[0] = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, IP_ADDR0f);     \
+    odata[1] =                                                               \
+        SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, IP_ADDR_MASK0f);       \
+    odata[2] = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, IP_ADDR1f);     \
+    odata[3] = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, IP_ADDR_MASK1f);\
+    if ( (!(SOC_IS_HURRICANE(u))) &&   \
+        (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, VRF_ID_0f))) {                \
+        int m_vrf;\
+        (void)soc_th_alpm_lpm_vrf_get(u, entry_data, (int *)&odata[4], &m_vrf); \
+    } else {                                                                 \
+        odata[4] = 0;                                                        \
+    }
+
+#define SOC_FB_LPM_HASH_ENTRY_IPV4_0_GET(u, entry_data, odata)               \
+    odata[0] = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, IP_ADDR0f);     \
+    odata[1] =                                                               \
+        SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, IP_ADDR_MASK0f);       \
+    odata[2] = 0;                                                            \
+    odata[3] = 0x80000001;                                                   \
+    if ((!(SOC_IS_HURRICANE(u))) && \
+        (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, VRF_ID_0f))) {                \
+        int m_vrf;\
+        (void)soc_th_alpm_lpm_vrf_get(u, entry_data, (int *)&odata[4], &m_vrf); \
+    } else {                                                                 \
+        odata[4] = 0;                                                        \
+    }
+
+#define SOC_FB_LPM_HASH_ENTRY_IPV4_1_GET(u, entry_data, odata)               \
+    odata[0] = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, IP_ADDR1f);     \
+    odata[1] =                                                               \
+        SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, IP_ADDR_MASK1f);       \
+    odata[2] = 0;                                                            \
+    odata[3] = 0x80000001;                                                   \
+    if ((!(SOC_IS_HURRICANE(u))) &&  \
+    (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, VRF_ID_1f))) {                    \
+        int m_vrf;\
+        defip_entry_t m_tmp_ipv4;\
+        (void)soc_th_alpm_lpm_ip4entry1_to_0(u, entry_data, &m_tmp_ipv4, 0);    \
+        (void)soc_th_alpm_lpm_vrf_get(u, &m_tmp_ipv4, (int *)&odata[4], &m_vrf); \
+    } else {                                                                 \
+        odata[4] = 0;                                                        \
+    }
+
+#define SOC_FB_LPM_HASH_ENTRY_GET _soc_th_alpm_lpm_hash_entry_get
+
+/* ALPM Software control block */
+soc_alpm_bucket_t soc_th_alpm_bucket[SOC_MAX_NUM_DEVICES];
+int l3_alpm_ipv4_double_wide[SOC_MAX_NUM_DEVICES];
+extern int l3_alpm_sw_prefix_lookup[SOC_MAX_NUM_DEVICES];
+
+/* Bucket sharing global vars */
+alpm_bkt_usg_t  *bkt_usage[SOC_MAX_NUM_DEVICES];
+alpm_bkt_bmp_t  *global_bkt_usage[SOC_MAX_NUM_DEVICES][SOC_TH_MAX_ALPM_VIEWS];
+
+/* Debug */
+int alpm_split_count = 0;
+int alpm_merge_count = 0;
+extern int alpm_128_split_count;
+
+/* Functions and externs */
+static
+void _soc_th_alpm_lpm_hash_entry_get(int u, void *e,
+                                int index, _soc_th_alpm_lpm_hash_entry_t r_entry);
+static
+uint16 _soc_th_alpm_lpm_hash_compute(uint8 *data, int data_nbits);
+static
+int _soc_th_alpm_lpm_hash_create(int unit,
+                            int entry_count,
+                            int index_count,
+                            _soc_th_alpm_lpm_hash_t **fb_lpm_hash_ptr);
+static
+int _soc_th_alpm_lpm_hash_destroy(_soc_th_alpm_lpm_hash_t *fb_lpm_hash);
+static
+int _soc_th_alpm_lpm_hash_lookup(_soc_th_alpm_lpm_hash_t          *hash,
+                            _soc_th_alpm_lpm_hash_compare_fn key_cmp_fn,
+                            _soc_th_alpm_lpm_hash_entry_t    entry,
+                            int                         pfx,
+                            uint16                      *key_index);
+static
+int _soc_th_alpm_lpm_hash_insert(_soc_th_alpm_lpm_hash_t *hash,
+                            _soc_th_alpm_lpm_hash_compare_fn key_cmp_fn,
+                            _soc_th_alpm_lpm_hash_entry_t entry,
+                            int    pfx,
+                            uint16 old_index,
+                            uint16 new_index);
+static
+int _soc_th_alpm_lpm_hash_delete(_soc_th_alpm_lpm_hash_t *hash,
+                            _soc_th_alpm_lpm_hash_compare_fn key_cmp_fn,
+                            _soc_th_alpm_lpm_hash_entry_t entry,
+                            int    pfx,
+                            uint16 delete_index);
+static
+int _soc_th_alpm_lpm_hash_verify(_soc_th_alpm_lpm_hash_t *hash,
+                            _soc_th_alpm_lpm_hash_compare_fn key_cmp_fn,
+                            _soc_th_alpm_lpm_hash_entry_t entry,
+                            int    pfx,
+                            uint16 index);
+static int
+_soc_th_alpm_lpm_prefix_length_get(int , int , void *, int *, int *, int *);
+
+static int soc_th_alpm_lpm_init(int u);
+static int soc_th_alpm_lpm_deinit(int u);
+static int soc_th_alpm_lpm_insert(int u, void *entry_data, int *index);
+static int soc_th_alpm_lpm_delete(int u, void *key_data);
+static int _soc_th_alpm_fill_aux_entry_for_op(int u,
+               void *key_data,
+               int ipv6,    /* Entry is ipv6. */
+               int db_type, /* database type */
+               int ent_type,
+               int replace_len, /* used for delete propagate */
+               defip_aux_scratch_entry_t *aux_entry);
+static int
+_soc_th_alpm_lpm_match(int u,
+               void *key_data,
+               void *e,         /* return entry data if found */
+               int *index_ptr,  /* return key location */
+               int *pfx_len,    /* Key prefix length. vrf + 32 + prefix len for IPV6*/
+               int *ipv6,       /* Entry is ipv6. */
+               int *vrf_id,     /* (OUT) */
+               int *vrf);       /* (OUT) */
+static int soc_th_alpm_lpm_match(int u,
+               void *key_data,
+               void *e,         /* return entry data if found */
+               int *index_ptr);  /* return key location */
+static int soc_th_alpm_shared_mem_init(int u);
+static int _soc_th_alpm_mem_ent_init(int unit, int ipv6, void *lpm_entry,
+                       void *alpm_entry, void *alpm_sip_entry, soc_mem_t mem,
+                       uint32 src_flags, uint32 *default_route, int bucket_id);
+static int _soc_th_alpm_lpm_ent_init(int unit, void *alpm_entry, soc_mem_t mem,
+                                     int ipv6, int vrf, int bucket, int index,
+                                     void *lpm_entry);
+static int _soc_th_key_lpm_ent_init(int unit, uint32 *key, int len, int vrf,
+                                    int ipv6, defip_entry_t *lpm_entry,
+                                    int nh_ecmp_idx, int init);
+static int soc_th_alpm_vrf_delete(int u, int vrf, int v6);
+static int
+_soc_th_alpm_move_inval(int u, soc_mem_t mem, int v6,
+                        alpm_mem_prefix_array_t *pa, int *new_index);
+int soc_th_alpm_lpm_vrf_get(int unit, void *lpm_entry, int *vrf, int *mem_vrf);
+int soc_th_alpm_lpm_delete(int u, void *key_data);
+
+/* Use MAX_VRF_ID to store VRF_OVERRIDE routes debug info */
+extern alpm_vrf_handle_t *alpm_vrf_handle[SOC_MAX_NUM_DEVICES];
+extern alpm_pivot_t **tcam_pivot[SOC_MAX_NUM_DEVICES];
+
+extern int soc_tomahawk_alpm_mode_get(int unit);
+extern int soc_th_get_alpm_banks(int unit);
+extern int _soc_th_alpm_128_prefix_create(int u, void *entry, uint32 *result,
+                                   uint32 *pfx_len, int *default_route);
+#if 0
+extern int sh_process_command(int u,char * c);
+extern void soc_th_alpm_lpm_sw_dump(int unit);
+void soc_th_debug_collect(int u, int vrf, int v6, soc_mem_t mem, void *entry)
+{
+    int i;
+
+    sh_process_command(u, "debug =");
+
+    LOG_CLI(("\n====Collecting info for unit(%d), vrf(%d), v6(%d), mem(%s), entry(%p)\n",
+            u, vrf, v6, SOC_MEM_NAME(u, mem), entry));
+
+    /* Dump system configuration */
+    LOG_CLI(("\n====Dumping current config.bcm\n"));
+    sh_process_command(u, "config show");
+
+    /* Debug counter */
+    LOG_CLI(("\n====Dumping ALPM debug counters\n"));
+    for (i = 0; i < DEBUG_VAR_NUMBER; i++) {
+        if (debug_var[i] != 0) {
+            LOG_CLI(("debug_var[%2d] = %d\n", i, debug_var[i]));
+        }
+    }
+
+    /* Dump current entry */
+    if (entry != NULL) {
+        LOG_CLI(("\n====Dumping ALPM current operating entry\n"));
+        soc_mem_entry_dump_if_changed(u, mem, entry, "ALPM-DBG: ");
+    }
+
+    /* Dump ALPM Memories */
+    LOG_CLI(("\n====Dumping ALPM memories\n"));
+    sh_process_command(u, "d chg L3_DEFIP");
+    sh_process_command(u, "d chg L3_DEFIP_pair_128");
+    sh_process_command(u, "d chg L3_DEFIP_aux_table");
+    sh_process_command(u, "d chg L3_DEFIP_AUX_SCRATCH");
+    sh_process_command(u, "d chg L3_DEFIP_alpm_ipv4");
+    sh_process_command(u, "d chg L3_DEFIP_alpm_ipv6_64");
+    sh_process_command(u, "d chg L3_DEFIP_alpm_ipv6_128");
+
+    /* Dump Pivot trie */
+    LOG_CLI(("\n====Dumping ALPM Pivot trie-tree for VRF %d\n", vrf));
+    trie_dump(v6 ? VRF_PIVOT_TRIE_IPV6_128(u, vrf) : VRF_PIVOT_TRIE_IPV4(u, vrf),
+              NULL, NULL);
+
+    /* Dump VRF trie */
+    LOG_CLI(("\n====Dumping VRF route trie-tree for VRF %d\n", vrf));
+    trie_dump(v6 ? VRF_PREFIX_TRIE_IPV6_128(u, vrf) : VRF_PREFIX_TRIE_IPV4(u, vrf),
+              NULL, NULL);
+
+    /* Dump Bucket trie */
+    LOG_CLI(("\n====Dumping Bucket trie-tree for VRF %d\n", vrf));
+    for (i = 0; i < MAX_PIVOT_COUNT; i++) {
+        if (ALPM_TCAM_PIVOT(u, i) != NULL) {
+            trie_t *trie = PIVOT_BUCKET_TRIE(ALPM_TCAM_PIVOT(u, i));
+            LOG_CLI(("\t==Dumping Trie-tree for TCAM %d, index %d\n", i,
+                    soc_th_alpm_logical_idx(u, L3_DEFIPm, i >> 1, 1)));
+            trie_dump(trie, NULL, NULL);
+        }
+    }
+
+    /* Dump ALPM LPM SW state */
+    LOG_CLI(("\n====Dumping ALPM LPM SW state\n"));
+    soc_th_alpm_lpm_sw_dump(u);
+
+    /* Running Sanity check */
+    LOG_CLI(("\n====Running Bucket Sanity check\n"));
+    soc_th_alpm_bucket_sanity_check(u, L3_DEFIPm, -1);
+
+    LOG_CLI(("\n====Running Pivot Sanity check\n"));
+    soc_th_alpm_pivot_sanity_check(u, L3_DEFIPm, -1);
+
+    return ;
+}
+#endif
+
+void soc_th_alpm_lpm_move_bu_upd(int u, int bucket_id, int pivot_index)
+{
+    alpm_bkt_usg_t *bu;
+
+    int bkt_ptr = ALPM_BKT_IDX(bucket_id);
+    int sub_bkt_ptr = ALPM_BKT_SIDX(bucket_id);
+
+    bu = &bkt_usage[u][bkt_ptr];
+    bu->pivots[sub_bkt_ptr] = pivot_index;
+    bu->vrf_type[sub_bkt_ptr] = PIVOT_BUCKET_VRF(ALPM_TCAM_PIVOT(u, pivot_index));
+}
+
+/* returns 0 for Combined Search mode and 1 for Parallel Search mode,
+ * 2 for TCAM/ALPM mode, equals to L3_DEFIP_RPF_CONTROLr.LOOKUP_MODEf value
+ */
+int
+soc_th_alpm_mode_get(int u)
+{
+    int mode;
+
+    /* 'mode' here equals to l3_alpm_enable config property value */
+    mode = soc_tomahawk_alpm_mode_get(u);
+    switch (mode) {
+    case 1:     /* Parallel mode */
+        return SOC_ALPM_MODE_PARALLEL;
+    case 3:     /* TCAM/ALPM mode */
+        return SOC_ALPM_MODE_TCAM_ALPM;
+    case 2:
+    default:    /* Combined mode */
+        return SOC_ALPM_MODE_COMBINED;
+    }
+
+    return SOC_ALPM_MODE_COMBINED;
+}
+
+static int
+_soc_th_alpm_mask_len_get(int u, int ipv6, void *entry, int *pfx)
+{
+    int     rv;
+    uint32  ipv4a;
+
+    if (ipv6) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR_MASK0f);
+        if ((rv = _ipmask2pfx(ipv4a, pfx)) < 0) {
+            return(rv);
+        }
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR_MASK1f);
+        if (*pfx) {
+            if (ipv4a != 0xffffffff)  {
+                return(SOC_E_PARAM);
+            }
+            *pfx += 32;
+        } else {
+            if ((rv = _ipmask2pfx(ipv4a, pfx)) < 0) {
+                return(rv);
+            }
+        }
+    } else {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR_MASK0f);
+        if ((rv = _ipmask2pfx(ipv4a, pfx)) < 0) {
+            return(rv);
+        }
+    }
+
+    return SOC_E_NONE;
+}
+
+void
+soc_th_alpm_bank_disb_get(int u, int vrf, uint32 *bank_disable)
+{
+    if (vrf == SOC_VRF_MAX(u) + 1) {
+        /* Database to be searched is Global - DIP */
+        if (soc_th_get_alpm_banks(u) <= 2) {
+            SOC_ALPM_TH_GET_2BANKMODE_GLOBAL_BANK_DISABLE(u, *bank_disable);
+        } else {
+            SOC_ALPM_TH_GET_GLOBAL_BANK_DISABLE(u, *bank_disable);
+        }
+    } else {
+        /* Database to be searched is VRF - DIP */
+        if (soc_th_get_alpm_banks(u) <= 2) {
+            SOC_ALPM_TH_GET_2BANKMODE_VRF_BANK_DISABLE(u, *bank_disable);
+        } else {
+            SOC_ALPM_TH_GET_VRF_BANK_DISABLE(u, *bank_disable);
+        }
+    }
+}
+
+int
+_soc_th_alpm_rpf_entry(int u, int idx)
+{
+    int bkt;
+    int bank_bits = soc_th_get_alpm_banks(u) / 2;
+    bkt = (idx >> bank_bits) & SOC_TH_ALPM_BKT_MASK;
+    bkt += SOC_TH_ALPM_BUCKET_COUNT(u);
+    /* form rpf alpm entry index */
+    return (idx & ~(SOC_TH_ALPM_BKT_MASK << bank_bits)) | (bkt << bank_bits);
+}
+
+/* for v4 full = 0, for v6-64 full = 1 */
+int
+soc_th_alpm_physical_idx(int u, soc_mem_t mem, int index, int full)
+{
+    int tmp = index & 1;
+
+    if (full) {
+        return soc_trident2_l3_defip_index_map(u, mem, index);
+    }
+    index >>= 1;
+    index = soc_trident2_l3_defip_index_map(u, mem, index);
+    index <<= 1;
+    index |= tmp;
+    return index;
+}
+
+int
+soc_th_alpm_logical_idx(int u, soc_mem_t mem, int index, int full)
+{
+    int tmp = index & 1;
+
+    if (full) {
+        return soc_trident2_l3_defip_index_remap(u, mem, index);
+    }
+    index >>= 1;
+    index = soc_trident2_l3_defip_index_remap(u, mem, index);
+    index <<= 1;
+    index |= tmp;
+    return index;
+}
+
+static void
+_soc_th_alpm_pfx_len_to_mask(int u, void *lpm_entry, int len, int ipv6)
+{
+    uint32 mask = 0;
+
+    if (ipv6) {
+        if (len >= 32) {
+            mask = 0xffffffff;
+            SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, lpm_entry, IP_ADDR_MASK1f, mask);
+            mask = ~SHR_SHIFT_RIGHT(0xffffffff, len - 32);
+            SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, lpm_entry, IP_ADDR_MASK0f, mask);
+        } else {
+            mask = ~(0xffffffff >> len);
+            SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, lpm_entry, IP_ADDR_MASK1f, mask);
+            /* make sure lower word of mask is 0 */
+            SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, lpm_entry, IP_ADDR_MASK0f, 0);
+        }
+    } else {
+        assert(len <= 32);
+        mask = (len == 32) ? 0xffffffff : ~(0xffffffff >> len);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, lpm_entry, IP_ADDR_MASK0f, mask);
+    }
+}
+/* Create Prefix */
+/* Prefix is created based on the trie key packing expectations */
+/* Prefix[0] will have higher order Word, Prefix[1] will have lower order word
+ * in case of IPV6. For IPV4 prefix[0] will contain the prefix
+ */
+static int
+_soc_th_alpm_prefix_create(int u, int ipv6, void *entry, uint32 *prefix,
+                           uint32 *pfx_len, int *default_route)
+{
+    int ip, ip_mask;
+    int pfx = 0;
+    int rv = SOC_E_NONE;
+    uint32 pfx_shift, tmp;
+
+    prefix[0] = prefix[1] = prefix[2] = prefix[3] = prefix[4] = 0;
+
+    /* Form Prefix based on the entry */
+    ip = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR0f);
+    ip_mask = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR_MASK0f);
+
+    prefix[1] = ip;
+
+    ip = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR1f);
+    ip_mask = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR_MASK1f);
+
+    prefix[0] = ip;
+
+    /* Obtain prefix length */
+    if (ipv6) {
+        prefix[4] = prefix[1];
+        prefix[3] = prefix[0];
+        prefix[1] = prefix[0] = 0;
+        ip_mask = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR_MASK0f);
+        if ((rv = _ipmask2pfx(ip_mask, &pfx)) < 0) {
+            return(rv);
+        }
+        ip_mask = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR_MASK1f);
+        if (pfx) {
+            if (ip_mask != 0xffffffff)  {
+                return(SOC_E_PARAM);
+            }
+            pfx += 32;
+        } else {
+            if ((rv = _ipmask2pfx(ip_mask, &pfx)) < 0) {
+                return(rv);
+            }
+        }
+        pfx_shift = 64 - pfx;
+        if (pfx_shift < 32) {
+            /* get lower half shifted */
+            prefix[4] >>= pfx_shift;
+            /* isolate shifted stuff of upper half */
+            tmp = SHR_SHIFT_LEFT(prefix[3], 32 - pfx_shift);
+            prefix[3] >>= pfx_shift;
+            prefix[4] |= tmp;
+        } else {
+            prefix[4] = SHR_SHIFT_RIGHT(prefix[3], pfx_shift - 32);
+            prefix[3] = 0;
+        }
+    } else {
+        ip_mask = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR_MASK0f);
+        if ((rv = _ipmask2pfx(ip_mask, &pfx)) < 0) {
+            return(rv);
+        }
+        prefix[1] = SHR_SHIFT_RIGHT(prefix[1], 32 - pfx);
+        prefix[0] = 0;
+    }
+    *pfx_len = pfx;
+    *default_route = (prefix[0] == 0) && (prefix[1] == 0) && (pfx == 0);
+    return SOC_E_NONE;
+}
+
+int
+_soc_th_alpm_find_in_bkt(int u, soc_mem_t mem, int bktid, int bank_disable,
+                      uint32 *e, void *alpm_data, int *key_index, int v6)
+{
+    int rv;
+    rv = soc_mem_alpm_lookup(u, mem, ALPM_BKT_IDX(bktid),
+                             MEM_BLOCK_ANY,
+                             bank_disable,
+                             e, alpm_data, key_index);
+    if (SOC_SUCCESS(rv)) {
+        return rv;
+    }
+    if (SOC_TH_ALPM_SCALE_CHECK(u, v6)) {
+        return soc_mem_alpm_lookup(u, mem, ALPM_BKT_IDX(bktid) + 1,
+                                   MEM_BLOCK_ANY, bank_disable, e, alpm_data,
+                                   key_index);
+    }
+    return rv;
+}
+
+static int
+_soc_th_alpm_sw_pivot_find(int u, uint32 *prefix, uint32 length, int v6, int vrf,
+                        int *hit, int *tcam_index, int *bktid)
+{
+    int rv = SOC_E_NONE;
+    trie_t  *pivot_trie;
+    trie_node_t *lpmp = NULL;
+    alpm_pivot_t *pivot_pyld;
+
+    if (v6) {
+        pivot_trie = VRF_PIVOT_TRIE_IPV6(u, vrf);
+    } else {
+        pivot_trie = VRF_PIVOT_TRIE_IPV4(u, vrf);
+    }
+    rv = trie_find_lpm(pivot_trie, prefix, length, &lpmp);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "Pivot find failed\n")));
+        return rv;
+    }
+    pivot_pyld = (alpm_pivot_t *)lpmp;
+
+    *hit = 1;
+    *tcam_index = PIVOT_TCAM_INDEX(pivot_pyld);
+    *bktid = PIVOT_BUCKET_INDEX(pivot_pyld);
+
+    return SOC_E_NONE;
+}
+
+/*
+ * Find and read the match in the database.
+ * Returns SOC_E_NONE, if found.
+ * SOC_E_NOT_FOUND if not found
+ * SOC_E_FAIL, if lookup failed.
+ */
+
+static int
+_soc_th_alpm_find(int u,
+                  soc_mem_t mem,      /* Mem type for ALPM */
+                  int v6,
+                  void *key_data,     /* TCAM entry data */
+                  int vrf_id,
+                  int vrf,
+                  void *alpm_data,    /* Alpm data if match */
+                  int *tcam_index,    /* TCAM INDEX */
+                  int *bktid,         /* return Bucket ID */
+                  int *index_ptr,     /* return key location */
+                  int sw_find)
+{
+    uint32      e[SOC_MAX_MEM_FIELD_WORDS];
+    int         key_index ;
+    uint32      db_type, ent_type, bank_disable;
+    int         rv = SOC_E_NONE;
+    int         hit = 0;
+
+    if (vrf_id == 0) {
+        if (soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_PARALLEL ||
+            soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_TCAM_ALPM) {
+            /* cannot have 0 as a VRF in parallel mode */
+            return SOC_E_PARAM;
+        }
+    }
+
+    soc_th_alpm_bank_disb_get(u, vrf, &bank_disable);
+    soc_alpm_db_ent_type_encoding(u, vrf, &db_type, &ent_type);
+
+    /* For VRF_OVERRIDE (Global High) entries, software needs to maintain the
+     * index */
+    /* Prefix resides in TCAM directly */
+    if (!(ALPM_PREFIX_IN_TCAM(u, vrf_id))) {
+        if (sw_find) {
+            uint32 prefix[5], length;
+            int default_route = 0;
+
+            /* Create Prefix */
+            rv = _soc_th_alpm_prefix_create(u, v6, key_data, prefix, &length,
+                                            &default_route);
+            if (SOC_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                                      "_soc_alpm_insert: prefix create failed\n")));
+                return rv;
+            }
+
+            SOC_IF_ERROR_RETURN(_soc_th_alpm_sw_pivot_find(u, prefix, length, v6,
+                                                           vrf, &hit, tcam_index,
+                                                           bktid));
+        } else {
+            defip_aux_scratch_entry_t aux_entry;
+            /* Fill in AUX Scratch and perform Lookup Operation */
+            sal_memset(&aux_entry, 0, sizeof(defip_aux_scratch_entry_t));
+            SOC_IF_ERROR_RETURN(
+                _soc_th_alpm_fill_aux_entry_for_op(u, key_data, v6, db_type, ent_type,
+                                                   0, &aux_entry));
+            SOC_IF_ERROR_RETURN(
+                _soc_th_alpm_aux_op(u, PREFIX_LOOKUP, &aux_entry, TRUE, &hit,
+                                    tcam_index, bktid));
+        }
+        if (hit) { /* Entry is found in the bktid */
+            /* Fill entry for lookup */
+            _soc_th_alpm_mem_ent_init(u, v6, key_data, e, 0, mem, 0, 0, *bktid);
+
+            /* Perform lookup */
+            rv = _soc_th_alpm_find_in_bkt(u, mem, *bktid, bank_disable,
+                                          e, alpm_data, &key_index, v6);
+            if (SOC_SUCCESS(rv)) {
+                *index_ptr = key_index;
+            }
+        } else {
+            rv = SOC_E_NOT_FOUND;
+        }
+    }
+    return rv;
+}
+
+/*
+ * Find and update the match in the database.
+ * Returns SOC_E_NONE, if found and updated.
+ * SOC_E_NOT_FOUND if not found
+ * SOC_E_FAIL, if update failed.
+ */
+static int
+_soc_th_alpm_find_and_update(int u,
+                             int v6,
+                             void *key_data,  /* TCAM entry data */
+                             void *alpm_data, /* Alpm data to be updated with */
+                             void *alpm_sip_data,
+                             soc_mem_t mem,   /* Mem view for ALPM data */
+                             int key_index)   /* key location */
+{
+    defip_aux_scratch_entry_t aux_entry;
+    int         vrf_id, vrf;
+    int         bktid;
+    uint32      db_type, ent_type, bank_disable;
+    int         rv = SOC_E_NONE;
+    int         hit = 0, tmp = 0;
+    int         tcam_index, index;
+    uint32      alpm_ent[SOC_MAX_MEM_FIELD_WORDS];
+
+    SOC_IF_ERROR_RETURN(soc_th_alpm_lpm_vrf_get(u, key_data, &vrf_id, &vrf));
+    soc_th_alpm_bank_disb_get(u, vrf, &bank_disable);
+    soc_alpm_db_ent_type_encoding(u, vrf, &db_type, &ent_type);
+#if 0
+    if (soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_COMBINED ||
+        soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_TCAM_ALPM) {
+        /* for combined mode always vrf DIP */
+        if (vrf & ALPM_WAR_VRF_BIT10_MASK) {
+            db_type = 6;
+        } else {
+            db_type = 2;
+        }
+    }
+#endif
+    /* For VRF_OVERRIDE (Global High) entries */
+    if (!(ALPM_PREFIX_IN_TCAM(u, vrf_id))) {
+        /* Fill in AUX Scratch and perform Lookup Operation */
+        sal_memset(&aux_entry, 0, sizeof(defip_aux_scratch_entry_t));
+        SOC_IF_ERROR_RETURN(
+           _soc_th_alpm_fill_aux_entry_for_op(u, key_data, v6, db_type,
+                        ent_type, 0, &aux_entry));
+        /* Perform lookup */
+        SOC_ALPM_LPM_LOCK(u);
+        /* Find and update the entry */
+        rv = _soc_th_alpm_find(u, mem, v6, key_data, vrf_id, vrf, alpm_ent,
+                               &tcam_index, &bktid, &index,
+                               l3_alpm_sw_prefix_lookup[u]);
+        SOC_ALPM_LPM_UNLOCK(u);
+        SOC_IF_ERROR_RETURN(rv);
+        soc_mem_field32_set(u, mem, alpm_data, SUB_BKT_PTRf,
+                            ALPM_BKT_SIDX(bktid));
+        /* Update the entry */
+        SOC_IF_ERROR_RETURN(
+            soc_mem_write(u, mem, MEM_BLOCK_ANY, ALPM_ENT_INDEX(key_index),
+                          alpm_data));
+        if (SOC_URPF_STATUS_GET(u)) {
+            soc_mem_field32_set(u, mem, alpm_sip_data, SUB_BKT_PTRf,
+                                ALPM_BKT_SIDX(bktid));
+            /* Update the sip entry */
+            SOC_IF_ERROR_RETURN(soc_mem_write(u, mem, MEM_BLOCK_ANY,
+                                _soc_th_alpm_rpf_entry(u, ALPM_ENT_INDEX(key_index)),
+                                alpm_sip_data));
+            if (rv != SOC_E_NONE) {
+                return SOC_E_FAIL;
+            }
+        }
+        /* set REPLACE_LEN field to correct value */
+        tmp = soc_mem_field32_get(u, L3_DEFIP_AUX_SCRATCHm,
+                                 &aux_entry, IP_LENGTHf);
+        soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry,
+                            REPLACE_LENf, tmp);
+        SOC_IF_ERROR_RETURN(_soc_th_alpm_aux_op(u, DELETE_PROPAGATE,
+                            &aux_entry, TRUE, &hit, &tcam_index, &bktid));
+
+        if (SOC_URPF_STATUS_GET(u)) {
+            /* propagate SIP too */
+            /* Check default route */
+            if (tmp == 0) {
+                soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry,
+                                    RPEf, 1);
+            } else {
+                soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry,
+                                    RPEf, 0);
+            }
+            soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry,
+                                DB_TYPEf, db_type + 1);
+            SOC_IF_ERROR_RETURN(_soc_th_alpm_aux_op(u, DELETE_PROPAGATE,
+                                &aux_entry, TRUE, &hit, &tcam_index, &bktid));
+        }
+    }
+    return rv;
+}
+
+/* Update hit bits in batch */
+int
+soc_th_alpm_update_hit_bits(int u, int count, int *ori_hptr, int *new_hptr)
+{
+    int rv = SOC_E_NONE;
+    int i, lp, loops, idmin, idmax;
+    int index;
+    defip_aux_hitbit_update_entry_t hent;
+    soc_mem_t mem = L3_DEFIP_AUX_HITBIT_UPDATEm;
+    int index_cnt = soc_mem_index_count(u, mem);
+
+    loops = (count + index_cnt - 1) / index_cnt;
+    for (lp = 0; lp < loops; lp++) {
+        idmin = lp * index_cnt;
+        idmax = (count > (lp + 1) * index_cnt) ? (lp + 1) * index_cnt : count;
+        idmax = idmax - 1;
+
+        for (i = idmin; i <= idmax; i++) {
+            index = i % index_cnt;
+            if (ori_hptr[i] <= 0) {
+                continue;
+            }
+            sal_memset(&hent, 0, sizeof(hent));
+            soc_mem_field32_set(u, mem, &hent, HITBIT_PTRf, ori_hptr[i]);
+            soc_mem_field32_set(u, mem, &hent, REPLACEMENT_PTRf, new_hptr[i]);
+            soc_mem_field32_set(u, mem, &hent, VALIDf, 1);
+            SOC_IF_ERROR_RETURN(soc_mem_write(u, mem, MEM_BLOCK_ANY, index, &hent));
+        }
+        SOC_IF_ERROR_RETURN(_soc_th_alpm_aux_op(u, HITBIT_REPLACE, NULL,
+                                FALSE, NULL, NULL, NULL));
+    }
+
+    if (!SOC_URPF_STATUS_GET(u)) {
+        return rv;
+    }
+
+    /* For uRPF hit bit update */
+    for (lp = 0; lp < loops; lp++) {
+        idmin = lp * index_cnt;
+        idmax = (count > (lp + 1) * index_cnt) ? (lp + 1) * index_cnt : count;
+        idmax = idmax - 1;
+        for (i = idmin; i <= idmax; i++) {
+            index = i % index_cnt;
+            if (ori_hptr[i] <= 0) {
+                continue;
+            }
+            sal_memset(&hent, 0, sizeof(hent));
+            soc_mem_field32_set(u, mem, &hent, HITBIT_PTRf,
+                                _soc_th_alpm_rpf_entry(u, ori_hptr[i]));
+            soc_mem_field32_set(u, mem, &hent, REPLACEMENT_PTRf,
+                                _soc_th_alpm_rpf_entry(u, new_hptr[i]));
+            soc_mem_field32_set(u, mem, &hent, VALIDf, 1);
+            SOC_IF_ERROR_RETURN(soc_mem_write(u, mem, MEM_BLOCK_ANY, index, &hent));
+        }
+
+        SOC_IF_ERROR_RETURN(_soc_th_alpm_aux_op(u, HITBIT_REPLACE, NULL,
+                            FALSE, NULL, NULL, NULL));
+    }
+
+    return rv;
+}
+
+/* Callback function for Traverse, to find Leaf nodes */
+int
+_soc_th_alpm_mem_prefix_array_cb(trie_node_t *node, void *info)
+{
+    alpm_mem_prefix_array_t *prefix_array = (alpm_mem_prefix_array_t *)info;
+    if (node->type == PAYLOAD) {
+        prefix_array->prefix[prefix_array->count] = (payload_t *)node;
+        prefix_array->count++;
+    }
+    return SOC_E_NONE;
+}
+
+/* Get entry No. per bucket based on various setting */
+int
+_soc_th_alpm_bkt_entry_cnt(int u, int v6)
+{
+    int bkt_ent_max = 0;
+
+    /* Base entry number */
+    switch (v6) {
+    case L3_DEFIP_MODE_V4:
+        bkt_ent_max = ALPM_IPV4_BKT_COUNT;
+        break;
+    case L3_DEFIP_MODE_64:
+        bkt_ent_max = ALPM_IPV6_64_BKT_COUNT;
+        break;
+    case L3_DEFIP_MODE_128:
+        bkt_ent_max = ALPM_IPV6_128_BKT_COUNT;
+        break;
+    default:
+        bkt_ent_max = ALPM_IPV4_BKT_COUNT;
+        break;
+    }
+
+    /* Double-wide mode check */
+    if (SOC_TH_ALPM_SCALE_CHECK(u, v6)) {
+        bkt_ent_max <<= 1;
+    }
+
+    /* 2-bank mode check */
+    if (soc_th_get_alpm_banks(u) <= 2) {
+        bkt_ent_max >>= 1;
+    }
+
+    /* Global & vrf sharing & uRPF mode check */
+    if (soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_PARALLEL &&
+        SOC_URPF_STATUS_GET(u)) {
+        bkt_ent_max >>= 1;
+    }
+
+    return bkt_ent_max;
+}
+
+/* Get next occupied bucket, -1 means failed to get */
+static int
+_soc_th_alpm_bs_bitmap_get_next(int u, int start, alpm_bkt_bmp_t *alpm_bb)
+{
+    int i;
+
+    for (i = start + 1; i < SOC_TH_MAX_ALPM_BUCKETS; i++) {
+        if (SHR_BITGET(alpm_bb->bkt_bmp, i)) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+/* Connect TCAM entry to a bucket ID */
+static int
+_soc_th_alpm_move_relink(int u, int v6, int pivot_index, int bktid)
+{
+    int             rv = SOC_E_NONE;
+    int             lpm_index;
+    soc_mem_t       lpm_mem = L3_DEFIPm;
+    defip_entry_t   lpm_entry;
+    int             bidx, sbidx;
+
+    bidx        = ALPM_BKT_IDX(bktid);
+    sbidx       = ALPM_BKT_SIDX(bktid);
+
+    /* Connect TCAM entry to new bucket */
+    lpm_index = soc_th_alpm_logical_idx(u, lpm_mem, pivot_index >> 1, 1);
+
+    rv = soc_mem_read(u, lpm_mem, MEM_BLOCK_ANY, lpm_index, &lpm_entry);
+    SOC_IF_ERROR_RETURN(rv);
+    if ((!v6) && (pivot_index & 1)) {
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, &lpm_entry, ALG_BKT_PTR1f, bidx);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, &lpm_entry, ALG_SUB_BKT_PTR1f, sbidx);
+    } else {
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, &lpm_entry, ALG_BKT_PTR0f, bidx);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, &lpm_entry, ALG_SUB_BKT_PTR0f, sbidx);
+    }
+    rv = soc_mem_write(u, lpm_mem, MEM_BLOCK_ANY, lpm_index, &lpm_entry);
+    SOC_IF_ERROR_RETURN(rv);
+
+    if (SOC_URPF_STATUS_GET(u)) {
+        int _urpf_index = soc_th_alpm_logical_idx(u, lpm_mem, pivot_index >> 1, 1)
+                            + (soc_mem_index_count(u, lpm_mem) >> 1);
+        rv = READ_L3_DEFIPm(u, MEM_BLOCK_ANY, _urpf_index, &lpm_entry);
+        SOC_IF_ERROR_RETURN(rv);
+
+        if ((!v6) && (pivot_index & 1)) {
+            soc_mem_field32_set(u, lpm_mem, &lpm_entry, ALG_BKT_PTR1f,
+                                bidx + SOC_TH_ALPM_BUCKET_COUNT(u));
+            soc_mem_field32_set(u, lpm_mem, &lpm_entry, ALG_SUB_BKT_PTR1f, sbidx);
+        } else {
+            soc_mem_field32_set(u, lpm_mem, &lpm_entry, ALG_BKT_PTR0f,
+                                bidx + SOC_TH_ALPM_BUCKET_COUNT(u));
+            soc_mem_field32_set(u, lpm_mem, &lpm_entry, ALG_SUB_BKT_PTR0f, sbidx);
+        }
+
+        rv = WRITE_L3_DEFIPm(u, MEM_BLOCK_ANY, _urpf_index, &lpm_entry);
+        SOC_IF_ERROR_RETURN(rv);
+    }
+
+    return rv;
+}
+
+/* Move entries from one bucket ID to another bucket ID, and update
+ * related bookeeping info */
+static int
+_soc_th_alpm_move_trie(int u, int v6, int from_bkt, int to_bkt)
+{
+    int         *new_index = NULL, *old_index = NULL;
+    int         rv = SOC_E_NONE, rv2, i, idx_sz;
+    int         key_index, pivot_index;
+    uint32      bank_disable = 0;
+    soc_mem_t   mem;
+    void        *bufp, *sip_bufp;
+    trie_t      *trie = NULL;
+    payload_t   *pfx = NULL;
+    int16       vrf_type = 0;
+
+    alpm_mem_prefix_array_t *pa = NULL;
+
+    uint32      e[SOC_MAX_MEM_FIELD_WORDS];
+    defip_alpm_ipv4_entry_t alpmv4_entry, alpmv4_sip_entry;
+    defip_alpm_ipv6_64_entry_t alpmv6_entry, alpmv6_sip_entry;
+
+    int         fb, tob, fsb, tosb;
+
+#define _ALPM_IF_ERROR_GOTO_FREE(_rv) \
+    do { if ((_rv) < 0) { goto _free_exit; } } while(0)
+
+    idx_sz = sizeof(int) * MAX_PREFIX_PER_BUCKET;
+    new_index = sal_alloc(idx_sz, "new_index_move");
+    old_index = sal_alloc(idx_sz, "old_index_move");
+    pa = sal_alloc(sizeof(alpm_mem_prefix_array_t), "prefix_array");
+    if (new_index == NULL || old_index == NULL || pa == NULL) {
+        rv = SOC_E_MEMORY;
+        goto _free_exit;
+    }
+
+    fb      = ALPM_BKT_IDX(from_bkt);
+    fsb     = ALPM_BKT_SIDX(from_bkt);
+    tob     = ALPM_BKT_IDX(to_bkt);
+    tosb    = ALPM_BKT_SIDX(to_bkt);
+
+    SOC_ALPM_TABLE_MEM(u, v6, mem);
+    SOC_ALPM_ENTRY_BUF(v6, mem, bufp, alpmv4_entry, alpmv6_entry);
+    SOC_ALPM_ENTRY_BUF(v6, mem, sip_bufp, alpmv4_sip_entry, alpmv6_sip_entry);
+
+    pivot_index = SOC_ALPM_BS_BKT_USAGE_PIVOT(u, from_bkt);
+    trie = PIVOT_BUCKET_TRIE(ALPM_TCAM_PIVOT(u, pivot_index));
+    vrf_type = SOC_ALPM_BS_BKT_USAGE_VRF(u, from_bkt);
+    soc_th_alpm_bank_disb_get(u, vrf_type, &bank_disable);
+
+    sal_memset(pa, 0, sizeof(*pa));
+    /* Move prefix enteries(from new trie) to new pivot */
+    rv = trie_traverse(trie, _soc_th_alpm_mem_prefix_array_cb,
+                       pa, _TRIE_INORDER_TRAVERSE);
+    _ALPM_IF_ERROR_GOTO_FREE(rv);
+
+    /**
+     * Invalidate need to happen only after all the entries are
+     * written to the new pivot and the new pivot is valid. Otherwise
+     * there is a chance of MISS.
+     *
+     * hitless move:
+     * - Move entries to new bucket.
+     * - activate new pivot
+     * - delete entries from old bucket
+     */
+    sal_memset(new_index, -1, idx_sz);
+    sal_memset(old_index, -1, idx_sz);
+
+    for (i = 0; i < pa->count; i ++) {
+        pfx = pa->prefix[i];
+        if (pfx->index > 0) {
+            /* if this is the new prefix it does not exist in the
+             * bucket, no point reading */
+            rv = soc_mem_read(u, mem, MEM_BLOCK_ANY, pfx->index, bufp);
+            if (SOC_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                                      "soc_mem_read index %d failed\n"),
+                                      pfx->index));
+                goto _rollback;
+            }
+            soc_mem_field32_set(u, mem, bufp, SUB_BKT_PTRf, tosb);
+
+            if (SOC_URPF_STATUS_GET(u)) {
+                rv = soc_mem_read(u, mem, MEM_BLOCK_ANY,
+                                  _soc_th_alpm_rpf_entry(u, pfx->index),
+                                  sip_bufp);
+                if (SOC_FAILURE(rv)) {
+                    goto _rollback;
+                }
+                soc_mem_field32_set(u, mem, sip_bufp, SUB_BKT_PTRf, tosb);
+            }
+
+            /* entry shouldn't exist, insert the entry into the RAM */
+            rv = _soc_th_alpm_insert_in_bkt(u, mem, to_bkt,
+                                            bank_disable, bufp, e,
+                                            &key_index, v6);
+
+            if (SOC_SUCCESS(rv)) {
+                if (SOC_URPF_STATUS_GET(u)) {
+                    rv = soc_mem_write(u, mem, MEM_BLOCK_ANY,
+                                       _soc_th_alpm_rpf_entry(u, key_index),
+                                       sip_bufp);
+                    if (SOC_FAILURE(rv)) {
+                        goto _rollback;
+                    }
+                }
+            } else {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                                      "insert to bucket %d failed\n"), to_bkt));
+                goto _rollback;
+            }
+            new_index[i] = key_index;
+            old_index[i] = pfx->index;
+        }
+    } /* for */
+
+    /* Connect TCAM entry to new bucket */
+    rv = _soc_th_alpm_move_relink(u, v6, pivot_index, to_bkt);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "_soc_th_alpm_move_relink failed, pivot %d bkt %d\n"),
+                              pivot_index, to_bkt));
+        goto _rollback;
+    }
+
+    /* Invalide old entries */
+    rv = _soc_th_alpm_move_inval(u, mem, v6, pa, new_index);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "_soc_th_alpm_move_inval failed\n")));
+        goto _rollback;
+    }
+
+    /* Update hit bits */
+    rv = soc_th_alpm_update_hit_bits(u, pa->count, old_index, new_index);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "soc_th_alpm_update_hit_bits failed, count %d\n"),
+                              pa->count));
+        rv = SOC_E_NONE;
+    }
+
+    /* Update TCAM mgmt info */
+    PIVOT_BUCKET_INDEX(ALPM_TCAM_PIVOT(u, pivot_index)) = ALPM_BKTID(tob, tosb);
+
+    /* Update bucket sharing bookeeping info */
+    SOC_ALPM_BS_GLOBAL_BKT_USAGE_DEC(u, v6, fb);
+    SOC_ALPM_BS_BKT_USAGE_SB_DEL(u, fb, fsb, TRUE, pa->count);
+    SOC_ALPM_BS_GLOBAL_BKT_USAGE_INC(u, v6, fb);
+
+    SOC_ALPM_BS_GLOBAL_BKT_USAGE_DEC(u, v6, tob);
+    SOC_ALPM_BS_BKT_USAGE_SB_ADD(u, tob, tosb, pivot_index, vrf_type, pa->count);
+    SOC_ALPM_BS_GLOBAL_BKT_USAGE_INC(u, v6, tob);
+
+_rollback:
+    if (SOC_FAILURE(rv)) {
+        /* Connect TCAM back to original bucket */
+        rv2 = _soc_th_alpm_move_relink(u, v6, pivot_index, from_bkt);
+        _ALPM_IF_ERROR_GOTO_FREE(rv2);
+
+        /* Delete entry in new bucket */
+        for (i = 0; i < pa->count; i ++) {
+            if (new_index[i] == -1) {
+                continue;
+            }
+            rv2 = soc_mem_write(u, mem, MEM_BLOCK_ANY, new_index[i],
+                                soc_mem_entry_null(u, mem));
+            _ALPM_IF_ERROR_GOTO_FREE(rv2);
+            if (SOC_URPF_STATUS_GET(u)) {
+                rv2 = soc_mem_write(u, mem, MEM_BLOCK_ANY,
+                                    _soc_th_alpm_rpf_entry(u, new_index[i]),
+                                    soc_mem_entry_null(u, mem));
+                _ALPM_IF_ERROR_GOTO_FREE(rv2);
+            }
+        }
+    }
+
+_free_exit:
+    if (new_index != NULL) {
+        sal_free(new_index);
+    }
+    if (old_index != NULL) {
+        sal_free(old_index);
+    }
+    if (pa != NULL) {
+        sal_free(pa);
+    }
+
+    return rv;
+}
+
+/* Merge physical bucket 1 to bucket 2 */
+int
+soc_th_alpm_bs_merge(int u, int v6, int bkt1, int bkt2)
+{
+    /* if we go to here, the following condition MUST be met:
+     * 1) Total subbucket num of two buckets <= 4.
+     * 2) Total entry num of two buckets <= max entry of this bucket view
+     * 3) Same bucket view for these two buckets.
+     *
+     * We don't check condition here. Caller does.
+     */
+
+    /* Use add-move-invalidate to avoid traffic interrupt */
+    int rv = SOC_E_NONE;
+    alpm_bkt_usg_t *bu1, *bu2;
+    int src_sb, dst_sb;
+
+    /* 1) Get used sub bucket from bucket1 */
+    bu1 = &bkt_usage[u][bkt1];
+    bu2 = &bkt_usage[u][bkt2];
+    for (src_sb = 0; src_sb < SOC_TH_MAX_SUB_BUCKETS; src_sb++) {
+        if (!(bu1->sub_bkts & (1 << src_sb))) {
+            continue;
+        }
+        for (dst_sb = 0; dst_sb < SOC_TH_MAX_SUB_BUCKETS; dst_sb++) {
+            if ((bu2->sub_bkts & (1 << dst_sb)) != 0) {
+                continue;
+            }
+
+            if (v6 == L3_DEFIP_MODE_128) {
+                rv = _soc_th_alpm_128_move_trie(u, v6, ALPM_BKTID(bkt1, src_sb),
+                                                ALPM_BKTID(bkt2, dst_sb));
+            } else {
+                rv = _soc_th_alpm_move_trie(u, v6, ALPM_BKTID(bkt1, src_sb),
+                                            ALPM_BKTID(bkt2, dst_sb));
+            }
+            SOC_IF_ERROR_RETURN(rv);
+            break;
+        }
+    }
+
+    alpm_merge_count ++;
+
+    return SOC_E_NONE;
+}
+
+/* Only same VRF type can be merge together */
+static int
+_soc_th_alpm_bs_same_vrf_type(int u, int vrf1, int vrf2)
+{
+    if (vrf1 == vrf2) {
+        return 1;
+    }
+
+    if (vrf1 == (SOC_VRF_MAX(u) + 1) || vrf2 == (SOC_VRF_MAX(u) + 1)) {
+        return 0;
+    }
+
+    return 1;
+}
+
+/* Try to allocate a new bucket by merge least occupied process */
+static int
+_soc_th_alpm_bs_alloc(int u, int *bktid, int v6)
+{
+    int                 ent1, ent2, bkt_ent_max;
+    int                 bkt1, bkt2, ipver;
+    alpm_bkt_bmp_t      *bktbmp1, *bktbmp2;
+    alpm_bkt_usg_t      *bu1, *bu2;
+
+    /* SOC_E_FULL here, No empty buckets, start merging process */
+    for (ipver = 0; ipver < SOC_TH_MAX_ALPM_VIEWS; ipver++) {
+        bu1 = bu2 = NULL;
+        bkt_ent_max = _soc_th_alpm_bkt_entry_cnt(u, ipver);
+        for (ent1 = 1; ent1 <= (bkt_ent_max / 2); ent1++) {
+            bktbmp1 = &global_bkt_usage[u][ipver][ent1];
+            if (bktbmp1->bkt_count < 1) {
+                continue;
+            }
+
+            /* Get first bucket, always present */
+            bkt1 = _soc_th_alpm_bs_bitmap_get_next(u, -1, bktbmp1);
+            if (bkt1 == ALPM_BKT_IDX(*bktid)) {
+                /* Cannot be the one which needs to be split */
+                bkt1 = _soc_th_alpm_bs_bitmap_get_next(u, bkt1, bktbmp1);
+                if (bkt1 == -1) {
+                    continue;
+                }
+            }
+            bu1 = &bkt_usage[u][bkt1];
+
+            /* Try to get second bucket */
+            bkt2 = _soc_th_alpm_bs_bitmap_get_next(u, bkt1, bktbmp1);
+            while (bkt2 != -1) {
+                bu2 = &bkt_usage[u][bkt2];
+                if (!_soc_th_alpm_bs_same_vrf_type(u, bu1->vrf_type[0],
+                                                   bu2->vrf_type[0])) {
+                    bkt2 = _soc_th_alpm_bs_bitmap_get_next(u, bkt2, bktbmp1);
+                    continue;
+                }
+                if (_shr_popcount((uint32)bu1->sub_bkts) +
+                    _shr_popcount((uint32)bu2->sub_bkts) <= SOC_TH_MAX_SUB_BUCKETS) {
+                    break;
+                }
+                bkt2 = _soc_th_alpm_bs_bitmap_get_next(u, bkt2, bktbmp1);
+            }
+
+            /* Found */
+            if (bkt2 != -1) {
+                /* Move bu1 entries to bu2, and return bu1 as an empty bucket */
+                SOC_IF_ERROR_RETURN(soc_th_alpm_bs_merge(u, ipver, bkt1, bkt2));
+                *bktid = ALPM_BKTID(bkt1, 0);
+                return SOC_E_NONE;
+            }
+
+            /* No eligible item in this entry bitmap */
+            for (ent2 = ent1 + 1; ent2 < SOC_TH_MAX_BUCKET_ENTRIES; ent2++) {
+                bktbmp2 = &global_bkt_usage[u][ipver][ent2];
+                if (bktbmp2->bkt_count <= 0) {
+                    continue;
+                }
+
+                if ((ent1 + ent2) > bkt_ent_max) {
+                    break;
+                }
+
+                bkt2 = _soc_th_alpm_bs_bitmap_get_next(u, -1, bktbmp2);
+                while (bkt2 != -1) {
+                    bu2 = &bkt_usage[u][bkt2];
+                    if ((bkt2 == bkt1) ||
+                        (!_soc_th_alpm_bs_same_vrf_type(u, bu1->vrf_type[0],
+                                                        bu2->vrf_type[0]))) {
+                        bkt2 = _soc_th_alpm_bs_bitmap_get_next(u, bkt2, bktbmp2);
+                        continue;
+                    }
+                    if ((_shr_popcount((uint32)bu1->sub_bkts) +
+                         _shr_popcount((uint32)bu2->sub_bkts))
+                        <= SOC_TH_MAX_SUB_BUCKETS) {
+                        break;
+                    }
+                    bkt2 = _soc_th_alpm_bs_bitmap_get_next(u, bkt2, bktbmp2);
+                }
+
+                /* Found */
+                if (bkt2 != -1) {
+                    /* Move bu1 to bu2, and return bu1 as an empty bucket */
+                    SOC_IF_ERROR_RETURN(soc_th_alpm_bs_merge(u, ipver,
+                                        bkt1, bkt2));
+                    *bktid = ALPM_BKTID(bkt1, 0);
+                    return SOC_E_NONE;
+                }
+
+                /* Not found */
+            }
+        } /* For ent */
+    }
+
+    /* Not found, means every bucket util > 50% and can't merge them,
+     * Trying to alloc a sub bucket from least occupied bucket, should use
+     * same iptype */
+    bkt_ent_max = _soc_th_alpm_bkt_entry_cnt(u, v6);
+    for (ent1 = 1; ent1 < bkt_ent_max; ent1++) {
+        bktbmp1 = &global_bkt_usage[u][v6][ent1];
+        if (bktbmp1->bkt_count < 1) {
+            continue;
+        }
+
+        /* Get first bucket, always present */
+        bkt1 = _soc_th_alpm_bs_bitmap_get_next(u, -1, bktbmp1);
+        if (bkt1 == ALPM_BKT_IDX(*bktid)) {
+            /* Cannot be the one which needs to be split */
+            bkt1 = _soc_th_alpm_bs_bitmap_get_next(u, bkt1, bktbmp1);
+            if (bkt1 == -1) {
+                continue;
+            }
+        }
+        bu1 = &bkt_usage[u][bkt1];
+
+        for (ent2 = 0; ent2 < SOC_TH_MAX_SUB_BUCKETS; ent2++) {
+            if (bu1->sub_bkts & (1 << ent2)) {
+                continue;
+            }
+            *bktid = ALPM_BKTID(bkt1, ent2);
+            return SOC_E_NONE;
+        }
+    }
+
+    /* Reach to this point, Fail to get a merge */
+    return SOC_E_FULL;
+}
+
+/* Trying to allocate an empty bucket, if no available bucket, start
+ * merging process */
+int
+soc_th_alpm_bs_alloc(int u, int *bktid, int vrf, int v6)
+{
+    int rv = SOC_E_NONE;
+
+    rv = soc_th_alpm_bucket_assign(u, bktid, vrf, v6);
+    if (rv != SOC_E_FULL) {
+        *bktid = ALPM_BKTID(*bktid, 0);
+        return rv;
+    }
+    rv = _soc_th_alpm_bs_alloc(u, bktid, v6);
+    return rv;
+}
+
+/* Free a logical bucket (bucket ID), if bucket is empty, then
+ * free the physical bucket */
+int
+soc_th_alpm_bs_free(int u, int bktid, int vrf, int v6)
+{
+    int rv = SOC_E_NONE;
+    alpm_bkt_usg_t *bu;
+    int bkt_idx, subbkt_idx;
+
+    bkt_idx = ALPM_BKT_IDX(bktid);
+    subbkt_idx = ALPM_BKT_SIDX(bktid);
+
+    bu = &bkt_usage[u][bkt_idx];
+    bu->sub_bkts &= ~(1 << subbkt_idx);
+    bu->pivots[subbkt_idx] = 0;
+
+    if (bu->count == 0) {
+        bu->vrf_type[subbkt_idx] = 0;
+        rv = soc_th_alpm_bucket_release(u, bkt_idx, vrf, v6);
+    }
+
+    return rv;
+}
+
+/* Update bucket usage bookeeping info */
+int
+soc_th_alpm_bu_upd(int u, int bucket, int tcam_index, int vrf_or_clear, int v6, int diff)
+{
+    int bkt_idx, subbkt_idx;
+
+    bkt_idx = ALPM_BKT_IDX(bucket);
+    subbkt_idx = ALPM_BKT_SIDX(bucket);
+
+    SOC_ALPM_BS_GLOBAL_BKT_USAGE_DEC(u, v6, bkt_idx);
+    if (diff > 0) {
+        SOC_ALPM_BS_BKT_USAGE_SB_ADD(u, bkt_idx, subbkt_idx, tcam_index, \
+                                     vrf_or_clear, diff);
+    } else if (diff < 0) {
+        SOC_ALPM_BS_BKT_USAGE_SB_DEL(u, bkt_idx, subbkt_idx, vrf_or_clear, \
+                                     -diff);
+    }
+    SOC_ALPM_BS_GLOBAL_BKT_USAGE_INC(u, v6, bkt_idx);
+
+    return SOC_E_NONE;
+}
+
+/* Dump bucket sharing bookeeping info */
+int
+soc_th_alpm_bs_dump_brief(int u, const char *pfx)
+{
+    int                 i, view, ent, bkt, conflict = 0;
+    int                 step_count = 1, used = 0;
+    alpm_bkt_bmp_t      *glb_bu = NULL;
+    alpm_bkt_usg_t      *bu = NULL;
+    int                 *pivot;
+
+    char *view_str[] = {"IPv4", "IPv6-64", "IPv6-128"};
+
+    pivot = sal_alloc(sizeof(int) * 16384, "pivot");
+    if (pivot == NULL) {
+        return SOC_E_MEMORY;
+    }
+    sal_memset(pivot, 0, sizeof(int) * 16384);
+
+    /* global_bkt_usage info */
+    for (view = 0; view < SOC_TH_MAX_ALPM_VIEWS; view++) {
+        LOG_CLI((BSL_META_U(u, "\n[- %8s -]\n"), view_str[view]));
+        LOG_CLI((BSL_META_U(u,
+                "=================================================\n")));
+        LOG_CLI((BSL_META_U(u, " %5s | %5s %10s\n"), "entry", "count", "1st-bktbmp"));
+        LOG_CLI((BSL_META_U(u,
+                "=================================================\n")));
+        bkt = 0;
+        for (ent = 0; ent < SOC_TH_MAX_BUCKET_ENTRIES; ent++) {
+            glb_bu = &global_bkt_usage[u][view][ent];
+            if (glb_bu->bkt_count == 0) {
+                continue;
+            }
+
+            bkt ++;
+            LOG_CLI((BSL_META_U(u, " %5d   %5d"), ent, glb_bu->bkt_count));
+            for (i = 0; i < SOC_TH_MAX_ALPM_BUCKETS; i++) {
+                if (SHR_BITGET(glb_bu->bkt_bmp, i)) {
+                    LOG_CLI((BSL_META_U(u, " 0x%08x\n"), glb_bu->bkt_bmp[i / SHR_BITWID]));
+                    break;
+                }
+            }
+        }
+
+        if (bkt == 0) {
+            LOG_CLI((BSL_META_U(u, "- None - \n")));
+        }
+    }
+
+    /* bkt_usage info */
+    ent = 0;
+    LOG_CLI((BSL_META_U(u, "%5s | %s\n"), "bkt", "(sub-bkt-idx, tcam-idx)"));
+    LOG_CLI((BSL_META_U(u, "=================================================\n")));
+    for (bkt = 0; bkt < SOC_TH_MAX_ALPM_BUCKETS; bkt++) {
+        bu = &bkt_usage[u][bkt];
+        if (bu->count == 0) {
+            continue;
+        }
+
+        ent ++;
+        conflict = 0;
+        LOG_CLI((BSL_META_U(u, "%5d | "), bkt));
+        for (i = 0; i < 4; i++) {
+            if (bu->sub_bkts & (1 << i)) {
+                LOG_CLI((BSL_META_U(u, "(%d, %5d) "), i, bu->pivots[i]));
+                if (pivot[bu->pivots[i]] != 0) {
+                    conflict = i + 1;
+                } else {
+                    pivot[bu->pivots[i]] = bkt;
+                }
+            }
+        }
+        LOG_CLI((BSL_META_U(u, "\n")));
+        if (conflict) {
+            LOG_CLI((BSL_META_U(u, "Error: multi-buckets were linked to pivot %d, prev %d, curr %d\n"),
+                    bu->pivots[conflict - 1], pivot[bu->pivots[conflict - 1]], bkt));
+        }
+    }
+
+    if (ent == 0) {
+        LOG_CLI((BSL_META_U(u, "- None - \n")));
+    }
+
+    LOG_CLI((BSL_META_U(u, "\n")));
+
+    /* Assigned bucket bitmap */
+    if (SOC_TH_ALPM_SCALE_CHECK(u, 1)) {
+        step_count = 2;
+    }
+
+    bkt = 0;
+    for (i = 0; i < SOC_TH_ALPM_BUCKET_COUNT(u); i += step_count) {
+        SHR_BITTEST_RANGE(SOC_TH_ALPM_VRF_BUCKET_BMAP(u), i, step_count, used);
+        if (used) {
+            bkt ++;
+        }
+    }
+    LOG_CLI((BSL_META_U(u, "VRF Route buckets: %5d\n"), bkt));
+
+    if (soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_PARALLEL &&
+        SOC_URPF_STATUS_GET(u)) {
+        bkt = 0;
+        for (i = 0; i < SOC_TH_ALPM_BUCKET_COUNT(u); i += step_count) {
+            SHR_BITTEST_RANGE(SOC_TH_ALPM_GLB_BUCKET_BMAP(u), i, step_count, used);
+            if (used) {
+                bkt ++;
+            }
+        }
+        LOG_CLI((BSL_META_U(u, "Global Route buckets: %5d\n"), bkt));
+    }
+
+    sal_free(pivot);
+
+    return SOC_E_NONE;
+}
+
+/* initialize the shadow table entry's BPM_LEN field correctly */
+static int _soc_th_alpm_update_bpm_len(int u, int new_tcam_index, int v6,
+                                    int bpm_len)
+{
+    int rv, tmp, index;
+    defip_aux_table_entry_t entry;
+
+    index = new_tcam_index >> (v6 ? 0 : 1);
+    rv = soc_mem_read(u, L3_DEFIP_AUX_TABLEm, MEM_BLOCK_ANY, index, &entry);
+    SOC_IF_ERROR_RETURN(rv);
+    if (v6) {
+        soc_mem_field32_set(u, L3_DEFIP_AUX_TABLEm, &entry, BPM_LENGTH0f,
+                            bpm_len);
+        soc_mem_field32_set(u, L3_DEFIP_AUX_TABLEm, &entry, BPM_LENGTH1f,
+                            bpm_len);
+        tmp = soc_mem_field32_get(u, L3_DEFIP_AUX_TABLEm, &entry, DB_TYPE0f);
+    } else {
+        if (new_tcam_index & 1) {
+            soc_mem_field32_set(u, L3_DEFIP_AUX_TABLEm, &entry, BPM_LENGTH1f,
+                                bpm_len);
+            tmp = soc_mem_field32_get(u, L3_DEFIP_AUX_TABLEm, &entry,
+                                      DB_TYPE1f);
+        } else {
+            soc_mem_field32_set(u, L3_DEFIP_AUX_TABLEm, &entry, BPM_LENGTH0f,
+                                bpm_len);
+            tmp = soc_mem_field32_get(u, L3_DEFIP_AUX_TABLEm, &entry,
+                                      DB_TYPE0f);
+        }
+    }
+    /* write entry back */
+    rv = soc_mem_write(u, L3_DEFIP_AUX_TABLEm, MEM_BLOCK_ANY, index, &entry);
+    SOC_IF_ERROR_RETURN(rv);
+
+    /* if URPF enabled update shadow too */
+    if (SOC_URPF_STATUS_GET(u)) {
+        tmp++; /* update to SIP DB types */
+        if (v6) {
+            soc_mem_field32_set(u, L3_DEFIP_AUX_TABLEm, &entry, BPM_LENGTH0f,
+                                bpm_len);
+            soc_mem_field32_set(u, L3_DEFIP_AUX_TABLEm, &entry, BPM_LENGTH1f,
+                                bpm_len);
+        } else {
+            if (new_tcam_index & 1) {
+                soc_mem_field32_set(u, L3_DEFIP_AUX_TABLEm, &entry, BPM_LENGTH1f,
+                                    bpm_len);
+            } else {
+                soc_mem_field32_set(u, L3_DEFIP_AUX_TABLEm, &entry, BPM_LENGTH0f,
+                                    bpm_len);
+            }
+        }
+        soc_mem_field32_set(u, L3_DEFIP_AUX_TABLEm, &entry, DB_TYPE0f, tmp);
+        soc_mem_field32_set(u, L3_DEFIP_AUX_TABLEm, &entry, DB_TYPE1f, tmp);
+        index += (2*soc_mem_index_count(u, L3_DEFIP_PAIR_128m) +
+                  soc_mem_index_count(u, L3_DEFIPm))/2;
+        rv = soc_mem_write(u, L3_DEFIP_AUX_TABLEm, MEM_BLOCK_ANY, index,
+                           &entry);
+    }
+    return rv;
+
+}
+
+
+/* create shadow entry copy of primary tcam entry at index */
+static int
+_soc_th_alpm_tcam_shadow_ent_init(int u, int r_index, void *entry, void *shadow,
+                               int w_index)
+{
+    uint32 tmp, ip_mask, v6, db_type, ent_type, urpf = 0;
+    soc_mem_t s_mem = L3_DEFIP_AUX_TABLEm;
+    defip_entry_t tmp_ipv4;
+    int rv = SOC_E_NONE, pfx, pfx2, vrf, vrf2;
+
+    SOC_IF_ERROR_RETURN(soc_mem_read(u, s_mem, MEM_BLOCK_ANY, r_index,
+                        shadow));
+
+    /* Clean dirty data */
+    if (soc_mem_field32_get(u, s_mem, shadow, VALID0f) == 0) {
+        soc_mem_field32_set(u, s_mem, shadow, BPM_LENGTH0f, 0);
+    }
+
+    if (soc_mem_field32_get(u, s_mem, shadow, VALID1f) == 0) {
+        soc_mem_field32_set(u, s_mem, shadow, BPM_LENGTH1f, 0);
+    }
+
+    tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, VRF_ID_0f);
+    soc_mem_field32_set(u, s_mem, shadow, VRF0f, tmp);
+    tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, VRF_ID_1f);
+    soc_mem_field32_set(u, s_mem, shadow, VRF1f, tmp);
+
+    tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, MODE0f);
+    soc_mem_field32_set(u, s_mem, shadow, MODE0f, tmp);
+    tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, MODE1f);
+    soc_mem_field32_set(u, s_mem, shadow, MODE1f, tmp);
+    v6 = tmp;
+
+    /* for now simply copy all fields. Let caller decide which half to use */
+    tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, VALID0f);
+    soc_mem_field32_set(u, s_mem, shadow, VALID0f, tmp);
+    tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, VALID1f);
+    soc_mem_field32_set(u, s_mem, shadow, VALID1f, tmp);
+
+
+    /* IP_LENGTH */
+    tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR_MASK0f);
+    if ((rv = _ipmask2pfx(tmp, &pfx)) < 0) {
+        return rv;
+    }
+    ip_mask = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR_MASK1f);
+    if ((rv = _ipmask2pfx(ip_mask, &pfx2)) < 0) {
+        return rv;
+    }
+    if (v6) {
+        soc_mem_field32_set(u, s_mem, shadow, IP_LENGTH0f, pfx + pfx2);
+        soc_mem_field32_set(u, s_mem, shadow, IP_LENGTH1f, pfx + pfx2);
+    } else {
+        soc_mem_field32_set(u, s_mem, shadow, IP_LENGTH0f, pfx);
+        soc_mem_field32_set(u, s_mem, shadow, IP_LENGTH1f, pfx2);
+    }
+
+    /* IP_ADDR */
+    tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR0f);
+    soc_mem_field32_set(u, s_mem, shadow, IP_ADDR0f, tmp);
+    tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR1f);
+    soc_mem_field32_set(u, s_mem, shadow, IP_ADDR1f, tmp);
+
+    /* DB_TYPE & ENTRY_TYPE */
+    /* for v4 need to be careful */
+    if (!v6) {
+        sal_memcpy(&tmp_ipv4, entry, sizeof(tmp_ipv4));
+        /* vrf for ipv4 entry 0 */
+        rv = soc_th_alpm_lpm_vrf_get(u, (void *)&tmp_ipv4, &vrf, &pfx);
+        SOC_IF_ERROR_RETURN(rv);
+
+        /* vrf for ipv4 entry 1 */
+        SOC_IF_ERROR_RETURN(soc_th_alpm_lpm_ip4entry1_to_0(u, &tmp_ipv4,
+                            &tmp_ipv4, PRESERVE_HIT));
+        rv = soc_th_alpm_lpm_vrf_get(u, (void *)&tmp_ipv4, &vrf2, &pfx2);
+        SOC_IF_ERROR_RETURN(rv);
+    } else {
+        rv = soc_th_alpm_lpm_vrf_get(u, entry, &vrf, &pfx);
+    }
+    if (SOC_URPF_STATUS_GET(u)) {
+        if (w_index >= (soc_mem_index_count(u, L3_DEFIPm) >> 1)) {
+            urpf = 1;
+        }
+    }
+
+    soc_alpm_db_ent_type_encoding(u, pfx, &db_type, &ent_type);
+
+    if (vrf == SOC_L3_VRF_OVERRIDE) {
+        soc_mem_field32_set(u, s_mem, shadow, VALID0f, 0);
+        db_type = 0; /* don't care */
+    } else {
+        if (urpf) {
+            db_type += 1;
+        }
+    }
+
+    soc_mem_field32_set(u, s_mem, shadow, DB_TYPE0f, db_type);
+    tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, ENTRY_TYPE0f);
+    soc_mem_field32_set(u, s_mem, shadow, ENTRY_TYPE0f, tmp | ent_type);
+    if (!v6) {
+        soc_alpm_db_ent_type_encoding(u, pfx2, &db_type, &ent_type);
+        if (vrf2 == SOC_L3_VRF_OVERRIDE) {
+            soc_mem_field32_set(u, s_mem, shadow, VALID1f, 0);
+            db_type = 0; /* don't care */
+        } else {
+            /* Database to be searched is VRF - DIP */
+            if (urpf) {
+                db_type += 1;
+            }
+        }
+
+        soc_mem_field32_set(u, s_mem, shadow, DB_TYPE1f, db_type);
+        tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, ENTRY_TYPE1f);
+        soc_mem_field32_set(u, s_mem, shadow, ENTRY_TYPE1f, tmp | ent_type);
+    } else {
+        if (vrf == SOC_L3_VRF_OVERRIDE) {
+            soc_mem_field32_set(u, s_mem, shadow, VALID1f, 0);
+        }
+        soc_mem_field32_set(u, s_mem, shadow, DB_TYPE1f, db_type);
+        tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, ENTRY_TYPE1f);
+        soc_mem_field32_set(u, s_mem, shadow, ENTRY_TYPE1f, tmp | ent_type);
+    }
+
+    /* modify bucket index if urpf is enabled */
+    if (urpf) {
+        tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, ALG_BKT_PTR0f);
+        if (tmp) {
+            tmp += SOC_TH_ALPM_BUCKET_COUNT(u);
+            SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, entry, ALG_BKT_PTR0f, tmp);
+        }
+        tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, ALG_SUB_BKT_PTR0f);
+        if (tmp) {
+            SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, entry, ALG_SUB_BKT_PTR0f, tmp);
+        }
+        if (!v6) {
+            tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, ALG_BKT_PTR1f);
+            if (tmp) {
+                tmp += SOC_TH_ALPM_BUCKET_COUNT(u);
+                SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, entry, ALG_BKT_PTR1f, tmp);
+            }
+            tmp = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, ALG_SUB_BKT_PTR1f);
+            if (tmp) {
+                SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, entry, ALG_SUB_BKT_PTR1f, tmp);
+            }
+        }
+    }
+
+    /* BPM_LENGTH */
+    /* don't modify, preserve existing values */
+    return SOC_E_NONE;
+}
+
+static int
+_soc_th_alpm_write_pivot(int u, int copyno, int index, int s_index, void *entry)
+{
+    defip_aux_table_entry_t shadow;
+
+    /* convert from logical to physical indices */
+    s_index = soc_th_alpm_physical_idx(u, L3_DEFIPm, s_index, 1);
+    SOC_IF_ERROR_RETURN(_soc_th_alpm_tcam_shadow_ent_init(u, s_index, entry,
+                        (void *)&shadow, index));
+
+    /* write to defip has to be logical */
+    SOC_IF_ERROR_RETURN(WRITE_L3_DEFIPm(u, MEM_BLOCK_ANY,
+                         index, entry));
+
+    /* write to shadow table has to be physical */
+    index = soc_th_alpm_physical_idx(u, L3_DEFIPm, index, 1);
+    SOC_IF_ERROR_RETURN(WRITE_L3_DEFIP_AUX_TABLEm(u, MEM_BLOCK_ANY,
+                         index, &shadow));
+    return SOC_E_NONE;
+}
+
+int
+_soc_th_alpm_insert_in_bkt(int u, soc_mem_t mem, int bktid,
+                        int bank_disable, void *alpm_data,
+                        uint32 *e, int *key_index, int v6)
+{
+    int rv;
+
+    rv = soc_mem_alpm_insert(u, mem, ALPM_BKT_IDX(bktid),
+                             MEM_BLOCK_ANY, bank_disable, alpm_data, e,
+                             key_index);
+    if (rv == SOC_E_FULL) {
+        /* in combined search mode non-urpf try inserting into next bkt for v6*/
+        if (SOC_TH_ALPM_SCALE_CHECK(u, v6)) {
+            rv = soc_mem_alpm_insert(u, mem, ALPM_BKT_IDX(bktid)+1,
+                             MEM_BLOCK_ANY,
+                             bank_disable,
+                             alpm_data, e, key_index);
+        }
+    }
+    return rv;
+}
+
+
+/* ALPM Table Address Translation
+ * Bank     addr[1:0]
+ * Bucket   addr[15:2]
+ * Entry    addr[16]    L3_DEFIP_ALPM_IPV6_128m
+ *          addr[16:17] L3_DEFIP_ALPM_IPV6_64m
+ *          addr[16:18] L3_DEFIP_ALPM_IPV4m
+ */
+int
+_soc_th_alpm_mem_index(int u, soc_mem_t mem, int bucket_index, int offset,
+                       uint32 bank_disable, int *mem_index)
+{
+    int i, bidx = 0;
+    int baddr_arr[4] = {0};
+    int bnk_index = 0;
+    int ent_index = 0;
+    int avail_bank_num;
+
+    int ent_cnt = 6;
+    int alpm_th_bank_num;
+    int ent_start_bit;
+    int bkt_start_bit;
+    int alpm_th_bank_mask = 0;
+    switch (mem) {
+    case L3_DEFIP_ALPM_IPV6_64m:
+        ent_cnt = 4;
+        break;
+    case L3_DEFIP_ALPM_IPV6_128m:
+        ent_cnt = 2;
+        break;
+    default:
+        break;
+    }
+
+    if (SOC_TH_ALPM_SCALE_CHECK(u, (mem != L3_DEFIP_ALPM_IPV4m))) {
+        if (offset >= ALPM_RAW_BKT_COUNT * ent_cnt) {
+            bucket_index ++;
+            offset -= ALPM_RAW_BKT_COUNT * ent_cnt;
+        }
+    }
+
+    alpm_th_bank_num = 4;
+    ent_start_bit = 15;
+    bkt_start_bit = 2;
+    if (soc_th_get_alpm_banks(u) <= 2) {
+        alpm_th_bank_num = 2;
+        ent_start_bit = 14;
+        bkt_start_bit = 1;
+    }
+
+    alpm_th_bank_mask = ((1 << alpm_th_bank_num) - 1);
+    avail_bank_num = alpm_th_bank_num -
+                     _shr_popcount(bank_disable & alpm_th_bank_mask);
+
+    if (bucket_index >= (1 << ent_start_bit)
+        || offset >= avail_bank_num * ent_cnt) {
+        return SOC_E_PARAM;
+    }
+
+    ent_index = offset % ent_cnt;
+
+    /* Prepare bank address array for offset */
+    for (i = 0; i < alpm_th_bank_num; i++) {
+        if ((1 << i) & bank_disable) {
+            continue;
+        }
+
+        baddr_arr[bidx++] = i;
+    }
+
+    bnk_index = baddr_arr[offset / ent_cnt];
+
+    *mem_index = (ent_index << ent_start_bit)       |
+                 (bucket_index << bkt_start_bit)    |
+                 (bnk_index);
+
+    return SOC_E_NONE;
+}
+
+static int
+_soc_th_alpm_move_inval(int u, soc_mem_t mem, int v6,
+                        alpm_mem_prefix_array_t *pa, int *new_index)
+{
+    int i, rv = SOC_E_NONE, rv2;
+    defip_alpm_ipv4_entry_t alpmv4_entry;
+    defip_alpm_ipv6_64_entry_t alpmv6_entry;
+    int entsz, sz;
+    void *rb_bufp = NULL, *rb_sip_bufp = NULL;
+    int *rb_index = NULL;
+    int rollback = FALSE;
+
+    /* Invalidation process
+     * 1. allocate entry buffer for rollback
+     * 2. if invalidation successfully, free the buffer
+     * 3. if invalidation failed, use the buffer for rollback then free it
+     */
+    entsz = v6 ? sizeof(alpmv6_entry) : sizeof(alpmv4_entry);
+    sz = entsz * pa->count;
+    rb_bufp = sal_alloc(sz, "rb_bufp");
+    rb_sip_bufp = sal_alloc(sz, "rb_sip_bufp");
+    rb_index = sal_alloc(sizeof(*rb_index) * pa->count, "roll_back_index");
+    if (rb_bufp == NULL || rb_sip_bufp == NULL || rb_index == NULL) {
+        rv = SOC_E_MEMORY;
+        goto _rb_free;
+    }
+
+    sal_memset(rb_index, -1, sizeof(*rb_index) * pa->count);
+
+    for (i = 0; i < pa->count; i ++) {
+        payload_t *prefix = pa->prefix[i];
+
+        if (prefix->index >= 0) {
+            rv = soc_mem_read(u, mem, MEM_BLOCK_ANY, prefix->index,
+                              (uint8 *)rb_bufp + i * entsz);
+            /* helps with failure recovery */
+            if (SOC_FAILURE(rv)) {
+                i --;
+                rollback = TRUE;
+                break;
+            }
+
+            if (SOC_URPF_STATUS_GET(u)) {
+                rv = soc_mem_read(u, mem, MEM_BLOCK_ANY,
+                                  _soc_th_alpm_rpf_entry(u, prefix->index),
+                                  (uint8 *)rb_sip_bufp + i * entsz);
+                /* helps with failure recovery */
+                if (SOC_FAILURE(rv)) {
+                    i --;
+                    rollback = TRUE;
+                    break;
+                }
+            }
+
+            /* zero out old entries now that split is done */
+            rv = soc_mem_write(u, mem, MEM_BLOCK_ALL, prefix->index,
+                               soc_mem_entry_null(u, mem));
+            if (SOC_FAILURE(rv)) {
+                rb_index[i] = prefix->index;
+                rollback = TRUE;
+                break;
+            }
+
+            if (SOC_URPF_STATUS_GET(u)) {
+                rv = soc_mem_write(u, mem, MEM_BLOCK_ANY,
+                                   _soc_th_alpm_rpf_entry(u, prefix->index),
+                                   soc_mem_entry_null(u, mem));
+                if (SOC_FAILURE(rv)) {
+                    rb_index[i] = prefix->index;
+                    rollback = TRUE;
+                    break;
+                }
+            }
+        }
+
+        rb_index[i] = prefix->index;
+        prefix->index = new_index[i];
+    }
+
+    /* rollback failure to invalidate old bucket entries */
+    /* re-validate old bucket entries */
+    if (rollback) {
+        for (; i >= 0; i--) {
+            payload_t *prefix = pa->prefix[i];
+
+            /* Recover prefix index */
+            prefix->index = rb_index[i];
+
+            if (rb_index[i] < 0) {
+                continue;
+            }
+
+            rv2 = soc_mem_write(u, mem, MEM_BLOCK_ALL, rb_index[i],
+                                (uint8 *)rb_bufp + i * entsz);
+            if (SOC_FAILURE(rv2)) {
+                break;
+            }
+
+            if (!SOC_URPF_STATUS_GET(u)) {
+                continue;
+            }
+
+            /* UPRF entry */
+            rv2 = soc_mem_write(u, mem, MEM_BLOCK_ALL,
+                                _soc_th_alpm_rpf_entry(u, rb_index[i]),
+                                (uint8 *)rb_sip_bufp + i * entsz);
+            if (SOC_FAILURE(rv2)) {
+                break;
+            }
+        }
+    }
+
+_rb_free:
+    if (rb_index != NULL) {
+        sal_free(rb_index);
+    }
+
+    if (rb_sip_bufp != NULL) {
+        sal_free(rb_sip_bufp);
+    }
+
+    if (rb_bufp != NULL) {
+        sal_free(rb_bufp);
+    }
+
+    return rv;
+}
+
+void
+_soc_th_alpm_rollback_pivot_add(int u, int v6, defip_entry_t *plpm_entry,
+                                void *key_data, int tcam_index,
+                                alpm_pivot_t *pivot_pyld)
+{
+
+    int         rv;
+    trie_t      *pivot_trie = NULL;
+    int         vrf, vrf_id;
+    trie_node_t *delp = NULL;
+
+    (void)soc_th_alpm_lpm_vrf_get(u, key_data, &vrf_id, &vrf);
+
+    /* delete new pivot */
+    /* free pivot lpm entry */
+    rv = soc_th_alpm_lpm_delete(u, plpm_entry);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "_soc_alpm_insert: Failure to free new prefix"
+                              "at %d\n"), soc_th_alpm_logical_idx(u, L3_DEFIPm,
+                              tcam_index, v6)));
+    }
+
+    if (v6) {
+        pivot_trie = VRF_PIVOT_TRIE_IPV6(u, vrf);
+    } else {
+        pivot_trie = VRF_PIVOT_TRIE_IPV4(u, vrf);
+    }
+    if (ALPM_TCAM_PIVOT(u, tcam_index << (v6 ? 1 : 0)) != NULL) {
+        rv = trie_delete(pivot_trie, pivot_pyld->key, pivot_pyld->len, &delp);
+        if (SOC_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_SOC_ALPM,
+                      (BSL_META_U(u,
+                                  "_soc_alpm_insert: trie delete failure "
+                                  "in bkt move rollback\n")));
+        }
+    }
+    ALPM_TCAM_PIVOT(u, tcam_index << (v6 ? 1 : 0)) = NULL;
+    VRF_PIVOT_REF_DEC(u, vrf, v6);
+}
+
+int
+_soc_th_alpm_rollback_bkt_move(int u, int v6, void *key_data, soc_mem_t mem,
+                  alpm_pivot_t *old_pivot_pyld, alpm_pivot_t *new_pivot_pyld,
+                  alpm_mem_prefix_array_t *p_prefix_array,
+                  int *new_index, int new_insert)
+{
+    trie_node_t *delp = NULL;
+    uint32      prefix[5], length;
+    trie_t      *pfx_trie;
+    int         vrf, vrf_id, i, default_route = 0;
+    defip_alpm_ipv4_entry_t alpmv4_entry;
+    defip_alpm_ipv6_64_entry_t alpmv6_entry;
+    defip_alpm_ipv6_128_entry_t alpmv6_128_entry;
+
+    void        *bufp;
+    payload_t   *payload;
+    int         rv = SOC_E_NONE;
+    alpm_bucket_handle_t *bucket_handle;
+
+    bucket_handle = PIVOT_BUCKET_HANDLE(new_pivot_pyld);
+
+    /* rollback failure to move new bucket entries */
+    /* move prefixes from new trie back to old bucket trie */
+    /* clear entry from new bucket */
+
+    /* Create Prefix */
+    if (mem == L3_DEFIP_ALPM_IPV6_128m) {
+        rv = _soc_th_alpm_128_prefix_create(u, key_data, prefix, &length,
+                                            &default_route);
+    } else {
+        rv = _soc_th_alpm_prefix_create(u, v6, key_data, prefix, &length,
+                                        &default_route);
+    }
+
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u, "prefix create failed\n")));
+        return rv;
+    }
+
+    /* Assign entry buf based on table being used */
+    if (mem == L3_DEFIP_ALPM_IPV6_128m) {
+        SOC_ALPM_ENTRY_BUF_128(v6, mem, bufp, 0, alpmv6_128_entry);
+        (void)soc_th_alpm_128_lpm_vrf_get(u, key_data, &vrf_id, &vrf);
+    } else {
+        SOC_ALPM_ENTRY_BUF(v6, mem, bufp, alpmv4_entry, alpmv6_entry);
+        (void)soc_th_alpm_lpm_vrf_get(u, key_data, &vrf_id, &vrf);
+    }
+
+    /* prefix trie */
+    if (mem == L3_DEFIP_ALPM_IPV6_128m) {
+        pfx_trie = VRF_PREFIX_TRIE_IPV6_128(u, vrf);
+    } else if (v6) {
+        pfx_trie = VRF_PREFIX_TRIE_IPV6(u, vrf);
+    } else {
+        pfx_trie = VRF_PREFIX_TRIE_IPV4(u, vrf);
+    }
+
+    for (i = 0; i < p_prefix_array->count; i ++) {
+        payload_t *pfx = p_prefix_array->prefix[i];
+        /* if there is a valid index in new bucket, first clear that
+         * bucket */
+        if (new_index[i] != -1) {
+            if (mem == L3_DEFIP_ALPM_IPV6_128m) {
+                sal_memset(bufp, 0, sizeof(defip_alpm_ipv6_128_entry_t));
+            } else if (v6) {
+                sal_memset(bufp, 0, sizeof(defip_alpm_ipv6_64_entry_t));
+            } else {
+                sal_memset(bufp, 0, sizeof(defip_alpm_ipv4_entry_t));
+            }
+
+            rv = soc_mem_write(u, mem, MEM_BLOCK_ANY, new_index[i], bufp);
+            if (SOC_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                                      "_soc_alpm_insert: mem write failure"
+                                      "in bkt move rollback\n")));
+            }
+            if (SOC_URPF_STATUS_GET(u)) {
+                rv = soc_mem_write(u, mem, MEM_BLOCK_ANY,
+                                    _soc_th_alpm_rpf_entry(u, new_index[i]), bufp);
+                if (SOC_FAILURE(rv)) {
+                    LOG_ERROR(BSL_LS_SOC_ALPM,
+                              (BSL_META_U(u,
+                                          "_soc_alpm_insert: urpf mem write "
+                                          "failure in bkt move rollback\n")));
+                }
+            }
+        }
+
+        /* delete from new bucket trie */
+        delp = NULL;
+        rv = trie_delete(PIVOT_BUCKET_TRIE(new_pivot_pyld), pfx->key, pfx->len, &delp);
+        payload = (payload_t *)delp;
+        if (SOC_FAILURE(rv)) {
+            /* just log it and continue */
+            LOG_ERROR(BSL_LS_SOC_ALPM,
+                      (BSL_META_U(u,
+                                  "_soc_alpm_insert: trie delete failure"
+                                  "in bkt move rollback\n")));
+        }
+        /* don't insert new prefix into old bucket trie */
+        if (pfx->index > 0) {
+            rv = trie_insert(PIVOT_BUCKET_TRIE(old_pivot_pyld), pfx->key,
+                              NULL, pfx->len, (trie_node_t *) payload);
+            if (SOC_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                                      "_soc_alpm_insert: trie reinsert failure"
+                                      "in bkt move rollback\n")));
+            }
+        } else {
+            /* new prefix stays in old bucket trie after split */
+            if (payload != NULL) {
+                sal_free(payload);
+            }
+        }
+    }
+    if (new_insert == -1) {
+        delp = NULL;
+        /* new entry is in old bucket. Delete from there */
+        rv = trie_delete(PIVOT_BUCKET_TRIE(old_pivot_pyld), prefix,
+                          length, &delp);
+        payload = (payload_t *)delp;
+        if (SOC_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_SOC_ALPM,
+                      (BSL_META_U(u,
+                           "Expected to clear prefix"
+                           " 0x%08x 0x%08x\n from old trie. Failed\n"),
+                           prefix[0], prefix[1]));
+        }
+
+        if (payload != NULL) {
+            sal_free(payload);
+        }
+    }
+
+    /* free up newly allocated bucket */
+    rv = soc_th_alpm_bs_free(u, PIVOT_BUCKET_INDEX(new_pivot_pyld), vrf, v6);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                      "New bucket release failure: %d\n"),
+                      PIVOT_BUCKET_INDEX(new_pivot_pyld)));
+    }
+    /* delete new bucket trie */
+    trie_destroy(PIVOT_BUCKET_TRIE(new_pivot_pyld));
+    sal_free(bucket_handle);
+    sal_free(new_pivot_pyld);
+    sal_free(new_index);
+
+    /* delete new prefix from prefix trie */
+    delp = NULL;
+    rv = trie_delete(pfx_trie, prefix, length, &delp);
+    payload = (payload_t *) delp;
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "Failed to delete new prefix"
+                              "0x%08x 0x%08x from pfx trie\n"), prefix[0], prefix[1]));
+    }
+    if (payload) {
+        sal_free(payload);
+    }
+    return rv;
+}
+
+int _soc_th_alpm_free_pfx_trie(int u, trie_t *pfx_trie, trie_t *bkt_trie,
+                               payload_t *new_pfx_pyld, int *new_index,
+                               int bktid, int vrf, int v6)
+{
+    int rv = SOC_E_NONE;
+    trie_node_t *delp = NULL;
+    payload_t   *tmp1 = NULL;
+    payload_t   *tmp2 = NULL;
+
+    if (new_index != NULL) {
+        sal_free(new_index);
+    }
+    (void)trie_delete(pfx_trie, new_pfx_pyld->key, new_pfx_pyld->len, &delp);
+    tmp2 = (payload_t *)delp;
+    if (tmp2 != NULL) {
+        (void)trie_delete(bkt_trie, tmp2->key, tmp2->len, &delp);
+        tmp1 = (payload_t *)delp;
+        if (tmp1 != NULL) {
+            sal_free(tmp1);
+        }
+        sal_free(tmp2);
+    }
+
+    if (bktid != -1) {
+        /* only free new bucket if allocated successfully */
+        rv = soc_th_alpm_bs_free(u, bktid, vrf, v6);
+        if (SOC_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "unit %d Unable to free bucket_id %d"),
+                   u, bktid));
+        }
+    }
+
+    return SOC_E_NONE;
+}
+
+static int
+_soc_th_alpm_init_pivot(int u, int v6, alpm_pfx_info_t *pi, trie_t *pfx_trie,
+                        uint32 *pivot, uint32 length,
+                        trie_node_t *split_trie_root, defip_entry_t *lpm_entry,
+                        uint32 *bpm_len)
+{
+    trie_node_t *lpmp = NULL;
+    defip_alpm_ipv4_entry_t alpmv4_entry;
+    defip_alpm_ipv6_64_entry_t alpmv6_entry;
+    payload_t *tmp_pyld = NULL;
+    int old_tcam_index;
+    void        *bufp;
+    alpm_pivot_t *pivot_pyld_new;
+    alpm_bucket_handle_t *bucket_handle;
+    int         rv = SOC_E_NONE;
+    soc_mem_t mem;
+
+    pivot_pyld_new = pi->pivot_pyld;
+    old_tcam_index = pivot_pyld_new->tcam_index;
+
+    /* Get table memory. */
+    SOC_ALPM_TABLE_MEM(u, v6, mem);
+    SOC_ALPM_ENTRY_BUF(v6, mem, bufp, alpmv4_entry, alpmv6_entry);
+
+    /* find longest prefix that covers pivot */
+    lpmp = NULL;
+    rv = trie_find_lpm(pfx_trie, pivot, length, &lpmp);
+    tmp_pyld = (payload_t *) lpmp;
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "unit %d Unable to find lpm for pivot: "
+                              "0x%08x 0x%08x\n 0x%08x 0x%08x 0x%08x length: %d\n"),
+                   u, pivot[0], pivot[1], pivot[2], pivot[3], pivot[4],
+                   length));
+
+        return rv;
+    }
+
+    /* Insert Pivot into TCAM */
+    /* Initialize an lpm entry to perform a match */
+    if (tmp_pyld->bkt_ptr) {
+        /* this means this bucket default route is an actual route */
+        /* initialize new pivot's associated data with data of lpm match */
+        if (tmp_pyld->bkt_ptr == pi->new_pfx_pyld) {
+            /* this means the new route is the bucket's default */
+            sal_memcpy(bufp, pi->alpm_data, v6 ?
+                       sizeof(defip_alpm_ipv6_64_entry_t) :
+                       sizeof(defip_alpm_ipv4_entry_t));
+        } else {
+            rv = soc_mem_read(u, mem, MEM_BLOCK_ANY,
+                             ((payload_t *)tmp_pyld->bkt_ptr)->index, bufp);
+        }
+        if (SOC_FAILURE(rv)) {
+            return rv;
+        }
+        rv = _soc_th_alpm_lpm_ent_init(u, bufp, mem, v6, pi->vrf_id, pi->bktid,
+                                       ((payload_t *)tmp_pyld->bkt_ptr)->index,
+                                       lpm_entry);
+        if (SOC_FAILURE(rv)) {
+            return rv;
+        }
+        /* remember the bpm_len of this pivot. Need to put in shadow */
+        *bpm_len = ((payload_t *)(tmp_pyld->bkt_ptr))->len;
+    } else {
+        /* read default data of current pivot */
+        /* mem read needs logical index */
+        rv = soc_mem_read(u, L3_DEFIPm, MEM_BLOCK_ANY,
+                   soc_th_alpm_logical_idx(u, L3_DEFIPm, old_tcam_index >> 1, 1),
+                   lpm_entry);
+        if ((!v6) && (old_tcam_index & 1)) {
+            /* move entry to 0 half */
+            rv = soc_th_alpm_lpm_ip4entry1_to_0(u, lpm_entry, lpm_entry, 0);
+        }
+    }
+
+    /* Add New Pivot to the pivot trie */
+    bucket_handle = sal_alloc(sizeof(alpm_bucket_handle_t),
+                             "ALPM Bucket Handle");
+    if (bucket_handle == NULL) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "_soc_alpm_insert: Unable to allocate memory "
+                              "for PIVOT trie node \n")));
+        rv = SOC_E_MEMORY;
+        return rv;
+    }
+    sal_memset(bucket_handle, 0, sizeof(*bucket_handle));
+    pivot_pyld_new = sal_alloc(sizeof(alpm_pivot_t),
+                            "Payload for new Pivot");
+    if (pivot_pyld_new == NULL) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "_soc_alpm_insert: Unable to allocate memory "
+                              "for PIVOT trie node \n")));
+        rv = SOC_E_MEMORY;
+        return rv;
+    }
+    sal_memset(pivot_pyld_new, 0, sizeof(*pivot_pyld_new));
+    PIVOT_BUCKET_HANDLE(pivot_pyld_new) = bucket_handle;
+    if (v6) {
+        rv = trie_init(_MAX_KEY_LEN_144_, &PIVOT_BUCKET_TRIE(pivot_pyld_new));
+    } else {
+        rv = trie_init(_MAX_KEY_LEN_48_, &PIVOT_BUCKET_TRIE(pivot_pyld_new));
+    }
+    PIVOT_BUCKET_TRIE(pivot_pyld_new)->trie = split_trie_root;
+    PIVOT_BUCKET_INDEX(pivot_pyld_new) = pi->bktid;
+    PIVOT_BUCKET_VRF(pivot_pyld_new) = pi->vrf;
+    PIVOT_BUCKET_IPV6(pivot_pyld_new) = v6;
+    PIVOT_BUCKET_DEF(pivot_pyld_new) = FALSE;
+
+    (pivot_pyld_new)->key[0] = pivot[0];
+    (pivot_pyld_new)->key[1] = pivot[1];
+    (pivot_pyld_new)->key[2] = pivot[2];
+    (pivot_pyld_new)->key[3] = pivot[3];
+    (pivot_pyld_new)->key[4] = pivot[4];
+    (pivot_pyld_new)->len    = length;
+
+    /* convert from trie representation to h/w key format */
+    ALPM_TRIE_TO_NORMAL_IP(pivot, length, v6);
+    _soc_th_key_lpm_ent_init(u, pivot, length, pi->vrf, v6,
+                             lpm_entry, 0, 0);
+
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, lpm_entry, ALG_BKT_PTR0f,
+                        ALPM_BKT_IDX(pi->bktid));
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, lpm_entry, ALG_SUB_BKT_PTR0f,
+                        ALPM_BKT_SIDX(pi->bktid));
+
+    /* This is returned to caller */
+    pi->pivot_pyld = pivot_pyld_new;
+    return rv;
+}
+
+static int
+_soc_th_alpm_split_trie(int u, int v6, alpm_pfx_info_t *pi, int *new_tcam_index,
+                        int *index_ptr)
+{
+    trie_node_t *split_trie_root;
+    uint32      e[SOC_MAX_MEM_FIELD_WORDS];
+    uint32      length, bpm_len = 0;
+    uint32      bank_disable = 0;
+    uint32      pivot[5];
+    int         key_index;
+    defip_alpm_ipv4_entry_t alpmv4_entry, alpmv4_sip_entry;
+    defip_alpm_ipv6_64_entry_t alpmv6_entry, alpmv6_sip_entry;
+    trie_t      *pfx_trie, *trie;
+    void        *bufp, *sip_bufp;
+    alpm_pivot_t *old_pivot = pi->pivot_pyld;
+    defip_entry_t lpm_entry;
+    soc_mem_t   mem;
+    trie_t      *pivot_trie = NULL;
+    alpm_mem_prefix_array_t prefix_array;
+    int         *new_index = NULL;
+    int         *old_index = NULL;
+    int         rv = SOC_E_NONE, i, new_insert = -1;
+    int         tcam_index, tcam_index_old, bucket_index_old = 0;
+    int         old_bkt_cnt = 0, new_bkt_cnt = 0;
+
+    /* Get table memory. */
+    SOC_ALPM_TABLE_MEM(u, v6, mem);
+    SOC_ALPM_ENTRY_BUF(v6, mem, bufp, alpmv4_entry, alpmv6_entry);
+    SOC_ALPM_ENTRY_BUF(v6, mem, sip_bufp, alpmv4_sip_entry, alpmv6_sip_entry);
+
+    soc_th_alpm_bank_disb_get(u, pi->vrf, &bank_disable);
+
+    /* prefix trie */
+    if (v6) {
+        pfx_trie = VRF_PREFIX_TRIE_IPV6(u, pi->vrf);
+    } else {
+        pfx_trie = VRF_PREFIX_TRIE_IPV4(u, pi->vrf);
+    }
+
+    trie = PIVOT_BUCKET_TRIE(pi->pivot_pyld);
+    bucket_index_old = pi->bktid;
+    tcam_index_old = PIVOT_TCAM_INDEX(old_pivot);
+
+    /* Split the bucket, find a pivot */
+    /* Insert PIVOT and assign a bucket, move enteries to new bucket
+     * and insert the entry
+     */
+    rv = soc_th_alpm_bs_alloc(u, &pi->bktid, pi->vrf, v6);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "Unable to allocate "
+                              "new bucket for split\n")));
+        pi->bktid = -1;
+        _soc_th_alpm_free_pfx_trie(u, pfx_trie, trie, pi->new_pfx_pyld,
+                                   new_index, pi->bktid, pi->vrf, v6);
+        return rv;
+    }
+
+    /* If free space is less than a single bucket capacity (start
+     * using sub bucket 1..., )
+     * We need to limit the split_trie_root payload count
+     *
+     * When we reach this condition, means
+     * a). We don't have enougth physical bucket.
+     * b). all bucket util > 50%.
+     */
+    i  = _soc_th_alpm_bkt_entry_cnt(u, v6);
+    i -= SOC_ALPM_BS_BKT_USAGE_COUNT(u, ALPM_BKT_IDX(pi->bktid));
+
+    /* make sure alloced bucket is freed on all subsequent errors */
+    rv = trie_split(trie, v6 ? _MAX_KEY_LEN_144_ : _MAX_KEY_LEN_48_, FALSE,
+                    pivot, &length, &split_trie_root, NULL, FALSE, i);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "Could not split bucket")));
+        _soc_th_alpm_free_pfx_trie(u, pfx_trie, trie,
+                                   pi->new_pfx_pyld, new_index,
+                                   pi->bktid, pi->vrf, v6);
+        return rv;
+
+    }
+
+    rv = _soc_th_alpm_init_pivot(u, v6, pi, pfx_trie, pivot, length,
+                                 split_trie_root, &lpm_entry, &bpm_len);
+    if (rv != SOC_E_NONE) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u, "could not initialize pivot")));
+        _soc_th_alpm_free_pfx_trie(u, pfx_trie, trie, pi->new_pfx_pyld,
+                                   new_index, pi->bktid, pi->vrf, v6);
+        return rv;
+    }
+
+    sal_memset(&prefix_array, 0, sizeof(prefix_array));
+    /* Move prefix enteries(from new trie) to new pivot */
+    rv = trie_traverse(PIVOT_BUCKET_TRIE(pi->pivot_pyld),
+                       _soc_th_alpm_mem_prefix_array_cb, &prefix_array,
+                       _TRIE_INORDER_TRAVERSE);
+
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u, "Bucket split failed")));
+        _soc_th_alpm_free_pfx_trie(u, pfx_trie, trie, pi->new_pfx_pyld,
+                                   new_index, pi->bktid, pi->vrf, v6);
+        return rv;
+
+    }
+
+    /* Optimized Memory invalidate,
+     * Invalidate need to happen only after all the entries are
+     * written to the new pivot and the new pivot is valid. Otherwise
+     * there is a chance of MISS.
+     *
+     * hitless move:
+     * - Move entries to new bucket.
+     * - activate new pivot
+     * - delete entries from old bucket
+     */
+    new_index = sal_alloc(sizeof(*new_index)*prefix_array.count, "new_index");
+    if (new_index == NULL) {
+        _soc_th_alpm_free_pfx_trie(u, pfx_trie, trie, pi->new_pfx_pyld,
+                                   new_index, pi->bktid, pi->vrf, v6);
+        return SOC_E_MEMORY;
+
+    }
+    old_index = sal_alloc(sizeof(*old_index)*prefix_array.count, "new_index");
+    if (old_index == NULL) {
+        _soc_th_alpm_free_pfx_trie(u, pfx_trie, trie, pi->new_pfx_pyld,
+                                   new_index, pi->bktid, pi->vrf, v6);
+        return SOC_E_MEMORY;
+
+    }
+    sal_memset(new_index, -1, sizeof(*new_index) * prefix_array.count);
+    sal_memset(old_index, -1, sizeof(*old_index) * prefix_array.count);
+
+    for (i = 0; i < prefix_array.count; i ++) {
+        payload_t *pfx = prefix_array.prefix[i];
+        if (pfx->index > 0) {
+        /* if this is the new prefix it does not exist in the
+         * bucket, no point reading */
+            rv = soc_mem_read(u, mem, MEM_BLOCK_ANY, pfx->index, bufp);
+            if (SOC_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                                      "_soc_alpm_insert: Failed to"
+                                      "read prefix "
+                                      "0x%08x 0x%08x 0x%08x 0x%08x for move\n"),
+                           prefix_array.prefix[i]->key[1],
+                           prefix_array.prefix[i]->key[2],
+                           prefix_array.prefix[i]->key[3],
+                           prefix_array.prefix[i]->key[4]));
+                (void) _soc_th_alpm_rollback_bkt_move(u, v6, pi->key_data,
+                                                     mem, old_pivot,
+                                                     pi->pivot_pyld,
+                                                     &prefix_array,
+                                                     new_index, new_insert);
+                sal_free(old_index);
+                return rv;
+
+            }
+
+            if (SOC_URPF_STATUS_GET(u)) {
+                rv = soc_mem_read(u, mem, MEM_BLOCK_ANY,
+                                  _soc_th_alpm_rpf_entry(u, pfx->index),
+                                  sip_bufp);
+                if (SOC_FAILURE(rv)) {
+                    LOG_ERROR(BSL_LS_SOC_ALPM,
+                              (BSL_META_U(u,
+                                          "Failed to read rpf prefix "
+                                          "0x%08x 0x%08x 0x%08x 0x%08x for move\n"),
+                               prefix_array.prefix[i]->key[1],
+                               prefix_array.prefix[i]->key[2],
+                               prefix_array.prefix[i]->key[3],
+                               prefix_array.prefix[i]->key[4]));
+                    (void) _soc_th_alpm_rollback_bkt_move(u, v6, pi->key_data,
+                                                         mem, old_pivot,
+                                                         pi->pivot_pyld,
+                                                         &prefix_array,
+                                                         new_index, new_insert);
+                    sal_free(old_index);
+                    return rv;
+
+                }
+            }
+
+            soc_mem_field32_set(u, mem, bufp, SUB_BKT_PTRf,
+                                ALPM_BKT_SIDX(pi->bktid));
+            soc_mem_field32_set(u, mem, sip_bufp, SUB_BKT_PTRf,
+                                ALPM_BKT_SIDX(pi->bktid));
+
+            /* entry shouldn't exist, insert the entry into the RAM */
+            rv = _soc_th_alpm_insert_in_bkt(u, mem, pi->bktid,
+                                            bank_disable, bufp, e,
+                                            &key_index, v6);
+            if (SOC_SUCCESS(rv)) {
+                if (SOC_URPF_STATUS_GET(u)) {
+                    rv = soc_mem_write(u, mem, MEM_BLOCK_ANY,
+                                       _soc_th_alpm_rpf_entry(u, key_index),
+                                       sip_bufp);
+                }
+                old_bkt_cnt ++;
+                new_bkt_cnt ++;
+            }
+        } else {
+            soc_mem_field32_set(u, mem, pi->alpm_data, SUB_BKT_PTRf,
+                                ALPM_BKT_SIDX(pi->bktid));
+            rv = _soc_th_alpm_insert_in_bkt(u, mem, pi->bktid,
+                                            bank_disable, pi->alpm_data, e,
+                                            &key_index, v6);
+            if (SOC_SUCCESS(rv)) {
+                new_insert = i;
+                *index_ptr = key_index;
+
+                if (SOC_URPF_STATUS_GET(u)) {
+                    soc_mem_field32_set(u, mem, pi->alpm_sip_data, SUB_BKT_PTRf,
+                                        ALPM_BKT_SIDX(pi->bktid));
+                    rv = soc_mem_write(u, mem, MEM_BLOCK_ANY,
+                                       _soc_th_alpm_rpf_entry(u, key_index),
+                                       pi->alpm_sip_data);
+                }
+                new_bkt_cnt ++;
+            }
+        }
+        new_index[i] = key_index;
+        if (SOC_FAILURE(rv)) {
+            /* log failure and continue */
+            LOG_ERROR(BSL_LS_SOC_ALPM,
+                      (BSL_META_U(u,
+                                  "Failed to insert prefix "
+                                  "0x%08x 0x%08x 0x%08x 0x%08x to bucket %d\n"),
+                       prefix_array.prefix[i]->key[1],
+                       prefix_array.prefix[i]->key[2],
+                       prefix_array.prefix[i]->key[3],
+                       prefix_array.prefix[i]->key[4], pi->bktid));
+            (void) _soc_th_alpm_rollback_bkt_move(u, v6, pi->key_data, mem,
+                                                  old_pivot, pi->pivot_pyld,
+                                                  &prefix_array, new_index,
+                                                  new_insert);
+            sal_free(old_index);
+            return rv;
+        }
+        old_index[i] = pfx->index;
+    } /* for */
+
+    rv = soc_th_alpm_lpm_insert(u, &lpm_entry, new_tcam_index);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "Unable to add new pivot to tcam\n")));
+        /* Recover state and exit*/
+        if (rv == SOC_E_FULL) {
+            VRF_PIVOT_FULL_INC(u, pi->vrf, v6);
+        }
+        (void) _soc_th_alpm_rollback_bkt_move(u, v6, pi->key_data, mem,
+                                              old_pivot, pi->pivot_pyld,
+                                              &prefix_array, new_index,
+                                              new_insert);
+        sal_free(old_index);
+        return rv;
+
+    }
+    /* TCAM index from lpm code is logical.  Convert to global idx */
+    *new_tcam_index = soc_th_alpm_physical_idx(u, L3_DEFIPm,
+                                               *new_tcam_index, v6);
+
+    rv = _soc_th_alpm_update_bpm_len(u, *new_tcam_index, v6, bpm_len);
+
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u, "Unable to init bpm_len "
+                              "for index %d\n"), *new_tcam_index));
+        _soc_th_alpm_rollback_pivot_add(u, v6, &lpm_entry, pi->key_data,
+                                        *new_tcam_index, pi->pivot_pyld);
+        (void) _soc_th_alpm_rollback_bkt_move(u, v6, pi->key_data, mem,
+                                              old_pivot, pi->pivot_pyld,
+                                              &prefix_array, new_index,
+                                              new_insert);
+        sal_free(old_index);
+        return rv;
+    }
+    if (v6) {
+        pivot_trie = VRF_PIVOT_TRIE_IPV6(u, pi->vrf);
+    } else {
+        pivot_trie = VRF_PIVOT_TRIE_IPV4(u, pi->vrf);
+    }
+
+    /* insert into pivot trie */
+    rv = trie_insert(pivot_trie, pi->pivot_pyld->key, NULL,
+                     pi->pivot_pyld->len, (trie_node_t *)pi->pivot_pyld);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u, "failed to insert into pivot trie\n")));
+        (void) _soc_th_alpm_rollback_bkt_move(u, v6, pi->key_data, mem,
+                                              old_pivot, pi->pivot_pyld,
+                                              &prefix_array, new_index,
+                                              new_insert);
+        sal_free(old_index);
+        return rv;
+    }
+    tcam_index = *new_tcam_index << (v6 ? 1 : 0);
+    ALPM_TCAM_PIVOT(u, tcam_index) = pi->pivot_pyld;
+    PIVOT_TCAM_INDEX(pi->pivot_pyld) = tcam_index;
+    VRF_PIVOT_REF_INC(u, pi->vrf, v6);
+
+    rv = _soc_th_alpm_move_inval(u, mem, v6, &prefix_array, new_index);
+    if (SOC_FAILURE(rv)) {
+        _soc_th_alpm_rollback_pivot_add(u, v6, &lpm_entry, pi->key_data,
+                                        *new_tcam_index, pi->pivot_pyld);
+        (void) _soc_th_alpm_rollback_bkt_move(u, v6, pi->key_data, mem,
+                                              old_pivot, pi->pivot_pyld,
+                                              &prefix_array, new_index,
+                                              new_insert);
+        sal_free(new_index);
+        new_index = NULL;
+        sal_free(old_index);
+        return rv;
+    }
+
+    rv = soc_th_alpm_update_hit_bits(u, prefix_array.count, old_index, new_index);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "soc_th_alpm_update_hit_bits failed, count %d\n"),
+                              prefix_array.count));
+        rv = SOC_E_NONE;
+    }
+
+    sal_free(new_index);
+    new_index = NULL;
+    sal_free(old_index);
+
+    if (new_insert == -1) {
+        /* new entry mapped to old pivot. So do the actual insertion
+         * into old pivot
+         */
+        /* Add Entry to new bucket RAM */
+        soc_mem_field32_set(u, mem, pi->alpm_data, SUB_BKT_PTRf,
+                            ALPM_BKT_SIDX(PIVOT_BUCKET_INDEX(old_pivot)));
+        rv = _soc_th_alpm_insert_in_bkt(u, mem, PIVOT_BUCKET_INDEX(old_pivot),
+                                        bank_disable, pi->alpm_data,
+                                        e, &key_index, v6);
+
+        if (SOC_FAILURE(rv)) {
+            /* recover by matching trie state to h/w state */
+            LOG_ERROR(BSL_LS_SOC_ALPM,
+                      (BSL_META_U(u, "Could not insert new "
+                                  "prefix into trie after split\n")));
+            /* since split was successful, leave split state as-is */
+            /* delete entry from prefix and bucket tries and exit */
+            _soc_th_alpm_free_pfx_trie(u, pfx_trie, trie,
+                                       pi->new_pfx_pyld, new_index,
+                                       pi->bktid, pi->vrf, v6);
+            return rv;
+        }
+
+        old_bkt_cnt --;
+
+        if (SOC_URPF_STATUS_GET(u)) {
+            rv = soc_mem_write(u, mem, MEM_BLOCK_ANY,
+                               _soc_th_alpm_rpf_entry(u, key_index),
+                               pi->alpm_sip_data);
+        }
+        *index_ptr = key_index;
+        pi->new_pfx_pyld->index = key_index;
+    }
+
+    /* Update old bucket usage */
+    soc_th_alpm_bu_upd(u, bucket_index_old, tcam_index_old, FALSE, v6, -old_bkt_cnt);
+    /* Update new bucket usage */
+    soc_th_alpm_bu_upd(u, pi->bktid, tcam_index, pi->vrf, v6, new_bkt_cnt);
+
+    PIVOT_BUCKET_ENT_CNT_UPDATE(pi->pivot_pyld);
+    VRF_BUCKET_SPLIT_INC(u, pi->vrf, v6);
+    return rv;
+}
+
+/*
+ * Insert entry into ALPM database.
+ * Returns SOC_E_NONE, if found and updated.
+ * SOC_E_FAIL, if insert failed.
+ */
+static int
+_soc_th_alpm_insert(int u,
+                    int v6,
+                    void *key_data,  /* TCAM entry data */
+                    soc_mem_t mem,   /* Mem view for ALPM data */
+                    void *alpm_data, /* Alpm data to be updated with */
+                    void *alpm_sip_data,
+                    int *index_ptr,
+                    int bktid,
+                    int tcam_index)  /* return key location */
+{
+    alpm_pivot_t *pivot_pyld_new, *old_pivot;
+    defip_aux_scratch_entry_t aux_entry;
+    uint32      e[SOC_MAX_MEM_FIELD_WORDS];
+    uint32      prefix[5], new_pfx_length, length;
+    int         vrf, vrf_id;
+    int         key_index;
+    int         rv = SOC_E_NONE, rv2;
+    uint32      db_type, ent_type, bank_disable;
+    int         hit =0;
+    int         new_tcam_index;
+    int         split = 0;
+    trie_t      *trie, *pfx_trie;
+    trie_node_t *lpmp = NULL, *delp = NULL;
+    payload_t   *payload, *pfx_payload, *tmp_pyld;
+    int         default_route = 0;
+    /* Search Result buffers */
+    alpm_pfx_info_t pi;
+
+    SOC_IF_ERROR_RETURN(soc_th_alpm_lpm_vrf_get(u, key_data, &vrf_id, &vrf));
+    soc_th_alpm_bank_disb_get(u, vrf, &bank_disable);
+    soc_alpm_db_ent_type_encoding(u, vrf, &db_type, &ent_type);
+
+    /* Get table memory. */
+    SOC_ALPM_TABLE_MEM(u, v6, mem);
+
+    /* Insert the prefix into the bucket trie, whether the insert was
+     * successul or resulted in Split. Spliting the trie after insertion
+     * yeilds better pivot and better split.
+     */
+    /* Create Prefix */
+    rv = _soc_th_alpm_prefix_create(u, v6, key_data, prefix, &length,
+                                    &default_route);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "_soc_th_alpm_insert: prefix create failed\n")));
+        return rv;
+    }
+
+    /* Fill in AUX Scratch and perform PREFIX Operation */
+    sal_memset(&aux_entry, 0, sizeof(defip_aux_scratch_entry_t));
+    SOC_IF_ERROR_RETURN(
+       _soc_th_alpm_fill_aux_entry_for_op(u, key_data, v6, db_type, ent_type, 0,
+                                          &aux_entry));
+
+    /* we need to do sw pivot find again, or we may miss sub_bkt info */
+    if (bktid == 0) {
+        if (l3_alpm_sw_prefix_lookup[u]) {
+            rv = _soc_th_alpm_sw_pivot_find(u, prefix, length, v6, vrf, &hit,
+                                            &tcam_index, &bktid);
+        } else {
+            rv = _soc_th_alpm_aux_op(u, PREFIX_LOOKUP, &aux_entry, TRUE, &hit,
+                                     &tcam_index, &bktid);
+        }
+        SOC_IF_ERROR_RETURN(rv);
+        soc_mem_field32_set(u, mem, alpm_data, SUB_BKT_PTRf,
+                            ALPM_BKT_SIDX(bktid));
+    }
+
+    /* entry shouldn't exist, insert the entry into the RAM */
+    rv = _soc_th_alpm_insert_in_bkt(u, mem, bktid,
+                                    bank_disable, alpm_data,
+                                    e, &key_index, v6);
+
+    if (rv == SOC_E_NONE) {
+        *index_ptr = key_index;
+        /* if necessary insert SRC entry */
+        if (SOC_URPF_STATUS_GET(u)) {
+            soc_mem_field32_set(u, mem, alpm_sip_data, SUB_BKT_PTRf,
+                                ALPM_BKT_SIDX(bktid));
+            rv2 = soc_mem_write(u, mem, MEM_BLOCK_ANY,
+                                _soc_th_alpm_rpf_entry(u, key_index),
+                                alpm_sip_data);
+            if (SOC_FAILURE(rv2)) {
+                return rv2;
+            }
+        }
+    }
+
+    if (rv == SOC_E_FULL) {
+        /* 3 is least payload count of splitable trie tree */
+        hit = _soc_th_alpm_bkt_entry_cnt(u, v6);
+        if (hit > 4) {
+            hit = 4;
+        }
+        if (PIVOT_BUCKET_COUNT(ALPM_TCAM_PIVOT(u, tcam_index)) < hit) {
+            int bucket_new = bktid;
+            rv = soc_th_alpm_bs_alloc(u, &bucket_new, vrf, v6);
+            SOC_IF_ERROR_RETURN(rv);
+            rv = _soc_th_alpm_move_trie(u, v6, bktid, bucket_new);
+            SOC_IF_ERROR_RETURN(rv);
+            bktid = bucket_new;
+            soc_mem_field32_set(u, mem, alpm_data, SUB_BKT_PTRf,
+                                ALPM_BKT_SIDX(bktid));
+            /* entry shouldn't exist, insert the entry into the RAM */
+            rv = _soc_th_alpm_insert_in_bkt(u, mem, bktid,
+                                            bank_disable, alpm_data,
+                                            e, &key_index, v6);
+
+            if (SOC_SUCCESS(rv)) {
+                *index_ptr = key_index;
+                /* if necessary insert SRC entry */
+                if (SOC_URPF_STATUS_GET(u)) {
+                    soc_mem_field32_set(u, mem, alpm_sip_data, SUB_BKT_PTRf,
+                                        ALPM_BKT_SIDX(bktid));
+                    rv2 = soc_mem_write(u, mem, MEM_BLOCK_ANY,
+                                        _soc_th_alpm_rpf_entry(u, key_index),
+                                        alpm_sip_data);
+                    if (SOC_FAILURE(rv2)) {
+                        return rv2;
+                    }
+                }
+            } else {
+                return rv;
+            }
+        } else {
+            split = 1;
+        }
+    }
+
+    pivot_pyld_new = ALPM_TCAM_PIVOT(u, tcam_index);
+    trie = PIVOT_BUCKET_TRIE(pivot_pyld_new);
+    /* existing pivot could move around. Save it */
+    old_pivot = pivot_pyld_new;
+
+    /* Allocate Payload */
+    payload = sal_alloc(sizeof(payload_t), "Payload for Key");
+    if (payload == NULL) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "soc_alpm_vrf_add: unable to allocate memory for "
+                              "IPv4 payload entry\n")));
+        return SOC_E_MEMORY;
+    }
+    pfx_payload = sal_alloc(sizeof(payload_t), "Payload for pfx trie key");
+    if (pfx_payload == NULL) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "soc_alpm_vrf_add: unable to allocate memory for "
+                              "pfx trie node\n")));
+        sal_free(payload);
+        return SOC_E_MEMORY;
+    }
+    sal_memset(payload, 0, sizeof(*payload));
+    sal_memset(pfx_payload, 0, sizeof(*pfx_payload));
+    sal_memcpy(payload->key, prefix, sizeof(prefix));
+    payload->len    = length;
+    /* Needs update if mem_insert returns SOC_E_FULL, updated below */
+    payload->index  = key_index;
+    /* create duplicate for prefix trie */
+    sal_memcpy(pfx_payload, payload, sizeof(*payload));
+    pfx_payload->bkt_ptr = payload;
+
+    /* Insert the prefix */
+    /* bucket trie insert */
+    rv = trie_insert(trie, prefix, NULL, length, (trie_node_t *)payload);
+    if (SOC_FAILURE(rv)) {
+        if (payload != NULL) {
+            sal_free(payload);
+        }
+        if (pfx_payload != NULL) {
+            sal_free(pfx_payload);
+        }
+        return rv;
+    }
+
+    /* prefix trie insert */
+    if (v6) {
+        pfx_trie = VRF_PREFIX_TRIE_IPV6(u, vrf);
+    } else {
+        pfx_trie = VRF_PREFIX_TRIE_IPV4(u, vrf);
+    }
+    if (!default_route) {
+        /* default route already in trie */
+        rv = trie_insert(pfx_trie, prefix, NULL, length,
+                        (trie_node_t *)pfx_payload);
+    } else {
+        /* update the default route */
+        lpmp = NULL;
+        rv = trie_find_lpm(pfx_trie, 0, 0, &lpmp);
+        tmp_pyld = (payload_t *)lpmp;
+        if (SOC_SUCCESS(rv)) {
+            tmp_pyld->bkt_ptr = payload;
+        }
+    }
+    new_pfx_length = length;
+    if (SOC_FAILURE(rv)) {
+        delp = NULL;
+        (void) trie_delete(trie, prefix, new_pfx_length, &delp);
+        tmp_pyld = (payload_t *) delp;
+
+        sal_free(tmp_pyld);
+        sal_free(pfx_payload);
+        return rv;
+    }
+
+    /* Performs lazy splitting */
+    if (split) {
+        pi.key_data         = key_data;
+        pi.new_pfx_pyld     = payload;
+        pi.pivot_pyld       = pivot_pyld_new;
+        pi.alpm_data        = alpm_data;
+        pi.alpm_sip_data    = alpm_sip_data;
+        pi.bktid            = bktid;
+        pi.vrf_id           = vrf_id;
+        pi.vrf              = vrf;
+        rv = _soc_th_alpm_split_trie(u, v6, &pi, &new_tcam_index, index_ptr);
+        if (rv != SOC_E_NONE) {
+           return rv;
+        }
+        /* New Pivot */
+        bktid = pi.bktid;
+        tcam_index = PIVOT_TCAM_INDEX(pi.pivot_pyld);
+        alpm_split_count ++;
+    } else {
+        soc_th_alpm_bu_upd(u, bktid, tcam_index, vrf, v6, 1);
+    }
+
+    VRF_TRIE_ROUTES_INC(u, vrf, v6);
+    /* propagate the insertion */
+    if (default_route) {
+        /* also free unused pfx_payload pointer */
+        sal_free(pfx_payload);
+    }
+    /* do delete propagation to update existing default datas */
+    soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry, ALG_HIT_IDXf,
+                        *index_ptr);
+    SOC_IF_ERROR_RETURN(_soc_th_alpm_aux_op(u, INSERT_PROPAGATE, &aux_entry,
+                            TRUE, &hit, &tcam_index, &bktid));
+
+    if (SOC_URPF_STATUS_GET(u)) {
+        uint32 ip6_word[4] = {0, 0, 0, 0};
+        /* redo propagation for SIP databases */
+        /* do delete propagation to update existing default datas */
+        /* change db type */
+        length = soc_mem_field32_get(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry,
+                                     DB_TYPEf);
+        length += 1;
+        soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry, DB_TYPEf,
+                            length);
+        if (default_route) {
+            soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry, RPEf, 1);
+        } else {
+            soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry, RPEf, 0);
+        }
+        soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry, ALG_HIT_IDXf,
+                            _soc_th_alpm_rpf_entry(u, *index_ptr));
+
+        SOC_IF_ERROR_RETURN(_soc_th_alpm_aux_op(u, INSERT_PROPAGATE, &aux_entry,
+                                TRUE, &hit, &tcam_index, &bktid));
+
+        /* Refresh DEFAULTROUTE bits */
+        if (!default_route) {
+            soc_mem_field_set(u, L3_DEFIP_AUX_SCRATCHm, (uint32*)&aux_entry,
+                              IP_ADDRf, (uint32*)ip6_word);
+            soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry,
+                                IP_LENGTHf, 0);
+            soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry,
+                                REPLACE_LENf, 0);
+            soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry, RPEf, 1);
+            SOC_IF_ERROR_RETURN(_soc_th_alpm_aux_op(u, INSERT_PROPAGATE, &aux_entry,
+                                    TRUE, &hit, &tcam_index, &bktid));
+        }
+    }
+
+    /* For debug, update the old pivot's counter */
+    PIVOT_BUCKET_ENT_CNT_UPDATE(old_pivot);
+    return rv;
+
+}
+
+/* Build an LPM entry, from a key */
+/* Mostly used for the match */
+static int
+_soc_th_key_lpm_ent_init(int unit, uint32 *key, int len, int vrf, int ipv6,
+                      defip_entry_t *lpm_entry, int nh_ecmp_idx, int init)
+{
+    uint32 mask;
+
+    /* Zero buffers. */
+    if (init) {
+        sal_memset(lpm_entry, 0, sizeof(defip_entry_t));
+    }
+
+    /* and with mask to ensure global vrf gets set to 0 */
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VRF_ID_0f,
+                              vrf & SOC_VRF_MAX(unit));
+    if (vrf == (SOC_VRF_MAX(unit) + 1)) {
+        /* for global routes */
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VRF_ID_MASK0f, 0);
+    } else {
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VRF_ID_MASK0f,
+                            SOC_VRF_MAX(unit));
+    }
+
+    if (ipv6) {
+
+        /* Set address to the buffer. */
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, IP_ADDR0f, key[0]);
+
+        /* Set address to the buffer. */
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, IP_ADDR1f, key[1]);
+
+        /* Set mode to ipv6 */
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, MODE0f, 1);
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, MODE1f, 1);
+
+        /* Set Virtual Router id */
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VRF_ID_1f, vrf &
+                                  SOC_VRF_MAX(unit));
+        if (vrf == (SOC_VRF_MAX(unit) + 1)) {
+            /* for global routes */
+            SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VRF_ID_MASK1f, 0);
+        } else {
+            SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VRF_ID_MASK1f,
+                                  SOC_VRF_MAX(unit));
+        }
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VALID1f, 1);
+
+        if (len >= 32) {
+            mask = 0xffffffff;
+            SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, IP_ADDR_MASK1f, mask);
+            mask = ~SHR_SHIFT_RIGHT(0xffffffff, len - 32);
+            SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, IP_ADDR_MASK0f, mask);
+        } else {
+            mask = ~(0xffffffff >> len);
+            SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, IP_ADDR_MASK1f, mask);
+            /* make sure lower word of mask is 0 */
+            SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, IP_ADDR_MASK0f, 0);
+        }
+    } else {
+        /* Set address to the buffer. */
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, IP_ADDR0f, key[0]);
+
+        assert(len <= 32);
+        mask = (len == 32) ? 0xffffffff : ~(0xffffffff >> len);
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, IP_ADDR_MASK0f, mask);
+    }
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VALID0f, 1);
+
+    /* Set Mode Masks */
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, MODE_MASK0f,
+                        (1 << soc_mem_field_length(unit, L3_DEFIPm, MODE_MASK0f)) - 1);
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, MODE_MASK1f,
+                        (1 << soc_mem_field_length(unit, L3_DEFIPm, MODE_MASK1f)) - 1);
+
+    /* Set Entry Type Masks */
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, ENTRY_TYPE_MASK0f,
+                        (1 << soc_mem_field_length(unit, L3_DEFIPm,
+                         ENTRY_TYPE_MASK0f)) - 1);
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, ENTRY_TYPE_MASK1f,
+                        (1 << soc_mem_field_length(unit, L3_DEFIPm,
+                         ENTRY_TYPE_MASK1f)) - 1);
+    /*
+     * Note ipv4 entries are expected to reside in part 0 of the entry.
+     *      ipv6 entries both parts should be filled.
+     *      Hence if entry is ipv6 copy part 0 to part 1
+     */
+    return (SOC_E_NONE);
+}
+
+int
+_soc_th_alpm_delete_in_bkt(int u, soc_mem_t mem, int delete_bucket,
+                        int bank_disable, void *bufp2, uint32 *e,
+                        int *key_index, int v6)
+{
+    int rv;
+
+    rv = soc_mem_alpm_delete(u, mem, ALPM_BKT_IDX(delete_bucket), MEM_BLOCK_ALL,
+                             bank_disable, bufp2, e, key_index);
+    if (SOC_SUCCESS(rv)) {
+        return rv;
+    }
+    if (SOC_TH_ALPM_SCALE_CHECK(u, v6)) {
+        return soc_mem_alpm_delete(u, mem, ALPM_BKT_IDX(delete_bucket) + 1,
+                                   MEM_BLOCK_ALL, bank_disable, bufp2, e,
+                                   key_index);
+    }
+    return rv;
+}
+
+
+#ifdef CHECK_CLEAN_BKT
+static int
+_soc_th_alpm_bkt_count(int u, soc_mem_t mem, int bkt_idx, int v6, void *bufp)
+{
+    int bank, entry;
+    int addr, rv;
+
+    for (bank = 0; bank < 4; bank++) {
+      for (entry = 0; entry < (v6 ? 4 : 6); entry++) {
+        addr = (entry << 16) | (bkt_idx << 2) | (bank & 3);
+        rv = soc_mem_read(u, mem, MEM_BLOCK_ANY, addr, bufp);
+        SOC_IF_ERROR_RETURN(rv);
+        if (sal_memcmp(bufp, soc_mem_entry_null(u, v6 ? L3_DEFIP_ALPM_IPV6_64m :
+                   L3_DEFIP_ALPM_IPV4m), v6 ?
+            sizeof(defip_alpm_ipv6_64_entry_t) :
+                        sizeof(defip_alpm_ipv4_entry_t))) {
+            return 1;
+        }
+      }
+    }
+    return 0;
+}
+#endif /* CHECK_CLEAN_BKT */
+
+/*
+ * Delete entry from ALPM database.
+ * Returns SOC_E_NONE, if found and updated.
+ * SOC_E_FAIL, if insert failed.
+ * If default route replace with internal default
+ */
+static int
+_soc_th_alpm_delete(int u, int v6, void *key_data, int bktid,
+                    int tcam_index, int key_index)  /* TCAM entry data */
+{
+    alpm_pivot_t *pivot_pyld;
+    /* Search Result buffer */
+    defip_alpm_ipv4_entry_t alpmv4_entry, alpmv4_sip_entry, alpmv42;
+    defip_alpm_ipv6_64_entry_t alpmv6_entry, alpmv6_sip_entry, alpmv62;
+    defip_aux_scratch_entry_t aux_entry;
+    uint32      e[SOC_MAX_MEM_FIELD_WORDS];
+    soc_mem_t mem;
+    void      *bufp, *bufp2, *sip_bufp = NULL;
+    int       vrf_id;
+    int       rv = SOC_E_NONE, rv2;
+    uint32    prop_pfx[5], prefix[5];
+    int       vrf;
+    uint32    length;
+    int       delete_bucket;
+    uint32    db_type, ent_type, bank_disable;
+    int       hit, default_route = 0;
+    trie_t    *trie, *pfx_trie;
+    uint32    bpm_pfx_len;
+    defip_entry_t lpm_entry, *lpm_key;
+    payload_t *payload = NULL, *pfx_pyld = NULL, *tmp_pyld = NULL;
+    trie_node_t *delp = NULL, *lpmp = NULL;
+    trie_t    *pivot_trie = NULL;
+
+    SOC_IF_ERROR_RETURN(soc_th_alpm_lpm_vrf_get(u, key_data, &vrf_id, &vrf));
+
+    /* For VRF_OVERRIDE (Global High) entries, software needs to maintain the
+     * index, Prefix resides in TCAM directly. Handling of these functions are
+     * taken care by main insert */
+    if (!(ALPM_PREFIX_IN_TCAM(u, vrf_id))) {
+        soc_th_alpm_bank_disb_get(u, vrf, &bank_disable);
+        soc_alpm_db_ent_type_encoding(u, vrf, &db_type, &ent_type);
+        /* Create Prefix */
+        rv = _soc_th_alpm_prefix_create(u, v6, key_data, prefix, &length,
+                                        &default_route);
+        if (SOC_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_SOC_ALPM,
+                      (BSL_META_U(u,
+                                  "_soc_alpm_delete: prefix create failed\n")));
+            return rv;
+        }
+        if (soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_COMBINED) {
+            if (vrf_id != SOC_L3_VRF_GLOBAL) {
+                /* allow default deletion only at end */
+                if (VRF_TRIE_ROUTES_CNT(u, vrf, v6) > 1) {
+                    if (default_route) {
+                        LOG_ERROR(BSL_LS_SOC_ALPM,
+                                  (BSL_META_U(u,
+                                              "VRF %d: Cannot delete default "
+                                              "route if other routes are present in "
+                                              "this mode"), vrf));
+                        return SOC_E_PARAM;
+                    }
+                }
+            }
+#if 0
+            /* for combined mode always vrf DIP */
+            if (vrf & ALPM_WAR_VRF_BIT10_MASK) {
+                db_type = 6;
+            } else {
+                db_type = 2;
+            }
+#endif
+        }
+
+        /* Get table memory. */
+        SOC_ALPM_TABLE_MEM(u, v6, mem);
+
+        /* Assign entry buf based on table being used */
+        SOC_ALPM_ENTRY_BUF(v6, mem, bufp, alpmv4_entry, alpmv6_entry);
+        SOC_ALPM_ENTRY_BUF(v6, mem, bufp2, alpmv42, alpmv62);
+
+        SOC_ALPM_LPM_LOCK(u);
+
+        if (bktid == 0) {
+            /* Search the entry */
+            rv = _soc_th_alpm_find(u, mem, v6, key_data, vrf_id, vrf, bufp,
+                                   &tcam_index, &bktid, &key_index,
+                                   l3_alpm_sw_prefix_lookup[u]);
+        } else {
+            /* key_data has all the info including search result */
+            rv = _soc_th_alpm_mem_ent_init(u, v6, key_data, bufp, 0, mem,
+                                           0, 0, bktid);
+        }
+
+        /* save results as they are lost later */
+        sal_memcpy(bufp2, bufp, v6 ? sizeof(alpmv6_entry) :
+                   sizeof(alpmv4_entry));
+
+        if (SOC_FAILURE(rv)) {
+            SOC_ALPM_LPM_UNLOCK(u);
+            LOG_ERROR(BSL_LS_SOC_ALPM,
+                      (BSL_META_U(u,
+                                  "_soc_alpm_delete: Unable to find prefix for delete\n")));
+            return rv;
+        }
+
+        /* Entry found
+         * 1> Delete entry from trie
+         * 2> Find Best Prefix Match
+         * 3> Update bpm using replacement prefix op
+         * 4> Invalidate Entry in the ALPM database
+         */
+        /* Delete the prefix from trie*/
+        /* Store index to invalidate the prefix */
+        delete_bucket = bktid;
+
+        pivot_pyld = ALPM_TCAM_PIVOT(u, tcam_index);
+        trie = PIVOT_BUCKET_TRIE(pivot_pyld);
+
+        rv = trie_delete(trie, prefix, length,  &delp);
+        payload = (payload_t *) delp;
+        if (rv != SOC_E_NONE) {
+            LOG_ERROR(BSL_LS_SOC_ALPM,
+                      (BSL_META_U(u,
+                                  "_soc_alpm_delete: Error prefix not present in trie \n")));
+            SOC_ALPM_LPM_UNLOCK(u);
+            return rv;
+        }
+
+        /* prefix trie delete */
+        if (v6) {
+            pfx_trie = VRF_PREFIX_TRIE_IPV6(u, vrf);
+        } else {
+            pfx_trie = VRF_PREFIX_TRIE_IPV4(u, vrf);
+        }
+
+        if (v6) {
+            pivot_trie = VRF_PIVOT_TRIE_IPV6(u, vrf);
+        } else {
+            pivot_trie = VRF_PIVOT_TRIE_IPV4(u, vrf);
+        }
+
+        if (!default_route) {
+            rv = trie_delete(pfx_trie, prefix, length, &delp);
+            pfx_pyld = (payload_t *) delp;
+            if (SOC_FAILURE(rv)) {
+                /* continue anyway to minimize state mismatch */
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                                      "_soc_alpm_delete: Prefix not present in pfx"
+                                      "trie: 0x%08x 0x%08x\n"),
+                           prefix[0], prefix[1]));
+                goto recover_bkt_trie;
+            }
+
+            /* Find Best prefix match for the prefix */
+            lpmp = NULL;
+            rv = trie_find_lpm(pfx_trie, prefix, length, &lpmp);
+            tmp_pyld = (payload_t *) lpmp;
+            if (SOC_SUCCESS(rv)) {
+                payload_t *t = (payload_t *)(tmp_pyld->bkt_ptr);
+                if (t != NULL) {
+                    /* this means a real default route exists */
+                    bpm_pfx_len = t->len;
+                } else {
+                    /* only internal default route exists */
+                    /* this should happen only if the lpm is a default route */
+                    bpm_pfx_len = 0;
+                }
+            } else {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                                      "_soc_alpm_delete: Could not find replacement"
+                                      "bpm for prefix: 0x%08x 0x%08x\n"),
+                           prefix[0], prefix[1]));
+                goto recover_pfx_trie;
+            }
+
+            /* Initialize an lpm enty to perform a match */
+            /* not expected to fail */
+            sal_memcpy(prop_pfx, prefix, sizeof(prefix));
+            ALPM_TRIE_TO_NORMAL_IP(prop_pfx, length, v6);
+            rv = _soc_th_key_lpm_ent_init(u, prop_pfx, bpm_pfx_len, vrf, v6,
+                                          &lpm_entry, 0, 1);
+
+            /* Find Associated data for the bpm */
+            rv2 = _soc_th_alpm_find(u, mem, v6, &lpm_entry, vrf_id, vrf, bufp,
+                                    &tcam_index, &bktid, &key_index, l3_alpm_sw_prefix_lookup[u]);
+            if (rv2) {
+                if (vrf_id != SOC_L3_VRF_GLOBAL &&
+                    soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_COMBINED) {
+                    soc_mem_entry_dump_if_changed(u, L3_DEFIPm, &lpm_entry, "ALPM-DBG: ");
+                    LOG_ERROR(BSL_LS_SOC_ALPM,
+                            (BSL_META_U(u,
+                            "Find associated data for next bpm failed."
+                            "prefix: 0x%08x 0x%08x, length %d\n"),
+                            prop_pfx[0], prop_pfx[1], bpm_pfx_len));
+                }
+            }
+
+            /* convert associated data to lpm entry format */
+            (void) _soc_th_alpm_lpm_ent_init(u, bufp, mem, v6, vrf_id,
+                                             bktid, 0, &lpm_entry);
+
+            /* set key to the prefix being deleted */
+            (void) _soc_th_key_lpm_ent_init(u, prop_pfx, length, vrf, v6,
+                                            &lpm_entry, 0, 0);
+            if (SOC_URPF_STATUS_GET(u)) {
+                if (SOC_SUCCESS(rv)) {
+                    SOC_ALPM_ENTRY_BUF(v6, mem, sip_bufp, alpmv4_sip_entry,
+                                       alpmv6_sip_entry);
+                    rv = soc_mem_read(u, mem, MEM_BLOCK_ANY,
+                            _soc_th_alpm_rpf_entry(u, ALPM_ENT_INDEX(key_index)),
+                            sip_bufp);
+                }
+            }
+            if ((bpm_pfx_len == 0)  && SOC_FAILURE(rv2)) {
+                /* could not find a default route. Use internal default */
+                /* default route's associated data */
+                lpm_key = v6 ? VRF_TRIE_DEFAULT_ROUTE_IPV6(u, vrf) :
+                               VRF_TRIE_DEFAULT_ROUTE_IPV4(u, vrf);
+                sal_memcpy(&lpm_entry, lpm_key, sizeof(lpm_entry));
+                /* copy key info over again */
+                rv = _soc_th_key_lpm_ent_init(u, prop_pfx, length, vrf, v6,
+                                              &lpm_entry, 0, 1);
+            }
+
+            if (SOC_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                                      "_soc_alpm_delete: Could not find replacement"
+                                      " prefix for prefix: 0x%08x 0x%08x\n"),
+                           prefix[0], prefix[1]));
+                goto recover_pfx_trie;
+            }
+
+            lpm_key = &lpm_entry;
+        } else { /* !default_route */
+            /* remove the real default route reference if any */
+
+            lpmp = NULL;
+            rv = trie_find_lpm(pfx_trie, prefix, length, &lpmp);
+            tmp_pyld = (payload_t *) lpmp;
+            if (SOC_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                                      "_soc_alpm_delete: Could not find default "
+                                      "route in the trie for vrf %d\n"), vrf));
+                goto recover_bkt_trie;
+            }
+            tmp_pyld->bkt_ptr = NULL;
+            bpm_pfx_len = 0;
+            lpm_key = v6 ? VRF_TRIE_DEFAULT_ROUTE_IPV6(u, vrf) :
+                      VRF_TRIE_DEFAULT_ROUTE_IPV4(u, vrf);
+        }
+        rv = _soc_th_alpm_fill_aux_entry_for_op(u, lpm_key, v6, db_type,
+                                    ent_type, bpm_pfx_len, &aux_entry);
+        if (SOC_FAILURE(rv)) {
+            goto recover_pfx_trie;
+        }
+
+        /* Perform Delete propagate */
+        soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry, ALG_HIT_IDXf,
+                            ALPM_ENT_INDEX(key_index));
+        rv = _soc_th_alpm_aux_op(u, DELETE_PROPAGATE, &aux_entry, TRUE, &hit,
+                                 &tcam_index, &bktid);
+
+        if (SOC_FAILURE(rv)) {
+            goto recover_pfx_trie;
+        }
+
+        /* perform SIP delete propagate */
+        if (SOC_URPF_STATUS_GET(u)) {
+            uint32 tmp;
+
+            /* only SRC bits are different from DIP entry. Copy them over if
+               internal default is not being used */
+            if (sip_bufp != NULL) {
+                soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry,
+                                    DB_TYPEf, db_type + 1);
+                soc_mem_field32_set(u, L3_DEFIP_AUX_SCRATCHm, &aux_entry,
+                                    ALG_HIT_IDXf, _soc_th_alpm_rpf_entry(u,
+                                    ALPM_ENT_INDEX(key_index)));
+                tmp = soc_mem_field32_get(u, mem, sip_bufp, SRC_DISCARDf);
+                soc_mem_field32_set(u, mem, &aux_entry, SRC_DISCARDf, tmp);
+
+                tmp = soc_mem_field32_get(u, mem, sip_bufp, DEFAULTROUTEf);
+                soc_mem_field32_set(u, mem, &aux_entry, DEFAULTROUTEf, tmp);
+
+                rv = _soc_th_alpm_aux_op(u, DELETE_PROPAGATE, &aux_entry, TRUE,
+                                         &hit, &tcam_index, &bktid);
+            }
+            if (SOC_FAILURE(rv)) {
+                goto recover_pfx_trie;
+            }
+        }
+
+        /* From here on don't trie to recover trie state */
+        sal_free(payload);
+        if (!default_route) {
+            sal_free(pfx_pyld);
+        }
+
+        /* For debug, update the pivot's counter */
+        PIVOT_BUCKET_ENT_CNT_UPDATE(pivot_pyld);
+
+        if ((pivot_pyld->len != 0) && (trie->trie == NULL)) { /* Empty bucket */
+            uint32 hw_key[5];
+            sal_memcpy(hw_key, pivot_pyld->key, sizeof(hw_key));
+            ALPM_TRIE_TO_NORMAL_IP(hw_key, pivot_pyld->len, v6);
+
+            /* Initialize an lpm entry to perform a match */
+            _soc_th_key_lpm_ent_init(u, hw_key, pivot_pyld->len,
+                                     vrf, v6, &lpm_entry, 0, 1);
+
+            /* delete entry from TCAM */
+            rv = soc_th_alpm_lpm_delete(u, &lpm_entry);
+            if (SOC_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                                      "_soc_alpm_delete: Unable to "
+                                      "delete pivot 0x%08x 0x%08x \n"),
+                           pivot_pyld->key[0], pivot_pyld->key[1]));
+                /* continue to clean up still */
+            }
+        }
+
+        /* Invalidate the route */
+        rv = _soc_th_alpm_delete_in_bkt(u, mem, delete_bucket, bank_disable,
+                                        bufp2, e, &key_index, v6);
+        if (SOC_FAILURE(rv)) {
+            SOC_ALPM_LPM_UNLOCK(u);
+            return rv;
+        }
+
+        /* delete corresponding RPF entry if it exists */
+        if (SOC_URPF_STATUS_GET(u)) {
+            /* hit is an unused variable */
+            delete_bucket = SOC_TH_ALPM_RPF_BKT_IDX(u, ALPM_BKT_IDX(delete_bucket));
+            delete_bucket = ALPM_BKTID(delete_bucket, 0);
+            rv = _soc_th_alpm_delete_in_bkt(u, mem, delete_bucket, bank_disable,
+                                            bufp2, e, &hit, v6);
+            if (SOC_FAILURE(rv)) {
+                SOC_ALPM_LPM_UNLOCK(u);
+                return rv;
+            }
+        }
+
+        /* Update usage stat */
+        soc_th_alpm_bu_upd(u, PIVOT_BUCKET_INDEX(pivot_pyld),
+             PIVOT_TCAM_INDEX(pivot_pyld),
+             ((pivot_pyld->len != 0) && (trie->trie == NULL)) ? TRUE : FALSE,
+             v6, -1);
+        if ((pivot_pyld->len != 0) && (trie->trie == NULL)) { /* Empty bucket */
+            /* Release Bucket */
+            rv = soc_th_alpm_bs_free(u, PIVOT_BUCKET_INDEX(pivot_pyld), vrf, v6);
+            if (SOC_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                                      "_soc_alpm_delete: Unable to release"
+                                      "empty bucket: %d\n"),
+                           PIVOT_BUCKET_INDEX(pivot_pyld)));
+                /* we lose this bucket */
+            }
+
+            /* remove pivot from pivot trie */
+            rv = trie_delete(pivot_trie, pivot_pyld->key, pivot_pyld->len, &delp);
+            if (SOC_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                                      "could not delete pivot from pivot trie\n")));
+            }
+
+            /* Free up Bucket trie */
+            trie_destroy(PIVOT_BUCKET_TRIE(pivot_pyld));
+
+            /* Free up Bucket handle */
+            sal_free(PIVOT_BUCKET_HANDLE(pivot_pyld));
+
+            /* free Pivot structure */
+            sal_free(pivot_pyld);
+
+#ifdef CHECK_CLEAN_BKT
+            /* make sure bucket is indeed empty */
+            assert(_soc_th_alpm_bkt_count(u, mem, delete_bucket, v6,
+                                            bufp) == 0);
+#endif /* CHECK_CLEAN_BKT */
+        }
+    }
+
+    VRF_TRIE_ROUTES_DEC(u, vrf, v6);
+    if (VRF_TRIE_ROUTES_CNT(u, vrf, v6) == 0) {
+        /* vrf is empty. Release resources */
+        rv = soc_th_alpm_vrf_delete(u, vrf, v6);
+    }
+    SOC_ALPM_LPM_UNLOCK(u);
+    return rv;
+
+    /* Recovery from error: */
+    /* add back pivot bucket trie entry */
+    /* add back prefix trie entry */
+recover_pfx_trie:
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                   "recovering soc_th_alpm_vrf_delete failed\n ")));
+
+    rv2 = trie_insert(pfx_trie, prefix, NULL, length, (trie_node_t *)
+                     pfx_pyld);
+    if (SOC_FAILURE(rv2)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "_soc_alpm_delete: Unable to reinsert"
+                              "prefix 0x%08x 0x%08x into pfx trie\n"),
+                   prefix[0], prefix[1]));
+    }
+recover_bkt_trie:
+    rv2 = trie_insert(trie, prefix, NULL, length,  (trie_node_t *) payload);
+    if (SOC_FAILURE(rv2)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "_soc_alpm_delete: Unable to reinsert"
+                              "prefix 0x%08x 0x%08x into bkt trie\n"),
+                   prefix[0], prefix[1]));
+    }
+
+    SOC_ALPM_LPM_UNLOCK(u);
+    return rv;
+}
+
+void
+soc_th_alpm_mem_free(int u)
+{
+    int i;
+    if (alpm_vrf_handle[u] != NULL) {
+        sal_free(alpm_vrf_handle[u]);
+        alpm_vrf_handle[u] = NULL;
+    }
+    if (tcam_pivot[u] != NULL) {
+        sal_free(tcam_pivot[u]);
+        tcam_pivot[u] = NULL;
+    }
+    if (bkt_usage[u] != NULL) {
+        sal_free(bkt_usage[u]);
+        bkt_usage[u] = NULL;
+    }
+    for (i = 0; i < SOC_TH_MAX_ALPM_VIEWS; i++) {
+        if (global_bkt_usage[u][i] != NULL) {
+            sal_free(global_bkt_usage[u][i]);
+            global_bkt_usage[u][i] = NULL;
+        }
+    }
+}
+
+/* Initialize ALPM Subsytem */
+int
+soc_th_alpm_init(int u)
+{
+    int i;
+    int rv = SOC_E_NONE;
+    uint32 sz;
+
+    /* Initialize TCAM Memory management */
+    rv = soc_th_alpm_lpm_init(u);
+    SOC_IF_ERROR_RETURN(rv);
+
+    /* Initialize ALPM memory management */
+    rv = soc_th_alpm_shared_mem_init(u);
+
+    soc_th_alpm_mem_free(u);
+    alpm_vrf_handle[u] = sal_alloc((MAX_VRF_ID + 1) * sizeof(alpm_vrf_handle_t), "ALPM VRF Handles");
+    if (alpm_vrf_handle[u] == NULL) {
+        rv = SOC_E_MEMORY;
+        goto _free_exit;
+    }
+
+    tcam_pivot[u] = sal_alloc(MAX_PIVOT_COUNT * sizeof(alpm_pivot_t *), "ALPM pivots");
+    if (tcam_pivot[u] == NULL) {
+        rv = SOC_E_MEMORY;
+        goto _free_exit;
+    }
+    sal_memset(alpm_vrf_handle[u], 0, (MAX_VRF_ID + 1) * sizeof(alpm_vrf_handle_t));
+    sal_memset(tcam_pivot[u], 0, MAX_PIVOT_COUNT * sizeof(alpm_pivot_t *));
+
+    /* Bucket sharing structure */
+    sz = SOC_TH_MAX_ALPM_BUCKETS * sizeof(alpm_bkt_usg_t);
+    bkt_usage[u] = sal_alloc(sz, "ALPM_BS");
+    if (bkt_usage[u] == NULL) {
+        rv = SOC_E_MEMORY;
+        goto _free_exit;
+    }
+    sal_memset(bkt_usage[u], 0, sz);
+
+    sz = SOC_TH_MAX_BUCKET_ENTRIES * sizeof(alpm_bkt_bmp_t);
+    for (i = 0; i < SOC_TH_MAX_ALPM_VIEWS; i++) {
+        global_bkt_usage[u][i] = sal_alloc(sz, "ALPM_BS");
+        if (global_bkt_usage[u][i] == NULL) {
+            rv = SOC_E_MEMORY;
+            goto _free_exit;
+        }
+        sal_memset(global_bkt_usage[u][i], 0, sz);
+    }
+    alpm_split_count = 0;
+    alpm_128_split_count = 0;
+    alpm_merge_count = 0;
+
+    /* Initialize PIVOT management */
+    for (i = 0; i < MAX_PIVOT_COUNT; i++) {
+        ALPM_TCAM_PIVOT(u, i) = NULL;
+    }
+
+    if (SOC_CONTROL(u)->alpm_bulk_retry == NULL) {
+        SOC_CONTROL(u)->alpm_bulk_retry =
+            sal_sem_create("ALPM bulk retry", sal_sem_BINARY, 0);
+    }
+    if (SOC_CONTROL(u)->alpm_lookup_retry == NULL) {
+        SOC_CONTROL(u)->alpm_lookup_retry =
+            sal_sem_create("ALPM lookup retry", sal_sem_BINARY, 0);
+    }
+    if (SOC_CONTROL(u)->alpm_insert_retry == NULL) {
+        SOC_CONTROL(u)->alpm_insert_retry =
+            sal_sem_create("ALPM insert retry", sal_sem_BINARY, 0);
+    }
+    if (SOC_CONTROL(u)->alpm_delete_retry == NULL) {
+        SOC_CONTROL(u)->alpm_delete_retry =
+            sal_sem_create("ALPM delete retry", sal_sem_BINARY, 0);
+    }
+
+    rv = soc_th_alpm_128_lpm_init(u);
+    if (SOC_FAILURE(rv)) {
+        goto _free_exit;
+    }
+    return rv;
+
+_free_exit:
+    soc_th_alpm_mem_free(u);
+    return rv;
+}
+
+/* clear alpm related internal state */
+static int soc_th_alpm_state_clear(int u)
+{
+    int i, rv;
+    alpm_pivot_t *tmp;
+
+    /* clear all pivot state */
+    for (i = 0; i < MAX_PIVOT_COUNT; i++) {
+        tmp = ALPM_TCAM_PIVOT(u, i);
+        if (tmp) {
+            if (PIVOT_BUCKET_HANDLE(tmp)) {
+                if (PIVOT_BUCKET_TRIE(tmp)) {
+                    /* traverse bucket trie and clear it */
+                    rv = trie_traverse(PIVOT_BUCKET_TRIE(tmp),
+                            alpm_delete_node_cb, NULL, _TRIE_INORDER_TRAVERSE);
+                    if (SOC_SUCCESS(rv)) {
+                        trie_destroy(PIVOT_BUCKET_TRIE(tmp));
+                    } else {
+                        LOG_ERROR(BSL_LS_SOC_ALPM,
+                                  (BSL_META_U(u,
+                                              "Unable to clear trie state for unit %d\n"),
+                                   u));
+
+                        return rv;
+                    }
+                }
+                sal_free(PIVOT_BUCKET_HANDLE(tmp));
+            }
+            sal_free(ALPM_TCAM_PIVOT(u, i));
+            ALPM_TCAM_PIVOT(u, i) = NULL;
+        }
+    }
+
+    /* clear all prefix tries */
+    for (i = 0; i <= SOC_VRF_MAX(u) + 1; i++) {
+        rv = trie_traverse(VRF_PREFIX_TRIE_IPV4(u, i), alpm_delete_node_cb,
+                           NULL, _TRIE_INORDER_TRAVERSE);
+        if (SOC_SUCCESS(rv)) {
+            trie_destroy(VRF_PREFIX_TRIE_IPV4(u, i));
+        } else {
+            LOG_ERROR(BSL_LS_SOC_ALPM,
+                      (BSL_META_U(u,
+                                  "unit: %d Unable to clear v4 pfx trie for vrf %d\n"),
+                       u, i));
+            return rv;
+        }
+        rv = trie_traverse(VRF_PREFIX_TRIE_IPV6(u, i), alpm_delete_node_cb,
+                           NULL, _TRIE_INORDER_TRAVERSE);
+        if (SOC_SUCCESS(rv)) {
+            trie_destroy(VRF_PREFIX_TRIE_IPV6(u, i));
+        } else {
+            LOG_ERROR(BSL_LS_SOC_ALPM,
+                      (BSL_META_U(u,
+                                  "unit: %d Unable to clear v4 pfx trie for vrf %d\n"),
+                       u, i));
+            return rv;
+        }
+        if (VRF_TRIE_DEFAULT_ROUTE_IPV4(u, i) != NULL) {
+            sal_free(VRF_TRIE_DEFAULT_ROUTE_IPV4(u, i));
+        }
+        if (VRF_TRIE_DEFAULT_ROUTE_IPV6(u, i) != NULL) {
+            sal_free(VRF_TRIE_DEFAULT_ROUTE_IPV6(u, i));
+        }
+        sal_memset(&alpm_vrf_handle[u][i], 0, sizeof(alpm_vrf_handle_t));
+    }
+
+    /* Reset VRF_OVERRIDE debug counter */
+    sal_memset(&alpm_vrf_handle[u][MAX_VRF_ID], 0, sizeof(alpm_vrf_handle_t));
+    /* Mark Global Hi (VRF_OVERRIDE) for IPv4, IPv6-64, IPv6-128 inited for debug usage */
+    VRF_TRIE_INIT_DONE(u, MAX_VRF_ID, 0, 1);
+    VRF_TRIE_INIT_DONE(u, MAX_VRF_ID, 1, 1);
+    VRF_TRIE_INIT_DONE(u, MAX_VRF_ID, 2, 1);
+
+    if (SOC_TH_ALPM_VRF_BUCKET_BMAP(u) != NULL) {
+        sal_free(SOC_TH_ALPM_VRF_BUCKET_BMAP(u));
+    }
+    if (SOC_TH_ALPM_GLB_BUCKET_BMAP(u) != NULL &&
+        SOC_TH_ALPM_GLB_BUCKET_BMAP(u) != SOC_TH_ALPM_VRF_BUCKET_BMAP(u)) {
+        sal_free(SOC_TH_ALPM_GLB_BUCKET_BMAP(u));
+    }
+    sal_memset(&soc_th_alpm_bucket[u], 0, sizeof(soc_alpm_bucket_t));
+    alpm_split_count = 0;
+    alpm_128_split_count = 0;
+    alpm_merge_count = 0;
+
+    /* Free memory allocated for VRF handles and tcam pivots */
+    soc_th_alpm_mem_free(u);
+
+    return SOC_E_NONE;
+}
+
+/* De-Init ALPM Subsytem */
+int
+soc_th_alpm_deinit(int u)
+{
+    soc_th_alpm_lpm_deinit(u);
+
+    SOC_IF_ERROR_RETURN(soc_th_alpm_128_lpm_deinit(u));
+
+    SOC_IF_ERROR_RETURN(soc_th_alpm_128_state_clear(u));
+
+    SOC_IF_ERROR_RETURN(soc_th_alpm_state_clear(u));
+
+    if (SOC_CONTROL(u)->alpm_bulk_retry) {
+        sal_sem_destroy(SOC_CONTROL(u)->alpm_bulk_retry);
+        SOC_CONTROL(u)->alpm_bulk_retry = NULL;
+    }
+    if (SOC_CONTROL(u)->alpm_lookup_retry == NULL) {
+        sal_sem_destroy(SOC_CONTROL(u)->alpm_lookup_retry);
+        SOC_CONTROL(u)->alpm_lookup_retry = NULL;
+    }
+    if (SOC_CONTROL(u)->alpm_insert_retry == NULL) {
+        sal_sem_destroy(SOC_CONTROL(u)->alpm_insert_retry);
+        SOC_CONTROL(u)->alpm_insert_retry = NULL;
+    }
+    if (SOC_CONTROL(u)->alpm_delete_retry == NULL) {
+        sal_sem_destroy(SOC_CONTROL(u)->alpm_delete_retry);
+        SOC_CONTROL(u)->alpm_delete_retry = NULL;
+    }
+    return SOC_E_NONE;
+}
+
+/*
+ * soc_th_alpm_vrf_add
+ * Add a VRF default route when a L3 VRF is added
+ * Adds a 0.0 entry into VRF
+ */
+static int
+soc_th_alpm_vrf_add(int u, int vrf, int v6)
+{
+    defip_entry_t           *lpm_entry = NULL, tmp_lpm;
+    int                     bucket_pointer = 0;
+    int                     index;
+    int                     rv = SOC_E_NONE;
+    uint32                  key[2] = {0, 0};
+    uint32                  length;
+    alpm_bucket_handle_t    *bucket_handle = NULL;
+    alpm_pivot_t            *pivot_pyld = NULL;
+    payload_t               *pfx_pyld = NULL;
+    trie_t                  *root;
+    trie_t                  *pivot_root = NULL;
+
+    if (v6 == 0) {
+        trie_init(_MAX_KEY_LEN_48_, &VRF_PIVOT_TRIE_IPV4(u, vrf));
+        pivot_root = VRF_PIVOT_TRIE_IPV4(u, vrf);
+    } else {
+        trie_init(_MAX_KEY_LEN_144_, &VRF_PIVOT_TRIE_IPV6(u, vrf));
+        pivot_root = VRF_PIVOT_TRIE_IPV6(u, vrf);
+    }
+
+    /* Initialize VRF PIVOT IPV4 trie */
+    if (v6 == 0) {
+        trie_init(_MAX_KEY_LEN_48_, &VRF_PREFIX_TRIE_IPV4(u, vrf));
+        root = VRF_PREFIX_TRIE_IPV4(u, vrf);
+    } else {
+        trie_init(_MAX_KEY_LEN_144_, &VRF_PREFIX_TRIE_IPV6(u, vrf));
+        root = VRF_PREFIX_TRIE_IPV6(u, vrf);
+    }
+
+    lpm_entry = sal_alloc(sizeof(defip_entry_t), "Default LPM entry");
+    if (lpm_entry == NULL) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "soc_alpm_vrf_add: unable to allocate memory for "
+                              "IPv4 LPM entry\n")));
+        return SOC_E_MEMORY;
+    }
+
+    /* Initialize an lpm entry to perform a match */
+    _soc_th_key_lpm_ent_init(u, key, 0, vrf, v6, lpm_entry, 0, 1);
+
+    if (v6 == 0) {
+        VRF_TRIE_DEFAULT_ROUTE_IPV4(u, vrf) = lpm_entry;
+    } else {
+        VRF_TRIE_DEFAULT_ROUTE_IPV6(u, vrf) = lpm_entry;
+    }
+
+    /* for global VRF */
+    if (vrf == SOC_VRF_MAX(u) + 1) {
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, lpm_entry, GLOBAL_ROUTE0f, 1);
+    } else {
+        /* Set default miss to global route only for non global routes */
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, lpm_entry, DEFAULT_MISS0f, 1);
+    }
+
+    rv = soc_th_alpm_bs_alloc(u, &bucket_pointer, vrf, v6);
+    if (SOC_FAILURE(rv)) {
+        goto _err_exit;
+    }
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, lpm_entry, ALG_BKT_PTR0f,
+                        ALPM_BKT_IDX(bucket_pointer));
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, lpm_entry, ALG_SUB_BKT_PTR0f,
+                        ALPM_BKT_SIDX(bucket_pointer));
+
+    /* add Entry into tcam as default routes for the VRF */
+    /* urpf could modify the lpm entry. So use tmp one */
+    sal_memcpy(&tmp_lpm, lpm_entry, sizeof(tmp_lpm));
+    rv = soc_th_alpm_lpm_insert(u, &tmp_lpm, &index);
+    if (SOC_FAILURE(rv)) {
+        goto _err_exit;
+    }
+
+    /* Insert Pivot into the pivot tries */
+    bucket_handle = sal_alloc(sizeof(alpm_bucket_handle_t), "ALPM Bucket Handle");
+    if (bucket_handle == NULL) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                   (BSL_META_U(u,
+                     "soc_th_alpm_vrf_add: Unable to allocate memory for "
+                                                    "PIVOT trie node \n")));
+        rv = SOC_E_MEMORY;
+        goto _err_exit;
+    }
+    sal_memset(bucket_handle, 0, sizeof(*bucket_handle));
+
+    /* Allocate PIVOT Payload */
+    pivot_pyld = sal_alloc(sizeof(alpm_pivot_t), "Payload for Pivot");
+    if (pivot_pyld == NULL) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "soc_alpm_vrf_add: Unable to allocate memory for "
+                              "PIVOT trie node \n")));
+        rv = SOC_E_MEMORY;
+        goto _err_exit;
+    }
+
+    pfx_pyld = sal_alloc(sizeof(payload_t), "Payload for pfx trie key");
+    if (pfx_pyld == NULL) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "soc_alpm_vrf_add: Unable to allocate memory for "
+                              "pfx trie node \n")));
+        rv = SOC_E_MEMORY;
+        goto _err_exit;
+    }
+    sal_memset(pivot_pyld, 0, sizeof(*pivot_pyld));
+    sal_memset(pfx_pyld, 0, sizeof(*pfx_pyld));
+
+    /* 0 for default * route */
+    length = 0;
+    PIVOT_BUCKET_HANDLE(pivot_pyld) = bucket_handle;
+    if (v6) {
+        trie_init(_MAX_KEY_LEN_144_, &PIVOT_BUCKET_TRIE(pivot_pyld));
+    } else {
+        trie_init(_MAX_KEY_LEN_48_, &PIVOT_BUCKET_TRIE(pivot_pyld));
+    }
+    PIVOT_BUCKET_INDEX(pivot_pyld) = bucket_pointer;
+    PIVOT_BUCKET_VRF(pivot_pyld) = vrf;
+    PIVOT_BUCKET_IPV6(pivot_pyld) = v6;
+    PIVOT_BUCKET_DEF(pivot_pyld) = TRUE;
+
+    pivot_pyld->key[0] = pfx_pyld->key[0] = key[0];
+    pivot_pyld->key[1] = pfx_pyld->key[1] = key[1];
+    pivot_pyld->len = pfx_pyld->len    = length;
+    rv = trie_insert(root, key, NULL, length, &(pfx_pyld->node));
+
+    /* no internal default in bucket trie */
+
+    if (SOC_FAILURE(rv)) {
+        /* free alloced memory */
+        goto _err_exit;
+    }
+
+    /* insert into trie of pivots */
+    rv = trie_insert(pivot_root, key, NULL, length, (trie_node_t *)pivot_pyld);
+    if (SOC_FAILURE(rv)) {
+        trie_node_t *delp = NULL;
+        (void) trie_delete(root, key, length, &delp);
+        /* free alloced memory */
+        goto _err_exit;
+    }
+
+    /* get physical index */
+    index = soc_th_alpm_physical_idx(u, L3_DEFIPm, index, v6);
+    if (v6 == 0) {
+        ALPM_TCAM_PIVOT(u, index) = pivot_pyld;
+        PIVOT_TCAM_INDEX(pivot_pyld) = index;
+    } else {
+        ALPM_TCAM_PIVOT(u, index << 1) = pivot_pyld;
+        PIVOT_TCAM_INDEX(pivot_pyld) = index << 1;
+    }
+    VRF_PIVOT_REF_INC(u, vrf, v6);
+
+    VRF_TRIE_INIT_DONE(u, vrf, v6, 1);
+    return rv;
+
+_err_exit:
+    if (pfx_pyld != NULL) {
+        sal_free(pfx_pyld);
+    }
+    if (pivot_pyld != NULL) {
+        sal_free(pivot_pyld);
+    }
+    if (bucket_handle != NULL) {
+        sal_free(bucket_handle);
+    }
+    if (lpm_entry != NULL) {
+        sal_free(lpm_entry);
+    }
+    if (v6 == 0) {
+        VRF_TRIE_DEFAULT_ROUTE_IPV4(u, vrf) = NULL;
+    } else {
+        VRF_TRIE_DEFAULT_ROUTE_IPV6(u, vrf) = NULL;
+    }
+
+    return rv;
+}
+
+/*
+ * soc_th_alpm_vrf_delete
+ * Delete the VRF default route when a L3 VRF is destroyed
+ */
+static int
+soc_th_alpm_vrf_delete(int u, int vrf, int v6)
+{
+    defip_entry_t *lpm_entry;
+    int idx, vrf_id, _vrf;
+    int rv = SOC_E_NONE;
+    uint32 key[2] = {0, 0}, result[SOC_MAX_MEM_FIELD_WORDS];
+    payload_t *payload;
+    alpm_pivot_t *pivot_pyld1;
+    trie_node_t *delp;
+    trie_t *root;
+    trie_t *pivot_root = NULL;
+
+    soc_mem_t mem;
+    int tcam_index, bktid, index;
+    uint32 alpm_ent[SOC_MAX_MEM_FIELD_WORDS];
+
+    if (v6 == 0) {
+        lpm_entry = VRF_TRIE_DEFAULT_ROUTE_IPV4(u, vrf);
+        mem = L3_DEFIP_ALPM_IPV4m;
+    } else {
+        lpm_entry = VRF_TRIE_DEFAULT_ROUTE_IPV6(u, vrf);
+        mem = L3_DEFIP_ALPM_IPV6_64m;
+    }
+
+    /* Find and update the entry */
+    SOC_IF_ERROR_RETURN(soc_th_alpm_lpm_vrf_get(u, lpm_entry, &vrf_id, &_vrf));
+    rv = _soc_th_alpm_find(u, mem, v6, lpm_entry, vrf_id, _vrf, alpm_ent,
+                           &tcam_index, &bktid, &index, l3_alpm_sw_prefix_lookup[u]);
+
+    /* find bucket pointers and release them */
+    rv = soc_th_alpm_bs_free(u, bktid, vrf, v6);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u, "soc_th_alpm_bs_free: unable to free"
+                              " bucket %d vrf %d v6 %d\n"), bktid, vrf, v6));
+    }
+
+    /* add Entry into tcam as default routes for the VRF */
+    rv = soc_th_alpm_lpm_match(u, lpm_entry, (void *) result, &idx);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u, "soc_alpm_vrf_delete: unable to get internal"
+                              " pivot idx for vrf %d/%d\n"), vrf, v6));
+        idx = -1;
+    }
+
+    idx = soc_th_alpm_physical_idx(u, L3_DEFIPm, idx, v6);
+    if (v6 == 0) {
+        pivot_pyld1 = ALPM_TCAM_PIVOT(u, idx);
+    } else {
+        pivot_pyld1 = ALPM_TCAM_PIVOT(u, idx << 1);
+    }
+
+    rv = soc_th_alpm_lpm_delete(u, lpm_entry);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "soc_alpm_vrf_delete: unable to delete lpm entry "
+                              " for internal default for vrf %d/%d\n"), vrf, v6));
+    }
+
+    sal_free(lpm_entry);
+
+    if (v6 == 0) {
+        VRF_TRIE_DEFAULT_ROUTE_IPV4(u, vrf) = NULL;
+        root = VRF_PREFIX_TRIE_IPV4(u, vrf);
+        VRF_PREFIX_TRIE_IPV4(u, vrf) = NULL;
+    } else {
+        VRF_TRIE_DEFAULT_ROUTE_IPV6(u, vrf)  = NULL;
+        root = VRF_PREFIX_TRIE_IPV6(u, vrf);
+        VRF_PREFIX_TRIE_IPV6(u, vrf) = NULL;
+    }
+    VRF_TRIE_INIT_DONE(u, vrf, v6, 0);
+
+    rv = trie_delete(root, key, 0, &delp);
+    payload = (payload_t *) delp;
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "Unable to delete internal default for vrf "
+                              " %d/%d\n"), vrf, v6));
+    }
+    sal_free(payload);
+
+    (void) trie_destroy(root);
+
+    if (v6 == 0) {
+        pivot_root = VRF_PIVOT_TRIE_IPV4(u, vrf);
+        VRF_PIVOT_TRIE_IPV4(u, vrf) = NULL;
+    } else {
+        pivot_root = VRF_PIVOT_TRIE_IPV6(u, vrf);
+        VRF_PIVOT_TRIE_IPV6(u, vrf) = NULL;
+    }
+
+    delp = NULL;
+    rv = trie_delete(pivot_root, key, 0, &delp);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "Unable to delete internal pivot node for vrf"
+                              " %d/%d\n"), vrf, v6));
+    }
+    (void) trie_destroy(pivot_root);
+
+    (void) trie_destroy(PIVOT_BUCKET_TRIE(pivot_pyld1));
+    sal_free(PIVOT_BUCKET_HANDLE(pivot_pyld1));
+    sal_free(pivot_pyld1);
+
+    return rv;
+}
+
+/*
+ * soc_th_alpm_insert
+ * For IPV4 assume only both IP_ADDR0 is valid
+ * Moving multiple entries around in h/w vs  doing a linear search in s/w
+ */
+int
+soc_th_alpm_insert(int u, void *entry_data, uint32 src_flags, int ent_index,
+                   int pivot_info)
+{
+    /* Search Result buffer */
+    defip_alpm_ipv4_entry_t alpmv4_entry, alpmv4_sip_entry ;
+    /* Search Result buffer */
+    defip_alpm_ipv6_64_entry_t alpmv6_entry, alpmv6_sip_entry;
+    soc_mem_t mem;
+    void      *bufp, *bufp2;
+    int       vrf_id, vrf;
+    int       index;
+    int       ipv6;
+    int       rv = SOC_E_NONE;
+    uint32    default_route;
+    int       bktid = 0, bucket_idx = 0;
+
+    ipv6 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, MODE0f);
+
+    /* Get table memory. */
+    SOC_ALPM_TABLE_MEM(u, ipv6, mem);
+
+    /* Assign entry buf based on table being used */
+    SOC_ALPM_ENTRY_BUF(ipv6, mem, bufp, alpmv4_entry, alpmv6_entry);
+    SOC_ALPM_ENTRY_BUF(ipv6, mem, bufp2, alpmv4_sip_entry, alpmv6_sip_entry);
+
+    if (ent_index != -1) {
+        bktid = ALPM_BKTID(ALPM_BKT_IDX(SOC_TH_ALPM_BKT_ENTRY_TO_IDX(u, ent_index)),
+                           (ent_index >> ALPM_ENT_INDEX_BITS));
+    }
+    SOC_IF_ERROR_RETURN(
+        _soc_th_alpm_mem_ent_init(u, ipv6, entry_data, bufp, bufp2, mem,
+                                  src_flags, &default_route, bktid));
+
+    /* If the entry is override, then insert into TCAM directly */
+    SOC_IF_ERROR_RETURN(soc_th_alpm_lpm_vrf_get(u, entry_data, &vrf_id, &vrf));
+
+    /* For VRF_OVERRIDE (Global High) entries and IPMC route,
+       software needs to maintain the index */
+    /* Global High and Global Low Prefixes reside in TCAM directly,
+       in TCAM / ALPM mode */
+    /* Global High Prefixes reside in TCAM directly, in Parallel mode */
+    if (ALPM_PREFIX_IN_TCAM(u, vrf_id)) {
+        /* Insert into TCAM directly and return */
+        /* search in the hash table */
+        rv = soc_th_alpm_lpm_insert(u, entry_data, &index);
+        if (SOC_SUCCESS(rv)) {
+            if (vrf_id == SOC_L3_VRF_OVERRIDE) {
+                VRF_PIVOT_REF_INC(u, MAX_VRF_ID, ipv6);
+                VRF_TRIE_ROUTES_INC(u, MAX_VRF_ID, ipv6);
+            } else {
+                VRF_PIVOT_REF_INC(u, vrf, ipv6);
+                VRF_TRIE_ROUTES_INC(u, vrf, ipv6);
+            }
+        } else if (rv == SOC_E_FULL) {
+            if (vrf_id == SOC_L3_VRF_OVERRIDE) {
+                VRF_PIVOT_FULL_INC(u, MAX_VRF_ID, ipv6);
+            } else {
+                VRF_PIVOT_FULL_INC(u, vrf, ipv6);
+            }
+        }
+        return(rv);
+    } else if (vrf == 0) {
+        if (soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_PARALLEL ||
+            soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_TCAM_ALPM) {
+            /* cannot have 0 as a VRF in parallel mode */
+            LOG_ERROR(BSL_LS_SOC_ALPM,
+                      (BSL_META_U(u,
+                                  "VRF=0 cannot be added in current mode\n")));
+            return SOC_E_PARAM;
+        }
+    }
+
+    /* combined search mode protection */
+    if (vrf_id != SOC_L3_VRF_GLOBAL) {
+        if (soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_COMBINED) {
+            /* for emtpy DB allow insert only if route is default */
+            if (VRF_TRIE_ROUTES_CNT(u, vrf, ipv6) == 0) {
+                /* check if route is default, else throw error */
+                if (!default_route) {
+                    LOG_ERROR(BSL_LS_SOC_ALPM,
+                              (BSL_META_U(u,
+                              "VRF %d: First route in a VRF has to "
+                              " be a default route in this mode\n"), vrf_id));
+                    return SOC_E_PARAM;
+                }
+            }
+        }
+    }
+
+    /* non override entries, goes into ALPM memory */
+    if (!VRF_TRIE_INIT_COMPLETED(u, vrf, ipv6)) {
+        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(u,
+                                "soc_alpm_insert:VRF %d is not "
+                                "initialized\n"), vrf));
+        rv = soc_th_alpm_vrf_add(u, vrf, ipv6);
+        if (SOC_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_SOC_ALPM,
+                      (BSL_META_U(u,
+                                  "soc_alpm_insert:VRF %d/%d trie init \n"
+                                  "failed\n"), vrf, ipv6));
+            return rv;
+        }
+        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(u,
+                                "soc_alpm_insert:VRF %d/%d trie init "
+                                "completed\n"), vrf, ipv6));
+    }
+
+    /* Find and update the entry */
+    if (pivot_info & SOC_ALPM_LOOKUP_HIT) {
+        rv = _soc_th_alpm_find_and_update(u, ipv6, entry_data, bufp, bufp2, mem,
+                                          ent_index);
+    } else {
+        /* entry is not found in database */
+        /* Insert the entry into the database, if FULL, split the bucket */
+        /* Insert prefix into trie */
+        /* Split trie : Insertion into trie results into Split */
+        /* Allocate a TCAM entry for PIVOT and bucket and move entries */
+        if (ent_index == -1) {
+            /* internally 0 is invalid bucket index */
+            ent_index = 0;
+        }
+        bucket_idx = ALPM_BKT_IDX(SOC_TH_ALPM_BKT_ENTRY_TO_IDX(u, ent_index));
+        /* In double wide mode, the ent_index could come from second
+         * bucket, need to adjust to first bucket */
+        if (SOC_TH_ALPM_SCALE_CHECK(u, ipv6) && (bucket_idx & 0x1)) {
+            bucket_idx &= ~0x1;
+        }
+        bktid = ALPM_BKTID(bucket_idx, ent_index >> ALPM_ENT_INDEX_BITS);
+
+        rv = _soc_th_alpm_insert(u, ipv6, entry_data, mem, bufp, bufp2, &index,
+                                 bktid, pivot_info);
+    }
+
+    if (rv != SOC_E_NONE) {
+        LOG_WARN(BSL_LS_SOC_ALPM,
+                 (BSL_META_U(u,
+                 "unit %d :soc_alpm_insert: Route Insertion Failed :%s\n"),
+                 u, soc_errmsg(rv)));
+    }
+    return(rv);
+}
+
+/*
+ * soc_th_alpm_lookup
+ * For IPV4 assume only both IP_ADDR0 is valid
+ * Moving multiple entries around in h/w vs  doing a linear search in s/w
+ */
+int
+soc_th_alpm_lookup(int u,
+                void *key_data,
+                void *e,         /* return entry data if found */
+                int *index_ptr,
+                int *cookie)
+{
+    defip_alpm_ipv4_entry_t alpmv4_entry; /* Search Result buffer */
+    defip_alpm_ipv6_64_entry_t alpmv6_entry; /* Search Result buffer */
+    soc_mem_t mem;
+    int       bktid = 0;
+    int       tcam_index = -1;
+    void      *bufp;
+    int       vrf_id, vrf;
+    int       ipv6, pfx;
+    int       rv = SOC_E_NONE;
+
+    /* First launch lookup directly into tcam. If hit comes from override
+     * vrf just return it. Else launch lookup into alpm pivots
+     */
+    /* For VRF_OVERRIDE (Global High) entries, software needs to maintain the
+     * index */
+    /* Prefix resides in TCAM directly */
+
+    /* search in the hash table */
+    *index_ptr = 0;
+    rv = _soc_th_alpm_lpm_match(u, key_data, e, index_ptr, &pfx, &ipv6,
+                                &vrf_id, &vrf);
+    /*
+     * If entry is ipv4 copy to the "zero" half of the,
+     * buffer, "zero" half of lpm_entry if the  original entry
+     * is in the "one" half.
+     */
+    if (SOC_SUCCESS(rv)) {
+        if (!ipv6 && (*index_ptr & 0x1)) {
+            rv = soc_th_alpm_lpm_ip4entry1_to_0(u, e, e, PRESERVE_HIT);
+        }
+    }
+    if (ALPM_PREFIX_IN_TCAM(u, vrf_id)) {
+        *cookie = 0;
+        return rv;
+    }
+
+    /* either no hit in OVERRIDE or hit in pivot tcam */
+
+    /* non override entries, go to into ALPM memory */
+    if (!VRF_TRIE_INIT_COMPLETED(u, vrf, ipv6)) {
+        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(u, "soc_alpm_lookup:VRF %d is not initialized\n"),
+                     vrf));
+        *cookie = 0;
+        return SOC_E_NOT_FOUND;
+    }
+    /* Get table memory. */
+    SOC_ALPM_TABLE_MEM(u, ipv6, mem);
+
+    /* Assign entry buf based on table being used */
+    SOC_ALPM_ENTRY_BUF(ipv6, mem, bufp, alpmv4_entry, alpmv6_entry);
+
+    SOC_ALPM_LPM_LOCK(u);
+    /* Find and update the entry */
+    rv = _soc_th_alpm_find(u, mem, ipv6, key_data, vrf_id, vrf, bufp,
+                           &tcam_index, &bktid, index_ptr, l3_alpm_sw_prefix_lookup[u]);
+    SOC_ALPM_LPM_UNLOCK(u);
+    if (SOC_FAILURE(rv)) {
+        *cookie = tcam_index;
+        *index_ptr = (ALPM_BKT_SIDX(bktid) << ALPM_ENT_INDEX_BITS) |
+                     SOC_TH_ALPM_BKT_IDX_TO_ENTRY(u, bktid);
+        return rv;
+    }
+    /* Copy ALPM memory to LPM entry */
+    rv =  _soc_th_alpm_lpm_ent_init(u, bufp, mem, ipv6, vrf_id, bktid,
+                                    *index_ptr, e);
+    *cookie = SOC_ALPM_LOOKUP_HIT | tcam_index;
+    *index_ptr = (ALPM_BKT_SIDX(bktid) << ALPM_ENT_INDEX_BITS) | *index_ptr;
+
+    return(rv);
+}
+
+/* Find a LPM Global low or VRF route in ALPM memory */
+static int
+_soc_th_alpm_find_best_match(int u,
+                             void *key_data,
+                             void *e,          /* return entry data if found */
+                             int vrf,
+                             int *tcam_index,
+                             int *bucket_index,
+                             int *key_index,
+                             int do_urpf)
+{
+    int rv = SOC_E_NONE;
+    int i, j, v6, hit = 0;
+    uint32 db_type, ent_type, bank_disable;
+    defip_aux_scratch_entry_t aux_entry;
+    int gbl_old, vrf_old;
+    int index;
+    soc_mem_t mem, lpm_mem;
+    int hw_len, sw_len;
+    int ent_num;
+
+    /* Used for keeping Longest Matched entry in Bucket */
+    uint32  alpm_bufp[SOC_MAX_MEM_FIELD_WORDS] = {0};
+    int     alpm_len = -1;
+    int     alpm_index = 0;
+
+    soc_field_t ip_addr_fld[2] = {
+        IP_ADDR0f,
+        IP_ADDR1f,
+    };
+
+    lpm_mem = L3_DEFIPm;
+    v6 = soc_mem_field32_get(u, lpm_mem, key_data, MODE0f);
+    gbl_old = soc_mem_field32_get(u, lpm_mem, key_data, GLOBAL_ROUTE0f);
+    vrf_old = soc_mem_field32_get(u, lpm_mem, key_data, VRF_ID_0f);
+
+    LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                (BSL_META_U(u,
+                "Prefare AUX Scratch for searching TCAM in "
+                "%s region, Key data: v6 %d global %d vrf %d:\n"),
+                vrf == SOC_L3_VRF_GLOBAL ? "Global" : "VRF",
+                v6, gbl_old, vrf_old));
+
+    soc_th_alpm_bank_disb_get(u,
+        vrf == SOC_L3_VRF_GLOBAL ? (SOC_VRF_MAX(u) + 1) : vrf,
+        &bank_disable);
+    soc_alpm_db_ent_type_encoding(u,
+        vrf == SOC_L3_VRF_GLOBAL ? (SOC_VRF_MAX(u) + 1) : vrf_old,
+        &db_type, &ent_type);
+    if (do_urpf) {
+        db_type += 1;
+    }
+    if (vrf == SOC_L3_VRF_GLOBAL) {
+        /* Crack these value to use _fill_aux routine */
+        soc_mem_field32_set(u, lpm_mem, key_data, GLOBAL_ROUTE0f, 1);
+        soc_mem_field32_set(u, lpm_mem, key_data, VRF_ID_0f, 0);
+    }
+
+    sal_memset(&aux_entry, 0, sizeof(defip_aux_scratch_entry_t));
+    SOC_IF_ERROR_RETURN(
+        _soc_th_alpm_fill_aux_entry_for_op(u, key_data, v6, db_type, ent_type,
+                                           0, &aux_entry));
+    /* Recover to original value */
+    if (vrf == SOC_L3_VRF_GLOBAL) {
+        soc_mem_field32_set(u, lpm_mem, key_data, GLOBAL_ROUTE0f, gbl_old);
+        soc_mem_field32_set(u, lpm_mem, key_data, VRF_ID_0f, vrf_old);
+    }
+
+    /* Start shadow table engine to search */
+    SOC_IF_ERROR_RETURN(
+        _soc_th_alpm_aux_op(u, PREFIX_LOOKUP, &aux_entry, TRUE, &hit, tcam_index,
+                            bucket_index));
+
+    if (hit == 0) {
+        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(u,"Could not find bucket\n")));
+        return SOC_E_NOT_FOUND;
+    }
+
+    LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                (BSL_META_U(u, "Hit in memory %s, index %d, "
+                "bucket [%d,%d]\n"), SOC_MEM_NAME(u, lpm_mem),
+                soc_th_alpm_logical_idx(u, lpm_mem, (*tcam_index) >> 1, 1),
+                ALPM_BKT_IDX(*bucket_index), ALPM_BKT_SIDX(*bucket_index)));
+
+    /* Found, check ALPM bucket */
+    SOC_ALPM_TABLE_MEM(u, v6, mem);
+    rv = _soc_th_alpm_mask_len_get(u, v6, key_data, &sw_len);
+    if (SOC_FAILURE(rv)) {
+        return rv;
+    }
+
+    switch (v6) {
+    case L3_DEFIP_MODE_V4:
+        ent_num = ALPM_IPV4_BKT_COUNT;
+        break;
+    case L3_DEFIP_MODE_64:
+        ent_num = ALPM_IPV6_64_BKT_COUNT;
+        break;
+    default:
+        ent_num = ALPM_IPV4_BKT_COUNT;
+        break;
+    }
+
+    /* Double-wide mode check */
+    if (SOC_TH_ALPM_SCALE_CHECK(u, v6)) {
+        ent_num <<= 1;
+    }
+
+    LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                (BSL_META_U(u, "Start searching mem %s bucket [%d,%d](count %d) "
+                "for Length %d\n"),
+                SOC_MEM_NAME(u, mem), ALPM_BKT_IDX(*bucket_index),
+                ALPM_BKT_SIDX(*bucket_index), ent_num, sw_len));
+
+    for (i = 0; i < ent_num; i++) {
+        uint32 bufp[SOC_MAX_MEM_FIELD_WORDS] = {0};
+        uint32 mask[2] = {0};
+        uint32 hkey[2] = {0};
+        uint32 skey[2] = {0};
+        int valid;
+
+        rv = _soc_th_alpm_mem_index(u, mem, ALPM_BKT_IDX(*bucket_index),
+                                    i, bank_disable, &index);
+        if (rv == SOC_E_FULL) {
+            continue;
+        }
+
+        SOC_IF_ERROR_RETURN(soc_mem_read(u, mem, MEM_BLOCK_ANY,
+                                         index, (void *)bufp));
+        valid = soc_mem_field32_get(u, mem, bufp, VALIDf);
+        hw_len = soc_mem_field32_get(u, mem, bufp, LENGTHf);
+
+        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(u, "Bucket [%d,%d] index %6d: Valid %d, Length %d\n"),
+                    ALPM_BKT_IDX(*bucket_index), ALPM_BKT_SIDX(*bucket_index),
+                    index, valid, hw_len));
+
+        if (!valid || (hw_len > sw_len)) {
+            continue;
+        }
+
+        /* Length in ALPM <= given length */
+        SHR_BITSET_RANGE(mask, (v6 ? 64 : 32) - hw_len, hw_len);
+        (void)soc_mem_field_get(u, mem, (uint32 *)bufp, KEYf, (uint32 *)hkey);
+        skey[1] = soc_mem_field32_get(u, lpm_mem, key_data, ip_addr_fld[1]);
+        skey[0] = soc_mem_field32_get(u, lpm_mem, key_data, ip_addr_fld[0]);
+
+        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(u, "\tmask %08x %08x\n\t key %08x %08x\n"
+                    "\thost %08x %08x\n"),
+                    mask[1], mask[0], hkey[1], hkey[0], skey[1], skey[0]));
+
+        for (j = v6 ? 1 : 0; j >= 0; j--) {
+            if ((skey[j] & mask[j]) != (hkey[j] & mask[j])) {
+                break;
+            }
+        }
+
+        /* Hardware key doesn't match to software key */
+        if (j >= 0) {
+            continue;
+        }
+
+        /* Matched, store and keep searching,
+         * could be Longer prefix in following entries */
+        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(u, "Found a match in mem %s bucket [%d,%d], "
+                    "index %d\n"), SOC_MEM_NAME(u, mem),
+                    ALPM_BKT_IDX(*bucket_index), ALPM_BKT_SIDX(*bucket_index),
+                    index));
+
+        /* Keep longest matched route */
+        if (alpm_len == -1 || alpm_len < hw_len) {
+            alpm_len = hw_len;
+            alpm_index = index;
+            sal_memcpy(alpm_bufp, bufp, sizeof(bufp));
+        }
+    }
+
+    /* Found */
+    if (alpm_len != -1) {
+        rv = _soc_th_alpm_lpm_ent_init(u, alpm_bufp, mem, v6, vrf, *bucket_index,
+                                       alpm_index, e);
+        if (SOC_SUCCESS(rv)) {
+            *key_index = alpm_index;
+            if (bsl_check(bslLayerSoc, bslSourceAlpm, bslSeverityVerbose, u)) {
+                LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                            (BSL_META_U(u, "Hit mem %s bucket [%d,%d], index %d\n"),
+                            SOC_MEM_NAME(u, mem), ALPM_BKT_IDX(*bucket_index),
+                            ALPM_BKT_SIDX(*bucket_index), alpm_index));
+            }
+        }
+        return rv;
+    }
+
+    /* Missed */
+    *key_index = soc_th_alpm_logical_idx(u, lpm_mem, (*tcam_index) >> 1, 1);
+    LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                (BSL_META_U(u,"Miss in mem %s bucket [%d,%d], use associate data "
+                "in mem %s LOG index %d\n"), SOC_MEM_NAME(u, mem),
+                ALPM_BKT_IDX(*bucket_index), ALPM_BKT_SIDX(*bucket_index),
+                SOC_MEM_NAME(u, lpm_mem), *key_index));
+
+    /* Miss in bucket, use associate data */
+    SOC_IF_ERROR_RETURN(soc_mem_read(u, lpm_mem, MEM_BLOCK_ANY, *key_index,
+                                     (void *)e));
+    if ((!v6) && ((*tcam_index) & 1)) {
+        /* move entry to 0 half */
+        rv = soc_th_alpm_lpm_ip4entry1_to_0(u, e, e, PRESERVE_HIT);
+    }
+
+    return SOC_E_NONE;
+}
+
+/*
+ * soc_th_alpm_find_best_match
+ *
+ * It's an indenpendent routine, to simalute HW process for incoming packets.
+ * Considering possible mismatch between SW and HW, we need to go through
+ * hardware for lookup regardless of software state.
+ */
+int
+soc_th_alpm_find_best_match(int u,
+                            void *key_data,
+                            void *e,           /* return entry data if found */
+                            int *index_ptr,
+                            int do_urpf)
+{
+    int rv = SOC_E_NONE;
+    int i, index_min, index_cnt;
+    defip_entry_t lpm_ent;
+    uint32 hmsk[2];
+    uint32 hkey[2];
+    uint32 smsk[2];
+    uint32 skey[2];
+    uint32 glb_hi, glb_rt;
+
+    int vrf_id, vrf = 0;
+    int vld[2] = {0};
+    int tcam_index, bucket_index;
+    soc_mem_t lpm_mem = L3_DEFIPm;
+    int ent, v6, hw_v6, match = 0;
+
+    soc_field_t glb_hi_fld[] = {
+        GLOBAL_HIGH0f,
+        GLOBAL_HIGH1f
+    };
+    soc_field_t glb_rt_fld[] = {
+        GLOBAL_ROUTE0f,
+        GLOBAL_ROUTE1f
+    };
+
+    v6 = soc_mem_field32_get(u, lpm_mem, key_data, MODE0f);
+    if (!SOC_URPF_STATUS_GET(u) && do_urpf) {
+        return SOC_E_PARAM;
+    }
+
+    /* Since L3_DEFIP_* tables are not support for DMA,
+     * we do PIO search instead */
+    index_min = soc_mem_index_min(u, lpm_mem);
+    index_cnt = soc_mem_index_count(u, lpm_mem);
+    if (SOC_URPF_STATUS_GET(u)) {
+        index_cnt >>= 1;
+    }
+    /* in Parallel mode search from second half */
+    if (soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_PARALLEL ||
+        soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_TCAM_ALPM) {
+        index_cnt >>= 1;
+        index_min += index_cnt;
+    }
+
+    if (do_urpf) {
+        index_min += soc_mem_index_count(u, lpm_mem) / 2;
+    }
+
+    LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                (BSL_META_U(u, "Launch LPM searching from index %d count %d\n"),
+                index_min, index_cnt));
+
+    /* Scanning for Global High routes */
+    for (i = index_min; i < index_min + index_cnt; i++) {
+        SOC_IF_ERROR_RETURN(soc_mem_read(u, lpm_mem, MEM_BLOCK_ANY,
+                            i, (void *)&lpm_ent));
+        vld[0] = soc_mem_field32_get(u, lpm_mem, &lpm_ent, VALID0f);
+        vld[1] = soc_mem_field32_get(u, lpm_mem, &lpm_ent, VALID1f);
+        if (vld[0] == 0 && vld[1] == 0) {
+            continue;
+        }
+
+        hw_v6 = soc_mem_field32_get(u, lpm_mem, &lpm_ent, MODE0f);
+        if (hw_v6 != v6) {
+            continue;
+        }
+
+        for (ent = 0; ent < (v6 ? 1 : 2); ent++) {
+            if (vld[ent] == 0) {
+                continue;
+            }
+            glb_hi = soc_mem_field32_get(u, lpm_mem, &lpm_ent, glb_hi_fld[ent]);
+            glb_rt = soc_mem_field32_get(u, lpm_mem, &lpm_ent, glb_rt_fld[ent]);
+            /* No need to compare key if not Global High route */
+            if (!(soc_th_alpm_mode_get(u) != SOC_ALPM_MODE_TCAM_ALPM &&
+                  glb_hi && glb_rt) &&
+                !(soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_TCAM_ALPM &&
+                  glb_rt)) {
+                continue;
+            }
+
+            LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                        (BSL_META_U(u, "Match a Global High route: ent %d\n"),
+                        ent));
+
+            hmsk[0] = soc_mem_field32_get(u, lpm_mem, &lpm_ent, IP_ADDR_MASK0f);
+            hmsk[1] = soc_mem_field32_get(u, lpm_mem, &lpm_ent, IP_ADDR_MASK1f);
+            hkey[0] = soc_mem_field32_get(u, lpm_mem, &lpm_ent, IP_ADDR0f);
+            hkey[1] = soc_mem_field32_get(u, lpm_mem, &lpm_ent, IP_ADDR1f);
+            smsk[0] = soc_mem_field32_get(u, lpm_mem, key_data, IP_ADDR_MASK0f);
+            smsk[1] = soc_mem_field32_get(u, lpm_mem, key_data, IP_ADDR_MASK1f);
+            skey[0] = soc_mem_field32_get(u, lpm_mem, key_data, IP_ADDR0f);
+            skey[1] = soc_mem_field32_get(u, lpm_mem, key_data, IP_ADDR1f);
+
+            LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                        (BSL_META_U(u, "\thmsk %08x %08x\n\thkey %08x %08x\n"
+                        "\tsmsk %08x %08x\n\tskey %08x %08x\n"),
+                        hmsk[1], hmsk[0], hkey[1], hkey[0],
+                        smsk[1], smsk[0], skey[1], skey[0]));
+
+            /* check if length in memory is shorter than softare */
+            if (v6 && (((hmsk[1] & smsk[1]) != hmsk[1]) ||
+                       ((hmsk[0] & smsk[0]) != hmsk[0]))) {
+                 continue;
+            }
+            if (!v6 && ((hmsk[ent] & smsk[0]) != hmsk[ent])) {
+                 continue;
+            }
+
+            /* check if key matched */
+            if (v6 && ((skey[0] & hmsk[0]) == (hkey[0] & hmsk[0])) &&
+                ((skey[1] & hmsk[1]) == (hkey[1] & hmsk[1]))) {
+                match = TRUE;
+                break;
+            }
+
+            if (!v6 && ((skey[0] & hmsk[ent]) == (hkey[ent] & hmsk[ent]))) {
+                match = TRUE;
+                break;
+            }
+        }
+
+        /* Not match */
+        if (!match) {
+            continue;
+        }
+
+        /* Found, all Key matched */
+        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(u,"Hit Global High route in index = %d(%d)\n"),
+                    i, ent));
+        sal_memcpy(e, &lpm_ent, sizeof(lpm_ent));
+        if (!v6 && ent == 1) {
+            /* ent == 1 indicate it's sencond half of the entry */
+            rv = soc_th_alpm_lpm_ip4entry1_to_0(u, e, e, PRESERVE_HIT);
+        }
+        *index_ptr = i;
+        return rv;
+    }
+
+    /* Global High lookup miss, use AUX to search Global Low and VRF route */
+    LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                (BSL_META_U(u,"Global high lookup miss, use AUX engine to "
+                "search for VRF and Global Low routes\n")));
+
+    /* Fill in AUX Scratch and perform PREFIX Operation */
+    SOC_IF_ERROR_RETURN(soc_th_alpm_lpm_vrf_get(u, key_data, &vrf_id, &vrf));
+    rv = _soc_th_alpm_find_best_match(u, key_data, e, vrf, &tcam_index,
+                                      &bucket_index, index_ptr, do_urpf);
+    if (rv == SOC_E_NOT_FOUND) {
+        vrf = SOC_L3_VRF_GLOBAL;
+        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(u,"Not found in VRF region, trying Global "
+                    "region\n")));
+        rv = _soc_th_alpm_find_best_match(u, key_data, e, vrf, &tcam_index,
+                                          &bucket_index, index_ptr, do_urpf);
+    }
+
+    if (SOC_SUCCESS(rv)) {
+        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(u,"Hit in %s region in TCAM index %d, "
+                    "bucket [%d,%d]\n"),
+                    vrf == SOC_L3_VRF_GLOBAL ? "Global Low" : "VRF",
+                    tcam_index, ALPM_BKT_IDX(bucket_index),
+                    ALPM_BKT_SIDX(bucket_index)));
+    } else {
+        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(u,"Search miss for given address\n")));
+    }
+
+    return(rv);
+}
+
+
+/*
+ * soc_th_alpm_delete
+ */
+int
+soc_th_alpm_delete(int u, void *key_data, int key_idx, int pivot_info)
+{
+    int       bktid, bucket_idx;
+    int       vrf_id, vrf;
+    int       ipv6;
+    int       rv = SOC_E_NONE;
+
+    ipv6 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, key_data, MODE0f);
+
+    /* If the entry is override, then insert into TCAM directly */
+    SOC_IF_ERROR_RETURN(soc_th_alpm_lpm_vrf_get(u, key_data, &vrf_id, &vrf));
+    /* For VRF_OVERRIDE (Global High) entries, software needs to maintain the
+     * index */
+    /* Prefix resides in TCAM directly */
+    if (ALPM_PREFIX_IN_TCAM(u, vrf_id)) {
+        /* search in the hash table */
+        rv = soc_th_alpm_lpm_delete(u, key_data);
+        if (SOC_SUCCESS(rv)) {
+            if (vrf_id == SOC_L3_VRF_OVERRIDE) {
+                VRF_PIVOT_REF_DEC(u, MAX_VRF_ID, ipv6);
+                VRF_TRIE_ROUTES_DEC(u, MAX_VRF_ID, ipv6);
+            } else {
+                VRF_PIVOT_REF_DEC(u, vrf, ipv6);
+                VRF_TRIE_ROUTES_DEC(u, vrf, ipv6);
+            }
+        }
+        return(rv);
+    } else { /* non override entries, go to into ALPM memory */
+        int tcam_index;
+        if (!VRF_TRIE_INIT_COMPLETED(u, vrf, ipv6)) {
+            LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                        (BSL_META_U(u,
+                                    "soc_alpm_delete:VRF %d/%d is not initialized\n"),
+                         vrf, ipv6));
+            return SOC_E_NONE;
+        }
+        if (key_idx == -1) {
+            /* internally 0 is invalid bucket index */
+            key_idx = 0;
+        }
+        bucket_idx = ALPM_BKT_IDX(SOC_TH_ALPM_BKT_ENTRY_TO_IDX(u, key_idx));
+        /* In double wide mode, the key_idx could come from second
+         * bucket, need to adjust to first bucket */
+        if (SOC_TH_ALPM_SCALE_CHECK(u, ipv6) && (bucket_idx & 0x1)) {
+            bucket_idx &= ~0x1;
+        }
+
+        bktid = ALPM_BKTID(bucket_idx, key_idx >> ALPM_ENT_INDEX_BITS);
+        tcam_index = pivot_info & ~(SOC_ALPM_LOOKUP_HIT | SOC_ALPM_DELETE_ALL);
+        rv = _soc_th_alpm_delete(u, ipv6, key_data, bktid, tcam_index, key_idx);
+    }
+    return(rv);
+}
+
+
+/* Initialize shared bucket management */
+static int
+soc_th_alpm_shared_mem_init(int u)
+{
+    int defip_table_size;
+
+    /* Get Table Size */
+    defip_table_size = soc_mem_index_count(u, L3_DEFIPm)
+                            + soc_mem_index_count(u, L3_DEFIP_PAIR_128m) * 2;
+    SOC_TH_ALPM_BUCKET_COUNT(u) = SOC_TH_ALPM_MAX_BKTS;
+
+    if (SOC_URPF_STATUS_GET(u)) {
+        /* remaining half buckets are the src buckets */
+        defip_table_size >>= 1;
+        SOC_TH_ALPM_BUCKET_COUNT(u) >>= 1;
+    }
+
+    /* number bytes to manage the max buckets */
+    SOC_TH_ALPM_BUCKET_BMAP_SIZE(u) = SHR_BITALLOCSIZE(SOC_TH_ALPM_BUCKET_COUNT(u));
+
+    SOC_TH_ALPM_VRF_BUCKET_BMAP(u) =
+             sal_alloc(SOC_TH_ALPM_BUCKET_BMAP_SIZE(u),
+                       "alpm_vrf_shared_bucket_bitmap");
+    if (SOC_TH_ALPM_VRF_BUCKET_BMAP(u) == NULL) {
+        return SOC_E_MEMORY;
+    }
+    /* Mark all buckets as free */
+    sal_memset(SOC_TH_ALPM_VRF_BUCKET_BMAP(u), 0, SOC_TH_ALPM_BUCKET_BMAP_SIZE(u));
+    /* Bucket 0 is reserved. Just assign it */
+    soc_th_alpm_bucket_assign(u, &defip_table_size, 1, 1);
+
+    /* If Parallel uRPF mode, we share bucket between Global low and VRF */
+    if (soc_property_get(u, "l3_alpm_vrf_share_bucket", 0) &&
+        soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_PARALLEL &&
+        SOC_URPF_STATUS_GET(u)) {
+        SOC_TH_ALPM_GLB_BUCKET_BMAP(u) =
+             sal_alloc(SOC_TH_ALPM_BUCKET_BMAP_SIZE(u), "alpm_glb_shr_bkt_bmap");
+        if (SOC_TH_ALPM_GLB_BUCKET_BMAP(u) == NULL) {
+            sal_free(SOC_TH_ALPM_VRF_BUCKET_BMAP(u));
+            return SOC_E_MEMORY;
+        }
+        /* Mark all buckets as free */
+        sal_memset(SOC_TH_ALPM_GLB_BUCKET_BMAP(u), 0, SOC_TH_ALPM_BUCKET_BMAP_SIZE(u));
+        /* Bucket 0 is reserved. Just assign it */
+        soc_th_alpm_bucket_assign(u, &defip_table_size, SOC_VRF_MAX(u) + 1, 1);
+    } else {
+        SOC_TH_ALPM_GLB_BUCKET_BMAP(u) = SOC_TH_ALPM_VRF_BUCKET_BMAP(u);
+    }
+
+    return SOC_E_NONE;
+}
+
+/* Get the free bucket to allocate to the PIVOT */
+int
+soc_th_alpm_bucket_assign(int u, int *bucket_pointer, int vrf, int v6)
+{
+    int i, step_count = 1, used = 0;
+    SHR_BITDCL *bkt_bmap = SOC_TH_ALPM_VRF_BUCKET_BMAP(u);
+
+    if (vrf == SOC_VRF_MAX(u) + 1) {
+        bkt_bmap = SOC_TH_ALPM_GLB_BUCKET_BMAP(u);
+    }
+
+    /*
+     * in combined search mode, with urpf disabled, need to allocate even and
+     * odd bucket pointers
+     */
+    if (SOC_TH_ALPM_SCALE_CHECK(u, v6)) {
+        step_count = 2;
+    }
+
+    for (i = 0; i < SOC_TH_ALPM_BUCKET_COUNT(u); i += step_count) {
+        SHR_BITTEST_RANGE(bkt_bmap, i, step_count, used);
+        if (0 == used) {
+            break;
+        }
+    }
+    if (i == SOC_TH_ALPM_BUCKET_COUNT(u)) {
+        return SOC_E_FULL;
+    }
+    SHR_BITSET_RANGE(bkt_bmap, i, step_count);
+    *bucket_pointer = i;
+    SOC_TH_ALPM_BUCKET_NEXT_FREE(u) = i;
+    return SOC_E_NONE;
+}
+
+/* Release the bucket to the pool*/
+int
+soc_th_alpm_bucket_release(int u, int bucket_pointer, int vrf, int v6)
+{
+    int step_count = 1, used = 0;
+    int key_index;
+    SHR_BITDCL *bkt_bmap = SOC_TH_ALPM_VRF_BUCKET_BMAP(u);
+
+    /* Check if the bucket pointer is valid */
+    if ((bucket_pointer < 1) ||
+        (bucket_pointer > SOC_TH_ALPM_BUCKET_MAX_INDEX(u))) {
+        return SOC_E_PARAM;
+    }
+
+    if (vrf == SOC_VRF_MAX(u) + 1) {
+        bkt_bmap = SOC_TH_ALPM_GLB_BUCKET_BMAP(u);
+    }
+
+    /* in combined search mode, with urpf disabled, need to free even and odd
+     * bucket pointers
+     */
+    if (SOC_TH_ALPM_SCALE_CHECK(u, v6)) {
+        step_count = 2;
+    }
+    SHR_BITTEST_RANGE(bkt_bmap, bucket_pointer, step_count, used);
+    if (!used) {
+        return SOC_E_PARAM;
+    }
+    SHR_BITCLR_RANGE(bkt_bmap, bucket_pointer, step_count);
+
+    key_index = SOC_TH_ALPM_BKT_IDX_TO_ENTRY(u, ALPM_BKTID(bucket_pointer, 0));
+    _soc_tomahawk_alpm_bkt_view_set(u, key_index, INVALIDm);
+    if (SOC_URPF_STATUS_GET(u)) {
+        _soc_tomahawk_alpm_bkt_view_set(u, _soc_alpm_rpf_entry(u, key_index),
+                                        INVALIDm);
+    }
+    if (step_count == 2) {
+        key_index = SOC_TH_ALPM_BKT_IDX_TO_ENTRY(u,
+                        ALPM_BKTID(bucket_pointer + 1, 0));
+        _soc_tomahawk_alpm_bkt_view_set(u, key_index, INVALIDm);
+        if (SOC_URPF_STATUS_GET(u)) {
+            _soc_tomahawk_alpm_bkt_view_set(u, _soc_alpm_rpf_entry(u, key_index),
+                                            INVALIDm);
+        }
+    }
+
+    return SOC_E_NONE;
+}
+
+int
+soc_th_alpm_bucket_is_assigned(int u, int bucket_ptr, int vrf, int ipv6, int *used)
+{
+    int step_count = 1;
+    SHR_BITDCL *bkt_bmap = SOC_TH_ALPM_VRF_BUCKET_BMAP(u);
+
+    if (vrf == SOC_VRF_MAX(u) + 1) {
+        bkt_bmap = SOC_TH_ALPM_GLB_BUCKET_BMAP(u);
+    }
+
+    /* Check if the bucket pointer is valid */
+    if ((bucket_ptr < 1) || (bucket_ptr > SOC_TH_ALPM_BUCKET_MAX_INDEX(u))) {
+        return SOC_E_PARAM;
+    }
+
+    /* in combined search mode, with urpf disabled, need to allocate even and
+     * odd bucket pointers */
+    if (SOC_TH_ALPM_SCALE_CHECK(u, ipv6)) {
+        step_count = 2;
+    }
+
+    SHR_BITTEST_RANGE(bkt_bmap, bucket_ptr, step_count, *used);
+    return SOC_E_NONE;
+}
+
+/**********************************************
+* TCAM Management functions *
+***********************************************/
+
+/*
+ * TCAM based PIVOT implementation. Each table entry can hold two IPV4 PIVOTs or
+ * one IPV6 PIVOT entry. VRF independent routes placed at the beginning or
+ * at the end of table based on application provided entry vrf id
+ * (SOC_L3_VRF_OVERRIDE/SOC_L3_VRF_GLOBAL).
+ *
+ *              ALPM_MAX_PFX_INDEX
+ * lpm_prefix_index[98].begin ---> ===============================
+ *                                 ==                           ==
+ *                                 ==    0                      ==
+ * lpm_prefix_index[98].end   ---> ===============================
+ *
+ * lpm_prefix_index[97].begin ---> ===============================
+ *                                 ==                           ==
+ *                                 ==    IPV6  Prefix Len = 64  ==
+ * lpm_prefix_index[97].end   ---> ===============================
+ *
+ *
+ *
+ * lpm_prefix_index[x].begin --->  ===============================
+ *                                 ==                           ==
+ *                                 ==                           ==
+ * lpm_prefix_index[x].end   --->  ===============================
+ *
+ *
+ *              ALPM_IPV6_PFX_ZERO
+ * lpm_prefix_index[33].begin ---> ===============================
+ *                                 ==                           ==
+ *                                 ==    IPV6  Prefix Len = 0   ==
+ * lpm_prefix_index[33].end   ---> ===============================
+ *
+ *
+ * lpm_prefix_index[32].begin ---> ===============================
+ *                                 ==                           ==
+ *                                 ==    IPV4  Prefix Len = 32  ==
+ * lpm_prefix_index[32].end   ---> ===============================
+ *
+ *
+ *
+ * lpm_prefix_index[0].begin --->  ===============================
+ *                                 ==                           ==
+ *                                 ==    IPV4  Prefix Len = 0   ==
+ * lpm_prefix_index[0].end   --->  ===============================
+ *
+ *
+ */
+
+
+/*
+ *      Extract key data from an entry at the given index.
+ */
+static
+void _soc_th_alpm_lpm_hash_entry_get(int u, void *e,
+                                int index, _soc_th_alpm_lpm_hash_entry_t r_entry)
+{
+    if (index & TD2_ALPM_HASH_IPV6_MASK) {
+        SOC_FB_LPM_HASH_ENTRY_IPV6_GET(u, e, r_entry);
+    } else {
+        if (index & 0x1) {
+            SOC_FB_LPM_HASH_ENTRY_IPV4_1_GET(u, e, r_entry);
+        } else {
+            SOC_FB_LPM_HASH_ENTRY_IPV4_0_GET(u, e, r_entry);
+        }
+    }
+}
+
+/*
+ * Function:
+ *      _soc_th_alpm_lpm_hash_compare_key
+ * Purpose:
+ *      Comparison function for AVL shadow table operations.
+ */
+static
+int _soc_th_alpm_lpm_hash_compare_key(_soc_th_alpm_lpm_hash_entry_t key1,
+                                 _soc_th_alpm_lpm_hash_entry_t key2)
+{
+    int idx;
+
+    for (idx = 0; idx < 5; idx++) {
+        if (key1[idx] < key2[idx]) {
+            return -1;
+        }
+        if (key1[idx] > key2[idx]) {
+            return  1;
+        }
+    }
+    return (0);
+}
+
+#ifdef FB_LPM_DEBUG
+#define H_INDEX_MATCH(str, tab_index, match_index)      \
+    LOG_ERROR(BSL_LS_SOC_ALPM, \
+              (BSL_META("%s index: H %d A %d\n"),              \
+               str, (int)tab_index, match_index)
+#else
+#define H_INDEX_MATCH(str, tab_index, match_index)
+#endif
+
+#define LPM_NO_MATCH_INDEX 0x4000
+#define LPM_HASH_INSERT(u, entry_data, tab_index)       \
+    soc_th_alpm_lpm_hash_insert(u, entry_data, tab_index, LPM_NO_MATCH_INDEX, 0)
+
+#define LPM_HASH_DELETE(u, key_data, tab_index)         \
+    soc_th_alpm_lpm_hash_delete(u, key_data, tab_index)
+
+#define LPM_HASH_LOOKUP(u, key_data, pfx, tab_index)    \
+    soc_th_alpm_lpm_hash_lookup(u, key_data, pfx, tab_index)
+
+#define LPM_HASH_VERIFY(u, key_data, tab_index)    \
+    soc_th_alpm_lpm_hash_verify(u, key_data, tab_index)
+static void soc_th_alpm_lpm_hash_insert(int u, void *entry_data, uint32 tab_index,
+                                     uint32 old_index, int pfx)
+{
+    _soc_th_alpm_lpm_hash_entry_t    key_hash;
+
+    if (SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, MODE0f)) {
+        /* IPV6 entry */
+        if (SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, VALID1f) &&
+            SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, VALID0f)) {
+            SOC_FB_LPM_HASH_ENTRY_IPV6_GET(u, entry_data, key_hash);
+            _soc_th_alpm_lpm_hash_insert(
+                        SOC_ALPM_LPM_STATE_HASH(u),
+                        _soc_th_alpm_lpm_hash_compare_key,
+                        key_hash,
+                        pfx,
+                        old_index,
+                        ((uint16)tab_index << 1) | TD2_ALPM_HASH_IPV6_MASK);
+        }
+    } else {
+        /* IPV4 entry */
+        if (SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, VALID0f)) {
+            SOC_FB_LPM_HASH_ENTRY_IPV4_0_GET(u, entry_data, key_hash);
+            _soc_th_alpm_lpm_hash_insert(SOC_ALPM_LPM_STATE_HASH(u),
+                                    _soc_th_alpm_lpm_hash_compare_key,
+                                    key_hash,
+                                    pfx,
+                                    old_index,
+                                    ((uint16)tab_index << 1));
+        }
+        if (SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry_data, VALID1f)) {
+            SOC_FB_LPM_HASH_ENTRY_IPV4_1_GET(u, entry_data, key_hash);
+            _soc_th_alpm_lpm_hash_insert(SOC_ALPM_LPM_STATE_HASH(u),
+                                    _soc_th_alpm_lpm_hash_compare_key,
+                                    key_hash,
+                                    pfx,
+                                    old_index,
+                                    (((uint16)tab_index << 1) + 1));
+        }
+    }
+}
+
+static void soc_th_alpm_lpm_hash_delete(int u, void *key_data, uint32 tab_index)
+{
+    _soc_th_alpm_lpm_hash_entry_t    key_hash;
+    int                         pfx = -1;
+    int                         rv;
+    uint16                      index;
+
+    if (SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, key_data, MODE0f)) {
+        SOC_FB_LPM_HASH_ENTRY_IPV6_GET(u, key_data, key_hash);
+        index = (tab_index << 1) | TD2_ALPM_HASH_IPV6_MASK;
+    } else {
+        SOC_FB_LPM_HASH_ENTRY_IPV4_0_GET(u, key_data, key_hash);
+        index = tab_index;
+    }
+
+    rv = _soc_th_alpm_lpm_hash_delete(SOC_ALPM_LPM_STATE_HASH(u),
+                                 _soc_th_alpm_lpm_hash_compare_key,
+                                 key_hash, pfx, index);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "\ndel  index: H %d error %d\n"), index, rv));
+    }
+}
+
+static int soc_th_alpm_lpm_hash_lookup(int u, void *key_data, int pfx, int *key_index)
+{
+    _soc_th_alpm_lpm_hash_entry_t    key_hash;
+    int                         is_ipv6;
+    int                         rv;
+    uint16                      index = TD2_ALPM_HASH_INDEX_NULL;
+
+    is_ipv6 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, key_data, MODE0f);
+    if (is_ipv6) {
+        SOC_FB_LPM_HASH_ENTRY_IPV6_GET(u, key_data, key_hash);
+    } else {
+        SOC_FB_LPM_HASH_ENTRY_IPV4_0_GET(u, key_data, key_hash);
+    }
+
+    rv = _soc_th_alpm_lpm_hash_lookup(SOC_ALPM_LPM_STATE_HASH(u),
+                                 _soc_th_alpm_lpm_hash_compare_key,
+                                 key_hash, pfx, &index);
+    if (SOC_FAILURE(rv)) {
+        *key_index = 0xFFFFFFFF;
+        return(rv);
+    }
+
+    *key_index = index;
+
+    return(SOC_E_NONE);
+}
+
+static int soc_th_alpm_lpm_hash_verify(int u, void *key_data, uint32 tab_index)
+{
+    _soc_th_alpm_lpm_hash_entry_t    key_hash;
+    int                         pfx = -1;
+    int                         rv;
+    uint16                      index;
+
+    if (SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, key_data, MODE0f)) {
+        SOC_FB_LPM_HASH_ENTRY_IPV6_GET(u, key_data, key_hash);
+        index = (tab_index << 1) | TD2_ALPM_HASH_IPV6_MASK;
+    } else {
+        SOC_FB_LPM_HASH_ENTRY_IPV4_0_GET(u, key_data, key_hash);
+        index = tab_index;
+    }
+
+    rv = _soc_th_alpm_lpm_hash_verify(SOC_ALPM_LPM_STATE_HASH(u),
+                                 _soc_th_alpm_lpm_hash_compare_key,
+                                 key_hash, pfx, index);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "\nveri index: H %d error %d\n"), index, rv));
+    }
+    return rv;
+}
+/*
+ * Function:
+ *      _soc_th_alpm_lpm_hash_compute
+ * Purpose:
+ *      Compute CRC hash for key data.
+ * Parameters:
+ *      data - Key data
+ *      data_nbits - Number of data bits
+ * Returns:
+ *      Computed 16 bit hash
+ */
+static
+uint16 _soc_th_alpm_lpm_hash_compute(uint8 *data, int data_nbits)
+{
+    return (_shr_crc16b(0, data, data_nbits));
+}
+
+/*
+ * Function:
+ *      _soc_th_alpm_lpm_hash_create
+ * Purpose:
+ *      Create an empty hash table
+ * Parameters:
+ *      unit  - Device unit
+ *      entry_count - Limit for number of entries in table
+ *      index_count - Hash index max + 1. (index_count <= count)
+ *      fb_lpm_hash_ptr - Return pointer (handle) to new Hash Table
+ * Returns:
+ *      SOC_E_NONE       Success
+ *      SOC_E_MEMORY     Out of memory (system allocator)
+ */
+
+static
+int _soc_th_alpm_lpm_hash_create(int unit,
+                            int entry_count,
+                            int index_count,
+                            _soc_th_alpm_lpm_hash_t **fb_lpm_hash_ptr)
+{
+    _soc_th_alpm_lpm_hash_t  *hash;
+    int                 index;
+
+    if (index_count > entry_count) {
+        return SOC_E_MEMORY;
+    }
+    hash = sal_alloc(sizeof (_soc_th_alpm_lpm_hash_t), "lpm_hash");
+    if (hash == NULL) {
+        return SOC_E_MEMORY;
+    }
+
+    sal_memset(hash, 0, sizeof (*hash));
+
+    hash->unit = unit;
+    hash->entry_count = entry_count;
+    hash->index_count = index_count;
+
+    /*
+     * Pre-allocate the hash table storage.
+     */
+    hash->table = sal_alloc(hash->index_count * sizeof(*(hash->table)),
+                            "hash_table");
+
+    if (hash->table == NULL) {
+        sal_free(hash);
+        return SOC_E_MEMORY;
+    }
+    /*
+     * In case where all the entries should hash into the same bucket
+     * this will prevent the hash table overflow
+     */
+    hash->link_table = sal_alloc(
+                            hash->entry_count * sizeof(*(hash->link_table)),
+                            "link_table");
+    if (hash->link_table == NULL) {
+        sal_free(hash->table);
+        sal_free(hash);
+        return SOC_E_MEMORY;
+    }
+
+    /*
+     * Set the entries in the hash table to TD2_ALPM_HASH_INDEX_NULL
+     * Link the entries beyond hash->index_max for handling collisions
+     */
+    for(index = 0; index < hash->index_count; index++) {
+        hash->table[index] = TD2_ALPM_HASH_INDEX_NULL;
+    }
+    for(index = 0; index < hash->entry_count; index++) {
+        hash->link_table[index] = TD2_ALPM_HASH_INDEX_NULL;
+    }
+    *fb_lpm_hash_ptr = hash;
+    return SOC_E_NONE;
+}
+
+/*
+ * Function:
+ *      _soc_th_alpm_lpm_hash_destroy
+ * Purpose:
+ *      Destroy the hash table
+ * Parameters:
+ *      fb_lpm_hash - Pointer (handle) to Hash Table
+ * Returns:
+ *      SOC_E_NONE       Success
+ */
+static
+int _soc_th_alpm_lpm_hash_destroy(_soc_th_alpm_lpm_hash_t *fb_lpm_hash)
+{
+    if (fb_lpm_hash != NULL) {
+        sal_free(fb_lpm_hash->table);
+        sal_free(fb_lpm_hash->link_table);
+        sal_free(fb_lpm_hash);
+    }
+
+    return SOC_E_NONE;
+}
+
+/*
+ * Function:
+ *      _soc_th_alpm_lpm_hash_lookup
+ * Purpose:
+ *      Look up a key in the hash table
+ * Parameters:
+ *      hash - Pointer (handle) to Hash Table
+ *      key_cmp_fn - Compare function which should compare key
+ *      entry   - The key to lookup
+ *      pfx     - Prefix length for lookup acceleration.
+ *      key_index - (OUT)       Index where the key was found.
+ * Returns:
+ *      SOC_E_NONE      Key found
+ *      SOC_E_NOT_FOUND Key not found
+ */
+
+static
+int _soc_th_alpm_lpm_hash_lookup(_soc_th_alpm_lpm_hash_t          *hash,
+                            _soc_th_alpm_lpm_hash_compare_fn key_cmp_fn,
+                            _soc_th_alpm_lpm_hash_entry_t    entry,
+                            int                         pfx,
+                            uint16                      *key_index)
+{
+    int u = hash->unit;
+
+    uint16 hash_val;
+    uint16 index;
+
+    hash_val = _soc_th_alpm_lpm_hash_compute((uint8 *)entry,
+                                        (32 * 5)) % hash->index_count;
+    index = hash->table[hash_val];
+    H_INDEX_MATCH("lhash", entry[0], hash_val);
+    H_INDEX_MATCH("lkup ", entry[0], index);
+    while(index != TD2_ALPM_HASH_INDEX_NULL) {
+        uint32  e[SOC_MAX_MEM_FIELD_WORDS];
+        _soc_th_alpm_lpm_hash_entry_t  r_entry;
+        int     rindex;
+
+        rindex = (index & TD2_ALPM_HASH_INDEX_MASK) >> 1;
+        /*
+         * Check prefix length and skip index if not valid for given length
+        if ((SOC_ALPM_LPM_STATE_START(u, pfx) <= rindex) &&
+            (SOC_ALPM_LPM_STATE_END(u, pfx) >= rindex)) {
+         */
+        SOC_IF_ERROR_RETURN(READ_L3_DEFIPm(u, MEM_BLOCK_ANY, rindex, e));
+        SOC_FB_LPM_HASH_ENTRY_GET(u, e, index, r_entry);
+        if ((*key_cmp_fn)(entry, r_entry) == 0) {
+            *key_index = (index & TD2_ALPM_HASH_INDEX_MASK) >>
+                            ((index & TD2_ALPM_HASH_IPV6_MASK) ? 1 : 0);
+            H_INDEX_MATCH("found", entry[0], index);
+            return(SOC_E_NONE);
+        }
+        /*
+        }
+        */
+        index = hash->link_table[index & TD2_ALPM_HASH_INDEX_MASK];
+        H_INDEX_MATCH("lkup1", entry[0], index);
+    }
+    H_INDEX_MATCH("not_found", entry[0], index);
+    return(SOC_E_NOT_FOUND);
+}
+
+/*
+ * Function:
+ *      _soc_th_alpm_lpm_hash_insert
+ * Purpose:
+ *      Insert/Update a key index in the hash table
+ * Parameters:
+ *      hash - Pointer (handle) to Hash Table
+ *      key_cmp_fn - Compare function which should compare key
+ *      entry   - The key to lookup
+ *      pfx     - Prefix length for lookup acceleration.
+ *      old_index - Index where the key was moved from.
+ *                  TD2_ALPM_HASH_INDEX_NULL if new entry.
+ *      new_index - Index where the key was moved to.
+ * Returns:
+ *      SOC_E_NONE      Key found
+ */
+/*
+ *      Should be caled before updating the LPM table so that the
+ *      data in the hash table is consistent with the LPM table
+ */
+static
+int _soc_th_alpm_lpm_hash_insert(_soc_th_alpm_lpm_hash_t *hash,
+                            _soc_th_alpm_lpm_hash_compare_fn key_cmp_fn,
+                            _soc_th_alpm_lpm_hash_entry_t entry,
+                            int    pfx,
+                            uint16 old_index,
+                            uint16 new_index)
+{
+
+#define INDEX_ADD(hash, hash_idx, new_idx)                      \
+    hash->link_table[new_idx & TD2_ALPM_HASH_INDEX_MASK] =        \
+        hash->table[hash_idx];                                  \
+    hash->table[hash_idx] = new_idx
+
+#define INDEX_ADD_LINK(hash, t_index, new_idx)                  \
+    hash->link_table[new_idx & TD2_ALPM_HASH_INDEX_MASK] =        \
+        hash->link_table[t_index & TD2_ALPM_HASH_INDEX_MASK];     \
+    hash->link_table[t_index & TD2_ALPM_HASH_INDEX_MASK] = new_idx
+
+#define INDEX_UPDATE(hash, hash_idx, old_idx, new_idx)          \
+    hash->table[hash_idx] = new_idx;                            \
+    hash->link_table[new_idx & TD2_ALPM_HASH_INDEX_MASK] =        \
+        hash->link_table[old_idx & TD2_ALPM_HASH_INDEX_MASK];     \
+    hash->link_table[old_idx & TD2_ALPM_HASH_INDEX_MASK] = TD2_ALPM_HASH_INDEX_NULL
+
+#define INDEX_UPDATE_LINK(hash, prev_idx, old_idx, new_idx)             \
+    hash->link_table[prev_idx & TD2_ALPM_HASH_INDEX_MASK] = new_idx;      \
+    hash->link_table[new_idx & TD2_ALPM_HASH_INDEX_MASK] =                \
+        hash->link_table[old_idx & TD2_ALPM_HASH_INDEX_MASK];             \
+    hash->link_table[old_idx & TD2_ALPM_HASH_INDEX_MASK] = TD2_ALPM_HASH_INDEX_NULL
+
+
+    int u = hash->unit;
+
+    uint16 hash_val;
+    uint16 index;
+    uint16 prev_index;
+
+    hash_val = _soc_th_alpm_lpm_hash_compute((uint8 *)entry,
+                                        (32 * 5)) % hash->index_count;
+    index = hash->table[hash_val];
+    H_INDEX_MATCH("ihash", entry[0], hash_val);
+    H_INDEX_MATCH("ins  ", entry[0], new_index);
+    H_INDEX_MATCH("ins1 ", index, new_index);
+    prev_index = TD2_ALPM_HASH_INDEX_NULL;
+    if (old_index != TD2_ALPM_HASH_INDEX_NULL) {
+        while(index != TD2_ALPM_HASH_INDEX_NULL) {
+            uint32  e[SOC_MAX_MEM_FIELD_WORDS];
+            _soc_th_alpm_lpm_hash_entry_t  r_entry;
+            int     rindex;
+
+            rindex = (index & TD2_ALPM_HASH_INDEX_MASK) >> 1;
+
+            /*
+             * Check prefix length and skip index if not valid for given length
+            if ((SOC_ALPM_LPM_STATE_START(u, pfx) <= rindex) &&
+                (SOC_ALPM_LPM_STATE_END(u, pfx) >= rindex)) {
+             */
+            SOC_IF_ERROR_RETURN(READ_L3_DEFIPm(u, MEM_BLOCK_ANY, rindex, e));
+            SOC_FB_LPM_HASH_ENTRY_GET(u, e, index, r_entry);
+            if ((*key_cmp_fn)(entry, r_entry) == 0) {
+                /* assert(old_index == index);*/
+                if (new_index != index) {
+                    H_INDEX_MATCH("imove", prev_index, new_index);
+                    if (prev_index == TD2_ALPM_HASH_INDEX_NULL) {
+                        INDEX_UPDATE(hash, hash_val, index, new_index);
+                    } else {
+                        INDEX_UPDATE_LINK(hash, prev_index, index, new_index);
+                    }
+                }
+                H_INDEX_MATCH("imtch", index, new_index);
+                return(SOC_E_NONE);
+            }
+            /*
+            }
+            */
+            prev_index = index;
+            index = hash->link_table[index & TD2_ALPM_HASH_INDEX_MASK];
+            H_INDEX_MATCH("ins2 ", index, new_index);
+        }
+    }
+    INDEX_ADD(hash, hash_val, new_index);  /* new entry */
+    return(SOC_E_NONE);
+}
+
+/*
+ * Function:
+ *      _soc_th_alpm_lpm_hash_delete
+ * Purpose:
+ *      Delete a key index in the hash table
+ * Parameters:
+ *      hash - Pointer (handle) to Hash Table
+ *      key_cmp_fn - Compare function which should compare key
+ *      entry   - The key to delete
+ *      pfx     - Prefix length for lookup acceleration.
+ *      delete_index - Index to delete.
+ * Returns:
+ *      SOC_E_NONE      Success
+ *      SOC_E_NOT_FOUND Key index not found.
+ */
+static
+int _soc_th_alpm_lpm_hash_delete(_soc_th_alpm_lpm_hash_t *hash,
+                            _soc_th_alpm_lpm_hash_compare_fn key_cmp_fn,
+                            _soc_th_alpm_lpm_hash_entry_t entry,
+                            int    pfx,
+                            uint16 delete_index)
+{
+    uint16 hash_val;
+    uint16 index;
+    uint16 prev_index;
+
+    hash_val = _soc_th_alpm_lpm_hash_compute((uint8 *)entry,
+                                        (32 * 5)) % hash->index_count;
+    index = hash->table[hash_val];
+    H_INDEX_MATCH("dhash", entry[0], hash_val);
+    H_INDEX_MATCH("del  ", entry[0], index);
+    prev_index = TD2_ALPM_HASH_INDEX_NULL;
+    while(index != TD2_ALPM_HASH_INDEX_NULL) {
+#define INDEX_DELETE(hash, hash_idx, del_idx)                   \
+    hash->table[hash_idx] =                                     \
+        hash->link_table[del_idx & TD2_ALPM_HASH_INDEX_MASK];     \
+    hash->link_table[del_idx & TD2_ALPM_HASH_INDEX_MASK] =        \
+        TD2_ALPM_HASH_INDEX_NULL
+
+#define INDEX_DELETE_LINK(hash, prev_idx, del_idx)              \
+    hash->link_table[prev_idx & TD2_ALPM_HASH_INDEX_MASK] =       \
+        hash->link_table[del_idx & TD2_ALPM_HASH_INDEX_MASK];     \
+    hash->link_table[del_idx & TD2_ALPM_HASH_INDEX_MASK] =        \
+        TD2_ALPM_HASH_INDEX_NULL
+
+        if (delete_index == index) {
+            H_INDEX_MATCH("dfoun", entry[0], index);
+            if (prev_index == TD2_ALPM_HASH_INDEX_NULL) {
+                INDEX_DELETE(hash, hash_val, delete_index);
+            } else {
+                INDEX_DELETE_LINK(hash, prev_index, delete_index);
+            }
+            return(SOC_E_NONE);
+        }
+        prev_index = index;
+        index = hash->link_table[index & TD2_ALPM_HASH_INDEX_MASK];
+        H_INDEX_MATCH("del1 ", entry[0], index);
+    }
+    return(SOC_E_NOT_FOUND);
+}
+
+
+/*
+ * Function:
+ *      _soc_th_alpm_lpm_hash_verify
+ * Purpose:
+ *      Verify a key index in the hash table
+ * Parameters:
+ *      hash - Pointer (handle) to Hash Table
+ *      key_cmp_fn - Compare function which should compare key
+ *      entry   - The key to delete
+ *      pfx     - Prefix length for lookup acceleration.
+ *      verify_index   - Index to verify.
+ * Returns:
+ *      SOC_E_NONE      Success
+ *      SOC_E_NOT_FOUND Key index not found.
+ */
+static
+int _soc_th_alpm_lpm_hash_verify(_soc_th_alpm_lpm_hash_t *hash,
+                            _soc_th_alpm_lpm_hash_compare_fn key_cmp_fn,
+                            _soc_th_alpm_lpm_hash_entry_t entry,
+                            int    pfx,
+                            uint16 verify_index)
+{
+    uint16 hash_val;
+    uint16 index;
+
+    hash_val = _soc_th_alpm_lpm_hash_compute((uint8 *)entry,
+                                        (32 * 5)) % hash->index_count;
+    index = hash->table[hash_val];
+    H_INDEX_MATCH("vhash", entry[0], hash_val);
+    H_INDEX_MATCH("veri ", entry[0], index);
+    while(index != TD2_ALPM_HASH_INDEX_NULL) {
+        if (verify_index == index) {
+            H_INDEX_MATCH("vfoun", entry[0], index);
+            return(SOC_E_NONE);
+        }
+        index = hash->link_table[index & TD2_ALPM_HASH_INDEX_MASK];
+        H_INDEX_MATCH("veri1", entry[0], index);
+    }
+    return(SOC_E_NOT_FOUND);
+}
+#else
+#define LPM_HASH_INSERT(u, entry_data, tab_index)
+#define LPM_HASH_DELETE(u, key_data, tab_index)
+#define LPM_HASH_LOOKUP(u, key_data, pfx, tab_index)
+#define LPM_HASH_VERIFY(u, key_data, tab_index)
+#endif /* FB_LPM_HASH_SUPPORT */
+
+/* src and dst can be same */
+int
+soc_th_alpm_lpm_ip4entry0_to_0(int u, void *src, void *dst, int copy_hit)
+{
+    uint32      ipv4a;
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, VALID0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, VALID0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, MODE0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, MODE0f, ipv4a);
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, MODE_MASK0f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, MODE_MASK0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, MODE_MASK0f, ipv4a);
+    }
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, GLOBAL_ROUTE0f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, GLOBAL_ROUTE0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, GLOBAL_ROUTE0f, ipv4a);
+    }
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, IP_ADDR0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, IP_ADDR0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, IP_ADDR_MASK0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, IP_ADDR_MASK0f, ipv4a);
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, ECMP0f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ECMP0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ECMP0f, ipv4a);
+    }
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, ECMP_COUNT0f)) {
+            ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ECMP_COUNT0f);
+            SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ECMP_COUNT0f, ipv4a);
+
+            ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ECMP_PTR0f);
+            SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ECMP_PTR0f, ipv4a);
+    } else {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, NEXT_HOP_INDEX0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, NEXT_HOP_INDEX0f, ipv4a);
+    }
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, PRI0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, PRI0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, RPE0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, RPE0f, ipv4a);
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, VRF_ID_0f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, VRF_ID_0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, VRF_ID_0f, ipv4a);
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, VRF_ID_MASK0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, VRF_ID_MASK0f, ipv4a);
+    }
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, DST_DISCARD0f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, DST_DISCARD0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, DST_DISCARD0f, ipv4a);
+    }
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, CLASS_ID0f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, CLASS_ID0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, CLASS_ID0f, ipv4a);
+    }
+    if (copy_hit) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, HIT0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, HIT0f, ipv4a);
+    }
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, GLOBAL_HIGH0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, GLOBAL_HIGH0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ALG_HIT_IDX0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ALG_HIT_IDX0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ALG_BKT_PTR0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ALG_BKT_PTR0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ALG_SUB_BKT_PTR0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ALG_SUB_BKT_PTR0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, DEFAULT_MISS0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, DEFAULT_MISS0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, FLEX_CTR_BASE_COUNTER_IDX0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, FLEX_CTR_BASE_COUNTER_IDX0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, FLEX_CTR_POOL_NUMBER0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, FLEX_CTR_POOL_NUMBER0f, ipv4a);
+    return(SOC_E_NONE);
+}
+
+int
+soc_th_alpm_lpm_ip4entry1_to_1(int u, void *src, void *dst, int copy_hit)
+{
+    uint32      ipv4a;
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, VALID1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, VALID1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, MODE1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, MODE1f, ipv4a);
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, MODE_MASK1f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, MODE_MASK1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, MODE_MASK1f, ipv4a);
+    }
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, GLOBAL_ROUTE1f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, GLOBAL_ROUTE1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, GLOBAL_ROUTE1f, ipv4a);
+    }
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, IP_ADDR1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, IP_ADDR1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, IP_ADDR_MASK1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, IP_ADDR_MASK1f, ipv4a);
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, ECMP1f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ECMP1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ECMP1f, ipv4a);
+    }
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, ECMP_COUNT1f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ECMP_COUNT1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ECMP_COUNT1f, ipv4a);
+
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ECMP_PTR1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ECMP_PTR1f, ipv4a);
+    } else {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, NEXT_HOP_INDEX1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, NEXT_HOP_INDEX1f, ipv4a);
+    }
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, PRI1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, PRI1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, RPE1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, RPE1f, ipv4a);
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, VRF_ID_1f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, VRF_ID_1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, VRF_ID_1f, ipv4a);
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, VRF_ID_MASK1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, VRF_ID_MASK1f, ipv4a);
+    }
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, DST_DISCARD1f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, DST_DISCARD1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, DST_DISCARD1f, ipv4a);
+    }
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, CLASS_ID1f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, CLASS_ID1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, CLASS_ID1f, ipv4a);
+    }
+    if (copy_hit) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, HIT1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, HIT1f, ipv4a);
+    }
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, GLOBAL_HIGH1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, GLOBAL_HIGH1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ALG_HIT_IDX1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ALG_HIT_IDX1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ALG_BKT_PTR1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ALG_BKT_PTR1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ALG_SUB_BKT_PTR1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ALG_SUB_BKT_PTR1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, DEFAULT_MISS1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, DEFAULT_MISS1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, FLEX_CTR_BASE_COUNTER_IDX1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, FLEX_CTR_BASE_COUNTER_IDX1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, FLEX_CTR_POOL_NUMBER1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, FLEX_CTR_POOL_NUMBER1f, ipv4a);
+    return(SOC_E_NONE);
+}
+
+/* src and dst can be same */
+int
+soc_th_alpm_lpm_ip4entry0_to_1(int u, void *src, void *dst, int copy_hit)
+{
+    uint32      ipv4a;
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, VALID0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, VALID1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, MODE0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, MODE1f, ipv4a);
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, MODE_MASK0f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, MODE_MASK0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, MODE_MASK1f, ipv4a);
+    }
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, GLOBAL_ROUTE0f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, GLOBAL_ROUTE0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, GLOBAL_ROUTE1f, ipv4a);
+    }
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, IP_ADDR0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, IP_ADDR1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, IP_ADDR_MASK0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, IP_ADDR_MASK1f, ipv4a);
+
+    if (!SOC_IS_HURRICANE(u)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ECMP0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ECMP1f, ipv4a);
+    }
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, ECMP_COUNT0f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ECMP_COUNT0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ECMP_COUNT1f, ipv4a);
+
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ECMP_PTR0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ECMP_PTR1f, ipv4a);
+    } else {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, NEXT_HOP_INDEX0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, NEXT_HOP_INDEX1f, ipv4a);
+    }
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, PRI0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, PRI1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, RPE0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, RPE1f, ipv4a);
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, VRF_ID_0f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, VRF_ID_0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, VRF_ID_1f, ipv4a);
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, VRF_ID_MASK0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, VRF_ID_MASK1f, ipv4a);
+    }
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, DST_DISCARD0f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, DST_DISCARD0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, DST_DISCARD1f, ipv4a);
+    }
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, CLASS_ID0f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, CLASS_ID0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, CLASS_ID1f, ipv4a);
+    }
+    if (copy_hit) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, HIT0f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, HIT1f, ipv4a);
+    }
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, GLOBAL_HIGH0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, GLOBAL_HIGH1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ALG_HIT_IDX0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ALG_HIT_IDX1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ALG_BKT_PTR0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ALG_BKT_PTR1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ALG_SUB_BKT_PTR0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ALG_SUB_BKT_PTR1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, DEFAULT_MISS0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, DEFAULT_MISS1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, FLEX_CTR_BASE_COUNTER_IDX0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, FLEX_CTR_BASE_COUNTER_IDX1f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, FLEX_CTR_POOL_NUMBER0f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, FLEX_CTR_POOL_NUMBER1f, ipv4a);
+    return(SOC_E_NONE);
+}
+
+/* src and dst can be same */
+int
+soc_th_alpm_lpm_ip4entry1_to_0(int u, void *src, void *dst, int copy_hit)
+{
+    uint32      ipv4a;
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, VALID1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, VALID0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, MODE1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, MODE0f, ipv4a);
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, MODE_MASK0f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, MODE_MASK1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, MODE_MASK0f, ipv4a);
+    }
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, GLOBAL_ROUTE1f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, GLOBAL_ROUTE1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, GLOBAL_ROUTE0f, ipv4a);
+    }
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, IP_ADDR1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, IP_ADDR0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, IP_ADDR_MASK1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, IP_ADDR_MASK0f, ipv4a);
+
+    if (!SOC_IS_HURRICANE(u)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ECMP1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ECMP0f, ipv4a);
+    }
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, ECMP_COUNT1f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ECMP_COUNT1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ECMP_COUNT0f, ipv4a);
+
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ECMP_PTR1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ECMP_PTR0f, ipv4a);
+    } else {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, NEXT_HOP_INDEX1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, NEXT_HOP_INDEX0f, ipv4a);
+    }
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, PRI1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, PRI0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, RPE1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, RPE0f, ipv4a);
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, VRF_ID_1f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, VRF_ID_1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, VRF_ID_0f, ipv4a);
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, VRF_ID_MASK1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, VRF_ID_MASK0f, ipv4a);
+    }
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, DST_DISCARD1f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, DST_DISCARD1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, DST_DISCARD0f, ipv4a);
+    }
+
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, CLASS_ID1f)) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, CLASS_ID1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, CLASS_ID0f, ipv4a);
+    }
+    if (copy_hit) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, HIT1f);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, HIT0f, ipv4a);
+    }
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, GLOBAL_HIGH1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, GLOBAL_HIGH0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ALG_HIT_IDX1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ALG_HIT_IDX0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ALG_BKT_PTR1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ALG_BKT_PTR0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, ALG_SUB_BKT_PTR1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, ALG_SUB_BKT_PTR0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, DEFAULT_MISS1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, DEFAULT_MISS0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, FLEX_CTR_BASE_COUNTER_IDX1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, FLEX_CTR_BASE_COUNTER_IDX0f, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, src, FLEX_CTR_POOL_NUMBER1f);
+    SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, dst, FLEX_CTR_POOL_NUMBER0f, ipv4a);
+    return(SOC_E_NONE);
+}
+
+static
+int _lpm_ip4entry_swap(int u, void *e)
+{
+    return(SOC_E_NONE);
+}
+
+void
+soc_th_alpm_lpm_state_dump(int u)
+{
+    int i;
+    int max_pfx_len;
+    max_pfx_len = ALPM_MAX_PFX_INDEX;
+
+#ifndef BCM_WARM_BOOT_SUPPORT_SW_DUMP
+    if (!bsl_check(bslLayerSoc, bslSourceAlpm, bslSeverityVerbose, u)) {
+        return;
+    }
+#endif
+
+    for(i = max_pfx_len; i >= 0 ; i--) {
+        if ((i != ALPM_MAX_PFX_INDEX) && (SOC_ALPM_LPM_STATE_START(u, i) == -1)) {
+            continue;
+        }
+
+#ifdef ALPM_WARM_BOOT_DEBUG
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                              "PFX = %d P = %d N = %d START = %d END = %d VENT = %d FENT = %d\n"),
+                   i,
+                   SOC_ALPM_LPM_STATE_PREV(u, i),
+                   SOC_ALPM_LPM_STATE_NEXT(u, i),
+                   SOC_ALPM_LPM_STATE_START(u, i),
+                   SOC_ALPM_LPM_STATE_END(u, i),
+                   SOC_ALPM_LPM_STATE_VENT(u, i),
+                   SOC_ALPM_LPM_STATE_FENT(u, i)));
+#else
+        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(u,
+                                "PFX = %d P = %d N = %d START = %d END = %d VENT = %d FENT = %d\n"),
+                     i,
+                     SOC_ALPM_LPM_STATE_PREV(u, i),
+                     SOC_ALPM_LPM_STATE_NEXT(u, i),
+                     SOC_ALPM_LPM_STATE_START(u, i),
+                     SOC_ALPM_LPM_STATE_END(u, i),
+                     SOC_ALPM_LPM_STATE_VENT(u, i),
+                     SOC_ALPM_LPM_STATE_FENT(u, i)));
+#endif
+    }
+
+    COMPILER_REFERENCE(_lpm_ip4entry_swap);
+}
+
+/*
+ *      Replicate entry to the second half of the tcam if URPF check is ON.
+ */
+static
+int _lpm_fb_urpf_entry_replicate(int u, int index, uint32 *e)
+{
+    int src_tcam_offset;  /* Defip memory size/2 urpf source lookup offset */
+    int ipv6;             /* IPv6 entry.                                   */
+    uint32 mask0;         /* Mask 0 field value.                           */
+    uint32 mask1;         /* Mask 1 field value.                           */
+    int def_gw_flag;      /* Entry is default gateway.                     */
+
+    if(!SOC_URPF_STATUS_GET(u)) {
+        return (SOC_E_NONE);
+    }
+
+    if (soc_feature(u, soc_feature_l3_defip_hole)) {
+         src_tcam_offset = (soc_mem_index_count(u, L3_DEFIPm) >> 1);
+    } else if (SOC_IS_APOLLO(u)) {
+         src_tcam_offset = (soc_mem_index_count(u, L3_DEFIPm) >> 1) + 0x0400;
+    } else {
+         src_tcam_offset = (soc_mem_index_count(u, L3_DEFIPm) >> 1);
+    }
+
+    ipv6 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, MODE0f);
+
+    /* Reset destination discard bit. */
+    if (SOC_MEM_OPT_FIELD_VALID(u, L3_DEFIPm, DST_DISCARD0f)) {
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, e, DST_DISCARD0f, 0);
+        SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, e, DST_DISCARD1f, 0);
+    }
+
+    /* Set/Reset default gateway flag based on ip mask value. */
+    mask0 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, IP_ADDR_MASK0f);
+    mask1 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, IP_ADDR_MASK1f);
+
+    if (!ipv6) {
+        if (SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, VALID0f)) {
+            SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, e, RPE0f, (!mask0) ? 1 : 0);
+        }
+        if (SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, VALID1f)) {
+            SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, e, RPE1f, (!mask1) ? 1 : 0);
+        }
+    } else {
+        def_gw_flag = ((!mask0) &&  (!mask1)) ? 1 : 0;
+        mask0 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, VALID0f);
+        mask1 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, VALID1f);
+        if (mask0 && mask1) {
+            SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, e, RPE0f, def_gw_flag);
+            SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, e, RPE1f, def_gw_flag);
+        }
+    }
+    /* Write entry to the second half of the tcam. */
+    return _soc_th_alpm_write_pivot(u, MEM_BLOCK_ANY, index + src_tcam_offset,
+                                    index, e);
+}
+
+/*
+ *      Create a slot for the new entry rippling the entries if required
+ */
+static
+int _lpm_fb_entry_shift(int u, int from_ent, int to_ent)
+{
+    uint32      e[SOC_MAX_MEM_FIELD_WORDS];
+
+#ifdef FB_LPM_TABLE_CACHED
+    SOC_IF_ERROR_RETURN(soc_mem_cache_invalidate(u, L3_DEFIPm,
+                                       MEM_BLOCK_ANY, from_ent));
+#endif /* FB_LPM_TABLE_CACHED */
+
+    SOC_IF_ERROR_RETURN(READ_L3_DEFIPm(u, MEM_BLOCK_ANY, from_ent, e));
+    LPM_HASH_INSERT(u, e, to_ent);
+    SOC_IF_ERROR_RETURN(_soc_th_alpm_write_pivot(u, MEM_BLOCK_ANY, to_ent,
+                        from_ent, e));
+    SOC_IF_ERROR_RETURN(_lpm_fb_urpf_entry_replicate(u, to_ent, e));
+
+    SOC_ALPM_MOVE_PIVOT_FULL(u, from_ent, to_ent);
+
+    return (SOC_E_NONE);
+}
+
+
+/*
+ *      Shift prefix entries 1 entry UP, while preserving
+ *      last half empty IPv4 entry if any.
+ */
+static
+int _lpm_fb_shift_pfx_up(int u, int pfx, int ipv6)
+{
+    uint32      e[SOC_MAX_MEM_FIELD_WORDS];
+    int         from_ent;
+    int         to_ent;
+    uint32      v0, v1;
+
+    to_ent = SOC_ALPM_LPM_STATE_END(u, pfx) + 1;
+
+    if (!ipv6) {
+        from_ent = SOC_ALPM_LPM_STATE_END(u, pfx);
+#ifdef FB_LPM_TABLE_CACHED
+        SOC_IF_ERROR_RETURN(soc_mem_cache_invalidate(u, L3_DEFIPm,
+                                                     MEM_BLOCK_ANY, from_ent));
+#endif /* FB_LPM_TABLE_CACHED */
+        SOC_IF_ERROR_RETURN(READ_L3_DEFIPm(u, MEM_BLOCK_ANY, from_ent, e));
+        v0 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, VALID0f);
+        v1 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, VALID1f);
+
+        if ((v0 == 0) || (v1 == 0)) {
+            /* Last entry is half full -> keep it last. */
+            LPM_HASH_INSERT(u, e, to_ent);
+            SOC_IF_ERROR_RETURN(_soc_th_alpm_write_pivot(u, MEM_BLOCK_ANY,
+                                to_ent, from_ent, e));
+            SOC_IF_ERROR_RETURN(_lpm_fb_urpf_entry_replicate(u, to_ent, e));
+
+            /* track pivot state movement */
+            SOC_ALPM_MOVE_PIVOT_HALF(u, v1, from_ent, to_ent);
+            to_ent--;
+        }
+    }
+
+    from_ent = SOC_ALPM_LPM_STATE_START(u, pfx);
+    if (from_ent != to_ent) {
+        SOC_IF_ERROR_RETURN(_lpm_fb_entry_shift(u, from_ent, to_ent));
+        VRF_PIVOT_SHIFT_INC(u, MAX_VRF_ID, ipv6);
+    }
+    SOC_ALPM_LPM_STATE_START(u, pfx) += 1;
+    SOC_ALPM_LPM_STATE_END(u, pfx) += 1;
+    return (SOC_E_NONE);
+}
+
+/*
+ *      Shift prefix entries 1 entry DOWN, while preserving
+ *      last half empty IPv4 entry if any.
+ */
+static
+int _lpm_fb_shift_pfx_down(int u, int pfx, int ipv6)
+{
+    uint32      e[SOC_MAX_MEM_FIELD_WORDS];
+    int         from_ent;
+    int         to_ent;
+    int         prev_ent;
+    uint32      v0, v1;
+
+    to_ent = SOC_ALPM_LPM_STATE_START(u, pfx) - 1;
+
+    /* Don't move empty prefix . */
+    if (SOC_ALPM_LPM_STATE_VENT(u, pfx) == 0) {
+        SOC_ALPM_LPM_STATE_START(u, pfx) = to_ent;
+        SOC_ALPM_LPM_STATE_END(u, pfx) = to_ent - 1;
+        return (SOC_E_NONE);
+    }
+
+    if ((!ipv6) && (SOC_ALPM_LPM_STATE_END(u, pfx) != SOC_ALPM_LPM_STATE_START(u, pfx))) {
+
+        from_ent = SOC_ALPM_LPM_STATE_END(u, pfx);
+
+#ifdef FB_LPM_TABLE_CACHED
+        SOC_IF_ERROR_RETURN(soc_mem_cache_invalidate(u, L3_DEFIPm,
+                                                     MEM_BLOCK_ANY, from_ent));
+#endif /* FB_LPM_TABLE_CACHED */
+        SOC_IF_ERROR_RETURN(READ_L3_DEFIPm(u, MEM_BLOCK_ANY, from_ent, e));
+        v0 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, VALID0f);
+        v1 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, VALID1f);
+
+        if ((v0 == 0) || (v1 == 0)) {
+            /* Last entry is half full -> keep it last. */
+            /* Shift entry before last to start - 1 position. */
+            prev_ent = from_ent - 1;
+            SOC_IF_ERROR_RETURN(_lpm_fb_entry_shift(u, prev_ent, to_ent));
+            VRF_PIVOT_SHIFT_INC(u, MAX_VRF_ID, ipv6);
+
+            LPM_HASH_INSERT(u, e, prev_ent);
+            SOC_IF_ERROR_RETURN(_soc_th_alpm_write_pivot(u, MEM_BLOCK_ANY,
+                                prev_ent, from_ent, e));
+            SOC_IF_ERROR_RETURN(_lpm_fb_urpf_entry_replicate(u, prev_ent, e));
+            SOC_ALPM_MOVE_PIVOT_HALF(u, v1, from_ent, prev_ent);
+        } else {
+            /* Last entry is full -> just shift it to start - 1  position. */
+            LPM_HASH_INSERT(u, e, to_ent);
+            SOC_IF_ERROR_RETURN(_soc_th_alpm_write_pivot(u, MEM_BLOCK_ANY,
+                                to_ent, from_ent, e));
+            SOC_IF_ERROR_RETURN(_lpm_fb_urpf_entry_replicate(u, to_ent, e));
+
+            /* Track full-entry move */
+            SOC_ALPM_MOVE_PIVOT_FULL(u, from_ent, to_ent);
+        }
+
+    } else  {
+
+        from_ent = SOC_ALPM_LPM_STATE_END(u, pfx);
+        SOC_IF_ERROR_RETURN(_lpm_fb_entry_shift(u, from_ent, to_ent));
+        VRF_PIVOT_SHIFT_INC(u, MAX_VRF_ID, ipv6);
+
+    }
+    SOC_ALPM_LPM_STATE_START(u, pfx) -= 1;
+    SOC_ALPM_LPM_STATE_END(u, pfx) -= 1;
+
+    return (SOC_E_NONE);
+}
+
+/*
+ *      Create a slot for the new entry rippling the entries if required
+ */
+static
+int _lpm_free_slot_create(int u, int pfx, int ipv6, void *e, int *free_slot)
+{
+    int         prev_pfx;
+    int         next_pfx;
+    int         free_pfx;
+    int         curr_pfx;
+    int         from_ent;
+    uint32      v0, v1;
+    int         rv;
+
+
+    if (SOC_ALPM_LPM_STATE_VENT(u, pfx) == 0) {
+        /*
+         * Find the  prefix position. Only prefix with valid
+         * entries are in the list.
+         * next -> high to low prefix. low to high index
+         * prev -> low to high prefix. high to low index
+         * Unused prefix length ALPM_MAX_PFX_INDEX is the head of the
+         * list and is node corresponding to this is always
+         * present.
+         */
+        curr_pfx = ALPM_MAX_PFX_INDEX;
+        if ((soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_PARALLEL) ||
+            (soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_TCAM_ALPM)) {
+            if (pfx <= MAX_VRF_PFX_INDEX) {
+                curr_pfx = MAX_VRF_PFX_INDEX;
+            }
+        }
+        while (SOC_ALPM_LPM_STATE_NEXT(u, curr_pfx) > pfx) {
+            curr_pfx = SOC_ALPM_LPM_STATE_NEXT(u, curr_pfx);
+        }
+        /* Insert the new prefix */
+        next_pfx = SOC_ALPM_LPM_STATE_NEXT(u, curr_pfx);
+        if (next_pfx != -1) {
+            SOC_ALPM_LPM_STATE_PREV(u, next_pfx) = pfx;
+        }
+        SOC_ALPM_LPM_STATE_NEXT(u, pfx) = SOC_ALPM_LPM_STATE_NEXT(u, curr_pfx);
+        SOC_ALPM_LPM_STATE_PREV(u, pfx) = curr_pfx;
+        SOC_ALPM_LPM_STATE_NEXT(u, curr_pfx) = pfx;
+
+        SOC_ALPM_LPM_STATE_FENT(u, pfx) =  (SOC_ALPM_LPM_STATE_FENT(u, curr_pfx) + 1) / 2;
+        SOC_ALPM_LPM_STATE_FENT(u, curr_pfx) -= SOC_ALPM_LPM_STATE_FENT(u, pfx);
+        SOC_ALPM_LPM_STATE_START(u, pfx) =  SOC_ALPM_LPM_STATE_END(u, curr_pfx) +
+                                       SOC_ALPM_LPM_STATE_FENT(u, curr_pfx) + 1;
+        SOC_ALPM_LPM_STATE_END(u, pfx) = SOC_ALPM_LPM_STATE_START(u, pfx) - 1;
+        SOC_ALPM_LPM_STATE_VENT(u, pfx) = 0;
+    } else if (!ipv6) {
+        /* For IPv4 Check if alternate entry is free */
+        from_ent = SOC_ALPM_LPM_STATE_START(u, pfx);
+#ifdef FB_LPM_TABLE_CACHED
+        if ((rv = soc_mem_cache_invalidate(u, L3_DEFIPm,
+                                           MEM_BLOCK_ANY, from_ent)) < 0) {
+            return rv;
+        }
+#endif /* FB_LPM_TABLE_CACHED */
+        if ((rv = READ_L3_DEFIPm(u, MEM_BLOCK_ANY, from_ent, e)) < 0) {
+            return rv;
+        }
+        v0 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, VALID0f);
+        v1 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, VALID1f);
+
+        if ((v0 == 0) || (v1 == 0)) {
+            *free_slot = (from_ent << 1) + ((v1 == 0) ? 1 : 0);
+            return(SOC_E_NONE);
+        }
+
+        from_ent = SOC_ALPM_LPM_STATE_END(u, pfx);
+#ifdef FB_LPM_TABLE_CACHED
+        if ((rv = soc_mem_cache_invalidate(u, L3_DEFIPm,
+                                           MEM_BLOCK_ANY, from_ent)) < 0) {
+            return rv;
+        }
+#endif /* FB_LPM_TABLE_CACHED */
+        if ((rv = READ_L3_DEFIPm(u, MEM_BLOCK_ANY, from_ent, e)) < 0) {
+            return rv;
+        }
+        v0 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, VALID0f);
+        v1 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, e, VALID1f);
+
+        if ((v0 == 0) || (v1 == 0)) {
+            *free_slot = (from_ent << 1) + ((v1 == 0) ? 1 : 0);
+            return(SOC_E_NONE);
+        }
+    }
+
+    free_pfx = pfx;
+    while(SOC_ALPM_LPM_STATE_FENT(u, free_pfx) == 0) {
+        free_pfx = SOC_ALPM_LPM_STATE_NEXT(u, free_pfx);
+        if (free_pfx == -1) {
+            /* No free entries on this side try the other side */
+            free_pfx = pfx;
+            break;
+        }
+    }
+
+    while(SOC_ALPM_LPM_STATE_FENT(u, free_pfx) == 0) {
+        free_pfx = SOC_ALPM_LPM_STATE_PREV(u, free_pfx);
+        if (free_pfx == -1) {
+            if (SOC_ALPM_LPM_STATE_VENT(u, pfx) == 0) {
+                /* We failed to allocate entries for a newly allocated prefix.*/
+                prev_pfx = SOC_ALPM_LPM_STATE_PREV(u, pfx);
+                next_pfx = SOC_ALPM_LPM_STATE_NEXT(u, pfx);
+                if (-1 != prev_pfx) {
+                    SOC_ALPM_LPM_STATE_NEXT(u, prev_pfx) = next_pfx;
+                }
+                if (-1 != next_pfx) {
+                    SOC_ALPM_LPM_STATE_PREV(u, next_pfx) = prev_pfx;
+                }
+            }
+            return(SOC_E_FULL);
+        }
+    }
+
+    /*
+     * Ripple entries to create free space
+     */
+    while (free_pfx > pfx) {
+        next_pfx = SOC_ALPM_LPM_STATE_NEXT(u, free_pfx);
+        SOC_IF_ERROR_RETURN(_lpm_fb_shift_pfx_down(u, next_pfx, ipv6));
+        SOC_ALPM_LPM_STATE_FENT(u, free_pfx) -= 1;
+        SOC_ALPM_LPM_STATE_FENT(u, next_pfx) += 1;
+        free_pfx = next_pfx;
+    }
+
+    while (free_pfx < pfx) {
+        SOC_IF_ERROR_RETURN(_lpm_fb_shift_pfx_up(u, free_pfx, ipv6));
+        SOC_ALPM_LPM_STATE_FENT(u, free_pfx) -= 1;
+        prev_pfx = SOC_ALPM_LPM_STATE_PREV(u, free_pfx);
+        SOC_ALPM_LPM_STATE_FENT(u, prev_pfx) += 1;
+        free_pfx = prev_pfx;
+    }
+
+    SOC_ALPM_LPM_STATE_VENT(u, pfx) += 1;
+    SOC_ALPM_LPM_STATE_FENT(u, pfx) -= 1;
+    SOC_ALPM_LPM_STATE_END(u, pfx) += 1;
+    *free_slot = SOC_ALPM_LPM_STATE_END(u, pfx) <<  ((ipv6) ? 0 : 1);
+    sal_memcpy(e, soc_mem_entry_null(u, L3_DEFIPm),
+               soc_mem_entry_words(u,L3_DEFIPm) * 4);
+
+    return(SOC_E_NONE);
+}
+
+/*
+ *      Delete a slot and adjust entry pointers if required.
+ *      e - has the contents of entry at slot(useful for IPV4 only)
+ */
+static
+int _lpm_free_slot_delete(int u, int pfx, int ipv6, void *e, int slot)
+{
+    int         prev_pfx;
+    int         next_pfx;
+    int         from_ent;
+    int         to_ent;
+    uint32      ef[SOC_MAX_MEM_FIELD_WORDS];
+    uint32      sf[SOC_MAX_MEM_FIELD_WORDS];
+    uint32      st[SOC_MAX_MEM_FIELD_WORDS];
+    void        *et;
+    int         rv;
+    int         src_pivot, bpm_len;
+
+    from_ent = SOC_ALPM_LPM_STATE_END(u, pfx);
+    to_ent = slot;
+    if (!ipv6) { /* IPV4 */
+        to_ent >>= 1;
+#ifdef FB_LPM_TABLE_CACHED
+        if ((rv = soc_mem_cache_invalidate(u, L3_DEFIPm,
+                                           MEM_BLOCK_ANY, from_ent)) < 0) {
+            return rv;
+        }
+#endif /* FB_LPM_TABLE_CACHED */
+        if ((rv = READ_L3_DEFIPm(u, MEM_BLOCK_ANY, from_ent, ef)) < 0) {
+            return rv;
+        }
+        /* get bpm_len of entry that is about to move */
+        if ((rv = READ_L3_DEFIP_AUX_TABLEm(u, MEM_BLOCK_ANY,
+                soc_th_alpm_physical_idx(u, L3_DEFIPm, from_ent, 1), sf)) < 0) {
+            return rv;
+        }
+        if ((rv = READ_L3_DEFIP_AUX_TABLEm(u, MEM_BLOCK_ANY,
+                soc_th_alpm_physical_idx(u, L3_DEFIPm, to_ent, 1), st)) < 0) {
+            return rv;
+        }
+        et =  (to_ent == from_ent) ? ef : e;
+        if (SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, ef, VALID1f)) {
+            bpm_len = soc_mem_field32_get(u, L3_DEFIP_AUX_TABLEm,
+                                                        sf, BPM_LENGTH1f);
+            if (slot & 1) {
+                rv = soc_th_alpm_lpm_ip4entry1_to_1(u, ef, et, PRESERVE_HIT);
+                soc_mem_field32_set(u, L3_DEFIP_AUX_TABLEm, st, BPM_LENGTH1f,
+                                    bpm_len);
+            } else {
+                rv = soc_th_alpm_lpm_ip4entry1_to_0(u, ef, et, PRESERVE_HIT);
+                soc_mem_field32_set(u, L3_DEFIP_AUX_TABLEm, st, BPM_LENGTH0f,
+                                    bpm_len);
+            }
+            src_pivot = (from_ent << 1) + 1;
+            SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, ef, VALID1f, 0);
+        } else {
+            bpm_len = soc_mem_field32_get(u, L3_DEFIP_AUX_TABLEm,
+                                                        sf, BPM_LENGTH0f);
+            if (slot & 1) {
+                rv = soc_th_alpm_lpm_ip4entry0_to_1(u, ef, et, PRESERVE_HIT);
+                soc_mem_field32_set(u, L3_DEFIP_AUX_TABLEm, st, BPM_LENGTH1f,
+                                    bpm_len);
+            } else {
+                rv = soc_th_alpm_lpm_ip4entry0_to_0(u, ef, et, PRESERVE_HIT);
+                soc_mem_field32_set(u, L3_DEFIP_AUX_TABLEm, st, BPM_LENGTH0f,
+                                    bpm_len);
+            }
+            src_pivot = from_ent << 1;
+            SOC_MEM_OPT_F32_SET(u, L3_DEFIPm, ef, VALID0f, 0);
+            SOC_ALPM_LPM_STATE_VENT(u, pfx) -= 1;
+            SOC_ALPM_LPM_STATE_FENT(u, pfx) += 1;
+            SOC_ALPM_LPM_STATE_END(u, pfx) -= 1;
+        }
+
+        src_pivot = soc_th_alpm_physical_idx(u, L3_DEFIPm, src_pivot, 0);
+        slot = soc_th_alpm_physical_idx(u, L3_DEFIPm, slot, 0);
+        ALPM_TCAM_PIVOT(u, slot) = ALPM_TCAM_PIVOT(u, src_pivot);
+        if (ALPM_TCAM_PIVOT(u, slot)) {
+            PIVOT_TCAM_INDEX(ALPM_TCAM_PIVOT(u, slot)) = slot;
+            soc_th_alpm_lpm_move_bu_upd(u,
+                PIVOT_BUCKET_INDEX(ALPM_TCAM_PIVOT(u, slot)), slot);
+        }
+        ALPM_TCAM_PIVOT(u, src_pivot) = NULL;
+
+        /* update bpm_len at target */
+        if ((rv = WRITE_L3_DEFIP_AUX_TABLEm(u, MEM_BLOCK_ALL,
+                soc_th_alpm_physical_idx(u, L3_DEFIPm, to_ent, 1), st)) < 0) {
+            return rv;
+        }
+
+        if (to_ent != from_ent) {
+            LPM_HASH_INSERT(u, et, to_ent);
+            if ((rv = _soc_th_alpm_write_pivot(u, MEM_BLOCK_ANY, to_ent, to_ent, et)) < 0)
+            {
+                return rv;
+            }
+            if ((rv = _lpm_fb_urpf_entry_replicate(u, to_ent, et)) < 0) {
+                return rv;
+            }
+        }
+        LPM_HASH_INSERT(u, ef, from_ent);
+        if ((rv = _soc_th_alpm_write_pivot(u, MEM_BLOCK_ANY, from_ent, from_ent, ef)) < 0) {
+            return rv;
+        }
+        if ((rv = _lpm_fb_urpf_entry_replicate(u, from_ent, ef)) < 0) {
+            return rv;
+        }
+    } else { /* IPV6 */
+        SOC_ALPM_LPM_STATE_VENT(u, pfx) -= 1;
+        SOC_ALPM_LPM_STATE_FENT(u, pfx) += 1;
+        SOC_ALPM_LPM_STATE_END(u, pfx) -= 1;
+        if (to_ent != from_ent) {
+#ifdef FB_LPM_TABLE_CACHED
+            if ((rv = soc_mem_cache_invalidate(u, L3_DEFIPm,
+                                               MEM_BLOCK_ANY, from_ent)) < 0) {
+                return rv;
+            }
+#endif /* FB_LPM_TABLE_CACHED */
+            if ((rv = READ_L3_DEFIPm(u, MEM_BLOCK_ANY, from_ent, ef)) < 0) {
+                return rv;
+            }
+            LPM_HASH_INSERT(u, ef, to_ent);
+            if ((rv = _soc_th_alpm_write_pivot(u, MEM_BLOCK_ANY, to_ent, from_ent, ef)) < 0)
+            {
+                return rv;
+            }
+            if ((rv = _lpm_fb_urpf_entry_replicate(u, to_ent, ef)) < 0) {
+                return rv;
+            }
+        }
+        /* v6-64 indices are still raw in pivot tcam */
+        /* tmp variables: */
+        slot = soc_th_alpm_physical_idx(u, L3_DEFIPm, to_ent, 1);
+        src_pivot = soc_th_alpm_physical_idx(u, L3_DEFIPm, from_ent, 1);
+        ALPM_TCAM_PIVOT(u, slot << 1) = ALPM_TCAM_PIVOT(u, src_pivot << 1);
+        ALPM_TCAM_PIVOT(u, src_pivot << 1) = NULL;
+        if (ALPM_TCAM_PIVOT(u, slot << 1)) {
+            PIVOT_TCAM_INDEX(ALPM_TCAM_PIVOT(u, slot << 1)) = slot << 1;
+            soc_th_alpm_lpm_move_bu_upd(u,
+                PIVOT_BUCKET_INDEX(ALPM_TCAM_PIVOT(u, slot << 1)), slot << 1);
+        }
+
+        sal_memcpy(ef, soc_mem_entry_null(u, L3_DEFIPm),
+                   soc_mem_entry_words(u,L3_DEFIPm) * 4);
+        LPM_HASH_INSERT(u, ef, from_ent);
+        if ((rv = _soc_th_alpm_write_pivot(u, MEM_BLOCK_ANY, from_ent, from_ent, ef)) < 0) {
+            return rv;
+        }
+        if ((rv = _lpm_fb_urpf_entry_replicate(u, from_ent, ef)) < 0) {
+            return rv;
+        }
+    }
+
+    if (SOC_ALPM_LPM_STATE_VENT(u, pfx) == 0) {
+        /* remove from the list */
+        prev_pfx = SOC_ALPM_LPM_STATE_PREV(u, pfx); /* Always present */
+        assert(prev_pfx != -1);
+        next_pfx = SOC_ALPM_LPM_STATE_NEXT(u, pfx);
+        SOC_ALPM_LPM_STATE_NEXT(u, prev_pfx) = next_pfx;
+        SOC_ALPM_LPM_STATE_FENT(u, prev_pfx) += SOC_ALPM_LPM_STATE_FENT(u, pfx);
+        SOC_ALPM_LPM_STATE_FENT(u, pfx) = 0;
+        if (next_pfx != -1) {
+            SOC_ALPM_LPM_STATE_PREV(u, next_pfx) = prev_pfx;
+        }
+        SOC_ALPM_LPM_STATE_NEXT(u, pfx) = -1;
+        SOC_ALPM_LPM_STATE_PREV(u, pfx) = -1;
+        SOC_ALPM_LPM_STATE_START(u, pfx) = -1;
+        SOC_ALPM_LPM_STATE_END(u, pfx) = -1;
+    }
+
+    return(rv);
+}
+
+
+
+/*
+ * Function:
+ *      soc_th_alpm_lpm_vrf_get
+ * Purpose:
+ *      Service routine used to translate hw specific vrf id to API format.
+ * Parameters:
+ *      unit      - (IN)SOC unit number.
+ *      lpm_entry - (IN)Route info buffer from hw.
+ *      vrf_id    - (OUT)Virtual router id.
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+soc_th_alpm_lpm_vrf_get(int unit, void *lpm_entry, int *vrf, int *mem_vrf)
+{
+    int vrf_id;
+
+    /* Get Virtual Router id if supported. */
+    if (SOC_MEM_OPT_FIELD_VALID(unit, L3_DEFIPm, VRF_ID_MASK0f)){
+        vrf_id = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, VRF_ID_0f);
+        *mem_vrf = vrf_id;
+
+        /* Special vrf's handling. */
+        if (SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, VRF_ID_MASK0f)) {
+            *vrf = vrf_id;
+        } else if (!SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry,
+                                                    GLOBAL_HIGH0f)) {
+            *vrf = SOC_L3_VRF_GLOBAL;
+            *mem_vrf = SOC_VRF_MAX(unit) + 1;
+        } else {
+            *vrf = SOC_L3_VRF_OVERRIDE;
+        }
+    } else {
+        /* No vrf support on this device. */
+        *vrf = SOC_L3_VRF_DEFAULT;
+    }
+    return (SOC_E_NONE);
+}
+
+/*
+ * _soc_th_alpm_lpm_prefix_length_get (Extract vrf weighted
+ * prefix lenght from the hw entry based on ip, mask & vrf)
+ *
+ */
+static int
+_soc_th_alpm_lpm_prefix_length_get(int u, int ipv6, void *entry, int *pfx_len,
+                                   int *vrf_id, int *vrf)
+{
+    int         pfx;
+    int         rv;
+    uint32      ipv4a;
+    int         vrfid;
+    int         mode;
+
+    if (ipv6) {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR_MASK0f);
+        if ((rv = _ipmask2pfx(ipv4a, &pfx)) < 0) {
+            return(rv);
+        }
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR_MASK1f);
+        if (pfx) {
+            if (ipv4a != 0xffffffff)  {
+                return(SOC_E_PARAM);
+            }
+            pfx += 32;
+        } else {
+            if ((rv = _ipmask2pfx(ipv4a, &pfx)) < 0) {
+                return(rv);
+            }
+        }
+        pfx += ALPM_IPV6_PFX_ZERO; /* First 33 are for IPV4 addresses */
+    } else {
+        ipv4a = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, entry, IP_ADDR_MASK0f);
+        if ((rv = _ipmask2pfx(ipv4a, &pfx)) < 0) {
+            return(rv);
+        }
+    }
+
+    SOC_IF_ERROR_RETURN(soc_th_alpm_lpm_vrf_get(u, entry, &vrfid, &rv));
+    if (vrf_id != NULL) {
+        *vrf_id = vrfid;
+    }
+    if (vrf != NULL) {
+        *vrf = rv;
+    }
+
+    /* In ALPM the arragnement of VRF is at he begining followed by VRF
+     * override and global */
+    mode = soc_th_alpm_mode_get(u);
+    switch (vrfid) {
+      case SOC_L3_VRF_GLOBAL:
+          if ((mode == SOC_ALPM_MODE_PARALLEL) || (mode == SOC_ALPM_MODE_TCAM_ALPM)) {
+            *pfx_len = pfx + (ALPM_MAX_PFX_ENTRIES / 3);
+          } else {
+            *pfx_len = pfx;
+          }
+          break;
+      case SOC_L3_VRF_OVERRIDE:
+            *pfx_len = pfx +  2 * (ALPM_MAX_PFX_ENTRIES / 3);
+          break;
+      default:
+          if ((mode == SOC_ALPM_MODE_PARALLEL) || (mode == SOC_ALPM_MODE_TCAM_ALPM)) {
+            *pfx_len = pfx;
+          } else {
+            *pfx_len = pfx +  (ALPM_MAX_PFX_ENTRIES / 3);
+          }
+          break;
+    }
+    return (SOC_E_NONE);
+}
+
+/*
+ * _soc_th_alpm_lpm_match (Exact match for the key. Will match both IP address
+ * and mask)
+ */
+static int
+_soc_th_alpm_lpm_match(int u,
+               void *key_data,
+               void *e,         /* return entry data if found */
+               int *index_ptr,  /* return key location */
+               int *pfx_len,    /* Key prefix length. vrf + 32 + prefix len for IPV6*/
+               int *ipv6,       /* Entry is ipv6. */
+               int *vrf_id,     /* (OUT) */
+               int *vrf)        /* (OUT) */
+{
+    int         rv;
+    int         v6;
+    int         key_index;
+    int         pfx = 0;
+
+    v6 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, key_data, MODE0f);
+    if (v6) {
+        if (!(v6 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, key_data, MODE1f))) {
+            return (SOC_E_PARAM);
+        }
+    }
+    *ipv6 = v6;
+
+    /* Calculate vrf weighted prefix lengh. */
+    _soc_th_alpm_lpm_prefix_length_get(u, v6, key_data, &pfx, vrf_id, vrf);
+    *pfx_len = pfx;
+
+#ifdef FB_LPM_HASH_SUPPORT
+    if (LPM_HASH_LOOKUP(u, key_data, pfx, &key_index) == SOC_E_NONE) {
+        *index_ptr = key_index;
+        if ((rv = READ_L3_DEFIPm(u, MEM_BLOCK_ANY,
+                         (*ipv6) ? *index_ptr : (*index_ptr >> 1), e)) < 0) {
+            return rv;
+        }
+#ifndef  FB_LPM_CHECKER_ENABLE
+        return(SOC_E_NONE);
+#endif
+    } else {
+#ifndef  FB_LPM_CHECKER_ENABLE
+        return(SOC_E_NOT_FOUND);
+#endif
+    }
+#endif /* FB_LPM_HASH_SUPPORT */
+}
+
+/*
+ * Initialize the start/end tracking pointers for each prefix length
+ */
+static int
+soc_th_alpm_lpm_init(int u)
+{
+    int max_pfx_len;
+    int i;
+    int defip_table_size;
+    int pfx_state_size;
+    uint32 rval, mode;
+#define _ALPM_MODE_PARALLEL 1
+#define _ALPM_MODE_COMBINED 2
+#define _ALPM_MODE_TCAM_ALPM 3
+
+    if (! soc_feature(u, soc_feature_lpm_tcam)) {
+        return(SOC_E_UNAVAIL);
+    }
+
+    if ((mode = soc_property_get(u, spn_L3_ALPM_ENABLE, 0))) {
+        /* Set DEFIP mode to ALPM */
+        SOC_IF_ERROR_RETURN(READ_L3_DEFIP_RPF_CONTROLr(u, &rval));
+        soc_reg_field_set(u, L3_DEFIP_RPF_CONTROLr, &rval, LPM_MODEf, 1);
+        if (mode == _ALPM_MODE_PARALLEL) {
+            /* Parallel mode */
+            soc_reg_field_set(u, L3_DEFIP_RPF_CONTROLr, &rval, LOOKUP_MODEf, 1);
+        } else if (mode == _ALPM_MODE_COMBINED) {
+            /* Combined search mode */
+            soc_reg_field_set(u, L3_DEFIP_RPF_CONTROLr, &rval, LOOKUP_MODEf, 0);
+            l3_alpm_ipv4_double_wide[u] = soc_property_get(u, "l3_alpm_ipv4_double_wide", 1);
+            if (l3_alpm_ipv4_double_wide[u]) {
+                soc_reg_field_set(u, L3_DEFIP_RPF_CONTROLr, &rval,
+                                  ENABLE_DOUBLE_WIDE_BUCKETS_FOR_IPV4f, 1);
+            }
+        } else if (mode == _ALPM_MODE_TCAM_ALPM) {
+            /* TCAM_ALPM search mode */
+            l3_alpm_ipv4_double_wide[u] = 1;
+            soc_reg_field_set(u, L3_DEFIP_RPF_CONTROLr, &rval, LOOKUP_MODEf, 2);
+        }
+        SOC_IF_ERROR_RETURN(WRITE_L3_DEFIP_RPF_CONTROLr(u, rval));
+
+        l3_alpm_sw_prefix_lookup[u] = soc_property_get(u, "l3_alpm_sw_prefix_lookup", 1);
+
+        rval = 0;
+        if (SOC_URPF_STATUS_GET(u)) {
+            soc_reg_field_set(u, L3_DEFIP_KEY_SELr, &rval,
+                            URPF_LOOKUP_CAM4f, 0x1);
+            soc_reg_field_set(u, L3_DEFIP_KEY_SELr, &rval,
+                            URPF_LOOKUP_CAM5f, 0x1);
+            soc_reg_field_set(u, L3_DEFIP_KEY_SELr, &rval,
+                            URPF_LOOKUP_CAM6f, 0x1);
+            soc_reg_field_set(u, L3_DEFIP_KEY_SELr, &rval,
+                            URPF_LOOKUP_CAM7f, 0x1);
+        }
+        SOC_IF_ERROR_RETURN(WRITE_L3_DEFIP_KEY_SELr(u, rval));
+
+        rval = 0;
+        if (mode == _ALPM_MODE_PARALLEL || mode == _ALPM_MODE_TCAM_ALPM) {
+            if (SOC_URPF_STATUS_GET(u)) {
+                /* 4 DIPs, 4 SIPs */
+                /* *DIP */
+                soc_reg_field_set(u, L3_DEFIP_ALPM_CFGr, &rval, TCAM2_SELf, 1);
+                soc_reg_field_set(u, L3_DEFIP_ALPM_CFGr, &rval, TCAM3_SELf, 1);
+                /* VRF SIP */
+                soc_reg_field_set(u, L3_DEFIP_ALPM_CFGr, &rval, TCAM4_SELf, 2);
+                soc_reg_field_set(u, L3_DEFIP_ALPM_CFGr, &rval, TCAM5_SELf, 2);
+                /* *SIP */
+                soc_reg_field_set(u, L3_DEFIP_ALPM_CFGr, &rval, TCAM6_SELf, 3);
+                soc_reg_field_set(u, L3_DEFIP_ALPM_CFGr, &rval, TCAM7_SELf, 3);
+            } else {
+                soc_reg_field_set(u, L3_DEFIP_ALPM_CFGr, &rval, TCAM4_SELf, 1);
+                soc_reg_field_set(u, L3_DEFIP_ALPM_CFGr, &rval, TCAM5_SELf, 1);
+                soc_reg_field_set(u, L3_DEFIP_ALPM_CFGr, &rval, TCAM6_SELf, 1);
+                soc_reg_field_set(u, L3_DEFIP_ALPM_CFGr, &rval, TCAM7_SELf, 1);
+            }
+        } else {
+            if (SOC_URPF_STATUS_GET(u)) {
+                /* 4 DIPs, 4 SIPs */
+                /* DIP */
+                /* VRF SIP */
+                soc_reg_field_set(u, L3_DEFIP_ALPM_CFGr, &rval, TCAM4_SELf, 2);
+                soc_reg_field_set(u, L3_DEFIP_ALPM_CFGr, &rval, TCAM5_SELf, 2);
+                soc_reg_field_set(u, L3_DEFIP_ALPM_CFGr, &rval, TCAM6_SELf, 2);
+                soc_reg_field_set(u, L3_DEFIP_ALPM_CFGr, &rval, TCAM7_SELf, 2);
+            }
+        }
+        SOC_IF_ERROR_RETURN(WRITE_L3_DEFIP_ALPM_CFGr(u, rval));
+        if (soc_property_get(u, spn_IPV6_LPM_128B_ENABLE, 1)) {
+            uint32 defip_key_sel_val = 0;
+
+            SOC_IF_ERROR_RETURN(READ_L3_DEFIP_KEY_SELr(u, &defip_key_sel_val));
+            /* Supports mixed IPv4, IPv6 128 bit prefix IPv6 routes.
+            * upto 16K IPv4 pivots only or
+            * upto 2K 128 bit IPv6 and upto 8k v4 pivots, or */
+            /* all tcams in paired mode */
+            soc_reg_field_set(u, L3_DEFIP_KEY_SELr, &defip_key_sel_val,
+                                V6_KEY_SEL_CAM0_1f, 0x1);
+            soc_reg_field_set(u, L3_DEFIP_KEY_SELr, &defip_key_sel_val,
+                                V6_KEY_SEL_CAM2_3f, 0x1);
+            soc_reg_field_set(u, L3_DEFIP_KEY_SELr, &defip_key_sel_val,
+                                V6_KEY_SEL_CAM4_5f, 0x1);
+            soc_reg_field_set(u, L3_DEFIP_KEY_SELr, &defip_key_sel_val,
+                                V6_KEY_SEL_CAM6_7f, 0x1);
+            SOC_IF_ERROR_RETURN(WRITE_L3_DEFIP_KEY_SELr(u, defip_key_sel_val));
+        }
+    }
+
+    max_pfx_len = ALPM_MAX_PFX_ENTRIES;
+
+    SOC_ALPM_LPM_LOCK(u);
+    pfx_state_size = sizeof(soc_th_alpm_lpm_state_t) * (max_pfx_len);
+
+    if (SOC_ALPM_LPM_INIT_CHECK(u)) {
+        /* this is a reinit. clean up old state */
+        if (soc_th_alpm_deinit(u) < 0) {
+            SOC_ALPM_LPM_UNLOCK(u);
+            return SOC_E_INTERNAL;
+        }
+    }
+    soc_lpm_field_cache_state[u] =
+                sal_alloc(sizeof(soc_th_lpm_field_cache_t), "lpm_field_state");
+    if (NULL == soc_lpm_field_cache_state[u]) {
+        SOC_ALPM_LPM_UNLOCK(u);
+        return (SOC_E_MEMORY);
+    }
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    CLASS_ID0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    CLASS_ID1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    DST_DISCARD0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    DST_DISCARD1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ECMP0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ECMP1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ECMP_COUNT0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ECMP_COUNT1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ECMP_PTR0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ECMP_PTR1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    GLOBAL_ROUTE0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    GLOBAL_ROUTE1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    HIT0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    HIT1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    IP_ADDR0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    IP_ADDR1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    IP_ADDR_MASK0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    IP_ADDR_MASK1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    MODE0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    MODE1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    MODE_MASK0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    MODE_MASK1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    NEXT_HOP_INDEX0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    NEXT_HOP_INDEX1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    PRI0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    PRI1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    RPE0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    RPE1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    VALID0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    VALID1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    VRF_ID_0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    VRF_ID_1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    VRF_ID_MASK0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    VRF_ID_MASK1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    GLOBAL_HIGH0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    GLOBAL_HIGH1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ALG_HIT_IDX0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ALG_HIT_IDX1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ALG_BKT_PTR0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ALG_BKT_PTR1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ALG_SUB_BKT_PTR0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ALG_SUB_BKT_PTR1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    DEFAULT_MISS0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    DEFAULT_MISS1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    FLEX_CTR_BASE_COUNTER_IDX0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    FLEX_CTR_BASE_COUNTER_IDX1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    FLEX_CTR_POOL_NUMBER0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    FLEX_CTR_POOL_NUMBER1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    SRC_DISCARD0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    SRC_DISCARD1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ENTRY_TYPE_MASK0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ENTRY_TYPE_MASK1f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ENTRY_TYPE0f);
+    SOC_ALPM_LPM_CACHE_FIELD_ASSIGN(u, soc_lpm_field_cache_state[u] ,L3_DEFIPm,
+                                    ENTRY_TYPE1f);
+    SOC_ALPM_LPM_STATE(u) = sal_alloc(pfx_state_size, "LPM prefix info");
+    if (NULL == SOC_ALPM_LPM_STATE(u)) {
+        sal_free(soc_lpm_field_cache_state[u]);
+        soc_lpm_field_cache_state[u] = NULL;
+        SOC_ALPM_LPM_UNLOCK(u);
+        return (SOC_E_MEMORY);
+    }
+
+#ifdef FB_LPM_TABLE_CACHED
+    rv = soc_mem_cache_set(u, L3_DEFIPm, MEM_BLOCK_ALL, TRUE);
+    if (SOC_FAILURE(rv)) {
+        SOC_ALPM_LPM_UNLOCK(u);
+        return rv;
+    }
+#endif /* FB_LPM_TABLE_CACHED */
+
+    sal_memset(SOC_ALPM_LPM_STATE(u), 0, pfx_state_size);
+    for(i = 0; i < max_pfx_len; i++) {
+        SOC_ALPM_LPM_STATE_START(u, i) = -1;
+        SOC_ALPM_LPM_STATE_END(u, i) = -1;
+        SOC_ALPM_LPM_STATE_PREV(u, i) = -1;
+        SOC_ALPM_LPM_STATE_NEXT(u, i) = -1;
+        SOC_ALPM_LPM_STATE_VENT(u, i) = 0;
+        SOC_ALPM_LPM_STATE_FENT(u, i) = 0;
+    }
+
+    defip_table_size = soc_mem_index_count(u, L3_DEFIPm);
+
+    /* RPF supported, then the table is partitioned for DIP and SIP */
+    if (SOC_URPF_STATUS_GET(u)) {
+        defip_table_size >>= 1;
+    }
+
+    if ((mode == _ALPM_MODE_PARALLEL) || (mode == _ALPM_MODE_TCAM_ALPM)) {
+        /* For Parallel search, the TCAM is hard paritioned.
+        * First half are for VRF specific, the bottom half for override and
+        * global. Start of Global entries start at the bottom half of TCAM
+        */
+        SOC_ALPM_LPM_STATE_END(u, ALPM_MAX_PFX_INDEX) = (defip_table_size>>1) - 1;
+
+        /* Free entries for VRF */
+        SOC_ALPM_LPM_STATE_FENT(u, (MAX_VRF_PFX_INDEX)) = defip_table_size >> 1;
+
+        /* Remaining entries are assigned to Global entries */
+        SOC_ALPM_LPM_STATE_FENT(u, (ALPM_MAX_PFX_INDEX)) =
+          (defip_table_size - SOC_ALPM_LPM_STATE_FENT(u, (MAX_VRF_PFX_INDEX)));
+    } else {
+        /* Remaining entries are assigned to Global entries */
+        SOC_ALPM_LPM_STATE_FENT(u, (ALPM_MAX_PFX_INDEX)) = defip_table_size;
+    }
+
+#ifdef FB_LPM_HASH_SUPPORT
+    if (SOC_ALPM_LPM_STATE_HASH(u) != NULL) {
+        if (_soc_th_alpm_lpm_hash_destroy(SOC_ALPM_LPM_STATE_HASH(u)) < 0) {
+            SOC_ALPM_LPM_UNLOCK(u);
+            return SOC_E_INTERNAL;
+        }
+        SOC_ALPM_LPM_STATE_HASH(u) = NULL;
+    }
+
+    if (_soc_th_alpm_lpm_hash_create(u, defip_table_size * 2, defip_table_size,
+                                     &SOC_ALPM_LPM_STATE_HASH(u)) < 0) {
+        SOC_ALPM_LPM_UNLOCK(u);
+        return SOC_E_MEMORY;
+    }
+#endif
+
+    SOC_ALPM_LPM_UNLOCK(u);
+
+    return(SOC_E_NONE);
+}
+
+/*
+ * De-initialize the start/end tracking pointers for each prefix length
+ */
+static int
+soc_th_alpm_lpm_deinit(int u)
+{
+    if (!soc_feature(u, soc_feature_lpm_tcam)) {
+        return(SOC_E_UNAVAIL);
+    }
+
+    SOC_ALPM_LPM_LOCK(u);
+
+#ifdef FB_LPM_HASH_SUPPORT
+    if (SOC_ALPM_LPM_STATE_HASH(u) != NULL) {
+        _soc_th_alpm_lpm_hash_destroy(SOC_ALPM_LPM_STATE_HASH(u));
+        SOC_ALPM_LPM_STATE_HASH(u) = NULL;
+    }
+#endif
+
+    if (SOC_ALPM_LPM_INIT_CHECK(u)) {
+        sal_free(soc_lpm_field_cache_state[u]);
+        soc_lpm_field_cache_state[u] = NULL;
+        sal_free(SOC_ALPM_LPM_STATE(u));
+        SOC_ALPM_LPM_STATE(u) = NULL;
+    }
+
+    SOC_ALPM_LPM_UNLOCK(u);
+
+    return(SOC_E_NONE);
+}
+
+/*
+ * Implementation using soc_mem_read/write using entry rippling technique
+ * Advantage: A completely sorted table is not required. Lookups can be slow
+ * as it will perform a linear search on the entries for a given prefix length.
+ * No device access necessary for the search if the table is cached. Auxiliary
+ * hash table can be maintained to speed up search(Not implemented) instead of
+ * performing a linear search.
+ * Small number of entries need to be moved around (97 worst case)
+ * for performing insert/update/delete. However CPU needs to do all
+ * the work to move the entries.
+ */
+
+/*
+ * soc_th_alpm_lpm_insert
+ * For IPV4 assume only both IP_ADDR0 is valid
+ * Moving multiple entries around in h/w vs  doing a linear search in s/w
+ */
+static int
+soc_th_alpm_lpm_insert(int u, void *entry_data, int *lpm_index)
+{
+    int         pfx;
+    int         index;
+    int         ipv6;
+    uint32      e[SOC_MAX_MEM_FIELD_WORDS];
+    int         rv = SOC_E_NONE;
+    int         found = 0;
+
+    sal_memcpy(e, soc_mem_entry_null(u, L3_DEFIPm),
+               soc_mem_entry_words(u,L3_DEFIPm) * 4);
+
+    SOC_ALPM_LPM_LOCK(u);
+    rv = _soc_th_alpm_lpm_match(u, entry_data, e, &index, &pfx, &ipv6, 0, 0);
+    if (rv == SOC_E_NOT_FOUND) {
+        rv = _lpm_free_slot_create(u, pfx, ipv6, e, &index);
+        if (rv < 0) {
+            SOC_ALPM_LPM_UNLOCK(u);
+            return(rv);
+        }
+    } else {
+        found = 1;
+    }
+
+    *lpm_index = index;
+
+    if (rv == SOC_E_NONE) {
+        /* Entry already present. Update the entry */
+        if (!ipv6) {
+            /* IPV4 entry */
+            if (index & 1) {
+                rv = soc_th_alpm_lpm_ip4entry0_to_1(u, entry_data, e,
+                                                 PRESERVE_HIT);
+            } else {
+                rv = soc_th_alpm_lpm_ip4entry0_to_0(u, entry_data, e,
+                                                 PRESERVE_HIT);
+            }
+
+            if (rv < 0) {
+                SOC_ALPM_LPM_UNLOCK(u);
+                return(rv);
+            }
+            entry_data = (void *)e;
+            index >>= 1;
+        }
+        soc_th_alpm_lpm_state_dump(u);
+        LOG_INFO(BSL_LS_SOC_ALPM,
+                 (BSL_META_U(u,
+                             "soc_alpm_lpm_insert: %d %d\n"),
+                             index, pfx));
+
+        if (!found) {
+            LPM_HASH_INSERT(u, entry_data, index);
+        }
+        rv = _soc_th_alpm_write_pivot(u, MEM_BLOCK_ANY, index, index,
+                                   entry_data);
+        if (rv >= 0) {
+            rv = _lpm_fb_urpf_entry_replicate(u, index, entry_data);
+        }
+    }
+
+    SOC_ALPM_LPM_UNLOCK(u);
+
+    return(rv);
+}
+
+/*
+ * soc_th_alpm_lpm_delete
+ */
+static int
+soc_th_alpm_lpm_delete(int u, void *key_data)
+{
+    int         pfx;
+    int         index;
+    int         ipv6;
+    uint32      e[SOC_MAX_MEM_FIELD_WORDS];
+    int         rv = SOC_E_NONE;
+
+    SOC_ALPM_LPM_LOCK(u);
+    rv = _soc_th_alpm_lpm_match(u, key_data, e, &index, &pfx, &ipv6, 0, 0);
+    if (rv == SOC_E_NONE) {
+        LOG_INFO(BSL_LS_SOC_ALPM,
+                 (BSL_META_U(u,
+                 "soc_alpm_lpm_delete: %d %d\n"),
+                 index, pfx));
+        LPM_HASH_DELETE(u, key_data, index);
+        rv = _lpm_free_slot_delete(u, pfx, ipv6, e, index);
+    }
+    soc_th_alpm_lpm_state_dump(u);
+    SOC_ALPM_LPM_UNLOCK(u);
+    return(rv);
+}
+
+/*
+ * soc_th_alpm_lpm_match (Exact match for the key. Will match both IP
+ *                   address and mask)
+ */
+static int
+soc_th_alpm_lpm_match(int u,
+               void *key_data,
+               void *e,         /* return entry data if found */
+               int *index_ptr)  /* return key location */
+{
+    int        pfx;
+    int        rv;
+    int        ipv6;
+
+    SOC_ALPM_LPM_LOCK(u);
+    rv = _soc_th_alpm_lpm_match(u, key_data, e, index_ptr, &pfx, &ipv6, 0, 0);
+    SOC_ALPM_LPM_UNLOCK(u);
+    return(rv);
+}
+
+
+/* Fill Aux entry for operation */
+static int
+_soc_th_alpm_fill_aux_entry_for_op(int unit,
+               void *key_data,
+               int ipv6,    /* Entry is ipv6. */
+               int db_type, /* database type */
+               int ent_type,
+               int replace_len, /* used for DElete propagate */
+               defip_aux_scratch_entry_t *aux_entry)
+{
+    uint32 ipv4a;
+    uint32 ip6_word[4] = {0, 0, 0, 0};
+    int    pfx = 0;
+    int    rv = SOC_E_NONE;
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, VALID0f);
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, VALIDf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, MODE0f);
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, MODEf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, ENTRY_TYPE0f);
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, ENTRY_TYPEf, 0);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, GLOBAL_ROUTE0f);
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, GLOBAL_ROUTEf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, ECMP0f);
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, ECMPf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, ECMP_PTR0f);
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, ECMP_PTRf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, NEXT_HOP_INDEX0f);
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, NEXT_HOP_INDEXf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, PRI0f);
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, PRIf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, RPE0f);
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, RPEf, ipv4a);
+
+    ipv4a =SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, VRF_ID_0f);
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, VRFf, ipv4a);
+
+    /* Set Database type */
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, DB_TYPEf, db_type);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, DST_DISCARD0f);
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, DST_DISCARDf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, CLASS_ID0f);
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, CLASS_IDf, ipv4a);
+
+
+    /* Set IP Address and IP length */
+    if (ipv6) {
+        ip6_word[2] = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, IP_ADDR0f);
+        ip6_word[3] = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, IP_ADDR1f);
+    } else {
+        ip6_word[0] = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, IP_ADDR0f);
+    }
+    soc_mem_field_set(unit, L3_DEFIP_AUX_SCRATCHm, (uint32*)aux_entry,
+                      IP_ADDRf, (uint32*)ip6_word);
+
+    if (ipv6) {
+        ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, IP_ADDR_MASK0f);
+        if ((rv = _ipmask2pfx(ipv4a, &pfx)) < 0) {
+            return(rv);
+        }
+        ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, IP_ADDR_MASK1f);
+        if (pfx) {
+            if (ipv4a != 0xffffffff)  {
+                return(SOC_E_PARAM);
+            }
+            pfx += 32;
+        } else {
+            if ((rv = _ipmask2pfx(ipv4a, &pfx)) < 0) {
+                return(rv);
+            }
+        }
+    } else {
+        ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, key_data, IP_ADDR_MASK0f);
+        if ((rv = _ipmask2pfx(ipv4a, &pfx)) < 0) {
+            return(rv);
+        }
+    }
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, IP_LENGTHf, pfx);
+    soc_mem_field32_set(unit, L3_DEFIP_AUX_SCRATCHm, aux_entry, REPLACE_LENf,
+                        replace_len);
+
+    return (SOC_E_NONE);
+}
+
+#define _SOC_ALPM_AUX_OP_RETRY_TO           1000000
+#define _SOC_ALPM_AUX_OP_RETRY_COUNT        100
+
+/* Using binary search with DMA read to retrieve corrupted index */
+int
+_soc_th_alpm_aux_error_index(int u, int pipe, int *index)
+{
+    char *dmabuf = NULL;
+    soc_mem_t mem = L3_DEFIP_AUX_TABLEm;
+    int min, max;
+    uint32 ser_flags;
+
+    int num_entries = soc_mem_index_count(u, mem);
+    int mem_wsz = sizeof(uint32) * soc_mem_entry_words(u, mem);
+
+    min = soc_mem_index_min(u, mem);
+    max = soc_mem_index_max(u, mem);
+
+    dmabuf = soc_cm_salloc(u, num_entries * mem_wsz, "auxtbl_dmabuf");
+    if (dmabuf == NULL) {
+        return SOC_E_MEMORY;
+    }
+
+    switch (pipe) {
+        case 0:
+            ser_flags = _SOC_MEM_ADDR_ACC_TYPE_PIPE_0;
+            break;
+        case 1:
+            ser_flags = _SOC_MEM_ADDR_ACC_TYPE_PIPE_1;
+            break;
+        case 2:
+            ser_flags = _SOC_MEM_ADDR_ACC_TYPE_PIPE_2;
+            break;
+        case 3:
+            ser_flags = _SOC_MEM_ADDR_ACC_TYPE_PIPE_3;
+            break;
+        default:
+            ser_flags = _SOC_MEM_ADDR_ACC_TYPE_PIPE_0;
+            break;
+    }
+
+    ser_flags |= _SOC_SER_FLAG_DMA_ERR_RETURN;
+    ser_flags |= _SOC_SER_FLAG_DISCARD_READ;
+    ser_flags |= _SOC_SER_FLAG_MULTI_PIPE;
+
+    while (min <= max) {
+        int mid = min + (max - min) / 2;
+        if (soc_mem_ser_read_range(u, mem, MEM_BLOCK_ALL, min, mid,
+                                   ser_flags, dmabuf) < 0) {
+            if (max == min) {
+                *index = min;
+                break;
+            }
+            max = mid;
+        } else {
+            min = mid + 1;
+        }
+    }
+    soc_cm_sfree(u, dmabuf);
+
+    if (min > max) {
+        /* Not found */
+        LOG_WARN(BSL_LS_SOC_ALPM,
+            (BSL_META_U(u, "No corrupted index in AUX Table Pipe %d\n"), pipe));
+        return SOC_E_NOT_FOUND;
+    } else {
+        LOG_WARN(BSL_LS_SOC_ALPM,
+            (BSL_META_U(u, "Found corrupted Index %d in AUX Table Pipe %d\n"),
+            *index, pipe));
+        return SOC_E_NONE;
+    }
+}
+
+/* Perform an ALPM hardware operation */
+int
+_soc_th_alpm_aux_op(int u, _soc_aux_op_t aux_op,
+                 defip_aux_scratch_entry_t *aux_entry, int update_scratch,
+                 int *hit, int *tcam_index, int *bktid)
+{
+    soc_timeout_t  to;
+    int pipe, rv = SOC_E_NONE;
+    int _soc_alpm_aux_op_retry = 0;
+
+    uint32 rval[_TH_PIPES_PER_DEV];
+    int value[_TH_PIPES_PER_DEV];
+    int err[_TH_PIPES_PER_DEV];
+
+    uint32 baddr;
+    int block;
+    uint8 acc_type;
+
+    /* Write to Aux Scratch before performing the operation */
+    if (update_scratch) {
+        SOC_IF_ERROR_RETURN(
+            WRITE_L3_DEFIP_AUX_SCRATCHm(u, MEM_BLOCK_ANY, 0, aux_entry));
+    }
+
+#ifdef AUX_OPTIMIZATIONS_OFF
+    SOC_IF_ERROR_RETURN(READ_L3_DEFIP_AUX_CTRLr(u, &rval[0]));
+    if (soc_reg_field_get(u, L3_DEFIP_AUX_CTRLr, rval[0], STARTf)) {
+        /* Aux op in porgress */
+        return SOC_E_BUSY;
+    }
+#endif /* OPTIMIZATIONS_OFF */
+
+_retry:
+    switch (aux_op) {
+    case INSERT_PROPAGATE:
+        value[0] = 0;
+        break;
+    case DELETE_PROPAGATE:
+        value[0] = 1;
+        break;
+    case PREFIX_LOOKUP:
+        value[0] = 2;
+        break;
+    case HITBIT_REPLACE:
+        value[0] = 3;
+        break;
+    default:
+        return SOC_E_PARAM;
+    }
+
+    rval[0] = 0;
+
+    /* set opcode */
+    soc_reg_field_set(u, L3_DEFIP_AUX_CTRLr, &rval[0], OPCODEf, value[0]);
+
+    /* Start opertation */
+    soc_reg_field_set(u, L3_DEFIP_AUX_CTRLr, &rval[0], STARTf, 1);
+
+    /* Write to Aux ctrl reg */
+    SOC_IF_ERROR_RETURN(WRITE_L3_DEFIP_AUX_CTRLr(u, rval[0]));
+    soc_timeout_init(&to, 50000, 5);
+
+    /* Check for Operation complete */
+    sal_memset(value, 0, sizeof(value));
+    sal_memset(err, 0, sizeof(err));
+    baddr = soc_reg_addr_get(u, L3_DEFIP_AUX_CTRLr, REG_PORT_ANY, 0,
+                             SOC_REG_ADDR_OPTION_NONE,
+                             &block, &acc_type);
+    do {
+        for (pipe = 0; pipe < _TH_PIPES_PER_DEV; pipe++) {
+            SOC_IF_ERROR_RETURN
+                (_soc_reg32_get(u, block, pipe, baddr, &rval[pipe]));
+            value[pipe] = soc_reg_field_get(u, L3_DEFIP_AUX_CTRLr,
+                                            rval[pipe], DONEf);
+            err[pipe] = soc_reg_field_get(u, L3_DEFIP_AUX_CTRLr,
+                                          rval[pipe], ERRORf);
+            if (value[pipe] != 1) {
+                break;
+            }
+        }
+
+        /* All DONE */
+        if (pipe >= _TH_PIPES_PER_DEV) {
+            rv = SOC_E_NONE;
+            break;
+        }
+
+        if (soc_timeout_check(&to)) {
+            sal_memset(value, 0, sizeof(value));
+            sal_memset(err, 0, sizeof(err));
+            for (pipe = 0; pipe < _TH_PIPES_PER_DEV; pipe++) {
+                SOC_IF_ERROR_RETURN
+                    (_soc_reg32_get(u, block, pipe, baddr, &rval[pipe]));
+                value[pipe] = soc_reg_field_get(u, L3_DEFIP_AUX_CTRLr,
+                                                rval[pipe], DONEf);
+                err[pipe] = soc_reg_field_get(u, L3_DEFIP_AUX_CTRLr,
+                                              rval[pipe], ERRORf);
+                if (value[pipe] != 1) {
+                    break;
+                }
+            }
+
+            if (pipe >= _TH_PIPES_PER_DEV) {
+                rv = SOC_E_NONE;
+            } else {
+                LOG_WARN(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(u, "unit %d : DEFIP AUX Operation timeout, "
+                    "Pipe %d\n"), u, pipe));
+                rv = SOC_E_TIMEOUT;
+            }
+            break;
+        }
+    } while (1);
+
+    if (SOC_SUCCESS(rv)) {
+        for (pipe = 0; pipe < _TH_PIPES_PER_DEV; pipe++) {
+            if (err[pipe]) {
+#if 1
+                soc_reg_field_set(u, L3_DEFIP_AUX_CTRLr, &rval[pipe], STARTf, 0);
+                soc_reg_field_set(u, L3_DEFIP_AUX_CTRLr, &rval[pipe], ERRORf, 0);
+                soc_reg_field_set(u, L3_DEFIP_AUX_CTRLr, &rval[pipe], DONEf, 0);
+                SOC_IF_ERROR_RETURN
+                    (_soc_reg32_set(u, block, pipe, baddr, rval[pipe]));
+#endif
+                LOG_WARN(BSL_LS_SOC_ALPM,
+                         (BSL_META_U(u, "DEFIP AUX Operation encountered "
+                                     "parity error in Pipe %d!!\n"), pipe));
+                _soc_alpm_aux_op_retry++;
+                if (SOC_CONTROL(u)->alpm_bulk_retry) {
+                    sal_sem_take(SOC_CONTROL(u)->alpm_bulk_retry, _SOC_ALPM_AUX_OP_RETRY_TO);
+                }
+                if (_soc_alpm_aux_op_retry < _SOC_ALPM_AUX_OP_RETRY_COUNT) {
+                    int err_index;
+                    if (_soc_th_alpm_aux_error_index(u, pipe, &err_index) >= 0) {
+                        /* Call inline correction with err_index and pipe */
+                        rv = soc_mem_alpm_aux_table_correction(u, pipe, err_index);
+                        if (rv < 0) {
+                            LOG_ERROR(BSL_LS_SOC_ALPM,
+                                (BSL_META_U(u, "_soc_th_alpm_aux_error_index "
+                                "pipe %d index %d failed\n"), pipe, err_index));
+                        }
+                    }
+                    LOG_WARN(BSL_LS_SOC_ALPM,
+                        (BSL_META_U(u, "Retry DEFIP AUX Operation in Pipe %d.\n"),
+                        pipe));
+                    goto _retry;
+                } else {
+                    LOG_ERROR(BSL_LS_SOC_ALPM,
+                        (BSL_META_U(u, "unit %d: Aborting DEFIP AUX Operation "
+                        "due to un-correctable error !!\n"), u));
+                    return SOC_E_INTERNAL;
+                }
+            }
+        }
+
+        if (aux_op == PREFIX_LOOKUP) {
+            if (hit && tcam_index) {
+                /* Get the hit bit and Bucket index for lookup operations */
+                *hit = soc_reg_field_get(u, L3_DEFIP_AUX_CTRLr, rval[0], HITf);
+                *tcam_index = soc_reg_field_get(u, L3_DEFIP_AUX_CTRLr,
+                                                rval[0], BKT_INDEXf);
+                SOC_IF_ERROR_RETURN(READ_L3_DEFIP_AUX_CTRL_1r(u, &rval[1]));
+                *bktid = ALPM_BKTID(soc_reg_field_get(u, L3_DEFIP_AUX_CTRL_1r,
+                            rval[1], BKT_PTRf),
+                            soc_reg_field_get(u, L3_DEFIP_AUX_CTRL_1r,
+                            rval[1], SUB_BKT_PTRf));
+            }
+        }
+    }
+#ifdef AUX_OPTIMIZATIONS_OFF
+    /* clear AUX ctrl register */
+    soc_reg_field_set(u, L3_DEFIP_AUX_CTRLr, &rval[0], STARTf, 0);
+    soc_reg_field_set(u, L3_DEFIP_AUX_CTRLr, &rval[0], DONEf, 0);
+    SOC_IF_ERROR_RETURN(WRITE_L3_DEFIP_AUX_CTRLr(u, rval[0]));
+#endif /* OPTIMIZATIONS_OFF */
+    return rv;
+}
+
+
+/* Initialize the ALPM memory from a TCAM entry */
+static int
+_soc_th_alpm_mem_ent_init(int unit, int ipv6, void *lpm_entry,
+                       void *alpm_entry, void *alpm_sip_entry, soc_mem_t mem,
+                       uint32 src_flags, uint32 *is_default, int bucket_id)
+{
+    uint32 ipv4a;
+    uint32 ip6_word[4] = {0, 0};
+    int    pfx = 0;
+    int    rv = SOC_E_NONE;
+    uint32 default_route = 0;
+
+    /* Zero Buffer */
+    sal_memset(alpm_entry, 0, soc_mem_entry_words(unit, mem) * 4);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, HIT0f);
+    soc_mem_field32_set(unit, mem, alpm_entry, HITf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, VALID0f);
+    soc_mem_field32_set(unit, mem, alpm_entry, VALIDf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, ECMP0f);
+    soc_mem_field32_set(unit, mem, alpm_entry, ECMPf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, ECMP_PTR0f);
+    soc_mem_field32_set(unit, mem, alpm_entry, ECMP_PTRf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, NEXT_HOP_INDEX0f);
+    soc_mem_field32_set(unit, mem, alpm_entry, NEXT_HOP_INDEXf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, PRI0f);
+    soc_mem_field32_set(unit, mem, alpm_entry, PRIf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, RPE0f);
+    soc_mem_field32_set(unit, mem, alpm_entry, RPEf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, DST_DISCARD0f);
+    soc_mem_field32_set(unit, mem, alpm_entry, DST_DISCARDf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, SRC_DISCARD0f);
+    soc_mem_field32_set(unit, mem, alpm_entry, SRC_DISCARDf, ipv4a);
+
+    ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, CLASS_ID0f);
+    soc_mem_field32_set(unit, mem, alpm_entry, CLASS_IDf, ipv4a);
+
+    soc_mem_field32_set(unit, mem, alpm_entry, SUB_BKT_PTRf,
+                        ALPM_BKT_SIDX(bucket_id));
+
+    /* Set IP Address and IP length */
+    ip6_word[0] = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, IP_ADDR0f);
+    if (ipv6) {
+        ip6_word[1] = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, IP_ADDR1f);
+    }
+    soc_mem_field_set(unit, mem, (uint32*)alpm_entry, KEYf, (uint32*)ip6_word);
+
+    if (ipv6) {
+        ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, IP_ADDR_MASK0f);
+        if ((rv = _ipmask2pfx(ipv4a, &pfx)) < 0) {
+            return(rv);
+        }
+        ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, IP_ADDR_MASK1f);
+        if (pfx) {
+            if (ipv4a != 0xffffffff)  {
+                return(SOC_E_PARAM);
+            }
+            pfx += 32;
+        } else {
+            if ((rv = _ipmask2pfx(ipv4a, &pfx)) < 0) {
+                return(rv);
+            }
+        }
+    } else {
+        ipv4a = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, IP_ADDR_MASK0f);
+        if ((rv = _ipmask2pfx(ipv4a, &pfx)) < 0) {
+            return(rv);
+        }
+    }
+    if ((pfx == 0) && (ip6_word[0] == 0) && (ip6_word[1] == 0)) {
+        default_route = 1;
+    }
+    if (is_default != NULL) {
+        *is_default = default_route;
+    }
+    soc_mem_field32_set(unit, mem, alpm_entry, LENGTHf, pfx);
+
+    if (alpm_sip_entry == NULL) {
+        return (SOC_E_NONE);
+    }
+    if (SOC_URPF_STATUS_GET(unit)) {
+        sal_memset(alpm_sip_entry, 0, soc_mem_entry_words(unit, mem) * 4);
+        sal_memcpy(alpm_sip_entry, alpm_entry, soc_mem_entry_words(unit, mem) * 4);
+        soc_mem_field32_set(unit, mem, alpm_sip_entry, DST_DISCARDf, 0);
+        soc_mem_field32_set(unit, mem, alpm_sip_entry, RPEf, 0);
+
+        soc_mem_field32_set(unit, mem, alpm_sip_entry, SRC_DISCARDf,
+                            src_flags & SOC_ALPM_RPF_SRC_DISCARD);
+        soc_mem_field32_set(unit, mem, alpm_sip_entry, DEFAULTROUTEf,
+                            default_route);
+    }
+    return (SOC_E_NONE);
+}
+
+/* Initialize the TCAM entry from ALPM memory */
+static int
+_soc_th_alpm_lpm_ent_init(int unit, void *alpm_entry, soc_mem_t mem, int ipv6,
+                       int vrf, int bucket, int index, void *lpm_entry)
+{
+    uint32 ipv4a;
+    uint32 ip6_word[4] = {0, 0};
+    uint32 pfx = 0;
+
+    /* Zero Buffer */
+    sal_memset(lpm_entry, 0, soc_mem_entry_words(unit, L3_DEFIPm) * 4);
+
+    ipv4a = soc_mem_field32_get(unit, mem, alpm_entry, HITf);
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, HIT0f, ipv4a);
+    if (ipv6) {
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, HIT1f, ipv4a);
+    }
+
+    ipv4a = soc_mem_field32_get(unit, mem, alpm_entry, VALIDf);
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VALID0f, ipv4a);
+    if (ipv6) {
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VALID1f, ipv4a);
+    }
+
+    ipv4a = soc_mem_field32_get(unit, mem, alpm_entry, ECMPf);
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, ECMP0f, ipv4a);
+
+    ipv4a = soc_mem_field32_get(unit, mem, alpm_entry, ECMP_PTRf);
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, ECMP_PTR0f, ipv4a);
+
+    ipv4a = soc_mem_field32_get(unit, mem, alpm_entry, NEXT_HOP_INDEXf);
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, NEXT_HOP_INDEX0f, ipv4a);
+
+    ipv4a = soc_mem_field32_get(unit, mem, alpm_entry, PRIf);
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, PRI0f, ipv4a);
+
+    ipv4a = soc_mem_field32_get(unit, mem, alpm_entry, RPEf);
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, RPE0f, ipv4a);
+
+    ipv4a = soc_mem_field32_get(unit, mem, alpm_entry, DST_DISCARDf);
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, DST_DISCARD0f, ipv4a);
+
+    ipv4a = soc_mem_field32_get(unit, mem, alpm_entry, SRC_DISCARDf);
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, SRC_DISCARD0f, ipv4a);
+
+    ipv4a = soc_mem_field32_get(unit, mem, alpm_entry, CLASS_IDf);
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, CLASS_ID0f, ipv4a);
+
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, ALG_BKT_PTR0f,
+                        ALPM_BKT_IDX(bucket));
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, ALG_SUB_BKT_PTR0f,
+                        ALPM_BKT_SIDX(bucket));
+    if (index > 0) {
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, ALG_HIT_IDX0f, index);
+    }
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, MODE_MASK0f, 3);
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, ENTRY_TYPE_MASK0f, 1);
+    if (ipv6) {
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, MODE0f, 1);
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, MODE1f, 1);
+    }
+
+    /* Set IP Address and IP length */
+    soc_mem_field_get(unit, mem, alpm_entry, KEYf, ip6_word);
+    if (ipv6) {
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, IP_ADDR1f,
+                            ip6_word[1]);
+    }
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, IP_ADDR0f, ip6_word[0]);
+
+    ipv4a = soc_mem_field32_get(unit, mem, alpm_entry, LENGTHf);
+    if (ipv6) {
+        if (ipv4a >= 32) {
+            pfx = 0xffffffff;
+            SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, IP_ADDR_MASK1f, pfx);
+            pfx = ~SHR_SHIFT_RIGHT(0xffffffff, ipv4a - 32);
+            SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, IP_ADDR_MASK0f, pfx);
+        } else {
+            pfx = ~(0xffffffff >> ipv4a);
+            SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, IP_ADDR_MASK1f, pfx);
+        }
+    } else {
+        assert(ipv4a <= 32);
+        pfx = ~SHR_SHIFT_RIGHT(0xffffffff, ipv4a);
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, IP_ADDR_MASK0f, pfx);
+    }
+
+    if (vrf == SOC_L3_VRF_OVERRIDE) {
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, GLOBAL_HIGH0f, 1);
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, GLOBAL_ROUTE0f, 1);
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VRF_ID_0f, 0);
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VRF_ID_MASK0f, 0);
+    } else  if (vrf == SOC_L3_VRF_GLOBAL) {
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, GLOBAL_ROUTE0f, 1);
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VRF_ID_0f, 0);
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VRF_ID_MASK0f, 0);
+    } else {
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VRF_ID_0f, vrf);
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, VRF_ID_MASK0f,
+                            SOC_VRF_MAX(unit));
+    }
+    return (SOC_E_NONE);
+}
+
+int
+soc_th_alpm_warmboot_pivot_add(int unit,
+                            int ipv6,
+                            void *lpm_entry,
+                            int tcam_idx,
+                            int bktid)
+{
+    int                  rv = SOC_E_NONE;
+    uint32               key[2] = {0, 0};
+    alpm_pivot_t         *pivot = NULL;
+    alpm_bucket_handle_t *bucket_handle = NULL;
+    int                  vrf_id = 0, vrf = 0;
+
+    uint32               length2;
+    trie_t               *pivot_root = NULL;
+    uint32               prefix[5] = {0};
+    int                  default_route = 0;
+
+    SOC_IF_ERROR_RETURN(_soc_th_alpm_prefix_create(unit, ipv6, lpm_entry,
+                                prefix, &length2, &default_route));
+
+    SOC_IF_ERROR_RETURN(soc_th_alpm_lpm_vrf_get(unit, lpm_entry, &vrf_id, &vrf));
+    tcam_idx = soc_th_alpm_physical_idx(unit, L3_DEFIPm, tcam_idx, ipv6);
+
+    /* Allocate bucket handle */
+    bucket_handle = sal_alloc(sizeof(alpm_bucket_handle_t), "ALPM Bucket Handle");
+    if (bucket_handle == NULL) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(unit,
+                              "Unable to allocate memory for "
+                              "PIVOT trie node \n")));
+        return SOC_E_NONE;
+    }
+    sal_memset(bucket_handle, 0, sizeof(*bucket_handle));
+
+    /* Allocate pivot Payload */
+    pivot = sal_alloc(sizeof(alpm_pivot_t), "Payload for Pivot");
+    if (pivot == NULL) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(unit,
+                              "Unable to allocate memory for "
+                              "PIVOT trie node \n")));
+        sal_free(bucket_handle);
+        return SOC_E_MEMORY;
+    }
+    sal_memset(pivot, 0, sizeof(*pivot));
+
+    /* Save bucket_handle in pivot->bucket_trie */
+    PIVOT_BUCKET_HANDLE(pivot) = bucket_handle;
+
+    if (ipv6) {
+        trie_init(_MAX_KEY_LEN_144_, &PIVOT_BUCKET_TRIE(pivot));
+
+        /* Set address to the buffer. */
+        key[0] = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, IP_ADDR0f);
+
+        /* Set address to the buffer. */
+        key[1] = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, IP_ADDR1f);
+    } else {
+        trie_init(_MAX_KEY_LEN_48_, &PIVOT_BUCKET_TRIE(pivot));
+
+        /* Set address to the buffer. */
+        key[0] = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, IP_ADDR0f);
+    }
+
+    /* Save bucket index into pivot->bucket->bucket_index */
+    PIVOT_BUCKET_INDEX(pivot) = bktid;
+
+    /* Save tcam index into pivot->tcam_index */
+    PIVOT_TCAM_INDEX(pivot) = tcam_idx;
+
+    if (!(ALPM_PREFIX_IN_TCAM(unit, vrf_id))) {
+        if (ipv6 == 0) {
+            pivot_root = VRF_PIVOT_TRIE_IPV4(unit, vrf);
+            if (pivot_root == NULL) {
+                trie_init(_MAX_KEY_LEN_48_, &VRF_PIVOT_TRIE_IPV4(unit, vrf));
+                pivot_root = VRF_PIVOT_TRIE_IPV4(unit, vrf);
+            }
+        } else {
+            pivot_root = VRF_PIVOT_TRIE_IPV6(unit, vrf);
+            if (pivot_root == NULL) {
+                trie_init(_MAX_KEY_LEN_144_, &VRF_PIVOT_TRIE_IPV6(unit, vrf));
+                pivot_root = VRF_PIVOT_TRIE_IPV6(unit, vrf);
+            }
+        }
+
+        sal_memcpy(pivot->key, prefix, sizeof(prefix));
+        pivot->len    = length2;
+
+        /* insert into pivot trie */
+        rv = trie_insert(pivot_root, pivot->key, NULL, pivot->len,
+                         (trie_node_t *)pivot);
+        if (SOC_FAILURE(rv)) {
+            sal_free(bucket_handle);
+            sal_free(pivot);
+            return rv;
+        }
+    }
+
+    /* Insert pivot into global pivot array indexed by tcam_idx */
+    ALPM_TCAM_PIVOT(unit, tcam_idx) = pivot;
+    PIVOT_BUCKET_VRF(pivot) = vrf;
+    PIVOT_BUCKET_IPV6(pivot) = ipv6;
+
+    PIVOT_BUCKET_ENT_CNT_UPDATE(pivot);
+    if (key[0] == 0 && key[1] == 0) {
+        PIVOT_BUCKET_DEF(pivot) = TRUE;
+    }
+    VRF_PIVOT_REF_INC(unit, vrf, ipv6);
+
+    return rv;
+}
+
+
+static int
+_soc_th_alpm_warmboot_insert(int unit,
+                             int ipv6,
+                             void *lpm_entry,
+                             void *alpm_entry, /* ALPM (SRAM) entry data */
+                             soc_mem_t mem,    /* Mem view for ALPM data */
+                             int tcam_idx,     /* TCAM index             */
+                             int bktid,        /* Bucket index           */
+                             int alpm_idx )    /* ALPM entry index       */
+{
+    int          vrf_int;  /* Internal API representation of VRF id           */
+    int          vrf;      /* VRF in 0 to (MAX_VRF + 1) range;                */
+                           /* VRF = (MAX_VRF + 1), software rep of GLOBAL VRF */
+    int          rv = SOC_E_NONE;
+    int          default_route = 0;
+    uint32       prefix[5] = {0, 0, 0, 0, 0};
+    uint32       length;
+    defip_entry_t temp_lpm_entry;
+    trie_t       *bkt_trie = NULL;
+    trie_t       *pfx_trie = NULL;
+    trie_node_t  *delp = NULL;
+    payload_t    *bkt_payload = NULL;
+    payload_t    *pfx_payload = NULL;
+    alpm_pivot_t *pivot_pyld = NULL;
+
+    /* Check function params */
+    if ((NULL == lpm_entry) || (NULL == alpm_entry)) {
+        return SOC_E_PARAM;
+    }
+
+    /* Check IPv6 */
+    if (ipv6) {
+        if (!(ipv6 = SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, MODE1f))) {
+            return (SOC_E_PARAM);
+        }
+    }
+
+    /* Get VRF */
+    SOC_IF_ERROR_RETURN(soc_th_alpm_lpm_vrf_get(unit, lpm_entry, &vrf_int, &vrf));
+
+    /* Get ALPM table memory. */
+    SOC_ALPM_TABLE_MEM(unit, ipv6, mem);
+
+    /* Convert alpm_entry into lpm_entry to extract prefix */
+    SOC_IF_ERROR_RETURN(_soc_th_alpm_lpm_ent_init(unit, alpm_entry, mem, ipv6,
+                                                  vrf_int, bktid, tcam_idx,
+                                                  &temp_lpm_entry));
+
+    /* Create Prefix */
+    rv = _soc_th_alpm_prefix_create(unit, ipv6, &temp_lpm_entry, prefix,
+                                    &length, &default_route);
+    if (SOC_FAILURE(rv)) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(unit,
+                              "prefix create failed\n")));
+        return rv;
+    }
+
+    /* Get TCAM pivot */
+    pivot_pyld = ALPM_TCAM_PIVOT(unit, tcam_idx);
+
+    /* Get bucket trie from pivot */
+    bkt_trie = PIVOT_BUCKET_TRIE(pivot_pyld);
+
+    /* Allocate bucket payload */
+    bkt_payload = sal_alloc(sizeof(payload_t), "Payload for Key");
+    if (NULL == bkt_payload) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(unit,
+                              "Unable to allocate memory for trie node.\n")));
+        return SOC_E_MEMORY;
+    }
+
+    /* Allocate prefix trie payload */
+    pfx_payload = sal_alloc(sizeof(payload_t), "Payload for pfx trie key");
+    if (NULL == pfx_payload) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(unit,
+                              "Unable to allocate memory for pfx trie node\n")));
+        sal_free(bkt_payload);
+        return SOC_E_MEMORY;
+    }
+
+    /* Clear allocated payloads */
+    sal_memset(bkt_payload, 0, sizeof(*bkt_payload));
+    sal_memset(pfx_payload, 0, sizeof(*pfx_payload));
+
+    bkt_payload->key[0] = prefix[0];
+    bkt_payload->key[1] = prefix[1];
+    bkt_payload->key[2] = prefix[2];
+    bkt_payload->key[3] = prefix[3];
+    bkt_payload->key[4] = prefix[4];
+    bkt_payload->len    = length;
+    bkt_payload->index  = alpm_idx;
+
+#ifdef ALPM_WARM_BOOT_DEBUG_EXTENSIVE
+    LOG_ERROR(BSL_LS_SOC_ALPM,
+              (BSL_META_U(unit,
+                          "0x%x, 0x%x, 0x%x, 0x%x, 0x%x, length = 0x%x alpm_idx = 0x%x\n"),
+               bkt_payload->key[0], bkt_payload->key[1], bkt_payload->key[2],
+               bkt_payload->key[3], bkt_payload->key[4],
+               length, alpm_idx));
+#endif
+
+    /* Create duplicate for prefix trie */
+    sal_memcpy(pfx_payload, bkt_payload, sizeof(*bkt_payload));
+
+    /* Insert prefix into bucket-trie */
+    rv = trie_insert(bkt_trie, prefix, NULL, length,
+                    (trie_node_t *)bkt_payload);
+    if (SOC_FAILURE(rv)) {
+        goto free_memory;
+    }
+
+    /* Insert prefix into prefix-trie */
+    if (ipv6) {
+        pfx_trie = VRF_PREFIX_TRIE_IPV6(unit, vrf);
+    } else {
+        pfx_trie = VRF_PREFIX_TRIE_IPV4(unit, vrf);
+    }
+
+    if (!default_route) {
+        /* Default route already in prefix trie */
+        rv = trie_insert(pfx_trie, prefix, NULL, length,
+                        (trie_node_t *)pfx_payload);
+        if (SOC_FAILURE(rv)) {
+            goto delete_bkt_trie;
+        }
+    }
+
+    /* Return success */
+    return rv;
+
+delete_bkt_trie:
+    (void) trie_delete(bkt_trie, prefix, length, &delp);
+    bkt_payload = (payload_t *) delp;
+
+free_memory:
+    sal_free(bkt_payload);
+    sal_free(pfx_payload);
+    return rv;
+}
+
+/*
+ * soc_th_alpm_warmboot_vrf_add
+ */
+static int
+soc_th_alpm_warmboot_vrf_add(int unit,
+                          int v6,
+                          int vrf,
+                          int idx,
+                          int bktid)
+{
+
+    int           rv = SOC_E_NONE;
+    uint32        length;
+    uint32        key[2] = {0, 0};
+    trie_t        *pfx_root = NULL;
+    payload_t     *pfx_pyld = NULL;
+    defip_entry_t *lpm_entry = NULL;
+
+    /* Initialize VRF PIVOT IPV4 trie */
+    lpm_entry = sal_alloc(sizeof(defip_entry_t), "Default LPM entry");
+    if (lpm_entry == NULL) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(unit,
+                              "unable to allocate memory for LPM entry\n")));
+        return SOC_E_MEMORY;
+    }
+
+    /* Initialize an lpm entry to perform a match */
+    _soc_th_key_lpm_ent_init(unit, key, 0, vrf, v6, lpm_entry, 0, 1);
+
+    /* for global VRF */
+    if (vrf == SOC_VRF_MAX(unit) + 1) {
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, GLOBAL_ROUTE0f, 1);
+    } else {
+        /* Set default miss to global route only for non global routes */
+        SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, DEFAULT_MISS0f, 1);
+    }
+
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, ALG_BKT_PTR0f,
+                        ALPM_BKT_IDX(bktid));
+    SOC_MEM_OPT_F32_SET(unit, L3_DEFIPm, lpm_entry, ALG_SUB_BKT_PTR0f,
+                        ALPM_BKT_SIDX(bktid));
+
+    if (v6 == 0) {
+        VRF_TRIE_DEFAULT_ROUTE_IPV4(unit, vrf) = lpm_entry;
+        trie_init(_MAX_KEY_LEN_48_, &VRF_PREFIX_TRIE_IPV4(unit, vrf));
+        pfx_root = VRF_PREFIX_TRIE_IPV4(unit, vrf);
+    } else {
+        VRF_TRIE_DEFAULT_ROUTE_IPV6(unit, vrf) = lpm_entry;
+        trie_init(_MAX_KEY_LEN_144_, &VRF_PREFIX_TRIE_IPV6(unit, vrf));
+        pfx_root = VRF_PREFIX_TRIE_IPV6(unit, vrf);
+    }
+
+    pfx_pyld = sal_alloc(sizeof(payload_t), "Payload for pfx trie key");
+    if (pfx_pyld == NULL) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(unit,
+                              "Unable to allocate memory for pfx trie node \n")));
+        return SOC_E_MEMORY;
+    }
+
+    sal_memset(pfx_pyld,   0, sizeof(*pfx_pyld));
+
+    length = 0;
+    pfx_pyld->key[0] = key[0];
+    pfx_pyld->key[1] = key[1];
+    pfx_pyld->len    = length;
+
+    rv = trie_insert(pfx_root, key, NULL, length, &(pfx_pyld->node));
+    if (SOC_FAILURE(rv)) {
+        sal_free(pfx_pyld);
+        return rv;
+    }
+
+    VRF_TRIE_INIT_DONE(unit, vrf, v6, 1);
+
+    return rv;
+}
+/*
+ * soc_th_alpm_warmboot_prefix_insert
+ */
+int
+soc_th_alpm_warmboot_prefix_insert(int unit,
+                                int  ipv6,
+                                void *lpm_entry,
+                                void *alpm_entry,
+                                int tcam_idx,
+                                int bktid,
+                                int alpm_idx)
+{
+    int       vrf_int;  /* Internal API representation of VRF id */
+    int       vrf;      /* VRF in (0 - (MAX_VRF + 1)) range */
+    int       rv = SOC_E_NONE;
+    soc_mem_t mem;
+
+    tcam_idx = soc_th_alpm_physical_idx(unit, L3_DEFIPm, tcam_idx, ipv6);
+
+    /* Get ALPM table memory. */
+    SOC_ALPM_TABLE_MEM(unit, ipv6, mem);
+
+    /* Get VRF */
+    SOC_IF_ERROR_RETURN(soc_th_alpm_lpm_vrf_get(unit, lpm_entry, &vrf_int, &vrf));
+
+    /* For VRF_OVERRIDE (Global High) entries,  Prefix resides in TCAM directly */
+    if (ALPM_PREFIX_IN_TCAM(unit, vrf_int)) {
+        return(rv);
+    }
+    /* Non override entries, goes into ALPM memory */
+    if (!VRF_TRIE_INIT_COMPLETED(unit, vrf, ipv6)) {
+        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(unit,
+                                "VRF %d is not initialized\n"),
+                     vrf));
+        rv = soc_th_alpm_warmboot_vrf_add(unit, ipv6, vrf, tcam_idx, bktid);
+        if (SOC_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_SOC_ALPM,
+                      (BSL_META_U(unit,
+                                  "VRF %d/%d trie init \n"
+                                  "failed\n"), vrf, ipv6));
+            return rv;
+        }
+
+        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                    (BSL_META_U(unit,
+                                "VRF %d/%d trie init completed\n"),
+                     vrf, ipv6));
+    }
+
+    rv = _soc_th_alpm_warmboot_insert(unit, ipv6, lpm_entry, alpm_entry, mem,
+                                      tcam_idx, bktid, alpm_idx);
+    if (rv != SOC_E_NONE) {
+        LOG_WARN(BSL_LS_SOC_ALPM,
+                 (BSL_META_U(unit,
+                             "unit %d : Route Insertion Failed :%s\n"),
+                  unit, soc_errmsg(rv)));
+
+        return(rv);
+    }
+
+    soc_th_alpm_bu_upd(unit, bktid, tcam_idx, vrf, ipv6, 1);
+
+    VRF_TRIE_ROUTES_INC(unit, vrf, ipv6);
+    return(rv);
+}
+
+/*
+ * alpm_warmboot_bucket_bitmap_set
+ * This function will set bit position in bucket bitmap
+ */
+int
+soc_th_alpm_warmboot_bucket_bitmap_set(int u,       /* Unit         */
+                                       int vrf,     /* VRF          */
+                                       int v6,      /* Flag v4/v6   */
+                                       int bkt_idx) /* Bucket index */
+{
+    int step_count = 1;
+    SHR_BITDCL *bkt_bmap = SOC_TH_ALPM_VRF_BUCKET_BMAP(u);
+
+    if (vrf == SOC_VRF_MAX(u) + 1) {
+        bkt_bmap = SOC_TH_ALPM_GLB_BUCKET_BMAP(u);
+    }
+
+    /*
+     * In combined search mode, with urpf disabled, need to allocate even and
+     * odd bucket pointers
+     */
+    if (SOC_TH_ALPM_SCALE_CHECK(u, v6)) {
+        step_count = 2;
+    }
+
+    /* Set bit position */
+    SHR_BITSET_RANGE(bkt_bmap, bkt_idx, step_count);
+
+    return SOC_E_NONE;
+}
+
+int
+soc_th_alpm_warmboot_lpm_reinit_done(int unit)
+{
+    int idx;
+    int prev_idx = ALPM_MAX_PFX_INDEX;
+    int alpm_mode;
+    int defip_table_size = soc_mem_index_count(unit, L3_DEFIPm);
+
+    if (SOC_URPF_STATUS_GET(unit)) {
+        defip_table_size >>= 1;
+    }
+
+    /* returns 0 for combined search mode and 1 for parallel search mode */
+    alpm_mode = soc_th_alpm_mode_get(unit);
+    if (alpm_mode == SOC_ALPM_MODE_COMBINED) {
+        /* Combined search mode */
+        SOC_ALPM_LPM_STATE_PREV(unit, ALPM_MAX_PFX_INDEX) = -1;
+
+        for (idx = ALPM_MAX_PFX_INDEX; idx > -1; idx--) {
+            if (-1 == SOC_ALPM_LPM_STATE_START(unit, idx)) {
+                continue;
+            }
+
+            SOC_ALPM_LPM_STATE_PREV(unit, idx) = prev_idx;
+            SOC_ALPM_LPM_STATE_NEXT(unit, prev_idx) = idx;
+
+            SOC_ALPM_LPM_STATE_FENT(unit, prev_idx) =                    \
+                              SOC_ALPM_LPM_STATE_START(unit, idx) -      \
+                              SOC_ALPM_LPM_STATE_END(unit, prev_idx) - 1;
+            prev_idx = idx;
+
+        }
+
+        SOC_ALPM_LPM_STATE_NEXT(unit, prev_idx) = -1;
+        SOC_ALPM_LPM_STATE_FENT(unit, prev_idx) =                       \
+                              defip_table_size -                   \
+                              SOC_ALPM_LPM_STATE_END(unit, prev_idx) - 1;
+    } else if (alpm_mode == 1) {
+        /* Parallel search mode
+         *
+         *    Configured VRF Range
+         *    {0 - (ALPM_MAX_PFX_INDEX/3)}
+         *    Global VRF Range
+         *    {((ALPM_MAX_PFX_INDEX/1) + 1) - (ALPM_MAX_PFX_INDEX/2) }
+         *    Override VRF Range
+         *    {((ALPM_MAX_PFX_INDEX/2) + 1) - (ALPM_MAX_PFX_INDEX) }
+         */
+
+        /*
+         * Global and Overide VRF range are treated as single block and
+         * both blocks will be linked
+         */
+        SOC_ALPM_LPM_STATE_PREV(unit, ALPM_MAX_PFX_INDEX) = -1;
+        for (idx = ALPM_MAX_PFX_INDEX; idx > (ALPM_MAX_PFX_INDEX/3) ; idx--) {
+            if (-1 == SOC_ALPM_LPM_STATE_START(unit, idx)) {
+                continue;
+            }
+
+            SOC_ALPM_LPM_STATE_PREV(unit, idx) = prev_idx;
+            SOC_ALPM_LPM_STATE_NEXT(unit, prev_idx) = idx;
+
+            SOC_ALPM_LPM_STATE_FENT(unit, prev_idx) =                    \
+                              SOC_ALPM_LPM_STATE_START(unit, idx) -      \
+                              SOC_ALPM_LPM_STATE_END(unit, prev_idx) - 1;
+
+            prev_idx = idx;
+        }
+        SOC_ALPM_LPM_STATE_NEXT(unit, prev_idx) = -1;
+        SOC_ALPM_LPM_STATE_FENT(unit, prev_idx) =                       \
+                              defip_table_size -                        \
+                              SOC_ALPM_LPM_STATE_END(unit, prev_idx) - 1;
+
+        /* Configured VRF range */
+        prev_idx = (ALPM_MAX_PFX_INDEX/3);
+        SOC_ALPM_LPM_STATE_PREV(unit, (ALPM_MAX_PFX_INDEX/3)) = -1;
+        for (idx = ((ALPM_MAX_PFX_INDEX/3)-1); idx > -1; idx--) {
+            if (-1 == SOC_ALPM_LPM_STATE_START(unit, idx)) {
+                continue;
+            }
+
+            SOC_ALPM_LPM_STATE_PREV(unit, idx) = prev_idx;
+            SOC_ALPM_LPM_STATE_NEXT(unit, prev_idx) = idx;
+
+            SOC_ALPM_LPM_STATE_FENT(unit, prev_idx) =                    \
+                              SOC_ALPM_LPM_STATE_START(unit, idx) -      \
+                              SOC_ALPM_LPM_STATE_END(unit, prev_idx) - 1;
+            prev_idx = idx;
+        }
+        SOC_ALPM_LPM_STATE_NEXT(unit, prev_idx) = -1;
+        SOC_ALPM_LPM_STATE_FENT(unit, prev_idx) =                         \
+                              (defip_table_size >> 1) -                   \
+                              SOC_ALPM_LPM_STATE_END(unit, prev_idx) - 1;
+    }
+
+    return (SOC_E_NONE);
+}
+
+int
+soc_th_alpm_warmboot_lpm_reinit(int unit,
+                             int ipv6,
+                             int idx,
+                             void *lpm_entry)
+{
+    int pfx_len;
+    defip_entry_t *lpm_entry_hi;
+
+    if (SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, VALID0f) ||
+        SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, VALID1f)) {
+            LPM_HASH_INSERT(unit, lpm_entry, idx);
+    }
+
+    if (SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, VALID0f)) {
+        SOC_IF_ERROR_RETURN
+            (_soc_th_alpm_lpm_prefix_length_get(unit, ipv6, lpm_entry,
+                                                &pfx_len, 0, 0));
+
+        if (SOC_ALPM_LPM_STATE_VENT(unit, pfx_len) == 0) {
+            SOC_ALPM_LPM_STATE_START(unit, pfx_len) = idx;
+            SOC_ALPM_LPM_STATE_END(unit, pfx_len) = idx;
+        } else {
+            SOC_ALPM_LPM_STATE_END(unit, pfx_len) = idx;
+        }
+
+        SOC_ALPM_LPM_STATE_VENT(unit, pfx_len)++;
+
+        if (ipv6) {
+            /* IPv6 entry */
+            return (SOC_E_NONE);
+        }
+    } else {
+        /* Check upper half of lpm_entry */
+        if (SOC_MEM_OPT_F32_GET(unit, L3_DEFIPm, lpm_entry, VALID1f)) {
+
+            /* Allocate temp entry */
+            lpm_entry_hi = sal_alloc(sizeof(defip_entry_t), "lpm_entry_hi");
+
+            /* Copy upper half of lpm_entry into temp lpm_entry */
+            soc_th_alpm_lpm_ip4entry1_to_0(unit, lpm_entry, lpm_entry_hi, TRUE);
+
+            /* Get prefix length */
+            SOC_IF_ERROR_RETURN
+                (_soc_th_alpm_lpm_prefix_length_get(unit, ipv6, lpm_entry_hi,
+                                                    &pfx_len, 0, 0));
+
+            if (SOC_ALPM_LPM_STATE_VENT(unit, pfx_len) == 0) {
+                SOC_ALPM_LPM_STATE_START(unit, pfx_len) = idx;
+                SOC_ALPM_LPM_STATE_END(unit, pfx_len) = idx;
+            } else {
+                SOC_ALPM_LPM_STATE_END(unit, pfx_len) = idx;
+            }
+
+            /* Free temp entry */
+            sal_free(lpm_entry_hi);
+
+            SOC_ALPM_LPM_STATE_VENT(unit, pfx_len)++;
+        }
+    }
+    return (SOC_E_NONE);
+}
+
+/* Walk through all ALPM table to check if uRPF entries is installing well */
+void
+soc_th_alpm_dbg_urpf(int u)
+{
+    int         rv = SOC_E_NONE;
+    soc_mem_t   mem;
+    int         i, bkt;
+    int         index;
+    uint32      e[SOC_MAX_MEM_FIELD_WORDS];
+    uint32      eu[SOC_MAX_MEM_FIELD_WORDS];
+
+    int         good = 0, bad = 0;
+
+    if (!SOC_URPF_STATUS_GET(u)) {
+        LOG_CLI((BSL_META_U(u, "Only supported in uRPF mode\n")));
+        return ;
+    }
+
+    for (bkt = 0; bkt <= SOC_TH_MAX_ALPM_BUCKETS / 2; bkt++) {
+        index = SOC_TH_ALPM_BKT_IDX_TO_ENTRY(u, ALPM_BKTID(bkt, 0));
+        mem = _soc_tomahawk_alpm_bkt_view_get(u, index);
+
+        /* Iter entry based on memory type */
+        for (i = 0; i < SOC_TH_MAX_BUCKET_ENTRIES - 1; i++) {
+            rv = _soc_th_alpm_mem_index(u, mem, bkt, i, 0, &index);
+            if (SOC_FAILURE(rv)) {
+                continue;
+            }
+
+            sal_memset(e, 0, sizeof(uint32) * SOC_MAX_MEM_FIELD_WORDS);
+            sal_memset(eu, 0, sizeof(uint32) * SOC_MAX_MEM_FIELD_WORDS);
+
+            rv = soc_mem_read(u, mem, MEM_BLOCK_ANY, index, e);
+            if (SOC_FAILURE(rv)) {
+                continue;
+            }
+            if (soc_mem_field32_get(u, mem, e, VALIDf) == 0) {
+                continue;
+            }
+
+            soc_mem_field32_set(u, mem, e, HITf, 0);
+
+            rv = soc_mem_read(u, mem, MEM_BLOCK_ANY, _soc_th_alpm_rpf_entry(u, index), eu);
+            if (SOC_FAILURE(rv)) {
+                continue;
+            }
+            soc_mem_field32_set(u, mem, eu, HITf, 0);
+            soc_mem_field32_set(u, mem, eu, RPEf, 0);
+
+            if (sal_memcmp(e, eu, sizeof(uint32) * SOC_MAX_MEM_FIELD_WORDS) != 0) {
+                LOG_CLI((BSL_META_U(u,
+                            "uRPF sanity check failed: bucket %4d mem %s index %d uRPF index %d\n"),
+                            bkt, SOC_MEM_NAME(u, mem), index, _soc_th_alpm_rpf_entry(u, index)));
+                bad ++;
+            } else {
+                good ++;
+            }
+        }
+    }
+
+    LOG_CLI((BSL_META_U(u, "uRPF Sanity check finished, good %d bad %d\n"), good, bad));
+
+    return ;
+}
+
+/* Helper structure for Debug Counter */
+typedef struct _alpm_dbg_cnt_s {
+    int v4;         /* Counter for IPv4 */
+    int v6_64;
+    int v6_128;
+    int v4t;        /* Totaled counter for IPv4 per VRF */
+    int v6_64t;
+    int v6_128t;
+    int used;
+} _alpm_dbg_cnt_t;
+
+typedef enum _alpm_pvt_cnt_type_e {
+    SOC_ALPM_DEBUG_CNT_ADD = 0,
+    SOC_ALPM_DEBUG_CNT_DEL,
+    SOC_ALPM_DEBUG_CNT_SPLIT,
+    SOC_ALPM_DEBUG_CNT_USED,
+    SOC_ALPM_DEBUG_CNT_LPM_SHIFT,
+    SOC_ALPM_DEBUG_CNT_LPM_FULL
+} _alpm_pvt_cnt_type_t;
+
+
+#define _ALPM_DBG_CNT_ADD(dst_dc, src_dc)       \
+    do {                                        \
+        (dst_dc)->v4 += (src_dc)->v4;           \
+        (dst_dc)->v4t += (src_dc)->v4t;         \
+        (dst_dc)->v6_64 += (src_dc)->v6_64;     \
+        (dst_dc)->v6_64t += (src_dc)->v6_64t;   \
+        (dst_dc)->v6_128 += (src_dc)->v6_128;   \
+        (dst_dc)->v6_128t += (src_dc)->v6_128t; \
+    } while (0)
+
+/* Common debug counter print */
+#define PRINT_SPLIT_LINE(u)    \
+    LOG_CLI((BSL_META_U(u, "-----------------------------------------------\n")))
+#define PRINT_VRF_HEADER(u)    \
+    LOG_CLI((BSL_META_U(u, "\n      VRF  v4      v6-64   v6-128  |   Total\n")))
+#define PRINT_VRF_NOT_FOUND(u) \
+    LOG_CLI((BSL_META_U(u, "%9s\n"), "Specific VRF not found"))
+
+/* Print Bucket Occupancy */
+#define BKT_PERCENT(used, tot) \
+    (tot) ? (used) * 100 / (tot) : 0, (tot) ? (used) * 1000 / (tot) % 10 : 0
+#define PRINT_BKT_OCCU_ITEM(u, vrf, tmp_dc) \
+    do { \
+        LOG_CLI((BSL_META_U(u, \
+                            "%9d  %02d.%d%%   %02d.%d%%   %02d.%d%%   |   %02d.%d%% %5s\n"), \
+                 (vrf), BKT_PERCENT(tmp_dc->v4, tmp_dc->v4t), \
+                 BKT_PERCENT(tmp_dc->v6_64, tmp_dc->v6_64t), \
+                 BKT_PERCENT(tmp_dc->v6_128, tmp_dc->v6_128t), \
+                 BKT_PERCENT((tmp_dc->v4+tmp_dc->v6_64+tmp_dc->v6_128),\
+                 (tmp_dc->v4t+tmp_dc->v6_64t+tmp_dc->v6_128t)), \
+                 (vrf) == SOC_VRF_MAX(u)+1 ? "GLo" : "")); \
+    } while (0)
+#define PRINT_BKT_OCCU_ITEM_TOT(u, all_dc) \
+    do { \
+        LOG_CLI((BSL_META_U(u, \
+                            "%9s  %02d.%d%%   %02d.%d%%   %02d.%d%%   |   %02d.%d%% \n"), \
+                 "Total", BKT_PERCENT((all_dc)->v4, (all_dc)->v4t), \
+                 BKT_PERCENT((all_dc)->v6_64, (all_dc)->v6_64t), \
+                 BKT_PERCENT((all_dc)->v6_128, (all_dc)->v6_128t), \
+                 BKT_PERCENT(((all_dc)->v4+(all_dc)->v6_64+(all_dc)->v6_128),\
+                 ((all_dc)->v4t+(all_dc)->v6_64t+(all_dc)->v6_128t)))); \
+    } while (0)
+
+
+/* Print VRF based debug counter */
+#define PRINT_VRF_ITEM(u, vrf, v4, v6_64, v6_128, total) \
+    do { \
+        LOG_CLI((BSL_META_U(u, \
+                            "%9d  %-7d %-7d %-7d |   %-7d %s\n"), \
+                 (vrf == MAX_VRF_ID ? -1 : vrf), (v4), (v6_64),\
+                 (v6_128), (total), (vrf) == MAX_VRF_ID ? "GHi" : \
+                 (vrf) == SOC_VRF_MAX(u)+1 ? "GLo" : "")); \
+    } while (0)
+#define PRINT_VRF_ITEM_TOT(u, v4, v6_64, v6_128, total) \
+    do { \
+        LOG_CLI((BSL_META_U(u, \
+                            "%9s  %-7d %-7d %-7d |   %-7d \n"), "Total", (v4), (v6_64),\
+                 (v6_128), (total))); \
+    } while (0)
+
+#define PRINT_BUCKET_HEADER(u) \
+   do { \
+        LOG_CLI((BSL_META_U(u, \
+                            "\nPivot/VRF  Min     Max     Cur     |   Comment\n"))); \
+    } while (0)
+#define PRINT_BUCKET_ITEM(u, bkt, vrf, min, max, cur, def) \
+    do { \
+        LOG_CLI((BSL_META_U(u, \
+                            "%5d/%-4d %-7d %-7d %-7d |   %-7s\n"), bkt, vrf, \
+                 min, max, cur, def ? "Def" : \
+                 (vrf) == SOC_VRF_MAX(u)+1 ? "GLo" : "")); \
+    } while (0)
+
+/* Get max available IPv4, IPv6-64, IPv6-128 entry numbers */
+static void
+_soc_th_alpm_pivot_max_get(int u, alpm_vrf_counter_t *pvt_max)
+{
+    pvt_max->v4 = soc_mem_index_count(u, L3_DEFIPm) * 2;
+    pvt_max->v6_128 = soc_mem_index_count(u, L3_DEFIP_PAIR_128m);
+
+    if (soc_property_get(u, spn_IPV6_LPM_128B_ENABLE, 1)) {
+        pvt_max->v6_64 = pvt_max->v6_128;
+    } else {
+        pvt_max->v6_64 = pvt_max->v4 >> 1;
+    }
+
+    if (SOC_URPF_STATUS_GET(u)) {
+        pvt_max->v4 >>= 1;
+        pvt_max->v6_128 >>= 1;
+        pvt_max->v6_64 >>= 1;
+    }
+}
+
+static void
+_soc_th_alpm_pivot_debug_dump(int u, int vrf_id, alpm_vrf_handle_t *vh,
+                                   _alpm_pvt_cnt_type_t pct)
+{
+    alpm_vrf_counter_t *vc;
+    int i, tv4c, tv6_64c, tv6_128c;
+    int found = 0;
+
+    alpm_vrf_counter_t pvt_max;
+
+    /* Print Pivot debug info header */
+    switch (pct) {
+    case SOC_ALPM_DEBUG_CNT_ADD:
+        LOG_CLI((BSL_META_U(u,
+                            "\nAdd Counter:\n")));
+        break;
+    case SOC_ALPM_DEBUG_CNT_DEL:
+        LOG_CLI((BSL_META_U(u,
+                            "\nDelete Counter:\n")));
+        break;
+    case SOC_ALPM_DEBUG_CNT_SPLIT:
+        LOG_CLI((BSL_META_U(u,
+                            "\nInternal Debug Counter - 1:\n")));
+        break;
+    case SOC_ALPM_DEBUG_CNT_USED:
+        _soc_th_alpm_pivot_max_get(u, &pvt_max);
+        LOG_CLI((BSL_META_U(u,
+                            "\nPivot Occupancy: Max v4/v6-64/v6-128 = %d/%d/%d\n"),
+                 pvt_max.v4, pvt_max.v6_64, pvt_max.v6_128));
+        break;
+    case SOC_ALPM_DEBUG_CNT_LPM_SHIFT:
+        LOG_CLI((BSL_META_U(u,
+                            "\nInternal Debug Counter - LPM Shift:\n")));
+        break;
+    case SOC_ALPM_DEBUG_CNT_LPM_FULL:
+        LOG_CLI((BSL_META_U(u,
+                            "\nInternal Debug Counter - LPM Full:\n")));
+        break;
+    default:
+        break;
+    }
+    PRINT_VRF_HEADER(u);
+    PRINT_SPLIT_LINE(u);
+
+    tv4c = tv6_64c = tv6_128c = 0;
+    for (i = 0; i < MAX_VRF_ID + 1; i++) {
+        int v4c, v6_64c, v6_128c;
+        if (vh[i].init_done == 0 && i != MAX_VRF_ID) {
+            continue;
+        }
+        if (vrf_id != -1 && vrf_id != i) {
+            continue;
+        }
+
+        found = 1;
+
+        switch (pct) {
+        case SOC_ALPM_DEBUG_CNT_ADD:
+            vc = &vh[i].add;
+            break;
+        case SOC_ALPM_DEBUG_CNT_DEL:
+            vc = &vh[i].del;
+            break;
+        case SOC_ALPM_DEBUG_CNT_SPLIT:
+            vc = &vh[i].bkt_split;
+            break;
+        case SOC_ALPM_DEBUG_CNT_LPM_SHIFT:
+            vc = &vh[i].lpm_shift;
+            break;
+        case SOC_ALPM_DEBUG_CNT_LPM_FULL:
+            vc = &vh[i].lpm_full;
+            break;
+        case SOC_ALPM_DEBUG_CNT_USED:
+            vc = &vh[i].pivot_used;
+            break;
+        default:
+            vc = &vh[i].pivot_used;
+            break;
+        }
+
+        v4c = vc->v4;
+        v6_64c = vc->v6_64;
+        v6_128c = vc->v6_128;
+
+        tv4c += v4c;
+        tv6_64c += v6_64c;
+        tv6_128c += v6_128c;
+
+        PRINT_VRF_ITEM(u, i, v4c, v6_64c, v6_128c, (v4c+v6_64c+v6_128c));
+    }
+    if (found == 0) {
+        PRINT_VRF_NOT_FOUND(u);
+    } else {
+        PRINT_SPLIT_LINE(u);
+        PRINT_VRF_ITEM_TOT(u, tv4c, tv6_64c, tv6_128c, (tv4c+tv6_64c+tv6_128c));
+    }
+
+    return ;
+}
+
+int
+soc_th_alpm_debug_show(int u, int vrf_id, uint32 flags)
+{
+    int i, alloc_sz, found = 0;
+    _alpm_dbg_cnt_t *alpm_dc_arr;
+    _alpm_dbg_cnt_t bkt_ent_max;
+    _alpm_dbg_cnt_t all_dc;
+
+    if (vrf_id > (SOC_VRF_MAX(u) + 1)) {
+        return SOC_E_PARAM;
+    }
+
+    alloc_sz = MAX_VRF_ID * sizeof(_alpm_dbg_cnt_t);
+    alpm_dc_arr = sal_alloc(alloc_sz, "_alpm_dbg_cnt");
+    if (alpm_dc_arr == NULL) {
+        return SOC_E_MEMORY;
+    }
+    sal_memset(alpm_dc_arr, 0, alloc_sz);
+
+    /* Collect data */
+    bkt_ent_max.v4 = ALPM_IPV4_BKT_COUNT;
+    bkt_ent_max.v6_64 = ALPM_IPV6_64_BKT_COUNT;
+    bkt_ent_max.v6_128 = ALPM_IPV6_128_BKT_COUNT;
+
+    if ((soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_COMBINED ||
+         soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_TCAM_ALPM)
+        && !SOC_URPF_STATUS_GET(u)) {
+        bkt_ent_max.v6_64  <<= 1;
+        bkt_ent_max.v6_128 <<= 1;
+    }
+
+    /* 1. Bucket Occupancy */
+    LOG_CLI((BSL_META_U(u,
+                        "\nBucket Occupancy:\n")));
+    if (flags & (SOC_ALPM_DEBUG_SHOW_FLAG_BKT)) {
+        PRINT_BUCKET_HEADER(u);
+        PRINT_SPLIT_LINE(u);
+    }
+    for (i = 0; i < MAX_PIVOT_COUNT; i++) {
+        alpm_pivot_t *p = ALPM_TCAM_PIVOT(u, i);
+        if (p != NULL) {
+            _alpm_dbg_cnt_t *tmp_dc;
+            int vrf = PIVOT_BUCKET_VRF(p);
+
+            if (vrf < 0 || vrf > (SOC_VRF_MAX(u) + 1)) {
+                continue;
+            }
+
+            if (vrf_id != -1 && vrf_id != vrf) {
+                continue;
+            }
+
+            if (flags & SOC_ALPM_DEBUG_SHOW_FLAG_BKT) {
+                found = 1;
+                PRINT_BUCKET_ITEM(u, i, vrf,
+                                  PIVOT_BUCKET_MIN(p),
+                                  PIVOT_BUCKET_MAX(p),
+                                  PIVOT_BUCKET_COUNT(p),
+                                  PIVOT_BUCKET_DEF(p));
+            }
+
+            tmp_dc = &alpm_dc_arr[vrf];
+            if (PIVOT_BUCKET_IPV6(p) == L3_DEFIP_MODE_128) {
+                tmp_dc->v6_128 += PIVOT_BUCKET_COUNT(p);
+                tmp_dc->v6_128t += bkt_ent_max.v6_128;
+            } else if (PIVOT_BUCKET_IPV6(p) == L3_DEFIP_MODE_64) {
+                tmp_dc->v6_64 += PIVOT_BUCKET_COUNT(p);
+                tmp_dc->v6_64t += bkt_ent_max.v6_64;
+            } else {
+                tmp_dc->v4 += PIVOT_BUCKET_COUNT(p);
+                tmp_dc->v4t += bkt_ent_max.v4;
+            }
+            tmp_dc->used = TRUE;
+        }
+    }
+
+    if (flags & SOC_ALPM_DEBUG_SHOW_FLAG_BKT) {
+        if (found == 0) {
+            PRINT_VRF_NOT_FOUND(u);
+        }
+    }
+
+    sal_memset(&all_dc, 0, sizeof(all_dc));
+    found = 0;
+
+    if (flags & SOC_ALPM_DEBUG_SHOW_FLAG_BKTUSG) {
+        PRINT_VRF_HEADER(u);
+        PRINT_SPLIT_LINE(u);
+        for (i = 0; i < MAX_VRF_ID; i++) {
+            _alpm_dbg_cnt_t *tmp_dc;
+            if (alpm_dc_arr[i].used != TRUE) {
+                continue;
+            }
+            if (vrf_id != -1 && vrf_id != i) {
+                continue;
+            }
+
+            found = 1;
+            tmp_dc = &alpm_dc_arr[i];
+            _ALPM_DBG_CNT_ADD(&all_dc, tmp_dc);
+            PRINT_BKT_OCCU_ITEM(u, i, tmp_dc);
+        }
+        if (found == 0) {
+            PRINT_VRF_NOT_FOUND(u);
+        } else {
+            PRINT_SPLIT_LINE(u);
+            PRINT_BKT_OCCU_ITEM_TOT(u, &all_dc);
+        }
+    }
+
+    /* 2. Pivot Occupancy */
+    if (flags & SOC_ALPM_DEBUG_SHOW_FLAG_PVT) {
+        _soc_th_alpm_pivot_debug_dump(u, vrf_id, alpm_vrf_handle[u],
+                                           SOC_ALPM_DEBUG_CNT_USED);
+    }
+
+    /* 3. Add/Delete counters per VRF/ip type */
+    if (flags & SOC_ALPM_DEBUG_SHOW_FLAG_CNT) {
+        _soc_th_alpm_pivot_debug_dump(u, vrf_id, alpm_vrf_handle[u],
+                                   SOC_ALPM_DEBUG_CNT_ADD);
+
+        _soc_th_alpm_pivot_debug_dump(u, vrf_id, alpm_vrf_handle[u],
+                                   SOC_ALPM_DEBUG_CNT_DEL);
+    }
+
+    /* 4. Total No. of bucket splits per VRF/ip type */
+    if (flags & SOC_ALPM_DEBUG_SHOW_FLAG_INTDBG) {
+        _soc_th_alpm_pivot_debug_dump(u, vrf_id, alpm_vrf_handle[u],
+                                   SOC_ALPM_DEBUG_CNT_SPLIT);
+        _soc_th_alpm_pivot_debug_dump(u, vrf_id, alpm_vrf_handle[u],
+                                   SOC_ALPM_DEBUG_CNT_LPM_FULL);
+        _soc_th_alpm_pivot_debug_dump(u, vrf_id, alpm_vrf_handle[u],
+                                   SOC_ALPM_DEBUG_CNT_LPM_SHIFT);
+    }
+
+    sal_free(alpm_dc_arr);
+
+    return SOC_E_NONE;
+}
+
+int
+soc_th_alpm_debug_brief_show(int u, int bucket, int index)
+{
+    int i, j, rv = SOC_E_NONE;
+    uint32 rval, alpm = 0, mode = 0, urpf, bit128, fv, bnkbits;
+    int v4used = 0, v4max;
+    int v6_64used = 0, v6_64max;
+    int v6_128used = 0, v6_128max;
+    int bucket_used = 0, bucket_max;
+    char *lpm_tbl_ptr = NULL;
+    defip_entry_t *lpm_entry;               /* Hw entry buffer.             */
+    defip_pair_128_entry_t *lpm_entry_p128; /* Hw entry buffer.             */
+    int ipv6, bkt_ptr, gh, gr, use_alpm;
+    int *bktref = NULL;
+    int glb_hi_cnt = 0, glb_lo_cnt = 0;
+    soc_mem_t lpm_mem;
+    int bs11 = 0, bs21 = 0, bs31 = 0, bs41 = 0, alloc_size;
+    uint32      e[SOC_MAX_MEM_FIELD_WORDS];
+    soc_field_t fldv, fldb, fldg, fldr;
+
+    char *mode_str[] = {
+        "LPM",
+        "ALPM-Combined",
+        "ALPM-Parallel",
+        "ALPM-TCAM_ALPM",
+        "ALPM-Invalid"
+    };
+
+    SOC_IF_ERROR_RETURN(READ_L3_DEFIP_RPF_CONTROLr(u, &rval));
+    alpm = soc_reg_field_get(u, L3_DEFIP_RPF_CONTROLr, rval, LPM_MODEf);
+    if (alpm != 0) {
+        mode = soc_reg_field_get(u, L3_DEFIP_RPF_CONTROLr, rval, LOOKUP_MODEf);
+    }
+    urpf = soc_reg_field_get(u, L3_DEFIP_RPF_CONTROLr, rval, DEFIP_RPF_ENABLEf);
+
+    LOG_CLI(("\n"));
+    LOG_CLI(("%-24s%s\n", "Mode:", mode_str[alpm + mode]));
+    LOG_CLI(("%-24s%s\n", "uRPF:", urpf ? "Enable" : "Disable"));
+    bit128 = !!soc_mem_index_count(u, L3_DEFIP_PAIR_128m);
+    LOG_CLI(("%-24s%d\n", "IPv6 Bits:", bit128 ? 128 : 64));
+    if (alpm == 0) {
+        return SOC_E_NONE;
+    }
+
+    if (mode == 0 && !urpf) {       /* Combined mode && uRPF */
+        fv = soc_reg_field_get(u, L3_DEFIP_RPF_CONTROLr, rval,
+                               ENABLE_DOUBLE_WIDE_BUCKETS_FOR_IPV4f);
+    } else if (mode == 2) {         /* TCAM/ALPM mode */
+        fv = 1;
+    } else {                        /* Parallel mode */
+        fv = 0;
+    }
+    LOG_CLI(("%-24s%s\n", "IPv4 Wide:", fv ? "Double" : "Single"));
+
+    if (mode == 0 && !urpf) {       /* Combined mode && uRPF */
+        fv = 1;
+    } else if (mode == 2) {         /* TCAM/ALPM mode */
+        fv = 1;
+    } else {                        /* Parallel mode */
+        fv = 0;
+    }
+    LOG_CLI(("%-24s%s\n", "IPv6 Wide:", fv ? "Double" : "Single"));
+    SOC_IF_ERROR_RETURN(READ_ISS_BANK_CONFIGr(u, &rval));
+    bnkbits = soc_reg_field_get(u, ISS_BANK_CONFIGr, rval,
+                                ALPM_ENTRY_BANK_CONFIGf);
+    LOG_CLI(("%-24s%d(0x%x)\n", "Banks:", _shr_popcount(bnkbits), bnkbits));
+
+    /* Calculate utilization */
+    v4max = 2 * soc_mem_index_count(u, L3_DEFIPm);
+    v6_64max = bit128 ? soc_mem_index_count(u, L3_DEFIP_PAIR_128m) :
+                        soc_mem_index_count(u, L3_DEFIPm);
+    v6_128max = soc_mem_index_count(u, L3_DEFIP_PAIR_128m);
+    bucket_max = SOC_TH_MAX_ALPM_BUCKETS;
+    if (urpf) {
+        v4max       >>= 1;
+        v6_64max    >>= 1;
+        v6_128max   >>= 1;
+        bucket_max  >>= 1;
+    }
+
+    bktref = sal_alloc(bucket_max * sizeof(int), "bktref");
+    if (bktref == NULL) {
+        return SOC_E_MEMORY;
+    }
+    sal_memset(bktref, 0, bucket_max * sizeof(int));
+
+    /* DMA LPM table to software copy */
+    lpm_mem = L3_DEFIPm;
+    alloc_size = WORDS2BYTES(soc_mem_entry_words(u, lpm_mem)) *
+                 soc_mem_index_count(u, lpm_mem);
+    lpm_tbl_ptr = soc_cm_salloc(u, alloc_size, "lpm_tbl");
+    if (lpm_tbl_ptr == NULL) {
+        rv = SOC_E_MEMORY;
+        goto _free_mem;
+    }
+    /* Reset allocated buffer. */
+    sal_memset(lpm_tbl_ptr, 0, alloc_size);
+
+    /* Read table to the buffer. */
+    if (v4max && soc_mem_read_range(u, lpm_mem, MEM_BLOCK_ANY,
+                           soc_mem_index_min(u, lpm_mem),
+                           soc_mem_index_max(u, lpm_mem), lpm_tbl_ptr) < 0) {
+        rv = (SOC_E_INTERNAL);
+        goto _free_mem;
+    }
+
+    for (i = 0; i < (v4max / 2); i++) {
+        /* Calculate entry offset */
+        lpm_entry =
+            soc_mem_table_idx_to_pointer(u, lpm_mem,
+                                         defip_entry_t *, lpm_tbl_ptr, i);
+        ipv6 = soc_mem_field32_get(u, lpm_mem, lpm_entry, MODE0f);
+
+        for (j = 0; j < (ipv6 ? 1 : 2); j++) {
+            if (j == 1) {
+                fldv = VALID1f;
+            } else {
+                fldv = VALID0f;
+            }
+            /* Make sure entry is valid. */
+            if (!soc_mem_field32_get(u, lpm_mem, lpm_entry, fldv)) {
+                continue;
+            }
+
+            if (ipv6) {
+                v6_64used ++;
+            } else {
+                v4used ++;
+            }
+
+            if (j == 0) {
+                fldg = GLOBAL_HIGH0f;
+                fldb = ALG_BKT_PTR0f;
+                fldr = GLOBAL_ROUTE0f;
+            } else {
+                fldg = GLOBAL_HIGH1f;
+                fldb = ALG_BKT_PTR1f;
+                fldr = GLOBAL_ROUTE1f;
+            }
+
+            gh = soc_mem_field32_get(u, lpm_mem, lpm_entry, fldg);
+            gr = soc_mem_field32_get(u, lpm_mem, lpm_entry, fldr);
+            if (gr) {
+                if (gh) {
+                    glb_hi_cnt ++;
+                    use_alpm = 0;
+                } else {
+                    glb_lo_cnt ++;
+                    use_alpm = (mode == 2) ? 0 : 1;
+                }
+            } else {
+                use_alpm = 1;
+            }
+
+            if (use_alpm) {
+                bkt_ptr = soc_mem_field32_get(u, lpm_mem, lpm_entry, fldb);
+                if (bkt_ptr > bucket_max) {
+                    LOG_CLI(("Invalid bucket pointer in %s index %d\n",
+                             SOC_MEM_NAME(u, lpm_mem), i));
+                } else {
+                    bktref[bkt_ptr] ++;
+                }
+            }
+        }
+    }
+
+    soc_cm_sfree(u, lpm_tbl_ptr);
+
+    /* l3_defip_pair_128 */
+    lpm_tbl_ptr = NULL;
+    lpm_mem = L3_DEFIP_PAIR_128m;
+    alloc_size = WORDS2BYTES(soc_mem_entry_words(u, lpm_mem)) *
+                 soc_mem_index_count(u, lpm_mem);
+    lpm_tbl_ptr = soc_cm_salloc(u, alloc_size, "lpm_tbl_p128");
+    if (lpm_tbl_ptr == NULL) {
+        rv = SOC_E_MEMORY;
+        goto _free_mem;
+    }
+    /* Reset allocated buffer. */
+    sal_memset(lpm_tbl_ptr, 0, alloc_size);
+
+    /* Read table to the buffer. */
+    if (v6_128max && soc_mem_read_range(u, lpm_mem, MEM_BLOCK_ANY,
+                           soc_mem_index_min(u, lpm_mem),
+                           soc_mem_index_max(u, lpm_mem), lpm_tbl_ptr) < 0) {
+        rv = (SOC_E_INTERNAL);
+        goto _free_mem;
+    }
+
+    for (i = 0; i < v6_128max; i++) {
+        /* Calculate entry offset */
+        lpm_entry_p128 =
+            soc_mem_table_idx_to_pointer(u, lpm_mem,
+                                defip_pair_128_entry_t *, lpm_tbl_ptr, i);
+        /* Verify if read LPM entry is IPv6-128 entry */
+        if (0x03 != soc_mem_field32_get(u, lpm_mem, lpm_entry_p128, MODE1_UPRf)) {
+            continue;
+        };
+
+        /* Verify if LPM entry is valid */
+        if (!soc_mem_field32_get(u, lpm_mem, lpm_entry_p128,
+                                    VALID1_LWRf) ||
+            !soc_mem_field32_get(u, lpm_mem, lpm_entry_p128,
+                                    VALID0_LWRf) ||
+            !soc_mem_field32_get(u, lpm_mem, lpm_entry_p128,
+                                    VALID1_UPRf) ||
+            !soc_mem_field32_get(u, lpm_mem, lpm_entry_p128,
+                                    VALID0_UPRf)) {
+            continue;
+        };
+
+        v6_128used ++;
+
+        gh = soc_mem_field32_get(u, lpm_mem, lpm_entry_p128, GLOBAL_HIGHf);
+        gr = soc_mem_field32_get(u, lpm_mem, lpm_entry_p128, GLOBAL_ROUTEf);
+        if (gr) {
+            if (gh) {
+                glb_hi_cnt ++;
+                use_alpm = 0;
+            } else {
+                glb_lo_cnt ++;
+                use_alpm = (mode == 2) ? 0 : 1;
+            }
+        } else {
+            use_alpm = 1;
+        }
+
+        if (use_alpm) {
+            bkt_ptr = soc_mem_field32_get(u, lpm_mem, lpm_entry_p128, ALG_BKT_PTRf);
+            if (bkt_ptr > bucket_max) {
+                LOG_CLI(("Invalid bucket pointer in %s index %d\n",
+                         SOC_MEM_NAME(u, lpm_mem), i));
+            } else {
+                bktref[bkt_ptr] ++;
+            }
+        }
+    }
+
+    for (i = 0; i < bucket_max; i++) {
+        if (bktref[i] != 0) {
+            bucket_used ++;
+        }
+        if (bktref[i] == 4) {
+            bs41 ++;
+        }
+        if (bktref[i] == 3) {
+            bs31 ++;
+        }
+        if (bktref[i] == 2) {
+            bs21 ++;
+        }
+        if (bktref[i] == 1) {
+            bs11 ++;
+        }
+    }
+
+    if (SOC_TH_ALPM_SCALE_CHECK(u, 0)) {
+        bucket_max  >>= 1;
+    }
+
+    LOG_CLI(("\n"));
+    LOG_CLI(("%-24s%d/%-4d\n", "IPv4 Pivots:", v4used, v4max));
+    LOG_CLI(("%-24s%d/%-4d\n", "IPv6-64 Pivots:", v6_64used, v6_64max));
+    LOG_CLI(("%-24s%d/%-4d\n", "IPv6-128 Pivots:", v6_128used, v6_128max));
+    LOG_CLI(("%-24s%d/%-4d\n", "Buckets:", bucket_used, bucket_max));
+    LOG_CLI(("%-24s%d\n", "Global High:", glb_hi_cnt));
+    LOG_CLI(("%-24s%d\n", "Global Low:", glb_lo_cnt));
+    LOG_CLI(("\n"));
+    LOG_CLI(("%s\n", "Bucket Sharing:"));
+    LOG_CLI(("%-24s%d\n", "1->1:", bs11));
+    LOG_CLI(("%-24s%d\n", "2->1:", bs21));
+    LOG_CLI(("%-24s%d\n", "3->1:", bs31));
+    LOG_CLI(("%-24s%d\n", "4->1:", bs41));
+    LOG_CLI(("\n"));
+    LOG_CLI(("%-24s%d\n", "Split count:", alpm_split_count + alpm_128_split_count));
+    LOG_CLI(("%-24s%d\n", "Merge count:", alpm_merge_count));
+    LOG_CLI(("\n\n"));
+
+_free_mem:
+    if (bktref) {
+        sal_free(bktref);
+        bktref = NULL;
+    }
+
+    if (lpm_tbl_ptr) {
+        soc_cm_sfree(u, lpm_tbl_ptr);
+        lpm_tbl_ptr = NULL;
+    }
+
+    if (bucket != -1) {
+        int bank, entmax, tmp;
+        lpm_mem = _soc_tomahawk_alpm_bkt_view_get(u,
+            SOC_TH_ALPM_BKT_IDX_TO_ENTRY(u, ALPM_BKTID(bucket, 0)));
+        LOG_CLI(("Bucket = %4d (View %s)\n", bucket, lpm_mem == -1 ? "INVALID" :
+                SOC_MEM_NAME(u, lpm_mem)));
+        LOG_CLI(("------------------------------------------------------------\n"));
+        LOG_CLI(("Index distribution (* indicates occupied)\n"));
+        switch (lpm_mem) {
+        case L3_DEFIP_ALPM_IPV4m:
+            entmax = 6;
+            break;
+        case L3_DEFIP_ALPM_IPV6_64m:
+            entmax = 4;
+            break;
+        case L3_DEFIP_ALPM_IPV6_128m:
+            entmax = 2;
+            break;
+        default:
+            lpm_mem = L3_DEFIP_ALPM_IPV4m;
+            entmax = 6;
+            break;
+        }
+
+        for (bank = 0; bank < 4; bank++) {
+            if (!(bnkbits & (1 << bank))) {
+                continue;
+            }
+
+            LOG_CLI(("Bank%d: ", bank));
+            for (i = 0; i < entmax; i++) {
+                int rv1;
+                tmp = (_shr_popcount(bnkbits) + 1) / 2;
+                j = (i << (tmp + SOC_TH_ALPM_BUCKET_BITS)) |
+                    (bucket << tmp) | bank;
+                rv1 = soc_mem_read(u, lpm_mem, MEM_BLOCK_ANY, j, e);
+                if (rv1 == 0 &&
+                    soc_mem_field32_get(u, lpm_mem, e, VALIDf)) {
+                    tmp = 1;
+                } else {
+                    tmp = 0;
+                }
+                if (tmp) {
+                    LOG_CLI(("%d(*) ", j));
+                } else {
+                    LOG_CLI(("%d( ) ", j));
+                }
+            }
+            LOG_CLI(("\n"));
+        }
+    }
+
+    LOG_CLI(("\n"));
+    if (index != -1) {
+        int bktid;
+        LOG_CLI(("Index = %8d\n", index));
+        LOG_CLI(("------------------------------------------------------------\n"));
+        lpm_mem = _soc_tomahawk_alpm_bkt_view_get(u, index);
+        LOG_CLI(("%-24s%s\n", "Type", lpm_mem == -1 ? "INVALID" :
+                SOC_MEM_NAME(u, lpm_mem)));
+        bktid = SOC_TH_ALPM_BKT_ENTRY_TO_IDX(u, index);
+        LOG_CLI(("%-24s%d\n", "Bucket:", ALPM_BKT_IDX(bktid)));
+        LOG_CLI(("%-24s%d\n", "Sub-Bucket:", ALPM_BKT_SIDX(bktid)));
+        LOG_CLI(("%-24s%d\n", "Bank:", index & (_shr_popcount(bnkbits) - 1)));
+        bktid = (_shr_popcount(bnkbits) + 1) / 2 + SOC_TH_ALPM_BUCKET_BITS;
+        LOG_CLI(("%-24s%d\n", "Entry:", index >> bktid));
+        LOG_CLI(("\n"));
+    }
+
+    return rv;
+}
+
+#ifdef ALPM_WARM_BOOT_DEBUG
+
+/*
+ * Function:
+ *     soc_th_alpm_lpm_sw_dump
+ * Purpose:
+ *     Displays FB LPM information maintained by software.
+ * Parameters:
+ *     unit - Device unit number
+ * Returns:
+ *     None
+ */
+void
+soc_th_alpm_lpm_sw_dump(int unit)
+{
+    soc_th_alpm_lpm_state_p lpm_state;
+    int                   i;
+    alpm_pivot_t          *pivot_pyld = NULL;
+    _soc_th_alpm_lpm_hash_t  *hash;
+    int idx;
+
+    /* Dump v4/v6 lpm state */
+    LOG_CLI(("V4 LPM STATE DUMP.\n"));
+    lpm_state = soc_th_alpm_lpm_state[unit];
+
+    if (lpm_state != NULL) {
+        for (i = 0; i < ALPM_MAX_PFX_ENTRIES; i++) {
+            if (lpm_state[i].vent != 0) {
+                LOG_CLI(("Prefix %d\n", i));
+                LOG_CLI(("  Start : %d\n", lpm_state[i].start));
+                LOG_CLI(("  End   : %d\n", lpm_state[i].end));
+                LOG_CLI(("  Prev  : %d\n", lpm_state[i].prev));
+                LOG_CLI(("  Next  : %d\n", lpm_state[i].next));
+                LOG_CLI(("  Valid : %d\n", lpm_state[i].vent));
+                LOG_CLI(("  Free  : %d\n", lpm_state[i].fent));
+            }
+        }
+    }
+    LOG_CLI(("V4 LPM STATE DUMP DONE.\n\n"));
+
+    /* Dump LPM HASH table */
+    LOG_CLI(("LPM HASH TABLE DUMP.\n"));
+    hash = SOC_ALPM_LPM_STATE_HASH(unit);
+    for(idx = 0; idx < hash->index_count; idx++) {
+        if (hash->table[idx] != TD2_ALPM_HASH_INDEX_NULL) {
+            LOG_CLI(("hash_indx  = 0x%x Data = 0x%x\n", idx, hash->table[idx]));
+        }
+    }
+    LOG_CLI(("LPM HASH TABLE DUMP DONE.\n\n"));
+
+    /* Dump TCAM pivot table */
+    LOG_CLI(("TCAM PIVOT DUMP.\n"));
+    for(idx = 0; idx < MAX_PIVOT_COUNT; idx++) {
+        /* Get TCAM pivot */
+        pivot_pyld = ALPM_TCAM_PIVOT(unit, idx);
+        if (NULL == pivot_pyld) {
+            continue;
+        }
+        if (PIVOT_BUCKET_HANDLE(pivot_pyld) == NULL) {
+            continue;
+        }
+
+        /* Get bucket trie from pivot */
+        LOG_CLI(("idx = 0x%x\t", idx));
+        LOG_CLI(("pivot_pyld->tcam_index = 0x%x\t", pivot_pyld->tcam_index));
+        LOG_CLI(("pivot_pyld->len = 0x%x\t", pivot_pyld->len));
+
+        LOG_CLI(("Key : {"));
+        if (pivot_pyld->len < 32) {
+            LOG_CLI(("0x%x/%d", pivot_pyld->key[0], pivot_pyld->len));
+        } else {
+            for (i=0; i < (((pivot_pyld->len)/32) + 1); i++)
+                LOG_CLI((" 0x%x", pivot_pyld->key[i]));
+                LOG_CLI(("/%d", pivot_pyld->len));
+        }
+        LOG_CLI(("}\n"));
+    }
+    LOG_CLI(("TCAM PIVOT DUMP DONE.\n\n"));
+
+    /* Print VRF and route count */
+    LOG_CLI(("VRF ROUTE COUNT DUMP.\n"));
+    for (idx = 0; idx < (SOC_VRF_MAX(unit) + 2); idx++) {
+       if((alpm_vrf_handle[unit][idx].init_done) == 1){ 
+           LOG_CLI(("V4-32 VRF = %d, Routes = %d\n", idx, 
+                    alpm_vrf_handle[unit][idx].count_v4)); 
+       }
+
+       if ((alpm_vrf_handle[unit][idx].init_done) == 2){ 
+           LOG_CLI(("V6-64 VRF = %d, Routes = %d\n", idx, 
+                    alpm_vrf_handle[unit][idx].count_v6_64)); 
+       }
+
+       if ((alpm_vrf_handle[unit][idx].init_done) == 4){ 
+           LOG_CLI(("V6-128 VRF = %d, Routes = %d\n", idx, 
+                    alpm_vrf_handle[unit][idx].count_v6_128)); 
+       }
+    }
+    LOG_CLI(("VRF ROUTE COUNT DUMP DONE.\n"));
+
+    return;
+}
+#endif /* ALPM_WARM_BOOT_DEBUG */
+
+
+/*
+ * Function:
+ *      _soc_th_alpm_sanity_check
+ * Purpose:
+ *      Sanity check for ALPM with L3_DEFIP
+ * Parameters:
+ *      u           - Device unit
+ *      min         - Min index of L3_DEFIP
+ *      max         - Max index of L3_DEFIP
+ *      check_sw    - Check software
+ *      bkt_ptr_arr - bucket ptr array
+ * Returns:
+ *      SOC_E_XXX defined in error.h
+ */
+STATIC int
+_soc_th_alpm_sanity_check(int u, int min, int max, int check_sw, int *bkt_ptr_arr)
+{
+    int             rv = SOC_E_NONE;
+    int             lpm_idx, lpm_idx2, fd_lpm_idx2, alpm_idx, prev_idx = 0;
+    int             i, j, ipv6, prev_v6 = 0, prev_i = 0;
+    int             vrf_id, vrf;
+    int             fd_lpm_idx, fd_bkt_ptr, fd_alpm_idx;
+    int             ent, ent_num, bkt_ptr, sub_bkt_ptr;
+    int             error1 = 0, error2 = 0, error = 0, success = 0;
+    int             used;
+    int             bpm_len, ip_len;
+    int             trie_bpm_len, default_route;
+    int             alloc_size;
+    uint32          bank_disable = 0;
+    uint32          e[SOC_MAX_MEM_FIELD_WORDS] = {0};
+    uint32          shadow[SOC_MAX_MEM_FIELD_WORDS] = {0};
+    uint32          prefix[5], length;
+    trie_t          *pfx_trie  = NULL;
+    trie_node_t     *lpmp      = NULL;
+    payload_t       *tmp_pyld  = NULL;
+    uint32          data0[10] = {0};
+    uint32          data1[10] = {0};
+    char            *buffer = NULL;
+    defip_entry_t   *lpm_entry, lpm_entry2, lpm_bmp;
+    soc_mem_t       bkt_mem_type;
+    soc_mem_t       alpm_mem;
+
+    /* Calculate table size. */
+    alloc_size = sizeof(defip_entry_t) * (max - min + 1);
+
+    /* Allocate memory buffer. */
+    buffer = soc_cm_salloc(u, alloc_size, "lpm_tbl");
+    if (buffer == NULL) {
+        return (SOC_E_MEMORY);
+    }
+
+    /* Reset allocated buffer. */
+    sal_memset(buffer, 0, alloc_size);
+
+    SOC_ALPM_LPM_LOCK(u);
+
+    /* Read table to the buffer. */
+    if (soc_mem_read_range(u, L3_DEFIPm, MEM_BLOCK_ANY,
+                           min, max, buffer) < 0) {
+        soc_cm_sfree(u, buffer);
+        SOC_ALPM_LPM_UNLOCK(u);
+        return (SOC_E_INTERNAL);
+    }
+
+    for (lpm_idx = min; lpm_idx <= max; lpm_idx++) {
+        lpm_entry = soc_mem_table_idx_to_pointer(u, L3_DEFIPm,
+                                                 defip_entry_t *, buffer,
+                                                 lpm_idx - min);
+
+        ipv6 = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, lpm_entry, MODE0f);
+
+        if (ipv6) {
+            alpm_mem = L3_DEFIP_ALPM_IPV6_64m;
+            if (SOC_TH_ALPM_SCALE_CHECK(u, ipv6)) {
+                ent_num = 32;
+            } else {
+                ent_num = 16;
+            }
+        } else {
+            alpm_mem = L3_DEFIP_ALPM_IPV4m;
+            ent_num = 24;
+        }
+
+        for (i = 0; i <= (ipv6 ? 0 : 1); i++) {
+            if (error1) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                          "\tL3_DEFIP index:[%d,%d] check failed. ipv6 %d error count %d\n"),
+                          prev_idx, prev_i, prev_v6, error1));
+                error = 1;
+            } else if (success) {
+                LOG_INFO(BSL_LS_SOC_ALPM,(BSL_META_U(u,
+                        "\tL3_DEFIP index:[%d,%d] check passed. ipv6 %d success count %d\n"),
+                         prev_idx, prev_i, prev_v6, success));
+            }
+            error1 = error2 = success = 0;
+            prev_v6  = ipv6;
+            prev_idx = lpm_idx;
+            prev_i   = i;
+            if (i == 1) {
+                soc_th_alpm_lpm_ip4entry1_to_0(u, lpm_entry, lpm_entry, PRESERVE_HIT);
+            }
+            bkt_ptr = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, lpm_entry, ALG_BKT_PTR0f);
+            if (!SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, lpm_entry, VALID0f)) {
+                continue;
+            }
+            if (SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, lpm_entry, GLOBAL_HIGH0f) ||
+                (SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, lpm_entry, GLOBAL_ROUTE0f) &&
+                 soc_th_alpm_mode_get(u) == SOC_ALPM_MODE_TCAM_ALPM)) {
+                if (bkt_ptr != 0) {
+                    LOG_ERROR(BSL_LS_SOC_ALPM,
+                              (BSL_META_U(u, "\tWrong bkt_ptr %d\n"), 
+                              bkt_ptr));
+                    error1 ++;
+                }
+                continue;
+            }
+            if (bkt_ptr == 0) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u, "\tWrong bkt_ptr2 %d\n"), 
+                          bkt_ptr));
+                error1 ++;
+            }
+
+            j = 0;
+            data0[j++] = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, lpm_entry, ECMP0f);
+            data0[j++] = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, lpm_entry, ECMP_PTR0f);
+            data0[j++] = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, lpm_entry, NEXT_HOP_INDEX0f);
+            data0[j++] = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, lpm_entry, PRI0f);
+            data0[j++] = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, lpm_entry, RPE0f);
+            data0[j++] = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, lpm_entry, DST_DISCARD0f);
+            data0[j++] = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, lpm_entry, CLASS_ID0f);
+
+            /* Check if bucket pointer duplicated */
+            sub_bkt_ptr = SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, lpm_entry, ALG_SUB_BKT_PTR0f);
+            if (bkt_ptr_arr) {
+                if (bkt_ptr_arr[bkt_ptr * SOC_TH_MAX_SUB_BUCKETS + sub_bkt_ptr] == -1) {
+                    bkt_ptr_arr[bkt_ptr * SOC_TH_MAX_SUB_BUCKETS + sub_bkt_ptr] = lpm_idx;
+                    if (SOC_TH_ALPM_SCALE_CHECK(u, ipv6)) {
+                        bkt_ptr_arr[(bkt_ptr + 1) * SOC_TH_MAX_SUB_BUCKETS + sub_bkt_ptr] = lpm_idx;
+                    }
+                    success ++;
+                } else {
+                    LOG_ERROR(BSL_LS_SOC_ALPM,
+                              (BSL_META_U(u, "\tConflict bucket pointer [%d,%d]: "
+                              "was %d now %d\n"), bkt_ptr, sub_bkt_ptr,
+                              bkt_ptr_arr[bkt_ptr * SOC_TH_MAX_SUB_BUCKETS + sub_bkt_ptr],
+                              lpm_idx));
+                    error1 ++;
+                }
+            }
+
+            (void) soc_th_alpm_lpm_vrf_get(u, lpm_entry, &vrf_id, &vrf);
+
+            /* read shadow table for bpm length */
+            lpm_idx2 = soc_th_alpm_physical_idx(u, L3_DEFIPm, lpm_idx, 1);
+            rv = soc_mem_read(u, L3_DEFIP_AUX_TABLEm, MEM_BLOCK_ANY,
+                              lpm_idx2, shadow);
+            bpm_len = -1;
+            if (SOC_SUCCESS(rv)) {
+                if (i == 0) {
+                    bpm_len = soc_mem_field32_get(u, L3_DEFIP_AUX_TABLEm,
+                                                  shadow, BPM_LENGTH0f);
+                    ip_len = soc_mem_field32_get(u, L3_DEFIP_AUX_TABLEm,
+                                                  shadow, IP_LENGTH0f);
+                } else {
+                    bpm_len = soc_mem_field32_get(u, L3_DEFIP_AUX_TABLEm,
+                                                  shadow, BPM_LENGTH1f);
+                    ip_len = soc_mem_field32_get(u, L3_DEFIP_AUX_TABLEm,
+                                                  shadow, IP_LENGTH1f);
+                }
+                if (bpm_len > ip_len) {
+                    LOG_ERROR(BSL_LS_SOC_ALPM,
+                              (BSL_META_U(u, "\tAUX Table corrupted\n")));
+                    error1 ++;
+                } else {
+                    success ++;
+                }
+                if (bpm_len == 0 &&
+                    SOC_MEM_OPT_F32_GET(u, L3_DEFIPm, lpm_entry, DEFAULT_MISS0f)) {
+                    continue;
+                }
+                sal_memcpy(&lpm_bmp, lpm_entry, sizeof(defip_entry_t));
+                _soc_th_alpm_pfx_len_to_mask(u, &lpm_bmp, bpm_len, ipv6);
+
+                fd_lpm_idx = fd_bkt_ptr = fd_alpm_idx = -1;
+                rv = _soc_th_alpm_find(u, alpm_mem, ipv6, &lpm_bmp,
+                                       vrf_id, vrf, e,
+                                       &fd_lpm_idx, &fd_bkt_ptr,
+                                       &fd_alpm_idx, FALSE);
+                if (SOC_SUCCESS(rv)) {
+                    j = 0;
+                    data1[j++] = soc_mem_field32_get(u, alpm_mem, e, ECMPf);
+                    data1[j++] = soc_mem_field32_get(u, alpm_mem, e, ECMP_PTRf);
+                    data1[j++] = soc_mem_field32_get(u, alpm_mem, e, NEXT_HOP_INDEXf);
+                    data1[j++] = soc_mem_field32_get(u, alpm_mem, e, PRIf);
+                    data1[j++] = soc_mem_field32_get(u, alpm_mem, e, RPEf);
+                    data1[j++] = soc_mem_field32_get(u, alpm_mem, e, DST_DISCARDf);
+                    data1[j++] = soc_mem_field32_get(u, alpm_mem, e, CLASS_IDf);
+
+                    if (sal_memcmp(data0, data1, sizeof(data0)) != 0) {
+                        LOG_ERROR(BSL_LS_SOC_ALPM,
+                                  (BSL_META_U(u,
+                                  "\tData mismatch: "
+                                  "lpm_idx %d find_lpm_idx %d "
+                                  "find_alpm_idx %d find_bkt_ptr %d\n"),
+                                  lpm_idx, fd_lpm_idx,
+                                  fd_alpm_idx, fd_bkt_ptr));
+                        error1 ++;
+                    } else {
+                        success ++;
+                    }
+                } else {
+                    if (rv == SOC_E_NOT_FOUND &&
+                        (vrf_id == SOC_L3_VRF_GLOBAL || soc_th_alpm_mode_get(u))) {
+                        LOG_VERBOSE(BSL_LS_SOC_ALPM,
+                                  (BSL_META_U(u,
+                                  "\t_soc_th_alpm_find rv=%d: "
+                                  "lpm_idx %d find_lpm_idx %d "
+                                  "find_alpm_idx %d find_bkt_ptr %d,"
+                                  "(Possible: global route or !combined "
+                                  "without default)\n"),
+                                  rv, lpm_idx, fd_lpm_idx,
+                                  fd_alpm_idx, fd_bkt_ptr));
+                    } else {
+                        LOG_ERROR(BSL_LS_SOC_ALPM,
+                                  (BSL_META_U(u,
+                                  "\t_soc_th_alpm_find rv=%d: "
+                                  "lpm_idx %d find_lpm_idx %d "
+                                  "find_alpm_idx %d find_bkt_ptr %d\n"),
+                                  rv, lpm_idx, fd_lpm_idx,
+                                  fd_alpm_idx, fd_bkt_ptr));
+                        error1 ++;
+                    }
+                }
+            }
+
+            /* Traverse bucket */
+            for (ent = 0; ent < ent_num; ent++) {
+                (void) _soc_th_alpm_mem_index(u, alpm_mem, bkt_ptr, ent,
+                                              bank_disable, &alpm_idx);
+
+                rv = soc_mem_read(u, alpm_mem, MEM_BLOCK_ANY, alpm_idx, e);
+                if (SOC_FAILURE(rv)) {
+                    continue;
+                }
+
+                if (!soc_mem_field32_get(u, alpm_mem, e, VALIDf)) {
+                    continue;
+                }
+                if (sub_bkt_ptr !=
+                    soc_mem_field32_get(u, alpm_mem, e, SUB_BKT_PTRf)) {
+                    continue;
+                }
+
+                (void) _soc_th_alpm_lpm_ent_init(u, e, alpm_mem, ipv6, vrf_id,
+                                                 ALPM_BKTID(bkt_ptr, sub_bkt_ptr),
+                                                 0, &lpm_entry2);
+
+                fd_lpm_idx2 = fd_lpm_idx = fd_bkt_ptr = fd_alpm_idx = -1;
+                rv = _soc_th_alpm_find(u, alpm_mem, ipv6, &lpm_entry2,
+                                       vrf_id, vrf, e,
+                                       &fd_lpm_idx, &fd_bkt_ptr,
+                                       &fd_alpm_idx, FALSE);
+                if (SOC_SUCCESS(rv)) {
+                    fd_lpm_idx2 = soc_th_alpm_logical_idx(u,
+                        L3_DEFIPm, fd_lpm_idx >> 1, 1);
+                }
+
+                if (SOC_FAILURE(rv) ||
+                    fd_bkt_ptr  != ALPM_BKTID(bkt_ptr, sub_bkt_ptr) ||
+                    fd_lpm_idx2 != lpm_idx  ||
+                    fd_lpm_idx >> 1  != lpm_idx2 || /* for map remap */
+                    fd_alpm_idx != alpm_idx) {
+
+                    error1 ++;
+                    error2 ++;
+                    LOG_ERROR(BSL_LS_SOC_ALPM,
+                              (BSL_META_U(u,
+                              "\t_soc_th_alpm_find2 rv=%d: "
+                              "fl [%d,%d] fa %d fb [%d,%d] "
+                              "l [%d,%d] a %d b [%d,%d]\n"),
+                              rv,
+                              fd_lpm_idx >> 1, fd_lpm_idx2, fd_alpm_idx,
+                              ALPM_BKT_IDX(fd_bkt_ptr), ALPM_BKT_SIDX(fd_bkt_ptr),
+                              lpm_idx2, lpm_idx, alpm_idx, bkt_ptr, sub_bkt_ptr));
+                }
+            }
+            if (error2 == 0) {
+                success ++;
+            }
+
+            if (!check_sw) {
+                continue;
+            }
+
+            /*
+             * Check hardware table above.
+             * Check software table below.
+             *
+             */
+
+            /* lpm hash */
+
+#ifdef FB_LPM_HASH_SUPPORT
+            rv = LPM_HASH_VERIFY(u, lpm_entry,
+                                 ipv6 ? lpm_idx : ((lpm_idx << 1) + i));
+            if (SOC_FAILURE(rv)) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u, "\tLPM Hash check failed: rv %d "
+                          "lpm_idx %d\n"),
+                          rv, lpm_idx));
+                error1 ++;
+            } else {
+                success ++;
+            }
+#endif
+
+            /* bucket bitmap */
+            rv = soc_th_alpm_bucket_is_assigned(u, bkt_ptr, vrf, ipv6, &used);
+            if (SOC_FAILURE(rv) || sub_bkt_ptr >= SOC_TH_MAX_SUB_BUCKETS) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u, "\tInvalid bucket pointer [%d,%d] "
+                          "detected, in memory %s index %d\n"),
+                          bkt_ptr, sub_bkt_ptr,
+                          SOC_MEM_NAME(u, L3_DEFIPm), lpm_idx));
+                error1 ++;
+            } else if (used == 0) {
+                /* If bucket was already freed */
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u, "\tFreed bucket pointer %d "
+                          "detected, in memory %s index %d\n"), bkt_ptr,
+                          SOC_MEM_NAME(u, L3_DEFIPm), lpm_idx));
+                error1 ++;
+            } else {
+                success ++;
+            }
+
+            /* bucket view map */
+            bkt_mem_type = _soc_tomahawk_alpm_bkt_view_get(u,
+                SOC_TH_ALPM_BKT_IDX_TO_ENTRY(u, ALPM_BKTID(bkt_ptr, 0)));
+            if (alpm_mem != bkt_mem_type) {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u, "\tMismatched alpm view "
+                           "in bucket %d, expected %s, was %s\n"), bkt_ptr,
+                           SOC_MEM_NAME(u, alpm_mem),
+                           SOC_MEM_NAME(u, bkt_mem_type)));
+                error1 ++;
+            } else {
+                success ++;
+            }
+
+            /* Check bpm len information */
+            rv = _soc_th_alpm_prefix_create(u, ipv6, lpm_entry, prefix,
+                                            &length, &default_route);
+            if (SOC_SUCCESS(rv)) {
+                if (ipv6) {
+                    pfx_trie = VRF_PREFIX_TRIE_IPV6(u, vrf);
+                } else {
+                    pfx_trie = VRF_PREFIX_TRIE_IPV4(u, vrf);
+                }
+                lpmp = NULL;
+                if (pfx_trie) {
+                    rv = trie_find_lpm(pfx_trie, prefix, length, &lpmp);
+                }
+                if (SOC_SUCCESS(rv) && lpmp){
+                    tmp_pyld = (payload_t *) lpmp;
+                    if (tmp_pyld->bkt_ptr != NULL) {
+                        trie_bpm_len = ((payload_t *)(tmp_pyld->bkt_ptr))->len;
+                        if (trie_bpm_len != bpm_len) {
+                            LOG_ERROR(BSL_LS_SOC_ALPM,
+                                      (BSL_META_U(u, "\tBPM len mismatch: lpm_idx %d"
+                                      " alpm_idx %d bpm_len %d trie_bpm_len %d\n"),
+                                      lpm_idx, alpm_idx, bpm_len, trie_bpm_len));
+                            error1 ++;
+                        } else {
+                            success ++;
+                        }
+                    } else {
+                        success ++;
+                    }
+                } else {
+                    LOG_ERROR(BSL_LS_SOC_ALPM,
+                              (BSL_META_U(u, "\ttrie_find_lpm failed: "
+                              "lpm_idx %d alpm_idx %d lpmp %p\n"),
+                              lpm_idx, alpm_idx, lpmp));
+                    error1 ++;
+                }
+            } else {
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u, "\tPrefix creating failed: "
+                          "lpm_idx %d alpm_idx %d\n" ), lpm_idx, alpm_idx));
+                error1 ++;
+            }
+        }
+    }
+
+    if (error1) {
+        LOG_ERROR(BSL_LS_SOC_ALPM,
+                  (BSL_META_U(u,
+                  "\tL3_DEFIP index:[%d,%d] check failed. ipv6 %d error count %d\n"),
+                  prev_idx, prev_i, prev_v6, error1));
+        error = 1;
+    } else if (success) {
+        LOG_INFO(BSL_LS_SOC_ALPM,(BSL_META_U(u,
+                "\tL3_DEFIP index:[%d,%d] check passed. ipv6 %d success count %d\n"),
+                 prev_idx, prev_i, prev_v6, success));
+    }
+
+    SOC_ALPM_LPM_UNLOCK(u);
+    soc_cm_sfree(u, buffer);
+
+    return (error ? SOC_E_FAIL: SOC_E_NONE);
+}
+
+extern int _soc_th_alpm_128_sanity_check(int u, int min, int max,
+                                         int check_sw, int *bkt_ptr_arr);
+
+/*
+ * Function:
+ *      soc_th_alpm_sanity_check
+ * Purpose:
+ *      Sanity check for ALPM
+ * Parameters:
+ *      u       - Device unit
+ *      mem     -   L3_DEFIP/L3_DEFIP_PAIR_128 memory
+ *      index   -   -2 indicates full check to both table,
+ *                  -1 indicates full check to given table
+ *                  other indicates single entry check to given table
+ *      check_sw -  Check SW tables as well. 
+ */
+int
+soc_th_alpm_sanity_check(int u, soc_mem_t mem, int index, int check_sw)
+{
+    int         alloc_size;
+    int         rv           = SOC_E_NONE;
+    int         rv2          = SOC_E_NONE;
+    int         index_min    = -1, index_max  = -1;
+    int         index_min2   = -1, index_max2 = -1;
+    int         *bkt_ptr_arr = NULL;
+#ifdef ALPM_SANITY_SENSITIVE
+    int         i, j;
+    soc_mem_t   bkt_view;
+#endif
+
+    if ((mem == L3_DEFIPm || index == -2) && 
+        soc_mem_index_max(u, L3_DEFIPm) != -1) {
+        index_min = soc_mem_index_min(u, L3_DEFIPm);
+        index_max = soc_mem_index_max(u, L3_DEFIPm);
+        /* Don't check urpf */
+        if (SOC_URPF_STATUS_GET(u)) {
+            index_max >>= 1;
+        }
+        if (index < -2 || index > index_max) {
+            return SOC_E_PARAM;
+        }
+        if (index >= index_min && index <= index_max) {
+            index_min = index;
+            index_max = index;
+        }
+    }
+
+    if ((mem == L3_DEFIP_PAIR_128m || index == -2) && 
+        soc_mem_index_max(u, L3_DEFIP_PAIR_128m) != -1) {
+        index_min2 = soc_mem_index_min(u, L3_DEFIP_PAIR_128m);
+        index_max2 = soc_mem_index_max(u, L3_DEFIP_PAIR_128m);
+        /* Don't check urpf */
+        if (SOC_URPF_STATUS_GET(u)) {
+            index_max2 >>= 1;
+        }
+        if (index < -2 || index > index_max2) {
+            return SOC_E_PARAM;
+        }
+        if (index >= index_min2 && index <= index_max2) {
+            index_min2 = index;
+            index_max2 = index;
+        }
+    }
+
+    if (index_max == -1 && index_max2 == -1) {
+        return SOC_E_PARAM;
+    }
+
+    alloc_size = sizeof(int) * SOC_TH_MAX_ALPM_BUCKETS * SOC_TH_MAX_SUB_BUCKETS;
+    bkt_ptr_arr = sal_alloc(alloc_size, "Bucket ptr array");
+    if (bkt_ptr_arr == NULL) {
+        return SOC_E_MEMORY;
+    }
+    sal_memset(bkt_ptr_arr, 0xff, alloc_size);
+
+    if (index_max != -1) {
+        LOG_CLI(("Processing ALPM sanity check L3_DEFIP "
+                 "from index:%d to index:%d\n",
+                 index_min, index_max));
+        rv = _soc_th_alpm_sanity_check(u, index_min, index_max, check_sw, bkt_ptr_arr);
+        LOG_CLI(("ALPM sanity check L3_DEFIP %s. \n\n",
+                 SOC_SUCCESS(rv) ? "passed" : "failed"));
+    }
+
+    if (index_max2 != -1) {
+        LOG_CLI(("Processing ALPM sanity check L3_DEFIP_PAIR_128 "
+                 "from index:%d to index:%d\n",
+                 index_min2, index_max2));
+        rv2 = _soc_th_alpm_128_sanity_check(u, index_min2, index_max2, check_sw, bkt_ptr_arr);
+        LOG_CLI(("ALPM sanity check L3_DEFIP_PAIR_128 %s. \n",
+                 SOC_SUCCESS(rv2) ? "passed" : "failed"));
+    }
+
+#ifdef ALPM_SANITY_SENSITIVE
+    /* This check is very sensitive, turn it off for now. */
+    /* In case full check to both table, the bkt ptr is fully collected */
+    if (index == -2 &&  SOC_SUCCESS(rv) && SOC_SUCCESS(rv2)) {
+        for (i = 0; i < SOC_TH_MAX_ALPM_BUCKETS; i++) {
+            for (j = 0; j < SOC_TH_MAX_SUB_BUCKETS; j++) {
+                if (bkt_ptr_arr[i * SOC_TH_MAX_SUB_BUCKETS + j] != -1) {
+                    break;
+                }
+            }
+            if (j < SOC_TH_MAX_SUB_BUCKETS) {
+                continue;
+            }
+
+            bkt_view = _soc_tomahawk_alpm_bkt_view_get(u,
+                SOC_TH_ALPM_BKT_IDX_TO_ENTRY(u, ALPM_BKTID(i, 0)));
+            if (bkt_view != INVALIDm){
+                LOG_ERROR(BSL_LS_SOC_ALPM,
+                          (BSL_META_U(u,
+                          "\tBucket view corrupted: bkt_ptr %d, view %s.\n"),
+                          i, SOC_MEM_NAME(u, bkt_view)));
+            }
+        }
+    }
+#endif
+
+    sal_free(bkt_ptr_arr);
+
+    return SOC_SUCCESS(rv) ? rv2: rv;
+}
+
+/*
+ * Function:
+ *      soc_th_alpm_route_capacity_get
+ * Purpose:
+ *      Get the capacity for ALPM from tables:
+ * L3_DEFIP_ALPM_IPV4, L3_DEFIP_ALPM_IPV6_64, L3_DEFIP_ALPM_IPV6_128
+ * L3_DEFIP, L3_DEFIP_PAIR_128
+ * Parameters:
+ *      unit         - Device unit
+ *      route_type   - 0: v4, 1: v6-64, 2: v6-128
+ *      cap_type     - 0: max capacity, 1: min guaranteed capacity
+ *      max_entries  - Maximum result returned.
+ *      min_entries  - Minimum result returned.
+ */
+int
+soc_th_alpm_route_capacity_get(int unit, int route_type,
+                               int *max_entries, int *min_entries)
+{
+    int rv = SOC_E_NONE;
+    int max_ent, min_ent, num_ent;
+    int num_bkt;                          /* Number of buckets */
+    int bkt_max_ent, tcam_ent, bkt_divisor;
+    int v6_64b_ent;
+    int v4_ent;
+    int v6_128b_ent;
+    /* number or TCAM entries which act as direct route. 
+     * i.e, no associated bucket 
+     */
+    int route_tcam_ent; 
+
+    if (max_entries == NULL && min_entries == NULL) {
+        return SOC_E_PARAM;
+    }
+
+    bkt_divisor = 4 / soc_th_get_alpm_banks(unit);  /* 2 or 4 bank mode */
+    /* following legacy two variables are only for min_ent*/
+    num_ent = SOC_TH_ALPM_MAX_BKTS / 2;  /* Number of buckets */
+    tcam_ent = soc_mem_index_count(unit, L3_DEFIPm) + 
+               soc_mem_index_count(unit, L3_DEFIP_PAIR_128m) * 2;
+
+
+    v4_ent      = soc_mem_index_count(unit, L3_DEFIPm) * 2;
+    v6_128b_ent = soc_mem_index_count(unit, L3_DEFIP_PAIR_128m);
+    if (v6_128b_ent) {
+        v6_64b_ent = v6_128b_ent;
+    } else {
+        v6_64b_ent = v4_ent >> 1;
+    }
+
+    if (route_type == L3_DEFIP_MODE_V4) {
+        bkt_max_ent = ALPM_IPV4_BKT_COUNT / bkt_divisor;
+        if (SOC_URPF_STATUS_GET(unit)) {
+            if (soc_th_alpm_mode_get(unit) == SOC_ALPM_MODE_COMBINED) {
+                /* if number of pivots is larger than half of that of buckets, 
+                 * then the MAX buckets allowed is limited by the number of 
+                 * physical buckets
+                 */
+                num_bkt        = ((v4_ent / 2) > (SOC_TH_ALPM_MAX_BKTS / 2)) ?
+                                     (SOC_TH_ALPM_MAX_BKTS / 2) : (v4_ent / 2);
+                max_ent        = num_bkt * bkt_max_ent;
+                min_ent        = num_ent * (bkt_max_ent * 2 / 3);
+            } else if (soc_th_alpm_mode_get(unit) == SOC_ALPM_MODE_PARALLEL) {
+                num_bkt        = ((v4_ent / 2) > (SOC_TH_ALPM_MAX_BKTS / 2 * 2))
+                                ? (SOC_TH_ALPM_MAX_BKTS / 2 * 2) : (v4_ent / 2);
+                max_ent        = num_bkt * bkt_max_ent / 2;
+                min_ent        = num_ent * (bkt_max_ent / 2 / 3) * 2;
+            } else {
+                /* calculate private DIP */
+                num_bkt        = ((v4_ent / 4) > (SOC_TH_ALPM_MAX_BKTS / 2)) ?
+                                     (SOC_TH_ALPM_MAX_BKTS / 2) : (v4_ent / 4);
+                route_tcam_ent = v4_ent / 4; 
+                /* public DIP direct route+private DIP direct route */
+                max_ent        = num_bkt * bkt_max_ent + route_tcam_ent;
+                min_ent        = num_ent * (bkt_max_ent / 3) + tcam_ent / 2;
+            }
+        } else {
+            if (soc_th_alpm_mode_get(unit) == SOC_ALPM_MODE_COMBINED) {
+                if (l3_alpm_ipv4_double_wide[unit]) {
+                    num_bkt        = (v4_ent > SOC_TH_ALPM_MAX_BKTS / 2) ?
+                                        (SOC_TH_ALPM_MAX_BKTS / 2) : v4_ent;
+                    max_ent        = num_bkt * bkt_max_ent * 2;
+                    min_ent        = num_ent * (bkt_max_ent * 2 * 85 / 100);
+                } else {
+                    num_bkt        = (v4_ent > SOC_TH_ALPM_MAX_BKTS) ?
+                                          SOC_TH_ALPM_MAX_BKTS : v4_ent;
+                    max_ent        = num_bkt * bkt_max_ent;
+                    min_ent        = num_ent * 2 * (bkt_max_ent * 2 / 3);
+                }
+            } else if (soc_th_alpm_mode_get(unit) == SOC_ALPM_MODE_PARALLEL) {
+                num_bkt        = (v4_ent > SOC_TH_ALPM_MAX_BKTS) ?
+                                      SOC_TH_ALPM_MAX_BKTS : v4_ent;
+                max_ent        = num_bkt * bkt_max_ent;
+                min_ent        = num_ent * (bkt_max_ent * 2 / 3) * 2;
+            } else {
+                /* calculate private entry */
+                num_bkt        = (v4_ent / 2 > SOC_TH_ALPM_MAX_BKTS / 2) ?
+                                     (SOC_TH_ALPM_MAX_BKTS / 2) : (v4_ent / 2);
+                route_tcam_ent = v4_ent / 2;
+                max_ent        = num_bkt * bkt_max_ent * 2 + route_tcam_ent;
+
+                min_ent        = num_ent * (bkt_max_ent * 2 * 2 / 3) + tcam_ent;
+            }
+        }
+    } else if (route_type == L3_DEFIP_MODE_64) {
+        bkt_max_ent = ALPM_IPV6_64_BKT_COUNT / bkt_divisor;
+        /* In most of the case, the number of pivots will never be larger than
+         * that of buckets.
+         */
+        num_bkt = v6_64b_ent;
+        if (SOC_URPF_STATUS_GET(unit)) {
+            if (soc_th_alpm_mode_get(unit) == SOC_ALPM_MODE_COMBINED) {
+                max_ent = num_bkt / 2 * bkt_max_ent;
+                min_ent = num_ent * (bkt_max_ent / 3);
+            } else if (soc_th_alpm_mode_get(unit) == SOC_ALPM_MODE_PARALLEL) {
+                max_ent = num_bkt / 2 * bkt_max_ent / 2;
+                min_ent = num_ent / 2 * (bkt_max_ent / 2 / 3) * 2;
+            } else {
+                /* calculate private entry */
+                num_bkt        = v6_64b_ent / 4;
+                route_tcam_ent = v6_64b_ent / 4;
+                max_ent        = num_bkt * bkt_max_ent + route_tcam_ent;
+                min_ent        = num_ent / 2 * (bkt_max_ent / 3) 
+                                                + tcam_ent / 2 /2;
+            }
+        } else {
+            if (soc_th_alpm_mode_get(unit) == SOC_ALPM_MODE_COMBINED) {
+                /* in this case, IPv6_64b always works in double wide mode */
+                num_bkt        = (v6_64b_ent > SOC_TH_ALPM_MAX_BKTS / 2) ?
+                                       (SOC_TH_ALPM_MAX_BKTS / 2) : v6_64b_ent;
+                max_ent        = num_bkt * bkt_max_ent * 2;
+                min_ent        = num_ent * (bkt_max_ent * 2 * 2 / 3);
+            } else if (soc_th_alpm_mode_get(unit) == SOC_ALPM_MODE_PARALLEL) {
+                max_ent = num_bkt * bkt_max_ent;
+                min_ent = num_ent * (bkt_max_ent / 3) * 2;
+            } else {
+                /* calculate private entry */
+                num_bkt        = v6_64b_ent / 2;
+                route_tcam_ent = v6_64b_ent / 2;
+                max_ent        = num_bkt * bkt_max_ent * 2 + route_tcam_ent;
+                min_ent        = num_ent * (bkt_max_ent * 2 / 3) + tcam_ent / 2;
+            }
+        }
+    } else if (route_type == L3_DEFIP_MODE_128) {
+        bkt_max_ent = ALPM_IPV6_128_BKT_COUNT / bkt_divisor;
+        num_bkt     = v6_128b_ent;
+        if (SOC_URPF_STATUS_GET(unit)) {
+            if (soc_th_alpm_mode_get(unit) == SOC_ALPM_MODE_COMBINED) {
+                max_ent = num_bkt / 2 * bkt_max_ent;
+                min_ent = num_ent / 2 * (bkt_max_ent / 3);
+            } else if (soc_th_alpm_mode_get(unit) == SOC_ALPM_MODE_PARALLEL) {
+                max_ent = num_bkt / 2 * bkt_max_ent / 2;
+                min_ent = num_ent / 4 * (bkt_max_ent / 2 / 3) * 2;
+            } else {
+                /* calculate private entry */
+                num_bkt        = v6_128b_ent / 4;
+                route_tcam_ent = v6_128b_ent / 4;
+                max_ent        = num_bkt * bkt_max_ent + route_tcam_ent;
+                min_ent        = num_ent / 4 * (bkt_max_ent / 3) + tcam_ent / 8;
+            }
+        } else {
+            if (soc_th_alpm_mode_get(unit) == SOC_ALPM_MODE_COMBINED) {
+                max_ent = num_bkt * bkt_max_ent * 2;
+                min_ent = num_ent * (bkt_max_ent * 2 / 3);
+            } else if (soc_th_alpm_mode_get(unit) == SOC_ALPM_MODE_PARALLEL) {
+                max_ent = num_bkt * bkt_max_ent;
+                min_ent = num_ent / 2 * (bkt_max_ent / 3) * 2;
+            } else {
+                /* calculate private entry */
+                num_bkt        = v6_128b_ent / 2;
+                route_tcam_ent = v6_128b_ent / 2;
+                max_ent        = num_bkt * bkt_max_ent * 2 + route_tcam_ent;
+                min_ent        = num_ent / 2 * (bkt_max_ent * 2 / 3) 
+                                             + tcam_ent / 4;
+            }
+        }
+    } else {
+        return SOC_E_UNAVAIL;
+    }
+
+    if (max_entries != NULL) {
+        *max_entries = max_ent;
+    }
+    if (min_entries != NULL) {
+        *min_entries = min_ent;
+    }
+
+    return rv;
+}
+
+#endif /* ALPM_ENABLE */

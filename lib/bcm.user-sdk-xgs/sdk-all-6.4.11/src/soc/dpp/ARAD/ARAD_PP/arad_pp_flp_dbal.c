@@ -1,0 +1,2360 @@
+/*
+ * $Id: dpp_dbal.c,v 1.13 Broadcom SDK $
+ * $Copyright: Copyright 2016 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ */
+
+#ifdef _ERR_MSG_MODULE_NAME
+  #error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+
+#define _ERR_MSG_MODULE_NAME BSL_SOC_MANAGEMENT
+
+#include <shared/bsl.h>
+#include <shared/swstate/access/sw_state_access.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_dbal.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_flp_dbal.h>
+#include <soc/dcmn/error.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_flp_init.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_sw_db.h>
+
+#if defined(INCLUDE_KBP) && !defined(BCM_88030)
+#include <soc/dpp/JER/JER_PP/jer_pp_kaps.h>
+#include <soc/dpp/ARAD/arad_kbp.h>
+#endif
+
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)
+#include <soc/dpp/JER/JER_PP/jer_pp_kaps.h>
+#include <soc/dpp/JER/JER_PP/jer_pp_kaps_entry_mgmt.h>
+#endif
+
+
+/********* FUNCTION DECLARTIONS *********/
+
+uint32
+   arad_pp_flp_dbal_oam_statistics_program_tables_init(
+     int unit,
+	 int prog_id
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id = {0};
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    /* creating the table that related to the program */
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+    qual_info[0].qual_type = SOC_PPC_FP_QUAL_IRPP_IN_LIF;
+    qual_info[1].qual_type = SOC_PPC_FP_QUAL_OAM_OPCODE;
+    qual_info[2].qual_type = SOC_PPC_FP_QUAL_OAM_MD_LEVEL;
+
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_OAM_STATISTICS, ARAD_PP_LEM_ACCESS_KEY_TYPE_PREFIX_OAM_STATISTICS, ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 3, ARAD_PP_LEM_ACCESS_KEY_TYPE_OAM_STATISTICS, qual_info, "FLP oam statistics LEM"));
+
+    /* associating the tables to the program */
+    keys_to_table_id.key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id.lookup_number = 1;
+    keys_to_table_id.sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_OAM_STATISTICS;
+
+    SOCDNX_SAND_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, prog_id, ARAD_FP_DATABASE_STAGE_INGRESS_FLP, &keys_to_table_id, NULL, 1));
+
+    /* updating extra look configuration for the program */  
+    SOCDNX_SAND_IF_ERR_EXIT(arad_pp_dbal_flp_hw_based_key_enable(unit, prog_id, SOC_DPP_HW_KEY_LOOKUP_IN_LEM_2ND));  
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+uint32
+   arad_pp_flp_dbal_oam_down_untagged_statistics_program_tables_init(
+     int unit,
+	 int prog_id
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id = {0};
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+    qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_ITMH_DEST_FWD; 
+    qual_info[1].qual_type = SOC_PPC_FP_QUAL_OAM_MD_LEVEL_UNTAGGED;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_OAM_DOWN_UNTAGGED_STATISTICS, ARAD_PP_LEM_ACCESS_KEY_TYPE_PREFIX_OAM_DOWN_UNTAGGED_STATISTICS, ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 2, ARAD_PP_LEM_ACCESS_KEY_TYPE_OAM_DOWN_UNTAGGED_STATISTICS, qual_info, "FLP OAM down untagged statistics LEM"));
+
+    keys_to_table_id.key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id.lookup_number = 1;
+    keys_to_table_id.sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_OAM_DOWN_UNTAGGED_STATISTICS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, prog_id, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,&keys_to_table_id, NULL, 1));  
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_flp_hw_based_key_enable(unit, prog_id, SOC_DPP_HW_KEY_LOOKUP_IN_LEM_2ND));  
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+
+uint32
+arad_pp_flp_dbal_bfd_statistics_program_tables_init(
+    int unit,
+    int prog_id
+    ) {
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id = { 0 };
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    uint32 user_header_0_size;
+    uint32 user_header_1_size;
+    uint32 user_header_egress_pmf_offset_0;
+    uint32 user_header_egress_pmf_offset_1; 
+    
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+    qual_info[0].qual_type = SOC_PPC_FP_QUAL_MY_DISCR_IPV4;
+
+    SOCDNX_IF_ERR_EXIT(arad_pmf_db_fes_user_header_sizes_get(
+                unit,
+                &user_header_0_size,
+                &user_header_1_size,
+                &user_header_egress_pmf_offset_0,
+                &user_header_egress_pmf_offset_1
+              ));
+   
+
+    qual_info[0].qual_offset = user_header_0_size + user_header_1_size;
+
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_BFD_STATISTICS, ARAD_PP_LEM_ACCESS_KEY_TYPE_PREFIX_BFD_STATISTICS, ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                 SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 1, ARAD_PP_LEM_ACCESS_KEY_TYPE_BFD_STATISTICS, qual_info, "FLP BFD statistics LEM"));
+
+    keys_to_table_id.key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id.lookup_number = 1;
+    keys_to_table_id.sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_BFD_STATISTICS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, prog_id, ARAD_FP_DATABASE_STAGE_INGRESS_FLP, &keys_to_table_id, NULL, 1));
+
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_flp_hw_based_key_enable(unit, prog_id, SOC_DPP_HW_KEY_LOOKUP_IN_LEM_2ND));
+
+exit:
+    SOCDNX_FUNC_RETURN
+}
+
+uint32
+    arad_pp_flp_dbal_oam_single_tag_statistics_program_tables_init(   
+     int unit,
+	 int prog_id
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id = {0};
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+
+    SOCDNX_INIT_FUNC_DEFS;
+    
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+    qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_ITMH_DEST_FWD; 
+    qual_info[1].qual_type = SOC_PPC_FP_QUAL_OAM_MD_LEVEL_SINGLE_TAG;
+    qual_info[2].qual_type = SOC_PPC_FP_QUAL_TM_OUTER_TAG;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_OAM_SINGLE_TAG_STATISTICS, ARAD_PP_LEM_ACCESS_KEY_TYPE_PREFIX_OAM_SINGLE_TAG_STATISTICS, ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 3, ARAD_PP_LEM_ACCESS_KEY_TYPE_OAM_SINGLE_TAG_STATISTICS, qual_info, "FLP OAM sinngle tag statistics LEM"));
+
+    keys_to_table_id.key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id.lookup_number = 1;
+    keys_to_table_id.sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_OAM_SINGLE_TAG_STATISTICS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, prog_id, ARAD_FP_DATABASE_STAGE_INGRESS_FLP, &keys_to_table_id, NULL, 1));
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_flp_hw_based_key_enable(unit, prog_id, SOC_DPP_HW_KEY_LOOKUP_IN_LEM_2ND));
+    
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+uint32
+    arad_pp_flp_dbal_oam_double_tag_statistics_program_tables_init(
+     int unit,
+	 int prog_id
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id = {0};
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+    qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_ITMH_DEST_FWD; 
+    qual_info[1].qual_type = SOC_PPC_FP_QUAL_OAM_MD_LEVEL_DOUBLE_TAG;
+    qual_info[2].qual_type = SOC_PPC_FP_QUAL_TM_OUTER_TAG;
+    qual_info[3].qual_type = SOC_PPC_FP_QUAL_TM_INNER_TAG;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_OAM_DOUBLE_TAG_STATISTICS, ARAD_PP_LEM_ACCESS_KEY_TYPE_PREFIX_OAM_DOUBLE_TAG_STATISTICS, ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 4, ARAD_PP_LEM_ACCESS_KEY_TYPE_OAM_DOUBLE_TAG_STATISTICS, qual_info, "FLP OAM double tag statistics LEM"));
+
+    keys_to_table_id.key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id.lookup_number = 1;
+    keys_to_table_id.sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_OAM_DOUBLE_TAG_STATISTICS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, prog_id, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,&keys_to_table_id, NULL, 1));
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_flp_hw_based_key_enable(unit, prog_id, SOC_DPP_HW_KEY_LOOKUP_IN_LEM_2ND));
+  
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+
+uint32
+   arad_pp_flp_dbal_bfd_mpls_statistics_program_tables_init(
+     int unit,
+	 int prog_id
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id = {0};
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+    qual_info[0].qual_type = SOC_PPC_FP_QUAL_MY_DISCR_MPLS;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_BFD_MPLS_STATISTICS, ARAD_PP_LEM_ACCESS_KEY_TYPE_PREFIX_BFD_STATISTICS, ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 1, ARAD_PP_LEM_ACCESS_KEY_TYPE_BFD_STATISTICS, qual_info, "FLP BFD MPLS statistics LEM"));
+
+    keys_to_table_id.key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id.lookup_number = 1;
+    keys_to_table_id.sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_BFD_MPLS_STATISTICS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, prog_id, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,&keys_to_table_id, NULL, 1));
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_flp_hw_based_key_enable(unit, prog_id, SOC_DPP_HW_KEY_LOOKUP_IN_LEM_2ND));
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32
+   arad_pp_flp_dbal_bfd_pwe_statistics_program_tables_init(
+     int unit,
+	 int prog_id
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id = {0};
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+    qual_info[0].qual_type = SOC_PPC_FP_QUAL_MY_DISCR_PWE;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_BFD_PWE_STATISTICS, ARAD_PP_LEM_ACCESS_KEY_TYPE_PREFIX_BFD_STATISTICS, ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 1, ARAD_PP_LEM_ACCESS_KEY_TYPE_BFD_STATISTICS, qual_info, "FLP BFD PWE statistics LEM"));
+
+    keys_to_table_id.key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id.lookup_number = 1;
+    keys_to_table_id.sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_BFD_PWE_STATISTICS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, prog_id, ARAD_FP_DATABASE_STAGE_INGRESS_FLP, &keys_to_table_id, NULL, 1));  
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_flp_hw_based_key_enable(unit, prog_id, SOC_DPP_HW_KEY_LOOKUP_IN_LEM_2ND));
+  
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+/*bfd echo - clasification in the LEM*/
+soc_error_t
+   arad_pp_flp_dbal_bfd_echo_program_tables_init(
+     int unit
+   )
+{
+    
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id = {0};
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+    
+    
+  /*  qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_IPV4_DEST_PORT;
+    qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_IPV4_TTL; 
+    qual_info[2].qual_type = SOC_PPC_FP_QUAL_HDR_IPV4_NEXT_PRTCL;
+    qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_IPV4_DIP; */
+    
+
+    qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_IPV4_DEST_PORT;
+    qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_IPV4_DIP;
+    qual_info[2].qual_type = SOC_PPC_FP_QUAL_HDR_IPV4_TTL; 
+    qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_IPV4_NEXT_PRTCL;
+
+    
+   
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_BFD_ECHO_LEM, ARAD_PP_LEM_ACCESS_KEY_TYPE_PREFIX_BFD_ECHO, ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 4, ARAD_PP_LEM_ACCESS_KEY_TYPE_BFD_ECHO, qual_info, "FLP BFD ECHO LEM"));
+
+    keys_to_table_id.key_id = SOC_DPP_DBAL_PROGRAM_KEY_B;
+    keys_to_table_id.lookup_number = 2;
+    keys_to_table_id.sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_BFD_ECHO_LEM;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, PROG_FLP_IPV4UC, ARAD_FP_DATABASE_STAGE_INGRESS_FLP, &keys_to_table_id, NULL, 1));  
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+uint32
+    arad_pp_dbal_flp_ethernet_ing_ivl_learn_tables_create(
+        int unit,
+        int prog_id)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};    
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+    qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_SA;
+    qual_info[0].qual_offset = 16;
+    qual_info[0].qual_nof_bits = 32;
+    qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_SA;
+    qual_info[1].qual_offset = 0;
+    qual_info[1].qual_nof_bits = 16;
+    qual_info[2].qual_type = SOC_PPC_FP_QUAL_FID;
+    qual_info[2].qual_offset = 0;
+    qual_info[2].qual_nof_bits = 15;
+/*  qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_VLAN_TAG_ID;*/
+    qual_info[3].qual_type = SOC_PPC_FP_QUAL_VLAN_EDIT_CMD_VID1;
+    qual_info[3].qual_offset = 0;
+    qual_info[3].qual_nof_bits = 12;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IVL_LEARN_LEM, (ARAD_PP_LEM_ACCESS_KEY_TYPE_PREFIX_IVL_LEARN_LEM(unit)), ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 4, ARAD_PP_LEM_ACCESS_KEY_TYPE_IVL_LEARN, qual_info, "FLP L2 Learn DB, IVL Learn Mode LEM"));
+
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+    qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_DA;
+    qual_info[0].qual_offset = 16;
+    qual_info[0].qual_nof_bits = 32;
+    qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_DA;
+    qual_info[1].qual_offset = 0;
+    qual_info[1].qual_nof_bits = 16;
+    qual_info[2].qual_type = SOC_PPC_FP_QUAL_FID;
+    qual_info[2].qual_offset = 0;
+    qual_info[2].qual_nof_bits = 15;
+/*  qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_VLAN_TAG_ID;*/
+    qual_info[3].qual_type = SOC_PPC_FP_QUAL_VLAN_EDIT_CMD_VID1;
+    qual_info[3].qual_offset = 0;
+    qual_info[3].qual_nof_bits = 12;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IVL_FWD_LEM, (ARAD_PP_LEM_ACCESS_KEY_TYPE_PREFIX_IVL_LEARN_LEM(unit)), 4,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 4, ARAD_PP_LEM_ACCESS_KEY_TYPE_IVL_LEARN, qual_info, "FLP L2 Fwd DB,IVL Learn Mode"));
+
+   /* Associate Key construction for IVL Programs */ 
+    keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IVL_LEARN_LEM;
+    keys_to_table_id[0].lookup_number = 1;
+    
+    keys_to_table_id[1].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B;
+    keys_to_table_id[1].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IVL_FWD_LEM;
+    keys_to_table_id[1].lookup_number = 2;
+    
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, prog_id, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,
+                                                                   keys_to_table_id, NULL, 2));
+
+    /* update the IVL MACT program lookup LEM 1st lookup type  (LEM_1ST_LKP_KEY_TYPE) */
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_source_lookup_with_aget_access_enable(unit, prog_id));
+exit:
+     SOCDNX_FUNC_RETURN;    
+}
+
+uint32
+    arad_pp_dbal_flp_ethernet_ing_ivl_inner_learn_tables_create(
+        int unit,
+        int prog_id)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};    
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+    qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_SA;
+    qual_info[0].qual_offset = 16;
+    qual_info[0].qual_nof_bits = 32;
+    qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_SA;
+    qual_info[1].qual_offset = 0;
+    qual_info[1].qual_nof_bits = 16;
+    qual_info[2].qual_type = SOC_PPC_FP_QUAL_FID;
+    qual_info[2].qual_offset = 0;
+    qual_info[2].qual_nof_bits = 15;
+    qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_INNERMOST_VLAN_TAG_ID;
+    qual_info[3].qual_offset = 0;
+    qual_info[3].qual_nof_bits = 12;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IVL_INNER_LEARN_LEM, (ARAD_PP_LEM_ACCESS_KEY_TYPE_PREFIX_IVL_LEARN_LEM(unit)), ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 4, ARAD_PP_LEM_ACCESS_KEY_TYPE_IVL_LEARN, qual_info, "FLP L2 Learn DB, IVL INNER VLAN-TAG LEM Learn Mode"));
+
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+    qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_DA;
+    qual_info[0].qual_offset = 16;
+    qual_info[0].qual_nof_bits = 32;
+    qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_DA;
+    qual_info[1].qual_offset = 0;
+    qual_info[1].qual_nof_bits = 16;
+    qual_info[2].qual_type = SOC_PPC_FP_QUAL_FID;
+    qual_info[2].qual_offset = 0;
+    qual_info[2].qual_nof_bits = 15;
+    qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_INNERMOST_VLAN_TAG_ID;
+    qual_info[3].qual_offset = 0;
+    qual_info[3].qual_nof_bits = 12;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IVL_INNER_FWD_LEM, (ARAD_PP_LEM_ACCESS_KEY_TYPE_PREFIX_IVL_LEARN_LEM(unit)), ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 4, ARAD_PP_LEM_ACCESS_KEY_TYPE_IVL_LEARN, qual_info, "FLP L2 Fwd DB, IVL INNER VLAN-TAG LEM Learn Mode"));
+
+   /* Associate Key construction for IVL Programs */ 
+    keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IVL_INNER_LEARN_LEM;
+    keys_to_table_id[0].lookup_number = 1;
+    
+    keys_to_table_id[1].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B;
+    keys_to_table_id[1].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IVL_INNER_FWD_LEM;
+    keys_to_table_id[1].lookup_number = 2;
+    
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, prog_id, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,
+                                                                   keys_to_table_id, NULL, 2));
+
+    /* update the IVL MACT program lookup LEM 1st lookup type  (LEM_1ST_LKP_KEY_TYPE) */
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_source_lookup_with_aget_access_enable(unit, prog_id));
+
+
+exit:
+     SOCDNX_FUNC_RETURN;    
+}
+
+
+uint32
+    arad_pp_dbal_flp_ethernet_ing_ivl_fwd_outer_learn_tables_create(
+        int unit,
+        int prog_id)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};    
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+    qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_SA;
+    qual_info[0].qual_offset = 16;
+    qual_info[0].qual_nof_bits = 32;
+    qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_SA;
+    qual_info[1].qual_offset = 0;
+    qual_info[1].qual_nof_bits = 16;
+    qual_info[2].qual_type = SOC_PPC_FP_QUAL_FID;
+    qual_info[2].qual_offset = 0;
+    qual_info[2].qual_nof_bits = 15;
+    qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_VLAN_TAG_ID;
+    qual_info[3].qual_offset = 0;
+    qual_info[3].qual_nof_bits = 12;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IVL_FWD_OUTER_LEARN_LEM, (ARAD_PP_LEM_ACCESS_KEY_TYPE_PREFIX_IVL_LEARN_LEM(unit)), ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 4, ARAD_PP_LEM_ACCESS_KEY_TYPE_IVL_LEARN, qual_info, "FLP L2 Fwd DB, IVL FWD OUTER VLAN-TAG LEM Learn Mode"));
+
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+    qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_DA;
+    qual_info[0].qual_offset = 16;
+    qual_info[0].qual_nof_bits = 32;
+    qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_DA;
+    qual_info[1].qual_offset = 0;
+    qual_info[1].qual_nof_bits = 16;
+    qual_info[2].qual_type = SOC_PPC_FP_QUAL_FID;
+    qual_info[2].qual_offset = 0;
+    qual_info[2].qual_nof_bits = 15;
+    qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_VLAN_TAG_ID;
+    qual_info[3].qual_offset = 0;
+    qual_info[3].qual_nof_bits = 12;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IVL_FWD_OUTER_FWD_LEM, (ARAD_PP_LEM_ACCESS_KEY_TYPE_PREFIX_IVL_LEARN_LEM(unit)), 4,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 4, ARAD_PP_LEM_ACCESS_KEY_TYPE_IVL_LEARN, qual_info, "FLP L2 Fwd DB, IVL FWD OUTER VLAN-TAG LEM Fwd Mode"));
+
+   /* Associate Key construction for IVL Programs */ 
+    keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IVL_FWD_OUTER_LEARN_LEM;
+    keys_to_table_id[0].lookup_number = 1;
+    
+    keys_to_table_id[1].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B;
+    keys_to_table_id[1].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IVL_FWD_OUTER_FWD_LEM;
+    keys_to_table_id[1].lookup_number = 2;
+    
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, prog_id, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,
+                                                                   keys_to_table_id, NULL, 2));
+
+    /* update the IVL MACT program lookup LEM 1st lookup type  (LEM_1ST_LKP_KEY_TYPE) */
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_source_lookup_with_aget_access_enable(unit, prog_id));
+exit:
+     SOCDNX_FUNC_RETURN;    
+}
+
+uint32 
+    arad_pp_flp_dbal_ipv4uc_lem_table_create(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_LEM, &is_table_initiated));
+    if (!is_table_initiated) {
+        DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV4_DIP;
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_IRPP_VRF;
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_LEM, ARAD_PP_FLP_IPV4_KEY_OR_MASK, ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                 SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 2, 0, qual_info, "FLP IPv4 UC LEM"));
+
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32 
+    arad_pp_flp_dbal_ipv4mc_bridge_lem_table_create(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_LEM, &is_table_initiated));
+    if (!is_table_initiated) {
+        DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_IPV4_DIP;
+        qual_info[0].qual_offset = 16;
+        qual_info[0].qual_nof_bits = 16;
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_IPV4_DIP;
+        qual_info[1].qual_offset = 4;
+        qual_info[1].qual_nof_bits = 12;
+        qual_info[2].qual_type = SOC_PPC_FP_QUAL_FID;
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_LEM, ARAD_PP_FLP_IPV4_COMP_KEY_OR_MASK, ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                 SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 3, ARAD_PP_LEM_ACCESS_KEY_TYPE_IPV4_MC, qual_info, "FLP IPv4 MC LEM"));
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32
+    arad_pp_flp_dbal_ipv4mc_Learning_lem_table_create(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+    SOCDNX_INIT_FUNC_DEFS;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_LEARN_LEM, &is_table_initiated));
+    if (!is_table_initiated) {
+        DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_SA;
+        qual_info[0].qual_offset = 32;
+        qual_info[0].qual_nof_bits = 16;
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_SA;
+        qual_info[1].qual_offset = 0;
+        qual_info[1].qual_nof_bits = 32;
+        qual_info[2].qual_type = SOC_PPC_FP_QUAL_FID;
+        qual_info[2].qual_offset = 0;
+        qual_info[2].qual_nof_bits = 15;
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_LEARN_LEM,
+        ARAD_PP_FLP_ETH_KEY_OR_MASK(unit), ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+        SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 3, 0, qual_info, "FLP: IPV4 MC Learning"));
+    }
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+uint32
+    arad_pp_flp_dbal_ipv4uc_rpf_lem_table_create(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_RPF_LEM, &is_table_initiated));
+    if (!is_table_initiated) {
+        DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV4_SIP;
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_IRPP_VRF;
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_RPF_LEM, ARAD_PP_FLP_IPV4_KEY_OR_MASK, ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                 SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 2, 0, qual_info, "FLP IPv4 UC RPF LEM"));
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32 
+    arad_pp_flp_dbal_ipv4uc_default_lem_table_create(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_LEM_DEFAULT, &is_table_initiated));
+    if (!is_table_initiated) {
+        DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV4_DIP;
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_LEM_DEFAULT, ARAD_PP_FLP_IPV4_KEY_OR_MASK, ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+                                                 SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 1, 0, qual_info, "FLP IPv4 UC default LEM "));
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32
+    arad_pp_flp_dbal_ipv6uc_tcam_table_create(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_ROUTE, &is_table_initiated));
+    if (!is_table_initiated) {
+
+        DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_LOW;  /* DIP 31:0 */
+        qual_info[0].qual_offset = 32;
+        qual_info[0].qual_nof_bits = 32;
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_LOW;  /* DIP 63:32 */
+        qual_info[1].qual_offset = 0;
+        qual_info[1].qual_nof_bits = 32;
+        qual_info[2].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH;  /* DIP 79:64 */
+        qual_info[2].qual_offset = 48;
+        qual_info[2].qual_nof_bits = 16;
+        qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH;  /* DIP 95:80 */
+        qual_info[3].qual_offset = 32;
+        qual_info[3].qual_nof_bits = 16;
+        qual_info[4].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH;  /* DIP 127:96 */
+        qual_info[4].qual_offset = 0;
+        qual_info[4].qual_nof_bits = 32;
+        qual_info[5].qual_type = SOC_PPC_FP_QUAL_IRPP_VRF;
+        qual_info[5].qual_offset = 0;
+        qual_info[5].qual_nof_bits = 8;
+
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_ROUTE,
+                0, 0, SOC_DPP_DBAL_PHYSICAL_DB_TYPE_TCAM,6,0, qual_info, "FLP IPv6 UC TCAM"));
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)
+/* This function allocates prefixes to the tables in KAPS
+   These prefixes are assigned dynamically in order to maximize the IPV4 UC capacity
+   New dynamic tables support template is added in two places, demonstrated with SOC_DPP_DBAL_SW_TABLE_ID_NEW_TABLE_KAPS*/
+STATIC uint32
+arad_pp_flp_dbal_kaps_table_prefix_get(int unit, SOC_DPP_DBAL_SW_TABLE_IDS table_id, uint32 *table_prefix, uint32 *table_prefix_len)
+{
+    uint32 num_of_dynamic_tables = 0;
+    uint32 dynamic_tables_additional_bits = 0;
+    uint32 dynamic_table_prefix = 0; /*unique dynamic table prefix*/
+
+    SOCDNX_INIT_FUNC_DEFS
+
+    /* Increase num_of_dynamic_tables for each additional table */
+    if (SOC_DPP_CONFIG(unit)->pp.fcoe_enable) {
+        num_of_dynamic_tables++;
+        num_of_dynamic_tables++; /* we have 2 tables for FCoE in LPM*/
+    } else if (table_id == SOC_DPP_DBAL_SW_TABLE_ID_FCOE_KAPS) {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_INTERNAL, (_BSL_SOCDNX_MSG("arad_pp_flp_dbal_kaps_table_prefix_get - kaps table_id is disabled")));
+    }
+
+    if (SOC_DPP_CONFIG(unit)->pp.ipmc_l2_ssm_mode == BCM_IPMC_SSM_KAPS_LPM) {
+        num_of_dynamic_tables++;
+    } else if (table_id == SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_FID_KAPS) {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_INTERNAL, (_BSL_SOCDNX_MSG("arad_pp_flp_dbal_kaps_table_prefix_get - kaps table_id is disabled")));
+    }
+
+    /*
+    if (new_table_enable_condition) {
+        num_of_dynamic_tables++;
+    } else if (table_id == SOC_DPP_DBAL_SW_TABLE_ID_NEW_TABLE_KAPS) {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_INTERNAL, (_BSL_SOCDNX_MSG("arad_pp_flp_dbal_kaps_table_prefix_get - kaps table_id is disabled")));
+    }
+    */
+
+    while (num_of_dynamic_tables > 0) {
+        dynamic_tables_additional_bits++;
+        num_of_dynamic_tables = num_of_dynamic_tables/2;
+    }
+
+    switch (table_id) {
+    /* Static KAPS table prefix assignment */
+    case SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_KAPS:
+        *table_prefix = JER_KAPS_IPV4_MC_TABLE_PREFIX;
+        *table_prefix_len = 2;
+        break;
+    case SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_ROUTE:
+        *table_prefix = JER_KAPS_IPV6_UC_TABLE_PREFIX;
+        *table_prefix_len = 2;
+        break;
+    case SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_RPF_KAPS:
+        *table_prefix = JER_KAPS_IPV6_UC_TABLE_PREFIX;
+        *table_prefix_len = 2;
+        break;
+    case SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC:
+        *table_prefix = JER_KAPS_IPV6_MC_TABLE_PREFIX;
+        *table_prefix_len = 2;
+        break;
+    /* Dynamic KAPS table prefix assignment */
+    /* Update the dynamic_table_prefix based on the allocated dynamic tables, do not add breaks between the cases */
+    case SOC_DPP_DBAL_SW_TABLE_ID_FCOE_KAPS:
+        if (SOC_DPP_CONFIG(unit)->pp.fcoe_enable) {
+            dynamic_table_prefix++;
+        }
+    case SOC_DPP_DBAL_SW_TABLE_ID_FCOE_NPORT_KAPS:
+        if (SOC_DPP_CONFIG(unit)->pp.fcoe_enable) {
+            dynamic_table_prefix++;
+        }
+    case SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_FID_KAPS:
+        if (SOC_DPP_CONFIG(unit)->pp.ipmc_l2_ssm_mode == BCM_IPMC_SSM_KAPS_LPM) {
+            dynamic_table_prefix++;
+        }
+    /*
+    case SOC_DPP_DBAL_SW_TABLE_ID_NEW_TABLE_KAPS:
+        if (new_table_enable_condition) {
+            dynamic_table_prefix++;
+        }
+    */
+    case SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_KAPS:     /* Always dynamic_table_prefix = 0 */
+    case SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_RPF_KAPS: /* Always dynamic_table_prefix = 0 */
+        if (dynamic_table_prefix > JER_KAPS_DYNAMIC_TABLE_PREFIX_MAX_NUM - 1) {
+            SOCDNX_EXIT_WITH_ERR(SOC_E_INTERNAL, (_BSL_SOCDNX_MSG("arad_pp_flp_dbal_kaps_table_prefix_get - number of dynamic table prefixes exceeds the max")));
+        }
+        *table_prefix = (JER_KAPS_IPV4_UC_AND_NON_IP_TABLE_PREFIX << dynamic_tables_additional_bits) + dynamic_table_prefix;
+        *table_prefix_len = 2 + dynamic_tables_additional_bits;
+        break;
+    default:
+        SOCDNX_EXIT_WITH_ERR(SOC_E_INTERNAL, (_BSL_SOCDNX_MSG("arad_pp_flp_dbal_kaps_table_prefix_get - invalid kaps table_id")));
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+
+uint32 
+    arad_pp_flp_dbal_fcoe_kaps_table_create(int unit, int is_vsan_from_vsi)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+    uint32 table_prefix, table_prefix_len;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_kaps_table_prefix_get(unit, SOC_DPP_DBAL_SW_TABLE_ID_FCOE_KAPS, &table_prefix, &table_prefix_len));
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_FCOE_KAPS, &is_table_initiated));
+    if (is_table_initiated) {
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_destroy(unit, SOC_DPP_DBAL_SW_TABLE_ID_FCOE_KAPS));
+    }        
+        
+    if (is_vsan_from_vsi) {                
+
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;        
+        qual_info[0].qual_nof_bits = 27 - table_prefix_len; /* Align to 80bits according to the dynamic prefix len*/
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[1].qual_nof_bits = 32;
+        qual_info[2].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV4_DIP;
+        qual_info[2].qual_nof_bits = 8;
+        qual_info[2].qual_offset = 24;
+        qual_info[3].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[3].qual_nof_bits = 1;
+        qual_info[4].qual_type = SOC_PPC_FP_QUAL_IRPP_SYSTEM_VSI;
+        qual_info[4].qual_nof_bits = 12;
+        
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_FCOE_KAPS, table_prefix, table_prefix_len,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_KAPS, 5, 0, qual_info, "FLP FCoE VSI KAPS"));
+    } else{        
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;        
+        qual_info[0].qual_nof_bits = 27 - table_prefix_len; /* Align to 80bits according to the dynamic prefix len*/
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[1].qual_nof_bits = 32;
+        qual_info[2].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV4_DIP;
+        qual_info[2].qual_nof_bits = 8;
+        qual_info[2].qual_offset = 24;
+        qual_info[3].qual_type = SOC_PPC_FP_QUAL_IRPP_SYSTEM_VSI;
+        qual_info[3].qual_nof_bits = 13;
+        
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_FCOE_KAPS, table_prefix, table_prefix_len,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_KAPS, 4, 0, qual_info, "FLP FCoE VFT KAPS"));
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32 
+    arad_pp_flp_dbal_fcoe_npv_kaps_table_create(int unit, int is_vsan_from_vsi)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+    uint32 table_prefix, table_prefix_len;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_kaps_table_prefix_get(unit, SOC_DPP_DBAL_SW_TABLE_ID_FCOE_NPORT_KAPS, &table_prefix, &table_prefix_len));
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_FCOE_NPORT_KAPS, &is_table_initiated));
+    if (is_table_initiated) {
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_destroy(unit, SOC_DPP_DBAL_SW_TABLE_ID_FCOE_NPORT_KAPS));
+    }        
+        
+    if (is_vsan_from_vsi) {                
+
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;        
+        qual_info[0].qual_nof_bits = 27 - table_prefix_len; /* Align to 80bits according to the dynamic prefix len*/
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[1].qual_nof_bits = 32;
+        qual_info[2].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV4_SIP;
+        qual_info[2].qual_nof_bits = 8;
+        qual_info[2].qual_offset = 24;
+        qual_info[3].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[3].qual_nof_bits = 1;
+        qual_info[4].qual_type = SOC_PPC_FP_QUAL_IRPP_SYSTEM_VSI;
+        qual_info[4].qual_nof_bits = 12;
+        
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_FCOE_NPORT_KAPS, table_prefix, table_prefix_len,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_KAPS, 5, 0, qual_info, "FLP FCoE NPV VSI KAPS"));
+    } else{        
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;        
+        qual_info[0].qual_nof_bits = 27 - table_prefix_len; /* Align to 80bits according to the dynamic prefix len*/
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[1].qual_nof_bits = 32;
+        qual_info[2].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV4_SIP;
+        qual_info[2].qual_nof_bits = 8;
+        qual_info[2].qual_offset = 24;
+        qual_info[3].qual_type = SOC_PPC_FP_QUAL_IRPP_SYSTEM_VSI;
+        qual_info[3].qual_nof_bits = 13;
+        
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_FCOE_NPORT_KAPS, table_prefix, table_prefix_len,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_KAPS, 4, 0, qual_info, "FLP FCoE NPV VFT KAPS"));
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+uint32 
+    arad_pp_flp_dbal_ipv4uc_kaps_table_create(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+    uint32 table_prefix, table_prefix_len, qualifiers_counter = 0;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_KAPS, &is_table_initiated));
+    if (!is_table_initiated) {
+        SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_kaps_table_prefix_get(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_KAPS, &table_prefix, &table_prefix_len));
+        DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+        qual_info[qualifiers_counter].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[qualifiers_counter++].qual_nof_bits = table_prefix_len == JER_KAPS_TABLE_PREFIX_LENGTH ? 32 : 28; /* Align to 80bits according to the dynamic prefix len*/
+        qual_info[qualifiers_counter++].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV4_DIP;
+        qual_info[qualifiers_counter++].qual_type = SOC_PPC_FP_QUAL_IRPP_VRF;
+        if (table_prefix_len != JER_KAPS_TABLE_PREFIX_LENGTH) { /* vrf + table_prefix_len need to be nibble aligned for public key generation */
+            qual_info[qualifiers_counter].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+            qual_info[qualifiers_counter++].qual_nof_bits = JER_KAPS_DYNAMIC_TABLE_PREFIX_LENGTH - table_prefix_len;
+        }
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_KAPS, table_prefix, table_prefix_len,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_KAPS, qualifiers_counter, 0, qual_info, "FLP IPv4 UC KAPS"));
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32
+    arad_pp_flp_dbal_ipv4mc_bridge_kaps_table_create(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+    uint32 table_prefix, table_prefix_len;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_FID_KAPS, &is_table_initiated));
+    if (!is_table_initiated) {
+        SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_kaps_table_prefix_get(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_FID_KAPS, &table_prefix, &table_prefix_len));
+        DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+        /* MSB */
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[0].qual_nof_bits = 5 - table_prefix_len; /*Align to 80bits*/
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_IPV4_SIP;
+        qual_info[2].qual_type = SOC_PPC_FP_QUAL_HDR_IPV4_DIP;
+        qual_info[2].qual_offset = 16;
+        qual_info[2].qual_nof_bits = 16;
+        qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_IPV4_DIP;
+        qual_info[3].qual_offset = 4;
+        qual_info[3].qual_nof_bits = 12;
+        qual_info[4].qual_type = SOC_PPC_FP_QUAL_FID;
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_FID_KAPS, table_prefix, table_prefix_len,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_KAPS, 5, 0, qual_info, "FLP IPv4 MC FID KAPS"));
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+uint32 
+    arad_pp_flp_dbal_ipv4uc_rpf_kaps_table_create(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+    uint32 table_prefix, table_prefix_len, qualifiers_counter = 0;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_RPF_KAPS, &is_table_initiated));
+    if (!is_table_initiated) {
+        SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_kaps_table_prefix_get(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_RPF_KAPS, &table_prefix, &table_prefix_len));
+        DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+        qual_info[qualifiers_counter].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[qualifiers_counter++].qual_nof_bits = table_prefix_len == JER_KAPS_TABLE_PREFIX_LENGTH ? 32 : 28; /* Align to 80bits according to the dynamic prefix len*/
+        qual_info[qualifiers_counter++].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV4_SIP;
+        qual_info[qualifiers_counter++].qual_type = SOC_PPC_FP_QUAL_IRPP_VRF;
+        if (table_prefix_len != JER_KAPS_TABLE_PREFIX_LENGTH) { /* vrf + table_prefix_len need to be nibble aligned for public key generation */
+            qual_info[qualifiers_counter].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+            qual_info[qualifiers_counter++].qual_nof_bits = JER_KAPS_DYNAMIC_TABLE_PREFIX_LENGTH - table_prefix_len;
+        }
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_RPF_KAPS, table_prefix, table_prefix_len,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_KAPS, qualifiers_counter, 0, qual_info, "FLP IPv4 UC RPF KAPS"));
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32 
+    arad_pp_flp_dbal_ipv4mc_kaps_table_create(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+    uint32 table_prefix, table_prefix_len;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_KAPS, &is_table_initiated));
+    if (!is_table_initiated) {
+        SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_kaps_table_prefix_get(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_KAPS, &table_prefix, &table_prefix_len));
+        DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+        /* LSB */
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[0].qual_nof_bits = 4;
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[2].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[3].qual_type = SOC_PPC_FP_QUAL_IRPP_IN_RIF;
+        qual_info[3].qual_nof_bits = 12;
+     
+        /* MSB */
+        qual_info[4].qual_type = SOC_PPC_FP_QUAL_IRPP_IN_RIF;
+        qual_info[4].qual_offset = 12;
+        qual_info[4].qual_nof_bits = 3;
+        qual_info[5].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[5].qual_nof_bits = 1;
+        qual_info[6].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV4_SIP;
+        qual_info[7].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV4_DIP;
+    	qual_info[7].qual_offset = 16;
+        qual_info[7].qual_nof_bits = 16;
+        qual_info[8].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV4_DIP;
+        qual_info[8].qual_offset = 4;
+        qual_info[8].qual_nof_bits = 12;
+        qual_info[9].qual_type = SOC_PPC_FP_QUAL_IRPP_VRF;
+
+        if (soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "l3_mc_use_tcam", 0)) {
+
+            qual_info[0].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+            qual_info[0].qual_nof_bits = 1;
+            qual_info[1].qual_type = SOC_PPC_FP_QUAL_IRPP_IN_RIF;
+            qual_info[1].qual_nof_bits = 0;
+            qual_info[1].qual_offset = 0;            
+            qual_info[2].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV4_SIP;
+            qual_info[2].qual_nof_bits = 0;
+            qual_info[2].qual_offset = 0;
+            qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV4_DIP;
+            qual_info[3].qual_nof_bits = 0;
+            qual_info[3].qual_offset = 0;
+            qual_info[4].qual_type = SOC_PPC_FP_QUAL_IRPP_VRF;
+
+            SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_KAPS, DBAL_PREFIX_NOT_DEFINED, 0,
+                                                         SOC_DPP_DBAL_PHYSICAL_DB_TYPE_TCAM, 5, 0, qual_info, "FLP IPv4 MC TCAM"));
+        }else{      
+            SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_KAPS, table_prefix, table_prefix_len,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_KAPS, 10, 0, qual_info, "FLP IPv4 MC KAPS"));
+        }
+
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32 
+    arad_pp_flp_dbal_ipv6uc_kaps_table_create(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+    uint32 table_prefix, table_prefix_len;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_ROUTE, &is_table_initiated));
+    if (!is_table_initiated) {
+        SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_kaps_table_prefix_get(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_ROUTE, &table_prefix, &table_prefix_len));
+         DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+        /* LSB */
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[0].qual_nof_bits = 16;
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_LOW;
+        qual_info[1].qual_nof_bits = 32;
+        qual_info[1].qual_offset = 32;
+        qual_info[2].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_LOW;
+        qual_info[2].qual_nof_bits = 32;
+
+        /* MSB */
+        qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH;
+        qual_info[3].qual_nof_bits = 32;
+        qual_info[3].qual_offset = 32;
+        qual_info[4].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH;
+        qual_info[4].qual_nof_bits = 32;
+        qual_info[5].qual_type = SOC_PPC_FP_QUAL_IRPP_VRF;
+
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_ROUTE, table_prefix, table_prefix_len,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_KAPS, 6, 0, qual_info, "FLP IPv6 UC KAPS"));
+
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32 
+    arad_pp_flp_dbal_ipv6uc_rpf_kaps_table_create(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+    uint32 table_prefix, table_prefix_len;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_RPF_KAPS, &is_table_initiated));
+    if (!is_table_initiated) {
+        SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_kaps_table_prefix_get(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_RPF_KAPS, &table_prefix, &table_prefix_len));
+        DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+        /* LSB */
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[0].qual_nof_bits = 16;
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_LOW;
+        qual_info[1].qual_nof_bits = 32;
+        qual_info[1].qual_offset = 32;
+        qual_info[2].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_LOW;
+        qual_info[2].qual_nof_bits = 32;
+
+        /* MSB */
+        qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_HIGH;
+        qual_info[3].qual_nof_bits = 32;
+        qual_info[3].qual_offset = 32;        
+        qual_info[4].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_HIGH;
+        qual_info[4].qual_nof_bits = 32;
+        qual_info[5].qual_type = SOC_PPC_FP_QUAL_IRPP_VRF;
+
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_RPF_KAPS, table_prefix, table_prefix_len,
+                                                     SOC_DPP_DBAL_PHYSICAL_DB_TYPE_KAPS, 6, 0, qual_info, "FLP IPv6 UC RPF KAPS"));
+
+
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+#endif /* defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)*/
+uint32 
+    arad_pp_flp_dbal_ipv6mc_table_create(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+    
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC, &is_table_initiated));
+    if (!is_table_initiated) {
+
+        DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+
+        /* LSB */
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_IRPP_ALL_ZEROES;
+        qual_info[0].qual_nof_bits = 1;
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_IRPP_IN_RIF;
+        qual_info[2].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_LOW;
+        qual_info[2].qual_nof_bits = 32;
+        qual_info[2].qual_offset = 32;
+        qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_LOW;
+        qual_info[3].qual_nof_bits = 32;
+
+        /* MSB */
+        qual_info[4].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH;
+        qual_info[4].qual_nof_bits = 32;
+        qual_info[4].qual_offset = 32;
+        qual_info[5].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH;
+        qual_info[5].qual_nof_bits = 32;
+        qual_info[6].qual_type = SOC_PPC_FP_QUAL_IRPP_VRF;
+
+
+         if(soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "l3_mc_use_tcam", 0)) {
+
+            SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC, DBAL_PREFIX_NOT_DEFINED, 0,
+                                                         SOC_DPP_DBAL_PHYSICAL_DB_TYPE_TCAM, 7, SOC_DPP_DBAL_ATI_NONE, qual_info, "FLP IPv6 MC TCAM"));
+        } else {
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)
+
+            uint32 table_prefix = 0, table_prefix_len = 0;
+            SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_kaps_table_prefix_get(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC, &table_prefix, &table_prefix_len));
+
+            SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC, table_prefix, table_prefix_len,
+                                                         SOC_DPP_DBAL_PHYSICAL_DB_TYPE_KAPS, 7, 0, qual_info, "FLP IPv6 MC KAPS"));
+#endif
+        }
+
+
+    }
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+
+
+uint32
+   arad_pp_flp_dbal_fcoe_program_tables_init(int unit, int is_vsan_from_vsi, int fcoe_no_vft_prog_id, int fcoe_vft_prog_id)
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};
+    uint32 vsi_vft_instuction = 0, did_instuction = 0;
+    SOC_DPP_DBAL_TABLE_INFO table;
+    int i, vft_pos, no_vft_pos, vsi_vft_inst_id, dip_inst_id;
+    soc_mem_t flp_key_construction_mem;
+    uint32 data[ARAD_PP_IHB_FLP_KEY_CONSTRUCTION_TBL_ENTRY_SIZE];
+    uint32 data2[ARAD_PP_IHB_FLP_KEY_CONSTRUCTION_TBL_ENTRY_SIZE];
+    ARAD_FP_DATABASE_STAGE stage = ARAD_FP_DATABASE_STAGE_INGRESS_FLP;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_fcoe_kaps_table_create(unit, is_vsan_from_vsi));
+#endif
+
+    keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B_MSB;
+    keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_FCOE_KAPS;
+    keys_to_table_id[0].lookup_number = 2;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, fcoe_vft_prog_id , ARAD_FP_DATABASE_STAGE_INGRESS_FLP,keys_to_table_id, NULL, 1));
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, fcoe_no_vft_prog_id, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,keys_to_table_id, NULL, 1));
+
+    /*W.A for FCoE: 
+      we use qualifiers VSI and DIP when creating the table. but we change them to VFT and DID here...
+      1. update the VSI instruction to VFT or VSI
+      2. update the DIP instruction to DID
+      we are updating only the MSB part of the key, kaps is usung key b MSB */
+    
+    soc_sand_os_memset(data, 0x0, (ARAD_PP_IHB_FLP_KEY_CONSTRUCTION_TBL_ENTRY_SIZE) * sizeof(uint32));
+    soc_sand_os_memset(data2, 0x0, (ARAD_PP_IHB_FLP_KEY_CONSTRUCTION_TBL_ENTRY_SIZE) * sizeof(uint32));
+
+    SOCDNX_IF_ERR_EXIT(sw_state_access[unit].dpp.soc.arad.pp.dbal_info.dbal_tables.get(unit, SOC_DPP_DBAL_SW_TABLE_ID_FCOE_KAPS, &table));
+
+    if (is_vsan_from_vsi == 0) {
+        vsi_vft_instuction = ARAD_PP_FLP_16B_INST_P6_IN_PORT_KEY_GEN_VAR_D_13_BITS;
+    } else {
+        vsi_vft_instuction = ARAD_PP_FLP_16B_INST_P6_VSI(12);
+    }    
+    
+    if(table.table_programs[0].program_id == fcoe_no_vft_prog_id){
+        no_vft_pos = 0;
+        vft_pos = 1;
+    }else{
+        no_vft_pos = 1;
+        vft_pos = 0;
+    }
+
+    /* no VFT PROGRAM */
+
+    vsi_vft_inst_id = -1;
+    dip_inst_id = -1;
+    for (i = 0; i < table.nof_qualifiers; i++) {
+        if (table.qual_info[i].qual_type == SOC_PPC_FP_QUAL_HDR_FWD_IPV4_DIP) {
+            dip_inst_id = table.table_programs[no_vft_pos].ce_assigned[i];
+        }
+        if (table.qual_info[i].qual_type == SOC_PPC_FP_QUAL_IRPP_SYSTEM_VSI) {
+            vsi_vft_inst_id = table.table_programs[no_vft_pos].ce_assigned[i];
+        }
+    }
+
+    if (vsi_vft_inst_id == -1 || dip_inst_id == -1) {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_INTERNAL, (_BSL_SOCDNX_MSG("arad_pp_flp_dbal_fcoe_program_tables_init - instruction not found 1")));
+    }
+    
+    flp_key_construction_mem = IHP_FLP_KEY_CONSTRUCTION_MSBm;
+
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_read(unit,flp_key_construction_mem,MEM_BLOCK_ANY,fcoe_no_vft_prog_id,data));
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_read(unit,flp_key_construction_mem,MEM_BLOCK_ANY,fcoe_no_vft_prog_id+ARAD_PP_FLP_INSTRUCTIONS_NOF,data2));
+
+    /* update DID instruction */
+    did_instuction = ARAD_PP_FLP_16B_INST_ARAD_FC_D_ID_8_MSB;    
+    soc_mem_field32_set(unit, flp_key_construction_mem, data, arad_pmf_ce_instruction_fld_get(unit,stage, dip_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), did_instuction);
+    soc_mem_field32_set(unit, flp_key_construction_mem, data2, arad_pmf_ce_instruction_fld_get(unit,stage, dip_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), did_instuction);
+
+    /* update VFT/VSI instruction */
+    soc_mem_field32_set(unit, flp_key_construction_mem, data, arad_pmf_ce_instruction_fld_get(unit,stage, vsi_vft_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), vsi_vft_instuction);
+    soc_mem_field32_set(unit, flp_key_construction_mem, data2, arad_pmf_ce_instruction_fld_get(unit,stage, vsi_vft_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), vsi_vft_instuction);    
+
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_write(unit, flp_key_construction_mem, MEM_BLOCK_ANY, fcoe_no_vft_prog_id, data ));
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_write(unit, flp_key_construction_mem, MEM_BLOCK_ANY, fcoe_no_vft_prog_id+ARAD_PP_FLP_INSTRUCTIONS_NOF, data2 ));
+
+    /* VFT PROGRAM */
+
+     if (is_vsan_from_vsi == 0) {
+        vsi_vft_instuction = ARAD_PP_FLP_16B_INST_ARAD_FC_WITH_VFT_VFT_ID;
+    }
+    ARAD_IHP_FLP_16B_INST_ARAD_FC_WITH_VFT_D_ID_8_MSB
+
+    soc_sand_os_memset(data, 0x0, (ARAD_PP_IHB_FLP_KEY_CONSTRUCTION_TBL_ENTRY_SIZE) * sizeof(uint32));
+    soc_sand_os_memset(data2, 0x0, (ARAD_PP_IHB_FLP_KEY_CONSTRUCTION_TBL_ENTRY_SIZE) * sizeof(uint32));
+
+    vsi_vft_inst_id = -1;
+    dip_inst_id = -1;
+    for (i = 0; i < table.nof_qualifiers; i++) {
+        if (table.qual_info[i].qual_type == SOC_PPC_FP_QUAL_HDR_FWD_IPV4_DIP) {
+            dip_inst_id = table.table_programs[vft_pos].ce_assigned[i];
+        }
+        if (table.qual_info[i].qual_type == SOC_PPC_FP_QUAL_IRPP_SYSTEM_VSI) {
+            vsi_vft_inst_id = table.table_programs[vft_pos].ce_assigned[i];
+        }
+    }
+
+    if (vsi_vft_inst_id == -1 || dip_inst_id == -1) {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_INTERNAL, (_BSL_SOCDNX_MSG("arad_pp_flp_dbal_fcoe_program_tables_init - instruction not found 1")));
+    }
+      
+    flp_key_construction_mem = IHP_FLP_KEY_CONSTRUCTION_MSBm;
+
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_read(unit,flp_key_construction_mem,MEM_BLOCK_ANY,fcoe_vft_prog_id,data));
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_read(unit,flp_key_construction_mem,MEM_BLOCK_ANY,fcoe_vft_prog_id+ARAD_PP_FLP_INSTRUCTIONS_NOF,data2));
+
+    /* update DID instruction*/
+    did_instuction = ARAD_IHP_FLP_16B_INST_ARAD_FC_WITH_VFT_D_ID_8_MSB;
+    soc_mem_field32_set(unit, flp_key_construction_mem, data, arad_pmf_ce_instruction_fld_get(unit,stage, dip_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), did_instuction);
+    soc_mem_field32_set(unit, flp_key_construction_mem, data2, arad_pmf_ce_instruction_fld_get(unit,stage, dip_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), did_instuction);
+
+    /* update VFT/VSI instruction */
+    soc_mem_field32_set(unit, flp_key_construction_mem, data, arad_pmf_ce_instruction_fld_get(unit,stage, vsi_vft_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), vsi_vft_instuction);
+    soc_mem_field32_set(unit, flp_key_construction_mem, data2, arad_pmf_ce_instruction_fld_get(unit,stage, vsi_vft_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), vsi_vft_instuction);
+
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_write(unit, flp_key_construction_mem, MEM_BLOCK_ANY, fcoe_vft_prog_id, data ));
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_write(unit, flp_key_construction_mem, MEM_BLOCK_ANY, fcoe_vft_prog_id+ARAD_PP_FLP_INSTRUCTIONS_NOF, data2 ));
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+uint32
+   arad_pp_flp_dbal_fcoe_npv_program_tables_init(int unit, int is_vsan_from_vsi, int fcoe_no_vft_prog_id, int fcoe_vft_prog_id)
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};
+    uint32 vsi_vft_instuction = 0, did_instuction = 0;
+    SOC_DPP_DBAL_TABLE_INFO table;
+    int i, vft_pos, no_vft_pos, vsi_vft_inst_id, dip_inst_id;
+    soc_mem_t flp_key_construction_mem;
+    uint32 data[ARAD_PP_IHB_FLP_KEY_CONSTRUCTION_TBL_ENTRY_SIZE];
+    uint32 data2[ARAD_PP_IHB_FLP_KEY_CONSTRUCTION_TBL_ENTRY_SIZE];
+    ARAD_FP_DATABASE_STAGE stage = ARAD_FP_DATABASE_STAGE_INGRESS_FLP;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_fcoe_npv_kaps_table_create(unit, is_vsan_from_vsi));
+#endif
+
+    keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B_MSB;
+    keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_FCOE_NPORT_KAPS;
+    keys_to_table_id[0].lookup_number = 2;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, fcoe_vft_prog_id , ARAD_FP_DATABASE_STAGE_INGRESS_FLP,keys_to_table_id, NULL, 1));
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, fcoe_no_vft_prog_id, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,keys_to_table_id, NULL, 1));
+
+    /*W.A for FCoE: 
+      we use qualifiers VSI and SIP when creating the table. but we change them to VFT and SID here...
+      1. update the VSI instruction to VFT or VSI
+      2. update the SIP instruction to SID
+      we are updating only the MSB part of the key, kaps is usung key b MSB */
+    
+    soc_sand_os_memset(data, 0x0, (ARAD_PP_IHB_FLP_KEY_CONSTRUCTION_TBL_ENTRY_SIZE) * sizeof(uint32));
+    soc_sand_os_memset(data2, 0x0, (ARAD_PP_IHB_FLP_KEY_CONSTRUCTION_TBL_ENTRY_SIZE) * sizeof(uint32));
+
+    SOCDNX_IF_ERR_EXIT(sw_state_access[unit].dpp.soc.arad.pp.dbal_info.dbal_tables.get(unit, SOC_DPP_DBAL_SW_TABLE_ID_FCOE_NPORT_KAPS, &table));
+
+    if (is_vsan_from_vsi == 0) {
+        vsi_vft_instuction = ARAD_PP_FLP_16B_INST_P6_IN_PORT_KEY_GEN_VAR_D_13_BITS;
+    } else {
+        vsi_vft_instuction = ARAD_PP_FLP_16B_INST_P6_VSI(12);
+    }    
+    
+    if(table.table_programs[0].program_id == fcoe_no_vft_prog_id){
+        no_vft_pos = 0;
+        vft_pos = 1;
+    }else{
+        no_vft_pos = 1;
+        vft_pos = 0;
+    }
+
+    /* no VFT PROGRAM */
+
+    vsi_vft_inst_id = -1;
+    dip_inst_id = -1;
+    for (i = 0; i < table.nof_qualifiers; i++) {
+        if (table.qual_info[i].qual_type == SOC_PPC_FP_QUAL_HDR_FWD_IPV4_SIP) {
+            dip_inst_id = table.table_programs[no_vft_pos].ce_assigned[i];
+        }
+        if (table.qual_info[i].qual_type == SOC_PPC_FP_QUAL_IRPP_SYSTEM_VSI) {
+            vsi_vft_inst_id = table.table_programs[no_vft_pos].ce_assigned[i];
+        }
+    }
+
+    if (vsi_vft_inst_id == -1 || dip_inst_id == -1) {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_INTERNAL, (_BSL_SOCDNX_MSG("arad_pp_flp_dbal_fcoe_program_tables_init - instruction not found 1")));
+    }
+    
+    flp_key_construction_mem = IHP_FLP_KEY_CONSTRUCTION_MSBm;
+
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_read(unit,flp_key_construction_mem,MEM_BLOCK_ANY,fcoe_no_vft_prog_id,data));
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_read(unit,flp_key_construction_mem,MEM_BLOCK_ANY,fcoe_no_vft_prog_id+ARAD_PP_FLP_INSTRUCTIONS_NOF,data2));
+
+    /* update SID instruction */
+    did_instuction = ARAD_PP_FLP_16B_INST_ARAD_FC_S_ID_8_MSB;    
+    soc_mem_field32_set(unit, flp_key_construction_mem, data, arad_pmf_ce_instruction_fld_get(unit,stage, dip_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), did_instuction);
+    soc_mem_field32_set(unit, flp_key_construction_mem, data2, arad_pmf_ce_instruction_fld_get(unit,stage, dip_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), did_instuction);
+
+    /* update VFT/VSI instruction */
+    soc_mem_field32_set(unit, flp_key_construction_mem, data, arad_pmf_ce_instruction_fld_get(unit,stage, vsi_vft_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), vsi_vft_instuction);
+    soc_mem_field32_set(unit, flp_key_construction_mem, data2, arad_pmf_ce_instruction_fld_get(unit,stage, vsi_vft_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), vsi_vft_instuction);    
+
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_write(unit, flp_key_construction_mem, MEM_BLOCK_ANY, fcoe_no_vft_prog_id, data ));
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_write(unit, flp_key_construction_mem, MEM_BLOCK_ANY, fcoe_no_vft_prog_id+ARAD_PP_FLP_INSTRUCTIONS_NOF, data2 ));
+
+    /* VFT PROGRAM */
+
+     if (is_vsan_from_vsi == 0) {
+        vsi_vft_instuction = ARAD_PP_FLP_16B_INST_ARAD_FC_WITH_VFT_VFT_ID;
+    }
+    ARAD_IHP_FLP_16B_INST_ARAD_FC_WITH_VFT_D_ID_8_MSB
+
+    soc_sand_os_memset(data, 0x0, (ARAD_PP_IHB_FLP_KEY_CONSTRUCTION_TBL_ENTRY_SIZE) * sizeof(uint32));
+    soc_sand_os_memset(data2, 0x0, (ARAD_PP_IHB_FLP_KEY_CONSTRUCTION_TBL_ENTRY_SIZE) * sizeof(uint32));
+
+    vsi_vft_inst_id = -1;
+    dip_inst_id = -1;
+    for (i = 0; i < table.nof_qualifiers; i++) {
+        if (table.qual_info[i].qual_type == SOC_PPC_FP_QUAL_HDR_FWD_IPV4_SIP) {
+            dip_inst_id = table.table_programs[vft_pos].ce_assigned[i];
+        }
+        if (table.qual_info[i].qual_type == SOC_PPC_FP_QUAL_IRPP_SYSTEM_VSI) {
+            vsi_vft_inst_id = table.table_programs[vft_pos].ce_assigned[i];
+        }
+    }
+
+    if (vsi_vft_inst_id == -1 || dip_inst_id == -1) {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_INTERNAL, (_BSL_SOCDNX_MSG("arad_pp_flp_dbal_fcoe_program_tables_init - instruction not found 1")));
+    }
+      
+    flp_key_construction_mem = IHP_FLP_KEY_CONSTRUCTION_MSBm;
+
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_read(unit,flp_key_construction_mem,MEM_BLOCK_ANY,fcoe_vft_prog_id,data));
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_read(unit,flp_key_construction_mem,MEM_BLOCK_ANY,fcoe_vft_prog_id+ARAD_PP_FLP_INSTRUCTIONS_NOF,data2));
+
+    /* update SID instruction*/
+    did_instuction = ARAD_IHP_FLP_16B_INST_ARAD_FC_WITH_VFT_S_ID_8_MSB;
+    soc_mem_field32_set(unit, flp_key_construction_mem, data, arad_pmf_ce_instruction_fld_get(unit,stage, dip_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), did_instuction);
+    soc_mem_field32_set(unit, flp_key_construction_mem, data2, arad_pmf_ce_instruction_fld_get(unit,stage, dip_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), did_instuction);
+
+    /* update VFT/VSI instruction */
+    soc_mem_field32_set(unit, flp_key_construction_mem, data, arad_pmf_ce_instruction_fld_get(unit,stage, vsi_vft_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), vsi_vft_instuction);
+    soc_mem_field32_set(unit, flp_key_construction_mem, data2, arad_pmf_ce_instruction_fld_get(unit,stage, vsi_vft_inst_id - (ARAD_PMF_LOW_LEVEL_CE_NDX_MAX +1)), vsi_vft_instuction);
+
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_write(unit, flp_key_construction_mem, MEM_BLOCK_ANY, fcoe_vft_prog_id, data ));
+    SOCDNX_SAND_IF_ERR_EXIT(soc_mem_write(unit, flp_key_construction_mem, MEM_BLOCK_ANY, fcoe_vft_prog_id+ARAD_PP_FLP_INSTRUCTIONS_NOF, data2 ));
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32 
+arad_pp_flp_dbal_mpls_lsr_stat_table_create(int unit)  
+{
+     SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+     int is_table_initiated = 0;
+     
+     SOCDNX_INIT_FUNC_DEFS;
+     SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_LSR_CNT_LEM, &is_table_initiated));
+     
+     if (!is_table_initiated) {
+          DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+
+          qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_MPLS_LABEL_ID_FWD;
+          qual_info[0].qual_offset = 16;
+          qual_info[0].qual_nof_bits = 4;
+          qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_MPLS_LABEL_ID_FWD;
+          qual_info[1].qual_offset = 0;
+          qual_info[1].qual_nof_bits = 16;
+          SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_LSR_CNT_LEM,
+          ARAD_PP_FLP_LSR_CNT_KEY_OR_MASK, ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+          SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 2, ARAD_PP_LEM_ACCESS_KEY_LSR_CUNT, qual_info, "FLP:LSR_STAT_LEM"));
+     }
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32
+    arad_pp_flp_dbal_mpls_lsr_stat_table_init(int unit)
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id_static[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};
+    SOCDNX_INIT_FUNC_DEFS;
+    
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_mpls_lsr_stat_table_create(unit));     
+    keys_to_table_id_static[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B; /* Key B */ 
+    keys_to_table_id_static[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_LSR_CNT_LEM;
+    keys_to_table_id_static[0].lookup_number =  1;  /* means 1st lookup*/
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, PROG_FLP_LSR, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,
+    keys_to_table_id_static, NULL, 1 ));
+    
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+
+
+uint32
+   arad_pp_flp_dbal_ipv4uc_rpf_program_tables_init(
+     int unit
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_rpf_lem_table_create(unit));
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_lem_table_create(unit));
+
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_rpf_kaps_table_create(unit));
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_kaps_table_create(unit));
+#endif /*#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)*/
+
+    keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_RPF_LEM;
+    keys_to_table_id[0].lookup_number = 1;
+
+    keys_to_table_id[1].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B;
+    keys_to_table_id[1].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_LEM;
+    keys_to_table_id[1].lookup_number = 2;
+
+    keys_to_table_id[2].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A_MSB;/*SOC_DPP_DBAL_PROGRAM_KEY_C;*/
+    keys_to_table_id[2].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_RPF_KAPS;
+    keys_to_table_id[2].lookup_number = 1;
+    keys_to_table_id[2].public_lpm_lookup_size = 0;
+
+    keys_to_table_id[3].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B_MSB; /*SOC_DPP_DBAL_PROGRAM_KEY_D;*/
+    keys_to_table_id[3].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_KAPS;
+    keys_to_table_id[3].lookup_number = 2;
+    keys_to_table_id[3].public_lpm_lookup_size = 0;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, PROG_FLP_IPV4UC_RPF, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,keys_to_table_id, NULL, 4));
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_flp_hw_based_key_enable(unit, PROG_FLP_IPV4UC_RPF, SOC_DPP_HW_KEY_LOOKUP_IN_LEARN_KEY));
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+uint32
+   arad_pp_flp_dbal_ipv4uc_program_tables_init(
+     int unit
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};
+    
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_lem_table_create(unit));
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_kaps_table_create(unit));
+#endif /*#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)*/
+    
+    keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_LEM;
+    keys_to_table_id[0].lookup_number = 2;
+
+    keys_to_table_id[1].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A_MSB;
+    keys_to_table_id[1].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_KAPS;
+    keys_to_table_id[1].lookup_number = 2;
+    keys_to_table_id[1].public_lpm_lookup_size = 0;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, PROG_FLP_IPV4UC, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,
+                                                                keys_to_table_id, NULL, 2));
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_flp_hw_based_key_enable(unit, PROG_FLP_IPV4UC, SOC_DPP_HW_KEY_LOOKUP_IN_LEARN_KEY));
+  
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32
+   arad_pp_flp_dbal_ipv4mc_bridge_program_tables_init(
+     int unit
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};
+
+    SOCDNX_INIT_FUNC_DEFS;
+    /*LEM <FID,G>*/
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4mc_bridge_lem_table_create(unit));
+    /*LEM <FID,SA>*/
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4mc_Learning_lem_table_create(unit));
+    /*KAPS <FID,G,S>*/
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4mc_bridge_kaps_table_create(unit));
+#endif
+    keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_LEARN_LEM;
+    keys_to_table_id[0].lookup_number = 1;
+
+    keys_to_table_id[1].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B;
+    keys_to_table_id[1].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_LEM;
+    keys_to_table_id[1].lookup_number = 2;
+
+    keys_to_table_id[2].key_id = SOC_DPP_DBAL_PROGRAM_KEY_C_MSB;
+    keys_to_table_id[2].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_FID_KAPS;
+    keys_to_table_id[2].lookup_number = 2;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, PROG_FLP_IPV4MC_BRIDGE, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,
+                                                                keys_to_table_id, NULL, 3));
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_flp_hw_based_key_enable(unit, PROG_FLP_IPV4MC_BRIDGE, SOC_DPP_HW_KEY_LOOKUP_IN_LEARN_KEY));
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+
+uint32
+   arad_pp_flp_dbal_ipv4compmc_with_rpf_program_tables_init(
+     int unit
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};
+
+    SOCDNX_INIT_FUNC_DEFS;
+    if (!SOC_IS_QAX(unit)) {  
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_rpf_lem_table_create(unit));
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_lem_table_create(unit));
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_rpf_kaps_table_create(unit));
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4mc_kaps_table_create(unit));
+#endif /*#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)*/
+    keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_RPF_LEM;
+    keys_to_table_id[0].lookup_number = 1;
+
+    keys_to_table_id[1].key_id = SOC_DPP_DBAL_PROGRAM_KEY_D; 
+    keys_to_table_id[1].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_LEM;
+    keys_to_table_id[1].lookup_number = 2;
+
+    keys_to_table_id[2].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A_MSB; /*SOC_DPP_DBAL_PROGRAM_KEY_C;*/
+    keys_to_table_id[2].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_RPF_KAPS;
+    keys_to_table_id[2].lookup_number = 1;
+    keys_to_table_id[2].public_lpm_lookup_size = SOC_DPP_DBAL_ZERO_VRF_IN_KEY;
+
+    keys_to_table_id[3].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B;/*SOC_DPP_DBAL_PROGRAM_KEY_D;*/
+    keys_to_table_id[3].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4MC_KAPS;
+    keys_to_table_id[3].lookup_number = 2;
+    if (!soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "tcam_l3_mc", 0)) {
+        keys_to_table_id[3].public_lpm_lookup_size = SOC_DPP_DBAL_ZERO_VRF_IN_KEY;
+    }
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, PROG_FLP_IPV4COMPMC_WITH_RPF, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,keys_to_table_id, NULL, 4));
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_flp_hw_based_key_enable(unit, PROG_FLP_IPV4COMPMC_WITH_RPF, SOC_DPP_HW_KEY_LOOKUP_IN_LEARN_KEY));
+}
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+uint32
+   arad_pp_flp_dbal_ipv4uc_l3vpn_rpf_program_tables_init(
+     int unit,
+     int prog_id
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_rpf_lem_table_create(unit));
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_lem_table_create(unit));
+
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_rpf_kaps_table_create(unit));
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_kaps_table_create(unit));
+#endif /*#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)*/
+
+    keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_RPF_LEM;
+    keys_to_table_id[0].lookup_number = 1;
+
+    keys_to_table_id[1].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B;
+    keys_to_table_id[1].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_LEM;
+    keys_to_table_id[1].lookup_number = 2;
+
+    keys_to_table_id[2].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A_MSB;
+    keys_to_table_id[2].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_RPF_KAPS;
+    keys_to_table_id[2].lookup_number = 1;
+    keys_to_table_id[2].public_lpm_lookup_size = SOC_DPP_DBAL_ZERO_VRF_IN_KEY;
+
+    keys_to_table_id[3].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B_MSB;
+    keys_to_table_id[3].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_KAPS;
+    keys_to_table_id[3].lookup_number = 2;
+    keys_to_table_id[3].public_lpm_lookup_size = SOC_DPP_DBAL_ZERO_VRF_IN_KEY;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, prog_id, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,
+                                                                 keys_to_table_id, NULL, 4));
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_flp_hw_based_key_enable(unit, prog_id, SOC_DPP_HW_KEY_LOOKUP_IN_LEARN_KEY));
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32
+   arad_pp_flp_dbal_ipv4uc_l3vpn_program_tables_init(
+     int unit
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};
+
+    SOCDNX_INIT_FUNC_DEFS;
+  
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_lem_table_create(unit));    
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_default_lem_table_create(unit));
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv4uc_kaps_table_create(unit));
+#endif /*#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)*/
+
+  
+    keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_LEM_DEFAULT;
+    keys_to_table_id[0].lookup_number = 1;
+
+    keys_to_table_id[1].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B;
+    keys_to_table_id[1].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_LEM;
+    keys_to_table_id[1].lookup_number = 2;
+
+    keys_to_table_id[2].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A_MSB;/*SOC_DPP_DBAL_PROGRAM_KEY_D;*/
+    keys_to_table_id[2].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV4UC_KAPS;
+    keys_to_table_id[2].lookup_number = 2;
+    keys_to_table_id[2].public_lpm_lookup_size = SOC_DPP_DBAL_ZERO_VRF_IN_KEY;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, PROG_FLP_IPV4UC_PUBLIC, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,
+                                                                 keys_to_table_id, NULL, 3));
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_flp_hw_based_key_enable(unit, PROG_FLP_IPV4UC_PUBLIC, SOC_DPP_HW_KEY_LOOKUP_IN_LEARN_KEY));
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)
+uint32
+   arad_pp_flp_dbal_ipv6uc_with_rpf_program_tables_init(
+     int unit,
+     int prog_id
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv6uc_kaps_table_create(unit));
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv6uc_rpf_kaps_table_create(unit));
+
+    keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_RPF_KAPS;
+    keys_to_table_id[0].lookup_number = 1;
+    keys_to_table_id[0].public_lpm_lookup_size = SOC_DPP_DBAL_ZERO_VRF_IN_KEY;
+
+    keys_to_table_id[1].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B;
+    keys_to_table_id[1].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_ROUTE;
+    keys_to_table_id[1].lookup_number = 2;
+    keys_to_table_id[1].public_lpm_lookup_size = SOC_DPP_DBAL_ZERO_VRF_IN_KEY;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, prog_id, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,
+                                                                 keys_to_table_id, NULL, 2));
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+#endif /*#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)*/
+
+
+uint32
+   arad_pp_flp_dbal_ipv6uc_program_tables_init(
+     int unit
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};
+
+    SOCDNX_INIT_FUNC_DEFS;
+    if (soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "l3_ipv6_uc_use_tcam", 0)) {
+        SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv6uc_tcam_table_create(unit));
+        keys_to_table_id[0].lookup_number = 1;
+    } else {
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)
+        SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv6uc_kaps_table_create(unit));
+#endif /*#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)*/
+        keys_to_table_id[0].lookup_number = 2;
+        keys_to_table_id[0].public_lpm_lookup_size = SOC_DPP_DBAL_ZERO_VRF_IN_KEY;
+    }
+
+    keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+    keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_ROUTE;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, PROG_FLP_IPV6UC, ARAD_FP_DATABASE_STAGE_INGRESS_FLP, keys_to_table_id,
+                                                                 NULL, 1));
+  
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+uint32
+   arad_pp_flp_dbal_ipv6mc_program_tables_init(
+     int unit
+   )
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv6mc_table_create(unit));
+
+    if (soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "l3_mc_use_tcam", 0)) {
+
+        keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_C;
+        keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC;
+        keys_to_table_id[0].lookup_number = 1;        
+
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, PROG_FLP_IPV6MC, ARAD_FP_DATABASE_STAGE_INGRESS_FLP, keys_to_table_id, NULL, 1));
+    } else
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)    
+    {        
+        SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_ipv6uc_rpf_kaps_table_create(unit));
+
+        keys_to_table_id[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A;
+        keys_to_table_id[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV6UC_RPF_KAPS;
+        keys_to_table_id[0].lookup_number = 1;
+        keys_to_table_id[0].public_lpm_lookup_size = SOC_DPP_DBAL_ZERO_VRF_IN_KEY;
+
+        keys_to_table_id[1].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B;
+        keys_to_table_id[1].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_IPV6MC;
+        keys_to_table_id[1].lookup_number = 2;
+        keys_to_table_id[1].public_lpm_lookup_size = SOC_DPP_DBAL_ZERO_VRF_IN_KEY;
+
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, PROG_FLP_IPV6MC, ARAD_FP_DATABASE_STAGE_INGRESS_FLP, keys_to_table_id, NULL, 2));
+    }
+#else
+    {
+        SOCDNX_EXIT_WITH_ERR(SOC_E_INTERNAL, (_BSL_SOCDNX_MSG("ipv6mc Error no DB\n")));
+    }
+#endif /*#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)*/    
+    
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+uint32
+    arad_pp_flp_dbal_ipv6uc_kbp_table_init(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO qual_info = {0};
+    ARAD_PP_IHB_FLP_LOOKUPS_TBL_DATA flp_lookups_tbl;
+    ARAD_FP_DATABASE_STAGE stage = ARAD_FP_DATABASE_STAGE_INGRESS_FLP;
+    int msb_ce_offset = ARAD_PMF_LOW_LEVEL_CE_NDX_MAX + 1;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    /*KEY A LSB */
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_LOW;
+    qual_info.qual_offset = 0;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6UC, stage, SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 0, 4));
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_LOW;
+    qual_info.qual_offset = 32;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6UC, stage, SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 0, 5));
+
+    /*KEY A MSB */      
+    qual_info.qual_offset = 0;
+    qual_info.qual_type = SOC_PPC_FP_QUAL_IRPP_VRF;
+    arad_pp_dbal_qualifier_full_size_get(unit, stage, qual_info.qual_type, &(qual_info.qual_full_size), &(qual_info.qual_is_in_hdr));
+    qual_info.qual_nof_bits = qual_info.qual_full_size;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6UC, stage, SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 1, msb_ce_offset+0));
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_HIGH;
+    qual_info.qual_offset = 0;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6UC, stage, SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 1, msb_ce_offset+4));
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_HIGH;
+    qual_info.qual_offset = 32;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6UC, stage, SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 1, msb_ce_offset+5));
+
+    /*KEY B LSB*/
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_LOW;
+    qual_info.qual_offset = 0;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6UC, stage, SOC_DPP_DBAL_PROGRAM_KEY_B, qual_info, 0, 6));
+    
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_LOW;
+    qual_info.qual_offset = 32;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6UC, stage, SOC_DPP_DBAL_PROGRAM_KEY_B, qual_info, 0, 7));    
+
+    /*KEY B MSB*/
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH;
+    qual_info.qual_offset = 0;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6UC, stage, SOC_DPP_DBAL_PROGRAM_KEY_B, qual_info, 1, msb_ce_offset+6));
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH;
+    qual_info.qual_offset = 32;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6UC, stage, SOC_DPP_DBAL_PROGRAM_KEY_B, qual_info, 1, msb_ce_offset+7));
+
+    /* Lookup configurations */
+    SOCDNX_SAND_IF_ERR_EXIT(arad_pp_ihb_flp_lookups_tbl_get_unsafe(unit, PROG_FLP_IPV6UC, &flp_lookups_tbl));
+    flp_lookups_tbl.elk_lkp_valid = 0x1;
+    flp_lookups_tbl.elk_wait_for_reply = 0x1;
+    flp_lookups_tbl.elk_opcode = PROG_FLP_IPV6UC; /*ARAD_KBP_FRWRD_TABLE_OPCODE_IPV6_UC;*/
+    flp_lookups_tbl.elk_key_a_valid_bytes = 8; 
+    flp_lookups_tbl.elk_key_a_msb_valid_bytes = 10; 
+    flp_lookups_tbl.elk_key_b_valid_bytes = 8;  
+    flp_lookups_tbl.elk_key_b_msb_valid_bytes = 8; 
+    SOCDNX_SAND_IF_ERR_EXIT(arad_pp_ihb_flp_lookups_tbl_set_unsafe(unit, PROG_FLP_IPV6UC, &flp_lookups_tbl));
+    
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32
+    arad_pp_flp_dbal_ipv6mc_kbp_table_init(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO qual_info = {0};
+    ARAD_PP_IHB_FLP_LOOKUPS_TBL_DATA flp_lookups_tbl;
+    ARAD_FP_DATABASE_STAGE stage = ARAD_FP_DATABASE_STAGE_INGRESS_FLP;
+    int msb_ce_offset = ARAD_PMF_LOW_LEVEL_CE_NDX_MAX + 1;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    /*KEY A LSB */
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_HIGH;
+    qual_info.qual_offset = 32+16;
+    qual_info.qual_nof_bits = 16; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6MC, stage,SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 0, 0));
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_LOW;
+    qual_info.qual_offset = 0;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6MC, stage,SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 0, 4));
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_LOW;
+    qual_info.qual_offset = 32;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6MC, stage, SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 0, 5));
+
+
+    /*KEY A MSB */
+    qual_info.qual_type = SOC_PPC_FP_QUAL_IRPP_IN_RIF;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_qualifier_full_size_get(unit, stage,qual_info.qual_type, &(qual_info.qual_full_size), &(qual_info.qual_is_in_hdr)));
+    qual_info.qual_nof_bits = 16;
+    qual_info.qual_offset = 0;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6MC, stage,SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 1, msb_ce_offset+1));
+    
+    qual_info.qual_type = SOC_PPC_FP_QUAL_IRPP_VRF;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_qualifier_full_size_get(unit, stage,qual_info.qual_type, &(qual_info.qual_full_size), &(qual_info.qual_is_in_hdr)));
+    qual_info.qual_nof_bits = 16;
+    qual_info.qual_offset = 0;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6MC, stage,SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 1, msb_ce_offset+0));    
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_HIGH;
+    qual_info.qual_offset = 0;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6MC, stage,SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 1, msb_ce_offset+4));    
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_HIGH;
+    qual_info.qual_offset = 32;
+    qual_info.qual_nof_bits = 16; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6MC, stage,SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 1, msb_ce_offset+5));    
+
+    /*KEY B LSB*/
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_LOW;
+    qual_info.qual_offset = 0;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6MC, stage,SOC_DPP_DBAL_PROGRAM_KEY_B, qual_info, 0, 6));
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_LOW;
+    qual_info.qual_offset = 32;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6MC, stage,SOC_DPP_DBAL_PROGRAM_KEY_B, qual_info, 0, 7));
+
+    /*KEY B MSB*/                  
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH;
+    qual_info.qual_offset = 0;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6MC, stage, SOC_DPP_DBAL_PROGRAM_KEY_B, qual_info, 1, msb_ce_offset+6));
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH;
+    qual_info.qual_offset = 32;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, PROG_FLP_IPV6MC, stage, SOC_DPP_DBAL_PROGRAM_KEY_B, qual_info, 1, msb_ce_offset+7));
+    
+    /* Lookup configurations */
+    SOCDNX_SAND_IF_ERR_EXIT(arad_pp_ihb_flp_lookups_tbl_get_unsafe(unit, PROG_FLP_IPV6MC, &flp_lookups_tbl));
+    flp_lookups_tbl.elk_lkp_valid = 0x1;
+    flp_lookups_tbl.elk_wait_for_reply = 0x1;
+    flp_lookups_tbl.elk_opcode = PROG_FLP_IPV6MC; /*ARAD_KBP_FRWRD_TABLE_OPCODE_IPV6_MC_RPF;*/
+    flp_lookups_tbl.elk_key_a_valid_bytes = 10; 
+    flp_lookups_tbl.elk_key_a_msb_valid_bytes = 10; 
+    flp_lookups_tbl.elk_key_b_valid_bytes = 8;  
+    flp_lookups_tbl.elk_key_b_msb_valid_bytes = 8;
+    SOCDNX_SAND_IF_ERR_EXIT(arad_pp_ihb_flp_lookups_tbl_set_unsafe(unit, PROG_FLP_IPV6MC, &flp_lookups_tbl));
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+
+
+uint32
+    arad_pp_flp_dbal_ipv6uc_rpf_kbp_table_init(int unit, int prog_id)
+{
+    SOC_DPP_DBAL_QUAL_INFO qual_info = {0};
+    ARAD_PP_IHB_FLP_LOOKUPS_TBL_DATA flp_lookups_tbl;
+    ARAD_FP_DATABASE_STAGE stage = ARAD_FP_DATABASE_STAGE_INGRESS_FLP;
+    int msb_ce_offset = ARAD_PMF_LOW_LEVEL_CE_NDX_MAX + 1;
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    /*KEY A LSB */
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_HIGH;
+    qual_info.qual_offset = 32+16;
+    qual_info.qual_nof_bits = 16; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, prog_id, stage,SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 0, 0));
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_LOW;
+    qual_info.qual_offset = 0;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, prog_id, stage,SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 0, 4));
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_LOW;
+    qual_info.qual_offset = 32;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, prog_id, stage, SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 0, 5));
+
+
+    /*KEY A MSB */    
+    
+    qual_info.qual_type = SOC_PPC_FP_QUAL_IRPP_VRF;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_qualifier_full_size_get(unit, stage,qual_info.qual_type, &(qual_info.qual_full_size), &(qual_info.qual_is_in_hdr)));
+    qual_info.qual_nof_bits = 16;
+    qual_info.qual_offset = 0;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, prog_id, stage,SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 1, msb_ce_offset+0));    
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_HIGH;
+    qual_info.qual_offset = 0;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, prog_id, stage,SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 1, msb_ce_offset+4));    
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_SIP_HIGH;
+    qual_info.qual_offset = 32;
+    qual_info.qual_nof_bits = 16; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, prog_id, stage,SOC_DPP_DBAL_PROGRAM_KEY_A, qual_info, 1, msb_ce_offset+5));    
+
+    /*KEY B LSB*/
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_LOW;
+    qual_info.qual_offset = 0;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, prog_id, stage,SOC_DPP_DBAL_PROGRAM_KEY_B, qual_info, 0, 6));
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_LOW;
+    qual_info.qual_offset = 32;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, prog_id, stage,SOC_DPP_DBAL_PROGRAM_KEY_B, qual_info, 0, 7));
+
+    /*KEY B MSB*/                  
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH;
+    qual_info.qual_offset = 0;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, prog_id, stage, SOC_DPP_DBAL_PROGRAM_KEY_B, qual_info, 1, msb_ce_offset+6));
+
+    qual_info.qual_type = SOC_PPC_FP_QUAL_HDR_FWD_IPV6_DIP_HIGH;
+    qual_info.qual_offset = 32;
+    qual_info.qual_nof_bits = 32; 
+    qual_info.qual_full_size = 32;              
+
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_key_inst_set(unit, prog_id, stage, SOC_DPP_DBAL_PROGRAM_KEY_B, qual_info, 1, msb_ce_offset+7));
+    
+    /* Lookup configurations */
+    SOCDNX_SAND_IF_ERR_EXIT(arad_pp_ihb_flp_lookups_tbl_get_unsafe(unit, prog_id, &flp_lookups_tbl));
+    flp_lookups_tbl.elk_lkp_valid = 0x1;
+    flp_lookups_tbl.elk_wait_for_reply = 0x1;
+    flp_lookups_tbl.elk_opcode = PROG_FLP_IPV6UC_RPF; /*ARAD_KBP_FRWRD_TABLE_OPCODE_IPV6_UC_RPF*/
+    flp_lookups_tbl.elk_key_a_valid_bytes = 10; 
+    flp_lookups_tbl.elk_key_a_msb_valid_bytes = 8; 
+    flp_lookups_tbl.elk_key_b_valid_bytes = 8;  
+    flp_lookups_tbl.elk_key_b_msb_valid_bytes = 8; 
+    SOCDNX_SAND_IF_ERR_EXIT(arad_pp_ihb_flp_lookups_tbl_set_unsafe(unit, prog_id, &flp_lookups_tbl));
+
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32 
+    arad_pp_flp_dbal_source_lookup_with_aget_access_enable(int unit, int prog_id)
+{
+    ARAD_PP_IHB_FLP_LOOKUPS_TBL_DATA
+      flp_lookups_tbl;
+
+    SOCDNX_INIT_FUNC_DEFS;    
+
+    SOCDNX_SAND_IF_ERR_EXIT(arad_pp_ihb_flp_lookups_tbl_get_unsafe(unit, prog_id, &flp_lookups_tbl));
+
+    flp_lookups_tbl.lem_1st_lkp_key_type   = 1;
+
+    SOCDNX_SAND_IF_ERR_EXIT(arad_pp_ihb_flp_lookups_tbl_set_unsafe(unit, prog_id, &flp_lookups_tbl));
+exit:
+     SOCDNX_FUNC_RETURN;
+}
+
+
+uint32 
+arad_pp_flp_dbal_epon_uni_v6_static_lem_table_create(int unit)
+{
+     SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+     int is_table_initiated = 0;
+     SOCDNX_INIT_FUNC_DEFS;
+     SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_ETHERNET_TK_EPON_UNI_V6_STATIC_LEM, &is_table_initiated));
+     if (!is_table_initiated) {
+          DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+          /* LSB */
+          qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_IPV6_SIP_LOW; /* SIP 31:0 */
+          qual_info[0].qual_offset = 32;
+          qual_info[0].qual_nof_bits = 32;
+          qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_IPV6_SIP_LOW; /* SIP 63:32 */
+          qual_info[1].qual_nof_bits = 32;
+          qual_info[2].qual_type = SOC_PPC_FP_QUAL_TT_LOOKUP1_PAYLOAD; /* TCAM lookup result */
+          qual_info[2].qual_nof_bits = 9;  
+          SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_ETHERNET_TK_EPON_UNI_V6_STATIC_LEM,
+          ARAD_PP_FLP_IP_SPOOF_DHCP_KEY_OR_MASK, ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+          SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 3, ARAD_PP_LEM_ACCESS_KEY_TYPE_IP6_SPOOF_STATIC, qual_info, "FLP:TK_EPON_UNI_V6_STATIC_LEM"));
+     }
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+
+uint32
+arad_pp_flp_dbal_epon_uni_v6_static_tcam_table_create(int unit,uint32 tcam_access_profile_id)
+{
+     SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+     int is_table_initiated = 0;
+     
+     SOCDNX_INIT_FUNC_DEFS;
+     SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_ETHERNET_TK_EPON_UNI_V6_STATIC_TCM, &is_table_initiated));
+     if (!is_table_initiated) {
+          DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+         
+          qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_IPV6_SIP_LOW;  /* SIP 31:0 */
+          qual_info[0].qual_offset = 32;
+          qual_info[0].qual_nof_bits = 32;
+          qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_IPV6_SIP_LOW;  /* SIP 63:32 */
+          qual_info[1].qual_offset = 0;
+          qual_info[1].qual_nof_bits = 32;
+          qual_info[2].qual_type = SOC_PPC_FP_QUAL_HDR_IPV6_SIP_HIGH;  /* SIP 79:64 */
+          qual_info[2].qual_offset = 48;
+          qual_info[2].qual_nof_bits = 16;
+                                  
+          qual_info[3].qual_type = SOC_PPC_FP_QUAL_HDR_IPV6_SIP_HIGH;  /* SIP 95:80 */
+          qual_info[3].qual_offset = 32;
+          qual_info[3].qual_nof_bits = 16;
+          qual_info[4].qual_type = SOC_PPC_FP_QUAL_HDR_IPV6_SIP_HIGH;  /* SIP 127:96 */
+          qual_info[4].qual_offset = 0;
+          qual_info[4].qual_nof_bits = 32;
+
+          qual_info[5].qual_type = SOC_PPC_FP_QUAL_IRPP_IN_LIF; 
+          qual_info[5].qual_nof_bits = 18; 
+
+
+          SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_ETHERNET_TK_EPON_UNI_V6_STATIC_TCM, 
+          ARAD_TCAM_ACCESS_PROFILE_INVALID, 0,
+          SOC_DPP_DBAL_PHYSICAL_DB_TYPE_TCAM,6,0, qual_info, "FLP:TK_EPON_UNI_V6_STATIC_TCAM"));
+     }
+exit:
+     SOCDNX_FUNC_RETURN;
+}
+uint32 
+arad_pp_flp_dbal_epon_uni_v6_static_lem_default_table_create(int unit)
+{
+    SOC_DPP_DBAL_QUAL_INFO  qual_info[SOC_PPC_FP_NOF_QUALS_PER_DB_MAX];
+    int is_table_initiated = 0;
+    SOCDNX_INIT_FUNC_DEFS;
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_is_initiated(unit, SOC_DPP_DBAL_SW_TABLE_ID_ETHERNET_TK_EPON_UNI_V6_STATIC_LEM_DEFAULT, &is_table_initiated));
+    if (!is_table_initiated) {
+        DBAL_QUAL_INFO_CLEAR(&qual_info, SOC_PPC_FP_NOF_QUALS_PER_DB_MAX);
+        qual_info[0].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_SA;
+        qual_info[0].qual_offset = 32;
+        qual_info[0].qual_nof_bits = 16;
+        qual_info[1].qual_type = SOC_PPC_FP_QUAL_HDR_FWD_SA;
+        qual_info[1].qual_offset = 0;
+        qual_info[1].qual_nof_bits = 32;
+        qual_info[2].qual_type = SOC_PPC_FP_QUAL_FID;
+        qual_info[2].qual_offset = 0;
+        qual_info[2].qual_nof_bits = 15;
+        SOCDNX_IF_ERR_EXIT(arad_pp_dbal_table_create(unit, SOC_DPP_DBAL_SW_TABLE_ID_ETHERNET_TK_EPON_UNI_V6_STATIC_LEM_DEFAULT, 
+        ARAD_PP_FLP_ETH_KEY_OR_MASK(unit), ARAD_PP_LEM_ACCESS_KEY_PREFIX_SIZE_IN_BITS,
+        SOC_DPP_DBAL_PHYSICAL_DB_TYPE_LEM, 3, 0, qual_info, "FLP: TK_EPON_UNI_V6_STATIC_LEM_DEFAULT"));
+    }
+exit:
+    SOCDNX_FUNC_RETURN;
+}
+uint32  
+    arad_pp_flp_dbal_ethernet_tk_epon_uni_v6_program_tables_init(int unit,uint8 sa_auth_enabled,uint8 slb_enabled,uint32 tcam_access_profile_id)
+{
+    SOC_DPP_DBAL_KEY_TO_TABLE keys_to_table_id_static[SOC_DPP_DBAL_PROGRAM_NOF_KEYS] = {{0}};
+    SOCDNX_INIT_FUNC_DEFS;
+    /* static */
+    if (SOC_DPP_CONFIG(unit)->pp.compression_spoof_ip6_enable) {
+        SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_epon_uni_v6_static_lem_table_create(unit)); 
+        keys_to_table_id_static[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_A; /* Key A */ 
+        keys_to_table_id_static[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_ETHERNET_TK_EPON_UNI_V6_STATIC_LEM;
+        keys_to_table_id_static[0].lookup_number = 2;
+    }
+    else {
+        SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_epon_uni_v6_static_tcam_table_create(unit, tcam_access_profile_id));   
+        keys_to_table_id_static[0].key_id = SOC_DPP_DBAL_PROGRAM_KEY_C;
+        keys_to_table_id_static[0].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_ETHERNET_TK_EPON_UNI_V6_STATIC_TCM;
+        keys_to_table_id_static[0].lookup_number = 1;
+    }
+    /*learning DB,don't need to add entry by code*/
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_epon_uni_v6_static_lem_default_table_create(unit));  
+    keys_to_table_id_static[1].key_id = SOC_DPP_DBAL_PROGRAM_KEY_B;
+    keys_to_table_id_static[1].sw_table_id = SOC_DPP_DBAL_SW_TABLE_ID_ETHERNET_TK_EPON_UNI_V6_STATIC_LEM_DEFAULT;
+
+    keys_to_table_id_static[1].lookup_number = ((!sa_auth_enabled && !slb_enabled)? 1 : 0);
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_program_to_tables_associate(unit, PROG_FLP_ETHERNET_TK_EPON_UNI_V6_STATIC, ARAD_FP_DATABASE_STAGE_INGRESS_FLP,
+    keys_to_table_id_static, NULL, 2 ));
+    SOCDNX_IF_ERR_EXIT(arad_pp_dbal_flp_hw_based_key_enable(unit, PROG_FLP_ETHERNET_TK_EPON_UNI_V6_STATIC, 
+       SOC_DPP_HW_KEY_LOOKUP_IN_LEARN_KEY));
+    SOCDNX_IF_ERR_EXIT(arad_pp_flp_dbal_source_lookup_with_aget_access_enable(unit, PROG_FLP_ETHERNET_TK_EPON_UNI_V6_STATIC));
+    
+exit:
+    SOCDNX_FUNC_RETURN;
+} 
+
+
+uint32 
+    arad_pp_flp_dbal_program_info_dump(int unit, uint32 prog_id)
+{
+    ARAD_PP_IHB_FLP_KEY_CONSTRUCTION_TBL_DATA flp_key_cons_lsb, flp_key_cons_msb;
+    ARAD_PP_IHB_FLP_LOOKUPS_TBL_DATA lookups_tbl;    
+
+    SOCDNX_INIT_FUNC_DEFS;    
+
+    SOCDNX_SAND_IF_ERR_EXIT(arad_pp_ihb_flp_key_construction_tbl_get_unsafe(unit, prog_id, &flp_key_cons_lsb));
+    SOCDNX_SAND_IF_ERR_EXIT(arad_pp_ihb_flp_key_construction_tbl_get_unsafe(unit, prog_id+ARAD_PP_FLP_INSTRUCTIONS_NOF, &flp_key_cons_msb));
+    SOCDNX_SAND_IF_ERR_EXIT(arad_pp_ihb_flp_lookups_tbl_get_unsafe(unit, prog_id, &lookups_tbl));
+
+    if (!SOC_IS_JERICHO(unit)) { /* values received in Jericho are not correct */
+        LOG_CLI((BSL_META(" KEYS:")));
+
+        if ((flp_key_cons_lsb.key_a_inst_0_to_5_valid) || (flp_key_cons_msb.key_a_inst_0_to_5_valid)) {
+            LOG_CLI((BSL_META("\t Key A: LSB = 0x%x, MSB = 0x%x,"), flp_key_cons_lsb.key_a_inst_0_to_5_valid, flp_key_cons_msb.key_a_inst_0_to_5_valid));
+        } else {
+            LOG_CLI((BSL_META("\t Key A: no CE assigned,")));
+        }
+
+        if (flp_key_cons_lsb.key_b_inst_0_to_5_valid || (flp_key_cons_msb.key_b_inst_0_to_5_valid)) {
+            LOG_CLI((BSL_META("\tKey B: LSB = 0x%x, MSB = 0x%x,"), flp_key_cons_lsb.key_b_inst_0_to_5_valid, flp_key_cons_msb.key_b_inst_0_to_5_valid));
+        } else {
+            LOG_CLI((BSL_META("\tKey B: no CE assigned,")));
+        }
+
+        if (flp_key_cons_lsb.key_c_inst_0_to_5_valid || (flp_key_cons_msb.key_c_inst_0_to_5_valid)) {
+            LOG_CLI((BSL_META("\tKey C: LSB = 0x%02x, MSB = 0x%x"), flp_key_cons_lsb.key_c_inst_0_to_5_valid, flp_key_cons_msb.key_c_inst_0_to_5_valid));
+        } else {
+            LOG_CLI((BSL_META("\tKey C: no CE assigned ")));
+        }
+
+        if (SOC_IS_JERICHO(unit)) {
+            if (flp_key_cons_lsb.key_d_inst_0_to_7_valid || (flp_key_cons_msb.key_d_inst_0_to_7_valid)) {
+                LOG_CLI((BSL_META(",\tKey D: LSB = 0x%x, MSB = 0x%x"), flp_key_cons_lsb.key_d_inst_0_to_7_valid, flp_key_cons_msb.key_d_inst_0_to_7_valid));
+            } else {
+                LOG_CLI((BSL_META(",\tKey D: no CE assigned ")));
+            }
+        }
+        LOG_CLI((BSL_META("\n")));
+    }
+
+    LOG_CLI((BSL_META("LOOKUPS: ")));
+
+    if(lookups_tbl.lem_1st_lkp_valid == 1) {
+        LOG_CLI((BSL_META("\tLEM 1st with: %s"), arad_pp_dbal_key_id_to_string(unit, lookups_tbl.lem_1st_lkp_key_select) ));
+    }else{
+        LOG_CLI((BSL_META("\tLEM 1st isn't valid")));
+    }
+    if(lookups_tbl.lem_2nd_lkp_valid == 1) {
+        LOG_CLI((BSL_META("\tLEM 2nd with: %s"), arad_pp_dbal_key_id_to_string(unit, lookups_tbl.lem_2nd_lkp_key_select) ));
+    }else{
+        LOG_CLI((BSL_META("\tLEM 2nd isn't valid")));
+    }    
+
+    if(lookups_tbl.lpm_1st_lkp_valid == 1) {
+        LOG_CLI((BSL_META("\tLPM 1st with: %s"), arad_pp_dbal_key_id_to_string(unit, lookups_tbl.lpm_1st_lkp_key_select) ));
+    }else{
+        LOG_CLI((BSL_META("\tLPM 1st isn't valid")));
+    }    
+
+    if(lookups_tbl.lpm_2nd_lkp_valid == 1) {
+        LOG_CLI((BSL_META("\tLPM 2nd with: %s"),arad_pp_dbal_key_id_to_string(unit, lookups_tbl.lpm_2nd_lkp_key_select) ));
+    }else{
+        LOG_CLI((BSL_META("\tLPM 2nd isn't valid")));
+    }    
+
+    if (lookups_tbl.tcam_lkp_db_profile != ARAD_TCAM_ACCESS_PROFILE_INVALID ) {
+        uint32 key_select = lookups_tbl.tcam_lkp_key_select;
+        if (!SOC_IS_JERICHO(unit)) {
+            if (lookups_tbl.tcam_lkp_key_select == ARAD_PP_FLP_TCAM_LKP_KEY_SELECT_KEY_C_HW_VAL) {
+                key_select = SOC_DPP_DBAL_PROGRAM_KEY_C;
+            }else{
+                key_select = SOC_DPP_DBAL_PROGRAM_KEY_A;
+            }
+        }
+        LOG_CLI((BSL_META("\tTCAM 1st with: %s DB %d "), arad_pp_dbal_key_id_to_string(unit, key_select), lookups_tbl.tcam_lkp_db_profile ));        
+    }else{
+        LOG_CLI((BSL_META("\tTCAM 1st is not valid    ")));
+    }    
+
+    if (SOC_IS_JERICHO(unit)) {
+        if (lookups_tbl.tcam_lkp_db_profile_1 != ARAD_TCAM_ACCESS_PROFILE_INVALID ) {
+            LOG_CLI((BSL_META("\tTCAM 2nd with: %s DB %d "), arad_pp_dbal_key_id_to_string(unit, lookups_tbl.tcam_lkp_key_select_1), lookups_tbl.tcam_lkp_db_profile_1 ));
+        }else{
+            LOG_CLI((BSL_META("\tTCAM 2nd is not valid    ")));
+        }
+    }
+
+    if(lookups_tbl.elk_lkp_valid == 1){
+        LOG_CLI((BSL_META("\tKBP with: A=%d, B=%d, C=%d opcode %d\n"), lookups_tbl.elk_key_a_valid_bytes,lookups_tbl.elk_key_b_valid_bytes, lookups_tbl.elk_key_c_valid_bytes, lookups_tbl.elk_opcode));        
+    }
+
+    LOG_CLI((BSL_META("\n\n")));
+exit:
+     SOCDNX_FUNC_RETURN;
+}

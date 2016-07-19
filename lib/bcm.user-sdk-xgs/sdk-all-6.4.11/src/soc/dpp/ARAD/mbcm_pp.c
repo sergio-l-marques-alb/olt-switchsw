@@ -1,0 +1,222 @@
+/*
+ * $Id: mbcm.c,v 1.74 Broadcom SDK $
+ * $Copyright: Copyright 2016 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File:        mbcm.c
+ */
+
+#include <soc/dpp/mbcm_pp.h>
+
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_mymac.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_port.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_mact_mgmt.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_fcf.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_fec.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_oam.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_occupation_mgmt.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_fp.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_mpls_term.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_oam.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_oamp_pe.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_eg_encap.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_l3_src_bind.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_ip_tcam.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_extender.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_metering.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_ptp.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_flp_dbal.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_eg_encap_access.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_llp_parse.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_lif.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_ptp.h>
+
+CONST mbcm_pp_functions_t mbcm_pp_arad_driver = {
+    arad_pp_frwrd_mact_cpu_counter_learn_limit_set,
+    arad_pp_frwrd_mact_cpu_counter_learn_limit_get,
+    arad_pp_frwrd_mact_transplant_static_get,
+    arad_pp_frwrd_mact_transplant_static_set,
+    arad_pp_frwrd_mact_clear_access_bit,
+    arad_pp_frwrd_mact_opport_mode_get,
+	NULL,					/* arad_pp_frwrd_mact_event_handle_info_set_dma */
+    NULL,                   /* arad_pp_frwrd_mact_learning_dma_set */
+    NULL,                   /* arad_pp_frwrd_mact_learning_dma_unset */
+    NULL,                   /* arad_pp_frwrd_mact_event_handler_callback_register */
+    arad_pp_mpls_termination_spacial_labels_init,
+    NULL,                   /* mbcm_pp_mpls_termination_range_action_set */
+    NULL,                   /* mbcm_pp_mpls_termination_range_action_get */
+    NULL,                   /* mbcm_pp_mpls_termination_range_profile_set */
+    NULL,                   /* mbcm_pp_mpls_termination_range_profile_get */
+    NULL,                   /* mbcm_pp_mymac_protocol_group_set_f */
+    NULL,                   /* mbcm_pp_mymac_protocol_group_get_protocol_by_group */
+    NULL,                   /* mbcm_pp_mymac_protocol_group_get_group_by_protocols */
+    arad_pp_mymac_vrid_mymac_map_set_to_all_vsi,
+    arad_pp_mymac_vrrp_cam_info_set,
+    arad_pp_mymac_vrrp_cam_info_get,           
+    arad_pp_mymac_vrrp_cam_info_delete,
+    arad_pp_port_property_set,
+    arad_pp_port_property_get,
+    arad_pp_oam_my_cfm_mac_delete,
+    arad_pp_oam_my_cfm_mac_set,
+    arad_pp_oam_my_cfm_mac_get,
+	arad_pp_frwrd_fcf_npv_switch_set,
+    arad_pp_frwrd_fcf_npv_switch_get,
+    arad_pp_occ_mgmt_app_set,
+    arad_pp_occ_mgmt_app_get,
+    arad_pp_occ_mgmt_get_app_mask,
+    arad_pp_occ_mgmt_init,
+    arad_pp_occ_mgmt_deinit,
+	arad_pp_frwrd_fcf_vsan_mode_set,
+    arad_pp_frwrd_fcf_vsan_mode_get,
+    arad_pp_fp_presel_max_id_get,
+    NULL,                   /* mbcm_pp_ingress_protection_state_set_f */
+    NULL,                   /* mbcm_pp_ingress_protection_state_get_f */
+    NULL,                   /* mbcm_pp_lif_glem_access_entry_add_f */
+    NULL,                   /* mbcm_pp_lif_glem_access_entry_remove_f */
+    NULL,                   /* mbcm_pp_lif_glem_access_entry_by_key_get_f */
+    arad_pp_port_additional_tpids_set,
+    arad_pp_port_additional_tpids_get,
+    NULL,                   /* mbcm_pp_oam_sa_addr_msbs_set */
+    NULL,                   /* mbcm_pp_oam_sa_addr_msbs_get */
+    NULL,                   /* mbcm_pp_egress_protection_state_set_f */
+    NULL,                    /* mbcm_pp_egress_protection_state_get_f */
+    NULL,                    /* mbcm_pp_oam_dm_trigger_set */
+    arad_pp_oam_oamp_1dm_get,
+    arad_pp_oam_oamp_1dm_set,
+    arad_pp_oamp_pe_use_1dm_check,
+    NULL,                    /*soc_jer_eg_encap_ether_type_index_clear*/
+    NULL,                    /*soc_jer_eg_encap_ether_type_index_set*/ 
+    NULL,                    /*soc_jer_eg_encap_ether_type_index_get*/
+    NULL,                   /*soc_jer_pp_network_group_config_set*/
+    NULL,                   /*soc_jer_pp_network_group_config_get*/
+    arad_pp_oam_inlif_profile_map_set,
+    arad_pp_oam_inlif_profile_map_get,
+    arad_pp_oam_classifier_default_profile_add,
+    arad_pp_oam_classifier_default_profile_remove,
+	arad_pp_lem_access_bfd_one_hop_lem_entry_add,
+	arad_pp_lem_access_bfd_one_hop_lem_entry_remove,
+	NULL  /* mbcm_pp_oam_egress_pcp_set_by_profile_and_tc*/,
+    arad_pp_oam_oamp_pe_gen_mem_set,
+	arad_pp_aging_num_of_cycles_get,
+    arad_pp_eg_trill_entry_set,
+    NULL,                  /*mbcm_pp_lif_additional_data_set*/
+    NULL,                   /*mbcm_pp_lif_additional_data_get*/
+    NULL,                   /*mbcm_pp_lif_is_wide_entry*/
+	arad_pp_oam_bfd_discriminator_rx_range_set,
+    arad_pp_oam_bfd_discriminator_rx_range_get,
+    arad_pp_oam_bfd_acc_endpoint_tx_disable,
+    arad_pp_ip6_compression_add,
+    arad_pp_ip6_compression_delete,
+    arad_pp_ip6_compression_get,
+    NULL,                    /* soc_jer_pp_diag_kaps_lkup_info_get*/
+    NULL,                    /* soc_jer_pp_lag_print_ecmp_lb_data */
+    NULL,                    /* mbcm_pp_eg_encap_direct_bank_set */
+    NULL,                    /* mbcm_pp_eg_encap_extension_mapping_set */
+    NULL,                    /* mbcm_pp_eg_encap_extension_mapping_get */
+    NULL,                    /* mbcm_pp_eg_encap_extension_type_set */
+    NULL,                    /* mbcm_pp_eg_encap_extension_type_get */
+    NULL,                    /*arad_pp_oamp_report_mode_set*/
+    NULL,                     /*arad_pp_oamp_report_mode_get*/
+    NULL,                     /*mbcm_pp_rif_global_urpf_mode_set*/
+    arad_pp_frwrd_ip_tcam_ipmc_ssm_add,                /* mbcm_pp_ipmc_ssm_tcam_entry_add */
+    arad_pp_frwrd_ip_tcam_ipmc_ssm_delete,             /* mbcm_pp_ipmc_ssm_tcam_entry_delete */
+    arad_pp_frwrd_ip_tcam_ipmc_ssm_get,                /* mbcm_pp_ipmc_ssm_tcam_entry_get */
+    arad_pp_extender_port_info_set,
+    arad_pp_extender_port_info_get,
+    arad_pp_extender_init,
+    arad_pp_extender_deinit,
+    arad_pp_mtr_meter_ins_bucket_get,
+    arad_pp_ptp_p2p_delay_set,
+    arad_pp_ptp_p2p_delay_get,
+    NULL,                     /*soc_jer_eg_encap_map_encap_intpri_color_set*/
+    NULL,                     /*soc_jer_eg_encap_map_encap_intpri_color_get*/
+	arad_pp_oam_tod_set,
+	arad_pp_flp_dbal_bfd_echo_program_tables_init,
+    arad_pp_eg_encap_access_clear_bank,
+    arad_pp_oam_oamp_loopback_set,
+    arad_pp_oam_oamp_loopback_get,
+    arad_pp_extender_global_etag_ethertype_set,
+    arad_pp_extender_global_etag_ethertype_get,
+    arad_pp_llp_parse_packet_format_eg_info_set,
+    arad_pp_llp_parse_packet_format_eg_info_get,
+	arad_pp_oam_slm_set,
+    arad_pp_oam_counter_increment_bitmap_set,	
+	arad_pp_mtr_policer_global_sharing_set,
+	arad_pp_mtr_policer_global_sharing_get,
+    NULL,                         /*pp_oam_classifier_oem1_entry_set_unsafe*/
+    NULL,                /*    soc_jer_eg_etpp_trap_set    */  
+    NULL,                 /*    soc_jer_eg_etpp_trap_get    */           
+    NULL, /*soc_jer_pp_oam_oamp_lb_tst_header_set*/           
+	arad_pp_metering_pcd_entry_get,
+	arad_pp_metering_pcd_entry_set,
+	arad_pp_metering_dp_map_entry_get,
+	arad_pp_metering_dp_map_entry_set,
+    NULL,/*soc_jer_diag_glem_signals_get*/
+    NULL,                         /*pp_oam_classifier_oem1_init*/
+    arad_pp_l2_lif_extender_get,
+    arad_pp_l2_lif_extender_remove,
+    arad_pp_extender_eve_etag_format_set,
+    arad_pp_extender_eve_etag_format_get,
+    arad_pp_oam_oamp_punt_event_hendling_profile_set,
+    arad_pp_oam_oamp_punt_event_hendling_profile_get,
+    NULL,    /* mbcm_pp_eg_encap_ip_tunnel_size_protocol_template_set */
+	arad_pp_mtr_policer_ipg_compensation_set,
+	arad_pp_mtr_policer_ipg_compensation_get,
+	NULL, /*mbcm_pp_mtr_policer_hdr_compensation_set*/
+	NULL, /*mbcm_pp_mtr_policer_hdr_compensation_get*/
+    arad_pp_frwrd_fec_is_protected_get,
+    NULL,/*mbcm_pp_ipmc_ssm_entry_add*/
+    NULL,/*mbcm_pp_ipmc_ssm_entry_delete*/
+    NULL,/*mbcm_pp_ipmc_ssm_entry_get*/
+
+    NULL, /*mbcm_pp_eg_vlan_edit_packet_is_tagged_set*/
+    NULL, /*mbcm_pp_eg_vlan_edit_packet_is_tagged_get*/
+
+    NULL, /* mbcm_dpp_pp_eg_encap_null_value_set */
+    NULL, /* mbcm_dpp_pp_eg_encap_null_value_get */
+    NULL, /*mbcm_pp_eg_encap_push_2_swap_init*/
+	NULL, /*mbcm_pp_ecmp_hash_slb_combine_set*/
+	NULL, /*mbcm_pp_ecmp_hash_slb_combine_get*/
+	arad_pp_oam_oamp_protection_packet_header_raw_set,
+	arad_pp_oam_oamp_protection_packet_header_raw_get,
+	arad_pp_frwrd_fec_entry_uc_rpf_mode_set,
+};
