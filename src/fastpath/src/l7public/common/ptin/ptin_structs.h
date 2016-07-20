@@ -7,7 +7,7 @@
 #include <ethsrv_oam.h>
 
 /* Fort systems Little Endian and if not pizza box, invert bytes */
-#define MNGMT_DIFFERENT_ENDIANNESS     (!defined(BE_HOST) && (!PTIN_BOARD_IS_STANDALONE))
+#define MNGMT_DIFFERENT_ENDIANNESS     ((__BYTE_ORDER == __LITTLE_ENDIAN) && (!PTIN_BOARD_IS_STANDALONE))
 #if MNGMT_DIFFERENT_ENDIANNESS
 
 #define ENDIAN_SWAP8(val) \
@@ -28,6 +28,18 @@
 #define ENDIAN_SWAP32(val) (val)
 #define ENDIAN_SWAP64(val) (val)
 
+#endif
+
+#if MNGMT_DIFFERENT_ENDIANNESS
+#define ENDIAN_SWAP8_MOD(val)
+#define ENDIAN_SWAP16_MOD(val)  { val = ENDIAN_SWAP16(val); }
+#define ENDIAN_SWAP32_MOD(val)  { val = ENDIAN_SWAP32(val); }
+#define ENDIAN_SWAP64_MOD(val)  { val = ENDIAN_SWAP64(val); }
+#else
+#define ENDIAN_SWAP8_MOD(val)
+#define ENDIAN_SWAP16_MOD(val)
+#define ENDIAN_SWAP32_MOD(val)
+#define ENDIAN_SWAP64_MOD(val)
 #endif
 
 /*Bitmap Macro Handlers*/
