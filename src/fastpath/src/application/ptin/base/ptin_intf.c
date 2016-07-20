@@ -147,13 +147,11 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_intf_init(void)
+L7_RC_t ptin_intf_pre_init(void)
 {
   L7_uint   i;
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
-  ptin_intf_t ptin_intf;
-  L7_uint32 mtu_size;
 
   /* Reset structures (everything is set to 0xFF) */
   memset(map_port2intIfNum,   0xFF, sizeof(map_port2intIfNum));
@@ -206,6 +204,25 @@ L7_RC_t ptin_intf_init(void)
   do
     osapiSleepMSec(100);
   while (!dot1qQueueIsEmpty());
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Initializes the ptin_intf module (structures) and several interfaces 
+ * related configurations.
+ *  
+ * NOTE: This function must be invoked ONLY after fastpath initialization. 
+ * During Init phase1/2/3 stages, the interfaces MAY NOT be initialized! 
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_intf_post_init(void)
+{
+  L7_uint   i;
+  L7_RC_t   rc = L7_SUCCESS;
+  ptin_intf_t ptin_intf;
+  L7_uint32 mtu_size;
 
   /* Initialize phy default TPID and MTU */
   for (i=0; i<ptin_sys_number_of_ports; i++)
