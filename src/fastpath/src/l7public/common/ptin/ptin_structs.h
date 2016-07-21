@@ -21,6 +21,9 @@
   ((unsigned long long) (((unsigned long long)(val) >> 56) | (((unsigned long long)(val) >> 40) & 0x000000000000ff00ULL) | (((unsigned long long)(val) >> 24) & 0x0000000000ff0000ULL) | (((unsigned long long)(val) >> 8) & 0x00000000ff000000ULL) | \
                          ((unsigned long long)(val) << 56) | (((unsigned long long)(val) << 40) & 0x00ff000000000000ULL) | (((unsigned long long)(val) << 24) & 0x0000ff0000000000ULL) | (((unsigned long long)(val) << 8) & 0x000000ff00000000ULL)))
 
+/* Only applied to variables (not values or constants) */
+#define ENDIAN_SWAP_VAR(var) ((sizeof(var)==2) ? ENDIAN_SWAP16(val) : ((sizeof(var)==4) ? ENDIAN_SWAP32(val) : ((sizeof(var)==8) ? ENDIAN_SWAP64(val) : (var))))
+
 #else
 
 #define ENDIAN_SWAP8(val)  (val)
@@ -31,15 +34,23 @@
 #endif
 
 #if MNGMT_DIFFERENT_ENDIANNESS
+/* Only applied to variables (not values or constants) */
 #define ENDIAN_SWAP8_MOD(val)
 #define ENDIAN_SWAP16_MOD(val)  { val = ENDIAN_SWAP16(val); }
 #define ENDIAN_SWAP32_MOD(val)  { val = ENDIAN_SWAP32(val); }
 #define ENDIAN_SWAP64_MOD(val)  { val = ENDIAN_SWAP64(val); }
+#define ENDIAN_SWAP_MOD(val) \
+{ \
+  if (sizeof(val) == 2)       ENDIAN_SWAP16_MOD(val); \
+  else if (sizeof(val) == 4)  ENDIAN_SWAP32_MOD(val); \
+  else if (sizeof(val) == 8)  ENDIAN_SWAP64_MOD(val); \
+}
 #else
 #define ENDIAN_SWAP8_MOD(val)
 #define ENDIAN_SWAP16_MOD(val)
 #define ENDIAN_SWAP32_MOD(val)
 #define ENDIAN_SWAP64_MOD(val)
+#define ENDIAN_SWAP_MOD(val)
 #endif
 
 /*Bitmap Macro Handlers*/
@@ -284,6 +295,10 @@ typedef struct chmessage_ip_addr_s {
       L7_uint8    ipv6[16];   /* 128 bit IPv6 address in network byte order */
    }__attribute__((packed)) addr;
 }__attribute__((packed)) chmessage_ip_addr_t;
+
+/* For chmessage_ip_addr_t message structs */
+#define CHMSG_IP_ADDR_SWAP_MOD(ip_addr)   { if (ip_addr.family == PTIN_AF_INET)  ENDIAN_SWAP32_MOD(ip_addr.addr.ipv4);   }
+#define CHMSG_IP_ADDR_SWAP_COPY(dst,src)  { memcpy(&dst,&src,sizeof(chmessage_ip_addr_t)); CHMSG_IP_ADDR_SWAP_MOD(dst);  }
 
 /* PTin Interface */
 typedef struct {
