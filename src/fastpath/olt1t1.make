@@ -20,32 +20,37 @@ help h:
 	@echo "Makefile Help            "
 	@echo " make kernel_cxo160g     "
 	@echo " make kernel_ta48ge      "
-	@echo " make kernel_tg16g       "
 	@echo " make kernel_tg4g        "
+	@echo " make kernel_tg16g       "
+	@echo " make kernel_tg16gf      "
 	@echo ""
 	@echo " make all                "
 	@echo " make cxo160g            "
 	@echo " make ta48ge             "
-	@echo " make tg16g              "
 	@echo " make tg4g               "
+	@echo " make tg16g              "
+	@echo " make tg16gf             "
 	@echo ""
 	@echo " make clean              "
 	@echo " make clean_cxo160g      "
 	@echo " make clean_ta48ge       "
-	@echo " make clean_tg16g        "
 	@echo " make clean_tg4g         "
+	@echo " make clean_tg16g        "
+	@echo " make clean_tg16gf       "
 	@echo ""
 	@echo " make cleanall           "
 	@echo " make cleanall_cxo160g   "
 	@echo " make cleanall_ta48ge    "
-	@echo " make cleanall_tg16g     "
 	@echo " make cleanall_tg4g      "
+	@echo " make cleanall_tg16g     "
+	@echo " make cleanall_tg16gf    "
 	@echo ""
 	@echo " make install            "
 	@echo " make install_cxo160g    "
 	@echo " make install_ta48ge     "
+	@echo " make install_tg4g       "
 	@echo " make install_tg16g      "
-	@echo " make install_tg4g      "
+	@echo " make install_tg16gf     "
 	@echo ""
 	@echo " make image              "
 	@echo ""
@@ -62,6 +67,9 @@ kernel_tg4g:
 kernel_tg16g:
 	@$(MAKE) -f tg16g.make kernel
 
+kernel_tg16gf:
+	@$(MAKE) -f tg16gf.make kernel
+
 cxo160g:
 	@$(MAKE) -f cxo160g.make
 
@@ -73,6 +81,9 @@ tg4g:
 
 tg16g:
 	@$(MAKE) -f tg16g.make
+
+tg16gf:
+	@$(MAKE) -f tg16gf.make
 
 clean_cxo160g:
 	@$(MAKE) -f cxo160g.make clean
@@ -86,6 +97,9 @@ clean_tg4g:
 clean_tg16g:
 	@$(MAKE) -f tg16g.make clean
 
+clean_tg16gf:
+	@$(MAKE) -f tg16gf.make clean
+
 cleanall_cxo160g:
 	@$(MAKE) -f cxo160g.make cleanall
 
@@ -97,6 +111,9 @@ cleanall_tg4g:
 
 cleanall_tg16g:
 	@$(MAKE) -f tg16g.make cleanall
+
+cleanall_tg16gf:
+	@$(MAKE) -f tg16gf.make cleanall
 
 install_cxo160g:
 	@$(MAKE) -f cxo160g.make install
@@ -110,13 +127,16 @@ install_tg4g:
 install_tg16g:
 	@$(MAKE) -f tg16g.make install
 
-all:		cxo160g tg16g ta48ge
+install_tg16gf:
+	@$(MAKE) -f tg16g.make install
 
-install:	install_cxo160g install_ta48ge install_tg16g
+all:		cxo160g ta48ge tg16g tg16gf
 
-clean:		clean_cxo160g clean_ta48ge clean_tg16g
+install:	install_cxo160g install_ta48ge install_tg16g install_tg16gf
 
-cleanall:	cleanall_cxo160g cleanall_ta48ge cleanall_tg16g
+clean:		clean_cxo160g clean_ta48ge clean_tg16g clean_tg16gf
+
+cleanall:	cleanall_cxo160g cleanall_ta48ge cleanall_tg16g cleanall_tg16gf
 
 image:		install
 		cd $(IMAGE_DIR) && ./fastpath-olt1t1.build $(version)
