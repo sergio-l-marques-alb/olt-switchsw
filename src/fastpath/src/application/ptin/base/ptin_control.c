@@ -182,6 +182,13 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   }
   PT_LOG_INFO(LOG_CTX_CNFGR, "Storm Control is active with default values.");
 
+  /* Initialize PTin Interface module data structures */
+  if (ptin_intf_pre_init() != L7_SUCCESS)
+  {
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Error initializing PTin Interface module! CRASH!");
+    PTIN_CRASH();
+  }
+
   /* Apply configuration on DTL and lower layers */
   if (dtlPtinInit() != L7_SUCCESS)
   {
@@ -189,10 +196,9 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
 
-  /* Initialize PTin Interface module data structures
-   * Note: ptin_intf_data_init() needs to be invoked ONLY after nim
+  /* Note: ptin_intf_data_init() needs to be invoked ONLY after nim
    * initialization, which can be guaranteed at this stage */
-  if (ptin_intf_init() != L7_SUCCESS)
+  if (ptin_intf_post_init() != L7_SUCCESS)
   {
     PT_LOG_FATAL(LOG_CTX_CNFGR, "Error initializing PTin Interface module! CRASH!");
     PTIN_CRASH();
