@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=3.8
+version=3.9
 patch=0
 svnUpdate=1
 

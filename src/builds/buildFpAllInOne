@@ -6,7 +6,7 @@ scriptVerbose=1
 ########End Debug Flags###########
 
 ###########OLT Version and Patch Version##################
-oltVersion=3.8
+oltVersion=3.9
 patchVersion=0
 
 ###############Input Arguments Validation#########################
