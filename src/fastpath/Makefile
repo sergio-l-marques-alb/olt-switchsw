@@ -23,72 +23,68 @@ help h:
 	@echo " make olt360             "
 	@echo " make olt1t3             "
 	@echo " make olt1t1             "
-	@echo " make olt1t0             "
+	@echo " make olt1t0x            "
 	@echo ""
 	@echo " make clean              "
 	@echo " make clean_olt360       "
 	@echo " make clean_olt1t3       "
 	@echo " make clean_olt1t1       "
-	@echo " make clean_olt1t0       "
+	@echo " make clean_olt1t0x      "
 	@echo ""
 	@echo " make cleanall           "
 	@echo " make cleanall_olt360    "
 	@echo " make cleanall_olt1t3    "
 	@echo " make cleanall_olt1t1    "
-	@echo " make cleanall_olt1t0    "
+	@echo " make cleanall_olt1t0x   "
 	@echo ""
 	@echo " make install            "
 	@echo " make install_olt360     "
 	@echo " make install_olt1t3     "
 	@echo " make install_olt1t1     "
-	@echo " make install_olt1t0     "
+	@echo " make install_olt1t0x    "
 	@echo ""
 	@echo " make image              "
 	@echo " make image_olt360       "
 	@echo " make image_olt1t3       "
 	@echo " make image_olt1t1       "
-	@echo " make image_olt1t0       "
+	@echo " make image_olt1t0x      "
 	@echo ""
 
 all:
-	#@$(MAKE) -f cxp360g.make
-	#@$(MAKE) -f tolt8g.make
-	@$(MAKE) -f tg16g.make
-	#@$(MAKE) -f tg4g.make
-	@$(MAKE) -f ta48ge.make
 	@$(MAKE) -f cxo640g.make
 	@$(MAKE) -f cxo160g.make
+	@$(MAKE) -f ta48ge.make
+	@$(MAKE) -f tg16g.make
+	@$(MAKE) -f tg16gf.make
 	@$(MAKE) -f olt1t0.make
+	@$(MAKE) -f olt1t0f.make
 
 install:
-	#@$(MAKE) -f cxp360g.make install
-	#@$(MAKE) -f tolt8g.make install
-	@$(MAKE) -f tg16g.make install
-	#@$(MAKE) -f tg4g.make install
-	@$(MAKE) -f ta48ge.make install
 	@$(MAKE) -f cxo640g.make install
 	@$(MAKE) -f cxo160g.make install
+	@$(MAKE) -f ta48ge.make install
+	@$(MAKE) -f tg16g.make install
+	@$(MAKE) -f tg16gf.make install
 	@$(MAKE) -f olt1t0.make install
+	@$(MAKE) -f olt1t0f.make install
 
-clean:		
-	#@$(MAKE) -f cxp360g.make clean
-	#@$(MAKE) -f tolt8g.make clean
-	@$(MAKE) -f tg16g.make clean
-	#@$(MAKE) -f tg4g.make clean
-	@$(MAKE) -f ta48ge.make clean
+clean:
 	@$(MAKE) -f cxo640g.make clean
 	@$(MAKE) -f cxo160g.make clean
+	@$(MAKE) -f ta48ge.make clean
+	@$(MAKE) -f tg16g.make clean
+	@$(MAKE) -f tg16gf.make clean
 	@$(MAKE) -f olt1t0.make clean
+	@$(MAKE) -f olt1t0f.make clean
 
 cleanall:
-	#@$(MAKE) -f cxp360g.make cleanall
-	#@$(MAKE) -f tolt8g.make cleanall
-	@$(MAKE) -f tg16g.make cleanall
-	#@$(MAKE) -f tg4g.make cleanall
-	@$(MAKE) -f ta48ge.make cleanall
 	@$(MAKE) -f cxo640g.make cleanall
 	@$(MAKE) -f cxo160g.make cleanall
+	@$(MAKE) -f ta48ge.make cleanall
+	@$(MAKE) -f tg16g.make cleanall
+	@$(MAKE) -f tg16gf.make cleanall
 	@$(MAKE) -f olt1t0.make cleanall
+	@$(MAKE) -f olt1t0f.make cleanall
 
 image:		install
 		cd $(IMAGE_DIR) && ./fastpath-olt.build $(version)
@@ -102,8 +98,9 @@ olt1t3:
 olt1t1:
 	@$(MAKE) -f olt1t1.make all
 
-olt1t0:
+olt1t0x:
 	@$(MAKE) -f olt1t0.make all
+	@$(MAKE) -f olt1t0f.make all
 
 clean_olt360:
 	@$(MAKE) -f olt360.make clean
@@ -114,8 +111,9 @@ clean_olt1t3:
 clean_olt1t1:
 	@$(MAKE) -f olt1t1.make clean
 
-clean_olt1t0:
+clean_olt1t0x:
 	@$(MAKE) -f olt1t0.make clean
+	@$(MAKE) -f olt1t0f.make clean
 
 cleanall_olt360:
 	@$(MAKE) -f olt360.make cleanall
@@ -126,8 +124,9 @@ cleanall_olt1t3:
 cleanall_olt1t1:
 	@$(MAKE) -f olt1t1.make cleanall
 
-cleanall_olt1t0:
+cleanall_olt1t0x:
 	@$(MAKE) -f olt1t0.make cleanall
+	@$(MAKE) -f olt1t0f.make cleanall
 
 install_olt360:
 	@$(MAKE) -f olt360.make install
@@ -136,10 +135,11 @@ install_olt1t3:
 	@$(MAKE) -f olt1t3.make install
 
 install_olt1t1:
-	@$(MAKE) -f olt1t3.make install
+	@$(MAKE) -f olt1t1.make install
 
-install_olt1t0:
-	@$(MAKE) -f olt1t3.make install
+install_olt1t0x:
+	@$(MAKE) -f olt1t0.make install
+	@$(MAKE) -f olt1t0f.make install
 
 image_olt360:
 	@$(MAKE) -f olt360.make image
@@ -150,6 +150,7 @@ image_olt1t3:
 image_olt1t1:
 	@$(MAKE) -f olt1t1.make image
 
-image_olt1t0:
+image_olt1t0x:
 	@$(MAKE) -f olt1t0.make image
+	@$(MAKE) -f olt1t0f.make image
 
