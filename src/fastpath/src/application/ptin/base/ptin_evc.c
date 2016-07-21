@@ -8833,7 +8833,8 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
     /* For uplink interfaces, do not delete inner vlan */
     if (intf_vlan.intf.value.ptin_port >= PTIN_SYSTEM_N_PONS
     #if (PTIN_BOARD_IS_STANDALONE)
-        && intf_vlan.intf.value.ptin_port < PTIN_SYSTEM_N_UPLINK_INTERF
+        && (intf_vlan.intf.value.ptin_port < PTIN_SYSTEM_N_UPLINK_INTERF ||   /* Physical ports */
+            intf_vlan.intf.value.ptin_port >= PTIN_SYSTEM_N_PORTS)            /* LAGs */
     #endif
        )
     {
