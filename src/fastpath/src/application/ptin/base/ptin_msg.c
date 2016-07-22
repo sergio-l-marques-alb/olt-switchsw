@@ -426,20 +426,24 @@ L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
   L7_uint32 intIfNum;
   L7_uint8  status;
 
+  ENDIAN_SWAP8_MOD(msg->slotId);
+  ENDIAN_SWAP8_MOD(msg->portId);
+  ENDIAN_SWAP8_MOD(msg->cmd);
+
   PT_LOG_DEBUG(LOG_CTX_MSG, "Type-B Protection switch notification");
-  PT_LOG_DEBUG(LOG_CTX_MSG, " slotId = %u"   , ENDIAN_SWAP8(msg->slotId));
-  PT_LOG_DEBUG(LOG_CTX_MSG, " portId = %u"   , ENDIAN_SWAP8(msg->portId)); //ptin_port format
-  PT_LOG_DEBUG(LOG_CTX_MSG, " cmd    = %08X" , ENDIAN_SWAP8(msg->cmd));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " slotId = %u"   , msg->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " portId = %u"   , msg->portId); //ptin_port format
+  PT_LOG_DEBUG(LOG_CTX_MSG, " cmd    = %08X" , msg->cmd);
 
   /* Convert portId to intfNum */
-  if (ptin_intf_port2intIfNum(ENDIAN_SWAP8(msg->portId), &intIfNum)!=L7_SUCCESS)
+  if (ptin_intf_port2intIfNum(msg->portId, &intIfNum)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Non existent port");
     return L7_FAILURE;
   }
 
   /* Get interface status from the first bit of msg->cmd */
-  status = ENDIAN_SWAP8(msg->cmd) & 0x0001;
+  status = msg->cmd & 0x0001;
 
   /* Update interface configurations */
   rc = ptin_prottypeb_intf_switch_notify(intIfNum, status);
@@ -465,17 +469,25 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
   L7_int                       ptin_port;
   ptin_prottypeb_intf_config_t ptin_intfConfig;
 
+  ENDIAN_SWAP8_MOD(msg->slotId);
+  ENDIAN_SWAP8_MOD(msg->intfId.intf_type);
+  ENDIAN_SWAP8_MOD(msg->intfId.intf_id);
+  ENDIAN_SWAP8_MOD(msg->pairSlotId);
+  ENDIAN_SWAP8_MOD(msg->pairIntfId.intf_type);
+  ENDIAN_SWAP8_MOD(msg->pairIntfId.intf_id);
+  ENDIAN_SWAP8_MOD(msg->intfRole);
+
   PT_LOG_DEBUG(LOG_CTX_MSG, "Configurations");
-  PT_LOG_DEBUG(LOG_CTX_MSG, " slotId     = %u"   , ENDIAN_SWAP8(msg->slotId));
-  PT_LOG_DEBUG(LOG_CTX_MSG, " intfId     = %u/%u", ENDIAN_SWAP8(msg->intfId.intf_type), ENDIAN_SWAP8(msg->intfId.intf_id));
-  PT_LOG_DEBUG(LOG_CTX_MSG, " pairSlotId = %u"   , ENDIAN_SWAP8(msg->pairSlotId));
-  PT_LOG_DEBUG(LOG_CTX_MSG, " pairIntfId = %u/%u", ENDIAN_SWAP8(msg->pairIntfId.intf_type), ENDIAN_SWAP8(msg->pairIntfId.intf_id));
-  PT_LOG_DEBUG(LOG_CTX_MSG, " intfRole   = %u"   , ENDIAN_SWAP8(msg->intfRole));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " slotId     = %u"   , msg->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " intfId     = %u/%u", msg->intfId.intf_type, msg->intfId.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " pairSlotId = %u"   , msg->pairSlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " pairIntfId = %u/%u", msg->pairIntfId.intf_type, msg->pairIntfId.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " intfRole   = %u"   , msg->intfRole);
 
   memset(&ptin_intfConfig, 0x00, sizeof(ptin_intfConfig));
 
   /* Convert intfId to intfNum */
-  if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msg->intfId.intf_type), ENDIAN_SWAP8(msg->intfId.intf_id), &ptin_port)!=L7_SUCCESS)
+  if (ptin_msg_ptinPort_get(msg->intfId.intf_type, msg->intfId.intf_id, &ptin_port)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid port");
     return L7_FAILURE;
@@ -487,7 +499,7 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
   }
 
   /* Convert pairIntfId to intfNum */
-  if (ptin_msg_ptinPort_get(ENDIAN_SWAP8(msg->pairIntfId.intf_type), ENDIAN_SWAP8(msg->pairIntfId.intf_id), &ptin_port)!=L7_SUCCESS)
+  if (ptin_msg_ptinPort_get(msg->pairIntfId.intf_type, msg->pairIntfId.intf_id, &ptin_port)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid port");
     return L7_FAILURE;
@@ -498,15 +510,15 @@ L7_RC_t ptin_msg_typeBprotIntfConfig(msg_HwTypeBProtIntfConfig_t *msg)
     return L7_FAILURE;
   }
 
-  if (ptin_intfConfig.intfNum == ptin_intfConfig.pairIntfNum && ENDIAN_SWAP8(msg->slotId) == ENDIAN_SWAP8(msg->pairSlotId))
+  if (ptin_intfConfig.intfNum == ptin_intfConfig.pairIntfNum && msg->slotId == msg->pairSlotId)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Parameters: slotId=pairSlotId=%u, intfNum=pairIntfNum=%u", ENDIAN_SWAP8(msg->slotId), ptin_intfConfig.intfNum);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Parameters: slotId=pairSlotId=%u, intfNum=pairIntfNum=%u", msg->slotId, ptin_intfConfig.intfNum);
     return L7_FAILURE;
   }
   
-  ptin_intfConfig.pairSlotId = ENDIAN_SWAP8(msg->pairSlotId);
-  ptin_intfConfig.intfRole   = ENDIAN_SWAP8(msg->intfRole);
-  ptin_intfConfig.slotId     = ENDIAN_SWAP8(msg->slotId);
+  ptin_intfConfig.pairSlotId = msg->pairSlotId;
+  ptin_intfConfig.intfRole   = msg->intfRole;
+  ptin_intfConfig.slotId     = msg->slotId;
 
   /* Save interface configurations */
   rc = ptin_prottypeb_intf_config_set(&ptin_intfConfig);
@@ -533,9 +545,13 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   L7_uint32 intIfNum;
   L7_uint32 lag_idx;
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", ENDIAN_SWAP8(msg->slot), ENDIAN_SWAP8(msg->port));
+  ENDIAN_SWAP16_MOD(msg->prot_idx);
+  ENDIAN_SWAP8_MOD (msg->slot);
+  ENDIAN_SWAP8_MOD (msg->port);
 
-  rc = ptin_intf_slot2lagIdx(ENDIAN_SWAP8(msg->slot), &lag_idx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", msg->slot, msg->port);
+
+  rc = ptin_intf_slot2lagIdx(msg->slot, &lag_idx);
   if (rc==L7_SUCCESS)
   {
     rc = ptin_intf_lag2intIfNum(lag_idx, &intIfNum);
@@ -550,10 +566,10 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   ptin_intf_t ptin_intf;
   L7_uint32 ptin_port;
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", ENDIAN_SWAP8(msg->slot), ENDIAN_SWAP8(msg->port));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", msg->slot, msg->port);
 
   ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
-  ptin_intf.intf_id = ENDIAN_SWAP8(msg->port);
+  ptin_intf.intf_id = msg->port;
 
   ptin_intf_ptintf2port(&ptin_intf, &ptin_port);
 
@@ -597,20 +613,25 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
 {
   L7_RC_t rc = L7_SUCCESS;
 
+  ENDIAN_SWAP8_MOD(msg->slot_id);
+  ENDIAN_SWAP8_MOD(msg->generic_id);
+  ENDIAN_SWAP8_MOD(msg->type);
+  ENDIAN_SWAP8_MOD(msg->param);
+
   PT_LOG_INFO(LOG_CTX_MSG, "ptin_msg_board_action");
-  PT_LOG_DEBUG(LOG_CTX_MSG," slot       = %u",   ENDIAN_SWAP8(msg->slot_id));
-  PT_LOG_DEBUG(LOG_CTX_MSG," generic_id = %u",    ENDIAN_SWAP8(msg->generic_id));
-  PT_LOG_DEBUG(LOG_CTX_MSG," type       = 0x%02x", ENDIAN_SWAP8(msg->type));
-  PT_LOG_DEBUG(LOG_CTX_MSG," param      = 0x%02x", ENDIAN_SWAP8(msg->param));
+  PT_LOG_DEBUG(LOG_CTX_MSG," slot       = %u",     msg->slot_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," generic_id = %u",     msg->generic_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," type       = 0x%02x", msg->type);
+  PT_LOG_DEBUG(LOG_CTX_MSG," param      = 0x%02x", msg->param);
 
   #if (PTIN_BOARD_IS_MATRIX)
 
   /* insertion action */
-  if (ENDIAN_SWAP8(msg->type) == 0x03)
+  if (msg->type == 0x03)
   {
-    PT_LOG_INFO(LOG_CTX_MSG,"Insertion detected (slot %u, board_id=%u)", ENDIAN_SWAP8(msg->generic_id), ENDIAN_SWAP8(msg->param));
+    PT_LOG_INFO(LOG_CTX_MSG,"Insertion detected (slot %u, board_id=%u)", msg->generic_id, msg->param);
 
-    rc = ptin_slot_action_insert(ENDIAN_SWAP8(msg->generic_id), ENDIAN_SWAP8(msg->param));
+    rc = ptin_slot_action_insert(msg->generic_id, msg->param);
     if ( rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error inserting card (%d)", rc);
@@ -621,11 +642,11 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     }
   }
   /* Board removed */
-  else if (ENDIAN_SWAP8(msg->type) == 0x00)
+  else if (msg->type == 0x00)
   {
-    PT_LOG_INFO(LOG_CTX_MSG,"Remotion detected (slot %u)", ENDIAN_SWAP8(msg->generic_id));
+    PT_LOG_INFO(LOG_CTX_MSG,"Remotion detected (slot %u)", msg->generic_id);
 
-    rc = ptin_slot_action_remove(ENDIAN_SWAP8(msg->generic_id));
+    rc = ptin_slot_action_remove(msg->generic_id);
     if ( rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error removing card (%d)", rc);
@@ -651,11 +672,16 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
 {
   L7_RC_t rc = L7_SUCCESS;
 
+  ENDIAN_SWAP8_MOD(msg->slot_id);
+  ENDIAN_SWAP8_MOD(msg->generic_id);
+  ENDIAN_SWAP8_MOD(msg->type);
+  ENDIAN_SWAP8_MOD(msg->param);
+
   PT_LOG_INFO(LOG_CTX_MSG, "ptin_msg_link_action");
-  PT_LOG_DEBUG(LOG_CTX_MSG," slot       = %u", ENDIAN_SWAP8(msg->slot_id));
-  PT_LOG_DEBUG(LOG_CTX_MSG," generic_id = %u", ENDIAN_SWAP8(msg->generic_id));
-  PT_LOG_DEBUG(LOG_CTX_MSG," type       = 0x%02x", ENDIAN_SWAP8(msg->type));
-  PT_LOG_DEBUG(LOG_CTX_MSG," param      = 0x%02x", ENDIAN_SWAP8(msg->param));
+  PT_LOG_DEBUG(LOG_CTX_MSG," slot       = %u",     msg->slot_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," generic_id = %u",     msg->generic_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," type       = 0x%02x", msg->type);
+  PT_LOG_DEBUG(LOG_CTX_MSG," param      = 0x%02x", msg->param);
 
   #if 0
   #if (PTIN_BOARD_IS_MATRIX)
@@ -673,11 +699,11 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
 
   /* Get board id for this interface */
-  rc = ptin_slot_boardid_get(ENDIAN_SWAP8(msg->generic_id), &board_type);
+  rc = ptin_slot_boardid_get(msg->generic_id, &board_type);
   if (rc != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    PT_LOG_ERR(LOG_CTX_MSG, "Error getting board_id for slot id %u (rc=%d)", ENDIAN_SWAP8(msg->generic_id), rc);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error getting board_id for slot id %u (rc=%d)", msg->generic_id, rc);
     return L7_FAILURE;
   }
 
@@ -690,10 +716,10 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   }
 
   /* Get ptin_port and intIfNum */
-  if (ptin_intf_slotPort2port(ENDIAN_SWAP8(msg->generic_id), ENDIAN_SWAP8(msg->param), &ptin_port) != L7_SUCCESS)
+  if (ptin_intf_slotPort2port(msg->generic_id, msg->param, &ptin_port) != L7_SUCCESS)
   {
     osapiSemaGive(ptin_boardaction_sem);
-    PT_LOG_ERR(LOG_CTX_MSG, "No ptin_port related to slot/port %u/%u", ENDIAN_SWAP8(msg->generic_id), ENDIAN_SWAP8(msg->param));
+    PT_LOG_ERR(LOG_CTX_MSG, "No ptin_port related to slot/port %u/%u", msg->generic_id, msg->param);
     return L7_FAILURE;
   }
   if (ptin_intf_port2intIfNum(ptin_port, &intIfNum) != L7_SUCCESS)
@@ -712,7 +738,7 @@ L7_RC_t ptin_msg_link_action(msg_HwGenReq_t *msg)
   }
 
   /* When link is up, disable linkscan */
-  if (ENDIAN_SWAP8(msg->type == 0x01))
+  if (msg->type == 0x01)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG,"Link-up detected at ptin_port %u", ptin_port);
 
@@ -1705,9 +1731,9 @@ L7_RC_t ptin_msg_portMAC_set(msg_HWPortMac_t *portMac, L7_uint nElems)
   for (i=0; i<nElems; i++)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG,"Structure %u",i);
-    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u", ENDIAN_SWAP8(portMac[i].SlotId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u",    ENDIAN_SWAP8(portMac[i].SlotId));
     PT_LOG_DEBUG(LOG_CTX_MSG," Intf   = %u/%u", ENDIAN_SWAP8(portMac[i].intf.intf_type), ENDIAN_SWAP8(portMac[i].intf.intf_id));
-    PT_LOG_DEBUG(LOG_CTX_MSG," Mask   = 0x%04x", ENDIAN_SWAP16(portMac[i].Mask));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Mask   = 0x%04x",ENDIAN_SWAP16(portMac[i].Mask));
     PT_LOG_DEBUG(LOG_CTX_MSG," MAC    = %02x:%02x:%02x:%02x:%02x:%02x",
                  portMac[i].macAddr[0], portMac[i].macAddr[1], portMac[i].macAddr[2], portMac[i].macAddr[3], portMac[i].macAddr[4], portMac[i].macAddr[5]);
 
@@ -4129,8 +4155,8 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
   }
 
   PT_LOG_DEBUG(LOG_CTX_MSG," SlotId       = %u",mac_table->intro.slotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," StartEntryId = %u",ENDIAN_SWAP32(mac_table->intro.startEntryId));
-  PT_LOG_DEBUG(LOG_CTX_MSG," NumEntries   = %u",ENDIAN_SWAP32(mac_table->intro.numEntries));
+  PT_LOG_DEBUG(LOG_CTX_MSG," StartEntryId = %u",mac_table->intro.startEntryId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," NumEntries   = %u",mac_table->intro.numEntries);
 
 #if 0
   L7_uint8  slotId;
@@ -4221,16 +4247,10 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
     mac_table->entry[i].intf.intf_id   = entries_list[i].intf.intf_id;
     mac_table->entry[i].gem_id         = entries_list[i].gem_id;
     mac_table->entry[i].static_entry   = entries_list[i].static_entry;
-
-    ENDIAN_SWAP32_MOD(mac_table->entry[i].evcId);
-    ENDIAN_SWAP16_MOD(mac_table->entry[i].vlanId);
-    ENDIAN_SWAP16_MOD(mac_table->entry[i].gem_id);
-
   }
 
   /* Update number of entries */
   mac_table->intro.numEntries = numEntries;
-  ENDIAN_SWAP32_MOD(mac_table->intro.numEntries);
 
 #endif
 
@@ -4390,14 +4410,14 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      ENDIAN_SWAP8(maclimit->slotId));
-  PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   ENDIAN_SWAP8(maclimit->intf.intf_type), ENDIAN_SWAP8(maclimit->intf.intf_id));
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask         = 0x%.8X",  ENDIAN_SWAP32(maclimit->mask));
-  PT_LOG_DEBUG(LOG_CTX_MSG," vid          = %u",      ENDIAN_SWAP16(maclimit->vid));
-  PT_LOG_DEBUG(LOG_CTX_MSG," system       = %u",      ENDIAN_SWAP8(maclimit->system));
-  PT_LOG_DEBUG(LOG_CTX_MSG," limit        = %u",      ENDIAN_SWAP32(maclimit->limit));
-  PT_LOG_DEBUG(LOG_CTX_MSG," action       = %u",      ENDIAN_SWAP8(maclimit->action));
-  PT_LOG_DEBUG(LOG_CTX_MSG," trap         = %u",      ENDIAN_SWAP8(maclimit->send_trap));
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      maclimit->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   maclimit->intf.intf_type, maclimit->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask         = 0x%.8X",  maclimit->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," vid          = %u",      maclimit->vid);
+  PT_LOG_DEBUG(LOG_CTX_MSG," system       = %u",      maclimit->system);
+  PT_LOG_DEBUG(LOG_CTX_MSG," limit        = %u",      maclimit->limit);
+  PT_LOG_DEBUG(LOG_CTX_MSG," action       = %u",      maclimit->action);
+  PT_LOG_DEBUG(LOG_CTX_MSG," trap         = %u",      maclimit->send_trap);
 
   memset(&entry, 0x00, sizeof(ptin_l2_maclimit_t));
 
@@ -4408,9 +4428,8 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
   else
   {
     /* Get intIfNum */
-    ptin_intf.intf_type = ENDIAN_SWAP8(maclimit->intf.intf_type);
-    ptin_intf.intf_id   = ENDIAN_SWAP8(maclimit->intf.intf_id);  
-
+    ptin_intf.intf_type = maclimit->intf.intf_type;
+    ptin_intf.intf_id = maclimit->intf.intf_id;  
     if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_intf: %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
@@ -4420,7 +4439,7 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
 
   if (maclimit->mask & L2_MACLIMIT_MASK_LIMIT)
   {
-    entry.limit = ENDIAN_SWAP32(maclimit->limit);    
+    entry.limit = maclimit->limit;    
   }
   else
   {
@@ -4429,7 +4448,7 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
 
   if (maclimit->mask & L2_MACLIMIT_MASK_ACTION)
   {
-    entry.action = ENDIAN_SWAP8(maclimit->action);
+    entry.action = maclimit->action;
   }
   else
   {
@@ -4438,7 +4457,7 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
 
   if (maclimit->mask & L2_MACLIMIT_MASK_SEND_TRAP)
   {
-    entry.send_trap = ENDIAN_SWAP8(maclimit->send_trap);
+    entry.send_trap = maclimit->send_trap;
   }
   else
   {
@@ -4449,15 +4468,14 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC,"Failed set limit on hardware: rc:%u!", rc);
-    PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      ENDIAN_SWAP8(maclimit->slotId));
-    PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   ENDIAN_SWAP8(maclimit->intf.intf_type), ENDIAN_SWAP8(maclimit->intf.intf_id));
-    PT_LOG_DEBUG(LOG_CTX_MSG," mask         = 0x%.8X",  ENDIAN_SWAP32(maclimit->mask));
-    PT_LOG_DEBUG(LOG_CTX_MSG," vid          = %u",      ENDIAN_SWAP16(maclimit->vid));
-    PT_LOG_DEBUG(LOG_CTX_MSG," system       = %u",      ENDIAN_SWAP8(maclimit->system));
-    PT_LOG_DEBUG(LOG_CTX_MSG," limit        = %u",      ENDIAN_SWAP32(maclimit->limit));
-    PT_LOG_DEBUG(LOG_CTX_MSG," action       = %u",      ENDIAN_SWAP8(maclimit->action));
-    PT_LOG_DEBUG(LOG_CTX_MSG," trap         = %u",      ENDIAN_SWAP8(maclimit->send_trap));
-
+    PT_LOG_ERR(LOG_CTX_MSG," slotId       = %u",      maclimit->slotId);
+    PT_LOG_ERR(LOG_CTX_MSG," interface    = %u/%u",   maclimit->intf.intf_type, maclimit->intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_MSG," mask         = 0x%.8X",  maclimit->mask);
+    PT_LOG_ERR(LOG_CTX_MSG," vid          = %u",      maclimit->vid);
+    PT_LOG_ERR(LOG_CTX_MSG," system       = %u",      maclimit->system);
+    PT_LOG_ERR(LOG_CTX_MSG," limit        = %u",      maclimit->limit);
+    PT_LOG_ERR(LOG_CTX_MSG," action       = %u",      maclimit->action);
+    PT_LOG_ERR(LOG_CTX_MSG," trap         = %u",      maclimit->send_trap);
     return rc;
   }
 
@@ -4488,8 +4506,8 @@ L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
   PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      maclimit_status->slotId);
   PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   maclimit_status->intf.intf_type, maclimit_status->intf.intf_id);
 
-  ptin_intf.intf_type = ENDIAN_SWAP8(maclimit_status->intf.intf_type);
-  ptin_intf.intf_id   = ENDIAN_SWAP8(maclimit_status->intf.intf_id);
+  ptin_intf.intf_type = maclimit_status->intf.intf_type;
+  ptin_intf.intf_id = maclimit_status->intf.intf_id;
   if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_intf: %u/%u", ptin_intf.intf_type, ptin_intf.intf_id);
@@ -8626,13 +8644,13 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
    /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "SlotId       = %u"        , msgAdmissionControl->SlotId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "mask         = 0x%02X"    , msgAdmissionControl->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "evcId        = %u"        , ENDIAN_SWAP32(msgAdmissionControl->evcId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "evcId        = %u"        , msgAdmissionControl->evcId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "intf         = %u/%u"     , msgAdmissionControl->intf.intf_type, msgAdmissionControl->intf.intf_id);
   PT_LOG_DEBUG(LOG_CTX_MSG, "onuId        = %u"        , msgAdmissionControl->onuId);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "outer_vlan   = %u"        , ENDIAN_SWAP16(msgAdmissionControl->outer_vlan));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "inner_vlan   = %u"        , ENDIAN_SWAP16(msgAdmissionControl->inner_vlan));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "maxChannels  = %hu"       , ENDIAN_SWAP16(msgAdmissionControl->maxChannels));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "maxBandwidth = %llu bit/s", ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "outer_vlan   = %u"        , msgAdmissionControl->outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "inner_vlan   = %u"        , msgAdmissionControl->inner_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "maxChannels  = %hu"       , msgAdmissionControl->maxChannels);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "maxBandwidth = %llu bit/s", msgAdmissionControl->maxBandwidth);
 
   if ( ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_INTF) !=  PTIN_MSG_ADMISSION_CONTROL_MASK_INTF) ||
        ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_EVCID) !=  PTIN_MSG_ADMISSION_CONTROL_MASK_EVCID) ||
@@ -8640,12 +8658,12 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
        ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_ONUID) !=  PTIN_MSG_ADMISSION_CONTROL_MASK_ONUID) ||
        #endif         
       ( ( (msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH ) &&
-        (ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth) != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth) > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
+        (msgAdmissionControl->maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && msgAdmissionControl->maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
        ( ( (msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS ) &&
-        (ENDIAN_SWAP16(msgAdmissionControl->maxChannels) != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && ENDIAN_SWAP16(msgAdmissionControl->maxChannels) > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
+        (msgAdmissionControl->maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && msgAdmissionControl->maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
       
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxChannels:%hu maxBandwidth:%llu bits/s", msgAdmissionControl->mask, ENDIAN_SWAP16(msgAdmissionControl->maxChannels), ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth));
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxChannels:%hu maxBandwidth:%llu bits/s", msgAdmissionControl->mask, msgAdmissionControl->maxChannels, msgAdmissionControl->maxBandwidth);
     return L7_FAILURE;
   }
 
@@ -8668,14 +8686,14 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
       return L7_FAILURE;
     }
    
-    igmpAdmissionControl.serviceId      = ENDIAN_SWAP32(msgAdmissionControl->evcId);    
+    igmpAdmissionControl.serviceId      = msgAdmissionControl->evcId;    
 #if  !PTIN_BOARD_IS_ACTIVETH
     igmpAdmissionControl.onuId         = msgAdmissionControl->onuId;
 #else
     igmpAdmissionControl.onuId         = 0;
 #endif  
-    igmpAdmissionControl.maxAllowedChannels   = ENDIAN_SWAP16(msgAdmissionControl->maxChannels);
-    igmpAdmissionControl.maxAllowedBandwidth  = ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth);
+    igmpAdmissionControl.maxAllowedChannels   = msgAdmissionControl->maxChannels;
+    igmpAdmissionControl.maxAllowedBandwidth  = msgAdmissionControl->maxBandwidth;
 
     if (ptin_igmp_multicast_service_add(igmpAdmissionControl.ptin_port, igmpAdmissionControl.onuId, igmpAdmissionControl.serviceId) != L7_SUCCESS)
     {
@@ -8712,32 +8730,32 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   L7_RC_t rc;
 
   /* Copy data */
-  ptinMgmdProxy.mask                                   = ENDIAN_SWAP16(msgIgmpProxy->mask);
+  ptinMgmdProxy.mask                                   = msgIgmpProxy->mask;
   ptinMgmdProxy.admin                                  = msgIgmpProxy->admin;
   ptinMgmdProxy.networkVersion                         = msgIgmpProxy->networkVersion;
   ptinMgmdProxy.clientVersion                          = msgIgmpProxy->clientVersion;
-  ptinMgmdProxy.ipv4Addr                               = ENDIAN_SWAP32(msgIgmpProxy->ipv4_addr.s_addr);
+  ptinMgmdProxy.ipv4Addr                               = msgIgmpProxy->ipv4_addr.s_addr;
   ptinMgmdProxy.igmpCos                                = msgIgmpProxy->igmp_cos;
   ptinMgmdProxy.fastLeave                              = msgIgmpProxy->fast_leave;
 
-  ptinMgmdProxy.querier.mask                           = ENDIAN_SWAP16(msgIgmpProxy->querier.mask);
+  ptinMgmdProxy.querier.mask                           = msgIgmpProxy->querier.mask;
   ptinMgmdProxy.querier.flags                          = msgIgmpProxy->querier.flags;
   ptinMgmdProxy.querier.robustness                     = msgIgmpProxy->querier.robustness;
-  ptinMgmdProxy.querier.queryInterval                  = ENDIAN_SWAP16(msgIgmpProxy->querier.query_interval);
-  ptinMgmdProxy.querier.queryResponseInterval          = ENDIAN_SWAP16(msgIgmpProxy->querier.query_response_interval);
-  ptinMgmdProxy.querier.groupMembershipInterval        = ENDIAN_SWAP16(msgIgmpProxy->querier.group_membership_interval);
-  ptinMgmdProxy.querier.otherQuerierPresentInterval    = ENDIAN_SWAP16(msgIgmpProxy->querier.other_querier_present_interval);
-  ptinMgmdProxy.querier.startupQueryInterval           = ENDIAN_SWAP16(msgIgmpProxy->querier.startup_query_interval);
-  ptinMgmdProxy.querier.startupQueryCount              = ENDIAN_SWAP16(msgIgmpProxy->querier.startup_query_count);
-  ptinMgmdProxy.querier.lastMemberQueryInterval        = ENDIAN_SWAP16(msgIgmpProxy->querier.last_member_query_interval);
-  ptinMgmdProxy.querier.lastMemberQueryCount           = ENDIAN_SWAP16(msgIgmpProxy->querier.last_member_query_count);
-  ptinMgmdProxy.querier.olderHostPresentTimeout        = ENDIAN_SWAP16(msgIgmpProxy->querier.older_host_present_timeout);
+  ptinMgmdProxy.querier.queryInterval                  = msgIgmpProxy->querier.query_interval;
+  ptinMgmdProxy.querier.queryResponseInterval          = msgIgmpProxy->querier.query_response_interval;
+  ptinMgmdProxy.querier.groupMembershipInterval        = msgIgmpProxy->querier.group_membership_interval;
+  ptinMgmdProxy.querier.otherQuerierPresentInterval    = msgIgmpProxy->querier.other_querier_present_interval;
+  ptinMgmdProxy.querier.startupQueryInterval           = msgIgmpProxy->querier.startup_query_interval;
+  ptinMgmdProxy.querier.startupQueryCount              = msgIgmpProxy->querier.startup_query_count;
+  ptinMgmdProxy.querier.lastMemberQueryInterval        = msgIgmpProxy->querier.last_member_query_interval;
+  ptinMgmdProxy.querier.lastMemberQueryCount           = msgIgmpProxy->querier.last_member_query_count;
+  ptinMgmdProxy.querier.olderHostPresentTimeout        = msgIgmpProxy->querier.older_host_present_timeout;
 
   ptinMgmdProxy.host.mask                              = msgIgmpProxy->host.mask;
   ptinMgmdProxy.host.flags                             = msgIgmpProxy->host.flags;
   ptinMgmdProxy.host.robustness                        = msgIgmpProxy->host.robustness;
-  ptinMgmdProxy.host.unsolicitedReportInterval         = ENDIAN_SWAP16(msgIgmpProxy->host.unsolicited_report_interval);
-  ptinMgmdProxy.host.olderQuerierPresentTimeout        = ENDIAN_SWAP16(msgIgmpProxy->host.older_querier_present_timeout);
+  ptinMgmdProxy.host.unsolicitedReportInterval         = msgIgmpProxy->host.unsolicited_report_interval;
+  ptinMgmdProxy.host.olderQuerierPresentTimeout        = msgIgmpProxy->host.older_querier_present_timeout;
   ptinMgmdProxy.host.maxRecordsPerReport               = msgIgmpProxy->host.max_records_per_report;
 
   ptinMgmdProxy.bandwidthControl                       = msgIgmpProxy->bandwidthControl;
@@ -8747,37 +8765,37 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
 #if PTIN_BOARD_IS_MATRIX
   ptinMgmdProxy.whiteList                              = L7_DISABLE;
 #else
-  ptinMgmdProxy.whiteList                              = ENDIAN_SWAP32(1);//L7_ENABLE;
+  ptinMgmdProxy.whiteList                              = L7_ENABLE;
 #endif
                          
   ptinMgmdProxy.mask                                  |= PTIN_MGMD_CONFIG_WHITELIST_MASK;
 
   /* Output data */
-  PT_LOG_DEBUG(LOG_CTX_MSG, "IGMP Proxy (mask=0x%08X)", ENDIAN_SWAP16(ptinMgmdProxy.mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "IGMP Proxy (mask=0x%08X)", ptinMgmdProxy.mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Admin #                          = %u", ptinMgmdProxy.admin);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Network Version                  = %u", ptinMgmdProxy.networkVersion);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Client Version                   = %u", ptinMgmdProxy.clientVersion);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  IP Addr                          = %u.%u.%u.%u", (ENDIAN_SWAP32(ptinMgmdProxy.ipv4Addr)>>24)&0xFF, (ENDIAN_SWAP32(ptinMgmdProxy.ipv4Addr)>>16)&0xFF, 
-                                                                                  (ENDIAN_SWAP32(ptinMgmdProxy.ipv4Addr)>>8)&0xFF, ENDIAN_SWAP32(ptinMgmdProxy.ipv4Addr)&0xFF);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinMgmdProxy.ipv4Addr>>24)&0xFF, (ptinMgmdProxy.ipv4Addr>>16)&0xFF, 
+                                                                                  (ptinMgmdProxy.ipv4Addr>>8)&0xFF, ptinMgmdProxy.ipv4Addr&0xFF);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  COS                              = %u", ptinMgmdProxy.igmpCos);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  FastLeave                        = %s", ptinMgmdProxy.fastLeave != 0 ? "ON":"OFF");  
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Querier (mask=0x%08X)", ENDIAN_SWAP16(ptinMgmdProxy.querier.mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Querier (mask=0x%08X)", ptinMgmdProxy.querier.mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "    Flags                          = 0x%04X", ptinMgmdProxy.querier.flags);
   PT_LOG_DEBUG(LOG_CTX_MSG, "    Robustness                     = %u", ptinMgmdProxy.querier.robustness);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Interval                 = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.queryInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Response Interval        = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.queryResponseInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Group Membership Interval      = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.groupMembershipInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Other Querier Present Interval = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.otherQuerierPresentInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Interval         = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.startupQueryInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Count            = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.startupQueryCount));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Interval     = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.lastMemberQueryInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Count        = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.lastMemberQueryCount));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Host Present Timeout     = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.olderHostPresentTimeout));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Interval                 = %u", ptinMgmdProxy.querier.queryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Response Interval        = %u", ptinMgmdProxy.querier.queryResponseInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Group Membership Interval      = %u", ptinMgmdProxy.querier.groupMembershipInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Other Querier Present Interval = %u", ptinMgmdProxy.querier.otherQuerierPresentInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Interval         = %u", ptinMgmdProxy.querier.startupQueryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Count            = %u", ptinMgmdProxy.querier.startupQueryCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Interval     = %u", ptinMgmdProxy.querier.lastMemberQueryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Count        = %u", ptinMgmdProxy.querier.lastMemberQueryCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Host Present Timeout     = %u", ptinMgmdProxy.querier.olderHostPresentTimeout);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Host (mask=0x%08X)", ptinMgmdProxy.host.mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "    Flags                          = 0x%02X", ptinMgmdProxy.host.flags);
   PT_LOG_DEBUG(LOG_CTX_MSG, "    Robustness                     = %u", ptinMgmdProxy.host.robustness);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Unsolicited Report Interval    = %u", ENDIAN_SWAP16(ptinMgmdProxy.host.unsolicitedReportInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Querier Present Timeout  = %u", ENDIAN_SWAP16(ptinMgmdProxy.host.olderQuerierPresentTimeout));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Unsolicited Report Interval    = %u", ptinMgmdProxy.host.unsolicitedReportInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Querier Present Timeout  = %u", ptinMgmdProxy.host.olderQuerierPresentTimeout);
   PT_LOG_DEBUG(LOG_CTX_MSG, "    Max Group Records per Packet   = %u", ptinMgmdProxy.host.maxRecordsPerReport);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Bandwidth Control                = %s", ptinMgmdProxy.bandwidthControl != 0 ? "ON":"OFF");
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Channels Control                 = %s", ptinMgmdProxy.channelsControl != 0 ? "ON":"OFF");
@@ -8823,62 +8841,62 @@ L7_RC_t ptin_msg_igmp_proxy_get(msg_IgmpProxyCfg_t *msgIgmpProxy)
   }
 
   /* Output data */
-  PT_LOG_DEBUG(LOG_CTX_MSG, "IGMP Proxy (mask=0x%08X)", ENDIAN_SWAP16(ptinIgmpProxy.mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "IGMP Proxy (mask=0x%08X)", ptinIgmpProxy.mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Admin #                          = %u", ptinIgmpProxy.admin);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Network Version                  = %u", ptinIgmpProxy.networkVersion);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Client Version                   = %u", ptinIgmpProxy.clientVersion);  
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  IP Addr                          = %u.%u.%u.%u", (ENDIAN_SWAP32(ptinIgmpProxy.ipv4Addr) >> 24) & 0xFF, (ENDIAN_SWAP32(ptinIgmpProxy.ipv4Addr) >> 16) & 0xFF,
-                                                                                 (ENDIAN_SWAP32(ptinIgmpProxy.ipv4Addr) >>  8) & 0xFF,  (ENDIAN_SWAP32(ptinIgmpProxy.ipv4Addr)       & 0xFF));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinIgmpProxy.ipv4Addr >> 24) & 0xFF, (ptinIgmpProxy.ipv4Addr >> 16) & 0xFF,
+                                                                                  (ptinIgmpProxy.ipv4Addr >>  8) & 0xFF,  ptinIgmpProxy.ipv4Addr        & 0xFF);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  COS                              = %u", ptinIgmpProxy.igmpCos);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  FastLeave                        = %s", ptinIgmpProxy.fastLeave != 0 ? "ON":"OFF");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Querier (mask=0x%08X)", ENDIAN_SWAP16(ptinIgmpProxy.querier.mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Querier (mask=0x%08X)", ptinIgmpProxy.querier.mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "    Flags                          = 0x%08X", ptinIgmpProxy.querier.flags);  
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Robustness                     = %u", ENDIAN_SWAP16(ptinIgmpProxy.querier.robustness));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Interval                 = %u", ENDIAN_SWAP16(ptinIgmpProxy.querier.queryInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Response Interval        = %u", ENDIAN_SWAP16(ptinIgmpProxy.querier.queryResponseInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Group Membership Interval      = %u", ENDIAN_SWAP16(ptinIgmpProxy.querier.groupMembershipInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Other Querier Present Interval = %u", ENDIAN_SWAP16(ptinIgmpProxy.querier.otherQuerierPresentInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Interval         = %u", ENDIAN_SWAP16(ptinIgmpProxy.querier.startupQueryInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Count            = %u", ENDIAN_SWAP16(ptinIgmpProxy.querier.startupQueryCount));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Interval     = %u", ENDIAN_SWAP16(ptinIgmpProxy.querier.lastMemberQueryInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Count        = %u", ENDIAN_SWAP16(ptinIgmpProxy.querier.lastMemberQueryCount));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Host Present Timeout     = %u", ENDIAN_SWAP16(ptinIgmpProxy.querier.olderHostPresentTimeout));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Robustness                     = %u", ptinIgmpProxy.querier.robustness);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Interval                 = %u", ptinIgmpProxy.querier.queryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Response Interval        = %u", ptinIgmpProxy.querier.queryResponseInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Group Membership Interval      = %u", ptinIgmpProxy.querier.groupMembershipInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Other Querier Present Interval = %u", ptinIgmpProxy.querier.otherQuerierPresentInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Interval         = %u", ptinIgmpProxy.querier.startupQueryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Count            = %u", ptinIgmpProxy.querier.startupQueryCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Interval     = %u", ptinIgmpProxy.querier.lastMemberQueryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Count        = %u", ptinIgmpProxy.querier.lastMemberQueryCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Host Present Timeout     = %u", ptinIgmpProxy.querier.olderHostPresentTimeout);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Host (mask=0x%08X)", ptinIgmpProxy.host.mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "    Flags                          = 0x%02X", ptinIgmpProxy.host.flags);  
   PT_LOG_DEBUG(LOG_CTX_MSG, "    Robustness                     = %u", ptinIgmpProxy.host.robustness);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Unsolicited Report Interval    = %u", ENDIAN_SWAP16(ptinIgmpProxy.host.unsolicitedReportInterval));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Unsolicited Report Interval    = %u", ptinIgmpProxy.host.unsolicitedReportInterval);
   PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Querier Present  Timeout = %u", ptinIgmpProxy.host.olderQuerierPresentTimeout);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Bandwidth Control                = %s", ptinIgmpProxy.bandwidthControl != 0 ? "ON":"OFF");
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Channels Control                 = %s", ptinIgmpProxy.channelsControl != 0 ? "ON":"OFF");
   PT_LOG_DEBUG(LOG_CTX_MSG, "  WhiteList                        = %s", ptinIgmpProxy.whiteList != 0 ? "ON":"OFF");
 
   /* Copy data */
-  msgIgmpProxy->mask                                   = ENDIAN_SWAP16(ptinIgmpProxy.mask);
+  msgIgmpProxy->mask                                   = ptinIgmpProxy.mask;
   msgIgmpProxy->admin                                  = ptinIgmpProxy.admin;
   msgIgmpProxy->networkVersion                         = ptinIgmpProxy.networkVersion;
   msgIgmpProxy->clientVersion                          = ptinIgmpProxy.clientVersion;
-  msgIgmpProxy->ipv4_addr.s_addr                       = ENDIAN_SWAP32(ptinIgmpProxy.ipv4Addr);
+  msgIgmpProxy->ipv4_addr.s_addr                       = ptinIgmpProxy.ipv4Addr;
   msgIgmpProxy->igmp_cos                               = ptinIgmpProxy.igmpCos;
   msgIgmpProxy->fast_leave                             = ptinIgmpProxy.fastLeave;
 
-  msgIgmpProxy->querier.mask                           = ENDIAN_SWAP16(ptinIgmpProxy.querier.mask);
+  msgIgmpProxy->querier.mask                           = ptinIgmpProxy.querier.mask;
   msgIgmpProxy->querier.flags                          = ptinIgmpProxy.querier.flags;  
   msgIgmpProxy->querier.robustness                     = ptinIgmpProxy.querier.robustness;
-  msgIgmpProxy->querier.query_interval                 = ENDIAN_SWAP16(ptinIgmpProxy.querier.queryInterval);
-  msgIgmpProxy->querier.query_response_interval        = ENDIAN_SWAP16(ptinIgmpProxy.querier.queryResponseInterval);
-  msgIgmpProxy->querier.group_membership_interval      = ENDIAN_SWAP16(ptinIgmpProxy.querier.groupMembershipInterval);
-  msgIgmpProxy->querier.other_querier_present_interval = ENDIAN_SWAP16(ptinIgmpProxy.querier.otherQuerierPresentInterval);
-  msgIgmpProxy->querier.startup_query_interval         = ENDIAN_SWAP16(ptinIgmpProxy.querier.startupQueryInterval);
-  msgIgmpProxy->querier.startup_query_count            = ENDIAN_SWAP16(ptinIgmpProxy.querier.startupQueryCount);
-  msgIgmpProxy->querier.last_member_query_interval     = ENDIAN_SWAP16(ptinIgmpProxy.querier.lastMemberQueryInterval);
-  msgIgmpProxy->querier.last_member_query_count        = ENDIAN_SWAP16(ptinIgmpProxy.querier.lastMemberQueryCount);
-  msgIgmpProxy->querier.older_host_present_timeout     = ENDIAN_SWAP16(ptinIgmpProxy.querier.olderHostPresentTimeout);
+  msgIgmpProxy->querier.query_interval                 = ptinIgmpProxy.querier.queryInterval;
+  msgIgmpProxy->querier.query_response_interval        = ptinIgmpProxy.querier.queryResponseInterval;
+  msgIgmpProxy->querier.group_membership_interval      = ptinIgmpProxy.querier.groupMembershipInterval;
+  msgIgmpProxy->querier.other_querier_present_interval = ptinIgmpProxy.querier.otherQuerierPresentInterval;
+  msgIgmpProxy->querier.startup_query_interval         = ptinIgmpProxy.querier.startupQueryInterval;
+  msgIgmpProxy->querier.startup_query_count            = ptinIgmpProxy.querier.startupQueryCount;
+  msgIgmpProxy->querier.last_member_query_interval     = ptinIgmpProxy.querier.lastMemberQueryInterval;
+  msgIgmpProxy->querier.last_member_query_count        = ptinIgmpProxy.querier.lastMemberQueryCount;
+  msgIgmpProxy->querier.older_host_present_timeout     = ptinIgmpProxy.querier.olderHostPresentTimeout;
 
   msgIgmpProxy->host.mask                              = ptinIgmpProxy.host.mask;
   msgIgmpProxy->host.flags                             = ptinIgmpProxy.host.flags;  
   msgIgmpProxy->host.robustness                        = ptinIgmpProxy.host.robustness;
-  msgIgmpProxy->host.unsolicited_report_interval       = ENDIAN_SWAP16(ptinIgmpProxy.host.unsolicitedReportInterval);
-  msgIgmpProxy->host.older_querier_present_timeout     = ENDIAN_SWAP16(ptinIgmpProxy.host.olderQuerierPresentTimeout);
+  msgIgmpProxy->host.unsolicited_report_interval       = ptinIgmpProxy.host.unsolicitedReportInterval;
+  msgIgmpProxy->host.older_querier_present_timeout     = ptinIgmpProxy.host.olderQuerierPresentTimeout;
 
   msgIgmpProxy->bandwidthControl                       = ptinIgmpProxy.bandwidthControl;
   msgIgmpProxy->channelsControl                        = ptinIgmpProxy.channelsControl;
@@ -8905,11 +8923,11 @@ L7_RC_t ptin_msg_igmp_instance_add(msg_IgmpMultcastUnicastLink_t *msgIgmpInst)
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Going to add IGMP Instance:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", ENDIAN_SWAP32(msgIgmpInst->multicastEvcId));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  UC evc_idx = %u", ENDIAN_SWAP32(msgIgmpInst->unicastEvcId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", msgIgmpInst->multicastEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  UC evc_idx = %u", msgIgmpInst->unicastEvcId);
 
   /* Apply config */
-  rc = ptin_igmp_instance_add(ENDIAN_SWAP32(msgIgmpInst->multicastEvcId),ENDIAN_SWAP32(msgIgmpInst->unicastEvcId));
+  rc = ptin_igmp_instance_add(msgIgmpInst->multicastEvcId,msgIgmpInst->unicastEvcId);
 
   if (rc!=L7_SUCCESS)
   {
@@ -8939,11 +8957,11 @@ L7_RC_t ptin_msg_igmp_instance_remove(msg_IgmpMultcastUnicastLink_t *msgIgmpInst
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Going to remove IGMP Instance:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", ENDIAN_SWAP32(msgIgmpInst->multicastEvcId));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  UC evc_idx = %u", ENDIAN_SWAP32(msgIgmpInst->unicastEvcId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", msgIgmpInst->multicastEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  UC evc_idx = %u", msgIgmpInst->unicastEvcId);
 
   /* Apply config */
-  rc = ptin_igmp_instance_remove(ENDIAN_SWAP32(msgIgmpInst->multicastEvcId),ENDIAN_SWAP32(msgIgmpInst->unicastEvcId));
+  rc = ptin_igmp_instance_remove(msgIgmpInst->multicastEvcId,msgIgmpInst->unicastEvcId);
 
   if (rc!=L7_SUCCESS)
   {
@@ -8980,45 +8998,45 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
   for (i=0; i<n_clients; i++)
   {
     /* Output data */
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Going to remove MC client");
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", ENDIAN_SWAP32(McastClient[i].mcEvcId));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Mask  = 0x%02x", McastClient[i].client.mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan = %u", ENDIAN_SWAP16(McastClient[i].client.outer_vlan));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan = %u", ENDIAN_SWAP16(McastClient[i].client.inner_vlan));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf  = %u/%u", McastClient[i].client.intf.intf_type,McastClient[i].client.intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Going to add MC client");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", McastClient[i].mcEvcId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Mask         = 0x%02x", McastClient[i].client.mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan        = %u", McastClient[i].client.outer_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan        = %u", McastClient[i].client.inner_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf         = %u/%u", McastClient[i].client.intf.intf_type,McastClient[i].client.intf.intf_id);
 
     if (McastClient[i].mask > PTIN_MSG_IGMP_CLIENT_MASK_VALID)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Mask [mask:0x%02x]",McastClient[i].mask, ENDIAN_SWAP64(McastClient[i].maxBandwidth), ENDIAN_SWAP16(McastClient[i].maxChannels));
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Mask [mask:0x%02x]",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
       return L7_FAILURE;
     }
 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT                                         
       if ( ( ( (McastClient[i].mask & PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_BANDWIDTH ) &&
-            (ENDIAN_SWAP64(McastClient[i].maxBandwidth) != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && ENDIAN_SWAP64(McastClient[i].maxBandwidth) > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
+            (McastClient[i].maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && McastClient[i].maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
            ( ( (McastClient[i].mask & PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_CHANNELS) == PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_CHANNELS ) &&
-            (ENDIAN_SWAP16(McastClient[i].maxChannels) != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && ENDIAN_SWAP16(McastClient[i].maxChannels) > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
+            (McastClient[i].maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && McastClient[i].maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
           
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu",McastClient[i].mask, ENDIAN_SWAP64(McastClient[i].maxBandwidth), ENDIAN_SWAP16(McastClient[i].maxChannels));
+        PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
         return L7_FAILURE;
       }
 
       PT_LOG_DEBUG(LOG_CTX_MSG, "   onuId        = %u", McastClient[i].onuId);
       PT_LOG_DEBUG(LOG_CTX_MSG, "   mask         = %u", McastClient[i].mask);
-      PT_LOG_DEBUG(LOG_CTX_MSG, "   maxChannels  = %u", ENDIAN_SWAP16(McastClient[i].maxChannels));
-      PT_LOG_DEBUG(LOG_CTX_MSG, "   maxBandwidth = %llu bit/s ", ENDIAN_SWAP64(McastClient[i].maxBandwidth));
+      PT_LOG_DEBUG(LOG_CTX_MSG, "   maxChannels  = %u", McastClient[i].maxChannels);
+      PT_LOG_DEBUG(LOG_CTX_MSG, "   maxBandwidth = %llu bit/s ", McastClient[i].maxBandwidth);
 #endif
  
     memset(&client,0x00,sizeof(ptin_client_id_t));
     if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
     {
-      client.outerVlan = ENDIAN_SWAP16(McastClient[i].client.outer_vlan);
+      client.outerVlan = McastClient[i].client.outer_vlan;
       client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
     }
     if (McastClient[i].client.mask & MSG_CLIENT_IVLAN_MASK)
     {
-      client.innerVlan = ENDIAN_SWAP16(McastClient[i].client.inner_vlan);
+      client.innerVlan = McastClient[i].client.inner_vlan;
       client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
     }
     if (McastClient[i].client.mask & MSG_CLIENT_INTF_MASK)
@@ -9029,7 +9047,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
     }
 
     {
-      rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(McastClient[i].mcEvcId), &client);
+      rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
       if ( rc != L7_SUCCESS )
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
@@ -9039,7 +9057,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
       /* Get interface as intIfNum format */      
       if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
       {
-        if (ptin_evc_extVlans_get(intIfNum, ENDIAN_SWAP32(McastClient[i].mcEvcId),(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+        if (ptin_evc_extVlans_get(intIfNum, McastClient[i].mcEvcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
         {
           PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                     client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
@@ -9058,7 +9076,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
     }
     
     /* Apply config */
-    rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, McastClient[i].onuId, McastClient[i].mask, ENDIAN_SWAP64(McastClient[i].maxBandwidth), ENDIAN_SWAP16(McastClient[i].maxChannels), L7_FALSE, L7_NULLPTR/*McastClient[i].packageBmpList*/, 0/*McastClient[i].noOfPackages*/);          
+    rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, McastClient[i].onuId, McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels, L7_FALSE, L7_NULLPTR/*McastClient[i].packageBmpList*/, 0/*McastClient[i].noOfPackages*/);          
 
     if (rc!=L7_SUCCESS)
     {
@@ -9094,21 +9112,21 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
   {
     /* Output data */
     PT_LOG_DEBUG(LOG_CTX_MSG, "Going to remove MC client");
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", ENDIAN_SWAP32(McastClient[i].mcEvcId));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", McastClient[i].mcEvcId);
     PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Mask  = 0x%02x", McastClient[i].client.mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan = %u", ENDIAN_SWAP16(McastClient[i].client.outer_vlan));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan = %u", ENDIAN_SWAP16(McastClient[i].client.inner_vlan));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan = %u", McastClient[i].client.outer_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan = %u", McastClient[i].client.inner_vlan);
     PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf  = %u/%u", McastClient[i].client.intf.intf_type,McastClient[i].client.intf.intf_id);
 
     memset(&client,0x00,sizeof(ptin_client_id_t));
     if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
     {
-      client.outerVlan = ENDIAN_SWAP16(McastClient[i].client.outer_vlan);
+      client.outerVlan = McastClient[i].client.outer_vlan;
       client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
     }
     if (McastClient[i].client.mask & MSG_CLIENT_IVLAN_MASK)
     {
-      client.innerVlan = ENDIAN_SWAP16(McastClient[i].client.inner_vlan);
+      client.innerVlan = McastClient[i].client.inner_vlan;
       client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
     }
     if (McastClient[i].client.mask & MSG_CLIENT_INTF_MASK)
@@ -9118,7 +9136,7 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
     }
 
-    rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(McastClient[i].mcEvcId), &client);
+    rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
     if ( rc != L7_SUCCESS )
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
@@ -9149,7 +9167,6 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   ptin_client_id_t                client;
   PTIN_MGMD_CTRL_STATS_RESPONSE_t stats;
   L7_RC_t                         rc;
-  L7_uint32                       aux_mcEvcId;
 
   if (igmp_stats==L7_NULLPTR)
   {
@@ -9157,16 +9174,14 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
     return L7_FAILURE;
   }
 
-  aux_mcEvcId = ENDIAN_SWAP32(igmp_stats->mcEvcId);
-
   /* Output data */
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Reading interface IGMP stats:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx   = %u", aux_mcEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Reading client IGMP stats:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx   = %u", igmp_stats->mcEvcId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", igmp_stats->mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u", igmp_stats->intf.intf_type,igmp_stats->intf.intf_id);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", igmp_stats->client.mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u", ENDIAN_SWAP16(igmp_stats->client.outer_vlan));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u", ENDIAN_SWAP16(igmp_stats->client.inner_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u", igmp_stats->client.outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
 
   //Short Fix to Support Mac Bridge Services and Unicast Services 
@@ -9176,18 +9191,18 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
     L7_BOOL isMacBridge;    
     if (ptin_evc_mac_bridge_check(igmp_stats->mcEvcId, &isMacBridge)==L7_SUCCESS && isMacBridge==L7_TRUE)
     #else
-    if (ENDIAN_SWAP16(igmp_stats->client.outer_vlan)==0) 
+    if (igmp_stats->client.outer_vlan==0) 
     #endif
     {      
-      igmp_stats->client.outer_vlan= ENDIAN_SWAP16(igmp_stats->client.inner_vlan);      
+      igmp_stats->client.outer_vlan=igmp_stats->client.inner_vlan;      
     }    
     igmp_stats->client.mask|=MSG_CLIENT_OVLAN_MASK;    
-    PT_LOG_DEBUG(LOG_CTX_MSG,"Converted [client.Mask:%u Client.OVlan:%u]",igmp_stats->client.mask, ENDIAN_SWAP16(igmp_stats->client.outer_vlan));
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Converted [client.Mask:%u Client.OVlan:%u]",igmp_stats->client.mask,igmp_stats->client.outer_vlan);
   }  
   #endif
 
   /* Evaluate provided data */
-  if ( aux_mcEvcId ==(L7_uint16)-1 ||
+  if ( igmp_stats->mcEvcId==(L7_uint16)-1 ||
        !(igmp_stats->mask & MSG_CLIENT_MASK) ||
        (igmp_stats->client.mask == 0x00) )
   {
@@ -9198,12 +9213,12 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   memset(&client,0x00,sizeof(ptin_client_id_t));
   if (igmp_stats->client.mask & MSG_CLIENT_OVLAN_MASK)
   {
-    client.outerVlan = ENDIAN_SWAP16(igmp_stats->client.outer_vlan);
+    client.outerVlan = igmp_stats->client.outer_vlan;
     client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
   }
   if (igmp_stats->client.mask & MSG_CLIENT_IVLAN_MASK)
   {
-    client.innerVlan = ENDIAN_SWAP16(igmp_stats->client.inner_vlan);
+    client.innerVlan = igmp_stats->client.inner_vlan;
     client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
   }
   if (igmp_stats->client.mask & MSG_CLIENT_INTF_MASK)
@@ -9214,7 +9229,7 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   }
 
   /* Get statistics */
-  rc = ptin_igmp_stat_client_get(aux_mcEvcId,&client,&stats);
+  rc = ptin_igmp_stat_client_get(igmp_stats->mcEvcId,&client,&stats);
   if (rc!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error getting client statistics");
@@ -9225,51 +9240,51 @@ L7_RC_t ptin_msg_IGMP_clientStats_get(msg_IgmpClientStatistics_t *igmp_stats)
     PT_LOG_DEBUG(LOG_CTX_MSG, "Success getting client statistics");
   }
 
-  igmp_stats->stats.active_groups                                                    = ENDIAN_SWAP32(stats.activeGroups);            
-  igmp_stats->stats.active_clients                                                   = ENDIAN_SWAP32(stats.activeClients); 
+  igmp_stats->stats.active_groups                                                    = stats.activeGroups;            
+  igmp_stats->stats.active_clients                                                   = stats.activeClients; 
             
-  igmp_stats->stats.igmp_tx                                                          = ENDIAN_SWAP32(stats.igmpTx);
-  igmp_stats->stats.igmp_valid_rx                                                    = ENDIAN_SWAP32(stats.igmpValidRx);
-  igmp_stats->stats.igmp_invalid_rx                                                  = ENDIAN_SWAP32(stats.igmpInvalidRx);    
-  igmp_stats->stats.igmp_dropped_rx                                                  = ENDIAN_SWAP32(stats.igmpDroppedRx); 
-  igmp_stats->stats.igmp_total_rx                                                    = ENDIAN_SWAP32(stats.igmpTotalRx);  
+  igmp_stats->stats.igmp_tx                                                          = stats.igmpTx;
+  igmp_stats->stats.igmp_valid_rx                                                    = stats.igmpValidRx;
+  igmp_stats->stats.igmp_invalid_rx                                                  = stats.igmpInvalidRx;    
+  igmp_stats->stats.igmp_dropped_rx                                                  = stats.igmpDroppedRx; 
+  igmp_stats->stats.igmp_total_rx                                                    = stats.igmpTotalRx;  
   
-  igmp_stats->stats.HWIgmpv2Statistics.join_tx                                       = ENDIAN_SWAP32(stats.v2.joinTx);               
-  igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                 = ENDIAN_SWAP32(stats.v2.joinRx);   
-  igmp_stats->stats.HWIgmpv2Statistics.join_invalid_rx                               = ENDIAN_SWAP32(stats.v2.joinInvalidRx);    
-  igmp_stats->stats.HWIgmpv2Statistics.leave_tx                                      = ENDIAN_SWAP32(stats.v2.leaveTx);              
-  igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                = ENDIAN_SWAP32(stats.v2.leaveRx) +    
-                                                                                       ENDIAN_SWAP32(stats.v2.leaveInvalidRx);
+  igmp_stats->stats.HWIgmpv2Statistics.join_tx                                       = stats.v2.joinTx;               
+  igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                 = stats.v2.joinRx;   
+  igmp_stats->stats.HWIgmpv2Statistics.join_invalid_rx                               = stats.v2.joinInvalidRx;    
+  igmp_stats->stats.HWIgmpv2Statistics.leave_tx                                      = stats.v2.leaveTx;              
+  igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                = stats.v2.leaveRx +    
+                                                                                       stats.v2.leaveInvalidRx;
   
-  igmp_stats->stats.HWIgmpv3Statistics.membership_report_tx                          = ENDIAN_SWAP32(stats.v3.membershipReportTx); 
-  igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                    = ENDIAN_SWAP32(stats.v3.membershipReportRx);      
-  igmp_stats->stats.HWIgmpv3Statistics.membership_report_invalid_rx                  = ENDIAN_SWAP32(stats.v3.membershipReportInvalidRx);          
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_tx                          = stats.v3.membershipReportTx; 
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                    = stats.v3.membershipReportRx;
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_invalid_rx                  = stats.v3.membershipReportInvalidRx;          
   
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_tx              = ENDIAN_SWAP32(stats.v3.groupRecords.allowTx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx        = ENDIAN_SWAP32(stats.v3.groupRecords.allowRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_invalid_rx      = ENDIAN_SWAP32(stats.v3.groupRecords.allowInvalidRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_tx              = ENDIAN_SWAP32(stats.v3.groupRecords.blockTx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_valid_rx        = ENDIAN_SWAP32(stats.v3.groupRecords.blockRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_invalid_rx      = ENDIAN_SWAP32(stats.v3.groupRecords.blockInvalidRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_tx         = ENDIAN_SWAP32(stats.v3.groupRecords.isIncludeTx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_valid_rx   = ENDIAN_SWAP32(stats.v3.groupRecords.isIncludeRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_invalid_rx = ENDIAN_SWAP32(stats.v3.groupRecords.isIncludeInvalidRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_tx         = ENDIAN_SWAP32(stats.v3.groupRecords.isExcludeTx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_valid_rx   = ENDIAN_SWAP32(stats.v3.groupRecords.isExcludeRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_invalid_rx = ENDIAN_SWAP32(stats.v3.groupRecords.isExcludeInvalidRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_tx         = ENDIAN_SWAP32(stats.v3.groupRecords.toIncludeTx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_valid_rx   = ENDIAN_SWAP32(stats.v3.groupRecords.toIncludeRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_invalid_rx = ENDIAN_SWAP32(stats.v3.groupRecords.toIncludeInvalidRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_tx         = ENDIAN_SWAP32(stats.v3.groupRecords.toExcludeTx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_valid_rx   = ENDIAN_SWAP32(stats.v3.groupRecords.toExcludeRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_invalid_rx = ENDIAN_SWAP32(stats.v3.groupRecords.toExcludeInvalidRx);                                  
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_tx              = stats.v3.groupRecords.allowTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx        = stats.v3.groupRecords.allowRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_invalid_rx      = stats.v3.groupRecords.allowInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_tx              = stats.v3.groupRecords.blockTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_valid_rx        = stats.v3.groupRecords.blockRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_invalid_rx      = stats.v3.groupRecords.blockInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_tx         = stats.v3.groupRecords.isIncludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_valid_rx   = stats.v3.groupRecords.isIncludeRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_invalid_rx = stats.v3.groupRecords.isIncludeInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_tx         = stats.v3.groupRecords.isExcludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_valid_rx   = stats.v3.groupRecords.isExcludeRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_invalid_rx = stats.v3.groupRecords.isExcludeInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_tx         = stats.v3.groupRecords.toIncludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_valid_rx   = stats.v3.groupRecords.toIncludeRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_invalid_rx = stats.v3.groupRecords.toIncludeInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_tx         = stats.v3.groupRecords.toExcludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_valid_rx   = stats.v3.groupRecords.toExcludeRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_invalid_rx = stats.v3.groupRecords.toExcludeInvalidRx;                                  
          
-  igmp_stats->stats.HWQueryStatistics.general_query_tx                               = ENDIAN_SWAP32(stats.query.generalQueryTx);     
-  igmp_stats->stats.HWQueryStatistics.general_query_valid_rx                         = ENDIAN_SWAP32(stats.query.generalQueryRx);
-  igmp_stats->stats.HWQueryStatistics.group_query_tx                                 = ENDIAN_SWAP32(stats.query.groupQueryTx);       
-  igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                           = ENDIAN_SWAP32(stats.query.groupQueryRx);  
-  igmp_stats->stats.HWQueryStatistics.source_query_tx                                = ENDIAN_SWAP32(stats.query.sourceQueryTx);      
-  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                          = ENDIAN_SWAP32(stats.query.sourceQueryRx); 
+  igmp_stats->stats.HWQueryStatistics.general_query_tx                               = stats.query.generalQueryTx;     
+  igmp_stats->stats.HWQueryStatistics.general_query_valid_rx                         = stats.query.generalQueryRx;
+  igmp_stats->stats.HWQueryStatistics.group_query_tx                                 = stats.query.groupQueryTx;       
+  igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                           = stats.query.groupQueryRx;  
+  igmp_stats->stats.HWQueryStatistics.source_query_tx                                = stats.query.sourceQueryTx;      
+  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                          = stats.query.sourceQueryRx; 
 
   return L7_SUCCESS;
 }
@@ -9285,7 +9300,6 @@ L7_RC_t ptin_msg_IGMP_clientStats_clear(msg_IgmpClientStatistics_t *igmp_stats, 
 {
   ptin_client_id_t client;
   L7_RC_t rc;
-  L7_uint32 aux_mcEvcId;
 
   if (igmp_stats==L7_NULLPTR)
   {
@@ -9293,19 +9307,18 @@ L7_RC_t ptin_msg_IGMP_clientStats_clear(msg_IgmpClientStatistics_t *igmp_stats, 
     return L7_FAILURE;
   }
 
-  aux_mcEvcId = ENDIAN_SWAP32(igmp_stats->mcEvcId);
   /* Output data */
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Reading interface IGMP stats:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx   = %u", aux_mcEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Clearing client IGMP stats:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx   = %u", igmp_stats->mcEvcId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", igmp_stats->mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u", igmp_stats->intf.intf_type,igmp_stats->intf.intf_id);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", igmp_stats->client.mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u", ENDIAN_SWAP16(igmp_stats->client.outer_vlan));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u", ENDIAN_SWAP16(igmp_stats->client.inner_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u", igmp_stats->client.outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
 
   /* Evaluate provided data */
-  if ( aux_mcEvcId==(L7_uint16)-1 ||
+  if ( igmp_stats->mcEvcId==(L7_uint16)-1 ||
        !(igmp_stats->mask & MSG_CLIENT_MASK) ||
        (igmp_stats->client.mask == 0x00) )
   {
@@ -9316,12 +9329,12 @@ L7_RC_t ptin_msg_IGMP_clientStats_clear(msg_IgmpClientStatistics_t *igmp_stats, 
   memset(&client,0x00,sizeof(ptin_client_id_t));
   if (igmp_stats->client.mask & MSG_CLIENT_OVLAN_MASK)
   {
-    client.outerVlan = ENDIAN_SWAP16(igmp_stats->client.outer_vlan);
+    client.outerVlan = igmp_stats->client.outer_vlan;
     client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
   }
   if (igmp_stats->client.mask & MSG_CLIENT_IVLAN_MASK)
   {
-    client.innerVlan = ENDIAN_SWAP16(igmp_stats->client.inner_vlan);
+    client.innerVlan = igmp_stats->client.inner_vlan;
     client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
   }
   if (igmp_stats->client.mask & MSG_CLIENT_INTF_MASK)
@@ -9332,7 +9345,7 @@ L7_RC_t ptin_msg_IGMP_clientStats_clear(msg_IgmpClientStatistics_t *igmp_stats, 
   }
 
   /* Clear client stats */
-  rc = ptin_igmp_stat_client_clear(aux_mcEvcId,&client);
+  rc = ptin_igmp_stat_client_clear(igmp_stats->mcEvcId,&client);
 
   if (rc!=L7_SUCCESS)
   {
@@ -9359,7 +9372,6 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   ptin_intf_t                     ptin_intf;
   PTIN_MGMD_CTRL_STATS_RESPONSE_t stats;
   L7_RC_t                         rc;
-  L7_uint32                       aux_mcEvcId;
 
   if (igmp_stats==L7_NULLPTR)
   {
@@ -9367,15 +9379,14 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
     return L7_FAILURE;
   }
 
-  aux_mcEvcId = ENDIAN_SWAP32(igmp_stats->mcEvcId);
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Reading interface IGMP stats:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx   = %u", aux_mcEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx   = %u", igmp_stats->mcEvcId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", igmp_stats->mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u", igmp_stats->intf.intf_type,igmp_stats->intf.intf_id);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", igmp_stats->client.mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u", ENDIAN_SWAP16(igmp_stats->client.outer_vlan));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u", ENDIAN_SWAP16(igmp_stats->client.inner_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u", igmp_stats->client.outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
 
   /* Evaluate provided data */
@@ -9389,7 +9400,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   ptin_intf.intf_id   = igmp_stats->intf.intf_id;
 
   /* Get statistics */
-  if ( aux_mcEvcId ==(L7_uint16)-1)
+  if (igmp_stats->mcEvcId==(L7_uint16)-1)
   {
     rc = ptin_igmp_stat_intf_get(&ptin_intf,&stats);
 
@@ -9405,7 +9416,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
   }
   else
   {
-    rc = ptin_igmp_stat_instanceIntf_get(aux_mcEvcId, &ptin_intf, &stats);
+    rc = ptin_igmp_stat_instanceIntf_get(igmp_stats->mcEvcId, &ptin_intf, &stats);
 
     if (rc!=L7_SUCCESS)
     {
@@ -9418,51 +9429,51 @@ L7_RC_t ptin_msg_IGMP_intfStats_get(msg_IgmpClientStatistics_t *igmp_stats)
     }
   }
 
-  igmp_stats->stats.active_groups                                                    = ENDIAN_SWAP32(stats.activeGroups);            
-  igmp_stats->stats.active_clients                                                   = ENDIAN_SWAP32(stats.activeClients); 
+  igmp_stats->stats.active_groups                                                    = stats.activeGroups;            
+  igmp_stats->stats.active_clients                                                   = stats.activeClients; 
             
-  igmp_stats->stats.igmp_tx                                                          = ENDIAN_SWAP32(stats.igmpTx);
-  igmp_stats->stats.igmp_valid_rx                                                    = ENDIAN_SWAP32(stats.igmpValidRx);
-  igmp_stats->stats.igmp_invalid_rx                                                  = ENDIAN_SWAP32(stats.igmpInvalidRx);    
-  igmp_stats->stats.igmp_dropped_rx                                                  = ENDIAN_SWAP32(stats.igmpDroppedRx); 
-  igmp_stats->stats.igmp_total_rx                                                    = ENDIAN_SWAP32(stats.igmpTotalRx);  
+  igmp_stats->stats.igmp_tx                                                          = stats.igmpTx;
+  igmp_stats->stats.igmp_valid_rx                                                    = stats.igmpValidRx;
+  igmp_stats->stats.igmp_invalid_rx                                                  = stats.igmpInvalidRx;    
+  igmp_stats->stats.igmp_dropped_rx                                                  = stats.igmpDroppedRx; 
+  igmp_stats->stats.igmp_total_rx                                                    = stats.igmpTotalRx;  
   
-  igmp_stats->stats.HWIgmpv2Statistics.join_tx                                       = ENDIAN_SWAP32(stats.v2.joinTx);               
-  igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                 = ENDIAN_SWAP32(stats.v2.joinRx);   
-  igmp_stats->stats.HWIgmpv2Statistics.join_invalid_rx                               = ENDIAN_SWAP32(stats.v2.joinInvalidRx);    
-  igmp_stats->stats.HWIgmpv2Statistics.leave_tx                                      = ENDIAN_SWAP32(stats.v2.leaveTx);              
-  igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                = ENDIAN_SWAP32(stats.v2.leaveRx) +    
-                                                                                       ENDIAN_SWAP32(stats.v2.leaveInvalidRx);
+  igmp_stats->stats.HWIgmpv2Statistics.join_tx                                       = stats.v2.joinTx;               
+  igmp_stats->stats.HWIgmpv2Statistics.join_valid_rx                                 = stats.v2.joinRx;   
+  igmp_stats->stats.HWIgmpv2Statistics.join_invalid_rx                               = stats.v2.joinInvalidRx;    
+  igmp_stats->stats.HWIgmpv2Statistics.leave_tx                                      = stats.v2.leaveTx;              
+  igmp_stats->stats.HWIgmpv2Statistics.leave_valid_rx                                = stats.v2.leaveRx +    
+                                                                                       stats.v2.leaveInvalidRx;
   
-  igmp_stats->stats.HWIgmpv3Statistics.membership_report_tx                          = ENDIAN_SWAP32(stats.v3.membershipReportTx); 
-  igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                    = ENDIAN_SWAP32(stats.v3.membershipReportRx);      
-  igmp_stats->stats.HWIgmpv3Statistics.membership_report_invalid_rx                  = ENDIAN_SWAP32(stats.v3.membershipReportInvalidRx);          
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_tx                          = stats.v3.membershipReportTx; 
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_valid_rx                    = stats.v3.membershipReportRx;      
+  igmp_stats->stats.HWIgmpv3Statistics.membership_report_invalid_rx                  = stats.v3.membershipReportInvalidRx;          
   
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_tx              = ENDIAN_SWAP32(stats.v3.groupRecords.allowTx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx        = ENDIAN_SWAP32(stats.v3.groupRecords.allowRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_invalid_rx      = ENDIAN_SWAP32(stats.v3.groupRecords.allowInvalidRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_tx              = ENDIAN_SWAP32(stats.v3.groupRecords.blockTx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_valid_rx        = ENDIAN_SWAP32(stats.v3.groupRecords.blockRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_invalid_rx      = ENDIAN_SWAP32(stats.v3.groupRecords.blockInvalidRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_tx         = ENDIAN_SWAP32(stats.v3.groupRecords.isIncludeTx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_valid_rx   = ENDIAN_SWAP32(stats.v3.groupRecords.isIncludeRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_invalid_rx = ENDIAN_SWAP32(stats.v3.groupRecords.isIncludeInvalidRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_tx         = ENDIAN_SWAP32(stats.v3.groupRecords.isExcludeTx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_valid_rx   = ENDIAN_SWAP32(stats.v3.groupRecords.isExcludeRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_invalid_rx = ENDIAN_SWAP32(stats.v3.groupRecords.isExcludeInvalidRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_tx         = ENDIAN_SWAP32(stats.v3.groupRecords.toIncludeTx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_valid_rx   = ENDIAN_SWAP32(stats.v3.groupRecords.toIncludeRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_invalid_rx = ENDIAN_SWAP32(stats.v3.groupRecords.toIncludeInvalidRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_tx         = ENDIAN_SWAP32(stats.v3.groupRecords.toExcludeTx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_valid_rx   = ENDIAN_SWAP32(stats.v3.groupRecords.toExcludeRx);
-  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_invalid_rx = ENDIAN_SWAP32(stats.v3.groupRecords.toExcludeInvalidRx);                                  
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_tx              = stats.v3.groupRecords.allowTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_valid_rx        = stats.v3.groupRecords.allowRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.allow_invalid_rx      = stats.v3.groupRecords.allowInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_tx              = stats.v3.groupRecords.blockTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_valid_rx        = stats.v3.groupRecords.blockRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.block_invalid_rx      = stats.v3.groupRecords.blockInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_tx         = stats.v3.groupRecords.isIncludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_valid_rx   = stats.v3.groupRecords.isIncludeRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_include_invalid_rx = stats.v3.groupRecords.isIncludeInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_tx         = stats.v3.groupRecords.isExcludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_valid_rx   = stats.v3.groupRecords.isExcludeRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.is_exclude_invalid_rx = stats.v3.groupRecords.isExcludeInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_tx         = stats.v3.groupRecords.toIncludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_valid_rx   = stats.v3.groupRecords.toIncludeRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_include_invalid_rx = stats.v3.groupRecords.toIncludeInvalidRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_tx         = stats.v3.groupRecords.toExcludeTx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_valid_rx   = stats.v3.groupRecords.toExcludeRx;
+  igmp_stats->stats.HWIgmpv3Statistics.HWGroupRecordStatistics.to_exclude_invalid_rx = stats.v3.groupRecords.toExcludeInvalidRx;                                  
          
-  igmp_stats->stats.HWQueryStatistics.general_query_tx                               = ENDIAN_SWAP32(stats.query.generalQueryTx);     
-  igmp_stats->stats.HWQueryStatistics.general_query_valid_rx                         = ENDIAN_SWAP32(stats.query.generalQueryRx);
-  igmp_stats->stats.HWQueryStatistics.group_query_tx                                 = ENDIAN_SWAP32(stats.query.groupQueryTx);       
-  igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                           = ENDIAN_SWAP32(stats.query.groupQueryRx);  
-  igmp_stats->stats.HWQueryStatistics.source_query_tx                                = ENDIAN_SWAP32(stats.query.sourceQueryTx);      
-  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                          = ENDIAN_SWAP32(stats.query.sourceQueryRx); 
+  igmp_stats->stats.HWQueryStatistics.general_query_tx                               = stats.query.generalQueryTx;     
+  igmp_stats->stats.HWQueryStatistics.general_query_valid_rx                         = stats.query.generalQueryRx;
+  igmp_stats->stats.HWQueryStatistics.group_query_tx                                 = stats.query.groupQueryTx;       
+  igmp_stats->stats.HWQueryStatistics.group_query_valid_rx                           = stats.query.groupQueryRx;  
+  igmp_stats->stats.HWQueryStatistics.source_query_tx                                = stats.query.sourceQueryTx;      
+  igmp_stats->stats.HWQueryStatistics.source_query_valid_rx                          = stats.query.sourceQueryRx; 
 
   return L7_SUCCESS;
 }
@@ -9478,7 +9489,6 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
 {
   ptin_intf_t ptin_intf;
   L7_RC_t rc;
-  L7_uint32 aux_mcEvcId;
 
   if (igmp_stats==L7_NULLPTR)
   {
@@ -9486,23 +9496,21 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
     return L7_FAILURE;
   }
 
-  aux_mcEvcId = ENDIAN_SWAP32(igmp_stats->mcEvcId);
-
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Clearing interface IGMP stats:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx   = %u", aux_mcEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx   = %u", igmp_stats->mcEvcId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", igmp_stats->mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u", igmp_stats->intf.intf_type,igmp_stats->intf.intf_id);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", igmp_stats->client.mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u", ENDIAN_SWAP16(igmp_stats->client.outer_vlan));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u", ENDIAN_SWAP16(igmp_stats->client.inner_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u", igmp_stats->client.outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u", igmp_stats->client.inner_vlan);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u", igmp_stats->client.intf.intf_type, igmp_stats->client.intf.intf_id);
 
   ptin_intf.intf_type = igmp_stats->intf.intf_type;
   ptin_intf.intf_id   = igmp_stats->intf.intf_id;
 
   /* MC EVC not provided */
-  if (aux_mcEvcId ==(L7_uint16)-1)
+  if (igmp_stats->mcEvcId==(L7_uint16)-1)
   {
     /* Interface not provided */
     if ( !(igmp_stats->mask & MSG_INTERFACE_MASK) )
@@ -9544,7 +9552,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
     if ( !(igmp_stats->mask & MSG_INTERFACE_MASK) )
     {
       /* Clear stats of one igmp instance */
-      rc = ptin_igmp_stat_instance_clear(aux_mcEvcId);
+      rc = ptin_igmp_stat_instance_clear(igmp_stats->mcEvcId);
 
       if (rc!=L7_SUCCESS)
       {
@@ -9560,7 +9568,7 @@ L7_RC_t ptin_msg_IGMP_intfStats_clear(msg_IgmpClientStatistics_t *igmp_stats, ui
     else
     {
       /* Clear stats of one igmp instance and one interface */
-      rc = ptin_igmp_stat_instanceIntf_clear(aux_mcEvcId, &ptin_intf);
+      rc = ptin_igmp_stat_instanceIntf_clear(igmp_stats->mcEvcId, &ptin_intf);
 
       if (rc!=L7_SUCCESS)
       {
@@ -9598,13 +9606,6 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
   }
-
-  //CHMSG_IP_ADDR_SWAP_COPY(channel_list->channel_dstIp,channel_list->channel_dstIp);
-  //CHMSG_IP_ADDR_SWAP_COPY(channel_list->channel_srcIp,channel_list->channel_srcIp);
-
-  ENDIAN_SWAP64_MOD(channel_list->channelBandwidth);
-  ENDIAN_SWAP32_MOD(channel_list->evcid_mc);
-  ENDIAN_SWAP16_MOD(channel_list->entry_idx);
 
   PT_LOG_DEBUG(LOG_CTX_MSG,"Reading White list channel list:");
   PT_LOG_DEBUG(LOG_CTX_MSG," Slot   = %d",channel_list->SlotId);
@@ -9693,14 +9694,6 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
     //channel_list[i].???       = igmpAssoc_list[i_start+i].evc_uc;
     channel_list[i].evcid_mc  = igmpAssoc_list[i_start+i].evc_mc;
     //channel_list[i].???       = igmpAssoc_list[i_start+i].is_static;
-
-
-   CHMSG_IP_ADDR_SWAP_COPY(channel_list[i].channel_dstIp,channel_list[i].channel_dstIp);
-   CHMSG_IP_ADDR_SWAP_COPY(channel_list[i].channel_srcIp,channel_list[i].channel_srcIp);
-
-   ENDIAN_SWAP64_MOD(channel_list[i].channelBandwidth);
-   ENDIAN_SWAP32_MOD(channel_list[i].evcid_mc);
-   ENDIAN_SWAP16_MOD(channel_list[i].entry_idx);
   }
 
   /* Return number of channels */
@@ -9712,6 +9705,7 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
   return L7_NOT_SUPPORTED;
 
 #endif
+
   return L7_SUCCESS;
 }
 
@@ -9741,13 +9735,6 @@ L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_
 
   for (i=0; i<n_channels; i++)
   {
-    CHMSG_IP_ADDR_SWAP_COPY(channel_list[i].channel_dstIp,channel_list[i].channel_dstIp);
-    CHMSG_IP_ADDR_SWAP_COPY(channel_list[i].channel_srcIp,channel_list[i].channel_srcIp);
-
-    ENDIAN_SWAP64_MOD(channel_list[i].channelBandwidth);
-    ENDIAN_SWAP32_MOD(channel_list[i].evcid_mc);
-    ENDIAN_SWAP16_MOD(channel_list[i].entry_idx);
-
     PT_LOG_DEBUG(LOG_CTX_MSG,"Adding channel index %u:",i);
     PT_LOG_DEBUG(LOG_CTX_MSG," Slot   = %d",channel_list[i].SlotId);
     PT_LOG_DEBUG(LOG_CTX_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
@@ -9883,13 +9870,6 @@ L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16
 
   for (i=0; i<n_channels; i++)
   {
-    CHMSG_IP_ADDR_SWAP_COPY(channel_list[i].channel_dstIp,channel_list[i].channel_dstIp);
-    CHMSG_IP_ADDR_SWAP_COPY(channel_list[i].channel_srcIp,channel_list[i].channel_srcIp);
-
-    ENDIAN_SWAP64_MOD(channel_list[i].channelBandwidth);
-    ENDIAN_SWAP32_MOD(channel_list[i].evcid_mc);
-    ENDIAN_SWAP16_MOD(channel_list[i].entry_idx);
-
     PT_LOG_DEBUG(LOG_CTX_MSG,"Removing channel index %u:",i);
     PT_LOG_DEBUG(LOG_CTX_MSG," Slot   = %d",channel_list[i].SlotId);
     PT_LOG_DEBUG(LOG_CTX_MSG," EVC_MC = %d",channel_list[i].evcid_mc);
@@ -9898,7 +9878,6 @@ L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16
     PT_LOG_DEBUG(LOG_CTX_MSG," DstIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_dstIp.addr.ipv4, channel_list[i].channel_dstIp.family, channel_list[i].channel_dstmask);
     PT_LOG_DEBUG(LOG_CTX_MSG," SrcIP_Channel = 0x%08x (ipv6=%u) / %u",channel_list[i].channel_srcIp.addr.ipv4, channel_list[i].channel_srcIp.family, channel_list[i].channel_srcmask);
 
-   
     /* Prepare group address */    
     rc = ptin_to_fp_ip_notation(&channel_list[i].channel_dstIp, &groupAddr);
     if ( rc != L7_SUCCESS)
@@ -10000,9 +9979,6 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_remove_all(msg_MCAssocChannel_t *channel_list
 
   for (messageIterator=0; messageIterator<noOfMessages; messageIterator++)
   {
-
-    ENDIAN_SWAP32_MOD(channel_list[messageIterator].evcid_mc);
-
     PT_LOG_DEBUG(LOG_CTX_MSG,"Removing channel index %u:",messageIterator);
     PT_LOG_DEBUG(LOG_CTX_MSG," Slot   = %d",channel_list[messageIterator].SlotId);
     PT_LOG_DEBUG(LOG_CTX_MSG," EVC_MC = %d",channel_list[messageIterator].evcid_mc);
@@ -10050,22 +10026,15 @@ L7_RC_t ptin_msg_static_channel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_
   /*Pre-Validate that all services are already created*/
   for (i=0; i<n_channels; i++)
   {
-    if( SUCCESS != ptin_evc_intRootVlan_get(ENDIAN_SWAP32(channel[i].evc_id), L7_NULLPTR))
+    if( SUCCESS != ptin_evc_intRootVlan_get(channel[i].evc_id, L7_NULLPTR))
     {
-      PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId:%u", ENDIAN_SWAP32(channel[i].evc_id));    
+      PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId:%u", channel[i].evc_id);    
       return L7_DEPENDENCY_NOT_MET;
     } 
   }
 
   for (i=0; i<n_channels; i++)
   {
-
-    ENDIAN_SWAP32_MOD(channel[i].evc_id);
-    ENDIAN_SWAP32_MOD(channel[i].channelIp.s_addr);
-    ENDIAN_SWAP32_MOD(channel[i].sourceIp.s_addr);
-    ENDIAN_SWAP64_MOD(channel[i].channelBandwidth);
-
-
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED//Add Static Channel to (WhiteList) Group List    
     msg_MCAssocChannel_t         channel_list;                                        
                                        
@@ -10095,16 +10064,16 @@ L7_RC_t ptin_msg_static_channel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_
     PT_LOG_DEBUG(LOG_CTX_MSG," SlotId           = %u",channel[i].SlotId);
     PT_LOG_DEBUG(LOG_CTX_MSG," EvcId            = %u",channel[i].evc_id);
     PT_LOG_DEBUG(LOG_CTX_MSG," Channel          = %u.%u.%u.%u",
-              (channel[i].channelIp.s_addr>>24) & 0xff,(channel[i].channelIp.s_addr>>16) & 0xff,(channel[i].channelIp.s_addr>>8) & 0xff, channel[i].channelIp.s_addr & 0xff);
+              (channel[i].channelIp.s_addr>>24) & 0xff,(channel[i].channelIp.s_addr>>16) & 0xff,(channel[i].channelIp.s_addr>>8) & 0xff,channel[i].channelIp.s_addr & 0xff);
     PT_LOG_DEBUG(LOG_CTX_MSG," SourceIP         = %u.%u.%u.%u",
-              (channel[i].sourceIp.s_addr>>24) & 0xff,(channel[i].sourceIp.s_addr>>16) & 0xff,(channel[i].sourceIp.s_addr>>8) & 0xff, channel[i].sourceIp.s_addr & 0xff);
+              (channel[i].sourceIp.s_addr>>24) & 0xff,(channel[i].sourceIp.s_addr>>16) & 0xff,(channel[i].sourceIp.s_addr>>8) & 0xff,channel[i].sourceIp.s_addr & 0xff);
 
     #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-    PT_LOG_DEBUG(LOG_CTX_MSG," channelBandwidth = %llu", channel_list.channelBandwidth);
+    PT_LOG_DEBUG(LOG_CTX_MSG," channelBandwidth = %llu", channel[i].channelBandwidth);
                                
-    if (channel_list.channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS)
+    if (channel[i].channelBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG,"Invalid channelBandwidth = %llu", channel_list.channelBandwidth);
+      PT_LOG_ERR(LOG_CTX_MSG,"Invalid channelBandwidth = %llu", channel[i].channelBandwidth);
       return L7_FAILURE;
     }
     #endif
@@ -10148,29 +10117,27 @@ L7_RC_t ptin_msg_static_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16
   /*Pre-Validate that all services are already created*/
   for (i=0; i<n_channels; i++)
   {
-    if( SUCCESS != ptin_evc_intRootVlan_get(ENDIAN_SWAP32(channel[i].evc_id), L7_NULLPTR))
+    if( SUCCESS != ptin_evc_intRootVlan_get(channel[i].evc_id, L7_NULLPTR))
     {
-      PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId:%u", ENDIAN_SWAP32(channel[i].evc_id));    
+      PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId:%u", channel[i].evc_id);    
       return L7_DEPENDENCY_NOT_MET;
     } 
   }
 
   for (i=0; i<n_channels; i++)
   {
-    staticGroup.serviceId        = ENDIAN_SWAP32(channel[i].evc_id);
-    staticGroup.groupIp          = ENDIAN_SWAP32(channel[i].channelIp.s_addr);
-    staticGroup.sourceIp         = ENDIAN_SWAP32(channel[i].sourceIp.s_addr);
-    staticGroup.portType         = PTIN_MGMD_PORT_TYPE_LEAF;
-    ENDIAN_SWAP64_MOD(channel[i].channelBandwidth);
-
     PT_LOG_DEBUG(LOG_CTX_MSG,"Channel remotion index %u:",i);
     PT_LOG_DEBUG(LOG_CTX_MSG," SlotId =%u",channel[i].SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," EvcId  =%u",ENDIAN_SWAP32(channel[i].evc_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG," EvcId  =%u",channel[i].evc_id);
     PT_LOG_DEBUG(LOG_CTX_MSG," Channel=%u.%u.%u.%u",
-              (staticGroup.groupIp>>24) & 0xff, (staticGroup.groupIp>>16) & 0xff, (staticGroup.groupIp>>8) & 0xff, (staticGroup.groupIp) & 0xff);
+              (channel[i].channelIp.s_addr>>24) & 0xff,(channel[i].channelIp.s_addr>>16) & 0xff,(channel[i].channelIp.s_addr>>8) & 0xff,channel[i].channelIp.s_addr & 0xff);
     PT_LOG_DEBUG(LOG_CTX_MSG," SourceIP=%u.%u.%u.%u",
-              (staticGroup.sourceIp>>24) & 0xff,(staticGroup.sourceIp>>16) & 0xff,(staticGroup.sourceIp>>8) & 0xff,staticGroup.sourceIp & 0xff);
+              (channel[i].sourceIp.s_addr>>24) & 0xff,(channel[i].sourceIp.s_addr>>16) & 0xff,(channel[i].sourceIp.s_addr>>8) & 0xff,channel[i].sourceIp.s_addr & 0xff);
 
+    staticGroup.serviceId = channel[i].evc_id;
+    staticGroup.groupIp   = channel[i].channelIp.s_addr;
+    staticGroup.sourceIp  = channel[i].sourceIp.s_addr;
+    staticGroup.portType  = PTIN_MGMD_PORT_TYPE_LEAF;
 
     if ((rc = ptin_igmp_static_channel_remove(&staticGroup)) != L7_SUCCESS)
     {
@@ -10185,14 +10152,14 @@ L7_RC_t ptin_msg_static_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16
     memset(&channel_list, 0x00, sizeof(channel_list));
 
     channel_list.SlotId=channel[i].SlotId;
-    channel_list.evcid_mc=staticGroup.serviceId;
+    channel_list.evcid_mc=channel[i].evc_id;
 
     channel_list.channel_dstIp.family=PTIN_AF_INET;
-    channel_list.channel_dstIp.addr.ipv4=staticGroup.groupIp;
+    channel_list.channel_dstIp.addr.ipv4=channel[i].channelIp.s_addr;
     channel_list.channel_dstmask=32;//32 Bits of Mask
 
     channel_list.channel_srcIp.family=PTIN_AF_INET;
-    channel_list.channel_srcIp.addr.ipv4 = staticGroup.sourceIp;
+    channel_list.channel_srcIp.addr.ipv4 = channel[i].sourceIp.s_addr;
     channel_list.channel_srcmask=32;
 
     channel_list.channelBandwidth = channel[i].channelBandwidth;
@@ -10229,11 +10196,6 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
     PT_LOG_ERR(LOG_CTX_MSG,"Invalid parameters");
     return L7_FAILURE;
   }
-
-  ENDIAN_SWAP32_MOD(inputPtr->evc_id);
-  ENDIAN_SWAP16_MOD(inputPtr->client.outer_vlan);
-  ENDIAN_SWAP16_MOD(inputPtr->client.inner_vlan);
-  ENDIAN_SWAP16_MOD(inputPtr->entryId);
 
   PT_LOG_DEBUG(LOG_CTX_MSG,"Going to retrieve list of channels");
   PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",             inputPtr->SlotId);
@@ -10293,12 +10255,11 @@ L7_RC_t ptin_msg_IGMP_channelList_get(msg_MCActiveChannelsRequest_t *inputPtr, m
      /* Copy channels to message */
     for (i=0; i<(*numberOfChannels) && i<number_of_channels; i++)
     {      
-      outputPtr[i].entryId = i + ENDIAN_SWAP16(inputPtr->entryId);      
-      outputPtr[i].chIP    = ENDIAN_SWAP32(clist[i].groupAddr.addr.ipv4.s_addr);
-      outputPtr[i].srcIP   = ENDIAN_SWAP32(clist[i].sourceAddr.addr.ipv4.s_addr);
+      outputPtr[i].entryId = i + inputPtr->entryId;      
+      outputPtr[i].chIP    = clist[i].groupAddr.addr.ipv4.s_addr;
+      outputPtr[i].srcIP   = clist[i].sourceAddr.addr.ipv4.s_addr;
       outputPtr[i].chType  = clist[i].static_type;
-      PT_LOG_TRACE(LOG_CTX_MSG,"EntryId[%u] -> Group:[%08X] Source[%08X] isStatic[%s]", ENDIAN_SWAP16(outputPtr[i].entryId), ENDIAN_SWAP32(outputPtr[i].chIP), 
-                                                                                                              ENDIAN_SWAP32(outputPtr[i].srcIP), outputPtr[i].chType?"Yes":"No");
+      PT_LOG_TRACE(LOG_CTX_MSG,"EntryId[%u] -> Group:[%08X] Source[%08X] isStatic[%s]", outputPtr[i].entryId, outputPtr[i].chIP, outputPtr[i].srcIP, outputPtr[i].chType?"Yes":"No");
     }
      *numberOfChannels = i;
      PT_LOG_DEBUG(LOG_CTX_MSG, "Read %u channels and retrieving %u channels.",number_of_channels, *numberOfChannels);
@@ -10608,18 +10569,18 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t *clien
 
   PT_LOG_DEBUG(LOG_CTX_MSG,"Going to retrieve list of clients");
   PT_LOG_DEBUG(LOG_CTX_MSG," slotId     =%u",client_list->SlotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," EvcId      =%u",ENDIAN_SWAP32(client_list->evc_id));
-  PT_LOG_DEBUG(LOG_CTX_MSG," groupAddr=%u.%u.%u.%u",(ENDIAN_SWAP32(client_list->channelIp.s_addr)>>24) & 0xff,(ENDIAN_SWAP32(client_list->channelIp.s_addr)>>16) & 0xff,(ENDIAN_SWAP32(client_list->channelIp.s_addr)>>8) & 0xff,ENDIAN_SWAP32(client_list->channelIp.s_addr) & 0xff);
+  PT_LOG_DEBUG(LOG_CTX_MSG," EvcId      =%u",client_list->evc_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," groupAddr=%u.%u.%u.%u",(client_list->channelIp.s_addr>>24) & 0xff,(client_list->channelIp.s_addr>>16) & 0xff,(client_list->channelIp.s_addr>>8) & 0xff,client_list->channelIp.s_addr & 0xff);
   
-  PT_LOG_DEBUG(LOG_CTX_MSG," sourceAddr=%u.%u.%u.%u",(ENDIAN_SWAP32(client_list->sourceIp.s_addr)>>24) & 0xff,(ENDIAN_SWAP32(client_list->sourceIp.s_addr)>>16) & 0xff,(ENDIAN_SWAP32(client_list->sourceIp.s_addr)>>8) & 0xff,ENDIAN_SWAP32(client_list->sourceIp.s_addr) & 0xff);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Page_idx=%u",ENDIAN_SWAP16(client_list->page_index));
+  PT_LOG_DEBUG(LOG_CTX_MSG," sourceAddr=%u.%u.%u.%u",(client_list->sourceIp.s_addr>>24) & 0xff,(client_list->sourceIp.s_addr>>16) & 0xff,(client_list->sourceIp.s_addr>>8) & 0xff,client_list->sourceIp.s_addr & 0xff);
+  PT_LOG_DEBUG(LOG_CTX_MSG," Page_idx=%u",client_list->page_index);
 
   /* Get list of channels */      
-  channelIp.s_addr    = ENDIAN_SWAP32(client_list->channelIp.s_addr);
-  sourceIp.s_addr     = ENDIAN_SWAP32(client_list->sourceIp.s_addr);
+  channelIp.s_addr    = client_list->channelIp.s_addr;
+  sourceIp.s_addr     = client_list->sourceIp.s_addr;
   number_of_clients   = MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX;
 
-  rc = ptin_igmp_clientList_get(ENDIAN_SWAP32(client_list->evc_id), &channelIp, &sourceIp, ENDIAN_SWAP16(client_list->page_index)*MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX, &number_of_clients, clist, extended_evc_id,&total_clients);
+  rc = ptin_igmp_clientList_get(client_list->evc_id, &channelIp, &sourceIp, client_list->page_index*MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX, &number_of_clients, clist, extended_evc_id,&total_clients);
   PT_LOG_DEBUG(LOG_CTX_MSG,"number_of_clients=%u total_clients=%u", number_of_clients, total_clients);
   if (rc==L7_SUCCESS)
   {
@@ -10627,8 +10588,8 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t *clien
     for (i=0; i<MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX && i<number_of_clients; i++)
     {
       client_list->clients_list[i].mask           = clist[i].mask;
-      client_list->clients_list[i].outer_vlan     = ENDIAN_SWAP16(clist[i].outerVlan);
-      client_list->clients_list[i].inner_vlan     = ENDIAN_SWAP16(clist[i].innerVlan);
+      client_list->clients_list[i].outer_vlan     = clist[i].outerVlan;
+      client_list->clients_list[i].inner_vlan     = clist[i].innerVlan;
       client_list->clients_list[i].intf.intf_type = clist[i].ptin_intf.intf_type;
       client_list->clients_list[i].intf.intf_id   = clist[i].ptin_intf.intf_id;
       //MAC Bridge Services Support
@@ -10636,9 +10597,8 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t *clien
       //End MAC Bridge Services Support
     }
     client_list->n_pages_total   = (total_clients==0) ? 1 : ((total_clients-1)/MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX+1);
-    client_list->n_pages_total   = ENDIAN_SWAP16(client_list->n_pages_total);
-    client_list->n_clients_total = ENDIAN_SWAP16(total_clients);
-    client_list->n_clients_msg   = ENDIAN_SWAP16(number_of_clients);
+    client_list->n_clients_total = total_clients;
+    client_list->n_clients_msg   = number_of_clients;
   }
   else if (rc==L7_NOT_EXIST)
   {
@@ -10679,11 +10639,11 @@ L7_RC_t ptin_msg_igmp_static_channel_remove_all(msg_MCStaticChannel_t *channel, 
   {
     PT_LOG_DEBUG(LOG_CTX_MSG,"Channel remotion index %u:",messageIterator);
     PT_LOG_DEBUG(LOG_CTX_MSG," SlotId =%u",channel[messageIterator].SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," EvcId  =%u",ENDIAN_SWAP32(channel[messageIterator].evc_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG," EvcId  =%u",channel[messageIterator].evc_id);
 
-    staticGroup.serviceId = ENDIAN_SWAP32(channel[messageIterator].evc_id);
+    staticGroup.serviceId = channel[messageIterator].evc_id;
     
-    if ((ptin_igmp_mgmd_service_remove(ENDIAN_SWAP32(channel[messageIterator].evc_id))) != L7_SUCCESS)
+    if ((ptin_igmp_mgmd_service_remove(channel[messageIterator].evc_id)) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error (%d) removing channel", rc);
       rc_global = rc;
@@ -12048,16 +12008,16 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
   if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "ERPS#%u is out of range [0..%u]", ENDIAN_SWAP32(msgErpsConf->idx), MAX_PROT_PROT_ERPS-1);
+    PT_LOG_ERR(LOG_CTX_MSG, "ERPS#%u is out of range [0..%u]", msgErpsConf->idx, MAX_PROT_PROT_ERPS-1);
     return L7_FAILURE;
   }
 
 
   /* Copy data to ptin struct */
-  ptinErpsConf.ringId               = ENDIAN_SWAP32(msgErpsConf->ringId);
+  ptinErpsConf.ringId               = msgErpsConf->ringId;
   ptinErpsConf.isOpenRing           = msgErpsConf->isOpenRing;
 
-  ptinErpsConf.controlVid           = ENDIAN_SWAP16(msgErpsConf->controlVid);
+  ptinErpsConf.controlVid           = msgErpsConf->controlVid;
   ptinErpsConf.megLevel             = msgErpsConf->megLevel;
 
   ptinErpsConf.port0.slot           = msgErpsConf->port0.slot;
@@ -12072,19 +12032,19 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
   ptinErpsConf.port1CfmIdx          = msgErpsConf->port1CfmIdx;
 
   ptinErpsConf.revertive            = msgErpsConf->revertive;
-  ptinErpsConf.guardTimer           = ENDIAN_SWAP16(msgErpsConf->guardTimer);
+  ptinErpsConf.guardTimer           = msgErpsConf->guardTimer;
   ptinErpsConf.holdoffTimer         = msgErpsConf->holdoffTimer;
   ptinErpsConf.waitToRestoreTimer   = msgErpsConf->waitToRestoreTimer;
 
-  ptinErpsConf.continualTxInterval  = ENDIAN_SWAP32(5);  // 5 seconds
+  ptinErpsConf.continualTxInterval  = 5;  // 5 seconds
   ptinErpsConf.rapidTxInterval      = 0;  // 3.33 ms
 
   memcpy(ptinErpsConf.vid_bmp, msgErpsConf->vid_bmp, sizeof(ptinErpsConf.vid_bmp));
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%u",                    ENDIAN_SWAP32(msgErpsConf->idx));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%u",                    msgErpsConf->idx);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .ringId             = %d",  ptinErpsConf.ringId);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .isOpenRing         = %d",  ptinErpsConf.isOpenRing);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .controlVid         = %d",  ENDIAN_SWAP16(ptinErpsConf.controlVid));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .controlVid         = %d",  ptinErpsConf.controlVid);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .megLevel           = %d",  ptinErpsConf.megLevel);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .port0.slot         = %d",  ptinErpsConf.port0.slot);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .port0.type         = %d",  ptinErpsConf.port0.type);
@@ -12097,13 +12057,13 @@ L7_RC_t ptin_msg_erps_set(msg_erps_t *msgErpsConf)
   PT_LOG_DEBUG(LOG_CTX_MSG, " .port0CfmIdx        = %d",  ptinErpsConf.port0CfmIdx);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .port1CfmIdx        = %d",  ptinErpsConf.port1CfmIdx);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .revertive          = %d",  ptinErpsConf.revertive);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .guardTimer         = %d",  ENDIAN_SWAP16(ptinErpsConf.guardTimer));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .guardTimer         = %d",  ptinErpsConf.guardTimer);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .holdoffTimer       = %d",  ptinErpsConf.holdoffTimer);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .waitToRestoreTimer = %d",  ptinErpsConf.waitToRestoreTimer);
 
-  if (ptin_erps_add_entry(ENDIAN_SWAP32(msgErpsConf->idx), (erpsProtParam_t *) &ptinErpsConf) != ENDIAN_SWAP32(msgErpsConf->idx))
+  if (ptin_erps_add_entry(msgErpsConf->idx, (erpsProtParam_t *) &ptinErpsConf) != msgErpsConf->idx)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error Creating ERPS#%u", ENDIAN_SWAP32(msgErpsConf->idx));
+    PT_LOG_ERR(LOG_CTX_MSG, "Error Creating ERPS#%u", msgErpsConf->idx);
     return L7_FAILURE;
   } 
 
@@ -12127,8 +12087,6 @@ L7_RC_t ptin_msg_erps_del(msg_erps_t *msgErpsConf)
 {
 
 #ifdef PTIN_ENABLE_ERPS
-
-  ENDIAN_SWAP32_MOD(msgErpsConf->idx);
 
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
   if (msgErpsConf->idx >= MAX_PROT_PROT_ERPS)
@@ -12178,33 +12136,33 @@ L7_RC_t ptin_msg_erps_config(msg_erps_t *msgErpsConf)
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%u",                     ENDIAN_SWAP32(msgErpsConf->idx));
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .mask               = 0x%x", ENDIAN_SWAP32(msgErpsConf->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%u",                     msgErpsConf->idx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .mask               = 0x%x", msgErpsConf->mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .isOpenRing         = %d",   msgErpsConf->isOpenRing);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .port0CfmIdx        = %d",   msgErpsConf->port0CfmIdx);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .port1CfmIdx        = %d",   msgErpsConf->port1CfmIdx);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .revertive          = %d",   msgErpsConf->revertive);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .guardTimer         = %d",   ENDIAN_SWAP16(msgErpsConf->guardTimer));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .guardTimer         = %d",   msgErpsConf->guardTimer);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .holdoffTimer       = %d",   msgErpsConf->holdoffTimer);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .waitToRestoreTimer = %d",   msgErpsConf->waitToRestoreTimer);
 
   /* Copy data to ptin struct */
 
-  if (ENDIAN_SWAP32(msgErpsConf->mask) & ERPS_CONF_MASK_BIT_ISOPENRING)    ptinErpsConf.isOpenRing         = msgErpsConf->isOpenRing;
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_ISOPENRING)    ptinErpsConf.isOpenRing         = msgErpsConf->isOpenRing;
 
-  if (ENDIAN_SWAP32(msgErpsConf->mask) & ERPS_CONF_MASK_BIT_PORT0CFMIDX)   ptinErpsConf.port0CfmIdx        = msgErpsConf->port0CfmIdx;
-  if (ENDIAN_SWAP32(msgErpsConf->mask) & ERPS_CONF_MASK_BIT_PORT1CFMIDX)   ptinErpsConf.port1CfmIdx        = msgErpsConf->port1CfmIdx;
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_PORT0CFMIDX)   ptinErpsConf.port0CfmIdx        = msgErpsConf->port0CfmIdx;
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_PORT1CFMIDX)   ptinErpsConf.port1CfmIdx        = msgErpsConf->port1CfmIdx;
 
-  if (ENDIAN_SWAP32(msgErpsConf->mask) & ERPS_CONF_MASK_BIT_REVERTIVE)     ptinErpsConf.revertive          = msgErpsConf->revertive;
-  if (ENDIAN_SWAP16(msgErpsConf->mask) & ERPS_CONF_MASK_BIT_GUARDTIMER)    ptinErpsConf.guardTimer         = ENDIAN_SWAP16(msgErpsConf->guardTimer);
-  if (ENDIAN_SWAP32(msgErpsConf->mask) & ERPS_CONF_MASK_BIT_HOLDOFFTIMER)  ptinErpsConf.holdoffTimer       = msgErpsConf->holdoffTimer;
-  if (ENDIAN_SWAP32(msgErpsConf->mask) & ERPS_CONF_MASK_BIT_WAITTORESTORE) ptinErpsConf.waitToRestoreTimer = msgErpsConf->waitToRestoreTimer;
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_REVERTIVE)     ptinErpsConf.revertive          = msgErpsConf->revertive;
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_GUARDTIMER)    ptinErpsConf.guardTimer         = msgErpsConf->guardTimer;
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_HOLDOFFTIMER)  ptinErpsConf.holdoffTimer       = msgErpsConf->holdoffTimer;
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_WAITTORESTORE) ptinErpsConf.waitToRestoreTimer = msgErpsConf->waitToRestoreTimer;
 
-  if (ENDIAN_SWAP32(msgErpsConf->mask) & ERPS_CONF_MASK_BIT_VIDBMP)        memcpy(ptinErpsConf.vid_bmp, msgErpsConf->vid_bmp, sizeof(ptinErpsConf.vid_bmp));
+  if (msgErpsConf->mask & ERPS_CONF_MASK_BIT_VIDBMP)        memcpy(ptinErpsConf.vid_bmp, msgErpsConf->vid_bmp, sizeof(ptinErpsConf.vid_bmp));
 
-  if (ptin_erps_conf_entry(ENDIAN_SWAP32(msgErpsConf->idx), ENDIAN_SWAP32(msgErpsConf->mask), (erpsProtParam_t *) &ptinErpsConf) != ENDIAN_SWAP32(msgErpsConf->idx))
+  if (ptin_erps_conf_entry(msgErpsConf->idx, msgErpsConf->mask, (erpsProtParam_t *) &ptinErpsConf) != msgErpsConf->idx)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error creating/reconfiguring ERPS#%u", ENDIAN_SWAP32(msgErpsConf->idx));
+    PT_LOG_ERR(LOG_CTX_MSG, "Error creating/reconfiguring ERPS#%u", msgErpsConf->idx);
     return L7_FAILURE;
   }  
 
@@ -12232,17 +12190,17 @@ L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus)
   erpsStatus_t status;
 
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
-  if (ENDIAN_SWAP32(msgErpsStatus->idx) >= MAX_PROT_PROT_ERPS)
+  if (msgErpsStatus->idx >= MAX_PROT_PROT_ERPS)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "ERPS#%u is out of range [0..%u]", ENDIAN_SWAP32(msgErpsStatus->idx), MAX_PROT_PROT_ERPS-1);
+    PT_LOG_ERR(LOG_CTX_MSG, "ERPS#%u is out of range [0..%u]", msgErpsStatus->idx, MAX_PROT_PROT_ERPS-1);
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%u", ENDIAN_SWAP32(msgErpsStatus->idx));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%u", msgErpsStatus->idx);
 
-  if (ptin_erps_get_status(ENDIAN_SWAP32(msgErpsStatus->idx), &status) != ENDIAN_SWAP16(msgErpsStatus->idx))
+  if (ptin_erps_get_status(msgErpsStatus->idx, &status) != msgErpsStatus->idx)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error Retrieving Status ERPS#%u", ENDIAN_SWAP16(msgErpsStatus->idx));
+    PT_LOG_ERR(LOG_CTX_MSG, "Error Retrieving Status ERPS#%u", msgErpsStatus->idx);
     return L7_FAILURE;
   }
 
@@ -12253,9 +12211,9 @@ L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus)
   msgErpsStatus->port0State         = status.port0State;
   msgErpsStatus->port1State         = status.port1State;
 
-  msgErpsStatus->apsReqStatusTx     = ENDIAN_SWAP16(status.apsReqStatusTx);
-  msgErpsStatus->apsReqStatusRxP0   = ENDIAN_SWAP16(status.apsReqStatusRxP0);
-  msgErpsStatus->apsReqStatusRxP1   = ENDIAN_SWAP16(status.apsReqStatusRxP1);
+  msgErpsStatus->apsReqStatusTx     = status.apsReqStatusTx;
+  msgErpsStatus->apsReqStatusRxP0   = status.apsReqStatusRxP0;
+  msgErpsStatus->apsReqStatusRxP1   = status.apsReqStatusRxP1;
 
   memcpy(msgErpsStatus->apsNodeIdRxP0, status.apsNodeIdRxP0, PROT_ERPS_MAC_SIZE);
   memcpy(msgErpsStatus->apsNodeIdRxP1, status.apsNodeIdRxP1, PROT_ERPS_MAC_SIZE);
@@ -12263,10 +12221,10 @@ L7_RC_t ptin_msg_erps_status(msg_erps_status_t *msgErpsStatus)
   msgErpsStatus->state_machine      = status.state_machine;
   msgErpsStatus->dnfStatus          = status.dnfStatus;
 
-  msgErpsStatus->guard_timer        = ENDIAN_SWAP16(status.guard_timer);
-  msgErpsStatus->wtr_timer          = ENDIAN_SWAP32(status.wtr_timer);
-  msgErpsStatus->wtb_timer          = ENDIAN_SWAP32(status.wtb_timer);
-  msgErpsStatus->holdoff_timer      = ENDIAN_SWAP16(status.holdoff_timer);
+  msgErpsStatus->guard_timer        = status.guard_timer;
+  msgErpsStatus->wtr_timer          = status.wtr_timer;
+  msgErpsStatus->wtb_timer          = status.wtb_timer;
+  msgErpsStatus->holdoff_timer      = status.holdoff_timer;
 
 #endif  // PTIN_ENABLE_ERPS
 
@@ -12298,7 +12256,7 @@ int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n)
   *n = 0;
   i  = 0;
 
-  nextIdx = ENDIAN_SWAP32(msgErpsStatus->idx) + 1;
+  nextIdx = msgErpsStatus->idx + 1;
   PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS Next Index %d", nextIdx);
 
   while ( i < CCMSG_ERPS_STATUS_PAGESIZE )
@@ -12320,15 +12278,15 @@ int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n)
     PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%d status retrieved", nextIdx);
 
     msgErpsStatus[i].slotId             = slotId;
-    msgErpsStatus[i].idx                = ENDIAN_SWAP32(nextIdx);
+    msgErpsStatus[i].idx                = nextIdx;
     msgErpsStatus[i].port0_SF           = status.port0_SF;
     msgErpsStatus[i].port1_SF           = status.port1_SF;
     msgErpsStatus[i].port0State         = status.port0State;
     msgErpsStatus[i].port1State         = status.port1State;
 
-    msgErpsStatus[i].apsReqStatusTx     = ENDIAN_SWAP16(status.apsReqStatusTx);
-    msgErpsStatus[i].apsReqStatusRxP0   = ENDIAN_SWAP16(status.apsReqStatusRxP0);
-    msgErpsStatus[i].apsReqStatusRxP1   = ENDIAN_SWAP16(status.apsReqStatusRxP1);
+    msgErpsStatus[i].apsReqStatusTx     = status.apsReqStatusTx;
+    msgErpsStatus[i].apsReqStatusRxP0   = status.apsReqStatusRxP0;
+    msgErpsStatus[i].apsReqStatusRxP1   = status.apsReqStatusRxP1;
 
     memcpy(msgErpsStatus[i].apsNodeIdRxP0, status.apsNodeIdRxP0, PROT_ERPS_MAC_SIZE);
     memcpy(msgErpsStatus[i].apsNodeIdRxP1, status.apsNodeIdRxP1, PROT_ERPS_MAC_SIZE);
@@ -12336,10 +12294,10 @@ int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n)
     msgErpsStatus[i].state_machine      = status.state_machine;
     msgErpsStatus[i].dnfStatus          = status.dnfStatus;
 
-    msgErpsStatus[i].guard_timer        = ENDIAN_SWAP16(status.guard_timer);
-    msgErpsStatus[i].wtr_timer          = ENDIAN_SWAP32(status.wtr_timer);
-    msgErpsStatus[i].wtb_timer          = ENDIAN_SWAP32(status.wtb_timer);
-    msgErpsStatus[i].holdoff_timer      = ENDIAN_SWAP16(status.holdoff_timer);
+    msgErpsStatus[i].guard_timer        = status.guard_timer;
+    msgErpsStatus[i].wtr_timer          = status.wtr_timer;
+    msgErpsStatus[i].wtb_timer          = status.wtb_timer;
+    msgErpsStatus[i].holdoff_timer      = status.holdoff_timer;
 
     i++;
     nextIdx++;
@@ -12371,12 +12329,12 @@ L7_RC_t ptin_msg_erps_cmd(msg_erps_cmd_t *msgErpsCmd)
 
   int ret;
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%u: CMD %d, Port %d", ENDIAN_SWAP32(msgErpsCmd->idx), msgErpsCmd->cmd, msgErpsCmd->port);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ERPS#%u: CMD %d, Port %d", msgErpsCmd->idx, msgErpsCmd->cmd, msgErpsCmd->port);
 
   /* Validate ERPS# range (idx [0..MAX_PROT_PROT_ERPS[) */
-  if (ENDIAN_SWAP32(msgErpsCmd->idx) >= MAX_PROT_PROT_ERPS)
+  if (msgErpsCmd->idx >= MAX_PROT_PROT_ERPS)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "ERPS#%u is out of range [0..%u]", ENDIAN_SWAP32(msgErpsCmd->idx), MAX_PROT_PROT_ERPS-1);
+    PT_LOG_ERR(LOG_CTX_MSG, "ERPS#%u is out of range [0..%u]", msgErpsCmd->idx, MAX_PROT_PROT_ERPS-1);
     return L7_FAILURE;
   }
 
@@ -12389,28 +12347,28 @@ L7_RC_t ptin_msg_erps_cmd(msg_erps_cmd_t *msgErpsCmd)
   switch ( msgErpsCmd->cmd )
   {
   case PROT_ERPS_OPCMD_FS:
-    ret = ptin_erps_cmd_force(ENDIAN_SWAP32(msgErpsCmd->idx), msgErpsCmd->port);
+    ret = ptin_erps_cmd_force(msgErpsCmd->idx, msgErpsCmd->port);
     break;
   case PROT_ERPS_OPCMD_MS:
-    ret = ptin_erps_cmd_manual(ENDIAN_SWAP32(msgErpsCmd->idx), msgErpsCmd->port);
+    ret = ptin_erps_cmd_manual(msgErpsCmd->idx, msgErpsCmd->port);
     break;
   case PROT_ERPS_OPCMD_OC:
-    ret = ptin_erps_cmd_clear(ENDIAN_SWAP32(msgErpsCmd->idx));
+    ret = ptin_erps_cmd_clear(msgErpsCmd->idx);
     break;
   case PROT_ERPS_OPCMD_LO:            //// The following command is for further study ///
-    ret = ptin_erps_cmd_lockout(ENDIAN_SWAP32(msgErpsCmd->idx));
+    ret = ptin_erps_cmd_lockout(msgErpsCmd->idx);
     break;
   case PROT_ERPS_OPCMD_ReplaceRPL:    //// The following command is for further study ///
-    ret = ptin_erps_cmd_replaceRpl(ENDIAN_SWAP32(msgErpsCmd->idx), msgErpsCmd->port);
+    ret = ptin_erps_cmd_replaceRpl(msgErpsCmd->idx, msgErpsCmd->port);
     break;
   case PROT_ERPS_OPCMD_ExeSignal:     //// The following command is for further study ///
-    ret = ptin_erps_cmd_exercise(ENDIAN_SWAP32(msgErpsCmd->idx), msgErpsCmd->port);
+    ret = ptin_erps_cmd_exercise(msgErpsCmd->idx, msgErpsCmd->port);
     break;
   default:
     return L7_FAILURE;
   }
 
-  if (ret != ENDIAN_SWAP32(msgErpsCmd->idx))
+  if (ret != msgErpsCmd->idx)
   {
     return L7_FAILURE;
   }
@@ -12451,12 +12409,8 @@ L7_RC_t ptin_msg_arp_acl_rule_config(msg_arp_acl_t *msgArpAcl, ACL_OPERATION_t o
     PT_LOG_ERR(LOG_CTX_MSG, "action Invalid (%d) for rule creation", msgArpAcl->action);
     return L7_FAILURE;
   }
- 
   
-  msgArpAcl->srcIpAddr.addr.ipv4 = ( ((ENDIAN_SWAP32(msgArpAcl->srcIpAddr.addr.ipv4) >>24) & 0xff) | ((ENDIAN_SWAP32(msgArpAcl->srcIpAddr.addr.ipv4) >>16) & 0xff) |
-                                   ((ENDIAN_SWAP32(msgArpAcl->srcIpAddr.addr.ipv4) >>8) & 0xff)  | ((ENDIAN_SWAP32(msgArpAcl->srcIpAddr.addr.ipv4)) & 0xff));
-                  
-   
+
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
   PT_LOG_DEBUG(LOG_CTX_MSG, "Slot Id        %d",                              msgArpAcl->slotId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Type       %s",                              "ARP");
@@ -12464,16 +12418,16 @@ L7_RC_t ptin_msg_arp_acl_rule_config(msg_arp_acl_t *msgArpAcl, ACL_OPERATION_t o
   PT_LOG_DEBUG(LOG_CTX_MSG, "Action         %s",                              "PERMIT");
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
   PT_LOG_DEBUG(LOG_CTX_MSG, "Src Mac Addr   %02x:%02x:%02x:%02x:%02x:%02x",   msgArpAcl->srcMacAddr[0], 
-                                                                              msgArpAcl->srcMacAddr[1],
-                                                                              msgArpAcl->srcMacAddr[2],
-                                                                              msgArpAcl->srcMacAddr[3],
-                                                                              msgArpAcl->srcMacAddr[4],
-                                                                              msgArpAcl->srcMacAddr[5]);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "SrcIPAddr      %03u.%03u.%03u.%03u (family=%u)", (msgArpAcl->srcIpAddr.addr.ipv4 >>24) & 0xff,
-                                                                              (msgArpAcl->srcIpAddr.addr.ipv4 >>16) & 0xff,
-                                                                              (msgArpAcl->srcIpAddr.addr.ipv4 >>8) & 0xff,
-                                                                              (msgArpAcl->srcIpAddr.addr.ipv4) & 0xff,
-                                                                               msgArpAcl->srcIpAddr.family);
+                                                                                msgArpAcl->srcMacAddr[1],
+                                                                                msgArpAcl->srcMacAddr[2],
+                                                                                msgArpAcl->srcMacAddr[3],
+                                                                                msgArpAcl->srcMacAddr[4],
+                                                                                msgArpAcl->srcMacAddr[5]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "SrcIPAddr      %03u.%03u.%03u.%03u (family=%u)", (msgArpAcl->srcIpAddr.addr.ipv4>>24) & 0xff,
+                                                                                (msgArpAcl->srcIpAddr.addr.ipv4>>16) & 0xff,
+                                                                                (msgArpAcl->srcIpAddr.addr.ipv4>>8) & 0xff,
+                                                                                (msgArpAcl->srcIpAddr.addr.ipv4) & 0xff,
+                                                                                 msgArpAcl->srcIpAddr.family);
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
 
   rc = ptin_aclArpRuleConfig(msgArpAcl, operation);
@@ -12505,7 +12459,7 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
     return L7_FAILURE;
   }
 
-  if (ENDIAN_SWAP16(msgMacAcl->aclId) >= L7_MAX_ACL_LISTS)
+  if (msgMacAcl->aclId >= L7_MAX_ACL_LISTS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", msgMacAcl->aclId);
     return L7_FAILURE;
@@ -12532,12 +12486,12 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
   PT_LOG_DEBUG(LOG_CTX_MSG, "Slot Id        %d",                              msgMacAcl->slotId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Type       %s",                              aclTypeStr[msgMacAcl->aclType]);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              ENDIAN_SWAP16(msgMacAcl->aclId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              msgMacAcl->aclId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Name       %s",                              msgMacAcl->name);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Id    %d",                              msgMacAcl->aclRuleId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Action         %s",                              actionStr[msgMacAcl->action]);
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            ENDIAN_SWAP32(msgMacAcl->aclRuleMask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            msgMacAcl->aclRuleMask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Src Mac Addr   %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",   msgMacAcl->srcMacAddr[0], 
                                                                                 msgMacAcl->srcMacAddr[1],
                                                                                 msgMacAcl->srcMacAddr[2],
@@ -12562,15 +12516,15 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
                                                                                 msgMacAcl->dstMacMask[3],
                                                                                 msgMacAcl->dstMacMask[4],
                                                                                 msgMacAcl->dstMacMask[5]);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "EtherType      0x%.4x",                          ENDIAN_SWAP16(msgMacAcl->eType));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "EtherType      0x%.4x",                          msgMacAcl->eType);
 
-  if (ENDIAN_SWAP16(msgMacAcl->startVlan) == ENDIAN_SWAP16(msgMacAcl->endVlan))
+  if (msgMacAcl->startVlan == msgMacAcl->endVlan)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Vlan           %d",                            ENDIAN_SWAP16(msgMacAcl->startVlan));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Vlan           %d",                            msgMacAcl->startVlan);
   }
   else
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Vlan Range     %d-%d",                         ENDIAN_SWAP16(msgMacAcl->startVlan), ENDIAN_SWAP16(msgMacAcl->startVlan));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Vlan Range     %d-%d",                         msgMacAcl->startVlan, msgMacAcl->endVlan);
   }
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "COS            %d",                              msgMacAcl->cosVal);
@@ -12609,21 +12563,21 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
     return L7_FAILURE;
   }
 
-  if (ENDIAN_SWAP16(msgIpAcl->srcStartPort) != 0 && ENDIAN_SWAP16(msgIpAcl->srcEndPort) == 0)
+  if (msgIpAcl->srcStartPort != 0 && msgIpAcl->srcEndPort == 0)
   {
     msgIpAcl->srcEndPort = msgIpAcl->srcStartPort ;
   }
 
-  if (ENDIAN_SWAP16(msgIpAcl->dstStartPort) != 0 && ENDIAN_SWAP16(msgIpAcl->dstEndPort) == 0)
+  if (msgIpAcl->dstStartPort != 0 && msgIpAcl->dstEndPort == 0)
   {
     msgIpAcl->dstEndPort = msgIpAcl->dstStartPort ;
   }
 
   if (msgIpAcl->aclType == ACL_TYPE_IP_STANDARD)
   {
-    if ( (ENDIAN_SWAP16(msgIpAcl->aclId) == 0) || (ENDIAN_SWAP16(msgIpAcl->aclId) > 99) ) /* [1..99] */
+    if ( (msgIpAcl->aclId == 0) || (msgIpAcl->aclId > 99) ) /* [1..99] */
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", ENDIAN_SWAP16(msgIpAcl->aclId));
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", msgIpAcl->aclId);
       return L7_FAILURE;
     }
   }
@@ -12631,7 +12585,7 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
   {
     if ( (msgIpAcl->aclId < 100) || (msgIpAcl->aclId > 199) ) /* [100..199] */
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", ENDIAN_SWAP16(msgIpAcl->aclId));
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", msgIpAcl->aclId);
       return L7_FAILURE;
     }
   }
@@ -12657,42 +12611,42 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
   PT_LOG_DEBUG(LOG_CTX_MSG, "Slot Id        %d",                              msgIpAcl->slotId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Type       %s",                              aclTypeStr[msgIpAcl->aclType]);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              ENDIAN_SWAP16(msgIpAcl->aclId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              msgIpAcl->aclId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Name       %s",                              msgIpAcl->name);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Id    %d",                              msgIpAcl->aclRuleId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Action         %s",                              actionStr[msgIpAcl->action]);
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            ENDIAN_SWAP32(msgIpAcl->aclRuleMask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            msgIpAcl->aclRuleMask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Protocol       %d",                              msgIpAcl->protocol);
 
-  usmDbInetNtoa(ENDIAN_SWAP32(msgIpAcl->srcIpAddr),  ipAddr);
+  usmDbInetNtoa(msgIpAcl->srcIpAddr,  ipAddr);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Src IP Addr    %s",                              ipAddr);
 
-  usmDbInetNtoa(ENDIAN_SWAP32(msgIpAcl->srcIpMask),  ipAddr);
+  usmDbInetNtoa(msgIpAcl->srcIpMask,  ipAddr);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Src IP Mask    %s",                              ipAddr);
   
-  usmDbInetNtoa(ENDIAN_SWAP32(msgIpAcl->dstIpAddr),  ipAddr);
+  usmDbInetNtoa(msgIpAcl->dstIpAddr,  ipAddr);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Dst IP Addr    %s",                              ipAddr);
   
-  usmDbInetNtoa(ENDIAN_SWAP32(msgIpAcl->dstIpMask),  ipAddr);
+  usmDbInetNtoa(msgIpAcl->dstIpMask,  ipAddr);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Dst IP Mask    %s",                              ipAddr);  
 
-  if (ENDIAN_SWAP16(msgIpAcl->srcStartPort) == ENDIAN_SWAP16(msgIpAcl->srcEndPort))
+  if (msgIpAcl->srcStartPort == msgIpAcl->srcEndPort)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port    %d",                            ENDIAN_SWAP16(msgIpAcl->srcStartPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port    %d",                            msgIpAcl->srcStartPort);
   }
   else
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port Range   %d-%d",                    ENDIAN_SWAP16(msgIpAcl->srcStartPort), ENDIAN_SWAP16(msgIpAcl->srcEndPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port Range   %d-%d",                    msgIpAcl->srcStartPort, msgIpAcl->srcEndPort);
   }
 
-  if (ENDIAN_SWAP16(msgIpAcl->dstStartPort) == ENDIAN_SWAP16(msgIpAcl->dstEndPort))
+  if (msgIpAcl->dstStartPort == msgIpAcl->dstEndPort)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port    %d",                            ENDIAN_SWAP16(msgIpAcl->dstStartPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port    %d",                            msgIpAcl->dstStartPort);
   }
   else
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port Range   %d-%d",                    ENDIAN_SWAP16(msgIpAcl->dstStartPort), ENDIAN_SWAP16(msgIpAcl->dstEndPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port Range   %d-%d",                    msgIpAcl->dstStartPort, msgIpAcl->dstEndPort);
   }
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "TOS            0x%.2x",                          msgIpAcl->tosVal);
@@ -12734,9 +12688,9 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
     return L7_FAILURE;
   }
 
-  if (ENDIAN_SWAP16(msgIpv6Acl->aclId) > L7_MAX_ACL_LISTS)
+  if (msgIpv6Acl->aclId > L7_MAX_ACL_LISTS)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", ENDIAN_SWAP16(msgIpv6Acl->aclId));
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", msgIpv6Acl->aclId);
     return L7_FAILURE;
   }
 
@@ -12761,44 +12715,44 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
   PT_LOG_DEBUG(LOG_CTX_MSG, "Slot Id        %d",                              msgIpv6Acl->slotId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Type       %s",                              aclTypeStr[msgIpv6Acl->aclType]);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              ENDIAN_SWAP16(msgIpv6Acl->aclId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              msgIpv6Acl->aclId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Name       %s",                              msgIpv6Acl->name);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Id    %d",                              msgIpv6Acl->aclRuleId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Action         %s",                              actionStr[msgIpv6Acl->action]);
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            ENDIAN_SWAP32(msgIpv6Acl->aclRuleMask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            msgIpv6Acl->aclRuleMask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Protocol       %d",                              msgIpv6Acl->protocol);
 
   if (osapiInetNtop(L7_AF_INET6, (L7_uchar8 *)msgIpv6Acl->src6Addr, ipAddr, sizeof(ipAddr)) != L7_NULLPTR)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Src IP Addr    %s/%d",                         ipAddr, ENDIAN_SWAP32(msgIpv6Acl->src6PrefixLen));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src IP Addr    %s/%d",                         ipAddr, msgIpv6Acl->src6PrefixLen);
   }
 
   if (osapiInetNtop(L7_AF_INET6, (L7_uchar8 *)msgIpv6Acl->dst6Addr, ipAddr, sizeof(ipAddr)) != L7_NULLPTR)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst IP Addr    %s/%d",                         ipAddr, ENDIAN_SWAP32(msgIpv6Acl->dst6PrefixLen));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst IP Addr    %s/%d",                         ipAddr, msgIpv6Acl->dst6PrefixLen);
   }
 
-  if (ENDIAN_SWAP16(msgIpv6Acl->srcStartPort) == ENDIAN_SWAP16(msgIpv6Acl->srcEndPort))
+  if (msgIpv6Acl->srcStartPort == msgIpv6Acl->srcEndPort)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port    %d",                            ENDIAN_SWAP16(msgIpv6Acl->srcStartPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port    %d",                            msgIpv6Acl->srcStartPort);
   }
   else
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port Range   %d-%d",                    ENDIAN_SWAP16(msgIpv6Acl->srcStartPort), ENDIAN_SWAP16(msgIpv6Acl->srcEndPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port Range   %d-%d",                    msgIpv6Acl->srcStartPort, msgIpv6Acl->srcEndPort);
   }
 
-  if (ENDIAN_SWAP16(msgIpv6Acl->dstStartPort) == ENDIAN_SWAP16(msgIpv6Acl->dstEndPort))
+  if (msgIpv6Acl->dstStartPort == msgIpv6Acl->dstEndPort)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port    %d",                            ENDIAN_SWAP16(msgIpv6Acl->dstStartPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port    %d",                            msgIpv6Acl->dstStartPort);
   }
   else
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port Range   %d-%d",                    ENDIAN_SWAP16(msgIpv6Acl->dstStartPort), ENDIAN_SWAP16(msgIpv6Acl->dstEndPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port Range   %d-%d",                    msgIpv6Acl->dstStartPort, msgIpv6Acl->dstEndPort);
   }
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "DSCP           %d",                              msgIpv6Acl->dscpVal);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Flow Label     %d",                              ENDIAN_SWAP32(msgIpv6Acl->flowLabelVal));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Flow Label     %d",                              msgIpv6Acl->flowLabelVal);
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
   PT_LOG_DEBUG(LOG_CTX_MSG, "Operation      %s",                              operationStr[operation]);
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
@@ -12926,11 +12880,6 @@ L7_RC_t ptin_msg_acl_apply(msg_apply_acl_t *msgAcl, ACL_OPERATION_t operation, L
     return L7_FAILURE;
   }
   
-  ENDIAN_SWAP16_MOD(msgAcl->aclId);
-  ENDIAN_SWAP32_MOD(msgAcl->interface);
-  ENDIAN_SWAP16_MOD(msgAcl->vlanId);
-  ENDIAN_SWAP32_MOD(msgAcl->evcId);
-
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
   PT_LOG_DEBUG(LOG_CTX_MSG, "Slot Id        %u",                              msgAcl->slotId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Type       %s",                              aclTypeStr[msgAcl->aclType]);
@@ -13051,12 +13000,6 @@ L7_RC_t ptin_msg_acl_enable(msg_apply_acl_t *msgAcl, L7_uint msgId, L7_uint n_ms
   ACL_OPERATION_t operation = ACL_OPERATION_REMOVE;
   L7_RC_t         rc, rc_global = L7_SUCCESS;
 
-
-  msgAcl->aclId     = ENDIAN_SWAP16(msgAcl->aclId);
-  msgAcl->interface = ENDIAN_SWAP32(msgAcl->interface);
-  msgAcl->vlanId    = ENDIAN_SWAP16(msgAcl->vlanId);
-  msgAcl->evcId     = ENDIAN_SWAP32(msgAcl->evcId);
-       
   /* Operation */
   if (msgId == CCMSG_ACL_APPLY)
   {
@@ -13371,12 +13314,10 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
   PT_LOG_DEBUG(LOG_CTX_MSG, "Mirror Configurations:");
   PT_LOG_DEBUG(LOG_CTX_MSG, " Slot Id       = %u",        msg->slotId);
   PT_LOG_DEBUG(LOG_CTX_MSG, " Session Id    = %u",        msg->sessionId);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask          = %.8X (h)",  ENDIAN_SWAP16(msg->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Mask          = %.8X (h)",  msg->mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, " Mode          = %u",        msg->sessionMode);
   PT_LOG_DEBUG(LOG_CTX_MSG, " Dst intfid    = %u/%u",     msg->dst_intf.intf_type, msg->dst_intf.intf_id);
   PT_LOG_DEBUG(LOG_CTX_MSG, " Src intf Num  = %u",        msg->n_intf);
-
-  ENDIAN_SWAP16_MOD(msg->mask);
 
   if (msg->n_intf >= PTIN_SYSTEM_MAX_N_PORTS)
   {
@@ -13633,38 +13574,38 @@ int msg_wr_802_1x_Genrc(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i)
   msg_802_1x_Genrc * pi,*po;
   L7_RC_t r;
 
-  pi = (msg_802_1x_Genrc * )inbuff->info;   po = (msg_802_1x_Genrc * )ENDIAN_SWAP32(outbuff->info);
+  pi = (msg_802_1x_Genrc * )inbuff->info;   po = (msg_802_1x_Genrc * )outbuff->info;
 
   switch (inbuff->msgId)
   {
   case CCMSG_WR_802_1X_ADMINMODE:
-    r = usmDbDot1xAdminModeSet(1, ENDIAN_SWAP32(pi[i].v));
+    r = usmDbDot1xAdminModeSet(1, pi[i].v);
     break;
   case CCMSG_WR_802_1X_TRACE:
-    r = usmDbDot1xPacketDebugTraceFlagSet(ENDIAN_SWAP32(pi[i].v) >> 1, ENDIAN_SWAP32(pi[i].v) & 1);
+    r = usmDbDot1xPacketDebugTraceFlagSet(pi[i].v >> 1, pi[i].v & 1);
     break;
   case CCMSG_WR_802_1X_VLANASSGNMODE:
-    r = usmDbDot1xVlanAssignmentModeSet(1, ENDIAN_SWAP32(pi[i].v));
+    r = usmDbDot1xVlanAssignmentModeSet(1, pi[i].v);
     break;
   case CCMSG_WR_802_1X_MONMODE:
-    r = usmDbDot1xMonitorModeSet(1, ENDIAN_SWAP32(pi[i].v));
+    r = usmDbDot1xMonitorModeSet(1, pi[i].v);
     break;
   case CCMSG_WR_802_1X_DYNVLANMODE:
-    r = usmDbDot1xDynamicVlanCreationModeSet(1, ENDIAN_SWAP32(pi[i].v));
+    r = usmDbDot1xDynamicVlanCreationModeSet(1, pi[i].v);
     break;
   default:
-    po[i].v = ENDIAN_SWAP32(SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM));
+    po[i].v = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
     return 1;
   }
 
   if (L7_SUCCESS != r)
   {
-    po[i].v = ENDIAN_SWAP32(SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM));
+    po[i].v = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
     return 1;
   }
   else
   {
-    po[i].v = ENDIAN_SWAP32(ERROR_CODE_OK);
+    po[i].v = ERROR_CODE_OK;
   }
 
   return 0;
@@ -13685,8 +13626,8 @@ int msg_wr_802_1x_Genrc2(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i)
 
   pi = (msg_802_1x_Genrc2 * )inbuff->info;   po = (msg_generic_prefix_t * )outbuff->info;
 
-  ptinp.intf_type =   ENDIAN_SWAP64(pi[i].index) >> 8;
-  ptinp.intf_id =     ENDIAN_SWAP64(pi[i].index);
+  ptinp.intf_type =   pi[i].index >> 8;
+  ptinp.intf_id =     pi[i].index;
 
   if (L7_SUCCESS != ptin_intf_ptintf2intIfNum(&ptinp, &intIfNum))
   {
@@ -13697,59 +13638,59 @@ int msg_wr_802_1x_Genrc2(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i)
   switch (inbuff->msgId)
   {
   case CCMSG_WR_802_1X_ADMINCONTROLLEDDIRECTIONS:
-    r = usmDbDot1xPortAdminControlledDirectionsSet(1, intIfNum, ENDIAN_SWAP64(pi[i].v));
+    r = usmDbDot1xPortAdminControlledDirectionsSet(1, intIfNum, pi[i].v);
     break;
   case CCMSG_WR_802_1X_PORTCONTROLMODE:
-    r = usmDbDot1xPortControlModeSet(1, intIfNum, ENDIAN_SWAP64(pi[i].v));
+    r = usmDbDot1xPortControlModeSet(1, intIfNum, pi[i].v);
     break;
   case CCMSG_WR_802_1X_QUIETPERIOD:
-    r = usmDbDot1xPortQuietPeriodSet(1, intIfNum, ENDIAN_SWAP64(pi[i].v));
+    r = usmDbDot1xPortQuietPeriodSet(1, intIfNum, pi[i].v);
     break;
   case CCMSG_WR_802_1X_TXPERIOD:
-    r = usmDbDot1xPortTxPeriodSet(1, intIfNum, ENDIAN_SWAP64(pi[i].v));
+    r = usmDbDot1xPortTxPeriodSet(1, intIfNum, pi[i].v);
     break;
   case CCMSG_WR_802_1X_SUPPTIMEOUT:
-    r = usmDbDot1xPortSuppTimeoutSet(1, intIfNum, ENDIAN_SWAP64(pi[i].v));
+    r = usmDbDot1xPortSuppTimeoutSet(1, intIfNum, pi[i].v);
     break;
   case CCMSG_WR_802_1X_SERVERTIMEOUT:
-    r = usmDbDot1xPortServerTimeoutSet(1, intIfNum, ENDIAN_SWAP64(pi[i].v));
+    r = usmDbDot1xPortServerTimeoutSet(1, intIfNum, pi[i].v);
     break;
   case CCMSG_WR_802_1X_MAXREQ:
-    r = usmDbDot1xPortMaxReqSet(1, intIfNum, ENDIAN_SWAP64(pi[i].v));
+    r = usmDbDot1xPortMaxReqSet(1, intIfNum, pi[i].v);
     break;
   case CCMSG_WR_802_1X_REAUTHPERIOD:
-    if (1 + ENDIAN_SWAP64(pi[i].v) == 0)
+    if (1 + pi[i].v == 0)
     {
       r = usmDbDot1xPortReAuthEnabledSet(1, intIfNum, 0);
       break;
     }  //Forbidden period disables
-    r = usmDbDot1xPortReAuthPeriodSet(1, intIfNum, ENDIAN_SWAP64(pi[i].v));
+    r = usmDbDot1xPortReAuthPeriodSet(1, intIfNum, pi[i].v);
     if (L7_SUCCESS != r)  break;
     r = usmDbDot1xPortReAuthEnabledSet(1, intIfNum, 1);
     break;
   case CCMSG_WR_802_1X_KEYTXENABLED:
-    r = usmDbDot1xPortKeyTransmissionEnabledSet(1, intIfNum, ENDIAN_SWAP64(pi[i].v));
+    r = usmDbDot1xPortKeyTransmissionEnabledSet(1, intIfNum, pi[i].v);
     break;
   case CCMSG_WR_802_1X_GUESTVLANID:
-    r = usmDbDot1xAdvancedGuestPortsCfgSet(1, intIfNum, ENDIAN_SWAP64(pi[i].v));
+    r = usmDbDot1xAdvancedGuestPortsCfgSet(1, intIfNum, pi[i].v);
     break;
   case CCMSG_WR_802_1X_GUSTVLANPERIOD:
-    r = usmDbDot1xAdvancedPortGuestVlanPeriodSet(1, intIfNum, ENDIAN_SWAP64(pi[i].v));
+    r = usmDbDot1xAdvancedPortGuestVlanPeriodSet(1, intIfNum, pi[i].v);
     break;
   case CCMSG_WR_802_1X_MAXUSERS:
-    r = usmDbDot1xPortMaxUsersSet(1, intIfNum, ENDIAN_SWAP64(pi[i].v));
+    r = usmDbDot1xPortMaxUsersSet(1, intIfNum, pi[i].v);
     break;
   case CCMSG_WR_802_1X_UNAUTHENTICATEDVLAN:
-    r = usmDbDot1xPortUnauthenticatedVlanSet(1, intIfNum, ENDIAN_SWAP64(pi[i].v));
+    r = usmDbDot1xPortUnauthenticatedVlanSet(1, intIfNum, pi[i].v);
     break;
   default:
-    po[i].err_code = ENDIAN_SWAP32(SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM));
+    po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
     return 1;
   }
 
   if (L7_SUCCESS != r)
   {
-    po[i].err_code = ENDIAN_SWAP32(SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM));
+    po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
     return 1;
   }
   else
@@ -13806,14 +13747,14 @@ int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i)
 
   pi = (msg_802_1x_AuthServ * )inbuff->info;   po = (msg_generic_prefix_t * )outbuff->info;
 
-  k = ENDIAN_SWAP64(pi[i].index); //64th bit's lost
-  e = ENDIAN_SWAP64(pi[i].index) >> 63;
+  k = pi[i].index; //64th bit's lost
+  e = pi[i].index >> 63;
 
   if (L7_SUCCESS == usmDbDot1xAuthServUserDBUserIndexGet(pi[i].name, &index))
   {
     if (k < L7_MAX_IAS_USERS && k != index)  //Name already in table with different index
     {
-      po[i].err_code = ENDIAN_SWAP32(SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_DUPLICATENAME));
+      po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_DUPLICATENAME);
       return 1;
     }
   }
@@ -13823,7 +13764,7 @@ int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i)
   {
     if (k != index && (L7_SUCCESS != (r = usmDbDot1xAuthServUserDBUserNameSet(k, pi[i].name))))   //index already used (or table full)
     {
-      po[i].err_code = ENDIAN_SWAP32(SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_USED));
+      po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_USED);
       return 1;
     }
   }
@@ -13833,7 +13774,7 @@ int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i)
     {
       if (L7_SUCCESS != usmDbDot1xAuthServUserDBAvailableIndexGet(&index))
       {
-        po[i].err_code = ENDIAN_SWAP32(SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_FULLTABLE));
+        po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_FULLTABLE);
         return 1;
       }
     }
@@ -13842,10 +13783,10 @@ int msg_wr_802_1x_AuthServ(ipc_msg *inbuff, ipc_msg *outbuff, L7_ulong32 i)
 
   if (L7_SUCCESS != (r = usmDbDot1xAuthServUserDBUserPasswordSet(k, pi[i].passwd, e)))
   {
-    po[i].err_code = ENDIAN_SWAP32(SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM));
+    po[i].err_code = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
     return 1;
   }
-  else po[i].err_code = ENDIAN_SWAP32(ERROR_CODE_OK);
+  else po[i].err_code = ERROR_CODE_OK;
 
   return 0;
 } //msg_wr_802_1x_AuthServ
@@ -13864,12 +13805,12 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntf* data)
 
   /* Debug */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Creating new routing interface:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask          = %08X",  ENDIAN_SWAP32(data->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask          = %08X",  data->mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  routingIntf   = %u/%u", data->routingIntf.intf_type, data->routingIntf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  evcId         = %u",    ENDIAN_SWAP32(data->evcId));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  ipAddress     = %08X",  ENDIAN_SWAP32(data->ipAddress));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask    = %08X",  ENDIAN_SWAP32(data->subnetMask));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  mtu           = %u",    ENDIAN_SWAP32(data->mtu));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evcId         = %u",    data->evcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  ipAddress     = %08X",  data->ipAddress);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask    = %08X",  data->subnetMask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mtu           = %u",    data->mtu);
 
   routingIntf.intf_type  = data->routingIntf.intf_type;
   routingIntf.intf_id    = data->routingIntf.intf_id;
@@ -13878,7 +13819,7 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntf* data)
   {
      L7_uint16 internalVlan;
 
-     if(L7_SUCCESS != ptin_evc_intRootVlan_get(ENDIAN_SWAP32(data->evcId), &internalVlan))
+     if(L7_SUCCESS != ptin_evc_intRootVlan_get(data->evcId, &internalVlan))
      {
        PT_LOG_ERR(LOG_CTX_MSG, "Unable to convert evc_id to internal root vlan");
        return L7_FAILURE;
@@ -13902,7 +13843,7 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntf* data)
   }
 
   PT_LOG_TRACE(LOG_CTX_MSG, "Configuring interface IP Address");
-  if(L7_SUCCESS != ptin_routing_intf_ipaddress_set(&routingIntf, L7_AF_INET, ENDIAN_SWAP32(data->ipAddress), ENDIAN_SWAP32(data->subnetMask)))
+  if(L7_SUCCESS != ptin_routing_intf_ipaddress_set(&routingIntf, L7_AF_INET, data->ipAddress, data->subnetMask))
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to set interface IP address");
     return L7_FAILURE;
@@ -13912,7 +13853,7 @@ L7_RC_t ptin_msg_routing_intf_create(msg_RoutingIntf* data)
   if(data->routingIntf.intf_type != PTIN_EVC_INTF_LOOPBACK)
   {
     PT_LOG_TRACE(LOG_CTX_MSG, "Configuring interface MTU");
-    if(L7_SUCCESS != ptin_routing_intf_mtu_set(&routingIntf, ENDIAN_SWAP32(data->mtu)))
+    if(L7_SUCCESS != ptin_routing_intf_mtu_set(&routingIntf, data->mtu))
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Unable to set interface MTU");
       return L7_FAILURE;
@@ -13935,29 +13876,29 @@ L7_RC_t ptin_msg_routing_intf_modify(msg_RoutingIntf* data)
 
   /* Debug */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Configuring routing interface:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask          = %08X",  ENDIAN_SWAP32(data->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask          = %08X",  data->mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  routingIntf   = %u/%u", data->routingIntf.intf_type, data->routingIntf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  evcId         = %u",    ENDIAN_SWAP32(data->evcId));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  ipAddress     = %08X",  ENDIAN_SWAP32(data->ipAddress));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask    = %08X",  ENDIAN_SWAP32(data->subnetMask));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  mtu           = %u",    ENDIAN_SWAP32(data->mtu));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evcId         = %u",    data->evcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  ipAddress     = %08X",  data->ipAddress);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask    = %08X",  data->subnetMask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mtu           = %u",    data->mtu);
 
   routingIntf.intf_type  = data->routingIntf.intf_type;
   routingIntf.intf_id    = data->routingIntf.intf_id;
 
-  if( (ENDIAN_SWAP32(data->mask) & CCMSG_ROUTING_INTF_MASK_IPADDR) || (data->mask & CCMSG_ROUTING_INTF_MASK_SUBNETMASK) )
+  if( (data->mask & CCMSG_ROUTING_INTF_MASK_IPADDR) || (data->mask & CCMSG_ROUTING_INTF_MASK_SUBNETMASK) )
   {
-     if(L7_SUCCESS != ptin_routing_intf_ipaddress_set(&routingIntf, L7_AF_INET, ENDIAN_SWAP32(data->ipAddress), ENDIAN_SWAP32(data->subnetMask)))
+     if(L7_SUCCESS != ptin_routing_intf_ipaddress_set(&routingIntf, L7_AF_INET, data->ipAddress, data->subnetMask))
      {
        PT_LOG_ERR(LOG_CTX_MSG, "Unable to set interface IP address");
        return L7_FAILURE;
      }
   }
 
-  if(ENDIAN_SWAP32(data->mask) & CCMSG_ROUTING_INTF_MASK_MTU)
+  if(data->mask & CCMSG_ROUTING_INTF_MASK_MTU)
   {
      PT_LOG_TRACE(LOG_CTX_MSG, "Configuring interface MTU");
-     if(L7_SUCCESS != ptin_routing_intf_mtu_set(&routingIntf, ENDIAN_SWAP32(data->mtu)))
+     if(L7_SUCCESS != ptin_routing_intf_mtu_set(&routingIntf, data->mtu))
      {
        PT_LOG_ERR(LOG_CTX_MSG, "Unable to set interface MTU");
        return L7_FAILURE;
@@ -13980,11 +13921,11 @@ L7_RC_t ptin_msg_routing_intf_remove(msg_RoutingIntf* data)
 
   /* Debug */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Removing routing interface:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask          = %08X",  ENDIAN_SWAP32(data->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask          = %08X",  data->mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  routingIntf   = %u/%u", data->routingIntf.intf_type, data->routingIntf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  evcId         = %u",    ENDIAN_SWAP32(data->evcId));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  ipAddress     = %08X",  ENDIAN_SWAP32(data->ipAddress));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask    = %08X",  ENDIAN_SWAP32(data->subnetMask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evcId         = %u",    data->evcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  ipAddress     = %08X",  data->ipAddress);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask    = %08X",  data->subnetMask);
 
   routingIntf.intf_type = data->routingIntf.intf_type;
   routingIntf.intf_id   = data->routingIntf.intf_id;
@@ -14021,10 +13962,10 @@ L7_RC_t ptin_msg_routing_arptable_get(msg_RoutingArpTableRequest* inBuffer, msg_
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Getting ARP table:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask       = %08X",  ENDIAN_SWAP32(inBuffer->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask       = %08X",  inBuffer->mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  intf       = %u/%u", inBuffer->intf.intf_type, inBuffer->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  lastIndex  = %u",    ENDIAN_SWAP32(inBuffer->lastIndex));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  maxEntries = %u",    ENDIAN_SWAP32(inBuffer->maxEntries));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  lastIndex  = %u",    inBuffer->lastIndex);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  maxEntries = %u",    inBuffer->maxEntries);
 
   if(inBuffer->mask & CCMSG_ROUTING_ARPTABLE_GET_MASK_INTF)
   {
@@ -14041,9 +13982,9 @@ L7_RC_t ptin_msg_routing_arptable_get(msg_RoutingArpTableRequest* inBuffer, msg_
     intfNum = (L7_uint32)-1;
   }
 
-  if(ENDIAN_SWAP32(inBuffer->maxEntries) & CCMSG_ROUTING_ARPTABLE_GET_MASK_MAXENTRIES)
+  if(inBuffer->maxEntries & CCMSG_ROUTING_ARPTABLE_GET_MASK_MAXENTRIES)
   {
-    maxEntries = min(IPCLIB_MAX_MSGSIZE/sizeof(msg_RoutingArpTableResponse), ENDIAN_SWAP32(inBuffer->maxEntries));
+    maxEntries = min(IPCLIB_MAX_MSGSIZE/sizeof(msg_RoutingArpTableResponse), inBuffer->maxEntries);
   }
   else
   {
@@ -14054,7 +13995,7 @@ L7_RC_t ptin_msg_routing_arptable_get(msg_RoutingArpTableRequest* inBuffer, msg_
    I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
    However, doing so here allows me to hide the complexity of interacting with usmDb completly inside of ptin_routing.                                                                                                           .
   */
-  if(L7_SUCCESS != ptin_routing_arptable_getnext(intfNum, ENDIAN_SWAP32(inBuffer->lastIndex), maxEntries, readEntries, outBuffer))
+  if(L7_SUCCESS != ptin_routing_arptable_getnext(intfNum, inBuffer->lastIndex, maxEntries, readEntries, outBuffer))
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to get the ARP table");
     return L7_FAILURE;
@@ -14078,11 +14019,11 @@ L7_RC_t ptin_msg_routing_arpentry_purge(msg_RoutingArpEntryPurge* data)
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Removing ARP entry:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask       = %08X",  ENDIAN_SWAP32(data->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask       = %08X",  data->mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Intf       = %u/%u", data->intf.intf_type, data->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  IP Address = %08X",  ENDIAN_SWAP32(data->ipAddr));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  IP Address = %08X",  data->ipAddr);
 
-  if(ENDIAN_SWAP32(data->mask) & CCMSG_ROUTING_ARPTABLE_GET_MASK_INTF)
+  if(data->mask & CCMSG_ROUTING_ARPTABLE_GET_MASK_INTF)
   {
     intf.intf_type = data->intf.intf_type;
     intf.intf_id   = data->intf.intf_id;
@@ -14097,7 +14038,7 @@ L7_RC_t ptin_msg_routing_arpentry_purge(msg_RoutingArpEntryPurge* data)
     intfNum = (L7_uint32)-1;
   }
 
-  if(L7_SUCCESS != ptin_routing_arpentry_purge(intfNum, ENDIAN_SWAP32(data->ipAddr)))
+  if(L7_SUCCESS != ptin_routing_arpentry_purge(intfNum, data->ipAddr))
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to remove the existing ARP entry");
     return L7_FAILURE;
@@ -14130,7 +14071,7 @@ L7_RC_t ptin_msg_routing_routetable_get(msg_RoutingRouteTableRequest* inBuffer, 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Getting route table:");
   PT_LOG_DEBUG(LOG_CTX_MSG, "  intf       = %u/%u", inBuffer->intf.intf_type, inBuffer->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  lastIndex  = %u",    ENDIAN_SWAP32(inBuffer->lastIndex));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  lastIndex  = %u",    inBuffer->lastIndex);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  maxEntries = %u",    maxEntries);
 
   intf.intf_type = inBuffer->intf.intf_type;
@@ -14146,7 +14087,7 @@ L7_RC_t ptin_msg_routing_routetable_get(msg_RoutingRouteTableRequest* inBuffer, 
    I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
    However, doing so here allows me to hide the complexity of interacting with usmDb completly inside of ptin_routing.                                                                                                           .
   */
-  if(L7_SUCCESS != ptin_routing_routetable_get(intfNum, ENDIAN_SWAP32(inBuffer->lastIndex), maxEntries, readEntries, outBuffer))
+  if(L7_SUCCESS != ptin_routing_routetable_get(intfNum, inBuffer->lastIndex, maxEntries, readEntries, outBuffer))
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to get the route table");
     return L7_FAILURE;
@@ -14175,15 +14116,13 @@ L7_RC_t ptin_msg_routing_staticroute_add(msg_RoutingStaticRoute* data)
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Configuring static route:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  dstIpAddr   = %08X", ENDIAN_SWAP32(data->dstIpAddr));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask  = %08X", ENDIAN_SWAP32(data->subnetMask));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  nextHopRtr  = %08X", ENDIAN_SWAP32(data->nextHopRtr));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  dstIpAddr   = %08X", data->dstIpAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask  = %08X", data->subnetMask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  nextHopRtr  = %08X", data->nextHopRtr);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  pref        = %u",   data->pref);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  isNullRoute = %u",   data->isNullRoute);
 
-  rc = ptin_routing_staticroute_add(ENDIAN_SWAP32(data->dstIpAddr), ENDIAN_SWAP32(data->subnetMask), ENDIAN_SWAP32(data->nextHopRtr), 
-                                    data->pref, (L7_BOOL)data->isNullRoute);
-
+  rc = ptin_routing_staticroute_add(data->dstIpAddr, data->subnetMask, data->nextHopRtr, data->pref, (L7_BOOL)data->isNullRoute);
   if((rc != L7_SUCCESS) && (rc != L7_NOT_EXIST))
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to configure static route [rc:%u]", rc);
@@ -14210,14 +14149,13 @@ L7_RC_t ptin_msg_routing_staticroute_delete(msg_RoutingStaticRoute* data)
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Removing an existing static route:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  dstIpAddr   = %08X", ENDIAN_SWAP32(data->dstIpAddr));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask  = %08X", ENDIAN_SWAP32(data->subnetMask));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  nextHopRtr  = %08X", ENDIAN_SWAP32(data->nextHopRtr));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  dstIpAddr   = %08X", data->dstIpAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  subnetMask  = %08X", data->subnetMask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  nextHopRtr  = %08X", data->nextHopRtr);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  pref        = %u",   data->pref);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  isNullRoute = %u",   data->isNullRoute);
 
-  if(L7_SUCCESS != ptin_routing_staticroute_delete(ENDIAN_SWAP32(data->dstIpAddr), ENDIAN_SWAP32(data->subnetMask), ENDIAN_SWAP32(data->nextHopRtr), 
-                                                   (L7_BOOL)data->isNullRoute))
+  if(L7_SUCCESS != ptin_routing_staticroute_delete(data->dstIpAddr, data->subnetMask, data->nextHopRtr, (L7_BOOL)data->isNullRoute))
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to remove static route");
     return L7_FAILURE;
@@ -14243,14 +14181,13 @@ L7_RC_t ptin_msg_routing_pingsession_create(msg_RoutingPingSessionCreate* data)
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Creating new ping session:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx    = %u",   ENDIAN_SWAP16(data->sessionIdx));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  dstIpAddr     = %08X", ENDIAN_SWAP32(data->dstIpAddr));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeCount    = %u",   ENDIAN_SWAP16(data->probeCount));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeSize     = %u",   ENDIAN_SWAP16(data->probeSize));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeInterval = %u",   ENDIAN_SWAP16(data->probeInterval));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx    = %u",   data->sessionIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  dstIpAddr     = %08X", data->dstIpAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeCount    = %u",   data->probeCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeSize     = %u",   data->probeSize);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeInterval = %u",   data->probeInterval);
 
-  if(L7_SUCCESS != ptin_routing_pingsession_create( ENDIAN_SWAP16(data->sessionIdx), ENDIAN_SWAP16(data->dstIpAddr), ENDIAN_SWAP16(data->probeCount),
-                                                    ENDIAN_SWAP16(data->probeSize), ENDIAN_SWAP16(data->probeInterval)))
+  if(L7_SUCCESS != ptin_routing_pingsession_create(data->sessionIdx, data->dstIpAddr, data->probeCount, data->probeSize, data->probeInterval))
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to create new ping session");
     return L7_FAILURE;
@@ -14276,7 +14213,7 @@ L7_RC_t ptin_msg_routing_pingsession_query(msg_RoutingPingSessionQuery* data)
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Querying ping session:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u", ENDIAN_SWAP16(data->sessionIdx));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u", data->sessionIdx);
 
   /*
    I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
@@ -14309,11 +14246,11 @@ L7_RC_t ptin_msg_routing_pingsession_free(msg_RoutingPingSessionFree* data)
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Freeing ping session:");
   PT_LOG_DEBUG(LOG_CTX_MSG, "  mask       = %02X", data->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u",   ENDIAN_SWAP16(data->sessionIdx));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u",   data->sessionIdx);
 
   if(data->mask & CCMSG_ROUTING_PINGSESSION_MASK_SESSIONIDX)
   {
-    if(L7_SUCCESS != ptin_routing_pingsession_free(ENDIAN_SWAP16(data->sessionIdx)))
+    if(L7_SUCCESS != ptin_routing_pingsession_free(data->sessionIdx))
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Unable to free ping session");
       return L7_FAILURE;
@@ -14348,18 +14285,18 @@ L7_RC_t ptin_msg_routing_tracertsession_create(msg_RoutingTracertSessionCreate* 
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Creating new traceroute session:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx    = %u",   ENDIAN_SWAP16(data->sessionIdx));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  dstIpAddr     = %08X", ENDIAN_SWAP32(data->dstIpAddr));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  probePerHop   = %u",   ENDIAN_SWAP16(data->probePerHop));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeSize     = %u",   ENDIAN_SWAP16(data->probeSize));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeInterval = %u",   ENDIAN_SWAP32(data->probeInterval));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx    = %u",   data->sessionIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  dstIpAddr     = %08X", data->dstIpAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  probePerHop   = %u",   data->probePerHop);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeSize     = %u",   data->probeSize);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  probeInterval = %u",   data->probeInterval);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  dontFrag      = %u",   data->dontFrag);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  port          = %u",   ENDIAN_SWAP16(data->port));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  maxTtl        = %u",   ENDIAN_SWAP16(data->maxTtl));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  initTtl       = %u",   ENDIAN_SWAP16(data->initTtl));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  maxFail       = %u",   ENDIAN_SWAP16(data->maxFail));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  port          = %u",   data->port);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  maxTtl        = %u",   data->maxTtl);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  initTtl       = %u",   data->initTtl);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  maxFail       = %u",   data->maxFail);
 
-  if(L7_SUCCESS != ptin_routing_traceroutesession_create(ENDIAN_SWAP16(data->sessionIdx), ENDIAN_SWAP32(data->dstIpAddr), ENDIAN_SWAP16(data->probeSize), ENDIAN_SWAP16(data->probePerHop), ENDIAN_SWAP32(data->probeInterval), data->dontFrag, ENDIAN_SWAP16(data->port), ENDIAN_SWAP16(data->maxTtl), ENDIAN_SWAP16(data->initTtl), ENDIAN_SWAP16(data->maxFail)))
+  if(L7_SUCCESS != ptin_routing_traceroutesession_create(data->sessionIdx, data->dstIpAddr, data->probeSize, data->probePerHop, data->probeInterval, data->dontFrag, data->port, data->maxTtl, data->initTtl, data->maxFail))
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to create new traceroute session");
     return L7_FAILURE;
@@ -14385,7 +14322,7 @@ L7_RC_t ptin_msg_routing_tracertsession_query(msg_RoutingTracertSessionQuery* da
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Querying traceroute session:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u", ENDIAN_SWAP16(data->sessionIdx));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u", data->sessionIdx);
 
   /*
    I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
@@ -14420,16 +14357,15 @@ L7_RC_t ptin_msg_routing_tracertsession_gethops(msg_RoutingTracertSessionHopsReq
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Getting traceroute hops:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u", ENDIAN_SWAP16(inBuffer->sessionIdx));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  lastIndex  = %u", ENDIAN_SWAP16(inBuffer->lastIndex));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u", inBuffer->sessionIdx);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  lastIndex  = %u", inBuffer->lastIndex);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  maxEntries = %u", maxEntries);
 
   /*
    I know that passing a ptin_msghandler struct to a file other than ptin_msg breaks PTIN Fastpath's architecture.
    However, doing so here allows me to hide the complexity of interacting with usmDb completly inside of ptin_routing.                                                                                                           .
   */
-  if(L7_SUCCESS != ptin_routing_traceroutesession_gethops(ENDIAN_SWAP16(inBuffer->sessionIdx), ENDIAN_SWAP16(inBuffer->lastIndex),
-                                                           maxEntries, readEntries, outBuffer))
+  if(L7_SUCCESS != ptin_routing_traceroutesession_gethops(inBuffer->sessionIdx, inBuffer->lastIndex, maxEntries, readEntries, outBuffer))
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to get traceroute session hops");
     return L7_FAILURE;
@@ -14456,12 +14392,12 @@ L7_RC_t ptin_msg_routing_tracertsession_free(msg_RoutingTracertSessionFree* data
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Freeing traceroute session:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask       = %02X", ENDIAN_SWAP8(data->mask));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u",   ENDIAN_SWAP16(data->sessionIdx));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  mask       = %02X", data->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  sessionIdx = %u",   data->sessionIdx);
 
   if(data->mask & CCMSG_ROUTING_TRACEROUTESESSION_MASK_SESSIONIDX)
   {
-    if(L7_SUCCESS != ptin_routing_traceroutesession_free(ENDIAN_SWAP16(data->sessionIdx)))
+    if(L7_SUCCESS != ptin_routing_traceroutesession_free(data->sessionIdx))
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Unable to free traceroute session");
       return L7_FAILURE;
@@ -14602,30 +14538,30 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
     if(slot == slot_ret) //In TU40G and CXO160G check if the manager send slot match with the slot port 
     {
       PT_LOG_DEBUG(LOG_CTX_MSG, "port1 %d", port1);    
-                                                                                                                 
-      buffer[*n_elements].index                 = ENDIAN_SWAP32(ring_buffer.index);                              
-      buffer[*n_elements].arg                   = ENDIAN_SWAP32(ring_buffer.arg);                                
-      buffer[*n_elements].time                  = ENDIAN_SWAP32(ring_buffer.time);                               
-      buffer[*n_elements].path                  = ENDIAN_SWAP32(ring_buffer.path);                               
-      buffer[*n_elements].cTempo                = ENDIAN_SWAP32(ring_buffer.cTempo);                             
-                                                                                                                 
-      buffer[*n_elements].Octets                = ENDIAN_SWAP64(ring_buffer.Octets);                             
-      buffer[*n_elements].Pkts                  = ENDIAN_SWAP64(ring_buffer.Pkts);                               
-      buffer[*n_elements].Broadcast             = ENDIAN_SWAP64(ring_buffer.Broadcast);                          
-      buffer[*n_elements].Multicast             = ENDIAN_SWAP64(ring_buffer.Multicast);                          
-      buffer[*n_elements].CRCAlignErrors        = ENDIAN_SWAP64(ring_buffer.CRCAlignErrors);                     
-      buffer[*n_elements].UndersizePkts         = ENDIAN_SWAP64(ring_buffer.UndersizePkts);                      
-      buffer[*n_elements].OversizePkts          = ENDIAN_SWAP64(ring_buffer.OversizePkts);                       
-      buffer[*n_elements].Fragments             = ENDIAN_SWAP64(ring_buffer.Fragments);                          
-      buffer[*n_elements].Jabbers               = ENDIAN_SWAP64(ring_buffer.Jabbers);                            
-      buffer[*n_elements].Collisions            = ENDIAN_SWAP64(ring_buffer.Collisions);                         
-      buffer[*n_elements].Utilization           = ENDIAN_SWAP64(ring_buffer.Utilization);                        
-      buffer[*n_elements].Pkts64Octets          = ENDIAN_SWAP64(ring_buffer.Pkts64Octets);                       
-      buffer[*n_elements].Pkts65to127Octets     = ENDIAN_SWAP64(ring_buffer.Pkts65to127Octets);                  
-      buffer[*n_elements].Pkts128to255Octets    = ENDIAN_SWAP64(ring_buffer.Pkts128to255Octets);                 
-      buffer[*n_elements].Pkts256to511Octets    = ENDIAN_SWAP64(ring_buffer.Pkts256to511Octets);                 
-      buffer[*n_elements].Pkts512to1023Octets   = ENDIAN_SWAP64(ring_buffer.Pkts512to1023Octets);                
-      buffer[*n_elements].Pkts1024to1518Octets  = ENDIAN_SWAP64(ring_buffer.Pkts1024to1518Octets);               
+    
+      buffer[*n_elements].index                = ring_buffer.index;
+      buffer[*n_elements].arg                  = ring_buffer.arg;
+      buffer[*n_elements].time                 = ring_buffer.time;
+      buffer[*n_elements].path                 = ring_buffer.path;
+      buffer[*n_elements].cTempo               = ring_buffer.cTempo;
+
+      buffer[*n_elements].Octets               = ring_buffer.Octets;
+      buffer[*n_elements].Pkts                 = ring_buffer.Pkts;                
+      buffer[*n_elements].Broadcast            = ring_buffer.Broadcast;
+      buffer[*n_elements].Multicast            = ring_buffer.Multicast;           
+      buffer[*n_elements].CRCAlignErrors       = ring_buffer.CRCAlignErrors;      
+      buffer[*n_elements].UndersizePkts        = ring_buffer.UndersizePkts;       
+      buffer[*n_elements].OversizePkts         = ring_buffer.OversizePkts;        
+      buffer[*n_elements].Fragments            = ring_buffer.Fragments;           
+      buffer[*n_elements].Jabbers              = ring_buffer.Jabbers;             
+      buffer[*n_elements].Collisions           = ring_buffer.Collisions;          
+      buffer[*n_elements].Utilization          = ring_buffer.Utilization;         
+      buffer[*n_elements].Pkts64Octets         = ring_buffer.Pkts64Octets;        
+      buffer[*n_elements].Pkts65to127Octets    = ring_buffer.Pkts65to127Octets;   
+      buffer[*n_elements].Pkts128to255Octets   = ring_buffer.Pkts128to255Octets;  
+      buffer[*n_elements].Pkts256to511Octets   = ring_buffer.Pkts256to511Octets;  
+      buffer[*n_elements].Pkts512to1023Octets  = ring_buffer.Pkts512to1023Octets; 
+      buffer[*n_elements].Pkts1024to1518Octets = ring_buffer.Pkts1024to1518Octets;
     }
     else
     {
@@ -14635,30 +14571,30 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
      continue;  
 
     }
-    #else                                                                                                        
-      buffer[*n_elements].index                 = ENDIAN_SWAP32(ring_buffer.index);                              
-      buffer[*n_elements].arg                   = ENDIAN_SWAP32(ring_buffer.arg);                                
-      buffer[*n_elements].time                  = ENDIAN_SWAP32(ring_buffer.time);                               
-      buffer[*n_elements].path                  = ENDIAN_SWAP32(ring_buffer.path);                               
-      buffer[*n_elements].cTempo                = ENDIAN_SWAP32(ring_buffer.cTempo);                             
-                                                                                                                 
-      buffer[*n_elements].Octets                = ENDIAN_SWAP64(ring_buffer.Octets);                             
-      buffer[*n_elements].Pkts                  = ENDIAN_SWAP64(ring_buffer.Pkts);                               
-      buffer[*n_elements].Broadcast             = ENDIAN_SWAP64(ring_buffer.Broadcast);                          
-      buffer[*n_elements].Multicast             = ENDIAN_SWAP64(ring_buffer.Multicast);                          
-      buffer[*n_elements].CRCAlignErrors        = ENDIAN_SWAP64(ring_buffer.CRCAlignErrors);                     
-      buffer[*n_elements].UndersizePkts         = ENDIAN_SWAP64(ring_buffer.UndersizePkts);                      
-      buffer[*n_elements].OversizePkts          = ENDIAN_SWAP64(ring_buffer.OversizePkts);                       
-      buffer[*n_elements].Fragments             = ENDIAN_SWAP64(ring_buffer.Fragments);                          
-      buffer[*n_elements].Jabbers               = ENDIAN_SWAP64(ring_buffer.Jabbers);                            
-      buffer[*n_elements].Collisions            = ENDIAN_SWAP64(ring_buffer.Collisions);                         
-      buffer[*n_elements].Utilization           = ENDIAN_SWAP64(ring_buffer.Utilization);                        
-      buffer[*n_elements].Pkts64Octets          = ENDIAN_SWAP64(ring_buffer.Pkts64Octets);                       
-      buffer[*n_elements].Pkts65to127Octets     = ENDIAN_SWAP64(ring_buffer.Pkts65to127Octets);                  
-      buffer[*n_elements].Pkts128to255Octets    = ENDIAN_SWAP64(ring_buffer.Pkts128to255Octets);                 
-      buffer[*n_elements].Pkts256to511Octets    = ENDIAN_SWAP64(ring_buffer.Pkts256to511Octets);                 
-      buffer[*n_elements].Pkts512to1023Octets   = ENDIAN_SWAP64(ring_buffer.Pkts512to1023Octets);                
-      buffer[*n_elements].Pkts1024to1518Octets  = ENDIAN_SWAP64(ring_buffer.Pkts1024to1518Octets);               
+    #else 
+      buffer[*n_elements].index                = ring_buffer.index;
+      buffer[*n_elements].arg                  = ring_buffer.arg;
+      buffer[*n_elements].time                 = ring_buffer.time;
+      buffer[*n_elements].path                 = ring_buffer.path;
+      buffer[*n_elements].cTempo               = ring_buffer.cTempo;
+
+      buffer[*n_elements].Octets               = ring_buffer.Octets;
+      buffer[*n_elements].Pkts                 = ring_buffer.Pkts;                
+      buffer[*n_elements].Broadcast            = ring_buffer.Broadcast;
+      buffer[*n_elements].Multicast            = ring_buffer.Multicast;           
+      buffer[*n_elements].CRCAlignErrors       = ring_buffer.CRCAlignErrors;      
+      buffer[*n_elements].UndersizePkts        = ring_buffer.UndersizePkts;       
+      buffer[*n_elements].OversizePkts         = ring_buffer.OversizePkts;        
+      buffer[*n_elements].Fragments            = ring_buffer.Fragments;           
+      buffer[*n_elements].Jabbers              = ring_buffer.Jabbers;             
+      buffer[*n_elements].Collisions           = ring_buffer.Collisions;          
+      buffer[*n_elements].Utilization          = ring_buffer.Utilization;         
+      buffer[*n_elements].Pkts64Octets         = ring_buffer.Pkts64Octets;        
+      buffer[*n_elements].Pkts65to127Octets    = ring_buffer.Pkts65to127Octets;   
+      buffer[*n_elements].Pkts128to255Octets   = ring_buffer.Pkts128to255Octets;  
+      buffer[*n_elements].Pkts256to511Octets   = ring_buffer.Pkts256to511Octets;  
+      buffer[*n_elements].Pkts512to1023Octets  = ring_buffer.Pkts512to1023Octets; 
+      buffer[*n_elements].Pkts1024to1518Octets = ring_buffer.Pkts1024to1518Octets;
     #endif
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index %d", buffer[*n_elements].index);
@@ -14690,8 +14626,6 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
 
     (*n_elements)++;        
   }  
-
-  *n_elements = ENDIAN_SWAP16(*n_elements);
 
   return L7_SUCCESS;
 }
@@ -14725,29 +14659,29 @@ L7_RC_t ptin_msg_get_next_qualRFC2819(L7_int buffer_index, msg_rfc2819_buffer_t 
       return L7_SUCCESS;
     }
         
-    buffer[n_elements].index                = ENDIAN_SWAP32(ring_buffer.index);
-    buffer[n_elements].arg                  = ENDIAN_SWAP32(ring_buffer.arg);
-    buffer[n_elements].time                 = ENDIAN_SWAP32(ring_buffer.time);
-    buffer[n_elements].path                 = ENDIAN_SWAP32(ring_buffer.path);
-    buffer[n_elements].cTempo               = ENDIAN_SWAP32(ring_buffer.cTempo);
+    buffer[n_elements].index                = ring_buffer.index;
+    buffer[n_elements].arg                  = ring_buffer.arg;
+    buffer[n_elements].time                 = ring_buffer.time;
+    buffer[n_elements].path                 = ring_buffer.path;
+    buffer[n_elements].cTempo               = ring_buffer.cTempo;
 
-    buffer[n_elements].Octets               = ENDIAN_SWAP64(ring_buffer.Octets);
-    buffer[n_elements].Pkts                 = ENDIAN_SWAP64(ring_buffer.Pkts);                
-    buffer[n_elements].Broadcast            = ENDIAN_SWAP64(ring_buffer.Broadcast);
-    buffer[n_elements].Multicast            = ENDIAN_SWAP64(ring_buffer.Multicast);           
-    buffer[n_elements].CRCAlignErrors       = ENDIAN_SWAP64(ring_buffer.CRCAlignErrors);      
-    buffer[n_elements].UndersizePkts        = ENDIAN_SWAP64(ring_buffer.UndersizePkts);       
-    buffer[n_elements].OversizePkts         = ENDIAN_SWAP64(ring_buffer.OversizePkts);        
-    buffer[n_elements].Fragments            = ENDIAN_SWAP64(ring_buffer.Fragments);           
-    buffer[n_elements].Jabbers              = ENDIAN_SWAP64(ring_buffer.Jabbers);             
-    buffer[n_elements].Collisions           = ENDIAN_SWAP64(ring_buffer.Collisions);          
-    buffer[n_elements].Utilization          = ENDIAN_SWAP64(ring_buffer.Utilization);         
-    buffer[n_elements].Pkts64Octets         = ENDIAN_SWAP64(ring_buffer.Pkts64Octets);        
-    buffer[n_elements].Pkts65to127Octets    = ENDIAN_SWAP64(ring_buffer.Pkts65to127Octets);   
-    buffer[n_elements].Pkts128to255Octets   = ENDIAN_SWAP64(ring_buffer.Pkts128to255Octets);  
-    buffer[n_elements].Pkts256to511Octets   = ENDIAN_SWAP64(ring_buffer.Pkts256to511Octets);  
-    buffer[n_elements].Pkts512to1023Octets  = ENDIAN_SWAP64(ring_buffer.Pkts512to1023Octets); 
-    buffer[n_elements].Pkts1024to1518Octets = ENDIAN_SWAP64(ring_buffer.Pkts1024to1518Octets);
+    buffer[n_elements].Octets               = ring_buffer.Octets;
+    buffer[n_elements].Pkts                 = ring_buffer.Pkts;                
+    buffer[n_elements].Broadcast            = ring_buffer.Broadcast;
+    buffer[n_elements].Multicast            = ring_buffer.Multicast;           
+    buffer[n_elements].CRCAlignErrors       = ring_buffer.CRCAlignErrors;      
+    buffer[n_elements].UndersizePkts        = ring_buffer.UndersizePkts;       
+    buffer[n_elements].OversizePkts         = ring_buffer.OversizePkts;        
+    buffer[n_elements].Fragments            = ring_buffer.Fragments;           
+    buffer[n_elements].Jabbers              = ring_buffer.Jabbers;             
+    buffer[n_elements].Collisions           = ring_buffer.Collisions;          
+    buffer[n_elements].Utilization          = ring_buffer.Utilization;         
+    buffer[n_elements].Pkts64Octets         = ring_buffer.Pkts64Octets;        
+    buffer[n_elements].Pkts65to127Octets    = ring_buffer.Pkts65to127Octets;   
+    buffer[n_elements].Pkts128to255Octets   = ring_buffer.Pkts128to255Octets;  
+    buffer[n_elements].Pkts256to511Octets   = ring_buffer.Pkts256to511Octets;  
+    buffer[n_elements].Pkts512to1023Octets  = ring_buffer.Pkts512to1023Octets; 
+    buffer[n_elements].Pkts1024to1518Octets = ring_buffer.Pkts1024to1518Octets;
    
     PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].index %d", buffer[n_elements].index);
     PT_LOG_DEBUG(LOG_CTX_MSG, "buffer[n_elements].arg  %d",  buffer[n_elements].arg );   
@@ -14849,16 +14783,8 @@ L7_RC_t ptin_msg_get_rfc2819_probe_config(L7_int Port, L7_uint8 *Admin)
  */
 L7_RC_t ptin_msg_rfc2819_buffer_status(L7_int buffer_type, msg_rfc2819_buffer_status_t *status)
 {  
-  L7_RC_t rc;
-  ENDIAN_SWAP16_MOD(buffer_type);
-
-  rc = ptin_rfc2819_get_buffer_status(buffer_type, &status->max_entrys,  &status->wrptr, &status->bufferfull);
-
-  ENDIAN_SWAP16_MOD(status->max_entrys);
-  ENDIAN_SWAP16_MOD(status->wrptr);
-  ENDIAN_SWAP16_MOD(status->bufferfull);
-
-  return rc;
+  status->BufferType = buffer_type;
+  return ptin_rfc2819_get_buffer_status(buffer_type, &status->max_entrys,  &status->wrptr, &status->bufferfull);
 }
 
 /*********************************************Multicast Package Feature**************************************************/
@@ -14895,18 +14821,18 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
 #endif
       
   /*Input Parameters*/
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",ENDIAN_SWAP8(msg->slotId), ENDIAN_SWAP16(msg->noOfPackages), packageBmpStr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
 
-  for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES && ENDIAN_SWAP16(msg->noOfPackages) > 0; packageIdIterator++)
+  for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES && msg->noOfPackages > 0; packageIdIterator++)
   {
     //Move forward 32 bits if this byte is 0 (no packages)
-    if (IS_BITMAP_WORD_SET(ENDIAN_SWAP32(msg->packageBmpList), packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
+    if (IS_BITMAP_WORD_SET(msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
     {
      packageIdIterator += UINT32_BITSIZE -1; //Less one, because of the For cycle that increments also 1 unit.
      continue;
     }
 
-    if (IS_BITMAP_BIT_SET( ENDIAN_SWAP32(msg->packageBmpList), packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
+    if (IS_BITMAP_BIT_SET( msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
     {
       continue;
     }
@@ -14958,24 +14884,18 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
   }
 #endif      
   /*Input Parameters*/
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",ENDIAN_SWAP8(msg->slotId), ENDIAN_SWAP16(msg->noOfPackages), packageBmpStr);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
 
-  for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES && ENDIAN_SWAP16(msg->noOfPackages) > 0; packageIdIterator++)
+  for (packageIdIterator = 0; packageIdIterator < PTIN_SYSTEM_IGMP_MAXPACKAGES && msg->noOfPackages > 0; packageIdIterator++)
   {
-    ENDIAN_SWAP32_MOD(msg[messageIterator].evcId);
-    ENDIAN_SWAP16_MOD(msg[messageIterator].client.outer_vlan);
-    ENDIAN_SWAP16_MOD(msg[messageIterator].client.outer_vlan);
-    ENDIAN_SWAP16_MOD(msg[messageIterator].noOfPackages);
-    ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList);
-
     //Move forward 32 bits if this byte is 0 (no packages)
-    if (IS_BITMAP_WORD_SET(ENDIAN_SWAP32(msg->packageBmpList), packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
+    if (IS_BITMAP_WORD_SET(msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
     {
      packageIdIterator += UINT32_BITSIZE -1; //Less one, because of the For cycle that increments also 1 unit.
      continue;
     }
 
-    if (IS_BITMAP_BIT_SET( ENDIAN_SWAP32(msg->packageBmpList), packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
+    if (IS_BITMAP_BIT_SET( msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
     {
       continue;
     }
@@ -14986,7 +14906,7 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
       return rc;
     }
 
-    if (++noOfPackagesFound >= ENDIAN_SWAP16(msg->noOfPackages))
+    if (++noOfPackagesFound >= msg->noOfPackages)
     {
       /*Found All Packages*/
       break;
@@ -15030,13 +14950,6 @@ L7_RC_t ptin_msg_igmp_package_channels_add(msg_igmp_package_channels_t *msg, L7_
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {
-
-    ENDIAN_SWAP32_MOD(msg[messageIterator].evcId);
-    ENDIAN_SWAP16_MOD(msg[messageIterator].client.outer_vlan);
-    ENDIAN_SWAP16_MOD(msg[messageIterator].client.outer_vlan);
-    ENDIAN_SWAP16_MOD(msg[messageIterator].noOfPackages);
-    ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList);
-
     /*Convert Group Address to fp Notation*/
     rc = ptin_to_fp_ip_notation(&msg[messageIterator].groupAddr, &groupAddr);
     if ( rc != L7_SUCCESS)
@@ -15141,13 +15054,6 @@ L7_RC_t ptin_msg_igmp_package_channels_remove(msg_igmp_package_channels_t *msg, 
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {
-
-    ENDIAN_SWAP32_MOD(msg[messageIterator].evcId);
-    ENDIAN_SWAP16_MOD(msg[messageIterator].client.outer_vlan);
-    ENDIAN_SWAP16_MOD(msg[messageIterator].client.outer_vlan);
-    ENDIAN_SWAP16_MOD(msg[messageIterator].noOfPackages);
-    ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList);
-
     /*Convert Group Address to fp Notation*/
     rc = ptin_to_fp_ip_notation(&msg[messageIterator].groupAddr, &groupAddr);
     if ( rc != L7_SUCCESS)
@@ -15264,12 +15170,6 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
       charPtr++;
     }
 #endif
-
-    ENDIAN_SWAP32_MOD(msg[messageIterator].evcId);
-    ENDIAN_SWAP16_MOD(msg[messageIterator].client.outer_vlan);
-    ENDIAN_SWAP16_MOD(msg[messageIterator].client.outer_vlan);
-    ENDIAN_SWAP16_MOD(msg[messageIterator].noOfPackages);
-    ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList);
     
     /* Output data */
     PT_LOG_DEBUG(LOG_CTX_MSG, "Going to add MC client");
@@ -15401,46 +15301,46 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
 #endif
 
     #if PTIN_BOARD_IS_ACTIVETH   
-    if (ENDIAN_SWAP8(msg[messageIterator].onuId) != 0)
+    if (msg[messageIterator].onuId != 0)
     {
-      PT_LOG_WARN(LOG_CTX_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", ENDIAN_SWAP8(msg[messageIterator].onuId));
+      PT_LOG_WARN(LOG_CTX_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
       msg[messageIterator].onuId = 0;
     }    
     #endif
     
      /* Output data */
     PT_LOG_DEBUG(LOG_CTX_MSG, "Going to add MC client");
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u",               ENDIAN_SWAP32(msg[messageIterator].evcId));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   onuId               = %u",     ENDIAN_SWAP8(msg[messageIterator].onuId));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Mask         = 0x%02x", ENDIAN_SWAP8(msg[messageIterator].client.mask));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan        = %u",     ENDIAN_SWAP16(msg[messageIterator].client.outer_vlan));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan        = %u",     ENDIAN_SWAP16(msg[messageIterator].client.inner_vlan));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf         = %u/%u",  ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_type),ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_id));    
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   noOfPackages        = %u ",    ENDIAN_SWAP16(msg[messageIterator].noOfPackages));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   PackageBmpList      = %s",     packageBmpStr);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", msg[messageIterator].evcId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   onuId               = %u", msg[messageIterator].onuId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Mask         = 0x%02x", msg[messageIterator].client.mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan        = %u", msg[messageIterator].client.outer_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan        = %u", msg[messageIterator].client.inner_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf         = %u/%u", msg[messageIterator].client.intf.intf_type,msg[messageIterator].client.intf.intf_id);    
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   noOfPackages        = %u ", msg[messageIterator].noOfPackages);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   PackageBmpList      = %s", packageBmpStr);
 
-    if ( ENDIAN_SWAP16(msg[messageIterator].noOfPackages) > 0 )
+    if ( msg[messageIterator].noOfPackages > 0 )
     {
       memset(&client,0x00,sizeof(ptin_client_id_t));
-      if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_OVLAN_MASK)
+      if (msg[messageIterator].client.mask & MSG_CLIENT_OVLAN_MASK)
       {
-        client.outerVlan = ENDIAN_SWAP16(msg[messageIterator].client.outer_vlan);
+        client.outerVlan = msg[messageIterator].client.outer_vlan;
         client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
       }
-      if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_IVLAN_MASK)
+      if (msg[messageIterator].client.mask & MSG_CLIENT_IVLAN_MASK)
       {
-        client.innerVlan = ENDIAN_SWAP16(msg[messageIterator].client.inner_vlan);
+        client.innerVlan = msg[messageIterator].client.inner_vlan;
         client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
       }
-      if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_INTF_MASK)
+      if (msg[messageIterator].client.mask & MSG_CLIENT_INTF_MASK)
       {
-        client.ptin_intf.intf_type  = ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_type);
-        client.ptin_intf.intf_id    = ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_id);
+        client.ptin_intf.intf_type  = msg[messageIterator].client.intf.intf_type;
+        client.ptin_intf.intf_id    = msg[messageIterator].client.intf.intf_id;
         client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
       }
 
       {
-        rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(msg[messageIterator].evcId), &client);
+        rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
         if ( rc != L7_SUCCESS )
         {
           PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
@@ -15452,7 +15352,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
         /* Get interface as intIfNum format */      
         if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
         {
-          if (ptin_evc_extVlans_get(intIfNum, ENDIAN_SWAP32(msg[messageIterator].evcId),(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+          if (ptin_evc_extVlans_get(intIfNum, msg[messageIterator].evcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
           {
             PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                       client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
@@ -15471,7 +15371,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
       }
 
       /* Apply config */
-      rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, ENDIAN_SWAP8(msg[messageIterator].onuId), 0x00, 0, 0, addOrRemove, ENDIAN_SWAP32(msg[messageIterator].packageBmpList), ENDIAN_SWAP16(msg[messageIterator].noOfPackages));
+      rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, msg[messageIterator].onuId, 0x00, 0, 0, addOrRemove, msg[messageIterator].packageBmpList, msg[messageIterator].noOfPackages);
 
       if (rc!=L7_SUCCESS)
       {
@@ -15519,9 +15419,9 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {    
     #if PTIN_BOARD_IS_ACTIVETH   
-    if (ENDIAN_SWAP8(msg[messageIterator].onuId) != 0)
+    if (msg[messageIterator].onuId != 0)
     {
-      PT_LOG_WARN(LOG_CTX_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", ENDIAN_SWAP8(msg[messageIterator].onuId));
+      PT_LOG_WARN(LOG_CTX_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
       msg[messageIterator].onuId = 0;
     }    
     #endif
@@ -15529,18 +15429,18 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
     /*Initialize Structure*/
     memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
 
-    /* Copy data */                                                                                                  
-    ptinEvcFlow.evc_idx             = ENDIAN_SWAP32(msg[messageIterator].evcId);                                     
-    ptinEvcFlow.int_ivid            = ENDIAN_SWAP16(msg[messageIterator].nni_cvlan);                                 
-    ptinEvcFlow.ptin_intf.intf_type = ENDIAN_SWAP8(msg[messageIterator].intf.intf_type);                             
-    ptinEvcFlow.ptin_intf.intf_id   = ENDIAN_SWAP8(msg[messageIterator].intf.intf_id);                               
-    ptinEvcFlow.uni_ovid            = ENDIAN_SWAP16(msg[messageIterator].intf.outer_vid); /* must be a leaf */       
-    ptinEvcFlow.uni_ivid            = ENDIAN_SWAP16(msg[messageIterator].intf.inner_vid);                            
-    ptinEvcFlow.onuId               = ENDIAN_SWAP8(msg[messageIterator].onuId);                                      
-    ptinEvcFlow.noOfPackages        = ENDIAN_SWAP16(msg[messageIterator].noOfPackages);                              
+    /* Copy data */
+    ptinEvcFlow.evc_idx             = msg[messageIterator].evcId;    
+    ptinEvcFlow.int_ivid            = msg[messageIterator].nni_cvlan;
+    ptinEvcFlow.ptin_intf.intf_type = msg[messageIterator].intf.intf_type;
+    ptinEvcFlow.ptin_intf.intf_id   = msg[messageIterator].intf.intf_id;
+    ptinEvcFlow.uni_ovid            = msg[messageIterator].intf.outer_vid; /* must be a leaf */
+    ptinEvcFlow.uni_ivid            = msg[messageIterator].intf.inner_vid;
+    ptinEvcFlow.onuId               = msg[messageIterator].onuId;
+    ptinEvcFlow.noOfPackages        = msg[messageIterator].noOfPackages;
 
     /*Copy Multicast Package Bitmap*/
-    memcpy(ptinEvcFlow.packageBmpList, ENDIAN_SWAP32(msg[messageIterator].packageBmpList), sizeof(ptinEvcFlow.packageBmpList));
+    memcpy(ptinEvcFlow.packageBmpList, msg[messageIterator].packageBmpList, sizeof(ptinEvcFlow.packageBmpList));
 #if 0    
     for (packageIdIterator =PTIN_IGMP_PACKAGE_BITMAP_SIZE-1; packageIdIterator>=0; --packageIdIterator)
     {
@@ -15612,25 +15512,25 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
     memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
 
     #if PTIN_BOARD_IS_ACTIVETH   
-    if (ENDIAN_SWAP8(msg[messageIterator].onuId) != 0)
+    if (msg[messageIterator].onuId != 0)
     {
-      PT_LOG_WARN(LOG_CTX_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", ENDIAN_SWAP8(msg[messageIterator].onuId));
-      ENDIAN_SWAP8(msg[messageIterator].onuId) = 0;
+      PT_LOG_WARN(LOG_CTX_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", msg[messageIterator].onuId);
+      msg[messageIterator].onuId = 0;
     }    
     #endif
 
-    /* Copy data */                                                                                                  
-    ptinEvcFlow.evc_idx             = ENDIAN_SWAP32(msg[messageIterator].evcId);                                     
-    ptinEvcFlow.int_ivid            = ENDIAN_SWAP16(msg[messageIterator].nni_cvlan);                                 
-    ptinEvcFlow.ptin_intf.intf_type = ENDIAN_SWAP8(msg[messageIterator].intf.intf_type);                             
-    ptinEvcFlow.ptin_intf.intf_id   = ENDIAN_SWAP8(msg[messageIterator].intf.intf_id);                               
-    ptinEvcFlow.uni_ovid            = ENDIAN_SWAP16(msg[messageIterator].intf.outer_vid); /* must be a leaf */       
-    ptinEvcFlow.uni_ivid            = ENDIAN_SWAP16(msg[messageIterator].intf.inner_vid);                            
-    ptinEvcFlow.onuId               = ENDIAN_SWAP8(msg[messageIterator].onuId);                                      
-    ptinEvcFlow.noOfPackages        = ENDIAN_SWAP16(msg[messageIterator].noOfPackages);     
+    /* Copy data */
+    ptinEvcFlow.evc_idx             = msg[messageIterator].evcId;    
+    ptinEvcFlow.int_ivid            = msg[messageIterator].nni_cvlan;
+    ptinEvcFlow.ptin_intf.intf_type = msg[messageIterator].intf.intf_type;
+    ptinEvcFlow.ptin_intf.intf_id   = msg[messageIterator].intf.intf_id;
+    ptinEvcFlow.uni_ovid            = msg[messageIterator].intf.outer_vid; /* must be a leaf */
+    ptinEvcFlow.uni_ivid            = msg[messageIterator].intf.inner_vid;    
+    ptinEvcFlow.onuId               = msg[messageIterator].onuId;
+    ptinEvcFlow.noOfPackages        = msg[messageIterator].noOfPackages;
 
     /*Copy Multicast Package Bitmap*/
-    memcpy(ptinEvcFlow.packageBmpList, ENDIAN_SWAP32(msg[messageIterator].packageBmpList), sizeof(ptinEvcFlow.packageBmpList));
+    memcpy(ptinEvcFlow.packageBmpList, msg[messageIterator].packageBmpList, sizeof(ptinEvcFlow.packageBmpList));
 #if 0    
     for (packageIdIterator =PTIN_IGMP_PACKAGE_BITMAP_SIZE-1; packageIdIterator>=0; --packageIdIterator)
     {
@@ -15712,20 +15612,21 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
   { 
     /*Input Parameters*/
     PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
-              ENDIAN_SWAP8(msg[messageIterator].slotId), ENDIAN_SWAP32(msg[messageIterator].evcId), ENDIAN_SWAP8(msg[messageIterator].intf.intf_type), ENDIAN_SWAP8(msg[messageIterator].intf.intf_id), ENDIAN_SWAP8(msg[messageIterator].onuId));
+              msg[messageIterator].slotId, msg[messageIterator].evcId, msg[messageIterator].intf.intf_type, msg[messageIterator].intf.intf_id, msg[messageIterator].onuId);
 
     /*Copy to ptin intf struct*/
-    ptinIntf.intf_type = ENDIAN_SWAP8(msg[messageIterator].intf.intf_type);
-    ptinIntf.intf_id   = ENDIAN_SWAP8(msg[messageIterator].intf.intf_id);
+    ptinIntf.intf_type = msg[messageIterator].intf.intf_type;
+    ptinIntf.intf_id   = msg[messageIterator].intf.intf_id;
 
     /*Convert from ptin intf to otin port*/
     if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
     {
+      PT_LOG_ERR(LOG_CTX_IGMP, "Failed to convert to ptin port [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]");  
       return rc;
     }
 
     /*If Any Error Occurs It is Already Logged*/
-    if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_add(ptinPort, ENDIAN_SWAP8(msg[messageIterator].onuId), ENDIAN_SWAP32(msg[messageIterator].evcId))) )
+    if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_add(ptinPort, msg[messageIterator].onuId, msg[messageIterator].evcId) ) )
     {
       return rc;
     }   
@@ -15768,11 +15669,11 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
   { 
     /*Input Parameters*/
     PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
-              ENDIAN_SWAP8(msg[messageIterator].slotId),ENDIAN_SWAP32(msg[messageIterator].evcId), ENDIAN_SWAP8(msg[messageIterator].intf.intf_type), ENDIAN_SWAP8(msg[messageIterator].intf.intf_id), ENDIAN_SWAP8(msg[messageIterator].onuId));
+              msg[messageIterator].slotId, msg[messageIterator].evcId, msg[messageIterator].intf.intf_type, msg[messageIterator].intf.intf_id, msg[messageIterator].onuId);
 
     /*Copy to ptin intf struct*/
-    ptinIntf.intf_type = ENDIAN_SWAP8(msg[messageIterator].intf.intf_type);
-    ptinIntf.intf_id   = ENDIAN_SWAP8(msg[messageIterator].intf.intf_id);
+    ptinIntf.intf_type = msg[messageIterator].intf.intf_type;
+    ptinIntf.intf_id   = msg[messageIterator].intf.intf_id;
 
     /*Convert from ptin intf to otin port*/
     if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
@@ -15782,7 +15683,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
     }
 
     /*If Any Error Occurs It is Already Logged*/
-    if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_remove(ptinPort, ENDIAN_SWAP8(msg[messageIterator].onuId), ENDIAN_SWAP32(msg[messageIterator].evcId)) ) )
+    if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_remove(ptinPort, msg[messageIterator].onuId, msg[messageIterator].evcId) ) )
     {
       return rc;
     }

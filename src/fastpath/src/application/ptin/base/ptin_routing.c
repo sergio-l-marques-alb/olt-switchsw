@@ -992,12 +992,12 @@ L7_RC_t ptin_routing_arptable_getnext(L7_uint32 intfNum, L7_uint32 firstIdx, L7_
         PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert intfNum %u to ptin_intf_t", snapshotIterator->intfNum);
         return L7_FAILURE;
       }
-      buffer->index          = ENDIAN_SWAP32(currentIndex);
+      buffer->index          = currentIndex;
       buffer->intf.intf_type = intf.intf_type;
       buffer->intf.intf_id   = intf.intf_id;
       buffer->type           = snapshotIterator->type;
-      buffer->age            = ENDIAN_SWAP32(snapshotIterator->age);
-      buffer->ipAddr         = ENDIAN_SWAP32(snapshotIterator->ipAddr.addr.ipv4.s_addr);
+      buffer->age            = snapshotIterator->age;
+      buffer->ipAddr         = snapshotIterator->ipAddr.addr.ipv4.s_addr;
       memcpy(&buffer->macAddr, &snapshotIterator->macAddr.addr, L7_ENET_MAC_ADDR_LEN*sizeof(L7_uchar8));
       ++buffer;
       ++(*readEntries);
@@ -1090,19 +1090,19 @@ L7_RC_t ptin_routing_routetable_get(L7_uint32 intfNum, L7_uint32 firstIdx, L7_ui
         PT_LOG_ERR(LOG_CTX_ROUTING, "Unable to to convert intfNum %u to ptin_intf_t", snapshotIterator->intfNum);
         return L7_FAILURE;
       }
-      buffer->index              = ENDIAN_SWAP16(currentIndex);
+      buffer->index              = currentIndex;
       buffer->intf.intf_type     = intf.intf_type;
       buffer->intf.intf_id       = intf.intf_id;
       buffer->protocol           = snapshotIterator->protocol;
-      buffer->updateTime.days    = ENDIAN_SWAP32(snapshotIterator->updateTime.days);
-      buffer->updateTime.hours   = ENDIAN_SWAP32(snapshotIterator->updateTime.hours);
-      buffer->updateTime.minutes = ENDIAN_SWAP32(snapshotIterator->updateTime.minutes);
-      buffer->updateTime.seconds = ENDIAN_SWAP32(snapshotIterator->updateTime.seconds);
-      buffer->networkIpAddr      = ENDIAN_SWAP32(snapshotIterator->networkIpAddr.addr.ipv4.s_addr);
-      buffer->subnetMask         = ENDIAN_SWAP32(snapshotIterator->subnetMask);
-      buffer->gwIpAddr           = ENDIAN_SWAP32(snapshotIterator->gwIpAddr.addr.ipv4.s_addr);
-      buffer->preference         = ENDIAN_SWAP32(snapshotIterator->preference);
-      buffer->metric             = ENDIAN_SWAP32(snapshotIterator->metric);
+      buffer->updateTime.days    = snapshotIterator->updateTime.days;
+      buffer->updateTime.hours   = snapshotIterator->updateTime.hours;
+      buffer->updateTime.minutes = snapshotIterator->updateTime.minutes;
+      buffer->updateTime.seconds = snapshotIterator->updateTime.seconds;
+      buffer->networkIpAddr      = snapshotIterator->networkIpAddr.addr.ipv4.s_addr;
+      buffer->subnetMask         = snapshotIterator->subnetMask;
+      buffer->gwIpAddr           = snapshotIterator->gwIpAddr.addr.ipv4.s_addr;
+      buffer->preference         = snapshotIterator->preference;
+      buffer->metric             = snapshotIterator->metric;
       ++buffer;
     }
 
@@ -1258,15 +1258,8 @@ L7_RC_t ptin_routing_pingsession_query(msg_RoutingPingSessionQuery* buffer)
   buffer->probeFail = __ping_sessions[index].probeFail;
   buffer->minRtt    = __ping_sessions[index].minRtt;   
   buffer->maxRtt    = __ping_sessions[index].maxRtt;   
-  buffer->avgRtt    = __ping_sessions[index].avgRtt; 
-  
-  ENDIAN_SWAP16_MOD(buffer->probeSent);
-  ENDIAN_SWAP16_MOD(buffer->probeSucc);
-  ENDIAN_SWAP16_MOD(buffer->probeFail);
-  ENDIAN_SWAP16_MOD(buffer->minRtt);
-  ENDIAN_SWAP16_MOD(buffer->maxRtt);
-  ENDIAN_SWAP16_MOD(buffer->avgRtt);
-    
+  buffer->avgRtt    = __ping_sessions[index].avgRtt;   
+
   return L7_SUCCESS;
 }
 
@@ -1397,23 +1390,23 @@ L7_RC_t ptin_routing_traceroutesession_query(msg_RoutingTracertSessionQuery* buf
 
   if(buffer->sessionIdx > __traceroute_sessions_max)
   {
-    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", ENDIAN_SWAP16(buffer->sessionIdx));
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index[%u] is higher than the maximum allowed number of ping sessions", buffer->sessionIdx);
     return L7_FAILURE;
   }
 
   /* Ensure that the requested index belongs to a created session */
-  if(__traceroute_sessions[ENDIAN_SWAP16(buffer->sessionIdx)].handle == 0)
+  if(__traceroute_sessions[buffer->sessionIdx].handle == 0)
   {
-    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index is does not belong to a created session [index:%u]", ENDIAN_SWAP16(buffer->sessionIdx));
+    PT_LOG_ERR(LOG_CTX_ROUTING, "Requested index is does not belong to a created session [index:%u]", buffer->sessionIdx);
     return L7_FAILURE;
   }
-  session = &__traceroute_sessions[ENDIAN_SWAP16(buffer->sessionIdx)];
+  session = &__traceroute_sessions[buffer->sessionIdx];
 
   /* Get session status */
   usmDbTraceRouteQuery(session->handle, &session->isRunning, 
                        &session->currTtl, &session->currHopCount, &session->currProbeCount, 
                        &session->testAttempt, &session->testSuccess);
-  PT_LOG_TRACE(LOG_CTX_ROUTING, "Query [index:%u]",  ENDIAN_SWAP16(buffer->sessionIdx));
+  PT_LOG_TRACE(LOG_CTX_ROUTING, "Query [index:%u]",  buffer->sessionIdx);
   PT_LOG_TRACE(LOG_CTX_ROUTING, "  Handle:       %u", session->handle);
   PT_LOG_TRACE(LOG_CTX_ROUTING, "  Status:       %u", session->isRunning);
   PT_LOG_TRACE(LOG_CTX_ROUTING, "  CurrTtl:      %u", session->currTtl);
@@ -1503,14 +1496,14 @@ L7_RC_t ptin_routing_traceroutesession_gethops(L7_uint32 sessionIdx, L7_uint16 f
       PT_LOG_TRACE(LOG_CTX_ROUTING, "  Probe Sent: %u",    snapshotIterator->probeSent);
       PT_LOG_TRACE(LOG_CTX_ROUTING, "  Probe Rcvd: %u",    snapshotIterator->probeRecv);
 
-      buffer->hopIdx     = ENDIAN_SWAP32(currentIndex);
-      buffer->ttl        = ENDIAN_SWAP16(snapshotIterator->ttl);        
-      buffer->ipAddr     = ENDIAN_SWAP32(snapshotIterator->ipAddr);     
-      buffer->minRtt     = ENDIAN_SWAP32(snapshotIterator->minRtt);     
-      buffer->maxRtt     = ENDIAN_SWAP32(snapshotIterator->maxRtt);     
-      buffer->avgRtt     = ENDIAN_SWAP32(snapshotIterator->avgRtt);     
-      buffer->probeSent  = ENDIAN_SWAP16(snapshotIterator->probeSent);  
-      buffer->probeRecv  = ENDIAN_SWAP16(snapshotIterator->probeRecv);  
+      buffer->hopIdx     = currentIndex;
+      buffer->ttl        = snapshotIterator->ttl;        
+      buffer->ipAddr     = snapshotIterator->ipAddr;     
+      buffer->minRtt     = snapshotIterator->minRtt;     
+      buffer->maxRtt     = snapshotIterator->maxRtt;     
+      buffer->avgRtt     = snapshotIterator->avgRtt;     
+      buffer->probeSent  = snapshotIterator->probeSent;  
+      buffer->probeRecv  = snapshotIterator->probeRecv;  
 
       ++buffer;
     }
