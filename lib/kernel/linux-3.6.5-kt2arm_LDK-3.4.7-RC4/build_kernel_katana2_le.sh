@@ -23,6 +23,10 @@ echo "export CROSS_COMPILE=$CROSS_COMPILE"
 echo "export CHIP=$CHIP"
 echo "export LOADADDR=$LOADADDR"
 #cp ../../buildroot/board/broadcom/katana2/linux-3.6.5-be-initramfs.config .config #update config to stock config
+
+# Hide .svn folder
+mv -v .svn .svn.tmp
+
 make clean
 make menuconfig
 make -j8
@@ -38,3 +42,6 @@ cp ./arch/arm/boot/Image ./uImage_flash.img #Image is at arch/arm/boot/Image
 echo "Using LOADADDR: $LOADADDR.";
 echo "Image -> uImage"
 sh mk_uimage.sh $LOADADDR # run mkimage
+
+# Restore .svn folder
+mv -v .svn.tmp .svn
