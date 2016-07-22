@@ -8475,8 +8475,7 @@ L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEnt
   for (i = 0; i < n_msg; i++)
   {
     ENDIAN_SWAP32_MOD(msgIpsgStaticEntry[i].id);
-
-    CHMSG_IP_ADDR_SWAP_MOD(ipAddr);
+    CHMSG_IP_ADDR_SWAP_MOD(msgIpsgStaticEntry[i].ipAddr);
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "slotId        = %u"   , msgIpsgStaticEntry[i].slotId);  
     PT_LOG_DEBUG(LOG_CTX_MSG, "iDType        = %u"   , msgIpsgStaticEntry[i].idType);  
