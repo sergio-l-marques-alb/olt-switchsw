@@ -1653,7 +1653,7 @@ int main (int argc, char *argv[])
           ptr = (msg_QoSConfiguration_t *) &(comando.info[0]);
           memset(ptr,0,sizeof(msg_QoSConfiguration_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // port
           if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
@@ -1661,8 +1661,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = (uint8) type;
-          ptr->intf.intf_id   = (uint8) intf;
+          ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
 
           comando.msgId = CCMSG_ETH_PORT_COS_GET;
           comando.infoDim = sizeof(msg_QoSConfiguration_t);
@@ -1685,7 +1685,7 @@ int main (int argc, char *argv[])
           ptr = (msg_QoSConfiguration_t *) &(comando.info[0]);
           memset(ptr,0,sizeof(msg_QoSConfiguration_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // port
           if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
@@ -1693,27 +1693,27 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = (uint8) type;
-          ptr->intf.intf_id   = (uint8) intf;
+          ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
 
           // Trust mode
           if (StrToLongLong(argv[3+1],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->trust_mode = (uint8) valued;
-          ptr->mask |= MSG_QOS_CONFIGURATION_TRUSTMODE_MASK;
+          ptr->trust_mode = ENDIAN_SWAP8((uint8) valued);
+          ptr->mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_TRUSTMODE_MASK);
 
-          ptr->bandwidth_unit = 0;
-          ptr->mask |= MSG_QOS_CONFIGURATION_BANDWIDTHUNIT_MASK;
+          ptr->bandwidth_unit = ENDIAN_SWAP8(0);
+          ptr->mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_BANDWIDTHUNIT_MASK);
 
           // Shaping rate
           if (StrToLongLong(argv[3+2],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->shaping_rate = (uint32) valued*1000;
-          ptr->mask |= MSG_QOS_CONFIGURATION_SHAPINGRATE_MASK;
+          ptr->shaping_rate = ENDIAN_SWAP32((uint32) valued*1000);
+          ptr->mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_SHAPINGRATE_MASK);
 
 
           // Priorities map
@@ -1722,10 +1722,10 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->pktprio.cos[i] = (uint32) valued;
+            ptr->pktprio.cos[i] = ENDIAN_SWAP32((uint32) valued);
           }
-          ptr->pktprio.mask = 0xFF;
-          ptr->mask |= MSG_QOS_CONFIGURATION_PACKETPRIO_MASK;
+          ptr->pktprio.mask = ENDIAN_SWAP8(0xFF);
+          ptr->mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_PACKETPRIO_MASK);
 
           comando.msgId = CCMSG_ETH_PORT_COS_SET;
           comando.infoDim = sizeof(msg_QoSConfiguration_t);
@@ -1748,7 +1748,7 @@ int main (int argc, char *argv[])
           ptr = (msg_QoSConfiguration_t *) &(comando.info[0]);
           memset(ptr,0,sizeof(msg_QoSConfiguration_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // port
           if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
@@ -1756,8 +1756,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = (uint8) type;
-          ptr->intf.intf_id   = (uint8) intf;
+          ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
 
           // Extract CoS and validate it
           if (StrToLongLong(argv[3+1],&valued)<0)  {
@@ -1770,32 +1770,32 @@ int main (int argc, char *argv[])
             exit(0);
           }
 
-          ptr->mask = MSG_QOS_CONFIGURATION_QOSCONF_MASK;
-          ptr->cos_config.mask |= (1<<cos);
+          ptr->mask = ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_QOSCONF_MASK);
+          ptr->cos_config.mask |= ENDIAN_SWAP8(1<<cos);
 
           // Scheduler
           if (StrToLongLong(argv[3+2],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->cos_config.cos[cos].scheduler = (uint8) valued;
-          ptr->cos_config.cos[cos].mask |= MSG_QOS_CONFIGURATION_QOSCONF_SCHEDULER_MASK;
+          ptr->cos_config.cos[cos].scheduler = ENDIAN_SWAP8((uint8) valued);
+          ptr->cos_config.cos[cos].mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_QOSCONF_SCHEDULER_MASK);
 
           // Min Bandwidth
           if (StrToLongLong(argv[3+3],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->cos_config.cos[cos].min_bandwidth = (uint32) valued*1000;
-          ptr->cos_config.cos[cos].mask |= MSG_QOS_CONFIGURATION_QOSCONF_BW_MIN_MASK;
+          ptr->cos_config.cos[cos].min_bandwidth = ENDIAN_SWAP32((uint32) valued*1000);
+          ptr->cos_config.cos[cos].mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_QOSCONF_BW_MIN_MASK);
 
           // Max Bandwidth
           if (StrToLongLong(argv[3+4],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->cos_config.cos[cos].max_bandwidth = (uint32) valued*1000;
-          ptr->cos_config.cos[cos].mask |= MSG_QOS_CONFIGURATION_QOSCONF_BW_MAX_MASK;
+          ptr->cos_config.cos[cos].max_bandwidth = ENDIAN_SWAP32((uint32) valued*1000);
+          ptr->cos_config.cos[cos].mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_QOSCONF_BW_MAX_MASK);
 
           comando.msgId = CCMSG_ETH_PORT_COS_SET;
           comando.infoDim = sizeof(msg_QoSConfiguration_t);
@@ -1817,7 +1817,7 @@ int main (int argc, char *argv[])
           ptr = (msg_QoSConfiguration3_t *) &(comando.info[0]);
           memset(ptr,0,sizeof(msg_QoSConfiguration3_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // port
           if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
@@ -1825,8 +1825,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = (uint8) type;
-          ptr->intf.intf_id   = (uint8) intf;
+          ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
 
           comando.msgId = CCMSG_ETH_PORT_COS3_GET;
           comando.infoDim = sizeof(msg_QoSConfiguration3_t);
@@ -1849,7 +1849,7 @@ int main (int argc, char *argv[])
         ptr = (msg_QoSConfiguration3_t *) &(comando.info[0]);
         memset(ptr,0,sizeof(msg_QoSConfiguration3_t));
 
-        ptr->SlotId = (uint8)-1;
+        ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
         // port
         if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
@@ -1857,21 +1857,21 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->intf.intf_type = (uint8) type;
-        ptr->intf.intf_id   = (uint8) intf;
+        ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+        ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
 
         /* Bandwidth units */
-        ptr->bandwidth_unit = 0;
-        ptr->main_mask |= MSG_QOS3_BANDWIDTH_UNITS_MASK;
+        ptr->bandwidth_unit = ENDIAN_SWAP8(0);
+        ptr->main_mask |= ENDIAN_SWAP8(MSG_QOS3_BANDWIDTH_UNITS_MASK);
 
         // Trust mode (mandatory option)
         if (StrToLongLong(argv[3+1],&valued)<0)  {
           help_oltBuga();
           exit(0);
         }
-        ptr->ingress.trust_mode = (uint8) valued;
-        ptr->ingress.ingress_mask |= MSG_QOS_CONFIGURATION_TRUSTMODE_MASK;
-        ptr->main_mask |= MSG_QOS3_INGRESS_MASK;
+        ptr->ingress.trust_mode = ENDIAN_SWAP8((uint8) valued);
+        ptr->ingress.ingress_mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_TRUSTMODE_MASK);
+        ptr->main_mask |= ENDIAN_SWAP8(MSG_QOS3_INGRESS_MASK);
 
         // Priorities map
         for (i=0; i<8 && argc>=(3+3+i); i++) {
@@ -1880,16 +1880,16 @@ int main (int argc, char *argv[])
             exit(0);
           }
           /* 802.1p trust mode */
-          if (ptr->ingress.trust_mode == 2)
+          if (ENDIAN_SWAP8(ptr->ingress.trust_mode) == 2)
           {
-            ptr->ingress.cos_classif.pcp_map.cos[i] = (uint32)valued;
-            ptr->ingress.cos_classif.pcp_map.prio_mask |= (1 << i);
+            ptr->ingress.cos_classif.pcp_map.cos[i] = ENDIAN_SWAP8((uint8) valued);
+            ptr->ingress.cos_classif.pcp_map.prio_mask |= ENDIAN_SWAP8(1 << i);
           }
           /* IP_PREC trust mode */
-          else if (ptr->ingress.trust_mode == 3)
+          else if (ENDIAN_SWAP8(ptr->ingress.trust_mode) == 3)
           {
-            ptr->ingress.cos_classif.ipprec_map.cos[i] = (uint32)valued;
-            ptr->ingress.cos_classif.ipprec_map.prio_mask |= (1 << i);
+            ptr->ingress.cos_classif.ipprec_map.cos[i] = ENDIAN_SWAP8((uint8) valued);
+            ptr->ingress.cos_classif.ipprec_map.prio_mask |= ENDIAN_SWAP8(1 << i);
           }
           /* DSCP trust mode */
           else if (ptr->ingress.trust_mode == 4)
@@ -1898,14 +1898,14 @@ int main (int argc, char *argv[])
             {
               prio = (i*8)+j;
 
-              ptr->ingress.cos_classif.dscp_map.cos[prio] = ((uint32)valued >> (4*j)) & 0xf;
-              ptr->ingress.cos_classif.dscp_map.prio_mask[prio/32] |= (1 << (prio%32));
+              ptr->ingress.cos_classif.dscp_map.cos[prio] = ENDIAN_SWAP8(((uint32)valued >> (4*j)) & 0xf);
+              ptr->ingress.cos_classif.dscp_map.prio_mask[prio/32] |= ENDIAN_SWAP32(1 << (prio%32));
 
-              printf("Configuring prio %u: value=%u\r\n", prio, ptr->ingress.cos_classif.dscp_map.cos[prio]);
+              printf("Configuring prio %u: value=%u\r\n", prio, ENDIAN_SWAP8(ptr->ingress.cos_classif.dscp_map.cos[prio]));
             }
           }
 
-          ptr->ingress.ingress_mask |= MSG_QOS3_INGRESS_COS_CLASSIF_MASK; 
+          ptr->ingress.ingress_mask |= ENDIAN_SWAP8(MSG_QOS3_INGRESS_COS_CLASSIF_MASK);
         }
 
         comando.msgId = CCMSG_ETH_PORT_COS3_SET;
@@ -1929,7 +1929,7 @@ int main (int argc, char *argv[])
           ptr = (msg_QoSConfiguration3_t *) &(comando.info[0]);
           memset(ptr,0,sizeof(msg_QoSConfiguration3_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // port
           if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
@@ -1937,8 +1937,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = (uint8) type;
-          ptr->intf.intf_id   = (uint8) intf;
+          ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
 
           // Extract CoS and validate it
           if (StrToLongLong(argv[3+1],&valued)<0)  {
@@ -1956,10 +1956,10 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->egress.cos_scheduler[cos].schedulerType = (uint8) valued;
-          ptr->egress.cos_scheduler[cos].local_mask |= MSG_QOS3_EGRESS_COS_SCHEDULER_TYPE_MASK;
-          ptr->egress.egress_mask |= MSG_QOS3_EGRESS_COS_SCHEDULER_MASK;
-          ptr->main_mask |= MSG_QOS3_EGRESS_MASK;
+          ptr->egress.cos_scheduler[cos].schedulerType = ENDIAN_SWAP8((uint8) valued);
+          ptr->egress.cos_scheduler[cos].local_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_SCHEDULER_TYPE_MASK);
+          ptr->egress.egress_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_SCHEDULER_MASK);
+          ptr->main_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_MASK);
 
           // WRR weight
           if (argc >= 3+4)
@@ -1969,9 +1969,9 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->egress.cos_scheduler[cos].wrrSched_weight = (uint16) valued;
-            ptr->egress.cos_scheduler[cos].local_mask |= MSG_QOS3_EGRESS_COS_SCHEDULER_WRR_WEIGHT_MASK;
-            ptr->egress.egress_mask |= MSG_QOS3_EGRESS_COS_SCHEDULER_MASK;
+            ptr->egress.cos_scheduler[cos].wrrSched_weight = ENDIAN_SWAP16((uint16) valued);
+            ptr->egress.cos_scheduler[cos].local_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_SCHEDULER_WRR_WEIGHT_MASK);
+            ptr->egress.egress_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_SCHEDULER_MASK);
           }
 
           // Shaper
@@ -1981,8 +1981,8 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->egress.shaping_rate = (uint32) valued;
-            ptr->egress.egress_mask |= MSG_QOS3_EGRESS_INTF_SHAPER_MASK;
+            ptr->egress.shaping_rate = ENDIAN_SWAP32((uint32) valued);
+            ptr->egress.egress_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_INTF_SHAPER_MASK);
           }
 
           // Min Bandwidth
@@ -1992,9 +1992,9 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->egress.cos_shaper[cos].min_bandwidth = (uint32) valued;
-            ptr->egress.cos_shaper[cos].local_mask |= MSG_QOS3_EGRESS_COS_SHAPER_MIN_BW_MASK;
-            ptr->egress.egress_mask |= MSG_QOS3_EGRESS_COS_SHAPER_MASK;
+            ptr->egress.cos_shaper[cos].min_bandwidth = ENDIAN_SWAP32((uint32) valued);
+            ptr->egress.cos_shaper[cos].local_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_SHAPER_MIN_BW_MASK);
+            ptr->egress.egress_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_SHAPER_MASK);
           }
 
           // Max Bandwidth
@@ -2004,9 +2004,9 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->egress.cos_shaper[cos].max_bandwidth = (uint32) valued;
-            ptr->egress.cos_shaper[cos].local_mask |= MSG_QOS3_EGRESS_COS_SHAPER_MAX_BW_MASK;
-            ptr->egress.egress_mask |= MSG_QOS3_EGRESS_COS_SHAPER_MASK;
+            ptr->egress.cos_shaper[cos].max_bandwidth = ENDIAN_SWAP32((uint32) valued);
+            ptr->egress.cos_shaper[cos].local_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_SHAPER_MAX_BW_MASK);
+            ptr->egress.egress_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_SHAPER_MASK);
           }
 
           comando.msgId = CCMSG_ETH_PORT_COS3_SET;
@@ -2030,7 +2030,7 @@ int main (int argc, char *argv[])
           ptr = (msg_QoSConfiguration3_t *) &(comando.info[0]);
           memset(ptr,0,sizeof(msg_QoSConfiguration3_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // port
           if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
@@ -2038,8 +2038,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = (uint8) type;
-          ptr->intf.intf_id   = (uint8) intf;
+          ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
 
           // Extract CoS and validate it
           if (StrToLongLong(argv[3+1],&valued)<0)  {
@@ -2058,10 +2058,10 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->egress.cos_dropmgmt[cos].dropMgmtType = (uint8) valued;
-          ptr->egress.cos_dropmgmt[cos].local_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_TYPE_MASK;
-          ptr->egress.egress_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_MASK;
-          ptr->main_mask |= MSG_QOS3_EGRESS_MASK;
+          ptr->egress.cos_dropmgmt[cos].dropMgmtType = ENDIAN_SWAP8((uint8) valued);
+          ptr->egress.cos_dropmgmt[cos].local_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_DROPMGMT_TYPE_MASK);
+          ptr->egress.egress_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_DROPMGMT_MASK);
+          ptr->main_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_MASK);
 
           // WRED Decay Exponent
           if (argc >= 3+4)
@@ -2070,8 +2070,8 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->egress.cos_dropmgmt[cos].wred_decayExp = (uint8) valued;
-            ptr->egress.cos_dropmgmt[cos].local_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_WRED_DECAYEXP_MASK;
+            ptr->egress.cos_dropmgmt[cos].wred_decayExp = ENDIAN_SWAP8((uint8) valued);
+            ptr->egress.cos_dropmgmt[cos].local_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_DROPMGMT_WRED_DECAYEXP_MASK);
           }
 
           comando.msgId = CCMSG_ETH_PORT_COS3_SET;
@@ -2095,7 +2095,7 @@ int main (int argc, char *argv[])
           ptr = (msg_QoSConfiguration3_t *) &(comando.info[0]);
           memset(ptr,0,sizeof(msg_QoSConfiguration3_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // port
           if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
@@ -2103,8 +2103,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = (uint8) type;
-          ptr->intf.intf_id   = (uint8) intf;
+          ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
 
           // Extract CoS and validate it
           if (StrToLongLong(argv[3+1],&valued)<0)  {
@@ -2138,12 +2138,12 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].tailDrop_threshold = (uint8) valued;
-            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_TAILDROP_MAX_MASK;
+            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].tailDrop_threshold = ENDIAN_SWAP8((uint8) valued);
+            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].local2_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_TAILDROP_MAX_MASK);
 
-            ptr->egress.cos_dropmgmt[cos].local_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK;
-            ptr->egress.egress_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_MASK;
-            ptr->main_mask |= MSG_QOS3_EGRESS_MASK;
+            ptr->egress.cos_dropmgmt[cos].local_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK);
+            ptr->egress.egress_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_DROPMGMT_MASK);
+            ptr->main_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_MASK);
           }
           // WRED min threshold
           if (argc >= 3+5)
@@ -2153,8 +2153,8 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].wred_minThreshold = (uint8) valued;
-            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MIN_MASK;
+            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].wred_minThreshold = ENDIAN_SWAP8((uint8) valued);
+            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].local2_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MIN_MASK);
           }
           // WRED max threshold
           if (argc >= 3+6)
@@ -2164,8 +2164,8 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].wred_maxThreshold = (uint8) valued;
-            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MAX_MASK;
+            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].wred_maxThreshold = ENDIAN_SWAP8((uint8) valued);
+            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].local2_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MAX_MASK);
           }
           // WRED drop probability
           if (argc >= 3+7)
@@ -2175,8 +2175,8 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].wred_dropProb = (uint8) valued;
-            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].local2_mask |= MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_DROPPROB_MASK;
+            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].wred_dropProb = ENDIAN_SWAP8((uint8) valued);
+            ptr->egress.cos_dropmgmt[cos].dp_thresholds[dp].local2_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_DROPPROB_MASK);
           }
 
           comando.msgId = CCMSG_ETH_PORT_COS3_SET;
@@ -2200,7 +2200,7 @@ int main (int argc, char *argv[])
         ptr = (msg_QoSConfiguration3_t *) &(comando.info[0]);
         memset(ptr,0,sizeof(msg_QoSConfiguration3_t));
 
-        ptr->SlotId = (uint8)-1;
+        ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
         // port
         if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
@@ -2208,8 +2208,8 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->intf.intf_type = (uint8) type;
-        ptr->intf.intf_id   = (uint8) intf;
+        ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+        ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
 
         // Extract CoS and validate it
         if (StrToLongLong(argv[3+1],&valued)<0)  {
@@ -2231,14 +2231,14 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->ingress.cos_policer[cos].cir = (uint32) valued;
-          ptr->ingress.cos_policer[cos].cbs = 9600;
-          ptr->ingress.cos_policer[cos].eir = 0;
-          ptr->ingress.cos_policer[cos].ebs = 0;
-          ptr->ingress.cos_policer[cos].local_mask = 0xff;
+          ptr->ingress.cos_policer[cos].cir = ENDIAN_SWAP32((uint32) valued);
+          ptr->ingress.cos_policer[cos].cbs = ENDIAN_SWAP32(9600);
+          ptr->ingress.cos_policer[cos].eir = ENDIAN_SWAP32(0);
+          ptr->ingress.cos_policer[cos].ebs = ENDIAN_SWAP32(0);
+          ptr->ingress.cos_policer[cos].local_mask = ENDIAN_SWAP8(0xff);
 
-          ptr->ingress.ingress_mask |= MSG_QOS3_INGRESS_COS_POLICER_MASK;
-          ptr->main_mask |= MSG_QOS3_INGRESS_MASK;
+          ptr->ingress.ingress_mask |= ENDIAN_SWAP8(MSG_QOS3_INGRESS_COS_POLICER_MASK);
+          ptr->main_mask |= ENDIAN_SWAP8(MSG_QOS3_INGRESS_MASK);
         }
         /* EIR */
         if (argc >= 3+4)
@@ -2249,7 +2249,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->ingress.cos_policer[cos].eir = (uint32) valued;
+          ptr->ingress.cos_policer[cos].eir = ENDIAN_SWAP32((uint32) valued);
         }
         /* CBS */
         if (argc >= 3+5)
@@ -2260,7 +2260,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->ingress.cos_policer[cos].cbs = (uint32) valued;
+          ptr->ingress.cos_policer[cos].cbs = ENDIAN_SWAP32((uint32) valued);
         }
         /* EBS */
         if (argc >= 3+6)
@@ -2271,7 +2271,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->ingress.cos_policer[cos].ebs = (uint32) valued;
+          ptr->ingress.cos_policer[cos].ebs = ENDIAN_SWAP32((uint32) valued);
         }
 
         comando.msgId = CCMSG_ETH_PORT_COS3_SET;
@@ -7914,25 +7914,25 @@ int main (int argc, char *argv[])
             ptr = &(((msg_QoSConfiguration_t *) resposta.info)[i]);
 
             // Print configuration
-            printf(" QoS configuration for port %u/%u (SlotId=%u)\r\n",ptr->intf.intf_type,ptr->intf.intf_id,ptr->SlotId);
+            printf(" QoS configuration for port %u/%u (SlotId=%u)\r\n", ENDIAN_SWAP8(ptr->intf.intf_type), ENDIAN_SWAP8(ptr->intf.intf_id), ENDIAN_SWAP8(ptr->SlotId));
             printf("  Trust mode    : ");
-            if (ptr->trust_mode==0)      printf("Not configured");
-            else if (ptr->trust_mode==1) printf("Untrust marks");
-            else if (ptr->trust_mode==2) printf("802.1p marks");
-            else if (ptr->trust_mode==3) printf("IP-precedence marks");
-            else if (ptr->trust_mode==4) printf("DSCP marks");
+            if (ENDIAN_SWAP8(ptr->trust_mode)==0)      printf("Not configured");
+            else if (ENDIAN_SWAP8(ptr->trust_mode)==1) printf("Untrust marks");
+            else if (ENDIAN_SWAP8(ptr->trust_mode)==2) printf("802.1p marks");
+            else if (ENDIAN_SWAP8(ptr->trust_mode)==3) printf("IP-precedence marks");
+            else if (ENDIAN_SWAP8(ptr->trust_mode)==4) printf("DSCP marks");
             else                         printf("Invalid");
             printf("\r\n");
             printf("  Bandwidth unit: ");
-            if (ptr->bandwidth_unit==0)      printf("Percentage (0-100%%)");
-            else if (ptr->bandwidth_unit==1) printf("Kilobits per second");
-            else if (ptr->bandwidth_unit==2) printf("Packets per second");
+            if (ENDIAN_SWAP8(ptr->bandwidth_unit)==0)      printf("Percentage (0-100%%)");
+            else if (ENDIAN_SWAP8(ptr->bandwidth_unit)==1) printf("Kilobits per second");
+            else if (ENDIAN_SWAP8(ptr->bandwidth_unit)==2) printf("Packets per second");
             else                         printf("Invalid");
             printf("\r\n");
-            printf("  Shaping rate  : %lu %s\r\n",ptr->shaping_rate, ((ptr->bandwidth_unit==0) ? "%%" : "Kbps"));
+            printf("  Shaping rate  : %lu %s\r\n", ENDIAN_SWAP32(ptr->shaping_rate), ((ENDIAN_SWAP8(ptr->bandwidth_unit)==0) ? "%%" : "Kbps"));
 
             // Only proceed, if trust mode is valid
-            if (ptr->trust_mode!=0 && ptr->trust_mode<=4) {
+            if (ENDIAN_SWAP8(ptr->trust_mode)!=0 && ENDIAN_SWAP8(ptr->trust_mode)<=4) {
 
               // Priorities map
               printf("                  ");
@@ -7953,11 +7953,11 @@ int main (int argc, char *argv[])
               printf("|\r\n");
               printf("  ClassOfService");
               for (j=0; j<8; j++) {
-                if (ptr->trust_mode==4) {
-                  printf(" | 0x%08lX",ptr->pktprio.cos[j]);
+                if (ENDIAN_SWAP8(ptr->trust_mode)==4) {
+                  printf(" | 0x%08lX", ENDIAN_SWAP32(ptr->pktprio.cos[j]));
                 }
                 else {
-                  printf(" | %10lu",ptr->pktprio.cos[j]);
+                  printf(" | %10lu", ENDIAN_SWAP32(ptr->pktprio.cos[j]));
                 }
               }
               printf(" |\r\n");
@@ -7988,20 +7988,20 @@ int main (int argc, char *argv[])
               printf("  Scheduler Type");
               for (j=0; j<8; j++) {
                 printf(" | ");
-                if (ptr->cos_config.cos[j].scheduler==0)       printf("   NotConf");
-                else if (ptr->cos_config.cos[j].scheduler==1)  printf("    Strict");
-                else if (ptr->cos_config.cos[j].scheduler==2)  printf("  Weighted");
-                else                                           printf("   Invalid");
+                if (ENDIAN_SWAP8(ptr->cos_config.cos[j].scheduler)==0)       printf("   NotConf");
+                else if (ENDIAN_SWAP8(ptr->cos_config.cos[j].scheduler)==1)  printf("    Strict");
+                else if (ENDIAN_SWAP8(ptr->cos_config.cos[j].scheduler)==2)  printf("  Weighted");
+                else                                                         printf("   Invalid");
               }
               printf(" |\r\n");
               printf("  Min. Bandwidth");
               for (j=0; j<8; j++) {
-                printf(" | %10lu",ptr->cos_config.cos[j].min_bandwidth);
+                printf(" | %10lu", ENDIAN_SWAP32(ptr->cos_config.cos[j].min_bandwidth));
               }
               printf(" |\r\n");
               printf("  Max. Bandwidth");
               for (j=0; j<8; j++) {
-                printf(" | %10lu",ptr->cos_config.cos[j].max_bandwidth);
+                printf(" | %10lu", ENDIAN_SWAP32(ptr->cos_config.cos[j].max_bandwidth));
               }
               printf(" |\r\n");
               printf("                  ");
@@ -8053,40 +8053,42 @@ int main (int argc, char *argv[])
             ptr = &(((msg_QoSConfiguration3_t *) resposta.info)[i]);
 
             // Print configuration
-            printf(" QoS configuration for port %u/%u (SlotId=%u)\r\n",ptr->intf.intf_type,ptr->intf.intf_id,ptr->SlotId);
+            printf(" QoS configuration for port %u/%u (SlotId=%u)\r\n", ENDIAN_SWAP8(ptr->intf.intf_type), ENDIAN_SWAP8(ptr->intf.intf_id), ENDIAN_SWAP8(ptr->SlotId));
             printf("  Bandwidth unit: ");
-            if (ptr->main_mask & MSG_QOS3_BANDWIDTH_UNITS_MASK)
+            if (ENDIAN_SWAP8(ptr->main_mask) & MSG_QOS3_BANDWIDTH_UNITS_MASK)
             {
-              if (ptr->bandwidth_unit == 0)     printf("Percentage (0-100%%)"); 
-              else if (ptr->bandwidth_unit==1)  printf("Kilobits per second");
-              else if (ptr->bandwidth_unit==2)  printf("Packets per second");
-              else                              printf("Invalid");
+              if (ENDIAN_SWAP8(ptr->bandwidth_unit)==0)       printf("Percentage (0-100%%)"); 
+              else if (ENDIAN_SWAP8(ptr->bandwidth_unit)==1)  printf("Kilobits per second");
+              else if (ENDIAN_SWAP8(ptr->bandwidth_unit)==2)  printf("Packets per second");
+              else                                            printf("Invalid");
             }
             else printf("XXX");
             printf("\r\n");
 
             printf("  Trust mode    : ");
-            if (ptr->main_mask & MSG_QOS3_INGRESS_MASK && ptr->ingress.ingress_mask & MSG_QOS3_INGRESS_TRUST_MODE_MASK)
+            if ((ENDIAN_SWAP8(ptr->main_mask) & MSG_QOS3_INGRESS_MASK) &&
+                (ENDIAN_SWAP8(ptr->ingress.ingress_mask) & MSG_QOS3_INGRESS_TRUST_MODE_MASK))
             {
-              if (ptr->ingress.trust_mode==0)       printf("Not configured");
-              else if (ptr->ingress.trust_mode==1)  printf("Untrust marks");
-              else if (ptr->ingress.trust_mode==2)  printf("802.1p marks");
-              else if (ptr->ingress.trust_mode==3)  printf("IP-precedence marks");
-              else if (ptr->ingress.trust_mode==4)  printf("DSCP marks");
-              else                                  printf("Invalid");
+              if (ENDIAN_SWAP8(ptr->ingress.trust_mode)==0)       printf("Not configured");
+              else if (ENDIAN_SWAP8(ptr->ingress.trust_mode)==1)  printf("Untrust marks");
+              else if (ENDIAN_SWAP8(ptr->ingress.trust_mode)==2)  printf("802.1p marks");
+              else if (ENDIAN_SWAP8(ptr->ingress.trust_mode)==3)  printf("IP-precedence marks");
+              else if (ENDIAN_SWAP8(ptr->ingress.trust_mode)==4)  printf("DSCP marks");
+              else                                                printf("Invalid");
             }
             else printf("XXX");
             printf("\r\n");
 
             printf("  Shaping rate  : ");
-            if (ptr->main_mask & MSG_QOS3_EGRESS_MASK && ptr->ingress.ingress_mask & MSG_QOS3_EGRESS_COS_SHAPER_MASK)
-              printf("%lu %s\r\n",ptr->egress.shaping_rate, ((ptr->bandwidth_unit==0) ? "%" : "Kbps"));
+            if ((ENDIAN_SWAP8(ptr->main_mask) & MSG_QOS3_EGRESS_MASK) &&
+                (ENDIAN_SWAP8(ptr->ingress.ingress_mask) & MSG_QOS3_EGRESS_COS_SHAPER_MASK))
+              printf("%lu %s\r\n", ENDIAN_SWAP32(ptr->egress.shaping_rate), ((ENDIAN_SWAP8(ptr->bandwidth_unit)==0) ? "%" : "Kbps"));
             else
               printf("XXX\r\n");
 
             // Only proceed, if trust mode is valid
-            if ((ptr->main_mask & MSG_QOS3_INGRESS_MASK && ptr->ingress.ingress_mask & MSG_QOS3_INGRESS_TRUST_MODE_MASK) &&
-                (ptr->ingress.trust_mode!=0 && ptr->ingress.trust_mode<=4))
+            if (((ENDIAN_SWAP8(ptr->main_mask) & MSG_QOS3_INGRESS_MASK) && (ENDIAN_SWAP8(ptr->ingress.ingress_mask) & MSG_QOS3_INGRESS_TRUST_MODE_MASK)) &&
+                ((ENDIAN_SWAP8(ptr->ingress.trust_mode)!=0) && (ENDIAN_SWAP8(ptr->ingress.trust_mode)<=4)))
             {
               // Priorities map
               printf("                  ");
@@ -8097,7 +8099,7 @@ int main (int argc, char *argv[])
               printf("\r\n");
               printf("  Pkt. Priority ");
               for (j=0; j<8; j++) {
-                printf(" | %10u",(ptr->ingress.trust_mode == 4) ? (j*8) : j);
+                printf(" | %10u",(ENDIAN_SWAP8(ptr->ingress.trust_mode)==4) ? (j*8) : j);
               }
               printf(" |\r\n");
               printf("                 ");
@@ -8108,17 +8110,17 @@ int main (int argc, char *argv[])
               printf("  ClassOfService");
               for (j=0; j<8; j++) {
                 if (ptr->ingress.trust_mode==4) {
-                  printf(" | 0x%08lX",  ((uint32) ptr->ingress.cos_classif.dscp_map.cos[(j*8)+0] & 0x0f) |
-                                       (((uint32) ptr->ingress.cos_classif.dscp_map.cos[(j*8)+1] & 0x0f) << 4 ) |
-                                       (((uint32) ptr->ingress.cos_classif.dscp_map.cos[(j*8)+2] & 0x0f) << 8 ) |
-                                       (((uint32) ptr->ingress.cos_classif.dscp_map.cos[(j*8)+3] & 0x0f) << 12) |
-                                       (((uint32) ptr->ingress.cos_classif.dscp_map.cos[(j*8)+4] & 0x0f) << 16) |
-                                       (((uint32) ptr->ingress.cos_classif.dscp_map.cos[(j*8)+5] & 0x0f) << 20) |
-                                       (((uint32) ptr->ingress.cos_classif.dscp_map.cos[(j*8)+6] & 0x0f) << 24) |
-                                       (((uint32) ptr->ingress.cos_classif.dscp_map.cos[(j*8)+7] & 0x0f) << 28));
+                  printf(" | 0x%08lX",  ((uint32) ENDIAN_SWAP8(ptr->ingress.cos_classif.dscp_map.cos[(j*8)+0]) & 0x0f) |
+                                       (((uint32) ENDIAN_SWAP8(ptr->ingress.cos_classif.dscp_map.cos[(j*8)+1]) & 0x0f) << 4 ) |
+                                       (((uint32) ENDIAN_SWAP8(ptr->ingress.cos_classif.dscp_map.cos[(j*8)+2]) & 0x0f) << 8 ) |
+                                       (((uint32) ENDIAN_SWAP8(ptr->ingress.cos_classif.dscp_map.cos[(j*8)+3]) & 0x0f) << 12) |
+                                       (((uint32) ENDIAN_SWAP8(ptr->ingress.cos_classif.dscp_map.cos[(j*8)+4]) & 0x0f) << 16) |
+                                       (((uint32) ENDIAN_SWAP8(ptr->ingress.cos_classif.dscp_map.cos[(j*8)+5]) & 0x0f) << 20) |
+                                       (((uint32) ENDIAN_SWAP8(ptr->ingress.cos_classif.dscp_map.cos[(j*8)+6]) & 0x0f) << 24) |
+                                       (((uint32) ENDIAN_SWAP8(ptr->ingress.cos_classif.dscp_map.cos[(j*8)+7]) & 0x0f) << 28));
                 }
                 else {
-                  printf(" | %10u",ptr->ingress.cos_classif.pcp_map.cos[j]);
+                  printf(" | %10u", ENDIAN_SWAP8(ptr->ingress.cos_classif.pcp_map.cos[j]));
                 }
               }
               printf(" |\r\n");
@@ -8135,7 +8137,7 @@ int main (int argc, char *argv[])
             }
 
             /* CoS egress configurations */
-            if (ptr->main_mask & MSG_QOS3_EGRESS_MASK)
+            if (ENDIAN_SWAP8(ptr->main_mask) & MSG_QOS3_EGRESS_MASK)
             {
               // CoS configurations
               printf("                  ");
@@ -8155,25 +8157,25 @@ int main (int argc, char *argv[])
               }
               printf("|\r\n");
 
-              if (ptr->egress.egress_mask & MSG_QOS3_EGRESS_COS_SCHEDULER_MASK)
+              if (ENDIAN_SWAP8(ptr->egress.egress_mask) & MSG_QOS3_EGRESS_COS_SCHEDULER_MASK)
               {
                 printf("  Scheduler Type");
                 for (j=0; j<8; j++) {
                   printf(" | ");
-                  if (ptr->egress.cos_scheduler[j].local_mask & MSG_QOS3_EGRESS_COS_SCHEDULER_TYPE_MASK)
+                  if (ENDIAN_SWAP8(ptr->egress.cos_scheduler[j].local_mask) & MSG_QOS3_EGRESS_COS_SCHEDULER_TYPE_MASK)
                   {
-                    if (ptr->egress.cos_scheduler[j].schedulerType==0)       printf("   NotConf"); 
-                    else if (ptr->egress.cos_scheduler[j].schedulerType==1)  printf("    Strict");
-                    else if (ptr->egress.cos_scheduler[j].schedulerType==2)  printf("  Weighted");
-                    else                                                     printf("   Invalid");
+                    if (ENDIAN_SWAP8(ptr->egress.cos_scheduler[j].schedulerType)==0)      printf("   NotConf"); 
+                    else if (ENDIAN_SWAP8(ptr->egress.cos_scheduler[j].schedulerType)==1) printf("    Strict");
+                    else if (ENDIAN_SWAP8(ptr->egress.cos_scheduler[j].schedulerType)==2) printf("  Weighted");
+                    else                                                                  printf("   Invalid");
                   }
                   else printf("       XXX");
                 }
                 printf(" |\r\n");
                 printf("  WRR Weights   ");
                 for (j=0; j<8; j++) {
-                  if (ptr->egress.cos_scheduler[j].local_mask & MSG_QOS3_EGRESS_COS_SCHEDULER_WRR_WEIGHT_MASK)
-                    printf(" | %10u",ptr->egress.cos_scheduler[j].wrrSched_weight);
+                  if (ENDIAN_SWAP8(ptr->egress.cos_scheduler[j].local_mask) & MSG_QOS3_EGRESS_COS_SCHEDULER_WRR_WEIGHT_MASK)
+                    printf(" | %10u", ENDIAN_SWAP16(ptr->egress.cos_scheduler[j].wrrSched_weight));
                   else
                     printf(" | %10s", "XXX");
                 }
@@ -8184,22 +8186,22 @@ int main (int argc, char *argv[])
                 printf("**Egress CoS Scheduler properties not provided!**\r\n");
               }
 
-              if (ptr->egress.egress_mask & MSG_QOS3_EGRESS_COS_SHAPER_MASK)
+              if (ENDIAN_SWAP8(ptr->egress.egress_mask) & MSG_QOS3_EGRESS_COS_SHAPER_MASK)
               {
                 printf("  Min. Bandwidth");
                 for (j=0; j<8; j++) {
-                  if (ptr->egress.cos_shaper[j].local_mask & MSG_QOS3_EGRESS_COS_SHAPER_MIN_BW_MASK)
-                    printf(" | %10lu",ptr->egress.cos_shaper[j].min_bandwidth);
+                  if (ENDIAN_SWAP8(ptr->egress.cos_shaper[j].local_mask) & MSG_QOS3_EGRESS_COS_SHAPER_MIN_BW_MASK)
+                    printf(" | %10lu", ENDIAN_SWAP32(ptr->egress.cos_shaper[j].min_bandwidth));
                   else
                     printf(" | %10s", "XXX");
                 }
                 printf(" |\r\n");
                 printf("  Max. Bandwidth");
                 for (j=0; j<8; j++) {
-                  if (ptr->egress.cos_shaper[j].local_mask & MSG_QOS3_EGRESS_COS_SHAPER_MAX_BW_MASK)
-                    printf(" | %10lu",ptr->egress.cos_shaper[j].max_bandwidth);
+                  if (ENDIAN_SWAP8(ptr->egress.cos_shaper[j].local_mask) & MSG_QOS3_EGRESS_COS_SHAPER_MAX_BW_MASK)
+                    printf(" | %10lu", ENDIAN_SWAP32(ptr->egress.cos_shaper[j].max_bandwidth));
                   else
-                    printf(" | %10s","XXX");
+                    printf(" | %10s", "XXX");
                 }
                 printf(" |\r\n");
               }
@@ -8208,17 +8210,17 @@ int main (int argc, char *argv[])
                 printf("**Egress CoS Shaper properties not provided!**\r\n");
               }
 
-              if (ptr->egress.egress_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_MASK)
+              if (ENDIAN_SWAP8(ptr->egress.egress_mask) & MSG_QOS3_EGRESS_COS_DROPMGMT_MASK)
               {
                 printf("  MGMT Type     ");
                 for (j=0; j<8; j++)
                 {
                   printf(" | ");
-                  if (ptr->egress.cos_dropmgmt[j].local_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_TYPE_MASK)
+                  if (ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].local_mask) & MSG_QOS3_EGRESS_COS_DROPMGMT_TYPE_MASK)
                   {
-                    if (ptr->egress.cos_dropmgmt[j].dropMgmtType==0)       printf("  TailDrop");
-                    else if (ptr->egress.cos_dropmgmt[j].dropMgmtType==1)  printf("      WRED");
-                    else                                                   printf("   Invalid");
+                    if (ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].dropMgmtType)==0)      printf("  TailDrop");
+                    else if (ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].dropMgmtType)==1) printf("      WRED");
+                    else                                                                printf("   Invalid");
                   }
                   else printf("       XXX");
                 }
@@ -8235,38 +8237,38 @@ int main (int argc, char *argv[])
                 {
                   printf("  TDRP Thresh[%u]", dp+1);
                   for (j=0; j<8; j++) {
-                    if (ptr->egress.cos_dropmgmt[j].local_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK &&
-                        ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].local2_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_TAILDROP_MAX_MASK)
-                      printf(" | %10u", ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].tailDrop_threshold); 
+                    if ((ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].local_mask) & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK) &&
+                        (ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].local2_mask) & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_TAILDROP_MAX_MASK))
+                      printf(" | %10u", ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].tailDrop_threshold));
                     else
-                      printf(" | %10s","XXX");
+                      printf(" | %10s", "XXX");
                   }
                   printf(" |\r\n");
                   printf("  WRED minThr[%u]", dp+1);
                   for (j=0; j<8; j++) {
-                    if (ptr->egress.cos_dropmgmt[j].local_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK &&
-                        ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].local2_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MIN_MASK)
-                      printf(" | %10u",ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].wred_minThreshold);
+                    if ((ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].local_mask) & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK) &&
+                        (ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].local2_mask) & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MIN_MASK))
+                      printf(" | %10u", ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].wred_minThreshold));
                     else
-                      printf(" | %10s","XXX");
+                      printf(" | %10s", "XXX");
                   }
                   printf(" |\r\n");
                   printf("  WRED maxThr[%u]", dp+1);
                   for (j=0; j<8; j++) {
-                    if (ptr->egress.cos_dropmgmt[j].local_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK &&
-                        ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].local2_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MAX_MASK)
-                      printf(" | %10u",ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].wred_maxThreshold);
+                    if ((ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].local_mask) & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK) &&
+                        (ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].local2_mask) & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_MAX_MASK))
+                      printf(" | %10u", ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].wred_maxThreshold));
                     else
-                      printf(" | %10s","XXX");
+                      printf(" | %10s", "XXX");
                   }
                   printf(" |\r\n");
                   printf("  WRED dropPr[%u]", dp+1);
                   for (j=0; j<8; j++) {
-                    if (ptr->egress.cos_dropmgmt[j].local_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK &&
-                        ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].local2_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_DROPPROB_MASK)
-                      printf(" | %10u",ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].wred_dropProb);
+                    if ((ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].local_mask) & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLDS_MASK) &&
+                        (ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].local2_mask) & MSG_QOS3_EGRESS_COS_DROPMGMT_THRESHOLD_WRED_DROPPROB_MASK))
+                      printf(" | %10u", ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].dp_thresholds[dp].wred_dropProb));
                     else
-                      printf(" | %10s","XXX");
+                      printf(" | %10s", "XXX");
                   }
                   printf(" |\r\n");
 
@@ -8280,10 +8282,10 @@ int main (int argc, char *argv[])
 
                 printf("  WRED decayExp ");
                 for (j=0; j<8; j++) {
-                  if (ptr->egress.cos_dropmgmt[j].local_mask & MSG_QOS3_EGRESS_COS_DROPMGMT_WRED_DECAYEXP_MASK)
-                    printf(" | %10u",ptr->egress.cos_dropmgmt[j].wred_decayExp);
+                  if (ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].local_mask) & MSG_QOS3_EGRESS_COS_DROPMGMT_WRED_DECAYEXP_MASK)
+                    printf(" | %10u", ENDIAN_SWAP8(ptr->egress.cos_dropmgmt[j].wred_decayExp));
                   else
-                    printf(" | %10s","XXX");
+                    printf(" | %10s", "XXX");
                 }
                 printf(" |\r\n");
                 printf("                  ");
