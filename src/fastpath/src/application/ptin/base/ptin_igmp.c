@@ -13183,14 +13183,13 @@ static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupI
             avlSearchLVL7(&igmpDeviceClients.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
           ) != L7_NULLPTR )
   {
-/*
+
+    /* check if the device client belongs to the desired group client */
     if(device_client->ptin_port == clientGroup->ptin_port && device_client->uni_ivid == clientGroup->uni_ivid && device_client->uni_ovid == clientGroup->uni_ovid)
     {
 
       i_client++;
     }
-*/
-    i_client++;
 
           /* Prepare next key */
       memcpy(&avl_key, &device_client->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
