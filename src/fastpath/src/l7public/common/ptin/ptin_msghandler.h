@@ -334,6 +334,12 @@
  * NOTE: By default they are 'packed' to avoid empty gaps
  *****************************************************************************/
 
+/* NGPON2 */
+#define CCMSG_NGPON2_ADD_GROUP                          0x9300
+#define CCMSG_NGPON2_REM_GROUP                          0x9301
+#define CCMSG_NGPON2_ADD_GROUP_PORT                     0x9302
+#define CCMSG_NGPON2_REM_GROUP_PORT                     0x9303
+
 typedef enum
 {
   DEFAULT_RESET_MODE_FULL =     0x00,

@@ -1510,6 +1510,26 @@ typedef struct
 
 } ptin_check_counters_lm_t;
 
+/***************************************************************************** 
+ * NGPON2 
+ *****************************************************************************/
+
+typedef struct
+{
+    L7_uint8     slot;
+    L7_uint8     type;
+    L7_uint8     id; //GroupId;
+} __attribute__ ((packed))  ptin_NGPON2element_t ;
+
+typedef struct
+{
+    L7_uint8                   slotId;
+    L7_uint32                  mask;
+    L7_uint8                   GroupId;
+    L7_uint8                   numIntf;
+    ptin_NGPON2element_t       NGPON2Port[32];
+} __attribute__ ((packed)) ptin_NGPON2group_t;
+
 
 #endif /* _PTIN_STRUCTS_H */
 
