@@ -98,7 +98,7 @@ static L7_int    linkStatus[PTIN_SYSTEM_N_INTERF];        /* Link status of each
 static L7_BOOL   lagActiveMembers[PTIN_SYSTEM_N_PORTS];   /* Port is an active Lag member? */
 static L7_uint32 lagIdList[PTIN_SYSTEM_N_PORTS];          /* LAG id that belongs the port */
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
 #if (PHY_RECOVERY_PROCEDURE)
 L7_BOOL slots_to_be_reseted[PTIN_SYS_SLOTS_MAX]={L7_FALSE, [1 ... (PTIN_SYS_SLOTS_MAX-2)]=L7_TRUE, L7_FALSE};
 #endif

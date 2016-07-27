@@ -6631,13 +6631,21 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
   }
 
   /* For CXO160G reset warpcore associated to this slot (only applied to 10G-SFI ports) */
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
   /* Mark this slot to be reseted */
- #if (PHY_RECOVERY_PROCEDURE)
-  if (slots_to_be_reseted[slot_id])
+#if (PHY_RECOVERY_PROCEDURE)
+  /* For CXO160G board, only apply reset boards for TG16G and TG16GF boards */
+ #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+  if (board_id == PTIN_BOARD_TYPE_TG16G || board_id == PTIN_BOARD_TYPE_TG16GF ||
+      board_id == PTIN_BOARD_TYPE_TT08SXG || board_id == PTIN_BOARD_TYPE_TA12XGE)
+  /* For CXO640G board, only apply reset boards for TG16GF boards */
+ #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  if (board_id == PTIN_BOARD_TYPE_TG16GF ||
+      board_id == PTIN_BOARD_TYPE_TT08SXG || board_id == PTIN_BOARD_TYPE_TA12XGE)
+ #else
+  if (0)
+ #endif
   {
-    /* Only reset warpcore, if new board is a TG16G board */
-    if (board_id == PTIN_BOARD_TYPE_TG16G)
+    if (slots_to_be_reseted[slot_id])
     {
       PT_LOG_INFO(LOG_CTX_INTF, "Going to reset warpcore of slot %u", slot_id);
       rc = ptin_intf_slot_reset(slot_id, L7_FALSE);
@@ -6657,7 +6665,6 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
 
     slots_to_be_reseted[slot_id] = L7_FALSE;
   }
- #endif
 #endif
 
   #ifdef MAP_CPLD
