@@ -71,7 +71,8 @@ static const char *log_ctx_str[LOG_CONTEXT_LAST] = {
     "R2819",
     "EVENT",
     "SDK  ",
-    "START",    
+    "START",
+    "OPENSAF",    
 };
 
 /* Severity color */
@@ -179,6 +180,7 @@ static struct log_cfg_entry_s log_cfg[LOG_CONTEXT_LAST] = {
     {LOG_CTX_EVENTS,            LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
     {LOG_CTX_SDK,               LOG_SEV_DEBUG,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_FILE2  },
     {LOG_CTX_STARTUP,           LOG_SEV_TRACE,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
+    {LOG_CTX_OPENSAF,           LOG_SEV_INFO ,       LOG_COLOR_DEFAULT,     LOG_OUTPUT_DEFAULT},
 };
 
 typedef enum {
