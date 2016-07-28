@@ -14833,19 +14833,20 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
   *n_elements = 0;
 
   while (*n_elements<RFC2819_MAX_BUFFER_GET_NEXT) 
-  {
-    first_reg = ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer);
-
+  { 
     L7_int32 port1;
     L7_int16 slot_ret,port_ret;
     port1 = (ring_buffer.path >> 14) & 0xFFF;
 
+   
     ptin_intf_port2SlotPort(port1, &slot_ret, &port_ret, L7_NULLPTR);
+
+    first_reg = ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer);
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "slot_ret %d", slot_ret);
     PT_LOG_DEBUG(LOG_CTX_MSG, "port1 %d", port1);  
 
-    #if(PTIN_BOARD == PTIN_BOARD_CXO640G) || (PTIN_BOARD == PTIN_BOARD_CXO160G)
+    #if(PTIN_BOARD == PTIN_BOARD_CXO640G) //|| (PTIN_BOARD == PTIN_BOARD_CXO160G)
 
     if(slot == slot_ret) //In TU40G and CXO160G check if the manager send slot match with the slot port 
     {
@@ -15054,7 +15055,7 @@ L7_RC_t ptin_msg_config_rfc2819_monitoring(msg_rfc2819_admin_t *config)
       aux_port = config->Port - 2; //In CXO160G check if the manager send slot match with the slot port
 
       PT_LOG_DEBUG(LOG_CTX_MSG, "Configure monitoring: SlotId: %d, Port: %d, admin: %d", config->SlotId, config->Port, config->Admin);
-      return ptin_rfc2819_config_probe(aux_port, config->Admin);
+      return ptin_rfc2819_config_probe(config->Port, config->Admin);
     }
     else
     {
