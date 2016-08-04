@@ -11,7 +11,8 @@ ntry=0
 #cpld_gpr=fe000001fh
 #db=$ptin_path/bin/db64
 #sb=$ptin_path/bin/sb64
-sspi=/usr/local/ptin/bin/sspi
+#sspi=/usr/local/ptin/bin/sspi
+fp_status=$ptin_path/bin/fp_status
 
 insert_modules()
 {
@@ -59,25 +60,27 @@ wait4cxp()
     echo "Waiting for HW to be successfully configured..."
     while [ 1 ]
     do
-        reg=`$sspi 5 1 0 1f | awk -F' ' '{print $5}' | awk -F'=' '{print $2}'`
+        #reg=`$db $cpld_gpr 1 | awk '{print $2}'`
+        reg=`$fp_status`
 
-        if [ $reg == "0x00" ]; then
+        if [ $reg == "0" ]; then
             sleep 1;
-        elif [ $reg == "0x01" ]; then
-            echo "Hardware is configured! Ready to launch Fastpath..."
+        elif [ $reg == "1" ]; then
+            echo "Hardware is configured! Launching Fastpath..."
             break;
         else
-            echo "Register 0x1f have an unexpected value..."
             break;
         fi
     done
 }
 
-ignalcxp()
+signalcxp()
 {
-    echo "Signaling fwctrl that switchdrvr is ready..."
-    $sspi 5 0 0x02 1f
+    #$sb $cpld_gpr 2
+    $fp_status 2
 }
+
+
 
 # If no options, define default mode
 if [ ! -z $1 ]; then
