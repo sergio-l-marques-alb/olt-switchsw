@@ -602,8 +602,10 @@ int cpld_spi_create(void)
 
   semid_SPI = sempt_open(SEM_KEY,1);
 
+  sempt_wait(semid_SPI);
   arm_spi_init_serial_buses();
   cpld_spi_open();
+  sempt_post(semid_SPI);
 
   init_called=1;
 
@@ -637,8 +639,11 @@ int cpld_spi_destroy(void)
   return (-1);
 #endif
 
+  sempt_wait(semid_SPI);
   cpld_spi_close();
   arm_spi_close_serial_buses();
+  sempt_post(semid_SPI);
+
   sempt_close(semid_SPI);
 
   PT_LOG_INFO(LOG_CTX_STARTUP, "CPLD SPI deinitialized!");
