@@ -1,6 +1,6 @@
 BOARD=PTIN_BOARD_OLT1T0F
 
-export TOOLCHAIN_BASE_DIR=/opt/broadcom
+export TOOLCHAIN_BASE_DIR=/opt/broadcom_kt2_hx4/usr
 export TOOLCHAIN_BIN_DIR=$(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH=$(TOOLCHAIN_BASE_DIR)/lib
 
