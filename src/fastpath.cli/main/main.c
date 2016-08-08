@@ -208,6 +208,13 @@ void help_oltBuga(void)
         "m 2000 age(30-1000000) - Set MAC Learning table aging time\r\n"
         "m 2001 - Get MAC Learning aging time\r\n"
         "--------------------------------------------------------------------------------------------------------------------------------------\n\r"
+        "---NGPON2-----------------------------------------------------------------------------------------------------------------------------\n\r"
+        "m 2002 - Add NGPON2 group - GroupID \r\n"
+        "m 2003 - Remove NGPON2 group - GroupID \r\n"
+        "m 2004 - Add NGPON2 group port - GroupID element_port_id\r\n"
+        "m 2005 - Remove NGPON2 group port - GroupID element_port_id\r\n"
+        "---------------------------------------------------------------------------------------------------------------------------------------\n\r"
+
         /*"m 1304 port[0-15] - Get SFP info\n\r"*/
 
         "testit msg[????h] byte1[??[h]] byte2[??[h]] ... - Build your own message!!!\n\r"
@@ -346,6 +353,212 @@ int main (int argc, char *argv[])
     *(int*)comando.info  = 0;
 
     switch (msg) {
+
+      /* NGPON2 ADD group */
+    case 2002:
+    {
+        ptin_NGPON2group_t *ptr;
+
+        //validate number of arguments
+        if (argc != 3 + 1)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (ptin_NGPON2group_t *) &(comando.info[0]);
+        memset(ptr, 0, sizeof(ptin_NGPON2group_t)); 
+
+        // GroupID
+        if (StrToLongLong(argv[3+0], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        ptr->GroupId = (uint8) valued;
+
+        comando.msgId = CCMSG_NGPON2_ADD_GROUP;
+        comando.infoDim = sizeof(ptin_NGPON2group_t);
+    }
+      break;
+
+
+
+      /* NGPON2 Remove group */
+    case 2003:
+    {
+
+        ptin_NGPON2group_t *ptr;
+
+        //validate number of arguments
+        if (argc != 3 + 1)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (ptin_NGPON2group_t *) &(comando.info[0]);
+        memset(ptr, 0, sizeof(ptin_NGPON2group_t)); 
+
+        // GroupID
+        if (StrToLongLong(argv[3+0], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        ptr->GroupId = (uint8) valued;
+
+        comando.msgId = CCMSG_NGPON2_REM_GROUP;
+        comando.infoDim = sizeof(ptin_NGPON2group_t);
+
+    }
+      break;
+
+      /* NGPON2 ADD group port */
+    case 2004:
+    {
+        ptin_NGPON2group_t *ptr;
+
+        //validate number of arguments
+        if (argc != 3 + 4)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (ptin_NGPON2group_t *) &(comando.info[0]);
+        memset(ptr, 0, sizeof(ptin_NGPON2group_t)); 
+
+        /*
+        L7_uint16 j;
+        for( j = 0; j < 32; j++)
+        {
+          ptr->NGPON2Port[j].id = 0xFF;
+        }
+        */
+
+
+        // GroupID
+        if (StrToLongLong(argv[3+0], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        ptr->GroupId = (uint8) valued;      
+
+        // numIntf
+        if (StrToLongLong(argv[3+1], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        ptr->numIntf = (uint8) valued;
+
+        // PortID 1
+        if (StrToLongLong(argv[3+2], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        ptr->NGPON2Port[0].id = (uint8) valued;
+
+
+
+        // PortID 8
+        if (StrToLongLong(argv[3+3], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        ptr->NGPON2Port[1].id = (uint8) valued;
+
+
+        comando.msgId = CCMSG_NGPON2_ADD_GROUP_PORT;
+        comando.infoDim = sizeof(ptin_NGPON2group_t);
+
+    }
+      break;
+
+
+      /* NGPON2 Remove group port */
+    case 2005:
+    {
+        ptin_NGPON2group_t *ptr;
+
+        //validate number of arguments
+        if (argc != 3 + 4)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (ptin_NGPON2group_t *) &(comando.info[0]);
+        memset(ptr, 0, sizeof(ptin_NGPON2group_t)); 
+
+
+
+        /*
+        L7_uint16 j;
+        for( j = 0; j < 32; j++)
+        {
+          ptr->NGPON2Port[j].id = 0xFF;
+        }
+        */
+
+        // GroupID
+        if (StrToLongLong(argv[3+0], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        ptr->GroupId = (uint8) valued;
+        // numIntf
+        if (StrToLongLong(argv[3+1], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        ptr->numIntf = (uint8) valued;
+
+        // PortID 1
+        if (StrToLongLong(argv[3+2], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        ptr->NGPON2Port[0].id = (uint8) valued;
+
+
+
+        // PortID 8
+        if (StrToLongLong(argv[3+3], &valued) < 0)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+
+        ptr->NGPON2Port[1].id = (uint8) valued;
+
+
+        comando.msgId = CCMSG_NGPON2_REM_GROUP_PORT;
+        comando.infoDim = sizeof(ptin_NGPON2group_t);
+
+    }
+      break;
+
       /* Set MAC aging time */
       case 2000:
         {
@@ -7340,6 +7553,35 @@ int main (int argc, char *argv[])
     #endif
 
     switch (msg) {
+
+    case 2002:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" NGPON2: New group added\n\r");
+        else
+          printf(" NGPON2: Error adding new group - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
+      break;
+
+    case 2003:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" NGPON2: Group removed\n\r");
+        else
+          printf(" NGPON2: Error removing group - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
+      break;
+
+    case 2004:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" NGPON2: New group port added\n\r");
+        else
+          printf(" NGPON2: Error adding new group port - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
+      break;
+
+    case 2005:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" NGPON2: Group port removed\n\r");
+        else
+          printf(" NGPON2: Error removing group port- error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
+      break;
+
 
       case 1997:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))

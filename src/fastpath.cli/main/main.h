@@ -230,6 +230,13 @@ extern int canal_buga;
 #define CCMSG_MULTICAST_SERVICE_REMOVE                  0x91D9  // struct msg_multicast_service_t
 /*End Multicast Package Configuration*/
 
+
+/* NGPON2 */
+#define CCMSG_NGPON2_ADD_GROUP                          0x9300
+#define CCMSG_NGPON2_REM_GROUP                          0x9301
+#define CCMSG_NGPON2_ADD_GROUP_PORT                     0x9302
+#define CCMSG_NGPON2_REM_GROUP_PORT                     0x9303
+
 /* Fastpath typedefs */
 typedef uint8    L7_uint8;
 typedef uint16   L7_uint16;
@@ -2169,7 +2176,25 @@ typedef struct
 } __attribute__ ((packed)) MSG_FRAMEDELAY_status;
 
 
+/***************************************************************************** 
+ * NGPON2 
+ *****************************************************************************/
 
+typedef struct
+{
+    L7_uint8     slot;
+    L7_uint8     type;
+    L7_uint8     id; //GroupId;
+} __attribute__ ((packed))  ptin_NGPON2element_t ;
+
+typedef struct
+{
+    L7_uint8                   slotId;
+    L7_uint32                  mask;          
+    L7_uint8                   GroupId;   //0x01
+    L7_uint8                   numIntf;   //0x02
+    ptin_NGPON2element_t       NGPON2Port[32];
+} __attribute__ ((packed)) ptin_NGPON2group_t;
 
 #endif //_MAIN_H_
 
