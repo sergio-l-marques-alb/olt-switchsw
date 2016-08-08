@@ -5479,7 +5479,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
   #endif // PTIN_BOARD_IS_STANDALONE
-          case CCMSG_NGPON2_ADD_GROUP:
+
+    case CCMSG_NGPON2_ADD_GROUP:
     {
      
        PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_NGPON2_ADD_GROUP (0x%04X)", inbuffer->msgId);
@@ -5492,6 +5493,13 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
        memcpy(&outbuffer->info, &inbuffer->info, sizeof(ptin_NGPON2group_t));
 
+       ENDIAN_SWAP8_MOD(ptr->GroupId);
+       ENDIAN_SWAP32_MOD(ptr->mask);
+       ENDIAN_SWAP8_MOD(ptr->numIntf);
+       ENDIAN_SWAP8_MOD(ptr->slotId);
+
+       /* Execute command */
+       rc = ptin_msg_NGPON2_add_group(ptr);  
        if (L7_SUCCESS != rc)
        {
           PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
@@ -5505,7 +5513,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Status Response");
         PT_LOG_TRACE(LOG_CTX_MSGHANDLER," slotId       = %u",      ptr->slotId);
         PT_LOG_TRACE(LOG_CTX_MSGHANDLER," GroupId      = %u",      ptr->GroupId);
-        PT_LOG_TRACE(LOG_CTX_MSGHANDLER," NumIntf       = %u",     ptr->numIntf);
+        PT_LOG_TRACE(LOG_CTX_MSGHANDLER," NumIntf      = %u",      ptr->numIntf);
         PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Mask         = %u",      ptr->mask);      
 
     }
@@ -5520,7 +5528,14 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         ptr = (ptin_NGPON2group_t *) outbuffer->info;
         memcpy(&outbuffer->info, &inbuffer->info, sizeof(ptin_NGPON2group_t));
-    
+
+        ENDIAN_SWAP8_MOD(ptr->GroupId);
+        ENDIAN_SWAP32_MOD(ptr->mask);
+        ENDIAN_SWAP8_MOD(ptr->numIntf);
+        ENDIAN_SWAP8_MOD(ptr->slotId);
+
+        /* Execute command */
+       rc = ptin_msg_NGPON2_rem_group(ptr); 
 
         if (L7_SUCCESS != rc)
         {
@@ -5538,7 +5553,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
          PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Status       = %u",      ptr->numIntf);
          PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Mask         = %u",      ptr->mask);      
 
-
     }
     break;
 
@@ -5546,15 +5560,15 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     {
 
       PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_NGPON2_ADD_GROUP_PORT (0x%04X)", inbuffer->msgId);
-      CHECK_INFO_SIZE(ptin_NGPON2element_t);
+      CHECK_INFO_SIZE(ptin_NGPON2group_t);
 
-      ptin_NGPON2element_t *ptr;
+      ptin_NGPON2group_t *ptr;
 
-      ptr = (ptin_NGPON2element_t *) outbuffer->info;
-      memcpy(&outbuffer->info, &inbuffer->info, sizeof(ptin_NGPON2element_t));
+      ptr = (ptin_NGPON2group_t *) outbuffer->info;
+      memcpy(&outbuffer->info, &inbuffer->info, sizeof(ptin_NGPON2group_t));
 
       /* Execute command */
-      //rc = ptin_msg_l2_maclimit_status(ptr);  
+      rc = ptin_msg_NGPON2_add_group_port(ptr);  
 
       if (L7_SUCCESS != rc)
       {
@@ -5564,13 +5578,19 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      outbuffer->infoDim = sizeof(ptin_NGPON2element_t);
+      outbuffer->infoDim = sizeof(ptin_NGPON2group_t);
 
-      PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Status Response");
-      PT_LOG_TRACE(LOG_CTX_MSGHANDLER," slotId       = %u",      ptr->slot);
-      PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Type         = %u",      ptr->type);
-      PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Id           = %u",      ptr->id);   
+      L7_uint16 i = 0;
+      
+      while ( i < PTIN_SYSTEM_MAX_NGPON2_GROUPS_ELEMENTS )
+      {
+        PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Status Response");
+        PT_LOG_TRACE(LOG_CTX_MSGHANDLER," slotId       = %u",      ptr->NGPON2Port[i].slot);
+        PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Type         = %u",      ptr->NGPON2Port[i].type);
+        PT_LOG_TRACE(LOG_CTX_MSGHANDLER," ID           = %u",      ptr->NGPON2Port[i].id);   
 
+        i++;
+      }  
     }
     break;
 
@@ -5578,15 +5598,15 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     {
 
       PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_NGPON2_REM_GROUP_PORT (0x%04X)", inbuffer->msgId);
-      CHECK_INFO_SIZE(ptin_NGPON2element_t);
+      CHECK_INFO_SIZE(ptin_NGPON2group_t);
 
-      ptin_NGPON2element_t *ptr;
-
-      ptr = (ptin_NGPON2element_t *) outbuffer->info;
-      memcpy(&outbuffer->info, &inbuffer->info, sizeof(ptin_NGPON2element_t));
+      ptin_NGPON2group_t *ptr;
+        
+      ptr = (ptin_NGPON2group_t *) outbuffer->info;
+      memcpy(&outbuffer->info, &inbuffer->info, sizeof(ptin_NGPON2group_t));
 
       /* Execute command */
-      //rc = ptin_msg_l2_maclimit_status(ptr);  
+      rc = ptin_msg_NGPON2_rem_group_port(ptr);  
 
       if (L7_SUCCESS != rc)
       {
@@ -5596,12 +5616,19 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
          break;
       }
 
-      outbuffer->infoDim = sizeof(ptin_NGPON2element_t);
+      outbuffer->infoDim = sizeof(ptin_NGPON2group_t);
 
-      PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Status Response");
-      PT_LOG_TRACE(LOG_CTX_MSGHANDLER," slotId       = %u",      ptr->slot);
-      PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Type         = %u",      ptr->type);
-      PT_LOG_TRACE(LOG_CTX_MSGHANDLER," ID           = %u",      ptr->id);   
+      L7_uint16 i = 0;
+      
+      while ( i < PTIN_SYSTEM_MAX_NGPON2_GROUPS_ELEMENTS )
+      {
+        PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Status Response");
+        PT_LOG_TRACE(LOG_CTX_MSGHANDLER," slotId       = %u",      ptr->NGPON2Port[i].slot);
+        PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Type         = %u",      ptr->NGPON2Port[i].type);
+        PT_LOG_TRACE(LOG_CTX_MSGHANDLER," ID           = %u",      ptr->NGPON2Port[i].id);   
+
+        i++;
+      }
     }
     break;
 

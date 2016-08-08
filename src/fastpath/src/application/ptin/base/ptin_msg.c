@@ -16080,6 +16080,143 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
 #endif
 }
 
+
+/*****************************************************************************************************************/
+/*                                                                                                               */  
+/*                                                NGPON2                                                         */ 
+/*                                                                                                               */ 
+/*****************************************************************************************************************/
+ 
+/**
+ * NGPON2 Add Group 
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_NGPON2_add_group(ptin_NGPON2group_t *group_info)
+{
+
+
+  /* no need for this verification
+  // check if GroupID is out of range 
+  if (group_info->GroupId < 0 || group_info->GroupId >= PTIN_SYSTEM_MAX_NGPON2_GROUPS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "GroupID out of range [0, 255]: GroupID %u", group_info->GroupId);
+    return L7_FAILURE;
+  } 
+  */ 
+
+  /* add NGPON2 group */
+  if (ptin_intf_NGPON2_add_group(group_info) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Failed to add group. GroupID %u", group_info->GroupId);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * NGPON2 Remove Group 
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_NGPON2_rem_group(ptin_NGPON2group_t *group_info)
+{
+
+  /* no need for this verification
+  // check if GroupID is out of range 
+  if (group_info->GroupId < 0 || group_info->GroupId >= PTIN_SYSTEM_MAX_NGPON2_GROUPS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "GroupID out of range [0, 255]: GroupID %u", group_info->GroupId);
+    return L7_FAILURE;
+  } 
+  */ 
+
+  /* add NGPON2 group */
+  if (ptin_intf_NGPON2_rem_group(group_info) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Failed to remove group. GroupID %u", group_info->GroupId);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/******************************************************/
+/*                                                    */
+/*                                                    */
+/******************************************************/ 
+
+/**
+ * NGPON2 Add Group Port 
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
+{
+
+  /* no need for this verification
+  // check if GroupID is out of range 
+  if (group_info->GroupId < 0 || group_info->GroupId >= PTIN_SYSTEM_MAX_NGPON2_GROUPS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "GroupID out of range [0, 255]: GroupID %u", group_info->GroupId);
+    return L7_FAILURE;
+  } 
+  */ 
+
+  /* add NGPON2 group */
+  if (ptin_intf_NGPON2_add_group_port(group_info) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Failed to add group port. GroupID %u", group_info->GroupId);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * NGPON2 Remove Group Port
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
+{
+
+  /* no need for this verification
+  // check if GroupID is out of range 
+  if (group_info->GroupId < 0 || group_info->GroupId >= PTIN_SYSTEM_MAX_NGPON2_GROUPS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "GroupID out of range [0, 255]: GroupID %u", group_info->GroupId);
+    return L7_FAILURE;
+  } 
+  */ 
+
+  /* add NGPON2 group */
+  if (ptin_intf_NGPON2_rem_group_port(group_info) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Failed to add group. GroupID %u", group_info->GroupId);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
 /****************************************End Multicast Package Feature**************************************************/
 
 
