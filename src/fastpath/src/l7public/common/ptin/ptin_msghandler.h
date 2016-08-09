@@ -11,6 +11,9 @@
  *    module and used exclusively here
  */
 
+
+
+
 #ifndef CHMESSAGEHANDLER_H_
 #define CHMESSAGEHANDLER_H_
 
@@ -313,6 +316,13 @@
 #define CCMSG_L2_MACLIMIT_CONFIG                    0x91EA
 #define CCMSG_L2_MACLIMIT_STATUS                    0x91EB
 
+/* NGPON2 */
+#define CCMSG_NGPON2_ADD_GROUP                          0x91EC
+#define CCMSG_NGPON2_REM_GROUP                          0x91EE
+#define CCMSG_NGPON2_ADD_GROUP_PORT                     0x91ED
+#define CCMSG_NGPON2_REM_GROUP_PORT                     0x91EF
+
+
 /* Generic Flush Configuration Message */
 #define CCMSG_PROTECTION_MATRIX_FLUSH_CONFIGURATION_END    0x91FE
 
@@ -333,12 +343,6 @@
  * Structures exchanged on the messages
  * NOTE: By default they are 'packed' to avoid empty gaps
  *****************************************************************************/
-
-/* NGPON2 */
-#define CCMSG_NGPON2_ADD_GROUP                          0x9300
-#define CCMSG_NGPON2_REM_GROUP                          0x9301
-#define CCMSG_NGPON2_ADD_GROUP_PORT                     0x9302
-#define CCMSG_NGPON2_REM_GROUP_PORT                     0x9303
 
 typedef enum
 {
