@@ -7894,7 +7894,7 @@ L7_RC_t ptin_intf_NGPON2_add_group(ptin_NGPON2group_t *group_info)
   if (ptin_intf_NGPON2_group_exists(group_idx))
   {
     PT_LOG_ERR(LOG_CTX_MSG, "NGPON2 Group already exists");
-    return L7_FAILURE;
+    return L7_SUCCESS;
   }
 
     /* group is active */
@@ -7932,7 +7932,7 @@ L7_RC_t ptin_intf_NGPON2_rem_group(ptin_NGPON2group_t *group_info)
   if (!ptin_intf_NGPON2_group_exists(group_idx))
   {
     PT_LOG_ERR(LOG_CTX_MSG, "NGPON2 Group does not exist!");
-    return L7_FAILURE;
+    return L7_SUCCESS;;
   }
 
       /* group is not active */
