@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:simpleType name="FieldNamesEnum">
+<xs:restriction base="xs:string">
+<xs:enumeration value="EMPTY"/>
+<xs:enumeration value="IPV4"/>
+<xs:enumeration value="VRF"/>
+<xs:enumeration value="IPV6"/>
+<xs:enumeration value="L2_MAC"/>
+<xs:enumeration value="CORE_ID"/>
+<xs:enumeration value="DESTINATION"/>
+<xs:enumeration value="FEC"/>
+<xs:enumeration value="MC_ID"/>
+<xs:enumeration value="FLOW_ID"/>
+<xs:enumeration value="PORT_ID"/>
+<xs:enumeration value="STP_TOPOLOGY_ID"/>
+<xs:enumeration value="ENABLE_MY_MAC"/>
+<xs:enumeration value="PROFILE_INGRESS"/>
+<xs:enumeration value="FID"/>
+<xs:enumeration value="IN_PORT"/>
+<xs:enumeration value="C_VLAN"/>
+<xs:enumeration value="IN_LIF"/>
+<xs:enumeration value="S_VLAN"/>
+<xs:enumeration value="GLOB_IN_LIF"/>
+<xs:enumeration value="OAM_LIF_SET"/>
+<xs:enumeration value="OUT_LIF"/>
+<xs:enumeration value="OUT_LIF_PROFILE"/>
+<xs:enumeration value="IN_LIF_PROFILE"/>
+<xs:enumeration value="VLAN_EDIT_PROFILE"/>
+<xs:enumeration value="VLAN_EDIT_VID_1"/>
+<xs:enumeration value="VLAN_EDIT_VID_2"/>
+<xs:enumeration value="ENTRY_GROUPING"/>
+<xs:enumeration value="MAC_STRENGTH"/>
+<xs:enumeration value="AGING"/>
+<xs:enumeration value="VSI"/>
+<xs:enumeration value="ACTION_PROFILE"/>
+<xs:enumeration value="NWK_QOS_IDX"/>
+<xs:enumeration value="LAYER_TYPE"/>
+<xs:enumeration value="QOS_MODEL"/>
+<xs:enumeration value="QOS_PROFILE"/>
+<xs:enumeration value="ENCAP_DEST"/>
+<xs:enumeration value="VLAN_ID"/>
+<xs:enumeration value="PP_PORT_MEMBER"/>
+<xs:enumeration value="PP_PORT"/>
+<xs:enumeration value="VLAN_DOMAIN"/>
+<xs:enumeration value="PORT_VID"/>
+<xs:enumeration value="STG_ID"/>
+<xs:enumeration value="STP_STATE"/>
+<xs:enumeration value="DEFAULT_AC_PROF"/>
+<xs:enumeration value="VSI_PROFILE"/>
+<xs:enumeration value="PROPAGATION_PROF"/>
+<xs:enumeration value="DA_NOT_FOUND_DEST"/>
+<xs:enumeration value="MY_MAC"/>
+<xs:enumeration value="MY_MAC_PREFIX"/>
+<xs:enumeration value="STAT_OBJECT_PROF"/>
+<xs:enumeration value="VRID_BITMAP"/>
+</xs:restriction>
+</xs:simpleType>
+</xs:schema>
