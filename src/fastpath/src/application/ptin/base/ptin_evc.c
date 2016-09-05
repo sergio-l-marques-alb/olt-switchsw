@@ -5223,7 +5223,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
       e.vport_id  = vport_id & 0xffffff;
       e.pon       = evcFlow->ptin_intf;
       e.gem_id    = evcFlow->uni_ovid;
-      e.onu       = evcFlow->onuId;
+      //e.onu       = evcFlow->onuId;
       intf_vp_DB(1, &e);
     }
 
