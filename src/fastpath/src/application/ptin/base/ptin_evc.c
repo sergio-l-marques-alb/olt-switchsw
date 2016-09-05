@@ -2572,8 +2572,6 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   /* Expand interface formats */
   for (i=0; i<evcConf->n_intf; i++)
   {
-    (evcConf->intf[i].intf.port_type == 4)
-
     /* Convert interface to all formats */
     if (ptin_intf_any_format(&evcConf->intf[i].intf) != L7_SUCCESS)
     {
@@ -5231,6 +5229,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
       e.vport_id  = vport_id & 0xffffff;
       e.pon       = evcFlow->ptin_intf;
       e.gem_id    = evcFlow->uni_ovid;
+      e.onu       = evcFlow->onuId;
       intf_vp_DB(1, &e);
     }
 
