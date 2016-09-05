@@ -1736,6 +1736,7 @@ extern RC_t ptin_igmp_multicast_service_add(L7_uint32 ptinPort, L7_uint32 onuId,
  */
 extern RC_t ptin_igmp_multicast_service_remove(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 serviceId);
 
+
 #endif//IGMPASSOC_MULTI_MC_SUPPORTED
 
 #endif//_PTIN_IGMP_H
