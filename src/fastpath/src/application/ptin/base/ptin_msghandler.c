@@ -5514,8 +5514,34 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         PT_LOG_TRACE(LOG_CTX_MSGHANDLER," slotId       = %u",      ptr->slotId);
         PT_LOG_TRACE(LOG_CTX_MSGHANDLER," GroupId      = %u",      ptr->GroupId);
         PT_LOG_TRACE(LOG_CTX_MSGHANDLER," NumIntf      = %u",      ptr->numIntf);
-        PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Mask         = %u",      ptr->mask);      
+        PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Mask         = %u",      ptr->mask);    
 
+              /* Execute command */
+        rc = ptin_msg_NGPON2_add_group_port(ptr);  
+
+        if (L7_SUCCESS != rc)
+        {
+          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        outbuffer->infoDim = sizeof(ptin_NGPON2group_t);
+
+        L7_uint16 i = 0;
+        
+        while ( i < ptr->numIntf )
+        {
+          PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Port added with group");
+          PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Type         = %u",      ptr->NGPON2Port[i].type);
+          PT_LOG_TRACE(LOG_CTX_MSGHANDLER," ID           = %u",      ptr->NGPON2Port[i].id);   
+
+          i++;
+        }
+
+
+        
     }
     break;
 
@@ -5582,7 +5608,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       L7_uint16 i = 0;
       
-      while ( i < PTIN_SYSTEM_MAX_NGPON2_GROUPS_ELEMENTS )
+      while ( i < ptr->numIntf )
       {
         PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Status Response");
         PT_LOG_TRACE(LOG_CTX_MSGHANDLER," slotId       = %u",      ptr->NGPON2Port[i].slot);
@@ -5620,7 +5646,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       L7_uint16 i = 0;
       
-      while ( i < PTIN_SYSTEM_MAX_NGPON2_GROUPS_ELEMENTS )
+      while ( i < ptr->numIntf )
       {
         PT_LOG_TRACE(LOG_CTX_MSGHANDLER," Status Response");
         PT_LOG_TRACE(LOG_CTX_MSGHANDLER," slotId       = %u",      ptr->NGPON2Port[i].slot);

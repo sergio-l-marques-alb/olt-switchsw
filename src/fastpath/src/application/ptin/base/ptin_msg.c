@@ -6246,8 +6246,16 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Flow",     ptinEvcFlow.evc_idx);
   PT_LOG_DEBUG(LOG_CTX_MSG, " Flags = 0x%08x",  ptinEvcFlow.flags);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",          ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-                                                ptinEvcFlow.ptin_intf.intf_id);
+
+  if (ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_NGPON2)
+    PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u", "NGPON2", ptinEvcFlow.ptin_intf.intf_id);
+  else
+  {
+    PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
+                 ptinEvcFlow.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                 ptinEvcFlow.ptin_intf.intf_id);
+  }
+
   PT_LOG_DEBUG(LOG_CTX_MSG, " Int.IVID    = %u", ptinEvcFlow.int_ivid);
   PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-OVID    = %u", ptinEvcFlow.uni_ovid);
   PT_LOG_DEBUG(LOG_CTX_MSG, " UNI-IVID    = %u", ptinEvcFlow.uni_ivid);
@@ -16166,15 +16174,6 @@ L7_RC_t ptin_msg_NGPON2_rem_group(ptin_NGPON2group_t *group_info)
  */
 L7_RC_t ptin_msg_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
 {
-
-  /* no need for this verification
-  // check if GroupID is out of range 
-  if (group_info->GroupId < 0 || group_info->GroupId >= PTIN_SYSTEM_MAX_NGPON2_GROUPS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "GroupID out of range [0, 255]: GroupID %u", group_info->GroupId);
-    return L7_FAILURE;
-  } 
-  */ 
 
   /* add NGPON2 group */
   if (ptin_intf_NGPON2_add_group_port(group_info) != L7_SUCCESS)

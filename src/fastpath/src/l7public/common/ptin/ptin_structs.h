@@ -718,6 +718,7 @@ typedef struct
 #define PTIN_EVC_INTF_ROOT          0
 #define PTIN_EVC_INTF_LEAF          1
 #define PTIN_EVC_INTF_NOTUSED       255
+#define PTIN_EVC_INTF_NGPON2        4
 
 /* Interface format */
 typedef enum {

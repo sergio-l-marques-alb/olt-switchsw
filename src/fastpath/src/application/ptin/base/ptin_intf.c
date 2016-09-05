@@ -2265,7 +2265,7 @@ inline L7_RC_t ptin_intf_typeId2port(L7_uint8 intf_type, L7_uint8 intf_id, L7_ui
   L7_uint32 p_port=0;
 
   /* Calculate ptin_port index */
-  if (intf_type == PTIN_EVC_INTF_PHYSICAL)
+  if (intf_type == PTIN_EVC_INTF_PHYSICAL )
   {
     if (intf_id >= ptin_sys_number_of_ports)
     {
@@ -7977,12 +7977,8 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
 
   while ( i < group_info->numIntf )
   {
-    //if (group_info->NGPON2Port[i].id != 0xFF)
-    //{
-        /* set portId to the NGPON2 group */
-      NGPON2_PORT_ADD(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, group_info->NGPON2Port[i].id);
-    //}
-
+      /* set portId to the NGPON2 group */
+    NGPON2_PORT_ADD(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, group_info->NGPON2Port[i].id);
     i++;
   }
 
