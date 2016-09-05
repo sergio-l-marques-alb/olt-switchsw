@@ -227,7 +227,7 @@ typedef struct ptinIgmpClientInfoData_s
   L7_uint16                 uni_ovid;               /* Ext. OVID to be used for packet transmission */
   L7_uint16                 uni_ivid;               /* Ext. IVID to be used for packet transmission */
   L7_BOOL                   isDynamic;
-  L7_uint16                 number_of_mc_services;  /* A client may be part of several MC services: this will benused for AVL tree management */
+  L7_uint16                 number_of_mc_services;  /* A client may be part of several MC services: this will be used for AVL tree management */
   struct ptinIgmpClientGroupInfoData_s *pClientGroup;    /* Pointer to ClientGroup (null for client groups avl tree) */
   void *next;
 } ptinIgmpClientInfoData_t;
@@ -3085,33 +3085,42 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
     }
 
     L7_uint16 noOfClients = igmp_clientDevice_get_devices_number(clientGroup);
-    L7_uint16 clientId;
 
     if (noOfClients>0)
     {
+      ptinIgmpClientDataKey_t        avl_key;
+      ptinIgmpClientInfoData_t      *device_client;
+
       L7_uint16 noOfClientsFound = 0;
       L7_uint16 clientIdAux = 0;
 
       L7_uint32 channelCopied;
       L7_uint32 groupCountperMsg = 0;
 
-      for (clientId = 0; clientId<PTIN_IGMP_CLIENTIDX_MAX; ++clientId)
+
+      isFirstDevice = L7_FALSE;
+
+          /* Run all cells in AVL tree */
+      memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
+
+      while ( ( device_client = (ptinIgmpClientInfoData_t *)
+              avlSearchLVL7(&igmpDeviceClients.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+             ) != L7_NULLPTR )
       {
 
+        /* Prepare next key */
+        memcpy(&avl_key, &device_client->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
+        
         if (isFirstDevice == L7_FALSE && numberOfChannels >= PTIN_MGMD_EVENT_CTRL_DATA_SIZE_MAX / sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t))
         {
           break;
         }
+        /* check if the device client belongs to the desired group client */
+        if( device_client->igmpClientDataKey.ptin_port == clientGroup->igmpClientDataKey.ptin_port &&
+            device_client->igmpClientDataKey.innerVlan == clientGroup->igmpClientDataKey.innerVlan &&
+            device_client->igmpClientDataKey.outerVlan == clientGroup->igmpClientDataKey.outerVlan )
+          {
 
-        if (IS_BITMAP_WORD_SET(clientGroup->client_bmp_list, clientId, UINT32_BITSIZE) == L7_FALSE)
-        {
-          //Next Position on the Array of Clients. -1 since the for adds 1 unit.
-          clientId += UINT32_BITSIZE - 1;
-          continue;
-        }
-
-        if (IS_BITMAP_BIT_SET(clientGroup->client_bmp_list, clientId, UINT32_BITSIZE))
-        {
           do
           {
             PTIN_MGMD_EVENT_t                      reqMsg        = {0};
@@ -3122,9 +3131,9 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
 
             mgmdGroupsMsg.serviceId = McastEvcId;
             mgmdGroupsMsg.portId    = intIfNum;
-            mgmdGroupsMsg.clientId  = clientId;
+            mgmdGroupsMsg.clientId  = device_client->deviceClientId; 
 
-            if (globalGroupCountperMsg == 0 || clientIdAux != clientId)
+            if (globalGroupCountperMsg == 0 || clientIdAux != device_client->deviceClientId) 
             {
               mgmdGroupsMsg.entryId   = (channel_index==0)?(PTIN_MGMD_CTRL_ACTIVEGROUPS_FIRST_ENTRY):(channel_index);
             }
@@ -3214,24 +3223,26 @@ L7_RC_t ptin_igmp_channelList_get(L7_uint32 McastEvcId, const ptin_client_id_t *
 
           }while (isFirstDevice == TRUE && numberOfChannels<*max_number_of_channels  &&   groupCountperMsg == PTIN_MGMD_EVENT_CTRL_DATA_SIZE_MAX / sizeof(PTIN_MGMD_CTRL_ACTIVEGROUPS_RESPONSE_t));    
 
+         
           if (isFirstDevice == TRUE)
           {
             isFirstDevice = L7_FALSE;
           }
-
+         
           if ( ++noOfClientsFound >= noOfClients)
           {
             PT_LOG_TRACE(LOG_CTX_IGMP, "noOfClientsFound:%u >= noOfClients:%u", noOfClientsFound, noOfClients);
             break;
           }
 
-          clientIdAux = clientId;                    
+          clientIdAux = device_client->deviceClientId;                     
         }
 
         if ( numberOfChannels >= *max_number_of_channels )
         {
           break;
         }
+
       }
     }
     else
@@ -13152,11 +13163,42 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_next(struct ptinIgmpClie
 /** Check if a client index is present in a ONU */
 static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupInfoData_s *clientGroup)
 {
-  if (clientGroup == L7_NULLPTR)
-    return 0;
+  #if 0
 
-  /* Return number of elements in queue */
-  return clientGroup->queue_clientDevices.n_elems;
+    if (clientGroup == L7_NULLPTR)
+      return 0;
+
+    /* Return number of elements in queue */
+    return clientGroup->queue_clientDevices.n_elems;
+
+  #else
+
+    L7_uint8                       i_client = 0;
+    ptinIgmpClientDataKey_t        avl_key;;
+    ptinIgmpClientInfoData_t      *device_client;
+
+
+    /* Run all cells in AVL tree */
+    memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
+
+    while ( ( device_client = (ptinIgmpClientInfoData_t *)
+              avlSearchLVL7(&igmpDeviceClients.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+            ) != L7_NULLPTR )
+    {
+
+      /* check if the device client belongs to the desired group client */
+      if(device_client->ptin_port == clientGroup->ptin_port && device_client->uni_ivid == clientGroup->uni_ivid && device_client->uni_ovid == clientGroup->uni_ovid)
+      {
+
+        i_client++;
+      }
+
+            /* Prepare next key */
+        memcpy(&avl_key, &device_client->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
+    }
+    return i_client;
+
+  #endif
 }
 
 
