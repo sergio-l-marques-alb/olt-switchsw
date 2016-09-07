@@ -1,0 +1,841 @@
+diff -rpN --unified=6 sdk-all-6.4.8/src/appl/diag/dcmn/init.c sdk-all-6.4.8_modified/src/appl/diag/dcmn/init.c
+--- sdk-all-6.4.8/src/appl/diag/dcmn/init.c	2015-10-21 02:01:11.000000000 +0100
++++ sdk-all-6.4.8_modified/src/appl/diag/dcmn/init.c	2016-05-10 18:15:16.312625940 +0100
+@@ -144,13 +144,13 @@ extern int _cpu_pci_register(int d);
+ #define MC_GROUPS_SUPPORTED(unit) 1
+ 
+ #define PCP_DEVICE_ID (SOC_SAND_MAX_DEVICE-1)
+ 
+ #define MAX_NUM_DEVICES (SOC_SAND_MAX_DEVICE)
+ #define MAX_COS         (8)
+-#define MAX_MODIDS_PER_DEVICE 2
++#define MAX_MODIDS_PER_DEVICE 1	/* PTin modified (2) */
+ #define MODIDS_PER_DEVICE (g_dii.is_symmetric ? MAX_MODIDS_PER_DEVICE : 1)
+ #define OLP_DEFAULT_CORE 0
+ #define CORE_ID2INDEX(core_id) ((core_id == BCM_CORE_ALL) ? 0 : core_id)
+ 
+ #define NOF_DEF_SLOW_SPEEDS (4)
+ 
+diff -rpN --unified=6 sdk-all-6.4.8/src/appl/diag/system.c sdk-all-6.4.8_modified/src/appl/diag/system.c
+--- sdk-all-6.4.8/src/appl/diag/system.c	2015-10-21 02:01:12.000000000 +0100
++++ sdk-all-6.4.8_modified/src/appl/diag/system.c	2016-05-10 18:15:12.573014912 +0100
+@@ -42,12 +42,16 @@
+  * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+  * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+  */
+ 
+ #include <shared/bsl.h>
+ 
++#include <unistd.h>
++#include <time.h>
++#include <sys/time.h>
++
+ #ifndef __KERNEL__
+ #include <sys/types.h>
+ #include <netinet/in.h>
+ #include <signal.h>
+ #include <setjmp.h>
+ #endif
+@@ -1897,12 +1900,410 @@ diag_rc_load(int unit)
+     } else {
+     return sh_rcload_file(unit, NULL, script, FALSE);
+     }
+ }
+ #endif /* NO_SAL_APPL */
+ 
++#define LOG_MSG_MAX_MSG_SIZE    512
++#define MAX_OUTBUF_LEN          512 /* Output buffer max length */
++#define MAX_FILE_LEN            15  /* Filename max length */
++#define MAX_FUNC_LEN            35  /* Function max length */
++#define MAX_LINE_LEN            5   /* Line# max length */
++#define MAX_FILEFUNCLINE_LEN    30  /* Filename+function+line# max length */
++#define MAX_TIMESTAMP_LEN       24  /* Timestamp max length*/
++#define MAX_LOG_LINES         4096  /* Max File Lines */
++
++/* Severity */
++typedef enum {
++    LOG_OFF = 0,        /* Turn of any print */
++    LOG_SEV_PRINT,      /* Always print */
++    LOG_SEV_FATAL,
++    LOG_SEV_CRITICAL,
++    LOG_SEV_ERROR,
++    LOG_SEV_WARNING,
++    LOG_SEV_NOTICE,
++    LOG_SEV_INFO,
++    LOG_SEV_DEBUG,
++    LOG_SEV_TRACE,
++    /* Last element */
++    LOG_SEV_LAST,
++} log_severity_t;
++
++/* Severity strings */
++static const char *log_sev_str[LOG_SEV_LAST] = {
++    "OFF",
++    "[PRINT]   ",
++    "[FATAL]   ",
++    "[CRITICAL]",
++    "[ERROR]   ",
++    "[WARNING] ",
++    "[NOTICE]  ",
++    "[INFO]    ",
++    "[DEBUG]   ",
++    "[TRACE]   ",
++};
++
++
++unsigned int bsl_layer_bmp = 0;
++unsigned int bsl_source_bmp[(bslSourceCount/32)+1];
++unsigned char bsl_severity_min = bslSeverityOff;
++
++
++/**
++ * Reset CM LOGGINGs allowed
++ * 
++ * @author mruas (12/30/2014)
++ */
++void hapiBroadCmReset(void)
++{
++  bsl_layer_bmp = 0;
++  memset(bsl_source_bmp, 0, sizeof(bsl_source_bmp));
++  bsl_severity_min = bslSeverityOff;
++}
++
++
++/**
++ * Configure Layers to be logged
++ * 
++ * @author mruas (12/30/2014)
++ * 
++ * @param layer 
++ * @param enable 
++ */
++void hapiBroadCmLayerSet(int layer, int enable)
++{
++  if (layer >= bslLayerCount)
++  {
++    return;
++  }
++
++  if (enable)
++  {
++    bsl_layer_bmp |= (1UL << layer);
++  }
++  else
++  {
++    bsl_layer_bmp &= ~(1UL << layer);
++  }
++}
++
++/**
++ * Configure sources to be logged
++ * 
++ * @author mruas (12/30/2014)
++ * 
++ * @param source 
++ * @param enable 
++ */
++void hapiBroadCmSourceSet(int source, int enable)
++{
++  int div, mod;
++
++  if (source >= bslSourceCount)
++  {
++    return;
++  }
++
++  div = source / (sizeof(uint32)*8);
++  mod = source % (sizeof(uint32)*8);
++
++  if (enable)
++  {
++    bsl_source_bmp[div] |= (1UL << mod);
++  }
++  else
++  {
++    bsl_source_bmp[div] &= ~(1UL << mod);
++  }
++}
++
++/**
++ * Define minimum severity to be logged
++ * 
++ * @author mruas (12/30/2014)
++ * 
++ * @param severity 
++ */
++void hapiBroadCmSeveritySet(int severity)
++{
++  if (severity >= bslSeverityCount)
++  {
++    return;
++  }
++
++  bsl_severity_min = severity;
++}
++
++
++/**
++ * Composes a string with a timestamp
++ * 
++ * @param output Pointer to the output string
++ * 
++ * @return char* Returns the same input pointer
++ */
++static char* get_time(char* output)
++{
++    struct timeval   tv;
++    struct tm        date;
++    time_t           timeabs;
++
++    if (output) {
++        time (&timeabs);
++        localtime_r (&timeabs, &date);
++        gettimeofday (&tv, NULL);
++        sprintf (output, "%04d%02d%02d-%02dh%02dm%02d.%03d",
++                 date.tm_year+1900, date.tm_mon+1, date.tm_mday, date.tm_hour, date.tm_min, date.tm_sec, (int)(tv.tv_usec/1000));
++    }
++
++    return output;
++}
++
++/**
++ * Prints a log message
++ * 
++ * @param ctx  Context
++ * @param sev  Severity
++ * @param file Filename (can be NULL)
++ * @param func Function name (can be NULL)
++ * @param line Line# (if zero, is ignored)
++ * @param fmt  Format string+ arguments (like printf)
++ */
++void logger_print(log_severity_t sev, char const *file,
++                  char const *func, int line, char const *fmt, ...)
++{
++    va_list vargs;
++    char    timestamp[MAX_TIMESTAMP_LEN];
++    char    filefunc[MAX_OUTBUF_LEN];
++    char    outbuf[MAX_OUTBUF_LEN];
++    int     maxlen;
++    int     offset;
++    int     nchars;
++
++    /* Validate input parameters */
++    if ( (sev < 0) || (sev >= LOG_SEV_LAST) ) {
++        return;
++    }
++
++    /* Determine maximum length for file+func+line and compose string */
++    nchars = 0;
++    maxlen = 0;
++    filefunc[0] = '\0';
++    if ( file != NULL ) {
++        maxlen += MAX_FILE_LEN;
++        nchars += snprintf(filefunc+nchars, MAX_OUTBUF_LEN-nchars, "%s ", file);
++    }
++    if ( func != NULL ) {
++        maxlen += MAX_FUNC_LEN;
++        nchars += snprintf(filefunc+nchars, MAX_OUTBUF_LEN-nchars, "%s", func);
++    }
++    if ( line > 0 ) {
++        maxlen += MAX_LINE_LEN;
++        nchars += snprintf(filefunc+nchars, MAX_OUTBUF_LEN-nchars, "(%d)", line);
++    }
++    #if 0
++    else
++    {
++        /* Add the () to the function name (without line nr) */
++        nchars += snprintf(filefunc+nchars, MAX_OUTBUF_LEN-nchars, "()");
++    }
++    #endif
++
++    /* Determine offset to truncate string size */
++    offset = 0;
++    if ( nchars > maxlen ) {
++        offset = nchars - maxlen;
++        filefunc[offset+0] = '.';
++        filefunc[offset+1] = '.';
++        filefunc[offset+2] = '.';
++    }
++
++    /* Print to a string the std pattern */
++    nchars = snprintf(outbuf, MAX_OUTBUF_LEN, "%s %-*s %s ", get_time(timestamp),
++                      maxlen, filefunc+offset, log_sev_str[sev]);
++
++    /* Continue printing the log itself */
++    va_start(vargs, fmt);
++    vsnprintf (outbuf + nchars, MAX_OUTBUF_LEN-nchars, fmt, vargs);
++    va_end(vargs);
++
++    /* Output it... */
++    fprintf(stdout, "%.*s\r\n", MAX_OUTBUF_LEN, outbuf);
++}
++
++
++/**
++ * Callback for checking if logs should be printed
++ * 
++ * @author mruas (12/30/2014)
++ * 
++ * @param meta_pack 
++ * 
++ * @return int 
++ */
++int hapiBroadCmCheck(bsl_packed_meta_t meta_pack)
++{
++    int div, mod;
++    int severity = BSL_SEVERITY_GET(meta_pack);
++    int layer    = BSL_LAYER_GET(meta_pack);
++    int source   = BSL_SOURCE_GET(meta_pack);
++
++    /* Always TRUE */
++    if (severity <= bslSeverityWarn /*|| layer == bslLayerAppl*/) {
++        return 1;
++    }
++
++    /* Check configurable conditions */
++    /* Layer */
++    if ( !(bsl_layer_bmp & (1UL << layer)) )
++    {
++      return 0;
++    }
++    /* Source */
++    div = source/(sizeof(uint32)*8);
++    mod = source%(sizeof(uint32)*8);
++    if ( !(bsl_source_bmp[div] & (1UL << mod)) )
++    {
++      return 0;
++    }
++    /* Severity */
++    if (severity > bsl_severity_min)
++    {
++      return 0;
++    }
++
++    return 1;
++}
++
++
++/**
++ * Callback for LOGs printing
++ * 
++ * @author mruas (12/30/2014)
++ * 
++ * @param meta_data 
++ * @param format 
++ * @param args 
++ * 
++ * @return int 
++ */
++int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
++{
++  int logit = 0, printit = 0;
++  char buf[LOG_MSG_MAX_MSG_SIZE];
++  log_severity_t ptin_log_sev = LOG_SEV_PRINT;
++
++  if( (meta_data == NULL) )
++  {
++    /* Always treat no meta data as an immediate print to the console */
++    logit = 0;
++    printit = 1;
++  }
++  else if (meta_data->layer == bslLayerAppl && meta_data->source == bslSourceShell)
++  {
++    /* Always print APPL layer to stdout */
++    logit = 0;
++    printit = 1;
++  }
++  else if (meta_data->severity <= bslSeverityFatal)
++  {
++    logit = 1;
++    printit = 0;
++    ptin_log_sev = LOG_SEV_FATAL;
++  }
++  else if (meta_data->severity <= bslSeverityError)
++  {
++    logit = 1;
++    printit = 0;
++    ptin_log_sev = LOG_SEV_ERROR;
++  }
++  else if (meta_data->severity <= bslSeverityWarn)
++  {
++    logit = 1;
++    printit = 0;
++    ptin_log_sev = LOG_SEV_WARNING;
++  }
++  else if (bsl_check(meta_data->layer, meta_data->source, meta_data->severity, meta_data->unit))
++  {
++    logit = 1;
++    printit = 0;
++
++    if (meta_data->severity <= bslSeverityInfo)
++    {
++      ptin_log_sev = LOG_SEV_INFO;
++    }
++    else
++    {
++      ptin_log_sev = LOG_SEV_DEBUG;
++    }
++  }
++
++  if (printit)
++  {
++    vprintf(format,args);
++  }
++  else if (logit)   /* PTin modified: Logs */
++  {
++    /* 
++     * only allow the write to happen to either syslog or dapiTrace 
++     * in order to reduce time.
++     */
++    int rc = 0;
++
++    rc = vsnprintf(buf, sizeof (buf), format, args);
++  
++    if (rc <= 0)
++    {
++      return 0;  
++    }
++    else
++    {  
++      if ( rc >= sizeof(buf)) 
++      {
++        rc = sizeof(buf) - 1;
++        /* make sure that the string is terminated */
++        buf[rc] =  '\0';
++      }
++
++      /* get rid of new lines */
++      if (buf[rc-1] == '\n') buf[rc-1] = '\0';
++
++      logger_print(ptin_log_sev, meta_data->file, meta_data->func, meta_data->line, "%s", buf);
++    }
++  }
++
++  return 0;
++}
++
++/**
++ * Configure default CM loggings
++ * 
++ * @author mruas (12/30/2014)
++ */
++void hapiBroadCmDefaults(void)
++{
++  hapiBroadCmReset();
++
++  hapiBroadCmLayerSet(bslLayerAppl, 1);
++  hapiBroadCmLayerSet(bslLayerBcm,  1);
++  hapiBroadCmLayerSet(bslLayerBcmx, 1);
++  hapiBroadCmLayerSet(bslLayerSoc,  1);
++  hapiBroadCmLayerSet(bslLayerSys,  1);
++
++  hapiBroadCmSourceSet(bslSourceInit,   1);
++  hapiBroadCmSourceSet(bslSourceShell,  1);
++  hapiBroadCmSourceSet(bslSourceMii,    1);
++  hapiBroadCmSourceSet(bslSourceMiim,   1);
++  hapiBroadCmSourceSet(bslSourceMim,    1);
++  hapiBroadCmSourceSet(bslSourcePhy,    1);
++  hapiBroadCmSourceSet(bslSourcePhymod, 1);
++
++  hapiBroadCmSeveritySet(bslSeverityInfo);
++}
++
++
+ /*
+  * Diagnostics shell routine.
+  */
+ 
+ #ifdef BCM_WARM_BOOT_SUPPORT
+ #if defined(BCM_ESW_SUPPORT) || defined(BCM_SBX_SUPPORT) || defined(BCM_SAND_SUPPORT)
+@@ -1956,12 +2357,24 @@ diag_shell(void)
+ #endif /* INCLUDE_EDITLINE */
+ 
+     parse_user_var_get = diag_user_var_get;
+ 
+     bslmgmt_init();
+ 
++#if 1
++    bsl_config_t bsl_config;
++
++    bsl_config_t_init(&bsl_config);
++
++    hapiBroadCmDefaults();
++
++    bsl_config.out_hook = hapiBroadCmPrint;
++    bsl_config.check_hook = hapiBroadCmCheck;
++    bsl_init(&bsl_config);
++#endif
++
+     diag_init();
+ 
+     sysconf_init();
+ 
+     /*
+      * At boot time, probe for devices and attach the first one.
+diff -rpN --unified=6 sdk-all-6.4.8/src/soc/dpp/ARAD/arad_drv.c sdk-all-6.4.8_modified/src/soc/dpp/ARAD/arad_drv.c
+--- sdk-all-6.4.8/src/soc/dpp/ARAD/arad_drv.c	2015-10-21 02:01:18.000000000 +0100
++++ sdk-all-6.4.8_modified/src/soc/dpp/ARAD/arad_drv.c	2016-05-10 18:15:53.136617802 +0100
+@@ -4712,13 +4712,13 @@ soc_arad_info_config(int unit) 
+     val = soc_property_get(unit, spn_TDM_EGRESS_DP, 0);
+     dpp_arad->init.tdm_egress_dp = val;
+ 
+     /*
+      * Init NIF ports
+      */
+-    dpp_arad->init.nif_recovery_enable = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "nif_recovery_enable", 1);
++    dpp_arad->init.nif_recovery_enable = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "nif_recovery_enable", 0);	/* PTin modified: startup */
+     dpp_arad->init.nif_recovery_iter = soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "nif_recovery_iter", 5);
+ 
+     /*
+      * rcy port allocation per channel for channelized interfaces
+      */
+     dpp_arad->init.rcy_channelized_shared_context_enable = soc_property_get(unit, spn_RCY_CHANNELIZED_SHARED_CONTEXT_ENABLE, 0);
+Binary files sdk-all-6.4.8/src/soc/kbp/nlm2/lib/unix-user/gto-2_6/libsoc_kbp_nlm2_ftm.a and sdk-all-6.4.8_modified/src/soc/kbp/nlm2/lib/unix-user/gto-2_6/libsoc_kbp_nlm2_ftm.a differ
+Binary files sdk-all-6.4.8/src/soc/kbp/nlm2/lib/unix-user/gto-2_6/libsoc_kbp_nlm2_ftm_cmn.a and sdk-all-6.4.8_modified/src/soc/kbp/nlm2/lib/unix-user/gto-2_6/libsoc_kbp_nlm2_ftm_cmn.a differ
+Binary files sdk-all-6.4.8/src/soc/kbp/nlm2/lib/unix-user/gto-2_6/libsoc_kbp_nlm2_ftm_trie.a and sdk-all-6.4.8_modified/src/soc/kbp/nlm2/lib/unix-user/gto-2_6/libsoc_kbp_nlm2_ftm_trie.a differ
+Binary files sdk-all-6.4.8/src/soc/kbp/nlm2/lib/unix-user/gto-2_6/libsoc_kbp_nlm2_model.a and sdk-all-6.4.8_modified/src/soc/kbp/nlm2/lib/unix-user/gto-2_6/libsoc_kbp_nlm2_model.a differ
+diff -rpN --unified=6 sdk-all-6.4.8/systems/bde/linux/kernel/linux-kernel-bde.c sdk-all-6.4.8_modified/systems/bde/linux/kernel/linux-kernel-bde.c
+--- sdk-all-6.4.8/systems/bde/linux/kernel/linux-kernel-bde.c	2015-10-21 02:01:29.000000000 +0100
++++ sdk-all-6.4.8_modified/systems/bde/linux/kernel/linux-kernel-bde.c	2016-05-10 18:17:15.660671433 +0100
+@@ -144,13 +144,18 @@
+ #define virt_to_bus virt_to_phys
+ #define bus_to_virt phys_to_virt
+ #endif
+ 
+ MODULE_AUTHOR("Broadcom Corporation");
+ MODULE_DESCRIPTION("Kernel BDE");
++/* PTin modified */
++#ifdef __arm__
+ MODULE_LICENSE("Proprietary");
++#else
++MODULE_LICENSE("GPL");
++#endif
+ 
+ /* DMA memory pool size */
+ static char *dmasize;
+ LKM_MOD_PARAM(dmasize, "s", charp, 0);
+ MODULE_PARM_DESC(dmasize,
+ "Specify DMA memory size (default 4MB)");
+@@ -164,13 +169,17 @@ MODULE_PARM_DESC(dmaalloc, "Select DMA m
+ static char *himem;
+ LKM_MOD_PARAM(himem, "s", charp, 0);
+ MODULE_PARM_DESC(himem,
+ "Use high memory for DMA (default no)");
+ 
+ /* PCIe max payload */
++#if defined (__arm__)     /* PTin added: PCI */
+ int maxpayload = 256;
++#else
++int maxpayload = 128;     /* PTin modified: 256; */
++#endif
+ LKM_MOD_PARAM(maxpayload, "i", int, 0);
+ MODULE_PARM_DESC(maxpayload,
+ "Limit maximum payload size and request size on PCIe devices");
+ 
+ /* Use MSI interrupts */
+ int usemsi = -1;
+@@ -552,19 +561,22 @@ robo_spi_write(void *cookie, uint16_t re
+ #define PCI_DEVID_PI7C9X130   0xE130
+ #define DEV_CTRL_REG           0xb8
+ 
+ #define MAX_PAYLOAD_256B       (1 << 5)
+ #define MAX_PAYLOAD_512B       (2 << 5)
+ #define MAX_READ_REQ_256B      (1 << 12)
+-
++#define MAX_READ_REQ_512B      (2 << 12)          /* PTin added: PCI */
+ 
+ /* Freescale 8548 PCI-E  host Bridge */
+ #define FSL_VENDOR_ID                   0x1957
+ #define FSL8548PCIE_DEVICE_ID           0x0013
+ #define FSL2020EPCIE_DEVICE_ID          0x0070
+ #define FSL8548PCIE_DEV_CTRL_REG        0x54
++#define FSL8544PCIE_DEVICE_ID           0x0033    /* PTin added: PCI PQ3 8544 */
++#define FSL2040EPCIE_DEVICE_ID          0x0411    /* PTin added: PCI P2040 */
++#define FSL2040SECEPCIE_DEVICE_ID       0x0410    /* PTin added: PCI P2040 */
+ 
+ /* 4716 PCI-E  host Bridge */
+ #define BCM4716_VENDOR_ID               0x14e4
+ #define BCM4716PCIE_DEVICE_ID           0x4716
+ #define BCM4716PCIE_DEV_CAP_REG         0xd4
+ #define BCM4716PCIE_DEV_CTRL_REG        0xd8
+@@ -602,12 +614,23 @@ robo_spi_write(void *cookie, uint16_t re
+ #define BCM58522_PCI_DEVICE_ID     0x8022
+ 
+ /* Broadcom BCM58712 */
+ #define BCM58712_PCI_VENDOR_ID     0x14E4
+ #define BCM58712_PCI_DEVICE_ID     0x168E
+ 
++/* PTin added: PCI high speed switches */
++#if 1
++/* Broadcom BCM56640 */
++#define BCM56640_PCI_VENDOR_ID     0x14E4
++#define BCM56640_PCI_DEVICE_ID     0xb640
++
++/* Broadcom BCM56846 */
++#define BCM56846_PCI_VENDOR_ID     0x14E4
++#define BCM56846_PCI_DEVICE_ID     0xb846
++#endif
++
+ static uint32_t _read(int d, uint32_t addr);
+ 
+ #ifdef BCM_ICS
+ #else
+ /* Used to determine overall memory limits across all devices */
+ static uint32_t _pci_mem_start = 0xFFFFFFFF;
+@@ -709,12 +732,15 @@ _eb_device_create(resource_size_t paddr,
+ 
+ static int
+ petra_device_create(void)
+ {
+     bde_ctrl_t* ctrl;
+ 
++    /* PTin added: Do not execute this function */
++    return 0;
++
+     ctrl = _devices; 
+ 
+ #ifndef __DUNE_LINUX_BCM_CPU_PCIE__
+     _switch_ndevices++;
+     _ndevices++;
+ 
+@@ -1678,22 +1704,38 @@ p2p_bridge(void)
+          * Writes to the PCIE capability device control register
+          */
+         pci_write_config_dword(dev, DEV_CTRL_REG,
+                                MAX_PAYLOAD_256B | MAX_READ_REQ_256B);
+     }
+ 
+-    if ((dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL8548PCIE_DEVICE_ID, NULL)) != NULL ||
++    if ((dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL8544PCIE_DEVICE_ID, NULL)) != NULL ||     /* PTin added: PCI PQ3-8544*/
++        (dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL8548PCIE_DEVICE_ID, NULL)) != NULL ||
+         (dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL2020EPCIE_DEVICE_ID, NULL)) != NULL) {
+         /*
+          * Configure the PCIE cap: Max payload size: 256, Max Read
+          * Request size: 256, disabling relax ordering.
+          * Writes to the PCIE capability device control register
+          */
+         pci_write_config_dword(dev, FSL8548PCIE_DEV_CTRL_REG,
+                                MAX_PAYLOAD_256B | MAX_READ_REQ_256B);
+     }
++    /* PTin added: PCI P2040 */
++    #if 1
++    else if ((dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL2040EPCIE_DEVICE_ID, NULL)) != NULL ||
++             (dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL2040SECEPCIE_DEVICE_ID, NULL)) != NULL)
++    {
++        /*
++         * Configure the PCIE cap: Max payload size: 512, Max Read
++         * Request size: 512, disabling relax ordering.
++         * Writes to the PCIE capability device control register
++         */
++        pci_write_config_dword(dev, FSL8548PCIE_DEV_CTRL_REG,
++                               MAX_PAYLOAD_512B | MAX_READ_REQ_512B);
++    }
++    #endif
++
+     if ((dev = PCI_FIND_DEV(BCM4716_VENDOR_ID, BCM4716PCIE_DEVICE_ID, NULL)) != NULL ||
+         (dev = PCI_FIND_DEV(BCM53000_VENDOR_ID, BCM53000PCIE_DEVICE_ID, NULL)) != NULL) {
+         uint32 tmp, maxpayld, device_bmp=0, mask;
+         unsigned long addr;
+         uint16 tmp16, tmp161;
+         int i, bus0 = -1, bus1 = -1, port;        
+@@ -2125,12 +2171,29 @@ _pci_probe(struct pci_dev *dev, const st
+             /* BCM58525/BCM58712 CPU boards support 128 Max payload size */
+             if (maxpayload) {
+                 maxpayload = 128;
+                 if (debug >= 1) gprintk("force max payload size to 128\n");
+             }
+         }
++        /* PTin added: PCI */
++        #if 1
++        else if ((PCI_FIND_DEV(BCM56846_PCI_VENDOR_ID, BCM56846_PCI_DEVICE_ID, NULL)) != NULL) {
++            /* BCM58525 CPU boards support 128 Max payload size */
++            if (maxpayload) {
++                maxpayload = 256;
++                if (debug >= 1) gprintk("force max payload size to 256\n");
++            }
++        }
++        else if ((PCI_FIND_DEV(BCM56640_PCI_VENDOR_ID, BCM56640_PCI_DEVICE_ID, NULL)) != NULL) {
++            /* BCM58525 CPU boards support 128 Max payload size */
++            if (maxpayload) {
++                maxpayload = 512;
++                if (debug >= 1) gprintk("force max payload size to 512\n");
++            }
++        }
++        #endif
+ 
+         if (forceirq > 0 && dev->irq != (uint32) forceirq) {
+             if (forceirqubm & (1U << (_ndevices - 1))) {
+                 dev->irq = forceirq;
+                 if (debug >= 1) gprintk("force irq to %d\n", forceirq);
+             }
+@@ -2172,12 +2235,48 @@ _pci_probe(struct pci_dev *dev, const st
+         break;
+     default:
+         break;
+     }
+ #endif
+ 
++#ifndef __arm__
++    if (debug >= 1) {
++        uint8 aux8;
++        uint32 aux32;
++
++        gprintk("***********PCI Conf registers: api 5.9.2**********\n");
++        pci_read_config_dword(dev, 0x0, &aux32);
++        gprintk("* Vendor ID | Device ID :  0x%08X *\n", aux32);
++        pci_read_config_dword(dev, 0x4, &aux32);
++        gprintk("* Class Code| rev ID    :  0x%08X *\n", aux32);
++        pci_read_config_byte(dev, 0xC, &aux8);
++        gprintk("* Cache line syze       :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0xD, &aux8);
++        gprintk("* Latency Timer         :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0xE, &aux8);
++        gprintk("* Header Type           :  0x%02X       *\n", aux8);
++        pci_read_config_dword(dev, 0x10, &aux32);
++        gprintk("* BASE ADDRESS LOW      :  0x%08X *\n", aux32);
++        pci_read_config_dword(dev, 0x14, &aux32);
++        gprintk("* BASE ADDRESS HIGH     :  0x%08X *\n", aux32);
++        pci_read_config_byte(dev, 0x3C, &aux8);
++        gprintk("* Interrupt Line        :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x3D, &aux8);
++        gprintk("* Interrupt Pin         :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x3E, &aux8);
++        gprintk("* Minimum Grant         :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x3F, &aux8);
++        gprintk("* Maximum Latency       :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x40, &aux8);
++        gprintk("* Retry Count           :  0x%02X       *\n", aux8);
++        pci_read_config_byte(dev, 0x41, &aux8);
++        gprintk("* TRDY Timeout          :  0x%02X       *\n", aux8);
++        gprintk("****************************\n");
++    }
++#endif
++
+     /* Prevent compiler warning */
+     if (ctrl == NULL) {
+         return 0;
+     }
+ 
+     ctrl->be_pio = 0;
+@@ -3704,25 +3803,28 @@ _init(void)
+         }
+     }
+ 
+     if (himem) {
+         if ((himem[0] & ~0x20) == 'Y' || himem[0] == '1') {
+             _use_himem = 1;
++            gprintk("LTX: Using himem dma allocation\n");
+         } else if ((himem[0] & ~0x20) == 'N' || himem[0] == '0') {
+             _use_himem = 0;
++            gprintk("LTX: NOT Using himem dma allocation\n");
+         }
+     }
+ 
+     if (_dma_mem_size) {
+         _alloc_mpool(_dma_mem_size);
+         if (_dma_vbase == NULL) {
+             gprintk("no DMA memory available\n");
+         }
+         else {
+             mpool_init();
+             _dma_pool = mpool_create(_dma_vbase, _dma_mem_size);
++            gprintk("Allocated %d bytes for DMA memory\n", _dma_mem_size);  /* PTin added */
+         }
+     }
+ 
+     /*
+      * In order to be backward compatible with the user mode BDE
+      * (specifically the interrupt IOCTLs) and the CM, switch devices
+@@ -4250,12 +4352,21 @@ _interrupt_connect(int d,
+ {
+     bde_ctrl_t *ctrl;
+     unsigned long irq_flags;
+     int isr2_dev;
+     int isr_active;
+ 
++    /* PTin added: Kernel */
++#ifndef __arm__
++    struct device_node *np = NULL;
++    unsigned int eirq;
++#endif
++
++    gprintk("Setting IRQ...\n");
++    /* PTin end */
++
+     isr2_dev = d & LKBDE_ISR2_DEV;
+     d &= ~LKBDE_ISR2_DEV;
+ 
+     if (!VALID_DEVICE(d)) {
+         gprintk("_interrupt_connect: Invalid device index %d\n", d);
+         return -1;
+@@ -4292,18 +4403,42 @@ _interrupt_connect(int d,
+         if (isr_active) {
+             /* Main handler (_isr) already installed */
+             return 0;
+         }
+     }
+ 
++    /* PTin added: Kernel */
++#ifndef __arm__
++    np = of_find_compatible_node(NULL, NULL, "bcm,fastpath-pci");
++    if (np == NULL){
++      gprintk ("LMP - Nao apanhei nenhum no' da devtree\n\r");
++      return -1;
++    }
++    eirq = irq_of_parse_and_map(np, 0);
++    if (eirq == NO_IRQ)
++    {
++      gprintk ("LMP - Nao apanhei nenhum irq devtree\n\r");
++      return -1;
++    }
++    ctrl->iLine = eirq;
++#endif
++
++    gprintk("irq to be used: %d\n",ctrl->iLine);
++    /* PTin end */
++
+     if (ctrl->iLine != -1) {
+         irq_flags = IRQF_SHARED;
+ #if defined(CONFIG_PCI_MSI)
++        gprintk ("LTX: Trying to enable MSI\n");
+         if (ctrl->use_msi && pci_enable_msi(ctrl->pci_device) == 0) {
+             irq_flags = 0;
+             ctrl->iLine = ctrl->pci_device->irq;
++            gprintk ("LTX: Success enabling MSI\n");
++        }
++        else {
++           gprintk ("LTX: MSI not enabled\n");
+         }
+ #endif
+         if (request_irq(ctrl->iLine,
+                        _isr,
+                        irq_flags,
+                        LINUX_KERNEL_BDE_NAME,
+@@ -4319,12 +4454,13 @@ _interrupt_connect(int d,
+             if (ctrl->use_msi && irq_flags == 0) {
+                 pci_disable_msi(ctrl->pci_device);
+             }
+ #endif
+             return -1;
+         }
++        gprintk("Success requesting irq %d\n", ctrl->iLine);
+     }
+ 
+     return 0;
+ }
+ 
+ static int
+Binary files sdk-all-6.4.8/systems/vxworks/bmw/mpc824x/tffs/libTFFS54.a and sdk-all-6.4.8_modified/systems/vxworks/bmw/mpc824x/tffs/libTFFS54.a differ
+Binary files sdk-all-6.4.8/systems/vxworks/bmw/mpc824x/tffs/libTFFS55.a and sdk-all-6.4.8_modified/systems/vxworks/bmw/mpc824x/tffs/libTFFS55.a differ
+Binary files sdk-all-6.4.8/systems/vxworks/bmw/mpc824x/tffs/libTFFS62.a and sdk-all-6.4.8_modified/systems/vxworks/bmw/mpc824x/tffs/libTFFS62.a differ
+Binary files sdk-all-6.4.8/systems/vxworks/bmw/mpc824x/tffs/libTFFS.a and sdk-all-6.4.8_modified/systems/vxworks/bmw/mpc824x/tffs/libTFFS.a differ
+Binary files sdk-all-6.4.8/systems/vxworks/jag/bcm4704/tffs/libTFFS54.a and sdk-all-6.4.8_modified/systems/vxworks/jag/bcm4704/tffs/libTFFS54.a differ
+Binary files sdk-all-6.4.8/systems/vxworks/jag/bcm4704/tffs/libTFFS54le.a and sdk-all-6.4.8_modified/systems/vxworks/jag/bcm4704/tffs/libTFFS54le.a differ
+Binary files sdk-all-6.4.8/systems/vxworks/jag/bcm4704/tffs/libTFFS55.a and sdk-all-6.4.8_modified/systems/vxworks/jag/bcm4704/tffs/libTFFS55.a differ
+Binary files sdk-all-6.4.8/systems/vxworks/jag/bcm4704/tffs/libTFFS55le.a and sdk-all-6.4.8_modified/systems/vxworks/jag/bcm4704/tffs/libTFFS55le.a differ
+Binary files sdk-all-6.4.8/systems/vxworks/jag/bcm4704/tffs/libTFFS.a and sdk-all-6.4.8_modified/systems/vxworks/jag/bcm4704/tffs/libTFFS.a differ
+Binary files sdk-all-6.4.8/systems/vxworks/keystone/bcm53000/vxworks-5.5/libkeystonebe.a and sdk-all-6.4.8_modified/systems/vxworks/keystone/bcm53000/vxworks-5.5/libkeystonebe.a differ
+Binary files sdk-all-6.4.8/systems/vxworks/keystone/bcm53000/vxworks-5.5/libkeystonele.a and sdk-all-6.4.8_modified/systems/vxworks/keystone/bcm53000/vxworks-5.5/libkeystonele.a differ
+Binary files sdk-all-6.4.8/systems/vxworks/metrocore/vxworks5x/bcm1125/libBcm1250HwPrivate.a and sdk-all-6.4.8_modified/systems/vxworks/metrocore/vxworks5x/bcm1125/libBcm1250HwPrivate.a differ
+Binary files sdk-all-6.4.8/systems/vxworks/nsx/vxworks5x/bcm1125/libBcm1250HwPrivate.a and sdk-all-6.4.8_modified/systems/vxworks/nsx/vxworks5x/bcm1125/libBcm1250HwPrivate.a differ
+Binary files sdk-all-6.4.8/systems/vxworks/nsx/vxworks5x/bcm1125/libdes.a and sdk-all-6.4.8_modified/systems/vxworks/nsx/vxworks5x/bcm1125/libdes.a differ
