@@ -1,0 +1,75 @@
+menu "Broadcom iProc Drivers"
+	depends on ARCH_IPROC
+
+#source "../../bcmdrivers/regmod/Kconfig"
+source "../../bcmdrivers/timer/Kconfig"
+source "../../bcmdrivers/otp/Kconfig"
+source "../../bcmdrivers/rng/Kconfig"
+source "../../bcmdrivers/rng200/Kconfig"
+source "../../bcmdrivers/mdio/Kconfig"
+source "../../bcmdrivers/gsio_spi/Kconfig"
+source "../../bcmdrivers/sd/Kconfig"
+source "../../bcmdrivers/dma/Kconfig"
+source "../../bcmdrivers/gpio/Kconfig"
+source "../../bcmdrivers/qspi/Kconfig"
+source "../../bcmdrivers/nand/Kconfig"
+source "../../bcmdrivers/kdrivers/nor/Kconfig"
+source "../../bcmdrivers/pwm/Kconfig"
+source "../../bcmdrivers/wdt/Kconfig"
+source "../../bcmdrivers/usb2h/Kconfig"
+source "../../bcmdrivers/usb3h/Kconfig"
+source "../../bcmdrivers/usbd/Kconfig"
+source "../../bcmdrivers/pcie/Kconfig"
+source "../../bcmdrivers/gmac/et/Kconfig"
+source "../../bcmdrivers/gmac/hnd/Kconfig"
+source "../../bcmdrivers/sound/Kconfig"
+source "../../bcmdrivers/smbus/Kconfig"
+source "../../bcmdrivers/sra/Kconfig"
+source "../../bcmdrivers/broadcom/char/fa/Kconfig"
+source "../../bcmdrivers/tdm/Kconfig"
+source "../../bcmdrivers/fa2/Kconfig"
+source "../../bcmdrivers/crypto/Kconfig"
+source "../../bcmdrivers/xor/Kconfig"
+source "../../bcmdrivers/kdrivers/pppoe/Kconfig"
+source "../../bcmdrivers/pmu/Kconfig"
+
+config BCM_IPROC_CA9_PREFETCH
+	tristate "CortexA9 cache auto-prefetching support"
+	depends on ARCH_IPROC
+	default n
+	help
+	  Enable iProc CortexA9 L1/L2 cache auto-prefetching support
+	
+	  If unsure, say N.
+
+config BCM_BARRIER_PERFORMANCE
+	bool "Linux memory barrier performance improvement"
+	depends on ARCH_IPROC
+	default n
+	help
+	  Enable linux memory barrier performance improvements
+	
+	  If unsure, say N.
+
+config BCM_MEM_OPTIMIZATION
+	bool "ARM Memory library optimization"
+	depends on ARCH_IPROC
+	default n
+	help
+	  Enable ARM memory library optimization
+	
+	  If unsure, say N.
+
+### pae
+source "../../bcmdrivers/pae/paemsg/Kconfig"
+source "../../bcmdrivers/pae/ipsec/Kconfig"
+
+### kdrivers
+##  kdrivers/nor integrated at ../kernel/linux-3.6.5/drivers/mtd/Makefile
+##  CFI driver required to be integrated before the bsp file builds
+
+### hook for gpl driver master file
+source "../../bcmgpldrivers/Kconfig"
+### hook for partner driver master file
+#source "../../bcmpartnerdrivers/Kconfig"
+endmenu
