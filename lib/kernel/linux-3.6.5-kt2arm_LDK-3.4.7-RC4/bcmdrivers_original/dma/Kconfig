@@ -1,0 +1,15 @@
+config IPROC_DMA
+	tristate "DMA support"
+	depends on ARCH_IPROC
+	select DMADEVICES
+	select DMADEVICES_DEBUG
+	select DMADEVICES_VDEBUG
+	select DMA_ENGINE
+	select PL330
+	select DMAC_PL330
+	select DMATEST
+	default n
+	help
+	  DMA support for pl330
+	
+	  If unsure, say N.
