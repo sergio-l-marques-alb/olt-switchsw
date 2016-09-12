@@ -114,7 +114,7 @@ static L7_uint32 map_intIfNum2port[L7_MAX_INTERFACE_COUNT];
                                
 
 /*Data structure with groups information*/
-static ptin_NGPON2_groups_t NGPON2_groups_info[PTIN_SYSTEM_MAX_NGPON2_GROUPS];
+//static ptin_NGPON2_groups_t NGPON2_groups_info[PTIN_SYSTEM_MAX_NGPON2_GROUPS];
 
 /**************************************/
 
@@ -1526,18 +1526,21 @@ L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
   L7_INTF_TYPES_t intf_type;
   L7_RC_t rc, rc_global;
 
+
   /* Validate arguments */
   if (intf == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Null pointer");
     return L7_FAILURE;
   }
+
   /* If already in ALL format, there is nothing to do */
   if (intf->format == PTIN_INTF_FORMAT_ALL)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Format is already ALL type");
     return L7_SUCCESS;
   }
+
 
   intIfNum  = 0;
   ptin_port = (L7_uint32)-1;
@@ -8056,7 +8059,16 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
   return L7_SUCCESS;
 }
 
+L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_index)
+{
 
+  group_info->admin                   = NGPON2_groups_info[group_index].admin;
+  group_info->groupId                 = NGPON2_groups_info[group_index].groupId;
+  group_info->nports                  = NGPON2_groups_info[group_index].nports;
+  group_info->ngpon2_groups_pbmp64    = NGPON2_groups_info[group_index].ngpon2_groups_pbmp64;
+
+  return L7_SUCCESS;
+}
 
 
 #if 0

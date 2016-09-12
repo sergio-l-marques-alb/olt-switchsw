@@ -2553,6 +2553,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
 
   evc_ext_id = evcConf->index;
 
+
   /* Validate extended EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
@@ -2568,6 +2569,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   {
     PT_LOG_TRACE(LOG_CTX_EVC, "Configuring eEVC# %u (new index)...", evc_ext_id);
   }
+
 
   /* Expand interface formats */
   for (i=0; i<evcConf->n_intf; i++)
@@ -2631,6 +2633,7 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   root_port1 = root_port2 = leaf_port1 = -1;
   for (i=0; i<evcConf->n_intf; i++)
   {
+
     /* Convert Phy/Lag# into PTin Intf index */
     ptin_port = evcConf->intf[i].intf.value.ptin_port;
 
@@ -5146,10 +5149,13 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     return L7_FAILURE;
   }
 
-  if (evcFlow->ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
-    leaf_port = evcFlow->ptin_intf.intf_id;
-  else
-    leaf_port = evcFlow->ptin_intf.intf_id + PTIN_SYSTEM_N_PORTS;
+  /* Determine leaf ptin_intf */
+
+    if (evcFlow->ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
+      leaf_port = evcFlow->ptin_intf.intf_id;
+    else
+      leaf_port = evcFlow->ptin_intf.intf_id + PTIN_SYSTEM_N_PORTS;
+ 
 
   /* Validate leaf interface (from received message) */
   if ((leaf_port >= PTIN_SYSTEM_N_INTERF) ||
@@ -8797,6 +8803,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
   }
 
   /* Convert Phy/Lag# into PTin Intf index */
+
   ptin_port = intf_cfg->intf.value.ptin_port;
   intIfNum  = intf_cfg->intf.value.intIfNum;
 
