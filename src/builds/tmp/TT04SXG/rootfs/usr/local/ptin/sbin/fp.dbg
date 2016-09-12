@@ -1,0 +1,2 @@
+echo "Redirecting console to $1"
+fp.cli m 1000 $1
