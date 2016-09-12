@@ -58,7 +58,7 @@ all:
 	@$(MAKE) -f tg16gf.make
 	@$(MAKE) -f olt1t0.make
 	@$(MAKE) -f olt1t0f.make
-
+	@$(MAKE) -f tt04sxg.make
 install:
 	@$(MAKE) -f cxo640g.make install
 	@$(MAKE) -f cxo160g.make install
@@ -67,6 +67,7 @@ install:
 	@$(MAKE) -f tg16gf.make install
 	@$(MAKE) -f olt1t0.make install
 	@$(MAKE) -f olt1t0f.make install
+	@$(MAKE) -f tt04sxg.make install
 
 clean:
 	@$(MAKE) -f cxo640g.make clean
@@ -76,6 +77,7 @@ clean:
 	@$(MAKE) -f tg16gf.make clean
 	@$(MAKE) -f olt1t0.make clean
 	@$(MAKE) -f olt1t0f.make clean
+	@$(MAKE) -f tt04sxg.make clean
 
 cleanall:
 	@$(MAKE) -f cxo640g.make cleanall
@@ -85,6 +87,7 @@ cleanall:
 	@$(MAKE) -f tg16gf.make cleanall
 	@$(MAKE) -f olt1t0.make cleanall
 	@$(MAKE) -f olt1t0f.make cleanall
+	@$(MAKE) -f tt04sxg.make cleanall
 
 image:		install
 		cd $(IMAGE_DIR) && ./fastpath-olt.build $(version)
