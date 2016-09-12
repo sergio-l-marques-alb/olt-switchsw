@@ -47,14 +47,14 @@ KERNEL_VER=2_6
 SDK = $(CURDIR)
 export SDK
 
-export TOOLCHAIN_BASE_DIR = /opt/broadcom_kt/usr
+export TOOLCHAIN_BASE_DIR = /opt/broadcom_kt2_hx4/usr
 #/home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/host/usr
 #/home/devtools/dev-bcm-ldk/3.4.9-RC5/buildroot-2013.11-gcc48-opt-broadcom/host/usr
 export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 
 export COMPILER           = $(TOOLCHAIN_BIN_DIR)/arm-linux-
-export KERNEL_PATH        = /home/devtools/dev-ARM/ldk_3.4.7-RC4_target_olt1t0f_tg16f/iproc/kernel/linux-3.6.5
+export KERNEL_PATH        = /home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.6.5-kt2arm_LDK-3.4.7-RC4
 #/home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.6.5-arm
 export KERNDIR = $(KERNEL_PATH)
 
