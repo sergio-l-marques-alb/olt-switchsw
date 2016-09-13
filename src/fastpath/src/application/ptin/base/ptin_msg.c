@@ -5606,6 +5606,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   L7_uint8 index_port = 0;
   L7_uint8 shift_index = 0;
   L7_uint8 ports_ngpon2 = 0;
+  L7_BOOL  ngpon2_ports = L7_FALSE;
 
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
@@ -5623,10 +5624,13 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   ptinEvcConf.mc_flood = ENDIAN_SWAP8 (msgEvcConf->evc.mc_flood);
   //memcpy(ptinEvcConf.ce_vid_bmp, msgEvcConf->evc.ce_vid_bmp, sizeof(ptinEvcConf.ce_vid_bmp));
 
+
   PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u",              ptinEvcConf.index);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Type     = %u",      ptinEvcConf.type);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .MC Flood = %u (%s)", ptinEvcConf.mc_flood, ptinEvcConf.mc_flood==0?"All":ptinEvcConf.mc_flood==1?"Unknown":"None");
+
+
 
   #ifdef PTIN_ENABLE_ERPS
   if( (flags & PTIN_EVC_MASK_MC_IPTV) && ptin_erps_get_status_void(1) == 1)
@@ -5661,7 +5665,9 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     {
       // NGPON2
 
-      get_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id - 1);
+      ngpon2_ports = L7_TRUE;
+
+      get_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);
 
       while (j < NGPON2_GROUP.nports)
       {
@@ -5714,8 +5720,16 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
   }
 
-  ptinEvcConf.n_intf   = ENDIAN_SWAP8 (msgEvcConf->evc.n_intf + (ports_ngpon2 - 1));
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.Intf  = %u",      ptinEvcConf.n_intf);
+  if (ngpon2_ports == L7_TRUE)
+  {
+    ptinEvcConf.n_intf   = ENDIAN_SWAP8 (msgEvcConf->evc.n_intf + (ports_ngpon2 - 1));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.Intf  = %u",      ptinEvcConf.n_intf);
+  }
+  else
+  {
+    ptinEvcConf.n_intf   = ENDIAN_SWAP8 (msgEvcConf->evc.n_intf);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.Intf  = %u",      ptinEvcConf.n_intf);
+  }
 
   if (ptin_evc_create(&ptinEvcConf) != L7_SUCCESS)
   {
