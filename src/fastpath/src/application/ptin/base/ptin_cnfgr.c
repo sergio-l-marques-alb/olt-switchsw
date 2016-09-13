@@ -38,6 +38,8 @@
 #include "ptin_rfc2819.h"
 #include "ptin_ipdtl0_packet.h"
 #include "ptin_acl.h"
+#include "ptin_opensaf_checkpoint.h"
+#include "ptin_opensaf.h"
 #include <ptin_prot_oam_eth.h>
 #include <ptin_oam_packet.h>
 
@@ -587,6 +589,12 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
 
   /* Initialize rfc2819 monitoring (includes structures and tasks) */
   ptin_rfc2819_init();
+
+  /* Initialize NGPON2 opensaf data structures */
+#if (PTIN_BOARD != PTIN_BOARD_OLT1T0)
+  ptin_opensaf_init();
+  ptin_opensaf_event_task_init();
+#endif
 
   ptinCnfgrState = PTIN_PHASE_INIT_2;
 

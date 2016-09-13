@@ -4,6 +4,9 @@
 #include "datatypes.h"
 #include "ptin_structs.h"
 
+#define MAC_SIZE_BYTES 6
+#define ADD_MAC        1
+#define REMOVE_MAC     0
 /**
  * Manage L2 earning events
  * 

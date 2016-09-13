@@ -6,6 +6,8 @@
 #include "nimapi.h"
 #include "logger.h"
 #include "usmdb_mib_bridge_api.h"
+#include "ptin_opensaf_checkpoint.h"
+
 
 static L7_uint32              mac_table_entries=0;
 static ptin_switch_mac_entry  mac_table[PLAT_MAX_FDB_MAC_ENTRIES];
@@ -25,7 +27,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
                             L7_uint32 vlanId, L7_uchar8 msgsType)
 {
   L7_INTF_TYPES_t   intf_type;
-
+  
   PT_LOG_TRACE(LOG_CTX_L2, "Learning event received: %u", msgsType);
 
   /* NULL MACs are not considered */
@@ -51,6 +53,38 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
     PT_LOG_ERR(LOG_CTX_L2, "Unknown intIfNum type: %u", intIfNum);
     return L7_FAILURE;
   }
+
+  #if (PTIN_BOARD != PTIN_BOARD_OLT1T0)
+  /* virtual ports (NGPON2) */
+  L7_uint32         position = 0;
+
+  if (msgsType == 1) /* Write a new MAC in a opensaf checkpoint */
+  {
+    PT_LOG_TRACE(LOG_CTX_L2, "Msgtype %d", msgsType);
+    ptin_opensaf_find_free_element(&position, 1 /*onuID / section */, 1 /* checkpoint id */);
+
+    PT_LOG_TRACE(LOG_CTX_L2, "Data position to write %d", position);
+
+    /* find NGPON2 Group*/
+    ptin_opensaf_write_checkpoint(macAddr, MAC_SIZE_BYTES, 1/*vp_entry.onu*/ , position, 1, ADD_MAC);
+  }
+  else /* Remove MAC from opensaf checkpoint (fill with 0's) */
+  {
+    L7_uchar8 macAddr_aux[MAC_SIZE_BYTES] ="";
+    
+    PT_LOG_WARN(LOG_CTX_L2, "Msgtype %d", msgsType);
+
+    if(ptin_checkpoint_findDatainSection(1, 1 /*onu*/, macAddr, MAC_SIZE_BYTES, &position) == 0) /* Find if the MAC is in opensaf and get is position in the section*/
+    {
+      /* find NGPON2 Group*/
+      ptin_opensaf_write_checkpoint(macAddr_aux, MAC_SIZE_BYTES, 1/*vp_entry.onu*/, position, 1, REMOVE_MAC);
+    }
+    else
+    {
+      PT_LOG_WARN(LOG_CTX_L2, "MAC not present in opensaf ");
+    }
+  }
+  #endif
 
   /* This routine only applies to virtual ports */
   if (intf_type != L7_VLAN_PORT_INTF)
@@ -78,6 +112,9 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
     PT_LOG_WARN(LOG_CTX_L2, "Virtual port 0x%08x does not exist!", virtual_port);
     return L7_FAILURE;
   }
+
+  //vp_entry.onu;
+
 
   /* If no policer associated, there is nothing to be done! */
   if (!vp_entry.policer.in_use || vp_entry.policer.meter.cir == (L7_uint32)-1)
