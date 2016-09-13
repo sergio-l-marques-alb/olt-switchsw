@@ -425,155 +425,155 @@ L7_RC_t hpcConfigBoardSet()
 #endif
         break;
 
-    /* PTin added: new switch 56340 (Helix4) */
-    case UNIT_BROAD_48_GIG_4_TENGIG_56340_REV_1_ID:
-      /* Enable trunk_128 bit. This will enable 128 trunks */
-      /* and fixes LAG issue on XGS3 stacking              */
-      if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0)
-        return(L7_FAILURE);
-
-      /* Configure to use LCPLL reference clock */
-      if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0)
-        return(L7_FAILURE);
-
-      /* PCI device ID override: when switch id is uncorrectly identified as 0xb34f */
-      if (sal_config_set(spn_PCI_OVERRIDE_DEV, "0xb340") != 0)
-        return(L7_FAILURE);
-
-      /* Enable 12xF.QSGMII + 2xFlex[4x10] + 1GE mode for BCM56340 */
-      if (sal_config_set(spn_BCM56340_2X10, "1") != 0)
-        return(L7_FAILURE);
-
-      /*
-       * On 568xx devices, the XPORT block defaults to XE ports.  Uncomment the
-       * following line to change all ports to HG ports.  A specific bitmap
-       * may be provided to select some XE and some HG ports, with the set
-       * bits initialized to HG ports.  Note that HG and XE ports may be
-       * exchanged through the bcm_port_encap_set API.
-       */
-      if (sal_config_set(spn_PBMP_XPORT_XE, "0x3fc000000000000") != 0)
-        return(L7_FAILURE);
-
-      /* 1G ports */
-      for (idx = 33; idx <= 45; idx+=4)
-      {
-        /* Configurations for 1000 BASE-X mode */
-        sprintf(param_name, spn_SERDES_AUTOMEDIUM"_%u", idx);
-        sprintf(param_value, "%u", 0);
-        PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
-        if (sal_config_set(param_name, param_value) != 0)
+      /* PTin added: new switch 56340 (Helix4) */
+      case UNIT_BROAD_48_GIG_4_TENGIG_56340_REV_1_ID:
+        /* Enable trunk_128 bit. This will enable 128 trunks */
+        /* and fixes LAG issue on XGS3 stacking              */
+        if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0)
           return(L7_FAILURE);
 
-        sprintf(param_name, spn_SERDES_FIBER_PREF"_%u", idx);
-        sprintf(param_value, "%u", 1);
-        PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
-        if (sal_config_set(param_name, param_value) != 0)
-          return(L7_FAILURE);
-      }
-      /* 10G ports */
-      for (idx = 50; idx <= 53; idx++)
-      {
-        /* Configurations for 10G SFI mode */
-        sprintf(param_name, spn_SERDES_AUTOMEDIUM"_%u", idx);
-        sprintf(param_value, "%u", 0);
-        PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
-        if (sal_config_set(param_name, param_value) != 0)
+        /* Configure to use LCPLL reference clock */
+        if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0)
           return(L7_FAILURE);
 
-        sprintf(param_name, spn_SERDES_FIBER_PREF"_%u", idx);
-        sprintf(param_value, "%u", 1);
-        PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
-        if (sal_config_set(param_name, param_value) != 0)
+        /* PCI device ID override: when switch id is uncorrectly identified as 0xb34f */
+        if (sal_config_set(spn_PCI_OVERRIDE_DEV, "0xb340") != 0)
           return(L7_FAILURE);
 
-        sprintf(param_name, spn_SERDES_IF_TYPE"_%u", idx);
-        sprintf(param_value, "%u", SOC_PORT_IF_SFI);
-        PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
-        if (sal_config_set(param_name, param_value) != 0)
-          return(L7_FAILURE);
-      }
-      /* SGMII ports */
-      for (idx = 54; idx <= 57; idx++)
-      {
-        /* Configurations for 10G SFI mode */
-        sprintf(param_name, spn_SERDES_AUTOMEDIUM"_%u", idx);
-        sprintf(param_value, "%u", 0);
-        PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
-        if (sal_config_set(param_name, param_value) != 0)
+        /* Enable 12xF.QSGMII + 2xFlex[4x10] + 1GE mode for BCM56340 */
+        if (sal_config_set(spn_BCM56340_2X10, "1") != 0)
           return(L7_FAILURE);
 
-        sprintf(param_name, spn_SERDES_FIBER_PREF"_%u", idx);
-        sprintf(param_value, "%u", 0);
-        PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
-        if (sal_config_set(param_name, param_value) != 0)
+        /*
+         * On 568xx devices, the XPORT block defaults to XE ports.  Uncomment the
+         * following line to change all ports to HG ports.  A specific bitmap
+         * may be provided to select some XE and some HG ports, with the set
+         * bits initialized to HG ports.  Note that HG and XE ports may be
+         * exchanged through the bcm_port_encap_set API.
+         */
+        if (sal_config_set(spn_PBMP_XPORT_XE, "0x3fc000000000000") != 0)
           return(L7_FAILURE);
 
-        sprintf(param_name, spn_SERDES_IF_TYPE"_%u", idx);
-        sprintf(param_value, "%u", SOC_PORT_IF_SGMII);
-        PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
-        if (sal_config_set(param_name, param_value) != 0)
+        /* 1G ports */
+        for (idx = 33; idx <= 45; idx+=4)
+        {
+          /* Configurations for 1000 BASE-X mode */
+          sprintf(param_name, spn_SERDES_AUTOMEDIUM"_%u", idx);
+          sprintf(param_value, "%u", 0);
+          PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+          if (sal_config_set(param_name, param_value) != 0)
+            return(L7_FAILURE);
+
+          sprintf(param_name, spn_SERDES_FIBER_PREF"_%u", idx);
+          sprintf(param_value, "%u", 1);
+          PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+          if (sal_config_set(param_name, param_value) != 0)
+            return(L7_FAILURE);
+        }
+        /* 10G ports */
+        for (idx = 50; idx <= 53; idx++)
+        {
+          /* Configurations for 10G SFI mode */
+          sprintf(param_name, spn_SERDES_AUTOMEDIUM"_%u", idx);
+          sprintf(param_value, "%u", 0);
+          PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+          if (sal_config_set(param_name, param_value) != 0)
+            return(L7_FAILURE);
+
+          sprintf(param_name, spn_SERDES_FIBER_PREF"_%u", idx);
+          sprintf(param_value, "%u", 1);
+          PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+          if (sal_config_set(param_name, param_value) != 0)
+            return(L7_FAILURE);
+
+          sprintf(param_name, spn_SERDES_IF_TYPE"_%u", idx);
+          sprintf(param_value, "%u", SOC_PORT_IF_SFI);
+          PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+          if (sal_config_set(param_name, param_value) != 0)
+            return(L7_FAILURE);
+        }
+        /* SGMII ports */
+        for (idx = 54; idx <= 57; idx++)
+        {
+          /* Configurations for 10G SFI mode */
+          sprintf(param_name, spn_SERDES_AUTOMEDIUM"_%u", idx);
+          sprintf(param_value, "%u", 0);
+          PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+          if (sal_config_set(param_name, param_value) != 0)
+            return(L7_FAILURE);
+
+          sprintf(param_name, spn_SERDES_FIBER_PREF"_%u", idx);
+          sprintf(param_value, "%u", 0);
+          PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+          if (sal_config_set(param_name, param_value) != 0)
+            return(L7_FAILURE);
+
+          sprintf(param_name, spn_SERDES_IF_TYPE"_%u", idx);
+          sprintf(param_value, "%u", SOC_PORT_IF_SGMII);
+          PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", idx, param_name, param_value);
+          if (sal_config_set(param_name, param_value) != 0)
+            return(L7_FAILURE);
+        }
+
+        /* Configuring GS port (ge48/49) */
+        /* Disable signal auto-detection between SGMII and fiber
+         *  Note this only works when auto-negotiation is enabled. */
+        if (sal_config_set(spn_SERDES_AUTOMEDIUM"_49", "0") != 0)
           return(L7_FAILURE);
-      }
+        /* Manually select SGMII (when auto-detection is off) */
+        if (sal_config_set(spn_SERDES_FIBER_PREF"_49", "0") != 0)
+          return(L7_FAILURE);
 
-      /* Configuring GS port (ge48/49) */
-      /* Disable signal auto-detection between SGMII and fiber
-       *  Note this only works when auto-negotiation is enabled. */
-      if (sal_config_set(spn_SERDES_AUTOMEDIUM"_49", "0") != 0)
-        return(L7_FAILURE);
-      /* Manually select SGMII (when auto-detection is off) */
-      if (sal_config_set(spn_SERDES_FIBER_PREF"_49", "0") != 0)
-        return(L7_FAILURE);
+        /* Specifies the number of lanes used by each port in the flex port group.
+         * portgroup_<port group>=<number of lanes>.
+         * Applicable to BCM566xx and BCM565xx device family */
+        if (sal_config_set(spn_PORTGROUP"_0", "4") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_PORTGROUP"_1", "4") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_PORTGROUP"_2", "4") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_PORTGROUP"_3", "4") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_PORTGROUP"_4", "4") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_PORTGROUP"_5", "4") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_PORTGROUP"_6", "4") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_PORTGROUP"_7", "4") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_PORTGROUP"_8", "4") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_PORTGROUP"_9", "4") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_PORTGROUP"_10", "4") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_PORTGROUP"_11", "4") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_PORTGROUP"_12", "1") != 0)   /* WC0: 10G ports */
+          return(L7_FAILURE);
+        if (sal_config_set(spn_PORTGROUP"_13", "1") != 0)   /* WC1: 1G ports */
+          return(L7_FAILURE);
 
-      /* Specifies the number of lanes used by each port in the flex port group.
-       * portgroup_<port group>=<number of lanes>.
-       * Applicable to BCM566xx and BCM565xx device family */
-      if (sal_config_set(spn_PORTGROUP"_0", "4") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_PORTGROUP"_1", "4") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_PORTGROUP"_2", "4") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_PORTGROUP"_3", "4") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_PORTGROUP"_4", "4") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_PORTGROUP"_5", "4") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_PORTGROUP"_6", "4") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_PORTGROUP"_7", "4") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_PORTGROUP"_8", "4") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_PORTGROUP"_9", "4") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_PORTGROUP"_10", "4") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_PORTGROUP"_11", "4") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_PORTGROUP"_12", "1") != 0)   /* WC0: 10G ports */
-        return(L7_FAILURE);
-      if (sal_config_set(spn_PORTGROUP"_13", "1") != 0)   /* WC1: 1G ports */
-        return(L7_FAILURE);
+        /* Configure mmu lossy mode */
+        if (sal_config_set(spn_MMU_LOSSLESS, "0") != 0)
+          return(L7_FAILURE);
 
-      /* Configure mmu lossy mode */
-      if (sal_config_set(spn_MMU_LOSSLESS, "0") != 0)
-        return(L7_FAILURE);
-
-      #if 1
-      /* L2 table */
-      if (sal_config_set(spn_L2_MEM_ENTRIES, "32768") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_L3_MEM_ENTRIES, "1024") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_MPLS_MEM_ENTRIES, "1024") != 0)
-        return(L7_FAILURE);
-      /* Translation entries */
-      if (sal_config_set(spn_VLAN_XLATE_MEM_ENTRIES, "8192") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_EGR_VLAN_XLATE_MEM_ENTRIES, "8192") != 0)
-        return(L7_FAILURE);
-      #endif
+        #if 1
+        /* L2 table */
+        if (sal_config_set(spn_L2_MEM_ENTRIES, "32768") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_L3_MEM_ENTRIES, "1024") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_MPLS_MEM_ENTRIES, "1024") != 0)
+          return(L7_FAILURE);
+        /* Translation entries */
+        if (sal_config_set(spn_VLAN_XLATE_MEM_ENTRIES, "8192") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_EGR_VLAN_XLATE_MEM_ENTRIES, "8192") != 0)
+          return(L7_FAILURE);
+        #endif
       
 #ifdef L7_STACKING_PACKAGE
         /* On Stacking packages, restrict FDB size to 16K MAX for FB2. */
@@ -581,62 +581,66 @@ L7_RC_t hpcConfigBoardSet()
           return(L7_FAILURE);
 #endif
 
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Helix4 ready to be started!");
-      break;
+        PT_LOG_TRACE(LOG_CTX_STARTUP,"Helix4 ready to be started!");
+        break;
 
-    /* PTin added: new switch 56450 (Katana2) */
-    case UNIT_BROAD_48_GIG_4_TENGIG_56450_REV_1_ID:
-      /* Enable trunk_128 bit. This will enable 128 trunks */
-      /* and fixes LAG issue on XGS3 stacking              */
-      if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0)
-        return(L7_FAILURE);
+      /* PTin added: new switch 56450 (Katana2) */
+      case UNIT_BROAD_48_GIG_4_TENGIG_56450_REV_1_ID:
+        /* Enable trunk_128 bit. This will enable 128 trunks */
+        /* and fixes LAG issue on XGS3 stacking              */
+        if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0)
+          return(L7_FAILURE);
 
-      /* Configure to use LCPLL reference clock */
-      if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0)
-        return(L7_FAILURE);
+        /* Configure to use LCPLL reference clock */
+        if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0)
+          return(L7_FAILURE);
 
-      /* Enable Mode 5 for BCM56450 */
-      if (sal_config_set(spn_BCM5645X_CONFIG, "5") != 0)
-        return(L7_FAILURE);
+        /* Enable Mode 5 for BCM56450 */
+        if (sal_config_set(spn_BCM5645X_CONFIG, "5") != 0)
+          return(L7_FAILURE);
 
-      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_1", "0x3210") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_5", "0x3210") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_9", "0x3210") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_13", "0x3210") != 0)
-        return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_RX_LANE_MAP"_1", "0x3210") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_RX_LANE_MAP"_5", "0x3210") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_RX_LANE_MAP"_9", "0x3210") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_XGXS_RX_LANE_MAP"_13", "0x3210") != 0)
+          return(L7_FAILURE);
 
-      /* External memory configuration */
-      if (sal_config_set(spn_PBMP_EXT_MEM, "0x1fffffe") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_DDR3_PLL_MHZ, "914") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_DDR3_CLOCK_MHZ, "933") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_EXT_RAM_ROWS, "16384") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_DDR3_AUTO_TUNE, "1") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_DDR3_MEM_GRADE, "0x131313") != 0)
-        return(L7_FAILURE);
-      if (sal_config_set(spn_EXT_RAM_PRESENT, "6") != 0)
-        return(L7_FAILURE);
+        /* External memory configuration */
+        if (sal_config_set(spn_PBMP_EXT_MEM, "0x1fffffe") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_DDR3_PLL_MHZ, "914") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_DDR3_CLOCK_MHZ, "933") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_EXT_RAM_ROWS, "16384") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_DDR3_AUTO_TUNE, "1") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_DDR3_MEM_GRADE, "0x131313") != 0)
+          return(L7_FAILURE);
+        if (sal_config_set(spn_EXT_RAM_PRESENT, "6") != 0)
+          return(L7_FAILURE);
 
-      /*
-       * On 568xx devices, the XPORT block defaults to XE ports.  Uncomment the
-       * following line to change all ports to HG ports.  A specific bitmap
-       * may be provided to select some XE and some HG ports, with the set
-       * bits initialized to HG ports.  Note that HG and XE ports may be
-       * exchanged through the bcm_port_encap_set API.
-       */
-      /* XE ports are bcm_port 9, 25(32), 27, 33 and 36(34) */
-      if (sal_config_set(spn_PBMP_XPORT_XE, "0x120A000000") != 0)
-        return(L7_FAILURE);
+        /* Configure mmu lossy mode */
+        if (sal_config_set(spn_MMU_LOSSLESS, "0") != 0)
+          return(L7_FAILURE);
 
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"Katana2 ready to be started!");
-      break;
+        /*
+         * On 568xx devices, the XPORT block defaults to XE ports.  Uncomment the
+         * following line to change all ports to HG ports.  A specific bitmap
+         * may be provided to select some XE and some HG ports, with the set
+         * bits initialized to HG ports.  Note that HG and XE ports may be
+         * exchanged through the bcm_port_encap_set API.
+         */
+        /* XE ports are bcm_port 9, 25(32), 27, 33 and 36(34) */
+        if (sal_config_set(spn_PBMP_XPORT_XE, "0x120A000000") != 0)
+          return(L7_FAILURE);
+
+        PT_LOG_TRACE(LOG_CTX_STARTUP,"Katana2 ready to be started!");
+        break;
 
       /* PTin added: new switch 56843 (Trident) */
       case UNIT_BROAD_40_TENGIG_56843_REV_1_ID:
