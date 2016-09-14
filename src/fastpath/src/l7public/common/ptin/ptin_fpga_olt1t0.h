@@ -5,7 +5,7 @@
 
 /* FPGA AND CPLD BASE ADDRESS */
 //# define SPI_FPGA
-# define SPI_CPLD
+//# define SPI_CPLD
 
 /* PLD map registers */
 # define CPLD_ID                       0x1255
