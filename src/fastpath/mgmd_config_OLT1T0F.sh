@@ -29,7 +29,7 @@ TEMPLATE_CONFIG_FILE=$MGMD_PATH/build/configure-ud.sh
 TEMPORARY_CONFIG_FILE=$MGMD_PATH/build/configure-mgmd.sh.temp
 
 # 2 - Card variables
-CARD=OLT1T0
+CARD=OLT1T0F
 COMPILER_DIR=/opt/broadcom/bin
 COMPILER_PREFIX=arm-linux-
 MAX_CHANNELS=4096

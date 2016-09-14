@@ -142,6 +142,6 @@
 # define IPC_MX_IPADDR_WORKING      0xC0A8C801  /* 192.168.200.1: Working Matrix */
 # define IPC_MX_IPADDR_PROTECTION   0xC0A8C802  /* 192.168.200.2: Protection Matrix */
 
-#endif /* _PTIN_GLOBALDEFS_OLT1T0_H */
+#endif /* _PTIN_GLOBALDEFS_OLT1T0F_H */
 
 
