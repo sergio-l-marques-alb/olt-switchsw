@@ -2897,11 +2897,7 @@ int ber_init(void)
   }
 
   /* Read slot id: 0->Working; 1->Protection */
-  #ifdef MAP_CPLD
-  matrix = cpld_map->reg.slot_id;
-  #else
-  matrix = 0;
-  #endif
+  matrix = CPLD_SLOT_ID_GET();
 
   if (matrix != 0 && matrix != 1) {
     printf("Unknown matrix: %u\n",matrix);
