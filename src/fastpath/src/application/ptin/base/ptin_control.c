@@ -233,7 +233,8 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   }
 #endif
 
-#if ( PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_TA48GE || PTIN_BOARD == PTIN_BOARD_TG16G )
+#if ( PTIN_BOARD == PTIN_BOARD_CXO640G || \
+      PTIN_BOARD == PTIN_BOARD_TA48GE || PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF)
   ptin_cfg_pcap_bridge_set();
 #endif
 
@@ -1996,7 +1997,7 @@ static void ptin_control_linkstatus_report(void)
   active_matrix = ptin_fpga_mx_get_matrixactive();
 
   /* Determine base port and number of ports */
-#if (PTIN_BOARD == PTIN_BOARD_TG16G)
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF)
   base_port = PTIN_SYSTEM_N_PONS;
   number_of_ports = 4;
 #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)

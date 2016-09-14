@@ -1726,7 +1726,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 
       if (bcm_pkt.flags & BCM_PKT_F_TIMESYNC) /* Packet is for Time Sync protocol. */
       {
-        #if (PTIN_BOARD == PTIN_BOARD_TG16G)
+        #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF)
         {
           L7_uint32 counter = 1000;
           L7_uint32 regvalue;
