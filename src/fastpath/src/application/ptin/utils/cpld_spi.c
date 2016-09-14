@@ -29,6 +29,11 @@
 //----------------------------------------------------------------------//
 // Autor: Celso Lemos                                                   //
 //////////////////////////////////////////////////////////////////////////
+
+#include "cpld_spi.h"
+
+#if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F)
+
 #include <linux/spi/spidev.h>
 #include <stdint.h>
 #include <unistd.h>
@@ -45,7 +50,7 @@
 
 #define SEMPT_ERROR  (-1)
 //#include "utils.h"
-#include "cpld_spi.h"
+
 #include "addrmap.h"
 #include "logger.h"
 
@@ -730,4 +735,6 @@ int cpld_spi_write_debug(unsigned int addr, unsigned char val)
 
   return 0;
 }
+
+#endif /* PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F */
 
