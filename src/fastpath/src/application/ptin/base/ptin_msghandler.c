@@ -551,16 +551,12 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         PT_LOG_WARN(LOG_CTX_MSGHANDLER, "NULL message received!");
         return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_ERROR, ERROR_CODE_EMPTYMSG);
     }
-    printf("\n\rmsgId=0x%04x inbuffer->infoDim=%u:", inbuffer->msgId, inbuffer->infoDim);
-    for(i=0; i<inbuffer->infoDim; i++)
+    printf("\n\rmsgId[%4.4x] inbuffer->info:", msgId);
+    for(i = 0; i < infoDim; i++)
     {
-      if ((i % 32) == 0)
-      {
-        printf("\r\n%04x:", i);
-      }
-      printf(" %02x", inbuffer->info[i]);
+        printf(" %2.2Xh",inbuffer->info[i]); 
     }
-    printf("\n\r");
+    printf("\n\r");  
   }
 
   /* If reached here, means PTin module is loaded and ready to process messages */
@@ -1919,7 +1915,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_EVC_get(evcConf))
       {
-        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting EVC# %u config", ENDIAN_SWAP32(evcConf->id));
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting EVC# %u config", evcConf->id);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
@@ -2089,7 +2085,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding a bridge to EVC# %u", ENDIAN_SWAP32(evcBridge->evcId));
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding a bridge to EVC# %u", evcBridge->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -2116,7 +2112,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing a bridge to EVC# %u", ENDIAN_SWAP32(evcBridge->evcId));
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing a bridge to EVC# %u", evcBridge->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -2142,7 +2138,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding a flow to eEVC# %u", ENDIAN_SWAP32(evcFlow->evcId));
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding a flow to eEVC# %u", evcFlow->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -2168,7 +2164,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (L7_SUCCESS != rc)
       {
-        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing a flow from eEVC# %u", ENDIAN_SWAP32(evcFlow->evcId));
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing a flow from eEVC# %u", evcFlow->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
         SetIPCNACK(outbuffer, res);
         break;
@@ -2195,7 +2191,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_EvcFloodVlan_add(evcFlood, n_clients))
       {
-        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding a flood vlan to EVC# %u", ENDIAN_SWAP32(evcFlood->evcId));
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while adding a flood vlan to EVC# %u", evcFlood->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
@@ -2222,7 +2218,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_EvcFloodVlan_remove(evcFlood, n_clients))
       {
-        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing a flood vlan to EVC# %u", ENDIAN_SWAP32(evcFlood->evcId));
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while removing a flood vlan to EVC# %u", evcFlood->evcId);
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
@@ -2248,7 +2244,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       evcstat_in  = (msg_evcStats_t *) inbuffer->info;
       evcstat_out = (msg_evcStats_t *) outbuffer->info;
 
-      memcpy(evcstat_out, evcstat_in, sizeof(msg_evcStats_t));
+      memcpy(evcstat_out,evcstat_in,sizeof(msg_evcStats_t));
 
       /* Execute command */
       rc = ptin_msg_evcStats_get(evcstat_out);
@@ -4266,17 +4262,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     
       CHECK_INFO_SIZE(msg_bd_mep_lm_t);
     
-#if MNGMT_DIFFERENT_ENDIANNESS
-      {
-       msg_bd_mep_lm_t *p;
-
-       p = (msg_bd_mep_lm_t*)inbuffer->info;
-
-       p->idx = ENDIAN_SWAP32(p->idx);
-       p->port = ENDIAN_SWAP32(p->port);
-      }
-#endif
-
       if (CCMSG_RM_MEP_LM == msgId) {
           rc = del_mep_lm(((msg_bd_mep_lm_t*)inbuffer->info)->idx, &oam)? L7_FAILURE: L7_SUCCESS;
       }
@@ -4323,11 +4308,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         u8  instance;
   
         pi = (msg_generic_prefix_t*)inbuffer->info;
-
-#if MNGMT_DIFFERENT_ENDIANNESS
-        pi->index = ENDIAN_SWAP64(pi->index);
-#endif
-
         i_mep = pi->index;
         instance = pi->index>>16;
 
@@ -4348,23 +4328,15 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
             break;
         default: rc = L7_ERROR; break;
         }//switch
-  
-        if (L7_SUCCESS != rc) {
-          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
-          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-          SetIPCNACK(outbuffer, res);
-          break;
-        }
-#if MNGMT_DIFFERENT_ENDIANNESS
-        else {
-            po->err_code = ENDIAN_SWAP32(po->err_code);
-            po->NEnumerator = ENDIAN_SWAP64(po->NEnumerator);
-            po->NEdenominator = ENDIAN_SWAP64(po->NEdenominator);
-            po->FEnumerator = ENDIAN_SWAP64(po->FEnumerator);
-            po->FEdenominator = ENDIAN_SWAP64(po->FEdenominator);
-        }
-#endif
       }
+  
+      if (L7_SUCCESS != rc) {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+  
   
       break;
 
@@ -4383,10 +4355,6 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
 
         pi = (MSG_FRAMELOSS_status*)inbuffer->info;
-#if MNGMT_DIFFERENT_ENDIANNESS
-        pi->idx = ENDIAN_SWAP32(pi->idx);
-        //pi->port = ENDIAN_SWAP32(pi->port);
-#endif
         i_mep = pi->idx;
 
         po = (MSG_FRAMELOSS_status*)outbuffer->info;
@@ -4400,25 +4368,15 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
             po->Delta_LM_rx_e = diff_LM_counters(po->Delta_LM_tx_e, po->Delta_LM_rx_e);
             rc = L7_SUCCESS;
         }
-
-        if (L7_SUCCESS != rc) {
-          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
-          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-          SetIPCNACK(outbuffer, res);
-          break;
-        }
-#if MNGMT_DIFFERENT_ENDIANNESS
-        else {
-            //po->idx = ENDIAN_SWAP32(pi->idx); //ENDIAN_SWAP32(po->idx);
-            //po->port = ENDIAN_SWAP32(po->port);
-            po->mask = ENDIAN_SWAP32(po->mask);
-            po->Delta_LM_tx_e = ENDIAN_SWAP64(po->Delta_LM_tx_e);
-            po->Delta_LM_rx_e = ENDIAN_SWAP64(po->Delta_LM_rx_e);
-            po->Delta_LM_tx_i = ENDIAN_SWAP64(po->Delta_LM_tx_i);
-            po->Delta_LM_rx_i = ENDIAN_SWAP64(po->Delta_LM_rx_i);
-        }
-#endif
       }
+  
+      if (L7_SUCCESS != rc) {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+  
   
       break;
 
@@ -4835,7 +4793,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         in_ptr = (msg_rfc2819_monitoring_t *) inbuffer->info;
 
         /* Execute command */
-        rc = ptin_msg_get_next_qualRFC2819(in_ptr->n, ptr);
+        rc = ptin_msg_get_next_qualRFC2819(ENDIAN_SWAP32(in_ptr->n), ptr);
 
         if (L7_SUCCESS != rc)
         {
@@ -4890,10 +4848,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         ptr_in  = (msg_rfc2819_monitoring_t * )inbuffer->info;
 
         PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "SlotID %d ", ptr_in->SlotId);
-        PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "n %d ", ptr_in->n);  
+        PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "n %d ", ENDIAN_SWAP32(ptr_in->n));  
   
         /* Execute command */
-        rc = ptin_msg_get_next_qualRFC2819_inv(ptr_in->n, ptr, &n);
+        rc = ptin_msg_get_next_qualRFC2819_inv(ENDIAN_SWAP32(ptr_in->n), ptr, &n);
   
         if (L7_SUCCESS != rc)
         {
@@ -4918,8 +4876,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         ptr_in   = (msg_rfc2819_monitoring_t * )inbuffer->info;
         ptr_out  = (msg_rfc2819_monitoring_t * )outbuffer->info;
 
+        ptr_out->n = ENDIAN_SWAP32(ptr_out->n);
+
         /* Execute command */
-        rc = ptin_msg_clear_rfc2819_monitoring_buffer(ptr_in->n);
+        rc = ptin_msg_clear_rfc2819_monitoring_buffer(ENDIAN_SWAP32(ptr_in->n));
   
         if (L7_SUCCESS != rc)
         {
@@ -4947,7 +4907,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         resp = (L7_uint32 *)outbuffer->info;
 
         /* Execute command */
-        rc = ptin_msg_get_rfc2819_probe_config(Port, &Admin);
+        rc = ptin_msg_get_rfc2819_probe_config(ENDIAN_SWAP16(Port), &Admin);
 
         if (L7_SUCCESS != rc)
         {
@@ -4958,10 +4918,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         }
 
         if (Admin==0) {
-          *resp = (Port & 0xFFFF);
+          *resp = (ENDIAN_SWAP16(Port) & 0xFFFF);
         }
         else {
-          *resp = 0x80000000 | (Port & 0xFFFF);
+          *resp = 0x80000000 | (ENDIAN_SWAP16(Port) & 0xFFFF);
         }
 
         SETIPC_INFODIM(sizeof(L7_uint32));
@@ -5412,9 +5372,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
           if (L7_SUCCESS != rc) break;
       
           e.key.prt= ptin_port;
-          e.key.vid= p->vid;
+          e.key.vid= ENDIAN_SWAP16(p->vid);
           //e.vid_prt=
-          e.vid_os=  p->vid_os;
+          e.vid_os=  ENDIAN_SWAP16(p->vid_os);
           e.encap=   p->encap;
           memcpy(&e.ntw, &p->ntw, sizeof(e.ntw));
           rc = ptin_ptp_fpga_entry(&e, 0==p->add0_del1? DAPI_CMD_SET:DAPI_CMD_CLEAR);
