@@ -11,7 +11,8 @@ ntry=0
 #cpld_gpr=fe000001fh
 #db=$ptin_path/bin/db64
 #sb=$ptin_path/bin/sb64
-fp_status=$ptin_path/bin/fp_status
+fpstatus_get=`/usr/local/ptin/bin/sspi 5 1 0 1f | awk -F' ' '{print $5}' | awk -F'=' '{print $2}'`
+fpstatus_set=
 
 insert_modules()
 {
