@@ -663,7 +663,8 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
   {
     BROAD_POLICY_FIELD_t fp_field;
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_TA48GE || PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_TA48GE ||
+     PTIN_BOARD == PTIN_BOARD_OLT1T0 || PTIN_BOARD == PTIN_BOARD_OLT1T0F)
     L7_uint8  priority = profile->cos;
     fp_field = BROAD_FIELD_INT_PRIO;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, fp_field, (L7_uchar8 *) &priority, mask);

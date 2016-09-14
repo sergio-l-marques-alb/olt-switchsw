@@ -404,7 +404,8 @@ bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G || \
      PTIN_BOARD == PTIN_BOARD_TA48GE  || \
-     PTIN_BOARD == PTIN_BOARD_OLT1T0)
+     PTIN_BOARD == PTIN_BOARD_OLT1T0  || \
+     PTIN_BOARD == PTIN_BOARD_OLT1T0F)
   bcmFieldQualifyIntPriority,   /* PTin added: FP */
 #else
  /* PTin added: SDK 6.3.0 */

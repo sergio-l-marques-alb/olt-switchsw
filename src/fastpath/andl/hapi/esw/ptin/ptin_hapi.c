@@ -3047,7 +3047,7 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
       return L7_FAILURE;
     }
   }
-  else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit))
+  else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
   {
     /* Rx counters */
     soc_counter_get(unit, port, RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
@@ -3249,7 +3249,7 @@ L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort)
       return L7_FAILURE;
     }
   }
-  else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit))
+  else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
   {
     /* Rx counters */
     soc_counter_set(unit, port, RMTUEr, 0, 0);
@@ -3454,7 +3454,7 @@ L7_RC_t hapi_ptin_counters_activity_get(ptin_HWEth_PortsActivity_t *portsActivit
         return L7_FAILURE;
       }
     }
-    else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit))
+    else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
     {
       if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
         soc_counter_get_rate(unit, port_remap, RBYTr , 0, &rate);
@@ -4625,7 +4625,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   rc = L7_SUCCESS;
 
   /* For OLT1T0 */
-#if (PTIN_BOARD_IS_STANDALONE)
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   {
     L7_ushort16 vlanId, vlanMask;
     BROAD_POLICY_t      policyId;

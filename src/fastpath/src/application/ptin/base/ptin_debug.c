@@ -220,7 +220,7 @@ void ptin_debug(void)
   printf("  hapi_ptin_stormControl_cpu_set <enable> <cir> <cbs>             - Reconfigure egress meter for CPU packets\r\n");  
   printf("  hapiBroadDebugPolicyEnable <level>                              - Enable policy management debug messages (minimum level should be 3)\r\n");
   printf("\r\n");
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (PTIN_BOARD_IS_STANDALONE)
   printf("  ptin_ptp_oam_prtvid_dump                                        - Dump FPGA PRT VID table (just OLT1T0-AC)\r\n");
   printf("  ptin_hapi_ptp_dump                                              - Dump FPGA PTP table (just OLT1T0-AC)\r\n");
   printf("  ptin_hapi_oam_dump                                              - Dump FPGA OAM table (just OLT1T0-AC)\r\n");
