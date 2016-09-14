@@ -591,7 +591,7 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   ptin_rfc2819_init();
 
   /* Initialize NGPON2 opensaf data structures */
-#if (PTIN_BOARD != PTIN_BOARD_OLT1T0)
+#if (PTIN_BOARD != PTIN_BOARD_IS_STANDALONE)
   ptin_opensaf_init();
   ptin_opensaf_event_task_init();
 #endif
