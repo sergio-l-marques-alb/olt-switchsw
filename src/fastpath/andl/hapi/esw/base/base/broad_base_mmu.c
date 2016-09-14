@@ -859,8 +859,9 @@ hapiBroadPgInit(int unit, pg_cosmap_t *cosmap,int num_cos,
         /* PTin added: new switch 56689 (Valkyrie2) */
         /* PTin added: new switch 5664x (Triumph3) */
         /* PTin added: new switch 56843 (Trident) */
+        /* PTin added: new switch 56450 (Katana2) */
         if (SOC_IS_APOLLO(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit) ||
-            SOC_IS_TRIUMPH3(unit))
+            SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
         {
             soc_reg_field_set(unit, PORT_PRI_GRP0r, &rval1, PRI7_GRPf, cosmap[i].pg);
         } else {
@@ -4364,58 +4365,87 @@ L7_RC_t hapiBroadMmuConfigModify(L7_uint32 unit)
 #ifdef BCM_ROBO_SUPPORT
   return L7_SUCCESS; /* Presently it doesn't do anything for robo */
 #else 
+#if defined (BCM_BRADLEY_SUPPORT) || defined (BCM_HAWKEYE_SUPPORT)
   if (SOC_IS_BRADLEY(unit) || SOC_IS_HAWKEYE(unit))
   {
     /* Dont modify on Raptor & Bradley */
     return L7_SUCCESS;
   }
+  else
+#endif /* BRADLEY or HAWKEYE */
 #ifdef BCM_FIREBOLT_SUPPORT
-  else if (SOC_IS_FB(unit) || SOC_IS_HELIX(unit))
+  if (SOC_IS_FB(unit) || SOC_IS_HELIX(unit))
   {
     rc = hapiBroadFbHxMmuModify(unit);
   }
+  else
 #endif /* FIREBOLT/HELIX */
 #ifdef BCM_SCORPION_SUPPORT
-  else if (SOC_IS_SCORPION(unit))
+  if (SOC_IS_SCORPION(unit))
   {
     rc = hapiBroadScorpionMmuModify(unit); 
   }
+  else
 #endif /* SCORPION */
-#ifdef BCM_TRIUMPH_SUPPORT
-  else if (SOC_IS_TR_VL(unit) && !SOC_IS_ENDURO(unit) && !SOC_IS_TRIDENT(unit) && !SOC_IS_TRIUMPH3(unit))  /* PTin modified */
-  { 
-    rc = hapiBroadTrVlMmuModify(unit);
-  }
-  else if (SOC_IS_ENDURO(unit) && !SOC_IS_TRIDENT(unit) && !SOC_IS_TRIUMPH3(unit))  /* PTin modified */
-  {
-    rc = hapiBroadEnduroMmuModify(unit);
-  }
+#ifdef BCM_TRIDENT_SUPPORT
   /* PTin added */
-  else if (SOC_IS_TRIDENT(unit))
+  if (SOC_IS_TRIDENT(unit))
   {
     // TODO
     PT_LOG_INFO(LOG_CTX_MISC, "hapiBroadTridentMmuModify() IMPLEMENTED!");
     rc = hapiBroadTridentMmuModify(unit);
   }
-  else if (SOC_IS_TRIUMPH3(unit))
+  else
+#endif /* TRIDENT */
+#ifdef BCM_TRIUMPH3_SUPPORT
+  if (SOC_IS_TRIUMPH3(unit))
   {
     // TODO
     PT_LOG_WARN(LOG_CTX_MISC, "hapiBroadTriumph3MmuModify() is NOT IMPLEMENTED!");
   }
-  /* PTin end */
+  else
+#endif /* TRIUMPH3 */
+#ifdef BCM_KATANA2_SUPPORT
+  if (SOC_IS_KATANA2(unit))
+  {
+    // TODO
+    PT_LOG_WARN(LOG_CTX_MISC, "hapiBroadKatana2MmuModify() is NOT IMPLEMENTED!");
+  }
+  else
+#endif /* KATANA2 */
+#ifdef BCM_ENDURO_SUPPORT
+  if (SOC_IS_ENDURO(unit))
+  {
+    rc = hapiBroadEnduroMmuModify(unit);
+  }
+  else
+#endif /* ENDURO */
+#ifdef BCM_TRIUMPH_SUPPORT
+  if (SOC_IS_TR_VL(unit))
+  { 
+    rc = hapiBroadTrVlMmuModify(unit);
+  }
+  else
 #endif /* TRIUMPH */
+  /* PTin end */
 #ifdef BCM_RAVEN_SUPPORT
-  else if (SOC_IS_RAVEN(unit))
+  if (SOC_IS_RAVEN(unit))
   {
     rc = hapiBroadRavenMmuModify(unit);
   }
+  else
 #endif /* RAVEN */
 #ifdef BCM_RAPTOR_SUPPORT
-  else if (SOC_IS_RAPTOR(unit))
+  if (SOC_IS_RAPTOR(unit))
   {
     rc = hapiBroadRaptorMmuModify(unit);
   }
+  else
 #endif
+  {
+    /* No supported chip */
+    rc = BCM_E_FAIL;
+  }
 #endif /* !ROBO */
 
   if (rc != BCM_E_NONE) 
@@ -4477,19 +4507,23 @@ int hapiBroadMmuPauseSet(int unit,int mode)
     rc=  hapiBroadMmuEnduroPauseSet(unit, mode);
   }
   /* PTin added: new switch 56843 (Trident) */
-  /* PTin added: new switch 5664x (Triumph3) */
-  else if (SOC_IS_TR_VL(unit) && !SOC_IS_TRIDENT(unit) && !SOC_IS_TRIUMPH3(unit))
-  {
-    rc = hapiBroadMmuTriumphPauseSet(unit, mode);
-  }
-  /* PTin added: new switch 56843 (Trident) */
   else if (SOC_IS_TRIDENT(unit))
   {
     PT_LOG_WARN(LOG_CTX_MISC, "hapiBroadMmuTridentPauseSet() is not implemented!");
   }
+  /* PTin added: new switch 5664x (Triumph3) */
   else if (SOC_IS_TRIUMPH3(unit))
   {
     PT_LOG_WARN(LOG_CTX_MISC, "hapiBroadMmuTriumph3PauseSet() is not implemented!");
+  }
+  /* PTin added: new switch 5645x (Katana2) */
+  else if (SOC_IS_KATANA2(unit))
+  {
+    PT_LOG_WARN(LOG_CTX_MISC, "hapiBroadMmuKatana2PauseSet() is not implemented!");
+  }
+  else if (SOC_IS_TR_VL(unit))
+  {
+    rc = hapiBroadMmuTriumphPauseSet(unit, mode);
   }
   /* PTin end */
 #endif
