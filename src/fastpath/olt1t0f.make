@@ -97,7 +97,7 @@ kernel:
 	cd $(KERNEL_PATH) && ./build-olt7_8ch.sh
 
 install:
-	sh olt1t0.install
+	sh olt1t0f.install
 
 help h:
 	@echo ""
