@@ -5003,14 +5003,14 @@ int main (int argc, char *argv[])
           memset(ptr,0x00,sizeof(msg_LACPLagInfo_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // LAG index
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->id = (uint8) valued;
+          ptr->id = ENDIAN_SWAP8((uint8) valued);
 
           comando.msgId = CCMSG_ETH_LACP_LAG_GET;
           comando.infoDim = sizeof(msg_LACPLagInfo_t);
@@ -5029,41 +5029,42 @@ int main (int argc, char *argv[])
 
           // Pointer to data array
           ptr = (msg_LACPLagInfo_t *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_LACPLagInfo_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // LAG index
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->id = (uint8) valued;
+          ptr->id = ENDIAN_SWAP8((uint8) valued);
 
           // Static mode
           if (StrToLongLong(argv[3+1],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->static_enable = (uint64) (valued & 1);
+          ptr->static_enable = ENDIAN_SWAP8((uint8) (valued & 1));
 
           // Load Balance mode
           if (StrToLongLong(argv[3+2],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->loadBalance_mode = (uint64) (valued & 0xFF);
+          ptr->loadBalance_mode = ENDIAN_SWAP8((uint8) (valued & 0xFF));
 
           // Member ports bitmap
           if (StrToLongLong(argv[3+3],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->members_pbmp = (uint32) valued;
-          ptr->members_pbmp2= (uint32) (valued>>32);
+          ptr->members_pbmp = ENDIAN_SWAP32((uint32) valued);
+          ptr->members_pbmp2= ENDIAN_SWAP32((uint32) (valued>>32));
 
-          ptr->admin = 1;
-          ptr->stp_enable = 0;
+          ptr->admin = ENDIAN_SWAP8(1);
+          ptr->stp_enable = ENDIAN_SWAP8(0);
 
           comando.msgId = CCMSG_ETH_LACP_LAG_ADD;
           comando.infoDim = sizeof(msg_LACPLagInfo_t);
@@ -5082,16 +5083,17 @@ int main (int argc, char *argv[])
 
           // Pointer to data array
           ptr = (msg_LACPLagInfo_t *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_LACPLagInfo_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // LAG index
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->id = (uint8) valued;
+          ptr->id = ENDIAN_SWAP8((uint8) valued);
 
           comando.msgId = CCMSG_ETH_LACP_LAG_REMOVE;
           comando.infoDim = sizeof(msg_LACPLagInfo_t);
@@ -5113,14 +5115,14 @@ int main (int argc, char *argv[])
           memset(ptr,0x00,sizeof(msg_LACPLagStatus_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // LAG index
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->id = (uint8) valued;
+          ptr->id = ENDIAN_SWAP8((uint8) valued);
 
           comando.msgId = CCMSG_ETH_LACP_LAG_STATUS_GET;
           comando.infoDim = sizeof(msg_LACPLagStatus_t);
@@ -5141,9 +5143,10 @@ int main (int argc, char *argv[])
 
           // Pointer to data array
           ptr = (msg_LACPAdminState_t *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_LACPAdminState_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // Port index
           if (StrToLongLong(argv[3+0],&valued)<0)  {
@@ -5175,18 +5178,18 @@ int main (int argc, char *argv[])
 
           if (port==-1) {
             for (i=0; i<PTIN_SYSTEM_N_PORTS; i++) {
-              ptr[i].id               = i;
-              ptr[i].state_aggregation= state_aggregation;
-              ptr[i].lacp_activity    = lacp_activity;
-              ptr[i].lacp_timeout     = lacp_timeout;
+              ptr[i].id               = ENDIAN_SWAP8(i);
+              ptr[i].state_aggregation= ENDIAN_SWAP8(state_aggregation);
+              ptr[i].lacp_activity    = ENDIAN_SWAP8(lacp_activity);
+              ptr[i].lacp_timeout     = ENDIAN_SWAP8(lacp_timeout);
             }
             comando.infoDim = sizeof(msg_LACPAdminState_t)*PTIN_SYSTEM_N_PORTS;
           }
           else if (port>=0 && port<PTIN_SYSTEM_N_PORTS) {
-            ptr->id               = port;
-            ptr->state_aggregation= state_aggregation;
-            ptr->lacp_activity    = lacp_activity;
-            ptr->lacp_timeout     = lacp_timeout;
+            ptr->id               = ENDIAN_SWAP8(port);
+            ptr->state_aggregation= ENDIAN_SWAP8(state_aggregation);
+            ptr->lacp_activity    = ENDIAN_SWAP8(lacp_activity);
+            ptr->lacp_timeout     = ENDIAN_SWAP8(lacp_timeout);
             comando.infoDim = sizeof(msg_LACPAdminState_t);
           }
           else {
@@ -5212,14 +5215,14 @@ int main (int argc, char *argv[])
           memset(ptr,0x00,sizeof(msg_LACPAdminState_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // Port index
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->id = (uint8) ((int) valued);
+          ptr->id = ENDIAN_SWAP8((uint8) ((int) valued));
 
           comando.msgId = CCMSG_ETH_LACP_ADMINSTATE_GET;
           comando.infoDim = sizeof(msg_LACPAdminState_t);
@@ -5241,14 +5244,14 @@ int main (int argc, char *argv[])
           memset(ptr,0x00,sizeof(msg_LACPStats_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // Port index
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->id = (uint8) ((int) valued);
+          ptr->id = ENDIAN_SWAP8((uint8) ((int) valued));
 
           comando.msgId = CCMSG_ETH_LACP_STATS_GET;
           comando.infoDim = sizeof(msg_LACPStats_t);
@@ -5267,19 +5270,20 @@ int main (int argc, char *argv[])
 
           // Pointer to data array
           ptr = (msg_LACPStats_t *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_LACPStats_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // Port index
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->id = (uint8) ((int) valued);
+          ptr->id = ENDIAN_SWAP8((uint8) ((int) valued));
 
-          ptr->LACPdus_rx = 0;
-          ptr->LACPdus_tx = 0;
+          ptr->LACPdus_rx = ENDIAN_SWAP32(0);
+          ptr->LACPdus_tx = ENDIAN_SWAP32(0);
 
           comando.msgId = CCMSG_ETH_LACP_STATS_CLEAR;
           comando.infoDim = sizeof(msg_LACPStats_t);
@@ -9194,12 +9198,12 @@ int main (int argc, char *argv[])
 
           for (i=0; i<nLags; i++) {
             ptr = &((msg_LACPLagInfo_t *) &resposta.info[0])[i];
-            printf(" Slot %u, LAG %u\r\n",ptr->SlotId, ptr->id);
-            printf("  Admin               = %s\r\n",((ptr->admin) ? "Enabled" : "Disabled"));
-            printf("  STP state           = %s\r\n",((ptr->stp_enable) ? "Enabled" : "Disabled"));
-            printf("  LAG type            = %s\r\n",((ptr->static_enable) ? "Static" : "Dynamic"));
-            printf("  LoadBalance profile = %u\r\n",ptr->loadBalance_mode);
-            printf("  Port bitmap         = 0x%08x 0x%08x\r\n",(unsigned int) ptr->members_pbmp2, (unsigned int) ptr->members_pbmp);
+            printf(" Slot %u, LAG %u\r\n", ENDIAN_SWAP8(ptr->SlotId), ENDIAN_SWAP8(ptr->id));
+            printf("  Admin               = %s\r\n",(ENDIAN_SWAP8(ptr->admin) ? "Enabled" : "Disabled"));
+            printf("  STP state           = %s\r\n",(ENDIAN_SWAP8(ptr->stp_enable) ? "Enabled" : "Disabled"));
+            printf("  LAG type            = %s\r\n",(ENDIAN_SWAP8(ptr->static_enable) ? "Static" : "Dynamic"));
+            printf("  LoadBalance profile = %u\r\n",ENDIAN_SWAP8(ptr->loadBalance_mode));
+            printf("  Port bitmap         = 0x%08x 0x%08x\r\n", ENDIAN_SWAP32((unsigned int) ptr->members_pbmp2), ENDIAN_SWAP32((unsigned int) ptr->members_pbmp));
           }
           printf(" Switch: LAG configurations read successfully\n\r");
         }
@@ -9236,12 +9240,12 @@ int main (int argc, char *argv[])
 
           for (i=0; i<nLags; i++) {
             ptr = &((msg_LACPLagStatus_t *) &resposta.info[0])[i];
-            printf(" Slot %u LAG %u\r\n",ptr->SlotId, ptr->id);
-            printf("  Admin               = %s\r\n",((ptr->admin) ? "Enabled" : "Disabled"));
-            printf("  Link State          = %s\r\n",((ptr->link_status) ? "UP" : "DOWN"));
-            printf("  Port channel type   = %s\r\n",((ptr->port_channel_type) ? "Static" : "Dynamic"));
-            printf("  Member Ports bitmap = 0x%08x 0x%08x\r\n",(unsigned int) ptr->members_pbmp2,(unsigned int) ptr->members_pbmp1);
-            printf("  Active Ports bitmap = 0x%08x 0x%08x\r\n",(unsigned int) ptr->active_members_pbmp2,(unsigned int) ptr->active_members_pbmp1);
+            printf(" Slot %u LAG %u\r\n", ENDIAN_SWAP8(ptr->SlotId), ENDIAN_SWAP8(ptr->id));
+            printf("  Admin               = %s\r\n",(ENDIAN_SWAP8(ptr->admin) ? "Enabled" : "Disabled"));
+            printf("  Link State          = %s\r\n",(ENDIAN_SWAP8(ptr->link_status) ? "UP" : "DOWN"));
+            printf("  Port channel type   = %s\r\n",(ENDIAN_SWAP8(ptr->port_channel_type) ? "Static" : "Dynamic"));
+            printf("  Member Ports bitmap = 0x%08x 0x%08x\r\n", ENDIAN_SWAP32((unsigned int) ptr->members_pbmp2), ENDIAN_SWAP32((unsigned int) ptr->members_pbmp1));
+            printf("  Active Ports bitmap = 0x%08x 0x%08x\r\n", ENDIAN_SWAP32((unsigned int) ptr->active_members_pbmp2), ENDIAN_SWAP32((unsigned int) ptr->active_members_pbmp1));
           }
           printf(" Switch: LAG status read successfully\n\r");
         }
@@ -9271,10 +9275,10 @@ int main (int argc, char *argv[])
 
           for (i=0; i<nStructs; i++) {
             ptr = &((msg_LACPAdminState_t *) &resposta.info[0])[i];
-            printf(" Slot %u Physical port %u:\r\n",ptr->SlotId, (uint16) ptr->id);
-            printf("  State Aggregation = %s\r\n",((ptr->state_aggregation) ? "Enabled" : "Disabled"));
-            printf("  LACP Activity     = %s\r\n",((ptr->lacp_activity    ) ? "True" : "False"));
-            printf("  LACP Timeout      = %s\r\n",((ptr->lacp_timeout     ) ? "Short (3s)" : "Long (90s)"));
+            printf(" Slot %u Physical port %u:\r\n", ENDIAN_SWAP8(ptr->SlotId), ENDIAN_SWAP8(ptr->id));
+            printf("  State Aggregation = %s\r\n",  (ENDIAN_SWAP8(ptr->state_aggregation) ? "Enabled" : "Disabled"));
+            printf("  LACP Activity     = %s\r\n",  (ENDIAN_SWAP8(ptr->lacp_activity)     ? "True" : "False"));
+            printf("  LACP Timeout      = %s\r\n",  (ENDIAN_SWAP8(ptr->lacp_timeout)      ? "Short (3s)" : "Long (90s)"));
           }
           printf(" Switch: LACP Admin State read successfully\n\r");
         }
@@ -9295,9 +9299,9 @@ int main (int argc, char *argv[])
             nStructs = resposta.infoDim/sizeof(msg_LACPStats_t);
 
             for (i=0; i<nStructs; i++) {
-              printf( " LACP statistics for slot %u port %u:\n\r",po[i].SlotId,(uint16) po[i].id);
-              printf( "   RX LACPdu's = %lu\n\r",po[i].LACPdus_rx);
-              printf( "   TX LACPdu's = %lu\n\r",po[i].LACPdus_tx);
+              printf( " LACP statistics for slot %u port %u:\n\r", ENDIAN_SWAP8(po[i].SlotId), ENDIAN_SWAP8(po[i].id));
+              printf( "   RX LACPdu's = %lu\n\r", ENDIAN_SWAP32(po[i].LACPdus_rx));
+              printf( "   TX LACPdu's = %lu\n\r", ENDIAN_SWAP32(po[i].LACPdus_tx));
             }
             printf( "Done!\r\n");
           }

@@ -3612,18 +3612,18 @@ L7_RC_t ptin_msg_Lag_get(msg_LACPLagInfo_t *lagInfo, L7_uint *nElems)
 
   *nElems = 0;
 
-  slot_id = lagInfo->SlotId;
+  slot_id = ENDIAN_SWAP8(lagInfo->SlotId);
 
   /* Determine loop range (LAG index [0..PTIN_SYSTEM_N_LAGS[) */
-  if (lagInfo->id >= PTIN_SYSTEM_N_LAGS)
+  if (ENDIAN_SWAP8(lagInfo->id) >= PTIN_SYSTEM_N_LAGS)
   {
     start = 0;
     end   = PTIN_SYSTEM_N_LAGS-1;
   }
   else
   {
-    start = lagInfo->id;
-    end   = lagInfo->id;
+    start = (L7_uint32) ENDIAN_SWAP8(lagInfo->id);
+    end   = (L7_uint32) ENDIAN_SWAP8(lagInfo->id);
   }
 
   /* Loop that works for one LAG or for all of them */
@@ -3641,22 +3641,22 @@ L7_RC_t ptin_msg_Lag_get(msg_LACPLagInfo_t *lagInfo, L7_uint *nElems)
     }
 
     /* Copy data to the output message structure */
-    lagInfo[array_idx].SlotId           = slot_id;
-    lagInfo[array_idx].id               = ptinLagConf.lagId;
-    lagInfo[array_idx].admin            = ptinLagConf.admin;
-    lagInfo[array_idx].static_enable    = ptinLagConf.static_enable;
-    lagInfo[array_idx].stp_enable       = ptinLagConf.stp_enable;
-    lagInfo[array_idx].loadBalance_mode = ptinLagConf.loadBalance_mode;
-    lagInfo[array_idx].members_pbmp32[0]= (L7_uint32) ptinLagConf.members_pbmp64;
-    lagInfo[array_idx].members_pbmp32[1]= (L7_uint32) (ptinLagConf.members_pbmp64 >> 32);
+    lagInfo[array_idx].SlotId           = ENDIAN_SWAP8(slot_id);
+    lagInfo[array_idx].id               = ENDIAN_SWAP8((L7_uint8) ptinLagConf.lagId);
+    lagInfo[array_idx].admin            = ENDIAN_SWAP8(ptinLagConf.admin);
+    lagInfo[array_idx].static_enable    = ENDIAN_SWAP8(ptinLagConf.static_enable);
+    lagInfo[array_idx].stp_enable       = ENDIAN_SWAP8(ptinLagConf.stp_enable);
+    lagInfo[array_idx].loadBalance_mode = ENDIAN_SWAP8(ptinLagConf.loadBalance_mode);
+    lagInfo[array_idx].members_pbmp32[0]= ENDIAN_SWAP32((L7_uint32) ptinLagConf.members_pbmp64);
+    lagInfo[array_idx].members_pbmp32[1]= ENDIAN_SWAP32((L7_uint32) (ptinLagConf.members_pbmp64 >> 32));
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %2u", (L7_uint32)lagInfo[array_idx].id);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .admin            = %u", lagInfo[array_idx].admin);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .static_enable    = %u", lagInfo[array_idx].static_enable);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .stp_enable       = %u", lagInfo[array_idx].stp_enable);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .loadBalance_mode = %u", lagInfo[array_idx].loadBalance_mode);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[0]  = 0x%08X", lagInfo[array_idx].members_pbmp32[0]);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[1]  = 0x%08X", lagInfo[array_idx].members_pbmp32[1]);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %2u", (L7_uint32) ENDIAN_SWAP8(lagInfo[array_idx].id));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .admin            = %u", ENDIAN_SWAP8(lagInfo[array_idx].admin));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .static_enable    = %u", ENDIAN_SWAP8(lagInfo[array_idx].static_enable));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .stp_enable       = %u", ENDIAN_SWAP8(lagInfo[array_idx].stp_enable));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .loadBalance_mode = %u", ENDIAN_SWAP8(lagInfo[array_idx].loadBalance_mode));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[0]  = 0x%08X", ENDIAN_SWAP32(lagInfo[array_idx].members_pbmp32[0]));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[1]  = 0x%08X", ENDIAN_SWAP32(lagInfo[array_idx].members_pbmp32[1]));
 
     array_idx++;
   }
@@ -3679,40 +3679,43 @@ L7_RC_t ptin_msg_Lag_create(msg_LACPLagInfo_t *lagInfo)
   /* Only for TA48GE boards */
 #if ( PTIN_BOARD == PTIN_BOARD_TA48GE )
   /* For iLag 0 allow just initialization, otherwise it'll mess with protection. Only monitor_matrix_commutation() can touch it. */
-  if (0==lagInfo->id)
+  if (0 == ENDIAN_SWAP8(lagInfo->id))
   {
-    if (ptin_intf_lag_exists(lagInfo->id)) return L7_SUCCESS;
+    if (ptin_intf_lag_exists((L7_uint32) ENDIAN_SWAP8(lagInfo->id)))
+    {
+      return L7_SUCCESS;
+    }
     ptinLagConf.stp_enable       = 0;//DISABLED;
     ptinLagConf.members_pbmp64   = 1ULL<<(PTIN_SYSTEM_N_ETH+1) |   1ULL<<PTIN_SYSTEM_N_ETH;;
   }
   else
 #endif
   {
-   ptinLagConf.stp_enable       = lagInfo->stp_enable;
-   ptinLagConf.members_pbmp64   = (L7_uint64)lagInfo->members_pbmp32[0];
-   ptinLagConf.members_pbmp64  |= ((L7_uint64)lagInfo->members_pbmp32[1]) << 32;
+   ptinLagConf.stp_enable       = ENDIAN_SWAP8(lagInfo->stp_enable);
+   ptinLagConf.members_pbmp64   = ENDIAN_SWAP32((L7_uint64)lagInfo->members_pbmp32[0]);
+   ptinLagConf.members_pbmp64  |= ENDIAN_SWAP32(((L7_uint64)lagInfo->members_pbmp32[1]) << 32);
   }
 
   /* Copy data from msg to ptin structure */
-  ptinLagConf.lagId            = (L7_uint32) lagInfo->id;
-  ptinLagConf.admin            = lagInfo->admin;
-  ptinLagConf.static_enable    = lagInfo->static_enable;
-  //ptinLagConf.stp_enable       = lagInfo->stp_enable;
-  ptinLagConf.loadBalance_mode = lagInfo->loadBalance_mode;
-  //ptinLagConf.members_pbmp64   = (L7_uint64)lagInfo->members_pbmp32[0];
-  //ptinLagConf.members_pbmp64  |= ((L7_uint64)lagInfo->members_pbmp32[1]) << 32;
+  ptinLagConf.lagId            = (L7_uint32) ENDIAN_SWAP8(lagInfo->id);
+  ptinLagConf.admin            = ENDIAN_SWAP8(lagInfo->admin);
+  ptinLagConf.static_enable    = ENDIAN_SWAP8(lagInfo->static_enable);
+  //ptinLagConf.stp_enable       = ENDIAN_SWAP8(lagInfo->stp_enable);
+  ptinLagConf.loadBalance_mode = ENDIAN_SWAP8(lagInfo->loadBalance_mode);
+  //ptinLagConf.members_pbmp64   = ENDIAN_SWAP32((L7_uint64)lagInfo->members_pbmp32[0]);
+  //ptinLagConf.members_pbmp64  |= ENDIAN_SWAP32(((L7_uint64)lagInfo->members_pbmp32[1]) << 32);
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %2u",                    (L7_uint32)lagInfo->id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .admin            = %u",     lagInfo->admin);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .static_enable    = %u",     lagInfo->static_enable);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .stp_enable       = %u",     lagInfo->stp_enable);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .loadBalance_mode = %u",     lagInfo->loadBalance_mode);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[0]  = 0x%08X", lagInfo->members_pbmp32[0]);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[1]  = 0x%08X", lagInfo->members_pbmp32[1]);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %2u", (L7_uint32) ENDIAN_SWAP8(lagInfo->id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .admin            = %u",     ENDIAN_SWAP8(lagInfo->admin));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .static_enable    = %u",     ENDIAN_SWAP8(lagInfo->static_enable));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .stp_enable       = %u",     ENDIAN_SWAP8(lagInfo->stp_enable));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .loadBalance_mode = %u",     ENDIAN_SWAP8(lagInfo->loadBalance_mode));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[0]  = 0x%08X", ENDIAN_SWAP32(lagInfo->members_pbmp32[0]));
+  PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[1]  = 0x%08X", ENDIAN_SWAP32(lagInfo->members_pbmp32[1]));
 
   if (ptin_intf_Lag_create(&ptinLagConf) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Failed to create LAG# %u", (L7_uint32)lagInfo->id);
+    PT_LOG_ERR(LOG_CTX_MSG, "Failed to create LAG# %u", (L7_uint32) ENDIAN_SWAP8(lagInfo->id));
     return L7_FAILURE;
   }
 
@@ -3728,15 +3731,15 @@ L7_RC_t ptin_msg_Lag_create(msg_LACPLagInfo_t *lagInfo)
  */
 L7_RC_t ptin_msg_Lag_destroy(msg_LACPLagInfo_t *lagInfo)
 {
-  PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %2u", (L7_uint32) lagInfo->id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %2u", (L7_uint32) ENDIAN_SWAP8(lagInfo->id));
 
-  if (ptin_intf_Lag_delete((L7_uint32) lagInfo->id) != L7_SUCCESS)
+  if (ptin_intf_Lag_delete((L7_uint32) ENDIAN_SWAP8(lagInfo->id)) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Failed to delete LAG# %u", (L7_uint32)lagInfo->id);
+    PT_LOG_ERR(LOG_CTX_MSG, "Failed to delete LAG# %u", (L7_uint32) ENDIAN_SWAP8(lagInfo->id));
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %u: successfully deleted", (L7_uint32)lagInfo->id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %u: successfully deleted", (L7_uint32) ENDIAN_SWAP8(lagInfo->id));
 
   return L7_SUCCESS;
 }
@@ -3758,18 +3761,18 @@ L7_RC_t ptin_msg_LagStatus_get(msg_LACPLagStatus_t *lagStatus, L7_uint *nElems)
 
   *nElems = 0;
 
-  slot_id = lagStatus->SlotId;
+  slot_id = ENDIAN_SWAP8(lagStatus->SlotId);
 
   /* Determine loop range (LAG index [1..PTIN_SYSTEM_N_LAGS]) */
-  if (lagStatus->id >= PTIN_SYSTEM_N_LAGS)
+  if (ENDIAN_SWAP8(lagStatus->id) >= PTIN_SYSTEM_N_LAGS)
   {
     start = 0;
     end   = PTIN_SYSTEM_N_LAGS-1;
   }
   else
   {
-    start = lagStatus->id;
-    end   = lagStatus->id;
+    start = ENDIAN_SWAP8(lagStatus->id);
+    end   = ENDIAN_SWAP8(lagStatus->id);
   }
 
   /* Loop that works for one LAG or for all of them */
@@ -3787,24 +3790,24 @@ L7_RC_t ptin_msg_LagStatus_get(msg_LACPLagStatus_t *lagStatus, L7_uint *nElems)
     }
 
     /* Copy data to the output message structure */
-    lagStatus[array_idx].SlotId               = slot_id;
-    lagStatus[array_idx].id                   = ptinLagStatus.lagId;
-    lagStatus[array_idx].admin                = ptinLagStatus.admin;
-    lagStatus[array_idx].link_status          = ptinLagStatus.link_status;
-    lagStatus[array_idx].port_channel_type    = ptinLagStatus.port_channel_type;
-    lagStatus[array_idx].members_pbmp32[0]        = (L7_uint32)ptinLagStatus.members_pbmp64;
-    lagStatus[array_idx].members_pbmp32[1]        = (L7_uint32)(ptinLagStatus.members_pbmp64 >> 32);
-    lagStatus[array_idx].active_members_pbmp32[0] = (L7_uint32)ptinLagStatus.active_members_pbmp64;
-    lagStatus[array_idx].active_members_pbmp32[1] = (L7_uint32)(ptinLagStatus.active_members_pbmp64 >> 32);
+    lagStatus[array_idx].SlotId               = ENDIAN_SWAP8(slot_id);
+    lagStatus[array_idx].id                   = ENDIAN_SWAP8((L7_uint8) ptinLagStatus.lagId);
+    lagStatus[array_idx].admin                = ENDIAN_SWAP8(ptinLagStatus.admin);
+    lagStatus[array_idx].link_status          = ENDIAN_SWAP8(ptinLagStatus.link_status);
+    lagStatus[array_idx].port_channel_type    = ENDIAN_SWAP8(ptinLagStatus.port_channel_type);
+    lagStatus[array_idx].members_pbmp32[0]        = ENDIAN_SWAP32((L7_uint32)ptinLagStatus.members_pbmp64);
+    lagStatus[array_idx].members_pbmp32[1]        = ENDIAN_SWAP32((L7_uint32)(ptinLagStatus.members_pbmp64 >> 32));
+    lagStatus[array_idx].active_members_pbmp32[0] = ENDIAN_SWAP32((L7_uint32)ptinLagStatus.active_members_pbmp64);
+    lagStatus[array_idx].active_members_pbmp32[1] = ENDIAN_SWAP32((L7_uint32)(ptinLagStatus.active_members_pbmp64 >> 32));
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %2u", (L7_uint32)lagStatus[array_idx].id);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .admin                  = %s",     lagStatus[array_idx].admin?"ON":"OFF");
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .link_status            = %s",     lagStatus[array_idx].link_status?"UP":"DOWN");
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .port_channel_type      = %s",     lagStatus[array_idx].port_channel_type?"STATIC":"DYNAMIC");
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[0]        = 0x%08X", lagStatus[array_idx].members_pbmp32[0]);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[1]        = 0x%08X", lagStatus[array_idx].members_pbmp32[1]);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .active_members_pbmp[0] = 0x%08X", lagStatus[array_idx].active_members_pbmp32[0]);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .active_members_pbmp[1] = 0x%08X", lagStatus[array_idx].active_members_pbmp32[1]);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "LAG# %2u", (L7_uint32) ENDIAN_SWAP8(lagStatus[array_idx].id));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .admin                  = %s",     ENDIAN_SWAP8(lagStatus[array_idx].admin) ? "ON" : "OFF");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .link_status            = %s",     ENDIAN_SWAP8(lagStatus[array_idx].link_status) ? "UP" : "DOWN");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .port_channel_type      = %s",     ENDIAN_SWAP8(lagStatus[array_idx].port_channel_type) ? "STATIC" : "DYNAMIC");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[0]        = 0x%08X", ENDIAN_SWAP32(lagStatus[array_idx].members_pbmp32[0]));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .members_pbmp[1]        = 0x%08X", ENDIAN_SWAP32(lagStatus[array_idx].members_pbmp32[1]));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .active_members_pbmp[0] = 0x%08X", ENDIAN_SWAP32(lagStatus[array_idx].active_members_pbmp32[0]));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .active_members_pbmp[1] = 0x%08X", ENDIAN_SWAP32(lagStatus[array_idx].active_members_pbmp32[1]));
 
     array_idx++;
   }
@@ -3829,10 +3832,10 @@ L7_RC_t ptin_msg_LACPAdminState_set(msg_LACPAdminState_t *adminState, L7_uint nE
   for (i=0; i<nElems; i++)
   {
     /* Copy data into ptin struct */
-    ptinAdminState.port              = (L7_uint32) adminState[i].id;
-    ptinAdminState.state_aggregation = adminState[i].state_aggregation;
-    ptinAdminState.lacp_activity     = adminState[i].lacp_activity;
-    ptinAdminState.lacp_timeout      = adminState[i].lacp_timeout;
+    ptinAdminState.port              = (L7_uint32) ENDIAN_SWAP8(adminState[i].id);
+    ptinAdminState.state_aggregation = ENDIAN_SWAP8(adminState[i].state_aggregation);
+    ptinAdminState.lacp_activity     = ENDIAN_SWAP8(adminState[i].lacp_activity);
+    ptinAdminState.lacp_timeout      = ENDIAN_SWAP8(adminState[i].lacp_timeout);
 
     /* Apply settings */
     if (ptin_intf_LACPAdminState_set(&ptinAdminState) != L7_SUCCESS)
@@ -3867,18 +3870,18 @@ L7_RC_t ptin_msg_LACPAdminState_get(msg_LACPAdminState_t *adminState, L7_uint *n
 
   *nElems = 0;
 
-  slot_id = adminState->SlotId;
+  slot_id = ENDIAN_SWAP8(adminState->SlotId);
 
   /* Determine loop range (Port index [0..PTIN_SYSTEM_N_PORTS[) */
-  if (adminState->id >= PTIN_SYSTEM_N_PORTS)
+  if (ENDIAN_SWAP8(adminState->id) >= PTIN_SYSTEM_N_PORTS)
   {
     start = 0;
     end   = PTIN_SYSTEM_N_PORTS-1;
   }
   else
   {
-    start = adminState->id;
-    end   = adminState->id;
+    start = ENDIAN_SWAP8(adminState->id);
+    end   = ENDIAN_SWAP8(adminState->id);
   }
 
   /* Loop that works for one Port or for all of them */
@@ -3893,16 +3896,16 @@ L7_RC_t ptin_msg_LACPAdminState_get(msg_LACPAdminState_t *adminState, L7_uint *n
     }
 
     /* Copy data to the output message structure */
-    adminState[array_idx].SlotId            = slot_id;
-    adminState[array_idx].id                = ptinAdminState.port;
-    adminState[array_idx].state_aggregation = ptinAdminState.state_aggregation;
-    adminState[array_idx].lacp_activity     = ptinAdminState.lacp_activity;
-    adminState[array_idx].lacp_timeout      = ptinAdminState.lacp_timeout;
+    adminState[array_idx].SlotId            = ENDIAN_SWAP8(slot_id);
+    adminState[array_idx].id                = ENDIAN_SWAP8(ptinAdminState.port);
+    adminState[array_idx].state_aggregation = ENDIAN_SWAP8(ptinAdminState.state_aggregation);
+    adminState[array_idx].lacp_activity     = ENDIAN_SWAP8(ptinAdminState.lacp_activity);
+    adminState[array_idx].lacp_timeout      = ENDIAN_SWAP8(ptinAdminState.lacp_timeout);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Port# %2u", (L7_uint32)adminState[array_idx].id);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .state_aggregation = %s", adminState[array_idx].state_aggregation?"Enabled":"Disabled");
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .lacp_activity     = %s", adminState[array_idx].lacp_activity?"True":"False");
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .lacp_timeout      = %s", adminState[array_idx].lacp_timeout?"Short":"Long");
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Port# %2u", (L7_uint32) ENDIAN_SWAP8(adminState[array_idx].id));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .state_aggregation = %s", ENDIAN_SWAP8(adminState[array_idx].state_aggregation) ? "Enabled" : "Disabled");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .lacp_activity     = %s", ENDIAN_SWAP8(adminState[array_idx].lacp_activity) ? "True" : "False");
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .lacp_timeout      = %s", ENDIAN_SWAP8(adminState[array_idx].lacp_timeout) ? "Short" : "Long");
 
     array_idx++;
   }
@@ -3928,18 +3931,18 @@ L7_RC_t ptin_msg_LACPStats_get(msg_LACPStats_t *lagStats, L7_uint *nElems)
 
   *nElems = 0;
 
-  slot_id = lagStats->SlotId;
+  slot_id = ENDIAN_SWAP8(lagStats->SlotId);
 
   /* Determine loop range (Port index [0..PTIN_SYSTEM_N_PORTS[) */
-  if (lagStats->id >= PTIN_SYSTEM_N_PORTS)
+  if (ENDIAN_SWAP8(lagStats->id) >= PTIN_SYSTEM_N_PORTS)
   {
     start = 0;
     end   = PTIN_SYSTEM_N_PORTS-1;
   }
   else
   {
-    start = lagStats->id;
-    end   = lagStats->id;
+    start = ENDIAN_SWAP8(lagStats->id);
+    end   = ENDIAN_SWAP8(lagStats->id);
   }
 
   /* Loop that works for one Port or for all of them */
@@ -3954,14 +3957,14 @@ L7_RC_t ptin_msg_LACPStats_get(msg_LACPStats_t *lagStats, L7_uint *nElems)
     }
 
     /* Copy data to the output message structure */
-    lagStats[array_idx].SlotId     = slot_id;
-    lagStats[array_idx].id         = ptinLagStats.port;
-    lagStats[array_idx].LACPdus_rx = ptinLagStats.LACPdus_rx;
-    lagStats[array_idx].LACPdus_tx = ptinLagStats.LACPdus_tx;
+    lagStats[array_idx].SlotId     = ENDIAN_SWAP8(slot_id);
+    lagStats[array_idx].id         = ENDIAN_SWAP8(ptinLagStats.port);
+    lagStats[array_idx].LACPdus_rx = ENDIAN_SWAP32(ptinLagStats.LACPdus_rx);
+    lagStats[array_idx].LACPdus_tx = ENDIAN_SWAP32(ptinLagStats.LACPdus_tx);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Port# %2u", (L7_uint32)lagStats[array_idx].id);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .LACPdus_rx = %u", lagStats[array_idx].LACPdus_rx);
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .LACPdus_tx = %u", lagStats[array_idx].LACPdus_tx);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Port# %2u", (L7_uint32) ENDIAN_SWAP8(lagStats[array_idx].id));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .LACPdus_rx = %u", ENDIAN_SWAP32(lagStats[array_idx].LACPdus_rx));
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .LACPdus_tx = %u", ENDIAN_SWAP32(lagStats[array_idx].LACPdus_tx));
 
     array_idx++;
   }
@@ -3984,15 +3987,15 @@ L7_RC_t ptin_msg_LACPStats_clear(msg_LACPStats_t *lagStats)
   L7_uint32 start, end, array_idx;
 
   /* Determine loop range (Port index [0..PTIN_SYSTEM_N_PORTS[) */
-  if (lagStats->id >= PTIN_SYSTEM_N_PORTS)
+  if (ENDIAN_SWAP8(lagStats->id) >= PTIN_SYSTEM_N_PORTS)
   {
     start = 0;
     end   = PTIN_SYSTEM_N_PORTS-1;
   }
   else
   {
-    start = lagStats->id;
-    end   = lagStats->id;
+    start = ENDIAN_SWAP8(lagStats->id);
+    end   = ENDIAN_SWAP8(lagStats->id);
   }
 
   /* Loop that works for one Port or for all of them */
