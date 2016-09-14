@@ -712,6 +712,15 @@ static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, L7_uint32 
     /* Set kbits_burst equal to 2% of kbit per sec */
     shaperConfig.burst = shaperConfig.rate / 50; 
     
+    /* For Katana switches, max shapers' burst size is 2MBps = 16000 Kbps */
+    if (SOC_IS_KATANAX(dstPortPtr->bcm_unit))
+    {
+      if (shaperConfig.burst > 16000)
+        shaperConfig.burst = 16000;
+    }
+
+    PT_LOG_INFO(LOG_CTX_HAPI, "Shaping rate=%u burst=%u (lport=0x%x)", shaperConfig.rate, shaperConfig.burst, dstPortPtr->bcmx_lport);
+        
     rv = usl_bcmx_port_rate_egress_set(dstPortPtr->bcmx_lport, shaperConfig);
     if (L7_BCMX_OK(rv) != L7_TRUE)
       result = L7_FAILURE;
