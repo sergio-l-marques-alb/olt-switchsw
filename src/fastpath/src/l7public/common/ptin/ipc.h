@@ -112,6 +112,7 @@ extern uint8 ptin_board_slotId;
 
    EXTERN_C void EnableHandling        (BOOLEAN enable);
    EXTERN_C void SwapIPCHeader         (ipc_msg *inbuffer, ipc_msg *outbuffer);
+   EXTERN_C void SetIPCACKOK           (ipc_msg *outbuffer);
    EXTERN_C void SetIPCNACK            (ipc_msg *outbuffer, int res);
 
 
