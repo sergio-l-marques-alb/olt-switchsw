@@ -27,12 +27,12 @@ BIN_FILE	= switchdrvr
 DEVSHSYM_FILE	= devshell_symbols.gz
 
 #export TOOLCHAIN_BASE_DIR = /opt/broadcom
-export TOOLCHAIN_BASE_DIR = /opt/broadcom
+export TOOLCHAIN_BASE_DIR = /opt/broadcom_kt2_hx4/usr
 export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH	  = $(TOOLCHAIN_BASE_DIR)/lib
 
 export COMPILER           = $(TOOLCHAIN_BIN_DIR)/arm-linux-
-export KERNEL_PATH        = $(OLT_DIR)/../lib/kernel/linux-3.6.5_kt2-olt1t0f
+export KERNEL_PATH        = $(OLT_DIR)/../lib/kernel/linux-3.6.5-kt2arm_LDK-3.4.7-RC4
 #export KERNEL_PATH        = /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/kernel/linux-3.6.5
 
 BOARD = OLT1T0F
