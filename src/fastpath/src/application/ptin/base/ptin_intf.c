@@ -1789,7 +1789,7 @@ L7_RC_t ptin_intf_slotPort2port(L7_uint16 slot, L7_uint16 port, L7_uint32 *ptin_
     ptin_port = ptin_sys_slotport_to_intf_map[slot][port];
   }
 
-#elif (PTIN_BOARD == PTIN_BOARD_CXO360G)
+#elif (PTIN_BOARD == PTIN_BOARD_CXP360G)
   /* Do not allow slot below PTIN_SYS_LC_SLOT_MIN */
   if (slot < 2)
   {

@@ -17,6 +17,7 @@
 #include <unistd.h>
 
 #include "ptin_globaldefs.h"
+#include "ptin_fpga_api.h"
 #include "logger.h"
 #include "ptin_hapi.h"
 #include "ptin_hapi_xlate.h"
@@ -3988,14 +3989,14 @@ static L7_RC_t hapi_ptin_portMap_init(void)
   const L7_uint32 portmap_prot[] = PTIN_PORTMAP_SLOT_PROT;
 
   PT_LOG_INFO(LOG_CTX_HAPI, "Matrix board detected on %s slot",
-           cpld_map->map[CPLD_SLOT_ID_REG] == PTIN_SLOT_WORK ? "working" : "protection");
+              CPLD_REG_GET(CPLD_SLOT_ID_REG]) == PTIN_SLOT_WORK ? "working" : "protection");
 
   for (i = 0; i < min((sizeof(portmap_work)/portmap_work[0]), PTIN_SYSTEM_N_PORTS); i++)
   {
     /* Remap ports (only needed on protection slot) */
-    if (cpld_map->map[CPLD_SLOT_ID_REG] == PTIN_SLOT_WORK)
+    if (CPLD_REG_GET(CPLD_SLOT_ID_REG) == PTIN_SLOT_WORK)
       hapiSlotMapPtr[i].bcm_port = portmap_work[i];
-    else if (cpld_map->map[CPLD_SLOT_ID_REG] == PTIN_SLOT_PROT)
+    else if (CPLD_REG_GET(CPLD_SLOT_ID_REG) == PTIN_SLOT_PROT)
       hapiSlotMapPtr[i].bcm_port = portmap_prot[i];
   }
 #endif

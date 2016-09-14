@@ -54,7 +54,7 @@
 #include "dim.h"
 /* PTin added */
 #include "logger.h"
-#include "addrmap.h"
+#include "ptin_fpga_api.h"
 #include "ptin_globaldefs.h"
 #include <sys/resource.h>
 /* PTin end */
@@ -248,106 +248,6 @@ void startupStatusTask(int argc, void *argv)
   }
 }
 
-/* PTin added */
-
-/* FPGA map */
-#ifdef MAP_FPGA
-volatile st_fpga_map_t *fpga_map = MAP_FAILED;
-#endif
-
-#ifdef MAP_CPLD
-volatile st_cpld_map_t *cpld_map = MAP_FAILED;
-#endif
-
-
-/**
- * Maps FPGA and PLD registers map
- * 
- * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
- */
-static L7_RC_t hapi_ptin_fpga_map(void)
-{
-#ifdef MAP_FPGA
-  TAddrMap fpga_AddrMap;
-
-  PT_LOG_TRACE(LOG_CTX_STARTUP, "Going to map FPGA...");
-
-  // Load FPGA
-  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-  fpga_map = (volatile st_fpga_map_t *) AddrAlloc64((void *) &fpga_AddrMap, (long long) FPGA_BASE_ADDR, sizeof(st_fpga_map_t));
-  #else
-  fpga_map = (volatile st_fpga_map_t *) AddrAlloc((void *) &fpga_AddrMap, (int) FPGA_BASE_ADDR, sizeof(st_fpga_map_t));
-  #endif
-
-  if (fpga_map != MAP_FAILED)
-  {
-    /* If FPGA id is not valid, free FPGA map */
-    if ((fpga_map->map[FPGA_ID1_REG] != FPGA_ID1_VAL) ||
-        (fpga_map->map[FPGA_ID0_REG] != FPGA_ID0_VAL)) {
-
-      PT_LOG_ERR(LOG_CTX_STARTUP, "Invalid FPGA ID: 0x%02X%02X (expecting 0x%02X%02X)",
-              fpga_map->map[FPGA_ID0_REG], fpga_map->map[FPGA_ID1_REG],
-              FPGA_ID0_VAL, FPGA_ID1_VAL);
-
-      AddrFree(&fpga_AddrMap);
-      fpga_map = MAP_FAILED;
-    }
-    /* Otherwise, make some initializations */
-    else
-    {
-#if (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)
-      /* Release External PHYs RESET */
-      fpga_map->map[FPGA_EXTPHY_RESET] = 0xFF;
-      /* Disable all TX */
-      fpga_map->map[FPGA_TXDISABLE_REG] = 0x00;
-#endif
-
-      PT_LOG_TRACE(LOG_CTX_STARTUP, "FPGA mapping ok");
-      PT_LOG_TRACE(LOG_CTX_STARTUP, "  FPGA Id:      0x%02X%02X", fpga_map->map[FPGA_ID0_REG], fpga_map->map[FPGA_ID1_REG]);
-      PT_LOG_TRACE(LOG_CTX_STARTUP, "  FPGA Version: %d", fpga_map->map[FPGA_VER_REG]);
-    }
-  }
-
-  if ( fpga_map == MAP_FAILED )
-    return L7_FAILURE;
-#endif
-
-#ifdef MAP_CPLD
-  TAddrMap cpld_AddrMap;
-
-  PT_LOG_TRACE(LOG_CTX_STARTUP, "Going to map PLD...");
-
-  // Load CPLD
-  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-  PT_LOG_TRACE(LOG_CTX_STARTUP, "64 bit platform");
-  cpld_map = (volatile st_cpld_map_t *) AddrAlloc64((void *) &cpld_AddrMap, (long long) CPLD_BASE_ADDR, sizeof(st_cpld_map_t));
-  #else
-  PT_LOG_TRACE(LOG_CTX_STARTUP, "32 bit platform");
-  cpld_map = (volatile st_cpld_map_t *) AddrAlloc((void *) &cpld_AddrMap, (int) CPLD_BASE_ADDR, sizeof(st_cpld_map_t));
-  #endif
-
-  if (cpld_map != MAP_FAILED)
-  {
-    /* If CPLD id is not valid, free CPLD map */
-    PT_LOG_WARN(LOG_CTX_STARTUP, "CPLD ID is not being validated");
-
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "CPLD mapping ok");
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "  CPLD Id:      0x%02X%02X", cpld_map->map[CPLD_ID0_REG], cpld_map->map[CPLD_ID1_REG]);
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "  CPLD Version: %d", cpld_map->map[CPLD_VER_REG]);
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "  Hw Id:        %d", cpld_map->map[CPLD_HW_ID_REG]);
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "  Chassis Id:   %d", cpld_map->map[CPLD_CHASSIS_ID_REG]);
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "  Slot Id:      %d", cpld_map->map[CPLD_SLOT_ID_REG]);
-    /* No initializations to be done */
-  }
-
-  if ( cpld_map == MAP_FAILED )
-    return L7_FAILURE;
-#endif
-
-  return L7_SUCCESS;
-}
-/* PTin end */
-
 
 int fp_main(int argc, char *argv[])
 {
@@ -381,7 +281,7 @@ int fp_main(int argc, char *argv[])
   }
 
   /* PTin added: CPLD and FPGA mapping */
-  rc = hapi_ptin_fpga_map();
+  rc = ptin_fpga_init();
   if (rc != L7_SUCCESS)
     return L7_FAILURE;
 
