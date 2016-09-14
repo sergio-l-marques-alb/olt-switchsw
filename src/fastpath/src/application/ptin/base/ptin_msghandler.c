@@ -4266,6 +4266,17 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     
       CHECK_INFO_SIZE(msg_bd_mep_lm_t);
     
+#if MNGMT_DIFFERENT_ENDIANNESS
+      {
+       msg_bd_mep_lm_t *p;
+
+       p = (msg_bd_mep_lm_t*)inbuffer->info;
+
+       p->idx = ENDIAN_SWAP32(p->idx);
+       p->port = ENDIAN_SWAP32(p->port);
+      }
+#endif
+
       if (CCMSG_RM_MEP_LM == msgId) {
           rc = del_mep_lm(((msg_bd_mep_lm_t*)inbuffer->info)->idx, &oam)? L7_FAILURE: L7_SUCCESS;
       }
@@ -4312,6 +4323,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         u8  instance;
   
         pi = (msg_generic_prefix_t*)inbuffer->info;
+
+#if MNGMT_DIFFERENT_ENDIANNESS
+        pi->index = ENDIAN_SWAP64(pi->index);
+#endif
+
         i_mep = pi->index;
         instance = pi->index>>16;
 
@@ -4332,15 +4348,23 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
             break;
         default: rc = L7_ERROR; break;
         }//switch
-      }
   
-      if (L7_SUCCESS != rc) {
-        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        SetIPCNACK(outbuffer, res);
-        break;
+        if (L7_SUCCESS != rc) {
+          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+#if MNGMT_DIFFERENT_ENDIANNESS
+        else {
+            po->err_code = ENDIAN_SWAP32(po->err_code);
+            po->NEnumerator = ENDIAN_SWAP64(po->NEnumerator);
+            po->NEdenominator = ENDIAN_SWAP64(po->NEdenominator);
+            po->FEnumerator = ENDIAN_SWAP64(po->FEnumerator);
+            po->FEdenominator = ENDIAN_SWAP64(po->FEdenominator);
+        }
+#endif
       }
-  
   
       break;
 
@@ -4359,6 +4383,10 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
 
         pi = (MSG_FRAMELOSS_status*)inbuffer->info;
+#if MNGMT_DIFFERENT_ENDIANNESS
+        pi->idx = ENDIAN_SWAP32(pi->idx);
+        //pi->port = ENDIAN_SWAP32(pi->port);
+#endif
         i_mep = pi->idx;
 
         po = (MSG_FRAMELOSS_status*)outbuffer->info;
@@ -4372,15 +4400,25 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
             po->Delta_LM_rx_e = diff_LM_counters(po->Delta_LM_tx_e, po->Delta_LM_rx_e);
             rc = L7_SUCCESS;
         }
+
+        if (L7_SUCCESS != rc) {
+          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+#if MNGMT_DIFFERENT_ENDIANNESS
+        else {
+            //po->idx = ENDIAN_SWAP32(pi->idx); //ENDIAN_SWAP32(po->idx);
+            //po->port = ENDIAN_SWAP32(po->port);
+            po->mask = ENDIAN_SWAP32(po->mask);
+            po->Delta_LM_tx_e = ENDIAN_SWAP64(po->Delta_LM_tx_e);
+            po->Delta_LM_rx_e = ENDIAN_SWAP64(po->Delta_LM_rx_e);
+            po->Delta_LM_tx_i = ENDIAN_SWAP64(po->Delta_LM_tx_i);
+            po->Delta_LM_rx_i = ENDIAN_SWAP64(po->Delta_LM_rx_i);
+        }
+#endif
       }
-  
-      if (L7_SUCCESS != rc) {
-        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        SetIPCNACK(outbuffer, res);
-        break;
-      }
-  
   
       break;
 

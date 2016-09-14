@@ -7,7 +7,8 @@
 #include <ethsrv_oam.h>
 
 /* Fort systems Little Endian and if not pizza box, invert bytes */
-#if !defined(BE_HOST) && (!PTIN_BOARD_IS_STANDALONE)
+#define MNGMT_DIFFERENT_ENDIANNESS     (!defined(BE_HOST) && (!PTIN_BOARD_IS_STANDALONE))
+#if MNGMT_DIFFERENT_ENDIANNESS
 
 #define ENDIAN_SWAP8(val) \
   ((unsigned char)(val))
