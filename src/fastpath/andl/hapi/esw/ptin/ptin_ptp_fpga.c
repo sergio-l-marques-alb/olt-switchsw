@@ -42,10 +42,15 @@
 #define N_FPGA_VIDPRTS  16
 #include <table.h>
 
-#define VIDpcpu PTIN_VLAN_FPGA2CPU
-#define VIDprt(prt)     (PTIN_VLAN_FPGA2PORT_MIN+(prt))      /*0<=prt<PTIN_SYSTEM_N_INTERF*/
-#define EVCpcpu PTIN_EVC_FPGA2CPU
-#define EVCprt(prt)     (PTIN_EVC_FPGA2PORTS_MIN+(prt))
+#if (PTIN_BOARD_IS_STANDALONE)
+ #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  #define VIDpcpu PTIN_VLAN_FPGA2CPU
+  #define EVCpcpu PTIN_EVC_FPGA2CPU
+ #endif
+ #define VIDprt(prt)     (PTIN_VLAN_FPGA2PORT_MIN+(prt))      /*0<=prt<PTIN_SYSTEM_N_INTERF*/
+ #define EVCprt(prt)     (PTIN_EVC_FPGA2PORTS_MIN+(prt))
+#endif
+
 //#include <ptin_xlate_api.h>
 extern L7_RC_t ptin_xlate_egress_set( L7_uint port, L7_uint16 outer_vlan, L7_uint op, L7_uint16 newOuterVlanId);
 //#include <ptin_evc.h>
@@ -54,8 +59,8 @@ extern L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id);
 
 void ptin_flows_fpga_init(void) {
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-L7_RC_t rc;
-ptin_HwEthMef10Evc_t evcConf;
+  L7_RC_t rc;
+  ptin_HwEthMef10Evc_t evcConf;
 
   /* Create CPU-FPGA circuit */
   memset(&evcConf, 0x00, sizeof(evcConf));
@@ -110,7 +115,7 @@ ptin_HwEthMef10Evc_t evcConf;
 
 
 
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (PTIN_BOARD_IS_STANDALONE)
 typedef
 struct {
  unsigned long  prt,
@@ -340,7 +345,7 @@ void ptin_hapi_ptp_table_init(void) {
 
 L7_RC_t ptin_hapi_ptp_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_t *entry)
 {
-#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (!PTIN_BOARD_IS_STANDALONE)
  return L7_FAILURE;
 #else
   //L7_int      /*entry, free_entry,*/ rule, free_rule, max_rules;
@@ -621,7 +626,7 @@ L7_RC_t ptin_hapi_ptp_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_
 
 
 L7_RC_t ptin_hapi_ptp_entry_del(ptin_dapi_port_t *dapiPort, ptin_dtl_search_ptp_t *entry) {
-#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (!PTIN_BOARD_IS_STANDALONE)
  return L7_FAILURE;
 #else
 
@@ -662,7 +667,7 @@ L7_RC_t rc = L7_SUCCESS;
 
 
 L7_RC_t ptin_hapi_ptp_dump(void) {
-#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (!PTIN_BOARD_IS_STANDALONE)
  return L7_FAILURE;
 #else
 
@@ -746,28 +751,34 @@ extern L7_RC_t ptin_xlate_ingress_clear( L7_uint port, L7_uint16 outer_vlan, L7_
 extern L7_RC_t dtlPtinGeneric(L7_uint32 intIfNum, L7_uint16 msgId, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data);
 
 L7_RC_t ptin_ptp_fpga_entry(ptin_dtl_search_ptp_t *e, DAPI_CMD_GET_SET_t operation) {
-#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
- return L7_FAILURE;
+#if (!PTIN_BOARD_IS_STANDALONE)
+    return L7_FAILURE;
 #else
-L7_RC_t rc=L7_SUCCESS;
-unsigned long r=0;
-L7_uint32 intIfNum;
+    L7_RC_t rc=L7_SUCCESS;
+    unsigned long r=0;
+    L7_uint32 intIfNum;
 
-    if (ptin_intf_port2intIfNum(e->key.prt, &intIfNum)!=L7_SUCCESS) {PT_LOG_ERR(LOG_CTX_MISC, "Non existent port"); return L7_ERROR;}
+    if (ptin_intf_port2intIfNum(e->key.prt, &intIfNum)!=L7_SUCCESS) {
+      PT_LOG_ERR(LOG_CTX_MISC, "Non existent port");
+      return L7_ERROR;
+    }
 
     //PTIN_PORT_CPU
     switch (operation) {
     default: return L7_ERROR;
     case DAPI_CMD_SET:
         r = ptin_flow_fpga_entry(1, e->key.prt);    //if (r) return L7_TABLE_IS_FULL;
+    #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
         ptin_xlate_ingress_set(PTIN_PORT_CPU, e->vid_os, PTIN_XLATE_ACTION_ADD, VIDpcpu);
+    #endif
         break;
     case DAPI_CMD_CLEAR:
         ptin_flow_fpga_entry(2, e->key.prt);
+    #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
         ptin_xlate_ingress_clear(PTIN_PORT_CPU, e->vid_os, 0);
+    #endif
         break;
     }
-
 
     //0..PTIN_SYSTEM_N_UPLINK_INTERF
     //ptin_hapi_ptp_entry_add() / ptin_hapi_ptp_entry_del() through DTL layer (tunneled down to HAPI layer)
@@ -781,7 +792,9 @@ L7_uint32 intIfNum;
 
     if ((r || L7_SUCCESS!=rc) && DAPI_CMD_SET==operation) {
         ptin_flow_fpga_entry(2, e->key.prt);
+    #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
         ptin_xlate_ingress_clear(PTIN_PORT_CPU, e->vid_os, 0);
+    #endif
         if (r) {
             if (-3==r) return L7_TABLE_IS_FULL;
             return L7_FAILURE;
@@ -874,7 +887,7 @@ L7_RC_t ptin_hapi_oam_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_search_oam_
 //Filter MEP traffic to FPGA     (VCAP[+ICAP?])
 //Mutual exclusive with hapiBroadConfigCcmFilter     (trapping; ICAP)
 
-#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (!PTIN_BOARD_IS_STANDALONE)
  return L7_FAILURE;
 #else
 
@@ -1049,7 +1062,7 @@ bcmx_lport_t  lport;
 L7_RC_t ptin_hapi_oam_entry_del(ptin_dapi_port_t *dapiPort, ptin_dtl_search_oam_t *entry) {
 //Filter MEP traffic to FPGA     (VCAP[+ICAP?])
 //Mutual exclusive with hapiBroadConfigCcmFilter     (trapping; ICAP)
-#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (!PTIN_BOARD_IS_STANDALONE)
  return L7_FAILURE;
 #else
 
@@ -1083,7 +1096,7 @@ L7_RC_t rc = L7_SUCCESS;
 
 
 L7_RC_t ptin_hapi_oam_dump(void) {
-#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (!PTIN_BOARD_IS_STANDALONE)
  return L7_FAILURE;
 #else
 
@@ -1110,7 +1123,7 @@ ptin_dtl_search_oam_t   *entry;
 
 //DTL/APP LAYER**********************************************************************************
 L7_RC_t ptin_oam_fpga_entry(ptin_dtl_search_oam_t *e, DAPI_CMD_GET_SET_t operation) {
-#if !(PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (!PTIN_BOARD_IS_STANDALONE)
  return L7_FAILURE;
 #else
 
