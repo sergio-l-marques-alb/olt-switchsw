@@ -138,6 +138,12 @@ typedef union
 extern volatile st_cpld_map_t *cpld_map;
 #endif
 
+#ifdef MAP_CPLD
+#define CPLD_ID_GET()             (cpld_map->reg.id)
+#else
+#define CPLD_ID_GET()             0
+#endif
+
 /* FPGA map registers */
 # define FPGA_ID                       0x1112
 # define FPGA_ID0_REG                  0x0005 /* Address is swapped! */
