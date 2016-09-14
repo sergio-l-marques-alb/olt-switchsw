@@ -8331,7 +8331,7 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
     output->bind_table[i].outer_vlan     = ENDIAN_SWAP16(dhcpv4v6_bindtable[first+i].outer_vlan);
     output->bind_table[i].inner_vlan     = ENDIAN_SWAP16(dhcpv4v6_bindtable[first+i].inner_vlan);
     memcpy(output->bind_table[i].macAddr, dhcpv4v6_bindtable[first+i].macAddr, sizeof(L7_uint8)*6);
-    memcpy(&output->bind_table[i].ipAddr, &dhcpv4v6_bindtable[first+i].ipAddr, sizeof(chmessage_ip_addr_t));    /* TODO */
+    CHMSG_IP_ADDR_SWAP_COPY(output->bind_table[i].ipAddr, dhcpv4v6_bindtable[first+i].ipAddr);
     output->bind_table[i].remLeave       = ENDIAN_SWAP32(dhcpv4v6_bindtable[first+i].remLeave);
     output->bind_table[i].bindingType    = ENDIAN_SWAP8 (dhcpv4v6_bindtable[first+i].bindingType);
 
