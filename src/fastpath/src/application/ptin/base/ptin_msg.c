@@ -1870,6 +1870,12 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   ptin_QoS_cos_t          qos_cos[8];
   L7_RC_t rc;
 
+  /* Swap input data */
+  ENDIAN_SWAP8_MOD (qos_msg->SlotId);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_type);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_id);
+  ENDIAN_SWAP8_MOD (qos_msg->mask);
+
   /* Save slot id and interface */
   slot_id = qos_msg->SlotId;
   ptin_intf.intf_type = qos_msg->intf.intf_type;
@@ -1991,6 +1997,28 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
   PT_LOG_DEBUG(LOG_CTX_MSG, "Queue_max_bw    = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->cos_config.cos[0].max_bandwidth, qos_msg->cos_config.cos[1].max_bandwidth, qos_msg->cos_config.cos[2].max_bandwidth, qos_msg->cos_config.cos[3].max_bandwidth, qos_msg->cos_config.cos[4].max_bandwidth, qos_msg->cos_config.cos[5].max_bandwidth, qos_msg->cos_config.cos[6].max_bandwidth, qos_msg->cos_config.cos[7].max_bandwidth);
 
+  /* Swap bytes */
+  ENDIAN_SWAP8_MOD (qos_msg->SlotId);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_type);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_id);
+  ENDIAN_SWAP8_MOD (qos_msg->mask);
+  ENDIAN_SWAP8_MOD (qos_msg->trust_mode);
+  ENDIAN_SWAP8_MOD (qos_msg->bandwidth_unit);
+  ENDIAN_SWAP32_MOD(qos_msg->shaping_rate);
+  ENDIAN_SWAP8_MOD (qos_msg->pktprio.mask);
+  for (i = 0; i < 8; i++)
+  {
+    ENDIAN_SWAP32_MOD(qos_msg->pktprio.cos[i]);
+  }
+  ENDIAN_SWAP8_MOD (qos_msg->cos_config.mask);
+  for (i = 0; i < 8; i++)
+  {
+    ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].mask);
+    ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].scheduler);
+    ENDIAN_SWAP32_MOD(qos_msg->cos_config.cos[i].min_bandwidth);
+    ENDIAN_SWAP32_MOD(qos_msg->cos_config.cos[i].max_bandwidth);
+  }
+
   return L7_SUCCESS;
 }
 
@@ -2008,6 +2036,28 @@ L7_RC_t ptin_msg_CoS_set(msg_QoSConfiguration_t *qos_msg)
   ptin_QoS_intf_t         qos_intf;
   ptin_QoS_cos_t          qos_cos[8];
   L7_RC_t                 rc, rc_global = L7_SUCCESS;
+
+  /* Swap bytes */
+  ENDIAN_SWAP8_MOD (qos_msg->SlotId);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_type);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_id);
+  ENDIAN_SWAP8_MOD (qos_msg->mask);
+  ENDIAN_SWAP8_MOD (qos_msg->trust_mode);
+  ENDIAN_SWAP8_MOD (qos_msg->bandwidth_unit);
+  ENDIAN_SWAP32_MOD(qos_msg->shaping_rate);
+  ENDIAN_SWAP8_MOD (qos_msg->pktprio.mask);
+  for (i = 0; i < 8; i++)
+  {
+    ENDIAN_SWAP32_MOD(qos_msg->pktprio.cos[i]);
+  }
+  ENDIAN_SWAP8_MOD (qos_msg->cos_config.mask);
+  for (i = 0; i < 8; i++)
+  {
+    ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].mask);
+    ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].scheduler);
+    ENDIAN_SWAP32_MOD(qos_msg->cos_config.cos[i].min_bandwidth);
+    ENDIAN_SWAP32_MOD(qos_msg->cos_config.cos[i].max_bandwidth);
+  }
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "Slotid         = %u",qos_msg->SlotId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Interface      = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
@@ -2155,6 +2205,12 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
   ptin_QoS_cos_t          qos_cos[8];
   ptin_QoS_drop_t         qos_drop[8];
   L7_RC_t                 rc;
+
+  /* Swap input data */
+  ENDIAN_SWAP8_MOD (qos_msg->SlotId);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_type);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_id);
+  ENDIAN_SWAP8_MOD (qos_msg->generic_mask);
 
   /* Save slot id and interface */
   slot_id = qos_msg->SlotId;
@@ -2399,6 +2455,40 @@ L7_RC_t ptin_msg_CoS2_get(msg_QoSConfiguration2_t *qos_msg)
               qos_msg->cos_config.cos[7].dropThresholds[i].wred_dropProb);
   }
 
+  /* Swap bytes */
+  ENDIAN_SWAP8_MOD (qos_msg->SlotId);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_type);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_id);
+  ENDIAN_SWAP8_MOD (qos_msg->generic_mask);
+  for (i = 0; i < 8; i++)
+  {
+    ENDIAN_SWAP8_MOD (qos_msg->pktprio.prio_mask[i]);
+    ENDIAN_SWAP32_MOD(qos_msg->pktprio.cos[i]);
+  }
+  ENDIAN_SWAP8_MOD (qos_msg->trust_mode);
+  ENDIAN_SWAP8_MOD (qos_msg->bandwidth_unit);
+  ENDIAN_SWAP32_MOD(qos_msg->shaping_rate);
+
+  for (i = 0; i < 8; i++)
+  {
+    ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos_mask);
+    ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].local_mask);
+    ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].scheduler);
+    ENDIAN_SWAP32_MOD(qos_msg->cos_config.cos[i].min_bandwidth);
+    ENDIAN_SWAP32_MOD(qos_msg->cos_config.cos[i].max_bandwidth);
+    ENDIAN_SWAP16_MOD(qos_msg->cos_config.cos[i].wrrSched_weight);
+    ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].dropMgmtType);
+    ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].wred_decayExp);
+    for (j = 0; j < 4; j++)
+    {
+      ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].dropThresholds[j].local2_mask);
+      ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].dropThresholds[j].tailDrop_threshold);
+      ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].dropThresholds[j].wred_minThreshold);
+      ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].dropThresholds[j].wred_maxThreshold);
+      ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].dropThresholds[j].wred_dropProb);
+    }
+  }
+
   return L7_SUCCESS;
 }
 
@@ -2417,6 +2507,39 @@ L7_RC_t ptin_msg_CoS2_set(msg_QoSConfiguration2_t *qos_msg)
   ptin_QoS_cos_t          qos_cos[8];
   ptin_QoS_drop_t         qos_drop[8];
   L7_RC_t                 rc, rc_global = L7_SUCCESS;
+
+  /* Swap bytes */
+  ENDIAN_SWAP8_MOD (qos_msg->SlotId);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_type);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_id);
+  ENDIAN_SWAP8_MOD (qos_msg->generic_mask);
+  ENDIAN_SWAP8_MOD (qos_msg->trust_mode);
+  ENDIAN_SWAP8_MOD (qos_msg->bandwidth_unit);
+  ENDIAN_SWAP32_MOD(qos_msg->shaping_rate);
+  for (i = 0; i < 8; i++)
+  {
+    ENDIAN_SWAP8_MOD (qos_msg->pktprio.prio_mask[i]);
+    ENDIAN_SWAP32_MOD(qos_msg->pktprio.cos[i]);
+  }
+  for (i = 0; i < 8; i++)
+  {
+    ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos_mask);
+    ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].local_mask);
+    ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].scheduler);
+    ENDIAN_SWAP32_MOD(qos_msg->cos_config.cos[i].min_bandwidth);
+    ENDIAN_SWAP32_MOD(qos_msg->cos_config.cos[i].max_bandwidth);
+    ENDIAN_SWAP16_MOD(qos_msg->cos_config.cos[i].wrrSched_weight);
+    ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].dropMgmtType);
+    ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].wred_decayExp);
+    for (j = 0; j < 4; j++)
+    {
+      ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].dropThresholds[j].local2_mask);
+      ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].dropThresholds[j].tailDrop_threshold);
+      ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].dropThresholds[j].wred_minThreshold);
+      ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].dropThresholds[j].wred_maxThreshold);
+      ENDIAN_SWAP8_MOD (qos_msg->cos_config.cos[i].dropThresholds[j].wred_dropProb);
+    }
+  }
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "Slotid            = %u",qos_msg->SlotId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Interface         = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
@@ -2688,6 +2811,12 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
     return L7_FAILURE;
   }
 
+  /* Swap input data */
+  ENDIAN_SWAP8_MOD (qos_msg->SlotId);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_type);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_id);
+  ENDIAN_SWAP8_MOD (qos_msg->main_mask);
+
   /* Interface */
   ptin_intf.intf_type = qos_msg->intf.intf_type;
   ptin_intf.intf_id   = qos_msg->intf.intf_id;
@@ -2918,6 +3047,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
   PT_LOG_DEBUG(LOG_CTX_MSG, "Ingress:");
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Ingress Mask = 0x%02x",qos_msg->ingress.ingress_mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Trust mode   = %u",qos_msg->ingress.trust_mode);
+
   if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif.pcp_map.prio_mask = 0x%02x",qos_msg->ingress.cos_classif.pcp_map.prio_mask);
@@ -2972,6 +3102,7 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
               qos_msg->ingress.cos_policer[i].cir, qos_msg->ingress.cos_policer[i].eir,
               qos_msg->ingress.cos_policer[i].cbs, qos_msg->ingress.cos_policer[i].ebs);
   }
+
   PT_LOG_DEBUG(LOG_CTX_MSG, "Egress:");
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Egress Mask  = 0x%02x", qos_msg->egress.egress_mask); 
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Shaping rate = %u %%", qos_msg->egress.shaping_rate);
@@ -3041,7 +3172,6 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_dropmgmt[5].local_mask,
             qos_msg->egress.cos_dropmgmt[6].local_mask,
             qos_msg->egress.cos_dropmgmt[7].local_mask);
-
   PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->dropMgmttype     = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->egress.cos_dropmgmt[0].dropMgmtType,
             qos_msg->egress.cos_dropmgmt[1].dropMgmtType,
@@ -3100,6 +3230,65 @@ L7_RC_t ptin_msg_CoS3_get(msg_QoSConfiguration3_t *qos_msg)
               qos_msg->egress.cos_dropmgmt[6].dp_thresholds[i].wred_dropProb,
               qos_msg->egress.cos_dropmgmt[7].dp_thresholds[i].wred_dropProb);
   }
+
+  /* Swap generic structures */
+  ENDIAN_SWAP8_MOD (qos_msg->SlotId);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_type);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_id);
+  ENDIAN_SWAP8_MOD (qos_msg->main_mask);
+  ENDIAN_SWAP8_MOD (qos_msg->bandwidth_unit);
+  /* Swap ingress related structures */
+  if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
+  {
+    ENDIAN_SWAP8_MOD (qos_msg->ingress.cos_classif.pcp_map.prio_mask);
+    for (i = 0; i < 8; i++) ENDIAN_SWAP8_MOD (qos_msg->ingress.cos_classif.pcp_map.cos[i]);
+  }
+  else if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC)
+  {
+    ENDIAN_SWAP8_MOD (qos_msg->ingress.cos_classif.ipprec_map.prio_mask);
+    for (i = 0; i < 8; i++) ENDIAN_SWAP8_MOD (qos_msg->ingress.cos_classif.ipprec_map.cos[i]);
+  }
+  else if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
+  {
+    ENDIAN_SWAP32_MOD(qos_msg->ingress.cos_classif.dscp_map.prio_mask[0]);
+    ENDIAN_SWAP32_MOD(qos_msg->ingress.cos_classif.dscp_map.prio_mask[1]);
+    for (i = 0; i < 64; i++) ENDIAN_SWAP8_MOD (qos_msg->ingress.cos_classif.dscp_map.cos[i]);
+  }
+  for (i = 0; i < 8; i++)
+  {
+    ENDIAN_SWAP8_MOD (qos_msg->ingress.cos_policer[i].local_mask);
+    ENDIAN_SWAP32_MOD(qos_msg->ingress.cos_policer[i].cir);
+    ENDIAN_SWAP32_MOD(qos_msg->ingress.cos_policer[i].cbs);
+    ENDIAN_SWAP32_MOD(qos_msg->ingress.cos_policer[i].eir);
+    ENDIAN_SWAP32_MOD(qos_msg->ingress.cos_policer[i].ebs);
+  }
+  ENDIAN_SWAP8_MOD (qos_msg->ingress.ingress_mask);
+  ENDIAN_SWAP8_MOD (qos_msg->ingress.trust_mode);
+
+  /* Swap egress related structures */
+  ENDIAN_SWAP8_MOD (qos_msg->egress.egress_mask);
+  ENDIAN_SWAP32_MOD(qos_msg->egress.shaping_rate);
+  for (i = 0; i < 8; i++)
+  {
+    ENDIAN_SWAP8_MOD (qos_msg->egress.cos_scheduler[i].local_mask);
+    ENDIAN_SWAP8_MOD (qos_msg->egress.cos_scheduler[i].schedulerType);
+    ENDIAN_SWAP16_MOD(qos_msg->egress.cos_scheduler[i].wrrSched_weight);
+    ENDIAN_SWAP8_MOD (qos_msg->egress.cos_shaper[i].local_mask);
+    ENDIAN_SWAP32_MOD(qos_msg->egress.cos_shaper[i].min_bandwidth);
+    ENDIAN_SWAP32_MOD(qos_msg->egress.cos_shaper[i].max_bandwidth);
+    ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].local_mask);
+    ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].dropMgmtType);
+    ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].wred_decayExp);
+    for (j = 0; j < 6; j++)
+    {
+      ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask);
+      ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].tailDrop_threshold);
+      ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_minThreshold);
+      ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_maxThreshold);
+      ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_dropProb);
+    }
+  }
+
   PT_LOG_DEBUG(LOG_CTX_MSG, "Dump finished!");
 
   return L7_SUCCESS;
@@ -3130,13 +3319,72 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Slotid         = %u",qos_msg->SlotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Interface      = %u/%u",qos_msg->intf.intf_type,qos_msg->intf.intf_id);
+  /* Swap generic structures */
+  ENDIAN_SWAP8_MOD (qos_msg->SlotId);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_type);
+  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_id);
+  ENDIAN_SWAP8_MOD (qos_msg->main_mask);
+  ENDIAN_SWAP8_MOD (qos_msg->bandwidth_unit);
+  /* Swap ingress related structures */
+  ENDIAN_SWAP8_MOD (qos_msg->ingress.ingress_mask);
+  ENDIAN_SWAP8_MOD (qos_msg->ingress.trust_mode);
+  if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
+  {
+    ENDIAN_SWAP8_MOD (qos_msg->ingress.cos_classif.pcp_map.prio_mask);
+    for (i = 0; i < 8; i++) ENDIAN_SWAP8_MOD (qos_msg->ingress.cos_classif.pcp_map.cos[i]);
+  }
+  else if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC)
+  {
+    ENDIAN_SWAP8_MOD (qos_msg->ingress.cos_classif.ipprec_map.prio_mask);
+    for (i = 0; i < 8; i++) ENDIAN_SWAP8_MOD (qos_msg->ingress.cos_classif.ipprec_map.cos[i]);
+  }
+  else if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
+  {
+    ENDIAN_SWAP32_MOD(qos_msg->ingress.cos_classif.dscp_map.prio_mask[0]);
+    ENDIAN_SWAP32_MOD(qos_msg->ingress.cos_classif.dscp_map.prio_mask[1]);
+    for (i = 0; i < 64; i++) ENDIAN_SWAP8_MOD (qos_msg->ingress.cos_classif.dscp_map.cos[i]);
+  }
+  for (i = 0; i < 8; i++)
+  {
+    ENDIAN_SWAP8_MOD (qos_msg->ingress.cos_policer[i].local_mask);
+    ENDIAN_SWAP32_MOD(qos_msg->ingress.cos_policer[i].cir);
+    ENDIAN_SWAP32_MOD(qos_msg->ingress.cos_policer[i].cbs);
+    ENDIAN_SWAP32_MOD(qos_msg->ingress.cos_policer[i].eir);
+    ENDIAN_SWAP32_MOD(qos_msg->ingress.cos_policer[i].ebs);
+  }
+
+  /* Swap egress related structures */
+  ENDIAN_SWAP8_MOD (qos_msg->egress.egress_mask);
+  ENDIAN_SWAP32_MOD(qos_msg->egress.shaping_rate);
+  for (i = 0; i < 8; i++)
+  {
+    ENDIAN_SWAP8_MOD (qos_msg->egress.cos_scheduler[i].local_mask);
+    ENDIAN_SWAP8_MOD (qos_msg->egress.cos_scheduler[i].schedulerType);
+    ENDIAN_SWAP16_MOD(qos_msg->egress.cos_scheduler[i].wrrSched_weight);
+    ENDIAN_SWAP8_MOD (qos_msg->egress.cos_shaper[i].local_mask);
+    ENDIAN_SWAP32_MOD(qos_msg->egress.cos_shaper[i].min_bandwidth);
+    ENDIAN_SWAP32_MOD(qos_msg->egress.cos_shaper[i].max_bandwidth);
+    ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].local_mask);
+    ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].dropMgmtType);
+    ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].wred_decayExp);
+    for (j = 0; j < 6; j++)
+    {
+      ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].local2_mask);
+      ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].tailDrop_threshold);
+      ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_minThreshold);
+      ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_maxThreshold);
+      ENDIAN_SWAP8_MOD (qos_msg->egress.cos_dropmgmt[i].dp_thresholds[j].wred_dropProb);
+    }
+  }
+
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Slotid         = %u",    qos_msg->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Interface      = %u/%u", qos_msg->intf.intf_type, qos_msg->intf.intf_id);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Main Mask      = 0x%02x",qos_msg->main_mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Bandwidth unit = %u",qos_msg->bandwidth_unit);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Bandwidth unit = %u",    qos_msg->bandwidth_unit);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Ingress:");
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Ingress Mask = 0x%02x",qos_msg->ingress.ingress_mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Trust mode   = %u",qos_msg->ingress.trust_mode);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Trust mode   = %u",    qos_msg->ingress.trust_mode);
+
   if (qos_msg->ingress.trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_classif.pcp_map.prio_mask = 0x%02x",qos_msg->ingress.cos_classif.pcp_map.prio_mask);
@@ -3191,6 +3439,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
               qos_msg->ingress.cos_policer[i].cir, qos_msg->ingress.cos_policer[i].eir,
               qos_msg->ingress.cos_policer[i].cbs, qos_msg->ingress.cos_policer[i].ebs);
   }
+
   PT_LOG_DEBUG(LOG_CTX_MSG, "Egress:");
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Egress Mask  = 0x%02x", qos_msg->egress.egress_mask); 
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Shaping rate = %u %%", qos_msg->egress.shaping_rate);
@@ -3260,7 +3509,6 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
             qos_msg->egress.cos_dropmgmt[5].local_mask,
             qos_msg->egress.cos_dropmgmt[6].local_mask,
             qos_msg->egress.cos_dropmgmt[7].local_mask);
-  
   PT_LOG_DEBUG(LOG_CTX_MSG, "  cos_dropmgmt->dropMgmttype     = [ %u %u %u %u %u %u %u %u ]",
             qos_msg->egress.cos_dropmgmt[0].dropMgmtType,
             qos_msg->egress.cos_dropmgmt[1].dropMgmtType,
