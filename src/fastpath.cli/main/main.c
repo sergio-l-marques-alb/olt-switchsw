@@ -2540,38 +2540,38 @@ int main (int argc, char *argv[])
 
           // Pointer to data array
           ptr = (msg_HwEthernetDhcpOpt82Profile_t *) &(comando.info[0]);
-          memset(ptr,0x00,sizeof(msg_HwEthernetDhcpOpt82Profile_t));
+          memset(ptr, 0x00, sizeof(msg_HwEthernetDhcpOpt82Profile_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // flow_id
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->evc_id = (uint32) valued;
+          ptr->evc_id = ENDIAN_SWAP32((uint32) valued);
           // port
           if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
           {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = (uint8) type;
-          ptr->intf.intf_id   = (uint8) intf;
-          ptr->mask |= MSG_INTERFACE_MASK;
+          ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
+          ptr->mask |= ENDIAN_SWAP8(MSG_INTERFACE_MASK);
 
-          ptr->mask |= MSG_CLIENT_MASK;
-          ptr->client.intf.intf_type = (uint8) type;
-          ptr->client.intf.intf_id   = (uint8) intf;
-          ptr->client.mask |= MSG_CLIENT_INTF_MASK;
+          ptr->mask |= ENDIAN_SWAP8(MSG_CLIENT_MASK);
+          ptr->client.intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->client.intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
+          ptr->client.mask |= ENDIAN_SWAP8(MSG_CLIENT_INTF_MASK);
 
           // cvid
           if (StrToLongLong(argv[3+2],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->client.inner_vlan = (uint16) valued;
-          ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
+          ptr->client.inner_vlan = ENDIAN_SWAP16((uint16) valued);
+          ptr->client.mask |= ENDIAN_SWAP8(MSG_CLIENT_IVLAN_MASK);
 
           // CircuitId
           ptr->circuitId[0] = '\0';
@@ -2599,36 +2599,36 @@ int main (int argc, char *argv[])
           ptr = (msg_HwEthernetDhcpOpt82Profile_t *) &(comando.info[0]);
           memset(ptr,0x00,sizeof(msg_HwEthernetDhcpOpt82Profile_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // flow_id
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->evc_id = (uint32) valued;
+          ptr->evc_id = ENDIAN_SWAP32((uint32) valued);
           // port
           if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
           {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = (uint8) type;
-          ptr->intf.intf_id   = (uint8) intf;
-          ptr->mask |= MSG_INTERFACE_MASK;
+          ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
+          ptr->mask |= ENDIAN_SWAP8(MSG_INTERFACE_MASK);
 
-          ptr->mask |= MSG_CLIENT_MASK;
-          ptr->client.intf.intf_type = (uint8) type;
-          ptr->client.intf.intf_id   = (uint8) intf;
-          ptr->client.mask |= MSG_CLIENT_INTF_MASK;
+          ptr->mask |= ENDIAN_SWAP8(MSG_CLIENT_MASK);
+          ptr->client.intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->client.intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
+          ptr->client.mask |= ENDIAN_SWAP8(MSG_CLIENT_INTF_MASK);
 
           // cvid
           if (StrToLongLong(argv[3+2],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->client.inner_vlan = (uint16) valued;
-          ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
+          ptr->client.inner_vlan = ENDIAN_SWAP16((uint16) valued);
+          ptr->client.mask |= ENDIAN_SWAP8(MSG_CLIENT_IVLAN_MASK);
 
           if (sscanf(argv[3 + 3], "%d/%d/%d", &op82, &op37, &op18) != 3)
           {
@@ -2638,13 +2638,14 @@ int main (int argc, char *argv[])
           ptr->options |= 0x01 & op18;
           ptr->options |= 0x02 & (op37 << 1);
           ptr->options |= 0x04 & (op82 << 2);
+          ptr->options = ENDIAN_SWAP16(ptr->options);
 
           // CircuitId
           if (strlen(argv[3+4])>63)  argv[3+4][63]='\0';
-          strcpy(ptr->circuitId,argv[3+4]);
+          strcpy(ptr->circuitId, argv[3+4]);
           // RemoteId
           if (strlen(argv[3+5])>63)  argv[3+5][63]='\0';
-          strcpy(ptr->remoteId,argv[3+5]);
+          strcpy(ptr->remoteId, argv[3+5]);
 
           comando.msgId = CCMSG_ETH_DHCP_PROFILE_ADD;
           comando.infoDim = sizeof(msg_HwEthernetDhcpOpt82Profile_t);
@@ -2666,36 +2667,36 @@ int main (int argc, char *argv[])
           ptr = (msg_HwEthernetDhcpOpt82Profile_t *) &(comando.info[0]);
           memset(ptr,0x00,sizeof(msg_HwEthernetDhcpOpt82Profile_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // flow_id
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->evc_id = (uint32) valued;
+          ptr->evc_id = ENDIAN_SWAP32((uint32) valued);
           // port
           if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
           {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = (uint8) type;
-          ptr->intf.intf_id   = (uint8) intf;
-          ptr->mask |= MSG_INTERFACE_MASK;
+          ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
+          ptr->mask |= ENDIAN_SWAP8(MSG_INTERFACE_MASK);
 
-          ptr->mask |= MSG_CLIENT_MASK;
-          ptr->client.intf.intf_type = (uint8) type;
-          ptr->client.intf.intf_id   = (uint8) intf;
-          ptr->client.mask |= MSG_CLIENT_INTF_MASK;
+          ptr->mask |= ENDIAN_SWAP8(MSG_CLIENT_MASK);
+          ptr->client.intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->client.intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
+          ptr->client.mask |= ENDIAN_SWAP8(MSG_CLIENT_INTF_MASK);
 
           // cvid
           if (StrToLongLong(argv[3+2],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->client.inner_vlan = (uint16) valued;
-          ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
+          ptr->client.inner_vlan = ENDIAN_SWAP16((uint16) valued);
+          ptr->client.mask |= ENDIAN_SWAP8(MSG_CLIENT_IVLAN_MASK);
 
           comando.msgId = CCMSG_ETH_DHCP_PROFILE_REMOVE;
           comando.infoDim = sizeof(msg_HwEthernetDhcpOpt82Profile_t);
@@ -2716,9 +2717,9 @@ int main (int argc, char *argv[])
 
         // Pointer to data array
         ptr = (msg_dai_statistics_t *) &(comando.info[0]);
-        memset(ptr,0x00,sizeof(msg_dai_statistics_t));
+        memset(ptr, 0x00, sizeof(msg_dai_statistics_t));
 
-        ptr->slotId = (uint8)-1;
+        ptr->slotId = ENDIAN_SWAP8((uint8)-1);
 
         // EVC id
         if (StrToLongLong(argv[3+0], &valued) < 0)
@@ -2726,9 +2727,9 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        //ptr->service.id_type = MSG_ID_EVC_TYPE;
-        //ptr->service.id_val.evc_id = (uint32) valued;
-        ptr->evc_idx = (uint32) valued;
+        //ptr->service.id_type = ENDIAN_SWAP8(MSG_ID_EVC_TYPE);
+        //ptr->service.id_val.evc_id = ENDIAN_SWAP32((uint32) valued);
+        ptr->evc_idx = ENDIAN_SWAP32((uint32) valued);
 
         // port
         if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
@@ -2736,8 +2737,8 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->intf.intf_type = (uint8) type;
-        ptr->intf.intf_id   = (uint8) intf;
+        ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+        ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
 
         comando.msgId = CCMSG_ETH_DAI_STATISTICS;
         comando.infoDim = sizeof(msg_dai_statistics_t);
@@ -2757,9 +2758,9 @@ int main (int argc, char *argv[])
 
         // Pointer to data array
         ptr = (msg_dai_global_settings_t *) &(comando.info[0]);
-        memset(ptr,0x00,sizeof(msg_dai_global_settings_t));
+        memset(ptr, 0x00, sizeof(msg_dai_global_settings_t));
 
-        ptr->slotId = (uint8)-1;
+        ptr->slotId = ENDIAN_SWAP8((uint8)-1);
 
         // SMAC validation
         if (argc >= 3+1)
@@ -2769,8 +2770,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->validate_smac = (uint8) valued;
-          ptr->mask |= 0x02;
+          ptr->validate_smac = ENDIAN_SWAP8((uint8) valued);
+          ptr->mask |= ENDIAN_SWAP8(0x02);
         }
         // DMAC validation
         if (argc >= 3+2)
@@ -2780,8 +2781,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->validate_dmac = (uint8) valued;
-          ptr->mask |= 0x04;
+          ptr->validate_dmac = ENDIAN_SWAP8((uint8) valued);
+          ptr->mask |= ENDIAN_SWAP8(0x04);
         }
         // IP validation
         if (argc >= 3+3)
@@ -2791,8 +2792,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->validate_ipAddr = (uint8) valued;
-          ptr->mask |= 0x08;
+          ptr->validate_ipAddr = ENDIAN_SWAP8((uint8) valued);
+          ptr->mask |= ENDIAN_SWAP8(0x08);
         }
 
         comando.msgId = CCMSG_ETH_DAI_GLOBAL_CONFIG;
@@ -2814,9 +2815,9 @@ int main (int argc, char *argv[])
 
         // Pointer to data array
         ptr = (msg_dai_intf_settings_t *) &(comando.info[0]);
-        memset(ptr,0x00,sizeof(msg_dai_intf_settings_t));
+        memset(ptr, 0x00, sizeof(msg_dai_intf_settings_t));
 
-        ptr->slotId = (uint8)-1;
+        ptr->slotId = ENDIAN_SWAP8((uint8)-1);
 
         // port
         if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
@@ -2824,8 +2825,8 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->intf.intf_type = (uint8) type;
-        ptr->intf.intf_id   = (uint8) intf;
+        ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+        ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
 
         // Trust mode
         if (argc >= 3+2)
@@ -2835,8 +2836,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->trust = (uint8) valued;
-          ptr->mask |= 0x01;
+          ptr->trust = ENDIAN_SWAP8((uint8) valued);
+          ptr->mask |= ENDIAN_SWAP8(0x01);
         }
         // Rate Limit
         if (argc >= 3+3)
@@ -2846,8 +2847,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->rateLimit = (uint32) valued;
-          ptr->mask |= 0x02;
+          ptr->rateLimit = ENDIAN_SWAP32((uint32) valued);
+          ptr->mask |= ENDIAN_SWAP8(0x02);
         }
         // Burst interval
         if (argc >= 3+4)
@@ -2857,8 +2858,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->burstInterval = (uint32) valued;
-          ptr->mask |= 0x04;
+          ptr->burstInterval = ENDIAN_SWAP32((uint32) valued);
+          ptr->mask |= ENDIAN_SWAP8(0x04);
         }
 
         comando.msgId = CCMSG_ETH_DAI_INTF_CONFIG;
@@ -2879,9 +2880,9 @@ int main (int argc, char *argv[])
 
         // Pointer to data array
         ptr = (msg_dai_vlan_settings_t *) &(comando.info[0]);
-        memset(ptr,0x00,sizeof(msg_dai_vlan_settings_t));
+        memset(ptr, 0x00, sizeof(msg_dai_vlan_settings_t));
 
-        ptr->slotId = (uint8)-1;
+        ptr->slotId = ENDIAN_SWAP8((uint8)-1);
 
         // EVC id
         if (StrToLongLong(argv[3+0], &valued) < 0)
@@ -2889,8 +2890,8 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->service.id_type = MSG_ID_EVC_TYPE;
-        ptr->service.id_val.evc_id = (uint32) valued;
+        ptr->service.id_type = ENDIAN_SWAP8(MSG_ID_EVC_TYPE);
+        ptr->service.id_val.evc_id = ENDIAN_SWAP32((uint32) valued);
 
         // DAI enable
         if (argc >= 3+2)
@@ -2900,8 +2901,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->dai_enable = (uint8) valued;
-          ptr->mask |= 0x01;
+          ptr->dai_enable = ENDIAN_SWAP8((uint8) valued);
+          ptr->mask |= ENDIAN_SWAP8(0x01);
         }
         // Static flag
         if (argc >= 3+3)
@@ -2911,8 +2912,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->staticFlag = (uint8) valued;
-          ptr->mask |= 0x02;
+          ptr->staticFlag = ENDIAN_SWAP8((uint8) valued);
+          ptr->mask |= ENDIAN_SWAP8(0x02);
         }
 
         comando.msgId = CCMSG_ETH_DAI_VLAN_CONFIG;
@@ -2933,9 +2934,9 @@ int main (int argc, char *argv[])
 
         // Pointer to data array
         ptr = (msg_dai_vlan_settings_t *) &(comando.info[0]);
-        memset(ptr,0x00,sizeof(msg_dai_vlan_settings_t));
+        memset(ptr, 0x00, sizeof(msg_dai_vlan_settings_t));
 
-        ptr->slotId = (uint8)-1;
+        ptr->slotId = ENDIAN_SWAP8((uint8)-1);
 
         // EVC id
         if (StrToLongLong(argv[3+0], &valued) < 0)
@@ -2943,8 +2944,8 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->service.id_type = MSG_ID_NNIVID_TYPE;
-        ptr->service.id_val.nni_vid = (uint32) valued;
+        ptr->service.id_type = ENDIAN_SWAP8(MSG_ID_NNIVID_TYPE);
+        ptr->service.id_val.nni_vid = ENDIAN_SWAP32((uint32) valued);
 
         // DAI enable
         if (argc >= 3+2)
@@ -2954,8 +2955,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->dai_enable = (uint8) valued;
-          ptr->mask |= 0x01;
+          ptr->dai_enable = ENDIAN_SWAP8((uint8) valued);
+          ptr->mask |= ENDIAN_SWAP8(0x01);
         }
         // Static flag
         if (argc >= 3+3)
@@ -2965,8 +2966,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->staticFlag = (uint8) valued;
-          ptr->mask |= 0x02;
+          ptr->staticFlag = ENDIAN_SWAP8((uint8) valued);
+          ptr->mask |= ENDIAN_SWAP8(0x02);
         }
 
         comando.msgId = CCMSG_ETH_DAI_VLAN_CONFIG;
@@ -3120,17 +3121,17 @@ int main (int argc, char *argv[])
 
           // Pointer to data array
           ptr = (msg_DHCP_bind_table_request_t *) &(comando.info[0]);
-          memset(ptr,0,sizeof(msg_DHCP_bind_table_request_t));
+          memset(ptr, 0x00, sizeof(msg_DHCP_bind_table_request_t));
 
-          ptr->slotId = (uint8)-1;
+          ptr->slotId = ENDIAN_SWAP8((uint8)-1);
 
           // page
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->page = valued;
-          ptr->mask = 0xff;
+          ptr->page = ENDIAN_SWAP16(valued);
+          ptr->mask = ENDIAN_SWAP8(0xff);
 
           comando.msgId = CCMSG_ETH_DHCP_BIND_TABLE_GET;
           comando.infoDim = sizeof(msg_DHCP_bind_table_request_t);
@@ -3149,16 +3150,16 @@ int main (int argc, char *argv[])
 
           // Pointer to data array
           ptr = (msg_DHCPv4v6_bind_table_t *) &(comando.info[0]);
-          memset(ptr,0,sizeof(msg_DHCPv4v6_bind_table_t));
+          memset(ptr, 0x00, sizeof(msg_DHCPv4v6_bind_table_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
-          ptr->bind_table_total_entries = 1;
-          ptr->bind_table_msg_size      = 1;
-          ptr->bind_table[0].entry_index= 0;
+          ptr->bind_table_total_entries = ENDIAN_SWAP16(1);
+          ptr->bind_table_msg_size      = ENDIAN_SWAP16(1);
+          ptr->bind_table[0].entry_index= ENDIAN_SWAP16(0);
 
           // MAC address
-          if (convert_macaddr2array(argv[3+0],ptr->bind_table[0].macAddr)<0)  {
+          if (convert_macaddr2array(argv[3+0], ptr->bind_table[0].macAddr) < 0)  {
             help_oltBuga();
             exit(0);
           }
@@ -3343,16 +3344,16 @@ int main (int argc, char *argv[])
 
           // Pointer to data array
           ptr = (msg_DhcpClientStatistics_t *) &(comando.info[0]);
-          memset(ptr,0x00,sizeof(msg_DhcpClientStatistics_t));
+          memset(ptr, 0x00, sizeof(msg_DhcpClientStatistics_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // flow_id
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->evc_id = (uint32) valued;
+          ptr->evc_id = ENDIAN_SWAP32((uint32) valued);
 
           // Port
           if (sscanf(argv[3+1],"%d/%d",&type,&intf)!=2)
@@ -3360,9 +3361,9 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = (uint8) type;
-          ptr->intf.intf_id   = (uint8) intf;
-          ptr->mask |= MSG_INTERFACE_MASK;
+          ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
+          ptr->mask |= ENDIAN_SWAP8(MSG_INTERFACE_MASK);
 
           // Client vlan
           if (argc>=3+3)
@@ -3371,14 +3372,14 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->client.outer_vlan = (uint16) valued;
-            ptr->client.mask |= MSG_CLIENT_OVLAN_MASK;
+            ptr->client.outer_vlan = ENDIAN_SWAP16((uint16) valued);
+            ptr->client.mask |= ENDIAN_SWAP8(MSG_CLIENT_OVLAN_MASK);
 
-            ptr->client.intf.intf_type = ptr->intf.intf_type;
-            ptr->client.intf.intf_id   = ptr->intf.intf_id;
-            ptr->client.mask |= MSG_CLIENT_INTF_MASK;
+            ptr->client.intf.intf_type = ENDIAN_SWAP8(ptr->intf.intf_type);
+            ptr->client.intf.intf_id   = ENDIAN_SWAP8(ptr->intf.intf_id);
+            ptr->client.mask |= ENDIAN_SWAP8(MSG_CLIENT_INTF_MASK);
 
-            ptr->mask = MSG_CLIENT_MASK;
+            ptr->mask = ENDIAN_SWAP8(MSG_CLIENT_MASK);
             comando.msgId = CCMSG_ETH_DHCP_CLIENT_STATS_GET;
           }
           else
@@ -3403,19 +3404,19 @@ int main (int argc, char *argv[])
 
           // Pointer to data array
           ptr = (msg_DhcpClientStatistics_t *) &(comando.info[0]);
-          memset(ptr,0x00,sizeof(msg_DhcpClientStatistics_t));
+          memset(ptr, 0x00, sizeof(msg_DhcpClientStatistics_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // flow_id
-          ptr->evc_id = (uint32)-1;
+          ptr->evc_id = ENDIAN_SWAP32((uint32)-1);
           if (argc>=3+1)
           {
             if (StrToLongLong(argv[3+0],&valued)<0)  {
               help_oltBuga();
               exit(0);
             }
-            ptr->evc_id = (uint32) valued;
+            ptr->evc_id = ENDIAN_SWAP32((uint32) valued);
           }
 
           // Port
@@ -3426,9 +3427,9 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->intf.intf_type = (uint8) type;
-            ptr->intf.intf_id   = (uint8) intf;
-            ptr->mask |= MSG_INTERFACE_MASK;
+            ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+            ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
+            ptr->mask |= ENDIAN_SWAP8(MSG_INTERFACE_MASK);
           }
 
           // Client vlan
@@ -3438,14 +3439,14 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->client.inner_vlan = (uint16) valued;
-            ptr->client.mask |= MSG_CLIENT_IVLAN_MASK;
+            ptr->client.inner_vlan = ENDIAN_SWAP16((uint16) valued);
+            ptr->client.mask |= ENDIAN_SWAP8(MSG_CLIENT_IVLAN_MASK);
 
-            ptr->client.intf.intf_type = ptr->intf.intf_type;
-            ptr->client.intf.intf_id   = ptr->intf.intf_id;
-            ptr->client.mask |= MSG_CLIENT_INTF_MASK;
+            ptr->client.intf.intf_type = ENDIAN_SWAP8(ptr->intf.intf_type);
+            ptr->client.intf.intf_id   = ENDIAN_SWAP8(ptr->intf.intf_id);
+            ptr->client.mask |= ENDIAN_SWAP8(MSG_CLIENT_INTF_MASK);
 
-            ptr->mask = MSG_CLIENT_MASK;
+            ptr->mask = ENDIAN_SWAP8(MSG_CLIENT_MASK);
             comando.msgId = CCMSG_ETH_DHCP_CLIENT_STATS_CLEAR;
           }
           else
@@ -8424,24 +8425,24 @@ int main (int argc, char *argv[])
         {
           msg_HwEthernetDhcpOpt82Profile_t *ptr;
 
-          if (resposta.infoDim!=sizeof(msg_HwEthernetDhcpOpt82Profile_t)) {
-            printf(" Switch: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_HwEthernetDhcpOpt82Profile_t));
+          if (resposta.infoDim != sizeof(msg_HwEthernetDhcpOpt82Profile_t)) {
+            printf(" Switch: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, sizeof(msg_HwEthernetDhcpOpt82Profile_t));
             break;
           }
 
           ptr = (msg_HwEthernetDhcpOpt82Profile_t *) &resposta.info[0];
 
-          printf(" DHCP profile (Slot=%u):\r\n",ptr->SlotId);
-          printf(" EVCid=%lu\r\n",ptr->evc_id);
-          printf(" Mask =0x%02x\r\n",ptr->mask);
-          printf(" Intf =%u/%u\r\n",ptr->intf.intf_type,ptr->intf.intf_id);
-          printf(" Client.Mask  = 0x%02x\r\n",ptr->client.mask);
-          printf(" Client.Intf  = %u/%u\r\n",ptr->client.intf.intf_type,ptr->client.intf.intf_id);
-          printf(" Client.OVlan = %u\r\n",ptr->client.outer_vlan);
-          printf(" Client.IVlan = %u\r\n",ptr->client.inner_vlan);
-          printf(" options = 0x%02x\n",ptr->options);
-          printf(" CircuitId=\"%s\"\r\n",ptr->circuitId);
-          printf(" RemoteId =\"%s\"\r\n",ptr->remoteId);
+          printf(" DHCP profile (Slot=%u):\r\n",ENDIAN_SWAP8 (ptr->SlotId));
+          printf(" EVCid=%lu\r\n",              ENDIAN_SWAP32(ptr->evc_id));
+          printf(" Mask =0x%02x\r\n",           ENDIAN_SWAP8 (ptr->mask));
+          printf(" Intf =%u/%u\r\n",            ENDIAN_SWAP8 (ptr->intf.intf_type), ENDIAN_SWAP8 (ptr->intf.intf_id));
+          printf(" Client.Mask  = 0x%02x\r\n",  ENDIAN_SWAP8 (ptr->client.mask));
+          printf(" Client.Intf  = %u/%u\r\n",   ENDIAN_SWAP8 (ptr->client.intf.intf_type), ENDIAN_SWAP8 (ptr->client.intf.intf_id));
+          printf(" Client.OVlan = %u\r\n",      ENDIAN_SWAP16(ptr->client.outer_vlan));
+          printf(" Client.IVlan = %u\r\n",      ENDIAN_SWAP16(ptr->client.inner_vlan));
+          printf(" options = 0x%02x\n",         ENDIAN_SWAP16(ptr->options));
+          printf(" CircuitId=\"%s\"\r\n",       ptr->circuitId);
+          printf(" RemoteId =\"%s\"\r\n",       ptr->remoteId);
           printf(" Switch: DHCPop82 profile read successfully\n\r");
         }
         else
@@ -8467,24 +8468,24 @@ int main (int argc, char *argv[])
         {
           msg_dai_statistics_t *ptr;
 
-          if (resposta.infoDim!=sizeof(msg_dai_statistics_t)) {
+          if (resposta.infoDim != sizeof(msg_dai_statistics_t)) {
             printf(" Switch: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, sizeof(msg_dai_statistics_t));
             break;
           }
 
           ptr = (msg_dai_statistics_t *) &resposta.info[0];
 
-          //printf("DAI statistics for EVC#%lu (type=%u), intf=%u/%u:\r\n", ptr->service.id_val.evc_id, ptr->service.id_type, ptr->intf.intf_type, ptr->intf.intf_id);
-          printf("DAI statistics for EVC#%lu / VLAN=%u, intf=%u/%u:\r\n", ptr->evc_idx, ptr->vlan_id, ptr->intf.intf_type, ptr->intf.intf_id);
-          printf(" forwarded       = %lu\r\n", ptr->stats.forwarded       );
-          printf(" dropped         = %lu\r\n", ptr->stats.dropped         );
-          printf(" dhcpDrops       = %lu\r\n", ptr->stats.dhcpDrops       );
-          printf(" dhcpPermits     = %lu\r\n", ptr->stats.dhcpPermits     );
-          printf(" aclDrops        = %lu\r\n", ptr->stats.aclDrops        );
-          printf(" aclPermits      = %lu\r\n", ptr->stats.aclPermits      );
-          printf(" sMacFailures    = %lu\r\n", ptr->stats.sMacFailures    );
-          printf(" dMacFailures    = %lu\r\n", ptr->stats.dMacFailures    );
-          printf(" ipValidFailures = %lu\r\n", ptr->stats.ipValidFailures );
+          printf("DAI statistics for EVC#%lu / VLAN=%u, intf=%u/%u:\r\n",
+                 ENDIAN_SWAP32(ptr->evc_idx), ENDIAN_SWAP16(ptr->vlan_id), ENDIAN_SWAP8(ptr->intf.intf_type), ENDIAN_SWAP8(ptr->intf.intf_id));
+          printf(" forwarded       = %lu\r\n", ENDIAN_SWAP32(ptr->stats.forwarded)      );
+          printf(" dropped         = %lu\r\n", ENDIAN_SWAP32(ptr->stats.dropped)        );
+          printf(" dhcpDrops       = %lu\r\n", ENDIAN_SWAP32(ptr->stats.dhcpDrops)      );
+          printf(" dhcpPermits     = %lu\r\n", ENDIAN_SWAP32(ptr->stats.dhcpPermits)    );
+          printf(" aclDrops        = %lu\r\n", ENDIAN_SWAP32(ptr->stats.aclDrops)       );
+          printf(" aclPermits      = %lu\r\n", ENDIAN_SWAP32(ptr->stats.aclPermits)     );
+          printf(" sMacFailures    = %lu\r\n", ENDIAN_SWAP32(ptr->stats.sMacFailures)   );
+          printf(" dMacFailures    = %lu\r\n", ENDIAN_SWAP32(ptr->stats.dMacFailures)   );
+          printf(" ipValidFailures = %lu\r\n", ENDIAN_SWAP32(ptr->stats.ipValidFailures));
           printf("Switch: DAI statistics read successfully\n\r");
         }
         else
@@ -8550,25 +8551,25 @@ int main (int argc, char *argv[])
           msg_DHCPv4v6_bind_table_t *ptr;
           uint16 i;
           // Validate size
-          if (resposta.infoDim!=sizeof(msg_DHCPv4v6_bind_table_t)) {
-            printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r",sizeof(msg_DHCPv4v6_bind_table_t),resposta.infoDim);
+          if (resposta.infoDim != sizeof(msg_DHCPv4v6_bind_table_t)) {
+            printf(" Switch: Invalid structure size (expected=%u, received=%u bytes)\n\r", sizeof(msg_DHCPv4v6_bind_table_t), resposta.infoDim);
             break;
           }
 
           // Pointer to element
           ptr = &(((msg_DHCPv4v6_bind_table_t *) resposta.info)[0]);
 
-          printf(" Reading page %u of DHCP Binding table (slot=%u):\r\n",ptr->page,ptr->SlotId);
+          printf(" Reading page %u of DHCP Binding table (slot=%u):\r\n", ENDIAN_SWAP16(ptr->page), ENDIAN_SWAP8(ptr->SlotId));
 
-          for (i=0; i<ptr->bind_table_msg_size; i++) {
-            printf(" Id %-5u, ",ptr->bind_table[i].entry_index);
-            if (ptr->bind_table[i].evc_idx!=(uint32)-1)
-              printf("EVC %-4lu, ",ptr->bind_table[i].evc_idx);
+          for (i = 0; i < ENDIAN_SWAP16(ptr->bind_table_msg_size); i++) {
+            printf(" Id %-5u, ", ENDIAN_SWAP16(ptr->bind_table[i].entry_index));
+            if (ENDIAN_SWAP32(ptr->bind_table[i].evc_idx) != (uint32)-1)
+              printf("EVC %-4lu, ", ENDIAN_SWAP32(ptr->bind_table[i].evc_idx));
             else
               printf("No EVC  , ");
-            printf("VlanId %-4u, ",ptr->bind_table[i].outer_vlan);
-            printf("CVlanId %-4u, ",ptr->bind_table[i].inner_vlan);
-            printf("Port %u/%-2u, ",ptr->bind_table[i].intf.intf_type,ptr->bind_table[i].intf.intf_id);
+            printf("VlanId %-4u, " , ENDIAN_SWAP16(ptr->bind_table[i].outer_vlan));
+            printf("CVlanId %-4u, ", ENDIAN_SWAP16(ptr->bind_table[i].inner_vlan));
+            printf("Port %u/%-2u, ", ENDIAN_SWAP8 (ptr->bind_table[i].intf.intf_type), ENDIAN_SWAP8 (ptr->bind_table[i].intf.intf_id));
             printf("MAC %02X:%02X:%02X:%02X:%02X:%02X, ",
                    ptr->bind_table[i].macAddr[0],
                    ptr->bind_table[i].macAddr[1],
@@ -8576,21 +8577,26 @@ int main (int argc, char *argv[])
                    ptr->bind_table[i].macAddr[3],
                    ptr->bind_table[i].macAddr[4],
                    ptr->bind_table[i].macAddr[5]);
-            if (ptr->bind_table[i].ipAddr.family == 0)
+            if (ENDIAN_SWAP8(ptr->bind_table[i].ipAddr.family) == 0)
             {
-               printf("IPAddr %03lu.%03lu.%03lu.%03lu, ", (ptr->bind_table[i].ipAddr.addr.ipv4 >> 24) & 0xFF, (ptr->bind_table[i].ipAddr.addr.ipv4 >> 16) & 0xFF, (ptr->bind_table[i].ipAddr.addr.ipv4 >> 8) & 0xFF,
-                     ptr->bind_table[i].ipAddr.addr.ipv4 & 0xFF);
+               printf("IPAddr %03lu.%03lu.%03lu.%03lu, ",
+                      (ENDIAN_SWAP32(ptr->bind_table[i].ipAddr.addr.ipv4) >> 24) & 0xFF,
+                      (ENDIAN_SWAP32(ptr->bind_table[i].ipAddr.addr.ipv4) >> 16) & 0xFF,
+                      (ENDIAN_SWAP32(ptr->bind_table[i].ipAddr.addr.ipv4) >> 8) & 0xFF,
+                       ENDIAN_SWAP32(ptr->bind_table[i].ipAddr.addr.ipv4) & 0xFF);
             }
-            else if(ptr->bind_table[i].ipAddr.family == 1)
+            else if(ENDIAN_SWAP8(ptr->bind_table[i].ipAddr.family) == 1)
             {
-               printf("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x, ", (int) ptr->bind_table[i].ipAddr.addr.ipv6[0], (int) ptr->bind_table[i].ipAddr.addr.ipv6[1], (int) ptr->bind_table[i].ipAddr.addr.ipv6[2],
-                     (int) ptr->bind_table[i].ipAddr.addr.ipv6[3], (int) ptr->bind_table[i].ipAddr.addr.ipv6[4], (int) ptr->bind_table[i].ipAddr.addr.ipv6[5], (int) ptr->bind_table[i].ipAddr.addr.ipv6[6],
-                     (int) ptr->bind_table[i].ipAddr.addr.ipv6[7], (int) ptr->bind_table[i].ipAddr.addr.ipv6[8], (int) ptr->bind_table[i].ipAddr.addr.ipv6[9], (int) ptr->bind_table[i].ipAddr.addr.ipv6[10],
-                     (int) ptr->bind_table[i].ipAddr.addr.ipv6[11], (int) ptr->bind_table[i].ipAddr.addr.ipv6[12], (int) ptr->bind_table[i].ipAddr.addr.ipv6[13], (int) ptr->bind_table[i].ipAddr.addr.ipv6[14],
-                     (int) ptr->bind_table[i].ipAddr.addr.ipv6[15]);
+               printf("%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x:%02x%02x, ",
+                      (int) ptr->bind_table[i].ipAddr.addr.ipv6[0], (int) ptr->bind_table[i].ipAddr.addr.ipv6[1], (int) ptr->bind_table[i].ipAddr.addr.ipv6[2],
+                      (int) ptr->bind_table[i].ipAddr.addr.ipv6[3], (int) ptr->bind_table[i].ipAddr.addr.ipv6[4], (int) ptr->bind_table[i].ipAddr.addr.ipv6[5],
+                      (int) ptr->bind_table[i].ipAddr.addr.ipv6[6], (int) ptr->bind_table[i].ipAddr.addr.ipv6[7], (int) ptr->bind_table[i].ipAddr.addr.ipv6[8],
+                      (int) ptr->bind_table[i].ipAddr.addr.ipv6[9], (int) ptr->bind_table[i].ipAddr.addr.ipv6[10],(int) ptr->bind_table[i].ipAddr.addr.ipv6[11],
+                      (int) ptr->bind_table[i].ipAddr.addr.ipv6[12],(int) ptr->bind_table[i].ipAddr.addr.ipv6[13],(int) ptr->bind_table[i].ipAddr.addr.ipv6[14],
+                      (int) ptr->bind_table[i].ipAddr.addr.ipv6[15]);
             }
-            printf("Lease time %-6lu, ",ptr->bind_table[i].remLeave);
-            printf("%s type\r\n",((ptr->bind_table[i].bindingType==1) ? "Static" : ((ptr->bind_table[i].bindingType==2) ? "Dynamic" : "Tentative")));
+            printf("Lease time %-6lu, ", ENDIAN_SWAP32(ptr->bind_table[i].remLeave));
+            printf("%s type\r\n",((ENDIAN_SWAP8(ptr->bind_table[i].bindingType)==1) ? "Static" : ((ENDIAN_SWAP8(ptr->bind_table[i].bindingType)==2) ? "Dynamic" : "Tentative")));
           }
           printf(" Switch: DHCP Binding table read successfuly\n\r");
         }
@@ -8705,7 +8711,7 @@ int main (int argc, char *argv[])
 
       case 1320:
         {
-          msg_DhcpClientStatistics_t *po=(msg_DhcpClientStatistics_t *) &resposta.info[0];
+          msg_DhcpClientStatistics_t *po = (msg_DhcpClientStatistics_t *) &resposta.info[0];
 
           if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
             if (resposta.infoDim!=sizeof(msg_DhcpClientStatistics_t)) {
@@ -8713,28 +8719,29 @@ int main (int argc, char *argv[])
               break;
             }
 
-            printf( " DHCP statistics for Slot=%u, EVC=%lu, mask=0x%02x, intf=%u/%u, client={mask=0x%02x,oVlan=%u,iVlan=%u,intf=%u/%u}:\n\r",po->SlotId,
-                    po->evc_id, po->mask,
-                    po->intf.intf_type,po->intf.intf_id,
-                    po->client.mask, po->client.outer_vlan, po->client.inner_vlan, po->client.intf.intf_type,po->client.intf.intf_id);
-            printf( "   Packets Intercepted  = %lu\r\n",po->stats.dhcp_rx_intercepted );
-            printf( "   Packets Received     = %lu\r\n",po->stats.dhcp_rx );
-            printf( "   Packets Filtered     = %lu\r\n",po->stats.dhcp_rx_filtered );
-            printf( "   Packets Forwarded    = %lu\r\n",po->stats.dhcp_tx_forwarded );
-            printf( "   Transmissions Failed = %lu\r\n",po->stats.dhcp_tx_failed );
-            printf( "   Received Client Requests without Options    = %lu\r\n",po->stats.dhcp_rx_client_requests_without_options );
-//          printf( "   Transmitted Client Requests without Options = %lu\r\n",po->stats.dhcp_tx_client_requests_without_options );
-            printf( "   Transmitted Client Requests with Option82   = %lu\r\n",po->stats.dhcp_tx_client_requests_with_option82 );
-            printf( "   Transmitted Client Requests with Option37   = %lu\r\n",po->stats.dhcp_tx_client_requests_with_option37 );
-            printf( "   Transmitted Client Requests with Option18   = %lu\r\n",po->stats.dhcp_tx_client_requests_with_option18 );
-            printf( "   Received Server Replies with Option82       = %lu\r\n",po->stats.dhcp_rx_server_replies_with_option82 );
-            printf( "   Received Server Replies with Option37       = %lu\r\n",po->stats.dhcp_rx_server_replies_with_option37 );
-            printf( "   Received Server Replies with Option18       = %lu\r\n",po->stats.dhcp_rx_server_replies_with_option18 );
-//          printf( "   Received Server Replies without Options     = %lu\r\n",po->stats.dhcp_rx_server_replies_without_options );
-            printf( "   Transmitted Server Replies without Options  = %lu\r\n",po->stats.dhcp_tx_server_replies_without_options );
-            printf( "   Received Client Packets on Trusted Interface                 = %lu\r\n",po->stats.dhcp_rx_client_pkts_onTrustedIntf );
-            printf( "   Received Client Packets with Options on Untrusted Interface  = %lu\r\n",po->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf );
-            printf( "   Received Server Packets on Untrusted Interface               = %lu\r\n",po->stats.dhcp_rx_server_pkts_onUntrustedIntf );
+            printf( " DHCP statistics for Slot=%u, EVC=%lu, mask=0x%02x, intf=%u/%u, client={mask=0x%02x,oVlan=%u,iVlan=%u,intf=%u/%u}:\n\r",
+                    ENDIAN_SWAP8(po->SlotId), ENDIAN_SWAP32(po->evc_id), ENDIAN_SWAP8(po->mask),
+                    ENDIAN_SWAP8(po->intf.intf_type), ENDIAN_SWAP8(po->intf.intf_id),
+                    ENDIAN_SWAP8(po->client.mask), ENDIAN_SWAP16(po->client.outer_vlan), ENDIAN_SWAP16(po->client.inner_vlan),
+                    ENDIAN_SWAP8(po->client.intf.intf_type), ENDIAN_SWAP8(po->client.intf.intf_id));
+            printf( "   Packets Intercepted  = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_rx_intercepted));
+            printf( "   Packets Received     = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_rx));
+            printf( "   Packets Filtered     = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_rx_filtered));
+            printf( "   Packets Forwarded    = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_tx_forwarded));
+            printf( "   Transmissions Failed = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_tx_failed));
+            printf( "   Received Client Requests without Options    = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_rx_client_requests_without_options));
+//          printf( "   Transmitted Client Requests without Options = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_tx_client_requests_without_options));
+            printf( "   Transmitted Client Requests with Option82   = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_tx_client_requests_with_option82));
+            printf( "   Transmitted Client Requests with Option37   = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_tx_client_requests_with_option37));
+            printf( "   Transmitted Client Requests with Option18   = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_tx_client_requests_with_option18));
+            printf( "   Received Server Replies with Option82       = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_rx_server_replies_with_option82));
+            printf( "   Received Server Replies with Option37       = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_rx_server_replies_with_option37));
+            printf( "   Received Server Replies with Option18       = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_rx_server_replies_with_option18));
+//          printf( "   Received Server Replies without Options     = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_rx_server_replies_without_options));
+            printf( "   Transmitted Server Replies without Options  = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_tx_server_replies_without_options));
+            printf( "   Received Client Packets on Trusted Interface                 = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_rx_client_pkts_onTrustedIntf));
+            printf( "   Received Client Packets with Options on Untrusted Interface  = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf));
+            printf( "   Received Server Packets on Untrusted Interface               = %lu\r\n", ENDIAN_SWAP32(po->stats.dhcp_rx_server_pkts_onUntrustedIntf));
           }
           else  {
             printf(" Switch: Error reading DHCP statistics - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
@@ -9420,14 +9427,14 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK)) {
           msg_NtwConnectivity_t *pNtwConn = (msg_NtwConnectivity_t *) resposta.info;
           printf("Network Connectivity (mask=0x%08lx)\r\n",  ENDIAN_SWAP32(pNtwConn->mask));
-          printf("  Slot %u\r\n",                           ENDIAN_SWAP8 (pNtwConn->SlotId));
+          printf("  Slot %u\r\n",                            ENDIAN_SWAP8 (pNtwConn->SlotId));
           printf("  IP Addr         = %lu.%lu.%lu.%lu\r\n", (ENDIAN_SWAP32(pNtwConn->ipaddr)  >> 24) & 0xFF, (ENDIAN_SWAP32(pNtwConn->ipaddr)  >> 16) & 0xFF,
                                                             (ENDIAN_SWAP32(pNtwConn->ipaddr)  >>  8) & 0xFF,  ENDIAN_SWAP32(pNtwConn->ipaddr)         & 0xFF);
           printf("  Mask            = %lu.%lu.%lu.%lu\r\n", (ENDIAN_SWAP32(pNtwConn->netmask) >> 24) & 0xFF, (ENDIAN_SWAP32(pNtwConn->netmask) >> 16) & 0xFF,
                                                             (ENDIAN_SWAP32(pNtwConn->netmask) >>  8) & 0xFF,  ENDIAN_SWAP32(pNtwConn->netmask)        & 0xFF);
           printf("  Gateway         = %lu.%lu.%lu.%lu\r\n", (ENDIAN_SWAP32(pNtwConn->gateway) >> 24) & 0xFF, (ENDIAN_SWAP32(pNtwConn->gateway) >> 16) & 0xFF,
                                                             (ENDIAN_SWAP32(pNtwConn->gateway) >>  8) & 0xFF,  ENDIAN_SWAP32(pNtwConn->gateway)        & 0xFF);
-          printf("  Mgmt VLAN ID    = %u\r\n",              ENDIAN_SWAP16(pNtwConn->mgmtVlanId));
+          printf("  Mgmt VLAN ID    = %u\r\n",               ENDIAN_SWAP16(pNtwConn->mgmtVlanId));
           printf("  Interfaces (%d):\r\n", ENDIAN_SWAP8(pNtwConn->n_intf));
           int i;
           for (i = 0; i < ENDIAN_SWAP8(pNtwConn->n_intf); i++) {

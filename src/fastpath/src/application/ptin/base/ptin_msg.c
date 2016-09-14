@@ -4518,67 +4518,67 @@ L7_RC_t ptin_msg_dai_global_config(msg_dai_global_settings_t *config)
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u", config->slotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Mask   = 0x%02x", config->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Enable = %u", config->global_enable);
-  PT_LOG_DEBUG(LOG_CTX_MSG," SrcMAC Validate = %u", config->validate_smac);
-  PT_LOG_DEBUG(LOG_CTX_MSG," DstMAC Validate = %u", config->validate_dmac);
-  PT_LOG_DEBUG(LOG_CTX_MSG," IPAddr Validate = %u", config->validate_ipAddr);
+  PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u",          ENDIAN_SWAP8(config->slotId));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Mask   = 0x%02x",      ENDIAN_SWAP8(config->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG," Enable = %u",          ENDIAN_SWAP8(config->global_enable));
+  PT_LOG_DEBUG(LOG_CTX_MSG," SrcMAC Validate = %u", ENDIAN_SWAP8(config->validate_smac));
+  PT_LOG_DEBUG(LOG_CTX_MSG," DstMAC Validate = %u", ENDIAN_SWAP8(config->validate_dmac));
+  PT_LOG_DEBUG(LOG_CTX_MSG," IPAddr Validate = %u", ENDIAN_SWAP8(config->validate_ipAddr));
 
   /* Global enable */
-  if (config->mask & 0x01)
+  if (ENDIAN_SWAP8(config->mask) & 0x01)
   {
     /* Always enabled */
   }
 
   /* SrcMAC Validation */
-  if (config->mask & 0x02)
+  if (ENDIAN_SWAP8(config->mask) & 0x02)
   {
-    rc = usmDbDaiVerifySMacSet(config->validate_smac);
+    rc = usmDbDaiVerifySMacSet(ENDIAN_SWAP8(config->validate_smac));
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error setting SMAC validation (%u)", config->validate_smac);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error setting SMAC validation (%u)", ENDIAN_SWAP8(config->validate_smac));
       rc_global = rc;
       if (IS_FAILURE_ERROR(rc))
         rc_global_failure = rc;
     }
     else
     {
-      PT_LOG_TRACE(LOG_CTX_MSG, "SMAC validation set to %u", config->validate_smac);
+      PT_LOG_TRACE(LOG_CTX_MSG, "SMAC validation set to %u", ENDIAN_SWAP8(config->validate_smac));
     }
   }
 
   /* DstMAC Validation */
-  if (config->mask & 0x04)
+  if (ENDIAN_SWAP8(config->mask) & 0x04)
   {
-    rc = usmDbDaiVerifyDMacSet(config->validate_dmac);
+    rc = usmDbDaiVerifyDMacSet(ENDIAN_SWAP8(config->validate_dmac));
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error setting DMAC validation (%u)", config->validate_smac);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error setting DMAC validation (%u)", ENDIAN_SWAP8(config->validate_smac));
       rc_global = rc;
       if (IS_FAILURE_ERROR(rc))
         rc_global_failure = rc;
     }
     else
     {
-      PT_LOG_TRACE(LOG_CTX_MSG, "DMAC validation set to %u", config->validate_dmac);
+      PT_LOG_TRACE(LOG_CTX_MSG, "DMAC validation set to %u", ENDIAN_SWAP8(config->validate_dmac));
     }
   }
 
   /* IP validation */
-  if (config->mask & 0x08)
+  if (ENDIAN_SWAP8(config->mask) & 0x08)
   {
-    rc = usmDbDaiVerifyIPSet(config->validate_ipAddr);
+    rc = usmDbDaiVerifyIPSet(ENDIAN_SWAP8(config->validate_ipAddr));
     if (rc != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error setting IP validation (%u)", config->validate_ipAddr);
+      PT_LOG_ERR(LOG_CTX_MSG, "Error setting IP validation (%u)", ENDIAN_SWAP8(config->validate_ipAddr));
       rc_global = rc;
       if (IS_FAILURE_ERROR(rc))
         rc_global_failure = rc;
     }
     else
     {
-      PT_LOG_TRACE(LOG_CTX_MSG, "IPAddr validation set to %u", config->validate_ipAddr);
+      PT_LOG_TRACE(LOG_CTX_MSG, "IPAddr validation set to %u", ENDIAN_SWAP8(config->validate_ipAddr));
     }
   }
 
@@ -4617,14 +4617,14 @@ L7_RC_t ptin_msg_dai_intf_config(msg_dai_intf_settings_t *config, L7_uint nElems
   {
     item = &config[i];
 
-    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u", item->slotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Mask   = 0x%02x", item->mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Interface      = %u/%u", item->intf.intf_type, item->intf.intf_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Rate Limit     = %u", item->rateLimit);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Burst Interval = %u", item->burstInterval);
+    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u",            ENDIAN_SWAP8(item->slotId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Mask   = 0x%02x",        ENDIAN_SWAP8(item->mask));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Interface      = %u/%u", ENDIAN_SWAP8(item->intf.intf_type), ENDIAN_SWAP8(item->intf.intf_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Rate Limit     = %u",    ENDIAN_SWAP32(item->rateLimit));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Burst Interval = %u",    ENDIAN_SWAP32(item->burstInterval));
 
-    ptin_intf.intf_type = item->intf.intf_type;
-    ptin_intf.intf_id   = item->intf.intf_id;
+    ptin_intf.intf_type = ENDIAN_SWAP8(item->intf.intf_type);
+    ptin_intf.intf_id   = ENDIAN_SWAP8(item->intf.intf_id);
 
     /* Validate interface */
     rc = ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum);
@@ -4635,58 +4635,65 @@ L7_RC_t ptin_msg_dai_intf_config(msg_dai_intf_settings_t *config, L7_uint nElems
     }
 
     /* Trust interface */
-    if (item->mask & 0x01)
+    if (ENDIAN_SWAP8(item->mask) & 0x01)
     {
-      rc = usmDbDaiIntfTrustSet(intIfNum, item->trust);
+      rc = usmDbDaiIntfTrustSet(intIfNum, ENDIAN_SWAP8(item->trust));
       if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "Error setting trust mode (%u) for ptin_intf %u/%u", item->trust, ptin_intf.intf_type, ptin_intf.intf_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error setting trust mode (%u) for ptin_intf %u/%u",
+                   ENDIAN_SWAP8(item->trust), ptin_intf.intf_type, ptin_intf.intf_id);
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
           rc_global_failure = rc;
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_MSG, "Trust mode of intf %u/%u set to %u", item->intf.intf_type, item->intf.intf_id, item->trust);
+        PT_LOG_TRACE(LOG_CTX_MSG, "Trust mode of intf %u/%u set to %u",
+                     ENDIAN_SWAP8(item->intf.intf_type), ENDIAN_SWAP8(item->intf.intf_id), ENDIAN_SWAP8(item->trust));
       }
     }
     /* Rate Limit */
-    if (item->mask & 0x02)
+    if (ENDIAN_SWAP8(item->mask) & 0x02)
     {
-      rc = usmDbDaiIntfRateLimitSet(intIfNum, (L7_int) item->rateLimit);
+      rc = usmDbDaiIntfRateLimitSet(intIfNum, (L7_int) ENDIAN_SWAP32(item->rateLimit));
       if (rc != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "Error setting rate limit (%u) for ptin_intf %u/%u", item->rateLimit, ptin_intf.intf_type, ptin_intf.intf_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "Error setting rate limit (%u) for ptin_intf %u/%u",
+                   ENDIAN_SWAP32(item->rateLimit), ptin_intf.intf_type, ptin_intf.intf_id);
         rc_global = rc;
         if (IS_FAILURE_ERROR(rc))
           rc_global_failure = rc;
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_MSG, "Rate Limit of intf %u/%u set to %u", item->intf.intf_type, item->intf.intf_id, item->rateLimit);
+        PT_LOG_TRACE(LOG_CTX_MSG, "Rate Limit of intf %u/%u set to %u",
+                     ENDIAN_SWAP8(item->intf.intf_type), ENDIAN_SWAP8(item->intf.intf_id), ENDIAN_SWAP32(item->rateLimit));
       }
     }
     /* Burst interval */
-    if (item->mask & 0x04)
+    if (ENDIAN_SWAP8(item->mask) & 0x04)
     {
       if (usmDbDaiIntfRateLimitGet(intIfNum, &rate) == L7_SUCCESS && rate != -1)
       {
-        rc = usmDbDaiIntfBurstIntervalSet(intIfNum, item->burstInterval);
+        rc = usmDbDaiIntfBurstIntervalSet(intIfNum, ENDIAN_SWAP32(item->burstInterval));
         if (rc != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_MSG, "Error setting burst interval (%u) for ptin_intf %u/%u", item->burstInterval, ptin_intf.intf_type, ptin_intf.intf_id);
+          PT_LOG_ERR(LOG_CTX_MSG, "Error setting burst interval (%u) for ptin_intf %u/%u",
+                     ENDIAN_SWAP32(item->burstInterval), ptin_intf.intf_type, ptin_intf.intf_id);
           rc_global = rc;
           if (IS_FAILURE_ERROR(rc))
             rc_global_failure = rc;
         }
         else
         {
-          PT_LOG_TRACE(LOG_CTX_MSG, "Burst interval of intf %u/%u set to %u", item->intf.intf_type, item->intf.intf_id, item->burstInterval);
+          PT_LOG_TRACE(LOG_CTX_MSG, "Burst interval of intf %u/%u set to %u",
+                       ENDIAN_SWAP8(item->intf.intf_type), ENDIAN_SWAP8(item->intf.intf_id), ENDIAN_SWAP32(item->burstInterval));
         }
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_MSG, "Burst interval of intf %u/%u ignored", item->intf.intf_type, item->intf.intf_id);
+        PT_LOG_TRACE(LOG_CTX_MSG, "Burst interval of intf %u/%u ignored",
+                     ENDIAN_SWAP8(item->intf.intf_type), ENDIAN_SWAP8(item->intf.intf_id));
       }
     }
   }
@@ -4728,66 +4735,66 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
   {
     item = &config[i];
 
-    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u", item->slotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," service_type = %u", item->service.id_type);
-    PT_LOG_DEBUG(LOG_CTX_MSG," service_id   = %u", item->service.id_val.evc_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Mask         = 0x%02x", item->mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG," DAI enable   = %u", item->dai_enable);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Static Flag  = %u", item->staticFlag);
+    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId = %u",          ENDIAN_SWAP8 (item->slotId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," service_type = %u",    ENDIAN_SWAP8 (item->service.id_type));
+    PT_LOG_DEBUG(LOG_CTX_MSG," service_id   = %u",    ENDIAN_SWAP32(item->service.id_val.evc_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Mask         = 0x%02x",ENDIAN_SWAP8 (item->mask));
+    PT_LOG_DEBUG(LOG_CTX_MSG," DAI enable   = %u",    ENDIAN_SWAP8 (item->dai_enable));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Static Flag  = %u",    ENDIAN_SWAP8 (item->staticFlag));
 
     /* Clear list of VLANs */
     memset(dai_intVid_list, 0x00, sizeof(dai_intVid_list));
     dai_maxVlans = 0;
 
     /* If EVC id is provided, get related VLAN */
-    if (item->service.id_type == MSG_ID_EVC_TYPE)
+    if (ENDIAN_SWAP8(item->service.id_type) == MSG_ID_EVC_TYPE)
     {
       /* Validate EVC id */
-      if (item->service.id_val.evc_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+      if (ENDIAN_SWAP32(item->service.id_val.evc_id) >= PTIN_SYSTEM_N_EXTENDED_EVCS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is out of range!", item->service.id_val.evc_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is out of range!", ENDIAN_SWAP32(item->service.id_val.evc_id));
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
       /* EVC must be active */
-      if (!ptin_evc_is_in_use(item->service.id_val.evc_id)) 
+      if (!ptin_evc_is_in_use(ENDIAN_SWAP32(item->service.id_val.evc_id))) 
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is not in use!", item->service.id_val.evc_id);
+        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is not in use!", ENDIAN_SWAP32(item->service.id_val.evc_id));
         rc_global = L7_NOT_EXIST;
         continue;
       }
       /* Get internal VLAN from eEVC# */
       dai_maxVlans = 1;
-      if (ptin_evc_intRootVlan_get(item->service.id_val.evc_id, &dai_intVid_list[0]) != L7_SUCCESS)
+      if (ptin_evc_intRootVlan_get(ENDIAN_SWAP32(item->service.id_val.evc_id), &dai_intVid_list[0]) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "Cannot get intVlan from eEVC#%u!", item->service.id_val.evc_id, dai_intVid_list[0]);
+        PT_LOG_ERR(LOG_CTX_MSG, "Cannot get intVlan from eEVC#%u!", ENDIAN_SWAP32(item->service.id_val.evc_id), dai_intVid_list[0]);
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
     }
     /* Use given VLANs range */
-    else if (item->service.id_type == MSG_ID_NNIVID_TYPE)
+    else if (ENDIAN_SWAP8(item->service.id_type) == MSG_ID_NNIVID_TYPE)
     {
       /* Validate NNI VLAN */
-      if (item->service.id_val.nni_vid < PTIN_VLAN_MIN || item->service.id_val.nni_vid > PTIN_VLAN_MAX)
+      if (ENDIAN_SWAP32(item->service.id_val.nni_vid) < PTIN_VLAN_MIN || ENDIAN_SWAP32(item->service.id_val.nni_vid) > PTIN_VLAN_MAX)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is out of range!", item->service.id_val.nni_vid);
+        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is out of range!", ENDIAN_SWAP32(item->service.id_val.nni_vid));
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
 
       /* Get int VLAN list from NNI VLAN */
       dai_maxVlans = 4096;
-      if (ptin_evc_get_intVlan_fromNNIvlan(item->service.id_val.nni_vid, dai_intVid_list, &dai_maxVlans) != L7_SUCCESS)
+      if (ptin_evc_get_intVlan_fromNNIvlan(ENDIAN_SWAP32(item->service.id_val.nni_vid), dai_intVid_list, &dai_maxVlans) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", item->service.id_val.nni_vid);
+        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", ENDIAN_SWAP32(item->service.id_val.nni_vid));
         rc_global = L7_NOT_EXIST;
         continue;
       }
     }
     else
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Invalid service type %u", item->service.id_type);
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid service type %u", ENDIAN_SWAP8(item->service.id_type));
       rc_global = L7_NOT_SUPPORTED;
       continue;
     }
@@ -4817,35 +4824,35 @@ L7_RC_t ptin_msg_dai_vlan_config(msg_dai_vlan_settings_t *config, L7_uint nElems
       }
 
       /* VLAN enable */
-      if (item->mask & 0x01)
+      if (ENDIAN_SWAP8(item->mask) & 0x01)
       {
-        rc = usmDbDaiVlanEnableSet(vlanId, item->dai_enable);
+        rc = usmDbDaiVlanEnableSet(vlanId, ENDIAN_SWAP8(item->dai_enable));
         if (rc != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_MSG, "Error setting enable state (%u) for VLAN %u", item->dai_enable, vlanId);
+          PT_LOG_ERR(LOG_CTX_MSG, "Error setting enable state (%u) for VLAN %u", ENDIAN_SWAP8(item->dai_enable), vlanId);
           rc_global = rc;
           if (IS_FAILURE_ERROR(rc))
             rc_global_failure = rc;
         }
         else
         {
-          PT_LOG_TRACE(LOG_CTX_MSG, "DAI enable for VLAN %u set to %u", vlanId, item->dai_enable);
+          PT_LOG_TRACE(LOG_CTX_MSG, "DAI enable for VLAN %u set to %u", vlanId, ENDIAN_SWAP8(item->dai_enable));
         }
       }
       /* Static flag */
-      if (item->mask & 0x02)
+      if (ENDIAN_SWAP8(item->mask) & 0x02)
       {
-        rc = usmDbDaiVlanArpAclStaticFlagSet(vlanId, item->staticFlag);
+        rc = usmDbDaiVlanArpAclStaticFlagSet(vlanId, ENDIAN_SWAP8(item->staticFlag));
         if (rc != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_MSG, "Error setting static flag (%u) for VLAN %u", item->staticFlag, vlanId);
+          PT_LOG_ERR(LOG_CTX_MSG, "Error setting static flag (%u) for VLAN %u", ENDIAN_SWAP8(item->staticFlag), vlanId);
           rc_global = rc;
           if (IS_FAILURE_ERROR(rc))
             rc_global_failure = rc;
         }
         else
         {
-          PT_LOG_TRACE(LOG_CTX_MSG, "Static flag for VLAN %u set to %u", vlanId, item->staticFlag);
+          PT_LOG_TRACE(LOG_CTX_MSG, "Static flag for VLAN %u set to %u", vlanId, ENDIAN_SWAP8(item->staticFlag));
         }
       }
     }
@@ -4887,68 +4894,59 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
     item = &msg_stats[i];
 
     PT_LOG_DEBUG(LOG_CTX_MSG,"Stats index %u:", i);
-    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId       = %u", item->slotId);
-//  PT_LOG_DEBUG(LOG_CTX_MSG," service_type = %u", item->service.id_type);
-//  PT_LOG_DEBUG(LOG_CTX_MSG," service_id   = %u", item->service.id_val.evc_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG," EVC id       = %u", item->evc_idx);
-    PT_LOG_DEBUG(LOG_CTX_MSG," VLAN id      = %u", item->vlan_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Intf         = %u", item->intf.intf_type, item->intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG," SlotId       = %u", ENDIAN_SWAP8 (item->slotId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," EVC id       = %u", ENDIAN_SWAP32(item->evc_idx));
+    PT_LOG_DEBUG(LOG_CTX_MSG," VLAN id      = %u", ENDIAN_SWAP16(item->vlan_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Intf         = %u", ENDIAN_SWAP8 (item->intf.intf_type), ENDIAN_SWAP8 (item->intf.intf_id));
 
     /* Clear list of VLANs */
     memset(dai_intVid_list, 0x00, sizeof(dai_intVid_list));
     dai_maxVlans = 0;
 
     /* If EVC id is provided, get related VLAN */
-    //if (item->service.id_type == MSG_ID_DEF_TYPE || item->service.id_type == MSG_ID_EVC_TYPE)
-    if (item->evc_idx != (L7_uint32) -1)
+    if (ENDIAN_SWAP32(item->evc_idx) != (L7_uint32) -1)
     {
       /* Check range */
-      if (item->evc_idx /*item->service.id_val.evc_id*/ >= PTIN_SYSTEM_N_EXTENDED_EVCS) 
+      if (ENDIAN_SWAP32(item->evc_idx) >= PTIN_SYSTEM_N_EXTENDED_EVCS) 
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is out of range!", item->evc_idx /*item->service.id_val.evc_id*/);
+        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is out of range!", ENDIAN_SWAP32(item->evc_idx));
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
       /* EVC is active? */
-      if (!ptin_evc_is_in_use(item->evc_idx /*item->service.id_val.evc_id*/))
+      if (!ptin_evc_is_in_use(ENDIAN_SWAP32(item->evc_idx)))
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is not in use!", item->evc_idx /*item->service.id_val.evc_id*/);
+        PT_LOG_ERR(LOG_CTX_MSG, "eEVC#%u is not in use!", ENDIAN_SWAP32(item->evc_idx));
         rc_global = L7_NOT_EXIST;
         continue;
       }
       /* Get internal VLAN from eEVC# */
       dai_maxVlans = 1;
-      if (ptin_evc_intRootVlan_get(item->evc_idx /*item->service.id_val.evc_id*/, &dai_intVid_list[0]) != L7_SUCCESS)
+      if (ptin_evc_intRootVlan_get(ENDIAN_SWAP32(item->evc_idx), &dai_intVid_list[0]) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "Cannot get intVlan from eEVC#%u!", item->evc_idx /*item->service.id_val.evc_id*/);
+        PT_LOG_ERR(LOG_CTX_MSG, "Cannot get intVlan from eEVC#%u!", ENDIAN_SWAP32(item->evc_idx));
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
     }
     /* Use given VLANs range */
-    else /*if (item->service.id_type == MSG_ID_NNIVID_TYPE)*/
+    else
     {
-      if (item->vlan_id /*item->service.id_val.nni_vid*/ < PTIN_VLAN_MIN || item->vlan_id /*item->service.id_val.nni_vid*/ > PTIN_VLAN_MAX)
+      if (ENDIAN_SWAP16(item->vlan_id) < PTIN_VLAN_MIN || ENDIAN_SWAP16(item->vlan_id) > PTIN_VLAN_MAX)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "VLAN %u is out of valid range!", item->vlan_id /*item->service.id_val.nni_vid*/);
+        PT_LOG_ERR(LOG_CTX_MSG, "VLAN %u is out of valid range!", ENDIAN_SWAP16(item->vlan_id));
         rc_global = rc_global_failure = L7_FAILURE;
         continue;
       }
       /* Get eEVC id from NNI VLAN */
       dai_maxVlans = 4096;
-      if (ptin_evc_get_intVlan_fromNNIvlan(item->vlan_id /*item->service.id_val.nni_vid*/, dai_intVid_list, &dai_maxVlans) != L7_SUCCESS)
+      if (ptin_evc_get_intVlan_fromNNIvlan(ENDIAN_SWAP16(item->vlan_id), dai_intVid_list, &dai_maxVlans) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", item->vlan_id /*item->service.id_val.nni_vid*/);
+        PT_LOG_ERR(LOG_CTX_MSG, "NNI VLAN %u is invalid, or doesn't belong to any EVC!", ENDIAN_SWAP16(item->vlan_id));
         rc_global = L7_NOT_EXIST;
         continue;
       }
     }
-    //else
-    //{
-    //  PT_LOG_ERR(LOG_CTX_MSG, "Invalid service type %u", item->service.id_type);
-    //  rc_global = L7_NOT_SUPPORTED;
-    //  continue;
-    //}
 
     PT_LOG_TRACE(LOG_CTX_MSG, "Going to process %u VLANs", dai_maxVlans);
 
@@ -5000,15 +4998,15 @@ L7_RC_t ptin_msg_dai_stats_get(msg_dai_statistics_t *msg_stats, L7_uint nElems)
       }
 
       /* Sum statistics to be returned */
-      item->stats.forwarded       += stats.forwarded;
-      item->stats.dropped         += stats.dropped;
-      item->stats.dhcpDrops       += stats.dhcpDrops;
-      item->stats.dhcpPermits     += stats.dhcpPermits;
-      item->stats.aclDrops        += stats.aclDrops + stats.sMacFailures + stats.dMacFailures + stats.ipValidFailures ;
-      item->stats.aclPermits      += stats.aclPermits;
-      item->stats.sMacFailures    += stats.sMacFailures;
-      item->stats.dMacFailures    += stats.dMacFailures;
-      item->stats.ipValidFailures += stats.ipValidFailures;
+      item->stats.forwarded       += ENDIAN_SWAP32(stats.forwarded);
+      item->stats.dropped         += ENDIAN_SWAP32(stats.dropped);
+      item->stats.dhcpDrops       += ENDIAN_SWAP32(stats.dhcpDrops);
+      item->stats.dhcpPermits     += ENDIAN_SWAP32(stats.dhcpPermits);
+      item->stats.aclDrops        += ENDIAN_SWAP32(stats.aclDrops + stats.sMacFailures + stats.dMacFailures + stats.ipValidFailures) ;
+      item->stats.aclPermits      += ENDIAN_SWAP32(stats.aclPermits);
+      item->stats.sMacFailures    += ENDIAN_SWAP32(stats.sMacFailures);
+      item->stats.dMacFailures    += ENDIAN_SWAP32(stats.dMacFailures);
+      item->stats.ipValidFailures += ENDIAN_SWAP32(stats.ipValidFailures);
     }
   }
 
@@ -7115,41 +7113,41 @@ L7_RC_t ptin_msg_DHCP_evc_reconf(msg_DhcpEvcReconf_t *dhcpEvcInfo)
   PT_LOG_DEBUG(LOG_CTX_MSG,"Processing message");
 
   /* Validate input parameters */
-  if (dhcpEvcInfo==L7_NULLPTR)
+  if (dhcpEvcInfo == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid parameters");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  ID Type    = %u",      dhcpEvcInfo->idType);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  ID         = %u",      dhcpEvcInfo->id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask       = 0x%04X",  dhcpEvcInfo->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  DHCP Flag  = %u",      dhcpEvcInfo->dhcp_flag);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Options    = 0x%04X",  dhcpEvcInfo->options);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  ID Type    = %u",      ENDIAN_SWAP8 (dhcpEvcInfo->idType));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  ID         = %u",      ENDIAN_SWAP32(dhcpEvcInfo->id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask       = 0x%04X",  ENDIAN_SWAP32(dhcpEvcInfo->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  DHCP Flag  = %u",      ENDIAN_SWAP8 (dhcpEvcInfo->dhcp_flag));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Options    = 0x%04X",  ENDIAN_SWAP32(dhcpEvcInfo->options));
 
-  if (dhcpEvcInfo->idType == MSG_ID_EVC_TYPE)
+  if (ENDIAN_SWAP8(dhcpEvcInfo->idType) == MSG_ID_EVC_TYPE)
   {
-    rc = ptin_dhcp_reconf_evc(dhcpEvcInfo->id, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
+    rc = ptin_dhcp_reconf_evc(ENDIAN_SWAP32(dhcpEvcInfo->id), ENDIAN_SWAP8(dhcpEvcInfo->dhcp_flag), ENDIAN_SWAP32(dhcpEvcInfo->options));
     if (rc!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error reconfiguring global DHCP EVC");
       return rc;
     }
-    rc = ptin_pppoe_reconf_evc(dhcpEvcInfo->id, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
+    rc = ptin_pppoe_reconf_evc(ENDIAN_SWAP32(dhcpEvcInfo->id), ENDIAN_SWAP8(dhcpEvcInfo->dhcp_flag), ENDIAN_SWAP32(dhcpEvcInfo->options));
   }
-  else if (dhcpEvcInfo->idType == MSG_ID_NNIVID_TYPE)
+  else if (ENDIAN_SWAP8(dhcpEvcInfo->idType) == MSG_ID_NNIVID_TYPE)
   {
-    rc = ptin_dhcp_reconf_rootVid(dhcpEvcInfo->id, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
+    rc = ptin_dhcp_reconf_rootVid(ENDIAN_SWAP32(dhcpEvcInfo->id), ENDIAN_SWAP8(dhcpEvcInfo->dhcp_flag), ENDIAN_SWAP32(dhcpEvcInfo->options));
     if (rc!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error reconfiguring global DHCP Instance");
       return rc;
     }
-    rc = ptin_pppoe_reconf_rootVid(dhcpEvcInfo->id, dhcpEvcInfo->dhcp_flag, dhcpEvcInfo->options);
+    rc = ptin_pppoe_reconf_rootVid(ENDIAN_SWAP32(dhcpEvcInfo->id), ENDIAN_SWAP8(dhcpEvcInfo->dhcp_flag), ENDIAN_SWAP32(dhcpEvcInfo->options));
   }
   else
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid id %u", dhcpEvcInfo->idType);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid id %u", ENDIAN_SWAP8(dhcpEvcInfo->idType));
     return L7_FAILURE;
   }
 
@@ -7176,67 +7174,71 @@ L7_RC_t ptin_msg_DHCP_circuitid_set(msg_AccessNodeCircuitId_t *circuitid)
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Id_type            = %u",      circuitid->id_ref.id_type);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Id value           = %u",      circuitid->id_ref.id_val.evc_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Id_type            = %u",      ENDIAN_SWAP8 (circuitid->id_ref.id_type));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Id value           = %u",      ENDIAN_SWAP32(circuitid->id_ref.id_val.evc_id));
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Template           = %s",      circuitid->template_str);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId Mask     = 0x%04X",  circuitid->mask_circuitid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId Mask     = 0x%04X",  ENDIAN_SWAP32(circuitid->mask_circuitid));
   PT_LOG_DEBUG(LOG_CTX_MSG, "  AccessNode ID      = %s",      circuitid->access_node_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Chassis            = %u",      circuitid->chassis);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Rack               = %u",      circuitid->rack);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Frame              = %u",      circuitid->frame);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Ethernet Priority  = %u",      circuitid->ethernet_priority);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  S-VID              = %u",      circuitid->s_vid);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Flags Mask         = 0x%02X",  circuitid->mask_flags);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Flags              = 0x%02X",  circuitid->broadcast_flag);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Chassis            = %u",      ENDIAN_SWAP8 (circuitid->chassis));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Rack               = %u",      ENDIAN_SWAP8 (circuitid->rack));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Frame              = %u",      ENDIAN_SWAP8 (circuitid->rack));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Ethernet Priority  = %u",      ENDIAN_SWAP8 (circuitid->ethernet_priority));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  S-VID              = %u",      ENDIAN_SWAP16(circuitid->s_vid));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Flags Mask         = 0x%02X",  ENDIAN_SWAP8 (circuitid->mask_flags));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Flags              = 0x%02X",  ENDIAN_SWAP8 (circuitid->broadcast_flag));
 
   /* TODO: To be reworked */
 
   /* Set circuit-id global data */
-  if (circuitid->id_ref.id_type == MSG_ID_EVC_TYPE)
+  if (ENDIAN_SWAP8(circuitid->id_ref.id_type) == MSG_ID_EVC_TYPE)
   {
     /* Circuit id */
-    rc = ptin_dhcp_circuitid_set_evc(circuitid->id_ref.id_val.evc_id, circuitid->template_str, circuitid->mask_circuitid, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
-                                     circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
+    rc = ptin_dhcp_circuitid_set_evc(ENDIAN_SWAP32(circuitid->id_ref.id_val.evc_id), circuitid->template_str, ENDIAN_SWAP32(circuitid->mask_circuitid),
+                                     circuitid->access_node_id, ENDIAN_SWAP8(circuitid->chassis), ENDIAN_SWAP8(circuitid->rack),
+                                     ENDIAN_SWAP8(circuitid->rack), ENDIAN_SWAP8(circuitid->ethernet_priority), ENDIAN_SWAP16(circuitid->s_vid));
     if (rc!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error configuring DHCP circuit-id");
       return rc;
     }
     /* Flags */
-    rc = ptin_dhcp_evc_flags_set(circuitid->id_ref.id_val.evc_id, circuitid->mask_flags, circuitid->broadcast_flag);
+    rc = ptin_dhcp_evc_flags_set(ENDIAN_SWAP32(circuitid->id_ref.id_val.evc_id), ENDIAN_SWAP8(circuitid->mask_flags), ENDIAN_SWAP8(circuitid->broadcast_flag));
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error configuring DHCP flags");
       return rc;
     }
 
-    rc = ptin_pppoe_circuitid_set_evc(circuitid->id_ref.id_val.evc_id, circuitid->template_str, circuitid->mask_circuitid, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
-                                      circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
+    rc = ptin_pppoe_circuitid_set_evc(ENDIAN_SWAP32(circuitid->id_ref.id_val.evc_id), circuitid->template_str, ENDIAN_SWAP32(circuitid->mask_circuitid),
+                                      circuitid->access_node_id, ENDIAN_SWAP8(circuitid->chassis), ENDIAN_SWAP8(circuitid->rack),
+                                      ENDIAN_SWAP8(circuitid->rack), ENDIAN_SWAP8(circuitid->ethernet_priority), ENDIAN_SWAP16(circuitid->s_vid));
 
   }
-  else if (circuitid->id_ref.id_type == MSG_ID_NNIVID_TYPE)
+  else if (ENDIAN_SWAP8(circuitid->id_ref.id_type) == MSG_ID_NNIVID_TYPE)
   {
-    rc = ptin_dhcp_circuitid_set_nniVid(circuitid->id_ref.id_val.nni_vid, circuitid->template_str, circuitid->mask_circuitid, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
-                                        circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);
+    rc = ptin_dhcp_circuitid_set_nniVid(ENDIAN_SWAP32(circuitid->id_ref.id_val.nni_vid), circuitid->template_str, ENDIAN_SWAP32(circuitid->mask_circuitid),
+                                        circuitid->access_node_id, ENDIAN_SWAP8(circuitid->chassis), ENDIAN_SWAP8(circuitid->rack),
+                                        ENDIAN_SWAP8(circuitid->rack), ENDIAN_SWAP8(circuitid->ethernet_priority), ENDIAN_SWAP16(circuitid->s_vid));
     if (rc!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error configuring DHCP circuit-id");
       return rc;
     }
     /* Flags */
-    rc = ptin_dhcp_nniVid_flags_set(circuitid->id_ref.id_val.nni_vid, circuitid->mask_flags, circuitid->broadcast_flag);
+    rc = ptin_dhcp_nniVid_flags_set(ENDIAN_SWAP32(circuitid->id_ref.id_val.nni_vid), ENDIAN_SWAP8(circuitid->mask_flags), ENDIAN_SWAP8(circuitid->broadcast_flag));
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error configuring DHCP flags");
       return rc;
     }
 
-    rc = ptin_pppoe_circuitid_set_nniVid(circuitid->id_ref.id_val.nni_vid, circuitid->template_str, circuitid->mask_circuitid, circuitid->access_node_id, circuitid->chassis, circuitid->rack,
-                                         circuitid->frame, circuitid->ethernet_priority, circuitid->s_vid);    
+    rc = ptin_pppoe_circuitid_set_nniVid(ENDIAN_SWAP32(circuitid->id_ref.id_val.nni_vid), circuitid->template_str, ENDIAN_SWAP32(circuitid->mask_circuitid),
+                                         circuitid->access_node_id, ENDIAN_SWAP8(circuitid->chassis), ENDIAN_SWAP8(circuitid->rack),
+                                         ENDIAN_SWAP8(circuitid->rack), ENDIAN_SWAP8(circuitid->ethernet_priority), ENDIAN_SWAP16(circuitid->s_vid));    
   }
   else
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid id %u", circuitid->id_ref.id_type);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid id %u", ENDIAN_SWAP8(circuitid->id_ref.id_type));
     return L7_FAILURE;
   }
 
@@ -7266,33 +7268,33 @@ L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid)
   PT_LOG_DEBUG(LOG_CTX_MSG,"Processing message");
 
   /* Validate input parameters */
-  if (circuitid==L7_NULLPTR)
+  if (circuitid == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid parameters");
     return L7_FAILURE;
   }
 
   /* Set circuit-id global data */
-  if (circuitid->id_ref.id_type == MSG_ID_EVC_TYPE)
+  if (ENDIAN_SWAP8(circuitid->id_ref.id_type) == MSG_ID_EVC_TYPE)
   {
     /* Circuit id */
-    rc = ptin_dhcp_circuitid_get(circuitid->id_ref.id_val.evc_id, circuitid->template_str, &circuitid->mask_circuitid,
+    rc = ptin_dhcp_circuitid_get(ENDIAN_SWAP32(circuitid->id_ref.id_val.evc_id), circuitid->template_str, &circuitid->mask_circuitid,
                                  circuitid->access_node_id, &circuitid->chassis, &circuitid->rack,
                                  &circuitid->frame, &circuitid->ethernet_priority, &circuitid->s_vid);
     /* DHCP flags */
     if (rc == L7_SUCCESS)
     {
-      rc = ptin_dhcp_evc_flags_get(circuitid->id_ref.id_val.evc_id, &circuitid->mask_flags, &circuitid->broadcast_flag);
+      rc = ptin_dhcp_evc_flags_get(ENDIAN_SWAP32(circuitid->id_ref.id_val.evc_id), &circuitid->mask_flags, &circuitid->broadcast_flag);
     }
   }
-  else if (circuitid->id_ref.id_type == MSG_ID_NNIVID_TYPE)
+  else if (ENDIAN_SWAP8(circuitid->id_ref.id_type) == MSG_ID_NNIVID_TYPE)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Not supported yet");
     return L7_FAILURE;
   }
   else
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid id %u", circuitid->id_ref.id_type);
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid id %u", ENDIAN_SWAP8(circuitid->id_ref.id_type));
     return L7_FAILURE;
   }
 
@@ -7302,18 +7304,28 @@ L7_RC_t ptin_msg_DHCP_circuitid_get(msg_AccessNodeCircuitId_t *circuitid)
     return rc;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  ID type            = %u",      circuitid->id_ref.id_type);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  ID value           = %u",      circuitid->id_ref.id_val);
+  /* Invert bytes */
+  circuitid->mask_circuitid   = ENDIAN_SWAP32(circuitid->mask_circuitid);
+  circuitid->chassis          = ENDIAN_SWAP8 (circuitid->chassis);
+  circuitid->rack             = ENDIAN_SWAP8 (circuitid->rack);
+  circuitid->frame            = ENDIAN_SWAP8 (circuitid->frame);
+  circuitid->ethernet_priority= ENDIAN_SWAP8 (circuitid->ethernet_priority);
+  circuitid->s_vid            = ENDIAN_SWAP16(circuitid->s_vid);
+  circuitid->mask_flags       = ENDIAN_SWAP8 (circuitid->mask_flags);
+  circuitid->broadcast_flag   = ENDIAN_SWAP8 (circuitid->broadcast_flag);
+
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  ID type            = %u",      ENDIAN_SWAP8 (circuitid->id_ref.id_type));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  ID value           = %u",      ENDIAN_SWAP32(circuitid->id_ref.id_val.evc_id));
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Template           = %s",      circuitid->template_str);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId Mask     = 0x%04X",  circuitid->mask_circuitid);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId Mask     = 0x%04X",  ENDIAN_SWAP32(circuitid->mask_circuitid));
   PT_LOG_DEBUG(LOG_CTX_MSG, "  AccessNode ID      = %s",      circuitid->access_node_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Chassis            = %u",      circuitid->chassis);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Rack               = %u",      circuitid->rack);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Frame              = %u",      circuitid->frame);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Ethernet Priority  = %u",      circuitid->ethernet_priority);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  S-VID              = %u",      circuitid->s_vid);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Flags Mask         = 0x%02X",  circuitid->mask_flags);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Flags              = 0x%02X",  circuitid->broadcast_flag);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Chassis            = %u",      ENDIAN_SWAP8 (circuitid->chassis));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Rack               = %u",      ENDIAN_SWAP8 (circuitid->rack));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Frame              = %u",      ENDIAN_SWAP8 (circuitid->frame));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Ethernet Priority  = %u",      ENDIAN_SWAP8 (circuitid->ethernet_priority));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  S-VID              = %u",      ENDIAN_SWAP16(circuitid->s_vid));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Flags Mask         = 0x%02X",  ENDIAN_SWAP8 (circuitid->mask_flags));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Flags              = 0x%02X",  ENDIAN_SWAP8 (circuitid->broadcast_flag));
 
   return L7_SUCCESS;
 }
@@ -7341,44 +7353,45 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Slot Id      = %u",     profile->SlotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     profile->evc_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", profile->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  profile->intf.intf_type,profile->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", profile->client.mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     profile->client.outer_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     profile->client.inner_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  profile->client.intf.intf_type, profile->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Slot Id      = %u",     ENDIAN_SWAP8 (profile->SlotId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     ENDIAN_SWAP32(profile->evc_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", ENDIAN_SWAP8 (profile->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  ENDIAN_SWAP8 (profile->intf.intf_type), ENDIAN_SWAP8 (profile->intf.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", ENDIAN_SWAP8 (profile->client.mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     ENDIAN_SWAP16(profile->client.outer_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     ENDIAN_SWAP16(profile->client.inner_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  ENDIAN_SWAP8 (profile->client.intf.intf_type), ENDIAN_SWAP8 (profile->client.intf.intf_id));
 
   /* Extract input data */
-  evc_idx = profile->evc_id;
+  evc_idx = ENDIAN_SWAP32(profile->evc_id);
 
   memset(&client,0x00,sizeof(ptin_client_id_t));
-  if (profile->client.mask & MSG_CLIENT_OVLAN_MASK)
+  if (ENDIAN_SWAP8(profile->client.mask) & MSG_CLIENT_OVLAN_MASK)
   {
-    client.outerVlan = profile->client.outer_vlan;
+    client.outerVlan = ENDIAN_SWAP16(profile->client.outer_vlan);
     client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
   }
-  if (profile->client.mask & MSG_CLIENT_IVLAN_MASK)
+  if (ENDIAN_SWAP8(profile->client.mask) & MSG_CLIENT_IVLAN_MASK)
   {
-    client.innerVlan = profile->client.inner_vlan;
+    client.innerVlan = ENDIAN_SWAP16(profile->client.inner_vlan);
     client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
   }
-  if (profile->client.mask & MSG_CLIENT_INTF_MASK)
+  if (ENDIAN_SWAP8(profile->client.mask) & MSG_CLIENT_INTF_MASK)
   {
-    client.ptin_intf.intf_type  = profile->client.intf.intf_type;
-    client.ptin_intf.intf_id    = profile->client.intf.intf_id;
+    client.ptin_intf.intf_type  = ENDIAN_SWAP8(profile->client.intf.intf_type);
+    client.ptin_intf.intf_id    = ENDIAN_SWAP8(profile->client.intf.intf_id);
     client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
   }
 
   /* Get circuit and remote ids */
   rc = ptin_dhcp_client_get(evc_idx, &client, &profile->options, &circuitId_data, L7_NULLPTR, profile->remoteId);
 
-  profile->circuitId.onuid  = circuitId_data.onuid;
-  profile->circuitId.slot   = circuitId_data.slot;
-  profile->circuitId.port   = circuitId_data.port;
-  profile->circuitId.q_vid  = circuitId_data.q_vid;
-  profile->circuitId.c_vid  = circuitId_data.c_vid;
+  profile->options          = ENDIAN_SWAP16(profile->options);
+  profile->circuitId.onuid  = ENDIAN_SWAP16(circuitId_data.onuid);
+  profile->circuitId.slot   = ENDIAN_SWAP8 (circuitId_data.slot);
+  profile->circuitId.port   = ENDIAN_SWAP16(circuitId_data.port);
+  profile->circuitId.q_vid  = ENDIAN_SWAP16(circuitId_data.q_vid);
+  profile->circuitId.c_vid  = ENDIAN_SWAP16(circuitId_data.c_vid);
 
   if (rc!=L7_SUCCESS)
   {
@@ -7386,12 +7399,12 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
     return rc;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG,"Options                      = %02x",  profile->options);
-  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.onuid              = %u",    profile->circuitId.onuid);
-  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.slot               = %u",    profile->circuitId.slot);
-  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.port               = %u",    profile->circuitId.port);
-  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.q_vid              = %u",    profile->circuitId.q_vid);
-  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.c_vid              = %u",    profile->circuitId.c_vid);
+  PT_LOG_DEBUG(LOG_CTX_MSG,"Options                      = %02x",  ENDIAN_SWAP16(profile->options));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.onuid              = %u",    ENDIAN_SWAP16(profile->circuitId.onuid));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.slot               = %u",    ENDIAN_SWAP8 (profile->circuitId.slot));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.port               = %u",    ENDIAN_SWAP16(profile->circuitId.port));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.q_vid              = %u",    ENDIAN_SWAP16(profile->circuitId.q_vid));
+  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.c_vid              = %u",    ENDIAN_SWAP16(profile->circuitId.c_vid));
   PT_LOG_DEBUG(LOG_CTX_MSG,"RemoteId                     = \"%s\"",profile->remoteId);
 
   return L7_SUCCESS;
@@ -7412,7 +7425,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
   L7_RC_t                 rc = L7_SUCCESS;
 
   /* Validate input parameters */
-  if (profile==L7_NULLPTR)
+  if (profile == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid parameters");
     return L7_FAILURE;
@@ -7422,63 +7435,63 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
   {
     PT_LOG_DEBUG(LOG_CTX_MSG, "Processing message %u",i);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Slot Id                      = %u",     profile[i].SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx                      = %u",     profile[i].evc_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask                         = 0x%02x", profile[i].mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface                    = %u/%u",  profile[i].intf.intf_type,profile[i].intf.intf_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask                  = 0x%02x", profile[i].client.mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan                 = %u",     profile[i].client.outer_vlan);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan                 = %u",     profile[i].client.inner_vlan);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf                  = %u/%u",  profile[i].client.intf.intf_type, profile[i].client.intf.intf_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Options                      = %04x",   profile[i].options);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId.onuid              = %u",     profile[i].circuitId.onuid);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId.slot               = %u",     profile[i].circuitId.slot);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId.port               = %u",     profile[i].circuitId.port);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId.q_vid              = %u",     profile[i].circuitId.q_vid);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Slot Id                      = %u",     ENDIAN_SWAP8 (profile[i].SlotId));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx                      = %u",     ENDIAN_SWAP32(profile[i].evc_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask                         = 0x%02x", ENDIAN_SWAP8 (profile[i].mask));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface                    = %u/%u",  ENDIAN_SWAP8 (profile[i].intf.intf_type), ENDIAN_SWAP8(profile[i].intf.intf_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask                  = 0x%02x", ENDIAN_SWAP8 (profile[i].client.mask));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan                 = %u",     ENDIAN_SWAP16(profile[i].client.outer_vlan));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan                 = %u",     ENDIAN_SWAP16(profile[i].client.inner_vlan));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf                  = %u/%u",  ENDIAN_SWAP8 (profile[i].client.intf.intf_type), ENDIAN_SWAP8(profile[i].client.intf.intf_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Options                      = %04x",   ENDIAN_SWAP16(profile[i].options));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId.onuid              = %u",     ENDIAN_SWAP16(profile[i].circuitId.onuid));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId.slot               = %u",     ENDIAN_SWAP8 (profile[i].circuitId.slot));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId.port               = %u",     ENDIAN_SWAP16(profile[i].circuitId.port));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  CircuitId.q_vid              = %u",     ENDIAN_SWAP16(profile[i].circuitId.q_vid));
     PT_LOG_DEBUG(LOG_CTX_MSG, "  Remote Id                    = \"%s\"", profile[i].remoteId);
 
     /* Check if all UseGlobal_DHCP_options match */
-    if ( ((profile[i].options & 0x02) >> 1) != ((profile[i].options & 0x08) >> 3) )
+    if ( ((ENDIAN_SWAP16(profile[i].options) & 0x02) >> 1) != ((ENDIAN_SWAP16(profile[i].options) & 0x08) >> 3) )
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error: UseGlobal_DHCP_options do not match");
       return L7_FAILURE;
     }
-    if ( ((profile[i].options & 0x08) >> 3) != ((profile[i].options & 0x20) >> 5) )
+    if ( ((ENDIAN_SWAP16(profile[i].options) & 0x08) >> 3) != ((ENDIAN_SWAP16(profile[i].options) & 0x20) >> 5) )
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error: UseGlobal_DHCP_options do not match");
       return L7_FAILURE;
     }
 
     /* Extract input data */
-    evc_idx = profile[i].evc_id;
+    evc_idx = ENDIAN_SWAP32(profile[i].evc_id);
 
     memset(&client,0x00,sizeof(ptin_client_id_t));
-    if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+    if (ENDIAN_SWAP8(profile[i].client.mask) & MSG_CLIENT_OVLAN_MASK)
     {
-      client.outerVlan = profile[i].client.outer_vlan;
+      client.outerVlan = ENDIAN_SWAP16(profile[i].client.outer_vlan);
       client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
     }
-    if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+    if (ENDIAN_SWAP8(profile[i].client.mask) & MSG_CLIENT_IVLAN_MASK)
     {
-      client.innerVlan = profile[i].client.inner_vlan;
+      client.innerVlan = ENDIAN_SWAP16(profile[i].client.inner_vlan);
       client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
     }
-    if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
+    if (ENDIAN_SWAP8(profile[i].client.mask) & MSG_CLIENT_INTF_MASK)
     {
-      client.ptin_intf.intf_type  = profile[i].client.intf.intf_type;
-      client.ptin_intf.intf_id    = profile[i].client.intf.intf_id;
+      client.ptin_intf.intf_type  = ENDIAN_SWAP8(profile[i].client.intf.intf_type);
+      client.ptin_intf.intf_id    = ENDIAN_SWAP8(profile[i].client.intf.intf_id);
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
     }
 
     /* TODO: To be reworked */
-    circuitId.onuid   = profile[i].circuitId.onuid;
-    circuitId.slot    = profile[i].circuitId.slot;
-    circuitId.port    = profile[i].circuitId.port;
-    circuitId.q_vid   = profile[i].circuitId.q_vid;
-    circuitId.c_vid   = profile[i].circuitId.c_vid;
+    circuitId.onuid   = ENDIAN_SWAP16(profile[i].circuitId.onuid);
+    circuitId.slot    = ENDIAN_SWAP8 (profile[i].circuitId.slot);
+    circuitId.port    = ENDIAN_SWAP16(profile[i].circuitId.port);
+    circuitId.q_vid   = ENDIAN_SWAP16(profile[i].circuitId.q_vid);
+    circuitId.c_vid   = ENDIAN_SWAP16(profile[i].circuitId.c_vid);
 
     /* Add circuit and remote ids */
-    rc = ptin_dhcp_client_add(evc_idx, &client, 0, 0, profile[i].options, &circuitId, profile[i].remoteId);
+    rc = ptin_dhcp_client_add(evc_idx, &client, 0, 0, ENDIAN_SWAP16(profile[i].options), &circuitId, profile[i].remoteId);
 
     if (rc!=L7_SUCCESS)
     {
@@ -7486,7 +7499,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
       return rc;
     }
 
-    rc = ptin_pppoe_client_add(evc_idx, &client, 0, 0, profile[i].options, &circuitId, profile[i].remoteId);
+    rc = ptin_pppoe_client_add(evc_idx, &client, 0, 0, ENDIAN_SWAP16(profile[i].options), &circuitId, profile[i].remoteId);
     /* TODO */
 #if 0
     if (rc!=L7_SUCCESS)
@@ -7514,7 +7527,7 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
   L7_RC_t           rc;
 
   /* Validate input parameters */
-  if (profile==L7_NULLPTR)
+  if (profile == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid parameters");
     return L7_FAILURE;
@@ -7524,46 +7537,46 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
   {
     PT_LOG_DEBUG(LOG_CTX_MSG,"Processing message %u",i);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Slot Id      = %u",     profile[i].SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     profile[i].evc_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", profile[i].mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  profile[i].intf.intf_type,profile[i].intf.intf_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", profile[i].client.mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     profile[i].client.outer_vlan);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     profile[i].client.inner_vlan);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  profile[i].client.intf.intf_type, profile[i].client.intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Slot Id      = %u",     ENDIAN_SWAP8 (profile[i].SlotId));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     ENDIAN_SWAP32(profile[i].evc_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", ENDIAN_SWAP8 (profile[i].mask));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  ENDIAN_SWAP8 (profile[i].intf.intf_type), ENDIAN_SWAP8 (profile[i].intf.intf_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", ENDIAN_SWAP8 (profile[i].client.mask));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     ENDIAN_SWAP16(profile[i].client.outer_vlan));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     ENDIAN_SWAP16(profile[i].client.inner_vlan));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  ENDIAN_SWAP8 (profile[i].client.intf.intf_type), ENDIAN_SWAP8 (profile[i].client.intf.intf_id));
 
     /* Extract input data */
-    evc_idx = profile[i].evc_id;
+    evc_idx = ENDIAN_SWAP32(profile[i].evc_id);
 
     memset(&client,0x00,sizeof(ptin_client_id_t));
-    if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+    if (ENDIAN_SWAP8(profile[i].client.mask) & MSG_CLIENT_OVLAN_MASK)
     {
-      client.outerVlan = profile[i].client.outer_vlan;
+      client.outerVlan = ENDIAN_SWAP16(profile[i].client.outer_vlan);
       client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
     }
-    if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+    if (ENDIAN_SWAP8(profile[i].client.mask) & MSG_CLIENT_IVLAN_MASK)
     {
-      client.innerVlan = profile[i].client.inner_vlan;
+      client.innerVlan = ENDIAN_SWAP16(profile[i].client.inner_vlan);
       client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
     }
-    if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
+    if (ENDIAN_SWAP8(profile[i].client.mask) & MSG_CLIENT_INTF_MASK)
     {
-      client.ptin_intf.intf_type  = profile[i].client.intf.intf_type;
-      client.ptin_intf.intf_id    = profile[i].client.intf.intf_id;
+      client.ptin_intf.intf_type  = ENDIAN_SWAP8(profile[i].client.intf.intf_type);
+      client.ptin_intf.intf_id    = ENDIAN_SWAP8(profile[i].client.intf.intf_id);
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
     }
 
     /* TODO: To be reworked */
 
     /* Remove circuitId+remoteId entry */
-    rc = ptin_dhcp_client_delete(evc_idx,&client);
+    rc = ptin_dhcp_client_delete(evc_idx, &client);
     if ( rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error removing DHCP circuitId+remoteId entry");
       return rc;
     }
-    rc = ptin_pppoe_client_delete(evc_idx,&client);
+    rc = ptin_pppoe_client_delete(evc_idx, &client);
     /* TODO */
 #if 0
     if ( rc != L7_SUCCESS)
@@ -7590,7 +7603,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   ptin_DHCP_Statistics_t  stats;
   L7_RC_t                 rc;
 
-  if (dhcp_stats==L7_NULLPTR)
+  if (dhcp_stats == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
@@ -7598,43 +7611,43 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Reading client DHCP stats:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     dhcp_stats->evc_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", dhcp_stats->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  dhcp_stats->intf.intf_type,dhcp_stats->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", dhcp_stats->client.mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     dhcp_stats->client.outer_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     dhcp_stats->client.inner_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  dhcp_stats->client.intf.intf_type, dhcp_stats->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     ENDIAN_SWAP32(dhcp_stats->evc_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", ENDIAN_SWAP8 (dhcp_stats->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  ENDIAN_SWAP8 (dhcp_stats->intf.intf_type), ENDIAN_SWAP8 (dhcp_stats->intf.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", ENDIAN_SWAP8 (dhcp_stats->client.mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     ENDIAN_SWAP16(dhcp_stats->client.outer_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     ENDIAN_SWAP16(dhcp_stats->client.inner_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  ENDIAN_SWAP8 (dhcp_stats->client.intf.intf_type), ENDIAN_SWAP8 (dhcp_stats->client.intf.intf_id));
 
   /* Evaluate provided data */
-  if ( dhcp_stats->evc_id==(L7_uint16)-1 ||
-       !(dhcp_stats->mask & MSG_CLIENT_MASK) ||
-       (dhcp_stats->client.mask == 0x00) )
+  if ( ENDIAN_SWAP32(dhcp_stats->evc_id) == (L7_uint16)-1 ||
+      !(ENDIAN_SWAP8(dhcp_stats->mask) & MSG_CLIENT_MASK) ||
+       (ENDIAN_SWAP8(dhcp_stats->client.mask) == 0x00) )
   {
     PT_LOG_ERR(LOG_CTX_MSG, "MC EVC and client reference must be provided");
     return L7_FAILURE;
   }
 
   memset(&client,0x00,sizeof(ptin_client_id_t));
-  if (dhcp_stats->client.mask & MSG_CLIENT_OVLAN_MASK)
+  if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_OVLAN_MASK)
   {
-    client.outerVlan = dhcp_stats->client.outer_vlan;
+    client.outerVlan = ENDIAN_SWAP16(dhcp_stats->client.outer_vlan);
     client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
   }
-  if (dhcp_stats->client.mask & MSG_CLIENT_IVLAN_MASK)
+  if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_IVLAN_MASK)
   {
-    client.innerVlan = dhcp_stats->client.inner_vlan;
+    client.innerVlan = ENDIAN_SWAP16(dhcp_stats->client.inner_vlan);
     client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
   }
-  if (dhcp_stats->client.mask & MSG_CLIENT_INTF_MASK)
+  if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_INTF_MASK)
   {
-    client.ptin_intf.intf_type  = dhcp_stats->client.intf.intf_type;
-    client.ptin_intf.intf_id    = dhcp_stats->client.intf.intf_id;
+    client.ptin_intf.intf_type  = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_type);
+    client.ptin_intf.intf_id    = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_id);
     client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
   }
 
   /* Get statistics */
-  rc = ptin_dhcp_stat_client_get(dhcp_stats->evc_id,&client,&stats);
+  rc = ptin_dhcp_stat_client_get(dhcp_stats->evc_id, &client, &stats);
 
   if (rc!=L7_SUCCESS)
   {
@@ -7647,32 +7660,32 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   }
 
   /* Return data */
-  dhcp_stats->stats.dhcp_rx_intercepted                           = stats.dhcp_rx_intercepted;
-  dhcp_stats->stats.dhcp_rx                                       = stats.dhcp_rx;
-  dhcp_stats->stats.dhcp_rx_filtered                              = stats.dhcp_rx_filtered;
-  dhcp_stats->stats.dhcp_tx_forwarded                             = stats.dhcp_tx_forwarded;
-  dhcp_stats->stats.dhcp_tx_failed                                = stats.dhcp_tx_failed;
+  dhcp_stats->stats.dhcp_rx_intercepted                           = ENDIAN_SWAP32(stats.dhcp_rx_intercepted);
+  dhcp_stats->stats.dhcp_rx                                       = ENDIAN_SWAP32(stats.dhcp_rx);
+  dhcp_stats->stats.dhcp_rx_filtered                              = ENDIAN_SWAP32(stats.dhcp_rx_filtered);
+  dhcp_stats->stats.dhcp_tx_forwarded                             = ENDIAN_SWAP32(stats.dhcp_tx_forwarded);
+  dhcp_stats->stats.dhcp_tx_failed                                = ENDIAN_SWAP32(stats.dhcp_tx_failed);
 
-  dhcp_stats->stats.dhcp_rx_client_requests_without_options       = stats.dhcp_rx_client_requests_without_options;
+  dhcp_stats->stats.dhcp_rx_client_requests_without_options       = ENDIAN_SWAP32(stats.dhcp_rx_client_requests_without_options);
 #if 0 /* PTin Daniel OLTTS-4141 - Removed to ensure API compatibility with manager in 3.3.0 */
-  dhcp_stats->stats.dhcp_tx_client_requests_without_options       = stats.dhcp_tx_client_requests_without_options;
+  dhcp_stats->stats.dhcp_tx_client_requests_without_options       = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_without_options);
 #endif
-  dhcp_stats->stats.dhcp_tx_client_requests_with_option82         = stats.dhcp_tx_client_requests_with_option82;
-  dhcp_stats->stats.dhcp_tx_client_requests_with_option37         = stats.dhcp_tx_client_requests_with_option37;
-  dhcp_stats->stats.dhcp_tx_client_requests_with_option18         = stats.dhcp_tx_client_requests_with_option18;
-  dhcp_stats->stats.dhcp_rx_server_replies_with_option82          = stats.dhcp_rx_server_replies_with_option82;
-  dhcp_stats->stats.dhcp_rx_server_replies_with_option37          = stats.dhcp_rx_server_replies_with_option37;
-  dhcp_stats->stats.dhcp_rx_server_replies_with_option18          = stats.dhcp_rx_server_replies_with_option18;
+  dhcp_stats->stats.dhcp_tx_client_requests_with_option82         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option82);
+  dhcp_stats->stats.dhcp_tx_client_requests_with_option37         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option37);
+  dhcp_stats->stats.dhcp_tx_client_requests_with_option18         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option18);
+  dhcp_stats->stats.dhcp_rx_server_replies_with_option82          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option82);
+  dhcp_stats->stats.dhcp_rx_server_replies_with_option37          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option37);
+  dhcp_stats->stats.dhcp_rx_server_replies_with_option18          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option18);
 #if 0 /* PTin Daniel OLTTS-4141 - Removed to ensure API compatibility with manager in 3.3.0 */
-  dhcp_stats->stats.dhcp_rx_server_replies_without_options        = stats.dhcp_rx_server_replies_without_options;
+  dhcp_stats->stats.dhcp_rx_server_replies_without_options        = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_without_options);
 #endif
-  dhcp_stats->stats.dhcp_tx_server_replies_without_options        = stats.dhcp_tx_server_replies_without_options;
+  dhcp_stats->stats.dhcp_tx_server_replies_without_options        = ENDIAN_SWAP32(stats.dhcp_tx_server_replies_without_options);
 
-  dhcp_stats->stats.dhcp_rx_client_pkts_onTrustedIntf             = stats.dhcp_rx_client_pkts_onTrustedIntf;
-  dhcp_stats->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf   = stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf;
-  dhcp_stats->stats.dhcp_rx_server_pkts_onUntrustedIntf           = stats.dhcp_rx_server_pkts_onUntrustedIntf;
+  dhcp_stats->stats.dhcp_rx_client_pkts_onTrustedIntf             = ENDIAN_SWAP32(stats.dhcp_rx_client_pkts_onTrustedIntf);
+  dhcp_stats->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf   = ENDIAN_SWAP32(stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf);
+  dhcp_stats->stats.dhcp_rx_server_pkts_onUntrustedIntf           = ENDIAN_SWAP32(stats.dhcp_rx_server_pkts_onUntrustedIntf);
 #if 1 /* PTin Daniel OLTTS-4141 - Added to ensure API compatibility with manager in 3.3.0 */
-  dhcp_stats->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf  = 0;
+  dhcp_stats->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf  = ENDIAN_SWAP32(0);
 #endif
 
   return L7_SUCCESS;
@@ -7690,7 +7703,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
   ptin_client_id_t  client;
   L7_RC_t           rc;
 
-  if (dhcp_stats==L7_NULLPTR)
+  if (dhcp_stats == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
@@ -7698,43 +7711,43 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Clearing client DHCP stats:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     dhcp_stats->evc_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", dhcp_stats->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  dhcp_stats->intf.intf_type,dhcp_stats->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", dhcp_stats->client.mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     dhcp_stats->client.outer_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     dhcp_stats->client.inner_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  dhcp_stats->client.intf.intf_type, dhcp_stats->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     ENDIAN_SWAP32(dhcp_stats->evc_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", ENDIAN_SWAP8 (dhcp_stats->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  ENDIAN_SWAP8 (dhcp_stats->intf.intf_type), ENDIAN_SWAP8 (dhcp_stats->intf.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", ENDIAN_SWAP8 (dhcp_stats->client.mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     ENDIAN_SWAP16(dhcp_stats->client.outer_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     ENDIAN_SWAP16(dhcp_stats->client.inner_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  ENDIAN_SWAP8 (dhcp_stats->client.intf.intf_type), ENDIAN_SWAP8 (dhcp_stats->client.intf.intf_id));
 
   /* Evaluate provided data */
-  if ( dhcp_stats->evc_id==(L7_uint16)-1 ||
-       !(dhcp_stats->mask & MSG_CLIENT_MASK) ||
-       (dhcp_stats->client.mask == 0x00) )
+  if ( ENDIAN_SWAP32(dhcp_stats->evc_id) == (L7_uint16)-1 ||
+      !(ENDIAN_SWAP8(dhcp_stats->mask) & MSG_CLIENT_MASK) ||
+       (ENDIAN_SWAP8(dhcp_stats->client.mask) == 0x00) )
   {
     PT_LOG_ERR(LOG_CTX_MSG, "MC EVC and client reference must be provided");
     return L7_FAILURE;
   }
 
   memset(&client,0x00,sizeof(ptin_client_id_t));
-  if (dhcp_stats->client.mask & MSG_CLIENT_OVLAN_MASK)
+  if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_OVLAN_MASK)
   {
-    client.outerVlan = dhcp_stats->client.outer_vlan;
+    client.outerVlan = ENDIAN_SWAP16(dhcp_stats->client.outer_vlan);
     client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
   }
-  if (dhcp_stats->client.mask & MSG_CLIENT_IVLAN_MASK)
+  if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_IVLAN_MASK)
   {
-    client.innerVlan = dhcp_stats->client.inner_vlan;
+    client.innerVlan = ENDIAN_SWAP16(dhcp_stats->client.inner_vlan);
     client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
   }
-  if (dhcp_stats->client.mask & MSG_CLIENT_INTF_MASK)
+  if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_INTF_MASK)
   {
-    client.ptin_intf.intf_type  = dhcp_stats->client.intf.intf_type;
-    client.ptin_intf.intf_id    = dhcp_stats->client.intf.intf_id;
+    client.ptin_intf.intf_type  = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_type);
+    client.ptin_intf.intf_id    = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_id);
     client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
   }
 
   /* Clear client stats */
-  rc = ptin_dhcp_stat_client_clear(dhcp_stats->evc_id,&client);
+  rc = ptin_dhcp_stat_client_clear(dhcp_stats->evc_id, &client);
 
   if (rc!=L7_SUCCESS)
   {
@@ -7762,7 +7775,7 @@ L7_RC_t ptin_msg_DHCP_intfStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   ptin_DHCP_Statistics_t  stats;
   L7_RC_t                 rc;
 
-  if (dhcp_stats==L7_NULLPTR)
+  if (dhcp_stats == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
@@ -7770,26 +7783,26 @@ L7_RC_t ptin_msg_DHCP_intfStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Reading interface DHCP stats:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     dhcp_stats->evc_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", dhcp_stats->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  dhcp_stats->intf.intf_type,dhcp_stats->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", dhcp_stats->client.mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     dhcp_stats->client.outer_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     dhcp_stats->client.inner_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  dhcp_stats->client.intf.intf_type, dhcp_stats->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     ENDIAN_SWAP32(dhcp_stats->evc_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", ENDIAN_SWAP8 (dhcp_stats->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  ENDIAN_SWAP8 (dhcp_stats->intf.intf_type), ENDIAN_SWAP8 (dhcp_stats->intf.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", ENDIAN_SWAP8 (dhcp_stats->client.mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     ENDIAN_SWAP16(dhcp_stats->client.outer_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     ENDIAN_SWAP16(dhcp_stats->client.inner_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  ENDIAN_SWAP8 (dhcp_stats->client.intf.intf_type), ENDIAN_SWAP8 (dhcp_stats->client.intf.intf_id));
 
   /* Evaluate provided data */
-  if ( !(dhcp_stats->mask & MSG_INTERFACE_MASK) )
+  if ( !(ENDIAN_SWAP8(dhcp_stats->mask) & MSG_INTERFACE_MASK) )
   {
     PT_LOG_ERR(LOG_CTX_MSG, "At least, interface must be provided");
     return L7_FAILURE;
   }
 
-  ptin_intf.intf_type = dhcp_stats->intf.intf_type;
-  ptin_intf.intf_id   = dhcp_stats->intf.intf_id;
+  ptin_intf.intf_type = ENDIAN_SWAP8(dhcp_stats->intf.intf_type);
+  ptin_intf.intf_id   = ENDIAN_SWAP8(dhcp_stats->intf.intf_id);
 
   /* Get statistics */
-  if (dhcp_stats->evc_id==(L7_uint16)-1)
+  if (ENDIAN_SWAP32(dhcp_stats->evc_id) == (L7_uint16)-1)
   {
     rc = ptin_dhcp_stat_intf_get(&ptin_intf,&stats);
 
@@ -7805,7 +7818,7 @@ L7_RC_t ptin_msg_DHCP_intfStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   }
   else
   {
-    rc = ptin_dhcp_stat_instanceIntf_get(dhcp_stats->evc_id,&ptin_intf,&stats);
+    rc = ptin_dhcp_stat_instanceIntf_get(ENDIAN_SWAP32(dhcp_stats->evc_id), &ptin_intf, &stats);
 
     if (rc!=L7_SUCCESS)
     {
@@ -7819,32 +7832,32 @@ L7_RC_t ptin_msg_DHCP_intfStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   }
 
   /* Return data */
-  dhcp_stats->stats.dhcp_rx_intercepted                           = stats.dhcp_rx_intercepted;
-  dhcp_stats->stats.dhcp_rx                                       = stats.dhcp_rx;
-  dhcp_stats->stats.dhcp_rx_filtered                              = stats.dhcp_rx_filtered;
-  dhcp_stats->stats.dhcp_tx_forwarded                             = stats.dhcp_tx_forwarded;
-  dhcp_stats->stats.dhcp_tx_failed                                = stats.dhcp_tx_failed;
+  dhcp_stats->stats.dhcp_rx_intercepted                           = ENDIAN_SWAP32(stats.dhcp_rx_intercepted);
+  dhcp_stats->stats.dhcp_rx                                       = ENDIAN_SWAP32(stats.dhcp_rx);
+  dhcp_stats->stats.dhcp_rx_filtered                              = ENDIAN_SWAP32(stats.dhcp_rx_filtered);
+  dhcp_stats->stats.dhcp_tx_forwarded                             = ENDIAN_SWAP32(stats.dhcp_tx_forwarded);
+  dhcp_stats->stats.dhcp_tx_failed                                = ENDIAN_SWAP32(stats.dhcp_tx_failed);
 
-  dhcp_stats->stats.dhcp_rx_client_requests_without_options       = stats.dhcp_rx_client_requests_without_options;
+  dhcp_stats->stats.dhcp_rx_client_requests_without_options       = ENDIAN_SWAP32(stats.dhcp_rx_client_requests_without_options);
 #if 0 /* PTin Daniel OLTTS-4141 - Removed to ensure API compatibility with manager in 3.3.0 */
-  dhcp_stats->stats.dhcp_tx_client_requests_without_options       = stats.dhcp_tx_client_requests_without_options;
+  dhcp_stats->stats.dhcp_tx_client_requests_without_options       = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_without_options);
 #endif
-  dhcp_stats->stats.dhcp_tx_client_requests_with_option82         = stats.dhcp_tx_client_requests_with_option82;
-  dhcp_stats->stats.dhcp_tx_client_requests_with_option37         = stats.dhcp_tx_client_requests_with_option37;
-  dhcp_stats->stats.dhcp_tx_client_requests_with_option18         = stats.dhcp_tx_client_requests_with_option18;
-  dhcp_stats->stats.dhcp_rx_server_replies_with_option82          = stats.dhcp_rx_server_replies_with_option82;
-  dhcp_stats->stats.dhcp_rx_server_replies_with_option37          = stats.dhcp_rx_server_replies_with_option37;
-  dhcp_stats->stats.dhcp_rx_server_replies_with_option18          = stats.dhcp_rx_server_replies_with_option18;
+  dhcp_stats->stats.dhcp_tx_client_requests_with_option82         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option82);
+  dhcp_stats->stats.dhcp_tx_client_requests_with_option37         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option37);
+  dhcp_stats->stats.dhcp_tx_client_requests_with_option18         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option18);
+  dhcp_stats->stats.dhcp_rx_server_replies_with_option82          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option82);
+  dhcp_stats->stats.dhcp_rx_server_replies_with_option37          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option37);
+  dhcp_stats->stats.dhcp_rx_server_replies_with_option18          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option18);
 #if 0 /* PTin Daniel OLTTS-4141 - Removed to ensure API compatibility with manager in 3.3.0 */
-  dhcp_stats->stats.dhcp_rx_server_replies_without_options        = stats.dhcp_rx_server_replies_without_options;
+  dhcp_stats->stats.dhcp_rx_server_replies_without_options        = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_without_options);
 #endif
-  dhcp_stats->stats.dhcp_tx_server_replies_without_options        = stats.dhcp_tx_server_replies_without_options;
+  dhcp_stats->stats.dhcp_tx_server_replies_without_options        = ENDIAN_SWAP32(stats.dhcp_tx_server_replies_without_options);
 
-  dhcp_stats->stats.dhcp_rx_client_pkts_onTrustedIntf             = stats.dhcp_rx_client_pkts_onTrustedIntf;
-  dhcp_stats->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf   = stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf;
-  dhcp_stats->stats.dhcp_rx_server_pkts_onUntrustedIntf           = stats.dhcp_rx_server_pkts_onUntrustedIntf;
+  dhcp_stats->stats.dhcp_rx_client_pkts_onTrustedIntf             = ENDIAN_SWAP32(stats.dhcp_rx_client_pkts_onTrustedIntf);
+  dhcp_stats->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf   = ENDIAN_SWAP32(stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf);
+  dhcp_stats->stats.dhcp_rx_server_pkts_onUntrustedIntf           = ENDIAN_SWAP32(stats.dhcp_rx_server_pkts_onUntrustedIntf);
 #if 1 /* PTin Daniel OLTTS-4141 - Added to ensure API compatibility with manager in 3.3.0 */
-  dhcp_stats->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf  = 0;
+  dhcp_stats->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf  = ENDIAN_SWAP32(0);
 #endif
 
   return L7_SUCCESS;
@@ -7862,7 +7875,7 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
   ptin_intf_t ptin_intf;
   L7_RC_t     rc;
 
-  if (dhcp_stats==L7_NULLPTR)
+  if (dhcp_stats == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
     return L7_FAILURE;
@@ -7870,22 +7883,22 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Clearing interface DHCP stats:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     dhcp_stats->evc_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", dhcp_stats->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  dhcp_stats->intf.intf_type,dhcp_stats->intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", dhcp_stats->client.mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     dhcp_stats->client.outer_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     dhcp_stats->client.inner_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  dhcp_stats->client.intf.intf_type, dhcp_stats->client.intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  evc_idx      = %u",     ENDIAN_SWAP32(dhcp_stats->evc_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask         = 0x%02x", ENDIAN_SWAP8 (dhcp_stats->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Interface    = %u/%u",  ENDIAN_SWAP8 (dhcp_stats->intf.intf_type), ENDIAN_SWAP8 (dhcp_stats->intf.intf_id));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Mask  = 0x%02x", ENDIAN_SWAP8 (dhcp_stats->client.mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.OVlan = %u",     ENDIAN_SWAP16(dhcp_stats->client.outer_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     ENDIAN_SWAP16(dhcp_stats->client.inner_vlan));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  ENDIAN_SWAP8 (dhcp_stats->client.intf.intf_type), ENDIAN_SWAP8 (dhcp_stats->client.intf.intf_id));
 
-  ptin_intf.intf_type = dhcp_stats->intf.intf_type;
-  ptin_intf.intf_id   = dhcp_stats->intf.intf_id;
+  ptin_intf.intf_type = ENDIAN_SWAP8(dhcp_stats->intf.intf_type);
+  ptin_intf.intf_id   = ENDIAN_SWAP8(dhcp_stats->intf.intf_id);
 
   /* MC EVC not provided */
-  if (dhcp_stats->evc_id==(L7_uint16)-1)
+  if (ENDIAN_SWAP32(dhcp_stats->evc_id) == (L7_uint16)-1)
   {
     /* Interface not provided */
-    if ( !(dhcp_stats->mask & MSG_INTERFACE_MASK) )
+    if ( !(ENDIAN_SWAP8(dhcp_stats->mask) & MSG_INTERFACE_MASK) )
     {
       /* Clear all stats */
       rc = ptin_dhcp_stat_clearAll();
@@ -7921,10 +7934,10 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
   else
   {
     /* Interface not provided */
-    if ( !(dhcp_stats->mask & MSG_INTERFACE_MASK) )
+    if ( !(ENDIAN_SWAP8(dhcp_stats->mask) & MSG_INTERFACE_MASK) )
     {
       /* Clear stats of one dhcp instance */
-      rc = ptin_dhcp_stat_instance_clear(dhcp_stats->evc_id);
+      rc = ptin_dhcp_stat_instance_clear(ENDIAN_SWAP32(dhcp_stats->evc_id));
 
       if (rc!=L7_SUCCESS)
       {
@@ -7940,7 +7953,7 @@ L7_RC_t ptin_msg_DHCP_intfStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
     else
     {
       /* Clear stats of one dhcp instance and one interface */
-      rc = ptin_dhcp_stat_instanceIntf_clear(dhcp_stats->evc_id,&ptin_intf);
+      rc = ptin_dhcp_stat_instanceIntf_clear(ENDIAN_SWAP32(dhcp_stats->evc_id), &ptin_intf);
 
       if (rc!=L7_SUCCESS)
       {
@@ -7975,21 +7988,21 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
 
   /* Debug */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Binding table get:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  SlotId = %u",   input->slotId);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Page   = %u",   input->page);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask   = %02X", input->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask   = %u", input->intfId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  SlotId = %u",  ENDIAN_SWAP8 (input->slotId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Page   = %u",  ENDIAN_SWAP16(input->page));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Mask   = %02X",ENDIAN_SWAP8 (input->mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  intfId = %u",  ENDIAN_SWAP8 (input->intfId));
 
-  page = input->page;
+  page = ENDIAN_SWAP16(input->page);
 
   // For index null, read all mac entries
   if (page==0)
   {
     size = PLAT_MAX_FDB_MAC_ENTRIES;
 
-    intf =(input->mask == 0x01) ? (input->intfId + 1) /* Convertion to ptinIntfNum)*/ : ((uint8) -1); //check if is slot or intf reading
+    intf =(ENDIAN_SWAP8(input->mask) == 0x01) ? (ENDIAN_SWAP8(input->intfId) + 1) /* Convertion to ptinIntfNum)*/ : ((uint8) -1); //check if is slot or intf reading
 
-    rc = ptin_dhcpv4v6_bindtable_get(dhcpv4v6_bindtable,&size,&intf);
+    rc = ptin_dhcpv4v6_bindtable_get(dhcpv4v6_bindtable, &size, &intf);
 
     if (rc!=L7_SUCCESS)
     {
@@ -8015,37 +8028,37 @@ L7_RC_t ptin_msg_DHCPv4v6_bindTable_get(msg_DHCP_bind_table_request_t *input, ms
   }
   PT_LOG_DEBUG(LOG_CTX_MSG, "There at least %u entries left", entries);
 
-  output->bind_table_msg_size      = entries;
-  output->bind_table_total_entries = dhcp_bindtable_entries;
+  output->bind_table_msg_size      = ENDIAN_SWAP16(entries);
+  output->bind_table_total_entries = ENDIAN_SWAP16(dhcp_bindtable_entries);
 
   // Copy binding table entries
   for (i=0; i<entries; ++i)
   {
 //  memset(&output->bind_table[i],0x00,sizeof(msg_DHCP_bind_entry));
 
-    output->bind_table[i].entry_index    = dhcpv4v6_bindtable[first+i].entry_index;
-    output->bind_table[i].evc_idx        = dhcpv4v6_bindtable[first+i].evc_idx;
-    output->bind_table[i].intf.intf_type = dhcpv4v6_bindtable[first+i].ptin_intf.intf_type;
-    output->bind_table[i].intf.intf_id   = dhcpv4v6_bindtable[first+i].ptin_intf.intf_id;
-    output->bind_table[i].outer_vlan     = dhcpv4v6_bindtable[first+i].outer_vlan;
-    output->bind_table[i].inner_vlan     = dhcpv4v6_bindtable[first+i].inner_vlan;
+    output->bind_table[i].entry_index    = ENDIAN_SWAP16(dhcpv4v6_bindtable[first+i].entry_index);
+    output->bind_table[i].evc_idx        = ENDIAN_SWAP32(dhcpv4v6_bindtable[first+i].evc_idx);
+    output->bind_table[i].intf.intf_type = ENDIAN_SWAP8 (dhcpv4v6_bindtable[first+i].ptin_intf.intf_type);
+    output->bind_table[i].intf.intf_id   = ENDIAN_SWAP8 (dhcpv4v6_bindtable[first+i].ptin_intf.intf_id);
+    output->bind_table[i].outer_vlan     = ENDIAN_SWAP16(dhcpv4v6_bindtable[first+i].outer_vlan);
+    output->bind_table[i].inner_vlan     = ENDIAN_SWAP16(dhcpv4v6_bindtable[first+i].inner_vlan);
     memcpy(output->bind_table[i].macAddr, dhcpv4v6_bindtable[first+i].macAddr, sizeof(L7_uint8)*6);
-    memcpy(&output->bind_table[i].ipAddr, &dhcpv4v6_bindtable[first+i].ipAddr, sizeof(chmessage_ip_addr_t));
-    output->bind_table[i].remLeave       = dhcpv4v6_bindtable[first+i].remLeave;
-    output->bind_table[i].bindingType    = dhcpv4v6_bindtable[first+i].bindingType;
+    memcpy(&output->bind_table[i].ipAddr, &dhcpv4v6_bindtable[first+i].ipAddr, sizeof(chmessage_ip_addr_t));    /* TODO */
+    output->bind_table[i].remLeave       = ENDIAN_SWAP32(dhcpv4v6_bindtable[first+i].remLeave);
+    output->bind_table[i].bindingType    = ENDIAN_SWAP8 (dhcpv4v6_bindtable[first+i].bindingType);
 
     PT_LOG_TRACE(LOG_CTX_MSG, "Entry %u:", first+i);
-    PT_LOG_TRACE(LOG_CTX_MSG, "  entry_index = %u",    output->bind_table[i].entry_index);
-    PT_LOG_TRACE(LOG_CTX_MSG, "  evc_idx     = %u",    output->bind_table[i].evc_idx);
-    PT_LOG_TRACE(LOG_CTX_MSG, "  intf        = %u/%u", output->bind_table[i].intf.intf_type, output->bind_table[i].intf.intf_id);
-    PT_LOG_TRACE(LOG_CTX_MSG, "  outer_vlan  = %u",    output->bind_table[i].outer_vlan);
-    PT_LOG_TRACE(LOG_CTX_MSG, "  inner_vlan  = %u",    output->bind_table[i].inner_vlan);
+    PT_LOG_TRACE(LOG_CTX_MSG, "  entry_index = %u",    ENDIAN_SWAP16(output->bind_table[i].entry_index));
+    PT_LOG_TRACE(LOG_CTX_MSG, "  evc_idx     = %u",    ENDIAN_SWAP32(output->bind_table[i].evc_idx));
+    PT_LOG_TRACE(LOG_CTX_MSG, "  intf        = %u/%u", ENDIAN_SWAP8 (output->bind_table[i].intf.intf_type), ENDIAN_SWAP8(output->bind_table[i].intf.intf_id));
+    PT_LOG_TRACE(LOG_CTX_MSG, "  outer_vlan  = %u",    ENDIAN_SWAP16(output->bind_table[i].outer_vlan));
+    PT_LOG_TRACE(LOG_CTX_MSG, "  inner_vlan  = %u",    ENDIAN_SWAP16(output->bind_table[i].inner_vlan));
     PT_LOG_TRACE(LOG_CTX_MSG, "  macAddr     = %02X:%02X:%02X:%02X:%02X:%02X", output->bind_table[i].macAddr[0], output->bind_table[i].macAddr[1], 
-              output->bind_table[i].macAddr[2], output->bind_table[i].macAddr[3], output->bind_table[i].macAddr[4], output->bind_table[i].macAddr[5]);
-    PT_LOG_TRACE(LOG_CTX_MSG, "  ipAddr      = %08X",  output->bind_table[i].ipAddr);
-    PT_LOG_TRACE(LOG_CTX_MSG, "  remLeave    = %u",    output->bind_table[i].remLeave);
-    PT_LOG_TRACE(LOG_CTX_MSG, "  bindingType = %u",    output->bind_table[i].bindingType);
-    PT_LOG_TRACE(LOG_CTX_MSG, "  family      = %u",    output->bind_table[i].ipAddr.family);
+                 output->bind_table[i].macAddr[2], output->bind_table[i].macAddr[3], output->bind_table[i].macAddr[4], output->bind_table[i].macAddr[5]);
+    PT_LOG_TRACE(LOG_CTX_MSG, "  ipAddr      = %08X",  ENDIAN_SWAP32(output->bind_table[i].ipAddr.addr.ipv4));
+    PT_LOG_TRACE(LOG_CTX_MSG, "  remLeave    = %u",    ENDIAN_SWAP32(output->bind_table[i].remLeave));
+    PT_LOG_TRACE(LOG_CTX_MSG, "  bindingType = %u",    ENDIAN_SWAP8 (output->bind_table[i].bindingType));
+    PT_LOG_TRACE(LOG_CTX_MSG, "  family      = %u",    ENDIAN_SWAP8 (output->bind_table[i].ipAddr.family));
   }
 
   return L7_SUCCESS;
@@ -8071,18 +8084,18 @@ L7_RC_t ptin_msg_DHCP_bindTable_remove(msg_DHCP_bind_table_entry_t *table, L7_ui
 
   for (i=0; i<numEntries ; i++)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG,"Evc_idx=%u",    table[i].bind_entry.evc_idx);
-    PT_LOG_DEBUG(LOG_CTX_MSG,"Port   = %u/%u",table[i].bind_entry.intf.intf_type, table[i].bind_entry.intf.intf_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG,"OVlan  = %u",   table[i].bind_entry.outer_vlan);
-    PT_LOG_DEBUG(LOG_CTX_MSG,"IVlan  = %u",   table[i].bind_entry.inner_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Evc_idx=%u",    ENDIAN_SWAP32(table[i].bind_entry.evc_idx));
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Port   = %u/%u",ENDIAN_SWAP8 (table[i].bind_entry.intf.intf_type), ENDIAN_SWAP8 (table[i].bind_entry.intf.intf_id));
+    PT_LOG_DEBUG(LOG_CTX_MSG,"OVlan  = %u",   ENDIAN_SWAP16(table[i].bind_entry.outer_vlan));
+    PT_LOG_DEBUG(LOG_CTX_MSG,"IVlan  = %u",   ENDIAN_SWAP16(table[i].bind_entry.inner_vlan));
     PT_LOG_DEBUG(LOG_CTX_MSG,"MacAddr=%02X:%02X:%02X:%02X:%02X:%02X",
-              table[i].bind_entry.macAddr[0],
-              table[i].bind_entry.macAddr[1],
-              table[i].bind_entry.macAddr[2],
-              table[i].bind_entry.macAddr[3],
-              table[i].bind_entry.macAddr[4],
-              table[i].bind_entry.macAddr[5]);
-    PT_LOG_DEBUG(LOG_CTX_MSG,"family = %u",table[i].bind_entry.ipAddr.family);
+                 table[i].bind_entry.macAddr[0],
+                 table[i].bind_entry.macAddr[1],
+                 table[i].bind_entry.macAddr[2],
+                 table[i].bind_entry.macAddr[3],
+                 table[i].bind_entry.macAddr[4],
+                 table[i].bind_entry.macAddr[5]);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"family = %u", ENDIAN_SWAP8(table[i].bind_entry.ipAddr.family));
 
     memset(&dsBindingIpv4,0x00,sizeof(dhcpSnoopBinding_t));
     memcpy(dsBindingIpv4.key.macAddr, table[i].bind_entry.macAddr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
@@ -10569,14 +10582,14 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
   }
 
   /* Apply to all ports */
-  if (msg->intf == 0xff)
+  if (ENDIAN_SWAP8(msg->intf) == 0xff)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG,"PRBS configuration:");
-    PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",msg->SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u",msg->intf);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Enable = %u",msg->enable);
+    PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", ENDIAN_SWAP8(msg->SlotId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u", ENDIAN_SWAP8(msg->intf));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Enable = %u", ENDIAN_SWAP8(msg->enable));
 
-    enable = msg->enable;
+    enable = ENDIAN_SWAP8(msg->enable);
 
     /* Run all ports */
     for (port = 0; port < ptin_sys_number_of_ports; port++)
@@ -10612,12 +10625,12 @@ L7_RC_t ptin_msg_prbs_enable(msg_ptin_prbs_enable *msg, L7_int n_msg)
     for (i=0; i<n_msg; i++)
     {
       PT_LOG_DEBUG(LOG_CTX_MSG,"PRBS configuration:");
-      PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",msg[i].SlotId);
-      PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u",msg[i].intf);
-      PT_LOG_DEBUG(LOG_CTX_MSG," Enable = %u",msg[i].enable);
+      PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", ENDIAN_SWAP8(msg[i].SlotId));
+      PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u", ENDIAN_SWAP8(msg[i].intf));
+      PT_LOG_DEBUG(LOG_CTX_MSG," Enable = %u", ENDIAN_SWAP8(msg[i].enable));
 
-      port = msg[i].intf;
-      enable = msg[i].enable;
+      port = ENDIAN_SWAP8(msg[i].intf);
+      enable = ENDIAN_SWAP8(msg[i].enable);
 
       /* Validate port */
       if (port >= ptin_sys_number_of_ports)
@@ -10674,11 +10687,11 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
     return L7_SUCCESS;
   }
 
-  if (msg_in->intf == 0xff)
+  if (ENDIAN_SWAP8(msg_in->intf) == 0xff)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG,"PRBS status:");
-    PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",msg_in->SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u",msg_in->intf);
+    PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", ENDIAN_SWAP8(msg_in->SlotId));
+    PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u", ENDIAN_SWAP8(msg_in->intf));
 
     /* Run all ports */
     for (port = 0, i = 0; port < ptin_sys_number_of_ports; port++)
@@ -10709,7 +10722,7 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
       PT_LOG_TRACE(LOG_CTX_MSG,"Success getting PRBS errors from port %u", port);
 
       /* Store result */
-      msg_out[i++].rxErrors = rxStatus;
+      msg_out[i++].rxErrors = ENDIAN_SWAP32(rxStatus);
     }
 
     /* Update number of results */
@@ -10721,13 +10734,13 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
     for (i=0; i<*n_msg; i++)
     {
       PT_LOG_DEBUG(LOG_CTX_MSG,"PRBS status:");
-      PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u",msg_in[i].SlotId);
-      PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u",msg_in[i].intf);
+      PT_LOG_DEBUG(LOG_CTX_MSG," slotId = %u", ENDIAN_SWAP8(msg_in[i].SlotId));
+      PT_LOG_DEBUG(LOG_CTX_MSG," Port   = %u", ENDIAN_SWAP8(msg_in[i].intf));
 
       /* Init output as -1 (error) */
-      msg_out[i].rxErrors = -1;
+      msg_out[i].rxErrors = ENDIAN_SWAP32(-1);
 
-      port = msg_in[i].intf;
+      port = ENDIAN_SWAP8(msg_in[i].intf);
 
       /* Validate port */
       if (port >= ptin_sys_number_of_ports)
@@ -10756,7 +10769,7 @@ L7_RC_t ptin_msg_prbs_status(msg_ptin_prbs_request *msg_in, msg_ptin_prbs_status
       PT_LOG_TRACE(LOG_CTX_MSG,"Success getting PRBS errors from port %u", port);
 
       /* Store result */
-      msg_out[i].rxErrors = rxStatus;
+      msg_out[i].rxErrors = ENDIAN_SWAP32(rxStatus);
     }
 
     /* Do not modify number of results */
@@ -11002,9 +11015,9 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
   if (mask & MSG_HWETH_BWPROFILE_MASK_PROFILE)
   {
     meter->cir = (L7_uint32) (ENDIAN_SWAP64(msgBwProfile->profile.cir)/1000);   /* in kbps */
-    meter->cbs = (L7_uint32) ENDIAN_SWAP64(msgBwProfile->profile.cbs);          /* in bytes */
+    meter->cbs = (L7_uint32)  ENDIAN_SWAP64(msgBwProfile->profile.cbs);         /* in bytes */
     meter->eir = (L7_uint32) (ENDIAN_SWAP64(msgBwProfile->profile.eir)/1000);   /* in kbps */
-    meter->ebs = (L7_uint32) ENDIAN_SWAP64(msgBwProfile->profile.ebs);          /* in bytes */
+    meter->ebs = (L7_uint32)  ENDIAN_SWAP64(msgBwProfile->profile.ebs);         /* in bytes */
     PT_LOG_DEBUG(LOG_CTX_MSG," Profile data extracted!");
   }
   else
