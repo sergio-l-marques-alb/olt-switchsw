@@ -2357,7 +2357,7 @@ void ptin_reclk_write(L7_int primary, L7_int backup)
   fflush(stdout);
 }
 
-
+#if ( LAG_DIRECT_CONTROL_FEATURE )
 L7_RC_t ptin_lag_internal_port_add(L7_uint32 lag_intf, L7_uint32 intIfNum)
 {
   return dtlDot3adInternalPortAdd(lag_intf, 1, &intIfNum, 1);
@@ -2423,7 +2423,7 @@ void ptin_ta48ge_switch(L7_uint protection)
   }
 #endif // PTIN_BOARD == PTIN_BOARD_TA48GE
 }
-
+#endif // LAG_DIRECT_CONTROL_FEATURE
 
 
 /* 
