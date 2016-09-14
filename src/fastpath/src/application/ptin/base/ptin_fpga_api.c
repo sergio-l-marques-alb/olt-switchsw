@@ -20,8 +20,107 @@
 **********************************************************************/
 #include "ptin_fpga_api.h"
 #include "commdefs.h"
+#include "addrmap.h"
+
+/* FPGA map */
+#ifdef MAP_FPGA
+volatile st_fpga_map_t *fpga_map = MAP_FAILED;
+#endif
 
 #ifdef MAP_CPLD
+volatile st_cpld_map_t *cpld_map = MAP_FAILED;
+#endif
+
+/**
+ * Maps FPGA and PLD registers map
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_fpga_init(void)
+{
+#ifdef MAP_FPGA
+  TAddrMap fpga_AddrMap;
+
+  PT_LOG_TRACE(LOG_CTX_STARTUP, "Going to map FPGA...");
+
+  // Load FPGA
+  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+  fpga_map = (volatile st_fpga_map_t *) AddrAlloc64((void *) &fpga_AddrMap, (long long) FPGA_BASE_ADDR, sizeof(st_fpga_map_t));
+  #else
+  fpga_map = (volatile st_fpga_map_t *) AddrAlloc((void *) &fpga_AddrMap, (int) FPGA_BASE_ADDR, sizeof(st_fpga_map_t));
+  #endif
+
+  if (fpga_map != MAP_FAILED)
+  {
+    /* If FPGA id is not valid, free FPGA map */
+    if ((fpga_map->map[FPGA_ID1_REG] != FPGA_ID1_VAL) ||
+        (fpga_map->map[FPGA_ID0_REG] != FPGA_ID0_VAL)) {
+
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Invalid FPGA ID: 0x%02X%02X (expecting 0x%02X%02X)",
+              fpga_map->map[FPGA_ID0_REG], fpga_map->map[FPGA_ID1_REG],
+              FPGA_ID0_VAL, FPGA_ID1_VAL);
+
+      AddrFree(&fpga_AddrMap);
+      fpga_map = MAP_FAILED;
+    }
+    /* Otherwise, make some initializations */
+    else
+    {
+#if (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)
+      /* Release External PHYs RESET */
+      fpga_map->map[FPGA_EXTPHY_RESET] = 0xFF;
+      /* Disable all TX */
+      fpga_map->map[FPGA_TXDISABLE_REG] = 0x00;
+#endif
+
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "FPGA mapping ok");
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "  FPGA Id:      0x%02X%02X", fpga_map->map[FPGA_ID0_REG], fpga_map->map[FPGA_ID1_REG]);
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "  FPGA Version: %d", fpga_map->map[FPGA_VER_REG]);
+    }
+  }
+
+  if ( fpga_map == MAP_FAILED )
+    return L7_FAILURE;
+#endif
+
+#ifdef MAP_CPLD
+  TAddrMap cpld_AddrMap;
+
+  PT_LOG_TRACE(LOG_CTX_STARTUP, "Going to map PLD...");
+
+  // Load CPLD
+  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+  PT_LOG_TRACE(LOG_CTX_STARTUP, "64 bit platform");
+  cpld_map = (volatile st_cpld_map_t *) AddrAlloc64((void *) &cpld_AddrMap, (long long) CPLD_BASE_ADDR, sizeof(st_cpld_map_t));
+  #else
+  PT_LOG_TRACE(LOG_CTX_STARTUP, "32 bit platform");
+  cpld_map = (volatile st_cpld_map_t *) AddrAlloc((void *) &cpld_AddrMap, (int) CPLD_BASE_ADDR, sizeof(st_cpld_map_t));
+  #endif
+
+  if (cpld_map != MAP_FAILED)
+  {
+    /* If CPLD id is not valid, free CPLD map */
+    PT_LOG_WARN(LOG_CTX_STARTUP, "CPLD ID is not being validated");
+
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "CPLD mapping ok");
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "  CPLD Id:      0x%02X%02X", cpld_map->map[CPLD_ID0_REG], cpld_map->map[CPLD_ID1_REG]);
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "  CPLD Version: %d", cpld_map->map[CPLD_VER_REG]);
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "  Hw Id:        %d", cpld_map->map[CPLD_HW_ID_REG]);
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "  Chassis Id:   %d", cpld_map->map[CPLD_CHASSIS_ID_REG]);
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "  Slot Id:      %d", cpld_map->map[CPLD_SLOT_ID_REG]);
+    /* No initializations to be done */
+  }
+
+  if ( cpld_map == MAP_FAILED )
+    return L7_FAILURE;
+#endif
+
+  CPLD_INIT();
+  FPGA_INIT();
+
+  return L7_SUCCESS;
+}
+
 
 #if (PTIN_BOARD_IS_MATRIX)
 /**************************************************************************
@@ -185,7 +284,6 @@ L7_uint8 ptin_fpga_matrixInactive_slot(void)
 
 #endif // (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 
-#endif//MAP_CPLD
 
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 
@@ -205,7 +303,6 @@ L7_uint8 ptin_fpga_matrixInactive_slot(void)
 *************************************************************************/
 L7_uint8 ptin_fpga_mx_get_matrixactive(void)
 {
-#ifdef MAP_CPLD
   int current_state = -1;
   static int previous_state = -1;
 
@@ -239,9 +336,6 @@ L7_uint8 ptin_fpga_mx_get_matrixactive(void)
  #endif
 
   return current_state;
-#else
-  return PTIN_SLOT_WORK;
-#endif
 }
 
 /**
@@ -255,7 +349,6 @@ L7_uint8 ptin_fpga_mx_get_matrixactive(void)
  */
 L7_uint8 ptin_fpga_matrix_slotid_get(ptin_fpga_matrix_type_t matrixType)
 {
-#ifdef MAP_CPLD
  #if PTIN_BOARD_IS_MATRIX  
   if(matrixType == PTIN_FPGA_STANDBY_MATRIX)  //Return backup matrix slot ID 
   {
@@ -268,9 +361,6 @@ L7_uint8 ptin_fpga_matrix_slotid_get(ptin_fpga_matrix_type_t matrixType)
  #elif PTIN_BOARD_IS_LINECARD
   return (ptin_fpga_matrixActive_slot());
  #endif
-#else
- return PTIN_SYS_MX1_SLOT;
-#endif
 }
 
 /**
@@ -314,7 +404,6 @@ L7_uint32 ptin_fpga_board_get(void)
       __board_type = PTIN_BOARD_CXO640G;
     #endif
   #elif (PTIN_BOARD_IS_LINECARD)
-   #ifdef MAP_CPLD
     /* Condition for OLT1T1 backplane */ 
    if(((CPLD_SLOT_MATRIX_GET() >> 4) & 0x0f) != (CPLD_SLOT_MATRIX_GET() & 0x0f))
    {
@@ -324,9 +413,6 @@ L7_uint32 ptin_fpga_board_get(void)
    {
      __board_type = PTIN_BOARD_CXO640G;
    }
-   #else
-   __board_type = PTIN_BOARD_CXO640G;
-   #endif
   #else
     #error "Not Supported Yet"
   #endif
@@ -438,31 +524,31 @@ L7_uint8 ptin_fpga_board_slot_get(void)
 {
   L7_uint8 board_slot_id = 0;
 
-  #ifdef MAP_CPLD
-    board_slot_id = CPLD_SLOT_ID_GET();
-    #if (PTIN_BOARD_IS_LINECARD)      
-      L7_BOOL  olt1t1_backplane;
+  board_slot_id = CPLD_SLOT_ID_GET();
 
-      /* Condition for OLT1T1 backplane */
-      olt1t1_backplane = (ptin_fpga_board_get() == PTIN_BOARD_CXO160G);
-      
-      /* If high and low nibbles are equal, we are at a OLT1T3 system */
-      if (!olt1t1_backplane)
-      {
-        board_slot_id += 2;
-      }
-      /* Otherwise, we are at a OLT1T1 system */
-      else
-      {
-        /* Validate slot id */       
-        if (board_slot_id > 4)
-          return ((L7_uint8) -1);
-        /* Invert slot ids */ 
-        board_slot_id = 4 - board_slot_id;        
-      }
-    #elif (PTIN_BOARD_IS_MATRIX)
-      board_slot_id = (board_slot_id == 0) ? PTIN_SYS_MX1_SLOT : PTIN_SYS_MX2_SLOT;
-    #endif
-  #endif
+#if (PTIN_BOARD_IS_LINECARD)      
+  L7_BOOL  olt1t1_backplane;
+
+  /* Condition for OLT1T1 backplane */
+  olt1t1_backplane = (ptin_fpga_board_get() == PTIN_BOARD_CXO160G);
+  
+  /* If high and low nibbles are equal, we are at a OLT1T3 system */
+  if (!olt1t1_backplane)
+  {
+    board_slot_id += 2;
+  }
+  /* Otherwise, we are at a OLT1T1 system */
+  else
+  {
+    /* Validate slot id */       
+    if (board_slot_id > 4)
+      return ((L7_uint8) -1);
+    /* Invert slot ids */ 
+    board_slot_id = 4 - board_slot_id;        
+  }
+#elif (PTIN_BOARD_IS_MATRIX)
+  board_slot_id = (board_slot_id == 0) ? PTIN_SYS_MX1_SLOT : PTIN_SYS_MX2_SLOT;
+#endif
+
   return board_slot_id;
 }
