@@ -1,0 +1,9 @@
+LOG_FILE=/var/log/switchdrvr.log
+
+# Print latest lines
+if [ $# -ge 1 ]; then
+  tail -n $1 $LOG_FILE
+  exit 0
+fi
+
+tail -F -s 1 $LOG_FILE
