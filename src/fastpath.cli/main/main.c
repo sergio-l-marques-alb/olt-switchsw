@@ -273,7 +273,7 @@ int main (int argc, char *argv[])
     do {
       // Send command
       valued = send_data (canal_buga, PORTO_RX_MSG_BUGA, IP_LOCALHOST, &comando, &resposta);
-      ret = *((int *)resposta.info);
+      ret = ENDIAN_SWAP32(*((int *)resposta.info));
       if ( valued ) {
         printf("Without answer from OLTSWITCH... probably it is still starting\n\r");
       }
@@ -359,15 +359,15 @@ int main (int argc, char *argv[])
 
           swcfg = (msg_switch_config_t *)comando.info;
 
-          swcfg->SlotId = (uint8)-1;
-          swcfg->mask = 0x01;
+          swcfg->SlotId = ENDIAN_SWAP8((uint8)-1);
+          swcfg->mask   = ENDIAN_SWAP32(0x01);
 
           /* integer value to be sent */
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          swcfg->aging_time = (uint32) valued;
+          swcfg->aging_time = ENDIAN_SWAP32((uint32) valued);
 
           comando.msgId = CCMSG_ETH_SWITCH_CONFIG_SET;
           comando.infoDim = sizeof(msg_switch_config_t);
@@ -387,8 +387,8 @@ int main (int argc, char *argv[])
 
         swcfg = (msg_switch_config_t *)comando.info;
 
-        swcfg->SlotId = (uint8)-1;
-        swcfg->mask = 0xff;
+        swcfg->SlotId = ENDIAN_SWAP8((uint8)-1);
+        swcfg->mask   = ENDIAN_SWAP32(0xff);
 
         comando.msgId = CCMSG_ETH_SWITCH_CONFIG_GET;
         comando.infoDim = sizeof(msg_switch_config_t);
@@ -409,7 +409,7 @@ int main (int argc, char *argv[])
           // integer value to be sent
           ptr = (msg_HwGenReq_t *) &(comando.info[0]);
           memset(ptr, 0x00, sizeof(msg_HwGenReq_t));
-          ptr->slot_id = (uint8)-1;
+          ptr->slot_id = ENDIAN_SWAP8((uint8)-1);
 
           comando.msgId = CCMSG_MULTICAST_MACHINE_RESET;
           comando.infoDim = sizeof(msg_HwGenReq_t);
@@ -429,7 +429,7 @@ int main (int argc, char *argv[])
 
           // integer value to be sent
           ptr = (int *) &(comando.info[0]);
-          *ptr = 0;
+          *ptr = ENDIAN_SWAP32(0);
 
           comando.msgId = CCMSG_ALARMS_RESET;
           comando.infoDim = sizeof(int);
@@ -448,7 +448,7 @@ int main (int argc, char *argv[])
           }
 
           ptr = (msg_HwGenReq_t *) &(comando.info[0]);
-          ptr->slot_id = -1;
+          ptr->slot_id = ENDIAN_SWAP8(-1);
 
           comando.msgId = CCMSG_DEFAULTS_RESET;
           comando.infoDim = sizeof(msg_HwGenReq_t);
@@ -506,7 +506,7 @@ int main (int argc, char *argv[])
             }
             output = (uint8) valued;
           }
-          comando.info[0] = output;
+          comando.info[0] = ENDIAN_SWAP8(output);
           comando.infoDim += 1;
 
           /* File */
@@ -558,7 +558,7 @@ int main (int argc, char *argv[])
         }
         state = (uint8) valued;
 
-        comando.info[0] = state;
+        comando.info[0] = ENDIAN_SWAP8(state);
         comando.infoDim = sizeof(uint8);
 
         comando.msgId = CCMSG_APP_FW_STATE_SET;
@@ -577,7 +577,7 @@ int main (int argc, char *argv[])
           }
 
           resources  = (msg_ptin_policy_resources *) &comando.info[0];
-          resources->SlotId = (uint8)-1;
+          resources->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           comando.msgId = CCMSG_APPLICATION_RESOURCES;
           comando.infoDim = sizeof(msg_ptin_policy_resources);
@@ -612,18 +612,18 @@ int main (int argc, char *argv[])
             memset(&ptr[i],0x00,sizeof(msg_ptin_pcs_prbs));
 
             // Slot id
-            ptr[i].SlotId = (uint8)-1;
+            ptr[i].SlotId = ENDIAN_SWAP8((uint8)-1);
 
             // Port
             if (StrToLongLong(argv[3+1+i],&valued)<0)  {
               help_oltBuga();
               exit(0);
             }
-            ptr[i].intf.intf_type = 0;
-            ptr[i].intf.intf_id   = (uint8)valued;
+            ptr[i].intf.intf_type = ENDIAN_SWAP8(0);
+            ptr[i].intf.intf_id   = ENDIAN_SWAP8((uint8)valued);
 
             // enable
-            ptr[i].enable = enable;
+            ptr[i].enable = ENDIAN_SWAP8(enable);
           }
 
           comando.msgId = CCMSG_ETH_PCS_PRBS_ENABLE;
@@ -651,15 +651,15 @@ int main (int argc, char *argv[])
             memset(&ptr[i],0x00,sizeof(msg_ptin_pcs_prbs));
 
             // Slot id
-            ptr[i].SlotId = (uint8)-1;
+            ptr[i].SlotId = ENDIAN_SWAP8((uint8)-1);
 
             // Port
             if (StrToLongLong(argv[3+i],&valued)<0)  {
               help_oltBuga();
               exit(0);
             }
-            ptr[i].intf.intf_type = 0;
-            ptr[i].intf.intf_id   = (uint8)valued;
+            ptr[i].intf.intf_type = ENDIAN_SWAP8(0);
+            ptr[i].intf.intf_id   = ENDIAN_SWAP8((uint8)valued);
           }
 
           comando.msgId = CCMSG_ETH_PCS_PRBS_STATUS;
@@ -671,7 +671,7 @@ int main (int argc, char *argv[])
       case 1005:
         {
           /* Get slot configuration */
-          *((uint32 *) &comando.info[0]) = 0;
+          *((uint32 *) &comando.info[0]) = ENDIAN_SWAP32(0);
 
           comando.msgId = CCMSG_SLOT_MAP_MODE_GET;
           comando.infoDim = sizeof(uint32);
@@ -694,7 +694,7 @@ int main (int argc, char *argv[])
           ptr = (msg_slotModeCfg_t *) &(comando.info[0]);
           memset(ptr, 0x00, sizeof(msg_slotModeCfg_t));
 
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           /* Run all provided slots */
           for (i=0; i<(argc-3)/2 && i<MSG_SLOTMODECFG_NSLOTS; i++)
@@ -713,9 +713,9 @@ int main (int argc, char *argv[])
             mode = (uint8) valued;
 
             /* Fill array cell */
-            ptr->slot_list[i].slot_index  = index;
-            ptr->slot_list[i].slot_mode   = mode;
-            ptr->slot_list[i].slot_config = 1;
+            ptr->slot_list[i].slot_index  = ENDIAN_SWAP8(index);
+            ptr->slot_list[i].slot_mode   = ENDIAN_SWAP8(mode);
+            ptr->slot_list[i].slot_config = ENDIAN_SWAP8(1);
           }
 
           comando.msgId = (msg==1009) ? CCMSG_SLOT_MAP_MODE_APPLY : CCMSG_SLOT_MAP_MODE_VALIDATE;
@@ -741,8 +741,9 @@ int main (int argc, char *argv[])
           memset(ptr, 0x00, sizeof(msg_HWEthPhyConf_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
-          ptr->Port   = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
+          ptr->Port   = ENDIAN_SWAP8((uint8)-1);
+          ptr->Mask   = ENDIAN_SWAP16(0);
 
           for (index=(3+0); index<argc; index++)
           {
@@ -761,7 +762,7 @@ int main (int argc, char *argv[])
                 printf("Invalid port\r\n");
                 exit(0);
               }
-              ptr->Port = (uint8) valued;
+              ptr->Port = ENDIAN_SWAP8((uint8) valued);
             }
             /* Enable */
             else if (strcmp(param,"en")==0)
@@ -771,7 +772,7 @@ int main (int argc, char *argv[])
                 printf("Invalid Enable\r\n");
                 exit(0);
               }
-              ptr->PortEnable = (uint8) valued;
+              ptr->PortEnable = ENDIAN_SWAP8((uint8) valued);
               ptr->Mask |= 0x0020;
             }
             /* Speed */
@@ -782,8 +783,8 @@ int main (int argc, char *argv[])
                 printf("Invalid Speed\r\n");
                 exit(0);
               }
-              ptr->Speed = (uint8) valued;
-              ptr->Mask = 0x0001;
+              ptr->Speed = ENDIAN_SWAP8((uint8) valued);
+              ptr->Mask |= 0x0001;
             }
             /* Duplex */
             else if (strcmp(param,"duplex")==0)
@@ -793,8 +794,8 @@ int main (int argc, char *argv[])
                 printf("Invalid Duplex mode\r\n");
                 exit(0);
               }
-              ptr->Duplex = (uint8) valued;
-              ptr->Mask = 0x0004;
+              ptr->Duplex = ENDIAN_SWAP8((uint8) valued);
+              ptr->Mask |= 0x0004;
             }
             /* Max Frame */
             else if (strcmp(param,"fm")==0)
@@ -804,8 +805,8 @@ int main (int argc, char *argv[])
                 printf("Invalid FrameMax\r\n");
                 exit(0);
               }
-              ptr->MaxFrame = (uint16) valued;
-              ptr->Mask = 0x0040;
+              ptr->MaxFrame = ENDIAN_SWAP16((uint16) valued);
+              ptr->Mask |= 0x0040;
             }
             /* Loopback mode */
             else if (strcmp(param,"lb")==0)
@@ -815,8 +816,8 @@ int main (int argc, char *argv[])
                 printf("Invalid Loopback mode\r\n");
                 exit(0);
               }
-              ptr->LoopBack = (uint8) valued;
-              ptr->Mask = 0x0008;
+              ptr->LoopBack = ENDIAN_SWAP8((uint8) valued);
+              ptr->Mask |= 0x0008;
             }
             /* MAC learning */
             else if (strcmp(param,"macl")==0)
@@ -826,8 +827,8 @@ int main (int argc, char *argv[])
                 printf("Invalid MACLearning modr\r\n");
                 exit(0);
               }
-              ptr->MacLearning = (uint8) valued;
-              ptr->Mask = 0x0100;
+              ptr->MacLearning = ENDIAN_SWAP8((uint8) valued);
+              ptr->Mask |= 0x0100;
             }
             else
             {
@@ -835,6 +836,7 @@ int main (int argc, char *argv[])
               exit(0);
             }
           }
+          ptr->Mask = ENDIAN_SWAP16(ptr->Mask);
 
           /* Mandatory parameters */
           if (ptr->Port == (uint8)-1)
@@ -864,14 +866,14 @@ int main (int argc, char *argv[])
           memset(ptr,0x00,sizeof(msg_HwGenReq_t));
 
           // Slot id
-          ptr->slot_id = (uint8)-1;
+          ptr->slot_id = ENDIAN_SWAP8((uint8)-1);
 
           // port
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->generic_id = (uint8) valued;
+          ptr->generic_id = ENDIAN_SWAP8((uint8) valued);
 
           comando.msgId = CCMSG_ETH_PHY_CONFIG_GET;
           comando.infoDim = sizeof(msg_HwGenReq_t);
@@ -894,14 +896,14 @@ int main (int argc, char *argv[])
           memset(ptr,0x00,sizeof(msg_HwGenReq_t));
 
           // Slot id
-          ptr->slot_id = (uint8)-1;
+          ptr->slot_id = ENDIAN_SWAP8((uint8)-1);
 
           // port
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->generic_id = (uint8) valued;
+          ptr->generic_id = ENDIAN_SWAP8((uint8) valued);
 
           comando.msgId = CCMSG_ETH_PHY_STATE_GET;
           comando.infoDim = sizeof(msg_HwGenReq_t);
@@ -927,10 +929,10 @@ int main (int argc, char *argv[])
           memset(ptr, 0x00, sizeof(msg_HwGenReq_t));
 
           // Slot id
-          ptr->slot_id = (uint8)-1;
-          ptr->generic_id = 0;
-          ptr->type = 3;
-          ptr->param = 0;
+          ptr->slot_id    = ENDIAN_SWAP8((uint8)-1);
+          ptr->generic_id = ENDIAN_SWAP8(0);
+          ptr->type       = ENDIAN_SWAP8(3);
+          ptr->param      = ENDIAN_SWAP8(0);
 
           // Slot id
           if (StrToLongLong(argv[3+0], &valued)<0)  {
@@ -964,21 +966,21 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->slotId = (uint8) valued;
+          ptr->slotId = ENDIAN_SWAP8((uint8) valued);
 
           // Port
           if (StrToLongLong(argv[3+1], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->port = (uint8) valued;
+          ptr->port = ENDIAN_SWAP8((uint8) valued);
 
           // Command
           if (StrToLongLong(argv[3+2], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->protCmd = (uint8) valued;
+          ptr->protCmd = ENDIAN_SWAP8((uint8) valued);
         }
         break;
 
@@ -999,17 +1001,17 @@ int main (int argc, char *argv[])
         memset(ptr,0x00,sizeof(msg_HWPortExt_t));
 
         // Slot id
-        ptr->SlotId = (uint8)-1;
+        ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
         // port
         if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
         {
           help_oltBuga();
           exit(0);
         }
-        ptr->intf.intf_type = type;
-        ptr->intf.intf_id   = intf;
+        ptr->intf.intf_type = ENDIAN_SWAP8(type);
+        ptr->intf.intf_id   = ENDIAN_SWAP8(intf);
 
-        ptr->Mask = 0xFFFF;
+        ptr->Mask = ENDIAN_SWAP32(0xFFFF);
         comando.msgId = CCMSG_ETH_PORT_EXT_GET;
         comando.infoDim = sizeof(msg_HWPortExt_t);
       }
@@ -1033,24 +1035,24 @@ int main (int argc, char *argv[])
         ptr = (msg_HWPortExt_t *) &(comando.info[0]);
         memset(ptr,0x00,sizeof(msg_HWPortExt_t));
 
-        ptr->SlotId                       = (uint8)-1;
-        ptr->intf.intf_type               = (L7_uint8)-1;
-        ptr->intf.intf_id                 = (L7_uint8)-1;
-        ptr->Mask                         = 0x0000;
-        ptr->defVid                       = 1;
-        ptr->defPrio                      = 0;
-        ptr->acceptable_frame_types       = 0;
-        ptr->ingress_filter               = 0;
-        ptr->restricted_vlan_reg          = 0;
-        ptr->vlan_aware                   = 1;
-        ptr->type                         = 2;
-        ptr->doubletag                    = 1;
-        ptr->outer_tpid                   = 0x8100;
-        ptr->inner_tpid                   = 0x8100;
-        ptr->egress_type                  = 0;
-        ptr->macLearn_enable              = 0;
-        ptr->macLearn_stationMove_enable  = 0;
-        ptr->macLearn_stationMove_prio    = 0;
+        ptr->SlotId                       = ENDIAN_SWAP8 ((uint8)-1);
+        ptr->intf.intf_type               = ENDIAN_SWAP8 ((L7_uint8)-1);
+        ptr->intf.intf_id                 = ENDIAN_SWAP8 ((L7_uint8)-1);
+        ptr->Mask                         = ENDIAN_SWAP32(0x0000);
+        ptr->defVid                       = ENDIAN_SWAP16(1);
+        ptr->defPrio                      = ENDIAN_SWAP8 (0);
+        ptr->acceptable_frame_types       = ENDIAN_SWAP8 (0);
+        ptr->ingress_filter               = ENDIAN_SWAP8 (0);
+        ptr->restricted_vlan_reg          = ENDIAN_SWAP8 (0);
+        ptr->vlan_aware                   = ENDIAN_SWAP8 (1);
+        ptr->type                         = ENDIAN_SWAP8 (2);
+        ptr->doubletag                    = ENDIAN_SWAP8 (1);
+        ptr->outer_tpid                   = ENDIAN_SWAP16(0x8100);
+        ptr->inner_tpid                   = ENDIAN_SWAP16(0x8100);
+        ptr->egress_type                  = ENDIAN_SWAP8 (0);
+        ptr->macLearn_enable              = ENDIAN_SWAP8 (0);
+        ptr->macLearn_stationMove_enable  = ENDIAN_SWAP8 (0);
+        ptr->macLearn_stationMove_prio    = ENDIAN_SWAP8 (0);
 
         for (index=(3+0); index<argc; index++)
         {
@@ -1069,7 +1071,7 @@ int main (int argc, char *argv[])
               printf("Invalid slot id\r\n");
               exit(0);
             }
-            ptr->SlotId = (uint8) valued;
+            ptr->SlotId = ENDIAN_SWAP8((uint8) valued);
           }
           else if (strcmp(param,"intf")==0 || strcmp(param,"port")==0)
           {
@@ -1078,8 +1080,8 @@ int main (int argc, char *argv[])
               printf("Invalid port value\r\n");
               exit(0);
             }
-            ptr->intf.intf_type = type;
-            ptr->intf.intf_id   = intf;
+            ptr->intf.intf_type = ENDIAN_SWAP8(type);
+            ptr->intf.intf_id   = ENDIAN_SWAP8(intf);
           }
           else if (strcmp(param,"defvid")==0 || strcmp(param,"vid")==0)
           {
@@ -1088,7 +1090,7 @@ int main (int argc, char *argv[])
               printf("Invalid defvid value\r\n");
               exit(0);
             }
-            ptr->defVid = (uint16) valued;
+            ptr->defVid = ENDIAN_SWAP16((uint16) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_DEFVID;
           }
           else if (strcmp(param,"defprio")==0 || strcmp(param,"prio")==0)
@@ -1098,7 +1100,7 @@ int main (int argc, char *argv[])
               printf("Invalid defprio value\r\n");
               exit(0);
             }
-            ptr->defPrio = (uint8) valued;
+            ptr->defPrio = ENDIAN_SWAP8((uint8) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_DEFPRIO;
           }
           else if (strncmp(param,"aft",3)==0)
@@ -1108,7 +1110,7 @@ int main (int argc, char *argv[])
               printf("Invalid aftypes value\r\n");
               exit(0);
             }
-            ptr->acceptable_frame_types = (uint8) valued;
+            ptr->acceptable_frame_types = ENDIAN_SWAP8((uint8) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_ACCEPTABLE_FRAME_TYPES;
           }
           else if (strncmp(param,"if",2)==0)
@@ -1118,7 +1120,7 @@ int main (int argc, char *argv[])
               printf("Invalid ifilter value\r\n");
               exit(0);
             }
-            ptr->ingress_filter = (uint8) valued;
+            ptr->ingress_filter = ENDIAN_SWAP8((uint8) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_INGRESS_FILTER;
           }
           else if (strncmp(param,"rvlan",5)==0)
@@ -1128,7 +1130,7 @@ int main (int argc, char *argv[])
               printf("Invalid rvlanreg value\r\n");
               exit(0);
             }
-            ptr->restricted_vlan_reg = (uint8) valued;
+            ptr->restricted_vlan_reg = ENDIAN_SWAP8((uint8) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_RESTRICTED_VLAN_REG;
           }
           else if (strncmp(param,"vlana",5)==0)
@@ -1138,7 +1140,7 @@ int main (int argc, char *argv[])
               printf("Invalid vlanaware value\r\n");
               exit(0);
             }
-            ptr->vlan_aware = (uint8) valued;
+            ptr->vlan_aware = ENDIAN_SWAP8((uint8) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_VLAN_AWARE;
           }
           else if (strcmp(param,"type")==0)
@@ -1148,7 +1150,7 @@ int main (int argc, char *argv[])
               printf("Invalid type value\r\n");
               exit(0);
             }
-            ptr->type = (uint8) valued;
+            ptr->type = ENDIAN_SWAP8((uint8) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_TYPE;
           }
           else if (strcmp(param,"dtag")==0)
@@ -1158,7 +1160,7 @@ int main (int argc, char *argv[])
               printf("Invalid dtag value\r\n");
               exit(0);
             }
-            ptr->doubletag = (uint8) valued;
+            ptr->doubletag = ENDIAN_SWAP8((uint8) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_DOUBLETAG;
           }
           else if (strcmp(param,"otpid")==0)
@@ -1168,7 +1170,7 @@ int main (int argc, char *argv[])
               printf("Invalid otpid value\r\n");
               exit(0);
             }
-            ptr->outer_tpid = (uint16) valued;
+            ptr->outer_tpid = ENDIAN_SWAP16((uint16) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_OUTER_TPID;
           }
           else if (strcmp(param,"itpid")==0)
@@ -1178,7 +1180,7 @@ int main (int argc, char *argv[])
               printf("Invalid itpid value\r\n");
               exit(0);
             }
-            ptr->inner_tpid = (uint16) valued;
+            ptr->inner_tpid = ENDIAN_SWAP16((uint16) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_INNER_TPID;
           }
           else if (strcmp(param,"etype")==0)
@@ -1188,7 +1190,7 @@ int main (int argc, char *argv[])
               printf("Invalid egress_type value\r\n");
               exit(0);
             }
-            ptr->egress_type = (uint8) valued;
+            ptr->egress_type = ENDIAN_SWAP8((uint8) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_EGRESS_TYPE;
           }
           else if (strcmp(param,"mlen")==0)
@@ -1198,7 +1200,7 @@ int main (int argc, char *argv[])
               printf("Invalid mlen value\r\n");
               exit(0);
             }
-            ptr->macLearn_enable = (uint8) valued;
+            ptr->macLearn_enable = ENDIAN_SWAP8((uint8) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_MACLEARN_ENABLE;
           }
           else if (strcmp(param,"mlsmen")==0)
@@ -1208,7 +1210,7 @@ int main (int argc, char *argv[])
               printf("Invalid mlsmen value\r\n");
               exit(0);
             }
-            ptr->macLearn_stationMove_enable = (uint8) valued;
+            ptr->macLearn_stationMove_enable = ENDIAN_SWAP8((uint8) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE;
           }
           else if (strcmp(param,"mlsmprio")==0)
@@ -1218,7 +1220,7 @@ int main (int argc, char *argv[])
               printf("Invalid mlsmprio value\r\n");
               exit(0);
             }
-            ptr->macLearn_stationMove_prio = (uint8) valued;
+            ptr->macLearn_stationMove_prio = ENDIAN_SWAP8((uint8) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO;
           }
           else if (strcmp(param,"mlsmsp")==0)
@@ -1228,7 +1230,7 @@ int main (int argc, char *argv[])
               printf("Invalid mlsmsp value\r\n");
               exit(0);
             }
-            ptr->macLearn_stationMove_samePrio = (uint8) valued;
+            ptr->macLearn_stationMove_samePrio = ENDIAN_SWAP8((uint8) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO;
           }
           else if (strcmp(param,"trust")==0 || strcmp(param,"trusted")==0)
@@ -1238,7 +1240,7 @@ int main (int argc, char *argv[])
               printf("Invalid trust value\r\n");
               exit(0);
             }
-            ptr->protocol_trusted = (uint8) valued;
+            ptr->protocol_trusted = ENDIAN_SWAP8((uint8) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_PROTTRUSTED_INTF;
           }
           else
@@ -1247,6 +1249,7 @@ int main (int argc, char *argv[])
             exit(0);
           }
         }
+        ptr->Mask = ENDIAN_SWAP32(ptr->Mask);
 
         comando.msgId = CCMSG_ETH_PORT_EXT_SET;
         comando.infoDim = sizeof(msg_HWPortExt_t);
@@ -1270,17 +1273,17 @@ int main (int argc, char *argv[])
         memset(ptr,0x00,sizeof(msg_HWPortMac_t));
 
         // Slot id
-        ptr->SlotId = (uint8)-1;
+        ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
         // port
         if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
         {
           help_oltBuga();
           exit(0);
         }
-        ptr->intf.intf_type = type;
-        ptr->intf.intf_id   = intf;
+        ptr->intf.intf_type = ENDIAN_SWAP8(type);
+        ptr->intf.intf_id   = ENDIAN_SWAP8(intf);
 
-        ptr->Mask = 0x0001;
+        ptr->Mask = ENDIAN_SWAP16(0x0001);
 
         comando.msgId = CCMSG_ETH_PORT_MAC_GET;
         comando.infoDim = sizeof(msg_HWPortMac_t);
@@ -1304,15 +1307,15 @@ int main (int argc, char *argv[])
         memset(ptr,0x00,sizeof(msg_HWPortMac_t));
 
         // Slot id
-        ptr->SlotId = (uint8)-1;
+        ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
         // port
         if (sscanf(argv[3+0],"%d/%d",&type,&intf)!=2)
         {
           help_oltBuga();
           exit(0);
         }
-        ptr->intf.intf_type = type;
-        ptr->intf.intf_id   = intf;
+        ptr->intf.intf_type = ENDIAN_SWAP8(type);
+        ptr->intf.intf_id   = ENDIAN_SWAP8(intf);
 
         // MAC address
         if (convert_macaddr2array(argv[3+1],ptr->macAddr)<0)  {
@@ -1320,7 +1323,7 @@ int main (int argc, char *argv[])
           exit(0);
         }
 
-        ptr->Mask = 0x0001;
+        ptr->Mask = ENDIAN_SWAP16(0x0001);
 
         comando.msgId = CCMSG_ETH_PORT_MAC_SET;
         comando.infoDim = sizeof(msg_HWPortMac_t);
@@ -1343,14 +1346,14 @@ int main (int argc, char *argv[])
           memset(ptr,0x00,sizeof(msg_HwGenReq_t));
 
           // Slot id
-          ptr->slot_id = (uint8)-1;
+          ptr->slot_id = ENDIAN_SWAP8((uint8)-1);
 
           // port
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->generic_id = (uint8) valued;
+          ptr->generic_id = ENDIAN_SWAP8((uint8) valued);
 
           comando.msgId = CCMSG_ETH_PHY_COUNTERS_GET;
           comando.infoDim = sizeof(msg_HwGenReq_t);
@@ -1370,16 +1373,17 @@ int main (int argc, char *argv[])
 
           // Pointer to data array
           ptr = (msg_HWEthRFC2819_PortStatistics_t *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_HWEthRFC2819_PortStatistics_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // port
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->Port = (uint8) valued;
+          ptr->Port = ENDIAN_SWAP8((uint8) valued);
 
           comando.msgId = CCMSG_ETH_PHY_COUNTERS_CLEAR;
           comando.infoDim = sizeof(msg_HWEthRFC2819_PortStatistics_t);
@@ -7339,26 +7343,33 @@ int main (int argc, char *argv[])
     #endif
 
     switch (msg) {
+
+      case 1997:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: MC machine resetted\n\r");
+        else
+          printf(" Switch: Error resetting MC machine - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
+        break;
       
       case 1998:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: Alarms reset done\n\r");
         else
-          printf(" Switch: Alarms reset failed - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Alarms reset failed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1999:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: Defaults restored\n\r");
         else
-          printf(" Switch: Reset defaults failed - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Reset defaults failed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 2000:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: L2 Aging time defined\n\r");
         else
-          printf(" Switch: Error setting L2 aging time - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error setting L2 aging time - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 2001:
@@ -7378,21 +7389,21 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Stdout redirected successfully\n\r");
         else
-          printf(" Error redirecting Stdout - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Error redirecting Stdout - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1001:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Logger redirected successfully\n\r");
         else
-          printf(" Error redirecting logger - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Error redirecting logger - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1003:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" New fw state applied\n\r");
         else
-          printf(" Error setting new fw state - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Error setting new fw state - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1004:
@@ -7407,16 +7418,16 @@ int main (int argc, char *argv[])
               break;
             }
 
-            printf(" FFP available rules (Slot=%u):\r\n",po->SlotId);
+            printf(" FFP available rules (Slot=%u):\r\n", ENDIAN_SWAP8(po->SlotId));
             for (j=0; j<PTIN_POLICY_MAX_STAGES; j++) {
               printf(" Stage=%s\r\n",((j==0) ? "Lookup" : ((j==1) ? "Ingress" : ((j==2) ? "Egress" : "Unknown") ) ) );
               for (i=0; i<PTIN_POLICY_MAX_GROUPS; i++) {
-                if (po->cap[i][j].inUse)
+                if (ENDIAN_SWAP8(po->cap[i][j].inUse))
                 {
-                  printf("   Idx %u: Group %d (slice_width=%u)\r\n",i,po->cap[i][j].group_id,po->cap[i][j].total.slice_width);
-                  printf("     rules    = %03u / %03u (%u rules in use)\r\n", po->cap[i][j].free.rules, po->cap[i][j].total.rules, po->cap[i][j].count.rules);
-                  printf("     counters = %03u / %03u\r\n", po->cap[i][j].free.counters, po->cap[i][j].total.counters);
-                  printf("     meters   = %03u / %03u\r\n", po->cap[i][j].free.meters  , po->cap[i][j].total.meters  );
+                  printf("   Idx %u: Group %d (slice_width=%u)\r\n", i, (int) ENDIAN_SWAP32(po->cap[i][j].group_id), ENDIAN_SWAP16(po->cap[i][j].total.slice_width));
+                  printf("     rules    = %03u / %03u (%u rules in use)\r\n", ENDIAN_SWAP16(po->cap[i][j].free.rules), ENDIAN_SWAP16(po->cap[i][j].total.rules), ENDIAN_SWAP16(po->cap[i][j].count.rules));
+                  printf("     counters = %03u / %03u\r\n", ENDIAN_SWAP16(po->cap[i][j].free.counters), ENDIAN_SWAP16(po->cap[i][j].total.counters));
+                  printf("     meters   = %03u / %03u\r\n", ENDIAN_SWAP16(po->cap[i][j].free.meters)  , ENDIAN_SWAP16(po->cap[i][j].total.meters)  );
                 }
               }
             }
@@ -7454,12 +7465,12 @@ int main (int argc, char *argv[])
               break;
             }
 
-            printf(" Slot map configuration (Slot=%u):\r\n",po->SlotId);
+            printf(" Slot map configuration (Slot=%u):\r\n", ENDIAN_SWAP8(po->SlotId));
             for (i=0; i<MSG_SLOTMODECFG_NSLOTS; i++)
             {
               if (po->slot_list[i].slot_config)
               {
-                printf(" Index=%u:   Slot=%2u - Mode=%u\r\n", i, po->slot_list[i].slot_index, po->slot_list[i].slot_mode);
+                printf(" Index=%u:   Slot=%2u - Mode=%u\r\n", i, ENDIAN_SWAP8(po->slot_list[i].slot_index), ENDIAN_SWAP8(po->slot_list[i].slot_mode));
               }
               else
               {
@@ -7479,7 +7490,7 @@ int main (int argc, char *argv[])
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" PRBS enable executed successfully\n\r");
       else
-        printf(" PRBS enable not executed - error %08x\n\r", *(unsigned int*)resposta.info);
+        printf(" PRBS enable not executed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
 
     case 1007:
@@ -7495,12 +7506,12 @@ int main (int argc, char *argv[])
           }
           n = resposta.infoDim / sizeof(msg_ptin_pcs_prbs);
 
-          printf(" PRBS status of SlotId=%u\r\n",po->SlotId);
+          printf(" PRBS status of SlotId=%u\r\n", ENDIAN_SWAP8(po->SlotId));
           for (i=0; i<n; i++)
           {
             printf(" Port %u/%-2u:  Lock=%u Errors=%lu\r\n",
-                   po[i].intf.intf_type,po[i].intf.intf_id,
-                   po[i].rxStatus.lock,po[i].rxStatus.rxErrors);
+                   ENDIAN_SWAP8(po[i].intf.intf_type), ENDIAN_SWAP8(po[i].intf.intf_id),
+                   ENDIAN_SWAP8(po[i].rxStatus.lock), ENDIAN_SWAP32(po[i].rxStatus.rxErrors));
           }
           printf("Switch: PRBS status read successfully\n\r");
         }
@@ -7513,21 +7524,21 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Slot map validated successfully\n\r");
         else
-          printf(" Slot map not valid - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Slot map not valid - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1009:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Slot map configuration applied successfully\n\r");
         else
-          printf(" Slot map configuration not applied - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Slot map configuration not applied - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1010:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch port configuration executed successfully\n\r");
         else
-          printf(" Switch port configuration not executed - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch port configuration not executed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1011:
@@ -7540,7 +7551,7 @@ int main (int argc, char *argv[])
             n_index = resposta.infoDim / sizeof(msg_HWEthPhyConf_t);
             if ( n_index>PTIN_SYSTEM_N_PORTS )  n_index=PTIN_SYSTEM_N_PORTS;
             for ( index=0; index<n_index; index++ ) {
-              printf("Slot %u, Port %u configuration:\n\r",po[index].SlotId,po[index].Port);
+              printf("Slot %u, Port %u configuration:\n\r", ENDIAN_SWAP8(po[index].SlotId), ENDIAN_SWAP8(po[index].Port));
               printf("\tSpeed=%u\n\r"
                      "\tMedia=%u\n\r"
                      "\tDuplex=%u\n\r"
@@ -7551,16 +7562,16 @@ int main (int argc, char *argv[])
                      "\tVlanAwareness=%u\n\r"
                      "\tMacLearning=%u\n\r"
                      "\tAutoMDI=%u\n\r",
-                     po[index].Speed,
-                     po[index].Media,
-                     po[index].Duplex,
-                     po[index].LoopBack,
-                     po[index].FlowControl,
-                     po[index].PortEnable,
-                     po[index].MaxFrame,
-                     po[index].VlanAwareness,
-                     po[index].MacLearning,
-                     po[index].AutoMDI );
+                     ENDIAN_SWAP8 (po[index].Speed),
+                     ENDIAN_SWAP8 (po[index].Media),
+                     ENDIAN_SWAP8 (po[index].Duplex),
+                     ENDIAN_SWAP8 (po[index].LoopBack),
+                     ENDIAN_SWAP8 (po[index].FlowControl),
+                     ENDIAN_SWAP8 (po[index].PortEnable),
+                     ENDIAN_SWAP16(po[index].MaxFrame),
+                     ENDIAN_SWAP8 (po[index].VlanAwareness),
+                     ENDIAN_SWAP8 (po[index].MacLearning),
+                     ENDIAN_SWAP8 (po[index].AutoMDI));
             }
             printf("DONE!!!\n\r");
           }
@@ -7579,7 +7590,7 @@ int main (int argc, char *argv[])
             n_index = resposta.infoDim / sizeof(msg_HWEthPhyState_t);
             if ( n_index>PTIN_SYSTEM_N_PORTS )  n_index=PTIN_SYSTEM_N_PORTS;
             for ( index=0; index<n_index; index++ ) {
-              printf("Slot %u, Port %u eth state:\n\r",po[index].SlotId,po[index].Port);
+              printf("Slot %u, Port %u eth state:\n\r", ENDIAN_SWAP8(po[index].SlotId), ENDIAN_SWAP8(po[index].Port));
               printf("\tSpeed=%u\n\r"
                      "\tDuplex=%u\n\r"
                      "\tCollisions=%u\n\r"
@@ -7593,19 +7604,19 @@ int main (int argc, char *argv[])
                      "\tMedia=%u\n\r"
                      "\tMTU_mismatch=%u\n\r"
                      "\tSupported_MaxFrame=%u\n\r",
-                     po[index].Speed,
-                     po[index].Duplex,
-                     po[index].Collisions,
-                     po[index].RxActivity,
-                     po[index].TxActivity,
-                     po[index].LinkUp,
-                     po[index].AutoNegComplete,
-                     po[index].TxFault,
-                     po[index].RemoteFault,
-                     po[index].LOS,
-                     po[index].Media,
-                     po[index].MTU_mismatch,
-                     po[index].Supported_MaxFrame );
+                     ENDIAN_SWAP8(po[index].Speed),
+                     ENDIAN_SWAP8(po[index].Duplex),
+                     ENDIAN_SWAP8(po[index].Collisions),
+                     ENDIAN_SWAP8(po[index].RxActivity),
+                     ENDIAN_SWAP8(po[index].TxActivity),
+                     ENDIAN_SWAP8(po[index].LinkUp),
+                     ENDIAN_SWAP8(po[index].AutoNegComplete),
+                     ENDIAN_SWAP8(po[index].TxFault),
+                     ENDIAN_SWAP8(po[index].RemoteFault),
+                     ENDIAN_SWAP8(po[index].LOS),
+                     ENDIAN_SWAP8(po[index].Media),
+                     ENDIAN_SWAP8(po[index].MTU_mismatch),
+                     ENDIAN_SWAP16(po[index].Supported_MaxFrame));
             }
             printf("DONE!!!\n\r");
           }
@@ -7618,18 +7629,19 @@ int main (int argc, char *argv[])
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" Linkscan applied successfully\n\r");
       else
-        printf(" Linkscan not executed - error %08x\n\r", *(unsigned int*)resposta.info);
+        printf(" Linkscan not executed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
 
     case 1014:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" Protection command applied successfully\n\r");
       else
-        printf(" Protection command not executed - error %08x\n\r", *(unsigned int*)resposta.info);
+        printf(" Protection command not executed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
 
     case 1015:
       {
+        L7_uint32 mask;
         uint8 index, n_index;
         msg_HWPortExt_t *po=(msg_HWPortExt_t *) &resposta.info[0];
 
@@ -7638,39 +7650,40 @@ int main (int argc, char *argv[])
           n_index = resposta.infoDim / sizeof(msg_HWPortExt_t);
           if ( n_index>PTIN_SYSTEM_N_PORTS )  n_index=PTIN_SYSTEM_N_PORTS;
           for ( index=0; index<n_index; index++ ) {
-            printf("Port Type of Slot %u, Port %u/%u:\n\r",po[index].SlotId,po[index].intf.intf_type,po[index].intf.intf_id);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_DEFVID)
-              printf("\tDefault Vid   = %u\n\r",po[index].defVid);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_DEFPRIO)
-              printf("\tDefault Prio  = %u\n\r",po[index].defPrio);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_ACCEPTABLE_FRAME_TYPES)
-              printf("\tAcceptable Frame Types = %u\n\r",po[index].acceptable_frame_types);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_INGRESS_FILTER)
-              printf("\tIngress Filter         = %u\n\r",po[index].ingress_filter);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_RESTRICTED_VLAN_REG)
-              printf("\tRestricted Vlan Reg    = %u\n\r",po[index].restricted_vlan_reg);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_VLAN_AWARE)
-              printf("\tVlan Aware             = %u\n\r",po[index].vlan_aware);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_TYPE)
-              printf("\tType                   = %u\n\r",po[index].type);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_DOUBLETAG)
-              printf("\tDouble Tag             = %u\n\r",po[index].doubletag);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_OUTER_TPID)
-              printf("\tOuter TPID             = %u\n\r",po[index].outer_tpid);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_INNER_TPID)
-              printf("\tInner TPID             = %u\n\r",po[index].inner_tpid);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_EGRESS_TYPE)
-              printf("\tEgress Type            = %u\n\r", po[index].egress_type);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_MACLEARN_ENABLE)
-              printf("\tMAC Learn Enable                = %u\n\r",po[index].macLearn_enable);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE)
-              printf("\tMAC Learn Station Move Enable   = %u\n\r",po[index].macLearn_stationMove_enable);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO)
-              printf("\tMAC Learn Station Move Priority = %u\n\r",po[index].macLearn_stationMove_prio);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO)
-              printf("\tMAC Learn Station Move within same priority intfs = %u\n\r",po[index].macLearn_stationMove_samePrio);
-            if (po[index].Mask & MSG_HWPORTEXT_MASK_PROTTRUSTED_INTF)
-              printf("\tTrusted interface      = %u\n\r",po[index].protocol_trusted);
+            mask = ENDIAN_SWAP32(po[index].Mask);
+            printf("Port Type of Slot %u, Port %u/%u:\n\r", ENDIAN_SWAP8(po[index].SlotId), ENDIAN_SWAP8(po[index].intf.intf_type) ,ENDIAN_SWAP8(po[index].intf.intf_id));
+            if (mask & MSG_HWPORTEXT_MASK_DEFVID)
+              printf("\tDefault Vid   = %u\n\r", ENDIAN_SWAP16(po[index].defVid));
+            if (mask & MSG_HWPORTEXT_MASK_DEFPRIO)
+              printf("\tDefault Prio  = %u\n\r", ENDIAN_SWAP8(po[index].defPrio));
+            if (mask & MSG_HWPORTEXT_MASK_ACCEPTABLE_FRAME_TYPES)
+              printf("\tAcceptable Frame Types = %u\n\r", ENDIAN_SWAP8(po[index].acceptable_frame_types));
+            if (mask & MSG_HWPORTEXT_MASK_INGRESS_FILTER)
+              printf("\tIngress Filter         = %u\n\r", ENDIAN_SWAP8(po[index].ingress_filter));
+            if (mask & MSG_HWPORTEXT_MASK_RESTRICTED_VLAN_REG)
+              printf("\tRestricted Vlan Reg    = %u\n\r", ENDIAN_SWAP8(po[index].restricted_vlan_reg));
+            if (mask & MSG_HWPORTEXT_MASK_VLAN_AWARE)
+              printf("\tVlan Aware             = %u\n\r", ENDIAN_SWAP8(po[index].vlan_aware));
+            if (mask & MSG_HWPORTEXT_MASK_TYPE)
+              printf("\tType                   = %u\n\r", ENDIAN_SWAP8(po[index].type));
+            if (mask & MSG_HWPORTEXT_MASK_DOUBLETAG)
+              printf("\tDouble Tag             = %u\n\r", ENDIAN_SWAP8(po[index].doubletag));
+            if (mask & MSG_HWPORTEXT_MASK_OUTER_TPID)
+              printf("\tOuter TPID             = %u\n\r", ENDIAN_SWAP16(po[index].outer_tpid));
+            if (mask & MSG_HWPORTEXT_MASK_INNER_TPID)
+              printf("\tInner TPID             = %u\n\r", ENDIAN_SWAP16(po[index].inner_tpid));
+            if (mask & MSG_HWPORTEXT_MASK_EGRESS_TYPE)
+              printf("\tEgress Type            = %u\n\r", ENDIAN_SWAP8(po[index].egress_type));
+            if (mask & MSG_HWPORTEXT_MASK_MACLEARN_ENABLE)
+              printf("\tMAC Learn Enable                = %u\n\r", ENDIAN_SWAP8(po[index].macLearn_enable));
+            if (mask & MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE)
+              printf("\tMAC Learn Station Move Enable   = %u\n\r", ENDIAN_SWAP8(po[index].macLearn_stationMove_enable));
+            if (mask & MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO)
+              printf("\tMAC Learn Station Move Priority = %u\n\r", ENDIAN_SWAP8(po[index].macLearn_stationMove_prio));
+            if (mask & MSG_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO)
+              printf("\tMAC Learn Station Move within same priority intfs = %u\n\r", ENDIAN_SWAP8(po[index].macLearn_stationMove_samePrio));
+            if (mask & MSG_HWPORTEXT_MASK_PROTTRUSTED_INTF)
+              printf("\tTrusted interface      = %u\n\r", ENDIAN_SWAP8(po[index].protocol_trusted));
           }
           printf("DONE!!!\n\r");
         }
@@ -7683,7 +7696,7 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch port configuration executed successfully\n\r");
         else
-          printf(" Switch port configuration not executed - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch port configuration not executed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1017:
@@ -7696,8 +7709,8 @@ int main (int argc, char *argv[])
             n_index = resposta.infoDim / sizeof(msg_HWPortMac_t);
             if ( n_index>PTIN_SYSTEM_N_PORTS )  n_index=PTIN_SYSTEM_N_PORTS;
             for ( index=0; index<n_index; index++ ) {
-              printf("MAC of Slot %u, Port %u/%u:\n\r",po[index].SlotId,po[index].intf.intf_type,po[index].intf.intf_id);
-              if (po[index].Mask & 0x0001)
+              printf("MAC of Slot %u, Port %u/%u:\n\r", ENDIAN_SWAP8(po[index].SlotId), ENDIAN_SWAP8(po[index].intf.intf_type), ENDIAN_SWAP8(po[index].intf.intf_id));
+              if (ENDIAN_SWAP16(po[index].Mask) & 0x0001)
               {
                 printf("\tMAC = %02x:%02x:%02x:%02x:%02x:%02x\n\r",
                        po[index].macAddr[0],po[index].macAddr[1],po[index].macAddr[2],po[index].macAddr[3],po[index].macAddr[4],po[index].macAddr[5]);
@@ -7714,7 +7727,7 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch MAC attributed successfully\n\r");
         else
-          printf(" Switch MAC not attributed - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch MAC not attributed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1020:
@@ -7742,25 +7755,25 @@ int main (int argc, char *argv[])
                     "RX.Pkts1519toMaxOctets = %20llu\t\t\tTX.Pkts1519toMaxOctets = %20llu\n\r"
                     "RX.Throughput          = %20llu\t\t\tTX.Throughput          = %20llu\n\r"
                     "done!\n\r",
-                    po->SlotId,po->Port,
-                    po->Rx.etherStatsDropEvents          , po->Tx.etherStatsDropEvents          ,
-                    po->Rx.etherStatsOctets              , po->Tx.etherStatsOctets              ,
-                    po->Rx.etherStatsPkts                , po->Tx.etherStatsPkts                ,
-                    po->Rx.etherStatsBroadcastPkts       , po->Tx.etherStatsBroadcastPkts       ,
-                    po->Rx.etherStatsMulticastPkts       , po->Tx.etherStatsMulticastPkts       ,
-                    po->Rx.etherStatsCRCAlignErrors      , po->Tx.etherStatsCRCAlignErrors      ,
-                    po->Rx.etherStatsUndersizePkts       , po->Tx.etherStatsCollisions          ,
-                    po->Rx.etherStatsOversizePkts        , po->Tx.etherStatsOversizePkts        ,
-                    po->Rx.etherStatsFragments           , po->Tx.etherStatsFragments           ,
-                    po->Rx.etherStatsJabbers             , po->Tx.etherStatsJabbers             ,
-                    po->Rx.etherStatsPkts64Octets        , po->Tx.etherStatsPkts64Octets        ,
-                    po->Rx.etherStatsPkts65to127Octets   , po->Tx.etherStatsPkts65to127Octets   ,
-                    po->Rx.etherStatsPkts128to255Octets  , po->Tx.etherStatsPkts128to255Octets  ,
-                    po->Rx.etherStatsPkts256to511Octets  , po->Tx.etherStatsPkts256to511Octets  ,
-                    po->Rx.etherStatsPkts512to1023Octets , po->Tx.etherStatsPkts512to1023Octets ,
-                    po->Rx.etherStatsPkts1024to1518Octets, po->Tx.etherStatsPkts1024to1518Octets,
-                    po->Rx.etherStatsPkts1519toMaxOctets , po->Tx.etherStatsPkts1519toMaxOctets ,
-                    po->Rx.Throughput                    , po->Tx.Throughput                    );
+                    ENDIAN_SWAP8(po->SlotId), ENDIAN_SWAP8(po->Port),
+                    ENDIAN_SWAP64(po->Rx.etherStatsDropEvents)          , ENDIAN_SWAP64(po->Tx.etherStatsDropEvents)          ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsOctets)              , ENDIAN_SWAP64(po->Tx.etherStatsOctets)              ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsPkts)                , ENDIAN_SWAP64(po->Tx.etherStatsPkts)                ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsBroadcastPkts)       , ENDIAN_SWAP64(po->Tx.etherStatsBroadcastPkts)       ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsMulticastPkts)       , ENDIAN_SWAP64(po->Tx.etherStatsMulticastPkts)       ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsCRCAlignErrors)      , ENDIAN_SWAP64(po->Tx.etherStatsCRCAlignErrors)      ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsUndersizePkts)       , ENDIAN_SWAP64(po->Tx.etherStatsCollisions)          ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsOversizePkts)        , ENDIAN_SWAP64(po->Tx.etherStatsOversizePkts)        ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsFragments)           , ENDIAN_SWAP64(po->Tx.etherStatsFragments)           ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsJabbers)             , ENDIAN_SWAP64(po->Tx.etherStatsJabbers)             ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsPkts64Octets)        , ENDIAN_SWAP64(po->Tx.etherStatsPkts64Octets)        ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsPkts65to127Octets)   , ENDIAN_SWAP64(po->Tx.etherStatsPkts65to127Octets)   ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsPkts128to255Octets)  , ENDIAN_SWAP64(po->Tx.etherStatsPkts128to255Octets)  ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsPkts256to511Octets)  , ENDIAN_SWAP64(po->Tx.etherStatsPkts256to511Octets)  ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsPkts512to1023Octets) , ENDIAN_SWAP64(po->Tx.etherStatsPkts512to1023Octets) ,
+                    ENDIAN_SWAP64(po->Rx.etherStatsPkts1024to1518Octets), ENDIAN_SWAP64(po->Tx.etherStatsPkts1024to1518Octets),
+                    ENDIAN_SWAP64(po->Rx.etherStatsPkts1519toMaxOctets) , ENDIAN_SWAP64(po->Tx.etherStatsPkts1519toMaxOctets) ,
+                    ENDIAN_SWAP64(po->Rx.Throughput)                    , ENDIAN_SWAP64(po->Tx.Throughput)                    );
           }
           else
             printf(" Switch: Error reading port statistics\n\r");
@@ -7771,21 +7784,21 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: Port statistics cleared\n\r");
         else
-          printf(" Switch: Error clearing port statistics - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error clearing port statistics - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1022:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch port configuration executed successfully\n\r");
         else
-          printf(" Switch port configuration not executed - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch port configuration not executed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1023:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: RFCC2819 buffer cleared successfully\n\r");
         else
-          printf(" Switch: Error clearing RFCC2819 buffer - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error clearing RFCC2819 buffer - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1024:
@@ -7881,7 +7894,7 @@ int main (int argc, char *argv[])
           printf(" Intf ID  : %10lu\r\n",ptr->intf.intf_id );*/
         }
         else
-          printf(" Switch: Error appling MAC learning limiting - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error appling MAC learning limiting - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1030:
@@ -8006,21 +8019,21 @@ int main (int argc, char *argv[])
           printf(" Switch: General QoS configuration read successfuly\n\r");
         }
         else
-          printf(" Switch: Error reading general QoS configuration - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error reading general QoS configuration - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1031:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: General QoS configuration executed successfuly\n\r");
         else
-          printf(" Switch: Error setting general QoS configuration - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error setting general QoS configuration - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1032:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: Specific QoS configuration executed successfuly\n\r");
         else
-          printf(" Switch: Error setting specific QoS configuration - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error setting specific QoS configuration - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1033:
@@ -8297,42 +8310,42 @@ int main (int argc, char *argv[])
           printf(" Switch: General QoS2 configuration read successfuly\n\r");
         }
         else
-          printf(" Switch: Error reading general QoS2 configuration - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error reading general QoS2 configuration - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1034:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: QoS3-interface configuration executed successfuly\n\r");
         else
-          printf(" Switch: Error setting QoS3-interface configuration - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error setting QoS3-interface configuration - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1035:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: QoS3-cos configuration executed successfuly\n\r");
         else
-          printf(" Switch: Error setting QoS3-cos configuration - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error setting QoS3-cos configuration - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1036:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: QoS3-mgmt configuration executed successfuly\n\r");
         else
-          printf(" Switch: Error setting QoS3-mgmt configuration - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error setting QoS3-mgmt configuration - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1037:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: QoS3-dpThresholds configuration executed successfuly\n\r");
         else
-          printf(" Switch: Error setting QoS3-dpThresholds configuration - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error setting QoS3-dpThresholds configuration - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1038:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: QoS3-policer configuration executed successfuly\n\r");
         else
-          printf(" Switch: Error setting QoS3-policer configuration - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error setting QoS3-policer configuration - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1040:
@@ -8379,28 +8392,28 @@ int main (int argc, char *argv[])
           printf(" Switch: MAC table read successfuly\n\r");
         }
         else
-          printf(" Switch: Error reading MAC table - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error reading MAC table - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1041:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: MAC address added successfully\n\r");
         else
-          printf(" Switch: MAC address not added - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: MAC address not added - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1042:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: MAC address removed successfully\n\r");
         else
-          printf(" Switch: MAC address not removed - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: MAC address not removed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1043:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: MAC table flushed successfully\n\r");
         else
-          printf(" Switch: Error flushing MAC table - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error flushing MAC table - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1220:
@@ -8429,21 +8442,21 @@ int main (int argc, char *argv[])
           printf(" Switch: DHCPop82 profile read successfully\n\r");
         }
         else
-          printf(" Switch: DHCPop82 profile not read - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: DHCPop82 profile not read - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1221:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: DHCPop82 profile added successfully\n\r");
         else
-          printf(" Switch: DHCPop82 profile not added - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: DHCPop82 profile not added - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1222:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: DHCPop82 profile removed successfully\n\r");
         else
-          printf(" Switch: DHCPop82 profile not removed - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: DHCPop82 profile not removed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1230:
@@ -8472,60 +8485,60 @@ int main (int argc, char *argv[])
           printf("Switch: DAI statistics read successfully\n\r");
         }
         else
-          printf(" Switch: Error reading DAI statistics - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error reading DAI statistics - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1231:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: DAI global settings applied successfully\n\r");
         else
-          printf(" Switch: DAI global settings not applied - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: DAI global settings not applied - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1232:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: DAI interface settings applied successfully\n\r");
         else
-          printf(" Switch: DAI interface settings not applied - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: DAI interface settings not applied - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1233:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: DAI EVC settings applied successfully\n\r");
         else
-          printf(" Switch: DAI EVC settings not applied - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: DAI EVC settings not applied - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1234:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: DAI VLAN settings applied successfully\n\r");
         else
-          printf(" Switch: DAI VLAN settings not applied - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: DAI VLAN settings not applied - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1235:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: ARP-ACL entry added successfully\n\r");
         else
-          printf(" Switch: ARP-ACL entry not added - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: ARP-ACL entry not added - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
       case 1236:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: ARP-ACL entry removed successfully\n\r");
         else
-          printf(" Switch: ARP-ACL entry not removed - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: ARP-ACL entry not removed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
       case 1237:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: ARP-ACL group linked to an EVC\n\r");
         else
-          printf(" Switch: ARP-ACL group not linked to an EVC - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: ARP-ACL group not linked to an EVC - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
       case 1238:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: ARP-ACL group linked to a VLAN\n\r");
         else
-          printf(" Switch: ARP-ACL group not linked to a VLAN - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: ARP-ACL group not linked to a VLAN - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1240:
@@ -8579,14 +8592,14 @@ int main (int argc, char *argv[])
           printf(" Switch: DHCP Binding table read successfuly\n\r");
         }
         else
-          printf(" Switch: Error reading DHCP Binding table - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error reading DHCP Binding table - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1242:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: DHCP bind entry removed successfully\n\r");
         else
-          printf(" Switch: DHCP bind entry not removed - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: DHCP bind entry not removed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1310:
@@ -8684,7 +8697,7 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: IGMP statistics cleared successfully\n\r");
         else
-          printf(" Switch: IGMP statistics not cleared - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: IGMP statistics not cleared - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1320:
@@ -8721,7 +8734,7 @@ int main (int argc, char *argv[])
             printf( "   Received Server Packets on Untrusted Interface               = %lu\r\n",po->stats.dhcp_rx_server_pkts_onUntrustedIntf );
           }
           else  {
-            printf(" Switch: Error reading DHCP statistics - error %08x\n\r", *(unsigned int*)resposta.info);
+            printf(" Switch: Error reading DHCP statistics - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
           }
         }
         break;
@@ -8730,28 +8743,28 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: DHCP statistics cleared successfully\n\r");
         else
-          printf(" Switch: DHCP statistics not cleared - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: DHCP statistics not cleared - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1400:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: IGMP snooping/querier configured\n\r");
         else
-          printf(" Switch: Error configuring IGMP snooping/querier - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error configuring IGMP snooping/querier - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1401:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: IGMP instance added\n\r");
         else
-          printf(" Switch: Error adding IGMP instance - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error adding IGMP instance - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1402:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: IGMP instance removed\n\r");
         else
-          printf(" Switch: Error removing IGMP instance - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error removing IGMP instance - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1403:
@@ -8795,91 +8808,91 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: IGMP association added\n\r");
         else
-          printf(" Switch: Error adding IGMP association - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error adding IGMP association - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1405:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: IGMP association removed\n\r");
         else
-          printf(" Switch: Error removing IGMP association - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error removing IGMP association - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1406:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: MC Client successfully added\n\r");
         else
-          printf(" Switch: Error adding MC Client - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error adding MC Client - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1407:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: MC Client successfully removed\n\r");
         else
-          printf(" Switch: Error removing MC Client - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Error removing MC Client - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
 //    case 1400:
 //      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
 //        printf(" Switch: IGMP Snooping/Querier configured\n\r");
 //      else
-//        printf(" Switch: IGMP Snooping/Querier NOT configured - error %08x\n\r", *(unsigned int*)resposta.info);
+//        printf(" Switch: IGMP Snooping/Querier NOT configured - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
 //      break;
 //
 //    case 1402:
 //      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
 //        printf(" Switch: IGMP Snooping: interfaces added\n\r");
 //      else
-//        printf(" Switch: IGMP Snooping: interfaces NOT added - error %08x\n\r", *(unsigned int*)resposta.info);
+//        printf(" Switch: IGMP Snooping: interfaces NOT added - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
 //      break;
 //
 //    case 1403:
 //      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
 //        printf(" Switch: IGMP Snooping: interfaces removed\n\r");
 //      else
-//        printf(" Switch: IGMP Snooping: interfaces NOT removed - error %08x\n\r", *(unsigned int*)resposta.info);
+//        printf(" Switch: IGMP Snooping: interfaces NOT removed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
 //      break;
 //
 //    case 1405:
 //      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
 //        printf(" Switch: IGMP Snooping: mclient vlans added\n\r");
 //      else
-//        printf(" Switch: IGMP Snooping: mclient vlans NOT added - error %08x\n\r", *(unsigned int*)resposta.info);
+//        printf(" Switch: IGMP Snooping: mclient vlans NOT added - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
 //      break;
 //
 //    case 1406:
 //      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
 //        printf(" Switch: IGMP Snooping: mclient vlans removed\n\r");
 //      else
-//        printf(" Switch: IGMP Snooping: mclient vlans NOT removed - error %08x\n\r", *(unsigned int*)resposta.info);
+//        printf(" Switch: IGMP Snooping: mclient vlans NOT removed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
 //      break;
 //
 //    case 1408:
 //      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
 //        printf(" Switch: IGMP Snooping: mrouter vlans added\n\r");
 //      else
-//        printf(" Switch: IGMP Snooping: mrouter vlans NOT added - error %08x\n\r", *(unsigned int*)resposta.info);
+//        printf(" Switch: IGMP Snooping: mrouter vlans NOT added - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
 //      break;
 //
 //    case 1409:
 //      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
 //        printf(" Switch: IGMP Snooping: mrouter vlans removed\n\r");
 //      else
-//        printf(" Switch: IGMP Snooping: mrouter vlans NOT removed - error %08x\n\r", *(unsigned int*)resposta.info);
+//        printf(" Switch: IGMP Snooping: mrouter vlans NOT removed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
 //      break;
 //
 //    case 1411:
 //      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
 //        printf(" Switch: IGMP Snooping Querier: vlans added to querier\n\r");
 //      else
-//        printf(" Switch: IGMP Snooping Querier: vlans NOT added to querier - error %08x\n\r", *(unsigned int*)resposta.info);
+//        printf(" Switch: IGMP Snooping Querier: vlans NOT added to querier - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
 //      break;
 //
 //    case 1412:
 //      if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
 //        printf(" Switch: IGMP Snooping Querier: vlans removed to querier\n\r");
 //      else
-//        printf(" Switch: IGMP Snooping Querier: vlans NOT removed to querier - error %08x\n\r", *(unsigned int*)resposta.info);
+//        printf(" Switch: IGMP Snooping Querier: vlans NOT removed to querier - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
 //      break;
 
       case 1420:
@@ -8951,14 +8964,14 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: Static MC Channel added successfully\n\r");
         else
-          printf(" Switch: Static MC Channel NOT added - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Static MC Channel NOT added - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1431:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: Static MC Channel removed successfully\n\r");
         else
-          printf(" Switch: Static MC Channel NOT removed - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Static MC Channel NOT removed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
 
@@ -8966,14 +8979,14 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Successfully created new routing interface\n\r");
         else
-          printf(" Error %08x while creating new routing interface\n\r", *(unsigned int*)resposta.info);
+          printf(" Error while creating new routing interface - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1811:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Successfully removed routing interface\n\r");
         else
-          printf(" Error %08x while removing routing interface\n\r", *(unsigned int*)resposta.info);
+          printf(" Error while removing routing interface - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1820:
@@ -9001,14 +9014,14 @@ int main (int argc, char *argv[])
           }
         }
         else
-          printf(" ARP Table: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" ARP Table: NOT read - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1821:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Successfully removed ARP entry\n\r");
         else
-          printf(" Error %08x while removing ARP entry\n\r", *(unsigned int*)resposta.info);
+          printf(" Error while removing ARP entry - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1830:
@@ -9039,28 +9052,28 @@ int main (int argc, char *argv[])
           }
         }
         else
-          printf(" Route Table: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Route Table: NOT read - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1831:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Successfully configure static route\n\r");
         else
-          printf(" Error %08x while configuring static route\n\r", *(unsigned int*)resposta.info);
+          printf(" Error while configuring static route - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1832:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Successfully removed static route\n\r");
         else
-          printf(" Error %08x while removing static route\n\r", *(unsigned int*)resposta.info);
+          printf(" Error while removing static route - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1840:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Successfully created ping session\n\r");
         else
-          printf(" Error %08x while creating ping session\n\r", *(unsigned int*)resposta.info);
+          printf(" Error while creating ping session - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1841:
@@ -9086,14 +9099,14 @@ int main (int argc, char *argv[])
           printf("  RTT (min/avg/max) = %lu/%lu/%lu\r\n", ptr->minRtt, ptr->avgRtt, ptr->maxRtt);
         }
         else
-          printf(" Ping session query: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Ping session query: NOT read - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1842:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Sucessefully freed ping session\n\r");
         else
-          printf(" Error %08x while freeing ping session\n\r", *(unsigned int*)resposta.info);
+          printf(" Error while freeing ping session - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
 
@@ -9101,7 +9114,7 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Successfully created Traceroute session\n\r");
         else
-          printf(" Error %08x while creating Traceroute session\n\r", *(unsigned int*)resposta.info);
+          printf(" Error while creating Traceroute session - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1851:
@@ -9113,7 +9126,7 @@ int main (int argc, char *argv[])
           entries = resposta.infoDim/sizeof(msg_RoutingTracertSessionQuery);
 
           if (entries==0) {
-            printf(" Traceroute session query: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_RoutingTracertSessionQuery));
+            printf(" Traceroute session query: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, sizeof(msg_RoutingTracertSessionQuery));
             break;
           }
 
@@ -9128,7 +9141,7 @@ int main (int argc, char *argv[])
           printf("  Test Success = %u\r\n", ptr->testSuccess);
         }
         else
-          printf(" Traceroute session query: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Traceroute session query: NOT read - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1852:
@@ -9156,14 +9169,14 @@ int main (int argc, char *argv[])
           }
         }
         else
-          printf(" Traceroute hops: NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Traceroute hops: NOT read - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1853:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Successfully freed traceroute session\n\r");
         else
-          printf(" Error %08x while freeing traceroute session\n\r", *(unsigned int*)resposta.info);
+          printf(" Error while freeing traceroute session - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1500:
@@ -9191,21 +9204,21 @@ int main (int argc, char *argv[])
           printf(" Switch: LAG configurations read successfully\n\r");
         }
         else
-          printf(" Switch: LACP: Lag configurations NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: LACP: Lag configurations NOT read - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1501:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: LACP: LAG created successfully\n\r");
         else
-          printf(" Switch: LACP: Lag NOT created - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: LACP: Lag NOT created - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1502:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: LACP: LAG removed successfully\n\r");
         else
-          printf(" Switch: LACP: Lag NOT removed - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: LACP: Lag NOT removed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1503:
@@ -9233,14 +9246,14 @@ int main (int argc, char *argv[])
           printf(" Switch: LAG status read successfully\n\r");
         }
         else
-          printf(" Switch: LACP: Lag status NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: LACP: Lag status NOT read - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1504:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: LACP Admin State settled successfully\n\r");
         else
-          printf(" Switch: LACP Admin State NOT settled - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: LACP Admin State NOT settled - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1505:
@@ -9266,7 +9279,7 @@ int main (int argc, char *argv[])
           printf(" Switch: LACP Admin State read successfully\n\r");
         }
         else
-          printf(" Switch: LACP Admin State NOT read - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: LACP Admin State NOT read - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1510:
@@ -9289,7 +9302,7 @@ int main (int argc, char *argv[])
             printf( "Done!\r\n");
           }
           else  {
-            printf(" Switch: Error reading LACPdu statistics\n\r");
+            printf(" Switch: Error reading LACPdu statistics - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
           }
         }
         break;
@@ -9298,7 +9311,7 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: LACP Stats cleared successfully\n\r");
         else
-          printf(" Switch: LACP Stats NOT cleared - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: LACP Stats NOT cleared - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1600:
@@ -9339,63 +9352,63 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf("EVC successfully created\n\r");
         else
-          printf("Failed to create EVC - error %08X\r\n", *(unsigned int*)resposta.info);
+          printf("Failed to create EVC - error %08lx\r\n", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1602:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf("EVC successfully deleted\n\r");
         else
-          printf("Failed to delete EVC - error %08X\r\n", *(unsigned int*)resposta.info);
+          printf("Failed to delete EVC - error %08lx\r\n", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1603:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf("Port successfully added to EVC\n\r");
         else
-          printf("Failed to add port to EVC - error %08X\r\n", *(unsigned int*)resposta.info);
+          printf("Failed to add port to EVC - error %08lx\r\n", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1604:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf("Port successfully removed from EVC\n\r");
         else
-          printf("Failed to remove port from EVC - error %08X\r\n", *(unsigned int*)resposta.info);
+          printf("Failed to remove port from EVC - error %08lx\r\n", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1605:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf("EVC stacked bridge successfully created\n\r");
         else
-          printf("Failed to create EVC stacked bridge - error %08X\r\n", *(unsigned int*)resposta.info);
+          printf("Failed to create EVC stacked bridge - error %08lx\r\n", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1606:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf("EVC stacked bridge successfully deleted\n\r");
         else
-          printf("Failed to delete EVC stacked bridge - error %08X\r\n", *(unsigned int*)resposta.info);
+          printf("Failed to delete EVC stacked bridge - error %08lx\r\n", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1607:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf("EVC GEM flow successfully created\n\r");
         else
-          printf("Failed to create EVC GEM flow - error %08X\r\n", *(unsigned int*)resposta.info);
+          printf("Failed to create EVC GEM flow - error %08lx\r\n", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1608:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf("EVC GEM flow successfully deleted\n\r");
         else
-          printf("Failed to delete EVC GEM flow - error %08X\r\n", *(unsigned int*)resposta.info);
+          printf("Failed to delete EVC GEM flow - error %08lx\r\n", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1609:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf("EVC options applied succesfully\n\r");
         else
-          printf("Failed to apply EVC options - error %08X\r\n", *(unsigned int*)resposta.info);
+          printf("Failed to apply EVC options - error %08lx\r\n", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1610:
@@ -9417,14 +9430,14 @@ int main (int argc, char *argv[])
           }
         }
         else
-          printf("Failed to get network connectivity config - error %08X\r\n", *(unsigned int*)resposta.info);
+          printf("Failed to get network connectivity config - error %08lx\r\n", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1611:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf("Network Connectivity successfully configured\n\r");
         else
-          printf("Failed to set network connectivity config - error %08X\r\n", *(unsigned int*)resposta.info);
+          printf("Failed to set network connectivity config - error %08lx\r\n", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1620:
@@ -9456,7 +9469,7 @@ int main (int argc, char *argv[])
             printf("Switch: BW profile read successfully\n\r");
           }
           else
-            printf(" Switch: BW profile not read - error %08x\n\r", *(unsigned int*)resposta.info);
+            printf(" Switch: BW profile not read - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         }
         break;
 
@@ -9464,35 +9477,35 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: BW profile added successfully\n\r");
         else
-          printf(" Switch: BW profile not added - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: BW profile not added - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1622:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: BW profile removed successfully\n\r");
         else
-          printf(" Switch: BW profile not removed - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: BW profile not removed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1624:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: Storm Control configured successfully\n\r");
         else
-          printf(" Switch: Storm Control NOT configured - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Storm Control NOT configured - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1625:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: Storm Control reseted successfully\n\r");
         else
-          printf(" Switch: Storm Control not reseted - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Storm Control not reseted - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1626:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: Storm Control cleared successfully\n\r");
         else
-          printf(" Switch: Storm Control not cleared - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Storm Control not cleared - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1627:
@@ -9501,7 +9514,7 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: Storm Control configured successfully\n\r");
         else
-          printf(" Switch: Storm Control not configured - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: Storm Control not configured - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1630:
@@ -9558,7 +9571,7 @@ int main (int argc, char *argv[])
             printf(" Switch: EVC counters read successfully\n\r");
           }
           else
-            printf(" Switch: Flow counters not read - error %08x\n\r", *(unsigned int*)resposta.info);
+            printf(" Switch: Flow counters not read - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
           break;
         }
         break;
@@ -9567,99 +9580,99 @@ int main (int argc, char *argv[])
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: EVC counters added successfully\n\r");
         else
-          printf(" Switch: EVC counters not added - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: EVC counters not added - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1633:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" Switch: EVC counters removed successfully\n\r");
         else
-          printf(" Switch: EVC counters not removed - error %08x\n\r", *(unsigned int*)resposta.info);
+          printf(" Switch: EVC counters not removed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
       case 1700:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" IP Source Guard Correctly Configured\n\r");
         else
-          printf(" IP Source Guard not Configured\n\r");          
+          printf(" IP Source Guard not Configured - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
       case 1701:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" IP Source Guard Static Entry Correctly Configured\n\r");
         else
-          printf(" IP Source Guard Static Entry not Configured\n\r");          
+          printf(" IP Source Guard Static Entry not Configured - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
       case 1710:      
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
           printf(" IGMP Multicast Package Correctly Added\n\r");
         else
-          printf(" IGMP Multicast  Package Failed to Add\n\r");          
+          printf(" IGMP Multicast  Package Failed to Add - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
       case 1711:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" IGMP Multicast Package Correctly Removed\n\r");
       else
-        printf(" IGMP Multicast Package Failed to Remove\n\r");          
+        printf(" IGMP Multicast Package Failed to Remove - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
       case 1712:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" IGMP Multicast Channel Packages Correctly Added\n\r");
       else
-        printf(" IGMP Multicast Channel Packages Failed to Add\n\r");          
+        printf(" IGMP Multicast Channel Packages Failed to Add - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
       case 1713:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" IGMP Multicast Channel Packages Correctly Removed\n\r");
       else
-        printf(" IGMP Multicast Channel Packages Failed to Remove\n\r");          
+        printf(" IGMP Multicast Channel Packages Failed to Remove - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
       case 1714:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" IGMP Multicast Service Correctly Added\n\r");
       else
-        printf(" IGMP Multicast Service Failed to Add\n\r");          
+        printf(" IGMP Multicast Service Failed to Add - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
       case 1715:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" IGMP Multicast Service Correctly Removed\n\r");
       else
-        printf(" IGMP Multicast Service Failed to Remove\n\r");          
+        printf(" IGMP Multicast Service Failed to Remove - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
       case 1716:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" IGMP Unicast Client  Correctly Added\n\r");
       else
-        printf(" IGMP Unicast Client Failed to Add\n\r");          
+        printf(" IGMP Unicast Client Failed to Add - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
       case 1717:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" IGMP Unicast Client  Correctly Removed\n\r");
       else
-        printf(" IGMP Unicast Client Failed to Remove\n\r");          
+        printf(" IGMP Unicast Client Failed to Remove - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
       case 1718:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" IGMP MacBridge Client  Correctly Added\n\r");
       else
-        printf(" IGMP MacBridge Client Failed to Add\n\r");          
+        printf(" IGMP MacBridge Client Failed to Add - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
       case 1719:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" IGMP MacBridge Client  Correctly Removed\n\r");
       else
-        printf(" IGMP MacBridge Client Failed to Remove\n\r");          
+        printf(" IGMP MacBridge Client Failed to Remove - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;      
 
       case 1890:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" FrameDelay MEP Correctly Added\n\r");
       else
-        printf(" FrameDelay MEP Failed to Add\n\r");
+        printf(" FrameDelay MEP Failed to Add - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
       case 1891:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" FrameDelay MEP Correctly Removed\n\r");
       else
-        printf(" FrameDelay MEP Failed to Remove\n\r");
+        printf(" FrameDelay MEP Failed to Remove - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
       case 1892:
         {
@@ -9685,13 +9698,13 @@ int main (int argc, char *argv[])
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" FrameLoss MEP Correctly Added\n\r");
       else
-        printf(" FrameLoss MEP Failed to Add\n\r");
+        printf(" FrameLoss MEP Failed to Add - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
       case 1894:
       if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         printf(" FrameLoss MEP Correctly Removed\n\r");
       else
-        printf(" FrameLoss MEP Failed to Remove\n\r");
+        printf(" FrameLoss MEP Failed to Remove - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
       break;
       case 1895:
         {

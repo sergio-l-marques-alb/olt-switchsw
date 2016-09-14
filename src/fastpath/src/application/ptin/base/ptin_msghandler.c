@@ -278,11 +278,11 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "Message received: CCMSG_APPLICATION_IS_ALIVE (0x%04X)", msgId);
 
       PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "PTin state: %d", ptin_state);
-      *((L7_uint32 *) outbuffer->info) = (L7_uint32) ptin_state;
+      *((L7_uint32 *) outbuffer->info) = ENDIAN_SWAP32((L7_uint32) ptin_state);
       SETIPC_INFODIM(sizeof(L7_uint32));
 
       PT_LOG_TRACE(LOG_CTX_MSGHANDLER,
-                  "Message processed: response with %d bytes", outbuffer->infoDim);
+                  "Message processed: response with %d bytes", ENDIAN_SWAP32(outbuffer->infoDim));
       return IPC_OK;
     }
 
@@ -417,7 +417,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       if (ptin_msg_PhyActivity_get(pout) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port activity (slot=%u/%u)", pin->intf.slot, pin->intf.port);
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port activity (slot=%u/%u)", ENDIAN_SWAP8(pin->intf.slot), ENDIAN_SWAP8(pin->intf.port));
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         return IPC_OK;
@@ -446,7 +446,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       SETIPC_INFODIM(sizeof(msg_FWFastpathInfo));
       PT_LOG_INFO(LOG_CTX_MSGHANDLER,
-               "Message processed: response with %d bytes (present=%d)", outbuffer->infoDim, fpInfo->BoardPresent);
+                  "Message processed: response with %d bytes (present=%d)", outbuffer->infoDim, ENDIAN_SWAP32(fpInfo->BoardPresent));
 
       return IPC_OK;  /* CCMSG_BOARD_SHOW */
     }
@@ -919,18 +919,18 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       /* Output info read */
       PT_LOG_DEBUG(LOG_CTX_MSG, "Requesting...");
-      PT_LOG_DEBUG(LOG_CTX_MSG, " SlotId    = %u", pin->SlotId);
-      PT_LOG_DEBUG(LOG_CTX_MSG, " BoardType = %u", pin->BoardType);
-      PT_LOG_DEBUG(LOG_CTX_MSG, " PortId    = %u", pin->Port);
+      PT_LOG_DEBUG(LOG_CTX_MSG, " SlotId    = %u", ENDIAN_SWAP8(pin->SlotId));
+      PT_LOG_DEBUG(LOG_CTX_MSG, " BoardType = %u", ENDIAN_SWAP8(pin->BoardType));
+      PT_LOG_DEBUG(LOG_CTX_MSG, " PortId    = %u", ENDIAN_SWAP8(pin->Port));
 
       /* Single port ? */
-      if (pin->Port < max(PTIN_SYSTEM_N_PONS, PTIN_SYSTEM_N_ETH))
+      if (ENDIAN_SWAP8(pin->Port) < max(PTIN_SYSTEM_N_PONS, PTIN_SYSTEM_N_ETH))
       {
         memcpy(pout, pin, sizeof(msg_HWEthPhyStatus_t));
 
         if (ptin_msg_PhyStatus_get(pout) != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port status (port# %u)", pin->Port);
+          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port status (port# %u)", ENDIAN_SWAP8(pin->Port));
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
           SetIPCNACK(outbuffer, res);
           break;
@@ -944,7 +944,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         for (i = 0; i < PTIN_SYSTEM_N_ETH; i++)
         {
           memcpy(&pout[i], pin, sizeof(msg_HWEthPhyStatus_t));
-          pout[i].Port = i;
+          pout[i].Port = ENDIAN_SWAP8(i);
 
           if (ptin_msg_PhyStatus_get(&pout[i]) != L7_SUCCESS)
             break;
@@ -953,7 +953,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         /* Error? */
         if (i < PTIN_SYSTEM_N_ETH)
         {
-          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port Status (port# %u)", pin->Port);
+          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port Status (port# %u)", ENDIAN_SWAP8(pin->Port));
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
           SetIPCNACK(outbuffer, res);
           break;
@@ -962,7 +962,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         SETIPC_INFODIM(sizeof(msg_HWEthPhyStatus_t) * i);
       }
       #else
-      PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port Status (port# %u)", pin->Port);
+      PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port Status (port# %u)", ENDIAN_SWAP8(pin->Port));
       res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
       SetIPCNACK(outbuffer, res);
       break;
@@ -1030,7 +1030,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       memset(pin,0x00,sizeof(msg_HWEthPhyConf_t));
       pin->SlotId = req->slot_id;
       pin->Port   = req->generic_id;
-      pin->Mask   = 0xffff;
+      pin->Mask   = ENDIAN_SWAP16(0xffff);
 
       /* Single port ? */
       if (pin->Port < PTIN_SYSTEM_N_PORTS)
@@ -1039,7 +1039,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
         if (ptin_msg_PhyConfig_get(pout) != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port configuration (port# %u)", pin->Port);
+          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port configuration (port# %u)", ENDIAN_SWAP8(pin->Port));
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
           SetIPCNACK(outbuffer, res);
           break;
@@ -1053,7 +1053,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         for (i = 0; i < PTIN_SYSTEM_N_PORTS; i++)
         {
           memcpy(&pout[i], pin, sizeof(msg_HWEthPhyConf_t));
-          pout[i].Port = i;
+          pout[i].Port = ENDIAN_SWAP8(i);
 
           if (ptin_msg_PhyConfig_get(&pout[i]) != L7_SUCCESS)
             break;
@@ -1062,7 +1062,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         /* Error? */
         if (i != PTIN_SYSTEM_N_PORTS)
         {
-          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port configuration (port# %u)", pin->Port);
+          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port configuration (port# %u)", ENDIAN_SWAP8(pin->Port));
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
           SetIPCNACK(outbuffer, res);
           break;
@@ -1092,16 +1092,16 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       memset(pin,0x00,sizeof(msg_HWEthPhyState_t));
       pin->SlotId = request->slot_id;
       pin->Port   = request->generic_id;
-      pin->Mask   = 0xffff;
+      pin->Mask   = ENDIAN_SWAP16(0xffff);
 
       /* Single port ? */
-      if (pin->Port < PTIN_SYSTEM_N_PORTS)
+      if (ENDIAN_SWAP8(pin->Port) < PTIN_SYSTEM_N_PORTS)
       {
         memcpy(pout, pin, sizeof(msg_HWEthPhyState_t));
 
         if (ptin_msg_PhyState_get(pout) != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port state (port# %u)", pin->Port);
+          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port state (port# %u)", ENDIAN_SWAP8(pin->Port));
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
           SetIPCNACK(outbuffer, res);
           break;
@@ -1115,7 +1115,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         for (i = 0; i < PTIN_SYSTEM_N_PORTS; i++)
         {
           memcpy(&pout[i], pin, sizeof(msg_HWEthPhyState_t));
-          pout[i].Port = i;
+          pout[i].Port = ENDIAN_SWAP8(i);
 
           if (ptin_msg_PhyState_get(&pout[i]) != L7_SUCCESS)
             break;
@@ -1124,7 +1124,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         /* Error? */
         if (i != PTIN_SYSTEM_N_PORTS)
         {
-          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port state (port# %u)", pin->Port);
+          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting port state (port# %u)", ENDIAN_SWAP8(pin->Port));
           res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
           SetIPCNACK(outbuffer, res);
           break;
@@ -1158,7 +1158,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Get values */
       if (L7_SUCCESS != ptin_msg_PhyCounters_read(request, portStats, nElems))
       {
-        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting counters (port# %u)", portStats->Port);
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while getting counters (port# %u)", ENDIAN_SWAP8(portStats->Port));
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
@@ -1182,7 +1182,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Execute command */
       if (L7_SUCCESS != ptin_msg_PhyCounters_clear(portStats))
       {
-        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while clearing counters (port# %u)", portStats->Port);
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error while clearing counters (port# %u)", ENDIAN_SWAP8(portStats->Port));
         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_INVALIDPARAM);
         SetIPCNACK(outbuffer, res);
         break;
