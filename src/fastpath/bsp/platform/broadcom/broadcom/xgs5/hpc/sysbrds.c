@@ -583,6 +583,60 @@ L7_RC_t hpcConfigBoardSet()
       PT_LOG_TRACE(LOG_CTX_STARTUP,"Helix4 ready to be started!");
       break;
 
+    /* PTin added: new switch 56450 (Katana2) */
+    case UNIT_BROAD_48_GIG_4_TENGIG_56450_REV_1_ID:
+      /* Enable trunk_128 bit. This will enable 128 trunks */
+      /* and fixes LAG issue on XGS3 stacking              */
+      if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0)
+        return(L7_FAILURE);
+
+      /* Configure to use LCPLL reference clock */
+      if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0)
+        return(L7_FAILURE);
+
+      /* Enable Mode 5 for BCM56450 */
+      if (sal_config_set(spn_BCM5645X_CONFIG, "5") != 0)
+        return(L7_FAILURE);
+
+      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_1", "0x0123") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_5", "0x0123") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_9", "0x0123") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_13", "0x0123") != 0)
+        return(L7_FAILURE);
+
+      /* External memory configuration */
+      if (sal_config_set(spn_PBMP_EXT_MEM, "0x1fffffe") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_DDR3_PLL_MHZ, "914") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_DDR3_CLOCK_MHZ, "933") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_EXT_RAM_ROWS, "16384") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_DDR3_AUTO_TUNE, "1") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_DDR3_MEM_GRADE, "0x131313") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_EXT_RAM_PRESENT, "6") != 0)
+        return(L7_FAILURE);
+
+      /*
+       * On 568xx devices, the XPORT block defaults to XE ports.  Uncomment the
+       * following line to change all ports to HG ports.  A specific bitmap
+       * may be provided to select some XE and some HG ports, with the set
+       * bits initialized to HG ports.  Note that HG and XE ports may be
+       * exchanged through the bcm_port_encap_set API.
+       */
+      /* XE ports are bcm_port 9, 25(32), 27, 33 and 36(34) */
+      if (sal_config_set(spn_PBMP_XPORT_XE, "0x120A000000") != 0)
+        return(L7_FAILURE);
+
+      PT_LOG_TRACE(LOG_CTX_STARTUP,"Katana2 ready to be started!");
+      break;
+
       /* PTin added: new switch 56843 (Trident) */
       case UNIT_BROAD_40_TENGIG_56843_REV_1_ID:
         if (sal_config_set(spn_TRUNK_EXTEND, "0x1") != 0) return(L7_FAILURE);

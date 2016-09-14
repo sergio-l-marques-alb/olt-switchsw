@@ -43,6 +43,7 @@
 #define UNIT_BROAD_4_10G_3_40G_1_GIG_56640_REV_1_ID         0xB64014E4 /* PTin added: new switch 5664x (Triumph3) SF */
 #define UNIT_BROAD_48_GIG_4_TENGIG_4_40GIG_56643_REV_1_ID   0xB64314E4 /* PTin added: new switch 5664x (Triumph3) */
 #define UNIT_BROAD_48_GIG_4_TENGIG_56340_REV_1_ID           0xB3400001 /* PTin added: new switch 56340 (Helix4) */
+#define UNIT_BROAD_48_GIG_4_TENGIG_56450_REV_1_ID           0xB4500001 /* PTin added: new switch 56450 (Katana2) */
 #define UNIT_BROAD_40_TENGIG_56843_REV_1_ID                 0xB8430001 /* PTin added: new switch 56843 (Trident) */
 #define UNIT_BROAD_64_TENGIG_56846_REV_1_ID                 0xB8460001 /* PTin added: new switch 56846 (Trident-plus) */
 
@@ -70,6 +71,7 @@
 #define CARD_BROAD_4_10G_3_40G_1_GIG_56640_REV_1_ID       0x56640001   /* PTin added: new switch 5664x (Triumph3) SF */
 #define CARD_BROAD_48_GIG_4_TENGIG_4_40GIG_56643_REV_1_ID 0x56643001   /* PTin added: new switch 5664x (Triumph3) */
 #define CARD_BROAD_48_GIG_4_TENGIG_56340_REV_1_ID         0x56340001   /* PTin added: new switch 56340 (Helix4) */
+#define CARD_BROAD_48_GIG_4_TENGIG_56450_REV_1_ID         0x56450001   /* PTin added: new switch 56450 (Katana2) */
 #define CARD_BROAD_40_TENGIG_56843_REV_1_ID               0x56843001   /* PTin added: new switch 56843 (Trident) */
 #define CARD_BROAD_64_TENGIG_56846_REV_1_ID               0x56846001   /* PTin added: new switch 56846 (Trident-plus) */
 #define CARD_BROAD_48_GIG_4_TENGIG_56646_REV_1_ID         0x56646001   /* PTin added: new switch 56646 (?) */

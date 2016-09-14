@@ -127,6 +127,22 @@
         __BROADCOM_56340_ID,
         NO_CONNECTION_LIST
     },
+    /* PTin added: new switch 56450 (Katana2) */
+    /* 56450 board */
+    {
+        BCM_SYS_BOARD_56450,
+        /* *soc_brd_info */
+    1, 
+    { 
+        BCM56450_DEVICE_ID,
+    },
+        bcm_sys_id_defl,
+        bcm_sys_sa_init_defl,
+        bcm_sys_pre_stack_defl,
+        UNIT_BROAD_48_GIG_4_TENGIG_56450_REV_1_ID,
+        __BROADCOM_56450_ID,
+        NO_CONNECTION_LIST
+    },
     /* PTin added: new switch 56843 (Trident) */
     /* 56843 board */
     {
