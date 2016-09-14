@@ -598,13 +598,13 @@ L7_RC_t hpcConfigBoardSet()
       if (sal_config_set(spn_BCM5645X_CONFIG, "5") != 0)
         return(L7_FAILURE);
 
-      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_1", "0x0123") != 0)
+      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_1", "0x3210") != 0)
         return(L7_FAILURE);
-      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_5", "0x0123") != 0)
+      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_5", "0x3210") != 0)
         return(L7_FAILURE);
-      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_9", "0x0123") != 0)
+      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_9", "0x3210") != 0)
         return(L7_FAILURE);
-      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_13", "0x0123") != 0)
+      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_13", "0x3210") != 0)
         return(L7_FAILURE);
 
       /* External memory configuration */
