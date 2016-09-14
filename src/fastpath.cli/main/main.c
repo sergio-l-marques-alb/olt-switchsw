@@ -2447,15 +2447,15 @@ int main (int argc, char *argv[])
           ptr = (msg_evc_qos_t *) &(comando.info[0]);
           memset(ptr,0,sizeof(msg_evc_qos_t));
 
-          ptr->slot_id = (uint8)-1;
+          ptr->slot_id = ENDIAN_SWAP8((uint8)-1);
 
           // EVC
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->id.id_type = 1;
-          ptr->id.id_val.evc_id = (uint32) valued;
+          ptr->id.id_type = ENDIAN_SWAP8(1);
+          ptr->id.id_val.evc_id = ENDIAN_SWAP32((uint32) valued);
 
           // Uplink?
           if (StrToLongLong(argv[3+1],&valued)<0)  {
@@ -2465,24 +2465,24 @@ int main (int argc, char *argv[])
           dir = (uint8) valued & 1;
 
           /* Mask active */
-          ptr->qos[dir].mask = 0x01;
+          ptr->qos[dir].mask = ENDIAN_SWAP8(0x01);
 
           // Remark pbits
           if (StrToLongLong(argv[3+2],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->qos[dir].pbits_remark = (uint8) valued & 1;
+          ptr->qos[dir].pbits_remark = ENDIAN_SWAP8((uint8) valued & 1);
 
           // Trust mode
           if (StrToLongLong(argv[3+3],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->qos[dir].trust_mode = (uint8) valued;
+          ptr->qos[dir].trust_mode = ENDIAN_SWAP8((uint8) valued);
 
           /* CoS map */
-          if (ptr->qos[dir].trust_mode >= 2)
+          if (ENDIAN_SWAP8(ptr->qos[dir].trust_mode) >= 2)
           {
             // Priorities map
             for (i=0; i<8 && argc>=(3+5+i); i++)
@@ -2493,30 +2493,30 @@ int main (int argc, char *argv[])
                 exit(0);
               }
               /* 802.1p trust mode */
-              if (ptr->qos[dir].trust_mode == 2)
+              if (ENDIAN_SWAP8(ptr->qos[dir].trust_mode) == 2)
               {
-                ptr->qos[dir].cos_classif.pcp_map.cos[i] = (uint32)valued;
-                ptr->qos[dir].cos_classif.pcp_map.prio_mask |= (1 << i);
-                printf("Configuring PCP prio %u: value=%u\r\n", i, ptr->qos[dir].cos_classif.pcp_map.cos[i]);
+                ptr->qos[dir].cos_classif.pcp_map.cos[i] = ENDIAN_SWAP8((uint8)valued);
+                ptr->qos[dir].cos_classif.pcp_map.prio_mask |= ENDIAN_SWAP8(1 << i);
+                printf("Configuring PCP prio %u: value=%u\r\n", i, ENDIAN_SWAP8(ptr->qos[dir].cos_classif.pcp_map.cos[i]));
               }
               /* IP_PREC trust mode */
-              else if (ptr->qos[dir].trust_mode == 3)
+              else if (ENDIAN_SWAP8(ptr->qos[dir].trust_mode) == 3)
               {
-                ptr->qos[dir].cos_classif.ipprec_map.cos[i] = (uint32)valued;
-                ptr->qos[dir].cos_classif.ipprec_map.prio_mask |= (1 << i);
-                printf("Configuring IPPREC prio %u: value=%u\r\n", i, ptr->qos[dir].cos_classif.ipprec_map.cos[i]);
+                ptr->qos[dir].cos_classif.ipprec_map.cos[i] = ENDIAN_SWAP8((uint8)valued);
+                ptr->qos[dir].cos_classif.ipprec_map.prio_mask |= ENDIAN_SWAP8(1 << i);
+                printf("Configuring IPPREC prio %u: value=%u\r\n", i, ENDIAN_SWAP8(ptr->qos[dir].cos_classif.ipprec_map.cos[i]));
               }
               /* DSCP trust mode */
-              else if (ptr->qos[dir].trust_mode == 4)
+              else if (ENDIAN_SWAP8(ptr->qos[dir].trust_mode) == 4)
               {
                 for (j = 0; j < 8; j++)
                 {
                   prio = (i*8)+j;
 
-                  ptr->qos[dir].cos_classif.dscp_map.cos[prio] = ((uint32)valued >> (4*j)) & 0xf;
-                  ptr->qos[dir].cos_classif.dscp_map.prio_mask[prio/32] |= (1 << (prio%32));
+                  ptr->qos[dir].cos_classif.dscp_map.cos[prio] = ENDIAN_SWAP8(((uint8)valued >> (4*j)) & 0xf);
+                  ptr->qos[dir].cos_classif.dscp_map.prio_mask[prio/32] |= ENDIAN_SWAP32(1 << (prio%32));
 
-                  printf("Configuring DSCP prio %u: value=%u\r\n", prio, ptr->qos[dir].cos_classif.dscp_map.cos[prio]);
+                  printf("Configuring DSCP prio %u: value=%u\r\n", prio, ENDIAN_SWAP8(ptr->qos[dir].cos_classif.dscp_map.cos[prio]));
                 }
               }
             }
@@ -5305,16 +5305,17 @@ int main (int argc, char *argv[])
 
           // Pointer to data array
           ptr = (msg_HwEthMef10Evc_t *) &(comando.info[0]);
+          memset(ptr, 0x00, sizeof(msg_HwEthMef10Evc_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // evc index
           if (StrToLongLong(argv[3+0], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->id = valued;
+          ptr->id = ENDIAN_SWAP32(valued);
         }
         break;
 
@@ -5337,14 +5338,14 @@ int main (int argc, char *argv[])
           memset(ptr, 0x00, sizeof(msg_HwEthMef10Evc_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // evc index
           if (StrToLongLong(argv[3+0], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->id = valued;
+          ptr->id = ENDIAN_SWAP32((uint32) valued);
 
           // P2P
           if (StrToLongLong(argv[3+1], &valued)<0)  {
@@ -5352,36 +5353,34 @@ int main (int argc, char *argv[])
             exit(0);
           }
           ptr->flags |= (valued != 0) ? ((valued << 16) & 0x30000) : 0;
-
           // Stacked
           if (StrToLongLong(argv[3+2], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->flags |= valued != 0 ? 0x0004 : 0;
-
           // MAC Learning
           if (StrToLongLong(argv[3+3], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->flags |= valued != 0 ? 0x0008 : 0;
-
           // Other masks
           if (StrToLongLong(argv[3+4], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->flags |= valued;
+          ptr->flags = ENDIAN_SWAP32(ptr->flags);
 
           // MC Flood type
           if (StrToLongLong(argv[3+5], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->mc_flood = valued;
+          ptr->mc_flood = ENDIAN_SWAP8((uint8) valued);
 
-          ptr->n_intf   = argc - (3+6);
+          ptr->n_intf   = ENDIAN_SWAP8(argc - (3+6));
 
           // Interfaces...
           unsigned int intf, type, mef, vid, ivid;
@@ -5389,11 +5388,11 @@ int main (int argc, char *argv[])
             printf("argv[%u]=%s  **  ", i, argv[i]);
             sscanf(argv[i], "%d/%d/%d/%d/%d", &type, &intf, &mef, &vid, &ivid);
             printf("%d/%d/%d/%d/%d\n", type, intf, mef, vid, ivid);
-            ptr->intf[i-(3+6)].intf_type = type;
-            ptr->intf[i-(3+6)].intf_id   = intf;
-            ptr->intf[i-(3+6)].mef_type  = mef;
-            ptr->intf[i-(3+6)].vid       = vid;
-            ptr->intf[i-(3+6)].inner_vid = ivid;
+            ptr->intf[i-(3+6)].intf_type = ENDIAN_SWAP8 (type);
+            ptr->intf[i-(3+6)].intf_id   = ENDIAN_SWAP8 (intf);
+            ptr->intf[i-(3+6)].mef_type  = ENDIAN_SWAP8 (mef);
+            ptr->intf[i-(3+6)].vid       = ENDIAN_SWAP16(vid);
+            ptr->intf[i-(3+6)].inner_vid = ENDIAN_SWAP16(ivid);
           }
         }
         break;
@@ -5415,14 +5414,14 @@ int main (int argc, char *argv[])
           ptr = (msg_HwEthMef10EvcRemove_t *) &(comando.info[0]);
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // evc index
           if (StrToLongLong(argv[3+0], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->id = valued;
+          ptr->id = ENDIAN_SWAP32((uint32) valued);
         }
         break;
 
@@ -5463,13 +5462,13 @@ int main (int argc, char *argv[])
           printf("%d/%d/%d/%d/%d\n", type, intf, mef, vid, ivid);
 
           memset(&ptr[i], 0x00, sizeof(msg_HWevcPort_t));
-          ptr[i].slotId         = slotId;
-          ptr[i].evcId          = evc_idx;
-          ptr[i].intf.intf_type = type;
-          ptr[i].intf.intf_id   = intf;
-          ptr[i].intf.mef_type  = mef;
-          ptr[i].intf.vid       = vid;
-          ptr[i].intf.inner_vid = ivid;
+          ptr[i].slotId         = ENDIAN_SWAP8 (slotId);
+          ptr[i].evcId          = ENDIAN_SWAP32(evc_idx);
+          ptr[i].intf.intf_type = ENDIAN_SWAP8 (type);
+          ptr[i].intf.intf_id   = ENDIAN_SWAP8 (intf);
+          ptr[i].intf.mef_type  = ENDIAN_SWAP8 (mef);
+          ptr[i].intf.vid       = ENDIAN_SWAP16(vid);
+          ptr[i].intf.inner_vid = ENDIAN_SWAP16(ivid);
 
           comando.infoDim += sizeof(msg_HWevcPort_t);
         }
@@ -5513,10 +5512,10 @@ int main (int argc, char *argv[])
           printf("%d/%d\n", type, intf);
 
           memset(&ptr[i], 0x00, sizeof(msg_HWevcPort_t));
-          ptr[i].slotId         = slotId;
-          ptr[i].evcId          = evc_idx;
-          ptr[i].intf.intf_type = type;
-          ptr[i].intf.intf_id   = intf;
+          ptr[i].slotId         = ENDIAN_SWAP8 (slotId);
+          ptr[i].evcId          = ENDIAN_SWAP32(evc_idx);
+          ptr[i].intf.intf_type = ENDIAN_SWAP8 (type);
+          ptr[i].intf.intf_id   = ENDIAN_SWAP8 (intf);
 
           comando.infoDim += sizeof(msg_HWevcPort_t);
         }
@@ -5542,44 +5541,42 @@ int main (int argc, char *argv[])
           memset(ptr, 0x00, sizeof(msg_HwEthEvcBridge_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // EVC index
           if (StrToLongLong(argv[3+0], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->evcId = valued;
+          ptr->evcId = ENDIAN_SWAP32(valued);
 
           // Intf type
           if (StrToLongLong(argv[3+1], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = valued;
-
+          ptr->intf.intf_type = ENDIAN_SWAP8(valued);
           // Intf#
           if (StrToLongLong(argv[3+2], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_id = valued;
-
-          ptr->intf.mef_type = 1; // leaf
+          ptr->intf.intf_id = ENDIAN_SWAP8(valued);
+          ptr->intf.mef_type = ENDIAN_SWAP8(1); // leaf
 
           // Outer VLAN
           if (StrToLongLong(argv[3+3], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.vid = valued;
+          ptr->intf.vid = ENDIAN_SWAP16(valued);
 
           // Inner VLAN
           if (StrToLongLong(argv[3+4], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->inn_vlan = valued;
+          ptr->inn_vlan = ENDIAN_SWAP16(valued);
         }
         break;
 
@@ -5602,37 +5599,35 @@ int main (int argc, char *argv[])
           memset(ptr, 0x00, sizeof(msg_HwEthEvcBridge_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // EVC index
           if (StrToLongLong(argv[3+0], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->evcId = valued;
+          ptr->evcId = ENDIAN_SWAP32(valued);
 
           // Intf type
           if (StrToLongLong(argv[3+1], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = valued;
-
+          ptr->intf.intf_type = ENDIAN_SWAP8(valued);
           // Intf#
           if (StrToLongLong(argv[3+2], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_id = valued;
-
-          ptr->intf.vid = 0xFFFF;
+          ptr->intf.intf_id = ENDIAN_SWAP8(valued);
+          ptr->intf.vid = ENDIAN_SWAP16(0xFFFF);
 
           // Inner VLAN
           if (StrToLongLong(argv[3+3], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->inn_vlan = valued;
+          ptr->inn_vlan = ENDIAN_SWAP16(valued);
         }
         break;
 
@@ -5655,42 +5650,41 @@ int main (int argc, char *argv[])
           memset(ptr, 0x00, sizeof(msg_HwEthEvcFlow_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // EVC index
           if (StrToLongLong(argv[3+0], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->evcId = valued;
+          ptr->evcId = ENDIAN_SWAP32(valued);
 
           // Intf type
           if (StrToLongLong(argv[3+1], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_type = valued;
-
+          ptr->intf.intf_type = ENDIAN_SWAP8(valued);
           // Intf#
           if (StrToLongLong(argv[3+2], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.intf_id = valued;
+          ptr->intf.intf_id = ENDIAN_SWAP8(valued);
 
           // Outer VLAN
           if (StrToLongLong(argv[3+3], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.outer_vid = valued;
+          ptr->intf.outer_vid = ENDIAN_SWAP16(valued);
 
           // Inner VLAN
           if (StrToLongLong(argv[3+4], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf.inner_vid = valued;
+          ptr->intf.inner_vid = ENDIAN_SWAP16(valued);
 
           // NNI Client VLAN
           if (argc >= 3+6)
@@ -5699,7 +5693,7 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->nni_cvlan = valued;
+            ptr->nni_cvlan = ENDIAN_SWAP16(valued);
           }
 
           // Flags
@@ -5709,7 +5703,7 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->flags = (uint32) valued;
+            ptr->flags = ENDIAN_SWAP32((uint32) valued);
           }
 
           // Maximum number of MAC addresses
@@ -5719,7 +5713,7 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            ptr->macLearnMax = (uint8) valued;
+            ptr->macLearnMax = ENDIAN_SWAP8((uint8) valued);
           }
         }
         break;
@@ -5743,35 +5737,34 @@ int main (int argc, char *argv[])
         memset(ptr, 0x00, sizeof(msg_HwEthEvcFlow_t));
 
         // Slot id
-        ptr->SlotId = (uint8)-1;
+        ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
         // EVC index
         if (StrToLongLong(argv[3+0], &valued)<0)  {
           help_oltBuga();
           exit(0);
         }
-        ptr->evcId = valued;
+        ptr->evcId = ENDIAN_SWAP32(valued);
 
         // Intf type
         if (StrToLongLong(argv[3+1], &valued)<0)  {
           help_oltBuga();
           exit(0);
         }
-        ptr->intf.intf_type = valued;
-
+        ptr->intf.intf_type = ENDIAN_SWAP8(valued);
         // Intf#
         if (StrToLongLong(argv[3+2], &valued)<0)  {
           help_oltBuga();
           exit(0);
         }
-        ptr->intf.intf_id = valued;
+        ptr->intf.intf_id = ENDIAN_SWAP8(valued);
 
         // Outer VLAN
         if (StrToLongLong(argv[3+3], &valued)<0)  {
           help_oltBuga();
           exit(0);
         }
-        ptr->intf.outer_vid = valued;
+        ptr->intf.outer_vid = ENDIAN_SWAP16(valued);
       }
       break;
 
@@ -5794,19 +5787,19 @@ int main (int argc, char *argv[])
         memset(ptr, 0x00, sizeof(msg_HwEthMef10EvcOptions_t));
 
         // Slot id
-        ptr->SlotId = (uint8)-1;
+        ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
         // Default Mask
-        ptr->mask = 0;
+        ptr->mask = ENDIAN_SWAP16(0);
         /* Default flags value */
-        ptr->flags.value = 0;
-        ptr->flags.mask  = 0xffffffff;
+        ptr->flags.value = ENDIAN_SWAP32(0);
+        ptr->flags.mask  = ENDIAN_SWAP32(0xffffffff);
 
         // EVC index
         if (StrToLongLong(argv[3+0], &valued)<0)  {
           help_oltBuga();
           exit(0);
         }
-        ptr->id = valued;
+        ptr->id = ENDIAN_SWAP32(valued);
 
         // Type
         if (argc >= 3+2)
@@ -5816,8 +5809,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->type = (L7_uint8) valued;
-          ptr->mask |= PTIN_EVC_OPTIONS_MASK_TYPE;
+          ptr->type = ENDIAN_SWAP8((L7_uint8) valued);
+          ptr->mask |= ENDIAN_SWAP16(PTIN_EVC_OPTIONS_MASK_TYPE);
         }
 
         // MC flood
@@ -5828,8 +5821,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->mc_flood = (L7_uint8) valued;
-          ptr->mask |= PTIN_EVC_OPTIONS_MASK_MCFLOOD;
+          ptr->mc_flood = ENDIAN_SWAP8((L7_uint8) valued);
+          ptr->mask |= ENDIAN_SWAP16(PTIN_EVC_OPTIONS_MASK_MCFLOOD);
         }
 
         // Flags value
@@ -5840,8 +5833,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->flags.value = (L7_uint32) valued;
-          ptr->mask |= PTIN_EVC_OPTIONS_MASK_FLAGS;
+          ptr->flags.value = ENDIAN_SWAP32((L7_uint32) valued);
+          ptr->mask |= ENDIAN_SWAP16(PTIN_EVC_OPTIONS_MASK_FLAGS);
         }
 
         // Flags mask
@@ -5852,7 +5845,7 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->flags.mask = (L7_uint32) valued;
+          ptr->flags.mask = ENDIAN_SWAP32((L7_uint32) valued);
         }
       }
       break;
@@ -5873,9 +5866,9 @@ int main (int argc, char *argv[])
           memset(ptr, 0x00, sizeof(msg_NtwConnectivity_t));
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
-          ptr->mask = 0xFFFFFFFF;
+          ptr->mask = ENDIAN_SWAP32(0xFFFFFFFF);
 
           comando.msgId = CCMSG_ETH_NTW_CONNECTIVITY_GET;
           comando.infoDim = sizeof(msg_NtwConnectivity_t);
@@ -5900,54 +5893,53 @@ int main (int argc, char *argv[])
           ptr = (msg_NtwConnectivity_t *) &(comando.info[0]);
           memset(ptr, 0x00, sizeof(msg_NtwConnectivity_t));
 
-          ptr->mask = 0xFFFFFFFF;
+          ptr->mask = ENDIAN_SWAP32(0xFFFFFFFF);
 
           // Slot id
-          ptr->SlotId = (uint8)-1;
+          ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
           // Intf type
           if (StrToLongLong(argv[3+0], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf[0].intf_type = valued;
-
+          ptr->intf[0].intf_type = ENDIAN_SWAP8(valued);
           // Intf #
           if (StrToLongLong(argv[3+1], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->intf[0].intf_id = valued;
+          ptr->intf[0].intf_id = ENDIAN_SWAP8(valued);
 
-          ptr->n_intf = 1;
+          ptr->n_intf = ENDIAN_SWAP8(1);
 
           // IP Addr
           if (convert_ipaddr2uint64(argv[3+2], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->ipaddr = valued;
+          ptr->ipaddr = ENDIAN_SWAP32(valued);
 
           // NetMask
           if (convert_ipaddr2uint64(argv[3+3], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->netmask = valued;
+          ptr->netmask = ENDIAN_SWAP32(valued);
 
           // Gateway
           if (convert_ipaddr2uint64(argv[3+4], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->gateway = valued;
+          ptr->gateway = ENDIAN_SWAP32(valued);
 
           // VLAN
           if (StrToLongLong(argv[3+5], &valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->mgmtVlanId = valued;
+          ptr->mgmtVlanId = ENDIAN_SWAP16(valued);
         }
         break;
 
@@ -5972,12 +5964,12 @@ int main (int argc, char *argv[])
         // Clear structure
         memset(ptr,0x00,sizeof(msg_HwEthBwProfile_t));
 
-        ptr->SlotId = (uint8)-1;
-        ptr->evcId = (uint32)-1;
-        ptr->profile.cir = (uint64)-1;
-        ptr->profile.eir = (uint64)-1;
-        ptr->profile.cbs = (uint64)-1;
-        ptr->profile.ebs = (uint64)-1;
+        ptr->SlotId      = ENDIAN_SWAP8((uint8)-1);
+        ptr->evcId       = ENDIAN_SWAP32((uint32)-1);
+        ptr->profile.cir = ENDIAN_SWAP64((uint64)-1);
+        ptr->profile.eir = ENDIAN_SWAP64((uint64)-1);
+        ptr->profile.cbs = ENDIAN_SWAP64((uint64)-1);
+        ptr->profile.ebs = ENDIAN_SWAP64((uint64)-1);
 
         for (index=(3+0); index<argc; index++)
         {
@@ -5996,7 +5988,7 @@ int main (int argc, char *argv[])
               printf("Invalid slot id\r\n");
               exit(0);
             }
-            ptr->SlotId = (uint8) valued;
+            ptr->SlotId = ENDIAN_SWAP8((uint8) valued);
           }
           else if (strcmp(param,"evc")==0)
           {
@@ -6005,7 +5997,7 @@ int main (int argc, char *argv[])
               printf("Invalid evc value\r\n");
               exit(0);
             }
-            ptr->evcId = (uint32) valued;
+            ptr->evcId = ENDIAN_SWAP32((uint32) valued);
           }
           else if (strcmp(param,"intf")==0 || strcmp(param,"intfsrc")==0)
           {
@@ -6014,9 +6006,9 @@ int main (int argc, char *argv[])
               printf("Invalid intf/intfsrc value\r\n");
               exit(0);
             }
-            ptr->intf_src.intf_type = (uint8) type;
-            ptr->intf_src.intf_id   = (uint8) intf;
-            ptr->mask |= MSG_HWETH_BWPROFILE_MASK_INTF_SRC;
+            ptr->intf_src.intf_type = ENDIAN_SWAP8((uint8) type);
+            ptr->intf_src.intf_id   = ENDIAN_SWAP8((uint8) intf);
+            ptr->mask |= ENDIAN_SWAP8(MSG_HWETH_BWPROFILE_MASK_INTF_SRC);
           }
           else if (strcmp(param,"intfdst")==0)
           {
@@ -6025,9 +6017,9 @@ int main (int argc, char *argv[])
               printf("Invalid intfdst value\r\n");
               exit(0);
             }
-            ptr->intf_dst.intf_type = (uint8) type;
-            ptr->intf_dst.intf_id   = (uint8) intf;
-            ptr->mask |= MSG_HWETH_BWPROFILE_MASK_INTF_DST;
+            ptr->intf_dst.intf_type = ENDIAN_SWAP8((uint8) type);
+            ptr->intf_dst.intf_id   = ENDIAN_SWAP8((uint8) intf);
+            ptr->mask |= ENDIAN_SWAP8(MSG_HWETH_BWPROFILE_MASK_INTF_DST);
           }
           else if (strcmp(param,"svid")==0)
           {
@@ -6036,8 +6028,8 @@ int main (int argc, char *argv[])
               printf("Invalid svid value\r\n");
               exit(0);
             }
-            ptr->service_vlan = (uint16) valued;
-            ptr->mask |= MSG_HWETH_BWPROFILE_MASK_SVLAN;
+            ptr->service_vlan = ENDIAN_SWAP16((uint16) valued);
+            ptr->mask |= ENDIAN_SWAP8(MSG_HWETH_BWPROFILE_MASK_SVLAN);
           }
           else if (strcmp(param,"cvid")==0)
           {
@@ -6046,8 +6038,8 @@ int main (int argc, char *argv[])
               printf("Invalid cvid value\r\n");
               exit(0);
             }
-            ptr->client_vlan = (uint16) valued;
-            ptr->mask |= MSG_HWETH_BWPROFILE_MASK_CVLAN;
+            ptr->client_vlan = ENDIAN_SWAP16((uint16) valued);
+            ptr->mask |= ENDIAN_SWAP8(MSG_HWETH_BWPROFILE_MASK_CVLAN);
           }
           else if (strcmp(param,"cir")==0)
           {
@@ -6056,8 +6048,8 @@ int main (int argc, char *argv[])
               printf("Invalid cir value\r\n");
               exit(0);
             }
-            ptr->profile.cir = (uint64) valued*1000000;
-            ptr->mask |= MSG_HWETH_BWPROFILE_MASK_PROFILE;
+            ptr->profile.cir = ENDIAN_SWAP64((uint64) valued*1000000);
+            ptr->mask |= ENDIAN_SWAP8(MSG_HWETH_BWPROFILE_MASK_PROFILE);
           }
           else if (strcmp(param,"eir")==0)
           {
@@ -6066,8 +6058,8 @@ int main (int argc, char *argv[])
               printf("Invalid eir value\r\n");
               exit(0);
             }
-            ptr->profile.eir = (uint64) valued*1000000;
-            ptr->mask |= MSG_HWETH_BWPROFILE_MASK_PROFILE;
+            ptr->profile.eir = ENDIAN_SWAP64((uint64) valued*1000000);
+            ptr->mask |= ENDIAN_SWAP8(MSG_HWETH_BWPROFILE_MASK_PROFILE);
           }
           else if (strcmp(param,"cbs")==0)
           {
@@ -6076,8 +6068,8 @@ int main (int argc, char *argv[])
               printf("Invalid cbs value\r\n");
               exit(0);
             }
-            ptr->profile.cbs = (uint64) valued;
-            ptr->mask |= MSG_HWETH_BWPROFILE_MASK_PROFILE;
+            ptr->profile.cbs = ENDIAN_SWAP64((uint64) valued);
+            ptr->mask |= ENDIAN_SWAP8(MSG_HWETH_BWPROFILE_MASK_PROFILE);
           }
           else if (strcmp(param,"ebs")==0)
           {
@@ -6086,8 +6078,8 @@ int main (int argc, char *argv[])
               printf("Invalid ebs value\r\n");
               exit(0);
             }
-            ptr->profile.ebs = (uint64) valued;
-            ptr->mask |= MSG_HWETH_BWPROFILE_MASK_PROFILE;
+            ptr->profile.ebs = ENDIAN_SWAP64((uint64) valued);
+            ptr->mask |= ENDIAN_SWAP8(MSG_HWETH_BWPROFILE_MASK_PROFILE);
           }
           else
           {
@@ -6132,8 +6124,8 @@ int main (int argc, char *argv[])
         // Clear structure
         memset(ptr,0x00,sizeof(msg_HwEthStormControl_t));
 
-        ptr->SlotId = (uint8)-1;
-        ptr->id = 0;
+        ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
+        ptr->id = ENDIAN_SWAP32(0);
 
         for (index=(3+0); index<argc; index++)
         {
@@ -6152,7 +6144,7 @@ int main (int argc, char *argv[])
               printf("Invalid slot id\r\n");
               exit(0);
             }
-            ptr->SlotId = (uint8) valued;
+            ptr->SlotId = ENDIAN_SWAP8((uint8) valued);
           }
           else if (strcmp(param,"bc")==0)
           {
@@ -6161,8 +6153,8 @@ int main (int argc, char *argv[])
               printf("Invalid Broadcast rate value\r\n");
               exit(0);
             }
-            ptr->bcast_rate = (uint32) valued;
-            ptr->mask |= MSG_STORMCONTROL_MASK_BCAST;
+            ptr->bcast_rate = ENDIAN_SWAP32((uint32) valued);
+            ptr->mask |= ENDIAN_SWAP16(MSG_STORMCONTROL_MASK_BCAST);
           }
           else if (strcmp(param,"mc")==0)
           {
@@ -6171,8 +6163,8 @@ int main (int argc, char *argv[])
               printf("Invalid Multicast rate value\r\n");
               exit(0);
             }
-            ptr->mcast_rate = (uint32) valued;
-            ptr->mask |= MSG_STORMCONTROL_MASK_MCAST;
+            ptr->mcast_rate = ENDIAN_SWAP32((uint32) valued);
+            ptr->mask |= ENDIAN_SWAP16(MSG_STORMCONTROL_MASK_MCAST);
           }
           else if (strcmp(param,"uc")==0)
           {
@@ -6181,8 +6173,8 @@ int main (int argc, char *argv[])
               printf("Invalid Unknown Unicast rate value\r\n");
               exit(0);
             }
-            ptr->ucast_unknown_rate = (uint32) valued;
-            ptr->mask |= MSG_STORMCONTROL_MASK_UCUNK;
+            ptr->ucast_unknown_rate = ENDIAN_SWAP32((uint32) valued);
+            ptr->mask |= ENDIAN_SWAP16(MSG_STORMCONTROL_MASK_UCUNK);
           }
           else
           {
@@ -6231,7 +6223,7 @@ int main (int argc, char *argv[])
         // Clear structure
         memset(ptr,0x00,sizeof(msg_HwEthStormControl2_t));
 
-        ptr->SlotId = (uint8)-1;
+        ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
 
         /* Set correct mask */
         switch (msg)
@@ -6239,17 +6231,17 @@ int main (int argc, char *argv[])
         case 1627:
           rate_value = &ptr->broadcast.rate_value;
           rate_units = &ptr->broadcast.rate_units;
-          ptr->mask  = MSG_STORMCONTROL_MASK_BCAST;
+          ptr->mask  = ENDIAN_SWAP8(MSG_STORMCONTROL_MASK_BCAST);
           break;
         case 1628:
           rate_value = &ptr->multicast.rate_value;
           rate_units = &ptr->multicast.rate_units;
-          ptr->mask = MSG_STORMCONTROL_MASK_MCAST;
+          ptr->mask = ENDIAN_SWAP8(MSG_STORMCONTROL_MASK_MCAST);
           break;
         case 1629:
           rate_value = &ptr->unknown_uc.rate_value;
           rate_units = &ptr->unknown_uc.rate_units;
-          ptr->mask = MSG_STORMCONTROL_MASK_UCUNK;
+          ptr->mask = ENDIAN_SWAP8(MSG_STORMCONTROL_MASK_UCUNK);
           break;
         default:
           printf("Invalid Message id (%u)\r\n",msg);
@@ -6262,8 +6254,8 @@ int main (int argc, char *argv[])
           help_oltBuga();
           exit(0);
         }
-        ptr->intf.intf_type = (uint8) type;
-        ptr->intf.intf_id   = (uint8) intf;
+        ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+        ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
 
         // Enable
         if (StrToLongLong(argv[3+1], &valued) < 0)
@@ -6275,13 +6267,13 @@ int main (int argc, char *argv[])
         /* Disabled? */
         if (valued == 0)
         {
-          *rate_value = (uint32) -1;
+          *rate_value = ENDIAN_SWAP32((uint32) -1);
         }
         /* If to enable, check additional values */
         else
         {
           /* Minimum value */
-          *rate_value = 1;
+          *rate_value = ENDIAN_SWAP32(1);
 
           /* Threshold limit */
           if (argc >= 3+3)
@@ -6291,7 +6283,7 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            *rate_value = (uint32) valued;
+            *rate_value = ENDIAN_SWAP32((uint32) valued);
           }
           /* Threshold units */
           if (argc >= 3+4)
@@ -6301,7 +6293,7 @@ int main (int argc, char *argv[])
               help_oltBuga();
               exit(0);
             }
-            *rate_units = (uint8) valued;
+            *rate_units = ENDIAN_SWAP8((uint8) valued);
           }
         }
         
@@ -6329,8 +6321,8 @@ int main (int argc, char *argv[])
           // Pointer to data array
           ptr = (msg_evcStats_t *) &(comando.info[0]);
           memset(ptr,0x00,sizeof(msg_evcStats_t));
-          ptr->SlotId= (uint8)-1;
-          ptr->evc_id= (uint32)-1;
+          ptr->SlotId= ENDIAN_SWAP8((uint8)-1);
+          ptr->evc_id= ENDIAN_SWAP32((uint32)-1);
 
           for (index=(3+0); index<argc; index++)
           {
@@ -6349,7 +6341,7 @@ int main (int argc, char *argv[])
                 printf("Invalid slot id\r\n");
                 exit(0);
               }
-              ptr->SlotId = (uint8) valued;
+              ptr->SlotId = ENDIAN_SWAP8((uint8) valued);
             }
             else if (strcmp(param,"evc")==0)
             {
@@ -6358,7 +6350,7 @@ int main (int argc, char *argv[])
                 printf("Invalid evc value\r\n");
                 exit(0);
               }
-              ptr->evc_id = (uint32) valued;
+              ptr->evc_id = ENDIAN_SWAP32((uint32) valued);
             }
             else if (strcmp(param,"intf")==0)
             {
@@ -6367,9 +6359,9 @@ int main (int argc, char *argv[])
                 printf("Invalid intf/intfsrc value\r\n");
                 exit(0);
               }
-              ptr->intf.intf_type = (uint8) type;
-              ptr->intf.intf_id   = (uint8) intf;
-              ptr->mask |= MSG_EVC_COUNTERS_MASK_INTF;
+              ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+              ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
+              ptr->mask |= ENDIAN_SWAP8(MSG_EVC_COUNTERS_MASK_INTF);
             }
             else if (strcmp(param,"svid")==0)
             {
@@ -6378,8 +6370,8 @@ int main (int argc, char *argv[])
                 printf("Invalid svid value\r\n");
                 exit(0);
               }
-              ptr->service_vlan = (uint16) valued;
-              ptr->mask |= MSG_EVC_COUNTERS_MASK_SVLAN;
+              ptr->service_vlan = ENDIAN_SWAP16((uint16) valued);
+              ptr->mask |= ENDIAN_SWAP8(MSG_EVC_COUNTERS_MASK_SVLAN);
             }
             else if (strcmp(param,"cvid")==0)
             {
@@ -6388,8 +6380,8 @@ int main (int argc, char *argv[])
                 printf("Invalid cvid value\r\n");
                 exit(0);
               }
-              ptr->client_vlan = (uint16) valued;
-              ptr->mask |= MSG_EVC_COUNTERS_MASK_CVLAN;
+              ptr->client_vlan = ENDIAN_SWAP16((uint16) valued);
+              ptr->mask |= ENDIAN_SWAP8(MSG_EVC_COUNTERS_MASK_CVLAN);
             }
             else if (strcmp(param,"channel")==0)
             {
@@ -6398,8 +6390,8 @@ int main (int argc, char *argv[])
                 printf("Invalid channel IP value (d.d.d.d format)\r\n");
                 exit(0);
               }
-              ptr->channel_ip = (uint32) valued;
-              ptr->mask |= MSG_EVC_COUNTERS_MASK_CHANNEL;
+              ptr->channel_ip = ENDIAN_SWAP32((uint32) valued);
+              ptr->mask |= ENDIAN_SWAP8(MSG_EVC_COUNTERS_MASK_CHANNEL);
             }
             else
             {
@@ -7381,7 +7373,7 @@ int main (int argc, char *argv[])
         msg_switch_config_t *po=(msg_switch_config_t *) &resposta.info[0];
 
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))  {
-          printf(" Slot %u: Age time = %lu\n\r",po->SlotId,po->aging_time);
+          printf(" Slot %u: Age time = %lu\n\r", ENDIAN_SWAP8(po->SlotId), ENDIAN_SWAP32(po->aging_time));
           printf("Switch: L2 Aging time read successfully\n\r");
         }
         else
@@ -8420,6 +8412,13 @@ int main (int argc, char *argv[])
           printf(" Switch: Error flushing MAC table - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
+      case 1044:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: QoS configuration applied successfully\n\r");
+        else
+          printf(" Switch: Failed applying QoS configuration - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
+        break;
+
       case 1220:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
         {
@@ -9203,7 +9202,7 @@ int main (int argc, char *argv[])
             printf("  STP state           = %s\r\n",(ENDIAN_SWAP8(ptr->stp_enable) ? "Enabled" : "Disabled"));
             printf("  LAG type            = %s\r\n",(ENDIAN_SWAP8(ptr->static_enable) ? "Static" : "Dynamic"));
             printf("  LoadBalance profile = %u\r\n",ENDIAN_SWAP8(ptr->loadBalance_mode));
-            printf("  Port bitmap         = 0x%08x 0x%08x\r\n", ENDIAN_SWAP32((unsigned int) ptr->members_pbmp2), ENDIAN_SWAP32((unsigned int) ptr->members_pbmp));
+            printf("  Port bitmap         = 0x%08lx 0x%08lx\r\n", ENDIAN_SWAP32((unsigned long) ptr->members_pbmp2), ENDIAN_SWAP32((unsigned long) ptr->members_pbmp));
           }
           printf(" Switch: LAG configurations read successfully\n\r");
         }
@@ -9244,8 +9243,8 @@ int main (int argc, char *argv[])
             printf("  Admin               = %s\r\n",(ENDIAN_SWAP8(ptr->admin) ? "Enabled" : "Disabled"));
             printf("  Link State          = %s\r\n",(ENDIAN_SWAP8(ptr->link_status) ? "UP" : "DOWN"));
             printf("  Port channel type   = %s\r\n",(ENDIAN_SWAP8(ptr->port_channel_type) ? "Static" : "Dynamic"));
-            printf("  Member Ports bitmap = 0x%08x 0x%08x\r\n", ENDIAN_SWAP32((unsigned int) ptr->members_pbmp2), ENDIAN_SWAP32((unsigned int) ptr->members_pbmp1));
-            printf("  Active Ports bitmap = 0x%08x 0x%08x\r\n", ENDIAN_SWAP32((unsigned int) ptr->active_members_pbmp2), ENDIAN_SWAP32((unsigned int) ptr->active_members_pbmp1));
+            printf("  Member Ports bitmap = 0x%08lx 0x%08lx\r\n", ENDIAN_SWAP32((unsigned long) ptr->members_pbmp2), ENDIAN_SWAP32((unsigned long) ptr->members_pbmp1));
+            printf("  Active Ports bitmap = 0x%08lx 0x%08lx\r\n", ENDIAN_SWAP32((unsigned long) ptr->active_members_pbmp2), ENDIAN_SWAP32((unsigned long) ptr->active_members_pbmp1));
           }
           printf(" Switch: LAG status read successfully\n\r");
         }
@@ -9334,20 +9333,22 @@ int main (int argc, char *argv[])
 
           ptr = (msg_HwEthMef10Evc_t *) &(resposta.info[0]);
 
-          printf("Slot %u EVC# %u\r\n", ptr->SlotId,(unsigned int)ptr->id);
-          printf(" .flags         = 0x%04lx\r\n", ptr->flags);
-          printf("   .stacked       = %s\r\n", ptr->flags & 0x0004 ? "True":"False");
-          printf("   .MACLearning   = %s\r\n", ptr->flags & 0x0008 ? "Enabled":"Disabled");
-          printf("   .CPU trapping  = %s\r\n", ptr->flags & 0x0010 ? "On":"Off");
-          printf("   .DHCP snooping = %s\r\n", ptr->flags & 0x0100 ? "On":"Off");
-          printf(" .MC Flood type = %u (%s)\r\n", ptr->mc_flood, ptr->mc_flood == 0 ? "All":ptr->mc_flood == 1 ? "Unknown":"None");
+          printf("Slot %u EVC# %u\r\n", ENDIAN_SWAP8(ptr->SlotId), (unsigned int) ENDIAN_SWAP32(ptr->id));
+          printf(" .flags         = 0x%04lx\r\n", ENDIAN_SWAP32(ptr->flags));
+          printf("   .stacked       = %s\r\n", ENDIAN_SWAP32(ptr->flags) & 0x0004 ? "True":"False");
+          printf("   .MACLearning   = %s\r\n", ENDIAN_SWAP32(ptr->flags) & 0x0008 ? "Enabled":"Disabled");
+          printf("   .CPU trapping  = %s\r\n", ENDIAN_SWAP32(ptr->flags) & 0x0010 ? "On":"Off");
+          printf("   .DHCP snooping = %s\r\n", ENDIAN_SWAP32(ptr->flags) & 0x0100 ? "On":"Off");
+          printf(" .MC Flood type = %u (%s)\r\n", ENDIAN_SWAP8(ptr->mc_flood),
+                 ((ENDIAN_SWAP8(ptr->mc_flood) == 0) ? "All" : ((ENDIAN_SWAP8(ptr->mc_flood) == 1) ? "Unknown":"None")));
           printf(" .Interfaces #  = %u\r\n", ptr->n_intf);
           for (i=0; i<ptr->n_intf; i++) {
-            printf("   %s# %02u %s VID=%u\r\n",
-                   ptr->intf[i].intf_type == 0?"PHY":"LAG",
-                   ptr->intf[i].intf_id,
-                   ptr->intf[i].mef_type == 0?"Root":"Leaf",
-                   ptr->intf[i].vid);
+            printf("   %s# %02u %s VID=%u+%u\r\n",
+                   ((ENDIAN_SWAP8(ptr->intf[i].intf_type) == 0) ? "PHY" : "LAG"),
+                     ENDIAN_SWAP8(ptr->intf[i].intf_id),
+                   ((ENDIAN_SWAP8(ptr->intf[i].mef_type) == 0) ? "Root" : "Leaf"),
+                     ENDIAN_SWAP16(ptr->intf[i].vid),
+                     ENDIAN_SWAP16(ptr->intf[i].inner_vid));
           }
         }
         break;
@@ -9418,19 +9419,19 @@ int main (int argc, char *argv[])
       case 1610:
         if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK)) {
           msg_NtwConnectivity_t *pNtwConn = (msg_NtwConnectivity_t *) resposta.info;
-          printf("Network Connectivity (mask=0x%08X)\r\n",  (unsigned int)pNtwConn->mask);
-          printf("  Slot %u\r\n",                           pNtwConn->SlotId);
-          printf("  IP Addr         = %lu.%lu.%lu.%lu\r\n", (pNtwConn->ipaddr  >> 24) & 0xFF, (pNtwConn->ipaddr  >> 16) & 0xFF,
-                                                            (pNtwConn->ipaddr  >>  8) & 0xFF,  pNtwConn->ipaddr         & 0xFF);
-          printf("  Mask            = %lu.%lu.%lu.%lu\r\n", (pNtwConn->netmask >> 24) & 0xFF, (pNtwConn->netmask >> 16) & 0xFF,
-                                                            (pNtwConn->netmask >>  8) & 0xFF,  pNtwConn->netmask        & 0xFF);
-          printf("  Gateway         = %lu.%lu.%lu.%lu\r\n", (pNtwConn->gateway >> 24) & 0xFF, (pNtwConn->gateway >> 16) & 0xFF,
-                                                            (pNtwConn->gateway >>  8) & 0xFF,  pNtwConn->gateway        & 0xFF);
-          printf("  Mgmt VLAN ID    = %u\r\n",              pNtwConn->mgmtVlanId);
-          printf("  Interfaces (%d):\r\n", pNtwConn->n_intf);
+          printf("Network Connectivity (mask=0x%08lx)\r\n",  ENDIAN_SWAP32(pNtwConn->mask));
+          printf("  Slot %u\r\n",                           ENDIAN_SWAP8 (pNtwConn->SlotId));
+          printf("  IP Addr         = %lu.%lu.%lu.%lu\r\n", (ENDIAN_SWAP32(pNtwConn->ipaddr)  >> 24) & 0xFF, (ENDIAN_SWAP32(pNtwConn->ipaddr)  >> 16) & 0xFF,
+                                                            (ENDIAN_SWAP32(pNtwConn->ipaddr)  >>  8) & 0xFF,  ENDIAN_SWAP32(pNtwConn->ipaddr)         & 0xFF);
+          printf("  Mask            = %lu.%lu.%lu.%lu\r\n", (ENDIAN_SWAP32(pNtwConn->netmask) >> 24) & 0xFF, (ENDIAN_SWAP32(pNtwConn->netmask) >> 16) & 0xFF,
+                                                            (ENDIAN_SWAP32(pNtwConn->netmask) >>  8) & 0xFF,  ENDIAN_SWAP32(pNtwConn->netmask)        & 0xFF);
+          printf("  Gateway         = %lu.%lu.%lu.%lu\r\n", (ENDIAN_SWAP32(pNtwConn->gateway) >> 24) & 0xFF, (ENDIAN_SWAP32(pNtwConn->gateway) >> 16) & 0xFF,
+                                                            (ENDIAN_SWAP32(pNtwConn->gateway) >>  8) & 0xFF,  ENDIAN_SWAP32(pNtwConn->gateway)        & 0xFF);
+          printf("  Mgmt VLAN ID    = %u\r\n",              ENDIAN_SWAP16(pNtwConn->mgmtVlanId));
+          printf("  Interfaces (%d):\r\n", ENDIAN_SWAP8(pNtwConn->n_intf));
           int i;
-          for (i=0; i<pNtwConn->n_intf; i++) {
-            printf("    Intf %u/%u\r\n", pNtwConn->intf[i].intf_type, pNtwConn->intf[i].intf_id);
+          for (i = 0; i < ENDIAN_SWAP8(pNtwConn->n_intf); i++) {
+            printf("    Intf %u/%u\r\n", ENDIAN_SWAP8(pNtwConn->intf[i].intf_type), ENDIAN_SWAP8(pNtwConn->intf[i].intf_id));
           }
         }
         else
@@ -9450,21 +9451,21 @@ int main (int argc, char *argv[])
           {
             msg_HwEthBwProfile_t *ptr = (msg_HwEthBwProfile_t *) &resposta.info[0];
 
-            printf(" Slot=%u EVCid=%lu\r\n",ptr->SlotId,ptr->evcId);
-            if (ptr->mask & MSG_HWETH_BWPROFILE_MASK_INTF_SRC)
-              printf(" SrcIntf=%u/%u\r\n",ptr->intf_src.intf_type,ptr->intf_src.intf_id);
-            if (ptr->mask & MSG_HWETH_BWPROFILE_MASK_INTF_DST)
-              printf(" DstIntf=%u/%u\r\n",ptr->intf_dst.intf_type,ptr->intf_dst.intf_id);
-            if (ptr->mask & MSG_HWETH_BWPROFILE_MASK_SVLAN)
-              printf(" SVid=%u\r\n",ptr->service_vlan);
-            if (ptr->mask & MSG_HWETH_BWPROFILE_MASK_CVLAN)
-              printf(" CVid=%u\r\n",ptr->client_vlan);
-            if (ptr->mask & MSG_HWETH_BWPROFILE_MASK_PROFILE)
+            printf(" Slot=%u EVCid=%lu\r\n", ENDIAN_SWAP8(ptr->SlotId), ENDIAN_SWAP32(ptr->evcId));
+            if (ENDIAN_SWAP8(ptr->mask) & MSG_HWETH_BWPROFILE_MASK_INTF_SRC)
+              printf(" SrcIntf=%u/%u\r\n", ENDIAN_SWAP8(ptr->intf_src.intf_type), ENDIAN_SWAP8(ptr->intf_src.intf_id));
+            if (ENDIAN_SWAP8(ptr->mask) & MSG_HWETH_BWPROFILE_MASK_INTF_DST)
+              printf(" DstIntf=%u/%u\r\n", ENDIAN_SWAP8(ptr->intf_dst.intf_type), ENDIAN_SWAP8(ptr->intf_dst.intf_id));
+            if (ENDIAN_SWAP8(ptr->mask) & MSG_HWETH_BWPROFILE_MASK_SVLAN)
+              printf(" SVid=%u\r\n", ENDIAN_SWAP16(ptr->service_vlan));
+            if (ENDIAN_SWAP8(ptr->mask) & MSG_HWETH_BWPROFILE_MASK_CVLAN)
+              printf(" CVid=%u\r\n", ENDIAN_SWAP16(ptr->client_vlan));
+            if (ENDIAN_SWAP8(ptr->mask) & MSG_HWETH_BWPROFILE_MASK_PROFILE)
             {
-              printf(" CIR=%llu bps\r\n",ptr->profile.cir);
-              printf(" EIR=%llu bps\r\n",ptr->profile.eir);
-              printf(" CBS=%llu bytes\r\n",ptr->profile.cbs);
-              printf(" EBS=%llu bytes\r\n",ptr->profile.ebs);
+              printf(" CIR=%llu bps\r\n",   ENDIAN_SWAP64(ptr->profile.cir));
+              printf(" EIR=%llu bps\r\n",   ENDIAN_SWAP64(ptr->profile.eir));
+              printf(" CBS=%llu bytes\r\n", ENDIAN_SWAP64(ptr->profile.cbs));
+              printf(" EBS=%llu bytes\r\n", ENDIAN_SWAP64(ptr->profile.ebs));
             }
             else
             {
@@ -9527,7 +9528,7 @@ int main (int argc, char *argv[])
           {
             msg_evcStats_t *ptr;
 
-            if (resposta.infoDim!=sizeof(msg_evcStats_t)) {
+            if (resposta.infoDim != sizeof(msg_evcStats_t)) {
               printf(" Switch: Invalid structure size (%u vs %u)\n\r",resposta.infoDim,sizeof(msg_evcStats_t));
               break;
             }
@@ -9535,37 +9536,37 @@ int main (int argc, char *argv[])
             ptr = (msg_evcStats_t *) &resposta.info[0];
 
             printf(" Flow Counters:\r\n");
-            printf(" Slot=%u FlowId=%lu\r\n",ptr->SlotId,ptr->evc_id);
-            if (ptr->mask & MSG_EVC_COUNTERS_MASK_INTF)
-              printf(" Intf   =%u/%u\r\n",ptr->intf.intf_type,ptr->intf.intf_id);
-            if (ptr->mask & MSG_EVC_COUNTERS_MASK_SVLAN)
-              printf(" SVid   =%u\r\n",ptr->service_vlan);
-            if (ptr->mask & MSG_EVC_COUNTERS_MASK_CVLAN)
-              printf(" CVid   =%u\r\n",ptr->client_vlan);
-            if (ptr->mask & MSG_EVC_COUNTERS_MASK_CHANNEL)
-              printf(" Channel=%03u:%03u:%03u:%03u\r\n",(unsigned int) ((ptr->channel_ip>>24) & 0xFF),
-                                                        (unsigned int) ((ptr->channel_ip>>16) & 0xFF),
-                                                        (unsigned int) ((ptr->channel_ip>> 8) & 0xFF),
-                                                        (unsigned int) (ptr->channel_ip & 0xFF));
-            if (ptr->mask & MSG_EVC_COUNTERS_MASK_STATS)
+            printf(" Slot=%u FlowId=%lu\r\n", ENDIAN_SWAP8(ptr->SlotId), ENDIAN_SWAP32(ptr->evc_id));
+            if (ENDIAN_SWAP8(ptr->mask) & MSG_EVC_COUNTERS_MASK_INTF)
+              printf(" Intf   =%u/%u\r\n", ENDIAN_SWAP8(ptr->intf.intf_type), ENDIAN_SWAP8(ptr->intf.intf_id));
+            if (ENDIAN_SWAP8(ptr->mask) & MSG_EVC_COUNTERS_MASK_SVLAN)
+              printf(" SVid   =%u\r\n", ENDIAN_SWAP16(ptr->service_vlan));
+            if (ENDIAN_SWAP8(ptr->mask) & MSG_EVC_COUNTERS_MASK_CVLAN)
+              printf(" CVid   =%u\r\n", ENDIAN_SWAP16(ptr->client_vlan));
+            if (ENDIAN_SWAP8(ptr->mask) & MSG_EVC_COUNTERS_MASK_CHANNEL)
+              printf(" Channel=%03u:%03u:%03u:%03u\r\n",(unsigned int) ((ENDIAN_SWAP32(ptr->channel_ip)>>24) & 0xFF),
+                                                        (unsigned int) ((ENDIAN_SWAP32(ptr->channel_ip)>>16) & 0xFF),
+                                                        (unsigned int) ((ENDIAN_SWAP32(ptr->channel_ip)>> 8) & 0xFF),
+                                                        (unsigned int) ( ENDIAN_SWAP32(ptr->channel_ip) & 0xFF ));
+            if (ENDIAN_SWAP8(ptr->mask) & MSG_EVC_COUNTERS_MASK_STATS)
             {
-              if (ptr->stats.mask_stat & MSG_EVC_COUNTERS_MASK_STATS_RX)
+              if (ENDIAN_SWAP8(ptr->stats.mask_stat) & MSG_EVC_COUNTERS_MASK_STATS_RX)
               {
                 printf("RX stats...\r\n");
-                printf(" Total    : %10lu\r\n",ptr->stats.rx.pktTotal    );
-                printf(" Unicast  : %10lu\r\n",ptr->stats.rx.pktUnicast  );
-                printf(" Multicast: %10lu\r\n",ptr->stats.rx.pktMulticast);
-                printf(" Broadcast: %10lu\r\n",ptr->stats.rx.pktBroadcast);
-                printf(" Dropped  : %10lu\r\n",ptr->stats.rx.pktDropped  );
+                printf(" Total    : %10lu\r\n", ENDIAN_SWAP32(ptr->stats.rx.pktTotal)    );
+                printf(" Unicast  : %10lu\r\n", ENDIAN_SWAP32(ptr->stats.rx.pktUnicast)  );
+                printf(" Multicast: %10lu\r\n", ENDIAN_SWAP32(ptr->stats.rx.pktMulticast));
+                printf(" Broadcast: %10lu\r\n", ENDIAN_SWAP32(ptr->stats.rx.pktBroadcast));
+                printf(" Dropped  : %10lu\r\n", ENDIAN_SWAP32(ptr->stats.rx.pktDropped)  );
               }
-              if (ptr->stats.mask_stat & MSG_EVC_COUNTERS_MASK_STATS_TX)
+              if (ENDIAN_SWAP8(ptr->stats.mask_stat) & MSG_EVC_COUNTERS_MASK_STATS_TX)
               {
                 printf("TX stats...\r\n");
-                printf(" Total    : %10lu\r\n",ptr->stats.tx.pktTotal    );
-                printf(" Unicast  : %10lu\r\n",ptr->stats.tx.pktUnicast  );
-                printf(" Multicast: %10lu\r\n",ptr->stats.tx.pktMulticast);
-                printf(" Broadcast: %10lu\r\n",ptr->stats.tx.pktBroadcast);
-                printf(" Dropped  : %10lu\r\n",ptr->stats.tx.pktDropped  );
+                printf(" Total    : %10lu\r\n", ENDIAN_SWAP32(ptr->stats.tx.pktTotal)    );
+                printf(" Unicast  : %10lu\r\n", ENDIAN_SWAP32(ptr->stats.tx.pktUnicast)  );
+                printf(" Multicast: %10lu\r\n", ENDIAN_SWAP32(ptr->stats.tx.pktMulticast));
+                printf(" Broadcast: %10lu\r\n", ENDIAN_SWAP32(ptr->stats.tx.pktBroadcast));
+                printf(" Dropped  : %10lu\r\n", ENDIAN_SWAP32(ptr->stats.tx.pktDropped)  );
               }
             }
             else
