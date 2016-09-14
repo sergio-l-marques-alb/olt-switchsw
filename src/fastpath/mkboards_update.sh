@@ -31,6 +31,10 @@ elif [ $2 == "tg16g" ]; then
  BOARD="TG16G"
  MKBOARDS_FOLDER=TG16G
  OUTPUT=output/FastPath-Ent-esw-xgs4-pq2pro-LR-CSxw-IQH_TG16G
+elif [ $2 == "tg16gf" ]; then
+ BOARD="TG16GF"
+ MKBOARDS_FOLDER=TG16GF
+ OUTPUT=output/FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_TG16GF
 elif [ $2 == "ta48ge" ]; then
  BOARD="TA48GE"
  MKBOARDS_FOLDER=TA48GE

@@ -94,7 +94,7 @@ mgmdconfig:
 	@sh mgmd_config_$(CARD).sh
 
 kernel:
-	cd $(KERNEL_PATH) && ./build-olt7_8ch.sh
+	cd $(KERNEL_PATH) && ./build_kernel_katana2_le.sh
 
 install:
 	sh tg16gf.install
