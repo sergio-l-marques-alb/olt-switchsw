@@ -1135,7 +1135,7 @@ L7_RC_t ptin_snoop_l3_sync_mx_process_request(L7_uint16 vlanId, L7_inet_addr_t *
       PT_LOG_TRACE(LOG_CTX_IGMP,"Number of Existing Snoop Entries (%u) | Maximum number of snoop entries (%u)",numberOfSnoopEntries,maxNumberOfSnoopEntries);
 
     //Initialize SnoopSyncReply Structure
-    if(numberOfSnoopEntries<maxNumberOfSnoopEntries)
+    if(numberOfSnoopEntries < maxNumberOfSnoopEntries)
     {
       memset(snoopSyncReply, 0x00, numberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t));
     }
@@ -1187,15 +1187,15 @@ L7_RC_t ptin_snoop_l3_sync_mx_process_request(L7_uint16 vlanId, L7_inet_addr_t *
         continue;
       }
     }
-  
-    snoopSyncReply[numberOfSnoopEntries].serviceId           = serviceId;      
+
+    snoopSyncReply[numberOfSnoopEntries].serviceId = serviceId;
     fp_to_ptin_ip_notation(&snoopChannelInfoDataKeyPtr->groupAddr, &snoopSyncReply[numberOfSnoopEntries].groupAddr);
     fp_to_ptin_ip_notation(&snoopChannelInfoDataKeyPtr->sourceAddr, &snoopSyncReply[numberOfSnoopEntries].sourceAddr);
-             
+    
     if ( (snoopChannelInfoData->flags & SNOOP_CHANNEL_ENTRY_IS_STATIC) == SNOOP_CHANNEL_ENTRY_IS_STATIC)
       snoopSyncReply[numberOfSnoopEntries].isStatic = L7_TRUE;
     
-    snoopSyncReply[numberOfSnoopEntries].numberOfActivePorts = snoopChannelInfoData->noOfInterfaces;    
+    snoopSyncReply[numberOfSnoopEntries].numberOfActivePorts = snoopChannelInfoData->noOfInterfaces;
     memcpy(&snoopSyncReply[numberOfSnoopEntries].intIfNum_mask, &snoopChannelInfoData->channelIntfMask, sizeof(snoopSyncReply[numberOfSnoopEntries].intIfNum_mask)); 
    
     /* Next Snoop entry */
@@ -1329,7 +1329,7 @@ L7_RC_t ptin_snoop_l3_sync_port_process_request(L7_uint16 vlanId, L7_inet_addr_t
         PT_LOG_TRACE(LOG_CTX_IGMP,"snoopChannelEntry: vlanId:%u groupAddr:%s sourceAddr:%s", snoopChannelInfoDataKeyPtr->vlanId, groupAddrStr, sourceAddrStr);
       }
 
-      snoopSyncReply[numberOfSnoopEntries].serviceId           = serviceId;      
+      snoopSyncReply[numberOfSnoopEntries].serviceId = serviceId;
       fp_to_ptin_ip_notation(&snoopChannelInfoDataKeyPtr->groupAddr, &snoopSyncReply[numberOfSnoopEntries].groupAddr);
       fp_to_ptin_ip_notation(&snoopChannelInfoDataKeyPtr->sourceAddr, &snoopSyncReply[numberOfSnoopEntries].sourceAddr);
       snoopSyncReply[numberOfSnoopEntries].portId = protTypebIntfConfig.pairIntfNum;
@@ -1487,10 +1487,10 @@ L7_RC_t ptin_snoop_sync_mx_process_request(L7_uint16 vlanId, L7_uint32 groupAddr
       if (snoopInfoData->staticGroup == L7_FALSE) continue;
 #endif
 
-      snoopSyncReply[numberOfSnoopEntries].serviceId           = serviceId;      
+      snoopSyncReply[numberOfSnoopEntries].serviceId           = serviceId;
       snoopSyncReply[numberOfSnoopEntries].groupAddr           = snoopInfoData->channel_list[channel].ipAddr;
       snoopSyncReply[numberOfSnoopEntries].isStatic            = snoopInfoData->staticGroup;
-      snoopSyncReply[numberOfSnoopEntries].numberOfActivePorts = snoopInfoData->channel_list[channel].number_of_ports;      
+      snoopSyncReply[numberOfSnoopEntries].numberOfActivePorts = snoopInfoData->channel_list[channel].number_of_ports;
      
       memcpy(&snoopSyncReply[numberOfSnoopEntries].intIfNum_mask, &snoopInfoData->channel_list[channel].intIfNum_mask, sizeof(snoopSyncReply[numberOfSnoopEntries].intIfNum_mask)); 
 
@@ -1653,9 +1653,9 @@ L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 groupAd
         //Only Sync Dynamic Channels
         if (snoopInfoData->staticGroup == L7_FALSE) continue;
 
-        snoopSyncReply[numberOfSnoopEntries].serviceId           = serviceId;      
+        snoopSyncReply[numberOfSnoopEntries].serviceId           = serviceId;
         snoopSyncReply[numberOfSnoopEntries].groupAddr           = snoopInfoData->channel_list[channel].ipAddr;
-        snoopSyncReply[numberOfSnoopEntries].isStatic            = snoopInfoData->staticGroup;    
+        snoopSyncReply[numberOfSnoopEntries].isStatic            = snoopInfoData->staticGroup);
         snoopSyncReply[numberOfSnoopEntries].portId              = protTypebIntfConfig.pairIntfNum;
 
         PT_LOG_TRACE(LOG_CTX_PROTB,"    Channel#%-2u:       IpAddr=%u.%u.%u.%u",channel,
