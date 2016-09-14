@@ -15616,7 +15616,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
     #if PTIN_BOARD_IS_ACTIVETH   
     if (ENDIAN_SWAP8(msg[messageIterator].onuId) != 0)
     {
-      PT_LOG_WARN(LOG_CTX_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", ENDIAN_SWAP8([messageIterator].onuId));
+      PT_LOG_WARN(LOG_CTX_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", ENDIAN_SWAP8(msg[messageIterator].onuId));
       ENDIAN_SWAP8(msg[messageIterator].onuId) = 0;
     }    
     #endif
