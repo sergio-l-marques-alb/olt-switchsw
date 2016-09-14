@@ -2358,7 +2358,71 @@ void ptin_reclk_write(L7_int primary, L7_int backup)
 }
 
 
+L7_RC_t ptin_lag_internal_port_add(L7_uint32 lag_intf, L7_uint32 intIfNum)
+{
+  return dtlDot3adInternalPortAdd(lag_intf, 1, &intIfNum, 1);
+}
 
+L7_RC_t ptin_lag_internal_port_remove(L7_uint32 lag_intf, L7_uint32 intIfNum)
+{
+  return dtlDot3adInternalPortDelete(lag_intf, 1, &intIfNum, 1);
+}
+
+void ptin_ta48ge_switch(L7_uint protection)
+{
+#if (PTIN_BOARD == PTIN_BOARD_TA48GE)
+  L7_uint32 lag_intf, intIfNum, intIfNum_del;
+  L7_RC_t rc = L7_SUCCESS;
+
+  rc = ptin_intf_lag2intIfNum(0, &lag_intf);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_CONTROL,"Error getting LAG intIfNum");
+    return;
+  }
+
+  if (protection)
+  {
+    PT_LOG_INFO(LOG_CTX_CONTROL,"Going to switch to protection");
+
+    if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum) != L7_SUCCESS ||
+        ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum_del) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
+      rc = L7_FAILURE;
+    }
+  }
+  else
+  {
+    PT_LOG_INFO(LOG_CTX_CONTROL,"Going to switch to working");
+
+    if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum) != L7_SUCCESS ||
+        ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum_del) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
+      rc = L7_FAILURE;
+    }
+  }
+
+  /* Only proceed to switchover, if intIfNum values were successfully retrieved */
+  if (rc == L7_SUCCESS)
+  {
+    PT_LOG_INFO(LOG_CTX_CONTROL,"Everyhing is ok... going to apply change (intIfNum_del=%u, intIfNum_new=%u)", intIfNum_del, intIfNum);
+
+    // hashmode: FIRST=0, SA_VLAN=1, DA_VLAN=2, SDA_VLAN=3, SIP_SPORT=4, DIP_DPORT=5, SDIP_DPORT=6
+    if (dtlDot3adInternalPortAdd(lag_intf, 1, &intIfNum, 1) != L7_SUCCESS ||
+        dtlDot3adInternalPortDelete(lag_intf, 1, &intIfNum_del, 1) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_CONTROL,"Failure");
+      rc = L7_FAILURE;
+    }
+    else
+    {
+      PT_LOG_INFO(LOG_CTX_CONTROL,"Success");
+    }
+  }
+#endif // PTIN_BOARD == PTIN_BOARD_TA48GE
+}
 
 
 

@@ -49,7 +49,7 @@ extern volatile st_cpld_map_t *cpld_map;
 #define CPLD_REG_SET(addr, val)   {cpld_map->map[addr]=(unsigned char)(val);}
 #define CPLD_ID_GET()             (cpld_map->reg.id)
 #define CPLD_SLOT_ID_GET()        (cpld_map->reg.slot_id)
-#define CPLD_SLOT_MATRIX_GET()    (cpld_map->reg.mx_is_active & 1)
+#define CPLD_SLOT_MATRIX_GET()    (cpld_map->reg.mx_is_active)
 #define CPLD_SLOT_MX_ACTIVE_GET() (cpld_map->reg.mx_get_active)
 #else
 #define CPLD_INIT()
