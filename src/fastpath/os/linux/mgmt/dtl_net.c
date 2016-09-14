@@ -60,7 +60,8 @@
   #include "usmdb_common.h"
 
 /* PTin added */
-#if ( (PTIN_BOARD == PTIN_BOARD_CXO640G) || (PTIN_BOARD == PTIN_BOARD_CXO160G) || (PTIN_BOARD == PTIN_BOARD_OLT1T0) )
+#if ( (PTIN_BOARD == PTIN_BOARD_CXO640G) || (PTIN_BOARD == PTIN_BOARD_CXO160G) ||
+      (PTIN_BOARD == PTIN_BOARD_OLT1T0) || (PTIN_BOARD == PTIN_BOARD_OLT1T0F) )
 #define __ENABLE_DTL0INBANDVID_REMOVAL__      0
 #else
 #define __ENABLE_DTL0INBANDVID_REMOVAL__      0
@@ -1083,7 +1084,7 @@ L7_int32 dtlFdbMacAddrChange( L7_uchar8 *newMac )
     vlanId = simMgmtVlanIdGet();
     fdbSysMacAddEntry(newMac, vlanId, 1, L7_FDB_ADDR_FLAG_MANAGEMENT);
 
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if ((PTIN_BOARD == PTIN_BOARD_OLT1T0) || (PTIN_BOARD == PTIN_BOARD_OLT1T0F))
     dtlMacAddrChange(newMac, "dtl0", DTL0INBANDVID);
 #endif
   }
@@ -1220,7 +1221,7 @@ void dtlNetInit(void)
     fdbSysMacAddEntry(mac, vlanId, 1, L7_FDB_ADDR_FLAG_MANAGEMENT);
   }
 
-  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  #if ((PTIN_BOARD == PTIN_BOARD_OLT1T0) || (PTIN_BOARD == PTIN_BOARD_OLT1T0F))
   /* This will create the interface dtl0.INBANDVID used to configure the system IP Address */
   dtlVlanIfAdd(DTL0INBANDVID, NULL);
 

@@ -15279,13 +15279,13 @@ int ptin_msg_PTP_lnx_net_if_set(ipc_msg *inbuffer, ipc_msg *outbuffer) {
 T_MSG_PTP_LNX_NET_IF_SET *ib;
 L7_uint32 ip, msk,
           intIfNum;
-#if (PTIN_BOARD != PTIN_BOARD_OLT1T0)
+#if (!PTIN_BOARD_IS_STANDALONE)
 L7_uint16 internalVid;
 #endif
 unsigned long i;
 char ifName[L7_NIM_IFNAME_SIZE], com[L7_NIM_IFNAME_SIZE+80];
 BOOL enable;
-#if ( (PTIN_BOARD == PTIN_BOARD_TA48GE) || (PTIN_BOARD != PTIN_BOARD_OLT1T0) )
+#if (!PTIN_BOARD_IS_STANDALONE)
 L7_RC_t rc;
 #endif
 
@@ -15300,14 +15300,14 @@ L7_RC_t rc;
                 return ERROR_CODE_INVALIDPARAM;
             }
 
-#if (PTIN_BOARD != PTIN_BOARD_OLT1T0)
+#if (!PTIN_BOARD_IS_STANDALONE)
             if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, ib->vid, PTIN_XLATE_NOT_DEFINED, &internalVid, L7_NULLPTR)) {
                 PT_LOG_ERR(LOG_CTX_MSG,"ptin_xlate_ingress_get");
                 return ERROR_CODE_INVALIDPARAM;
             }
 #endif
 
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (PTIN_BOARD_IS_STANDALONE)
             sprintf(ifName, "%s.%d", ETH1_STRING, ib->dtl0vid);
 #else
             sprintf(ifName, "%s.%d", DTL0_STRING, ib->dtl0vid);
@@ -15320,7 +15320,7 @@ L7_RC_t rc;
             }
 
             if (enable) {
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
+#if (PTIN_BOARD_IS_STANDALONE)
                 sprintf(com, "vconfig add %s %d\n", ETH1_STRING, ib->dtl0vid);
                 PT_LOG_NOTICE(LOG_CTX_MSG, com);
                 system(com);
@@ -15354,7 +15354,7 @@ L7_RC_t rc;
                 //system(com);
             }
 
-#if (PTIN_BOARD != PTIN_BOARD_OLT1T0)
+#if (!PTIN_BOARD_IS_STANDALONE)
             rc = ptin_ipdtl0_control(ib->dtl0vid, ib->vid, internalVid, intIfNum, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable);
             if (L7_SUCCESS!=rc) {
                 PT_LOG_ERR(LOG_CTX_MSG,"ptin_ipdtl0_control(ib->dtl0vid=%u, ib->vid=%u, internalVid=%u, intIfNum=%lu, PTIN_IPDTL0_ETH_IPv4_UDP_PTP, enable=%u)=%d",
