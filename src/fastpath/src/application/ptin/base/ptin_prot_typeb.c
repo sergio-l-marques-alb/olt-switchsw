@@ -13,6 +13,8 @@
 #include "ptin_msghandler.h"
 #include "ptin_igmp.h"
 #include "ptin_fpga_api.h"
+#include "ptin_fpga_api.h"
+
 
 /*********************************************************** 
  * Defines
@@ -219,7 +221,9 @@ L7_RC_t ptin_prottypeb_intf_switch_notify(L7_uint32 intfNum, L7_uint8 status)
       else
       {
         PT_LOG_TRACE(LOG_CTX_EVC, "Removed Mgmd Port [intIfNum=%u]", intfNum);
-      }     
+      }
+
+    dsBindingClear(intfNum);     
     }
   }
   
