@@ -13,7 +13,7 @@
 #include "ptin_msghandler.h"
 #include "ptin_igmp.h"
 #include "ptin_fpga_api.h"
-#include "ptin_fpga_api.h"
+#include "dhcp_snooping_api.h"
 
 
 /*********************************************************** 
