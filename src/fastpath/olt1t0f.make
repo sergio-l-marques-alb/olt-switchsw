@@ -58,7 +58,7 @@ export LVL7_MAKEFILE_DISPLAY_MODE := S
 
 .PHONY: welcome all clean cleanall help h kernel transfer
 
-all: welcome setsdk mgmdconfig cli_clean shell_clean cli shell
+all: welcome setsdk cli_clean shell_clean cli shell mgmdconfig
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)
 	@if [ -f $(BIN_PATH)/$(BIN_FILE) ]; then\
@@ -91,7 +91,14 @@ setsdk:
 	ln -s $(SDK_PATH) $(SDK_LINK)
 
 mgmdconfig:
+	@if [ ! -d src/application/switching/mgmd ]; then\
+		@echo "MGMD source-code not found! Please update your working copy.";\
+		false;\
+	fi;
+	@echo "Compiling MGMD..."
 	@sh mgmd_config_$(CARD).sh
+	@sh src/application/switching/make/mgmd_compile.sh $(CURRENT_PATH) switching
+	@echo "...MGMD compiled!"
 
 kernel:
 	cd $(KERNEL_PATH) && ./build-olt7_8ch.sh

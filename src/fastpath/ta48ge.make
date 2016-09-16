@@ -54,16 +54,9 @@ export LVL7_MAKEFILE_DISPLAY_MODE := S
 
 .PHONY: welcome all install clean cleanall help h kernel cli cli_clean shell shell_clean
 
-all: welcome setsdk mgmdconfig cli_clean shell_clean cli shell
+all: welcome setsdk cli_clean shell_clean cli shell mgmdconfig
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
-	@if [ -f $(TMP_FILE) ]; then\
-		echo "Replacing package.cfg with the one without xweb and snmp compilation...";\
-		cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_woXweb package.cfg;\
-		echo "";\
-	fi;
 	@$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)
-	@touch $(TMP_FILE);\
-	cd $(CCVIEWS_HOME)/$(OUTPATH) && $(CP) package.cfg_original package.cfg
 	@if [ -f $(BIN_PATH)/$(BIN_FILE) ]; then\
 		echo "Saving original $(BIN_FILE) binary...";\
 		$(CP) $(BIN_PATH)/$(BIN_FILE) $(BIN_PATH)/$(BIN_FILE).unstripped;\
@@ -81,10 +74,13 @@ setsdk:
 
 mgmdconfig:
 	@if [ ! -d src/application/switching/mgmd ]; then\
-		echo "MGMD source-code not found! Please update your working copy.";\
+		@echo "MGMD source-code not found! Please update your working copy.";\
 		false;\
 	fi;
+	@echo "Compiling MGMD..."
 	@sh mgmd_config_$(CARD).sh
+	@sh src/application/switching/make/mgmd_compile.sh $(CURRENT_PATH) switching
+	@echo "...MGMD compiled!"
 
 kernel:
 	cd $(KERNEL_PATH) && ./build_ta48ge.sh
