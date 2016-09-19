@@ -54,7 +54,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
     return L7_FAILURE;
   }
 
-  #if (PTIN_BOARD != PTIN_BOARD_IS_STANDALONE)
+  #if (PTIN_BOARD != PTIN_BOARD_IS_STANDALONE && PTIN_BOARD != PTIN_BOARD_TG16G)
   /* virtual ports (NGPON2) */
   L7_uint32         position = 0;
 
