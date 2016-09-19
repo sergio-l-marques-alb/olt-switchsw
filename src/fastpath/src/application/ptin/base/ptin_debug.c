@@ -259,7 +259,8 @@ void ptin_debug(void)
   printf("  ptin_debug_lacp_set <enable>                                    - Show more debugging logs for the LACP module\r\n");
   printf("  ptin_debug_dtl_set <enable>                                     - Show more debugging logs for the DTL module\r\n");
   printf("  ptin_debug_hapi_l2_enable <enable>                              - Show more debugging logs for the HAPI L2 module\r\n");
-#if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_OLT1T0)
+  printf("  ptin_debug_opensaf_enable <enable>                              - Show more debugging logs for the OPENSAF module\r\n");
+#if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_OLT1T0 || PTIN_BOARD == PTIN_BOARD_TT04SXG)
   printf("  cpld_spi_read_debug <addr>                                      - Read CPLD register using SPI\r\n");
   printf("  cpld_spi_write_debug <addr> <value>                             - Write CPLD register using SPI\r\n");
 #endif
