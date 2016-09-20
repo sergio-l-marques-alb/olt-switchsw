@@ -5325,6 +5325,7 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
   L7_uint i;
   ptin_HwEthMef10Evc_t ptinEvcConf;
 
+
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if (ENDIAN_SWAP32(msgEvcConf->id) >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
@@ -5356,16 +5357,16 @@ L7_RC_t ptin_msg_EVC_get(msg_HwEthMef10Evc_t *msgEvcConf)
 
   for (i=0; i < ptinEvcConf.n_intf; i++)
   {
-    msgEvcConf->intf[i].intf_id   = ENDIAN_SWAP8 (ptinEvcConf.intf[i].intf.value.ptin_intf.intf_id);
-    msgEvcConf->intf[i].intf_type = ENDIAN_SWAP8 (ptinEvcConf.intf[i].intf.value.ptin_intf.intf_type);
-    msgEvcConf->intf[i].mef_type  = ENDIAN_SWAP8 (ptinEvcConf.intf[i].mef_type);
-    msgEvcConf->intf[i].vid       = ENDIAN_SWAP16(ptinEvcConf.intf[i].vid);
+      msgEvcConf->intf[i].intf_id   = ENDIAN_SWAP8 (ptinEvcConf.intf[i].intf.value.ptin_intf.intf_id);
+      msgEvcConf->intf[i].intf_type = ENDIAN_SWAP8 (ptinEvcConf.intf[i].intf.value.ptin_intf.intf_type);
+      msgEvcConf->intf[i].mef_type  = ENDIAN_SWAP8 (ptinEvcConf.intf[i].mef_type);
+      msgEvcConf->intf[i].vid       = ENDIAN_SWAP16(ptinEvcConf.intf[i].vid);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   %s# %02u %s VID=%04u",
-                 ((ENDIAN_SWAP8(msgEvcConf->intf[i].intf_type) == PTIN_EVC_INTF_PHYSICAL) ? "PHY":"LAG"),
-                   ENDIAN_SWAP8(msgEvcConf->intf[i].intf_id),
-                 ((ENDIAN_SWAP8(msgEvcConf->intf[i].mef_type) == PTIN_EVC_INTF_ROOT) ? "Root":"Leaf"),
-                   ENDIAN_SWAP16(msgEvcConf->intf[i].vid));
+      PT_LOG_DEBUG(LOG_CTX_MSG, "   %s# %02u %s VID=%04u",
+                   ((ENDIAN_SWAP8(msgEvcConf->intf[i].intf_type) == PTIN_EVC_INTF_PHYSICAL) ? "PHY":"LAG"),
+                     ENDIAN_SWAP8(msgEvcConf->intf[i].intf_id),
+                   ((ENDIAN_SWAP8(msgEvcConf->intf[i].mef_type) == PTIN_EVC_INTF_ROOT) ? "Root":"Leaf"),
+                     ENDIAN_SWAP16(msgEvcConf->intf[i].vid));
   }
 
   return L7_SUCCESS;
@@ -8126,6 +8127,7 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
   ptin_clientCircuitId_t  circuitId_data;
   L7_RC_t           rc;
 
+
   PT_LOG_DEBUG(LOG_CTX_MSG,"Processing message");
 
   /* Validate input parameters */
@@ -8160,34 +8162,35 @@ L7_RC_t ptin_msg_DHCP_profile_get(msg_HwEthernetDhcpOpt82Profile_t *profile)
   }
   if (ENDIAN_SWAP8(profile->client.mask) & MSG_CLIENT_INTF_MASK)
   {
-    client.ptin_intf.intf_type  = ENDIAN_SWAP8(profile->client.intf.intf_type);
-    client.ptin_intf.intf_id    = ENDIAN_SWAP8(profile->client.intf.intf_id);
-    client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+      client.ptin_intf.intf_type  = ENDIAN_SWAP8(profile->client.intf.intf_type);
+      client.ptin_intf.intf_id    = ENDIAN_SWAP8(profile->client.intf.intf_id);
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INTF; 
   }
 
-  /* Get circuit and remote ids */
-  rc = ptin_dhcp_client_get(evc_idx, &client, &profile->options, &circuitId_data, L7_NULLPTR, profile->remoteId);
+    /* Get circuit and remote ids */
+    rc = ptin_dhcp_client_get(evc_idx, &client, &profile->options, &circuitId_data, L7_NULLPTR, profile->remoteId);
 
-  profile->options          = ENDIAN_SWAP16(profile->options);
-  profile->circuitId.onuid  = ENDIAN_SWAP16(circuitId_data.onuid);
-  profile->circuitId.slot   = ENDIAN_SWAP8 (circuitId_data.slot);
-  profile->circuitId.port   = ENDIAN_SWAP16(circuitId_data.port);
-  profile->circuitId.q_vid  = ENDIAN_SWAP16(circuitId_data.q_vid);
-  profile->circuitId.c_vid  = ENDIAN_SWAP16(circuitId_data.c_vid);
+    profile->options          = ENDIAN_SWAP16(profile->options);
+    profile->circuitId.onuid  = ENDIAN_SWAP16(circuitId_data.onuid);
+    profile->circuitId.slot   = ENDIAN_SWAP8 (circuitId_data.slot);
+    profile->circuitId.port   = ENDIAN_SWAP16(circuitId_data.port);
+    profile->circuitId.q_vid  = ENDIAN_SWAP16(circuitId_data.q_vid);
+    profile->circuitId.c_vid  = ENDIAN_SWAP16(circuitId_data.c_vid);
 
-  if (rc!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining circuit and remote ids");
-    return rc;
-  }
+    if (rc!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error obtaining circuit and remote ids");
+      return rc;
+    }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG,"Options                      = %02x",  ENDIAN_SWAP16(profile->options));
-  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.onuid              = %u",    ENDIAN_SWAP16(profile->circuitId.onuid));
-  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.slot               = %u",    ENDIAN_SWAP8 (profile->circuitId.slot));
-  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.port               = %u",    ENDIAN_SWAP16(profile->circuitId.port));
-  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.q_vid              = %u",    ENDIAN_SWAP16(profile->circuitId.q_vid));
-  PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.c_vid              = %u",    ENDIAN_SWAP16(profile->circuitId.c_vid));
-  PT_LOG_DEBUG(LOG_CTX_MSG,"RemoteId                     = \"%s\"",profile->remoteId);
+    PT_LOG_DEBUG(LOG_CTX_MSG,"Options                      = %02x",  ENDIAN_SWAP16(profile->options));
+    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.onuid              = %u",    ENDIAN_SWAP16(profile->circuitId.onuid));
+    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.slot               = %u",    ENDIAN_SWAP8 (profile->circuitId.slot));
+    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.port               = %u",    ENDIAN_SWAP16(profile->circuitId.port));
+    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.q_vid              = %u",    ENDIAN_SWAP16(profile->circuitId.q_vid));
+    PT_LOG_DEBUG(LOG_CTX_MSG,"CircuitId.c_vid              = %u",    ENDIAN_SWAP16(profile->circuitId.c_vid));
+    PT_LOG_DEBUG(LOG_CTX_MSG,"RemoteId                     = \"%s\"",profile->remoteId);
+  
 
   return L7_SUCCESS;
 }
@@ -8507,6 +8510,11 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   ptin_DHCP_Statistics_t  stats;
   L7_RC_t                 rc;
 
+  // NGPON2
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
+
   if (dhcp_stats == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
@@ -8545,52 +8553,118 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   }
   if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_INTF_MASK)
   {
-    client.ptin_intf.intf_type  = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_type);
-    client.ptin_intf.intf_id    = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_id);
-    client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-  }
+    if (dhcp_stats->client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
+    {
+      get_NGPON2_group_info(&NGPON2_GROUP, dhcp_stats->client.intf.intf_id);
 
-  /* Get statistics */
-  rc = ptin_dhcp_stat_client_get(dhcp_stats->evc_id, &client, &stats);
+      while (j < NGPON2_GROUP.nports)
+      {
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        {
+          client.ptin_intf.intf_type  = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
+          client.ptin_intf.intf_id    = ENDIAN_SWAP8(shift_index + 1);
+          client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
 
-  if (rc!=L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error getting client statistics");
-    return rc;
-  }
-  else
-  {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Success getting client statistics");
-  }
+          /* Get statistics */
+          rc = ptin_dhcp_stat_client_get(dhcp_stats->evc_id, &client, &stats);
 
-  /* Return data */
-  dhcp_stats->stats.dhcp_rx_intercepted                           = ENDIAN_SWAP32(stats.dhcp_rx_intercepted);
-  dhcp_stats->stats.dhcp_rx                                       = ENDIAN_SWAP32(stats.dhcp_rx);
-  dhcp_stats->stats.dhcp_rx_filtered                              = ENDIAN_SWAP32(stats.dhcp_rx_filtered);
-  dhcp_stats->stats.dhcp_tx_forwarded                             = ENDIAN_SWAP32(stats.dhcp_tx_forwarded);
-  dhcp_stats->stats.dhcp_tx_failed                                = ENDIAN_SWAP32(stats.dhcp_tx_failed);
+          if (rc!=L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_MSG, "Error getting client statistics");
+            return rc;
+          }
+          else
+          {
+            PT_LOG_DEBUG(LOG_CTX_MSG, "Success getting client statistics");
+          }
 
-  dhcp_stats->stats.dhcp_rx_client_requests_without_options       = ENDIAN_SWAP32(stats.dhcp_rx_client_requests_without_options);
+          /* Return data */
+          dhcp_stats->stats.dhcp_rx_intercepted                           = ENDIAN_SWAP32(stats.dhcp_rx_intercepted);
+          dhcp_stats->stats.dhcp_rx                                       = ENDIAN_SWAP32(stats.dhcp_rx);
+          dhcp_stats->stats.dhcp_rx_filtered                              = ENDIAN_SWAP32(stats.dhcp_rx_filtered);
+          dhcp_stats->stats.dhcp_tx_forwarded                             = ENDIAN_SWAP32(stats.dhcp_tx_forwarded);
+          dhcp_stats->stats.dhcp_tx_failed                                = ENDIAN_SWAP32(stats.dhcp_tx_failed);
+
+          dhcp_stats->stats.dhcp_rx_client_requests_without_options       = ENDIAN_SWAP32(stats.dhcp_rx_client_requests_without_options);
 #if 0 /* PTin Daniel OLTTS-4141 - Removed to ensure API compatibility with manager in 3.3.0 */
-  dhcp_stats->stats.dhcp_tx_client_requests_without_options       = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_without_options);
+          dhcp_stats->stats.dhcp_tx_client_requests_without_options       = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_without_options);
 #endif
-  dhcp_stats->stats.dhcp_tx_client_requests_with_option82         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option82);
-  dhcp_stats->stats.dhcp_tx_client_requests_with_option37         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option37);
-  dhcp_stats->stats.dhcp_tx_client_requests_with_option18         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option18);
-  dhcp_stats->stats.dhcp_rx_server_replies_with_option82          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option82);
-  dhcp_stats->stats.dhcp_rx_server_replies_with_option37          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option37);
-  dhcp_stats->stats.dhcp_rx_server_replies_with_option18          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option18);
+          dhcp_stats->stats.dhcp_tx_client_requests_with_option82         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option82);
+          dhcp_stats->stats.dhcp_tx_client_requests_with_option37         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option37);
+          dhcp_stats->stats.dhcp_tx_client_requests_with_option18         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option18);
+          dhcp_stats->stats.dhcp_rx_server_replies_with_option82          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option82);
+          dhcp_stats->stats.dhcp_rx_server_replies_with_option37          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option37);
+          dhcp_stats->stats.dhcp_rx_server_replies_with_option18          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option18);
 #if 0 /* PTin Daniel OLTTS-4141 - Removed to ensure API compatibility with manager in 3.3.0 */
-  dhcp_stats->stats.dhcp_rx_server_replies_without_options        = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_without_options);
+          dhcp_stats->stats.dhcp_rx_server_replies_without_options        = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_without_options);
 #endif
-  dhcp_stats->stats.dhcp_tx_server_replies_without_options        = ENDIAN_SWAP32(stats.dhcp_tx_server_replies_without_options);
+          dhcp_stats->stats.dhcp_tx_server_replies_without_options        = ENDIAN_SWAP32(stats.dhcp_tx_server_replies_without_options);
 
-  dhcp_stats->stats.dhcp_rx_client_pkts_onTrustedIntf             = ENDIAN_SWAP32(stats.dhcp_rx_client_pkts_onTrustedIntf);
-  dhcp_stats->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf   = ENDIAN_SWAP32(stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf);
-  dhcp_stats->stats.dhcp_rx_server_pkts_onUntrustedIntf           = ENDIAN_SWAP32(stats.dhcp_rx_server_pkts_onUntrustedIntf);
+          dhcp_stats->stats.dhcp_rx_client_pkts_onTrustedIntf             = ENDIAN_SWAP32(stats.dhcp_rx_client_pkts_onTrustedIntf);
+          dhcp_stats->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf   = ENDIAN_SWAP32(stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf);
+          dhcp_stats->stats.dhcp_rx_server_pkts_onUntrustedIntf           = ENDIAN_SWAP32(stats.dhcp_rx_server_pkts_onUntrustedIntf);
 #if 1 /* PTin Daniel OLTTS-4141 - Added to ensure API compatibility with manager in 3.3.0 */
-  dhcp_stats->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf  = ENDIAN_SWAP32(0);
+          dhcp_stats->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf  = ENDIAN_SWAP32(0);
 #endif
+
+          j++;
+        }
+        shift_index++;
+      }
+    }
+    else
+    {
+      client.ptin_intf.intf_type  = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_type);
+      client.ptin_intf.intf_id    = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_id);
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+    }
+  }
+
+  if (dhcp_stats->client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
+  {
+    /* Get statistics */
+    rc = ptin_dhcp_stat_client_get(dhcp_stats->evc_id, &client, &stats);
+
+    if (rc!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error getting client statistics");
+      return rc;
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Success getting client statistics");
+    }
+
+    /* Return data */
+    dhcp_stats->stats.dhcp_rx_intercepted                           = ENDIAN_SWAP32(stats.dhcp_rx_intercepted);
+    dhcp_stats->stats.dhcp_rx                                       = ENDIAN_SWAP32(stats.dhcp_rx);
+    dhcp_stats->stats.dhcp_rx_filtered                              = ENDIAN_SWAP32(stats.dhcp_rx_filtered);
+    dhcp_stats->stats.dhcp_tx_forwarded                             = ENDIAN_SWAP32(stats.dhcp_tx_forwarded);
+    dhcp_stats->stats.dhcp_tx_failed                                = ENDIAN_SWAP32(stats.dhcp_tx_failed);
+
+    dhcp_stats->stats.dhcp_rx_client_requests_without_options       = ENDIAN_SWAP32(stats.dhcp_rx_client_requests_without_options);
+#if 0 /* PTin Daniel OLTTS-4141 - Removed to ensure API compatibility with manager in 3.3.0 */
+    dhcp_stats->stats.dhcp_tx_client_requests_without_options       = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_without_options);
+#endif
+    dhcp_stats->stats.dhcp_tx_client_requests_with_option82         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option82);
+    dhcp_stats->stats.dhcp_tx_client_requests_with_option37         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option37);
+    dhcp_stats->stats.dhcp_tx_client_requests_with_option18         = ENDIAN_SWAP32(stats.dhcp_tx_client_requests_with_option18);
+    dhcp_stats->stats.dhcp_rx_server_replies_with_option82          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option82);
+    dhcp_stats->stats.dhcp_rx_server_replies_with_option37          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option37);
+    dhcp_stats->stats.dhcp_rx_server_replies_with_option18          = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_with_option18);
+#if 0 /* PTin Daniel OLTTS-4141 - Removed to ensure API compatibility with manager in 3.3.0 */
+    dhcp_stats->stats.dhcp_rx_server_replies_without_options        = ENDIAN_SWAP32(stats.dhcp_rx_server_replies_without_options);
+#endif
+    dhcp_stats->stats.dhcp_tx_server_replies_without_options        = ENDIAN_SWAP32(stats.dhcp_tx_server_replies_without_options);
+
+    dhcp_stats->stats.dhcp_rx_client_pkts_onTrustedIntf             = ENDIAN_SWAP32(stats.dhcp_rx_client_pkts_onTrustedIntf);
+    dhcp_stats->stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf   = ENDIAN_SWAP32(stats.dhcp_rx_client_pkts_withOps_onUntrustedIntf);
+    dhcp_stats->stats.dhcp_rx_server_pkts_onUntrustedIntf           = ENDIAN_SWAP32(stats.dhcp_rx_server_pkts_onUntrustedIntf);
+#if 1 /* PTin Daniel OLTTS-4141 - Added to ensure API compatibility with manager in 3.3.0 */
+    dhcp_stats->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf  = ENDIAN_SWAP32(0);
+#endif
+
+  }
 
   return L7_SUCCESS;
 }
@@ -8606,6 +8680,11 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
 {
   ptin_client_id_t  client;
   L7_RC_t           rc;
+
+  // NGPON2
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
 
   if (dhcp_stats == L7_NULLPTR)
   {
@@ -8645,24 +8724,60 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
   }
   if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_INTF_MASK)
   {
-    client.ptin_intf.intf_type  = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_type);
-    client.ptin_intf.intf_id    = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_id);
-    client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+    if (dhcp_stats->client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
+    {
+      get_NGPON2_group_info(&NGPON2_GROUP, dhcp_stats->client.intf.intf_id);
+
+      while (j < NGPON2_GROUP.nports)
+      {
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        {
+          client.ptin_intf.intf_type  = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
+          client.ptin_intf.intf_id    = ENDIAN_SWAP8(shift_index + 1);
+          client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+
+          /* Clear client stats */
+          rc = ptin_dhcp_stat_client_clear(dhcp_stats->evc_id, &client);
+
+          if (rc!=L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_MSG, "Error clearing client statistics");
+            return rc;
+          }
+          else
+          {
+            PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing client statistics");
+          }
+
+          j++;
+        }
+        shift_index++;
+      }
+    }
+    else
+    {
+      client.ptin_intf.intf_type  = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_type);
+      client.ptin_intf.intf_id    = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_id);
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+    }
   }
 
-  /* Clear client stats */
-  rc = ptin_dhcp_stat_client_clear(dhcp_stats->evc_id, &client);
-
-  if (rc!=L7_SUCCESS)
+  if (dhcp_stats->client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error clearing client statistics");
-    return rc;
-  }
-  else
-  {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing client statistics");
-  }
+    /* Clear client stats */
+    rc = ptin_dhcp_stat_client_clear(dhcp_stats->evc_id, &client);
 
+    if (rc!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error clearing client statistics");
+      return rc;
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing client statistics");
+    }
+
+  }
   return L7_SUCCESS;
 }
 
@@ -9727,6 +9842,9 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
         {
           if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
           {
+
+            j++;
+
             client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
             client.ptin_intf.intf_id    = shift_index + 1;
             client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
@@ -9766,8 +9884,6 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
               PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client");
               return rc;
             }
-
-            j++;
           }
           shift_index++;
         }

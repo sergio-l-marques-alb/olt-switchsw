@@ -8059,6 +8059,16 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
   return L7_SUCCESS;
 }
 
+
+/**
+ * PTIN_INTF get NGPON2 group info 
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ * @param group_index     : NGPON2 group index                  
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
 L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_index)
 {
 
@@ -8070,6 +8080,33 @@ L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
   return L7_SUCCESS;
 }
 
+
+/**
+ * PTIN_INTF NGPON2 check intf
+ *  
+ * @brief check if a physical port belongs to a NGPON2 group 
+ *  
+ */
+
+L7_RC_t ptin_intf_NGPON2_group_check(L7_uint8 intf_index, L7_uint8 *group_index)
+{
+  L7_uint16 i = 0;
+
+  while ( i < PTIN_SYSTEM_MAX_NGPON2_GROUPS)
+  {
+    if (NGPON2_groups_info[i].admin)
+    {
+      if ( (NGPON2_groups_info[i].ngpon2_groups_pbmp64 >> intf_index) & 0x1)
+      {
+        *group_index = NGPON2_groups_info[i].groupId;
+        return L7_SUCCESS; 
+      }
+    }
+    i++;
+  }
+
+  return L7_FAILURE;
+}
 
 #if 0
 /**
