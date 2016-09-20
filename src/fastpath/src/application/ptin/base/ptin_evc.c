@@ -11924,8 +11924,9 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
  */
 static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile)
 {
-  L7_int    ptin_port, i_port;
+  L7_int   ptin_port, i_port,num_ports=0,port_count=0;
   struct ptin_evc_client_s *pclientFlow;
+  L7_uint32 list_port[64],i=0;
 
   PT_LOG_TRACE(LOG_CTX_EVC,"Starting bw profile verification");
 
@@ -11961,115 +11962,141 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
     return L7_NOT_EXIST;
   }
 
-  ptin_port = profile->ptin_port;
-
-  /* If source interface is provided, validate it */
-  if (ptin_port >= 0 && ptin_port < PTIN_SYSTEM_N_INTERF)
+  if (profile->ptin_port_bmp == 0)
   {
-    PT_LOG_TRACE(LOG_CTX_EVC,"Processing source interface: ptin_port=%u", ptin_port);
-
-    /* Verify if interface is in use */
-    if (!evcs[evc_id].intf[ptin_port].in_use)
-    {
-      PT_LOG_WARN(LOG_CTX_EVC,"ptin_port %d is not in use",ptin_port);
-      return L7_NOT_EXIST;
-    }
-    PT_LOG_TRACE(LOG_CTX_EVC,"Source interface is present in EVC");
-
-    /* Verify Svlan*/
-    if (profile->outer_vlan_lookup>0 &&
-        evcs[evc_id].intf[ptin_port].out_vlan>0 && evcs[evc_id].intf[ptin_port].out_vlan<4096)
-    {
-      if (profile->outer_vlan_lookup!=evcs[evc_id].intf[ptin_port].out_vlan)
-      {
-        PT_LOG_ERR(LOG_CTX_EVC,"OVid_in %u does not match to the one in EVC (%u)",profile->outer_vlan_lookup,evcs[evc_id].intf[ptin_port].out_vlan);
-        return L7_FAILURE;
-      }
-      PT_LOG_TRACE(LOG_CTX_EVC,"Source interface (ptin_port=%u): OVid_in %u verified",ptin_port,profile->outer_vlan_lookup);
-    }
-
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-    /* For MAC-Bridge flows */
-    if (IS_EVC_QUATTRO(evc_id) && IS_EVC_INTF_LEAF(evc_id, ptin_port) &&
-        profile->outer_vlan_egress != 0)
-    {
-      PT_LOG_TRACE(LOG_CTX_EVC,"Outer vlan id = %u", profile->outer_vlan_egress);
-
-      /* profile->outer_vlan_out is the GEM id related to the flow */
-      ptin_evc_find_flow(profile->outer_vlan_egress, &(evcs[evc_id].intf[ptin_port].clients), (dl_queue_elem_t **)&pclientFlow);
-
-      /* Client not found */
-      if (pclientFlow==L7_NULLPTR)
-      {
-        PT_LOG_WARN(LOG_CTX_EVC,"Client %u not found in EVC %u",profile->inner_vlan_ingress,evc_id);
-        return L7_NOT_EXIST;
-      }
-      /* Using egressing outer_vlan with a valid value, will force the selection of EFP module. Otherwise, it will use the IFP */
-      /* For QUATTRO services: these VLANs should be initialized */
-      profile->outer_vlan_egress = pclientFlow->uni_ovid;  /* Redundant: flow search guarantees they are equal */
-      profile->inner_vlan_egress = 0;                      /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
-
-      PT_LOG_TRACE(LOG_CTX_EVC,"Outer vlan id = %u (uni_ovid=%u)", profile->outer_vlan_egress, pclientFlow->uni_ovid);
-    }
-    else
-    #endif
-    /* Find the specified client, and provide the policer location */
-    if (profile->inner_vlan_ingress != 0)
-    {
-      /* Find the specified cvlan in all EVC clients */
-      for (i_port=0, pclientFlow=L7_NULLPTR; i_port<PTIN_SYSTEM_N_INTERF && pclientFlow==L7_NULLPTR; i_port++)
-      {
-        if ( IS_EVC_INTF_ROOT(evc_id,ptin_port) ||
-            (IS_EVC_INTF_LEAF(evc_id,ptin_port) && i_port==ptin_port))
-        {
-          ptin_evc_find_client(profile->inner_vlan_ingress, &(evcs[evc_id].intf[i_port].clients), (dl_queue_elem_t **) &pclientFlow);
-        }
-      }
-      /* Client not found */
-      if (pclientFlow==L7_NULLPTR)
-      {
-        PT_LOG_WARN(LOG_CTX_EVC,"Client %u not found in EVC %u",profile->inner_vlan_ingress,evc_id);
-        return L7_NOT_EXIST;
-      }
-      /* If interface is a leaf... */
-      if (IS_EVC_INTF_LEAF(evc_id,ptin_port))
-      {
-        /* Compare its outer vlan with the given one */
-        if (profile->outer_vlan_lookup>0 &&
-            pclientFlow->uni_ovid>0 && pclientFlow->uni_ovid<4096)
-        {
-          if (profile->outer_vlan_lookup!=pclientFlow->uni_ovid)
-          {
-            PT_LOG_ERR(LOG_CTX_EVC,"OVid_in %u does not match to the one in EVC client (%u)", profile->outer_vlan_lookup, pclientFlow->uni_ovid);
-            return L7_FAILURE;
-          }
-          PT_LOG_TRACE(LOG_CTX_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_lookup,profile->inner_vlan_ingress);
-        }
-        /* Removed: for non QUATTRO services, these vlans should be null */
-        //profile->outer_vlan_out = pclientFlow->uni_ovid;
-        //profile->inner_vlan_out = 0;                /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
-      }
-
-      /* Using egressing outer_vlan with a valid value, will force the selection of EFP module. Otherwise, it will use the IFP */
-      profile->outer_vlan_egress = 0;
-      profile->inner_vlan_egress = 0;
-    }
-    else
-    {
-      /* Using egressing outer_vlan with a valid value, will force the selection of EFP module. Otherwise, it will use the IFP */
-      profile->outer_vlan_egress = 0;
-      profile->inner_vlan_egress = 0;
-    }
-
-    /* If svlan is provided, it was already validated... Rewrite it with the internal value */
-    profile->outer_vlan_lookup  = 0;
-    profile->outer_vlan_ingress = evcs[evc_id].intf[ptin_port].int_vlan;
-    PT_LOG_TRACE(LOG_CTX_EVC,"Interface (ptin_port=%u): OVid_in  = %u",ptin_port,profile->outer_vlan_ingress);
-  } /* if (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0) */
+    list_port[0] = profile->ptin_port;
+    num_ports = 1;
+  }
   else
+  {   
+    while(i<64)
+    {    
+      if ( ((profile->ptin_port_bmp >>i) & 0x1) == 1)
+      {
+       list_port[num_ports] = i;
+       num_ports++;
+      }
+      i++; //equal to ptin_port
+    }
+  }
+
+  while(num_ports > port_count)
   {
-    PT_LOG_ERR(LOG_CTX_EVC,"No Interface speficied");
-    return L7_FAILURE;
+     ptin_port = list_port[port_count];
+
+     PT_LOG_TRACE(LOG_CTX_EVC,"Interface (port_count=%u):" ,port_count);
+     PT_LOG_TRACE(LOG_CTX_EVC,"Interface (ptin_port=%u):" ,ptin_port);
+
+    /* If source interface is provided, validate it */
+    if (ptin_port >= 0 && ptin_port < PTIN_SYSTEM_N_INTERF)
+    {
+      PT_LOG_TRACE(LOG_CTX_EVC,"Processing source interface: ptin_port=%u", ptin_port);
+
+      /* Verify if interface is in use */
+      if (!evcs[evc_id].intf[ptin_port].in_use)
+      {
+        PT_LOG_WARN(LOG_CTX_EVC,"ptin_port %d is not in use",ptin_port);
+        return L7_NOT_EXIST;
+      }
+      PT_LOG_TRACE(LOG_CTX_EVC,"Source interface is present in EVC");
+
+      /* Verify Svlan*/
+      if (profile->outer_vlan_lookup>0 &&
+          evcs[evc_id].intf[ptin_port].out_vlan>0 && evcs[evc_id].intf[ptin_port].out_vlan<4096)
+      {
+        if (profile->outer_vlan_lookup!=evcs[evc_id].intf[ptin_port].out_vlan)
+        {
+          PT_LOG_ERR(LOG_CTX_EVC,"OVid_in %u does not match to the one in EVC (%u)",profile->outer_vlan_lookup,evcs[evc_id].intf[ptin_port].out_vlan);
+          return L7_FAILURE;
+        }
+        PT_LOG_TRACE(LOG_CTX_EVC,"Source interface (ptin_port=%u): OVid_in %u verified",ptin_port,profile->outer_vlan_lookup);
+      }
+
+      #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+      /* For MAC-Bridge flows */
+      if (IS_EVC_QUATTRO(evc_id) && IS_EVC_INTF_LEAF(evc_id, ptin_port) &&
+          profile->outer_vlan_egress != 0)
+      {
+        PT_LOG_TRACE(LOG_CTX_EVC,"Outer vlan id = %u", profile->outer_vlan_egress);
+
+        /* profile->outer_vlan_out is the GEM id related to the flow */
+        ptin_evc_find_flow(profile->outer_vlan_egress, &(evcs[evc_id].intf[ptin_port].clients), (dl_queue_elem_t **)&pclientFlow);
+
+        /* Client not found */
+        if (pclientFlow==L7_NULLPTR)
+        {
+          PT_LOG_WARN(LOG_CTX_EVC,"Client %u not found in EVC %u",profile->inner_vlan_ingress,evc_id);
+          return L7_NOT_EXIST;
+        }
+        /* Using egressing outer_vlan with a valid value, will force the selection of EFP module. Otherwise, it will use the IFP */
+        /* For QUATTRO services: these VLANs should be initialized */
+        profile->outer_vlan_egress = pclientFlow->uni_ovid;  /* Redundant: flow search guarantees they are equal */
+        profile->inner_vlan_egress = 0;                      /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
+
+        PT_LOG_TRACE(LOG_CTX_EVC,"Outer vlan id = %u (uni_ovid=%u)", profile->outer_vlan_egress, pclientFlow->uni_ovid);
+      }
+      else
+      #endif
+      /* Find the specified client, and provide the policer location */
+      if (profile->inner_vlan_ingress != 0)
+      {
+        /* Find the specified cvlan in all EVC clients */
+        for (i_port=0, pclientFlow=L7_NULLPTR; i_port<PTIN_SYSTEM_N_INTERF && pclientFlow==L7_NULLPTR; i_port++)
+        {
+          if ( IS_EVC_INTF_ROOT(evc_id,ptin_port) ||
+              (IS_EVC_INTF_LEAF(evc_id,ptin_port) && i_port==ptin_port))
+          {
+            ptin_evc_find_client(profile->inner_vlan_ingress, &(evcs[evc_id].intf[i_port].clients), (dl_queue_elem_t **) &pclientFlow);
+          }
+        }
+        /* Client not found */
+        if (pclientFlow==L7_NULLPTR)
+        {
+          PT_LOG_WARN(LOG_CTX_EVC,"Client %u not found in EVC %u",profile->inner_vlan_ingress,evc_id);
+          return L7_NOT_EXIST;
+        }
+        /* If interface is a leaf... */
+        if (IS_EVC_INTF_LEAF(evc_id,ptin_port))
+        {
+          /* Compare its outer vlan with the given one */
+          if (profile->outer_vlan_lookup>0 &&
+              pclientFlow->uni_ovid>0 && pclientFlow->uni_ovid<4096)
+          {
+            if (profile->outer_vlan_lookup!=pclientFlow->uni_ovid)
+            {
+              PT_LOG_ERR(LOG_CTX_EVC,"OVid_in %u does not match to the one in EVC client (%u)", profile->outer_vlan_lookup, pclientFlow->uni_ovid);
+              return L7_FAILURE;
+            }
+            PT_LOG_TRACE(LOG_CTX_EVC,"OVid_in %u verified for client %u",ptin_port,profile->outer_vlan_lookup,profile->inner_vlan_ingress);
+          }
+          /* Removed: for non QUATTRO services, these vlans should be null */
+          //profile->outer_vlan_out = pclientFlow->uni_ovid;
+          //profile->inner_vlan_out = 0;                /* There is no inner vlan, after packet leaves the port (leaf port in a stacked service) */
+        }
+
+        /* Using egressing outer_vlan with a valid value, will force the selection of EFP module. Otherwise, it will use the IFP */
+        profile->outer_vlan_egress = 0;
+        profile->inner_vlan_egress = 0;
+      }
+      else
+      {
+        /* Using egressing outer_vlan with a valid value, will force the selection of EFP module. Otherwise, it will use the IFP */
+        profile->outer_vlan_egress = 0;
+        profile->inner_vlan_egress = 0;
+      }
+
+      /* If svlan is provided, it was already validated... Rewrite it with the internal value */
+      profile->outer_vlan_lookup  = 0;
+      profile->outer_vlan_ingress = evcs[evc_id].intf[ptin_port].int_vlan;
+      PT_LOG_TRACE(LOG_CTX_EVC,"Interface (ptin_port=%u): OVid_in  = %u",ptin_port,profile->outer_vlan_ingress);
+      port_count++;
+
+    } /* if (profile->ddUsp_src.unit>=0 && profile->ddUsp_src.slot>=0 && profile->ddUsp_src.port>=0) */
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_EVC,"No Interface speficied");
+      return L7_FAILURE;
+    }
   }
 
   PT_LOG_TRACE(LOG_CTX_EVC,"Final bw profile data:");
