@@ -5680,7 +5680,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
           ptinEvcConf.intf[index_port].intf.format = PTIN_INTF_FORMAT_TYPEID;
           ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
 
-          ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_id = shift_index + 1;
+          ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_id = shift_index;
           ptinEvcConf.intf[index_port].mef_type    = ENDIAN_SWAP8 (msgEvcConf->evc.intf[i].mef_type) /*PTIN_EVC_INTF_ROOT*/;
           ptinEvcConf.intf[index_port].vid         = ENDIAN_SWAP16(msgEvcConf->evc.intf[i].vid);
           ptinEvcConf.intf[index_port].vid_inner   = ENDIAN_SWAP16(msgEvcConf->evc.intf[i].inner_vid);
@@ -5967,7 +5967,7 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
     {
       // NGPON2
 
-      get_NGPON2_group_info(&NGPON2_GROUP, msgEvcPort[i].intf.intf_id - 1);
+      get_NGPON2_group_info(&NGPON2_GROUP, msgEvcPort[i].intf.intf_id);
 
       while (j < NGPON2_GROUP.nports)
       {
@@ -5976,7 +5976,7 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
               /* Copy data to ptin struct */
           ptinEvcPort.intf.format = PTIN_INTF_FORMAT_TYPEID;
           ptinEvcPort.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
-          ptinEvcPort.intf.value.ptin_intf.intf_id   = shift_index + 1;
+          ptinEvcPort.intf.value.ptin_intf.intf_id   = shift_index;
           ptinEvcPort.mef_type  = ENDIAN_SWAP8 (msgEvcPort[i].intf.mef_type);
           ptinEvcPort.vid       = ENDIAN_SWAP16(msgEvcPort[i].intf.vid);
           ptinEvcPort.vid_inner = ENDIAN_SWAP16(msgEvcPort[i].intf.inner_vid);
@@ -6404,7 +6404,7 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
 
   if (msgEvcFlow->intf.intf_type == PTIN_EVC_INTF_NGPON2)
   {
-    get_NGPON2_group_info(&NGPON2_GROUP, msgEvcFlow->intf.intf_id - 1);
+    get_NGPON2_group_info(&NGPON2_GROUP, msgEvcFlow->intf.intf_id);
 
     while (j < NGPON2_GROUP.nports)
     {
@@ -6418,7 +6418,7 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
 
         ptinEvcFlow.ptin_intf.intf_type = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
 
-        ptinEvcFlow.ptin_intf.intf_id   = shift_index + 1;
+        ptinEvcFlow.ptin_intf.intf_id   = shift_index;
         ptinEvcFlow.uni_ovid            = msgEvcFlow->intf.outer_vid; /* must be a leaf */
         ptinEvcFlow.uni_ivid            = msgEvcFlow->intf.inner_vid;
         ptinEvcFlow.macLearnMax         = msgEvcFlow->macLearnMax;
@@ -6568,7 +6568,7 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
 
   if (msgEvcFlow->intf.intf_type == PTIN_EVC_INTF_NGPON2)
   {
-    get_NGPON2_group_info(&NGPON2_GROUP, msgEvcFlow->intf.intf_id - 1);
+    get_NGPON2_group_info(&NGPON2_GROUP, msgEvcFlow->intf.intf_id);
 
     while (j < NGPON2_GROUP.nports)
     {
@@ -6577,7 +6577,7 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
           /* Copy data */
         ptinEvcFlow.evc_idx             = ENDIAN_SWAP32(msgEvcFlow->evcId);
         ptinEvcFlow.ptin_intf.intf_type = ENDIAN_SWAP8 (PTIN_EVC_INTF_PHYSICAL);
-        ptinEvcFlow.ptin_intf.intf_id   = shift_index + 1;
+        ptinEvcFlow.ptin_intf.intf_id   = shift_index;
         ptinEvcFlow.int_ivid            = ENDIAN_SWAP16(msgEvcFlow->nni_cvlan);
         ptinEvcFlow.uni_ovid            = ENDIAN_SWAP16(msgEvcFlow->intf.outer_vid); /* must be a leaf */
         ptinEvcFlow.uni_ivid            = ENDIAN_SWAP16(msgEvcFlow->intf.inner_vid);
@@ -8269,22 +8269,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
       return L7_FAILURE;
     }
 
-    /* Extract input data */
-    evc_idx = profile[i].evc_id;
 
-    memset(&client,0x00,sizeof(ptin_client_id_t));
-    if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
-    {
-      client.outerVlan = profile[i].client.outer_vlan;
-      client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-    }
-    if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
-    {
-      client.innerVlan = profile[i].client.inner_vlan;
-      client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-    }
-    if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
-    {
 
       if ( profile[i].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
       {
@@ -8296,9 +8281,26 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
           if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
           {
 
+           /* Extract input data */
+          evc_idx = profile[i].evc_id;
+
+          memset(&client,0x00,sizeof(ptin_client_id_t));
+          if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+          {
+            client.outerVlan = profile[i].client.outer_vlan;
+            client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+          }
+          if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+          {
+            client.innerVlan = profile[i].client.inner_vlan;
+            client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+          }
+          if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
+          {
             client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
-            client.ptin_intf.intf_id    = shift_index + 1;
+            client.ptin_intf.intf_id    = shift_index;
             client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          }
 
             /* TODO: To be reworked */
             circuitId.onuid   = profile[i].circuitId.onuid;
@@ -8325,22 +8327,36 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
               return rc;
             }
 #endif
-
             j++;
           }
           shift_index++;
         }
       }
-      else
-      {
-        client.ptin_intf.intf_type  = profile[i].client.intf.intf_type;
-        client.ptin_intf.intf_id    = profile[i].client.intf.intf_id;
-        client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-      }
-    }
 
    if ( profile[i].client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
    {
+
+     /* Extract input data */
+    evc_idx = profile[i].evc_id;
+
+    memset(&client,0x00,sizeof(ptin_client_id_t));
+    if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+    {
+      client.outerVlan = profile[i].client.outer_vlan;
+      client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+    }
+    if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+    {
+      client.innerVlan = profile[i].client.inner_vlan;
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+    }
+    if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
+    {
+      client.ptin_intf.intf_type  = profile[i].client.intf.intf_type;
+      client.ptin_intf.intf_id    = profile[i].client.intf.intf_id;
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+    }
+
     /* TODO: To be reworked */
     circuitId.onuid   = profile[i].circuitId.onuid;
     circuitId.slot    = profile[i].circuitId.slot;
@@ -8420,22 +8436,6 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
     PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     profile[i].client.inner_vlan);
     PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  profile[i].client.intf.intf_type, profile[i].client.intf.intf_id);
 
-    /* Extract input data */
-    evc_idx = profile[i].evc_id;
-
-    memset(&client,0x00,sizeof(ptin_client_id_t));
-    if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
-    {
-      client.outerVlan = profile[i].client.outer_vlan;
-      client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-    }
-    if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
-    {
-      client.innerVlan = profile[i].client.inner_vlan;
-      client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-    }
-    if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
-    {
       if (profile[i].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
       {
 
@@ -8444,10 +8444,26 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
         {
           if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
           {
+            /* Extract input data */
+            evc_idx = profile[i].evc_id;
 
-            client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
-            client.ptin_intf.intf_id    = shift_index + 1;
-            client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+            memset(&client,0x00,sizeof(ptin_client_id_t));
+            if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+            {
+              client.outerVlan = profile[i].client.outer_vlan;
+              client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+            }
+            if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+            {
+              client.innerVlan = profile[i].client.inner_vlan;
+              client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+            }
+            if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
+            {
+              client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
+              client.ptin_intf.intf_id    = shift_index;
+              client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+            }
 
             /* Remove circuitId+remoteId entry */
             rc = ptin_dhcp_client_delete(evc_idx, &client);
@@ -8463,18 +8479,33 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
           shift_index++;
         }
       }
-      else
+
+    if (profile[i].client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
+    {
+
+      /* Extract input data */
+      evc_idx = profile[i].evc_id;
+
+      memset(&client,0x00,sizeof(ptin_client_id_t));
+      if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+      {
+        client.outerVlan = profile[i].client.outer_vlan;
+        client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+      }
+      if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+      {
+        client.innerVlan = profile[i].client.inner_vlan;
+        client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+      }
+      if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
       {
         client.ptin_intf.intf_type  = profile[i].client.intf.intf_type;
         client.ptin_intf.intf_id    = profile[i].client.intf.intf_id;
         client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
       }
-    }
 
-    /* TODO: To be reworked */
+      /* TODO: To be reworked */
 
-    if (profile[i].client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
-    {
       /* Remove circuitId+remoteId entry */
       rc = ptin_dhcp_client_delete(evc_idx, &client);
       if ( rc != L7_SUCCESS)
@@ -8562,7 +8593,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
         if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
         {
           client.ptin_intf.intf_type  = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
-          client.ptin_intf.intf_id    = ENDIAN_SWAP8(shift_index + 1);
+          client.ptin_intf.intf_id    = ENDIAN_SWAP8(shift_index);
           client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
 
           /* Get statistics */
@@ -8711,19 +8742,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
     return L7_FAILURE;
   }
 
-  memset(&client,0x00,sizeof(ptin_client_id_t));
-  if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_OVLAN_MASK)
-  {
-    client.outerVlan = ENDIAN_SWAP16(dhcp_stats->client.outer_vlan);
-    client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-  }
-  if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_IVLAN_MASK)
-  {
-    client.innerVlan = ENDIAN_SWAP16(dhcp_stats->client.inner_vlan);
-    client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-  }
-  if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_INTF_MASK)
-  {
+
     if (dhcp_stats->client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
       get_NGPON2_group_info(&NGPON2_GROUP, dhcp_stats->client.intf.intf_id);
@@ -8732,9 +8751,23 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
       {
         if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
         {
-          client.ptin_intf.intf_type  = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
-          client.ptin_intf.intf_id    = ENDIAN_SWAP8(shift_index + 1);
-          client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          memset(&client,0x00,sizeof(ptin_client_id_t));
+          if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_OVLAN_MASK)
+          {
+            client.outerVlan = ENDIAN_SWAP16(dhcp_stats->client.outer_vlan);
+            client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+          }
+          if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_IVLAN_MASK)
+          {
+            client.innerVlan = ENDIAN_SWAP16(dhcp_stats->client.inner_vlan);
+            client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+          }
+          if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_INTF_MASK)
+          {
+            client.ptin_intf.intf_type  = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
+            client.ptin_intf.intf_id    = ENDIAN_SWAP8(shift_index);
+            client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          }
 
           /* Clear client stats */
           rc = ptin_dhcp_stat_client_clear(dhcp_stats->evc_id, &client);
@@ -8754,16 +8787,27 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
         shift_index++;
       }
     }
-    else
+
+  if (dhcp_stats->client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
+  {
+    memset(&client,0x00,sizeof(ptin_client_id_t));
+    if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_OVLAN_MASK)
+    {
+      client.outerVlan = ENDIAN_SWAP16(dhcp_stats->client.outer_vlan);
+      client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+    }
+    if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_IVLAN_MASK)
+    {
+      client.innerVlan = ENDIAN_SWAP16(dhcp_stats->client.inner_vlan);
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+    }
+    if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_INTF_MASK)
     {
       client.ptin_intf.intf_type  = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_type);
       client.ptin_intf.intf_id    = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_id);
       client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
     }
-  }
 
-  if (dhcp_stats->client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
-  {
     /* Clear client stats */
     rc = ptin_dhcp_stat_client_clear(dhcp_stats->evc_id, &client);
 
@@ -9426,7 +9470,7 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
 
         if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
         {
-          intf.intf_id = shift_index + 1;  
+          intf.intf_id = shift_index;  
           intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
             
           if (ptin_intf_ptintf2port(&intf, &igmpAdmissionControl.ptin_port) != L7_SUCCESS)
@@ -9819,19 +9863,6 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
       PT_LOG_DEBUG(LOG_CTX_MSG, "   maxBandwidth = %llu bit/s ", ENDIAN_SWAP64(McastClient[i].maxBandwidth));
 #endif
  
-    memset(&client,0x00,sizeof(ptin_client_id_t));
-    if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
-    {
-      client.outerVlan = ENDIAN_SWAP16(McastClient[i].client.outer_vlan);
-      client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-    }
-    if (McastClient[i].client.mask & MSG_CLIENT_IVLAN_MASK)
-    {
-      client.innerVlan = ENDIAN_SWAP16(McastClient[i].client.inner_vlan);
-      client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-    }
-    if (McastClient[i].client.mask & MSG_CLIENT_INTF_MASK)
-    {
 
       if (McastClient[i].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
       {
@@ -9845,9 +9876,23 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
 
             j++;
 
-            client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
-            client.ptin_intf.intf_id    = shift_index + 1;
-            client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+            memset(&client,0x00,sizeof(ptin_client_id_t));
+            if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+            {
+              client.outerVlan = ENDIAN_SWAP16(McastClient[i].client.outer_vlan);
+              client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+            }
+            if (McastClient[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+            {
+              client.innerVlan = ENDIAN_SWAP16(McastClient[i].client.inner_vlan);
+              client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+            }
+            if (McastClient[i].client.mask & MSG_CLIENT_INTF_MASK)
+            {
+                    client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
+                    client.ptin_intf.intf_id    = shift_index;
+                    client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+            }
 
             rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(McastClient[i].mcEvcId), &client);
             if ( rc != L7_SUCCESS )
@@ -9888,16 +9933,29 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
           shift_index++;
         }
       }
-      else
-      {
-        client.ptin_intf.intf_type  = McastClient[i].client.intf.intf_type;
-        client.ptin_intf.intf_id    = McastClient[i].client.intf.intf_id;
-        client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-      }
-    }
+    
 
     if (McastClient[i].client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
     {
+
+          memset(&client,0x00,sizeof(ptin_client_id_t));
+    if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+    {
+      client.outerVlan = ENDIAN_SWAP16(McastClient[i].client.outer_vlan);
+      client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+    }
+    if (McastClient[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+    {
+      client.innerVlan = ENDIAN_SWAP16(McastClient[i].client.inner_vlan);
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+    }
+    if (McastClient[i].client.mask & MSG_CLIENT_INTF_MASK)
+    {
+      client.ptin_intf.intf_type  = McastClient[i].client.intf.intf_type;
+      client.ptin_intf.intf_id    = McastClient[i].client.intf.intf_id;
+      client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+    }
+
       rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(McastClient[i].mcEvcId), &client);
       if ( rc != L7_SUCCESS )
       {
@@ -9975,63 +10033,77 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
     PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan = %u", ENDIAN_SWAP16(McastClient[i].client.inner_vlan));
     PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf  = %u/%u", McastClient[i].client.intf.intf_type,McastClient[i].client.intf.intf_id);
 
-    memset(&client,0x00,sizeof(ptin_client_id_t));
-    if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
-    {
-      client.outerVlan = ENDIAN_SWAP16(McastClient[i].client.outer_vlan);
-      client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-    }
-    if (McastClient[i].client.mask & MSG_CLIENT_IVLAN_MASK)
-    {
-      client.innerVlan = ENDIAN_SWAP16(McastClient[i].client.inner_vlan);
-      client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-    }
-    if (McastClient[i].client.mask & MSG_CLIENT_INTF_MASK)
+
+    if ( McastClient[i].client.intf.intf_type == PTIN_EVC_INTF_NGPON2 )
     {
 
-      if ( McastClient[i].client.intf.intf_type == PTIN_EVC_INTF_NGPON2 )
+      get_NGPON2_group_info(&NGPON2_GROUP, McastClient[i].client.intf.intf_id);
+
+      while ( j < NGPON2_GROUP.nports)
       {
+         if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+         {
 
-        get_NGPON2_group_info(&NGPON2_GROUP, McastClient[i].client.intf.intf_id);
+           j++;
 
-        while ( j < NGPON2_GROUP.nports)
-        {
-           if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
-           {
-
-             client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
-             client.ptin_intf.intf_id    = shift_index + 1;
-             client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-
-             rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(McastClient[i].mcEvcId), &client);
-             if ( rc != L7_SUCCESS )
-             {
-               PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
-               continue;
-             }
-
-             /* Apply config */
-             rc = ptin_igmp_api_client_remove(&client);
-             if ( rc != L7_SUCCESS )
-             {
-               PT_LOG_ERR(LOG_CTX_MSG, "Error removing MC client");
-               return rc;
-             }
-              j++;
-            }
-            shift_index++;
+           memset(&client,0x00,sizeof(ptin_client_id_t));
+          if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+          {
+            client.outerVlan = ENDIAN_SWAP16(McastClient[i].client.outer_vlan);
+            client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
           }
-        }
-        else
-        {
-          client.ptin_intf.intf_type  = McastClient[i].client.intf.intf_type;
-          client.ptin_intf.intf_id    = McastClient[i].client.intf.intf_id;
-          client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-        }
-    }
+          if (McastClient[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+          {
+            client.innerVlan = ENDIAN_SWAP16(McastClient[i].client.inner_vlan);
+            client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+          }
+          if (McastClient[i].client.mask & MSG_CLIENT_INTF_MASK)
+          {
+            client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
+            client.ptin_intf.intf_id    = shift_index;
+            client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          }
 
+           rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(McastClient[i].mcEvcId), &client);
+           if ( rc != L7_SUCCESS )
+           {
+             PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
+             continue;
+           }
+
+           /* Apply config */
+           rc = ptin_igmp_api_client_remove(&client);
+           if ( rc != L7_SUCCESS )
+           {
+             PT_LOG_ERR(LOG_CTX_MSG, "Error removing MC client");
+             return rc;
+           }
+          }
+          shift_index++;
+        }
+      }
+    
     if ( McastClient[i].client.intf.intf_type != PTIN_EVC_INTF_NGPON2 )
     {
+
+      memset(&client,0x00,sizeof(ptin_client_id_t));
+      if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+      {
+        client.outerVlan = ENDIAN_SWAP16(McastClient[i].client.outer_vlan);
+        client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+      }
+      if (McastClient[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+      {
+        client.innerVlan = ENDIAN_SWAP16(McastClient[i].client.inner_vlan);
+        client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+      }
+      if (McastClient[i].client.mask & MSG_CLIENT_INTF_MASK)
+      {
+        client.ptin_intf.intf_type  = McastClient[i].client.intf.intf_type;
+        client.ptin_intf.intf_id    = McastClient[i].client.intf.intf_id;
+        client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+      }
+
 
       rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(McastClient[i].mcEvcId), &client);
       if ( rc != L7_SUCCESS )
@@ -16221,35 +16293,33 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
 
     if ( msg[messageIterator].noOfPackages > 0 )
     {
-      memset(&client,0x00,sizeof(ptin_client_id_t));
-      if (msg[messageIterator].client.mask & MSG_CLIENT_OVLAN_MASK)
-      {
-        client.outerVlan = msg[messageIterator].client.outer_vlan;
-        client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-      }
-      if (msg[messageIterator].client.mask & MSG_CLIENT_IVLAN_MASK)
-      {
-        client.innerVlan = msg[messageIterator].client.inner_vlan;
-        client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-      }
-      if (msg[messageIterator].client.mask & MSG_CLIENT_INTF_MASK)
-      {
         //NGPON2
         if (msg[messageIterator].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
         {
-
           get_NGPON2_group_info(&NGPON2_GROUP, msg[messageIterator].client.intf.intf_id);
-
 
           while (j < NGPON2_GROUP.nports)
           {
-
             if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
             {
-              client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
-              client.ptin_intf.intf_id    = shift_index + 1;
-              client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
 
+              memset(&client,0x00,sizeof(ptin_client_id_t));
+              if (msg[messageIterator].client.mask & MSG_CLIENT_OVLAN_MASK)
+              {
+                client.outerVlan = msg[messageIterator].client.outer_vlan;
+                client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+              }
+              if (msg[messageIterator].client.mask & MSG_CLIENT_IVLAN_MASK)
+              {
+                client.innerVlan = msg[messageIterator].client.inner_vlan;
+                client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+              }
+              if (msg[messageIterator].client.mask & MSG_CLIENT_INTF_MASK)
+              {
+                client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
+                client.ptin_intf.intf_id    = shift_index;
+                client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+              }
 
               rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
               if ( rc != L7_SUCCESS )
@@ -16300,16 +16370,28 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
             shift_index++;
           }
         }
-        else
+
+      if (msg[messageIterator].client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
+      {
+
+        memset(&client,0x00,sizeof(ptin_client_id_t));
+        if (msg[messageIterator].client.mask & MSG_CLIENT_OVLAN_MASK)
+        {
+          client.outerVlan = msg[messageIterator].client.outer_vlan;
+          client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+        }
+        if (msg[messageIterator].client.mask & MSG_CLIENT_IVLAN_MASK)
+        {
+          client.innerVlan = msg[messageIterator].client.inner_vlan;
+          client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+        }
+        if (msg[messageIterator].client.mask & MSG_CLIENT_INTF_MASK)
         {
           client.ptin_intf.intf_type  = msg[messageIterator].client.intf.intf_type;
           client.ptin_intf.intf_id    = msg[messageIterator].client.intf.intf_id;
           client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
         }
-      }
 
-      if (msg[messageIterator].client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
-      {
         rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
         if ( rc != L7_SUCCESS )
         {
@@ -16438,96 +16520,108 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
 
     if ( ENDIAN_SWAP16(msg[messageIterator].noOfPackages) > 0 )
     {
-      memset(&client,0x00,sizeof(ptin_client_id_t));
-      if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_OVLAN_MASK)
+      //NGPON2
+      if (msg[messageIterator].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
       {
-        client.outerVlan = ENDIAN_SWAP16(msg[messageIterator].client.outer_vlan);
-        client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-      }
-      if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_IVLAN_MASK)
-      {
-        client.innerVlan = ENDIAN_SWAP16(msg[messageIterator].client.inner_vlan);
-        client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-      }
-      if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_INTF_MASK)
-      {
-        //NGPON2
-        if (msg[messageIterator].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
+
+        get_NGPON2_group_info(&NGPON2_GROUP, msg[messageIterator].client.intf.intf_id);
+
+        while ( j < NGPON2_GROUP.nports)
         {
-
-          get_NGPON2_group_info(&NGPON2_GROUP, msg[messageIterator].client.intf.intf_id);
-
-          while ( j < NGPON2_GROUP.nports)
+          if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
           {
-            if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+            memset(&client,0x00,sizeof(ptin_client_id_t));
+            if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_OVLAN_MASK)
+            {
+              client.outerVlan = ENDIAN_SWAP16(msg[messageIterator].client.outer_vlan);
+              client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+            }
+            if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_IVLAN_MASK)
+            {
+              client.innerVlan = ENDIAN_SWAP16(msg[messageIterator].client.inner_vlan);
+              client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+            }
+            if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_INTF_MASK)
             {
               client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
-              client.ptin_intf.intf_id    = shift_index + 1;
+              client.ptin_intf.intf_id    = shift_index;
               client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+            }
 
+            {
+              rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(msg[messageIterator].evcId), &client);
+              if ( rc != L7_SUCCESS )
               {
-                rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(msg[messageIterator].evcId), &client);
-                if ( rc != L7_SUCCESS )
-                {
-                  PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
-                  /*The client may not exist!*/
-                  rc = L7_SUCCESS;
-                  continue;
-                }
+                PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
+                /*The client may not exist!*/
+                rc = L7_SUCCESS;
+                continue;
+              }
 
-                /* Get interface as intIfNum format */      
-                if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
+              /* Get interface as intIfNum format */      
+              if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
+              {
+                if (ptin_evc_extVlans_get(intIfNum, ENDIAN_SWAP32(msg[messageIterator].evcId),(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
                 {
-                  if (ptin_evc_extVlans_get(intIfNum, ENDIAN_SWAP32(msg[messageIterator].evcId),(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
-                  {
-                    PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
-                              client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
-                  }
-                  else
-                  {
-                    uni_ovid = uni_ivid = 0;
-                    PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
-                            client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
-                  }
+                  PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
+                            client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
                 }
                 else
                 {
-                  PT_LOG_ERR(LOG_CTX_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
-                }
-               }
-
-                bmpIterator = 0;
-
-                while( bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE )
-                {
-                  ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList[bmpIterator]);
-                  bmpIterator++;
-                }
-
-                /* Apply config */
-                rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, ENDIAN_SWAP8(msg[messageIterator].onuId), 0x00, 0, 0, addOrRemove, msg[messageIterator].packageBmpList, ENDIAN_SWAP16(msg[messageIterator].noOfPackages));
-
-                if (rc!=L7_SUCCESS)
-                {
-                  PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client rc:%u", rc);
-                  return rc;
+                  uni_ovid = uni_ivid = 0;
+                  PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
+                          client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
                 }
               }
-              j++;
+              else
+              {
+                PT_LOG_ERR(LOG_CTX_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+              }
+             }
+
+              bmpIterator = 0;
+
+              while( bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE )
+              {
+                ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList[bmpIterator]);
+                bmpIterator++;
+              }
+
+              /* Apply config */
+              rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, ENDIAN_SWAP8(msg[messageIterator].onuId), 0x00, 0, 0, addOrRemove, msg[messageIterator].packageBmpList, ENDIAN_SWAP16(msg[messageIterator].noOfPackages));
+
+              if (rc!=L7_SUCCESS)
+              {
+                PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client rc:%u", rc);
+                return rc;
+              }
             }
-            shift_index++;
+            j++;
           }
-        }
-        else
-        {
-          client.ptin_intf.intf_type  = ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_type);
-          client.ptin_intf.intf_id    = ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_id);
-          client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          shift_index++;
         }
       }
 
       if (msg[messageIterator].client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
       {
+        memset(&client,0x00,sizeof(ptin_client_id_t));
+        if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_OVLAN_MASK)
+        {
+          client.outerVlan = ENDIAN_SWAP16(msg[messageIterator].client.outer_vlan);
+          client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+        }
+        if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_IVLAN_MASK)
+        {
+          client.innerVlan = ENDIAN_SWAP16(msg[messageIterator].client.inner_vlan);
+          client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+        }
+        if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_INTF_MASK)
+        {
+          client.ptin_intf.intf_type  = ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_type);
+          client.ptin_intf.intf_id    = ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_id);
+          client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+        }
+
         {
           rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(msg[messageIterator].evcId), &client);
           if ( rc != L7_SUCCESS )
@@ -16646,7 +16740,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
           ptinEvcFlow.evc_idx             = ENDIAN_SWAP32(msg[messageIterator].evcId);                                     
           ptinEvcFlow.int_ivid            = ENDIAN_SWAP16(msg[messageIterator].nni_cvlan);                                 
           ptinEvcFlow.ptin_intf.intf_type = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);                             
-          ptinEvcFlow.ptin_intf.intf_id   = shift_index + 1;                               
+          ptinEvcFlow.ptin_intf.intf_id   = shift_index;                               
           ptinEvcFlow.uni_ovid            = ENDIAN_SWAP16(msg[messageIterator].intf.outer_vid); /* must be a leaf */       
           ptinEvcFlow.uni_ivid            = ENDIAN_SWAP16(msg[messageIterator].intf.inner_vid);                            
           ptinEvcFlow.onuId               = ENDIAN_SWAP8(msg[messageIterator].onuId);                                      
@@ -16819,7 +16913,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
           ptinEvcFlow.evc_idx             = ENDIAN_SWAP32(msg[messageIterator].evcId);                                     
           ptinEvcFlow.int_ivid            = ENDIAN_SWAP16(msg[messageIterator].nni_cvlan);                                 
           ptinEvcFlow.ptin_intf.intf_type = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);                             
-          ptinEvcFlow.ptin_intf.intf_id   = ENDIAN_SWAP8(shift_index + 1);                               
+          ptinEvcFlow.ptin_intf.intf_id   = ENDIAN_SWAP8(shift_index);                               
           ptinEvcFlow.uni_ovid            = ENDIAN_SWAP16(msg[messageIterator].intf.outer_vid); /* must be a leaf */       
           ptinEvcFlow.uni_ivid            = ENDIAN_SWAP16(msg[messageIterator].intf.inner_vid);                            
           ptinEvcFlow.onuId               = ENDIAN_SWAP8(msg[messageIterator].onuId);                                      
