@@ -6410,7 +6410,6 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
     {
       if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
       {
-
         /* Copy data */
         ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
         ptinEvcFlow.flags               = msgEvcFlow->flags;
