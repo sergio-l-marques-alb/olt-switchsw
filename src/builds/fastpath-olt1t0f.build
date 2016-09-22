@@ -1,0 +1,27 @@
+#!/bin/sh
+
+export MODULE=fastpath-olt1t0f
+export PLATFORMS="CXOLT1T0-F"
+
+export APPLICATION=fp
+
+#echo "Updating SVN..."
+#svn update
+
+echo "Compiling fastpath for OLT1T0..."
+make -C ../fastpath -f olt1t0f.make all
+if [ $? -ne 0 ]; then
+ echo ERROR!!!
+ exit 1;
+fi
+echo "Copying binaries to apps..."
+make -C ../fastpath -f olt1t0f.make install
+if [ $? -ne 0 ]; then
+ echo ERROR!!!
+ exit 1;
+fi
+echo "Done... Going to prepare tarball."
+echo
+
+. ./fastpath.build $1
+

@@ -7,8 +7,7 @@
 #include <ethsrv_oam.h>
 
 /* Fort systems Little Endian and if not pizza box, invert bytes */
-#define MNGMT_DIFFERENT_ENDIANNESS     ((__BYTE_ORDER == __LITTLE_ENDIAN) && (!PTIN_BOARD_IS_STANDALONE))
-#if MNGMT_DIFFERENT_ENDIANNESS
+#if !defined(BE_HOST) && (!PTIN_BOARD_IS_STANDALONE)
 
 #define ENDIAN_SWAP8(val) \
   ((unsigned char)(val))
@@ -21,9 +20,6 @@
   ((unsigned long long) (((unsigned long long)(val) >> 56) | (((unsigned long long)(val) >> 40) & 0x000000000000ff00ULL) | (((unsigned long long)(val) >> 24) & 0x0000000000ff0000ULL) | (((unsigned long long)(val) >> 8) & 0x00000000ff000000ULL) | \
                          ((unsigned long long)(val) << 56) | (((unsigned long long)(val) << 40) & 0x00ff000000000000ULL) | (((unsigned long long)(val) << 24) & 0x0000ff0000000000ULL) | (((unsigned long long)(val) << 8) & 0x000000ff00000000ULL)))
 
-/* Only applied to variables (not values or constants) */
-#define ENDIAN_SWAP_VAR(var) ((sizeof(var)==2) ? ENDIAN_SWAP16(val) : ((sizeof(var)==4) ? ENDIAN_SWAP32(val) : ((sizeof(var)==8) ? ENDIAN_SWAP64(val) : (var))))
-
 #else
 
 #define ENDIAN_SWAP8(val)  (val)
@@ -31,26 +27,6 @@
 #define ENDIAN_SWAP32(val) (val)
 #define ENDIAN_SWAP64(val) (val)
 
-#endif
-
-#if MNGMT_DIFFERENT_ENDIANNESS
-/* Only applied to variables (not values or constants) */
-#define ENDIAN_SWAP8_MOD(val)
-#define ENDIAN_SWAP16_MOD(val)  { val = ENDIAN_SWAP16(val); }
-#define ENDIAN_SWAP32_MOD(val)  { val = ENDIAN_SWAP32(val); }
-#define ENDIAN_SWAP64_MOD(val)  { val = ENDIAN_SWAP64(val); }
-#define ENDIAN_SWAP_MOD(val) \
-{ \
-  if (sizeof(val) == 2)       ENDIAN_SWAP16_MOD(val); \
-  else if (sizeof(val) == 4)  ENDIAN_SWAP32_MOD(val); \
-  else if (sizeof(val) == 8)  ENDIAN_SWAP64_MOD(val); \
-}
-#else
-#define ENDIAN_SWAP8_MOD(val)
-#define ENDIAN_SWAP16_MOD(val)
-#define ENDIAN_SWAP32_MOD(val)
-#define ENDIAN_SWAP64_MOD(val)
-#define ENDIAN_SWAP_MOD(val)
 #endif
 
 /*Bitmap Macro Handlers*/

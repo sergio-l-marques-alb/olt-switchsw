@@ -1,10 +1,10 @@
 #!/bin/sh
 
-PLATFORM=OLT1T0F
+PLATFORM=OLT1T0-F
 PLATFORM_FOLDER="CX$PLATFORM"
 FILESYSTEM=rootfs
 
-KO_PATH=./output/FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_$PLATFORM/target
-BIN_PATH=./output/FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_$PLATFORM/ipl
+KO_PATH=./output/FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_OLT1T0F/target
+BIN_PATH=./output/FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_OLT1T0F/ipl
 
 . ./common.install
