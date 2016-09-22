@@ -1658,7 +1658,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   usl_bcm_port_frame_size_t    maxFrameSize;
   L7_BOOL cond0, cond1, cond2, cond3, cond;     /* PTin added: BUG correction */
 
-  PT_LOG_TRACE(LOG_CTX_MISC, "This function was called: usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
+  PT_LOG_INFO(LOG_CTX_MISC, "This function was called: usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
 
   if (!ACCESS_LAG_AT_SDK_LEVEL(DAPI_CMD_INTERNAL_LAG_PORT_DELETE) &&
       !ACCESS_LAG_AT_SDK_LEVEL(DAPI_CMD_LAG_DELETE))
@@ -1720,7 +1720,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       /* PTin end */
       {
         PT_LOG_TRACE(LOG_CTX_TRUNKS, "lagMemberSet[%d].usp={%d,%d,%d}",
-                  searchEntry, lagMemberSet[searchEntry].usp.unit, lagMemberSet[searchEntry].usp.slot,lagMemberSet[searchEntry].usp.port);
+                     searchEntry, lagMemberSet[searchEntry].usp.unit, lagMemberSet[searchEntry].usp.slot,lagMemberSet[searchEntry].usp.port);
 
         /* PTin added: debug */
         if (hapiBroadDebugLag)
@@ -1751,11 +1751,11 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 
   if (member_found == L7_FALSE)
   {
-    PT_LOG_TRACE(LOG_CTX_TRUNKS, "Member not found");
+    PT_LOG_INFO(LOG_CTX_TRUNKS, "Member not found");
     return L7_SUCCESS;
   }
 
-  PT_LOG_TRACE(LOG_CTX_TRUNKS, "lagMemberSet[%d].usp={%d,%d,%d}",
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "lagMemberSet[%d].usp={%d,%d,%d}",
             searchEntry, lagMemberSet[searchEntry].usp.unit, lagMemberSet[searchEntry].usp.slot,lagMemberSet[searchEntry].usp.port);
 
   /* acquire the drivers vlan database during this operation */
