@@ -150,6 +150,10 @@ extern int ptin_sys_number_of_ports;
 
 #endif
 
+#if PTIN_BOARD_IS_MATRIX
+#define is_matrix_protection() (CPLD_SLOT_ID_GET() != 0)   /* To know if we are in protection matrix */
+#define matrix_board_version() ((CPLD_ID_GET() == CPLD_ID_CXO640G_V1) ? 1 : 2)
+#endif  // PTIN_BOARD_IS_MATRIX
 
 #define PTIN_VLAN_MIN                 L7_DOT1Q_MIN_VLAN_ID_CREATE
 #define PTIN_VLAN_MAX                 L7_DOT1Q_MAX_VLAN_ID

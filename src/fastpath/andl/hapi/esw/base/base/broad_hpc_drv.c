@@ -3388,7 +3388,7 @@ extern int soc_robo_mmu_init(int );
   SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 5, bcmPortControlLanes, 4),  "Port xe0(5) lanes 4");
   SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 9, bcmPortControlLanes, 4),  "Port xe0(9) lanes 4");
   SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 13, bcmPortControlLanes, 4), "Port xe0(13) lanes 4");
-  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 28, bcmPortControlLanes, 4), "Port xe2(28) lanes 4");
+  //SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 28, bcmPortControlLanes, 4), "Port xe2(28) lanes 4");
 #endif
 
   PT_LOG_INFO(LOG_CTX_STARTUP, "systemInit Finished!");
