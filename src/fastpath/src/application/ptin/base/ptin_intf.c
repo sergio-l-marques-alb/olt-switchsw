@@ -466,7 +466,13 @@ L7_RC_t ptin_intf_portExt_init(void)
   mefExt.doubletag                    = L7_TRUE;
   mefExt.outer_tpid                   = 0x8100;
   mefExt.inner_tpid                   = 0x8100;
+
+  #if (PTIN_BOARD == PTIN_BOARD_TA48GE)
+  mefExt.egress_type                  = PTIN_PORT_EGRESS_TYPE_PROMISCUOUS;
+  #else
   mefExt.egress_type                  = PTIN_PORT_EGRESS_TYPE_ISOLATED;
+  #endif
+
   mefExt.macLearn_enable              = L7_TRUE;
   mefExt.macLearn_stationMove_enable  = L7_TRUE;
   mefExt.macLearn_stationMove_prio    = 0;
