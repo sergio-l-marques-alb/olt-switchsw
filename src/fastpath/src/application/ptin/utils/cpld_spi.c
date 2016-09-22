@@ -32,7 +32,7 @@
 
 #include "cpld_spi.h"
 
-#if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_OLT1T0 || PTIN_BOARD == PTIN_BOARD_TT04SXG)
+#if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F /*|| PTIN_BOARD == PTIN_BOARD_OLT1T0*/)
 
 #include <linux/spi/spidev.h>
 #include <stdint.h>
