@@ -12326,12 +12326,13 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
     PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf extracted!");
   }
 
-  if (mask & MSG_HWETH_BWPROFILE_MASK_PROFILE)
+  if ((mask & MSG_HWETH_BWPROFILE_MASK_PROFILE) &&
+      ((msgBwProfile->profile.cir != -1ULL) && (msgBwProfile->profile.eir != -1ULL)))
   {
-    meter->cir = (L7_uint32) (msgBwProfile->profile.cir)/1000;   /* in kbps */
-    meter->cbs = (L7_uint32)  msgBwProfile->profile.cbs;         /* in bytes */
-    meter->eir = (L7_uint32) (msgBwProfile->profile.eir)/1000;   /* in kbps */
-    meter->ebs = (L7_uint32)  msgBwProfile->profile.ebs;         /* in bytes */
+    meter->cir = (L7_uint32) (msgBwProfile->profile.cir/1000ULL); /* in kbps */
+    meter->cbs = (L7_uint32)  msgBwProfile->profile.cbs;          /* in bytes */
+    meter->eir = (L7_uint32) (msgBwProfile->profile.eir/1000ULL); /* in kbps */
+    meter->ebs = (L7_uint32)  msgBwProfile->profile.ebs;          /* in bytes */
     PT_LOG_DEBUG(LOG_CTX_MSG," Profile data extracted!");
   }
   else
@@ -12340,6 +12341,7 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
     meter->cbs = (L7_uint32) -1;
     meter->eir = (L7_uint32) -1;
     meter->ebs = (L7_uint32) -1;
+    PT_LOG_DEBUG(LOG_CTX_MSG," Meter is NULL!");
   }
 
   return L7_SUCCESS;
