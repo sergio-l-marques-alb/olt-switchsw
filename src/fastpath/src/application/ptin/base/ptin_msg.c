@@ -8221,6 +8221,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
 
   for (i=0; i<n_clients; i++)
   {
+    
     ENDIAN_SWAP8_MOD (profile[i].SlotId);
     ENDIAN_SWAP32_MOD(profile[i].evc_id);
     ENDIAN_SWAP8_MOD (profile[i].mask);
@@ -8237,7 +8238,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
     ENDIAN_SWAP16_MOD(profile[i].circuitId.port);
     ENDIAN_SWAP16_MOD(profile[i].circuitId.q_vid);
     ENDIAN_SWAP16_MOD(profile[i].circuitId.c_vid);
-
+  
     PT_LOG_DEBUG(LOG_CTX_MSG, "Processing message %u",i);
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "  Slot Id                      = %u",     profile[i].SlotId);
@@ -8256,7 +8257,7 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
     PT_LOG_DEBUG(LOG_CTX_MSG, "  Remote Id                    = \"%s\"", profile[i].remoteId);
 
     /* Check if all UseGlobal_DHCP_options match */
-    if ( (profile[i].options & 0x02 >> 1) != ((profile[i].options & 0x08) >> 3) )
+    if ( ((profile[i].options & 0x02) >> 1) != ((profile[i].options & 0x08) >> 3) )
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error: UseGlobal_DHCP_options do not match");
       return L7_FAILURE;
