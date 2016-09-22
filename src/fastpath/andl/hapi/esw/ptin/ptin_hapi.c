@@ -1190,6 +1190,12 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
       PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_stp_set to bcm_port %u", bcm_port);
       rc = L7_FAILURE;
     }
+    /* Reconfigure framemax */
+    if (bcm_port_frame_max_set(0, bcm_port, PTIN_SYSTEM_ETH_MTU_SIZE) != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_frame_max_set to bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
 
     /* If init is allowed */
     if (init)
