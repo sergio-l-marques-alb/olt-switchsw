@@ -1373,9 +1373,9 @@ L7_RC_t ptin_msg_intfLinkStatus(ipc_msg *inbuffer)
   L7_uint16 index;
   L7_uint32 ptin_port;
 
-  ENDIAN_SWAP8_MOD (linkStatus->slot_id);
+  ENDIAN_SWAP8_MOD(linkStatus->slot_id);
   ENDIAN_SWAP16_MOD(linkStatus->generic_id);
-  ENDIAN_SWAP8_MOD (linkStatus->number_of_ports);
+  ENDIAN_SWAP8_MOD(linkStatus->number_of_ports);
 
   /* Validate slot */
   if (linkStatus->slot_id < PTIN_SYS_LC_SLOT_MIN || linkStatus->slot_id > PTIN_SYS_LC_SLOT_MAX)

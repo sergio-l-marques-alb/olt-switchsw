@@ -1,0 +1,12 @@
+/bootos.d
+/devshell_symbols.gz
+/fp.cli
+/fp.shell
+/mgmd.cli
+/mk_prom
+/packageArcs
+/packageLibs
+/stk_file_vars
+/switchdrvr
+/switchdrvr.map
+/switchdrvr.unstripped
