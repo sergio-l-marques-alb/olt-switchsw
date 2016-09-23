@@ -1389,10 +1389,10 @@ L7_RC_t ptin_msg_intfLinkStatus(ipc_msg *inbuffer)
   /* Run all given interfaces */
   for (index = 0; index < linkStatus->number_of_ports; index++)
   {
-    ENDIAN_SWAP8_MOD (linkStatus->port[index].intf.intf_type);
-    ENDIAN_SWAP8_MOD (linkStatus->port[index].intf.intf_id);
-    ENDIAN_SWAP8_MOD (linkStatus->port[index].enable);
-    ENDIAN_SWAP8_MOD (linkStatus->port[index].link);
+    ENDIAN_SWAP8_MOD(linkStatus->port[index].intf.intf_type);
+    ENDIAN_SWAP8_MOD(linkStatus->port[index].intf.intf_id);
+    ENDIAN_SWAP8_MOD(linkStatus->port[index].enable);
+    ENDIAN_SWAP8_MOD(linkStatus->port[index].link);
     ENDIAN_SWAP64_MOD(linkStatus->port[index].tx_packets);
     ENDIAN_SWAP64_MOD(linkStatus->port[index].rx_packets);
     ENDIAN_SWAP64_MOD(linkStatus->port[index].rx_error);
@@ -1972,14 +1972,14 @@ L7_RC_t ptin_msg_CoS_get(msg_QoSConfiguration_t *qos_msg)
             qos_msg->cos_config.cos[0].max_bandwidth, qos_msg->cos_config.cos[1].max_bandwidth, qos_msg->cos_config.cos[2].max_bandwidth, qos_msg->cos_config.cos[3].max_bandwidth, qos_msg->cos_config.cos[4].max_bandwidth, qos_msg->cos_config.cos[5].max_bandwidth, qos_msg->cos_config.cos[6].max_bandwidth, qos_msg->cos_config.cos[7].max_bandwidth);
 
   /* Swap bytes */
-  ENDIAN_SWAP8_MOD (qos_msg->SlotId);
-  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_type);
-  ENDIAN_SWAP8_MOD (qos_msg->intf.intf_id);
-  ENDIAN_SWAP8_MOD (qos_msg->mask);
-  ENDIAN_SWAP8_MOD (qos_msg->trust_mode);
-  ENDIAN_SWAP8_MOD (qos_msg->bandwidth_unit);
+  ENDIAN_SWAP8_MOD(qos_msg->SlotId);
+  ENDIAN_SWAP8_MOD(qos_msg->intf.intf_type);
+  ENDIAN_SWAP8_MOD(qos_msg->intf.intf_id);
+  ENDIAN_SWAP8_MOD(qos_msg->mask);
+  ENDIAN_SWAP8_MOD(qos_msg->trust_mode);
+  ENDIAN_SWAP8_MOD(qos_msg->bandwidth_unit);
   ENDIAN_SWAP32_MOD(qos_msg->shaping_rate);
-  ENDIAN_SWAP8_MOD (qos_msg->pktprio.mask);
+  ENDIAN_SWAP8_MOD(qos_msg->pktprio.mask);
   for (i = 0; i < 8; i++)
   {
     ENDIAN_SWAP32_MOD(qos_msg->pktprio.cos[i]);
@@ -9872,7 +9872,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
         if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
         {
           j++;
-          memset(&client,0x00,sizeof(ptin_client_id_t))
+          memset(&client,0x00,sizeof(ptin_client_id_t));
 
           if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
           {
