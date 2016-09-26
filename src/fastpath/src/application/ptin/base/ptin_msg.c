@@ -12285,17 +12285,30 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
       PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
     }
 
-    /* Get ptin_port */
-    if (ptin_msg_ptinPort_get(msgBwProfile->intf_src.intf_type, msgBwProfile->intf_src.intf_id, &ptin_port) != L7_SUCCESS)
+    if (msgBwProfile->intf_src.intf_type == PTIN_EVC_INTF_NGPON2)
     {
-      PT_LOG_ERR(LOG_CTX_MSG,"Invalid port reference");
-      return L7_FAILURE;
+      ptin_NGPON2_groups_t NGPON2_GROUP;
+
+      get_NGPON2_group_info(&NGPON2_GROUP, msgBwProfile->intf_src.intf_id);
+
+      profile->ptin_port = (L7_uint32) -1;
+      profile->ptin_port_bmp = NGPON2_GROUP.ngpon2_groups_pbmp64;
+
     }
+    else
+    {
+      /* Get ptin_port */
+      if (ptin_msg_ptinPort_get(msgBwProfile->intf_src.intf_type, msgBwProfile->intf_src.intf_id, &ptin_port) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG,"Invalid port reference");
+        return L7_FAILURE;
+      }
 
-    /* Calculate ddUSP */
-    profile->ptin_port = ptin_port;
+      /* Calculate ddUSP */
+      profile->ptin_port = ptin_port;
 
-    PT_LOG_DEBUG(LOG_CTX_MSG," SrcIntf extracted!");
+      PT_LOG_DEBUG(LOG_CTX_MSG," SrcIntf extracted!");
+    }
   }
 
   /* Destination interface */
@@ -12317,17 +12330,30 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
       PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
     }
 
-    /* Get ptin_port */
-    if (ptin_msg_ptinPort_get(msgBwProfile->intf_dst.intf_type, msgBwProfile->intf_dst.intf_id, &ptin_port) != L7_SUCCESS)
+    if (msgBwProfile->intf_dst.intf_type == PTIN_EVC_INTF_NGPON2)
     {
-      PT_LOG_ERR(LOG_CTX_MSG,"Invalid port reference");
-      return L7_FAILURE;
+      ptin_NGPON2_groups_t NGPON2_GROUP;
+
+      get_NGPON2_group_info(&NGPON2_GROUP, msgBwProfile->intf_dst.intf_id);
+
+      profile->ptin_port = (L7_uint32) -1;
+      profile->ptin_port_bmp = NGPON2_GROUP.ngpon2_groups_pbmp64;
+
     }
+    else
+    {
+      /* Get ptin_port */
+      if (ptin_msg_ptinPort_get(msgBwProfile->intf_dst.intf_type, msgBwProfile->intf_dst.intf_id, &ptin_port) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG,"Invalid port reference");
+        return L7_FAILURE;
+      }
 
-    /* Calculate ddUSP */
-    profile->ptin_port = ptin_port;
+      /* Calculate ddUSP */
+      profile->ptin_port = ptin_port;
 
-    PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf extracted!");
+      PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf extracted!");
+    }
   }
 
   if ((mask & MSG_HWETH_BWPROFILE_MASK_PROFILE) &&
