@@ -304,6 +304,12 @@ extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
   ptin_rfc2819_init_all_probes();
   PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
+  /* Reset NGPON2 groups and ports */
+  PT_LOG_INFO(LOG_CTX_MSG, "Performing NGPON2 reset...");
+  ptin_intf_NGPON2_clear();
+  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
+
+
   if (mode == DEFAULT_RESET_MODE_FULL)
   {
     ptin_NtwConnectivity_t ptinNtwConn;
@@ -5630,7 +5636,6 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Type     = %u",      ptinEvcConf.type);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .MC Flood = %u (%s)", ptinEvcConf.mc_flood, ptinEvcConf.mc_flood==0?"All":ptinEvcConf.mc_flood==1?"Unknown":"None");
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.Intf recebidas da gestão  = %u", msgEvcConf->evc.n_intf);
 
 
 
@@ -5644,7 +5649,6 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
   for (i=0; i < msgEvcConf->evc.n_intf; i++)
   {
-      PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.Interacoes dentro do for  = %u", i+1);
     #if (0)
     /* PTP: Workaround */
 
@@ -17077,6 +17081,11 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
   L7_uint32         ptinPort;  
   L7_RC_t           rc                = L7_SUCCESS;
 
+  // NGPON2
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
+
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
@@ -17093,22 +17102,55 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
     PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
               ENDIAN_SWAP8(msg[messageIterator].slotId), ENDIAN_SWAP32(msg[messageIterator].evcId), ENDIAN_SWAP8(msg[messageIterator].intf.intf_type), ENDIAN_SWAP8(msg[messageIterator].intf.intf_id), ENDIAN_SWAP8(msg[messageIterator].onuId));
 
-    /*Copy to ptin intf struct*/
-    ptinIntf.intf_type = ENDIAN_SWAP8(msg[messageIterator].intf.intf_type);
-    ptinIntf.intf_id   = ENDIAN_SWAP8(msg[messageIterator].intf.intf_id);
-
-    /*Convert from ptin intf to otin port*/
-    if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
+    if (msg[messageIterator].intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
-      return rc;
+      get_NGPON2_group_info(&NGPON2_GROUP, msg[messageIterator].intf.intf_id);
+
+      while (j < NGPON2_GROUP.nports)
+      {
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        {
+          /*Copy to ptin intf struct*/
+          ptinIntf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+          ptinIntf.intf_id   = shift_index;
+
+          /*Convert from ptin intf to otin port*/
+          if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
+          {
+            return rc;
+          }
+
+          /*If Any Error Occurs It is Already Logged*/
+          if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_add(ptinPort, ENDIAN_SWAP8(msg[messageIterator].onuId), ENDIAN_SWAP32(msg[messageIterator].evcId))) )
+          {
+            return rc;
+          }
+
+          j++;
+        }
+        shift_index++;
+      }
     }
-
-    /*If Any Error Occurs It is Already Logged*/
-    if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_add(ptinPort, ENDIAN_SWAP8(msg[messageIterator].onuId), ENDIAN_SWAP32(msg[messageIterator].evcId))) )
+    else
     {
-      return rc;
-    }   
+      /*Copy to ptin intf struct*/
+      ptinIntf.intf_type = ENDIAN_SWAP8(msg[messageIterator].intf.intf_type);
+      ptinIntf.intf_id   = ENDIAN_SWAP8(msg[messageIterator].intf.intf_id);
+
+      /*Convert from ptin intf to otin port*/
+      if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
+      {
+        return rc;
+      }
+
+      /*If Any Error Occurs It is Already Logged*/
+      if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_add(ptinPort, ENDIAN_SWAP8(msg[messageIterator].onuId), ENDIAN_SWAP32(msg[messageIterator].evcId))) )
+      {
+        return rc;
+      }
+    }
   }
+  
   return rc;  
 #else
   PT_LOG_ERR(LOG_CTX_IGMP, "Featured not supported on this card!");  
@@ -17133,6 +17175,11 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
   L7_uint32         ptinPort;
   L7_RC_t           rc                = L7_SUCCESS;
 
+  // NGPON2
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
+
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
@@ -17144,26 +17191,62 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
   PT_LOG_DEBUG(LOG_CTX_MSG,"Input Arguments [msg:%p noOfMessages:%u]", msg, noOfMessages);
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
-  { 
-    /*Input Parameters*/
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
-              ENDIAN_SWAP8(msg[messageIterator].slotId),ENDIAN_SWAP32(msg[messageIterator].evcId), ENDIAN_SWAP8(msg[messageIterator].intf.intf_type), ENDIAN_SWAP8(msg[messageIterator].intf.intf_id), ENDIAN_SWAP8(msg[messageIterator].onuId));
-
-    /*Copy to ptin intf struct*/
-    ptinIntf.intf_type = ENDIAN_SWAP8(msg[messageIterator].intf.intf_type);
-    ptinIntf.intf_id   = ENDIAN_SWAP8(msg[messageIterator].intf.intf_id);
-
-    /*Convert from ptin intf to otin port*/
-    if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
+  {
+    if (msg[messageIterator].intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
-      PT_LOG_ERR(LOG_CTX_IGMP, "Failed to convert to ptin port [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]");  
-      return rc;
+      get_NGPON2_group_info(&NGPON2_GROUP, msg[messageIterator].intf.intf_id);
+
+      while (j < NGPON2_GROUP.nports)
+      {
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        {
+          /*Input Parameters*/
+          PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
+                    ENDIAN_SWAP8(msg[messageIterator].slotId),ENDIAN_SWAP32(msg[messageIterator].evcId), ENDIAN_SWAP8(msg[messageIterator].intf.intf_type), ENDIAN_SWAP8(msg[messageIterator].intf.intf_id), ENDIAN_SWAP8(msg[messageIterator].onuId));
+
+          /*Copy to ptin intf struct*/
+          ptinIntf.intf_type = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
+          ptinIntf.intf_id   = ENDIAN_SWAP8(shift_index);
+
+          /*Convert from ptin intf to otin port*/
+          if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
+          {
+            PT_LOG_ERR(LOG_CTX_IGMP, "Failed to convert to ptin port [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]");  
+            return rc;
+          }
+
+          /*If Any Error Occurs It is Already Logged*/
+          if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_remove(ptinPort, ENDIAN_SWAP8(msg[messageIterator].onuId), ENDIAN_SWAP32(msg[messageIterator].evcId)) ) )
+          {
+            return rc;
+          }
+          j++;
+        }
+        shift_index++;
+      }
     }
-
-    /*If Any Error Occurs It is Already Logged*/
-    if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_remove(ptinPort, ENDIAN_SWAP8(msg[messageIterator].onuId), ENDIAN_SWAP32(msg[messageIterator].evcId)) ) )
+    else
     {
-      return rc;
+      /*Input Parameters*/
+      PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
+                ENDIAN_SWAP8(msg[messageIterator].slotId),ENDIAN_SWAP32(msg[messageIterator].evcId), ENDIAN_SWAP8(msg[messageIterator].intf.intf_type), ENDIAN_SWAP8(msg[messageIterator].intf.intf_id), ENDIAN_SWAP8(msg[messageIterator].onuId));
+
+      /*Copy to ptin intf struct*/
+      ptinIntf.intf_type = ENDIAN_SWAP8(msg[messageIterator].intf.intf_type);
+      ptinIntf.intf_id   = ENDIAN_SWAP8(msg[messageIterator].intf.intf_id);
+
+      /*Convert from ptin intf to otin port*/
+      if ( L7_SUCCESS != (rc = ptin_intf_ptintf2port(&ptinIntf, &ptinPort) ) )
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Failed to convert to ptin port [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]");  
+        return rc;
+      }
+
+      /*If Any Error Occurs It is Already Logged*/
+      if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_remove(ptinPort, ENDIAN_SWAP8(msg[messageIterator].onuId), ENDIAN_SWAP32(msg[messageIterator].evcId)) ) )
+      {
+        return rc;
+      }
     }
   }
   return rc;  

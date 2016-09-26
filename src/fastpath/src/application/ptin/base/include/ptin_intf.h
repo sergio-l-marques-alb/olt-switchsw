@@ -28,6 +28,16 @@ extern L7_BOOL linkscan_update_control;
 static ptin_NGPON2_groups_t NGPON2_groups_info[PTIN_SYSTEM_MAX_NGPON2_GROUPS];
 
 
+/**
+ * PTIN_INTF NGPON2 clear 
+ * 
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+
+L7_RC_t ptin_intf_NGPON2_clear();
+
 
 /**
  * PTIN_INTF NGPON2 check intf
