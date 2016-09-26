@@ -1,0 +1,182 @@
+/*
+ * $Id: ipsec.c
+ *
+ * $Copyright: Copyright 2016 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * Ipsec
+ */
+
+#include <bcm/error.h>
+#include <bcm/debug.h>
+#include <bcm/ipsec.h>
+
+#include "bcm_int/common/debug.h"
+#include <soc/dpp/QAX/qax_ipsec.h>
+#include <soc/drv.h>
+
+
+#define _ERR_MSG_MODULE_NAME BSL_BCM_IPSEC
+
+
+int 
+bcm_petra_ipsec_config_set(
+    int unit, 
+    bcm_ipsec_config_t *config)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if(SOC_IS_QAX(unit))           /* QAX only programs */
+        BCMDNX_IF_ERR_EXIT(soc_qax_ipsec_config_set(unit, config));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_ipsec_sa_create(
+    int unit, 
+    uint32 flags, 
+    uint32 *sa_id, 
+    bcm_ipsec_sa_info_t *sa)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if(SOC_IS_QAX(unit))           /* QAX only programs */
+        BCMDNX_IF_ERR_EXIT(soc_qax_ipsec_sa_create(unit, flags, sa_id, sa));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_ipsec_sa_delete(
+    int unit, 
+    uint32 flags, 
+    uint32 sa_id)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if(SOC_IS_QAX(unit))           /* QAX only programs */
+        BCMDNX_IF_ERR_EXIT(soc_qax_ipsec_sa_delete(unit, flags, sa_id));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_ipsec_sa_to_tunnel_map_set(
+    int unit, 
+    uint32 tunnel_id, 
+    uint32 sa_id)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if(SOC_IS_QAX(unit))           /* QAX only programs */
+        BCMDNX_IF_ERR_EXIT(soc_qax_ipsec_sa_to_tunnel_map_set(unit, tunnel_id, sa_id));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_ipsec_sa_to_tunnel_map_get(
+    int unit,
+    uint32 sa_id,
+    uint32 *tunnel_id)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if(SOC_IS_QAX(unit))           /* QAX only programs */
+        BCMDNX_IF_ERR_EXIT(soc_qax_ipsec_sa_to_tunnel_map_get(unit, sa_id, tunnel_id));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_ipsec_sa_key_update(
+    int unit, 
+    uint32 flags, 
+    uint32 sa_id, 
+    bcm_ipsec_sa_keys_t *sa_keys)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if(SOC_IS_QAX(unit))           /* QAX only programs */
+        BCMDNX_IF_ERR_EXIT(soc_qax_ipsec_sa_key_update(unit, flags, sa_id, sa_keys));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_ipsec_tunnel_create(
+    int unit,
+    uint32 flags, 
+    uint32 *tunnel_id, 
+    bcm_ipsec_tunnel_info_t *tunnel_info)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if(SOC_IS_QAX(unit))           /* QAX only programs */
+        BCMDNX_IF_ERR_EXIT(soc_qax_ipsec_tunnel_create(unit, flags, tunnel_id, tunnel_info));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_ipsec_tunnel_delete(
+    int unit, 
+    uint32 flags, 
+    uint32 tunnel_id)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if(SOC_IS_QAX(unit))           /* QAX only programs */
+        BCMDNX_IF_ERR_EXIT(soc_qax_ipsec_tunnel_delete(unit, flags, tunnel_id));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+

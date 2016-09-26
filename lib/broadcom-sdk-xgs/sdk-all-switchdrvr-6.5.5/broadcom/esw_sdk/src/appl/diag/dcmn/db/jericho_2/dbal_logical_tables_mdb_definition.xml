@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL MDB Logical Tables:
+    This xml contains the MDB logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+    1. Each AppDB represent a table and should be an element inside the AppDbCatalog
+    2. The Name should be specify as AppDB attributes with the following format - <Name="">
+        Name - Up to 64 characters
+    3. The AppDbInterface is an element that contain the table interface (Type,Key,Result):
+       a. Type - one of the following options EM/TCAM/LPM/DIRECT
+       b. Key and Result - Key and Result contain unbounded num of Fields with the following format:
+          <Field Name=""><Size>size</Size><Offset>offset</Offset></Field>
+          *Name - Up to 64 characters
+          *size - Positive Integer
+          *offset - Positive Integer (optional)
+       c. TableLabels (required) - list of(at least 1): L2,L3,MPLS,FCOE,ALL
+          Indicates the label(s) associated with the table
+    4. The AppToPhyDbMapping is an element that contain info about the phy DB of the table:
+       a. CoreMode - one of the following options: DPC/SBC
+       b. PhyDb - one of the following options: TCAM/LPM/ISEM_1/INLIF_1/ING_VSI/ISEM_2/INLIF_2/ISEM_3/INLIF_3/LEM/IOEM_0/IOEM_1/MAP/
+                                                FEC_1/FEC_2/FEC_3/MC_ID/GLEM_0/GLEM_1/LL_1/LL_2/LL_3/LL_4/EEDB_1/EEDB_2/EEDB_3/EEDB_4/
+                                                EOEM_0/EOEM_1/ESEM/EGR_VSI/EXEM_1/EXEM_2/EXEM_3/EXEM_4/RMEP/
+       c. MAG - (optional)
+       d. AppDbId - Integer (optional)
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="dbal_logical_tables_mdb_definition.xsd">
+
+    <AppDB Name="MACT">
+        <OneLineDescription>Lookup FID X MAC Address in the MACT to detrmine the destination interface ot interface group</OneLineDescription>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="FID" Size="15"/>
+                <Field Name="L2_MAC" Size="48"/>
+            </Key>
+            <Result>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="OUT_LIF" Size="18"/>
+                <Field Name="ENTRY_GROUPING" Size="4"/>
+                <Field Name="MAC_STRENGTH" Size="2"/>
+                <Field Name="AGING" Size="1"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels> <!--  enum values: TCAM/LPM/ISEM_1/INLIF_1/IVSI/ISEM_2/INLIF_2/ISEM_3/INLIF_3/LEM/IOEM_0/IOEM_1/MAP/FEC_1/FEC_2/FEC_3/MC_ID/M_0/GLEM_1/LL_1/LL_2/LL_3/LL_4/EEDB_1/EEDB_2/EEDB_3/EEDB_4/EOEM_0/EOEM_1/ESEM/EVSI/EXEM_1/EXEM_2/EXEM_3/EXEM_4/MEP-->
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LEM</PhyDb>
+            <MAG>MAG_FWD2LEM_0</MAG>
+            <MAG>MAG_FWD2LEM_1</MAG>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="ING_VSI_INFO">
+        <OneLineDescription> </OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="STP_TOPOLOGY_ID" Size="8"/>
+                <Field Name="MY_MAC" Size="10"/>
+                <Field Name="MY_MAC_PREFIX" Size="6"/>
+                <Field Name="VRID_BITMAP" Size="16"/>
+                <Field Name="VRF" Size="16"/>
+                <Field Name="QOS_PROFILE" Size="4"/>
+                <Field Name="VSI_PROFILE" Size="6"/>
+                <Field Name="PROPAGATION_PROF" Size="3"/>
+                <Field Name="DA_NOT_FOUND_DEST" Size="21"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>IVSI</PhyDb>
+            <MAG>MAG_VTT2VSI_STG0_0</MAG>
+            <MAG>MAG_VTT2VSI_STG0_1</MAG>
+            <AppDbId>-1</AppDbId> 
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EG_VSI_INFO">
+        <OneLineDescription> </OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="STP_TOPOLOGY_ID" Size="8"/>
+                <Field Name="MY_MAC" Size="10"/>
+                <Field Name="MY_MAC_PREFIX" Size="6"/>
+                <Field Name="STAT_OBJECT_PROF" Size="5"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>EVSI</PhyDb>
+            <MAG>MAG_ETPP2VSI_0</MAG>
+            <MAG>MAG_ETPP2VSI_1</MAG>
+            <AppDbId>-1</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IN_AC_C_VLAN_DB">
+        <OneLineDescription>Ingress AC C_VLAN mapping to LIF DB</OneLineDescription>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="IN_PORT" Size="9"/>
+                <Field Name="C_VLAN" Size="12"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF" Size="20"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ISEM_1</PhyDb>
+            <MAG>MAG_VTT2ISEM_STG0_0</MAG>
+            <MAG>MAG_VTT2ISEM_STG0_1</MAG>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IN_AC_S_VLAN_DB">
+        <OneLineDescription>Ingress AC S_VLAN mapping to LIF DB</OneLineDescription>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="IN_PORT" Size="9"/>
+                <Field Name="S_VLAN" Size="12"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF" Size="20"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ISEM_1</PhyDb>
+            <MAG>MAG_VTT2ISEM_STG0_0</MAG>
+            <MAG>MAG_VTT2ISEM_STG0_1</MAG>
+            <AppDbId>1</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IN_AC_S_C_VLAN_DB">
+        <OneLineDescription>Ingress AC S_VLAN x C_VLAN mapping to LIF DB</OneLineDescription>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="IN_PORT" Size="9"/>
+                <Field Name="S_VLAN" Size="12"/>
+                <Field Name="C_VLAN" Size="12"/>
+            </Key>
+            <Result>
+                <Field Name="IN_LIF" Size="20"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ISEM_1</PhyDb>
+            <MAG>MAG_VTT2ISEM_STG0_0</MAG>
+            <MAG>MAG_VTT2ISEM_STG0_1</MAG>
+            <AppDbId>2</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="IN_AC_INFO_DB">
+        <OneLineDescription> </OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IN_LIF" Size="20"/>
+            </Key>
+            <Result>
+                <Field Name="GLOB_IN_LIF" Size="22"/>
+                <Field Name="OAM_LIF_SET" Size="1"/>
+                <Field Name="OUT_LIF" Size="22"/>
+                <Field Name="OUT_LIF_PROFILE" Size="8"/>
+                <Field Name="QOS_PROFILE" Size="8"/>
+                <Field Name="VLAN_EDIT_PROFILE" Size="5"/>
+                <Field Name="VLAN_EDIT_VID_1" Size="12"/>
+                <Field Name="VLAN_EDIT_VID_2" Size="12"/>
+                <Field Name="DESTINATION" Size="21"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>INLIF_1</PhyDb>
+            <MAG>MAG_VTT2INLIF_STG0_0</MAG>
+            <AppDbId>-1</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="ESEM_OUT_AC">
+        <OneLineDescription>Lookup VD x VSI in the ESEM to detrmine the OutAC</OneLineDescription>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="ACTION_PROFILE" Size="1"/>
+                <Field Name="OUT_LIF_PROFILE" Size="4"/>
+                <Field Name="OAM_LIF_SET" Size="1"/>
+                <Field Name="ENCAP_DEST" Size="24"/>
+                <Field Name="NWK_QOS_IDX" Size="4"/>
+                <Field Name="LAYER_TYPE" Size="5"/>
+                <Field Name="QOS_MODEL" Size="1"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>ESEM</PhyDb>
+            <MAG>MAG_ETPP2ESEM_0</MAG>
+            <MAG>MAG_ETPP2ESEM_1</MAG>
+            <AppDbId>0</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    </AppDbCatalog>

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           elementFormDefault="qualified"
+           >
+
+<xs:include schemaLocation="dbal_types_definition.xsd"/>        
+
+    <xs:element name="AppDbCatalog">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="AppDB" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="OneLineDescription" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="AppDbInterface" minOccurs="1" maxOccurs="1">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="Key" minOccurs="1" maxOccurs="1">
+                                             <xs:complexType>
+                                                 <xs:sequence>
+                                                    <xs:element name="Field" minOccurs="1" maxOccurs="unbounded">
+                                                        <xs:complexType>
+                                                            <xs:attributeGroup ref="FieldInTableAttr"/>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                  </xs:sequence>
+                                             </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="Result" minOccurs="1" maxOccurs="1">
+                                             <xs:complexType>
+                                                 <xs:sequence>
+                                                    <xs:element name="Field" minOccurs="1" maxOccurs="unbounded">
+                                                        <xs:complexType>
+                                                            <xs:attributeGroup ref="FieldInTableAttr"/>
+                                                        </xs:complexType>
+                                                    </xs:element>
+                                                  </xs:sequence>
+                                             </xs:complexType>
+                                        </xs:element>
+                                        <xs:element name="TableLabels" type="LabelListType" minOccurs="1" maxOccurs="1"/>
+                                    </xs:sequence>
+                                    <xs:attributeGroup ref="LogicalTableTypeAttr"/>
+                                </xs:complexType>
+                            </xs:element>
+                            <xs:element name="AppToPhyDbMapping" minOccurs="1" maxOccurs="1">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="CoreMode" type="CroeModeType" minOccurs="1" maxOccurs="1"/>
+                                        <xs:element name="PhyDb" type="PhyDbType" minOccurs="1" maxOccurs="1"/>
+                                        <xs:element name="MAG" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                                        <xs:element name="AppDbId" type="xs:integer" minOccurs="0" maxOccurs="1"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                        <xs:attributeGroup ref="NameAttr"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+        
+        <!-- In AppDBCatalog, AppDB names are unique -->
+		<xs:unique name="UniqueAppDBName">
+			<xs:selector xpath="AppDB" />
+			<xs:field xpath="@Name" />
+		</xs:unique>
+        
+    </xs:element>
+</xs:schema>
