@@ -12,6 +12,8 @@ ntry=0
 #db=$ptin_path/bin/db64
 #sb=$ptin_path/bin/sb64
 #sspi=/usr/local/ptin/bin/sspi
+#fpstatus_get=`$sspi 5 1 0 1f | awk -F' ' '{print $5}' | awk -F'=' '{print $2}'`
+#fpstatus_set=
 fp_status=$ptin_path/bin/fp_status
 
 insert_modules()
