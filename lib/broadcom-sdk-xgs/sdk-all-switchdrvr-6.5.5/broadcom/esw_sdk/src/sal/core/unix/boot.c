@@ -60,6 +60,10 @@
 #include <sal/core/dpc.h>
 #include <sal/core/sync.h>
 
+#include <bcm/init.h>
+#include <soc/drv.h>
+#include <bcm/error.h>
+
 #ifdef PLISIM
 #define DEFAULT_BOOT_FLAGS (BOOT_F_PLISIM | BOOT_F_NO_PROBE)
 #else
