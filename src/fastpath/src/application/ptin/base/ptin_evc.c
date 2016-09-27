@@ -11983,7 +11983,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
     }
   }
 
-  while(num_ports > port_count)
+  while(num_ports - 1 >= port_count)
   {
      ptin_port = list_port[port_count];
 
