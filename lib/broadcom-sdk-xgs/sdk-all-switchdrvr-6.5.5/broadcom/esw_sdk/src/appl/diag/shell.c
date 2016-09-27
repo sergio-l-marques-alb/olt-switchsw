@@ -3453,11 +3453,15 @@ sh_print_version(int verbose)
 {
     cli_out("Broadcom Command Monitor: "
             "Copyright (c) 1998-2016 Broadcom\n");
+#if !defined(LVL7_FIXUP) || defined(VXWORKS)
     cli_out("Release: %s built %s (%s)\n",
             _build_release, _build_datestamp, _build_date);
     cli_out("From %s@%s:%s\n",
             _build_user, _build_host, _build_tree);
+#endif
+#if !defined(LVL7_FIXUP)
     cli_out("Platform: %s\n", BCM_PLATFORM_STRING); 
+#endif
     cli_out("OS: %s\n", sal_os_name() ? sal_os_name() : "unknown"); 
 
     if (verbose) {

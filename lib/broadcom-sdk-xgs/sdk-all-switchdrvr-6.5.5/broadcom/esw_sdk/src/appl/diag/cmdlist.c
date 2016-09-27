@@ -706,7 +706,9 @@ static cmd_t bcm_esw_cmd_list[] = {
     {"STiMeout",        cmd_stimeout,           stimeout_usage,         "Set S-Channel timeout in microseconds" },
     {"STKMode",         cmd_stkmode,            cmd_stkmode_usage,       "Hardware Stacking Mode Control"},
 #if defined(TKS_SUPPORT)
+#if LVL7_FIXUP && !defined(L7_PRODUCT_SMARTPATH)
     {"StkTask",         tks_stk_task,           tks_stk_task_usage,      "Stack task control" },
+#endif
 #endif
     {"SwitchControl",   cmd_switch_control,     cmd_switch_control_usage, "General switch control"},
 #ifdef INCLUDE_I2C
