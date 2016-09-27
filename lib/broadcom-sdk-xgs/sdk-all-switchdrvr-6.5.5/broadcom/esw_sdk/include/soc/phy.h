@@ -702,6 +702,31 @@ typedef int (*soc_phy_ident_f)(int unit, soc_port_t port,
                                soc_phy_table_t *my_entry,
                                uint16 phy_id0, uint16 phy_id1,
                                soc_phy_info_t *pi);
+#ifdef LVL7_FIXUP
+/* SDK only provides a way to configure a single phy address for
+ * each port, whereas some of the customer boxes have different
+ * phy addresses for same port. So we use the custom driver
+ * (registered in FP application) checkphy fuction to look for
+ * device ids at the secondary phy addresses, and return SUCESS
+ * if match is successful). _ext_phy_probe() uses two pointer
+ * variables - pi and ext_pc. We manage to run our own custom
+ * _check_phy function, which does the OUI check for us. But
+ * our requirement is to change the phy addresses and other
+ * parameters maintained in structures pointed to by pi
+ * (soc_phy_info_t) and ext_pc(phy_ctrl_t), in  case the match
+ * is successful.  We don't have a way to do that unless we run
+ * our custom function below, or SDK functions are re-designed
+ * to facilitate this operation.
+ */
+typedef int (*soc_phy_cust_f)(int unit, soc_port_t port,
+                              soc_phy_table_t *my_entry,
+                              soc_phy_info_t *pi, phy_ctrl_t *int_pc);
+struct soc_phy_cust_s
+{
+    soc_phy_cust_f  custPhySettings;
+};
+typedef struct soc_phy_cust_s soc_phy_cust_t;
+#endif
 
 /* For identifying phy */
 struct soc_phy_table_s {
