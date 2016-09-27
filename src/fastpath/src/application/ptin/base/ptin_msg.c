@@ -6307,26 +6307,73 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
 {
   ptin_HwEthEvcBridge_t ptinEvcBridge;
 
-  /* Copy data */
-  ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
-  ptinEvcBridge.inn_vlan       = ENDIAN_SWAP16(msgEvcBridge->inn_vlan);
-  ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
-  ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcBridge->intf.intf_id);
-  ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcBridge->intf.intf_type);
-  ptinEvcBridge.intf.mef_type  = ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
-  ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);
+  // NGPON2
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
-               ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-               ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
-
-  if (ptin_evc_p2p_bridge_add(&ptinEvcBridge) != L7_SUCCESS)
+  if (msgEvcBridge->intf.intf_type == PTIN_EVC_INTF_NGPON2)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u bridge", ptinEvcBridge.index);
-    return L7_FAILURE;
+    get_NGPON2_group_info(&NGPON2_GROUP, msgEvcBridge->intf.intf_id);
+
+    while (j < NGPON2_GROUP.nports)
+    {
+      if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+      {
+        /* Copy data */
+        ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
+        ptinEvcBridge.inn_vlan       = ENDIAN_SWAP16(msgEvcBridge->inn_vlan);
+        ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
+        ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(shift_index);
+        ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
+        ptinEvcBridge.intf.mef_type  = ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
+        ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);
+
+        PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
+        PT_LOG_DEBUG(LOG_CTX_MSG, "intf_type: %u", msgEvcBridge->intf.intf_type);
+        PT_LOG_DEBUG(LOG_CTX_MSG, "mef_type: %u", msgEvcBridge->intf.mef_type);
+        PT_LOG_DEBUG(LOG_CTX_MSG, "NGPON2:");
+        PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
+                     ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                     ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
+        PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
+        PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
+
+        if (ptin_evc_p2p_bridge_add(&ptinEvcBridge) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u bridge", ptinEvcBridge.index);
+          return L7_FAILURE;
+        }
+        j++;
+      }
+      shift_index++;
+    }
+  }
+  else
+  {
+    /* Copy data */
+    ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
+    ptinEvcBridge.inn_vlan       = ENDIAN_SWAP16(msgEvcBridge->inn_vlan);
+    ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
+    ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcBridge->intf.intf_id);
+    ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcBridge->intf.intf_type);
+    ptinEvcBridge.intf.mef_type  = ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
+    ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "intf_type: %u", msgEvcBridge->intf.intf_type);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "mef_type: %u", msgEvcBridge->intf.mef_type);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
+                 ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                 ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
+
+    if (ptin_evc_p2p_bridge_add(&ptinEvcBridge) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u bridge", ptinEvcBridge.index);
+      return L7_FAILURE;
+    }
   }
 
   return L7_SUCCESS;
@@ -6344,28 +6391,73 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
   ptin_HwEthEvcBridge_t ptinEvcBridge;
   L7_RC_t rc;
 
-  /* Copy data */
-  ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
-  ptinEvcBridge.inn_vlan       = ENDIAN_SWAP16(msgEvcBridge->inn_vlan);
-  ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
-  ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcBridge->intf.intf_id);
-  ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcBridge->intf.intf_type);
-  ptinEvcBridge.intf.mef_type  = ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
-  ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);        /* not used on remove oper. */
+  // NGPON2
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
-               ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-               ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
-
-  rc = ptin_evc_p2p_bridge_remove(&ptinEvcBridge);
-
-  if ( rc != L7_SUCCESS)
+  if (msgEvcBridge->intf.intf_type == PTIN_EVC_INTF_NGPON2)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u bridge", ptinEvcBridge.index);
-    return rc;
+    get_NGPON2_group_info(&NGPON2_GROUP, msgEvcBridge->intf.intf_id);
+
+    while (j < NGPON2_GROUP.nports)
+    {
+      if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+      {
+        /* Copy data */
+        ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
+        ptinEvcBridge.inn_vlan       = ENDIAN_SWAP16(msgEvcBridge->inn_vlan);
+        ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
+        ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(shift_index);
+        ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
+        ptinEvcBridge.intf.mef_type  = ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
+        ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);        /* not used on remove oper. */
+
+        PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
+        PT_LOG_DEBUG(LOG_CTX_MSG, "NGPON2:");
+        PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
+                     ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                     ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
+        PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
+        PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
+
+        rc = ptin_evc_p2p_bridge_remove(&ptinEvcBridge);
+
+        if ( rc != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u bridge", ptinEvcBridge.index);
+          return rc;
+        }
+        j++;
+      }
+      shift_index++;
+    }
+  }
+  else
+  {
+    /* Copy data */
+    ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
+    ptinEvcBridge.inn_vlan       = ENDIAN_SWAP16(msgEvcBridge->inn_vlan);
+    ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
+    ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcBridge->intf.intf_id);
+    ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcBridge->intf.intf_type);
+    ptinEvcBridge.intf.mef_type  = ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
+    ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);        /* not used on remove oper. */
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
+                 ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                 ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
+
+    rc = ptin_evc_p2p_bridge_remove(&ptinEvcBridge);
+
+    if ( rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u bridge", ptinEvcBridge.index);
+      return rc;
+    }
   }
 
   return L7_SUCCESS;
@@ -6642,6 +6734,11 @@ L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint 
   ptin_intf_t ptin_intf;
   L7_RC_t     rc = L7_SUCCESS;
 
+  // NGPON2
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
+
   if ( msgEvcFlood == L7_NULLPTR )
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid params");
@@ -6660,26 +6757,66 @@ L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint 
     ENDIAN_SWAP16_MOD(msgEvcFlood[i].oVlanId);
     ENDIAN_SWAP16_MOD(msgEvcFlood[i].iVlanId);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
 
-    ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
-    ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
-
-    if (ptin_evc_flood_vlan_add( msgEvcFlood[i].evcId,
-                                 ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
-                                 ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
-                                 msgEvcFlood[i].oVlanId,
-                                 msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+    if (msgEvcFlood[i].intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flooding vlan", msgEvcFlood[i].evcId);
-      rc = L7_FAILURE;
+      get_NGPON2_group_info(&NGPON2_GROUP, msgEvcFlood[i].intf.intf_id);
+
+      PT_LOG_DEBUG(LOG_CTX_MSG," Intf NGPON2    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
+
+      while (j < NGPON2_GROUP.nports)
+      {
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        {
+          ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+          ptin_intf.intf_id   = shift_index;
+
+          PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
+          PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Intf NGPON2    = %u/%u", PTIN_EVC_INTF_PHYSICAL, shift_index);
+          PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+
+          if (ptin_evc_flood_vlan_add( msgEvcFlood[i].evcId,
+                                       ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
+                                       ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
+                                       msgEvcFlood[i].oVlanId,
+                                       msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+            rc = L7_FAILURE;
+          }
+          j++;
+        }
+        shift_index++;
+      }
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
+      PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
+      PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+
+      ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
+      ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
+
+      if (ptin_evc_flood_vlan_add( msgEvcFlood[i].evcId,
+                                   ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
+                                   ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
+                                   msgEvcFlood[i].oVlanId,
+                                   msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+        rc = L7_FAILURE;
+      }
     }
   }
 
@@ -6700,6 +6837,11 @@ L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_ui
   ptin_intf_t ptin_intf;
   L7_RC_t     rc = L7_SUCCESS;
 
+  // NGPON2
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
+
   if ( msgEvcFlood == L7_NULLPTR )
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid params");
@@ -6718,26 +6860,63 @@ L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_ui
     ENDIAN_SWAP16_MOD(msgEvcFlood[i].oVlanId);
     ENDIAN_SWAP16_MOD(msgEvcFlood[i].iVlanId);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
-
-    ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
-    ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
-
-    if (ptin_evc_flood_vlan_remove( msgEvcFlood[i].evcId,
-                                    ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
-                                    ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
-                                    msgEvcFlood[i].oVlanId,
-                                    msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+    if (msgEvcFlood[i].intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flooding vlan", msgEvcFlood[i].evcId);
-      rc = L7_FAILURE;
+      get_NGPON2_group_info(&NGPON2_GROUP, msgEvcFlood[i].intf.intf_id);
+
+      PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
+
+      while (j < NGPON2_GROUP.nports)
+      {
+        if( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        {
+          ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+          ptin_intf.intf_id   = shift_index;
+
+          PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
+          PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Intf NGPON2   = %u/%u", PTIN_EVC_INTF_PHYSICAL, shift_index);
+          PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+
+          if (ptin_evc_flood_vlan_remove( msgEvcFlood[i].evcId,
+                                          ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
+                                          ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
+                                          msgEvcFlood[i].oVlanId,
+                                          msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+            rc = L7_FAILURE;
+          }
+        }
+      }
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
+      PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
+      PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+
+      ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
+      ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
+
+      if (ptin_evc_flood_vlan_remove( msgEvcFlood[i].evcId,
+                                      ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
+                                      ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
+                                      msgEvcFlood[i].oVlanId,
+                                      msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+        rc = L7_FAILURE;
+      }
     }
   }
 
@@ -12260,6 +12439,9 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
   /* CVID */
   profile->inner_vlan_ingress  = 0;
   profile->inner_vlan_egress   = 0;
+
+  profile->ptin_port_bmp       = 0;
+
 
   /* No MAC address provided */
   memset(profile->macAddr, 0x00, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
