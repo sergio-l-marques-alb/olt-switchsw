@@ -4308,7 +4308,7 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
 
       /* PTin added: policer */
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio      = 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio     = 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio     = 2;
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].group_prio   = 1;
 
       /* PTin added: QoS */
