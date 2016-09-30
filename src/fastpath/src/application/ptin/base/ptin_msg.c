@@ -15147,7 +15147,14 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
 #endif
 
   ENDIAN_SWAP16_MOD(msg->noOfPackages);
-      
+
+  int i=0;
+
+  for (i=0; i<PTIN_IGMP_PACKAGE_BITMAP_SIZE-1;i++)
+  {
+    ENDIAN_SWAP32_MOD(msg->packageBmpList[i]);   
+  }
+
   /*Input Parameters*/
   PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
 
@@ -15156,8 +15163,6 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
     L7_int32 index;
     index = packageIdIterator/sizeof(UINT32_BITSIZE);
 
-    ENDIAN_SWAP32_MOD(msg->packageBmpList[index]);
-
     //Move forward 32 bits if this byte is 0 (no packages)
     if (IS_BITMAP_WORD_SET(msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
     {
@@ -15165,7 +15170,7 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
      continue;
     }
 
-    if (IS_BITMAP_BIT_SET( msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
+    if (IS_BITMAP_BIT_SET(msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
     {
       continue;
     }
@@ -15218,6 +15223,13 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
 #endif 
      
   ENDIAN_SWAP16_MOD(msg->noOfPackages);
+
+  int i=0;
+
+  for (i=0; i<PTIN_IGMP_PACKAGE_BITMAP_SIZE-1;i++)
+  {
+    ENDIAN_SWAP32_MOD(msg->packageBmpList[i]);   
+  }
        
   /*Input Parameters*/
   PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
@@ -15226,8 +15238,6 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
   {
     L7_int32 index;
     index = packageIdIterator/sizeof(UINT32_BITSIZE);
-
-    ENDIAN_SWAP32_MOD(msg->packageBmpList[index]);
 
     //Move forward 32 bits if this byte is 0 (no packages)
     if (IS_BITMAP_WORD_SET(msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
