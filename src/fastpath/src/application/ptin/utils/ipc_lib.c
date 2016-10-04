@@ -328,13 +328,19 @@ int close_ipc(int canal_id)
 //                 receivebuffer: ponteiro para o buffer de recepcao. Este ptr    *
 //                                aponta para uma estrutura pc_type               *                                                            *
 // retorno:                                                                       *
-//                S_OK					: Operação decorrida com sucesso              *
-//                ERROR_CODE_SENDFAILED	: nao consegue enviar o pacote          *
+//                S_OK                  : Operação decorrida com sucesso              *
+//                ERROR_CODE_SENDFAILED : nao consegue enviar o pacote          *
 //                -2: nao recebe uma resposta valida, ou foi atingido o timeout   *
 // ********************************************************************************
+// 0param canal_id
+// 0param porto_destino
+// 0param unsigned
+// 0param sendbuffer
+// 0param receivebuffer
+// 0return
 int send_data (int canal_id, int porto_destino, unsigned int ipdest, ipc_msg *sendbuffer, ipc_msg *receivebuffer)
 {
-   int bytes, timeout;
+   int bytes, timeout, res;
    struct sockaddr_in socketaddr_aux;
    socklen_t addr_len;
    unsigned int infoDim;
@@ -370,9 +376,21 @@ int send_data (int canal_id, int porto_destino, unsigned int ipdest, ipc_msg *se
    sendbuffer->infoDim     = ENDIAN_SWAP32(sendbuffer->infoDim);
 
    //if(sendto(ipc_canais[canal_id].socket_descriptor_cliente, sendbuffer, sizeof(*sendbuffer), 0, 
-   if(sendto(ipc_canais[canal_id].socket_descriptor_cliente, sendbuffer, (infoDim)+(7*sizeof(UINT)), 0, 
-             (struct sockaddr*)&ipc_canais[canal_id].socketaddr_cliente, 
-             sizeof(ipc_canais[canal_id].socketaddr_cliente))==-1)
+
+   res = sendto(ipc_canais[canal_id].socket_descriptor_cliente, sendbuffer, (infoDim)+(7*sizeof(UINT)), 0, 
+                (struct sockaddr*)&ipc_canais[canal_id].socketaddr_cliente, 
+                sizeof(ipc_canais[canal_id].socketaddr_cliente));
+
+   /* Revert outbuffer byte-inversions */
+   sendbuffer->protocolId  = ENDIAN_SWAP32(sendbuffer->protocolId);
+   sendbuffer->srcId       = ENDIAN_SWAP32(sendbuffer->srcId);
+   sendbuffer->dstId       = ENDIAN_SWAP32(sendbuffer->dstId);
+   sendbuffer->flags       = ENDIAN_SWAP32(sendbuffer->flags);
+   sendbuffer->counter     = ENDIAN_SWAP32(sendbuffer->counter);
+   sendbuffer->msgId       = ENDIAN_SWAP32(sendbuffer->msgId);
+   sendbuffer->infoDim     = ENDIAN_SWAP32(sendbuffer->infoDim);
+
+   if(res == -1)
    {
 //      if ( IPC_HW_CANAL == canal_id )
 //      {
@@ -385,7 +403,8 @@ int send_data (int canal_id, int porto_destino, unsigned int ipdest, ipc_msg *se
    }
 //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, 
    PT_LOG_TRACE(LOG_CTX_IPC,
-            "Mensagem enviada pelo canal %d.", canal_id); 
+                "Mensagem enviada pelo canal %d.", canal_id); 
+
    if(receivebuffer==NULL)						//se receivebuffer apontar para null, nao espera resposta
    {
 //      if ( IPC_HW_CANAL == canal_id )
@@ -406,6 +425,16 @@ int send_data (int canal_id, int porto_destino, unsigned int ipdest, ipc_msg *se
       bytes = recvfrom(ipc_canais[canal_id].socket_descriptor_cliente, receivebuffer, 
                        sizeof(*receivebuffer), 0, (struct sockaddr*)&socketaddr_aux,
                        &addr_len);
+
+      /* Convert receivebuffer to correct endianess */
+      receivebuffer->protocolId  = ENDIAN_SWAP32(receivebuffer->protocolId);
+      receivebuffer->srcId       = ENDIAN_SWAP32(receivebuffer->srcId);
+      receivebuffer->dstId       = ENDIAN_SWAP32(receivebuffer->dstId);
+      receivebuffer->flags       = ENDIAN_SWAP32(receivebuffer->flags);
+      receivebuffer->counter     = ENDIAN_SWAP32(receivebuffer->counter);
+      receivebuffer->msgId       = ENDIAN_SWAP32(receivebuffer->msgId);
+      receivebuffer->infoDim     = ENDIAN_SWAP32(receivebuffer->infoDim);
+
       if (bytes<0)
       {
          switch (errno)
@@ -430,15 +459,6 @@ int send_data (int canal_id, int porto_destino, unsigned int ipdest, ipc_msg *se
                   "Timeout na recepcao da resposta no canal %d.", canal_id); 
       return SIR_ERROR(ERROR_FAMILY_IPC, ERROR_SEVERITY_WARNING, ERROR_CODE_TIMEOUT);
    }
-
-   /* Convert receivebuffer to correct endianess */
-   receivebuffer->protocolId  = ENDIAN_SWAP32(receivebuffer->protocolId);
-   receivebuffer->srcId       = ENDIAN_SWAP32(receivebuffer->srcId);
-   receivebuffer->dstId       = ENDIAN_SWAP32(receivebuffer->dstId);
-   receivebuffer->flags       = ENDIAN_SWAP32(receivebuffer->flags);
-   receivebuffer->counter     = ENDIAN_SWAP32(receivebuffer->counter);
-   receivebuffer->msgId       = ENDIAN_SWAP32(receivebuffer->msgId);
-   receivebuffer->infoDim     = ENDIAN_SWAP32(receivebuffer->infoDim);
 
 //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
    PT_LOG_TRACE(LOG_CTX_IPC,
@@ -547,7 +567,7 @@ static int clone_proc_msg (void* canal_id)
          else
          {
 //            DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL, 
-            PT_LOG_TRACE(LOG_CTX_IPC, "Nao existe resposta 'a mensagem %08X no canal %d.", ENDIAN_SWAP32(inbuffer.msgId), canal);
+            PT_LOG_TRACE(LOG_CTX_IPC, "Nao existe resposta 'a mensagem %08X no canal %d.", inbuffer.msgId, canal);
          }
       }
    } //while  
