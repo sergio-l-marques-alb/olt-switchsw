@@ -19,6 +19,47 @@
 #include "logger.h"
 
 
+void ptin_temperature_monitor(int number_of_sensors)
+{
+  bcm_error_t rv;
+  int i, count=0, max_temp=-1000;
+  bcm_switch_temperature_monitor_t temp_array[10];
+
+  if (number_of_sensors == 0)
+  {
+    number_of_sensors = 4;
+  }
+  else if (number_of_sensors > 10)
+  {
+    number_of_sensors = 10;
+  }
+
+  printf("Going to read %u sensors...\r\n", number_of_sensors);
+
+  rv = bcm_switch_temperature_monitor_get(0, number_of_sensors, temp_array, &count);
+
+  printf("Obtained data from %u sensors (rv=%d)\r\n", count, rv);
+
+  if (count > 0)
+  {
+    printf("Temperature (curr/peak): ");
+    for (i=0; i<count; i++)
+    {
+      printf("[%d/%d] ", temp_array[i].curr, temp_array[i].peak);
+      if (temp_array[i].curr > max_temp)  max_temp = temp_array[i].curr;
+    }
+    printf("units\r\n");
+    printf("Temperature (curr/peak): ");
+    for (i=0; i<count; i++)
+    {
+      printf("[%d.%d/%d.%d] ", temp_array[i].curr/10, abs(temp_array[i].curr)%10, temp_array[i].peak/10, abs(temp_array[i].peak)%10);
+    }
+    printf("degC\r\n");
+    printf("Max. Temperature = %d.%d degC\r\n", max_temp/10, abs(max_temp)%10);
+  }
+}
+
+
 L7_RC_t ptin_maclimit_setmax(bcm_port_t bcm_port, L7_uint16 vlanId, L7_uint32 flags, L7_int max)
 {
   bcm_l2_learn_limit_t  limit;
