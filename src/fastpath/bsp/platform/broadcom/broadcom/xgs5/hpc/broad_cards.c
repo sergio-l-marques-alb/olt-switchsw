@@ -1189,7 +1189,7 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56
 };
 
 /* PTin added: new switch 56450 (Katana2) - TT04SXG */
-HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_4_GIG_4_TENGIG_1_GS_56450_REV_1[] =
+HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1[] =
 /* slotNum  portNum bcm_cpuunit bcm_port portName *
  * -------  ------- ----------- -------- -------- */
 {
@@ -1933,7 +1933,7 @@ HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_K2
 };
 
 /* PTin added: new switch 56450 (Katana2) - TT04SXG */
-HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_4_GIG_4_TENGIG_1_GS_K2_REV_1[] =
+HAPI_CARD_PORT_MAP_t dapiBroadBaseCardPortMap_CARD_BROAD_8_TENGIG_1_GS_K2_REV_1[] =
 /*portNum
  *------- */
 {{    0},
@@ -2258,10 +2258,10 @@ dapiBroadBaseCardPortMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_K2_REV_1, sizeof(dapiBr
 0, NULL, 0,
 };
 /* PTin added: new switch 56450 (Katana2) - TT04SXG */
-DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_4_GIG_4_TENGIG_1_GS_56450_REV_1 = {
+DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1 = {
 hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
-dapiBroadBaseCardSlotMap_CARD_BROAD_4_GIG_4_TENGIG_1_GS_56450_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_4_GIG_4_TENGIG_1_GS_56450_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
-dapiBroadBaseCardPortMap_CARD_BROAD_4_GIG_4_TENGIG_1_GS_K2_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_4_GIG_4_TENGIG_1_GS_K2_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
+dapiBroadBaseCardSlotMap_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),
+dapiBroadBaseCardPortMap_CARD_BROAD_8_TENGIG_1_GS_K2_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
 0, NULL, 0,
 };
 /* PTin added: new switch 56843 (Trident) */
@@ -2513,9 +2513,9 @@ SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56
 };
 
 /* PTin added: new switch 56450 (Katana2) - TT04SGX */
-SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_4_GIG_4_TENGIG_1_GS_56450_REV_1[]= 
+SYSAPI_HPC_PORT_DESCRIPTOR_t hpcPortInfoTable_CARD_BROAD_8_TENGIG_1_GS_56450_REV_1[]= 
 {
-{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},{L7_PORT_DESC_BCOM_2G5_NO_AN},
+{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
 {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},  /* 4xNGPON + 4x10G + GS */
 {L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},{L7_PORT_DESC_BCOM_XAUI_10G_NO_AN},
 {L7_PORT_DESC_BCOM_2G5_NO_AN},
