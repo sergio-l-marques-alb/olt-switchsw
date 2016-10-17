@@ -4263,6 +4263,13 @@ L7_RC_t ptin_hapi_xlaui_set(bcm_port_t bcm_port)
     return L7_FAILURE;
   }
 
+  /* Deactivate FW mode 2 */
+  if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 0) != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error removing Firmware mode 2 to bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
   /* XLAUI mode */
   rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_XLAUI);
   if (L7_BCMX_OK(rc) != L7_TRUE)
@@ -4304,6 +4311,13 @@ L7_RC_t ptin_hapi_xlaui_set(bcm_port_t bcm_port)
   }
 #endif
 
+  /* Activate FW mode 2 */
+  if (bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2) != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error applying Firmware mode 2 to bcm_port %u", bcm_port);
+    return L7_FAILURE;
+  }
+
   rc = bcm_port_enable_set(0, bcm_port, 1);
   if (L7_BCMX_OK(rc) != L7_TRUE)
   {
@@ -4340,7 +4354,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
   rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 0);
   if (rc != BCM_E_NONE)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error applying Firmware mode 2 to bcm_port %u (rc=%d)", bcm_port, rc);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error removing Firmware mode 2 to bcm_port %u (rc=%d)", bcm_port, rc);
     return rc;
   }
   PT_LOG_NOTICE(LOG_CTX_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
