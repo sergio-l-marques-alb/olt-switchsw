@@ -1,0 +1,1815 @@
+diff -rupN kernel-4.1.ori/arch/powerpc/boot/dts/fsl/cxo640.dts kernel-4.1.mod/arch/powerpc/boot/dts/fsl/cxo640.dts
+--- kernel-4.1.ori/arch/powerpc/boot/dts/fsl/cxo640.dts	1970-01-01 01:00:00.000000000 +0100
++++ kernel-4.1.mod/arch/powerpc/boot/dts/fsl/cxo640.dts	2016-10-20 12:45:51.000000000 +0100
+@@ -0,0 +1,234 @@
++/include/ "cxo640-pre.dtsi"
++
++/ {
++        model = "fsl,P2041RDB";
++        compatible = "fsl,P2041RDB";
++        #address-cells = <2>;
++        #size-cells = <2>;
++        interrupt-parent = <&mpic>;
++
++        aliases {
++                ethernet0 = &enet0;
++                ethernet1 = &enet1;
++                phy_sgmii_2 = &phy_sgmii_2;
++                phy_sgmii_3 = &phy_sgmii_3;
++        };
++
++        memory {
++                device_type = "memory";
++        };
++
++        reserved-memory {
++                #address-cells = <2>;
++                #size-cells = <2>;
++                ranges;
++
++                bman_fbpr: bman-fbpr {
++                        size = <0 0x1000000>;
++                        alignment = <0 0x1000000>;
++                };
++                qman_fqd: qman-fqd {
++                        size = <0 0x800000>;
++                        alignment = <0 0x800000>;
++                };
++                qman_pfdr: qman-pfdr {
++                        size = <0 0x2000000>;
++                        alignment = <0 0x2000000>;
++                };
++                pme_pdsr: pme-pdsr {
++                        compatible = "fsl,pme-pdsr";
++                        alloc-ranges = <0 0 0x10000 0>;
++                        size = <0 0x1000000>;
++                        alignment = <0 0x1000000>;
++                };
++                pme_sre: pme-sre {
++                         compatible = "fsl,pme-sre";
++                         alloc-ranges = <0 0 0x10000 0>;
++                         size = <0 0xa00000>;
++                         alignment = <0 0xa00000>;
++                };
++        };
++
++        dcsr: dcsr@f00000000 {
++                ranges = <0x00000000 0xf 0x00000000 0x01008000>;
++        };
++
++        bportals: bman-portals@ff4000000 {
++                ranges = <0x0 0xf 0xf4000000 0x200000>;
++        };
++
++        qportals: qman-portals@ff4200000 {
++                ranges = <0x0 0xf 0xf4200000 0x200000>;
++        };
++
++        soc: soc@ffe000000 {
++                ranges = <0x00000000 0xf 0xfe000000 0x1000000>;
++                reg = <0xf 0xfe000000 0 0x00001000>;
++                spi@110000 {
++                        pld@0 {
++                                #address-cells = <1>;
++                                #size-cells = <1>;
++                                compatible = "spidev";
++                                chip_select = <3>;
++                                reg = <0>;
++                                spi-max-frequency = <40000000>; /* input clock */
++                        };
++                };
++
++                i2c@118000 {
++
++                rtc@68 {
++                        /* Actually a DS1339 */
++                                compatible = "dallas,ds1307";
++                                reg = <0x68>;
++                        };
++
++                };
++
++                i2c@118100 {
++
++                };
++
++                usb1: usb@211000 {
++                        dr_mode = "host";
++                };
++
++                fman0: fman@400000 {
++			#address-cells = <1>;
++			#size-cells = <1>;
++			cell-index = <1>;
++			compatible = "fsl,fman";
++			ranges = <0 0x400000 0x100000>;
++			reg = <0x400000 0x100000>;
++			clocks = <&fman_clk>;
++			clock-names = "fmanclk";
++
++                        enet0: ethernet@e0000 {
++                                tbi-handle = <&tbi0>;
++                                phy-handle = <&phy_sgmii_2>;
++                                phy-connection-type = "sgmii";
++				#address-cells = <1>;
++                        };
++
++                        mdio0: mdio@e1120 {
++                                tbi0: tbi-phy@8 {
++                                        reg = <0x8>;
++                                        device_type = "tbi-phy";
++                                };
++
++                                phy_sgmii_2: ethernet-phy@1 {
++                                        reg = <0x1>;
++                                };
++                                phy_sgmii_3: ethernet-phy@4 {
++                                compatible = "ptin,dsa-switch";
++                                        reg = <0x4>;
++                                };
++
++                        };
++
++                        enet1: ethernet@e2000 {
++                                tbi-handle = <&tbi1>;
++                                phy-connection-type = "sgmii";
++				fixed-link = <4 1 1000 0 0> ;
++                        };
++
++                        mdio@e3120 {
++                                tbi1: tbi-phy@31 {
++                                        reg = <31>;
++                                        device_type = "tbi-phy";
++                                };
++                        };
++                };
++        };
++
++        //rio: rapidio@ffe0c0000 {
++        //        reg = <0xf 0xfe0c0000 0 0x11000>;
++        //        
++        //        port1 {
++        //                ranges = <0 0 0xc 0x20000000 0 0x10000000>;
++        //        };
++        //        port2 {
++        //                ranges = <0 0 0xc 0x30000000 0 0x10000000>;
++        //        };
++        //};
++
++
++        lbc: localbus@ffe124000 {
++                reg = <0xf 0xfe124000 0 0x1000>;
++                ranges = <0 0 0xf 0xe8000000 0x08000000
++                          1 0 0xf 0xffa00000 0x00040000>;
++
++                flash@0,0 {
++                        compatible = "cfi-flash";
++                        reg = <0 0 0x08000000>;
++                        bank-width = <2>;
++                        device-width = <2>;
++                };
++        };
++
++/*
++        pci0: pcie@ffe200000 {
++                reg = <0xf 0xfe200000 0 0x1000>;
++                ranges = <0x02000000 0 0xe0000000 0xc 0x00000000 0x0 0x20000000
++                          0x01000000 0 0x00000000 0xf 0xf8000000 0x0 0x00010000>;
++                pcie@0 {
++                        ranges = <0x02000000 0 0xe0000000
++                                  0x02000000 0 0xe0000000
++                                  0 0x20000000
++        
++                                  0x01000000 0 0x00000000
++                                  0x01000000 0 0x00000000
++                                  0 0x00010000>;
++                };
++        };
++        
++        pci1: pcie@ffe201000 {
++                reg = <0xf 0xfe201000 0 0x1000>;
++                ranges = <0x02000000 0x0 0xe0000000 0xc 0x20000000 0x0 0x20000000
++                          0x01000000 0x0 0x00000000 0xf 0xf8010000 0x0 0x00010000>;
++                pcie@0 {
++                        ranges = <0x02000000 0 0xe0000000
++                                  0x02000000 0 0xe0000000
++                                  0 0x20000000
++        
++                                  0x01000000 0 0x00000000
++                                  0x01000000 0 0x00000000
++                                  0 0x00010000>;
++                };
++        };
++        
++        pci2: pcie@ffe202000 {
++                reg = <0xf 0xfe202000 0 0x1000>;
++                ranges = <0x02000000 0 0xe0000000 0xc 0x40000000 0 0x20000000
++                          0x01000000 0 0x00000000 0xf 0xf8020000 0 0x00010000>;
++                pcie@0 {
++                        ranges = <0x02000000 0 0xe0000000
++                                  0x02000000 0 0xe0000000
++                                  0 0x20000000
++        
++        
++                                  0x01000000 0 0x00000000
++                                  0x01000000 0 0x00000000
++                                  0 0x00010000>;
++                };
++        };
++*/
++        fsl,dpaa {
++                compatible = "fsl,p2041-dpaa", "fsl,dpaa";
++
++                ethernet@0 {
++                        compatible = "fsl,p2041-dpa-ethernet", "fsl,dpa-ethernet";
++                        fsl,fman-mac = <&enet1>;
++                };
++                ethernet@1 {
++                        compatible = "fsl,p2041-dpa-ethernet", "fsl,dpa-ethernet";
++                        fsl,fman-mac = <&enet0>;
++                };
++        };
++};
++
++/include/ "cxo640-post.dtsi"
++/include/ "qoriq-dpaa-res1.dtsi"
++
++
++
+diff -rupN kernel-4.1.ori/arch/powerpc/boot/dts/fsl/cxo640-post.dtsi kernel-4.1.mod/arch/powerpc/boot/dts/fsl/cxo640-post.dtsi
+--- kernel-4.1.ori/arch/powerpc/boot/dts/fsl/cxo640-post.dtsi	1970-01-01 01:00:00.000000000 +0100
++++ kernel-4.1.mod/arch/powerpc/boot/dts/fsl/cxo640-post.dtsi	2016-10-20 12:45:51.000000000 +0100
+@@ -0,0 +1,480 @@
++/*
++ * P2041/P2040 Silicon/SoC Device Tree Source (post include)
++ *
++ * Copyright 2011 - 2014 Freescale Semiconductor Inc.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *     * Redistributions of source code must retain the above copyright
++ *	 notice, this list of conditions and the following disclaimer.
++ *     * Redistributions in binary form must reproduce the above copyright
++ *	 notice, this list of conditions and the following disclaimer in the
++ *	 documentation and/or other materials provided with the distribution.
++ *     * Neither the name of Freescale Semiconductor nor the
++ *	 names of its contributors may be used to endorse or promote products
++ *	 derived from this software without specific prior written permission.
++ *
++ *
++ * ALTERNATIVELY, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") as published by the Free Software
++ * Foundation, either version 2 of that License or (at your option) any
++ * later version.
++ *
++ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
++ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
++ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
++ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
++ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
++ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++&bman_fbpr {
++	compatible = "fsl,bman-fbpr";
++	alloc-ranges = <0 0 0x10 0>;
++};
++
++&qman_fqd {
++	compatible = "fsl,qman-fqd";
++	alloc-ranges = <0 0 0x10 0>;
++};
++
++&qman_pfdr {
++	compatible = "fsl,qman-pfdr";
++	alloc-ranges = <0 0 0x10 0>;
++};
++
++&lbc {
++	compatible = "fsl,p2041-elbc", "fsl,elbc", "simple-bus";
++	interrupts = <25 2 0 0>;
++	#address-cells = <2>;
++	#size-cells = <1>;
++};
++
++/* controller at 0x200000 */
++//&pci0 {
++//	compatible = "fsl,p2041-pcie", "fsl,qoriq-pcie-v2.2";
++//	device_type = "pci";
++//	#size-cells = <2>;
++//	#address-cells = <3>;
++//	bus-range = <0x0 0xff>;
++//	clock-frequency = <33333333>;
++//	interrupts = <16 2 1 15>;
++//	fsl,iommu-parent = <&pamu0>;
++//	fsl,liodn-reg = <&guts 0x500>; /* PEX1LIODNR */
++//	pcie@0 {
++//		reg = <0 0 0 0 0>;
++//		#interrupt-cells = <1>;
++//		#size-cells = <2>;
++//		#address-cells = <3>;
++//		device_type = "pci";
++//		interrupts = <16 2 1 15>;
++//		interrupt-map-mask = <0xf800 0 0 7>;
++//		interrupt-map = <
++//			/* IDSEL 0x0 */
++//			0000 0 0 1 &mpic 40 1 0 0
++//			0000 0 0 2 &mpic 1 1 0 0
++//			0000 0 0 3 &mpic 2 1 0 0
++//			0000 0 0 4 &mpic 3 1 0 0
++//			>;
++//	};
++//};
++
++/* controller at 0x201000 */
++//&pci1 {
++//	compatible = "fsl,p2041-pcie", "fsl,qoriq-pcie-v2.2";
++//	device_type = "pci";
++//	#size-cells = <2>;
++//	#address-cells = <3>;
++//	bus-range = <0 0xff>;
++//	clock-frequency = <33333333>;
++//	interrupts = <16 2 1 14>;
++//	fsl,iommu-parent = <&pamu0>;
++//	fsl,liodn-reg = <&guts 0x504>; /* PEX2LIODNR */
++//	pcie@0 {
++//		reg = <0 0 0 0 0>;
++//		#interrupt-cells = <1>;
++//		#size-cells = <2>;
++//		#address-cells = <3>;
++//		device_type = "pci";
++//		interrupts = <16 2 1 14>;
++//		interrupt-map-mask = <0xf800 0 0 7>;
++//		interrupt-map = <
++//			/* IDSEL 0x0 */
++//			0000 0 0 1 &mpic 41 1 0 0
++//			0000 0 0 2 &mpic 5 1 0 0
++//			0000 0 0 3 &mpic 6 1 0 0
++//			0000 0 0 4 &mpic 7 1 0 0
++//			>;
++//	};
++//};
++
++/* controller at 0x202000 */
++//&pci2 {
++//	compatible = "fsl,p2041-pcie", "fsl,qoriq-pcie-v2.2";
++//	device_type = "pci";
++//	#size-cells = <2>;
++//	#address-cells = <3>;
++//	bus-range = <0x0 0xff>;
++//	clock-frequency = <33333333>;
++//	interrupts = <16 2 1 13>;
++//	fsl,iommu-parent = <&pamu0>;
++//	fsl,liodn-reg = <&guts 0x508>; /* PEX3LIODNR */
++//	pcie@0 {
++//		reg = <0 0 0 0 0>;
++//		#interrupt-cells = <1>;
++//		#size-cells = <2>;
++//		#address-cells = <3>;
++//		device_type = "pci";
++//		interrupts = <16 2 1 13>;
++//		interrupt-map-mask = <0xf800 0 0 7>;
++//		interrupt-map = <
++//			/* IDSEL 0x0 */
++//			0000 0 0 1 &mpic 42 1 0 0
++//			0000 0 0 2 &mpic 9 1 0 0
++//			0000 0 0 3 &mpic 10 1 0 0
++//			0000 0 0 4 &mpic 11 1 0 0
++//			>;
++//	};
++//};
++
++//&rio {
++//	compatible = "fsl,srio";
++//	interrupts = <16 2 1 11>;
++//	#address-cells = <2>;
++//	#size-cells = <2>;
++//	fsl,iommu-parent = <&pamu0>;
++//	ranges;
++//
++//	port1 {
++//		#address-cells = <2>;
++//		#size-cells = <2>;
++//		cell-index = <1>;
++//		fsl,liodn-reg = <&guts 0x510>; /* RIO1LIODNR */
++//	};
++//
++//	port2 {
++//		#address-cells = <2>;
++//		#size-cells = <2>;
++//		cell-index = <2>;
++//		fsl,liodn-reg = <&guts 0x514>; /* RIO2LIODNR */
++//	};
++//};
++
++&dcsr {
++	#address-cells = <1>;
++	#size-cells = <1>;
++	compatible = "fsl,dcsr", "simple-bus";
++
++	dcsr-epu@0 {
++		compatible = "fsl,p2041-dcsr-epu", "fsl,dcsr-epu";
++		interrupts = <52 2 0 0
++			      84 2 0 0
++			      85 2 0 0>;
++		reg = <0x0 0x1000>;
++	};
++	dcsr-npc {
++		compatible = "fsl,dcsr-npc";
++		reg = <0x1000 0x1000 0x1000000 0x8000>;
++	};
++	dcsr-nxc@2000 {
++		compatible = "fsl,dcsr-nxc";
++		reg = <0x2000 0x1000>;
++	};
++	dcsr-corenet {
++		compatible = "fsl,dcsr-corenet";
++		reg = <0x8000 0x1000 0xB0000 0x1000>;
++	};
++	dcsr-dpaa@9000 {
++		compatible = "fsl,p2041-dcsr-dpaa", "fsl,dcsr-dpaa";
++		reg = <0x9000 0x1000>;
++	};
++	dcsr-ocn@11000 {
++		compatible = "fsl,p2041-dcsr-ocn", "fsl,dcsr-ocn";
++		reg = <0x11000 0x1000>;
++	};
++	dcsr-ddr@12000 {
++		compatible = "fsl,dcsr-ddr";
++		dev-handle = <&ddr1>;
++		reg = <0x12000 0x1000>;
++	};
++	dcsr-nal@18000 {
++		compatible = "fsl,p2041-dcsr-nal", "fsl,dcsr-nal";
++		reg = <0x18000 0x1000>;
++	};
++	dcsr-rcpm@22000 {
++		compatible = "fsl,p2041-dcsr-rcpm", "fsl,dcsr-rcpm";
++		reg = <0x22000 0x1000>;
++	};
++	dcsr-cpu-sb-proxy@40000 {
++		compatible = "fsl,dcsr-e500mc-sb-proxy", "fsl,dcsr-cpu-sb-proxy";
++		cpu-handle = <&cpu0>;
++		reg = <0x40000 0x1000>;
++	};
++	dcsr-cpu-sb-proxy@41000 {
++		compatible = "fsl,dcsr-e500mc-sb-proxy", "fsl,dcsr-cpu-sb-proxy";
++		cpu-handle = <&cpu1>;
++		reg = <0x41000 0x1000>;
++	};
++	dcsr-cpu-sb-proxy@42000 {
++		compatible = "fsl,dcsr-e500mc-sb-proxy", "fsl,dcsr-cpu-sb-proxy";
++		cpu-handle = <&cpu2>;
++		reg = <0x42000 0x1000>;
++	};
++	dcsr-cpu-sb-proxy@43000 {
++		compatible = "fsl,dcsr-e500mc-sb-proxy", "fsl,dcsr-cpu-sb-proxy";
++		cpu-handle = <&cpu3>;
++		reg = <0x43000 0x1000>;
++	};
++};
++
++/include/ "qoriq-bman1-portals.dtsi"
++
++/include/ "qoriq-qman1-portals.dtsi"
++
++&soc {
++	#address-cells = <1>;
++	#size-cells = <1>;
++	device_type = "soc";
++	compatible = "simple-bus";
++
++	soc-sram-error {
++		compatible = "fsl,soc-sram-error";
++		interrupts = <16 2 1 29>;
++	};
++
++	corenet-law@0 {
++		compatible = "fsl,corenet-law";
++		reg = <0x0 0x1000>;
++		fsl,num-laws = <32>;
++	};
++
++	ddr1: memory-controller@8000 {
++		compatible = "fsl,qoriq-memory-controller-v4.5", "fsl,qoriq-memory-controller";
++		reg = <0x8000 0x1000>;
++		interrupts = <16 2 1 23>;
++	};
++
++	cpc: l3-cache-controller@10000 {
++		compatible = "fsl,p2041-l3-cache-controller", "fsl,p4080-l3-cache-controller", "cache";
++		reg = <0x10000 0x1000>;
++		interrupts = <16 2 1 27>;
++	};
++
++	corenet-cf@18000 {
++		compatible = "fsl,corenet1-cf", "fsl,corenet-cf";
++		reg = <0x18000 0x1000>;
++		interrupts = <16 2 1 31>;
++		fsl,ccf-num-csdids = <32>;
++		fsl,ccf-num-snoopids = <32>;
++	};
++
++	iommu@20000 {
++		compatible = "fsl,pamu-v1.0", "fsl,pamu";
++		reg = <0x20000 0x4000>; /* for compatibility with older PAMU drivers */
++		ranges = <0 0x20000 0x4000>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		interrupts = <
++			24 2 0 0
++			16 2 1 30>;
++		fsl,portid-mapping = <0x0f000000>;
++
++		pamu0: pamu@0 {
++			reg = <0 0x1000>;
++			fsl,primary-cache-geometry = <32 1>;
++			fsl,secondary-cache-geometry = <128 2>;
++		};
++
++		pamu1: pamu@1000 {
++			reg = <0x1000 0x1000>;
++			fsl,primary-cache-geometry = <32 1>;
++			fsl,secondary-cache-geometry = <128 2>;
++		};
++
++		pamu2: pamu@2000 {
++			reg = <0x2000 0x1000>;
++			fsl,primary-cache-geometry = <32 1>;
++			fsl,secondary-cache-geometry = <128 2>;
++		};
++
++		pamu3: pamu@3000 {
++			reg = <0x3000 0x1000>;
++			fsl,primary-cache-geometry = <32 1>;
++			fsl,secondary-cache-geometry = <128 2>;
++		};
++	};
++
++/include/ "qoriq-mpic.dtsi"
++
++	guts: global-utilities@e0000 {
++		compatible = "fsl,qoriq-device-config-1.0";
++		reg = <0xe0000 0xe00>;
++		fsl,has-rstcr;
++		#sleep-cells = <1>;
++		fsl,liodn-bits = <12>;
++	};
++
++	pins: global-utilities@e0e00 {
++		compatible = "fsl,qoriq-pin-control-1.0";
++		reg = <0xe0e00 0x200>;
++		#sleep-cells = <2>;
++	};
++
++/include/ "qoriq-clockgen1.dtsi"
++	global-utilities@e1000 {
++		compatible = "fsl,p2041-clockgen", "fsl,qoriq-clockgen-1.0";
++	};
++
++	rcpm: global-utilities@e2000 {
++		compatible = "fsl,qoriq-rcpm-1.0";
++		reg = <0xe2000 0x1000>;
++		#sleep-cells = <1>;
++	};
++
++	sfp: sfp@e8000 {
++		compatible = "fsl,p2041-sfp", "fsl,qoriq-sfp-1.0";
++		reg	   = <0xe8000 0x1000>;
++	};
++
++	serdes: serdes@ea000 {
++		compatible = "fsl,p2041-serdes";
++		reg	   = <0xea000 0x1000>;
++	};
++
++/include/ "qoriq-dma-0.dtsi"
++	dma@100300 {
++		fsl,iommu-parent = <&pamu0>;
++		fsl,liodn-reg = <&guts 0x580>; /* DMA1LIODNR */
++	};
++
++/include/ "qoriq-dma-1.dtsi"
++	dma@101300 {
++		fsl,iommu-parent = <&pamu0>;
++		fsl,liodn-reg = <&guts 0x584>; /* DMA2LIODNR */
++	};
++
++/include/ "qoriq-espi-0.dtsi"
++	spi@110000 {
++		fsl,espi-num-chipselects = <4>;
++	};
++
++/include/ "qoriq-esdhc-0.dtsi"
++	sdhc@114000 {
++		compatible = "fsl,p2041-esdhc", "fsl,esdhc";
++		fsl,iommu-parent = <&pamu1>;
++		fsl,liodn-reg = <&guts 0x530>; /* eSDHCLIODNR */
++		sdhci,auto-cmd12;
++	};
++
++/include/ "qoriq-i2c-0.dtsi"
++/include/ "qoriq-i2c-1.dtsi"
++/include/ "qoriq-duart-0.dtsi"
++/include/ "qoriq-duart-1.dtsi"
++/include/ "qoriq-gpio-0.dtsi"
++/include/ "qoriq-usb2-mph-0.dtsi"
++	usb0: usb@210000 {
++		compatible = "fsl-usb2-mph-v1.6", "fsl,mpc85xx-usb2-mph", "fsl-usb2-mph";
++		phy_type = "utmi";
++		fsl,iommu-parent = <&pamu1>;
++		fsl,liodn-reg = <&guts 0x520>; /* USB1LIODNR */
++		port0;
++	};
++
++/include/ "qoriq-usb2-dr-0.dtsi"
++	usb1: usb@211000 {
++		compatible = "fsl-usb2-dr-v1.6", "fsl,mpc85xx-usb2-dr", "fsl-usb2-dr";
++		fsl,iommu-parent = <&pamu1>;
++		fsl,liodn-reg = <&guts 0x524>; /* USB2LIODNR */
++		dr_mode = "host";
++		phy_type = "utmi";
++	};
++
++/include/ "qoriq-sata2-0.dtsi"
++	sata@220000 {
++		fsl,iommu-parent = <&pamu1>;
++		fsl,liodn-reg = <&guts 0x550>; /* SATA1LIODNR */
++	};
++
++/include/ "qoriq-sata2-1.dtsi"
++	sata@221000 {
++		fsl,iommu-parent = <&pamu1>;
++		fsl,liodn-reg = <&guts 0x554>; /* SATA2LIODNR */
++	};
++
++/include/ "qoriq-sec4.2-0.dtsi"
++crypto: crypto@300000 {
++		fsl,iommu-parent = <&pamu1>;
++	};
++
++/include/ "qoriq-pme-0.dtsi"
++/include/ "qoriq-qman1.dtsi"
++/include/ "qoriq-bman1.dtsi"
++/include/ "qoriq-fman-0.dtsi"
++/include/ "qoriq-fman-0-1g-0.dtsi"
++/include/ "qoriq-fman-0-1g-1.dtsi"
++/*
++/include/ "qoriq-fman-0-1g-2.dtsi"
++/include/ "qoriq-fman-0-1g-3.dtsi"
++/include/ "qoriq-fman-0-1g-4.dtsi"
++/include/ "qoriq-fman-0-10g-0.dtsi"
++*/
++	fman0: fman@400000 {
++		/* tx - 1g - 0 */
++		port@a8000 {
++			fsl,qman-channel-id = <0x41>;
++		};
++		/* tx - 1g - 1 */
++		port@a9000 {
++			fsl,qman-channel-id = <0x42>;
++		};
++		/* tx - 1g - 2 */
++		port@aa000 {
++			fsl,qman-channel-id = <0x43>;
++		};
++		/* tx - 1g - 3 */
++		port@ab000 {
++			fsl,qman-channel-id = <0x44>;
++		};
++		/* tx - 1g - 4 */
++		port@ac000 {
++			fsl,qman-channel-id = <0x45>;
++		};
++		/* tx - 10g - 0 */
++		port@b0000 {
++			fsl,qman-channel-id = <0x40>;
++		};
++		/* offline 0 */
++		port@81000 {
++			fsl,qman-channel-id = <0x46>;
++		};
++		/* offline 1 */
++		port@82000 {
++			fsl,qman-channel-id = <0x47>;
++		};
++		/* offline 2 */
++		port@83000 {
++			fsl,qman-channel-id = <0x48>;
++		};
++		/* offline 3 */
++		port@84000 {
++			fsl,qman-channel-id = <0x49>;
++		};
++		/* offline 4 */
++		port@85000 {
++			fsl,qman-channel-id = <0x4a>;
++		};
++		/* offline 5 */
++		port@86000 {
++			fsl,qman-channel-id = <0x4b>;
++		};
++	};
++
++/include/ "qoriq-rman-0.dtsi"
++	rman: rman@1e0000 {
++		fsl,qman-channels-id = <0x62 0x63>;
++	};
++};
+diff -rupN kernel-4.1.ori/arch/powerpc/boot/dts/fsl/cxo640-pre.dtsi kernel-4.1.mod/arch/powerpc/boot/dts/fsl/cxo640-pre.dtsi
+--- kernel-4.1.ori/arch/powerpc/boot/dts/fsl/cxo640-pre.dtsi	1970-01-01 01:00:00.000000000 +0100
++++ kernel-4.1.mod/arch/powerpc/boot/dts/fsl/cxo640-pre.dtsi	2016-10-20 12:45:51.000000000 +0100
+@@ -0,0 +1,127 @@
++/*
++ * P2041 Silicon/SoC Device Tree Source (pre include)
++ *
++ * Copyright 2011 Freescale Semiconductor Inc.
++ *
++ * Redistribution and use in source and binary forms, with or without
++ * modification, are permitted provided that the following conditions are met:
++ *     * Redistributions of source code must retain the above copyright
++ *	 notice, this list of conditions and the following disclaimer.
++ *     * Redistributions in binary form must reproduce the above copyright
++ *	 notice, this list of conditions and the following disclaimer in the
++ *	 documentation and/or other materials provided with the distribution.
++ *     * Neither the name of Freescale Semiconductor nor the
++ *	 names of its contributors may be used to endorse or promote products
++ *	 derived from this software without specific prior written permission.
++ *
++ *
++ * ALTERNATIVELY, this software may be distributed under the terms of the
++ * GNU General Public License ("GPL") as published by the Free Software
++ * Foundation, either version 2 of that License or (at your option) any
++ * later version.
++ *
++ * THIS SOFTWARE IS PROVIDED BY Freescale Semiconductor ``AS IS'' AND ANY
++ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
++ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
++ * DISCLAIMED. IN NO EVENT SHALL Freescale Semiconductor BE LIABLE FOR ANY
++ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
++ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
++ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
++ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
++ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++ */
++
++/dts-v1/;
++
++/include/ "e500mc_power_isa.dtsi"
++
++/ {
++	compatible = "fsl,P2041";
++	#address-cells = <2>;
++	#size-cells = <2>;
++	interrupt-parent = <&mpic>;
++
++	aliases {
++		ccsr = &soc;
++		dcsr = &dcsr;
++
++		serial0 = &serial0;
++		serial1 = &serial1;
++		serial2 = &serial2;
++		serial3 = &serial3;
++		//pci0 = &pci0;
++		//pci1 = &pci1;
++		//pci2 = &pci2;
++		usb0 = &usb0;
++		usb1 = &usb1;
++		dma0 = &dma0;
++		dma1 = &dma1;
++		sdhc = &sdhc;
++		msi0 = &msi0;
++		msi1 = &msi1;
++		msi2 = &msi2;
++
++		crypto = &crypto;
++		sec_jr0 = &sec_jr0;
++		sec_jr1 = &sec_jr1;
++		sec_jr2 = &sec_jr2;
++		sec_jr3 = &sec_jr3;
++		rtic_a = &rtic_a;
++		rtic_b = &rtic_b;
++		rtic_c = &rtic_c;
++		rtic_d = &rtic_d;
++		sec_mon = &sec_mon;
++
++		pme = &pme;
++		qman = &qman;
++		bman = &bman;
++		fman0 = &fman0;
++	};
++
++	cpus {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		cpu0: PowerPC,e500mc@0 {
++			device_type = "cpu";
++			reg = <0>;
++			clocks = <&clockgen 1 0>;
++			next-level-cache = <&L2_0>;
++			fsl,portid-mapping = <0x80000000>;
++			L2_0: l2-cache {
++				next-level-cache = <&cpc>;
++			};
++		};
++		cpu1: PowerPC,e500mc@1 {
++			device_type = "cpu";
++			reg = <1>;
++			clocks = <&clockgen 1 1>;
++			next-level-cache = <&L2_1>;
++			fsl,portid-mapping = <0x40000000>;
++			L2_1: l2-cache {
++				next-level-cache = <&cpc>;
++			};
++		};
++		cpu2: PowerPC,e500mc@2 {
++			device_type = "cpu";
++			reg = <2>;
++			clocks = <&clockgen 1 2>;
++			next-level-cache = <&L2_2>;
++			fsl,portid-mapping = <0x20000000>;
++			L2_2: l2-cache {
++				next-level-cache = <&cpc>;
++			};
++		};
++		cpu3: PowerPC,e500mc@3 {
++			device_type = "cpu";
++			reg = <3>;
++			clocks = <&clockgen 1 3>;
++			next-level-cache = <&L2_3>;
++			fsl,portid-mapping = <0x10000000>;
++			L2_3: l2-cache {
++				next-level-cache = <&cpc>;
++			};
++		};
++	};
++};
+diff -rupN kernel-4.1.ori/arch/powerpc/sysdev/Kconfig kernel-4.1.mod/arch/powerpc/sysdev/Kconfig
+--- kernel-4.1.ori/arch/powerpc/sysdev/Kconfig	2016-10-17 14:37:51.000000000 +0100
++++ kernel-4.1.mod/arch/powerpc/sysdev/Kconfig	2016-10-20 12:45:51.000000000 +0100
+@@ -45,3 +45,7 @@ config FSL_CORENET_RCPM
+ 	bool
+ 	help
+ 	  This option enables support for RCPM (Run Control/Power Management).
++
++config PTIN_ETH_MARVELL_SWITCH
++	bool
++	default y
+diff -rupN kernel-4.1.ori/arch/powerpc/sysdev/Makefile kernel-4.1.mod/arch/powerpc/sysdev/Makefile
+--- kernel-4.1.ori/arch/powerpc/sysdev/Makefile	2016-10-17 14:37:51.000000000 +0100
++++ kernel-4.1.mod/arch/powerpc/sysdev/Makefile	2016-10-20 12:45:51.000000000 +0100
+@@ -60,6 +60,8 @@ obj-$(CONFIG_UCODE_PATCH)	+= micropatch.
+ obj-$(CONFIG_PPC_MPC512x)	+= mpc5xxx_clocks.o
+ obj-$(CONFIG_PPC_MPC52xx)	+= mpc5xxx_clocks.o
+ 
++obj-$(CONFIG_PTIN_ETH_MARVELL_SWITCH)   += mv88e6095x_of.o
++
+ ifeq ($(CONFIG_SUSPEND),y)
+ obj-$(CONFIG_6xx)		+= 6xx-suspend.o
+ endif
+diff -rupN kernel-4.1.ori/arch/powerpc/sysdev/mv88e6095x_of.c kernel-4.1.mod/arch/powerpc/sysdev/mv88e6095x_of.c
+--- kernel-4.1.ori/arch/powerpc/sysdev/mv88e6095x_of.c	1970-01-01 01:00:00.000000000 +0100
++++ kernel-4.1.mod/arch/powerpc/sysdev/mv88e6095x_of.c	2016-10-20 12:45:51.000000000 +0100
+@@ -0,0 +1,720 @@
++/*
++ * net/dsa/mv88e6095.c - Marvell 88e6095/6095f/6131 switch chip support
++ * Copyright (c) 2008-2009 Marvell Semiconductor
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++#include <linux/of.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++/*#include <linux/of_platform.h>*/
++#include <linux/platform_device.h>
++
++
++#include <linux/list.h>
++#include <linux/netdevice.h>    
++#include <linux/phy.h>
++#include <linux/cdev.h>
++#include <linux/miscdevice.h>
++#include <linux/fs.h>
++
++#include <../net/dsa/dsa_priv.h>
++#include <../net/dsa/mv88e6xxx.h>
++
++
++#define READ_MV_REG_CMD    0x1
++#define WRITE_MV_REG_CMD   0x2
++#define READ_CCSR_REG_CMD  0x3
++#define WRITE_CCSR_REG_CMD_ADD 0x41
++#define WRITE_CCSR_REG_CMD_VAL 0x42
++
++//#define SW_CHR_MAJOR 32
++//
++//static dev_t cdev_devnum;
++//static struct device *cdev_sw;
++//static struct class *sw_class;
++struct miscdevice misc_sw;
++static int mvdev_open = 0;
++
++struct mii_bus *global_bus; 
++int global_sw_addr;
++
++int ccsr_reg_add;
++
++static int Major;
++#define DEVICE_NAME "marvell_sw_dev"
++
++int mv88e6095_reg_read(struct mii_bus *bus, int sw_addr, int addr, int reg)
++{
++	int ret;    
++
++    if (sw_addr != 0) {
++        /*
++         * Transmit the read command.
++         */
++        //ret = bus->write(bus, sw_addr,0, 0, 0x9800 | (addr << 5) | reg);
++        ret = bus->write(bus, sw_addr, 0, 0x9800 | (addr << 5) | reg);
++        if (ret < 0)
++            return ret;
++        /*
++         * Read the data.
++         */
++        //ret = bus->read(bus, sw_addr,0, 1);
++        ret = bus->read(bus, sw_addr, 1);
++
++        if (ret < 0)
++            return ret;
++
++
++        /*
++         * Transmit the read command.
++         */
++        //ret = bus->write(bus, sw_addr,0, 0, 0x9800 | (addr << 5) | reg);
++        ret = bus->write(bus, sw_addr, 0, 0x9800 | (addr << 5) | reg);
++        if (ret < 0)
++            return ret;
++        /*
++         * Read the data.
++         */
++        //ret = bus->read(bus, sw_addr,0, 1);
++        ret = bus->read(bus, sw_addr, 1);
++
++        if (ret < 0)
++            return ret;
++
++    } else {
++        //ret = bus->read(bus, sw_addr,0, reg);
++        ret = bus->read(bus, sw_addr, reg);
++        if (ret < 0)
++            return ret;
++    }
++    /*printk("Read MV reg %d of port %d with val 0x%X\n", reg, addr, ret & 0xffff );*/
++	return ret & 0xffff;
++}
++
++int mv88e6095_reg_write(struct mii_bus *bus, int sw_addr, int addr, int reg, u16 val)
++{
++	int ret;
++
++/*    printk("Write MV reg %d of port %d with 0x%04X\n", reg, addr, val);*/
++
++    if (sw_addr != 0) {
++        /*
++         * Transmit the data to write.
++         */
++        //ret = bus->write(bus, sw_addr,0, 1, val);
++        ret = bus->write(bus, sw_addr, 1, val);
++        if (ret < 0)
++            return ret;
++
++        /*
++         * Transmit the write command.
++         */
++        //ret = bus->write(bus, sw_addr, 0,0, 0x9400 | (addr << 5) | reg);
++        ret = bus->write(bus, sw_addr, 0, 0x9400 | (addr << 5) | reg);
++        if (ret < 0)
++            return ret;
++
++        //ret = bus->write(bus, sw_addr,0, 1, val);
++        ret = bus->write(bus, sw_addr, 1, val);
++        if (ret < 0)
++            return ret;
++
++        /*
++         * Transmit the write command.
++         */
++        //ret = bus->write(bus, sw_addr, 0,0, 0x9400 | (addr << 5) | reg);
++        ret = bus->write(bus, sw_addr, 0, 0x9400 | (addr << 5) | reg);
++        if (ret < 0)
++            return ret;
++
++    } else {
++        //ret = bus->write(bus, sw_addr, 0,reg, val);
++        ret = bus->write(bus, sw_addr, reg, val);
++        if (ret < 0)
++            return ret;
++    }
++
++	return 0;
++}
++
++int ccsr_reg_read(int offset){
++	int __iomem *ccsr = NULL;
++	int retval;
++
++	ccsr = ioremap(0xFFE000000, 0x1000000);
++	retval = ccsr[offset/4];
++
++	iounmap(ccsr);
++
++	return retval;
++}
++
++int ccsr_reg_write(int val){
++	int __iomem *ccsr = NULL;
++
++	ccsr = ioremap(0xFFE000000, 0x1000000);
++	ccsr[ccsr_reg_add/4] = val;
++	iounmap(ccsr);
++
++	return 0;
++}
++
++static ssize_t read_mv88e6095(struct file *file, char __user *data, size_t size, loff_t *offset)
++{
++	printk("%s(0x%p, 0x%p, 0x%zu, 0x%p)\n", __FUNCTION__, file, data, size, offset);
++    return mv88e6095_reg_read(global_bus, global_sw_addr, data[0], data[1]);
++}
++
++static ssize_t write_mv88e6095(struct file *file, const char __user *data, size_t size, loff_t *offset)
++{
++    u16 val = (data[2]<<8 | data [3]);
++	printk("%s(0x%p, 0x%p, 0x%zu, 0x%p)\n", __FUNCTION__, file, data, size, offset);
++    mv88e6095_reg_write(global_bus, global_sw_addr, data[0], data[1], val);
++	return 0;
++}
++
++//static int __devinit mv88e6095_probe(struct platform_device *ofdev/*, const struct of_device_id *match*/)
++static int mv88e6095_probe(struct platform_device *ofdev/*, const struct of_device_id *match*/)
++{
++    
++    printk ("Probe do driver da PTIN MV88e6095\n");
++    return 0;
++}
++
++static int mv88e6095_remove(struct platform_device *ofdev)
++{
++    printk ("Remove do driver da PTIN MV88e6095\n");
++    
++	return 0;
++}
++
++static struct of_device_id mv88e6095_match[] = {
++	{
++		.compatible = "ptin,dsa-switch",
++	},
++	{},
++};
++MODULE_DEVICE_TABLE(of, mv88e6095_match);
++
++static int open_mv88e6095(struct inode *inode, struct file *file)
++{
++	//printk("%s(0x%p, 0x%p)\n", __FUNCTION__, inode, file);
++    if (mvdev_open) return -EBUSY;
++
++    mvdev_open=1;
++	return 0;
++}
++
++static int release_mv88e6095(struct inode *inode, struct file *file)
++{
++	//printk("%s(0x%p, 0x%p)\n", __FUNCTION__, inode, file);
++    mvdev_open=0;
++	return 0;
++}
++
++static long ioctl_mv88e6095(struct file *file, unsigned int cmd, unsigned long arg) {
++	int retval = 0;
++	switch ( cmd ) {
++        case READ_MV_REG_CMD:
++			return (mv88e6095_reg_read(global_bus, global_sw_addr, (unsigned char)(arg>>8), (unsigned char)arg));
++			break;
++        case WRITE_MV_REG_CMD:
++            mv88e6095_reg_write(global_bus, global_sw_addr, (unsigned char)(arg>>24), (unsigned char)(arg>>16), (unsigned short)arg);
++			break;
++		case READ_CCSR_REG_CMD:
++			return (ccsr_reg_read((int)arg));
++			break;
++		case WRITE_CCSR_REG_CMD_ADD:
++			ccsr_reg_add = (int)arg;
++			break;
++		case WRITE_CCSR_REG_CMD_VAL:
++			return (ccsr_reg_write((int)arg));
++			break;
++		default:
++			retval = -EINVAL;
++	}
++	return retval;
++}
++
++static struct file_operations mv_fops = {
++    .open = open_mv88e6095,
++    .release = release_mv88e6095,
++    .read = read_mv88e6095,
++    .write = write_mv88e6095,
++    .unlocked_ioctl = ioctl_mv88e6095,
++};
++
++static struct platform_driver mv88e6095_driver = {
++	.driver = {
++		.name = "mv88e6095",
++		.owner = THIS_MODULE,
++		.of_match_table = mv88e6095_match,
++	},
++	.probe = mv88e6095_probe,
++	.remove = mv88e6095_remove,
++};
++
++
++static int __init mv88e6095_init(void)
++{
++    printk ("Init do driver da PTIN MV88e6095\n");
++
++	return platform_driver_register(&mv88e6095_driver); 
++}
++module_init(mv88e6095_init);
++
++void mv88e6095_exit(void)
++{
++    unregister_chrdev(Major, DEVICE_NAME);
++	platform_driver_unregister(&mv88e6095_driver);
++}
++module_exit(mv88e6095_exit);
++
++//static struct dsa_switch_driver mv88e6095_switch_driver = {
++//	.tag_protocol		= cpu_to_be16(ETH_P_DSA),
++//	.priv_size		= sizeof(struct mv88e6xxx_priv_state),
++//	.probe			= mv88e6095_probe,
++//	.setup			= mv88e6095_setup,
++//	.set_addr		= mv88e6xxx_set_addr_direct,
++//	.phy_read		= mv88e6095_phy_read,
++//	.phy_write		= mv88e6095_phy_write,
++//	.poll_link		= mv88e6xxx_poll_link,
++//	.get_strings		= mv88e6095_get_strings,
++//	.get_ethtool_stats	= mv88e6095_get_ethtool_stats,
++//	.get_sset_count		= mv88e6095_get_sset_count,
++//};
++
++//static int mv88e6095_switch_reset(struct mii_bus *bus, int sw_addr)
++//{
++//	int i;
++//	int ret;
++//
++//	/*
++//	 * Set all ports to the disabled state.
++//	 */
++//	for (i = 0; i < 11; i++) {
++//		ret = mv88e6095_reg_read(bus, sw_addr, REG_PORT(i), 0x04);
++//        mv88e6095_reg_write(bus, sw_addr, REG_PORT(i), 0x04, ret & 0xfffc);
++//	}
++//
++//	/*
++//	 * Wait for transmit queues to drain.
++//	 */
++//	msleep(2);
++//
++//	/*
++//	 * Reset the switch.
++//	 */
++//    mv88e6095_reg_write(bus, sw_addr, REG_GLOBAL, 0x04, 0xC400);
++//
++//	/*
++//	 * Wait up to one second for reset to complete.
++//	 */
++//	for (i = 0; i < 1000; i++) {
++//		ret = mv88e6095_reg_read(bus, sw_addr, REG_GLOBAL, 0x00);
++//		if ((ret & 0xc800) == 0xc800)
++//			break;
++//
++//		msleep(1);
++//	}
++//	if (i == 1000)
++//		return -ETIMEDOUT;
++//
++//	return 0;
++//}
++//
++//static int mv88e6095_setup_global(struct mii_bus *bus, int sw_addr)
++//{
++////	int ret;
++////	int i;
++//
++//	/*
++//	 * Enable the PHY polling unit, don't discard packets with
++//	 * excessive collisions, use a weighted fair queueing scheme
++//	 * to arbitrate between packet queues, set the maximum frame
++//	 * size to 1632, and mask all interrupt sources.
++//	 */
++//    mv88e6095_reg_write(bus, sw_addr, REG_GLOBAL, 0x04, 0x4400);
++//
++//	/*
++//	 * Set the default address aging time to 5 minutes, and
++//	 * enable address learn messages to be sent to all message
++//	 * ports.
++//	 */
++//    mv88e6095_reg_write(bus, sw_addr, REG_GLOBAL, 0x0A, 0x0148);
++//
++////	/*
++////	 * Configure the priority mapping registers.
++////	 */
++////	ret = mv88e6xxx_config_prio(ds);
++////	if (ret < 0)
++////		return ret;
++//
++//	/*
++//	 * Set the VLAN ethertype to 0x8100.
++//	 */
++//    mv88e6095_reg_write(bus, sw_addr, REG_GLOBAL, 0x19, 0x8100);
++//
++//	/*
++//	 * Disable ARP mirroring, and configure the upstream port as
++//	 * the port to which ingress and egress monitor frames are to
++//	 * be sent.
++//	 */
++////	REG_WRITE(REG_GLOBAL, 0x1a, (dsa_upstream_port(ds) * 0x1100) | 0x00f0);
++//
++//	/*
++//	 * Disable cascade port functionality, and set the switch's
++//	 * DSA device number.
++//	 */
++//    mv88e6095_reg_write(bus, sw_addr, REG_GLOBAL, 0x1C, 0xE000);
++//
++//	/*
++//	 * Send all frames with destination addresses matching
++//	 * 01:80:c2:00:00:0x to the CPU port.
++//	 */
++//    mv88e6095_reg_write(bus, sw_addr, REG_GLOBAL2, 0x3, 0xFFFF);
++//	//REG_WRITE(REG_GLOBAL2, 0x03, 0xffff);
++//
++//	/*
++//	 * Ignore removed tag data on doubly tagged packets, disable
++//	 * flow control messages, force flow control priority to the
++//	 * highest, and send all special multicast frames to the CPU
++//	 * port at the higest priority.
++//	 */
++//    mv88e6095_reg_write(bus, sw_addr, REG_GLOBAL2, 0x05, 0x00FF);
++//	//REG_WRITE(REG_GLOBAL2, 0x05, 0x00ff);
++//
++//	/*
++//	 * Program the DSA routing table.
++//	 */
++////	for (i = 0; i < 32; i++) {
++////		int nexthop;
++////
++////		nexthop = 0x1f;
++////		if (i != ds->index && i < ds->dst->pd->nr_chips)
++////			nexthop = ds->pd->rtable[i] & 0x1f;
++////
++////		REG_WRITE(REG_GLOBAL2, 0x06, 0x8000 | (i << 8) | nexthop);
++////	}
++//
++//	/*
++//	 * Clear all trunk masks.
++//	 */
++////	for (i = 0; i < 8; i++)
++////		REG_WRITE(REG_GLOBAL2, 0x07, 0x8000 | (i << 12) | 0x7ff);
++////
++////	/*
++////	 * Clear all trunk mappings.
++////	 */
++////	for (i = 0; i < 16; i++)
++////		REG_WRITE(REG_GLOBAL2, 0x08, 0x8000 | (i << 11));
++//
++//	/*
++//	 * Force the priority of IGMP/MLD snoop frames and ARP frames
++//	 * to the highest setting.
++//	 */
++//    mv88e6095_reg_write(bus, sw_addr, REG_GLOBAL2, 0x0F, 0x00FF);
++//	//REG_WRITE(REG_GLOBAL2, 0x0f, 0x00ff);
++//
++//	return 0;
++//}
++//
++//static int mv88e6095_setup_port(struct mii_bus *bus, int sw_addr, int p)
++//{
++//	int addr = REG_PORT(p);
++//	u16 val;
++//
++//	/*
++//	 * MAC Forcing register: don't force link, speed, duplex
++//	 * or flow control state to any particular values on physical
++//	 * ports, but force the CPU port and all DSA ports to 1000 Mb/s
++//	 * full duplex.
++//	 */
++//	//if (dsa_is_cpu_port(ds, p) || ds->dsa_port_mask & (1 << p))
++//    if (p == 9 || p == 10)
++//        mv88e6095_reg_write(bus, sw_addr, addr, 0x01, 0x003E);
++//        //REG_WRITE(addr, 0x01, 0x003e);
++//    else
++//        mv88e6095_reg_write(bus, sw_addr, addr, 0x01, 0x0003);
++//		//REG_WRITE(addr, 0x01, 0x0003);
++//
++//	/*
++//	 * Port Control: disable Core Tag, disable Drop-on-Lock,
++//	 * transmit frames unmodified, disable Header mode,
++//	 * enable IGMP/MLD snoop, disable DoubleTag, disable VLAN
++//	 * tunneling, determine priority by looking at 802.1p and
++//	 * IP priority fields (IP prio has precedence), and set STP
++//	 * state to Forwarding.
++//	 *
++//	 * If this is the upstream port for this switch, enable
++//	 * forwarding of unknown unicasts, and enable DSA tagging
++//	 * mode.
++//	 *
++//	 * If this is the link to another switch, use DSA tagging
++//	 * mode, but do not enable forwarding of unknown unicasts.
++//	 */
++//	val = 0x0433;
++//	if (p == 9 || p == 10)
++//		val |= 0x0104;
++////	if (ds->dsa_port_mask & (1 << p))
++////		val |= 0x0100;
++//    mv88e6095_reg_write(bus, sw_addr, addr, 0x04, val);
++////	REG_WRITE(addr, 0x04, val);
++//
++//	/*
++//	 * Port Control 1: disable trunking.  Also, if this is the
++//	 * CPU port, enable learn messages to be sent to this port.
++//	 */
++//    if (p==9 || p==10) mv88e6095_reg_write(bus, sw_addr, addr, 0x05, 0x8000);
++//    else mv88e6095_reg_write(bus, sw_addr, addr, 0x05, 0x0000);
++//	//REG_WRITE(addr, 0x05, dsa_is_cpu_port(ds, p) ? 0x8000 : 0x0000);
++//
++//	/*
++//	 * Port based VLAN map: give each port its own address
++//	 * database, allow the CPU port to talk to each of the 'real'
++//	 * ports, and allow each of the 'real' ports to only talk to
++//	 * the upstream port.
++//	 */
++////	val = (p & 0xf) << 12;
++////	if (dsa_is_cpu_port(ds, p))
++////		val |= ds->phys_port_mask;
++////	else
++////		val |= 1 << dsa_upstream_port(ds);
++////	REG_WRITE(addr, 0x06, val);
++//
++//	/*
++//	 * Default VLAN ID and priority: don't set a default VLAN
++//	 * ID, and set the default packet priority to zero.
++//	 */
++//    mv88e6095_reg_write(bus, sw_addr, addr, 0x07, 0x0000);
++//	//REG_WRITE(addr, 0x07, 0x0000);
++//
++//	/*
++//	 * Port Control 2: don't force a good FCS, don't use
++//	 * VLAN-based, source address-based or destination
++//	 * address-based priority overrides, don't let the switch
++//	 * add or strip 802.1q tags, don't discard tagged or
++//	 * untagged frames on this port, do a destination address
++//	 * lookup on received packets as usual, don't send a copy
++//	 * of all transmitted/received frames on this port to the
++//	 * CPU, and configure the upstream port number.
++//	 *
++//	 * If this is the upstream port for this switch, enable
++//	 * forwarding of unknown multicast addresses.
++//	 */
++//	val = 0x0080 | 0x9;
++//	if (p == 9)
++//		val |= 0x0040;
++//    mv88e6095_reg_write(bus, sw_addr, addr, 0x08, val);
++//	//REG_WRITE(addr, 0x08, val);
++//
++//	/*
++//	 * Rate Control: disable ingress rate limiting.
++//	 */
++//    mv88e6095_reg_write(bus, sw_addr, addr, 0x09, 0x0000);
++//	//REG_WRITE(addr, 0x09, 0x0000);
++//
++//	/*
++//	 * Rate Control 2: disable egress rate limiting.
++//	 */
++//    mv88e6095_reg_write(bus, sw_addr, addr, 0x0A, 0x0000);
++//	//REG_WRITE(addr, 0x0a, 0x0000);
++//
++//	/*
++//	 * Port Association Vector: when learning source addresses
++//	 * of packets, add the address to the address database using
++//	 * a port bitmap that has only the bit for this port set and
++//	 * the other bits clear.
++//	 */
++//	//REG_WRITE(addr, 0x0b, 1 << p);
++//
++//	/*
++//	 * Tag Remap: use an identity 802.1p prio -> switch prio
++//	 * mapping.
++//	 */
++//	//REG_WRITE(addr, 0x18, 0x3210);
++//
++//	/*
++//	 * Tag Remap 2: use an identity 802.1p prio -> switch prio
++//	 * mapping.
++//	 */
++//	//REG_WRITE(addr, 0x19, 0x7654);
++//
++//	return 0;
++//}
++//
++//static int mv88e6095_setup(struct mii_bus *bus, int sw_addr)
++//{
++//	int i;
++//	int ret;
++//
++////	mv88e6xxx_ppu_state_init(ds);
++//
++//	ret = mv88e6095_switch_reset(bus, sw_addr);
++//	if (ret < 0)
++//		return ret;
++//
++//	/* @@@ initialise vtu and atu */
++//
++//	ret = mv88e6095_setup_global(bus, sw_addr);
++//	if (ret < 0)
++//		return ret;
++//
++//	for (i = 0; i < 11; i++) {
++//		ret = mv88e6095_setup_port(bus, sw_addr, i);
++//		if (ret < 0)
++//			return ret;
++//	}
++//
++//	return 0;
++//}
++//
++//static int mv88e6095_port_to_phy_addr(int port)
++//{
++//	if (port >= 0 && port <= 11)
++//		return port;
++//	return -1;
++//}
++//
++//static int
++//mv88e6095_phy_read(struct dsa_switch *ds, int port, int regnum)
++//{
++//	int addr = mv88e6095_port_to_phy_addr(port);
++//	return mv88e6xxx_phy_read_ppu(ds, addr, regnum);
++//}
++//
++//static int
++//mv88e6095_phy_write(struct dsa_switch *ds,
++//			      int port, int regnum, u16 val)
++//{
++//	int addr = mv88e6095_port_to_phy_addr(port);
++//	return mv88e6xxx_phy_write_ppu(ds, addr, regnum, val);
++//}
++//
++//static struct mv88e6xxx_hw_stat mv88e6095_hw_stats[] = {
++//	{ "in_good_octets", 8, 0x00, },
++//	{ "in_bad_octets", 4, 0x02, },
++//	{ "in_unicast", 4, 0x04, },
++//	{ "in_broadcasts", 4, 0x06, },
++//	{ "in_multicasts", 4, 0x07, },
++//	{ "in_pause", 4, 0x16, },
++//	{ "in_undersize", 4, 0x18, },
++//	{ "in_fragments", 4, 0x19, },
++//	{ "in_oversize", 4, 0x1a, },
++//	{ "in_jabber", 4, 0x1b, },
++//	{ "in_rx_error", 4, 0x1c, },
++//	{ "in_fcs_error", 4, 0x1d, },
++//	{ "out_octets", 8, 0x0e, },
++//	{ "out_unicast", 4, 0x10, },
++//	{ "out_broadcasts", 4, 0x13, },
++//	{ "out_multicasts", 4, 0x12, },
++//	{ "out_pause", 4, 0x15, },
++//	{ "excessive", 4, 0x11, },
++//	{ "collisions", 4, 0x1e, },
++//	{ "deferred", 4, 0x05, },
++//	{ "single", 4, 0x14, },
++//	{ "multiple", 4, 0x17, },
++//	{ "out_fcs_error", 4, 0x03, },
++//	{ "late", 4, 0x1f, },
++//	{ "hist_64bytes", 4, 0x08, },
++//	{ "hist_65_127bytes", 4, 0x09, },
++//	{ "hist_128_255bytes", 4, 0x0a, },
++//	{ "hist_256_511bytes", 4, 0x0b, },
++//	{ "hist_512_1023bytes", 4, 0x0c, },
++//	{ "hist_1024_max_bytes", 4, 0x0d, },
++//};
++//
++//static void
++//mv88e6095_get_strings(struct dsa_switch *ds, int port, uint8_t *data)
++//{
++//	mv88e6xxx_get_strings(ds, ARRAY_SIZE(mv88e6095_hw_stats),
++//			      mv88e6095_hw_stats, port, data);
++//}
++//
++//static void
++//mv88e6095_get_ethtool_stats(struct dsa_switch *ds,
++//				  int port, uint64_t *data)
++//{
++//	mv88e6xxx_get_ethtool_stats(ds, ARRAY_SIZE(mv88e6095_hw_stats),
++//				    mv88e6095_hw_stats, port, data);
++//}
++//
++//static int mv88e6095_get_sset_count(struct dsa_switch *ds)
++//{
++//	return ARRAY_SIZE(mv88e6095_hw_stats);
++//}
++//
++
++
++
++struct phy_device * mv88e6095_detect(struct mii_bus *bus, int sw_addr)
++{
++    struct phy_device *dev = NULL;
++	u32 phy_id;
++    int i, ret=0;
++
++    Major = register_chrdev(0, DEVICE_NAME, &mv_fops);
++
++	if (Major < 0) {
++	    printk(KERN_ALERT "Registering marvell char device failed with %d\n", Major);
++	}else {
++        printk(KERN_ALERT "Registering marvell char device with %d \n", Major);
++    }
++
++    printk ("Initializing MV88e6095 (addr %d): \n", sw_addr);
++
++	ret = mv88e6095_reg_read(bus, sw_addr, REG_PORT(0), 0x03);
++	if (ret >= 0 && ret != 0xFFFF) {
++		phy_id = ret & 0xfff0;
++		if (phy_id == 0x0950)
++			printk("Marvell 88E6095/88E6095F Detected\n");
++		else if (phy_id == 0x1060)
++			printk("Marvell 88E6131 Detected\n");
++        else{
++            printk("Unknown Device Detected - but will use it anyway\n");
++        }
++	}else{
++        printk("Marvell 88E6095/88E6095F not Detected - but will use it anyway\n");
++        phy_id = 0x0950;
++    }
++
++	//dev = phy_device_create(bus, sw_addr, phy_id);
++
++    printk ("Set MV88e6095 port bitmap...\n");
++    //FE Ports
++    for (i=0;i<8;i++){
++        mv88e6095_reg_write(bus, sw_addr, REG_PORT(i), 0x06, 0x0600);
++    }
++
++    //GbE Ports
++    mv88e6095_reg_write(bus, sw_addr, REG_PORT(8),  0x06, 0x0600);    //HUGO porto G0 liga ao switch FPGA CXP360G
++    mv88e6095_reg_write(bus, sw_addr, REG_PORT(9),  0x06, 0x05ff);
++    mv88e6095_reg_write(bus, sw_addr, REG_PORT(10), 0x06, 0x03ff);
++    
++    printk ("Activate MV88e6095 ports\n");
++    //GbE Ports
++    mv88e6095_reg_write(bus, sw_addr, REG_PORT(8), 0x01, 0x003E); //HUGO porto G0 liga ao switch FPGA CXP360G
++    mv88e6095_reg_write(bus, sw_addr, REG_PORT(9), 0x01, 0x003E);
++    mv88e6095_reg_write(bus, sw_addr, REG_PORT(10), 0x01, 0x003E);
++
++    //FE Ports
++    for (i=0;i<11;i++){
++        printk ("Switch Port %d Control reg: 0x%X\r\n", i, mv88e6095_reg_read(bus, sw_addr, REG_PORT(i), 0x4));
++        mv88e6095_reg_write(bus, sw_addr, REG_PORT(i), 0x04, 0x0077);
++        msleep(100);
++        printk ("Switch Port %d Control reg: 0x%X\r\n", i, mv88e6095_reg_read(bus, sw_addr, REG_PORT(i), 0x4));
++    }
++
++    global_bus = bus;
++    global_sw_addr = sw_addr;
++
++	return dev;
++
++}
++
++MODULE_LICENSE("GPL");
++
+diff -rupN kernel-4.1.ori/arch/powerpc/sysdev/mv88e6095x_of.h kernel-4.1.mod/arch/powerpc/sysdev/mv88e6095x_of.h
+--- kernel-4.1.ori/arch/powerpc/sysdev/mv88e6095x_of.h	1970-01-01 01:00:00.000000000 +0100
++++ kernel-4.1.mod/arch/powerpc/sysdev/mv88e6095x_of.h	2016-10-20 12:45:51.000000000 +0100
+@@ -0,0 +1,13 @@
++
++#ifndef __MARVELL_88E6095X_DRIVER__
++#define __MARVELL_88E6095X_DRIVER__
++
++#include <linux/phy.h>
++
++#define REG_PORT(p)		(0x10 + (p))
++#define REG_GLOBAL		0x1b
++#define REG_GLOBAL2		0x1c
++
++extern struct phy_device * mv88e6095_detect(struct mii_bus *bus, int sw_addr);
++
++#endif  //__MARVELL_88E6095X_DRIVER__
+diff -rupN kernel-4.1.ori/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm.c kernel-4.1.mod/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm.c
+--- kernel-4.1.ori/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm.c	2016-10-17 14:37:59.000000000 +0100
++++ kernel-4.1.mod/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm.c	2016-10-20 12:46:11.000000000 +0100
+@@ -1128,7 +1128,11 @@ static void FreeFmDev(t_LnxWrpFmDev  *p_
+ /* FMan character device file operations */
+ extern struct file_operations fm_fops;
+ 
+-static int /*__devinit*/ fm_probe(struct platform_device *of_dev)
++#ifndef __devinit
++#define __devinit __init*
++#endif
++
++static int __devinit fm_probe(struct platform_device *of_dev)
+ {
+     t_LnxWrpFmDev   *p_LnxWrpFmDev;
+ 
+diff -rupN kernel-4.1.ori/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm_port.c kernel-4.1.mod/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm_port.c
+--- kernel-4.1.ori/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm_port.c	2016-10-17 14:37:59.000000000 +0100
++++ kernel-4.1.mod/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm_port.c	2016-10-20 12:46:11.000000000 +0100
+@@ -1299,7 +1299,11 @@ static void FreeFmPortDev(t_LnxWrpFmPort
+ 			      p_LnxWrpFmPortDev->memSize);
+ }
+ 
+-static int /*__devinit*/ fm_port_probe(struct platform_device *of_dev)
++#ifndef __devinit
++#define __devinit __init*
++#endif
++
++static int __devinit fm_port_probe(struct platform_device *of_dev)
+ {
+ 	t_LnxWrpFmPortDev *p_LnxWrpFmPortDev;
+ 	t_LnxWrpFmDev *p_LnxWrpFmDev;
+diff -rupN kernel-4.1.ori/drivers/of/of_mdio.c kernel-4.1.mod/drivers/of/of_mdio.c
+--- kernel-4.1.ori/drivers/of/of_mdio.c	2016-10-17 14:37:59.000000000 +0100
++++ kernel-4.1.mod/drivers/of/of_mdio.c	2016-10-20 12:46:12.000000000 +0100
+@@ -20,6 +20,10 @@
+ #include <linux/of_mdio.h>
+ #include <linux/module.h>
+ 
++#ifdef CONFIG_PTIN_ETH_MARVELL_SWITCH
++#include <../arch/powerpc/sysdev/mv88e6095x_of.h>
++#endif
++
+ MODULE_AUTHOR("Grant Likely <grant.likely@secretlab.ca>");
+ MODULE_LICENSE("GPL");
+ 
+@@ -39,7 +43,6 @@ static int of_get_phy_id(struct device_n
+ 	}
+ 	return -EINVAL;
+ }
+-
+ static int of_mdiobus_register_phy(struct mii_bus *mdio, struct device_node *child,
+ 				   u32 addr)
+ {
+@@ -53,8 +56,20 @@ static int of_mdiobus_register_phy(struc
+ 
+ 	if (!is_c45 && !of_get_phy_id(child, &phy_id))
+ 		phy = phy_device_create(mdio, addr, phy_id, 0, NULL);
+-	else
++	else {
++#ifdef CONFIG_PTIN_ETH_MARVELL_SWITCH
++		if(of_device_is_compatible(child, "ptin,dsa-switch")){
++			printk("bus addr 0x%p\n", mdio);
++			mv88e6095_detect(mdio,addr);
++			phy = get_phy_device(mdio, addr, is_c45);
++		}else{
++			printk("bus addr 0x%p\n", mdio);
++			phy = get_phy_device(mdio, addr, is_c45);
++		}
++#else
+ 		phy = get_phy_device(mdio, addr, is_c45);
++#endif
++	}
+ 	if (!phy || IS_ERR(phy))
+ 		return 1;
+ 
+diff -rupN kernel-4.1.ori/drivers/spi/spidev.c kernel-4.1.mod/drivers/spi/spidev.c
+--- kernel-4.1.ori/drivers/spi/spidev.c	2016-10-17 14:37:54.000000000 +0100
++++ kernel-4.1.mod/drivers/spi/spidev.c	2016-10-20 12:45:57.000000000 +0100
+@@ -706,6 +706,7 @@ static struct class *spidev_class;
+ #ifdef CONFIG_OF
+ static const struct of_device_id spidev_dt_ids[] = {
+ 	{ .compatible = "rohm,dh2228fv" },
++	{ .compatible = "spidev" },
+ 	{},
+ };
+ MODULE_DEVICE_TABLE(of, spidev_dt_ids);
+@@ -719,6 +720,11 @@ static int spidev_probe(struct spi_devic
+ 	int			status;
+ 	unsigned long		minor;
+ 
++
++spi->chip_select=3; /*assucatado by Hugo*/
++spi->master->bus_num=1; //Isto não deveria de estar assim! Segundo a documentação o spidev não  
++                        //Deve ser chamado pela DTS. Deve ser feito um driver que depois chama o spidev...
++
+ 	/*
+ 	 * spidev should never be referenced in DT without a specific
+ 	 * compatbile string, it is a Linux implementation thing
+diff -rupN kernel-4.1.ori/net/dsa/mv88e6xxx.h kernel-4.1.mod/net/dsa/mv88e6xxx.h
+--- kernel-4.1.ori/net/dsa/mv88e6xxx.h	1970-01-01 01:00:00.000000000 +0100
++++ kernel-4.1.mod/net/dsa/mv88e6xxx.h	2016-10-20 12:45:54.000000000 +0100
+@@ -0,0 +1,95 @@
++/*
++ * net/dsa/mv88e6xxx.h - Marvell 88e6xxx switch chip support
++ * Copyright (c) 2008 Marvell Semiconductor
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#ifndef __MV88E6XXX_H
++#define __MV88E6XXX_H
++
++#define REG_PORT(p)		(0x10 + (p))
++#define REG_GLOBAL		0x1b
++#define REG_GLOBAL2		0x1c
++
++struct mv88e6xxx_priv_state {
++	/*
++	 * When using multi-chip addressing, this mutex protects
++	 * access to the indirect access registers.  (In single-chip
++	 * mode, this mutex is effectively useless.)
++	 */
++	struct mutex	smi_mutex;
++
++#ifdef CONFIG_NET_DSA_MV88E6XXX_NEED_PPU
++	/*
++	 * Handles automatic disabling and re-enabling of the PHY
++	 * polling unit.
++	 */
++	struct mutex		ppu_mutex;
++	int			ppu_disabled;
++	struct work_struct	ppu_work;
++	struct timer_list	ppu_timer;
++#endif
++
++	/*
++	 * This mutex serialises access to the statistics unit.
++	 * Hold this mutex over snapshot + dump sequences.
++	 */
++	struct mutex	stats_mutex;
++
++	int		id; /* switch product id */
++};
++
++struct mv88e6xxx_hw_stat {
++	char string[ETH_GSTRING_LEN];
++	int sizeof_stat;
++	int reg;
++};
++
++int __mv88e6xxx_reg_read(struct mii_bus *bus, int sw_addr, int addr, int reg);
++int mv88e6xxx_reg_read(struct dsa_switch *ds, int addr, int reg);
++int __mv88e6xxx_reg_write(struct mii_bus *bus, int sw_addr, int addr,
++                          int reg, u16 val);
++int mv88e6xxx_reg_write(struct dsa_switch *ds, int addr, int reg, u16 val);
++int mv88e6xxx_config_prio(struct dsa_switch *ds);
++int mv88e6xxx_set_addr_direct(struct dsa_switch *ds, u8 *addr);
++int mv88e6xxx_set_addr_indirect(struct dsa_switch *ds, u8 *addr);
++int mv88e6xxx_phy_read(struct dsa_switch *ds, int addr, int regnum);
++int mv88e6xxx_phy_write(struct dsa_switch *ds, int addr, int regnum, u16 val);
++void mv88e6xxx_ppu_state_init(struct dsa_switch *ds);
++int mv88e6xxx_phy_read_ppu(struct dsa_switch *ds, int addr, int regnum);
++int mv88e6xxx_phy_write_ppu(struct dsa_switch *ds, int addr,
++			    int regnum, u16 val);
++void mv88e6xxx_poll_link(struct dsa_switch *ds);
++void mv88e6xxx_get_strings(struct dsa_switch *ds,
++			   int nr_stats, struct mv88e6xxx_hw_stat *stats,
++			   int port, uint8_t *data);
++void mv88e6xxx_get_ethtool_stats(struct dsa_switch *ds,
++				 int nr_stats, struct mv88e6xxx_hw_stat *stats,
++				 int port, uint64_t *data);
++
++#define REG_READ(addr, reg)						\
++	({								\
++		int __ret;						\
++									\
++		__ret = mv88e6xxx_reg_read(ds, addr, reg);		\
++		if (__ret < 0)						\
++			return __ret;					\
++		__ret;							\
++	})
++
++#define REG_WRITE(addr, reg, val)					\
++	({								\
++		int __ret;						\
++									\
++		__ret = mv88e6xxx_reg_write(ds, addr, reg, val);	\
++		if (__ret < 0)						\
++			return __ret;					\
++	})
++
++
++
++#endif
