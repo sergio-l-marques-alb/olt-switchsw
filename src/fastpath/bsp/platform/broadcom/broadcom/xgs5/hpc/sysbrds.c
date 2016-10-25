@@ -595,7 +595,20 @@ L7_RC_t hpcConfigBoardSet()
         if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0)
           return(L7_FAILURE);
 
-        /* Enable Mode 5 for BCM56450 */
+      #if (PTIN_BOARD == PTIN_BOARD_TT04SXG)
+
+        /* Enable Mode 6 for TT04SXG */
+        if (sal_config_set(spn_BCM5645X_CONFIG, "6") != 0)
+          return(L7_FAILURE);
+
+        /* External memory configuration: All physical ports associated to external memory */
+        /* 1-16 (PON); 25, 27, 33, 36 (BCK) */
+        if (sal_config_set(spn_PBMP_EXT_MEM, "0x825e000000") != 0)
+          return(L7_FAILURE);
+
+      #else /* PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_TG16GF */
+
+        /* Enable Mode 5 for OLT1T0F */
         if (sal_config_set(spn_BCM5645X_CONFIG, "5") != 0)
           return(L7_FAILURE);
 
@@ -612,6 +625,8 @@ L7_RC_t hpcConfigBoardSet()
         /* 1-16 (PON); 25, 27, 33, 36 (BCK) */
         if (sal_config_set(spn_PBMP_EXT_MEM, "0x120a01fffe") != 0)
           return(L7_FAILURE);
+      #endif
+
         if (sal_config_set(spn_DDR3_PLL_MHZ, "914") != 0)
           return(L7_FAILURE);
         if (sal_config_set(spn_DDR3_CLOCK_MHZ, "933") != 0)

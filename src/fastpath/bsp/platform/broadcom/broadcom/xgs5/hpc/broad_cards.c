@@ -1193,15 +1193,15 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_8_TENGIG_1_GS_56450_REV
 /* slotNum  portNum bcm_cpuunit bcm_port portName *
  * -------  ------- ----------- -------- -------- */
 {
-{       0,       0,          0,       1,       "" }, /* 2.5G ETH */
-{       0,       1,          0,       2,       "" },
-{       0,       2,          0,       3,       "" },
-{       0,       3,          0,       4,       "" },
-{       0,       4,          0,      27,       "" }, /* 10G ETH */
-{       0,       5,          0,      25,       "" },
-{       0,       6,          0,      33,       "" },
-{       0,       7,          0,      36,       "" },
-{       0,       8,          0,      40,       "" }, /* GS port for FPGA */
+{       0,       0,          0,      25,       "" }, /* 10G ETH to FPGA */
+{       0,       1,          0,      27,       "" },
+{       0,       2,          0,      33,       "" },
+{       0,       3,          0,      36,       "" },
+{       0,       4,          0,      39,       "" }, /* 10G ETH to Backplane (via Cortina) */
+{       0,       5,          0,      30,       "" },
+{       0,       6,          0,      26,       "" },
+{       0,       7,          0,      28,       "" },
+{       0,       8,          0,       1,       "" }, /* GS port for FPGA */
 };
 
 /* PTin added: new switch 56843 (Trident) */
