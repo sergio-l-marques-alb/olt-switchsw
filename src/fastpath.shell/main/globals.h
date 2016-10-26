@@ -21,6 +21,8 @@
 #define PTIN_BOARD_TA48GE   7
 #define PTIN_BOARD_OLT1T0   8
 #define PTIN_BOARD_OLT1T0F  9
+#define PTIN_BOARD_TT04SXG  10
+#define PTIN_BOARD_TT08SXG  11
 
 /* Fort systems Little Endian and if not pizza box, invert bytes */
 #if (__BYTE_ORDER == __LITTLE_ENDIAN) && \
