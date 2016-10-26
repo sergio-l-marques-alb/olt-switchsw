@@ -6663,11 +6663,11 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
 #if (PHY_RECOVERY_PROCEDURE)
   /* For CXO160G board, only apply reset boards for TG16G and TG16GF boards */
  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-  if (board_id == PTIN_BOARD_TYPE_TG16G || board_id == PTIN_BOARD_TYPE_TG16GF ||
+  if (board_id == PTIN_BOARD_TYPE_TG16G || board_id == PTIN_BOARD_TYPE_TG16GF || board_id == PTIN_BOARD_TYPE_TT04SXG ||
       board_id == PTIN_BOARD_TYPE_TT08SXG || board_id == PTIN_BOARD_TYPE_TA12XGE)
   /* For CXO640G board, only apply reset boards for TG16GF boards */
  #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
-  if (board_id == PTIN_BOARD_TYPE_TG16GF ||
+  if (board_id == PTIN_BOARD_TYPE_TG16GF || board_id == PTIN_BOARD_TYPE_TT04SXG ||
       board_id == PTIN_BOARD_TYPE_TT08SXG || board_id == PTIN_BOARD_TYPE_TA12XGE)
  #else
   if (0)
