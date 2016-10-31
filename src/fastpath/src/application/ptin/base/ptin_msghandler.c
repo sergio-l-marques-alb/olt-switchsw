@@ -4834,6 +4834,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         ptr = (msg_rfc2819_buffer_t *) outbuffer->info;
         in_ptr = (msg_rfc2819_monitoring_t *) inbuffer->info;
 
+        ENDIAN_SWAP32_MOD(in_ptr->n);
         /* Execute command */
         rc = ptin_msg_get_next_qualRFC2819(in_ptr->n, ptr);
 
@@ -4890,8 +4891,9 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         ptr_in  = (msg_rfc2819_monitoring_t * )inbuffer->info;
 
         PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "SlotID %d ", ptr_in->SlotId);
-        PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "n %d ", ptr_in->n);  
-  
+        ENDIAN_SWAP32_MOD(ptr_in->n);
+        PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "n %d ", ptr_in->n);
+                 
         /* Execute command */
         rc = ptin_msg_get_next_qualRFC2819_inv(ptr_in->n, ptr, &n);
   
@@ -4919,6 +4921,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         ptr_out  = (msg_rfc2819_monitoring_t * )outbuffer->info;
 
         /* Execute command */
+        ENDIAN_SWAP32_MOD(ptr_in->n);
         rc = ptin_msg_clear_rfc2819_monitoring_buffer(ptr_in->n);
   
         if (L7_SUCCESS != rc)
