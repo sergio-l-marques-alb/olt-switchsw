@@ -15890,8 +15890,6 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
     (*n_elements)++;        
   }  
 
-  *n_elements = ENDIAN_SWAP16(*n_elements);
-
   return L7_SUCCESS;
 }
 
