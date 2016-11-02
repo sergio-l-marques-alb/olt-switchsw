@@ -1,6 +1,6 @@
 diff -rupN linux-4.1.8.ori/net/tipc/addr.c linux-4.1.8.mod/net/tipc/addr.c
 --- linux-4.1.8.ori/net/tipc/addr.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/addr.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/addr.c	2016-11-02 11:06:56.000000000 +0000
 @@ -38,13 +38,6 @@
  #include "addr.h"
  #include "core.h"
@@ -17,7 +17,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/addr.c linux-4.1.8.mod/net/tipc/addr.c
   */
 diff -rupN linux-4.1.8.ori/net/tipc/addr.h linux-4.1.8.mod/net/tipc/addr.h
 --- linux-4.1.8.ori/net/tipc/addr.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/addr.h	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/addr.h	2016-11-02 11:06:56.000000000 +0000
 @@ -41,10 +41,18 @@
  #include <linux/tipc.h>
  #include <net/net_namespace.h>
@@ -39,7 +39,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/addr.h linux-4.1.8.mod/net/tipc/addr.h
  	return addr & TIPC_ZONE_MASK;
 diff -rupN linux-4.1.8.ori/net/tipc/bcast.c linux-4.1.8.mod/net/tipc/bcast.c
 --- linux-4.1.8.ori/net/tipc/bcast.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/bcast.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/bcast.c	2016-11-02 11:06:56.000000000 +0000
 @@ -35,690 +35,301 @@
   * POSSIBILITY OF SUCH DAMAGE.
   */
@@ -1183,7 +1183,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/bcast.c linux-4.1.8.mod/net/tipc/bcast.c
  }
 diff -rupN linux-4.1.8.ori/net/tipc/bcast.h linux-4.1.8.mod/net/tipc/bcast.h
 --- linux-4.1.8.ori/net/tipc/bcast.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/bcast.h	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/bcast.h	2016-11-02 11:06:56.000000000 +0000
 @@ -37,100 +37,44 @@
  #ifndef _TIPC_BCAST_H
  #define _TIPC_BCAST_H
@@ -1320,7 +1320,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/bcast.h linux-4.1.8.mod/net/tipc/bcast.h
  #endif
 diff -rupN linux-4.1.8.ori/net/tipc/bearer.c linux-4.1.8.mod/net/tipc/bearer.c
 --- linux-4.1.8.ori/net/tipc/bearer.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/bearer.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/bearer.c	2016-11-02 11:06:56.000000000 +0000
 @@ -71,8 +71,7 @@ static const struct nla_policy tipc_nl_m
  	[TIPC_NLA_MEDIA_PROP]		= { .type = NLA_NESTED }
  };
@@ -1592,7 +1592,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/bearer.c linux-4.1.8.mod/net/tipc/bearer.c
  		return -EINVAL;
 diff -rupN linux-4.1.8.ori/net/tipc/bearer.h linux-4.1.8.mod/net/tipc/bearer.h
 --- linux-4.1.8.ori/net/tipc/bearer.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/bearer.h	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/bearer.h	2016-11-02 11:06:56.000000000 +0000
 @@ -38,9 +38,9 @@
  #define _TIPC_BEARER_H
  
@@ -1631,7 +1631,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/bearer.h linux-4.1.8.mod/net/tipc/bearer.h
  #endif	/* _TIPC_BEARER_H */
 diff -rupN linux-4.1.8.ori/net/tipc/core.c linux-4.1.8.mod/net/tipc/core.c
 --- linux-4.1.8.ori/net/tipc/core.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/core.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/core.c	2016-11-02 11:06:56.000000000 +0000
 @@ -42,6 +42,7 @@
  #include "bearer.h"
  #include "net.h"
@@ -1673,7 +1673,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/core.c linux-4.1.8.mod/net/tipc/core.c
  }
 diff -rupN linux-4.1.8.ori/net/tipc/core.h linux-4.1.8.mod/net/tipc/core.h
 --- linux-4.1.8.ori/net/tipc/core.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/core.h	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/core.h	2016-11-02 11:06:56.000000000 +0000
 @@ -60,16 +60,18 @@
  #include <net/netns/generic.h>
  #include <linux/rhashtable.h>
@@ -1755,7 +1755,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/core.h linux-4.1.8.mod/net/tipc/core.h
  void tipc_unregister_sysctl(void);
 diff -rupN linux-4.1.8.ori/net/tipc/discover.c linux-4.1.8.mod/net/tipc/discover.c
 --- linux-4.1.8.ori/net/tipc/discover.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/discover.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/discover.c	2016-11-02 11:06:56.000000000 +0000
 @@ -35,7 +35,7 @@
   */
  
@@ -1988,7 +1988,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/discover.c linux-4.1.8.mod/net/tipc/discover
  }
 diff -rupN linux-4.1.8.ori/net/tipc/link.c linux-4.1.8.mod/net/tipc/link.c
 --- linux-4.1.8.ori/net/tipc/link.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/link.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/link.c	2016-11-02 11:06:56.000000000 +0000
 @@ -48,9 +48,9 @@
  /*
   * Error message prefixes
@@ -4976,7 +4976,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/link.c linux-4.1.8.mod/net/tipc/link.c
  		return -EINVAL;
 diff -rupN linux-4.1.8.ori/net/tipc/link.h linux-4.1.8.mod/net/tipc/link.h
 --- linux-4.1.8.ori/net/tipc/link.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/link.h	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/link.h	2016-11-02 11:06:56.000000000 +0000
 @@ -49,19 +49,26 @@
   */
  #define INVALID_LINK_SEQ 0x10000
@@ -5305,7 +5305,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/link.h linux-4.1.8.mod/net/tipc/link.h
  #endif
 diff -rupN linux-4.1.8.ori/net/tipc/msg.c linux-4.1.8.mod/net/tipc/msg.c
 --- linux-4.1.8.ori/net/tipc/msg.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/msg.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/msg.c	2016-11-02 11:06:56.000000000 +0000
 @@ -121,7 +121,7 @@ int tipc_buf_append(struct sk_buff **hea
  {
  	struct sk_buff *head = *headbuf;
@@ -5655,7 +5655,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/msg.c linux-4.1.8.mod/net/tipc/msg.c
  }
 diff -rupN linux-4.1.8.ori/net/tipc/msg.h linux-4.1.8.mod/net/tipc/msg.h
 --- linux-4.1.8.ori/net/tipc/msg.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/msg.h	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/msg.h	2016-11-02 11:06:56.000000000 +0000
 @@ -38,6 +38,7 @@
  #define _TIPC_MSG_H
  
@@ -5926,7 +5926,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/msg.h linux-4.1.8.mod/net/tipc/msg.h
  #endif
 diff -rupN linux-4.1.8.ori/net/tipc/name_distr.c linux-4.1.8.mod/net/tipc/name_distr.c
 --- linux-4.1.8.ori/net/tipc/name_distr.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/name_distr.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/name_distr.c	2016-11-02 11:06:56.000000000 +0000
 @@ -96,13 +96,13 @@ void named_cluster_distribute(struct net
  		dnode = node->addr;
  		if (in_own_node(net, dnode))
@@ -5962,7 +5962,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/name_distr.c linux-4.1.8.mod/net/tipc/name_d
  		item = (struct distr_item *)msg_data(msg);
 diff -rupN linux-4.1.8.ori/net/tipc/name_table.c linux-4.1.8.mod/net/tipc/name_table.c
 --- linux-4.1.8.ori/net/tipc/name_table.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/name_table.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/name_table.c	2016-11-02 11:06:56.000000000 +0000
 @@ -330,13 +330,9 @@ static struct publication *tipc_nameseq_
  
  	/* Any subscriptions waiting for notification?  */
@@ -6025,7 +6025,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/name_table.c linux-4.1.8.mod/net/tipc/name_t
  		}
 diff -rupN linux-4.1.8.ori/net/tipc/net.c linux-4.1.8.mod/net/tipc/net.c
 --- linux-4.1.8.ori/net/tipc/net.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/net.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/net.c	2016-11-02 11:06:56.000000000 +0000
 @@ -40,6 +40,7 @@
  #include "subscr.h"
  #include "socket.h"
@@ -6060,7 +6060,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/net.c linux-4.1.8.mod/net/tipc/net.c
  
 diff -rupN linux-4.1.8.ori/net/tipc/netlink_compat.c linux-4.1.8.mod/net/tipc/netlink_compat.c
 --- linux-4.1.8.ori/net/tipc/netlink_compat.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/netlink_compat.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/netlink_compat.c	2016-11-02 11:06:56.000000000 +0000
 @@ -55,6 +55,7 @@ struct tipc_nl_compat_msg {
  	int rep_type;
  	int rep_size;
@@ -6317,7 +6317,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/netlink_compat.c linux-4.1.8.mod/net/tipc/ne
  }
 diff -rupN linux-4.1.8.ori/net/tipc/node.c linux-4.1.8.mod/net/tipc/node.c
 --- linux-4.1.8.ori/net/tipc/node.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/node.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/node.c	2016-11-02 11:06:56.000000000 +0000
 @@ -1,7 +1,7 @@
  /*
   * net/tipc/node.c: TIPC node management routines
@@ -7627,7 +7627,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/node.c linux-4.1.8.mod/net/tipc/node.c
  	int err;
 diff -rupN linux-4.1.8.ori/net/tipc/node.h linux-4.1.8.mod/net/tipc/node.h
 --- linux-4.1.8.ori/net/tipc/node.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/node.h	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/node.h	2016-11-02 11:06:56.000000000 +0000
 @@ -45,50 +45,41 @@
  /* Out-of-range value for node signature */
  #define INVALID_NODE_SIG	0x10000
@@ -7825,7 +7825,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/node.h linux-4.1.8.mod/net/tipc/node.h
  
 diff -rupN linux-4.1.8.ori/net/tipc/server.c linux-4.1.8.mod/net/tipc/server.c
 --- linux-4.1.8.ori/net/tipc/server.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/server.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/server.c	2016-11-02 11:06:56.000000000 +0000
 @@ -309,6 +309,10 @@ static int tipc_accept_from_sock(struct 
  
  	/* Notify that new connection is incoming */
@@ -7857,7 +7857,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/server.c linux-4.1.8.mod/net/tipc/server.c
  	if (ret < 0)
 diff -rupN linux-4.1.8.ori/net/tipc/socket.c linux-4.1.8.mod/net/tipc/socket.c
 --- linux-4.1.8.ori/net/tipc/socket.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/socket.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/socket.c	2016-11-02 11:06:56.000000000 +0000
 @@ -41,6 +41,7 @@
  #include "link.h"
  #include "name_distr.h"
@@ -8673,7 +8673,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/socket.c linux-4.1.8.mod/net/tipc/socket.c
  				       tipc_nl_sock_policy);
 diff -rupN linux-4.1.8.ori/net/tipc/socket.h linux-4.1.8.mod/net/tipc/socket.h
 --- linux-4.1.8.ori/net/tipc/socket.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/socket.h	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/socket.h	2016-11-02 11:06:56.000000000 +0000
 @@ -44,7 +44,7 @@
  				  SKB_TRUESIZE(TIPC_MAX_USER_MSG_SIZE))
  int tipc_socket_init(void);
@@ -8685,7 +8685,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/socket.h linux-4.1.8.mod/net/tipc/socket.h
  void tipc_sk_reinit(struct net *net);
 diff -rupN linux-4.1.8.ori/net/tipc/subscr.c linux-4.1.8.mod/net/tipc/subscr.c
 --- linux-4.1.8.ori/net/tipc/subscr.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/subscr.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/subscr.c	2016-11-02 11:06:56.000000000 +0000
 @@ -40,16 +40,21 @@
  
  /**
@@ -9069,7 +9069,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/subscr.c linux-4.1.8.mod/net/tipc/subscr.c
  	struct tipc_server *topsrv = tn->topsrv;
 diff -rupN linux-4.1.8.ori/net/tipc/subscr.h linux-4.1.8.mod/net/tipc/subscr.h
 --- linux-4.1.8.ori/net/tipc/subscr.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/subscr.h	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/subscr.h	2016-11-02 11:06:56.000000000 +0000
 @@ -54,7 +54,7 @@ struct tipc_subscriber;
   * @filter: event filtering to be done for subscription
   * @timer: timer governing subscription duration (optional)
@@ -9107,7 +9107,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/subscr.h linux-4.1.8.mod/net/tipc/subscr.h
  #endif
 diff -rupN linux-4.1.8.ori/net/tipc/udp_media.c linux-4.1.8.mod/net/tipc/udp_media.c
 --- linux-4.1.8.ori/net/tipc/udp_media.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/udp_media.c	2016-11-02 10:13:09.000000000 +0000
++++ linux-4.1.8.mod/net/tipc/udp_media.c	2016-11-02 11:07:10.000000000 +0000
 @@ -52,6 +52,8 @@
  /* IANA assigned UDP port */
  #define UDP_PORT_DEFAULT	6118
@@ -9159,7 +9159,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/udp_media.c linux-4.1.8.mod/net/tipc/udp_med
  			.flowi6_proto = IPPROTO_UDP
  		};
 -		err = ipv6_stub->ipv6_dst_lookup(ub->ubsock->sk, &ndst, &fl6);
-+		err = ipv6_stub->ipv6_dst_lookup(net, ub->ubsock->sk, &ndst,
++		err = ipv6_stub->ipv6_dst_lookup(/*net,*/ ub->ubsock->sk, &ndst,
 +						 &fl6);
  		if (err)
  			goto tx_error;
