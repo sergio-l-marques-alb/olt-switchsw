@@ -60,6 +60,7 @@ void help_oltBuga(void)
         "       [otpid=xxxxh] [itpid=xxxxh] [etype=0/1/2] [mlen=0/1] [mlsmen=0/1] [mlsmprio=0-7] [mlsmsp=0/1] [trust=0/1] - Set port type definitions\r\n"
         "m 1017 intfType/intf# - Get MAC address of given interface\r\n"
         "m 1018 intfType/intf# macAddr(xx:xx:xx:xx:xx:xx) - Set MAC address for the provided interface\r\n"
+        "m 1019 - Read temperature sensors\r\n"
         "m 1020 port(0-MAX) - Show switch RFC2819 statistics\n\r"
         "m 1021 port(0-MAX) - Clear switch RFC2819 statistics\n\r"
         "m 1022 port(0-MAX) enable(0/1) - RFC2819 probe configuration\n\r"
@@ -1327,6 +1328,44 @@ int main (int argc, char *argv[])
 
         comando.msgId = CCMSG_ETH_PORT_MAC_SET;
         comando.infoDim = sizeof(msg_HWPortMac_t);
+      }
+      break;
+
+    // Get temperature sensors
+    case 1019:
+      {
+        msg_ptin_temperature_monitor_t *ptr;
+
+        // Validate number of arguments
+        if (argc > 3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_ptin_temperature_monitor_t *) &(comando.info[0]);
+        memset(ptr, 0x00, sizeof(msg_ptin_temperature_monitor_t));
+
+        // Slot id
+        ptr->SlotId = ENDIAN_SWAP8((uint8)-1);
+
+        // Index
+        if (argc>=3+1)
+        {
+          if (StrToLongLong(argv[3+0], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->index = ENDIAN_SWAP16((int16) valued);
+        }
+        else
+        {
+          ptr->index  = ENDIAN_SWAP16(-1);
+        }
+
+        comando.msgId = CCMSG_SWITCH_TEMPERATURE_GET;
+        comando.infoDim = sizeof(msg_ptin_temperature_monitor_t);
       }
       break;
 
@@ -7726,6 +7765,45 @@ int main (int argc, char *argv[])
         else
           printf(" Switch MAC not attributed - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
+
+      case 1019:
+      {
+        uint8  i;
+        uint16 n;
+        msg_ptin_temperature_monitor_t *po=(msg_ptin_temperature_monitor_t *) &resposta.info[0];
+
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        {
+          if (resposta.infoDim == sizeof(msg_ptin_temperature_monitor_t))
+          {
+            printf("Switch: Temperature sensors read successfully\n\r"); 
+            printf("SlotId = %u\r\n", ENDIAN_SWAP8(po->SlotId));
+            printf("Index  = %u\r\n", ENDIAN_SWAP16(po->index));
+            printf("Number of sensors = %u\r\n", ENDIAN_SWAP16(po->number_of_sensors));
+
+            n = ENDIAN_SWAP16(po->number_of_sensors);
+            if (n > 0)
+            {
+              printf("Sensors data: { ");
+              for (i = 0; i < n; i++)
+              {
+                printf("%u/%u ", ENDIAN_SWAP16(po->sensors_data[i].curr_value), ENDIAN_SWAP16(po->sensors_data[i].peak_value));
+              }
+              printf("}\r\n");
+            }
+            printf("DONE!!!\n\r");
+          }
+          else
+          {
+            printf(" Switch: Error with structure size: %u (expected=%u)\n\r", resposta.infoDim, sizeof(msg_ptin_temperature_monitor_t));
+          }
+        }
+        else
+        {
+          printf(" Switch: Error reading temperature sensors\n\r");
+        }
+      }
+      break;
 
       case 1020:
         {

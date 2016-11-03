@@ -31,6 +31,9 @@
 #define CCMSG_HW_LINK_ACTION                0x9008	// struct msg_HwGenReq_t
 
 #define CCMSG_ETH_PHY_STATUS_GET            0x9009  // struct msg_HWEthPhyState_t
+
+#define CCMSG_SWITCH_TEMPERATURE_GET        0x900A  // struct msg_ptin_temperature_monitor_t
+
 #define CCMSG_ETH_PHY_CONFIG_SET            0x9010  // struct msg_HWEthPhyConf_t
 #define CCMSG_ETH_PHY_CONFIG_GET            0x9011  // struct msg_HWEthPhyConf_t
 #define CCMSG_ETH_PHY_STATE_GET             0x9012  // struct msg_HWEthPhyState_t
@@ -2282,6 +2285,20 @@ typedef struct
 {
   L7_int32 rxErrors;
 } __attribute__((packed)) msg_ptin_prbs_status;
+
+
+/* CCMSG_SWITCH_TEMPERATURE_GET */
+typedef struct
+{
+  L7_uint8  SlotId;
+  L7_uint16 index;
+  L7_uint16 number_of_sensors;
+  struct
+  {
+    L7_uint16 curr_value;
+    L7_uint16 peak_value;
+  } __attribute__((packed)) sensors_data[10];
+} __attribute__((packed)) msg_ptin_temperature_monitor_t;
 
 
 /************************************************************************** 

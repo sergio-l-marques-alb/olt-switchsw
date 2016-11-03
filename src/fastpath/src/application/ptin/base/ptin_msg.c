@@ -42,6 +42,7 @@
 #include "mirror_api.h"
 #include "usmdb_mirror_api.h"
 #include "ptin_xlate_api.h"
+#include "ptin_status.h"
 
 #include "ptin_acl.h"
 #include "ptin_routing.h"
@@ -16215,3 +16216,49 @@ L7_RC_t rc;
         return ERROR_CODE_OK;
 }//ptin_msg_PTP_lnx_net_if_set
 
+
+/**
+ * Read all temperature sensors
+ * 
+ * @param msg 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_switch_temperature_get(msg_ptin_temperature_monitor_t *msg)
+{
+  L7_uint8  i;
+  L7_RC_t   rc;
+  ptin_dtl_temperature_monitor_t temp_info;
+
+  memset(&temp_info, 0x00, sizeof(ptin_dtl_temperature_monitor_t));
+  temp_info.index = 0;
+  temp_info.number_of_sensors = -1; /* All sensors to be read */
+
+  rc = ptin_status_temperature_monitor(&temp_info);
+
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG,"Error reading temperature sensors! (rc=%d)", rc);
+    return rc;
+  }
+ 
+  PT_LOG_TRACE(LOG_CTX_MSG, "Index=%d", temp_info.index);
+  PT_LOG_TRACE(LOG_CTX_MSG, "Number of sensors=%d", temp_info.number_of_sensors);
+
+  /* Copy results to message */
+  if (temp_info.number_of_sensors > 0)
+  {
+    for (i = 0; i < temp_info.number_of_sensors; i++) 
+    {
+      PT_LOG_TRACE(LOG_CTX_MSG, "Sensor %u: %d/%d", i, temp_info.sensors_data[i].curr_value, temp_info.sensors_data[i].peak_value);
+
+      msg->sensors_data[i].curr_value = ENDIAN_SWAP16(temp_info.sensors_data[i].curr_value);
+      msg->sensors_data[i].peak_value = ENDIAN_SWAP16(temp_info.sensors_data[i].peak_value);
+    }
+    msg->number_of_sensors = ENDIAN_SWAP16(temp_info.number_of_sensors);
+  }
+  msg->index  = ENDIAN_SWAP16(temp_info.index);
+  msg->SlotId = ENDIAN_SWAP8(ptin_fpga_board_slot_get());
+
+  return L7_SUCCESS; 
+}
