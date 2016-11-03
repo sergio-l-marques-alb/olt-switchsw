@@ -47,6 +47,7 @@ L7_RC_t broad_ptin_oam_check_lm_counters(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t ope
 L7_RC_t broad_ptin_time_interface(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_ptp_fpga_entry(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_oam_fpga_entry(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_temperature_monitor(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 
 L7_RC_t broadPtin_oam_tx( int unit, int flags, bcm_gport_t gport_dst, bcm_mac_t *mac_dst, bcm_mac_t *mac_src, bcm_oam_endpoint_info_t *endpoint_info);
 /* List of callbacks */
@@ -62,7 +63,8 @@ broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
   broad_ptin_oam_check_lm_counters,
   broad_ptin_time_interface,
   broad_ptin_ptp_fpga_entry,
-  broad_ptin_oam_fpga_entry
+  broad_ptin_oam_fpga_entry,
+  broad_ptin_temperature_monitor,
 };
 
 /**
@@ -2396,6 +2398,28 @@ L7_RC_t hapiBroadPtinStart(void)
   return L7_SUCCESS;
 }
 */
+
+/**
+ * Read temperature sensors
+ * 
+ * @param usp 
+ * @param operation 
+ * @param dataSize 
+ * @param data 
+ * @param dapi_g 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t broad_ptin_temperature_monitor(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g)
+{
+  ptin_dtl_temperature_monitor_t *temp_info = (ptin_dtl_temperature_monitor_t *) data;
+
+  return ptin_hapi_temperature_monitor(temp_info);
+
+}//broad_ptin_temperature_monitor
+
+
+
 
 
 L7_RC_t hapiBroadPtinMEPControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g) {

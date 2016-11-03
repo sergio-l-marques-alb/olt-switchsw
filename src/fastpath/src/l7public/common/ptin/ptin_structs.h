@@ -95,6 +95,7 @@ typedef enum
   PTIN_DTL_MSG_TIME_INTERFACE,
   PTIN_DTL_MSG_PTP_FPGA,
   PTIN_DTL_MSG_OAM_FPGA,
+  PTIN_DTL_MSG_TEMPERATURE_MONITOR,   /* ptin_dtl_temperature_monitor_t */
   PTIN_DTL_MSG_MAX
   
 } ptin_dtl_msg_enum;
@@ -261,6 +262,19 @@ typedef struct
 //int lookup_class;                   /* Classification lookup class ID. */
 //bcm_fabric_distribution_t distribution_class; /* Fabric Distribution Class. */
 } ptin_dtl_ipmc_addr_t;
+
+/**  PTIN_DTL_MSG_TEMPERATURE_MONITOR */
+typedef struct
+{
+  L7_int index;
+  L7_int number_of_sensors;
+  struct
+  {
+    L7_int16 curr_value;
+    L7_int16 peak_value;
+  } sensors_data[10];
+} ptin_dtl_temperature_monitor_t;
+
 
 /* Used for packet processing timing measure */
 typedef struct

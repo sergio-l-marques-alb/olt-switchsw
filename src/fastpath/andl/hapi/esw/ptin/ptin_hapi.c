@@ -6363,3 +6363,88 @@ bcm_error_t time_interface_enable(DAPI_USP_t *usp, void *stru, DAPI_t *dapi_g) {
  }
 }
 
+
+/**
+ * Get temperature sensors data
+ * 
+ * @param temp_info
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_temperature_monitor(ptin_dtl_temperature_monitor_t *temp_info)
+{
+  bcm_error_t rv;
+  int i, n=0, count=0;
+  bcm_switch_temperature_monitor_t temp_data[10];
+
+  /* Validate arguments */
+  if (temp_info == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Invalid arguments");
+    return L7_FAILURE;
+  }
+
+  if (temp_info->number_of_sensors == 0)
+  {
+    PT_LOG_TRACE(LOG_CTX_HAPI, "No data to be retrieved");
+    return L7_SUCCESS;
+  }
+  else if (temp_info->number_of_sensors < 0 || temp_info->number_of_sensors > 10)
+  {
+    PT_LOG_TRACE(LOG_CTX_HAPI, "All sensors to be retrieved");
+    n = 10;
+  }
+  else
+  {
+    PT_LOG_TRACE(LOG_CTX_HAPI, "%d sensors to be retrieved", temp_info->number_of_sensors);
+    n = temp_info->number_of_sensors;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Going to read %u sensors...\r\n", n);
+
+  rv = bcm_switch_temperature_monitor_get(0, n, temp_data, &count);
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Obtained data from %u sensors (rv=%d)\r\n", count, rv);
+
+  if (rv != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error reading temperature sensors (rv=%d)", count, rv);
+    return L7_FAILURE;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Index=%d", temp_info->index);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Number of sensors=%d", temp_info->number_of_sensors);
+
+  /* Copy output data to returned structure */
+  for (i = 0; i < count; i++)
+  {
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Sensor %u: %d/%d", i, temp_info->sensors_data[i].curr_value, temp_info->sensors_data[i].peak_value);
+
+    temp_info->sensors_data[i].curr_value = temp_data[i].curr;
+    temp_info->sensors_data[i].peak_value = temp_data[i].peak;
+  }
+  temp_info->number_of_sensors = count;
+
+  return L7_SUCCESS; 
+
+#if 0
+  if (count > 0)
+  {
+    printf("Temperature (curr/peak): ");
+    for (i=0; i<count; i++)
+    {
+      printf("[%d/%d] ", temp_array[i].curr, temp_array[i].peak);
+      if (temp_array[i].curr > max_temp)  max_temp = temp_array[i].curr;
+    }
+    printf("units\r\n");
+    printf("Temperature (curr/peak): ");
+    for (i=0; i<count; i++)
+    {
+      printf("[%d.%d/%d.%d] ", temp_array[i].curr/10, abs(temp_array[i].curr)%10, temp_array[i].peak/10, abs(temp_array[i].peak)%10);
+    }
+    printf("degC\r\n");
+    printf("Max. Temperature = %d.%d degC\r\n", max_temp/10, abs(max_temp)%10);
+  }
+#endif
+}
+

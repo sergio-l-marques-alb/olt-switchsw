@@ -48,6 +48,7 @@ extern int canal_buga;
 #define CCMSG_MULTICAST_MACHINE_RESET       0x9005  // struct msg_HwGenReq_t
 #define CCMSG_HW_BOARD_ACTION               0x9007	// struct msg_HwGenReq_t
 #define CCMSG_HW_LINK_ACTION                0x9008	// struct msg_HwGenReq_t
+#define CCMSG_SWITCH_TEMPERATURE_GET        0x900A  // struct msg_ptin_temperature_monitor_t
 
 #define CCMSG_ETH_PHY_CONFIG_SET            0x9010  // struct msg_HWEthPhyConf_t
 #define CCMSG_ETH_PHY_CONFIG_GET            0x9011  // struct msg_HWEthPhyConf_t
@@ -241,9 +242,11 @@ extern int canal_buga;
 typedef uint8    L7_uint8;
 typedef uint16   L7_uint16;
 typedef uint32   L7_uint32;
-typedef int32    L7_int32;
 typedef uint64   L7_uint64;
-
+typedef int8     L7_int8;
+typedef int16    L7_int16;
+typedef int32    L7_int32;
+typedef int64    L7_int64;
 
 /*****************************************************************************
  * Structures exchanged on the messages
@@ -1861,6 +1864,19 @@ typedef struct
   L7_uint16 flowCounters_available_entries;
   L7_uint16 flowProfiles_available_entries;
 } __attribute__((packed))msg_ptin_policy_resources;
+
+/* CCMSG_SWITCH_TEMPERATURE_GET */
+typedef struct
+{
+  L7_uint8  SlotId;
+  L7_uint16 index;
+  L7_uint16 number_of_sensors;
+  struct
+  {
+    L7_uint16 curr_value;
+    L7_uint16 peak_value;
+  } __attribute__((packed)) sensors_data[10];
+} __attribute__((packed)) msg_ptin_temperature_monitor_t;
 
 /**************************************************************************** 
  * UPLINK PROTECTION

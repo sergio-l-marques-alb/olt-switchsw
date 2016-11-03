@@ -905,6 +905,30 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     break;
 
+    case CCMSG_SWITCH_TEMPERATURE_GET:
+    {
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_SWITCH_TEMPERATURE_GET (0x%04X)", msgId);
+
+      msg_ptin_temperature_monitor_t *ptr;
+
+      ptr = (msg_ptin_temperature_monitor_t *) outbuffer->info;
+      memset(ptr, 0x00, sizeof(msg_ptin_temperature_monitor_t));
+
+      /* Execute command */
+      rc = ptin_msg_switch_temperature_get(ptr);
+
+      if (L7_SUCCESS != rc)
+      {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error reading temperature");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+
+      SETIPC_INFODIM(sizeof(msg_ptin_temperature_monitor_t));
+    }
+    break;
+
     /************************************************************************** 
      * PHY CONFIG Processing
      **************************************************************************/

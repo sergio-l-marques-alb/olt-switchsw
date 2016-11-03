@@ -1829,5 +1829,15 @@ L7_RC_t ptin_msg_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info);
 
 
 extern int ptin_msg_PTP_lnx_net_if_set(ipc_msg *inbuffer, ipc_msg *outbuffer);
+
+/**
+ * Read temperature sensors data
+ * 
+ * @param msg 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_switch_temperature_get(msg_ptin_temperature_monitor_t *msg);
+
 #endif /* _PTIN_MSG_H */
 
