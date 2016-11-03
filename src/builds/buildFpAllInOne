@@ -10,35 +10,49 @@ oltVersion=3.9
 patchVersion=0
 
 ###############Input Arguments Validation#########################
-echo "Usage: sh $0 [\$updateSvn] [version] [patch]"
+echo "Usage: sh $0 [version] [patch] [\$updateSvn] [\$compile]"
 
 updateSvn=1
+compile=1
 
 if [ $# -ge 1 ]; then
-	updateSvn=$1
-	if  [ $updateSvn -ne 1 -a $updateSvn -ne 0 ]; then
-		echo "Invalid Input Parameter: updateSvn=$updateSvn"
-		exit -1
-	fi
+    # Show help 
+    if [ $1 == "h" -o $1 == "help" ]; then
+        echo "Syntax: $0 [version] [patch] [update_svn(0/1)] [compile(0/1)]"
+        exit 0;
+    fi
+    oltVersion=$1
 fi
 if [ $# -ge 2 ]; then
-	oltVersion=$2
+    patchVersion=$2
 fi
 if [ $# -ge 3 ]; then
-	patchVersion=$3
+    updateSvn=$3
+    if  [ $updateSvn -ne 1 -a $updateSvn -ne 0 ]; then
+        echo "Invalid Input Parameter: updateSvn=$updateSvn"
+        exit -1
+    fi
+fi
+if [ $# -ge 4 ]; then
+    compile=$4
+    if  [ $compile -ne 1 -a $compile -ne 0 ]; then
+        echo "Invalid Input Parameter: compile=$compile"
+        exit -1
+    fi
 fi
 
 #if  [ $scriptDebugCommands -eq 1 ]; then
-	echo updateSvn=$updateSvn
-	echo "oltVersion=$oltVersion"
-	echo "patchVersion=$patchVersion"
+    echo "oltVersion=$oltVersion"
+    echo "patchVersion=$patchVersion"
+    echo "updateSvn=$updateSvn"
+    echo "compile=$compile"
 #fi
 ###############End Input Arguments Validation#########################
 
 ###############Save Current Path#########
 currentPath=$(pwd)
 if  [ $scriptDebugCommands -eq 1 ]; then
-	echo $currentPath
+    echo $currentPath
 fi
 ######################################
 
@@ -48,8 +62,8 @@ password=olttera
 currentUser=$(whoami)
 
 if [ "$builderUser" != "$currentUser" ]; then
-	echo "Current user: \"$currentUser\" is not the \"$builderUser\" user"
-	exit -1
+    echo "Current user: \"$currentUser\" is not the \"$builderUser\" user"
+    exit -1
 fi
 ###############Validate Current User###################
 
@@ -61,29 +75,29 @@ mkBoardsPath=/home/olt/mkboards_$oltVersion
 
 if [ ! -d $srcPath ]; then
     echo "Path Not Found: $srcPath"
-	exit $?
+    exit $?
 fi
 
 if [ ! -d $builderScriptPath ]; then
     echo "Path Not Found: $builderScriptPath"
-	exit $?
+    exit $?
 fi
 
 if [ ! -d $buildPath ]; then
     echo "Path Not Found: $buildPath"
-	exit $?
+    exit $?
 fi
 
 if [ ! -d $mkBoardsPath ]; then
     echo "Path Not Found: $mkBoardsPath"
-	exit $?
+    exit $?
 fi
 
 if  [ $scriptDebugCommands -eq 1 ]; then
-	echo "builderScriptPath=$builderScriptPath"
-	echo "srcPath=$srcPath"
-	echo "buildPath=$buildPath"
-	echo "mkBoardsPath=$mkBoardsPath"
+    echo "builderScriptPath=$builderScriptPath"
+    echo "srcPath=$srcPath"
+    echo "buildPath=$buildPath"
+    echo "mkBoardsPath=$mkBoardsPath"
 fi
 ############Paths Assignment & Validation#####################
 
@@ -133,20 +147,22 @@ cd $builderScriptPath
 if  [ $scriptDebugCommands -eq 1 ]; then
 	echo sh ./fastpath-olt.build $oltVersion.$patchVersion
 fi
-sh ./fastpath-olt.build $oltVersion.$patchVersion compile
-if [ $? -ne 0 ]; then
-  echo "Error compiling boards!"
-  exit -1;
+if [ $compile -eq 1 ]; then
+    sh ./fastpath-olt.build $oltVersion.$patchVersion compile
+    if [ $? -ne 0 ]; then
+        echo "Error compiling boards!"
+        exit -1;
+    fi
 fi
 sh ./fastpath-olt.build $oltVersion.$patchVersion install
 if [ $? -ne 0 ]; then
-  echo "Error copying binaries!"
-  exit -1;
+    echo "Error copying binaries!"
+    exit -1;
 fi
 sh ./fastpath-olt.build $oltVersion.$patchVersion build
 if [ $? -ne 0 ]; then
-  echo "Error transferring binaries!"
-  exit -1;
+    echo "Error transferring binaries!"
+    exit -1;
 fi
 
 if  [ $? -ne 0 ]; then
