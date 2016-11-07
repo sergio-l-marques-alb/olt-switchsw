@@ -13008,6 +13008,7 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
   ENDIAN_SWAP16_MOD(msgIpv6Acl->aclId);
   ENDIAN_SWAP32_MOD(msgIpv6Acl->aclRuleMask);
   ENDIAN_SWAP32_MOD(msgIpv6Acl->src6PrefixLen);
+  ENDIAN_SWAP32_MOD(msgIpv6Acl->dst6PrefixLen);
 
   if (msgIpv6Acl->aclId > L7_MAX_ACL_LISTS)
   {
