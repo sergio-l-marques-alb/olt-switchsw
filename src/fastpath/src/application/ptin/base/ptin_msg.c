@@ -9945,8 +9945,8 @@ L7_RC_t ptin_msg_IGMP_ChannelAssoc_get(msg_MCAssocChannel_t *channel_list, L7_ui
     //channel_list[i].???       = igmpAssoc_list[i_start+i].is_static;
 
 
-   CHMSG_IP_ADDR_SWAP_COPY(channel_list[i].channel_dstIp,channel_list[i].channel_dstIp);
-   CHMSG_IP_ADDR_SWAP_COPY(channel_list[i].channel_srcIp,channel_list[i].channel_srcIp);
+   CHMSG_IP_ADDR_SWAP_MOD(channel_list[i].channel_dstIp);
+   CHMSG_IP_ADDR_SWAP_MOD(channel_list[i].channel_srcIp);
 
    ENDIAN_SWAP64_MOD(channel_list[i].channelBandwidth);
    ENDIAN_SWAP32_MOD(channel_list[i].evcid_mc);
@@ -9991,8 +9991,8 @@ L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_
 
   for (i=0; i<n_channels; i++)
   {
-    CHMSG_IP_ADDR_SWAP_COPY(channel_list[i].channel_dstIp,channel_list[i].channel_dstIp);
-    CHMSG_IP_ADDR_SWAP_COPY(channel_list[i].channel_srcIp,channel_list[i].channel_srcIp);
+    CHMSG_IP_ADDR_SWAP_MOD(channel_list[i].channel_dstIp);
+    CHMSG_IP_ADDR_SWAP_MOD(channel_list[i].channel_srcIp);
 
     ENDIAN_SWAP64_MOD(channel_list[i].channelBandwidth);
     ENDIAN_SWAP32_MOD(channel_list[i].evcid_mc);
@@ -10133,8 +10133,8 @@ L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16
 
   for (i=0; i<n_channels; i++)
   {
-    CHMSG_IP_ADDR_SWAP_COPY(channel_list[i].channel_dstIp,channel_list[i].channel_dstIp);
-    CHMSG_IP_ADDR_SWAP_COPY(channel_list[i].channel_srcIp,channel_list[i].channel_srcIp);
+    CHMSG_IP_ADDR_SWAP_MOD(channel_list[i].channel_dstIp);
+    CHMSG_IP_ADDR_SWAP_MOD(channel_list[i].channel_srcIp);
 
     ENDIAN_SWAP64_MOD(channel_list[i].channelBandwidth);
     ENDIAN_SWAP32_MOD(channel_list[i].evcid_mc);
@@ -10309,13 +10309,7 @@ L7_RC_t ptin_msg_static_channel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_
 
   for (i=0; i<n_channels; i++)
   {
-
-    ENDIAN_SWAP32_MOD(channel[i].evc_id);
-    ENDIAN_SWAP32_MOD(channel[i].channelIp.s_addr);
-    ENDIAN_SWAP32_MOD(channel[i].sourceIp.s_addr);
-    ENDIAN_SWAP64_MOD(channel[i].channelBandwidth);
-
-
+  
     #ifdef IGMPASSOC_MULTI_MC_SUPPORTED//Add Static Channel to (WhiteList) Group List    
     msg_MCAssocChannel_t         channel_list;                                        
                                        
@@ -10345,9 +10339,9 @@ L7_RC_t ptin_msg_static_channel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_
     PT_LOG_DEBUG(LOG_CTX_MSG," SlotId           = %u",channel[i].SlotId);
     PT_LOG_DEBUG(LOG_CTX_MSG," EvcId            = %u",channel[i].evc_id);
     PT_LOG_DEBUG(LOG_CTX_MSG," Channel          = %u.%u.%u.%u",
-              (channel[i].channelIp.s_addr>>24) & 0xff,(channel[i].channelIp.s_addr>>16) & 0xff,(channel[i].channelIp.s_addr>>8) & 0xff, channel[i].channelIp.s_addr & 0xff);
+              (ENDIAN_SWAP32(channel[i].channelIp.s_addr)>>24) & 0xff,(ENDIAN_SWAP32(channel[i].channelIp.s_addr)>>16) & 0xff,(ENDIAN_SWAP32(channel[i].channelIp.s_addr)>>8) & 0xff, ENDIAN_SWAP32(channel[i].channelIp.s_addr) & 0xff);
     PT_LOG_DEBUG(LOG_CTX_MSG," SourceIP         = %u.%u.%u.%u",
-              (channel[i].sourceIp.s_addr>>24) & 0xff,(channel[i].sourceIp.s_addr>>16) & 0xff,(channel[i].sourceIp.s_addr>>8) & 0xff, channel[i].sourceIp.s_addr & 0xff);
+              (ENDIAN_SWAP32(channel[i].sourceIp.s_addr)>>24) & 0xff,(ENDIAN_SWAP32(channel[i].sourceIp.s_addr)>>16) & 0xff,(ENDIAN_SWAP32(channel[i].sourceIp.s_addr)>>8) & 0xff, ENDIAN_SWAP32(channel[i].sourceIp.s_addr) & 0xff);
 
     #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
     PT_LOG_DEBUG(LOG_CTX_MSG," channelBandwidth = %llu", channel_list.channelBandwidth);
@@ -10359,10 +10353,14 @@ L7_RC_t ptin_msg_static_channel_add(msg_MCStaticChannel_t *channel, L7_uint16 n_
     }
     #endif
 
+    ENDIAN_SWAP32_MOD(channel[i].evc_id);
+    ENDIAN_SWAP64_MOD(channel[i].channelBandwidth);
+    ENDIAN_SWAP32_MOD(channel[i].channelIp.s_addr);
+    ENDIAN_SWAP32_MOD(channel[i].sourceIp.s_addr);
     staticGroup.serviceId = channel[i].evc_id;
     staticGroup.groupIp   = channel[i].channelIp.s_addr;
     staticGroup.sourceIp  = channel[i].sourceIp.s_addr;
-    staticGroup.portType  = PTIN_MGMD_PORT_TYPE_LEAF;
+    staticGroup.portType  = PTIN_MGMD_PORT_TYPE_LEAF;  
 
     if ((rc = ptin_igmp_static_channel_add(&staticGroup)) != L7_SUCCESS)
     {
@@ -12705,9 +12703,11 @@ L7_RC_t ptin_msg_arp_acl_rule_config(msg_arp_acl_t *msgArpAcl, ACL_OPERATION_t o
   }
  
   
-  msgArpAcl->srcIpAddr.addr.ipv4 = ( ((ENDIAN_SWAP32(msgArpAcl->srcIpAddr.addr.ipv4) >>24) & 0xff) | ((ENDIAN_SWAP32(msgArpAcl->srcIpAddr.addr.ipv4) >>16) & 0xff) |
-                                   ((ENDIAN_SWAP32(msgArpAcl->srcIpAddr.addr.ipv4) >>8) & 0xff)  | ((ENDIAN_SWAP32(msgArpAcl->srcIpAddr.addr.ipv4)) & 0xff));
-                  
+  ENDIAN_SWAP32_MOD(msgArpAcl->srcIpAddr.addr.ipv4);
+  ENDIAN_SWAP32_MOD(msgArpAcl->aclId);
+  ENDIAN_SWAP32_MOD(msgArpAcl->aclRuleId);
+  ENDIAN_SWAP16_MOD(msgArpAcl->startVlan);                               
+  ENDIAN_SWAP16_MOD(msgArpAcl->endVlan);                
    
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
   PT_LOG_DEBUG(LOG_CTX_MSG, "Slot Id        %d",                              msgArpAcl->slotId);
@@ -12757,7 +12757,8 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
     return L7_FAILURE;
   }
 
-  if (ENDIAN_SWAP16(msgMacAcl->aclId) >= L7_MAX_ACL_LISTS)
+  ENDIAN_SWAP16_MOD(msgMacAcl->aclId);
+  if (msgMacAcl->aclId >= L7_MAX_ACL_LISTS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", msgMacAcl->aclId);
     return L7_FAILURE;
@@ -12781,15 +12782,20 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
     PT_LOG_DEBUG(LOG_CTX_MSG, "Packet capture will be configured for this rule!");
   }
 
+  ENDIAN_SWAP32_MOD(msgMacAcl->aclRuleMask);
+  ENDIAN_SWAP16_MOD(msgMacAcl->eType);
+  ENDIAN_SWAP16_MOD(msgMacAcl->startVlan);
+  ENDIAN_SWAP16_MOD(msgMacAcl->endVlan);
+
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
   PT_LOG_DEBUG(LOG_CTX_MSG, "Slot Id        %d",                              msgMacAcl->slotId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Type       %s",                              aclTypeStr[msgMacAcl->aclType]);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              ENDIAN_SWAP16(msgMacAcl->aclId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              msgMacAcl->aclId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Name       %s",                              msgMacAcl->name);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Id    %d",                              msgMacAcl->aclRuleId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Action         %s",                              actionStr[msgMacAcl->action]);
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            ENDIAN_SWAP32(msgMacAcl->aclRuleMask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            msgMacAcl->aclRuleMask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Src Mac Addr   %.2x:%.2x:%.2x:%.2x:%.2x:%.2x",   msgMacAcl->srcMacAddr[0], 
                                                                                 msgMacAcl->srcMacAddr[1],
                                                                                 msgMacAcl->srcMacAddr[2],
@@ -12814,15 +12820,15 @@ L7_RC_t ptin_msg_mac_acl_rule_config(msg_mac_acl_t *msgMacAcl, ACL_OPERATION_t o
                                                                                 msgMacAcl->dstMacMask[3],
                                                                                 msgMacAcl->dstMacMask[4],
                                                                                 msgMacAcl->dstMacMask[5]);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "EtherType      0x%.4x",                          ENDIAN_SWAP16(msgMacAcl->eType));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "EtherType      0x%.4x",                            msgMacAcl->eType);
 
-  if (ENDIAN_SWAP16(msgMacAcl->startVlan) == ENDIAN_SWAP16(msgMacAcl->endVlan))
+  if (msgMacAcl->startVlan == msgMacAcl->endVlan)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Vlan           %d",                            ENDIAN_SWAP16(msgMacAcl->startVlan));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Vlan           %d",                            msgMacAcl->startVlan);
   }
   else
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Vlan Range     %d-%d",                         ENDIAN_SWAP16(msgMacAcl->startVlan), ENDIAN_SWAP16(msgMacAcl->startVlan));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Vlan Range     %d-%d",                         msgMacAcl->startVlan, msgMacAcl->startVlan);
   }
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "COS            %d",                              msgMacAcl->cosVal);
@@ -12861,21 +12867,28 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
     return L7_FAILURE;
   }
 
-  if (ENDIAN_SWAP16(msgIpAcl->srcStartPort) != 0 && ENDIAN_SWAP16(msgIpAcl->srcEndPort) == 0)
+  ENDIAN_SWAP16_MOD(msgIpAcl->srcStartPort);
+  ENDIAN_SWAP16_MOD(msgIpAcl->srcEndPort);
+
+  if (msgIpAcl->srcStartPort != 0 && msgIpAcl->srcEndPort == 0)
   {
     msgIpAcl->srcEndPort = msgIpAcl->srcStartPort ;
   }
+  ENDIAN_SWAP16_MOD(msgIpAcl->dstStartPort);
+  ENDIAN_SWAP16_MOD(msgIpAcl->dstEndPort);
 
-  if (ENDIAN_SWAP16(msgIpAcl->dstStartPort) != 0 && ENDIAN_SWAP16(msgIpAcl->dstEndPort) == 0)
+  if (msgIpAcl->dstStartPort != 0 && msgIpAcl->dstEndPort == 0)
   {
     msgIpAcl->dstEndPort = msgIpAcl->dstStartPort ;
   }
 
+  ENDIAN_SWAP16_MOD(msgIpAcl->aclId);
+
   if (msgIpAcl->aclType == ACL_TYPE_IP_STANDARD)
   {
-    if ( (ENDIAN_SWAP16(msgIpAcl->aclId) == 0) || (ENDIAN_SWAP16(msgIpAcl->aclId) > 99) ) /* [1..99] */
+    if ( (msgIpAcl->aclId == 0) || (msgIpAcl->aclId > 99) ) /* [1..99] */
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", ENDIAN_SWAP16(msgIpAcl->aclId));
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", msgIpAcl->aclId);
       return L7_FAILURE;
     }
   }
@@ -12906,45 +12919,51 @@ L7_RC_t ptin_msg_ip_acl_rule_config(msg_ip_acl_t *msgIpAcl, ACL_OPERATION_t oper
     PT_LOG_DEBUG(LOG_CTX_MSG, "Packet capture will be configured for this rule!");
   }
   
+  ENDIAN_SWAP32_MOD(msgIpAcl->aclRuleMask);
+
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
   PT_LOG_DEBUG(LOG_CTX_MSG, "Slot Id        %d",                              msgIpAcl->slotId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Type       %s",                              aclTypeStr[msgIpAcl->aclType]);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              ENDIAN_SWAP16(msgIpAcl->aclId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              msgIpAcl->aclId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Name       %s",                              msgIpAcl->name);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Id    %d",                              msgIpAcl->aclRuleId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Action         %s",                              actionStr[msgIpAcl->action]);
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            ENDIAN_SWAP32(msgIpAcl->aclRuleMask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            msgIpAcl->aclRuleMask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Protocol       %d",                              msgIpAcl->protocol);
 
-  usmDbInetNtoa(ENDIAN_SWAP32(msgIpAcl->srcIpAddr),  ipAddr);
+  ENDIAN_SWAP32_MOD(msgIpAcl->srcIpAddr);
+  usmDbInetNtoa(msgIpAcl->srcIpAddr,  ipAddr);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Src IP Addr    %s",                              ipAddr);
 
-  usmDbInetNtoa(ENDIAN_SWAP32(msgIpAcl->srcIpMask),  ipAddr);
+  ENDIAN_SWAP32_MOD(msgIpAcl->srcIpMask);
+  usmDbInetNtoa(msgIpAcl->srcIpMask,  ipAddr);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Src IP Mask    %s",                              ipAddr);
   
-  usmDbInetNtoa(ENDIAN_SWAP32(msgIpAcl->dstIpAddr),  ipAddr);
+  ENDIAN_SWAP32_MOD(msgIpAcl->dstIpAddr);
+  usmDbInetNtoa(msgIpAcl->dstIpAddr,  ipAddr);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Dst IP Addr    %s",                              ipAddr);
   
-  usmDbInetNtoa(ENDIAN_SWAP32(msgIpAcl->dstIpMask),  ipAddr);
+  ENDIAN_SWAP32_MOD(msgIpAcl->dstIpMask);
+  usmDbInetNtoa(msgIpAcl->dstIpMask,  ipAddr);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Dst IP Mask    %s",                              ipAddr);  
 
-  if (ENDIAN_SWAP16(msgIpAcl->srcStartPort) == ENDIAN_SWAP16(msgIpAcl->srcEndPort))
+  if (msgIpAcl->srcStartPort == msgIpAcl->srcEndPort)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port    %d",                            ENDIAN_SWAP16(msgIpAcl->srcStartPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port    %d",                            msgIpAcl->srcStartPort);
   }
   else
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port Range   %d-%d",                    ENDIAN_SWAP16(msgIpAcl->srcStartPort), ENDIAN_SWAP16(msgIpAcl->srcEndPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port Range   %d-%d",                    msgIpAcl->srcStartPort, msgIpAcl->srcEndPort);
   }
 
-  if (ENDIAN_SWAP16(msgIpAcl->dstStartPort) == ENDIAN_SWAP16(msgIpAcl->dstEndPort))
+  if (msgIpAcl->dstStartPort == msgIpAcl->dstEndPort)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port    %d",                            ENDIAN_SWAP16(msgIpAcl->dstStartPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port    %d",                            msgIpAcl->dstStartPort);
   }
   else
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port Range   %d-%d",                    ENDIAN_SWAP16(msgIpAcl->dstStartPort), ENDIAN_SWAP16(msgIpAcl->dstEndPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port Range   %d-%d",                    msgIpAcl->dstStartPort, msgIpAcl->dstEndPort);
   }
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "TOS            0x%.2x",                          msgIpAcl->tosVal);
@@ -12986,7 +13005,11 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
     return L7_FAILURE;
   }
 
-  if (ENDIAN_SWAP16(msgIpv6Acl->aclId) > L7_MAX_ACL_LISTS)
+  ENDIAN_SWAP16_MOD(msgIpv6Acl->aclId);
+  ENDIAN_SWAP32_MOD(msgIpv6Acl->aclRuleMask);
+  ENDIAN_SWAP32_MOD(msgIpv6Acl->src6PrefixLen);
+
+  if (msgIpv6Acl->aclId > L7_MAX_ACL_LISTS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid ACL ID (%d)", ENDIAN_SWAP16(msgIpv6Acl->aclId));
     return L7_FAILURE;
@@ -13013,44 +13036,54 @@ L7_RC_t ptin_msg_ipv6_acl_rule_config(msg_ipv6_acl_t *msgIpv6Acl, ACL_OPERATION_
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
   PT_LOG_DEBUG(LOG_CTX_MSG, "Slot Id        %d",                              msgIpv6Acl->slotId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Type       %s",                              aclTypeStr[msgIpv6Acl->aclType]);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              ENDIAN_SWAP16(msgIpv6Acl->aclId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Id         %d",                              msgIpv6Acl->aclId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Name       %s",                              msgIpv6Acl->name);
   PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Id    %d",                              msgIpv6Acl->aclRuleId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Action         %s",                              actionStr[msgIpv6Acl->action]);
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            ENDIAN_SWAP32(msgIpv6Acl->aclRuleMask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "ACL Rule Mask  0x%x",                            msgIpv6Acl->aclRuleMask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "Protocol       %d",                              msgIpv6Acl->protocol);
+
+
 
   if (osapiInetNtop(L7_AF_INET6, (L7_uchar8 *)msgIpv6Acl->src6Addr, ipAddr, sizeof(ipAddr)) != L7_NULLPTR)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Src IP Addr    %s/%d",                         ipAddr, ENDIAN_SWAP32(msgIpv6Acl->src6PrefixLen));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src IP Addr    %s/%d",                         ipAddr, msgIpv6Acl->src6PrefixLen);
   }
 
   if (osapiInetNtop(L7_AF_INET6, (L7_uchar8 *)msgIpv6Acl->dst6Addr, ipAddr, sizeof(ipAddr)) != L7_NULLPTR)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst IP Addr    %s/%d",                         ipAddr, ENDIAN_SWAP32(msgIpv6Acl->dst6PrefixLen));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst IP Addr    %s/%d",                         ipAddr, msgIpv6Acl->dst6PrefixLen);
   }
 
-  if (ENDIAN_SWAP16(msgIpv6Acl->srcStartPort) == ENDIAN_SWAP16(msgIpv6Acl->srcEndPort))
+  ENDIAN_SWAP16_MOD(msgIpv6Acl->srcStartPort);
+  ENDIAN_SWAP16_MOD(msgIpv6Acl->srcEndPort);
+
+  if (msgIpv6Acl->srcStartPort == msgIpv6Acl->srcEndPort)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port    %d",                            ENDIAN_SWAP16(msgIpv6Acl->srcStartPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port    %d",                            msgIpv6Acl->srcStartPort);
   }
   else
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port Range   %d-%d",                    ENDIAN_SWAP16(msgIpv6Acl->srcStartPort), ENDIAN_SWAP16(msgIpv6Acl->srcEndPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Src L4 Port Range   %d-%d",                    msgIpv6Acl->srcStartPort, msgIpv6Acl->srcEndPort);
   }
 
-  if (ENDIAN_SWAP16(msgIpv6Acl->dstStartPort) == ENDIAN_SWAP16(msgIpv6Acl->dstEndPort))
+  ENDIAN_SWAP16_MOD(msgIpv6Acl->dstStartPort);
+  ENDIAN_SWAP16_MOD(msgIpv6Acl->dstEndPort);
+
+  if (msgIpv6Acl->dstStartPort == msgIpv6Acl->dstEndPort)
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port    %d",                            ENDIAN_SWAP16(msgIpv6Acl->dstStartPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port    %d",                            msgIpv6Acl->dstStartPort);
   }
   else
   {
-    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port Range   %d-%d",                    ENDIAN_SWAP16(msgIpv6Acl->dstStartPort), ENDIAN_SWAP16(msgIpv6Acl->dstEndPort));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Dst L4 Port Range   %d-%d",                    msgIpv6Acl->dstStartPort, msgIpv6Acl->dstEndPort);
   }
+
+  ENDIAN_SWAP32_MOD(msgIpv6Acl->flowLabelVal);
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "DSCP           %d",                              msgIpv6Acl->dscpVal);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "Flow Label     %d",                              ENDIAN_SWAP32(msgIpv6Acl->flowLabelVal));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Flow Label     %d",                              msgIpv6Acl->flowLabelVal);
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
   PT_LOG_DEBUG(LOG_CTX_MSG, "Operation      %s",                              operationStr[operation]);
   PT_LOG_DEBUG(LOG_CTX_MSG, "-------------------------------------------");
@@ -13302,12 +13335,6 @@ L7_RC_t ptin_msg_acl_enable(msg_apply_acl_t *msgAcl, L7_uint msgId, L7_uint n_ms
   L7_uint8        aclType;
   ACL_OPERATION_t operation = ACL_OPERATION_REMOVE;
   L7_RC_t         rc, rc_global = L7_SUCCESS;
-
-
-  msgAcl->aclId     = ENDIAN_SWAP16(msgAcl->aclId);
-  msgAcl->interface = ENDIAN_SWAP32(msgAcl->interface);
-  msgAcl->vlanId    = ENDIAN_SWAP16(msgAcl->vlanId);
-  msgAcl->evcId     = ENDIAN_SWAP32(msgAcl->evcId);
        
   /* Operation */
   if (msgId == CCMSG_ACL_APPLY)
