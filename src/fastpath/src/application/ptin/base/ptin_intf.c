@@ -6641,12 +6641,12 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
 #if (PHY_RECOVERY_PROCEDURE)
   /* For CXO160G board, only apply reset boards for TG16G and TG16GF boards */
  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-  if (board_id == PTIN_BOARD_TYPE_TG16G || board_id == PTIN_BOARD_TYPE_TG16GF ||
-      board_id == PTIN_BOARD_TYPE_TT08SXG || board_id == PTIN_BOARD_TYPE_TA12XGE)
+  if (board_id == PTIN_BOARD_TYPE_TG16G || board_id == PTIN_BOARD_TYPE_TG16GF /*||
+      board_id == PTIN_BOARD_TYPE_TT08SXG || board_id == PTIN_BOARD_TYPE_TA12XGE*/)
   /* For CXO640G board, only apply reset boards for TG16GF boards */
  #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
-  if (board_id == PTIN_BOARD_TYPE_TG16GF ||
-      board_id == PTIN_BOARD_TYPE_TT08SXG || board_id == PTIN_BOARD_TYPE_TA12XGE)
+  if (board_id == PTIN_BOARD_TYPE_TG16GF /*||
+      board_id == PTIN_BOARD_TYPE_TT08SXG || board_id == PTIN_BOARD_TYPE_TA12XGE*/)
  #else
   if (0)
  #endif
@@ -6879,16 +6879,16 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
     #endif
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
  #if (PHY_RECOVERY_PROCEDURE)
+  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
   /* Mark this slot to be reseted */
   if (rc_global == L7_SUCCESS)
   {
     slots_to_be_reseted[slot_id] = L7_TRUE;
     PT_LOG_INFO(LOG_CTX_INTF, "Slot %u marked to be reseted ", slot_id);
   }
+  #endif
  #endif
-#endif
 
   /* Unblock board event processing */
   osapiSemaGive(ptin_boardaction_sem);
