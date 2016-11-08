@@ -107,7 +107,7 @@ extern int ptin_sys_number_of_ports;
                                        (board)==(PTIN_BOARD_TYPE_TU40G) || (board)==(PTIN_BOARD_TYPE_TU40GR) || \
                                        (board)==(PTIN_BOARD_TYPE_TOLT8G) || (board)==(PTIN_BOARD_TYPE_TOLT8GR) || \
                                        (board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TG16GF) || \
-                                       (board)==(PTIN_BOARD_TYPE_TT04SXG) || (board)==(PTIN_BOARD_TYPE_TT08SXG) || \
+                                       (board)==(PTIN_BOARD_TYPE_TT04SXG) || /*(board)==(PTIN_BOARD_TYPE_TT08SXG) ||*/ \
                                        (board)==(PTIN_BOARD_TYPE_CXO160G) || (board)==(PTIN_BOARD_TYPE_CXO640G))
 
 /* OLT10 */
