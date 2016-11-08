@@ -16517,7 +16517,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
 
     ENDIAN_SWAP32_MOD(msg[messageIterator].evcId);
     ENDIAN_SWAP16_MOD(msg[messageIterator].client.outer_vlan);
-    ENDIAN_SWAP16_MOD(msg[messageIterator].client.outer_vlan);
+    ENDIAN_SWAP16_MOD(msg[messageIterator].client.inner_vlan);
     ENDIAN_SWAP16_MOD(msg[messageIterator].noOfPackages);
 
     /* Output data */
