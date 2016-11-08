@@ -11784,7 +11784,9 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t *clien
   sourceIp.s_addr     = ENDIAN_SWAP32(client_list->sourceIp.s_addr);
   number_of_clients   = MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX;
 
-  rc = ptin_igmp_clientList_get(ENDIAN_SWAP32(client_list->evc_id), &channelIp, &sourceIp, ENDIAN_SWAP16(client_list->page_index)*MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX, &number_of_clients, clist, extended_evc_id,&total_clients);
+  ENDIAN_SWAP16_MOD(client_list->page_index);
+  ENDIAN_SWAP32_MOD(client_list->evc_id);
+  rc = ptin_igmp_clientList_get(client_list->evc_id, &channelIp, &sourceIp, client_list->page_index*MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX, &number_of_clients, clist, extended_evc_id,&total_clients);
   PT_LOG_DEBUG(LOG_CTX_MSG,"number_of_clients=%u total_clients=%u", number_of_clients, total_clients);
   if (rc==L7_SUCCESS)
   {
@@ -11797,7 +11799,7 @@ L7_RC_t ptin_msg_IGMP_clientList_get(msg_MCActiveChannelClientsResponse_t *clien
       client_list->clients_list[i].intf.intf_type = clist[i].ptin_intf.intf_type;
       client_list->clients_list[i].intf.intf_id   = clist[i].ptin_intf.intf_id;
       //MAC Bridge Services Support
-      client_list->clients_list[i].evc_id         = extended_evc_id[i];
+      client_list->clients_list[i].evc_id         = ENDIAN_SWAP32(extended_evc_id[i]);
       //End MAC Bridge Services Support
     }
     client_list->n_pages_total   = (total_clients==0) ? 1 : ((total_clients-1)/MSG_MCACTIVECHANNELCLIENTS_CLIENTS_MAX+1);
