@@ -360,6 +360,7 @@ typedef enum
   L7_PTIN_IPDTL0_TASK_SYNC,     /* PTin added: ptin task */
   L7_PTIN_10MS_TASK_SYNC,       /* PTin added: 10ms task */
   L7_PTIN_OPENSAF_TASK,         /* PTin added: ptin task */
+  L7_PTIN_TIMERMNG_TASK_SYNC,   /* PTin added: ptin task */
   L7_TASK_SYNC_LAST
 } L7_TASK_SYNCS_t;
 
