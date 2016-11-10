@@ -18,6 +18,11 @@
 #include <pthread.h>
 #include <unistd.h>
 
+typedef enum {
+    SWITCHDRVR_ONU       = 0x01,
+    ONU_STATE,
+    NGPON2GROUPS
+} ptin_checkpoints;
 
 /*********************************************************** */
 
