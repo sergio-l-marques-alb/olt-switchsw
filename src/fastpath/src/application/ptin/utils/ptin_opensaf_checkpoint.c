@@ -65,13 +65,18 @@ L7_RC_t ptin_opensaf_init()
 {
   memset(&ptin_checkpoint, 0, sizeof(ptin_checkpoint));
 
-  char *name ="MAC";
+  char *switchdvdr_ckpt       = "SWITCHDRVR_ONU";
+  char *mac_pon_onustate_ckpt = "ONU_STATE";
 
-  if(ptin_opensaf_checkpoint_init(name, 256*32 , 60, 1) != 0)
+  if(ptin_opensaf_checkpoint_init(mac_pon_onustate_ckpt, 256*32 , 60, SWITCHDRVR_ONU) != L7_SUCCESS)
   {
-    PT_LOG_NOTICE(LOG_CTX_OPENSAF," Some error occour in the initialition of opensaf checkpoint ");
+    PT_LOG_NOTICE(LOG_CTX_OPENSAF," Some error occour in the initialition of opensaf checkpoint %s ",mac_pon_onustate_ckpt);
   }
 
+  if(ptin_opensaf_readOnly_checkpoint_init(switchdvdr_ckpt, ONU_STATE) != L7_SUCCESS)
+  {
+    PT_LOG_NOTICE(LOG_CTX_OPENSAF," Some error occour in the initialition of opensaf checkpoint %s ",switchdvdr_ckpt);
+  }
   return L7_SUCCESS;
 }
 
