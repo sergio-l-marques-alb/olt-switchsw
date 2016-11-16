@@ -4543,8 +4543,8 @@ L7_RC_t ptin_msg_l2_macTable_remove(msg_switch_mac_table_entry_t *mac_table, L7_
   {
     entry.entryId = 0;
     memcpy(entry.addr, mac_table[i].entry.addr, sizeof(L7_uint8)*6);
-    entry.evcId          = mac_table[i].entry.evcId;
-    entry.vlanId         = mac_table[i].entry.vlanId;
+    entry.evcId          = ENDIAN_SWAP32(mac_table[i].entry.evcId);
+    entry.vlanId         = ENDIAN_SWAP16(mac_table[i].entry.vlanId);
     entry.intf.intf_type = mac_table[i].entry.intf.intf_type;
     entry.intf.intf_id   = mac_table[i].entry.intf.intf_id;
     entry.static_entry   = mac_table[i].entry.static_entry;
