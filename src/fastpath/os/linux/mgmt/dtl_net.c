@@ -1072,9 +1072,12 @@ L7_RC_t dtlMacAddrChange(L7_uchar8 *newMac, L7_uchar8 *ifName, L7_uint16 vlanId)
 L7_int32 dtlFdbMacAddrChange( L7_uchar8 *newMac )
 {
   L7_uint32 vlanId;
-  L7_RC_t   rc;
+  L7_RC_t   rc = L7_SUCCESS;
 
+  // PTin removed
+  #if 0
   rc = osapiMacAddrChange(newMac, L7_DTL_PORT_IF, 0);
+  #endif
   if (rc == L7_SUCCESS)
   {
     /*
@@ -1347,6 +1350,9 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
             vid = simMgmtVlanIdGet();
 
          ptin_ReplaceTag(L7_ETYPE_8021Q, vid, data);
+
+         /* Set PCP = 7 */
+         data[14] |= (L7_uchar8) 7 << 5;
 
          if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Repaced original packet VID %u with %u\n\r", __FUNCTION__, __LINE__, dtl0Vid, vid);

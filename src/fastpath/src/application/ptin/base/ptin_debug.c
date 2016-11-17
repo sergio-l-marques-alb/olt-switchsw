@@ -1174,4 +1174,19 @@ void ptin_l2_maclimit_status(L7_uint8 intf_type, L7_uint8 intf_id)
 
 }
 
+void ptin_sys_mac_set(L7_uint8 macAddr0, L7_uint8 macAddr1, L7_uint8 macAddr2, L7_uint8 macAddr3, L7_uint8 macAddr4, L7_uint8 macAddr5)
+{
+  L7_uchar8 mac[L7_MAC_ADDR_LEN];
+
+  mac[0] = macAddr0;
+  mac[1] = macAddr1;
+  mac[2] = macAddr2;
+  mac[3] = macAddr3;
+  mac[4] = macAddr4;
+  mac[5] = macAddr5;
+
+  printf("Applying MAC address %02x:%02x:%02x:%02x:%02x:%02x\r\n", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+
+  usmDbSwDevCtrlLocalAdminAddrSet(1, mac);
+}
 

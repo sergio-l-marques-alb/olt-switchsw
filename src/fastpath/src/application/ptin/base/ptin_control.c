@@ -34,7 +34,7 @@
 #include "ptin_msg.h"
 #include "ptin_fpga_api.h"
 
-#if ( PTIN_BOARD_IS_STANDALONE )
+#if ( PTIN_BOARD_IS_STANDALONE || PTIN_BOARD_IS_MATRIX )
 #include "fw_shm.h"
 #endif
 
@@ -112,6 +112,9 @@ static void startup_trap_send(void);
 static void monitor_throughput(void);
 static void monitor_alarms(void);
 static void monitor_matrix_commutation(void);
+#if ( PTIN_BOARD == PTIN_BOARD_CXO640G)
+static void ptin_control_sysMacAddr(void);
+#endif
 
 #if (PTIN_BOARD_IS_LINECARD)
 static void ptin_control_linkstatus_report(void);
@@ -265,6 +268,11 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   PT_LOG_NOTICE(LOG_CTX_CNFGR, "Waiting 30 seconds to switch from PTIN_ISLOADING to PTIN_LOADED state...");
   sleep(30);
   PT_LOG_NOTICE(LOG_CTX_CNFGR, "Done.");
+#endif
+
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+  /* Update system MAC Address in order to be the same as the UNICOM board */
+  ptin_control_sysMacAddr();
 #endif
 
   /* Signal correct initialization */
@@ -2425,6 +2433,46 @@ void ptin_ta48ge_switch(L7_uint protection)
 }
 #endif // LAG_DIRECT_CONTROL_FEATURE
 
+#if ( PTIN_BOARD == PTIN_BOARD_CXO640G)
+/**
+ * Update system MAC Address in order to be the same as the 
+ * UNICOM board 
+ * 
+ * @author mruas (11/16/2016)
+ */
+static void ptin_control_sysMacAddr(void)
+{
+  L7_uchar8 ptin_macAddr[6] = {0x00, 0x06, 0x91, 0, 0, 0};
+
+  if (pfw_shm != L7_NULLPTR)
+  {
+    PT_LOG_INFO(LOG_CTX_CNFGR, "MAC address at shared memory: %02x-%02x-%02x-%02x-%02x-%02x",
+                pfw_shm->sysMacAddr[0],pfw_shm->sysMacAddr[1],pfw_shm->sysMacAddr[2],pfw_shm->sysMacAddr[3],pfw_shm->sysMacAddr[4],pfw_shm->sysMacAddr[5]);
+  }
+
+  /* Check if MAC address is a PTin address */
+  if ((pfw_shm != L7_NULLPTR) && (memcmp(pfw_shm->sysMacAddr, ptin_macAddr, 3) == 0))
+  {
+    PT_LOG_INFO(LOG_CTX_CNFGR, "Using provided Unicom MAC address: %02x-%02x-%02x-%02x-%02x-%02x",
+                pfw_shm->sysMacAddr[0],pfw_shm->sysMacAddr[1],pfw_shm->sysMacAddr[2],pfw_shm->sysMacAddr[3],pfw_shm->sysMacAddr[4],pfw_shm->sysMacAddr[5]);
+    memcpy(ptin_macAddr, pfw_shm->sysMacAddr, 6);
+  }
+  else
+  {
+    /* Get default system MAC address */
+    usmDbSwDevCtrlBurnedInMacAddrGet(1, ptin_macAddr);
+    PT_LOG_INFO(LOG_CTX_CNFGR, "Gessing Unicom MAC address from MX MAC Address (%02x-%02x-%02x-%02x-%02x-%02x)",
+                ptin_macAddr[0], ptin_macAddr[1], ptin_macAddr[2], ptin_macAddr[3], ptin_macAddr[4], ptin_macAddr[5]);
+    /* Gess Unicom MAC address */
+    ptin_macAddr[5] -= 1;
+  }
+
+  usmDbSwDevCtrlLocalAdminAddrSet(1, ptin_macAddr);
+  usmDbSwDevCtrlMacAddrTypeSet(1, L7_SYSMAC_LAA);
+  PT_LOG_NOTICE(LOG_CTX_CNFGR, "Using UNICOM's MAC Address: %02x-%02x-%02x-%02x-%02x-%02x",
+                ptin_macAddr[0], ptin_macAddr[1], ptin_macAddr[2], ptin_macAddr[3], ptin_macAddr[4], ptin_macAddr[5]);
+}
+#endif
 
 /* 
 #include "../../switching/link_aggregation/core/include/dot3ad_db.h"

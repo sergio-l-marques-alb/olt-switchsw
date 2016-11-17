@@ -7542,11 +7542,11 @@ L7_RC_t ptin_msg_ntw_connectivity_set(msg_NtwConnectivity_t *msgNtwConn)
   /* Output data */
   PT_LOG_INFO(LOG_CTX_MSG, "Network Connectivity (mask=0x%08X)", ptinNtwConn.mask);
   PT_LOG_INFO(LOG_CTX_MSG, "  IP Addr         = %u.%u.%u.%u",    (ptinNtwConn.ipaddr  >> 24) & 0xFF, (ptinNtwConn.ipaddr  >> 16) & 0xFF,
-           (ptinNtwConn.ipaddr  >>  8) & 0xFF,  ptinNtwConn.ipaddr         & 0xFF);
+              (ptinNtwConn.ipaddr  >>  8) & 0xFF,  ptinNtwConn.ipaddr         & 0xFF);
   PT_LOG_INFO(LOG_CTX_MSG, "  Mask            = %u.%u.%u.%u",    (ptinNtwConn.netmask >> 24) & 0xFF, (ptinNtwConn.netmask >> 16) & 0xFF,
-           (ptinNtwConn.netmask >>  8) & 0xFF,  ptinNtwConn.netmask        & 0xFF);
+              (ptinNtwConn.netmask >>  8) & 0xFF,  ptinNtwConn.netmask        & 0xFF);
   PT_LOG_INFO(LOG_CTX_MSG, "  Gateway         = %u.%u.%u.%u",    (ptinNtwConn.gateway >> 24) & 0xFF, (ptinNtwConn.gateway >> 16) & 0xFF,
-           (ptinNtwConn.gateway >>  8) & 0xFF,  ptinNtwConn.gateway        & 0xFF);
+              (ptinNtwConn.gateway >>  8) & 0xFF,  ptinNtwConn.gateway        & 0xFF);
   PT_LOG_INFO(LOG_CTX_MSG, "  Mgmt VLAN ID    = %u",             ptinNtwConn.mgmtVlanId);
   PT_LOG_INFO(LOG_CTX_MSG, "  Interfaces (%u)", ptinNtwConn.n_intf);
   for (i=0; i<ptinNtwConn.n_intf; i++)

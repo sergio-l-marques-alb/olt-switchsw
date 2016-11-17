@@ -2611,7 +2611,7 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
   BROAD_SYSTEM_t *hapiSystemPtr;
   /* PTin modified: inband -> Only consider bytes identifying PTIn related packets */
   L7_uchar8       exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
-                                   FIELD_MASK_ALL,  FIELD_MASK_ALL,  FIELD_MASK_ALL };
+                                   FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
   hapiSystemPtr = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
 
   PT_LOG_INFO(LOG_CTX_MISC,"Going to configure Inband Trap rule...");

@@ -45,7 +45,7 @@ typedef struct {
   L7_uchar8     SyncE_Recovery_clock[2];
 } t_fw_shm;
 
-#elif (defined(SYNC_SSM_IS_SUPPORTED) && PTIN_BOARD_IS_MATRIX)
+#elif (/*defined(SYNC_SSM_IS_SUPPORTED) &&*/ PTIN_BOARD_IS_MATRIX)
 
 #define FW_SHM_KEY          9890
 
@@ -60,9 +60,11 @@ typedef struct {
     L7_uint32   ssm_tx;         /* bit 16 -> enable; bits 7:0 -> ssm code */
     L7_uint32   link;
   } intf[SSM_N_SLOTS][SSM_N_INTFS];
+
+  L7_uchar8 sysMacAddr[6];      /* System MAC Address */
 } t_fw_shm;
 
-#elif (defined(SYNC_SSM_IS_SUPPORTED) && (PTIN_BOARD_IS_ACTIVETH))
+#elif (/*defined(SYNC_SSM_IS_SUPPORTED) &&*/ (PTIN_BOARD_IS_ACTIVETH))
 
 #define FW_SHM_KEY          9890
 
@@ -84,7 +86,7 @@ typedef struct {
   L7_uchar8     SyncE_Recovery_clock[2];        /* Main and secondary ports */
 } t_fw_shm;
 
-#elif (defined(SYNC_SSM_IS_SUPPORTED) && (PTIN_BOARD_IS_GPON))
+#elif (/*defined(SYNC_SSM_IS_SUPPORTED) &&*/ (PTIN_BOARD_IS_GPON))
 
 #define FW_SHM_KEY          9890
 

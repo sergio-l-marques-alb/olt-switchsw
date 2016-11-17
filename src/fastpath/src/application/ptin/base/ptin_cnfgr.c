@@ -383,7 +383,7 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   /* Initialize Type-B Protection data structures */
   ptin_prottypeb_init();
 
-#if (PTIN_BOARD_IS_STANDALONE || defined(SYNC_SSM_IS_SUPPORTED))
+#if (PTIN_BOARD_IS_STANDALONE || PTIN_BOARD_IS_MATRIX || defined(SYNC_SSM_IS_SUPPORTED))
   /* Open shared memory to communicate with the GPON application */
   if (fw_shm_open() != 0)
   {
@@ -392,8 +392,13 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
   }
   else
   {
-    memset(pfw_shm, 0x00, sizeof(t_fw_shm));
+    memset(pfw_shm->intf, 0x00, sizeof(pfw_shm->intf));
     PT_LOG_INFO(LOG_CTX_CNFGR, "Shared memory OK");
+
+    #if (PTIN_BOARD_IS_MATRIX)
+    PT_LOG_INFO(LOG_CTX_CNFGR, "sysMacAddr={%02x-%02x-%02x-%02x-%02x-%02x}",
+                pfw_shm->sysMacAddr[0],pfw_shm->sysMacAddr[1],pfw_shm->sysMacAddr[2],pfw_shm->sysMacAddr[3],pfw_shm->sysMacAddr[4],pfw_shm->sysMacAddr[5]);
+    #endif
   }
 #endif
 
