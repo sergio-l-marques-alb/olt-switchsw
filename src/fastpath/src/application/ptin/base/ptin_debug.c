@@ -28,7 +28,7 @@
 typedef struct
 {
   uint32 number_of_calls;
-  uint32 total_runtime;
+  uint64 total_runtime;
   uint32 last_runtime;
   uint32 min_runtime;
   uint32 max_runtime;
@@ -541,9 +541,15 @@ void proc_runtime_stop(ptin_proc_instance_t instance)
 
   proc_runtime_ptr = &proc_runtime[instance];
 
-  time_now = osapiTimeMicrosecondsGet();
+  time_now = osapiTimeMicrosecondsGet(); 
 
-  proc_runtime_meter_update(instance, time_now - proc_runtime_ptr->time_ref);
+  if (proc_runtime_ptr->time_ref != (L7_uint64)-1 &&
+      proc_runtime_ptr->time_ref <= time_now)
+  {
+    proc_runtime_meter_update(instance, time_now - proc_runtime_ptr->time_ref);
+  }
+
+  proc_runtime_ptr->time_ref = (L7_uint64)-1;
 }
 
 /**
@@ -571,7 +577,7 @@ void proc_runtime_meter_update(ptin_proc_instance_t instance, L7_uint32 time_del
   /* Update database */
   proc_runtime_ptr->number_of_calls++;
   proc_runtime_ptr->last_runtime    = time_delta;
-  proc_runtime_ptr->total_runtime  += time_delta;
+  proc_runtime_ptr->total_runtime  += (L7_uint64) time_delta;
 
   if ( (proc_runtime_ptr->number_of_calls)==1 || time_delta<(proc_runtime_ptr->min_runtime) )
     proc_runtime_ptr->min_runtime = time_delta;
@@ -579,7 +585,7 @@ void proc_runtime_meter_update(ptin_proc_instance_t instance, L7_uint32 time_del
   if ( time_delta > proc_runtime_ptr->max_runtime )
     proc_runtime_ptr->max_runtime = time_delta;
 
-  proc_runtime_ptr->average_runtime = proc_runtime_ptr->total_runtime/proc_runtime_ptr->number_of_calls;
+  proc_runtime_ptr->average_runtime = (L7_uint32) (proc_runtime_ptr->total_runtime/proc_runtime_ptr->number_of_calls);
 }
 
 /**
@@ -589,13 +595,20 @@ void proc_runtime_meter_update(ptin_proc_instance_t instance, L7_uint32 time_del
  */
 void proc_runtime_meter_init(ptin_proc_instance_t instance)
 {
-  if (instance >= PTIN_PROC_MAX)
+  L7_uint i;
+
+  if (instance < PTIN_PROC_MAX)
   {
-    memset(proc_runtime,0x00,sizeof(proc_runtime));
+    memset(&proc_runtime[instance], 0x00 ,sizeof(struct_runtime_t));
+    proc_runtime[instance].time_ref = (L7_uint64)-1;
   }
   else
   {
-    memset(&proc_runtime[instance],0x00,sizeof(struct_runtime_t));
+    for (i = 0; i < PTIN_PROC_MAX; i++)
+    {
+      memset(&proc_runtime[instance], 0x00 ,sizeof(struct_runtime_t));
+      proc_runtime[instance].time_ref = (L7_uint64)-1;
+    }
   }
 }
 
@@ -614,7 +627,7 @@ void proc_runtime_meter_print(void)
   {
     if (proc_runtime[i].number_of_calls==0)  continue;
 
-    printf("|   0x%04X   | %10u | %10u us | %10u us | %10u us | %10u us | %10u us |\r\n",
+    printf("|   0x%04X   | %10u | %10llu us | %10u us | %10u us | %10u us | %10u us |\r\n",
            i,
            proc_runtime[i].number_of_calls,
            proc_runtime[i].total_runtime,
