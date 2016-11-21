@@ -962,14 +962,14 @@ L7_RC_t ssmPduHeaderTagRemove(L7_netBufHandle bufHandle)
 L7_RC_t ssmCodesInit(void)
 {
   /* Initialize shared memory */
-  if (pfw_shm!=L7_NULLPTR)
+  if (pfw_shm != L7_NULLPTR)
   {
     /* Initialize data structure */
-    memset(pfw_shm,0x00,sizeof(t_fw_shm));
+    memset(pfw_shm->intf, 0x00, sizeof(pfw_shm->intf));
   }
 
   /* Initialize timers */
-  memset(ssm_timer,0x00,sizeof(ssm_timer));
+  memset(ssm_timer, 0x00, sizeof(ssm_timer));
 
   return L7_SUCCESS;
 }
@@ -1096,7 +1096,7 @@ void ssm_debug_dump(void)
 {
   L7_uint slot, intf;
 
-  if (pfw_shm==L7_NULLPTR)
+  if (pfw_shm == L7_NULLPTR)
   {
     printf("Shared memory not defined!\r\n");
     return;
@@ -1121,7 +1121,7 @@ void ssm_debug_dump(void)
 
 void ssm_debug_write(L7_uint16 slot, L7_uint16 intf, L7_uint32 ssm_rx, L7_uint32 ssm_tx, L7_uint32 link)
 {
-  if (pfw_shm==L7_NULLPTR)
+  if (pfw_shm == L7_NULLPTR)
   {
     printf("Shared memory not defined!\r\n");
     return;
