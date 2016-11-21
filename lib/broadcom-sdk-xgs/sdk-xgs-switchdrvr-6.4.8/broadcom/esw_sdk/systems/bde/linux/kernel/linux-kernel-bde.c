@@ -2988,7 +2988,7 @@ _alloc_mpool(size_t size)
             }
             /* get a memory allocation from the kernel */
             {
-                dma_addr_t dma_handle;
+                dma_addr_t dma_handle = 0;
                 if (!(_dma_vbase = dma_alloc_coherent(0, alloc_size, &dma_handle, GFP_KERNEL)) || !dma_handle) {
                     gprintk("_alloc_mpool: Kernel failed to allocate the memory pool of size 0x%lx (_dma_vbase=0x%08lx dma_handle=0x%08lx)\n",
                         (unsigned long)alloc_size, (unsigned long) _dma_vbase, (unsigned long) dma_handle);
