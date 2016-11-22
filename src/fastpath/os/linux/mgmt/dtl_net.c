@@ -1072,12 +1072,9 @@ L7_RC_t dtlMacAddrChange(L7_uchar8 *newMac, L7_uchar8 *ifName, L7_uint16 vlanId)
 L7_int32 dtlFdbMacAddrChange( L7_uchar8 *newMac )
 {
   L7_uint32 vlanId;
-  L7_RC_t   rc = L7_SUCCESS;
+  L7_RC_t   rc;
 
-  // PTin removed
-  #if 0
   rc = osapiMacAddrChange(newMac, L7_DTL_PORT_IF, 0);
-  #endif
   if (rc == L7_SUCCESS)
   {
     /*
