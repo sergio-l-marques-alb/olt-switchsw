@@ -247,7 +247,7 @@ typedef struct
   ptinIgmpDeviceClient_t         client_devices[PTIN_IGMP_INTFPORT_MAX][PTIN_IGMP_CLIENTIDX_MAX];
 
   /* Removed not necessary routines to managem device clients */
-  #if 0
+  #if 1
   dl_queue_t                     queue_free_clientDevices[PTIN_IGMP_INTFPORT_MAX]; /* Queue with free (device) clients */
   #endif
 
@@ -818,7 +818,7 @@ static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupI
 /* Get the next client withing client devices queue */
 static struct ptinIgmpClientDevice_s *igmp_clientDevice_next(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientDevice_s *pelem);
 /* Removed not necessary routines to managem device clients */
-#if 0
+#if 1
 /* Find a particular client in the client devices queue */
 static struct ptinIgmpClientDevice_s *igmp_clientDevice_find(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientInfoData_s *clientInfo);
 /* Add a client within the client devices queue */
@@ -9009,7 +9009,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
     avl_infoData->pClientGroup = clientGroup;
 
     /* Removed not necessary routines to managem device clients */
-    #if 0
+    #if 1
     if (clientGroup != L7_NULLPTR)
     {
       /* Do not clear igmp statistics */
@@ -9477,7 +9477,7 @@ static L7_RC_t ptin_igmp_device_client_remove_all(L7_BOOL isDynamic, L7_BOOL onl
 #endif
 
       /* Removed not necessary routines to managem device clients */
-      #if 0
+      #if 1
       if (clientGroup != L7_NULLPTR)
       {
         /* Remove device from client group */
@@ -9654,7 +9654,7 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
         PT_LOG_TRACE(LOG_CTX_IGMP,"Going to unmark ptin_port=%u client_idx=%u", ptin_port, client_idx);
 
       /* Removed not necessary routines to managem device clients */
-      #if 0
+      #if 1
       /* Remove device from client group */
       if (clientGroup != L7_NULLPTR)
       {
@@ -10992,7 +10992,7 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   PTIN_MGMD_EVENT_CTRL_t          ctrlResMsg      = {0};
   PTIN_MGMD_CTRL_STATS_REQUEST_t  mgmdStatsReqMsg = {0};
   PTIN_MGMD_CTRL_STATS_RESPONSE_t mgmdStatsResMsg = {0};
-  L7_uint32                       clientId;
+  //L7_uint32                       clientId;
   L7_uint32                       intIfNum;
 
   memset(statistics, 0x00, sizeof(PTIN_MGMD_CTRL_STATS_RESPONSE_t));
@@ -11000,28 +11000,26 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   memcpy(&client, client_id, sizeof(ptin_client_id_t));
 
   /* Validate and rearrange clientId info */
-  if (ptin_igmp_clientId_convert(evc_idx, &client) != L7_SUCCESS)
-  {
+  if (ptin_igmp_clientId_convert(evc_idx, &client) != L7_SUCCESS) {
     PT_LOG_ERR(LOG_CTX_IGMP,"Invalid client id");
     return L7_FAILURE;
   }
 
   /* Get client */
-  if (ptin_igmp_group_client_find(&client, &clientGroup, AVL_EXACT) != L7_SUCCESS)
-  {
+  if (ptin_igmp_group_client_find(&client, &clientGroup, AVL_EXACT) != L7_SUCCESS) {
     PT_LOG_ERR(LOG_CTX_IGMP,
-            "Error searching for client {mask=0x%02x,"
-            "port=%u/%u,"
-            "outerVlan=%u,"
-            "innerVlan=%u,"
-            "ipAddr=%u.%u.%u.%u,"
-            "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
-            client.mask,
-            client.ptin_intf.intf_type, client.ptin_intf.intf_id,
-            client.outerVlan,
-            client.innerVlan,
-            (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
-            client.macAddr[0],client.macAddr[1],client.macAddr[2],client.macAddr[3],client.macAddr[4],client.macAddr[5]);
+               "Error searching for client {mask=0x%02x,"
+               "port=%u/%u,"
+               "outerVlan=%u,"
+               "innerVlan=%u,"
+               "ipAddr=%u.%u.%u.%u,"
+               "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x} ",
+               client.mask,
+               client.ptin_intf.intf_type, client.ptin_intf.intf_id,
+               client.outerVlan,
+               client.innerVlan,
+               (client.ipv4_addr>>24) & 0xff, (client.ipv4_addr>>16) & 0xff, (client.ipv4_addr>>8) & 0xff, client.ipv4_addr & 0xff,
+               client.macAddr[0],client.macAddr[1],client.macAddr[2],client.macAddr[3],client.macAddr[4],client.macAddr[5]);
     return L7_FAILURE;
   }
 
@@ -11029,8 +11027,7 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
   /* Validate interface */
-  if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)!=L7_SUCCESS)
-  {
+  if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)!=L7_SUCCESS) {
     PT_LOG_ERR(LOG_CTX_INTF, "Error converting port %u/%u to intIfNum",client.ptin_intf.intf_type,client.ptin_intf.intf_id);
     /*Give Semaphore*/
     osapiSemaGive(ptin_igmp_clients_sem);
@@ -11083,24 +11080,30 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   }                                              
 
   L7_uint16 noOfClients=igmp_clientDevice_get_devices_number(clientGroup);
-  if (noOfClients>0)
-  {
+  if (noOfClients>0) {
     L7_uint16 noOfClientsFound=0;
-    for (clientId = 0; clientId < PTIN_IGMP_CLIENTIDX_MAX; ++clientId)
-    {
-      /*Check if this position on the Client Array is Empty*/
-      if (IS_BITMAP_WORD_SET(clientGroup->client_bmp_list, clientId, UINT32_BITSIZE) == L7_FALSE)
-      {
-        //Next Position on the Array of Clients. -1 since the for adds 1 unit.
-        clientId += UINT32_BITSIZE - 1;
-        continue;
-      }
+    ptinIgmpClientDataKey_t     avl_key;
+    ptinIgmpClientInfoData_t    *device_client;
 
-      if (IS_BITMAP_BIT_SET(clientGroup->client_bmp_list, clientId, UINT32_BITSIZE))
+    /* Run all cells in AVL tree */
+    memset(&avl_key, 0x00, sizeof(ptinIgmpClientDataKey_t));
+
+    while ( ( device_client = (ptinIgmpClientInfoData_t *)
+            avlSearchLVL7(&igmpDeviceClients.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+           ) != L7_NULLPTR )
+    {
+
+      /* Prepare next key */
+      memcpy(&avl_key, &device_client->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
+
+
+      if( device_client->igmpClientDataKey.ptin_port == clientGroup->igmpClientDataKey.ptin_port &&
+          device_client->igmpClientDataKey.innerVlan == clientGroup->igmpClientDataKey.innerVlan &&
+          device_client->igmpClientDataKey.outerVlan == clientGroup->igmpClientDataKey.outerVlan )
       {
         /* Request client statistics to MGMD */
         mgmdStatsReqMsg.portId   = intIfNum;
-        mgmdStatsReqMsg.clientId = clientId;
+        mgmdStatsReqMsg.clientId = device_client->deviceClientId;
         ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
         ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
         ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
@@ -11110,9 +11113,8 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
         PT_LOG_DEBUG(LOG_CTX_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
         PT_LOG_DEBUG(LOG_CTX_IGMP,  "  CTRL Length  : %u",   ctrlResMsg.dataLength);
 
-        if (L7_SUCCESS != ctrlResMsg.res)
-        {
-          PT_LOG_ERR(LOG_CTX_IGMP, "Error reading clientId[%u] statistics rc:%u", clientId, ctrlResMsg.res);
+        if (L7_SUCCESS != ctrlResMsg.res) {
+          PT_LOG_ERR(LOG_CTX_IGMP, "Error reading clientId[%u] statistics rc:%u", device_client->deviceClientId, ctrlResMsg.res);
           /*Give Semaphore*/
           osapiSemaGive(ptin_igmp_clients_sem);
           return ctrlResMsg.res;
@@ -11140,37 +11142,37 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
         statistics->v3.membershipReportRx              += mgmdStatsResMsg.v3.membershipReportRx;
         statistics->v3.membershipReportInvalidRx       += mgmdStatsResMsg.v3.membershipReportInvalidRx;          
         statistics->v3.groupRecords.allowTx            += mgmdStatsResMsg.v3.groupRecords.allowTx;
-        statistics->v3.groupRecords.allowRx       += mgmdStatsResMsg.v3.groupRecords.allowRx;
+        statistics->v3.groupRecords.allowRx            += mgmdStatsResMsg.v3.groupRecords.allowRx;
         statistics->v3.groupRecords.allowInvalidRx     += mgmdStatsResMsg.v3.groupRecords.allowInvalidRx;
         statistics->v3.groupRecords.blockTx            += mgmdStatsResMsg.v3.groupRecords.blockTx;
-        statistics->v3.groupRecords.blockRx       += mgmdStatsResMsg.v3.groupRecords.blockRx;
+        statistics->v3.groupRecords.blockRx            += mgmdStatsResMsg.v3.groupRecords.blockRx;
         statistics->v3.groupRecords.blockInvalidRx     += mgmdStatsResMsg.v3.groupRecords.blockInvalidRx;
         statistics->v3.groupRecords.isIncludeTx        += mgmdStatsResMsg.v3.groupRecords.isIncludeTx;
-        statistics->v3.groupRecords.isIncludeRx   += mgmdStatsResMsg.v3.groupRecords.isIncludeRx;
+        statistics->v3.groupRecords.isIncludeRx        += mgmdStatsResMsg.v3.groupRecords.isIncludeRx;
         statistics->v3.groupRecords.isIncludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.isIncludeInvalidRx;
         statistics->v3.groupRecords.isExcludeTx        += mgmdStatsResMsg.v3.groupRecords.isExcludeTx;
-        statistics->v3.groupRecords.isExcludeRx   += mgmdStatsResMsg.v3.groupRecords.isExcludeRx;
+        statistics->v3.groupRecords.isExcludeRx        += mgmdStatsResMsg.v3.groupRecords.isExcludeRx;
         statistics->v3.groupRecords.isExcludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.isExcludeInvalidRx;
         statistics->v3.groupRecords.toIncludeTx        += mgmdStatsResMsg.v3.groupRecords.toIncludeTx;
-        statistics->v3.groupRecords.toIncludeRx   += mgmdStatsResMsg.v3.groupRecords.toIncludeRx;
+        statistics->v3.groupRecords.toIncludeRx        += mgmdStatsResMsg.v3.groupRecords.toIncludeRx;
         statistics->v3.groupRecords.toIncludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.toIncludeInvalidRx;
         statistics->v3.groupRecords.toExcludeTx        += mgmdStatsResMsg.v3.groupRecords.toExcludeTx;
-        statistics->v3.groupRecords.toExcludeRx   += mgmdStatsResMsg.v3.groupRecords.toExcludeRx;
+        statistics->v3.groupRecords.toExcludeRx        += mgmdStatsResMsg.v3.groupRecords.toExcludeRx;
         statistics->v3.groupRecords.toExcludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.toExcludeInvalidRx;                                  
 
         statistics->query.generalQueryTx               += mgmdStatsResMsg.query.generalQueryTx;     
-        statistics->query.generalQueryRx          += mgmdStatsResMsg.query.generalQueryRx;
+        statistics->query.generalQueryRx               += mgmdStatsResMsg.query.generalQueryRx;
         statistics->query.groupQueryTx                 += mgmdStatsResMsg.query.groupQueryTx;       
-        statistics->query.groupQueryRx            += mgmdStatsResMsg.query.groupQueryRx;  
+        statistics->query.groupQueryRx                 += mgmdStatsResMsg.query.groupQueryRx;  
         statistics->query.sourceQueryTx                += mgmdStatsResMsg.query.sourceQueryTx;      
-        statistics->query.sourceQueryRx           += mgmdStatsResMsg.query.sourceQueryRx; 
+        statistics->query.sourceQueryRx                += mgmdStatsResMsg.query.sourceQueryRx; 
 
         if (noOfClientsFound++>=noOfClients)
           break;
       }
     }
   }
-  else
+  else 
   {
     PT_LOG_DEBUG(LOG_CTX_IGMP, "This groupClient has zero devices currently attached!");
   }
@@ -13201,7 +13203,7 @@ static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupI
 
 
 /* Removed not necessary routines to managem device clients */
-#if 0
+#if 1
 /**
  * Find a particular client in the client devices queue
  */
@@ -13234,7 +13236,8 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_find(struct ptinIgmpClie
 static struct ptinIgmpClientDevice_s *igmp_clientDevice_add(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientInfoData_s *clientInfo)
 {
   L7_uint ptin_port;
-  struct ptinIgmpClientDevice_s *clientDevice;
+  static struct ptinIgmpClientDevice_s clientDevice;
+  struct ptinIgmpClientDevice_s *clientDevice_ret;
   L7_uint32 clientIdx;
 
   /* Validate arguments */
@@ -13262,20 +13265,19 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_add(struct ptinIgmpClien
   {
     return L7_NULLPTR;
   }
-
   /* Set clientIdx in the client bitmap */
   BITMAP_BIT_SET(clientGroup->client_bmp_list, clientIdx, UINT32_BITSIZE);
 
   /* Add client to the EVC struct */
   dl_queue_remove_head(&igmpDeviceClients.queue_free_clientDevices[PTIN_IGMP_CLIENT_PORT(ptin_port)], (dl_queue_elem_t**) &clientDevice);
-  dl_queue_add_tail(&clientGroup->queue_clientDevices, (dl_queue_elem_t*) clientDevice);
+  dl_queue_add_tail(&clientGroup->queue_clientDevices, (dl_queue_elem_t*) &clientDevice);
 
   /* Update number of clients */
-  if (clientDevice->client == L7_NULLPTR)
+  if (clientDevice.client == L7_NULLPTR)
   {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Update number of clients");
     if (ptin_debug_igmp_snooping)
       PT_LOG_TRACE(LOG_CTX_IGMP,"Empty client (ptin_port=%u client_idx=%u)", ptin_port, clientIdx);
-
     if (igmpDeviceClients.number_of_clients < PTIN_IGMP_CLIENTIDX_MAX)
       igmpDeviceClients.number_of_clients++;
 
@@ -13286,15 +13288,17 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_add(struct ptinIgmpClien
     }
   }
   /* Update client pointer */
-  clientDevice->client = clientInfo;
-
+  clientDevice.client = clientInfo;
   /* Return pointer to new node */
-  return clientDevice;
+
+  clientDevice_ret = &clientDevice;
+  return clientDevice_ret;
 }
 
 /**
  * Remove a client from the client devices queue
  */
+#if 1
 static struct ptinIgmpClientDevice_s *igmp_clientDevice_remove(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientInfoData_s *clientInfo)
 {
   L7_uint ptin_port;
@@ -13358,6 +13362,8 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_remove(struct ptinIgmpCl
 
   return L7_SUCCESS;
 }
+#endif
+
 #endif
 
 /**
