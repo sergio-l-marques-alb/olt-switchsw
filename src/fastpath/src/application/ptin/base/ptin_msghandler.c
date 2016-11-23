@@ -907,7 +907,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     case CCMSG_SWITCH_TEMPERATURE_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_SWITCH_TEMPERATURE_GET (0x%04X)", msgId);
+      PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "Message received: CCMSG_SWITCH_TEMPERATURE_GET (0x%04X)", msgId);
 
       msg_ptin_temperature_monitor_t *ptr;
 
@@ -5538,6 +5538,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
   if( msgId == CCMSG_ETH_PHY_ACTIVITY_GET || 
       msgId == CCMSG_HW_INTF_INFO_GET     ||
       msgId == CCMSG_ETH_PHY_COUNTERS_GET ||
+      msgId == CCMSG_SWITCH_TEMPERATURE_GET ||
 #if (PTIN_BOARD_IS_MATRIX)
       msgId == CCMSG_ETH_LACP_MATRIXES_SYNC2 || 
 #endif
