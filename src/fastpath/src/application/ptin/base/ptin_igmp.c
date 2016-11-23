@@ -247,7 +247,7 @@ typedef struct
   ptinIgmpDeviceClient_t         client_devices[PTIN_IGMP_INTFPORT_MAX][PTIN_IGMP_CLIENTIDX_MAX];
 
   /* Removed not necessary routines to managem device clients */
-  #if 0
+  #if 1
   dl_queue_t                     queue_free_clientDevices[PTIN_IGMP_INTFPORT_MAX]; /* Queue with free (device) clients */
   #endif
 
@@ -818,7 +818,7 @@ static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupI
 /* Get the next client withing client devices queue */
 static struct ptinIgmpClientDevice_s *igmp_clientDevice_next(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientDevice_s *pelem);
 /* Removed not necessary routines to managem device clients */
-#if 0
+#if 1
 /* Find a particular client in the client devices queue */
 static struct ptinIgmpClientDevice_s *igmp_clientDevice_find(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientInfoData_s *clientInfo);
 /* Add a client within the client devices queue */
@@ -9009,7 +9009,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
     avl_infoData->pClientGroup = clientGroup;
 
     /* Removed not necessary routines to managem device clients */
-    #if 0
+    #if 1
     if (clientGroup != L7_NULLPTR)
     {
       /* Do not clear igmp statistics */
@@ -9477,7 +9477,7 @@ static L7_RC_t ptin_igmp_device_client_remove_all(L7_BOOL isDynamic, L7_BOOL onl
 #endif
 
       /* Removed not necessary routines to managem device clients */
-      #if 0
+      #if 1
       if (clientGroup != L7_NULLPTR)
       {
         /* Remove device from client group */
@@ -9654,7 +9654,7 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
         PT_LOG_TRACE(LOG_CTX_IGMP,"Going to unmark ptin_port=%u client_idx=%u", ptin_port, client_idx);
 
       /* Removed not necessary routines to managem device clients */
-      #if 0
+      #if 1
       /* Remove device from client group */
       if (clientGroup != L7_NULLPTR)
       {
@@ -13201,7 +13201,7 @@ static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupI
 
 
 /* Removed not necessary routines to managem device clients */
-#if 0
+#if 1
 /**
  * Find a particular client in the client devices queue
  */
@@ -13234,7 +13234,8 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_find(struct ptinIgmpClie
 static struct ptinIgmpClientDevice_s *igmp_clientDevice_add(struct ptinIgmpClientGroupInfoData_s *clientGroup, struct ptinIgmpClientInfoData_s *clientInfo)
 {
   L7_uint ptin_port;
-  struct ptinIgmpClientDevice_s *clientDevice;
+  static struct ptinIgmpClientDevice_s clientDevice;
+  struct ptinIgmpClientDevice_s *clientDevice_ret;
   L7_uint32 clientIdx;
 
   /* Validate arguments */
@@ -13262,20 +13263,19 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_add(struct ptinIgmpClien
   {
     return L7_NULLPTR;
   }
-
   /* Set clientIdx in the client bitmap */
   BITMAP_BIT_SET(clientGroup->client_bmp_list, clientIdx, UINT32_BITSIZE);
 
   /* Add client to the EVC struct */
   dl_queue_remove_head(&igmpDeviceClients.queue_free_clientDevices[PTIN_IGMP_CLIENT_PORT(ptin_port)], (dl_queue_elem_t**) &clientDevice);
-  dl_queue_add_tail(&clientGroup->queue_clientDevices, (dl_queue_elem_t*) clientDevice);
+  dl_queue_add_tail(&clientGroup->queue_clientDevices, (dl_queue_elem_t*) &clientDevice);
 
   /* Update number of clients */
-  if (clientDevice->client == L7_NULLPTR)
+  if (clientDevice.client == L7_NULLPTR)
   {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Update number of clients");
     if (ptin_debug_igmp_snooping)
       PT_LOG_TRACE(LOG_CTX_IGMP,"Empty client (ptin_port=%u client_idx=%u)", ptin_port, clientIdx);
-
     if (igmpDeviceClients.number_of_clients < PTIN_IGMP_CLIENTIDX_MAX)
       igmpDeviceClients.number_of_clients++;
 
@@ -13286,11 +13286,13 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_add(struct ptinIgmpClien
     }
   }
   /* Update client pointer */
-  clientDevice->client = clientInfo;
-
+  clientDevice.client = clientInfo;
   /* Return pointer to new node */
-  return clientDevice;
+
+  clientDevice_ret = &clientDevice;
+  return clientDevice_ret;
 }
+
 
 /**
  * Remove a client from the client devices queue
