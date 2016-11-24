@@ -1,0 +1,438 @@
+
+#
+#
+# Copyright (C) 1992-2006 by SNMP Research, Incorporated.
+#
+# This software is furnished under a license and may be used and copied
+# only in accordance with the terms of such license and with the
+# inclusion of the above copyright notice. This software or any other
+# copies thereof may not be provided or otherwise made available to any
+# other person. No title to and ownership of the software is hereby
+# transferred.
+#
+# The information in this software is subject to change without notice
+# and should not be construed as a commitment by SNMP Research, Incorporated.
+#
+# Restricted Rights Legend:
+#  Use, duplication, or disclosure by the Government is subject to
+#  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+#  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+#  subparagraphs (c)(4) and (d) of the Commercial Computer
+#  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+#  clauses in the NASA FAR Supplement and other corresponding
+#  governmental regulations.
+#
+#
+
+#
+#                PROPRIETARY NOTICE
+#
+# This software is an unpublished work subject to a confidentiality agreement
+# and is protected by copyright and trade secret law.  Unauthorized copying,
+# redistribution or other use of this work is prohibited.
+#
+# The above notice of copyright on this source code product does not indicate
+# any actual or intended publication of such source code.
+#
+#
+
+
+TOPDIR = ../..
+
+# 
+# Operating System Information
+#
+
+RM = rm -f
+RMDIR = rmdir
+MOVE = mv
+CP = cp
+CAT = cat
+MKDIR = mkdir
+# PRESERVE is the flag to $(CP) to duplicate the modification time and
+# permission modes of the original file or directory.
+PRESERVE = -p
+
+
+# Extensions to certain kinds of files are set here.
+LIBEXT = a
+BINEXT =
+OBJEXT = o
+
+
+LIBPRF = lib
+
+
+              OS = -DLINUX
+              os = linux
+      SR_OSTYPE =
+         OSFLAGS =
+      SOCKETLIBS =
+            LLIB =
+      LINTLIBOPT =
+        LINTOPTS =
+     THREAD_LIBS = -lpthread
+     SR_SEM_LIBS = -lrt
+      EXTRA_DEFS = 
+
+
+              CC = cc
+              LD = cc
+      DEBUGFLAGS = -g -Wall -fno-builtin -Wpointer-arith -Wstrict-prototypes
+            LINT = lint
+              AR = ar
+             LEX = flex
+            YACC = yacc
+          AROPTS = cr
+          RANLIB = touch
+
+      EXTRA_SRCS =
+      EXTRA_OBJS =
+
+# for shared libraries
+DYNCFLAGS = -fPIC
+DYNLDFLAGS = -shared
+DYN_LINK_FLAGS = -rdynamic
+DYNLDLIBS =
+DYNLD = ld 
+DYN_LIB_LIBS = -ldl
+SHLIBPRF = lib
+SHLIBEXT = so
+IPC_DEFAULT = -DSR_UDS_IPC
+IPC_DEFAULT_LIB = uds
+
+
+#
+# Directories
+#
+
+
+OBD_V1 = 1
+
+OBD_V2c = c
+
+OBD_V3 =
+
+OSBASEDIR = v$(OBD_V1)$(OBD_V2c)$(OBD_V3)
+
+
+SRM_ARCH = $(shell /bin/arch)
+
+OSLIBDIR = $(os)_$(SRM_ARCH)$(OSBASEDIR).lib
+OSOBJDIR = $(os)_$(SRM_ARCH)$(OSBASEDIR).obj
+OSBINDIR = $(os)_$(SRM_ARCH)$(OSBASEDIR).bin
+
+SECUR_DIR = $(TOPDIR)/../basic
+
+LIBDIR      = $(SECUR_DIR)/$(OSLIBDIR)
+BINDIR      = $(SECUR_DIR)/$(OSBINDIR)
+INSTALLDIR  = $(SECUR_DIR)/$(OSBINDIR)
+MIBS_DIR    = $(TOPDIR)/mibs
+RFCS_DIR    = $(TOPDIR)/mibs/rfcs
+IDRAFTS_DIR = $(TOPDIR)/mibs/internet-drafts
+IANA_DIR    = $(TOPDIR)/mibs/iana
+MIBCOMP_DIR = $(SECUR_DIR)/$(OSBINDIR)
+
+#
+# Subordinant Makefile
+#
+
+
+BMFN_V1 = 1
+
+BMFN_V2c = c
+
+BMFN_V3 =
+
+BASEMAKEFILENAME = Makev$(BMFN_V1)$(BMFN_V2c)$(BMFN_V3)
+
+
+SUBMAKEFILE = $(BASEMAKEFILENAME).$(os)
+#
+# Compile Commands
+#
+
+
+CORULE = $(CC) -c $(OSFLAGS) $(CFLAGS) -o $@ $(@F:.o=.c)
+THREADRULE = $(CC) -c $(OSFLAGS) $(CFLAGS) -o $@ $(@F:.o=.c)
+REMOTERULE = $(CC) -c $(OSFLAGS) $(CFLAGS) $(REMOTEFLAGS) -o $@ $(REMOTEDIR)/$(@F:.o=.c)
+REMOTERULE2 = $(CC) -c $(OSFLAGS) $(CFLAGS) $(REMOTEFLAGS) -o $@ $(REMOTEDIR2)/$(@F:.o=.c)
+MGRCORULE = $(CC) -c $(OSFLAGS) $(MGRCFLAGS) -o $@ $(@F:.o=.c)
+YACCRULE = $(CC) -c $(OSFLAGS) $(CFLAGS) -o $@ $(OSOBJDIR)/$(@F:.o=.c)
+MOSYRULE = $(CC) -c $(OSFLAGS) $(MGRCFLAGS) -o $@ $(SECLIBDIR)/$(@F:.o=.c)
+
+
+#
+# Build Options
+#
+
+#
+# Compile Options
+#
+
+LIGHT = -DNOTICE
+DEBUG = -DSR_DEBUG
+SR_MIB_TABLE_HASHING = -DSR_MIB_TABLE_HASHING
+SR_CONFIG_FP = -DSR_CONFIG_FP
+PROXY =
+SETS = -DSETS
+WEB_AGT =
+WEB_MGR =
+
+CUSTOMER_DEFINES =
+
+epictest := EPICTEST = -DSR_EPICTEST
+EPIC = -DSR_EPIC
+
+EXPORT = -DSR_UNSECURABLE
+
+SNMP_V1_PACKET = -DSR_SNMPv1_PACKET -DSR_SNMPv1_WRAPPER
+
+SNMP_V2C_PACKET = -DSR_SNMPv2c_PACKET -DSR_SNMPv1_WRAPPER -DSR_SNMPv2_PDU
+
+SNMP_V1_PACKET_MIB = -DSR_SNMPv1_PACKET_MIB
+
+SNMP_V3_PACKET =
+SNMP_V3_PACKET_MIB =
+
+SYS_OR_TABLE =
+
+TRANSPORT_TABLE = -DSR_TRANSPORT_TABLE
+
+
+NOTIFY_COMPLIANCE_LEVEL = \
+	-DSR_NOTIFY_FULL_COMPLIANCE
+
+PROXY_COMPLIANCE_LEVEL =
+
+SNMPV3_COMPLIANCE_OPTIONS = \
+	$(NOTIFY_COMPLIANCE_LEVEL) \
+	$(PROXY_COMPLIANCE_LEVEL)
+
+USER_SEC_MODEL =
+
+SUPPORTED_SECURITY_MODELS = \
+	$(USER_SEC_MODEL)
+
+3DES_PRIVACY_PROTOCOL =
+AES_PRIVACY_PROTOCOL =
+
+SUPPORTED_PRIVACY_PROTOCOLS = \
+	$(3DES_PRIVACY_PROTOCOL) \
+	$(AES_PRIVACY_PROTOCOL)
+
+
+MD5_HASH_ALGORITHM =
+SHA_HASH_ALGORITHM =
+
+SUPPORTED_HASHING_ALGORITHMS = \
+	$(SHA_HASH_ALGORITHM) \
+	$(MD5_HASH_ALGORITHM)
+
+SNMP_ADMINISTRATIVE_FRAMEWORK_VERSION = -DSR_SNMPv1_ADMIN
+
+SNMP_ADMINISTRATIVE_MIB_SUPPORT = -DSR_SNMP_ADMIN_MIB
+
+SUPPORTED_PACKET_VERSIONS = \
+	$(SNMP_V1_PACKET) \
+	$(SNMP_V2C_PACKET) \
+	$(SNMP_V3_PACKET)
+
+SUPPORTED_PACKET_MIBS = \
+	$(SNMP_V1_PACKET_MIB) \
+	$(SNMP_V3_PACKET_MIB)
+
+SUPPORTED_APO_LEVEL =
+
+GENERATE_CONFIGURATION = \
+	-DSR_GENERATE_CONFIGURATION \
+	-DSR_GENERATE_SNMPV3_CONFIGURATION
+#	-DSR_GENERATE_OLD_STYLE_CONFIGURATION
+
+SNMP_OPTIONS = \
+	$(CUSTOMER_DEFINES)  \
+	$(EXPORT) \
+	$(SYS_OR_TABLE) \
+	$(TRANSPORT_TABLE) \
+	$(SUPPORTED_PACKET_VERSIONS) \
+	$(SUPPORTED_PACKET_MIBS) \
+	$(SUPPORTED_APO_LEVEL) \
+	$(SUPPORTED_SECURITY_MODELS) \
+	$(SUPPORTED_PRIVACY_PROTOCOLS) \
+	$(SUPPORTED_HASHING_ALGORITHMS) \
+	$(SNMPV3_COMPLIANCE_OPTIONS) \
+	$(SNMP_ADMINISTRATIVE_FRAMEWORK_VERSION) \
+	$(SNMP_ADMINISTRATIVE_MIB_SUPPORT) \
+	$(EPIC) $(EPICTEST) \
+	$(GENERATE_CONFIGURATION)
+
+
+#
+# Transports
+#
+
+IP_TRANSPORT = -DSR_IP
+
+IPX_TRANSPORT =
+
+TRANSPORTS = $(IP_TRANSPORT) $(IPX_TRANSPORT)
+
+
+DEFS = \
+	$(OS) \
+	$(SR_OSTYPE) \
+	$(NETTYPE) \
+	$(DEBUG) \
+	$(LIGHT) \
+	$(SR_MIB_TABLE_HASHING) \
+	$(PROXY) \
+        $(SNMP_OPTIONS) \
+	$(SYSOPTS) \
+	$(ELINES) \
+	$(EXTRA_DEFS)
+
+LDFLAGS =
+
+#
+# Structure Information
+#
+
+SR_INCDIR = $(TOPDIR)/include
+INCLUDES = \
+            -I$(SR_INCDIR) \
+            -I. \
+            $(ARC_INC_DIRS)
+
+#
+# What to build
+
+
+SRCS = \
+	mib_tabl.c \
+	oidtran.c \
+	oidtranh.c \
+	prse_sid.c
+
+OBJS = \
+	$(OSOBJDIR)/mib_tabl.$(OBJEXT) \
+	$(OSOBJDIR)/oidtran.$(OBJEXT) \
+	$(OSOBJDIR)/oidtranh.$(OBJEXT) \
+	$(OSOBJDIR)/prse_sid.$(OBJEXT)
+
+LIBS = $(LIBDIR)/$(LIBPRF)mibtable.$(LIBEXT)
+
+
+#
+# How to build
+#
+
+COPTIONS = $(DEFS) $(INCLUDES) 
+
+CFLAGS =  $(DEBUGFLAGS) $(DYNCFLAGS) $(COPTIONS)
+
+all: \
+	$(LIBDIR) \
+	$(OSOBJDIR) \
+	$(SOURCELINKS) \
+	$(LIBS)
+
+$(LIBDIR):
+	-$(MKDIR) $(LIBDIR)
+
+$(OSOBJDIR):
+	-$(MKDIR) $(OSOBJDIR)
+
+$(LIBDIR)/$(LIBPRF)mibtable.$(LIBEXT): $(OBJS)
+	$(AR) $(AROPTS) $(LIBDIR)/$(LIBPRF)mibtable.$(LIBEXT) $(OBJS)
+	$(RANLIB) $(LIBDIR)/$(LIBPRF)mibtable.$(LIBEXT)
+
+LINTFLAGS = $(COPTIONS)
+
+lint: $(LIBDIR)/$(LLIB)mibtable.ln
+
+$(LIBDIR)/$(LLIB)mibtable.ln: $(SRCS)
+	$(LINT) $(LINTOPTS) $(LINTLIBOPT)mibtable $(LINTFLAGS) $(SRCS)
+	$(MOVE) $(LLIB)mibtable.ln $(LIBDIR)
+
+clean:
+	-$(RM) $(OSOBJDIR)/* core *~ \#*
+	-$(RM) $(LIBDIR)/$(LIBPRF)mibtable.$(LIBEXT)
+	-$(RM) $(LIBDIR)/$(LLIB)mibtable.ln
+	-$(RMDIR) $(OSOBJDIR)
+
+
+$(OSOBJDIR)/mib_tabl.$(OBJEXT): mib_tabl.c
+	$(CORULE)
+
+$(OSOBJDIR)/oidtran.$(OBJEXT): oidtran.c
+	$(CORULE)
+
+$(OSOBJDIR)/oidtranh.$(OBJEXT): oidtranh.c
+	$(CORULE)
+
+$(OSOBJDIR)/prse_sid.$(OBJEXT): prse_sid.c
+	$(CORULE)
+
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.
+
+$(OSOBJDIR)/mib_tabl.o: ../../include/sr_conf.h ../../include/sr_vrsn.h
+$(OSOBJDIR)/mib_tabl.o: ../../include/osconf/linux.h ../../include/sr_featr.h
+$(OSOBJDIR)/mib_tabl.o: ../../include/sr_snmp.h ../../include/sr_type.h
+$(OSOBJDIR)/mib_tabl.o: ../../include/sr_proto.h ../../include/sr_time.h
+$(OSOBJDIR)/mib_tabl.o: ../../include/sr_copyright.h
+$(OSOBJDIR)/mib_tabl.o: ../../include/sri/getport.h
+$(OSOBJDIR)/mib_tabl.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/mib_tabl.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/mib_tabl.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/mib_tabl.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/mib_tabl.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/mib_tabl.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/mib_tabl.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/mib_tabl.o: ../../include/sri/gettime.h ../../include/mib_tabl.h
+$(OSOBJDIR)/oidtran.o: ../../include/sr_conf.h ../../include/sr_vrsn.h
+$(OSOBJDIR)/oidtran.o: ../../include/osconf/linux.h ../../include/sr_featr.h
+$(OSOBJDIR)/oidtran.o: ../../include/sr_snmp.h ../../include/sr_type.h
+$(OSOBJDIR)/oidtran.o: ../../include/sr_proto.h ../../include/sr_time.h
+$(OSOBJDIR)/oidtran.o: ../../include/sr_copyright.h
+$(OSOBJDIR)/oidtran.o: ../../include/sri/getport.h
+$(OSOBJDIR)/oidtran.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/oidtran.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/oidtran.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/oidtran.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/oidtran.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/oidtran.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/oidtran.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/oidtran.o: ../../include/sri/gettime.h ../../include/mib_tabl.h
+$(OSOBJDIR)/oidtran.o: ../../include/oid_lib.h ../../include/diag.h
+$(OSOBJDIR)/oidtranh.o: ../../include/sr_conf.h ../../include/sr_vrsn.h
+$(OSOBJDIR)/oidtranh.o: ../../include/osconf/linux.h ../../include/sr_featr.h
+$(OSOBJDIR)/oidtranh.o: ../../include/sr_snmp.h ../../include/sr_type.h
+$(OSOBJDIR)/oidtranh.o: ../../include/sr_proto.h ../../include/sr_time.h
+$(OSOBJDIR)/oidtranh.o: ../../include/sr_copyright.h
+$(OSOBJDIR)/oidtranh.o: ../../include/sri/getport.h
+$(OSOBJDIR)/oidtranh.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/oidtranh.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/oidtranh.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/oidtranh.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/oidtranh.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/oidtranh.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/oidtranh.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/oidtranh.o: ../../include/sri/gettime.h ../../include/lookup.h
+$(OSOBJDIR)/oidtranh.o: ../../include/oid_lib.h ../../include/diag.h
+$(OSOBJDIR)/oidtranh.o: ../../include/frmt_lib.h ../../include/oidtranh.h
+$(OSOBJDIR)/prse_sid.o: ../../include/sr_conf.h ../../include/sr_vrsn.h
+$(OSOBJDIR)/prse_sid.o: ../../include/osconf/linux.h ../../include/sr_featr.h
+$(OSOBJDIR)/prse_sid.o: ../../include/sr_snmp.h ../../include/sr_type.h
+$(OSOBJDIR)/prse_sid.o: ../../include/sr_proto.h ../../include/sr_time.h
+$(OSOBJDIR)/prse_sid.o: ../../include/sr_copyright.h
+$(OSOBJDIR)/prse_sid.o: ../../include/sri/getport.h
+$(OSOBJDIR)/prse_sid.o: ../../include/sri/make_lib.h
+$(OSOBJDIR)/prse_sid.o: ../../include/sri/free_lib.h
+$(OSOBJDIR)/prse_sid.o: ../../include/sri/bld_pkt.h
+$(OSOBJDIR)/prse_sid.o: ../../include/sri/prse_pkt.h
+$(OSOBJDIR)/prse_sid.o: ../../include/sri/auth_lib.h
+$(OSOBJDIR)/prse_sid.o: ../../include/sri/nvt_chk.h
+$(OSOBJDIR)/prse_sid.o: ../../include/sri/sigfunc.h
+$(OSOBJDIR)/prse_sid.o: ../../include/sri/gettime.h ../../include/oid_lib.h
+$(OSOBJDIR)/prse_sid.o: ../../include/diag.h

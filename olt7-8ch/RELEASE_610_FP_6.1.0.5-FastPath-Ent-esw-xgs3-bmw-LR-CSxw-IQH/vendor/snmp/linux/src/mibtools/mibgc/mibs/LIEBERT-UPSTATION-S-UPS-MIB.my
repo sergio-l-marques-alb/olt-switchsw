@@ -1,0 +1,171 @@
+--Version:  v1.3
+
+--
+--  This MIB defines the Irvtec objects for the Liebert UPS SNMP Agents.
+--  This MIB is also used by the AP300 UPS models.
+--
+
+LIEBERT-UPSTATION-S-UPS-MIB DEFINITIONS ::= BEGIN
+
+          IMPORTS
+              OBJECT-TYPE                         FROM RFC-1212
+	      DisplayString                       FROM RFC1213-MIB
+	      sysUpTime                           FROM RFC1213-MIB
+	      luExtensions			  FROM LIEBERT-CORE-UPS-MIB;
+	     
+--
+-- The UPStation S Extension
+--
+	luUPStationS OBJECT IDENTIFIER ::= { luExtensions 2 }
+
+--
+-- The AP300 Extension
+--
+	luSeries300 OBJECT IDENTIFIER ::= { luExtensions 5 }
+
+--
+-- The Liebert Irvtec UPS Ident group.
+--
+
+          lsUpsIdent       OBJECT IDENTIFIER ::= { luUPStationS 1 }
+
+          lsUpsIdentFirmwareVersion OBJECT-TYPE
+              SYNTAX DisplayString (SIZE (255))
+              ACCESS read-only
+              STATUS optional
+              DESCRIPTION
+                      "The firmware revision level of the UPS."
+              ::= { lsUpsIdent 1 }
+
+
+--
+-- The Liebert Irvtec UPS Alarm group
+--
+
+          lsUpsAlarm        OBJECT IDENTIFIER ::= { luUPStationS 6 }
+
+          lsUpsAlarmConditions      OBJECT IDENTIFIER ::= { lsUpsAlarm 1 }
+
+          lsUpsAlarmCheckAirFilter  OBJECT IDENTIFIER
+                ::= { lsUpsAlarmConditions 1 }
+          -- The air filter is due to be checked.
+
+--
+--  The Liebert Irvtec UPS traps
+--
+	lsUpsTraps        OBJECT IDENTIFIER ::= { luUPStationS 11 }
+
+lsUpsCheckAirFilterTrap   TRAP-TYPE
+                        ENTERPRISE      lsUpsTraps
+                        VARIABLES       { sysUpTime  }
+                        DESCRIPTION
+                        "An lsUpsCheckAirFilterTrap signifies that the 
+                         programmed time interval for checking the air filter
+                         has passed and it is time to check the air
+                         filter."
+                        ::= 1
+ 
+
+--
+-- The Liebert Irvtec UPS Configuration group.
+--
+
+          lsUpsConfig       OBJECT IDENTIFIER ::= { luUPStationS 12 }
+
+          lsUpsConfigBypassInstalled OBJECT-TYPE
+              SYNTAX INTEGER {
+			unknown (1),
+			yes     (2),
+			no      (3)
+		     }
+              ACCESS read-only
+              STATUS optional
+              DESCRIPTION
+                      "Indicates if a bypass is installed in the UPS."
+              ::= { lsUpsConfig 1 }
+
+
+--
+-- The Liebert Irvtec UPS Bypass group.
+--
+
+          lsUpsBypass       OBJECT IDENTIFIER ::= { luUPStationS 13 }
+
+          lsUpsOnBypass OBJECT-TYPE
+              SYNTAX INTEGER {
+			unknown (1),
+			yes     (2),
+			no      (3)
+		     }
+              ACCESS read-only
+              STATUS optional
+              DESCRIPTION
+                      "Indicates that the UPS is currently on bypass."
+              ::= { lsUpsBypass 1 }
+
+          lsUpsBypassFrequency OBJECT-TYPE
+              SYNTAX INTEGER (0..65536)
+              ACCESS read-only
+              STATUS optional
+              DESCRIPTION
+                      "The current bypass frequency. (Unit of measure:
+                      Hertz)"
+              ::= { lsUpsBypass 2 }
+
+          lsUpsBypassNumLines OBJECT-TYPE
+              SYNTAX INTEGER (1..3)
+              ACCESS read-only
+              STATUS optional
+              DESCRIPTION
+                      "The number of bypass lines utilized in this
+                      device. This entry indicates the number of rows in
+                      the bypass table."
+              ::= { lsUpsBypass 3 }
+
+          lsUpsBypassTable OBJECT-TYPE
+              SYNTAX SEQUENCE OF LsUpsBypassEntry
+              ACCESS not-accessible
+              STATUS optional
+              ::= { lsUpsBypass 4 }
+
+          lsUpsBypassEntry OBJECT-TYPE
+              SYNTAX LsUpsBypassEntry
+              ACCESS not-accessible
+              STATUS optional
+              INDEX { lsUpsBypassLine }
+              ::= { lsUpsBypassTable 1 }
+
+          LsUpsBypassEntry ::= SEQUENCE {
+              lsUpsBypassLine              INTEGER,
+              lsUpsBypassVoltage            INTEGER,
+              lsUpsBypassCurrent            INTEGER
+          }
+
+          lsUpsBypassLine OBJECT-TYPE
+              SYNTAX INTEGER (1..3)
+              ACCESS read-only
+              STATUS optional
+              DESCRIPTION
+                      "The bypass Line."
+              ::= { lsUpsBypassEntry 1 }
+
+          lsUpsBypassVoltage OBJECT-TYPE
+              SYNTAX INTEGER (0..65536)
+              ACCESS read-only
+              STATUS optional
+              DESCRIPTION
+                      "The bypass voltage. (Unit of measure: Volt)"
+              ::= { lsUpsBypassEntry 2 }
+
+          lsUpsBypassCurrent OBJECT-TYPE
+              SYNTAX INTEGER (0..65536)
+              ACCESS read-only
+              STATUS optional
+              DESCRIPTION
+                      "The bypass current. (Unit of measure: Amp)"
+              ::= { lsUpsBypassEntry 3 }
+
+
+
+
+END

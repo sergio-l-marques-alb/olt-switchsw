@@ -1,0 +1,959 @@
+
+            
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+            
+            
+            
+                             Definitions of Managed Objects
+                             for Xyplex Ethernet Interfaces
+            
+                                       23 May 1991
+            
+                            Xyplex Document Number 420-0547-A
+            
+                                       Xyplex, Inc.
+                                  330 Codman Hill Road
+                                  Boxborough, MA 01719
+                                     (508) 264-9900
+            
+                                   support@xyplex.com
+            
+            
+            1.  Status of this Memo
+            
+            This document is submitted to the Internet MIB repository 
+            and to Xyplex users as a Xyplex private extension to the 
+            SNMP MIB.  Distribution of this memo is unlimited.  Please 
+            express comments to Xyplex.
+            
+            2.  Abstract
+            
+            This memo defines a private portion of the Management 
+            Information Base (MIB), within the Xyplex branch, for use 
+            with SNMP over various transport services, such as UDP or 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   1]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+            Ethernet.  In particular, it defines objects for managing a 
+            Xyplex Ethernet interface.
+            
+            This memo does not specify a standard for the Internet 
+            community.  It describes a standard for Xyplex products.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   2]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+            3.  Historical Perspective
+            
+            As reported in RFC 1052, IAB Recommendations for the 
+            Development of Internet Network Management Standards [1], a 
+            two-prong strategy for network management of TCP/IP-based 
+            internets was undertaken.  In the short-term, the Simple 
+            Network Management Protocol (SNMP), defined in RFC 1067, was 
+            to be used to manage nodes in the Internet community.  In 
+            the long-term, the use of the OSI network management 
+            framework was to be examined.  Two documents were produced 
+            to define the management information: RFC 1065, which 
+            defined the Structure of Management Information (SMI), and 
+            RFC 1066, which defined the Management Information Base 
+            (MIB).  Both of these documents were designed so as to be 
+            compatible with both the SNMP and the OSI network management 
+            framework.
+            
+            This strategy was quite successful in the short-term: 
+            Internet-based network management technology was fielded, by 
+            both the research and commercial communities, within a few 
+            months.  As a result of this, portions of the Internet 
+            community became network manageable in a timely fashion.
+            
+            As reported in RFC 1109, Report of the Second Ad Hoc Network 
+            Management Review Group [2], the requirements of the SNMP 
+            and the OSI network management frameworks were more 
+            different than anticipated.  As such, the requirement for 
+            compatibility between the SMI/MIB and both frameworks was 
+            suspended.  This action permitted the operational network 
+            management framework, based on the SNMP, to respond to new 
+            operational needs in the Internet community by producing 
+            MIB-II.
+            
+            In May of 1990, the core documents were elevated to 
+            "Standard Protocols" with "Recommended" status.  As such, 
+            the Internet- standard network management framework consists 
+            of: Structure and Identification of Management Information 
+            for TCP/IP-based internets, RFC 1155 [4], which describes 
+            how managed objects contained in the MIB are defined; 
+            Management Information Base for Network Management of 
+            TCP/IP-based internets, which describes the managed objects 
+            contained in the MIB, RFC 1156 [5]; and, the Simple Network 
+            Management Protocol, RFC 1157 [6], which defines the 
+            protocol used to manage these objects.
+            
+            Consistent with the IAB directive to produce simple, 
+
+            
+            
+                                                               [Page   3]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+            workable systems in the short-term, the list of managed 
+            objects defined in the Internet-standard MIB was derived by 
+            taking only those elements which are considered essential.  
+            However, the SMI defined three extensibility mechanisms: 
+            one, the addition of new standard objects through the 
+            definitions of new versions of the MIB; two, the addition of 
+            widely-available but non- standard objects through the 
+            experimental subtree; and three, the addition of private 
+            objects through the enterprises subtree.  Such additional 
+            objects can not only be used for vendor-specific elements, 
+            but also for experimentation as required to further the 
+            knowledge of which other objects are essential.
+            
+            This memo defines extensions to the MIB using the third 
+            method.  It contains definitions of managed objects in 
+            various Xyplex products, using ASN.1 conventions specified 
+            in [10].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   4]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+            4.  Objects
+            
+            Managed objects are accessed via a virtual information 
+            store, termed the Management Information Base or MIB.  
+            Objects in the MIB are defined using the subset of Abstract 
+            Syntax Notation One (ASN.1) [7] defined in the SMI.  In 
+            particular, each object has a name, a syntax, and an 
+            encoding.  The name is an object identifier, an 
+            administratively assigned name, which specifies an object 
+            type.  The object type together with an object instance 
+            serves to uniquely identify a specific instantiation of the 
+            object.  For human convenience, we often use a textual 
+            string, termed the OBJECT DESCRIPTOR, to also refer to the 
+            object type.
+            
+            The syntax of an object type defines the abstract data 
+            structure corresponding to that object type.  The ASN.1 
+            language is used for this purpose.  However, the SMI [4] 
+            purposely restricts the ASN.1 constructs which may be used. 
+            These restrictions are explicitly made for simplicity.
+            
+            The encoding of an object type is simply how that object 
+            type is represented using the object type's syntax.  
+            Implicitly tied to the notion of an object type's syntax and 
+            encoding is how the object type is represented when being 
+            transmitted on the network.
+            
+            The SMI specifies the use of the basic encoding rules of 
+            ASN.1 [8], subject to the additional requirements imposed by 
+            the SNMP.
+            
+            
+            4.1.  Format of Definitions
+            
+            Section 6 contains the specification of all object types 
+            contained in this MIB module.  The object types are defined 
+            using the conventions defined in the SMI, as amended by the 
+            extensions specified in [9].
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   5]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+            5.  Overview
+            
+            The Ethernet MIB applies to Xyplex systems that have an 
+            Ethernet interface.  It contains objects not found in the 
+            standard MIB-II Interface group.  Furthermore, its 
+            organization reflects a pending Experimental MIB for 
+            Ethernet-like objects.  That MIB has not advanced 
+            sufficiently for use, but this Xyplex MIB is designed to be 
+            easily superceeded when the standard advances.
+            
+            The Ethernet MIB is mandatory for all Xyplex systems that 
+            have an Ethernet interface.
+            
+            The MIB comprises several tables, organized as in the 
+            standard proposal:  generic, transmit, multicast, and 
+            extended transmit.
+            
+            As a convenience to the reader, the objects composing a 
+            generic table entry are:
+            
+                etherAlignmentErrors
+                etherFCSErrors
+            
+            The objects composing a transmit table entry are:
+            
+                etherTxSingleCollisionFrames
+                etherTxMultipleCollisionFrames
+            
+            The objects composing a multicast table entry are:
+            
+                etherMulticastBytesIn
+                etherMulticastBytesOut
+            
+            The objects composing an extended transmit table entry are:
+            
+                etherXTxExcessiveCollisions
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   6]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+            6.  Definitions
+            
+                    XYPLEX-ETHERNET-MIB DEFINITIONS ::= BEGIN
+            
+                    IMPORTS
+                            enterprises, Counter
+                                    FROM RFC1155-SMI
+                            OBJECT-TYPE
+                                    FROM RFC1212-CONCISE-MIB;
+            
+            xyplex          OBJECT IDENTIFIER ::= { enterprises 33 }
+            ethernet        OBJECT IDENTIFIER ::= { xyplex 11 }
+            
+            --  This MIB module uses the extended OBJECT-TYPE macro as
+            --  defined in [9]
+            
+            --  this is the MIB module for Xyplex Ethernet interfaces
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   7]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+            -- the Generic Ethernet group
+            
+            -- Implementation of this group is mandatory for all Xyplex
+            -- systems that have an Ethernet interface
+            
+            etherTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF EtherEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of generic entries."
+                ::= { ethernet 1 }
+            
+            etherEntry OBJECT-TYPE
+                SYNTAX EtherEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Generic status and parameter values for an Ethernet 
+                    interface."
+                INDEX { etherIndex }
+                ::= { etherTable 1 }
+            
+            EtherEntry ::=
+                SEQUENCE {
+                    etherIndex
+                        INTEGER,
+                    etherAlignmentErrors
+                        Counter,
+                    etherFCSErrors
+                        Counter
+                }
+            
+            etherIndex OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "An index value that uniquely identifies an Ethernet 
+                    interface.  The interface identified by a particular 
+                    value of this index is the same interface as 
+                    identified by the same value of ifIndex."
+                ::= { etherEntry 1 }
+            
+            etherAlignmentErrors OBJECT-TYPE
+                SYNTAX Counter
+
+            
+            
+                                                               [Page   8]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "A count of frames received on a particular 
+                    interface that are not an integral number of octets 
+                    in length and do not pass the FCS check."
+                ::= { etherEntry 2 }
+            
+            etherFCSErrors OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "A count of frames received on a particular 
+                    interface that are an integral number of octets in 
+                    length that do not pass the FCS check."
+                ::= { etherEntry 3 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   9]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+            -- the Ethernet Transmit group
+            
+            -- Implementation of this group is mandatory for all Xyplex
+            -- systems that transmit messages on an Ethernet interface
+            
+            etherTxTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF EtherTxEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of Ethernet transmit entries."
+                ::= { ethernet 2 }
+            
+            etherTxEntry OBJECT-TYPE
+                SYNTAX EtherTxEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Transmit status and parameter values for an 
+                    Ethernet interface."
+                INDEX { etherTxIndex }
+                ::= { etherTxTable 1 }
+            
+            EtherTxEntry ::=
+                SEQUENCE {
+                    etherTxIndex
+                        INTEGER,
+                    etherTxSingleCollisionFrames
+                        Counter,
+                    etherTxMultipleCollisionFrames
+                        Counter
+                }
+            
+            etherTxIndex OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "An index value that uniquely identifies an Ethernet 
+                    interface.  The interface identified by a particular 
+                    value of this index is the same interface as 
+                    identified by the same value of ifIndex."
+                ::= { etherTxEntry 1 }
+            
+            etherTxSingleCollisionFrames OBJECT-TYPE
+                SYNTAX Counter
+
+            
+            
+                                                               [Page  10]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "A count of successfully transmitted frames on a 
+                    particular interface for which transmission is 
+                    inhibited by exactly one collision.  A frame that is 
+                    counted by an instance of this object is also 
+                    counted by the corresponding instance of either the 
+                    ifOutUcastPkts or ifOutNUcastPkts object and is not 
+                    counted by the corresponding instance of the 
+                    etherTxMultipleCollisionFrames object."
+                ::= { etherTxEntry 2 }
+            
+            etherTxMultipleCollisionFrames OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "A count of successfully transmitted frames on a 
+                    particular interface for which transmission is 
+                    inhibited by more than one collision.  A frame that 
+                    is counted by an instance of this object is also 
+                    counted by the corresponding instance of either the 
+                    ifOutUcastPkts or ifOutNUcastPkts object and is not 
+                    counted by the corresponding instance of the 
+                    etherTxSingleCollisionFrames object."
+                ::= { etherTxEntry 3 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  11]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+            -- the Ethernet Multicast group
+            
+            -- Implementation of this group is optional;  it is
+            -- appropriate for all Xyplex systems on which the
+            -- necessary monitoring is feasible
+            
+            etherMulticastTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF EtherMulticastEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of etherMulticast entries."
+                ::= { ethernet 3 }
+            
+            etherMulticastEntry OBJECT-TYPE
+                SYNTAX EtherMulticastEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "EtherMulticast status and parameter values for an 
+                    Ethernet interface."
+                INDEX { etherMulticastIndex }
+                ::= { etherMulticastTable 1 }
+            
+            EtherMulticastEntry ::=
+                SEQUENCE {
+                    etherMulticastIndex
+                        INTEGER,
+                    etherMulticastBytesIn
+                        Counter,
+                    etherMulticastBytesOut
+                        Counter
+                }
+            
+            etherMulticastIndex OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "An index value that uniquely identifies an Ethernet 
+                    interface.  The interface identified by a particular 
+                    value of this index is the same interface as 
+                    identified by the same value of ifIndex."
+                ::= { etherMulticastEntry 1 }
+            
+            etherMulticastBytesIn OBJECT-TYPE
+
+            
+            
+                                                               [Page  12]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "A count of frames successfully received on a 
+                    particular interface and for which the destination 
+                    address multicast bit was set.  Bytes that are 
+                    counted by an instance of this object are also 
+                    counted by the corresponding instance of the 
+                    ifInOctets object."
+                ::= { etherMulticastEntry 2 }
+            
+            etherMulticastBytesOut OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "A count of successfully frames successfully 
+                    transmitted on a particular interface and for which 
+                    the destination address multicast bit was set.  
+                    Bytes that are counted by an instance of this object 
+                    are also counted by the corresponding instance of 
+                    the ifOutOctets object."
+                ::= { etherMulticastEntry 3 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  13]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+            -- the Ethernet Extended Transmit group
+            
+            -- Implementation of this group is optional;  it is
+            -- appropriate for all Xyplex systems on which the
+            -- necessary monitoring is feasible
+            
+            etherXTxTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF EtherXTxEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of Ethernet extended transmit entries."
+                ::= { ethernet 4 }
+            
+            etherXTxEntry OBJECT-TYPE
+                SYNTAX EtherXTxEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Extended transmit status and parameter values for 
+                    an Ethernet interface."
+                INDEX { etherXTxIndex }
+                ::= { etherXTxTable 1 }
+            
+            EtherXTxEntry ::=
+                SEQUENCE {
+                    etherXTxIndex
+                        INTEGER,
+                    etherXTxExcessiveCollisions
+                        Counter
+                }
+            
+            etherXTxIndex OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "An index value that uniquely identifies an Ethernet 
+                    interface.  The interface identified by a particular 
+                    value of this index is the same interface as 
+                    identified by the same value of ifIndex."
+                ::= { etherXTxEntry 1 }
+            
+            etherXTxExcessiveCollisions OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+
+            
+            
+                                                               [Page  14]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+                STATUS mandatory
+                DESCRIPTION
+                    "A count of frames for which transmission on a 
+                    particular interface fails due to excessive 
+                    collisions."
+                ::= { etherXTxEntry 2 }
+            
+            END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  15]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+            7.  References
+            
+            [1]  V. Cerf, IAB Recommendations for the Development of 
+            Internet Network Management Standards.  Internet Working 
+            Group Request for Comments 1052.  Network Information 
+            Center, SRI International, Menlo Park, California, (April, 
+            1988).
+            
+            [2]  V. Cerf, Report of the Second Ad Hoc Network Management 
+            Review Group, Internet Working Group Request for Comments 
+            1109.  Network Information Center, SRI International, Menlo 
+            Park, California, (August, 1989).
+            
+            [3]  M.T. Rose (editor), Management Information Base for 
+            Network Management of TCP/IP-based internets, Internet 
+            Working Group Request for Comments 1158.  Network 
+            Information Center, SRI International, Menlo Park, 
+            California, (May, 1990).
+            
+            [4]  M.T. Rose and K. McCloghrie, Structure and 
+            Identification of Management Information for TCP/IP-based 
+            internets, Internet Working Group Request for Comments 1155. 
+            Network Information Center, SRI International, Menlo Park, 
+            California, (May, 1990).
+            
+            [5]  K. McCloghrie and M.T. Rose, Management Information 
+            Base for Network Management of TCP/IP-based 
+            internets:MIB-II, Internet Working Group Request for 
+            Comments 1213. Network Information Center, SRI 
+            International, Menlo Park, California, (March 1991).
+            
+            [6]  J.D. Case, M.S. Fedor, M.L. Schoffstall, and J.R. 
+            Davin, Simple Network Management Protocol, Internet Working 
+            Group Request for Comments 1157.  Network Information 
+            Center, SRI International, Menlo Park, California, (May, 
+            1990).
+            
+            [7]  Information processing systems - Open Systems 
+            Interconnection - Specification of Abstract Syntax Notation 
+            One (ASN.1), International Organization for Standardization.  
+            International Standard 8824, (December, 1987).
+            
+            [8]  Information processing systems - Open Systems 
+            Interconnection - Specification of Basic Encoding Rules for 
+            Abstract Notation One (ASN.1), International Organization 
+            for Standardization.  International Standard 8825, 
+
+            
+            
+                                                               [Page  16]
+
+
+            
+                                XYPLEX ETHERNET MIB           23 May 91
+            
+            
+            
+            (December, 1987).
+            
+            [9] M.T. Rose, K. McCloghrie (editors), Towards Concise MIB 
+            Definitions, Internet Working Group Request for Comments 
+            1212. Network Information Center, SRI International, Menlo 
+            Park, California, (March, 1991).
+            
+            [10] Definitions of Managed Objects for Xyplex Systems, 
+            Xyplex document number 420-0545, (August, 1991).
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  17]
+

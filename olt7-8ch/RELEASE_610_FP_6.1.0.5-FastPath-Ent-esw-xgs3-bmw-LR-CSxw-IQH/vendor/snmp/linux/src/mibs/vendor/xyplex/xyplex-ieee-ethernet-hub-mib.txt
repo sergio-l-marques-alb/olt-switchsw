@@ -1,0 +1,1526 @@
+            
+            
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            
+            
+            
+                             Definitions of Managed Objects
+                                 in the IEEE 802 Model
+                                for Xyplex Ethernet Hubs
+            
+                                     18 October 1991
+            
+                            Xyplex Document Number 420-0541-A
+            
+                                       Xyplex, Inc.
+                                  330 Codman Hill Road
+                                  Boxborough, MA 01719
+                                     (508) 264-9900
+            
+                                   support@xyplex.com
+            
+            
+            1.  Status of this Memo
+            
+            This document is submitted to the Internet MIB repository 
+            and to Xyplex users as a Xyplex private extension to the 
+            SNMP MIB.  Distribution of this memo is unlimited.  Please 
+            express comments to Xyplex.
+            
+            2.  Abstract
+            
+            This memo defines a private portion of the Management 
+            Information Base (MIB), within the Xyplex branch, for use 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   1]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            with SNMP over various transport services, such as UDP or 
+            Ethernet.  In particular, it defines objects in the IEEE 
+            802.3 Hub Management model [11] for managing a Xyplex 
+            Ethernet hub.
+            
+            This memo does not specify a standard for the Internet 
+            community.  It describes a standard for Xyplex products.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   2]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            3.  Historical Perspective
+            
+            As reported in RFC 1052, IAB Recommendations for the 
+            Development of Internet Network Management Standards [1], a 
+            two-prong strategy for network management of TCP/IP-based 
+            internets was undertaken.  In the short-term, the Simple 
+            Network Management Protocol (SNMP), defined in RFC 1067, was 
+            to be used to manage nodes in the Internet community.  In 
+            the long-term, the use of the OSI network management 
+            framework was to be examined.  Two documents were produced 
+            to define the management information: RFC 1065, which 
+            defined the Structure of Management Information (SMI), and 
+            RFC 1066, which defined the Management Information Base 
+            (MIB).  Both of these documents were designed so as to be 
+            compatible with both the SNMP and the OSI network management 
+            framework.
+            
+            This strategy was quite successful in the short-term: 
+            Internet-based network management technology was fielded, by 
+            both the research and commercial communities, within a few 
+            months.  As a result of this, portions of the Internet 
+            community became network manageable in a timely fashion.
+            
+            As reported in RFC 1109, Report of the Second Ad Hoc Network 
+            Management Review Group [2], the requirements of the SNMP 
+            and the OSI network management frameworks were more 
+            different than anticipated.  As such, the requirement for 
+            compatibility between the SMI/MIB and both frameworks was 
+            suspended.  This action permitted the operational network 
+            management framework, based on the SNMP, to respond to new 
+            operational needs in the Internet community by producing 
+            MIB-II.
+            
+            In May of 1990, the core documents were elevated to 
+            "Standard Protocols" with "Recommended" status.  As such, 
+            the Internet- standard network management framework consists 
+            of: Structure and Identification of Management Information 
+            for TCP/IP-based internets, RFC 1155 [4], which describes 
+            how managed objects contained in the MIB are defined; 
+            Management Information Base for Network Management of 
+            TCP/IP-based internets, which describes the managed objects 
+            contained in the MIB, RFC 1156 [5]; and, the Simple Network 
+            Management Protocol, RFC 1157 [6], which defines the 
+            protocol used to manage these objects.
+            
+            Consistent with the IAB directive to produce simple, 
+
+            
+            
+                                                               [Page   3]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            workable systems in the short-term, the list of managed 
+            objects defined in the Internet-standard MIB was derived by 
+            taking only those elements which are considered essential.  
+            However, the SMI defined three extensibility mechanisms: 
+            one, the addition of new standard objects through the 
+            definitions of new versions of the MIB; two, the addition of 
+            widely-available but non- standard objects through the 
+            experimental subtree; and three, the addition of private 
+            objects through the enterprises subtree.  Such additional 
+            objects can not only be used for vendor-specific elements, 
+            but also for experimentation as required to further the 
+            knowledge of which other objects are essential.
+            
+            This memo defines extensions to the MIB using the third 
+            method.  It contains definitions of managed objects in 
+            various Xyplex products, using ASN.1 conventions specified 
+            in [10].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   4]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            4.  Objects
+            
+            Managed objects are accessed via a virtual information 
+            store, termed the Management Information Base or MIB.  
+            Objects in the MIB are defined using the subset of Abstract 
+            Syntax Notation One (ASN.1) [7] defined in the SMI.  In 
+            particular, each object has a name, a syntax, and an 
+            encoding.  The name is an object identifier, an 
+            administratively assigned name, which specifies an object 
+            type.  The object type together with an object instance 
+            serves to uniquely identify a specific instantiation of the 
+            object.  For human convenience, we often use a textual 
+            string, termed the OBJECT DESCRIPTOR, to also refer to the 
+            object type.
+            
+            The syntax of an object type defines the abstract data 
+            structure corresponding to that object type.  The ASN.1 
+            language is used for this purpose.  However, the SMI [4] 
+            purposely restricts the ASN.1 constructs which may be used. 
+            These restrictions are explicitly made for simplicity.
+            
+            The encoding of an object type is simply how that object 
+            type is represented using the object type's syntax.  
+            Implicitly tied to the notion of an object type's syntax and 
+            encoding is how the object type is represented when being 
+            transmitted on the network.
+            
+            The SMI specifies the use of the basic encoding rules of 
+            ASN.1 [8], subject to the additional requirements imposed by 
+            the SNMP.
+            
+            
+            4.1.  Format of Definitions
+            
+            Section 6 contains the specification of all object types 
+            contained in this MIB module.  The object types are defined 
+            using the conventions defined in the SMI, as amended by the 
+            extensions specified in [9].
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   5]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            5.  Overview
+            
+            IEEE 802 defines management parameters for Ethernet hubs in 
+            [11].  That document is a draft, expected to change, but 
+            provides useful guidance in defining a hub MIB.  The Xyplex 
+            IEEE 802 Hub MIB is based heavily on that document, but does 
+            not implement it exactly.  In particular, IEEE 802 defines 
+            the MIB to contain multiple hubs that can contain multiple 
+            groups of hub ports.  Xyplex hubs do not support that model, 
+            reducing it to a single, scalar instance of hub and group.
+            
+            The Xyplex IEEE 802 Hub MIB applies to Xyplex systems that 
+            act as an Ethernet hub.
+            
+            The IEEE 802 Hub MIB is mandatory for all Xyplex hubs 
+            managed via SNMP.
+            
+            The MIB comprises functional groups, and each group may in 
+            turn contain base objects and tables.
+            
+            As a convenience to the reader, the groups are:
+            
+                hmBasicCapability
+                hmSelfTestCapability
+                hmPerfMonCapability
+                hmAddrTrackCapability
+                hmBadBitClockCapability
+            
+            The IEEE MIB contains an additional, optional group, 
+            hmGuageCapability, that the Xyplex MIB does not include.
+            
+            The basic group contains base objects and a port table.  The 
+            basic group base objects are:
+            
+                hubBasicID
+                hubGroupCapacity
+                hubGroupMap
+            
+                groupHubBasicID
+                groupBasicID
+                groupNumberOfPorts
+            
+            The basic group port table contains:
+            
+                portHubBasicID
+                portGroupBasicId
+
+            
+            
+                                                               [Page   6]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+                portBasicId
+                portType
+                portAdminState
+                portAutoPartitionState
+            
+            The self test group contains:
+            
+                hubSelfTestID
+                hubResetTimeStamp
+                hubHealthState
+                hubHealthText
+                hubHealthData
+                hubSystemResetting
+                hubResetting
+                hubExecutingSelfTest
+            
+            The performance monitor group contains base objects and a 
+            port table.  The base objects are:
+            
+                relayHubPerfID
+                relayPerfID
+                relayTotalCollisions
+            
+            The performance monitor group port table contains:
+            
+                portHubPerfID
+                portGroupPerfID
+                portPerfID
+                portReadableFrames
+                portReadableOctets
+                portPygmys
+                portRunts
+                portFrameCheckSeqErrs
+                portAlignmentErrors
+                portFramesTooLong
+                portAutoPartitionCount
+            
+            The address tracking group has a port table containing:
+            
+                portHubAddrID
+                portGroupAddrID
+                portAddrID
+                portLastSourceAddress
+                portSourceAddrChanges
+            
+            The bad bit clock group has a port table containing:
+
+            
+            
+                                                               [Page   7]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            
+                portHubClockID
+                portGroupClockID
+                portClockID
+                portOutOfSpecBitRate
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   8]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            6.  Definitions
+            
+                    XYPLEX-IEEE-HUB-MIB DEFINITIONS ::= BEGIN
+            
+                    IMPORTS
+                            enterprises
+                                    FROM RFC1155-SMI
+                            DisplayString
+                                    FROM RFC1158-MIB
+                            OBJECT-TYPE
+                                    FROM RFC1212-CONCISE-MIB;
+            
+            xyplex          OBJECT IDENTIFIER ::= { enterprises 33 }
+            ieeeHub         OBJECT IDENTIFIER ::= { xyplex 10001 }
+            
+            -- From this point on, all object descriptors and
+            -- identifiers are as specified in [11] except for the
+            -- reduction of certain tables to become scalars
+            
+            hmBasicCapability        OBJECT IDENTIFIER ::= { ieeeHub 1 }
+            hmSelfTestCapability     OBJECT IDENTIFIER ::= { ieeeHub 2 }
+            hmPerfMonCapability      OBJECT IDENTIFIER ::= { ieeeHub 3 }
+            hmAddrTrackCapability    OBJECT IDENTIFIER ::= { ieeeHub 4 }
+            hmBadBitClockCapability  OBJECT IDENTIFIER ::= { ieeeHub 5 }
+            
+            --  This MIB module uses the extended OBJECT-TYPE macro as
+            --  defined in [9]
+            
+            --  this is the IEEE 802 model MIB module for Xyplex
+            --  Ethernet hubs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   9]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            -- the IEEE 802 Hub group
+            
+            -- Implementation of this group is mandatory for all Xyplex
+            -- Ethernet hubs
+            
+            -- the basic group
+            
+            -- IEEE 802 specifies a hub table, Xyplex does not
+            
+            hmBasicHubTable          OBJECT IDENTIFIER ::=
+                                              { hmBasicCapability 1 }
+            hmBasicHubEntry          OBJECT IDENTIFIER ::=
+                                              { hmBasicHubTable 1 }
+            hubID OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (6))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The hub's Ethernet address."
+                ::= { hmBasicHubEntry 1 }
+            
+            hubGroupCapacity OBJECT-TYPE
+                SYNTAX INTEGER (1..255)
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The maximum number of groups the hub can have; a 
+                    constant 1."
+                ::= { hmBasicHubEntry 2 }
+            
+            hubGroupMap OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (32))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "A bit map of defined groups."
+                ::= { hmBasicHubEntry 3 }
+            
+            -- IEEE 802 specifies a group table, Xyplex does not
+            
+            hmBasicGroupTable        OBJECT IDENTIFIER ::=
+                                              { hmBasicCapability 2 }
+            hmBasicGroupEntry        OBJECT IDENTIFIER ::=
+                                              { hmBasicGroupTable 1 }
+            
+            groupHubID OBJECT-TYPE
+
+            
+            
+                                                               [Page  10]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+                SYNTAX OCTET STRING (SIZE (6))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The hub's Ethernet address."
+                ::= { hmBasicGroupEntry 1 }
+            
+            groupID OBJECT-TYPE
+                SYNTAX INTEGER (1..255)
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The identification number of the hub's only group; 
+                    a constant 1."
+                ::= { hmBasicGroupEntry 2 }
+            
+            groupNumberOfPorts OBJECT-TYPE
+                SYNTAX INTEGER (1..255)
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of physical Ethernet ports on the hub."
+                ::= { hmBasicGroupEntry 3 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  11]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            -- the basic port table
+            
+            hmBasicPortTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF HmBasicPortEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of basic hub Ethernet port entries."
+                ::= { hmBasicCapability 3 }
+            
+            hmBasicPortEntry OBJECT-TYPE
+                SYNTAX HmBasicPortEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Parameter values for a port."
+                INDEX { portHubBasicID }
+                ::= { hmBasicPortTable 1 }
+            
+            HmBasicPortEntry ::=
+                SEQUENCE {
+                    portHubBasicID
+                        OCTET STRING,
+                    portGroupBasicID 
+                        INTEGER,
+                    portBasicID
+                        INTEGER,
+                    portType
+                        INTEGER,
+                    portAdminState
+                        INTEGER,
+                    portAutoPartitionState
+                        INTEGER
+                }
+            
+            portHubBasicID OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (6))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The hub's Ethernet address."
+                ::= { hmBasicPortEntry 1 }
+            
+            portGroupBasicID OBJECT-TYPE
+                SYNTAX INTEGER (1..255)
+                ACCESS read-only
+
+            
+            
+                                                               [Page  12]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+                STATUS mandatory
+                DESCRIPTION
+                    "Group number; a constant 1."
+                ::= { hmBasicPortEntry 2 }
+            
+            portBasicID OBJECT-TYPE
+                SYNTAX INTEGER (1..255)
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "A unique value for each Ethernet port.  Its value 
+                    ranges between 1 and the value of 
+                    groupNumberOfPorts.  The value for each port must 
+                    remain constant at least from one re-initialization 
+                    of the network management agent to the next."
+                ::= { hmBasicPortEntry 3 }
+            
+            portType OBJECT-TYPE
+                SYNTAX INTEGER { other(1), repeater(2),
+                                  tenBASE-FAsync(3), tenBASE-FSynch(4) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The port type, with the following meanings:
+            
+                    other               not listed here
+                    repeater            802.3 sec. 9 rptr port
+                    tenBASE-FAsync(3)   async port on 10BASE-FA
+                    tenBASE-FSynch(4)   sync port on 10BASE-FA
+                    "
+                ::= { hmBasicPortEntry 4 }
+            
+            portAdminState OBJECT-TYPE
+                SYNTAX INTEGER { other(1), disabled(2), enabled(3) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control over the port's ability to transmit and 
+                    receive.  Corresponds directly to PORT 
+                    ENABLED/DISABLED and the value labeled 'State:' in 
+                    the PORT display."
+                ::= { hmBasicPortEntry 5 }
+            
+            portAutoPartitionState OBJECT-TYPE
+                SYNTAX INTEGER { other(1), notAutoPartitioned(2),
+                                 autoPartitioned(3) }
+
+            
+            
+                                                               [Page  13]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The port's status with regard to automatic 
+                    partitioning.  Corresponds directly to the value 
+                    labeled 'Auto Partitioned:' in the PORT display."
+                ::= { hmBasicPortEntry 6 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  14]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            -- the self test group
+            
+            -- IEEE 802 specifies a table, Xyplex does not
+            
+            hmSelfTestHubTable       OBJECT IDENTIFIER ::=
+                                              { hmSelfTestCapability 1 }
+            hmSelfTestHubEntry       OBJECT IDENTIFIER ::=
+                                              { hmSelfTestHubTable 1 }
+            
+            hubSelfTestID OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (6))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The hub's Ethernet address."
+                ::= { hmSelfTestHubEntry 1 }
+            
+            hubResetTimeStamp OBJECT-TYPE
+                SYNTAX TimeTicks
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The value of sysUpTime when the hub was last 
+                    reset."
+                ::= { hmSelfTestHubEntry 2 }
+            
+            hubHealthState OBJECT-TYPE
+                SYNTAX  INTEGER { other(1), ok(2), failed(3) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Indication of hub operational failure."
+                ::= { hmSelfTestHubEntry 3 }
+            
+            hubHealthText OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (0..255))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Free form text description of hub operational 
+                    state."
+                ::= { hmSelfTestHubEntry 4 }
+            
+            hubHealthData OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (0..255))
+                ACCESS read-only
+
+            
+            
+                                                               [Page  15]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+                STATUS mandatory
+                DESCRIPTION
+                    "Free form binary data description of hub 
+                    operational state."
+                ::= { hmSelfTestHubEntry 5 }
+            
+            hubSystemResetting OBJECT-TYPE
+                SYNTAX INTEGER { notResetting(1), resetting(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control to cause initialization of hub, reset of 
+                    management counters, ad reset of hub parameters to 
+                    defaults."
+                ::= { hmSelfTestHubEntry 6 }
+            
+            hubResetting OBJECT-TYPE
+                SYNTAX INTEGER { notResetting(1), resetting(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control to cause initialization of the relay and 
+                    port counters and flags related to the 
+                    auto-partition function.  This does not affect hub 
+                    management counters."
+                ::= { hmSelfTestHubEntry 7 }
+            
+            hubExecutingSelfTest OBJECT-TYPE
+                SYNTAX INTEGER { notSelfTesting(1), selfTesting(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control to cause execution of a non-disruptive self 
+                    test."
+                ::= { hmSelfTestHubEntry 8 }
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  16]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            -- the performance monitor group
+            
+            -- IEEE 802 specifies a table, Xyplex does not
+            
+            hmPerfMonRelayTable      OBJECT IDENTIFIER ::=
+                                              { hmPerfMonCapability 1 }
+            hmPerfMonRelayEntry      OBJECT IDENTIFIER ::=
+                                              { hmPerfMonRelayTable 1 }
+            relayHubPerfID OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (6))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The hub's Ethernet address."
+                ::= { hmPerfMonRelayEntry 1 }
+            
+            relayPerfID OBJECT-TYPE
+                SYNTAX INTEGER (1..4)
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Relay identification; a constant 1."
+                ::= { hmPerfMonRelayEntry 2 }
+            
+            relayTotalCollisions OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of times the hub transmitted and 
+                    simultaneously detected external activity on one or 
+                    more ports."
+                ::= { hmPerfMonRelayEntry 3 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  17]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            -- the performance monitoring port table
+            
+            hmPerfMonPortTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF HmPerfMonPortEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                ::= { hmPerfMonCapability 2 }
+            
+            hmPerfMonPortEntry OBJECT-TYPE
+                SYNTAX HmPerfMonPortEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                ::= { hmPerfMonPortTable 1 }
+            
+            HmPerfMonPortEntry ::=
+                SEQUENCE {
+                    portHubPerfID
+                        OCTET STRING,
+                    portGroupPerfID 
+                        INTEGER,
+                    portPerfID
+                        INTEGER,
+                    portReadableFrames
+                        Counter,
+                    portReadableOctets
+                        Counter,
+                    portPygmys
+                        Counter,
+                    portRunts
+                        Counter,
+                    portFrameCheckSeqErrs
+                        Counter,
+                    portAlignmentErrors
+                        Counter,
+                    portFramesTooLong
+                        Counter,
+                    portAutoPartitionCount
+                        Counter
+                }
+            
+            portHubPerfID OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (6))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The hub's Ethernet address."
+
+            
+            
+                                                               [Page  18]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+                ::= { hmPerfMonPortEntry 1 }
+            
+            portGroupPerfID OBJECT-TYPE
+                SYNTAX INTEGER (1..255)
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The group number; a constant 1."
+                ::= { hmPerfMonPortEntry 2 }
+            
+            portPerfID OBJECT-TYPE
+                SYNTAX INTEGER (1..255)
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "A unique value for each Ethernet port, identifying 
+                    the same port as the equivalent value of 
+                    portBasicID."
+                ::= { hmPerfMonPortEntry 3 }
+            
+            portReadableFrames OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of frames received with legal length and no 
+                    corruption in transmission.  Corresponds directly 
+                    with the value labeled 'Received Frames:' in the 
+                    PORT display."
+                ::= { hmPerfMonPortEntry 4 }
+            
+            portReadableOctets OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of data and padding bytes represented by 
+                    portReadableFrames."
+                ::= { hmPerfMonPortEntry 5 }
+            
+            portPygmys OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of message fragments less than 64 +/- 10 
+
+            
+            
+                                                               [Page  19]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+                            bits long, possibly indicating external noise 
+                    problems.  Corresponds directly with the value 
+                    labeled 'Fragments (Pygmy):' in the PORT display."
+                ::= { hmPerfMonPortEntry 6 }
+            
+            portRunts OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of collision fragments longer than a pygmy 
+                    but shorter than a legal message.  These occur as a 
+                    result of normal collision operation.  Corresponds 
+                    directly with the value labeled 'Short Frames 
+                    (Runt):' in the PORT display."
+                ::= { hmPerfMonPortEntry 7 }
+            
+            portFrameCheckSeqErrs OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of frames received with integral bytes but 
+                    invalid FCS.  Corresponds directly with the value 
+                    labeled 'Check Sequenct (CRC):' in the PORT 
+                    display."
+                ::= { hmPerfMonPortEntry 8 }
+            
+            portAlignmentErrors OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of frames received with an incomplete 
+                    bytes."
+                ::= { hmPerfMonPortEntry 9 }
+            
+            portFramesTooLong OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of frames received of length greater than 
+                    1518 bytes.  Corresponds directly with the value 
+                    labeled 'Long Frames (>1518):' in the PORT 
+                    display."
+
+            
+            
+                                                               [Page  20]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+                ::= { hmPerfMonPortEntry 10 }
+            
+            portAutoPartitionCount OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of times the repeater has automatically 
+                    partitioned the port.  Corresponds directly with the 
+                    value labeled 'Auto Partitions:' in the PORT 
+                    display."
+                ::= { hmPerfMonPortEntry 11 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  21]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            -- the address tracking port table
+            
+            hmAddrTrackPortTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF HmAddrTrackPortEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                ::= { hmAddrTrackCapability 1 }
+            
+            hmAddrTrackPortEntry OBJECT-TYPE
+                SYNTAX HmAddrTrackPortEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                ::= { hmAddrTrackPortTable 1 }
+            
+            HmAddrTrackPortEntry ::=
+                SEQUENCE {
+                    portHubAddrID
+                        OCTET STRING,
+                    portGroupAddrID 
+                        INTEGER,
+                    portAddrID
+                        INTEGER,
+                    portLastSourceAddress
+                        NetworkAddress,
+                    portSourceAddrChanges
+                        Counter
+                }
+            
+            portHubAddrID OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (6))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The hub's Ethernet address."
+                ::= { hmAddrTrackPortEntry 1 }
+            
+            portGroupAddrID OBJECT-TYPE
+                SYNTAX INTEGER (1..255)
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The group number; a constant 1."
+                ::= { hmAddrTrackPortEntry 2 }
+            
+            portAddrID OBJECT-TYPE
+                SYNTAX INTEGER (1..255)
+
+            
+            
+                                                               [Page  22]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "A unique value for each Ethernet port, identifying 
+                    the same port as the equivalent value of 
+                    portBasicID."
+                ::= { hmAddrTrackPortEntry 3 }
+            
+            portLastSourceAddress OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (6))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Source address of the last readable frame received 
+                    on the port.  Corresponds directly with the value 
+                    labeled 'Last Address:' in the PORT display."
+                ::= { hmAddrTrackPortEntry 4 }
+            
+            portSourceAddrChanges OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of times portLastSourceAddress has changed.  
+                    Corresponds directly with the value labeled 'Address 
+                    Changes:' in the PORT display."
+                ::= { hmAddrTrackPortEntry 5 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  23]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            -- bad bit clock port table
+            
+            hmBadBitClockPortTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF HmBadBitClockPortEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                ::= { hmBadBitClockCapability 1 }
+            
+            hmBadBitClockPortEntry OBJECT-TYPE
+                SYNTAX HmBadBitClockPortEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                ::= { hmBadBitClockPortTable 1 }
+            
+            HmBadBitClockPortEntry ::=
+                SEQUENCE {
+                    portHubClockID
+                        OCTET STRING,
+                    portGroupClockID 
+                        INTEGER,
+                    portClockID
+                        INTEGER,
+                    portOutOfSpecBitRate
+                        Counter
+                }
+            
+            portHubClockID OBJECT-TYPE
+                SYNTAX OCTET STRING (SIZE (6))
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The hub's Ethernet address."
+                ::= { hmBadBitClockPortEntry 1 }
+            
+            portGroupClockID OBJECT-TYPE
+                SYNTAX INTEGER (1..255)
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The group number; a constant 1."
+                ::= { hmBadBitClockPortEntry 2 }
+            
+            portClockID OBJECT-TYPE
+                SYNTAX INTEGER (1..255)
+                ACCESS read-only
+                STATUS mandatory
+
+            
+            
+                                                               [Page  24]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+                DESCRIPTION
+                    "A unique value for each Ethernet port, identifying 
+                    the same port as the equivalent value of 
+                    portBasicID."
+                ::= { hmBadBitClockPortEntry 3 }
+            
+            portOutOfSpecBitRate OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of received frames with the transmission 
+                    frequency detectably out of specification.  
+                    Corresponds directly with the value labeled 'Out of 
+                    Spec. Bit Rate:' in the PORT display."
+                ::= { hmBadBitClockPortEntry 4 }
+            
+            END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  25]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            7.  References
+            
+            [1]  V. Cerf, IAB Recommendations for the Development of 
+            Internet Network Management Standards.  Internet Working 
+            Group Request for Comments 1052.  Network Information 
+            Center, SRI International, Menlo Park, California, (April, 
+            1988).
+            
+            [2]  V. Cerf, Report of the Second Ad Hoc Network Management 
+            Review Group, Internet Working Group Request for Comments 
+            1109.  Network Information Center, SRI International, Menlo 
+            Park, California, (August, 1989).
+            
+            [3]  M.T. Rose (editor), Management Information Base for 
+            Network Management of TCP/IP-based internets, Internet 
+            Working Group Request for Comments 1158.  Network 
+            Information Center, SRI International, Menlo Park, 
+            California, (May, 1990).
+            
+            [4]  M.T. Rose and K. McCloghrie, Structure and 
+            Identification of Management Information for TCP/IP-based 
+            internets, Internet Working Group Request for Comments 1155. 
+            Network Information Center, SRI International, Menlo Park, 
+            California, (May, 1990).
+            
+            [5]  K. McCloghrie and M.T. Rose, Management Information 
+            Base for Network Management of TCP/IP-based 
+            internets:MIB-II, Internet Working Group Request for 
+            Comments 1213. Network Information Center, SRI 
+            International, Menlo Park, California, (March 1991).
+            
+            [6]  J.D. Case, M.S. Fedor, M.L. Schoffstall, and J.R. 
+            Davin, Simple Network Management Protocol, Internet Working 
+            Group Request for Comments 1157.  Network Information 
+            Center, SRI International, Menlo Park, California, (May, 
+            1990).
+            
+            [7]  Information processing systems - Open Systems 
+            Interconnection - Specification of Abstract Syntax Notation 
+            One (ASN.1), International Organization for Standardization.  
+            International Standard 8824, (December, 1987).
+            
+            [8]  Information processing systems - Open Systems 
+            Interconnection - Specification of Basic Encoding Rules for 
+            Abstract Notation One (ASN.1), International Organization 
+            for Standardization.  International Standard 8825, 
+
+            
+            
+                                                               [Page  26]
+
+
+            
+                           XYPLEX IEEE ETHERNET HUB MIB      18 Oct 91
+            
+            
+            
+            (December, 1987).
+            
+            [9] M.T. Rose, K. McCloghrie (editors), Towards Concise MIB 
+            Definitions, Internet Working Group Request for Comments 
+            1212. Network Information Center, SRI International, Menlo 
+            Park, California, (March, 1991).
+            
+            [10] Definitions of Managed Objects for Xyplex Systems, 
+            Xyplex document number 420-0545, (August, 1991).
+            
+            [11] Draft Supplement to ANSI/IEEE STD 802.3 - 1990 Edition, 
+            CSMA/CD Access Method & Physical Layer Specifications, Layer 
+            Management for Hub Devises, Section 18, draft of 5 
+            September 1990.
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  27]
+
