@@ -1,0 +1,26 @@
+if [ $# != 3 ]; then
+echo "Usage: $0 shell dir setup";
+exit 0;
+fi
+echo "Joining files";
+tar zcvf tarfile.tgz $2;
+
+echo "Build $3 = shell($1) + dir($2)";
+
+echo "fdir=$2;"                                                    >  $3;
+echo "extract_files()"                                             >> $3;
+echo "{"                                                           >> $3;
+echo "  nice -n -1 dd if=\$0 of=tarfile.tgz bs=2048 skip=4 > /dev/null 2>&1;" >> $3;
+echo "  nice -n -1 tar zxvf tarfile.tgz"                                      >> $3;
+echo "  rm tarfile.tgz > /dev/null;"                               >> $3;
+echo "}"                                                           >> $3;
+echo "remove_files()"                                              >> $3;
+echo "{"                                                           >> $3;
+echo "  rm -Rf $2;"                                                >> $3;
+echo "}"                                                           >> $3;
+cat $1 >> $3;
+echo "exit 0;" >> $3;
+dd if=tarfile.tgz of=$3 bs=2048 seek=4 > /dev/null 2>&1;
+rm tarfile.tgz > /dev/null;
+chmod u+x $3;
+echo "Done!";

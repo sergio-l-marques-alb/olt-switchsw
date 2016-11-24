@@ -1,0 +1,32 @@
+#!/bin/sh
+
+export MIBS=ALL
+
+echo rcS_ptin: load fpga
+/usr/local/ptin/sbin/olt7_8ch -fpga
+
+echo rcS_ptin: insmod
+sh /usr/local/ptin/scripts/fastpath.insmods.sh
+
+echo rcS_ptin: mbx_load
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/ptin/lib
+sh /usr/local/ptin/scripts/mbx_load.sh
+sleep 1
+
+echo rcS_ptin: fastpath
+sh /usr/local/ptin/sbin/fastpath boot &
+sleep 15
+/usr/local/ptin/sbin/fastpath.cli ping
+
+echo rcS_ptin: olt7_8ch
+/usr/local/ptin/sbin/olt7_8ch&
+sleep 15
+/usr/local/ptin/sbin/buga ping
+
+echo rcS_ptin: manager.olt
+/usr/local/ptin/sbin/manager.olt&
+sleep 15
+
+/usr/local/ptin/sbin/snmpd  -p /var/run/snmpd.pid -c /usr/local/ptin/var/snmpd.conf &
+
+echo rcS_ptin: end!
