@@ -1,0 +1,17 @@
+mode="run"
+
+if [ ! -z $1 ]; then
+    mode=$1
+fi
+
+if [ $mode = "stop" ]; then
+    killall switchdrvr
+elif [ $mode = "boot" ]; then
+    exec 1>/usr/local/ptin/log/fastpath/startup.log 2>&1
+    /usr/local/ptin/sbin/switchdrvr 0>/dev/null &
+    sleep 120
+    exec 1>&- 2>&-
+else
+    /usr/local/ptin/sbin/switchdrvr 0>/dev/null &
+fi
+
