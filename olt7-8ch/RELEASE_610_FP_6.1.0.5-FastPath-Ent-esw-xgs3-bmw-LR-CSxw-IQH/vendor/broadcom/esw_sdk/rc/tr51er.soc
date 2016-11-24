@@ -1,0 +1,207 @@
+# $Id: tr51er.soc,v 1.1 2011/04/18 18:52:10 mruas Exp $
+# $Copyright: (c) 2004 Broadcom Corp.
+# All Rights Reserved.$
+#
+# ER Memtest
+#
+
+
+# Sort out which memories exist in this configuration
+
+if !$?seer_ext_table_cfg "local seer_ext_table_cfg 0"
+if !$?seer_host_hash_table_cfg "local seer_host_hash_table_cfg 2"
+if !$?seer_mvl_hash_table_cfg "local seer_mvl_hash_table_cfg 1"
+
+
+case $seer_ext_table_cfg \
+        0 "local l3_defip_alg 1; local next_hop_int 1" \
+        1 "local l3_defip_alg 1; local next_hop_int 1; \
+                local l2_entry_external 1" \
+        2 "local l3_defip_alg 1; local next_hop_ext 1" \
+        3 "local l3_defip_alg 1; local next_hop_int 1; local fp_external 1; \
+                local fp_tcam_external 1; local fp_policy_table_external 1; \
+                local fp_meter_table_ext 1; local fp_counter_ext 1" \
+        4 "local l3_defip_alg 1; local next_hop_int 1; local fp_external 1; \
+                local fp_tcam_external 1; local fp_policy_table_external 1; \
+                local fp_meter_table_ext 1; local fp_counter_ext 1" \
+        5 "local l3_defip_cam 1; local l3_defip_tcam 1; \
+                local l3_defip_data 1; local next_hop_ext 1; \
+                local fp_external 1;  local fp_tcam_external 1; \
+                local fp_policy_table_external 1; \
+                local fp_meter_table_ext 1; local fp_counter_ext 1" \
+        6 "local l3_defip_cam 1; local l3_defip_tcam 1; \
+                local l3_defip_data 1; local next_hop_ext 1; \
+                local fp_external 1; local fp_tcam_external 1; \
+                local fp_policy_table_external 1; \
+                local fp_meter_table_ext 1; local fp_counter_ext 1" \
+        7 "local l3_defip_cam 1; local l3_defip_tcam 1; \
+                local l3_defip_data 1; local next_hop_ext 1; \
+                local fp_external 1; local fp_tcam_external 1; \
+                local fp_policy_table_external 1; \
+                local fp_meter_table_ext 1; local fp_counter_ext 1" \
+        8 "local l3_defip_cam 1; local l3_defip_tcam 1; \
+                local l3_defip_data 1; local next_hop_ext 1; \
+                local fp_external 1; local fp_tcam_external 1; \
+                local fp_policy_table_external 1; \
+                local fp_meter_table_ext 1; local fp_counter_ext 1" \
+        9 "local l3_defip_cam 1; local l3_defip_tcam 1; \
+                local l3_defip_data 1; local next_hop_ext 1;" \
+        10 "local l3_defip_cam 1; local l3_defip_tcam 1; \
+                local l3_defip_data 1; local next_hop_ext 1;" \
+        * "local l3_defip_alg 1; local next_hop_int 1"
+
+case $seer_host_hash_table_cfg \
+        0 "local l2_entry_internal 1" \
+        1 "local l2_entry_internal 1; local l3_entry_v4 1" \
+        3 "local l2_entry_internal 1; local l3_entry_v6 1" \
+        6 "local l3_entry_v4 1" \
+        7 "local l3_entry_v4 1; local l3_entry_v6 1" \
+        8 "local l3_entry_v6 1" \
+        * "local l2_entry_internal 1; local l3_entry_v4 1; local l3_entry_v6 1"
+
+case $seer_mvl_hash_table_cfg \
+        0 "local vlan_mac 1" \
+        2 "local my_station 1" \
+        * "local vlan_mac 1; local my_station 1"
+
+
+linkscan off
+init
+init misc
+init mmu
+
+#echo "tr 51 M=BSAFE_CMD_DATA_IN";tr 51 M=BSAFE_CMD_DATA_IN ITERations=1; echo " Done"
+#echo "tr 51 M=BSAFE_CMD_DATA_OUT";tr 51 M=BSAFE_CMD_DATA_OUT ITERations=1; echo " Done"
+echo "tr 51 M=C0_CPU_RQ_DATA";tr 51 M=C0_CPU_RQ_DATA ITERations=1; echo " Done"
+echo "tr 51 M=C0_CPU_WQ_DATA";tr 51 M=C0_CPU_WQ_DATA ITERations=1; echo " Done"
+echo "tr 51 M=C0_RQ_DATA";tr 51 M=C0_RQ_DATA ITERations=1; echo " Done"
+echo "tr 51 M=C0_WQ_DATA";tr 51 M=C0_WQ_DATA ITERations=1; echo " Done"
+echo "tr 51 M=C1_CPU_RQ_DATA";tr 51 M=C1_CPU_RQ_DATA ITERations=1; echo " Done"
+echo "tr 51 M=C1_CPU_WQ_DATA";tr 51 M=C1_CPU_WQ_DATA ITERations=1; echo " Done"
+echo "tr 51 M=C1_RQ_DATA";tr 51 M=C1_RQ_DATA ITERations=1; echo " Done"
+echo "tr 51 M=C1_WQ_DATA";tr 51 M=C1_WQ_DATA ITERations=1; echo " Done"
+echo "tr 51 M=DSCP_TABLE";tr 51 M=DSCP_TABLE ITERations=1; echo " Done"
+echo "tr 51 M=EGRESS_ADJACENT_MAC";tr 51 M=EGRESS_ADJACENT_MAC ITERations=1; echo " Done"
+echo "tr 51 M=EGRESS_DSCP_EXP";tr 51 M=EGRESS_DSCP_EXP ITERations=1; echo " Done"
+echo "tr 51 M=EGRESS_IP_TUNNEL";tr 51 M=EGRESS_IP_TUNNEL ITERations=1; echo " Done"
+echo "tr 51 M=EGRESS_MASK";tr 51 M=EGRESS_MASK ITERations=1; echo " Done"
+echo "tr 51 M=EGR_VLAN_XLATE";tr 51 M=EGR_VLAN_XLATE ITERations=1; echo " Done"
+echo "tr 51 M=FP_PORT_FIELD_SEL";tr 51 M=FP_PORT_FIELD_SEL ITERations=1; echo " Done"
+echo "tr 51 M=FP_RANGE_CHECK";tr 51 M=FP_RANGE_CHECK ITERations=1; echo " Done"
+echo "tr 51 M=FP_TCP_UDP_PORT_RANGE";tr 51 M=FP_TCP_UDP_PORT_RANGE ITERations=1; echo " Done"
+echo "tr 51 M=IGR_VLAN_XLATE";tr 51 M=IGR_VLAN_XLATE ITERations=1; echo " Done"
+echo "tr 51 M=IPMC_GROUP_V4_SM";tr 51 M=IPMC_GROUP_V4_SM ITERations=1; echo " Done"
+echo "tr 51 M=IPMC_GROUP_V6_SM";tr 51 M=IPMC_GROUP_V6_SM ITERations=1; echo " Done"
+echo "tr 51 M=IPORT_TABLE";tr 51 M=IPORT_TABLE ITERations=1; echo " Done"
+echo "tr 51 M=L2MC_TABLE";tr 51 M=L2MC_TABLE ITERations=1; echo " Done"
+echo "tr 51 M=L2_ENTRY_OVERFLOW";tr 51 M=L2_ENTRY_OVERFLOW ITERations=1; echo " Done"
+# FIXME: L2_MOD_FIFO test not working
+#echo "tr 51 M=L2_MOD_FIFO";tr 51 M=L2_MOD_FIFO ITERations=1; echo " Done"
+echo "tr 51 M=L2_USER_ENTRY";tr 51 M=L2_USER_ENTRY ITERations=1; echo " Done"
+echo "tr 51 M=L2_USER_ENTRY_DATA";tr 51 M=L2_USER_ENTRY_DATA ITERations=1; echo " Done"
+echo "tr 51 M=L2_USER_ENTRY_TCAM";tr 51 M=L2_USER_ENTRY_TCAM ITERations=1; echo " Done"
+echo "tr 51 M=L3_INTF_TABLE";tr 51 M=L3_INTF_TABLE ITERations=1; echo " Done"
+echo "tr 51 M=L3_INTF_EGR_FILTER_LIST";tr 51 M=L3_INTF_EGR_FILTER_LIST ITERations=1; echo " Done"
+echo "tr 51 M=L3_INTF_IGR_FILTER_LIST";tr 51 M=L3_INTF_IGR_FILTER_LIST ITERations=1; echo " Done"
+echo "tr 51 M=L3_INTF_QOS";tr 51 M=L3_INTF_QOS ITERations=1; echo " Done"
+echo "tr 51 M=L3_ECMP";tr 51 M=L3_ECMP ITERations=1; echo " Done"
+echo "tr 51 M=L3_IPMC";tr 51 M=L3_IPMC ITERations=1; echo " Done"
+echo "tr 51 M=L3_DEFIP_HITBIT";tr 51 M=L3_DEFIP_HITBIT ITERations=1; echo " Done"
+echo "tr 51 M=L3_TUNNEL";tr 51 M=L3_TUNNEL ITERations=1; echo " Done"
+echo "tr 51 M=L3_TUNNEL_DATA";tr 51 M=L3_TUNNEL_DATA ITERations=1; echo " Done"
+echo "tr 51 M=L3_TUNNEL_TCAM";tr 51 M=L3_TUNNEL_TCAM ITERations=1; echo " Done"
+echo "tr 51 M=CCP";tr 51 M=CCP ITERations=1; echo " Done"
+echo "tr 51 M=CCPTR";tr 51 M=CCPTR ITERations=1; echo " Done"
+echo "tr 51 M=CELLPTRSWAP_00_HI";tr 51 M=CELLPTRSWAP_00_HI ITERations=1; echo " Done"
+echo "tr 51 M=CELLPTRSWAP_00_LO";tr 51 M=CELLPTRSWAP_00_LO ITERations=1; echo " Done"
+echo "tr 51 M=CELLPTRSWAP_01_HI";tr 51 M=CELLPTRSWAP_01_HI ITERations=1; echo " Done"
+echo "tr 51 M=CELLPTRSWAP_01_LO";tr 51 M=CELLPTRSWAP_01_LO ITERations=1; echo " Done"
+echo "tr 51 M=MMU_IBS";tr 51 M=MMU_IBS ITERations=1; echo " Done"
+echo "tr 51 M=MMU_INGPKTCELLLIMITIBP";tr 51 M=MMU_INGPKTCELLLIMITIBP ITERations=1; echo " Done"
+echo "tr 51 M=MMU_INGPKTCELLUSE";tr 51 M=MMU_INGPKTCELLUSE ITERations=1; echo " Done"
+echo "tr 51 M=MMU_IPMC_INDEX";tr 51 M=MMU_IPMC_INDEX ITERations=1; echo " Done"
+echo "tr 51 M=MMU_IPMC_PTR";tr 51 M=MMU_IPMC_PTR ITERations=1; echo " Done"
+echo "tr 51 M=MMU_IPMC_REP_10G";tr 51 M=MMU_IPMC_REP_10G ITERations=1; echo " Done"
+echo "tr 51 M=CFAP_CH0";tr 51 M=CFAP_CH0 ITERations=1; echo " Done"
+echo "tr 51 M=CFAP_CH1";tr 51 M=CFAP_CH1 ITERations=1; echo " Done"
+echo "tr 51 M=WQ_00_HI";tr 51 M=WQ_00_HI ITERations=1; echo " Done"
+echo "tr 51 M=MMU_WQ_00_LO";tr 51 M=MMU_WQ_00_LO ITERations=1; echo " Done"
+echo "tr 51 M=WQ_01_HI";tr 51 M=WQ_01_HI ITERations=1; echo " Done"
+echo "tr 51 M=WQ_01_LO";tr 51 M=WQ_01_LO ITERations=1; echo " Done"
+echo "tr 51 M=XQ0";tr 51 M=XQ0 ITERations=1; echo " Done"
+echo "tr 51 M=XQ1";tr 51 M=XQ1 ITERations=1; echo " Done"
+echo "tr 51 M=XQ2";tr 51 M=XQ2 ITERations=1; echo " Done"
+echo "tr 51 M=XQ3";tr 51 M=XQ3 ITERations=1; echo " Done"
+echo "tr 51 M=XQ4";tr 51 M=XQ4 ITERations=1; echo " Done"
+echo "tr 51 M=XQ5";tr 51 M=XQ5 ITERations=1; echo " Done"
+echo "tr 51 M=XQ6";tr 51 M=XQ6 ITERations=1; echo " Done"
+echo "tr 51 M=XQ7";tr 51 M=XQ7 ITERations=1; echo " Done"
+echo "tr 51 M=XQ8";tr 51 M=XQ8 ITERations=1; echo " Done"
+echo "tr 51 M=XQ9";tr 51 M=XQ9 ITERations=1; echo " Done"
+echo "tr 51 M=XQ10";tr 51 M=XQ10 ITERations=1; echo " Done"
+echo "tr 51 M=XQ11";tr 51 M=XQ11 ITERations=1; echo " Done"
+echo "tr 51 M=XQ12";tr 51 M=XQ12 ITERations=1; echo " Done"
+echo "tr 51 M=XQ13";tr 51 M=XQ13 ITERations=1; echo " Done"
+echo "tr 51 M=MPLS_EXP";tr 51 M=MPLS_EXP ITERations=1; echo " Done"
+echo "tr 51 M=MY_STATION";tr 51 M=MY_STATION ITERations=1; echo " Done"
+echo "tr 51 M=PORT";tr 51 M=PORT ITERations=1; echo " Done"
+echo "tr 51 M=SOURCE_TRUNK_MAP";tr 51 M=SOURCE_TRUNK_MAP ITERations=1; echo " Done"
+echo "tr 51 M=VLAN_STG";tr 51 M=VLAN_STG ITERations=1; echo " Done"
+echo "tr 51 M=TRUNK_BITMAP";tr 51 M=TRUNK_BITMAP ITERations=1; echo " Done"
+echo "tr 51 M=PORT_TRUNK_EGRESS";tr 51 M=PORT_TRUNK_EGRESS ITERations=1; echo " Done"
+echo "tr 51 M=TRUNK_GROUP";tr 51 M=TRUNK_GROUP ITERations=1; echo " Done"
+echo "tr 51 M=UDF_OFFSET";tr 51 M=UDF_OFFSET ITERations=1; echo " Done"
+echo "tr 51 M=VFI_BITMAP";tr 51 M=VFI_BITMAP ITERations=1; echo " Done"
+echo "tr 51 M=VLAN_SUBNET";tr 51 M=VLAN_SUBNET ITERations=1; echo " Done"
+echo "tr 51 M=VLAN_SUBNET_DATA";tr 51 M=VLAN_SUBNET_DATA ITERations=1; echo " Done"
+echo "tr 51 M=VLAN_SUBNET_TCAM";tr 51 M=VLAN_SUBNET_TCAM ITERations=1; echo " Done"
+echo "tr 51 M=VLAN";tr 51 M=VLAN ITERations=1; echo " Done"
+echo "tr 51 M=VPLS_VC_LABEL";tr 51 M=VPLS_VC_LABEL ITERations=1; echo " Done"
+echo "tr 51 M=VRF_VFI_INTF";tr 51 M=VRF_VFI_INTF ITERations=1; echo " Done"
+
+echo "tr 51 M=FP_COUNTER_INT";tr 51 M=FP_COUNTER_INT ITERations=1; echo " Done"
+echo "tr 51 M=FP_INTERNAL";tr 51 M=FP_INTERNAL ITERations=1; echo " Done"
+echo "tr 51 M=FP_METER_TABLE_INT";tr 51 M=FP_METER_TABLE_INT ITERations=1; echo " Done"
+echo "tr 51 M=FP_POLICY_TABLE_INTERNAL";tr 51 M=FP_POLICY_TABLE_INTERNAL ITERations=1; echo " Done"
+echo "tr 51 M=FP_TCAM_INTERNAL";tr 51 M=FP_TCAM_INTERNAL ITERations=1; echo " Done"
+
+# Memories with conditional configurations
+
+if $?l3_defip_alg 'echo "tr 51 M=L3_DEFIP_ALG"; \
+        tr 51 M=L3_DEFIP_ALG ITERations=1; echo " Done"'
+if $?next_hop_int 'echo "tr 51 M=NEXT_HOP_INT"; \
+        tr 51 M=NEXT_HOP_INT ITERations=1; echo " Done"'
+if $?next_hop_ext 'echo "tr 51 M=NEXT_HOP_EXT"; \
+        tr 51 M=NEXT_HOP_EXT ITERations=1; echo " Done"'
+if $?fp_external 'echo "tr 51 M=FP_EXTERNAL"; \
+        tr 51 M=FP_EXTERNAL ITERations=1; echo " Done"'
+if $?fp_tcam_external 'echo "tr 51 M=FP_TCAM_EXTERNAL"; \
+        tr 51 M=FP_TCAM_EXTERNAL ITERations=1; echo " Done"'
+if $?fp_policy_table_external 'echo "tr 51 M=FP_POLICY_TABLE_EXTERNAL"; \
+        tr 51 M=FP_POLICY_TABLE_EXTERNAL ITERations=1; echo " Done"'
+if $?fp_meter_table_ext 'echo "tr 51 M=FP_METER_TABLE_EXT"; \
+        tr 51 M=FP_METER_TABLE_EXT ITERations=1; echo " Done"'
+if $?fp_counter_ext 'echo "tr 51 M=FP_COUNTER_EXT"; \
+        tr 51 M=FP_COUNTER_EXT ITERations=1; echo " Done"'
+if $?l3_defip_cam 'echo "tr 51 M=L3_DEFIP_CAM"; \
+        tr 51 M=L3_DEFIP_CAM ITERations=1; echo " Done"'
+if $?l3_defip_tcam 'echo "tr 51 M=L3_DEFIP_TCAM"; \
+        tr 51 M=L3_DEFIP_TCAM ITERations=1; echo " Done"'
+if $?l3_defip_data 'echo "tr 51 M=L3_DEFIP_DATA"; \
+        tr 51 M=L3_DEFIP_DATA ITERations=1; echo " Done"'
+if $?l2_entry_external 'echo "tr 51 M=L2_ENTRY_EXTERNAL"; \
+        tr 51 M=L2_ENTRY_EXTERNAL ITERations=1; echo " Done"'
+
+if $?l2_entry_internal 'echo "tr 51 M=L2_ENTRY_INTERNAL"; \
+        tr 51 M=L2_ENTRY_INTERNAL ITERations=1; echo " Done"'
+if $?l3_entry_v4 'echo "tr 51 M=L3_ENTRY_V4"; \
+        tr 51 M=L3_ENTRY_V4 ITERations=1; echo " Done"'
+if $?l3_entry_v6 'echo "tr 51 M=L3_ENTRY_V6"; \
+        tr 51 M=L3_ENTRY_V6 ITERations=1; echo " Done"'
+
+if $?vlan_mac 'echo "tr 51 M=VLAN_MAC"; \
+        tr 51 M=VLAN_MAC ITERations=1; echo " Done"'
+if $?my_station 'echo "tr 51 M=MY_STATION"; \
+        tr 51 M=MY_STATION ITERations=1; echo " Done"'
+
+

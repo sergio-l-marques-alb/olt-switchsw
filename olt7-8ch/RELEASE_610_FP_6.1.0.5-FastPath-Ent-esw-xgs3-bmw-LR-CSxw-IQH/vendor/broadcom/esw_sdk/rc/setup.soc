@@ -1,0 +1,25 @@
+#
+# This script will copy several standard files (config.bcm, rc.soc, the
+# bcm binary, etc.) from the release directory onto the flash filesystem.
+# It is useful after reformatting a flash filesystem.
+#
+
+echo Copying config.bcm ...
+cp config.bcm flash:config.bcm
+
+echo Copying rc.soc ...
+cp rc.soc flash:rc.soc
+
+echo Copying bcm.soc ...
+cp bcm.soc flash:bcm.soc
+
+echo Copying sanity.soc ...
+cp sanity.soc flash:sanity.soc
+
+if $?mousse	"local binary bcm.mousse"
+if $?idtrp334	"local binary bcm.idtrp334"
+if $?zt6501	"local binary bcm.zt6501"
+if $?genericpc	"local binary bcm.x86"
+
+echo Copying $binary to flash:BCM ...
+cp $binary flash:BCM

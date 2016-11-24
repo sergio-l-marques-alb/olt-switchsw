@@ -1,0 +1,400 @@
+echo "Skip BSAFE_CMD_DATA_IN/BSAFE_CMD_DATA_OUT table (NOT TESTABLE)"
+#echo "tr 71 M=BSAFE_CMD_DATA_IN"
+#tr 71 M=BSAFE_CMD_DATA_IN S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+#echo "DONE"
+#echo "tr 71 M=BSAFE_CMD_DATA_OUT"
+#tr 71 M=BSAFE_CMD_DATA_OUT S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+#echo "DONE"
+echo "tr 71 M=DSCP_TABLE"
+tr 71 M=DSCP_TABLE S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=EGR_DSCP_ECN_MAP"
+tr 71 M=EGR_DSCP_ECN_MAP S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=EGR_DSCP_TABLE"
+tr 71 M=EGR_DSCP_TABLE S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=EGR_EM_MTP_INDEX"
+tr 71 M=EGR_EM_MTP_INDEX S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=EGR_IM_MTP_INDEX"
+tr 71 M=EGR_IM_MTP_INDEX S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=EGR_IP_TUNNEL"
+tr 71 M=EGR_IP_TUNNEL S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=EGR_L3_INTF"
+tr 71 M=EGR_L3_INTF S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=EGR_L3_NEXT_HOP"
+tr 71 M=EGR_L3_NEXT_HOP S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=EGRESS_MASK"
+tr 71 M=EGRESS_MASK S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=EGR_VLAN"
+tr 71 M=EGR_VLAN S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=EGR_VLAN_STG"
+tr 71 M=EGR_VLAN_STG S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=EM_MTP_INDEX"
+tr 71 M=EM_MTP_INDEX S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=FP_COUNTER_TABLE"
+tr 71 M=FP_COUNTER_TABLE S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=FP_METER_TABLE"
+tr 71 M=FP_METER_TABLE S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=FP_POLICY_TABLE"
+tr 71 M=FP_POLICY_TABLE S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=FP_PORT_FIELD_SEL"
+tr 71 M=FP_PORT_FIELD_SEL S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=FP_RANGE_CHECK"
+tr 71 M=FP_RANGE_CHECK S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=FP_SC_BCAST_METER_TABLE"
+tr 71 M=FP_SC_BCAST_METER_TABLE S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=FP_SC_DLF_METER_TABLE"
+tr 71 M=FP_SC_DLF_METER_TABLE S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=FP_SC_MCAST_METER_TABLE"
+tr 71 M=FP_SC_MCAST_METER_TABLE S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=FP_SC_METER_TABLE"
+tr 71 M=FP_SC_METER_TABLE S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=FP_SLICE_ENTRY_PORT_SEL"
+tr 71 M=FP_SLICE_ENTRY_PORT_SEL S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=FP_SLICE_MAP"
+tr 71 M=FP_SLICE_MAP S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=FP_TCAM"
+tr 71 M=FP_TCAM S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=UDF_OFFSET"
+tr 71 M=UDF_OFFSET S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=IM_MTP_INDEX"
+tr 71 M=IM_MTP_INDEX S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=ING_L3_NEXT_HOP"
+tr 71 M=ING_L3_NEXT_HOP S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=IPORT_TABLE"
+tr 71 M=IPORT_TABLE S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=L2MC"
+tr 71 M=L2MC S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=L2_ENTRY"
+tr 71 M=L2_ENTRY S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=L2_ENTRY_ONLY"
+tr 71 M=L2_ENTRY_ONLY S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=L2_HITDA_ONLY"
+tr 71 M=L2_HITDA_ONLY S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=L2_HITSA_ONLY"
+tr 71 M=L2_HITSA_ONLY S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=L2_MOD_FIFO"
+tr 71 M=L2_MOD_FIFO S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=L2_USER_ENTRY"
+tr 71 M=L2_USER_ENTRY S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=L2_USER_ENTRY_DATA_ONLY"
+tr 71 M=L2_USER_ENTRY_DATA_ONLY S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=L2_USER_ENTRY_ONLY"
+tr 71 M=L2_USER_ENTRY_ONLY S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=L3_TUNNEL"
+tr 71 M=L3_TUNNEL S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=PORT_MAC_BLOCK"
+tr 71 M=PORT_MAC_BLOCK S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=MAC_LIMIT_PORT_MAP_TABLE"
+tr 71 M=MAC_LIMIT_PORT_MAP_TABLE S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=MAC_LIMIT_TRUNK_MAP_TABLE"
+tr 71 M=MAC_LIMIT_TRUNK_MAP_TABLE S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=AGING_CTR"
+tr 71 M=AGING_CTR S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=AGING_EXP"
+tr 71 M=AGING_EXP S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=CBPCELLHEADER"
+tr 71 M=CBPCELLHEADER S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=CBPDATA0"
+tr 71 M=CBPDATA0 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=CBPDATA1"
+tr 71 M=CBPDATA1 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=CBPDATA2"
+tr 71 M=CBPDATA2 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=CBPDATA3"
+tr 71 M=CBPDATA3 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=CBPDATA4"
+tr 71 M=CBPDATA4 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=CBPDATA5"
+tr 71 M=CBPDATA5 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=CBPDATA6"
+tr 71 M=CBPDATA6 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=CBPDATA7"
+tr 71 M=CBPDATA7 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=CBPPKTHEADER0"
+tr 71 M=CBPPKTHEADER0 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=CBPPKTHEADER1"
+tr 71 M=CBPPKTHEADER1 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=CCP"
+tr 71 M=CCP S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=CFAP"
+tr 71 M=CFAP S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ0"
+tr 71 M=XQ0 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ1"
+tr 71 M=XQ1 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ2"
+tr 71 M=XQ2 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ3"
+tr 71 M=XQ3 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ4"
+tr 71 M=XQ4 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ5"
+tr 71 M=XQ5 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ6"
+tr 71 M=XQ6 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ7"
+tr 71 M=XQ7 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ8"
+tr 71 M=XQ8 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ9"
+tr 71 M=XQ9 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ10"
+tr 71 M=XQ10 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ11"
+tr 71 M=XQ11 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ12"
+tr 71 M=XQ12 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ13"
+tr 71 M=XQ13 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ14"
+tr 71 M=XQ14 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ15"
+tr 71 M=XQ15 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ16"
+tr 71 M=XQ16 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ17"
+tr 71 M=XQ17 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ18"
+tr 71 M=XQ18 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ19"
+tr 71 M=XQ19 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ20"
+tr 71 M=XQ20 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ21"
+tr 71 M=XQ21 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ22"
+tr 71 M=XQ22 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ23"
+tr 71 M=XQ23 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ24"
+tr 71 M=XQ24 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ25"
+tr 71 M=XQ25 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ26"
+tr 71 M=XQ26 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ27"
+tr 71 M=XQ27 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ28"
+tr 71 M=XQ28 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ29"
+tr 71 M=XQ29 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ30"
+tr 71 M=XQ30 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ31"
+tr 71 M=XQ31 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ32"
+tr 71 M=XQ32 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ33"
+tr 71 M=XQ33 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ34"
+tr 71 M=XQ34 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ35"
+tr 71 M=XQ35 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ36"
+tr 71 M=XQ36 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ37"
+tr 71 M=XQ37 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ38"
+tr 71 M=XQ38 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ39"
+tr 71 M=XQ39 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ40"
+tr 71 M=XQ40 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ41"
+tr 71 M=XQ41 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ42"
+tr 71 M=XQ42 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ43"
+tr 71 M=XQ43 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ44"
+tr 71 M=XQ44 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ45"
+tr 71 M=XQ45 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ46"
+tr 71 M=XQ46 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ47"
+tr 71 M=XQ47 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ48"
+tr 71 M=XQ48 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ49"
+tr 71 M=XQ49 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ50"
+tr 71 M=XQ50 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ51"
+tr 71 M=XQ51 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ52"
+tr 71 M=XQ52 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=XQ53"
+tr 71 M=XQ53 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=MODPORT_MAP"
+tr 71 M=MODPORT_MAP S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=MODPORT_MAP_EM"
+tr 71 M=MODPORT_MAP_EM S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=MODPORT_MAP_IM"
+tr 71 M=MODPORT_MAP_IM S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=MODPORT_MAP_SW"
+tr 71 M=MODPORT_MAP_SW S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=NONUCAST_TRUNK_BLOCK_MASK"
+tr 71 M=NONUCAST_TRUNK_BLOCK_MASK S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=PORT_TRUNK_MAC_LIMIT_CONTROL_2"
+tr 71 M=PORT_TRUNK_MAC_LIMIT_CONTROL_2 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=MAC_LIMIT_COUNT_TABLE"
+tr 71 M=MAC_LIMIT_COUNT_TABLE S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=PORT_TRUNK_MAC_LIMIT_CONTROL_1"
+tr 71 M=PORT_TRUNK_MAC_LIMIT_CONTROL_1 S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=PORT"
+tr 71 M=PORT S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=SOURCE_TRUNK_MAP"
+tr 71 M=SOURCE_TRUNK_MAP S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=SRC_MODID_BLOCK"
+tr 71 M=SRC_MODID_BLOCK S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=VLAN_STG"
+tr 71 M=VLAN_STG S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=TRUNK_BITMAP"
+tr 71 M=TRUNK_BITMAP S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=TRUNK_GROUP"
+tr 71 M=TRUNK_GROUP S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=VLAN_MAC"
+tr 71 M=VLAN_MAC S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=VLAN_PROTOCOL"
+tr 71 M=VLAN_PROTOCOL S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=VLAN_PROTOCOL_DATA"
+tr 71 M=VLAN_PROTOCOL_DATA S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=VLAN_SUBNET"
+tr 71 M=VLAN_SUBNET S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=VLAN_SUBNET_DATA_ONLY"
+tr 71 M=VLAN_SUBNET_DATA_ONLY S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=VLAN_SUBNET_ONLY"
+tr 71 M=VLAN_SUBNET_ONLY S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"
+echo "tr 71 M=VLAN"
+tr 71 M=VLAN S=-1 C=-1 readonlymemVerifyCount=1 TSE=True;
+echo "DONE"

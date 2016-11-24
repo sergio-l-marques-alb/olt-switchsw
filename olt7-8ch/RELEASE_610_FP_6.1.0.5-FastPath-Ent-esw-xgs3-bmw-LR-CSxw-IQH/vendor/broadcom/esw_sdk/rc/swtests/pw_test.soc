@@ -1,0 +1,20 @@
+#
+# Simple script to test packet watcher on any chip that has
+# a gig port.
+#
+# Loopback 500 packets at a time, starting and stopping pw in
+# rx and soc modes.
+#
+
+rc
+vlan create 2
+vlan add 2 pbm=cpu
+vlan add 2 pbm=ge0
+port ge0 lb=mac
+pw report -all
+tx 1 pbm=ge0 vlan=2
+
+loop 200 "echo soc; pw mode soc; pw start; tx 500; sleep 1; pw count; \
+  pw stop; pw mode rx; pw start; tx 500; sleep 1; pw count; pw stop; sleep 1"
+
+vlan destroy 2

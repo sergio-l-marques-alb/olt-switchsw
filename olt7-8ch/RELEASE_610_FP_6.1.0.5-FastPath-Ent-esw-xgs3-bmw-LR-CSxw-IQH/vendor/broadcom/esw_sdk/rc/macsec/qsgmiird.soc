@@ -1,0 +1,98 @@
+# $Id: qsgmiird.soc,v 1.1 2011/04/18 18:52:10 mruas Exp $
+# BCM953314K/BCM953314-TB platform
+# port ge8-ge15 Internal QSGMII serdes
+#       qsgmiird 0x8300 0x0 0x89
+#
+# port ge8-ge15 GPHY QSGMII serdes
+#       qsgmiird 0x8300 0x11 0x11
+#       qsgmiird 0x8300 0x12 0x11
+#       qsgmiird 0x8300 0x13 0x11
+#       qsgmiird 0x8300 0x14 0x11
+#       qsgmiird 0x8300 0x15 0x11
+#       qsgmiird 0x8300 0x16 0x11
+#       qsgmiird 0x8300 0x17 0x11
+#       qsgmiird 0x8300 0x18 0x11
+#
+# port ge16-ge23 Internal QSGMII serdes
+#       qsgmiird 0x8300 0x0 0x91
+#
+# port ge16-ge13 GPHY QSGMII serdes
+#       qsgmiird 0x8300 0x1a 0x1a
+#       qsgmiird 0x8300 0x1b 0x1a
+#       qsgmiird 0x8300 0x1c 0x1a
+#       qsgmiird 0x8300 0x1d 0x1a
+#       qsgmiird 0x8300 0x1e 0x1a
+#       qsgmiird 0x8300 0x1f  0x1a
+#       qsgmiird 0x8300 0x20 0x1a
+#       qsgmiird 0x8300 0x21 0x1a
+#
+# Register 0x8314 has speed, duplex, link, 1000X/SGMII mode  info
+#
+
+link off
+
+
+#  qsgmiird block lane_number mdio_addr
+
+#Read from block 0x0 by default
+if !@?1 "local 1 0x0"
+
+#Read from Lane 0 by default (valid 0 - 7)
+if !@?2 "local 2 0x0"
+
+#Read from 0x89 - MDIO address for internal QSGMII core on BCM53314
+if !@?3 "local 3 0x89"
+
+#Read from 0x91 - MDIO address for internal QSGMII core on BCM53314
+#if !@?3 "local 3 0x91"
+
+
+#Read from 0x89 - MDIO address for internal QSGMII core on BCM54584
+#if !@?3 "local 3 0x11"
+
+#Read from 0x89 - MDIO address for internal QSGMII core on BCM54584
+#if !@?3 "local 3 0x1a"
+
+#AER select
+phy raw @3 0x1f 0xffd0
+phy raw @3 0x1e @2
+
+#Select Block
+phy raw @3 0x1f @1
+
+echo "Dumping MDIO address @3 Lane @2 Block @1"
+phy raw @3 0x0
+phy raw @3 0x1
+phy raw @3 0x2
+phy raw @3 0x3
+phy raw @3 0x4
+phy raw @3 0x5
+phy raw @3 0x6
+phy raw @3 0x7
+phy raw @3 0x8
+phy raw @3 0x9
+phy raw @3 0xa
+phy raw @3 0xb
+phy raw @3 0xc
+phy raw @3 0xd
+phy raw @3 0xe
+phy raw @3 0xf
+phy raw @3 0x10
+phy raw @3 0x11
+phy raw @3 0x12
+phy raw @3 0x13
+phy raw @3 0x14
+phy raw @3 0x15
+phy raw @3 0x16
+phy raw @3 0x17
+phy raw @3 0x18
+phy raw @3 0x19
+phy raw @3 0x1a
+phy raw @3 0x1b
+phy raw @3 0x1c
+phy raw @3 0x1d
+phy raw @3 0x1e
+phy raw @3 0x1f
+
+
+link on

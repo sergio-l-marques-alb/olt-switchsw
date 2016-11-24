@@ -1,0 +1,50 @@
+#
+# Draco Table DMA sanity script
+#
+
+# Initialization 
+# init
+
+echo "Testing L2 Tables DMA"
+tr 71 mem=L2_TABLE start=0 count=100
+tr 71 mem=L2_HIT_BITS start=0 count=100
+tr 71 mem=L2MC_TABLE start=0 count=100
+tr 71 mem=L2_STATIC_BITS start=0 count=100
+tr 71 mem=L2_VALID_BITS start=0 count=100
+tr 71 mem=L2_ENTRY start=0 count=100
+
+echo "Testing L3 Tables DMA"
+tr 71 mem=L3_TABLE start=0 count=100
+tr 71 mem=L3_HIT_BITS start=0 count=100
+tr 71 mem=L3_VALID_BITS start=0 count=100
+tr 71 mem=L3INTF start=0 count=100
+tr 71 mem=L3_IPMC start=0 count=100
+tr 71 mem=L3_ENTRY start=0 count=100
+
+echo "Testing GFFPCOUNTERS Tables DMA"
+tr 71 mem=GFFPCOUNTERS.0 start=0 count=32
+tr 71 mem=GFFPCOUNTERS.1 start=0 count=32
+tr 71 mem=GFFPCOUNTERS.2 start=0 count=32
+tr 71 mem=GFFPCOUNTERS.3 start=0 count=32
+tr 71 mem=GFFPCOUNTERS.4 start=0 count=32
+tr 71 mem=GFFPCOUNTERS.5 start=0 count=32
+tr 71 mem=GFFPCOUNTERS.6 start=0 count=32
+tr 71 mem=GFFPCOUNTERS.7 start=0 count=32
+tr 71 mem=GFFPCOUNTERS.8 start=0 count=32
+tr 71 mem=GFFPCOUNTERS.9 start=0 count=32
+tr 71 mem=GFFPCOUNTERS.10 start=0 count=32
+tr 71 mem=GFFPCOUNTERS.11 start=0 count=32
+
+echo "Testing GFFPPACKETCOUNTERS Tables DMA"
+tr 71 mem=GFFPPACKETCOUNTERS.0 start=0 count=32
+tr 71 mem=GFFPPACKETCOUNTERS.1 start=0 count=32
+tr 71 mem=GFFPPACKETCOUNTERS.2 start=0 count=32
+tr 71 mem=GFFPPACKETCOUNTERS.3 start=0 count=32
+tr 71 mem=GFFPPACKETCOUNTERS.4 start=0 count=32
+tr 71 mem=GFFPPACKETCOUNTERS.5 start=0 count=32
+tr 71 mem=GFFPPACKETCOUNTERS.6 start=0 count=32
+tr 71 mem=GFFPPACKETCOUNTERS.7 start=0 count=32
+tr 71 mem=GFFPPACKETCOUNTERS.8 start=0 count=32
+tr 71 mem=GFFPPACKETCOUNTERS.9 start=0 count=32
+tr 71 mem=GFFPPACKETCOUNTERS.10 start=0 count=32
+tr 71 mem=GFFPPACKETCOUNTERS.11 start=0 count=32

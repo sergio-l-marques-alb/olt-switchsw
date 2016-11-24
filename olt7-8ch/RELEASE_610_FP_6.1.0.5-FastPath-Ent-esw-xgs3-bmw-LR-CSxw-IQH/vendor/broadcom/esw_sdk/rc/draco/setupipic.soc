@@ -1,0 +1,12 @@
+
+# enable ipic
+s mac_ctrl txen=0x1 rxen=0x1
+s mac_txctrl HDRMODE=0x1 CRC_MODE=0x2 AVGIPG=0x8 PAUSEEN=0x1
+s mac_txmaxsz sz=0x3fff
+s mac_rxctrl HDRMODE=0x1 STRIPCRC=0x0 STRICTPRMBL=0x1 RXPAUSEN=0x1
+s mac_rxmaxsz sz=0x3fff
+s ilink 0x3fff
+s iegr_enable prt_enable=0x1
+m modport_7_0 port_for_mod1=0xc
+m arl_control clk_gran=0x7
+

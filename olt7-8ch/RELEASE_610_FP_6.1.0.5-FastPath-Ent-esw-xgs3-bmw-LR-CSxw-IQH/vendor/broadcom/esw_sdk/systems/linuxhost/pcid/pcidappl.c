@@ -1,0 +1,498 @@
+/* 
+ * $Id: pcidappl.c,v 1.1 2011/04/18 17:11:10 mruas Exp $
+ * $Copyright: Copyright 2007, Broadcom Corporation All Rights Reserved.
+ * THIS SOFTWARE IS OFFERED "AS IS", AND BROADCOM GRANTS NO WARRANTIES
+ * OF ANY KIND, EXPRESS OR IMPLIED, BY STATUTE, COMMUNICATION OR OTHERWISE.
+ * BROADCOM SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A SPECIFIC PURPOSE OR NONINFRINGEMENT CONCERNING THIS SOFTWARE.$
+ *
+ * The PCID application handler.
+ *
+ * Requires:
+ *     All modules
+ *     
+ * Provides:
+ *     User interface, initialization, main()
+ *     
+ */
+
+#include <unistd.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <soc/mem.h>
+#include <soc/hash.h>
+#include <soc/cmext.h>
+
+#include <soc/cmic.h>
+#include <soc/drv.h>
+#include <soc/chip.h>
+#include <soc/mcm/driver.h>	/* soc_base_driver_table */
+#include <soc/debug.h>
+#include <sal/appl/io.h>
+
+#include <bde/pli/verinet.h>
+#include <bde/pli/plibde.h>
+
+#include <sal/core/boot.h>
+#include <sal/appl/config.h>
+
+#include "pcid.h"
+#include "mem.h"
+#include "cmicsim.h"
+#include "dma.h"
+#include "pli.h"
+#include "socintf.h"
+#include "chipsim.h"
+
+#define I2C_ROM_FILE	"soc_i2c.img"
+
+ibde_t *bde = NULL;
+
+int
+bde_create(void)
+{	
+    return plibde_create(&bde);
+}
+
+static void
+usage(void)
+{
+    fprintf(stderr,
+            "Usage: pcid [-p port] [-vPxdilkc] [-G N] [-B N] "
+            "[-W 64] [-D N] [-R N] <chip>\n");
+    fprintf(stderr,
+	    "     <chip>     Chip to emulate, e.g. BCM5680_B0\n");
+    fprintf(stderr,
+	    "     -v         Verbose mode\n");
+    fprintf(stderr,
+	    "     -p port    Specify which port to talk to\n");
+    fprintf(stderr,
+	    "     -P         Include PLI register R/W in verbose mode\n");
+    fprintf(stderr,
+	    "     -x         Exit when first client disconnects\n");
+    fprintf(stderr,
+	    "     -d         Run in verinet debug mode\n");
+    fprintf(stderr,
+	    "     -i         Dump code for headless I2C ROM contents into\n");
+    fprintf(stderr,
+	    "                the file %s\n", I2C_ROM_FILE);
+    fprintf(stderr,
+	    "     -l         loops back packets transmitted out\n");
+    fprintf(stderr,
+	    "     -k         Take packet input using the file method\n");
+    fprintf(stderr,
+	    "     -c         Simulate counter activity (inefficiently!)\n");
+    fprintf(stderr,
+	    "     -G N       Simulate GBP size of N megabytes\n");
+    fprintf(stderr,
+	    "     -B N       Simulate GBP with N banks (2 or 4)\n");
+    fprintf(stderr,
+            "     -W 64      Simulate GBP width of 64 bits (-G still\n"
+	    "                specifies size as if it were 128 bits wide)\n");
+    fprintf(stderr,
+	    "     -D N       Override PCI device ID to N; e.g. 0x5616\n");
+    fprintf(stderr,
+	    "     -R N       Override PCI revision ID to N; e.g. 3\n");
+    exit(1);
+}
+
+
+static int
+_sysconf_debug_out(uint32 flags, const char *format, va_list args)
+{
+    return (flags) ? vdebugk(flags, format, args) : vprintk(format, args);
+}
+
+static void
+pcid_info_init(pcid_info_t *pcid_info)
+{
+    sal_memset(pcid_info, 0, sizeof(pcid_info_t));
+    pcid_info->opt_gbp_banks = 2;
+    pcid_info->opt_gbp_mb = 32;
+    pcid_info->opt_gbp_wid = 128;
+    
+    pcid_info->init_data.debug_out = _sysconf_debug_out;
+    pcid_info->init_data.debug_check = debugk_check;
+    pcid_info->init_data.debug_dump = NULL;
+    if ((pcid_info->pkt_mutex = sal_mutex_create("pkt_mutex")) == NULL) {
+	printf("sal_mutex_create -pkt_mutex failed\n");
+	exit(1);
+    }
+    soc_cm_init(&pcid_info->init_data);
+}
+
+static pcid_info_t pcid_info;
+
+static void
+pcid_clean_regsfile(uint16 pci_dev_id, uint16 pci_rev_id)
+{
+    soc_reg_t	reg;
+    int		disable_ipic;
+
+    disable_ipic = 0;
+    switch (pci_dev_id) {
+    case 0x5691:	/* 5690 variations */
+    case 0x5693:
+    case 0x5696:	/* 5695 variations */
+    case 0x5698:
+	disable_ipic = 1;
+	break;
+    /* 5665 variations? */
+    }
+
+    if (disable_ipic) {
+	/*
+	 * Convert all IPIC registers to _INVALID_REGISTER.
+	 * soc_internal_write_reg will then complain about them.
+	 */
+
+	for (reg = 0; reg < NUM_SOC_REG; reg++) {
+            if (!SOC_REG_IS_VALID(0, reg)) {
+                continue;
+            }
+	    if (SOC_REG_INFO(0, reg).block == SOC_BLK_IPIC) {
+		SOC_REG_INFO(0, reg).block = 0;
+		SOC_REG_INFO(0, reg).regtype = soc_invalidreg;
+		SOC_REG_INFO(0, reg).numels = -1;
+		SOC_REG_INFO(0, reg).offset = 0;
+		SOC_REG_INFO(0, reg).flags = 0;
+		SOC_REG_INFO(0, reg).nFields = 0;
+		SOC_REG_INFO(0, reg).fields = NULL;
+		SOC_REG_INFO(0, reg).ctr_idx = -1;
+	    }
+	}
+    }
+}
+
+void
+pcid_schan_cb_set(pcid_info_t *pcid_info,  _pcid_schan_f f)
+{
+    pcid_info->schan_cb = f;
+}
+
+void
+pcid_reset_cb_set(pcid_info_t *pcid_info,  _pcid_reset_f f)
+{
+    pcid_info->reset_cb = f;
+}
+
+int
+main(int argc, char *argv[])
+{
+    int             i, chip, found;
+    char           *s;
+    extern char    *optarg;
+    struct timeval  tmout;
+    uint16          pci_dev_id, pci_ven_id;
+    uint8           pci_rev_id;
+    int		    max_command_errors = 100;
+    int		    command_errors = 0;
+    int		    chan, len;
+    char            *config_file, *config_temp;
+
+    pcid_info_init(&pcid_info);
+
+    if ((config_file = getenv("BCM_CONFIG_FILE")) != NULL) {
+        len = sal_strlen(config_file);
+        if ((config_temp = sal_alloc(len+5, NULL)) != NULL) {
+            sal_strcpy(config_temp, config_file);
+            sal_strcpy(&config_temp[len], ".tmp");
+            sal_config_file_set(config_file, config_temp);
+            sal_free(config_temp);
+        }
+    }
+
+    if (sal_core_init() < 0) {
+	printf("sal_core_init failed\n");
+	exit(1);
+    }
+
+    if (sal_appl_init() < 0) {
+	printf("sal_appl_init failed\n");
+	exit(1);
+    }
+
+    /* 
+     * Get default port from SOC_TARGET_PORT, if available
+     */
+
+    if ((s = getenv("SOC_TARGET_PORT")) != NULL) {
+	pcid_info.opt_port = strtol(s, 0, 0);
+    }
+
+    while ((i = getopt(argc, argv, "vxdilkcG:W:B:Pp:D:R:")) >= 0)
+        switch (i) {
+        case 'v':
+            pcid_info.opt_verbose = 1;
+            break;
+        case 'x':
+            pcid_info.opt_exit = 1;
+            break;
+        case 'd':
+            pcid_info.opt_debug = 1;
+            break;
+        case 'i':
+            pcid_info.opt_i2crom = 1;
+            break;
+        case 'l':
+            pcid_info.opt_pktloop = 1;
+            pcid_info.tx_cb = _pcid_loop_tx_cb;
+            break;
+        case 'k':
+            pcid_info.opt_pktfile = 1;
+            break;
+        case 'c':
+            pcid_info.opt_counter = 1;
+            break;
+        case 'G':
+            pcid_info.opt_gbp_mb = strtol(optarg, 0, 0);
+            break;
+        case 'B':
+            pcid_info.opt_gbp_banks = strtol(optarg, 0, 0);
+            break;
+        case 'P':
+            pcid_info.opt_pli_verbose = 1;
+            break;
+        case 'p':
+            pcid_info.opt_port = strtol(optarg, 0, 0);
+            break;
+        case 'D':
+            pcid_info.opt_override_devid = strtol(optarg, 0, 0);
+            break;
+        case 'R':
+            pcid_info.opt_override_revid = strtol(optarg, 0, 0);
+            break;
+        case 'W':
+            pcid_info.opt_gbp_wid = strtol(optarg, 0, 0);
+            break;
+        default:
+            printk("pcid: unknown option '%c'\n", i);
+            usage();
+            break;
+        }
+
+    /* 
+     * Check arguments: user must specify a port to bind to.
+     */
+
+    if (optind != argc - 1) {
+	usage();
+    }
+
+    pcid_info.opt_chip_name = argv[optind];
+
+    found = 0;
+
+    for (i = 0; i < SOC_CHIP_TYPES_COUNT; i++) {
+	if (strcasecmp(pcid_info.opt_chip_name, soc_chip_type_names[i]) == 0) {
+	    found = 1;
+	    pcid_info.opt_chip = i;
+	    break;
+	}
+	/* Allow specifying chip by number only, e.g. 5690 or 56504 */
+	if (isdigit((unsigned)pcid_info.opt_chip_name[0]) &&
+	    atoi(pcid_info.opt_chip_name) ==
+	    atoi(&soc_chip_type_names[i][3])) {
+	    found = 1;
+	    pcid_info.opt_chip = i;
+	    break;
+	}
+    }
+
+    if (!found) {
+	fprintf(stderr,
+		"pcid: Unrecognized chip type '%s'\n",
+		pcid_info.opt_chip_name);
+	fprintf(stderr, "pcid: Valid chip types are:\n");
+	for (i = 0; i < SOC_CHIP_TYPES_COUNT; i++) {
+	    fprintf(stderr, "pcid:  %s\n", soc_chip_type_names[i]);
+	}
+	exit(1);
+    }
+
+    /* 
+     * Set initial contents of PCI configuration space.
+     */
+
+    chip = soc_chip_type_to_index(pcid_info.opt_chip);
+
+    pci_ven_id = soc_base_driver_table[chip]->pci_vendor;
+    pci_dev_id = soc_base_driver_table[chip]->pci_device;
+    pci_rev_id = soc_base_driver_table[chip]->pci_revision;
+
+    if (pci_dev_id == 0x0) {
+	fprintf(stderr,
+		"pcid: Not compiled with support for '%s'\n",
+		pcid_info.opt_chip_name);
+	exit(1);
+    }
+
+    /* From here on, we want the effective ID's */
+    if (pcid_info.opt_override_devid) {
+        pci_dev_id = pcid_info.opt_override_devid;
+    }
+    if (pcid_info.opt_override_revid) {
+        pci_rev_id = pcid_info.opt_override_revid;
+    }
+
+    soc_internal_pcic_init(&pcid_info, pci_dev_id, 
+                           pci_ven_id, pci_rev_id, 0xcd600000);
+
+    /* 
+     * Init driver so soc_feature and other functions can be used.
+     */
+
+    soc_cm_device_create(pci_dev_id, pci_rev_id, NULL);
+
+    SOC_CONTROL(0) = sal_alloc(sizeof (soc_control_t), "soc_control_t");
+    memset(SOC_CONTROL(0), 0, sizeof (soc_control_t));
+    SOC_PERSIST(0) = sal_alloc(sizeof (soc_persist_t), "soc_persist_t");
+    memset(SOC_PERSIST(0), 0, sizeof (soc_persist_t));
+
+    SOC_CONTROL(0)->chip_driver = soc_chip_driver_find(pci_dev_id, pci_rev_id);
+    assert(SOC_CONTROL(0)->chip_driver != NULL);
+
+    if (soc_base_driver_table[chip]->init) {
+	(soc_base_driver_table[chip]->init)();
+    }
+
+    /* this sets up the SOC_IS_* macros, amongst other things */
+    soc_info_config(0, SOC_CONTROL(0));
+
+    /* set up soc_feature macro */
+    soc_feature_init(0);
+
+    /* initialize dcb operations */
+    soc_dcb_unit_init(0);
+
+    /*
+     * Initialize memory index_maxes.
+     */
+    for (i = 0; i < NUM_SOC_MEM; i++) {
+        if (SOC_MEM_IS_VALID(0, i)) {
+            SOC_PERSIST(0)->memState[i].index_max =
+                SOC_MEM_INFO(0, i).index_max;
+        } else {
+            SOC_PERSIST(0)->memState[i].index_max = -1;
+        }
+    }
+
+    /*
+     * Perform any needed run-time cleanup of regsfile.
+     */
+
+    pcid_clean_regsfile(pci_dev_id, pci_rev_id);
+
+    if (pcid_info.opt_port == 0) {
+	fprintf(stderr, "pcid: Must specify port number using -p or set\n");
+	fprintf(stderr, "      it in SOC_TARGET_PORT environment variable\n");
+
+	exit(1);
+    }
+
+    debugk_select(DK_ERR | DK_WARN);
+
+    if (pcid_info.opt_debug) {
+	debugk_enable(DK_VERINET);
+    }
+
+    if (pcid_info.opt_verbose) {
+	debugk_enable(DK_VERBOSE);
+    }
+
+    pli_reset_service(&pcid_info);
+
+    pcid_info.sockfd = pcid_setup_socket(pcid_info.opt_port);
+
+    do {
+	printk("%s: Emulating %s, listening on port %d\n",
+	       argv[0],
+	       soc_cm_get_device_name(pci_dev_id, pci_rev_id),
+	       pcid_info.opt_port);
+
+	pcid_info.newsockfd = pcid_wait_for_cnxn(pcid_info.sockfd);
+
+	if (pcid_info.opt_i2crom) {
+	    if ((pcid_info.i2crom_fp = fopen(I2C_ROM_FILE, "w")) == 0) {
+		perror("unable to open I2C ROM output file");
+	    }
+	}
+
+	printk("%s: Client connected\n", argv[0]);
+
+	/* 
+	 * Queue initial events
+	 */
+
+	event_init();
+
+	if (pcid_info.opt_pktfile) {
+	    event_enqueue(&pcid_info, pcid_check_packet_input,
+			  sal_time_usecs() + PACKET_CHECK_INTERVAL);
+	}
+
+	if (pcid_info.opt_counter) {
+	    event_enqueue(&pcid_info, pcid_counter_activity,
+			  sal_time_usecs() + COUNTER_ACT_INTERVAL);
+	}
+
+	/* 
+	 * Event/request loop
+	 */
+
+	for (;;) {
+	    event_t        *ev;
+	    int             usec;      /* Signed */
+	    sal_usecs_t     now;
+
+	    now = sal_time_usecs();
+
+	    if ((ev = event_peek()) != NULL) {
+		usec = SAL_USECS_SUB(ev->abs_time, now);
+	    } else {
+		usec = 100000;
+	    }
+
+	    tmout.tv_sec = 0;
+	    tmout.tv_usec = (usec > 0 ? usec : 0);
+
+	    if ((pcid_process_request(&pcid_info,
+                  pcid_info.newsockfd, &tmout) == PR_ERROR)) {
+                if (++command_errors > max_command_errors) {
+                    pcid_info.opt_exit = 1;
+                }
+		break;
+	    }
+
+            for (chan = 0; chan < N_DMA_CHAN; chan++) {
+                pcid_dma_rx_check(&pcid_info, chan);
+            }
+
+	    event_process_through(now);
+	}
+
+	if (pcid_info.i2crom_fp) {
+	    /* Write data end marker */
+	    fputc(0xff, pcid_info.i2crom_fp);
+	    fputc(0xff, pcid_info.i2crom_fp);
+	    fputc(0x00, pcid_info.i2crom_fp);
+	    fclose(pcid_info.i2crom_fp);
+	}
+
+        /* Stop DMA on all channels to prevent the PCI polling on old DMA
+         * when client connects again.
+         */
+        pcid_dma_stop_all(&pcid_info);
+
+	pcid_close_cnxn(pcid_info.newsockfd);
+
+	printk("%s: Client disconnected.\n", argv[0]);
+    } while (!pcid_info.opt_exit);
+
+    pcid_close_cnxn(pcid_info.sockfd);
+    exit(0);
+}

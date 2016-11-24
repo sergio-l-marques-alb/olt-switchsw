@@ -1,0 +1,25 @@
+#Run the following command on target
+#
+
+#Assume some reasonable defaults if no argument specified
+
+if !@?1 "local 1 COMMAND_CONFIG"
+if !@?2 "local 2 0"
+
+macsec gr @1.@2.0
+macsec gr @1.@2.1
+macsec gr @1.@2.2
+macsec gr @1.@2.3
+macsec gr @1.@2.4
+macsec gr @1.@2.5
+macsec gr @1.@2.6
+macsec gr @1.@2.7
+macsec gr @1.@2.8
+macsec gr @1.@2.9
+macsec gr @1.@2.10
+macsec gr @1.@2.11
+macsec gr @1.@2.12
+macsec gr @1.@2.13
+macsec gr @1.@2.14
+macsec gr @1.@2.15
+

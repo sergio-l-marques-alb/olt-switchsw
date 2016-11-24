@@ -1,0 +1,108 @@
+------------------------------------------------------------------------------
+			    "Easy" Reload
+------------------------------------------------------------------------------
+
+1. Introduction
+
+The term "easy reload" describes a high-availability feature that is the
+ability to restart an embedded switching application software image without
+disrupting packet switching as much as possible.
+
+The word "easy" refers to the fact, that no internal SDK state is being kept
+between the reloads and no attempts to restore this state by reading the chip
+is performed. Instead, the application software is required to restore the
+internal state of the driver by repeating the sequence of API calls that is
+supposed to re-configure the chip from the scratch to the state the
+application software knowns the chip was left in before the reload.
+
+This allows for a very easy implementation, but limits the applicability of
+this feature to a number of simple cases. For example, it cannot be reliably
+used as a means to recover against software failure, but instead is designed
+to be used in a controlled reload/shutdown operation.
+
+2. Implementation details
+
+Easy reload feature is implemented by inhibiting operations that modify
+switching-related registers and memories on the chip as well as registers on
+the corresponding PHYs. All read operations go through as usual, but writes
+become NOOPs. However, since the chip has been programmed correctly before,
+subsequent reads will return expected values anyway.
+
+Two new macros have been added (include/soc/drv.h):
+
+/*
+ * Macro:
+ *      SOC_RELOAD_MODE_SET
+ * Purpose:
+ *      Put the driver in a special reload mode, when writes are ignored or
+ *      put it into the normal mode
+ * Parameters:
+ *      unit   -- unit number
+ *      reload -- TRUE: reload mode
+ *                FALSE: normal mode
+ *
+ * Returns:
+ *      None 
+ */
+SOC_RELOAD_MODE_SET(int unit, int reload)
+
+/*
+ * Macro:
+ *      SOC_IS_RELOADING
+ * Purpose:
+ *      Query, whether the driver is in the reload mode or not.
+ * Parameters:
+ *      unit   -- unit nu,ber
+ *
+ * Returns:
+ *	TRUE:  unit is in reload mode
+ *      FALSE: unit is in normal (not reload) mode 
+ *      
+ */
+int SOC_IS_RELOADING(int unit)
+
+The initialization sequence will now look like this:
+
+----------------------------
+sysconf_attach(unit); /* or soc_cm_device_init() or soc_attach() */
+
+if (power-up initialization) {
+   soc_reset(unit);
+   soc_misc_init(unit);
+   soc_mmu_init(unit);
+   bcm_attach(unit, NULL, NULL, unit);
+   bcm_init(unit);
+} else {
+   SOC_RELOAD_MODE_SET(unit, TRUE);
+   soc_init(unit);
+   bcm_attach(unit, NULL, NULL, unit);
+   bcm_init(unit);
+   
+   ... REPLAY all configuration calls here ...
+   
+   SOC_RELOAD_MODE_SET(unit, FALSE);
+}
+---------------------------
+
+3. BCM shell support
+
+A new command, xxreload has been implemented that provides access to the new
+APIs. 
+
+BCM.0> xxreload help
+Usage (XXReload): Parameters
+        on   -- Put the chip in reload mode
+        off  -- Put the chip in the normal mode
+        show -- Show the mode
+
+4. Compiling the easy reload support
+
+By default, support for this feature is NOT compiled in. To enable it, please
+do the following:
+
+  1. cp ${SDK}/make/Make.local.template ${SDK}/make/Make.local
+  2. edit ${SDK}/make/Make.local with your favorite text editor and uncomment
+     the line 
+     
+     #CFGFLAGS += -DBCM_EASY_RELOAD_SUPPORT
+  3. save Make.local and rebuild the SDK.

@@ -1,0 +1,41 @@
+#Run the following command on target
+#Ensure that linkscan is turned off using BCM.0> link off
+#
+
+#Assume some reasonable defaults if no argument specified
+
+if !@?1 "local 1 0x0"
+
+echo "Dumping MDIO address @1"
+phy raw @1 0x0
+phy raw @1 0x1
+phy raw @1 0x2
+phy raw @1 0x3
+phy raw @1 0x4
+phy raw @1 0x5
+phy raw @1 0x6
+phy raw @1 0x7
+phy raw @1 0x8
+phy raw @1 0x9
+phy raw @1 0xa
+phy raw @1 0xb
+phy raw @1 0xc
+phy raw @1 0xd
+phy raw @1 0xe
+phy raw @1 0xf
+phy raw @1 0x10
+phy raw @1 0x11
+phy raw @1 0x12
+phy raw @1 0x13
+phy raw @1 0x14
+phy raw @1 0x15
+phy raw @1 0x16
+phy raw @1 0x17
+phy raw @1 0x18
+phy raw @1 0x19
+phy raw @1 0x1a
+phy raw @1 0x1b
+phy raw @1 0x1c
+phy raw @1 0x1d
+phy raw @1 0x1e
+phy raw @1 0x1f

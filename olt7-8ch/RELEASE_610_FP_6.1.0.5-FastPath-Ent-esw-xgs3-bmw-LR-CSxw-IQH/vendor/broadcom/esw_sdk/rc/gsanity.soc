@@ -1,0 +1,54 @@
+# $Id: gsanity.soc,v 1.1 2011/04/18 18:52:10 mruas Exp $
+# $Copyright: (c) 1998-1999 Broadcom Corp.
+# All Rights Reserved.$
+#
+# Script to run the correct variant of the sanity script on the
+# current chip.
+#
+# To run the correct variant on ALL attached chips, run "*:gsanity".
+#
+# Runs:
+#	sanity.soc on StrataSwitch chips
+#	hsanity.soc on Hercules chips
+#	lsanity.soc on Lynx chips
+#	dsanity.soc on Draco chips
+#	tsanity.soc on Tucana/Magnum chips
+#       fsanity.soc on Firebolt2/Firebolt/Helix chips
+#       esanity.soc on Easyrider chips
+#       bsanity.soc on Bradley/HUMV/Goldwing chips
+#       rsanity.soc on Raptor/Raven chips
+#       trsanity.soc on Triumph chips
+#       vsanity.soc on Valkyrie chips
+#       scsanity.soc on Scorpion/HUMV+/Conqueror chips
+#       sbxsanity.soc on SBX products
+
+if $?slc || $?gsl || $?sml || $?ul "local script sanity.soc"
+if $?herc || $?herc15	"local script hsanity.soc"
+if $?lynx || $?lynx15	"local script lsanity.soc"
+if $?drac || $?drac15	"local script dsanity.soc"
+if $?tucana || $?magnum "local script tsanity.soc"
+if $?fbpoe || $?firebolt || $?helix || $?felix || $?helix15 || $?felix15 \
+        "local script fsanity.soc"
+if $?easyrider || $?easyrider10 "local script esanity.soc"
+if $?bradley || $?humv || $?goldwing "local script bsanity.soc"
+if $?raptor || $?raven "local script rsanity.soc"
+if $?triumph "local script trsanity.soc"
+if $?valkyrie "local script vsanity.soc"
+if $?scorpion || $?humvplus || $?conqueror "local script scsanity.soc"
+if $?BCM56524_A0 "local script bcm56524sanity.soc"
+if $?BCM56526_A0 "local script bcm56526sanity.soc"
+if $?BCM56630_A0 "local script bcm56630sanity.soc"
+if $?BCM56634_A0 "local script bcm56634sanity.soc"
+if $?BCM56636_A0 "local script bcm56636sanity.soc"
+if $?BCM56638_A0 "local script bcm56638sanity.soc"
+if $?BCM56639_A0 "local script bcm56639sanity.soc"
+if $?BCM56685_A0 "local script bcm56685sanity.soc"
+if $?BCM56689_A0 "local script bcm56689sanity.soc"
+if $?BCM56324_A0 "local script fsanity.soc"
+
+if $?sbx "local script sbxsanity.soc"
+
+if !$?script \
+	"echo 'ERROR: Unit $unit ($devname): cannot determine sanity script'"
+if $?script \
+	"echo 'Unit $unit ($devname) running $script'; rcload $script"

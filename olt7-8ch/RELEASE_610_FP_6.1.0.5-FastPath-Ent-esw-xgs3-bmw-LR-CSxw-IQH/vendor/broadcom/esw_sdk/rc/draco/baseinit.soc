@@ -1,0 +1,11 @@
+#
+# Base initialization file for Draco
+#
+
+init
+
+echo "Initializing L2 switching block"
+m arl_control arl_init=1
+sleep 1
+m arl_control arl_init=0
+

@@ -1,0 +1,16 @@
+# $Id: lib.mak,v 1.1 2011/04/18 18:52:11 mruas Exp $
+# $Copyright: Copyright 2007, Broadcom Corporation All Rights Reserved.
+# THIS SOFTWARE IS OFFERED "AS IS", AND BROADCOM GRANTS NO WARRANTIES
+# OF ANY KIND, EXPRESS OR IMPLIED, BY STATUTE, COMMUNICATION OR OTHERWISE.
+# BROADCOM SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A SPECIFIC PURPOSE OR NONINFRINGEMENT CONCERNING THIS SOFTWARE.$
+#
+LOCALDIR = systems/bde/ecos
+
+include ${SDK}/make/Make.config
+
+lib = libecosbdeimpl
+
+include ${SDK}/make/Make.lib
+
+include ${SDK}/make/Make.depend

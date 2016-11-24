@@ -1,0 +1,18 @@
+#
+# Quick initialization file for Draco
+#
+
+echo "Quick initialization.  No port init"
+rcl /home/labguy/boot/draco/baseinit.soc
+
+#
+# It's much faster just to do the following inits, rather than
+# a full init bcm
+#
+init mbcm
+init l2
+init linkscan
+init packet
+
+rcl /home/labguy/boot/draco/setupchip.soc
+

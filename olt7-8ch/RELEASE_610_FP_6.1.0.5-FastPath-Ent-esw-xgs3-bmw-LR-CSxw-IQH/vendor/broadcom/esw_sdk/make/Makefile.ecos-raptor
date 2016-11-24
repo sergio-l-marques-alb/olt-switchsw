@@ -1,0 +1,105 @@
+# $Id: Makefile.ecos-raptor,v 1.1 2011/04/18 17:10:58 mruas Exp $
+# $Copyright: Copyright 2008 Broadcom Corporation.
+# This program is the proprietary software of Broadcom Corporation
+# and/or its licensors, and may only be used, duplicated, modified
+# or distributed pursuant to the terms and conditions of a separate,
+# written license agreement executed between you and Broadcom
+# (an "Authorized License").  Except as set forth in an Authorized
+# License, Broadcom grants no license (express or implied), right
+# to use, or waiver of any kind with respect to the Software, and
+# Broadcom expressly reserves all rights in and to the Software
+# and all intellectual property rights therein.  IF YOU HAVE
+# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+# ALL USE OF THE SOFTWARE.  
+#  
+# Except as expressly set forth in the Authorized License,
+#  
+# 1.     This program, including its structure, sequence and organization,
+# constitutes the valuable trade secrets of Broadcom, and you shall use
+# all reasonable efforts to protect the confidentiality thereof,
+# and to use this information only in connection with your use of
+# Broadcom integrated circuit products.
+#  
+# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+# 
+# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+
+# Look for custom tools
+ifneq (,$(MIPS_TOOLS_DIR))
+override PATH := $(MIPS_TOOLS_DIR):$(PATH)
+endif
+ifneq (,$(MIPS_CROSS_COMPILE))
+override CROSS_COMPILE := $(MIPS_CROSS_COMPILE)
+endif
+
+# Default tools
+ifeq (,$(CROSS_COMPILE))
+#CROSS_COMPILE := mips_fp_be-
+#override PATH := $(PATH):/projects/ntsw-sw/linux/mvista/mips_be_tools-3.1/bin
+CROSS_COMPILE := mipsisa32-elf-
+override PATH := $(PATH):/projects/ntsw-sw/toolchains/ecos/mips32/mipsisa32-elf/bin
+endif
+
+ifdef LVL7_FIXUP
+CFGFLAGS += -DSYS_BE_PIO=0 -DSYS_BE_PACKET=1 -DSYS_BE_OTHER=0
+ENDIAN = BE_HOST=1  
+else
+CFGFLAGS += -DSYS_BE_PIO=0 -DSYS_BE_PACKET=0 -DSYS_BE_OTHER=0
+ENDIAN = LE_HOST=1
+endif
+
+CFGFLAGS += -D$(ENDIAN)
+
+CFGFLAGS += -DBCM_ICS
+
+ifdef LVL7_FIXUP
+CFGFLAGS += -I${ECOSKERNEL_INSTALL_DIR}/include
+CFGFLAGS += -DRTOS_STRINGS
+TARGETTYPE = RAPTOR
+else
+ifneq (,$(MOZART))
+CFGFLAGS += -I${ECOSKERNEL_INSTALL_DIR}/include
+else
+CFGFLAGS += -I$(SDK)/systems/ecos/jag/mips_install/include
+endif
+endif
+
+include ${SDK}/make/Makefile.ecos-common
+
+#
+# ESW requires compiler options optimized for size
+#
+ifdef LVL7_FIXUP
+ifeq (,$(ECOS_GLOBAL_CFLAGS))
+ifeq (${MODENA_CHIP},1)
+KFLAGS := -EB -DRTOS_STRINGS -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fomit-frame-pointer -G 0 -mno-abicalls -fno-pic -pipe -m$(gcc-tune-flag)=r4600 -mips2 -Wa,--trap -mlong-calls
+else # ESW needs size down
+KFLAGS :=  -EB -DRTOS_STRINGS -O1 -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-common -fomit-frame-pointer -G 0 -mno-abicalls -fno-pic -pipe -m$(gcc-tune-flag)=r4600 -mips2 -Wa,--trap -mlong-calls
+endif # MODENA_CHIP
+else
+KFLAGS := $(ECOS_GLOBAL_CFLAGS)
+endif
+else
+ifeq (${MODENA_CHIP},1)
+KFLAGS := -EL -DRTOS_STRINGS -Wall -Wstrict-prototypes -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fomit-frame-pointer -G 0 -mno-abicalls -fno-pic -pipe -m$(gcc-tune-flag)=r4600 -mips2 -Wa,--trap -mlong-calls
+else # ESW needs size down
+KFLAGS :=  -EL -DRTOS_STRINGS -O1 -ffunction-sections -fdata-sections -fno-strict-aliasing -fno-common -fomit-frame-pointer -G 0 -mno-abicalls -fno-pic -pipe -m$(gcc-tune-flag)=r4600 -mips2 -Wa,--trap -mlong-calls
+endif # MODENA_CHIP
+endif

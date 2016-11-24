@@ -1,0 +1,5 @@
+# This scrips to run sanity on all chips in WhiteNight system
+
+0:bcm5670.soc
+1:bcm5690.soc
+2:bcm5690.soc

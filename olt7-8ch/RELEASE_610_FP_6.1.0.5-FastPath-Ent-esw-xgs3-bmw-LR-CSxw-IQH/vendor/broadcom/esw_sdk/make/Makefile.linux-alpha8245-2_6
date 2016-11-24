@@ -1,0 +1,67 @@
+# $Id: Makefile.linux-alpha8245-2_6,v 1.1 2011/04/18 17:10:58 mruas Exp $
+# $Copyright: Copyright 2007, Broadcom Corporation All Rights Reserved.
+# THIS SOFTWARE IS OFFERED "AS IS", AND BROADCOM GRANTS NO WARRANTIES
+# OF ANY KIND, EXPRESS OR IMPLIED, BY STATUTE, COMMUNICATION OR OTHERWISE.
+# BROADCOM SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A SPECIFIC PURPOSE OR NONINFRINGEMENT CONCERNING THIS SOFTWARE.$
+
+# LVL7_FIXUP. This file is added to support Alpha8245 cpu complex and
+# is a copy of Makefile.linux-bmw-2_6 from SDK make system.
+
+# Look for custom tools
+ifneq (,$(PPC_TOOLS_DIR))
+ifneq (,$(PPC_CROSS_COMPILE))
+override PATH := $(PPC_TOOLS_DIR):$(PATH)
+override CROSS_COMPILE := $(PPC_CROSS_COMPILE)
+endif
+endif
+
+# Default tools
+ifeq (,$(CROSS_COMPILE))
+CROSS_COMPILE = powerpc-wrs-linux-gnu-603e-glibc_std-
+#CROSS_COMPILE = powerpc-wrs-linux-gnu-603e-glibc_small-
+export WIND_LIC_PROXY = /projects/ntsw-sw/wrs/wrs_linux/GPP_LE_1.4_PPR/setup/x86-linux2/bin
+override PATH := /projects/ntsw-sw/wrs/wrs_linux/GPP_LE_1.4_PPR/gnu/3.4.4-wrlinux-1.4/x86-linux2/bin:$(PATH)
+endif
+
+# Default Linux Kernel directory
+ifeq (,$(KERNDIR))
+KERNDIR := /projects/ntsw-sw/linux/wrslinux_1.4/bcm98245cpci/build/linux-2.6.14-cgl
+endif
+
+# Default Linux include directory
+ifeq (,$(LINUX_INCLUDE))
+LINUX_INCLUDE := $(KERNDIR)/include
+endif
+
+comma = ,
+basetarget = $(basename $(notdir $@))
+modname = $(basetarget)
+
+# Extra variables.
+EXTRA_CFLAGS = -D"KBUILD_STR(s)=\#s" $(basename_flags) $(modname_flags)
+
+name-fix = $(subst $(comma),_,$(subst -,_,$1))
+basename_flags = -D"KBUILD_BASENAME=KBUILD_STR($(call name-fix,$(basetarget)))"
+modname_flags  = $(if $(filter 1,$(words $(modname))),\
+                 -D"KBUILD_MODNAME=KBUILD_STR($(call name-fix,$(modname)))")
+
+CFGFLAGS += -DSYS_BE_PIO=1 -DSYS_BE_PACKET=0 -DSYS_BE_OTHER=1
+ENDIAN = BE_HOST=1
+CFGFLAGS += -D$(ENDIAN)
+
+ifdef LVL7_FIXUP
+CFGFLAGS += -DLVL7_ALPHA8245
+endif
+
+ARCH = ppc
+KBUILD_VERBOSE = 1
+
+export ARCH KBUILD_VERBOSE
+
+# From linux/arch/ppc/Makefile
+KFLAGS := -D__KERNEL__ -Wno-trigraphs -O2 -fno-strict-aliasing -fno-common -fomit-frame-pointer -fsigned-char -msoft-float -pipe -ffixed-r2 -Wno-uninitialized -mmultiple -mstring
+
+ifneq ($(targetplat),user)
+include ${SDK}/make/Makefile.linux-kernel-2_6
+endif

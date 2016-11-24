@@ -1,0 +1,51 @@
+#
+# Draco L2/L3 sanity script
+#
+
+# Initialization 
+rc.soc
+linkscan off
+
+# Start with hash, test all 5 non-zero algorithms
+echo "Testing L2 Hashing"
+tr 34 c=30 h=2 r=f VidIncrement=1 MacIncrement=23
+tr 34 c=30 h=0 r=f VidIncrement=3 MacIncrement=7
+tr 34 c=30 h=1 r=f VidIncrement=17 MacIncrement=5
+tr 34 c=30 h=4 r=f VidIncrement=13 MacIncrement=47
+tr 34 c=30 h=5 r=f VidIncrement=11 MacIncrement=19
+
+# Next check overflow
+echo "Testing L2 bucket overflow behavior"
+tr 33 c=30 r=f 
+
+# Finish off with Ins/Lookup/Del, use interesting hash
+echo "Testing L2 Insert/Lookup/Delete"
+tr 32 c=50 h=1 r=t 
+tr 32 c=50 h=5 r=t VidIncrement=17 MacIncrement=5
+
+echo "Testing L2 Delete by Port"
+tr 35 h=1 r=f
+tr 35 h=4 r=f VidIncrement=23 MacIncrement=33
+
+echo "Testing L2 Delete by VLAN"
+tr 36 c=50 h=0 r=f
+tr 36 c=50 h=5 r=f VidIncrement=19 MacIncrement=59
+
+# Now for the L3
+
+#echo "Initializing L3 systems"
+#init l3
+
+#Note, we don't need to 'init l3' because we choose r=t in the next test
+echo "Testing L3 overflow"
+tr 37 c=30 r=t 
+
+echo "Testing L3 hashing"
+tr 38 c=30 h=2 r=f 
+tr 38 c=30 h=1 r=f srcipkey=t 
+tr 38 c=30 h=0 r=f srcipkey=t baseip=0xe0.0.0.0
+tr 38 c=30 h=4 r=f srcipkey=f
+tr 38 c=30 h=5 r=f srcipkey=f baseip=0
+tr 38 c=30 h=0 r=f srcipkey=f ipmce=f baseip=0xe0.0.0.0
+tr 38 c=30 h=4 r=f srcipkey=t
+

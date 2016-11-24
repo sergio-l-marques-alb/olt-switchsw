@@ -1,0 +1,143 @@
+# $Id: Makefile.ghs-gto,v 1.1 2011/04/18 17:10:58 mruas Exp $
+# $Copyright: Copyright 2008 Broadcom Corporation.
+# This program is the proprietary software of Broadcom Corporation
+# and/or its licensors, and may only be used, duplicated, modified
+# or distributed pursuant to the terms and conditions of a separate,
+# written license agreement executed between you and Broadcom
+# (an "Authorized License").  Except as set forth in an Authorized
+# License, Broadcom grants no license (express or implied), right
+# to use, or waiver of any kind with respect to the Software, and
+# Broadcom expressly reserves all rights in and to the Software
+# and all intellectual property rights therein.  IF YOU HAVE
+# NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+# IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+# ALL USE OF THE SOFTWARE.  
+#  
+# Except as expressly set forth in the Authorized License,
+#  
+# 1.     This program, including its structure, sequence and organization,
+# constitutes the valuable trade secrets of Broadcom, and you shall use
+# all reasonable efforts to protect the confidentiality thereof,
+# and to use this information only in connection with your use of
+# Broadcom integrated circuit products.
+#  
+# 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+# PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+# REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+# OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+# DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+# NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+# ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+# CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+# OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+# 
+# 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+# BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+# INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+# ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+# TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+# THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+# WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+# ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+#
+# Makefile for MPC8548 host running GHS Integrity/Velosity
+
+include ${SDK}/make/Makefile.ghs-common
+
+CPU = PPC32
+CPU_VARIANT   = _ppc85XX
+
+FEATURE_EXCLUDE_LIST = OOB_RCPU ASE TCL TELNET DRIVERS EDITLINE
+
+# Configuration Flags
+CFGFLAGS += -DINCLUDE_DRIVERS -DMPC8548 -DBCM_PLATFORM_STRING=\"GTO_MPC8548\"
+CFGFLAGS += -DOVERRIDE_PCI_MAX_BUS=130
+
+# fast pci access
+CFGFLAGS+= -DGHS
+
+GHS_HOME = /projects/ntsw-sw3/ghs/int5010
+toolbase = /projects/ntsw-sw3/ghs/multi424/linux86/
+CC 	= $(toolbase)ccintppc
+CPP	= $(toolbase)cppppc
+CXX 	= $(toolbase)g++ppc
+RANLIB 	= $(toolbase)ranlibppc
+AR 	= $(toolbase)ax
+LD 	= $(toolbase)ldppc
+NM 	= $(toolbase)nmppc
+SIZE 	= $(toolbase)sizeppc
+STRIP	= $(toolbase)gstrip
+OBJCOPY = $(toolbase)objcopyppc
+
+CFGFLAGS+= -bsp bcm-8548 -os_dir ${GHS_HOME}
+
+OPTFLAGS_DEFAULT = -O2
+MFLAGS = $(OPTFLAGS) -DCPU=$(CPU)
+ARFLAGS = -rc
+
+# TARGETTYPE Defines: This defines the type of system you are compiling
+# the driver for; there are several values allowed. New values can be created
+# by porting the routines (system.c) to your platform and adding
+# the define in this Makefile.
+
+TARGETTYPE = GTO 
+
+# OSType Defines: This defines the type of RTOS or microkernel which you
+# are compiling the SAL (and its associated driver) for. New platforms
+# can be created by porting the routines (system.c) to your platform and
+# adding the define in this Makefile.
+
+OSTYPE = GHS
+
+INCS += -I$(GHS_HOME)/INTEGRITY-include/
+
+LIBS = 
+
+#
+# STD_{C|CPP|CXX}FLAGS - Standard flags used by ALL compilations
+# BCM_{C|CPP|CXX}FLAGS - Flags used for Broadcom source files
+# OPT_{C|CPP|CXX}FLAGS - Defined in local make files BEFORE inclusion of 
+#			 this Makefile, to define local "Extra" flags.
+#
+# We include -DTRUE=1 to fix a Tornado 1 problem where stdarg macros are
+# defined incorrectly if TRUE is not defined ahead of including stdarg.h.
+# NOTE: Extra -I${INCDIR} puts $SDK/include before system incs, for assert.h
+#
+STD_CFLAGS = $(MFLAGS) \
+	-I${INCDIR} ${INCS} -D${TARGETTYPE} -D${OSTYPE} -DBROADCOM_BSP \
+	${CFGFLAGS} -DTRUE=1 -DBE_HOST=1 -DCOMPILER_OVERRIDE_NO_DOUBLE
+
+STD_CPPFLAGS = ${STD_CFLAGS}
+STD_CXXFLAGS = ${STD_CFLAGS}
+
+# Kernel Link flags
+GHS_GTO_BSP =  bcm-8548
+GHS_BSP_DIR = ${GHS_HOME}/${GHS_GTO_BSP}
+GHS_BSP_BUILD_DIR = ${SDK}/systems/ghs/gto
+GHS_BSP_DIR_WORK = ${GHS_HOME}/${GHS_GTO_BSP}/work
+LDFLAGS += -language=c \
+${GHS_BSP_DIR}/crt0.o \
+${GHS_BSP_BUILD_DIR}/default.ld \
+-MD \
+-nostartfiles \
+-nostdlib \
+-I${GHS_BSP_DIR}/. -I${GHS_HOME}/INTEGRITY-include \
+-I${GHS_HOME}/kernel -I${GHS_HOME}/intlib -bsp bcm-8548 \
+-os_dir ${GHS_HOME} \
+-L${GHS_BSP_DIR}/. \
+-L${GHS_HOME}/ippc8548 \
+-L${toolbase}/lib/intppc8548 \
+-L${GHS_HOME}/intppc8548_common/ppc8548 \
+-L${GHS_HOME}/intppc8548_common/ \
+-G -Ospace -globalreg=1 -delete \
+-strict_overlap_check \
+-ldebug -lres -lload -lcore -llog \
+-lutil -lbsp -lkernel_checked \
+-lposix  -lvxkern \
+-lmulti -lansi -lind -lstartup -larch \
+-kernel=kernel_checked \
+-lnk=-integrity -lnk=-propagate_weak_constants \
+-v -nested_diagnostics \
+-DCHECKED_BUILD -top_project ${GHS_BSP_DIR}/default.gpj
+

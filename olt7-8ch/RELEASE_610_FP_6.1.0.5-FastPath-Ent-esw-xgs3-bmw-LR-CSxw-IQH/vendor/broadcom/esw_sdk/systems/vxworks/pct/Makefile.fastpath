@@ -1,0 +1,17 @@
+#$Id: Makefile.fastpath,v 1.1 2011/04/18 17:11:11 mruas Exp $
+# $Copyright: Copyright 2007, Broadcom Corporation All Rights Reserved.
+# THIS SOFTWARE IS OFFERED "AS IS", AND BROADCOM GRANTS NO WARRANTIES
+# OF ANY KIND, EXPRESS OR IMPLIED, BY STATUTE, COMMUNICATION OR OTHERWISE.
+# BROADCOM SPECIFICALLY DISCLAIMS ANY IMPLIED WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A SPECIFIC PURPOSE OR NONINFRINGEMENT CONCERNING THIS SOFTWARE.$
+#
+LOCALDIR = systems/vxworks/pct
+
+include ${SDK}/make/Make.config
+
+lib = libvxpctsys
+
+include ${SDK}/make/Make.lib
+
+include ${SDK}/make/Make.depend
+
