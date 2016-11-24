@@ -28,24 +28,24 @@ NFS_PATH=~/ptin/nfs
 case "$CPU" in
     "xgs3")
         COMPILER=/opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin/powerpc-e300c3-linux-
-        KERNEL_PATH=$OLT_DIR/kernel/linux-2.6.12.3-PQ2-256M
+        KERNEL_PATH=$OLT_DIR/$FP_FOLDER/kernel/linux-2.6.12.3-PQ2-256M
  	;;
     "gto")
         COMPILER=/opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin/powerpc-e300c3-linux-
-        KERNEL_PATH=$OLT_DIR/kernel/linux-2.6.12.3-PQ2-256M
+        KERNEL_PATH=$OLT_DIR/$FP_FOLDER/kernel/linux-2.6.12.3-PQ2-256M
         ;;
     "pq2pro")
         COMPILER=/opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin/powerpc-e300c3-linux-
-        KERNEL_PATH=$OLT_DIR/kernel/linux-2.6.38-rc5-denx
+        KERNEL_PATH=$OLT_DIR/$FP_FOLDER/kernel/linux-2.6.38-rc5-denx
         ;;
     "teste_2.6.17.14")
 	COMPILER=/opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux/bin/powerpc-e300c3-linux-
 	#KERNEL_PATH=/home/jloura/OLT/OLT7-8CH_A/trunk/oltd-1.9/lib/linux-2.6.17.14.olt7.fp/linux-2.6.17.14
-	KERNEL_PATH=$OLT_DIR/fastpath/kernel/linux-2.6.17.14_olt7-8ch
+	KERNEL_PATH=$OLT_DIR/$FP_FOLDER/kernel/linux-2.6.17.14_olt7-8ch
 	;;
     "pq3")
         COMPILER=/opt/eldk/usr/bin/ppc_85xxDP-
-        KERNEL_PATH=$OLT_DIR/kernel/linux-2.6.27.56
+        KERNEL_PATH=$OLT_DIR/$FP_FOLDER/kernel/linux-2.6.27.56
         ;;
     *)
         echo "Platform not supported by this build file: "$CPU
@@ -73,6 +73,7 @@ export CCVIEWS_HOME=$OLT_DIR/$FP_FOLDER
 
 echo "OUTPATH=$OUTPATH"
 
+#N_CPUS=1
 N_CPUS=`grep -c 'model name' /proc/cpuinfo`
 
 # Local functions
