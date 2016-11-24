@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DhcpSnoopingStats" title="DHCP Snooping Statistics">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingDHCPSnooping_Interface" id="1" />
+            </node>
+            <node id="2">
+                <element properties="read-only" obj-name="SwitchingDHCPSnooping_MACVerifyFailures" id="1" name="MAC Verify Failures"/>
+            </node>
+            <node id="3">
+                <element properties="read-only" obj-name="SwitchingDHCPSnooping_intfMismatch" id="1" name="Client Ifc Mismatch"/>
+            </node>
+            <node id="4">
+                <element properties="read-only" obj-name="SwitchingDHCPSnooping_untrustedSvrMsg" id="1" name="DHCP Server Msgs Received"/>
+            </node>
+            <node id="5">
+                <button level="ReadWriteUser" scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Clear Statistics"/>
+            </node>
+        </group>
+   </webxml>
+</FastPathXML>

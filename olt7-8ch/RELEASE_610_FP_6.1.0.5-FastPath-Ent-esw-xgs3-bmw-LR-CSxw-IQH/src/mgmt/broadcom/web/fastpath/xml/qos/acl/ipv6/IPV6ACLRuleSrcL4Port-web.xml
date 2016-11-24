@@ -1,0 +1,43 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IPV6ACLRuleSrcL4Port" title="IPv6 ACL Rule Configuration" help-file="help_IPV6ACLRuleConfig.html">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element  properties="hidden" obj-name="fastPathQOSACLQOSACL_aclIpv6Index" id="1" name="IPV6 ACL"/>
+            </node>
+            <node id="2">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclIpv6Name" id="2" name="IPv6 ACL Name"/>
+            </node>
+            <node id="3">
+                <element properties="filter,iterate" obj-name="fastPathQOSACLQOSACL_aclIpv6RuleIndex" id="1" name="Rule"/>
+            </node>
+             <node id="4">
+                <element control="combo" obj-name="xLibObjects_dummy" id="1" name="Source L4 Port Keyword" uienum="ACL_IP_L4Port_t" properties="filter">
+                    <action type="enum" show="1_5" enable="1_5"/>
+                    <action type="enum" hide="1_5" setval_ids="1_5" setval_args="domain" />
+                    <action type="enum" hide="1_5" setval_ids="1_5" setval_args="echo" />
+                    <action type="enum" hide="1_5" setval_ids="1_5" setval_args="ftp" />
+                    <action type="enum" hide="1_5" setval_ids="1_5" setval_args="ftpdata" />
+                    <action type="enum" hide="1_5" setval_ids="1_5" setval_args="http" />
+                    <action type="enum" hide="1_5" setval_ids="1_5" setval_args="smtp" />
+                    <action type="enum" hide="1_5" setval_ids="1_5" setval_args="snmp" />
+                    <action type="enum" hide="1_5" setval_ids="1_5" setval_args="telnet" />
+                    <action type="enum" hide="1_5" setval_ids="1_5" setval_args="tftp" />
+                    <action type="enum" hide="1_5" setval_ids="1_5" setval_args="www" />
+                </element>
+            </node>
+
+            <node id="5">
+                <element arghelp="HELP_FORMAT_FP" obj-name="fastPathQOSACLQOSACL_aclIpv6RuleSrcL4Port" id="1" name="Source L4 Port Number"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonSubmit"  target-page="IPV6ACLRuleConfig.html" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" target-page="IPV6ACLRuleConfig.html" help="Executes the associated actions if any." id="2" name="Cancel"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

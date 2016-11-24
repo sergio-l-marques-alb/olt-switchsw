@@ -1,0 +1,84 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>DAI Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+ 
+
+
+<hr size=4 width="100%" align=center>
+
+
+<h2><a name=daiintfcfg></a>Help for DAI Interface Configuration</h2>
+
+<BR>
+<h3>Selection Criteria</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	Unit/Slot/Port
+<EMWEB_ELSE>
+	Slot/Port
+</EMWEB_IF></b> 
+      - Select the physical interface for which data is to be displayed or configured. 
+  </li>
+  <li><b>Trust State</b> -
+      Indicates whether the interface is trusted for
+      Dynamic ARP Inspection purpose.
+      If this object is set to 'Enable', the interface is trusted.
+      ARP packets coming to this interface will be forwarded
+      without checking.
+      If this object is set to 'Disable', the interface is not
+      trusted. ARP packets coming to this interface will be
+      subjected to ARP inspection.   
+      The factory default is disable.</li>
+ </ul>
+</ul>
+
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+    <li><b>Rate Limit</b> -
+      Specifies rate limit value for Dynamic ARP
+      Inspection purpose. If the incoming rate of ARP packets
+      exceeds the value of this object for consecutively
+      burst interval seconds, ARP packets will be
+      dropped. If this value is -1 there is no limit. The Range is (0 to 300 pps).
+      The factory default is 15pps (packets per second).</li>
+  <li><b>No Limit</b> -
+      Selecting this option specifies that the value of Rate Limit will be configured to -1. If the rate limit is -1 burst interval has no meaning , hence it is disabled.</li>
+  <li><b>Burst Interval</b> -
+       This Specifies the burst interval value
+       for rate limiting purpose on this interface. The Range is (1 to 15 seconds).
+       If the rate limit is -1 burst interval has no meaning.
+       The factory default is 1 second.</li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Submit</b> -
+      Update the switch with the values you entered. 
+      If you want the switch to retain the new values across a power cycle you must perform a save.</li>
+</EMWEB_IF>
+  <li><b>Refresh</b> - Refresh the data on the screen with the present
+      state of the data in the switch.</li>
+ </ul>
+</ul>
+<hr size=4 width="100%" align=center>
+
+
+</body>
+
+</html>
+
+

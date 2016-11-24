@@ -1,0 +1,74 @@
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Protocol-based VLAN Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=pbvlan_summary></a>Help for Protocol-based VLAN Summary</h2>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Group Name</b> - The name associated with the group.  Group names
+         can be up to 16 characters long.  The maximum number of groups allowed is 128.</li>
+  <li><b>Group ID</b> - The number used to identify the group. It was
+         automatically assigned when you created the group. </li>
+  <li><b>Protocol(s)</b> - The protocol(s) that belongs to the group.
+         There are three configurable protocols: IP, IPX, ARP.
+          <ul type=square>
+         <li><I><b>IP</b></I> -  IP is a network layer protocol that provides a connectionless
+                                 service for the delivery of data. </li>
+         <li><I><b>ARP</b></I> - Address Resolution Protocol (ARP) is a low-level protocol
+                                 that dynamically maps network layer
+                                 addresses to physical medium access control (MAC) addresses</li>
+         <li><I><b>IPX</b></I> - The Internetwork Packet Exchange (IPX) is a connectionless
+                                 datagram Network-layer protocol that forwards data over a
+                                 network. </li>
+         </UL>
+
+
+  </li>
+  <li><b>VLAN</b> -
+         The VLAN ID associated with the group.
+  </li>
+  <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	Unit/Slot/Port
+<EMWEB_ELSE>
+	Slot/Port
+</EMWEB_IF>(s)</b> - The interfaces associated with the group.
+
+  </li>
+ </ul>
+</ul>
+
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Refresh</b> - Update the screen with the latest information
+      </li>
+ </ul>
+</ul>
+
+
+
+<hr size=4 width="100%" align=center>
+
+
+</body>
+
+</html>
+
+

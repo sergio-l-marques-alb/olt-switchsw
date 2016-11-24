@@ -1,0 +1,2251 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="qos" version="1.0">
+<module name="DiffServPolicyInst" key-method="individual">
+<key-combo list="PolicyIndex,PolicyInstIndex"/>
+<object name="PolicyIndex">
+<core type="uint" key="yes" access="read-write" descr="The identifier for DiffServ Policy table entry."/>
+<ui name="Policy Index" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.2.1.1"/> 
+</ui></object>
+<!-- &lt;object depends=&quot;PolicyIndex&quot; name=&quot;DiffServClassAdd&quot;&gt;       
+&lt;core validation=&quot;validate_uint&quot; descr=&quot;DiffServClassAdd&quot; access=&quot;read-write&quot; type=&quot;uint&quot;/&gt;              
+&lt;ui style=&quot;inputLine&quot; name=&quot;DiffServClassAdd&quot;&gt;                 
+&lt;cli validation=&quot;validate_uint&quot;/&gt;                 
+&lt;web validation=&quot;validate_uint&quot;/&gt;              
+&lt;snmp asn-id=&quot;&quot;/&gt;         
+&lt;/ui&gt;        
+&lt;/object&gt;        
+-->
+
+<object name="PolicyInstIndex">
+<core type="uint" key="yes" access="read-write" descr="The identifier for policy-class Instance table entry within a policy."/>
+<ui name="Policy Instance Index" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.3.1.1"/> 
+</ui></object>
+<object name="PolicyInstClassIndex" depends="PolicyIndex,PolicyInstIndex">
+<core type="uint" min="0" max="L7_DIFFSERV_INST_PER_POLICY_LIM" access="read-write" descr="Index of the DiffServ Class Table row, whose class definition is used as the policy class instance. The class index identifies the classifier definition used by the policy to establish an instance of that class (to which policy attr"/>
+<ui name="Policy Instance Class Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.3.1.2"/> 
+</ui></object>
+
+<object name="PolicyInstClassName" depends="PolicyIndex,PolicyInstIndex">
+<core type="string" access="read-only" descr="The name of the class assigned to policy instance"/>
+<ui name="Policy Instance Class Name" style="plainText">
+</ui></object>
+<!-- This is a hack where pseudo key is needed for this object but tool doesnt support a pseudo key when the object depends on multiple keys. Hence the depend object PolicyIndex is removed from this list,but the same is being fetched from the filter in the handler. This will be placed back once the pseudo key support is added for this case.-->
+<object name="PolicyInstClassNameList" depends="PolicyInstIndex">
+<core type="string" properties="pseudo-key" access="read-write" descr="Name of the DiffServ Class Table row, whose class definition is used as the policy class instance.  The class index identifies the classifier definition used by the policy to establish an instance of that class (to which policy attr"/>
+<ui name="Policy Instance Class Name" style="choiceNselect1">
+</ui></object>
+
+<object name="PolicyInstAttrIndexNextFree" depends="PolicyIndex,PolicyInstIndex">
+<core type="uint" access="read-only" descr="This object contains an unused value for agentDiffServPolicyAttrIndex, or a zero to indicate that none exists. This index is maintained on a per-policy-class-instance basis."/>
+<ui name="Next Free Policy Instance Attribute Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.3.1.3"/> 
+</ui></object>
+<object name="PolicyInstStorageType" depends="PolicyIndex,PolicyInstIndex">
+<core type="enum" xtype="L7_StorageType_t" default="FD_QOS_DIFFSERV_STORAGE_TYPE" access="read-write" descr="Storage-type for this conceptual row."/>
+<ui name="Policy Instance Storage Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.3.1.4"/> 
+</ui></object>
+<object name="PolicyInstRowStatus" depends="PolicyIndex,PolicyInstIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The status of this conceptual row. Entries can not be deleted until all rows in agentDiffServPolicyAttrTable with corresponding values of agentDiffServPolicyIndex and agentDiffServPolicyInstIndex have been deleted"/>
+<ui name="Policy Instance Row Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.3.1.5"/> 
+</ui></object>
+</module>
+<module name="DiffServService" key-method="individual">
+<key-combo list="IfIndex,IfDirection"/>
+<object name="IfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="External interface number of the interface to which policy is assigned."/>
+<ui name="Unit/Slot/Port" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.1.1.1"/> 
+</ui></object>
+<object name="IfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="External interface number of the interface to which policy is assigned."/>
+<ui name="Slot/Port" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.1.1.1"/> 
+</ui></object>
+<object name="IfDirection">
+<core type="enum" xtype="L7_DIFFSERV_IF_DIRECTION_t" key="yes" access="read-write" descr="Interface direction to which the policy is assigned."/>
+<ui name="Direction" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.1.1.2"/> 
+</ui></object>
+<object name="PolicyIndex" depends="IfIndex,IfDirection">
+<core type="uint" min="0" max="L7_DIFFSERV_POLICY_LIM" access="read-write" descr="Index of the Policy Table row whose policy definition is attached to the interface in the specified direction."/>
+<ui name="Policy Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.1.1.3"/> 
+</ui></object>
+
+<object name="PolicyName" depends="IfIndex,IfDirection">
+<core type="string" access="read-write" descr="Lists the policies currently configured and selects the one that is applied to the selected interface in the selected direction."/>
+<ui name="Policy Name" style="inputLine">
+</ui></object>
+
+<object name="PolicyNameList" depends="IfIndex,IfDirection">
+<core type="string" access="read-write" dynamic="yes" descr="Lists the policies currently configured and selects the one that is applied to the selected interface in the selected direction."/>
+<ui name="Policy Name List" style="choiceNselect1">
+</ui></object>
+
+<object name="InPolicyNameList" depends="IfIndex,IfDirection">
+<core type="string" key="yes" access="read-write" dynamic="yes" descr="Lists the inbound policies currently configured."/>
+<ui name="In Policy Name List" style="choiceNselect1">
+</ui></object>
+
+<object name="OutPolicyNameList" depends="IfIndex,IfDirection">
+<core type="string" key="yes" access="read-write" dynamic="yes" descr="Lists the outbound policies currently configured."/>
+<ui name="Out Policy Name List" style="choiceNselect1">
+</ui></object>
+
+<object name="GlobalDirection">
+<core type="enum" xtype="diffServPolicyType_t" key="yes" access="read-write" descr="Populates policy directions."/>
+<ui name="Global Direction" style="choiceNselect1">
+</ui></object>
+
+<object name="InPolicyAdd" depends="IfIndex,InPolicyNameList">
+<core type="uint" access="write-only" descr="Adds the given inbound policy on the specified interface."/>
+<ui name="In Policy Add" style="inputLine">
+</ui></object>
+
+<object name="InPolicyDel" depends="IfIndex,InPolicyNameList">
+<core type="uint" access="write-only" descr="Deletes the given inbound policy on the specified interface."/>
+<ui name="In Policy Delete" style="inputLine">
+</ui></object>
+
+<object name="OutPolicyAdd" depends="IfIndex,OutPolicyNameList">
+<core type="uint" access="write-only" descr="Adds the given outbound policy on the specified interface."/>
+<ui name="Out Policy Add" style="inputLine">
+</ui></object>
+
+<object name="OutPolicyDel" depends="IfIndex,OutPolicyNameList">
+<core type="uint" access="write-only" descr="Deletes the given outbound policy on the specified interface."/>
+<ui name="Out Policy Delete" style="inputLine">
+</ui></object>
+
+<object name="GlobalPolicyAdd" depends="GlobalDirection,InPolicyNameList,OutPolicyNameList">
+<core type="uint" access="write-only" dynamic="yes" descr="Adds selected policy to all interfaces in given direction."/>
+<ui name="Global Policy Add" style="inputLine">
+</ui></object>
+
+<object name="GlobalPolicyDel" depends="GlobalDirection,InPolicyNameList,OutPolicyNameList">
+<core type="uint" access="write-only" dynamic="yes" descr="Deletes selected policy to all interfaces in given direction."/>
+<ui name="Global Policy Delete" style="inputLine">
+</ui></object>
+
+<object name="MemberClassList" depends="IfIndex,IfDirection">
+<core type="string" properties="dynamic" access="read-write" descr="Member class list for this policy" validation="validate_alphanum33"/>
+<ui name="Member Class List" style="choiceNselect1">
+</ui></object>
+
+<object name="IfOperStatus" depends="IfIndex,IfDirection">
+<core type="enum" xtype="diffServIfOperStatus_t" access="read-only" descr="The current operational state of the DiffServ service interface. If agentDiffServGenStatusAdminMode is disable(2) then agentDiffServServiceIfOperStatus should be down(2). If agentDiffServServiceGenStatusAdminMode is ch"/>
+<ui name="Operational Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.1.1.4"/> 
+</ui></object>
+<object name="StorageType" depends="IfIndex,IfDirection">
+<core type="enum" xtype="L7_StorageType_t" default="FD_QOS_DIFFSERV_STORAGE_TYPE" access="read-write" descr="Storage-type for this conceptual row"/>
+<ui name="Storage Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.1.1.5"/> 
+</ui></object>
+<object name="RowStatus" depends="IfIndex,IfDirection">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The status of this conceptual row."/>
+<ui name="Row Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.1.1.6"/> 
+</ui></object>
+</module>
+<module name="DiffServPolicy">
+<object name="PolicyIndex">
+<core type="uint" key="yes" access="read-write" descr="The identifier for DiffServ Policy table entry."/>
+<ui name="Policy Index" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.2.1.1"/> 
+</ui></object>
+<object name="PolicyName" depends="PolicyIndex">
+<core type="string" access="read-write" descr="Name of the policy" properties="pseudo-key"/>
+<ui name="Policy Name" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.2.1.2"/> 
+</ui></object>
+<object name="PolicyType" depends="PolicyIndex">
+<core type="enum" xtype="diffServPolicyType_t" default="L7_USMDB_MIB_DIFFSERV_POLICY_TYPE_IN" access="read-write" descr=" The policy type dictates whether inbound or outbound policy attribute statements are used in the policy definition."/>
+<ui name="PolicyType" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.2.1.3"/> 
+</ui></object>
+<object name="PolicyInstIndexNextFree" depends="PolicyIndex">
+<core type="uint" access="read-only" descr="This object contains an unused value for agentDiffServPolicyInstIndex, or a zero to indicate that none exists. This index is maintained on a per-policy basis."/>
+<ui name="Next Free Policy Instance" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.2.1.4"/> 
+</ui></object>
+<object name="PolicyStorageType" depends="PolicyIndex">
+<core type="enum" xtype="L7_StorageType_t" default="FD_QOS_DIFFSERV_STORAGE_TYPE" access="read-write" descr="Storage-type for this conceptual row"/>
+<ui name="Policy Storage Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.2.1.5"/> 
+</ui></object>
+<object name="PolicyRowStatus" depends="PolicyIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The status of this conceptual row. Entries can not be deleted until all rows in agentDiffServPolicyInstTable with corresponding values of agentDiffServPolicyIndex have been deleted."/>
+<ui name="Policy Row Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.2.1.6"/> 
+</ui></object>
+
+<object name="AddToMemberClassList" depends="PolicyIndex">
+<core type="string" properties="dynamic" access="read-write" descr="Available class list for this policy" validation="validate_alphanum33"/>
+<ui name="Add To Member Class List" style="choiceNselect1">
+</ui></object>
+ 
+<object name="isClassPresent" depends="PolicyIndex">
+<core type="enum" xtype="L7_TrueFalse" access="read-only" descr="Check if there are any classes available for this policy"/>
+<ui name="is Class Configured" style="plainText">
+</ui></object>
+ 
+<object name="RemoveFromMemberClassList" depends="PolicyIndex">
+<core type="string" properties="dynamic" access="read-write" descr="Member class list for this policy" validation="validate_alphanum33"/>
+<ui name="Remove Member Class List" style="choiceNselect1">
+</ui></object>
+ 
+<object name="isMemberPresent" depends="PolicyIndex">
+<core type="enum" xtype="L7_TrueFalse" access="read-only" descr="Check if there are any member classes available for this policy"/>
+<ui name="is Member Class Configured" style="plainText">
+</ui></object>
+
+<object name="PolicyMemberClassList" depends="PolicyIndex">
+<core type="string" access="read-only" descr="Provides member clases as comma seperated string." properties="pseudo-key"/>
+<ui name="Policy Member Class List" style="plainText">
+</ui></object>
+
+</module>
+<module name="DiffServServiceStats" key-method="individual">
+<key-combo list="IfIndex,IfDirection"/>
+<object name="IfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="External interface number of the interface to which policy is assigned."/>
+<ui name="Unit/Slot/Port" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.1.1.1"/> 
+</ui></object>
+<object name="IfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="External interface number of the interface to which policy is assigned."/>
+<ui name="Slot/Port" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.1.1.1"/> 
+</ui></object>
+
+<object name="IfPhyIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="External interface number of the interface to which policy is assigned."/>
+<ui name="Unit/Slot/Port" style="choiceNselect1">
+</ui></object>
+<object name="IfPhyIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="External interface number of the interface to which policy is assigned."/>
+<ui name="Slot/Port" style="choiceNselect1">
+</ui></object>
+<object name="IfLagIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="External interface number of the interface to which policy is assigned."/>
+<ui name="Unit/Slot/Port" style="choiceNselect1">
+</ui></object>
+<object name="IfLagIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="External interface number of the interface to which policy is assigned."/>
+<ui name="Slot/Port" style="choiceNselect1">
+</ui></object>
+
+<!-- START - Below  objects are as actualy as part of "DiffServPolicyPerfInStats" module . These objects are added as part of temporary implementaion service detailed stats page -->
+<object name="IfDirection">
+<core type="enum" xtype="diffServIfDirection_t" key="yes" access="read-write" descr="Interface direction to which the policy is assigned."/>
+<ui name="IfDirection" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.1.1.2"/> 
+</ui></object>
+
+<object name="MemberClassList" depends="IfIndex,IfDirection">
+<core type="string" properties="dynamic" access="read-write" key="yes" descr="Member class list for this policy"/>
+<ui name="Member Class List" style="choiceNselect1">
+</ui></object>
+
+
+<object name="PolicyIndex" depends="IfIndex,IfDirection">
+<core type="uint" access="read-only" descr="Index of the Policy Table row whose policy definition is attached to the interface in the specified direction."/>
+<ui name="Policy Index" style="choiceNselect1">
+</ui></object>
+
+<object name="PolicyName" depends="IfIndex,IfDirection">
+<core type="string" access="read-only" descr="Lists the policies currently configured and selects the one that is applied to the selected interface in the selected direction."/>
+<ui name="Policy Name" style="choiceNselect1">
+</ui></object>
+
+<object name="IfOperStatus" depends="IfIndex,IfDirection">
+<core type="enum" xtype="diffServIfOperStatus_t" access="read-only" descr="The current operational state of the DiffServ service interface. If agentDiffServGenStatusAdminMode is disable(2) then agentDiffServServiceIfOperStatus should be down(2). If agentDiffServServiceGenStatusAdminMode is ch"/>
+<ui name="Operational Status" style="plainText">
+</ui></object>
+
+
+<object name="OfferedOctets" depends="IfIndex,IfDirection,MemberClassList">
+<core type="uint" access="read-only" descr="Offered octets count for the inbound policy-class instance performance entry."/>
+<ui name="Offered Octets" style="plainText">
+</ui></object>
+<object name="OfferedPackets" depends="IfIndex,IfDirection,MemberClassList">
+<core type="uint" access="read-only" descr="Offered packets count for the inbound policy-class instance performance entry."/>
+<ui name="Offered Packets" style="plainText">
+</ui></object>
+<object name="DiscardedOctets" depends="IfIndex,IfDirection,MemberClassList">
+<core type="uint" access="read-only" descr="Discarded octets count for the inbound policy-class instance performance entry."/>
+<ui name="Discarded Octets" style="plainText">
+</ui></object>
+<object name="DiscardedPackets" depends="IfIndex,IfDirection,MemberClassList">
+<core type="uint" access="read-only" descr="Discarded packets count for the inbound policy-class instance performance entry."/>
+<ui name="Discarded Packets" style="plainText">
+</ui></object>
+
+
+<object name="PerfOfferedOctets" depends="IfIndex,IfDirection">
+<core type="user" xtype="stats64_t" access="read-only" descr="Offered octets count for the specified service interface and direction"/>
+<ui name="Perf Offered Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.2.1.1"/> 
+</ui></object>
+<object name="PerfOfferedPackets" depends="IfIndex,IfDirection">
+<core type="user" xtype="stats64_t" access="read-only" descr="Offered packets count for specified service interface and direction"/>
+<ui name="Perf Offered Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.2.1.2"/> 
+</ui></object>
+<object name="PerfDiscardedOctets" depends="IfIndex,IfDirection">
+<core type="user" xtype="stats64_t" access="read-only" descr="Discarded octets count for the specified service interface and direction"/>
+<ui name="Perf Discarded Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.2.1.3"/> 
+</ui></object>
+<object name="PerfDiscardedPackets" depends="IfIndex,IfDirection">
+<core type="user" xtype="stats64_t" access="read-only" descr="Discarded packets count for the specified service interface and direction"/>
+<ui name="Perf Discarded Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.2.1.4"/> 
+</ui></object>
+<object name="PerfSentOctets" depends="IfIndex,IfDirection">
+<core type="user" xtype="stats64_t" access="read-only" descr="Sent octets count for the specified service interface and direction"/>
+<ui name="Perf Sent Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.2.1.5"/> 
+</ui></object>
+<object name="PerfSentPackets" depends="IfIndex,IfDirection">
+<core type="user" xtype="stats64_t" access="read-only" descr="Sent packets count for the specified service interface and direction"/>
+<ui name="Perf Sent Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.2.1.6"/> 
+</ui></object>
+<object name="PerfHCOfferedOctets" depends="IfIndex,IfDirection">
+<core type="user" xtype="stats64_t" access="read-only" descr="Offered octets high capacity count for the specified service interface and direction"/>
+<ui name="Perf HC Offered Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.2.1.7"/> 
+</ui></object>
+<object name="PerfHCOfferedPackets" depends="IfIndex,IfDirection">
+<core type="user" xtype="stats64_t" access="read-only" descr="Offered packets high capacity count for the specified service interface and direction"/>
+<ui name="Perf HC Offered Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.2.1.8"/> 
+</ui></object>
+<object name="PerfHCDiscardedOctets" depends="IfIndex,IfDirection">
+<core type="user" xtype="stats64_t" access="read-only" descr="Discarded octets high capacity count for the specified service interface and direction"/>
+<ui name="Perf HC Discarded Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.2.1.9"/> 
+</ui></object>
+<object name="PerfHCDiscardedPackets" depends="IfIndex,IfDirection">
+<core type="user" xtype="stats64_t" access="read-only" descr="Discarded packets high capacity count for the specified service interface and direction"/>
+<ui name="Perf HC Discarded Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.2.1.10"/> 
+</ui></object>
+<object name="PerfHCSentOctets" depends="IfIndex,IfDirection">
+<core type="user" xtype="stats64_t" access="read-only" descr="Sent octets high capacity count for the specified service interface and direction"/>
+<ui name="Perf HC Sent Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.2.1.11"/> 
+</ui></object>
+<object name="PerfHCSentPackets" depends="IfIndex,IfDirection">
+<core type="user" xtype="stats64_t" access="read-only" descr="Sent packets high capacity count for the specified service interface and direction"/>
+<ui name="Perf HC Sent Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.4.2.1.12"/> 
+</ui></object>
+</module>
+<module name="DiffServPolicyAttributeStmt" key-method="individual">
+<key-combo list="PolicyIndex,PolicyInstIndex,PolicyAttrIndex"/>
+<object name="PolicyIndex">
+<core type="uint" key="yes" access="read-write" descr="The identifier for DiffServ Policy table entry."/>
+<ui name="Policy Index" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.2.1.1"/> 
+</ui></object>
+<object name="PolicyInstIndex">
+<core type="uint" key="yes" access="read-write" descr="The identifier for policy-class Instance table entry within a policy."/>
+<ui name="Policy Instance Index" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.3.1.1"/> 
+</ui></object>
+<object name="PolicyAttrIndex">
+<core type="uint" key="yes" access="read-write" descr="The identifier for policy-attribute entry "/>
+<ui name="Policy Attribute Index" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.1"/> 
+</ui></object>
+<object name="EntryType" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="diffServPolicyAttrType_t" access="read-write" descr="Policy attribute statement entry type -- this entry type is essential to determine which of the individual object(s) is defined for this policy attribute statement. This object must be created before any other policy "/>
+<ui name="Entry Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.2"/> 
+</ui></object>
+
+<object name="EntryType1" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="string" dynamic="yes" access="read-write" descr="Policy attribute statement entry type -- this entry type is essential to determine which of the individual object(s) is defined for this policy attribute statement. This object must be created before any other policy "/>
+<ui name="EntryType1" style="inputLine">
+</ui></object>
+
+<object name="EntryDetails" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="string" access="read-only" descr="Policy attribute statement entry details -- this entry type is essential to determine which of the individual object(s) is defined for this policy attribute statement. "/>
+<ui name="Entry Details" style="plainText">
+</ui></object>
+
+<object name="AssignQueueIndex" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-only" descr="Get the attribute index of Assign Queue Match."/>
+<ui name="Assign Queue Index" style="plainText">
+</ui></object>
+ 
+<object name="MarkCosIndex" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-only" descr="Get the attribute index of MarkCos Match."/>
+<ui name="Mark Cos Index" style="plainText">
+</ui></object>
+
+<object name="IPDSCPIndex" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-only" descr="Get the attribute index of IP DSCP Match."/>
+<ui name="IP DSCP Index" style="plainText">
+</ui></object>
+
+<object name="IPPrecedenceIndex" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-only" descr="Get the attribute index of IP precedence  Match."/>
+<ui name="IP Precedence Index" style="plainText">
+</ui></object>
+
+<object name="DropIndex" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-only" descr="Get the attribute index of drop Match."/>
+<ui name="Drop Index" style="plainText">
+</ui></object>
+
+<object name="MirrorIntfIndex" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-only" descr="Get the attribute index of Mirror interface Match."/>
+<ui name="Mirror Interface Index" style="plainText">
+</ui></object>
+
+<object name="RedirectIntfIndex" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-only" descr="Get the attribute index of Redirect Interface Match."/>
+<ui name="Redirect Interface Index" style="plainText">
+</ui></object>
+
+<object name="SimplePoliceIndex" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-only" descr="Get the attribute index of Simple Police Match."/>
+<ui name="Simple Police Index" style="plainText">
+</ui></object>
+
+
+<object name="IsAssignQueuePresent" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="L7_TrueFalse" access="read-only" descr="To check if the AssignQueue match criteria is configured for the given policy and class combination."/>
+<ui name="Is Assign Queue Configured" style="plainText">
+</ui></object>
+
+<object name="IsMarkCosPresent" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="L7_TrueFalse" access="read-only" descr="To check if the Mark Cos match criteria is configured for the given policy and class combination."/>
+<ui name="Is Mark Cos Configured" style="plainText">
+</ui></object>
+
+<object name="IsIPDSCPPresent" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="L7_TrueFalse" access="read-only" descr="To check if the IP DSCP match criteria is configured for the given policy and class combination."/>
+<ui name="is IP DSCP Configured" style="plainText">
+</ui></object>
+
+<object name="IsIPPrecedencePresent" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="L7_TrueFalse" access="read-only" descr="To check if the IPPrecedence match criteria is configured for the given policy and class combination."/>
+<ui name="Is IP Precedence Configured" style="plainText">
+</ui></object>
+
+<object name="IsDropPresent" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="L7_TrueFalse" access="read-only" descr="To check if the Drop  match criteria is configured for the given policy and class combination."/>
+<ui name="Is Drop Configured" style="plainText">
+</ui></object>
+
+<object name="IsMirrorIntfPresent" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="L7_TrueFalse" access="read-only" descr="To check if the Mirror Interface match criteria is configured for the given policy and class combination."/>
+<ui name="Is Mirror Interface Configured" style="plainText">
+</ui></object>
+
+<object name="IsRedirectIntfPresent" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="L7_TrueFalse" access="read-only" descr="To check if the Redirect interface match criteria is configured for the given policy and class combination."/>
+<ui name="Is Redirect Interface Configured" style="plainText">
+</ui></object>
+
+<object name="IsSimplePolicePresent" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="L7_TrueFalse" access="read-only" descr="To check if the Simple Police match criteria is configured for the given policy and class combination."/>
+<ui name="Is Simple Police Configured" style="plainText">
+</ui></object>
+
+ 
+<object name="IsColorAwareClassPresent" depends="PolicyIndex,PolicyInstIndex">
+<core type="enum" xtype="L7_TrueFalse" access="read-only" descr="To check if there is atleast one color aware class available for the given policy and class combination."/>
+<ui name="Is Color Aware Class Configured" style="plainText">
+</ui></object>
+
+<object name="ColorAwareClassList" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="string" properties="dynamic" access="read-write" descr="Color aware class list for this policy and policy instance."/>
+<ui name="Color Aware Class List" style="choiceNselect1">
+</ui></object>
+
+<object name="ColorExceedClassList" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="string" properties="dynamic" access="read-write" descr="Color aware class list for this policy and policy instance."/>
+<ui name="ColorAwareClassList" style="choiceNselect1">
+</ui></object>
+
+<object name="ClassColorType" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="diffServColorType_t" access="read-write" descr="To find if a perticular simple police attribute is color aware or blind. Also, to set the color mode to blind."/>
+<ui name="Class Color Type" style="choiceNselect1">
+</ui></object>
+
+<!-- ObjectRemoved
+&lt;object name=&quot;BandwidthCrate&quot; depends=&quot;PolicyIndex,PolicyInstIndex,PolicyAttrIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-write&quot; descr=&quot;Bandwidth committed rate attribute statement value  identifies the minimum amount of bandwidth to be reserved for the specified class instance within the policy. This attribute is only valid if the value of agentDiffServPolicyAtt&quot;/&gt;
+&lt;ui name=&quot;BandwidthCrate&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.4.1.3&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;BandwidthCrateUnits&quot; depends=&quot;PolicyIndex,PolicyInstIndex,PolicyAttrIndex&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;diffServBandWidthUnits_t&quot; access=&quot;read-write&quot; descr=&quot;Bandwidth committed rate units attribute statement value  this value determines the interpretation of the agentDiffServPolicyAttrStmtBandwidthCrate object as either kilobits-per-second or as a percenta&quot;/&gt;
+&lt;ui name=&quot;BandwidthCrateUnits&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.4.1.4&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;ExpediteCrate&quot; depends=&quot;PolicyIndex,PolicyInstIndex,PolicyAttrIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-write&quot; descr=&quot;Expedited (bandwidth) committed rate attribute statement value  it identifies the maximum guaranteed amount of bandwidth to be reserved for the specified class instance within the policy. This attribute is onl&quot;/&gt;
+&lt;ui name=&quot;ExpediteCrate&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.4.1.5&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;ExpediteCrateUnits&quot; depends=&quot;PolicyIndex,PolicyInstIndex,PolicyAttrIndex&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;diffServBandWidthUnits_t&quot; access=&quot;read-write&quot; descr=&quot;Expedited (bandwidth) committed rate units attribute statement value  determines the interpretation of the agentDiffServPolicyAttrStmtExpediteCrate object as either kilobits-per-second or as a percentage &quot;/&gt;
+&lt;ui name=&quot;ExpediteCrateUnits&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.4.1.6&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;ExpediteCburst&quot; depends=&quot;PolicyIndex,PolicyInstIndex,PolicyAttrIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; min=&quot;L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_EBURST_MIN&quot; max=&quot;L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_EBURST_MAX&quot; default=&quot;FD_QOS_DIFFSERV_EXPEDITE_CBURST&quot; access=&quot;read-write&quot; descr=&quot;Expedited (bandwidth) committed burst size attribute statement value, specified in Kbytes. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to expedite(2).&quot;/&gt;
+&lt;ui name=&quot;ExpediteCburst&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.4.1.7&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+-->
+<object name="MarkCosVal" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_COS_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_COS_MAX" access="read-write" descr="Three-bit user priority field value in the 802.1Q tag header of a tagged Ethernet frame, marked as part of the inbound policy for a class instance. For frames containing a double VLAN tag, this field is located in the "/>
+<ui name="Mark Cos Value" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.8"/> 
+</ui></object>
+<object name="MarkIpDscpVal" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="diffServClassDscpValues_t" access="read-write" descr="Specified IP DSCP value to mark in all inbound packets belonging to the class-instance. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to markIpDscpVal(4)."/>
+<ui name="Mark IP DSCP Value" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.9"/> 
+</ui></object>
+<object name="MarkIpPrecedenceVal" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_IPPRECEDENCE_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_IPPRECEDENCE_MAX" access="read-write" descr="Specified IP Precedence value to mark in all inbound packets belonging to the class-instance. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to markIpPrecedenceVal(5)."/>
+<ui name="Mark IP Precedence Value" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.10"/> 
+</ui></object>
+<object name="PoliceConformAct" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="diffServPoliceAct_t" access="read-write" descr="Policing conform action attribute statement value -- determines the action taken on conforming traffic for the policing style (simple,singlerate,tworate) currently configured for the specified class instance within the policy. The d"/>
+<ui name="Police Conform Action" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.11"/> 
+</ui></object>
+<object name="PoliceConformVal" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-write" descr="Policing conform value attribute statement -- used to mark conforming packets when the conform action is one of the following: markdscp(2) - mark IP DSCP field markprec(3) - mark IP Precedence field markcos(5) "/>
+<ui name="Police Conform Value" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.12"/> 
+</ui></object>
+<object name="PoliceExceedAct" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="diffServPoliceAct_t" access="read-write" descr="Policing exceed action attribute statement value -- determines the action taken on excess traffic for the policing style (singlerate, tworate) currently configured for the specified class instance within the "/>
+<ui name="Police Exceed Action" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.13"/> 
+</ui></object>
+<object name="PoliceExceedVal" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-write" descr="Policing exceed value attribute statement -- used to mark excess packets when the exceed action is one of the following: markdscp(2) - mark IP DSCP field markprec(3) - mark IP Precedence field markcos(5) - mar"/>
+<ui name="Police Exceed Value" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.14"/> 
+</ui></object>
+<object name="PoliceNonconformAct" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="diffServPoliceAct_t" access="read-write" descr="Policing non-conform action attribute statement value -- determines the action taken on nonconforming traffic for the policing style (simple, singlerate,tworate) currently configured for the specified class inst"/>
+<ui name="Police Non Conform Action" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.15"/> 
+</ui></object>
+<object name="PoliceNonconformVal" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-write" descr="Policing non-conform value attribute statement -- used to mark nonconforming packets when the nonconform action is one of the following: markdscp(2) - mark IP DSCP field markprec(3) - mark IP Precedence field m"/>
+<ui name="Police Non Conform Value" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.16"/> 
+</ui></object>
+<object name="PoliceSimpleCrate" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" min="1" max="4294967295UL" access="read-write" descr="Simple policing committed rate attribute statement value, specified in kbps. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to policeSimple(6)."/>
+<ui name="Police Simple" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.17"/> 
+</ui></object>
+<object name="PoliceSimpleCburst" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_CBURST_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_CBURST_MAX" access="read-write" descr="Simple policing committed burst size attribute statement value, specified in Kbytes. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to policeSimple(6)."/>
+<ui name="Police Simple Committed Burst" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.18"/> 
+</ui></object>
+<object name="PoliceSinglerateCrate" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_CRATE_KBPS_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_CRATE_KBPS_MAX" access="read-write" descr="Single-rate policing committed rate attribute statement value, specified in kbps. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to policeSinglerate(7)."/>
+<ui name="Police Single Rate" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.19"/> 
+</ui></object>
+<object name="PoliceSinglerateCburst" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_CBURST_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_CBURST_MAX" access="read-write" descr="Single-rate policing committed burst size attribute statement value, specified in Kbytes. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to policeSinglerate(7)."/>
+<ui name="Police Single Rate Committed Burst" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.20"/> 
+</ui></object>
+<object name="PoliceSinglerateEburst" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_CBURST_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_CBURST_MAX" access="read-write" descr="Single-rate policing excess burst size attribute statement value, specified in Kbytes. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to policeSinglerate(7)."/>
+<ui name="Police Single Rate Excess Burst" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.21"/> 
+</ui></object>
+<object name="PoliceTworateCrate" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_CRATE_KBPS_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_CRATE_KBPS_MAX" access="read-write" descr="Two-rate policing committed rate attribute statement value, specified in kbps. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to policeTworate(8)."/>
+<ui name="Police Two Rate" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.22"/> 
+</ui></object>
+<object name="PoliceTworateCburst" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_CBURST_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_CBURST_MAX" access="read-write" descr="Two-rate policing committed burst size attribute statement value, specified in Kbytes. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to policeTworate(8)."/>
+<ui name="Police Two Rate Committed Burst" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.23"/> 
+</ui></object>
+<object name="PoliceTworatePrate" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_PRATE_KBPS_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_PRATE_KBPS_MAX" access="read-write" descr="Two-rate policing peak rate attribute statement value, specified in kbps. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to policeTworate(8)."/>
+<ui name="Police Two Rate Peak Rate" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.24"/> 
+</ui></object>
+<object name="PoliceTworatePburst" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_PBURST_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_PBURST_MAX" access="read-write" descr="Two-rate policing peak burst size attribute statement value, specified in Kbytes. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to policeTworate(8)."/>
+<ui name="Police Two Rate Peak Burst" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.25"/> 
+</ui></object>
+<!--
+&lt;object name=&quot;RandomdropMinThresh&quot; depends=&quot;PolicyIndex,PolicyInstIndex,PolicyAttrIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; min=&quot;L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_MINTHRESH_MIN&quot; max=&quot;L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_MINTHRESH_MAX&quot; access=&quot;read-write&quot; descr=&quot;Random drop minimum threshold attribute statement value  the average queue depth minimum threshold in bytes used by the WRED algorithm. This attribute is only valid if the value of agen&quot;/&gt;
+&lt;ui name=&quot;RandomdropMinThresh&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.4.1.26&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;RandomdropMaxThresh&quot; depends=&quot;PolicyIndex,PolicyInstIndex,PolicyAttrIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; min=&quot;L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_MAXTHRESH_MIN&quot; max=&quot;L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_MAXTHRESH_MAX&quot; access=&quot;read-write&quot; descr=&quot;Random drop maximum threshold attribute statement value  the average queue depth maximum threshold in bytes used by the WRED algorithm. This attribute is only valid if the value of agent&quot;/&gt;
+&lt;ui name=&quot;RandomdropMaxThresh&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.4.1.27&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;RandomdropMaxDropProb&quot; depends=&quot;PolicyIndex,PolicyInstIndex,PolicyAttrIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-write&quot; descr=&quot;Random drop maximum drop probability attribute statement value  the packet drop probability when the queue depth average reaches its maximum threshold. It is expressed as a percentage, and is an integer from 0&quot;/&gt;
+&lt;ui name=&quot;RandomdropMaxDropProb&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.4.1.28&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;RandomdropSamplingRate&quot; depends=&quot;PolicyIndex,PolicyInstIndex,PolicyAttrIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; min=&quot;L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_SAMPLING_RATE_MIN&quot; max=&quot;L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_SAMPLING_RATE_MAX&quot; access=&quot;read-write&quot; descr=&quot;Random drop sampling rate attribute statement value  the period at which the queue depth is sampled for computing an average, expressed in microseconds. This value is an integer from 0 to 1000000, with a defau&quot;/&gt;
+&lt;ui name=&quot;RandomdropSamplingRate&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.4.1.29&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;RandomdropDecayExponent&quot; depends=&quot;PolicyIndex,PolicyInstIndex,PolicyAttrIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; min=&quot;L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_DECAY_EXPONENT_MIN&quot; max=&quot;L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_DECAY_EXPONENT_MAX&quot; access=&quot;read-write&quot; descr=&quot;Random drop decay exponent attribute statement value  determines how quickly the average queue length calculation decays over time, with a higher number causing a slower decay. This value is an integer from 0 to 16, with a default &quot;/&gt;
+&lt;ui name=&quot;RandomdropDecayExponent&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.4.1.30&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;ShapeAverageCrate&quot; depends=&quot;PolicyIndex,PolicyInstIndex,PolicyAttrIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; min=&quot;1&quot; max=&quot;4294967295&quot; access=&quot;read-write&quot; descr=&quot;Average-rate shaping committed rate attribute statement value, specified in kbps  used to establish average rate traffic shaping for the specified class , which limits transmissions for the class to the &quot;/&gt;
+&lt;ui name=&quot;ShapeAverageCrate&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.4.1.31&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;ShapePeakCrate&quot; depends=&quot;PolicyIndex,PolicyInstIndex,PolicyAttrIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; min=&quot;L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_CRATE_KBPS_MIN&quot; max=&quot;L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_CRATE_KBPS_MAX&quot; access=&quot;read-write&quot; descr=&quot;Peak-rate shaping committed rate attribute statement value, specified in kbps  used to establish peak rate traffic shaping for the specified class , which allows transmissions for the class to exceed the commi&quot;/&gt;
+&lt;ui name=&quot;ShapePeakCrate&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.4.1.32&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;ShapePeakPrate&quot; depends=&quot;PolicyIndex,PolicyInstIndex,PolicyAttrIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; min=&quot;L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_PRATE_KBPS_MIN&quot; max=&quot;L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_PRATE_KBPS_MAX&quot; access=&quot;read-write&quot; descr=&quot;Peak-rate shaping peak rate attribute statement value, specified in kbps  used to establish peak rate traffic shaping for the specified class, which allows transmissions for the class to exceed the committed &quot;/&gt;
+&lt;ui name=&quot;ShapePeakPrate&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.4.1.33&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+-->
+<object name="DiffServPolicyAttrStorageType" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="L7_StorageType_t" access="read-write" descr="Storage-type for this conceptual row."/>
+<ui name="DiffServ Policy Attribute Storage Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.34"/> 
+</ui></object>
+<object name="DiffServPolicyAttrRowStatus" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The status of this conceptual row."/>
+<ui name="DiffServ Policy Attribute Row Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.35"/> 
+</ui></object>
+<object name="AssignQueueId" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_ASSIGN_QUEUE_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_ASSIGN_QUEUE_MAX" access="read-write" descr="Queue identifier to which all inbound packets belonging to this class-instance are directed. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to assignQueue(12)."/>
+<ui name="Assign QueueId" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.36"/> 
+</ui></object>
+<object name="Drop" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-only" descr="Flag to indicate that all inbound packets belonging to this class-instance are dropped at ingress. This attribute is only valid if the agentDiffServPolicyAttrStmtEntryType is set to drop(13)."/>
+<ui name="Drop" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.37"/> 
+</ui></object>
+<object name="MarkCos2Val" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_COS2_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_COS2_MAX" access="read-write" descr="Three-bit user priority field value in the second/inner 802.1Q tag header of a double VLAN tagged Ethernet frame, marked as part of the inbound policy for a class instance. This attribute is only valid if the value of "/>
+<ui name="Mark Secondary CoS Value" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.38"/> 
+</ui></object>
+<object name="PoliceColorConformIndex" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-only" descr="Index of the DiffServ Class Table row whose class definition is used to specify the policing color conform mode and value. This identifies incoming traffic categorized as &apos;green&apos; packets in the network. This attribute "/>
+<ui name="Police Color Conform Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.39"/> 
+</ui></object>
+<object name="PoliceColorConformMode" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-only" descr="Policing color conform mode -- indicates the color awareness mode of conforming traffic for the policing style (simple, singlerate, or tworate) currently configured for the specified class instance within the policy. The default va"/>
+<ui name="Police Color Conform Mode" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.40"/> 
+</ui></object>
+<object name="PoliceColorConformVal" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-only" descr="Policing color conform value -- indicates the color awareness packet mark value of conforming traffic for the policing style (simple, singlerate, or tworate) currently configured for the specified class instance within the policy. "/>
+<ui name="Police Color Conform Value" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.41"/> 
+</ui></object>
+<object name="PoliceColorExceedIndex" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-write" descr="Index of the DiffServ Class Table row whose class definition is used to specify the policing color exceed mode and value. This identifies incoming traffic categorized as &apos;yellow&apos; packets in the network. This attribute"/>
+<ui name="Police Color Exceed Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.42"/> 
+</ui></object>
+<object name="PoliceColorExceedMode" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="enum" xtype="diffServPoliceColor_t" access="read-only" descr="Policing color exceed mode -- indicates the color awareness mode of exceeding traffic for the policing style (singlerate or tworate) currently configured for the specified class instance within the policy. The default value is blind"/>
+<ui name="Police Color Exceed Mode" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.43"/> 
+</ui></object>
+<object name="PoliceColorExceedVal" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex">
+<core type="uint" access="read-only" descr="Policing color exceed value -- indicates the color awareness packet mark value of exceeding traffic for the policing style (singlerate or tworate) currently configured for the specified class instance within the policy. "/>
+<ui name="Police Color Exceed Value" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.44"/> 
+</ui></object>
+<object name="RedirectIntf" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" dynamic="yes" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_REDIRECT_INTF_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_REDIRECT_INTF_MAX" access="read-write" descr="External interface number to which all inbound packets belonging to this class-instance are redirected. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to redirect(15)."/>
+<ui name="Unit/Slot/Port" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.45"/> 
+</ui></object>
+<object name="RedirectIntf" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" dynamic="yes" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_REDIRECT_INTF_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_REDIRECT_INTF_MAX" access="read-write" descr="External interface number to which all inbound packets belonging to this class-instance are redirected. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to redirect(15)."/>
+<ui name="Slot/Port" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.45"/> 
+</ui></object>
+<object name="MirrorIntf" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" dynamic="yes" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_MIRROR_INTF_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_MIRROR_INTF_MAX" access="read-write" descr="External interface number to which all inbound packets belonging to this class-instance are mirrored. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to mirror(16)."/>
+<ui name="Unit/Slot/Port" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.46"/> 
+</ui></object>
+<object name="MirrorIntf" depends="PolicyIndex,PolicyInstIndex,PolicyAttrIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" dynamic="yes" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_MIRROR_INTF_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_MIRROR_INTF_MAX" access="read-write" descr="External interface number to which all inbound packets belonging to this class-instance are mirrored. This attribute is only valid if the value of agentDiffServPolicyAttrStmtEntryType is set to mirror(16)."/>
+<ui name="Slot/Port" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.4.1.46"/> 
+</ui></object>
+</module>
+<module name="DiffServPolicyPerfOutStats" key-method="individual">
+<key-combo list="PolicyIndex,PolicyInstIndex,ifIndex"/>
+<object name="PolicyIndex">
+<core type="uint" key="yes" access="read-write" descr="The identifier for DiffServ Policy table entry."/>
+<ui name="Policy Index" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.2.1.1"/> 
+</ui></object>
+<object name="PolicyInstIndex">
+<core type="uint" key="yes" access="read-write" descr="The identifier for policy-class Instance table entry within a policy."/>
+<ui name="Policy Instance Index" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.3.1.1"/> 
+</ui></object>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value for each interface. Its value ranges between 1 and the value of ifNumber. The value for each interface must remain constant at least from one re-initialization of the entity&apos;s network management"/>
+<ui name="Unit/Slot/Port" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.2.2.1.1"/> 
+</ui></object>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value for each interface. Its value ranges between 1 and the value of ifNumber. The value for each interface must remain constant at least from one re-initialization of the entity&apos;s network management"/>
+<ui name="Slot/Port" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.2.2.1.1"/> 
+</ui></object>
+<!-- ObjectRemoved
+&lt;object name=&quot;TailDroppedOctets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Tail-dropped octets count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;TailDroppedOctets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.1&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;TailDroppedPackets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Tail-dropped packets count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;TailDroppedPackets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.2&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;RandomDroppedOctets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Random-dropped octets count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;RandomDroppedOctets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.3&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;RandomDroppedPackets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Random-dropped packets count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;RandomDroppedPackets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.4&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;ShapeDelayedOctets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Shape-delayed octets count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;ShapeDelayedOctets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.5&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;ShapeDelayedPackets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Shape-delayed packets count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;ShapeDelayedPackets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.6&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;SentOctets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Sent octets count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;SentOctets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.7&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;SentPackets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Sent packets count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;SentPackets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.8&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;HCTailDroppedOctets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Tail-dropped octets high capacity count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;HCTailDroppedOctets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.9&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;HCTailDroppedPackets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Tail-dropped packets high capacity count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;HCTailDroppedPackets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.10&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;HCRandomDroppedOctets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Random-dropped octets high capacity count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;HCRandomDroppedOctets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.11&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;HCRandomDroppedPackets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Random-dropped packets high capacity count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;HCRandomDroppedPackets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.12&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;HCShapeDelayedOctets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Shape-delayed octets high capacity count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;HCShapeDelayedOctets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.13&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;HCShapeDelayedPackets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Shape-delayed packets high capacity count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;HCShapeDelayedPackets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.14&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;HCSentOctets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Sent octets high capacity count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;HCSentOctets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.15&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;HCSentPackets&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Sent packets high capacity count for the outbound policy-class instance performance entry.&quot;/&gt;
+&lt;ui name=&quot;HCSentPackets&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.16&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;StorageType&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;diffServ_STORAGE_TYPE_t&quot; access=&quot;read-only&quot; descr=&quot;Storage-type for this conceptual row.&quot;/&gt;
+&lt;ui name=&quot;StorageType&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.17&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;RowStatus&quot; depends=&quot;PolicyIndex,PolicyInstIndex,ifIndex&quot;&gt;
+&lt;core type=&quot;row-status&quot; xtype=&quot;stdRowStatus_t&quot; access=&quot;read-only&quot; descr=&quot;The status of this conceptual row.&quot;/&gt;
+&lt;ui name=&quot;RowStatus&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.7.3.6.1.18&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+-->
+<!-- ObjectAddedStart -->
+<object name="OfferedOctets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Offered octets count for the outbound policy-class instance performance entry."/>
+<ui name="Offered Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.6.1.17"/> 
+</ui></object>
+<object name="OfferedPackets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Offered packets count for the outbound policy-class instance performance entry."/>
+<ui name="Offered Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.6.1.18"/> 
+</ui></object>
+<object name="DiscardedOctets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Discarded octets count for the outbound policy-class instance performance entry."/>
+<ui name="Discarded Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.6.1.19"/> 
+</ui></object>
+<object name="DiscardedPackets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Discarded packets count for the outbound policy-class instance performance entry."/>
+<ui name="Discarded Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.6.1.20"/> 
+</ui></object>
+<object name="HCOfferedOctets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Offered octets high capacity count for the outbound policy-class instance performance entry."/>
+<ui name="HC Offered Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.6.1.21"/> 
+</ui></object>
+<object name="HCOfferedPackets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Offered packets high capacity count for the outbound policy-class instance performance entry."/>
+<ui name="HC Offered Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.6.1.22"/> 
+</ui></object>
+<object name="HCDiscardedOctets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Discarded octets high capacity count for the outbound policy-class instance performance entry."/>
+<ui name="HC Discarded Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.6.1.23"/> 
+</ui></object>
+<object name="HCDiscardedPackets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Discarded packets high capacity count for the outbound policy-class instance performance entry."/>
+<ui name="HC Discarded Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.6.1.24"/> 
+</ui></object>
+<object name="StorageType" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="Storage-type for this conceptual row."/>
+<ui name="Storage Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.6.1.25"/> 
+</ui></object>
+<object name="RowStatus" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row."/>
+<ui name="RowStatus" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.6.1.26"/> 
+</ui></object>
+<!-- ObjectAddedEnd -->
+</module>
+<module name="DiffServPolicyPerfInStats" key-method="individual">
+<key-combo list="PolicyIndex,PolicyInstIndex,ifIndex"/>
+<object name="PolicyIndex">
+<core type="uint" key="yes" access="read-write" descr="The identifier for DiffServ Policy table entry."/>
+<ui name="Policy Index" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.2.1.1"/> 
+</ui></object>
+<object name="PolicyInstIndex">
+<core type="uint" key="yes" access="read-write" descr="The identifier for policy-class Instance table entry within a policy."/>
+<ui name="Policy Instance Index" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.3.1.1"/> 
+</ui></object>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value for each interface. Its value ranges between 1 and the value of ifNumber. The value for each interface must remain constant at least from one re-initialization of the entity&apos;s network management"/>
+<ui name="Unit/Slot/Port" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.2.2.1.1"/> 
+</ui></object>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value for each interface. Its value ranges between 1 and the value of ifNumber. The value for each interface must remain constant at least from one re-initialization of the entity&apos;s network management"/>
+<ui name="Slot/Port" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.2.2.1.1"/> 
+</ui></object>
+<object name="OfferedOctets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Offered octets count for the inbound policy-class instance performance entry."/>
+<ui name="Offered Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.5.1.1"/> 
+</ui></object>
+<object name="OfferedPackets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Offered packets count for the inbound policy-class instance performance entry."/>
+<ui name="Offered Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.5.1.2"/> 
+</ui></object>
+<object name="DiscardedOctets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Discarded octets count for the inbound policy-class instance performance entry."/>
+<ui name="Discarded Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.5.1.3"/> 
+</ui></object>
+<object name="DiscardedPackets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Discarded packets count for the inbound policy-class instance performance entry."/>
+<ui name="Discarded Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.5.1.4"/> 
+</ui></object>
+<object name="HCOfferedOctets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Offered octets high capacity count for the inbound policy-class instance performance entry."/>
+<ui name="HCOffered Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.5.1.5"/> 
+</ui></object>
+<object name="HCOfferedPackets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Offered packets high capacity count for the inbound policy-class instance performance entry."/>
+<ui name="HC Offered Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.5.1.6"/> 
+</ui></object>
+<object name="HCDiscardedOctets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Discarded octets high capacity count for the inbound policy-class instance performance entry."/>
+<ui name="HC Discarded Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.5.1.7"/> 
+</ui></object>
+<object name="HCDiscardedPackets" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="uint" access="read-only" descr="Discarded packets high capacity count for the inbound policy-class instance performance entry."/>
+<ui name="HC Discarded Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.5.1.8"/> 
+</ui></object>
+<object name="StorageType" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="Storage-type for this conceptual row."/>
+<ui name="Storage Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.5.1.9"/> 
+</ui></object>
+<object name="RowStatus" depends="PolicyIndex,PolicyInstIndex,ifIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row."/>
+<ui name="RowStatus" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.5.1.10"/> 
+</ui></object>
+</module>
+<module name="DiffServClassRule" key-method="individual">
+<key-combo list="ClassIndex,ClassRuleIndex"/>
+<object name="ClassIndex">
+<core type="uint" key="yes" access="read-write" descr="The identifier for DiffServ Class entry "/>
+<ui name="Class Index" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.2.1.1"/> 
+</ui></object>
+<object name="ClassRuleIndex">
+<core type="uint" key="yes" access="read-write" descr="The identifier for DiffServ Class Rule Table entry within a class"/>
+<ui name="Class Rule Index" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.1"/> 
+</ui></object>
+<object name="Name" depends="ClassIndex">
+<core type="string" access="read-write" descr="Name of the DiffServ traffic class" properties="pseudo-key"/>
+<ui name="Class Name" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.2.1.2"/> 
+</ui></object>
+
+<object depends="ClassIndex" name="ClassTypeProto">
+<core descr="  type and l3 protocol of the DiffServ traffic class.This is a UI object" access="read-only" type="string"/>
+<ui style="plainText" name="Protocol Type">
+</ui>
+</object>
+
+<object name="Type" depends="ClassIndex">
+<core type="enum" xtype="diffServClassType_t" access="read-write" descr="The class type indicates how the individual class match criteria are evaluated. For type all, all of the individual match conditions must be true for a packet to be considered a member of the class. For types any and acl, "/>
+<ui name="Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.2.1.3"/> 
+</ui></object>
+<object name="AclNum" depends="ClassIndex">
+<core type="uint" access="read-write" descr="The access list number used to define the match conditions for the DiffServ class. This attribute is only valid if the value of agentDiffServClassType is set to acl(3). Match conditions are copied from the ACL definiti"/>
+<ui name="ACL Number" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.2.1.4"/> 
+</ui></object>
+<object name="RuleIndexNextFree" depends="ClassIndex">
+<core type="uint" access="read-only" descr="This object contains an unused value for classRuleIndex, or a zero to indicate that none exists. This index is maintained on a per-class basis."/>
+<ui name="RuleIndexNextFree" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.2.1.5"/> 
+</ui></object>
+<object name="ClassStorageType" depends="ClassIndex">
+<core type="enum" xtype="L7_StorageType_t" access="read-write" descr="Storage-type for this conceptual row"/>
+<ui name="Storage Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.2.1.6"/> 
+</ui></object>
+
+<!--
+&lt;object name=&quot;DiffservClassList&quot; depends=&quot;ClassIndex&quot;&gt;
+&lt;core properties=&quot;dynamic&quot; validation=&quot;validate_string&quot; descr=&quot;DiffservClassList&quot; dynamic=&quot;yes&quot; access=&quot;read-only&quot; type=&quot;string&quot;/&gt;           
+&lt;ui style=&quot;inputLine&quot; name=&quot;DiffservClassList&quot;&gt;               
+&lt;cli validation=&quot;validate_string&quot;/&gt;               
+&lt;web validation=&quot;validate_string&quot;/&gt;                 
+&lt;snmp asn-id=&quot;&quot;/&gt;            
+&lt;/ui&gt;            
+&lt;/object&gt;
+-->
+
+<object name="ClassRowStatus" depends="ClassIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The status of this conceptual row. Entries can not be deleted until all rows in agentDiffServClassRuleTable with corresponding values of agentDiffServClassIndex have been deleted."/>
+<ui name="RowStatus" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.2.1.7"/> 
+</ui></object>
+<object name="AclType" depends="ClassIndex">
+<core type="enum" xtype="diffServACLType_t" access="read-write" descr="The access list type used to define the match conditions for the DiffServ class. This attribute is only valid if the value of agentDiffServClassType is set to acl(3). When this attribute is set to ip(1),"/>
+<ui name="ACL Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.2.1.8"/> 
+</ui></object>
+<object name="ProtoType" depends="ClassIndex">
+<core type="enum" xtype="diffServClassL3Protocol_t" access="read-write" descr="The diffserv class protocol type used to indicate how to interpret any layer 3. This attribute is only valid if the value of agentDiffServClassProtoType is set to all(1) or any(2)."/>
+<ui name="L3 Protocol Type" style="choice2select1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.2.1.9"/> 
+</ui></object>
+
+<object name="MatchEntryType" depends="ClassIndex,ClassRuleIndex">
+<core type="enum" xtype="diffServClassRuleType_t" access="read-write" descr="Class Rule match entry type, it determines which one of the individual match conditions is defined for the present class rule. This object must be created before any other match object in this row."/>
+<ui name="Match Entry Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.2"/> 
+</ui></object>
+
+<object name="MatchEntryTypeList" depends="ClassIndex,ClassRuleIndex">
+<core type="string" dynamic="yes" access="read-write" descr="Class Rule match entry type, it determines which one of the individual match conditions is defined for the present class rule. This object must be created before any other match object in this row."/>
+<ui name="MatchEntryType" style="inputLine">
+</ui></object>
+
+<object name="MatchEntryTypeValue" depends="ClassIndex,ClassRuleIndex">
+<core type="string" access="read-only" descr="Class Rule match entry Value"/>
+<ui name="Match Entry Type Value" style="plainText">
+</ui></object>
+
+<object name="MatchCos" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_COS_MIN" max="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_COS_MAX" access="read-write" descr="Three-bit user priority field in the 802.1Q tag header of a tagged Ethernet frame used as a class-match parameter - only valid if the agentDiffServClassRuleMatchEntryType is set to cos(1). For frames containing a double" dynamic="yes"/>
+<ui name="Match Cos" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.3"/> 
+</ui></object>
+<object name="MatchDstIpAddr" depends="ClassIndex,ClassRuleIndex">
+<core type="user" xtype="formatipv4_t" access="read-write" descr="Destination IP address match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to dstip(2)."/>
+<ui name="Destination IP Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.4"/> 
+</ui></object>
+<object name="MatchDstIpMask" depends="ClassIndex,ClassRuleIndex">
+<core type="user" xtype="formatipv4_t" access="read-write" descr="Destination IP address mask match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to dstip(2). This mask value identifies the portion of agentDiffServClassRuleMatchDstIpAddr that is "/>
+<ui name="Destination IP Mask" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.5"/> 
+</ui></object>
+<object name="MatchDstL4PortStart" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_L4PORT_MIN" max="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_L4PORT_MAX" access="read-write" descr="Destination layer 4 port range start match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to dstl4port(3)."/>
+<ui name="Destination Start L4 Port" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.6"/> 
+</ui></object>
+<object name="MatchDstL4PortEnd" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_L4PORT_MIN" max="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_L4PORT_MAX" access="read-write" descr="Destination layer 4 port range end match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to dstl4port(3)."/>
+<ui name="Destination End L4 Port" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.7"/> 
+</ui></object>
+<object name="MatchDstMacAddr" depends="ClassIndex,ClassRuleIndex">
+<core type="mac" access="read-write" descr="Destination MAC address match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to dstmac(4)."/>
+<ui name="Destination MAC" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.8"/> 
+</ui></object>
+<object name="MatchDstMacMask" depends="ClassIndex,ClassRuleIndex">
+<core type="mac" access="read-write" descr="Destination MAC address mask match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to dstmac(4). This mask value identifies the portion of agentDiffServClassRuleMatchDstMacAddr that is "/>
+<ui name="Destination MAC Mask" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.9"/> 
+</ui></object>
+<object name="MatchEvery" depends="ClassIndex,ClassRuleIndex">
+<core type="enum" xtype="diffServTruthVal_t" access="read-write" descr="Flag to indicate that the class rule is defined to match on every packet, regardless of content. - only valid if the agentDiffServClassRuleMatchEntryType is set to every(5)."/>
+<ui name="Match Every" style="choice2select1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.10"/> 
+</ui></object>
+<object name="MatchIpDscp" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" access="read-write" descr="IP DiffServ Code Point (DSCP) match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to ipdscp(6). The DSCP is defined as the high-order six bits of the Service Type octet in the "/>
+<ui name="Match IP DSCP" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.11"/> 
+</ui></object>
+<object name="MatchIpPrecedence" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" dynamic="yes" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_IPPRECEDENCE_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_IPPRECEDENCE_MAX" access="read-write" descr="IP Precedence match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to ipprecedence(7). The Precedence bits are defined as the high-order three bits of the Service Type octed in the IPv4 header."/>
+<ui name="Match IP Precedence" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.12"/> 
+</ui></object>
+<object name="MatchIpTosBits" depends="ClassIndex,ClassRuleIndex">
+<core type="string" access="read-write" descr="IP TOS bits match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to iptos(8). The TOS bits are defined as all eight bits of the Service Type octet in the IPv4 header."/>
+<ui name="Match IP Tos Bits" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.13"/> 
+</ui></object>
+<object name="MatchIpTosMask" depends="ClassIndex,ClassRuleIndex">
+<core type="string" access="read-write" descr="IP TOS bits mask match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to iptos(8). This mask value identifies the portion of agentDiffServClassRuleMatchIpTosBits that is compared against a packet"/>
+<ui name="Match IP Tos Mask" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.14"/> 
+</ui></object>
+<object name="MatchProtocolNum" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" dynamic="yes" min="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_PROTOCOL_MIN" max="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_PROTOCOL_MAX" access="read-write" descr="Protocol number match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to protocol(9)."/>
+<ui name="Match Protocol Number" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.15"/> 
+</ui></object>
+<object name="MatchRefClassIndex" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" access="read-write" descr="Index of the corresponding referenced class - only valid if the agentDiffServClassRuleMatchEntryType is set to refclass(10). The set of match conditions defined for the reference class are directly inherited by the current class. "/>
+<ui name="Match Reference Class Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.16"/> 
+</ui></object>
+
+<object name="MatchRefClassName" depends="ClassIndex">
+<core type="string" dynamic="yes" access="read-write" descr="Name of the corresponding referenced class - only valid if the agentDiffServClassRuleMatchEntryType is set to refclass(10). The set of match conditions defined for the reference class are directly inherited by the current class. "/>
+<ui name="Match Reference Class Name" style="inputLine">
+</ui></object>
+
+<object name="isReferenceClass" depends="ClassIndex">
+<core type="enum" xtype="diffServTruthVal_t" access="read-only" descr=".Is reference class present "/>
+<ui name="Reference Class Is Present" style="inputLine">
+</ui></object>
+
+<object name="RemoveReferenceClass" depends="ClassIndex">
+<core type="uint" access="write-only" descr="To Remove reference class."/>
+<ui name="Remove Reference  Class" style="inputLine">
+</ui></object>
+
+
+<object name="MatchSrcIpAddr" depends="ClassIndex,ClassRuleIndex">
+<core type="user" xtype="formatipv4_t" access="read-write" descr="Source IP address match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to srcip(11)."/>
+<ui name="Source IP Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.17"/> 
+</ui></object>
+<object name="MatchSrcIpMask" depends="ClassIndex,ClassRuleIndex">
+<core type="user" xtype="formatipv4_t" access="read-write" descr="Source IP address mask match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to srcip(11). This mask value identifies the portion of agentDiffServClassRuleMatchSrcIpAddr that is compared against a"/>
+<ui name="Source IP Mask" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.18"/> 
+</ui></object>
+<object name="MatchSrcL4PortStart" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_L4PORT_MIN" max="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_L4PORT_MAX" access="read-write" descr="Source layer 4 port range start match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to srcl4port(12)."/>
+<ui name="Source L4 Start Port" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.19"/> 
+</ui></object>
+<object name="MatchSrcL4PortEnd" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_L4PORT_MIN" max="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_L4PORT_MAX" access="read-write" descr="Source layer 4 port range end match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to srcl4port(12)."/>
+<ui name="Source L4 End Port" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.20"/> 
+</ui></object>
+<object name="MatchSrcMacAddr" depends="ClassIndex,ClassRuleIndex">
+<core type="mac" access="read-write" descr="Source MAC address match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to srcmac(13)."/>
+<ui name="Source MAC" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.21"/> 
+</ui></object>
+<object name="MatchSrcMacMask" depends="ClassIndex,ClassRuleIndex">
+<core type="mac" access="read-write" descr="Source MAC address mask match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to srcmac(13). This mask value identifies the portion of agentDiffServClassRuleMatchSrcMacAddr that is compared agains"/>
+<ui name="Source MAC Mask" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.22"/> 
+</ui></object>
+<object name="MatchVlanId">
+<core type="uint" access="read-write" descr="VLAN ID match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to vlan(14). This object is obsoleted by agentDiffServClassRuleMatchVlanIdStart and agentDiffServClassRuleMatchVlanIdEnd."/>
+<ui name="Match VlanId" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.23"/> 
+</ui></object>
+<object name="MatchExcludeFlag" depends="ClassIndex,ClassRuleIndex">
+<core type="enum" xtype="diffServTruthVal_t" access="read-write" descr="Class Rule exclude flag - when set to true(1), the match condition identified by agentDiffServClassRuleMatchEntryType is negated. This means that for a given field, every value is considered to be a match EXCEPT "/>
+<ui name="Match Exclude Flag" style="choice2select1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.24"/> 
+</ui></object>
+<object name="StorageType" depends="ClassIndex,ClassRuleIndex">
+<core type="enum" xtype="L7_StorageType_t" access="read-write" descr="Storage-type for this conceptual row"/>
+<ui name="Storage Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.25"/> 
+</ui></object>
+<object name="RowStatus" depends="ClassIndex,ClassRuleIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The status of this conceptual row."/>
+<ui name="RowStatus" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.26"/> 
+</ui></object>
+<object name="MatchCos2" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_COS2_MIN" max="L7_USMDB_MIB_DIFFSERV_POLICY_ATTR_COS2_MAX" access="read-write" descr="Three-bit user priority field in the second/inner 802.1Q tag header of a double VLAN tagged Ethernet frame used as a class-match parameter - only valid if the agentDiffServClassRuleMatchEntryType is set to cos2(15)." dynamic="yes"/>
+<ui name="Secondary Cos" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.27"/> 
+</ui></object>
+<object name="MatchEtypeKey" depends="ClassIndex,ClassRuleIndex">
+<core type="enum" xtype="diffServETypeKeyID_t" access="read-write" descr="Ethertype keyword match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to etype(16). A keyword of custom(1) requires that the agentDiffServClassRuleMatchEtypeValue object also be set."/>
+<ui name="Match Ether Type Key" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.28"/> 
+</ui></object>
+<object name="MatchEtypeValue" depends="ClassIndex,ClassRuleIndex">
+<core type="string" access="read-write" validation="validate_ethertype_uservalue" descr="Ethertype match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to etype(16) and the agentDiffServClassRuleMatchEtypeKey is set to custom(1). The allowed value for this object is 0x0600 to 0"/>
+<ui name="Match Ether Type Value" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.29"/> 
+</ui></object>
+<object name="MatchVlanIdStart" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_VLANID_MIN" max="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_VLANID_MAX" access="read-write" descr="VLAN ID range start match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to vlanid(17). The VLAN ID field is defined as the 12-bit VLAN identifier in the 802.1Q tag head"/>
+<ui name="Match Start VlanId" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.30"/> 
+</ui></object>
+<object name="MatchVlanIdEnd" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_VLANID_MIN" max="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_VLANID_MAX" access="read-write" descr="VLAN ID range end match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to vlanid(17). The VLAN ID field is defined as the 12-bit VLAN identifier in the 802.1Q tag heade"/>
+<ui name="Match End VlanId" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.31"/> 
+</ui></object>
+<object name="MatchVlanId2Start" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_VLANID_MIN" max="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_VLANID_MAX" access="read-write" descr="Secondary VLAN ID range start match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to vlanid2(18). The Secondary VLAN ID field is defined as the 12-bit VLAN identifier "/>
+<ui name="Match Secondary VlanId Start" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.32"/> 
+</ui></object>
+<object name="MatchVlanId2End" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" min="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_VLANID_MIN" max="L7_USMDB_MIB_DIFFSERV_CLASS_RULE_VLANID_MAX" access="read-write" descr="Secondary VLAN ID range end match value for the class - only valid if the agentDiffServClassRuleMatchEntryType is set to vlanid2(18). The Secondary VLAN ID field is defined as the 12-bit VLAN identifier in"/>
+<ui name="Match Secondary VlanId End" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.33"/> 
+</ui></object>
+<object name="MatchFlowLabel" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" min="0" max="1048575" access="read-write" descr="Flow label is 20-bit number that is unique to an IPv6 packet, used by end stations to signify quality-of-service handling in routers."/>
+<ui name="Match Flow Label" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.34"/> 
+</ui></object>
+<object name="MatchDstIpv6Prefix" depends="ClassIndex,ClassRuleIndex">
+<core type="ipv6" access="read-write" descr="The Ipv6 Prefix Address configured on the Service Port."/>
+<ui name="Destination IPv6 Prefix" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.35"/> 
+</ui></object>
+<object name="MatchSrcIpv6Prefix" depends="ClassIndex,ClassRuleIndex">
+<core type="ipv6" access="read-write" descr="The Ipv6 Prefix Address configured on the Service Port."/>
+<ui name="Source IPv6 Prefix" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.36"/> 
+</ui></object>
+<object name="MatchDstIpv6PrefixLength" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" min="0" max="128" access="read-write" descr="The Prefix Length."/>
+<ui name="Destination IPv6 Prefix Length" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.37"/> 
+</ui></object>
+<object name="MatchSrcIpv6PrefixLength" depends="ClassIndex,ClassRuleIndex">
+<core type="uint" min="0" max="128" access="read-write" descr="The Prefix Length."/>
+<ui name="Source IPv6 Prefix Length" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.3.1.38"/> 
+</ui></object>
+</module>
+<module name="DiffServGenStatus">
+<object name="PolicyAttrTableSize">
+<core type="uint" access="read-only" descr=" Current size of the Policy Attribute Table"/>
+<ui name="Policy Attribute Table Size" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.1.10"/> 
+</ui></object>
+<object name="PolicyTableMax">
+<core type="uint" access="read-only" descr=" Max size of the Policy Table"/>
+<ui name="Max Size PolicyTable" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.1.7"/> 
+</ui></object>
+<object name="DiffServPolicyIndexNextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for agentDiffServPolicyIndex, or a zero to indicate that none exists."/>
+<ui name="Policy Next Free Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.3.1"/> 
+</ui></object>
+<object name="PolicyAttrTableMax">
+<core type="uint" access="read-only" descr=" Max size of the Policy Attribute Table"/>
+<ui name="Max Size Policy Attribute Table" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.1.11"/> 
+</ui></object>
+<object name="ServiceTableMax">
+<core type="uint" access="read-only" descr=" Max size of the Service Table"/>
+<ui name="Max Size Service Table" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.1.13"/> 
+</ui></object>
+<object name="PolicyInstTableMax">
+<core type="uint" access="read-only" descr=" Max size of the Policy-Class Instance Table"/>
+<ui name="Max Size Policy Instance Table" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.1.9"/> 
+</ui></object>
+<object name="AdminMode">
+<core type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr=" DiffServ Admin Mode"/>
+<ui name="Admin Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.1.1"/> 
+</ui></object>
+<object name="DiffServClassIndexNextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for classIndex, or a zero to indicate that none exists."/>
+<ui name="Class Next Free Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.2.1"/> 
+</ui></object>
+<object name="ClassTableMax">
+<core type="uint" access="read-only" descr=" Max size of the Class Table"/>
+<ui name="Max Size of Class Table" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.1.3"/> 
+</ui></object>
+<object name="ClassTableSize">
+<core type="uint" access="read-only" descr=" Current size of the Class Table"/>
+<ui name="Size of ClassTable" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.1.2"/> 
+</ui></object>
+<object name="ClassRuleTableSize">
+<core type="uint" access="read-only" descr=" Current size of Class Rule Table"/>
+<ui name="Size of Rule Table" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.1.4"/> 
+</ui></object>
+<object name="ClassRuleTableMax">
+<core type="uint" access="read-only" descr=" Max size of the Class Rule Table."/>
+<ui name="Max Size of Rule Table" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.1.5"/> 
+</ui></object>
+<object name="ServiceTableSize">
+<core type="uint" access="read-only" descr=" Current size of the Service Table"/>
+<ui name="Max Size of Service Table" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.1.12"/> 
+</ui></object>
+<object name="PolicyInstTableSize">
+<core type="uint" access="read-only" descr=" Current size of the Policy-Class Instance Table"/>
+<ui name="Size of Policy Instance Table" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.1.8"/> 
+</ui></object>
+<object name="PolicyTableSize">
+<core type="uint" access="read-only" descr=" Current Size of the Policy Table."/>
+<ui name="Size of Policy Table" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.7.1.6"/> 
+</ui></object>
+<object name="ClassTableSizeAndMax">
+<core type="string" access="read-only" descr=" Current Size/Max Size of the Class Table"/>
+<ui name="Class Table Current Size / Maximum Size" style="plainText">
+</ui></object>
+<object name="ClassRuleTableSizeAndMax">
+<core type="string" access="read-only" descr=" Current Size/Max Size of the Class Rule Table"/>
+<ui name="Class Rule Table Current Size / Maximum Size" style="plainText">
+</ui></object>
+<object name="PolicyTableSizeAndMax">
+<core type="string" access="read-only" descr=" Current Size/Max Size of the Policy Table"/>
+<ui name="Policy Table Current Size / Maximum Size" style="plainText">
+</ui></object>
+<object name="PolicyInstTableSizeAndMax">
+<core type="string" access="read-only" descr=" Current Size/Max Size of the Policy Instance Table"/>
+<ui name="Policy Instance Table Current Size / Maximum Size" style="plainText">
+</ui></object>
+<object name="PolicyAttrTableSizeAndMax">
+<core type="string" access="read-only" descr=" Current Size/Max Size of the Policy Attribute Table"/>
+<ui name="Policy Attribute Table Current Size / Maximum Size" style="plainText">
+</ui></object>
+<object name="ServiceTableSizeAndMax">
+<core type="string" access="read-only" descr=" Current Size/Max Size of the Service Table"/>
+<ui name="Service Table Current Size / Maximum Size" style="plainText">
+</ui></object>
+
+</module>
+<module name="DiffServCos2MarkAct">
+<object name="DiffServCos2MarkActCos">
+<core type="uint" key="yes" access="read-write" descr="The Secondary Class of Service value that this Action will store into the priority bits of the second/inner 802.1p tag header. It is quite possible that the only packets subject to this Action are already marked with this COS value."/>
+<ui name="Mark Secondary Cos" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.5.1.1"/> 
+</ui></object>
+</module>
+<module name="DiffServAuxMfClfr">
+<object name="DiffServAuxMfClfrId">
+<core type="uint" key="yes" access="read-write" descr="An index that enumerates the Auxiliary MultiField Classifier filter entries. Managers obtain new values for row creation in this table by reading agentDiffServAuxMfClfrNextFree."/>
+<ui name="DiffServ Auxiliary MultiField Classifier filter Id" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.1"/> 
+</ui></object>
+<object name="DstAddr" depends="DiffServAuxMfClfrId">
+<core type="user" xtype="formatipv4_t" access="read-only" descr="The IP address to match against the packet&apos;s destination IP address."/>
+<ui name="Destination IP Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.2"/> 
+</ui></object>
+<object name="DstMask" depends="DiffServAuxMfClfrId">
+<core type="user" xtype="formatipv4_t" access="read-only" descr="This mask value identifies the portion of agentDiffServAuxMfClfrDstAddr that is compared against a packet. A non-contiguous mask value is permitted. A mask of 0 indicates a match of any address."/>
+<ui name="Destination IP Mask" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.3"/> 
+</ui></object>
+<object name="SrcAddr" depends="DiffServAuxMfClfrId">
+<core type="user" xtype="formatipv4_t" access="read-only" descr="The IP address to match against the packet&apos;s source IP address."/>
+<ui name="Source IP Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.4"/> 
+</ui></object>
+<object name="SrcMask" depends="DiffServAuxMfClfrId">
+<core type="user" xtype="formatipv4_t" access="read-only" descr="This mask value identifies the portion of agentDiffServAuxMfClfrSrcAddr that is compared against a packet. A non-contiguous mask value is permitted. A mask of 0 indicates a match of any address."/>
+<ui name="Source IP Mask" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.5"/> 
+</ui></object>
+<object name="Protocol" depends="DiffServAuxMfClfrId">
+<core type="uint" access="read-only" descr="The IP protocol to match against the IPv4 protocol number. A value of 255 means match all. "/>
+<ui name="IP Protocol" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.6"/> 
+</ui></object>
+<object name="DstL4PortMin" depends="DiffServAuxMfClfrId">
+<core type="uint" access="read-only" descr="The minimum value that the layer-4 destination port number in the packet must have in order to match this classifier entry. "/>
+<ui name="Minimum Destination L4 Port" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.7"/> 
+</ui></object>
+<object name="DstL4PortMax" depends="DiffServAuxMfClfrId">
+<core type="uint" access="read-only" descr="The maximum value that the layer-4 destination port number in the packet must have in order to match this classifier entry. This value must be equal to or greater than the value specified for this entry in agentDiffServAuxMfClfrDstL4PortMin"/>
+<ui name="Maximum Destination L4 Port" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.8"/> 
+</ui></object>
+<object name="SrcL4PortMin" depends="DiffServAuxMfClfrId">
+<core type="uint" access="read-only" descr="The minimum value that the layer-4 source port number in the packet must have in order to match this classifier entry. "/>
+<ui name="Minimum Source L4 Port" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.9"/> 
+</ui></object>
+<object name="SrcL4PortMax" depends="DiffServAuxMfClfrId">
+<core type="uint" access="read-only" descr="The maximum value that the layer-4 source port number in the packet must have in order to match this classifier entry. This value must be equal to or greater than the value specified for this entry in diffServMultiFieldClfrSrcL4PortMi"/>
+<ui name="Maximum Source L4 Port" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.10"/> 
+</ui></object>
+<object name="Cos" depends="DiffServAuxMfClfrId">
+<core type="uint" access="read-only" descr="Three-bit user priority field in the 802.1Q tag header of a tagged Ethernet frame used as a class-match parameter. For frames containing a double VLAN tag, this field is located in the first/outer tag. A value of -1 indicates that"/>
+<ui name="Cos" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.11"/> 
+</ui></object>
+<object name="Tos" depends="DiffServAuxMfClfrId">
+<core type="string" access="read-only" descr="IP TOS bits value, defined as all eight bits of the Service Type octet in the IPv4 header. There are multiple, overlapping, meanings of the TOS octet in use today: Precedence (bits 7-5): IP Precedence, values 0-7 DSCP (bits 7-2): IP "/>
+<ui name="Tos" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.12"/> 
+</ui></object>
+<object name="TosMask" depends="DiffServAuxMfClfrId">
+<core type="string" access="read-only" descr="IP TOS bits mask value. It identifies the portion of agentDiffServAuxMfClfrTos that is compared against a packet. A non-contiguous mask value is permitted. A mask of 0 indicates a match of any TOS value. There are multiple, overlapping mea"/>
+<ui name="Tos Mask" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.13"/> 
+</ui></object>
+<object name="DstMac" depends="DiffServAuxMfClfrId">
+<core type="string" access="read-only" descr="Destination MAC address. "/>
+<ui name="Destination MAC" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.14"/> 
+</ui></object>
+<object name="DstMacMask" depends="DiffServAuxMfClfrId">
+<core type="string" access="read-only" descr="Destination MAC address mask value. This mask value identifies the portion of agentDiffServAuxMfClfrDstMac that is compared against a packet. A non-contiguous mask value is permitted. A mask of 0 indicates a match of any MAC address."/>
+<ui name="Destination MAC Mask" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.15"/> 
+</ui></object>
+<object name="SrcMac" depends="DiffServAuxMfClfrId">
+<core type="string" access="read-only" descr="Source MAC address. "/>
+<ui name="Source MAC" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.16"/> 
+</ui></object>
+<object name="SrcMacMask" depends="DiffServAuxMfClfrId">
+<core type="string" access="read-only" descr="Source MAC address mask value. This mask value identifies the portion of agentDiffServAuxMfClfrSrcMac that is compared against a packet. A non-contiguous mask value is permitted. A mask of 0 indicates a match of any MAC address."/>
+<ui name="Source MAC mask" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.17"/> 
+</ui></object>
+<object name="VlanId" depends="DiffServAuxMfClfrId">
+<core type="uint" access="read-only" descr="VLAN ID value for the classifier. A value of -1 indicates that a specific VLAN ID value has not been defined and thus all VLAN ID values are considered a match."/>
+<ui name="Vlan Id" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.18"/> 
+</ui></object>
+<object name="Storage" depends="DiffServAuxMfClfrId">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="The storage type for this conceptual row. "/>
+<ui name="Storage Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.19"/> 
+</ui></object>
+<object name="Status" depends="DiffServAuxMfClfrId">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row."/>
+<ui name="Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.20"/> 
+</ui></object>
+<object name="Cos2" depends="DiffServAuxMfClfrId">
+<core type="uint" access="read-only" descr="Three-bit user priority field in the second/inner 802.1Q tag header of a double VLAN tagged Ethernet frame used as a class-match parameter A value of -1 indicates that a specific Secondary COS value has not been defined and thus all Secondary CO" dynamic="yes"/>
+<ui name="Secondary Cos" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.21"/> 
+</ui></object>
+<object name="EtypeVal1" depends="DiffServAuxMfClfrId">
+<core type="uint" access="read-only" descr="Ethertype value to be compared in order to match this classifier entry. The allowed value for this object is 0x0600 to 0xFFFF, with a value of 0 used to indicate this object is not involved in the classifier entry."/>
+<ui name="Ether Type 1" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.22"/> 
+</ui></object>
+<object name="EtypeVal2" depends="DiffServAuxMfClfrId">
+<core type="uint" access="read-only" descr="A second Ethertype value to be compared in order to match this classifier entry. This value is considered in addition to the value specified by agentDiffServAuxMfClfrEtypeVal1 and serves as a second possible match value (i.e. a packet can match "/>
+<ui name="Ether Type 2" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.23"/> 
+</ui></object>
+<object name="VlanIdMin" depends="DiffServAuxMfClfrId">
+<core type="uint" access="read-only" descr="The minimum value that the VLAN ID in the packet must have in order to match this classifier entry. This field is defined as the 12-bit VLAN identifier in the 802.1Q tag header of a tagged Ethernet frame. For a double VLAN tagged frame, t"/>
+<ui name="Minimum VlanId" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.24"/> 
+</ui></object>
+<object name="VlanIdMax" depends="DiffServAuxMfClfrId">
+<core type="uint" access="read-only" descr="The maximum value that the VLAN ID in the packet must have in order to match this classifier entry. This field is defined as the 12-bit VLAN identifier in the 802.1Q tag header of a tagged Ethernet frame. For a double VLAN tagged frame, t"/>
+<ui name="Maximum VlanId" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.25"/> 
+</ui></object>
+<object name="VlanId2Min" depends="DiffServAuxMfClfrId">
+<core type="uint" access="read-only" descr="The minimum value that the Secondary VLAN ID in the packet must have in order to match this classifier entry. This field is defined as the 12-bit VLAN identifier in the second/inner 802.1Q tag header of a double VLAN tagged Ethernet frame."/>
+<ui name="Minimum Secondary VlanId" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.26"/> 
+</ui></object>
+<object name="VlanId2Max" depends="DiffServAuxMfClfrId">
+<core type="uint" access="read-only" descr="The maximum value that the Secondary VLAN ID in the packet must have in order to match this classifier entry. This field is defined as the 12-bit VLAN identifier in the second/inner 802.1Q tag header of a double VLAN tagged Ethernet frame. "/>
+<ui name="Maximum Secondary VlanId" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.2.1.27"/> 
+</ui></object>
+</module>
+<module name="DiffServIpPrecMarkActPrec">
+<object name="DiffServIpPrecMarkActPrecedence">
+<core type="uint" key="yes" access="read-write" descr="The IP Precedence that this Action will store into the Precedence field of the IP packet. It is quite possible that the only packets subject to this Action are already marked with this IP Precedence. Note also that Differentiated Servi"/>
+<ui name="Mark IP Precedence" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.4.1.1"/> 
+</ui></object>
+</module>
+<module name="DiffServColorAware">
+<object name="diffServMeterId">
+<core type="uint" key="yes" access="read-write" descr="An index that enumerates the Meter entries. Managers obtain new values for row creation in this table by reading diffServMeterNextFree."/>
+<ui name="DiffServ MeterId" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.3.2.1.1"/> 
+</ui></object>
+<object name="Level" depends="diffServMeterId">
+<core type="enum" xtype="diffServColorLevel_t" access="read-only" descr="The metering conformance level of this table entry. A policing meter represents either a conforming or an exceeding level of traffic in the traffic stream for this data path. The color characteristics used by the meter are relevant to this"/>
+<ui name="Level" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.3.1.1.1"/> 
+</ui></object>
+<object name="Mode" depends="diffServMeterId">
+<core type="enum" xtype="diffServColorMode_t" access="read-only" descr="The color mode indicator for the meter. When set to blind(1), metering is performed in a color-blind manner such that any packet markings are ignored by the meter. The other values listed for this object indicate the packet field used f"/>
+<ui name="Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.3.1.1.2"/> 
+</ui></object>
+<object name="Value" depends="diffServMeterId">
+<core type="uint" access="read-only" descr="The value of the color aware table entry. This value is used to compare the field indicated in agentDiffServColorAwareMode against packets in a traffic stream along the data path supplying the meter for a given conformance level. This obj"/>
+<ui name="Value" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.3.1.1.3"/> 
+</ui></object>
+</module>
+<module name="DiffServAssignQueue">
+<object name="Index">
+<core type="uint" key="yes" access="read-write" descr="An index that enumerates the Assign Queue entries. Managers obtain new values for row creation in this table by reading agentDiffServAssignQueueNextFree."/>
+<ui name="Index" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.7.1.1"/> 
+</ui></object>
+<object name="Qnum" depends="Index">
+<core type="uint" access="read-only" descr="The queue identifier value. This value indicates the QoS queue number to which the traffic stream for this data path is directed for egress from the device."/>
+<ui name="Qnum" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.7.1.2"/> 
+</ui></object>
+<object name="Storage" depends="Index">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row."/>
+<ui name="Storage" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.7.1.3"/> 
+</ui></object>
+<object name="Status" depends="Index">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed unti"/>
+<ui name="Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.7.1.4"/> 
+</ui></object>
+</module>
+<module name="DiffServMirror">
+<object name="Id">
+<core type="uint" key="yes" access="read-write" descr="An index that enumerates the Mirror entries. Managers obtain new values for row creation in this table by reading agentDiffServMirrorNextFree."/>
+<ui name="Id" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.11.1.1"/> 
+</ui></object>
+<object name="Intf" depends="Id">
+<core type="uint" access="read-only" descr="The external interface number identifier value. This value indicates the egress interface to which the traffic stream for this data path is copied. Normal traffic forwarding decisions are still performed on the traffic stream."/>
+<ui name="Interface" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.11.1.2"/> 
+</ui></object>
+<object name="Storage" depends="Id">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row."/>
+<ui name="Storage Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.11.1.3"/> 
+</ui></object>
+<object name="Status" depends="Id">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t"/>
+<ui name="Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.11.1.4"/> 
+</ui></object>
+</module>
+<module name="DiffServCosMarkAct">
+<object name="DiffServCosMarkActCos">
+<core type="uint" key="yes" access="read-write" descr="The Class of Service value that this Action will store into the priority bits of the 802.1p header. It is quite possible that the only packets subject to this Action are already marked with this COS value."/>
+<ui name="DiffServ Mark Cos" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.2.1.1"/> 
+</ui></object>
+</module>
+<module name="DiffServRedirect">
+<object name="DiffServRedirectId">
+<core type="uint" key="yes" access="read-write" descr="An index that enumerates the Redirect entries. Managers obtain new values for row creation in this table by reading agentDiffServRedirectNextFree."/>
+<ui name="DiffServ RedirectId" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.9.1.1"/> 
+</ui></object>
+<object name="Intf" depends="DiffServRedirectId">
+<core type="uint" access="read-only" descr="The external interface number identifier value. This value indicates the egress interface to which the traffic stream for this data path is directed. Normal traffic forwarding decisions are bypassed."/>
+<ui name="Interface" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.9.1.2"/> 
+</ui></object>
+<object name="Storage" depends="DiffServRedirectId">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row."/>
+<ui name="Storage Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.9.1.3"/> 
+</ui></object>
+<object name="Status" depends="DiffServRedirectId">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t"/>
+<ui name="Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.9.1.4"/> 
+</ui></object>
+</module>
+<module name="DiffServGeneral">
+<object name="NextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for agentDiffServRedirectId, or a zero to indicate that none exist."/>
+<ui name="Next Free" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.8"/> 
+</ui></object>
+<object name="DiffServAuxMfClfrNextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for agentDiffServAuxMfClfrId , or a zero to indicate that none exist."/>
+<ui name="DiffServ Next Free Auxiliary MultiField Classifier filter" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.1.1"/> 
+</ui></object>
+<object name="DiffServAssignQueueNextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for agentDiffServAssignIndex, or a zero to indicate that none exist."/>
+<ui name="DiffServ Next Free Assign Queue" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.6"/> 
+</ui></object>
+<object name="DiffServMirrorNextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for agentDiffServMirrorId, or a zero to indicate that none exist."/>
+<ui name="DiffServ Next free Mirror" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.6.1.2.10"/> 
+</ui></object>
+</module>
+<!-- ObjectRemoved
+&lt;module name=&quot;DiffServQueue&quot;&gt;
+&lt;object name=&quot;Id&quot;&gt;
+&lt;core type=&quot;uint&quot; key=&quot;yes&quot; access=&quot;read-write&quot; descr=&quot;An index that enumerates the Queue entries. Managers obtain new values for row creation in this table by reading diffServQNextFree.&quot;/&gt;
+&lt;ui name=&quot;Id&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.7.2.1.1&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;NextDiffService&quot; depends=&quot;Id&quot;&gt;
+&lt;core type=&quot;string&quot; access=&quot;read-only&quot; descr=&quot;This selects the next Differentiated Services Scheduler. The RowPointer must point to a diffServSchedulerEntry. A value of zeroDotZero in this attribute indicates an incomplete diffServQEntry instance. In such a case, the entry has no &quot;/&gt;
+&lt;ui name=&quot;NextDiffService&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.7.2.1.2&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;MinRate&quot; depends=&quot;Id&quot;&gt;
+&lt;core type=&quot;string&quot; access=&quot;read-only&quot; descr=&quot;This RowPointer indicates the diffServMinRateEntry that the scheduler, pointed to by diffServQNext, should use to service this queue. If the row pointed to is zeroDotZero, the minimum rate and priority is unspecified. Setting&quot;/&gt;
+&lt;ui name=&quot;MinRate&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.7.2.1.3&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;MaxRate&quot; depends=&quot;Id&quot;&gt;
+&lt;core type=&quot;string&quot; access=&quot;read-only&quot; descr=&quot;This RowPointer indicates the diffServMaxRateEntry that the scheduler, pointed to by diffServQNext, should use to service this queue. If the row pointed to is zeroDotZero, the maximum rate is the line speed of the interface. &quot;/&gt;
+&lt;ui name=&quot;MaxRate&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.7.2.1.4&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Storage&quot; depends=&quot;Id&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;L7_StorageType_t&quot; access=&quot;read-only&quot; descr=&quot;The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row.&quot;/&gt;
+&lt;ui name=&quot;Storage&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.7.2.1.5&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Status&quot; depends=&quot;Id&quot;&gt;
+&lt;core type=&quot;row-status&quot; xtype=&quot;L7_ROW_STATUS_t&quot; access=&quot;read-only&quot; descr=&quot;The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t&quot;/&gt;
+&lt;ui name=&quot;Status&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.7.2.1.6&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;/module&gt;
+
+&lt;module name=&quot;diffServScheduler&quot;&gt;
+&lt;object name=&quot;Id&quot;&gt;
+&lt;core type=&quot;uint&quot; key=&quot;yes&quot; access=&quot;read-write&quot; descr=&quot;An index that enumerates the Scheduler entries. Managers obtain new values for row creation in this table by reading diffServSchedulerNextFree.&quot;/&gt;
+&lt;ui name=&quot;Id&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.2.1.1&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Next&quot; depends=&quot;Id&quot;&gt;
+&lt;core type=&quot;string&quot; access=&quot;read-only&quot; descr=&quot;This selects the next Differentiated Services Functional Data Path Element to handle traffic for this data path. This normally is null (zeroDotZero), or points to a diffServSchedulerEntry or a diffServQEntry. However, this RowPoint&quot;/&gt;
+&lt;ui name=&quot;Next&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.2.1.2&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Method&quot; depends=&quot;Id&quot;&gt;
+&lt;core type=&quot;string&quot; access=&quot;read-only&quot; descr=&quot;The scheduling algorithm used by this Scheduler. zeroDotZero indicates that this is unknown. Standard values for generic algorithms: diffServSchedulerPriority, diffServSchedulerWRR, and diffServSchedulerWFQ are specified in this MIB; ad&quot;/&gt;
+&lt;ui name=&quot;Method&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.2.1.3&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;MinRate&quot; depends=&quot;Id&quot;&gt;
+&lt;core type=&quot;string&quot; access=&quot;read-only&quot; descr=&quot;This RowPointer indicates the entry in diffServMinRateTable which indicates the priority or minimum output rate from this scheduler. This attribute is used only when there is more than one level of scheduler. When it has the value &quot;/&gt;
+&lt;ui name=&quot;MinRate&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.2.1.4&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;MaxRate&quot; depends=&quot;Id&quot;&gt;
+&lt;core type=&quot;string&quot; access=&quot;read-only&quot; descr=&quot;This RowPointer indicates the entry in diffServMaxRateTable which indicates the maximum output rate from this scheduler. When more than one maximum rate applies (eg, when a multi-rate shaper is in view), it points to the first of those r&quot;/&gt;
+&lt;ui name=&quot;MaxRate&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.2.1.5&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Storage&quot; depends=&quot;Id&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;L7_StorageType_t&quot; access=&quot;read-only&quot; descr=&quot;The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row.&quot;/&gt;
+&lt;ui name=&quot;Storage&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.2.1.6&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Status&quot; depends=&quot;Id&quot;&gt;
+&lt;core type=&quot;row-status&quot; xtype=&quot;L7_ROW_STATUS_t&quot; access=&quot;read-only&quot; descr=&quot;The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t&quot;/&gt;
+&lt;ui name=&quot;Status&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.2.1.7&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;/module&gt;
+-->
+<module name="diffServClfr">
+<object name="Id">
+<core type="uint" key="yes" access="read-write" descr="An index that enumerates the classifier entries. Managers should obtain new values for row creation in this table by reading diffServClfrNextFree."/>
+<ui name="Classifier Id" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.2.1.1"/> 
+</ui></object>
+<object name="Storage" depends="Id">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row."/>
+<ui name="Storage" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.2.1.2"/> 
+</ui></object>
+<object name="Status" depends="Id">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t"/>
+<ui name="Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.2.1.3"/> 
+</ui></object>
+</module>
+<module name="diffServCountAct">
+<object name="Id">
+<core type="uint" key="yes" access="read-write" descr="An index that enumerates the Count Action entries. Managers obtain new values for row creation in this table by reading diffServCountActNextFree."/>
+<ui name="Id" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.5.5.1.1"/> 
+</ui></object>
+<object name="Octets" depends="Id">
+<core type="uint" access="read-only" descr="The number of octets at the Action data path element. Discontinuities in the value of this counter can occur at re- initialization of the management system and at other times as indicated by the value of ifCounterDiscontinuityTime on the"/>
+<ui name="Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.5.5.1.2"/> 
+</ui></object>
+<object name="Pkts" depends="Id">
+<core type="uint" access="read-only" descr="The number of packets at the Action data path element. Discontinuities in the value of this counter can occur at re- initialization of the management system and at other times as indicated by the value of ifCounterDiscontinuityTime on th"/>
+<ui name="Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.5.5.1.3"/> 
+</ui></object>
+<object name="Storage" depends="Id">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row."/>
+<ui name="Storage" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.5.5.1.4"/> 
+</ui></object>
+<object name="Status" depends="Id">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t"/>
+<ui name="Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.5.5.1.5"/> 
+</ui></object>
+</module>
+<module name="diffServDataPath" key-method="individual">
+<key-combo list="ifIndex,IfDirection"/>
+<object name="ifIndex">
+<core type="uint" key="yes" access="read-write" descr="A unique value for each interface. Its value ranges between 1 and the value of ifNumber. The value for each interface must remain constant at least from one re-initialization of the entity&apos;s network management"/>
+<ui name="ifIndex" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.2.2.1.1"/> 
+</ui></object>
+<object name="IfDirection">
+<core type="enum" xtype="L7_DIFFSERV_IF_DIRECTION_t" key="yes" access="read-write" descr="IfDirection specifies whether the reception or transmission path for this interface is in view."/>
+<ui name="Direction" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.1.1.1.1"/> 
+</ui></object>
+<object name="Start" depends="ifIndex,IfDirection">
+<core type="string" access="read-only" descr="This selects the first Differentiated Services Functional Data Path Element to handle traffic for this data path. This RowPointer should point to an instance of one of: diffServClfrEntry diffServMeterEntry diffServActio"/>
+<ui name="Start" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.1.1.1.2"/> 
+</ui></object>
+<object name="Storage" depends="ifIndex,IfDirection">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row."/>
+<ui name="Storage" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.1.1.1.3"/> 
+</ui></object>
+<object name="Status" depends="ifIndex,IfDirection">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row. All writable objects in this row may be modified at any time."/>
+<ui name="Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.1.1.1.4"/> 
+</ui></object>
+</module>
+<module name="diffServAction">
+<object name="Id">
+<core type="uint" key="yes" access="read-write" descr="An index that enumerates the Action entries. Managers obtain new values for row creation in this table by reading diffServActionNextFree."/>
+<ui name="Id" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.5.2.1.1"/> 
+</ui></object>
+<object name="Interface" depends="Id">
+<core type="uint" access="read-only" descr="The interface index (value of ifIndex) that this action occurs on. This may be derived from the diffServDataPathStartEntry&apos;s index by extension through the various RowPointers. However, as this may be difficult for a network management s"/>
+<ui name="Interface" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.5.2.1.2"/> 
+</ui></object>
+<object name="Next" depends="Id">
+<core type="string" access="read-only" descr="This selects the next Differentiated Services Functional Data Path Element to handle traffic for this data path. This RowPointer should point to an instance of one of: diffServClfrEntry diffServMeterEntry diffServAction"/>
+<ui name="Next" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.5.2.1.3"/> 
+</ui></object>
+<object name="Specific" depends="Id">
+<core type="string" access="read-only" descr="A pointer to an object instance providing additional information for the type of action indicated by this action table entry. For the standard actions defined by this MIB module, this should point to either a diffServDscpMarkActEntry or "/>
+<ui name="Specific" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.5.2.1.4"/> 
+</ui></object>
+<object name="Storage" depends="Id">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row."/>
+<ui name="Storage" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.5.2.1.5"/> 
+</ui></object>
+<object name="Status" depends="Id">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t"/>
+<ui name="Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.5.2.1.6"/> 
+</ui></object>
+</module>
+<module name="diffServClfrElement" key-method="individual">
+<key-combo list="diffServClfrId,diffServClfrElementId"/>
+<object name="diffServClfrId">
+<core type="uint" key="yes" access="read-write" descr="An index that enumerates the classifier entries. Managers should obtain new values for row creation in this table by reading diffServClfrNextFree."/>
+<ui name="diffServ Classifier Id" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.2.1.1"/> 
+</ui></object>
+<object name="diffServClfrElementId">
+<core type="uint" key="yes" access="read-write" descr="An index that enumerates the Classifier Element entries. Managers obtain new values for row creation in this table by reading diffServClfrElementNextFree."/>
+<ui name="diffServ Classifier ElementId" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.4.1.1"/> 
+</ui></object>
+<object name="Precedence" depends="diffServClfrId,diffServClfrElementId">
+<core type="uint" access="read-only" descr="The relative order in which classifier elements are applied: higher numbers represent classifier element with higher precedence. Classifier elements with the same order must be unambiguous i.e. they must define non-overlapping patterns,"/>
+<ui name="Precedence" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.4.1.2"/> 
+</ui></object>
+<object name="Next" depends="diffServClfrId,diffServClfrElementId">
+<core type="string" access="read-only" descr="This attribute provides one branch of the fan-out functionality of a classifier described in the Informal Differentiated Services Model section 4.1. This selects the next Differentiated Services Functional Data Path Element to hand"/>
+<ui name="Next" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.4.1.3"/> 
+</ui></object>
+<object name="Specific" depends="diffServClfrId,diffServClfrElementId">
+<core type="string" access="read-only" descr="A pointer to a valid entry in another table, filter table, that describes the applicable classification parameters, e.g. an entry in diffServMultiFieldClfrTable. The value zeroDotZero is interpreted to match anything not matched by"/>
+<ui name="Specific" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.4.1.4"/> 
+</ui></object>
+<object name="Storage" depends="diffServClfrId,diffServClfrElementId">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row."/>
+<ui name="Storage" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.4.1.5"/> 
+</ui></object>
+<object name="Status" depends="diffServClfrId,diffServClfrElementId">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t"/>
+<ui name="Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.4.1.6"/> 
+</ui></object>
+</module>
+<!-- ObjectRemoved
+&lt;module name=&quot;diffServRandomDrop&quot;&gt;
+&lt;object name=&quot;diffServRandomDropId&quot;&gt;
+&lt;core type=&quot;uint&quot; key=&quot;yes&quot; access=&quot;read-write&quot; descr=&quot;An index that enumerates the Random Drop entries. Managers obtain new values for row creation in this table by reading diffServRandomDropNextFree.&quot;/&gt;
+&lt;ui name=&quot;diffServRandomDropId&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.6.4.1.1&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;MinThreshBytes&quot; depends=&quot;diffServRandomDropId&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;The average queue depth in bytes, beyond which traffic has a non-zero probability of being dropped. Changes in this variable may or may not be reflected in the reported value of diffServRandomDropMinThreshPkts.&quot;/&gt;
+&lt;ui name=&quot;MinThreshBytes&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.6.4.1.2&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;MinThreshPkts&quot; depends=&quot;diffServRandomDropId&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;The average queue depth in packets, beyond which traffic has a non-zero probability of being dropped. Changes in this variable may or may not be reflected in the reported value of diffServRandomDropMinThreshBytes.&quot;/&gt;
+&lt;ui name=&quot;MinThreshPkts&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.6.4.1.3&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;MaxThreshBytes&quot; depends=&quot;diffServRandomDropId&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;The average queue depth beyond which traffic has a probability indicated by diffServRandomDropProbMax of being dropped or marked. Note that this differs from the physical queue limit, which is stored in diffServAlgDropQThreshold. Changes&quot;/&gt;
+&lt;ui name=&quot;MaxThreshBytes&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.6.4.1.4&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;MaxThreshPkts&quot; depends=&quot;diffServRandomDropId&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;The average queue depth beyond which traffic has a probability indicated by diffServRandomDropProbMax of being dropped or marked. Note that this differs from the physical queue limit, which is stored in diffServAlgDropQThreshold. Changes&quot;/&gt;
+&lt;ui name=&quot;MaxThreshPkts&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.6.4.1.5&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;ProbMax&quot; depends=&quot;diffServRandomDropId&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;The worst case random drop probability, expressed in drops per thousand packets. For example, if in the worst case every arriving packet may be dropped (100%) for a period, this has the value 1000. Alternatively, if in the worst ca&quot;/&gt;
+&lt;ui name=&quot;ProbMax&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.6.4.1.6&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Weight&quot; depends=&quot;diffServRandomDropId&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;The weighting of past history in affecting the Exponentially Weighted Moving Average function that calculates the current average queue depth. The equation uses diffServRandomDropWeight/65536 as the coefficient for the new sample &quot;/&gt;
+&lt;ui name=&quot;Weight&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.6.4.1.7&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;SamplingRate&quot; depends=&quot;diffServRandomDropId&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;The number of times per second the queue is sampled for queue average calculation. A value of zero is used to mean that the queue is sampled approximately each time a packet is enqueued (or dequeued).&quot;/&gt;
+&lt;ui name=&quot;SamplingRate&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.6.4.1.8&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Storage&quot; depends=&quot;diffServRandomDropId&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;L7_StorageType_t&quot; access=&quot;read-only&quot; descr=&quot;The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row.&quot;/&gt;
+&lt;ui name=&quot;Storage&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.6.4.1.9&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Status&quot; depends=&quot;diffServRandomDropId&quot;&gt;
+&lt;core type=&quot;row-status&quot; xtype=&quot;L7_ROW_STATUS_t&quot; access=&quot;read-only&quot; descr=&quot;The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t&quot;/&gt;
+&lt;ui name=&quot;Status&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.6.4.1.10&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;/module&gt;
+-->
+<module name="diffServAlg">
+<object name="diffServAlgDropId">
+<core type="uint" key="yes" access="read-write" descr="An index that enumerates the Algorithmic Dropper entries. Managers obtain new values for row creation in this table by reading diffServAlgDropNextFree."/>
+<ui name="diffServ Algorithmic Dropper Id" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.6.2.1.1"/> 
+</ui></object>
+<object name="DropType" depends="diffServAlgDropId">
+<core type="enum" xtype="diffServAlgDropType_t" access="read-only" descr="The type of algorithm used by this dropper. The value other(1) requires further specification in some other MIB module. In the tailDrop(2) algorithm, diffServAlgDropQThreshold represents the maximum depth of the queue, pointed to by "/>
+<ui name="Drop Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.6.2.1.2"/> 
+</ui></object>
+<object name="DropNext" depends="diffServAlgDropId">
+<core type="string" access="read-only" descr="This selects the next Differentiated Services Functional Data Path Element to handle traffic for this data path. This RowPointer should point to an instance of one of: diffServClfrEntry diffServMeterEntry diffServAction"/>
+<ui name="Drop Next" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.6.2.1.3"/> 
+</ui></object>
+<object name="DropQMeasure" depends="diffServAlgDropId">
+<core type="string" access="read-only" descr="Points to an entry in the diffServQTable to indicate the queue that a drop algorithm is to monitor when deciding whether to drop a packet. If the row pointed to does not exist, the algorithmic dropper element is considered inactive. "/>
+<ui name="Drop Q Measure" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.6.2.1.4"/> 
+</ui></object>
+<object name="DropQThreshold" depends="diffServAlgDropId">
+<core type="uint" access="read-only" descr="A threshold on the depth in bytes of the queue being measured at which a trigger is generated to the dropping algorithm, unless diffServAlgDropType is alwaysDrop(5) where this object is ignored. For the tailDrop(2) or headDrop(3) a"/>
+<ui name="Drop Q Threshold" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.6.2.1.5"/> 
+</ui></object>
+<object name="DropSpecific" depends="diffServAlgDropId">
+<core type="string" access="read-only" descr="Points to a table entry that provides further detail regarding a drop algorithm. Entries with diffServAlgDropType equal to other(1) may have this point to a table defined in another MIB module. Entries with diffServAlgDropType equa"/>
+<ui name="Drop Specific" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.6.2.1.6"/> 
+</ui></object>
+<object name="DropOctets" depends="diffServAlgDropId">
+<core type="uint" access="read-only" descr="The number of octets that have been deterministically dropped by this drop process. Discontinuities in the value of this counter can occur at re- initialization of the management system and at other times as indicated by the value "/>
+<ui name="Dropped Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.6.2.1.7"/> 
+</ui></object>
+<object name="DropPkts" depends="diffServAlgDropId">
+<core type="uint" access="read-only" descr="The number of packets that have been deterministically dropped by this drop process. Discontinuities in the value of this counter can occur at re- initialization of the management system and at other times as indicated by the value"/>
+<ui name="Dropped Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.6.2.1.8"/> 
+</ui></object>
+<object name="RandomDropOctets" depends="diffServAlgDropId">
+<core type="uint" access="read-only" descr="The number of octets that have been randomly dropped by this drop process. This counter applies, therefore, only to random droppers. Discontinuities in the value of this counter can occur at re- initialization of the management sy"/>
+<ui name="Randomly Dropped Octets" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.6.2.1.9"/> 
+</ui></object>
+<object name="RandomDropPkts" depends="diffServAlgDropId">
+<core type="uint" access="read-only" descr="The number of packets that have been randomly dropped by this drop process. This counter applies, therefore, only to random droppers. Discontinuities in the value of this counter can occur at re- initialization of the management sy"/>
+<ui name="Randomly Dropped Packets" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.6.2.1.10"/> 
+</ui></object>
+<object name="DropStorage" depends="diffServAlgDropId">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row."/>
+<ui name="Drop Storage" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.6.2.1.11"/> 
+</ui></object>
+<object name="DropStatus" depends="diffServAlgDropId">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t"/>
+<ui name="Drop Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.6.2.1.12"/> 
+</ui></object>
+</module>
+<module name="diffServMeter">
+<object name="diffServMeterId">
+<core type="uint" key="yes" access="read-write" descr="An index that enumerates the Meter entries. Managers obtain new values for row creation in this table by reading diffServMeterNextFree."/>
+<ui name="diffServ MeterId" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.3.2.1.1"/> 
+</ui></object>
+<object name="SucceedNext" depends="diffServMeterId">
+<core type="string" access="read-only" descr="If the traffic does conform, this selects the next Differentiated Services Functional Data Path element to handle traffic for this data path. This RowPointer should point to an instance of one of: diffServClfrEntry diffSe"/>
+<ui name="Succeed Next" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.3.2.1.2"/> 
+</ui></object>
+<object name="FailNext" depends="diffServMeterId">
+<core type="string" access="read-only" descr="If the traffic does not conform, this selects the next Differentiated Services Functional Data Path element to handle traffic for this data path. This RowPointer should point to an instance of one of: diffServClfrEntry di"/>
+<ui name="Fail Next" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.3.2.1.3"/> 
+</ui></object>
+<object name="Specific" depends="diffServMeterId">
+<core type="string" access="read-only" descr="This indicates the behavior of the meter by pointing to an entry containing detailed parameters. Note that entries in that specific table must be managed explicitly. For example, diffServMeterSpecific may point to an entry in diffS"/>
+<ui name="Specific" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.3.2.1.4"/> 
+</ui></object>
+<object name="Storage" depends="diffServMeterId">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row."/>
+<ui name="Storage" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.3.2.1.5"/> 
+</ui></object>
+<object name="Status" depends="diffServMeterId">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t"/>
+<ui name="Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.3.2.1.6"/> 
+</ui></object>
+</module>
+<module name="diffServDscpMarkActDscp">
+<object name="diffServDscpMarkActDscp">
+<core type="uint" key="yes" access="read-write" descr="The DSCP that this Action will store into the DSCP field of the subject. It is quite possible that the only packets subject to this Action are already marked with this DSCP. Note also that Differentiated Services processing may result in"/>
+<ui name="diffServ Mark Dscp" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.5.3.1.1"/> 
+</ui></object>
+</module>
+<module name="diffServTBParam">
+<object name="diffServTBParamId">
+<core type="uint" key="yes" access="read-write" descr="An index that enumerates the Token Bucket Parameter entries. Managers obtain new values for row creation in this table by reading diffServTBParamNextFree."/>
+<ui name="diffServ Token Bucket Parameter Id" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.4.2.1.1"/> 
+</ui></object>
+<object name="Type" depends="diffServTBParamId">
+<core type="string" access="read-only" descr="The Metering algorithm associated with the Token Bucket parameters. zeroDotZero indicates this is unknown. Standard values for generic algorithms: diffServTBParamSimpleTokenBucket, diffServTBParamAvgRate, diffServTBParamSrTCMBlind"/>
+<ui name="Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.4.2.1.2"/> 
+</ui></object>
+<object name="Rate" depends="diffServTBParamId">
+<core type="uint" access="read-only" descr="The token-bucket rate, in kilobits per second (kbps). This attribute is used for: 1. CIR in RFC 2697 for srTCM 2. CIR and PIR in RFC 2698 for trTCM 3. CTR and PTR in RFC 2859 for TSWTCM 4. AverageRate in RFC 3290."/>
+<ui name="Rate" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.4.2.1.3"/> 
+</ui></object>
+<object name="BurstSize" depends="diffServTBParamId">
+<core type="uint" access="read-only" descr="The maximum number of bytes in a single transmission burst. This attribute is used for: 1. CBS and EBS in RFC 2697 for srTCM 2. CBS and PBS in RFC 2698 for trTCM 3. Burst Size in RFC 3290."/>
+<ui name="Burst Size" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.4.2.1.4"/> 
+</ui></object>
+<object name="Interval" depends="diffServTBParamId">
+<core type="uint" access="read-only" descr="The time interval used with the token bucket. For: 1. Average Rate Meter, the Informal Differentiated Services Model section 5.2.1, - Delta. 2. Simple Token Bucket Meter, the Informal Differentiated Services Model section 5."/>
+<ui name="Interval" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.4.2.1.5"/> 
+</ui></object>
+<object name="Storage" depends="diffServTBParamId">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row."/>
+<ui name="Storage" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.4.2.1.6"/> 
+</ui></object>
+<object name="Status" depends="diffServTBParamId">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t"/>
+<ui name="Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.4.2.1.7"/> 
+</ui></object>
+</module>
+<module name="diffServMultiFieldClfr">
+<object name="diffServMultiFieldClfrId">
+<core type="uint" key="yes" access="read-write" descr="An index that enumerates the MultiField Classifier filter entries. Managers obtain new values for row creation in this table by reading diffServMultiFieldClfrNextFree."/>
+<ui name="diffServ Multi Field Classifier Id" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.1"/> 
+</ui></object>
+<object name="AddrType" depends="diffServMultiFieldClfrId">
+<core type="enum" xtype="L7_InetAddrType_t" access="read-only" descr="The type of IP address used by this classifier entry. While other types of addresses are defined in the InetAddressType textual convention, and DNS names, a classifier can only look at packets on the wire. Therefore, this object is limi"/>
+<ui name="Address Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.2"/> 
+</ui></object>
+<object name="DstAddr" depends="diffServMultiFieldClfrId">
+<core type="string" access="read-only" descr="The IP address to match against the packet&apos;s destination IP address. This may not be a DNS name, but may be an IPv4 or IPv6 prefix. diffServMultiFieldClfrDstPrefixLength indicates the number of bits that are relevant."/>
+<ui name="Destination Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.3"/> 
+</ui></object>
+<object name="DstPrefixLength" depends="diffServMultiFieldClfrId">
+<core type="uint" access="read-only" descr="The length of the CIDR Prefix carried in diffServMultiFieldClfrDstAddr. In IPv4 addresses, a length of 0 indicates a match of any address; a length of 32 indicates a match of a single host address, and a length between 0 and 32 ind"/>
+<ui name="Destination Prefix Length" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.4"/> 
+</ui></object>
+<object name="SrcAddr" depends="diffServMultiFieldClfrId">
+<core type="string" access="read-only" descr="The IP address to match against the packet&apos;s source IP address. This may not be a DNS name, but may be an IPv4 or IPv6 prefix. diffServMultiFieldClfrSrcPrefixLength indicates the number of bits that are relevant."/>
+<ui name="Source Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.5"/> 
+</ui></object>
+<object name="SrcPrefixLength" depends="diffServMultiFieldClfrId">
+<core type="uint" access="read-only" descr="The length of the CIDR Prefix carried in diffServMultiFieldClfrSrcAddr. In IPv4 addresses, a length of 0 indicates a match of any address; a length of 32 indicates a match of a single host address, and a length between 0 and 32 ind"/>
+<ui name="Source Prefix Length" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.6"/> 
+</ui></object>
+<object name="Dscp" depends="diffServMultiFieldClfrId">
+<core type="uint" access="read-only" descr="The value that the DSCP in the packet must have to match this entry. A value of -1 indicates that a specific DSCP value has not been defined and thus all DSCP values are considered a match."/>
+<ui name="IP DSCP" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.7"/> 
+</ui></object>
+<object name="FlowId" depends="diffServMultiFieldClfrId">
+<core type="uint" access="read-only" descr="The flow identifier in an IPv6 header."/>
+<ui name="FlowId" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.8"/> 
+</ui></object>
+<object name="Protocol" depends="diffServMultiFieldClfrId">
+<core type="uint" access="read-only" descr="The IP protocol to match against the IPv4 protocol number or the IPv6 Next- Header number in the packet. A value of 255 means match all. Note the protocol number of 255 is reserved by IANA, and Next-Header number of 0 is used in IPv6."/>
+<ui name="IP Protocol" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.9"/> 
+</ui></object>
+<object name="DstL4PortMin" depends="diffServMultiFieldClfrId">
+<core type="uint" access="read-only" descr="The minimum value that the layer-4 destination port number in the packet must have in order to match this classifier entry."/>
+<ui name="Minimum Destination L4 Port" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.10"/> 
+</ui></object>
+<object name="DstL4PortMax" depends="diffServMultiFieldClfrId">
+<core type="uint" access="read-only" descr="The maximum value that the layer-4 destination port number in the packet must have in order to match this classifier entry. This value must be equal to or greater than the value specified for this entry in diffServMultiFieldClfrDstL4Port"/>
+<ui name="Maximum Destination L4 Port" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.11"/> 
+</ui></object>
+<object name="SrcL4PortMin" depends="diffServMultiFieldClfrId">
+<core type="uint" access="read-only" descr="The minimum value that the layer-4 source port number in the packet must have in order to match this classifier entry."/>
+<ui name="Minimum Source L4 port" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.12"/> 
+</ui></object>
+<object name="SrcL4PortMax" depends="diffServMultiFieldClfrId">
+<core type="uint" access="read-only" descr="The maximum value that the layer-4 source port number in the packet must have in order to match this classifier entry. This value must be equal to or greater than the value specified for this entry in diffServMultiFieldClfrSrcL4PortMin."/>
+<ui name="Maximum Source L4 Port" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.13"/> 
+</ui></object>
+<object name="Storage" depends="diffServMultiFieldClfrId">
+<core type="enum" xtype="L7_StorageType_t" access="read-only" descr="The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row."/>
+<ui name="Storage Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.14"/> 
+</ui></object>
+<object name="Status" depends="diffServMultiFieldClfrId">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-only" descr="The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t"/>
+<ui name="Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.6.1.15"/> 
+</ui></object>
+</module>
+<!-- ObjectRemoved
+&lt;module name=&quot;diffServMaxRate&quot; key-method=&quot;individual&quot;&gt;
+&lt;key-combo list=&quot;diffServMaxRateId,diffServMaxRateLevel&quot;/&gt;
+&lt;object name=&quot;diffServMaxRateId&quot;&gt;
+&lt;core type=&quot;uint&quot; key=&quot;yes&quot; access=&quot;read-write&quot; descr=&quot;An index that enumerates the Maximum Rate Parameter entries. Managers obtain new values for row creation in this table by reading diffServMaxRateNextFree.&quot;/&gt;
+&lt;ui name=&quot;diffServMaxRateId&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.6.1.1&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;diffServMaxRateLevel&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;diffServMaxRateLevel_t&quot; key=&quot;yes&quot; access=&quot;read-write&quot; descr=&quot;An index that indicates which level of a multi-rate shaper is being given its parameters. A multi-rate shaper has some number of rate levels. Frame Relay&apos;s dual rate specification refers to a &apos;committed&apos; and an &apos;excess&apos; rate; ATM&apos;s dual &quot;/&gt;
+&lt;ui name=&quot;diffServMaxRateLevel&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.6.1.2&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Absolute&quot; depends=&quot;diffServMaxRateId,diffServMaxRateLevel&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;The maximum rate in kilobits/sec that a downstream scheduler element should allocate to this queue. If the value is zero, then there is effectively no maximum rate limit and that the scheduler should attempt to be work conserving for thi&quot;/&gt;
+&lt;ui name=&quot;Absolute&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.6.1.3&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Relative&quot; depends=&quot;diffServMaxRateId,diffServMaxRateLevel&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;The maximum rate that a downstream scheduler element should allocate to this queue, relative to the maximum rate of the interface as reported by ifSpeed or ifHighSpeed, in units of 1/1000 of 1. If the value is zero, then there is effecti&quot;/&gt;
+&lt;ui name=&quot;Relative&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.6.1.4&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Threshold&quot; depends=&quot;diffServMaxRateId,diffServMaxRateLevel&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;The number of bytes of queue depth at which the rate of a multi-rate scheduler will increase to the next output rate. In the last conceptual row for such a shaper, this threshold is ignored and by convention is zero.&quot;/&gt;
+&lt;ui name=&quot;Threshold&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.6.1.5&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Storage&quot; depends=&quot;diffServMaxRateId,diffServMaxRateLevel&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;L7_StorageType_t&quot; access=&quot;read-only&quot; descr=&quot;The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row.&quot;/&gt;
+&lt;ui name=&quot;Storage&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.6.1.6&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Status&quot; depends=&quot;diffServMaxRateId,diffServMaxRateLevel&quot;&gt;
+&lt;core type=&quot;row-status&quot; xtype=&quot;L7_ROW_STATUS_t&quot; access=&quot;read-only&quot; descr=&quot;The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t&quot;/&gt;
+&lt;ui name=&quot;Status&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.6.1.7&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;/module&gt;
+&lt;module name=&quot;diffServMinRate&quot;&gt;
+&lt;object name=&quot;diffServMinRateId&quot;&gt;
+&lt;core type=&quot;uint&quot; key=&quot;yes&quot; access=&quot;read-write&quot; descr=&quot;An index that enumerates the Scheduler Parameter entries. Managers obtain new values for row creation in this table by reading diffServMinRateNextFree.&quot;/&gt;
+&lt;ui name=&quot;diffServMinRateId&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.4.1.1&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Priority&quot; depends=&quot;diffServMinRateId&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;The priority of this input to the associated scheduler, relative to the scheduler&apos;s other inputs. A queue or scheduler with a larger numeric value will be served before another with a smaller numeric value.&quot;/&gt;
+&lt;ui name=&quot;Priority&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.4.1.2&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Absolute&quot; depends=&quot;diffServMinRateId&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;The minimum absolute rate, in kilobits/sec, that a downstream scheduler element should allocate to this queue. If the value is zero, then there is effectively no minimum rate guarantee. If the value is non-zero, the scheduler will assure&quot;/&gt;
+&lt;ui name=&quot;Absolute&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.4.1.3&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Relative&quot; depends=&quot;diffServMinRateId&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;The minimum rate that a downstream scheduler element should allocate to this queue, relative to the maximum rate of the interface as reported by ifSpeed or ifHighSpeed, in units of 1/1000 of 1. If the value is zero, then there is effecti&quot;/&gt;
+&lt;ui name=&quot;Relative&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.4.1.4&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Storage&quot; depends=&quot;diffServMinRateId&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;L7_StorageType_t&quot; access=&quot;read-only&quot; descr=&quot;The storage type for this conceptual row. Conceptual rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row.&quot;/&gt;
+&lt;ui name=&quot;Storage&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.4.1.5&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;Status&quot; depends=&quot;diffServMinRateId&quot;&gt;
+&lt;core type=&quot;row-status&quot; xtype=&quot;L7_ROW_STATUS_t&quot; access=&quot;read-only&quot; descr=&quot;The status of this conceptual row. All writable objects in this row may be modified at any time. Setting this variable to &apos;destroy&apos; when the MIB contains one or more RowPointers pointing to it results in destruction being delayed until t&quot;/&gt;
+&lt;ui name=&quot;Status&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.4.1.6&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;/module&gt;
+-->
+<module name="DiffServGenGetNextIndx">
+<!-- ObjectRemoved
+&lt;object name=&quot;diffServQNextFree&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;This object contains an unused value for diffServQId, or a zero to indicate that none exist.&quot;/&gt;
+&lt;ui name=&quot;diffServQNextFree&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.7.1&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+-->
+<object name="diffServCountActNextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for diffServCountActId, or a zero to indicate that none exist."/>
+<ui name="DiffServ Next free Count" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.5.4"/> 
+</ui></object>
+<!-- ObjectRemoved
+&lt;object name=&quot;diffServMinRateNextFree&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;This object contains an unused value for diffServMinRateId, or a zero to indicate that none exist.&quot;/&gt;
+&lt;ui name=&quot;diffServMinRateNextFree&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.3&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+-->
+<object name="diffServActionNextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for diffServActionId, or a zero to indicate that none exist."/>
+<ui name="DiffServ NextFree Action Id" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.5.1"/> 
+</ui></object>
+<object name="diffServAlgDropNextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for diffServAlgDropId, or a zero to indicate that none exist."/>
+<ui name="DiffSer NextFree Alg Dropper Id" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.6.1"/> 
+</ui></object>
+<object name="diffServMultiFieldClfrNextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for diffServMultiFieldClfrId, or a zero to indicate that none exist."/>
+<ui name="diffServ Next Free Multi Field Classifier Id" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.5"/> 
+</ui></object>
+<!-- ObjectRemoved
+&lt;object name=&quot;diffServMaxRateNextFree&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;This object contains an unused value for diffServMaxRateId, or a zero to indicate that none exist.&quot;/&gt;
+&lt;ui name=&quot;diffServMaxRateNextFree&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.5&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;diffServRandomDropNextFree&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;This object contains an unused value for diffServRandomDropId, or a zero to indicate that none exist.&quot;/&gt;
+&lt;ui name=&quot;diffServRandomDropNextFree&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.6.3&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+-->
+<object name="diffServClfrNextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for diffServClfrId, or a zero to indicate that none exist."/>
+<ui name="DiffServ Next Free Classifier" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.1"/> 
+</ui></object>
+<!-- ObjectRemoved
+&lt;object name=&quot;diffServSchedulerNextFree&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;This object contains an unused value for diffServSchedulerId, or a zero to indicate that none exist.&quot;/&gt;
+&lt;ui name=&quot;diffServSchedulerNextFree&quot; style=&quot;plainText&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.2.1.97.1.8.1&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+-->
+<object name="diffServMeterNextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for diffServMeterId, or a zero to indicate that none exist."/>
+<ui name="DiffServ NextFree Meter" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.3.1"/> 
+</ui></object>
+<object name="diffServClfrElementNextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for diffServClfrElementId, or a zero to indicate that none exist."/>
+<ui name="DiffServ Next Free Classifier Element" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.2.3"/> 
+</ui></object>
+<object name="diffServTBParamNextFree">
+<core type="uint" access="read-only" descr="This object contains an unused value for diffServTBParamId, or a zero to indicate that none exist."/>
+<ui name="diffServ Next Free Token Bucket Parameter Id" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.97.1.4.1"/> 
+</ui></object>
+</module>
+</objectxml>
+</FastPathXML>

@@ -1,0 +1,97 @@
+##############################################################################
+#
+# make.cmdparms
+#
+# Purpose:  
+#      Processes special command parameters invoked with 'make'.
+#
+# Note:
+#      The following parameters are supported:
+#
+#        dmode=<t|v>
+#           - Changes make message display mode to terse (t) or verbose (v).
+#
+#        log=<y|n>
+#           - Overrides makefile logging environment setting.
+#
+#        local=<directory or filename relative to top-of-view>
+#           - Builds a single source directory or a file.
+#
+##############################################################################
+
+# Note: The documented values for command line parameters are in lower case,
+#       while the environment variables are upper case.  Be a little looser 
+#       on the enforcement and allow upper/lower case for either, since that's
+#       probably what the developer intended.  The documentation remains unchanged.
+#
+n_pair := n N
+y_pair := y Y
+
+s_pair := s S
+t_pair := t T
+v_pair := v V
+
+
+# Check for dmode=<s|t|v> flag to summarize/minimize/maximize console display output.
+# The command line parameter overrides the environment setting.
+# Note: There are three modes of output: summary (default), terse, and verbose.
+#
+temp_mode      := summary
+temp_dbg       := @
+temp_mparms    := --no-print-directory
+ifneq (,$(filter $(t_pair),$(LVL7_MAKEFILE_DISPLAY_MODE)))
+  temp_mode    := terse
+endif
+ifneq (,$(filter $(v_pair),$(LVL7_MAKEFILE_DISPLAY_MODE)))
+  temp_mode    := verbose
+endif
+ifneq (,$(filter $(s_pair),$(dmode)))
+  temp_mode    := summary
+endif
+ifneq (,$(filter $(t_pair),$(dmode)))
+  temp_mode    := terse
+endif
+ifneq (,$(filter $(v_pair),$(dmode)))
+  temp_mode    := verbose
+endif
+ifeq (verbose,$(temp_mode))
+  temp_dbg     :=
+  temp_mparms  :=
+endif
+CMD_DISPLAY_MODE := $(temp_mode)
+DBG              := $(temp_dbg)
+MPARMS           += $(temp_mparms)
+export CMD_DISPLAY_MODE DBG MPARMS
+
+
+# Check for log=<y|n> flag to override makefile logging environment setting.
+#
+MKLOG := N
+ifneq (,$(filter $(y_pair),$(LVL7_MAKEFILE_LOGGING)))
+  MKLOG := Y
+endif    
+ifneq (,$(filter $(y_pair),$(log)))
+  MKLOG := Y
+endif
+ifneq (,$(filter $(n_pair),$(log)))
+  MKLOG := N
+endif
+export MKLOG
+
+
+CMD_LOCAL_DIR_OR_FILE  := 0
+ifneq (,$(local))
+  override local := $(subst ../,,$(subst \,/,$(local)))
+  ifneq (,$(subst .,,$(local)))
+    ifneq (,$(filter $(addprefix %.,$(SRC_FILE_TYPES)),$(notdir $(local))))
+      CMD_LOCAL_FILE := $(local)
+      CMD_LOCAL_DIR  := $(dir $(local))
+    else
+      CMD_LOCAL_DIR  := $(local)
+    endif
+    CMD_LOCAL_DIR    := $(patsubst %/,%,$(CMD_LOCAL_DIR))
+  endif
+  CMD_LOCAL_DIR_OR_FILE  := 1
+endif
+export CMD_LOCAL_DIR_OR_FILE CMD_LOCAL_DIR CMD_LOCAL_FILE
+

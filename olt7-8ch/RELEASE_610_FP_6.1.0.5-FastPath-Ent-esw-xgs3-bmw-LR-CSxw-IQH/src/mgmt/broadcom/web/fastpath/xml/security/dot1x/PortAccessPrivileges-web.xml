@@ -1,0 +1,25 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0"  java-script="range_type"  name="PortAccessPrivileges" title="Port Access Privileges">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="baseUserMgrPort_ifIndex" id="1" name="Port">
+                  <action type="extn" position="0" value="All" enable="1_3_3" disable="1_3_1" show="1_3_3" hide="1_3_1"/> 
+                  <action type="default" enable="1_3_1" disable="1_3_3" show="1_3_1" hide="1_3_3"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="combo-multiselect" properties="list" obj-name="baseUserMgrPort_portUserName" id="1" name="Users"/>
+            </node>
+            <node id="3">
+                <button scope="page" type="buttonSubmit" value="Allow" obj-name="baseUserMgrPort_portUserAccess" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonSubmit" value="Allow" obj-name="baseUserMgrPort_portUserAccessGlobal" help="Submits the form on this page to the Switch" id="3" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

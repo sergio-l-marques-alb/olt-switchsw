@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+    <enum name="L7_RIP_SPLITHORIZON_t">
+      <option macro="L7_RIP_SPLITHORIZON_NONE" name="None"> </option>
+      <option macro="L7_RIP_SPLITHORIZON_SIMPLE" name="Simple"> </option>
+      <option macro="L7_RIP_SPLITHORIZON_POISONREVERSE" name="Poison Reverse"> </option>
+    </enum>
+     <enum name="XUI_CONFIG_L7_REDIST_RT_INDICES_t">
+           <option name="Create" macro="REDIST_RT_FIRST"> </option>
+           <option name="Connected" macro="REDIST_RT_LOCAL"> </option>
+           <option name="Static" macro="REDIST_RT_STATIC"> </option>
+           <option name="RIP" macro="REDIST_RT_RIP"> </option>
+           <option macro="REDIST_RT_OSPF" name="OSPF"> </option>
+           <option name="BGP" macro="REDIST_RT_BGP"> </option>
+        </enum>
+
+  </data-types>
+</FastPathXML>

@@ -1,0 +1,31 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="memoryInfo" title="System Resources">
+        <group id="1" heading="Memory Usage">
+            <node id="1">
+                <element obj-name="baseMemoryInfo_FreeMemory" id="1" name="Free Memory"/>
+            </node>
+            <node id="2">
+                <element obj-name="baseMemoryInfo_AllocMemory" id="1" name="Alloc Memory"/>
+            </node>
+        </group>
+        <group id="2" heading=" ">
+           <repeat present="vtable" edit="no" heading="CPU Utilization Report" id="1">
+              <element properties="iterate,hidden" obj-name="baseCPUUtilTable_TaskIndex" id="1" name="Task Index"/>
+              <element obj-name="baseCPUUtilTable_TaskId" id="2" name="Task Id"/>
+              <element obj-name="baseCPUUtilTable_TaskName" id="3" name="Task Name"/>
+              <element properties="iterate" obj-name="baseCPUUtilTable_Utilization" id="4" name="CPU Utilization(%)"/>
+           </repeat>
+           <node id="2">
+                <element obj-name="baseCPUUtilTable_TotalUtilization" id="1" name="Total CPU Utilization"/>
+           </node>
+           <node id="3">
+               <button scope="page" type="buttonClear" help="Refreshes the form on this page" id="1" name="Refresh"/>
+           </node>
+        </group>
+    </webxml>
+</FastPathXML>

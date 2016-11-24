@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="security" version="1.0">
+<module name="SSLConfig">
+<object name="AdminMode">
+<core type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="SSL admin mode"/>
+<ui name="AdminMode" style="inputLine"/>
+</object>
+<object name="SecurePort">
+<core type="uint" min="L7_SSLT_SECURE_PORT_MIN" max="L7_SSLT_SECURE_PORT_MAX" default="L7_SSLT_SECURE_PORT" access="read-write" descr="SSL secure port"/>
+<ui name="SecurePort" style="inputLine"/>
+</object>
+<object name="ProtocolLevel">
+<core type="enum" xtype="L7_SSL_PROTO_LEVEL_t" access="read-write" descr="SSL Protocol Level"/>
+<ui name="ProtocolLevel" style="inputLine"/>
+</object>
+<object name="MaxSessions">
+<core type="uint" min="0" max="FD_SECURE_HTTP_DEFAULT_MAX_CONNECTIONS" default="FD_SECURE_HTTP_DEFAULT_MAX_CONNECTIONS" access="read-write" descr="Maximum SSL Sessionis allowed."/>
+<ui name="MaxSessions" style="inputLine"/>
+</object>
+<object name="HardTimeout">
+<core type="uint" min="FD_SECURE_HTTP_SESSION_HARD_TIMEOUT_MIN" max="FD_SECURE_HTTP_SESSION_HARD_TIMEOUT_MAX" default="FD_SECURE_HTTP_SESSION_HARD_TIMEOUT_DEFAULT" access="read-write" descr="Hard timeout."/>
+<ui name="HardTimeout" style="inputLine"/>
+</object>
+<object name="SoftTimeout">
+<core type="uint" min="FD_SECURE_HTTP_SESSION_SOFT_TIMEOUT_MIN" max="FD_SECURE_HTTP_SESSION_SOFT_TIMEOUT_MAX" default="FD_SECURE_HTTP_SESSION_SOFT_TIMEOUT_DEFAULT" access="read-write" descr="Soft timeout"/>
+<ui name="SoftTimeout" style="inputLine"/>
+</object>
+<object name="CertificatePresent">
+<core type="enum" xtype="L7_TrueFalse" access="read-only" descr="Check to find if SSL certificate is available"/>
+<ui name="CertificatePresent" style="plainText"/>
+</object>
+<object name="CertificateControl">
+<core type="enum" xtype="L7_SSL_CERTIFICATE_CTRL_t" access="read-write" descr="SSL Certificate control"/>
+<ui name="CertificateControl" style="inputLine"/>
+</object>
+<object name="CertificateGenerationStatus">
+<core type="enum" xtype="sslCertGenStatus_t" access="read-only" descr="SSL Certificate generation status"/>
+<ui name="CertificateGenerationStatus" style="plainText"/>
+</object>
+<object name="TLSVersion">
+<core validation="validate_uint" descr="&lt;HTML&gt;To set protocol level as TLS Version 1" xtype="enable_t" access="read-write" type="enum"/>
+<ui style="choiceNselect1" name="TLSVersion">
+<cli validation="validate_uint"/>
+<web validation="validate_uint"/>
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="SSLVersion">
+<core validation="validate_uint" descr="&lt;HTML&gt;To enable or disable SSL Version 3" xtype="enable_t" access="read-write" type="enum"/>
+<ui style="choiceNselect1" name="SSLVersion">
+<cli validation="validate_uint"/>
+<web validation="validate_uint"/>
+<snmp asn-id=""/>
+</ui>
+</object>
+</module>
+</objectxml>
+</FastPathXML>

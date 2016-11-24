@@ -1,0 +1,31 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpCPClientStatus" title="Client Status">
+        <group id="1" heading=" ">
+            <node id="1">
+               <element control="combo" properties="filter,iterate,hidden" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalInstanceId" id="1" name="Configuration Name"/>
+            </node> 
+            <node id="2">
+               <element control="combo" properties="filter,iterate" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalConfigName" id="1" name="Configuration Name"/>
+            </node>
+            <node id="3">
+               <element properties="hidden" obj-name="captiveportalcpCaptivePortalInstanceClientAssocTable_cpCaptivePortalInstanceClientAssocInstanceId" id="1" cpval="captiveportalcpCaptivePortalTable_cpCaptivePortalInstanceId"/>
+            </node> 
+            <repeat present="vtable" edit="no" heading=" " id="4">
+               <element properties="iterate" obj-name="captiveportalcpCaptivePortalInstanceClientAssocTable_cpCaptivePortalInstanceClientAssocMacAddress" id="1" name="MAC Address"/>
+               <element properties="hidden" obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientMacAddress" cpval="captiveportalcpCaptivePortalInstanceClientAssocTable_cpCaptivePortalInstanceClientAssocMacAddress" id="2" name="MAC Address"/>
+               <element obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientIpAddress" id="3" name="IP Address"/>
+               <element obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientAssocIfIndex" id="4" name="Interface"/>
+               <element obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientProtocolMode" id="5" name="Protocol"/>
+               <element obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientVerificationMode" id="6" name="Verification"/>
+            </repeat>
+            <node id="5">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

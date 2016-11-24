@@ -1,0 +1,90 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Dot1x Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=dot1xportstatus></a>Help for Port Access Control Port Summary</h2>
+             
+
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+ 
+  <li><b>Port</b>
+  - Specifies the port whose settings are displayed in the current 
+      table row.
+  </li>
+  
+  <li><b>Control Mode</b>
+  - This field indicates the configured control mode for the port. 
+      Possible values are:
+  <UL TYPE="SQUARE">  
+              <LI>Auto: The authenticator PAE sets the controlled port mode to reflect
+        the outcome of the authentication exchanges between the supplicant,
+        authenticator, and the authentication server.
+        <LI>Force Authorized: The authenticator PAE unconditionally sets the 
+        controlled port to authorized.
+          <LI>Force Unauthorized: The authenticator port access entity (PAE) unconditionally sets the
+        controlled port to unauthorized. 
+        <LI>MAC Based: The authenticator PAE sets the controlled port mode to 
+        reflect the outcome of the authentication exchanges between the 
+        supplicant, authenticator, and the authentication server on a per 
+        supplicant basis. 
+  </UL>
+  </li>
+  
+  <li><b>Operating Control Mode</b>
+  - This field indicates the control mode under which the port is actually 
+      operating. 
+      Possible values are:
+  <UL TYPE="SQUARE"> 
+        <LI>Auto 
+        <LI>Force Authorized 
+        <LI>Force Unauthorized 
+        <LI>MAC Based
+        <LI>N/A: If the port is in detached state it cannot participate in port access control.
+  </UL>
+  </li>
+  
+  <li><b>Re-authentication Enabled</b>
+  - This field shows whether 
+      re-authentication of the supplicant for the specified port is allowed. The 
+      possible values are 'true' and 'false'. If the value is 'true' 
+      re-authentication will occur. Otherwise, re-authentication will not be 
+      allowed.
+  </li>
+  <LI><B>Port Status</B>
+   - This field shows the authorization status of the specified port.
+   The possible values are 'Authorized', 'Unauthorized' and 'N/A'.  If the port is in detached state, the
+      value will be 'N/A' since the port cannot participate in port access control.
+
+  </LI>
+  
+ </ul>
+</ul>         
+          
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Refresh</b> - Update the information on the page. </li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+
+</body>
+
+</html>
+
+

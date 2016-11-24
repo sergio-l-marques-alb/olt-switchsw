@@ -1,0 +1,1066 @@
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename src\policy\std_policy.c
+*
+* @purpose Contains definitions to support the FlowControl and BroadCastStorm
+*
+* @component
+*
+* @comments
+*
+* @create 04/02/2001
+*
+* @author rjindal
+* @end
+*
+**********************************************************************/
+
+/*************************************************************
+
+*************************************************************/
+
+
+
+#include "l7_common.h"
+#include "osapi.h"
+#include "nimapi.h"
+#include "nvstoreapi.h"
+#include "defaultconfig.h"
+#include "log.h"
+#include "dtlapi.h"
+#include "std_policy.h"
+#include "std_policy_api.h"
+#include "platform_config.h"
+#include "l7_product.h"
+
+extern policyCfgData_t  *policyCfgData;
+
+extern policyCnfgrState_t policyCnfgrState;
+
+L7_uint32 *policyMapTbl = L7_NULLPTR;
+policyDeregister_t policyDeregister = {L7_FALSE, L7_FALSE, L7_FALSE, L7_FALSE};
+
+
+void policyBuildTestIntfConfigData(policyIntfCfgData_t *pCfg, L7_uint32 seed);
+
+/*********************************************************************
+* @purpose  Build default policy intf config data
+*
+* @parms    config Id, the config Id to be placed into the intf config
+* @parms    pCfg, a pointer to the interface structure
+*
+* @returns  void
+*
+* @notes
+*
+* @end
+*********************************************************************/
+void policyBuildDefaultIntfConfigData(nimConfigID_t *configId, policyIntfCfgData_t *pCfg)
+{
+  NIM_CONFIG_ID_COPY(&pCfg->configId, configId);
+
+  pCfg->bcastStormMode = FD_POLICY_DEFAULT_BCAST_STORM_MODE;
+  pCfg->mcastStormMode = FD_POLICY_DEFAULT_MCAST_STORM_MODE;
+  pCfg->ucastStormMode = FD_POLICY_DEFAULT_UCAST_STORM_MODE;
+  pCfg->bcastStormThreshold = FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD;
+  pCfg->bcastStormThresholdUnit = FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD_UNIT;
+  pCfg->mcastStormThreshold = FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD;
+  pCfg->mcastStormThresholdUnit = FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD_UNIT;
+  pCfg->ucastStormThreshold = FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD;
+  pCfg->ucastStormThresholdUnit = FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD_UNIT;
+  pCfg->flowControlMode = FD_POLICY_DEFAULT_FLOW_CONTROL_MODE;
+}
+
+
+/*********************************************************************
+* @purpose  Build default policy config data
+*
+* @param    ver   Software version of Config Data
+*
+* @returns  void
+*
+* @notes    Builds Garp, VLAN and port default data which will be
+*           applied in dot1qApplyConfigData
+*           Also inits the config file header
+*
+* @end
+*********************************************************************/
+void policyBuildDefaultConfigData(L7_uint32 ver)
+{
+  L7_uint32   cfgIndex;
+  nimConfigID_t configId[L7_POLICY_INTF_MAX_COUNT];
+
+  memset(&configId[0], 0, sizeof(nimConfigID_t) * L7_POLICY_INTF_MAX_COUNT);
+
+  for (cfgIndex = 1; cfgIndex < L7_POLICY_INTF_MAX_COUNT; cfgIndex++)
+    NIM_CONFIG_ID_COPY(&configId[cfgIndex], &policyCfgData->policyIntfCfgData[cfgIndex].configId);
+
+  memset((char*)policyCfgData, 0, sizeof(policyCfgData_t));
+
+  /* Initialize all interface-related entries in the config file to default values. */
+  for (cfgIndex = 1; cfgIndex < L7_POLICY_INTF_MAX_COUNT; cfgIndex++)
+    policyBuildDefaultIntfConfigData(&configId[cfgIndex], &policyCfgData->policyIntfCfgData[cfgIndex]);
+
+  policyCfgData->systemBcastStormMode = FD_POLICY_DEFAULT_BCAST_STORM_MODE;
+  policyCfgData->systemMcastStormMode = FD_POLICY_DEFAULT_MCAST_STORM_MODE;
+  policyCfgData->systemUcastStormMode = FD_POLICY_DEFAULT_UCAST_STORM_MODE;
+
+  policyCfgData->systemFlowControlMode = FD_POLICY_DEFAULT_FLOW_CONTROL_MODE;
+
+  policyCfgData->systemBcastStormThreshold = FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD;
+  policyCfgData->systemBcastStormThresholdUnit = FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD_UNIT;
+  policyCfgData->systemMcastStormThreshold = FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD;
+  policyCfgData->systemMcastStormThresholdUnit = FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD_UNIT;
+  policyCfgData->systemUcastStormThreshold = FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD;
+  policyCfgData->systemUcastStormThresholdUnit = FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD_UNIT;
+
+  /* Build header */
+  strcpy(policyCfgData->cfgHdr.filename, POLICY_CFG_FILENAME);
+  policyCfgData->cfgHdr.version = ver;
+  policyCfgData->cfgHdr.componentID = L7_POLICY_COMPONENT_ID;
+  policyCfgData->cfgHdr.type = L7_CFG_DATA;
+  policyCfgData->cfgHdr.length = sizeof(policyCfgData_t);
+  policyCfgData->cfgHdr.dataChanged = L7_FALSE;
+}
+
+
+/*********************************************************************
+* @purpose  Applies std policy config data
+*
+* @param    void
+*
+* @returns  L7_SUCCESS
+* @return   L7_FAILURE
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t policyApplyConfigData(void)
+{
+  L7_uint32 intIfNum;
+  L7_uint32 cfgIndex;
+  nimConfigID_t configIdNull;
+
+  memset(&configIdNull, 0, sizeof(nimConfigID_t));
+
+  /* Set System storm control modes if per port config not available*/
+  if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_BCAST_CONTROL_FEATURE_ID) == L7_TRUE)
+  {
+     (void)policySystemBcastStormThresholdSet(policyCfgData->systemBcastStormThreshold,
+                                              policyCfgData->systemBcastStormThresholdUnit);
+  }
+  if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_MCAST_CONTROL_FEATURE_ID) == L7_TRUE)
+  {
+     (void)policySystemMcastStormThresholdSet(policyCfgData->systemMcastStormThreshold,
+                                              policyCfgData->systemMcastStormThresholdUnit);
+  }
+  if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_UCAST_CONTROL_FEATURE_ID) == L7_TRUE)
+  {
+     (void)policySystemUcastStormThresholdSet(policyCfgData->systemUcastStormThreshold,
+                                              policyCfgData->systemUcastStormThresholdUnit);
+  }
+
+  /* Set System Flow control mode, if supported */
+  if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_FLOW_CONTROL_FEATURE_ID) == L7_FALSE)
+  {
+     /* Do not use policySystemFlowControlModeSet(), as it cross-checks with system mode */
+     if (dtlPolicyIntfAllFlowCtrlModeSet(policyCfgData->systemFlowControlMode) != L7_SUCCESS)
+     {
+       LOG_MSG("Failure setting system flow control mode to %d\n", policyCfgData->systemFlowControlMode);
+     }
+  }
+
+  if (POLICY_IS_READY)
+  {
+    for (cfgIndex = 1; cfgIndex < L7_POLICY_INTF_MAX_COUNT; cfgIndex++)
+    {
+      if (NIM_CONFIG_ID_IS_EQUAL(&policyCfgData->policyIntfCfgData[cfgIndex].configId, &configIdNull))
+        continue;
+      if (nimIntIfFromConfigIDGet(&(policyCfgData->policyIntfCfgData[cfgIndex].configId), &intIfNum) != L7_SUCCESS)
+        continue;
+      if (policyApplyIntfConfigData(intIfNum) != L7_SUCCESS)
+        return L7_FAILURE;
+    }
+  }
+
+  /* As of this writing, the error returns are logged in the called routines.
+     To allow for future change, and to be consistent with similar routines
+      in other application, return L7_RC_t */
+
+  policyCfgData->cfgHdr.dataChanged = L7_FALSE;
+
+  return L7_SUCCESS;
+
+}
+
+/*********************************************************************
+* @purpose  Apply the broadcast rate limiting for an interface
+*
+* @param    intIfNum    intIfNum
+*
+* @param    mode        admin mode,
+*                       (@b{  L7_ENABLE or
+*                             L7_DISABLE})
+*
+* @param    threshold   threshold value
+*
+* @param    rate_unit   L7_RATE_UNIT_PERCENT or L7_RATE_UNIT_PPS or L7_RATE_UNIT_KBPS
+*
+* @returns  L7_RC_t
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t policyIntfBcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold,
+                                     L7_RATE_UNIT_t rate_unit)
+{
+  policyIntfCfgData_t *pCfg;
+
+  if (policyMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    return L7_FAILURE;
+
+  if (dtlPolicyIntfBcastCtrlModeSet(intIfNum, mode, threshold, rate_unit) != L7_SUCCESS)
+  {
+    LOG_MSG("Failure setting interface %d broadcast storm mode to %d and threshold to %d\n",
+            intIfNum, mode, threshold);
+    return L7_FAILURE;
+  }
+  return L7_SUCCESS;
+}
+
+
+/*********************************************************************
+* @purpose  Apply the multicast rate limiting for an interface
+*
+* @param    intIfNum    intIfNum
+*
+* @param    mode        admin mode,
+*                       (@b{  L7_ENABLE or
+*                             L7_DISABLE})
+*
+* @param    threshold   threshold value
+*
+* @param    rate_unit   L7_RATE_UNIT_PERCENT or L7_RATE_UNIT_PPS or L7_RATE_UNIT_KBPS
+*
+* @returns  void
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t policyIntfMcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold,
+                                     L7_RATE_UNIT_t rate_unit)
+{
+  policyIntfCfgData_t *pCfg;
+
+  if (policyMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    return L7_FAILURE;
+
+  if (dtlPolicyIntfMcastCtrlModeSet(intIfNum, mode, threshold, rate_unit) != L7_SUCCESS)
+  {
+    LOG_MSG("Failure setting interface %d multicast storm mode to %d and threshold to %d\n",
+            intIfNum, mode, threshold);
+    return L7_FAILURE;
+  }
+  return L7_SUCCESS;
+}
+
+
+
+/*********************************************************************
+* @purpose  Apply the destination lookup failure rate limiting for an interface
+*
+* @param    intIfNum    intIfNum
+*
+* @param    mode        admin mode,
+*                       (@b{  L7_ENABLE or
+*                             L7_DISABLE})
+*
+* @param    threshold   threshold value
+*
+* @param    rate_unit   L7_RATE_UNIT_PERCENT or L7_RATE_UNIT_PPS or L7_RATE_UNIT_KBPS
+*
+* @returns  void
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t policyIntfUcastCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode, L7_int32 threshold,
+                                     L7_RATE_UNIT_t rate_unit)
+{
+  policyIntfCfgData_t *pCfg;
+
+  if (policyMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    return L7_FAILURE;
+
+  if (dtlPolicyIntfUcastCtrlModeSet(intIfNum, mode, threshold, rate_unit) != L7_SUCCESS)
+  {
+    LOG_MSG("Failure setting interface %d unicast storm mode to %d and threshold to %d\n",
+            intIfNum, mode, threshold);
+    return L7_FAILURE;
+  }
+  return L7_SUCCESS;
+}
+
+
+
+/*********************************************************************
+* @purpose  Apply flow control for an interface
+*
+* @param    intIfNum    intIfNum
+*
+* @param    mode        admin mode,
+*                       (@b{  L7_ENABLE or
+*                             L7_DISABLE})
+*
+* @returns  L7_RC_T
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t policyIntfFlowCtrlModeApply(L7_uint32 intIfNum, L7_uint32 mode)
+{
+  policyIntfCfgData_t *pCfg;
+
+  if (policyMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+    return L7_FAILURE;
+
+  if (dtlPolicyIntfFlowCtrlModeSet(intIfNum, mode) != L7_SUCCESS)
+  {
+    LOG_MSG("Failure setting interface %d flow control mode to %d\n",intIfNum, mode);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+
+}
+
+/*********************************************************************
+*
+* @purpose  To process the Callback for L7_PORT_INSERT
+*
+* @param    L7_uint32  intIfNum  internal interface number
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @comments none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t policyApplyIntfConfigData(L7_uint32 intIfNum)
+{
+  policyIntfCfgData_t *pCfg;
+  L7_RC_t rc = L7_SUCCESS;
+
+  if (policyMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+  {
+    if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_FLOW_CONTROL_FEATURE_ID) == L7_TRUE)
+    {
+      if (policyIntfFlowCtrlModeApply(intIfNum, pCfg->flowControlMode) != L7_SUCCESS)
+      {
+        LOG_MSG("policyApplyIntfConfigData: error returned from policyIntfFlowCtrlModeApply() setting intIfNum=%d to mode=%d\n",
+                intIfNum, pCfg->flowControlMode);
+        rc = L7_FAILURE;
+      }
+    }
+
+    if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_BCAST_CONTROL_FEATURE_ID) == L7_TRUE)
+    {
+       if (policyIntfBcastCtrlModeApply(intIfNum, pCfg->bcastStormMode, pCfg->bcastStormThreshold, pCfg->bcastStormThresholdUnit)  != L7_SUCCESS)
+       {
+         LOG_MSG("policyApplyIntfConfigData: error returned from policyIntfBcastCtrlModeApply() setting intIfNum=%d to mode=%d\n",
+                 intIfNum, pCfg->bcastStormMode);
+         rc = L7_FAILURE;
+       }
+    }
+
+    if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_MCAST_CONTROL_FEATURE_ID) == L7_TRUE)
+    {
+       if (policyIntfMcastCtrlModeApply(intIfNum, pCfg->mcastStormMode, pCfg->mcastStormThreshold, pCfg->mcastStormThresholdUnit)  != L7_SUCCESS)
+       {
+         LOG_MSG("policyApplyIntfConfigData: error returned from policyIntfMcastCtrlModeApply() setting intIfNum=%d to mode=%d\n",
+                 intIfNum, pCfg->mcastStormMode);
+         rc = L7_FAILURE;
+       }
+    }
+
+    if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_UCAST_CONTROL_FEATURE_ID) == L7_TRUE)
+    {
+       if (policyIntfUcastCtrlModeApply(intIfNum, pCfg->ucastStormMode, pCfg->ucastStormThreshold, pCfg->ucastStormThresholdUnit)  != L7_SUCCESS)
+       {
+         LOG_MSG("policyApplyIntfConfigData: error returned from policyIntfUcastCtrlModeApply() setting intIfNum=%d to mode=%d\n",
+                 intIfNum, pCfg->ucastStormMode);
+         rc = L7_FAILURE;
+       }
+    }
+
+  }
+ /* Create policy stats for interface. */
+  (void)policyStatsCreateIntf(intIfNum);
+
+  return(rc);
+}
+
+/*********************************************************************
+* @purpose  Checks if policy user config data has changed
+*
+* @param    void
+*
+* @returns  L7_TRUE or L7_FALSE
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_BOOL policyHasDataChanged(void)
+{
+  if (policyDeregister.policyHasDataChanged == L7_TRUE)
+    return L7_FALSE;
+
+  return policyCfgData->cfgHdr.dataChanged;
+}
+void policyResetDataChanged(void)
+{
+  policyCfgData->cfgHdr.dataChanged = L7_FALSE;
+  return;
+}
+/*********************************************************************
+* @purpose  Saves policy user config file to NVStore
+*
+* @param    void
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FALIURE
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t policySave(void)
+{
+  L7_RC_t rc=L7_SUCCESS;
+
+  if (policyDeregister.policySave == L7_TRUE)
+    return L7_SUCCESS;
+
+
+  if (policyCfgData->cfgHdr.dataChanged == L7_TRUE)
+  {
+    policyCfgData->cfgHdr.dataChanged = L7_FALSE;
+    policyCfgData->checkSum = nvStoreCrc32((L7_char8 *)policyCfgData,
+                                           sizeof(policyCfgData_t) - sizeof(policyCfgData->checkSum));
+
+    if (sysapiCfgFileWrite(L7_POLICY_COMPONENT_ID,
+                           POLICY_CFG_FILENAME,
+                           (L7_char8 *)policyCfgData,
+                           sizeof(policyCfgData_t)) != L7_SUCCESS)
+    {
+      LOG_MSG("Error on call to osapiFsWrite routine on config file %s\n",POLICY_CFG_FILENAME);
+    }
+  }
+  return(rc);
+}
+
+/*********************************************************************
+* @purpose  Restores policy user config file to factore defaults
+*
+* @param    void
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FALIURE
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_uint32 policyRestore(void)
+{
+
+  if (policyDeregister.policyRestore == L7_TRUE)
+    return L7_SUCCESS;
+
+  policyBuildDefaultConfigData(policyCfgData->cfgHdr.version);
+  (void)policyApplyConfigData();
+
+  policyCfgData->cfgHdr.dataChanged = L7_TRUE;
+  return(L7_SUCCESS);
+}
+
+/*********************************************************************
+* @purpose  Register all policy counters with the Statistics Manager
+*
+* @param    None
+*
+* @returns  L7_SUCCESS or L7_FALIURE
+*
+* @end
+*********************************************************************/
+L7_RC_t policyStatsCreate()
+{
+  L7_RC_t rc = L7_SUCCESS;
+  L7_uint32 i, j, k;
+  L7_uint32     listSize = sizeof(stdPolicyMutants) / sizeof(statsParm_entry_t);
+  pStatsParm_list_t pTmp1 = stdPolicyMutants;
+  pMutling_id_t pTmp2;
+
+  for (i = 1; i < L7_MAX_INTERFACE_COUNT; i++)
+  {
+    /* Reset pTmp1 for initializing the counters for the next interface */
+    pTmp1 = stdPolicyMutants;
+
+    for (j = 0; j < listSize; j++)
+    {
+      pTmp1->cKey = i;
+      if (pTmp1->pMutlingsParmList != L7_NULL)
+      {
+        pTmp2 = pTmp1->pMutlingsParmList->pMutlingParms;
+
+        for (k = 0; ((pTmp2 != L7_NULL) &&
+                     (k < pTmp1->pMutlingsParmList->listSize)); k++)
+        {
+          pTmp2->cKey = i;
+          pTmp2++;
+        }
+      }
+      pTmp1++;
+    }
+
+    /* Call the stats manager to create the counters for this interface */
+    rc = statsCreate (listSize, stdPolicyMutants);
+  }
+
+  return rc;
+}
+
+/*********************************************************************
+* @purpose  Register all policy counters with the Statistics Manager
+*           for a specified interface.
+*
+* @param    None
+*
+* @returns  L7_SUCCESS or L7_FALIURE
+*
+* @end
+*********************************************************************/
+L7_RC_t policyStatsCreateIntf(L7_uint32 intIfNum)
+{
+  L7_RC_t rc = L7_SUCCESS;
+  L7_uint32 j, k;
+  L7_uint32     listSize = sizeof(stdPolicyMutants) / sizeof(statsParm_entry_t);
+  pStatsParm_list_t pTmp1 = stdPolicyMutants;
+  pMutling_id_t pTmp2;
+
+  /* Reset pTmp1 for initializing the counters for the next interface */
+  pTmp1 = stdPolicyMutants;
+
+  for (j = 0; j < listSize; j++)
+  {
+    pTmp1->cKey = intIfNum;
+    if (pTmp1->pMutlingsParmList != L7_NULL)
+    {
+      pTmp2 = pTmp1->pMutlingsParmList->pMutlingParms;
+
+      for (k = 0; ((pTmp2 != L7_NULL) &&
+                   (k < pTmp1->pMutlingsParmList->listSize)); k++)
+      {
+        pTmp2->cKey = intIfNum;
+        pTmp2++;
+      }
+    }
+    pTmp1++;
+  }
+
+  /* Call the stats manager to create the counters for this interface */
+  rc = statsCreate (listSize, stdPolicyMutants);
+
+  return rc;
+}
+
+/*********************************************************************
+* @purpose  Obtain a pointer to the specified interface configuration data
+*           for this interface
+*
+* @param    intIfNum @b{(input)} Internal Interface Number
+* @param    **pCfg   @b{(output)}  Ptr  to policy interface config structure
+*                           or L7_NULL if not needed
+*
+* @returns  L7_TRUE
+* @returns  L7_FALSE
+*
+*
+* @notes    Facilitates pre-configuration, as it checks if the NIM
+*           interface exists and whether the component is in a state to
+*           be configured (regardless of whether the component is enabled
+*           or not).
+*
+* @notes    The caller can set the pCfg parm to L7_NULL if it does not
+*           want the value output from this function.
+*
+* @end
+*********************************************************************/
+L7_BOOL policyMapIntfIsConfigurable(L7_uint32 intIfNum, policyIntfCfgData_t **pCfg)
+{
+  L7_uint32 index;
+  nimConfigID_t configId;
+
+  if (!(POLICY_IS_READY))
+  {
+    LOG_MSG("Error on call to policyMapIntfIsConfigurable routine outside the EXECUTE state\n");
+    return L7_FALSE;
+  }
+
+  /* Check boundary conditions */
+  if (intIfNum <= 0 || intIfNum >= platIntfMaxCountGet())
+    return L7_FALSE;
+
+  index = policyMapTbl[intIfNum];
+
+  if (index == 0)
+    return L7_FALSE;
+
+  /* verify that the configId in the config data table entry matches the configId that NIM maps to
+   ** the intIfNum we are considering
+   */
+  if (nimConfigIdGet(intIfNum, &configId) == L7_SUCCESS)
+  {
+    if (NIM_CONFIG_ID_IS_EQUAL(&configId, &(policyCfgData->policyIntfCfgData[index].configId)) == L7_FALSE)
+    {
+      /* if we get here, either we have a table management error between policyCfgData and policyMapTbl or
+      ** there is synchronization issue between NIM and components w.r.t. interface creation/deletion
+      */
+      LOG_MSG("Error accessing POLICY config data for interface %d in policyMapIntfIsConfigurable.\n", intIfNum);
+      return L7_FALSE;
+    }
+  }
+
+  *pCfg = &policyCfgData->policyIntfCfgData[index];
+
+  return L7_TRUE;
+}
+
+/*********************************************************************
+* @purpose  Obtain a pointer to the first free interface config struct
+*
+* @param    intIfNum @b{(input)} Internal Interface Number
+* @param    **pCfg   @b{(output)}  Ptr  to policy interface config structure
+*                           or L7_NULL if not needed
+*
+* @returns  L7_TRUE
+* @returns  L7_FALSE
+*
+*
+* @notes    Facilitates pre-configuration, as it checks if the NIM
+*           interface exists and whether the component is in a state to
+*           be configured (regardless of whether the component is enabled
+*           or not).
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_BOOL policyMapIntfConfigEntryGet(L7_uint32 intIfNum, policyIntfCfgData_t **pCfg)
+{
+  L7_uint32 i;
+  nimConfigID_t configId;
+  nimConfigID_t configIdNull;
+
+  memset(&configIdNull, 0, sizeof(nimConfigID_t));
+
+  if (!(POLICY_IS_READY))
+  {
+    LOG_MSG("Error on call to policyMapIntfIsConfigEntryGet routine outside the EXECUTE state\n");
+    return L7_FALSE;
+  }
+
+  if (nimConfigIdGet(intIfNum, &configId) == L7_SUCCESS)
+  {
+    for (i = 1; i < L7_POLICY_INTF_MAX_COUNT; i++)
+    {
+      if (NIM_CONFIG_ID_IS_EQUAL(&policyCfgData->policyIntfCfgData[i].configId, &configIdNull))
+      {
+        policyMapTbl[intIfNum] = i;
+        *pCfg = &policyCfgData->policyIntfCfgData[i];
+        return L7_TRUE;
+      }
+    }
+  }
+  return L7_FALSE;
+}
+
+
+/*********************************************************************
+*
+* @purpose  To process the Callback for L7_CREATE
+*
+* @param    L7_uint32  intIfNum  internal interface number
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @comments none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t policyIntfCreate(L7_uint32 intIfNum)
+{
+  nimConfigID_t configId;
+  policyIntfCfgData_t *pCfg;
+  L7_uint32 i;
+
+  if (policyIsValidIntf(intIfNum) != L7_TRUE)
+    return L7_FAILURE;
+
+  if (nimConfigIdGet(intIfNum, &configId) != L7_SUCCESS)
+    return L7_FAILURE;
+
+  for (i = 1; i < L7_POLICY_INTF_MAX_COUNT; i++ )
+  {
+    if (NIM_CONFIG_ID_IS_EQUAL(&policyCfgData->policyIntfCfgData[i].configId, &configId))
+    {
+      policyMapTbl[intIfNum] = i;
+      break;
+    }
+  }
+
+  pCfg = L7_NULL;
+
+  /* If an interface configuration entry is not already assigned to the interface,
+     assign one */
+  if (policyMapIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+  {
+    if(policyMapIntfConfigEntryGet(intIfNum, &pCfg) != L7_TRUE)
+      return L7_FAILURE;
+
+    /* Update the configuration structure with the config id and build the default config */
+    if (pCfg != L7_NULL)
+      policyBuildDefaultIntfConfigData(&configId,pCfg);
+  }
+
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
+*
+* @purpose  To process the Callback for L7_DETACH
+*
+* @param    L7_uint32  intIfNum  internal interface number
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @comments none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t policyIntfDetach(L7_uint32 intIfNum)
+{
+  policyIntfCfgData_t *pCfg;
+  L7_RC_t rc = L7_SUCCESS;
+
+  if (policyMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+  {
+    if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_FLOW_CONTROL_FEATURE_ID) == L7_TRUE)
+    {
+      if (policyIntfFlowCtrlModeApply(intIfNum, FD_POLICY_DEFAULT_FLOW_CONTROL_MODE) != L7_SUCCESS)
+      {
+        LOG_MSG("policyIntfDetach: error returned from policyIntfFlowCtrlModeApply() setting intIfNum=%d to mode=%d\n",
+                intIfNum, FD_POLICY_DEFAULT_FLOW_CONTROL_MODE);
+        rc = L7_FAILURE;
+      }
+    }
+
+    if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_BCAST_CONTROL_FEATURE_ID) == L7_TRUE)
+    {
+       if (policyIntfBcastCtrlModeApply(intIfNum, FD_POLICY_DEFAULT_BCAST_STORM_MODE, FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD, FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD_UNIT)  != L7_SUCCESS)
+       {
+         LOG_MSG("policyIntfDetach: error returned from policyIntfBcastCtrlModeApply() setting intIfNum=%d to mode=%d and threshold %d\n",
+                 intIfNum, FD_POLICY_DEFAULT_BCAST_STORM_MODE, FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD);
+         rc = L7_FAILURE;
+       }
+    }
+
+    if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_MCAST_CONTROL_FEATURE_ID) == L7_TRUE)
+    {
+       if (policyIntfMcastCtrlModeApply(intIfNum, FD_POLICY_DEFAULT_MCAST_STORM_MODE, FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD, FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD_UNIT)  != L7_SUCCESS)
+       {
+         LOG_MSG("policyIntfDetach: error returned from policyIntfMcastCtrlModeApply() setting intIfNum=%d to mode=%d and threshold %d\n",
+               intIfNum, FD_POLICY_DEFAULT_MCAST_STORM_MODE, FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD);
+         rc = L7_FAILURE;
+       }
+    }
+
+    if (cnfgrIsFeaturePresent(L7_POLICY_COMPONENT_ID, L7_POLICY_PORT_UCAST_CONTROL_FEATURE_ID) == L7_TRUE)
+    {
+       if (policyIntfUcastCtrlModeApply(intIfNum, FD_POLICY_DEFAULT_UCAST_STORM_MODE, FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD, FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD_UNIT)  != L7_SUCCESS)
+       {
+         LOG_MSG("policyIntfDetach: error returned from policyIntfUcastCtrlModeApply() setting intIfNum=%d to mode=%d and threshold %d\n",
+              intIfNum, FD_POLICY_DEFAULT_UCAST_STORM_MODE, FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD);
+         rc = L7_FAILURE;
+       }
+    }
+
+  }
+  return(rc);
+}
+
+/*********************************************************************
+*
+* @purpose  To process the Callback for L7_DELETE
+*
+* @param    L7_uint32  intIfNum  internal interface number
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @comments none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t policyIntfDelete(L7_uint32 intIfNum)
+{
+  policyIntfCfgData_t *pCfg;
+
+  if (policyMapIntfIsConfigurable(intIfNum, &pCfg) == L7_TRUE)
+  {
+    memset((void *)&pCfg->configId, 0, sizeof(nimConfigID_t));
+    memset((void *)&policyMapTbl[intIfNum], 0, sizeof(L7_uint32));
+    policyCfgData->cfgHdr.dataChanged = L7_TRUE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
+*
+* @purpose  To process NIM events.
+*
+* @param    L7_uint32  intIfNum  internal interface number
+* @param    L7_uint32  event     event, defined by L7_PORT_EVENTS_t
+* @param    L7_uint32  correlator event, defined by L7_PORT_EVENTS_t
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @comments none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t policyIntfChangeCallback(L7_uint32 intIfNum, L7_uint32 event, NIM_CORRELATOR_t correlator)
+{
+  L7_RC_t rc = L7_SUCCESS;
+  NIM_EVENT_COMPLETE_INFO_t status;
+
+  status.intIfNum     = intIfNum;
+  status.component    = L7_POLICY_COMPONENT_ID;
+  status.event        = event;
+  status.correlator   = correlator;
+
+  if (policyDeregister.policyIntfChangeCallback == L7_TRUE)
+  {
+    rc = L7_SUCCESS;
+    status.response.rc = rc;
+    nimEventStatusCallback(status);
+    return rc;
+  }
+
+  if (policyIsValidIntf(intIfNum) != L7_TRUE)
+  {
+    rc = L7_SUCCESS;
+    status.response.rc = rc;
+    nimEventStatusCallback(status);
+    return rc;
+  }
+
+  if (POLICY_IS_READY)
+  {
+
+    switch (event)
+    {
+      case L7_CREATE:
+        rc = policyIntfCreate(intIfNum);
+        break;
+
+      case L7_ATTACH: /* for stats creation */
+      case L7_UP:     /* for storm-control features needing current link speed */
+        rc = policyApplyIntfConfigData(intIfNum);
+        break;
+
+      case L7_DETACH:
+        rc = policyIntfDetach(intIfNum);
+        break;
+
+      case L7_DELETE:
+        rc = policyIntfDelete(intIfNum);
+        break;
+
+      default:
+        rc = L7_SUCCESS;
+        break;
+    }
+  } else
+  {
+    LOG_MSG("policyIntfChangeCallback: Received an interface event callback while not in EXECUTE state.\n");
+  }
+
+  status.response.rc = rc;
+  nimEventStatusCallback(status);
+  return rc;
+}
+
+
+
+
+/*============================================================================*/
+/*========================  START OF CONFIG MIGRATION DEBUG CHANGES ==========*/
+/*============================================================================*/
+
+
+
+/*********************************************************************
+* @purpose  Build non-default  config data
+*
+* @param    void
+*
+* @returns  void
+*
+* @notes    This routine is based on xxxBuildDefaultConfigData.
+*
+* @end
+*********************************************************************/
+void policyBuildTestConfigData(void)
+{
+
+    L7_uint32   cfgIndex;
+
+  /*-------------------------------*/
+  /* Build Non-Default Config Data */
+  /*-------------------------------*/
+
+    /* Initialize all interface-related entries in the config file to default values. */
+    for (cfgIndex = 1; cfgIndex < L7_POLICY_INTF_MAX_COUNT; cfgIndex++)
+      policyBuildTestIntfConfigData(&policyCfgData->policyIntfCfgData[cfgIndex], cfgIndex);
+
+    policyCfgData->systemBcastStormMode = L7_ENABLE;
+    policyCfgData->systemFlowControlMode = L7_ENABLE;
+
+
+ /* End of Component's Test Non-default configuration Data */
+
+
+   /* Force write of config file */
+   policyCfgData->cfgHdr.dataChanged = L7_TRUE;
+   sysapiPrintf("Built test config data\n");
+
+
+}
+
+
+/*********************************************************************
+* @purpose  Build default policy intf config data
+*
+* @parms    config Id, the config Id to be placed into the intf config
+* @parms    pCfg, a pointer to the interface structure
+*
+* @returns  void
+*
+* @notes
+*
+* @end
+*********************************************************************/
+void policyBuildTestIntfConfigData(policyIntfCfgData_t *pCfg, L7_uint32 seed)
+{
+
+  pCfg->bcastStormMode = L7_ENABLE;
+  pCfg->flowControlMode = L7_ENABLE;
+}
+
+
+/*********************************************************************
+*
+* @purpose  Dump the contents of the config data.
+*
+* @param    void
+*
+* @returns  void
+*
+* @comments
+*
+* @end
+*
+*********************************************************************/
+void policyConfigDataTestShow(void)
+{
+
+    L7_fileHdr_t  *pFileHdr;
+    nimUSP_t    usp;
+    L7_uint32   cfgIndex;
+    policyIntfCfgData_t *pCfg;
+
+    /*-----------------------------*/
+    /* Config File Header Contents */
+    /*-----------------------------*/
+    pFileHdr = &(policyCfgData->cfgHdr);
+
+    sysapiCfgFileHeaderDump (pFileHdr);
+
+   /*-----------------------------*/
+   /* cfgParms                    */
+   /*-----------------------------*/
+
+
+    sysapiPrintf("policyCfgData->systemBcastStormMode   = %d\n",
+                 policyCfgData->systemBcastStormMode);
+    sysapiPrintf("policyCfgData->systemFlowControlMode   = %d\n",
+                 policyCfgData->systemFlowControlMode);
+
+    for (cfgIndex = 1; cfgIndex < L7_POLICY_INTF_MAX_COUNT; cfgIndex++)
+    {
+
+        memset((void *)&usp, 0, sizeof(nimUSP_t));
+        pCfg = &policyCfgData->policyIntfCfgData[cfgIndex];
+        if (nimUspFromConfigIDGet(&(policyCfgData->policyIntfCfgData[cfgIndex].configId), &usp)
+                                   != L7_SUCCESS)
+        {
+          usp.unit = 0;
+          usp.slot = 0;
+          usp.port = 0;
+        }
+        sysapiPrintf("Port %d/%d/%d\n", usp.unit, usp.slot, usp.port);
+
+        sysapiPrintf("bcastStormMode        = %d\n", pCfg->bcastStormMode);
+        sysapiPrintf("flowControlMode       = %d\n", pCfg->flowControlMode);
+
+        sysapiPrintf("\n");
+
+    }
+
+
+    /*-----------------------------*/
+    /* Checksum                    */
+    /*-----------------------------*/
+    sysapiPrintf("policyCfgData->checkSum : %u\n", policyCfgData->checkSum);
+
+
+}
+
+
+
+/*============================================================================*/
+/*========================  END OF CONFIG MIGRATION DEBUG CHANGES ============*/
+/*============================================================================*/
+
+

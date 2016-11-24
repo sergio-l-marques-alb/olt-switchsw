@@ -1,0 +1,265 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>IPv6 ACL Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="80%" align=center>
+<h2>Help for IPv6 Access Control Lists Rule Configuration</h2>
+<P>Use these screens to configure the rules for the IPv6 Access Control Lists, which is
+ created using the IPv6 Access Control List Configuration screen. By default, no specific
+ value is in effect for any of the IPv6 ACL rules.
+ </P>
+
+<h3>Selection Criteria </h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IPv6 ACL Name</b> - Use the pull down menu to select the IPv6 ACL for which
+    to create or update a rule.
+    </li>
+  <li><b>Rule</b> - Select an existing rule from the pull down menu, or select 'Create New Rule.'
+      New rules cannot be created if the maximum number of rules has been reached.
+      For each rule, a packet must match all the specified criteria in order to be true
+      against that rule and for the specified rule action (Permit/Deny) to take place.
+      </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Rule ID</b> - Enter a whole number in the range
+      of
+      <EMWEB_STRING C='
+        return usmWebUnsignedIntegerRangeHelp(L7_ACL_MIN_RULE_NUM, L7_ACL_MAX_RULE_NUM);
+       ' >
+      that will be used to identify the rule.
+      </li>
+
+  <li><b>Action</b> - Specify what action should be taken if a packet matches the rule's criteria.
+     The choices are permit or deny. </li>
+<EMWEB_IF ID = USMWEB_ACL_RULE_LOGGING_FEATURE_PRESENT>
+  <li><b>Logging</b> - When set to 'True', logging is enabled for this ACL
+  rule (subject to resource availability in the device). If the Access List
+  Trap Flag is also enabled, this will cause periodic traps to be generated
+  indicating the number of times this rule was 'hit' during the current report
+  interval.  A fixed
+  <EMWEB_STRING C='
+   return usmWebIntegerToString(FD_QOS_ACL_LOGGING_INTERVAL);
+    ' >
+  minute report interval is used for the entire system.  A trap is not issued if the
+  ACL rule hit count is zero for the current interval.
+
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_LOG_DENY_FEATURE">
+    <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_LOG_PERMIT_FEATURE">
+    <EMWEB_ELSE>
+      This field is visible for a 'Deny' Action.
+    </EMWEB_IF>
+  <EMWEB_ELSE>
+      This field is visible for a 'Permit' Action.
+  </EMWEB_IF>
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_ASSIGN_QUEUE_FEATURE">
+  <li><b>Assign Queue ID</b> - Specifies the hardware egress queue identifier used to
+  handle all packets matching this IPv6 ACL rule. Valid range of Queue Ids is
+     <EMWEB_STRING C='
+        return usmWebUnsignedIntegerRangeHelp(L7_ACL_ASSIGN_QUEUE_ID_MIN, L7_ACL_ASSIGN_QUEUE_ID_MAX);
+       ' >.
+      This field is visible for a 'Permit' Action.
+  </li>
+</EMWEB_IF>
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_MIRROR_FEATURE">
+  <li><b>Mirror Interface</b> - Specifies the specific egress interface where the
+  matching traffic stream is copied in addition to being forwarded normally
+  by the device.
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_REDIRECT_FEATURE">
+    This field cannot be set if a Redirect Interface is already
+    configured for the ACL rule.
+  </EMWEB_IF>
+  This field is visible for a 'Permit' Action.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_REDIRECT_FEATURE">
+  <li><b>Redirect Interface</b> - Specifies the specific egress interface where the
+  matching traffic stream is forced, bypassing any forwarding decision normally performed
+  by the device.
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_MIRROR_FEATURE">
+    This field cannot be set if a Mirror Interface is already
+    configured for the ACL rule.
+  </EMWEB_IF>
+  This field is visible for a 'Permit' Action.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_EVERY_FEATURE">
+  <li><b>Match Every</b> - Select true or false from the pull down menu.
+  True signifies that all packets will match the selected IPv6 ACL and Rule and
+    will be either permitted or denied. In this case, since all packets match
+    the rule, the option of configuring other match criteria will not be
+    offered.  To configure specific match criteria for the rule, remove the
+    rule and re-create it, or re-configure 'Match Every' to 'False' for
+    the other match criteria to be visible.
+    </li>
+</EMWEB_IF>
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_PROTOCOL_FEATURE">
+  <li><b>Protocol</b> - There are two ways to configure IPv6 protocol.
+    <ul type=square>
+          <li>Specify an integer ranging from 0 to 255 after selecting protocol
+            keyword "other". This number represents the IP protocol</li>
+        </UL>
+    <ul type=square>
+          <li>Select name of a protocol from the existing list of Internet Protocol (IP),
+            Transmission Control Protocol (TCP), User Datagram Protocol (UDP),
+            Internet Control Message Protocol (ICMP) and Internet Group Management Protocol (IGMP).
+            </li>
+            </UL>
+      </li>
+
+      </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="IPV6_ACL_RULE_MATCH_SRCIP_FEATURE">
+  <li><b>Source Prefix / PrefixLength</b> - Specify IPv6 Prefix combined with IPv6 Prefix length of
+    the network or host from which the packet is being sent. Prefix length can be in the range
+    <EMWEB_STRING C='
+        return usmWebUnsignedIntegerRangeHelp(L7_DHCP6S_PREFIX_MIN, L7_DHCP6S_PREFIX_MAX);
+       ' >.
+    </li>
+</EMWEB_IF>
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="IPV6_ACL_RULE_MATCH_SRCL4PORT_FEATURE">
+  <li><b>Source L4 Port </b> - Specify a packet's source layer 4 port as a match condition
+      for the selected IPv6 ACL rule. Source port information is optional.
+      Source port information can be specified in two ways:
+    <ul type=square> <li>
+      Select keyword "other" from the drop down menu and specify the number of the
+      port in the range from 0 to 65535.
+      </li></ul>
+      <ul type=square> <li>
+      Select one of the keyword from the list: DOMAIN, ECHO, FTP, FTPDATA, HTTP,
+      SMTP, SNMP, TELNET, TFTP, and WWW. Each of these values translates into
+      its equivalent port number, which is used as both the start and end of the port range.
+      </li></ul>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="IPV6_ACL_RULE_MATCH_SRCL4PORT_RANGE_FEATURE">
+  <li><b>Source L4 Port Range (start port)</b> - Specify the first port of the port
+      range for a packet's source layer 4 port match condition for the selected IPv6 ACL
+      rule. Range of valid values is 0 to 65535.
+      The value of the start port must be less than or equal to the end port.
+      The start port, end port, and all ports in between will be part of the
+      contiguous source port range. This is an optional configuration.
+     </li>
+
+     <li><b>Source L4 Port Range (end port)</b> - Specify the last port of the port
+      range for a packet's source layer 4 port match condition for the selected IPv6 ACL
+      rule. Range of valid values is 0 to 65535.
+      The value of the end port must be greater than or equal to the start port.
+      The start port, end port, and all ports in between will be part of the
+      contiguous source port range. This is an optional configuration.
+      </li>
+</EMWEB_IF>
+</EMWEB_IF>
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="IPV6_ACL_RULE_MATCH_DESTIP_FEATURE">
+  <li><b>Destination Prefix / PrefixLength</b> -  Enter up to 128-bit prefix combined with
+     prefix length to be compared to a packet's destination IP Address as a match
+     criteria for the selected IPv6 ACL rule. Prefix length can be in the range
+    <EMWEB_STRING C='
+       return usmWebUnsignedIntegerRangeHelp(L7_DHCP6S_PREFIX_MIN, L7_DHCP6S_PREFIX_MAX);
+       ' >.
+     </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="IPV6_ACL_RULE_MATCH_DSTL4PORT_FEATURE">
+  <li><b>Destination L4 Port Keyword</b> - Specify the destination layer 4 port match
+      conditions for the selected IPv6 ACL rule. The possible values are DOMAIN,
+      ECHO, FTP, FTPDATA, HTTP, SMTP, SNMP, TELNET, TFTP, and WWW.
+      Each of these values translates into its equivalent port number, which is
+      used as both the start and end of the port range.
+    <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="IPV6_ACL_RULE_MATCH_DSTL4PORT_RANGE_FEATURE">
+      Either this field or the 'Destination L4 Port Range' fields can be used
+      to specify a destination layer 4 port range as a match criterion.
+    </EMWEB_IF>  This is an optional configuration.
+     </li>
+
+  <li><b>Destination L4 Port Number</b> - Specify a packet's destination layer 4 port
+      number match condition for the selected IPv6 ACL rule. This is an optional configuration.
+     </li>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="IPV6_ACL_RULE_MATCH_DSTL4PORT_RANGE_FEATURE">
+  <li><b>Destination L4 Port Range (start port)</b> - Specifies a packet's destination
+      layer 4 port match condition for the selected IPv6 ACL rule.
+      This field identifies the first port of the port range and has a value from
+      0 to 65535.
+      The value of the start port must be less than or equal to the end port.
+      The start port, end port, and all ports in between will be part of the
+      contiguous source port range.  This is an optional configuration.
+     </li>
+<li><b>Destination L4 Port Range (end port)</b> - Specify a packet's destination
+      layer 4 port match condition for the selected IPv6 ACL rule.
+      This field identifies the last port of the port range and has a value from
+      0 to 65535.
+      The value of the end port must be greater than or equal to the start port.
+      The start port, end port, and all ports in between will be part of the
+      contiguous source port range.  This is an optional configuration.
+      </li>
+</EMWEB_IF>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="IPV6_ACL_FLOWLBL_FEATURE_SUPPORT">
+  <li><b>Flow Label</B> Flow label is 20-bit number that is unique to an IPv6 packet,
+    used by end stations to signify quality-of-service handling in routers. Flow label
+    can specified within the range
+    <EMWEB_STRING C='
+        return usmWebUnsignedIntegerRangeHelp(L7_ACL_MIN_FLOWLBL, L7_ACL_MAX_FLOWLBL);
+       ' >.
+     </li>
+      </li>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="IPV6_ACL_RULE_MATCH_IPDSCP_FEATURE">
+  <li><b>IPv6 DSCP Service</B>
+      Specify the IP DiffServ Code Point (DSCP) field.The DSCP is defined as the
+      high-order six bits of the Service Type octet in the IPv6 header.
+      This is an optional configuration.
+      Enter an integer from 0 to 63. The IPv6 DSCP is selected by possibly selection one
+      of the DSCP keyword from a dropdown box. If a value is to be selected by specifying
+      its numeric value, then select the 'Other' option in the dropdown box and a text
+      box will appear where the numeric value of the DSCP can be entered.
+      </li>
+</EMWEB_IF>
+ </ul>
+</ul>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li> <b>Configure</b> - Configure the corresponding match criteria for the selected rule.
+      </li>
+  <li><b>Delete </b> - Remove the currently selected Rule from the selected ACL.
+      These changes will not be retained across a power cycle
+      unless a save configuration is performed.
+      </li>
+ <li> <b>Submit</b> - Sends the updated configuration to the switch.  Configuration changes
+      take effect immediately. These changes will not be retained across a power cycle
+      unless a save is performed. This button is shown when you are configuring individual match conditions.
+      </li>
+<li><b>Cancel</b> - Reverts the page back to the rule configuration page without applying configuration of individual match conditions.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+

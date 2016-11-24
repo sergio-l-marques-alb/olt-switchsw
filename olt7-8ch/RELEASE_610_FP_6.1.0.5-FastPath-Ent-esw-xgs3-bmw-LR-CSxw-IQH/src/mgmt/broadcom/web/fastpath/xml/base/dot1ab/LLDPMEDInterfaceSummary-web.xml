@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="LLDPMEDInterfaceSummary" title="LLDP-MED Interface Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="SwitchingLLDPXMEDInterfaceConfig_LldpXMedInterface" id="1" name="Interface"/>
+                <element obj-name="SwitchingLLDPXMEDInterfaceConfig_LinkStatus" id="2" name="Link Status"/>
+                <element control="label" obj-name="SwitchingLLDPXMEDInterfaceConfig_LldpXMedPortAdminMode" id="3" name="MED Status"/>
+                <element control="label" obj-name="SwitchingLLDPXMEDInterfaceConfig_OperationalStatus" id="4" name="Operational Status"/>
+                <element control="label" obj-name="SwitchingLLDPXMEDInterfaceConfig_NotifEnabled" id="5" name="Notification Status"/>
+				<element obj-name="SwitchingLLDPXMEDInterfaceConfig_TLVsTxEnable" id="6" name="Transmit TLVs"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

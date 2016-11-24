@@ -1,0 +1,92 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>VLAN Routing Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+ 
+
+<hr size=4 width="100%" align=center>
+
+
+<h2><a name=vrcfg></a>Help for VLAN Routing Configuration</h2>
+
+<h3>Configurable Data</h3>
+                                                      
+<ul type=disc>
+ <ul type=circle>
+  <li><b>VLAN ID</b> - Enter the ID of a VLAN you want to configure for VLAN Routing.
+      Initially, the field will display the ID of the first VLAN.  
+      After you enter a new VLAN ID and click on the Create button the non-configurable data
+      will be displayed.
+      See below for detailed instructions on how to use that data to complete the configuration of the VLAN.   
+  </li>
+ </ul>
+</ul>
+
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	Unit/Slot/Port
+<EMWEB_ELSE>
+	Slot/Port
+</EMWEB_IF></b> - The interface assigned to the VLAN for routing. 
+   </li>
+  <li><b>MAC Address</b> - The MAC Address assigned to the VLAN Routing Interface</li>
+  <li><b>IP Address</b> - The configured IP Address of the VLAN Routing Interface.
+                          This will be 0.0.0.0 when the VLAN Routing Interface is first configured and
+                          must be entered on the IP Interface Configuration page.</li>
+  <li><b>Subnet Mask</b> - The configured Subnet Mask of the VLAN Routing Interface.
+                          This will be 0.0.0.0 when the VLAN Routing Interface is first configured and
+                          must be entered on the IP Interface Configuration page.</li>
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Create</b> - Send the updated configuration to the switch.  Configuration changes 
+      take effect immediately. These changes will not be retained across a power cycle 
+      unless a save is performed. </li>
+  <li><b>Delete</b> - Remove the VLAN Routing Interface SPECIFIED in the <I>VLAN ID input field</I> 
+  from the router configuration. </li>
+ 
+ </ul>
+</ul>
+
+<h3>Instructions for creating a VLAN</h3>
+
+<ul type=disc>
+ <ol type=circle>
+  <li>Enter a new VLAN ID in the field labeled VLAN ID.
+  <li>Click on the Create button.  The page will be updated to display the interface and
+      MAC address assigned to this new VLAN.  The IP address and Subnet Mask fields will
+      be 0.0.0.0.
+      </li>
+  <li>Note the interface assigned to the VLAN.
+  <li>Use the index pane to change to the IP Interface Configuration page.  
+  <LI>Select the interface assigned to the VLAN.  The IP address and Subnet
+      Mask fields will be 0.0.0.0.</LI>
+  <LI>Enter the IP address and subnet mask for the VLAN.
+  <LI>Select the Submit button.
+  <LI>Change back to the VLAN Routing Summary page.  The new VLAN should appear in the table
+      with the correct IP address and subnet mask assigned.</LI>
+ </ol>
+</ul>
+
+
+<hr size=4 width="100%" align=center>
+
+</body>
+
+</html>
+
+

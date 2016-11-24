@@ -1,0 +1,256 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename  cp_web_custom_global.html
+*
+* @purpose   HTML iframe content
+*
+* @comments  None
+*
+* @create    1/06/2009
+*
+* @author    darsen
+*
+* @end
+*
+*********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<HEAD>
+   emweb:/USMWEB_PAGE_META_DATA_GET; <!-- Style Sheet link and Meta data     -->
+</HEAD>
+
+<BODY CLASS="tablecontentnowidth" onload="onLoad();">
+
+<script type='text/javascript' src="/scripts/PopupWindow.js"></script>
+<script type='text/javascript' src="/scripts/cp_web_custom.js"></script>
+
+<script type="text/javascript" language="JavaScript">
+
+<EMWEB_IF C='return (usmWebCPWebFormObjectEnabled(ewsContext,CP_FORM_OBJ_USER_LOGOUT))?"":NULL;'>
+var fLogoutEnabled = true;
+<EMWEB_ELSE>
+var fLogoutEnabled = false;
+</EMWEB_IF>
+
+function onLoad()
+{
+  var note = (fLogoutEnabled)?logoutEnabledNote:logoutDisabledNote;
+  var h = "230px";
+
+  checkError();
+  setDirty(GLOBAL_PAGE,false);
+  imageSelect(document.forms[0].sel_images.options[document.forms[0].sel_images.selectedIndex].text);
+  if (!fLogoutEnabled)
+  {
+    document.getElementById('logout_script_label').style.color = DISABLE_COLOR;
+    document.getElementById('logout_popup_label').style.color = DISABLE_COLOR;
+  }
+  document.getElementById('logout_script_label').title = note;
+  document.getElementById('logout_popup_label').title = note;
+
+  if (currentDPI>defaultDPI) h = "300px"; // attempt to fudge msie DPI scaling
+  parent.document.getElementById('page_frame').height = h;
+
+}
+
+function translate()
+{
+  setDirty(GLOBAL_PAGE,false);
+  document.forms[0].cp_image.value = document.forms[0].sel_images.options[document.forms[0].sel_images.selectedIndex].text;
+  document.forms[0].cp_background_image.value = document.forms[0].sel_background_image.options[document.forms[0].sel_background_image.selectedIndex].text;
+  document.forms[0].cp_branding_image.value = document.forms[0].sel_branding_image.options[document.forms[0].sel_branding_image.selectedIndex].text;
+  document.forms[0].cp_logout_script_text_hex.value = l2h(document.forms[0].cp_logout_script_text.value);
+  document.forms[0].cp_logout_popup_text_hex.value  = l2h(document.forms[0].cp_logout_popup_text.value);
+}
+
+function prepareDelete()
+{
+  image = document.forms[0].sel_images;
+  selectName = image.options[image.selectedIndex].text;
+  var prompt = window.confirm("NOTE: If you delete this image file,\n"
+                          +"all web locales currently using this image\n"
+                          +"will be reset to use the default!\n\n"
+                          +"Are you sure you want to delete\n"
+                          +"\"" + selectName + "\" ?");
+  if (prompt)
+  {
+    document.forms[0].cp_image.value = selectName;
+    document.forms[0].refresh_in_progress.value = 1;
+    document.forms[0].refresh_key.value = DELETE;
+    document.forms[0].submit();
+    return true;
+  }
+}
+
+//******************************************************************************
+//* Purpose: Instantiate the ImagePicker object and set its properties
+//* Return:  none
+//******************************************************************************
+var ip = new ImagePicker(); // DIV style
+ip.autoHide();
+
+//******************************************************************************
+//* Purpose: Save the params as global and set the pop position because MSIE
+//* has a problem with the Z position.
+//* Return:  none
+//******************************************************************************
+function popupImageActivate(vis,val,src)
+{
+  ipVisual = vis;
+  ipValue = val;
+
+  ip.clear();
+  var sel = document.getElementById(ipVisual);
+  for (var i=0; i<sel.length; i++)
+  {
+    var val = sel.options[i].value;
+    if (val != NO_SELECTION)
+    {
+	  var b = ((val == ACCOUNTING_IMAGE) ||
+               (val == BACKGROUND_IMAGE)  ||
+               (val == BRANDING_IMAGE))?true:false;
+	  if (b)
+	  {
+        ip.add("/images/" + val);
+	  }
+	  else
+	  {
+        ip.add("/filesystem/ramcp/" + val);
+	  }
+    }
+  }
+
+  ip.run();
+
+  switch (vis)
+  {
+    case "sel_branding_image":
+    {
+      ip.offsetX = -240;
+      ip.offsetY = 25;
+      break;
+    }
+  }
+
+  ip.show(src);
+}
+
+function imageSelect(image)
+{
+  var b = ((image == ACCOUNTING_IMAGE) ||
+           (image == BACKGROUND_IMAGE) ||
+           (image == BRANDING_IMAGE))?true:false;
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  document.forms[0].delete_btn.disabled = b;
+  document.forms[0].delete_btn.style.backgroundColor = (b)?DISABLE_COLOR:"";
+</EMWEB_IF>
+}
+
+//******************************************************************************
+//* Purpose: This function is overwritten and called from the ColorPicker object
+//* Return:  none
+//******************************************************************************
+function pickColor(color)
+{
+  document.getElementById(cpVisual).style.background = color;
+  document.getElementById(cpValue).value = color;
+  setDirty(GLOBAL_PAGE,true);
+}
+
+//******************************************************************************
+//* Purpose: This function is overwritten and called from the ImagePicker object
+//* Return:  none
+//******************************************************************************
+function pickImage(image)
+{
+  var imageName = image.slice(image.lastIndexOf('/')+1);
+  var selObj = document.getElementById(ipVisual);
+  
+  for (var i=0; i<selObj.length; i++)
+  {
+    if (selObj.options[i].value == imageName)
+	{
+	  selObj.selectedIndex = i;
+    }
+  }
+  setDirty(GLOBAL_PAGE,true);
+}
+
+</script>
+
+<SCRIPT LANGUAGE="JavaScript">ip.writeDiv()</SCRIPT>
+
+<FORM CLASS="tablecontent" method="post" ENCTYPE="multipart/form-data" EMWEB_NAME="cpWebCustomGlobal">
+
+<TABLE align="center"><TR><TD>
+<TABLE CLASS="tablecontent" align=CENTER>
+  <TR>
+    <TD CLASS="rowidentifierattributes" WIDTH="1%" id="image_label" NOWRAP>Available Images:</TD>
+    <TD CLASS="rowdataattributes" NOWRAP colspan="3"><EMWEB_STRING C='return usmWebCPImageFileSelect(ewsContext,CP_GET_ID_IMAGES);'>
+      <input style="width: 20px;" value="..." onClick="popupImageActivate('sel_images','','btn_img');return false;" name="btn_img" id="btn_img" title="Press for image pick list." type="button">
+      <EMWEB_IF ID=USMWEB_IF_READWRITE>
+      <INPUT CLASS="buttonattributes" type="button" name="delete_btn" value="Delete" onClick="prepareDelete();">
+      <INPUT CLASS="buttonattributes" type="file" id="filename" name="filename" size="20" maxlength="32" accept="image/gif,image/jpg">
+      <INPUT CLASS="buttonattributes" type="submit" name="download_btn" value="Download" onClick="download();">
+      </EMWEB_IF>
+    </TD>
+  </TR>
+  <TR>
+    <TD class="rowidentifierattributes" nowrap>Background Image:</TD>
+	<TD class="rowidentifierattributes" style="PADDING-LEFT: 0px;" colspan="3" nowrap>
+      <EMWEB_STRING C='return usmWebCPImageFileSelect(ewsContext,CP_GET_ID_BACKGROUND_IMAGE);'>
+      <input style="width: 20px;" value="..." onchange="setDirty(AUTH_PAGE,true);" onclick="popupImageActivate('sel_background_image','','btn_bkg_img');return false;" name="btn_bkg_img" id="btn_bkg_img" title="Press for image pick list." type="button">
+      Branding Image:
+      <EMWEB_STRING C='return usmWebCPImageFileSelect(ewsContext,CP_GET_ID_BRANDING_IMAGE);'>
+      <input style="width: 20px;" value="..." onchange="setDirty(AUTH_PAGE,true);" onclick="popupImageActivate('sel_branding_image','','btn_brn_img');return false;" name="btn_brn_img" id="btn_brn_img" title="Press for image pick list." type="button">
+    </TD>
+  </TR>
+  <TR>
+    <TD CLASS="rowidentifierattributes" id="font_label">Fonts:</TD>
+    <TD CLASS="rowdataattributes" colspan="3"><INPUT CLASS="buttonattributes" type="text" name="cp_font_list" MAXLEN="512" onChange="setDirty(GLOBAL_PAGE,true);" SIZE="85" VALUE="" title="Enter preferred fonts. Can be a comma-separated list. Font names with spaces must be 'quoted'."></TD>
+  </TR>
+  <TR>
+    <TD class="rowidentifierattributes" id="logout_script_label">Script Text:</TD><TD colspan="3" class="rowdataattributes"><input class="buttonattributes" name="cp_logout_script_text" onchange="setDirty(GLOBAL_PAGE,true);" SIZE="85" maxlength="1024" value="" type="text"></TD>
+  </TR>  
+  <TR>
+    <TD class="rowidentifierattributes" id="logout_popup_label">Popup Text:</TD><TD colspan="3" class="rowdataattributes"><input class="buttonattributes" name="cp_logout_popup_text" onchange="setDirty(GLOBAL_PAGE,true);" SIZE="85" maxlength="1024" value=""></TD>
+  </TR>  
+
+  <TR>
+    <TD colspan="4" emweb:/USMWEB_BUTTON_ALIGN;><BR>
+      <EMWEB_IF ID=USMWEB_IF_READWRITE>
+      <INPUT CLASS="buttonattributes" TYPE="button" ID="Clear" NAME="Clear" VALUE="Clear" onclick="clearForm();">
+      <INPUT CLASS="buttonattributes" TYPE="submit" ID="Submit" NAME="Submit" VALUE="Submit" onclick="translate();">
+      <EMWEB_ELSE>
+      <INPUT CLASS="buttonattributes" TYPE="submit" ID="Refresh" NAME="Refresh" VALUE="Refresh">
+      </EMWEB_IF>
+    </TD>
+  </TR>
+</TABLE>
+</TD></TR></TABLE>
+
+<INPUT TYPE="hidden" NAME="err_flag" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT VALUE="">
+<INPUT TYPE="hidden" NAME="err_msg" SIZE="128" MAXLENGTH="127">
+<INPUT TYPE="hidden" NAME="refresh_in_progress" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="refresh_key" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="cpId" VALUE="0" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="webId" VALUE="0" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="cp_image" SIZE="32" MAXLENGTH="32">
+<INPUT TYPE="hidden" NAME="cp_background_image" SIZE="32" MAXLENGTH="32">
+<INPUT TYPE="hidden" NAME="cp_branding_image" SIZE="32" MAXLENGTH="32">
+<INPUT TYPE="hidden" NAME="cp_browser_title_hex" MAXLENGTH="512">
+<INPUT TYPE="hidden" name="cp_logout_script_text_hex" MAXLENGTH="512">
+<INPUT TYPE="hidden" name="cp_logout_popup_text_hex" MAXLENGTH="512">
+
+</FORM>
+</BODY>
+</HTML>
+

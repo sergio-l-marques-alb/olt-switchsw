@@ -1,0 +1,29 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "misc.dtd" >
+
+<FastPathXML>
+    <misc version="1.0">
+        <valueMap value="(64 to 4294967295)Kbps" id="dataRateRange"/>
+        <valueMap value="(1 to 128)Kb" id="burstSizeRange"/>
+        <valueMap value="(0 to 3)" id="assignQsize"/>
+        <valueMap value="(1 to 6)" id="autoInstallRetryCountRange"/>
+        <valueMap value="(0 to 7)" id="priorRange"/>
+        <valueMap value="Assign Customer VLAN ID" id="dot1ad_action_assign"/>
+        <valueMap value="Re-Mark Customer VLAN ID" id="dot1ad_action_remark"/>
+        <valueMap value="Remove Customer VLAN ID" id="dot1ad_action_remove"/>
+        <valueMap value="None" id="dot1ad_action_none"/>
+        <valueMap value="None" id="dot1ad_action_criteria_none"/>
+        <valueMap value="Untagged" id="dot1ad_action_criteria_untagg"/>
+        <valueMap value="VLAN Tagged" id="dot1ad_action_criteria_tag"/>
+        <valueMap value="TRUE" id="dot1ad_true"/>
+        <valueMap value="FALSE" id="dot1ad_false"/>		
+        <valueMap value="(01:80:c2:00:00:00 to 01:80:c2:00:00:3f)" id="protocolTunnelMacRange"/>		
+        <valueMap value="(0x0001 to 0xffff);Enter 0 to Match All" id="protocolTunnelProtocolIdRange"/>		
+        <valueMap value="DROP" id="dot1ad_drop"/>
+        <valueMap value="TRANSMIT" id="dot1ad_transmit"/>
+        <valueMap value="ELINE" id="dot1ad_eline"/>	
+        <valueMap id="HELP_FORMAT_MD_NAME" value="(%d to %d alphanumeric characters including -, _, ' ')" args="L7_DOT1AG_MD_NAME_LEN_MIN, L7_DOT1AG_MD_NAME_LEN"/>
+        <valueMap id="HELP_FORMAT_MA_NAME" value="(%d to %d alphanumeric characters including -, _, ' ')" args="L7_DOT1AG_MA_NAME_LEN_MIN, L7_DOT1AG_MA_NAME_LEN"/>
+        <valueMap id="DOT1AG_DEF_CCM_INTERVAL" value="1sec"/>
+    </misc>
+</FastPathXML>

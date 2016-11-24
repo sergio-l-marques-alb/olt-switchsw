@@ -1,0 +1,133 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Secure Shell Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=https></a>Help for Secure Shell Configuration</h2>
+
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>Admin Mode</b>
+         - This select field is used to Enable or Disable the administrative mode of SSH.
+           The currently configured value is shown when the web page is displayed.
+           The default value is Disable.
+  </li>
+
+  <li><b>SSH Version 1</b>
+         - This select field is used to Enable or Disable Protocol Level 1 for SSH.
+           The currently configured value is shown when the web page is displayed.
+           The default value is Enable.
+  </li>
+
+  <li><b>SSH Version 2</b>
+         - This select field is used to Enable or Disable Protocol Level 2 for SSH.
+           The currently configured value is shown when the web page is displayed.
+           The default value is Enable.
+  </li>
+</ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>Maximum number of SSH Sessions Allowed</b>
+         - This select field is used to configure the maximum number of inbound SSH
+           sessions allowed on the switch. The currently configured value is shown
+           when the web page is displayed. The range of acceptable values for this
+           field is 
+           <EMWEB_STRING C='
+             return usmWebIntegerRangeHelp(0 ,L7_SSHD_DEFAULT_MAX_CONNECTIONS);
+           ' >. The default value is 5.
+  </li>
+
+  <li><b>SSH Session Timeout (minutes)</b>
+         - This text field is used to configure the inactivity timeout value for
+           incoming SSH sessions to the switch. The acceptable range for this value is
+           (1-160) minutes. The default value is 5.
+  </li>
+
+ </UL>
+</UL>
+
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>SSH Connections Currently in Use</b>
+         - Displays the number of SSH connections currently in use in the system.
+  </li>
+  <li><b>Keys Present</b>
+         - Displays which keys RSA, DSA are present. This field is blank when no keys are present. 
+  </li>
+  <li><b>Key Generation Status</b>
+         - Displays what key files  RSA, DSA, Both or None are currently being generated.
+  </li>
+
+ </UL>
+</UL>
+
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <EMWEB_IF ID=USMWEB_IF_READWRITE>
+ <li><b>Delete DSA Key</b>
+         - Use to delete the corresponding key file (DSA), if it is present.
+           </li>
+<li><b>Delete RSA Key</b>
+         - Use to delete the corresponding key file (RSA), if it is present.
+           </li>
+</EMWEB_IF>
+<li><b>Refresh</b>
+         - Refresh the current page with the latest settings and status.</li>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Download Host Keys</b>
+         - Link to the File Transfer page for the Host Key download.
+           Note that to download SSH key files SSH must be administratively disabled and
+           there can be no active SSH sessions.</li>
+         </li>
+ <li><b>Generate RSA Keys</b>
+         - Begin generating the RSA host keys.
+           Note that to generate SSH key files SSH must be administratively disabled and
+           there can be no active SSH sessions.</li>
+         </li>
+ <li><b>Generate DSA Key</b>
+         - Link to the File Transfer page for the Host Key download.
+           Note that to generate SSH key files SSH must be administratively disabled and
+           there can be no active SSH sessions.</li> 
+<li><b>Submit</b>
+         - Send the updated screen to the switch.  Changes take effect on
+           the switch but these changes will not be retained across a power
+           cycle unless a save is performed. </li>
+</EMWEB_IF>
+
+ </ul>
+</ul>
+
+
+
+<hr size=4 width="100%" align=center>
+
+
+</body>
+
+</html>
+
+

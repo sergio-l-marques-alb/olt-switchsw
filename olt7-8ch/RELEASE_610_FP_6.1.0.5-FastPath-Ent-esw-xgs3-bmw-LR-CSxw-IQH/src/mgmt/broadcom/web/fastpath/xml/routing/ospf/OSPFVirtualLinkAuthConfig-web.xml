@@ -1,0 +1,38 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+
+
+<FastPathXML>
+    <webxml version="1.0" name="OSPFVirtualLinkAuthConfig" title="OSPF Virtual Link Authentication Configuration">
+      <group id="1" heading=" ">
+            <node id="2">
+                <element control="combo" properties="filter,iterate,hidden" obj-name = "routingospfVirtualInterface_AreaId" id="1" name="area ID"/>
+                <element control="combo" properties="filter,hidden" cpval="routingospfVirtualInterface_AreaId" obj-name="routingospfVirtIfConfig_AreaId" id="2" name="Area ID"/>
+            </node>
+            <node id="3">
+                <element properties="filter,iterate,hidden" obj-name = "routingospfVirtualInterface_Neighbor" id="1" name="Nbr Rtr ID"/>
+                 <element control="combo" properties="filter,hidden" cpval="routingospfVirtualInterface_Neighbor" obj-name="routingospfVirtIfConfig_Neighbor" id="2" name="Nbr ID"/>                
+ 
+            </node>
+            <node id="4">
+                <element control="combo" obj-name="routingospfVirtualInterface_AuthType" id="1" name="Authentication Type">
+                    <action type="enum" disable="1_5_1|1_6_1" hide="1_5_1|1_6_1"/>
+                    <action type="enum" enable="1_5_1" disable="1_6_1" hide="1_6_1" show="1_5_1"/>
+                    <action type="enum" enable="1_5_1|1_6_1" show="1_6_1|1_5_1" web_name="Encrypt"/>
+                </element>
+            </node>
+            <node id="5">
+                <element obj-name="routingospfVirtualInterface_AuthKey" id="1" name="Authentication Key"/>
+            </node>
+            <node id="6">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingospfVirtIfConfig_AuthKeyId" id="1" name="Authentication Key ID"/>
+            </node>
+            <node id="7">
+    <button scope="page" type="buttonClear" target-page="OSPFVirtualLinkConfig.html" help="Submits the form on this page to the Switch" id="1" name="Cancel"/>
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="2" name="Submit"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
+

@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0" >
+<module name="ospfAreaAggregate" >
+<key-combo list="AreaID,LsdbType,Net,Mask"/>
+<object name="AreaID"  >
+<core  type="user" xtype="ipv4_uint" key="yes" access="read-write" descr="The Area the Address Aggregate is to be found within."/>
+<ui  name="Area ID" style="plainText">
+ <snmp asn-id="1.3.6.1.2.1.14.14.1.1"/> 
+</ui></object>
+<object name="LsdbType" depends="AreaID"  >
+<core  type="enum" xtype="L7_OSPF_AREA_AGGREGATE_LSDBTYPE_t" key="yes" access="read-write" descr="The type of the Address Aggregate. This field specifies the Lsdb type that this Address Aggregate applies to."/>
+<ui  name="Lsdb Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.14.1.2"/> 
+</ui></object>
+<object name="Net"  depends="AreaID,LsdbType" >
+<core  type="ipv4" key="yes" access="read-write" descr="The IP Address of the Net or Subnet indicated by the range."/>
+<ui  name="Address Range Network" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.14.1.3"/> 
+</ui></object>
+<object name="Mask"  depends="AreaID,LsdbType,Net" >
+<core  type="ipv4" key="yes" access="read-write" descr="The Subnet Mask that pertains to the Net or Subnet."/>
+<ui  name="Address Range Network Mask" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.14.1.4"/> 
+</ui></object>
+<object name="Status" depends="AreaID,LsdbType,Net,Mask" >
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="This variable displays the status of the en try. Setting it to 'invalid' has the effect of rendering it inoperative. The internal effect (row removal) is implementation dependent."/>
+<ui  name="Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.14.1.5"/> 
+</ui></object>
+<object name="Effect" depends="AreaID,LsdbType,Net,Mask" >
+<core  type="enum" xtype="L7_OSPF_AREA_AGGREGATE_STATUS_t" access="read-write" descr="Subnets subsumed by ranges either trigger the advertisement of the indicated aggregate (advertiseMatching), or result in the subnet's not being advertised at all outside the area."/>
+<ui  name="Effect" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.14.14.1.6"/> 
+</ui></object>
+</module>
+</objectxml>
+</FastPathXML>

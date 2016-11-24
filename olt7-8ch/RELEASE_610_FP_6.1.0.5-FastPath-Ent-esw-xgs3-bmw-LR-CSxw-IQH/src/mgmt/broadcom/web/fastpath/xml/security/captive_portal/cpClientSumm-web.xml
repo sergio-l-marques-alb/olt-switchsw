@@ -1,0 +1,21 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpClientSumm" title="Client Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientMacAddress" id="1" name="MAC Address"/>
+                <element obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientIpAddress" id="2" name="IP Address"/>
+                <element obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientUserName" id="3" name="User"/>
+                <element obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientProtocolMode" id="4" name="Protocol"/>
+                <element obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientVerificationMode" id="5" name="Verification"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

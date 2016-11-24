@@ -1,0 +1,41 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpStatus" title="Global Status">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="label" obj-name="captiveportalcpCaptivePortalGlobalStatusGroup_cpCaptivePortalOperStatus" id="1" name="CP Global Operational Status"/>
+            </node> 
+            <node id="2">
+                <element control="label" obj-name="captiveportalcpCaptivePortalGlobalStatusGroup_cpCaptivePortalOperDisabledReason" id="1" name="CP Global Disable Reason"/>
+            </node> 
+            <node id="3">
+                <element control="label" obj-name="captiveportalcpCaptivePortalGlobalStatusGroup_cpCaptivePortalAuthenUserCurrentCount" id="1" name="Authenticated Users"/>
+            </node> 
+            <node id="4">
+                <element control="label" obj-name="captiveportalcpCaptivePortalGlobalStatusGroup_cpCaptivePortalAuthenUserMaxCount" id="1" name="System Supported Users"/>
+            </node> 
+            <node id="5">
+                <element control="label" obj-name="captiveportalcpCaptivePortalGlobalStatusGroup_cpCaptivePortalLocalUserMaxCount" id="1" name="Supported Local Users"/>
+            </node> 
+            <node id="6">
+                <element control="label" obj-name="captiveportalcpCaptivePortalGlobalStatusGroup_cpCaptivePortalIpv4Address" id="1" name="CP IP Address"/>
+            </node> 
+            <node id="7">
+                <element control="label" obj-name="captiveportalcpCaptivePortalGlobalStatusGroup_cpCaptivePortalInstanceConfiguredCount" id="1" name="Configured Captive Portals"/>
+            </node> 
+            <node id="8">
+                <element control="label" obj-name="captiveportalcpCaptivePortalGlobalStatusGroup_cpCaptivePortalInstanceMaxCount" id="1" name="Supported Captive Portals"/>
+            </node> 
+            <node id="9">
+                <element control="label" obj-name="captiveportalcpCaptivePortalGlobalStatusGroup_cpCaptivePortalInstanceActiveCount" id="1" name="Active Captive Portals"/>
+            </node> 
+            <node id="10">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

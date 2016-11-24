@@ -1,0 +1,391 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "object.dtd" >
+
+
+<FastPathXML>
+    <objectxml version="1.0" name="security">
+        <module name="Radius">
+            <object name="RadiusAccountingServerIndex">
+		<core type="uint" key="yes" access="read-write" descr="Unique index of the configured RADIUS accounting server. The next valid value of this object for creation is specified by RadiusAccountingIndexNextValid."/>
+		<ui name="RadiusAccountingServerIndex" style="plainText">
+ 		<snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.6.1.1"/> 
+	     </ui></object>
+            <object depends="RadiusAccountingServerIndex" name="RadiusAccountingServerAddress">
+                <core descr="IP Address of the configured RADIUS accounting server. This object cannot be changed after creation." access="read-write" type="string" properties="pseudo-key"/>
+                <ui style="inputLine" name="RadiusAccountingServerAddress">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.6.1.2"/>
+                </ui>
+            </object>
+            <object depends="RadiusAccountingServerIndex" name="RadiusAccountingServerAddressType">
+                <core descr="IP Address Type of the configured RADIUS accounting server. This object cannot be changed after creation." access="read-write" type="enum" xtype="L7_IP_ADDRESS_TYPE_t"/>
+                <ui style="inputLine" name="RadiusAccountingServerAddressType">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.6.1.3"/>
+                </ui>
+            </object>
+            <object depends="RadiusAccountingServerIndex" name="RadiusAccountingPort">
+                <core descr="Port number for the RADIUS accounting server." default="FD_RADIUS_ACCT_PORT" max="L7_RADIUS_MAX_PORT" min="L7_RADIUS_MIN_PORT" access="read-write" type="uint"/>
+                <ui style="inputLine" name="RadiusAccountingPort">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.6.1.4"/>
+                </ui>
+            </object>
+            <object depends="RadiusAccountingServerIndex" name="RadiusAccountingSecret">
+                <core descr="Configured shared sercret for the RADIUS accounting server." access="read-write" type="string" validation="validate_radiusSecret"/>
+                <ui style="inputLine" name="RadiusAccountingSecret">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.6.1.5"/>
+                </ui>
+            </object>
+            <object depends="RadiusAccountingServerIndex" name="RadiusAccountingIsSecretSet">
+                <core descr="Is shared sercret configured for the RADIUS accounting server." xtype="L7_TrueFalse" access="read-only" type="enum"/>
+                <ui style="inputLine" name="RadiusAccountingIsSecretSet"/>
+            </object>
+            <object depends="RadiusAccountingServerIndex" name="RadiusAccountingStatus">
+                <core descr="Creates or destroys a RADIUS accounting server entry During creation, the next available index is specified by theRadiusAccountingIndexNextValid object.  Rows creation using a different value for RadiusAccountingServerIndex will fail.active(1)This entry is active.createAndGo(4) Creates a new entry.destroy(6)Deletes an entry." xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+                <ui style="inputLine" name="RadiusAccountingStatus">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.6.1.6"/>
+                </ui>
+            </object>
+
+<!-- ObjectAddedStart -->
+            <object depends="RadiusAccountingServerIndex" name="RadiusAccountingName">
+                <core descr="Configured identification name for the RADIUS Accounting server." access="read-write" type="user" xtype="string_t"/>
+                <ui style="inputLine" name="RadiusAccountingName">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.6.1.7"/>
+                </ui>
+            </object>
+<!-- ObjectAddedEnd -->
+            <object name="RadiusServerIndex">
+                <core descr="Unique index of the configured RADIUS server" key="yes" access="read-write" type="uint"/>
+                <ui style="plainText" name="RadiusServerIndex">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.8.1.1"/>
+                </ui>
+            </object>
+            <object depends="RadiusServerIndex" name="RadiusServerAddress">
+                <core descr="IP Address of the configured RADIUS server. This object cannot be changed after creation." access="read-write" type="string" properties="pseudo-key"/>
+                <ui style="inputLine" name="RadiusServerAddress">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.8.1.2"/>
+                </ui>
+            </object>
+            <object depends="RadiusServerIndex" name="RadiusServerAddressType">
+                <core descr="IP Address Type of the configured RADIUS server. This object cannot be changed after creation." access="read-write" type="enum" xtype="L7_IP_ADDRESS_TYPE_t"/>
+                <ui style="inputLine" name="RadiusServerAddressType">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.8.1.3"/>
+                </ui>
+            </object>
+            <object depends="RadiusServerIndex" name="RadiusServerPort">
+                <core descr="Port number for the RADIUS server." max="L7_RADIUS_MAX_PORT" min="L7_RADIUS_MIN_PORT" access="read-write" type="uint"/>
+                <ui style="inputLine" name="RadiusServerPort">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.8.1.4"/>
+                </ui>
+            </object>
+            <object depends="RadiusServerIndex" name="RadiusServerSecret">
+                <core descr="Configured shared sercret for the RADIUS server." access="read-write" type="string" validation="validate_radiusSecret"/>
+                <ui style="inputLine" name="RadiusServerSecret">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.8.1.5"/>
+                </ui>
+            </object>
+            <object depends="RadiusServerIndex" name="RadiusServerPrimaryMode">
+                <core descr="Configure the RADIUS server to be the primary server. If there is any other server that is configured to be primary, that server is set to be a seconday server and this entry is set Primary." xtype="L7_RADIUS_SERVER_ENTRY_TYPE_t" access="read-write" type="enum"/>
+                <ui style="inputLine" name="RadiusServerPrimaryMode">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.8.1.6"/>
+                </ui>
+            </object>
+            <object depends="RadiusServerIndex" name="RadiusServerCurrentMode">
+                <core descr="Indicate if the RADIUS server is the current server in user for authentication." access="read-only" type="uint"/>
+                <ui style="plainText" name="RadiusServerCurrentMode">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.8.1.7"/>
+                </ui>
+            </object>
+            <object depends="RadiusServerIndex" name="RadiusServerMsgAuth">
+                <core descr="Enable or disable the message authenticator attribute for this RADIUS server." default="FD_RADIUS_INC_MSG_AUTH_MODE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="inputLine" name="RadiusServerMsgAuth">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.8.1.8"/>
+                </ui>
+            </object>
+            <object depends="RadiusServerIndex" name="RadiusServerIsCurrentAuthServer">
+                <core descr="Check if the server is current active Authentication server." xtype="L7_TrueFalse" access="read-only" type="enum"/>
+                <ui style="plainText" name="RadiusServerIsCurrentAuthServer"/>
+            </object>
+            <object depends="RadiusServerIndex" name="RadiusServerStatus">
+                <core descr="Creates or destroys a RADIUS Authentication server entry.During creation, the next available index is specified by the RadiusServerIndexNextValid object.  Rows creation usinga different value for RadiusServerIndex will fail.active(1)  - This entry is active. createAndGo(4)  - Creates a new entry. destroy(6)- Deletes an entry." xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+                <ui style="inputLine" name="RadiusServerStatus">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.8.1.9"/>
+                </ui>
+            </object>
+<!-- ObjectAddedStart -->
+            <object depends="RadiusServerIndex" name="RadiusServerName">
+                <core descr="Configured identification name for the RADIUS Accounting server." default="L7_RADIUS_SERVER_DEFAULT_NAME_AUTH" access="read-write" type="user" xtype="string_t"/>
+                <ui style="plainText" name="RadiusServerName">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.8.1.10"/>
+                </ui>
+            </object>
+<!-- ObjectAddedEnd -->
+            <object depends="RadiusServerIndex" name="IsRadiusServerSharedSecretConfiguredSet">
+                <core descr="To check whether Radius HostName Server Shared Secret is configured." access="read-only" type="enum" xtype="TrueFalse_t"/>
+                <ui style="inputLine" name="IsRadiusServerSharedSecretConfiguredSet"/>
+            </object>
+            <object name="RadiusAccountingIndexNextValid">
+                <core descr="Indicates the next valid index into the RadiusAccountingConfigTable for creation. If no additional entries are allowed, this will be 0." access="read-only" type="uint"/>
+                <ui style="plainText" name="RadiusAccountingIndexNextValid">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.5"/>
+                </ui>
+            </object>
+            <object name="RadiusStatsClear">
+                <core descr="When set to enable(1), all Radius statistics will be reset." access="write-only" type="enum" xtype="clear_t"/>
+                <ui style="inputLine" name="RadiusStatsClear">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.4"/>
+                </ui>
+            </object>
+            <object name="RadiusServerIndexNextValid">
+                <core descr="Indicates the next valid index into the RadiusServerConfigTable for creation. If no additional entries are allowed, this will be 0." access="read-only" type="uint"/>
+                <ui style="plainText" name="RadiusServerIndexNextValid">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.7"/>
+                </ui>
+            </object>
+            <object name="RadiusMaxTransmit">
+                <core descr="Maximum number of retransmissions of a RADIUS request packet" default="FD_RADIUS_MAX_RETRANS" max="L7_RADIUS_MAX_RETRANS" min="L7_RADIUS_MIN_RETRANS" access="read-write" type="uint"/>
+                <ui style="inputLine" name="RadiusMaxTransmit">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.1"/>
+                </ui>
+            </object>
+            <object name="RadiusTimeout">
+                <core descr="Time out duration (in seconds) before packets are retransmitted" default="FD_RADIUS_TIMEOUT_DURATION" max="L7_RADIUS_MAX_TIMEOUTVAL" min="L7_RADIUS_MIN_TIMEOUTVAL" access="read-write" type="uint"/>
+                <ui style="inputLine" name="RadiusTimeout">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.2"/>
+                </ui>
+            </object>
+            <object name="RadiusAccountingMode">
+                <core descr="Identifies if RADIUS Accounting has been enabled or not" default="L7_DISABLE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="inputLine" name="RadiusAccountingMode">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.8.1.3"/>
+                </ui>
+            </object>
+            <object name="radiusAccServerIndex">
+                <core descr="A number uniquely identifying each RADIUS Accounting server with which this client communicates." key="yes" access="read-write" type="uint"/>
+                <ui style="plainText" name="radiusAccServerIndex">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.4.1.1"/>
+                </ui>
+            </object>
+            <object depends="radiusAccServerIndex" name="radiusAccServerAddress">
+                <core descr="The IP address of the RADIUS accounting server referred to in this table entry." access="read-only" type="ipv4"/>
+                <ui style="plainText" name="radiusAccServerAddress">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.4.1.2"/>
+                </ui>
+            </object>
+            <object depends="radiusAccServerIndex" name="radiusAccClientServerPortNumber">
+                <core descr="The UDP port the client is using to send requests to this server." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAccClientServerPortNumber">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.4.1.3"/>
+                </ui>
+            </object>
+            <object depends="radiusAccServerIndex" name="radiusAccClientRoundTripTime">
+                <core descr="The time interval between the most recent Accounting-Response and the Accounting-Request that matched it from this RADIUS accounting server." access="read-only" type="string"/>
+                <ui style="plainText" name="radiusAccClientRoundTripTime">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.4.1.4"/>
+                </ui>
+            </object>
+            <object depends="radiusAccServerIndex" name="radiusAccClientRequests">
+                <core descr="The number of RADIUS Accounting-Request packets sent. This does not include retransmissions." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAccClientRequests">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.4.1.5"/>
+                </ui>
+            </object>
+            <object depends="radiusAccServerIndex" name="radiusAccClientRetransmissions">
+                <core descr="The number of RADIUS Accounting-Request packets retransmitted to this RADIUS accounting server. Retransmissions include retries where the Identifier and Acct-Delay have been updated, as well as those in " access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAccClientRetransmissions">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.4.1.6"/>
+                </ui>
+            </object>
+            <object depends="radiusAccServerIndex" name="radiusAccClientResponses">
+                <core descr="The number of RADIUS packets received on the accounting port from this server." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAccClientResponses">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.4.1.7"/>
+                </ui>
+            </object>
+            <object depends="radiusAccServerIndex" name="radiusAccClientMalformedResponses">
+                <core descr="The number of malformed RADIUS Accounting-Response packets received from this server. Malformed packets include packets with an invalid length. Bad authenticators and unknown types are not included as m" access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAccClientMalformedResponses">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.4.1.8"/>
+                </ui>
+            </object>
+            <object depends="radiusAccServerIndex" name="radiusAccClientBadAuthenticators">
+                <core descr="The number of RADIUS Accounting-Response packets which contained invalid authenticators received from this server." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAccClientBadAuthenticators">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.4.1.9"/>
+                </ui>
+            </object>
+            <object depends="radiusAccServerIndex" name="radiusAccClientPendingRequests">
+                <core descr="The number of RADIUS Accounting-Request packets sent to this server that have not yet timed out or received a response. This variable is incremented when an Accounting-Request is sent and decremented due to " access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAccClientPendingRequests">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.4.1.10"/>
+                </ui>
+            </object>
+            <object depends="radiusAccServerIndex" name="radiusAccClientTimeouts">
+                <core descr="The number of accounting timeouts to this server. After a timeout the client may retry to the same server, send to a different server, or give up. A retry to the same server is counted as a retransmit as well as" access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAccClientTimeouts">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.4.1.11"/>
+                </ui>
+            </object>
+            <object depends="radiusAccServerIndex" name="radiusAccClientUnknownTypes">
+                <core descr="The number of RADIUS packets of unknown type which were received from this server on the accounting port." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAccClientUnknownTypes">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.4.1.12"/>
+                </ui>
+            </object>
+            <object depends="radiusAccServerIndex" name="radiusAccClientPacketsDropped">
+                <core descr="The number of RADIUS packets which were received from this server on the accounting port and dropped for some other reason." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAccClientPacketsDropped">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.4.1.13"/>
+                </ui>
+            </object>
+            <object name="radiusAccClientIdentifier">
+                <core descr="The NAS-Identifier of the RADIUS accounting client. This is not necessarily the same as sysName in MIB II." access="read-only" type="string"/>
+                <ui style="plainText" name="radiusAccClientIdentifier">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.2"/>
+                </ui>
+            </object>
+            <object name="radiusAccClientAddress">
+                <core descr="The NAS-IP-Address of the RADIUS authentication client referred to in this table entry." access="read-write" type="ipv4"/>
+                <ui style="plainText" name="radiusAccClientAddress">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.3"/>
+                </ui>
+            </object>
+            <object name="radiusAccClientAddressMode">
+                <core descr="Enable or Disable NAS-IP-Address of the RADIUS authentication client referred to in this table entry." access="read-write" type="enum" xtype="TrueFalse_t"/>
+                <ui style="plainText" name="radiusAccClientAddressMode">
+                </ui>
+            </object>
+            <object name="radiusAccClientInvalidServerAddresses">
+                <core descr="The number of RADIUS Accounting-Response packets received from unknown addresses." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAccClientInvalidServerAddresses">
+                    <snmp asn-id=".1.3.6.1.2.1.67.2.2.1.1.1"/>
+                </ui>
+            </object>
+            <object name="radiusAuthServerIndex">
+                <core descr="A number uniquely identifying each RADIUS Authentication server with which this client communicates." key="yes" access="read-write" type="uint"/>
+                <ui style="plainText" name="radiusAuthServerIndex">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.1"/>
+                </ui>
+            </object>
+            <object depends="radiusAuthServerIndex" name="radiusAuthServerAddress">
+                <core descr="The IP address of the RADIUS authentication server referred to in this table entry." access="read-only" type="ipv4"/>
+                <ui style="plainText" name="radiusAuthServerAddress">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.2"/>
+                </ui>
+            </object>
+            <object depends="radiusAuthServerIndex" name="radiusAuthClientServerPortNumber">
+                <core descr="The UDP port the client is using to send requests to this server." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAuthClientServerPortNumber">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.3"/>
+                </ui>
+            </object>
+            <object depends="radiusAuthServerIndex" name="radiusAuthClientRoundTripTime">
+                <core descr="The time interval (in hundredths of a second) between the most recent Access-Reply/Access-Challenge and the Access-Request that matched it from this RADIUS authentication server." access="read-only" type="string"/>
+                <ui style="plainText" name="radiusAuthClientRoundTripTime">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.4"/>
+                </ui>
+            </object>
+            <object depends="radiusAuthServerIndex" name="radiusAuthClientAccessRequests">
+                <core descr="The number of RADIUS Access-Request packets sent to this server. This does not include retransmissions." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAuthClientAccessRequests">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.5"/>
+                </ui>
+            </object>
+            <object depends="radiusAuthServerIndex" name="radiusAuthClientAccessRetransmissions">
+                <core descr="The number of RADIUS Access-Request packets retransmitted to this RADIUS authentication server." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAuthClientAccessRetransmissions">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.6"/>
+                </ui>
+            </object>
+            <object depends="radiusAuthServerIndex" name="radiusAuthClientAccessAccepts">
+                <core descr="The number of RADIUS Access-Accept packets (valid or invalid) received from this server." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAuthClientAccessAccepts">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.7"/>
+                </ui>
+            </object>
+            <object depends="radiusAuthServerIndex" name="radiusAuthClientAccessRejects">
+                <core descr="The number of RADIUS Access-Reject packets (valid or invalid) received from this server." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAuthClientAccessRejects">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.8"/>
+                </ui>
+            </object>
+            <object depends="radiusAuthServerIndex" name="radiusAuthClientAccessChallenges">
+                <core descr="The number of RADIUS Access-Challenge packets (valid or invalid) received from this server." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAuthClientAccessChallenges">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.9"/>
+                </ui>
+            </object>
+            <object depends="radiusAuthServerIndex" name="radiusAuthClientMalformedAccessResponses">
+                <core descr="The number of malformed RADIUS Access-Response packets received from this server. Malformed packets include packets with an invalid length. Bad authenticators or Signature attributes or unknown types are" access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAuthClientMalformedAccessResponses">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.10"/>
+                </ui>
+            </object>
+            <object depends="radiusAuthServerIndex" name="radiusAuthClientBadAuthenticators">
+                <core descr="The number of RADIUS Access-Response packets containing invalid authenticators or Signature attributes received from this server." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAuthClientBadAuthenticators">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.11"/>
+                </ui>
+            </object>
+            <object depends="radiusAuthServerIndex" name="radiusAuthClientPendingRequests">
+                <core descr="The number of RADIUS Access-Request packets destined for this server that have not yet timed out or received a response. This variable is incremented when an Access-Request is sent and decremented due to " access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAuthClientPendingRequests">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.12"/>
+                </ui>
+            </object>
+            <object depends="radiusAuthServerIndex" name="radiusAuthClientTimeouts">
+                <core descr="The number of authentication timeouts to this server. After a timeout the client may retry to the same server, send to a different server, or give up. A retry to the same server is counted as a retransmi" access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAuthClientTimeouts">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.13"/>
+                </ui>
+            </object>
+            <object depends="radiusAuthServerIndex" name="radiusAuthClientUnknownTypes">
+                <core descr="The number of RADIUS packets of unknown type which were received from this server on the authentication port." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAuthClientUnknownTypes">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.14"/>
+                </ui>
+            </object>
+            <object depends="radiusAuthServerIndex" name="radiusAuthClientPacketsDropped">
+                <core descr="The number of RADIUS packets of which were received from this server on the authentication port and dropped for some other reason." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAuthClientPacketsDropped">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.3.1.15"/>
+                </ui>
+            </object>
+            <object name="radiusAuthClientIdentifier">
+                <core descr="The NAS-Identifier of the RADIUS authentication client. This is not necessarily the same as sysName in MIB II." access="read-only" type="string"/>
+                <ui style="plainText" name="radiusAuthClientIdentifier">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.2"/>
+                </ui>
+            </object>
+            <object name="radiusAuthClientInvalidServerAddresses">
+                <core descr="The number of RADIUS Access-Response packets received from unknown addresses." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusAuthClientInvalidServerAddresses">
+                    <snmp asn-id=".1.3.6.1.2.1.67.1.2.1.1.1"/>
+                </ui>
+            </object>
+            <object name="radiusServerConfiguredServersCount">
+                <core descr="The number of configured RADIUS servers." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusServerConfiguredServersCount"/>
+            </object>
+            <object name="radiusServerCurrentActiveAuthServer">
+                <core descr="The current active auth server." access="read-only" type="string"/>
+                <ui style="plainText" name="radiusServerCurrentActiveAuthServer"/>
+            </object>
+            <object name="radiusServerConfiguredAuthServersCount">
+                <core descr="The number of configured Auth RADIUS servers." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusServerConfiguredAuthServersCount"/>
+            </object>
+            <object name="radiusServerConfiguredAcctServersCount">
+                <core descr="The number of configured Acct RADIUS servers." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusServerConfiguredAcctServersCount"/>
+            </object>
+            <object name="radiusServerAuthServerGroupsCount">
+                <core descr="The number of configured RADIUS server Auth groups." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusServerAuthServerGroupsCount"/>
+            </object>
+           <object name="radiusServerAcctServerGroupsCount">
+                <core descr="The number of configured RADIUS server Acct groups." access="read-only" type="uint"/>
+                <ui style="plainText" name="radiusServerAcctServerGroupsCount"/>
+            </object>
+        </module>
+    </objectxml>
+</FastPathXML>

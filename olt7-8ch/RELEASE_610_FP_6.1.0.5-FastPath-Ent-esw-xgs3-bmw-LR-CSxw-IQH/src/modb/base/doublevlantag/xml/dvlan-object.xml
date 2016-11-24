@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="base" version="1.0">
+
+<module name="DVLANTunneling">
+<key-combo list="Interface,EtherType"/>
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="ToDO: Add Help"/>
+<ui name="Unit/Slot/Port" style="plainText">
+</ui></object>
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="ToDO: Add Help"/>
+<ui name="Slot/Port" style="plainText">
+</ui></object>
+<object name="Mode" depends="Interface">
+<core type="enum" xtype="enable_t" access="read-write" descr="ToDO: Add Help"/>
+<ui name="Mode" style="inputLine">
+</ui></object>
+<object name="CustID" depends="Interface">
+<core type="uint" access="read-write" min="L7_DVLANTAG_MIN_CUSTID" max="L7_DVLANTAG_MAX_CUSTID" default="L7_DVLANTAG_DEFAULT_CUSTID" descr="ToDO: Add Help"/>
+<ui name="CustID" style="inputLine">
+</ui></object>
+<object name="EtherType" depends="Interface">
+<core type="string" key="yes" access="read-write" descr="Interface Ethertype"/>
+<ui name="EtherType" style="inputLine">
+</ui></object>
+<object name="PortDVlanTagRowStatus" depends="Interface,EtherType">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="To Set/Delete the ether type."/>
+<ui name="Ether Type Status" style="inputLine">
+</ui></object>
+
+
+<!-- This is Another way of representing object EtherType. This is made as enum. The above object can be repalced with this
+     down the line
+-->
+<object name="EtherTypeEnum" depends="Interface">
+<core type="enum" xtype="dvlanEthertype_t" access="read-write" descr="ToDO: Add Help"/>
+<ui name="EtherType" style="inputLine">
+</ui></object>
+<object name="GlobalMode" >
+<core type="enum" xtype="enable_t" access="write-only" descr="ToDO: Add Help"/>
+<ui name="GlobalMode" style="inputLine">
+</ui></object>
+<object name="GlobalCustID" >
+<core type="uint" access="write-only" min="L7_DVLANTAG_MIN_CUSTID" max="L7_DVLANTAG_MAX_CUSTID" default="L7_DVLANTAG_DEFAULT_CUSTID" descr="ToDO: Add Help"/>
+<ui name="GlobalCustID" style="inputLine">
+</ui></object>
+<object name="GlobalEtherType" >
+<core type="string" key="yes" access="read-write" descr="Global Ethertype"/>
+<ui name="GlobalEtherType" style="inputLine">
+</ui></object>
+<object name="GlobalDefaultTpid" >
+<core type="string" access="read-write" descr="Global Default TPID"/>
+<ui name="GlobalDefaultTpid" style="inputLine">
+</ui></object>
+<object name="GlobalDVlanTagRowStatus" depends="GlobalEtherType">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="To Set/Delete the ether type globally."/>
+<ui name="Global DVlan Tag Status" style="inputLine">
+</ui></object>
+<object name="AllIntfEtherType" >
+<core type="uint" access="write-only" descr="sets all the interfaces ethertype"/>
+<ui name="Ether Type" style="inputLine">
+</ui></object>
+
+</module>
+</objectxml>
+</FastPathXML>

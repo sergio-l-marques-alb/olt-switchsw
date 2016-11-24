@@ -1,0 +1,134 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="CoSIntfDropPrecConfig" title="CoS Interface Queue Drop Precedence Configuration" >
+        <group level="ReadOnlyUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueIntfIndex" id="1" />
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueIndex" id="1" name="Queue ID"/>
+            </node>
+            <node id="3">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueDropPrecIndex" id="1" name="Drop Precedence Level"/>
+            </node>
+            <node id="4">
+                <element properties="read-only" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMgmtTailDropThreshold" id="1" name="Tail Drop Threshold" run_if="QOS_COS_QUEUE_TDROP_THRESH_FEATURE"/>
+            </node>
+            <node id="5">
+                <element properties="read-only" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredMinThreshold" id="1" name="WRED Minimum Threshold" />
+            </node>
+            <node id="6">
+                <element properties="read-only" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredMaxThreshold" id="1" name="WRED Maximum Threshold" run_if="QOS_COS_QUEUE_WRED_MAXTHRESH_FEATURE"/>
+            </node>
+            <node id="7">
+                <element properties="read-only" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredDropProbScale" id="1" name="WRED Drop Probability Scale" />
+            </node>
+        </group>
+        <group level="ReadWriteUser" id="2" heading="  " run_if="QOS_COS_QUEUE_WRED_PER_INTF_FEATURE">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueIntfIndex" id="1" >
+                    <action type="extn" value="Global" position="0" hide="2_4_1|2_5_1|2_6_1|2_7_1|2_8_1|2_8_2" disable="2_4_1|2_5_1|2_6_1|2_7_1|2_8_1|2_8_2" show="2_9_1|2_10_1|2_11_1|2_12_1|2_13_1|2_13_2" enable="2_9_1|2_10_1|2_11_1|2_12_1|2_13_1|2_13_2"/>
+                    <action type="default" hide="2_9_1|2_10_1|2_11_1|2_12_1|2_13_1|2_13_2" disable="2_9_1|2_10_1|2_11_1|2_12_1|2_13_1|2_13_2" show="2_4_1|2_5_1|2_6_1|2_7_1|2_8_1|2_8_2" enable="2_4_1|2_5_1|2_6_1|2_7_1|2_8_1|2_8_2"/>
+                </element>
+                <element obj-name="xLibObjects_dummy" control="textbox" id="2" properties="hidden" name="HoldIntfIndexGlobal">
+                    <action type="value" value="Global" setval_ids="2_1_1" setval_args="valmapGlobal" />
+                </element>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueIndex" id="1" name="Queue ID">
+                    <action type="mandate" invoke="onChange" copy_from="2_1_1" copy_to="2_1_2"/>
+                </element>
+            </node>
+            <node id="3">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueDropPrecIndex" id="1" name="Drop Precedence Level">
+                    <action type="mandate" invoke="onChange" copy_from="2_1_1" copy_to="2_1_2"/>
+                </element>
+            </node>
+            <node id="4">
+                <element control="textbox" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMgmtTailDropThreshold" id="1" maxLength="10" name="Tail Drop Threshold" arghelp="HELP_FORMAT_FP" run_if="QOS_COS_QUEUE_TDROP_THRESH_FEATURE"/>
+            </node>
+            <node id="5">
+                <element control="textbox" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredMinThreshold" id="1" maxLength="10" name="WRED Minimum Threshold" arghelp="HELP_FORMAT_FP"/>
+            </node>
+            <node id="6">
+                <element control="textbox" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredMaxThreshold" id="1" maxLength="10" name="WRED Maximum Threshold" arghelp="HELP_FORMAT_FP" run_if="QOS_COS_QUEUE_WRED_MAXTHRESH_FEATURE"/>
+            </node>
+            <node id="7">
+                <element control="textbox" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMgmtWredDropProbScale" id="1" maxLength="10" name="WRED Drop Probability Scale" arghelp="HELP_FORMAT_FP"/>
+            </node>
+
+            <node id="8">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                        <action type="button" disable="2_13_1|2_13_2|2_8_2" copy_from="2_1_1" copy_to="2_1_2"/>
+                </button>
+                <button scope="page" type="buttonSubmit" value="1" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueIntfDropPrecRestoreDefaults" help="Submits the form on this page to the Switch" id="2" name="Restore Defaults for All Drop Precedence Levels">
+                    <action type="button" disable="2_4|2_5|2_6|2_7|2_8_1|2_13_1|2_13_2" />
+                </button>
+            </node>
+
+            <node id="9">
+                <element control="textbox" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtTailDropThreshold" id="1" maxLength="10" name="Tail Drop Threshold" arghelp="HELP_FORMAT_FP" run_if="QOS_COS_QUEUE_TDROP_THRESH_FEATURE"/>
+            </node>
+            <node id="10">
+                <element control="textbox" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredMinThreshold" id="1" maxLength="10" name="WRED Minimum Threshold" arghelp="HELP_FORMAT_FP"/>
+            </node>
+            <node id="11">
+                <element control="textbox" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredMaxThreshold" id="1" maxLength="10" name="WRED Maximum Threshold" arghelp="HELP_FORMAT_FP" run_if="QOS_COS_QUEUE_WRED_MAXTHRESH_FEATURE"/>
+            </node>
+            <node id="12">
+                <element control="textbox" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredDropProbScale" id="1" name="WRED Drop Probability Scale" arghelp="HELP_FORMAT_FP" />
+            </node>
+             <node id="13">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                        <action type="button" disable="2_13_2|2_8_1|2_8_2" copy_from="2_1_1" copy_to="2_1_2"/>
+                </button>
+                <button scope="page" type="buttonSubmit" value="1" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueDropPrecRestoreDefaults" help="Submits the form on this page to the Switch" id="2" name="Restore Defaults for All Drop Precedence Levels">
+                    <action type="button" disable="2_9|2_10|2_11|2_12|2_8_1|2_8_2|2_13_1"/>
+                </button>
+            </node>
+            <!-- added for actions -->
+            <node id="14">
+                <element obj-name="xLibObjects_dummy" control="textbox" properties="hidden" id="1">
+                    <action type="mandate" setval_ids="2_1_2" setval_args="None"/>
+                </element>
+            </node>
+        </group>
+        <group level="ReadWriteUser" id="3" heading="  " run_if="NO_QOS_COS_QUEUE_WRED_PER_INTF_FEATURE">
+            <node id="1">
+                 <element control="combo" obj-name="xLibObjects_dummy" id="1"  value="Global" uienum="Global_t" name="slot/port" run_if="nostacking"/>
+                 <element control="combo" obj-name="xLibObjects_dummy" id="2"  value="Global" uienum="Global_t" name="unit/slot/port" run_if="stacking"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueIndex" id="1" name="Queue ID"/>
+            </node>
+            <node id="3">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueDropPrecIndex" id="1" name="Drop Precedence Level"/>
+            </node>
+
+            <node id="9">
+                <element control="textbox" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtTailDropThreshold" id="1" maxLength="10" name="Tail Drop Threshold" arghelp="HELP_FORMAT_FP" run_if="QOS_COS_QUEUE_TDROP_THRESH_FEATURE"/>
+            </node>
+            <node id="10">
+                <element control="textbox" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredMinThreshold" id="1" maxLength="10" name="WRED Minimum Threshold" arghelp="HELP_FORMAT_FP"/>
+            </node>
+            <node id="11">
+                <element control="textbox" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredMaxThreshold" id="1" maxLength="10" name="WRED Maximum Threshold" arghelp="HELP_FORMAT_FP" run_if="QOS_COS_QUEUE_WRED_MAXTHRESH_FEATURE"/>
+            </node>
+            <node id="12">
+                <element control="textbox" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtWredDropProbScale" id="1" maxLength="10" name="WRED Drop Probability Scale" arghelp="HELP_FORMAT_FP"/>
+            </node>
+             <node id="13">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                        <action type="button" disable="2_13_2" />
+                </button>
+                <button scope="page" type="buttonSubmit" value="1" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueDropPrecRestoreDefaults" help="Submits the form on this page to the Switch" id="2" name="Restore Defaults for All Drop Precedence Levels">
+                    <action type="button" disable="2_9|2_10|2_11|2_12|2_13_1"/>
+                </button>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

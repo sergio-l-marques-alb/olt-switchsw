@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="ArpCacheInfo" java-script="ArpCache" title="ARP Cache ">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate,hidden" obj-name="baseARPInfo_ARPIndex" id="1"/>
+                <element properties="" obj-name="baseARPInfo_MacAddress" id="3" name="MAC Address"/>                
+                <element properties="filter,iterate" obj-name="baseARPInfo_IpAddress" id="2" name="IP Address"/>
+                <element properties="" obj-name="baseARPInfo_IntIfNum" id="4" />
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,332 @@
+ /*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2000-2007
+*
+**********************************************************************
+*
+* @filename  hpc_card_db.h
+*
+* @purpose   Initialize storage for use in hpc card database.
+*
+* @component hpc
+*
+* @create    04/29/2008
+*
+* @author    bradyr 
+* @end
+*
+*********************************************************************/
+
+#ifndef HPC_CARD_DB_H
+#define HPC_CARD_DB_H
+/*******************************************************************************
+*
+* @Data    hpc_card_descriptor_db
+*
+* @purpose An array of descriptors with a descriptor entry for each card type
+*          supported.
+*
+* @end
+*
+*******************************************************************************/
+/* main card descriptor table */
+/* HPC_CARD_DESCRIPTOR_t hpc_card_descriptor_db[] = 
+{ */
+/* per card type entries */
+   /* In order to make preconfiguration easier it is best to 
+   ** list all supported physical cards in sequence starting 
+   ** as the first card in the list. This arrangement produces
+   ** consecutive card indexes that start with 1.
+   */
+{
+  {
+    /* Base CPU Card */
+    CARD_CPU_BMW_REV_1_ID,      /* cardtypeID */     
+    "LVL7 Base CPU Card",        /* cardModel  */
+    "LVL7 Base CPU Card",        /* cardDescription  */
+    SYSAPI_CARD_TYPE_CPU,        /* type       */
+    0,                           /* numOfNimPorts */
+
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    L7_NULLPTR,                  /* portInfo, refers to table declared above for each card type */
+    &dapiBroadBaseCardEntry       /* dapiCardInfo */
+  }
+}
+,
+{
+  {
+    /* GTO CPU Card */
+    CARD_CPU_GTO_REV_1_ID,      /* cardtypeID */     
+    "LVL7 Base CPU Card",        /* cardModel  */
+    "LVL7 Base CPU Card",        /* cardDescription  */
+    SYSAPI_CARD_TYPE_CPU,        /* type       */
+    0,                           /* numOfNimPorts */
+
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    L7_NULLPTR,                  /* portInfo, refers to table declared above for each card type */
+    &dapiBroadBaseCardEntry       /* dapiCardInfo */
+  }
+}
+,
+{
+  {
+    /* Jag CPU Card */
+    CARD_CPU_LM_REV_1_ID,      /* cardtypeID */     
+    "LVL7 Base CPU Card",        /* cardModel  */
+    "LVL7 Base CPU Card",        /* cardDescription  */
+    SYSAPI_CARD_TYPE_CPU,        /* type       */
+    0,                           /* numOfNimPorts */
+
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    L7_NULLPTR,                  /* portInfo, refers to table declared above for each card type */
+    &dapiBroadBaseCardEntry       /* dapiCardInfo */
+  }
+}
+,
+{
+  {
+    /* NSX CPU Card */
+    CARD_CPU_CFM_REV_1_ID,      /* cardtypeID */     
+    "LVL7 Base CPU Card",        /* cardModel  */
+    "LVL7 Base CPU Card",        /* cardDescription  */
+    SYSAPI_CARD_TYPE_CPU,        /* type       */
+    0,                           /* numOfNimPorts */
+
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    L7_NULLPTR,                  /* portInfo, refers to table declared above for each card type */
+    &dapiBroadBaseCardEntry       /* dapiCardInfo */
+  }
+}
+,
+{
+  {
+    /* Base CPU Card */
+    CARD_CPU_LINE_REV_1_ID,      /* cardtypeID */                   
+    "LVL7 Base CPU Card",        /* cardModel  */
+    "LVL7 Base CPU Card",        /* cardDescription  */
+    SYSAPI_CARD_TYPE_CPU,        /* type       */
+    0,                           /* numOfNimPorts */
+
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    L7_NULLPTR,                  /* portInfo, refers to table declared above for each card type */
+    &dapiBroadBaseCardEntry       /* dapiCardInfo */
+  }
+}
+,
+{
+  {
+    /* Base CPU Card */
+    CARD_CPU_GTX_REV_1_ID,       /* cardtypeID */                   
+    "LVL7 Base CPU Card",        /* cardModel  */
+    "LVL7 Base CPU Card",        /* cardDescription  */
+    SYSAPI_CARD_TYPE_CPU,        /* type       */
+    0,                           /* numOfNimPorts */
+
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    L7_NULLPTR,                  /* portInfo, refers to table declared above for each card type */
+    &dapiBroadBaseCardEntry       /* dapiCardInfo */
+  }
+}
+,
+{
+  {
+    CARD_BROAD_24_GIG_4_TENGIG_56304_REV_1_ID,   /* cardtypeID */     
+    "BCM56304-4TENGE",              /* cardModel  */
+    "Broadcom BCM56304 - 24 Port 4Ten-Gigabit Ethernet Line Card",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    28,                               /* numOfNiPorts */
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_24_GIG_4_TENGIG_REV_1,  
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_4_TENGIG_REV_1 /* dapiCardInfo */
+  }
+}
+,
+{
+  {
+    CARD_BROAD_24_GIG_4_TENGIG_56314_REV_1_ID,   /* cardtypeID */     
+    "BCM56314-4TENGE",              /* cardModel  */
+    "Broadcom BCM56314 - 24 Port 4Ten-Gigabit Ethernet Line Card",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    28,                               /* numOfNiPorts */
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_24_GIG_4_TENGIG_REV_1,  
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_4_TENGIG_REV_1 /* dapiCardInfo */
+  }
+}
+,
+{
+  {
+    CARD_BROAD_24_GIG_4_TENGIG_56504_REV_1_ID,   /* cardtypeID */     
+    "BCM56504-4TENGE",              /* cardModel  */
+    "Broadcom BCM56504 - 24 Port 4Ten-Gigabit Ethernet Line Card",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    28,                               /* numOfNiPorts */
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_24_GIG_4_TENGIG_REV_1,  
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_4_TENGIG_REV_1 /* dapiCardInfo */
+  }
+}
+,
+{
+  {
+    CARD_BROAD_48_GIG_4_TENGIG_56504_REV_1_ID,   /* cardtypeID */     
+    "BCM56504-4TENGE x2",              /* cardModel  */
+    "Broadcom BCM56504 - 48 Port 4Ten-Gigabit Ethernet Line Card",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    52,                               /* numOfNiPorts */
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_48_GIG_4_TENGIG_REV_1,  
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_48_GIG_4_TENGIG_REV_1 /* dapiCardInfo */
+  }
+}
+,
+{
+  {
+    CARD_BROAD_24_GIG_4_TENGIG_56514_REV_1_ID,   /* cardtypeID */     
+    "BCM56514-24GIG-4TENGE",              /* cardModel  */
+    "Broadcom BCM56514 - 24 Port 4Ten-Gigabit Ethernet Line Card",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    28,                               /* numOfNiPorts */
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_24_GIG_4_TENGIG_REV_1,  
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_24_GIG_4_TENGIG_56514_REV_1 /* dapiCardInfo */
+  }
+}
+,
+{
+  {
+    CARD_BROAD_48_GIG_4_TENGIG_56514_REV_1_ID,   /* cardtypeID */
+    "BCM56514-48GIG-4TENGE",              /* cardModel  */
+    "Broadcom BCM56514 - 48 Port 4Ten-Gigabit Ethernet Line Card",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    52,                               /* numOfNiPorts */
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_48_GIG_4_TENGIG_REV_1,
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_48_GIG_4_TENGIG_REV_1 /* dapiCardInfo */
+  }
+}
+,
+{
+  {
+    CARD_BROAD_20_TENGIG_56800_REV_1_ID,   /* cardtypeID */
+    "BCM56800-20TENGE",              /* cardModel  */
+    "Broadcom BCM56800 - 20 Port Ten-Gigabit Ethernet Line Card",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    20,                               /* numOfNiPorts */
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_20_TENGIG_REV_1,
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_20_TENGIG_REV_1 /* dapiCardInfo */
+  }
+}
+,
+{
+  {
+    CARD_BROAD_16_GIG_4_TENGIG_56580_REV_1_ID,   /* cardtypeID */
+    "BCM56580-16GE+4TENGE",              /* cardModel  */
+    "Broadcom BCM56580 - 16 gigabit + 4 Ten-Gigabit Ethernet Line Card",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    20,                               /* numOfNiPorts */
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_16_GIG_4_TENGIG_REV_1,
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_16_GIG_4_TENGIG_REV_1 /* dapiCardInfo */
+  }
+}
+,
+{
+  /* Logical CPU Card */
+  {
+    L7_LOGICAL_CARD_CPU_24_GIG_4_TENGIG_REV_1_ID,       /* cardtypeID */     
+    "LVL7 Logical CPU Card",        /* cardModel  */
+    "LVL7 Logical CPU Card",        /* cardDescription  */
+    SYSAPI_CARD_TYPE_LOGICAL_CPU, /* type       */
+    (sizeof(hpcPortInfoTable_CARD_CPU)/sizeof(SYSAPI_HPC_PORT_DESCRIPTOR_t)),                               
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_CPU,    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadCpuCardEntry_CARD_BROAD_24_GIG_4_TENGIG_REV_1  /* dapiCardInfo */
+  }
+}
+,
+{
+  /* Logical CPU Card */
+  {
+    L7_LOGICAL_CARD_CPU_48_GIG_4_TENGIG_REV_1_ID,       /* cardtypeID */
+    "LVL7 Logical CPU Card",        /* cardModel  */
+    "LVL7 Logical CPU Card",        /* cardDescription  */
+    SYSAPI_CARD_TYPE_LOGICAL_CPU, /* type       */
+    (sizeof(hpcPortInfoTable_CARD_CPU)/sizeof(SYSAPI_HPC_PORT_DESCRIPTOR_t)),          
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_CPU,    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadCpuCardEntry_CARD_BROAD_48_GIG_4_TENGIG_REV_1  /* dapiCardInfo */
+  }
+}
+,
+{
+  /* Logical CPU Card */
+  {
+    L7_LOGICAL_CARD_CPU_20_TENGIG_REV_1_ID,       /* cardtypeID */
+    "LVL7 Logical CPU Card",        /* cardModel  */
+    "LVL7 Logical CPU Card",        /* cardDescription  */
+    SYSAPI_CARD_TYPE_LOGICAL_CPU, /* type       */
+    (sizeof(hpcPortInfoTable_CARD_CPU)/sizeof(SYSAPI_HPC_PORT_DESCRIPTOR_t)),                              
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_CPU,    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadCpuCardEntry_CARD_BROAD_20_TENGIG_REV_1  /* dapiCardInfo */
+  }
+}
+,
+{
+  /* Logical CPU Card */
+  {
+    L7_LOGICAL_CARD_CPU_16_GIG_4_TENGIG_REV_1_ID,       /* cardtypeID */
+    "LVL7 Logical CPU Card",        /* cardModel  */
+    "LVL7 Logical CPU Card",        /* cardDescription  */
+    SYSAPI_CARD_TYPE_LOGICAL_CPU, /* type       */
+    (sizeof(hpcPortInfoTable_CARD_CPU)/sizeof(SYSAPI_HPC_PORT_DESCRIPTOR_t)),
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_CPU,    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadCpuCardEntry_CARD_BROAD_16_GIG_4_TENGIG_REV_1  /* dapiCardInfo */
+  }
+}
+,
+
+/* }; */
+
+#endif /* HPC_CARD_DB_H */

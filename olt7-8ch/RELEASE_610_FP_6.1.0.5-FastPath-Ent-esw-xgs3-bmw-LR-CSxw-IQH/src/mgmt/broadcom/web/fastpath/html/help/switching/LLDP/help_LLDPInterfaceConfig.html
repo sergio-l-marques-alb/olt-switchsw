@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<!--#INCLUDE INCLPATH = "src/mgmt/emweb/web/web.h" -->
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>LLDP - 802.1AB Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h2><a name=lldpintfcfg></a>Help for LLDP Interface Configuration</h2>
+
+<h3>Selection Criteria</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface</b>   
+  - Specifies the list of ports on which LLDP - 802.1AB can be configured.</li>
+ </ul>
+</ul>
+
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Transmit</b>   
+  - Specifies the LLDP - 802.1AB transmit mode for the selected interface.</li>
+  <li><b>Receive</b>   
+  - Specifies the LLDP - 802.1AB receive mode for the selected interface.</li>
+  <li><b>Notify</b>   
+  - Specifies the LLDP - 802.1AB notification mode for the selected interface.</li>
+  <li><b>Transmit Management Information</b>   
+  - Specifies whether management address is transmitted in LLDP frames for the 
+    selected interface.</li>
+  <li><b>Optional TLV(s)</b></li>   
+  <UL TYPE=square>
+  <li><b>System Name</b>   
+  - To include system name TLV in LLDP frames.</li>
+  <li><b>System Description</b>   
+  - To include system description TLV in LLDP frames.</li>
+  <li><b>System Capabilities</b>   
+  - To include system capability TLV in LLDP frames.</li>
+  <li><b>Port Description</b>   
+  - To include port description TLV in LLDP frames.</li>
+  </UL>
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send
+      the updated screen to the switch and cause the changes to take effect on
+      the switch but these changes will not be retained across a power cycle
+      unless a save is performed. </li>
+ </ul>
+</ul>
+</EMWEB_IF>
+</body>
+
+</html>
+
+  
+
+

@@ -1,0 +1,133 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename  cp_session_statistics.html
+*
+* @purpose   HTML content
+*
+* @comments  None
+*
+* @create    7/9/2007
+*
+* @author    rjindal
+*
+* @end
+*
+*********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<HEAD>
+   emweb:/USMWEB_PAGE_META_DATA_GET; <!-- Style Sheet link and Meta data     -->
+   <TITLE>emweb:/USMWEB_SECURITY_OEM_STRING_GET?1963;</TITLE>
+
+<script type='text/javascript' language='JavaScript' src='/scripts/browser.js'></script> 
+<script src="/scripts/utils.js"></script>
+<script type='text/javascript' language='JavaScript'>
+function DisplayErrorMsg()
+//******************************************************************************
+//* Purpose: Display an input error message.
+//* Return:  none
+//******************************************************************************
+{
+    alert(document.forms[0].err_msg.value);
+}
+
+function check_error()
+{
+   if (document.forms[0].err_flag.value == 1)
+   {
+      DisplayErrorMsg();
+   }
+}
+
+function clientMac_refresh()
+{
+  if (document.forms[0].refresh_in_progress.value == 0)
+  {
+    document.forms[0].refresh_in_progress.value = 1;
+    document.forms[0].refresh_key.value = 1;
+    document.forms[0].submit();
+  }
+}
+</script>
+</HEAD>
+
+<BODY class="bodyframeattributes" onload="check_error()">
+<FORM method="post" EMWEB_NAME="cpSessionStats">
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Tabbed Navigation                                               -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_TABS_CP_CLIENT_STATUS?2;
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Web page header                                                 -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_1ST_GET?1963;   <!-- Includes page title          -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_2ND_GET?2763;   <!-- Includes help page link      -->
+
+<TABLE CLASS="tablecontent" emweb:/USMWEB_TABLE_CONTENT_ALIGN;>
+
+  <EMWEB_IF ID=USMWEB_IF_CP_CLIENT_EXISTS> <!-- If client entry exists -->
+  <TR>
+  <TD align="center" colspan=4><select class="selectfield" name="cp_clientMac" size="1" maxlength="17" EMWEB_ITERATE EMWEB_TYPE="IEEE_MAC" onchange="clientMac_refresh()">
+      <option class="selectfield" value="one">1</option>
+      </select>
+  </TD>
+  </TR>
+
+  <TR><TD colspan=4>&nbsp;</TD></TR>
+
+  <TR>
+  <TD width="30%" class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27134;</TD> <!-- Bytes Received -->
+  <TD width="20%" class="rowdataattributes"><input class="rowdataattributes" type="text" name="bytes_rx" READONLY TABINDEX="-1"></TD>
+
+  <TD width="30%" class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27135;</TD> <!-- Packets Received -->
+  <TD width="20%" class="rowdataattributes"><input class="rowdataattributes" type="text" name="pkts_rx" READONLY TABINDEX="-1"></TD>
+  </TR>
+
+  <TR>
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27136;</TD> <!-- Bytes Transmitted -->
+  <TD class="rowdataattributes"><input class="rowdataattributes" type="text" name="bytes_tx" READONLY TABINDEX="-1"></TD>
+
+  <TD class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27137;</TD> <!-- Packets Transmitted -->
+  <TD class="rowdataattributes"><input class="rowdataattributes" type="text" name="pkts_tx" READONLY TABINDEX="-1"></TD>
+  </TR>
+
+  <EMWEB_ELSE> <!-- No clients exist -->
+  <TR>
+  <TD colspan=4 class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27138;</TD>
+  </TR>
+
+  </EMWEB_IF> <!-- EndIf client entry exists -->
+
+  <TR>
+  <TD colspan=4 emweb:/USMWEB_BUTTON_ALIGN;><BR>
+    <input class="buttonattributes" type="submit" name="Refresh">
+  </TD>
+  </TR>
+
+</TABLE>
+
+<INPUT TYPE="hidden" NAME="err_flag" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT value="">
+<INPUT TYPE="hidden" NAME="err_msg" SIZE="128" MAXLENGTH="127">
+<INPUT TYPE="hidden" NAME="refresh_in_progress" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="refresh_key" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="mac" value="00:00:00:00:00:00" EMWEB_TYPE=IEEE_MAC>
+
+<!-- ----------------------------------- -->
+<!--         Web page footer             -->
+<!-- ----------------------------------- -->
+ emweb:/USMWEB_PAGE_FOOTER_GET;
+
+</FORM>
+</BODY>
+</HTML>
+

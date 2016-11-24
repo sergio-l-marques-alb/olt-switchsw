@@ -1,0 +1,183 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>CoS Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=cos_intf_queue_dropprec_cfg></a>Help for Class of Service Interface Queue Drop Precedence Configuration</h2>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> - Specifies all CoS configurable interfaces. The option "Global" represents the most recent global configuration settings.
+      <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_DROP_CFG_PER_INTF_FEATURE">
+            These may be overridden on a per-interface basis.
+      </EMWEB_IF>
+  </li>
+  <li><b>Queue ID</b> - Specifies all the available queues.
+  </li>
+  <li><b>Drop Precedence Level</b> - Specifies all the available drop precedence levels(platform based).
+  </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_TDROP_THRESH_FEATURE">
+  <li><b>Tail Drop Threshold</b> - Specifies the tail drop queue threshold above which all
+  packets are dropped for the specified precedence level. Default values are
+
+      <EMWEB_STRING C='
+#ifdef L7_QOS_FLEX_PACKAGE_COS
+      L7_uint32 queueID, cnt;
+      L7_RC_t   rc;
+      L7_uint32 unit;
+
+      unit = usmDbThisUnitGet();
+      queueID = L7_QOS_COS_QUEUE_ID_MIN;
+      rc = usmDbQosCosQueueIdIndexGet(unit, queueID);
+      while (rc == L7_SUCCESS)
+        rc = usmDbQosCosQueueIdIndexGetNext(unit, queueID, &queueID);
+
+      memset(wBuf, 0x00, sizeof(wBuf));
+      for (cnt=0; cnt <= queueID; cnt++)
+      {
+      memset(sBuf, 0x00, sizeof(sBuf));
+      sprintf(sBuf," %d/%d/%d/%d for Drop Precedence Levels 1/2/3/4 on QueueID %d",
+      FD_QOS_COS_QCFG_TDROP_THRESH_Q0_DP1,
+      FD_QOS_COS_QCFG_TDROP_THRESH_Q0_DP2,
+      FD_QOS_COS_QCFG_TDROP_THRESH_Q0_DP3,
+      FD_QOS_COS_QCFG_TDROP_THRESH_Q0_NONTCP,
+      cnt);
+      strcat(wBuf,sBuf);
+      if (cnt != queueID)
+        strcat(wBuf,",");
+      }
+      return wBuf;
+#else
+      return L7_NULLPTR;
+#endif
+       ' > . Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_QOS_COS_QUEUE_TDROP_THRESH_MIN, L7_QOS_COS_QUEUE_TDROP_THRESH_MAX);
+       ' > in sixteenths of the overall device queue size.
+  </li>
+</EMWEB_IF>
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_WRED_SUPPORT_FEATURE">
+  <li><b>WRED Minimum Threshold</b> - Specifies the weighted RED minimum queue threshold
+  below which no packets are dropped for the current drop precedence level. Default values are
+  <EMWEB_STRING C='
+#ifdef L7_QOS_FLEX_PACKAGE_COS
+      L7_uint32 queueID, cnt;
+      L7_RC_t   rc;
+      L7_uint32 unit;
+
+      unit = usmDbThisUnitGet();
+      queueID = L7_QOS_COS_QUEUE_ID_MIN;
+      rc = usmDbQosCosQueueIdIndexGet(unit, queueID);
+      while (rc == L7_SUCCESS)
+        rc = usmDbQosCosQueueIdIndexGetNext(unit, queueID, &queueID);
+
+      memset(wBuf, 0x00, sizeof(wBuf));
+      for (cnt=0; cnt <= queueID; cnt++)
+      {
+      memset(sBuf, 0x00, sizeof(sBuf));
+      sprintf(sBuf," %d/%d/%d/%d for Drop Precedence Levels 1/2/3/4 on QueueID %d",
+      FD_QOS_COS_QCFG_WRED_MIN_THRESH_Q0_DP1,
+      FD_QOS_COS_QCFG_WRED_MIN_THRESH_Q0_DP2,
+      FD_QOS_COS_QCFG_WRED_MIN_THRESH_Q0_DP3,
+       FD_QOS_COS_QCFG_TDROP_THRESH_Q0_NONTCP, 
+      cnt);
+      strcat(wBuf,sBuf);
+      if (cnt != queueID)
+        strcat(wBuf,",");
+      }
+      return wBuf;
+#else
+      return L7_NULLPTR;
+#endif
+       ' > . Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_QOS_COS_QUEUE_WRED_MIN_THRESH_MIN, L7_QOS_COS_QUEUE_WRED_MIN_THRESH_MAX);
+       ' > in sixteenths of the overall device queue size.
+  </li>
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_WRED_MAX_THRESH_FEATURE">
+  <li><b>WRED Maximum Threshold</b> - Specifies the weighted RED maximum queue threshold
+  above which all packets are dropped for the current drop precedence level. Default values are
+  <EMWEB_STRING C='
+#ifdef L7_QOS_FLEX_PACKAGE_COS
+      L7_uint32 queueID, cnt;
+      L7_RC_t   rc;
+      L7_uint32 unit;
+
+      unit = usmDbThisUnitGet();
+      queueID = L7_QOS_COS_QUEUE_ID_MIN;
+      rc = usmDbQosCosQueueIdIndexGet(unit, queueID);
+      while (rc == L7_SUCCESS)
+        rc = usmDbQosCosQueueIdIndexGetNext(unit, queueID, &queueID);
+
+      memset(wBuf, 0x00, sizeof(wBuf));
+      for (cnt=0; cnt <= queueID; cnt++)
+      {
+      memset(sBuf, 0x00, sizeof(sBuf));
+      sprintf(sBuf," %d/%d/%d/%d for Drop Precedence Levels 1/2/3/4 on QueueID %d",
+      FD_QOS_COS_QCFG_WRED_MAX_THRESH_Q0_DP1,
+      FD_QOS_COS_QCFG_WRED_MAX_THRESH_Q0_DP2,
+      FD_QOS_COS_QCFG_WRED_MAX_THRESH_Q0_DP3,
+       FD_QOS_COS_QCFG_TDROP_THRESH_Q0_NONTCP,
+      cnt);
+      strcat(wBuf,sBuf);
+      if (cnt != queueID)
+        strcat(wBuf,",");
+      }
+      return wBuf;
+#else
+      return L7_NULLPTR;
+#endif
+       ' > . Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_QOS_COS_QUEUE_WRED_MAX_THRESH_MIN, L7_QOS_COS_QUEUE_WRED_MAX_THRESH_MAX);
+       ' > in sixteenths of the overall device queue size.
+  </li>
+</EMWEB_IF>
+<li><b>WRED Drop Probability</b> - Determines the packet drop probability for
+the current drop precedence level.
+Default value is
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(FD_QOS_COS_QCFG_WRED_DROP_PROB);
+       ' >. Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_QOS_COS_QUEUE_WRED_DROP_PROB_MIN, L7_QOS_COS_QUEUE_WRED_DROP_PROB_MAX);
+       ' >.
+  </li>
+</EMWEB_IF>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Restore Defaults for All Drop Precedence Levels</b> - Restores default settings for TailDrop
+  <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_WRED_SUPPORT_FEATURE">
+  and WRED
+  </EMWEB_IF>
+  parameters for all precedence levels of the selected interface and queue.</li>
+  <li> <b>Submit</b> - Send the updated configuration to the switch.  Configuration changes take effect immediately. These changes will not be retained across a power cyclunless a save is performed.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+<hr size=4 width="80%" align=center>
+
+</body>
+</html>

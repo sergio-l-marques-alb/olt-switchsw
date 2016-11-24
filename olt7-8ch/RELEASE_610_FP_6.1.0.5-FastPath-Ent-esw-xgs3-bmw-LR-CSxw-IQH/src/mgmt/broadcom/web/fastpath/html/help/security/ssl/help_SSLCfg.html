@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Secure HTTP Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=https></a>Help for Secure HTTP Configuration</h2>
+
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>HTTPS Admin Mode</b>
+         - This select field is used to Enable or Disable the Administrative Mode of Secure HTTP.
+           The currently configured value is shown when the web page is displayed.
+           The default value is Disable.
+  </li>
+
+  <li><b>TLS Version 1</b>
+         - This select field is used to Enable or Disable Transport Layer Security Version 1.0.
+           The currently configured value is shown when the web page is displayed.
+           The default value is Enable.
+  </li>
+
+  <li><b>SSL Version 3</b>
+         - This select field is used to Enable or Disable Secure Sockets Layer Version 3.0.
+           The currently configured value is shown when the web page is displayed.
+           The default value is Enable.
+  </li>
+</ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>HTTPS Port</b>
+         - This field is used to set the HTTPS Port Number.
+           The value must be in the range of 1 to 65535.  Port 443 is the default value.
+           The currently configured value is shown when the web page is displayed.
+  </li>
+
+  <li><b>HTTPS Session Soft Timeout</b>
+         - This field is used to set the inactivity timeout for HTTPS sessions.
+           The value must be in the range of
+            (1 to 60) minutes.
+           
+           The default value is
+           5 minutes.
+           The currently configured value is shown when the web page is displayed.
+  </li>
+
+  <li><b>HTTPS Session Hard Timeout</b>
+         - This field is used to set the hard timeout for HTTPS sessions.
+           This timeout is unaffected by the activity level of the session.
+           The value must be in the range of
+            (1 to 168) hours.
+           
+           The default value is
+           24 hours.
+           The currently configured value is shown when the web page is displayed.
+  </li>
+
+  <li><b>Maximum Number of HTTPS Sessions</b>
+         - This field is used to set the maximum allowable number of HTTPS sessions.
+           The value must be in the range of
+           <EMWEB_IF ID = "XUI_IF_PRODUCT_ENTERPRISE" >
+            (0 to 16).
+            <EMWEB_ELSE>
+            (0 to 4).
+            </EMWEB_IF>
+           The default value is
+           <EMWEB_IF ID = "XUI_IF_PRODUCT_ENTERPRISE" >
+           16.
+           <EMWEB_ELSE>
+           4.
+           </EMWEB_IF>
+           The currently configured value is shown when the web page is displayed.
+  </li>
+
+ </UL>
+</UL>
+
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>Certificate Present?</b>
+         - Displays whether there is a certificate present on the device is true or false. 
+  </li>
+  <li><b>Certificate Generation Status</b>
+         - Displays whether SSL certificate generation is in progress or no certificate generation is in progress. 
+  </li>
+
+ </UL>
+</UL>
+
+
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Delete</b>
+         - Used to delete the corresponding certificate, if it is present.
+	 </li>
+</EMWEB_IF>
+  <li>
+     <b>Refresh</b> - Refreshes the screen with updated configuration.
+  </li>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Download Certificates</b>
+         - Link to the File Transfer page for the SSL Certificate download.
+           Note that to download SSL Certificate files SSL must be administratively disabled.</li>
+
+  <li><b>Generate Certificate</b>
+         - Generates SSL Certificate.</li>
+
+  <li><b>Submit</b>
+         - Send the updated screen to the switch.  Changes take effect on
+           the switch but these changes will not be retained across a power
+           cycle unless a save is performed. </li>
+</EMWEB_IF>
+
+ </ul>
+</ul>
+
+
+
+<hr size=4 width="100%" align=center>
+
+
+</body>
+
+</html>
+
+

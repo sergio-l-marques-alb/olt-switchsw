@@ -1,0 +1,184 @@
+/********************************************************************
+ *
+ * (C) Copyright Broadcom Corporation 2003-2007
+ *
+ * *********************************************************************
+ *
+ * @filename      timer.ext
+ *
+ * @purpose       External definitions and prototypes for the timer object
+ *
+ * @component     Routing Utils Component
+ *
+ * @comments
+ *
+ * @create
+ *
+ * @author
+ *
+ * @end
+ *
+ * ********************************************************************/
+
+
+#ifndef timer_ext
+#define timer_ext
+
+#include "std.h"
+
+#include "local.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+/* Timer jittering random fractional variance */
+#define TimerFractVar(val) ((val < 5) ?  val : (((long) val)*9)/10 + \
+     (rand() % (((long) val)/5 + 1)))
+
+/* Timer jittering random fractional variance with values in the range (0.9*val ---- val) */
+#define TimerFractVarLessBy10(val) ((val < 10) ?  val : (((long) val)*9)/10 + \
+     (rand() % (((long) val)/10 + 1)))
+
+#define TM_TICKS_PER_SECOND (TICKS_PER_SECOND/OS_TICKS)
+/* Pick the best resolution for a timer */
+#define GET_RESOLUTION(Timeout) \
+    (word)(( ( Timeout > 1000 ) ? 100 : ((Timeout > 100 ) ? 10 : 1) ))
+
+
+/* Macro for converting time into ticks and vice-versa */
+#define MILLI_TO_TICKS(n)   (((n)*TM_TICKS_PER_SECOND)/1000)
+#define SECONDS_TO_TICKS(n) ((n)*TM_TICKS_PER_SECOND)
+#define TICKS_TO_MILLI(n)   (((n)*1000L)/TM_TICKS_PER_SECOND)
+#define TICKS_TO_SECONDS(n) ((n)/TM_TICKS_PER_SECOND)
+
+#define DEFAULT_TIMER_THREAD (t_Handle)0xffffff
+
+
+/* --- internal typedefs and definitions --- */
+
+typedef ulng     t_Time;
+
+/* bit-flags for timer */
+typedef enum
+{
+   TIMER_TAKEN      = 0x0001,
+   TIMER_RUNNING    = 0x0002,
+   TIMER_TOUCHED    = 0x0004,
+   TIMER_REPETITIVE = 0x0008,
+   TIMER_BLOCKED    = 0x0010,
+   TIMER_DEL_MARKED = 0x0020
+} t_TMFlags;
+
+typedef enum
+{
+   TM_STAT_Valid  = 23190,
+   TM_STAT_Invalid = 0
+} t_TMStat;
+
+typedef struct tagt_Timer
+{
+   struct tagt_Timer  *prev;
+   struct tagt_Timer  *next;
+   struct tagt_Timer  **entry;
+   t_TMStat       status;
+   ulng           nturns;
+   word           resolution;
+   ulng           value;
+   ulng           seqNmb;
+   ulng           queueId;    /* Queue for multiple queue tasks */
+   t_TMFlags      bitFlag;
+   t_Handle       threadId;   /* expiration notices are sent here */
+   t_Handle       owner;      /* owner of timer */
+   t_Handle       tblDesc;    /* Handle of the timer table descriptor */
+
+   /* the owner's routine called on timer expiration */
+   e_Err  (* f_Expired)( t_Handle Id, t_Handle Timer, word Flags );
+
+} t_Timer;
+
+typedef struct tagt_TMRList
+{
+   struct tagt_TMRList *next;
+   struct tagt_TMRList *prev;
+   t_Timer             *timer;
+} t_TMRList;
+
+
+typedef e_Err (*F_Expired)(t_Handle owner, t_Handle timer, word flag);
+
+void  TIMER_InitAll( void );
+void  TIMER_KillAll( void );
+ulng  TIMER_SysTime( void );
+e_Err TIMER_Init( word Resolution, t_Handle Owner, t_Handle *p_Handle );
+void  TIMER_Delete( t_Handle Handle );
+e_Err TIMER_Start( t_Handle Handle, ulng Ticks, Bool Repetitive,
+                F_Expired expFun, t_Handle ThreadId, ulng QueueId );
+e_Err TIMER_Stop( t_Handle Handle );
+e_Err TIMER_StartIfStopped( t_Handle Handle, word Ticks,
+                F_Expired f_Expired, t_Handle QueueId );
+Bool  TIMER_IsValid( t_Handle Handle );
+Bool  TIMER_Active( t_Handle Handle );
+e_Err TIMER_Tick( void );
+ulng  TIMER_ToExpire(t_Handle timer);
+void  TIMER_FreezeAll( void );
+void  TIMER_ThawAll( void );
+Bool  TIMER_AreTimersFrozen( void );
+
+/*****************extended interface*****************************/
+e_Err TIMER_InitSec( word minTime, t_Handle Owner, t_Handle *p_Handle );
+e_Err TIMER_InitMilli( word minTime, t_Handle Owner, t_Handle *p_Handle );
+e_Err TIMER_StartSec(t_Handle Handle, ulng secTime, Bool Repetitive,
+                F_Expired expFun, t_Handle ThreadId);
+e_Err TIMER_StartSecMQueue(t_Handle Handle, ulng secTime, Bool Repetitive,
+                F_Expired expFun, t_Handle ThreadId, ulng QueueId);
+e_Err TIMER_StartMilli(t_Handle Handle, ulng milliTime, Bool Repetitive,
+                F_Expired expFun, t_Handle ThreadId);
+e_Err TIMER_StartMilliMQueue(t_Handle Handle, ulng milliTime, Bool Repetitive,
+                F_Expired expFun, t_Handle ThreadId, ulng QueueId);
+e_Err TIMER_StartIfStoppedSec( t_Handle Handle, ulng secTime,
+                F_Expired expFun, t_Handle QueueId );
+e_Err TIMER_StartIfStoppedMilli( t_Handle Handle, ulng milliTime,
+                F_Expired expFun, t_Handle QueueId );
+ulng  TIMER_ToExpireSec(t_Handle timer);
+ulng  TIMER_ToExpireMilli(t_Handle timer);
+
+#if L7_BCLOCK
+/******************** Basic Clock interface **********************/
+
+/* Macro for converting time into bclock ticks and vice-versa */
+#define MILLI_TO_BCTICKS(n)   (((n)*BC_TICKS_PER_SECOND)/1000)
+#define MICRO_TO_BCTICKS(n)   (((n)*BC_TICKS_PER_SECOND)/1000000L)
+#define BCTICKS_TO_MILLI(n)   (((n)*1000L)/BC_TICKS_PER_SECOND)
+#define BCTICKS_TO_MICRO(n)   (((n)*1000000L)/BC_TICKS_PER_SECOND)
+
+ulng  BCLOCK_SysTime( void );
+e_Err BCLOCK_Init( t_Handle Owner, t_Handle *p_Handle );
+e_Err BCLOCK_StartIfStoppedMilli( t_Handle Handle, ulng milliTime,
+                                  F_Expired expFun, t_Handle QueueId );
+void  BCLOCK_Tick( void );
+
+#define  BCLOCK_Start( hndl, ticks, rep, exp, qId )\
+         TIMER_Start( hndl, ticks, rep, exp, qId, 0 )
+#define  BCLOCK_StartIfStopped( hndl, ticks, exp, qId )\
+         TIMER_StartIfStopped( hndl, ticks, exp, qId )
+#define  BCLOCK_StartMilli( hndl, milli, rep, exp, qId )\
+         TIMER_Start( hndl, ((ulng)(MILLI_TO_BCTICKS(milli))), rep, exp, qId, 0 )
+
+#define  BCLOCK_Stop( hndl )           TIMER_Stop( hndl )
+#define  BCLOCK_Delete( hndl )         TIMER_Delete( hndl )
+#define  BCLOCK_IsValid( hndl )        TIMER_IsValid( hndl )
+#define  BCLOCK_IsActive( hndl )       TIMER_Active( hndl )
+#define  BCLOCK_ToExpire( hndl )       TIMER_ToExpire( hndl )
+#define  BCLOCK_ToExpireMilli( hndl )  (BCTICKS_TO_MILLI(TIMER_ToExpire( hndl )))
+
+#endif /* #if L7_BCLOCK */
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+
+/* --- end of file timer.ext --- */
+

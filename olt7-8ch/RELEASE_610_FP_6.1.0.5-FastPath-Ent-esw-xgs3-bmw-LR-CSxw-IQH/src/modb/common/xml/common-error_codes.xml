@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+  <error name="COMMON_PORTCFG_PHYSMODE_LAG_ERROR" output="The physical mode for Port Channel members.\r\nChanging the speed of Port Channel members requires removal from the Port Channel"/>
+  <error name="COMMON_PORTCFG_MAC_LOOP_ERROR"  output="The MAC layer Loopback test is not supported in the platform!"/>
+  <error name="COMMON_SAVECONFIG_MESSAGE"  output="The running system configuration is successfully saved."/>
+  </misc>
+</FastPathXML>

@@ -1,0 +1,4 @@
+tornado_version = 221
+monta_vista_version = 31
+# If Linux 2.6, set CROSS_COMPILE, KERNEL_SRC 
+include bsp/cpu/bmw/environment_linux_2.6

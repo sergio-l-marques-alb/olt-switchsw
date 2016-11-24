@@ -1,0 +1,21 @@
+
+# This file defines the three macros for the XUI
+
+# XML_CONTENT : A list of all the folders to find object xml files relevant to this build
+# XML_PRODICT : A list of all the folders to find web xml files relevant to this build
+# WEB_CONTENT : A list of all the folders to find manually developed HTML files and Java applet iles relevant to this build
+
+#Object XMLS
+
+include $(FP_ROOT)/src/modb/make/make.xml.pkg
+
+# Web XMLs
+
+include $(FP_ROOT)/src/mgmt/$(L7_CUSTOMER)/web/make/make.xml.pkg
+
+# Manual HTML files & Java applet
+
+include $(FP_ROOT)/src/mgmt/$(L7_CUSTOMER)/web/make/make.html.pkg
+
+
+ 

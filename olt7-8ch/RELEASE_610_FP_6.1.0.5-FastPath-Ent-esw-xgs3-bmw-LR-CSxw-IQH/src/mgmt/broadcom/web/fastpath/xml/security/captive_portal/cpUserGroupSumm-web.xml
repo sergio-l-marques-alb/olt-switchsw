@@ -1,0 +1,28 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+   <webxml version="1.0" name="cpUserGroupSumm" title="User Group Summary">
+       <group id="1" heading=" ">
+          <repeat present="vtable" edit="inline" heading=" " id="1">
+              <element properties="filter,iterate,hidden" obj-name="captiveportalcpLocalUserGroupTable_cpLocalUserGroupIndex" id="1" name="Group Index"/>
+              <element properties="read-only" obj-name="captiveportalcpLocalUserGroupTable_cpLocalUserGroupName" id="2" name="Group Name"/>
+              <element level="ReadWriteUser" control="checkbox-neg" properties="edit" obj-name="captiveportalcpLocalUserGroupTable_cpLocalUserGroupRowStatus" id="3" name="Remove">
+                  <action type="enum" discard="yes" />
+                  <action type="enum" discard="no" />
+                  <action type="enum" discard="yes" />
+                  <action type="enum" discard="yes" />
+                  <action type="enum" discard="yes"  />
+                  <action type="enum" discard="yes" />
+                  <action type="enum" discard="no"  />
+              </element>
+          </repeat>
+          <node id="2">
+              <button scope="page" type="buttonSubmit" level="ReadWriteUser" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+              <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+          </node>
+       </group>
+   </webxml>
+</FastPathXML>

@@ -1,0 +1,103 @@
+<EMWEB_HEAD C='
+    #include "l3_mcast_defaultconfig.h"
+'>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>PIM Help</TITLE>
+	<LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=pimsmcomponentssm></a>Help for PIM SSM Configuration</h2>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Add Default SSM Range </b> - Select this check box to add default SSM range (232.0.0.0/8) .</li>
+ </ul>
+</ul>
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>SSM Group Address </b> - Enter the source-specific multicast group ip-address.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>SSM Group Mask </b> - Enter the source-specific multicast group ip-address mask.</li>
+ </ul>
+</ul>
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>SSM Group Address </b> - Displays the source-specific multicast group ip-address.</li>
+ </ul>
+</ul>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>SSM Group Mask </b> - Displays the source-specific multicast group ip-address mask.</li>
+ </ul>
+</ul>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Delete</b>  - Check box to delete the particular entry from the table.</li>
+ </ul>
+</ul>
+<EMWEB_ELSE>
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>SSM Group Address </b> - Displays the source-specific multicast group ip-address.</li>
+ </ul>
+</ul>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>SSM Group Mask </b> - Displays the source-specific multicast group ip-address mask.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+<h3>Command Buttons </h3>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Submit</b> - Send the updated configuration to the router.  Configuration changes
+      take effect immediately. These changes will not be retained across a power cycle
+      unless a save is performed. </li>
+ </ul>
+</ul>
+</EMWEB_IF>
+ 
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Refresh</b> - Refresh the data on the screen with the present state of
+     the data in the router.</li>
+  </ul>
+</ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Delete</b> - Deletes the selected SSM ranges in the router.</li>
+  </ul>
+</ul>
+</ul>
+</EMWEB_IF>
+
+</BODY>
+</html>
+
+

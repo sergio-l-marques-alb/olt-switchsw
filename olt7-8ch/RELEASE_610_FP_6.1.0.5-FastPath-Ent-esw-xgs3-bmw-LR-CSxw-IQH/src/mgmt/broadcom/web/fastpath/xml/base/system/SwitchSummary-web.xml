@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="SwitchSummary" title="Switch Statistics Summary">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element properties="hidden" value="Switch" obj-name="basePortStats_statsInterfaceType" id="1" name="statsInterfaceType"/>
+            </node>
+            <node id="3">
+                <element properties="filter,iterate" obj-name="basePortStats_CpuInterface" id="1" name="Interface"/>
+                <element cpval="basePortStats_CpuInterface" properties="filter,hidden" obj-name="basePortStats_Interface" id="2" name="Interface"/>
+                <element cpval="basePortStats_CpuInterface" properties="filter,hidden" obj-name="baseInterfaceInfo_ifIndex" id="3" name="ifIndex(IntfTable)"/>
+            </node>
+            <node id="2">
+                <element control="label" obj-name="basePortStats_TotalFramesRx" id="1" name="Total Packets Received Without Errors"/>
+            </node>
+            <node id="4">
+                <element control="label" obj-name="baseInterfaceInfo_ifInBroadcastPkts" id="1" name="Broadcast Packets Received"/>
+            </node>
+            <node id="5">
+                <element control="label" obj-name="basePortStats_TotalMacErrorFramesRx" id="1" name="Packets Received With Error"/>
+            </node>
+            <node id="6">
+                <element control="label" obj-name="basePortStats_TotalFramesTx" id="1" name="Packets Transmitted Without Errors"/>
+            </node>
+            <node id="7">
+                <element obj-name="baseInterfaceInfo_ifOutBroadcastPkts" id="1" name="Broadcast Packets Transmitted"/>
+            </node>
+            <node id="8">
+                <element control="label" obj-name="basePortStats_TotalErrorFramesTx" id="1" name="Transmit Packet Errors"/>
+            </node>
+            <node id="9">
+                <element obj-name="SwitchingFdbStats_ActiveAddrEntries" id="1" name="Address Entries Currently in Use"/>
+            </node>
+            <node id="10">
+                <element control="label" obj-name="basePortStats_dot1qVlanEntriesInUseCount" id="1" name="VLAN Entries Currently in Use"/>
+            </node>
+            <node id="11">
+                <element obj-name="basesysReset_sysTimeSinceLastSwitchStatsReset" id="1" name="Time Since Counters Last Cleared" arghelp="valMapTimeofCountersString"/>
+            </node>
+            <node id="12" level="ReadWriteUser">
+                <button scope="page" type="buttonSubmit" value="TRUE" obj-name="basePortStats_resetSwitchStats" help="Submits the form on this page to the Switch" id="1" name="Clear Counters"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+            <node id="13" level="ReadOnlyUser">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

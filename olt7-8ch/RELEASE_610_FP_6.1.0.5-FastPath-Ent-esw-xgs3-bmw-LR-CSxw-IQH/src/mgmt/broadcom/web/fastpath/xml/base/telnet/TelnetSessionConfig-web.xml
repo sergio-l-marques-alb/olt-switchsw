@@ -1,0 +1,46 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="TelnetSessionConfig" title="Telnet Session Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element arghelp="HELP_FORMAT_FP" level="ReadWriteUser" obj-name="baseSysInboundTelnet_Timeout" id="1" name="Telnet Session Timeout (minutes)" maxLength="10"/>
+            </node>
+            <node id="2">
+                <element arghelp="HELP_FORMAT_FP" level="ReadWriteUser" obj-name="baseSysInboundTelnet_NumSessions" id="1" name="Maximum Number of Telnet Sessions " maxLength="10"/>
+            </node>
+            <node id="3">
+		    <element control="combo" level="ReadWriteUser" obj-name="baseSysInboundTelnet_NewSessions" id="1" name="Allow New Telnet Sessions">
+		        <action type="enum"  web_name="Yes"  />
+		        <action type="enum"  web_name="No"  />
+        </element> 
+            </node>
+            <node id="4">
+                <element control="combo" level="ReadWriteUser" obj-name="baseSysInboundTelnet_AdminMode" id="1" name="Telnet Server Admin Mode"/>
+            </node>
+            <node id="5">
+                <button scope="page" type="buttonSubmit" level="ReadWriteUser" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" level="ReadOnlyUser" properties="read-only" obj-name="baseSysInboundTelnet_Timeout" id="1" name="Remote SessionTimeout(minutes)"/>
+            </node>
+            <node id="2">
+                <element control="label" level="ReadOnlyUser" properties="read-only" obj-name="baseSysInboundTelnet_NumSessions" id="1" name="Maximum Number of Remote Sessions"/>
+            </node>
+            <node id="3">
+                <element control="label" uienum="TrueFalse_t" level="ReadOnlyUser" properties="read-only" obj-name="baseSysInboundTelnet_NewSessions" id="1" name="Allow New Remote Sessions">
+		                <action type="enum"  web_name="Yes"  />
+		                <action type="enum"  web_name="No"  />
+                </element> 
+            </node>
+            <node id="4">
+                <element control="label" level="ReadOnlyUser" properties="read-only" obj-name="baseSysInboundTelnet_AdminMode" id="1" name="Telnet Server Admin Mode"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

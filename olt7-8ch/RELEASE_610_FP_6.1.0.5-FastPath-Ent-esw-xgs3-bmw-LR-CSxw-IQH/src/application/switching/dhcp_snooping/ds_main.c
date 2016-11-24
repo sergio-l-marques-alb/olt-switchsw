@@ -1,0 +1,3889 @@
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2005-2007
+*
+**********************************************************************
+* @filename  ds_main.c
+*
+* @purpose   DHCP snooping 
+*
+* @component DHCP snooping
+*
+* @comments none
+*
+* @create 3/26/2007
+*
+* @author Rob Rice (rrice)
+*
+* @end
+*             
+**********************************************************************/
+
+#include "l7_common.h"
+#include "usmdb_common.h"
+#include "usmdb_ip_base_api.h"
+#include "usmdb_mib_bridge_api.h"
+#include "usmdb_util_api.h"
+#include "osapi.h"
+#include "log.h" 
+#include "nimapi.h"
+#include "comm_mask.h"
+#include "trapapi.h"
+
+#include "ds_util.h"
+#include "ds_cfg.h"
+#include "ds_cnfgr.h"
+#include "dhcp_snooping_api.h"
+#include "dhcp_snooping_exports.h"
+#include "ptin_snoop_stat_api.h"
+#include "ptin_dhcp_database_api.h"
+
+#include "dot1q_api.h"
+#include "dot3ad_api.h"
+#ifdef L7_ROUTING_PACKAGE
+#include "l7_relay_api.h"
+#endif 
+
+#ifdef L7_DHCPS_PACKAGE 
+#include "usmdb_dhcps_api.h"
+#endif
+
+#ifdef L7_DVLAN_PACKAGE
+#include "dvlantag_api.h"
+#endif
+
+#if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
+#include "dot1ad_api.h"
+#include "dot1ad_l2tp_api.h"
+#endif
+
+#include "ptin_translate_api.h"
+
+extern dsCfgData_t *dsCfgData;
+extern dsCnfgrState_t dsCnfgrState;
+extern osapiRWLock_t dsCfgRWLock;
+
+extern void *dsMsgQSema;
+extern void *Ds_Event_Queue;
+extern void *Ds_Packet_Queue;
+
+/* Global status data */
+extern dsInfo_t *dsInfo;
+
+/* Array of per interface working data. Indexed on internal interface number */
+extern dsIntfInfo_t *dsIntfInfo;
+extern osapiTimerDescr_t *dsLeaseTimer;
+
+extern L7_uchar8 DS_DHCP_OPTIONS_COOKIE[];
+
+L7_BOOL downloadFlag=L7_FALSE;
+L7_BOOL doubleTaggedTx = L7_TRUE;
+
+L7_uchar8 *vlanEventNames[] = {"Invalid", "ADD", "DELETE PENDING", "DELETE", "ADD PORT",
+                               "DELETE PORT", "START TAGGING PORT", "STOP TAGGING PORT", 
+                               "INITIALIZED", "RESTORE"};
+
+L7_uchar8 *dhcpMsgTypeNames[] = {"UNKNOWN", "DISCOVER", "OFFER", "REQUEST", 
+                                 "DECLINE", "ACK", "NACK", "RELEASE"};
+
+L7_RC_t dsVlanEventProcess(dot1qNotifyData_t *pVlanData, L7_uint32 intIfNum, L7_uint32 event);
+
+void dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen, L7_BOOL added, L7_ushort16 lenChng);
+
+static void dsPeriodicStore();
+#ifdef L7_DHCP_L2_RELAY_PACKAGE
+static L7_RC_t dsRelayAgentInfoAdd(L7_uint32 intIfNum, L7_uint32 vlanId,
+                            L7_ushort16 innerVlanId,
+                            L7_uchar8 *frame, L7_uint32 *frameLen);
+static L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
+                                            L7_uint32 *frameLen,
+                                            L7_dhcp_packet_t *packet, 
+                                            L7_uint32 dhcpPacketLength, 
+                                            L7_BOOL optionsRemove, 
+                                            dsRelayAgentInfo_t *relayAgentInfo);
+#endif
+void dsFrameVlanTagRemove(L7_uchar8 *frame, L7_ushort16 *frameLen, L7_uchar8 *frameOut);
+
+
+void dsFrameDoubleVlanTagAdd(L7_uint32 intIfNum, L7_uint32 vlanId, L7_uchar8 *frame,
+                       L7_ushort16 *frameLen, L7_ushort16 innerVlanId, L7_uchar8 *frameOut);
+
+L7_BOOL dsL2RelayServiceIsEnabled(L7_uint32 intIfNum, L7_uint32 vlanId,
+                                  L7_ushort16 innerVlanId);
+
+L7_BOOL dsSnoopingServiceIsEnabled(L7_uint32 intIfNum, L7_uint32 vlanId, 
+                                   L7_uint32 rxSVlanId, L7_uchar8 dhcpOp,
+                                   L7_uint32 *cVlanId, L7_uint32 *sVlanId);
+L7_RC_t dsReplyFrameForward(L7_uint32 intIfNum, L7_uint32 vlanId, L7_uchar8 *macaddr,
+                          L7_uchar8 *frame, L7_ushort16 frameLen, L7_ushort16 innerVlanId);
+L7_RC_t dsFrameIntfFilterSend(L7_uint32 intIfNum, L7_ushort16 vlanId, 
+                       L7_uchar8 *frame, L7_ushort16 frameLen,
+                       L7_BOOL requestFlag, L7_ushort16 innerVlanId);
+
+
+L7_int ptin_debug_dhcp = 0;
+
+L7_RC_t hapiPtin_debug_dhcp(L7_int enable)
+{
+  ptin_debug_dhcp = enable & 1;
+
+  return L7_SUCCESS;
+}
+
+
+/*********************************************************************
+* @purpose  Main function for the DHCP snooping thread. Read incoming 
+*           messages (events and DHCP packets) and process accordingly.
+*
+* @param    void
+*
+* @returns  void
+*
+* @notes
+*
+* @end
+*********************************************************************/
+void dhcpSnoopTask(void)
+{
+  dsEventMsg_t eventMsg;
+  dsFrameMsg_t frameMsg;
+  L7_RC_t rc;
+  L7_uint32 val;
+
+  /* Loop forever, processing incoming messages */
+  while (L7_TRUE)
+  {
+    /* Since we are reading from multiple queues, we cannot wait forever 
+     * on the message receive from each queue. Use a semaphore to indicate 
+     * whether any queue has data. Wait until data is available. */
+    if (osapiSemaTake(dsMsgQSema, L7_WAIT_FOREVER) != L7_SUCCESS)
+    {
+      L7_LOG(L7_LOG_SEVERITY_ERROR, L7_OSPF_MAP_COMPONENT_ID, 
+             "Failure taking DHCP snooping message queue semaphore.");
+      continue;
+    }
+
+    memset(&eventMsg, 0, sizeof(dsEventMsg_t));
+    memset(&frameMsg, 0, sizeof(dsFrameMsg_t));
+
+    /* Always try to read from the event queue first. No sense processing
+     * DHCP packets with stale state. */
+    if (osapiMessageReceive(Ds_Event_Queue, &eventMsg,
+                            sizeof(dsEventMsg_t), L7_NO_WAIT) == L7_SUCCESS)
+    {
+      /* Configuration actions are all done on the UI thread. 
+       * Synchronize that processing with event processing by 
+       * taking the same semaphore here. */
+      switch (eventMsg.msgType)
+      {
+        case DS_VLAN_EVENT:
+          if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) == L7_SUCCESS)
+          {
+            dsVlanEventProcess(&eventMsg.dsMsgData.vlanEvent.vlanData,
+                               eventMsg.dsMsgData.vlanEvent.intIfNum,
+                               eventMsg.dsMsgData.vlanEvent.vlanEventType);
+            osapiWriteLockGive(dsCfgRWLock);
+          }
+          break;
+
+        case DS_CNFGR_INIT:
+          if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) == L7_SUCCESS)
+          {
+            dsCnfgrHandle(&eventMsg.dsMsgData.cmdData); 
+            osapiWriteLockGive(dsCfgRWLock);
+          }
+          break;
+
+        case DS_TIMER_EVENT:
+          if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) == L7_SUCCESS)
+          {
+            dsLeaseCheck();
+            dsRateLimitCheck();
+            if ( downloadFlag == L7_TRUE)
+            {
+              if ( (((rc = usmDbAgentIpIfAddressGet(0, &val))==L7_SUCCESS) && (val > 0)) ||
+                  (((rc = usmDbServicePortIPAddrGet(0,&val))==L7_SUCCESS) && (val > 0)) )
+              { 
+                downloadFlag = L7_FALSE;
+                dsTftpDownloadInit(); 
+              }
+            }
+            dsPeriodicStore();
+            
+            osapiWriteLockGive(dsCfgRWLock);
+          }
+          break;
+        case DS_CFG_APPLY_EVENT:
+          if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) == L7_SUCCESS)
+          {
+            dstxtCfgEventProcess(eventMsg.dsMsgData.cfgApplyEvent.txtCfgEventType);
+            osapiWriteLockGive(dsCfgRWLock);
+          }
+          break;
+
+        case DS_DHCPS_ACK_EVENT:
+          if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) == L7_SUCCESS)
+          {
+            if (dsBindingIpAddrSet(&eventMsg.dsMsgData.dhcpsEvent.chAddr,
+                                osapiNtohl(eventMsg.dsMsgData.dhcpsEvent.ipAddr))
+                                  == L7_SUCCESS)
+            {
+              dsInfo->debugStats.bindingsAdded++;
+              dsBindingLeaseSet(&eventMsg.dsMsgData.dhcpsEvent.chAddr,
+                               eventMsg.dsMsgData.dhcpsEvent.leaseTime);
+            }
+            osapiWriteLockGive(dsCfgRWLock);
+          }
+          break;
+        case DS_DHCPS_NACK_EVENT:
+          if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) == L7_SUCCESS)
+          {
+            dsBindingRemove(&eventMsg.dsMsgData.dhcpsEvent.chAddr);
+            dsInfo->debugStats.bindingsRemoved++;
+            osapiWriteLockGive(dsCfgRWLock);
+          }
+          break;
+        case DS_DB_DOWNLOAD_EVENT:
+          if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) == L7_SUCCESS)
+          {
+            if (eventMsg.dsMsgData.tftpEvent.dsDbDownloadStatus == L7_TRUE)
+            {
+               dsDbRemoteRestore();
+               osapiWriteLockGive(dsCfgRWLock);
+            }
+            else
+            {
+             L7_LOG(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
+                "Downloading of DHCP Snooping bindings failed. It may cause traffic loss."
+                " This message appears when downloading of the DHCP Snooping bindings’ "
+                "database fails.");
+             osapiWriteLockGive(dsCfgRWLock);
+            }
+
+          }
+          break;
+        case DS_DB_UPLOAD_EVENT:
+          /* To handle the failure of downloading the snooping database */
+          if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) == L7_SUCCESS)
+          {
+            if (eventMsg.dsMsgData.tftpEvent.dsDbDownloadStatus == L7_FALSE)
+            {
+              L7_LOG(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
+                "Uploading of DHCP Snooping bindings failed."
+                " This message appears when uploading of the DHCP"
+                " Snooping bindings’ database fails.");
+               dsInfo->dsDbDataChanged = L7_TRUE;
+            }
+            osapiWriteLockGive(dsCfgRWLock);
+          }
+          break;
+        case DS_INTF_EVENT:
+          if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) == L7_SUCCESS)
+          {
+            dsIntfChangeProcess(eventMsg.dsMsgData.intfEvent.intIfNum,
+                               eventMsg.dsMsgData.intfEvent.event,
+                               eventMsg.dsMsgData.intfEvent.correlator);
+            osapiWriteLockGive(dsCfgRWLock);
+          }
+          break;
+        default:
+          L7_LOG(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID, 
+                 "Unknown event message type received in the DHCP snooping thread.");
+          break;
+      }  
+    }
+
+    /* If the event queue was empty, see if a DHCP message has arrived. */
+    else if (osapiMessageReceive(Ds_Packet_Queue, &frameMsg,
+                                 sizeof(dsFrameMsg_t), L7_NO_WAIT) == L7_SUCCESS)
+    {
+      if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) == L7_SUCCESS)
+      {
+        dsFrameProcess(frameMsg.rxIntf, frameMsg.vlanId, frameMsg.frameBuf,
+                       frameMsg.frameLen, frameMsg.innerVlanId); 
+        osapiWriteLockGive(dsCfgRWLock);
+      }
+    }
+
+    /* Someone gave the msg queue semaphore, but didn't put a message on 
+     * either queue. Count it. */
+    else 
+    {
+      dsInfo->debugStats.msgRxError++;
+    }
+  } /* end while true */
+
+  return;
+}
+
+
+/*********************************************************************
+* @purpose  Callback function to process VLAN changes.
+*
+* @param    vlanId     @b{(input)}   VLAN ID
+* @param    intIfnum   @b{(input)}   internal interface whose state has changed
+* @param    event      @b{(input)}   VLAN event (see vlanNotifyEvent_t for list)
+*                                   
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    process on own thread
+*
+* @end
+*********************************************************************/
+L7_RC_t dsVlanChangeCallback(dot1qNotifyData_t *vlanDataCopy, L7_uint32 intIfNum, 
+                             L7_uint32 event)
+{
+  NIM_INTF_MASK_t portMask;
+  L7_uint32 i;
+  L7_RC_t rc = L7_SUCCESS;
+  dsEventMsg_t msg;
+  L7_uint32 vid, vlanId, numVlans = 0;
+  L7_uint32 tempNumVlans, vlanIdTemp = L7_NULL;
+  dot1qNotifyData_t vlanData;
+
+  if (Ds_Event_Queue == L7_NULLPTR)
+  {
+    L7_LOG(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
+           "DHCP snooping event queue is NULL when processing VLAN change.");
+    return L7_FAILURE;
+  }
+
+  /* Ignore events types we don't care about.  */
+  if ((event != VLAN_DELETE_PENDING_NOTIFY) &&
+      (event != VLAN_ADD_PORT_NOTIFY) &&
+      (event != VLAN_DELETE_PORT_NOTIFY))
+  {
+    return L7_SUCCESS;
+  }
+
+  if (osapiReadLockTake(dsCfgRWLock, L7_WAIT_FOREVER) != L7_SUCCESS)
+    return L7_FAILURE;
+
+  /* Ignore interfaces we don't care about. */
+  if (intIfNum && !dsIntfIsValid(intIfNum))
+  {
+    osapiReadLockGive(dsCfgRWLock);
+    return L7_SUCCESS;
+  }
+  /*make a copy of the vlan mask as we modify the bits of vlans we are not interested in */
+  memcpy(&vlanData, vlanDataCopy, sizeof(dot1qNotifyData_t));
+  tempNumVlans = vlanData.numVlans;
+
+  for (vid = 1; vid<=L7_VLAN_MAX_MASK_BIT; vid++) 
+  {
+    if (vlanData.numVlans == 1) 
+    {
+      vlanId = vlanData.data.vlanId;
+      /* For any continue, we will break out */
+      vid = L7_VLAN_MAX_MASK_BIT + 1;
+    }
+    else
+    {
+      if (L7_VLAN_ISMASKBITSET(vlanData.data.vlanMask,vid)) 
+      {
+         vlanId = vid;
+      }
+      else
+      {
+         if (numVlans == tempNumVlans) 
+        {
+          /* Already taken care of all the bits in the mask so break out of for loop */
+          break;
+        }
+        else
+        {
+          /* Vlan is not set check for the next bit since there are more bits that are set*/
+          continue;
+        }
+      }
+    }
+
+    /* Ignore events for VLANs where DHCP snooping not enabled. */
+    if (!_dsVlanEnableGet(vlanId))
+    {
+      if (vlanData.numVlans == 1)
+       {
+         osapiReadLockGive(dsCfgRWLock);
+         return L7_SUCCESS;
+       }
+       else
+       {
+         /*Reset the bit in the mask and continue */
+         L7_VLAN_CLRMASKBIT(vlanData.data.vlanMask, vid);
+         tempNumVlans--;
+         continue;
+       }
+    }
+    else
+    {
+      /* reserve a VLAN ID to check there exists only one Snooping enabled VLANID*/
+      vlanIdTemp = vlanId;
+    }
+  
+    /* Only trace VLAN events we care about */
+    if (dsCfgData->dsTraceFlags & DS_TRACE_VLAN_EVENTS)
+    {
+      L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
+      osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN, 
+                    "DHCP snooping received %d event for VLAN %u ",
+                    event, vlanId);
+      if (intIfNum)
+      {
+        L7_uchar8 intfStr[64];
+        L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+        nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+        osapiSnprintf(intfStr, 64, "and interface %s.", ifName);
+        strncat(dsTrace, intfStr, 64);
+      }
+      dsTraceWrite(dsTrace);
+    }
+  
+    /* Have to process the VLAN delete pending on the dot1q thread. If we 
+     * wait to process on own thread, dot1q won't be able to tell us which 
+     * ports were members of the VLAN because the VLAN will be gone already! */
+    if (event == VLAN_DELETE_PENDING_NOTIFY)
+    {
+      if (_dsVlanEnableGet(vlanId))
+      {
+        /* DHCP snooping is enabled on deleted VLAN */
+        // PTin added
+        L7_uint16 original_vlan;
+        if (ptin_intif_vlan_translate_get(intIfNum,vlanId,&original_vlan)!=L7_SUCCESS)
+        {
+          original_vlan = vlanId;
+        }
+        // PTin modified
+        if (dot1qVlanEgressPortsGet(original_vlan /*vlanId*/, &portMask) == L7_SUCCESS)
+        {
+          for (i = 1; i < DS_MAX_INTF_COUNT; i++)
+          {
+            if (L7_INTF_ISMASKBITSET(portMask, i))
+            {
+              L7_BOOL intfIsSnooping = dsIntfIsSnooping(i);
+              if (L7_VLAN_ISMASKBITSET ( dsIntfInfo[i].dsVlans,i))
+              {
+                dsIntfInfo[i].dsNumVlansEnabled--;
+                L7_VLAN_CLRMASKBIT(dsIntfInfo[i].dsVlans, i);
+                if (intfIsSnooping && !dsIntfIsSnooping(i))
+                {
+                  dsIntfDisable(i);
+                } 
+              }
+            }
+          }
+        }
+      }
+    }
+    numVlans++;
+  }
+
+  vlanData.numVlans = tempNumVlans;
+  if (tempNumVlans == 1)
+  {
+    /* If only one vlan Id with Snooping enabled is found, 
+       then move that vlanId to the appropriate place holder 
+       in the vlanData structure. */
+    vlanData.data.vlanId = vlanIdTemp;
+  }
+
+  if (event != VLAN_DELETE_PENDING_NOTIFY && vlanData.numVlans > 0)
+  {
+    /* process event on our thread */
+    memset( (void *)&msg, 0, sizeof(dsEventMsg_t) );
+    msg.msgType = DS_VLAN_EVENT;
+    memcpy(&msg.dsMsgData.vlanEvent.vlanData, &vlanData, sizeof(dot1qNotifyData_t));
+    msg.dsMsgData.vlanEvent.intIfNum = intIfNum;
+    msg.dsMsgData.vlanEvent.vlanEventType = event;
+  
+    rc = osapiMessageSend(Ds_Event_Queue, &msg, sizeof(dsEventMsg_t), 
+                          L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+    if (rc == L7_SUCCESS)
+    {
+      osapiSemaGive(dsMsgQSema);
+    }
+    else
+    {
+      static L7_uint32 lastMsg = 0;
+      dsInfo->debugStats.eventMsgTxError++;
+      if (osapiUpTimeRaw() > lastMsg)
+      {
+        lastMsg = osapiUpTimeRaw();
+        L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
+                "Failed to queue VLAN event to DHCP snooping thread.");
+      }
+    }
+  }
+  osapiReadLockGive(dsCfgRWLock);
+  return rc;
+}
+
+/*********************************************************************
+* @purpose  Process VLAN event caught in dsVlanChangeCallback().
+*
+* @param    vlanId     @b{(input)}   VLAN ID
+* @param    intIfnum   @b{(input)}   internal interface whose state has changed
+* @param    event      @b{(input)}   VLAN event (see vlanNotifyEvent_t for list)
+*                                   
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    Called on DHCP snooping thread.
+*
+* @end
+*********************************************************************/
+L7_RC_t dsVlanEventProcess(dot1qNotifyData_t *pVlanData, L7_uint32 intIfNum, L7_uint32 event)
+{
+  L7_uint32 i, vlanId = 0, numVlans = 0;
+  /* Remember port state before VLAN event */
+  L7_BOOL intfIsSnooping = dsIntfIsSnooping(intIfNum);
+
+  for (i = 1; i<=L7_VLAN_MAX_MASK_BIT; i++) 
+  {
+    if (pVlanData->numVlans == 1) 
+    {
+      vlanId = pVlanData->data.vlanId;
+      /* For any continue, we will break out */
+      i = L7_VLAN_MAX_MASK_BIT + 1;
+    }
+    else
+    {
+      if (L7_VLAN_ISMASKBITSET(pVlanData->data.vlanMask,i)) 
+      {
+        vlanId = i;
+      }
+      else
+      {
+        if (numVlans == pVlanData->numVlans) 
+        {
+          /* Already taken care of all the bits in the mask so break out of for loop */
+          break;
+        }
+        else
+        {
+          /* Vlan is not set check for the next bit since there are more bits that are set*/
+          continue;
+        }
+      }
+    }
+
+    switch (event)
+    {
+      case VLAN_ADD_PORT_NOTIFY:
+        if (_dsVlanEnableGet(vlanId))
+        {
+          if (! L7_VLAN_ISMASKBITSET(dsIntfInfo[intIfNum].dsVlans,vlanId))
+          {
+            /* DHCP snooping enabled on this VLAN. Increment VLAN count on port. */
+            dsIntfInfo[intIfNum].dsNumVlansEnabled++;
+            if ((dsCfgData->dsGlobalAdminMode == L7_ENABLE) &&
+               !intfIsSnooping && dsIntfIsSnooping(intIfNum))
+            {
+              /* Adding port to the VLAN enabled DHCP snooping on the port. */
+              dsIntfEnable(intIfNum);
+            }
+            L7_VLAN_SETMASKBIT (dsIntfInfo[intIfNum].dsVlans, vlanId);
+          }
+        }
+        break;
+  
+      case VLAN_DELETE_PORT_NOTIFY:
+        if (_dsVlanEnableGet(vlanId))
+        {
+          if (L7_VLAN_ISMASKBITSET(dsIntfInfo[intIfNum].dsVlans, vlanId))
+          {
+            if (dsIntfInfo[intIfNum].dsNumVlansEnabled != 0)
+            {
+              dsIntfInfo[intIfNum].dsNumVlansEnabled--;
+              if (intfIsSnooping && !dsIntfIsSnooping(intIfNum))
+              {
+               /* Removing port from VLAN disabled snooping on VLAN. */
+               dsIntfDisable(intIfNum);
+              }
+            }
+            else
+            {
+              L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+              nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+              L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
+                    "DHCP snooping VLAN count on interface %s is bad.", ifName);
+            }
+            L7_VLAN_CLRMASKBIT (dsIntfInfo[intIfNum].dsVlans,vlanId);
+          }
+        }
+        break;
+  
+      case VLAN_DELETE_PENDING_NOTIFY:
+        /* handled in callback */
+        break;
+  
+      default:
+        /* do nothing */
+        break;
+    }
+    numVlans++;
+  }
+
+  return L7_SUCCESS;
+}
+
+
+/*********************************************************************
+* @purpose  Take a peek at incoming IP packets. If DHCP, snoop them.
+*
+* @param    hookId        The hook location
+* @param    bufHandle     Handle to the frame to be processed
+* @param    *pduInfo      Pointer to info about this frame
+* @param    continueFunc  Optional pointer to a continue function
+*
+* @returns  SYSNET_PDU_RC_CONSUMED  if frame has been consumed; stop processing it
+* @returns  SYSNET_PDU_RC_IGNORED   if frame has been ignored; continue processing it
+*
+* @notes    don't barf on IP packets with options
+*
+* @end
+*********************************************************************/
+SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
+                                  L7_netBufHandle bufHandle,
+                                  sysnet_pdu_info_t *pduInfo,
+                                  L7_FUNCPTR_t continueFunc)
+{
+  L7_ipHeader_t *ipHeader;
+  L7_udp_header_t *udpHeader;
+  L7_dhcp_packet_t *dhcpPacket;
+  L7_uint32 rc;
+  L7_uint32 len, ethHeaderSize;
+  L7_uchar8 *data, sysMacAddr[L7_MAC_ADDR_LEN];
+  L7_uint32 vlanId, innerVlanId = 0;
+  L7_uint16 original_vlan;
+#if defined(L7_ROUTING_PACKAGE) || defined(L7_DHCPS_PACKAGE)
+  L7_uint32 mode;
+#endif
+
+  if (ptin_debug_dhcp)
+  {
+    printf("\r\n%s(%d) Starting: interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,pduInfo->intIfNum,pduInfo->vlanId);
+  }
+
+  if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+  {
+    L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+    osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                  "(%s)Packet rx'ed at DHCP intercept, vlanId = %d, inner vlanId = %d",
+                  __FUNCTION__, pduInfo->vlanId, pduInfo->innerVlanId);
+    dsTraceWrite(traceMsg);
+  }
+  /* Shouldn't get packets if DHCP snooping disabled, but if we do, ignore them. */
+  if (dsCfgData->dsGlobalAdminMode != L7_ENABLE )
+  {
+    #ifdef L7_DHCP_L2_RELAY_PACKAGE
+    if (dsCfgData->dsL2RelayAdminMode != L7_ENABLE)
+    {
+      if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS)
+      {
+        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                    "(%s)Packet rx'ed is ignored as neither GBL Snooping nor L2 Relay is enabled at DHCP intercept.",
+                      __FUNCTION__);
+        dsTraceWrite(traceMsg);
+      }
+      if (ptin_debug_dhcp)
+      {
+        printf("%s(%d) Packet discarded on interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,pduInfo->intIfNum,pduInfo->vlanId);
+      }
+      return SYSNET_PDU_RC_IGNORED;
+    }
+    #else
+    if (ptin_debug_dhcp)
+    {
+      printf("%s(%d) Packet discarded on interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,pduInfo->intIfNum,pduInfo->vlanId);
+    }
+    return SYSNET_PDU_RC_IGNORED;
+    #endif
+  }
+
+  /* If either DHCP snooping or the L2 Relay is not enabled on
+     rx interface, ignore packet. */
+  if (dsIntfIsSnooping(pduInfo->intIfNum) == L7_FALSE ) 
+  {
+    #ifdef L7_DHCP_L2_RELAY_PACKAGE
+    if ( _dsIntfL2RelayGet(pduInfo->intIfNum) == L7_FALSE)
+    {
+      if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS)
+      {
+        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                    "(%s)Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.",
+                      __FUNCTION__);
+        dsTraceWrite(traceMsg);
+      }
+      if (ptin_debug_dhcp)
+      {
+        printf("%s(%d) Packet discarded on interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,pduInfo->intIfNum,pduInfo->vlanId);
+      }
+      return SYSNET_PDU_RC_IGNORED;
+    }
+    #else
+    if (ptin_debug_dhcp)
+    {
+      printf("%s(%d) Packet discarded on interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,pduInfo->intIfNum,pduInfo->vlanId);
+    }
+    return SYSNET_PDU_RC_IGNORED;
+    #endif
+  }
+
+  SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, data);
+  SYSAPI_NET_MBUF_GET_DATALENGTH(bufHandle, len);
+  ethHeaderSize = sysNetDataOffsetGet(data);
+  ipHeader = (L7_ipHeader_t*)(data + ethHeaderSize);
+
+  if (((ipHeader->iph_versLen & 0xF0) == (L7_IP_VERSION << 4)) &&
+      (ipHeader->iph_prot == IP_PROT_UDP))
+  {
+    if (((osapiNtohl(ipHeader->iph_src) & L7_CLASS_D_ADDR_NETWORK) == L7_CLASS_D_ADDR_NETWORK) ||
+        ((osapiNtohl(ipHeader->iph_src) & L7_CLASS_E_ADDR_NETWORK) == L7_CLASS_E_ADDR_NETWORK))
+    {
+      /* Illegal src IP in DHCP packet. Ignore it. */
+      dsInfo->debugStats.badSrcAddr++;
+      if (ptin_debug_dhcp)
+      {
+        printf("%s(%d) Packet discarded on interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,pduInfo->intIfNum,pduInfo->vlanId);
+      }
+      return SYSNET_PDU_RC_IGNORED;
+    }
+    udpHeader = (L7_udp_header_t *)((L7_char8 *)ipHeader + dsIpHdrLen(ipHeader));
+    if ((osapiNtohs(udpHeader->destPort) == UDP_PORT_DHCP_SERV) ||
+        (osapiNtohs(udpHeader->destPort) == UDP_PORT_DHCP_CLNT))
+
+      {
+      /* This is used only when the packet comes double tagged.*/
+      // PTin added
+      if (ptin_intif_oldvlan_translate_get(pduInfo->intIfNum, &original_vlan, pduInfo->vlanId)!=L7_SUCCESS ||
+          original_vlan<=L7_DOT1Q_MIN_VLAN_ID || original_vlan>L7_DOT1Q_MAX_VLAN_ID)  {
+        original_vlan = pduInfo->vlanId;
+      }
+      vlanId = original_vlan; //pduInfo->vlanId;      // PTin modified
+      innerVlanId = pduInfo->innerVlanId;
+      if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+      {
+        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                      "(%s)Packet rx'ed Dot1q VLAN Id (%d) length(%d)",
+                      __FUNCTION__, vlanId, len);
+        dsTraceWrite(traceMsg);
+      }
+      if ( dsRateLimitFilter(pduInfo))
+      {
+        if (ptin_debug_dhcp)
+        {
+          printf("%s(%d) Packet discarded on interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,pduInfo->intIfNum,vlanId);
+        }
+        SYSAPI_NET_MBUF_FREE(bufHandle);
+        return SYSNET_PDU_RC_CONSUMED;
+      }
+
+      if (ptin_debug_dhcp)
+      {
+        printf("%s(%d) Going to dsPacketQueue: interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,pduInfo->intIfNum,vlanId);
+      }
+      rc = dsPacketQueue(data, len, vlanId, pduInfo->intIfNum, innerVlanId);
+
+      if (rc == L7_REQUEST_DENIED) /* DHCP Message got filtered, So Ignore
+                                      For further processing */
+      {
+        if (ptin_debug_dhcp)
+        {
+          printf("%s(%d) Packet discarded on interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,pduInfo->intIfNum,vlanId);
+        }
+        dsInfo->debugStats.msgsIntercepted++;
+        ptin_dhcp_stat_increment_field(pduInfo->intIfNum, original_vlan, pduInfo->innerVlanId, DHCP_STAT_FIELD_RX_INTERCEPTED);
+        SYSAPI_NET_MBUF_FREE(bufHandle);
+        return SYSNET_PDU_RC_CONSUMED;
+      } 
+      if (rc == L7_SUCCESS) 
+      {
+        if (ptin_debug_dhcp)
+        {
+          printf("%s(%d) Packet intercepted in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,pduInfo->intIfNum,vlanId);
+        }
+
+        dsInfo->debugStats.msgsIntercepted++;
+        ptin_dhcp_stat_increment_field(pduInfo->intIfNum, original_vlan, pduInfo->innerVlanId, DHCP_STAT_FIELD_RX_INTERCEPTED);
+
+        /* If the DHCP reply message is destined for the DHCP CLIENT running on the 
+           switch itself, then ignore the packet.*/
+        dhcpPacket = (L7_dhcp_packet_t*)((L7_char8 *)udpHeader + sizeof(L7_udp_header_t));
+
+        simGetSystemIPBurnedInMac(sysMacAddr);
+        if (memcmp(dhcpPacket->chaddr, sysMacAddr, L7_MAC_ADDR_LEN) == L7_NULL)
+        {
+          return SYSNET_PDU_RC_IGNORED;
+        }
+
+#ifdef L7_ROUTING_PACKAGE
+        if ((ihAdminModeGet(&mode) == L7_SUCCESS) && (mode == L7_ENABLE))
+        {
+          return SYSNET_PDU_RC_IGNORED;
+        }
+#endif /* if Relay agent is there */
+#ifdef L7_DHCPS_PACKAGE
+        if ((usmDbDhcpsAdminModeGet(0, &mode) == L7_SUCCESS) &&
+            (mode == L7_ENABLE))
+        {
+          return SYSNET_PDU_RC_IGNORED;
+        }
+#endif /* If DHCP server is there */
+        if (_dsIntfTrustGet(pduInfo->intIfNum)) /* Trusted port */
+        {
+          return SYSNET_PDU_RC_IGNORED;
+        }
+        SYSAPI_NET_MBUF_FREE(bufHandle);
+        return SYSNET_PDU_RC_CONSUMED;
+      }
+   }
+ }
+
+  return SYSNET_PDU_RC_IGNORED;
+}
+
+/*********************************************************************
+* @purpose  Queue a DHCP packet for processing on our own thread
+*
+*
+* @param    ethHeader    @b{(input)} ethernet frame
+* @param    dataLen      @b{(input)} length of ethernet frame
+* @param    vlanId       @b{(input)} Vlan ID 
+* @param    intIfNum     @b{(input)} port where packet arrived
+* @param    innerVlanId  @b{(input)} port where packet arrived
+*
+* @returns  L7_SUCCESS
+*
+* @notes    vlanId represents the existing VLANID if single tagged,
+*                  represents the outer tag if double tagged.
+*           innerVlanId represents the inner tag if double tagged.  
+*
+* @end
+*********************************************************************/
+L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
+                      L7_ushort16 vlanId, L7_uint32 intIfNum, 
+                      L7_ushort16 innerVlanId)
+{
+    dsFrameMsg_t dsFrameMsg;
+
+    L7_udp_header_t *udp_header;
+    L7_dhcp_packet_t *dhcpPacket;
+    L7_ushort16 ipPktLen;
+    L7_ushort16 dhcpPktLen;
+    L7_ushort16 ethHdrLen;
+    L7_ipHeader_t *ipHeader;
+    L7_ushort16 ipHdrLen; 
+
+    memcpy(&dsFrameMsg.frameBuf, ethHeader, dataLen);
+    dsFrameMsg.rxIntf = intIfNum;
+    dsFrameMsg.vlanId = vlanId;
+    dsFrameMsg.frameLen = dataLen;
+    /* Useful only when processing DHCP replies in Metro networks. */
+    dsFrameMsg.innerVlanId = innerVlanId; 
+
+    ethHdrLen = sysNetDataOffsetGet(ethHeader);
+    ipHeader = (L7_ipHeader_t*)(ethHeader+ethHdrLen);
+    ipHdrLen = dsIpHdrLen(ipHeader);
+
+    /* Filter the DHCP messages based on rules */
+
+    udp_header = (L7_udp_header_t *)((L7_char8 *)ipHeader + ipHdrLen);
+    dhcpPacket = (L7_dhcp_packet_t*)((L7_char8 *)udp_header + sizeof(L7_udp_header_t));
+    ipPktLen = osapiNtohs(ipHeader->iph_len);
+    dhcpPktLen = ipPktLen - ipHdrLen - sizeof(L7_udp_header_t);
+
+    if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+    {
+      L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
+      L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+      L7_dhcp_pkt_type_t dhcpPktType = dsPacketType(dhcpPacket, dhcpPktLen);;
+      nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+      osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN,
+                  "(%s)DHCP snooping received %s on interface %s in VLAN %u.", __FUNCTION__,
+                  dhcpMsgTypeNames[dhcpPktType], ifName, vlanId);
+      dsTraceWrite(dsTrace);
+    }
+    if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX_DETAIL)
+    {
+      dsLogEthernetHeader((L7_enetHeader_t*) ethHeader, DS_TRACE_CONSOLE);
+      dsLogIpHeader(ipHeader, DS_TRACE_CONSOLE);
+      dsLogDhcpPacket(dhcpPacket, DS_TRACE_CONSOLE);
+    }
+
+   /* Filter DHCP packet based on security rules */
+   if (dsFrameFilter(intIfNum, vlanId, ethHeader, ipHeader, innerVlanId))
+   {
+    dsInfo->debugStats.msgsFiltered++;
+    ptin_dhcp_stat_increment_field(intIfNum, vlanId, innerVlanId, DHCP_STAT_FIELD_RX_FILTERED);
+    return L7_REQUEST_DENIED;
+   }
+   dsInfo->debugStats.msgsReceived++;
+   ptin_dhcp_stat_increment_field(intIfNum, vlanId, innerVlanId, DHCP_STAT_FIELD_RX);
+   if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+   {
+     L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+     osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                   "(%s)Packet frameLen = %d ",__FUNCTION__, dataLen );
+     dsTraceWrite(traceMsg);
+   }
+   if (osapiMessageSend(Ds_Packet_Queue, &dsFrameMsg, sizeof(dsFrameMsg_t), L7_NO_WAIT,
+                         L7_MSG_PRIORITY_NORM) == L7_SUCCESS)
+   {
+     osapiSemaGive(dsMsgQSema);
+   }
+   else
+   {
+     /* This may be fairly normal, so don't log. DHCP should recover. */
+     dsInfo->debugStats.frameMsgTxError++;
+   }
+   return L7_SUCCESS;
+}
+
+/*********************************************************************
+* @purpose  Process a DHCP packet on DHCP snooping thread
+*
+* @param    intIfNum @b{(input)} receive interface
+* @param    vlanId   @b{(input)} VLAN ID
+* @param    frame    @b{(input)} ethernet frame
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t dsFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId,
+                       L7_uchar8 *frame, L7_uint32 frameLen,
+                       L7_ushort16 innerVlanId)
+{
+  L7_udp_header_t *udp_header;
+  L7_dhcp_packet_t *dhcpPacket;
+  L7_ushort16 ipPktLen;
+  L7_ushort16 dhcpPktLen;
+  L7_ushort16 ethHdrLen = sysNetDataOffsetGet(frame);
+  L7_ipHeader_t *ipHeader = (L7_ipHeader_t*)(frame + ethHdrLen);
+  L7_ushort16 ipHdrLen = dsIpHdrLen(ipHeader);
+  L7_RC_t rc = L7_FAILURE;
+#ifdef L7_DHCP_L2_RELAY_PACKAGE
+  dsRelayAgentInfo_t relayAgentInfo;
+  L7_ushort16  vlanIdFwd = 0;
+#endif
+
+  if (ptin_debug_dhcp)
+  {
+    printf("%s(%d) DHCP Packet is going to processed (interface=%u, with vlan=%u)\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+  }
+
+  // PTin added
+  // Use correct vlan
+  frame[14] &= 0xF0;
+  frame[15] &= 0x00;
+  frame[14] |= (vlanId>>8) & 0x0F;
+  frame[15] |= vlanId & 0xFF;
+
+  L7_uint32 relayOptIntIfNum = 0;
+  
+  udp_header = (L7_udp_header_t *)((L7_char8 *)ipHeader + ipHdrLen);
+  dhcpPacket = (L7_dhcp_packet_t*)((L7_char8 *)udp_header + sizeof(L7_udp_header_t));
+  ipPktLen = osapiNtohs(ipHeader->iph_len);
+  dhcpPktLen = ipPktLen - ipHdrLen - sizeof(L7_udp_header_t);
+  if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+  {
+    L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+    osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                  "(%s) Packet frameLen = %d, initial UDP length = %d ",__FUNCTION__, frameLen,
+                  udp_header->length );
+    dsTraceWrite(traceMsg);
+  }
+
+  if (ptin_debug_dhcp)
+  {
+      printf("%s(%d) dsCfgData->dsGlobalAdminMode=%u dsIntfIsSnooping(intIfNum)=%u\r\n", __FUNCTION__, __LINE__,dsCfgData->dsGlobalAdminMode,dsIntfIsSnooping(intIfNum));
+  }
+
+  /* Update Binding database only when DHCP Snooping is enabled and 
+     the interface is untrusted Snooping-wise. */
+  if ((dsCfgData->dsGlobalAdminMode == L7_TRUE) &&
+      (dsIntfIsSnooping(intIfNum) == L7_TRUE))
+  {
+    if ( (_dsVlanEnableGet(vlanId) != L7_TRUE) &&
+         (_dsIntfTrustGet(intIfNum) != L7_TRUE) 
+       ) /* For trusted ports we need to forward the DHCP requests as snooping is not needed  
+            on trusted ports */ 
+    {
+      /* DHCP Snooping is disabled which means we have to drop the packet.*/
+      if (dsCfgData->dsTraceFlags & DS_TRACE_VLAN_EVENTS)
+      {
+        L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
+        L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+        L7_dhcp_pkt_type_t dhcpPktType = dsPacketType(dhcpPacket, dhcpPktLen);;
+
+        nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+        osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN, 
+                      "(%s)DHCP Snooping is not enabled on SVLAN %u for DHCP pkt(%s) on iface %s in VLAN %u.",
+                      __FUNCTION__,
+                      vlanId, dhcpMsgTypeNames[dhcpPktType], ifName, vlanId);
+        dsTraceWrite(dsTrace);
+      }
+      return L7_FAILURE;
+    }
+
+    if ((dhcpPacket->op == L7_DHCP_BOOTP_REPLY) ||
+        (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST && (_dsIntfTrustGet(intIfNum) != L7_TRUE)))
+    {
+      /* Update bindings database. If this is a client message, yiaddr will be 0. 
+       * But we want to enter a temporary binding so we can learn the port where
+       * the client resides. Then when the server responds, we'll add yiaddr to
+       * the binding and be able to forward the reply to the client. */
+      rc = dsBindingExtract(intIfNum, vlanId, innerVlanId, dhcpPacket, dhcpPktLen);
+
+      if ( rc == L7_REQUEST_DENIED) /* DHCP Request is denied as static entry exists
+                                       already */
+      {
+        L7_LOG(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
+               "DHCP request is denied as staic entry for this MAC exists.\r\n");
+        return rc; 
+      }
+    }
+  }
+
+#ifdef  L7_DHCP_L2_RELAY_PACKAGE
+  /* Do Option-82 processing if L2 Relay is enabled*/
+  if (dsCfgData->dsL2RelayAdminMode == L7_TRUE &&
+      _dsIntfL2RelayGet(intIfNum) == L7_TRUE)
+  {
+    /* all filterations for server replies are done even before the 
+       frame is posted to DHCP task. So the server frame here is
+       expected to be valid. If the packet has come with Option-82 
+       it needs to removed before relaying back to the client.*/
+    if (dhcpPacket->op == L7_DHCP_BOOTP_REPLY)
+    {
+      memset(&relayAgentInfo, 0, sizeof(dsRelayAgentInfo_t));
+      if (dsRelayAgentInfoRemoveOrGet(frame, &frameLen, dhcpPacket, dhcpPktLen,
+                                  L7_TRUE, &relayAgentInfo) != L7_SUCCESS)
+      {
+        if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_SERVER)
+        {
+          L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
+          L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+          L7_dhcp_pkt_type_t dhcpPktType = dsPacketType(dhcpPacket, dhcpPktLen);;
+          nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+          osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN, 
+                        "(%s)DHCP L2 Relay failed to remove Option-82 from server reply(%s) on iface %s in VLAN %u.",
+                        __FUNCTION__, dhcpMsgTypeNames[dhcpPktType], ifName, vlanId);
+          dsTraceWrite(dsTrace);
+        }
+        return L7_FAILURE;
+      }
+
+      if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+      {
+        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                      "(%s) Packet frameLen = %d after Option-82 Removal from DHCP Reply",__FUNCTION__, frameLen );
+        dsTraceWrite(traceMsg);
+      }
+      relayOptIntIfNum = relayAgentInfo.intIfNum;
+    }
+    /* all filterations for client requests are done even before the 
+       frame is posted to DHCP task. So the client frame here may or may not
+       have Option-82. Add Option-82 to the frame, if it does not have, before 
+       forwarding to the server.*/
+    else if (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST)
+    {
+      /* This 'intIfNumFwd' field is applicable only for L2 Relay server messages.*/
+      relayOptIntIfNum = 0; 
+
+      if (dsL2RelayServiceIsEnabled(intIfNum, vlanId, innerVlanId) == L7_FALSE)
+      {
+        if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT)
+        {
+          L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
+          L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+          L7_dhcp_pkt_type_t dhcpPktType = dsPacketType(dhcpPacket, dhcpPktLen);;
+          nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+          osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN, 
+                        "(%s)DHCP L2 Relay is not enabled on SVLAN %u for client request(%s) on iface %s in VLAN %u.",
+                        __FUNCTION__, vlanId, dhcpMsgTypeNames[dhcpPktType], ifName, vlanId);
+          dsTraceWrite(dsTrace);
+        }
+        return L7_FAILURE;
+      }
+      /* This function adds Option-82 only if it does not already exists.*/
+      if (dsRelayAgentInfoAdd(intIfNum, vlanId, innerVlanId, frame, &frameLen)
+                              != L7_SUCCESS)
+      {
+        if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT)
+        {
+          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                        "(%s)Failed to add DHCP Option-82 for Client request on SVLAN %d",
+                        __FUNCTION__, vlanIdFwd);
+          dsTraceWrite(traceMsg);
+        }
+        return L7_FAILURE;
+      }
+
+      if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
+      {
+        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                      "(%s)Packet frameLen = %d after Option-82 addition from DHCP Reply",__FUNCTION__, frameLen );
+        dsTraceWrite(traceMsg);
+      }
+    }
+  }
+#endif
+
+  /* Forward packet */
+  if (dsFrameForward(intIfNum, vlanId, frame, frameLen,
+                     innerVlanId, relayOptIntIfNum)
+                     == L7_SUCCESS)
+  {
+    dsInfo->debugStats.msgsForwarded++;
+  }
+
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
+* @purpose  Apply security filtering rules to received DHCP packet.
+*
+* @param    intIfNum @b{(input)} receive interface
+* @param    vlanId   @b{(input)} VLAN ID
+* @param    frame    @b{(input)} ethernet frame
+* @param    ipHeader @b{(input)} IP header inside frame
+*
+* @returns  L7_TRUE if frame is filtered
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_BOOL dsFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId, 
+                      L7_uchar8 *frame, L7_ipHeader_t *ipHeader,
+                      L7_ushort16 innerVlanId)
+{
+
+  /* Discard server packets received on untrusted ports */
+  if (dsFilterServerMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId))
+  {
+    if (ptin_debug_dhcp)
+    {
+      printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+    }
+      return L7_TRUE;
+  }
+
+  /* Discard certain client messages based on rx interface */
+  if (dsFilterClientMessage(intIfNum, vlanId, frame, ipHeader, innerVlanId))
+  {
+    if (ptin_debug_dhcp)
+    {
+      printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+    }
+     return L7_TRUE;
+  }
+
+  /* Verify that the source MAC matches the client hw address */
+  if (dsFilterVerifyMac(intIfNum, vlanId, frame, ipHeader))
+  {
+    if (ptin_debug_dhcp)
+    {
+      printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+    }
+    return L7_TRUE;
+  }
+
+  return L7_FALSE;
+}
+/*********************************************************************
+* @purpose  Adds Double DVLAN tag with specified SVLANID.
+*
+* @param    intIfNum  @b{(input)} the received interface
+* @param    vlanId    @b{(output)} the outer VLANId to be added.
+* @param    frame     @b{(input)} Pointer to DHCP frame
+* @param    frameLen  @b{(inout)} Length of the frame
+* @param    innerVlanId   @b{(output)} the inner VLANId to be added.
+* @param    frameOut  @b{(output)} The output frame.
+*
+* @returns  none
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+void dsFrameDoubleVlanTagAdd(L7_uint32 intIfNum, L7_uint32 vlanId, L7_uchar8 *frame,
+                       L7_ushort16 *frameLen, L7_ushort16 innerVlanId, L7_uchar8 *frameOut)
+{
+  L7_uchar8 *frameTx = frameOut, *frameTempPtr= L7_NULLPTR;
+  L7_8021QTag_t cVlanTag, *sVlanTag = L7_NULLPTR;
+  L7_ushort16 dvlanEthTypeTemp = 0x0;
+#ifdef L7_DVLAN_PACKAGE
+  L7_uint32  dvlanEthType = 0x0000;
+#endif
+
+
+  if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+  {
+    L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+    memset(traceMsg, 0, DS_MAX_TRACE_LEN);
+    osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                  "(%s)The given frame len : %d, cVlanId = %d, sVlanId = %d", 
+                  __FUNCTION__, *frameLen, innerVlanId, vlanId);
+    dsTraceWrite(traceMsg);
+  }
+
+  frameTempPtr = frameTx;
+
+#ifdef L7_DVLAN_PACKAGE
+  if (usmDbComponentPresentCheck(simGetThisUnit(), L7_DVLANTAG_COMPONENT_ID) == L7_TRUE)
+  {
+    if (dvlantagIntfEthertypeGet(intIfNum , &dvlanEthType, 0) != L7_SUCCESS)
+    {
+      if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+      {
+        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+        memset(traceMsg, 0, DS_MAX_TRACE_LEN);
+        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                      "(%s)Failed to get given DVLAN ethernet type = %x",__FUNCTION__, dvlanEthType);  
+        dsTraceWrite(traceMsg);
+      }
+      return;
+    }
+    dvlanEthTypeTemp = dvlanEthType;
+  }
+#endif
+
+  if (innerVlanId != L7_NULL)
+  {
+    /* This may need to be updated with proper priority*/
+    memset(&cVlanTag, 0, sizeof(L7_8021QTag_t));
+    cVlanTag.tci = innerVlanId;
+    cVlanTag.tpid = FD_DVLANTAG_802_1Q_ETHERTYPE;
+  }
+  
+  memset(frameTx, 0, DS_DHCP_PACKET_SIZE_MAX);
+  memcpy(frameTx, frame, L7_ENET_HDR_SIZE) ;
+  frameTx = frameTx + L7_ENET_HDR_SIZE;
+  sVlanTag = (L7_8021QTag_t *)(frame + L7_ENET_HDR_SIZE);
+  memcpy(frameTx, &dvlanEthTypeTemp, sizeof(L7_ushort16));
+  frameTx = frameTx + sizeof(L7_ushort16);
+  memcpy(frameTx, &(sVlanTag->tci), sizeof(L7_ushort16));
+  frameTx = frameTx + sizeof(L7_ushort16);
+
+  if (innerVlanId != L7_NULL)
+  {
+    memcpy(frameTx,  &cVlanTag, sizeof(L7_8021QTag_t));
+    frameTx = frameTx + sizeof(L7_8021QTag_t);
+  }
+  memcpy(frameTx, frame + L7_ENET_HDR_SIZE + sizeof(L7_8021QTag_t),
+         (*frameLen - (L7_ENET_HDR_SIZE + sizeof(L7_8021QTag_t))));
+  if (innerVlanId != L7_NULL)
+  {
+    *frameLen = *frameLen + sizeof(L7_8021QTag_t);
+  }
+  return;
+
+}
+
+/*********************************************************************
+* @purpose  Removes Dot1q VLAN tag and gets the VLAN Id.
+*
+* @param    frame     @b{(input)} Pointer to DHCP frame
+* @param    frameLen  @b{(inout)} Length of the frame
+* @param    frameOut  @b{(output)} The output frame.
+*
+* @returns  none
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+void dsFrameVlanTagRemove(L7_uchar8 *frame, L7_ushort16 *frameLen,
+                          L7_uchar8 *frameOut)
+{
+  L7_uchar8 *frameTx = frameOut, *frameTxTemp = L7_NULLPTR;
+  L7_ushort16 innerTagOffset = 0;
+
+  if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+  {
+    L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+    memset(traceMsg, 0, DS_MAX_TRACE_LEN);
+    osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                  "(%s)The given frame len : %d", __FUNCTION__, *frameLen);
+    dsTraceWrite(traceMsg);
+  }
+  frameTxTemp = frameTx;
+
+  memset(frameTx, 0, DS_DHCP_PACKET_SIZE_MAX);
+  memcpy(frameTx, frame, sizeof(L7_enetHeader_t));
+  innerTagOffset = sizeof(L7_enetHeader_t) + sizeof(L7_8021QTag_t);
+  memcpy((frameTx + sizeof(L7_enetHeader_t)),
+         (frame + innerTagOffset), ((*frameLen) - sizeof(L7_8021QTag_t)));
+  *frameLen = *frameLen - sizeof(L7_8021QTag_t);
+
+  return;
+}
+/*********************************************************************
+* @purpose  Adds Single Outer DVLAN tag with specified SVLANID.
+*
+* @param    intIfNum  @b{(input)} the received interface
+* @param    frame     @b{(input)} Pointer to DHCP frame
+* @param    frameLen  @b{(inout)} Length of the frame
+* @param    sVlanId   @b{(output)} the outer VLANId to be added.
+* @param    frameOut  @b{(output)} The output frame.
+*
+* @returns  none
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+void dsFrameSVlanTagAdd(L7_uint32 intIfNum, L7_uchar8 *frame, L7_ushort16 *frameLen,
+                        L7_ushort16 sVlanId, L7_uchar8 *frameOut)
+{
+  L7_uchar8 *frameTx = frameOut, *frameTxTemp = L7_NULLPTR;
+  L7_ushort16 dvlanEthType=0x00;
+#ifdef L7_DVLAN_PACKAGE
+    L7_uint32 dEthType = 0x0000;
+#endif
+
+  if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+  {
+    L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+    memset(traceMsg, 0, DS_MAX_TRACE_LEN);
+    osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                  "(%s)The given frame len : %d", __FUNCTION__, *frameLen);
+    dsTraceWrite(traceMsg);
+  }
+  frameTxTemp = frameTx;
+
+#ifdef L7_DVLAN_PACKAGE
+  if (usmDbComponentPresentCheck(simGetThisUnit(), L7_DVLANTAG_COMPONENT_ID) == L7_TRUE)
+  {
+    if (dvlantagIntfEthertypeGet(intIfNum , &dEthType, 0) != L7_SUCCESS)
+    {
+      if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+      {
+        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+        memset(traceMsg, 0, DS_MAX_TRACE_LEN);
+        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                      "(%s)Failed to get given DVLAN ethernet type = %x",__FUNCTION__, dvlanEthType);  
+        dsTraceWrite(traceMsg);
+      }
+      return;
+    }
+    dvlanEthType = dEthType;
+  }
+  else
+  {
+    if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+    {
+      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+      memset(traceMsg, 0, DS_MAX_TRACE_LEN);
+      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                    "(%s)Failed to get given DVLAN ethernet type, as DVLAN component is not present",
+                   __FUNCTION__);
+      dsTraceWrite(traceMsg);
+    }
+    return;
+  }
+#endif
+
+  memset(frameTx, 0, DS_DHCP_PACKET_SIZE_MAX);
+  memcpy(frameTx, frame, L7_ENET_HDR_SIZE) ;
+  frameTx = frameTx + L7_ENET_HDR_SIZE;
+  memcpy(frameTx, &dvlanEthType, sizeof(L7_ushort16));
+  frameTx = frameTx + sizeof(L7_ushort16);
+  memcpy(frameTx, &sVlanId, sizeof(L7_ushort16));
+  frameTx = frameTx + sizeof(L7_ushort16);
+
+  memcpy(frameTx, 
+         frame + L7_ENET_HDR_SIZE + sizeof(L7_8021QTag_t),
+        (*frameLen - (L7_ENET_HDR_SIZE + sizeof(L7_8021QTag_t))));
+
+  return;
+}
+/*********************************************************************
+* @purpose  Adds inner DOT1Q tag with specified VLANID.
+*
+* @param    frame     @b{(input)} Pointer to DHCP frame
+* @param    frameLen  @b{(inout)} Length of the frame
+* @param    cVlanId   @b{(output)} the inner VLANId to be inserted.
+* @param    frameOut  @b{(output)} The output frame.
+*
+* @returns  none
+*
+* @notes    In Triumph devices,application gets single
+*           outer tagged frame.This function modifies the
+*           incoming single outer tagged frame as double tagged frame
+*           by inserting inner vlan id.Length of the frame will be
+*           incremented by 4 bytes.
+*
+*
+* @end
+*********************************************************************/
+void dsFrameCVlanTagInsert(L7_uchar8 *frame, L7_ushort16 *frameLen,
+                        L7_ushort16 cVlanId, L7_uchar8 *frameOut)
+{
+  L7_uchar8 *frameTx = frameOut;
+  L7_8021QTag_t *cVlanTag;
+
+  if ((*frameLen + sizeof(L7_8021QTag_t)) > DS_DHCP_PACKET_SIZE_MAX)
+  {
+    if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+    {
+      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+      memset(traceMsg, 0, DS_MAX_TRACE_LEN);
+      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                   "(%s)Max length frame arrived with len:%d, cvlanid = %d", __FUNCTION__,
+                    *frameLen, cVlanId);
+      dsTraceWrite(traceMsg);
+    }
+    return;
+  }
+
+  if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+  {
+    L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+    memset(traceMsg, 0, DS_MAX_TRACE_LEN);
+    osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                  "(%s)The given frame len : %d, cvlanid = %d", __FUNCTION__,
+                   *frameLen, cVlanId);
+    dsTraceWrite(traceMsg);
+  }
+
+  frameTx = frameTx + L7_ENET_HDR_SIZE+sizeof(L7_8021QTag_t);
+  cVlanTag = (L7_8021QTag_t *)frameTx;
+  memcpy(frameTx+sizeof(L7_8021QTag_t), frameTx,
+         *frameLen - (L7_ENET_HDR_SIZE+sizeof(L7_8021QTag_t)));
+
+  cVlanTag->tpid = FD_DVLANTAG_802_1Q_ETHERTYPE;
+  cVlanTag->tci = cVlanId;
+
+  *frameLen = *frameLen + sizeof(L7_8021QTag_t);
+
+   return;
+}
+/*********************************************************************
+* @purpose  Adds inner DOT1Q tag with specified VLANID.
+*
+* @param    frame     @b{(input)} Pointer to DHCP frame
+* @param    frameLen  @b{(inout)} Length of the frame
+* @param    cVlanId   @b{(output)} the inner VLANId to be added.
+* @param    frameOut  @b{(output)} The output frame.
+*
+* @returns  none
+*
+* @notes    In Triumph devices,application gets single
+*           outer tagged frame.This function modifies the 
+*           incoming single outer tagged frame as single inner
+*           tagged frame. Length of the frame will not change in this
+*           case.
+*           
+*
+* @end
+*********************************************************************/
+void dsFrameCVlanTagAdd(L7_uchar8 *frame, L7_ushort16 *frameLen,
+                        L7_ushort16 cVlanId, L7_uchar8 *frameOut)
+{
+  L7_uchar8 *frameTx = frameOut, *frameTxTemp = L7_NULLPTR;
+  L7_8021QTag_t *cVlanTag;
+
+  if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+  {
+    L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+    memset(traceMsg, 0, DS_MAX_TRACE_LEN);
+    osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                  "(%s)The given frame len : %d, cvlanid = %d", __FUNCTION__,
+                   *frameLen, cVlanId);
+    dsTraceWrite(traceMsg);
+  }
+  frameTxTemp = frameTx;
+
+  memset(frameTx, 0, DS_DHCP_PACKET_SIZE_MAX);
+  memcpy(frameTx, frame, L7_ENET_HDR_SIZE) ;
+  frameTx = frameTx + L7_ENET_HDR_SIZE;
+  cVlanTag = (L7_8021QTag_t *)(frame + L7_ENET_HDR_SIZE);
+  if (cVlanTag->tpid == FD_DVLANTAG_802_1Q_ETHERTYPE)
+  {
+    cVlanTag = (L7_8021QTag_t *)(frameTx);
+    cVlanTag->tpid = FD_DVLANTAG_802_1Q_ETHERTYPE;
+    cVlanTag->tci = cVlanId;
+    frameTx = frameTx + sizeof(L7_8021QTag_t);
+    memcpy(frameTx, frame + L7_ENET_HDR_SIZE + sizeof(L7_8021QTag_t),
+           (*frameLen - (L7_ENET_HDR_SIZE + sizeof(L7_8021QTag_t))));
+    return;
+  }
+  else
+  {
+    memcpy(frameTx, frame + L7_ENET_HDR_SIZE,
+           sizeof(L7_8021QTag_t));
+    frameTx = frameTx + sizeof(L7_8021QTag_t);
+    cVlanTag = (L7_8021QTag_t *)(frameTx);
+    if (cVlanTag->tpid == FD_DVLANTAG_802_1Q_ETHERTYPE)
+    {
+      cVlanTag->tci = cVlanId;
+      cVlanTag->tpid = FD_DVLANTAG_802_1Q_ETHERTYPE;
+      frameTx = frameTx + sizeof(L7_8021QTag_t);
+      memcpy(frameTx, frame + L7_ENET_HDR_SIZE + sizeof(L7_8021QTag_t),
+             (*frameLen - (L7_ENET_HDR_SIZE + sizeof(L7_8021QTag_t))));
+      return;
+    }
+  }
+  return;
+}
+#ifdef L7_DHCP_L2_RELAY_PACKAGE
+/*********************************************************************
+* @purpose  Calculates UDP checksum for modified DHCP packet.
+*
+* @param    frame     @b{(input)} Pointer to DHCP frame
+* @param    frameLen  @b{(inout)} Length of the frame
+* @param    added     @b{(input)} the bytes added or deleted.
+* @param    lenChng   @b{(input)} number of the bytes added or deleted.
+*
+* @returns  none
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+void dsUdpCheckSumCalculate(L7_uchar8 *frame, L7_uint32 *frameLen, 
+                            L7_BOOL added, L7_ushort16 lenChng)
+{
+  L7_ushort16 ethHdrLen = sysNetDataOffsetGet(frame);
+  L7_ipHeader_t *ipHeader = (L7_ipHeader_t*)(frame + ethHdrLen);
+  L7_udp_header_t *udp_header;
+  L7_ushort16 ipHdrLen = dsIpHdrLen(ipHeader), proto = IP_PROT_UDP, udpLen = 0;
+  L7_uchar8 *psuedoHdr = dsInfo->pktBuff, *tempPtr = L7_NULLPTR;
+
+  if ((dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT) ||
+      (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_SERVER))
+  {
+    L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+    osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                  "(%s)The length changed (%d) is %s for UDP checksum calculation.",
+                  __FUNCTION__, lenChng, added == L7_TRUE ? "added":"removed");
+    dsTraceWrite(traceMsg);
+  }
+
+  /* Calculate the UDP checksum.*/
+  udp_header = (L7_udp_header_t *)((L7_char8 *)ipHeader + ipHdrLen);
+  udp_header->checksum = 0x0000;
+
+  if ((added == L7_TRUE))
+  {
+    udp_header->length = udp_header->length + lenChng;
+    *frameLen = *frameLen + lenChng;
+  }
+  else
+  {
+    udp_header->length = udp_header->length - lenChng;
+    *frameLen = *frameLen - lenChng;
+  }
+  udpLen = osapiHtons(udp_header->length);
+
+  memset(psuedoHdr, 0, DS_DHCP_PACKET_SIZE_MAX);
+  tempPtr = psuedoHdr; /* To store start of the formed psuedoHdr.*/
+  memcpy(psuedoHdr, &(ipHeader->iph_src), 4);
+  psuedoHdr += 4;
+  memcpy(psuedoHdr, &(ipHeader->iph_dst), 4);
+  psuedoHdr += 4;
+  memcpy(psuedoHdr, &proto, 2);
+  psuedoHdr += 2;
+  memcpy(psuedoHdr, &udpLen, 2);
+  psuedoHdr += 2;
+
+  memcpy(psuedoHdr, udp_header, udp_header->length);
+  udp_header->checksum = inetChecksum(tempPtr, ((udp_header->length)+12));
+  /* Reset the packet buffer after usage.*/
+  psuedoHdr = dsInfo->pktBuff;
+  memset(psuedoHdr, 0, DS_DHCP_PACKET_SIZE_MAX);
+
+
+  /* Now calculate the IP checksum.*/
+  if ((added == L7_TRUE))
+  {
+    ipHeader->iph_len = ipHeader->iph_len + lenChng;
+  }
+  else
+  {
+    ipHeader->iph_len = ipHeader->iph_len - lenChng;
+  }  
+  ipHeader->iph_csum = 0x0000;
+  ipHeader->iph_csum = inetChecksum(ipHeader, ipHdrLen);
+
+  if ((dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT) ||
+      (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_SERVER))
+  {
+    L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+    osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                  "(%s)The new UDP length (%d), UDP chksum (%x) IP-len (%d) IP- chksum (%x).",
+                  __FUNCTION__, udp_header->length,udp_header->checksum, ipHeader->iph_len, ipHeader->iph_csum);
+    dsTraceWrite(traceMsg);
+  }
+
+}
+#endif
+/*********************************************************************
+* @purpose  Forwards a DHCP reply packet based on DHCP Snooping
+*           tentative entry.
+*
+* @param    intIfNum   @b{(input)} receive interface
+* @param    vlanId     @b{(input)} VLAN ID
+* @param    macaddr    @b{(input)} MAC address to which the packet 
+*                                  needs to be forwarded. 
+* @param    frame        @b{(input)} ethernet frame
+* @param    frameLen     @b{(input)} ethernet frame length,
+*                                    incl eth header (bytes)
+*
+* @returns  L7_TRUE
+* @returns  L7_FALSE
+*
+* @notes    None.
+*
+* @end
+*********************************************************************/
+L7_RC_t dsReplyFrameForward(L7_uint32 intIfNum, L7_uint32 vlanId, L7_uchar8 *macaddr,
+                          L7_uchar8 *frame, L7_ushort16 frameLen, L7_ushort16 innerVlanId)
+{
+  L7_uint32       mode = 0;
+  L7_ushort16 vlanIdFwd = vlanId;
+  dhcpSnoopBinding_t dsBinding;
+
+  memset(&dsBinding,'\0', sizeof(dhcpSnoopBinding_t));
+  memcpy(dsBinding.macAddr, macaddr, L7_ENET_MAC_ADDR_LEN);
+
+  if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+  {
+      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                    "(%s) Given params to get snoop entry are intf (%d) vlanId (%d)"
+                    " MAC(%2x:%2x:%2x:%2x:%2x:%2x)",__FUNCTION__, intIfNum, vlanIdFwd,
+                    macaddr[0], macaddr[1],macaddr[2],macaddr[3], macaddr[4], macaddr[5]);
+      dsTraceWrite(traceMsg);
+  }
+
+  if (dsBindingFind(&dsBinding, L7_MATCH_EXACT) != L7_SUCCESS)
+  {
+    if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+    {
+      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                    "(%s)Failed to get snoop entry for "
+                    " MAC(%2x:%2x:%2x:%2x:%2x:%2x)", __FUNCTION__,
+                    macaddr[0], macaddr[1],macaddr[2],macaddr[3], macaddr[4], macaddr[5]);
+      dsTraceWrite(traceMsg);
+    }
+  }
+  else
+  {
+    /* Forward based on learnt MAC entry.*/
+    if ( (dsBinding.intIfNum == intIfNum) ||
+         (dsBinding.vlanId   != vlanIdFwd)
+       )
+    {
+      return L7_FAILURE;
+    } /*Perform egress filtering before sending out the server reply */
+    // PTin added
+    L7_uint16 original_vlan;
+    if (ptin_intif_vlan_translate_get(intIfNum,vlanId,&original_vlan)!=L7_SUCCESS)
+    {
+      original_vlan = vlanId;
+    }
+    // PTin modified
+    if( (dot1qOperVlanMemberGet(original_vlan /*vlanId*/,dsBinding.intIfNum,&mode)==L7_SUCCESS)&&
+             (mode == L7_DOT1Q_FORBIDDEN)
+           )
+    {
+      /* Returning success rather failure to avoid the further flooding in the VLAN
+         as we already know that this MAC address is on this port */
+      if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+      {
+        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                    "(%s)Egress filtering for "
+                    " MAC(%2x:%2x:%2x:%2x:%2x:%2x) on Vlan -%d", __FUNCTION__,
+                    macaddr[0], macaddr[1],macaddr[2],macaddr[3], macaddr[4], macaddr[5],vlanId);
+         dsTraceWrite(traceMsg);
+      }
+      return L7_SUCCESS;
+    }
+    else if (mode)
+    {
+      // PTin added
+      if (ptin_translate_dhcpVlanGet(intIfNum,vlanId,dsBinding.intIfNum,&vlanIdFwd)!=L7_SUCCESS)
+        vlanIdFwd = vlanId;
+      // PTin modified
+      if (dsFrameIntfFilterSend(dsBinding.intIfNum, vlanIdFwd, frame, frameLen,
+                         L7_FALSE, innerVlanId) == L7_SUCCESS)
+      {
+        dsInfo->debugStats.serverOption82Tx++;
+        ptin_dhcp_stat_increment_field(dsBinding.intIfNum, vlanIdFwd, innerVlanId, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTION82);
+        ptin_dhcp_stat_increment_field(dsBinding.intIfNum, vlanIdFwd, innerVlanId, DHCP_STAT_FIELD_TX_FORWARDED);
+        return L7_SUCCESS;
+      }
+    }
+  }
+  return L7_FAILURE;
+}
+
+/*********************************************************************
+* @purpose  Checks if DHCP Snooping is enabled for a given VLANID
+*
+* @param    intIfNum   @b{(input)} receive interface
+* @param    vlanId     @b{(input)} VLAN ID
+* @param    rxSVlanId  @b{(input)} received SVLAN ID (applicable only in 
+*                                   Metro for Reply packets coming from NNI)
+* @param    dhcpOp     @b{(input)}  DHCP opcode (REQUEST/REPLY)
+* @param    cVlanId    @b{(input)} CVLAN ID (applicable only in Metro,
+*                                 remark CVId specified for matched subscription)
+* @param    sVlanId    @b{(output)} SVLAN ID (applicable only in Metro,
+*                                 service SVId specified for matched subscription)
+*
+* @returns  L7_TRUE
+* @returns  L7_FALSE
+*
+* @notes    In addition Snooping enable status, this API also returns the
+*           SVID and remark CVID in case of Metro builds which are used in 
+*           forwarding request packets.
+*           This also assumes the rxSVlanId has the S-Tag VLANID in case of 
+*           replies returned by DHCP server on NNI port.
+*
+* @end
+*********************************************************************/
+L7_BOOL dsSnoopingServiceIsEnabled(L7_uint32 intIfNum, L7_uint32 vlanId,
+                                   L7_uint32 rxSVlanId, L7_uchar8 dhcpOp,
+                                   L7_uint32 *cVlanId, L7_uint32 *sVlanId)
+{
+#if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
+  if (dhcpOp == L7_DHCP_BOOTP_REQUEST)
+  {
+
+    *sVlanId = L7_NULL;
+#if 0
+    if (dot1adServiceIntfSvidMapGet(intIfNum, vlanId, subscriptionName,
+                                    sVlanId, cVlanId) != L7_SUCCESS)
+#endif
+    {
+      L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
+      osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN, 
+                    "DHCP L2 Relay failed to get subscription for Iface %d with VLAN %u",
+                    intIfNum, vlanId);
+      L7_LOG(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID, dsTrace);
+      return L7_FALSE;
+    }
+  }
+  else if (dhcpOp == L7_DHCP_BOOTP_REPLY)
+  {
+    *sVlanId = rxSVlanId;
+  }
+#else
+  *sVlanId = vlanId;
+#endif
+  return _dsVlanEnableGet(*sVlanId);
+}
+#ifdef L7_DHCP_L2_RELAY_PACKAGE
+/*********************************************************************
+* @purpose  Checks if DHCP L2 rleay is enabled for a given VLANID
+*
+* @param    intIfNum    @b{(input)} receive interface
+* @param    vlanId      @b{(input)} VLAN ID (SVLANID if double tagged)
+* @param    innerVlanId @b{(input)} CVLAN ID (applicable only in Metro)
+*
+* @returns  L7_TRUE
+* @returns  L7_FALSE
+*
+* @notes    This API assumes the vlanId (SVLANID) and innerVlanId (CVLANID) 
+*           to already contain the translated values based on DOT1AD subscriptions.          
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_BOOL dsL2RelayServiceIsEnabled(L7_uint32 intIfNum, L7_uint32 vlanId,
+                                  L7_ushort16 innerVlanId)
+{
+#if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
+  L7_uchar8 subscriptionName[L7_DOT1AD_SUBSCRIPTION_NAME_LEN_MAX + 1];
+  dsL2RelaySubscriptionCfg_t *subsCfg;
+
+  if (dot1adSubscriptionNameGet(intIfNum, vlanId, innerVlanId, subscriptionName)
+                               != L7_SUCCESS)
+  {
+    L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
+    osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN, 
+                  "DHCP L2 Relay failed to get subscription for Iface %d with VLAN %u, innerVlanId = %d",
+                  intIfNum, vlanId, innerVlanId);
+    L7_LOG(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID, dsTrace);
+    return L7_FALSE;
+  }
+  else
+  {
+    if (dsL2RelaySubscriptionEntryGet(intIfNum, subscriptionName, L7_TRUE,
+                                      &subsCfg) != L7_SUCCESS)
+    {
+      L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
+      osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN, 
+                    "(%s)DHCP L2 Relay failed to get subscription name entry for Iface %d with VLAN %u and subsc = %s",
+                    __FUNCTION__, intIfNum, vlanId, subscriptionName);
+      dsTraceWrite(dsTrace);
+    }
+    else
+    {
+      if (subsCfg->l2relay != L7_ENABLE)
+      {
+        if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT)
+        {
+          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                        "(%s)DHCP L2 Relay subscription "
+                        "does not have L2 Relay enabled on inIfNum = %d,"
+                        " vlanId = %d, subscName = %s", __FUNCTION__,
+                           intIfNum, vlanId, subscriptionName);
+          dsTraceWrite(traceMsg);
+        }
+        return L7_FALSE;
+      }
+      return L7_TRUE;
+    }
+  }
+#endif
+
+  if ((vlanId != L7_NULL) && (_dsVlanL2RelayGet(vlanId) == L7_TRUE))
+  {
+    return L7_TRUE;
+  }
+  return L7_FALSE;
+}
+
+
+void dsL2RelayRelayAgentInfoOptionCfgGet(L7_uint32 intIfNum, L7_uint32 vlanId, L7_ushort16 innerVlanId,
+                                         L7_BOOL *cIdFlag, L7_uchar8 *circuitIdStr,
+                                         L7_BOOL *rIdFlag, L7_uchar8 *remoteIdStr)
+{
+#if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
+  dsL2RelaySubscriptionCfg_t *subsCfg;
+  L7_uchar8 subscriptionName[L7_DOT1AD_SUBSCRIPTION_NAME_LEN_MAX + 1];
+  L7_uchar8 endOfStr = FD_DHCP_L2RELAY_REMOTE_ID_VLAN_MODE;
+
+  /* Ignore the packet if the SVLAN Id for the received packet VlandId
+     does not have DHCP L2 Relay enabled, though the packet is eligible
+     for forwarding based on above receive-side checks. */
+  if (dot1adSubscriptionNameGet(intIfNum, vlanId, innerVlanId, subscriptionName)
+                                 != L7_SUCCESS)
+  {
+    L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
+    osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN, 
+                  "DHCP L2 Relay failed to get service VLAN for Iface %d with VLAN %u and innerVlanId = %d",
+                  intIfNum, vlanId, innerVlanId);
+    L7_LOG(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID, dsTrace);
+    return;
+  }
+  else
+  {
+    if (dsL2RelaySubscriptionEntryGet(intIfNum, subscriptionName, L7_TRUE,
+                                      &subsCfg) != L7_SUCCESS)
+    {
+      L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
+      osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN, 
+                    "(%s)DHCP L2 Relay failed to get subscription entry for Iface %d with VLAN %u",
+                    __FUNCTION__, intIfNum, vlanId);
+      dsTraceWrite(dsTrace);
+      *cIdFlag = L7_FALSE;
+      *rIdFlag = L7_FALSE;
+    }
+    else
+    {
+      // PTin added
+      *cIdFlag = L7_FALSE;
+      *rIdFlag = L7_FALSE;
+      if (ptin_dhcp_database_get(intIfNum, vlanId, innerVlanId, circuitIdStr, remoteIdStr)==L7_SUCCESS)
+      {
+        if ((subsCfg->circuitId==L7_ENABLE) && (*circuitIdStr!='\0'))
+          *cIdFlag = L7_TRUE;
+        if (*remoteIdStr !='\0')
+          *rIdFlag = L7_TRUE;
+      }
+
+      // PTin removed
+//    if (subsCfg->circuitId == L7_ENABLE)
+//    {
+//      *cIdFlag = L7_TRUE;
+//    }
+//    if (osapiStrncmp(subsCfg->remoteId, &endOfStr, sizeof(L7_uchar8)) != L7_NULL)
+//    {
+//      *rIdFlag = L7_TRUE;
+//      osapiStrncpy(remoteIdStr, subsCfg->remoteId, DS_MAX_REMOTE_ID_STRING);
+//    }
+      return;
+    }
+  }
+#endif
+  // PTin added
+  *cIdFlag = L7_FALSE;
+  *rIdFlag = L7_FALSE;
+  if (ptin_dhcp_database_get(intIfNum, vlanId, innerVlanId, circuitIdStr, remoteIdStr)==L7_SUCCESS)
+  {
+    if ((_dsVlanL2RelayCircuitIdGet(vlanId)) && (*circuitIdStr!='\0'))
+      *cIdFlag = L7_TRUE;
+    if (*remoteIdStr !='\0')
+      *rIdFlag = L7_TRUE;
+  }
+  // PTin removed
+//if (_dsVlanL2RelayCircuitIdGet(vlanId))
+//{
+//  *cIdFlag = L7_TRUE;
+//}
+//if (_dsVlanL2RelayRemoteIdGet(vlanId))
+//{
+//  *rIdFlag = L7_TRUE;
+//  osapiStrncpy(remoteIdStr, dsCfgData->dsL2RelayRemoteId[vlanId],
+//               DS_MAX_REMOTE_ID_STRING);
+//}
+  return;
+}
+/*********************************************************************
+* @purpose  Add DHCP Relay Agent Information Option to DHCP.
+*
+* @param    frame     @b{(input)} Pointer to DHCP frame
+* @param    intIfNum  @b{(inout)} internal interface number on which frame 
+*                                 is received.
+* @param    vlanId   @b{(input)}  VLAN Id
+* @param    frameLen  @b{(inout)} Length od the frame.
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    The packet is added with Option-82 only if the packet does not 
+*           already has Option-82.
+*
+* @end
+*********************************************************************/
+static 
+L7_RC_t dsRelayAgentInfoAdd(L7_uint32 intIfNum, L7_uint32 vlanId,
+                            L7_ushort16 innerVlanId,
+                            L7_uchar8 *frame, L7_uint32 *frameLen)
+{
+
+  L7_uint32 pktSize;
+  L7_BOOL   stopProcessing = L7_FALSE;
+  L7_BOOL   DHCP_PKT       = L7_FALSE;
+  L7_uchar8 *dhcpOption, *subOption, *maxPktLen;
+  nimUSP_t   nimUsp;
+  L7_BOOL    cidFlag = L7_FALSE;
+  L7_BOOL    ridFlag = L7_FALSE;
+  L7_uchar8  optLen_cId, circuitIdStr[DS_MAX_REMOTE_ID_STRING];
+  L7_uchar8  optLen_rId, remoteIdStr[DS_MAX_REMOTE_ID_STRING];
+  L7_udp_header_t *udp_header;
+  L7_dhcp_packet_t *pDhcpPacket;
+  L7_ushort16 ipPktLen;
+  L7_ushort16 dhcpPacketLength;
+  L7_ushort16 ethHdrLen = sysNetDataOffsetGet(frame);
+  L7_ipHeader_t *ipHeader = (L7_ipHeader_t*)(frame + ethHdrLen);
+  L7_ushort16 ipHdrLen = dsIpHdrLen(ipHeader);
+
+  udp_header = (L7_udp_header_t *)((L7_char8 *)ipHeader + ipHdrLen);
+  pDhcpPacket = (L7_dhcp_packet_t*)((L7_char8 *)udp_header + sizeof(L7_udp_header_t));
+  ipPktLen = osapiNtohs(ipHeader->iph_len);
+  dhcpPacketLength = ipPktLen - ipHdrLen - sizeof(L7_udp_header_t);
+
+  // PTin modified
+  dsL2RelayRelayAgentInfoOptionCfgGet(intIfNum, vlanId, innerVlanId,
+                                      &cidFlag, circuitIdStr, &ridFlag, remoteIdStr);
+  if ( cidFlag == L7_FALSE && ridFlag == L7_FALSE)
+  {
+    /* Our device has nothing to do as we are not configured for 
+       addition of Option-82.*/
+    if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT)
+    {
+      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                    "(%s)Failed to add DHCP Option-82 for Client request as "
+                    "none of the suboptions is enabled on intIfNum %d", __FUNCTION__, intIfNum);
+      dsTraceWrite(traceMsg);
+    }
+    return L7_SUCCESS;
+  }
+
+  /* Intializing nimUSP. */
+  memset (&nimUsp, L7_NULL, sizeof(nimUSP_t));
+  pktSize = dhcpPacketLength;
+
+  /*if condition fails, it'a DHCP Packet, so Add Agent options */
+  if(memcmp ((pDhcpPacket+ 1), DS_DHCP_OPTIONS_COOKIE, L7_DHCP_MAGIC_COOKIE_LEN))
+  {
+    if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT)
+    {
+      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                    "(%s)Failed to add Option-82 for Client request as it "
+                    "does not have expected Cookie", __FUNCTION__);
+      dsTraceWrite(traceMsg);
+    }
+    return L7_SUCCESS;
+  }
+
+  maxPktLen = (L7_uchar8*)(pDhcpPacket) + pktSize; /*length of the REQUEST Packet */
+  dhcpOption = (L7_uchar8 *)( pDhcpPacket + 1 );
+  dhcpOption = dhcpOption + L7_DHCP_MAGIC_COOKIE_LEN;
+
+  while((dhcpOption < maxPktLen) && (!stopProcessing) )
+  {
+      switch(*dhcpOption)
+      {
+      /* Skip zeroes padded by client ... */
+      case DHO_PAD:
+          ++dhcpOption;
+          continue;
+
+          /* if message type is there(53) , it's a DHCP packet. */
+      case DHO_DHCP_MESSAGE_TYPE:
+          DHCP_PKT = L7_TRUE;
+          dhcpOption += dhcpOption [DHCP_OPTION_LENGTH_OFFSET] + DHCP_OPTION_CONTENT_OFFSET;
+          break;
+
+          /* Quit immediately if we hit an End option. */
+      case DHO_END:
+          stopProcessing = L7_TRUE; /* while loop breaks */
+          break;
+
+      case DHCP_RELAY_AGENT_INFO_OPTION:
+          /* Relay agent option  shouldn't be there before
+          the DHCP packet type, if it is there, leave it as is. */
+          if (!DHCP_PKT)
+          {
+            return L7_FAILURE;
+          }
+          /* There's already a Relay Agent Information option
+          in this packet. So we are not going to modify it or add more.*/
+          return L7_SUCCESS;
+
+      default:
+          dhcpOption += dhcpOption [DHCP_OPTION_LENGTH_OFFSET] + DHCP_OPTION_CONTENT_OFFSET;
+          break;
+      }
+  }
+  if(!DHCP_PKT)
+  {
+    if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT)
+    {
+      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                    "(%s)Failed to add Option-82 for Client request as it "
+                    "is invalid DHCP packet(no msg type option)", __FUNCTION__);
+      dsTraceWrite(traceMsg);
+    }
+    return L7_SUCCESS;
+  }
+
+  /* end of the packet after parsing */
+  subOption = dhcpOption;
+
+  /* setting Relay Agent Information option. */
+  *subOption++ = DHCP_RELAY_AGENT_INFO_OPTION;
+  *subOption++ = 0;
+
+  if (cidFlag == L7_TRUE)
+  {
+    /* Copy  the Circuit Id Sub option specifier 1... */
+    *subOption++ = DHCP_RELAY_AGENT_CIRCUIT_ID_SUBOPTION;
+    // PTin added
+    optLen_cId = strlen(circuitIdStr);
+    *subOption++ = optLen_cId;
+    if (ptin_debug_dhcp)
+    {
+      printf("%s(%d) circuitId added: \"%s\"\r\n", __FUNCTION__, __LINE__,circuitIdStr);
+    }
+    osapiStrncpy(subOption, circuitIdStr, optLen_cId);
+    subOption += optLen_cId;
+    // PTin end
+
+    // PTin removed
+//  *subOption++ = DHCP_RELAY_AGENT_CIRCUIT_ID_LENGTH;
+//  if (nimGetUnitSlotPort(intIfNum, &nimUsp) == L7_SUCCESS)
+//  {
+//    *subOption++ = nimUsp.unit;
+//    *subOption++ = nimUsp.slot;
+//    *subOption++ = (L7_uchar8)nimUsp.port;
+//  }
+    // PTin end
+  }
+  if (ridFlag == L7_TRUE)
+  {
+    /* Copy  the Remote Id Sub option specifier 1... */
+    *subOption++ = DHCP_RELAY_AGENT_REMOTE_ID_SUBOPTION;
+    optLen_rId = strlen(remoteIdStr);
+    *subOption++ = optLen_rId;
+    if (ptin_debug_dhcp)
+    {
+      printf("%s(%d) remoteId added: \"%s\"\r\n", __FUNCTION__, __LINE__,remoteIdStr);
+    }
+    osapiStrncpy(subOption, remoteIdStr, optLen_rId);
+    subOption += optLen_rId;
+  }
+
+  dhcpOption [DHCP_OPTION_LENGTH_OFFSET] = subOption - dhcpOption - 
+                                             DHCP_OPTION_CONTENT_OFFSET; 
+                                 /* storing length of Relay Agent option */
+
+  /* Deposit an END token. */
+  *subOption++ = DHO_END;
+  /* Need to recalculate UDP checksum. */
+  dsUdpCheckSumCalculate(frame, frameLen, L7_TRUE, (dhcpOption [DHCP_OPTION_LENGTH_OFFSET] + 
+                                          DHCP_OPTION_CONTENT_OFFSET));
+  return L7_SUCCESS;
+}
+
+
+
+/*********************************************************************
+* @purpose  Removes/Gets the DHCP relay agent options when sending to 
+*           server.
+*
+* @param    frame            @b{(input)} Pointer to DHCP frame
+* @param    frameLen         @b{(inout)} Length of the frame
+* @param    packet           @b{(input)} Pointer to Dhcp Packet
+* @param    dhcpPacketLength @b{(input)} length of the Dhcp Packet
+* @param    optionsRemove    @b{(input)} Remove/Get the options.
+* @param    relayAgentInfo   @b{(output)} Relay structure having to 
+*                                         extract Relay agent option info.
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t dsRelayAgentInfoRemoveOrGet (L7_uchar8 *frame,
+                                     L7_uint32 *frameLen,
+                                     L7_dhcp_packet_t   *packet, 
+                                     L7_uint32          dhcpPacketLength, 
+                                     L7_BOOL            optionsRemove, 
+                                     dsRelayAgentInfo_t *relayAgentInfo)
+{
+  L7_BOOL DHCP_PACKET = L7_FALSE;
+  L7_uchar8 *dhcpOption, *maxPktLen;
+  L7_uchar8 *relayOffset = L7_NULLPTR, *relayEnd; 
+  L7_uchar8 optLen = 0, relayLen = 0;
+  L7_ushort16 pktSize;
+  L7_BOOL Agent_Option_OK = L7_FALSE;
+  L7_BOOL stop_processing = L7_FALSE;
+  L7_uint32 passOverLen = 0;
+
+  /* If there's no cookie, it's a bootp packet, so we should just
+     forward it unchanged. */
+  if (memcmp ((packet + 1), DS_DHCP_OPTIONS_COOKIE, L7_DHCP_MAGIC_COOKIE_LEN))
+  {
+    if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_SERVER)
+    {
+      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                    "(%s)Failed to %s DHCP Option-82 for server reply as "
+                    "it does not have expected cookie.", __FUNCTION__,
+                    optionsRemove ? "remove":"get");
+      dsTraceWrite(traceMsg);
+    }
+    return L7_SUCCESS;
+  }
+
+  pktSize = dhcpPacketLength;
+  maxPktLen = (L7_uchar8*)(packet) + pktSize;
+
+  dhcpOption = (L7_uchar8 *)(packet + 1);
+  dhcpOption = dhcpOption + L7_DHCP_MAGIC_COOKIE_LEN;
+
+  while ( (dhcpOption < maxPktLen) && (!stop_processing) )
+  {
+    switch (*dhcpOption)
+    {
+    /*  */
+    case DHO_PAD:
+      ++dhcpOption;
+      continue;
+
+      /* If we see a message type, it's a DHCP packet. */
+    case DHO_DHCP_MESSAGE_TYPE:
+      DHCP_PACKET = L7_TRUE;
+      /*goto skip;*/
+      /*replace skip with the following */
+      dhcpOption += dhcpOption [DHCP_OPTION_LENGTH_OFFSET] + DHCP_OPTION_CONTENT_OFFSET;
+      break;
+
+      /* Quit immediately if we come across End option. */
+    case DHO_END:
+      stop_processing = L7_TRUE; /* while loop breaks */
+      break;
+
+    case DHCP_RELAY_AGENT_INFO_OPTION:
+      /* We shouldn't see a relay agent option in a
+         packet before we've seen the DHCP packet type,
+         but if we do, we have to leave it alone. */
+
+      if (!DHCP_PACKET)
+      {
+        return L7_FAILURE;
+      }
+      stop_processing = L7_TRUE; /* while loop breaks */
+      relayOffset = dhcpOption;
+      Agent_Option_OK = L7_TRUE;
+      break;
+
+
+    default:
+      dhcpOption += dhcpOption [DHCP_OPTION_LENGTH_OFFSET] + DHCP_OPTION_CONTENT_OFFSET;
+      break;
+    }
+  }
+
+  /* If it's not a DHCP packet, Relay it as is */
+  if (!DHCP_PACKET)
+  {
+    if ((dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_SERVER) ||
+        (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT))
+    {
+      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                    "(%s)Failed to %s Option-82 as it is invalid DHCP packet(no msg type option)",
+                    __FUNCTION__, optionsRemove ? "remove":"get");
+      dsTraceWrite(traceMsg);
+    }
+    return L7_SUCCESS;
+  }
+
+  /* If the relay agent option itself is not found for it to remove,
+     return success.*/
+  if (!Agent_Option_OK)
+  {
+    if ((dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_SERVER) ||
+        (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_CLIENT))
+    {
+      L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+      osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                    "(%s)Failed to %s Option-82 as the "
+                    "DHCP packet does not have Relay options.",
+                    __FUNCTION__, optionsRemove ? "remove":"get");
+      dsTraceWrite(traceMsg);
+    }
+    return L7_SUCCESS;
+  }
+
+  /* If the relay agent option is present but the expected or
+     valid suboptions are not present, then drop the packet. */
+  /* Parse the relay agent suboptions. */
+  relayLen = *(relayOffset + 1);
+  relayEnd = relayOffset + relayLen + DHCP_OPTION_CONTENT_OFFSET;
+  passOverLen = relayEnd - (L7_uchar8 *)packet;
+  relayOffset += DHCP_OPTION_CONTENT_OFFSET;
+  while ((relayOffset < relayEnd) && (*relayOffset != DHO_END))
+  {
+    switch (*relayOffset)
+    {
+    case DHCP_RELAY_AGENT_CIRCUIT_ID_SUBOPTION:
+      {
+        optLen = *(relayOffset + 1);
+        // PTin removed
+//      if (optLen != DHCP_RELAY_AGENT_CIRCUIT_ID_LENGTH)
+//      {
+//        /* Not expected circuit-id option format.*/
+//        if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_SERVER)
+//        {
+//          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+//          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+//                        "(%s)Failed to %s Option-82 for server reply as the "
+//                        "DHCP packet does not have expected circuit-id length.",
+//                        __FUNCTION__, optionsRemove ? "remove":"get");
+//          dsTraceWrite(traceMsg);
+//        }
+//        if (optionsRemove == L7_TRUE)
+//        {
+//          return L7_FAILURE;
+//        }
+//      }
+        relayOffset += DHCP_OPTION_CONTENT_OFFSET;
+
+        relayAgentInfo->circuitIdFlag = L7_TRUE;
+        #if 0
+        // PTin added
+        L7_int unit, slot, port, ind;
+        // Search for the sequence " eth "
+        for (ind=0; ind<=(optLen-5-3) && strncmp(&relayOffset[ind]," eth ",5)!=0; ind++ );
+        if (ind>optLen-5-3)
+          return L7_FAILURE;
+        ind+=5;
+
+        unit = 1;
+        sscanf(&relayOffset[ind],"%d/%d",&slot,&port);
+        //printf("%s(%d) circuitId read: \"%17s\"\r\n", __FUNCTION__, __LINE__,relayOffset);
+        relayAgentInfo->usp.unit = unit;
+        relayAgentInfo->usp.slot = slot-1;
+        relayAgentInfo->usp.port = port;
+        #else
+        L7_int unit=1, slot=0, port;
+        if (ptin_dhcp_database_dstPort_get(relayOffset, optLen, &port)!=L7_SUCCESS)
+        {
+          return L7_FAILURE;
+        }
+        relayAgentInfo->usp.unit = unit;
+        relayAgentInfo->usp.slot = slot;
+        relayAgentInfo->usp.port = port;
+        #endif
+
+        if (ptin_debug_dhcp)
+        {
+          printf("%s(%d) unit=%u, slot=%u, port=%u\r\n", __FUNCTION__, __LINE__,unit,slot,port);
+        }
+
+        // PTin removed
+//      relayAgentInfo->usp.unit = *relayOffset++;
+//      relayAgentInfo->usp.slot = *relayOffset++;
+//      relayAgentInfo->usp.port = *relayOffset++;
+        // PTin end
+        if (nimGetIntIfNumFromUSP(&relayAgentInfo->usp, &relayAgentInfo->intIfNum) != L7_SUCCESS)
+        {
+          /* The received data does not represent a valid interface.*/
+          if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_SERVER)
+          {
+            L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+            osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
+                          "(%s)Failed to %s Option-82 for server reply as the "
+                          "DHCP packet does not have valid circuit-id interface number(%d/%d/%d).", __FUNCTION__,
+                          optionsRemove ? "remove":"get", relayAgentInfo->usp.unit, relayAgentInfo->usp.slot,
+                          relayAgentInfo->usp.port);
+            dsTraceWrite(traceMsg);
+          }
+          if (optionsRemove == L7_TRUE)
+          {
+            return L7_FAILURE;
+          }
+          return L7_SUCCESS;
+        }
+        // PTin added
+        relayOffset += optLen;
+      }
+      break;
+    case DHCP_RELAY_AGENT_REMOTE_ID_SUBOPTION:
+      {
+        optLen = *(relayOffset + 1);
+        relayOffset += DHCP_OPTION_CONTENT_OFFSET;
+        relayAgentInfo->remoteIdFlag = L7_TRUE;
+        //printf("%s(%d) remoteId read: \"%6s\"\r\n", __FUNCTION__, __LINE__,relayOffset);
+        osapiStrncpy(relayAgentInfo->remoteId, relayOffset, optLen);
+        relayOffset += optLen;
+      }
+      break;
+    default:
+      {
+        /* found some unexpected/undefined Option-82 sub-option.*/
+        if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_SERVER)
+        {
+          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                        "(%s)Failed to %s Option-82 for server reply as the "
+                        "DHCP packet have an unexpected relay suboption.",
+                        __FUNCTION__, optionsRemove ? "remove":"get");
+          dsTraceWrite(traceMsg);
+        }
+        if (optionsRemove == L7_TRUE)
+        {
+          return L7_FAILURE;
+        }
+        return L7_SUCCESS;
+      }
+    }
+  }
+  
+  if (optionsRemove == L7_TRUE)
+  {
+    L7_uchar8 *tempBuff = dsInfo->pktBuff;
+    memset(tempBuff, 0 , DS_DHCP_PACKET_SIZE_MAX);
+    memcpy(tempBuff, relayEnd, (dhcpPacketLength - passOverLen)); 
+    memcpy(dhcpOption, tempBuff, (dhcpPacketLength - passOverLen));
+    memset(tempBuff, 0 , DS_DHCP_PACKET_SIZE_MAX);
+    if (frameLen != L7_NULLPTR)
+    {
+      dsUdpCheckSumCalculate(frame, frameLen, L7_FALSE, (relayEnd - dhcpOption));
+    }
+  }
+  return L7_SUCCESS;
+}
+#endif
+/*********************************************************************
+* @purpose  Filter server messages received on untrusted ports.
+*
+* @param    intIfNum @b{(input)} receive interface
+* @param    vlanId   @b{(input)} VLAN ID
+* @param    frame    @b{(input)} ethernet frame
+* @param    ipHeader @b{(input)} IP header inside frame
+*
+* @returns  L7_TRUE if frame is filtered
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_BOOL dsFilterServerMessage(L7_uint32 intIfNum, L7_ushort16 vlanId, 
+                              L7_uchar8 *frame, L7_ipHeader_t *ipHeader,
+                              L7_ushort16 innerVlanId)
+{
+  L7_udp_header_t *udp_header;
+  L7_dhcp_packet_t *dhcpPacket;
+  L7_ushort16 ipHdrLen = dsIpHdrLen(ipHeader);
+  #ifdef L7_DHCP_L2_RELAY_PACKAGE
+  L7_ushort16 ipPktLen;
+  L7_ushort16 dhcpPktLen;
+  dsRelayAgentInfo_t relayAgentInfo;
+  L7_BOOL relayFlag = L7_FALSE;
+  L7_BOOL cIdFlag = L7_FALSE, rIdFlag = L7_FALSE;
+  L7_uchar8 circuitIdStr[DS_MAX_REMOTE_ID_STRING];
+  L7_uchar8 remoteIdStr[DS_MAX_REMOTE_ID_STRING];
+  L7_uchar8 sysMacAddr[L7_MAC_ADDR_LEN];
+  L7_RC_t   result = L7_SUCCESS;    // PTin added
+
+  ipPktLen = osapiNtohs(ipHeader->iph_len);
+  dhcpPktLen = ipPktLen - ipHdrLen - sizeof(L7_udp_header_t);
+  #endif
+
+  
+  udp_header = (L7_udp_header_t *)((L7_char8 *)ipHeader + ipHdrLen);
+  dhcpPacket = (L7_dhcp_packet_t*)((L7_char8 *)udp_header + sizeof(L7_udp_header_t));
+
+  if (dhcpPacket->op != L7_DHCP_BOOTP_REPLY)
+  {
+    /* Packet not under interest of current function.*/
+    return L7_FALSE;
+  }
+
+  /* PTin removed: DHCP snooping */
+  #if 0
+  /* Do the following binding database processing checks only when DHCP
+     Snooping operational on that interface. */
+  if (dsCfgData->dsGlobalAdminMode == L7_TRUE &&
+      dsIntfIsSnooping(intIfNum) == L7_TRUE)
+  {
+    if (_dsIntfTrustGet(intIfNum) == L7_FALSE)
+    {
+      dsIntfInfo[intIfNum].dsIntfStats.untrustedSvrMsg++;
+      if (_dsIntfLogInvalidGet(intIfNum))
+      {
+        L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+  
+        static L7_uint32 lastMsg = 0;
+        if (osapiUpTimeRaw() > lastMsg)
+        {
+          lastMsg = osapiUpTimeRaw();
+          nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+          L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID,
+                  "DHCP snooping dropping DHCP server message received on untrusted "
+                  "interface %s on vlan %u."
+                    " This message appears when DHCP Snooping untrusted port drops the"
+                    " DHCP Server message.", ifName, vlanId);
+
+          dsLogEthernetHeader((L7_enetHeader_t*)frame, DS_TRACE_LOG);
+          dsLogIpHeader(ipHeader, DS_TRACE_LOG);
+          dsLogDhcpPacket(dhcpPacket, DS_TRACE_LOG);
+        }
+      }
+  
+      if (ptin_debug_dhcp)
+      {
+        printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+      }
+      return L7_TRUE;
+    }
+  }
+  #endif
+
+  #ifdef L7_DHCP_L2_RELAY_PACKAGE
+  /* If the reponse packets are destined to the switch itself (i.e those are
+     responses for the DHCP client operating in the FASTPATH switch). Expecting
+     Option-82 on Reply packets for our client does not make any sense. Hence
+     Option-82 checks are relaxed for packets destined to FASTPATH DHCP client.*/
+  simGetSystemIPBurnedInMac(sysMacAddr);
+  if (memcmp(dhcpPacket->chaddr, sysMacAddr, L7_MAC_ADDR_LEN) == L7_NULL)
+  {
+    return L7_FALSE;
+  }
+
+
+  /* Check if L2 Relay of Option-82 filters are needed.*/
+  if (dsCfgData->dsL2RelayAdminMode == L7_TRUE &&
+      _dsIntfL2RelayGet(intIfNum) == L7_TRUE)
+  {
+    /* Get the Option-82 params,if present from the server reply. */
+    relayFlag = L7_FALSE;
+    memset(&relayAgentInfo, 0 , sizeof(dsRelayAgentInfo_t));
+
+    result = dsRelayAgentInfoRemoveOrGet(frame, L7_NULLPTR, dhcpPacket, dhcpPktLen, 
+                                    L7_FALSE, &relayAgentInfo);
+    // PTin removed
+//  if (dsRelayAgentInfoRemoveOrGet(frame, L7_NULLPTR, dhcpPacket, dhcpPktLen,
+//                                  L7_FALSE, &relayAgentInfo) == L7_SUCCESS)
+//  {
+      if (relayAgentInfo.circuitIdFlag == L7_TRUE ||
+          relayAgentInfo.remoteIdFlag == L7_TRUE)
+      {
+        relayFlag = L7_TRUE;
+      }
+//  }
+    if ((_dsIntfL2RelayTrustGet(intIfNum) == L7_TRUE)
+         && (relayFlag == L7_FALSE))
+    {
+      /* The packet is put for filtering as the packet might not have Option-82, 
+         which is expected on L2 Relay trusted interfaces. So drop the packet.*/
+      dsIntfInfo[intIfNum].dsIntfStats.trustedServerFramesWithoutOption82++;
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, innerVlanId, DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOUTOP82_ON_TRUSTED_INTF);
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, innerVlanId, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITHOUT_OPTION82);
+      DHCP_L2RELAY_LOG("DHCP L2 Relay dropping server msg without Option-82 rx'ed on L2Relay trusted",
+                         intIfNum, vlanId, (L7_enetHeader_t *)frame, ipHeader, dhcpPacket, DS_TRACE_LOG);
+      if (ptin_debug_dhcp)
+      {
+        printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+      }
+      return L7_TRUE;
+    }
+    else if ((_dsIntfL2RelayTrustGet(intIfNum) == L7_FALSE)
+             && (relayFlag == L7_TRUE))
+    {
+      /* The packet is put for filtering as the packet have Option-82, 
+         which is not expected on L2 Relay untrusted interfaces. So drop the packet.*/
+      dsIntfInfo[intIfNum].dsIntfStats.untrustedServerFramesWithOption82++;
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, innerVlanId, DHCP_STAT_FIELD_RX_SERVER_PKTS_WITHOP82_ON_UNTRUSTED_INTF);
+      DHCP_L2RELAY_LOG("DHCP L2 Relay dropping server msg with Option-82 rx'ed on L2Relay untrusted",
+                         intIfNum, vlanId, (L7_enetHeader_t *)frame, ipHeader, dhcpPacket, DS_TRACE_LOG);
+      if (ptin_debug_dhcp)
+      {
+        printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+      }
+      return L7_TRUE;
+    }
+
+    // PTin added
+    if (result!=L7_SUCCESS)
+    {
+      if (ptin_debug_dhcp)
+      {
+        printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+      }
+      return L7_TRUE;
+    }
+
+    // PTin removed
+    //else
+    //{
+      dsInfo->debugStats.serverOption82Rx++;
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, innerVlanId, DHCP_STAT_FIELD_RX_SERVER_REPLIES_WITH_OPTION82);
+      dsL2RelayRelayAgentInfoOptionCfgGet(intIfNum, vlanId, innerVlanId, &cIdFlag, circuitIdStr,
+                                          &rIdFlag, remoteIdStr);
+      if ((_dsIntfL2RelayTrustGet(intIfNum) == L7_TRUE))
+      {
+        if (cIdFlag == L7_TRUE && relayAgentInfo.circuitIdFlag != L7_TRUE)
+        {
+          /* Filter the packet as the expected Circuit Id is not seen in the 
+             server reply.*/
+          DHCP_L2RELAY_LOG("DHCP L2 Relay dropping server msg without expected"
+                           "circuit-id rx'ed on trusted", intIfNum, vlanId, 
+                           (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
+                           DS_TRACE_LOG);
+          if (ptin_debug_dhcp)
+          {
+            printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+          }
+          return L7_TRUE;
+        }
+        if (rIdFlag == L7_TRUE && relayAgentInfo.remoteIdFlag != L7_TRUE)
+        {
+          /* Filter the packet as the expected Remote Id is not seen in the 
+             server reply.*/
+          DHCP_L2RELAY_LOG("DHCP L2 Relay dropping server msg without expected"
+                           "remote-id rx'ed on trusted", intIfNum, vlanId, 
+                           (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
+                           DS_TRACE_LOG);
+          if (ptin_debug_dhcp)
+          {
+            printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+          }
+          return L7_TRUE;
+        }
+      }
+      //return L7_FALSE;    /* PTin removed: DHCP snooping */
+    }
+  //}
+  #endif
+
+  /* PTin added: DHCP snooping */
+  #if 1
+  /* Do the following binding database processing checks only when DHCP
+     Snooping operational on that interface. */
+  if (dsCfgData->dsGlobalAdminMode == L7_TRUE &&
+      dsIntfIsSnooping(intIfNum) == L7_TRUE)
+  {
+    if (_dsIntfTrustGet(intIfNum) == L7_FALSE)
+    {
+      dsIntfInfo[intIfNum].dsIntfStats.untrustedSvrMsg++;
+      if (_dsIntfLogInvalidGet(intIfNum))
+      {
+        L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+  
+        static L7_uint32 lastMsg = 0;
+        if (osapiUpTimeRaw() > lastMsg)
+        {
+          lastMsg = osapiUpTimeRaw();
+          nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+          L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID,
+                  "DHCP snooping dropping DHCP server message received on untrusted "
+                  "interface %s on vlan %u."
+                    " This message appears when DHCP Snooping untrusted port drops the"
+                    " DHCP Server message.", ifName, vlanId);
+
+          dsLogEthernetHeader((L7_enetHeader_t*)frame, DS_TRACE_LOG);
+          dsLogIpHeader(ipHeader, DS_TRACE_LOG);
+          dsLogDhcpPacket(dhcpPacket, DS_TRACE_LOG);
+        }
+      }
+  
+      if (ptin_debug_dhcp)
+      {
+        printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+      }
+      return L7_TRUE;
+    }
+  }
+  #endif
+
+  return L7_FALSE;
+}
+
+/*********************************************************************
+* @purpose  Filter DHCPRELEASE or DHCPDECLINE message if received on 
+*           interface other than that specified in bindings DB for this
+*           client.
+*
+* @param    intIfNum @b{(input)} receive interface
+* @param    vlanId   @b{(input)} VLAN ID
+* @param    frame    @b{(input)} ethernet frame
+* @param    ipHeader @b{(input)} IP header inside frame
+*
+* @returns  L7_TRUE if frame is filtered
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_BOOL dsFilterClientMessage(L7_uint32 intIfNum, L7_ushort16 vlanId, 
+                              L7_uchar8 *frame, L7_ipHeader_t *ipHeader,
+                              L7_ushort16 innerVlanId)
+{
+  L7_udp_header_t *udp_header;
+  L7_dhcp_packet_t *dhcpPacket;
+  L7_dhcp_pkt_type_t dhcpPktType;
+  L7_enetMacAddr_t *srcMacAddr;
+  L7_uint32 ipPktLen;
+  L7_uint32 dhcpPktLen;
+  L7_ushort16 ipHdrLen;
+  dhcpSnoopBinding_t dsBinding;
+#ifdef L7_DHCP_L2_RELAY_PACKAGE
+  dsRelayAgentInfo_t relayAgentInfo;
+  L7_BOOL relayFlag = L7_FALSE;
+#endif
+  L7_RC_t result = L7_SUCCESS;
+  
+  ipHdrLen = dsIpHdrLen(ipHeader);
+  ipPktLen = osapiNtohs(ipHeader->iph_len);
+  udp_header = (L7_udp_header_t*)((L7_char8 *)ipHeader + ipHdrLen);
+  dhcpPacket = (L7_dhcp_packet_t*)((L7_char8 *)udp_header + sizeof(L7_udp_header_t));
+  dhcpPktLen = ipPktLen - ipHdrLen - sizeof(L7_udp_header_t);
+
+  if (dhcpPacket->op != L7_DHCP_BOOTP_REQUEST)
+  {
+    /* Packet not under interest of current function.*/
+    return L7_FALSE;
+  }
+
+#ifdef L7_DHCP_L2_RELAY_PACKAGE
+  if (dsCfgData->dsL2RelayAdminMode == L7_TRUE &&
+      _dsIntfL2RelayGet(intIfNum) == L7_TRUE)
+  {
+    /* Filter out any packets with non-zero giaddr representing L3 full
+       Relay agent. (Ref. R-103 from document TR-101.)*/
+    if (dhcpPacket->giaddr != L7_NULL)
+    {
+      DHCP_L2RELAY_LOG("DHCP L2 Relay dropping client msg with non-zero giadddr",
+                        intIfNum, vlanId, (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
+                          DS_TRACE_LOG);
+      if (ptin_debug_dhcp)
+      {
+        printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+      }
+      return L7_TRUE;
+    }
+
+    /* Extract the DHCP Option-82 if exists in the packet.*/
+    relayFlag = L7_FALSE;
+    memset(&relayAgentInfo, 0 , sizeof(dsRelayAgentInfo_t));
+    // PTin added
+    result = dsRelayAgentInfoRemoveOrGet(frame, L7_NULLPTR, dhcpPacket, dhcpPktLen, L7_FALSE, &relayAgentInfo);
+    // PTin removed
+//  if (dsRelayAgentInfoRemoveOrGet(frame, L7_NULLPTR, dhcpPacket, dhcpPktLen,
+//                                  L7_FALSE, &relayAgentInfo)==L7_SUCCESS)
+//  {
+      if (relayAgentInfo.circuitIdFlag == L7_TRUE ||
+          relayAgentInfo.remoteIdFlag == L7_TRUE)
+      {
+        relayFlag = L7_TRUE;
+      }
+//  }
+
+    /* On L2 Relay trusted interfaces, Option-82 is expected.
+       On L2 Relay untrusted interfaces, Option-82 is not expected.
+       If either of this cases fail to match, mark the packet to filter.*/
+    if ((relayFlag == L7_TRUE) && (_dsIntfL2RelayTrustGet(intIfNum) == L7_FALSE))
+    {
+      dsIntfInfo[intIfNum].dsIntfStats.untrustedClientFramesWithOption82++;
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, innerVlanId, DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOP82_ON_UNTRUSTED_INTF);
+      DHCP_L2RELAY_LOG("DHCP L2 Relay dropping client msg with Option-82"
+                         "rx'ed on L2 Relay untrusted", intIfNum, vlanId,
+                         (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
+                          DS_TRACE_LOG);
+      if (ptin_debug_dhcp)
+      {
+        printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+      }
+      return L7_TRUE;
+    }
+    
+    if ((relayFlag == L7_FALSE) && (_dsIntfL2RelayTrustGet(intIfNum) == L7_TRUE))
+    {
+      dsIntfInfo[intIfNum].dsIntfStats.trustedClientFramesWithoutOption82++;
+      ptin_dhcp_stat_increment_field(intIfNum, vlanId, innerVlanId, DHCP_STAT_FIELD_RX_CLIENT_PKTS_WITHOUTOP82_ON_TRUSTED_INTF);
+      DHCP_L2RELAY_LOG("DHCP L2 Relay dropping client msg without Option-82"
+                         "rx'ed on L2 Relay trusted", intIfNum, vlanId, 
+                         (L7_enetHeader_t *)frame, ipHeader, dhcpPacket,
+                          DS_TRACE_LOG);
+      if (ptin_debug_dhcp)
+      {
+        printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+      }
+      return L7_TRUE;
+    } 
+
+    // PTin modified
+    if (result == L7_SUCCESS)
+    {
+      if (relayFlag == L7_TRUE)
+      {
+        dsInfo->debugStats.clientOption82Rx++;
+        ptin_dhcp_stat_increment_field(intIfNum, vlanId, innerVlanId, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITH_OPTION82);
+      }
+      else {
+        ptin_dhcp_stat_increment_field(intIfNum, vlanId, innerVlanId, DHCP_STAT_FIELD_RX_CLIENT_REQUESTS_WITHOUT_OPTION82);
+      }
+    }
+    else
+    {
+      if (ptin_debug_dhcp)
+      {
+        printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+      }
+      return L7_TRUE;
+    }
+
+    /* The vlanId and innerVlanId are already translated values.*/
+    if (dsL2RelayServiceIsEnabled(intIfNum, vlanId, innerVlanId) != L7_TRUE)
+    {
+      DHCP_L2RELAY_LOG("DHCP L2 Relay dropping client msg whose SVLAN "
+                         "does not have L2 Relay enabled",
+                         intIfNum, vlanId, (L7_enetHeader_t *) frame,
+                         ipHeader, dhcpPacket, DS_TRACE_CONSOLE);
+      if (ptin_debug_dhcp)
+      {
+        printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+      }
+      return L7_TRUE;
+    }
+  }
+#endif
+
+  /* Do the following binding database processing checks only when DHCP
+     Snooping operational on that interface. */
+  if (dsCfgData->dsGlobalAdminMode == L7_TRUE &&
+      dsIntfIsSnooping(intIfNum) == L7_TRUE)
+  {
+    if (_dsIntfTrustGet(intIfNum) == L7_TRUE)
+    {
+      /* If the interface is trusted Snooping interface, then the database 
+         related validations are not needed as the binding database is updated 
+         only for untrusted interfaces. */
+      return L7_FALSE;
+    }
+    dhcpPktType = dsPacketType(dhcpPacket, dhcpPktLen);
+    if ((dhcpPktType == L7_DHCP_RELEASE) || (dhcpPktType == L7_DHCP_DECLINE))
+    {
+      /* Verify that client still on same interface as its binding */
+      srcMacAddr = (L7_enetMacAddr_t*) (frame + L7_ENET_MAC_ADDR_LEN);
+      if (!dsCfgData->dsVerifyMac)
+      {
+        memcpy(dsBinding.macAddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
+      }
+      else
+      {
+        memcpy(dsBinding.macAddr, srcMacAddr->addr, L7_ENET_MAC_ADDR_LEN);
+      }
+      
+      if (dsBindingFind(&dsBinding, L7_MATCH_EXACT) != L7_SUCCESS)
+      {
+        dsInfo->debugStats.releaseDeclineUnkClient++;
+  
+        if (_dsIntfLogInvalidGet(intIfNum))
+        {
+          L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+          L7_uchar8 srcMacStr[DS_MAC_STR_LEN + 1];
+          static L7_uint32 lastMsg = 0;
+          if (osapiUpTimeRaw() > lastMsg)
+          {
+            lastMsg = osapiUpTimeRaw();
+            nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+            dsMacToString(srcMacAddr->addr, srcMacStr);
+            L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID,
+                    "DHCP snooping dropping %s received on "
+                    "interface %s, vlan %u, from %s. Station not in bindings table.", 
+                      " This message appears when DHCP Snooping untrusted port  drops "
+                      "DHCP Decline or DHCP release messages for a non-existing entry "
+                      "in SNOOPING table.", 
+                    dhcpMsgTypeNames[dhcpPktType], ifName, vlanId, srcMacStr);
+            dsLogEthernetHeader((L7_enetHeader_t*) frame, DS_TRACE_LOG);
+            dsLogIpHeader(ipHeader, DS_TRACE_LOG);
+            dsLogDhcpPacket(dhcpPacket, DS_TRACE_LOG);
+          }
+        }
+        /* Client should have a binding before sending a RELEASE or DECLINE. Drop msg. */
+        if (ptin_debug_dhcp)
+        {
+          printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+        }
+        return L7_TRUE;
+      }
+      if ((dsBinding.intIfNum != intIfNum) || (dsBinding.vlanId != vlanId))
+      {
+       
+       if (!dsCfgData->dsVerifyMac) /* to handle the relay agent case */
+       {
+         return L7_FALSE;
+       }
+   
+        dsIntfInfo[intIfNum].dsIntfStats.intfMismatch++;
+        
+        if (_dsIntfLogInvalidGet(intIfNum))
+        {
+          L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+          L7_uchar8 bindIfName[L7_NIM_IFNAME_SIZE + 1];
+          L7_uchar8 srcMacStr[DS_MAC_STR_LEN + 1];
+          static L7_uint32 lastMsg = 0;
+  
+          if (osapiUpTimeRaw() > lastMsg)
+          {
+            lastMsg = osapiUpTimeRaw();
+            nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+            nimGetIntfName(dsBinding.intIfNum, L7_SYSNAME, bindIfName);
+            dsMacToString(srcMacAddr->addr, srcMacStr);
+            L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID,
+                    "DHCP snooping dropping %s received on "
+                    "interface %s, vlan %u, from client %s.", 
+                    dhcpMsgTypeNames[dhcpPktType], ifName, vlanId, srcMacStr);
+            L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID,
+                    "Client previously bound to interface %s, vlan %u."
+	       " This message appears when DHCP Snooping untrusted"
+                    " message drops the DHCP Decline or Release messages ", 
+                    bindIfName, dsBinding.vlanId);
+            dsLogEthernetHeader((L7_enetHeader_t*) frame, DS_TRACE_LOG);
+            dsLogIpHeader(ipHeader, DS_TRACE_LOG);
+            dsLogDhcpPacket(dhcpPacket, DS_TRACE_LOG);
+          }
+        }
+        if (ptin_debug_dhcp)
+        {
+          printf("%s(%d) Packet filtered in interface=%u, with vlan=%u\r\n", __FUNCTION__, __LINE__,intIfNum,vlanId);
+        }
+        return L7_TRUE;    /* drop msg */
+      }
+    }
+  
+  }
+  return L7_FALSE;
+}
+
+/*********************************************************************
+* @purpose  Filter client messages whose source MAC address does not match
+*           the client hardware address in the DHCP packet.
+*
+* @param    intIfNum @b{(input)} receive interface
+* @param    vlanId   @b{(input)} VLAN ID
+* @param    frame    @b{(input)} ethernet frame
+* @param    ipHeader @b{(input)} IP header inside frame
+*
+* @returns  L7_TRUE if frame is filtered
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_BOOL dsFilterVerifyMac(L7_uint32 intIfNum, L7_ushort16 vlanId, 
+                          L7_uchar8 *frame, L7_ipHeader_t *ipHeader)
+{
+  L7_udp_header_t *udp_header;
+  L7_dhcp_packet_t *dhcpPacket;
+  L7_enetMacAddr_t* srcMacAddr;
+  L7_ushort16 ipHdrLen = dsIpHdrLen(ipHeader);
+
+  /* Only verify MAC if configured to do so. */
+  if (!dsCfgData->dsVerifyMac)
+    return L7_FALSE;
+  
+  udp_header = (L7_udp_header_t*)((L7_char8 *)ipHeader + ipHdrLen);
+  dhcpPacket = (L7_dhcp_packet_t*)((L7_char8 *)udp_header + sizeof(L7_udp_header_t));
+
+  if ((dhcpPacket->op == L7_DHCP_BOOTP_REQUEST) &&
+      (_dsIntfTrustGet(intIfNum) == L7_FALSE))
+  {
+    /* client message on untrusted interface */
+    srcMacAddr = (L7_enetMacAddr_t*) (frame + L7_ENET_MAC_ADDR_LEN);
+    if (memcmp(srcMacAddr->addr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN) != 0)
+    {
+      dsIntfInfo[intIfNum].dsIntfStats.macVerify++;
+      if (_dsIntfLogInvalidGet(intIfNum))
+      {
+        L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+        L7_uchar8 srcMacStr[DS_MAC_STR_LEN + 1];
+        L7_uchar8 clientHwStr[DS_MAC_STR_LEN + 1];
+        static L7_uint32 lastMsg = 0;
+        if (osapiUpTimeRaw() > lastMsg)
+        {
+          lastMsg = osapiUpTimeRaw();
+          dsMacToString(srcMacAddr->addr, srcMacStr);
+          dsMacToString(dhcpPacket->chaddr, clientHwStr);
+          nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+          L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID,
+                  "DHCP snooping dropping client message received on interface %s, vlan %u.", 
+                  ifName, vlanId);
+          L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID,
+                  "Source MAC address %s does not match client hardware address %s."
+                  " This message appears when DHCP Snooping drops the source mac "
+                  "address doest not match the clinet Hardware address.", 
+                  srcMacStr, clientHwStr);
+          dsLogEthernetHeader((L7_enetHeader_t*) frame, DS_TRACE_LOG);
+          dsLogIpHeader(ipHeader, DS_TRACE_LOG);
+          dsLogDhcpPacket(dhcpPacket, DS_TRACE_LOG);
+        }
+      }
+      return L7_TRUE;
+    }
+  }
+  return L7_FALSE;
+}
+
+/*********************************************************************
+* @purpose  Extract binding info from a DHCP server packet.
+*
+* @param    intIfNum   @b{(input)} receive interface
+* @param    vlanId     @b{(input)} VLAN ID
+* @param    dhcpPacket @b{(input)} DHCP packet 
+* @param    pktLen     @b{(input)} DHCP packet length (bytes)
+*
+* @returns  L7_SUCCESS or L7_FAILURE
+*
+* @notes    Use DHCP DISCOVER and REQUEST messages to learn the port where the
+*           client is attached. Use DHCP ACK messages to learn
+*           the MAC to IP binding. A DECLINE, RELEASE, or NAK removes binding.
+*
+* @end
+*********************************************************************/
+L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId,
+                         L7_dhcp_packet_t *dhcpPacket, L7_uint32 pktLen)
+{
+  L7_dhcp_pkt_type_t dhcpPktType;
+  L7_uint32 yiaddr = 0;     /* client's IP address */
+  L7_enetMacAddr_t chaddr;
+  L7_uint32 leaseTime;
+  dhcpSnoopBinding_t dsBinding;
+
+  if (ptin_debug_dhcp)
+  {
+      printf("%s(%d)\r\n", __FUNCTION__, __LINE__);
+  }
+
+  memcpy(&chaddr, dhcpPacket->chaddr, L7_ENET_MAC_ADDR_LEN);
+ 
+  /* If a static entry exists with DHCP message mac address
+     don't process it. Log the message. */
+
+  memcpy(dsBinding.macAddr, chaddr.addr, L7_ENET_MAC_ADDR_LEN);
+  if (dsBindingFind(&dsBinding, L7_MATCH_EXACT) == L7_SUCCESS)
+  {
+     if ( dsBinding.bindingType == DS_BINDING_STATIC)
+     {
+       return L7_REQUEST_DENIED;
+     }
+  }
+
+  dhcpPktType = dsPacketType(dhcpPacket, pktLen);
+  switch (dhcpPktType)
+  {
+    case L7_DHCP_DISCOVER:
+      if (ptin_debug_dhcp)
+      {
+          printf("%s(%d) L7_DCPH_DISCOVER: MAC=%02X:%02X:%02X:%02X:%02X:%02X, ipAddr=0x%08X, vlanID=%u, intIfNum=%u\r\n", __FUNCTION__, __LINE__,
+                 chaddr.addr[0],chaddr.addr[1],chaddr.addr[2],chaddr.addr[3],chaddr.addr[4],chaddr.addr[5],yiaddr,vlanId,intIfNum);
+      }
+      /* learn client port. Can only learn client port from a client message. 
+       * We look at DISCOVER so we have a binding if client
+       * sends DECLINE. */
+      if (dsBindingAdd(DS_BINDING_TENTATIVE, &chaddr, yiaddr, vlanId, innerVlanId,
+                       intIfNum) != L7_SUCCESS)
+      {
+        L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+        L7_uchar8 clientHwStr[DS_MAC_STR_LEN + 1];
+        static L7_uint32 lastMsg = 0;
+    
+        dsInfo->debugStats.bindingAddFail++;
+        if (osapiUpTimeRaw() > lastMsg)
+        {
+          lastMsg = osapiUpTimeRaw();
+          dsMacToString(chaddr.addr, clientHwStr);
+          nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+          L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
+                  "Failed to add binding {%s, %s, vlan %u} from DISCOVER.",
+                  clientHwStr, ifName, vlanId);
+        }
+        return L7_FAILURE;
+      }
+      break;
+
+    case L7_DHCP_REQUEST:
+      /* If client is renewing existing binding, leave it. But allow client to 
+       * move to a new VLAN and port. */
+      memcpy(dsBinding.macAddr, chaddr.addr, L7_ENET_MAC_ADDR_LEN);
+      if (dsBindingFind(&dsBinding, L7_MATCH_EXACT) == L7_SUCCESS)
+      {
+        if ((dsBinding.vlanId != vlanId) || (dsBinding.intIfNum != intIfNum))
+        {
+          /* keep IP address */
+          if (ptin_debug_dhcp)
+          {
+            printf("%s(%d) L7_DCPH_DISCOVER: MAC=%02X:%02X:%02X:%02X:%02X:%02X, ipAddr=0x%08X, vlanID=%u, intIfNum=%u\r\n", __FUNCTION__, __LINE__,
+                   chaddr.addr[0],chaddr.addr[1],chaddr.addr[2],chaddr.addr[3],chaddr.addr[4],chaddr.addr[5],dsBinding.ipAddr,vlanId,intIfNum);
+          }
+          dsBindingAdd(DS_BINDING_TENTATIVE, &chaddr, dsBinding.ipAddr, vlanId, innerVlanId, intIfNum);
+        }
+        else
+        {
+        }
+      }
+      else
+      {
+        /* Create new binding from REQUEST */
+        if (ptin_debug_dhcp)
+        {
+          printf("%s(%d) L7_DCPH_DISCOVER: MAC=%02X:%02X:%02X:%02X:%02X:%02X, ipAddr=0x%08X, vlanID=%u, intIfNum=%u\r\n", __FUNCTION__, __LINE__,
+                 chaddr.addr[0],chaddr.addr[1],chaddr.addr[2],chaddr.addr[3],chaddr.addr[4],chaddr.addr[5],yiaddr,vlanId,intIfNum);
+        }
+        if (dsBindingAdd(DS_BINDING_TENTATIVE, &chaddr, yiaddr, vlanId, innerVlanId,
+                         intIfNum) != L7_SUCCESS)
+        {
+          L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+          L7_uchar8 clientHwStr[DS_MAC_STR_LEN + 1];
+          static L7_uint32 lastMsg = 0;
+      
+          dsInfo->debugStats.bindingAddFail++;
+          if (osapiUpTimeRaw() > lastMsg)
+          {
+            lastMsg = osapiUpTimeRaw();
+            dsMacToString(chaddr.addr, clientHwStr);
+            nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+            L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DHCP_SNOOPING_COMPONENT_ID,
+                    "Failed to add binding {%s, %s, vlan %u} from REQUEST.",
+                    clientHwStr, ifName, vlanId);
+          }
+          return L7_FAILURE;
+        }
+      }
+      break;
+
+    case L7_DHCP_ACK:
+      /* Setting the IP addr on the binding will fail if client is on a 
+       * trusted port or a port not enabled for DHCP snooping. This is ok. */
+      /* memcpy to avoid data-alignment problems */
+      memcpy(&yiaddr, &(dhcpPacket->yiaddr), sizeof(yiaddr));
+      yiaddr = osapiNtohl(yiaddr);
+      if ( yiaddr == 0)
+      {
+        /* This is the ACK for the dhcp_offer,IGNORE it */
+        break;
+      }
+      if (dsBindingIpAddrSet(&chaddr, yiaddr) == L7_SUCCESS)
+      {
+        dsInfo->debugStats.bindingsAdded++;
+      }
+      /* Extract lease time */
+      leaseTime = dsLeaseTimeGet(dhcpPacket, pktLen);
+      dsBindingLeaseSet(&chaddr, leaseTime);
+      break; 
+
+    case L7_DHCP_DECLINE:
+    case L7_DHCP_RELEASE:
+    case L7_DHCP_NACK:
+      /* Client has refused or given up lease, or server has refused. Remove binding. 
+       * A failure removing binding could be ok. The client might be on a trusted
+       * port or a port not enabled for DHCP snooping. */
+      if (dsBindingRemove(&chaddr) == L7_SUCCESS)
+      {
+        dsInfo->debugStats.bindingsRemoved++;
+      }
+      break;
+    default:
+      /* just ignore OFFER messages */
+      break;
+  }
+  
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
+* @purpose  Forward a valid DHCP client packet.
+*
+* @param    intIfNum     @b{(input)} receive interface
+* @param    vlanId       @b{(input)} VLAN ID
+* @param    frame        @b{(input)} ethernet frame
+* @param    frameLen     @b{(input)} ethernet frame length,
+*                                    incl eth header (bytes)
+* @param    intfIfNumFwd @b{(input)} Iface on which server reply needs to 
+*                                    be forwarded based on Option-82.
+*                                    Applicable only for DHCP replies only.
+* @param    sVlanId      @b{(input)} Service VLAN on which client requests
+*                                    need to be forwarded if L2 relay is enabled.
+*                                    Applicable only for DHCP requests only.
+*
+* @returns  L7_SUCCESS or L7_FAILURE
+*
+* @notes    For DHCP snooping, all client  and server messages 
+*           are forwarded here (both for trusted and untrusted). 
+*           The Option-82 is already added or removed based on
+*           L2 relay configuration by the caller itself.
+*           But if L2 relay is enabled, the server messages are
+*           forwarded only to the client based on option-82 content
+*           i.e. which is here specified in 'intfIfNumFwd'. Even the 
+*           ports for which the client messages need to be forwarded 
+*           is specified by 'sVlanId' if L2 Relay is operational and 
+*           'vlanId' if only DHCP Snooping is operational.
+*
+*
+* @end
+*********************************************************************/
+L7_RC_t dsFrameForward(L7_uint32 intIfNum, L7_ushort16 vlanId, 
+                       L7_uchar8 *frame, L7_ushort16 frameLen,
+                       L7_ushort16 innerVlanId, L7_uint32 relayOptIntIfNum)
+{
+  L7_uint16 vlanIdFwd;
+  L7_udp_header_t *udp_header;
+  L7_dhcp_packet_t *dhcpPacket;
+  L7_ushort16 ethHdrLen = sysNetDataOffsetGet(frame);
+  L7_ipHeader_t *ipHeader = (L7_ipHeader_t*)(frame + ethHdrLen);
+  L7_ushort16 ipHdrLen = dsIpHdrLen(ipHeader);
+  L7_BOOL snoopingFlag = L7_FALSE, requestFlag = L7_FALSE;
+
+  udp_header = (L7_udp_header_t *)((L7_char8 *)ipHeader + ipHdrLen);
+  dhcpPacket = (L7_dhcp_packet_t*)((L7_char8 *)udp_header + sizeof(L7_udp_header_t));
+
+  if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+  {
+    L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+    osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                  "(%s)Frame forward inputs for DHCP %s are: intIfNum(%d), vlanId(%d), innerVlanId(%d)"
+                  "relayOptIntIfNum(%d), frameLen(%d) ", __FUNCTION__,
+                  (dhcpPacket->op == L7_DHCP_BOOTP_REQUEST) ? "request":"reply",
+                  intIfNum, vlanId, innerVlanId, relayOptIntIfNum, frameLen);
+    dsTraceWrite(traceMsg);
+  }
+  if ((dsCfgData->dsGlobalAdminMode == L7_TRUE) &&
+      (dsIntfIsSnooping(intIfNum) == L7_TRUE) &&
+      (_dsIntfTrustGet(intIfNum) != L7_TRUE)
+     )
+  {
+    snoopingFlag = L7_TRUE; /* Snooping is enabled only on untrusted ports */
+  }
+  /* If server reply with L2relay enabled,forward only to client 
+     interface from Option-82 sub-option Circuit-Id*/
+  if (dhcpPacket->op == L7_DHCP_BOOTP_REPLY)
+  {
+    requestFlag = L7_FALSE;
+    if (relayOptIntIfNum != L7_NULL)
+    {
+      // PTin added
+      if (ptin_translate_dhcpVlanGet(intIfNum,vlanId,relayOptIntIfNum,&vlanIdFwd)!=L7_SUCCESS)
+        vlanIdFwd = vlanId;
+      // PTin modified
+      if (dsFrameIntfFilterSend(relayOptIntIfNum, vlanIdFwd /*vlanId*/, frame, frameLen, L7_FALSE, innerVlanId) == L7_SUCCESS)
+      {
+        dsInfo->debugStats.serverOption82Tx++;
+        ptin_dhcp_stat_increment_field(relayOptIntIfNum, vlanIdFwd, innerVlanId, DHCP_STAT_FIELD_TX_SERVER_REPLIES_WITHOUT_OPTION82);
+        ptin_dhcp_stat_increment_field(relayOptIntIfNum, vlanIdFwd, innerVlanId, DHCP_STAT_FIELD_TX_FORWARDED);
+        return L7_SUCCESS;
+      }
+      return L7_FAILURE;
+    }
+    else
+    {
+      /* If there is no Circuit-id information in the Reply pakcets,
+         Forward the DHCP replies to the interface based on the DHCP Snooping 
+         database (FDB).
+      */
+      if (dsReplyFrameForward(intIfNum, vlanId, dhcpPacket->chaddr, frame,
+                              frameLen, innerVlanId) != L7_SUCCESS)
+      {
+        if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+        {
+          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                        "(%s)Failed to get FDB entry for MAC(%s)", __FUNCTION__, dhcpPacket->chaddr);
+          dsTraceWrite(traceMsg);
+        }
+      }
+      else
+      {
+        return L7_SUCCESS;
+      }
+    }
+  }
+  else
+  {
+    requestFlag = L7_TRUE;
+  }
+  if (dsFrameFlood(intIfNum, vlanId, frame, frameLen, 
+                   snoopingFlag, requestFlag, innerVlanId) == L7_SUCCESS)
+  {
+    #ifdef L7_DHCP_L2_RELAY_PACKAGE
+    if (dsCfgData->dsL2RelayAdminMode == L7_TRUE &&
+        dhcpPacket->op == L7_DHCP_BOOTP_REQUEST)
+    {
+      dsInfo->debugStats.clientOption82Tx++;
+    }
+    #endif
+    return L7_SUCCESS;
+  }
+  return L7_FAILURE;
+}
+
+/***********************************************************************
+* @purpose Flood DHCP packet from client toward server
+*
+* @param    intIfNum   @b{(input)} receive interface
+* @param    vlanId     @b{(input)} VLAN ID
+* @param    frame      @b{(input)} ethernet frame
+* @param    frameLen   @b{(input)} ethernet frame length, incl eth header (bytes)
+*
+* @returns L7_SUCCESS
+* @returns L7_FAILURE
+*
+* @notes   Send on ports in VLAN except untrusted
+*
+* @end
+*
+***********************************************************************/
+L7_RC_t dsFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId, 
+                     L7_uchar8 *frame, L7_ushort16 frameLen,
+                     L7_BOOL snoopingFlag, L7_BOOL requestFlag,
+                     L7_ushort16 innerVlanId)
+{
+  L7_uint16 vlanIdFwd;
+  NIM_INTF_MASK_t portMask;
+  L7_uint32 i;
+  L7_RC_t rc = L7_SUCCESS;
+
+  // PTin added
+  L7_uint16 original_vlan;
+  if (ptin_intif_vlan_translate_get(intIfNum,vlanId,&original_vlan)!=L7_SUCCESS)
+  {
+    original_vlan = vlanId;
+  }
+  // PTin modified
+  if (dot1qVlanEgressPortsGet(original_vlan /*vlanId*/, &portMask) == L7_SUCCESS)
+  {
+    for (i = 1; i < DS_MAX_INTF_COUNT; i++)
+    {
+      // PTin added
+      if (ptin_translate_dhcpVlanGet(intIfNum,vlanId,i,&vlanIdFwd)!=L7_SUCCESS)
+        vlanIdFwd = vlanId;
+
+      if (i == intIfNum)
+      {
+        continue;
+      }
+      /* The API dot1qVlanEgressPortsGet returns both LAG interface as 
+         well as its particpating interfaces. So exclude the particpiating
+         interfaces so that the underlying layer takes care of forwarding 
+         to participating interfaces. */
+      if (dot3adIsLagActiveMember(i) == L7_TRUE)
+      {
+        continue;
+      }
+
+      if (L7_INTF_ISMASKBITSET(portMask, i))
+      {
+        if (snoopingFlag == L7_TRUE)
+        {
+          /* Forward on ports in VLAN whether either DHCP snooping is disabled, 
+           * or DHCP snooping considers the port trusted. */
+          if (!dsIntfIsSnooping(i) || _dsIntfTrustGet(i))
+          {
+            if (dsFrameIntfFilterSend(i, vlanIdFwd /*vlanId*/, frame, frameLen, requestFlag,
+                               innerVlanId) != L7_SUCCESS)
+            {
+              rc = L7_FAILURE;
+            }
+            else {
+              // PTin added
+              ptin_dhcp_stat_increment_field(i, vlanIdFwd, innerVlanId, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION82);
+              ptin_dhcp_stat_increment_field(i, vlanIdFwd, innerVlanId, DHCP_STAT_FIELD_TX_FORWARDED);
+            }
+          }
+        }
+        else
+        {
+          // PTin modified
+          if (dsFrameIntfFilterSend(i, vlanIdFwd /*vlanId*/, frame, frameLen,
+                         requestFlag, innerVlanId) != L7_SUCCESS)
+          {
+            rc = L7_FAILURE;
+          }
+          else {
+            // PTin added
+            ptin_dhcp_stat_increment_field(i, vlanIdFwd, innerVlanId, DHCP_STAT_FIELD_TX_CLIENT_REQUESTS_WITH_OPTION82);
+            ptin_dhcp_stat_increment_field(i, vlanIdFwd, innerVlanId, DHCP_STAT_FIELD_TX_FORWARDED);
+          }
+        }
+      }
+    }
+  }
+  return rc;
+}
+/***********************************************************************
+* @purpose Filter and forward DHCP packet on specified interface.
+*
+* @param    intIfNum   @b{(input)} receive interface
+* @param    vlanId     @b{(input)} VLAN ID
+* @param    frame      @b{(input)} ethernet frame
+* @param    frameLen   @b{(input)} ethernet frame length, incl eth header (bytes)
+* @param    requestFlag@b{(input)} DHCP/BOOTP Request or Reply.
+* @param    innerVlanId@b{(input)} inner VLAN ID, incase packet 
+*                                  received is double tagged.
+*
+* @returns L7_SUCCESS
+* @returns L7_FAILURE
+*
+* @notes   This API is place holder to filter packets based on the destination 
+*          port (interface on which packet is being sent) rules. And ofcourse,
+*          it is DOT1AD subscription rules which help the purpose in Metro 
+*          builds.
+*
+* @end
+*
+***********************************************************************/
+L7_RC_t dsFrameIntfFilterSend(L7_uint32 intIfNum, L7_ushort16 vlanId, 
+                       L7_uchar8 *frame, L7_ushort16 frameLen,
+                       L7_BOOL requestFlag, L7_ushort16 innerVlanId)
+{
+#if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
+  DOT1AD_INTFERFACE_TYPE_t intfType;
+  L7_uchar8 *frameTemp = dsInfo->pktBuff;
+  L7_DOT1AD_SVCTYPE_t svType;
+
+  if (dot1adInterfaceTypeGet(intIfNum, &intfType) != L7_SUCCESS)
+  {
+    return L7_FAILURE;
+  }
+  if (dot1adServiceTypeGet(vlanId, &svType) != L7_SUCCESS)
+  {
+    return L7_FAILURE;
+  }
+  if (intfType == DOT1AD_INTFERFACE_TYPE_NNI)
+  {
+    dsFrameDoubleVlanTagAdd(intIfNum,vlanId,frame, &frameLen, innerVlanId, frameTemp);
+    if (dsFrameSend(intIfNum, vlanId, innerVlanId, frameTemp, frameLen) != L7_SUCCESS)
+    {
+      return L7_FAILURE;
+    }
+    /* Reset the control block frame to reuse.*/
+    memset (frameTemp, 0, DS_DHCP_PACKET_SIZE_MAX);
+  }
+  else if (intfType == DOT1AD_INTFERFACE_TYPE_UNI ||
+           intfType == DOT1AD_INTFERFACE_TYPE_UNI_P ||
+           intfType == DOT1AD_INTFERFACE_TYPE_UNI_S)
+  {
+    dot1adSubscriptionStruct_t *subscrEntry = L7_NULLPTR;
+    L7_uint32                  searchVlanId = innerVlanId;
+    L7_uint32                  matchType = L7_MATCH_EXACT;
+    L7_BOOL                    foundEntry = L7_FALSE;
+
+    if (svType == L7_DOT1AD_SVCTYPE_ETREE)
+    {
+      if (innerVlanId != L7_DOT1AD_ETREE_RESERVED_INNER_VLAN)
+      {
+        return L7_FAILURE;
+      }
+    }
+    if ( (svType == L7_DOT1AD_SVCTYPE_TLS) ||
+         (svType == L7_DOT1AD_SVCTYPE_ETREE)
+       )
+    {
+
+      matchType = L7_MATCH_GETNEXT;
+      searchVlanId = 0;
+    }
+
+    if (dot1adSubscriptionEntryTreeServiceTypeSearch(intIfNum,vlanId,
+                                             searchVlanId, matchType,
+                                         &subscrEntry) != L7_SUCCESS)
+    {
+      searchVlanId = 0;
+      matchType = L7_MATCH_EXACT; /* Try with vlanId + 0 exact combination */
+
+      if (dot1adSubscriptionEntryTreeServiceTypeSearch(intIfNum,vlanId,
+                                               searchVlanId, matchType,
+                                            &subscrEntry) == L7_SUCCESS)
+      {
+        if (subscrEntry->subscrEntryKey.svid == vlanId)
+        {
+          switch(intfType)
+          {
+            case DOT1AD_INTFERFACE_TYPE_UNI_S:
+            /* Match SVID alone can get DT frames */
+            if (subscrEntry->cvidToMatch == 0)
+            {
+              foundEntry = L7_TRUE;
+              break;
+            }
+            break;
+            case DOT1AD_INTFERFACE_TYPE_UNI_P:
+            case DOT1AD_INTFERFACE_TYPE_UNI:
+            /* Match Untagged frames alone */
+            if ( (subscrEntry->cvidToMatch == 0) ||
+                 (subscrEntry->pktType == L7_DOT1AD_PKTTYPE_UNTAGGED) ||
+                 (subscrEntry->pktType == L7_DOT1AD_PKTTYPE_PRIOTAGGED)
+               )
+            {
+              foundEntry = L7_TRUE;
+            }
+            break;
+           default:
+           break;
+         }
+        }
+      }
+      else
+      {
+        searchVlanId = 0;
+        matchType = L7_MATCH_GETNEXT; /* Try with vlanId + 0 next combination */
+
+        if (dot1adSubscriptionEntryTreeSearch(intIfNum, vlanId,
+                                              searchVlanId,
+                                              matchType,
+                                              &subscrEntry) == L7_SUCCESS)
+        {
+          if (subscrEntry->subscrEntryKey.svid == vlanId)
+          {
+            switch(intfType)
+            {
+              case DOT1AD_INTFERFACE_TYPE_UNI_S:
+               /* Match SVID alone can get DT frames */
+               if (subscrEntry->cvidToMatch == 0)
+               {
+                 foundEntry = L7_TRUE;
+               }
+               break;
+              case DOT1AD_INTFERFACE_TYPE_UNI_P:
+              case DOT1AD_INTFERFACE_TYPE_UNI:
+               /* Match Untagged frames alone */
+               if ( (subscrEntry->cvidToMatch == 0) ||
+                    (subscrEntry->pktType == L7_DOT1AD_PKTTYPE_UNTAGGED) ||
+                    (subscrEntry->pktType == L7_DOT1AD_PKTTYPE_PRIOTAGGED)
+                  )
+               {
+                 foundEntry = L7_TRUE;
+               }
+               break;
+             default:
+               break;
+           }
+         }
+       }
+      }
+    }
+    else
+    {
+      foundEntry = L7_TRUE;
+    }
+    if (foundEntry == L7_TRUE) 
+    {
+       if (requestFlag == L7_TRUE &&
+           (svType == L7_DOT1AD_SVCTYPE_ELINE ||
+            svType == L7_DOT1AD_SVCTYPE_ETREE))
+       {
+         if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_SERVER)
+         {
+           L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+           memset(traceMsg, 0, DS_MAX_TRACE_LEN);
+           osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                         "(%s)Returning as the request pkts are not to be "
+                "sent on other UNIs for e-line and e-tree",__FUNCTION__); 
+           dsTraceWrite(traceMsg);
+         }
+         return L7_SUCCESS;
+       }
+       /* Whether its request or reply , send based on the UNI dot1ad rule.*/
+       if (dot1adIsFieldConfigured(subscrEntry->configMask, DOT1AD_PKTTYPE) == L7_TRUE)
+       {
+         if (subscrEntry->pktType == L7_DOT1AD_PKTTYPE_UNTAGGED)
+         {
+           memcpy (frameTemp, frame, frameLen);
+           /* dsFrameVlanTagRemove(frame, &frameLen, frameTemp); */
+           vlanId = L7_NULL;
+         }
+         else if (subscrEntry->pktType == L7_DOT1AD_PKTTYPE_TAGGED)
+         {
+           if (dot1adIsFieldConfigured(subscrEntry->configMask, DOT1AD_MATCH_SVID) == L7_TRUE)
+           {
+             dsFrameSVlanTagAdd(intIfNum, frame, &frameLen, subscrEntry->svidToMatch, frameTemp);
+             if (dot1adIsFieldConfigured(subscrEntry->configMask, DOT1AD_MATCH_CVID) == L7_TRUE)
+             {
+               dsFrameCVlanTagInsert(frameTemp, &frameLen,subscrEntry->cvidToMatch,frameTemp);
+             }
+             else if(innerVlanId)
+             {
+               dsFrameCVlanTagInsert(frameTemp, &frameLen,innerVlanId,frameTemp);
+             }
+           }
+           else if (dot1adIsFieldConfigured(subscrEntry->configMask, DOT1AD_MATCH_CVID) == L7_TRUE)
+           {
+             dsFrameCVlanTagAdd(frame, &frameLen, subscrEntry->cvidToMatch, frameTemp);
+           }
+         }
+       }
+       else
+       {
+         /* Send pkt as it comes by removing S-tag.*/
+         if (innerVlanId == L7_NULL)
+         {
+           memcpy (frameTemp, frame, frameLen);
+           vlanId = L7_NULL;
+         }
+         else 
+         {
+           dsFrameCVlanTagAdd(frame, &frameLen, innerVlanId, frameTemp);
+         }
+       }
+      return dsFrameSend(intIfNum, vlanId, innerVlanId, frameTemp, frameLen);     
+    }
+    else
+    {
+      if (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_SERVER)
+      {
+        L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
+        memset(traceMsg, 0, DS_MAX_TRACE_LEN);
+        osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN, 
+                      "(%s) Failed to get subsc entry with intf = %d, svid = %d, cvid = %d", __FUNCTION__, 
+             intIfNum, vlanId, innerVlanId);
+        dsTraceWrite(traceMsg);
+      }
+    }
+  }
+  return L7_SUCCESS;
+#else
+  return dsFrameSend(intIfNum,vlanId,innerVlanId,frame,frameLen);
+#endif
+}
+/***********************************************************************
+* @purpose Send a DHCP packet on a given interface
+*
+* @param    intIfNum   @b{(input)} outgoing interface
+* @param    vlanId     @b{(input)} VLAN ID
+* @param    frame      @b{(input)} ethernet frame
+* @param    frameLen   @b{(input)} ethernet frame length, incl eth header (bytes)
+*
+* @returns L7_SUCCESS
+* @returns L7_FAILURE
+*
+* @notes   Send on all trusted ports in VLAN
+*
+* @end
+*
+***********************************************************************/
+L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, 
+                    L7_uchar8 *frame, L7_ushort16 frameLen)
+{
+  L7_netBufHandle   bufHandle;
+  L7_uchar8        *dataStart;
+  L7_INTF_TYPES_t   sysIntfType;
+
+
+  /* If outgoing interface is CPU interface, don't send it */
+  if ((nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
+      (sysIntfType == L7_CPU_INTF))
+  {
+    return L7_SUCCESS;
+  }
+
+  if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+  {
+    L7_uchar8 dsTrace[DS_MAX_TRACE_LEN];
+    L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+    nimGetIntfName(intIfNum, L7_SYSNAME, ifName);
+    osapiSnprintf(dsTrace, DS_MAX_TRACE_LEN, 
+                  "(%s)DHCP snooping forwarding %u byte frame on interface %s in VLAN %u.",
+                  __FUNCTION__, frameLen, ifName, vlanId);
+    dsTraceWrite(dsTrace);
+  }
+
+  SYSAPI_NET_MBUF_GET(bufHandle);
+  if (bufHandle == L7_NULL)
+  {
+    /* Don't bother logging this. mbuf alloc failures happen occasionally. DHCP
+     * should recover. */
+    dsInfo->debugStats.txFail++;
+    ptin_dhcp_stat_increment_field(intIfNum, vlanId, innerVlanId, DHCP_STAT_FIELD_TX_FAILED);
+    return L7_FAILURE;
+  }
+
+  // PTin added
+  // Make sure the vlan in the packet is correct
+  frame[14] = (vlanId>>8) & 0x0F;
+  frame[15] = vlanId & 0xFF;
+  if (ptin_debug_dhcp)
+  {
+    printf("%s(%d) DHCP: packet will be sent with Vlan %u in port %u\r\n", __FUNCTION__, __LINE__,vlanId,intIfNum);
+  }
+
+  SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
+  memcpy(dataStart, frame, frameLen);
+  SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, frameLen);
+
+  if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
+  {
+    int row, column;
+    L7_uchar8 *pkt = frame;
+
+    printf("\n===================\n");
+    printf("======DHCP PKT=====\n");
+    printf("===================\n");
+    for (row = 0; row < 5; row++)
+    {
+      printf("%04x ", row * 16);
+      for (column = 0; column < 16; column++)
+      {
+        printf("%2.2x ",pkt[row*16 + column]);
+      }
+      printf("\n");
+    }
+    printf("===================\n");
+  }
+
+  if (dtlIpBufSend(intIfNum, vlanId, innerVlanId, bufHandle) != L7_SUCCESS)
+  {
+    LOG_MSG(" Failed to send DHCP pkt on intIfNum (%d) and vlanID (%d)", 
+              intIfNum, vlanId);
+    return L7_FAILURE;
+  }
+  return L7_SUCCESS;
+}
+
+
+/*********************************************************************
+* @purpose  Reset the received packet count at the start of
+*           new 1 second interval on each interface.
+*           And count the consecutive intervals with rate_limit hit
+*
+* @param    none
+*
+* @returns  void
+*
+* @notes    This function gets called every 1 second
+*
+* @end
+*********************************************************************/
+void dsRateLimitCheck(void)
+{
+  L7_uint32 i;
+
+  for (i = 1; i < DS_MAX_INTF_COUNT; i++)
+  {
+    if((dsCfgData->dsIntfCfg[i].rateLimitCfg.rate_limit != L7_DS_RATE_LIMIT_NONE) &&
+       (dsIntfInfo[i].pktRxCount >= dsCfgData->dsIntfCfg[i].rateLimitCfg.rate_limit))
+    {
+      dsIntfInfo[i].consecutiveInterval++;
+    }
+    else
+    {
+      dsIntfInfo[i].consecutiveInterval = 1;
+    }
+    dsIntfInfo[i].pktRxCount = 0;
+  }
+
+  /* reschedule the timer */
+  osapiTimerAdd((void *)dsTimerCallback, L7_NULL, L7_NULL,
+                DS_LEASE_TIMER_INTERVAL, &dsLeaseTimer);
+}
+
+/*********************************************************************
+* @purpose  Start the DS timer
+*
+* @param    none
+*
+* @returns  L7_SUCCESS
+*           L7_FAILURE if timer already running
+*
+* @notes
+*
+* @end
+*********************************************************************/
+
+L7_RC_t dsTimerStart(void)
+{
+    /* reschedule the timer */
+  osapiTimerAdd((void *)dsTimerCallback, L7_NULL, L7_NULL,
+                DS_LEASE_TIMER_INTERVAL, &dsLeaseTimer);
+
+  return L7_SUCCESS;
+
+}
+
+/*********************************************************************
+* @purpose  Check if the configured rate limit is exceeded on this
+*           interface
+*
+* @param    pduInfo  @b{(input)} pointer to pdu info structure
+*                                which stores intIfNum and vlanId
+*
+* @returns  L7_TRUE  - pkt rate > rate limit
+*                     (or) the interface is down
+*
+* @returns  L7_FALSE  - pkt rate < rate limit
+*                       or if the rate limit is none
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+
+L7_BOOL dsRateLimitFilter(sysnet_pdu_info_t *pduInfo)
+{
+  L7_uint32 linkState;
+
+  /* We shall directly ask NIM in this intercept function to know the
+   * exact status of the interface in the h/w. This will ensure,
+   * we drop those packets received when the interface is
+   * being made error-disabled */
+
+  if(! ((nimGetIntfLinkState(pduInfo->intIfNum, &linkState) == L7_SUCCESS) &&
+        (linkState == L7_UP)) )
+  {
+    return L7_TRUE;
+  }
+
+  /* Enforce the rate limit check on the packets received on this interface */
+  if(dsCfgData->dsIntfCfg[pduInfo->intIfNum].rateLimitCfg.rate_limit
+      != L7_DS_RATE_LIMIT_NONE)
+  {
+    dsIntfInfo[pduInfo->intIfNum].pktRxCount++;
+
+    // PTin removed: admin down
+//  if((dsIntfInfo[pduInfo->intIfNum].consecutiveInterval ==
+//      dsCfgData->dsIntfCfg[pduInfo->intIfNum].rateLimitCfg.burst_interval) &&
+//     (dsIntfInfo[pduInfo->intIfNum].pktRxCount >=
+//      dsCfgData->dsIntfCfg[pduInfo->intIfNum].rateLimitCfg.rate_limit))
+//  {
+//    /* Error disable this interface by calling NIM API.
+//     * User has to explicitly do "no shutdown"
+//     * to bring the interface up */
+//    L7_uchar8 ifName[L7_NIM_IFNAME_SIZE + 1];
+//    nimGetIntfName(pduInfo->intIfNum, L7_SYSNAME, ifName);
+//    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID,
+//            "DHCP Snooping Interface %s Error-Disabled!! Rate Limit %d pps with burst interval %d hit",
+//            ifName, dsCfgData->dsIntfCfg[pduInfo->intIfNum].rateLimitCfg.rate_limit,
+//            dsCfgData->dsIntfCfg[pduInfo->intIfNum].rateLimitCfg.burst_interval);
+//
+//    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID,
+//            "User has to bring the interface %d up explicitly."
+//            " This message appears when DHCP Snooping disables"
+//            " a port because of rate limiting",ifName);
+//
+//    dsIntfInfo[pduInfo->intIfNum].pktRxCount = 0;
+//    /* Disable the i/f in h/w */
+//    nimSetIntfAdminState(pduInfo->intIfNum, L7_DIAG_DISABLE);
+//
+//    /* Raise a trap for the error disabling event */
+//    trapMgrDsIntfErrorDisabledTrap(pduInfo->intIfNum);
+//
+//    return L7_TRUE;
+//  }
+  }
+
+  return L7_FALSE;
+}
+
+/*********************************************************************
+* @purpose  Check if the configured time is expired to store the
+*           DHCP Snooping database
+*
+*
+* @notes   It's a static function and invokes the tftp functions.  
+*
+* @end
+*********************************************************************/
+
+
+static void dsPeriodicStore()
+{
+  static int i = 0;
+
+  /* Try to restore from remote db or from local db only when the
+   * persistency feature is present */
+  if(cnfgrIsFeaturePresent(L7_DHCP_SNOOPING_COMPONENT_ID,
+                           L7_DHCP_SNOOPING_DB_PERSISTENCY) == L7_TRUE)
+  {
+    if(i == dsCfgData->dsDbStoreInterval)
+    {
+      i=0;
+      /* if (_dsBindingsCount()) */
+      if (dsInfo->dsDbDataChanged == L7_TRUE)
+      {
+        if (dsCfgData->dsDbIpAddr) /* Save the bindings in a remote machine */
+        {
+          dsTftpUploadInit();
+        }
+        else /* Save the bindings in local machine */
+        {
+          dsDbLocalSave(); 
+        }
+        dsInfo->dsDbDataChanged = L7_FALSE;
+      }
+    }
+    else if (i > dsCfgData->dsDbStoreInterval)
+    {
+      i=0;
+    }
+    else 
+    {
+      i++;
+    }
+  }
+} 
+
+void setdoubleTaggedTx(L7_BOOL neW)
+{
+  doubleTaggedTx = neW;
+}

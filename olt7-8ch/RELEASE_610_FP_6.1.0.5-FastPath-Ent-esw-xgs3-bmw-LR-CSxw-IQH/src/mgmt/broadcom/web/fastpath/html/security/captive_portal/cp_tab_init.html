@@ -1,0 +1,467 @@
+<EMWEB_HEAD C='
+#include "web.h"
+static L7_uchar8 usmWebStaticBuffer[USMWEB_STATIC_BUFFER_SIZE];
+'>
+
+<html>
+
+  <EMWEB_STRING ID=USMWEB_TABS_CP_CONFIGURATION VALUE="0" C='
+    EwaNetHandle net;
+    usmWeb_AppInfo_t appInfo;
+    L7_uint32   i, j;
+    L7_int32    selTab = -1;
+    L7_int32    selTabR2 = -1;
+    L7_BOOL     bSel;
+    L7_char8    *pStr;
+    L7_int32    selCpId = 0;
+    L7_int32    selWebId = 0;
+    L7_uint32   numCP;
+    L7_uint32   numWeb;
+    L7_uint32   arrayCpId[CP_ID_MAX];
+    L7_uint32   arrayWebId[CP_WEB_ID_MAX];
+    L7_ushort16 cpId;
+    L7_ushort16 webId;
+    L7_char8    urlLink[256];
+    L7_char8    tabBuffer[1024];
+    L7_BOOL     bCpIdQueryString = L7_FALSE;
+    L7_BOOL     bWebIdQueryString = L7_FALSE;
+    L7_char8    cpName[CP_ID_MAX][CP_NAME_MAX+1];
+    L7_char8    tmpWebName[CP_LOCALE_LINK_MAX+1];
+    L7_char8    webName[CP_WEB_ID_MAX][CP_LOCALE_LINK_MAX+1];
+    L7_char8    *targetFrame = "basefrm";
+    L7_uint32   numTabsFixed = 1;
+    L7_uint32   numCPTabs = 1;
+    L7_uint32   numWebTabs = 1;
+    L7_char8    *tabLinks[] = {
+                "cp_cfg.html", 
+                "cp_cfg_mgmt.html",
+                "cp_web_custom.html"
+                };
+    L7_char8    *tabNames[] = {
+                "CP Summary"
+                };
+
+    L7_char8    *tabNamesConfig[] = {
+                "CP Configuration"
+                };
+
+    selTab = atoi((char *) ewsContextGetValue(ewsContext));
+    if (ewsCGIQueryString(ewsContext, tabBuffer, 1024) > 0)
+    {
+      pStr = strstr(tabBuffer, "cp=");
+      if (pStr != L7_NULLPTR)
+      {
+        pStr += strlen("cp=");
+        selCpId = atoi(pStr);
+        bCpIdQueryString = L7_TRUE;
+      }
+      pStr = strstr(tabBuffer, "web=");
+      if (pStr != L7_NULLPTR)
+      {
+        pStr += strlen("web=");
+        selWebId = atoi(pStr);
+        bWebIdQueryString = L7_TRUE;
+      }
+    }
+    else /* No Query String */
+    {
+      net = ewsContextNetHandle(ewsContext);
+      if (net->app_pointer != L7_NULL)
+      {
+        memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+        selCpId = appInfo.data[0];
+        bCpIdQueryString = L7_TRUE;
+        selWebId = appInfo.data[1];
+        bWebIdQueryString = L7_TRUE;
+      } 
+    }
+       
+    /* Get number of CP config tabs */
+    numCP = 0;
+    cpId = 0;                                
+    while (usmDbCpdmCPConfigNextGet(cpId, &cpId) == L7_SUCCESS)
+    {
+      arrayCpId[numCP] = (L7_uint32)cpId;
+      if ((usmDbCpdmCPConfigNameGet(cpId, cpName[numCP]) != L7_SUCCESS) || 
+          (strlen(cpName[numCP]) == 0))
+      {
+        osapiSnprintf(cpName[numCP], CP_NAME_MAX, "%u", cpId);
+      }
+      numCP++;
+    }
+    numCPTabs = numTabsFixed + numCP;
+
+    /* Get number of Web Id tabs */
+    numWeb = 0;
+    webId = 0;                                
+
+    while (usmDbCpdmCPConfigWebIdNextGet(selCpId, webId, &webId) == L7_SUCCESS)
+    {
+      memset(tmpWebName,0,sizeof(tmpWebName));
+      arrayWebId[numWeb] = (L7_uint32)webId;
+
+      if ((usmDbCpdmCPConfigWebLocaleLinkGet(selCpId, webId, tmpWebName) == L7_SUCCESS) &&
+          (strlen(tmpWebName) != 0))
+      {
+        usmWebConvertHexToUnicode(tmpWebName,webName[numWeb]);
+      }
+      else
+      {
+        osapiSnprintf(webName[numWeb], CP_LOCALE_LINK_MAX, "%u", webId);
+      }
+      numWeb++;
+    }
+    numWebTabs = numTabsFixed + numWeb;
+
+    usmWebTabWrapperTop(usmWebStaticBuffer, USMWEB_STATIC_BUFFER_SIZE);
+
+    /* ---------------------------------------------------------------------- */
+    /* Row 1 Tab Generation                                                   */
+    /* ---------------------------------------------------------------------- */
+    if (selTab == 0)
+      bSel = L7_TRUE;  
+    else
+      bSel = L7_FALSE;
+
+    usmWebTabGen(tabNames[0], tabLinks[0], targetFrame, 0, bSel, numCPTabs, tabBuffer, sizeof(tabBuffer));
+    osapiStrncat(usmWebStaticBuffer, tabBuffer, (USMWEB_STATIC_BUFFER_SIZE-1-strlen(usmWebStaticBuffer)));
+
+    j = 0;
+    for (i=1; i<=numCP; i++)
+    {
+      if ((bCpIdQueryString == L7_TRUE) && (arrayCpId[j] == selCpId))
+      {
+        bSel = L7_TRUE;  
+        selTab = i;
+      }
+      else
+      {
+        bSel = L7_FALSE;
+      }
+
+      osapiSnprintf(urlLink, 256, "%s?cp=%d", tabLinks[1], arrayCpId[j]);
+      usmWebTabGen(cpName[j], urlLink, targetFrame, i, bSel, numCPTabs, tabBuffer, sizeof(tabBuffer));
+      osapiStrncat(usmWebStaticBuffer, tabBuffer, (USMWEB_STATIC_BUFFER_SIZE-1-strlen(usmWebStaticBuffer)));
+      j++;
+    }
+
+    /* ---------------------------------------------------------------------- */
+    /* Row 2 Tab Generation                                                   */
+    /* ---------------------------------------------------------------------- */
+    if (selTab != 0)
+    {
+      usmWebTabWrapperMiddle(tabBuffer, sizeof(tabBuffer));
+      osapiStrncat(usmWebStaticBuffer, tabBuffer, (USMWEB_STATIC_BUFFER_SIZE-1-strlen(usmWebStaticBuffer)));
+
+      selTabR2 = (0==selWebId)?0:selWebId;
+      bSel = (0==selTabR2)?L7_TRUE:L7_FALSE;
+
+      osapiSnprintf(urlLink, 256, "%s?cp=%d", tabLinks[1], selCpId);
+      usmWebTabGenRow2(tabNamesConfig[0], urlLink, targetFrame, 0, bSel, numWebTabs, tabBuffer, sizeof(tabBuffer));
+      osapiStrncat(usmWebStaticBuffer, tabBuffer, (USMWEB_STATIC_BUFFER_SIZE-1-strlen(usmWebStaticBuffer)));
+      selTabR2 = (0==selWebId)?0:selWebId;
+
+      for (i=1; i<numWebTabs; i++)
+      {
+        bSel = (i==selTabR2)?L7_TRUE:L7_FALSE;
+        osapiSnprintf(urlLink, 256, "%s?cp=%d&web=%d", tabLinks[2], selCpId, arrayWebId[i-1]);
+        usmWebTabGenRow2(webName[i-1], urlLink, targetFrame, i, bSel, numWebTabs, tabBuffer, sizeof(tabBuffer));
+        osapiStrncat(usmWebStaticBuffer, tabBuffer, (USMWEB_STATIC_BUFFER_SIZE-1-strlen(usmWebStaticBuffer)));
+      }
+    }
+
+    usmWebTabWrapperBottom(tabBuffer, sizeof(tabBuffer));
+    osapiStrncat(usmWebStaticBuffer, tabBuffer, (USMWEB_STATIC_BUFFER_SIZE-1-strlen(usmWebStaticBuffer)));
+    return usmWebStaticBuffer;
+  ' >
+
+
+  <EMWEB_STRING ID=USMWEB_TABS_USER_LOCAL VALUE="0" C='
+    EwaNetHandle net;
+    usmWeb_AppInfo_t appInfo;
+    L7_uint32 i;
+    L7_char8  user[CP_USER_LOCAL_USERNAME_MAX+1];
+    L7_char8  userBuf[CP_USER_LOCAL_USERNAME_MAX+1];
+    L7_int32  selTab = -1;
+    L7_BOOL   bSel;
+    L7_char8  *pStr;
+    L7_char8  urlLink[256];
+    L7_char8  tabBuffer[1024];
+    L7_BOOL   bQueryStringUser = L7_FALSE;
+    L7_char8  *targetFrame = "basefrm";
+    L7_uint32 numTabs = 2;
+    L7_char8  *tabLinks[] = {
+              "cp_user_local.html", 
+              "cp_user_local_cfg.html" 
+              };
+    L7_char8  *tabNames[] = {
+              "Local User Summary", 
+              "Local User Configuration" 
+              };
+
+    memset(userBuf, 0x00, sizeof(userBuf));
+    selTab = atoi((char *) ewsContextGetValue(ewsContext));
+
+    if (ewsCGIQueryString(ewsContext, tabBuffer, 1024) > 0)
+    {
+       pStr = strstr(tabBuffer, "user=");
+       if (pStr != L7_NULLPTR)
+       {
+         pStr += strlen("user=");
+         osapiStrncpy(userBuf, pStr, sizeof(userBuf));
+         bQueryStringUser = L7_TRUE;
+       }
+    }
+    else /* No Query String */
+    {
+      net = ewsContextNetHandle(ewsContext);
+      if (net->app_pointer != NULL)
+      {
+        memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+        memset(user, 0, sizeof(user));
+        memcpy(user, appInfo.buf, sizeof(user));
+        osapiSnprintf(userBuf, sizeof(userBuf), "%s", user);
+        bQueryStringUser = L7_TRUE;
+      }
+    }
+
+    if (bQueryStringUser == L7_FALSE)
+    {
+      uId_t uId = 0;
+      memset(userBuf,0,sizeof(userBuf));
+
+      if (L7_SUCCESS==usmDbCpdmUserEntryNextGet(uId,&uId))
+      {
+        if (L7_SUCCESS!=usmDbCpdmUserEntryLoginNameGet(uId,userBuf))
+        {
+          memset(userBuf,0,sizeof(userBuf)); /* shutup coverity */
+        }
+      }
+    }
+
+    usmWebTabWrapperTop(usmWebStaticBuffer, USMWEB_STATIC_BUFFER_SIZE);
+
+    for (i=0; i<numTabs; i++)
+    {
+      if (i == selTab)
+        bSel = L7_TRUE;  
+      else
+        bSel = L7_FALSE;
+
+      if (i == 1)
+      {
+        osapiSnprintf(urlLink, 256, "%s?user=%s", tabLinks[i], userBuf);
+        usmWebTabGen(tabNames[i], urlLink, targetFrame, i, bSel, numTabs, tabBuffer, sizeof(tabBuffer));
+      }
+      else
+      {
+        usmWebTabGen(tabNames[i], tabLinks[i], targetFrame, i, bSel, numTabs, tabBuffer, sizeof(tabBuffer));
+      }
+      osapiStrncat(usmWebStaticBuffer, tabBuffer, (USMWEB_STATIC_BUFFER_SIZE-1-strlen(usmWebStaticBuffer)));
+    }
+
+    usmWebTabWrapperBottom(tabBuffer, sizeof(tabBuffer));
+    osapiStrncat(usmWebStaticBuffer, tabBuffer, (USMWEB_STATIC_BUFFER_SIZE-1-strlen(usmWebStaticBuffer)));
+    return usmWebStaticBuffer;
+  ' >
+
+  <EMWEB_STRING ID=USMWEB_TABS_CP_GLOBAL_STATUS VALUE="0" C='
+    L7_uint32 i;
+    L7_int32  selTab;
+    L7_BOOL   bSel;
+    L7_char8  urlLink[256];
+    L7_char8  tabBuffer[1024];
+    L7_char8  *targetFrame = "basefrm";
+    L7_uint32 numTabs = 2;
+    L7_char8  *tabLinks[] = {
+              "cp_global_status.html", 
+              "cp_status.html"
+              };
+    L7_char8  *tabNames[] = {
+              "Global Status", 
+              "CP Activation and Activity Status"
+              };
+
+    selTab = atoi((char *) ewsContextGetValue(ewsContext));
+
+    usmWebTabWrapperTop(usmWebStaticBuffer, USMWEB_STATIC_BUFFER_SIZE);
+
+    for (i=0; i<numTabs; i++)
+    {
+      if (i == selTab)
+        bSel = L7_TRUE;  
+      else
+        bSel = L7_FALSE;
+
+      if (i == 1)
+      {
+        osapiSnprintf(urlLink, 256, "%s?cp=%d", tabLinks[i], 1);
+        usmWebTabGen(tabNames[i], urlLink, targetFrame, i, bSel, numTabs, tabBuffer, sizeof(tabBuffer));
+      }
+      else
+      {
+        usmWebTabGen(tabNames[i], tabLinks[i], targetFrame, i, bSel, numTabs, tabBuffer, sizeof(tabBuffer));
+      }
+
+      osapiStrncat(usmWebStaticBuffer, tabBuffer, (USMWEB_STATIC_BUFFER_SIZE-1-strlen(usmWebStaticBuffer)));
+    }
+   
+    usmWebTabWrapperBottom(tabBuffer, sizeof(tabBuffer));
+    osapiStrncat(usmWebStaticBuffer, tabBuffer, (USMWEB_STATIC_BUFFER_SIZE-1-strlen(usmWebStaticBuffer)));
+    return usmWebStaticBuffer;
+  ' >
+
+  <EMWEB_STRING ID=USMWEB_TABS_CP_INTERFACE_STATUS VALUE="0" C='
+    L7_uint32 i, intf;
+    L7_int32  selTab;
+    L7_BOOL   bSel;
+    L7_char8  urlLink[256];
+    L7_char8  tabBuffer[1024];
+    L7_char8  *targetFrame = "basefrm";
+    L7_uint32 numTabs = 2;
+    L7_char8  *tabLinks[] = {
+              "cp_intf_status.html", 
+              "cp_intf_capability_status.html" 
+              };
+    L7_char8  *tabNames[] = {
+              "Interface Activation Status", 
+              "Interface Capability Status" 
+              };
+
+    selTab = atoi((char *) ewsContextGetValue(ewsContext));
+
+    usmWebTabWrapperTop(usmWebStaticBuffer, USMWEB_STATIC_BUFFER_SIZE);
+
+    for (i=0; i<numTabs; i++)
+    {
+      if (i == selTab)
+        bSel = L7_TRUE;  
+      else
+        bSel = L7_FALSE;
+
+      if (i == 0)
+      {
+        L7_ushort16 next_cpId = 0;
+        intf = 0;
+        if ((usmDbCpdmCPConfigIntIfNumNextGet(1, intf, &next_cpId, &intf) != L7_SUCCESS) ||
+            (1 != next_cpId))
+        {
+          intf = 0;
+        }
+        osapiSnprintf(urlLink, 256, "%s?cp=%d&if=%d", tabLinks[i], 1, intf);
+        usmWebTabGen(tabNames[i], urlLink, targetFrame, i, bSel, numTabs, tabBuffer, sizeof(tabBuffer));
+      }
+      else if (i == 1)
+      {
+        intf = 0;
+        if (usmDbCpimIntfNextGet(intf, &intf) == L7_SUCCESS)
+        {
+          osapiSnprintf(urlLink, 256, "%s?if=%d", tabLinks[i], intf);
+        }
+        usmWebTabGen(tabNames[i], urlLink, targetFrame, i, bSel, numTabs, tabBuffer, sizeof(tabBuffer));
+      }
+
+      osapiStrncat(usmWebStaticBuffer, tabBuffer, (USMWEB_STATIC_BUFFER_SIZE-1-strlen(usmWebStaticBuffer)));
+    }
+   
+    usmWebTabWrapperBottom(tabBuffer, sizeof(tabBuffer));
+    osapiStrncat(usmWebStaticBuffer, tabBuffer, (USMWEB_STATIC_BUFFER_SIZE-1-strlen(usmWebStaticBuffer)));
+    return usmWebStaticBuffer;
+  ' >
+
+  <EMWEB_STRING ID=USMWEB_TABS_CP_CLIENT_STATUS VALUE="0" C='
+    EwaNetHandle net;
+    usmWeb_AppInfo_t appInfo;
+    L7_uint32 i;
+    L7_enetMacAddr_t macAddr;
+    L7_char8  macBuf[18];
+    L7_int32  selTab = -1;
+    L7_BOOL   bSel;
+    L7_char8  *pStr;
+    L7_char8  urlLink[256];
+    L7_char8  tabBuffer[1024];
+    L7_BOOL   bQueryStringMac = L7_FALSE;
+    L7_char8  *targetFrame = "basefrm";
+    L7_uint32 numTabs = 5;
+    L7_char8  *tabLinks[] = {
+              "cp_clients.html", 
+              "cp_client_status.html", 
+              "cp_session_statistics.html", 
+              "cp_client_intf_status.html", 
+              "cp_client_cp_status.html" 
+              };
+    L7_char8  *tabNames[] = {
+              "Client Summary", 
+              "Client Detail", 
+              "Client Statistics", 
+              "Interface - Client Status", 
+              "CP - Client Status" 
+              };
+
+    memset(macBuf, 0x00, sizeof(macBuf));
+    selTab = atoi((char *) ewsContextGetValue(ewsContext));
+
+    if (ewsCGIQueryString(ewsContext, tabBuffer, 1024) > 0)
+    {
+       pStr = strstr(tabBuffer, "mac=");
+       if (pStr != L7_NULLPTR)
+       {
+         pStr += strlen("mac=");
+         osapiStrncpy(macBuf, pStr, sizeof(macBuf));
+         bQueryStringMac = L7_TRUE;
+       }
+    }
+    else /* No Query String */
+    {
+      net = ewsContextNetHandle(ewsContext);
+      if (net->app_pointer != NULL)
+      {
+        memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+        memset(&macAddr, 0x00, sizeof(L7_enetMacAddr_t));
+        memcpy(macAddr.addr, appInfo.buf, sizeof(L7_enetMacAddr_t));
+        osapiSnprintf(macBuf, sizeof(macBuf), "%02x:%02x:%02x:%02x:%02x:%02x", 
+                      macAddr.addr[0], macAddr.addr[1], macAddr.addr[2], 
+                      macAddr.addr[3], macAddr.addr[4], macAddr.addr[5]);
+        bQueryStringMac = L7_TRUE;
+        if (osapiStrncmp(macAddr.addr, "", sizeof(L7_enetMacAddr_t)) == 0)
+          bQueryStringMac = L7_FALSE;
+      }
+    }
+
+    if (bQueryStringMac == L7_FALSE)
+    {
+      memset(&macAddr, 0x00, sizeof(L7_enetMacAddr_t));
+      if (usmDbCpdmClientConnStatusNextGet(&macAddr, &macAddr) == L7_SUCCESS)
+        osapiSnprintf(macBuf, sizeof(macBuf), "%02x:%02x:%02x:%02x:%02x:%02x", 
+                      macAddr.addr[0], macAddr.addr[1], macAddr.addr[2], 
+                      macAddr.addr[3], macAddr.addr[4], macAddr.addr[5]);
+    }
+
+    usmWebTabWrapperTop(usmWebStaticBuffer, USMWEB_STATIC_BUFFER_SIZE);
+
+    for (i=0; i<numTabs; i++)
+    {
+      if (i == selTab)
+        bSel = L7_TRUE;  
+      else
+        bSel = L7_FALSE;
+
+      if ((i == 1) || (i == 2))
+      {
+        osapiSnprintf(urlLink, 256, "%s?mac=%s", tabLinks[i], macBuf);
+        usmWebTabGen(tabNames[i], urlLink, targetFrame, i, bSel, numTabs, tabBuffer, sizeof(tabBuffer));
+      }
+      else
+      {
+        usmWebTabGen(tabNames[i], tabLinks[i], targetFrame, i, bSel, numTabs, tabBuffer, sizeof(tabBuffer));
+      }
+      osapiStrncat(usmWebStaticBuffer, tabBuffer, (USMWEB_STATIC_BUFFER_SIZE-1-strlen(usmWebStaticBuffer)));
+    }
+
+    usmWebTabWrapperBottom(tabBuffer, sizeof(tabBuffer));
+    osapiStrncat(usmWebStaticBuffer, tabBuffer, (USMWEB_STATIC_BUFFER_SIZE-1-strlen(usmWebStaticBuffer)));
+    return usmWebStaticBuffer;
+  ' >
+
+</html>
+

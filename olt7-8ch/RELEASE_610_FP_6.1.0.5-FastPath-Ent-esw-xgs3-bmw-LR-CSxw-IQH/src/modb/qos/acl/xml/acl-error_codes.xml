@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+<error name="ACL_INVALID_SEQUENCE_NUM" output="\nError! Value is out of range for Sequence Number. The valid range is 1 to 4294967295. Use 0 to auto generate."/>
+<error name="ACL_INVALID_PORT_RANGE" output="\nError! End port must be greater than or equal to Start port."/>
+<error name="ACL_INVALID_RULE_ID_RANGE" output="\r\nError! Value is out of range for Rule ID. The valid range is %d to %d." args="L7_ACL_MIN_RULE_NUM,L7_ACL_MAX_RULE_NUM"/>
+<error name="ACL_ASSIGN_FAILED" output="\nError! ACL is incompatible with ACLs already configured on this interface and direction."/>
+<error name="NO_ACLS_CONFIGURED" output="\nError! No ACLs are currently Configured For the Selected ACL Type."/>
+<error name="ACL_ID_ALREADY_EXISTS" output="\nError! Specified ACL ID already exists."/>
+<error name="ACL_NAME_ALREADY_EXISTS" output="\nError! Specified ACL name already exists."/>
+<error name="IP_ACL_IP_DSCP_OUT_OF_RANGE" output="\nError! Value is out of range for IP DSCP. The valid range is 0 to 63"/>
+<error name="IP_ACL_ID_NOT_VALID" output="\nError! Value is out of range for ACL ID."/>
+<error name="ACL_TABLE_FULL_ERROR" output="\nError! Exceeded Maximum number of ACLs. The maximum of 100 ACLs are already configured."/>
+
+  </misc>
+</FastPathXML>

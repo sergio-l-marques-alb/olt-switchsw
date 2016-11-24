@@ -1,0 +1,32 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpSummary" title="CP Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="inline" heading=" " id="1">
+                <element properties="filter,iterate,hidden" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalInstanceId" id="1" name="CP Instance ID"/>
+                <element obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalConfigName" id="2" name="Configuration"/>
+                <element obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalAdminMode" id="3" name="Mode"/>
+                <element obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalProtocolMode" id="4" name="Protocol"/>
+                <element obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalVerificationMode" id="5" name="Verification"/>
+                <element obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalLanguages" id="6" value="1" name="Languages"/>
+                <element control="checkbox-neg" properties="edit" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalRowStatus" id="7" level="ReadWriteUser" name="Remove">
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes"  />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no"  />
+                </element>
+            </repeat>
+            <node id="2">
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

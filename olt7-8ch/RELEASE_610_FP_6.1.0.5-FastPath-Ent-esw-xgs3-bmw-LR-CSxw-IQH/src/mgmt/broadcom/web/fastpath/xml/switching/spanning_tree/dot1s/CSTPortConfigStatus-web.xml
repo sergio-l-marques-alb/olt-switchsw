@@ -1,0 +1,157 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="CSTPortConfigStatus" title="Spanning Tree CST Port Configuration/Status">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingstpCstPortConfigGroup_Interface" id="1" />
+            </node>
+            <node id="2">
+                <element control="textbox" level="ReadWriteUser" arghelp="HELP_FORMAT_FP" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortPriority" maxLength="3" id="1" name="Port Priority"/>
+            </node>
+            <node id="102">
+                <element control="label" level="ReadOnlyUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortPriority" id="1" name="Port Priority"/>
+            </node>
+          <node id="3">
+                <element control="combo" level="ReadWriteUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortEdge" id="1" name="Admin Edge Port"/>
+            </node>
+          <node id="103">
+                <element control="label" level="ReadOnlyUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortEdge" id="1" name="Admin Edge Port"/>
+            </node>
+           <node id="4">
+                <element control="textbox" level="ReadWriteUser" arghelp="HELP_FORMAT_FP_ZERO_AUTO" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortPathCost" id="1" maxLength="9" name="Port Path Cost"/>
+            </node>   
+            <node id="104">
+                <element control="label" level="ReadOnlyUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortPathCost" id="1" name="Port Path Cost"/>
+            </node>   
+           <node id="5">
+                <element level="ReadWriteUser" obj-name="SwitchingstpCstPortConfigGroup_Dot1sCstPortPathCostMode" id="1" name="Auto-calculate Port Path Cost"/>
+            </node>
+            <node id="105">
+                <element control="label" level="ReadOnlyUser" obj-name="SwitchingstpCstPortConfigGroup_Dot1sCstPortPathCostMode" id="1" name="Auto-calculate Port Path Cost"/>
+            </node>            
+            <node id="6">
+                <element control="label" level="ReadWriteUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortHelloTimer" id="1" name="Hello Timer"/>
+            </node>
+            <node id="106">
+                <element control="label" level="ReadOnlyUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortHelloTimer" id="1" name="Hello Timer"/>
+            </node>
+           <node id="7">
+                <element control="textbox" level="ReadWriteUser" arghelp="HELP_FORMAT_FP_ZERO_AUTO" obj-name="SwitchingstpCstPortConfigGroup_StpCstExtPortPathCost" id="1" maxLength="9" name="External Port Path Cost"/>
+            </node>
+            <node id="107">
+                <element control="label" level="ReadOnlyUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstExtPortPathCost" id="1" name="External Port Path Cost"/>
+            </node>
+           <node id="8">
+                <element level="ReadWriteUser" obj-name="SwitchingstpCstPortConfigGroup_Dot1sCistExtPortPathCostMode" id="1" name="Auto-calculate External Port Path Cost"/>
+            </node>
+            <node id="108">
+                <element control="label" level="ReadOnlyUser" obj-name="SwitchingstpCstPortConfigGroup_Dot1sCistExtPortPathCostMode" id="1" name="Auto-calculate External Port Path Cost"/>
+            </node>
+           <node id="9">
+                <element control="combo" level="ReadWriteUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortBpduFilter" id="1" name="BPDU Filter"/>
+            </node>
+            <node id="109">
+                <element control="label" level="ReadOnlyUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortBpduFilter" id="1" name="BPDU Filter"/>
+            </node>
+           <node id="10">
+                <element control="combo" level="ReadWriteUser"  obj-name="SwitchingstpCstPortConfigGroup_StpCstPortBpduFlood" id="1" name="BPDU Flood"/>
+            </node>
+            <node id="110">
+                <element control="label" level="ReadOnlyUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortBpduFlood" id="1" name="BPDU Flood"/>
+            </node>
+           <node id="11">
+                <element obj-name="SwitchingstpCstPortConfigGroup_StpCstPortBpduGuardEffect" id="1" name="BPDU Guard Effect"/>
+            </node>
+            <node id="12">
+                <element obj-name="SwitchingstpCstPortConfigGroup_StpCstPortId" id="1" name="Port ID"/>
+            </node>
+            <node id="13">
+                <element control="combo" cpval="SwitchingstpCstPortConfigGroup_Interface" properties="filter,hidden" obj-name="SwitchingStpPortConfig_Interface" id="1" name="Interface"/>
+            </node>
+            <node id="14">
+                <element obj-name="SwitchingStpPortConfig_StpPortUpTime" id="1" name="Port Up Time Since Counters Last Cleared"/>
+            </node>
+            <node id="15">
+                <element control="combo" level="ReadWriteUser" obj-name="SwitchingStpPortConfig_StpPortState" id="1" name="Port Mode"/>
+            </node>
+            <node id="115">
+                <element control="label" level="ReadOnlyUser"  obj-name="SwitchingStpPortConfig_StpPortState" id="1" name="Port Mode"/>
+            </node>
+           <node id="16">
+                <element obj-name="SwitchingstpCstPortConfigGroup_StpCstPortForwardingState" id="1" name="Port Forwarding State"/>
+            </node>
+            <node id="17">
+                <element obj-name="SwitchingstpCstPortConfigGroup_Dot1sCstPortRole" id="1" name="Port Role"/>
+            </node>
+            <node id="18">
+                <element obj-name="SwitchingstpCstPortConfigGroup_Dot1sCstPortDesignatedRootID" id="1" name="Designated Root"/>
+            </node>
+            <node id="19">
+                <element obj-name="SwitchingstpCstPortConfigGroup_StpCstDesignatedCost" id="1" name="Designated Cost"/>
+            </node>
+            <node id="20">
+                <element obj-name="SwitchingstpCstPortConfigGroup_StpCstDesignatedBridgeId" id="1" name="Designated Bridge"/>
+            </node>
+            <node id="21">
+                <element obj-name="SwitchingstpCstPortConfigGroup_StpCstDesignatedPortId" id="1" name="Designated Port"/>
+            </node>
+            <node id="22">
+                <element obj-name="SwitchingstpCstPortConfigGroup_StpCstPortTopologyChangeAck" id="1" name="Topology Change Acknowledge"/>
+            </node>
+            <node id="23">
+                <element control="combo" level="ReadWriteUser"  obj-name="SwitchingstpCstPortConfigGroup_StpCstPortAutoEdge" id="1" name="Auto Edge"/>
+            </node>
+            <node id="123">
+                <element control="label" level="ReadOnlyUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortAutoEdge" id="1" name="Auto Edge"/>
+            </node>
+           <node id="24">
+                <element obj-name="SwitchingstpCstPortConfigGroup_StpCstPortOperEdge" id="1" name="Edge Port"/>
+            </node>
+            <node id="25">
+                <element obj-name="SwitchingstpCstPortConfigGroup_StpCstPortOperPointToPoint" id="1" name="Point-to-point MAC"/>
+            </node>
+            <node id="26">
+                <element control="combo" level="ReadWriteUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortRootGuard" id="1" name="Root Guard"/>
+            </node>
+            <node id="126">
+                <element control="label" level="ReadOnlyUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortRootGuard" id="1" name="Root Guard"/>
+            </node>
+            <node id="27">
+                <element control="combo" level="ReadWriteUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortLoopGuard" id="1" name="Loop Guard"/>
+            </node>
+            <node id="127">
+                <element control="label" level="ReadOnlyUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortLoopGuard" id="1" name="Loop Guard"/>
+            </node>
+           <node id="28">
+                <element control="combo" level="ReadWriteUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortTCNGuard" id="1" name="TCN Guard"/>
+            </node>
+            <node id="128">
+                <element control="label" level="ReadOnlyUser" obj-name="SwitchingstpCstPortConfigGroup_StpCstPortTCNGuard" id="1" name="TCN Guard"/>
+            </node>
+           <node id="29">
+                <element obj-name="SwitchingstpCstPortConfigGroup_Dot1sCistPortRegionalRootID" id="1" name="CST Regional Root"/>
+            </node>
+            <node id="30">
+                <element obj-name="SwitchingstpCstPortConfigGroup_Dot1sCistPortPathCost" id="1" name="CST Path Cost"/>
+            </node>
+            <node id="31">
+                <element obj-name="SwitchingstpCstPortConfigGroup_StpCstPortLoopInconsistentState" id="1" name="Loop Inconsistent State"/>
+            </node>
+            <node id="32">
+                <element obj-name="SwitchingstpCstPortConfigGroup_StpCstPortTransitionsIntoLoopInconsistentState" id="1" name="Transitions Into Loop Inconsistent State"/>
+            </node>
+            <node id="33">
+                <element obj-name="SwitchingstpCstPortConfigGroup_StpCstPortTransitionsOutOfLoopInconsistentState" id="1" name="Transitions Out Of Loop Inconsistent State"/>
+            </node>
+            <node id="34">
+                <button level="ReadWriteUser" scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+                <button level="ReadWriteUser" scope="page" type="buttonSubmit" value="Edit Me" obj-name="SwitchingStpPortConfig_StpPortMigrationCheck" help="Submits the form on this page to the Switch" id="3" name="Force"/>
+            </node>
+        </group>
+   </webxml>
+</FastPathXML>

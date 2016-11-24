@@ -1,0 +1,30 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpUserGroup" title="User Group">
+        <group id="1" heading=" ">
+            <node id="1">
+               <element properties="filter,iterate,hidden" obj-name="captiveportalcpLocalUserGroupTable_cpLocalUserGroupIndex" id="1" name="User Group Index"/>
+            </node>
+            <node id="2">
+               <element control="combo" properties="filter" obj-name="captiveportalcpLocalUserGroupTable_cpLocalUserGroupName" id="1" name="Group Name">
+                   <action type="value" value=""/>
+                   <action type="default"/>
+               </element>
+            </node>
+            <node id="3">
+               <button level="ReadWriteUser" scope="page" target-page="cpUserGroupAdd.html" type="buttonClear" help="opens User Group add page" id="1" name="Add">
+                   <action type="button" disable="1_3_2"/>
+               </button>
+               <button level="ReadWriteUser" scope="page" type="buttonSubmit" value="Delete" obj-name="captiveportalcpLocalUserGroupTable_cpLocalUserGroupRowStatus" help="Submits the form on this page to the Switch" id="2" name="Delete">
+                   <action type="button" disable="1_3_1"/>
+               </button>
+               <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="3" name="Refresh"/>
+            </node>
+        </group>        
+    </webxml>
+</FastPathXML>
+

@@ -1,0 +1,54 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename cp_success.html
+*
+* @purpose  User logout de-authentication success notify page
+*
+* @comments 
+*
+* @create 12-16-2008
+*
+* @author darsen
+* @end
+*
+**********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<head>
+  <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-16">
+  <META HTTP-EQUIV="cache-control" content="max-age=0, must-revalidate, no-cache, no-store, private">
+  <META HTTP-EQUIV="expires" content="-1">
+  <META HTTP-EQUIV="pragma" content="no-cache">
+  <META NAME="robots" CONTENT="noindex">
+  <TITLE><EMWEB_STRING C='return usmWebCPGenericGet(ewsContext,CP_GET_ID_LOGOUT_SUCCESS_BTITLE);'></TITLE>
+  <STYLE type="text/css">
+    BODY
+	{
+      font-family: <EMWEB_STRING C='return usmWebCPGenericGet(ewsContext,CP_GET_ID_FONT_LIST);'>;
+      background-image: <EMWEB_STRING C='return usmWebCPGenericGet(ewsContext,CP_GET_ID_LOGOUT_SUCCESS_BACKGROUND_IMAGE);'>;
+      background-repeat: repeat-x;	 
+	}
+  </STYLE>
+</head>
+<BODY CLASS="bodyframeattributes">
+<FORM METHOD="POST" EMWEB_NAME="logoutSuccess">
+<div align="center" style="font-size:large;"><EMWEB_STRING C='return usmWebCPGenericGet(ewsContext,CP_GET_ID_LOGOUT_SUCCESS_TITLE);'></div><br>
+<div align="center"><EMWEB_STRING C='return usmWebCPGenericGet(ewsContext,CP_GET_ID_LOGOUT_SUCCESS_CONTENT);'></div><br>
+<div align="center"><EMWEB_STRING C='return usmWebCPGenericGet(ewsContext,CP_GET_ID_BRANDING_IMAGE);'></div>
+
+<INPUT TYPE="hidden" NAME="p1" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="p2" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="p3" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="p4" SIZE="64" MAXLENGTH="64">
+
+</FORM>
+</BODY>
+</HTML>

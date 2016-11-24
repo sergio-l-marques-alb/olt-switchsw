@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="OSPFVirtualLinkConfig" title="OSPF Virtual Link Configuration" java-script="ospfv3_virt_link">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="routingospfVirtualInterface_AreaId" id="1" name="Virtual Link Area ID">
+                    <action type="default" discard="no" enable="1_6_1|1_7_1|1_8_1|1_9_1|1_10_1|1_11_1|1_12_1|1_13_1|1_14_1|1_2_1|1_5_2|1_15" disable="1_4_1|1_5_1|1_3" hide="1_4_1|1_5_1|1_3|1_16" show="1_6_1|1_7_1|1_8_1|1_9_1|1_10_1|1_11_1|1_12_1|1_13_1|1_14_1|1_5_2|1_13_1|1_2_1|1_15"/>
+                    <action type="extn" discard="no" value="Create New Virtual Link" enable="1_3|1_4_1|1_5_1" disable="1_2_1|1_6_1|1_7_1|1_8_1|1_9_1|1_10_1|1_11_1|1_12_1|1_13_1|1_14|1_15|1_5_2|1_18_1|1_19_1" hide="1_2_1|1_5_2|1_6_1|1_7_1|1_8_1|1_9_1|1_10_1|1_11_1|1_12_1|1_13_1|1_14|1_15|1_16" show="1_3|1_4_1|1_5_1"/>
+                    <action type="mandate" disable="1_2" invoke="onChange"/>
+                </element>
+            </node>
+            <node id="17">
+                <element control="textbox" properties="hidden" obj-name="routingospfVirtualInterface_VirtLinkCreatable" id="1" name="VirtLinkCreatable">
+	            <action type="value" value="L7_FALSE" hide="1_1|1_2|1_3|1_4|1_5|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13|1_14|1_15" show="1_16"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="routingospfVirtualInterface_Neighbor" id="1" name="Virtual Link Neighbor Router ID"/>
+            </node>
+            <node id="3">
+                <element control="combo" properties="iterate" obj-name="routingospfArea_Id" id="1" name="Area ID"/>
+                <element control="textbox" properties="hidden" cpval="routingospfArea_Id" obj-name="routingospfVirtualInterface_AreaId" id="2" name="Virtual Interface Area ID"/>
+            </node>
+            <node id="4">
+                <element control="textbox" properties="write-only" value="" obj-name="routingospfVirtualInterface_Neighbor" id="1" name="Neighbor Router ID"/>
+            </node>
+            <node id="5">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="routingospfVirtualInterface_Status" help="Submits the form on this page to the Switch" id="1" name="Create">
+                    <action type="button" disable="1_15"/>   
+                </button>
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="routingospfVirtualInterface_Status" help="Submits the form on this page to the Switch" id="2" name="Delete">
+                    <action type="button" disable="1_15|1_5_1"/>   
+                </button>
+            </node>
+            <node id="6">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingospfVirtualInterface_HelloInterval" id="1" name="Hello Interval(secs)"/>
+            </node>
+            <node id="7">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingospfVirtualInterface_RtrDeadInterval" id="1" name="Dead Interval(secs)"/>
+            </node>
+            <node id="8">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingospfVirtualInterface_TransitDelay" id="1" name="Transmit Delay(secs)"/>
+            </node>
+            <node id="9">
+                <element obj-name="routingospfVirtualInterface_State" id="1" name="State"/>
+            </node>
+            <node id="18">
+                <element properties="hidden" control="label" obj-name="routingospfVirtNbr_Area" cpval="routingospfVirtualInterface_AreaId" id="1"/>
+            </node>
+            <node id="19">
+                <element properties="hidden" control="label" obj-name="routingospfVirtNbr_RtrId" cpval="routingospfVirtualInterface_Neighbor" id="1"/>
+            </node>
+            <node id="10">
+                <element obj-name="routingospfVirtNbr_State" id="1" name="Neighbor State"/>
+            </node>
+            <node id="11">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingospfVirtualInterface_RetransInterval" id="1" name="Retransmit Interval(secs)"/>
+            </node>
+            <node id="12">
+                <element control="label" properties="read-only" obj-name="routingospfVirtualInterface_AuthType" id="1" name="Authentication Type">
+                    <action type="enum" discard="no" hide="1_13|1_14"/>
+                    <action type="enum" discard="no" hide="1_14" show="1_13"/>
+                    <action type="enum" discard="no" show="1_13|1_14"/>
+                </element>
+            </node>
+            
+            <node id="13">
+                <element control="label" properties="read-only" obj-name="routingospfVirtualInterface_ActualAuthKey" id="1" name="Authentication Key"/>
+            </node>
+
+            <node id="20">
+                <element properties="hidden" control="label" obj-name="routingospfVirtIfConfig_AreaId" cpval="routingospfVirtualInterface_AreaId" id="1"/>
+            </node>
+            <node id="21">
+                <element properties="hidden" control="label" obj-name="routingospfVirtIfConfig_Neighbor" cpval="routingospfVirtualInterface_Neighbor" id="1"/>
+            </node>
+            <node id="14">
+                <element control="label" properties="read-only" obj-name="routingospfVirtIfConfig_AuthKeyId" id="1" name="Authentication Key ID"/>
+            </node>
+ 
+            <node id="15">
+                <button scope="page" type="buttonClear" target-page="OSPFVirtualLinkAuthConfig.html" help="Submits the form on this page to the Switch" id="1" name="Configure Authentication">
+                <action type="button" disable="1_5|1_15_2"/>
+                </button>
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="2" name="Submit">
+                <action type="button" disable="1_5|1_15_1"/>   
+                </button>
+
+            </node>
+
+            <node id="16" clazz="unavailableattributes">
+                <message>No Valid Areas Available</message>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

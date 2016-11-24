@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+<FastPathXML>
+    <webxml version="1.0" name="ServiceDetailedStats" title="DiffServ Service Detailed Statistics">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" uienum="diffServServiceStats_t" obj-name="xLibObjects_dummy" id="1" name="Counter Mode Selector" properties="filter">
+                    <action type="enum" hide="1_6_1|1_13_1|1_14_1" show="1_27_1|1_28_1"/>
+                    <action type="enum" hide="1_6_1|1_27_1|1_28_1" show="1_13_1|1_14_1"/>
+                </element>
+            </node>          
+      	  	<node id="2">
+          
+                <element control="combo" properties="filter,iterate" obj-name="qosDiffServServiceStats_IfIndex" id="1" name="Unit/Slot/Port">
+                 <action type="value" discard="no" position="0" value="valMapEmptyString" hide="1_2_1" show="1_30_1"/>
+                   <action type="default" discard="no" hide="1_30_1" disable="1_30_1" enable="1_2_1" show="1_2_1"/>
+				        </element>
+            </node>       
+            <!--node id=&quot;29&quot; &gt;
+                &lt;element control=&quot;combo&quot; properties=&quot;filter,iterate,hidden&quot; obj-name=&quot;qosDiffServServiceStats_IfIndex&quot; id=&quot;1&quot; name=&quot;Unit/Slot/Port&quot;/&gt;
+            &lt;/node--> 
+            <node id="30">
+                <element control="combo" uienum="onlyNone_t" obj-name="xLibObjects_dummy" id="1" name="Unit/Slot/Port"/>
+            </node>             
+            
+          <node id="16">
+               <element control="combo" properties="hidden" cpval="qosDiffServServiceStats_IfIndex" obj-name="qosDiffServService_IfIndex" id="1" name="Unit/Slot/Port"/>
+            </node>
+           <node id="26">
+                <element properties="hidden" control="label" obj-name="xLibObjects_dummy" id="1" name="ClassIndex"/>
+            </node>
+
+            <node id="3">
+                <element control="combo" properties="filter" obj-name="qosDiffServServiceStats_IfDirection" id="1" name="Direction" value="In">
+             		  <action type="enum" discard="yes"/>
+            		  <action type="enum" discard="no" hide="1_10_1"/>
+            		  <action type="enum" discard="no" hide="1_10_1"/>
+             		</element>		 
+		           <action type="enum" discard="no" hide="1_10_1" disable="1_10_1"/>
+            </node>
+           <node id="17">
+                <element control="combo" properties="hidden" cpval="qosDiffServServiceStats_IfDirection" obj-name="qosDiffServService_IfDirection" id="1" name="Direction"/>
+            </node>
+			
+            <node id="6">
+                <element properties="hidden" obj-name="qosDiffServServiceStats_PolicyIndex" id="1" name="PolicyIndex" control="textbox"/>
+            </node>
+			      <node id="25">
+                <element properties="hidden" control="label" obj-name="xLibObjects_dummy" id="1" name="ClassIndex"/>
+            </node> 
+            <node id="8">
+                <element obj-name="qosDiffServServiceStats_PolicyName" properties="read-only" id="1" name="Policy Name" control="label"/>
+            </node>
+            <node id="9">
+                <element obj-name="qosDiffServServiceStats_IfOperStatus" id="1" name="Operational Status"/>
+            </node>
+            <node id="10">
+                <element obj-name="qosDiffServServiceStats_MemberClassList" id="1" name="Member Classes" properties="iterate">
+        				   <action type="extn" discard="no" position="0" value="None" hide="1_20_1" disable="1_20_1" show="1_11_1"/>
+                   <action type="default" discard="no" hide="1_11_1" disable="1_11_1" enable="1_20_1" show="1_20_1"/>
+				        </element>   
+            </node>
+            <node id="21">
+                <element properties="hidden" control="label" obj-name="xLibObjects_dummy" id="1" name="ClassIndex"/>
+            </node>
+            <node id="20">
+                <element control="combo" obj-name="qosDiffServServiceStats_MemberClassList" id="1" name="Member Classes" properties="iterate"/>
+            </node>
+            <node id="15">
+                <element properties="hidden" control="label" obj-name="xLibObjects_dummy" id="1" name="ClassIndex"/>
+            </node>
+            <node id="11">
+                <element control="combo" uienum="onlyNone_t" obj-name="xLibObjects_dummy" id="1" name="Member Classes"/>
+            </node>
+
+            <node id="13">
+                <element obj-name="qosDiffServServiceStats_OfferedPackets" id="1" name="Offered Packets"/>
+            </node>
+            <node id="14">
+                <element obj-name="qosDiffServServiceStats_DiscardedPackets" id="1" name="Discarded Packets"/>
+            </node>
+             <node id="27">
+                <element obj-name="qosDiffServServiceStats_OfferedOctets" id="1" name="Offered Octets"/>
+            </node>
+            <node id="28">
+                <element obj-name="qosDiffServServiceStats_DiscardedOctets" id="1" name="Discarded Octets"/>
+            </node>
+            <node id="31">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

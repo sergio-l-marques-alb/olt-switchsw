@@ -1,0 +1,25 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpIntfClientStatus" title="Interface - Client Status">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="captiveportalcpCaptivePortalIntfClientAssocTable_cpCaptivePortalIntfClientIfIndex" id="1" name="Interface"/>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="2">
+                <element properties="iterate" obj-name="captiveportalcpCaptivePortalIntfClientAssocTable_cpCaptivePortalIntfClientAssocMacAddress" id="1" name="MAC Address"/>
+                <element properties="hidden" obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientMacAddress" cpval="captiveportalcpCaptivePortalIntfClientAssocTable_cpCaptivePortalIntfClientAssocMacAddress" id="2" name="MAC Address"/>
+                <element obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientIpAddress" id="3" name="IP Address"/>
+                <element obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientCPID" id="4" name="CP Configuration"/>
+                <element obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientProtocolMode" id="5" name="Protocol"/>
+                <element obj-name="captiveportalcpCaptivePortalClientStatusTable_cpCaptivePortalClientVerificationMode" id="6" name="Verification"/>
+            </repeat>
+            <node id="3">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

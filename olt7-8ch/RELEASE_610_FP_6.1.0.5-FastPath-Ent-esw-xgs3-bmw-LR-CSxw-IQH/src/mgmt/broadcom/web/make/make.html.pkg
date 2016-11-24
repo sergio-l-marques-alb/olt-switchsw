@@ -1,0 +1,15 @@
+#This make file includes the Manually developed HTML Files & Java applet for selected product
+
+ifeq (1,$(BLD_L7_PRODUCT_ENTERPRISE))
+include $(FP_ROOT)/src/mgmt/broadcom/web/fastpath/make/make.html.pkg
+endif
+
+ifeq (1,$(BLD_L7_PRODUCT_SMB))
+include $(FP_ROOT)/src/mgmt/broadcom/web/fastpath/make/make.html.pkg
+endif
+
+ifeq (1,$(BLD_L7_PRODUCT_NETWORKAPPLIANCE))
+include $(FP_ROOT)/src/mgmt/broadcom/web/fastpath/make/make.html.pkg
+endif
+
+

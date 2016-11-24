@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="security" version="1.0" >
+<module name="dos"  >
+<object name="DenialOfServiceSIPDIPMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_SIPDIP_MODE" access="read-write" descr="Enables or Disables the SIP-DIP Denial of Service protection feature."/>
+<ui  name="DenialOfServiceSIPDIPMode" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.31.1.1"/> 
+</ui></object>
+<object name="DenialOfServiceICMPSize"  >
+<core  type="uint" min="L7_DOSCONTROL_MINICMP_SIZE" max="L7_DOSCONTROL_MAXICMP_SIZE" default="FD_DOS_DEFAULT_MAXICMP_SIZE" access="read-write" descr="Configures the Maximum allowed ICMP data size. This is active if the ICMP Denial of Service protection feature is enabled."/>
+<ui  name="DenialOfServiceICMPSize" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.31.1.8"/> 
+</ui></object>
+<object name="DenialOfServiceL4PortMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_L4PORT_MODE" access="read-write" descr="Enables or Disables the L4 Port Denial of Service protection feature."/>
+<ui  name="DenialOfServiceL4PortMode" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.31.1.6"/> 
+</ui></object>
+<object name="DenialOfServiceTCPFlagMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_TCPFLAG_MODE" access="read-write" descr="Enables or Disables the TCP Flag Denial of Service protection feature."/>
+<ui  name="DenialOfServiceTCPFlagMode" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.31.1.5"/> 
+</ui></object>
+<object name="DenialOfServiceTCPHdrSize"  >
+<core  type="uint" min="0" max="255" default="FD_DOS_DEFAULT_MINTCPHDR_SIZE" access="read-write" descr="Configures the Minimum allowed TCP Header size. This is active if the First Fragment Denial of Service protection feature is enabled."/>
+<ui  name="DenialOfServiceTCPHdrSize" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.31.1.3"/> 
+</ui></object>
+<object name="DenialOfServiceTCPFragMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_TCPFRAG_MODE" access="read-write" descr="Enables or Disables the TCP Fragment Denial of Service protection feature."/>
+<ui  name="DenialOfServiceTCPFragMode" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.31.1.4"/> 
+</ui></object>
+<object name="DenialOfServiceICMPMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_ICMP_MODE" access="read-write" descr="Enables or Disables the ICMP Denial of Service protection feature."/>
+<ui  name="DenialOfServiceICMPMode" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.31.1.7"/> 
+</ui></object>
+<object name="DenialOfServiceFirstFragMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_FIRSTFRAG_MODE" access="read-write" descr="Enables or Disables the First Fragment Denial of Service protection feature."/>
+<ui  name="DenialOfServiceFirstFragMode" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.31.1.2"/> 
+</ui></object>
+
+<object name="DenialOfServiceGlobalPingFloodingMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_PINGFLOODING_MODE" access="read-write" descr="The mode for preventing PING flooding DOS attack"/>
+<ui  name="DenialOfServiceGlobalPingFlooding" style="inputLine" />
+</object>
+
+<object name="DenialOfServiceGlobalPingFloodingParam"  >
+<core  type="uint"  default="FD_DOS_DEFAULT_PING_PARAM" access="read-write" descr="The param for preventing PING flooding DOS attack"/>
+<ui  name="DenialOfServiceGlobalPingFloodingParam" style="inputLine" />
+</object>
+
+<object name="DenialOfServiceGlobalSmurfAttack"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_SMURFATTACK_MODE" access="read-write" descr="The mode for preventing Smurf DOS Attack"/>
+<ui  name="DenialOfServiceGlobalSmurfAttack" style="inputLine" />
+</object>
+
+<object name="DenialOfServiceGlobalSynAckFloodingMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_SYNACK_MODE" access="read-write" descr="Global Sync Acknowledge Flooding mode"/>
+<ui  name="DenialOfServiceGlobalSynAckFloodingMode" style="inputLine" />
+</object>
+<object name="DenialOfServiceGlobalSynAckFloodingParam"  >
+<core  type="uint" default="FD_DOS_DEFAULT_SYNACK_PARAM" access="read-write" descr="Global Sync Acknowledge Flooding param"/>
+<ui  name="DenialOfServiceGlobalSynAckFloodingParam" style="inputLine" />
+</object>
+
+<!-- ObjectRemoved
+<object name="DenialOfServiceICMPV6Mode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_ICMPV6_MODE" access="read-write" descr="ICMPV6 Mode"/>
+<ui  name="DenialOfServiceICMPV6Mode" style="inputLine" />
+</object>
+-->
+
+<object name="DenialOfServiceICMPV6MaxSize"  >
+<core  type="uint" min="L7_DOSCONTROL_MINICMP_SIZE" max="L7_DOSCONTROL_MAXICMPv_SIZE" default="FD_DOS_DEFAULT_MAXICMP_SIZE" access="read-write" descr="ICMPV6 Maximum Size"/>
+<ui  name="DenialOfServiceICMPV6MaxSize" style="inputLine" />
+</object>
+
+<!-- ObjectUsmdbChanged -->
+<object name="DenialOfServiceICMPFragMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_ICMPFRAG_MODE" access="read-write" descr="Global ICMPFrag Mode"/>
+<ui  name="DenialOfServiceICMPFragMode" style="inputLine" />
+</object>
+
+<object name="DenialOfServiceICMPv4Size"  >
+<core  type="uint" min="L7_DOSCONTROL_MINICMP_SIZE" max="L7_DOSCONTROL_MAXICMPv_SIZE" default="FD_DOS_DEFAULT_MAXICMP_SIZE" access="read-write" descr="Global ICMPv4 Size"/>
+<ui  name="DenialOfServiceICMPv4Size" style="inputLine" />
+</object>
+
+<object name="DenialOfServiceSMACDMACMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_SMACDMAC_MODE" access="read-write" descr="Global SMACDMAC Mode"/>
+<ui  name="DenialOfServiceSMACDMACMode" style="inputLine" />
+</object>
+
+<object name="DenialOfServiceTCPFinUrgPshMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_TCPFINURGPSH_MODE" access="read-write" descr="Global TCP FinUrgPsh Mode"/>
+<ui  name="DenialOfServiceTCPFinUrgPshMode" style="inputLine" />
+</object>
+
+<object name="DenialOfServiceTCPFlagSeqMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_TCPFLAG_MODE" access="read-write" descr="Global TCP Flag Seq Mode"/>
+<ui  name="DenialOfServiceTCPFlagSeqMode" style="inputLine" />
+</object>
+
+<object name="DenialOfServiceTCPOffsetMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_TCPOFFSET_MODE" access="read-write" descr="Global TCP Offset Mode"/>
+<ui  name="DenialOfServiceTCPOffsetMode" style="inputLine" />
+</object>
+<!-- ObjectRemoved
+<object name="DenialOfServiceTCPPartialMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_FIRSTFRAG_MODE" access="read-write" descr="Global TCP Partial Mode"/>
+<ui  name="DenialOfServiceTCPPartialMode" style="inputLine" />
+</object>
+-->
+<object name="DenialOfServiceTCPPortMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_L4PORT_MODE" access="read-write" descr="Global TCP Port Mode"/>
+<ui  name="DenialOfServiceTCPPortMode" style="inputLine" />
+</object>
+
+<object name="DenialOfServiceTCPSynFinMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_TCPSYNFIN_MODE" access="read-write" descr="Global TCP Syn Fin Mode"/>
+<ui  name="DenialOfServiceTCPSynFinMode" style="inputLine" />
+</object>
+
+<object name="DenialOfServiceTCPSyncMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_TCPSYN_MODE" access="read-write" descr="Global TCP Sync Mode"/>
+<ui  name="DenialOfServiceTCPSyncMode" style="inputLine" />
+</object>
+
+<object name="DenialOfServiceUDPPortMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DOS_DEFAULT_UDPPORT_MODE" access="read-write" descr="Global UDP Port Mode"/>
+<ui  name="DenialOfServiceUDPPortMode" style="inputLine" />
+</object>
+
+</module>
+</objectxml>
+</FastPathXML>

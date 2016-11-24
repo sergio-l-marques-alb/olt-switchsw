@@ -1,0 +1,1091 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Diffserv Class Configuration Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+ 
+<h1 align=center style='text-align:center'>DiffServ Class Help</h1>
+
+<hr size=4 width="100%" align=center>
+
+<!-------------------------------------------------------------------------------------->
+
+<h2><a name=class_cfg></a>Help for DiffServ Class Configuration</h2>
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Selector</b> - Along with an option to create a new class, this lists all the
+      existing DiffServ class names, from which one can be selected. The content of this screen 
+      varies based on the selection of this field. If an existing class is selected then the 
+      screen will display the configured class. If '--create--' is selected, another screen 
+      appears to facilitate creation of a new class. The default is the first class created.
+      If no classes exist, the default is '--create--'.</li>
+      
+  <li><b>Class Type</b> - This lists all the platform supported DiffServ class types from which 
+      one can be selected. Options:
+      <ul type=square>
+        <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ALL_FEATURE">
+            <li>All</li>
+        </EMWEB_IF>
+        <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ANY_FEATURE">
+            <li>Any</li>
+        </EMWEB_IF>
+        <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ACL_FEATURE">
+            <li>ACL - If 'ACL' is (supported and) selected, then an access list (ACL) 
+          identifier is required specifying an existing ACL. </li>
+        </EMWEB_IF>
+      </ul>
+      Only when a new class is created, this field is a selector field. After class 
+      creation this becomes a non-configurable field displaying the configured class type.</li>
+  
+  <li><b>Class Layer 3 Protocol</b> - Indicates how to interpret the any layer 3.
+     This lists types of packets supported by Diffserv. Layer 3 Protocol option 
+     is available only when user selects class type as 
+    <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ALL_FEATURE">
+    'All' 
+    </EMWEB_IF>
+    <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ANY_FEATURE">
+     or 'Any'
+    </EMWEB_IF>
+    . Options:
+      <ul type=square>
+        <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_L3PROTO_IPV4_FEATURE">
+            <li>IPv4</li>
+        </EMWEB_IF>
+        <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_L3PROTO_IPV6_FEATURE">
+            <li>IPv6</li> </ul>
+        </EMWEB_IF>
+
+      Only when a new class is created, this field is a selector field. After class 
+      creation this becomes a non-configurable field displaying the configured class type.</li>
+
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ACL_FEATURE">
+  <li><b>Class ACL Type</b> - This field is visible only if 'Class Type' is selected as 'ACL'.
+      This lists all the platform supported class ACL types from which one can be selected. 
+      Possible options are 'IP ACL' or 'MAC ACL'. Only when a new class is created, this field is a selector field. 
+      After class creation this becomes a non-configurable field displaying the configured class type.</li>
+      
+  <li><b>IP ACL</b> - Specifies list of IP ACLs. Only when a new class is created, this field is a selector field.</li>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="IPV6_ACL_TYPE_FEATURE_SUPPORT">
+  <li><b>IPv6 ACL</b> - Specifies list of configured IPv6 ACLs. Only when a new class is created, this field is a selector field.</li>
+  </EMWEB_IF>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_TYPE_MAC_FEATURE">
+  <li><b>MAC ACL</b> - Specifies list of MAC ACLs. Only when a new class is created, this field is a selector field.</li>
+  </EMWEB_IF>  
+  </EMWEB_IF>  
+  
+  <li><b>Class Match Selector</b> - This lists all match criteria from which one can be selected 
+      to be added to a specified class. The match criterion 'Any' denotes that all packets 
+      are considered to match the specified class and no additional input information is needed. 
+      The content of this drop down list varies for a specified class based on the selection of 
+      the match criterion 'Reference Class':
+      <ul type=square>
+          <li>If the specified class does not reference any other class, the 'Reference Class' 
+              match criterion is included in the drop down match criteria list. 
+              A class reference can be established by selecting 'Reference Class' and 
+              invoking the 'Add Match Criteria' button.</li>
+          <li>If the specified class references another class, the 'Reference Class' match 
+              criterion is not included in the drop down match criteria list. This prevents 
+              the user from trying to add yet another class reference, since a specified class 
+              can reference at most one other class of the same type. Moreover, a 
+              'Remove Class Reference' button appears on the screen that can be invoked 
+              to remove the current class reference.</li>
+      </UL>
+  </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - This is a case-sensitive alphanumeric string from 1 to 31 characters 
+      uniquely identifying a class. Class name 'default' is reserved and must not be used.</li>
+ </ul>
+</ul>
+       
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Type</b> - Displays type of the configured class 
+      Only when a new class is created, this field is a selector field. 
+      After class creation this becomes a non-configurable field.</li>
+  
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ACL_FEATURE">
+  <li><b>Class ACL Type</b> - This field is visible only if 'Class Type' is configured as 'ACL'.
+      Displays type of the configured ACL class as 'IP', 'IPv6' or 'MAC'. 
+      Only when a new class is created, this field is a selector field. 
+      After class creation this becomes a non-configurable field.</li>
+      
+  <li><b>ACL Identifier</b> - This field is visible only if 'Class Type' is configured as 'ACL'.
+  Displays the Identifier of the ACL linked to Diffserv class.</li>
+  </EMWEB_IF>  
+  
+  <li><b>Match Criteria</b> - Displays the configured match criteria for the specified class.</li>
+  <li><b>Values</b> - Displays the values of the configured match criteria.</li>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+  <li><b>Excluded</b> - Displays the inclusion or exclusion of the configured match criteria. 
+      When a match criterion is configured to be excluded, 'Yes'is displayed. Conversely, when 
+      a match criterion is configured to be included, 'No' is displayed.</li>
+  </EMWEB_IF>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+  <li><b>Delete</b> - Delete the currently selected filter.</li>
+  <li><b>Rename</b> - Allows to rename a specified class.</li>
+  <li><b>Add Match Criteria</b> - Only one match criterion can be specified each time 
+      this button is invoked. Based on the selected match criterion, an individual 
+      match criterion screen is provided to configure its value.<BR><BR>
+      NOTE: Match criteria cannot be deleted from a class.  The class must be
+      deleted in order to remove the match criteria.</li><BR><BR>
+  <li><b>Remove Class Reference</b> - This button appears on the screen only if 
+      a specified class references another class. The current class reference, 
+      of the specified class, is removed by invoking this button.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=classSumm></a>Help for DiffServ Class Summary</h2>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays names of the configured DiffServ classes.</li>
+  <li><b>Class Type</b> - Displays types of the configured classes with the layer 3 protocol of the class. 
+    Class types are platform dependent. </li>
+     <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ACL_FEATURE">
+  <li><b>Reference Class/ACL Identifier</b> 
+      <EMWEB_ELSE>
+  <li><b>Reference Class</b> 
+     </EMWEB_IF>
+      - Displays name of the configured class of type  
+      <ul type=square>
+        <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ALL_FEATURE">
+        <li>All</li> 
+      </EMWEB_IF>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ANY_FEATURE">
+        <li>Any</li> 
+      </EMWEB_IF> 
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ACL_FEATURE">
+        <li>ACL</LI>
+      </EMWEB_IF>
+     </UL>
+      referenced by the specified class of the same type. 
+     <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ACL_FEATURE">
+      For the specified class type of 'ACL', the ACL Identifier attached to the specified class is displayed.
+     </EMWEB_IF>
+  </li>
+ </ul>
+</ul>
+
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Refresh</b> - Refresh the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_cos></a>Help for Class of Service</h2>
+
+<h3>Selection Criteria</h3>
+                                                      
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class of Service</b> - This lists all the values for the class of service 
+      match criterion in the range 0 to 7 from which one can be selected.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Exclude</b> - This is a checkbox that specifies the inclusion or exclusion of the 
+      configured match criterion. If the match criterion is to be excluded, this box is checked. 
+      Conversely, if the match criterion is to be included, this box is left unchecked.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class. 
+      Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_COS2_FEATURE">
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_cos2></a>Help for Secondary Class of Service</h2>
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Secondary Class of Service</b> - This lists all the values for secondary class of service
+      match criterion in the range 0 to 7 from which one can be selected.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Exclude</b> - This is a checkbox that specifies the inclusion or exclusion of the
+      configured match criterion. If the match criterion is to be excluded, this box is checked.
+      Conversely, if the match criterion is to be included, this box is left unchecked.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class.
+  Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take
+      effect on the switch but these changes will not be retained across a power cycle unless
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_dstip></a>Help for Destination IP Address</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IP Address</b> - This is a valid destination IP address in the dotted decimal format.</li>
+  <li><b>IP Mask</b> - This is a bit mask in IP dotted decimal format indicating which part(s) 
+      of the destination IP Address to use for matching against packet content.</li>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+  <li><b>Exclude</b> - This is a checkbox that specifies the inclusion or exclusion of the 
+      configured match criterion. If the match criterion is to be excluded, this box is checked. 
+      Conversely, if the match criterion is to be included, this box is left unchecked.</li>
+  </EMWEB_IF>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class. 
+      </li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_dstl4port></a>Help for Destination Layer 4 Port</h2>
+
+<h3>Selection Criteria</h3>
+                                                      
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Port Keyword</b> - This lists the keywords for the known destination 
+      layer 4 ports from which one can be selected. The list includes 'other' 
+      as an option for the unnamed ports.</li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_SUPPORTS_RANGES_FEATURE">
+  <li><b>Start Port Number</b> - This is the starting port number and is an integer in the 
+      range of 0 to 65535 on platforms that support layer 4 port ranges. This field is 
+      only displayed when the Port Keyword field is specified as 'other'.</li>
+  <li><b>End Port Number</b> - This is the ending port number and is an integer in the 
+      range of 0 to 65535 on platforms that support layer 4 port ranges. This field is 
+      only displayed when the Port Keyword field is specified as 'other'.</li>
+<EMWEB_ELSE>
+  <li><b>Port Number</b> - This is an integer in the range of 0 to 65535 on platforms that
+      do not support layer 4 port ranges. This field is only displayed when the
+      Port Keyword field is specified as 'other'.</li>
+</EMWEB_IF>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+  <li><b>Exclude</b> - This is a checkbox that specifies the inclusion or exclusion of the 
+      configured match criterion. If the match criterion is to be excluded, this box is checked. 
+      Conversely, if the match criterion is to be included, this box is left unchecked.</li>
+  </EMWEB_IF>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class as. 
+      Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_dstmac></a>Help for Destination MAC Address</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>MAC Address</b> - This is the destination MAC address specified as six, 
+      two-digit hexadecimal numbers separated by colons.</li>
+  <li><b>MAC Mask</b> - This is a bit mask in the same format as MAC Address indicating which part(s) of the destination MAC Address to use for matching against packet content.</li>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+  <li><b>Exclude</b> - This is a checkbox that specifies the inclusion or exclusion of the 
+      configured match criterion. If the match criterion is to be excluded, this box is checked. 
+      Conversely, if the match criterion is to be included, this box is left unchecked.</li>
+  </EMWEB_IF>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class. 
+      Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_ipdscp></a>Help for IP DSCP</h2>
+
+<h3>Selection Criteria</h3>
+                                                      
+<ul type=disc>
+ <ul type=circle>
+  <li><b>DSCP Keyword</b> - This lists the keywords for the known DSCP values 
+      from which one can be selected. The list includes 'other' as an option 
+      for the remaining values.</li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>DSCP Value</b> - This is a DiffServ Code Point value in the range 0 to 63 
+      to compare against. This field is only displayed when the DSCP Keyword field 
+      is specified as 'other'.</li>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+  <li><b>Exclude</b> - This is a checkbox that specifies the inclusion or exclusion of the 
+      configured match criterion. If the match criterion is to be excluded, this box is checked. 
+      Conversely, if the match criterion is to be included, this box is left unchecked.</li>
+ </EMWEB_IF>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class. 
+      </li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_ipprecedence></a>Help for IP Precedence</h2>
+
+<h3>Selection Criteria</h3>
+                                                      
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Precedence Value</b> - This lists all the values for the IP Precedence 
+      match criterion in the range 0 to 7 from which one can be selected.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Exclude</b> - This is a checkbox that specifies the inclusion or exclusion of the 
+      configured match criterion. If the match criterion is to be excluded, this box is checked. 
+      Conversely, if the match criterion is to be included, this box is left unchecked.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class. 
+      Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_iptos></a>Help for IP ToS</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>ToS Bits</b> - This is the Type of Service octet value in the range 00 to ff to 
+      compare against. </li>
+  <li><b>ToS Mask</b> - This indicates which ToS bits are subject to comparison against the
+      Service Type value.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class. 
+      Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!---------------------------------------------------------------------------------------->
+
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_protocol></a>Help for Protocol</h2>
+
+<h3>Selection Criteria</h3>
+                                                      
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Protocol Keyword</b> - This lists the keywords for the layer 4 protocols 
+      from which one can be selected. The list includes 'other' as an option 
+      for the remaining values.</li>
+ </ul>
+</ul>
+
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class. 
+      Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!---------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_refclass></a>Help for Reference Class</h2>
+
+<h3>Selection Criteria</h3>
+                                                      
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Reference Class</b> - This lists the class(es) that can be assigned as reference class(es)  
+      to the current class.</li>
+ </ul>
+</ul>
+
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class. 
+      Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!---------------------------------------------------------------------------------------->
+
+
+<!---------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_srcip></a>Help for Source IP Address</h2>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IP Address</b> - This is a valid source IP address in the dotted decimal format.</li>
+  <li><b>IP Mask</b> - This is a bit mask in IP dotted decimal format indicating which part(s) 
+      of the source IP Address to use for matching against packet content.</li>
+  </ul>
+</ul>
+
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class. 
+      Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!---------------------------------------------------------------------------------------->
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_srcl4port></a>Help for Source Layer 4 Port</h2>
+
+<h3>Selection Criteria</h3>
+                                                      
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Port Keyword</b> - This lists the keywords for the known source 
+      layer 4 ports from which one can be selected. The list includes 'other' 
+      as an option for the unnamed ports.</li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_SUPPORTS_RANGES_FEATURE">
+  <li><b>Start Port Number</b> - This is the starting port number and is an integer in the
+      range of 0 to 65535 on platforms that support layer 4 port ranges. This field is
+      only displayed when the Port Keyword field is specified as 'other'.</li>
+  <li><b>End Port Number</b> - This is the ending port number and is an integer in the
+      range of 0 to 65535 on platforms that support layer 4 port ranges. This field is
+      only displayed when the Port Keyword field is specified as 'other'.</li>
+<EMWEB_ELSE>
+  <li><b>Port Number</b> - This is an integer in the range of 0 to 65535 on platforms that
+      do not support layer 4 port ranges. This field is only displayed when the
+      Port Keyword field is specified as 'other'.</li>
+</EMWEB_IF>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+  <li><b>Exclude</b> - This is a checkbox that specifies the inclusion or exclusion of the
+      configured match criterion. If the match criterion is to be excluded, this box is checked.
+      Conversely, if the match criterion is to be included, this box is left unchecked.</li>
+  </EMWEB_IF>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class. 
+      Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+
+ <!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_srcmac></a>Help for Source MAC Address</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>MAC Address</b> - This is the source MAC address specified as six, 
+      two-digit hexadecimal numbers separated by colons.</li>
+  <li><b>MAC Mask</b> - This is a bit mask in the same format as MAC Address indicating which part(s) of the source MAC Address to use for matching against packet content.</li>
+  </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class. 
+      Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_vlan></a>Help for VLAN</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>VLAN Identifier Start</b> - This is a value in the range of 0-4095.</li>
+  <li><b>VLAN Identifier End</b> - This is a value in the range of 0-4095. 
+      </li>
+  </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class. 
+      Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_ethertyp></a>Help for Ethertype</h2>
+
+<h3>Selection Criteria</h3>
+                                                      
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Ethertype Keyword</b> - This lists the keywords for the Ethertype 
+      from which one can be selected.</li>
+ </ul>
+</ul>
+
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class. 
+      Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_IPV6_DSTIP_FEATURE">
+<hr size=4 width="100%" align=center>
+<h2><a name=class_cfg_rule_dest_prefix></a>Help for Destination IPv6 Prefix</h2>
+
+<h3>Selection Criteria</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b></b> This is a valid Destination IPv6 Prefix to compare against an IPv6 Packet. Prefix is always 
+    specified with the Prefix Length. Prefix can be entered in the range of ::0 to 
+    FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF and Prefix Length can be entered in the range of 0 to 128.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Exclude</b> - This is a checkbox that specifies the inclusion or exclusion of the
+      configured match criterion. If the match criterion is to be excluded, this box is checked.
+      Conversely, if the match criterion is to be included, this box is left unchecked.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class.
+  Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take
+      effect on the switch but these changes will not be retained across a power cycle unless
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_IPV6_SRCIP_FEATURE">
+<hr size=4 width="100%" align=center>
+<h2><a name=class_cfg_rule_src_prefix></a>Help for Source IPv6 Prefix</h2>
+
+<h3>Selection Criteria</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b></b> This is a valid Source IPv6 Prefix to compare against an IPv6 Packet. Prefix is always 
+    specified with the Prefix Length. Prefix can be entered in the range of ::0 to 
+    FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF and Prefix Length can be entered in the range of 0 to 128.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Exclude</b> - This is a checkbox that specifies the inclusion or exclusion of the
+      configured match criterion. If the match criterion is to be excluded, this box is checked.
+      Conversely, if the match criterion is to be included, this box is left unchecked.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class.
+  Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take
+      effect on the switch but these changes will not be retained across a power cycle unless
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_IPV6_FLOWLBL_FEATURE">
+<hr size=4 width="100%" align=center>
+<h2><a name=class_cfg_rule_flow_label></a>Help for Flow Label</h2>
+
+<h3>Selection Criteria</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b></b> This is a 20-bit number that is unique to an IPv6 Packet, used by end stations to signify 
+    Quality of Service handling in routers. Flow Label can be specified in the range of 
+     <EMWEB_STRING C='
+        return usmWebUnsignedIntegerRangeHelp(L7_ACL_MIN_FLOWLBL, L7_ACL_MAX_FLOWLBL);
+    ' > </li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Exclude</b> - This is a checkbox that specifies the inclusion or exclusion of the
+      configured match criterion. If the match criterion is to be excluded, this box is checked.
+      Conversely, if the match criterion is to be included, this box is left unchecked.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class.
+  Class types are platform dependent.</li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take
+      effect on the switch but these changes will not be retained across a power cycle unless
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+</EMWEB_IF>
+
+
+
+

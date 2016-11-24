@@ -1,0 +1,760 @@
+
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>CoS Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+<EMWEB_IF ID=USMWEB_IF_COS_MAPPING_TRUST_MODE_SUPPORTED>
+<h2><a name=cos_trust_mode_cfg></a>Help for Class of Service Trust Mode Configuration</h2>
+
+	<h3>Selection Criteria </h3>
+
+	<ul type=disc>
+		<ul type=circle>
+			<li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> - Specifies all CoS configurable interfaces. The option "Global" represents the most recent global configuration settings.
+				<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_MAP_TRUST_MODE_PER_INTF_FEATURE">
+					These may be overridden on a per-interface basis.
+				</EMWEB_IF>
+			</li>
+		</ul>
+	</ul>
+
+	<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	<h3>Configurable Data</h3>
+	<EMWEB_ELSE>
+	<h3>Non-Configurable Data</h3>
+	</EMWEB_IF>
+	<ul type=disc>
+		<ul type=circle>
+			<li>
+				<b>Interface Trust Mode</b> - Specifies whether or not to trust a particular packet marking at ingress.
+					<BR>Interface Trust Mode can only be one of the following:
+					<ul type=square>
+						<li><I><B>untrusted</B></I></LI>
+					</UL>
+					<ul type=square>
+						<li><I><B>trust dot1p</B></I></LI>
+					</UL>
+				    <ul type=square>
+					 <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_MAP_IPPREC_FEATURE">
+						<li><I><B>trust ip-precedence</B></I></LI>
+					 </EMWEB_IF>
+					</UL>
+					<ul type=square>
+						<li><I><B>trust ip-dscp</B></I></LI>
+					</UL>
+				Default value is
+				  <EMWEB_STRING C='
+					  memset(sBuf, 0x00, sizeof(sBuf));
+
+					  if (FD_QOS_COS_MAP_INTF_TRUST_MODE == L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED)
+						 strcpy(sBuf," untrusted");
+					  else if (FD_QOS_COS_MAP_INTF_TRUST_MODE == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P)
+						 strcpy(sBuf," trust dot1p");
+					  else if (FD_QOS_COS_MAP_INTF_TRUST_MODE == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC)
+						 strcpy(sBuf," trust ip-precedence");
+					  else if (FD_QOS_COS_MAP_INTF_TRUST_MODE == L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP)
+						 strcpy(sBuf," trust ip-dscp");
+					  return sBuf;
+					   ' >.
+			</li>
+		</ul>
+	</UL>
+	<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	<h3>Non-Configurable Data</h3>
+	</EMWEB_IF>
+	<ul type=disc>
+		<ul type=circle>
+			 <li><b>Untrusted Traffic Class</b> - Displays traffic class (i.e. queue) to
+			  which all traffic is directed when in 'untrusted' mode.
+			  Valid Range is (0 to
+			  <EMWEB_STRING C='
+				  return usmWebIntegerToString((L7_MAX_CFG_QUEUES_PER_PORT - 1));
+				   ' >).
+			 </li>
+			 <li><b>Non-IP Traffic Class</b> - Displays traffic class (i.e. queue) to
+			  which all non-IP traffic is directed when in 'trust ip-precedence' or
+			  'trust ip-dscp' mode.
+			  Valid Range is (0 to
+			  <EMWEB_STRING C='
+				  return usmWebIntegerToString((L7_MAX_CFG_QUEUES_PER_PORT - 1));
+				   ' >).
+			 </li>
+
+			 <li><b>Current 802.1p Priority Mapping</b>
+				- Displays the current 802.1p priority mapping configuration.</li>
+		</UL>
+	</UL>
+
+	<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	<h3>Command Buttons </h3>
+		<ul type=disc>
+			<ul type=circle>
+				<li> <b>Submit</b> - Send the updated configuration to the switch.  Configuration changes
+						take effect immediately. These changes will not be retained across a power cycle
+						unless a save is performed.
+				</li>
+				<li><b>Restore Defaults</b> - Restores default settings.</li>
+			</ul>
+		</ul>
+	</EMWEB_IF>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_COS_MAPPING_IPPREC_SUPPORTED>
+<h2><a name=cos_ip_prec_map_cfg></a>Help for Class of Service IP Precedence Mapping Configuration</h2>
+
+	<h3>Selection Criteria </h3>
+	<ul type=disc>
+		<ul type=circle>
+			<li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> - Specifies all CoS configurable interfaces. The option "Global" represents the most recent global configuration settings.
+				<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_MAP_IPPREC_PER_INTF_FEATURE">
+					These may be overridden on a per-interface basis.
+				</EMWEB_IF>
+			</li>
+		</ul>
+	</ul>
+	<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	<h3>Configurable Data</h3>
+	<EMWEB_ELSE>
+	<h3>Non-Configurable Data</h3>
+	</EMWEB_IF>
+	<ul type=disc>
+		<ul type=circle>
+			<li><b>IP Precedence Traffic Class</b> - Specify which internal traffic class to map the corresponding IP Precedence value.
+					Valid Range is
+					<EMWEB_STRING C='
+					   L7_uint32 unit, interface=1, numTrafficClasses=0;
+
+					   unit = usmDbThisUnitGet();
+					   usmDbValidIntIfNumFirstGet(&interface);
+					   usmDbDot1dPortNumTrafficClassesGet(unit, interface, &numTrafficClasses);
+
+					   return usmWebIntegerRangeHelp(0, (numTrafficClasses - 1));
+					   ' >.
+			</li>
+		</ul>
+	</UL>
+	<EMWEB_IF ID=USMWEB_IF_READWRITE >
+	<h3>Command Buttons </h3>
+		<ul type=disc>
+			<ul type=circle>
+				<li> <b>Submit</b> - Send the updated configuration to the switch.  Configuration changes
+						take effect immediately. These changes will not be retained across a power cycle
+						unless a save is performed.
+				</li>
+				<li><b>Restore Defaults</b> - Restores default settings.</li>
+			</ul>
+		</ul>
+	</EMWEB_IF>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_COS_MAPPING_IPDSCP_SUPPORTED>
+<h2><a name=cos_ip_dscp_map_cfg></a>Help for Class of Service IP DSCP Mapping Configuration</h2>
+
+	 <h3>Selection Criteria </h3>
+		<ul type=disc>
+			<ul type=circle>
+				<li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> - Specifies all CoS configurable interfaces. The option "Global" represents the most recent global configuration settings.
+					<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_MAP_IPDSCP_PER_INTF_FEATURE">
+						These may be overridden on a per-interface basis.
+					</EMWEB_IF>
+				</li>
+			</ul>
+		</ul>
+		<EMWEB_IF ID=USMWEB_IF_READWRITE >
+			<h3>Configurable Data</h3>
+		<EMWEB_ELSE>
+			<h3>Non-Configurable Data</h3>
+		</EMWEB_IF>
+		<ul type=disc>
+			<ul type=circle>
+    			<li><b>IP DSCP Traffic Class</b> - Specify which internal traffic class to map the corresponding IP DSCP value.
+					Valid Range is
+				  <EMWEB_STRING C='
+					   L7_uint32 unit, interface=1, numTrafficClasses=0;
+
+					   unit = usmDbThisUnitGet();
+					   usmDbValidIntIfNumFirstGet(&interface);
+					   usmDbDot1dPortNumTrafficClassesGet(unit, interface, &numTrafficClasses);
+
+					   return usmWebIntegerRangeHelp(0, (numTrafficClasses - 1));
+					   ' >.
+				 </li>
+     		</ul>
+		</ul>
+		<EMWEB_IF ID=USMWEB_IF_READWRITE >
+			<h3>Command Buttons </h3>
+			<ul type=disc>
+				<ul type=circle>
+					<li> <b>Submit</b> - Send the updated configuration to the switch.  Configuration changes
+							take effect immediately. These changes will not be retained across a power cycle
+							unless a save is performed.
+					</li>
+					<li><b>Restore Defaults</b> - Restores default settings.</li>
+				</ul>
+			</ul>
+		</EMWEB_IF>
+</EMWEB_IF>
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=cos_intf_cfg></a>Help for Class of Service Interface Configuration</h2>
+
+
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> - Specifies all CoS configurable interfaces. The option "Global" represents the most recent global configuration settings.
+       <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_CFG_PER_INTF_FEATURE">
+            These may be overridden on a per-interface basis.
+       </EMWEB_IF>
+  </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+ <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_INTF_SHAPING_FEATURE">
+  <li><b>Interface Shaping Rate</b> - Specifies the maximum bandwidth allowed, typically used to
+      shape the outbound transmission rate. This value is controlled independently of any
+      per-queue maximum bandwidth configuration. It is effectively a second-level shaping mechanism.
+      Default value is
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(FD_QOS_COS_QCFG_INTF_SHAPING_RATE);
+       ' >. Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_QOS_COS_INTF_SHAPING_RATE_MIN, L7_QOS_COS_INTF_SHAPING_RATE_MAX);
+       ' >in increments of
+       <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE);
+       ' >.
+       The value 0 means maximum is unlimited.
+
+  </li>
+ </EMWEB_IF>
+
+ <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_MGMT_INTF_ONLY_FEATURE">
+ <li><b>Queue Management Type</b> - Specifies Queue depth management technique used for all
+ queues on this interface. This is only used when device does not support the per-queue
+ parameter.
+  <BR>Queue Management Type can only be one of the following:
+      <ul type=square>
+        <li><I><B>taildrop</B></I></LI>
+      </UL>
+  <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_WRED_SUPPORT_FEATURE">
+      <ul type=square>
+        <li><I><B>wred</B></I></LI>
+      </UL>
+  </EMWEB_IF>
+  Default value is
+  <EMWEB_STRING C='
+      memset(sBuf, 0x00, sizeof(sBuf));
+
+      if (FD_QOS_COS_QCFG_MGMT_TYPE == L7_QOS_COS_QUEUE_MGMT_TYPE_TAILDROP)
+         strcpy(sBuf," taildrop");
+      else if (FD_QOS_COS_QCFG_MGMT_TYPE == L7_QOS_COS_QUEUE_MGMT_TYPE_WRED)
+         strcpy(sBuf," wred");
+
+      return sBuf;
+       ' >.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_WRED_SUPPORT_FEATURE">
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_WRED_DECAY_EXP_SYSTEM_ONLY_FEATURE">
+<EMWEB_ELSE>
+  <li><b>WRED Decay Exponent</b> - Specifies the decay exponent value used with the WRED
+  average queue length calculation algorithm. Default value is
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(FD_QOS_COS_QCFG_WRED_DECAY_EXP);
+       ' >. Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_QOS_COS_INTF_WRED_DECAY_EXP_MIN, L7_QOS_COS_INTF_WRED_DECAY_EXP_MAX);
+       ' >.
+  </li>
+</EMWEB_IF>
+</EMWEB_IF>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Restore Defaults</b> - Restores default settings.</li>
+  <li> <b>Submit</b> - Send the updated configuration to the switch.  Configuration changes
+      take effect immediately. These changes will not be retained across a power cycle
+      unless a save is performed.
+      </li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=cos_intf_queue_cfg></a>Help for Class of Service Interface Queue Configuration</h2>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> - Specifies all CoS configurable interfaces. The option "Global" represents the most recent global configuration settings.
+      <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_CFG_PER_INTF_FEATURE">
+            These may be overridden on a per-interface basis.
+      </EMWEB_IF>
+  </li>
+  <li><b>Queue ID</b> - Specifies all the available queues per interface(platform based).
+  </li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_MIN_BW_FEATURE">
+  <li><b>Minimum Bandwidth Allocated</b> - Specifies the sum of individual Minimum Bandwidth
+  values for all queues in the interface. The sum cannot exceed the defined maximum of
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX);
+       ' >. This value is considered while configuring the Minimum Bandwidth for a queue in the selected interface.
+  </li>
+ </EMWEB_IF>
+  </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+ <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_MIN_BW_FEATURE">
+  <li><b>Minimum Bandwidth</b> - Specifies the minimum guaranteed bandwidth allotted to
+  this queue. Setting this value higher than its corresponding Maximum Bandwidth
+  automatically increases the maximum to the same value. Default value is
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(FD_QOS_COS_QCFG_MIN_BANDWIDTH);
+       ' >. Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MIN, L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX);
+       ' >in increments of
+       <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE);
+       ' >.
+       The value 0 means no guaranteed minimum. Sum of individual Minimum Bandwidth values for all queues in the selected interface cannot exceed defined maximum
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX);
+       ' >.
+  </li>
+ </EMWEB_IF>
+
+ <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_MAX_BW_FEATURE">
+  <li><b>Maximum Bandwidth</b> - Specifies the maximum bandwidth allowed for this queue,
+  typically used to shape the outbound transmission rate.
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_MIN_BW_FEATURE">
+  This value can be set to 0 without regard to its corresponding Minimum Bandwidth, but cannot otherwise be set less
+  than the Minimum Bandwidth.
+  </EMWEB_IF>
+  The value 0 means maximum is unlimited. Default value is
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(FD_QOS_COS_QCFG_MAX_BANDWIDTH);
+       ' >. Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MIN, L7_QOS_COS_QUEUE_MAX_BANDWIDTH_MAX);
+       ' >in increments of
+       <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_QOS_COS_QUEUE_BANDWIDTH_STEP_SIZE);
+       ' >.
+  </li>
+ </EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_SCHED_STRICT_ONLY_FEATURE">
+<EMWEB_ELSE>
+  <li><b>Scheduler Type</b> - Specifies the type of scheduling used for this queue.
+  <BR>Scheduler Type can only be one of the following:
+      <ul type=square>
+        <li><I><B>strict</B></I></LI>
+      </UL>
+      <ul type=square>
+        <li><I><B>weighted</B></I></LI>
+      </UL>
+  Default value is
+  <EMWEB_STRING C='
+      memset(sBuf, 0x00, sizeof(sBuf));
+      if (FD_QOS_COS_QCFG_SCHED_TYPE == L7_QOS_COS_QUEUE_SCHED_TYPE_WEIGHTED)
+         strcpy(sBuf," weighted");
+      else
+         strcpy(sBuf," strict");
+      return sBuf;
+       ' >.
+  </li>
+ </EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_MGMT_INTF_ONLY_FEATURE">
+<EMWEB_ELSE>
+ <li><b>Queue Management Type</b> - Queue depth management technique used for queues on
+ this interface. This is only used if device supports independent settings per-queue.
+  <BR>Queue Management Type can only be one of the following:
+      <ul type=square>
+        <li><I><B>taildrop</B></I></LI>
+      </UL>
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_WRED_SUPPORT_FEATURE">
+      <ul type=square>
+        <li><I><B>wred</B></I></LI>
+      </UL>
+</EMWEB_IF>
+  Default value is
+  <EMWEB_STRING C='
+      memset(sBuf, 0x00, sizeof(sBuf));
+
+      if (FD_QOS_COS_QCFG_MGMT_TYPE == L7_QOS_COS_QUEUE_MGMT_TYPE_TAILDROP)
+         strcpy(sBuf," taildrop");
+      else if (FD_QOS_COS_QCFG_MGMT_TYPE == L7_QOS_COS_QUEUE_MGMT_TYPE_WRED)
+         strcpy(sBuf," wred");
+
+      return sBuf;
+       ' >.
+  </li>
+</EMWEB_IF>
+
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Restore Defaults for All Queues</b> - Restores default settings for all queues on the selected interface.</li>
+  <li> <b>Submit</b> - Send the updated configuration to the switch.  Configuration changes take effect immediately. These changes will not be retained across a power cycle unless a save is performed.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=cos_intf_queue_status></a>Help for Class of Service Interface Queue Status</h2>
+
+
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> - Specifies all CoS configurable interfaces. The option "Global" represents the most recent global configuration settings.
+      <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_CFG_PER_INTF_FEATURE">
+            These may be overridden on a per-interface basis.
+      </EMWEB_IF>
+  </li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>Queue ID</b> - Specifies the queueID.</li>
+
+ <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_MIN_BW_FEATURE">
+  <li><b>Minimum Bandwidth</b> - Specifies the minimum guaranteed bandwidth allotted to
+  this queue. The value 0 means no guaranteed minimum. Sum of individual Minimum Bandwidth
+  values for all queues in the selected interface cannot exceed defined maximum of
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_QOS_COS_QUEUE_MIN_BANDWIDTH_MAX);
+       ' >.
+  </li>
+ </EMWEB_IF>
+
+ <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_MAX_BW_FEATURE">
+  <li><b>Maximum Bandwidth</b> - Specifies the maximum bandwidth allowed for this queue,
+  typically used to shape the outbound transmission rate. The value 0 means maximum is
+  unlimited.
+  </li>
+ </EMWEB_IF>
+
+ <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_SCHED_STRICT_ONLY_FEATURE">
+ <EMWEB_ELSE>
+  <li><b>Scheduler Type</b> - Specifies the type of scheduling used for this queue.
+  <BR>Scheduler Type can only be one of the following:
+      <ul type=square>
+        <li><I><B>strict</B></I></LI>
+      </UL>
+      <ul type=square>
+        <li><I><B>weighted</B></I></LI>
+      </UL>
+  </li>
+  </EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_MGMT_INTF_ONLY_FEATURE">
+<EMWEB_ELSE>
+ <li><b>Queue Management Type</b> - Queue depth management technique used for queues on
+ this interface. This is only used if device supports independent settings per-queue.
+  <BR>Queue Management Type can only be one of the following:
+      <ul type=square>
+        <li><I><B>taildrop</B></I></LI>
+      </UL>
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_WRED_SUPPORT_FEATURE">
+      <ul type=square>
+        <li><I><B>wred</B></I></LI>
+      </UL>
+</EMWEB_IF>
+  </li>
+</EMWEB_IF>
+
+ </ul>
+</ul>
+
+
+<hr size=4 width="80%" align=center>
+
+
+<EMWEB_IF ID=USMWEB_IF_COS_QUEUE_DROP_PREC_CFG_SUPPORTED>
+
+<h2><a name=cos_intf_queue_dropprec_cfg></a>Help for Class of Service Interface Queue Drop Precedence Configuration</h2>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> - Specifies all CoS configurable interfaces. The option "Global" represents the most recent global configuration settings.
+      <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_DROP_CFG_PER_INTF_FEATURE">
+            These may be overridden on a per-interface basis.
+      </EMWEB_IF>
+  </li>
+  <li><b>Queue ID</b> - Specifies all the available queues.
+  </li>
+  <li><b>Drop Precedence Level</b> - Specifies all the available drop precedence levels(platform based).
+  </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_TDROP_THRESH_FEATURE">
+  <li><b>Tail Drop Threshold</b> - Specifies the tail drop queue threshold above which all
+  packets are dropped for the specified precedence level. Default values are
+
+      <EMWEB_STRING C='
+#ifdef L7_QOS_FLEX_PACKAGE_COS
+      L7_uint32 queueID, cnt;
+      L7_RC_t   rc;
+      L7_uint32 unit;
+
+      unit = usmDbThisUnitGet();
+      queueID = L7_QOS_COS_QUEUE_ID_MIN;
+      rc = usmDbQosCosQueueIdIndexGet(unit, queueID);
+      while (rc == L7_SUCCESS)
+        rc = usmDbQosCosQueueIdIndexGetNext(unit, queueID, &queueID);
+
+      memset(wBuf, 0x00, sizeof(wBuf));
+      for (cnt=0; cnt <= queueID; cnt++)
+      {
+      memset(sBuf, 0x00, sizeof(sBuf));
+      sprintf(sBuf," %d/%d/%d for Drop Precedence Levels 0/1/2 on QueueID %d",
+      FD_QOS_COS_QCFG_TDROP_THRESH_Q0_DP1,
+      FD_QOS_COS_QCFG_TDROP_THRESH_Q0_DP2,
+      FD_QOS_COS_QCFG_TDROP_THRESH_Q0_DP3,
+      cnt);
+      strcat(wBuf,sBuf);
+      if (cnt != queueID)
+        strcat(wBuf,",");
+      }
+      return wBuf;
+#else
+      return L7_NULLPTR;
+#endif
+       ' > . Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_QOS_COS_QUEUE_TDROP_THRESH_MIN, L7_QOS_COS_QUEUE_TDROP_THRESH_MAX);
+       ' > in sixteenths of the overall device queue size.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_WRED_SUPPORT_FEATURE">
+  <li><b>WRED Minimum Threshold</b> - Specifies the weighted RED minimum queue threshold
+  below which no packets are dropped for the current drop precedence level. Default values are
+  <EMWEB_STRING C='
+#ifdef L7_QOS_FLEX_PACKAGE_COS
+      L7_uint32 queueID, cnt;
+      L7_RC_t   rc;
+      L7_uint32 unit;
+
+      unit = usmDbThisUnitGet();
+      queueID = L7_QOS_COS_QUEUE_ID_MIN;
+      rc = usmDbQosCosQueueIdIndexGet(unit, queueID);
+      while (rc == L7_SUCCESS)
+        rc = usmDbQosCosQueueIdIndexGetNext(unit, queueID, &queueID);
+
+      memset(wBuf, 0x00, sizeof(wBuf));
+      for (cnt=0; cnt <= queueID; cnt++)
+      {
+      memset(sBuf, 0x00, sizeof(sBuf));
+      sprintf(sBuf," %d/%d/%d for Drop Precedence Levels 0/1/2 on QueueID %d",
+      FD_QOS_COS_QCFG_WRED_MIN_THRESH_Q0_DP1,
+      FD_QOS_COS_QCFG_WRED_MIN_THRESH_Q0_DP2,
+      FD_QOS_COS_QCFG_WRED_MIN_THRESH_Q0_DP3,
+      cnt);
+      strcat(wBuf,sBuf);
+      if (cnt != queueID)
+        strcat(wBuf,",");
+      }
+      return wBuf;
+#else
+      return L7_NULLPTR;
+#endif
+       ' > . Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_QOS_COS_QUEUE_WRED_MIN_THRESH_MIN, L7_QOS_COS_QUEUE_WRED_MIN_THRESH_MAX);
+       ' > in sixteenths of the overall device queue size.
+  </li>
+
+
+
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_WRED_MAX_THRESH_FEATURE">
+  <li><b>WRED Maximum Threshold</b> - Specifies the weighted RED maximum queue threshold
+  above which all packets are dropped for the current drop precedence level. Default values are
+  <EMWEB_STRING C='
+#ifdef L7_QOS_FLEX_PACKAGE_COS
+      L7_uint32 queueID, cnt;
+      L7_RC_t   rc;
+      L7_uint32 unit;
+
+      unit = usmDbThisUnitGet();
+      queueID = L7_QOS_COS_QUEUE_ID_MIN;
+      rc = usmDbQosCosQueueIdIndexGet(unit, queueID);
+      while (rc == L7_SUCCESS)
+        rc = usmDbQosCosQueueIdIndexGetNext(unit, queueID, &queueID);
+
+      memset(wBuf, 0x00, sizeof(wBuf));
+      for (cnt=0; cnt <= queueID; cnt++)
+      {
+      memset(sBuf, 0x00, sizeof(sBuf));
+      sprintf(sBuf," %d/%d/%d for Drop Precedence Levels 0/1/2 on QueueID %d",
+      FD_QOS_COS_QCFG_WRED_MAX_THRESH_Q0_DP1,
+      FD_QOS_COS_QCFG_WRED_MAX_THRESH_Q0_DP2,
+      FD_QOS_COS_QCFG_WRED_MAX_THRESH_Q0_DP3,
+      cnt);
+      strcat(wBuf,sBuf);
+      if (cnt != queueID)
+        strcat(wBuf,",");
+      }
+      return wBuf;
+#else
+      return L7_NULLPTR;
+#endif
+       ' > . Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_QOS_COS_QUEUE_WRED_MAX_THRESH_MIN, L7_QOS_COS_QUEUE_WRED_MAX_THRESH_MAX);
+       ' > in sixteenths of the overall device queue size.
+  </li>
+</EMWEB_IF>
+
+<li><b>WRED Drop Probability</b> - Determines the packet drop probability for 
+the current drop precedence level.
+Default value is
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(FD_QOS_COS_QCFG_WRED_DROP_PROB);
+       ' >. Valid Range is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_QOS_COS_QUEUE_WRED_DROP_PROB_MIN, L7_QOS_COS_QUEUE_WRED_DROP_PROB_MAX);
+       ' >.
+  </li>
+</EMWEB_IF>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Restore Defaults for All Drop Precedence Levels</b> - Restores default settings for taildrop
+  <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_WRED_SUPPORT_FEATURE">
+  and WRED
+  </EMWEB_IF>
+  parameters for all precedence levels of the selected interface and queue.</li>
+  <li> <b>Submit</b> - Send the updated configuration to the switch.  Configuration changes take effect immediately. These changes will not be retained across a power cyclunless a save is performed.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=cos_intf_queue_dropprec_status></a>Help for Class of Service Interface Queue Drop Precedence Status</h2>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> - Specifies all CoS configurable interfaces. The option "Global" represents the most recent global configuration settings.
+      <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_DROP_CFG_PER_INTF_FEATURE">
+             These may be overridden on a per-interface basis.
+      </EMWEB_IF>
+  </li>
+  <li><b>Queue ID</b> - Specifies all the available queues.
+  </li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Drop Precedence Level</b> - Specifies the drop precedence level.</li>
+
+
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_TDROP_THRESH_FEATURE">
+  <li><b>Tail Drop Threshold</b> - Specifies the tail drop queue threshold above which all
+  packets are dropped for the specified precedence level. Values are in sixteenths of
+  overall device queue size.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_WRED_SUPPORT_FEATURE">
+  <li><b>WRED Minimum Threshold</b> - Specifies the weighted RED minimum queue threshold
+  below which no packets are dropped for the current drop precedence level. Values are in sixteenths of
+  overall device queue size.
+  </li>
+
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="COS_QUEUE_WRED_MAX_THRESH_FEATURE">
+  <li><b>WRED Maximum Threshold</b> - Specifies the weighted RED maximum queue threshold
+  above which all packets are dropped for the current drop precedence level. Values are in sixteenths of
+  overall device queue size.
+  </li>
+</EMWEB_IF>
+
+<li><b>WRED Drop Probability</b> - Determines the packet drop probability for 
+the current drop precedence level.
+</li>
+
+ </ul>
+</ul>
+</EMWEB_IF>
+<hr size=4 width="80%" align=center>
+</EMWEB_IF>
+
+</body>
+
+</html>
+
+
+
+

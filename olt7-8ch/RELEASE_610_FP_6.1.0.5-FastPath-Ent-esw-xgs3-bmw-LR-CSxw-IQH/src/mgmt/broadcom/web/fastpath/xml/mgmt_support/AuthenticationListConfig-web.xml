@@ -1,0 +1,202 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+
+<FastPathXML>
+    <webxml version="1.0" name="AuthenticationListConfig" java-script="AuthenticationListConfig" title="Authentication List Configuration">
+        <group id="2" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <element control="combo" uienum="L7_ACCESS_LEVEL_t" obj-name="xLibObjects_dummy" id="1" name="Access Mode">
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no" enable="3" disable="1|1_2_1|3_2_1" hide="1|1_2_1|3_2_1|3_20|3_7_1" show="3" setval_ids="3_20_1" setval_args="valmapLogin" />
+                    <action type="enum" discard="no" enable="1" disable="3|1_2_1|3_2_1" hide="3|1_2_1|3_2_1|3_20|1_7_1" show="1" setval_ids="3_20_1" setval_args="valmapEnable" />
+                </element>
+            </node>
+         </group>
+        <group id="1" heading=" " level="ReadWriteUser">
+           <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="baseUsrMgrEnableAuthList_EnableAPLName" id="1" name="Authentication List">
+                    <action type="extn" value="Create" setval_ids="1_2_1" setval_args="valMapEmptyString" disable="1_7_2|1_7_3|1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" hide="1_7_2|1_7_3|1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" enable="1_7_1|1_2_1" show="1_7_1|1_2_1"/>
+                    <action type="default" enable="1_7_2|1_7_3|1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" show="1_7_2|1_7_3|1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" disable="1_7_1|1_2_1" hide="1_7_1|1_2_1"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="textbox" arghelp="NAME_FORMAT_12CHAR" maxLength="12" obj-name="baseUsrMgrEnableAuthList_EnableAPLName" id="1" name="Authentication List Name"/>
+            </node>
+            <node id="4">
+                <element control="combo" uienum="L7_USER_MGR_AUTH_METHOD_t" obj-name="baseUsrMgrEnableAuthList_AuthenticationListMethod1" id="1" name="Method 1">
+                  <action type="enum" discard="no" web_name="Undefined" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                  <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                  <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                  <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                  <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                  <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                  <action type="enum" web_name="Tacacs+" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                  <action type="enum" discard="yes" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                </element>
+            </node>
+            <node id="5">
+                <element control="combo" arghelp="valmapusrmgr" obj-name="baseUsrMgrEnableAuthList_AuthenticationListMethod2" id="1" name="Method 2">
+                    <action type="enum" discard="no" web_name="Undefined" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" web_name="Tacacs+" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="yes" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                </element>
+			</node>
+            <node id="6">
+                <element control="combo" arghelp="valmapusrmgr" obj-name="baseUsrMgrEnableAuthList_AuthenticationListMethod3" id="1" name="Method 3">
+                    <action type="enum" discard="no" web_name="Undefined" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" web_name="Tacacs+" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="yes" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                </element>
+			</node>
+			<node id="8">
+                <element control="combo" arghelp="valmapusrmgr" obj-name="baseUsrMgrEnableAuthList_AuthenticationListMethod4" id="1" name="Method 4">
+                    <action type="enum" discard="no" web_name="Undefined" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh" />
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" web_name="Tacacs+" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="yes" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                </element>
+			</node>
+			<node id="9">
+                <element control="combo" arghelp="valmapusrmgr" obj-name="baseUsrMgrEnableAuthList_AuthenticationListMethod5" id="1" name="Method 5">
+                    <action type="enum" discard="no" web_name="Undefined" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" web_name="Tacacs+" discard="no" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="yes" invoke="onChange" js_args="1_4_1|1_5_1|1_6_1|1_8_1|1_9_1" js_function="authentication_page_refresh"/>
+                </element>
+			</node>
+            <node id="7">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="baseUsrMgrEnableAuthList_EnableAuthListRowStatus" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                   <action type="button" disable="1_7_3|1_4_1|1_5_1|1_6_1|1_7_2|1_8_1|1_9_1"/>
+                </button>
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="baseUsrMgrEnableAuthList_EnableAuthListRowStatus" help="Submits the form on this page to the Switch" id="2" name="Delete">
+                   <action type="button" disable="1_7_3|1_4_1|1_5_1|1_6_1|1_7_1|1_8_1|1_9_1"/>
+               </button>
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="3" name="Submit">
+                   <action type="button" disable="1_7_2|1_7_1"/>
+               </button>
+            </node>
+      </group>
+      <group id="3" heading=" " level="ReadWriteUser">
+           <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="baseUsrMgrLoginAuthList_LoginAPLName" id="1" name="Authentication List">
+                    <action type="extn" value="Create" setval_ids="3_2_1" setval_args="valMapEmptyString" disable="3_7_2|3_7_3|3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" hide="3_7_2|3_7_3|3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" enable="3_7_1|3_2_1" show="3_7_1|3_2_1"/>
+                    <action type="default" enable="3_7_2|3_7_3|3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" show="3_7_2|3_7_3|3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" disable="3_7_1|3_2_1" hide="3_7_1|3_2_1"/>
+                </element>
+            </node>
+            <node id="20">
+                <element control="combo" properties="hidden" uienum="L7_ACCESS_LEVEL_t" obj-name="xLibObjects_dummy" id="1" name="Access Mode">
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no" disable="1_7|1_4|1_5|1_6|1_8|1_9" hide="1_7|1_4|1_5|1_6|1_8|1_9" />
+                    <action type="enum" discard="no" disable="3_7|3_4|3_5|3_6|3_8|3_9|3_10" hide="3_7|3_4|3_5|3_6|3_8|3_9|3_10" />
+                </element>
+            </node>
+
+            <node id="2">
+                <element control="textbox" arghelp="NAME_FORMAT_12CHAR" maxLength="12" obj-name="baseUsrMgrLoginAuthList_LoginAPLName" id="1" name="Authentication List Name"/>
+            </node>
+            <node id="4">
+                <element control="combo" obj-name="baseUsrMgrLoginAuthList_AuthenticationListMethod1" id="1" name="Method 1">
+                    <action type="enum" discard="no" web_name="Undefined" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" web_name="Tacacs+" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="yes" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                </element>
+			</node>
+            <node id="5">
+                <element control="combo" arghelp="valmapusrmgr" obj-name="baseUsrMgrLoginAuthList_AuthenticationListMethod2" id="1" name="Method 2">
+                    <action type="enum" discard="no" web_name="Undefined" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" web_name="Tacacs+" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="yes" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                </element>
+			</node>
+            <node id="6">
+                <element control="combo" arghelp="valmapusrmgr" obj-name="baseUsrMgrLoginAuthList_AuthenticationListMethod3" id="1" name="Method 3">
+                    <action type="enum" discard="no" web_name="Undefined" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" web_name="Tacacs+" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="yes" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                </element>
+			</node>
+			<node id="8">
+                <element control="combo" arghelp="valmapusrmgr" obj-name="baseUsrMgrLoginAuthList_AuthenticationListMethod4" id="1" name="Method 4">
+                    <action type="enum" discard="no" web_name="Undefined" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" web_name="Tacacs+" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="yes" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                </element>
+			</node>
+			<node id="9">
+                <element control="combo" arghelp="valmapusrmgr" obj-name="baseUsrMgrLoginAuthList_AuthenticationListMethod5" id="1" name="Method 5">
+                    <action type="enum" discard="no" web_name="Undefined" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" web_name="Tacacs+" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="yes" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                </element>
+			</node>
+			<node id="10">
+                <element control="combo" arghelp="valmapusrmgr" obj-name="baseUsrMgrLoginAuthList_AuthenticationListMethod6" id="1" name="Method 6">
+                    <action type="enum" discard="no" web_name="Undefined" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" web_name="Tacacs+" discard="no" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                    <action type="enum" discard="yes" invoke="onChange" js_args="3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1" js_function="authentication_page_refresh"/>
+                </element>
+			</node>
+            <node id="7">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="baseUsrMgrLoginAuthList_LoginAuthListRowStatus" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                   <action type="button" disable="3_7_3|3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1|3_7_2"/>
+                </button>
+
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="baseUsrMgrLoginAuthList_LoginAuthListRowStatus" help="Submits the form on this page to the Switch" id="2" name="Delete">
+                   <action type="button" disable="3_7_3|3_4_1|3_5_1|3_6_1|3_8_1|3_9_1|3_10_1|3_7_1"/>
+               </button>
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="3" name="Submit">
+                   <action type="button" disable="3_7_2|3_7_1"/>
+               </button>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

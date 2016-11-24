@@ -1,0 +1,85 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>DiffServ Configuration Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+
+<h2><a name=diffserv_cfg></a>Help for Differentiated Services DiffServ Configuration</h2>
+
+
+<H3>Operation</H3>
+
+<P>Packets are filtered and processed based on defined criteria.  The
+ filtering criteria is defined by a class.  The processing is defined by
+ a policy's attributes.  Policy attributes may be defined on a per-class 
+ instance basis, and it is these attributes that are applied when a match 
+ occurs.<BR><BR>
+ The configuration process begins with defining one or more 
+ match criteria for a class.  
+ Then one or more classes are added to a policy.  
+ Policies are then added to interfaces.<BR><BR>
+ Packet processing begins by testing the match criteria for a packet.  
+ The 'all' class type option defines that each match criteria within a class 
+ must evaluate to true for a packet to match that class. The 'any' class type
+ option defines that at least one match criteria must evaluate to true for
+ a packet to match that class.  Classes are tested in the order in which
+ they were added to the policy.  A policy is applied to a
+ packet when a class match within that policy is found.</P>
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>DiffServ Admin Mode</b> - This lists the options for the mode, from which 
+      one can be selected. The default value is 'enable'. While disabled, the DiffServ
+      configuration is retained when saved and can be changed, but it is not activated.
+      When enabled, Diffserv services are activated.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class table</b> - Displays the number of configured DiffServ classes out of 
+      the total allowed on the switch.</li>
+  <li><b>Class Rule table</b> - Displays the number of configured class rules out of 
+      the total allowed on the switch.</li>
+  <li><b>Policy table</b> - Displays the number of configured policies out of the 
+      total allowed on the switch.</li>
+  <li><b>Policy Instance table</b> - Displays the number of configured policy class instances 
+      out of the total allowed on the switch.</li>
+  <li><b>Policy Attributes table</b> - Displays the number of configured policy attributes 
+      (attached to the policy class instances) out of the total allowed on the switch.</li>
+  <li><b>Service table</b> - Displays the number of configured services (attached to the policies
+       on specified interfaces) out of the total allowed on the switch.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b> - Send the updated screen to the switch and cause the changes 
+      to take effect on the switch, but these changes will not be retained across
+      a power cycle unless a save operation is performed.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<hr size=4 width="80%" align=center>
+
+</body>
+
+</html>
+
+

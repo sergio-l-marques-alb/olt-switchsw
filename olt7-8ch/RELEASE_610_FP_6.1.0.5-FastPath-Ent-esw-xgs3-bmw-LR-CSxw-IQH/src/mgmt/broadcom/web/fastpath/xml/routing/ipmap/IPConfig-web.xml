@@ -1,0 +1,67 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IPConfig" title="IP Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="baseIPStats_ipDefaultTTL" id="1" name="Default Time to Live"/>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="routingIpRoutingGlobal_routingMode" id="1" name="Routing Mode"/>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="routingswitchIpIcmpControlGroup_switchIpIcmpEchoReplyMode" id="1" name="ICMP Echo Replies"/>
+            </node>
+            <node id="4">
+                <element control="combo" obj-name="routingswitchIpIcmpControlGroup_switchIpIcmpRedirectsMode" id="1" name="ICMP Redirects"/>
+            </node>
+            <node id="5">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingswitchIpIcmpControlGroup_switchIpIcmpRateLimitInterval" id="1" name="ICMP Rate Limit Interval "/>
+            </node>
+            <node id="6">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingswitchIpIcmpControlGroup_switchIpIcmpRateLimitBurstSize" id="1" name="ICMP Rate Limit Burst Size"/>
+            </node>
+            <node id="7">
+                <element control="label" properties="read-only" obj-name="routingIpRoutingGlobal_MaxEqualCostEntries" id="1" name="Maximum Next Hops"/>
+            </node>
+            <node id="8">
+                <element control="label" properties="read-only" obj-name="routingIpRoutingGlobal_MaxRouteEntries" id="1" name="Maximum Routes"/>
+            </node>   
+	    <node id="9">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="baseIPStats_ipDefaultTTL" id="1" name="Default Time to Live"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="routingIpRoutingGlobal_routingMode" id="1" name="Routing Mode"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="routingswitchIpIcmpControlGroup_switchIpIcmpEchoReplyMode" id="1" name="ICMP Echo Replies"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="routingswitchIpIcmpControlGroup_switchIpIcmpRedirectsMode" id="1" name="ICMP Redirects"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="routingswitchIpIcmpControlGroup_switchIpIcmpRateLimitInterval" id="1" name="ICMP Rate Limit Interval"/>
+            </node>
+            <node id="6">
+                <element control="label" properties="read-only" obj-name="routingswitchIpIcmpControlGroup_switchIpIcmpRateLimitBurstSize" id="1" name="ICMP Rate Limit Burst Size"/>
+            </node>
+            <node id="7">
+                <element control="label" properties="read-only" obj-name="routingIpRoutingGlobal_MaxEqualCostEntries" id="1" name="Maximum Next Hops"/>
+	    </node>
+            <node id="8">
+                <element control="label" properties="read-only" obj-name="routingIpRoutingGlobal_MaxRouteEntries" id="1" name="Maximum Routes"/>
+            </node>            	
+            <node id="9">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

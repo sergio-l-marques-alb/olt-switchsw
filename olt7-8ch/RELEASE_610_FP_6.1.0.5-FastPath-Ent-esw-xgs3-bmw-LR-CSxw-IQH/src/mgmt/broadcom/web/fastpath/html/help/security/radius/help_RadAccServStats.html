@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Help for Radius Accounting Server Statistics</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=macaddr></a>Help for Radius Accounting Server Statistics</h2>
+
+<p><br>
+Use the RADIUS Accounting Server Statistics page to view statistical information for each RADIUS server configured on the system.
+</p>
+
+
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Accounting Server Host Address</b> - Use the drop-down menu to select the IP address of the RADIUS accounting server
+         for which to display statistics.</li>
+ </ul>
+</ul>
+
+<h2>Non-Configurable Data</h2>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Round Trip Time (secs)</b> -
+       Displays the time interval, in hundredths of a second, between the most recent Accounting-Response and the 
+	   Accounting-Request that matched it from this RADIUS accounting server.</li>
+  <li><b>Accounting Requests</b> - 
+        The number of RADIUS Accounting-Request packets sent to this server. This number does not include retransmissions. </li>
+  <li><b>Accounting Retransmissions</b> - The number of RADIUS Accounting-Request packets retransmitted to this server. </li>
+  <li><b>Accounting Responses</b> - 
+        Displays the number of RADIUS packets received on the accounting port from this server. </li>
+    <li><b>Malformed Access Responses</b> - 
+        Displays the number of malformed RADIUS Accounting-Response packets received from this server.
+		Malformed packets include packets with an invalid length. Bad authenticators and unknown types are not included
+		as malformed accounting responses. </li>	   
+  <li><b>Bad Authenticators</b> - 
+        Displays the number of RADIUS Accounting-Response packets that contained invalid authenticators received from this 
+		accounting server. </li>
+  <li><b>Pending Requests</b> - 
+        The number of RADIUS Accounting-Request packets destined for this server that have not yet timed out or 
+		received a response. </li>	
+  <li><b>Timeouts</b> - 
+         The number of accounting timeouts to this server. </li>	
+  <li><b>Unknown Types</b> - 
+       The number of RADIUS packets of unknown type which were received from this server on the accounting port. </li>	 
+  <li><b>Packets Dropped</b> - 
+       The number of RADIUS packets received from this server on the accounting port and dropped for some other reason. </li>		   
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+    <li><b>Refresh</b> -
+      Updates the page with the most current information. </li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+  </body>
+</html>

@@ -1,0 +1,563 @@
+
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>ACL Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=aclcfg></a>Help for IP ACL Configuration</h2>
+
+<p>
+      An IP ACL consists of a set of rules which are matched sequentially against a packet.
+      When a packet meets the match criteria of a rule, the specified rule action
+      (Permit/Deny) is taken and the additional rules are not checked for a match.
+      On this menu the interfaces to which an IP ACL applies must be specified, as well as whether it applies
+      to inbound or outbound traffic.  Rules for the IP ACL are specified/created
+      using the IP ACL Rule Configuration menu.</P>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IP ACL</b> - Make a selection from the pulldown menu.  A new IP Access Control List may be created
+  or the configuration of an existing IP ACL can be updated.
+      </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IP ACL ID</b> - IP ACL ID must be a whole number in the range of
+       <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_ACL_MIN_STD1_ID, L7_ACL_MAX_STD1_ID);
+       ' >
+      for IP Standard Access Lists and
+      <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_ACL_MIN_EXT1_ID, L7_ACL_MAX_EXT1_ID);
+       ' >
+      for IP Extended Access Lists.
+      </li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IP ACL Name</b> - Specifies IP ACL Name string which includes 
+    alphanumeric characters only. The name must start with an alphabetic 
+    character. This field displays
+    the name of the currently selected IP ACL if the ACL has already been created.
+    </li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Table</b> - Displays the current and maximum number of IP ACLs.
+	 </li>
+ </ul>
+</ul>
+
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li> <b>Submit</b> - Send the updated configuration to the switch.  Configuration changes
+      take effect immediately. These changes will not be retained across a power cycle
+      unless a save is performed.
+      </li>
+  <li><b>Delete</b> - Removes the currently selected IP ACL from the switch configuration. </li>
+
+ </ul>
+</ul>
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=aclSum></a>Help for IP ACL Summary</h2>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IP ACL ID/Name</b> - The IP ACL identifier.
+      </li>
+  <li><b>Rules</b> - The number of rules currently configured for the IP ACL.
+      </li>
+  <li><b>Direction</b> - The direction of packet traffic affected by the IP ACL.
+      <BR>Direction can only be one of the following:
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_INTF_DIRECTION_INBOUND_FEATURE">
+        <ul type=square>
+          <li><I><B>Inbound</B></I>
+        </UL>
+      </EMWEB_IF>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_INTF_DIRECTION_OUTBOUND_FEATURE">
+        <ul type=square>
+          <li><I><B>Outbound</B></I>
+        </UL>
+      </EMWEB_IF>
+  </li>
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;(s)</b> - The interfaces to which the IP ACL applies.
+	  </li>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_INTF_VLAN_SUPPORT_FEATURE">
+  <li><b>VLAN(s)</b> - VLAN(s) to which the IP ACL applies.
+	  </li>
+  </EMWEB_IF>
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Refresh</b> - Refresh the data on the screen to the latest state.</li>
+ </ul>
+</ul>
+
+
+<hr size=4 width="80%" align=center>
+
+
+<h2><a name=aclRuleCfg></a>Help for IP ACL Rule Config</h2>
+
+ <P>Use these screens to configure the rules for the IP Access Control Lists created using
+ the IP Access Control List Configuration screen.  What is shown on this screen varies depending on the current
+ step in the rule configuration process.  A Standard/Extended IP ACL must first be selected to configure rules for.
+ The rule identification, and the 'Action' and 'Match Every' parameters must be specified next.  If 'Match Every' is set
+ to false a new screen will then be presented from which the match criteria can be configured.
+ </P>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IP ACL</b> - Use the pulldown menu to select the IP ACL for which to
+      create or update a rule.
+      </li>
+  <li><b>Rule</b> - Select an existing rule from the pulldown menu, or select 'Create New Rule.'
+      ACL as well as an option to add a new Rule.
+      New rules cannot be created if the maximum number of rules has been reached.
+      For each rule, a packet must match all the specified criteria in order to be true
+      against that rule and for the specified rule action (Permit/Deny) to take place.
+      </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Rule ID</b> - Enter a whole number in the range
+      of
+      <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_ACL_MIN_RULE_NUM, L7_ACL_MAX_RULE_NUM);
+       ' >
+      that will be used to identify the rule.
+      An IP ACL may have up to
+      <EMWEB_STRING C = '
+      return usmWebIntegerToString(L7_ACL_MAX_RULE_NUM);
+    '>
+     rules.
+      </li>
+  <li><b>Action</b> - Specify what action should be taken if a packet matches the rule's criteria.
+     The choices are permit or deny. </li>
+
+<EMWEB_IF ID = USMWEB_ACL_RULE_LOGGING_FEATURE_PRESENT>
+  <li><b>Logging</b> - When set to 'True', logging is enabled for this ACL
+  rule (subject to resource availability in the device).  If the Access List
+  Trap Flag is also enabled, this will cause periodic traps to be generated
+  indicating the number of times this rule was 'hit' during the current report
+  interval.  A fixed
+  <EMWEB_STRING C='
+      return usmWebIntegerToString(FD_QOS_ACL_LOGGING_INTERVAL);
+    ' >
+  minute report interval is used for the entire system.  A trap is not issued if the
+  ACL rule hit count is zero for the current interval.
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_LOG_DENY_FEATURE">
+    <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_LOG_PERMIT_FEATURE">
+    <EMWEB_ELSE>
+      This field is visible for a 'Deny' Action.
+    </EMWEB_IF>
+  <EMWEB_ELSE>
+      This field is visible for a 'Permit' Action.
+  </EMWEB_IF>
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_ASSIGN_QUEUE_FEATURE">
+  <li><b>Assign Queue ID</b> - Specifies the hardware egress queue identifier used to
+  handle all packets matching this IP ACL rule. Valid range of Queue Ids is
+     <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_ACL_ASSIGN_QUEUE_ID_MIN, L7_ACL_ASSIGN_QUEUE_ID_MAX);
+       ' >.
+      This field is visible for a 'Permit' Action.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_MIRROR_FEATURE">
+  <li><b>Mirror Interface</b> - Specifies the specific egress interface where the
+  matching traffic stream is copied in addition to being forwarded normally
+  by the device.
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_REDIRECT_FEATURE">
+    This field cannot be set if a Redirect Interface is already
+    configured for the ACL rule.
+  </EMWEB_IF>
+  This field is visible for a 'Permit' Action.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_REDIRECT_FEATURE">
+  <li><b>Redirect Interface</b> - Specifies the specific egress interface where the
+  matching traffic stream is forced, bypassing any forwarding decision normally performed
+  by the device.
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_MIRROR_FEATURE">
+    This field cannot be set if a Mirror Interface is already
+    configured for the ACL rule.
+  </EMWEB_IF>
+  This field is visible for a 'Permit' Action.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_EVERY_FEATURE">
+  <li><b>Match Every</b> - Select true or false from the pulldown menu.
+  True signifies that
+   all packets will match the selected IP ACL and Rule and will be either permitted or denied.
+     In this case, since all packets match the rule, the option of configuring
+      other match criteria will not be offered.  To configure specific match criteria for the rule,
+          remove the rule and re-create it, or
+          re-configure 'Match Every' to 'False' for the other match criteria to be visible.
+     </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_PROTOCOL_FEATURE">
+  <li><b>Protocol Keyword</b> - Specify that a packet's IP protocol is a match condition
+      for the selected IP ACL rule.
+      The possible values are ICMP, IGMP, IP, TCP, and UDP.
+      Either the 'Protocol Keyword' field or the 'Protocol Number' field can be used to specify
+      an IP protocol value as a match criterion.
+      </li>
+
+  <li><b>Protocol Number</b> - Specify that a packet's IP protocol is a match condition
+      for the selected IP ACL rule and
+      identify the protocol by number. The protocol number is a standard value
+      assigned by IANA and is interpreted as an integer from 1 to 255.
+      Either the 'Protocol Number' field or the 'Protocol Keyword' field can be used to specify
+      an IP protocol value as a match criterion.
+      </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_SRCIP_FEATURE">
+  <li><b>Source IP Address</b> - Enter an IP address using dotted-decimal notation
+      to be compared to a packet's source IP Address as a match criteria for
+      the selected IP ACL rule.      </li>
+  <li><b>Source IP Mask</b> - Specify the IP Mask in dotted-decimal notation
+  to be used with the Source IP Address value.
+       </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_SRCL4PORT_FEATURE">
+  <li><b>Source L4 Port Keyword</b> - Specify a packet's source layer 4 port as a match condition
+      for the selected extended IP ACL rule.  This is an optional configuration.
+      The possible values are DOMAIN, ECHO, FTP, FTPDATA, HTTP, SMTP, SNMP, TELNET,
+      TFTP, and WWW.
+      Each of these values translates into its equivalent port number, which is
+      used as both the start and end of the port range.
+    <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_SRCL4PORT_RANGE_FEATURE">
+      Either the 'Source L4 Port Keyword' field or the 'Source L4 Port Range' fields can be used to
+      specify a source layer 4 port range as a match criterion.
+    </EMWEB_IF>
+     </li>
+
+  <li><b>Source L4 Port Number</b> - Specify a packet's source layer 4 port as a match condition
+      for the selected extended IP ACL rule.  This is an optional configuration.
+     </li>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_SRCL4PORT_RANGE_FEATURE">
+  <li><b>Source L4 Port Range (start port)</b> - Specify the first port of the port
+      range for a packet's source layer 4 port match condition for the selected extended IP ACL
+      rule. Range of valid values is 0 to 65535.
+      The value of the start port must be less than or equal to the end port.
+      The start port, end port, and all ports in between will be part of the
+      contiguous source port range.  This is an optional configuration.
+     </li>
+
+     <li><b>Source L4 Port Range (end port)</b> - Specify the last port of the port
+      range for a packet's source layer 4 port match condition for the selected extended IP ACL
+      rule. Range of valid values is 0 to 65535.
+      The value of the end port must be greater than or equal to the start port.
+      The start port, end port, and all ports in between will be part of the
+      contiguous source port range. This is an optional configuration.
+      </li>
+</EMWEB_IF>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_DSTIP_FEATURE">
+  <li><b>Destination IP Address</b> -  Enter an IP address using dotted-decimal notation
+      to be compared to a packet's destination IP Address as a match criteria for
+      the selected extended IP ACL rule.
+     </li>
+  <li><b>Destination IP Mask</b> - Specify the IP Mask in dotted-decimal notation
+  to be used with the Destination IP Address value.
+     </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_DSTL4PORT_FEATURE">
+  <li><b>Destination L4 Port Keyword</b> - Specify the destination layer 4 port match
+      conditions for the selected extended IP ACL rule.
+      The possible values are DOMAIN, ECHO, FTP, FTPDATA, HTTP, SMTP, SNMP, TELNET,
+      TFTP, and WWW.
+      Each of these values translates into its equivalent port number, which is
+      used as both the start and end of the port range.
+    <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_DSTL4PORT_RANGE_FEATURE">
+      Either this field or the 'Destination L4 Port Range' fields can be used
+      to specify a destination layer 4 port range as a match criterion.
+    </EMWEB_IF>  This is an optional configuration.
+     </li>
+
+  <li><b>Destination L4 Port Number</b> - Specify a packet's destination layer 4 port
+      number match condition for the selected extended IP ACL rule.   This is an optional configuration.
+     </li>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_DSTL4PORT_RANGE_FEATURE">
+  <li><b>Destination L4 Port Range (start port)</b> - Specifies a packet's destination
+      layer 4 port match condition for the selected extended IP ACL rule.
+      This field identifies the first port of the port range and has a value from
+      0 to 65535.
+      The value of the start port must be less than or equal to the end port.
+      The start port, end port, and all ports in between will be part of the
+      contiguous source port range.  This is an optional configuration.
+     </li>
+  <li><b>Destination L4 Port Range (end port)</b> - Specify a packet's destination
+      layer 4 port match condition for the selected extended IP ACL rule.
+      This field identifies the last port of the port range and has a value from
+      0 to 65535.
+      The value of the end port must be greater than or equal to the start port.
+      The start port, end port, and all ports in between will be part of the
+      contiguous source port range.  This is an optional configuration.
+      </li>
+</EMWEB_IF>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_SERVICE_TYPE_SUPPORTED>
+  <li><b>Service Type</b> - Select a Service Type match
+      condition for the extended IP ACL rule from the pulldown menu.
+      The possible values are IP DSCP, IP precedence, and IP TOS, which
+      are alternative ways of specifying a match
+      criterion for the same Service Type field in the IP header, however each uses a
+      different user notation.
+      After a selection is made the appropriate value can be specified.
+      <BR>
+    <ul type=square>
+      <li><I><B>IP DSCP Configuration</B></I>
+      <BR>Specify the IP DiffServ Code Point (DSCP) field.
+      The DSCP is defined as the high-order six bits of the Service Type octet in
+      the IP header.  This is an optional configuration.
+      Enter an integer from 0 to 63. The IP DSCP is selected by possibly selection one
+      of the DSCP keyword from a dropdown box. If a value is to be selected by specifying
+      its numeric value, then select the  'Other' option in the dropdown box and a text
+      box will appear where the numeric value of the DSCP can be entered.
+  <BR>
+      <li><I><B>IP Precedence Configuration</B></I>
+      <BR>The IP Precedence field in a packet is defined as the high-order three
+      bits of the Service Type octet in the IP header.  This is an optional configuration.
+      Enter an integer from 0 to 7.
+  <BR>
+      <li><I><B>IP TOS Configuration</B></I>
+      <BR>The IP TOS field in a packet is defined as all eight bits of the Service Type
+      octet in the IP header.
+      The TOS Bits value is a two-digit hexadecimal number from 00 to ff.
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_SUPPORTS_MASKING_FEATURE">
+      The TOS Mask value is a two-digit hexadecimal number from 00 to ff, 
+      representing an inverted (i.e. wildcard) mask.  The zero-valued bits in 
+      the TOS Mask denote the bit positions in the TOS Bits value that are used 
+      for comparison against the IP TOS field of a packet.
+</EMWEB_IF>
+      For example, to check for an IP TOS value having bits 7 and 5 set and bit 1
+      clear, where bit 7 is most significant, use a TOS Bits value of
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_SUPPORTS_MASKING_FEATURE">
+      a0 and a TOS Mask of 00.
+<EMWEB_ELSE>
+      a0.
+</EMWEB_IF>
+      This is an optional configuration.
+    </UL>
+      </li>
+</EMWEB_IF>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li> <b>Configure</b> - Configure the corresponding match criteria for the selected rule. </li>
+  <li><b>Delete </b> - Remove the currently selected Rule from the selected ACL.
+      These changes will not be retained across a power cycle
+      unless a save configuration is performed. </li>
+ </ul>
+</ul>
+</EMWEB_IF>
+<hr size=4 width="80%" align=center>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_INTF_VLAN_SUPPORT_FEATURE">
+<h2><a name=vlan_acl_cfg></a>Help for VLAN Based ACL(s) Configuration</h2>
+
+<h3>Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>VLAN ID</b> - Specifies list of all configured VLAN ID(s) for ACL mapping.  </li>
+  <li><b>Direction</b> - Specifies the packet filtering direction for ACL.
+      <BR>Valid Directions
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_VLAN_DIRECTION_INBOUND_FEATURE">
+        <UL type=square>
+          <li><I><B>Inbound</B></I> </UL>
+      </EMWEB_IF>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_VLAN_DIRECTION_OUTBOUND_FEATURE">
+        <UL type=square>
+          <li><I><B>Outbound</B></I> </UL>
+      </EMWEB_IF>
+   </li>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>ACL Type</b> - Specifies the type of ACL.
+      <BR>Valid ACL Types
+        <UL type=square>
+          <li><I><B>IP ACL</B></I> </UL>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="IPV6_ACL_TYPE_FEATURE_SUPPORT">
+        <ul type=square>
+          <li><I><B>IPv6 ACL</B></I>
+        </UL>
+      </EMWEB_IF>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_TYPE_MAC_FEATURE">
+        <ul type=square>
+          <li><I><B>MAC ACL</B></I>
+        </UL>
+      </EMWEB_IF>
+   </li>
+
+  <li><b>IP ACL</b> - Specifies list of all IP ACLs. This field is visible only if the
+   user has selected "IP ACL" as "ACL Type". </li>
+
+  <li><b>IPv6 ACL</b> - Specifies list of all IPv6 ACLs. This field is visible only if the
+   user has selected "IPv6 ACL" as "ACL Type". </li>
+
+  <li><b>MAC ACL</b> - Specifies list of all MAC ACLs. This field is visible only if the
+   user has selected "MAC ACL" as "ACL Type".</li>
+
+  <li><b>Sequence Number</b> - An optional sequence number may be specified to indicate
+  the order of this access list relative to other access lists already assigned to this
+  VLAN and direction. A lower number indicates higher precedence order. If a sequence
+  number is already in use for this VLAN and direction, the specified
+  access list replaces the currently attached access list using that sequence number.
+  If the sequence number is not specified by the user, a sequence number that is one
+  greater than the highest sequence number currently in use for this VLAN and
+  direction will be used. Valid range is
+  <EMWEB_STRING C='
+      return usmWebUnsignedIntegerRangeHelp(L7_ACL_MIN_INTF_SEQ_NUM, L7_ACL_MAX_INTF_SEQ_NUM);
+   '>.  </li>
+  </EMWEB_IF>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> - Displays selected interface. </li>
+  <li><b>VLAN ID(s)</b> - Displays selected VLAN ID. </li>
+  <li><b>Direction</b> - Displays selected packet filtering direction for ACL.  </li>
+  <li><b>ACL Type</b> - Displays the type of ACL assigned to selected VLAN and direction.</li>
+  <li><b>ACL Identifier</b> - Displays the ACL Number or Name identifying the
+  ACL assigned to selected VLAN and direction.</li>
+  <li><b>Sequence Number</b> - Displays the Sequence Number signifying the order
+  of specified ACL relative to other ACLs assigned to selected VLAN and direction.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li> <b>Submit</b> - Send the updated configuration to the switch.  Configuration changes
+      take effect immediately. These changes will not be retained across a power cycle
+      unless a save is performed.
+      </li>
+  <li><b>Remove</b> - Removes the currently selected ACL VLAN Direction Mapping from the switch
+  configuration. </li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_INTF_VLAN_SUPPORT_FEATURE">
+<hr size=4 width="80%" align=center>
+
+<h2><a name=aclIntIfVlanSumm></a>Help for Interface or VLAN based ACL(s) Summary</h2>
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Summary Display Selector </b> - Select interface or VLAN to display summary.
+        By default summary of Interface-based ACL(s) is displayed.
+      </li>
+   <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;(s)</b> - The interfaces to which the IP ACL applies.
+	  </li>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_INTF_VLAN_SUPPORT_FEATURE">
+  <li><b>VLAN(s)</b> - VLAN(s) to which the IP ACL applies.
+	  </li>
+  </EMWEB_IF>
+  <li><b>Direction</b> - The direction of packet traffic affected by the IP ACL.
+      <BR>Direction can only be one of the following:
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_VLAN_DIRECTION_INBOUND_FEATURE">
+        <ul type=square>
+          <li><I><B>Inbound</B></I>
+        </UL>
+      </EMWEB_IF>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_VLAN_DIRECTION_OUTBOUND_FEATURE">
+        <ul type=square>
+          <li><I><B>Outbound</B></I>
+        </UL>
+      </EMWEB_IF>
+  </li>
+
+  <li><b>ACL Type</b> - Displays the type of ACL assigned to selected VLAN and direction.</li>
+  <li><b>ACL Identifier</b> - Displays the ACL Number or Name identifying the
+  ACL assigned to selected VLAN and direction.
+  </li>
+  <li><b>Sequence Number</b> - Displays the Sequence Number signifying
+  the order of specified ACL relative to other ACLs assigned to selected VLAN and direction.
+  </li>
+
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Refresh</b> - Refresh the data on the screen to the latest state.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+<hr size=4 width="80%" align=center>
+
+</body>
+</html>
+
+
+

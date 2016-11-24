@@ -1,0 +1,117 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+   <webxml version="1.0" name="cpLocalUser" title="Local User">
+      <group id="1" heading=" " level="ReadWriteUser">
+          <node id="1">
+              <element properties="filter,iterate,hidden" obj-name="captiveportalcpLocalUserTable_cpLocalUserIndex" id="1" name="Local User Index"/>
+          </node>
+          <node id="2">
+              <element properties="filter,iterate,hidden" obj-name="captiveportalcpLocalUserGroupTable_cpLocalUserGroupIndex" id="1" name="User Group Index"/>
+          </node>
+          <node id="3">
+              <element control="combo" properties="filter,iterate" obj-name="captiveportalcpLocalUserTable_cpLocalUserName" id="1" name="Local User Name">
+                  <action type="value" value="" disable="1_1|1_2|1_3|1_4|1_5|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13_2|1_13_3" hide="1_1|1_2|1_3|1_4|1_5|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13_2|1_13_3" show="1_14"/>
+                  <action type="default" hide="1_14"/>
+              </element>
+          </node>
+          <node id="4">
+              <element control="textbox" obj-name="captiveportalcpLocalUserTable_cpLocalUserPassword" id="1" arghelp="HELP_FORMAT_FP_PASSWORD_LEN" name="Password"/>
+          </node>
+          <node id="5">
+              <element control="combo" obj-name="captiveportalcpLocalUserGroupTable_cpLocalUserGroupName" id="1" name="User Group">
+                  <action type="default"/>
+                  <action type="value" value=""/>
+              </element>
+          </node>
+          <node id="6">
+              <element control="textbox" obj-name="captiveportalcpLocalUserTable_cpLocalUserSessionTimeout" id="1" arghelp="HELP_FORMAT_FP_UNITS_SECONDS" name="Session Timeout"/>
+          </node>
+          <node id="7">
+              <element control="textbox" obj-name="captiveportalcpLocalUserTable_cpLocalUserIdleTimeout" id="1" arghelp="HELP_FORMAT_FP_UNITS_SECONDS" name="Idle Timeouts"/>
+          </node>
+          <node id="8">
+              <element control="textbox" obj-name="captiveportalcpLocalUserTable_cpLocalUserMaxBandwidthUp" arghelp="HELP_FORMAT_FP_BYTES_PER_SECOND" id="1" name="Max Up Rate"/>
+          </node>
+          <node id="9">
+              <element control="textbox" obj-name="captiveportalcpLocalUserTable_cpLocalUserMaxBandwidthDown" arghelp="HELP_FORMAT_FP_BYTES_PER_SECOND" id="1" name="Max Down Rate"/>
+          </node>
+          <node id="10">
+              <element control="textbox" obj-name="captiveportalcpLocalUserTable_cpLocalUserMaxInputOctets" id="1" arghelp="HELP_FORMAT_FP_BYTES" name="Max Receive"/>
+          </node>
+          <node id="11">
+              <element control="textbox" obj-name="captiveportalcpLocalUserTable_cpLocalUserMaxOutputOctets" id="1" arghelp="HELP_FORMAT_FP_BYTES" name="Max Transmit"/>
+          </node>
+          <node id="12">
+              <element control="textbox" obj-name="captiveportalcpLocalUserTable_cpLocalUserMaxTotalOctets" id="1" arghelp="HELP_FORMAT_FP_BYTES" name="Max Total"/>
+          </node>
+          <node id="13" level="ReadWriteUser">
+              <button scope="page" target-page="cpLocalUserAdd.html" type="buttonClear" help="opens Local User add page" id="1" name="Add">
+                  <action type="button" disable="1_4|1_5|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13_2|1_13_3"/>
+              </button>
+              <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="2" name="Submit">
+                  <action type="button" disable="1_13_1|1_13_3"/>
+              </button>
+              <button scope="page" type="buttonSubmit" value="Delete" obj-name="captiveportalcpLocalUserTable_cpLocalUserRowStatus" help="Submits the form on this page to the Switch" id="3" name="Delete">
+                  <action type="button" disable="1_4|1_5|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13_1|1_13_2"/>
+              </button>
+              <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="4" name="Refresh"/>
+          </node>
+          <node id="14" clazz="unavailableattributes">
+              <element properties="noname,write-only" control="label" value="No Users exist." obj-name="xLibObjects_dummy" id="1" name="No Users exist."/>
+          </node>
+      </group>
+
+      <group id="2" heading=" " level="ReadOnlyUser">
+          <node id="1">
+              <element properties="filter,iterate,hidden" obj-name="captiveportalcpLocalUserTable_cpLocalUserIndex" id="1" name="Local User Index"/>
+          </node>
+          <node id="2">
+              <element properties="filter,iterate,hidden" obj-name="captiveportalcpLocalUserGroupTable_cpLocalUserGroupIndex" id="1" name="User Group Index"/>
+          </node>
+          <node id="3">
+              <element control="combo" properties="filter,iterate" obj-name="captiveportalcpLocalUserTable_cpLocalUserName" id="1" name="Local User Name">
+                  <action type="value" value="" disable="2_1|2_2|2_3|2_4|2_5|2_6|2_7|2_8|2_9|2_10|2_11|2_12|2_13_2|2_13_3" hide="2_1|2_2|2_3|2_4|2_5|2_6|2_7|2_8|2_9|2_10|2_11|2_12|2_13_2|2_13_3" show="2_13"/>
+                  <action type="default" hide="2_13"/>
+              </element>
+          </node>
+          <node id="4">
+              <element control="label" properties="read-only" obj-name="captiveportalcpLocalUserTable_cpLocalUserPassword" id="1" name="Password"/>
+          </node>
+          <node id="5">
+              <element control="label" properties="read-only" obj-name="captiveportalcpLocalUserGroupTable_cpLocalUserGroupName" id="1" name="User Group"/>
+          </node>
+          <node id="6">
+              <element control="label" properties="read-only" obj-name="captiveportalcpLocalUserTable_cpLocalUserSessionTimeout" id="1" name="Session Timeout"/>
+          </node>
+          <node id="7">
+              <element control="label" properties="read-only" obj-name="captiveportalcpLocalUserTable_cpLocalUserIdleTimeout" id="1" name="Idle Timeouts"/>
+          </node>
+          <node id="8">
+              <element control="label" properties="read-only" obj-name="captiveportalcpLocalUserTable_cpLocalUserMaxBandwidthUp" id="1" name="Max Up Rate"/>
+          </node>
+          <node id="9">
+              <element control="label" properties="read-only" obj-name="captiveportalcpLocalUserTable_cpLocalUserMaxBandwidthDown" id="1" name="Max Down Rate"/>
+          </node>
+          <node id="10">
+              <element control="label" properties="read-only" obj-name="captiveportalcpLocalUserTable_cpLocalUserMaxInputOctets" id="1" name="Max Receive"/>
+          </node>
+          <node id="11">
+              <element control="label" properties="read-only" obj-name="captiveportalcpLocalUserTable_cpLocalUserMaxOutputOctets" id="1" name="Max Transmit"/>
+          </node>
+          <node id="12">
+              <element control="label" properties="read-only" obj-name="captiveportalcpLocalUserTable_cpLocalUserMaxTotalOctets" id="1" name="Max Total"/>
+          </node>
+          <node id="13" clazz="unavailableattributes">
+              <element properties="noname,write-only" control="label" value="No Users exist." obj-name="xLibObjects_dummy" id="1" name="No Users exist."/>
+          </node>
+          <node id="14">
+              <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+          </node>
+      </group>
+   </webxml>
+</FastPathXML>
+

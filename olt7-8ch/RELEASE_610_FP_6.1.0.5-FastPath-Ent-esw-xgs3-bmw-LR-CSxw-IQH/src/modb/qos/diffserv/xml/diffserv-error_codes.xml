@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+<error name="CLASS_NAME_EXISTS" output="\r\nError: Diffserv Class $$objName$$ already Exists"/>
+<error name="POLICY_NAME_EXISTS" output="\r\nError: Policy Name already Exists"/>
+<error name="COMMON_ALREADY_EXISTS" output="\n Error! Already exists:Unable to set $$objName$$ with $$objValue$$"/>
+<error name="DIFFSERV_CLASS_NOT_EXISTS" output="\n The given DiffServ class doesnot exists."/>
+<error name="DIFFSERV_CLASS_ALREADY_ADDED" output="\n The given class index is already part of this policy-instance group."/>
+<error name="DIFFSERV_CLASS_ADD_FAILED" output="\n Failed to add the given class to policy-instance group."/>
+<error name="COMMON_TABLE_FULL" output="\n The row cannot be added as the table reached its maximum allowed rows."/>
+<error name="DIFFSERV_POLICYNAME_TOOLONG" output="\n The policy name is too long."/>
+<error name="DIFFSERV_POLICY_ALREADY_ADDED" output="\n The given policy is already added."/>
+<error name="DIFFSERV_UNIT_SET" output="\n The units field should be set to valid value."/>
+<error name="DIFFSERV_ATTR_NOTVALID_FOROTHERTHANIN" output="\n This attribute is not meaningful for a policy type other than IN."/>
+<error name="DIFFSERV_CLASSTYPE_NOT_ACL" output="\n The class is not of type ACL."/>
+<error name="DIFFSERV_ENDPORT_NOT_VALID" output="\n The endport number cannot be less than start port number."/>
+<error name="DIFFSERV_ENDVLANID_NOT_VALID" output="\n The end VLANID cannot be less than start VLANID"/>
+<error name="DIFFSERV_KEYID_NOTVALID" output="\n The value could be set or get only if key type is set to Custom."/>
+<error name="DIFFSERV_REFER_CLASS_ERROR" output="\n  Error! Classes should have same Layer 3 Protocol."/>
+<error name="DIFFSERV_REFCLASS_NOTEXIST" output="\n  Error! Reference Class does not exist"/>
+<error name="DIFFSERV_DELETE_FAILED" output="\n  Error! Failed to Delete the Reference Class."/>
+<error name="CLASS_RULE_NOT_CREATED" output="\r\nError! Class Rule Not Created."/>
+<error name="CLASS_RULE_TABLE_FULL" output="\r\nError! Class Rule table is full"/>
+<error name="DIFFSERV_CLASS_DELETE_FAILED" output="Error! Failed to delete Class. Make sure Class is not being used by any Policy."/>
+<error name="DIFFSERV_POLICY_DELETE_FAILED" output="Error! Failed to delete Policy."/>
+<error name="DIFFSERV_POLICY_ATTRIBUTE_ENTRYTYPE_CONFLICT" output="\r\nError! Incompatible Policy Attribute Selector Type."/>
+  </misc>
+</FastPathXML>

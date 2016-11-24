@@ -1,0 +1,27 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="VLANPortSummary" title="VLAN Port Summary">
+        <group id="1" heading=" ">
+            <node id="1">
+                <message>List of all Ports on the Switch</message>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="2">
+                <element properties="filter,iterate" obj-name="SwitchingVlanPortConfig_Interface" id="1" />
+                <element control="label" properties="read-only" obj-name="SwitchingVlanPortConfig_Pvid" id="2" name="Port VLAN ID Configured"/>
+                <element obj-name="SwitchingVlanPortConfig_CurrentPVID" properties="hidden" id="3" name="Port VLAN ID Current"/>
+                <element control="label" properties="read-only" obj-name="SwitchingVlanPortConfig_AcceptableFrameTypes" id="4" name="Acceptable Frame Types"/>
+                <element control="label" properties="read-only" obj-name="SwitchingVlanPortConfig_IngressFiltering" id="5" name="Ingress Filtering Configured"/>
+                <element obj-name="SwitchingVlanPortConfig_CurrentIngressFiltering" properties="hidden" id="6" name="Ingress Filtering Current"/>
+                <element cpval="SwitchingVlanPortConfig_Interface" properties="filter,hidden" obj-name="SwitchingDot1d_Dot1dBasePort" id="7"/>
+                <element control="label" properties="read-only" obj-name="SwitchingDot1d_Dot1dPortDefaultUserPriority" id="8" name="Port Priority"/>
+            </repeat>
+            <node id="3">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

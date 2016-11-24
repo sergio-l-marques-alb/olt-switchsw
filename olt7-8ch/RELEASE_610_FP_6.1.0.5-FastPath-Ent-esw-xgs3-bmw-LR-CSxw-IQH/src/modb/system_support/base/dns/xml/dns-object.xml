@@ -1,0 +1,238 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="base" version="1.0" >
+<module name="DnsResCounter" purpose="DNS Resolver Counter Table" >
+<object name="dnsResCounterByRcodeCode"  >
+<core  type="uint" key="yes" access="read-write" descr="The index to this table. The Response Codes that have already been defined are found in RFC-1035."/>
+<ui  name="DNS Resolver Response Code" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.2.4.1.1"/> 
+</ui></object>
+<object name="dnsResCounterByRcodeResponses" depends="dnsResCounterByRcodeCode" >
+<core  type="uint" access="read-only" descr="Number of responses the resolver has received for the response code value which identifies this row of the table."/>
+<ui  name="No Of Responses Rx Per Code" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.2.4.1.2"/> 
+</ui></object>
+<object name="dnsResCounterByOpcodeCode"  >
+<core  type="uint" key="yes" access="read-write" descr="The index to this table. The OpCodes that have already been defined are found in RFC-1035."/>
+<ui  name="DNS Resolver Query Code" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.2.3.1.1"/> 
+</ui></object>
+<object name="dnsResCounterByOpcodeQueries" depends="dnsResCounterByOpcodeCode" >
+<core  type="uint" access="read-only" descr="Total number of queries that have sent out by the resolver since initialization for the OpCode which is the index to this row of the table."/>
+<ui  name="No Of Queries Tx" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.2.3.1.2"/> 
+</ui></object>
+<object name="dnsResCounterByOpcodeResponses" depends="dnsResCounterByOpcodeCode" >
+<core  type="uint" access="read-only" descr="Total number of responses that have been received by the resolver since initialization for the OpCode which is the index to this row of the table."/>
+<ui  name="No Of Responses Rx" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.2.3.1.3"/> 
+</ui></object>
+<object name="UnparseResps"  >
+<core  type="uint" access="read-only" descr="Number of responses received which were unparseable."/>
+<ui  name="Unparseable Respsonses Rx" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.2.9"/> 
+</ui></object>
+<object name="RecdResponses"  >
+<core  type="uint" access="read-only" descr="Number of responses received to all queries."/>
+<ui  name="Total Responses Rx" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.2.8"/> 
+</ui></object>
+<object name="Martians"  >
+<core  type="uint" access="read-only" descr="Number of responses received which were received from servers that the resolver does not think it asked."/>
+<ui  name="Martians Rx" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.2.7"/> 
+</ui></object>
+<object name="NonAuthNoDataResps"  >
+<core  type="uint" access="read-only" descr="Number of requests made by the resolver for which a non-authoritative answer - no such data response (empty answer) was received."/>
+<ui  name="Non Auth/No Data Responses Rx" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.2.6"/> 
+</ui></object>
+<object name="NonAuthDataResps"  >
+<core  type="uint" access="read-only" descr="Number of requests made by the resolver for which a non-authoritative answer (cached data) was received."/>
+<ui  name="Non Auth Data Resps Rx" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.2.5"/> 
+</ui></object>
+<object name="Fallbacks"  >
+<core  type="uint" access="read-only" descr="Number of times the resolver had to fall back to its seat belt information."/>
+<ui  name="Fallbacks" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.2.10"/> 
+</ui></object>
+</module>
+<module name="dnsResCtl"  >
+<object name="AdminMode"  >
+<core  type="enum" xtype="enable_t" default="FD_DNS_CLIENT_ADMIN_MODE_ENABLED" access="read-write" descr="The global admin mode for the DNS client. This will enable or disable the domain name lookup."/>
+<ui  name="Admin Mode" style="choiceNselect1" >
+<snmp asn-id=" 1.3.6.1.4.1.4413.1.1.37.1.1.1"/>
+</ui>
+</object>
+<object name="DefDomainName"  >
+<core  type="user" xtype="string_t" access="read-write" descr="the default domain for the DNS client" validation="validate_hostname_allownull"/>
+<ui  name="Default Domain Name" style="inputLine" >
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.37.1.1.2"/>
+</ui>
+</object>
+<object name="RequestTimeout"  >
+<core  type="uint" min="L7_DNS_DOMAIN_TIMEOUT_MIN" max="L7_DNS_DOMAIN_TIMEOUT_MAX" default="FD_DNS_CLIENT_QUERY_TIMEOUT" access="read-write" descr="DNS query timeout value"/>
+<ui  name="Request TimeOut" style="inputLine" >
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.37.1.1.4"/>
+</ui>
+</object>
+<object name="RequestRetransmits"  >
+<core  type="uint" min="L7_DNS_DOMAIN_RETRY_NUMBER_MIN" max="L7_DNS_DOMAIN_RETRY_NUMBER_MAX" default="FD_DNS_NO_OF_RETRIES" access="read-write" descr="number of DNS request retransmits"/>
+<ui  name="Request Retransmits" style="inputLine" >
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.37.1.1.5"/>
+</ui>
+</object>
+</module>
+<module name="DnsResConfig"  >
+<object name="Service"  >
+<core  type="uint" access="read-only" descr="Kind of DNS resolution service provided: recursiveOnly(1) indicates a stub resolver. iterativeOnly(2) indicates a normal full service resolver. recursiveAndIterative(3) indicates a full-service resolver which performs a mix of recursive and iterative queries."/>
+<ui  name="Service Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.1.2"/> 
+</ui></object>
+<object name="ImplementIdent"  >
+<core  type="string" access="read-only" descr="The implementation identification string for the resolver software in use on the system, for example; `RES-2.1'"/>
+<ui  name="Implementation Identification" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.1.1"/> 
+</ui></object>
+<object name="ResetTime"  >
+<core  type="uint" access="read-only" descr="If the resolver has a persistent state (e.g., a process) and supports a `reset' operation (e.g., can be told to re-read configuration files), this value will be the time elapsed since the last time the resolver was `reset.'  For software that does not have persistence or does not support a `reset' operation, this value will be zero."/>
+<ui  name="Reset Time" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.1.6"/> 
+</ui></object>
+<object name="UpTime"  >
+<core  type="uint" access="read-only" descr="If the resolver has a persistent state (e.g., a process), this value will be the time elapsed since it started. For software without persistant state, this value will be 0."/>
+<ui  name="Up Time" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.1.5"/> 
+</ui></object>
+<object name="MaxCnames"  >
+<core  type="uint" access="read-only" descr="Limit on how many CNAMEs the resolver should allow before deciding that there's a CNAME loop. Zero means that resolver has no explicit CNAME limit."/>
+<ui  name="Max Canonical names" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.1.3"/> 
+</ui></object>
+</module>
+<module name="DnsResCache">
+<key-combo list="RRName,RRClass,RRType,RRIndex"/>
+<object name="RRName"  >
+<core  type="string" key="yes" access="read-write" descr="Owner name of the Resource Record in the cache which is identified in this row of the table. As described in RFC-1034, the owner of the record is the domain name were the RR is found."/>
+<ui  name="RR Name" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.4.5.1.1"/> 
+</ui></object>
+<object name="RRClass"  >
+<core  type="uint" key="yes" access="read-write" descr="DNS class of the Resource Record in the cache which is identified in this row of the table."/>
+<ui  name="RR Class" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.4.5.1.2"/> 
+</ui></object>
+<object name="RRType"  >
+<core  type="enum" xtype="L7_DNS_CACHE_ENTRY_TYPE_t" key="yes" access="read-write" descr="DNS type of the Resource Record in the cache which is identified in this row of the table."/>
+<ui  name="RR Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.4.5.1.3"/> 
+</ui></object>
+<object name="RRIndex"  >
+<core  type="uint" key="yes" access="read-write" descr="A value which makes entries in the table unique when the other index values (dnsResCacheRRName, dnsResCacheRRClass, and dnsResCacheRRType) do not provide a unique index."/>
+<ui  name="RR Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.4.5.1.9"/> 
+</ui></object>
+<object name="RRTTL" depends="RRName,RRClass,RRType,RRIndex" >
+<core  type="uint" access="read-only" descr="Time-To-Live of RR in DNS cache. This is the initial TTL value which was received with the RR when it was originally received."/>
+<ui  name="RR TTL" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.4.5.1.4"/> 
+</ui></object>
+<object name="RRElapsedTTL" depends="RRName,RRClass,RRType,RRIndex" >
+<core  type="uint" access="read-only" descr="Elapsed seconds since RR was received."/>
+<ui  name="RRElapsedTTL" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.4.5.1.5"/> 
+</ui></object>
+<object name="RRSource" depends="RRName,RRClass,RRType,RRIndex" >
+<core  type="ipv4" access="read-only" descr="Host from which RR was received, 0.0.0.0 if unknown."/>
+<ui  name="RRSource" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.4.5.1.6"/> 
+</ui></object>
+<object name="RRData" depends="RRName,RRClass,RRType,RRIndex" >
+<core  type="string" access="read-only" descr="RDATA portion of a cached RR. The value is in the format defined for the particular DNS class and type of the resource record."/>
+<ui  name="RR Data" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.4.5.1.7"/> 
+</ui></object>
+<object name="RRStatus" depends="RRName,RRClass,RRType,RRIndex" >
+<core  type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Status column for the resolver cache table. Since only the agent (DNS resolver) creates rows in this table, the only values that a manager may write to this variable are active(1) and destroy(6)."/>
+<ui  name="RR Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.4.5.1.8"/> 
+</ui></object>
+<object name="RRPrettyName" depends="RRName,RRClass,RRType,RRIndex" >
+<core  type="string" access="read-only" descr="Name of the RR at this row in the table. This is identical to the dnsResCacheRRName variable, except that character case is preserved in this variable, per DNS conventions."/>
+<ui  name="RR Pretty Name" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.4.5.1.10"/> 
+</ui></object>
+<object name="RRDisplayName" depends="RRName,RRClass,RRType,RRIndex" >
+<core  type="string" access="read-only" descr="Display name of the RR at this row in the table."/>
+<ui  name="RR Display Name" style="plainText">
+</ui></object>
+<object name="BadCaches"  >
+<core  type="uint" access="read-only" descr="Number of RRs the resolver has refused to cache because they appear to be dangerous or irrelevant. E.g., RRs with suspiciously high TTLs, unsolicited root information, or that just don't appear to be relevant to "/>
+<ui  name="Bad Caches" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.4.4"/> 
+</ui></object>
+<object name="MaxTTL"  >
+<core  type="uint" access="read-only" descr="Maximum Time-To-Live for RRs in this cache. If the resolver does not implement a TTL ceiling, the value of this field should be zero."/>
+<ui  name="Max TTL" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.4.2"/> 
+</ui></object>
+<object name="GoodCaches"  >
+<core  type="uint" access="read-only" descr="Number of RRs the resolver has cached successfully."/>
+<ui  name="Good Caches" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.32.2.1.4.3"/> 
+</ui></object>
+<object name="FlushStatus"  >
+<core  type="enum" xtype="enable_t" default="L7_DISABLE" access="write-only" descr="The cache Flush status. If set to enable all dynamic cache entries would be removed."/>
+<ui  name="Flush Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.37.1.1.3"/> 
+</ui></object>
+</module>
+<module name="dnsResCtlStatic">
+<key-combo list="HostName,IPAddress"/>
+<object name="HostName" >
+<core  type="string" key="yes" access="read-write" descr="static host entries for the DNS client" validation="validate_hostname"/>
+<ui  name="Host Name" style="inputLine" />
+</object>
+<object name="IPAddress" >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="static host entries for the DNS client"/>
+<ui  name="IP Address" style="inputLine" />
+</object>
+<object name="Status" depends="HostName,IPAddress" >
+<core  type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Name server status"/>
+<ui  name="Status" style="inputLine" >
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.37.1.3.1.1.3"/>
+</ui>
+</object>
+</module>
+<module name="ResCtlDomain"  >
+<object name="ListName"  >
+<core  type="string" key="yes" access="read-write" descr="The dns domain list entry identified by this row of the table." validation="validate_hostname"/>
+<ui  name="Domain List Name" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.37.1.1.6.1.1"/> 
+</ui></object>
+<object name="Status" depends="ListName" >
+<core  type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Status of the DNS domain list Entry Table Supported values: active(1) - valid entry createAndGo(4) - used to create a new entry destroy(6) - removes the entry"/>
+<ui  name="Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.37.1.1.6.1.2"/> 
+</ui></object>
+</module>
+<module name="ResCtlDnsName"  >
+<object name="ServerIP"  >
+<core  type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The IP address of the dns server identified by this row of the table."/>
+<ui  name="Server IP" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.37.1.2.1.1.1"/> 
+</ui></object>
+<object name="Preference" depends="ServerIP" >
+<core  type="uint"  access="read-only" descr="The preference for a name server."/>
+<ui  name="Preference" style="plainText">
+</ui></object>
+<object name="Status" depends="ServerIP" >
+<core  type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Status of the DNS Server Address Table Supported values: active(1) - valid entry createAndGo(4) - used to create a new entry destroy(6) - removes the entry."/>
+<ui  name="Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.37.1.2.1.1.2"/> 
+</ui></object>
+</module>
+</objectxml>
+</FastPathXML>

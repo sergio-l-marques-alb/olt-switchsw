@@ -1,0 +1,38 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DHCPL2RelayInterfaceConfiguration" title="DHCP L2 Relay Interface Configuration">
+        <group id="1" level="ReadWriteUser" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingDhcpL2RelayIntfConfig_Interface" id="1" name="Slot/Port"/>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="SwitchingDhcpL2RelayIntfConfig_L2RelayMode" id="1" name="DHCP L2 Relay Mode  "/>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="SwitchingDhcpL2RelayIntfConfig_L2RelayTrustMode" id="1" name="DHCP L2 Relay Trust Mode"/>
+            </node>
+            <node id="4">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+        <group id="2" level="ReadOnlyUser" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingDhcpL2RelayIntfConfig_Interface" id="1" name="Port"/>
+            </node>
+            <node id="2">
+                <element properties="read-only" obj-name="SwitchingDhcpL2RelayIntfConfig_L2RelayMode" id="1" name="DHCP L2 Relay Mode  "/>
+            </node>
+            <node id="3">
+                <element properties="read-only" obj-name="SwitchingDhcpL2RelayIntfConfig_L2RelayTrustMode" id="1" name="DHCP L2 Relay Trust Mode"/>
+            </node>
+            <node id="4">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

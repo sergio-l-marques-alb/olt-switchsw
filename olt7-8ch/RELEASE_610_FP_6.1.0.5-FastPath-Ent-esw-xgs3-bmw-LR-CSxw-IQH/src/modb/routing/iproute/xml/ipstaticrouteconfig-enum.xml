@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+    <enum name="L7_STATIC_ROUTE_TYPE_t">
+      <option macro="L7_XUI_ROUTE_TYPE_ROUTRTF_DEFAULT_ROUTE" name="Default"> </option>
+      <option macro="L7_XUI_ROUTE_TYPE_RTF_STATIC" name="Static"> </option>
+      <option macro="L7_XUI_ROUTE_TYPE_RTF_REJEC" name="Static Reject"> </option>
+    </enum>
+  </data-types>
+</FastPathXML>
+

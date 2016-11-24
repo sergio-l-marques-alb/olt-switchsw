@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="SyslogConfiguration" title="Syslog Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="baselogCfg_LogSyslogAdminStatus" id="1" name="Admin Status"/>
+            </node>
+            <node id="2">
+                <element arghelp="HELP_FORMAT_FP" obj-name="baselogCfg_LogSyslogLocalPort" id="1" name="Local UDP Port" maxLength="10"/>
+            </node>
+            <node id="3">
+                <element obj-name="baselogCfg_LogMessagesReceived" id="1" name="Messages Received"/>
+            </node>
+            <node id="4">
+                <element obj-name="baselogCfg_LogMessagesDropped" id="1" name="Messages Dropped"/>
+            </node>
+            <node id="5">
+                <element obj-name="baselogCfg_LogSyslogMessagesRelayed" id="1" name="Messages Relayed"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

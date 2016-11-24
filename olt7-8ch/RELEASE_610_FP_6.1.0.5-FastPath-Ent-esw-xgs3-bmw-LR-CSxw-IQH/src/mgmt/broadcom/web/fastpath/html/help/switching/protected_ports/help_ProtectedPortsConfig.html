@@ -1,0 +1,71 @@
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Protected Ports Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY CLASS = "helppageattributes">
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="PROTECTED_PORTS">
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<HR SIZE=4 WIDTH="100%" ALIGN=CENTER>
+
+<H2><A NAME=prot_port_cfg></A>Help for Protected Ports Configuration</H2>
+
+Use this menu to configure the ports as protected or unprotected. You need
+read-write access privileges to modify the configuration.
+
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="MULTIPLE_PROT_PORT_GROUPS">
+<H3>Selection Criteria</H3>
+
+<UL type=disc>
+ <UL type=circle>
+     <LI><B>Group ID</B>
+  - The protected ports can be combined into a logical group. Traffic can flow
+    between protected ports belonging to different groups, but not within the same
+    group.
+    The  selection box lists all the possible protected port Group IDs supported
+    for the current platform. The valid range of the Group ID is
+      <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(0, L7_PROTECTED_PORT_MAX_GROUPS-1);
+      ' >.
+	</LI>
+ </UL>
+</UL>
+</EMWEB_IF>
+
+<H3>Configurable Data</H3>
+
+<UL TYPE=disc>
+ <UL TYPE=circle>
+  <LI><B>Group Name</B> - It is a name associated with the protected ports group used for identification purposes. It can be up to <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_PROTECTED_PORT_GROUP_NAME_SIZE-1);
+      ' > characters long, including blanks. The default is blank. Setting the group name to blank will delete the previously configured name. This field is optional.
+  </LI>
+  <LI><B>Protected Port(s)</B> - The selection list consists of physical ports,
+    protected as well as unprotected. The protected ports are highlighted to differentiate
+    between them. No traffic forwarding is possible between
+    two protected ports. If left unconfigured, the default state is unprotected.
+  </LI>
+ </UL>
+</UL>
+
+<H3>Command Buttons</H3>
+
+<UL TYPE=disc>
+ <UL TYPE=circle>
+  <LI><B>Add Port(s) </B>- Add the highlighted ports to the protected ports group. </LI>
+  <LI><B>Delete Port(s) </B>- Delete the highlighted ports from the protected ports group. </LI>
+ </UL>
+</UL>
+</EMWEB_IF>
+</EMWEB_IF>
+</BODY>
+</HTML>
+
+

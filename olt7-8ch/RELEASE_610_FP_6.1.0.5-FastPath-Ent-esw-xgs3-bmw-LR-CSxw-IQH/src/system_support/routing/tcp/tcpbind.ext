@@ -1,0 +1,487 @@
+/********************************************************************
+ *
+ * (C) Copyright Broadcom Corporation 2003-2007
+ *
+ * *********************************************************************
+ *
+ * @filename        tcpbind.ext
+ *
+ * @purpose         External definitions and typedefs for TCP/UDP binding
+ *
+ * @component       Routing TCP Component
+ *
+ * @comments
+ *            External API:
+ *   TcpUdpBind_Init
+ *   TcpUdpBind_Destroy
+ *   TcpUdpBind_Open
+ *   TcpUdpBind_Close
+ *   TcpUdpBind_AddMulticastAddr
+ *   TcpUdpBind_Send
+ *   TcpUdpBind_Receive
+ *   TcpUdpBind_Status
+ *   TcpUdpBind_RemoteInfo
+ *   TcpUdpBind_LocalInfo
+ *   TcpUdpBind_NotifyPrmChange
+ *   TcpUdpBind_GetTCPStatistics
+ *
+ * @create          02/13/2002
+ *
+ * @author
+ *
+ * @end
+ *
+ * ********************************************************************/
+
+
+
+
+#ifndef _tcp_udp_binding_to_socket_ext_
+#define _tcp_udp_binding_to_socket_ext_
+
+/* Connection status flags */
+#define TCPUDP_CONN_STATUS_ACTIVE       0x0001
+#define TCPUDP_CONN_STATUS_CLOSED       0x0002
+#define TCPUDP_CONN_STATUS_ERROR        0x0004
+#define TCPUDP_CONN_STATUS_DATA_READY   0x0008
+#define TCPUDP_CONN_STATUS_PENDING      0x0010
+#define TCPUDP_CONN_STATUS_LISTENING    0x0020
+#define TCPUDP_CONN_STATUS_ACCEPTED     0x0040
+
+/* Send flags */
+#define TCP_SEND_PUSH     0x0001
+#define TCP_SEND_URGENT   0x0004
+#define TCP_TRACING       0x0008
+
+/* Connection type TCP or UDP or IP (raw socket) */
+typedef enum e_TcpUdpType
+{
+   tcpConnType,
+   udpConnType,
+   ipConnType
+} e_TcpUdpType;
+
+/* Prototypes for User-Receive and User-ConnectionStatus routines */
+typedef e_Err (*F_SockRx)(t_Handle userId,   /* User Id of connection */
+                          void *p_Frame,     /* Data frame */
+                          ulng remoteAddres, /* Remote IP address for UDP/IP connection */
+                          word remotePort,  /* Remote logical port for UDP/IP connection */
+                          ulng intIfNum);    /* receive interface */
+
+typedef void  (*F_SockStat)(t_Handle userId, /* User Id of connection */
+                            t_Handle connId, /* Connection Id returned by TcpUdpBind_Open */
+                            word status);    /* Connection status flags */
+
+typedef ulng  (*F_RxQueue)(t_Handle userId,  /* User Id of connection */
+                            void *p_Frame);  /* Data frame */
+                                             /* Returns the queue to be used */
+
+/* TCP/UDP connection creation parameters */
+typedef struct t_TcpUdpParam
+{
+   /* Local to peer tie parameters */
+   ulng           localAddress;    /* Local IP address */
+   word           localPort;       /* Local port UDP/TCP */
+   ulng           remoteAddress;   /* Remote IP address */
+   word           remotePort;      /* Remote port UDP/TCP */
+   ulng           mcastAddr;       /* One of the multicast addresses */
+   ulng           netMask;         /* Subnet mask for the interface */
+
+   /* Connection type parameters */
+   e_TcpUdpType   connType;        /* IP/UDP/TCP */
+   int            protocol;        /* Protocol number */
+   Bool           client;          /* True - client, False -server */
+   Bool           adrReUse;        /* Set SO_REUSEADDR option for the socket */
+   Bool           dontRoute;       /* Set SO_DONTROUTE option for the socket */
+   Bool           dontBind;        /* Don't call bind for the socket */
+   Bool           ipHeaderInc;     /* IP header is included into the sent frame */
+   Bool           tcpTxQueue;      /* Is internal transmit queue needed for TCP?*/
+   Bool           tcpGraceClose;   /* Is stream socket closed gracefully?       */
+   /* Session parameters */
+   int            backlog;         /* Backlog length for listen() call */
+   int            rxBufSize;       /* Set SO_RCVBUF option for the socket */ 
+   int            txBufSize;       /* Set SO_SNDBUF option for the socket */
+   word           tx_flags;        /* Tx flags */
+
+   /* Callbacks parameters */
+   t_Handle       threadId;        /* Thread/queue Id for Rx and Status report */
+   F_SockRx       f_Rx;            /* Rx callback */
+   F_RxQueue      f_RxQueue;       /* Rx queue callback */
+   F_SockStat     f_Stat;          /* Status report callback */
+} t_TcpUdpParam;
+
+
+
+ /*********************************************************************
+ * @purpose             Creates TCP/UDP object
+ *
+ *
+ * @param p_ObjId       @b{(input)}  Pointer to return succesfully created
+ *                                   TCP/UDP object
+ * @param udpObjHandle  @b{(input)}  Optional IP object handle or NULLP
+ * @param threadName    @b{(input)}   Name of thread created to read from socket
+ *
+ * @returns             E_OK	     - Success
+ * @returns             Not E_OK  - Failure, look at std.h for details
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TcpUdpBind_Init(OUT t_Handle *p_ObjId, IN t_Handle udpObjHandle, 
+                      char *threadName);
+
+
+/*********************************************************************
+ * @purpose            Destroys TCP/UDP object
+ *
+ *
+ * @param  p_ObjId     @b{(input)}  Pointer to TCP/UDP object,
+ *                                  zeroed on success
+ *
+ * @returns            E_OK	     - Success
+ * @returns            Not E_OK  - Failure, look at std.h for details
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TcpUdpBind_Destroy(IN OUT t_Handle *p_ObjId);
+
+
+/*********************************************************************
+ * @purpose     Opens a new TCP/UDP connection
+ *
+ *
+ * @param       objId @b{(input)}  TCP/UDP object returned by TcpUdpBind_Init
+ * @param       userId @b{(input)}  User ID of new connection to be passed in
+ *                           upcall
+ * @param       param @b{(input)}  Connection configuration parameters
+ * @param       p_connId @b{(output)}  Pointer to return successfully created
+ *                           TCP/UDP connection handle
+ *
+ * @returns     E_OK	     - Success
+ * @returns     Not E_OK  - Failure, look at std.h for details
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TcpUdpBind_Open(IN t_Handle objId,
+                      IN t_Handle userId,
+                      IN t_TcpUdpParam *param,
+                      OUT t_Handle *p_connId);
+
+
+ /*********************************************************************
+ * @purpose           Closes TCP/UDP connection
+ *
+ *
+ * @param connId      @b{(input)} TCP/UDP connection handle as returned by
+ *                                TcpUdpBind_Open
+ *
+ * @returns           E_OK	     - Success
+ * @returns           Not E_OK  - Failure, look at std.h for details
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TcpUdpBind_Close(IN t_Handle connId);
+
+
+ /*********************************************************************
+ * @purpose           Add multicast address to be listened
+ *
+ *
+ * @param connId    @b{(input)}  TCP/UDP connection handle as returned by
+ *                               TcpUdpBind_Open
+ * @param ifaddr    @b{(input)}  interface where we listen
+ * @param addr        @b{(input)}  Multicast address
+ *
+ * @returns           E_OK	     - Success
+ * @returns           Not E_OK  - Failure, look at std.h for details
+ *
+ * @notes           This call configures the socket owned by connId to 
+ *                  receive multicast frames on the interface who's address
+ *                  is ifaddr.
+ *
+ * @end
+ * ********************************************************************/
+e_Err TcpUdpBind_AddMulticastAddr(IN t_Handle connId, ulng intIfNum, ulng addr);
+
+/*********************************************************************
+ * @purpose         Multicast address to be dropped
+ *
+ *
+ * @param connId    @b{(input)}  TCP/UDP connection handle as returned by
+ *                               TcpUdpBind_Open
+ * @param intIfNum  @b{(input)}  interface where we have been listening to group
+ * @param addr      @b{(input)}  Multicast address
+ *
+ * @returns         E_OK	     - Success
+ * @returns         Not E_OK  - Failure, look at std.h for details
+ *
+ * @notes           This call configures the socket owned by connId to 
+ *                  stop receiving multicast frames on the interface who's 
+ *                  address is ifaddr.
+ *
+ * @end
+ * ********************************************************************/
+e_Err TcpUdpBind_DropMulticastAddr(IN t_Handle connId, ulng intIfNum, ulng addr);
+
+ /*********************************************************************
+ * @purpose           Sends data over TCP/UDP connection
+ *
+ *
+ * @param connId      @b{(input)}  TCP/UDP/IP connection handle returned by
+ *                                 TcpUdpBind_Open
+ * @param frame       @b{(input)}  Data to send
+ * @param address     @b{(input)}  Destination IP address for UDP connections
+ * @param port        @b{(input)}  Destination logical port for UDP connections
+ * @param flags       @b{(input)}  Sending flags
+ *
+ * @returns           Number of bytes sent or -1 on error
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+int   TcpUdpBind_Send(IN t_Handle connId,
+                      IN t_Handle frame,
+                      IN ulng address,
+                      IN word port,
+                      IN word     flag);
+
+
+
+
+ /*********************************************************************
+ * @purpose           Receives data over TCP/UDP connection
+ *
+ *
+ * @param  connId     @b{(input)}  TCP/UDP connection handle as returned by
+ *                                 TcpUdpBind_Open
+ * @param  p_frame    @b{(input)}  Pointer to return frame handle with incoming
+ *                                 data
+ * @param  p_Address  @b{(input)}  Pointer to return remote IP address for UDP
+ *                                 connections
+ * @param  p_Port     @b{(input)}  Pointer to return remote logical port for
+ *                                 UDP connections
+ *
+ * @returns           Number of bytes received
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+word  TcpUdpBind_Receive(IN t_Handle connId,
+                         OUT t_Handle *p_frame,
+                         OUT ulng *p_Address,
+                         OUT word *p_Port);
+
+
+
+ /*********************************************************************
+ * @purpose           Returns connection status
+ *
+ *
+ * @param connId      @b{(input)} TCP/UDP connection handle as returned by
+ *                                TcpUdpBind_Open
+ * @param p_status    @b{(input)} Pointer to return connection status
+ *                                (see Connection status flags)
+ *
+ * @returns           E_OK      - Success
+ * @returns           E_FAILED  - Invalid connection handle
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TcpUdpBind_Status(IN t_Handle connId,
+                        OUT word *p_status);
+
+
+
+ /*********************************************************************
+ * @purpose           Returns connection peer info
+ *
+ *
+ * @param connId      @b{(input)}  TCP/UDP connection handle as returned by
+ *                                 TcpUdpBind_Open
+ * @param p_Address   @b{(output)}  Pointer to return peer IP address
+ * @param p_Port      @b{(output)}  Pointer to return peer logical port
+ *
+ * @returns           E_OK      - Success
+ * @returns           E_FAILED  - Invalid connection handle
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TcpUdpBind_RemoteInfo(IN t_Handle connId,
+                            OUT ulng *p_Address,
+                            OUT word *p_Port);
+
+
+ /*********************************************************************
+ * @purpose           Retrieves local connection parameters
+ *
+ *
+ * @param connId      @b{(input)}  TCP/UDP connection handle returned by
+ *                                 TcpUdpBind_Open
+ * @param *p_Address  @b{(output)}  Pointer to store local IP address
+ * @param *p_Port     @b{(output)}  Pointer to store local port number
+ *
+ * @returns           E_OK      - Success (can't fail)
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TcpUdpBind_LocalInfo(t_Handle  connId,
+                           ulng     *p_Address,
+                           word     *p_Port);
+
+
+
+
+ /*********************************************************************
+ * @purpose           Overwrites connection user parameters
+ *
+ *
+ * @param connId      @b{(input)}  TCP/UDP connection handle as returned by
+ *                                 TcpUdpBind_Open
+ * @param UserId      @b{(input)}  New connection User ID
+ * @param f_Stat      @b{(input)}  New status upcall pointer
+ * @param f_Rx        @b{(input)}  New receive upcall pointer
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TcpUdpBind_NotifyPrmChange(IN t_Handle connId,
+                                 IN t_Handle UserId,
+                                 IN F_SockRx f_Rx,
+                                 IN F_SockStat f_Stat);
+/*
+As far as for the TCP statistics definition 
+header file can't be
+used  because of the std.h 
+conflicts it's duplicated below
+*/
+/*
+ * statistics and state variables as defined by MIB II - rfc 1213.
+ */
+typedef struct TCP_Stats
+{
+    int        tcpRtoAlgorithm;     /* other(1),    -- none of the following
+                                       constant(2), -- a constant rto
+                                       rsre(3),     -- MIL-STD-1778, Appendix B
+                                       vanj(4)      -- Van Jacobson's algorithm [10] */
+    ulng       tcpRtoMin;           /* The minimum value permitted by a TCP
+                                       implementation for the retransmission timeout,
+                                       measured in milliseconds.  More refined semantics
+                                       for objects of this type depend upon the algorithm
+                                       used to determine the retransmission timeout.  In
+                                       particular, when the timeout algorithm is rsre(3),
+                                       an object of this type has the semantics of the
+                                       LBOUND quantity described in RFC 793. */
+    ulng       tcpRtoMax;           /* The maximum value permitted by a TCP
+                                       implementation for the retransmission timeout, 
+                                       measured in milliseconds.  More refined semantics 
+                                       for objects of this type depend upon the algorithm 
+                                       used to determine the retransmission timeout.  In 
+                                       particular, when the timeout algorithm is rsre(3), 
+                                       an object of this type has the semantics of the 
+                                       UBOUND quantity described in RFC 793. */ 
+    ulng       tcpMaxConn;          /* The limit on the total number of TCP connections
+                                       the entity can support.  In entities where the 
+                                       maximum number of connections is dynamic, this 
+                                       object should contain the value -1 */ 
+    ulng       tcpActiveOpens;      /* The number of times TCP connections have made a
+                                       direct transition to the SYN-SENT state from the 
+                                       CLOSED state. */
+    ulng       tcpPassiveOpens;     /* The number of times TCP connections have made a
+                                       direct transition to the SYN-RCVD state from the 
+                                       LISTEN state. */
+    ulng       tcpAttemptFails;     /* The number of times TCP connections have made a
+                                       direct transition to the CLOSED state from either 
+                                       the SYN-SENT state or the SYN-RCVD state, plus the 
+                                       number of times TCP connections have made a direct 
+                                       transition to the LISTEN state from the SYN-RCVD 
+                                       state. */ 
+    ulng       tcpEstabResets;      /* The number of times TCP connections have made a
+                                       direct transition to the CLOSED state from either 
+                                       the ESTABLISHED state or the CLOSE-WAIT state. */ 
+    ulng       tcpCurrEstab;        /* The number of TCP connections for which the
+                                       current state is either ESTABLISHED or CLOSE- 
+                                       WAIT. */
+    ulng       tcpInSegs;           /* The total number of segments received, including
+                                       those received in error.  This count includes 
+                                       segments received on currently established 
+                                       connections. */ 
+    ulng       tcpOutSegs;          /* The total number of segments sent, including
+                                       those on current connections but excluding those 
+                                       containing only retransmitted octets. */
+    ulng       tcpRetransSegs;      /* The total number of segments retransmitted - that
+                                       is, the number of TCP segments transmitted 
+                                       containing one or more previously transmitted 
+                                       octets. */
+    ulng       tcpInErrs;           /* The total number of segments received in error
+                                       (e.g., bad TCP checksums). */
+    ulng       tcpOutRsts;          /* The number of TCP segments sent containing the
+                                       RST flag. */
+    ulng       tcpInPartialDiscards;
+    ulng       tcpInFullDiscards;   
+    ulng       tcpInPartialOverlaps;
+    ulng       tcpInOutOfSeqs; 
+}TCP_Stats;
+
+
+
+
+
+ /*********************************************************************
+ * @purpose          Overwrites connection user parameters
+ *
+ *
+ * @param objId      @b{(input)}  TcpUdpBind object handle
+ * @param p_stat     @b{(output)}  Pointer to return statistics
+ * @param fReset     @b{(input)}  Reset statistics flag
+ *
+ * @returns          E_OK      - Success
+ * @returns          E_FAILED  - Invalid connection handle
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TcpUdpBind_GetTCPStatistics(IN t_Handle objId,
+                                  IN TCP_Stats *p_stat, Bool fReset);
+
+/*--------------------------------------------------------------------------------*/
+/* Note: This was added to prevent the connInfo local address and port to         */
+/* get reset on a call to TcpUdpBind_LocalInfo when we actually wanted to         */
+/* retain this information                                                        */
+/*--------------------------------------------------------------------------------*/
+
+
+
+
+/*********************************************************************
+ * @purpose           Sets the local address flag valid
+ *
+ *
+ * @param connId      @b{(input)}  TCP/UDP connection handle returned by
+ *                                TcpUdpBind_Open
+ *
+ * @returns           E_OK	     - Success
+ * @returns           Not E_OK  - Failure, look at std.h for details
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TcpUdpBind_SetLocalAddressValid(t_Handle connId);
+
+#endif /* _tcp_udp_binding_to_socket_ext_ */

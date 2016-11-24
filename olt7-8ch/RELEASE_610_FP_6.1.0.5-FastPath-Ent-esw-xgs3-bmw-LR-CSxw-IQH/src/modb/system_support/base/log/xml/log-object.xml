@@ -1,0 +1,334 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="base" version="1.0">
+
+<module name="logCfg">
+<object name="LogSyslogFacility">
+<core type="enum" xtype="L7_LOG_FACILITY_t" access="read-write" descr="Global Admin mode for Logging "/>
+<ui name="System Log Facility" style="choiceNselect1"/>
+</object>
+<object name="GlobalLogAdminStatus">
+<core type="enum" xtype="enable_t" default="FD_LOG_DEFAULT_GLOBAL_ADMIN_STATUS" access="read-write" descr="Global Admin mode for Logging "/>
+<ui name="Global Log Admin Status" style="choiceNselect1"/>
+</object>
+<object name="LogMsgPersistentMsgIndex">
+<core type="uint" key="yes" access="read-write" descr="Table index for logging message in persistent log table."/>
+<ui name="LogMsg Persistent MsgIndex" style="inputLine">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.4.4.1.1"/> 
+</ui></object>
+<object name="LogMsgPersistentMsgText" depends="LogMsgPersistentMsgIndex">
+<core type="string" access="read-only" descr="The text corresponding to persistent log message."/>
+<ui name="LogMsg Persistent MsgText" style="plainText">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.4.4.1.2"/> 
+</ui></object>
+<object name="LogInMemoryMsgIndex">
+<core type="uint" key="yes" access="read-write" descr="The index to message entry in the in-memory log table."/>
+<ui name="LogMsg InMemory MsgIndex" style="inputLine">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.3.2.1.1"/> 
+</ui></object>
+<object name="LogInMemoryMsgText" depends="LogInMemoryMsgIndex">
+<core type="string" access="read-only" descr="Message text info for inmemory logged messages."/>
+<ui name="LogMsg InMemory MsgText" style="plainText">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.3.2.1.2"/> 
+</ui></object>
+<object name="LogInMemoryBehavior">
+<core type="enum" xtype="L7_LOG_FULL_BEHAVIOR_t" default="L7_LOG_STOP_ON_FULL_BEHAVIOR" access="read-write" descr="Configures the behavior of the In Memory Log when it becomes full. A value of wrap(1) will cause the oldest log message to be removed, making room for the new message. A value of stop-on-full(2) will prevent any further logging."/>
+<ui name="LogMsg InMemory Behavior" style="choiceNselect1">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.1.4"/> 
+</ui></object>
+<object name="LogInMemoryClear">
+<core type="enum" xtype="clear_t" access="write-only" descr="Clears all the In Memory Logs "/>
+<ui name="LogMsg Clear InMemory" style="inputLine">
+</ui></object>
+<object name="LogHostTableIndex">
+<core type="uint" key="yes" access="read-write" descr="Index to syslog host entry in syslog host table."/>
+<ui name="Syslog HostTable Index" style="inputLine">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.4.5.1.1"/> 
+</ui></object>
+<object name="LogHostTableIpAddress" depends="LogHostTableIndex">
+<core type="string" properties="pseudo-key" access="read-write" descr="Syslog Host table IP Address."/>
+<ui name="Syslog HostTable IP Address" style="inputLine">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.4.5.1.2"/> 
+</ui></object>
+<object name="LogHostTableIpAddressType" depends="LogHostTableIndex">
+<core type="enum" xtype="L7_IP_ADDRESS_TYPE_t" access="read-write" descr="Syslog Host table IP Address Type."/>
+<ui name="Syslog HostTable IP Address Type" style="inputLine">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.4.5.1.3"/> 
+</ui></object>
+<object name="LogHostTablePort" depends="LogHostTableIndex">
+<core type="uint" min="L7_TCP_UDP_MIN_PORT" max="L7_TCP_UDP_MAX_PORT" default="FD_LOG_DEFAULT_SERVER_PORT" access="read-write" descr="Syslog Host table port number."/>
+<ui name="Syslog HostTable Port" style="inputLine">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.4.5.1.4"/> 
+</ui></object>
+<object name="LogHostTableSeverityFilter" depends="LogHostTableIndex">
+<core type="enum" xtype="L7_LOG_SEVERITY_t" default="FD_LOG_DEFAULT_SYSLOG_SEVERITY_FILTER" access="read-write" descr="Configures the minimum severity that will be stored in the In Memory log."/>
+<ui name="Syslog HostTable Severity Filter" style="choiceNselect1">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.4.5.1.5"/> 
+</ui></object>
+
+<object name="LogHostTableDescription" depends="LogHostTableIndex">
+<core type="user" xtype="string_t" access="read-write" descr="The description of the Log server."/>
+<ui name="Syslog HostTable Description" style="inputLine"/>
+</object>
+
+<object name="RowStatus" depends="LogHostTableIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Syslog Host table row status"/>
+<ui name="RowStatus" style="inputLine">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.4.5.1.6"/> 
+</ui></object>
+<object name="LogConsoleSeverityFilter">
+<core type="enum" xtype="L7_LOG_SEVERITY_t" default="FD_LOG_DEFAULT_CONSOLE_SEVERITY_FILTER" access="read-write" descr="Severity filter for console logs"/>
+<ui name="Console Log Severity Filter" style="choiceNselect1">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.2.2"/> 
+</ui></object>
+<object name="LogPersistentSeverityFilter">
+<core type="enum" xtype="L7_LOG_SEVERITY_t" access="read-write" descr="This control specifies the minimum severity to log to the startup and operation log. Messages with an equal or lower numerical severity are logged."/>
+<ui name="Persistent Log Severity Filter" style="choiceNselect1">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.3.2"/> 
+</ui></object>
+<object name="LogConsoleComponentFilter">
+<core type="uint" access="read-write" min="L7_FIRST_COMPONENT_ID" max="L7_ALL_COMPONENTS" default="FD_LOG_DEFAULT_CONSOLE_COMPONENT_FILTER" descr="component filter of logging console (if different.)"/>
+<ui name="Console Log Component Filter" style="inputLine">
+</ui></object>
+<object name="LogPersistentAdminStatus">
+<core type="enum" xtype="L7_ADMIN_MODE_t" default="FD_LOG_DEFAULT_PERSISTENT_ADMIN_STATUS" access="read-write" descr="This control disables/enables logging for the persistent startup log. Setting this value to disable does not clear the current contents of the log."/>
+<ui name="Persistent Log Admin Status" style="choiceNselect1">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.3.1"/> 
+</ui></object>
+<object name="LogPersistentLogCount">
+<core type="uint" access="read-only" descr="The count of valid entries in the persistent log."/>
+<ui name="Persistent Log Count" style="plainText">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.4.1"/> 
+</ui></object>
+<object name="LogConsoleAdminStatus">
+<core type="enum" xtype="L7_ADMIN_MODE_t" default="FD_LOG_DEFAULT_CONSOLE_ADMIN_STATUS" access="read-write" descr="Admin mode for console logs"/>
+<ui name="Console Log Admin Status" style="choiceNselect1">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.2.1"/> 
+</ui></object>
+<object name="LogMessageReceivedTime">
+<core type="string" access="read-only" descr="The local time when a message was last received by the log subsystem specified as the number of non-leap seconds since 00:00:00 UTC on January 1 1970."/>
+<ui name="Log Message Received Time" style="plainText">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.2.5"/> 
+</ui></object>
+<object name="LogMessagesReceived">
+<core type="uint" access="read-only" descr="The number of messages received by the log process. This includes messages that are dropped or ignored."/>
+<ui name="Log Messages Receive Count" style="plainText">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.2.1"/> 
+</ui></object>
+<object name="LogSyslogAdminStatus">
+<core type="enum" xtype="L7_ADMIN_MODE_t" default="FD_LOG_DEFAULT_SYSLOG_ADMIN_STATUS" access="read-write" descr="For Enabling and Disabling logging to configured syslog hosts. Setting this to disable stops logging to all syslog hosts."/>
+<ui name="Syslog Admin Status" style="choiceNselect1">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.4.1"/> 
+</ui></object>
+<object name="LogSyslogMaxHosts">
+<core type="uint" access="read-only" descr="Maximum number of hosts that can be configured for logging syslog messages."/>
+<ui name="Syslog Maximum Hosts" style="plainText">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.4.4"/> 
+</ui></object>
+<object name="LogSyslogLocalPort">
+<core type="uint" min="L7_TCP_UDP_MIN_PORT" max="L7_TCP_UDP_MAX_PORT" default="FD_LOG_DEFAULT_CLIENT_PORT" access="read-write" descr="This is the port on the local host from which syslog messages are sent."/>
+<ui name="Syslog Local Port" style="inputLine">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.4.3"/> 
+</ui></object>
+<object name="LogCliCommandsAdminStatus">
+<core type="enum" xtype="enable_t" default="FD_CMD_LOGGER_ADMIN_MODE" access="read-write" descr="Administratively enable/disable the logging of the CLI Commands "/>
+<ui name="CLI Command Log AdminStatus" style="choiceNselect1">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.5.1"/> 
+</ui></object>
+<object name="LogMessagesDropped">
+<core type="uint" access="read-only" descr="The number of messages that could not be processed due to error or lack of resources."/>
+<ui name="Log Messages Dropped" style="plainText">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.2.2"/> 
+</ui></object>
+<object name="LogInMemoryLogCount">
+<core type="uint" access="read-only" descr="The count of valid entries in the in-memory log."/>
+<ui name="InMemory Log Count" style="plainText">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.3.1"/> 
+</ui></object>
+<object name="LogInMemoryAdminStatus">
+<core type="enum" xtype="L7_ADMIN_MODE_t" default="FD_LOG_DEFAULT_IN_MEMORY_ADMIN_STATUS" access="read-write" descr="Administratively enable/disable the In Memory log."/>
+<ui name="InMemory Log Admin Status" style="choiceNselect1">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.1.1.1"/> 
+</ui></object>
+<object name="LogInMemorySeverityFilter">
+<core type="enum" xtype="L7_LOG_SEVERITY_t" min="L7_LOG_SEVERITY_EMERGENCY" max="L7_LOG_SEVERITY_DEBUG" default="FD_LOG_DEFAULT_IN_MEMORY_SEVERITY_FILTER" access="read-write" descr="severity filter of in memory log"/>
+<ui name="InMemory Log Severity Filter" style="choiceNselect1"/>
+</object> 
+<object name="LogInMemoryComponentFilter">
+<core type="uint" access="read-write" min="L7_FIRST_COMPONENT_ID" max="L7_ALL_COMPONENTS" default="FD_LOG_DEFAULT_CONSOLE_COMPONENT_FILTER" descr="component filter of in memory log (if different.)"/>
+<ui name="InMemory Log Component Filter" style="inputLine"/>
+</object>
+<object name="LogSyslogMessagesRelayed">
+<core type="uint" access="read-only" descr="The number of messages forwarded by the syslog function to a syslog host. Messages forwarded to multiple hosts are counted once for each host."/>
+<ui name="Syslog Msgs Relayed Count" style="plainText">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.2.3"/> 
+</ui></object>
+<object name="LogSyslogMessageDeliveredTime">
+<core type="string" access="read-only" descr="The local time when a message was last delivered to a syslog host specified as the number of non-leap seconds since 00:00:00 UTC on January 1 1970."/>
+<ui name="Syslog Message Delivered Time" style="plainText">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.14.2.6"/> 
+</ui></object>
+<object name="LogCLICmdLoggerEntryAdd">
+<core type="string" access="write-only" descr="Validate the current user configuration and Log CLI commands"/>
+<ui name="CLI Command Log Entry Add" style="inputLine"/>
+</object>
+<object name="LogInPersistentLogClear">
+<core descr="&lt;HTML&gt;clear the persistent operational log" access="write-only" type="uint"/>
+<ui style="inputLine" name="Persistent Log Clear">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="LogInMemoryBufferSize">
+<core type="uint" access="read-write" descr="Maximum buffer size of buffered logs"/>
+<ui name="InMemory Log Max Buffer Size" style="inputLine"/>
+</object>
+</module>
+
+
+<module name="logMemoryTable">
+<object name="memoryIndex">
+<core properties="key" descr="&lt;HTML&gt;The index to message entry in the in-memory log table" default="-1" max="-1" min="-1" key="yes" access="read-write" type="uint"/>
+<ui style="inputLine" name="Memory Log Index">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object depends="memoryIndex," name="msgText">
+<core validation="validate_uint" descr="&lt;HTML&gt;TO DO" access="read-only" type="string"/>
+<ui style="plainText" name="Memory Log MsgText">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="msgSeverity">
+<core validation="validate_uint" descr="&lt;HTML&gt;Severity of the log message" xtype="logLevel_t" access="read-only" type="enum"/>
+<ui style="choiceNselect1" name="Message Severity">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="msgTimeStamp">
+<core validation="validate_uint" descr="&lt;HTML&gt;Time Stamp of the given Message" access="read-only" type="string"/>
+<ui style="inputLine" name="Message TimeStamp">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="msgComponent">
+<core validation="validate_uint" descr="&lt;HTML&gt;Component of the Given Log Message" access="read-only" type="string"/>
+<ui style="inputLine" name="Message Component">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="msgDescription">
+<core validation="validate_uint" descr="&lt;HTML&gt;Message Description" access="read-only" type="string"/>
+<ui style="inputLine" name="Message Description">
+<snmp asn-id=""/>
+</ui>
+</object>
+</module>
+
+
+<module name="logPersistTable">
+<object name="persistIndex">
+<core properties="key" descr="&lt;HTML&gt;The index to message entry in the in-memory log table" default="-1" max="-1" min="-1" key="yes" access="read-write" type="uint"/>
+<ui style="inputLine" name="Persistance Log Index">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object depends="persistIndex," name="persistText">
+<core validation="validate_uint" descr="&lt;HTML&gt;TO DO" access="read-only" type="string"/>
+<ui style="plainText" name="Persistance MsgText">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="persistSeverity">
+<core validation="validate_uint" descr="&lt;HTML&gt;Severity of the log message" xtype="logLevel_t" access="read-only" type="enum"/>
+<ui style="choiceNselect1" name="Message Severity">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="persistTimeStamp">
+<core validation="validate_uint" descr="&lt;HTML&gt;Time Stamp of the given Message" access="read-only" type="string"/>
+<ui style="plainText" name="Message TimeStamp">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="persistComponent">
+<core validation="validate_uint" descr="&lt;HTML&gt;Component of the Given Log Message" access="read-only" type="string"/>
+<ui style="plainText" name="Message Component">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="persistDescription">
+<core validation="validate_uint" descr="&lt;HTML&gt;Message Description" access="read-only" type="string"/>
+<ui style="plainText" name="Message Description">
+<snmp asn-id=""/>
+</ui>
+</object>
+</module>
+
+<module name="logTable">
+<key-combo list="logEventIndex,logIndex"/>
+<object name="logEventIndex">
+<core type="uint" key="yes" access="read-write" descr=" The event entry that generated this log entry. The log identified by a particular value of this index is associated with the same eventEntry as identified by the same value of eventIndex."/>
+<ui name="Log Event Entry" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.16.9.2.1.1"/> 
+</ui></object>
+<object name="logIndex">
+<core type="uint" key="yes" access="read-write" descr=" An index that uniquely identifies an entry in the log table amongst those generated by the same eventEntries. These indexes are assigned beginning with 1 and increase by one with each new log entry. The association "/>
+<ui name="Log Index" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.16.9.2.1.2"/> 
+</ui></object>
+<object name="logTime" depends="logEventIndex,logIndex">
+<core type="uint" access="read-only" descr=" The value of sysUpTime when this log entry was created."/>
+<ui name="Log Time" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.9.2.1.3"/> 
+</ui></object>
+<object name="logDescription" depends="logEventIndex,logIndex">
+<core type="string" access="read-only" descr=" An implementation dependent description of the event that activated this log entry."/>
+<ui name="Log Description" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.9.2.1.4"/> 
+</ui></object>
+</module>
+
+<module name="LogEventLogEntry">
+<object name="logIndex">
+<core type="uint" key="yes" access="read-write" descr=" An index that uniquely identifies an entry in the log table amongst those generated by the same eventEntries. These indexes are assigned beginning with 1 and increase by one with each new log entry. "/>
+<ui name="Event Log Index" style="inputLine">
+</ui></object>
+<object name="LogEventIndex" depends="logIndex">
+<core type="uint" access="read-only" descr="Index to the next event log entry or NULL if requesting the first"/>
+<ui name="Event Log Next Index" style="plainText"/>
+</object>
+<object name="EventLog" depends="logIndex">
+<core type="string" access="read-only" descr="Ptr to place the formatted event log requested"/>
+<ui name="Event Log Message" style="plainText"/>
+</object>
+<object name="EventType" depends="logIndex">
+<core type="string" access="read-only" descr="Ptr to place the formatted event log requested"/>
+<ui name="Event Log Type" style="plainText"/>
+</object>
+
+<object name="logTime" depends="logIndex">
+<core type="string" access="read-only" descr=" The value of sysUpTime when this log entry was created."/>
+<ui name="Log Time" style="plainText">
+</ui></object>
+<object name="logFileName" depends="logIndex">
+<core type="string" access="read-only" descr=" An implementation dependent description of the event that activated this log entry."/>
+<ui name="Log FileName" style="plainText">
+</ui></object>
+<object name="logLineNumber" depends="logIndex">
+<core type="string" access="read-only" descr=" An implementation dependent description of the event that activated this log entry."/>
+<ui name="Log LineNumber" style="plainText">
+</ui></object>
+<object name="logTaskId" depends="logIndex">
+<core type="string" access="read-only" descr=" An implementation dependent description of the event that activated this log entry."/>
+<ui name="Log TaskId" style="plainText">
+</ui></object>
+<object name="logCode" depends="logIndex">
+<core type="string" access="read-only" descr=" An implementation dependent description of the event that activated this log entry."/>
+<ui name="Log Code" style="plainText">
+</ui></object>
+
+</module>
+
+</objectxml>
+</FastPathXML>

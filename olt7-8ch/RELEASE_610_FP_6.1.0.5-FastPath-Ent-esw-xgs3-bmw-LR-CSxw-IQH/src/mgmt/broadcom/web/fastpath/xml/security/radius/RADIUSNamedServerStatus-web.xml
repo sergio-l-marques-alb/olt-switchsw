@@ -1,0 +1,33 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="RADIUSNamedServerStatus" title="RADIUS Named Server Status">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate,hidden" obj-name="securityRadius_RadiusServerIndex" id="1">
+                    <action type="value" value="valMapEmptyString" show="1_3" hide="1_1|1_2"/>
+                    <action type="default" hide="1_3"/>     
+                </element> 
+                <element obj-name="securityRadius_RadiusServerIsCurrentAuthServer" id="2" name="Current"/>
+                <element control="label" properties="read-only" obj-name="securityRadius_RadiusServerAddress" id="3" name="RADIUS Server IP Address"/>
+                <element control="label" properties="read-only" obj-name="securityRadius_RadiusServerName" id="4" name="RADIUS Server Name"/>
+                <element control="label" properties="read-only" obj-name="securityRadius_RadiusServerPort" id="5" name="Port Number"/>
+                <element control="label" properties="read-only" obj-name="securityRadius_RadiusServerPrimaryMode" id="6" name="Server Type"/>
+                <element control="label" obj-name="securityRadius_IsRadiusServerSharedSecretConfiguredSet" id="7" name="Secret Configured">
+                    <action type="enum" web_name="Yes"/>
+                    <action type="enum" web_name="No"/>
+                </element>
+                <element control="label" properties="read-only" obj-name="securityRadius_RadiusServerMsgAuth" id="8" name="Message Authenticator"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+            <node id="3">
+                <message>No configured RADIUS named servers exist.</message>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

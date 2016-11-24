@@ -1,0 +1,51 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="BootpdhcpRelayConfig" title="BOOTP/DHCP Relay Agent Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingbootpdhcpConfig_MaxHopCount" id="1" name="Maximum Hop Count"/>
+            </node>
+            <node id="2">
+                <element arghelp="HELP_FORMAT_FP" obj-name="routingbootpdhcpConfig_MinWaitTime" id="1" name="Minimum Wait Time (secs)"/>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="routingbootpdhcpConfig_CircuitIdOptionMode" id="1" name="Circuit ID Option Mode"/>
+            </node>
+            <node id="4">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+
+       <group level="ReadWriteUser" id="2" heading=" ">
+        <node id="1">
+        <message> &lt;sup&gt; &lt;font color=red&gt; NOTE &lt;&#47;font&gt; &lt;&#47;sup&gt; &lt;font size=0.7em &gt; Use Helper-IP feature to enable Relay mode,for configuring server address and for viewing Statistics. &lt;&#47;font&gt; </message> 
+        </node>
+        </group>
+
+        <group level="ReadOnlyUser" id="3" heading=" ">
+
+        <node id="1">
+                <element control="label" properties="read-only" obj-name="routingbootpdhcpConfig_MaxHopCount" id="1" name="Maximum Hop Count"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="routingbootpdhcpConfig_MinWaitTime" id="1" name="Minimum Wait Time (secs)"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="routingbootpdhcpConfig_CircuitIdOptionMode" id="1" name="Circuit ID Option Mode"/>
+            </node>
+            <node id="4">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+      </group>
+      <group level="ReadOnlyUser" id="4" heading=" ">
+          <node id="1">
+              <message> &lt;sup&gt; &lt;font color=red&gt; NOTE &lt;&#47;font&gt; &lt;&#47;sup&gt; &lt;font size=0.7em &gt;Use Helper-IP feature for viewing  Relay mode, Configured Server Addresses and Statistics.&lt;&#47;font&gt; </message>
+        </node>
+        </group>
+
+    </webxml>
+</FastPathXML>

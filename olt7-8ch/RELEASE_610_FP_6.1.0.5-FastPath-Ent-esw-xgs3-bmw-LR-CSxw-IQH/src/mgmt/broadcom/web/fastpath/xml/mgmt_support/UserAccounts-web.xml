@@ -1,0 +1,92 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="UserAccounts" title="User Accounts Configuration" java-script="user_config">
+        <group id="1" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <element control="textbox" properties="hidden"  obj-name="baseUsrMgrUserConfig_UserIndex" id="1" name="UserIndex"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter" obj-name="baseUsrMgrUserConfig_UserName" id="1" name="User">
+                    <action type="default" discard="no" enable="1_4_1|1_8_1|3_1_1|3_1_2" disable="1_3_1|3_1_3|1_11_1" hide="3_1_3|1_5_2|2_6_1|1_9_1" show="1_3_1|1_4_1|1_8_1|1_5_1|1_6_1|1_7_1|3_1_1"/>
+                    <action type="extn" discard="no" setval_ids="1_3_1|1_4_1|1_8_1|1_5_1|2_1_1|2_2_1|2_3_1|2_4_1" setval_args="valMapEmptyString|valMapEmptyString|valMapEmptyString|Default_AccessMode|Default_AccessMode|Default_Authtype|Default_Authtype|valMapEmptyString" value="Create" enable="1_3_1|1_4_1|1_8_1|3_1_3|2_6_1|1_11_1|1_5_2|1_9_1" disable="3_1_2|3_1_1|1_5_1" hide="3_1_2|3_1_1|1_5_1|2_6_1|1_9_1" show="1_3_1|1_4_1|1_8_1|1_5_2|1_6_1|1_7_1|3_1_3"/>
+                </element>
+            </node>
+            <node id="3">
+                <element control="textbox"  arghelp="LoginUsername" maxLength="64" obj-name="baseUsrMgrUserConfig_UserName" id="1" name="User Name"/>
+            </node>
+            <node id="4">
+                <element control="textbox-passwd" arghelp="Password" value="" maxLength="64" obj-name="xLibObjects_dummy" id="1" name="Password" validation="validate_passwd"/>
+            </node>
+            <node id="8">
+                <element control="textbox-passwd" arghelp="Password" value="" maxLength="64" obj-name="xLibObjects_dummy" id="1" name="Confirm Password" validation="validate_passwd"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="baseUsrMgrUserConfig_UserAccessLevel" id="1" name="Access Level" />
+                <element control="combo"  id="2" obj-name="baseUsrMgrUserConfig_UserAccessLevel" name="Access Level">
+				      <action type="enum"  enable="1_3_1"/>
+                      <action type="enum"  enable="1_3_1"/>
+                      <action type="enum"  enable="1_3_1"/>
+                </element>
+            </node>
+            <node id="6">
+                <element control="label" properties="read-only" obj-name="baseUsrMgrUserConfig_UserLockoutStatus" id="1" name="Lockout Status"/>
+            </node>
+            <node id="7">
+                <element control="label" properties="read-only" obj-name="baseUsrMgrUserConfig_UserPasswordExpireTime" id="1" name="Password Expiration Date"/>
+            </node>
+            <node id="9">
+                <element control="textbox-passwd" value="" obj-name="baseUsrMgrUserConfig_UserPassword" id="1" name=""/>
+            </node>
+            <node id="10">
+                <element control="label" properties="read-only,hidden" obj-name="baseUsrMgrGlobal_PasswordManagementMinLength" id="1" name=""/>
+            </node>
+            <node id="11">
+                 <element control="checkbox" uienum="TrueFalse_t" properties="noname,hidden" obj-name="xLibObjects_dummy" id="1" name="" value="False" />
+            </node>
+        </group>
+        <group id="2" heading="SNMP v3 User Configuration" level="ReadWriteUser">
+            <node id="1">
+                <element control="textbox"  obj-name="baseUsrMgrUserConfig_UserAccessMode" id="1" name="SNMP v3 Access Mode" properties="read-only"/>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="baseUsrMgrUserConfig_UserAuthType" id="1" name="Authentication Protocol">
+				    <action type="enum"  disable="2_3_1|2_4_1|2_5_1|1_9_1" enable="2_6_1" setval_ids="2_3_1|2_4_1" setval_args="None|valMapEmptyString"/>
+                    <action type="enum"  enable="2_5_1|1_9_1" disable="2_6_1"/>
+					<action type="enum"  enable="2_5_1|1_9_1" disable="2_6_1"/>
+				</element>
+            </node>
+            <node id="5">
+            <element control="checkbox" uienum="TrueFalse_t" properties="" obj-name="xLibObjects_dummy" id="1" name="Configure Encryption" value="False" >
+                   <action type="enum"  enable="2_3_1|2_4_1"/>
+                   <action type="enum"  disable="2_3_1|2_4_1"/>
+                </element>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="baseUsrMgrUserConfig_UserEncryptType" id="1" name="Encryption Protocol"/>
+            </node>
+            <node id="4">
+                <element control="textbox-passwd"  maxLength="64" obj-name="baseUsrMgrUserConfig_UserEncryptPassword" id="1" name="Encryption Key"  arghelp="LoginUsername" value=""/>
+           </node>
+		   <node id="6">
+                <element control="textbox-passwd" value="" obj-name="baseUsrMgrUserConfig_UserPassword" id="1" name=""/>
+            </node>
+        </group>
+        <group id="3" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                  <action type="button" disable="3_1_2" enable="1_11_1"/>
+                </button>
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="baseUsrMgrUserConfig_UserStatus" help="Submits the form on this page to the Switch" id="2" name="Delete">
+                <action type="button" disable="3_1_1|1_2_1|1_3_1|2_6_1|2_2_1|2_3_1|2_4_1|1_11_1|1_9_1" />
+                </button>
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="baseUsrMgrUserConfig_UserStatus" help="Submits the form on this page to the Switch" id="3" name="Add">
+                <action type="button" disable="3_1_1|3_1_2" enable="1_11_1"/>
+                </button>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

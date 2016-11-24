@@ -1,0 +1,44 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="auto_install_cfg" title="Auto Install Configuration">
+        <group id="1"  level="ReadWriteUser" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="baseAutoInstall_AutoInstallStartStop" id="1" name="AutoInstall Mode"/>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="baseAutoInstall_AutoInstallAutoSave" id="1" name="AutoSave Mode"/>
+            </node>
+            <node id="3">
+                <element arghelp="autoInstallRetryCountRange" obj-name="baseAutoInstall_AutoInstallFileDownloadRetryCount" id="1" name="Retry Count"/>
+            </node>
+            <node id="4">
+                <element obj-name="baseAutoInstall_AutoInstallCurrentStatus" id="1" name="AutoInstall State"/>
+            </node>
+            <node id="5">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+        <group id="2"  level="ReadOnlyUser" heading=" ">
+            <node id="1">
+                <element properties="read-only" obj-name="baseAutoInstall_AutoInstallStartStop" id="1" name="AutoInstall Mode"/>
+            </node>
+            <node id="2">
+                <element properties="read-only" obj-name="baseAutoInstall_AutoInstallAutoSave" id="1" name="AutoSave Mode"/>
+            </node>
+            <node id="3">
+                <element properties="read-only" obj-name="baseAutoInstall_AutoInstallFileDownloadRetryCount" id="1" name="Retry Count"/>
+            </node>
+            <node id="4">
+                <element properties="read-only" obj-name="baseAutoInstall_AutoInstallCurrentStatus" id="1" name="AutoInstall State"/>
+            </node>
+            <node id="5">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

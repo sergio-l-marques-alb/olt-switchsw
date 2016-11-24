@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "web.dtd">
+
+<FastPathXML>
+  <webxml name="portMirroringConfigRemoveSourcePort" title="Multiple Port Mirroring - Remove Source Ports " version="1.0">
+    <group heading="" id="1" level="ReadWriteUser">
+      <node id="1">
+        <element id="1" obj-name="basePortMirroring_PortMirrorSessionID" properties="filter" name="Session"/>
+      </node>
+        <repeat present="vtable" edit="no" heading="" id="2">
+          <element properties="filter,iterate" obj-name="basePortMirroring_PortMirrorDirectionKey" id="1" name="Direction"/>
+          <element control="label" properties="collate" obj-name="basePortMirroring_PortMirrorSourcePortConfigured" id="2" name="Source Port(s)"/>
+        </repeat>
+    </group>
+    <group heading="" id="2" level="ReadWriteUser">
+      <node id="3">
+          <!--element properties="filter,iterate,hidden" obj-name="basePortMirroring_PortMirrorDirectionKey" id="1" /-->
+          <element id="2" control="combo-multiselect" properties="edit,collate,list" obj-name="basePortMirroring_PortMirrorSourcePortConfigured" name="Source Port(s)"/>
+      </node>
+      <node id="5">
+        <button scope="page" type="buttonSubmit" name="Remove" help="" id="1" target-page="PortMirroring.html"/>
+        <button scope="page" type="buttonSubmit" name="Cancel" help="" id="2" target-page="PortMirroring.html">
+            <action type="button" discard="no" disable="2_3|2_5_1"/>
+        </button>
+      </node>
+    </group>
+  </webxml>
+</FastPathXML>

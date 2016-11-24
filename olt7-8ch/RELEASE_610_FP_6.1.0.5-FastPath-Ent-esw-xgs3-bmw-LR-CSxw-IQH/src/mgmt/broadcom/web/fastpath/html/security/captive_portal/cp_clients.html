@@ -1,0 +1,405 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename  cp_clients.html
+*
+* @purpose   HTML content
+*
+* @comments  None
+*
+* @create    9/9/2007
+*
+* @author    rjindal
+*
+* @end
+*
+*********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<HEAD>
+   emweb:/USMWEB_PAGE_META_DATA_GET; <!-- Style Sheet link and Meta data     -->
+   <TITLE>emweb:/USMWEB_SECURITY_OEM_STRING_GET?1966;</TITLE>
+
+<script src="/scripts/utils.js"></script>
+<script type='text/javascript' language='JavaScript'>
+var msie = false;
+var browser=navigator.appName;
+if (browser.indexOf("Microsoft") != -1)   
+    msie = true;
+
+var userRW = emweb:/USMWEB_USER_READWRITE;; 
+var tableSize=emweb:/USMWEB_PAGE_NUMBER_OF_ROWS;;
+var numPagesPerBlock = emweb:/USMWEB_PAGES_PER_BLOCK;; 
+var blockSize=tableSize*numPagesPerBlock;
+var startIndex=0;
+
+jsData = new Array();
+<EMWEB_ITERATE C='
+  static L7_enetMacAddr_t macAddr;
+  static macIterator_t macIterator;
+  static L7_uint32 entryIndex;
+     
+  if (ewsContextIterator(ewsContext) == NULL)
+  {
+    memset(&macAddr, 0x00, sizeof(L7_enetMacAddr_t));
+    entryIndex = 0;
+  }
+  if (usmDbCpdmClientConnStatusNextGet(&macAddr, &macAddr) == L7_SUCCESS)
+  {
+    memcpy(macIterator.macAddr.addr, macAddr.addr, L7_ENET_MAC_ADDR_LEN);
+    macIterator.index = entryIndex;
+    entryIndex++;
+    return (const void *) &macIterator;
+  }
+  else
+  {
+    return L7_NULL;
+  }
+  '>
+<EMWEB_STRING C='
+  macIterator_t macIterator;
+  
+  if (ewsContextIterator(ewsContext) == NULL)
+    memset(&macIterator, 0x00, sizeof(macIterator_t));
+  else
+    memcpy(&macIterator, (macIterator_t *) ewsContextIterator(ewsContext), sizeof(macIterator_t));
+
+  return usmWebCPClientEntryGet(macIterator.macAddr, macIterator.index);
+  '>
+</EMWEB_ITERATE> 
+
+function fillTable(tbodyID, start)
+{
+  var tr, td;
+  var tbody = document.getElementById(tbodyID);
+  var lastIndex = jsData.length;
+  var totalNumEntries = jsData.length;
+  
+  startIndex = start;
+  clearTable(tbody);
+
+  if ((startIndex + tableSize) < lastIndex)
+    lastIndex = (startIndex + tableSize);
+  
+  var strClass = "class";
+  if (msie)
+    strClass = "className";
+
+  for (var i=startIndex; i<lastIndex; i++) 
+  {
+    tr = tbody.insertRow(tbody.rows.length);
+  
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "rowvalue");
+    if (userRW == 1)
+      td.innerHTML = "emweb:/USMWEB_INPUT; align=\"right\" type=\"checkbox\" id=\"cb"+i+"\">";
+    else 
+      td.innerHTML = "emweb:/USMWEB_INPUT; disabled align=\"right\" type=\"checkbox\" id=\"cb"+i+"\">";
+
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "rowvalue");
+    td.innerHTML = jsData[i].peerClient;
+
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "sortedtabledata");
+    td.innerHTML = "<a href=\"cp_client_status.html?mac="+jsData[i].mac+"\" title=\"Click here to see details\">"+jsData[i].mac+"</a>";
+  
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "sortedtabledata");
+    td.innerHTML = jsData[i].ip;
+
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "sortedtabledata");
+    td.innerHTML = jsData[i].user;
+
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "sortedtabledata");
+    td.innerHTML = jsData[i].protocol;
+
+    td = tr.insertCell(tr.cells.length);
+    td.setAttribute(strClass, "sortedtabledata");
+    td.innerHTML = jsData[i].verification;
+  }
+
+  tr = tbody.insertRow(tbody.rows.length);
+
+  td = tr.insertCell(tr.cells.length);
+  td.colSpan = 6;
+  td.setAttribute("align", "center");
+  td.innerHTML = "<br>";
+
+  var currPage = ((startIndex - (startIndex%(tableSize)))/(tableSize)) + 1;
+  var currBlock = 0;
+  var prevIndex = -1;
+  var nextIndex = -1;
+  if (startIndex >= blockSize) 
+    currBlock = (startIndex - (startIndex%(blockSize)))/(blockSize);
+  i = currBlock*numPagesPerBlock+1;
+  var pStart = (i-1)*tableSize;
+  if (jsData.length > tableSize) 
+  {
+    if (currBlock >= 1) 
+    {
+      prevIndex = (currBlock-1)*(blockSize);
+      td.innerHTML += "<a href=\"#\" onclick=\'fillTable(\"cpClientData\","+prevIndex+")\'>Previous</a>&nbsp;";
+    }
+    for (var k=0; k<numPagesPerBlock; k++) 
+    {
+      if (pStart >= jsData.length)
+        break;
+      if (i == currPage) 
+        td.innerHTML += i+"&nbsp;";
+      else
+        td.innerHTML += "<a href=\"#\" onclick=\'fillTable(\"cpClientData\","+pStart+")\'>"+i+"</a>&nbsp;";
+      pStart += tableSize;
+      i++;
+    }
+    if (totalNumEntries > ((currBlock+1)*blockSize))
+    {
+      nextIndex = (currBlock+1)*(blockSize);
+      td.innerHTML += "<a href=\"#\" onclick=\'fillTable(\"cpClientData\","+nextIndex+")\'>Next</a>";
+    }
+  }
+}
+
+function sortTable(link)
+{
+  switch (link.firstChild.nodeValue) {
+  case "Client MAC Address" :
+    jsData.sort(sortByMAC);
+    break;
+  case "Client IP Address" :
+    jsData.sort(sortByIP);
+    break;
+  case "User" :
+    jsData.sort(sortByUser);
+    break;
+  case "Protocol" :
+    jsData.sort(sortByProtocol);
+    break;
+  case "Verification" :
+    jsData.sort(sortByVerify);
+    break;
+  default :
+    jsData.sort(sortByMAC);
+    break;
+  }
+  fillTable("cpClientData", 0);
+  return false;
+}
+
+function sortByMAC(a, b)
+{
+  var sa = a.mac.toLowerCase();
+  var sb = b.mac.toLowerCase();
+  return ((sa < sb) ? -1 : ((sa > sb) ? 1 : 0));
+}
+
+function sortByIP(a, b)
+{
+  var sa = a.ip.toLowerCase();
+  var sb = b.ip.toLowerCase();
+  return ((sa < sb) ? -1 : ((sa > sb) ? 1 : 0));
+}
+
+function sortByUser(a, b)
+{
+  var sa = a.user.toLowerCase();
+  var sb = b.user.toLowerCase();
+  return ((sa < sb) ? -1 : ((sa > sb) ? 1 : 0));
+}
+
+function sortByProtocol(a, b)
+{
+  var sa = a.protocol.toLowerCase();
+  var sb = b.protocol.toLowerCase();
+  return ((sa < sb) ? -1 : ((sa > sb) ? 1 : 0));
+}
+
+function sortByVerify(a, b)
+{
+  var sa = a.verification.toLowerCase();
+  var sb = b.verification.toLowerCase();
+  return ((sa < sb) ? -1 : ((sa > sb) ? 1 : 0));
+}
+
+function clearTable(tbody)
+{
+  while (tbody.rows.length > 0)
+  {
+    tbody.deleteRow(0);
+  }
+}
+
+function getCheckedMacAddrs()
+{
+  var lastIndex = jsData.length;
+  
+  if ((startIndex + tableSize) < lastIndex) 
+    lastIndex = (startIndex + tableSize);
+  
+  clearSelectedMacs();
+  
+  var j=0;
+  var selMAC = document.getElementById("selectedMACs"); 
+  for (var i=startIndex; i<lastIndex; i++) 
+  {
+    var checkBox = document.getElementById("cb"+i);
+    if (checkBox.checked == true) 
+    {
+      if (j == 0) 
+        selMAC.value = jsData[i].mac+";";
+      else
+        selMAC.value += jsData[i].mac+";";
+      j++;
+    }
+  }
+}
+
+function clearSelectedMacs()
+{
+  var selMAC = document.getElementById("selectedMACs"); 
+  selMAC.value = "";
+}
+
+function DisplayErrorMsg()
+{
+  alert(document.forms[0].err_msg.value);
+}
+
+function check_error()
+{
+  if (document.forms[0].err_flag.value == 1)
+  {
+    DisplayErrorMsg();
+  }
+}
+
+function deauth_check()
+{
+  count = 0;
+  for (var i=0; i<document.forms[0].elements.length; i++)
+  {
+    if (document.forms[0].elements[i].checked == true)
+      count++;
+  }
+
+  if (count == 0)
+  {
+    alert("Error: Please make a selection by clicking on check box(es).\0");
+  }
+  else
+  {
+    var prompt = window.confirm("Are you sure you want to de-authenticate the CP client(s)?");
+    if (prompt)
+    {
+      document.forms[0].refresh_in_progress.value = 1;
+      document.forms[0].refresh_key.value = 1;
+      document.forms[0].submit();
+    }
+  }
+}
+
+function deauth_all_check()
+{
+  var prompt = window.confirm("Are you sure you want to de-authenticate all CP clients?");
+  if (prompt)
+  {
+    document.forms[0].refresh_in_progress.value = 1;
+    document.forms[0].refresh_key.value = 2;
+    document.forms[0].submit();
+  }
+}
+</script>
+</HEAD>
+
+<BODY class="bodyframeattributes" onLoad='check_error()'>
+<FORM method="post" EMWEB_NAME="cpClients" onsubmit='getCheckedMacAddrs()'>
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Tabbed Navigation                                               -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_TABS_CP_CLIENT_STATUS?0;
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Web page header                                                 -->
+<!-- ----------------------------------------------------------------------- -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_1ST_GET?1966;   <!-- Includes page title           -->
+emweb:/USMWEB_SECURITY_PAGE_HEADER_2ND_GET?2766;   <!-- Includes help page link       -->
+
+<TABLE CLASS="tablecontent" emweb:/USMWEB_TABLE_CONTENT_ALIGN; cellpadding="0" cellspacing="0">
+
+  <EMWEB_IF ID=USMWEB_IF_CP_CLIENT_EXISTS> <!-- If client entry exists -->
+  <!-- START - CP Client summary -->
+  <TR>
+  <TD>
+  <TABLE id="cpClientTable" class="datatableattributes" emweb:/USMWEB_DATA_TABLE_ALIGN; cellpadding="0" cellspacing="0">
+    <THEAD>
+      <TR>
+      <TH class="nodatatableheading"></TH>  <!-- No header for checkboxes -->
+      <TH class="nodatatableheading"></TH>  <!-- No header for peer managed client indication -->
+<EMWEB_IF ID=USMWEB_IF_WIDS_CONTROLLER>
+      <TH class="datatableheading" align="center"><a href="#" title="Sort by Client MAC" onclick="return sortTable(this)">MAC Address<BR>(*)-Peer Authenticated</a></TH>
+<EMWEB_ELSE>
+      <TH class="datatableheading" align="center"><a href="#" title="Sort by Client MAC" onclick="return sortTable(this)">MAC Address</a></TH>
+</EMWEB_IF>
+      <TH class="datatableheading" align="center"><a href="#" title="Sort by Client IP" onclick="return sortTable(this)">IP Address</a></TH>
+      <TH class="datatableheading" align="center"><a href="#" title="Sort by User" onclick="return sortTable(this)">User</a></TH>
+      <TH class="datatableheading" align="center"><a href="#" title="Sort by Protocol" onclick="return sortTable(this)">Protocol</a></TH>
+      <TH class="datatableheading" align="center"><a href="#" title="Sort by Verification" onclick="return sortTable(this)">Verification</a></TH>
+      </TR>
+    </THEAD>
+    <TFOOT><TR><TD=colspan=7></TD></TR></TFOOT> 
+    <TBODY id="cpClientData"></TBODY>
+  </TABLE>
+  </TD>
+  </TR>
+  <!-- END - CP Client summary -->
+
+  <EMWEB_ELSE> <!-- No clients exist -->
+  <TR>
+  <TD colspan=7 class="rowidentifierattributes">emweb:/USMWEB_SECURITY_GET_NLS_STRING?27138;</TD>
+  </TR>
+
+  </EMWEB_IF> <!-- EndIf client entry exists -->
+
+  <TR>
+  <TD colspan=7 emweb:/USMWEB_BUTTON_ALIGN;><BR>
+    <EMWEB_IF ID=USMWEB_IF_READWRITE>
+    <EMWEB_IF ID=USMWEB_IF_CP_CLIENT_EXISTS>
+    <input class="buttonattributes" type="submit" name="Deauth" VALUE="Delete" onclick='deauth_check()'>
+    <input class="buttonattributes" type="submit" name="Deauth_all" VALUE="Delete All" onclick='deauth_all_check()'>
+    </EMWEB_IF>
+    </EMWEB_IF>
+    <input class="buttonattributes" type="submit" name="Refresh">
+  </TD>
+  </TR>
+
+</TABLE>
+
+<INPUT TYPE="hidden" NAME="err_flag" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="err_msg" SIZE="128" MAXLENGTH="127">
+<INPUT TYPE="hidden" NAME="selectedMACs" id="selectedMACs" SIZE="500" MAXLENGTH="499" value="">
+<INPUT TYPE="hidden" NAME="refresh_in_progress" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="refresh_key" SIZE="16" MAXLENGTH="15" EMWEB_TYPE=DECIMAL_UINT>
+
+<EMWEB_IF ID=USMWEB_IF_CP_CLIENT_EXISTS>
+  <script type="text/javascript" language="JavaScript1.2">fillTable("cpClientData", 0)</script>
+</EMWEB_IF>
+
+<!-- ----------------------------------- -->
+<!--         Web page footer             -->
+<!-- ----------------------------------- -->
+ emweb:/USMWEB_PAGE_FOOTER_GET;
+
+</FORM>
+</BODY>
+</HTML>
+

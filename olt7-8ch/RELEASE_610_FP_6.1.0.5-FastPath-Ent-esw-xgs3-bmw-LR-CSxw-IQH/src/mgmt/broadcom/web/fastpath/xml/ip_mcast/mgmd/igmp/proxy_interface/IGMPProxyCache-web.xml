@@ -1,0 +1,38 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IGMPProxyCache" title="IGMP Proxy Interface Membership Info">
+        <group id="1" heading=" ">
+            <node id="3">
+                <element properties="write-only,hidden" value="IPv4" obj-name="ipmcastmgmdHostCacheTable_mgmdHostCacheAddressType" id="1" name="mgmdHostCacheAddressType"/>
+            </node>
+            <node id="1">
+                <element control="combo" properties="iterate" obj-name="ipmcastmgmdHostCacheTable_mgmdHostCacheIfIndex" id="1" />
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter, iterate" obj-name="ipmcastmgmdHostCacheTable_mgmdHostCacheAddress" id="1" name="Multicast Group IP"/>
+            </node>
+            <node id="4">
+                <element obj-name="ipmcastmgmdHostCacheTable_mgmdHostCacheLastReporter" id="1" name="Last Reporter"/>
+            </node>
+            <node id="5">
+                <element obj-name="ipmcastmgmdHostCacheTable_mgmdHostCacheUpTime" id="1" name="Up Time(hh:mm:ss)"/>
+            </node>
+            <node id="6">
+                <element obj-name="ipmcastmgmdHostCacheTable_mgmdHostGroupStatus" id="1" name="State"/>
+            </node>
+            <node id="7">
+                <element obj-name="ipmcastmgmdHostCacheTable_mgmdHostCacheSourceFilterMode" id="1" name="Filter Mode"/>
+            </node>
+            <node id="8">
+                <element obj-name="ipmcastmgmdHostCacheTable_mgmdHostInterfaceSrcCount" id="1" name="Number of Sources"/>
+            </node>
+            <node id="9">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,139 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+<!-- DONT MODIFY THE NODE ID NUMBERS -->
+
+<FastPathXML>
+    <webxml version="1.0" name="Policy_class_definition" title="DiffServ Policy Class Definition" java-script="attribute_copy" >
+        <group id="1" heading="">
+
+      		<node id="12" >
+		         <element  obj-name="qosDiffServPolicy_PolicyIndex" id="1" name="Policy Index" control="label" properties="hidden" />
+		      </node>
+          
+          <node id="1">
+				     <element obj-name="qosDiffServPolicy_PolicyName" id="1" name="Policy Name" control="combo" properties="filter,iterate">
+				        <action type="default" hide="1_6|1_10|1_1_3|1_4_3" />
+				        <action type="value" value="dontentersomedummy" hide="1_6|1_10|1_4_3|1_1_3" />
+				     </element>
+             <element  obj-name="qosDiffServPolicyAttributeStmt_PolicyAttrIndex" id="3" name="PolicyAttrIndex"  control="textbox" />
+          </node>
+			
+          <node id="3">
+             <element  obj-name="qosDiffServPolicy_PolicyType" id="1" name="Policy Type" control="label"/>
+          </node>
+
+         	<node id="10">
+             <element  obj-name="qosDiffServPolicyAttributeStmt_PolicyIndex" cpval="qosDiffServPolicy_PolicyIndex" id="1" name="PolicyAttributeIndex"/>
+				     <element  obj-name="qosDiffServPolicyInst_PolicyIndex" cpval="qosDiffServPolicy_PolicyIndex" id="2" name="InstancePolicyIndex"/>
+			    </node>
+       
+          <node id="4">
+             <element properties="filter,iterate" obj-name="qosDiffServPolicyInst_PolicyInstIndex" id="1" name="Member Class List (InstanceIndex)" control="combo"/>
+			       <element control="label" properties="hidden" obj-name="qosDiffServPolicyInst_PolicyInstClassName" id="2" name="Member Class Name"/>
+			       <element  obj-name="qosDiffServPolicyAttributeStmt_PolicyInstIndex" id="3" name="Attribute(InstanceIndex)"/>
+          </node>
+			
+          <node id="100">
+             <element control="combo" properties="hidden" obj-name="qosDiffServPolicyAttributeStmt_EntryType" id="1" name="Policy Attribute Selector"/>
+          </node>
+      
+          <node id="5">
+             <element control="combo" properties="list" obj-name="qosDiffServPolicyAttributeStmt_EntryType1" id="1" name="Policy Attribute Selector">
+                 <action type="value" value="None" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_NONE" hide="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_12|1_5_13" disable="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_12|1_5_13|1_6_1|1_6_2|1_6_3|1_6_4|1_6_5|1_6_6|1_6_7" show="1_5_11"/><!--none-->         
+ 
+                 <action type="value" value="Assign Queue" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_ASSIGN_QUEUE" hide="1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13" disable="1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_11|1_5_12|1_5_13|1_6_2|1_6_3|1_6_4|1_6_5|1_6_6|1_6_7" show="1_5_2" enable="1_5_2|1_6_1"/><!--Assign Queue-->          
+
+                 <action type="value" value="Bandwidth" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_BANDWIDTH"/><!-- Bandwidth-->
+
+                 <action type="value" value="Drop" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_DROP" hide="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_11|1_5_12|1_5_13" disable="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_11|1_5_12|1_5_13" show="1_5_10" enable="1_5_10"/><!--drop-->
+
+                 <action type="value" value="Expedite" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_EXPEDITE"/><!-- Expedite-->
+
+                 <action type="value" value="Mark Cos" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_MARK_COSVAL" hide="1_5_2|1_5_3|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13" disable="1_5_2|1_5_3|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13|1_6_1|1_6_3|1_6_4|1_6_5|1_6_6|1_6_7" show="1_5_4" enable="1_5_4|1_6_2"/><!-- mark cos -->
+
+                 <action type="value" value="Mark CoS As Secondary CoS" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_MARK_COSASCOS2" hide="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_13" disable="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_13|1_6_1|1_6_3|1_6_4|1_6_5|1_6_6|1_6_7" show="1_5_12" enable="1_5_12|1_6_2"/><!-- -cos as cos2 val-->
+
+                 <action type="value" value="Mark IP DSCP" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_MARK_IPDSCPVAL" hide="1_5_2|1_5_3|1_5_4|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13" disable="1_5_2|1_5_3|1_5_4|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13|1_6_1|1_6_2|1_6_4|1_6_5|1_6_6|1_6_7" show="1_5_5" enable="1_5_5|1_6_3"/><!--ipdscp val -->
+
+                 <action type="value" value="Mark IP Precedence" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_MARK_IPPRECEDENCEVAL" hide="1_5_2|1_5_3|1_5_4|1_5_5|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13" disable="1_5_2|1_5_3|1_5_4|1_5_5|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13|1_6_1|1_6_2|1_6_3|1_6_5|1_6_6|1_6_7" show="1_5_6" enable="1_5_6|1_6_4"/><!-- ip precedence -->
+
+                 <action type="value" value="Mirror" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_MIRROR" hide="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13" disable="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13|1_6_1|1_6_2|1_6_3|1_6_4|1_6_6|1_6_7" show="1_5_7" enable="1_5_7|1_6_5"/><!-- mirror -->
+
+                 <action type="value" value="Simple" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_POLICE_SIMPLE" hide="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13" disable="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13|1_6_1|1_6_2|1_6_3|1_6_4|1_6_5|1_6_7" show="1_5_8" enable="1_5_8|1_6_6"/><!-- police simple -->
+
+                 <action type="value" value="Single Rate" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_POLICE_SINGLERATE" hide="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12" disable="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_6_1|1_6_2|1_6_3|1_6_4|1_6_5|1_6_6|1_6_7" show="1_5_13" enable="1_5_13"  /><!-- single rate -->
+
+                 <action type="value" value="Two Rate" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_POLICE_TWORATE" hide="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_9|1_5_8|1_5_10|1_5_12|1_5_13" disable="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_12|1_5_13|1_6_1|1_6_2|1_6_3|1_6_4|1_6_5|1_6_6|1_6_7" show="1_5_11" enable="1_5_11"  run_if="QOS_DIFFSERV_POLICY_ATTR_POLICE_TWORATE_FEATURE_PRESENT"/><!-- two rate -->
+
+                 <action type="value" value="Random Drop" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_RANDOMDROP" /><!-- random drop -->
+
+                 <action type="value" value="Redirect" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_REDIRECT" hide="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_10|1_5_11|1_5_12|1_5_13" disable="1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_10|1_5_11|1_5_12|1_5_13|1_6_1|1_6_2|1_6_3|1_6_4|1_6_5|1_6_6" show="1_5_9" enable="1_5_9|1_6_7"/><!-- redirect -->
+
+                 <action type="value" value="Shape Average" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_SHAPE_AVERAGE" /><!-- shape average -->
+
+                 <action type="value" value="Shape Peak" setval_ids="1_100_1" setval_args="DIFFSERV_POLICY_ATTR_TYPE_SHAPE_PEAK" /><!-- shape peak -->
+             </element>
+                
+             <button scope="page" type="buttonClear" target-page="diffserv_assign_queue.html" help="Submits the form on this page to the Switch" id="2" name="Configure Selected Attribute"><!-- assign queue -->
+     		    		<action type="button" disable= "1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13"/>
+				     </button>
+
+             <button scope="page" type="buttonClear" target-page="diffserv_drop.html" help="Submits the form on this page to the Switch" id="3" name="Configure Selected Attribute"><!--drop-->
+    				    <action type="button" disable= "1_5_2|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_11|1_5_10|1_5_12|1_5_13"/>
+				     </button>
+
+             <button scope="page" type="buttonClear" target-page="diffserv_markcos.html"  help="Submits the form on this page to the Switch" id="4" name="Configure Selected Attribute"><!-- mark cos -->
+    				    <action type="button" disable= "1_5_2|1_5_3|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13"/>
+				     </button>
+
+             <button scope="page" type="buttonClear" target-page="diffserv_markipdscp.html" help="Submits the form on this page to the Switch" id="5" name="Configure Selected Attribute"><!-- mark ip dscp -->
+    				    <action type="button" disable= "1_5_2|1_5_3|1_5_4|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13"/>
+				     </button>
+
+             <button scope="page" type="buttonClear" target-page="diffserv_markipprec.html" help="Submits the form on this page to the Switch" id="6" name="Configure Selected Attribute">
+    				    <action type="button" disable= "1_5_2|1_5_3|1_5_4|1_5_5|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13"/>
+				     </button>
+
+             <button scope="page" type="buttonClear" target-page="diffserv_mirror.html" help="Submits the form on this page to the Switch" id="7" name="Configure Selected Attribute">
+    				    <action type="button" disable= "1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13"/>
+				     </button>
+
+             <button scope="page" type="buttonClear" target-page="diffserv_policesimple.html" help="Submits the form on this page to the Switch" id="8" name="Configure Selected Attribute">
+    				    <action type="button" disable= "1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12|1_5_13"/>
+				     </button>
+
+             <button scope="page" type="buttonClear" target-page="diffserv_redirect.html" help="Submits the form on this page to the Switch" id="9" name="Configure Selected Attribute">
+    				    <action type="button" disable= "1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_10|1_5_11|1_5_12|1_5_13"/>
+			       </button>
+
+				     <button scope="page" type="buttonClear" target-page="diffserv_markdrop.html" help="Submits the form on this page to the Switch" id="10" name="Configure Selected Attribute">
+    				    <action type="button" disable= "1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_11|1_5_12|1_5_13"/>
+				     </button>
+
+             <button scope="page" type="buttonClear" target-page="diffserv_police_tworate.html" help="Submits the form on this page to the Switch" id="11" name="Configure Selected Attribute">
+                <action type="button" disable= "1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_12|1_5_13"/>
+             </button>
+
+				     <button scope="page" type="buttonClear" target-page="diffserv_markcosascos2.html" help="Submits the form on this page to the Switch" id="12" name="Configure Selected Attribute"><!-- mark cos as cos 2 -->
+      			    <action type="button" disable= "1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_13"/>
+			       </button>
+             
+             <button scope="page" type="buttonClear" target-page="diffserv_police_singlerate.html" help="Submits the form on this page to the Switch" id="13" name="Configure Selected Attribute">
+                <action type="button" disable= "1_5_2|1_5_3|1_5_4|1_5_5|1_5_6|1_5_7|1_5_8|1_5_9|1_5_10|1_5_11|1_5_12"/>
+             </button>
+
+      </node>
+
+			<node id="6">
+			  <element  obj-name="qosDiffServPolicyAttributeStmt_AssignQueueIndex" id="1" name="AssignQueueIndex" />
+			  <element  obj-name="qosDiffServPolicyAttributeStmt_MarkCosIndex" id="2" name="Mark cos index" />
+			  <element  obj-name="qosDiffServPolicyAttributeStmt_IPDSCPIndex" id="3" name="IP DSCP index" />
+			  <element  obj-name="qosDiffServPolicyAttributeStmt_IPPrecedenceIndex" id="4" name="IP Prec index" />
+			  <element  obj-name="qosDiffServPolicyAttributeStmt_MirrorIntfIndex" id="5" name="Mirror index" />
+			  <element  obj-name="qosDiffServPolicyAttributeStmt_RedirectIntfIndex" id="7" name="Redirect cos index" />
+			  <element  obj-name="qosDiffServPolicyAttributeStmt_SimplePoliceIndex" id="6" name="Police Simple" />
+			</node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,57 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>MLD Snooping Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+
+<hr size=4 width="100%" align=center>
+<h2><a name=mrcfg></a>Help for MLD Snooping Multicast Router Configuration</h2>
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+     <li><b><EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	Unit/Slot/Port
+<EMWEB_ELSE>
+	Slot/Port
+</EMWEB_IF></b>
+       - The  select box lists all<EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	 Unit/Slot/Port
+<EMWEB_ELSE>
+	 Slot/Port
+</EMWEB_IF>.
+         Select the interface for which you want Multicast Router to be enabled .
+     </li>
+     <li><b> Multicast Router Mode </b>
+       - Enable or disable Multicast Router on the selected<EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	 Unit/Slot/Port
+<EMWEB_ELSE>
+	 Slot/Port
+</EMWEB_IF>.
+       </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>- Updates the switch with the values you entered.
+  </li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+</body>
+
+</html>
+
+

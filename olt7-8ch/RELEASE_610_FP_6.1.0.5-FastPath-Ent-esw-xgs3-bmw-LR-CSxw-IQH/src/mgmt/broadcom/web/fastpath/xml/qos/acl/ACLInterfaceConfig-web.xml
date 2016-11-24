@@ -1,0 +1,158 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="ACLInterfaceConfig" title="ACL Interface Configuration">
+        <group id="1" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <element control="combo" properties="filter,iterate,list" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfIndex" id="1" />
+            </node>
+            <node id="2" run_if="QOS_ACL_DIRECTION_BOTH_SUPPORTED">
+                <element control="combo" properties="filter,iterate,list" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfDirection" id="1" name="Direction">
+                    <action type="enum"/>
+                    <action type="enum"/>
+                </element>
+            </node>
+            <node id="23" run_if="QOS_ACL_DIRECTION_IN_ONLY_SUPPORTED">
+                <element control="combo" properties="filter,iterate,list" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfDirection" id="1" name="Direction">
+                    <action type="enum"/>
+                    <action type="enum" discard="yes"/>
+                </element>
+            </node>
+            <node id="24" run_if="QOS_ACL_DIRECTION_OUT_ONLY_SUPPORTED">
+                <element control="combo" properties="filter,iterate,list" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfDirection" id="1" name="Direction">
+                    <action type="enum" discard="yes"/>
+                    <action type="enum"/>
+                </element>
+            </node>
+
+            <node id="3">
+                <element control="combo" level="ReadWriteUser" properties="filter,iterate,list" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfAclType" id="1" name="ACL Type">
+                <!--  <action type="enum" hide="1_4_1|1_5_1|1_6_1|1_7_1|1_8_1|1_9_1|1_10_1|1_11_1" disable="1_4_1|1_5_1|1_6_1|1_7_1|1_8_1|1_9_1|1_10_1|1_11_1"/>
+                 <action type="enum" hide="1_5_1|1_6_1|1_9_1|1_10_1|1_11_1" disable="1_5_1|1_6_1|1_9_1|1_10_1|1_11_1" show="1_4_1|1_7_1|1_8_1" enable="1_4_1|1_7_1|1_8_1"/>
+                 <action type="enum" hide="1_4_1|1_6_1|1_7_1|1_8_1|1_11_1" disable="1_4_1|1_6_1|1_7_1|1_8_1|1_11_1" show="1_5_1|1_9_1|1_10_1" enable="1_5_1|1_9_1|1_10_1"/>
+                 <action type="enum" hide="1_4_1|1_5_1|1_7_1|1_8_1|1_9_1|1_10_1" disable="1_4_1|1_5_1|1_7_1|1_8_1|1_9_1|1_10_1" show="1_6_1|1_11_1" enable="1_6_1|1_11_1"/> -->
+                 <action type="enum" hide="1_7_1|1_8_1|1_9_1|1_10_1|1_11_1|1_18|1_19|1_20_1|1_21_1" disable="1_7_1|1_8_1|1_9_1|1_10_1|1_11_1|1_17_1|1_18|1_19|1_20_1|1_21_1"/>
+                 <action type="enum" hide="1_9_1|1_10_1|1_11_1|1_20_1|1_21_1" disable="1_9_1|1_10_1|1_11_1|1_17_1|1_20_1|1_21_1" show="1_7_1|1_8_1" enable="1_7_1|1_8_1|1_18|1_19"/>
+                 <action type="enum" hide="1_7_1|1_8_1|1_11_1|1_18|1_19|1_20_1|1_21_1" disable="1_7_1|1_8_1|1_11_1|1_18|1_19|1_20_1|1_21_1" show="1_9_1|1_10_1" enable="1_9_1|1_10_1|1_17_1"/>
+                 <action type="enum" hide="1_7_1|1_8_1|1_9_1|1_10_1|1_18|1_19|" disable="1_7_1|1_8_1|1_9_1|1_10_1|1_17_1|1_18|1_19|" show="1_11_1" enable="1_11_1|1_20_1|1_21_1"/>
+            </element>
+            </node>
+<!--
+            <node id="4">
+                <element control="combo" level="ReadWriteUser" properties="filter,iterate" obj-name="fastPathQOSACLQOSACL_aclIndex" id="1" name="ACL ID"/>
+            </node>
+            <node id="5">
+                <element control="combo" level="ReadWriteUser" properties="filter,iterate" obj-name="fastPathQOSACLQOSACL_aclMacIndex" id="1" name="ACL ID"/>
+            </node>
+            <node id="6">
+                <element control="combo" level="ReadWriteUser" properties="filter,iterate" obj-name="fastPathQOSACLQOSACL_aclIpv6Index" id="1" name="ACL ID"/>
+            </node> -->            
+            <node id="18">
+                <element   properties="iterate,hidden" obj-name="fastPathQOSACLQOSACL_aclIndex" id="1" name="aclIndex"/>  
+            </node>
+            <node id="7">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSACLQOSACL_aclIPNamedIndex" id="1" name="IP ACL">
+                        <action type="value" value="valMapEmptyString" hide="1_7_1" />
+                    </element>
+            </node>
+
+            <node id="19">
+                <element control="combo" level="ReadWriteUser" properties="hidden" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfAclId" cpval="fastPathQOSACLQOSACL_aclIndex" id="1" name="IP ACL ID"/>
+            </node>
+            <node id="8">
+                    <element control="combo" level="ReadWriteUser" properties="iterate, hidden" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfAclIdOrName" id="1" name="IP ACL"  />
+            </node>
+            <node id="10">
+                <element control="combo" level="ReadWriteUser" properties="iterate,filter" obj-name="fastPathQOSACLQOSACL_aclMacName" id="1" name="MAC ACL" >
+                        <action type="value" value="valMapEmptyString" hide="1_10_1" />
+                </element>
+            </node>
+            <node id="17">
+                <element control="combo" level="ReadWriteUser" properties="iterate,hidden" obj-name="fastPathQOSACLQOSACL_aclMacIndex" id="1" name="MAC ACL ID" />
+            </node>
+            <node id="9">
+                <element control="combo" level="ReadWriteUser" properties="hidden" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfAclId" id="1" cpval="fastPathQOSACLQOSACL_aclMacIndex" name="MAC ACL ID" />
+            </node>
+            <node id="20">
+                <element  properties="iterate,hidden" obj-name="fastPathQOSACLQOSACL_aclIpv6Index" id="1" name="aclIndex"/>
+            </node>
+             <node id="11">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSACLQOSACL_aclIpv6Name" id="1" name="IPV6 ACL">
+                        <action type="value" value="valMapEmptyString" hide="1_11_1" />
+                </element>
+            </node>
+            <node id="21">
+                <element control="combo" level="ReadWriteUser" cpval="fastPathQOSACLQOSACL_aclIpv6Index"  properties="hidden" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfAclId" id="1" name="IPV6 ACL"/>
+            </node>
+
+            <node id="13">
+                <element control="textbox" arghelp="QOS_SEQUENCE_NUM" level="ReadWriteUser"  obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfSequence" id="1" properties="write-only" value="0" maxLength="10" name="Sequence Number"/>
+            </node>
+            <node id="22">
+                <element control="combo" properties="hidden" level="ReadWriteUser"  obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfAclAssociated" id="1" name="ACL Associated">
+                    <action type="enum" show="1_14_2"/>
+                    <action type="enum" hide="1_14_2"/>
+                </element>
+ 
+            </node>
+            
+            <node id="14">
+                <button scope="page" type="buttonSubmit" level="ReadWriteUser" value="Add" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfStatus" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                    <action type="button" disable="1_14_2"/>
+                </button>
+                <button scope="page" type="buttonSubmit" level="ReadWriteUser" value="Delete" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfStatus" help="Submits the form on this page to the Switch" id="2" name="Remove">
+                    <action type="button" disable="1_14_1"/>
+                </button>
+            </node>
+            <node id="15">
+                <message>List of Assigned ACLs</message>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="16">
+                <element properties="filter" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfIndex" id="1" />
+                <element properties="filter" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfDirection" id="2" name="Direction"/>
+                <element properties="filter,iterate" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfSequence" id="3" name="Sequence Number"/>
+                <element properties="filter,iterate" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfAclType" id="4" name="ACL Type"/>
+                <element properties="filter,iterate,hidden" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfAclId" id="5" name="ACL ID"/>
+                <element properties="filter,iterate" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfAclIdOrName" id="6" name="ACL ID"/>
+            </repeat>
+        </group>
+
+        <group id="2" heading=" " level="ReadOnlyUser">
+            <node id="1">
+                <element control="combo" properties="filter,iterate,list" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfIndex" id="1" />
+            </node>
+            <node id="2" run_if="QOS_ACL_DIRECTION_BOTH_SUPPORTED">
+                <element control="combo" properties="filter,iterate,list" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfDirection" id="1" name="Direction">
+                    <action type="enum"/>
+                    <action type="enum"/>
+                </element>
+            </node>
+            <node id="23" run_if="QOS_ACL_DIRECTION_IN_ONLY_SUPPORTED">
+                <element control="combo" properties="filter,iterate,list" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfDirection" id="1" name="Direction">
+                    <action type="enum"/>
+                    <action type="enum" discard="yes"/>
+                </element>
+            </node>
+            <node id="24" run_if="QOS_ACL_DIRECTION_OUT_ONLY_SUPPORTED">
+                <element control="combo" properties="filter,iterate,list" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfDirection" id="1" name="Direction">
+                    <action type="enum" discard="yes"/>
+                    <action type="enum"/>
+                </element>
+            </node>
+            <node id="15">
+                <message>List of Assigned ACLs</message>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="16">
+                <element properties="filter" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfIndex" id="1" />
+                <element properties="filter" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfDirection" id="2" name="Direction"/>
+                <element properties="filter,iterate" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfSequence" id="3" name="Sequence Number"/>
+                <element properties="filter,iterate" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfAclType" id="4" name="ACL Type"/>
+                <element properties="filter,iterate,hidden" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfAclId" id="5" name="ACL ID"/>
+                <element properties="filter,iterate" obj-name="fastPathQOSACLQOSACLIntfConfig_aclIntfIfAclIdOrName" id="6" name="ACL ID"/>
+            </repeat>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,236 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="MACACLRuleConfig" title="MAC ACL Rule Configuration">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element  properties="filter,iterate,hidden" obj-name="fastPathQOSACLQOSACL_aclMacIndex" id="1" name="MAC ACL"/>
+            </node>
+<!-- change this to combo incase when  seudo key in -->
+           <node id="2">
+                 <element control="combo" properties="filter,iterate" obj-name="fastPathQOSACLQOSACL_aclMacName" id="1" name="MAC ACL Name"/>
+           </node>    
+            <node id="3">
+                <element control="combo" level="ReadWriteUser" properties="filter,iterate" obj-name="fastPathQOSACLQOSACL_aclMacRuleIndex" id="1" name="Rule">
+                    <action type="extn" value="Create New Rule" 
+                            show="1_1_1|1_3_1|1_5_1|1_6_1|1_7_1|1_30_1" 
+                            enable="1_1_1|1_3_1|1_5_1|1_6_1|1_7_1|1_30_1" 
+                            disable="1_4|1_8_1|1_8_2|1_8_3|1_9|1_10|1_11_1|1_11_2|1_12_1|1_12_2|1_13|1_14|1_15|1_16|1_17|1_18|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27|1_28|1_29|1_30_2|1_32_1|1_33_1" 
+                            hide   ="1_4|1_8_1|1_8_2|1_8_3|1_9|1_10|1_11_1|1_11_2|1_12_1|1_12_2|1_13|1_14|1_15|1_16|1_17|1_18|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27|1_28|1_29|1_30_2|1_32_1|1_33_1|1_34_1"
+                            setval_args="valMapEmptyString|L7_ENABLE|L7_IP_ACL_ACTION_DEFAULT|L7_IP_ACL_MATCHEVERY_DEFAULT" setval_ids="1_5_1|1_34_1|1_6_1|1_7_1"/>
+                    <action type="default" 
+                            show="1_1_1|1_3_1|1_4|1_8_1|1_8_2|1_9|1_10|1_11_1|1_11_2|1_12_1|1_12_2|1_13|1_14|1_15|1_16|1_17|1_18_1|1_18_2|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27|1_28|1_29|1_30_2" 
+                            enable="1_1_1|1_3_1|1_4|1_8_1|1_8_2|1_9|1_10|1_11_1|1_11_2|1_12_1|1_12_2|1_13|1_14|1_15|1_16|1_17|1_18_1|1_18_2|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27|1_28|1_29|1_30_2" 
+                            disable="1_5_1|1_6_1|1_7_1|1_30_1|1_8_3|1_18_3|1_32_1|1_33_1" 
+                            hide="1_5_1|1_6_1|1_7_1|1_30_1|1_8_3|1_18_3|1_32_1|1_33_1|1_34_1"
+                            setval_ids="1_34_1" setval_args="L7_DISABLE"/>
+                </element>
+                <element control="combo" level="ReadOnlyUser" properties="filter,iterate" obj-name="fastPathQOSACLQOSACL_aclMacRuleIndex" id="2" name="Rule">
+                    <action type="default"
+                            show="1_1_1|1_3_2|1_4|1_8_1|1_8_2|1_9|1_10|1_11_1|1_11_2|1_12_1|1_12_2|1_13|1_14|1_15|1_16|1_17|1_18_1|1_18_2|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27|1_28|1_29|1_30_2"
+                            enable="1_1_1|1_3_2|1_4|1_8_1|1_8_2|1_9|1_10|1_11_1|1_11_2|1_12_1|1_12_2|1_13|1_14|1_15|1_16|1_17|1_18_1|1_18_2|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27|1_28|1_29|1_30_2"
+                            disable="1_5_1|1_6_1|1_7_1|1_30_1|1_8_3|1_18_3|1_32_1|1_33_1"
+                            hide="1_5_1|1_6_1|1_7_1|1_30_1|1_8_3|1_18_3|1_32_1|1_33_1|1_34_1"
+                            setval_ids="1_34_1" setval_args="L7_DISABLE"/>
+                </element>
+            </node>
+
+            <node id="5">
+                <element control="textbox" level="ReadWriteUser" obj-name="fastPathQOSACLQOSACL_aclMacRuleIndex" id="1" name="Rule ID" maxLength="10" arghelp="HELP_FORMAT_ACL_RULE_INDEX"/>
+            </node>
+            <node id="6">
+                <element control="combo" level="ReadWriteUser" obj-name="fastPathQOSACLQOSACL_aclMacRuleAction" id="1" name="Action"/>
+            </node>
+            <node id="7">
+                <element control="combo" level="ReadWriteUser" obj-name="fastPathQOSACLQOSACL_aclMacRuleMatchEvery" id="1" name="Match Every"/>
+            </node>
+
+            <node id="8">
+                <element control="label" obj-name="fastPathQOSACLQOSACL_aclMacRuleAction" id="1" name="Action"/>
+                <element control="combo" obj-name="fastPathQOSACLQOSACL_aclMacRuleAction" id="3" name="Action">
+                    <action type="enum" discard="no" hide="1_4|1_10|1_11|1_12|1_8_3" disable="1_4|1_10|1_11|1_12|1_8_3" enable="1_9" show="1_9"/>
+                    <action type="enum" discard="no" hide="1_9|1_8_3" disable="1_9|1_8_3" enable="1_4|1_10" show="1_4|1_10"/>
+                </element>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleActionConfig.html"/>
+            </node>
+
+            <node id="9" run_if="ACL_LOG_DENY_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleLogging" id="3" name="Logging"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleLoggingConfig.html"/>
+            </node>
+
+            <node id="4" run_if="ACL_LOG_PERMIT_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleLogging" id="1" name="Logging"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleLoggingConfig.html"/>
+            </node>
+
+            <node id="10" run_if="ACL_ASSIGN_QUEUE_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleAssignQueueId" id="1" name="Assign Queue ID"/> 
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleAssignQueueIDConfig.html"/>
+            </node>
+
+            <node id="11" run_if="ACL_MIRROR_FEATURE">
+                <element control="label" properties="read-only,list" obj-name="fastPathQOSACLQOSACL_aclMacRuleMirrorIntf" id="1" name="Mirror Interface"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleMirrorIntf.html"/>
+            </node>
+
+            <node id="12" run_if="ACL_REDIRECT_FEATURE">
+                <element control="label" properties="read-only,list" obj-name="fastPathQOSACLQOSACL_aclMacRuleRedirectIntf" id="1" name="Redirect Interface"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleRedirectIntfConfig.html"/>
+            </node>
+
+            <node id="13" run_if="ACL_RULE_MATCH_EVERY_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleMatchEvery" id="1" name="Match Every"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleMatchEveryConfig.html"/>
+            </node>
+
+            <node id="14" run_if="ACL_RULE_MATCH_COS_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleCos" id="1" name="CoS" />
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleCosConfig.html"/>
+            </node>
+
+            <node id="15" run_if="ACL_RULE_MATCH_COS2_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleCos2" id="1" name="Secondary COS" />
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleCos2Config.html"/>
+            </node>
+
+            <node id="16" run_if="ACL_RULE_MATCH_DSTMAC_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleDestMacAddr" id="1" name="Destination MAC" />
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleDestMacConfig.html"/>
+            </node>
+
+            <node id="17" run_if="ACL_RULE_MATCH_DSTMAC_MASK_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleDestMacMask" id="1" name="Destination MAC Mask" />
+            </node>
+
+            <node id="18" run_if="ACL_RULE_MATCH_ETYPE_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleEtypeKey" id="1" name="Ethertype Key" />
+                <element control="combo" obj-name="fastPathQOSACLQOSACL_aclMacRuleEtypeKey" id="3" name="Ethertype Key">
+                   <action type="enum" discard="no" disable="1_19|1_18_3" hide="1_19|1_18_3"/>
+                   <action type="enum" discard="no" disable="1_19|1_18_3" hide="1_19|1_18_3"/>
+                   <action type="enum" discard="no" disable="1_19|1_18_3" hide="1_19|1_18_3"/>
+                   <action type="enum" discard="no" disable="1_19|1_18_3" hide="1_19|1_18_3"/>
+                   <action type="enum" discard="no" disable="1_19|1_18_3" hide="1_19|1_18_3"/>
+                   <action type="enum" discard="no" disable="1_19|1_18_3" hide="1_19|1_18_3"/>
+                   <action type="enum" discard="no" disable="1_19|1_18_3" hide="1_19|1_18_3"/>
+                   <action type="enum" discard="no" disable="1_19|1_18_3" hide="1_19|1_18_3"/>
+                   <action type="enum" discard="no" disable="1_19|1_18_3" hide="1_19|1_18_3"/>
+                   <action type="enum" discard="no" disable="1_19|1_18_3" hide="1_19|1_18_3"/>
+                   <action type="enum" discard="no" disable="1_19|1_18_3" hide="1_19|1_18_3"/>
+                   <action type="enum" discard="no" disable="1_19|1_18_3" hide="1_19|1_18_3"/>
+                   <action type="enum" discard="no" disable="1_19|1_18_3" hide="1_19|1_18_3"/>
+                   <action type="enum" discard="no" value="User Value" disable="1_18_3" hide="1_18_3" show="1_19" enable="1_19"/>
+                </element>
+
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleEtypeKeyConfig.html" />
+            </node>
+
+            <node id="19" run_if="ACL_RULE_MATCH_ETYPE_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleEtypeValue" id="1" name="Ethertype User Value"/>
+            </node>
+
+            <node id="20">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleSrcMacAddr" id="1" name="Source MAC " run_if="ACL_RULE_MATCH_SRCMAC_FEATURE">
+                    <action type="default" enable="1_20_2" show="1_20_2"/>
+                </element>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleSrcMacConfig.html"/>
+            </node>
+
+            <node id="21">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleSrcMacMask" id="1" name="Source MAC Mask" run_if="ACL_RULE_MATCH_SRCMAC_MASK_FEATURE"/>
+            </node>
+
+            <node id="22" run_if="ACL_RULE_MATCH_VLANID_RANGE_FEATURE">
+                <message>VLAN Range</message>
+            </node> 
+
+            <node id="23" run_if="ACL_RULE_MATCH_VLANID_RANGE_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleVlanIdRangeStart" id="1" name="From"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleVlanRangeConfig.html"/>
+            </node>
+
+            <node id="24" run_if="ACL_RULE_MATCH_VLANID_RANGE_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleVlanIdRangeEnd" id="1" name="To"/>
+            </node>
+
+            <node id="25" run_if="ACL_RULE_MATCH_VLANID_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleVlanId" id="1" name="VLAN"/>
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleVlanIdConfig.html"/>
+            </node>
+
+            <node id="26" run_if="ACL_RULE_MATCH_VLANID2_RANGE_FEATURE">
+                <message>Secondary VLAN Range</message>
+            </node> 
+
+            <node id="27" run_if="ACL_RULE_MATCH_VLANID2_RANGE_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleVlanId2RangeStart" id="1" name="From" />
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleSecVlanRangeConfig.html"/>
+            </node>
+
+            <node id="28" run_if="ACL_RULE_MATCH_VLANID2_RANGE_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleVlanId2RangeEnd" id="1" name="To" />
+            </node>
+
+            <node id="29" run_if="ACL_RULE_MATCH_VLANID2_FEATURE">
+                <element control="label" properties="read-only" obj-name="fastPathQOSACLQOSACL_aclMacRuleVlanId2" id="1" name="Secondary VLAN" />
+                <button scope="node" type="buttonClear" level="ReadWriteUser" help="Executes the associated actions if any." id="2" name="Configure" target-page="MACACLRuleSecVlanIdConfig.html"/>
+            </node>
+
+            <node id="30">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="fastPathQOSACLQOSACL_aclMacRuleStatus" help="Submits the form on this page to the Switch" id="1" name="Submit" level="ReadWriteUser"/>
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="fastPathQOSACLQOSACL_aclMacRuleStatus" help="Submits the form on this page to the Switch" id="2" name="Delete" level="ReadWriteUser"/>
+            </node>
+<!--
+             <node id="31">
+                <element control="combo" properties="filter,iterate,hidden" obj-name="fastPathQOSACLQOSACL_aclMacIndex" id="1" name="Dummy"/>
+            </node> -->
+            <node id="32" run_if="ACL_MIRROR_FEATURE">
+                <element control="combo" obj-name="fastPathQOSACLQOSACL_IsMirrorIntfConfigured" id="1" name="IsMirrorIntfConfigured">
+                    <action type="enum" discard="no" disable="1_32_1" hide="1_32_1" enable="1_12_1|1_12_2" show="1_12_1|1_12_2"/>
+                    <action type="enum" discard="no" hide="1_32_1|1_12_1|1_12_2" disable="1_12_1|1_12_2|1_32_1"/>
+                </element>
+            </node>
+
+            <node id="33" run_if="ACL_REDIRECT_FEATURE">
+                <element control="combo" obj-name="fastPathQOSACLQOSACL_IsRedirectIntfConfigured" id="1" name="IsRedirectIntfConfigured">
+                    <action type="enum" discard="no" disable="1_33_1" hide="1_33_1" enable="1_11_1|1_11_2" show="1_11_1|1_11_2"/>
+                    <action type="enum" discard="no" hide="1_11_1|1_11_2|1_33_1" disable="1_11_1|1_11_2|1_33_1"/>
+                </element>
+            </node>
+            <!-- This is here to disable/hide the Logging/Mirror Interface/Redirect interface nodes, 
+                 since the actions from 1_4, 1_32, 1_32 are applied post extented action  -->
+            <node id="34">
+                <element control="combo" obj-name="xLibObjects_dummy" uienum="enable_t" id="1">
+                    <action type="enum" 
+                            disable="1_4|1_9|1_11_1|1_11_2|1_12_1|1_12_2|1_34_1"
+                            hide="1_4|1_9|1_11_1|1_11_2|1_12_1|1_12_2|1_34_1" 
+                            show="1_30_1"
+                            enable="1_30_1"/>
+                    <action type="enum" disable="1_34_1" hide="1_34_1"/>
+                </element>
+            </node>
+            <node id="35">
+                <element control="textbox" properties="hidden" obj-name="fastPathQOSACLQOSACL_MacAclsExists" id="1" name="AclsExist">
+              <action type="value" value="L7_FALSE" hide="1_1|1_2|1_3|1_4|1_5|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13|1_14|1_15|1_16|1_17|1_18|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27|1_28|1_29|1_30|1_32|1_33|1_33|1_34|1_35|1_37" show="1_36"/>
+              <action type="default" hide="1_36" />
+                </element>
+            </node>
+            <node id="36" clazz="unavailableattributes">
+                <message>No MAC ACLs Configured</message>
+            </node>
+
+            <!-- This are the filters when Match Every is True -->
+            <node id="37" run_if="ACL_RULE_MATCH_EVERY_FEATURE">
+                <element control="combo" obj-name="fastPathQOSACLQOSACL_aclMacRuleMatchEvery" id="1" name="Match Every">
+                    <action type="enum" hide="1_37" disable="1_37"/>
+                    <action type="enum" 
+                            hide="1_14|1_15|1_16|1_17|1_18|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27|1_28|1_29|1_37" 
+                            disable="1_14|1_15|1_16|1_17|1_18|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27|1_28|1_29|1_37"/>
+                </element>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,68 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpGlobalConfig" title="Global Configuration">
+        <group id="1" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <element  control="combo" obj-name="captiveportalcpGlobalConfigGroup_cpAdminMode" id="1" name="Captive Portal"/>
+            </node>
+            <node id="2">
+                <element  control="label" obj-name="captiveportalcpCaptivePortalGlobalStatusGroup_cpCaptivePortalOperStatus" id="1" name="CP Global Operational Status">
+                    <action type="value" value="Enabled" hide="1_3"/>
+                    <action type="default" show="1_3"/>
+                </element>
+            </node>
+            <node id="3">
+                <element  control="label" obj-name="captiveportalcpCaptivePortalGlobalStatusGroup_cpCaptivePortalOperDisabledReason" id="1" name="CP Global Disable Reason"/>
+            </node>
+            <node id="4">
+                <element  control="textbox" obj-name="captiveportalcpGlobalConfigGroup_cpAdditionalHttpPort" id="1" arghelp="HELP_FORMAT_FP_PASSWORD_MANAGEMENT" name="Additional HTTP Port"/>
+            </node>
+            <node id="5">
+                <element  control="textbox" obj-name="captiveportalcpGlobalConfigGroup_cpAdditionalSecureHttpPort" id="1" arghelp="HELP_FORMAT_FP_PASSWORD_MANAGEMENT" name="Additional HTTP Secure Port"/>
+            </node>
+            <node id="6">
+                <element  control="textbox" obj-name="captiveportalcpGlobalConfigGroup_cpPeerStatsReportingInterval" id="1" arghelp="HELP_FORMAT_FP_ZERO_DISABLE" name="Peer Switch Statistics Reporting Interval"/>
+            </node>
+            <node id="7">
+                <element  control="textbox" obj-name="captiveportalcpGlobalConfigGroup_cpAuthTimeout" arghelp="HELP_FORMAT_FP_UNITS_SECONDS" id="1" name="Authentication Timeout"/>
+            </node>
+            <node id="8">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+        <group id="2" heading=" " level="ReadOnlyUser">
+            <node id="1">
+                <element  control="label" properties="read-only" obj-name="captiveportalcpGlobalConfigGroup_cpAdminMode" id="1" name="Captive Portal"/>
+            </node>
+            <node id="2">
+                <element  control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalGlobalStatusGroup_cpCaptivePortalOperStatus" id="1" name="CP Global Operational Status">
+                    <action type="value" value="Enabled" hide="1_3"/>
+                    <action type="default" show="1_3"/>
+                </element>
+            </node>
+            <node id="3">
+                <element  control="label" properties="read-only" obj-name="captiveportalcpCaptivePortalGlobalStatusGroup_cpCaptivePortalOperDisabledReason" id="1" name="CP Global Disable Reason"/>
+            </node>
+            <node id="4">
+                <element  control="label" properties="read-only" obj-name="captiveportalcpGlobalConfigGroup_cpAdditionalHttpPort" id="1" name="Additional HTTP Port"/>
+            </node>
+            <node id="5">
+                <element  control="label" properties="read-only" obj-name="captiveportalcpGlobalConfigGroup_cpAdditionalSecureHttpPort" id="1" name="Additional HTTP Secure Port"/>
+            </node>
+            <node id="6">
+                <element  control="label" properties="read-only" obj-name="captiveportalcpGlobalConfigGroup_cpPeerStatsReportingInterval" id="1" name="Peer Switch Statistics Reporting Interval"/>
+            </node>
+            <node id="7">
+                <element  control="label" properties="read-only" obj-name="captiveportalcpGlobalConfigGroup_cpAuthTimeout" id="1" name="Authentication Timeout"/>
+            </node>
+            <node id="8">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

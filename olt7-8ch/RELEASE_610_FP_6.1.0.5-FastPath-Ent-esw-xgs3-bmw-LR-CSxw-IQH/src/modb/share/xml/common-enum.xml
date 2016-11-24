@@ -1,0 +1,436 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "types.dtd" >
+
+<FastPathXML>
+    <data-types version="1.0">
+        <enum name="proto_t">
+            <option macro="L7_SYSCONFIG_MODE_NONE" name="Static"/>
+            <option macro="L7_SYSCONFIG_MODE_DHCP" name="DHCP"/>
+        </enum>
+        <enum name="enable_t">
+            <option macro="L7_ENABLE" name="Enable"/>
+            <option macro="L7_DISABLE" name="Disable"/>
+        </enum>
+        <enum name="disable_t">
+            <option macro="L7_DISABLE" name="Disable"/>
+            <option macro="L7_ENABLE" name="Enable"/>
+        </enum>
+        <enum name="enabled_t">
+            <option macro="L7_ENABLE" name="Enabled"/>
+            <option macro="L7_DISABLE" name="Disabled"/>
+        </enum>
+        <enum name="disabled_t">
+            <option macro="L7_DISABLE" name="Disabled"/>
+            <option macro="L7_ENABLE" name="Enabled"/>
+        </enum>
+        <enum name="TrueFalse_t">
+            <option macro="L7_TRUE" name="TRUE"/>
+            <option macro="L7_FALSE" name="FALSE"/>
+        </enum>
+        <enum name="L7_FalseTrue">
+            <option macro="L7_FALSE" name="False"/>
+            <option macro="L7_TRUE" name="True"/>
+        </enum>
+
+        <enum name="boolean_t">
+            <option macro="L7_FALSE" name="FALSE"/>
+            <option macro="L7_TRUE" name="TRUE"/>
+        </enum>
+        <enum name="logLevel_t">
+            <option macro="L7_LOG_SEVERITY_EMERGENCY" name="Emergency"/>
+            <option macro="L7_LOG_SEVERITY_ALERT" name="Alert"/>
+            <option macro="L7_LOG_SEVERITY_CRITICAL" name="Critical"/>
+            <option macro="L7_LOG_SEVERITY_ERROR" name="Error"/>
+            <option macro="L7_LOG_SEVERITY_NOTICE" name="Notice"/>
+            <option macro="L7_LOG_SEVERITY_WARNING" name="Warning"/>
+            <option macro="L7_LOG_SEVERITY_INFO" name="Info"/>
+            <option macro="L7_LOG_SEVERITY_DEBUG" name="Debug"/>
+        </enum>
+        <enum name="L7_PORT_CABLE_MEDIUM_t">
+            <option macro="PORT_MEDIUM_COPPER" name="Copper"/>
+            <option macro="PORT_MEDIUM_FIBER" name="Fiber"/>
+        </enum>
+        <enum name="PhysicalIntfType_t">
+            <option macro="L7_PHYSICAL_INTF" name="Physical"/>
+            <option macro="L7_STACK_INTF" name="Stack"/>
+            <option macro="L7_CPU_INTF" name="CPU"/>
+            <option macro="L7_LAG_INTF" name="Channel"/>
+            <option macro="L7_LOGICAL_VLAN_INTF" name="VLAN"/>
+            <option macro="L7_LOOPBACK_INTF" name="Loopback"/>
+            <option macro="L7_TUNNEL_INTF" name="Tunnel"/>
+        </enum>
+        <enum name="portSpeed_t">
+            <option macro="L7_PORTCTRL_PORTSPEED_HALF_100TX" name="HALF-100-TX"/>
+            <option macro="L7_PORTCTRL_PORTSPEED_FULL_100TX" name="FULL-100-TX"/>
+            <option macro="L7_PORTCTRL_PORTSPEED_HALF_10T" name="HALF-10-T"/>
+            <option macro="L7_PORTCTRL_PORTSPEED_FULL_10T" name="FULL-10-T"/>
+            <option macro="L7_PORTCTRL_PORTSPEED_FULL_100FX" name="FULL-100-FX"/>
+            <option macro="L7_PORTCTRL_PORTSPEED_FULL_1000SX" name="FULL-1000-SX"/>
+            <option macro="L7_PORTCTRL_PORTSPEED_FULL_2P5FX" name="FULL-2500-FX"/>
+        </enum>
+        <enum name="linkstatus_t">
+            <option macro="L7_UP" name="Up"/>
+            <option macro="L7_DOWN" name="Down"/>
+        </enum>
+        <enum name="macType_t">
+            <option macro="L7_FDB_ADDR_FLAG_STATIC" name="Static"/>
+            <option macro="L7_FDB_ADDR_FLAG_LEARNED" name="Dynamic"/>
+            <option macro="L7_FDB_ADDR_FLAG_MANAGEMENT" name="Management"/>
+        </enum>
+        <enum name="dot1xAuthType_t">
+            <option macro="L7_DOT1X_PORT_AUTO" name="Auto"/>
+            <option macro="L7_DOT1X_PORT_FORCE_AUTHORIZED" name="Force Authorized"/>
+            <option macro="L7_DOT1X_PORT_FORCE_UNAUTHORIZED" name="Force Unauthorized"/>
+        </enum>
+        <enum name="spanningTreeModes_t">
+            <option macro="DOT1S_FORCE_VERSION_DOT1D" name="IEEE 802.1D"/>
+            <option macro="DOT1S_FORCE_VERSION_DOT1W" name="IEEE 802.1w"/>
+            <option macro="DOT1S_FORCE_VERSION_DOT1S" name="IEEE 802.1s"/>
+        </enum>
+        <enum name="spanningTreePortRole_t">
+            <option macro="L7_DOT1S_ROLE_DISABLED" name="Disabled"/>
+            <option macro="L7_DOT1S_ROLE_ROOT" name="Root"/>
+            <option macro="L7_DOT1S_ROLE_DESIGNATED" name="Designated"/>
+            <option macro="L7_DOT1S_ROLE_ALTERNATE" name="Alternate"/>
+            <option macro="L7_DOT1S_ROLE_BACKUP" name="Bakup"/>
+            <option macro="L7_DOT1S_ROLE_MASTER" name="Master"/>
+        </enum>
+        <enum name="spanningTreePortState_t">
+            <option macro="L7_DOT1S_DISCARDING" name="Discarding"/>
+            <option macro="L7_DOT1S_LEARNING" name="Learning"/>
+            <option macro="L7_DOT1S_FORWARDING" name="Forwarding"/>
+            <option macro="L7_DOT1S_DISABLED" name="Disabled"/>
+            <option macro="L7_DOT1S_MANUAL_FWD" name="Manual forwarding"/>
+            <option macro="L7_DOT1S_NOT_PARTICIPATE" name="Not participating"/>
+            <option macro="L7_DOT1S_BPDU_GUARD" name="BPDU Guard"/>
+        </enum>
+        <enum name="mstOperation_t">
+            <option macro="L7_MST_OPERATION_NONE" name="None"/>
+            <option macro="L7_MST_OPERATION_CREATE" name="Create"/>
+            <option macro="L7_MST_OPERATION_DELETE" name="Delete"/>
+        </enum>
+        <enum name="mstVlanInc_t">
+            <option macro="L7_MST_VLAN_INCLUDE" name="Include"/>
+            <option macro="L7_MST_VLAN_EXCLUDE" name="Exclude"/>
+        </enum>
+        <enum name="noneAddRemove_t">
+            <option macro="L7_GENERIC_OPTION_NONE" name="None"/>
+            <option macro="L7_GENERIC_OPTION_ADD" name="Add"/>
+            <option macro="L7_GENERIC_OPTION_REMOVE" name="Remove"/>
+        </enum>
+        <enum name="L7_ACL_TYPE_t">
+            <option macro="L7_ACL_TYPE_NONE" name="None"/>
+            <option macro="L7_ACL_TYPE_IP" name="IP ACL"/>
+            <option macro="L7_ACL_TYPE_MAC" name="MAC ACL"/>
+            <option macro="L7_ACL_TYPE_IPV6" name="IPv6"/>
+        </enum>
+        <enum name="L7_ACL_ACTION_t">
+            <option macro="L7_ACL_DENY" name="Deny"/>
+            <option macro="L7_ACL_PERMIT" name="Permit"/>
+        </enum>
+        <enum name="portevents_t">
+            <option macro="L7_CREATE" name="Create"/>
+            <option macro="L7_DELETE" name="Delete"/>
+        </enum>
+        <enum name="L7_InetAddrType_t">
+             <option macro="L7_INET_ADDR_TYPE_IPV4" name="IPv4"/>
+             <option macro="L7_INET_ADDR_TYPE_IPV6" name="IPv6"/>
+        </enum>
+        <enum name="protocolSelector_t">
+             <option macro="L7_PROTOCOL_IPv4" name="IPv4"/>
+             <option macro="L7_PROTOCOL_IPv6" name="IPv6"/>
+        </enum>
+        <enum name="L7_DNS_CACHE_ENTRY_TYPE_t">
+             <option macro="L7_DNS_TYPE_IPV4" name="IP"/>
+             <option macro="L7_DNS_TYPE_CNAME" name="Canonical"/>
+             <option macro="L7_DNS_TYPE_PTR" name="PTR"/>
+             <option macro="L7_DNS_TYPE_IPV6" name="IPv6"/>
+        </enum>
+        <enum name="dhcpServerConflictSelector_t">
+             <option macro="L7_DHCP_ALL_CONFLICT" name="All Conflicts"/>
+             <option macro="L7_DHCP_SPECIFIC_CONFLICT" name="Specific Conflict"/>
+        </enum>
+        <enum name="dhcpServerBindingSelector_t">
+             <option macro="L7_DHCP_ALL_BINDINGS" name="All Bindings"/>
+             <option macro="L7_DHCP_SPECIFIC_BINDING" name="Specific Binding"/>
+        </enum>
+        <enum name="dhcpServerResetConfigSelector_t">
+             <option macro="L7_DHCP_ALL_DYNAMIC_BINDINGS" name="All Dynamic Bindings"/>
+             <option macro="L7_DHCP_SPECIFIC_DYNAMIC_BINDING" name="Specific Dynamic Binding"/>
+             <option macro="L7_DHCP_ALL_ADDRESS_CONFLICTS" name="All Address Conflicts"/>
+             <option macro="L7_DHCP_SPECIFIC_ADDRESS_CONFLICT" name="Specific Address Conflict"/>
+        </enum>
+        <enum name="L7_L3PROTOCOL_t">
+             <option macro="L7_IPv4" name="IPv4"/>
+             <option macro="L7_IPv6" name="IPv6"/>
+             
+        </enum>
+        <enum name="diffServServiceStats_t">
+             <option macro="L7_DIFFSERV_OCTETS" name="Octets"/>
+             <option macro="L7_DIFFSERV_PACKETS" name="Packets"/>
+        </enum>
+        <enum name="aclSummarySelector_t">
+             <option macro="L7_ACL_SUMMARY_INTERFACE" name="Interface"/>
+             <option macro="L7_ACL_SUMMARY_VLAN" name="Vlan"/>
+        </enum>
+        <enum name="L7_DOT3AD_HASH_MODE_t">
+             <option macro="L7_DOT3AD_HASHING_MODE_SA_VLAN" name="Src MAC, VLAN, EType, incoming port"/>
+             <option macro="L7_DOT3AD_HASHING_MODE_DA_VLAN" name="Dest MAC, VLAN, EType, incoming port"/>
+             <option macro="L7_DOT3AD_HASHING_MODE_SDA_VLAN" name="Src/Dest MAC, VLAN, EType, incoming port"/>
+             <option macro="L7_DOT3AD_HASHING_MODE_SIP_SPORT" name="Src IP and Src TCP/UDP Port fields"/><option macro="L7_DOT3AD_HASHING_MODE_DIP_DPORT" name="Dest IP and Dest TCP/UDP Port fields"/>
+             
+             <option macro="L7_DOT3AD_HASHING_MODE_SDIP_DPORT" name="Src/Dest IP and TCP/UDP Port fields"/>
+        </enum>
+        <enum name="L7_XUI_53115_DOT3AD_HASH_MODE_t">
+             <option macro="L7_DOT3AD_HASHING_MODE_SA_VLAN" name="Src MAC"/>
+             <option macro="L7_DOT3AD_HASHING_MODE_DA_VLAN" name="Dest MAC"/>
+             <option macro="L7_DOT3AD_HASHING_MODE_SDA_VLAN" name="Src/Dest MAC"/>
+        </enum>
+        <enum name="L7_DOT3AD_PARTICIPATION_MODE_t">
+             <option macro="L7_TRUE" name="Include"/>
+             <option macro="L7_FALSE" name="Exclude"/>             
+        </enum>
+        <enum name="L7_DOT3AD_TYPE_t">
+             <option macro="L7_TRUE" name="Static"/>
+             <option macro="L7_FALSE" name="Dynamic"/>
+        </enum>
+        <enum name="L7_RATE_UNIT_t">
+             <option macro="L7_RATE_UNIT_PERCENT" name="Percent"/>
+             <option macro="L7_RATE_UNIT_KBPS" name="kbps"/>
+             <option macro="L7_RATE_UNIT_PPS" name="pps"/>
+        </enum>
+        <enum name="L7_ROUTE_ENTRY_t">
+             <option macro="L7_ROUTE_ENTRY_GLOBAL" name="Global"/>
+             <option macro="L7_ROUTE_ENTRY_LINK_LOCAL" name="Link-Local"/>
+             <option macro="L7_ROUTE_ENTRY_STATIC_REJECT" name="Static-Reject"/>
+        </enum>
+        <enum name="L7_ROUTE_TABLE_t">
+             <option macro="L7_ROUTE_TABLE_ALL_ROUTES" name="All Routes"/>
+             <option macro="L7_ROUTE_TABLE_BEST_ROUTES" name="Best Routes Only"/>
+             <option macro="L7_ROUTE_TABLE_CONFIGURED_ROUTES" name="Configured Routes Only"/>
+        </enum>
+        <enum name="L7_YES_NO_t">
+            <option macro="L7_YES" name="Yes"/>
+            <option macro="L7_NO" name="No"/>
+        </enum>
+        <enum name="L7_USMDB_MIB_DIFFSERV_POLICY_TYPE_t">
+            <option macro="L7_DIFFSERV_POLICY_TYPE_NONE" name="None"/>
+            <option macro="L7_DIFFSERV_POLICY_TYPE_IN" name="In"/>
+            <option macro="L7_DIFFSERV_POLICY_TYPE_OUT" name="Out"/>
+            <option macro="L7_DIFFSERV_POLICY_TYPE_TOTAL" name="Total"/>
+        </enum>
+        <enum name="xui_page_t">
+             <option macro="L7_XUI_PAGE_1" name="1"/>
+        </enum>
+        <enum name="xuiDisplay_t">
+            <option macro="L7_XUI_HIDE" name="Hide"/>
+        </enum>
+        <enum name="L7_DVLAN_ETHERTYPE_t">
+            <option macro="L7_XUI_TAG802" name="802.1Q Tag"/>
+            <option macro="L7_XUI_VMAN" name="vMAN Tag"/>
+            <option macro="L7_XUI_CUSTOM" name="Custom Tag"/>
+        </enum>
+        <enum name="L7_XUI_LINK_STATE_t">
+           <option macro="L7_UP" name="Up"/>
+           <option macro="L7_DOWN" name="Down"/> 
+        </enum>
+        <enum name="Global_t">
+           <option macro="L7_ALL_INTERFACES" name="Global"/>
+        </enum>
+        <enum name="XUI_L7_REDIST_RT_INDICES_t">
+           <option name="Connected" macro="XUI_REDIST_RT_LOCAL"> </option>
+           <option name="Static" macro="XUI_REDIST_RT_STATIC"> </option>
+           <option name="RIP" macro="XUI_REDIST_RT_RIP"> </option>
+           <option macro="XUI_REDIST_RT_OSPF" name="OSPF"> </option>
+           <option name="BGP" macro="XUI_REDIST_RT_BGP"> </option>
+        </enum>
+        <enum name="dhcpPoolLeaseTime_t">
+           <option macro="L7_XUI_LEASETIME_INFINITE" name="Infinite"/>
+           <option macro="L7_XUI_LEASETIME_SPECIFIED" name="Specified Duration"/>
+        </enum>
+	<enum name="lldpXMedPolicyAppTypeValue_t">
+           <option macro="UNKNOWN_POLICYAPPTYPE" name="Unknown"/>
+           <option macro="VOICE_POLICYAPPTYPE" name="Voice"/>
+           <option macro="VOICESIGNALLING_POLICYAPPTYPE" name="Voice Signaling"/>
+           <option macro="GUESTVOICE_POLICYAPPTYPE" name="Guest Voice"/>
+           <option macro="GUESTVOICESIGNALLING_POLICYAPPTYPE" name="Guest Voice Signaling"/>
+           <option macro="SOFTPHONEVOICE_POLICYAPPTYPE" name="Soft Phone Voice"/>
+           <option macro="VIDEOCONFERENCING_POLICYAPPTYPE" name="Video Conferencing"/>
+           <option macro="STREAMINGVIDEO_POLICYAPPTYPE" name="Streaming Video"/>
+           <option macro="VIDEOSIGNALLING_POLICYAPPTYPE" name="Video Signaling"/>
+        </enum> 
+        <enum name="lldpXMedLocationSubtype_t">
+           <option macro="L7_UNKNOWN_LOCSUBTYPE" name="Unknown"/>
+           <option macro="L7_COORDINATEBASED_LOCSUBTYPE" name="Coordinate Based"/>
+           <option macro="L7_CIVICADDRESS_LOCSUBTYPE" name="Civic Address"/>
+           <option macro="L7_ELIN_LOCSUBTYPE" name="ELIN"/>
+        </enum>
+	   <enum name="sslCertGenStatus_t">
+           <option macro="L7_TRUE" name="Certificate generation in progress"/>
+           <option macro="L7_FALSE" name="No certificate generation in progress"/>
+	</enum>
+
+        <enum name="L7_SNTP_SUPPORTED_MODE_t">
+           <option macro="L7_SNTP_SUPPORTED_DISABLED" name="Disabled"/>
+           <option macro="L7_SNTP_SUPPORTED_UNICAST" name="Unicast"/>
+           <option macro="L7_SNTP_SUPPORTED_BROADCAST" name="Broadcast"/>
+           <option macro="L7_SNTP_SUPPORTED_MULTICAST" name="Multicast"/>
+           <option macro="L7_SNTP_SUPPORTED_UNICAST_AND_BROADCAST" name="Unicast and Broadcast"/>
+        </enum>
+
+        <enum name="routeProtocolType_t">
+           <option macro="RTO_LOCAL" name="Local"/>
+           <option macro="RTO_STATIC" name="Static"/>
+           <option macro="RTO_MPLS" name="MPLS"/>
+           <option macro="RTO_OSPF_INTRA_AREA" name="OSPF Intra"/>
+           <option macro="RTO_OSPF_INTER_AREA" name="OSPF Inter"/>
+           <option macro="RTO_OSPF_TYPE1_EXT" name="OSPF External"/>
+           <option macro="RTO_OSPF_TYPE2_EXT" name="OSPF External"/>
+           <option macro="RTO_OSPF_NSSA_TYPE1_EXT" name="OSPF NSSA Type-1"/>
+           <option macro="RTO_OSPF_NSSA_TYPE2_EXT" name="OSPF NSSA Type-2"/>
+           <option macro="RTO_RIP" name="RIP"/>
+           <option macro="RTO_DEFAULT" name="Default"/>
+           <option macro="RTO_IBGP" name="BGP4"/>
+           <option macro="RTO_EBGP" name="BGP4"/>
+        </enum>
+        <enum name="dvlanEthertype_t">
+            <option macro="L7_XUI_DVLANTAG802Q_ETHERTYPE" name="802.1Q Tag"/>
+            <option macro="L7_XUI_DVLANTAGVMAN_ETHERTYPE" name="vMAN Tag"/>
+            <option macro="L7_XUI_DVLANTAGCUSTOM_ETHERTYPE" name="Custom Tag"/>
+        </enum>
+    <enum name="L7_StorageType_t">
+      <option macro="L7_STORAGE_TYPE_OTHER" name="Other"> </option>
+      <option macro="L7_STORAGE_TYPE_VOLATILE" name="Volatile"> </option>
+      <option macro="L7_STORAGE_TYPE_NONVOLATILE" name="Non Volatile"> </option>
+      <option macro="L7_STORAGE_TYPE_PERMANENT" name="Permanent"> </option>
+      <option macro="L7_STORAGE_TYPE_READONLY" name="Read Only"> </option>
+    </enum>
+    <enum name="pingIpv6_t">
+      <option macro="L7_XUI_IPV6_PING_TYPE_GLOBAL" name="Global"/>
+      <option macro="L7_XUI_IPV6_PING_TYPE_LINK_LOCAL" name="Link Local"/>
+    </enum>
+    <enum name="tunnelSource_t">
+      <option macro="L7_XUI_TUNNEL_SOURCE_ADDRESS" name="Address"/>
+      <option macro="L7_XUI_TUNNEL_SOURCE_INTERFACE" name="Interface"/>
+    </enum>
+    <enum name="boxItem_t">
+    <option macro="L7_XUI_ITEM_FAN" name="fan"/>
+    <option macro="L7_XUI_ITEM_POWERSUPPLY" name="powersupply"/>
+    <option macro="L7_XUI_ITEM_PTEMP_SENSOR" name="tempsensor"/>
+    <option macro="L7_XUI_ITEM_SFP" name="sfp"/>
+    <option macro="L7_XUI_ITEM_XFP" name="xfp"/>
+    </enum>
+    <enum name="boxItemState_t">
+    <option macro="L7_XUI_ITEMSTATE_NONE" name="None"/>
+    <option macro="L7_XUI_ITEMSTATE_OPERATIONAL" name="Operational"/>
+    <option macro="L7_XUI_ITEMSTATE_FAILED" name="Failed"/>
+    <option macro="L7_XUI_ITEMSTATE_NOT_PRESENT" name="Not Present"/>
+    </enum>
+    <enum name="boxItemType_t">
+    <option macro="L7_XUI_TYPE_NONE" name="None"/>
+    <option macro="L7_XUI_TYPE_FIXED" name="Fixed"/>
+    <option macro="L7_XUI_TYPE_REMOVABLE" name="Removable"/>
+    </enum>
+    <enum name="boxTempSensorState_t">
+    <option macro="L7_XUI_TEMPSENSOR_STATE_NONE" name="None"/>
+    <option macro="L7_XUI_TEMPSENSOR_STATE_NORMAL" name="Normal"/>
+    <option macro="L7_XUI_TEMPSENSOR_STATE_WARNING" name="Warning"/>
+    <option macro="L7_XUI_TEMPSENSOR_STATE_CRITICAL" name="Critical"/>
+    <option macro="L7_XUI_TEMPSENSOR_STATE_SHUTDOWN" name="Shutdown"/>
+    <option macro="L7_XUI_TEMPSENSOR_STATE_NOTPRESENT" name="Not Present"/>
+    <option macro="L7_XUI_TEMPSENSOR_STATE_NOTOPERATIONAL" name="Not Operational"/>
+    </enum>
+    <enum name="L7_XUI_EVENT_TYPE_t">
+    <option macro="L7_XUI_EVENT_NONE" name="None"/>
+    <option macro="L7_XUI_EVENT_LOG" name="Log"/>
+    <option macro="L7_XUI_EVENT_TRAP" name="Trap"/>
+    <option macro="L7_XUI_EVENT_LOGTRAP" name="Log and Trap"/>
+    </enum>
+    <enum name="L7_XUI_STARTUP_ALARM_t">
+    <option macro="L7_XUI_STARTUP_ALARM_RISING" name="Rising"/>
+    <option macro="L7_XUI_STARTUP_ALARM_FALLING" name="Falling"/>
+    <option macro="L7_XUI_STARTUP_ALARM_RISING_FALLING" name="Rising and Falling"/>
+    </enum> 
+    <enum name="L7_XUI_SAMPLE_TYPE_t">
+    <option macro="L7_XUI_SAMPLE_TYPE_ABSOLUTE" name="Absolute"/>
+    <option macro="L7_XUI_SAMPLE_TYPE_DELTA" name="Delta"/>
+    </enum>
+    <enum name="IPv6_POSS_ROUTES_t">
+       <option macro="L7_IPv6_CONF_ROUTES" name="Configured Routes Only"/>
+       <option macro="L7_IPv6_ALL_ROUTES" name="All Routes"/>
+       <option macro="L7_IPv6_BEST_ROUTES" name="Best Routes Only"/>
+    </enum>
+   <enum name="StormControlMode_t">
+       <option macro="L7_XUI_BROADCAST" name="Broadcast"/>
+       <option macro="L7_XUI_MULTICAST" name="Multicast"/>
+       <option macro="L7_XUI_UNK_UNICAST" name="Unknown Unicast"/>
+   </enum>
+    <enum name="L7_XUI_DOT1Q_SWPORT_MODE_t">
+     <option macro="DOT1Q_SWPORT_MODE_ACCESS" name="Access"/>
+     <option macro="DOT1Q_SWPORT_MODE_GENERAL" name="General"/>
+     <option macro="DOT1Q_SWPORT_MODE_TRUNK" name="Trunk"/>
+    </enum>
+    <enum name="L7_XUI_LACP_TIMEOUT_STATE_t">
+      <option macro="L7_XUI_LACP_TIMEOUT_LONG" name="Long"/>
+      <option macro="L7_XUI_LACP_TIMEOUT_SHORT" name="Short"/>
+    </enum>
+   <enum name="udpPortName_t">
+      <option macro="L7_NULL" name="Other"/>
+      <option macro="IH_UDP_PORT_DEFAULT" name="DefaultSet"/>
+      <option macro="UDP_PORT_DHCP_SERV" name="dhcp"/>
+      <option macro="UDP_PORT_DNS" name="domain"/>
+      <option macro="UDP_PORT_ISAKMP" name="isakmp"/>
+      <option macro="UDP_PORT_MOBILE_IP" name="mobile-ip"/>
+      <option macro="UDP_PORT_NAMESERVER" name="nameserver"/>
+      <option macro="UDP_PORT_NETBIOS_DGM" name="netbios-dgm"/>
+      <option macro="UDP_PORT_NETBIOS_NS" name="netbios-ns"/>
+      <option macro="UDP_PORT_NTP" name="ntp"/>
+      <option macro="UDP_PORT_PIM_AUTO_RP" name="pim-auto-rp"/>
+      <option macro="UDP_PORT_RIP" name="rip"/>
+      <option macro="UDP_PORT_TACACS" name="tacacs"/>
+      <option macro="UDP_PORT_TFTP" name="tftp"/>
+      <option macro="UDP_PORT_TIME" name="time"/>
+    </enum>
+
+    <enum name="XIE_UI_ENUM3_t">
+      <option macro="1" name="XIE_UI_ENUMVAL1"></option>
+      <option macro="2" name="XIE_UI_ENUMVAL2"></option>
+      <option macro="3" name="XIE_UI_ENUMVAL3"></option>
+    </enum>
+    
+    <enum name="functional_t">
+      <option macro="L7_FALSE" name="Working"/>
+      <option macro="L7_TRUE" name="Not Working"/>
+    </enum>
+
+
+
+    <enum name="AuthList_t">
+     <option name="Radius, Reject" macro="L7_DOT1X_AAA_RADIUSREJECT"> </option>
+     <option name="Reject" macro="L7_DOT1X_AAA_REJECT"> </option>
+     <option name="Local" macro="L7_DOT1X_AAA_LOCAL"> </option>
+    </enum>
+
+    <enum name="MACFilterPortType_t"> 
+    <option macro="L7_MAC_FILTER_SOURCE" name="Source" />
+    <option macro="L7_MAC_FILTER_DESTINATION" name="Destination" />
+    </enum> 
+
+    <enum name="AllocationPolicy_t"> 
+    <option macro="DOT1Q_INT_VLAN_POLICY_ASCENDING" name="Ascending" />
+    <option macro="DOT1Q_INT_VLAN_POLICY_DESCENDING" name="Descending" />
+    </enum>  
+
+    <enum name="L7_XUI_MANUAL_ACTION_t">
+        <option name="None" macro="L7_XUI_MANUAL_ACTION_NONE"> </option>
+        <option name="Start" macro="L7_XUI_MANUAL_ACTION_START"> </option>
+        <option name="Apply" macro="L7_XUI_MANUAL_ACTION_APPLY"> </option>
+        <option name="Clear" macro="L7_XUI_MANUAL_ACTION_CLEAR"> </option>
+    </enum>
+    <enum name="onlyNone_t">
+         <option macro="L7_NONE" name="None"/>
+    </enum>
+
+   
+    </data-types>
+</FastPathXML>

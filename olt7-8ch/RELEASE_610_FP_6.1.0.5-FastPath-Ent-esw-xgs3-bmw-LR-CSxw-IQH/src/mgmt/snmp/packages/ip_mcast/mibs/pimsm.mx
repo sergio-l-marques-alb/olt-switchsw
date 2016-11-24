@@ -1,0 +1,2755 @@
+PIM-STD-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+MODULE-IDENTITY, OBJECT-TYPE, mib-2,
+  NOTIFICATION-TYPE,
+  Unsigned32, TimeTicks            FROM SNMPv2-SMI
+  TEXTUAL-CONVENTION,
+  RowStatus, TruthValue            FROM SNMPv2-TC
+  MODULE-COMPLIANCE, OBJECT-GROUP,
+  NOTIFICATION-GROUP               FROM SNMPv2-CONF
+  InterfaceIndexOrZero,
+  InterfaceIndex                   FROM IF-MIB
+  InetAddressType,
+  InetAddressPrefixLength,
+  InetAddress, InetVersion         FROM INET-ADDRESS-MIB
+  IANAipRouteProtocol              FROM IANA-RTPROTO-MIB;
+
+  pimStdMIB MODULE-IDENTITY
+  LAST-UPDATED "200507150000Z" -- July 15, 2005
+  ORGANIZATION "IETF PIM Working Group"
+  CONTACT-INFO
+  "Email: pim@ietf.org"
+  DESCRIPTION
+  "The MIB module for management of PIM routers.
+  Copyright (C) The Internet Society (2005).  This version of
+  this MIB module is part of RFC yyyy; see the RFC itself for
+  full legal notices."
+  -- RFC Ed.: replace yyyy with actual RFC number & remove this note
+  REVISION     "200507150000Z" -- July 15, 2005
+  DESCRIPTION  "Initial version, published as RFC yyyy."
+  -- RFC Ed.: replace yyyy with actual RFC number & remove this note
+  ::= { mib-2 203 }
+  -- RFC Ed.: replace XXX with IANA-assigned number & remove this note
+
+  pimSmMIBObjects OBJECT IDENTIFIER ::= { pimStdMIB 1 }
+  pimSmTraps    OBJECT IDENTIFIER ::= { pimSmMIBObjects 0 }
+  pimSm         OBJECT IDENTIFIER ::= { pimSmMIBObjects 1 }
+
+  --
+  -- Textual Conventions
+  --
+
+  PimSmMode ::= TEXTUAL-CONVENTION
+  STATUS     current
+  DESCRIPTION
+  "The PIMSM mode in which a group is operating.
+
+  none(1)      The group is not using PIM, which may be the
+  case if, for example, it is a link-local or
+  unroutable group address.
+  ssm(2)       Source-Specific Multicast (SSM), with PIM
+  Sparse Mode.
+  asm(3)       Any Source Multicast (ASM), with PIM Sparse
+  Mode.
+  bidir(4)     Bi-directional PIM.
+  other(5)     Any other PIM mode."
+  SYNTAX     INTEGER {
+    none(1),
+      ssm(2),
+      asm(3),
+      bidir(4),
+      other(5)
+  }
+
+PimSmGroupMappingOriginType ::= TEXTUAL-CONVENTION
+STATUS     current
+DESCRIPTION
+"The mechanism by which a PIM group mapping was learned.
+
+fixed(1)     Statically created link-local or unroutable
+group mappings.
+config(2)    Local configuration.
+bsr(3)       The PIM Bootstrap Router (BSR) mechanism
+[I-D.ietf-pim-sm-bsr].
+autoRP(4)    Cisco's Auto-RP mechanism.
+embedded(5)  The Embedded-RP mechanism [RFC3956] where the
+RP address is embedded in the multicast group
+address.
+other(6)     Any other mechanism."
+  SYNTAX     INTEGER {
+    fixed(1),
+      config(2),
+      bsr(3),
+      autoRP(4),
+      embedded(5),
+      other(6)
+  }
+
+--
+-- The PIMSM Interface Table
+--
+
+pimSmInterfaceTable OBJECT-TYPE
+SYNTAX     SEQUENCE OF PimSmInterfaceEntry
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The (conceptual) table listing the router's PIMSm interfaces.
+PIM is enabled on all interfaces listed in this table."
+::={pimSm 1}
+
+pimSmInterfaceEntry OBJECT-TYPE
+SYNTAX     PimSmInterfaceEntry
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"An entry (conceptual row) in the pimSmInterfaceTable."
+INDEX      { pimSmInterfaceIfIndex,
+  pimSmInterfaceIPVersion }
+  ::= { pimSmInterfaceTable 1 }
+
+  PimSmInterfaceEntry ::= SEQUENCE {
+
+      pimSmInterfaceIfIndex              InterfaceIndex,
+      pimSmInterfaceIPVersion            InetVersion,
+      pimSmInterfaceAddressType          InetAddressType,
+      pimSmInterfaceAddress              InetAddress,
+      pimSmInterfaceNetMaskLength        InetAddressPrefixLength,
+      pimSmInterfaceDR                   InetAddress,
+      pimSmInterfaceHelloInterval        Unsigned32,
+      pimSmInterfaceTrigHelloInterval    Unsigned32,
+      pimSmInterfaceJoinPruneInterval    Unsigned32,
+      pimSmInterfaceDFElectionRobustness Unsigned32,
+      pimSmInterfaceHelloHoldtime        Unsigned32,
+      pimSmInterfaceJoinPruneHoldtime    Unsigned32,
+      pimSmInterfaceUseLanPruneDelay     TruthValue,
+      pimSmInterfacePropagationDelay     Unsigned32,
+      pimSmInterfaceOverrideInterval     Unsigned32,
+      pimSmInterfaceUseGenerationID      TruthValue,
+      pimSmInterfaceGenerationIDValue    Unsigned32,
+      pimSmInterfaceUseDRPriority        TruthValue,
+      pimSmInterfaceDRPriority           Unsigned32,
+      pimSmInterfaceLanDelayEnabled      TruthValue,
+      pimSmInterfaceEffectPropagDelay    Unsigned32,
+      pimSmInterfaceEffectOverrideIvl    Unsigned32,
+      pimSmInterfaceSuppressionEnabled   TruthValue,
+      pimSmInterfaceBidirCapable         TruthValue,
+      pimSmInterfaceDRPriorityEnabled    TruthValue,
+      pimSmInterfaceBSRBorder            TruthValue,
+      pimSmInterfaceStatus               RowStatus
+  }
+
+pimSmInterfaceIfIndex OBJECT-TYPE
+SYNTAX     InterfaceIndex
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The ifIndex value of this PIMSm interface."
+::= { pimSmInterfaceEntry 1 }
+
+pimSmInterfaceIPVersion OBJECT-TYPE
+SYNTAX     InetVersion
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The IP version of this PIM interface.  A physical interface
+may be configured in multiple modes concurrently, e.g. IPv4
+and IPv6, however the traffic is considered to be logically
+separate."
+::= { pimSmInterfaceEntry 2 }
+
+pimSmInterfaceAddressType OBJECT-TYPE
+SYNTAX     InetAddressType
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The address type of this PIM interface."
+::= { pimSmInterfaceEntry 3 }
+
+pimSmInterfaceAddress OBJECT-TYPE
+SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The primary IP address of this router on this PIM
+  interface.  The InetAddressType is given by the
+  pimSmInterfaceAddressType object."
+  ::= { pimSmInterfaceEntry 4 }
+
+  pimSmInterfaceNetMaskLength OBJECT-TYPE
+  SYNTAX     InetAddressPrefixLength
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The network mask length for the primary IP address of this
+  router on this PIM interface.  The InetAddressType is given
+  by the pimSmInterfaceAddressType object.  A value of 0
+  indicates that the network mask length is unknown."
+  ::= { pimSmInterfaceEntry 5 }
+
+  pimSmInterfaceDR OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The primary IP address of the Designated Router on this PIM
+  interface.  The InetAddressType is given by the
+  pimSmInterfaceAddressType object."
+  ::= { pimSmInterfaceEntry 6 }
+
+  pimSmInterfaceHelloInterval OBJECT-TYPE
+  SYNTAX     Unsigned32 (0..18000)
+  UNITS      "seconds"
+  MAX-ACCESS read-create
+  STATUS     current
+  DESCRIPTION
+  "The frequency at which PIM Hello messages are transmitted
+  on this interface.  This object corresponds to the
+  Hello_Period timer value defined in the PIM-SM
+  specification [I-D.ietf-pim-sm-v2-new].  A value of 0
+  represents an 'infinite' interval, and indicates that
+  periodic PIM Hello messages should not be sent on this
+  interface."
+  DEFVAL { 30 }
+  ::= { pimSmInterfaceEntry 7 }
+
+  pimSmInterfaceTrigHelloInterval OBJECT-TYPE
+  SYNTAX     Unsigned32 (0..60)
+  UNITS      "seconds"
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The maximum time before this router sends a triggered PIM
+  Hello message on this interface.  This object corresponds to
+  the 'Trigered_Hello_Delay' timer value defined in the PIM-SM
+  specification [I-D.ietf-pim-sm-v2-new].  A value of 0 has
+  no special meaning and indicates that triggered PIM Hello
+  messages should always be sent immediately."
+  DEFVAL { 5 }
+  ::= { pimSmInterfaceEntry 8 }
+
+  pimSmInterfaceJoinPruneInterval OBJECT-TYPE
+  SYNTAX     Unsigned32 (0..18000)
+  UNITS      "seconds"
+  MAX-ACCESS read-create
+  STATUS     current
+  DESCRIPTION
+  "The frequency at which this router sends PIM Join/Prune
+  messages on this PIM interface.  This object corresponds to
+  the 't_periodic' timer value defined in the PIM-SM
+  specification [I-D.ietf-pim-sm-v2-new].  A value of 0
+  represents an 'infinite' interval, and indicates that
+  periodic PIM Join/Prune messages should not be sent on this
+  interface."
+  DEFVAL { 60 }
+  ::= { pimSmInterfaceEntry 9 }
+
+  pimSmInterfaceDFElectionRobustness OBJECT-TYPE
+  SYNTAX     Unsigned32
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The minimum number of PIM DF-Election messages that must be
+  lost in order for DF election on this interface to fail."
+  DEFVAL { 3 }
+  ::= { pimSmInterfaceEntry 10 }
+
+
+  pimSmInterfaceHelloHoldtime OBJECT-TYPE
+  SYNTAX     Unsigned32 (0..65535)
+  UNITS      "seconds"
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The value set in the Holdtime field of PIM Hello messages
+  transmitted on this interface.  A value of 65535 represents
+  an 'infinite' holdtime.  Implementations are recommended
+  to use a holdtime that is 3.5 times the value of
+  pimSmInterfaceHelloInterval, or 65535 if
+  pimSmInterfaceHelloInterval is set to 0."
+  DEFVAL { 105 }
+  ::= { pimSmInterfaceEntry 11 }
+
+  pimSmInterfaceJoinPruneHoldtime OBJECT-TYPE
+  SYNTAX     Unsigned32 (0..65535)
+  UNITS      "seconds"
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The value inserted into the Holdtime field of a PIM
+  Join/Prune message sent on this interface.  A value of 65535
+  represents an 'infinite' holdtime.  Implementations are
+  recommended to use a holdtime that is 3.5 times the value of
+  pimSmInterfaceJoinPruneInterval, or 65535 if
+  pimSmInterfaceJoinPruneInterval is set to 0."
+  DEFVAL { 210 }
+  ::= { pimSmInterfaceEntry 12 }
+
+  pimSmInterfaceUseLanPruneDelay OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Whether or not this router includes the LAN Prune Delay
+  option in the PIM Hello messages it sends on this
+  interface."
+  DEFVAL { true }
+  ::= { pimSmInterfaceEntry 13 }
+
+  pimSmInterfacePropagationDelay OBJECT-TYPE
+SYNTAX     Unsigned32 (0..32767)
+  UNITS      "milliseconds"
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The value this router inserts into the Propagation_Delay
+  field of the LAN Prune Delay option in the PIM Hello
+  messages it sends on this interface.  This object is only
+  used if pimSmInterfaceUseLanPruneDelay is set to TRUE.
+  Implementations should enforce a lower bound on the
+  permitted values for this object to allow for scheduling and
+  processing delays within the local router."
+  DEFVAL { 500 }
+  ::= { pimSmInterfaceEntry 14 }
+
+  pimSmInterfaceOverrideInterval OBJECT-TYPE
+  SYNTAX     Unsigned32 (0..65535)
+  UNITS      "milliseconds"
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The value this router inserts into the Override_Interval
+  field of the LAN Prune Delay option in the PIM Hello
+  messages it sends on this interface.  This object is only
+  used if pimSmInterfaceUseLanPruneDelay is set to TRUE."
+  DEFVAL { 2500 }
+  ::= { pimSmInterfaceEntry 15 }
+
+  pimSmInterfaceUseGenerationID OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Whether or not this router includes the Generation ID
+  option in the PIM Hello messages it sends on this
+  interface."
+  DEFVAL { true }
+  ::= { pimSmInterfaceEntry 16 }
+
+  pimSmInterfaceGenerationIDValue OBJECT-TYPE
+  SYNTAX     Unsigned32
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The value of the Generation ID this router inserted in the
+  last PIM Hello message it sent on this interface.  This
+  object is 0 if pimSmInterfaceUseGenerationID is set to FALSE."
+  ::= { pimSmInterfaceEntry 17 }
+
+  pimSmInterfaceUseDRPriority OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Whether or not this router includes the DR Priority option
+  in the PIM Hello messages it sends on this interface."
+  DEFVAL { true }
+  ::= { pimSmInterfaceEntry 18 }
+
+  pimSmInterfaceDRPriority OBJECT-TYPE
+  SYNTAX     Unsigned32
+  MAX-ACCESS read-create
+  STATUS     current
+  DESCRIPTION
+  "The Designated Router Priority value inserted into the DR
+  Priority option on this interface.  Numerically higher
+  values for this object indicate higher priorities.  This
+  object is only used if pimSmInterfaceUseDRPriority is set to
+  TRUE."
+  DEFVAL { 1 }
+  ::= { pimSmInterfaceEntry 19 }
+
+  pimSmInterfaceLanDelayEnabled OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Evaluates to TRUE if all routers on this interface are
+  using the LAN Prune Delay option."
+  ::= { pimSmInterfaceEntry 20 }
+
+  pimSmInterfaceEffectPropagDelay OBJECT-TYPE
+  SYNTAX     Unsigned32 (0..32767)
+  UNITS      "milliseconds"
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The Effective Propagation Delay on this interface.  This
+  object is always 500 if pimSmInterfaceLanDelayEnabled is
+  FALSE."
+  ::= { pimSmInterfaceEntry 21 }
+
+  pimSmInterfaceEffectOverrideIvl OBJECT-TYPE
+  SYNTAX     Unsigned32 (0..65535)
+  UNITS      "milliseconds"
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The Effective Override Interval on this interface.  This
+  object is always 2500 if pimSmInterfaceLanDelayEnabled is
+  FALSE."
+  ::= { pimSmInterfaceEntry 22 }
+
+  pimSmInterfaceSuppressionEnabled OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Whether join suppression is enabled on this interface.
+  This object is always TRUE if pimSmInterfaceLanDelayEnabled is
+  FALSE."
+  ::= { pimSmInterfaceEntry 23 }
+
+  pimSmInterfaceBidirCapable OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Evaluates to TRUE if all routers on this interface are
+  using the Bidirectional-PIM Capable option."
+  ::= { pimSmInterfaceEntry 24 }
+
+  pimSmInterfaceDRPriorityEnabled OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Evaluates to TRUE if all routers on this interface are
+  using the DR Priority option."
+  ::= { pimSmInterfaceEntry 25 }
+
+  pimSmInterfaceBSRBorder OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-create
+  STATUS     current
+  DESCRIPTION
+  "Whether or not this interface acts as a border for all PIM
+  Bootstrap messages."
+  DEFVAL { false }
+  ::= { pimSmInterfaceEntry 26 }
+
+  pimSmInterfaceStatus OBJECT-TYPE
+  SYNTAX     RowStatus
+  MAX-ACCESS read-create
+  STATUS     current
+  DESCRIPTION
+  "The status of this entry.  Creating the entry enables PIM
+  on the interface; destroying the entry disables PIM on the
+  interface."
+  ::= { pimSmInterfaceEntry 27 }
+
+  --
+  -- The PIM Neighbor Table
+  --
+
+  pimSmNeighborTable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF PimSmNeighborEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The (conceptual) table listing the router's PIM neighbors."
+  ::= { pimSm 2 }
+
+  pimSmNeighborEntry OBJECT-TYPE
+  SYNTAX     PimSmNeighborEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "An entry (conceptual row) in the pimSmNeighborTable."
+  INDEX      { pimSmNeighborIfIndex,
+    pimSmNeighborAddressType,
+    pimSmNeighborAddress }
+    ::= { pimSmNeighborTable 1 }
+
+  PimSmNeighborEntry ::= SEQUENCE {
+      pimSmNeighborIfIndex              InterfaceIndex,
+      pimSmNeighborAddressType          InetAddressType,
+      pimSmNeighborAddress              InetAddress,
+      pimSmNeighborUpTime               TimeTicks,
+      pimSmNeighborExpiryTime           TimeTicks,
+      pimSmNeighborLanPruneDelayPresent TruthValue,
+      pimSmNeighborPropagationDelay     Unsigned32,
+      pimSmNeighborOverrideInterval     Unsigned32,
+      pimSmNeighborTBit                 TruthValue,
+      pimSmNeighborGenerationIDPresent  TruthValue,
+      pimSmNeighborGenerationIDValue    Unsigned32,
+      pimSmNeighborBidirCapable         TruthValue,
+      pimSmNeighborDRPriorityPresent    TruthValue,
+      pimSmNeighborDRPriority           Unsigned32
+    }
+
+pimSmNeighborIfIndex OBJECT-TYPE
+SYNTAX     InterfaceIndex
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The value of ifIndex for the interface used to reach this
+PIM neighbor."
+::= { pimSmNeighborEntry 1 }
+
+pimSmNeighborAddressType OBJECT-TYPE
+SYNTAX     InetAddressType
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The address type of this PIM neighbor."
+::= { pimSmNeighborEntry 2 }
+
+  pimSmNeighborAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The primary IP address of this PIM neighbor.  The
+  InetAddressType is given by the pimSmNeighborAddressType
+  object."
+  ::= { pimSmNeighborEntry 3 }
+
+  pimSmNeighborUpTime OBJECT-TYPE
+  SYNTAX     TimeTicks
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The time since this PIM neighbor (last) became a neighbor
+  of the local router."
+  ::= { pimSmNeighborEntry 4 }
+
+  pimSmNeighborExpiryTime OBJECT-TYPE
+  SYNTAX     TimeTicks
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The minimum time remaining before this PIM neighbor will
+  be aged out.  The value zero indicates that this PIM
+  neighbor will never be aged out."
+  ::= { pimSmNeighborEntry 5 }
+
+  pimSmNeighborLanPruneDelayPresent OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Evaluates to TRUE if this neighbor is using the LAN Prune
+  Delay option."
+  ::= { pimSmNeighborEntry 6 }
+
+  pimSmNeighborPropagationDelay OBJECT-TYPE
+  SYNTAX     Unsigned32 (0..32767)
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The value of the Propagation_Delay field of the LAN Prune
+  Delay option received from this neighbor.  This object is
+  always 0 if pimSmNeighborLanPruneDelayPresent is FALSE."
+  ::= { pimSmNeighborEntry 7 }
+
+  pimSmNeighborOverrideInterval OBJECT-TYPE
+  SYNTAX     Unsigned32 (0..65535)
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The value of the Override_Interval field of the LAN Prune
+  Delay option received from this neighbor.  This object is
+  always 0 if pimSmNeighborLanPruneDelayPresent is FALSE."
+  ::= { pimSmNeighborEntry 8 }
+
+  pimSmNeighborTBit OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Whether the T bit was set in the LAN Prune Delay option
+  received from this neighbor.  The T bit specifies the
+  ability of the neighbor to disable join suppression.  This
+  object is always TRUE if pimSmNeighborLanPruneDelayPresent is
+  FALSE."
+  ::= { pimSmNeighborEntry 9 }
+
+  pimSmNeighborGenerationIDPresent OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Evaluates to TRUE if this neighbor is using the Generation
+  ID option."
+  ::= { pimSmNeighborEntry 10 }
+
+  pimSmNeighborGenerationIDValue OBJECT-TYPE
+  SYNTAX     Unsigned32
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The value of the Generation ID from the last PIM Hello
+  message received from this neighbor.  This object is always
+  0 if pimSmNeighborGenerationIDPresent is FALSE."
+  ::= { pimSmNeighborEntry 11 }
+
+  pimSmNeighborBidirCapable OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Evaluates to TRUE if this neighbor is using the
+  Bidirectional-PIM Capable option."
+  ::= { pimSmNeighborEntry 12 }
+
+  pimSmNeighborDRPriorityPresent OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Evaluates to TRUE if this neighbor is using the DR Priority
+  option."
+  ::= { pimSmNeighborEntry 13 }
+
+  pimSmNeighborDRPriority OBJECT-TYPE
+  SYNTAX     Unsigned32
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The value of the Designated Router Priority from the last
+  PIM Hello message received from this neighbor.  This object
+  is always 0 if pimSmNeighborDRPriorityPresent is FALSE."
+  ::= { pimSmNeighborEntry 14 }
+
+  --
+  -- The PIM Neighbor Secondary Address Table
+  --
+
+  pimSmNbrSecAddressTable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF PimSmNbrSecAddressEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The (conceptual) table listing the secondary addresses
+  advertised by each PIM neighbor (on a subset of the rows of
+      the pimSmNeighborTable defined above)."
+  ::= { pimSm 3 }
+
+  pimSmNbrSecAddressEntry OBJECT-TYPE
+  SYNTAX     PimSmNbrSecAddressEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "An entry (conceptual row) in the pimSmNbrSecAddressTable."
+  INDEX      { pimSmNbrSecAddressIfIndex,
+    pimSmNbrSecAddressType,
+    pimSmNbrSecAddressPrimary,
+    pimSmNbrSecAddress }
+    ::= { pimSmNbrSecAddressTable 1 }
+
+    PimSmNbrSecAddressEntry ::= SEQUENCE {
+      pimSmNbrSecAddressIfIndex InterfaceIndex,
+      pimSmNbrSecAddressType    InetAddressType,
+      pimSmNbrSecAddressPrimary InetAddress,
+      pimSmNbrSecAddress        InetAddress
+    }
+
+pimSmNbrSecAddressIfIndex OBJECT-TYPE
+SYNTAX     InterfaceIndex
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The value of ifIndex for the interface used to reach this
+PIM neighbor."
+::= { pimSmNbrSecAddressEntry 1 }
+
+pimSmNbrSecAddressType OBJECT-TYPE
+SYNTAX     InetAddressType
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The address type of this PIM neighbor."
+::= { pimSmNbrSecAddressEntry 2 }
+
+  pimSmNbrSecAddressPrimary OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The primary IP address of this PIM neighbor.  The
+  InetAddressType is given by the pimSmNbrSecAddressType
+  object."
+  ::= { pimSmNbrSecAddressEntry 3 }
+
+  pimSmNbrSecAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The secondary IP address of this PIM neighbor.  The
+  InetAddressType is given by the pimSmNbrSecAddressType
+  object."
+  ::= { pimSmNbrSecAddressEntry 4 }
+
+  --
+  -- The PIM (*,G) State Table
+  --
+
+  pimSmStarGTable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF PimSmStarGEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The (conceptual) table listing the non-interface specific
+  (*,G) state that PIM has."
+  ::= { pimSm 4 }
+
+  pimSmStarGEntry OBJECT-TYPE
+  SYNTAX     PimSmStarGEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "An entry (conceptual row) in the pimSmStarGTable."
+  INDEX      { pimSmStarGAddressType,
+    pimSmStarGGrpAddress }
+    ::= { pimSmStarGTable 1 }
+
+    PimSmStarGEntry ::= SEQUENCE {
+      pimSmStarGAddressType             InetAddressType,
+      pimSmStarGGrpAddress              InetAddress,
+      pimSmStarGUpTime                  TimeTicks,
+      pimSmStarGPimSmMode               PimSmMode,
+      pimSmStarGRPAddress               InetAddress,
+      pimSmStarGRPOrigin                PimSmGroupMappingOriginType,
+      pimSmStarGRPIsLocal               TruthValue,
+      pimSmStarGUpstreamJoinState       INTEGER,
+      pimSmStarGUpstreamJoinTimer       TimeTicks,
+      pimSmStarGUpstreamNeighbor        InetAddress,
+      pimSmStarGRPFIfIndex              InterfaceIndexOrZero,
+      pimSmStarGRPFNextHop              InetAddress,
+      pimSmStarGRPFRouteProtocol        IANAipRouteProtocol,
+      pimSmStarGRPFRouteAddress         InetAddress,
+      pimSmStarGRPFRoutePrefixLength    InetAddressPrefixLength,
+      pimSmStarGRPFRouteMetricPref      Unsigned32,
+      pimSmStarGRPFRouteMetric          Unsigned32
+    }
+
+pimSmStarGAddressType OBJECT-TYPE
+SYNTAX     InetAddressType
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The address type of this multicast group."
+::= { pimSmStarGEntry 1 }
+
+  pimSmStarGGrpAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The multicast group address.  The InetAddressType is given
+  by the pimSmStarGAddressType object."
+  ::= { pimSmStarGEntry 2 }
+
+  pimSmStarGUpTime OBJECT-TYPE
+  SYNTAX     TimeTicks
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The time since this entry was created by the local router."
+  ::= { pimSmStarGEntry 3 }
+
+  pimSmStarGPimSmMode OBJECT-TYPE
+  SYNTAX     INTEGER { asm(3), bidir(4) }
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Whether this entry represents an ASM (Any Source Multicast,
+  used with PIM-SM) or BIDIR-PIM group."
+  ::= { pimSmStarGEntry 4 }
+
+  pimSmStarGRPAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The address of the Rendezvous Point (RP) for the group.
+  The InetAddressType is given by the pimSmStarGAddressType
+  object.  This object is zero if the RP address is unknown."
+  ::= { pimSmStarGEntry 5 }
+
+  pimSmStarGRPOrigin OBJECT-TYPE
+  SYNTAX     PimSmGroupMappingOriginType
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The mechanism by which the PIM mode and RP for the group
+  were learned."
+  ::= { pimSmStarGEntry 6 }
+
+  pimSmStarGRPIsLocal OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Whether the local router is the RP for the group."
+  ::= { pimSmStarGEntry 7 }
+
+  pimSmStarGUpstreamJoinState OBJECT-TYPE
+  SYNTAX     INTEGER {
+    notJoined (1),
+              joined (2)
+  }
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Whether the local router should join the RP tree for the
+  group.  This corresponds to the state of the upstream (*,G)
+  state machine in the PIM-SM specification
+  [I-D.ietf-pim-sm-v2-new]."
+  ::= { pimSmStarGEntry 8 }
+
+  pimSmStarGUpstreamJoinTimer OBJECT-TYPE
+  SYNTAX     TimeTicks
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The time remaining before the local router next sends a
+  periodic (*,G) Join message on pimSmStarGRPFIfIndex.  This
+  timer is called the (*,G) Upstream Join Timer in the PIM-SM
+  specification [I-D.ietf-pim-sm-v2-new].  This object is zero
+  if the timer is not running."
+  ::= { pimSmStarGEntry 9 }
+
+  pimSmStarGUpstreamNeighbor OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The primary address of the neighbor on pimSmStarGRPFIfIndex
+  that the local router is sending periodic (*,G) Join
+  messages to.  This is zero if the the RPF next hop is
+  unknown or is not a PIM neighbor.  The InetAddressType is
+  given by the pimSmStarGAddressType object.  This address is
+  called RPF'(*,G) in the PIM-SM specification
+  [I-D.ietf-pim-sm-v2-new]."
+  ::= { pimSmStarGEntry 10 }
+
+  pimSmStarGRPFIfIndex OBJECT-TYPE
+  SYNTAX     InterfaceIndexOrZero
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The value of ifIndex for the RPF interface towards the RP,
+  or zero if the RPF interface is unknown."
+  ::= { pimSmStarGEntry 11 }
+
+  pimSmStarGRPFNextHop OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The address of the RPF next hop towards the RP, or zero if
+  the the RPF next hop is unknown.  The InetAddressType is
+  given by the pimSmStarGAddressType object.  This address is
+  called MRIB.next_hop(RP(G)) in the PIM-SM specification
+  [I-D.ietf-pim-sm-v2-new]."
+  ::= { pimSmStarGEntry 12 }
+
+  pimSmStarGRPFRouteProtocol OBJECT-TYPE
+  SYNTAX     IANAipRouteProtocol
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The routing mechanism via which the route used to find the
+  RPF interface towards the RP was learned."
+  ::= { pimSmStarGEntry 13 }
+
+  pimSmStarGRPFRouteAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The IP address which when combined with the corresponding
+  value of pimSmStarGRPFRoutePrefixLength identifies the route
+  used to find the RPF interface towards the RP.  The
+  InetAddressType is given by the pimSmStarGAddressType
+  object."
+  ::= { pimSmStarGEntry 14 }
+
+  pimSmStarGRPFRoutePrefixLength OBJECT-TYPE
+  SYNTAX     InetAddressPrefixLength
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The prefix length which when combined with the
+  corresponding value of pimSmStarGRPFRouteAddress identifies
+  the route used to find the RPF interface towards the RP.
+  The InetAddressType is given by the pimSmStarGAddressType
+  object."
+  ::= { pimSmStarGEntry 15 }
+
+  pimSmStarGRPFRouteMetricPref OBJECT-TYPE
+  SYNTAX     Unsigned32 (0..2147483647)
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The metric preference of the route used to find the RPF
+  interface towards the RP."
+  ::= { pimSmStarGEntry 16 }
+
+  pimSmStarGRPFRouteMetric OBJECT-TYPE
+  SYNTAX     Unsigned32
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The routing metric of the route used to find the RPF
+  interface towards the RP."
+  ::= { pimSmStarGEntry 17 }
+
+  --
+  -- The PIM (*,G,I) State Table
+  --
+
+  pimSmStarGITable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF PimSmStarGIEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The (conceptual) table listing the interface-specific (*,G)
+  state that PIM has."
+ ::={pimSm 5}
+
+  pimSmStarGIEntry OBJECT-TYPE
+  SYNTAX     PimSmStarGIEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "An entry (conceptual row) in the pimSmStarGITable."
+  INDEX      { pimSmStarGAddressType,
+    pimSmStarGGrpAddress,
+    pimSmStarGIIfIndex }
+  ::= { pimSmStarGITable 1 }
+
+    PimSmStarGIEntry ::= SEQUENCE {
+      pimSmStarGIIfIndex                 InterfaceIndex,
+      pimSmStarGIUpTime                  TimeTicks,
+      pimSmStarGILocalMembership         TruthValue,
+      pimSmStarGIJoinPruneState          INTEGER,
+      pimSmStarGIPrunePendingTimer       TimeTicks,
+      pimSmStarGIJoinExpiryTimer         TimeTicks,
+      pimSmStarGIAssertState             INTEGER,
+      pimSmStarGIAssertTimer             TimeTicks,
+      pimSmStarGIAssertWinnerAddress     InetAddress,
+      pimSmStarGIAssertWinnerMetricPref  Unsigned32,
+      pimSmStarGIAssertWinnerMetric      Unsigned32
+    }
+
+pimSmStarGIIfIndex OBJECT-TYPE
+SYNTAX     InterfaceIndex
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The ifIndex of the interface that this entry corresponds
+to."
+::= { pimSmStarGIEntry 1 }
+
+pimSmStarGIUpTime OBJECT-TYPE
+SYNTAX     TimeTicks
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The time since this entry was created by the local router."
+::= { pimSmStarGIEntry 2 }
+
+pimSmStarGILocalMembership OBJECT-TYPE
+SYNTAX     TruthValue
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"Whether the local router has (*,G) local membership on this
+interface (resulting from a mechanism such as IGMP or MLD).
+This corresponds to local_receiver_include(*,G,I) in the
+PIM-SM specification [I-D.ietf-pim-sm-v2-new]."
+::= { pimSmStarGIEntry 3 }
+
+pimSmStarGIJoinPruneState OBJECT-TYPE
+SYNTAX     INTEGER {
+         noInfo (1),
+         join (2),
+         prunePending (3)
+}
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The state resulting from (*,G) Join/Prune messages
+received on this interface.  This corresponds to the state
+of the downstream per-interface (*,G) state machine in the
+PIM-SM specification [I-D.ietf-pim-sm-v2-new]."
+::= { pimSmStarGIEntry 4 }
+
+pimSmStarGIPrunePendingTimer OBJECT-TYPE
+SYNTAX     TimeTicks
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The time remaining before the local router acts on a (*,G)
+Prune message received on this interface, during which the
+router is waiting to see whether another downstream router
+will override the Prune message.  This timer is called the
+(*,G) Prune-Pending Timer in the PIM-SM specification
+[I-D.ietf-pim-sm-v2-new].  This object is zero if the timer
+is not running."
+::= { pimSmStarGIEntry 5 }
+
+pimSmStarGIJoinExpiryTimer OBJECT-TYPE
+SYNTAX     TimeTicks
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The time remaining before (*,G) Join state for this
+interface expires.  This timer is called the (*,G) Join
+Expiry Timer in the PIM-SM specification
+[I-D.ietf-pim-sm-v2-new].  This object is zero if the timer
+is not running.  A value of 'FFFFFFFF'h indicates an
+infinite expiry time."
+::= { pimSmStarGIEntry 6 }
+
+pimSmStarGIAssertState OBJECT-TYPE
+  SYNTAX     INTEGER {
+    noInfo (1),
+           iAmAssertWinner (2),
+           iAmAssertLoser (3)
+  }
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The (*,G) Assert state for this interface.  This
+corresponds to the state of the per-interface (*,G) Assert
+state machine in the PIM-SM specification
+[I-D.ietf-pim-sm-v2-new].  If pimSmStarGPimSmMode is 'bidir',
+  this object must be 'noInfo'."
+  ::= { pimSmStarGIEntry 7 }
+
+  pimSmStarGIAssertTimer OBJECT-TYPE
+  SYNTAX     TimeTicks
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "If pimSmStarGIAssertState is 'iAmAssertWinner', this is the
+  time remaining before the local router next sends a (*,G)
+  Assert message on this interface.  If pimSmStarGIAssertState
+  is 'iAmAssertLoser', this is the time remaining before the
+  (*,G) Assert state expires.  If pimSmStarGIAssertState is
+  'noInfo', this is zero.  This timer is called the (*,G)
+  Assert Timer in the PIM-SM specification
+  [I-D.ietf-pim-sm-v2-new]."
+  ::= { pimSmStarGIEntry 8 }
+
+  pimSmStarGIAssertWinnerAddress OBJECT-TYPE
+  SYNTAX     InetAddress
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "If pimSmStarGIAssertState is 'iAmAssertLoser', this is the
+  address of the assert winner; otherwise, this object is
+  zero.  The InetAddressType is given by the
+  pimSmStarGAddressType object."
+  ::= { pimSmStarGIEntry 9 }
+
+  pimSmStarGIAssertWinnerMetricPref OBJECT-TYPE
+  SYNTAX     Unsigned32 (0..2147483647)
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "If pimSmStarGIAssertState is 'iAmAssertLoser', this is the
+  metric preference of the route to the RP advertised by the
+  assert winner; otherwise, this object is zero."
+  ::= { pimSmStarGIEntry 11 }
+
+  pimSmStarGIAssertWinnerMetric OBJECT-TYPE
+  SYNTAX     Unsigned32
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "If pimSmStarGIAssertState is 'iAmAssertLoser', this is the
+  routing metric of the route to the RP advertised by the
+  assert winner; otherwise, this object is zero."
+  ::= { pimSmStarGIEntry 12 }
+
+  --
+  -- The PIMSM (S,G) State Table
+  --
+
+  pimSmSGTable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF PimSmSGEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The (conceptual) table listing the non-interface specific
+  (S,G) state that PIM has."
+  ::= { pimSm 6 }
+
+  pimSmSGEntry OBJECT-TYPE
+  SYNTAX     PimSmSGEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "An entry (conceptual row) in the pimSmSGTable."
+  INDEX      { pimSmSGAddressType,
+    pimSmSGGrpAddress,
+    pimSmSGSrcAddress }
+    ::= { pimSmSGTable 1 }
+
+    PimSmSGEntry ::= SEQUENCE {
+      pimSmSGAddressType             InetAddressType,
+      pimSmSGGrpAddress              InetAddress,
+      pimSmSGSrcAddress              InetAddress,
+      pimSmSGUpTime                  TimeTicks,
+      pimSmSGPimSmMode               PimSmMode,
+      pimSmSGUpstreamJoinState       INTEGER,
+      pimSmSGUpstreamJoinTimer       TimeTicks,
+      pimSmSGUpstreamNeighbor        InetAddress,
+      pimSmSGRPFIfIndex              InterfaceIndexOrZero,
+      pimSmSGRPFNextHop              InetAddress,
+      pimSmSGRPFRouteProtocol        IANAipRouteProtocol,
+      pimSmSGRPFRouteAddress         InetAddress,
+      pimSmSGRPFRoutePrefixLength    InetAddressPrefixLength,
+      pimSmSGRPFRouteMetricPref      Unsigned32,
+      pimSmSGRPFRouteMetric          Unsigned32,
+      pimSmSGSPTBit                  TruthValue,
+      pimSmSGKeepaliveTimer          TimeTicks,
+      pimSmSGDRRegisterState         INTEGER,
+      pimSmSGDRRegisterStopTimer     TimeTicks,
+      pimSmSGRPRegisterPMBRAddress   InetAddress
+    }
+
+pimSmSGAddressType OBJECT-TYPE
+SYNTAX     InetAddressType
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The address type of the source and multicast group for this
+entry."
+::= { pimSmSGEntry 1 }
+
+  pimSmSGGrpAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The multicast group address for this entry.  The
+  InetAddressType is given by the pimSmSGAddressType object."
+  ::= { pimSmSGEntry 2 }
+
+  pimSmSGSrcAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The source address for this entry.  The InetAddressType is
+  given by the pimSmSGAddressType object."
+  ::= { pimSmSGEntry 3 }
+
+  pimSmSGUpTime OBJECT-TYPE
+  SYNTAX     TimeTicks
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The time since this entry was created by the local router."
+  ::= { pimSmSGEntry 4 }
+
+  pimSmSGPimSmMode OBJECT-TYPE
+  SYNTAX     INTEGER { ssm(2), asm(3) }
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Whether pimSmSGGrpAddress is an SSM (Source Specific
+  Multicast, used with PIM-SM) or ASM (Any Source Multicast,
+    used with PIM-SM) group."
+  ::= { pimSmSGEntry 5 }
+
+  pimSmSGUpstreamJoinState OBJECT-TYPE
+  SYNTAX     INTEGER {
+    notJoined (1),
+              joined (2)
+  }
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"Whether the local router should join the shortest-path tree
+for the source and group represented by this entry.  This
+corresponds to the state of the upstream (S,G) state machine
+in the PIM-SM specification [I-D.ietf-pim-sm-v2-new]."
+::= { pimSmSGEntry 6 }
+
+pimSmSGUpstreamJoinTimer OBJECT-TYPE
+SYNTAX     TimeTicks
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The time remaining before the local router next sends a
+periodic (S,G) Join message on pimSmSGRPFIfIndex.  This timer
+is called the (S,G) Upstream Join Timer in the PIM-SM
+specification [I-D.ietf-pim-sm-v2-new].  This object is zero
+if the timer is not running."
+::= { pimSmSGEntry 7 }
+
+  pimSmSGUpstreamNeighbor OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The primary address of the neighbor on pimSmSGRPFIfIndex that
+  the local router is sending periodic (S,G) Join messages to.
+  This is zero if the the RPF next hop is unknown or is not a
+  PIM neighbor.  The InetAddressType is given by the
+  pimSmSGAddressType object.  This address is called RPF'(S,G)
+  in the PIM-SM specification [I-D.ietf-pim-sm-v2-new]."
+  ::= { pimSmSGEntry 8 }
+
+  pimSmSGRPFIfIndex OBJECT-TYPE
+  SYNTAX     InterfaceIndexOrZero
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The value of ifIndex for the RPF interface towards the
+  source, or zero if the RPF interface is unknown."
+  ::= { pimSmSGEntry 9 }
+
+  pimSmSGRPFNextHop OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The address of the RPF next hop towards the source, or zero
+  if the the RPF next hop is unknown.  The InetAddressType is
+  given by the pimSmSGAddressType object.  This address is
+  called MRIB.next_hop(S) in the PIM-SM specification
+  [I-D.ietf-pim-sm-v2-new]."
+  ::= { pimSmSGEntry 10 }
+
+  pimSmSGRPFRouteProtocol OBJECT-TYPE
+  SYNTAX     IANAipRouteProtocol
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The routing mechanism via which the route used to find the
+  RPF interface towards the source was learned."
+  ::= { pimSmSGEntry 11 }
+
+  pimSmSGRPFRouteAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The IP address which when combined with the corresponding
+  value of pimSmSGRPFRoutePrefixLength identifies the route used
+  to find the RPF interface towards the source.  The
+  InetAddressType is given by the pimSmSGAddressType object."
+  ::= { pimSmSGEntry 12 }
+
+  pimSmSGRPFRoutePrefixLength OBJECT-TYPE
+  SYNTAX     InetAddressPrefixLength
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The prefix length which when combined with the
+  corresponding value of pimSmSGRPFRouteAddress identifies the
+  route used to find the RPF interface towards the source.
+  The InetAddressType is given by the pimSmSGAddressType
+  object."
+  ::= { pimSmSGEntry 13 }
+
+  pimSmSGRPFRouteMetricPref OBJECT-TYPE
+  SYNTAX     Unsigned32 (0..2147483647)
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The metric preference of the route used to find the RPF
+  interface towards the source."
+  ::= { pimSmSGEntry 14 }
+
+  pimSmSGRPFRouteMetric OBJECT-TYPE
+  SYNTAX     Unsigned32
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The routing metric of the route used to find the RPF
+  interface towards the source."
+  ::= { pimSmSGEntry 15 }
+
+  pimSmSGSPTBit OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Whether the SPT bit is set; and therefore whether
+  forwarding is taking place on the shortest-path tree."
+  ::= { pimSmSGEntry 16 }
+
+  pimSmSGKeepaliveTimer OBJECT-TYPE
+  SYNTAX     TimeTicks
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The time remaining before, in the absence of explicit (S,G)
+  local membership or (S,G) Join messages received to maintain
+  it, this (S,G) state expires.  This timer is called the
+  (S,G) Keepalive Timer in the PIM-SM specification
+  [I-D.ietf-pim-sm-v2-new]."
+  ::= { pimSmSGEntry 17 }
+
+  pimSmSGDRRegisterState OBJECT-TYPE
+  SYNTAX     INTEGER {
+    noInfo (1),
+           join (2),
+           joinPending (3),
+           prune (4)
+  }
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"Whether the local router should encapsulate (S,G) data
+packets in Register messages and send them to the RP.  This
+corresponds to the state of the per-(S,G) Register state
+machine in the PIM-SM specification
+[I-D.ietf-pim-sm-v2-new].  This object is always 'noInfo'
+unless pimSmSGPimSmMode is 'asm'."
+::= { pimSmSGEntry 18 }
+
+pimSmSGDRRegisterStopTimer OBJECT-TYPE
+SYNTAX     TimeTicks
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"If pimSmSGDRRegisterState is 'prune', this is the time
+remaining before the local router sends a Null-Register
+message to the RP.  If pimSmSGDRRegisterState is
+'joinPending', this is the time remaining before the local
+router resumes encapsulating data packets and sending them
+to the RP.  Otherwise, this is zero.  This timer is called
+the Register-Stop Timer in the PIM-SM specification
+[I-D.ietf-pim-sm-v2-new]."
+::= { pimSmSGEntry 19 }
+
+pimSmSGRPRegisterPMBRAddress OBJECT-TYPE
+SYNTAX     InetAddress
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The IP address of the first PIM Multicast Border Router to
+send a Register message with the Border bit set.  This
+object is zero if the local router is not the RP for the
+group.  The InetAddressType is given by the pimSmSGAddressType
+object."
+::= { pimSmSGEntry 20 }
+
+--
+-- The PIM (S,G,I) State Table
+--
+
+pimSmSGITable OBJECT-TYPE
+SYNTAX     SEQUENCE OF PimSmSGIEntry
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The (conceptual) table listing the interface-specific (S,G)
+state that PIM has."
+::= { pimSm 7 }
+
+pimSmSGIEntry OBJECT-TYPE
+SYNTAX     PimSmSGIEntry
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"An entry (conceptual row) in the pimSmSGITable."
+INDEX      { pimSmSGAddressType,
+  pimSmSGGrpAddress,
+  pimSmSGSrcAddress,
+  pimSmSGIIfIndex }
+  ::= { pimSmSGITable 1 }
+
+  PimSmSGIEntry ::= SEQUENCE {
+    pimSmSGIIfIndex                 InterfaceIndex,
+    pimSmSGIUpTime                  TimeTicks,
+    pimSmSGILocalMembership         TruthValue,
+    pimSmSGIJoinPruneState          INTEGER,
+    pimSmSGIPrunePendingTimer       TimeTicks,
+    pimSmSGIJoinExpiryTimer         TimeTicks,
+    pimSmSGIAssertState             INTEGER,
+    pimSmSGIAssertTimer             TimeTicks,
+    pimSmSGIAssertWinnerAddress     InetAddress,
+    pimSmSGIAssertWinnerMetricPref  Unsigned32,
+    pimSmSGIAssertWinnerMetric      Unsigned32
+  }
+
+pimSmSGIIfIndex OBJECT-TYPE
+SYNTAX     InterfaceIndex
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The ifIndex of the interface that this entry corresponds
+to."
+::= { pimSmSGIEntry 1 }
+
+pimSmSGIUpTime OBJECT-TYPE
+SYNTAX     TimeTicks
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The time since this entry was created by the local router."
+::= { pimSmSGIEntry 2 }
+
+pimSmSGILocalMembership OBJECT-TYPE
+SYNTAX     TruthValue
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"Whether the local router has (S,G) local membership on this
+  interface (resulting from a mechanism such as IGMPv3 or
+      MLDv2).  This corresponds to local_receiver_include(S,G,I)
+  in the PIM-SM specification [I-D.ietf-pim-sm-v2-new]."
+  ::= { pimSmSGIEntry 3 }
+
+  pimSmSGIJoinPruneState OBJECT-TYPE
+  SYNTAX     INTEGER {
+    noInfo (1),
+           join (2),
+           prunePending (3)
+  }
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The state resulting from (S,G) Join/Prune messages
+received on this interface.  This corresponds to the state
+of the downstream per-interface (S,G) state machine in the
+PIM-SM specification [I-D.ietf-pim-sm-v2-new]."
+::= { pimSmSGIEntry 4 }
+
+pimSmSGIPrunePendingTimer OBJECT-TYPE
+SYNTAX     TimeTicks
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The time remaining before the local router acts on an (S,G)
+Prune message received on this interface, during which the
+router is waiting to see whether another downstream router
+will override the Prune message.  This timer is called the
+(S,G) Prune-Pending Timer in the PIM-SM specification
+[I-D.ietf-pim-sm-v2-new].  This object is zero if the timer
+is not running."
+::= { pimSmSGIEntry 5 }
+
+pimSmSGIJoinExpiryTimer OBJECT-TYPE
+SYNTAX     TimeTicks
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The time remaining before (S,G) Join state for this
+interface expires.  This timer is called the (S,G) Join
+Expiry Timer in the PIM-SM specification
+[I-D.ietf-pim-sm-v2-new].  This object is zero if the timer
+is not running.  A value of 'FFFFFFFF'h indicates an
+infinite expiry time."
+::= { pimSmSGIEntry 6 }
+
+pimSmSGIAssertState OBJECT-TYPE
+SYNTAX     INTEGER {
+  noInfo (1),
+           iAmAssertWinner (2),
+         iAmAssertLoser (3)
+}
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The (S,G) Assert state for this interface.  This
+corresponds to the state of the per-interface (S,G) Assert
+state machine in the PIM-SM specification
+[I-D.ietf-pim-sm-v2-new]."
+::= { pimSmSGIEntry 7 }
+
+pimSmSGIAssertTimer OBJECT-TYPE
+SYNTAX     TimeTicks
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"If pimSmSGIAssertState is 'iAmAssertWinner', this is the time
+remaining before the local router next sends a (S,G) Assert
+message on this interface.  If pimSmSGIAssertState is
+'iAmAssertLoser', this is the time remaining before the
+(S,G) Assert state expires.  If pimSmSGIAssertState is
+'noInfo', this is zero.  This timer is called the (S,G)
+Assert Timer in the PIM-SM specification
+[I-D.ietf-pim-sm-v2-new]."
+::= { pimSmSGIEntry 8 }
+
+pimSmSGIAssertWinnerAddress OBJECT-TYPE
+SYNTAX     InetAddress
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"If pimSmSGIAssertState is 'iAmAssertLoser', this is the
+address of the assert winner; otherwise, this object is
+zero.  The InetAddressType is given by the pimSmSGAddressType
+object."
+::= { pimSmSGIEntry 9 }
+
+  pimSmSGIAssertWinnerMetricPref OBJECT-TYPE
+  SYNTAX     Unsigned32 (0..2147483647)
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "If pimSmSGIAssertState is 'iAmAssertLoser', this is the
+  metric preference of the route to the source advertised by
+  the assert winner; otherwise, this object is zero."
+  ::= { pimSmSGIEntry 11 }
+
+  pimSmSGIAssertWinnerMetric OBJECT-TYPE
+  SYNTAX     Unsigned32
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "If pimSmSGIAssertState is 'iAmAssertLoser', this is the
+  routing metric of the route to the source advertised by the
+  assert winner; otherwise, this object is zero."
+  ::= { pimSmSGIEntry 12 }
+
+  --
+  -- The PIM (S,G,rpt) State Table
+  --
+
+  pimSmSGRptTable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF PimSmSGRptEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The (conceptual) table listing the non-interface specific
+  (S,G,rpt) state that PIM has."
+  ::= { pimSm 8 }
+
+  pimSmSGRptEntry OBJECT-TYPE
+  SYNTAX     PimSmSGRptEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "An entry (conceptual row) in the pimSmSGRptTable."
+  INDEX      { pimSmStarGAddressType,
+    pimSmStarGGrpAddress,
+    pimSmSGRptSrcAddress }
+    ::= { pimSmSGRptTable 1 }
+
+    PimSmSGRptEntry ::= SEQUENCE {
+      pimSmSGRptSrcAddress             InetAddress,
+      pimSmSGRptUpTime                 TimeTicks,
+      pimSmSGRptUpstreamPruneState     INTEGER,
+      pimSmSGRptUpstreamOverrideTimer  TimeTicks
+    }
+
+  pimSmSGRptSrcAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The source address for this entry.  The InetAddressType is
+  given by the pimSmStarGAddressType object."
+  ::= { pimSmSGRptEntry 1 }
+
+  pimSmSGRptUpTime OBJECT-TYPE
+  SYNTAX     TimeTicks
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The time since this entry was created by the local router."
+  ::= { pimSmSGRptEntry 2 }
+
+  pimSmSGRptUpstreamPruneState OBJECT-TYPE
+  SYNTAX     INTEGER {
+    rptNotJoined (1),
+                 pruned (2),
+                 notPruned (3)
+  }
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"Whether the local router should prune the source off the RP
+tree.  This corresponds to the state of the upstream
+(S,G,rpt) state machine for triggered messages in the PIM-SM
+specification [I-D.ietf-pim-sm-v2-new]."
+::= { pimSmSGRptEntry 3 }
+
+pimSmSGRptUpstreamOverrideTimer OBJECT-TYPE
+SYNTAX     TimeTicks
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The time remaining before the local router sends a
+triggered (S,G,rpt) Join message on pimSmStarGRPFIfIndex.
+This timer is called the (S,G,rpt) Upstream Override Timer
+in the PIM-SM specification [I-D.ietf-pim-sm-v2-new].  This
+object is zero if the timer is not running."
+::= { pimSmSGRptEntry 4 }
+
+--
+-- The PIM (S,G,rpt,I) State Table
+--
+
+pimSmSGRptITable OBJECT-TYPE
+SYNTAX     SEQUENCE OF PimSmSGRptIEntry
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The (conceptual) table listing the interface-specific
+(S,G,rpt) state that PIM has."
+::= { pimSm 9 }
+
+pimSmSGRptIEntry OBJECT-TYPE
+SYNTAX     PimSmSGRptIEntry
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"An entry (conceptual row) in the pimSmSGRptITable."
+INDEX      { pimSmStarGAddressType,
+  pimSmStarGGrpAddress,
+  pimSmSGRptSrcAddress,
+  pimSmSGRptIIfIndex }
+  ::= { pimSmSGRptITable 1 }
+
+  PimSmSGRptIEntry ::= SEQUENCE {
+    pimSmSGRptIIfIndex            InterfaceIndex,
+    pimSmSGRptIUpTime             TimeTicks,
+    pimSmSGRptILocalMembership    TruthValue,
+    pimSmSGRptIJoinPruneState     INTEGER,
+    pimSmSGRptIPrunePendingTimer  TimeTicks,
+    pimSmSGRptIPruneExpiryTimer   TimeTicks
+  }
+
+pimSmSGRptIIfIndex OBJECT-TYPE
+SYNTAX     InterfaceIndex
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The ifIndex of the interface that this entry corresponds
+to."
+::= { pimSmSGRptIEntry 1 }
+
+pimSmSGRptIUpTime OBJECT-TYPE
+SYNTAX     TimeTicks
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The time since this entry was created by the local router."
+::= { pimSmSGRptIEntry 2 }
+
+pimSmSGRptILocalMembership OBJECT-TYPE
+SYNTAX     TruthValue
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"Whether the local router has both (*,G) include local
+membership and (S,G) exclude local membership on this
+interface (resulting from a mechanism such as IGMPv3 or
+    MLDv2).  This corresponds to local_receiver_exclude(S,G,I)
+  in the PIM-SM specification [I-D.ietf-pim-sm-v2-new]."
+  ::= { pimSmSGRptIEntry 3 }
+
+  pimSmSGRptIJoinPruneState OBJECT-TYPE
+  SYNTAX     INTEGER {
+    noInfo (1),
+           prune (2),
+           prunePending (3)
+  }
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The state resulting from (S,G,rpt) Join/Prune messages
+received on this interface.  This corresponds to the state
+of the downstream per-interface (S,G,rpt) state machine in
+the PIM-SM specification [I-D.ietf-pim-sm-v2-new]."
+::= { pimSmSGRptIEntry 4 }
+
+pimSmSGRptIPrunePendingTimer OBJECT-TYPE
+SYNTAX     TimeTicks
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The time remaining before the local router starts pruning
+this source off the RP tree.  This timer is called the
+(S,G,rpt) Prune-Pending Timer in the PIM-SM specification
+[I-D.ietf-pim-sm-v2-new].  This object is zero if the timer
+is not running."
+::= { pimSmSGRptIEntry 5 }
+
+pimSmSGRptIPruneExpiryTimer OBJECT-TYPE
+SYNTAX     TimeTicks
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+  "The time remaining before (S,G,rpt) Prune state for this
+interface expires.  This timer is called the (S,G,rpt)
+  Prune Expiry Timer in the PIM-SM specification
+  [I-D.ietf-pim-sm-v2-new].  This object is zero if the timer
+  is not running.  A value of 'FFFFFFFF'h indicates an
+  infinite expiry time."
+  ::= { pimSmSGRptIEntry 6 }
+
+  --
+  -- The PIMSM Bidir DF-Election Table
+  --
+
+  pimSmBidirDFElectionTable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF PimSmBidirDFElectionEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The (conceptual) table listing the per-RP Designated
+  Forwarder (DF) Election state for each interface for all the
+  RPs in BIDIR mode."
+  ::= { pimSm 10 }
+
+  pimSmBidirDFElectionEntry OBJECT-TYPE
+  SYNTAX     PimSmBidirDFElectionEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "An entry (conceptual row) in the pimSmBidirDFElectionTable."
+  INDEX      { pimSmBidirDFElectionAddressType,
+    pimSmBidirDFElectionRPAddress,
+    pimSmBidirDFElectionIfIndex }
+    ::= { pimSmBidirDFElectionTable 1 }
+
+    PimSmBidirDFElectionEntry ::= SEQUENCE {
+      pimSmBidirDFElectionAddressType       InetAddressType,
+      pimSmBidirDFElectionRPAddress         InetAddress,
+      pimSmBidirDFElectionIfIndex           InterfaceIndex,
+      pimSmBidirDFElectionWinnerAddress     InetAddress,
+      pimSmBidirDFElectionWinnerUpTime      TimeTicks,
+      pimSmBidirDFElectionWinnerMetricPref  Unsigned32,
+      pimSmBidirDFElectionWinnerMetric      Unsigned32,
+      pimSmBidirDFElectionState             INTEGER,
+      pimSmBidirDFElectionStateTimer        TimeTicks
+    }
+
+pimSmBidirDFElectionAddressType OBJECT-TYPE
+SYNTAX     InetAddressType
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The address type of the RP for which the DF state is being
+maintained."
+::= { pimSmBidirDFElectionEntry 1 }
+
+  pimSmBidirDFElectionRPAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The IP address of the RP for which the DF state is being
+  maintained.  The InetAddressType is given by the
+  pimSmBidirDFElectionAddressType object."
+  ::= { pimSmBidirDFElectionEntry 2 }
+
+  pimSmBidirDFElectionIfIndex OBJECT-TYPE
+  SYNTAX     InterfaceIndex
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The value of ifIndex for the interface for which the DF
+  state is being maintained."
+  ::= { pimSmBidirDFElectionEntry 3 }
+
+  pimSmBidirDFElectionWinnerAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The primary IP address of the winner of the DF Election
+  process.  The InetAddressType is given by the
+  pimSmBidirDFElectionAddressType object.  A value of zero
+  indicates there is currently no DF."
+  ::= { pimSmBidirDFElectionEntry 4 }
+
+  pimSmBidirDFElectionWinnerUpTime OBJECT-TYPE
+  SYNTAX     TimeTicks
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The time since the current winner (last) became elected as
+  the DF for this RP."
+  ::= { pimSmBidirDFElectionEntry 5 }
+
+  pimSmBidirDFElectionWinnerMetricPref OBJECT-TYPE
+  SYNTAX     Unsigned32
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The metric preference advertised by the DF Winner, or zero
+  if there is currently no DF."
+  ::= { pimSmBidirDFElectionEntry 6 }
+
+  pimSmBidirDFElectionWinnerMetric OBJECT-TYPE
+  SYNTAX     Unsigned32
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The metric advertised by the DF Winner, or zero if there is
+  currently no DF."
+  ::= { pimSmBidirDFElectionEntry 7 }
+
+  pimSmBidirDFElectionState OBJECT-TYPE
+  SYNTAX     INTEGER {
+    dfOffer(1),
+      dfLose(2),
+      dfWinner(3),
+      dfBackoff(4)
+  }
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The state of this interface with respect to DF-Election for
+this RP.  The states correspond to the ones defined in the
+BIDIR-PIM specification [I-D.ietf-pim-bidir]."
+::= { pimSmBidirDFElectionEntry 8 }
+
+pimSmBidirDFElectionStateTimer OBJECT-TYPE
+SYNTAX     TimeTicks
+MAX-ACCESS read-only
+STATUS     current
+DESCRIPTION
+"The minimum time remaining after which the local router
+will expire the current DF state represented by
+pimSmBidirDFElectionState."
+::= { pimSmBidirDFElectionEntry 9 }
+
+--
+-- The PIMSM  SSM Range Table
+--
+
+pimSmSsmRangeTable OBJECT-TYPE
+SYNTAX     SEQUENCE OF PimSmSsmRangeEntry
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"This table is used to create and manage the range(s) of
+group addresses to which SSM semantics should be applied.
+SSM is described in [RFC3569]."
+::= { pimSm 11 }
+
+pimSmSsmRangeEntry OBJECT-TYPE
+SYNTAX     PimSmSsmRangeEntry
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"An entry (conceptual row) in the ssmRangeTable."
+INDEX      { pimSmSsmRangeAddressType,
+  pimSmSsmRangeAddress,
+  pimSmSsmRangePrefixLength }
+  ::= { pimSmSsmRangeTable 1 }
+
+  PimSmSsmRangeEntry ::= SEQUENCE {
+    pimSmSsmRangeAddressType   InetAddressType,
+    pimSmSsmRangeAddress       InetAddress,
+    pimSmSsmRangePrefixLength  InetAddressPrefixLength,
+    pimSmSsmRangeRowStatus     RowStatus
+  }
+
+pimSmSsmRangeAddressType OBJECT-TYPE
+SYNTAX     InetAddressType
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The address type of the multicast group prefix."
+::= { pimSmSsmRangeEntry 1 }
+
+  pimSmSsmRangeAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The multicast group address which, when combined with
+  pimSmSsmRangePrefixLength, gives the group prefix for this
+  SSM range.  The InetAddressType is given by the
+  pimSmSsmRangeAddressType object."
+  ::= { pimSmSsmRangeEntry 2 }
+
+  pimSmSsmRangePrefixLength OBJECT-TYPE
+  SYNTAX     InetAddressPrefixLength (4..128)
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The multicast group prefix length, which, when combined
+  with pimSmSsmRangeAddress, gives the group prefix for this SSM
+  range.  The InetAddressType is given by the
+  pimSmSsmRangeAddressType object.  If pimSmSsmRangeAddressType is
+  'ipv4' or 'ipv4z', this object must be in the range 4..32.
+  If pimSmSsmRangeAddressType is 'ipv6' or 'ipv6z', this object
+  must be in the range 8..128."
+  ::= { pimSmSsmRangeEntry 3 }
+
+  pimSmSsmRangeRowStatus OBJECT-TYPE
+  SYNTAX     RowStatus
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The status of this row, by which rows in this table can
+  be created and destroyed."
+  ::= { pimSmSsmRangeEntry 4 }
+
+  --
+  --the PIMSM static RP table
+  --
+
+  pimSmStaticRPTable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF PimSmStaticRPEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "This table is used to create and manage static
+  configuration of RPs.
+  If the group prefixes configured for two or more rows in
+  this table overlap, the row with the greatest value of
+  pimSmStaticRPGrpPrefixLength is used for the overlapping
+  range."
+  ::= { pimSm 12 }
+
+  pimSmStaticRPEntry OBJECT-TYPE
+  SYNTAX     PimSmStaticRPEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "An entry (conceptual row) in the pimSmStaticRPTable."
+  INDEX      { pimSmStaticRPAddressType,
+    pimSmStaticRPGrpAddress,
+    pimSmStaticRPGrpPrefixLength }
+    ::= { pimSmStaticRPTable 1 }
+
+    PimSmStaticRPEntry ::= SEQUENCE {
+      pimSmStaticRPAddressType      InetAddressType,
+      pimSmStaticRPGrpAddress       InetAddress,
+      pimSmStaticRPGrpPrefixLength  InetAddressPrefixLength,
+      pimSmStaticRPRPAddress        InetAddress,
+      pimSmStaticRPPimSmMode          PimSmMode,
+      pimSmStaticRPOverrideDynamic  TruthValue,
+      pimSmStaticRPRowStatus        RowStatus
+    }
+
+pimSmStaticRPAddressType OBJECT-TYPE
+SYNTAX     InetAddressType
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The address type of this entry."
+::= { pimSmStaticRPEntry 1 }
+
+  pimSmStaticRPGrpAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The multicast group address which, when combined with
+  pimSmStaticRPGrpPrefixLength, gives the group prefix for this
+  entry.  The InetAddressType is given by the
+  pimSmStaticRPAddressType object."
+  ::= { pimSmStaticRPEntry 2 }
+
+  pimSmStaticRPGrpPrefixLength OBJECT-TYPE
+  SYNTAX     InetAddressPrefixLength (4..128)
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The multicast group prefix length, which, when combined
+  with pimSmStaticRPGrpAddress, gives the group prefix for this
+  entry.  The InetAddressType is given by the
+  pimSmStaticRPAddressType object.  If pimSmStaticRPAddressType is
+  'ipv4' or 'ipv4z', this object must be in the range 4..32.
+  If pimSmStaticRPGrpAddressType is 'ipv6' or 'ipv6z', this
+  object must be in the range 8..128."
+  ::= { pimSmStaticRPEntry 3 }
+
+  pimSmStaticRPRPAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS read-create
+  STATUS     current
+  DESCRIPTION
+  "The IP address of the RP to be used for groups within this
+  group prefix.  The InetAddressType is given by the
+  pimSmStaticRPAddressType object."
+  ::= { pimSmStaticRPEntry 4 }
+
+  pimSmStaticRPPimSmMode OBJECT-TYPE
+  SYNTAX     INTEGER { asm(3), bidir(4) }
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The PIM mode to be used for groups in this group prefix."
+  DEFVAL { asm }
+  ::= { pimSmStaticRPEntry 5 }
+
+  pimSmStaticRPOverrideDynamic OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-create
+  STATUS     current
+  DESCRIPTION
+  "Whether this static RP configuration overrides RP
+  information learned dynamically for groups in this group
+  prefix."
+  DEFVAL { false }
+  ::= { pimSmStaticRPEntry 6 }
+
+  pimSmStaticRPRowStatus OBJECT-TYPE
+  SYNTAX     RowStatus
+  MAX-ACCESS read-create
+  STATUS     current
+  DESCRIPTION
+  "The status of this row, by which rows in this table can
+  be created and destroyed."
+  ::= { pimSmStaticRPEntry 7 }
+
+  --
+  -- The PIM Group Mapping Table
+  --
+
+  pimSmGroupMappingTable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF PimSmGroupMappingEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The (conceptual) table listing mappings from multicast
+  group prefixes to the PIM mode and RP address to use for
+  groups within that group prefix.
+
+  Rows in this table are created for a variety of reasons,
+  indicated by the value of the pimSmGroupMappingOrigin object.
+
+  -  Rows with a pimSmGroupMappingOrigin value of 'fixed' are
+  created automatically by the router at startup, to
+  correspond to the well-defined prefixes of link-local and
+  unroutable group addresses.  These rows are never
+  destroyed.
+
+  -  Rows with a pimSmGroupMappingOrigin value of 'embedded' are
+  created by the router to correspond to group prefixes
+  that are to be treated as being in Embedded-RP format, as
+  defined in [RFC3956].
+
+  -  Rows with a pimSmGroupMappingOrigin value of 'config' are
+  created and destroyed as a result of rows in the
+  pimSmSsmRangeTable and pimSmStaticRPTable being created and
+  destroyed.
+
+  -  Rows with a pimSmGroupMappingOrigin value of 'bsr' are
+  created as a result of running the PIM Bootstrap Router
+  (BSR) mechanism.  If the local router is not the elected
+  BSR, these rows are created to correspond to group
+  prefixes in the PIM Bootstrap messages received from the
+  elected BSR.  If the local router is the elected BSR,
+  these rows are created to correspond to group prefixes in
+  the PIM Bootstrap messages that the local router sends.
+  In either case, these rows are destroyed when the group
+  prefixes are timed out by the BSR mechanism.
+
+  -  Rows with a pimSmGroupMappingOrigin value of 'other' are
+  created and destroyed according to some other mechanism
+  not specified here.
+
+  Given the collection of rows in this table at any point in
+  time, the PIM mode and RP address to use for a particular
+  group is determined using the following algorithm.
+
+  1. From the set of all rows, the subset whose group prefix
+  contains the group in question are selected.
+
+  2. If there are no such rows, the behavior is undefined.
+
+  3. If there is at least one such row, from the selected
+  subset of rows, the subset that have the lowest value
+  of pimSmGroupMappingPrecedence are selected.
+
+  4. From the selected subset of rows, the subset that have
+  the greatest value of pimSmGroupMappingGrpPrefixLength are
+  selected.
+
+  5. If there are multiple selected rows, the subset that have
+  pimSmGroupMappingActive set to 'true' are selected.  There
+  must be at least one such row.
+
+  6. If there are multiple selected rows, the row selected is
+  implementation dependent; the implementation might or
+  might not apply the PIM hash function to select the row.
+
+  7. The group mode to use is given by the value of
+  pimSmGroupMappingPimSmMode from the single selected row; the
+  RP to use is given by the value of
+  pimSmGroupMappingRPAddress, unless pimSmGroupMappingOrigin is
+  'embedded', in which case the RP is extracted from the
+  group address in question using the algorithm in
+  [RFC3956]."
+  ::= { pimSm 13 }
+
+  pimSmGroupMappingEntry OBJECT-TYPE
+  SYNTAX     PimSmGroupMappingEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "An entry (conceptual row) in the pimSmGroupMappingTable."
+  INDEX      { pimSmGroupMappingOrigin,
+    pimSmGroupMappingAddressType,
+    pimSmGroupMappingGrpAddress,
+    pimSmGroupMappingGrpPrefixLength,
+    pimSmGroupMappingRPAddress }
+    ::= { pimSmGroupMappingTable 1 }
+
+    PimSmGroupMappingEntry ::= SEQUENCE {
+      pimSmGroupMappingOrigin           PimSmGroupMappingOriginType,
+      pimSmGroupMappingAddressType      InetAddressType,
+      pimSmGroupMappingGrpAddress       InetAddress,
+      pimSmGroupMappingGrpPrefixLength  InetAddressPrefixLength,
+      pimSmGroupMappingRPAddress        InetAddress,
+      pimSmGroupMappingPimSmMode          PimSmMode,
+      pimSmGroupMappingPrecedence       Unsigned32,
+      pimSmGroupMappingActive           TruthValue
+    }
+
+pimSmGroupMappingOrigin OBJECT-TYPE
+SYNTAX     PimSmGroupMappingOriginType
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The mechanism by which this group mapping was learned."
+::= { pimSmGroupMappingEntry 1 }
+
+pimSmGroupMappingAddressType OBJECT-TYPE
+SYNTAX     InetAddressType
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The address type of the IP multicast group prefix."
+::= { pimSmGroupMappingEntry 2 }
+
+  pimSmGroupMappingGrpAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The IP multicast group address which, when combined with
+  pimSmGroupMappingGrpPrefixLength, gives the group prefix for
+  this mapping.  The InetAddressType is given by the
+  pimSmGroupMappingAddressType object."
+  ::= { pimSmGroupMappingEntry 3 }
+
+  pimSmGroupMappingGrpPrefixLength OBJECT-TYPE
+  SYNTAX     InetAddressPrefixLength (4..128)
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The multicast group prefix length, which, when combined
+  with pimSmGroupMappingGrpAddress, gives the group prefix for
+  this mapping.  The InetAddressType is given by the
+  pimSmGroupMappingAddressType object.  If
+  pimSmGroupMappingAddressType is 'ipv4' or 'ipv4z', this
+  object must be in the range 4..32.  If
+  pimSmGroupMappingAddressType is 'ipv6' or 'ipv6z', this object
+  must be in the range 8..128."
+  ::= { pimSmGroupMappingEntry 4 }
+
+  pimSmGroupMappingRPAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The IP address of the RP to be used for groups within this
+  group prefix, or zero if no RP is to be used or if the RP
+  address is unknown.  The InetAddressType is given by the
+  pimSmGroupMappingAddressType object.  This object must be zero
+  if pimSmGroupMappingPimSmMode is 'ssm', or if
+  pimSmGroupMappingOrigin is 'embedded'."
+  ::= { pimSmGroupMappingEntry 5 }
+
+  pimSmGroupMappingPimSmMode OBJECT-TYPE
+  SYNTAX     PimSmMode
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The PIM mode to be used for groups in this group prefix."
+  ::= { pimSmGroupMappingEntry 6 }
+
+  pimSmGroupMappingPrecedence OBJECT-TYPE
+  SYNTAX     Unsigned32
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The precedence of this row, used in the algorithm that
+  determines which row applies to a given group address
+  (described above).  Numerically higher values for this
+  object indicate lower precedences, with the value 0 denoting
+  the highest precedence.
+
+  The absolute values of this object have a significance only
+  on the local router and do not need to be coordinated with
+  other routers."
+  ::= { pimSmGroupMappingEntry 7 }
+
+  pimSmGroupMappingActive OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Whether or not this group mapping is active, and may
+  therefore be used for obtaining RP or mode information.  A
+  group mapping is always inactive if another mapping with a
+  higher precedence (that is, a lower value of
+      pimSmGroupMappingPrecedence) covers the whole group prefix of
+  this mapping.  Otherwise, a group mapping is always active
+  unless there is at least one other mapping with the same
+  precedence and the same group prefix as this mapping.  In
+  this case, one or much such mappings are active; if more
+  than one, the PIM hash function is applied to the subset of
+  active mappings to select one to use for an individual group
+  within the prefix."
+  ::= { pimSmGroupMappingEntry 8 }
+
+  --
+  -- The BSR Candidate-RP Table
+  --
+
+  bsrCandidateRPTable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF BsrCandidateRPEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The (conceptual) table listing the IP multicast groups for
+  which the local router is to advertise itself as a
+  Candidate-RP."
+  ::= { pimSm 14 }
+
+  bsrCandidateRPEntry OBJECT-TYPE
+  SYNTAX     BsrCandidateRPEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "An entry (conceptual row) in the bsrCandidateRPTable."
+  INDEX      { bsrCandidateRPAddressType,
+    bsrCandidateRPAddress,
+    bsrCandidateRPGroupAddress,
+    bsrCandidateRPGroupPrefixLength }
+    ::= { bsrCandidateRPTable 1 }
+
+    BsrCandidateRPEntry ::= SEQUENCE {
+      bsrCandidateRPAddressType       InetAddressType,
+      bsrCandidateRPAddress           InetAddress,
+      bsrCandidateRPGroupAddress      InetAddress,
+      bsrCandidateRPGroupPrefixLength InetAddressPrefixLength,
+      bsrCandidateRPBidir             TruthValue,
+      bsrCandidateRPStatus            RowStatus
+    }
+
+bsrCandidateRPAddressType OBJECT-TYPE
+SYNTAX     InetAddressType
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The address type of the Candidate-RP."
+::= { bsrCandidateRPEntry 1 }
+
+  bsrCandidateRPAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The (unicast) address which will be advertised as a
+  Candidate-RP.  The InetAddressType is given by the
+  bsrCandidateRPAddressType object."
+  ::= { bsrCandidateRPEntry 2 }
+
+  bsrCandidateRPGroupAddress OBJECT-TYPE
+  SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The IP multicast group address which, when combined with
+  the corresponding value of bsrCandidateRPGroupPrefixLength,
+  identifies a group prefix for which the local router will
+  advertise itself as a Candidate-RP.  The InetAddressType is
+  given by the bsrCandidateRPAddressType object."
+  ::= { bsrCandidateRPEntry 3 }
+
+  bsrCandidateRPGroupPrefixLength OBJECT-TYPE
+  SYNTAX     InetAddressPrefixLength
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The multicast group address mask which, when combined with
+  the corresponding value of bsrCandidateRPGroupMask,
+  identifies a group prefix for which the local router will
+  advertise itself as a Candidate-RP.  The InetAddressType is
+  given by the bsrCandidateRPAddressType object.  A value of
+  zero is not permitted for this object."
+  ::= { bsrCandidateRPEntry 4 }
+
+  bsrCandidateRPBidir OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "If this object is set to TRUE, this group range is
+  advertised to this RP as a BIDIR-PIM group range.  If it is
+  set to FALSE, it is advertised as a PIM-SM group range."
+  ::= { bsrCandidateRPEntry 5 }
+
+  bsrCandidateRPStatus OBJECT-TYPE
+  SYNTAX     RowStatus
+  MAX-ACCESS read-create
+  STATUS     current
+  DESCRIPTION
+  "The status of this row, by which new entries may be
+  created, or old entries deleted from this table."
+  ::= { bsrCandidateRPEntry 6 }
+
+  --
+  -- The BSR RP-Set Table
+  --
+
+  bsrRPSetTable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF BsrRPSetEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The (conceptual) table listing BSR-specific information
+  about PIM group mappings learned via BSR.  There is one
+  entry in this table for every entry in the
+  pimSmGroupMappingTable with a pimSmGroupMappingOrigin value of
+  'bsr'."
+  ::= { pimSm 15 }
+
+  bsrRPSetEntry OBJECT-TYPE
+  SYNTAX     BsrRPSetEntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "An entry (conceptual row) in the bsrRPSetTable."
+  INDEX      { pimSmGroupMappingOrigin,
+    pimSmGroupMappingAddressType,
+    pimSmGroupMappingGrpAddress,
+    pimSmGroupMappingGrpPrefixLength,
+    pimSmGroupMappingRPAddress }
+    ::= { bsrRPSetTable 1 }
+
+    BsrRPSetEntry ::= SEQUENCE {
+      bsrRPSetPriority          Unsigned32,
+      bsrRPSetHoldtime          Unsigned32,
+      bsrRPSetExpiryTime        TimeTicks
+    }
+
+  bsrRPSetPriority OBJECT-TYPE
+SYNTAX     Unsigned32 (0..255)
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The RP Priority from the PIM Candidate-RP-Advertisement
+  message or PIM Bootstrap message by which this RP was
+  learned.  Numerically higher values for this object indicate
+  lower priorities, with the value zero denoting the highest
+  priority."
+  ::= { bsrRPSetEntry 1 }
+
+  bsrRPSetHoldtime OBJECT-TYPE
+SYNTAX     Unsigned32 (0..65535)
+  UNITS      "seconds"
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The RP Holdtime from the PIM Candidate-RP-Advertisement
+  message or PIM Bootstrap message by which this RP was
+  learned."
+  ::= { bsrRPSetEntry 2 }
+
+  bsrRPSetExpiryTime OBJECT-TYPE
+  SYNTAX     TimeTicks
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The minimum time remaining before this entry will be aged
+  out.  The value zero indicates that this entry will never be
+  aged out."
+  ::= { bsrRPSetEntry 3 }
+
+  --
+  -- The BSR Candidate-BSR Table
+  --
+
+  bsrCandidateBSRTable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF BsrCandidateBSREntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The (conceptual) table containing Candidate-BSR
+  configuration for the local router.  The table contains one
+  row for each address family for which the local router is to
+  advertise itself as a Candidate-BSR."
+  ::= { pimSm 16 }
+
+  bsrCandidateBSREntry OBJECT-TYPE
+  SYNTAX     BsrCandidateBSREntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "An entry (conceptual row) in the bsrCandidateBSRTable."
+  INDEX      { bsrCandidateBSRAddressType }
+  ::= { bsrCandidateBSRTable 1 }
+
+  BsrCandidateBSREntry ::= SEQUENCE {
+    bsrCandidateBSRAddressType      InetAddressType,
+    bsrCandidateBSRAddress          InetAddress,
+    bsrCandidateBSRPriority         Unsigned32,
+    bsrCandidateBSRHashMaskLength   Unsigned32,
+    bsrCandidateBSRElectedBSR       TruthValue,
+    bsrCandidateBSRBootstrapTimer   TimeTicks,
+    bsrCandidateBSRStatus           RowStatus
+  }
+
+bsrCandidateBSRAddressType OBJECT-TYPE
+SYNTAX     InetAddressType
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The address type of the Candidate-BSR."
+::= { bsrCandidateBSREntry 1 }
+
+bsrCandidateBSRAddress OBJECT-TYPE
+SYNTAX     InetAddress
+MAX-ACCESS read-create
+STATUS     current
+DESCRIPTION
+"The (unicast) address which the local router will use to
+advertise itself as a Candidate-BSR.  The InetAddressType is
+given by the bsrCandidateBSRAddressType object."
+::= { bsrCandidateBSREntry 2 }
+
+  bsrCandidateBSRPriority OBJECT-TYPE
+SYNTAX     Unsigned32 (0..255)
+  MAX-ACCESS read-create
+  STATUS     current
+  DESCRIPTION
+  "The priority value for the local router as a Candidate-BSR
+  for this address type.  Numerically higher values for this
+  object indicate higher priorities."
+  DEFVAL { 0 }
+  ::= { bsrCandidateBSREntry 3 }
+
+  bsrCandidateBSRHashMaskLength OBJECT-TYPE
+SYNTAX     Unsigned32 (0..128)
+  MAX-ACCESS read-create
+  STATUS     current
+  DESCRIPTION
+  "The hash mask length (used in the RP hash function) that
+  the local router will advertise in its Bootstrap messages
+  for this address type.  This object defaults to 30 if
+  bsrCandidateBSRAddressType is 'ipv4' or 'ipv4z', and
+  defaults to 126 if bsrCandidateBSRAddressType is 'ipv6' or
+  'ipv6z'."
+  -- DEFVAL { 30 or 126 }
+  ::= { bsrCandidateBSREntry 4 }
+
+  bsrCandidateBSRElectedBSR OBJECT-TYPE
+  SYNTAX     TruthValue
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "Whether the local router is the elected BSR for this
+  address type."
+  ::= { bsrCandidateBSREntry 5 }
+
+  bsrCandidateBSRBootstrapTimer OBJECT-TYPE
+  SYNTAX     TimeTicks
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The time remaining before the local router next originates
+  a Bootstrap message for this address type.  This is zero if
+  bsrCandidateBSRElectedBSR is 'false'."
+  ::= { bsrCandidateBSREntry 6 }
+
+  bsrCandidateBSRStatus OBJECT-TYPE
+  SYNTAX     RowStatus
+  MAX-ACCESS read-create
+  STATUS     current
+  DESCRIPTION
+  "The status of this row, by which new entries may be
+  created, or old entries deleted from this table."
+  ::= { bsrCandidateBSREntry 7 }
+
+  --
+  -- The BSR Elected BSR Table
+  --
+
+  bsrElectedBSRTable OBJECT-TYPE
+  SYNTAX     SEQUENCE OF BsrElectedBSREntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "The (conceptual) table containing information about elected
+  BSRs.  The table contains one row for each address family
+  for which there is an elected BSR."
+  ::= { pimSm 17 }
+
+  bsrElectedBSREntry OBJECT-TYPE
+  SYNTAX     BsrElectedBSREntry
+  MAX-ACCESS not-accessible
+  STATUS     current
+  DESCRIPTION
+  "An entry (conceptual row) in the bsrElectedBSRTable."
+  INDEX      { bsrElectedBSRAddressType }
+  ::= { bsrElectedBSRTable 1 }
+
+  BsrElectedBSREntry ::= SEQUENCE {
+    bsrElectedBSRAddressType      InetAddressType,
+    bsrElectedBSRAddress          InetAddress,
+    bsrElectedBSRPriority         Unsigned32,
+    bsrElectedBSRHashMaskLength   Unsigned32,
+    bsrElectedBSRExpiryTime       TimeTicks,
+    bsrElectedBSRCRPAdvTimer      TimeTicks
+  }
+
+bsrElectedBSRAddressType OBJECT-TYPE
+SYNTAX     InetAddressType
+MAX-ACCESS not-accessible
+STATUS     current
+DESCRIPTION
+"The address type of the elected BSR."
+::= { bsrElectedBSREntry 1 }
+
+  bsrElectedBSRAddress OBJECT-TYPE
+SYNTAX     InetAddress (SIZE (4|16|20))
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The (unicast) address of the elected BSR.  The
+  InetAddressType is given by the bsrElectedBSRAddressType
+  object."
+  ::= { bsrElectedBSREntry 2 }
+
+  bsrElectedBSRPriority OBJECT-TYPE
+SYNTAX     Unsigned32 (0..255)
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The priority value for the elected BSR for this address
+  type.  Numerically higher values for this object indicate
+  higher priorities."
+  ::= { bsrElectedBSREntry 3 }
+
+  bsrElectedBSRHashMaskLength OBJECT-TYPE
+SYNTAX     Unsigned32 (0..128)
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The hash mask length (used in the RP hash function)
+  advertised by the elected BSR for this address type."
+  ::= { bsrElectedBSREntry 4 }
+
+  bsrElectedBSRExpiryTime OBJECT-TYPE
+  SYNTAX     TimeTicks
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The minimum time remaining before the elected BSR for this
+  address type will be declared down."
+  ::= { bsrElectedBSREntry 5 }
+
+  bsrElectedBSRCRPAdvTimer OBJECT-TYPE
+  SYNTAX     TimeTicks
+  MAX-ACCESS read-only
+  STATUS     current
+  DESCRIPTION
+  "The time remaining before the local router next sends a
+  Candidate-RP-Advertisement signal to the elected BSR for
+  this address type."
+  ::= { bsrElectedBSREntry 6 }
+
+  --
+  -- PIMSM Traps
+  --
+
+  pimSmNeighborLoss NOTIFICATION-TYPE
+  OBJECTS { pimSmNeighborUpTime }
+  STATUS     current
+  DESCRIPTION
+  "A pimSmNeighborLoss trap signifies the loss of an adjacency
+  with a neighbor.  This trap should be generated when the
+  neighbor timer expires, and the router has no other
+  neighbors on the same interface with the same IP version and
+  a lower IP address than itself."
+  ::= { pimSmTraps 1 }
+
+  --
+  -- Conformance Information
+  --
+
+  pimSmMIBConformance OBJECT IDENTIFIER ::= { pimStdMIB 2 }
+  pimSmMIBCompliances OBJECT IDENTIFIER ::= { pimSmMIBConformance 1 }
+  pimSmMIBGroups      OBJECT IDENTIFIER ::= { pimSmMIBConformance 2 }
+
+  --
+  -- Compliance Statements
+  --
+
+  pimSmMIBCompliance MODULE-COMPLIANCE
+  STATUS  current
+  DESCRIPTION
+  "The compliance statement for PIM routers which implement
+  the PIM MIB."
+  MODULE  -- this module
+  MANDATORY-GROUPS { pimSmNotificationGroup,
+    pimSmObjectGroup  }
+    ::= { pimSmMIBCompliances 1 }
+
+    --
+    -- Units of Conformance
+    --
+
+    pimSmNotificationGroup NOTIFICATION-GROUP
+    NOTIFICATIONS { pimSmNeighborLoss }
+    STATUS  current
+    DESCRIPTION
+    "A collection of notifications for signaling important PIM
+    events."
+    ::= { pimSmMIBGroups 1 }
+
+    pimSmObjectGroup  OBJECT-GROUP
+    OBJECTS { pimSmInterfaceAddressType,
+      pimSmInterfaceAddress,
+      pimSmInterfaceNetMaskLength,
+      pimSmInterfaceDR,
+      pimSmInterfaceHelloInterval,
+      pimSmInterfaceTrigHelloInterval,
+      pimSmInterfaceJoinPruneInterval,
+      pimSmInterfaceDFElectionRobustness,
+      pimSmInterfaceHelloHoldtime,
+      pimSmInterfaceJoinPruneHoldtime,
+      pimSmInterfaceUseLanPruneDelay,
+      pimSmInterfacePropagationDelay,
+      pimSmInterfaceOverrideInterval,
+      pimSmInterfaceUseGenerationID,
+      pimSmInterfaceGenerationIDValue,
+      pimSmInterfaceUseDRPriority,
+      pimSmInterfaceDRPriority,
+      pimSmInterfaceLanDelayEnabled,
+      pimSmInterfaceEffectPropagDelay,
+      pimSmInterfaceEffectOverrideIvl,
+      pimSmInterfaceSuppressionEnabled,
+      pimSmInterfaceBidirCapable,
+      pimSmInterfaceDRPriorityEnabled,
+      pimSmInterfaceBSRBorder,
+      pimSmInterfaceStatus,
+      pimSmNeighborUpTime,
+      pimSmNeighborExpiryTime,
+      pimSmNeighborLanPruneDelayPresent,
+      pimSmNeighborPropagationDelay,
+      pimSmNeighborOverrideInterval,
+      pimSmNeighborTBit,
+      pimSmNeighborGenerationIDPresent,
+      pimSmNeighborGenerationIDValue,
+      pimSmNeighborBidirCapable,
+      pimSmNeighborDRPriorityPresent,
+      pimSmNeighborDRPriority,
+      pimSmNbrSecAddress,
+      pimSmStarGUpTime,
+      pimSmStarGPimSmMode,
+      pimSmStarGRPAddress,
+      pimSmStarGRPOrigin,
+        pimSmStarGRPIsLocal,
+      pimSmStarGUpstreamJoinState,
+      pimSmStarGUpstreamJoinTimer,
+      pimSmStarGUpstreamNeighbor,
+      pimSmStarGRPFIfIndex,
+      pimSmStarGRPFNextHop,
+      pimSmStarGRPFRouteProtocol,
+      pimSmStarGRPFRouteAddress,
+      pimSmStarGRPFRoutePrefixLength,
+      pimSmStarGRPFRouteMetricPref,
+      pimSmStarGRPFRouteMetric,
+      pimSmStarGIUpTime,
+      pimSmStarGILocalMembership,
+      pimSmStarGIJoinPruneState,
+      pimSmStarGIPrunePendingTimer,
+      pimSmStarGIJoinExpiryTimer,
+      pimSmStarGIAssertState,
+      pimSmStarGIAssertTimer,
+      pimSmStarGIAssertWinnerAddress,
+      pimSmStarGIAssertWinnerMetricPref,
+      pimSmStarGIAssertWinnerMetric,
+      pimSmSGUpTime,
+      pimSmSGPimSmMode,
+      pimSmSGUpstreamJoinState,
+      pimSmSGUpstreamJoinTimer,
+      pimSmSGUpstreamNeighbor,
+      pimSmSGRPFIfIndex,
+      pimSmSGRPFNextHop,
+      pimSmSGRPFRouteProtocol,
+      pimSmSGRPFRouteAddress,
+      pimSmSGRPFRoutePrefixLength,
+      pimSmSGRPFRouteMetricPref,
+      pimSmSGRPFRouteMetric,
+      pimSmSGSPTBit,
+      pimSmSGKeepaliveTimer,
+      pimSmSGDRRegisterState,
+      pimSmSGDRRegisterStopTimer,
+      pimSmSGRPRegisterPMBRAddress,
+      pimSmSGIUpTime,
+      pimSmSGILocalMembership,
+      pimSmSGIJoinPruneState,
+      pimSmSGIPrunePendingTimer,
+      pimSmSGIJoinExpiryTimer,
+      pimSmSGIAssertState,
+      pimSmSGIAssertTimer,
+      pimSmSGIAssertWinnerAddress,
+      pimSmSGIAssertWinnerMetricPref,
+      pimSmSGIAssertWinnerMetric,
+        pimSmSGRptUpTime,
+      pimSmSGRptUpstreamPruneState,
+      pimSmSGRptUpstreamOverrideTimer,
+      pimSmSGRptIUpTime,
+      pimSmSGRptILocalMembership,
+      pimSmSGRptIJoinPruneState,
+      pimSmSGRptIPrunePendingTimer,
+      pimSmSGRptIPruneExpiryTimer,
+      pimSmBidirDFElectionWinnerAddress,
+      pimSmBidirDFElectionWinnerUpTime,
+      pimSmBidirDFElectionWinnerMetricPref,
+      pimSmBidirDFElectionWinnerMetric,
+      pimSmBidirDFElectionState,
+      pimSmBidirDFElectionStateTimer,
+      pimSmSsmRangeRowStatus,
+      pimSmStaticRPRPAddress,
+      pimSmStaticRPPimSmMode,
+      pimSmStaticRPOverrideDynamic,
+      pimSmStaticRPRowStatus,
+      pimSmGroupMappingPimSmMode,
+      pimSmGroupMappingPrecedence,
+      pimSmGroupMappingActive,
+      bsrCandidateRPBidir,
+      bsrCandidateRPStatus,
+      bsrRPSetPriority,
+      bsrRPSetHoldtime,
+      bsrRPSetExpiryTime,
+      bsrCandidateBSRAddress,
+      bsrCandidateBSRPriority,
+      bsrCandidateBSRHashMaskLength,
+      bsrCandidateBSRElectedBSR,
+      bsrCandidateBSRBootstrapTimer,
+      bsrCandidateBSRStatus,
+      bsrElectedBSRAddress,
+      bsrElectedBSRPriority,
+      bsrElectedBSRHashMaskLength,
+      bsrElectedBSRExpiryTime,
+      bsrElectedBSRCRPAdvTimer }
+      STATUS  current
+      DESCRIPTION
+      "A collection of objects for managing PIM routers."
+      ::= { pimSmMIBGroups 2 }
+
+      END
+
+

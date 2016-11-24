@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+<error name="CP_UNABLE_TO_SET_GROUP" output="\n Group can be configured only if the verification mode is Local or RADIUS."/>
+<error name="CP_UNABLE_TO_SET_URL_MODE_NOT_ENABLED" output="\n Failed to Set Redirect URL as Mode is not set."/>
+<error name="CP_RADIUS_MODE_NOT_SET" output="\n Operation failed as Mode is not set to RADIUS."/>
+<error name="CP_FAILED_TO_SET_TRAPS" output="\n Failed to Set Captive Portal Traps"/>
+<error name="CP_FAILED_TO_DELETE_USER_GROUP" output="\n Failed to delete user group."/>
+<error name="CP_FAILED_USER_GROUP_EXISTS" output="\n User Group $$objValue$$ already exists."/>
+<error name="CP_FAILED_TO_ADD_USER_GROUP" output="\n Error: Failed to add user group $$objValue$$."/>
+<error name="CP_FAILED_TO_SET_BACKGROUND_COLOR" output="\n Error! Failed to set Background Color."/>
+<error name="CP_FAILED_TO_SET_FOREGROUND_COLOR" output="\n Error! Failed to set Foreground Color."/>
+<error name="CP_FAILED_TO_SET_SEPARATOR_COLOR" output="\n Error! Failed to set Separator Color."/>
+<error name="CP_FAILED_TO_SET_ACCEPT_TEXT" output="\n Error! Failed to set Acceptance acknowledgement text."/>
+<error name="CP_FAILED_TO_SET_ACCOUNT_IMAGE_NAME" output="\n Error! Failed to set Account Image Name."/>
+<error name="CP_FAILED_TO_SET_ACCOUNT_LABEL" output="\n Error! Failed to set Account title."/>
+<error name="CP_FAILED_TO_SET_AUP_TEXT" output="\n Error! Failed to set Acceptance Use Policy."/>
+<error name="CP_FAILED_TO_SET_BRANDING_IMAGE_NAME" output="\n Error! Failed to set Branding Image Name."/>
+<error name="CP_FAILED_TO_SET_BROWSER_TITLE" output="\n Error! Failed to set Browser Title."/>
+<error name="CP_FAILED_TO_SET_BUTTON_LABEL" output="\n Error! Failed to set Button label."/>
+<error name="CP_FAILED_TO_SET_DENIED_MSG" output="\n Error! Failed to set Denied message."/>
+<error name="CP_FAILED_TO_SET_FONT_LIST" output="\n Error! Failed to set Browser Font List."/>
+<error name="CP_FAILED_TO_SET_INSTRUCTIONAL_TEXT" output="\n Error! Failed to set Instructional text."/>
+<error name="CP_FAILED_TO_SET_NO_ACCEPT_MSG" output="\n Error! Failed to set No Accept message."/>
+<error name="CP_FAILED_TO_SET_PASSWORD_LABEL" output="\n Error! Failed to set Password label."/>
+<error name="CP_FAILED_TO_SET_PASSWORD_USER_PASSWORD" output="\n Error! Failed to set Password with \'$$objValue$$\'."/>
+<error name="CP_FAILED_TO_SET_RESOURCE_TEXT" output="\n Error! Failed to set Resource message."/>
+<error name="CP_FAILED_TO_SET_TIMEOUT_MSG" output="\n Error! Failed to set Timeout message."/>
+<error name="CP_FAILED_TO_SET_PAGE_TITLE" output="\n Error! Failed to set Page Title."/>
+<error name="CP_FAILED_TO_SET_USER_LABEL" output="\n Error! Failed to set User label."/>
+<error name="CP_FAILED_TO_SET_WELCOME_TEXT" output="\n Error! Failed to set Welcome text."/>
+<error name="CP_FAILED_TO_SET_WELCOME_TITLE" output="\n Error! Failed to set Welcome title."/>
+<error name="CP_FAILED_TO_SET_WIP_MSG" output="\n Error! Failed to set Busy message."/>
+<error name="CP_FAILED_TO_DEAUTH_CLIENTS" output="\n Error: Failed to deauthenticate clients."/>
+<error name="CP_FAILED_TO_CLR_CFG" output="\n Error: Failed to clear CP configuration."/>
+<error name="CP_USER_ENTRIES_DELETED" output="\n Successfully deleted all user entries."/>
+<error name="CP_FAILED_TO_DELETE_USER_ENTRIES" output="\n Error: Failed to delete user entries."/>
+<error name="CP_FAILED_TO_DELETE_USER" output="\n Error: Failed to delete CP user."/>
+<error name="CP_USER_ALREADY_EXISTS" output="\n Error: User $$objValue$$ already exists."/>
+<error name="CP_USER_MAX_ADDED" output="\n Error: Maximum allowed Users already added."/>
+<error name="CP_FAILED_TO_ADD_USER" output="\n Error: Failed to add CP user group ID."/>
+<error name="CP_FAILED_TO_ADD_CONFIG" output="\n Error: Failed to add CP Configuration."/>
+<error name="CP_FAILED_TO_DELETE_CONFIG" output="\n Error: Failed to delete CP Configuration."/>
+<error name="CP_FAILED_TO_DELETE_DEFAULT_CONFIG" output="\n Invalid Operation: Default Captive Portal configuration can not be deleted."/>
+<error name="CP_FAILED_TO_ADD_HTTP_PORT" output="\n Error: Failed to set Additional HTTP Port. Port $$objValue$$ is already in use."/>
+<error name="CP_FAILED_TO_ADD_HTTPS_PORT" output="\n Error: Failed to set Additional HTTP Secure Port. Port $$objValue$$ is already in use."/>
+<error name="CP_NO_RAD_SERVERS" output="\n Error: No RADIUS Servers Configured."/>
+  </misc>
+</FastPathXML>

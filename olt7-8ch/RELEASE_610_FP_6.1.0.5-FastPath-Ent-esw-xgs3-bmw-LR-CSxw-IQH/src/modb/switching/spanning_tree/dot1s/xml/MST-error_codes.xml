@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+    <error name="MST_ID_FAILURE" output="\n Error! Failed to retrieve MST ID."/>
+     <error name="MST_INSTANCE_CREATE_FAILURE" output="\n Error! Failed to create MST instance."/>
+     <error name="MST_INSTANCE_DEL_FAILURE" output="\n Error! Failed to delete MST instance."/>
+     <error name="MST_VLAN_ADD_FAILURE" output="\n Error! Could not add VLAN."/>
+     <error name="MST_VLAN_DEL_FAILURE" output="\n Error! Could not remove VLAN."/>
+     <error name="MST_VLAN_ADD_INFO" output="\n At least one VLAN now associated with this instance was previously associated with another instance."/>
+
+  </misc>
+</FastPathXML>
+

@@ -1,0 +1,126 @@
+#switchview {
+    width: 700px;
+    height: 100px;
+    visibility:visible; 
+    position:relative;
+}
+
+#frontpanel {
+    width: 680px;
+    height: 100px;
+    margin: 0;
+    position: absolute;
+    background-color:#000000;
+    visibility:visible;
+}
+
+#backpanel {
+    width: 680px;
+    height: 100px;
+    margin: 0;
+    position: relative;
+    background-color:#000000;
+    visibility:hidden;
+}
+
+#console {
+    left: 200px;
+    top: 50px;
+    margin: 0;
+    position: absolute;
+    background-color:#ff00ff;
+    visibility:visible;
+}
+
+#ports {
+    left: 120px;
+    top: 20px;
+    width: 100px;
+    margin: 0;
+    position: absolute;
+    background-color:#000000;
+    visibility:visible;
+}
+
+#navigation {
+    width: 25px;
+    height: 100px;
+    left: 680px;
+    position: absolute;
+    visibility:visible; 
+}
+
+#flip {
+    width: 25px;
+    height: 100px;
+    position: absolute;
+    visibility:visible;
+    text-align:center;   
+}
+
+#unitNavigation {
+    width: 25px;
+    height: 80px;
+    top: 20px;
+    position: absolute;
+    visibility:visible;
+}
+
+#previousUnit {
+    width: 25px;
+    height: 25px;
+    visibility:visible;
+    font-family:"Trebuchet MS";
+    font-weight:normal;
+    text-align:center;
+    vertical-align: middle;
+    color:#4AA02C;
+}
+
+#thisUnit {
+    width: 25px;
+    height: 25px;
+    visibility:visible;
+    font-family:"Trebuchet MS";
+    font-weight:normal;
+    text-align:center;
+    vertical-align: middle;
+    color:#4AA02C;
+    font-size:25px;
+}
+
+#nextUnit {
+    width: 25px;
+    height: 25px;
+    visibility:visible;
+    font-family:"Trebuchet MS";
+    font-weight:normal;
+    text-align:center;
+    vertical-align: middle;
+    color:#4AA02C;
+}
+
+#logo {
+    float: left;
+    margin: 0;
+    padding: 1px;
+}
+
+#logo td	{  
+    font-family:"Trebuchet MS";
+    font-size:8pt;
+    color:#ffffff;
+    text-align:center;
+}
+
+#tooltip{
+    width: 200px; 
+    color:#000;
+    font-size:5pt;
+    font-family:"Trebuchet MS";
+    text-decoration:none;
+    text-align:center;
+}
+
+
+

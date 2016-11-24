@@ -1,0 +1,1954 @@
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename usmdb_nim.c
+*
+* @purpose Provide interface to nim API's for unitmgr components
+*
+* @component unitmgr
+*
+* @comments tba
+*
+* @create 08/28/2000
+*
+* @author bmutz
+* @end
+*
+**********************************************************************/
+
+
+
+#include "l7_common.h"
+#include "usmdb_common.h"
+#include "usmdb_mirror_api.h"
+#include "usmdb_nim_api.h"
+#include "usmdb_registry_api.h"
+#include "usmdb_trapmgr_api.h"
+#include "usmdb_util_api.h"
+#include "osapi.h"
+#include "nimapi.h"
+#include "simapi.h"
+
+#include "statsapi.h"
+#include "trapapi.h"
+#include "dot3ad_api.h"
+#include "default_cnfgr.h"
+#include "l7_ip_api.h"
+#include "l7_product.h"
+
+
+/* Pointer to function RMON will register with usmDb for port event notifications */
+L7_RC_t (*RmonEventStatusCallback)(L7_uint32 port, L7_uint32 event) = L7_NULLPTR;
+/* ID to use when correlating responses to NIM */
+L7_uint32 RmonEventStatusCallbackRegistrarId = 0;
+
+/*********************************************************************
+* @purpose  Gets the management administrative state of the specified interface.
+*
+* @param    intIfNum Internal Interface Number
+*
+* @param    adminState admin state,
+*                       (@b{  L7_ENABLE or
+*                             L7_DISABLE})
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfMgmtAdminStateGet(L7_uint32 intIfNum, L7_uint32 *adminState)
+{
+  return( nimGetIntfMgmtAdminState(intIfNum, adminState) );
+}
+
+/*********************************************************************
+* @purpose  Gets the admin state of the specified interface.
+*
+* @param    UnitIndex   L7_uint32   Unit Number
+* @param    intIfNum    Internal    Interface Number
+* @param    adminState  pointer to Admin State,
+*                       (@b{Returns: NIM_DISABLE,
+*                                    NIM_ENABLE
+*                                    or NIM_DIAG_DISABLE})
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfAdminStateGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 *val)
+{
+  return nimGetIntfAdminState(intIfNum, val);
+}
+
+/*********************************************************************
+* @purpose  Gets the active state of the specified interface.
+*
+* @param    UnitIndex   L7_uint32   Unit Number
+* @param    intIfNum    Internal    Interface Number
+* @param    val         pointer to Active State,
+*                       (@b{Returns: L7_ACTIVE,
+*                                    or L7_INACTIVE})
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    An interface is considered active if it both has link up and is in forwarding state.
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfActiveStateGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 *val)
+{
+  return nimGetIntfActiveState(intIfNum, val);
+}
+
+/*********************************************************************
+*
+* @purpose  Sets the administrative state of the specified interface.
+*
+* @param UnitIndex L7_uint32 the unit for this operation
+* @param intIfNum  L7_uint32 the internal interface number
+*                  L7_ALL_INTERFACES to apply to all
+* @param val      L7_uint32  Admin State
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes Valid Admin States:
+* @table{@row{@cell{L7_ENABLE}}
+*        @row{@cell{L7_DISABLE}}}
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfAdminStateSet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 val)
+{
+  L7_uint32 current, next;
+  L7_RC_t rc;
+  L7_BOOL err;
+
+  if (intIfNum == L7_ALL_INTERFACES)
+  {
+    rc = nimFirstValidIntfNumber(&current);
+    if (rc != L7_SUCCESS) return rc;
+    err = usmDbIntfParmCanSet(current, L7_INTF_PARM_ADMINSTATE);
+    if (err == L7_FALSE)
+      return L7_FAILURE;
+    nimSetIntfMgmtAdminState(current, val);
+    rc = nimSetIntfAdminState(current, val);
+
+    while (1)
+    {
+      if (nimNextValidIntfNumber(current, &next) != L7_SUCCESS)
+        break;
+      current = next;
+
+      err = usmDbIntfParmCanSet(current, L7_INTF_PARM_ADMINSTATE);
+      if (err == L7_FALSE)
+        continue;
+      nimSetIntfMgmtAdminState(current, val);
+      rc = nimSetIntfAdminState(current, val);
+      if (rc != L7_SUCCESS) break;
+    }
+  } /*the above takes care of physical interfaces only*/
+  else if (dot3adIsLag(intIfNum))
+  {
+    /*if interface is LAG let dot3ad take care of admin state*/
+    /*dot3ad will eventually call nimSetIntfAdminState to set*/
+    /*the admin state for the lag interface*/
+      nimSetIntfMgmtAdminState(intIfNum, val);
+    return dot3adAdminModeSet(intIfNum, val);
+  }
+  else /*if the interface is a non lag interface*/
+  {
+    err = usmDbIntfParmCanSet(intIfNum, L7_INTF_PARM_ADMINSTATE);
+    if (err == L7_FALSE)
+      return L7_NOT_SUPPORTED;
+    nimSetIntfMgmtAdminState(intIfNum, val);
+    rc = nimSetIntfAdminState(intIfNum, val);
+  }
+
+  return rc;
+}
+
+/*********************************************************************
+*
+* @purpose  Sets the administrative state of all interfaces in the
+*           specified slot.
+*
+* @param UnitIndex L7_uint32 the unit for this operation
+* @param SlotNum   L7_uint32 the slot number
+* @param val      L7_uint32  Admin State
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes Valid Admin States:
+* @table{@row{@cell{L7_ENABLE}}
+*        @row{@cell{L7_DISABLE}}}
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfAdminStateSlotSet(L7_uint32 UnitIndex, L7_uint32 SlotNum, L7_uint32 val)
+{
+  L7_uint32 intIfNum, numPorts, i;
+  L7_RC_t rc;
+
+  rc = usmDbPortsPerSlotGet(UnitIndex, SlotNum, &numPorts);
+  if (rc != L7_SUCCESS)
+  {
+    return rc;
+  }
+
+  rc = usmDbIntIfNumFromUSPGet(UnitIndex, SlotNum, 1, &intIfNum);
+  if (rc != L7_SUCCESS)
+  {
+    return rc;
+  }
+
+  for (i = intIfNum; i < (intIfNum+numPorts); i++)
+  {
+    rc = nimSetIntfAdminState(i, val);
+    if (rc != L7_SUCCESS) break;
+  }
+
+  return rc;
+}
+
+/*********************************************************************
+* @purpose  Gets the next entry in the Switch port control table
+*
+* @param *UnitIndex  a ptr to a L7_uint32 the unit for this operation
+* @param *intIfNum   a ptr to L7_uint32
+*
+* @returns  L7_SUCCESS     if interface exists
+* @returns  L7_ERROR       if interface does not exist
+* @returns  L7_FAILURE     if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbSwPortCtrlEntryNext(L7_uint32 *UnitIndex, L7_uint32 *intIfNum)
+{
+  return L7_ERROR;
+}
+
+
+/*********************************************************************
+*
+* @purpose  Returns the ifIndex associated with the
+*           internal interface number
+*
+* @param UnitIndex L7_uint32 the unit for this operation
+* @param intIfNum  L7_uint32 the internal interface number
+* @param *val      L7_uint32 pointer to the ifIndex
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfIndexGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 *val)
+{
+  return(nimGetIntfIfIndex(intIfNum, val));
+}
+
+/********************************************************************
+se  Gets the  default speed type of the specified interface.
+*
+* @param UnitIndex L7_uint32 the unit for this operation
+* @param intIfNum  L7_uint32 the internal interface number
+* @param *val      L7_uint32 pointer to link configured state
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes Possible Link States returned:
+* @table{@row{@cell{L7_PORTCTRL_PORTSPEED_AUTO_NEG}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100FX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_1000SX}}}
+*
+* @end
+*********************************************************************/
+
+L7_RC_t usmDbIfDefaultSpeedGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 *val)
+{
+  return(nimGetIntfSpeed(intIfNum, val));
+}
+
+/*********************************************************************
+*
+* @purpose  Gets the link configured state of the specified interface.
+*
+* @param UnitIndex L7_uint32 the unit for this operation
+* @param intIfNum  L7_uint32 the internal interface number
+* @param *val      L7_uint32 pointer to link configured state
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes Possible Link States returned:
+* @table{@row{@cell{L7_PORTCTRL_PORTSPEED_AUTO_NEG}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100FX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_1000SX}}}
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfSpeedGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 *val)
+{
+  /* temp smanders stacking fix */
+  return(nimGetIntfSpeedStatus(intIfNum, val));
+}
+
+/*********************************************************************
+*
+* @purpose  Gets the auto-negotiation status of the specified interface.
+*
+* @param UnitIndex L7_uint32 the unit for this operation
+* @param intIfNum  L7_uint32 the internal interface number
+* @param *val      L7_uint32 pointer to auto-negotiation admin status
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes Possible types returned:
+* @table{@row{@cell{L7_ENABLE}}
+*        @row{@cell{L7_DISABLE}}}
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfAutoNegAdminStatusGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 *val)
+{
+  return(nimGetIntfAutoNegAdminStatus(intIfNum, val));
+}
+
+/*********************************************************************
+*
+* @purpose  Gets the physical link data rate of the specified interface.
+*
+* @param UnitIndex  L7_uint32 the unit for this operation
+* @param intIfNum   L7_uint32 the internal interface number
+* @param *intfSpeed L7_uint32 pointer to an interface Data Rate
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes The data rate is determined from the ifSpeed encode maintained
+*        by NIM.
+*        Possible Link States returned:
+* @table{@row{@cell{L7_PORTCTRL_PORTSPEED_FULL_1000SX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100FX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_10T}}}
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfSpeedSimplexDataRateGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 *intfSpeed)
+{
+  return nimGetIntfSpeedSimplexDataRate(intIfNum,intfSpeed);
+}
+
+/*********************************************************************
+*
+* @purpose  Gets the physical link data rate of the specified interface.
+*
+* @param UnitIndex  L7_uint32 the unit for this operation
+* @param intIfNum   L7_uint32 the internal interface number
+* @param *intfSpeed L7_uint32 pointer to an interface Data Rate
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes The data rate is determined from the ifSpeed encode maintained
+*        by NIM.  Full duplex links are reported as having twice the
+*        data rate as their half duplex counterparts.
+*        Possible Link States returned:
+* @table{@row{@cell{L7_PORTCTRL_PORTSPEED_FULL_1000SX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100FX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_10T}}}
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfSpeedDataRateGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 *intfSpeed)
+{
+  return(nimGetIntfSpeedDataRate(intIfNum, intfSpeed));
+}
+
+/*********************************************************************
+* @purpose  Indicates whether a physical link is full duplex
+*
+* @param UnitIndex  L7_uint32 the unit for this operation
+* @param intIfNum    Internal Interface Number
+*
+* @returns  L7_TRUE     if link is full duplex
+* @returns  L7_FALSE    if link is half duplex, or if interface is invalid
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_BOOL usmDbIsIntfSpeedFullDuplex(L7_uint32 UnitIndex, L7_uint32 intIfNum)
+{
+  return nimIsIntfSpeedFullDuplex(intIfNum);
+}
+
+/*********************************************************************
+*
+* @purpose  Gets the link trap configuration of the specified interface.
+*
+* @param UnitIndex L7_uint32 the unit for this operation
+* @param intIfNum  L7_uint32 the internal interface number
+* @param *val      L7_uint32 pointer to link trap configuration
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes Valid Link Trap Configurations returned:
+* @table{@row{@cell{L7_ENABLE}}
+*        @row{@cell{L7_DISABLE}}}
+*
+* @end
+*********************************************************************/
+/*
+L7_RC_t usmDbIfLinkUpDownTrapEnableGet(L7_uint32 UnitIndex,
+                                     L7_uint32 intIfNum,
+                                     L7_uint32 *val)
+{
+   return (nimGetIntfLinkTrap(intIfNum, val));
+}
+*/
+
+/*********************************************************************
+*
+* @purpose  Sets the speed of the specified interface
+*
+* @param UnitIndex L7_uint32 the unit for this operation
+* @param intIfNum  L7_uint32 the internal interface number
+*                  L7_ALL_INTERFACES to apply to all
+* @param val       L7_uint32 port speed
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes Valid Port Speeds:
+* @table{@row{@cell{L7_PORTCTRL_PORTSPEED_HALF_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100FX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_1000SX}}}
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfSpeedSet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 val)
+{
+  L7_uint32 current, next;
+  L7_RC_t rc;
+
+  if (intIfNum == L7_ALL_INTERFACES)
+  {
+    rc = nimFirstValidIntfNumber(&current);
+    if (rc != L7_SUCCESS) return rc;
+    if (usmDbIntfParmCanSet(current, L7_INTF_PARM_SPEED) == L7_TRUE)
+      rc = nimSetIntfSpeed(current, val);
+
+    while (1)
+    {
+      rc = nimNextValidIntfNumber(current, &next);
+      if (rc != L7_SUCCESS) break;
+      current = next;
+      if (usmDbIntfParmCanSet(current, L7_INTF_PARM_SPEED) == L7_TRUE)
+      {
+        rc = nimSetIntfSpeed(current, val);
+        if (rc != L7_SUCCESS) break;
+      }
+    }
+  }
+  else
+  {
+    if (usmDbIntfParmCanSet(intIfNum, L7_INTF_PARM_SPEED) == L7_TRUE)
+      rc = nimSetIntfSpeed(intIfNum, val);
+    else
+      rc = L7_FAILURE;
+  }
+
+
+  return rc;
+}
+
+/*********************************************************************
+*
+* @purpose  Sets the default speed of the specified interface
+*
+* @param UnitIndex L7_uint32 the unit for this operation
+* @param intIfNum  L7_uint32 the internal interface number
+*                  L7_ALL_INTERFACES to apply to all
+* @param val       L7_uint32 default port speed
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes Unlike usmDbIfSpeedSet(), this function does not
+*        call DTL to actually set the speed of the interface.
+*        It only sets the ifSpeed field in the NIM port config structure.
+*        Valid Port Speeds:
+* @table{@row{@cell{L7_PORTCTRL_PORTSPEED_HALF_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100FX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_1000SX}}}
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfDefaultSpeedSet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 val)
+{
+  L7_uint32 current, next;
+  L7_uint32 autoNegStatus;
+  L7_RC_t rc;
+
+  if (intIfNum == L7_ALL_INTERFACES)
+  {
+    rc = nimFirstValidIntfNumber(&current);
+    if (rc != L7_SUCCESS)
+      return rc;
+
+    if (nimIntfParmCanSet(current, L7_INTF_PARM_SPEED) == L7_TRUE)
+    {
+      rc = nimGetIntfAutoNegAdminStatus(current, &autoNegStatus);
+      if (rc == L7_SUCCESS)
+      {
+        if (autoNegStatus == L7_DISABLE)
+          rc = nimSetIntfSpeed(current, val);
+        else
+          rc = nimSetDefaultIntfSpeed(current, val);
+      }
+      else
+        return rc;
+    }
+
+    while (1)
+    {
+      rc = nimNextValidIntfNumber(current, &next);
+      if (rc != L7_SUCCESS) break;
+      current = next;
+
+      if (nimIntfParmCanSet(current, L7_INTF_PARM_SPEED) == L7_TRUE)
+      {
+        rc = nimGetIntfAutoNegAdminStatus(current, &autoNegStatus);
+        if (rc == L7_SUCCESS)
+        {
+          if (autoNegStatus == L7_DISABLE)
+            rc = nimSetIntfSpeed(current, val);
+          else
+            rc = nimSetDefaultIntfSpeed(current, val);
+        }
+        if (rc != L7_SUCCESS) break;
+      }
+    }
+  }
+  else
+  {
+    if (nimIntfParmCanSet(intIfNum, L7_INTF_PARM_SPEED) == L7_TRUE)
+    {
+      rc = nimGetIntfAutoNegAdminStatus(intIfNum, &autoNegStatus);
+      if (rc == L7_SUCCESS)
+      {
+        if (autoNegStatus == L7_DISABLE)
+          rc = nimSetIntfSpeed(intIfNum, val);
+        else
+          rc = nimSetDefaultIntfSpeed(intIfNum, val);
+      }
+    }
+    else
+    {
+      rc = L7_FAILURE;
+    }
+  }
+
+  return rc;
+}
+
+/*********************************************************************
+*
+* @purpose  Sets the speed of all interfaces in the specified slot.
+*
+* @param UnitIndex L7_uint32 the unit for this operation
+* @param SlotNum   L7_uint32 the slot number
+* @param val      L7_uint32  L7_uint32 port speed
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes Valid Port Speeds:
+* @table{@row{@cell{L7_PORTCTRL_PORTSPEED_AUTO_NEG}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100FX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_1000SX}}}
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfSpeedSlotSet(L7_uint32 UnitIndex, L7_uint32 SlotNum, L7_uint32 val)
+{
+  L7_uint32 intIfNum, numPorts, i;
+  L7_RC_t rc;
+
+  rc = usmDbPortsPerSlotGet(UnitIndex, SlotNum, &numPorts);
+  if (rc != L7_SUCCESS)
+  {
+    return rc;
+  }
+
+  rc = usmDbIntIfNumFromUSPGet(UnitIndex, SlotNum, 1, &intIfNum);
+  if (rc != L7_SUCCESS)
+  {
+    return rc;
+  }
+
+  for (i = intIfNum; i < (intIfNum+numPorts); i++)
+  {
+    if (nimIntfParmCanSet(i, L7_INTF_PARM_SPEED) == L7_TRUE)
+    {
+      rc = nimSetIntfSpeed(i, val);
+      if (rc != L7_SUCCESS) break;
+    }
+  }
+
+  return rc;
+}
+
+
+/*********************************************************************
+*
+* @purpose  Sets the link trap configuration of the specified interface.
+*
+* @param UnitIndex L7_uint32 the unit for this operation
+* @param intIfNum  L7_uint32 the internal interface number
+*                  L7_ALL_INTERFACES to apply to all
+* @param val       L7_uint32 Link Trap Config
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes Valid Link Trap Configurations:
+* @table{@row{@cell{L7_ENABLE}}
+*        @row{@cell{L7_DISABLE}}}
+*
+* @end
+*********************************************************************/
+/*
+L7_RC_t usmDbIfLinkUpDownTrapEnableSet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 val)
+{
+    L7_uint32 current, next;
+    L7_RC_t rc;
+
+    if (intIfNum == L7_ALL_INTERFACES)
+    {
+        rc = nimFirstValidIntfNumber(&current);
+        if (rc != L7_SUCCESS) return rc;
+        rc = nimSetIntfLinkTrap(current, val);
+
+        while (1)
+        {
+            rc = nimNextValidIntfNumber(current, &next);
+            if (rc != L7_SUCCESS) break;
+            current = next;
+
+            rc = nimSetIntfLinkTrap(current, val);
+            if (rc != L7_SUCCESS) break;
+        }
+    }
+    else
+        rc = nimSetIntfLinkTrap(intIfNum, val);
+
+    return rc;
+}
+*/
+
+
+
+
+/*********************************************************************
+*
+* @purpose Get the special port type
+*
+* @param UnitIndex  L7_uint32 Unit Number
+* @param i          L7_uint32 Internal interface number
+* @param *val       L7_SPECIAL_PORT_TYPE_t pointer to the special port type
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes Special Port Types:
+* @table{@row{@cell{L7_PORT_MONITOR}@cell{Monitoring port}}
+*        @row{@cell{L7_MONITORED_PORT}@cell{Port being monitored}}
+*        @row{@cell{L7_TRUNK_MEMBER}@cell{Port is a member of a trunk}}
+*        @row{@cell{L7_PORT_NORMAL}@cell{No special characteristics}}}
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t usmDbIfSpecialPortTypeGet(L7_uint32 UnitIndex, L7_uint32 i,L7_SPECIAL_PORT_TYPE_t *val)
+{
+  L7_uint32 lagIntfNum;
+  L7_INTF_TYPES_t type;
+  L7_RC_t rc;
+
+  /* Check to see if this port is a trunk member, is being monitored or is the probe port */
+  *val = L7_PORT_NORMAL;
+  lagIntfNum = i;
+
+  if (dot3adIsValidIntf(i) == L7_TRUE)
+    nimGetLagIntfNum(i, &lagIntfNum);
+
+  rc = nimGetIntfType(lagIntfNum,&type);
+
+  if(rc != L7_SUCCESS ) {
+	  return L7_FAILURE;
+  }
+
+  if (type == L7_LAG_INTF)
+  {
+    /* NOTE: If input interface `i` is a valid dot3ad interface, nimGetLagIntfNum() returns
+     *       a LAG-interface if `i` is a member port
+     *       else returns the input LAG-interface `i` itself.
+     *
+     *       Hence, a separate check needs to be performed to verify if
+     *       the interface `i` is a LAG-interface or a member port.
+     */
+    if (dot3adIsLagMember(i) == L7_TRUE)
+      *val = L7_TRUNK_MEMBER;
+
+    return L7_SUCCESS;
+  }
+
+  if (usmDbSwPortMonitorIsDestConfigured(UnitIndex,i,L7_NULLPTR) == L7_TRUE)
+  {
+    *val = L7_PROBE_PORT;
+    return L7_SUCCESS;
+  }
+  else if (usmDbSwPortMonitorIsSrcConfigured(UnitIndex,i) == L7_TRUE)
+  {
+    *val = L7_MIRRORED_PORT;
+    return L7_SUCCESS;
+  }
+
+  if (type == L7_CAPWAP_TUNNEL_INTF)
+  {
+    *val = L7_L2TUNNEL_PORT;
+  }
+
+  return L7_SUCCESS;
+}
+
+
+
+
+L7_RC_t usmDbSwPortCrtlEntryNext(L7_uint32 *UnitIndex, L7_uint32 *interface)
+{
+  return L7_ERROR;
+}
+
+
+
+
+
+/*********************************************************************
+* @purpose  Set the interface in loopback mode.
+*
+* @param    intIfNum    Internal Interface Number
+* @param    mode        link state, L7_ENABLE,DISABLE?
+*                       (@b{  L7_PORTCTRL_LOOPBACK_MAC,
+*                             L7_PORTCTRL_LOOPBACK_PHY,
+*                             L7_PORTCTRL_LOOPBACK_NONE }}
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+*
+* @notes    None.
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfLoopbackModeSet(L7_uint32 intIfNum, L7_uint32 mode)
+{
+  L7_RC_t rc;
+
+  if (mode == L7_ENABLE)
+    rc = nimSetLoopbackMode(intIfNum, L7_ENABLE);
+  /*nimSetLoopbackMode(intIfNum, L7_PORTCTRL_LOOPBACK_PHY);*/
+  else
+    rc = nimSetLoopbackMode(intIfNum, L7_DISABLE);
+  /*nimSetLoopbackMode(intIfNum, L7_PORTCTRL_LOOPBACK_NONE);*/
+  return rc;
+}
+
+
+/*********************************************************************
+* @purpose  Get the interface's loopback mode.
+*
+* @param    intIfNum    Internal Interface Number
+* @param    mode        link state
+*                       (@b{  L7_PORTCTRL_LOOPBACK_MAC,
+*                             L7_PORTCTRL_LOOPBACK_PHY,
+*                             L7_PORTCTRL_LOOPBACK_NONE }}
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+*
+* @notes    None.
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfLoopbackModeGet(L7_uint32 intIfNum, L7_uint32 *mode)
+{
+
+  return nimGetLoopbackMode(intIfNum, mode);
+}
+
+/*********************************************************************
+* @purpose  Gets the mtu size of the specified interface.
+*
+* @param    intIfNum    Internal Interface Number
+* @param    mtu         mtu size
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfMtuSizeGet(L7_uint32 intIfNum, L7_uint32 *mtu)
+{
+  return nimGetIntfMtuSize(intIfNum, mtu);
+}
+
+/*********************************************************************
+* @purpose  Gets the encapsulation type for the specified interface.
+*
+* @param    intIfNum    Internal Interface Number
+* @param    encapType   the encapsulation type
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfEncapsulationTypeGet(L7_uint32 intIfNum, L7_uint32 *encapType)
+{
+  return nimEncapsulationTypeGet(intIfNum, encapType);
+}
+
+/*********************************************************************
+* @purpose  Sets the encapsulation type for the specified interface.
+*
+* @param    intIfNum    Internal Interface Number
+* @param    encapType   the encapsulation type
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfEncapsulationTypeSet(L7_uint32 intIfNum, L7_uint32 encapType)
+{
+  return nimEncapsulationTypeSet(intIfNum, encapType);
+}
+
+
+/*********************************************************************
+* @purpose  Sets the (Layer 2) Maximum Framesize for the interface,
+*           based upon the type of interface and any submembers
+*
+* @param    intIfNum    Internal Interface Number
+* @param    Maximum frame size of the interface
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfConfigMaxFrameSizeSet(L7_uint32 intIfNum, L7_uint32 maxSize)
+{
+  return nimSetIntfConfigMaxFrameSize(intIfNum, maxSize);
+}
+
+
+/*********************************************************************
+* @purpose  Sets either the burned-in or locally administered address
+*           of the specified interface.
+*
+* @param    intIfNum    Internal Interface Number
+* @param    addrType    address type,
+*                       (@b{  NIM_BIA or
+*                             NIM_LAA})
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfSetIntfAddr(L7_uint32 intIfNum, L7_uint32 addrType)
+{
+  return nimSetIntfAddrType(intIfNum, addrType);
+
+  /* Very specific application of the macAddressEntryAdd command for dapi */
+}
+
+
+/*********************************************************************
+* @purpose  Sets the locally administered address
+*           of the specified interface.
+*
+* @param    intIfNum    Internal Interface Number
+* @param    macAddr     Pointer to LAA MAC Address.
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfSetIntfLAA(L7_uint32 intIfNum, L7_uchar8 *macAddr)
+{
+  return nimSetIntfLAA(intIfNum, macAddr);
+  /* This routine should automatically invoke usmDbIfSetIntfAddr if the interface
+     is a logical interface. */
+}
+
+
+/*********************************************************************
+* @purpose  Set the promiscuous mode
+*
+* @param    UnitIndex   Unit
+* @param    intIfNum    Interface
+* @param    mode        Mode
+*
+* @returns  L7_FAILURE  all the time
+*
+* @notes
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfPromiscuousModeSet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 mode)
+{
+  L7_uint32 ifType;
+
+  if (usmDbIntfTypeGet(intIfNum, &ifType) == L7_SUCCESS)
+  {
+	if(ifType == L7_CPU_INTF)
+	{
+	  if(mode == L7_TRUE)
+	    return L7_FAILURE;
+	}
+	else
+	{
+	  if(mode == L7_FALSE)
+	  	return L7_FAILURE;
+	}
+  }
+  return L7_SUCCESS;
+  /* Always false for release 1 */
+  /*return(mode == L7_FALSE) ? L7_SUCCESS : L7_FAILURE;*/
+}
+
+
+/*********************************************************************
+* @purpose Determine if the port is in promiscous mode
+*
+* @param    UnitIndex   Unit
+* @param    intIfNum    Interface
+* @param    *mode       Status, L7_TRUE or L7_FALSE
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_FAILURE  if other failure
+*
+* @notes
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfPromiscuousModeGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 *mode)
+{
+   L7_uint32 ifType;
+
+   /* Default mode to true. */
+   *mode = L7_TRUE;
+
+   /* Get interface type from index. */
+   if (usmDbIntfTypeGet(intIfNum, &ifType) == L7_SUCCESS)
+   {
+      /* Mode is False if CPU otherwise True. */
+      if (ifType == L7_CPU_INTF ||
+          ifType == L7_LOOPBACK_INTF ||
+          ifType == L7_TUNNEL_INTF)
+      {
+         *mode = L7_FALSE;
+      }
+   }
+  return L7_SUCCESS;
+}
+
+
+/*********************************************************************
+*
+* @purpose  Gets the physical link state of the specified interface.
+*
+* @param UnitIndex L7_uint32 the unit for this operation
+* @param intIfNum  L7_uint32 the internal interface number
+* @param *val      L7_uint32 pointer to the physical link state
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes Valid Admin Speed States returned:
+* @table{@row{@cell{L7_PORTCTRL_PORTSPEED_AUTO_NEG}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100FX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_1000SX}}}
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfHighSpeedGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 *val)
+{
+  return(nimGetIntfSpeedStatus(intIfNum, val));
+}
+
+
+/*********************************************************************
+*
+* @purpose  Gets the physical link state of the specified interface.
+*
+* @param UnitIndex L7_uint32 the unit for this operation
+* @param intIfNum  L7_uint32 the internal interface number
+* @param *val      L7_uint32 pointer to the physical link state
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes Valid Admin Speed States returned:
+* @table{@row{@cell{L7_PORTCTRL_PORTSPEED_AUTO_NEG}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100TX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_HALF_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_10T}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_100FX}}
+*        @row{@cell{L7_PORTCTRL_PORTSPEED_FULL_1000SX}}}
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfSpeedStatusGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 *val)
+{
+  return(nimGetIntfSpeedStatus(intIfNum, val));
+}
+
+/*********************************************************************
+* @purpose  Gets the negotiated Tx and Rx pause status of the specified interface.
+*
+* @param    intIfNum    Internal Interface Number
+* @param    rxPauseStatus  L7_TRUE if autonegotiation result allows Rx pause
+* @param    txPauseStatus  L7_TRUE if autonegotiation result allows Tx pause
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfPauseStatusGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_BOOL *rxPauseStatus, L7_BOOL *txPauseStatus)
+{
+  return(nimGetIntfPauseStatus(intIfNum, rxPauseStatus, txPauseStatus));
+}
+
+/*********************************************************************
+*
+* @purpose  Determine if a physical connector is present
+*
+* @param    UnitIndex   L7_uint32 the unit for this operation
+* @param    interface   L7_uint32 the internal interface number
+* @param    *val        returned value, L7_TRUE or L7_FALSE
+*
+* @returns  L7_SUCCESS, if success
+*
+*           L7_ERROR, if interface does not exist
+*           L7_FAILURE, other failure
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfConnectorPresentGet(L7_uint32 UnitIndex, L7_int32 Index, L7_int32 *val)
+{
+  L7_RC_t rc;
+  L7_uint32 temp_type;
+
+  rc = usmDbIntfTypeGet(Index, &temp_type);
+
+  if ((rc == L7_SUCCESS) && (temp_type < L7_MAX_PHYS_INTF_VALUE))
+    *val = L7_TRUE;
+  else
+    *val = L7_FALSE;
+
+  return rc;
+}
+
+
+/*********************************************************************
+*
+* @purpose  Determine time of last reset
+*
+* @param    UnitIndex   L7_uint32 the unit for this operation
+* @param    interface   L7_uint32 the internal interface number
+* @param    *ts        returns time of type usmDbTimeSpec_t
+*
+* @returns  L7_SUCCESS, if success
+*           L7_ERROR, if interface does not exist
+*           L7_FAILURE, other failure
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbTimeSinceLastStatsResetGet(L7_uint32 UnitIndex, L7_uint32 interface, usmDbTimeSpec_t *ts)
+{
+  return(nimCountersLastResetTime(interface, (L7_timespec *)ts));
+}
+
+
+/*********************************************************************
+*
+* @purpose  Get the ifAlias of the object
+*
+* @param    UnitIndex   Unit
+* @param    intIfNum    internal interface number
+* @param    *ifName        pointer to string to contain name
+*
+* @returns  L7_SUCCESS, if success
+*
+*           L7_ERROR, if interface does not exist
+*           L7_FAILURE, other failure
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfAliasGet(L7_uint32 UnitIndex, L7_int32 intIfNum, L7_uchar8 *ifName)
+{
+  return nimGetIntfName(intIfNum, L7_ALIASNAME,ifName);
+}
+
+/*********************************************************************
+*
+* @purpose  Get the ifTableLastChange of the object
+*
+* @param    UnitIndex   Unit
+* @param    *ifLastChange        pointer to integer to contain value
+*
+* @returns  L7_SUCCESS, if success
+*
+*           L7_FAILURE, other failure
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfTableLastChangeGet(L7_uint32 UnitIndex, L7_uint32 *ifLastChange)
+{
+/* smanders - stacking temp *
+  return nimLastChangeGet(ifLastChange);
+  */
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
+*
+* @purpose  Set the ifAlias of the object
+*
+* @param    UnitIndex   Unit
+* @param    intIfNum    internal interface number
+* @param    *ifAlias    pointer to string to contain name
+*
+* @returns  L7_SUCCESS, if success
+*
+*           L7_ERROR, if interface does not exist
+*           L7_FAILURE, other failure
+*
+* @notes    This object is not currently supported
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfAliasSet(L7_uint32 UnitIndex, L7_int32 intIfNum, L7_uchar8 *ifAlias)
+{
+  return nimSetIntfifAlias(intIfNum,ifAlias);
+}
+
+
+/*********************************************************************
+*
+* @purpose  Get ifCounterDiscontinuityTime
+*
+* @param    UnitIndex   Unit
+* @param    intIfNum    internal interface number
+* @param    *val        pointer to string to contain name
+*
+* @returns  L7_SUCCESS, if success
+*
+*           L7_ERROR, if interface does not exist
+*           L7_FAILURE, other failure
+*
+* @notes    This object is not currently supported
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfCounterDiscontinuityGet(L7_uint32 UnitIndex, L7_int32 intIfNum, L7_int32 *val)
+{
+
+  return 0;
+}
+
+/*********************************************************************
+*
+* @purpose  Gets a textual string containing information about the
+*           interface
+*
+* @param    UnitIndex   @b{(input)} the unit for this operation
+* @param    interface   @b{(input)} interface
+* @param    buf         @b{(output)} description
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @comments none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfDescrGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_char8 *buf)
+{
+  return nimGetIfDescr(interface, buf);
+}
+
+/*********************************************************************
+*
+* @purpose  Gets the internal interface type (IANAifType)
+*
+* @param    UnitIndex   @b{(input)} the unit for this operation
+* @param    interface   @b{(input)} interface
+* @param    val         @b{(output)} pointer to type
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @comments The type of interface, distinguished according to
+*           the physical/link protocol(s) immediately `below'
+*           the network layer in the protocol stack
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfTypeGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32 *val)
+{
+  return nimGetIfType(interface, val);
+}
+
+#if L7_FEAT_SF10GBT
+
+/*********************************************************************
+*
+* @purpose  Gets the firmware revision of port transceiver. 
+*           Currently applies only to 10GBaseT Solarflare 
+*           SFX7101 transceiver
+*
+* @param    UnitIndex   @b{(input)} the unit for this operation
+* @param    interface   @b{(input)} interface
+* @param    *ifFwRevision  @b{(output)} string buffer containing FW revision, 
+*                         should be at least 13 bytes long plus terminating zero char
+* @param    *ifFwPartNumber  @b{(output)} string buffer containing FW revision, 
+*                         should be at least 13 bytes long plus terminating zero char
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist, or operation is not supported 
+* @returns  L7_FAILURE  if other failure
+*
+* @comments Valid only for 10G non-stacking ports with 10GBaseT 
+*           Solarflare SFX7101 transceiver. If firmware is not present or being upgraded, 
+*           corresponding status is written to output params
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfTransceiverFwRevisionStrGet(
+  L7_uint32 UnitIndex, 
+  L7_uint32 interface, 
+  L7_uchar8 *ifFwRevision, 
+  L7_uchar8 *ifFwPartNumber)
+{
+  nimIntfPortFWRev_t ifFWRevisionLocal;
+  L7_RC_t rc = L7_FAILURE; 
+  bzero((void*)&ifFWRevisionLocal, sizeof(nimIntfPortFWRev_t)); 
+  if ( (rc = nimGetIfTransceiverFwRevision(UnitIndex, interface, &ifFWRevisionLocal)) == L7_SUCCESS)
+  {
+    if ( (memcmp(&ifFWRevisionLocal.ifFwPartNumber, &nimIntfPortFWRevUndefined.ifFwPartNumber, L7_NIM_IF_FW_PART_NUM_LENGTH) == L7_NULL)&& 
+         (memcmp(&ifFWRevisionLocal.ifFwRevision, &nimIntfPortFWRevUndefined.ifFwRevision, L7_NIM_IF_FW_REV_LENGTH) == L7_NULL) )
+    {
+      /* Firmware is not present or not started */
+      rc = L7_ERROR;
+    }
+    else
+    {
+      osapiSnprintf(ifFwPartNumber,9, "%s", ifFWRevisionLocal.ifFwPartNumber);
+      osapiSnprintf(ifFwRevision,5, "%s", ifFWRevisionLocal.ifFwRevision);
+      rc = L7_SUCCESS;
+    }
+  }
+  
+  return rc;
+}
+
+/*********************************************************************
+*
+* @purpose  Gets the firmware revision of port transceiver. 
+*           Currently applies only to 10GBaseT Solarflare 
+*           SFX7101 transceiver
+*
+* @param    UnitIndex   @b{(input)} the unit for this operation
+* @param    interface   @b{(input)} interface
+* @param    *ifFwRevision  @b{(output)} string buffer containing FW revision, 
+*                         should be at least 4 bytes long 
+* @param    *ifFwPartNumber  @b{(output)} string buffer containing FW revision, 
+*                         should be at least 8 bytes long 
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist, or operation is not supported 
+* @returns  L7_FAILURE  if other failure
+*
+* @comments Valid only for 10G non-stacking ports with 10GBaseT 
+*           Solarflare SFX7101 transceiver
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfTransceiverFwRevisionGet(
+  L7_uint32 UnitIndex, 
+  L7_uint32 interface, 
+  L7_uchar8 *ifFwRevision, 
+  L7_uchar8 *ifFwPartNumber)
+{
+  nimIntfPortFWRev_t ifFWRevisionLocal;
+  L7_RC_t rc = L7_FAILURE; 
+  if ( (rc = nimGetIfTransceiverFwRevision(UnitIndex, interface, &ifFWRevisionLocal)) == L7_SUCCESS)
+  {
+    memcpy(ifFwRevision,ifFWRevisionLocal.ifFwRevision, L7_NIM_IF_FW_REV_LENGTH);
+    memcpy(ifFwPartNumber,ifFWRevisionLocal.ifFwPartNumber, L7_NIM_IF_FW_PART_NUM_LENGTH);
+    rc = L7_SUCCESS;
+  }
+  return rc;
+}
+#endif
+
+/*********************************************************************
+* @purpose  Gets either the burned-in or locally administered address
+*           of the specified interface, as requested
+*
+* @param    UnitIndex   @b{(input)} the unit for this operation
+* @param    interface   @b{(input)} Internal Interface Number
+* @param    buf         @b{(output)} pointer to MAC Address
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @comments none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfPhysAddressGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_char8 *buf)
+{
+  return nimGetIntfAddress(interface, L7_NULL, buf);
+}
+
+/*********************************************************************
+* @purpose  Gets the operational status of the specified interface
+*
+* @param    UnitIndex   @b{(input)} the unit for this operation
+* @param    interface   @b{(input)} Internal Interface Number
+* @param    val         @b{(output)} pointer to value, set to L7_UP or L7_DOWN
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @comments none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfOperStatusGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32 *val)
+{
+  return nimGetIntfLinkState(interface, val);
+}
+
+/*********************************************************************
+* @purpose  Gets the time of last link state change, in seconds
+*
+* @param    UnitIndex   @b{(input)} L7_uint32 the unit for this operation
+* @param    interface   @b{(input)} Internal Interface Number
+* @param    *val        @b{(output)} pointer to value, set to L7_UP or L7_DOWN
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @comments none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfLastChangeGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32 *val)
+{
+  return nimGetRawLinkChangeTime(interface, val);
+}
+
+/*********************************************************************
+* @purpose  Gets the auto-negotiation status on this port
+*
+* @param    UnitIndex   @b{(input)} Unit
+* @param    QueueIndex  @b{(input)} Interface
+* @param    *val        @b{(output)} Status
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    end
+* @end
+*********************************************************************/
+L7_RC_t usmDbQbEnetPortAutoNegAdminStatusGet(L7_uint32 UnitIndex, L7_int32 QueueIndex, L7_int32 *val)
+{
+  L7_uint32 mode;
+  L7_RC_t rc;
+
+  rc = nimGetIntfSpeed(QueueIndex, &mode);
+  if (mode == L7_PORTCTRL_PORTSPEED_AUTO_NEG)
+    *val = L7_ENABLE;
+  else
+    mode = L7_DISABLE;
+  return rc;
+}
+
+/*********************************************************************
+* @purpose  Used to enable and disable auto-negotiation on this port
+*
+* @param    UnitIndex   @b{(input)} Unit
+* @param    QueueIndex  @b{(input)} Interface
+* @param    *val        @b{(input)} Status
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    end
+* @end
+*********************************************************************/
+L7_RC_t usmDbQbEnetPortAutoNegAdminStatusSet(L7_uint32 UnitIndex, L7_int32 QueueIndex, L7_int32 val)
+{
+  L7_RC_t rc;
+
+  if (val == L7_ENABLE)
+    rc = nimSetIntfSpeed(QueueIndex, L7_PORTCTRL_PORTSPEED_AUTO_NEG);
+  else
+    rc = nimSetIntfSpeed(QueueIndex,                                           /* default val ? */ L7_PORTCTRL_PORTSPEED_AUTO_NEG);
+  return rc;
+}
+
+
+#if 0
+L7_RC_t usmDbIfIndexSet(L7_uint32 UnitIndex, L7_uint32 SlotIndex, L7_uint32 Index, L7_uint32 val)
+{
+}
+
+#endif
+
+
+/*********************************************************************
+* @purpose  Creates an interface of the specified type
+*
+* @param    intfType    Type of interface to create, of IANA type TBD
+*
+* @param    intIfNum    pointer to requested Internal Interface Number,
+*                       (@b{Returns: a Internal Interface Number, if
+*                       requested Internal Interface Number was L7_NULL}).
+*
+* @param    usp         Pointer to numUSP_t structure, if applicable
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+*
+* @notes    This routine can only be used to create a logical interface
+*
+* @end
+*********************************************************************/
+/*
+L7_RC_t usmDbIfCreate(L7_uint32 intfType, L7_uint32 *intIfNum, nimUSP_t *usp)
+{
+ Invoke nimLinkChangeCallback
+nimLinkChangeCallback(usp, 1 NIM_CREATE    );
+return L7_ERROR;
+}
+*/
+
+
+/*********************************************************************
+* @purpose  Gets either the burned-in or locally administered address
+*           of the specified interface, as requested
+*
+* @param    intIfNum    Internal Interface Number
+* @param    addrType    address type requested (L7_SYSMAC_BIA, L7_SYSMAC_LAA,
+*                       or L7_NULL) L7_NULL will return currently configured
+*                       MAC Address
+* @param    macAddr     pointer to MAC Address,
+*                       (@b{Returns: 6 byte mac address})
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfIntfAddressGet(L7_uint32 intIfNum, L7_uint32 addrType, L7_uchar8 *macAddr)
+{
+  return nimGetIntfAddress(intIfNum,addrType,macAddr);
+}
+
+/*********************************************************************
+* @purpose  Return Internal Interface Number of the first CPU valid interface
+*
+*
+* @param    unit        The Unit ID
+* @param    intIfNum    internal interface number of the switch,
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbMgtSwitchintIfNumGet(L7_uint32 unit, L7_uint32 *intIfNum)
+{
+  return nimFirstValidIntfNumberByType(L7_CPU_INTF, intIfNum);
+}
+
+/*********************************************************************
+* @purpose  Return LAG Interface speed
+*
+* @param    intIfNum    internal interface number of the switch
+* @param    speed       interface speed
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfLAGSpeedGet(L7_uint32 intIfNum,L7_uint32 *speed)
+{
+  L7_RC_t rc = L7_FAILURE;
+
+  if (dot3adLagDataRateGet(intIfNum, speed) == L7_SUCCESS)
+  {
+    *speed /= 2;
+    rc = L7_SUCCESS;
+  }
+
+  return rc;
+}
+
+
+/*********************************************************************
+* @purpose  Returns the internal interface type
+*           associated with the internal interface number
+*
+* @param    intIfNum    internal interface number
+* @param    sysIntfType pointer to internal interface type,
+*                       (@b{Returns: Internal Interface Type}).
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_ERROR    if interface does not exist
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIntfTypeGet(L7_uint32 intIfNum, L7_uint32 *sysIntfType)
+{
+  return nimGetIntfType(intIfNum, (L7_INTF_TYPES_t *)sysIntfType);
+}
+
+/*********************************************************************
+*
+* @purpose  Send status callback from components to NIM for PORT EVENT Notifications
+*
+* @param    status        @b{(output)}  Status from the component
+*
+* @returns  void
+*
+* @notes    This function should never be called directly.
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbRmonEventStatusCallback (L7_uint32 intIfNum, L7_uint32 event, NIM_CORRELATOR_t correlator)
+{
+  NIM_EVENT_COMPLETE_INFO_t temp_response;
+
+  if (RmonEventStatusCallback != L7_NULLPTR)
+  {
+    (*RmonEventStatusCallback)(intIfNum, event);
+  }
+
+  /* Send back the response to NIM */
+  temp_response.component = L7_RMON_COMPONENT_ID;
+  temp_response.correlator = correlator;
+  temp_response.event = event;
+  temp_response.intIfNum = intIfNum;
+  temp_response.response.rc = L7_SUCCESS;
+  temp_response.response.reason = NIM_ERR_RC_UNUSED;
+  nimEventStatusCallback(temp_response);
+
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
+* @purpose  Register a routine to be called when a link state changes for RMON.
+*
+* @param L7_uint32 *notify       pointer to a routine to be invoked for
+*                                link state changes.  Each routine has
+*                                the following parameters: (internal
+*                                interface number, event(L7_UP, L7_DOWN,
+*                                etc.), and correlator).
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbRmonRegisterIntfChangeGet(L7_RC_t (*notify)(L7_uint32 intIfNum,L7_uint32 event))
+{
+  if (RmonEventStatusCallback == L7_NULLPTR)
+  {
+    RmonEventStatusCallback = notify;
+  }
+  else
+  {
+    /* already registered */
+    return L7_ERROR;
+  }
+
+  return nimRegisterIntfChange(L7_RMON_COMPONENT_ID, usmDbRmonEventStatusCallback);
+}
+
+/*********************************************************************
+* @purpose  De-Register a routine supposed to be called when a link 
+*           state changes for RMON.
+*
+* @param L7_uint32 *notify       pointer to a routine to be invoked for
+*                                link state changes.  Each routine has
+*                                the following parameters: (internal
+*                                interface number, event(L7_UP, L7_DOWN,
+*                                etc.), and correlator).
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbRmonDeRegisterIntfChangeGet(void)
+{
+  L7_RC_t rc = L7_FAILURE;
+
+  if (RmonEventStatusCallback != L7_NULLPTR)
+  {
+    rc = nimDeRegisterIntfChange(L7_RMON_COMPONENT_ID);
+  }
+
+  return rc;
+}
+
+/*********************************************************************
+* @purpose  Check the physical capability of this port
+*
+* @param    intIfNum    Internal interface number
+* @param    capability  Pointer to port capability
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes   none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIntfPhyCapabilityGet(L7_uint32 intIfNum, L7_uint32 *capability)
+{
+
+  return nimGetIntfPhyCapability(intIfNum, capability);
+}
+
+/*********************************************************************
+* @purpose  Check the connector type of this port
+*
+* @param    intIfNum    Internal interface number
+* @param    capability  Pointer to connector type
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes   none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIntfConnectorTypeGet(L7_uint32 intIfNum, L7_uint32 *connType)
+{
+  return nimGetIntfConnectorType(intIfNum, connType);
+}
+
+/*********************************************************************
+* @purpose  Gets the configured (Layer 2) Framesize for the interface,
+*           based upon the type of interface and any submembers
+*
+* @param    intIfNum    Internal Interface Number
+* @param    maxSize     pointer to max frame size,
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfConfigMaxFrameSizeGet(L7_uint32 intIfNum, L7_uint32 *maxSize)
+{
+  return nimGetIntfConfigMaxFrameSize(intIfNum, maxSize);
+}
+/*********************************************************************
+* @purpose  Gets the (Layer 2) Maximum Framesize for the interface,
+*           based upon the type of interface and any submembers
+*
+* @param    intIfNum    Internal Interface Number
+* @param    maxSize     pointer to max frame size,
+*
+* @returns  L7_SUCCESS  if success
+* @returns  L7_FAILURE  if other failure
+*
+* @notes    none
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIfMaxFrameSizeGet(L7_uint32 intIfNum, L7_uint32 *maxSize)
+{
+  return nimGetIntfMaxFrameSize(intIfNum, maxSize);
+}
+
+/*********************************************************************
+* @purpose  Get the status of the specified interface
+*
+* @param    UnitIndex   @b{(input)} the unit for this operation
+* @param    interface   @b{(input)} internal interface number
+* @param    val         @b{(output)} pointer to state
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIntfStatusGet(L7_uint32 interface, L7_uint32 *val)
+{
+  L7_NIM_QUERY_DATA_t queryData;
+
+  /* get the interface state */
+  queryData.intIfNum = interface;
+  queryData.request = L7_NIM_QRY_RQST_STATE;
+
+  if (nimIntfQuery(&queryData) != L7_SUCCESS)
+  {
+    *val = 0;
+    return L7_FAILURE;
+  }
+
+  *val = queryData.data.state;
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
+* @purpose  Test whether a parameter is settable on an interface
+*
+* @param    intIfNum    Internal Interface Number
+* @param    setParm     Mask of parameters
+*
+* @returns  L7_TRUE
+* @returns  L7_FALSE
+*
+* @notes  
+*       
+* @end
+*********************************************************************/
+L7_BOOL usmDbIntfParmCanSet(L7_uint32 intIfNum, L7_uint32 setParm)
+{
+  return nimIntfParmCanSet(intIfNum, setParm);
+}
+
+
+/*********************************************************************
+*
+* @purpose  Get the Configuration Mask Offset
+*
+* @param    intIfNum      @b{(input)}  Internal Interface Number
+* @param    maskOffset    @b{(output)} The config mask offset within a mask
+*
+* @returns  L7_SUCCESS
+* @returns  L7_ERROR      If the internal interface is not valid
+* @returns  L7_FAILURE    If there was no config for the interface in the past
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbConfigIdMaskOffsetGet( L7_uint32 intIfNum,L7_uint32 *maskOffset )
+{
+    return( nimConfigIdMaskOffsetGet( intIfNum, maskOffset ) );
+}
+
+
+/**********************************************************************
+*
+* @purpose  Get auto-negotiation status and the negotiation capabilities
+*           of the specified interface
+*
+* @param intIfNum  L7_uint32 the internal interface number
+* @param *val      L7_uint32 pointer to negotiation capabilities that is
+*                   a mask of ORed bit values from enum
+*                   L7_PORT_NEGO_CAPABILITIES_t
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes
+*
+* @end
+***********************************************************************/
+L7_RC_t usmDbIfAutoNegoStatusCapabilitiesGet(L7_uint32 intIfNum, L7_uint32 *val)
+{
+  return(nimGetIntfAutoNegoStatusCapabilities(intIfNum, val));
+}
+
+/*******************************************************************************
+*
+* @purpose  Enable/disable auto-negotiation and set the negotiation capabilities
+*           of the specified interface
+*
+* @param intIfNum L7_uint32 the internal interface number
+* @param val      L7_uint32 negotiation capabilities that is a mask of ORed bit
+*                   values from enum L7_PORT_NEGO_CAPABILITIES_t
+*
+* @returns  L7_SUCCESS, if success
+* @returns  L7_NOT_EXISTS, if interface does not exist
+* @returns  L7_FAILURE, if other failure
+*
+* @notes
+*
+* @end
+*******************************************************************************/
+L7_RC_t usmDbIfAutoNegoStatusCapabilitiesSet(L7_uint32 intIfNum, L7_uint32 val)
+{
+  return(nimSetIntfAutoNegoStatusCapabilities(intIfNum, val));
+}
+
+/*********************************************************************
+* @purpose  Get the interface type from internal interface number
+*
+* @param    UnitIndex   @b{(input)} the unit for this operation
+* @param    intIfNum   @b{(input)} internal interface number
+* @param    val         @b{(output)} pointer to type
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbIntfIfTypeGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 *val)
+{
+  return(nimGetIntfifType(intIfNum, val));
+}

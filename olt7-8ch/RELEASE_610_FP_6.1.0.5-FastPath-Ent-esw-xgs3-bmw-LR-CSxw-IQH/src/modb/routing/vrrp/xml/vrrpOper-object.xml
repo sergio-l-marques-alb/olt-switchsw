@@ -1,0 +1,380 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0" >
+<module name="vrrpRouterStats" >
+<key-combo list="ifIndex,VrId"/>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initialization of the entity's network management system to the next re-initialization."/>
+<ui  name="Unit/Slot/Port" style="plainText" />
+</object>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initialization of the entity's network management system to the next re-initialization."/>
+<ui  name="Slot/Port" style="plainText" />
+</object>
+<object name="VrId"  >
+<core   type="uint" key="yes" min="L7_ROUTING_VRRP_MIN_VRID" max="L7_ROUTING_VRRP_MAX_VRID" access="read-write" descr="This object contains the Virtual Router Identifier (VRID)."/>
+<ui  name="Virtual Router Id" style="plainText" />
+</object>
+<object name="BecomeMaster" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="The total number of times that this virtual router's state has transitioned to MASTER"/>
+<ui  name="Number of times Master" style="plainText" />
+</object>
+<object name="AdvertiseRcvd" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="The total number of VRRP advertisements received by this virtual router"/>
+<ui  name="Advertisements Received" style="plainText" />
+</object>
+<object name="AdvertiseIntervalErrors" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="The total number of VRRP advertisement packets received for which the advertisement interval is different than the one configured for the local virtual router."/>
+<ui  name="Advertisement Interval Errors" style="plainText" />
+</object>
+<object name="AuthFailures" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="The total number of VRRP packets received that do not pass the authentication check."/>
+<ui  name="Authentication Failure Packets" style="plainText" />
+</object>
+<object name="IpTtlErrors" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="The total number of VRRP packets received by the virtual router with IP TTL (Time-To-Live) not equal to 255."/>
+<ui  name="IP TTL Error Packets" style="plainText" />
+</object>
+<object name="PriorityZeroPktsRcvd" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="The total number of VRRP packets received by the virtual router with a priority of '0'."/>
+<ui  name="Priority Zero Packets Received" style="plainText" />
+</object>
+<object name="PriorityZeroPktsSent" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="The total number of VRRP packets sent by the virtual router with a priority of '0'."/>
+<ui  name="Priority Zero Packets Sent" style="plainText" />
+</object>
+<object name="InvalidTypePktsRcvd" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="The number of VRRP packets received by the virtual router with an invalid value in the 'type' field."/>
+<ui  name="Invalid Type Packets Received" style="plainText" />
+</object>
+<object name="AddressListErrors" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="The total number of packets received for which the address list does not match the locally configured list for the virtual router."/>
+<ui  name="Address List Error Packets" style="plainText" />
+</object>
+<object name="InvalidAuthType" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="The total number of packets received with an unknown authentication type."/>
+<ui  name="Invalid Authentication Type Packets" style="plainText" />
+</object>
+<object name="AuthTypeMismatch" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="The total number of packets received with 'Auth Type' not equal to the locally configured authentication method (`vrrpOperAuthType')."/>
+<ui  name="Authentication Type Mismatch Packets" style="plainText" />
+</object>
+<object name="PacketLengthErrors" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="The total number of packets received with a packet length less than the length of the VRRP header."/>
+<ui  name="Packet Length Errors" style="plainText" />
+</object>
+
+<object name="UpTime" depends="ifIndex,VrId" >
+<core  type="user" xtype="elapsedTimeDHMS_t" access="read-only" descr="This is the value of the `sysUpTime' object when this virtual router (i.e., the `vrrpOperState') transitioned out of `initialized'."/>
+<ui  name="Up Time" style="plainText" />
+</object>
+
+</module>
+<module name="vrrpOperationEntry" >
+<key-combo list="ifIndex,VrId"/>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initialization of the entity's network management system to the next re-initialization."/>
+<ui  name="Unit/Slot/Port" style="plainText" />
+</object>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initialization of the entity's network management system to the next re-initialization."/>
+<ui  name="Slot/Port" style="plainText" />
+</object>
+<object name="VrId" depends="ifIndex" >
+<core  type="uint" key="yes" min="L7_ROUTING_VRRP_MIN_VRID" max="L7_ROUTING_VRRP_MAX_VRID" access="read-write" descr="This object contains the Virtual Router Identifier (VRID)."/>
+<ui  name="VR Id" style="plainText" />
+</object>
+<object name="VirtualMacAddr" depends="ifIndex,VrId" >
+<core  type="mac" access="read-only" descr="The virtual MAC address of the virtual router. Although this object can be derived from the 'vrrpOperVrId' object, it is defined so that it is easily obtainable by a management application and can be included in VRRP-related SNMP traps"/>
+<ui  name="Virtual Mac Address" style="plainText" />
+</object>
+<object name="State" depends="ifIndex,VrId" >
+<core  type="enum" xtype="L7_vrrpState_t" access="read-only" descr="The current state of the virtual router. This object has three defined values `initialize', which indicates that all the virtual router is waiting for a startup event. `backup', which indicates the virtual router is monitoring the availability of the master router.`master', which indicates that the virtual router is forwarding packets for IP addresses that are associated with this router. Setting the `vrrpOperAdminState' object (below) initiates transitions in the value of this object."/>
+<ui  name="State" style="plainText" />
+</object>
+<object name="AdminState" depends="ifIndex,VrId" >
+<core  type="enum" xtype = "L7_VRRP_START_STATE_t" access="read-write" descr="This object will enable/disable the virtual router function. Setting the value to `up', will transition the state of the virtual router from `initialize' to `backup' or `master', depending on the value of `vrrpOperPriority'. Setting the value to `down', will transition the router from `master' or `backup' to `initialize'. State transitions may not be immediate; they sometimes depend on other factors, such as the interface (IF) state. The `vrrpOperAdminState' object must be set to `down' prior to modifying the other read-create objects in the conceptual row. The value of the `vrrpOperRowStatus' object (below) must be `active', signifying that the conceptual row is valid (i.e., the objects are correctly set), in order for this object to be set to `up'."/>
+<ui  name="Admin State" style="choiceNselect1" />
+</object>
+<object name="OperPriority" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="This object specifies the priority to be used for the virtual router master election process. Higher values imply higher priority. A priority of '0', although not settable, is sent by the master router to indicate that this router has ceased to participate in VRRP and a backup virtual router should transition to become a new master. A priority of 255 is used for the router that owns the associated IP address(es)."/>
+<ui  name="Operational Priority" style="inputLine" />
+</object>
+<object name="ConfigPriority" depends="ifIndex,VrId" >
+<core  type="uint" access="read-write" min="L7_VRRP_INTF_PRIORITY_MIN+1" max="L7_VRRP_INTF_PRIORITY_MAX" descr="This object specifies the priority to be used for the virtual router master election process. Higher values imply higher priority. A priority of '0', although not settable, is sent by the master router to indicate that this router has ceased to participate in VRRP and a backup virtual router should transition to become a new master. A priority of 255 is used for the router that owns the associated IP address(es)."/>
+<ui  name="Configured Priority" style="inputLine" />
+</object>
+<object name="IpAddrCount" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="The number of IP addresses that are associated with this virtual router. This number is equal to the number of rows in the vrrpAssoIpAddrTable that correspond to a given IF index/VRID pair."/>
+<ui  name="IP Address Count" style="plainText" />
+</object>
+<object name="MasterIpAddr" depends="ifIndex,VrId" >
+<core  type="ipv4" access="read-only" descr="The master router's real (primary) IP address. This is the IP address listed as the source in VRRP advertisement last received by this virtual router."/>
+<ui  name="Master IP Address" style="plainText" />
+</object>
+<object name="PrimaryIpAddr" depends="ifIndex,VrId" >
+<core  type="ipv4" access="read-write" descr="In the case where there is more than one IP address for a given `ifIndex', this object is used to specify the IP address that will become the`vrrpOperMasterIpAddr', should the virtual router transition from backup to master. If this object is set to 0.0.0.0, the IP address which is numerically lowest will be selected."/>
+<ui  name="Primary IP Address" style="inputLine" />
+</object>
+<object name="AuthType" depends="ifIndex,VrId" >
+<core  type="enum" xtype = "L7_XUI_AUTH_TYPES_t" access="read-write" descr="Authentication type used for VRRP protocol exchanges between virtual routers. This value of this object is the same for a given ifIndex. New enumerations to this list can only be added via a new RFC on the standards track."/>
+<ui  name="Authentication Type" style="choiceNselect1" />
+</object>
+<object name="AuthKey" depends="ifIndex,VrId" >
+<core  type="string" access="read-write" descr="The Authentication Key. This object is set according to the value of the 'vrrpOperAuthType' object ('simpleTextPassword' or 'ipAuthenticationHeader'). If the length of the value is less than 16 octets, the agent will left adjust and zero fill to 16 octets. The value of this object is the same for a given ifIndex. When read, vrrpOperAuthKey always returns an Octet String of length zero." validation="validate_alphanum8"/>
+<ui  name="Authentication Key" style="inputLine" />
+</object>
+<object name="AdvertisementInterval" depends="ifIndex,VrId" >
+<core  type="uint" access="read-write" min="L7_VRRP_INTF_PRIORITY_MIN+1" max="L7_VRRP_INTF_PRIORITY_MAX" descr="The time interval, in seconds, between sending advertisement messages. Only the master router sends VRRP advertisements."/>
+<ui  name="Advertisement Interval" style="inputLine" />
+</object>
+<object name="PreemptMode" depends="ifIndex,VrId" >
+<core  type="enum" xtype="enable_t" access="read-write" descr="Controls whether a higher priority virtual router will preempt a lower priority master."/>
+<ui  name="Preempt Mode" style="choiceNselect1" />
+</object>
+<object name="VirtualRouterUpTime" depends="ifIndex,VrId" >
+<core  type="uint" access="read-only" descr="This is the value of the `sysUpTime' object when this virtual router (i.e., the `vrrpOperState') transitioned out of `initialized'."/>
+<ui  name="Virtual Router Up Time" style="plainText" />
+</object>
+<object name="Protocol" depends="ifIndex,VrId" >
+<core  type="uint" access="read-write" descr="The particular protocol being controlled by this Virtual Router. New enumerations to this list can only be added via a new RFC on the standards track."/>
+<ui  name="Protocol" style="inputLine" />
+</object>
+<object name="ZeroPriorityFlg" depends="ifIndex,VrId" >
+<core  type="uint" access="read-write" descr="To set/get the 0 priority advert rcvd flag"/>
+<ui  name="Zero Priority Flag" style="inputLine" />
+</object>
+
+<object name="RouterIntfAddress" depends="ifIndex,VrId" >
+<core  type="ipv4"  access="read-only" properties="dynamic" descr="The IP address assigned to the routing interface."/>
+<ui  name="Interface IP Address" style="inputLine" />
+</object>
+
+<object name="RoutingPortList" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" properties="dynamic" descr="To list all routing enabled interfaces."/>
+<ui  name="Unit/Slot/Port" style="choiceNselect1" />
+</object>
+
+<object name="RoutingPortList" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" properties="dynamic" descr="To list all routing enabled interfaces."/>
+<ui  name="Slot/Port" style="choiceNselect1" />
+</object>
+
+<object name="isOwner" depends="ifIndex,VrId" >
+<core  type="enum" xtype="TrueFalse_t" access="read-only" descr="The virtual router is owner if interface address and the virtual router address are same."/>
+<ui  name="Is Owner" style="plainText" />
+</object>
+
+<object name="RowStatus" depends="ifIndex,VrId" >
+<core  type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The row status variable, used in accordance to installation and removal conventions for conceptual rows. The rowstatus of a currently active row in the vrrpOperTable is constrained by the operational state of the corresponding virtual router. When `vrrpOperRowStatus' is set to active(1), no other objects in the conceptual row, with the exception of 'vrrpOperAdminState', can be modified. Prior to setting the `vrrpOperRowStatus' object from `active' to a different value, the `vrrpOperAdminState' object must be set to `down' and the `vrrpOperState' object be transitioned to `initialize'. To create a row in this table, a manager sets this object to either createAndGo(4) or createAndWait(5). Until instances of all corresponding columns are appropriately configured, the value of the corresponding instance of the `vrrpOperRowStatus' column will be read as notReady(3). In particular, a newly created row cannot be made active(1) until (minimally) the corresponding instance of 'vrrpOperVrId' has been set and there is at least one active row in the `vrrpAssoIpAddrTable' defining an associated IP address for the virtual router."/>
+<ui  name="Row Status" style="inputLine" />
+</object>
+
+</module>
+<module name="vrrpOperationGroup"  >
+<object name="NodeVersion"  >
+<core  type="uint" access="read-only" descr="This value identifies the particular version of the VRRP supported by this node."/>
+<ui  name="Node Version" style="plainText" />
+</object>
+<object name="NotificationCntl"  >
+<core  type="uint" access="read-write" descr="Indicates whether the VRRP-enabled router will generate SNMP traps for events defined in this MIB. 'Enabled' results in SNMP traps; 'disabled', no traps are sent."/>
+<ui  name="Notification Control" style="inputLine" />
+</object>
+</module>
+<module name="vrrpRouterErrors"  >
+<object name="VrIdErrors"  >
+<core  type="uint" access="read-only" descr="The total number of VRRP packets received with an invalid VRID for this virtual router."/>
+<ui  name="VR Id Errors" style="plainText" />
+</object>
+<object name="VersionErrors"  >
+<core  type="uint" access="read-only" descr="The total number of VRRP packets received with an unknown or unsupported version number."/>
+<ui  name="Version Errors" style="plainText" />
+</object>
+<object name="ChecksumErrors"  >
+<core  type="uint" access="read-only" descr="The total number of VRRP packets received with an invalid VRRP checksum value."/>
+<ui  name="Checksum Errors" style="plainText" />
+</object>
+</module>
+<module name="vrrpDebug"  >
+<object name="PacketTraceFlag"  >
+<core  type="enum" xtype="enable_t" access="read-write" descr="Turns on/off the displaying of vrrp packet debug info"/>
+<ui  name="Packet Trace Flag" style="choiceNselect1" />
+</object>
+</module>
+<module name="vrrpUtil"  >
+<object name="VMacAddress"  >
+<core  type="string" access="read-only" descr="To get the Vmac address associated with an IP"/>
+<ui  name="Virtual MAC Address" style="plainText" />
+</object>
+<object name="IpAddress"  >
+<core  type="ipv4" access="read-only" descr=" To get the ip address associated with the VMAC."/>
+<ui  name="VR IP Address" style="plainText" />
+</object>
+</module>
+<module name="vrrpAssoIpAddr" >
+<key-combo list="ifIndex,VrId,AssoIpAddr"/>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initialization of the entity's network management system to the next re-initialization."/>
+<ui  name="Unit/Slot/Port" style="plainText" />
+</object>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initialization of the entity's network management system to the next re-initialization."/>
+<ui  name="Slot/Port" style="plainText" />
+</object>
+<object name="VrId"  >
+<core  type="uint" key="yes" min="L7_ROUTING_VRRP_MIN_VRID" max="L7_ROUTING_VRRP_MAX_VRID" access="read-write" descr="This object contains the Virtual Router Identifier (VRID)."/>
+<ui  name="VR Id" style="plainText" />
+</object>
+<object name="AssoIpAddr"  >
+<core  type="ipv4" key="yes" access="read-write" descr="The assigned IP addresses that a virtual router is responsible for backing up"/>
+<ui  name="Virtual Router IP Address" style="plainText" />
+</object>
+<object name="AssoIpAddrReturnzeroIfnone"  >
+<core  type="ipv4" key="yes" access="read-write" descr="The assigned IP addresses that a virtual router is responsible for backing up"/>
+<ui  name="AssoIpAddr" style="plainText" />
+</object>
+<object name="RowStatus" depends="ifIndex,VrId,AssoIpAddr" >
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The row status variable, used according to installation and removal conventions for conceptual rows. Setting this object to active(1) or createAndGo(4) results in the addition of an associated address for a virtual router. Destroying the entry or setting it to notInService(2) removes the associated address from the virtual router. The use of other values is implementation-dependent."/>
+<ui  name="Row Status" style="inputLine" />
+</object>
+</module>
+<module name="vrrpIpAddrNext" >
+<key-combo list="VrId,ifIndex"/>
+<object name="VrId"  >
+<core  type="uint" key="yes" min="L7_ROUTING_VRRP_MIN_VRID" max="L7_ROUTING_VRRP_MAX_VRID" access="read-write" descr="This object contains the Virtual Router Identifier (VRID)."/>
+<ui  name="VR Id" style="plainText" />
+</object>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initialization of the entity's network management system to the next re-initialization."/>
+<ui  name="Unit/Slot/Port" style="plainText" />
+</object>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initialization of the entity's network management system to the next re-initialization."/>
+<ui  name="Slot/Port" style="plainText" />
+</object>
+<object name="IpAddr" depends = "VrId,ifIndex" >
+<core  type="ipv4" key="yes" access="read-write" descr="The assigned IP addresses that a virtual router is responsible for backing up"/>
+<ui  name="Virtual Router IP Address" style="plainText" />
+</object>
+</module>
+
+<!-- ObjectAddedStart -->
+<module name="VrrpTrackIntfTable" >
+<key-combo list="ifIndex,VrrpOperVrId,VrrpTrackIntf"/>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initialization of the entity's network management system to the next re-initialization."/>
+<ui  name="Unit/Slot/Port" style="plainText" >
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.1"/>
+</ui>
+</object>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initialization of the entity's network management system to the next re-initialization."/>
+<ui  name="Slot/Port" style="plainText" >
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.1"/>
+</ui>
+</object>
+<object name="VrrpOperVrId" >
+<core  type="uint" key="yes" min="L7_ROUTING_VRRP_MIN_VRID" max="L7_ROUTING_VRRP_MAX_VRID" access="read-write" descr="This object contains the Virtual Router Identifier (VrrpOperVrId)."/>
+<ui  name="VRRP Operational VR Id" style="plainText" >
+<snmp asn-id=".1.3.6.1.2.1.68.1.3.1.1"/>
+</ui>
+</object>
+<object name="VrrpTrackIntf" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="This object specifies the interface to be tracked."/>
+<ui  name="Unit/Slot/Port" style="plainText" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.10.1.1.1"/>
+</ui>
+</object>
+<object name="VrrpTrackIntf" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="This object specifies the interface to be tracked."/>
+<ui  name="Slot/Port" style="plainText" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.10.1.1.1"/>
+</ui>
+</object>
+<object name="VrrpTrackIfPrioDec" depends="ifIndex,VrrpOperVrId,VrrpTrackIntf" >
+<core  type="uint" min="L7_VRRP_INTF_PRIORITY_MIN+1" max="L7_VRRP_INTF_PRIORITY_MAX-1" default="L7_VRRP_INTF_PRIORITY_DEF" access="read-write" descr="This object specifies the decrement priority of the VRRP router."/>
+<ui  name="Decrement Priority" style="inputLine" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.10.1.1.2"/>
+</ui>
+</object>
+<object name="VrrpTrackIfState" depends="ifIndex,VrrpOperVrId,VrrpTrackIntf" >
+<core  type="enum" xtype="TrueFalse_t" access="read-only" descr="This object specifies the IP state of the tracked interface for the virtual router."/>
+<ui  name="Interface State" style="plainText" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.10.1.1.3"/>
+</ui>
+</object>
+
+<object name="VrrpTrackIntfPortList"  depends="ifIndex,VrrpOperVrId,VrrpTrackIntf" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" properties="dynamic" descr="To list all interfaces that are not already being added to tracking list. "/>
+<ui  name="Unit/Slot/Port" style="choiceNselect1" />
+</object>
+
+<object name="VrrpTrackIntfPortList"  depends="ifIndex,VrrpOperVrId,VrrpTrackIntf" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type="user" xtype="usp_t" access="read-write" properties="dynamic" descr="To list all interfaces that are not already being added to tracking list. "/>
+<ui  name="Slot/Port" style="choiceNselect1" />
+</object>
+
+<object name="VrrpTrackIfStatus" depends="ifIndex,VrrpOperVrId,VrrpTrackIntf" >
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The row status variable, used according to installation and removal conventions for conceptual rows. Setting this object to active(1) or createAndGo(4) results in the addition of an associated address for a virtual router. Destroying the entry or setting it to notInService(2) removes the associated address from the virtual router. The use of other values is implementation-dependent."/>
+<ui  name="Status" style="inputLine" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.10.1.1.4"/>
+</ui>
+</object>
+</module>
+
+<module name="VrrpTrackRouteTable" >
+<key-combo list="ifIndex,VrrpOperVrId,VrrpTrackRtPfx,VrrpTrackRtPfxLen"/>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initialization of the entity's network management system to the next re-initialization."/>
+<ui  name="Unit/Slot/Port" style="plainText" >
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.1"/>
+</ui>
+</object>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initialization of the entity's network management system to the next re-initialization."/>
+<ui  name="Slot/Port" style="plainText" >
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.1"/>
+</ui>
+</object>
+<object name="VrrpOperVrId" >
+<core  type="uint" key="yes" min="L7_ROUTING_VRRP_MIN_VRID" max="L7_ROUTING_VRRP_MAX_VRID" access="read-write" descr="This object contains the Virtual Router Identifier (VrrpOperVrId)."/>
+<ui  name="VRRP Operational VR Id" style="plainText" >
+<snmp asn-id=".1.3.6.1.2.1.68.1.3.1.1"/>
+</ui>
+</object>
+<object name="VrrpTrackRtPfx" >
+<core  type="ipv4" key="yes" access="read-write" descr="This object specifies the prefix of the route to be tracked."/>
+<ui  name="Tracked Route Prefix" style="plainText" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.10.2.1.1"/>
+</ui>
+</object>
+<object name="VrrpTrackRtPfxLen" >
+<core  type="user" xtype="IPMask_t" key="yes" access="read-write" descr="This object specifies prefix length of the route to be tracked."/>
+<ui  name="Tracked Route Prefix Length" style="plainText" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.10.2.1.2"/>
+</ui>
+</object>
+<object name="VrrpTrackRtPrioDec" depends="ifIndex,VrrpOperVrId,VrrpTrackRtPfx,VrrpTrackRtPfxLen">
+<core  type="uint" min="L7_VRRP_INTF_PRIORITY_MIN+1" max="L7_VRRP_INTF_PRIORITY_MAX-1" default="L7_VRRP_INTF_PRIORITY_DEF" access="read-write" descr="This object specifies the decrement priority of the VRRP router."/>
+<ui  name="Decrement Priority" style="inputLine" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.10.2.1.3"/>
+</ui>
+</object>
+<object name="VrrpTrackRtReachable" depends="ifIndex,VrrpOperVrId,VrrpTrackRtPfx,VrrpTrackRtPfxLen">
+<core  type="enum" xtype="TrueFalse_t" access="read-only" descr="This object specifies the reachability of the tracked route."/>
+<ui  name="Tracked Route Reachability" style="plainText" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.10.2.1.4"/>
+</ui>
+</object>
+<object name="VrrpTrackRtStatus" depends="ifIndex,VrrpOperVrId,VrrpTrackRtPfx,VrrpTrackRtPfxLen" >
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The row status variable, used according to installation and removal conventions for conceptual rows."/>
+<ui  name="VrrpTrackRtStatus" style="inputLine" >
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.10.1.1.5"/>
+</ui>
+</object>
+</module>
+
+<!-- ObjectAddedEnd -->
+</objectxml>
+</FastPathXML>

@@ -1,0 +1,77 @@
+<HTML>
+
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>IP Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+
+
+<h2><a name=sec_ip_cfg></a>Help for IP Interface Secondary Address Configuration</h2>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Secondary Address</b> -
+      The IP Address for which data is to be displayed.
+      Create must be selected to add a secondary address to the interface.
+  </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>IP Address</b> - Enter the IP Address for the interface.  This value is readonly once configured.
+  </li>
+
+  <li><b>Subnet Mask</b> - Enter the subnet mask for the interface.
+      This is also referred to as the subnet/network mask, and defines
+      the portion of the interface's IP Address that is used to identify the attached network.
+      This value is readonly once configured.
+  </li>
+
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> -
+      The interface for which data is to be displayed or
+      configured.</li>
+  <li><b>Primary IP Address</b> -
+      The Primary IP Address for the Interface.</li>
+  </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Update the switch with the values on this screen.
+     If you want the switch to retain the new values across a power cycle, you must perform a save.</li>
+  <li><b>Delete</b> - Delete the IP Address from the interface. </li>
+  <li><b>Cancel</b> - Return to the IP Interface Configuration screen. </li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<hr size=4 width="80%" align=center>
+
+</body>
+
+</html>

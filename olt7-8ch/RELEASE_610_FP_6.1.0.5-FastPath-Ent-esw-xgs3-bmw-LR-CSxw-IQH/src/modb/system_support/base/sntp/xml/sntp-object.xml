@@ -1,0 +1,224 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="base" version="1.0">
+<module name="SntpClient">
+<object name="UcastServerIndex">
+<core type="uint" key="yes" access="read-write" descr="This object uniquely identifies the entry in the table."/>
+<ui name="Server Index" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.6.1.1"/> 
+</ui></object>
+<object name="UcastServerAddressType" depends="UcastServerIndex">
+<core type="enum" xtype="L7_SNTP_ADDRESS_TYPE_t" access="read-write" descr="This object specifies how SntpClientUcastServerAddr is encoded. Support for all possible enumerations defined by InetAddressType is NOT REQUIRED."/>
+<ui name="Unicast Server Address Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.6.1.2"/> 
+</ui></object>
+<object name="castServerAddress" depends="UcastServerIndex">
+<core type="string" properties="pseudo-key" access="read-write" descr="The encoded internet address of an SNTP server. Unicast SNTP requests will be sent to this address. If this address is a DNS hostname, then that hostname SHOULD be resolved into an IP address each time a SNTP request is sent. " validation="validate_castSrvAdr"/>
+<ui name="Server Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.6.1.3"/> 
+</ui></object>
+<object name="UcastServerPort" depends="UcastServerIndex">
+<core type="uint" min="SNTP_MIN_SERVER_PORT" max="SNTP_MAX_SERVER_PORT" default="FD_SNTP_DEFAULT_SERVER_PORT" access="read-write" descr="The port number on the server to which poll requests are sent. A set request MUST NOT use a value of 0 for this object."/>
+<ui name="Unicast Server Port" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.6.1.4"/> 
+</ui></object>
+<object name="UcastServerVersion" depends="UcastServerIndex">
+<core type="uint" min="SNTP_VERSION_MIN" max="SNTP_VERSION_MAX" default="FD_SNTP_DEFAULT_VERSION" access="read-write" descr="The SNTP version this server supports. This is the value that will be encoded in NTP polls when operating in unicast(1) administrative mode."/>
+<ui name="Unicast Server Version" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.6.1.5"/> 
+</ui></object>
+<object name="UcastServerPrecedence" depends="UcastServerIndex">
+<core type="uint" min="SNTP_MIN_SERVER_PRIORITY" max="SNTP_MAX_SERVER_PRIORITY" default="FD_SNTP_DEFAULT_SERVER_PRIORITY" access="read-write" descr="The precedence that this server has in relation to its peers in the determining the sequence of servers to which SNTP requests will be sent. The client continues sending requests to different servers until a successful response is received or all servers are exhausted.This object indicates the order in which to query the servers.A server entry with a precedence of 1 will be queried before a server with a precedence of 2, and so forth.If more than one server has the same precedence then the request order will follow the lexicographical ordering of the entries in this table."/>
+<ui name="Unicast Server Precedence" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.6.1.6"/> 
+</ui></object>
+<object name="UcastServerLastUpdateTime" depends="UcastServerIndex">
+<core type="string" access="read-only" descr="The local date and time that the response from this server was used to update the system time on the device since agent reboot. If the SNTP client has not updated the time using a response from this server then this object MUST return 0."/>
+<ui name="Unicast Server Last Update Time" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.6.1.7"/> 
+</ui></object>
+<object name="UcastServerLastAttemptTime" depends="UcastServerIndex">
+<core type="string" access="read-only" descr="The local date and time that this SNTP server was last queried since agent reboot. Essentially, this value is a timestamp for the SntpClientUcastServerLastAttemptStatus object. If this server has not been queried then this object MUST return 0."/>
+<ui name="Unicast Server Last Attempt Time" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.6.1.8"/> 
+</ui></object>
+<object name="UcastServerLastAttemptStatus" depends="UcastServerIndex">
+<core type="enum" xtype="L7_SNTP_PACKET_STATUS_t" access="read-only" descr="The status of the last SNTP request to this server since agent reboot. If no requests have been made then this object should return &apos;other&apos;."/>
+<ui name="Unicast Server Last Attempt Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.6.1.9"/> 
+</ui></object>
+<object name="UcastServerNumRequests" depends="UcastServerIndex">
+<core type="uint" access="read-only" descr="The number of SNTP requests made to this server since the last agent reboot. This includes retry attempts to the server."/>
+<ui name="Unicast Server Num Requests" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.6.1.10"/> 
+</ui></object>
+<object name="UcastServerNumFailedRequests" depends="UcastServerIndex">
+<core type="uint" access="read-only" descr="The number of SNTP requests made to this server that did not result in a successful response since the last agent reboot. This includes retry attempts to the server."/>
+<ui name="Unicast Server Num Failed Requests" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.6.1.11"/> 
+</ui></object>
+<object name="UcastServerRowStatus" depends="UcastServerIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The row status of this conceptual row in the table. active - The server is available for use in SNTP client operations. Other writable leaves in this table MAY be modified while the row is in the active state. "/>
+<ui name="Unicast Server Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.6.1.12"/> 
+</ui></object>
+<object name="ServerStratum">
+<core type="uint" access="read-only" descr="This is an 8-bit integer identifying the stratum of the server as indicated in the last received packet with values defined as follows: 0 for unspecified, 1 for primary reference, 2-15 secondary reference, and 16-255 reserved."/>
+<ui name="Server Stratum" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.1.11"/> 
+</ui></object>
+<object name="UnicastPollTimeout">
+<core type="uint" min="SNTP_MIN_POLL_TIMEOUT" max="SNTP_MAX_POLL_TIMEOUT" default="FD_SNTP_DEFAULT_POLL_TIMEOUT" access="read-write" descr="The number of seconds to wait for a response from a SNTP server before considering the attempt to have &apos;timed out&apos;. This timeout is used for SNTP requests in unicast(1) administrative mode."/>
+<ui name="Unicast Poll Timeout" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.2"/> 
+</ui></object>
+<object name="UnicastPollRetry">
+<core type="uint" min="SNTP_MIN_POLL_RETRY" max="SNTP_MAX_POLL_RETRY" default="FD_SNTP_DEFAULT_POLL_RETRY" access="read-write" descr="The number of times to retry a request to the same SNTP server that has &apos;timed out.&apos;. This retry count is used for directed SNTP requests in unicast(1) administrative mode. For example, assume this object has been SET to a value o"/>
+<ui name="Unicast Poll Retry" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.3"/> 
+</ui></object>
+<object name="Port">
+<core type="uint" min="SNTP_MIN_CLIENT_PORT" max="SNTP_MAX_CLIENT_PORT" default="FD_SNTP_DEFAULT_CLIENT_PORT" access="read-write" descr="The local port number used to listen for broadcasts and responses from servers. A set request MUST NOT use a value of 0 for this object."/>
+<ui name="Port" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.1.4"/> 
+</ui></object>
+<object name="LastAttemptStatus">
+<core type="enum" xtype="L7_SNTP_PACKET_STATUS_t" access="read-only" descr="The status of the last SNTP request or unsolicited SNTP message for this SNTP client since agent reboot. The status is updated for all non-disabled administrative modes of the SNTP client."/>
+<ui name="Last Attempt Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.1.7"/> 
+</ui></object>
+<object name="ServerMode">
+<core type="enum" xtype="L7_SNTP_SERVER_MODE_t" access="read-only" descr="This is a 3-bit integer identifying the mode of the server as indicated in the last received packet with values defined as follows: Mode Meaning ------------------------------------ 0 reserved, 1 symmetric active, 2 symmetric passive, 3 client, 4 server, 5 broadcast, 6 reserved for NTP control message and 7 reserved for private use."/>
+<ui name="Server Mode" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.1.10"/> 
+</ui></object>
+<object name="LastAttemptTime">
+<core type="string" access="read-only" descr="The local date and time of the last SNTP request or unsolicited SNTP message for this SNTP client since agent reboot."/>
+<ui name="Last Attempt Time" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.1.6"/> 
+</ui></object>
+<object name="UcastServerCurrEntries">
+<core type="uint" access="read-only" descr="The current number of server entries in the SntpClientUcastServerTable."/>
+<ui name="Unicast Server Current Entries" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.5"/> 
+</ui></object>
+<object name="ServerRefClkId">
+<core type="string" access="read-only" descr="This is the value of the Reference Identifier in the last received packet defined as follows. Reference Identifier: This is a 32-bit bitstring identifying the particular reference source. In the case of NTP Version 3 or Version 4 stratum-0 (unspecified) or stratum-1 (primary) servers this is a four-character ASCII string, left justified and zero padded to 32 bits. In NTP Version 3 secondary servers, this is the 32-bit IPv4 address of the reference source. In NTP Version 4 secondary servers, this is the low order 32 bits of the latest transmit timestamp of the reference source."/>
+<ui name="Server Reference Clock ID" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.1.12"/> 
+</ui></object>
+<object name="ServerAddressType">
+<core type="enum" xtype="L7_SNTP_ADDRESS_TYPE_t" access="read-only" descr="The address type of the SNTP server as identified by the last received packet. Support for all address types is NOT REQUIRED."/>
+<ui name="Server Address Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.1.8"/> 
+</ui></object>
+<object name="LastUpdateTime">
+<core type="string" access="read-only" descr="The local date and time that the SNTP client last updated the system time on the device since agent reboot. This time is updated for all non-disabled administrative modes of the SNTP client. If the SNTP client has not updated the time then the client MUST return 0."/>
+<ui name="Last Update Time" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.1.5"/> 
+</ui></object>
+<object name="UnicastPollInterval">
+<core type="uint" min="SNTP_MIN_POLL_INTERVAL" max="SNTP_MAX_POLL_INTERVAL" default="FD_SNTP_DEFAULT_POLL_INTERVAL" access="read-write" descr="The minimum number of seconds between successive SNTP polls of the server in seconds as a power of two. This polling interval is used for SNTP requests in unicast(1) administrative mode."/>
+<ui name="Unicast Poll Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.1"/> 
+</ui></object>
+<object name="Version">
+<core type="uint" access="read-only" descr="The highest SNTP version this client supports. Per RFC 2030, higher versions are required to be backwards compatible with all lower versions with the exception of version 0."/>
+<ui name="Version" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.1.1"/> 
+</ui></object>
+<object name="Mode">
+<core type="enum" xtype="L7_SNTP_CLIENT_MODE_t" access="read-write" descr="The current administrative mode of the SNTP client. A SET of this object will cause the SNTP client to change administrative modes. A SET request MUST have only 1 bit set since is not possible to operate in multiple modes "/>
+<ui name="Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.1.3"/> 
+</ui></object>
+<object name="ServerAddress">
+<core type="string" access="read-only" descr="The encoded address of the SNTP server as identified by the last received packet."/>
+<ui name="Server Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.1.9"/> 
+</ui></object>
+<object name="BroadcastCount">
+<core type="uint" access="read-only" descr="The number of unsolicited broadcast SNTP messages that have been received and processed by the SNTP client. Unsolicited SNTP broadcast frames will not be counted unless the SNTP agent is operating in broadcast(3) mode, as specifie"/>
+<ui name="Broadcast Count" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.3.1"/> 
+</ui></object>
+<object name="BroadcastInterval">
+<core type="uint" min="SNTP_MIN_POLL_INTERVAL" max="SNTP_MAX_POLL_INTERVAL" default="FD_SNTP_DEFAULT_POLL_INTERVAL" access="read-write" descr="The number of seconds the client will wait before processing another broadcast packet expressed as a power of two. Packets received during the wait interval are silently discarded."/>
+<ui name="Broadcast Poll Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.3.2"/> 
+</ui></object>
+<object name="UcastServerMaxEntries">
+<core type="uint" access="read-only" descr="The maximum number of server entries that are allowed in the SntpClientUcastServerTable."/>
+<ui name="Unicast Server Max Entries" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.2.4"/> 
+</ui></object>
+<object name="SupportedMode">
+<core type="enum" xtype="L7_SNTP_SUPPORTED_MODE_t" access="read-only" descr="The SNTP client administrative modes that this device supports. A client may support more than one administrative mode."/>
+<ui name="Client Supported Mode" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.17.1.1.2"/> 
+</ui></object>
+<object name="sntpAuthMode">
+<core descr="Get the current authentication mode for this client" xtype="enable_t" access="read-write" type="enum"/>
+<ui style="choiceNselect1" name="Authentication Mode">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="sntpAuthKeyIndex">
+<core key="yes" descr="Authentication Key Index Used for Auth Key Generation" default="-1" max="L7_SNTP_MAX_AUTH_KEYS-1" min="0" access="read-write" type="uint"/>
+<ui style="inputLine" name="Authentication Key Index">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="sntpAuthKeyNumber" depends="sntpAuthKeyIndex" >
+<!--max: L7_SNTP_KEY_NUMBER_MAX is defined as #xffffff, validations doesn't work with hexa; hence keeping the decimal number  -->
+<core descr="The key number of the authenticate table entry specified by index" properties="pseudo-key" max="L7_SNTP_KEY_NUMBER_MAX" min="L7_SNTP_KEY_NUMBER_MIN" access="read-write" type="uint"/>
+<ui style="inputLine" name="Authentication Key Number">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="sntpAuthKeyValue" depends="sntpAuthKeyIndex">
+<core descr="The key value of the authenticate table entry specified by index." access="read-write" type="string"/>
+<ui style="inputLine" name="Authentication Key Value">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="sntpAuthKeyTrustMode" depends="sntpAuthKeyIndex">
+<core descr="The Trusted Key Mode option for the authenticated Key" xtype="TrueFalse_t" access="read-write" type="enum"/>
+<ui style="choice2select1" name="Authentication Key Trust Mode">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="sntpAuthRowStatus" depends="sntpAuthKeyIndex">
+<core descr="Row Status object for SNTP Auth Server" xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+<ui style="inputLine" name="Authentication Status">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object depends="UcastServerIndex,sntpAuthKeyIndex," name="sntpAuthEncryptionKey">
+<core validation="validate_uint" descr="The authentication key for an SNTP server table entry" access="read-write" type="uint"/>
+<ui style="inputLine" name="Authentication Encryption Key">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object depends="sntpAuthKeyIndex" name="sntpAuthEncryptionKeyNumber">
+<core properties="pseudo-key,dynamic" validation="validate_uint" descr="The authentication key for an SNTP server table entry" access="read-write" type="uint"/>
+<ui style="inputLine" name="Authentication Encryption Key Number">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="sntpAuthType">
+<core descr="The Authentication type which is being used." access="read-only" type="string"/>
+<ui style="plainText" name="Authentication Type">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object depends="UcastServerIndex" name="sntpAuthEncryptionKeyNumberBind">
+<core  descr="The authentication key for an SNTP server table entry" access="read-only" type="uint"/>
+<ui style="plainText" name="Authentication Encryption Key Number Bind">
+<snmp asn-id=""/>
+</ui>
+</object>
+</module>
+</objectxml>
+</FastPathXML>

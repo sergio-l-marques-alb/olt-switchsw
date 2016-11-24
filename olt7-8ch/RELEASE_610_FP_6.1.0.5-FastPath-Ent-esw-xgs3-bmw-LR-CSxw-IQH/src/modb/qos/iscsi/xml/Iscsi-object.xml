@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="fastPath" version="1.0">
+<module name="QOSIscsi" key-method="individual">
+<object name="adminMode">
+<core type="enum" xtype="enable_t" access="read-write" descr="Configures the global admin mode for the iSCSI component"/>
+<ui name="Admin Mode" style="choice2select1">
+</ui></object>
+<object name="vlanPriority">
+<core type="uint" properties="dynamic" access="read-write" descr="Configures the VLAN priority for treatment of iSCSI packets"/>
+<ui name="VLAN Priority" style="choiceNselect1">
+</ui></object>
+<object name="Dscp" >
+<core type="uint" properties="dynamic" access="read-write" descr="Configures the DSCP value for treatment of iSCSI packets"/>
+<ui name="DSCP" style="choiceNselect1">
+</ui></object>
+<object name="IpPresedence">
+<core type="uint" properties="dynamic" access="read-write" descr="Configures the IP precedence value for treatment of iSCSI packets"/>
+<ui name="IP Presedence" style="choiceNselect1">
+</ui></object>
+<object name="markingMode" >
+<core type="enum" xtype="enable_t" access="read-write" descr="Configures whether to mark iSCSI packets"/>
+<ui name="Marking Mode" style="choice2select1">
+</ui></object>
+<object name="TagField">
+<core type="enum" xtype="L7_QOS_COS_MAP_INTF_MODE_t" access="read-write" descr="Configures which type of packet priority marking to use"/>
+<ui name="Tag Field" style="choiceNselect1">
+</ui></object>
+<object name="TimeoutInterval">
+<core type="uint" min="ISCSI_SESSION_TIME_OUT_MINUTES_MIN" max="ISCSI_SESSION_TIME_OUT_MINUTES_MAX" access="read-write" descr="Configures the session time out value used for iSCSI sessions"/>
+<ui name="Timeout Interval" style="inputLine">
+</ui></object>
+<object name="TargetEntryId">
+<core type="uint" access="read-write" key="yes" descr="Target Entry Index"/>
+<ui name="Target Entry Id" style="choiceNselect1">
+</ui></object>
+<object name="TargetTcpPort">
+<core type="uint" min="1" max="65535" access="read-write" descr="TCP Port of the given entry"/>
+<ui name="Target TCP Port" style="inputLine">
+</ui></object>
+<object name="TargetIpAddress">
+<core type="user" xtype="ipv4_ipv6" access="read-write" descr="IP Address of the given entry"/>
+<ui name="Target IP Address" style="inputLine">
+</ui></object>
+<object name="TargetName">
+<core type="string" access="read-write" descr="Target Name of the given entry."/>
+<ui name="Target Name" style="inputLine">
+</ui></object>
+<object name="TargetRowStatus" depends="TargetEntryId">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Row Status Object to Create a TCP Entry for Iscsi."/>
+<ui name="Target Row Status" style="inputLine">
+</ui></object>
+<object name="TableEntryTCPPort" depends="TargetEntryId">
+<core type="uint" access="read-only" descr="Retrieves the TCP port number for the specified entry in Target TCP port table."/>
+<ui name="Table Entry TCP Port" style="plainText">
+</ui></object>
+<object name="TableEntryIpAddress" depends="TargetEntryId">
+<core type="user" xtype="ipv4_ipv6" access="read-only" descr="Retrieves the target IP address for the specified entry in the Target TCP port table."/>
+<ui name="Table Entry IP Address" style="plainText">
+</ui></object>
+<object name="TableEntryName" depends="TargetEntryId">
+<core type="string" access="read-only" descr="Retrieves the target name for the specified entry in the Target TCP port table"/>
+<ui name="Table Entry Name" style="plainText">
+</ui></object>
+<object name="TableEntryInUse" depends="TargetEntryId">
+<core type="enum" xtype="TrueFalse_t" access="read-only" descr="Reports whether the  Target TCP port table entry corresponding with  entryId is in use/"/>
+<ui name="Table Entry In Use" style="plainText">
+</ui></object>
+<object name="SessionIndex">
+<core type="uint" key="yes" access="read-write" descr="Retrieves the entry in the iSCSI session table."/>
+<ui name="Session Index" style="choiceNselect1">
+</ui></object>
+<object name="SessionTargetName" depends="SessionIndex">
+<core type="string" access="read-only" descr="The Target Name of the given Session."/>
+<ui name="Session Target Name" style="plainText">
+</ui></object>
+<object name="SessionInitiatorName" depends="SessionIndex">
+<core type="string" access="read-only" descr="The Session Initiator Name."/>
+<ui name="Session Initiator Name" style="plainText">
+</ui></object>
+
+<object name="SessionStartTime" depends="SessionIndex">
+<core type="string" access="read-only" descr="Session Start Date and Time of a given Session Index"/>
+<ui name="Session Start Time" style="plainText">
+</ui></object>
+<object name="SessionSilentTime" depends="SessionIndex">
+<core type="uint" access="read-only" descr="Session Silent time of the Given Session Index."/>
+<ui name="Session Silent Time" style="plainText">
+</ui></object>
+<object name="SessionISID" depends="SessionIndex">
+<core type="string" access="read-only" descr="The ISID of the given Session ID."/>
+<ui name="Session ISID" style="plainText">
+</ui></object>
+<object name="ConnectionIndex" depends="SessionIndex">
+<core type="uint" key="yes" access="read-write" descr="The Connection Index of the given Session Index."/>
+<ui name="Session Connection ID" style="plainText">
+</ui></object>
+<object name="ConnectionTargetIPAddress" depends="SessionIndex,ConnectionIndex">
+<core type="user" xtype="ipv4_ipv6" access="read-only" descr="The Connection Target IP address of given Connection ID and Seession ID."/>
+<ui name="Connection Target IP Address" style="plainText">
+</ui></object>
+<object name="ConnectionInitiatorIPAddress" depends="SessionIndex,ConnectionIndex">
+<core type="user" xtype="ipv4_ipv6" access="read-only" descr="The Connection Initiator IP Address."/>
+<ui name="Connection Initiator IP Address" style="plainText">
+</ui></object>
+<object name="ConnectionTargetTCPPort" depends="SessionIndex,ConnectionIndex">
+<core type="uint" access="read-only" descr="The Connector Target TCP Port."/>
+<ui name="Connection Target TCP Port" style="plainText">
+</ui></object>
+<object name="ConnectionInitiatorTCPPort" depends="SessionIndex,ConnectionIndex">
+<core type="uint" access="read-only" descr="The Connection Initiator TCP Port."/>
+<ui name="Connection Initiator TCP Port" style="plainText"/>
+</object>
+<object name="ConnectionCID" depends="SessionIndex,ConnectionIndex">
+<core type="uint" access="read-only" descr="The CID of the given Connection ID"/>
+<ui name="Connection CID" style="plainText"/>
+</object>
+<object name="ConnectionSessionID" depends="ConnectionIndex">
+<core type="uint"  access="read-only" descr="The Session Index of a given Connection Index"/>
+<ui name="Connection Session ID" style="plainText"/>
+</object>
+<object name="SessionTimeLeft" depends="SessionIndex">
+<core type="uint" access="read-only" descr="Retrieves the time left for the specified entry in Session table."/>
+<ui name="Session Time Left" style="plainText"/>
+</object>
+</module>
+</objectxml>
+</FastPathXML>

@@ -1,0 +1,23 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IGMPGlobalConfig" title="IGMP Global Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="write-only,hidden" value="IPv4" obj-name="IPMCASTagentMulticastIGMPConfigGroup_agentMulticastIGMPFamily" id="1" name="Address Family">
+                <action type="enum" discard="no"  enable="1_2_1|1_3_1" show="1_2_|1_3_1"/>
+                <action type="enum" discard="yes" disable="1_2_1|1_3_1" hide="1_2_1|1_3_1"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="IPMCASTagentMulticastIGMPConfigGroup_agentMulticastIGMPAdminMode" id="1" name="Admin Mode"/>
+            </node>
+            <node id="3">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

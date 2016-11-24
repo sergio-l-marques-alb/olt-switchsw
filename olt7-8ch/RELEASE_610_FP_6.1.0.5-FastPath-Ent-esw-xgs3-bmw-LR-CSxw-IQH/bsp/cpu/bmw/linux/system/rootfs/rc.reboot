@@ -1,0 +1,33 @@
+#!/bin/sh
+#######################################################
+#maintain data integrity with a sync of the filesystems
+#######################################################
+echo syncing filesystems....This may take a few moments
+sync
+
+####################################################### 
+#unmount the compact flash file system 
+#Note that this would fail withoout the force, as the
+#fastpath application keeps open file handles on the 
+#compact flash. The above sync, should maintain data
+#integrity.  
+#######################################################
+umount -f /mnt/fastpath
+umount -f /mnt/application
+
+#######################################################
+#this will turn off the ability to ^C out of this loop
+#Note that signal number 2 in the bash shell is SIGINT
+#for a list try trap -p
+#######################################################
+trap '' 2
+
+######################################################
+#we shouldn't reach here, but incase we do let the 
+#console know and just execute halt.  Note that
+#that halt becomes a soft reset on the switchore system
+#don't quite know why, since the watchdog timer is off
+#but I'll get to looking into that 
+######################################################
+echo Rebooting system!
+/sbin/reboot

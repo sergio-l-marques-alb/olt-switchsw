@@ -1,0 +1,94 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+<!-- THE NODES COMMENTED OUT SHOULD BE BROUGHT BACK USING RUN IF'S -->
+
+<FastPathXML>
+    <webxml version="1.0" name="CoSIPDSCPMapConfig" title="CoS IP DSCP Mapping Configuration">
+      <group level="ReadOnlyUser" id="1" heading=" ">
+	  
+      <!--      <node id="1">
+                <element properties="filter,iterate" obj-name="fastPathQOSCOSCosMapCfg_CosMapIpDscpIntfIndex" id="1" />
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="2">
+                <element properties="filter,iterate" obj-name="fastPathQOSCOSCosMapCfg_CosMapIpDscpValue" id="1" name="IP DSCP Value"/>
+                <element properties="edit,read-only,list" obj-name="fastPathQOSCOSCosMapCfg_CosMapIpDscpTrafficClass" id="2" name="Traffic Class"/>
+            </repeat> -->
+			<node id="1">
+                <element control="combo" obj-name="xLibObjects_dummy" id="1"  value="Global" uienum="Global_t"/>
+            </node>
+			 <repeat present="vtable" edit="no" heading="  " id="2">
+                <element properties="filter,iterate" obj-name="fastPathQOSCOSCosMapCfg_GlobalCosMapIpDscpValue" id="1" name="IP DSCP Value"/>
+                <element control="combo" properties="list" obj-name="fastPathQOSCOSCosMapCfg_GlobalCosMapIpDscpTrafficClass" id="2" name="Traffic Class"/>
+            </repeat>
+        </group>
+ 
+        <group level="ReadWriteUser" id="2" heading="  " run_if="IPDSCP_PER_INTF_FEATURE_PRESENT">
+            <node id="1">
+                <element properties="filter,iterate" obj-name="fastPathQOSCOSCosMapCfg_CosMapIpDscpIntfIndex" id="1" >
+                 <action type="extn" value="Global" position="0" hide="2_2|2_4" disable="2_2|2_4" show="2_3|2_5" enable="2_3|2_5" />
+                 <action type="default" hide="2_3|2_5" disable="2_3|2_5" show="2_2|2_4" enable="2_2|2_4" />     
+                </element>
+                <element obj-name="xLibObjects_dummy" control="textbox" id="2" properties="hidden" name="HoldIntfIndexGlobal">
+                    <action type="value" value="Global" setval_ids="2_1_1" setval_args="valmapGlobal" />
+                </element>
+            </node>
+
+            <repeat present="vtable" edit="inline" heading="  " id="2">
+                <element properties="filter,iterate" obj-name="fastPathQOSCOSCosMapCfg_CosMapIpDscpValue" id="1" name="IP DSCP Value"/>
+                <element control="combo" properties="edit,list" obj-name="fastPathQOSCOSCosMapCfg_CosMapIpDscpTrafficClass" id="2" name="Traffic Class"/>
+            </repeat>
+
+    			 <repeat present="vtable" edit="inline" heading="  " id="3">
+                <element properties="filter,iterate" obj-name="fastPathQOSCOSCosMapCfg_GlobalCosMapIpDscpValue" id="1" name="IP DSCP Value"/>
+                <element control="combo" properties="edit,list" obj-name="fastPathQOSCOSCosMapCfg_GlobalCosMapIpDscpTrafficClass" id="2" name="Traffic Class"/>
+            </repeat>
+
+            <node id="4">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+              <action type="button" disable="2_4_2" copy_from="2_1_1" copy_to="2_1_2"/>  
+                </button>
+                <button scope="page" type="buttonSubmit" help="Restore the IP DSCP defaults" id="2" name="Restore Defaults" obj-name="fastPathQOSCOSCosMapCfg_CosMapIntfIpDscpRestoreDefaults" value="1">
+                   <action type="button" disable="2_2|2_4_1" />
+                </button>
+           </node>
+
+          <node id="5">
+             <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+              <action type="button" disable="2_5_2" copy_from="2_1_1" copy_to="2_1_2"/>
+             </button>
+             <button scope="page" type="buttonSubmit" help="Restore the IP DSCP defaults" id="2" name="Restore Defaults" obj-name="fastPathQOSCOSCosMapCfg_CosMapGlobalIpDscpRestoreDefaults" value="1">
+                <action type="button" disable="2_3|2_5_1" />
+             </button>
+          </node>
+    <!-- added for actions -->
+          <node id="6">
+               <element obj-name="xLibObjects_dummy" control="textbox" properties="hidden" id="1">
+                 <action type="mandate" setval_ids="2_1_2" setval_args="None"/>
+               </element>
+          </node>
+        </group>
+
+       <group level="ReadWriteUser" id="3" heading="  " run_if="NO_IPDSCP_PER_INTF_FEATURE_PRESENT">
+            <node id="1">
+                 <element control="combo" obj-name="xLibObjects_dummy" id="1"  value="Global" uienum="Global_t" name="Slot/Port" run_if="nostacking"/>
+                 <element control="combo" obj-name="xLibObjects_dummy" id="2"  value="Global" uienum="Global_t" name="Unit/Slot/Port" run_if="stacking"/>
+            </node>
+           <repeat present="vtable" edit="inline" heading="  " id="2">
+                <element properties="filter,iterate" obj-name="fastPathQOSCOSCosMapCfg_GlobalCosMapIpDscpValue" id="1" name="IP DSCP Value"/>
+                <element control="combo" properties="edit,list" obj-name="fastPathQOSCOSCosMapCfg_GlobalCosMapIpDscpTrafficClass" id="2" name="Traffic Class"/>
+            </repeat>
+
+          <node id="3">
+             <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+              <action type="button" disable="3_3_2" />
+             </button>
+             <button scope="page" type="buttonSubmit" help="Restore the IP DSCP defaults" id="2" name="Restore Defaults" obj-name="fastPathQOSCOSCosMapCfg_CosMapGlobalIpDscpRestoreDefaults" value="1">
+                <action type="button" disable="3_2_1|3_2_2|3_3_1" />
+             </button>
+          </node>
+        </group>
+
+
+    </webxml>
+</FastPathXML>

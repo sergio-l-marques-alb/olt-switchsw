@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "object.dtd" >
+
+
+<FastPathXML>
+    <objectxml version="1.0" name="Switching">
+        <module name="PbvlanGroupConfig">
+            <object name="GroupCreate">
+                <core descr="This object sets to non-empty string to create a protocol-based VLAN group" access="write-only" type="string" validation="validate_alphanum16"/>
+                <ui style="inputLine" name="Pbvlan Group Create">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.14.1"/>
+                </ui>
+            </object>
+            <object name="GroupId">
+                <core descr="This object specifies the group identifier of the protocol-based VLAN entry" max="L7_PBVLAN_MAX_NUM_GROUPS" min="1" key="yes" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Pbvlan Group Id">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.14.2.1.1"/>
+                </ui>
+            </object>
+			<!--
+            <object depends="GroupId" name="GroupName">
+                <core descr="Group name of the protocol-based VLAN entry" properties="pseudo-key" access="read-write" type="string"/>
+                <ui style="inputLine" name="GroupName">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.14.2.1.2"/>
+                </ui>
+            </object>
+						-->
+		<object depends="GroupId" name="GroupName">
+                <core descr="This object specifies the group name of the protocol-based VLAN entry" access="read-write" type="string"/>
+                <ui style="inputLine" name="Pbvlan Group Name">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.14.2.1.2"/>
+                </ui>
+            </object>
+            <object depends="GroupId" name="GroupVlanId">
+                <core descr="This object specifies the VLAN associated with the protocol-based VLAN entry. Set to 0 to remove." min="L7_DOT1Q_MIN_VLAN_ID" max="L7_DOT1Q_MAX_VLAN_ID" default="FD_PBVLAN_DEFAULT_GROUP_VLAN_ID" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Pbvlan Group Vlan Id">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.14.2.1.3"/>
+                </ui>
+            </object>
+            <object depends="GroupId" name="GroupProtocol">
+                <core descr="This object specifies the protocol association with the protocol-based VLAN entry" access="read-write" type="string" properties="dynamic" />
+                <ui style="choiceNselect1" name="Pbvlan Group Protocol">
+                </ui>
+            </object>
+            <object depends="GroupId" name="GroupInterface" >
+                 <core descr="This object specifies the interface number of this instance" xtype="uspRange_t"  access="read-write" type="user" properties="range,dynamic"/>
+                 <ui style="choiceMselectN" name="Pbvlan Group Interface">
+                </ui>
+            </object>
+            <object depends="GroupId" name="GroupProtocolIP">
+                <core descr="This object specifies the status of the IP protocol association with the protocol-based VLAN entry." xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Pbvlan Group Protocol IP">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.14.2.1.4"/>
+                </ui>
+            </object>
+            <object depends="GroupId" name="GroupProtocolIPX">
+                <core descr="This object specifies the status of the IPX protocol association with the protocol-based VLAN entry" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Pbvlan Group Protocol IPX">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.14.2.1.6"/>
+                </ui>
+            </object>
+            <object depends="GroupId" name="GroupProtocolARP">
+                <core descr="This object specifies the status of the ARP protocol association with the protocol-based VLAN entry." xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Pbvlan Group Protocol ARP">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.14.2.1.5"/>
+                </ui>
+            </object>
+            <object depends="GroupId" name="GroupStatus">
+                <core descr="This object specifies the status of the protocol-based VLAN entry.  Supported values: Add - used to create a new entry, Delete- removes the entry" access="read-write" type="row-status" xtype="L7_ROW_STATUS_t"/>
+                <ui style="inputLine" name="Pbvlan Group Status">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.14.2.1.7"/>
+                </ui>
+            </object>
+        </module>
+        <module name="PbvlanInterfaceConfig">
+
+        <key-combo list="GroupId,Interface"/>
+            <object name="GroupId">
+                <core descr="This object specifies the group identifier of the protocol-based VLAN entry" max="L7_PBVLAN_MAX_NUM_GROUPS" min="1" key="yes" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Pbvlan Group Id">
+                    <!--   
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.14.2.1.1"/> -->
+                </ui>
+            </object>
+
+            <object name="Interface">
+		 <core descr="This object specifies the interface number of this instance" xtype="uspRange_t" key="yes" access="read-write" type="user" properties="range,dynamic,key"/>
+                 <ui style="choiceMselectN" name="Interface">
+                 <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.14.3.1.1"/>
+                </ui>
+            </object>
+            <object depends="GroupId,Interface" name="PortStatus">
+                <core descr="This object specifies the status of this entry. active(1) - the port is associated with this group createAndGo(4) - add the port to this group destroy(6) - remove the port from this group" xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+                <ui style="inputLine" name="Pbvlan Port Status">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.14.3.1.2"/>
+                </ui>
+            </object>
+        </module>
+    </objectxml>
+</FastPathXML>

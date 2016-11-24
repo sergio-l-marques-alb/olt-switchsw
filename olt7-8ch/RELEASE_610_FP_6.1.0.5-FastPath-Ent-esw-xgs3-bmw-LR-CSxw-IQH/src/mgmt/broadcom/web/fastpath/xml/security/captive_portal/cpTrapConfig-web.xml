@@ -1,0 +1,50 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpTrapConfig" title="SNMP Trap Configuration">
+        <group id="1" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <element  control="combo" obj-name="captiveportalcpTrapsConfig_cpTrapMode" id="1" name="Captive Portal Trap Mode"/>
+            </node>
+            <node id="2">
+                <element  control="combo" obj-name="captiveportalcpTrapsConfig_cpClientAuthenticationFailureTrapMode" id="1" name="Client Authentication Failure Traps"/>
+            </node>
+            <node id="3">
+                <element  control="combo" obj-name="captiveportalcpTrapsConfig_cpClientConnectTrapMode" id="1" name="Client Connection Traps"/>
+            </node>
+            <node id="4">
+                <element  control="combo" obj-name="captiveportalcpTrapsConfig_cpClientDatabaseFullTrapMode" id="1" name="Client Database Full Traps"/>
+            </node>
+            <node id="5">
+                <element  control="combo" obj-name="captiveportalcpTrapsConfig_cpClientDisconnectTrapMode" id="1" name="Client Disconnection Traps"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="captiveportalcpTrapsConfig_cpTrapMode" id="1" name="Captive Portal Trap Mode"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="captiveportalcpTrapsConfig_cpClientAuthenticationFailureTrapMode" id="1" name="Client Authentication Failure Traps"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="captiveportalcpTrapsConfig_cpClientConnectTrapMode" id="1" name="Client Connection Traps"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="captiveportalcpTrapsConfig_cpClientDatabaseFullTrapMode" id="1" name="Client Database Full Traps"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="captiveportalcpTrapsConfig_cpClientDisconnectTrapMode" id="1" name="Client Disconnection Traps"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

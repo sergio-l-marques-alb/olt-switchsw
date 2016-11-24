@@ -1,0 +1,30 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpLocalUserSumm" title="CP Local User Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="inline" heading=" " id="1">
+                <element properties="filter,iterate,hidden" obj-name="captiveportalcpLocalUserTable_cpLocalUserIndex" id="1" name="Local User Index"/>
+                <element properties="read-only" obj-name="captiveportalcpLocalUserTable_cpLocalUserName" id="2" name="User"/>
+                <element properties="read-only" obj-name="captiveportalcpLocalUserTable_cpLocalUserSessionTimeout" id="3" name="Session Timeout"/>
+                <element properties="read-only" obj-name="captiveportalcpLocalUserTable_cpLocalUserIdleTimeout" id="4" name="Idle Timeout"/>
+                <element level="ReadWriteUser" control="checkbox-neg" properties="edit" obj-name="captiveportalcpLocalUserTable_cpLocalUserRowStatus" id="5" name="Remove">
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes"  />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no"  />
+                </element>
+            </repeat>
+            <node id="2">
+                <button level="ReadWriteUser" scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>TACACS+ Configuration Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+
+<h2><a name=tacacscfg></a>Help for TACACS+ Configuration</h2>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Configurable Data</h3>
+<EMWEB_ELSE >
+<h3>Non-Configurable Data</h3>
+</EMWEB_IF>
+
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+  <li><b>Key String</b>  <!-- Key String-->
+  - Specifies the authentication and encryption key for TACACS+ communications between the device and the TACACS+ server. The valid range is 0-128 characters. The key must match the key configured on the TACACS+ server.</li>
+</EMWEB_IF>
+ <li><b>Apply</b> - Allows you to enter the key in the Key String field. If the checkbox is not checked, you will not be able to enter the key. By default its unchecked.</li>
+  <li><b>Connection Timeout</b>  <!-- Connection Timeout -->
+ - The maximum number of seconds allowed to establish a TCP connection between the device and the TACACS+ server. The default value is 5 seconds.
+   The valid range is
+    <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_TACACS_TIMEOUT_MIN, L7_TACACS_TIMEOUT_MAX);
+      ' >.
+   </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+  <li><b>Submit</b> - Sends
+      the updated screen to the switch and cause the changes to take effect on
+      the switch but these changes will not be retained across a power cycle
+      unless a save is performed. </li>
+<EMWEB_ELSE >
+  <li><b>Refresh</b> - Updates the information on the page. </li>
+</EMWEB_IF>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+
+</body>
+
+</html>
+
+
+
+
+

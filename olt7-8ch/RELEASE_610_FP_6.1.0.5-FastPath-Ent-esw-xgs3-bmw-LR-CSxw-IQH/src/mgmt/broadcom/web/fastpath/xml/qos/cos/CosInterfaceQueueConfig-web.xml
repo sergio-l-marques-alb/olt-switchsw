@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="CosInterfaceQueueConfig" title="CoS Interface Queue Configuration">
+        <group level="ReadOnlyUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueIntfIndex" id="1"/>
+            </node>
+            <node id="2">
+                <element obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMinBandwidthAllocated" id="1" name="Minimum Bandwidth Allocated"/>
+            </node>
+            <node id="3">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueIndex" id="1" name="Queue ID"/>
+            </node>
+            <node id="4">
+                <element properties="read-only" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMinBandwidth" id="1" name="Minimum Bandwidth"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueSchedulerType" id="1" name="Scheduler Type">
+                 <action type="enum" web_name="strict"/>
+                   <action type="enum" web_name="weighted"/>
+                </element>
+            </node>
+            <node id="6">
+                <element control="label" properties="read-only" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMgmtType" id="1" name="Queue Management Type">
+                  <action type="enum" web_name="taildrop"/>
+                   <action type="enum" web_name="wred"/>
+                </element>
+            </node>
+        </group>
+        <group level="ReadWriteUser" id="2" heading="  ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueIntfIndex" id="1">
+                    <action type="extn" value="Global" position="0" enable="2_8_1|2_9_1|2_10_1|2_11_1|2_7_3" disable="2_2_1|2_4_1|2_5_1|2_6|2_7_2" show="2_8_1|2_9_1|2_10_1|2_11_1|2_7_3" hide="2_2_1|2_4_1|2_5_1|2_6|2_7_2"/>
+                    <action type="default" enable="2_2_1|2_4_1|2_5_1|2_6|2_7_2" disable="2_8_1|2_9_1|2_10_1|2_11_1|2_7_3" show="2_2_1|2_4_1|2_5_1|2_6|2_7_2" hide="2_8_1|2_9_1|2_10_1|2_11_1|2_7_3"/>
+                </element>
+                <element obj-name="xLibObjects_dummy" control="textbox" id="2" properties="hidden" name="HoldIntfIndexGlobal">
+                    <action type="value" value="Global" setval_ids="2_1_1" setval_args="valmapGlobal"/>
+                </element>
+
+            </node>
+            <node id="2">
+                <element obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMinBandwidthAllocated" id="1" name="Minimum Bandwidth Allocated"/>
+            </node>
+            <node id="8">
+                <element obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueMinBandwidthAllocated" id="1" name="Minimum Bandwidth Allocated"/>
+            </node>
+            <node id="3">
+                <element control="combo" properties="filter,iterate" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueIndex" id="1" name="Queue ID">
+                    <action type="mandate" invoke="onChange" copy_from="2_1_1" copy_to="2_1_2"/>
+                </element>
+            </node>
+            <node id="4">
+                <element maxLength="10" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMinBandwidth" arghelp="QOS_COS_INTF_QUEUE_BANDWIDTH" id="1" name="Minimum Bandwidth"/>
+            </node>
+            <node id="9">
+                <element maxLength="10" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueMinBandwidth" arghelp="QOS_COS_INTF_QUEUE_BANDWIDTH" id="1" name="Minimum Bandwidth"/>
+            </node>
+            <node id="5">
+                <element control="combo" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueSchedulerType" id="1" name="Scheduler Type">
+                <action type="enum" web_name="strict"/>
+                   <action type="enum" web_name="weighted"/>
+                </element>
+            </node>
+            <node id="10">
+                <element control="combo" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueSchedulerType" id="1" name="Scheduler Type">
+                   <action type="enum" web_name="strict"/>
+                   <action type="enum" web_name="weighted"/>
+                </element>
+            </node>
+            <node id="6">
+                <element control="combo" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMgmtType" id="1" name="Queue Management Type" run_if="QOS_COS_QUEUE_WRED_FEATURE">
+                   <action type="enum" web_name="taildrop"/>
+                   <action type="enum" web_name="wred"/>
+                </element>
+                <element control="combo" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueMgmtType" id="2" name="Queue Management Type" run_if="QOS_COS_QUEUE_WRED_FEATURE_NOT_PRESENT">
+                   <action type="enum" discard="no" web_name="taildrop"/>
+                   <action type="enum" discard="yes"/>
+                </element>
+            </node>
+            <node id="11">
+                <element control="combo" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueMgmtType" id="1" name="Queue Management Type">
+                 <action type="enum" web_name="taildrop"/>
+                   <action type="enum" web_name="wred"/>
+                    
+               </element>
+            </node>
+            
+            <node id="7">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                        <action type="button" disable="2_7_2|2_7_3" copy_from="2_1_1" copy_to="2_1_2"/>
+                </button>
+                <button scope="page" type="buttonSubmit" value="1" obj-name="fastPathQOSCOSCosQueueCfg_CosQueueDefaultsRestore" help="Submits the form on this page to the Switch" id="2" name="Restore Defaults for All Queues">
+<action type="button" disable="2_2_1|2_3_1|2_4_1|2_5_1|2_6|2_7_1|2_7_3"/>
+</button>
+  <button scope="page" type="buttonSubmit" value="1" obj-name="fastPathQOSCOSCosQueueCfg_GlobalCosQueueDefaultsRestore" help="Submits the form on this page to the Switch" id="3" name="Restore Defaults for All Queues">
+<action type="button" disable="2_8_1|2_3_1|2_9_1|2_10_1|2_11_1|2_7_1|2_7_2"/>
+</button>
+            </node>
+
+    <!-- added for actions -->
+          <node id="12">
+               <element obj-name="xLibObjects_dummy" control="textbox" properties="hidden" id="1">
+                 <action type="mandate" setval_ids="2_1_2" setval_args="None"/>
+               </element>
+          </node>
+        </group>
+    </webxml>
+</FastPathXML>

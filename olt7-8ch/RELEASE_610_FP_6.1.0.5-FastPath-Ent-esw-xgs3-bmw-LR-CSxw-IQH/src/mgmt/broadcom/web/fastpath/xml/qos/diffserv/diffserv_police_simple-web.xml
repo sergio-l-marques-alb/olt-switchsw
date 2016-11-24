@@ -1,0 +1,182 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="diffserv_policesimple" title="DiffServ Simple Policy Attributes" java-script="diffserv_policesimple" >
+        <group id="1" heading="">
+            <node id="1">
+                <element control="label" obj-name="qosDiffServPolicy_PolicyIndex" id="1" name="PolicyIndex"  />
+            </node>
+            <node id="2">
+                <element control="label" obj-name="qosDiffServPolicy_PolicyName" id="1" name="Policy Name"/>
+            </node>
+            <node id="3">
+                <element control="label" obj-name="qosDiffServPolicy_PolicyType" id="1" name="Policy Type"/>
+            </node>
+            <node id="4">
+                <element  obj-name="qosDiffServPolicyInst_PolicyInstIndex" id="1" name="PolicyInstIndex"  />
+                <element control="label" cpval="qosDiffServPolicy_PolicyIndex" obj-name="qosDiffServPolicyInst_PolicyIndex" id="2" name="Policy Index"  />
+            </node>
+            <node id="5">
+                
+                <element control="label" obj-name="qosDiffServPolicyInst_PolicyInstClassIndex" id="1" name="PolicyInstClassIndex"  />
+            </node>
+            <node id="6">
+                <element control="label" obj-name="qosDiffServPolicyInst_PolicyInstClassName" id="1" name="Class Name"  />
+            </node>
+            <node id="7">
+                <element control="label" value="Police-Simple" obj-name="xLibObjects_dummy" id="1" name="Policing Style" properties="write-only"/>
+                <element control="label" cpval="qosDiffServPolicy_PolicyIndex" obj-name="qosDiffServPolicyAttributeStmt_PolicyIndex" id="2" name="PolicyIndex"  />
+                <element control="label" cpval="qosDiffServPolicyInst_PolicyInstIndex" obj-name="qosDiffServPolicyAttributeStmt_PolicyInstIndex" id="3" name="PolicyInstIndex"  />
+                <element control="label" obj-name="qosDiffServPolicyAttributeStmt_PolicyAttrIndex" id="4" name="PolicyAttrIndex"  />
+                <element   obj-name="qosDiffServPolicyAttributeStmt_EntryType" id="5" name="Entry Type" control="combo" value="Simple" properties="write-only,hidden"/>
+            </node>
+            <node id="8">
+                <element properties="list" obj-name="qosDiffServPolicyAttributeStmt_ColorAwareClassList" id="1" name="Color Conform Class"/>
+            </node>
+            <node id="20">
+                <element control="label" properties="hidden" obj-name="qosDiffServPolicyAttributeStmt_PoliceColorConformMode" id="1" name="Color Conform Mode"/>
+            </node>
+            <node id="21">
+                <element control="label" properties="hidden" obj-name="qosDiffServPolicyAttributeStmt_PoliceColorConformVal" id="1" name="Color Conform Value"/>
+            </node>
+            <node id="17">
+                <element control="combo" properties="hidden" obj-name="qosDiffServPolicyAttributeStmt_IsColorAwareClassPresent" id="1" name="IsColorAwareClassPresent"  >
+                    <action type="enum" discard="no" enable="1_10_1" disable="1_9_1" hide="1_9_1" show="1_10_1"/>
+                    <action type="enum" discard="no" enable="1_9_1" disable="1_10_1|1_8_1|1_20|1_21" hide="1_10_1|1_8_1|1_20|1_21" show="1_9_1"/>
+                </element>
+                <element control="combo" properties="hidden" obj-name="qosDiffServPolicyAttributeStmt_IsSimplePolicePresent" id="2" name="IsSimplePolicePresent"  >
+                    <action type="enum" discard="no" enable="1_19_1" disable="1_19_2" hide="1_19_2" show="1_19_1"/>
+                    <action type="enum" discard="no" enable="1_19_2" disable="1_19_1" hide="1_19_1" show="1_19_2"/>
+                </element>
+           
+            </node>
+            <node id="9">
+                <element control="label" properties="write-only" obj-name="xLibObjects_dummy" id="1" name="Color Mode" value="Color Blind"/>
+            </node>
+            <node id="10">
+                <element control="combo" obj-name="qosDiffServPolicyAttributeStmt_ClassColorType" id="1" name="Color Mode">
+                    <action type="enum" discard="no" disable="1_8_1|1_20|1_21" hide="1_8_1|1_20|1_21"/>
+                    <action type="enum" discard="no" enable="1_8_1|1_20|1_21" show="1_8_1|1_20|1_21"/>
+                </element>
+            </node>
+            <node id="11">
+                <element arghelp="HELP_FORMAT_FP" obj-name="qosDiffServPolicyAttributeStmt_PoliceSimpleCrate" id="1" name="Committed Rate (Kbps)"/>
+            </node>
+            <node id="12">
+                <element arghelp="HELP_FORMAT_FP" obj-name="qosDiffServPolicyAttributeStmt_PoliceSimpleCburst" id="1" name="Committed Burst Size (KB)"/>
+            </node>
+            <node id="13">
+                <element control="combo" obj-name="qosDiffServPolicyAttributeStmt_PoliceConformAct" id="1" name="Conform Action">
+				            <action type="enum" discard="yes"/>
+                    <action type="enum" invoke="both" discard="no" setval_ids="1_14_1|1_27_1|1_24_1|1_25_1" setval_args="valMapEmptyString|valMapEmptyString|valMapEmptyString|valMapEmptyString"  disable="1_14_1|1_27_1|1_24_1|1_25_1" hide="1_14_1|1_27_1|1_24_1|1_25_1|1_26_1|1_1_1|1_4_1|1_4_2|1_5_1|1_17|1_7_2|1_7_3|1_7_4|1_7_5"/>
+                    <action type="enum" invoke="both" discard="no" enable="1_27_1" setval_ids="1_14_1|1_24_1|1_25_1" setval_args="valMapEmptyString|valMapEmptyString|valMapEmptyString"  disable="1_14_1|1_24_1|1_25_1" hide="1_14_1|1_24_1|1_25_1|1_26_1|1_1_1|1_4_1|1_4_2|1_5_1|1_7_2|1_7_3|1_7_4|1_7_5|1_17" show="1_27_1"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="no" setval_ids="1_14_1|1_27_1|1_24_1|1_25_1" setval_args="valMapEmptyString|valMapEmptyString|valMapEmptyString|valMapEmptyString"  disable="1_14_1|1_27_1|1_24_1|1_25_1" hide="1_14_1|1_27_1|1_24_1|1_25_1|1_26_1|1_1_1|1_4_1|1_4_2|1_5_1|1_17|1_7_2|1_7_3|1_7_4|1_7_5"/>                    			
+                    <action type="enum" invoke="both" discard="no" enable="1_24_1|1_26_1" setval_ids="1_14_1|1_27_1|1_25_1" setval_args="valMapEmptyString|valMapEmptyString|valMapEmptyString"  disable="1_14_1|1_27_1|1_25_1" hide="1_14_1|1_27_1|1_24_1|1_25_1|1_1_1|1_4_1|1_4_2|1_5_1|1_7_2|1_7_3|1_7_4|1_7_5|1_17" show="1_26_1"/>
+                    <action type="enum" invoke="both" discard="no" enable="1_25_1" setval_ids="1_14_1|1_27_1|1_24_1" setval_args="valMapEmptyString|valMapEmptyString|valMapEmptyString"  disable="1_14_1|1_27_1|1_24_1" hide="1_14_1|1_27_1|1_24_1|1_26_1|1_1_1|1_4_1|1_4_2|1_5_1|1_7_2|1_7_3|1_7_4|1_7_5|1_17" show="1_25_1"/>
+                    <action type="enum" invoke="both" discard="no"  setval_ids="1_14_1|1_27_1|1_24_1|1_25_1" setval_args="valMapEmptyString|valMapEmptyString|valMapEmptyString|valMapEmptyString"  disable="1_14_1|1_27_1|1_24_1|1_25_1" hide="1_14_1|1_27_1|1_24_1|1_25_1|1_26_1|1_1_1|1_4_1|1_4_2|1_5_1|1_7_2|1_7_3|1_7_4|1_7_5||1_17"/>
+                </element>
+            </node>
+            <node id="14">
+                <element obj-name="qosDiffServPolicyAttributeStmt_PoliceConformVal" id="1" name="Conform Drop or Send"/>
+            </node>
+            <node id="27">
+                <element obj-name="qosDiffServPolicyAttributeStmt_PoliceConformVal" id="1" name="Conform CoS Value" arghelp="cosvalue"/>
+            </node>
+            <node id="26">
+                <element control="combo" uienum="diffServClassDscpValues_t" obj-name="xLibObjects_dummy" id="1" name="Conform DSCP Keyword">
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="af11"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="af12"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="af13"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="af21"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="af22"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="af23"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="af31"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="af32"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="af33"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="af41"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="af42"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="af43"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="BE"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="CS0"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="CS1"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="CS2"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="CS3"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="CS4"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="CS5"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="CS6"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="CS7"/>
+                     <action type="enum" discard="no" setval_ids="1_24_1" setval_args="EF"/>
+                     <action type="enum" discard="yes"/>                     
+                </element>
+            </node>
+            <node id="24">
+                <element obj-name="qosDiffServPolicyAttributeStmt_PoliceConformVal" id="1" name="Conform DSCP Keyword"/>
+            </node>
+            <node id="25">
+                <element obj-name="qosDiffServPolicyAttributeStmt_PoliceConformVal" id="1" name="Conform IP Precedence Value" arghelp="ipprecdence"/>
+            </node>
+            <node id="15">
+                <element control="combo" obj-name="qosDiffServPolicyAttributeStmt_PoliceNonconformAct" id="1" name="Violate Action">
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="no" setval_ids="1_16_1|1_16_2|1_16_3|1_16_4" setval_args="valMapEmptyString|valMapEmptyString|valMapEmptyString|valMapEmptyString"  disable="1_16_1|1_16_2|1_16_3|1_16_4" hide="1_16_1|1_16_2|1_16_3|1_16_4|1_28_1"/>
+                    <action type="enum" discard="no" enable="1_16_2" setval_ids="1_16_1|1_16_3|1_16_4" setval_args="valMapEmptyString|valMapEmptyString|valMapEmptyString|valMapEmptyString"  disable="1_16_1|1_16_3|1_16_4" hide="1_16_1|1_16_3|1_16_4|1_28_1" show="1_16_2"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="no" setval_ids="1_16_1|1_16_2|1_16_3|1_16_4" setval_args="valMapEmptyString|valMapEmptyString|valMapEmptyString|valMapEmptyString"  disable="1_16_1|1_16_2|1_16_3|1_16_4" hide="1_16_1|1_16_2|1_16_3|1_16_4|1_28_1"/>
+                    <action type="enum" discard="no" enable="1_16_3|1_28_1" setval_ids="1_16_1|1_16_2|1_16_4" setval_args="valMapEmptyString|valMapEmptyString|valMapEmptyString|valMapEmptyString"  disable="1_16_1|1_16_2|1_16_4" hide="1_16_1|1_16_2|1_16_3|1_16_4" show="1_28_1"/>
+                    <action type="enum" discard="no" enable="1_16_4" setval_ids="1_16_1|1_16_2|1_16_3" setval_args="valMapEmptyString|valMapEmptyString|valMapEmptyString|valMapEmptyString"  disable="1_16_1|1_16_2|1_16_3" hide="1_16_1|1_16_2|1_16_3|1_28_1" show="1_16_4"/>
+                    <action type="enum" discard="no"  setval_ids="1_16_1|1_16_2|1_16_3|1_16_4" setval_args="valMapEmptyString|valMapEmptyString|valMapEmptyString|valMapEmptyString"  disable="1_16_1|1_16_2|1_16_3|1_16_4" hide="1_16_1|1_16_2|1_16_3|1_16_4"/>
+                </element>
+            </node>
+            <node id="28">
+                <element control="combo" uienum="diffServClassDscpValues_t" obj-name="xLibObjects_dummy" id="1" name="Violate DSCP Keyword">
+                     <action type="enum" invoke="both" discard="no" setval_ids="1_16_3" setval_args="af11"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="af12"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="af13"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="af21"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="af22"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="af23"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="af31"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="af32"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="af33"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="af41"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="af42"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="af43"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="BE"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="CS0"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="CS1"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="CS2"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="CS3"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="CS4"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="CS5"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="CS6"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="CS7"/>
+                     <action type="enum" discard="no" setval_ids="1_16_3" setval_args="EF"/>
+                     <action type="enum" discard="yes"/>
+                </element>
+            </node>
+
+            <node id="16">
+                <element obj-name="qosDiffServPolicyAttributeStmt_PoliceNonconformVal" id="1" name="Violate Drop or send"/>
+                <element obj-name="qosDiffServPolicyAttributeStmt_PoliceNonconformVal" id="2" name="Violate CoS Value" arghelp="cosvalue"/>
+                <element obj-name="qosDiffServPolicyAttributeStmt_PoliceNonconformVal" id="3" name="Violate DSCP Keyword"/>
+                <element obj-name="qosDiffServPolicyAttributeStmt_PoliceNonconformVal" id="4" name="Violate IP Precedence Value" arghelp="ipprecdence"/>
+            </node>
+           <node id="19">
+                <button scope="page" type="buttonSubmit" target-page="diffserv_policy_attr_summ.html" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                    <action type="button"  enable="1_19_1" disable="1_2_1|1_3_1|1_5_1|1_6_1|1_19_2|1_19_3" hide="1_19_2" show="1_19_1"/>
+                </button>
+                <button scope="page" type="buttonSubmit" target-page="diffserv_policy_attr_summ.html" value="Add" obj-name="qosDiffServPolicyAttributeStmt_DiffServPolicyAttrRowStatus" help="Submits the form on this page to the  Switch" id="2" name="Submit">
+                    <action type="button" enable="1_19_2" disable="1_2_1|1_3_1|1_5_1|1_6_1|1_19_1|1_19_3" hide="1_19_1|1_19_3"/>
+                </button>
+                <button scope="page" type="buttonClear" target-page="Policy_class_definition.html" help="Refreshes the form on this page from the Switch" id="3" name="Cancel">
+                    <action type="button" enable="1_19_3" disable="1_19_1|1_19_2"/>
+                </button>
+                
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

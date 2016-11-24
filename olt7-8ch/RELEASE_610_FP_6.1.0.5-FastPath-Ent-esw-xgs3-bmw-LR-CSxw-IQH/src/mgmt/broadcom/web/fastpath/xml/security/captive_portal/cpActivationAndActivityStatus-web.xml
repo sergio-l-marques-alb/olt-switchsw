@@ -1,0 +1,37 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpActivationAndActivityStatus" title="Activation and Activity Status">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate,hidden" obj-name="captiveportalcpCaptivePortalInstanceStatusTable_cpCaptivePortalInstanceId" id="1" name="CP Instance ID"/>
+           </node> 
+            <node id="2">
+                <element control="combo" properties="hidden" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalInstanceId" cpval="captiveportalcpCaptivePortalInstanceStatusTable_cpCaptivePortalInstanceId" id="1" name="CP Instance ID"/>
+            </node> 
+            <node id="3">
+                <element control="combo" properties="filter" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalConfigName" id="1" name="CP Configuration"/>
+            </node> 
+            <node id="4">
+                <element control="label" obj-name="captiveportalcpCaptivePortalInstanceStatusTable_cpCaptivePortalInstanceOperStatus" id="1" name="Operational Status"/>
+            </node> 
+            <node id="5">
+                <element control="label" obj-name="captiveportalcpCaptivePortalInstanceStatusTable_cpCaptivePortalInstanceOperDisabledReason" id="1" name="Disable Reason"/>
+            </node> 
+            <node id="6">
+                <element control="label" obj-name="captiveportalcpCaptivePortalInstanceStatusTable_cpCaptivePortalInstanceBlockStatus" id="1" name="Blocked Status"/>
+            </node> 
+            <node id="7">
+                <element control="label" obj-name="captiveportalcpCaptivePortalInstanceStatusTable_cpCaptivePortalInstanceAuthUserCount" id="1" name="Authenticated Users"/>
+            </node>
+            <node id="8">
+                <button level="ReadWriteUser" scope="page" type="buttonSubmit" id="1" help="Blocks the given CP" name="Block"/>
+                <button level="ReadWriteUser" scope="page" type="buttonSubmit" id="2" help="Unblocks the given CP" name="Unblock"/>
+                <button scope="page" type="buttonClear"  id="3" help="Refreshes the form on this page from the Switch" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,103 @@
+<EMWEB_HEAD C='
+    #include "l3_mcast_defaultconfig.h"
+'>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>PIM Help</TITLE>
+	<LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=pimsmcandidateparams></a>Help for PIM Candidate RP Configuration</h2>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Selection Criteria</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>RP <EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	Unit/Slot/Port
+<EMWEB_ELSE>
+	Slot/Port
+</EMWEB_IF></b> -
+      Select the interface for which the Candidate RP has to be configured. </li>
+ </ul>
+</ul>
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Group Address </b> - The group address transmitted in Candidate-RP-Advertisements.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Prefix Length </b> - The group address mask transmitted in Candidate-RP-Advertisements.</li>
+ </ul>
+</ul>
+<ul type=disc>
+ <ul type=circle>
+<li><b>Delete </b> - Check box to delete the particular entry from the table.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+<h3>Non-configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>RP <EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+  Unit/Slot/Port
+<EMWEB_ELSE>
+  Slot/Port
+</EMWEB_IF></b> - The interface for which Candidate RP is
+       configured. </li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Group Address </b> - The group address transmitted in Candidate-RP-Advertisements.</li>
+ </ul>
+</ul>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Prefix Length </b> - The group address mask transmitted in Candidate-RP-Advertisements.</li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+	 <li><b>Submit</b> - Send the updated configuration to the router.  Configuration changes
+      take effect immediately. These changes will not be retained across a power cycle
+      unless a save is performed. </li>
+  <li><b>Delete</b> - Attempts to remove the specified Candidate RP Address for the 
+         PIM-SM router. Configuration changes take effect immediately. 
+         These changes will not be retained across a power cycle unless a save is performed. 
+ </li>
+<EMWEB_ELSE>
+ <li><b>Refresh</b>
+      - Refresh the data on the screen with the present state of the data in the switch. </li>
+
+</EMWEB_IF>
+  </ul>
+</ul>
+
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+

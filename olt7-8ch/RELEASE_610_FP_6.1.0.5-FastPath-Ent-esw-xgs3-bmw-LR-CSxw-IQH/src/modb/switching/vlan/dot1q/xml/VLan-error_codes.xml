@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+
+<FastPathXML>
+  <misc version="1.0">
+      <error name="VLAN_ALREADY_EXISTS" output="\r\nError! Specified VLAN already exists."/>
+      <error name="DEFAULT_VLAN_CREATE_FAILURE" output="\r\n Error! Cannot Create Default VLAN."/>
+      <error name="VLAN_ID_DOES_NOT_EXISTS" output="\r\nError! Vlan Id does not exists."/>
+      <error name="VLAN_CREATE_FAILED" output="\r\nError! Failed to create VLAN."/>
+      <error name="DEFAULT_VLAN_DELETE_FAILURE" output="\r\n Error! Cannot delete Default VLAN."/>
+      <error name="VLAN_DELETE_FAILED" output="\r\n Error! Failed to delete vlan."/>
+      <error name="VLAN_CONFIG_ERROR" output="\r\nError! Failure occurred. Please refer Error Console."/>
+  </misc>
+</FastPathXML>

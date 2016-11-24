@@ -1,0 +1,19 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="snmp_supported_mibs" title="SNMP Supported MIBs">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate,hidden" obj-name="baseMibTable_SnmpSupportedMibTableIndex" id="1"/>
+                <element obj-name="baseMibTable_SnmpSupportedMibTableMibName" id="2" name="Name"/>
+                <element obj-name="baseMibTable_sysSnmpSupportedMibTableMibDescription" id="3" name="Description"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

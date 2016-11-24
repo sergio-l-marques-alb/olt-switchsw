@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+<error name="INVALID_RTRINTERFACE" output="\n Error! An invalid interface has been used for this function."/>
+<error name="INVALID_ARPREMOVEENTRY" output="\n Error! Matching ARP Entry not found."/>
+<error name="ARP_ENTRY_NON_LOCAL" output="\nARP entry configured although target is not on a local subnet."/>
+<error name="IP_MTU_OUT_OF_RANGE" output="\nIP MTU Value is out of range. The valid range is 68 to link MTU."/>
+<error name="VRRP_TRK_RT_PFXLEN_OUT_OF_RANGE" output="\nTrack Route Prefix Length is out of range. The valid range is 1 to 32."/>
+<error name="VRRP_SECADDR_ADD_FAILED" output="\nError! Failed to Create Secondary VRRP address on this interface."/>
+<error name="VRRP_SECADDR_DEL_FAILED" output="\nError! Failed to Delet Secondary VRRP address on this interface."/>
+<error name="INVALID_ROUTE_DISC_ADVERT_ADDRESS" output="\nError! Failed to set Adverise Address (Can be either 224.0.0.1 or 255.255.255.255)."/>
+<error name="INVALID_ROUTE_DISC_INTERVAL" output="\nError! Failed to set '$$objName$$' with '$$objValue$$'.Check condition-Minimum Advertise Interval &lt;= Maximum Advertise Interval &lt;= Advertise LifeTime."/>
+<error name="INVALID_STATIC_ADDRESS" output="\nError! The Specified Static Route Address is invalid."/>
+
+<error name="MAX_VLAN_ROUTING_INTF_REACHD" output="\nError! Routing could not be enabled for this VLAN. The maximum number of routing VLANs has been reached."/>
+<error name="VLAN_ROUTING_MODE_CANT_ENABLEON_MGMTVLAN" output="\nError! VLAN Routing mode cannot be set on Management VLAN."/>
+<error name="VLAN_ROUTING_MODE_CANT_SET" output="\nError! Failed to set Routing mode on the specified VLAN."/>
+<error name="INVALID_SUBNET_MASK32" output="\nError! Subnet Mask must have contiguous ones and be no longer than 32 bits."/>
+<error name="INVALID_SUBNET_MASK30" output="\nError! Subnet Mask must have contiguous ones and be no longer than 30 bits."/>
+<error name="IP_ADDR_CONFLICT" output="\nError! Subnet conflict between specified IP Address and current configuration. All routing interfaces, service ports and network ports must be configured on different subnets"/>
+
+<error name="SUPPORTON_LOGICALINTF" output="\nError! IP address can only be set on Logical Interfaces."/>
+
+<error name="IPV4_INTF_ADDRESS_TABLE_FULL" output="\nError! Interface Address Table Is Full."/>
+
+<error name="ADDRESS_ALREADY_CONFIGURED" output="\nError! Given address is already configured as the primary address on this interface."/>
+
+<error name="NEXTHOPOF_STATIC_ROUTE_OR_ARP_ENTRY_EXIST" output="\n Error! Given IP Address is already the next hop address of a static route or the target of a static ARP entry."/>
+
+<error name="PRIMARY_ADDRESS_NOT_EXIST" output="\n Error! Cannot configure a secondary IP address on an interface without a primary IP address."/>
+<error name="CANT_SET_UNNUMBERED_INTF" output="\n  Error! An IP address cannot be set on an unnumbered interface."/>
+<error name="PRIMARY_ADDRESS_REMOVAL_FAILED" output="\n  Error! Failed to delete Primary IP address on this interface."/>
+
+  </misc>
+</FastPathXML>
+

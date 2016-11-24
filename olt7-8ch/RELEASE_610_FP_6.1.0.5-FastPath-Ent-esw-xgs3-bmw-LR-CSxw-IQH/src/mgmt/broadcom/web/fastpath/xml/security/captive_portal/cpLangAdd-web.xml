@@ -1,0 +1,30 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpLangAdd" title="Add Language">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element properties="filter,iterate,hidden" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalInstanceId" id="1"/>
+            </node>
+            <node id="2">
+                <element properties="filter,iterate,hidden" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalWebId" id="1"/>
+            </node>
+            <node id="3">
+                <element control="combo" properties="filter" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalConfigName" id="1" name="CP Configuration"/>
+            </node>
+        </group>
+        <group id="2" heading=" ">
+            <node id="1">
+                <element control="combo-multiselect" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalLangCode" id="1" name="Languages"/>
+            </node>
+            <node id="2">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="captiveportalcpLocalUserTable_cpLocalUserRowStatus" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" target-page="cpWebCustomization.html" help="Opens CP Web Customization page." id="2" name="Cancel"/>
+        </node>
+        </group>
+    </webxml>
+</FastPathXML>
+

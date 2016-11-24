@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML>
+
+<HEAD>
+
+   <META http-equiv="Pragma" content="no-cache">
+
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+
+   <TITLE>Network Connection Ndp Summary Help</TITLE>
+
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="IPv6">
+<hr size=4 width="100%" align=center>
+<h2><a name=netndpsumm></a>Help for Network Connection NDP Configuration Summary</h2>
+
+<h3>Non-configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IPv6 Address</b>
+      - The Ipv6 Address of a neighbor switch visible to the Network Port.</li>
+  <li><b>MAC Address</b>
+      - The MAC Address of the neighboring switch. </li>
+  <li><b>isRtr</b> -<ul>
+           true (1)  - if the neighbor machine is a router,
+    <BR>   false (2) - otherwise.</ul></li>
+  <li><b>Neighbor State</b>
+        - The state of the neighboring switch:<ul>
+      reachable (1) - The neighbor is reachable by this switch.
+     <BR>  stale (2)     - Information about the neighbor is scheduled for deletion.
+    <BR>   delay (3)     - No information has been received from neighbor during delay period.
+     <BR>  probe (4)     - Switch is attempting to probe for this neighbor.
+     <BR>  unknown (6)   - Unknown status.</ul></li>
+  <li><b>Last Updated</b>
+      - The last sysUpTime (system up time) that this neighbor has been updated.</li>
+ </ul>
+</ul>
+
+ <h3>Command Buttons</h3>
+  <ul type=disc>
+   <ul type=circle>
+     <li><b>Refresh</b> - Refresh the data on the screen with the present state of the data in the router.</li>
+   </ul>
+ </ul>
+<EMWEB_ELSE>
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE="IPV6_MGMT">
+<hr size=4 width="100%" align=center>
+<h2><a name=netndpsumm></a>Help for Network Connection Ndp Summary</h2>
+
+<p><br>This screen displays IPv6 Network Port Neighbor entries.
+
+<h3>Non-configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IPv6 Address</b>
+      - The Ipv6 Address of a neighbor switch visible to the Network Port.</li>
+  <li><b>MAC Address</b>
+      - The MAC Address of the neighboring switch. </li>
+  <li><b>isRtr</b> -<ul>
+           true (1) - if the neighbor machine is a router,
+     <BR>  false (2) - otherwise.</ul></li>
+  <li><b>Neighbor State</b>
+      - The state of the neighboring switch:<ul>
+      reachable (1) - The neighbor is reachable by this switch.
+     <BR>  stale (2)     - Information about the neighbor is scheduled for deletion.
+    <BR>   delay (3)     - No information has been received from neighbor during delay period.
+     <BR>  probe (4)     - Switch is attempting to probe for this neighbor.
+     <BR>  unknown (6)   - Unknown status.</ul></li>
+  <li><b>Last Updated</b>
+      - The last sysUpTime (system up time) that this neighbor has been updated.</li>
+ </ul>
+</ul>
+
+ <h3>Command Buttons</h3>
+  <ul type=disc>
+   <ul type=circle>
+     <li><b>Refresh</b> - Refreshes the data on the screen with the present state of the data in the router.</li>
+   </ul>
+ </ul>
+<EMWEB_ELSE>
+</EMWEB_IF>
+</EMWEB_IF>
+
+<hr size=4 width="100%" align=center>
+ 
+ </body>
+
+</html>

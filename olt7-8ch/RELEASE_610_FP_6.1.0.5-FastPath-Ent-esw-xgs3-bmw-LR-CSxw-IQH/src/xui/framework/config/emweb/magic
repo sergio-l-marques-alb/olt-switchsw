@@ -1,0 +1,9 @@
+#
+# Agranat Systems, Inc. EmWeb/Compiler /etc/magic entries:
+#
+0	string		EWda	EmWeb archive data (big endian)
+>4	byte		>0	version %d
+>5	byte		>0	. %d		
+0	string		adWE	EmWeb archive data (little endian)
+>4	byte		>0	version %d
+>5	byte		>0	. %d		

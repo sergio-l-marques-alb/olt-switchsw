@@ -1,0 +1,99 @@
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2003-2007
+*
+**********************************************************************
+*
+* @filename cliutil_voicevlan.c
+*
+* @purpose assorted functions for cli spantree
+*
+* @component user interface
+*
+* @comments none
+*
+* @create    
+*
+* @author   
+* @end
+*
+**********************************************************************/
+
+#include <errno.h>
+#include "cliapi.h"
+#include "clicommands_voice_vlan.h"
+#include "usmdb_voice_vlan_api.h"
+#include "usmdb_util_api.h"
+#include "cliutil_voicevlan.h"
+
+
+/*********************************************************************
+*
+* @purpose Determine if the specified port is valid for voice vlan
+*          and generate a failure message if not.
+*          
+*
+* @param ewsContext   context for error messages                 
+* @param unit         the unit index (for a stacking environment)
+* @param iface        the interface to check
+*
+* @return   L7_SUCCESS the interface is valid
+* @return   L7_FAILURE the interface is not a valid type for dot1x.
+*
+* @note An interface is considered valid for voice vlan if it is one of
+*       the following types:    USM_PHYSICAL_INTF 
+*       In case of failure, the failure message is written to the 
+*       cli context.  The caller needs only to return.    
+*
+*       
+* @end
+*
+********************************************************************/
+L7_RC_t cliVoiceVlanInterfaceValidate(EwsContext ewsContext,
+                                  L7_uint32 unit, L7_uint32 iface)
+{
+  return cliVoiceVlanInterfaceValidateWithMessage(ewsContext, unit, iface, L7_TRUE);
+}
+
+
+/*********************************************************************
+*
+* @purpose Determine if the specified port is valid for voice vlan
+*          and generate error message based on message parameter.
+*          
+*
+* @param ewsContext   context for error messages                 
+* @param unit         the unit index (for a stacking environment)
+* @param iface        the interface to check
+* @param message      L7_BOOL generate error message or not
+*
+* @return   L7_SUCCESS the interface is valid
+* @return   L7_FAILURE the interface is not a valid type for dot1s.
+*
+* @note An interface is considered valid for dot1s if it is one of
+*       the following types:    USM_PHYSICAL_INTF
+*       In case of failure, the failure message is written to the 
+*       cli context.  The caller needs only to return.    
+*
+*       
+* @end
+*
+********************************************************************/
+L7_RC_t cliVoiceVlanInterfaceValidateWithMessage(EwsContext ewsContext,
+                                  L7_uint32 unit, L7_uint32 iface,
+                                  L7_BOOL message )
+{
+  if ( usmDbVoiceVlanInterfaceValidate( unit, iface ) != L7_SUCCESS )
+  {
+      /* Invalid port */    
+      if (message == L7_TRUE) 
+      {
+          ewsTelnetWrite( ewsContext, CLIVOICEVLANPORTMODEINVALID_ERR);
+          cliSyntaxBottom(ewsContext);
+      }
+      return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+

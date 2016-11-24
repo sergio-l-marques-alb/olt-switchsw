@@ -1,0 +1,84 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>AutoInstall Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="100%" align=center>
+
+<a name=cfg>
+<h2>Help for System Utilities Auto Install</h2>
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+  <h3>Configurable Data</h3>
+<EMWEB_ELSE >
+  <h3>Non-Configurable Data</h3>
+</EMWEB_IF>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>AutoInstall Mode</b> - An indication of whether the AutoInstall is currently started or stopped.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>AutoSave Mode</b> - An indication of whether the AutoSave is 
+      currently enabled or disabled.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Retry Count</b> - Number of times the unicast TFTP tries should be 
+                           made for the DHCP specified file before falling back 
+                           for broadcast TFTP tries. The range of the Retry Count is 
+                           <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(FD_AUTO_INSTALL_UNICAST_RETRY_COUNT_MIN, FD_AUTO_INSTALL_UNICAST_RETRY_COUNT_MAX);
+       ' >. The default is  <EMWEB_STRING C='
+      return usmWebIntegerToString(FD_AUTO_INSTALL_UNICAST_RETRY_COUNT_DEFAULT);
+       '>.
+</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+  <h3>Non-Configurable Data</h3>
+</EMWEB_IF>
+<ul type=disc>
+ <ul type=circle>
+<li><b>AutoInstall State</b> - The current status of the AutoInstall process.</li>
+</li>
+  </ul>
+</ul>
+
+<!--
+<ul type=disc>
+ <ul type=circle>
+<li><b>AutoSave State</b> - The current status of the AutoSave State.</li>
+</li>
+  </ul>
+</ul>
+-->
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <EMWEB_IF ID=USMWEB_IF_READWRITE >
+  <li><b>Submit</b> - Update the switch with the values on the screen.</li>
+  </EMWEB_IF>
+    <li><b>Refresh</b> - Updates the information on the page.</li>
+ </ul>
+</ul>
+
+
+</body>
+
+</html>

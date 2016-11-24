@@ -1,0 +1,129 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PortAccessControlPortStatus" title="Port Access Control Port Status">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="securitydot1x_dot1xPaePortNumber" id="1" name="Port"/>
+            </node>
+            <node id="2">
+                <element obj-name="securitydot1x_dot1xPaePortProtocolVersion" id="1" name="Protocol Version"/>
+            </node>
+            <node id="3">
+                <element control="label" obj-name="securitydot1x_dot1xPaePortCapabilities" id="1" name="PAE Capabilities">
+                  <action type="enum" web_name="Authenticator" hide="1_25|1_26|1_27|1_28|1_30|1_31"/>
+                  <action type="enum" web_name="Supplicant" hide="1_5|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13|1_14|1_15|1_16|1_17|1_18|1_19|1_20|1_21|1_22|1_23|2"/>
+                </element>
+
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="securitydot1x_Dot1xPortControlMode" id="1" name="Control Mode">
+                  <action type="enum" hide="2"/>
+                  <action type="enum" hide="2"/>
+                  <action type="enum" hide="2"/>
+                  <action type="enum" hide="1_5_1|1_6_1|1_14_1|1_15|1_22|1_23" show="2"/>
+                </element>
+            </node>
+            <node id="30">
+                <element control="label" properties="read-only" obj-name="securityDot1xSupplicantIntfConfig_PaeState" id="1" name="Supplicant PAE State"/>
+            </node>
+            <node id="31">
+                <element control="label" properties="read-only" obj-name="securityDot1xSupplicantIntfConfig_SbmState" id="1" name="Backend State"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="securitydot1x_dot1xAuthPaeState" id="1" name="Authenticator PAE State"/>
+            </node>
+            <node id="6">
+                <element control="label" properties="read-only" obj-name="securitydot1x_Dot1xPortBackendAuthState" id="1" name="Backend State"/>
+            </node>
+            <node id="7">
+                <element control="label" properties="read-only" obj-name="securitydot1x_dot1xAuthQuietPeriod" id="1" name="Quiet Period (secs)"/>
+            </node>
+            <node id="8">
+                <element control="label" properties="read-only" obj-name="securitydot1x_dot1xAuthTxPeriod" id="1" name="Transmit Period (secs)"/>
+            </node>
+            <node id="9">
+                <element control="label" properties="read-only" obj-name="securitydot1x_Dot1xGuestVlanId" id="1" name="Guest VLAN ID"/>
+            </node>
+            <node id="10">
+                <element control="label" properties="read-only" obj-name="securitydot1x_Dot1xGuestVlanPeriod" id="1" name="Guest VLAN Period (secs)"/>
+            </node>
+            <node id="11">
+                <element control="label" properties="read-only" obj-name="securitydot1x_Dot1xPortSuppTimeout" id="1" name="Supplicant Timeout (secs)"/>
+            </node>
+            <node id="12">
+                <element control="label" properties="read-only" obj-name="securitydot1x_Dot1xPortServerTimeout" id="1" name="Server Timeout (secs)"/>
+            </node>
+            <node id="13">
+                <element control="label" properties="read-only" obj-name="securitydot1x_Dot1xPortMaxReq" id="1" name="Maximum Requests"/>
+            </node>
+            <node id="14">
+                <element control="label" obj-name="securitydot1x_Dot1xPortVlanAssigned" id="1" name="VLAN Assigned"/>
+            </node>
+            <node id="15">
+                <element control="label" obj-name="securitydot1x_Dot1xPortVlanAssignedReason" id="1" name="VLAN Assigned Reason"/>
+            </node>
+            <node id="16">
+                <element control="label" properties="read-only" obj-name="securitydot1x_dot1xAuthReAuthPeriod" id="1" name="Reauthentication Period (secs)"/>
+            </node>
+            <node id="17">
+                <element control="label" properties="read-only" obj-name="securitydot1x_Dot1xPortReAuthEnabled" id="1" name="Reauthentication Enabled"/>
+            </node>
+            <node id="18">
+                <element control="label" properties="read-only" obj-name="securitydot1x_Dot1xPortKeyTransmissionEnabled" id="1" name="Key Transmission Enabled"/>
+            </node>
+            <node id="19">
+                <element control="label" properties="read-only" obj-name="securitydot1x_Dot1xPortAdminControlledDirections" id="1" name="Control Direction"/>
+            </node>
+            <node id="20">
+                <element control="label" properties="read-only" obj-name="securitydot1x_Dot1xPortMaxUsers" id="1" name="Maximum Users"/>
+            </node>
+            <node id="21">
+                <element control="label" properties="read-only" obj-name="securitydot1x_Dot1xUnauthenticatedVlan" id="1" name="Unauthenticated VLAN ID"/>
+            </node>
+            <node id="22">
+                <element control="label" obj-name="securitydot1x_Dot1xPortSessionTimeout" id="1" name="Session Timeout"/>
+            </node>
+            <node id="23">
+                <element control="label" obj-name="securitydot1x_Dot1xPortTerminationAction" id="1" name="Session Termination Action"/>
+            </node>
+            <node id="24">
+                <element control="combo" properties="filter,hidden" cpval="securitydot1x_dot1xPaePortNumber" obj-name="securityDot1xSupplicantIntfConfig_Interface" id="1" name="Port"/>
+            </node>
+            <node id="25">
+                <element control="label" obj-name="securityDot1xSupplicantIntfConfig_MaxStart" id="1" name="Maximum Start Messages"/>
+            </node>
+            <node id="26">
+                <element control="label" obj-name="securityDot1xSupplicantIntfConfig_StartPeriod" id="1" name="Start Period (secs)"/>
+            </node>
+            <node id="27">
+                <element control="label" obj-name="securityDot1xSupplicantIntfConfig_HeldPeriod" id="1" name="Held Period (secs)"/>
+            </node>
+            <node id="28">
+                <element control="label" obj-name="securityDot1xSupplicantIntfConfig_AuthPeriod" id="1" name="Authentication Period (secs)"/>
+            </node>
+            <node id="29">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+            <node id="32">
+                <element properties="hidden" cpval="securitydot1x_dot1xPaePortNumber" obj-name="securitydot1xLogicalPort_dot1xPhysicalPort" id="1" name="Port"/>
+            </node>
+
+        </group>
+        <group id="2" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="securitydot1xLogicalPort_dot1xAllLogicalPorts" id="2" name="Logical&lt;br&#47;&gt;Port"/>
+                <element properties="hidden" cpval="securitydot1x_dot1xPaePortNumber" obj-name="securitydot1xLogicalPort_dot1xPhysicalPort" id="1" name="Port"/>
+                <element control="textbox" properties="hidden" cpval="securitydot1xLogicalPort_dot1xAllLogicalPorts" obj-name="securitydot1xLogicalPort_dot1xLogicalPort" id="3" name="Interface"/>
+                <element obj-name="securitydot1xLogicalPort_dot1xLogicalPortSupplicantMacAddr" id="4" name="Supplicant&lt;br&#47;&gt;MAC Address"/>
+                <element obj-name="securitydot1xLogicalPort_dot1xLogicalPortPaeState" id="5" name="Authenticator&lt;br&#47;&gt;PAE State"/>
+                <element obj-name="securitydot1xLogicalPort_dot1xLogicalPortBackendAuthState" id="6" name="Backend&lt;br&#47;&gt;Authentication State"/>
+                <element obj-name="securitydot1xLogicalPort_dot1xLogicalPortVlanAssignment" id="7" name="VLAN&lt;br&#47;&gt;Assigned"/>
+                <element obj-name="securitydot1xLogicalPort_dot1xLogicalPortVlanAssociated" id="8" name="VLAN &lt;br&#47;&gt;Assigned Reason"/>
+           </repeat>
+      </group>
+    </webxml>
+</FastPathXML>

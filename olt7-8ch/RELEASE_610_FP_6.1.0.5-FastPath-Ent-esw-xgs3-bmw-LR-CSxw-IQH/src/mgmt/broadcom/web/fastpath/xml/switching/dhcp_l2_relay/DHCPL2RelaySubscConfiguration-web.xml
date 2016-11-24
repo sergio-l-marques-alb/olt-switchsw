@@ -1,0 +1,57 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DHCPL2RelaySubscConfiguration" title="DHCP L2 Relay Subscription Configuration" compile_if="IF_DOT1AD_PACKAGE_PRESENT">
+        <group id="1" level="ReadWriteUser" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingDhcpL2RelaySubscConfig_Interface" id="1" name="Interface"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingDhcpL2RelaySubscConfig_SubscriptionName" id="1" name="Subscription Name" >
+                  <action type="default" show="1_4|1_5|1_6|1_7_1"  hide="1_3" disable="1_3" enable="1_4|1_5|1_6|1_7_1" />
+                  <action type="extn" value="New Entry" show="1_3|1_4|1_5|1_6|1_7_1" enable="1_3|1_4|1_5|1_6|1_7_1"  />
+                </element>
+            </node>
+			<node id="3">
+                <element control="textbox" properties="filter,iterate" obj-name="SwitchingDhcpL2RelaySubscConfig_SubscriptionName" id="1" name="Subscription Name"/>
+            </node>
+            <node id="4">
+                <element control="combo" obj-name="SwitchingDhcpL2RelaySubscConfig_L2RelayMode" id="1" name="DHCP L2 Relay Mode"/>
+            </node>
+            <node id="5">
+                <element control="combo" obj-name="SwitchingDhcpL2RelaySubscConfig_CircuitIdMode" id="1" name="DHCP L2 Relay Circuit-Id"/>
+            </node>
+            <node id="6">
+                <element properties = "optional" obj-name="SwitchingDhcpL2RelaySubscConfig_L2RelayRemoteId" id="1" name="DHCP L2 Relay Remote-Id"/>
+            </node>
+            <node id="7">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+
+        <group id="2" level="ReadOnlyUser" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingDhcpL2RelaySubscConfig_Interface" id="1" name="Port"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingDhcpL2RelaySubscConfig_SubscriptionName" id="1" name="Subscription Name" /> 
+            </node>
+            <node id="3">
+                <element properties="read-only" obj-name="SwitchingDhcpL2RelaySubscConfig_L2RelayMode" id="1" name="DHCP L2 Relay Mode"/>
+            </node>
+            <node id="4">
+                <element properties="read-only" obj-name="SwitchingDhcpL2RelaySubscConfig_CircuitIdMode" id="1" name="DHCP L2 Relay Circuit-Id"/>
+            </node>
+            <node id="5">
+                <element properties="read-only" obj-name="SwitchingDhcpL2RelaySubscConfig_L2RelayRemoteId" id="1" name="DHCP L2 Relay Remote-Id"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML> 

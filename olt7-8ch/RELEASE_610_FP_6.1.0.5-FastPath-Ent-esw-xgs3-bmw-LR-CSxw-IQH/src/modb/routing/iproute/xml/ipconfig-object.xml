@@ -1,0 +1,425 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0" >
+<!-- BEGIN : switchIPConfig Module -->
+<module name="switchIPConfig" purpose="To add/delete Secondary IP Address on a Routing Supported Interfaces" >
+  <object name="IfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+  <core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The IfIndex associated with this instance"/>
+  <ui  name="Unit/Slot/Port" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.1"/> 
+  </ui></object>
+  <object name="IfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+  <core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The IfIndex associated with this instance"/>
+  <ui  name="Slot/Port" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.1"/> 
+  </ui></object>
+  <object name="secondaryIpAddress" depends="IfIndex" >
+  <core  type="ipv4" key="yes" access="read-write" descr="The Secondary IP Address assigned to this interface."/>
+  <ui  name="Secondary IP Address" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.6.1.1"/> 
+  </ui></object>
+  <object name="secondaryNetMask" depends="IfIndex,secondaryIpAddress" >
+  <core  type="ipv4" access="read-write" descr="The Secondary Net Mask assigned to this interface. This value must be set during creation, and can not be changed."/>
+  <ui  name="Secondary Subnet Mask" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.6.1.2"/> 
+  </ui></object>
+  <object name="secondaryStatus" depends="IfIndex,secondaryIpAddress" >
+  <core  type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Creates a new entry in the Secondary Address table. Allowed values are: createAndGo(4) - Creates an entry in this table, destroy(6) - Deletes an entry in this table"/>
+  <ui  name="Secondary Status" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.6.1.3"/> 
+  </ui></object>
+  <object depends="IfIndex" name="MaxSecAddressConfigured">
+  <core validation="validate_uint" descr="&lt;HTML&gt;To check whether Max Secondary Addresses Configured" xtype="TrueFalse_t" access="read-only" type="enum"/>
+  <ui style="choiceNselect1" name="Are Max Secondary Addresses Configured">
+  <cli validation="validate_uint"/>
+  <web validation="validate_uint"/>
+  <snmp asn-id=""/>
+  </ui>
+  </object>
+</module><!-- END : switchIPConfig Module -->
+
+<!-- BEGIN: switchHelperGlobal Module -->
+<module name="switchHelperGlobal" purpose="To Configure the Helper IP Global Parameters." >
+  <object name="ipHelperMode">
+  <core  type="enum" xtype="enable_t" access="read-write" descr="Administratively enables/disables IP Helper mode on the switch."/>
+  <ui  name="Helper Mode" style="choiceNselect1">
+  <snmp asn-id=""/> 
+  </ui></object>
+</module><!-- END: switchHelperGlobal Module -->
+
+<!-- BEGIN: switchHelperTableGlobal Module -->
+<module name="switchHelperTableGlobal" purpose="To Add Helper IP Entries Globally." >
+  <key-combo list="helperIpDestUDPPort,helperIpAddress"/>
+  <object name="helperIpAddress">
+  <core  type="ipv4" key="yes" access="read-write" descr="The Helper IP Address assigned to this interface."/>
+  <ui  name="Server Address" style="inputLine">
+  </ui></object>
+  <object name="helperIpDestUDPPort">
+  <core type="uint" key="yes" min="0" max="L7_IP_HELPER_MAX_PORT" access="read-write" descr="Destination port of the UDP packets to be relayed."/>
+  <ui name="Destination UDP Port" style="inputLine">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="helperIpHitCount" depends="helperIpAddress,helperIpDestUDPPort">
+  <core type="uint" access="read-only" descr="The number of times a packet has been forwarded or discarded according to this entry."/>
+  <ui name="Hit Count" style="plainText">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="helperStatus" depends="helperIpAddress,helperIpDestUDPPort" >
+  <core  type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Creates a new entry in the Helper Address table. Allowed values are: createAndGo(4), destroy(6)."/>
+  <ui  name="Helper Entry" style="inputLine">
+  </ui></object>
+</module><!-- END: switchHelperTableGlobal Module -->
+
+<!-- BEGIN: switchHelperTable Module -->
+<module name="switchHelperTable" purpose="To Add Helper IP Entries per interface." >
+  <key-combo list="IfIndex,helperIpDestUDPPort,helperIpAddress"/>
+  <object name="IfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+  <core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The IfIndex associated with this instance"/>
+  <ui  name="Unit/Slot/Port" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.1"/> 
+  </ui></object>
+  <object name="IfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+  <core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The IfIndex associated with this instance"/>
+  <ui  name="Slot/Port" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.1"/> 
+  </ui></object>
+  <object name="helperIpDestUDPPort" depends="IfIndex">
+  <core type="uint" key="yes" access="read-write" min="0" max="L7_IP_HELPER_MAX_PORT" depends="IfIndex" descr="Destination port of the UDP packets to be relayed."/>
+  <ui name="Destination UDP Port" style="inputLine">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="helperIpAddress" depends="IfIndex, helperIpDestUDPPort" >
+  <core  type="user" xtype="formatipv4_t" key="yes" access="read-write" descr="The Helper IP Address assigned to this interface."/>
+  <ui  name="Server Address" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.7.1.1"/> 
+  </ui></object>
+  <object name="helperIpDiscard" depends="IfIndex,helperIpDestUDPPort">
+  <core type="enum" xtype="L7_FalseTrue" access="read-write" descr="Discard the packets matching the specified UDP port."/>
+  <ui name="Discard" style="choiceNselect1">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="helperIpHitCount" depends="IfIndex,helperIpDestUDPPort,helperIpAddress">
+  <core type="uint" access="read-only" descr="This gives the number of packets relayed to the given helper IP received on the given interface."/>
+  <ui name="Hit Count" style="plainText">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="helperStatus" depends="IfIndex,helperIpDestUDPPort,helperIpAddress" >
+  <core  type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Creates a new entry in the Helper Address table. Allowed values are: createAndGo(4), destroy(6)."/>
+  <ui  name="Helper Entry" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.7.1.2"/> 
+  </ui></object>
+  <object depends="IfIndex" name="MaxHelperAddressConfigured">
+  <core validation="validate_uint" descr="&lt;HTML&gt;To Check whether Max Helper Addresses configured or not" xtype="TrueFalse_t" access="read-only" type="enum"/>
+  <ui style="choiceNselect1" name="Are Max Helper Addresses Configured">
+  <cli validation="validate_uint"/>
+  <web validation="validate_uint"/>
+  <snmp asn-id=""/>
+  </ui>
+  </object>
+</module><!-- END: switchHelperTable Module -->
+
+<!-- BEGIN: switchHelperStatistics Module -->
+<module name="switchHelperStatistics" purpose="Helper Statistics" >
+  <object name="NumOfDhcpClientPktsRx">
+  <core type="uint" access="read-only" descr="Number of DHCP client packets received on the switch."/>
+  <ui name="No Of DHCP Client Pkts Rx" style="plainText">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="NumOfDhcpClientPktsRelayed">
+  <core type="uint" access="read-only" descr="Number of DHCP client packets forwared to the server."/>
+  <ui name="No Of DHCP Client Pkts Relayed" style="plainText">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="NumOfDhcpServerPktsRx">
+  <core type="uint" access="read-only" descr="Number of DHCP client received on the switch."/>
+  <ui name="No Of DHCP Server Pkts Rx" style="plainText">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="NumOfDhcpServerPktsRelayed">
+  <core type="uint" access="read-only" descr="Number of DHCP server packets forwared to the server."/>
+  <ui name="No Of DHCP Server Pkts Relayed" style="plainText">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="NumOfUdpClientPktsRx">
+  <core type="uint" access="read-only" descr="Number of UDP client packets received on the switch."/>
+  <ui name="No Of UDP Client Pkts Rx" style="plainText">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="NumOfUdpClientPktsRelayed">
+  <core type="uint" access="read-only" descr="Number of UDP client packets forwarded to the server."/>
+  <ui name="No Of UDP Client Pkts Relayed" style="plainText">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="NumOfDhcpMaxHopCountPktsRx">
+  <core type="uint" access="read-only" descr="Number of DHCP packets received with maximum hop count on the switch."/>
+  <ui name="No Of DHCP Max HopCount Pkts Rx" style="plainText">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="NumOfDhcpTooEarlyPktsRx">
+  <core type="uint" access="read-only" descr="Number of DHCP packets received with secs field set to value less than minimum allowed value."/>
+  <ui name="No Of DHCP Too Early Pkts Rx" style="plainText">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="NumOfDhcpSpoofedGiaddrPktsRx">
+  <core type="uint" access="read-only" descr="Number of DHCP client messages received with the giaddr set to local address."/>
+  <ui name="No Of DHCP Spoofed Giaddr Pkts Rx" style="plainText">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="NumOfUdpTtlExpiredPktsRx">
+  <core type="uint" access="read-only" descr="Number of UDP packets received with TTL value less than or equal to one."/>
+  <ui name="No Of UDP TTL Expired Pkts Rx" style="plainText">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="NumOfUdpDisardPkts">
+  <core type="uint" access="read-only" descr="Number of UDP packets dropped due to match against a discard entry."/>
+  <ui name="No Of UDP Disard Pkts" style="plainText">
+  <snmp asn-id=""/>
+  </ui></object>
+  <object name="ResetHelperStats">
+  <core type="uint" access="write-only" descr="Clears the IP Helper Statistics."/>
+  <ui name="Reset Helper Stats" style="inputLine">
+  <snmp asn-id=""/>
+  </ui></object>
+</module><!-- END: switchHelperStatistics Module -->
+
+<!-- BEGIN: switchIpIcmpControlGroup Module -->
+<module name="switchIpIcmpControlGroup" purpose="To Confiure the ICMP Throttling parameters." >
+  <object name="switchIpIcmpEchoReplyMode" >
+  <core  type="enum" xtype="enable_t" access="read-write" descr="Sets the administrative Echo Reply Mode."/>
+  <ui  name="ICMP Echo Reply Mode" style="choiceNselect1">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.8.1"/> 
+  </ui></object>
+  <object name="switchIpIcmpRedirectsMode" >
+  <core  type="enum" xtype="enable_t" access="read-write" descr="Sets the administrative Mode for sending Redirects."/>
+  <ui  name="ICMP Redirects Mode" style="choiceNselect1">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.8.2"/> 
+  </ui></object>
+  <object name="switchIpIcmpRateLimitInterval" >
+  <core  type="uint" access="read-write" default="FD_RTR_DEFAULT_ICMP_RATE_LIMIT_INTERVAL" min="L7_L3_ICMP_RATE_LIMIT_MIN_INTERVAL" max="L7_L3_ICMP_RATE_LIMIT_MAX_INTERVAL" descr="Specifies the time interval between tokens being placed in the bucket for ICMP Ratelimit."/>
+  <ui  name="ICMP Rate Limit Interval" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.8.3"/> 
+  </ui></object>
+  <object name="switchIpIcmpRateLimitBurstSize" >
+  <core  type="uint" access="read-write"  default="FD_RTR_DEFAULT_ICMP_RATE_LIMIT_SIZE" min="L7_L3_ICMP_RATE_LIMIT_MIN_BURST_SIZE" max="L7_L3_ICMP_RATE_LIMIT_MAX_BURST_SIZE" descr="Specifies the number of tokens to be placed after timeout."/>
+  <ui  name="ICMP Rate Limit BurstSize" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.8.4"/> 
+  </ui></object>
+</module> <!-- END: switchIpIcmpControlGroup Module -->
+
+<!-- BEGIN: switchIPInterfaceConfig Module -->
+<module name="switchIPInterfaceConfig" purpose="To Configure Routing Parameters on an Interface" >
+ <object name="IfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+ <core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The IfIndex associated with this instance."/>
+ <ui  name="Unit/Slot/Port" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.1"/> 
+ </ui></object>
+ <object name="IfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+ <core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The IfIndex associated with this instance."/>
+ <ui  name="Slot/Port" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.1"/> 
+ </ui></object>
+ <object name="ipAddress" depends="IfIndex" >
+ <core  type="ipv4" access="read-write" descr="The IpAddress assigned to this interface. When setting this value, the value of agentSwitchIpInterfaceNetMask must be set at the same time."/>
+ <ui  name="IP Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.2"/> 
+ </ui></object>
+ <object name="netMask" depends="IfIndex" >
+ <core  type="ipv4" access="read-write" descr="The NetMask assigned to this interface. When setting this value, the value of agentSwitchIpInterfaceIpAddress must be set at the same time."/>
+ <ui  name="Subnet Mask" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.3"/> 
+ </ui></object>
+ <object name="clearIp" depends="IfIndex" >
+ <core  type="enum" xtype="enable_t" access="write-only" descr="Sets the interfaces IpAddress and NetMask back to 0.0.0.0"/>
+ <ui  name="Remove Primary IP" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.4"/> 
+ </ui></object>
+ <object name="routingMode" depends="IfIndex" >
+ <core  type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="Enables or disables routing for this interface."/>
+ <ui  name="Routing Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.5"/> 
+ </ui></object>
+ <object name="proxyARPMode" depends="IfIndex" >
+ <core  type="enum" xtype="enable_t" default="FD_PROXY_ARP_ADMIN_MODE" access="read-write" descr="Enables or disables Proxy ARP for this interface."/>
+ <ui  name="Proxy ARP Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.6"/> 
+ </ui></object>
+ <object name="mtuValue" depends="IfIndex" >
+ <core  type="uint" min="L7_L3_MIN_IP_MTU" max="L7_L3_MAX_POSSIBLE_IP_MTU" default="FD_IP_DEFAULT_IP_MTU" access="read-write" descr="Configures the MTU value for this interface. If the value returned is 0 this interface is not enabled for routing. It is not valid to set this value to 0 if routing is enabled."/>
+ <ui  name="IP MTU" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.7"/> 
+ </ui></object>
+ <object name="bandwidth" depends="IfIndex" >
+ <core  type="uint" min="L7_L3_MIN_BW" max="L7_L3_MAX_BW" default="FD_IP_DEFAULT_BW" access="read-write" descr="Configures the Bandwidth value for this interface. If the value returned is 0 bandwidth for this interface is not Configured."/>
+ <ui  name="Bandwidth" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.8"/> 
+ </ui></object>
+ <object name="unnumberedIfIndex" depends="IfIndex" >
+ <core  type="enum" xtype="enable_t" access="read-write" descr="If this object is non-zero, it indicates that the interface is unnumbered, and specifies which interface the address is borrowed from."/>
+ <ui  name="Unnumbered Index" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.9"/> 
+ </ui></object>
+ <object name="IcmpUnreachables" depends="IfIndex" >
+ <core  type="enum" xtype="enable_t" access="read-write" descr="If this object is enabled, it indicates that ICMP unreachables can be sent on this interface."/>
+ <ui  name="ICMP Unreachables" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.10"/> 
+ </ui></object>
+ <object name="IcmpRedirects" depends="IfIndex" >
+ <core  type="enum" xtype="enable_t" access="read-write" descr="If this object is enabled and agentSwitchIpIcmpRedirectsMode is also enabled, ICMP Redirects can be sent on this interface."/>
+ <ui  name="ICMP Redirects" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.3.1.11"/> 
+ </ui></object>
+ <object name="netDirectBroadcasts" depends="IfIndex" >
+ <core  type="enum" xtype="enable_t" default="FD_RTR_DEFAULT_FWD_NET_DIRECT_BCAST" access="read-write" descr="Configures Ip regarding forwarding net directed broadcasts"/>
+ <ui  name="Net Direct Broadcasts" style="choiceNselect1" />
+ </object>
+ <object name="irdpHoldTime" depends="IfIndex" >
+ <core  type="uint" max="L7_RTR_DISC_LIFETIME_MAX" access="read-write" descr="Sets the value of lifetime field of router advertisement sent from the interface"/>
+ <ui  name="HoldTime" style="inputLine" />
+ </object>
+ <object name="IsPrimaryConfigured" depends="IfIndex">
+ <core validation="validate_uint" descr="&lt;HTML&gt;Returns True if Primary Address is Configured" xtype="TrueFalse_t" access="read-only" type="enum"/>
+ <ui style="choice2select1" name="Is Primary Configured">
+ <cli validation="validate_uint"/>
+ <web validation="validate_uint"/>
+ <snmp asn-id=""/>
+ </ui>
+ </object>
+</module><!-- END: switchIPInterfaceConfig Module -->
+
+<!-- BEGIN: IpRouterDiscovery Module -->
+<module name="IpRouterDiscovery" purpose="To configure the Router Discovery Per Interface Paramters." >
+ <object name="IfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+ <core  type="user" xtype="usp_t" key="yes" access="read-write" descr="Interface Number to configure Router Discovery on."/>
+ <ui  name="Unit/Slot/Port" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.4.1.1"/> 
+ </ui></object>
+ <object name="IfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+ <core  type="user" xtype="usp_t" key="yes" access="read-write" descr="Interface Number to configure Router Discovery on."/>
+ <ui  name="Slot/Port" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.4.1.1"/> 
+ </ui></object>
+ <object name="advertiseMode" depends="IfIndex" >
+ <core  type="enum" xtype="enable_t" default="FD_RTR_DEFAULT_ADVERTISEMENT_MODE" access="read-write" descr="Enable or disable router discovery on the interface."/>
+ <ui  name="Advertise Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.4.1.2"/> 
+ </ui></object>
+ <object name="maxAdvertisementInterval" depends="IfIndex" >
+ <core  type="uint" min="L7_RTR_DISC_MAXINTERVAL_MIN" max="L7_RTR_DISC_MAXINTERVAL_MAX" default="FD_RTR_DEFAULT_MAX_ADV_INTERVAL" access="read-write" descr="Maximum time allowed between sending router advertisements from the interface."/>
+ <ui  name="Max Advertisement Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.4.1.3"/> 
+ </ui></object>
+ <object name="minAdvertisementInterval" depends="IfIndex" >
+ <core  type="uint" min="L7_RTR_DISC_MININTERVAL_MIN" max="L7_RTR_DISC_MININTERVAL_MAX" default="FD_RTR_DEFAULT_MIN_ADV_INTERVAL" access="read-write" descr="Minimum time allowed between sending router advertisements from the interface. This value must be less than or equal to agentSwitchIpRouterDiscoveryMaxAdvertisementInterval."/>
+ <ui  name="Min Advertisement Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.4.1.4"/> 
+ </ui></object>
+ <object name="advertisementLifetime" depends="IfIndex" >
+ <core  type="uint" max="L7_RTR_DISC_LIFETIME_MAX" default="FD_RTR_DEFAULT_ADV_LIFETIME" access="read-write" descr="Value of lifetime field of router advertsisement sent from the interface. This value must be greater than or equal to agentSwitchIpRouterDiscoveryMaxAdvertisementInterval."/>
+ <ui  name="Advertisement Lifetime" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.4.1.5"/> 
+ </ui></object>
+ <object name="preferenceLevel" depends="IfIndex" >
+ <core  type="int" min="L7_RTR_DISC_PREFERENCE_MIN" max="L7_RTR_DISC_PREFERENCE_MAX" default="FD_RTR_DEFAULT_PREFERENCE_LEVEL" access="read-write" descr="Preferability of the address as a default router address, related to other addresses on the same subnet. This is defined as the larger the number, the higher the preference."/>
+ <ui  name="Preference Level" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.4.1.6"/> 
+ </ui></object>
+ <object name="advertisementAddress" depends="IfIndex" >
+ <core  type="user" xtype="formatipv4_t" default="FD_RTR_DEFAULT_ADV_ADDR" access="read-write" descr="Address used when sending router advertisements from the interface."/>
+ <ui  name="Advertisement Address" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.4.1.7"/> 
+ </ui></object>
+</module><!-- END: IpRouterDiscovery Module -->
+
+<!-- BEGIN:IpRoutingGlobal Module -->
+<module name="IpRoutingGlobal"  >
+<object name="routingMode"  >
+<core  type="enum" xtype="enable_t" default="FD_RTR_DEFAULT_ADMIN_MODE" access="read-write" descr="Administratively enables/disables routing on the switch."/>
+<ui  name="Routing Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.1"/> 
+</ui></object>
+<object name="MaxEqualCostEntries"  >
+<core  type="uint" access="read-only" descr="Get the routing max equal cost entries."/>
+<ui  name="Max Equal Cost Entries" style="plainText">
+</ui></object>
+<object name="MaxRouteEntries"  >
+<core  type="uint" access="read-only" descr="Get the max route entries."/>
+<ui  name="MaxRouteEntries" style="plainText">
+</ui></object>
+</module><!-- END:IpRoutingGlobal Module -->
+
+<!-- BEGIN:IpVlanConfig Module -->
+<module name="IpVlanConfig" purpose="To Enable/Disable Routing on a configured VLAN." >
+
+ <object name="vlanId" >
+ <core  type="uint" key = "yes" access="read-write" descr="The Vlan's Id on which routing is enabled ."/>
+ <ui  name="VLAN ID" style="inputLine">
+ </ui></object>
+
+ <object name="vlanIfIndex" depends = "vlanId" >
+ <core  type="uint" access="read-only" descr="The IfIndex associated with this VLAN."/>
+ <ui  name="IfIndex" style="plainText">
+ </ui></object>
+
+ <object name="ipAddress" depends="vlanId" >
+ <core  type="ipv4" access="read-only" descr="The IpAddress assigned to this interface. When setting this value, the value of agentSwitchIpInterfaceNetMask must be set at the same time."/>
+ <ui  name="IP Address" style="inputLine">
+ </ui></object>
+
+ <object name="netMask" depends="vlanId" >
+ <core  type="ipv4" access="read-only" descr="The NetMask assigned to this interface. When setting this value, the value of agentSwitchIpInterfaceIpAddress must be set at the same time."/>
+ <ui  name="Subnet Mask" style="inputLine">
+ </ui></object>
+
+ <object name="ifPhysAddress" depends="vlanId" >
+ <core  type="mac" access="read-only" descr=" The interface's address at its protocol sub-layer. For example, for an 802.x interface, this object normally contains a MAC address. The interface's media-specific MIB must define the bit and byte ordering and the fo"/>
+ <ui  name="Physical Address" style="plainText">
+ </ui></object>
+
+ <object name="USPFormat" depends="vlanId" >
+ <core  type="string" access="read-only" descr="This object returns the vlan number in Unit/Slot/Port Format."/>
+ <ui  name="Unit/Slot/Port" style="plainText">
+ </ui></object>
+
+ <object name="vlanRoutingStatus" depends = "vlanId">
+ <core  type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Status of Routing mode per Vlan. active(1) - Vlan is enabled for routing; createAndGo(4) - Adds Vlan entry for routing; destroy(6) - Removes Vlan from routing"/>
+ <ui  name="Routing Mode" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.2.5.1.3"/>
+ </ui></object>
+
+ <object name="vlanRoutingCreate" depends = "vlanId">
+ <core  type="enum" xtype="enable_t" default="FD_RTR_DEFAULT_ADMIN_MODE" access="read-write" descr="Enables/disables routing on the VLAN."/>
+ <ui  name="Routing Mode" style="choiceNselect1">
+ </ui></object>
+<object name="vlanRoutingCreateAndFillIfIndex" depends = "vlanId">
+<core  type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Administratively enables/disables routing on the switch."/>
+<ui  name="routingMode" style="inputLine">
+</ui></object>
+</module><!-- END:IpVlanConfig Module -->
+
+
+<module name="VlanInternalUsage" purpose="To set the VLAN Allocation policy for the port based Routing Interfaces." >
+  <object name="baseVlanId">
+  <core type="uint" access="read-write" max="L7_DOT1Q_MAX_VLAN_ID" min="L7_DOT1Q_MIN_VLAN_ID" descr="This is the Base VLAN ID for Internal allocation of port-based routing interface"/>
+  <ui name="VLAN ID" style="inputLine"/>
+  </object>
+  <object name="AllocationPolicy">
+  <core type="enum" xtype="AllocationPolicy_t"  access="read-write" descr="Allocation Policy for VALN ID in ascending/ descending order of port-based routing interface"/>
+  <ui name="Allocation Policy" style="choiceNselect1"/>
+  </object>
+  <object name="VlanId">
+  <core type="uint" key="yes" access="read-only" descr="This is the Used Internal VLAN ID for Interface"/>
+  <ui name="VLAN ID" style="plainText"/>
+  </object>
+  <object name="Interface"  depends="VlanId" compile_if="IF_STACKING_PACKAGE_PRESENT">
+  <core type="user" xtype="usp_t" access="read-only" descr="This is the interface number assigned with VLAN ID"/>
+  <ui style="plainText" name="Unit/Slot/Port"/>
+  </object>
+  <object name="Interface" depends="VlanId" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+  <core type="user" xtype="usp_t" access="read-only" descr="This is the interface number assigned with VLAN ID"/>
+  <ui style="plainText" name="Slot/Port"/>
+  </object>
+</module>
+
+</objectxml>
+</FastPathXML>

@@ -1,0 +1,2 @@
+$CROSS_COMPILE = /projects/nwsoft-toolchains/wrl_2.0/bmw/host-cross/powerpc-wrs-linux-gnu/bin/powerpc-wrs-linux-gnu-ppc_603e-glibc_std-
+$KERNEL_SRC = $(FP_BASE)/tools/build_kernels/linux-2.6.21--bmw

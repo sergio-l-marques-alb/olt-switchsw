@@ -1,0 +1,476 @@
+<HTML>
+
+<EMWEB_HEAD C='
+    #include "web.h"
+    #include "captive_portal_commdefs.h"
+    #include "captive_portal_defaultconfig.h"
+    #include "usmdb_cpdm_api.h"
+    #include "usmdb_cpdm_connstatus_api.h"
+    #include "usmdb_cpdm_web_api.h"
+    #include "usmdb_cpdm_user_api.h"
+    #include "usmdb_cpim_api.h"
+            
+    /* cp_global_cfg.html */
+    extern L7_char8 *usmWebIntegerRangeDisableHelp(L7_int32 min, L7_int32 max);
+
+    /* cp_cfg.html */
+    extern L7_uint32 *usmCPConfigListCount();
+    extern L7_char8 *usmWebCPConfigurationGet(cpId_t cpId);
+
+    /* cp_cfg_mgmt.html */
+    extern L7_char8 *usmWebCPRadiusServerSelect(EwsContext context);
+    extern L7_char8 *usmWebCPLangCodeSelect(EwsContext context);
+
+    /* cp_user_local.html */
+    extern L7_char8 *usmWebCPUserEntryGet(L7_char8 *user, L7_uint32 idx);
+    extern L7_char8 *usmWebCPLangCodeGet(EwsContext context);
+
+    /* cp_clients.html */
+    extern L7_char8 *usmWebCPClientEntryGet(L7_enetMacAddr_t macAddr, L7_uint32 idx);
+
+    /* cp_client_status.html */
+    extern L7_char8 *usmWebCPClientSessionTimeGet(EwsContext context, L7_BOOL sessionTime);
+
+    /* cp_client_intf_status.html */
+    extern L7_char8 *usmWebCPClientIntfEntryGet(L7_enetMacAddr_t macAddr, L7_uint32 idx);
+
+    /* cp_client_cp_status.html */
+    extern L7_char8 *usmWebCPClientCpidEntryGet(L7_enetMacAddr_t macAddr, L7_uint32 idx);
+
+    /* captive_portal.html */
+    extern L7_BOOL  usmWebCPFormObjectEnabled(EwsContext context, usmWeb_cpFormObjectId_t id);
+    extern L7_char8 *usmWebCPGenericGet(EwsContext context, usmWeb_cpGenericGetId_t id);
+    extern L7_char8 *usmWebCPLangLinksGet(EwsContext context);
+
+    /* cp_web_custom.html */
+    extern L7_char8 *usmWebCPImageFileSelect(EwsContext context, usmWeb_cpGenericGetId_t id);
+    extern L7_char8 *usmWebCPGenericWebGet(EwsContext context, usmWeb_cpGenericGetId_t id);
+    extern L7_char8 *usmWebCPWebFormObjectEnabled(EwsContext context, usmWeb_cpGenericGetId_t id);
+
+ '>
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Macro Definitions                                               -->
+<!-- ----------------------------------------------------------------------- -->
+
+<EMWEB_IF ID=USMWEB_IF_CP_MODE_DISABLED C='
+  L7_CP_MODE_STATUS_t status = L7_CP_MODE_DISABLED;
+
+  if (usmDbCpdmGlobalStatusModeGet(&status) == L7_SUCCESS)
+  {
+    if ((status == L7_CP_MODE_DISABLED) || (status == L7_CP_MODE_DISABLE_PENDING))
+    {
+      return "DISPLAY";
+    }
+  }
+  return NULL;
+ '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_CP_OPER_STATUS_DISABLED C='
+  EwaNetHandle net;
+  usmWeb_AppInfo_t appInfo;
+  L7_ushort16 cpId = 0;
+  L7_CP_INST_OPER_STATUS_t status = L7_CP_INST_OPER_STATUS_DISABLED;
+  L7_char8 qStr[256];
+  L7_char8 *pStr;
+
+  if (ewsCGIQueryString(ewsContext, qStr, 256) > 0)
+  {
+    pStr = strstr(qStr, "cp=");
+    if (pStr != L7_NULLPTR)
+    {
+      pStr += strlen("cp=");
+      cpId = atoi(pStr);
+    }
+  }
+  else
+  {
+	  net = ewsContextNetHandle(ewsContext);
+	  if (net->app_pointer != L7_NULL)
+  	{
+	    memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+	    cpId = appInfo.data[1];
+	  }
+  }
+
+  if (usmDbCpdmCPConfigOperStatusGet(cpId, &status) == L7_SUCCESS)
+  {
+    if (status == L7_CP_INST_OPER_STATUS_DISABLED)
+    {
+      return "DISPLAY";
+    }
+  }
+
+  return NULL;
+ '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_MORE_THAN_ONE_CP_CONFIG C='
+  cpId_t cpId = 1;
+
+  if (usmDbCpdmCPConfigNextGet(cpId, &cpId) == L7_SUCCESS)
+    return "TRUE";
+  else
+    return NULL;
+ '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_CP_INTF_INSTANCE_DISABLED C='
+  EwaNetHandle net;
+  usmWeb_AppInfo_t appInfo;
+  L7_uint32 intfId = 0;
+  L7_BOOL status = L7_DISABLE;
+  L7_char8 qStr[256];
+  L7_char8 *pStr;
+
+  if (ewsCGIQueryString(ewsContext, qStr, 256) > 0)
+  {
+    pStr = strstr(qStr, "if=");
+    if (pStr != L7_NULLPTR)
+    {
+      pStr += strlen("if=");
+      intfId = atoi(pStr);
+    }
+  }
+  else
+  {
+  	net = ewsContextNetHandle(ewsContext);
+  	if (net->app_pointer != L7_NULL)
+  	{
+  	  memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+  	  intfId = appInfo.data[0];
+  	}
+    else
+    {
+      cpId_t next_cpId = CP_ID_MIN;
+      if ((usmDbCpdmCPConfigIntIfNumNextGet(CP_ID_MIN, intfId, &next_cpId, &intfId) != L7_SUCCESS) ||
+          (next_cpId != CP_ID_MIN))
+      {
+        intfId = 0;
+      }
+    }
+  }
+
+  if (usmDbCpdmIntfStatusGetIsEnabled(intfId, &status) == L7_SUCCESS)
+  {
+    if (status == L7_DISABLE)
+    {
+      return "DISPLAY";
+    }
+  }
+
+  return NULL;
+ '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_INTF_ASSOCIATED_TO_CP C='
+  EwaNetHandle net;
+  usmWeb_AppInfo_t appInfo;
+  L7_ushort16 cpId=0, next_cpId;
+  L7_uint32 intfId;
+  L7_char8 qStr[256];
+  L7_char8 *pStr, *pStr2=NULL;
+
+  if (ewsCGIQueryString(ewsContext, qStr, 256) > 0)
+  {
+    pStr = strstr(qStr, "cp=");
+    if (pStr != L7_NULLPTR)
+    {
+      pStr += strlen("cp=");
+      pStr2 = strtok(pStr, "&");
+      if (pStr2 == NULL)
+      {
+        return NULL;
+      }
+      cpId = atoi(pStr2);
+    }
+  }
+  else
+  {
+  	net = ewsContextNetHandle(ewsContext);
+  	if (net->app_pointer != L7_NULL)
+  	{
+  	  memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+      cpId = appInfo.data[1];
+  	}
+    else
+    {
+      cpId = CP_ID_MIN;
+    }
+  }
+
+  intfId = 0;
+  if ((usmDbCpdmCPConfigIntIfNumNextGet(cpId, intfId, &next_cpId, &intfId) == L7_SUCCESS)
+      && (next_cpId == cpId))
+  {
+    return "DISPLAY";
+  }
+
+  return NULL;
+ '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_USER_LOCAL_EXISTS C='
+    uId_t uId = 0;
+
+    if (usmDbCpdmUserEntryNextGet(uId, &uId) == L7_SUCCESS)
+    {
+      return "USER_EXISTS";
+    }
+
+    return NULL;
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_NEW_USER C='
+    EwaNetHandle net;
+    usmWeb_AppInfo_t appInfo;
+    L7_uint32 val = 0;
+    uId_t uId = 0;
+
+    net = ewsContextNetHandle(ewsContext);
+    if (net->app_pointer != L7_NULL)
+    {
+      memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+      val = appInfo.data[0];
+    }
+    else
+    {
+      if (usmDbCpdmUserEntryNextGet(uId, &uId) != L7_SUCCESS)
+        val = FD_CP_LOCAL_USERS_MAX+1;
+    }
+
+    if (val == (FD_CP_LOCAL_USERS_MAX+1))
+      return "NEW_USER";
+    else
+      return NULL;
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_NOT_NEW_USER C='
+    EwaNetHandle net;
+    usmWeb_AppInfo_t appInfo;
+    uId_t uId = 0;
+    L7_uint32 val = 0;
+
+    net = ewsContextNetHandle(ewsContext);
+    if (net->app_pointer != L7_NULL)
+    {
+      memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+      val = appInfo.data[0];
+    }
+    else
+    {
+      if (usmDbCpdmUserEntryNextGet(uId, &uId) != L7_SUCCESS)
+        val = FD_CP_LOCAL_USERS_MAX+1;
+    }
+
+    if (val == (FD_CP_LOCAL_USERS_MAX+1))
+      return NULL;
+    else
+      return "NEW_USER";
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_NO_USERS_EXIST C='
+    uId_t uId = 0;
+
+    if (usmDbCpdmUserEntryNextGet(uId, &uId) == L7_SUCCESS)
+      return NULL;
+
+    return "NO_USERS";
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_CP_CLIENT_EXISTS C='
+    L7_enetMacAddr_t macAddr;
+
+    memset(&macAddr, 0x00, sizeof(macAddr));
+    if (usmDbCpdmClientConnStatusNextGet(&macAddr, &macAddr) == L7_SUCCESS)
+      return "CLIENT_EXISTS";
+
+    return NULL;
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_ANY_CP_INTF_ASSOC_EXISTS C='
+  cpId_t cpId=0, nextCpId;
+  L7_uint32 intf=0, nextIntf;
+
+  if (usmDbCpdmCPConfigIntIfNumNextGet(cpId, intf, &nextCpId, &nextIntf) == L7_SUCCESS)
+  {
+    return "DISPLAY";
+  }
+
+  return NULL;
+ '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_CP_CLIENT_EXISTS_ON_INTF C='
+    EwaNetHandle net;
+    usmWeb_AppInfo_t appInfo;
+    L7_uint32 intf = 0;
+    L7_enetMacAddr_t macAddr;
+    cpId_t cpId = 0;
+
+    net = ewsContextNetHandle(ewsContext);
+    if (net->app_pointer != L7_NULL)
+    {
+      memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+      intf = appInfo.data[0];
+    }
+    else
+    {
+      do
+      {
+        if (usmDbCpimIntfNextGet(intf, &intf) != L7_SUCCESS)
+        {
+          return NULL;
+        }
+      } while (usmDbCpdmCPConfigIntIfNumFind(intf, &cpId) != L7_SUCCESS);
+    }
+
+    memset(&macAddr, 0x00, sizeof(macAddr));
+    if (usmDbCpdmClientConnStatusIntfClientNextGet(intf, macAddr, &macAddr) == L7_SUCCESS)
+      return "CLIENT_EXISTS_ON_INTF";
+
+    return NULL;
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_CP_CLIENT_ASSOC_CPID C='
+    EwaNetHandle net;
+    usmWeb_AppInfo_t appInfo;
+    L7_ushort16 cpId = 0;
+    L7_enetMacAddr_t macAddr;
+
+    net = ewsContextNetHandle(ewsContext);
+    if (net->app_pointer != L7_NULL)
+    {
+      memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+      cpId = appInfo.data[1];
+    }
+    else
+    {
+      if (usmDbCpdmCPConfigNextGet(cpId, &cpId) != L7_SUCCESS)
+      {
+        return NULL;
+      }
+    }
+
+    memset(&macAddr, 0x00, sizeof(macAddr));
+    if (usmDbCpdmClientConnStatusCPIDClientNextGet(cpId, macAddr, &macAddr) == L7_SUCCESS)
+      return "CLIENT_ASSOC_CPID";
+
+    return NULL;
+'>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_MAX_CP_CONFIG_REACHED C='
+  cpId_t cpId = 0;
+  L7_uint32 count = 0;
+
+  while (usmDbCpdmCPConfigNextGet(cpId, &cpId) == L7_SUCCESS)
+    count++;
+  if (count == FD_CP_CONFIG_MAX)
+    return "TRUE";
+
+  return NULL;
+ '>
+</EMWEB_IF>
+
+<EMWEB_STRING ID=USMWEB_CPID_NAME_STRING C='
+  EwaNetHandle net;
+  usmWeb_AppInfo_t appInfo;
+  L7_char8 qStr[256];
+  L7_char8 *pStr;
+  L7_ushort16 cpId=0;
+  L7_char8 name[CP_NAME_MAX+1];
+
+  if (ewsCGIQueryString(ewsContext, qStr, 256) > 0)
+  {
+    pStr = strstr(qStr, "cp=");
+    if (pStr != L7_NULLPTR)
+    {
+      pStr += strlen("cp=");
+      cpId = atoi(pStr);
+    }
+  }
+  else
+  {
+    net = ewsContextNetHandle(ewsContext);
+    if (net->app_pointer != L7_NULL)
+    {
+      memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+      cpId = appInfo.data[0];
+    }
+    else
+    {
+      cpId = CP_ID_MIN;
+    }
+  }
+
+  memset(name, 0, sizeof(name));
+  if (usmDbCpdmCPConfigNameGet(cpId, name) == L7_SUCCESS)
+  {
+    osapiSnprintf(ewsContextNetHandle(ewsContext)->buffer, APP_BUFFER_SIZE, "%s %u-%s", 
+                  usmWebSecurityGetNLS(27104), cpId, name);
+    return ewsContextNetHandle(ewsContext)->buffer;
+  }
+
+  return NULL;
+ '>
+
+<EMWEB_IF ID=USMWEB_IF_NOT_DEFAULT_CP_CONFIGURATION C='
+  EwaNetHandle net;
+  usmWeb_AppInfo_t appInfo;
+  L7_char8 qStr[256];
+  L7_char8 *pStr;
+  L7_uint32 cpId = 0;
+
+  if (ewsCGIQueryString(ewsContext, qStr, 256) > 0)
+  {
+    pStr = strstr(qStr, "cp=");
+    if (pStr != L7_NULLPTR)
+    {
+      pStr += strlen("cp=");
+      cpId = atoi(pStr);
+    }
+  }
+  else
+  {
+    net = ewsContextNetHandle(ewsContext);
+    if (net->app_pointer != L7_NULL)
+    {
+      memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+      cpId = appInfo.data[0];
+    }
+  }
+
+  if (cpId != CP_ID_MIN)
+    return "DISPLAY";
+
+  return NULL;
+ '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_CP_CLUSTERING_SUPPORTED C='
+  if (usmDbCpdmClusterSupportGet() == L7_SUCCESS)
+    return "TRUE";
+  else
+    return NULL;
+ '>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_MGMT_SECURITY_SUPPORTED C='
+#ifdef L7_MGMT_SECURITY_PACKAGE
+    return "TRUE";
+#else
+    return NULL;
+#endif
+ '>
+</EMWEB_IF>
+
+</HTML>
+

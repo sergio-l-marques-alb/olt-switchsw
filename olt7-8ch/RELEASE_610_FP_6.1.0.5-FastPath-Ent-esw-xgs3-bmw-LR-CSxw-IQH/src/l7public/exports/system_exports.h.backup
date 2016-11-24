@@ -1,0 +1,289 @@
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2000-2007
+*
+**********************************************************************
+*
+* @filename system_exports.h
+*
+* @purpose  Defines constants and feature definitions that are shared by Management and the application
+*
+* @component
+*
+* @comments
+*
+*
+* @Notes
+*
+* @created 03/26/2008
+*
+* @author akulkarn
+* @end
+*
+**********************************************************************/
+
+#ifndef __SYSTEM_EXPORTS_H_
+#define __SYSTEM_EXPORTS_H_
+
+/* STACKING Component Feature List */
+typedef enum
+{
+  /* STACKING supported */
+  L7_STACKING_FEATURE_SUPPORTED = 0,          /* general support statement */
+  L7_FPS_FEATURE_ID,   /* Front-panel stacking support */
+  L7_FPS_QOS_REPLACEMENT_FEATURE_ID,  /* Special QOS support for front panel stacking ports */
+  L7_FPS_PORT_MODE_CFG_FEATURE_ID, /* Ports are configurable from Ethernet to Stack mode */
+  L7_STACKING_FEATURE_ID_TOTAL                /* total number of enum values */
+} L7_STACKING_FEATURE_IDS_t;
+
+/*--------------------------------------*/
+/*  BOOTP/DHCP Constants                */
+/*--------------------------------------*/
+
+typedef enum
+{
+  L7_SYSCONFIG_MODE_NONE =1,
+  L7_SYSCONFIG_MODE_BOOTP,
+  L7_SYSCONFIG_MODE_DHCP,
+  L7_SYSCONFIG_MODE_NOT_COMPLETE,
+  L7_SYSCONFIG_MODE_COMPLETE
+} L7_SYSCFG_MODE_t;
+
+
+/*--------------------------------------*/
+/*  MAC Address Constants               */
+/*--------------------------------------*/
+
+#define L7_MAC_ADDR_LEN                 6
+#define L7_MAC_ADDR_STRING_LEN          (L7_MAC_ADDR_LEN * 3)
+#define L7_VID_MAC_ADDR_LEN             (L7_MAC_ADDR_LEN+L7_MFDB_VLANID_LEN)
+
+/*--------------------------------------*/
+/*  IP Address Constants                */
+/*--------------------------------------*/
+
+#define L7_IP_ADDR_STRING_LEN           16      /* "xxx.xxx.xxx.xxx" */
+
+typedef enum
+{
+  L7_SYSMAC_NONE = 0,
+  L7_SYSMAC_BIA,            /* Burned-In Address */
+  L7_SYSMAC_LAA             /* Locally-Administered Address */
+} L7_MACADDR_TYPE_t;
+
+/*--------------------------------------*/
+/*  Baud Rates                          */
+/*--------------------------------------*/
+
+typedef enum
+{
+  L7_BAUDRATE_1200 =1,
+  L7_BAUDRATE_2400,
+  L7_BAUDRATE_4800,
+  L7_BAUDRATE_9600,
+  L7_BAUDRATE_19200,
+  L7_BAUDRATE_38400,
+  L7_BAUDRATE_57600,
+  L7_BAUDRATE_115200
+} L7_BAUDRATES_t;
+
+/*
+* Parity Types
+*/
+typedef enum
+{
+  L7_PARITY_EVEN,
+  L7_PARITY_ODD,
+  L7_PARITY_NONE
+} L7_PARITY_t;
+
+/*
+* LED Color Types
+*/
+typedef enum
+{
+  L7_LED_GREEN = 1,
+  L7_LED_AMBER,    /* or orange */
+  L7_LED_YELLOW,
+  L7_LED_RED,
+  L7_LED_OFF,       /* black */
+  L7_LED_BLINK_GREEN,
+  L7_LED_BLINK_AMBER,
+} L7_LED_COLOR_t;
+
+
+/*
+* Serial Port Stop Bits
+*/
+#define L7_STOP_BIT_1 1
+#define L7_STOP_BIT_2 2
+
+
+/*********************************************************************
+*
+* RESET TYPES
+*
+*********************************************************************/
+typedef enum
+{
+  L7_WARMRESET,
+  L7_COLDRESET
+
+} L7_RESET_TYPE;
+
+
+/*********************************************************************
+*
+* COMPONENT INTIALIZATION
+*
+*********************************************************************/
+
+typedef enum
+{
+
+  L7_PARM_STRUCT = 1,
+  L7_PARM_FILE
+
+}L7_PARM_TYPES_t;
+
+/*---------------------------------------*/
+/*  Network Processing device Enum.      */
+/*  Add other ID's by appending to       */
+/*  the list, never add in the middle.   */
+/*                                       */
+/*  NOTE: When introducing an ID for a   */
+/*  fundamentally different platform,    */
+/*  be sure to add an entry to the       */
+/*  L7_BASE_TECHNOLOGY_TYPES_t below.    */
+/*---------------------------------------*/
+typedef enum
+{
+  __BROADCOM_5615_ID = 1,
+  __BROADCOM_5645_ID,
+  __BROADCOM_5650_ID,
+  __BROADCOM_5665_ID,
+  __BROADCOM_5673_ID,
+  __BROADCOM_5674_ID,
+  __BROADCOM_5675_ID,
+  __BROADCOM_5690_ID,
+  __BROADCOM_5691_ID,
+  __BROADCOM_5692_ID,
+  __BROADCOM_5693_ID,
+  __BROADCOM_5695_ID,
+  __BROADCOM_56504_ID,
+  __BROADCOM_56304_ID,
+  __BROADCOM_56314_ID,
+  __BROADCOM_56800_ID,
+  __BROADCOM_56514_ID,
+  __BROADCOM_56214_ID,
+  __BROADCOM_56218_ID,
+  __BROADCOM_56224_ID,
+  __BROADCOM_56228_ID,
+  __BROADCOM_56624_ID,
+  __BROADCOM_56680_ID,
+  __BROADCOM_56820_ID,
+  __BROADCOM_56634_ID,
+  __BROADCOM_56524_ID,
+  __BROADCOM_53115_ID,
+  __BROADCOM_53314_ID,
+  __BROADCOM_56636_ID,
+  __MASTER_DRIVER_ID,
+} L7_NPD_ID_t;
+
+/* Summarization of Network Processing devices into
+ * a generic base technology specification
+ *
+ * Note:  NPDs that operate in essentially the same
+ *        manner from a software application point of
+ *        view should be represented by a single entry
+ *        here.
+ */
+typedef enum
+{
+  L7_BASE_TECHNOLOGY_TYPE_BROADCOM_STRATA = 1,
+  L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS,
+  L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS3,
+  L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS4,
+  L7_BASE_TECHNOLOGY_TYPE_BROADCOM_ROBO,
+  L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER,
+  L7_BASE_TECHNOLOGY_TYPE_UNKNOWN,      /* unidentified technology type */
+  L7_BASE_TECHNOLOGY_TYPE_TOTAL         /* total number of enum values */
+} L7_BASE_TECHNOLOGY_TYPES_t;
+
+/*  NPD subtype specification
+ *
+ * Note:  Some NPD's share the same BASE_TECHNOLOGY_TYPE above but
+ *        have differences in features that need further granularity.
+ *        e.g. ECMP is supported in the 5695, but not the 5690, but
+ *        they both are L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS.
+ */
+
+ typedef enum
+{
+  L7_BASE_TECHNOLOGY_SUBTYPE_NONE = 1,  /* no meaningful subtype for the technology */
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5665,
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5673,
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5690,
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5695,
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5630x,  /* helix     */
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5631x,  /* helixplus */
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5650x,  /* firebolt  */
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5651x,  /* firebolt2 */
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5660x,  /* easyrider */
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5675,
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_56800,  /* bradley */
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS_5621x,  /* raptor */
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5668x, /* valkyrie */
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5662x, /* triumph */
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_5682x, /* scorpion */
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_XGS4_56520, /* triumph2 family */
+  L7_BASE_TECHNOLOGY_SUBTYPE_BROADCOM_ROBO_53115,  /* vulcan */
+  L7_BASE_TECHNOLOGY_SUBTYPE_MASTERDRIVER_NETAPPL,  /* network appliance */
+  L7_BASE_TECHNOLOGY_SUBTYPE_UNKNOWN,      /* unidentified technology type */
+  L7_BASE_TECHNOLOGY_SUBTYPE_TOTAL         /* total number of enum values */
+} L7_BASE_TECHNOLOGY_SUBTYPES_t;
+
+/************************
+ * Sysnet PDU Intercept *
+ ************************/
+#define L7_SYSNET_PDU_MAX_HOOKS  16  /* Max number of hooks per address family */
+
+typedef enum
+{
+  L7_SYSNET_HOOK_PRECEDENCE_0 = 0,   /* Lowest value is highest precedence */
+  L7_SYSNET_HOOK_PRECEDENCE_1,
+  L7_SYSNET_HOOK_PRECEDENCE_2,
+  L7_SYSNET_HOOK_PRECEDENCE_3,
+  L7_SYSNET_HOOK_PRECEDENCE_4,
+  L7_SYSNET_HOOK_PRECEDENCE_5,
+  L7_SYSNET_HOOK_PRECEDENCE_6,
+  L7_SYSNET_HOOK_PRECEDENCE_7,       /* Highest value is lowest precedence */
+  L7_SYSNET_HOOK_PRECEDENCE_LAST     /* Number of precedence values */
+} L7_SYSNET_HOOK_PRECEDENCE_t;
+
+#define L7_MIN_BROADCAST_RATE 0
+#define L7_MAX_BROADCAST_RATE 33554432
+
+#define FACTORY_DEFAULT_REFER   11
+#define FACTORY_DEFAULT_DEFINE  22
+
+#if defined(L7_CLI_PACKAGE)
+#define FACTORY_DEFAULT_DEFINE_CLI FACTORY_DEFAULT_DEFINE
+#define FACTORY_DEFAULT_DEFINE_SNMP FACTORY_DEFAULT_REFER
+#elif defined(L7_SNMP_PACKAGE)
+#define FACTORY_DEFAULT_DEFINE_CLI FACTORY_DEFAULT_REFER
+#define FACTORY_DEFAULT_DEFINE_SNMP FACTORY_DEFAULT_DEFINE
+#endif
+
+#define L7_SYSMGMT_ASSETTAG_MAX  16
+#define L7_SYSMGMT_SERVICE_TAG_MAX_LENGTH 16
+#define L7_SYSMGMT_CHASSIS_SERVICE_TAG_MAX_LENGTH 16
+#define L7_SYSMGMT_CHASSIS_SLOT_ID_MAX_LENGTH 16
+
+/******************** conditional Override *****************************/
+
+#ifdef INCLUDE_SYSTEM_EXPORTS_OVERRIDES
+#include "system_exports_overrides.h"
+#endif
+
+#endif /* __SYSTEM_EXPORTS_H_*/

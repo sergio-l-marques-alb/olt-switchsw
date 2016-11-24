@@ -1,0 +1,72 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>VRRP Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=vrtrackintf></a>Help for VRRP Interface Tracking Configuration</h2>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>Priority Decrement</b> - The  priority decrement for the tracked interface.
+      The valid range is 1 -254. default value is 10.
+  </li>
+  <li><b>Remove </b> -  Removes the selected Tracking interface from the VRRP tracked list.</li>
+
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b> emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> -
+      The interface for which data is to be displayed.</li>
+  <li><b>Virtual Router ID</b> -
+      The Virtual Router ID for which data is to be displayed.</li>
+  <li><b>Tracking Interface</b> -
+      The Tracked interface for which data is to be displayed or
+      configured.</li>
+      <EMWEB_IF ID=USMWEB_IF_READWRITE>
+      <EMWEB_ELSE>
+  <li><b>Priority Decrement</b> - The  priority decrement for the tracked interface.
+       The valid range is 1 -254. default value is 10.
+  </li>
+  </EMWEB_IF>
+ <li><b>Interface State</b> -
+      The IP state of the tracked interface.
+
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Add</b> - Proceed to the VRRP Tracking interface screen. </li>
+  <li><b>Submit</b> - Send the updated configuration to the router.  Configuration changes
+  take effect immediately. These changes will not be retained across a power cycle
+  unless a save is performed.</li>
+  </EMWEB_IF>
+  <li><b>Refresh</b> - Refresh the data on the screen with the present state of
+     the data in the switch. </li>
+  <li><b>Cancel</b> - Return to the Virtual Router Configuration screen. </li>
+ </ul>
+</ul>
+</body>
+</html>
+
+

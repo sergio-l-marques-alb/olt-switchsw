@@ -1,0 +1,26 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml compile_if="ifOne" version="1.0" name="DHCPL2RelayConfiguration" title="DHCP L2 Relay Global Configuration">
+        <group id="1" level="ReadWriteUser" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="SwitchingDhcpL2RelayGlobalConfig_AdminMode" id="1" name="DHCP L2 Relay Mode"/>
+            </node>
+            <node id="2">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+
+        <group id="2" level="ReadOnlyUser" heading=" ">
+            <node id="1">
+                <element properties="read-only" obj-name="SwitchingDhcpL2RelayGlobalConfig_AdminMode" id="1" name="DHCP L2 Relay Mode"/>
+            </node>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

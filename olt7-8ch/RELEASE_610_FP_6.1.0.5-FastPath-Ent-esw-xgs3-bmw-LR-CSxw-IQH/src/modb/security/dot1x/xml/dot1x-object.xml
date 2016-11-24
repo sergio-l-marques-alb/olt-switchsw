@@ -1,0 +1,589 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="security" version="1.0">
+<module name="dot1x">
+<object name="dot1xPaePortNumber" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="The Port number associated with this Port."/>
+<ui name="Unit/Slot/Port" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.1.2.1.1"/> 
+</ui></object>
+<object name="dot1xPaePortNumber" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="The Port number associated with this Port."/>
+<ui name="Slot/Port" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.1.2.1.1"/> 
+</ui></object>
+<object name="dot1xSuppEapolFramesRx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAPOL frames of any type that have been received by this Supplicant."/>
+<ui name="dot1xSuppEapolFramesRx" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.2.1.1"/> 
+</ui></object>
+<object name="dot1xSuppEapolFramesTx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAPOL frames of any type that have been transmitted by this Supplicant."/>
+<ui name="dot1xSuppEapolFramesTx" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.2.1.2"/> 
+</ui></object>
+<object name="dot1xSuppEapolStartFramesTx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAPOL Start frames that have been transmitted by this Supplicant."/>
+<ui name="dot1xSuppEapolStartFramesTx" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.2.1.3"/> 
+</ui></object>
+<object name="dot1xSuppEapolLogoffFramesTx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAPOL Logoff frames that have been transmitted by this Supplicant."/>
+<ui name="dot1xSuppEapolLogoffFramesTx" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.2.1.4"/> 
+</ui></object>
+<object name="dot1xSuppEapolRespIdFramesTx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAP Resp/Id frames that have been transmitted by this Supplicant."/>
+<ui name="dot1xSuppEapolRespIdFramesTx" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.2.1.5"/> 
+</ui></object>
+<object name="dot1xSuppEapolRespFramesTx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of valid EAP Response frames (other than Resp/Id frames) that have been transmitted  by this Supplicant."/>
+<ui name="dot1xSuppEapolRespFramesTx" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.2.1.6"/> 
+</ui></object>
+<object name="dot1xSuppEapolReqIdFramesRx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAP Req/Id frames that have been received by this Supplicant."/>
+<ui name="dot1xSuppEapolReqIdFramesRx" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.2.1.7"/> 
+</ui></object>
+<object name="dot1xSuppEapolReqFramesRx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAP Request frames (other than Rq/Id frames) that have been received by this Supplicant."/>
+<ui name="dot1xSuppEapolReqFramesRx" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.2.1.8"/> 
+</ui></object>
+<object name="dot1xSuppInvalidEapolFramesRx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAPOL frames that have been received by this Supplicant in which the frame type is not recognized."/>
+<ui name="dot1xSuppInvalidEapolFramesRx" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.2.1.9"/> 
+</ui></object>
+<object name="dot1xSuppEapLengthErrorFramesRx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAPOL frames that have been received by this Supplicant in which the Packet Body Length field (7.5.5) is invalid."/>
+<ui name="dot1xSuppEapLengthErrorFramesRx" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.2.1.10"/> 
+</ui></object>
+<object name="dot1xSuppLastEapolFrameVersion" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The protocol version number carried in the most recently received EAPOL frame."/>
+<ui name="dot1xSuppLastEapolFrameVersion" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.2.1.11"/> 
+</ui></object>
+<object name="dot1xSuppLastEapolFrameSource" depends="dot1xPaePortNumber">
+<core type="string" access="read-only" descr="The source MAC address carried in the most recently received EAPOL frame."/>
+<ui name="dot1xSuppLastEapolFrameSource" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.2.1.12"/> 
+</ui></object>
+<object name="dot1xSuppPaeState" depends="dot1xPaePortNumber">
+<core type="enum" xtype="L7_DOT1X_APM_STATES_t" access="read-only" descr="The current state of the Supplicant PAE state machine (8.5.8)."/>
+<ui name="dot1xSuppPaeState" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.1.1.1"/> 
+</ui></object>
+<object name="dot1xSuppHeldPeriod" depends="dot1xPaePortNumber">
+<core type="uint" min="L7_DOT1X_PORT_MIN_QUIET_PERIOD" max="L7_DOT1X_PORT_MAX_QUIET_PERIOD" default="FD_DOT1X_PORT_QUIET_PERIOD" access="read-write" descr="The value, in seconds, of the heldPeriod constant currently in use by the Supplicant PAE state machine (8.5.8.1.2)."/>
+<ui name="dot1xSuppHeldPeriod" style="inputLine">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.1.1.2"/> 
+</ui></object>
+<object name="dot1xSuppAuthPeriod" depends="dot1xPaePortNumber">
+<core type="uint" access="read-write" descr="The value, in seconds, of the authPeriod constant currently in use by the Supplicant PAE state machine (8.5.8.1.2)."/>
+<ui name="dot1xSuppAuthPeriod" style="inputLine">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.1.1.3"/> 
+</ui></object>
+<object name="dot1xSuppStartPeriod" depends="dot1xPaePortNumber">
+<core type="uint" min="L7_DOT1X_PORT_MIN_TX_PERIOD" max="L7_DOT1X_PORT_MAX_TX_PERIOD" default="FD_DOT1X_PORT_TX_PERIOD" access="read-write" descr="The value, in seconds, of the startPeriod constant currently in use by the Supplicant PAE state machine (8.5.8.1.2)."/>
+<ui name="dot1xSuppStartPeriod" style="inputLine">
+ <snmp asn-id=".1.0.8802.1.1.1.1.3.1.1.4"/> 
+</ui></object>
+
+<object name="dot1xAuthEapolFramesRx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAPOL frames of any type that have been received by this Authenticator."/>
+<ui name="dot1xAuthEapolFramesRx" style="plainText">
+</ui></object>
+<object name="dot1xAuthEapolFramesTx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAPOL frames of any type that have been transmitted by this Authenticator."/>
+<ui name="dot1xAuthEapolFramesTx" style="plainText">
+</ui></object>
+<object name="dot1xAuthEapolStartFramesRx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAPOL Start frames that have been received by this Authenticator."/>
+<ui name="dot1xAuthEapolStartFramesRx" style="plainText">
+</ui></object>
+<object name="dot1xAuthEapolLogoffFramesRx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAPOL Logoff frames that have been received by this Authenticator."/>
+<ui name="dot1xAuthEapolLogoffFramesRx" style="plainText">
+</ui></object>
+<object name="dot1xAuthEapolRespIdFramesRx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAP Resp/Id frames that have been received by this Authenticator."/>
+<ui name="dot1xAuthEapolRespIdFramesRx" style="plainText">
+</ui></object>
+<object name="dot1xAuthEapolRespFramesRx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of valid EAP Response frames (other than Resp/Id frames) that have been received  by this Authenticator."/>
+<ui name="dot1xAuthEapolRespFramesRx" style="plainText">
+</ui></object>
+<object name="dot1xAuthEapolReqIdFramesTx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAP Req/Id frames that have been transmitted by this Authenticator."/>
+<ui name="dot1xAuthEapolReqIdFramesTx" style="plainText">
+</ui></object>
+<object name="dot1xAuthEapolReqFramesTx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAP Request frames (other than Rq/Id frames) that have been transmitted  by this Authenticator."/>
+<ui name="dot1xAuthEapolReqFramesTx" style="plainText">
+</ui></object>
+<object name="dot1xAuthInvalidEapolFramesRx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAPOL frames that have been received by this Authenticator in which the frame type is not recognized."/>
+<ui name="dot1xAuthInvalidEapolFramesRx" style="plainText">
+</ui></object>
+<object name="dot1xAuthEapLengthErrorFramesRx" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The number of EAPOL frames that have been received by this Authenticator in which the Packet Body Length field (7.5.5) is invalid."/>
+<ui name="dot1xAuthEapLengthErrorFramesRx" style="plainText">
+</ui></object>
+<object name="dot1xAuthLastEapolFrameVersion" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="The protocol version number carried in the most recently received EAPOL frame."/>
+<ui name="dot1xAuthLastEapolFrameVersion" style="plainText">
+</ui></object>
+<object name="dot1xAuthLastEapolFrameSource" depends="dot1xPaePortNumber">
+<core type="mac" access="read-only" descr="The source MAC address carried in the most recently received EAPOL frame."/>
+<ui name="dot1xAuthLastEapolFrameSource" style="plainText">
+</ui></object>
+
+<object name="dot1xPaePortProtocolVersion" depends="dot1xPaePortNumber">
+<core type="enum" xtype="L7_DOT1X_PAE_PORT_PROTOCOL_VERSION_t" default="L7_DOT1X_PAE_PORT_PROTOCOL_VERSION_1" access="read-only" descr="The protocol version associated with this Port."/>
+<ui name="dot1xPaePortProtocolVersion" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.1.1.1.2.1.2"/> 
+</ui></object>
+<object name="dot1xPaePortCapabilities" depends="dot1xPaePortNumber">
+<core type="enum" xtype="dot1xInterfaceCapable_t" access="read-write" descr="Indicates the PAE functionality that this Port supports and that may be managed through this MIB."/>
+<ui name="dot1xPaePortCapabilities" style="choice2select1">
+ <snmp asn-id=".1.0.8802.1.1.1.1.1.2.1.3"/> 
+</ui></object>
+<object name="dot1xPaePortInitialize" depends="dot1xPaePortNumber">
+<core type="enum" xtype="TrueFalse_t" default="L7_FALSE" access="write-only" descr="The initialization control for this Port. Setting this attribute TRUE causes the Port to be initialized. The attribute value reverts to FALSE once initialization has completed."/>
+<ui name="dot1xPaePortInitialize" style="inputLine">
+ <snmp asn-id=".1.0.8802.1.1.1.1.1.2.1.4"/> 
+</ui></object>
+<object name="dot1xPaePortReauthenticate" depends="dot1xPaePortNumber">
+<core type="enum" xtype="TrueFalse_t" default="L7_FALSE" access="read-write" descr="The reauthentication control for this port. Setting this attribute TRUE causes the Authenticator PAE state machine for the Port to reauthenticate the Supplicant. Setting this attribute FALSE has no effect. This attribute always returns FAL"/>
+<ui name="dot1xPaePortReauthenticate" style="inputLine">
+ <snmp asn-id=".1.0.8802.1.1.1.1.1.2.1.5"/> 
+</ui></object>
+<object name="dot1xPaeSystemAuthControl">
+<core type="enum" xtype="enable_t" default="FD_DOT1X_ADMIN_MODE" access="read-write" descr="The administrative enable/disable state for Port Access Control in a System."/>
+<ui name="dot1xPaeSystemAuthControl" style="inputLine">
+ <snmp asn-id=".1.0.8802.1.1.1.1.1.1"/> 
+</ui></object>
+<!-- ObjectRemoved
+&lt;object name=&quot;agentDot1xGuestVlanId&quot; depends=&quot;dot1xPaePortNumber&quot; &gt;
+&lt;core  type=&quot;uint&quot; min=&quot;L7_DOT1Q_MIN_VLAN_ID&quot; max=&quot;L7_DOT1Q_MAX_VLAN_ID&quot; default=&quot;FD_DOT1X_PORT_GUEST_VLAN&quot; access=&quot;read-write&quot; descr=&quot;Specifies the Guest Vlan of the interface. An interface will be moved to its Guest Vlan if its access is unsucessfully authenticated. A value of zero indicates no Guest Vlan configured for the interface.&quot;/&gt;
+&lt;ui  name=&quot;agentDot1xGuestVlanId&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.36.1.2.1.1&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;agentDot1xGuestVlanPeriod&quot; depends=&quot;dot1xPaePortNumber&quot; &gt;
+&lt;core  type=&quot;uint&quot; min=&quot;L7_DOT1X_PORT_MIN_GUESTVLAN_PERIOD&quot; max=&quot;L7_DOT1X_PORT_MAX_GUESTVLAN_PERIOD&quot; default=&quot;FD_DOT1X_PORT_GUEST_PERIOD&quot; access=&quot;read-write&quot; descr=&quot;The value, in seconds, of the guestVlanPeriod constant currently in use for Guest Vlan Assignment for the interface .&quot;/&gt;
+&lt;ui  name=&quot;agentDot1xGuestVlanPeriod&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.36.1.2.1.2&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;agentGuestVlanSupplMode&quot;  &gt;
+&lt;core  type=&quot;enum&quot; xtype=&quot;enable_t&quot; default=&quot;FD_DOT1X_GUEST_VLAN_SUPP_MODE&quot; access=&quot;read-write&quot; descr=&quot;Mode showing whether at the global level,Guest VLAN Supplicant Mode is enabled or not.&quot;/&gt;
+&lt;ui  name=&quot;agentGuestVlanSupplMode&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.36.1.1&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;agentDot1xRadiusVlanAssignment&quot;  &gt;
+&lt;core  type=&quot;enum&quot; xtype=&quot;enable_t&quot; default=&quot;FD_DOT1X_VLAN_ASSIGN_MODE&quot; access=&quot;read-write&quot; descr=&quot;Enable/Disable dot1x Vlan Assignment Support on the switch.&quot;/&gt;
+&lt;ui  name=&quot;agentDot1xRadiusVlanAssignment&quot; style=&quot;inputLine&quot;&gt;
+ &lt;snmp asn-id=&quot;.1.3.6.1.4.1.4413.1.1.36.2.1&quot;/&gt; 
+&lt;/ui&gt;&lt;/object&gt;
+-->
+<!-- ObjectAddedStart -->
+<object name="Dot1xRadiusVlanAssignment">
+<core type="enum" xtype="enable_t" default="FD_DOT1X_VLAN_ASSIGN_MODE" access="read-write" descr="Enable/Disable dot1x Vlan Assignment Support on the switch."/>
+<ui name="Dot1xRadiusVlanAssignment" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.1.1"/> 
+</ui></object>
+<object name="Dot1xPortControlMode" depends="dot1xPaePortNumber">
+<core type="enum" xtype="L7_DOT1X_PORT_CONTROL_t" default="FD_DOT1X_PORT_MODE" access="read-write" descr="the dot1x port control mode"/>
+<ui name="Dot1xPortControlMode" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.2.1.1.1"/> 
+</ui></object>
+<object name="Dot1xGuestVlanId" depends="dot1xPaePortNumber">
+<core type="uint" min="L7_DOT1Q_NULL_VLAN_ID" max="L7_DOT1Q_MAX_VLAN_ID" default="FD_DOT1X_PORT_GUEST_VLAN" access="read-write" descr="Specifies the Guest Vlan of the interface. An interface will be moved to its Guest Vlan if its access is unsucessfully authenticated. A value of zero indicates no Guest Vlan configured for the interface."/>
+<ui name="Dot1xGuestVlanId" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.2.1.1.2"/> 
+</ui></object>
+<!-- This object is used to list all possible values of VLAN(inlcuding ZERO(&apos;0&apos;). This is primarly used when all possible values of VLAN indexes are listed in a page and the destined object is a non-key.
+-->
+<object name="Dot1xGuestVlanIndexList" depends="dot1xPaePortNumber">
+<core descr="The VLAN-ID in integer format" max="L7_DOT1Q_MAX_VLAN_ID" min="L7_DOT1Q_MIN_VLAN_ID" properties="dynamic" access="read-write" type="uint"/>
+<ui style="plainText" name="VLAN ID"/>
+</object>
+<object name="Dot1xGuestVlanPeriod" depends="dot1xPaePortNumber">
+<core type="uint" min="L7_DOT1X_PORT_MIN_GUESTVLAN_PERIOD" max="L7_DOT1X_PORT_MAX_GUESTVLAN_PERIOD" default="FD_DOT1X_PORT_GUEST_PERIOD" access="read-write" descr="The value, in seconds, of the guestVlanPeriod constant currently in use for Guest Vlan Assignment for the interface ."/>
+<ui name="Dot1xGuestVlanPeriod" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.2.1.1.3"/> 
+</ui></object>
+<object name="Dot1xUnauthenticatedVlan" depends="dot1xPaePortNumber">
+<core type="uint" min="L7_DOT1Q_NULL_VLAN_ID" max="L7_DOT1Q_MAX_VLAN_ID" default="FD_DOT1X_PORT_UNAUTHENTICATED_VLAN" access="read-write" descr="Specifies the Unauthenticated Vlan of the port."/>
+<ui name="Dot1xUnauthenticatedVlan" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.2.1.1.4"/> 
+</ui></object>
+<!-- This object is used to list all possible values of VLAN(inlcuding ZERO(&apos;0&apos;). This is primarly used when all possible values of VLAN indexes are listed in a page and the destined object is a non-key.
+-->
+<object name="Dot1xUnauthenticatedVlanList" depends="dot1xPaePortNumber">
+<core descr="The VLAN-ID in integer format" max="L7_DOT1Q_MAX_VLAN_ID" min="L7_DOT1Q_MIN_VLAN_ID" properties="dynamic" access="read-write" type="uint"/>
+<ui style="plainText" name="VLAN ID"/>
+</object>
+<object name="Dot1xMaxUsers" depends="dot1xPaePortNumber">
+<core type="uint" min="L7_DOT1X_PORT_MIN_MAC_USERS" max="L7_DOT1X_PORT_MAX_MAC_USERS" default="FD_DOT1X_PORT_MAX_USERS" access="read-write" descr="Specifies the maximum users or clients that can authenticate on this port when the port control mode is macBased."/>
+<ui name="Dot1xMaxUsers" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.2.1.1.5"/> 
+</ui></object>
+<object name="Dot1xPortVlanAssigned" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Specifies the vlan the port is assigned to by Dot1x."/>
+<ui name="Dot1xPortVlanAssigned" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.2.1.1.6"/> 
+</ui></object>
+<object name="Dot1xPortVlanAssignedReason" depends="dot1xPaePortNumber">
+<core type="enum" xtype="L7_DOT1X_VLAN_ASSIGNED_MODE_t" access="read-only" descr="Reason the port is assigned to the vlan specified by agentDot1xPortVlanAssigned."/>
+<ui name="Dot1xPortVlanAssignedReason" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.2.1.1.7"/> 
+</ui></object>
+<object name="Dot1xPortSessionTimeout" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Specifies the session timeout value assigned by the Radius server for this port."/>
+<ui name="Dot1xPortSessionTimeout" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.2.1.1.8"/> 
+</ui></object>
+<object name="Dot1xPortTerminationAction" depends="dot1xPaePortNumber">
+<core type="enum" xtype="L7_DOT1X_TERMINATION_ACTION_t" default="L7_DOT1X_TERMINATION_ACTION_RADIUS" access="read-only" descr="Specifies the session termination action assigned by the Radius Server."/>
+<ui name="Dot1xPortTerminationAction" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.2.1.1.9"/> 
+</ui></object>
+
+<object name="Dot1xClientMacAddress">
+<core type="mac" key="yes" access="read-write" descr="Specifies the client MAC address of the client."/>
+<ui name="Dot1xClientMacAddress" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.3.1.1.1"/> 
+</ui></object>
+<object name="Dot1xLogicalPort" depends="Dot1xClientMacAddress">
+<core type="uint" access="read-only" descr="Specifies the client MAC address of the client."/>
+<ui name="Dot1xLogicalPort" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.3.1.1.2"/> 
+</ui></object>
+<object name="Dot1xInterface" depends="Dot1xClientMacAddress">
+<core type="uint" access="read-only" descr="Specifies the physical interface to which the client is attached."/>
+<ui name="Dot1xInterface" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.3.1.1.3"/> 
+</ui></object>
+<object name="Dot1xClientAuthPAEstate" depends="Dot1xClientMacAddress">
+<core type="enum" xtype="L7_DOT1X_APM_STATES_t" access="read-only" descr="The current value of the Authenticator PAE state machine for the client."/>
+<ui name="Dot1xClientAuthPAEstate" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.3.1.1.4"/> 
+</ui></object>
+<object name="Dot1xClientBackendState" depends="Dot1xClientMacAddress">
+<core type="enum" xtype="L7_DOT1X_BAM_STATES_t" access="read-only" descr="The current state of the Backend Authentication state machine."/>
+<ui name="Dot1xClientBackendState" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.3.1.1.5"/> 
+</ui></object>
+<object name="Dot1xClientUserName" depends="Dot1xClientMacAddress">
+<core type="string" access="read-only" descr="Specifies the username with which the client is authenticated to the Radius server."/>
+<ui name="Dot1xClientUserName" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.3.1.1.6"/> 
+</ui></object>
+<object name="Dot1xClientSessionTime" depends="Dot1xClientMacAddress">
+<core type="uint" access="read-only" descr="Specifies the time elapsed in seconds since the client was authenticated in this session."/>
+<ui name="Dot1xClientSessionTime" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.3.1.1.7"/> 
+</ui></object>
+<object name="Dot1xClientFilterID" depends="Dot1xClientMacAddress">
+<core type="string" access="read-only" descr="Specifies the Filter ID or Diffserv Policy name to be applied to the session."/>
+<ui name="Dot1xClientFilterID" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.3.1.1.8"/> 
+</ui></object>
+<object name="Dot1xClientVlanAssigned" depends="Dot1xClientMacAddress">
+<core type="uint" access="read-only" descr="Specifies the vlan the client is associated with by Dot1x."/>
+<ui name="Dot1xClientVlanAssigned" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.3.1.1.9"/> 
+</ui></object>
+<object name="Dot1xClientVlanAssignedReason" depends="Dot1xClientMacAddress">
+<core type="enum" xtype="L7_DOT1X_VLAN_ASSIGNED_MODE_t" access="read-only" descr="Reason the client is associated to the vlan specified by agentDot1xClientVlanAssigned."/>
+<ui name="Dot1xClientVlanAssignedReason" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.3.1.1.10"/> 
+</ui></object>
+<object name="Dot1xClientSessionTimeout" depends="Dot1xClientMacAddress">
+<core type="uint" access="read-only" descr="Specifies the session time remaining for the client if assigned by the Radius server."/>
+<ui name="Dot1xClientSessionTimeout" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.3.1.1.11"/> 
+</ui></object>
+<object name="Dot1xClientTerminationAction" depends="Dot1xClientMacAddress">
+<core type="enum" xtype="L7_DOT1X_TERMINATION_ACTION_t" access="read-only" descr="Specifies the session termination action assigned by the Radius Server."/>
+<ui name="Dot1xClientTerminationAction" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.36.3.1.1.12"/> 
+</ui></object>
+<!-- ObjectAddedEnd -->
+
+<object name="dot1xAuthPaeState" depends="dot1xPaePortNumber">
+<core type="enum" xtype="L7_DOT1X_APM_STATES_t" access="read-only" descr="The current value of the Authenticator PAE state"/>
+<ui name="dot1xAuthPaeState" style="plainText"/>
+</object>
+
+<object name="dot1xAuthQuietPeriod" depends="dot1xPaePortNumber">
+<core type="uint" min="L7_DOT1X_PORT_MIN_QUIET_PERIOD" max="L7_DOT1X_PORT_MAX_QUIET_PERIOD" default="FD_DOT1X_PORT_QUIET_PERIOD" access="read-write" descr="The value, in seconds, of the heldPeriod constant currently in use by the  PAE state machine."/>
+<ui name="dot1xAuthQuietPeriod" style="inputLine">
+</ui></object>
+
+<object name="dot1xAuthTxPeriod" depends="dot1xPaePortNumber">
+<core type="uint" min="L7_DOT1X_PORT_MIN_TX_PERIOD" max="L7_DOT1X_PORT_MAX_TX_PERIOD" default="FD_DOT1X_PORT_TX_PERIOD" access="read-write" descr="The value, in seconds, of the startPeriod constant currently in use by the  PAE state machine ."/>
+<ui name="dot1xAuthTxPeriod" style="inputLine">
+</ui></object>
+
+<object name="dot1xAuthReAuthPeriod" depends="dot1xPaePortNumber">
+<core type="uint" min="L7_DOT1X_PORT_MIN_REAUTH_PERIOD" max="L7_DOT1X_PORT_MAX_REAUTH_PERIOD" default="FD_DOT1X_PORT_REAUTH_PERIOD" access="read-write" descr="The value, in seconds, of the authPeriod constant currently in use by the  PAE state machine ."/>
+<ui name="dot1xAuthReAuthPeriod" style="inputLine">
+</ui></object>
+
+
+<object name="Dot1xPortAdminControlledDirections" depends="dot1xPaePortNumber">
+<core type="enum" xtype="L7_DOT1X_PORT_DIRECTION_t" access="read-write" descr="the dot1x admin control direction on the specified port"/>
+<ui name="Dot1xPortAdminControlledDirections" style="inputLine"/>
+</object>
+<object name="Dot1xPortOperControlledDirections" depends="dot1xPaePortNumber">
+<core type="enum" xtype="L7_DOT1X_PORT_DIRECTION_t" access="read-only" descr="the dot1x Operational control direction on the specified port"/>
+<ui name="Dot1xPortOperControlledDirections" style="plainText"/>
+</object>
+<!-- ObjectRemoved
+&lt;object name=&quot;Dot1xPortControlMode&quot; depends=&quot;dot1xPaePortNumber&quot; &gt;
+&lt;core  type=&quot;enum&quot; xtype=&quot;L7_DOT1X_PORT_CONTROL_t&quot; default=&quot;FD_DOT1X_PORT_MODE&quot; access=&quot;read-write&quot; descr=&quot;the dot1x port control mode&quot;/&gt;
+&lt;ui  name=&quot;Dot1xPortControlMode&quot; style=&quot;inputLine&quot; /&gt;
+&lt;/object&gt;
+-->
+<object name="Dot1xPortOperControlMode" depends="dot1xPaePortNumber">
+<core type="enum" xtype="L7_DOT1X_PORT_CONTROL_t" access="read-only" descr="Dot1x port operational control mode"/>
+<ui name="Dot1xPortOperControlMode" style="plainText"/>
+</object>
+<object name="Dot1xPortSuppTimeout" depends="dot1xPaePortNumber">
+<core type="uint" min="L7_DOT1X_PORT_MIN_SUPP_TIMEOUT" max="L7_DOT1X_PORT_MAX_SUPP_TIMEOUT" default="FD_DOT1X_PORT_SUPP_TIMEOUT" access="read-write" descr="Port support time out"/>
+<ui name="Dot1xPortSuppTimeout" style="inputLine"/>
+</object>
+<object name="Dot1xPortServerTimeout" depends="dot1xPaePortNumber">
+<core type="uint" min="L7_DOT1X_PORT_MIN_SUPP_TIMEOUT" max="L7_DOT1X_PORT_MAX_SUPP_TIMEOUT" default="FD_DOT1X_PORT_SERVER_TIMEOUT" access="read-write" descr="Port server time out"/>
+<ui name="Dot1xPortServerTimeout" style="inputLine"/>
+</object>
+<object name="Dot1xPortMaxReq" depends="dot1xPaePortNumber">
+<core type="uint" min="L7_DOT1X_PORT_MIN_MAX_REQ" max="L7_DOT1X_PORT_MAX_MAX_REQ" default="FD_DOT1X_PORT_MAX_REQ" access="read-write" descr="Maximum requests"/>
+<ui name="Dot1xPortMaxReq" style="inputLine"/>
+</object>
+<object name="Dot1xPortMaxUsers" depends="dot1xPaePortNumber">
+<core type="uint" min="L7_DOT1X_PORT_MIN_MAC_USERS" max="L7_DOT1X_PORT_MAX_MAC_USERS" default="FD_DOT1X_PORT_MAX_USERS" access="read-write" descr="Maximum Users"/>
+<ui name="Dot1xPortMaxUsers" style="inputLine"/>
+</object>
+<object name="Dot1xPortReAuthEnabled" depends="dot1xPaePortNumber">
+<core type="enum" xtype="TrueFalse_t" default="FD_DOT1X_PORT_REAUTH_ENABLED" access="read-write" descr="port re-authentication"/>
+<ui name="Dot1xPortReAuthEnabled" style="inputLine"/>
+</object>
+<object name="Dot1xPortKeyTransmissionEnabled" depends="dot1xPaePortNumber">
+<core type="enum" xtype="TrueFalse_t" access="read-write" descr="key transmission"/>
+<ui name="Dot1xPortKeyTransmissionEnabled" style="inputLine"/>
+</object>
+<object name="Dot1xPortBackendAuthState" depends="dot1xPaePortNumber">
+<core type="enum" xtype="L7_DOT1X_BAM_STATES_t" access="read-only" descr="backend authenticatation statte"/>
+<ui name="Dot1xPortBackendAuthState" style="plainText"/>
+</object>
+<object name="Dot1xPortStatsClear" depends="dot1xPaePortNumber">
+<core type="enum" xtype="TrueFalse_t" access="write-only" descr="clear the statistics"/>
+<ui name="Dot1xPortStatsClear" style="inputLine"/>
+</object>
+<object name="Dot1xPortStatsClearAll">
+<core type="enum" xtype="TrueFalse_t" access="write-only" descr="clear the statistics on all ports"/>
+<ui name="Dot1xPortStatsClearAll" style="inputLine"/>
+</object>
+<object name="Dot1xPortAuthControlledPortStatus" depends="dot1xPaePortNumber">
+<core type="enum" xtype="L7_DOT1X_PORT_STATUS_t" access="read-only" descr="authentication controlled port status"/>
+<ui name="Dot1xPortAuthControlledPortStatus" style="plainText"/>
+</object>
+<object name="Dot1xInterfaceValidate" depends="dot1xPaePortNumber">
+<core type="enum" xtype="TrueFalse_t" access="read-only" descr="validate to check if interface is dot1x enabled"/>
+<ui name="Dot1xInterfaceValidate" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthEntersConnecting" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="auth enters connecting"/>
+<ui name="Dot1xPortAuthEntersConnecting" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthEapLogoffsWhileConnecting" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Auth Eap Logoffs While Connecting"/>
+<ui name="Dot1xPortAuthEapLogoffsWhileConnecting" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthEntersAuthenticating" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Auth Enters Authenticating"/>
+<ui name="Dot1xPortAuthEntersAuthenticating" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthAuthSuccessWhileAuthenticating" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Success While Authenticating"/>
+<ui name="Dot1xPortAuthAuthSuccessWhileAuthenticating" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthAuthTimeoutsWhileAuthenticating" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Timeouts While Authenticating"/>
+<ui name="Dot1xPortAuthAuthTimeoutsWhileAuthenticating" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthAuthFailWhileAuthenticating" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Failed While Authenticating"/>
+<ui name="Dot1xPortAuthAuthFailWhileAuthenticating" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthAuthReauthsWhileAuthenticating" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Reauths While Authenticating"/>
+<ui name="Dot1xPortAuthAuthReauthsWhileAuthenticating" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthAuthEapStartsWhileAuthenticating" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Eap Starts While Authenticating"/>
+<ui name="Dot1xPortAuthAuthEapStartsWhileAuthenticating" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthAuthEapLogoffWhileAuthenticating" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Eap Logoff While Authenticating"/>
+<ui name="Dot1xPortAuthAuthEapLogoffWhileAuthenticating" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthAuthReauthsWhileAuthenticated" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Reauths While Authenticated"/>
+<ui name="Dot1xPortAuthAuthReauthsWhileAuthenticated" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthAuthEapStartsWhileAuthenticated" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Eap Starts While Authenticated"/>
+<ui name="Dot1xPortAuthAuthEapStartsWhileAuthenticated" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthAuthEapLogoffWhileAuthenticated" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Eap Logof fWhile Authenticated"/>
+<ui name="Dot1xPortAuthAuthEapLogoffWhileAuthenticated" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthBackendResponses" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Backend Responses"/>
+<ui name="Dot1xPortAuthBackendResponses" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthBackendAccessChallenges" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Backend Access Challenges"/>
+<ui name="Dot1xPortAuthBackendAccessChallenges" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthBackendOtherRequestsToSupplicant" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Backend Other Requests To Supplicant"/>
+<ui name="Dot1xPortAuthBackendOtherRequestsToSupplicant" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthBackendNonNakResponsesFromSupplicant" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Backend NonNak Responses From Supplicant"/>
+<ui name="Dot1xPortAuthBackendNonNakResponsesFromSupplicant" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthBackendAuthSuccesses" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Backend Auth Successes"/>
+<ui name="Dot1xPortAuthBackendAuthSuccesses" style="plainText"/>
+</object>
+<object name="Dot1xPortAuthBackendAuthFails" depends="dot1xPaePortNumber">
+<core type="uint" access="read-only" descr="Backend Auth Fails"/>
+<ui name="Dot1xPortAuthBackendAuthFails" style="plainText"/>
+</object>
+<!--
+&lt;object name=&quot;Dot1xPortVlanAssigned&quot; depends=&quot;dot1xPaePortNumber&quot; &gt;
+&lt;core  type=&quot;uint&quot; access=&quot;read-only&quot; descr=&quot;Get the Vlan Assigned to a port by radius server.&quot;/&gt;
+&lt;ui  name=&quot;Dot1xPortVlanAssigned&quot; style=&quot;plainText&quot; /&gt;
+&lt;/object&gt;
+-->
+</module>
+<module name="dot1xLogicalPort" key-method="individual">
+<key-combo list="dot1xPhysicalPort,dot1xLogicalPort"/>
+<object name="dot1xPhysicalPort" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="The dot1x Logical Port."/>
+<ui name="Unit/Slot/Port" style="plainText">
+</ui></object>
+<object name="dot1xPhysicalPort" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="The dot1x Logical Port."/>
+<ui name="Slot/Port" style="plainText">
+</ui></object>
+<object name="dot1xLogicalPort" depends="dot1xPhysicalPort">
+<core type="uint" key="yes" access="read-write" descr="The dot1x Logical Port."/>
+<ui name="dot1xLogicalPort" style="plainText">
+</ui></object>
+
+<object name="dot1xLogicalPortPaeState" depends="dot1xPhysicalPort,dot1xLogicalPort">
+<core type="enum" xtype="L7_DOT1X_APM_STATES_t" access="read-only" descr="The LogicalPortPaeState."/>
+<ui name="dot1xLogicalPortPaeState" style="plainText">
+</ui></object>
+
+<object name="dot1xLogicalPortSessionTimeout" depends="dot1xPhysicalPort,dot1xLogicalPort">
+<core type="uint" access="read-only" descr="The LogicalPort Session Timeout."/>
+<ui name="dot1xLogicalPortSessionTimeout" style="plainText">
+</ui></object>
+
+<object name="dot1xLogicalPortSessionTime" depends="dot1xPhysicalPort,dot1xLogicalPort">
+<core type="uint" access="read-only" descr="The LogicalPort Session Time."/>
+<ui name="dot1xLogicalPortSessionTime" style="plainText">
+</ui></object>
+
+<object name="dot1xLogicalPortSupplicantMacAddr" depends="dot1xPhysicalPort,dot1xLogicalPort">
+<core type="mac" access="read-only" descr="The LogicalPort Supplicant MacAddr."/>
+<ui name="dot1xLogicalPortSupplicantMacAddr" style="plainText">
+</ui></object>
+
+<object name="dot1xLogicalPortTerminationAction" depends="dot1xPhysicalPort,dot1xLogicalPort">
+<core type="uint" access="read-only" descr="The Logical Port Termination Action."/>
+<ui name="dot1xLogicalPortTerminationAction" style="plainText">
+</ui></object>
+
+<object name="dot1xLogicalPortUserName" depends="dot1xPhysicalPort,dot1xLogicalPort">
+<core type="string" access="read-only" descr="The Logical Port User Name."/>
+<ui name="dot1xLogicalPortUserName" style="plainText">
+</ui></object>
+
+<object name="dot1xLogicalPortVlanAssignment" depends="dot1xPhysicalPort,dot1xLogicalPort">
+<core type="uint" access="read-only" descr="The Logical Port Vlan Assignment."/>
+<ui name="dot1xLogicalPortVlanAssignment" style="plainText">
+</ui></object>
+
+<object name="dot1xLogicalPortFilterId" depends="dot1xPhysicalPort,dot1xLogicalPort">
+<core type="string" access="read-only" descr="The Logical Port FilterId."/>
+<ui name="dot1xLogicalPortFilterId" style="plainText">
+</ui></object>
+
+<object name="dot1xLogicalPortBackendAuthState" depends="dot1xPhysicalPort,dot1xLogicalPort">
+<core type="enum" xtype="L7_DOT1X_BAM_STATES_t" access="read-only" descr="The Logical Port BackendAuthState."/>
+<ui name="dot1xLogicalPortBackendAuthState" style="plainText">
+</ui></object>
+<object name="dot1xLogicalPortVlanAssociated" depends="dot1xPhysicalPort,dot1xLogicalPort">
+<core type="enum" xtype="L7_DOT1X_VLAN_ASSIGNED_MODE_t" access="read-only" descr="The Logical Port Vlan Assignment."/>
+<ui name="dot1xLogicalPortVlanAssociated" style="plainText">
+</ui></object>
+
+<!-- This object is added to populate all the logical ports info irrespective of the users authentication state -->
+<object name="dot1xAllLogicalPorts" depends="dot1xPhysicalPort">
+<core type="uint" key="yes" access="read-write" descr="The dot1x Logical Ports irrespective of the users authentication state."/>
+<ui name="dot1xLogicalPort" style="plainText">
+</ui></object>
+<!-- end -->
+
+<!-- This object is used for some customers when only authticated users are to be dispalyed -->
+<object name="dot1xAuthLogicalPort" depends="dot1xPhysicalPort">
+<core type="uint" key="yes" access="read-write" descr="The dot1x Logical Port."/>
+<ui name="dot1xLogicalPort" style="plainText">
+</ui></object>
+
+<object name="dot1xAuthLogicalPortUserName" depends="dot1xPhysicalPort,dot1xAuthLogicalPort">
+<core type="string" access="read-only" descr="The Logical Port User Name."/>
+<ui name="dot1xAuthLogicalPortUserName" style="plainText">
+</ui></object>
+</module>
+
+<module name="dot1xUserConfig">
+<object name="UserName">
+<core type="string" key="yes" access="read-write" descr="The list of the users assigned to the authentication list."/>
+<ui name="UserName" style="choiceNselect1"/>
+</object>
+
+<object name="AuthListForNonDefaultUser" depends="UserName">
+<core type="string" access="read-write" properties="dynamic" descr="The APL assigned to given configured users for the User Manager component."/>
+<ui name="AuthListForNonDefaultUser" style="choiceNselect1"/>
+</object>
+
+<object name="AuthListForDefaultUser">
+<core type="string" access="read-write" properties="dynamic" descr="the APL assigned to nonconfigured users for the user manager component."/>
+<ui name="AuthListForDefaultUser" style="choiceNselect1"/>
+</object>
+
+<object name="AuthMethods">
+<core access="read-write" descr="Select the Authentication method  to authenticate the user logged in from the drop down list (Radius,Reject / Reject / Local)." type="enum" xtype="AuthList_t"/>
+ <ui name="Authentication Method(s)" style="choiceNselect1"/>
+ </object>
+
+</module>
+
+
+</objectxml>
+</FastPathXML>

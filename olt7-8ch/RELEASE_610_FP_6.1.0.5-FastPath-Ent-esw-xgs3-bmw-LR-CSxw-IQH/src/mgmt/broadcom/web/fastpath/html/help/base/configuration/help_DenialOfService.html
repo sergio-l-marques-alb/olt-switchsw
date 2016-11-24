@@ -1,0 +1,350 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML>
+
+<HEAD>
+
+   <META http-equiv="Pragma" content="no-cache">
+
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+
+   <TITLE>Denial of Service Configuration Help</TITLE>
+
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+
+</HEAD>
+
+
+
+<BODY class = "helppageattributes">
+
+ 
+
+
+<!--
+<h1 align=center style='text-align:center'>Denial of Service Configuration Help</h1> -->
+
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=doscfg></a>Help for Denial Of Service Configuration</h2>
+
+
+
+
+
+
+<!--
+
+<h2><a name=doscfg></a>Help for Denial of Service Configuration</h2> -->
+
+
+
+<h3>Configurable Data</h3>
+
+
+
+<ul type=disc>
+
+ <ul type=circle>
+
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_FIRSTFRAG_FEATURE">
+
+  <li><b>Denial of Service First Fragment </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling First Fragment DoS prevention causes the switch to
+      
+      drop packets that have a TCP header smaller than the configured Min TCP Hdr Size.
+      
+      The factory default is disabled. </li>
+
+
+  <li><b>Denial of Service Min TCP Hdr Size </b>
+
+      - Specify the Min TCP Hdr Size allowed.  If First Fragment DoS prevention is
+
+      enabled, the switch will drop packets that have a TCP header smaller than this 
+      
+      configured Min TCP Hdr Size.
+      
+      The default Min TCP Hdr Size is 20 bytes. </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_ICMP_FEATURE">
+
+  <li><b>Denial of Service ICMP </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling ICMP DoS prevention causes the switch to
+      
+      drop ICMP packets that have a type set to ECHO_REQ (ping) and a size greater
+      
+      than the configured ICMP Pkt Size.
+      
+      The factory default is disabled. </li>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_ICMPV4_FEATURE">
+<EMWEB_ELSE>
+  <li><b>Denial of Service Max ICMP Pkt Size </b>
+
+      - Specify the Max ICMP Pkt Size allowed.  If ICMP DoS prevention is
+
+      enabled, the switch will drop ICMP ping packets that have a size greater than 
+      
+      this configured Max ICMP Pkt Size.
+      
+      The default  Max ICMP Pkt Size is 512 bytes. </li>
+</EMWEB_IF>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_ICMPV4_FEATURE">
+  <li><b>Denial of Service Max ICMPv4 Pkt Size </b>
+
+      - Specify the Max ICMPv4 Pkt Size allowed.  If ICMP DoS prevention is
+
+      enabled, the switch will drop IPv4 ICMP ping packets that have a size 
+      
+      greater than this configured Max ICMP Pkt Size.
+      
+      The default Max ICMPv4 Pkt Size is 512 bytes. </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_ICMPV6_FEATURE">
+  <li><b>Denial of Service Max ICMPv6 Pkt Size </b>
+
+      - Specify the Max IPv6 ICMP Pkt Size allowed.  If ICMP DoS prevention is
+
+      enabled, the switch will drop IPv6 ICMP ping packets that have a size
+      
+      greater than this configured Max ICMP Pkt Size.
+      
+      The default Max IPv6 ICMP Pkt Size is 512 bytes. </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_ICMPFRAG_FEATURE">
+  <li><b>Denial of Service ICMP Fragment </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling ICMP Fragment DoS prevention causes the 
+      
+      switch to drop ICMP Fragmented packets.
+      
+      The factory default is disabled. </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_SIPDIP_FEATURE">
+
+  <li><b>Denial of Service SIP=DIP </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling SIP=DIP DoS prevention causes the switch to
+      
+      drop packets that have a source IP address equal to the destination IP address.
+      
+      The factory default is disabled. </li>
+
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_SMACDMAC_FEATURE">
+
+  <li><b>Denial of Service SMAC=DMAC </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling SMAC=DMAC DoS prevention causes the switch
+      
+      to drop packets that have a source MAC address equal to the destination 
+      
+      MAC address.  The factory default is disabled. </li>
+
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_TCPFINURGPSH_FEATURE">
+
+  <li><b>Denial of Service TCP FIN&URG&PSH </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling TCP FIN & URG & PSH DoS prevention causes 
+      
+      the switch to drop packets that have TCP Flags FIN, URG, and PSH set and 
+      
+      TCP Sequence Number=0.  The factory default is disabled.
+      </li>
+
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_TCPFLAG_FEATURE">
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_TCPFLAGSEQ_FEATURE">
+<EMWEB_ELSE>
+  <li><b>Denial of Service TCP Flag </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling TCP Flag DoS prevention causes the switch to
+      
+      drop packets that have TCP flag SYN set and TCP source port less than 1024
+      
+      or TCP control flags set to 0 and TCP sequence number set to 0
+      
+      or TCP flags FIN, URG, and PSH set and TCP sequence number set to 0
+      
+      or both TCP flags SYN and FIN set.
+      
+      The factory default is disabled. </li>
+</EMWEB_IF>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_TCPFLAGSEQ_FEATURE">
+
+  <li><b>Denial of Service TCP Flag&Sequence </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling TCP Flag DoS prevention causes the switch to
+      
+      drop packets that have TCP control flags set to 0 and TCP sequence number 
+      
+      set to 0.  The factory default is disabled. </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_TCPFRAG_FEATURE">
+
+  <li><b>Denial of Service TCP Fragment </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling TCP Fragment DoS prevention causes the switch to
+      
+      drop packets that have an IP fragment offset equal to 1.
+      
+      The factory default is disabled. </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_TCPOFFSET_FEATURE">
+
+  <li><b>Denial of Service TCP Offset </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling TCP Offset DoS prevention causes the 
+      
+      switch to drop packets that have a TCP header Offset=1.
+      
+      The factory default is disabled. </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_TCPPORT_FEATURE">
+
+  <li><b>Denial of Service TCP Port </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling TCP Port DoS prevention causes the switch 
+      
+      to drop packets that have TCP source port equal to TCP destination 
+      
+      port.  The factory default is disabled. </li>
+
+<EMWEB_ELSE>
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_L4PORT_FEATURE">
+
+  <li><b>Denial of Service L4 Port </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling L4 Port DoS prevention causes the switch to
+      
+      drop packets that have TCP/UDP source port equal to TCP/UDP destination port.
+      
+      The factory default is disabled. </li>
+</EMWEB_IF>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_TCPSYN_FEATURE">
+
+  <li><b>Denial of Service TCP SYN </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling TCP SYN DoS prevention causes 
+      
+      the switch to drop packets that have TCP Flags SYN set.  
+      
+      The factory default is disabled.
+      </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_TCPSYNFIN_FEATURE">
+
+  <li><b>Denial of Service TCP SYN&FIN </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling TCP SYN & FIN DoS prevention causes 
+      
+      the switch to drop packets that have TCP Flags SYN and FIN set.  
+      
+      The factory default is disabled.
+      </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DOSCONTROL_UDPPORT_FEATURE">
+
+  <li><b>Denial of Service UDP Port </b>
+
+      - Enable or disable this option by selecting the corresponding line on the
+
+      pulldown entry field.  Enabling UDP Port DoS prevention causes the switch 
+      
+      to drop packets that have UDP source port equal to UDP destination 
+      
+      port.  The factory default is disabled. </li>
+</EMWEB_IF>
+
+ </ul>
+
+</ul>
+
+
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+
+<h3>Command Buttons</h3>
+
+
+
+<ul type=disc>
+
+ <ul type=circle>
+
+  <li><b>Submit </b>- Updates the switch with the values on the screen. 
+
+  If you want the switch to retain the new values across a power cycle you must perform a save. </li>
+
+ </ul>
+
+</ul>
+
+</EMWEB_IF>
+
+
+
+
+<hr size=4 width="80%" align=center>
+
+</body>
+
+
+
+</html>
+
+
+

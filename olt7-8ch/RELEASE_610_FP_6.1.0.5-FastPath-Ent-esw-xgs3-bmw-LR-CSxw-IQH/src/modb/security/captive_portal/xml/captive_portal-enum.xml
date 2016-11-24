@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+<data-types version="1.0">
+
+<enum name="CP_VERIFY_MODE_t">
+<option name="Guest" macro="CP_VERIFY_MODE_GUEST"> </option>
+<option name="Local" macro="CP_VERIFY_MODE_LOCAL"> </option>
+<option name="RADIUS" macro="CP_VERIFY_MODE_RADIUS"> </option>
+</enum>
+
+<enum name="L7_CP_MODE_STATUS_t">
+<option name="Enable - Pending" macro="L7_CP_MODE_ENABLE_PENDING"> </option>
+<option name="Enabled" macro="L7_CP_MODE_ENABLED"> </option>
+<option name="Disable - Pending" macro="L7_CP_MODE_DISABLE_PENDING"> </option>
+<option name="Disabled" macro="L7_CP_MODE_DISABLED"> </option>
+</enum>
+
+<enum name="L7_CP_MODE_REASON_t">
+<option name="" macro="L7_CP_MODE_REASON_NONE"> </option>
+<option name="Administrator Disabled" macro="L7_CP_MODE_REASON_ADMIN"> </option>
+<option name="IP Address Not Configured" macro="L7_CP_MODE_REASON_NO_IP_ADDR"> </option>
+<option name="No IP Routing Interface" macro="L7_CP_MODE_REASON_ROUTING_ENABLED_NO_IP_RT_INTF"> </option>
+<option name="Routing Disabled" macro="L7_CP_MODE_REASON_ROUTING_DISABLED"> </option>
+</enum>
+
+<enum name="L7_CP_INST_OPER_STATUS_t">
+<option name="Disabled" macro="L7_CP_INST_OPER_STATUS_DISABLED"> </option>
+<option name="Enabled" macro="L7_CP_INST_OPER_STATUS_ENABLED"> </option>
+</enum>
+
+<enum name="L7_CP_INST_DISABLE_REASON_t">
+<option name="" macro="L7_CP_INST_DISABLE_REASON_NONE"> </option>
+<option name="Administrator Disabled" macro="L7_CP_INST_DISABLE_REASON_ADMIN"> </option>
+<option name="No RADIUS Server" macro="L7_CP_INST_DISABLE_REASON_NO_RADIUS_SERVER"> </option>
+<option name="No Accounting Server" macro="L7_CP_INST_DISABLE_REASON_NO_ACCT_SERVER"> </option>
+<option name="Not Associated With Interfaces" macro="L7_CP_INST_DISABLE_REASON_NOT_ASSOC_INTF"> </option>
+<option name="No Valid Active Interfaces" macro="L7_CP_INST_DISABLE_REASON_NO_ACTIVE_INTF"> </option>
+</enum>
+
+<enum name="L7_CP_INST_BLOCK_STATUS_t">
+<option name="Blocked" macro="L7_CP_INST_BLOCK_STATUS_BLOCKED"> </option>
+<option name="Blocking" macro="L7_CP_INST_BLOCK_STATUS_BLOCKED_PENDING"> </option>
+<option name="Not Blocked" macro="L7_CP_INST_BLOCK_STATUS_NOT_BLOCKED"> </option>
+<option name="Unblocking" macro="L7_CP_INST_BLOCK_STATUS_NOT_BLOCKED_PENDING"> </option>
+</enum>
+
+<enum name="L7_INTF_WHY_DISABLED_t">
+<option name="" macro="L7_INTF_WHY_DISABLED_NONE"> </option>
+<option name="Interface Not Attached" macro="L7_INTF_WHY_DISABLED_UNATTACHED"> </option>
+<option name="Administrator Disabled" macro="L7_INTF_WHY_DISABLED_ADMIN"> </option>
+</enum>
+
+<enum name="cpdmAuthWhichSwitch_t">
+<option name="Peer" macro="CP_AUTH_ON_PEER_SWITCH"> </option>
+<option name="Local" macro="CP_AUTH_ON_LOCAL_SWITCH"> </option>
+</enum>
+
+
+</data-types>
+</FastPathXML>

@@ -1,0 +1,91 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0" >
+<module name="ospfNbr" >
+<key-combo list="IpAddr,AddressLessIndex"/>
+<object name="IpAddr"  >
+<core  type="ipv4" key="yes" access="read-write" descr="The IP address this neighbor is using in its IP Source Address. Note that, on addressless links, this will not be 0.0.0.0, but the address of another of the neighbor's interfaces."/>
+<ui  name="IP Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.10.1.1"/> 
+</ui></object>
+<object name="AddressLessIndex" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype = "usp_t" key="yes" access="read-write" descr="On an interface having an IP Address, zero. On addressless interfaces, the corresponding value of ifIndex in the Internet Standard MIB. On row creation, this can be derived from the instance."/>
+<ui  name="Unit/Slot/Port" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.10.1.2"/> 
+</ui></object>
+<object name="AddressLessIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype = "usp_t" key="yes" access="read-write" descr="On an interface having an IP Address, zero. On addressless interfaces, the corresponding value of ifIndex in the Internet Standard MIB. On row creation, this can be derived from the instance."/>
+<ui  name="Slot/Port" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.10.1.2"/> 
+</ui></object>
+<object name="RtrId" depends="IpAddr,AddressLessIndex" >
+<core  type="ipv4" access="read-only" descr="A 32-bit integer (represented as a type IpAddress) uniquely identifying the neighboring router in the Autonomous System."/>
+<ui  name="Router Id" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.10.1.3"/> 
+</ui></object>
+<object name="Options" depends="IpAddr,AddressLessIndex" >
+<core  type="uint" access="read-only" descr="A Bit Mask corresponding to the neighbor's options field. Bit 0, if set, indicates that the system will operate on Type of Service metrics other than TOS 0. If zero, the neighbor will ignore all metrics except the TOS 0 metric. Bit 1, if set, indicates that the associated area accepts and operates on external information; if zero, it is a stub area. Bit 2, if set, indicates that the system is capable of routing IP Multicast datagrams; i.e., that it implements the Multicast Extensions to OSPF. Bit 3, if set, indicates that the associated area is an NSSA. These areas are capable of carrying type 7 external advertisements, which are translated into type 5 external advertisements at NSSA borders."/>
+<ui  name="Options" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.10.1.4"/> 
+</ui></object>
+<object name="Priority" depends="IpAddr,AddressLessIndex" >
+<core  type="uint" access="read-write" descr="The priority of this neighbor in the designated router election algorithm. The value 0 signifies that the neighbor is not eligible to become the designated router on this particular network."/>
+<ui  name="Priority" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.10.1.5"/> 
+</ui></object>
+<object name="State" depends="IpAddr,AddressLessIndex" >
+<core type="enum" xtype = "L7_OSPF_NBR_STATE_t" access="read-only" descr="The State of the relationship with this Neighbor."/>
+<ui  name="State" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.10.1.6"/> 
+</ui></object>
+<object name="Events" depends="IpAddr,AddressLessIndex" >
+<core  type="uint" access="read-only" descr="The number of times this neighbor relationship has changed state, or an error has occurred."/>
+<ui  name="Events" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.10.1.7"/> 
+</ui></object>
+<object name="LsRetransQLen" depends="IpAddr,AddressLessIndex" >
+<core  type="uint" access="read-only" descr="The current length of the LSA retransmission queue."/>
+<ui  name="LSA Retransmission Queue Length" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.10.1.8"/> 
+</ui></object>
+<object name="ospfNbmaNbrStatus" depends="IpAddr,AddressLessIndex" >
+<core  type="row-status" xtype= "L7_ROW_STATUS_t" access="read-write" descr="This variable displays the status of the NBMA Neighbor entry. Setting it to 'invalid' has the effect of rendering it inoperative. The internal effect (row removal) is implementation dependent."/>
+<ui  name="NBMA Neighbor Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.10.1.9"/> 
+</ui></object>
+<object name="ospfNbmaNbrPermanence" depends="IpAddr,AddressLessIndex" >
+<core  type="enum" xtype = "L7_OSPF_PERMANENCE_t" access="read-only" descr="This variable displays the status of the NBMA Neighbor entry. 'dynamic' and 'permanent' refer to how the neighbor became known."/>
+<ui  name="NBMA Neighbor Permanence" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.10.1.10"/> 
+</ui></object>
+<object name="HelloSuppressed" depends="IpAddr,AddressLessIndex" >
+<core type="enum" xtype="L7_OSPF_NBR_SUPPRESSED_t" access="read-only" descr="Indicates whether Hellos are being suppressed to the neighbor"/>
+<ui  name="Hellos Suppressed" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.10.1.11"/> 
+</ui></object>
+<object name="UpTime" depends="IpAddr,AddressLessIndex" >
+<core  type="string" access="read-only" descr="Get the number of seconds since adjacency last went to Full state with a given neighbor."/>
+<ui  name="Up Time" style="plainText" />
+</object>
+<object name="Area" depends="IpAddr,AddressLessIndex" >
+<core  type="uint" access="read-only" descr="Get the Ospf Area of the specified neighbour router Id of the specified interface"/>
+<ui  name="Area" style="plainText" />
+</object>
+<object name="DeadTimerRemaining" depends="IpAddr,AddressLessIndex" >
+<core  type="uint" access="read-only" descr="Get the Ospf Dead timer remaining of the specified neighbour router Id of the specified interface"/>
+<ui  name="Dead Timer Remaining" style="plainText" />
+</object>
+<object name="IfIndex" depends="IpAddr,AddressLessIndex" >
+<core  type="uint" access="read-only" descr="Get the Ospf Interface index of the specified neighbour router Id of the specified interface"/>
+<ui  name="Interface Index" style="plainText" />
+</object>
+<!-- ObjectAddedStart -->
+<object name="NeighboursClear" depends="IpAddr,AddressLessIndex" >
+<core  type="uint" access="write-only" descr="Clear OSPFv2 neighbors."/>
+<ui  name="Clear neighbors" style="inputLine" />
+</object>
+<!-- ObjectAddedEnd -->
+</module>
+</objectxml>
+</FastPathXML>

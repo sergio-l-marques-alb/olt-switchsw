@@ -1,0 +1,245 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="IPMCAST" version="1.0">
+<module name="MulticastDVMRPConfigGroup">
+<object name="dvmrpGlobalAdminMode">
+<core type="enum" xtype="enable_t" default="FD_DVMRP_DEFAULT_ADMIN_MODE" access="read-write" descr="Enable/Disable DVMRP globally on the router"/>
+<ui name="DVMRP Global Admin Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.4.6.1"/> 
+</ui></object>
+</module>
+<module name="dvmrpRouteTable" key-method="individual">
+<key-combo list="dvmrpRouteSource,dvmrpRouteSourceMask"/>
+<object name="dvmrpRouteSource">
+<core type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The network address which when combined with the corresponding value of dvmrpRouteSourceMask identifies the sources for which this entry contains multicast routing information"/>
+<ui name="Source Network Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.4.1.1"/> 
+</ui></object>
+<object name="dvmrpRouteSourceMask">
+<core type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The network mask which when combined with the corresponding value of dvmrpRouteSource identifies the sources for which this entry contains multicast routing information"/>
+<ui name="Source Mask" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.4.1.2"/> 
+</ui></object>
+<object name="dvmrpRouteUpstreamNeighbor" depends="dvmrpRouteSource,dvmrpRouteSourceMask">
+<core type="user" xtype="ipv4_ipv6" access="read-only" descr="The address of the upstream neighbor (e.g., RPF neighbor) from which IP datagrams from these sources are received"/>
+<ui name="Upstream Neighbor Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.4.1.3"/> 
+</ui></object>
+<object name="dvmrpRouteIfIndex" depends="dvmrpRouteSource,dvmrpRouteSourceMask" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" access="read-only" descr="The value of ifIndex for the interface on which IP datagrams sent by these sources are received. A value of 0 typically means the route is an aggregate for which no next- hop interface exists"/>
+<ui name="Upstream Interface Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.4.1.4"/> 
+</ui></object>
+<object name="dvmrpRouteIfIndex" depends="dvmrpRouteSource,dvmrpRouteSourceMask" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" access="read-only" descr="The value of ifIndex for the interface on which IP datagrams sent by these sources are received. A value of 0 typically means the route is an aggregate for which no next- hop interface exists"/>
+<ui name="Upstream Interface Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.4.1.4"/> 
+</ui></object>
+<object name="dvmrpRouteMetric" depends="dvmrpRouteSource,dvmrpRouteSourceMask">
+<core type="uint" access="read-only" descr="The distance in hops to the source subnet"/>
+<ui name="Metric" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.4.1.5"/> 
+</ui></object>
+<object name="dvmrpRouteExpiryTime" depends="dvmrpRouteSource,dvmrpRouteSourceMask">
+<core type="string" access="read-only" descr="The minimum amount of time remaining before this entry will be aged out"/>
+<ui name="Expiry Time" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.4.1.6"/> 
+</ui></object>
+<object name="dvmrpRouteUpTime" depends="dvmrpRouteSource,dvmrpRouteSourceMask">
+<core type="string" access="read-only" descr="The time since the route represented by this entry was learned by the router"/>
+<ui name="Up-time" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.4.1.7"/> 
+</ui></object>
+</module>
+<module name="dvmrpRouteNextHopTable" key-method="individual">
+<key-combo list="dvmrpRouteNextHopSource,dvmrpRouteNextHopSourceMask,dvmrpRouteNextHopIfIndex"/>
+<object name="dvmrpRouteNextHopSource">
+<core type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The network address which when combined with the corresponding value of dvmrpRouteNextHopSourceMask identifies the sources for which this entry specifies a next hop on an outgoing interface"/>
+<ui name="Nexthop Source Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.5.1.1"/> 
+</ui>
+</object>
+<object name="dvmrpRouteNextHopSourceMask">
+<core type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The network mask which when combined with the corresponding value of dvmrpRouteNextHopSource identifies the sources for which this entry specifies a next hop on an outgoing interface"/>
+<ui name="Nexthop Source Mask" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.5.1.2"/> 
+</ui></object>
+<object name="dvmrpRouteNextHopIfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" key="yes" xtype="usp_t" access="read-write" descr="The ifIndex value of the interface for the outgoing interface for this next hop"/>
+<ui name="Nexthop Interface Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.5.1.3"/> 
+</ui>
+</object>
+<object name="dvmrpRouteNextHopIfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" key="yes" xtype="usp_t" access="read-write" descr="The ifIndex value of the interface for the outgoing interface for this next hop"/>
+<ui name="Nexthop Interface Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.5.1.3"/> 
+</ui>
+</object>
+<object name="dvmrpRouteNextHopType" depends="dvmrpRouteNextHopSource,dvmrpRouteNextHopSourceMask,dvmrpRouteNextHopIfIndex">
+<core type="enum" xtype="L7_XUI_DVMRP_NEXTHOP_TYPE_t" access="read-only" descr="Type is leaf if no downstream dependent neighbors exist on the outgoing virtual interface. Otherwise, type is branch"/>
+<ui name="Nexthop Type" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.5.1.4"/> 
+</ui>
+</object>
+</module>
+
+<module name="dvmrpNeighborTable" key-method="individual">
+<key-combo list="dvmrpNeighborIfIndex,dvmrpNeighborAddress"/>
+<object name="dvmrpNeighborIfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" key="yes" xtype="usp_t" access="read-write" descr="The value of ifIndex for the virtual interface used to reach this DVMRP neighbor"/>
+<ui name="Neighbor Interface Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.3.1.1"/> 
+</ui></object>
+<object name="dvmrpNeighborIfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" key="yes" xtype="usp_t" access="read-write" descr="The value of ifIndex for the virtual interface used to reach this DVMRP neighbor"/>
+<ui name="Neighbor Interface Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.3.1.1"/> 
+</ui></object>
+<object name="dvmrpNeighborAddress">
+<core type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The IP address of the DVMRP neighbor for which this entry contains information"/>
+<ui name="Neighbor Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.3.1.2"/> 
+</ui></object>
+<object name="dvmrpNeighborUpTime" depends="dvmrpNeighborIfIndex,dvmrpNeighborAddress">
+<core type="string" access="read-only" descr="The time since this DVMRP neighbor (last) became a neighbor of the local router"/>
+<ui name="Up-time" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.3.1.3"/> 
+</ui></object>
+<object name="dvmrpNeighborExpiryTime" depends="dvmrpNeighborIfIndex,dvmrpNeighborAddress">
+<core type="string" access="read-only" descr="The minimum time remaining before this DVMRP neighbor will be aged out"/>
+<ui name="Expiry Time" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.3.1.4"/> 
+</ui></object>
+<object name="dvmrpNeighborGenerationId" depends="dvmrpNeighborIfIndex,dvmrpNeighborAddress">
+<core type="uint" access="read-only" descr="The neighboring router&apos;s generation identifier"/>
+<ui name="Generation ID" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.3.1.5"/> 
+</ui></object>
+<object name="dvmrpNeighborMajorVersion" depends="dvmrpNeighborIfIndex,dvmrpNeighborAddress">
+<core type="uint" access="read-only" descr="The neighboring routers major DVMRP version number"/>
+<ui name="Major Version" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.3.1.6"/> 
+</ui></object>
+<object name="dvmrpNeighborMinorVersion" depends="dvmrpNeighborIfIndex,dvmrpNeighborAddress">
+<core type="uint" access="read-only" descr="The neighboring routers minor DVMRP version number"/>
+<ui name="Minor Version" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.3.1.7"/> 
+</ui></object>
+<object name="dvmrpNeighborCapabilities" depends="dvmrpNeighborIfIndex,dvmrpNeighborAddress">
+<core type="string" access="read-only" descr="This object describes the neighboring router&apos;s capabilities. The leaf bit indicates that the neighbor has only one interface with neighbors. The prune bit indicates that the neighbor supports pruning"/>
+<ui name="Capabilities" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.3.1.8"/> 
+</ui></object>
+<object name="dvmrpNeighborRcvRoutes" depends="dvmrpNeighborIfIndex,dvmrpNeighborAddress">
+<core type="uint" access="read-only" descr="The total number of routes received in valid DVMRP packets received from this neighbor. This can be used to diagnose problems such as unicast route injection, as well as giving an indication of the level of DVMRP route exchanges"/>
+<ui name="Number of Received Routes" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.3.1.9"/> 
+</ui></object>
+<object name="dvmrpNeighborRcvBadPkts" depends="dvmrpNeighborIfIndex,dvmrpNeighborAddress">
+<core type="uint" access="read-only" descr="The number of packets received from this neighbor which were discarded as invalid"/>
+<ui name="Bad Packets Received" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.3.1.10"/> 
+</ui></object>
+<object name="dvmrpNeighborRcvBadRoutes" depends="dvmrpNeighborIfIndex,dvmrpNeighborAddress">
+<core type="uint" access="read-only" descr="The number of routes, in valid DVMRP packets received from this neighbor, which were ignored because the entry was invalid"/>
+<ui name="Bad Routes Received" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.3.1.11"/> 
+</ui></object>
+<object name="dvmrpNeighborState" depends="dvmrpNeighborIfIndex,dvmrpNeighborAddress">
+<core type="enum" xtype="L7_XUI_DVMRP_NEIGHBOR_STATE_t" access="read-only" descr="State of the neighbor adjacency"/>
+<ui name="Neighbor State" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.3.1.12"/> 
+</ui></object>
+</module>
+<module name="dvmrpPruneTable" key-method="individual">
+<key-combo list="dvmrpPruneGroup,dvmrpPruneSource,dvmrpPruneSourceMask"/>
+<object name="dvmrpPruneGroup">
+<core type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The group address which has been pruned"/>
+<ui name="Group Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.6.1.1"/> 
+</ui></object>
+<object name="dvmrpPruneSource">
+<core type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The address of the source or source network which has been pruned"/>
+<ui name="Source Network Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.6.1.2"/> 
+</ui></object>
+<object name="dvmrpPruneSourceMask">
+<core type="user" xtype="ipv4_ipv6" key="yes" access="read-write" descr="The address of the source or source network which has been pruned. The mask must either be all 1&apos;s, or else dvmrpPruneSource and dvmrpPruneSourceMask must match dvmrpRouteSource and dvmrpRouteSourceMask for some entry in the table"/>
+<ui name="Source Mask" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.6.1.3"/> 
+</ui></object>
+<object name="dvmrpPruneExpiryTime" depends="dvmrpPruneGroup,dvmrpPruneSource,dvmrpPruneSourceMask">
+<core type="string" access="read-only" descr="The amount of time remaining before this prune should expire at the upstream neighbor. This value should be the minimum of the default prune lifetime and the remaining prune lifetimes of the local routers downstream neighbor"/>
+<ui name="Expiry Time" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.6.1.4"/> 
+</ui></object>
+</module>
+<module name="dvmrpInterfaceTable">
+<object name="dvmrpInterfaceIfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" key="yes" xtype="usp_t" access="read-write" descr="The Interface Index value of the interface for which DVMRP is enabled/to be enabled"/>
+<ui name="Interface Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.2.1.1"/> 
+</ui></object>
+<object name="dvmrpInterfaceIfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" key="yes" xtype="usp_t" access="read-write" descr="The Interface Index value of the interface for which DVMRP is enabled/to be enabled"/>
+<ui name="Interface Index" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.2.1.1"/> 
+</ui></object>
+<object name="dvmrpInterfaceLocalAddress" depends="dvmrpInterfaceIfIndex">
+<core type="user" xtype="ipv4_ipv6" access="read-only" descr="The IP address this system will use as a source address on this interface. On unnumbered interfaces, it must be the same value as dvmrpInterfaceLocalAddress for some interface on the system"/>
+<ui name="IP Address" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.2.1.2"/> 
+</ui></object>
+<object name="dvmrpInterfaceMetric" depends="dvmrpInterfaceIfIndex">
+<core type="uint" min="L7_DVMRP_INTERFACE_METRIC_MIN" max="L7_DVMRP_INTERFACE_METRIC_MAX" default="FD_DVMRP_INTF_DEFAULT_METRIC" access="read-write" descr="The distance metric for this interface which is used to calculate distance vectors"/>
+<ui name="Metric" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.2.1.3"/> 
+</ui></object>
+<object name="dvmrpInterfaceStatus" depends="dvmrpInterfaceIfIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" default="L7_FALSE" access="read-write" descr="The status of this entry. Creating the entry enables DVMRP on the virtual interface; destroying the entry or setting it to notInService disables DVMRP on the virtual interface"/>
+<ui name="Interface Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.2.1.4"/> 
+</ui></object>
+<object name="dvmrpInterfaceRcvBadPkts" depends="dvmrpInterfaceIfIndex">
+<core type="uint" access="read-only" descr="The number of DVMRP messages received on the interface by the DVMRP process which were subsequently discarded as invalid (e.g. invalid packet format, or a route report from an unknown neighbor)"/>
+<ui name="Bad Packets Received" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.2.1.5"/> 
+</ui></object>
+<object name="dvmrpInterfaceRcvBadRoutes" depends="dvmrpInterfaceIfIndex">
+<core type="uint" access="read-only" descr="The number of routes, in valid DVMRP packets, which were ignored because the entry was invalid"/>
+<ui name="Bad Routes Recieived" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.2.1.6"/> 
+</ui></object>
+<object name="dvmrpInterfaceSentRoutes" depends="dvmrpInterfaceIfIndex">
+<core type="uint" access="read-only" descr="The number of routes, in DVMRP Report packets, which have been sent on this interface. Together with dvmrpNeighborRcvRoutes at a peer, this object is useful for detecting routes being lost"/>
+<ui name="Number of Routes Sent" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.2.1.7"/> 
+</ui></object>
+<object name="dvmrpInterfaceAdminMode" depends="dvmrpInterfaceIfIndex">
+<core type="enum" xtype="enable_t" access="read-write" descr="DVMRP Interface Admin Mode"/>
+<ui name="Administrative Mode" style="choiceNselect1"/>
+</object>
+<object name="dvmrpNumRoutes">
+<core type="uint" access="read-only" descr="The number of entries in the routing table. This can be used to monitor the routing table size to detect illegal advertisements of unicast routes"/>
+<ui name="Number of Routes" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.1.3"/> 
+</ui></object>
+<object name="dvmrpReachableRoutes">
+<core type="uint" access="read-only" descr="The number of entries in the routing table with non infinite metrics. This can be used to detect network partitions by observing the ratio of reachable routes to total routes"/>
+<ui name="Number of Reachable Routes" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.1.4"/> 
+</ui></object>
+<object name="dvmrpVersionString">
+<core type="string" access="read-only" descr="The routers DVMRP version information. Similar to sysDescr in MIB-II, this is a free-form field which can be used to display vendor-specific information"/>
+<ui name="Version String" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.10.1.1.1.1"/> 
+</ui></object>
+<object name="dvmrpIntfGenerationId">
+<core type="uint" access="read-only" descr="DVMRP Generation ID used by the router on this interface"/>
+<ui name="Generation ID" style="plainText"/>
+</object>
+</module>
+</objectxml>
+</FastPathXML>

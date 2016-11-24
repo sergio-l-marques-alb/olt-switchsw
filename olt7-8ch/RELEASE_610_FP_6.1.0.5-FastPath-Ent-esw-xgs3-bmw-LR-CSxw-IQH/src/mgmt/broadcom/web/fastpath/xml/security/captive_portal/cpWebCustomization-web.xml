@@ -1,0 +1,131 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpWebCustomization" title="WEB Customization" java-script="cp_custom">
+        <group id="1" div-name="topbuttons" heading=" " level="ReadWriteUSer" >
+            <node id="1">
+                <!--<button scope="group" target-page="cpLangAdd.html" type="buttonClear" help="opens CP config add page" id="1" name="Add Language"/>-->
+                <button scope="group" target-page="cp_web_custom.html" type="buttonClear" help="opens CP summary page" id="2" name="Download Image">
+                <action type="button" disable="6_1_1|6_1_2|6_1_3|6_2_2" />
+                </button>
+            </node>
+        </group>
+        <group id="2" heading=" ">
+            <node id="5">
+                <element properties="hidden,noname" obj-name="xLibObjects_dummy" id="1"/>
+            </node>
+            <node id="1">
+                <element properties="filter,iterate,hidden" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalInstanceId" id="1"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalConfigName" id="1" name="CP Configuration"/>
+            </node>
+            <node id="3">
+                <element properties="hidden" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalInstanceId" cpval="captiveportalcpCaptivePortalTable_cpCaptivePortalInstanceId" id="1" name="CP Config Instance ID"/>
+            </node>
+            <node id="4">
+                <element properties="filter,iterate,hidden" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalWebId" id="1" name="CP Web Id"/>
+            </node>
+        </group>
+        <group id="3" heading=" ">
+            <!-- The below object need to be changed. The below object should retunr all available images -->
+ <!--           <node id="1">
+                <element control="combo" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebAllImages" id="1" name="Available Images:" />
+            </node>
+  -->          
+            <node id="2">
+                <element control="combo" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebWebBrandingImageName" id="1" name="Branding Image:" properties="list"/>
+            </node>
+            <node id="3">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebFontList" maxLength="128" id="1" name="Fonts:"/>
+            </node>
+            <node id="4">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebWebBrowserTitleText" maxLength="128" id="1" name="Browser Title:"/>
+            </node>
+            <node id="5">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebTitleText" maxLength="128" id="1" name="Page Title:"/>
+            </node>
+            <node id="6">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebSeparatorColor" maxLength="32" id="1" name="Separator Color:"/>
+            </node>
+            <node id="7">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebForegroundColor" maxLength="32" id="1" name="Foreground Color:"/>
+            </node>
+            
+            <node id="8">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebBackgroundColor" maxLength="32" id="1" name="Background Color:"/>
+            </node>
+        </group>
+        <group id="4" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebAccountImageName" id="1" name="Account Image:" properties="list"/>
+            </node>
+            <node id="2">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebAccountLabel" maxLength="128" id="1" name="Account Title:"/>
+            </node>
+            <node id="3">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebUserLabel" maxLength="128" id="1" name="User Label:"/>
+            </node>
+            <node id="4">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebPasswordLabel" maxLength="128" id="1" name="Password Label:"/>
+            </node>
+            <node id="5">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebButtonLabel" maxLength="128" id="1" name="Button Label:"/>
+            </node>
+            <node id="6">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebWebAUPText" maxLength="128" id="1" name="Acceptance Use Policy"/>
+            </node>
+            <node id="7">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebAcceptText" maxLength="128" id="1" name="Acceptance Message"/>
+            </node>
+        </group>
+        <group id="5" heading=" ">
+            <node id="1">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebInstructionalText" maxLength="128" id="1" name="Instructional Text:"/>
+            </node>
+            <node id="2">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebDeniedMsgText" maxLength="128" id="1" name="Denied Message:"/>
+            </node>
+            <node id="3">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebResourceMsgText" maxLength="128" id="1" name="Resource Message:"/>
+            </node>
+            <node id="4">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebTimeoutMsgText" maxLength="128" id="1" name="Timeout Message:"/>
+            </node>
+            <node id="5">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebWipMsgText" maxLength="128" id="1" name="Busy Message:"/>
+            </node>
+            <node id="6">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebNoAcceptMsgText" maxLength="128" id="1" name="No Accept Message:"/>
+            </node>
+            <node id="7">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebWelcomeTitleText" maxLength="128" id="1" name="Welcome Title:"/>
+            </node>
+            <node id="8">
+                <element control="textbox" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebWelcomeText" maxLength="128" id="1" name="Welcome Text:"/>
+            </node>
+        </group>
+        <group id="6" heading=" " div-name="NoStyle">
+            <node id="1">
+                <button type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Apply Changes">
+                <action type="button" disable="6_1_2|6_1_3|6_2_2|1_1_2" setval_ids="6_2_1" setval_args="L7_DISABLE"/>
+                </button>
+                <button type="buttonClear" help="Submits the form on this page to the Switch" id="2" name="Preview">
+                <action type="button" disable="6_1_1|6_1_3|6_2_2|1_1_2" setval_ids="6_2_1" setval_args="L7_ENABLE"/>
+                </button>
+                <button type="buttonSubmit" help="Submits the form on this page to the Switch" id="3" name="Clear">
+                <action type="button" disable="6_1_1|6_1_2|1_1_2" enable="6_2_2" setval_ids="6_2_1" setval_args="L7_DISABLE"/>
+          
+                </button>
+            </node>
+            <node id="2">
+             <element id="1" uienum="enable_t" obj-name="xLibObjects_dummy" value="Disable" properties="hidden,write-only"/> 
+             <element id="2" obj-name="captiveportalcpCaptivePortalConfigWeb_cpCaptivePortalConfigWebClear" value="1" properties="hidden,write-only"/> 
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
+

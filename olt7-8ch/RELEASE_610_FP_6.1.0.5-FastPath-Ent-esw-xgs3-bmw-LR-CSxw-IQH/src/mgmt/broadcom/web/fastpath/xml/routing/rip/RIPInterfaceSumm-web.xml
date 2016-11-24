@@ -1,0 +1,23 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="RIPInterfaceSumm" title="RIP Interface Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element  properties="filter,iterate" obj-name="routingipmapConfig_Interface" id="1" />
+                 <element cpval="routingipmapConfig_Interface" properties="filter,hidden" obj-name="routingConfigRip2InterfaceParams_Address" id="2" name="Interface"/>
+                <element control="label" properties="read-only" obj-name="routingConfigRip2InterfaceParams_SrcAddress" id="3" name="IP Address"/>
+                <element control="label" properties="read-only" obj-name="routingConfigRip2InterfaceParams_Send" id="4" name="Send Version"/>
+                <element control="label" properties="read-only" obj-name="routingConfigRip2InterfaceParams_Receive" id="5" name="Receive Version"/>
+                <element control="label" properties="read-only" obj-name="routingConfigRip2InterfaceParams_Status" id="6" name="RIP Admin Mode"/>
+                <element control="label" properties="read-only" obj-name="routingConfigRip2InterfaceParams_IntfState" id="7" name="Link State"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

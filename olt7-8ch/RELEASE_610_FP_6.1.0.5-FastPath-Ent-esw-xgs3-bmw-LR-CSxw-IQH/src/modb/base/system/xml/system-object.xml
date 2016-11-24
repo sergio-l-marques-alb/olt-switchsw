@@ -1,0 +1,2356 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="base" version="1.0">
+<module name="advancekey">
+<object name="FeatureKeyingIndex">
+<core type="uint" key="yes" access="read-write" descr="A value corresponding to a keyable feature.When this table is walked, only values associated with keyable features are returned.This value must be equivalent to valid value of FeatureKeyingIndex."/>
+<ui name="FeatureKeyingIndex" style="plainText">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.24.1.3.1.1"/> 
+</ui></object>
+<object name="FeatureKeyingName" depends="FeatureKeyingIndex">
+<core type="string" access="read-only" descr="The abbreviated name of this component.This is also equivalent to FeatureKeyingName"/>
+<ui name="FeatureKeyingName" style="plainText">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.24.1.3.1.2"/> 
+</ui></object>
+<object name="FeatureKeyingStatus" depends="FeatureKeyingIndex">
+<core type="enum" xtype="enable_t" access="read-only" descr="Returns a value of (1) if the feature is enabled for management, (2) if disabled."/>
+<ui name="FeatureKeyingStatus" style="plainText">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.24.1.3.1.3"/> 
+</ui></object>
+<object name="FeatureKeyingDisableKey">
+<core type="string" access="write-only" descr="Hexadecimal Key-string entered to disable an advance functionality."/>
+<ui name="FeatureKeyingDisableKey" style="inputLine">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.24.1.2"/> 
+</ui></object>
+<object name="FeatureKeyingEnableKey">
+<core type="string" access="write-only" descr="Hexadecimal Key-string entered to enable an advance functionality."/>
+<ui name="FeatureKeyingEnableKey" style="inputLine">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.24.1.1"/> 
+</ui></object>
+</module>
+
+
+
+<module name="ipNetMedia">
+<key-combo list="ipNetToMediaIfIndex,ipNetToMediaNetAddress"/>
+<object name="ipNetToMediaIfIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="ToDO: Add Help"/>
+<ui name="Unit/Slot/Port" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.22.1.1"/>
+</ui></object>
+<object name="ipNetToMediaIfIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="ToDO: Add Help"/>
+<ui name="Slot/Port" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.22.1.1"/>
+</ui></object>
+<object name="ipNetToMediaNetAddress">
+<core type="ipv4" key="yes" access="read-write" descr="ToDO: Add Help"/>
+<ui name="ipNetToMediaNetAddress" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.22.1.3"/>
+</ui></object>
+<object name="ipNetToMediaPhysAddress" depends="ipNetToMediaIfIndex,ipNetToMediaNetAddress">
+<core type="mac" access="read-write" descr="ToDO: Add Help"/>
+<ui name="ipNetToMediaPhysAddress" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.22.1.2"/>
+</ui></object>
+<object name="ipNetToMediaType" depends="ipNetToMediaIfIndex,ipNetToMediaNetAddress">
+<core type="enum" xtype="L7_IP_AT_TYPE_t" access="read-write" descr="ToDO: Add Help"/>
+<ui name="ipNetToMediaType" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.22.1.4"/>
+</ui></object>
+</module>
+<module name="dot3Stats">
+<object name="dot3StatsIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr=" An index value that uniquely identifies an interface to an ethernet-like medium. The interface identified by a particular value of this index is the same interface as identified "/>
+<ui name="Unit/slot/Port" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.10.7.2.1.1"/> 
+</ui></object>
+<object name="dot3StatsIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr=" An index value that uniquely identifies an interface to an ethernet-like medium. The interface identified by a particular value of this index is the same interface as identified "/>
+<ui name="Slot/Port" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.10.7.2.1.1"/> 
+</ui></object>
+<object name="dot3StatsAlignmentErrors" depends="dot3StatsIndex">
+<core type="uint" access="read-only" descr=" A count of frames received on a particular interface that are not an integral number of octets in length and do not pass the FCS check. The count represented by an instance of this "/>
+<ui name="dot3StatsAlignmentErrors" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.10.7.2.1.2"/> 
+</ui></object>
+<object name="dot3StatsFCSErrors" depends="dot3StatsIndex">
+<core type="uint" access="read-only" descr=" A count of frames received on a particular interface that are an integral number of octets in length but do not pass the FCS check. This count does not include frames received with "/>
+<ui name="dot3StatsFCSErrors" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.10.7.2.1.3"/> 
+</ui></object>
+<object name="dot3StatsSingleCollisionFrames" depends="dot3StatsIndex">
+<core type="uint" access="read-only" descr=" A count of frames that are involved in a single collision, and are subsequently transmitted successfully. A frame that is counted by an instance of this object is also count"/>
+<ui name="dot3StatsSingleCollisionFrames" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.10.7.2.1.4"/> 
+</ui></object>
+<object name="dot3StatsMultipleCollisionFrames" depends="dot3StatsIndex">
+<core type="uint" access="read-only" descr=" A count of frames that are involved in more than one collision and are subsequently transmitted successfully. A frame that is counted by an instance of this object is also "/>
+<ui name="dot3StatsMultipleCollisionFrames" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.10.7.2.1.5"/> 
+</ui></object>
+<object name="dot3StatsSQETestErrors" depends="dot3StatsIndex">
+<core type="uint" access="read-only" descr="A count of times that the SQE TEST ERROR is received on a particular interface. The SQE TEST ERROR is set in accordance with the rules for verification of the SQE detection mechan"/>
+<ui name="dot3StatsSQETestErrors" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.10.7.2.1.6"/> 
+</ui></object>
+<object name="dot3StatsDeferredTransmissions" depends="dot3StatsIndex">
+<core type="uint" access="read-only" descr="A count of frames for which the first transmission attempt on a particular interface is delayed because the medium is busy. The count represented by an instance of this object doe"/>
+<ui name="dot3StatsDeferredTransmissions" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.10.7.2.1.7"/> 
+</ui></object>
+<object name="dot3StatsLateCollisions" depends="dot3StatsIndex">
+<core type="uint" access="read-only" descr=" The number of times that a collision is detected on a particular interface later than one slotTime into the transmission of a packet. A (late) collision included in a count "/>
+<ui name="dot3StatsLateCollisions" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.10.7.2.1.8"/> 
+</ui></object>
+<object name="dot3StatsExcessiveCollisions" depends="dot3StatsIndex">
+<core type="uint" access="read-only" descr=" A count of frames for which transmission on a particular interface fails due to excessive collisions. This counter does not increment when the interface is operating in full"/>
+<ui name="dot3StatsExcessiveCollisions" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.10.7.2.1.9"/> 
+</ui></object>
+<object name="dot3StatsInternalMacTransmitErrors" depends="dot3StatsIndex">
+<core type="uint" access="read-only" descr="A count of frames for which transmission on a particular interface fails due to an internal MAC sublayer transmit error. A frame is only counted by an instance of this object if it is "/>
+<ui name="dot3StatsInternalMacTransmitErrors" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.10.7.2.1.10"/> 
+</ui></object>
+<object name="dot3StatsCarrierSenseErrors" depends="dot3StatsIndex">
+<core type="uint" access="read-only" descr="The number of times that the carrier sense condition was lost or never asserted when attempting to transmit a frame on a particular interface. The count represented by an instance"/>
+<ui name="dot3StatsCarrierSenseErrors" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.10.7.2.1.11"/> 
+</ui></object>
+<object name="dot3StatsFrameTooLongs" depends="dot3StatsIndex">
+<core type="uint" access="read-only" descr=" A count of frames received on a particular interface that exceed the maximum permitted frame size. The count represented by an instance of this object is incremented when th"/>
+<ui name="dot3StatsFrameTooLongs" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.10.7.2.1.13"/> 
+</ui></object>
+<object name="dot3StatsInternalMacReceiveErrors" depends="dot3StatsIndex">
+<core type="uint" access="read-only" descr="A count of frames for which reception on a particular interface fails due to an internal MAC sublayer receive error. A frame is only counted by an instance of this object if it is "/>
+<ui name="dot3StatsInternalMacReceiveErrors" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.10.7.2.1.16"/> 
+</ui></object>
+<object name="dot3StatsEtherChipSet" depends="dot3StatsIndex">
+<core type="uint" access="read-only" descr="the chipset on which this interface is built"/>
+<ui name="dot3StatsEtherChipSet" style="plainText"/>
+</object>
+</module>
+<module name="etherStats">
+<object name="etherStatsIndex">
+<core type="uint" key="yes" access="read-write" descr=" The value of this object uniquely identifies this etherStats entry."/>
+<ui name="etherStatsIndex" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.1"/> 
+</ui></object>
+<object name="etherStatsDataSource" depends="etherStatsIndex">
+<core type="uint" access="read-write" descr=" This object identifies the source of the data that this etherStats entry is configured to analyze. This source can be any ethernet interface on this device. In order to identify a particular interface, this object shall i"/>
+<ui name="etherStatsDataSource" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.2"/> 
+</ui></object>
+<object name="etherStatsDropEvents" depends="etherStatsIndex">
+<core type="uint" access="read-only" descr=" The total number of events in which packets were dropped by the probe due to lack of resources. Note that this number is not necessarily the number of packets dropped; it is just the number of times this condition has been"/>
+<ui name="etherStatsDropEvents" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.3"/> 
+</ui></object>
+<object name="etherStatsOctets" depends="etherStatsIndex">
+<core type="user" xtype="stats64_t" access="read-only" descr=" The total number of octets of data (including those in bad packets) received on the network (excluding framing bits but including FCS octets). This object can be used as a reasonable estimate of 10-Megabit etherne"/>
+<ui name="etherStatsOctets" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.4"/> 
+</ui></object>
+<object name="etherStatsPkts" depends="etherStatsIndex">
+<core type="uint" access="read-only" descr=" The total number of packets (including bad packets, broadcast packets, and multicast packets) received."/>
+<ui name="etherStatsPkts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.5"/> 
+</ui></object>
+<object name="etherStatsBroadcastPkts" depends="etherStatsIndex">
+<core type="user" xtype="stats64_t" access="read-only" descr=" The total number of good packets received that were directed to the broadcast address. Note that this does not include multicast packets."/>
+<ui name="etherStatsBroadcastPkts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.6"/> 
+</ui></object>
+<object name="etherStatsMulticastPkts" depends="etherStatsIndex">
+<core type="user" xtype="stats64_t" access="read-only" descr=" The total number of good packets received that were directed to a multicast address. Note that this number does not include packets directed to the broadcast address."/>
+<ui name="etherStatsMulticastPkts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.7"/> 
+</ui></object>
+<object name="etherStatsCRCAlignErrors" depends="etherStatsIndex">
+<core type="uint" access="read-only" descr=" The total number of packets received that had a length (excluding framing bits, but including FCS octets) of between 64 and 1518 octets, inclusive, but had either a bad Frame Check Sequence (FCS) with an integral n"/>
+<ui name="etherStatsCRCAlignErrors" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.8"/> 
+</ui></object>
+<object name="etherStatsUndersizePkts" depends="etherStatsIndex">
+<core type="uint" access="read-only" descr=" The total number of packets received that were less than 64 octets long (excluding framing bits, but including FCS octets) and were otherwise well formed."/>
+<ui name="etherStatsUndersizePkts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.9"/> 
+</ui></object>
+<object name="etherStatsOversizePkts" depends="etherStatsIndex">
+<core type="uint" access="read-only" descr=" The total number of packets received that were longer than 1518 octets (excluding framing bits, but including FCS octets) and were otherwise well formed."/>
+<ui name="etherStatsOversizePkts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.10"/> 
+</ui></object>
+<object name="etherStatsFragments" depends="etherStatsIndex">
+<core type="uint" access="read-only" descr=" The total number of packets received that were less than 64 octets in length (excluding framing bits but including FCS octets) and had either a bad Frame Check Sequence (FCS) with an integral number of octets (FCS Error) or a "/>
+<ui name="etherStatsFragments" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.11"/> 
+</ui></object>
+<object name="etherStatsJabbers" depends="etherStatsIndex">
+<core type="uint" access="read-only" descr=" The total number of packets received that were longer than 1518 octets (excluding framing bits, but including FCS octets), and had either a bad Frame Check Sequence (FCS) with an integral number of octets (FCS Error) or a "/>
+<ui name="etherStatsJabbers" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.12"/> 
+</ui></object>
+<object name="etherStatsCollisions" depends="etherStatsIndex">
+<core type="uint" access="read-only" descr=" The best estimate of the total number of collisions on this Ethernet segment. The value returned will depend on the location of the RMON probe. Section 8.2.1.3 (10BASE-5) and section 10.3.1.3 (10BASE-2) of IEEE standard 8"/>
+<ui name="etherStatsCollisions" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.13"/> 
+</ui></object>
+<object name="etherStatsPkts64Octets" depends="etherStatsIndex">
+<core type="uint" access="read-only" descr=" The total number of packets (including bad packets) received that were 64 octets in length (excluding framing bits but including FCS octets)."/>
+<ui name="etherStatsPkts64Octets" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.14"/> 
+</ui></object>
+<object name="etherStatsPkts65to127Octets" depends="etherStatsIndex">
+<core type="uint" access="read-only" descr=" The total number of packets (including bad packets) received that were between 65 and 127 octets in length inclusive (excluding framing bits but including FCS octets)."/>
+<ui name="etherStatsPkts65to127Octets" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.15"/> 
+</ui></object>
+<object name="etherStatsPkts128to255Octets" depends="etherStatsIndex">
+<core type="uint" access="read-only" descr=" The total number of packets (including bad packets) received that were between 128 and 255 octets in length inclusive (excluding framing bits but including FCS octets)."/>
+<ui name="etherStatsPkts128to255Octets" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.16"/> 
+</ui></object>
+<object name="etherStatsPkts256to511Octets" depends="etherStatsIndex">
+<core type="uint" access="read-only" descr=" The total number of packets (including bad packets) received that were between 256 and 511 octets in length inclusive (excluding framing bits but including FCS octets)."/>
+<ui name="etherStatsPkts256to511Octets" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.17"/> 
+</ui></object>
+<object name="etherStatsPkts512to1023Octets" depends="etherStatsIndex">
+<core type="uint" access="read-only" descr=" The total number of packets (including bad packets) received that were between 512 and 1023 octets in length inclusive (excluding framing bits but including FCS octets)."/>
+<ui name="etherStatsPkts512to1023Octets" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.18"/> 
+</ui></object>
+<object name="etherStatsPkts1024to1518Octets" depends="etherStatsIndex">
+<core type="uint" access="read-only" descr=" The total number of packets (including bad packets) received that were between 1024 and 1518 octets in length inclusive (excluding framing bits but including FCS octets)."/>
+<ui name="etherStatsPkts1024to1518Octets" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.19"/> 
+</ui></object>
+<object name="etherStatsOwner" depends="etherStatsIndex">
+<core type="string" access="read-write" descr=" The entity that configured this entry and is therefore using the resources assigned to it."/>
+<ui name="etherStatsOwner" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.20"/> 
+</ui></object>
+<object name="etherStatsStatus" depends="etherStatsIndex">
+<core type="uint" access="read-write" descr=" The status of this etherStats entry."/>
+<ui name="etherStatsStatus" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.16.1.1.1.21"/> 
+</ui></object>
+</module>
+<module name="icmpStats">
+<object name="icmpInEchoReps">
+<core type="uint" access="read-only" descr="The number of ICMP Echo Reply messages received."/>
+<ui name="icmpInEchoReps" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.9"/> 
+</ui></object>
+<object name="icmpOutParmProbs">
+<core type="uint" access="read-only" descr="The number of ICMP Parameter Problem messages sent."/>
+<ui name="icmpOutParmProbs" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.18"/> 
+</ui></object>
+<object name="icmpOutEchos">
+<core type="uint" access="read-only" descr="The number of ICMP Echo (request) messages sent."/>
+<ui name="icmpOutEchos" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.21"/> 
+</ui></object>
+<object name="icmpOutRedirects">
+<core type="uint" access="read-only" descr="The number of ICMP Redirect messages sent. For a host, this object will always be zero, since hosts do not send redirects."/>
+<ui name="icmpOutRedirects" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.20"/> 
+</ui></object>
+<object name="icmpOutTimestampReps">
+<core type="uint" access="read-only" descr="The number of ICMP Timestamp Reply messages sent."/>
+<ui name="icmpOutTimestampReps" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.24"/> 
+</ui></object>
+<object name="icmpInErrors">
+<core type="uint" access="read-only" descr="The number of ICMP messages which the entity received but determined as having ICMP-specific errors (bad ICMP checksums, bad length, etc.)."/>
+<ui name="icmpInErrors" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.2"/> 
+</ui></object>
+<object name="icmpInRedirects">
+<core type="uint" access="read-only" descr="The number of ICMP Redirect messages received."/>
+<ui name="icmpInRedirects" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.7"/> 
+</ui></object>
+<object name="icmpInParmProbs">
+<core type="uint" access="read-only" descr="The number of ICMP Parameter Problem messages received."/>
+<ui name="icmpInParmProbs" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.5"/> 
+</ui></object>
+<object name="icmpOutErrors">
+<core type="uint" access="read-only" descr="The number of ICMP messages which this entity did not send due to problems discovered within ICMP such as a lack of buffers. This value should not include errors discovered outside the ICMP layer such as the in"/>
+<ui name="icmpOutErrors" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.15"/> 
+</ui></object>
+<object name="icmpOutDestUnreachs">
+<core type="uint" access="read-only" descr="The number of ICMP Destination Unreachable messages sent."/>
+<ui name="icmpOutDestUnreachs" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.16"/> 
+</ui></object>
+<object name="icmpOutTimestamps">
+<core type="uint" access="read-only" descr="The number of ICMP Timestamp (request) messages sent."/>
+<ui name="icmpOutTimestamps" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.23"/> 
+</ui></object>
+<object name="icmpOutAddrMasks">
+<core type="uint" access="read-only" descr="The number of ICMP Address Mask Request messages sent."/>
+<ui name="icmpOutAddrMasks" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.25"/> 
+</ui></object>
+<object name="icmpInAddrMasks">
+<core type="uint" access="read-only" descr="The number of ICMP Address Mask Request messages received."/>
+<ui name="icmpInAddrMasks" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.12"/> 
+</ui></object>
+<object name="icmpOutMsgs">
+<core type="uint" access="read-only" descr="The total number of ICMP messages which this entity attempted to send. Note that this counter includes all those counted by icmpOutErrors."/>
+<ui name="icmpOutMsgs" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.14"/> 
+</ui></object>
+<object name="icmpInEchos">
+<core type="uint" access="read-only" descr="The number of ICMP Echo (request) messages received."/>
+<ui name="icmpInEchos" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.8"/> 
+</ui></object>
+<object name="icmpInMsgs">
+<core type="uint" access="read-only" descr="The total number of ICMP messages which the entity received. Note that this counter includes all those counted by icmpInErrors."/>
+<ui name="icmpInMsgs" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.1"/> 
+</ui></object>
+<object name="icmpInTimeExcds">
+<core type="uint" access="read-only" descr="The number of ICMP Time Exceeded messages received."/>
+<ui name="icmpInTimeExcds" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.4"/> 
+</ui></object>
+<object name="icmpInTimestampReps">
+<core type="uint" access="read-only" descr="The number of ICMP Timestamp Reply messages received."/>
+<ui name="icmpInTimestampReps" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.11"/> 
+</ui></object>
+<object name="icmpOutSrcQuenchs">
+<core type="uint" access="read-only" descr="The number of ICMP Source Quench messages sent."/>
+<ui name="icmpOutSrcQuenchs" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.19"/> 
+</ui></object>
+<object name="icmpInTimestamps">
+<core type="uint" access="read-only" descr="The number of ICMP Timestamp (request) messages received."/>
+<ui name="icmpInTimestamps" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.10"/> 
+</ui></object>
+<object name="icmpInDestUnreachs">
+<core type="uint" access="read-only" descr="The number of ICMP Destination Unreachable messages received."/>
+<ui name="icmpInDestUnreachs" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.3"/> 
+</ui></object>
+<object name="icmpInAddrMaskReps">
+<core type="uint" access="read-only" descr="The number of ICMP Address Mask Reply messages received."/>
+<ui name="icmpInAddrMaskReps" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.13"/> 
+</ui></object>
+<object name="icmpInSrcQuenchs">
+<core type="uint" access="read-only" descr="The number of ICMP Source Quench messages received."/>
+<ui name="icmpInSrcQuenchs" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.6"/> 
+</ui></object>
+<object name="icmpOutEchoReps">
+<core type="uint" access="read-only" descr="The number of ICMP Echo Reply messages sent."/>
+<ui name="icmpOutEchoReps" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.22"/> 
+</ui></object>
+<object name="icmpOutAddrMaskReps">
+<core type="uint" access="read-only" descr="The number of ICMP Address Mask Reply messages sent."/>
+<ui name="icmpOutAddrMaskReps" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.26"/> 
+</ui></object>
+<object name="icmpOutTimeExcds">
+<core type="uint" access="read-only" descr="The number of ICMP Time Exceeded messages sent."/>
+<ui name="icmpOutTimeExcds" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.5.17"/> 
+</ui></object>
+</module>
+<module name="eventSnmpTable">
+<object name="eventFreeIdx">
+<core type="uint" key="yes" access="read-write" descr="An Free index that uniquely identifies an entry in the event table. Each such entry defines one event that is to be generated when the appropriate conditions occur."/>
+<ui name="eventFreeIdx" style="plainText">
+ <snmp asn-id=""/>
+</ui></object>
+<object name="eventIndex">
+<core type="uint" key="yes" access="read-write" descr=" An index that uniquely identifies an entry in the event table. Each such entry defines one event that is to be generated when the appropriate conditions occur."/>
+<ui name="eventIndex" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.9.1.1.1"/> 
+</ui></object>
+<object name="eventDescription" depends="eventIndex">
+<core type="string" access="read-write" descr=" A comment describing this event entry."/>
+<ui name="eventDescription" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.16.9.1.1.2"/> 
+</ui></object>
+<object name="eventType" depends="eventIndex">
+<core type="enum" xtype="L7_XUI_EVENT_TYPE_t" access="read-write" descr=" The type of notification that the probe will make about this event. In the case of log, an entry is made in the log table for each event. In the case of snmp-trap, an SNMP trap is sent to one or more management stations." properties="dynamic"/>
+<ui name="eventType" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.9.1.1.3"/> 
+</ui></object>
+<object name="eventCommunity" depends="eventIndex">
+<core type="string" access="read-write" descr=" If an SNMP trap is to be sent, it will be sent to the SNMP community specified by this octet string."/>
+<ui name="eventCommunity" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.16.9.1.1.4"/> 
+</ui></object>
+<object name="eventLastTimeSent" depends="eventIndex">
+<core type="user" xtype="elapsedTimeDHMS_t" access="read-only" descr=" The value of sysUpTime at the time this event entry last generated an event. If this entry has not generated any events, this value will be zero."/>
+<ui name="eventLastTimeSent" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.9.1.1.5"/> 
+</ui></object>
+<object name="eventOwner" depends="eventIndex">
+<core type="string" access="read-write" descr=" The entity that configured this entry and is therefore using the resources assigned to it. If this object contains a string starting with &apos;monitor&apos; and has associated entries in the log table, all connected management sta"/>
+<ui name="eventOwner" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.16.9.1.1.6"/> 
+</ui></object>
+<object name="eventStatus" depends="eventIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr=" The status of this event entry. If this object is not equal to valid(1), all associated log entries shall be deleted by the agent."/>
+<ui name="eventStatus" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.16.9.1.1.7"/>
+</ui></object>
+</module>
+<module name="statsHistoryControl">
+<object name="historyControlFreeEntry">
+<core type="uint" key="yes" access="read-write" descr=" An index that uniquely identifies an Free entry in the historyControl table."/>
+<ui name="historyControlFreeEntry" style="plainText">
+ <snmp asn-id=""/> 
+</ui></object>
+<object name="historyControlIndex">
+<core type="uint" key="yes" access="read-write" descr=" An index that uniquely identifies an entry in the historyControl table. Each such entry defines a set of samples at a particular interval for an interface on the device."/>
+<ui name="historyControlIndex" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.1.1.1"/> 
+</ui></object>
+<object name="historyControlDataSource" depends="historyControlIndex">
+<core type="user" xtype="usp_t" access="read-write" descr=" This object identifies the source of the data for which historical data was collected and placed in a media-specific table on behalf of this historyControlEntry. This source can be any interface on this device. In order " properties="dynamic"/>
+<ui name="historyControlDataSource" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.1.1.2"/> 
+</ui></object>
+<object name="historyControlBucketsRequested" depends="historyControlIndex">
+<core type="uint" min="RMON_MIN_BUCKETS_REQ_VALUE" max="RMON_MAX_BUCKETS_REQ_VALUE" access="read-write" descr=" The requested number of discrete time intervals over which data is to be saved in the part of the media-specific table associated with this historyControlEntry. When this object is created or modified, the probe s"/>
+<ui name="historyControlBucketsRequested" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.16.2.1.1.3"/> 
+</ui></object>
+<object name="historyControlBucketsGranted" depends="historyControlIndex">
+<core type="uint" access="read-only" descr=" The number of discrete sampling intervals over which data shall be saved in the part of the media-specific table associated with this historyControlEntry. When the associated historyControlBucketsRequested object "/>
+<ui name="historyControlBucketsGranted" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.1.1.4"/> 
+</ui></object>
+<object name="historyControlInterval" depends="historyControlIndex">
+<core type="uint" min="RMON_HISTORY_CONTROL_INTERVAL_MIN" max="RMON_HISTORY_CONTROL_INTERVAL_MAX" access="read-write" descr=" The interval in seconds over which the data is sampled for each bucket in the part of the media-specific table associated with this historyControlEntry. This interval can be set to any number of seconds between 1 and "/>
+<ui name="historyControlInterval" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.16.2.1.1.5"/> 
+</ui></object>
+<object name="historyControlOwner" depends="historyControlIndex">
+<core type="string" access="read-write" descr=" The entity that configured this entry and is therefore using the resources assigned to it."/>
+<ui name="historyControlOwner" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.16.2.1.1.6"/> 
+</ui></object>
+<object name="historyControlStatus" depends="historyControlIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr=" The status of this historyControl entry. Each instance of the media-specific table associated with this historyControlEntry will be deleted by the agent if this historyControlEntry is not equal to valid(1)."/>
+<ui name="historyControlStatus" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.16.2.1.1.7"/>  
+</ui></object>
+</module>
+<module name="InterfaceInfo">
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr=" A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initial"/>
+<ui name="Unit/Slot/Port" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.1"/> 
+</ui></object>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr=" A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initial"/>
+<ui name="Slot/Port" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.1"/> 
+</ui></object>
+<object name="ifDescr" depends="ifIndex">
+<core type="string" access="read-only" descr=" A textual string containing information about the interface. This string should include the name of the manufacturer, the product name and the version of the interface hardware/software."/>
+<ui name="ifDescr" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.2"/> 
+</ui></object>
+<object name="ifType" depends="ifIndex">
+<core type="enum" xtype="L7_IANA_INTF_TYPE_t" access="read-only" descr=" The type of interface. Additional values for ifType are assigned by the Internet Assigned Numbers Authority (IANA), through updating the syntax of the IANAifType textual convention."/>
+<ui name="ifType" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.3"/> 
+</ui></object>
+<object name="ifMtu" depends="ifIndex">
+<core type="uint" access="read-only" descr=" The size of the largest packet which can be sent/received on the interface, specified in octets. For interfaces that are used for transmitting network datagrams, this is the size of the largest network datagram that c"/>
+<ui name="ifMtu" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.4"/> 
+</ui></object>
+<object name="ifSpeed" depends="ifIndex">
+<core type="uint" access="read-only" descr=" An estimate of the interface&apos;s current bandwidth in bits per second. For interfaces which do not vary in bandwidth or for those where no accurate estimation can be made, this object should contain the nominal bandwidt"/>
+<ui name="ifSpeed" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.5"/> 
+</ui></object>
+<object name="ifPhysAddress" depends="ifIndex">
+<core type="mac" access="read-only" descr=" The interface&apos;s address at its protocol sub-layer. For example, for an 802.x interface, this object normally contains a MAC address. The interface&apos;s media-specific MIB must define the bit and byte ordering and the fo"/>
+<ui name="ifPhysAddress" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.6"/> 
+</ui></object>
+<object name="ifAdminStatus" depends="ifIndex">
+<core type="enum" xtype="enable_t" default="L7_ENABLE" access="read-write" descr=" The desired state of the interface. The testing(3) state indicates that no operational packets can be passed. When a managed system initializes, all interfaces start with ifAdminStatus in the down(2) state. As a res"/>
+<ui name="ifAdminStatus" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.7"/> 
+</ui></object>
+<object name="ifOperStatus" depends="ifIndex">
+<core type="enum" xtype="L7_OPER_STATUS_t" access="read-only" descr=" The current operational state of the interface. The testing(3) state indicates that no operational packets can be passed. If ifAdminStatus is down(2) then ifOperStatus should be down(2). If ifAdminStatus is changed "/>
+<ui name="ifOperStatus" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.8"/> 
+</ui></object>
+<object name="ifLastChange" depends="ifIndex">
+<core type="uint" access="read-only" descr=" The value of sysUpTime at the time the interface entered its current operational state. If the current state was entered prior to the last re-initialization of the local network management subsystem, then this object "/>
+<ui name="ifLastChange" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.9"/> 
+</ui></object>
+<object name="ifInOctets" depends="ifIndex">
+<core type="user" xtype="stats64_t" access="read-only" descr=" The total number of octets received on the interface, including framing characters. Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other times "/>
+<ui name="ifInOctets" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.10"/> 
+</ui></object>
+<object name="ifInUcastPkts" depends="ifIndex">
+<core type="user" xtype="stats64_t" access="read-only" descr=" The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were not addressed to a multicast or broadcast address at this sub-layer. Discontinuities in the value of this counter can occur at "/>
+<ui name="ifInUcastPkts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.11"/> 
+</ui></object>
+<object name="ifInNUcastPkts" depends="ifIndex">
+<core type="user" xtype="stats64_t" access="read-only" descr=" The number of packets, delivered by this sub-layer to a higher (sub-)layer, which were addressed to a multicast or broadcast address at this sub-layer. Discontinuities in the value of this counter can occur at "/>
+<ui name="ifInNUcastPkts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.12"/> 
+</ui></object>
+<object name="ifInDiscards" depends="ifIndex">
+<core type="uint" access="read-only" descr=" The number of inbound packets which were chosen to be discarded even though no errors had been detected to prevent their being deliverable to a higher-layer protocol. One possible reason for discarding such a packet "/>
+<ui name="ifInDiscards" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.13"/> 
+</ui></object>
+<object name="ifInErrors" depends="ifIndex">
+<core type="uint" access="read-only" descr=" For packet-oriented interfaces, the number of inbound packets that contained errors preventing them from being deliverable to a higher-layer protocol. For character- oriented or fixed-length interfaces, the number of "/>
+<ui name="ifInErrors" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.14"/> 
+</ui></object>
+<object name="ifInUnknownProtos" depends="ifIndex">
+<core type="uint" access="read-only" descr="The number of packets received via the interface which were discarded because of an unknown or unsupported protocol."/>
+<ui name="ifInUnknownProtos" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.15"/> 
+</ui></object>
+<object name="ifOutOctets" depends="ifIndex">
+<core type="user" xtype="stats64_t" access="read-only" descr=" The total number of octets transmitted out of the interface, including framing characters. Discontinuities in the value of this counter can occur at re-initialization of the management system, and at other "/>
+<ui name="ifOutOctets" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.16"/> 
+</ui></object>
+<object name="ifOutUcastPkts" depends="ifIndex">
+<core type="user" xtype="stats64_t" access="read-only" descr=" The total number of packets that higher-level protocols requested be transmitted, and which were not addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent. "/>
+<ui name="ifOutUcastPkts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.17"/> 
+</ui></object>
+<object name="ifOutNUcastPkts" depends="ifIndex">
+<core type="user" xtype="stats64_t" access="read-only" descr=" The total number of packets that higher-level protocols requested be transmitted, and which were addressed to a multicast or broadcast address at this sub-layer, including those that were discarded or not sent. "/>
+<ui name="ifOutNUcastPkts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.18"/> 
+</ui></object>
+<object name="ifOutDiscards" depends="ifIndex">
+<core type="uint" access="read-only" descr="The number of outbound packets which were chosen to be discarded even though no errors had been detected to prevent their being transmitted. One possible reason for discarding such a packet could be to free up "/>
+<ui name="ifOutDiscards" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.19"/> 
+</ui></object>
+<object name="ifOutErrors" depends="ifIndex">
+<core type="uint" access="read-only" descr=" For packet-oriented interfaces, the number of outbound packets that could not be transmitted because of errors. For character-oriented or fixed-length interfaces, the number of outbound transmission units that could no"/>
+<ui name="ifOutErrors" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.20"/> 
+</ui></object>
+<object name="ifOutQLen" depends="ifIndex">
+<core type="uint" access="read-only" descr="The length of the output packet queue (in packets)."/>
+<ui name="ifOutQLen" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.21"/> 
+</ui></object>
+<object name="ifSpecific" depends="ifIndex">
+<core type="string" access="read-only" descr="A reference to MIB definitions specific to the particular media being used to realize the interface. For example, if the interface is realized by an ethernet, then the value of this object refers to a document "/>
+<ui name="ifSpecific" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.2.1.22"/> 
+</ui></object>
+<object name="ifNumber">
+<core type="uint" access="read-only" descr=" The number of network interfaces (regardless of their current state) present on this system."/>
+<ui name="ifNumber" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.2.1"/> 
+</ui></object>
+<object name="ifName" depends="ifIndex">
+<core type="string" access="read-only" descr="The Name of the interface"/>
+<ui name="ifName" style="plainText"/>
+</object>
+<object name="IfEncapsulationType" depends="ifIndex">
+<core type="enum" xtype="L7_ENCAPSULATION_t" access="read-write" descr=" Encaptulation type."/>
+<ui name="IfEncapsulationType" style="plainText">
+</ui></object>
+<object name="ifInMulticastPkts" depends="ifIndex">
+<core type="user" xtype="stats64_t" access="read-only" descr="Multicast packets received"/>
+<ui name="ifInMulticastPkts" style="plainText"/>
+</object>
+<object name="ifInBroadcastPkts" depends="ifIndex">
+<core type="user" xtype="stats64_t" access="read-only" descr="Broadcast packets received"/>
+<ui name="ifInBroadcastPkts" style="plainText"/>
+</object>
+<object name="ifOutMulticastPkts" depends="ifIndex">
+<core type="user" xtype="stats64_t" access="read-only" descr="Multicast packets sent"/>
+<ui name="ifOutMulticastPkts" style="plainText"/>
+</object>
+<object name="ifOutBroadcastPkts" depends="ifIndex">
+<core type="user" xtype="stats64_t" access="read-only" descr="Broadcast packets sent"/>
+<ui name="ifOutBroadcastPkts" style="plainText"/>
+</object>
+<object name="ifLinkUpDownTrapEnable" depends="ifIndex">
+<core type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="Link UP Down trap"/>
+<ui name="ifLinkUpDownTrapEnable" style="inputLine"/>
+</object>
+<object name="ifHighSpeed" depends="ifIndex">
+<core type="enum" xtype="L7_PORT_SPEEDS_t" access="read-only" descr="Speed Status"/>
+<ui name="ifHighSpeed" style="plainText"/>
+</object>
+<object name="ifPromiscuousMode" depends="ifIndex">
+<core type="enum" xtype="TrueFalse_t" default="L7_FALSE" access="read-write" descr="Promiscuous mode"/>
+<ui name="ifPromiscuousMode" style="inputLine"/>
+</object>
+<object name="ifConnectorPresent" depends="ifIndex">
+<core type="enum" xtype="TrueFalse_t" access="read-only" descr="check if connector present on this interface"/>
+<ui name="ifConnectorPresent" style="plainText"/>
+</object>
+<object name="ifAlias" depends="ifIndex">
+<core type="user" xtype="string_t" access="read-write" descr="Alias for this interface"/>
+<ui name="ifAlias" style="inputLine"/>
+</object>
+<object name="ifCounterDiscontinuityTime" depends="ifIndex">
+<core type="uint" access="read-only" descr="Counter discontinuity time"/>
+<ui name="ifCounterDiscontinuityTime" style="plainText"/>
+</object>
+<object name="ifTestId" depends="ifIndex">
+<core type="uint" access="read-write" descr="TestID"/>
+<ui name="ifTestId" style="inputLine"/>
+</object>
+<object name="ifTestStatus" depends="ifIndex">
+<core type="uint" access="read-write" descr="Test status"/>
+<ui name="ifTestStatus" style="inputLine"/>
+</object>
+<object name="ifTestType" depends="ifIndex">
+<core type="uint" access="read-write" descr="Test type"/>
+<ui name="ifTestType" style="inputLine"/>
+</object>
+<object name="ifTestResult" depends="ifIndex">
+<core type="uint" access="read-only" descr="Test Result"/>
+<ui name="ifTestResult" style="plainText"/>
+</object>
+<object name="ifTestCode" depends="ifIndex">
+<core type="uint" access="read-only" descr="Test Code"/>
+<ui name="ifTestCode" style="plainText"/>
+</object>
+<object name="ifTestOwner" depends="ifIndex">
+<core type="string" access="read-write" descr="Test Owner"/>
+<ui name="ifTestOwner" style="inputLine"/>
+</object>
+<object name="configMaskOffset" depends="ifIndex">
+<core type="uint" access="read-only" descr="To Do"/>
+<ui name="configMaskOffset" style="plainText"/>
+</object>
+<object name="ifIndexNumber" depends="ifIndex">
+<core type="uint" access="read-only" descr="To Do"/>
+<ui name="ifIndexNumber" style="plainText"/>
+</object>
+</module>
+<module name="SystemInfo">
+<object name="sysName">
+<core type="user" xtype="string_t" access="read-write" descr=" An administratively-assigned name for this managed node. By convention, this is the node&apos;s fully-qualified domain name. If the name is unknown, the value is the zero-length string."/>
+<ui name="sysName" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.1.5"/> 
+</ui></object>
+<object name="sysServices">
+<core type="uint" access="read-only" descr=" A value which indicates the set of services that this entity may potentially offer. The value is a sum. This sum initially takes the value zero. Then, for each layer, L, in the range 1 through 7, that this node "/>
+<ui name="sysServices" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.1.7"/> 
+</ui></object>
+<object name="sysLocation">
+<core type="user" xtype="string_t" access="read-write" descr=" The physical location of this node (e.g., &apos;telephone closet, 3rd floor&apos;). If the location is unknown, the value is the zero-length string."/>
+<ui name="sysLocation" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.1.6"/> 
+</ui></object>
+<object name="sysObjectID">
+<core type="string" access="read-only" descr=" The vendor&apos;s authoritative identification of the network management subsystem contained in the entity. This value is allocated within the SMI enterprises subtree (1.3.6.1.4.1) and provides an easy and unamb"/>
+<ui name="sysObjectID" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.1.2"/> 
+</ui></object>
+<object name="sysDescr">
+<core type="string" access="read-only" descr=" A textual description of the entity. This value should include the full name and version identification of the system&apos;s hardware type, software operating-system, and networking software."/>
+<ui name="sysDescr" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.1.1"/> 
+</ui></object>
+<object name="sysUpTime">
+<core type="user" xtype="elapsedTime_t" access="read-only" descr=" The time (in hundredths of a second) since the network management portion of the system was last re-initialized."/>
+<ui name="sysUpTime" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.1.3"/> 
+</ui></object>
+<object name="sysContact">
+<core type="user" xtype="string_t" access="read-write" descr=" The textual identification of the contact person for this managed node, together with information on how to contact this person. If no contact information is known, the value is the zero-length string."/>
+<ui name="sysContact" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.1.4"/> 
+</ui></object>
+
+<object name="sysCurrentDate">
+<core type="string" access="read-only" descr=" the current system date."/>
+<ui name="sysCurrentDate" style="plainText">
+</ui></object>
+
+<object name="sysCurrentTime">
+<core type="string" access="read-only" descr=" The current system Time displayed in HH:MM:SS format."/>
+<ui name="sysCurrentTime" style="plainText">
+</ui></object>
+
+
+<object name="sysIpAddr">
+<core type="user" xtype="rtoipv4_t" access="read-write" descr="The IP Address assigned to the network interface"/>
+<ui name="sysIpAddr" style="inputLine"/>
+</object>
+<object name="sysIpNetMask">
+<core type="user" xtype="rtoipv4_t" access="read-write" descr="The Unit&apos;s System NetMask"/>
+<ui name="sysIpNetMask" style="inputLine"/>
+</object>
+<object name="sysAgentIpIfDefaultRouter">
+<core type="user" xtype="rtoipv4_t" access="read-write" descr="Unit&apos;s System Gateway"/>
+<ui name="sysAgentIpIfDefaultRouter" style="inputLine"/>
+</object>
+<object name="sysPortsPerBoxGet">
+<core type="uint" access="read-only" descr="the total number of ports per box"/>
+<ui name="sysPortsPerBoxGet" style="plainText"/>
+</object>
+<object name="sysMgmtVlanId">
+<core type="uint" min="L7_DOT1Q_MIN_VLAN_ID" max="L7_DOT1Q_MAX_VLAN_ID" default="L7_DOT1Q_DEFAULT_VLAN" access="read-write" descr="the management vlan id."/>
+<ui name="sysMgmtVlanId" style="inputLine"/>
+</object>
+<object name="sysMgmtPort">
+<core type="uint" access="read-write" properties="dynamic" min="1" default="1" max="L7_MAX_PORT_COUNT" descr="the managementport"/>
+<ui name="sysMgmtPort" style="inputLine"/>
+</object>
+<object name="sysIPFirstLocalAddress">
+<core type="ipv4" access="read-only" descr="Finds first valid IP address on this system.returns 0.0.0.0 if no valid IP addresses are found"/>
+<ui name="sysIPFirstLocalAddress" style="plainText"/>
+</object>
+<object name="sysAgentBasicConfigNetworkConfigProtocol">
+<core type="enum" xtype="L7_SYSCFG_MODE_t" default="L7_SYSCONFIG_MODE_NONE" access="read-write" descr="The units basic network protocol being set"/>
+<ui name="sysAgentBasicConfigNetworkConfigProtocol" style="inputLine"/>
+</object>
+<object name="sysCommandPrompt">
+<core type="string" access="read-write" descr="CLI Command prompt string" validation="validate_alphanum64"/>
+<ui name="sysCommandPrompt" style="inputLine"/>
+</object>
+<object name="TerminalLineLength">
+<core type="uint" min="L7_MIN_TERMINAL_LENGTH" max="L7_MAX_TERMINAL_LENGTH" default="FD_CLI_LINES_FOR_PAGINATION" access="read-write" descr="the Terminal Lines for show running-config"/>
+<ui name="TerminalLineLength" style="inputLine"/>
+</object>
+<object name="sysSNTPSyncTime">
+<core type="string" access="read-only" descr="currently synchronized SNTP time in UTC"/>
+<ui name="sysTimeSinceLastSwitchStatsReset" style="plainText"/>
+</object>
+</module>
+
+<module name="sysReset">
+<object name="sysResetUnitIndex">
+<core type="uint" key="yes" access="read-write" descr="Stacked Unit numbers"/>
+<ui name="sysResetUnitIndex" style="inputLine"/>
+</object>
+<object name="sysDeviceReset">
+<core type="uint" access="write-only" descr="Reboot the switch"/>
+<ui name="sysDeviceReset" style="inputLine"/>
+</object>
+
+<object name="sysDeviceResetAll">
+<core type="uint" access="write-only" descr="Reboot all switches in stack"/>
+<ui name="sysDeviceReset" style="inputLine"/>
+</object>
+
+<object name="sysDeviceResetUnit" depends="sysResetUnitIndex">
+<core type="uint" access="write-only" descr="Reboot the specified unit"/>
+<ui name="sysDeviceResetUnit" style="inputLine"/>
+</object>
+<object name="sysDeviceResetConfig">
+<core type="enum" xtype="enable_t" access="write-only" descr="Set device configuraation to defaults"/>
+<ui name="sysDeviceResetConfig" style="inputLine"/>
+</object>
+
+<object name="sysDeviceEraseStartupConfig">
+<core type="enum" xtype="enable_t" access="write-only" descr="Deletes device startup configuration file."/>
+<ui name="sysDeviceEraseStartupConfig" style="inputLine"/>
+</object>
+
+<object name="sysTimeSinceLastSwitchStatsReset">
+<core type="string" access="read-only" descr="time since the last time the switch status was reset"/>
+<ui name="sysTimeSinceLastSwitchStatsReset" style="plainText"/>
+</object>
+
+<object name="ASFMode">
+<core descr="&lt;HTML&gt;(Enable/Disable) the ASF mode on a unit" xtype="enable_t" access="read-write" type="enum"/>
+<ui style="inputLine" name="ASFMode">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="ASFModeConfigMode">
+<core descr="&lt;HTML&gt;(Enable/Disable) the ASF mode on a unit" xtype="enable_t" access="read-only" type="enum"/>
+<ui style="inputLine" name="ASFModeConfigMode">
+<snmp asn-id=""/>
+</ui>
+</object>
+
+
+</module>
+
+<module name="sysHardwareInfo">
+<object name="sysInventoryMachineType">
+<core type="string" access="read-only" descr="The machine type of this switch."/>
+<ui name="sysInventoryMachineType" style="plainText"/>
+</object>
+<object name="sysInventoryMachineModel">
+<core type="string" access="read-only" descr="The model within the machine type"/>
+<ui name="sysInventoryMachineModel" style="plainText"/>
+</object>
+<object name="sysInventorySerialNum">
+<core type="string" access="read-only" descr="The unique box serial number for this switch"/>
+<ui name="sysInventorySerialNum" style="plainText"/>
+</object>
+<object name="sysInventoryFRUNum">
+<core type="string" access="read-only" descr="The field replaceable unit number"/>
+<ui name="sysInventoryFRUNum" style="plainText">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.1.1.5"/>
+</ui>
+</object>
+<object name="sysInventoryPartNum">
+<core type="string" access="read-only" descr="The manufacturing part number"/>
+<ui name="sysInventoryPartNum" style="plainText"/>
+</object>
+<object name="sysInventoryMaintLevel">
+<core type="string" access="read-only" descr="The identification of the hardware change level"/>
+<ui name="sysInventoryMaintLevel" style="plainText"/>
+</object>
+<object name="sysInventoryManufacturer">
+<core type="string" access="read-only" descr="The two-octet code that identifies the manufacturer"/>
+<ui name="sysInventoryManufacturer" style="plainText"/>
+</object>
+<object name="sysInventoryBurnedInMacAddr">
+<core type="mac" access="read-only" descr="The burned-in universally administered MAC address of this switch"/>
+<ui name="sysInventoryBurnedInMacAddr" style="plainText">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.1.1.9"/>
+</ui>
+</object>
+<object name="sysInventorySwVersion">
+<core type="string" access="read-only" descr="The release.version.maintenance number of the code currently running on the switch. For example, if the release was 1, the version was 2 and the maintenance number was 4, the format would be &apos;1.2.4&apos;"/>
+<ui name="sysInventorySwVersion" style="plainText"/>
+</object>
+<object name="sysInventoryHwVersion">
+<core type="string" access="read-only" descr="The hardware version identifier of the switch as specified by the manufacturer"/>
+<ui name="sysInventoryHwVersion" style="plainText"/>
+</object>
+<object name="sysInventoryOperSys">
+<core type="string" access="read-only" descr="The operating system currently running on the switch"/>
+<ui name="sysInventoryOperSys" style="plainText"/>
+</object>
+<object name="sysInventoryNPD">
+<core type="string" access="read-only" descr="Identifies the network processor hardware"/>
+<ui name="sysInventoryNPD" style="plainText"/>
+</object>
+<object name="sysInventoryAdditiionalPackages">
+<core type="string" access="read-only" descr="A list of the optional software packages installed on the switch, if any. For example, FASTPATH BGP-4, or FASTPATH Multicast"/>
+<ui name="sysInventoryAdditiionalPackages" style="plainText">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.1.1.12"/>
+</ui>
+</object>
+<object name="sysLocalAdminMacAddr">
+<core type="mac" access="read-write" descr="Unit&apos;s System Locally Administered Mac Address" validation="validate_local_mac"/>
+<ui name="sysLocalAdminMacAddr" style="inputLine"/>
+</object>
+<object name="sysMacAddrType">
+<core type="enum" xtype="L7_MACADDR_TYPE_t" default="L7_SYSMAC_BIA" access="read-write" descr="Unit&apos;s System Mac Address Type"/>
+<ui name="sysMacAddrType" style="inputLine"/>
+</object>
+</module>
+<module name="sysImage">
+
+<object name="sysUnitIndex">
+<core type="uint" key="yes" access="read-write" descr="the unit number"/>
+<ui name="sysUnitIndex" style="plainText">
+</ui>
+</object>
+
+<object name="sysImage1Version" depends="sysUnitIndex">
+<core type="string" access="read-only" descr="the version information for a image1"/>
+<ui name="sysImage1Version" style="plainText">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.9.3.1"/>
+</ui>
+</object>
+<object name="sysImage2Version" depends="sysUnitIndex">
+<core type="string" access="read-only" descr="the version information for a image2"/>
+<ui name="sysImage2Version" style="plainText">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.9.3.2"/>
+</ui>
+</object>
+<object name="sysImage1Descr">
+<core type="user" xtype="string_t" access="read-write" descr="Image1 Description"/>
+<ui name="sysImage1Descr" style="inputLine"/>
+</object>
+<object name="sysImage2Descr">
+<core type="user" xtype="string_t" access="read-write" descr="Image2 Description"/>
+<ui name="sysImage2Descr" style="inputLine"/>
+</object>
+<object name="sysActiveImageName" depends="sysUnitIndex">
+<core type="string" access="read-only" descr="Currently active image name"/>
+<ui name="sysActiveImageName" style="plainText">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.9.3.3"/>
+</ui>
+</object>
+<object name="sysActivatedImageName" depends="sysUnitIndex">
+<core type="string" access="read-only" descr="Currently activated image name"/>
+<ui name="sysActivatedImageName" style="plainText"/>
+
+</object>
+
+<object name="sysActivatedImageVersion" depends="sysUnitIndex">
+<core type="string" access="read-only" descr="Gets Activated Image Version number for a given unit Index"/>
+<ui name="Activated Image Version" style="plainText"/>
+</object>
+
+<object depends="sysUnitIndex" name="sysActivateImage">
+<core descr="Activate Image" xtype="L7_XUI_IMAGE_NAME_t" access="read-write" type="enum"/>
+<ui style="choice2select1" name="sysActivateImage">
+<snmp asn-id=""/>
+</ui>
+</object>
+
+<object name="sysBackupImageName" depends="sysUnitIndex">
+<core type="string" access="read-only" descr="the backup image file name"/>
+<ui name="sysBackupImageName" style="plainText"/>
+</object>
+<object name="sysActivateImage1" depends="sysUnitIndex">
+<core type="enum" xtype="activateImage_t" access="write-only" descr="Make the image1 as active image."/>
+<ui name="sysActivateImage1" style="inputLine"/>
+</object>
+
+<object name="sysDeleteImage1" depends="sysUnitIndex">
+<core type="enum" xtype="clear_t" access="write-only" descr="Deletes Image1"/>
+<ui name="sysDeleteImage1" style="inputLine"/>
+</object>
+
+<object name="sysActivateImage2" depends="sysUnitIndex">
+<core type="enum" xtype="activateImage_t" access="write-only" descr="Make the image2 as active image."/>
+<ui name="sysActivateImage2" style="inputLine"/>
+</object>
+<object name="sysDeleteImage2" depends="sysUnitIndex">
+<core type="enum" xtype="clear_t" access="write-only" descr="Deletes Image2"/>
+<ui name="sysDeleteImage2" style="inputLine"/>
+</object>
+
+<object name="sysActiveImageVersion" depends="sysUnitIndex">
+<core type="string" access="read-only" descr="Gets Active Image Version number for a given unit Index"/>
+<ui name="Active Image Version" style="plainText"/>
+</object>
+
+<object name="sysBackupImageVersion" depends="sysUnitIndex">
+<core type="string" access="read-only" descr="Gets Backup Image Version number for a given unit Index"/>
+<ui name="Backup Image Version" style="plainText"/>
+</object>
+
+<object name="sysUpdateBootcode" depends="sysUnitIndex">
+<core type="enum" xtype="enable_t" access="write-only" descr="Updates the Bootcode from the currently activated Image"/>
+<ui name="sysUpdateBootcode" style="inputLine"/>
+</object>
+</module>
+<module name="IpRoute">
+<object name="ipRouteDest">
+<core type="ipv4" key="yes" access="read-write" descr="Determines if a route entry exists for the specified route exists"/>
+<ui name="ipRouteDest" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.21.1.1"/> 
+</ui></object>
+<object name="ipRouteIfIndex" depends="ipRouteDest" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" access="read-write" descr="the index value which uniquely identifies the local interface through which the next hop of this route should be reached"/>
+<ui name="Unit/Slot/Port" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.21.1.2"/> 
+</ui></object>
+<object name="ipRouteIfIndex" depends="ipRouteDest" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" access="read-write" descr="the index value which uniquely identifies the local interface through which the next hop of this route should be reached"/>
+<ui name="Slot/Port" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.21.1.2"/> 
+</ui></object>
+<object name="ipRouteMetric1" depends="ipRouteDest">
+<core type="uint" access="read-write" descr="The primary routing metric for this route"/>
+<ui name="ipRouteMetric1" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.21.1.3"/> 
+</ui></object>
+<object name="ipRouteMetric2" depends="ipRouteDest">
+<core type="uint" access="read-write" descr="the alternate routing metric for this route"/>
+<ui name="ipRouteMetric2" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.21.1.4"/> 
+</ui></object>
+<object name="ipRouteMetric3" depends="ipRouteDest">
+<core type="uint" access="read-write" descr="the alternate routing metric for this route"/>
+<ui name="ipRouteMetric3" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.21.1.5"/> 
+</ui></object>
+<object name="ipRouteMetric4" depends="ipRouteDest">
+<core type="uint" access="read-write" descr="the alternate routing metric for this route"/>
+<ui name="ipRouteMetric4" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.21.1.6"/> 
+</ui></object>
+<object name="ipRouteNextHop" depends="ipRouteDest">
+<core type="ipv4" access="read-write" descr="Next Hop address"/>
+<ui name="ipRouteNextHop" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.21.1.7"/> 
+</ui></object>
+<object name="ipRouteType" depends="ipRouteDest">
+<core type="uint" access="read-write" descr="Route Type"/>
+<ui name="ipRouteType" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.21.1.8"/> 
+</ui></object>
+<object name="ipRouteProto" depends="ipRouteDest">
+<core type="uint" access="read-only" descr="Route Proto"/>
+<ui name="ipRouteProto" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.21.1.9"/> 
+</ui></object>
+<object name="ipRouteAge" depends="ipRouteDest">
+<core type="uint" access="read-write" descr="Route Age"/>
+<ui name="ipRouteAge" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.21.1.10"/> 
+</ui></object>
+<object name="ipRouteMask" depends="ipRouteDest">
+<core type="ipv4" access="read-write" descr="Route Mask"/>
+<ui name="ipRouteMask" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.21.1.11"/> 
+</ui></object>
+<object name="ipRouteMetric5" depends="ipRouteDest">
+<core type="uint" access="read-write" descr="the alternate routing metric for this route"/>
+<ui name="ipRouteMetric5" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.21.1.12"/> 
+</ui></object>
+<object name="ipRouteInfo" depends="ipRouteDest">
+<core type="string" access="read-only" descr="Route Info"/>
+<ui name="ipRouteInfo" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.21.1.13"/> 
+</ui></object>
+</module>
+<module name="IPAddrInfo">
+<object name="ipAdEntAddr">
+<core type="ipv4" key="yes" access="read-write" descr="IP Address"/>
+<ui name="ipAdEntAddr" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.20.1.1"/> 
+</ui></object>
+<object name="ipAdEntIfIndex" depends="ipAdEntAddr" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" access="read-only" descr="IPAdress table index"/>
+<ui name="Unit/Slot/Port" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.20.1.2"/> 
+</ui></object>
+<object name="ipAdEntIfIndex" depends="ipAdEntAddr" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" access="read-only" descr="IPAdress table index"/>
+<ui name="Slot/Port" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.20.1.2"/> 
+</ui></object>
+<object name="ipAdEntNetMask" depends="ipAdEntAddr">
+<core type="ipv4" access="read-only" descr="Ip Mask"/>
+<ui name="ipAdEntNetMask" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.20.1.3"/> 
+</ui></object>
+<object name="ipAdEntBcastAddr" depends="ipAdEntAddr">
+<core type="uint" access="read-only" descr="IP Broadcast address"/>
+<ui name="ipAdEntBcastAddr" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.20.1.4"/> 
+</ui></object>
+<object name="ipAdEntReasmMaxSize" depends="ipAdEntAddr">
+<core type="uint" access="read-only" descr="Ip Address Reasm Max Size"/>
+<ui name="ipAdEntReasmMaxSize" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.20.1.5"/> 
+</ui></object>
+</module>
+<module name="IPStats">
+<object name="ipInAddrErrors">
+<core type="uint" access="read-only" descr="Ip Address errors"/>
+<ui name="ipInAddrErrors" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.5"/> 
+</ui></object>
+<object name="ipFragCreates">
+<core type="uint" access="read-only" descr="IP Flag Creates"/>
+<ui name="ipFragCreates" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.19"/> 
+</ui></object>
+<object name="ipInDiscards">
+<core type="uint" access="read-only" descr="IP in discards"/>
+<ui name="ipInDiscards" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.8"/> 
+</ui></object>
+<object name="ipInReceives">
+<core type="uint" access="read-only" descr="IP In receives"/>
+<ui name="ipInReceives" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.3"/> 
+</ui></object>
+<object name="ipFragOKs">
+<core type="uint" access="read-only" descr="Ip Frags OK"/>
+<ui name="ipFragOKs" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.17"/> 
+</ui></object>
+<object name="ipInDelivers">
+<core type="uint" access="read-only" descr="IP in Delivers"/>
+<ui name="ipInDelivers" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.9"/> 
+</ui></object>
+<object name="ipReasmFails">
+<core type="uint" access="read-only" descr="IP reasms failed"/>
+<ui name="ipReasmFails" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.16"/> 
+</ui></object>
+<object name="ipRoutingDiscards">
+<core type="uint" access="read-only" descr="IP routing discards"/>
+<ui name="ipRoutingDiscards" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.23"/> 
+</ui></object>
+<object name="ipReasmReqds">
+<core type="uint" access="read-only" descr="Ip Reasm reqds"/>
+<ui name="ipReasmReqds" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.14"/> 
+</ui></object>
+<object name="ipFragFails">
+<core type="uint" access="read-only" descr="Ip Flag fails"/>
+<ui name="ipFragFails" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.18"/> 
+</ui></object>
+<object name="ipOutRequests">
+<core type="uint" access="read-only" descr="Ip Out requests"/>
+<ui name="ipOutRequests" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.10"/> 
+</ui></object>
+<object name="ipOutNoRoutes">
+<core type="uint" access="read-only" descr="Ip out no of routes"/>
+<ui name="ipOutNoRoutes" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.12"/> 
+</ui></object>
+<object name="ipReasmTimeout">
+<core type="uint" access="read-only" descr="Ip Reasm time out"/>
+<ui name="ipReasmTimeout" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.13"/> 
+</ui></object>
+<object name="ipInHdrErrors">
+<core type="uint" access="read-only" descr="Ip Header errors"/>
+<ui name="ipInHdrErrors" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.4"/> 
+</ui></object>
+<object name="ipForwDatagrams">
+<core type="uint" access="read-only" descr="Ip flow datagrams"/>
+<ui name="ipForwDatagrams" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.6"/> 
+</ui></object>
+<object name="ipOutDiscards">
+<core type="uint" access="read-only" descr="Ip out discards"/>
+<ui name="ipOutDiscards" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.11"/> 
+</ui></object>
+<object name="ipReasmOKs">
+<core type="uint" access="read-only" descr="IP reasm OK"/>
+<ui name="ipReasmOKs" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.15"/> 
+</ui></object>
+<object name="ipDefaultTTL">
+<core type="uint" min="0" max="255" default="FD_IP_DEFAULT_TTL" access="read-write" descr="Default time to live"/>
+<ui name="ipDefaultTTL" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.4.2"/> 
+</ui></object>
+<object name="ipInUnknownProtos">
+<core type="uint" access="read-only" descr="IP unknown protos"/>
+<ui name="ipInUnknownProtos" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.4.7"/> 
+</ui></object>
+</module>
+
+<module name="PortMirroring">
+<object name="PortMirrorSessionID">
+<core type="uint" key="yes" access="read-write" descr="A logical unit that should be used to configure multiple source ports and one destination port."/>
+<ui name="Port Mirror Session ID" style="choiceNselect1">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.10.4.1.1"/> 
+</ui></object>
+<object name="PortMirrorDestinationPort" depends="PortMirrorSessionID" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="uspNone_t" access="read-write" descr="The port which traffic from the mirrored ports will be sent to." properties="dynamic"/>
+<ui name="Unit/Slot/Port" style="choiceNselect1">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.10.4.1.2"/> 
+</ui></object>
+<object name="PortMirrorDestinationPort" depends="PortMirrorSessionID" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="uspNone_t" access="read-write" descr="The port which traffic from the mirrored ports will be sent to." properties="dynamic"/>
+<ui name="Slot/Port" style="choiceNselect1">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.10.4.1.2"/> 
+</ui></object>
+<object name="PortMirrorSourcePort" depends="PortMirrorSessionID">
+<core type="user" xtype="uspRange_t" access="read-write" descr="The ports from which traffic will be sent to the destination port. The destination port can not be included in this list of ports." properties="dynamic,range,key"/>
+<ui name="Source Port" style="choiceMselectN">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.10.4.1.3"/> 
+</ui></object>
+<!-- This objects &quot;SourcePort&quot;,&quot;Direction&quot; have been defined to meet SmartPATH specific behavior -->
+<object depends="PortMirrorSessionID" name="SourcePort">
+<core access="read-write" descr="Displays the list of all Physical,VLAN and Logical interfaces present/configured on the System." key="yes" type="user" xtype="uspGlobal_t"/>
+<ui name="Source Port" style="choiceNselect1"/>
+</object>
+<object depends="PortMirrorSessionID,SourcePort" name="Direction">
+<core access="read-write" descr="Select the  direction of traffic to be mirrored from the drop down list which can be ingress or egress or both for the selected source port." type="enum" xtype="mirroringDirection_t"/>
+<ui name="Direction" style="choiceNselect1"/>
+</object>
+
+<object name="PortMirrorAdminMode" depends="PortMirrorSessionID">
+<core type="enum" xtype="enable_t" access="read-write" default="L7_DISABLE" descr="Enable or Disable mirroring for a session."/>
+<ui name="Enable Port Mirroring" style="boolean">
+<snmp asn-id=".1.3.6.1.4.1.4413.1.1.1.2.10.4.1.4"/> 
+</ui></object>
+
+<object name="PortMirrorDirection" depends="PortMirrorSessionID,PortMirrorSourcePort">
+<core access="read-write" descr="The direction of traffic to be mirrored which can be ingress or egress or both" type="enum" xtype="mirroringDirection_t"/>
+<ui name="Direction" style="choiceNselect1"/>
+</object>
+
+<object name="PortMonitorDestPortRemove" depends="PortMirrorSessionID">
+<core type="enum" xtype="clear_t" access="write-only" descr="Remove Destination Port for session sessionNum"/>
+<ui name="PortMonitorDestPortRemove" style="inputLine"/>
+</object>
+
+<!-- FOR WEB ONLY -->
+<object name="PortMirrorDirectionKey" depends="PortMirrorSessionID">
+<core access="read-write" descr="The direction of traffic to be mirrored which can be ingress or egress or both" type="enum" xtype="mirroringDirection_t" key="yes"/>
+<ui name="Direction KEY" style="inputLine"/>
+</object>
+
+<object name="PortMirrorSourcePortConfigured" depends="PortMirrorSessionID,PortMirrorDirectionKey" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="uspNoneRange_t" access="read-write" descr="The ports from which traffic will be sent to the destination port." properties="dynamic,range"/>
+<ui name="Unit/Slot/Port" style="choiceMselectN"/>
+</object>
+
+<object name="PortMirrorSourcePortConfigured" depends="PortMirrorSessionID,PortMirrorDirectionKey" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="uspNoneRange_t" access="read-write" descr="The ports from which traffic will be sent to the destination port." properties="dynamic,range"/>
+<ui name="Slot/Port" style="choiceMselectN"/>
+</object>
+
+<object name="PortMirrorIsConfigured" depends="PortMirrorSessionID">
+<core type="enum" xtype="enable_t" access="read-only" default="L7_DISABLE" descr=""/>
+<ui name="Port Mirror Configured" style="boolean">
+</ui></object>
+
+<object name="PortMirrorRemoveSession" depends="PortMirrorSessionID">
+<core type="uint" access="read-write" descr="Removes the Session"/>
+<ui name="RemoveSession" style="inputLine"/>
+</object>
+<object name="PortMirrorSrcPortDelete" depends="PortMirrorSessionID,PortMirrorSourcePort">
+<core type="uint" access="write-only" descr=""/>
+<ui name="Port Mirror Src Port Delete" style="inputLine">
+</ui></object>
+
+<!-- FOR WEB ONLY TO SUPPORT INTERFACE SPLIT OBJECT FOR usprange_t -->
+<object name="PortMirrorSourcePortRange" depends="PortMirrorSessionID">
+<core type="user" xtype="uspRange_t" access="read-write" descr="The ports from which traffic will be sent to the destination port. The destination port can not be included in this list of ports." properties="dynamic,range,key"/>
+<ui name="Source Port" style="choiceMselectN">
+</ui></object>
+</module>
+
+<module name="entity">
+<object name="entPhysicalIndex">
+<core type="uint" key="yes" access="read-write" descr="The index for this entry."/>
+<ui name="entPhysicalIndex" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.1"/> 
+</ui></object>
+<object name="entPhysicalDescr" depends="entPhysicalIndex">
+<core type="string" access="read-only" descr="A textual description of physical entity. This object should contain a string which identifies the manufacturer&apos;s name for the physical entity, and should be set to a distinct value for each version or model of the physic"/>
+<ui name="entPhysicalDescr" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.2"/> 
+</ui></object>
+<object name="entPhysicalVendorType" depends="entPhysicalIndex">
+<core type="string" access="read-only" descr="An indication of the vendor-specific hardware type of the physical entity. Note that this is different from the definition of MIB-II&apos;s sysObjectID. An agent should set this object to a enterprise-specific regis"/>
+<ui name="entPhysicalVendorType" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.3"/> 
+</ui></object>
+<object name="entPhysicalContainedIn" depends="entPhysicalIndex">
+<core type="uint" access="read-only" descr="The value of entPhysicalIndex for the physical entity which &apos;contains&apos; this physical entity. A value of zero indicates this physical entity is not contained in any other physical entity. Note that the set of &apos;containment"/>
+<ui name="entPhysicalContainedIn" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.4"/> 
+</ui></object>
+<object name="entPhysicalClass" depends="entPhysicalIndex">
+<core type="uint" access="read-only" descr="An indication of the general hardware type of the physical entity. An agent should set this object to the standard enumeration value which most accurately indicates the general class of the physical entity, or t"/>
+<ui name="entPhysicalClass" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.5"/> 
+</ui></object>
+<object name="entPhysicalParentRelPos" depends="entPhysicalIndex">
+<core type="uint" access="read-only" descr="An indication of the relative position of this &apos;child&apos; component among all its &apos;sibling&apos; components. Sibling components are defined as entPhysicalEntries which share the same instance values of each of the entPhysicalConta"/>
+<ui name="entPhysicalParentRelPos" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.6"/> 
+</ui></object>
+<object name="entPhysicalName" depends="entPhysicalIndex">
+<core type="string" access="read-only" descr="The textual name of the physical entity. The value of this object should be the name of the component as assigned by the local device and should be suitable for use in commands entered at the device&apos;s `console&apos;. This mig"/>
+<ui name="entPhysicalName" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.7"/> 
+</ui></object>
+<object name="entPhysicalHardwareRev" depends="entPhysicalIndex">
+<core type="string" access="read-only" descr="The vendor-specific hardware revision string for the physical entity. The preferred value is the hardware revision identifier actually printed on the component itself (if present). Note that if revision informa"/>
+<ui name="entPhysicalHardwareRev" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.8"/> 
+</ui></object>
+<object name="entPhysicalFirmwareRev" depends="entPhysicalIndex">
+<core type="string" access="read-only" descr="The vendor-specific firmware revision string for the physical entity. Note that if revision information is stored internally in a non-printable (e.g., binary) format, then the agent must convert such information"/>
+<ui name="entPhysicalFirmwareRev" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.9"/> 
+</ui></object>
+<object name="entPhysicalSoftwareRev" depends="entPhysicalIndex">
+<core type="string" access="read-only" descr="The vendor-specific software revision string for the physical entity. Note that if revision information is stored internally in a non-printable (e.g., binary) format, then the agent must convert such information"/>
+<ui name="entPhysicalSoftwareRev" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.10"/> 
+</ui></object>
+<object name="entPhysicalSerialNum" depends="entPhysicalIndex">
+<core type="string" access="read-write" descr="The vendor-specific serial number string for the physical entity. The preferred value is the serial number string actually printed on the component itself (if present). On the first instantiation of an physical entity, th"/>
+<ui name="entPhysicalSerialNum" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.11"/> 
+</ui></object>
+<object name="entPhysicalMfgName" depends="entPhysicalIndex">
+<core type="string" access="read-only" descr="The name of the manufacturer of this physical component. The preferred value is the manufacturer name string actually printed on the component itself (if present). Note that comparisons between instances of the "/>
+<ui name="entPhysicalMfgName" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.12"/> 
+</ui></object>
+<object name="entPhysicalModelName" depends="entPhysicalIndex">
+<core type="string" access="read-only" descr="The vendor-specific model name identifier string associated with this physical component. The preferred value is the customer-visible part number, which may be printed on the component itself. If the model name"/>
+<ui name="entPhysicalModelName" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.13"/> 
+</ui></object>
+<object name="entPhysicalAlias" depends="entPhysicalIndex">
+<core type="string" access="read-write" descr="This object is an &apos;alias&apos; name for the physical entity as specified by a network manager, and provides a non-volatile &apos;handle&apos; for the physical entity. On the first instantiation of an physical entity, the value "/>
+<ui name="entPhysicalAlias" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.14"/> 
+</ui></object>
+<object name="entPhysicalAssetID" depends="entPhysicalIndex">
+<core type="string" access="read-write" descr="This object is a user-assigned asset tracking identifier for the physical entity as specified by a network manager, and provides non-volatile storage of this information. On the first instantiation of an physical entity, t"/>
+<ui name="entPhysicalAssetID" style="inputLine">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.15"/> 
+</ui></object>
+<object name="entPhysicalIsFRU" depends="entPhysicalIndex">
+<core type="enum" xtype="TrueFalse_t" access="read-only" descr="This object indicates whether or not this physical entity is considered a &apos;field replaceable unit&apos; by the vendor. If this object contains the value &apos;true(1)&apos; then this entPhysicalEntry identifies a field replaceable unit."/>
+<ui name="entPhysicalIsFRU" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.16"/> 
+</ui></object>
+</module>
+<module name="etherHistoryStats">
+<key-combo list="etherHistoryIndex,etherHistorySampleIndex"/>
+<object name="etherHistoryIndex">
+<core type="uint" key="yes" access="read-write" descr=" The history of which this entry is a part. The history identified by a particular value of this index is the same history as identified by the same value of historyControlIndex."/>
+<ui name="etherHistoryIndex" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.1"/> 
+</ui></object>
+<object name="etherHistorySampleIndex">
+<core type="uint" key="yes" access="read-write" descr=" An index that uniquely identifies the particular sample this entry represents among all samples associated with the same historyControlEntry. This index starts at 1 and increases by one as each new sample is taken."/>
+<ui name="etherHistorySampleIndex" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.2"/> 
+</ui></object>
+<object name="etherHistoryIntervalStart" depends="etherHistoryIndex,etherHistorySampleIndex">
+<core type="uint" access="read-only" descr=" The value of sysUpTime at the start of the interval over which this sample was measured. If the probe keeps track of the time of day, it should start the first sample of the history at a time such that when the next hour "/>
+<ui name="etherHistoryIntervalStart" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.3"/> 
+</ui></object>
+<object name="etherHistoryDropEvents" depends="etherHistoryIndex,etherHistorySampleIndex">
+<core type="uint" access="read-only" descr=" The total number of events in which packets were dropped by the probe due to lack of resources during this sampling interval. Note that this number is not necessarily the number of packets dropped, it is just the number o"/>
+<ui name="etherHistoryDropEvents" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.4"/> 
+</ui></object>
+<object name="etherHistoryOctets" depends="etherHistoryIndex,etherHistorySampleIndex">
+<core type="uint" access="read-only" descr=" The total number of octets of data (including those in bad packets) received on the network (excluding framing bits but including FCS octets)."/>
+<ui name="etherHistoryOctets" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.5"/> 
+</ui></object>
+<object name="etherHistoryPkts" depends="etherHistoryIndex,etherHistorySampleIndex">
+<core type="uint" access="read-only" descr=" The number of packets (including bad packets) received during this sampling interval."/>
+<ui name="etherHistoryPkts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.6"/> 
+</ui></object>
+<object name="etherHistoryBroadcastPkts" depends="etherHistoryIndex,etherHistorySampleIndex">
+<core type="uint" access="read-only" descr=" The number of good packets received during this sampling interval that were directed to the broadcast address."/>
+<ui name="etherHistoryBroadcastPkts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.7"/> 
+</ui></object>
+<object name="etherHistoryMulticastPkts" depends="etherHistoryIndex,etherHistorySampleIndex">
+<core type="uint" access="read-only" descr=" The number of good packets received during this sampling interval that were directed to a multicast address. Note that this number does not include packets addressed to the broadcast address."/>
+<ui name="etherHistoryMulticastPkts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.8"/> 
+</ui></object>
+<object name="etherHistoryCRCAlignErrors" depends="etherHistoryIndex,etherHistorySampleIndex">
+<core type="uint" access="read-only" descr=" The number of packets received during this sampling interval that had a length (excluding framing bits but including FCS octets) between 64 and 1518 octets, inclusive, but had either a bad Frame Check Sequence (FCS) with a"/>
+<ui name="etherHistoryCRCAlignErrors" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.9"/> 
+</ui></object>
+<object name="etherHistoryUndersizePkts" depends="etherHistoryIndex,etherHistorySampleIndex">
+<core type="uint" access="read-only" descr=" The number of packets received during this sampling interval that were less than 64 octets long (excluding framing bits but including FCS octets) and were otherwise well formed."/>
+<ui name="etherHistoryUndersizePkts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.10"/> 
+</ui></object>
+<object name="etherHistoryOversizePkts" depends="etherHistoryIndex,etherHistorySampleIndex">
+<core type="uint" access="read-only" descr=" The number of packets received during this sampling interval that were longer than 1518 octets (excluding framing bits but including FCS octets) but were otherwise well formed."/>
+<ui name="etherHistoryOversizePkts" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.11"/> 
+</ui></object>
+<object name="etherHistoryFragments" depends="etherHistoryIndex,etherHistorySampleIndex">
+<core type="uint" access="read-only" descr=" The total number of packets received during this sampling interval that were less than 64 octets in length (excluding framing bits but including FCS octets) had either a bad Frame Check Sequence (FCS) with an integral num"/>
+<ui name="etherHistoryFragments" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.12"/> 
+</ui></object>
+<object name="etherHistoryJabbers" depends="etherHistoryIndex,etherHistorySampleIndex">
+<core type="uint" access="read-only" descr=" The number of packets received during this sampling interval that were longer than 1518 octets (excluding framing bits but including FCS octets), and had either a bad Frame Check Sequence (FCS) with an integral number of "/>
+<ui name="etherHistoryJabbers" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.13"/> 
+</ui></object>
+<object name="etherHistoryCollisions" depends="etherHistoryIndex,etherHistorySampleIndex">
+<core type="uint" access="read-only" descr=" The best estimate of the total number of collisions on this Ethernet segment during this sampling interval. The value returned will depend on the location of the RMON probe. Section 8.2.1.3 (10BASE-5) and section "/>
+<ui name="etherHistoryCollisions" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.14"/> 
+</ui></object>
+<object name="etherHistoryUtilization" depends="etherHistoryIndex,etherHistorySampleIndex">
+<core type="uint" access="read-only" descr=" The best estimate of the mean physical layer network utilization on this interface during this sampling interval, in hundredths of a percent."/>
+<ui name="etherHistoryUtilization" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.16.2.2.1.15"/> 
+</ui></object>
+</module>
+
+<module name="entPhysicalContains">
+<key-combo list="entPhysicalIndex,entPhysicalChildIndex"/>
+<object name="entPhysicalIndex">
+<core type="uint" key="yes" access="read-write" descr="The index for this entry."/>
+<ui name="entPhysicalIndex" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.1.1.1.1"/> 
+</ui></object>
+<object name="entPhysicalChildIndex">
+<core type="uint" key="yes" access="read-write" descr="The value of entPhysicalIndex for the contained physical entity."/>
+<ui name="entPhysicalChildIndex" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.3.3.1.1"/> 
+</ui></object>
+</module>
+<module name="entityGeneral">
+<object name="entLastChangeTime">
+<core type="uint" access="read-only" descr="The value of sysUpTime at the time a conceptual row is created, modified, or deleted in any of these tables: - entPhysicalTable - entLogicalTable - entLPMappingTable - "/>
+<ui name="entLastChangeTime" style="plainText">
+<snmp asn-id=".1.3.6.1.2.1.47.1.4.1"/> 
+</ui></object>
+</module>
+
+<module name="PortStats">
+
+<object name="resetAllPortStats">
+<core type="enum" xtype="clear_t" access="write-only" descr="Clear all port stats"/>
+<ui name="resetAllPortStats" style="inputLine"/>
+</object>
+
+<object name="resetSwitchStats">
+<core type="enum" xtype="clear_t" access="write-only" descr="Clear switch stats"/>
+<ui name="resetSwitchStats" style="inputLine"/>
+</object>
+
+<object name="dot1qVlanEntriesInUseCount">
+<core type="uint" access="read-only" descr="VLAN Entries Currently in Use "/>
+<ui name="dot1qVlanEntriesInUseCount" style="inputLine"/>
+</object>
+
+<object name="dot1qMostVlanEntriesEverInUseCount">
+<core type="uint" access="read-only" descr="Most VLAN Entries ever in use. "/>
+<ui name="dot1qMostVlanEntriesEverInUseCount" style="inputLine"/>
+</object>
+
+<object name="dot1qMaxVlanEntriesSupported">
+<core type="uint" access="read-only" descr="Max VLAN Entries supported. "/>
+<ui name="dot1qVlanEntriesInUseCount" style="inputLine"/>
+</object>
+
+<object name="dot1qStaticVlanCount">
+<core type="uint" access="read-only" descr="Total Static VLAN s. "/>
+<ui name="dot1qStaticVlanCount" style="inputLine"/>
+</object>
+
+<object name="dot1qDynamicVlanCount">
+<core type="uint" access="read-only" descr="Total Dynamic VLAN s. "/>
+<ui name="dot1qDynamicVlanCount" style="inputLine"/>
+</object>
+
+<object name="statsInterfaceType">
+<core type="enum" xtype="L7_XUI_STATS_INTF_TYPE_t" access="write-only" descr="If the object StatsInterfaceType is set to Switch, only CPU interfaces will be populates else port interfaces will be populated. "/>
+<ui name="statsInterfaceType" style="inputLine"/>
+</object>
+
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="Interface no. If the object StatsInterfaceType is set to Switch, only CPU interfaces will be populates else port interfaces will be populated."/>
+<ui name="Unit/Slot/Port" style="plainText"/>
+</object>
+
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="Interface no. If the object StatsInterfaceType is set to Switch, only CPU interfaces will be populates else port interfaces will be populated."/>
+<ui name="Slot/Port" style="plainText"/>
+</object>
+
+<object name="CpuInterface">
+<core type="uint" key="yes" access="read-write" descr="Interface no. If the object StatsInterfaceType is set to Switch, only CPU interfaces will be populates else port interfaces will be populated."/>
+<ui name="CpuInterface" style="plainText"/>
+</object>
+
+<object name="resetintfPortStats" depends="Interface">
+<core type="enum" xtype="clear_t" access="write-only" descr="Clear stats on specified port"/>
+<ui name="resetintfPortStats" style="inputLine"/>
+</object>
+
+<object name="timeSinceCountersLastCleared" depends="Interface">
+  <core descr="timeSinceCountersLastCleared" access="read-only" type="string"/>
+  <ui style="plainText" name="timeSinceCountersLastCleared"/>
+</object>
+
+<object name="totalPacketsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total packets received"/>
+<ui name="totalPacketsRx" style="inputLine"/>
+</object>
+
+<object name="Pkts64OctetsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received Packets that are 64 octets in length ."/>
+<ui name="Pkts64OctetsRx" style="inputLine"/>
+</object>
+
+<object name="Pkts65To127OctetsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received Packets that are 65 to 127 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts65To127OctetsRx" style="inputLine"/>
+</object>
+
+<object name="Pkts128To255OctetsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received Packets that are 128 to 255 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts128To255OctetsRx" style="inputLine"/>
+</object>
+
+<object name="Pkts256To511OctetsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received Packets that are 256 To 511 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts256To511OctetsRx" style="inputLine"/>
+</object>
+
+<object name="Pkts512To1023OctetsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received Packets that are 512 to 1023 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts512To1023OctetsRx" style="inputLine"/>
+</object>
+
+<object name="Pkts1024To1518OctetsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received Packets that are 1024 to 1518 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts1024To1518OctetsRx" style="inputLine"/>
+</object>
+
+<object name="Pkts1519To1530OctetsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received Packets that are 1519 to 1530 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts1519To1530OctetsRx" style="inputLine"/>
+</object>
+
+<object name="PktsGoodOversizedOctetsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received Packets that are good oversized"/>
+<ui name="Pkts1GoodOversizedOctetsRx" style="inputLine"/>
+</object>
+
+<object name="PktsErrorOversizedOctetsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received Packets that are error  oversized"/>
+<ui name="PktsErrorOversizedOctetsRx" style="inputLine"/>
+</object>
+
+<object name="PktsGoodUnderrsizedOctetsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received Packets that are good under-sized"/>
+<ui name="PktsGoodUnderrsizedOctetsRx" style="inputLine"/>
+</object>
+
+<object name="PktsErrorUnderrsizedOctetsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received Packets that are error under-sized"/>
+<ui name="PktsErrorUnderrsizedOctetsRx" style="inputLine"/>
+</object>
+
+<object name="PktsAlignErrorOctetsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received Packets that are Align error."/>
+<ui name="PktsAlignErrorOctetsRx" style="inputLine"/>
+</object>
+
+<object name="PktsFCSErrorOctetsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received Packets that are FCS error."/>
+<ui name="PktsFCSErrorOctetsRx" style="inputLine"/>
+</object>
+
+<object name="PktsOverRunsOctetsRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received Packets that are over runs."/>
+<ui name="PktsOverRunsOctetsRx" style="inputLine"/>
+</object>
+
+<object name="totalPacketsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total packets transmitted"/>
+<ui name="totalPacketsRx" style="inputLine"/>
+</object>
+
+<object name="Pkts64OctetsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total transmitted Packets that are 64 octets in length ."/>
+<ui name="Pkts64OctetsTx" style="inputLine"/>
+</object>
+
+<object name="Pkts65To127OctetsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total transmitted Packets that are 65 to 127 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts65To127OctetsTx" style="inputLine"/>
+</object>
+
+<object name="Pkts128To255OctetsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total transmitted Packets that are 128 to 255 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts128To255OctetsTx" style="inputLine"/>
+</object>
+
+<object name="Pkts256To511OctetsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total transmitted Packets that are 256 To 511 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts256To511OctetsTx" style="inputLine"/>
+</object>
+
+<object name="Pkts512To1023OctetsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total transmitted Packets that are 512 to 1023 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts512To1023OctetsTx" style="inputLine"/>
+</object>
+
+<object name="Pkts1024To1518OctetsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total transmitted Packets that are 1024 to 1518 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts1024To1518OctetsTx" style="inputLine"/>
+</object>
+
+<object name="Pkts1519To1530OctetsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total transmitted Packets that are 1519 to 1530 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts1519To1530OctetsTx" style="inputLine"/>
+</object>
+
+<object name="PktsFCSErrorOctetsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total transmitted Packets that has FCS errors."/>
+<ui name="PktsFCSErrorOctetsTx" style="inputLine"/>
+</object>
+
+<object name="PktsOverSizedOctetsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total transmitted Packets that are over-sized errors."/>
+<ui name="PktsOverSizedOctetsTx" style="inputLine"/>
+</object>
+
+<object name="PktsUnderRunErrorOctetsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total transmitted Packets that has under run errors."/>
+<ui name="PktsUnderRunErrorOctetsTx" style="inputLine"/>
+</object>
+
+<object name="PktsOneCollisionOctetsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total transmitted Packets that has one collision."/>
+<ui name="PktsOneCollisionOctetsTx" style="inputLine"/>
+</object>
+
+<object name="PktsMultipleCollisionOctetsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total transmitted Packets that has multiple collisions."/>
+<ui name="PktsMultipleCollisionOctetsTx" style="inputLine"/>
+</object>
+
+<object name="PktsExcessiveCollisionOctetsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total transmitted Packets that has Excessive collisions."/>
+<ui name="PktsExcessiveCollisionOctetsTx" style="inputLine"/>
+</object>
+
+<object name="PktsLateCollisionOctetsTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total transmitted Packets that has Late collisions."/>
+<ui name="PktsLateCollisionOctetsTx" style="inputLine"/>
+</object>
+
+<object name="Pkts64OctetsRxTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received and transmitted Packets that are 64 octets in length ."/>
+<ui name="Pkts64OctetsRxTx" style="inputLine"/>
+</object>
+
+<object name="Pkts65To127OctetsRxTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received and transmitted Packets that are 65 to 127 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts65To127OctetsRxTx" style="inputLine"/>
+</object>
+
+<object name="Pkts128To255OctetsRxTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received and transmitted Packets that are 128 to 255 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts128To255OctetsRxTx" style="inputLine"/>
+</object>
+
+<object name="Pkts256To511OctetsRxTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received and transmitted Packets that are 256 To 511 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts256To511OctetsRxTx" style="inputLine"/>
+</object>
+
+<object name="Pkts512To1023OctetsRxTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received and transmitted Packets that are 512 to 1023 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts512To1023OctetsRxTx" style="inputLine"/>
+</object>
+
+<object name="Pkts1024To1518OctetsRxTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received and transmitted Packets that are 1024 to 1518 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts1024To1518OctetsRxTx" style="inputLine"/>
+</object>
+
+<object name="Pkts1519To1522OctetsRxTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received and transmitted Packets that are 1519 to 1522 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts1519To1522OctetsRxTx" style="inputLine"/>
+</object>
+
+<object name="Pkts1523To2047OctetsRxTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received and transmitted Packets that are 1523 to 2047 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts1523To2047OctetsRxTx" style="inputLine"/>
+</object>
+
+<object name="Pkts2048To4095OctetsRxTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received and transmitted Packets that are 2048 to 4095 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts2048To4095OctetsRxTx" style="inputLine"/>
+</object>
+
+<object name="Pkts4096To9216OctetsRxTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total received and transmitted Packets that are 4096 to 9216 octets in length (excluding framing bits, including FCS octets)"/>
+<ui name="Pkts4096To9216OctetsRxTx" style="inputLine"/>
+</object>
+
+<object name="TotalFramesRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total frames received."/>
+<ui name="TotalFramesRx" style="inputLine"/>
+</object>
+
+<object name="TotalErrorFramesRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total error frames received."/>
+<ui name="TotalErrorFramesRx" style="inputLine"/>
+</object>
+
+<object name="TotalFramesTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total frames transmitted."/>
+<ui name="TotalFramesTx" style="inputLine"/>
+</object>
+
+<object name="TotalErrorFramesTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total error frames transmitted."/>
+<ui name="TotalErrorFramesTx" style="inputLine"/>
+</object>
+
+<object name="TotalCollisionFramesTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total collision frames transmitted."/>
+<ui name="TotalCollisionFramesTx" style="inputLine"/>
+</object>
+
+<object name="TotalCRCErrorFramesRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total  frames received with CRC errors."/>
+<ui name="TotalCRCErrorFramesRx" style="inputLine"/>
+</object>
+
+<object name="TotalMacErrorFramesRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="total  frames received with Mac errors."/>
+<ui name="TotalMacErrorFramesRx" style="inputLine"/>
+</object>
+
+
+<object name="TotalPacketsNotFwdRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="Total Received Packets Not Forwarded."/>
+<ui name="TotalPacketsNotFwdRx" style="inputLine"/>
+</object>
+
+<object name="LocalTrafficFrames" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="LocalTrafficFrames."/>
+<ui name="LocalTrafficFrames" style="inputLine"/>
+</object>
+
+<object name="dot1qPauseFramesRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="802.3x Pause Frames Received ."/>
+<ui name="dot1qPauseFramesRx" style="inputLine"/>
+</object>
+
+<object name="dot1qUnacceptableFrameType" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="Unacceptable Frame Type."/>
+<ui name="dot1qUnacceptableFrameType" style="inputLine"/>
+</object>
+
+<object name="dot1qMCastTreeViablediscards" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="dot1q MCast Tree Viable discards ."/>
+<ui name="dot1qMCastTreeViablediscards" style="inputLine"/>
+</object>
+
+<object name="dot1qReservedAddressDiscards" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="Reserved Address Discards."/>
+<ui name="dot1qReservedAddressDiscards" style="inputLine"/>
+</object>
+
+<object name="dot1qBroadcastStrmRecoverDiscards" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="dot1q Broadcast Storm Recovery discards ."/>
+<ui name="dot1qBroadcastStrmRecoverDiscards" style="inputLine"/>
+</object>
+
+<object name="dot1qCFIDiscards" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="dot1q CFI Discards."/>
+<ui name="dot1qCFIDiscards" style="inputLine"/>
+</object>
+
+<object name="dot1qUpStreamthresholdDiscards" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="dot1q UpStream threshold Discards."/>
+<ui name="dot1qUpStreamthresholdDiscards" style="inputLine"/>
+</object>
+
+<object name="dot1qPortMembershipDiscards" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="dot1q PortMembership Discards."/>
+<ui name="dot1qPortMembershipDiscards" style="inputLine"/>
+</object>
+
+<object name="dot1qEgressVLANViableDiscards" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="dot1qEgressVLANViableDiscards."/>
+<ui name="dot1qEgressVLANViableDiscards" style="inputLine"/>
+</object>
+
+<object name="dot1qPauseFramesTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="dot1q Pause Frames Transmitted."/>
+<ui name="dot1qPauseFramesTx" style="inputLine"/>
+</object>
+
+<object name="GVRPPDUCountRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="Total GVRP PDUs received."/>
+<ui name="GVRPPDUCountRx" style="inputLine"/>
+</object>
+
+<object name="GVRPPDUCountTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="Total GVRP PDUs transmitted."/>
+<ui name="GVRPPDUCountTx" style="inputLine"/>
+</object>
+
+<object name="GVRPFailedRegistrations" depends="Interface">
+<core type="uint" access="read-only" descr="GVRP Failed Registrations."/>
+<ui name="GVRPFailedRegistrations" style="inputLine"/>
+</object>
+
+<object name="GMRPPDUCountRx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="Total GMRP PDUs received."/>
+<ui name="GMRPPDUCountRx" style="inputLine"/>
+</object>
+
+<object name="GMRPPDUCountTx" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="Total GMRP PDUs transmitted."/>
+<ui name="GMRPPDUCountTx" style="inputLine"/>
+</object>
+
+<object name="GMRPFailedRegistrations" depends="Interface">
+<core type="user" xtype="stats64_t" access="read-only" descr="GMRP Failed Registrations."/>
+<ui name="GMRPFailedRegistrations" style="inputLine"/>
+</object>
+
+</module>
+<module name="StormControl">
+<object name="Dot3FlowControlMode">
+<core type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="Config switchconfig flowcontrol allows you to enable or disable 802.3x flow control for the switch. This value applies to only full-duplex mode ports."/>
+<ui name="Dot3FlowControlMode" style="inputLine"/>
+</object>
+<object name="BroadcastControlMode">
+<core type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="The switch config broadcast allows you to enable or disable broadcast storm recovery mode. When you specify Enable for BroadcastStorm Recovery and the broadcast traffic on any Ethernet port exceedsthe configured threshold, the switch blocks (discards) the broadcast traffic."/>
+<ui name="BroadcastControlMode" style="inputLine"/>
+</object>
+<object name="MulticastControlMode">
+<core type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="The switch config multicast allows you to enable or disable multicast storm recovery mode. When you specify Enable for multicastStorm Recovery and the multicast traffic on any Ethernet port exceeds the configured threshold, the switch blocks (discards) the multicast traffic."/>
+<ui name="MulticastControlMode" style="inputLine"/>
+</object>
+<object name="UnicastControlMode">
+<core type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="The switch config unicast allows you to enable or disable unicast storm recovery mode. When you specify Enable for unicast Storm Recovery and the unknown unicast traffic on any Ethernet port exceeds the configured threshold, the switch blocks (discards) the unknown unicast traffic."/>
+<ui name="UnicastControlMode" style="inputLine"/>
+</object>
+<object name="BroadcastControlThreshold">
+<core type="uint" min="L7_STORMCONTROL_LEVEL_MIN" max="L7_STORMCONTROL_LEVEL_MAX" default="FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD" access="read-write" descr="Configures the broadcast storm recovery threshold for this portas a percentage of port speed."/>
+<ui name="BroadcastControlThreshold" style="inputLine"/>
+</object>
+<!-- ObjectAddedStart -->
+<object name="BroadcastControlThresholdUnit">
+<core type="enum" xtype="L7_RATE_UNIT_t" default="FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD_UNIT" access="read-write" descr="Configures the broadcast storm recovery threshold unit for this port."/>
+<ui name="BroadcastControlThresholdUnit" style="inputLine"/>
+</object>
+<!-- ObjectAddedEnd -->
+<object name="MulticastControlThreshold">
+<core type="uint" min="L7_STORMCONTROL_LEVEL_MIN" max="L7_STORMCONTROL_LEVEL_MAX" default="FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD" access="read-write" descr="Configures the multicast storm recovery threshold for this por as a percentage of port speed."/>
+<ui name="MulticastControlThreshold" style="inputLine"/>
+</object>
+<!-- ObjectAddedStart -->
+<object name="MulticastControlThresholdUnit">
+<core type="enum" xtype="L7_RATE_UNIT_t" default="FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD_UNIT" access="read-write" descr="Configures the multicast storm recovery threshold unit for this port."/>
+<ui name="MulticastControlThresholdUnit" style="inputLine"/>
+</object>
+<!-- ObjectAddedEnd -->
+<object name="UnicastControlThreshold">
+<core type="uint" min="L7_STORMCONTROL_LEVEL_MIN" max="L7_STORMCONTROL_LEVEL_MAX" default="FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD" access="read-write" descr="Configures the unicast storm recovery threshold for this port as a percentage of port speed."/>
+<ui name="UnicastControlThreshold" style="inputLine"/>
+</object>
+<!-- ObjectAddedStart -->
+<object name="UnicastControlThresholdUnit">
+<core type="enum" xtype="L7_RATE_UNIT_t" default="FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD_UNIT" access="read-write" descr="Configures the unicast storm recovery threshold unit for this port."/>
+<ui name="UnicastControlThresholdUnit" style="inputLine"/>
+</object>
+<!-- ObjectAddedEnd -->
+</module>
+<module name="fanStatusTable">
+<object name="unitIndex">
+<core type="uint" key="yes" access="read-write" descr="unitIndex is the value of valid unit number in the stack"/>
+<ui name="unitIndex" style="inputLine"/>
+</object>
+<object name="fanIndex" depends="unitIndex">
+<core type="uint" key="yes" access="read-write" descr="fan index value used to identify fan for the given stack member."/>
+<ui name="fanIndex" style="inputLine"/>
+</object>
+<object name="fanType" depends="unitIndex,fanIndex">
+<core type="enum" xtype="boxItemType_t" access="read-only" descr="value indicating whether the fan module is fixed or removable."/>
+<ui name="fanType" style="inputLine"/>
+</object>
+<object name="fanState" depends="unitIndex,fanIndex">
+<core type="enum" xtype="boxItemState_t" access="read-only" descr="Status indicating whether the fan is running or stopped."/>
+<ui name="fanState" style="inputLine"/>
+</object>
+<object name="fanSpeed" depends="unitIndex,fanIndex">
+<core type="uint" access="read-only" descr="value indicating the speed of the fan."/>
+<ui name="fanSpeed" style="inputLine"/>
+</object>
+<object name="fanDuty" depends="unitIndex,fanIndex">
+<core type="uint" access="read-only" descr="value indicating duty cycle of the fan."/>
+<ui name="fanDuty" style="inputLine"/>
+</object>
+
+<object name="GlobalFanStatus" depends="unitIndex">
+<core type="enum" xtype="boxsGlobalStatus_t" access="read-only" descr="Global fan Status of the unit."/>
+<ui name="GlobalFanStatus" style="inputLine"/>
+</object>
+
+</module>
+<module name="powerSupplyStatusTable">
+<object name="unitIndex">
+<core type="uint" key="yes" access="read-write" descr="unitIndex is the value of valid stack number in the stack"/>
+<ui name="unitIndex" style="inputLine"/>
+</object>
+<object name="powerSupplyIndex" depends="unitIndex">
+<core type="uint" key="yes" access="read-write" descr="Index value used to identify the power supply for the given stack member."/>
+<ui name="powerSupplyIndex" style="inputLine"/>
+</object>
+<object name="powerSupplyType" depends="unitIndex,powerSupplyIndex">
+<core type="enum" xtype="boxItemType_t" access="read-only" descr="value indicating whether the power supply module is fixed or removable."/>
+<ui name="powerSupplyType" style="inputLine"/>
+</object>
+<object name="powerSupplyState" depends="unitIndex,powerSupplyIndex">
+<core type="enum" xtype="boxItemState_t" access="read-only" descr="Status indicating whether the power supply is supplying power or not."/>
+<ui name="powerSupplyState" style="inputLine"/>
+</object>
+</module>
+<module name="tempSensorStatusTable">
+<object name="unitIndex">
+<core type="uint" key="yes" access="read-write" descr="unitIndex is the value of valid stack number in the stack"/>
+<ui name="unitIndex" style="inputLine"/>
+</object>
+<object name="tempSensorIndex" depends="unitIndex">
+<core type="uint" key="yes" access="read-write" descr="Index value used to identify the temperature sensor for the given stack member."/>
+<ui name="tempSensorIndex" style="inputLine"/>
+</object>
+<object name="tempSensorType" depends="unitIndex,tempSensorIndex">
+<core type="enum" xtype="boxItemType_t" access="read-only" descr="value indicating whether the sensor module is fixed or removable."/>
+<ui name="tempSensorType" style="inputLine"/>
+</object>
+<object name="tempSensorState" depends="unitIndex,tempSensorIndex">
+<core type="enum" xtype="boxTempSensorState_t" access="read-only" descr="Status indicating whether the temperature sensor working condition."/>
+<ui name="tempSensorState" style="inputLine"/>
+</object>
+<object name="tempSensorValue" depends="unitIndex,tempSensorIndex">
+<core type="uint" access="read-only" descr="value to indicate the temperature of the CPU and MAC."/>
+<ui name="tempSensorValue" style="inputLine"/>
+</object>
+
+<object name="GlobalTempValue" depends="unitIndex">
+<core type="uint" access="read-only" descr="Get the general temperature of the switch. If we have several temp sensors.this will be the highest value (the most dangerous)"/>
+<ui name="GlobalTempValue" style="inputLine"/>
+</object>
+
+</module>
+
+<module name="MemoryInfo">
+<object name="AllocMemory">
+<core type="uint" access="read-only" descr="This is the Allocated Memory for the system"/>
+<ui name="AllocMemory" style="plainText"/>
+</object>
+<object name="FreeMemory">
+<core type="uint" access="read-only" descr="This value shows the free memory on the system"/>
+<ui name="FreeMemory" style="plainText"/>
+</object>
+<object name="TotalMemory">
+<core type="uint" access="read-only" descr="This value shows the total memory on the system"/>
+<ui name="TotalMemory" style="plainText"/>
+</object>
+</module>
+<module name="CPUUtilTable">
+<object name="TaskIndex">
+<core type="uint" key="yes" access="read-only" descr="This gives the index of the task"/>
+<ui name="TaskIndex" style="inputLine"/>
+</object>
+<object name="TaskId" depends="TaskIndex">
+<core type="string" access="read-only" descr="This is the ID of a task running on the system"/>
+<ui name="TaskId" style="plainText"/>
+</object>
+<object name="TaskName" depends="TaskIndex">
+<core type="string" access="read-only" descr="This is the name of a task running on the system"/>
+<ui name="TaskName" style="plainText"/>
+</object>
+<object name="Utilization" depends="TaskIndex">
+<core type="string" key="yes" access="read-only" descr="This is the CPU time taken by the given task in terms of percentage. this is a raw string withich includes utilization for 5 seconds, 1 minute and 5 minutes."/>
+<ui name="Utilization" style="plainText"/>
+</object>
+ 
+<object name="UtilizationFor5seconds" depends="TaskIndex,Utilization">
+<core type="string" access="read-only" descr="This is the CPU time taken by the given task for the last 5 seconds in terms of percentage"/>
+<ui name="UtilizationFor5seconds" style="plainText"/>
+</object>
+ 
+<object name="UtilizationFor1Minute" depends="TaskIndex,Utilization">
+<core type="string" access="read-only" descr="This is the CPU time taken by the given task or the last 1 minute in terms of percentage"/>
+<ui name="UtilizationFor1Minute" style="plainText"/>
+</object>
+ 
+<object name="UtilizationFor5Minutes" depends="TaskIndex,Utilization">
+<core type="string" access="read-only" descr="This is the CPU time taken by the given task or the last 5 minutes in terms of percentage"/>
+<ui name="UtilizationFor5Minutes" style="plainText"/>
+</object>
+ 
+
+<object name="TotalUtilization" depends="TaskIndex">
+<core type="string" access="read-only" descr="This is the Total CPU Utilization in terms of percentage"/>
+<ui name="TotalUtilization" style="plainText"/>
+</object>
+</module>
+
+<!--
+&lt;module name=&quot;CPUUtilTotal&quot;&gt;
+&lt;object name=&quot;Total&quot;&gt;
+&lt;core type=&quot;uint&quot; key=&quot;yes&quot; access=&quot;read-write&quot; descr=&quot;This gives total time taken by all the tasks on the system&quot;/&gt;
+&lt;ui name=&quot;Total&quot; style=&quot;inputLine&quot;/&gt;
+&lt;/object&gt;
+&lt;/module&gt;
+-->
+
+<module name="TimeZone">
+<object name="hoursOffset">
+<core type="int" access="read-write" min="L7_TIMEZONE_HOURS_MIN" max="L7_TIMEZONE_HOURS_MAX" default="FD_TIMEZONE_HRS" descr=" Hours offset from timezone. "/>
+<ui name="hoursOffset" style="inputLine">
+</ui></object>
+<object name="MinutesOffset">
+<core type="uint" access="read-write" min="L7_TIMEZONE_MINS_MIN" max="L7_TIMEZONE_MINS_MAX" default="FD_TIMEZONE_MINS" descr="Minutes offset for timezone"/>
+<ui name="MinutesOffset" style="inputLine"/>
+</object>
+<!-- Added below 2 objects to calculate offset time including offset value -->
+<object name="hoursAddOffset">
+<core type="int" access="read-only" min="L7_TIMEZONE_HOURS_MIN" max="L7_TIMEZONE_HOURS_MAX" default="FD_TIMEZONE_HRS" descr=" Hours offset from timezone. "/>
+<ui name="hoursOffset" style="inputLine">
+</ui></object>
+<object name="MinutesAddOffset">
+<core type="uint" access="read-only" min="L7_TIMEZONE_MINS_MIN" max="L7_TIMEZONE_MINS_MAX" default="FD_TIMEZONE_MINS" descr="Minutes offset for timezone"/>
+<ui name="MinutesOffset" style="inputLine"/>
+</object>
+
+<object name="Acronym">
+<core type="user" xtype="string_t" access="read-write" descr="Acronym for the timezone."/>
+<ui name="Acronym" style="inputLine"/>
+</object>
+</module>
+
+<module name="SummerTimeSupportGlobal">
+
+<object name="Status">
+<core type="enum" xtype="L7_XUI_SUMMERTIME_STATUS_t" default="L7_NO_SUMMER_TIME" access="read-write" descr="Status of the summertime support."/>
+<ui name="SummerTimeGlobalStatus" style="inputLine"/>
+</object>
+
+</module>
+
+
+<module name="SummerTimeSupport">
+
+<object name="Status">
+<core type="enum" xtype="L7_XUI_SUMMERTIME_STATUS_t" default="L7_NO_SUMMER_TIME" access="read-write" descr="Status of the summertime support."/>
+<ui name="SummerTimeStatus" style="inputLine"/>
+</object>
+
+<object name="RecurringStartWeek">
+<core type="enum" xtype="L7_SUMMER_TIME_WEEK_t" default="L7_WEEK_1" access="read-write" descr="Starting week number."/>
+<ui name="RecurringStartWeek" style="inputLine"/>
+</object>
+
+<object name="RecurringStartDay">
+<core type="enum" xtype="L7_SUMMER_TIME_DAY_t" default="L7_DAY_SUN" access="read-write" descr="Startng day for summertime."/>
+<ui name="RecurringStartDay" style="inputLine"/>
+</object>
+
+<object name="RecurringStartMonth">
+<core type="enum" xtype="L7_SUMMER_TIME_MONTH_t" default="L7_JAN" access="read-write" descr="Starting month for the summer time."/>
+<ui name="RecurringStartMonth" style="inputLine"/>
+</object>
+
+<object name="RecurringEndWeek">
+<core type="enum" xtype="L7_SUMMER_TIME_WEEK_t" default="L7_WEEK_1" access="read-write" descr="Ending week number for the summertime ."/>
+<ui name="RecurringEndWeek" style="inputLine"/>
+</object>
+
+<object name="RecurringEndDay">
+<core type="enum" xtype="L7_SUMMER_TIME_DAY_t" default="L7_DAY_SUN" access="read-write" descr="Ending day for the summertime ."/>
+<ui name="RecurringEndDay" style="inputLine"/>
+</object>
+
+<object name="RecurringEndMonth">
+<core type="enum" xtype="L7_SUMMER_TIME_MONTH_t" default="L7_JAN" access="read-write" descr="Ending month for the summertime ."/>
+<ui name="RecurringEndMonth" style="inputLine"/>
+</object>
+
+<object name="RecurringStartTimeHours">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_UHOURS_MIN" max="L7_TIMEZONE_UHOURS_MAX" default="L7_TIMEZONE_UHOURS_MIN" access="read-write" descr="Hours of the Starting time for the summertime support."/>
+<ui name="RecurringStartTimeHours" style="inputLine"/>
+</object>
+
+<object name="RecurringStartTimeMinutes">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_MINS_MIN" max="L7_TIMEZONE_MINS_MAX" default="L7_TIMEZONE_MINS_MIN" access="read-write" descr="Minutes of the starting time for the summertime support."/>
+<ui name="RecurringStartTimeMinutes" style="inputLine"/>
+</object>
+
+<object name="RecurringEndTimeHours">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_UHOURS_MIN" max="L7_TIMEZONE_UHOURS_MAX" default="L7_TIMEZONE_UHOURS_MIN" access="read-write" descr="Hours of the ending time for summertime support."/>
+<ui name="RecurringEndTimeHours" style="inputLine"/>
+</object>
+
+<object name="RecurringEndTimeMinutes">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_MINS_MIN" max="L7_TIMEZONE_MINS_MAX" default="L7_TIMEZONE_MINS_MIN" access="read-write" descr="Minutes of the ending time for the summertime support."/>
+<ui name="RecurringEndTimeMinutes" style="inputLine"/>
+</object>
+
+
+<object name="RecurringTimeOffSet">
+<core type="uint" min="L7_OFFSET_MIN" max="L7_OFFSET_MAX " defalut="L7_OFFSET_MIN" access="read-write" descr="Number of minutes to add during summer time."/>
+<ui name="RecurringTimeOffSet" style="inputLine"/>
+</object>
+
+<object name="RecurringZone">
+<core type="user" xtype="string_t" access="read-write" descr="The acronym of the time zone to be used when summer time is in effect."/>
+<ui name="RecurringZone" style="inputLine"/>
+</object>
+
+<object name="NonRecurringStartMonth">
+<core type="enum" xtype="L7_SUMMER_TIME_MONTH_t" default="L7_JAN" access="read-write" descr="Starrt month for the summertime support."/>
+<ui name="NonRecurringStartMonth" style="inputLine"/>
+</object>
+
+<object name="NonRecurringStartDate">
+<core type="uint" properties="dynamic" min="1" max="31" default="1" access="read-write" descr="start date for the summertime support."/>
+<ui name="NonRecurringStartDate" style="inputLine"/>
+</object>
+
+<object name="NonRecurringStartYear">
+<core type="uint" properties="dynamic" min="L7_START_SUMMER_TIME_YEAR" max="L7_END_SUMMER_TIME_YEAR" default="L7_START_SUMMER_TIME_YEAR" access="read-write" descr="Starting year for the summertime support."/>
+<ui name="NonRecurringStartYear" style="inputLine"/>
+</object>
+
+<object name="NonRecurringEndMonth">
+<core type="enum" xtype="L7_SUMMER_TIME_MONTH_t" default="L7_JAN" access="read-write" descr="Ending month for the summertime support."/>
+<ui name="NonRecurringEndMonth" style="inputLine"/>
+</object>
+
+<object name="NonRecurringEndDate">
+<core type="uint" properties="dynamic" min="1" max="31" default="1" access="read-write" descr="ending date for the summertime support."/>
+<ui name="NonRecurringEndDate" style="inputLine"/>
+</object>
+
+<object name="NonRecurringEndYear">
+<core type="uint" properties="dynamic" min="L7_START_SUMMER_TIME_YEAR" max="L7_END_SUMMER_TIME_YEAR" default="L7_START_SUMMER_TIME_YEAR" access="read-write" descr="Ending year for the summertime support."/>
+<ui name="NonRecurringEndYear" style="inputLine"/>
+</object>
+
+<object name="NonRecurringStartTimeHours">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_UHOURS_MIN" max="L7_TIMEZONE_UHOURS_MAX" default="L7_TIMEZONE_UHOURS_MIN" access="read-write" descr="Hours of the starting time for the summertime support."/>
+<ui name="NonRecurringStartTimeHours" style="inputLine"/>
+</object>
+
+<object name="NonRecurringStartTimeMinutes">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_MINS_MIN" max="L7_TIMEZONE_MINS_MAX" default="L7_TIMEZONE_MINS_MIN" access="read-write" descr="Minutes of the starting time for the summertime support."/>
+<ui name="NonRecurringStartTimeMinutes" style="inputLine"/>
+</object>
+
+<object name="NonRecurringEndTimeHours">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_UHOURS_MIN" max="L7_TIMEZONE_UHOURS_MAX" default="L7_TIMEZONE_UHOURS_MIN" access="read-write" descr="Hours of the ending time for the summertime support."/>
+<ui name="NonRecurringEndTimeHours" style="inputLine"/>
+</object>
+
+<object name="NonRecurringEndTimeMinutes">
+<core type="uint" properties="dynamic" min="L7_TIMEZONE_MINS_MIN" max="L7_TIMEZONE_MINS_MAX" default="L7_TIMEZONE_MINS_MIN" access="read-write" descr="Minutes of the ending time for the summertime support."/>
+<ui name="NonRecurringEndTimeMinutes" style="inputLine"/>
+</object>
+
+
+<object name="NonRecurringTimeOffSet">
+<core type="uint" min="L7_OFFSET_MIN" max="L7_OFFSET_MAX " defalut="L7_OFFSET_MIN" access="read-write" descr="Number of minutes to add during summer time."/>
+<ui name="NonRecurringTimeOffSet" style="inputLine"/>
+</object>
+
+<object name="NonRecurringZone">
+<core type="user" xtype="string_t" access="read-write" descr="The acronym of the time zone to be used when summer time is in effect."/>
+<ui name="NonRecurringZone" style="inputLine"/>
+</object>
+
+</module>
+<module name="RMONAlarmControl">
+<object name="AlarmFreeIndex">
+<core type="uint" key="yes" access="read-write" descr=" An free index that uniquely identifies an entry in the  Alarm table. Entry is a list of parameters that set up a periodic checking for alarm conditions."/>
+<ui name="AlarmFreeIndex" style="plainText">
+ <snmp asn-id=""/> 
+</ui></object>
+<object name="AlarmEntryIndex">
+<core type="uint" key="yes" access="read-write" descr=" An index that uniquely identifies an entry in the  Alarm table. Entry is a list of parameters that set up a periodic checking for alarm conditions."/>
+<ui name="AlarmEntryIndex" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.16.3.1.1.1"/> 
+</ui></object>
+<object name="AlarmObjectID" depends="AlarmEntryIndex">
+<core type="string" access="read-write" descr=" This object identifies the indicates the object identifier of the variable to be sampled. "/>
+<ui name="AlarmObjectID" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.16.3.1.1.3"/> 
+</ui></object>
+<object name="AlarmCounterValue" depends="AlarmEntryIndex">
+<core type="uint" access="read-only" descr="This object indicates the alarm value, the value of statistics during the last sample period."/>
+<ui name="AlarmCounterValue" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.16.3.1.1.5"/> 
+</ui></object>
+<object name="AlarmSampleType" depends="AlarmEntryIndex">
+<core type="enum" xtype="L7_XUI_SAMPLE_TYPE_t" access="read-write" descr=" This object indicates the alarm sample type." properties="dynamic"/>
+<ui name="AlarmSampleType" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.16.3.1.1.4"/> 
+</ui></object>
+<object name="AlarmRisingThld" depends="AlarmEntryIndex">
+<core type="uint" min="RMON_ALARM_ENTRY_THLD_MIN" max="RMON_ALARM_ENTRY_THLD_MAX" access="read-write" descr="This object indicates the rising threshold for the sampled statistics. When the current sampled value is greater than or equal to this threshold, and value at last sampling interval was less than this threshold, a single event will be generated. "/>
+<ui name="AlarmRisingThld" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.16.3.1.1.7"/> 
+</ui></object>
+<object name="AlarmRisingEvent" depends="AlarmEntryIndex">
+<core type="uint" access="read-write" descr="This object indicates the index of eventEntry that is used when a rising threshold is crossed.If this value is zero, no associated event will be generated,as zero is not a valid event index."/>
+<ui name="AlarmRisingEvent" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.16.3.1.1.9"/> 
+</ui></object>
+<object name="AlarmFallingThld" depends="AlarmEntryIndex">
+<core type="uint" min="RMON_ALARM_ENTRY_THLD_MIN" max="RMON_ALARM_ENTRY_THLD_MAX" access="read-write" descr="This object indicates the alarm falling threshold for the sampled statistic. When the current sampled value is less than or equal to this threshold, and value at last sampling interval was greater than this threshold, a single event will be generated."/>
+<ui name="AlarmFallingThld" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.16.3.1.1.8"/> 
+</ui></object>
+<object name="AlarmFallingEvent" depends="AlarmEntryIndex">
+<core type="uint" access="read-write" descr="This object indicates the index of eventEntry that is used when a falling threshold is crossed. If this value is zero, no associated event will be generated,as zero is not a valid event index."/>
+<ui name="AlarmFallingEvent" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.16.3.1.1.10"/> 
+</ui></object>
+<object name="AlarmStartupAlarm" depends="AlarmEntryIndex">
+<core type="enum" xtype="L7_XUI_STARTUP_ALARM_t" access="read-write" descr="This object indicates the start up alarm. The alarm that may be sent when the entry is first set to valid." properties="dynamic"/>
+<ui name="AlarmStartupAlarm" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.16.3.1.1.6"/> 
+</ui></object>
+<object name="AlarmInterval" depends="AlarmEntryIndex">
+<core type="uint" min="RMON_ALARM_ENTRY_INTERVAL_MIN" max="RMON_ALARM_ENTRY_INTERVAL_MAX" access="read-write" descr="This object the alarm interval in seconds.  During this interval data is sampled and compared with rising and falling thresholds."/>
+<ui name="AlarmInterval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.16.3.1.1.2"/> 
+</ui></object>
+<object name="AlarmOwner" depends="AlarmEntryIndex">
+<core type="string" access="read-write" descr="This object indicates the entity that configured the entry and is using the resources assigned to it."/>
+<ui name="AlarmOwner" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.16.3.1.1.11"/> 
+</ui></object>
+<object name="AlarmStatus" depends="AlarmEntryIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The status of this Alarm table entry."/>
+<ui name="AlarmStatus" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.16.3.1.1.12"/> 
+</ui></object>
+</module>
+
+<module name="GVRPStatistics">
+<object name="ifIndex">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr=" A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initial"/>
+<ui name="ifIndex" style="plainText">
+ <snmp asn-id=""/>
+</ui></object>
+<object name="GVRPStatsAttributeType">
+<core type="enum" xtype="L7_XUI_GARP_STAT_COUNTER_TYPE_t" key="yes" access="read-write" descr="This object used to identify a GVRP attribute."/>
+<ui name="GVRPStatsAttributeType" style="plainText">
+ <snmp asn-id=""/>
+</ui></object>
+<object name="GVRPStatsAttributeRx" depends="ifIndex,GVRPStatsAttributeType">
+<core type="uint" access="read-only" descr="This object indicates the number of packets received with the given attribute and on a given interface."/>
+<ui name="GVRPStatsAttributeRx" style="plainText">
+ <snmp asn-id=""/> 
+</ui></object>
+<object name="GVRPStatsAttributeTx" depends="ifIndex,GVRPStatsAttributeType">
+<core type="uint" access="read-only" descr="This object indicates the number of packets transmitted with the given attribute and on a given interface."/>
+<ui name="GVRPStatsAttributeTx" style="plainText">
+ <snmp asn-id=""/> 
+</ui></object>
+</module>
+
+<module name="GVRPErrorStatistics">
+<object name="ifIndex">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr=" A unique value, greater than zero, for each interface. It is recommended that values are assigned contiguously starting from 1. The value for each interface sub-layer must remain constant at least from one re-initial"/>
+<ui name="ifIndex" style="plainText">
+ <snmp asn-id=""/>
+</ui></object>
+<object name="GVRPErrorType">
+<core type="enum" xtype="L7_XUI_GARP_ERROR_STAT_COUNTER_TYPE_t" key="yes" access="read-write" descr="This object used to identify a GVRP error type ."/>
+<ui name="GVRPErrorType" style="plainText">
+ <snmp asn-id=""/>
+</ui></object>
+<object name="GVRPErrorPktsRx" depends="ifIndex,GVRPErrorType">
+<core type="uint" access="read-only" descr="This object indicates the number of packets received with the given error and on a given interface."/>
+<ui name="GVRPErrorPktsRx" style="plainText">
+ <snmp asn-id=""/> 
+</ui></object>
+</module>
+
+<module name="CopyConfiguration">
+<object name="SourceFileName">
+<core type="enum" xtype="L7_XUI_CONFIGFILE_TYPE_t" access="read-write" descr=" the configuration file to be chosen as source for transfer."/>
+<ui name="SourceFileName" style="plainText">
+ <snmp asn-id=""/>
+</ui></object>
+
+<object name="DestinationFileName">
+<core type="enum" xtype="L7_XUI_CONFIGFILE_TYPE_t" access="read-write" descr="the configuration file to be chosen as destination for transfer ."/>
+<ui name="DestinationFileName" style="plainText">
+ <snmp asn-id=""/>
+</ui></object>
+
+<object name="copyConfigFile">
+<core type="enum" xtype="enable_t" access="write-only" descr="copies the selected config file to the selected destination config file."/>
+<ui name="copyConfigFile" style="plainText">
+ <snmp asn-id=""/> 
+</ui></object>
+
+<object name="saveStartupConfigFile">
+<core type="enum" xtype="enable_t" access="write-only" descr="saves the startup config file."/>
+<ui name="saveStartupConfigFile" style="plainText">
+ <snmp asn-id=""/> 
+</ui></object>
+
+<object name="saveBackupConfigFile">
+<core type="enum" xtype="enable_t" access="write-only" descr="saves the backup config file."/>
+<ui name="saveBackupConfigFile" style="plainText">
+ <snmp asn-id=""/> 
+</ui></object>
+
+</module>
+<!--
+&lt;module name=&quot;FileSystem&quot;&gt;
+
+&lt;object name=&quot;FileIndex&quot;&gt;
+&lt;core type=&quot;string&quot; key=&quot;yes&quot; access=&quot;read-write&quot; descr=&quot;The index of the file in file system.&quot;/&gt;
+&lt;ui name=&quot;FileIndex&quot; style=&quot;inputLine&quot;/&gt;
+&lt;/object&gt;
+
+&lt;object name=&quot;FileName&quot; depends=&quot;FileIndex&quot;&gt;
+&lt;core type=&quot;string&quot; access=&quot;read-only&quot; descr=&quot;The name of the file.&quot;/&gt;
+&lt;ui name=&quot;FileName&quot; style=&quot;inputLine&quot;/&gt;
+&lt;/object&gt;
+
+&lt;object name=&quot;FileDescription&quot; depends=&quot;FileIndex&quot;&gt;
+&lt;core type=&quot;string&quot; access=&quot;read-write&quot;  descr=&quot;The description of the file.&quot;/&gt;
+&lt;ui name=&quot;FileDescription&quot; style=&quot;inputLine&quot;/&gt;
+&lt;/object&gt;
+
+&lt;object name=&quot;FileSize&quot; depends=&quot;FileIndex&quot;&gt;
+&lt;core type=&quot;uint&quot; access=&quot;read-only&quot;  descr=&quot;The size of the file.&quot;/&gt;
+&lt;ui name=&quot;FileSize&quot; style=&quot;inputLine&quot;/&gt;
+&lt;/object&gt;
+
+&lt;object name=&quot;RowStatus&quot; depends=&quot;FileIndex&quot;&gt;
+&lt;core type=&quot;row-status&quot; xtype=&quot;L7_ROW_STATUS_t&quot; access=&quot;read-write&quot;  descr=&quot;Status of this row.&quot;/&gt;
+&lt;ui name=&quot;RowStatus&quot; style=&quot;inputLine&quot;/&gt;
+&lt;/object&gt;
+
+&lt;/module&gt;
+
+-->
+</objectxml>
+</FastPathXML>

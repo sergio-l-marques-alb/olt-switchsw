@@ -1,0 +1,439 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>VRRP Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=vrcfg></a>Help for VRRP Virtual Router Interface Configuration</h2>
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>VRID and emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> -
+      Select 'Create' from the pull down menu to configure a new Virtual Router, or select one of
+      the existing Virtual Routers, listed by
+    interface number and VRID. </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>VRID </b>- This field is only configurable if you are creating new Virtual Router, in which case
+  enter the VRID in the range
+    <EMWEB_STRING C='
+         return usmWebIntegerRangeHelp(L7_ROUTING_VRRP_MIN_VRID, L7_ROUTING_VRRP_MAX_VRID);
+         '> .
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> - This field is only configurable if you are creating new Virtual Router, in which case
+  select the emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY; for the new Virtual Router from the pull down menu.
+       </li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Pre-empt Mode</b> -
+      Select enable or disable from the pull down menu.
+      If you select enable a backup router will preempt the master router
+      if it has a priority greater than the master virtual router's priority provided
+      the master is not the owner of the virtual router IP address.
+      The default is enable.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+   <li><b>Configured Priority </b>- Enter the priority value to be used by the VRRP router in the
+    election for the master virtual router. If the Virtual IP Address is the same as the
+    interface IP Address, the priority gets set to 255 no matter what the user enters.
+    If the user enters a priority of 255 when the Virtual and interface IP Addresses are not the same,
+    the priority gets set to the default value of 100. </li>
+ </ul>
+</ul>
+
+
+<ul type=disc>
+ <ul type=circle>
+   <li><b>Advertisement Interval</b> - Enter the time, in seconds, between
+   the transmission of advertisement packets by this virtual router.
+    Enter a number between 1 and 255. The default value is 1
+    second. </li>
+
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+   <li><b>IP Address </b> - Enter the IP Address associated with the Virtual Router.
+    The default is 0.0.0.0. </li>
+
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+   <li><b>Authentication Type </b> - Select the type of Authentication for the Virtual Router
+   from the pull down menu.
+    The default is None.
+    The choices are:
+    <ul type=square>
+    <li><I><B>0-None</B></I> - No authentication will be performed.</li>
+    <li><I><B>1-Simple</B></I> - Authentication will be performed using a text password.</li>
+   </li>
+  </ul>
+
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+
+   <li><b>Authentication Data</b>  - If you selected simple authentication, enter the password.</li>
+
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+
+   <li> <b>Status </b> - Select active or inactive from the pull down menu to start or stop the
+   operation of the Virtual Router. The default is inactive.</LI>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface IP Address </b> - Indicates the IP Address associated with the
+    selected interface.</li>
+ </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+   <li><b> Priority </b>- This is the operational priority of the VRRP router. 
+   This is relative to the configured priority. The operational priority is depending
+   upon the configured priority and the priority decrements configured through tracking procss.
+   </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated configuration to the switch. Configuration changes take
+  effect immediately. These changes will not be retained across a power cycle unless a save is performed.  </li>
+ <li><b>Delete</b> - Delete the selected Virtual Router.
+      Note that the router can not be deleted if there are secondary addresses configured.</li>
+  <li><b>Secondary IP Address</b> - Proceed to the Secondary IP Address configuration screen. </li>
+  <li><b> Track Interface </b> - Proceed to the VRRP Track interface configuration screen. </li>
+  <li><b> Track Route </b> - Proceed to the VRRP Track Route configuration screen. </li>
+ </ul>
+</ul>
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=vrsecondary></a>Help for VRRP Secondary Address Configuration</h2>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Secondary Address</b> -
+      The ip address for which data is to be displayed.  Create must be selected to add
+      a secondary address to the interface.
+  </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>IP Address</b> - Enter the IP address for the interface.
+                          This address must be a member of one of the subnets currently configured on the interface.
+                          This value is readonly once configured.
+  </li>
+
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> -
+      The interface for which data is to be displayed or
+      configured.</li>
+  <li><b>Virtual Router ID</b> -
+      The Virtual Router ID for which data is to be displayed or
+      configured.</li>
+  <li><b>Primary IP Address</b> -
+      The Primary IP Address of the Virtual Router.</li>
+ </ul>
+</ul>
+
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Update the switch with the values on this screen.
+     If you want the switch to retain the new values across a power cycle, you must perform a save.</li>
+  <li><b>Delete</b> - Delete the selected secondary IP Address </li>
+  <li><b>Cancel</b> - Return to the Virtual Router Configuration screen. </li>
+ </ul>
+</ul>
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=vrtrackintf></a>Help for VRRP Interface Tracking Configuration</h2>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>Priority Decrement</b> - The  priority decrement for the tracked interface.
+      The valid range is 1 -254. default value is 10.
+  </li>
+  <li><b>Remove </b> -  Removes the selected Tracking interface from the VRRP tracked list.</li>
+
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b> emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> -
+      The interface for which data is to be displayed.</li>
+  <li><b>Virtual Router ID</b> -
+      The Virtual Router ID for which data is to be displayed.</li>
+  <li><b> S.No </b> -
+      The serial number for this row. 
+  <li><b>Tracking Interface</b> -
+      The Tracked interface for which data is to be displayed or
+      configured.</li>
+      <EMWEB_IF ID=USMWEB_IF_READWRITE>
+      <EMWEB_ELSE>
+  <li><b>Priority Decrement</b> - The  priority decrement for the tracked interface.
+       The valid range is 1 -254. default value is 10.
+  </li>
+  </EMWEB_IF>
+       
+  <li><b>state</b> -
+      The IP state of the tracked interface.
+      
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Add</b> - Proceed to the VRRP Track interface screen. </li>
+  <li><b>Submit</b> - Send the updated configuration to the router.  Configuration changes
+  take effect immediately. These changes will not be retained across a power cycle
+  unless a save is performed.</li>
+  </EMWEB_IF>
+  <li><b>Refresh</b> - Refresh the data on the screen with the present state of
+     the data in the switch. </li>
+  <li><b>Cancel</b> - Return to the Virtual Router Configuration screen. </li>
+ </ul>
+</ul>
+
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<hr size=4 width="80%" align=center>
+
+<h2><a name=vrtrackintfAdd></a>Help for VRRP Track Interface </h2>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Track emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> -
+         Displays all routing interface  which are not yet tracked for this vrid and interface configuration.
+         Exception to this  loopback and tunnels could not be tracked. 
+  </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>Priority Decrement</b> - The  priority decrement for the tracked interface.
+         The valid range is 1 -254. default value is 10.
+  </li>
+
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b> emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> -
+         The interface for which data is to be displayed.</li>
+  <li><b>Virtual Router ID</b> -
+         The Virtual Router ID for which data is to be displayed.</li>
+      
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated configuration to the router.  Configuration changes
+         take effect immediately. These changes will not be retained across a power cycle
+         unless a save is performed.</li>
+  <li><b>Cancel</b> - Return to the VRRP Interface Tracking Configuration screen. </li>
+ </ul>
+</ul>
+
+</EMWEB_IF>
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=vrtrackroute></a>Help for VRRP Route Tracking Configuration</h2>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Priority Decrement</b> - Enter the  priority decrement for the tracked Route.
+     The valid range is 1 -254. default value is 10.
+  </li>
+  <li><b>Remove </b> -  Removes the selected Tracking Routes from the VRRP tracked list.</li>
+  
+ </ul>
+</ul>
+</EMWEB_IF>
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> -
+      The VRRP interface for which Tracking data is to be displayed </li>
+  <li><b>Virtual Router ID</b> -
+      The Virtual Router ID for which Tracking data is to be displayed.</li>
+  <li><b> S.No </b> </li>
+  <li><b>  Tracking Route Pfx</b> -
+       The Prefix of the tracked route. </li>
+  <li><b>Tracking Route PfxLen</b> -
+      The prefix length of the tracked route. </li>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<EMWEB_ELSE>
+  <li><b>Priority Decrement </b> -
+      The priority to decremented for the tracked route. The valid range is 1 -254. default value is 10.
+  </li>
+ </EMWEB_IF>
+
+  <li><b>Reachable</b> -
+      The reachability of the tracked Route.
+      
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+
+  <EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Add</b> - Proceed to the VRRP Track Route screen. </li>
+  <li><b>Submit</b> - Send the updated configuration to the router.  Configuration changes
+  take effect immediately. These changes will not be retained across a power cycle
+  unless a save is performed.</li>
+  </EMWEB_IF>
+  <li><b>Refresh</b> - Refresh the data on the screen with the present state of
+     the data in the switch. </li>
+  <li><b>Cancel</b> - Return to the Virtual Router Configuration screen. </li>
+ </ul>
+</ul>
+
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<hr size=4 width="80%" align=center>
+
+<h2><a name=vrtrackRoutAdd></a>Help for VRRP Track Route </h2>
+
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+   
+  <li><b>  Track Route Pfx</b> -
+       The Prefix of the route. </li>
+  <li><b>Track Route PfxLen</b> -
+      The prefix length of the route. </li>
+  <li><b>Priority Decrement</b> - The  priority decrement for the Route.
+         The valid range is 1 -254. Default value is 10.
+  </li>
+
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b> emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> -
+         The interface for which data is to be displayed.</li>
+  <li><b>Virtual Router ID</b> -
+         The Virtual Router ID for which data is to be displayed.</li>
+      
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated configuration to the router.  Configuration changes
+         take effect immediately. These changes will not be retained across a power cycle
+         unless a save is performed.</li>
+  <li><b>Cancel</b> - Return to the VRRP Route Tracking Configuration screen. </li>
+ </ul>
+</ul>
+
+</EMWEB_IF>
+
+<hr size=4 width="80%" align=center>
+
+</body>
+
+</html>
+
+

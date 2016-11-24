@@ -1,0 +1,157 @@
+##############################################################################
+#
+# make.magic.link
+#
+# Purpose:  
+#      Performs the necessary "magic" to allow linking to occur from
+#      the output directory instead of begin intermixed with the source
+#      content.  This facilitates supporting multiple build outputs 
+#      for a single source tree view.
+#
+# Note:
+#      This file typically used in conjunction with 'installexe' processing.
+#
+##############################################################################
+
+# Caller must specify the following variables
+#   - MAKEFILE_NAME    = path and name of target Makefile, relative to sub-make entry location.
+#   - MASTERSRC        = master list of all source files to be built from this location.
+#   - SRCINCPATHS      = list of header include paths for this component.
+#   - EXTRNINCPATHS    = list of external header include paths outside of FP_BASE source tree.
+#   - CFLAGSEXTRA      = additional compiler flags needed for these source files (optional).
+#   - OBJDIR          := target package output location.
+#   - RELOUT          := relative path back to top-of-view from OBJDIR output directory.
+#
+
+# Do not change these lines.
+#
+
+# Defines relative path to top-of-view for use in build rules, include paths, etc.
+#
+FP_BASE := $(RELOUT)
+
+include $(FP_ROOT)/src/l7tools/build/make.cfg
+
+#----- Start Makefile transformation section.
+
+# Use environment-dependent $(PSEP) to separate multiple paths listed in VPATH.
+#
+VPATH := $(subst $(SPACE),$(PSEP),$(patsubst %,$(FP_BASE)/%,$(MASTERSRC)))
+
+# Building prjConfig.c requires additional compiler flags.
+#
+cflags_prj_config := \
+	-DRW_MULTI_THREAD \
+	-D_REENTRANT \
+	-DCPU=$(CPU) \
+	-DPRJ_BUILD
+
+# Specify compiler flags (use SRCDIR for source file include paths). 
+#
+CFLAGSLOCAL     := $(GFLAG) $(CRC_WARN1) $(CFLAGSEXTRA)
+CFLAGSLOCALBOOT := $(GFLAG) $(filter-out -O0,$(CFLAGSEXTRA)) $(cflags_prj_config)
+
+# Specify list of paths to search for included header files
+#
+C_INCLUDE_PATH := $(subst $(SPACE),$(PSEP),$(strip $(addprefix $(FP_BASE)/,$(MASTERSRC)) \
+			$(patsubst %,$(FP_BASE)/%/include,$(MASTERSRC)) \
+			$(addprefix $(FP_BASE)/,$(SRCINCPATHS)) \
+			$(EXTRNINCPATHS) ))
+CPLUS_INCLUDE_PATH := $(C_INCLUDE_PATH)
+export C_INCLUDE_PATH CPLUS_INCLUDE_PATH
+
+# Specify there are no modules to compile.
+#
+LIBOBJS :=
+
+# Construct list of extra archive files to be linked in.
+#
+LIBARCS := $(strip $(addprefix $(FP_BASE)/,$(ARCSEXTRA)))
+
+#----- End Makefile transformation section.
+
+
+# Pick up specific build rules, if any.
+#
+ifneq (,$(strip $(BLDRULESFILE)))
+  include $(BLDRULESFILE)
+endif
+
+# Note: The $(FP_ROOT)/src/l7tools/build/make.footer file is not used here.
+#
+
+# Common rules needed by all link-level makefiles.
+#
+
+# Build project config files for VxWorks start (boot) and ipl images, respectively.
+#
+src_cfg_boot := $(FP_BASE)/bsp/cpu/$(L7_CPU)/$(L7_TARGETOS)/start/tornado_boot
+src_cfg_ipl  := $(FP_BASE)/bsp/cpu/$(L7_CPU)/$(L7_TARGETOS)/ipl/a_tornado
+
+prjConfigBoot.o: $(src_cfg_boot)/prjConfig.c
+	$(COMPILING_MSG)
+	$(DBG) $(CC) -Wp,-MD,$(@:.o=.d) $(CFLAGS) $(CFLAGSLOCALBOOT) $(CINCLUDES) -c $< -o prjConfig.o
+	$(DBG) mv prjConfig.o $@
+
+prjConfig.o: $(src_cfg_ipl)/prjConfig.c
+	$(COMPILING_MSG)
+	$(DBG) $(CC) -Wp,-MD,$(@:.o=.d) $(CFLAGS) $(CFLAGSLOCALBOOT) $(CINCLUDES) -c $< -o $@
+
+
+.PHONY: debug-variables
+debug-variables::
+	@$(echo) ""
+	@$(echo) "Makefile Debug Variables For '$(PKGNAME)' Package:"
+	@$(echo) "===================================================="
+	@$(echo) "CONFIG=$(CONFIG)"
+	@$(echo) "MAKECMDGOALS=$(MAKECMDGOALS)"
+	@$(echo) "MAKEFLAGS=$(MAKEFLAGS)"
+	@$(echo) "MPARMS=$(MPARMS)"
+	@$(echo) ""
+	@$(echo) "L7_TARGETOS=$(L7_TARGETOS)"
+	@$(echo) "L7_PACKAGE=$(L7_PACKAGE)"
+	@$(echo) "L7_FLEX=$(L7_FLEX)"
+	@$(echo) "L7_UI=$(L7_UI)"
+	@$(echo) ""
+	@$(echo) "LIB_TARGETS=$(LIB_TARGETS)"
+	@$(echo) ""
+	@$(echo) "PKGID=$(PKGID)"
+	@$(echo) "PKGNAME=$(PKGNAME)"
+	@$(echo) "OBJDIR=$(OBJDIR)"
+	@$(echo) "RELOUT=$(RELOUT)"
+	@$(echo) "FP_BASE=$(FP_BASE)"
+	@$(echo) "FP_ROOT=$(FP_ROOT)"
+	@$(echo) ""
+	@$(echo) "BOOTSOURCES=$(BOOTSOURCES)"
+	@$(echo) ""
+	@$(echo) "BOOTOBJS=$(BOOTOBJS)"
+	@$(echo) ""
+	@$(echo) "SRCINCPATHS=$(SRCINCPATHS)"
+	@$(echo) ""
+	@$(echo) "EXTRNINCPATHS=$(EXTRNINCPATHS)"
+	@$(echo) ""
+	@$(echo) "ARCSEXTRA=$(ARCSEXTRA)"
+	@$(echo) ""
+	@$(echo) "LIBOBJS=$(LIBOBJS)"
+	@$(echo) ""
+	@$(echo) "LIBARCS=$(LIBARCS)"
+	@$(echo) ""
+	@$(echo) "VPATH=$(VPATH)"
+	@$(echo) ""
+	@$(echo) "CFLAGS=$(CFLAGS)"
+	@$(echo) ""
+	@$(echo) "CPLUSFLAGS=$(CPLUSFLAGS)"
+	@$(echo) ""
+	@$(echo) "CFLAGSLOCAL=$(CFLAGSLOCAL)"
+	@$(echo) ""
+	@$(echo) "CFLAGSLOCALBOOT=$(CFLAGSLOCALBOOT)"
+	@$(echo) ""
+	@$(echo) "CFLAGSEXTRA=$(CFLAGSEXTRA)"
+	@$(echo) ""
+	@$(echo) "CFLAGSPRJCONFIG=$(CFLAGSPRJCONFIG)"
+	@$(echo) ""
+	@$(echo) "CINCLUDES=$(CINCLUDES)"
+	@$(echo) ""
+	@$(echo) "C_INCLUDE_PATH=$(C_INCLUDE_PATH)"
+	@$(echo) ""
+

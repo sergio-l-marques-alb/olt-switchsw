@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PortSecurityGlobalConfig" title="Port Security Administration ">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="SwitchingPortSecurityGroup_GlobalPortSecurityMode" id="1" name="Port Security Mode"/>
+            </node>
+            <node id="2">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="SwitchingPortSecurityGroup_GlobalPortSecurityMode" id="1" name="Port Security Mode"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

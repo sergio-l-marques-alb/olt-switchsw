@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="ServicePortNDPSummary" title="Service Port NDP Summary">
+        <group id="1" heading=" " compile_if="IF_IPV6_MGMT_PACKAGE_PRESENT">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate,hidden" obj-name="basesysServicePortIpv6NdpMgmt_sysServicePortIPV6NdpIndex" id="1"/>
+                <element obj-name="basesysServicePortIpv6NdpMgmt_sysServicePortIPV6NdpAddress" id="2" name="IPv6 Address"/>
+                <element obj-name="basesysServicePortIpv6NdpMgmt_sysServicePortIPV6NdpPhyAddress" id="3" name="MAC Address"/>
+                <element obj-name="basesysServicePortIpv6NdpMgmt_sysServicePortIPV6Ndpipv6IsRtr" id="4" name="isRtr"/>
+                <element obj-name="basesysServicePortIpv6NdpMgmt_sysServicePortIPV6NdpIPV6State" id="5" name="Neighbor State"/>
+                <element obj-name="basesysServicePortIpv6NdpMgmt_sysServicePortIPV6NdpLastUpdated" id="6" name="Last Updated"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

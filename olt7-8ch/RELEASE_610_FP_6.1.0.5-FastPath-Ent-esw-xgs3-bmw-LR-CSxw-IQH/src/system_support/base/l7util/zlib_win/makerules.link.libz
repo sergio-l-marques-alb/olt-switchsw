@@ -1,0 +1,35 @@
+# This file defines link-level build rules and is included by 
+# various CPU vxworks/ipl/makerules.link files.
+#
+
+# Convenient source path abbreviations.
+#
+src_zlib_win := src/system_support/base/l7util/zlib_win
+
+
+# The following source files are NOT built for libz.a.
+#
+winsrcs_excl := example.c maketree.c
+
+
+# Define list of source and header files.
+#
+winsrcs := $(wildcard $(FP_BASE)/$(src_zlib_win)/*.c)
+winsrcs := $(filter-out $(addprefix $(FP_BASE)/$(src_zlib_win)/,$(winsrcs_excl)),$(winsrcs))
+
+winincs := $(wildcard $(FP_BASE)/$(src_zlib_win)/*.h)
+
+winobjs := $(notdir $(winsrcs:.c=.o))
+
+
+libz.a: $(winsrcs) $(winincs)
+	$(CREATING_MSG)
+	$(DBG) gcc $(GCCFLAGS) -c $(winsrcs)
+	$(DBG) ar rcs $@ $(winobjs)
+	-$(DBG) $(RM) $(winobjs)
+
+
+clean_libz::
+	-$(DBG) $(RM) $(winobjs)
+	-$(DBG) $(RM) libz.a
+

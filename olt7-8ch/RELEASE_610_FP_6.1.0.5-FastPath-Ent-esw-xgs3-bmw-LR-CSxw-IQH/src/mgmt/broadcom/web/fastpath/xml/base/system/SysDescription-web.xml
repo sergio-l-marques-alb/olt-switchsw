@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="SysDescription" title="System Description">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element obj-name="baseSystemInfo_sysDescr" id="1" name="System Description"/>
+            </node>
+            <node id="2">
+                <element arghelp="SystemDescriptionRange" level="ReadWriteUser" obj-name="baseSystemInfo_sysName" id="1" name="System Name" maxLength="255"/>
+            </node>
+            <node id="3">
+                <element arghelp="SystemDescriptionRange" level="ReadWriteUser" obj-name="baseSystemInfo_sysLocation" id="1" name="System Location" maxLength="255"/>
+            </node>
+            <node id="4">
+                <element arghelp="SystemDescriptionRange" level="ReadWriteUser" obj-name="baseSystemInfo_sysContact" id="1" name="System Contact" maxLength="255"/>
+            </node>
+            <node id="5">
+                <element control="label" level="ReadOnlyUser" properties="read-only" obj-name="baseSystemInfo_sysName" id="1" name="System Name"/>
+            </node>
+            <node id="6">
+                <element control="label" level="ReadOnlyUser" properties="read-only" obj-name="baseSystemInfo_sysLocation" id="1" name="System Location"/>
+            </node>
+            <node id="7">
+                <element control="label" level="ReadOnlyUser" properties="read-only" obj-name="baseSystemInfo_sysContact" id="1" name="System Contact"/>
+            </node>
+            <node id="8">
+                <element control="label" properties="read-only" obj-name="baseSystemInfo_sysIpAddr" id="1" name="IP Address">
+                   <action type="value" value="valMapEmptyIpString" enable="1_21_1" disable="1_8_1" hide="1_8_1" show="1_21_1"/>
+                   <action type="default" disable="1_21_1" enable="1_8_1" show="1_8_1" hide="1_21_1"/>
+		</element>  
+            </node>
+            <node id="21">
+	        <element control="label" properties="read-only" obj-name="basesysServicePort_sysServicePortIPAddr" id="1" name="IP Address">
+	           <action type="default" enable="1_21_1" disable="1_8_1" hide="1_8_1" show="1_21_1"/>
+	           <action type="value" value="valMapEmptyIpString" disable="1_21_1" enable="1_8_1" show="1_8_1" hide="1_21_1"/>
+                </element>
+	    </node>
+            <node id="9">
+                <element obj-name="baseSystemInfo_sysObjectID" id="1" name="System Object ID"/>
+            </node>
+            <node id="10">
+                <element obj-name="baseSystemInfo_sysUpTime" id="1" name="System Up Time"/>
+            </node>
+            <node id="11">
+                <element obj-name="baseSystemInfo_sysSNTPSyncTime" id="1" name="Current SNTP Synchronized Time"/>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="14" compile_if="IF_SNMP_PACKAGE_PRESENT">
+                <element properties="filter,iterate,hidden" obj-name="baseMibTable_SnmpSupportedMibTableIndex" id="1">
+                   <action type="default" hide="1_15"/>
+                   <action type="extn"/>
+                </element> 
+                <element obj-name="xLibObjects_dummy" control="label" id="3" name="MIBs Supported" run_if="FEAT_IF_NOT_MERLION"/>
+                <element obj-name="baseMibTable_SnmpSupportedMibTableMibName" id="2" name="" run_if="FEAT_IF_NOT_MERLION"/>
+            </repeat>
+            <node id="15">
+                <element properties="write-only" obj-name="xLibObjects_dummy" control="label" id="3" value="" name="MIBs Supported" run_if="FEAT_IF_NOT_MERLION"/>
+            </node>
+            <node level="ReadWriteUser" id="12">
+                <button scope="page" type="buttonSubmit" level="ReadWriteUser" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+            <node level="ReadOnlyUser" id="13">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

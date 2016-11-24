@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+<data-types version="1.0">
+  <enum name="L7_XUI_DVMRP_NEXTHOP_TYPE_t">
+<option name="Leaf" macro="L7_XUI_DVMRP_NEXTHOP_TYPE_LEAF"> </option>
+<option name="Branch" macro="L7_XUI_DVMRP_NEXTHOP_TYPE_BRANCH"> </option>
+</enum>
+<enum name="L7_XUI_DVMRP_NEIGHBOR_STATE_t">
+<option name="Oneway" macro="L7_XUI_DVMRP_NEIGHBOR_STATE_ONEWAY"> </option>
+<option name="Active" macro="L7_XUI_DVMRP_NEIGHBOR_STATE_ACTIVE"> </option>
+<option name="Ignoring" macro="L7_XUI_DVMRP_NEIGHBOR_STATE_IGNORING"> </option>
+<option name="Down" macro="L7_XUI_DVMRP_NEIGHBOR_STATE_DOWN"> </option>
+</enum>
+</data-types>
+</FastPathXML>

@@ -1,0 +1,21 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="cpConfigAdd" title="Add CP Configuration">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element properties="filter,iterate,hidden" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalInstanceId" id="1" name="CP Config Instance ID"/>
+            </node>
+            <node id="2">
+                <element control="textbox" properties="write-only" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalConfigName" value="" id="1" arghelp="NAME_FORMAT_ONE" maxLength="31" validation="validate_name31" name="Configuration Name"/>
+            </node>
+            <node id="3">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="captiveportalcpCaptivePortalTable_cpCaptivePortalRowStatus" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" target-page="cpConfig.html" help="opens CP Config page." id="2" name="Cancel"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

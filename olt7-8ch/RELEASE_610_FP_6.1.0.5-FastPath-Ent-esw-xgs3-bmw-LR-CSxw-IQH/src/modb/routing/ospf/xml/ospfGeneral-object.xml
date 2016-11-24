@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0" >
+<module name="ospfGeneralConfig"  >
+<object name="VersionNumber"  >
+<core  type="uint" access="read-only" descr="The current version number of the OSPF protocol is 2."/>
+<ui  name="Version Number" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.1.3"/> 
+</ui></object>
+<object name="AdminStat"  >
+<core  type="enum" xtype="enable_t" access="read-write" descr="The administrative status of OSPF in the router. The value 'enabled' denotes that the OSPF Process is active on at least one interface; 'disabled' disables it on all interfaces."/>
+<ui  name="Admin Status" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.14.1.2"/> 
+</ui></object>
+<object name="ExternLsaCount"  >
+<core  type="uint" access="read-only" descr="The number of external (LS type 5) link-state advertisements in the link-state database."/>
+<ui  name="External LSA Count" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.1.6"/> 
+</ui></object>
+<object name="ExternLsaCksumSum"  >
+<core  type="uint" access="read-only" descr="The 32-bit unsigned sum of the LS checksums of the external link-state advertisements contained in the link-state database. This sum can be used to determine if there has been a change in a router's link state database, and to compare the link-state database of two routers."/>
+<ui  name="External LSA Checksum Sum" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.1.7"/> 
+</ui></object>
+<object name="RouterId"  >
+<core  type="ipv4" access="read-write" descr="A 32-bit integer uniquely identifying the router in the Autonomous System. By convention, to ensure uniqueness, this should default to the value of one of the router's IP interface addresses."/>
+<ui  name="Router Id" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.1.1"/> 
+</ui></object>
+<object name="RxNewLsas"  >
+<core  type="uint" access="read-only" descr="The number of link-state advertisements received determined to be new instantiations. This number does not include newer instantiations of self-originated link-state advertisements."/>
+<ui  name="Number of new LSAs Received" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.1.10"/> 
+</ui></object>
+<object name="ASBdrRtrStatus"  >
+<core type="enum" xtype="enable_t" access="read-only" descr="A flag to note whether this router is configured as an Autonomous System border router."/>
+<ui  name="ASBR Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.1.5"/> 
+</ui></object>
+<object name="TOSSupport"  >
+<core type="enum" xtype="L7_TrueFalse" access="read-write" descr="The router's support for type-of-service routing."/>
+<ui  name="TOSSupport" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.1.8"/> 
+</ui></object>
+<object name="AreaBdrRtrStatus"  >
+<core  type="enum" xtype="enable_t" access="read-only" descr="A flag to note whether this router is an area border router."/>
+<ui  name="ABR Status" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.1.4"/> 
+</ui></object>
+<object name="MulticastExtensions"  >
+<core  type="uint" access="read-write" descr="A Bit Mask indicating whether the router is forwarding IP multicast (Class D) datagrams based on the algorithms defined in the Multicast Extensions to OSPF. Bit 0, if set, indicates that the router can forward IP multicast datagrams in the router's directly attached areas (called intra-area multicast routing). Bit 1, if set, indicates that the router can forward IP multicast datagrams between OSPF areas (called inter-area multicast routing). Bit 2, if set, indicates that the router can forward IP multicast datagrams between Autonomous Systems (called inter-AS multicast routing). Only certain combinations of bit settings are allowed, namely: 0 (no multicast forwarding is enabled), 1 (intra-area multicasting only), 3 (intra-area and inter-area multicasting), 5 (intra-area and inter-AS multicasting) and 7 (multicasting everywhere). By default, no multicast forwarding is enabled."/>
+<ui  name="Multicast Extensions" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.1.12"/> 
+</ui></object>
+<object name="ExtLsdbLimit"  >
+<core  type="int" access="read-write" default="L7_OSPF_EXT_LSDB_LIMIT_DEF" descr="The maximum number of non-default AS-external-LSAs entries that can be stored in the link-state database. If the value is -1, then there is no limit. When the number of non-default AS-external-LSAs in a router's link-state database reaches ospfExtLsdbLimit, the router enters Overflow State. The router never holds more than ospfExtLsdbLimit non-default AS-external-LSAs in its database. OspfExtLsdbLimit MUST be set identically in all routers attached to the OSPF backbone and/or any regular OSPF area. (i.e., OSPF stub areas and NSSAs are excluded)."/>
+<ui  name="External LSDB Limit" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.1.11"/> 
+</ui></object>
+<object name="OriginateNewLsas"  >
+<core  type="uint" access="read-only" descr="The number of new link-state advertisements that have been originated. This number is incremented each time the router originates a new LSA."/>
+<ui  name="New LSAs originated" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.1.9"/> 
+</ui></object>
+<object name="ExitOverflowInterval"  >
+<core  type="uint" access="read-write" min="L7_OSPF_EXIT_OVERFLOW_INT_MIN" max="L7_OSPF_EXIT_OVERFLOW_INT_MAX" default="L7_OSPF_EXIT_OVERFLOW_INT_DEF" descr="The number of seconds that, after entering OverflowState, a router will attempt to leave OverflowState. This allows the router to again originate non-default AS-external-LSAs. When set to 0, the router will not leave Overflow State until restarted."/>
+<ui  name="Exit Overflow Interval" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.1.13"/> 
+</ui></object>
+<object name="DemandExtensions"  >
+<core  type="enum" xtype="L7_TrueFalse" access="read-only" descr="The router's support for demand routing."/>
+<ui  name="Demand Extensions" style="plainText" />
+</object>
+
+<object name="opaqueASLSACount"  >
+<core  type = "uint" access= "read-only" descr = "Get the number of opaque AS (LS type 11) link-state advertisements in the link-state database."/>
+<ui  name="opaque AS LSA Count" style="plainText" />
+</object>
+
+<object name="ASOpaqueLSAChecksumSum"  >
+<core  type = "uint" access= "read-only" descr = "Get checksumSum of the AS OPAQUE LSA."/>
+<ui  name="AS Opaque LSA Checksum Sum" style="plainText" />
+</object>
+
+<!-- ObjectAddedStart -->
+<object name="SelfOrigExtLsaFlush"  >
+<core  type="uint" access="write-only" descr="Flush and reoriginate all self-originated external LSAs."/>
+<ui  name="Flush self originated external LSAs" style="inputLine" />
+</object>
+<object name="CountersClear"  >
+<core  type="uint" access="write-only" descr="Clear OSPFv2 statistics."/>
+<ui  name="Clear OSPFv2 Statistics Counters" style="inputLine" />
+</object>
+<!-- ObjectAddedEnd -->
+</module>
+</objectxml>
+</FastPathXML>

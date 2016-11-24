@@ -1,0 +1,1263 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Diffserv Policy Configuration Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+ 
+<h1 align=center style='text-align:center'>DiffServ Policy Help</h1>
+
+<hr size=4 width="100%" align=center>
+
+<!-------------------------------------------------------------------------------------->
+
+<h2><a name=policy_cfg></a>Help for Diffserv Policy Configuration</h2>
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Selector</b> - Along with an option to create a new policy, this lists all the
+      existing DiffServ policy names, from which one can be selected. The content of this screen 
+      varies based on the selection of this field. If an existing policy is selected then the 
+      screen will display Member Classes for that DiffServ policy. If 'create' is selected, 
+      another screen appears to facilitate creation of a new policy. The default is 'create'.</li>
+  <li><b>Policy Type</b> -
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+       if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcat(sBuf,"<I>In</I> indicates the type is specific to inbound traffic direction. ");
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcat(sBuf,"<I>Out</I> indicates the type is specific to outbound traffic direction. ");
+      }
+      return sBuf;
+       ' > 
+      Only when a new policy is created, this field is a selector field.
+      After policy creation this becomes a non-configurable field displaying the
+      configured policy type.</li>
+  <li><b>Available Class List</b> - This lists all existing DiffServ class names, 
+      from which one can be selected. This field is a selector field only when a new policy 
+      class instance is to be created. After creation of the policy class instance this 
+      becomes a non-configurable field.</li>
+  <li><b>Member Class List</b> - This lists all existing DiffServ classes currently defined as members 
+      of the specified Policy, from which one can be selected. This list is automatically 
+      updated as a new class is added to or removed from the policy. This field is a selector 
+      field only when an existing policy class instance is to be removed. After removal of 
+      the policy class instance this becomes a non-configurable field.</li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - This is a case-sensitive alphanumeric string from 1 to 31 characters 
+      uniquely identifying a policy.</li>
+ </ul>
+</ul>
+       
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Type</b> - 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+       if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcat(sBuf,"<I>In</I> indicates the type is specific to inbound traffic direction. ");
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcat(sBuf,"<I>Out</I> indicates the type is specific to outbound traffic direction. ");
+      }
+      return sBuf;
+       ' > 
+      Only when a new policy is created, this field is a selector field.
+      After policy creation this becomes a non-configurable field displaying the
+      configured policy type.</li>
+  <li><b>Member Class List</b> - Displays all the member classes for the selected DiffServ policy. 
+      It is automatically updated as a new class is added to or removed from the policy. 
+      Only when an existing policy class instance is to be removed, this field is a selector field. 
+      After removal of the policy class instance this becomes a non-configurable field.</li>
+  <li><b>Available Class List</b> - Displays all the member classes for the specified policy. 
+      It is automatically updated as a new class is added to or removed from the policy. Only when 
+      a new policy class instance is to be created this field is a selector field. After creation 
+      of the policy class instance this becomes a non-configurable field.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Delete</b> - Delete the currently selected filter.</li>
+  <li><b>Rename</b> - Allows to rename a specified policy.</li>
+  <li><b>Add Selected Class</b> - Creates a policy class instance by attaching the policy 
+      to the specified class.</li>
+  <li><b>Remove Selected Class</b> - Removes a policy class instance by detaching the policy 
+      from the specified class.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<h2><a name=policy_def></a>Help for Diffserv Policy Class Definition</h2>
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Selector</b> - This lists all the existing DiffServ policy names, 
+      from which one can be selected.</li>
+  <li><b>Member Class List</b> - This lists all existing DiffServ classes currently defined as members 
+      of the specified Policy, from which one can be selected. This list is automatically 
+      updated as a new class is added to or removed from the policy.</li>
+  <li><b>Policy Attribute Selector</b> - This lists all attributes supported for this type of policy, 
+      from which one can be selected.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Type</b> - Displays type of the configured policy.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Configure Selected Attribute</b> - Only one configuration criterion can be specified 
+      per invocation of this button. Based on the selected configuration criterion, an individual 
+      configuration screen is provided.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=policySumm></a>Help for Diffserv Policy Summary</h2>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+
+      }
+      return sBuf;
+       ' >.
+ </li>
+  <li><b>Member Classes</b> - Displays name of each class instance within the policy.</li>
+ </ul>
+</ul>
+
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Refresh</b> - Refresh the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+<!-------------------------------------------------------------------------------------->
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_POLICY_ATTR_BANDWIDTH_FEATURE">
+<hr size=4 width="100%" align=center>
+
+<h2><a name=bandwidth></a>Help for Bandwidth</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Committed Rate</b> - This value is specified in kilobits-per-second (Kbps) 
+      in the range 1 to 4294967295 or is specified in percent (%) in the range 1 to 100.</li>
+  <li><b>Percent</b> - This is a checkbox that specifies the unit of the committed rate. 
+      If the committed rate is to be set in percent, this box is checked. Conversely, if 
+      the committed rate is to be set in Kbps, this box is left unchecked.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy.</li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+</EMWEB_IF>
+<!-------------------------------------------------------------------------------------->
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_POLICY_ATTR_EXPEDITE_FEATURE">
+<hr size=4 width="100%" align=center>
+
+<h2><a name=expedite></a>Help for Expedite</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Committed Rate</b> - This value is specified in kilobits-per-second (Kbps) 
+      in the range 1 to 4294967295 or is specified in percent (%) in the range 1 to 100.</li>
+  <li><b>Percent</b> - This is a checkbox that specifies the unit of the committed rate. 
+      If the committed rate is to be set in percent, this box is checked. Conversely, if 
+      the committed rate is to be set in Kbps, this box is left unchecked.</li>
+  <li><b>Committed Burst Size</b> - This value is specified in the range 1 to 128 KBytes.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy. </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+</EMWEB_IF>
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=mark_cos></a>Help for Mark CoS</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>CoS Value</b> - This is an integer value in the range 0 to 7.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_POLICY_ATTR_MARK_COS2VAL_FEATURE">
+<hr size=4 width="100%" align=center>
+
+<h2><a name=mark_secondary_cos></a>Help for Mark Secondary CoS</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Secondary CoS Value</b> - This is an integer value in the range 0 to 7.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcat(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take
+      effect on the switch but these changes will not be retained across a power cycle unless
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_POLICY_ATTR_ASSIGN_QUEUE_FEATURE">
+<hr size=4 width="100%" align=center>
+
+<h2><a name=assign_queue></a>Help for Assign Queue</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Queue ID</b> - This is an integer value in the range 0 to 7.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+       if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take
+      effect on the switch but these changes will not be retained across a power cycle unless
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+</EMWEB_IF>
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=drop_policing_attributes></a>Help for Drop Policing Attributes</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Drop</b> - Select the drop checkbox. This flag indicates that the policy attribute is defined
+      to drop every inbound packet.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+       if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take
+      effect on the switch but these changes will not be retained across a power cycle unless
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=mirror_interface></a>Help for Mirror Interface</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> - Select the emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY; from the list.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take
+      effect on the switch but these changes will not be retained across a power cycle unless
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=redirect_interface></a>Help for Redirect Interface</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;</b> - Select the emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY; from the list.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take
+      effect on the switch but these changes will not be retained across a power cycle unless
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=mark_ip_dscp></a>Help for Mark IP DSCP</h2>
+
+<h3>Selection Criteria</h3>
+                                                      
+<ul type=disc>
+ <ul type=circle>
+  <li><b>DSCP Keyword</b> - This lists the keywords for the known DSCP values 
+      from which one can be selected. The list includes 'other' as an option 
+      for the remaining values.</li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>DSCP Value</b> - This is a DiffServ Code Point value in the range 0 to 63 
+      to compare against. This field is only displayed when the DSCP Keyword field 
+      is specified as 'other'.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=mark_ip_prec></a>Help for Mark IP Precedence</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IP Precedence Value</b> - This is an IP Precedence value in the range 0 to 7.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=policing_attributes></a>Help for Policing Attributes</h2>
+
+<h3>Selection Criteria</h3>
+                                                      
+<ul type=disc>
+ <ul type=circle>
+ <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_POLICY_ATTR_POLICE_COLORAWARE_FEATURE">
+  <li><b>Color Mode</b> - This lists the color mode. The default is 'Color Blind'.
+      <ul type=square>
+          <li><I><b>Color Blind</b></I></li>
+          <li><I><b>Color Aware</b></I></li>
+      </UL>
+  <p>Color Aware mode requires the existence of one or more color classes that 
+  are valid for use with this policy instance.  A valid color class contains 
+  a single, non-excluded match criterion for one of the following fields (provided 
+  the field does not conflict with the classifier of the policy instance itself):
+    <ul type=square>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_COS_FEATURE">
+        <li>CoS</li>
+      </EMWEB_IF>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_IPDSCP_FEATURE">
+        <li>IP DSCP</li>
+      </EMWEB_IF>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_IPPRECEDENCE_FEATURE">
+        <li>IP Precedence</li>
+      </EMWEB_IF>
+      <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_COS2_FEATURE">
+        <li>Secondary CoS</li>
+      </EMWEB_IF>
+    </UL>
+  </li>
+ </EMWEB_IF>
+  <li><b>Conform Action Selector</b> - This lists the actions to be taken on conforming packets 
+      per the policing metrics, from which one can be selected. The default is 'send'.</li>
+  <EMWEB_IF ID=USMWEB_POLICY_ATTR_SINGLEORTWORATE>
+    <li><b>Exceed Action Selector</b> - This lists the actions to be taken on excess packets per the 
+      policing metrics, from which one can be selected. The default is 'drop'.</li>
+  </EMWEB_IF>
+  <li><b>Violate Action Selector</b> - This lists the actions to be taken on violating packets 
+      per the policing metrics, from which one can be selected. The default is 'drop'.</li>
+  <li>For each of the above Action Selectors one of the following actions can be taken:
+      <ul type=square>
+          <li><I><b>Drop</b></I> - These packets are immediately dropped.</li>
+          <li><I><b>Mark IP DSCP</b></I> - These packets are marked by DiffServ with the specified 
+              DSCP value before being presented to the system forwarding element. 
+              This selection requires that the DSCP value field be set.</li>
+          <li><I><b>Mark CoS</b></I> - These packets are marked by DiffServ with the specified 
+              CoS value before being presented to the system forwarding element. 
+              This selection requires that the Mark CoS value field be set.</li>
+          <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE=DIFFSERV_POLICY_ATTR_MARK_COS2VAL_FEATURE>
+            <li><I><b>Mark Secondary CoSP</b></I> - These packets are marked by DiffServ with the specified 
+              CoS2 value before being presented to the system forwarding element. 
+              This selection requires that the Mark Secondary CoS value field be set.</li>
+          </EMWEB_IF>
+          <li><I><b>Send</b></I> - These packets are presented unmodified by DiffServ 
+              to the system forwarding element.</li>
+          <li><I><b>Mark IP Precedence</b></I> - These packets are marked by DiffServ with the specified 
+              IP Precedence value before being presented to the system forwarding element.
+              This selection requires that the Mark IP Precedence value field be set.</li>
+
+      </UL>
+  </li>
+  
+  
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+  <li><b>Policing Style</b> - Displays the selected policing style: Simple, SingleRate, or TwoRate.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Confirm</b> - Provides the policing configuration screen.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=policing_cfg></a>Help for Policing Configuration</h2>
+
+<h3>Selection Criteria</h3>
+                                                      
+<ul type=disc>
+ <ul type=circle>
+ <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_POLICY_ATTR_POLICE_COLORAWARE_FEATURE">
+  <li><b>Color Conform Class</b> - Visible only if the user
+      has selected 'Color Aware' Color Mode on the Policing Attributes 
+      screen, this lists the DiffServ classes that are valid for use as
+      a conform color-aware specifier. One of the classes must be selected 
+      from this list.  A color-aware mode and value defined by the
+      Color Conform Class must be different from the Color Exceed Class.</li>
+  <EMWEB_IF ID=USMWEB_POLICY_ATTR_SINGLEORTWORATE>
+  <li><b>Color Exceed Class</b> - Visible only if the user
+      has selected 'Color Aware' Color Mode on the Policing Attributes 
+      screen for a Policing Style of 'Police Single Rate' or 'Police Two Rate', 
+      this lists the DiffServ classes that are valid for use as  
+      an exceed color-aware specifier.  
+      One of the classes may optionally be selected from this list.
+      A color-aware mode and value defined by the Color Exceed Class 
+      must be different from the Color Conform Class.
+      If no class is selected, the exceed color is not used. </li>
+ </EMWEB_IF>
+ </EMWEB_IF>
+  <li><b>Conform DSCP Keyword</b> - This lists the keywords for the known DSCP values 
+      from which one can be selected. The list includes 'other' as an option 
+      for the remaining values.</li>
+  <EMWEB_IF ID=USMWEB_POLICY_ATTR_SINGLEORTWORATE>
+    <li><b>Exceed DSCP Keyword</b> - This lists the keywords for the known DSCP values 
+      from which one can be selected. The list includes 'other' as an option 
+      for the remaining values.</li>
+  </EMWEB_IF>
+  <li><b>Violate DSCP Keyword</b> - This lists the keywords for the known DSCP values 
+      from which one can be selected. The list includes 'other' as an option 
+      for the remaining values.</li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Conform IP Precedence Value</b> - This is an IP Precedence value in the range 0 to 7.</li>
+  <EMWEB_IF ID=USMWEB_POLICY_ATTR_SINGLEORTWORATE>
+     <li><b>Exceed IP Precedence Value</b> - This is an IP Precedence value in the range 0 to 7.</li>
+  </EMWEB_IF>
+  <li><b>Violate IP Precedence Value</b> - This is an IP Precedence value in the range 0 to 7.</li>
+  <li><b>Committed Rate</b> - This value is specified in the range 1 to 4294967295 
+      kilobits-per-second (Kbps). The committed rate is used to monitor arrival 
+      rate of incoming packets for this class.</li>
+  <li><b>Committed Burst Size</b> - This value is specified in the range 1 to 128 KBytes. 
+      The committed burst size is used to determine the amount of conforming traffic allowed.</li>
+  <EMWEB_IF ID=USMWEB_POLICY_ATTR_SINGLEORTWORATE>
+     <li><b>Excess Burst Size</b> - This value is specified in the range 1 to 128 KBytes. 
+      The excess burst size is used to determine the amount of excess traffic allowed. 
+      This value must be equal to or greater than the committed burst size.</li>
+      <li><b>Peak Rate</b> - This value is specified in the range 1 to 4294967295 
+      kilobits-per-second (Kbps). The peak rate is used to monitor arrival rate of 
+      incoming packets for this class.</li>
+      <li><b>Peak Burst Size</b> - This value is specified in the range 1 to 128 KBytes. 
+      The peak burst size is used in determining the amount of exceeding traffic allowed. 
+      This value must be equal to or greater than committed burst size.</li>
+  </EMWEB_IF>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_POLICY_ATTR_POLICE_COLORAWARE_FEATURE">
+  <li><b>Color Mode</b> - This is visible only when 'Color Blind' Color Mode is used. 
+  <li><b>Color Conform Mode</b> - Visible only when 'Color Aware' Color Mode is used,
+      this displays the color conform mode based on the content of the currently selected
+      Color Conform Class. </li>
+ <EMWEB_IF ID=USMWEB_POLICY_ATTR_SINGLEORTWORATE>
+     <li><b>Color Exceed Mode</b> - Visible only when 'Color Aware' Color Mode is used
+      with a Policing Style of 'Police Single Rate' or 'Police Two Rate',
+      this displays the the color exceed mode based on the content of the currently selected
+      Color Exceed Class. </li>
+ </EMWEB_IF>
+ </EMWEB_IF>
+  <li><b>Conform Action</b> - Displays the selected action to be taken on conforming packets 
+      per the policing metrics.</li>
+  <EMWEB_IF ID=USMWEB_POLICY_ATTR_SINGLEORTWORATE>
+     <li><b>Exceed Action</b> - Displays the selected action to be taken on excess packets 
+      per the policing metrics.</li>
+  </EMWEB_IF>
+  <li><b>Violate Action</b> - Displays the selected action to be taken on violating 
+      packets per the policing metrics.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Configure Selected Attribute</b> - Send the updated screen to the switch and 
+      cause the changes to take effect on the switch but these changes will not be 
+      retained across a power cycle unless a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_POLICY_ATTR_RANDOMDROP_FEATURE">
+<hr size=4 width="100%" align=center>
+
+<h2><a name=random_drop></a>Help for Random Drop</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Minimum Threshold</b> - This is an average queue depth minimum threshold in the 
+      	range 1 to 250000 bytes.</li>
+  <li><b>Maximum Threshold</b> - This is an average queue depth maximum threshold in the 
+      	range 1 to 500000 bytes. This value must be equal to or greater than minimum threshold.</li>
+  <li><b>Maximum Drop Probability</b> - This is the packet drop probability expressed as a 
+      percentage (0 to 100 %) when queue depth average reaches the maximum threshold.</li>
+  <li><b>Sampling Rate</b> - This is the period in the range 0 to 1000000 microseconds, 
+      at which the queue depth is sampled for computing an average. A value of 0 means the 
+      sampling is performed for every packet. The default value is 0.</li>
+  <li><b>Decay Exponent</b> - This is an integer value in the range 0 to 16 that determines 
+      how quickly the average queue depth calculation decays over time, with a higher number 
+      causing a slower decay rate. The default value is 9.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+</EMWEB_IF>
+<!-------------------------------------------------------------------------------------->
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE= "DIFFSERV_POLICY_ATTR_SHAPE_AVERAGE_FEATURE">
+<hr size=4 width="100%" align=center>
+
+<h2><a name=shape_average></a>Help for Shape Average</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Committed Rate</b> - This value is specified in the range 1 to 4294967295 
+      kilobits-per-second (Kbps).</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+</EMWEB_IF>
+<!-------------------------------------------------------------------------------------->
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE= "DIFFSERV_POLICY_ATTR_SHAPE_PEAK_FEATURE">
+ 
+<hr size=4 width="100%" align=center>
+
+<h2><a name=shape_peak></a>Help for Shape Peak</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Committed Rate</b> - This value is specified in the range 1 to 4294967295 
+      kilobits-per-second (Kbps).</li>
+  <li><b>Peak Rate</b> - This value is specified in the range 1 to 4294967295 
+      kilobits-per-second (Kbps).</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take 
+      effect on the switch but these changes will not be retained across a power cycle unless 
+      a save is performed.</li>
+  <li><b>Cancel</b> - Cancel the currently selected filter.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+</EMWEB_IF>
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=policyAttrSumm></a>Help for Policy Attribute Summary</h2>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+  <li><b>Attribute</b> - Displays the attributes attached to the policy class instances.</li>
+  <li><b>Attribute Details</b> - Displays the configured values of the attached attributes.</li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Refresh</b> - Refresh the displayed data.</li>
+ </ul>
+</ul>
+
+<!-------------------------------------------------------------------------------------->
+
+<hr size=4 width="100%" align=center>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,66 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<!--#INCLUDE INCLPATH = "src/mgmt/emweb/web/web.h" -->
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>LLDP - 802.1AB Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=lldp_med_cfg></a>Help for LLDP-MED Global Configuration</h2>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+  <h3>Configurable Data</h3>
+<EMWEB_ELSE >
+  <h3>Non-Configurable Data</h3>
+</EMWEB_IF>
+<ul type=disc>
+  <ul type=circle>
+  <li><b>Fast Start Repeat Count</b>   
+  - Specifies the number of LLDP PDUs that will be transmitted when the protocol is enabled. 
+    The range is from (1 to 10). Default value of fast repeat count is 
+        <EMWEB_STRING C='
+      return usmWebIntegerToString(FD_LLDP_MED_FASTSTART_REPEAT_COUNT);
+    '>.
+  </li> 
+</ul>
+</ul>
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Non-Configurable Data</h3>
+</EMWEB_IF>
+<ul type=disc>
+  <ul type=circle>
+  <li><b>Device Class</b>   
+  - Specifies local device's MED Classification. There are four different kinds of devices, 
+    three of them represent the actual end points (classified as Class I Generic 
+    [IP Communication Controller etc.], Class II Media [Conference Bridge etc.], 
+    Class III Communication [IP Telephone etc.]). The fourth device is Network Connectivity 
+    Device, which is typically a LAN Switch/Router, IEEE 802.1 Bridge, IEEE 802.11 Wireless Access Point etc.
+  </li>
+  </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+<ul type=disc>
+ <ul type=circle>
+ <EMWEB_IF ID=USMWEB_IF_READWRITE >
+ <li><b>Submit</b> - Send the updated screen to the switch and cause the changes to take effect on 
+   the switch but these changes will not be retained across a power cycle
+      unless a save is performed. </li>
+ <EMWEB_ELSE >
+  <li><b>Refresh</b> - Updates the information on the page. </li>
+ </EMWEB_IF>
+ </ul>
+</ul>
+<hr size=4 width="100%" align=center>
+
+</body>
+</html>
+
+

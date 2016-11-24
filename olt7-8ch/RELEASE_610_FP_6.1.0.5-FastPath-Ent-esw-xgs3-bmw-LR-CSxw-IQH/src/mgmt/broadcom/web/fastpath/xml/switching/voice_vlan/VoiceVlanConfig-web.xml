@@ -1,0 +1,78 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="VoiceVlanConfig" title="Voice VLAN Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="SwitchingVoiceVlanConfig_GlobalAdminMode" id="1" name="Voice VLAN Admin Mode"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingVoiceVlanInterfaceConfig_Interface" id="1" />
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="SwitchingVoiceVlanInterfaceConfig_VoiceVlanDataPriorityMode" id="1" name="CoS Override Mode"/>
+            </node>
+            <node id="6">
+                <element control="combo" obj-name="SwitchingVoiceVlanInterfaceConfig_VoiceVlanMode" id="1" name="Voice VLAN Interface Mode" >
+
+                 <action type="enum" hide="1_6_2"/>
+                 <action type="enum" show="1_6_2" />
+                 <action type="enum" show="1_6_2"/>
+                 <action type="enum" hide="1_6_2"/>
+                 <action type="enum" hide="1_6_2"/>
+ 
+                </element>
+                <element control="textbox" obj-name="SwitchingVoiceVlanInterfaceConfig_VoiceVlanModeValue" id="2" name="Value"/>
+            </node>
+            <node id="4">
+                <element obj-name="SwitchingVoiceVlanInterfaceConfig_VoiceVlanOperationalStatus" id="1" name="Operational State"/>
+            </node>
+            <node id="5">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="SwitchingVoiceVlanConfig_GlobalAdminMode" id="1" name="Voice VLAN Admin Mode">
+                    <action type="enum" web_name="Enabled"/>
+                    <action type="enum" web_name="Disabled"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingVoiceVlanInterfaceConfig_Interface" id="1" />
+            </node>
+            <node id="6">
+                <element control="label" obj-name="SwitchingVoiceVlanInterfaceConfig_VoiceVlanMode" id="1" name="Voice VLAN Interface Mode" >
+
+                 <action type="enum" hide="2_6_2" web_name="Disabled"/>
+                 <action type="enum" show="2_6_2" />
+                 <action type="enum" show="2_6_2"/>
+                 <action type="enum" hide="2_6_2"/>
+                 <action type="enum" hide="2_6_2"/>
+
+                </element>
+                <element control="label" obj-name="SwitchingVoiceVlanInterfaceConfig_VoiceVlanModeValue" id="2" name="Value"/>
+            </node>
+
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="SwitchingVoiceVlanInterfaceConfig_VoiceVlanDataPriorityMode" id="1" name="CoS Override Mode">
+                  <action type="enum" web_name="Enabled"/>
+                  <action type="enum" web_name="Disabled"/>
+                </element>
+            </node>
+            <node id="5">
+                <element obj-name="SwitchingVoiceVlanInterfaceConfig_VoiceVlanOperationalStatus" id="1" name="Operational State">
+                  <action type="enum" web_name="Enabled"/>
+                  <action type="enum" web_name="Disabled"/>
+                </element>
+            </node>
+            <node id="7">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
