@@ -5543,8 +5543,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       msgId == CCMSG_ETH_LACP_MATRIXES_SYNC2 || 
 #endif
       msgId == CCMSG_MGMD_PORT_SYNC || 
-      msgId == CCMSG_APPLICATION_RESOURCES || 
-      msgId == CCMSG_L2_MACLIMIT_STATUS )
+      msgId == CCMSG_APPLICATION_RESOURCES)
     PT_LOG_TRACE(LOG_CTX_MSGHANDLER,"Message processed: 0x%04X in %lu usec [response:%u (bytes) rc=%u res=0x%08x]", msgId, outbuffer->infoDim, time_delta, rc, res);    
   else
     PT_LOG_INFO(LOG_CTX_MSGHANDLER,"Message processed: 0x%04X in %lu usec  [response:%u (bytes) rc=%u res=0x%08x]", msgId, outbuffer->infoDim, time_delta, rc, res);
