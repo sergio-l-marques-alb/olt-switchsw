@@ -842,7 +842,7 @@ extern L7_RC_t ptin_igmp_assoc_clean_all(void);
 extern L7_RC_t ptin_igmp_extVlans_get(L7_uint32 intIfNum, L7_uint16 intOVlan, L7_uint16 intIVlan,
                                       L7_int client_idx, L7_uint16 *uni_ovid, L7_uint16 *uni_ivid);
 
-#if 0
+#if 1
 /**
  * Get next IGMP client
  * 
