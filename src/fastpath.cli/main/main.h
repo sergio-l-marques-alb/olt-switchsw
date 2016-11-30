@@ -1866,8 +1866,8 @@ typedef struct
   L7_uint16 number_of_sensors;
   struct
   {
-    L7_uint16 curr_value;
-    L7_uint16 peak_value;
+    L7_int16 curr_value;
+    L7_int16 peak_value;
   } __attribute__((packed)) sensors_data[10];
 } __attribute__((packed)) msg_ptin_temperature_monitor_t;
 

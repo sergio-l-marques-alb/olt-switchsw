@@ -7787,7 +7787,7 @@ int main (int argc, char *argv[])
               printf("Sensors data: { ");
               for (i = 0; i < n; i++)
               {
-                printf("%u/%u ", ENDIAN_SWAP16(po->sensors_data[i].curr_value), ENDIAN_SWAP16(po->sensors_data[i].peak_value));
+                printf("%d/%d ", ENDIAN_SWAP16(po->sensors_data[i].curr_value), ENDIAN_SWAP16(po->sensors_data[i].peak_value));
               }
               printf("}\r\n");
             }
