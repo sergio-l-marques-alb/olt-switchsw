@@ -568,7 +568,7 @@ void proc_runtime_meter_update(ptin_proc_instance_t instance, L7_uint32 time_del
   proc_runtime_ptr = &proc_runtime[instance];
 
   /* If overflow, reset all data */
-  if ( (proc_runtime_ptr->number_of_calls==(L7_uint32)-1) ||
+  if ( (proc_runtime_ptr->number_of_calls == (L7_uint32)-1) ||
        (proc_runtime_ptr->total_runtime + time_delta < proc_runtime_ptr->total_runtime) )
   {
     proc_runtime_meter_init(instance);
@@ -579,7 +579,7 @@ void proc_runtime_meter_update(ptin_proc_instance_t instance, L7_uint32 time_del
   proc_runtime_ptr->last_runtime    = time_delta;
   proc_runtime_ptr->total_runtime  += (L7_uint64) time_delta;
 
-  if ( (proc_runtime_ptr->number_of_calls)==1 || time_delta<(proc_runtime_ptr->min_runtime) )
+  if ( (proc_runtime_ptr->number_of_calls == 1) || (proc_runtime_ptr->min_runtime == 0) || (time_delta < proc_runtime_ptr->min_runtime) )
     proc_runtime_ptr->min_runtime = time_delta;
 
   if ( time_delta > proc_runtime_ptr->max_runtime )
