@@ -985,6 +985,15 @@ typedef struct {
   L7_uint16 inner_vid;    // Inner VLAN id [1..4094]
   L7_uint8  pcp;          // Packet's priority
   L7_uint16 ethertype;    // Packet's ethertype
+
+  // Translation Actions
+  L7_uint16 new_vid;
+  L7_uint16 new_inner_vid;
+  ptin_vlanXlate_action_enum xlate_action_ingress_outerVid;
+  ptin_vlanXlate_action_enum xlate_action_ingress_innerVid;
+  ptin_vlanXlate_action_enum xlate_action_egress_outerVid;
+  ptin_vlanXlate_action_enum xlate_action_egress_innerVid;
+
 } __attribute__((packed)) msg_HwEthMef10Intf_t;
 
 /* EVC config */
@@ -1089,6 +1098,13 @@ typedef struct {
   L7_uint8             mask;         //Mask of fields to be considered [0x00 0x0F]                            
   L7_uint16            maxChannels;  //[mask=0x01] Maximum number of channels this client can simultaneously watch
   L7_uint64            maxBandwidth; //[mask=0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
+
+  // Translation Actions
+  ptin_vlanXlate_action_enum xlate_action_ingress_outerVid;
+  ptin_vlanXlate_action_enum xlate_action_ingress_innerVid;
+  ptin_vlanXlate_action_enum xlate_action_egress_outerVid;
+  ptin_vlanXlate_action_enum xlate_action_egress_innerVid;
+
 } __attribute__((packed)) msg_HwEthEvcFlow_t;
 
 /* EVC port add/remove */

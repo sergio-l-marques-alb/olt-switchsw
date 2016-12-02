@@ -32,21 +32,56 @@ static BROAD_PORT_t *hapiPortPtr;
 
 /* Advanced translations active? */
 L7_uint32 advanced_vlan_editing = 0;
-                                                                                                                                                                                      
+
+/* TAG profiles */
 L7_int tagformat_single_class_id = 2;  /* Single tagged packets */
 L7_int tagformat_double_class_id = 6;  /* Double tagged packets */
 
-L7_int action_ingress_oswap_inone_id = 4;  /* Egress action 1: swap+none */
-L7_int action_ingress_oswap_iswap_id = 5;  /* Egress action 1: swap+swap */
-L7_int action_egress_oswap_inone_id  = 2;  /* Egress action 1: swap+none */
-L7_int action_egress_oswap_iswap_id  = 3;  /* Egress action 1: swap+swap */
+/* ACTIONS */
+L7_int action_egress_oswap_id = 2;          /* Egress action 1: swap */
+L7_int action_egress_opush_id = 3;          /* Egress action 1: push */
+L7_int action_egress_opop_id  = 4;          /* Egress action 1: pop */
+L7_int action_egress_oswap_iswap_id  = 5;   /* Egress action 1: swap+push */
+L7_int action_egress_oswap_ipush_id  = 6;   /* Egress action 1: swap+push */
+L7_int action_egress_oswap_ipop_id   = 7;   /* Egress action 1: swap+pop  */
+L7_int action_egress_onone_iswap_id  = 8;   /* Egress action 1: none+push */
+L7_int action_egress_onone_ipush_id  = 9;   /* Egress action 1: none+push */
+L7_int action_egress_onone_ipop_id   = 10;  /* Egress action 1: none+pop  */
+//L7_int action_egress_opop_ipop_id    = xx;  /* Egress action 1: pop+pop   */
 
-L7_int vep_ingress_single_class_id = 2;  /* VLAN EDIT PROFILE class id */
-L7_int vep_ingress_double_class_id = 3;  /* VLAN EDIT PROFILE class id */
-L7_int vep_egress_single_class_id  = 4;  /* VLAN EDIT PROFILE class id */
-L7_int vep_egress_double_class_id  = 5;  /* VLAN EDIT PROFILE class id */
+L7_int action_ingress_oswap_id = 11;        /* Egress action 1: swap */
+L7_int action_ingress_opush_id = 12;        /* Egress action 1: push */
+L7_int action_ingress_opop_id  = 13;        /* Egress action 1: pop */
+L7_int action_ingress_oswap_iswap_id = 14;  /* Egress action 1: swap+push */
+L7_int action_ingress_oswap_ipush_id = 15;  /* Egress action 1: swap+push */
+L7_int action_ingress_oswap_ipop_id  = 16;  /* Egress action 1: swap+pop  */
+//L7_int action_ingress_onone_iswap_id = xx;  /* Egress action 1: none+push */
+//L7_int action_ingress_onone_ipush_id = xx;  /* Egress action 1: none+push */
+//L7_int action_ingress_onone_ipop_id  = xx;  /* Egress action 1: none+pop  */
+//L7_int action_ingress_opush_ipush_id = xx;  /* Egress action 1: push+push */
 
+/* VLAN EDIT PROFILE class id */
+L7_int vep_ingress_oswap_inone_class_id = 1;
+L7_int vep_ingress_opush_inone_class_id = 2;
+L7_int vep_ingress_opop_inone_class_id  = 3;
+L7_int vep_ingress_oswap_iswap_class_id = 4;
+L7_int vep_ingress_oswap_ipush_class_id = 5;
+L7_int vep_ingress_oswap_ipop_class_id  = 6;
+//L7_int vep_ingress_onone_iswap_class_id = xx;
+//L7_int vep_ingress_onone_ipush_class_id = xx;
+//L7_int vep_ingress_onone_ipop_class_id  = xx;
+//L7_int vep_ingress_opush_ipush_class_id = xx;
 
+L7_int vep_egress_oswap_inone_class_id  = 7;
+L7_int vep_egress_opush_inone_class_id  = 8;
+L7_int vep_egress_opop_inone_class_id   = 9;
+L7_int vep_egress_oswap_iswap_class_id  = 10;
+L7_int vep_egress_oswap_ipush_class_id  = 11;
+L7_int vep_egress_oswap_ipop_class_id   = 12;
+L7_int vep_egress_onone_iswap_class_id  = 13;
+L7_int vep_egress_onone_ipush_class_id  = 14;
+L7_int vep_egress_onone_ipop_class_id   = 15;
+//L7_int vep_egress_opop_ipop_class_id    = xx;
 
 /********************************************************************
  * MACROS AND INLINE FUNCTIONS
@@ -113,7 +148,7 @@ L7_RC_t ptin_hapi_xlate_init(void)
       port_tpid_class.tpid1 = PTIN_TPID_OUTER_DEFAULT;
       port_tpid_class.tpid2 = BCM_PORT_TPID_CLASS_TPID_ANY;
       port_tpid_class.tag_format_class_id = tagformat_single_class_id;
-      port_tpid_class.flags = BCM_PORT_TPID_CLASS_INNER_C;
+      port_tpid_class.flags = 0;
       port_tpid_class.vlan_translation_action_id = 0;
 
       rv = bcm_port_tpid_class_set(bcm_unit, &port_tpid_class);
@@ -143,19 +178,17 @@ L7_RC_t ptin_hapi_xlate_init(void)
     }
   }
 
-  /* Define Action for Replace (Pop+Push) */
   if (advanced_vlan_editing)
   {
     /* Create ingress/egress translation actions: swap+none */
     rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
-                                             &action_ingress_oswap_inone_id);
+                                             &action_ingress_oswap_id);
     if (rv != BCM_E_NONE) {
      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
      return L7_FAILURE;
     }
-    /* Create egress translation action: swap+swap */
     rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
-                                             &action_egress_oswap_inone_id);
+                                             &action_egress_oswap_id);
     if (rv != BCM_E_NONE) {
      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
      return L7_FAILURE;
@@ -171,31 +204,106 @@ L7_RC_t ptin_hapi_xlate_init(void)
     action.outer_tpid = PTIN_TPID_OUTER_DEFAULT;
     action.inner_tpid = PTIN_TPID_INNER_DEFAULT;
 
-    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS, action_ingress_oswap_inone_id, &action);
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS, action_ingress_oswap_id, &action);
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set swap: rv=%d", rv);
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set swap+none: rv=%d", rv);
       return L7_FAILURE;
     }
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new ingress xlate action with for swap operation: action_id=%u", action_ingress_oswap_inone_id);
-
-    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS, action_egress_oswap_inone_id, &action);
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new ingress xlate action with for swap+none operation: action_id=%u", action_ingress_oswap_id);
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS, action_egress_oswap_id, &action);
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set swap: rv=%d", rv);
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set swap+none: rv=%d", rv);
       return L7_FAILURE;
     }
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new egress xlate action with for swap operation: action_id=%u", action_egress_oswap_inone_id);
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new egress xlate action with for swap+none operation: action_id=%u", action_egress_oswap_id);
 
+    /* Create ingress/egress translation actions: push+none */
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_ingress_opush_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_egress_opush_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
 
-    /* Create ingress/egress translation actions: swap+none */
+    bcm_vlan_action_set_t_init(&action);
+    action.ut_outer = bcmVlanActionAdd;
+    action.ut_inner = bcmVlanActionNone;
+    action.ot_outer = bcmVlanActionAdd;
+    action.ot_inner = bcmVlanActionNone;
+    action.dt_outer = bcmVlanActionAdd;
+    action.dt_inner = bcmVlanActionNone;
+    action.outer_tpid = PTIN_TPID_OUTER_DEFAULT;
+    action.inner_tpid = PTIN_TPID_INNER_DEFAULT;
+
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS, action_ingress_opush_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set push+none: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new ingress xlate action with for push+none operation: action_id=%u", action_ingress_opush_id);
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS, action_egress_opush_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set push+none: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new egress xlate action with for push+none operation: action_id=%u", action_egress_opush_id);
+
+    /* Create ingress/egress translation actions: pop+none */
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_ingress_opop_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_egress_opop_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+
+    bcm_vlan_action_set_t_init(&action);
+    action.ut_outer = bcmVlanActionNone;
+    action.ut_inner = bcmVlanActionNone;
+    action.ot_outer = bcmVlanActionDelete;
+    action.ot_inner = bcmVlanActionNone;
+    action.dt_outer = bcmVlanActionDelete;
+    action.dt_inner = bcmVlanActionNone;
+    action.outer_tpid = PTIN_TPID_OUTER_DEFAULT;
+    action.inner_tpid = PTIN_TPID_INNER_DEFAULT;
+
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS, action_ingress_opop_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set pop+none: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new ingress xlate action with for pop+none operation: action_id=%u", action_ingress_opop_id);
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS, action_egress_opop_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set pop+none: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new egress xlate action with for pop+none operation: action_id=%u", action_egress_opop_id);
+
+    /* Create ingress/egress translation actions: swap+swap */
     rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
                                              &action_ingress_oswap_iswap_id);
     if (rv != BCM_E_NONE) {
      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
      return L7_FAILURE;
     }
-    /* Create egress translation action: swap+swap */
     rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
                                              &action_egress_oswap_iswap_id);
     if (rv != BCM_E_NONE) {
@@ -216,77 +324,776 @@ L7_RC_t ptin_hapi_xlate_init(void)
     rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS, action_ingress_oswap_iswap_id, &action);
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set swap: rv=%d", rv);
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set swap+swap: rv=%d", rv);
       return L7_FAILURE;
     }
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new ingress xlate action with for swap operation: action_id=%u", action_ingress_oswap_iswap_id);
-
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new ingress xlate action with for swap+swap operation: action_id=%u", action_ingress_oswap_iswap_id);
     rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS, action_egress_oswap_iswap_id, &action);
     if (rv != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set swap: rv=%d", rv);
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set swap+swap: rv=%d", rv);
       return L7_FAILURE;
     }
-    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new egress xlate action with for swap operation: action_id=%u", action_egress_oswap_iswap_id);
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new egress xlate action with for swap+swap operation: action_id=%u", action_egress_oswap_iswap_id);
 
+    /* Create ingress/egress translation actions: swap+push */
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_ingress_oswap_ipush_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_egress_oswap_ipush_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+
+    bcm_vlan_action_set_t_init(&action);
+    action.ut_outer = bcmVlanActionAdd;
+    action.ut_inner = bcmVlanActionAdd;
+    action.ot_outer = bcmVlanActionReplace;
+    action.ot_inner = bcmVlanActionAdd;
+    action.dt_outer = bcmVlanActionReplace;
+    action.dt_inner = bcmVlanActionAdd;
+    action.outer_tpid = PTIN_TPID_OUTER_DEFAULT;
+    action.inner_tpid = PTIN_TPID_INNER_DEFAULT;
+
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS, action_ingress_oswap_ipush_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set swap+push: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new ingress xlate action with for swap+push operation: action_id=%u", action_ingress_oswap_ipush_id);
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS, action_egress_oswap_ipush_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set swap+push: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new egress xlate action with for swap+push operation: action_id=%u", action_egress_oswap_ipush_id);
+
+    /* Create ingress/egress translation actions: swap+pop */
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_ingress_oswap_ipop_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_egress_oswap_ipop_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+
+    bcm_vlan_action_set_t_init(&action);
+    action.ut_outer = bcmVlanActionAdd;
+    action.ut_inner = bcmVlanActionNone;
+    action.ot_outer = bcmVlanActionReplace;
+    action.ot_inner = bcmVlanActionNone;
+    action.dt_outer = bcmVlanActionReplace;
+    action.dt_inner = bcmVlanActionDelete;
+    action.outer_tpid = PTIN_TPID_OUTER_DEFAULT;
+    action.inner_tpid = PTIN_TPID_INNER_DEFAULT;
+
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS, action_ingress_oswap_ipop_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set swap+pop: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new ingress xlate action with for swap+pop operation: action_id=%u", action_ingress_oswap_ipop_id);
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS, action_egress_oswap_ipop_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set swap+pop: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new egress xlate action with for swap+pop operation: action_id=%u", action_egress_oswap_ipop_id);
+#if 0
+    /* Create ingress/egress translation actions: none+swap */
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_ingress_onone_iswap_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+#endif
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_egress_onone_iswap_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+
+    bcm_vlan_action_set_t_init(&action);
+    action.ut_outer = bcmVlanActionNone;
+    action.ut_inner = bcmVlanActionAdd;
+    action.ot_outer = bcmVlanActionNone;
+    action.ot_inner = bcmVlanActionAdd;
+    action.dt_outer = bcmVlanActionNone;
+    action.dt_inner = bcmVlanActionReplace;
+    action.outer_tpid = PTIN_TPID_OUTER_DEFAULT;
+    action.inner_tpid = PTIN_TPID_INNER_DEFAULT;
+#if 0
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS, action_ingress_onone_iswap_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set none+swap: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new ingress xlate action with for none+swap operation: action_id=%u", action_ingress_onone_iswap_id);
+#endif
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS, action_egress_onone_iswap_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set none+swap: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new egress xlate action with for none+swap operation: action_id=%u", action_egress_onone_iswap_id);
+#if 0
+    /* Create ingress/egress translation actions: none+push */
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_ingress_onone_ipush_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+#endif
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_egress_onone_ipush_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+
+    bcm_vlan_action_set_t_init(&action);
+    action.ut_outer = bcmVlanActionNone;
+    action.ut_inner = bcmVlanActionAdd;
+    action.ot_outer = bcmVlanActionNone;
+    action.ot_inner = bcmVlanActionAdd;
+    action.dt_outer = bcmVlanActionNone;
+    action.dt_inner = bcmVlanActionAdd;
+    action.outer_tpid = PTIN_TPID_OUTER_DEFAULT;
+    action.inner_tpid = PTIN_TPID_INNER_DEFAULT;
+#if 0
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS, action_ingress_onone_ipush_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set none+push: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new ingress xlate action with for none+push operation: action_id=%u", action_ingress_onone_ipush_id);
+#endif
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS, action_egress_onone_ipush_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set none+push: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new egress xlate action with for none+push operation: action_id=%u", action_egress_onone_ipush_id);
+#if 0
+    /* Create ingress/egress translation actions: none+pop */
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_ingress_onone_ipop_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+#endif
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_egress_onone_ipop_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+
+    bcm_vlan_action_set_t_init(&action);
+    action.ut_outer = bcmVlanActionNone;
+    action.ut_inner = bcmVlanActionNone;
+    action.ot_outer = bcmVlanActionNone;
+    action.ot_inner = bcmVlanActionNone;
+    action.dt_outer = bcmVlanActionNone;
+    action.dt_inner = bcmVlanActionDelete;
+    action.outer_tpid = PTIN_TPID_OUTER_DEFAULT;
+    action.inner_tpid = PTIN_TPID_INNER_DEFAULT;
+#if 0
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS, action_ingress_onone_ipop_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set none+pop: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new ingress xlate action with for none+pop operation: action_id=%u", action_ingress_onone_ipop_id);
+#endif
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS, action_egress_onone_ipop_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set none+pop: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new egress xlate action with for none+pop operation: action_id=%u", action_egress_onone_ipop_id);
+
+#if 0
+    /* Create ingress translation actions: push+push */
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_ingress_opush_ipush_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+
+    bcm_vlan_action_set_t_init(&action);
+    action.ut_outer = bcmVlanActionAdd;
+    action.ut_inner = bcmVlanActionAdd;
+    action.ot_outer = bcmVlanActionAdd;
+    action.ot_inner = bcmVlanActionAdd;
+    action.dt_outer = bcmVlanActionAdd;
+    action.dt_inner = bcmVlanActionAdd;
+    action.outer_tpid = PTIN_TPID_OUTER_DEFAULT;
+    action.inner_tpid = PTIN_TPID_INNER_DEFAULT;
+
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_INGRESS, action_ingress_opush_ipush_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set push+push: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new ingress xlate action with for push+push operation: action_id=%u", action_ingress_opush_ipush_id);
+
+    /* Create egress translation actions: pop+pop */
+    rv = bcm_vlan_translate_action_id_create(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID,
+                                             &action_egress_opop_ipop_id);
+    if (rv != BCM_E_NONE) {
+     PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_create: rv=%d", rv);
+     return L7_FAILURE;
+    }
+
+    bcm_vlan_action_set_t_init(&action);
+    action.ut_outer = bcmVlanActionNone;
+    action.ut_inner = bcmVlanActionNone;
+    action.ot_outer = bcmVlanActionDelete;
+    action.ot_inner = bcmVlanActionNone;
+    action.dt_outer = bcmVlanActionDelete;
+    action.dt_inner = bcmVlanActionDelete;
+    action.outer_tpid = PTIN_TPID_OUTER_DEFAULT;
+    action.inner_tpid = PTIN_TPID_INNER_DEFAULT;
+
+    rv = bcm_vlan_translate_action_id_set(bcm_unit, BCM_VLAN_ACTION_SET_EGRESS, action_egress_opop_ipop_id, &action);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_id_set pop+pop: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Created new egress xlate action with for pop+pop operation: action_id=%u", action_egress_opop_ipop_id);
+#endif
     /* Associate TAG class, EDIT VLAN profile and ACTION class */
-
-    /* Ingress VEP: Single tagged packets, swap operation */
+    /* Ingress VEP: Single tagged packets, swap+none operation */
     bcm_vlan_translate_action_class_t_init(&action_class);
     action_class.tag_format_class_id        = tagformat_single_class_id;
-    action_class.vlan_edit_class_id         = vep_ingress_single_class_id;
-    action_class.vlan_translation_action_id = action_ingress_oswap_inone_id;
+    action_class.vlan_edit_class_id         = vep_ingress_oswap_inone_class_id;
+    action_class.vlan_translation_action_id = action_ingress_oswap_id;
     action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
-
     rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
     if (rv != BCM_E_NONE) {
       PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
       return L7_FAILURE;
     }
-    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_ingress_single_class_id, action_egress_oswap_inone_id);
-
-    /* Ingress VEP: Double tagged packets, swap+swap operations */
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_ingress_oswap_inone_class_id, action_ingress_oswap_id);
+    /* Ingress VEP: Double tagged packets, swap+none operation */
     bcm_vlan_translate_action_class_t_init(&action_class);
     action_class.tag_format_class_id        = tagformat_double_class_id;
-    action_class.vlan_edit_class_id         = vep_ingress_double_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_oswap_inone_class_id;
+    action_class.vlan_translation_action_id = action_ingress_oswap_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_ingress_oswap_inone_class_id, action_ingress_oswap_id);
+
+    /* Egress VEP: Single tagged packets, swap+none operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_oswap_inone_class_id;
+    action_class.vlan_translation_action_id = action_egress_oswap_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_egress_oswap_inone_class_id, action_egress_oswap_id);
+    /* Egress VEP: Double tagged packets, swap+none operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_oswap_inone_class_id;
+    action_class.vlan_translation_action_id = action_egress_oswap_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_egress_oswap_inone_class_id, action_egress_oswap_id);
+
+    /* Ingress VEP: Single tagged packets, push+none operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_opush_inone_class_id;
+    action_class.vlan_translation_action_id = action_ingress_opush_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_ingress_opush_inone_class_id, action_ingress_opush_id);
+    /* Ingress VEP: Double tagged packets, push+none operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_opush_inone_class_id;
+    action_class.vlan_translation_action_id = action_ingress_opush_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_ingress_opush_inone_class_id, action_ingress_opush_id);
+
+    /* Egress VEP: Single tagged packets, push+none operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_opush_inone_class_id;
+    action_class.vlan_translation_action_id = action_egress_opush_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_egress_opush_inone_class_id, action_egress_opush_id);
+    /* Egress VEP: Double tagged packets, push+none operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_opush_inone_class_id;
+    action_class.vlan_translation_action_id = action_egress_opush_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_egress_opush_inone_class_id, action_egress_opush_id);
+
+
+    /* Ingress VEP: Single tagged packets, pop+none operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_opop_inone_class_id;
+    action_class.vlan_translation_action_id = action_ingress_opop_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_ingress_opop_inone_class_id, action_ingress_opop_id);
+    /* Ingress VEP: Double tagged packets, pop+none operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_opop_inone_class_id;
+    action_class.vlan_translation_action_id = action_ingress_opop_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_ingress_opop_inone_class_id, action_ingress_opop_id);
+
+    /* Egress VEP: Single tagged packets, pop+none operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_opop_inone_class_id;
+    action_class.vlan_translation_action_id = action_egress_opop_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_egress_opop_inone_class_id, action_egress_opop_id);
+    /* Egress VEP: Double tagged packets, pop+none operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_opop_inone_class_id;
+    action_class.vlan_translation_action_id = action_egress_opop_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_egress_opop_inone_class_id, action_egress_opop_id);
+
+    /* Ingress VEP: Single tagged packets, swap+swap operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_oswap_iswap_class_id;
     action_class.vlan_translation_action_id = action_ingress_oswap_iswap_id;
     action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
-
     rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
     if (rv != BCM_E_NONE) {
       PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
       return L7_FAILURE;
     }
-    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_ingress_double_class_id, action_egress_oswap_iswap_id);
-
-
-    /* Egress VEP: Single tagged packets, swap operation */
-    bcm_vlan_translate_action_class_t_init(&action_class);
-    action_class.tag_format_class_id        = tagformat_single_class_id;
-    action_class.vlan_edit_class_id         = vep_egress_single_class_id;
-    action_class.vlan_translation_action_id = action_egress_oswap_inone_id;
-    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
-
-    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
-    if (rv != BCM_E_NONE) {
-      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
-      return L7_FAILURE;
-    }
-    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_egress_single_class_id, action_egress_oswap_inone_id);
-
-    /* Egress VEP: Double tagged packets, swap+swap operations */
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_ingress_oswap_iswap_class_id, action_ingress_oswap_iswap_id);
+    /* Ingress VEP: Double tagged packets, swap+swap operation */
     bcm_vlan_translate_action_class_t_init(&action_class);
     action_class.tag_format_class_id        = tagformat_double_class_id;
-    action_class.vlan_edit_class_id         = vep_egress_double_class_id;
-    action_class.vlan_translation_action_id = action_egress_oswap_iswap_id;
-    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
-
+    action_class.vlan_edit_class_id         = vep_ingress_oswap_iswap_class_id;
+    action_class.vlan_translation_action_id = action_ingress_oswap_iswap_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
     rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
     if (rv != BCM_E_NONE) {
       PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
       return L7_FAILURE;
     }
-    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_egress_double_class_id, action_egress_oswap_iswap_id);
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_ingress_oswap_iswap_class_id, action_ingress_oswap_iswap_id);
+
+    /* Egress VEP: Single tagged packets, swap+swap operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_oswap_iswap_class_id;
+    action_class.vlan_translation_action_id = action_egress_oswap_iswap_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_egress_oswap_iswap_class_id, action_egress_oswap_iswap_id);
+    /* Egress VEP: Single tagged packets, swap+swap operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_oswap_iswap_class_id;
+    action_class.vlan_translation_action_id = action_egress_oswap_iswap_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_egress_oswap_iswap_class_id, action_egress_oswap_iswap_id);
+
+    /* Ingress VEP: Single tagged packets, swap+push operations */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_oswap_ipush_class_id;
+    action_class.vlan_translation_action_id = action_ingress_oswap_ipush_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_ingress_oswap_ipush_class_id, action_ingress_oswap_ipush_id);
+    /* Ingress VEP: Double tagged packets, swap+push operations */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_oswap_ipush_class_id;
+    action_class.vlan_translation_action_id = action_ingress_oswap_ipush_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_ingress_oswap_ipush_class_id, action_ingress_oswap_ipush_id);
+
+    /* Egress VEP: Single tagged packets, swap+push operations */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_oswap_ipush_class_id;
+    action_class.vlan_translation_action_id = action_egress_oswap_ipush_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_egress_oswap_ipush_class_id, action_egress_oswap_ipush_id);
+    /* Egress VEP: Double tagged packets, swap+push operations */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_oswap_ipush_class_id;
+    action_class.vlan_translation_action_id = action_egress_oswap_ipush_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_egress_oswap_ipush_class_id, action_egress_oswap_ipush_id);
+
+    /* Ingress VEP: Single tagged packets, swap+pop operations */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_oswap_ipop_class_id;
+    action_class.vlan_translation_action_id = action_ingress_oswap_ipop_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_ingress_oswap_ipop_class_id, action_ingress_oswap_ipop_id);
+
+    /* Ingress VEP: Double tagged packets, swap+pop operations */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_oswap_ipop_class_id;
+    action_class.vlan_translation_action_id = action_ingress_oswap_ipop_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_ingress_oswap_ipop_class_id, action_ingress_oswap_ipop_id);
+
+    /* Egress VEP: Single tagged packets, swap+pop operations */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_oswap_ipop_class_id;
+    action_class.vlan_translation_action_id = action_egress_oswap_ipop_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_egress_oswap_ipop_class_id, action_egress_oswap_ipop_id);
+    /* Egress VEP: Double tagged packets, swap+pop operations */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_oswap_ipop_class_id;
+    action_class.vlan_translation_action_id = action_egress_oswap_ipop_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_egress_oswap_ipop_class_id, action_egress_oswap_ipop_id);
+#if 0
+    /* Ingress VEP: Single tagged packets, none+swap operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_onone_iswap_class_id;
+    action_class.vlan_translation_action_id = action_ingress_onone_iswap_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_ingress_onone_iswap_class_id, action_ingress_onone_iswap_id);
+    /* Ingress VEP: Double tagged packets, none+swap operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_onone_iswap_class_id;
+    action_class.vlan_translation_action_id = action_ingress_onone_iswap_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_ingress_onone_iswap_class_id, action_ingress_onone_iswap_id);
+#endif
+    /* Egress VEP: Single tagged packets, none+swap operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_onone_iswap_class_id;
+    action_class.vlan_translation_action_id = action_egress_onone_iswap_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_egress_onone_iswap_class_id, action_egress_onone_iswap_id);
+    /* Egress VEP: Double tagged packets, none+swap operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_onone_iswap_class_id;
+    action_class.vlan_translation_action_id = action_egress_onone_iswap_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_egress_onone_iswap_class_id, action_egress_onone_iswap_id);
+#if 0
+    /* Ingress VEP: Single tagged packets, none+push operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_onone_ipush_class_id;
+    action_class.vlan_translation_action_id = action_ingress_onone_ipush_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_ingress_onone_ipush_class_id, action_ingress_onone_ipush_id);
+    /* Ingress VEP: Double tagged packets, none+push operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_onone_ipush_class_id;
+    action_class.vlan_translation_action_id = action_ingress_onone_ipush_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_ingress_onone_ipush_class_id, action_ingress_onone_ipush_id);
+#endif
+    /* Egress VEP: Single tagged packets, none+push operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_onone_ipush_class_id;
+    action_class.vlan_translation_action_id = action_egress_onone_ipush_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_egress_onone_ipush_class_id, action_egress_onone_ipush_id);
+    /* Egress VEP: Double tagged packets, none+push operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_onone_ipush_class_id;
+    action_class.vlan_translation_action_id = action_egress_onone_ipush_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_egress_onone_ipush_class_id, action_egress_onone_ipush_id);
+#if 0
+    /* Ingress VEP: Single tagged packets, none+pop operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_onone_ipop_class_id;
+    action_class.vlan_translation_action_id = action_ingress_onone_ipop_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_ingress_onone_ipop_class_id, action_ingress_onone_ipop_id);
+    /* Ingress VEP: Double tagged packets, none+pop operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_onone_ipop_class_id;
+    action_class.vlan_translation_action_id = action_ingress_onone_ipop_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_ingress_onone_ipop_class_id, action_ingress_onone_ipop_id);
+#endif
+    /* Egress VEP: Single tagged packets, none+pop operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_onone_ipop_class_id;
+    action_class.vlan_translation_action_id = action_egress_onone_ipop_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_egress_onone_ipop_class_id, action_egress_onone_ipop_id);
+    /* Egress VEP: Double tagged packets, none+pop operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_onone_ipop_class_id;
+    action_class.vlan_translation_action_id = action_egress_onone_ipop_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_egress_onone_ipop_class_id, action_egress_onone_ipop_id);
+
+#if 0
+    /* Ingress VEP: Single tagged packets, push+push operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_opush_ipush_class_id;
+    action_class.vlan_translation_action_id = action_ingress_opush_ipush_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_ingress_opush_ipush_class_id, action_ingress_opush_ipush_id);
+    /* Egress VEP: Double tagged packets, push+push operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_ingress_opush_ipush_class_id;
+    action_class.vlan_translation_action_id = action_ingress_opush_ipush_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_INGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created INGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_ingress_opush_ipush_class_id, action_ingress_opush_ipush_id);
+
+    /* Egress VEP: Single tagged packets, pop+pop operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_single_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_opop_ipop_class_id;
+    action_class.vlan_translation_action_id = action_egress_opop_ipop_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_single_class_id, vep_egress_opop_ipop_class_id, action_egress_opop_ipop_id);
+    /* Egress VEP: Double tagged packets, pop+pop operation */
+    bcm_vlan_translate_action_class_t_init(&action_class);
+    action_class.tag_format_class_id        = tagformat_double_class_id;
+    action_class.vlan_edit_class_id         = vep_egress_opop_ipop_class_id;
+    action_class.vlan_translation_action_id = action_egress_opop_ipop_id;
+    action_class.flags = BCM_VLAN_ACTION_SET_EGRESS;
+    rv = bcm_vlan_translate_action_class_set(bcm_unit, &action_class);
+    if (rv != BCM_E_NONE) {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error, bcm_vlan_translate_action_class_set: rv=%d", rv);
+      return L7_FAILURE;
+    }
+    PT_LOG_INFO(LOG_CTX_HAPI,"Created EGRESS XLATE rule with tag_format_class_id=%u, edit_class_id=%u, action_id=%u", tagformat_double_class_id, vep_egress_opop_ipop_class_id, action_egress_opop_ipop_id);
+#endif
   }
 
   /* Setting egress xlate class ids */
@@ -351,6 +1158,7 @@ L7_RC_t ptin_hapi_xlate_free_resources(L7_uint16 *ingress, L7_uint16 *egress)
 L7_RC_t ptin_hapi_xlate_add(L7_uint32 lif_id, L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId, L7_uint8 outerVlanAction, L7_uint8 innerVlanAction, L7_BOOL is_ingress)
 {
   bcm_vlan_port_translation_t port_xlate;
+  uint32 vep = 0;
   bcm_error_t rv;
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "lif=0x%x newOVlanId=%u(%u) newIVlanId=%u(%u)",
@@ -358,40 +1166,123 @@ L7_RC_t ptin_hapi_xlate_add(L7_uint32 lif_id, L7_uint16 newOuterVlanId, L7_uint1
                newOuterVlanId, outerVlanAction,
                newInnerVlanId, innerVlanAction);
 
-  if (innerVlanAction == PTIN_XLATE_ACTION_NONE)
+  bcm_vlan_port_translation_t_init(&port_xlate);
+
+  port_xlate.new_outer_vlan = newOuterVlanId;
+  port_xlate.new_inner_vlan = newInnerVlanId;
+  port_xlate.gport = lif_id;
+  port_xlate.flags = (is_ingress) ? BCM_VLAN_ACTION_SET_INGRESS : BCM_VLAN_ACTION_SET_EGRESS;
+
+  /* Push new outer VLAN */
+  if (outerVlanAction == PTIN_XLATE_ACTION_ADD) 
   {
-    bcm_vlan_port_translation_t_init(&port_xlate);
-    port_xlate.new_outer_vlan = newOuterVlanId;
-    port_xlate.new_inner_vlan = 0;
-    port_xlate.gport = lif_id;
-    port_xlate.flags = (is_ingress) ? BCM_VLAN_ACTION_SET_INGRESS : BCM_VLAN_ACTION_SET_EGRESS;
-    port_xlate.vlan_edit_class_id = (is_ingress) ? vep_ingress_single_class_id : vep_egress_single_class_id;
-
-    rv = bcm_vlan_port_translation_set(bcm_unit, &port_xlate);
-    if (rv != BCM_E_NONE) {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error, bcm_vlan_port_translate_set: rv=%d", rv);
-      return rv;
+    if (!is_ingress)  /* egress */
+    {
+      vep = vep_egress_opush_inone_class_id;
     }
-
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Added translation to VLAN Edit Profile with vlan_edit_class_id=%u\n", (is_ingress) ? vep_ingress_single_class_id : vep_egress_single_class_id);
+    else              /* ingress */
+    {
+    #if 0
+      if (innerVlanAction == PTIN_XLATE_ACTION_ADD)
+      {
+        vep = vep_ingress_opush_ipush_class_id;
+      }
+      else
+    #endif
+      {
+        vep = vep_ingress_opush_inone_class_id;
+      }
+    }
   }
+  /* Pop existent outer VLAN */
+  else if (outerVlanAction == PTIN_XLATE_ACTION_DELETE)
+  {
+    if (!is_ingress)  /* egress */
+    {
+    #if 0
+      if (innerVlanAction == PTIN_XLATE_ACTION_DELETE)
+      {
+        vep = vep_egress_opop_ipop_class_id;
+      }
+      else
+    #endif
+      {
+        vep = vep_egress_opop_inone_class_id;
+      }
+    }
+    else              /* ingress */
+    {
+      vep = vep_ingress_opop_inone_class_id;
+    }
+  }
+  /* Replace outer VLAN */
+  else if (outerVlanAction == PTIN_XLATE_ACTION_REPLACE)
+  {
+    /* Replace inner VLAN */
+    if (innerVlanAction == PTIN_XLATE_ACTION_REPLACE) 
+    {
+      vep = (is_ingress) ? vep_ingress_oswap_iswap_class_id : vep_egress_oswap_iswap_class_id;
+    }
+    /* Push new inner VLAN */
+    else if (innerVlanAction == PTIN_XLATE_ACTION_ADD) 
+    {
+      vep = (is_ingress) ? vep_ingress_oswap_ipush_class_id : vep_egress_oswap_ipush_class_id;
+    }
+    /* Pop existent inner VLAN */
+    else if (innerVlanAction == PTIN_XLATE_ACTION_DELETE)
+    {
+      vep = (is_ingress) ? vep_ingress_oswap_ipop_class_id : vep_egress_oswap_ipop_class_id;
+      port_xlate.new_inner_vlan = BCM_VLAN_NONE;
+    }
+    /* Default behavior: only swap outer VLAN */
+    else
+    {
+      vep = (is_ingress) ? vep_ingress_oswap_inone_class_id : vep_egress_oswap_inone_class_id;
+      port_xlate.new_inner_vlan = BCM_VLAN_NONE;
+    }
+  }
+  /* Do nothing to outer VLAN */
   else
   {
-    bcm_vlan_port_translation_t_init(&port_xlate);
-    port_xlate.new_outer_vlan = newOuterVlanId;
-    port_xlate.new_inner_vlan = newInnerVlanId;
-    port_xlate.gport = lif_id;
-    port_xlate.flags = (is_ingress) ? BCM_VLAN_ACTION_SET_INGRESS : BCM_VLAN_ACTION_SET_EGRESS;
-    port_xlate.vlan_edit_class_id = (is_ingress) ? vep_ingress_double_class_id : vep_egress_double_class_id;
-
-    rv = bcm_vlan_port_translation_set(bcm_unit, &port_xlate);
-    if (rv != BCM_E_NONE) {
-      PT_LOG_ERR(LOG_CTX_HAPI,"Error, bcm_vlan_port_translate_set: rv=%d", rv);
-      return rv;
+    /* Replace inner VLAN */
+    if (innerVlanAction == PTIN_XLATE_ACTION_REPLACE) 
+    {
+      vep = (is_ingress) ? 0 /*vep_ingress_onone_iswap_class_id*/ : vep_egress_onone_iswap_class_id;
     }
-
-    PT_LOG_TRACE(LOG_CTX_HAPI,"Added translation to VLAN Edit Profile with vlan_edit_class_id=%u\n", (is_ingress) ? vep_ingress_double_class_id : vep_egress_double_class_id);
+    /* Push new inner VLAN */
+    else if (innerVlanAction == PTIN_XLATE_ACTION_ADD) 
+    {
+      vep = (is_ingress) ? 0 /*vep_ingress_onone_ipush_class_id*/ : vep_egress_onone_ipush_class_id;
+    }
+    /* Pop existent inner VLAN */
+    else if (innerVlanAction == PTIN_XLATE_ACTION_DELETE)
+    {
+      vep = (is_ingress) ? 0 /*vep_ingress_onone_ipop_class_id*/ : vep_egress_onone_ipop_class_id;
+      port_xlate.new_inner_vlan = BCM_VLAN_NONE;
+    }
+    else
+    {
+      /* No operation */
+      vep = 0;
+      PT_LOG_WARN(LOG_CTX_HAPI,"Error: No action for outer+inner VLANs");
+    }
   }
+
+  port_xlate.vlan_edit_class_id = vep;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI,"port_xlate.flags=0x%x", port_xlate.flags);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"port_xlate.gport=0x%x", port_xlate.gport);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"port_xlate.new_outer_vlan=%u", port_xlate.new_outer_vlan);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"port_xlate.new_inner_vlan=%u", port_xlate.new_inner_vlan);
+  PT_LOG_TRACE(LOG_CTX_HAPI,"port_xlate.vlan_edit_class_id=%u", port_xlate.vlan_edit_class_id);
+
+  rv = bcm_vlan_port_translation_set(bcm_unit, &port_xlate);
+  if (rv != BCM_E_NONE) {
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error, bcm_vlan_port_translate_set: rv=%d", rv);
+    return rv;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_HAPI,"Added translation to VLAN Edit Profile %u", port_xlate.vlan_edit_class_id);
 
   return L7_SUCCESS;
 }

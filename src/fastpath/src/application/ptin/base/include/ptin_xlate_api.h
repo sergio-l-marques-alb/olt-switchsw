@@ -2,6 +2,7 @@
 #define _PTIN_XLATE_API__H
 
 #include "datatypes.h"
+#include "ptin_structs.h"
 
 #define PTIN_XLATE_NOT_DEFINED  0
 
@@ -143,15 +144,14 @@ extern L7_RC_t ptin_xlate_egress_portgroup_get_originalVlan( L7_uint32 portgroup
  * Add egress translation entry
  * 
  * @param lif : Logical interface
- * @param newOuterVlanId : new vlan id 
- * @param newInnerVlanId : new inner vlan id  
- * @param newOuterPrio : new outer prio (-1 to not be used)
- * @param newInnerPrio : new inner prio (-1 to not be used) 
- * @param is_ingress: ingress/egress  
+ * @param xlate_action : translation actions 
+ * @param newVlanId[2] : new vlan ids [outer, inner]
+ * @param newPrio[2] : new prio [outer, inner] (-1=ndef) 
+ * @param is_ingress : ingress/egress  
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-extern L7_RC_t ptin_xlate_dnx_add(L7_uint32 lif, L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId, L7_int newOuterPrio, L7_int newInnerPrio, L7_BOOL is_ingress);
+extern L7_RC_t ptin_xlate_dnx_add(L7_uint32 lif, ptin_vlanXlate_action_enum xlate_action[2], L7_uint16 newVlanId[2], L7_int newPrio[2], L7_BOOL is_ingress);
 
 /**
  * Delete egress translation entry

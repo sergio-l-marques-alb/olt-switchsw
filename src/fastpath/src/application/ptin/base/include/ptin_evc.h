@@ -727,23 +727,26 @@ extern L7_RC_t ptin_evc_vp_policer(L7_uint32 vport_id, ptin_bw_meter_t *meter);
 
 /**
  * Adds a flow to the EVC
- * 
- * @param evcFlow : Flow info
+ *  
+ * @param evc_ext_id: Extended evc id 
+ * @param intf_vlan : Flow info 
+ * @param lif_id    : assigned lif id (output) 
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern
-L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow);
+L7_RC_t ptin_evc_flow_add(L7_uint evc_ext_id, ptin_HwEthMef10Intf_t *intf_vlan, L7_uint32 *lif_id);
 
 /**
  * Removes a flow from the EVC
- * 
- * @param evcFlow : Flow info
+ *  
+ * @param evc_ext_id : Extended evc id 
+ * @param intf_vlan  : Flow info
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern
-L7_RC_t ptin_evc_flow_remove(ptin_HwEthEvcFlow_t *evcFlow);
+extern 
+L7_RC_t ptin_evc_flow_remove(L7_uint evc_ext_id, ptin_HwEthMef10Intf_t *intf_vlan);
 
 /**
  * Macbridge Flow Client Packages Add

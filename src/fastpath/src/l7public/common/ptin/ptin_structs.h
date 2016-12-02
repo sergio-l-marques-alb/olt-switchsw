@@ -595,6 +595,15 @@ typedef struct {
   L7_uint16 vid_inner;    // Inner vlan associated to this interface
   L7_uint8  pcp;          // To be valid should have bit 4 = 1
   L7_uint16 ethertype;
+
+  // Translation Actions
+  L7_uint16 new_vid;
+  L7_uint16 new_inner_vid;
+  ptin_vlanXlate_action_enum xlate_action_ingress_outerVid;
+  ptin_vlanXlate_action_enum xlate_action_ingress_innerVid;
+  ptin_vlanXlate_action_enum xlate_action_egress_outerVid;
+  ptin_vlanXlate_action_enum xlate_action_egress_innerVid;
+
 } ptin_HwEthMef10Intf_t;
 
 #define PTIN_EVC_OPTIONS_MASK_FLAGS   0x0001
@@ -733,6 +742,12 @@ typedef struct {
   L7_uint64   maxBandwidth; // [mask = 0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
   L7_uint32   packageBmpList[(PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/(sizeof(L7_uint32)*8)+1];  //[mask=0x04]  Package Bitmap List   
   L7_uint32   noOfPackages; //[mask=0x08]  Number of Packages 
+
+  // Translation Actions
+  ptin_vlanXlate_action_enum xlate_action_ingress_outerVid;
+  ptin_vlanXlate_action_enum xlate_action_ingress_innerVid;
+  ptin_vlanXlate_action_enum xlate_action_egress_outerVid;
+  ptin_vlanXlate_action_enum xlate_action_egress_innerVid;
 
   L7_uint32   lif_id;
 } ptin_HwEthEvcFlow_t;

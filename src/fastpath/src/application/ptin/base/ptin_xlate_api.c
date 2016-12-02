@@ -606,59 +606,33 @@ L7_RC_t ptin_xlate_ingress_get_originalVlan( L7_uint32 intIfNum, L7_uint16 *oute
  * Add egress translation entry
  * 
  * @param lif : Logical interface
- * @param newOuterVlanId : new vlan id 
- * @param newInnerVlanId : new inner vlan id  
- * @param newOuterPrio : new outer prio (-1 to not be used)
- * @param newInnerPrio : new inner prio (-1 to not be used) 
- * @param is_ingress: ingress/egress  
+ * @param xlate_action : translation actions 
+ * @param newVlanId[2] : new vlan ids [outer, inner]
+ * @param newPrio[2] : new prio [outer, inner] (-1=ndef) 
+ * @param is_ingress : ingress/egress  
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE
  */
-L7_RC_t ptin_xlate_dnx_add(L7_uint32 lif, L7_uint16 newOuterVlanId, L7_uint16 newInnerVlanId, L7_int newOuterPrio, L7_int newInnerPrio, L7_BOOL is_ingress)
+L7_RC_t ptin_xlate_dnx_add(L7_uint32 lif, ptin_vlanXlate_action_enum xlate_action[2], L7_uint16 newVlanId[2], L7_int newPrio[2], L7_BOOL is_ingress)
 {
   ptin_vlanXlate_t xlate;
   L7_RC_t rc = L7_SUCCESS;
 
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "LIF=0x%x, newOuterVlanId=%u, newInnerVlanId=%u, newOuterPrio=%u, newInnerPrio=%u",
-                 lif, newOuterVlanId, newInnerVlanId, newOuterPrio, newInnerPrio);
+                 lif, newVlanId[0], newVlanId[1], newPrio[0], newPrio[1]);
 
   /* Define structure */
   memset(&xlate, 0x00, sizeof(ptin_vlanXlate_t));
   xlate.lif           = lif;
   xlate.stage         = (is_ingress) ? PTIN_XLATE_STAGE_INGRESS : PTIN_XLATE_STAGE_EGRESS;
 
-  xlate.outerVlan_new = (newOuterVlanId > 4095) ? 0 : newOuterVlanId;
-  xlate.innerVlan_new = (newInnerVlanId > 4095) ? 0 : newInnerVlanId;
+  xlate.outerVlan_new = (newVlanId[0] > 4095) ? 0 : newVlanId[0];
+  xlate.innerVlan_new = (newVlanId[1] > 4095) ? 0 : newVlanId[1];
 
-  /* Outer VLAN action */
-  if (newOuterVlanId == 0)            /* If new inner VLANID is 0, do nothing */
-  {
-    xlate.outerVlanAction = PTIN_XLATE_ACTION_NONE;
-  }
-  else if (newOuterVlanId > 4095)     /* If new inner VLANID is -1, delete it */
-  {
-    xlate.outerVlanAction = PTIN_XLATE_ACTION_DELETE;
-  }
-  else                                /* Current inner vlan exists -> Do a replace */
-  {
-    xlate.outerVlanAction = PTIN_XLATE_ACTION_REPLACE;
-  }
-
-  /* Inner VLAN action */
-  if (newInnerVlanId == 0)            /* If new inner VLANID is 0, do nothing */
-  {
-    xlate.innerVlanAction = PTIN_XLATE_ACTION_NONE;
-  }
-  else if (newInnerVlanId > 4095)     /* If new inner VLANID is -1, delete it */
-  {
-    xlate.innerVlanAction = PTIN_XLATE_ACTION_DELETE;
-  }
-  else                                /* Current inner vlan exists -> Do a replace */
-  {
-    xlate.innerVlanAction = PTIN_XLATE_ACTION_REPLACE;
-  }
-  //xlate.innerAction = (newInnerVlanId>4095) ? PTIN_XLATE_ACTION_DELETE : PTIN_XLATE_ACTION_NONE;
+  /* Default actions are the given ones */
+  xlate.outerVlanAction = xlate_action[0];
+  xlate.innerVlanAction = xlate_action[1];
 
   /* DTL call */
   rc = ptin_xlate_operation(DAPI_CMD_SET, L7_ALL_INTERFACES, &xlate);
