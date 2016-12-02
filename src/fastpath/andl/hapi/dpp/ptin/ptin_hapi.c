@@ -414,6 +414,15 @@ L7_RC_t ptin_hapi_phy_init(void)
       return rv;
     }
     PT_LOG_INFO(LOG_CTX_STARTUP,"PTIN_TPID_OUTER_DEFAULT=0x%04x  PTIN_TPID_INNER_DEFAULT=0x%04x", PTIN_TPID_OUTER_DEFAULT, PTIN_TPID_INNER_DEFAULT);
+
+    /* This is necessary to allow the presence of an inner VLAN, without being part of the LIFs */
+    rv = bcm_vlan_control_port_set(bcm_unit, bcm_port, bcmVlanPortDoubleLookupEnable, L7_ENABLE);
+    if (rv != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error configuring bcmVlanPortDoubleLookupEnable=%u to port %u: rv=%d (\"%s\")",
+                 bcm_port, rv, bcm_errmsg(rv));
+      return rv;
+    }
   }
 
   PT_LOG_INFO(LOG_CTX_STARTUP,"All PHYs initialized!");

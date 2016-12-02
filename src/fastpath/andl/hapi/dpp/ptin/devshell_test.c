@@ -17,6 +17,62 @@
 #include "bcmx/vlan.h"
 #include "logger.h"
 
+L7_RC_t dnx_def_vlan_set(L7_int bcm_port, L7_int pvid, L7_uint lif_id)
+{
+  //L7_int tmFlowId = 704;
+  //bcm_gport_t gport;
+  bcm_vlan_port_t vlan_port;
+  bcm_error_t rv;
+
+  /* Create VLAN */
+  rv = bcm_vlan_create(0, pvid);
+  if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
+  {
+    printf("Error creating VLAN %u: rv=%d\r\n", pvid, rv);
+    return L7_FAILURE;
+  }
+
+  /* Configure default VLAN for this port */
+  rv = bcm_port_untagged_vlan_set(0, bcm_port, pvid);
+  if (rv != BCM_E_NONE && rv != BCM_E_EXISTS)
+  {
+    printf("Error defining PVID %u for port %u: rv=%d\r\n", pvid, bcm_port, rv);
+    return L7_FAILURE;
+  }
+
+  /* create the virtual ports */
+  bcm_vlan_port_t_init(&vlan_port);
+
+  //BCM_GPORT_VLAN_PORT_ID_SET(gport, lif_id);
+  //BCM_GPORT_UNICAST_QUEUE_GROUP_SET(vlan_port.port, tmFlowId);
+  vlan_port.port              = bcm_port;
+  vlan_port.match_vlan        = pvid;
+  vlan_port.match_inner_vlan  = BCM_VLAN_NONE;
+  vlan_port.criteria          = BCM_VLAN_PORT_MATCH_PORT_INITIAL_VLAN;
+  vlan_port.vlan_port_id      = lif_id;
+  vlan_port.flags             = (lif_id != 0) ? BCM_VLAN_PORT_WITH_ID : 0;
+
+  printf("Going to create LIF 0x%x for local port %u (pvid=%u)\r\n", lif_id, bcm_port, pvid);
+
+  rv = bcm_vlan_port_create(0, &vlan_port);
+  if (rv != BCM_E_NONE)
+  {
+    printf("Error creating LIF for default VLAN: rv=%d\r\n", rv);
+    return L7_FAILURE;
+  }
+
+  printf("Default LIF 0x%x created for local port %u\r\n", vlan_port.vlan_port_id, bcm_port);
+
+
+  rv = bcm_vswitch_port_add(0, pvid, vlan_port.vlan_port_id);
+  if (rv != BCM_E_NONE)
+  {
+    printf("Error adding LIF %u to VSI %u: rv=%d\r\n", vlan_port.vlan_port_id, pvid, rv);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
 
 L7_RC_t ptin_maclimit_setmax(bcm_port_t bcm_port, L7_uint16 vlanId, L7_uint32 flags, L7_int max)
 {

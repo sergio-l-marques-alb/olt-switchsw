@@ -581,6 +581,7 @@ L7_uint32 ptin_hapi_lif_create(L7_uint32 lif_id, L7_uint16 vsi,
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "vport=0x%x -> VSI=%u", vlan_port.vlan_port_id, vlan_port.vsi);
 
+#if 0
   /* For BCM_VLAN_PORT_MATCH_PORT_VLAN criteria, inner VLAN should not be considered */
   error = bcm_vlan_control_port_set(bcm_unit, vlan_port.vlan_port_id, bcmVlanPortDoubleLookupEnable, (criteria != BCM_VLAN_PORT_MATCH_PORT));
   if (error != BCM_E_NONE)
@@ -589,6 +590,7 @@ L7_uint32 ptin_hapi_lif_create(L7_uint32 lif_id, L7_uint16 vsi,
                (criteria != BCM_VLAN_PORT_MATCH_PORT_VLAN), vlan_port.vlan_port_id, error, bcm_errmsg(error));
     return 0;
   }
+#endif
 
   /* Configure replication lists */
   if (mcast_group != 0)
