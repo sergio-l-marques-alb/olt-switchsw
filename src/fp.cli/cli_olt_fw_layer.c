@@ -719,6 +719,11 @@ int evc_create(int nargs, char (*values)[MAX_PARAM_VALUE_SIZE])
     ptr->intf[ptr->n_intf].mef_type  = mef_type;
     ptr->intf[ptr->n_intf].vid       = ovid;
     ptr->intf[ptr->n_intf].inner_vid = ivid;
+    ptr->intf[ptr->n_intf].xlate_action_ingress_outerVid = PTIN_XLATE_ACTION_NONE;
+    ptr->intf[ptr->n_intf].xlate_action_ingress_innerVid = PTIN_XLATE_ACTION_NONE;
+    ptr->intf[ptr->n_intf].xlate_action_egress_outerVid  = PTIN_XLATE_ACTION_REPLACE;
+    ptr->intf[ptr->n_intf].xlate_action_egress_innerVid  = PTIN_XLATE_ACTION_NONE;
+
     ptr->n_intf++;
   }
   // Interfaces (optional)
@@ -798,6 +803,7 @@ int evc_intf_add(int nargs, char (*values)[MAX_PARAM_VALUE_SIZE])
   msg_HWevcPort_t *ptr;
   int type, intf;
   uint32 valued;
+  int new_value, op_value, ing_value;
 
   /* EVC id is mandatory */
   if (!PARAM_DEFINED(values[0])) {
@@ -853,7 +859,6 @@ int evc_intf_add(int nargs, char (*values)[MAX_PARAM_VALUE_SIZE])
   {
     ptr->intf.vid = 0;
   }
-
   /* Inner VLAN (optional) */
   if (StrToLong(values[4], &valued) == 0)
   {
@@ -864,25 +869,29 @@ int evc_intf_add(int nargs, char (*values)[MAX_PARAM_VALUE_SIZE])
     ptr->intf.inner_vid = 0;
   }
 
-  /* PCP (optional) */
-  if (StrToLong(values[5], &valued) == 0)
-  {
-    ptr->intf.pcp = ((uint8) valued & 0x7) | 0x10;
-  }
-  else
-  {
-    ptr->intf.pcp = 0;
-  }
+  /* VLAN translations */
+  ptr->intf.new_vid = 0;
+  ptr->intf.new_inner_vid = 0;
+  ptr->intf.xlate_action_ingress_outerVid = PTIN_XLATE_ACTION_NONE;
+  ptr->intf.xlate_action_ingress_innerVid = PTIN_XLATE_ACTION_NONE;
+  ptr->intf.xlate_action_egress_outerVid  = PTIN_XLATE_ACTION_NONE;
+  ptr->intf.xlate_action_egress_innerVid  = PTIN_XLATE_ACTION_NONE;
 
-  /* EtherType (optional) */
-  if (StrToLong(values[6], &valued) == 0)
-  {
-    ptr->intf.ethertype = (int16) valued;
-  }
-  else
-  {
-    ptr->intf.ethertype = -1;
-  }
+  /* Outer VLAN operation */
+  new_value = 0;
+  op_value  = 0;
+  ing_value = 0;
+  sscanf(values[5], "%d/%d/%d", &new_value, &op_value, &ing_value);
+  ptr->intf.new_vid = new_value;
+  (ing_value) ? (ptr->intf.xlate_action_ingress_outerVid = op_value) : (ptr->intf.xlate_action_egress_outerVid = op_value);
+
+  /* Inner VLAN operation */
+  new_value = 0;
+  op_value  = 0;
+  ing_value = 0;
+  sscanf(values[6], "%d/%d/%d", &new_value, &op_value, &ing_value);
+  ptr->intf.new_inner_vid = new_value;
+  (ing_value) ? (ptr->intf.xlate_action_ingress_innerVid = op_value) : (ptr->intf.xlate_action_egress_innerVid = op_value);
 
   comando.msgId = CCMSG_ETH_EVC_PORT_ADD;
   comando.infoDim = sizeof(msg_HWevcPort_t);
@@ -965,25 +974,12 @@ int evc_intf_remove(int nargs, char (*values)[MAX_PARAM_VALUE_SIZE])
     ptr->intf.inner_vid = 0;
   }
 
-  /* PCP (optional) */
-  if (StrToLong(values[4], &valued) == 0)
-  {
-    ptr->intf.pcp = ((uint8) valued & 0x7) | 0x10;
-  }
-  else
-  {
-    ptr->intf.pcp = 0;
-  }
-
-  /* EtherType (optional) */
-  if (StrToLong(values[5], &valued) == 0)
-  {
-    ptr->intf.ethertype = (int16) valued;
-  }
-  else
-  {
-    ptr->intf.ethertype = 0;
-  }
+  ptr->intf.new_vid = 0;
+  ptr->intf.new_inner_vid = 0;
+  ptr->intf.xlate_action_ingress_outerVid = PTIN_XLATE_ACTION_NONE;
+  ptr->intf.xlate_action_ingress_innerVid = PTIN_XLATE_ACTION_NONE;
+  ptr->intf.xlate_action_egress_outerVid  = PTIN_XLATE_ACTION_NONE;
+  ptr->intf.xlate_action_egress_innerVid  = PTIN_XLATE_ACTION_NONE;
 
   /* Send message */
   CHECK_TIMEOUT(send_data(handler, PORTO_RX_MSG_BUGA, IP_LOCALHOST, &comando, &resposta));

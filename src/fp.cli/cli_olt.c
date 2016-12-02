@@ -134,17 +134,17 @@ const command_struct command[] = {
   {
     "evc_port_add",
     "Add port to EVC",
-    "EVC=<EvcId> Port=<type>/<id> [MEFtype=<0-Root/1-Leaf>] [OVid=<OuterVLAN>] [IVid=<InnerVlan>] [PCP=<prio>] [ETHtype=<etherType>]",
+    "EVC=<EvcId> Port=<type>/<id> [MEFtype=<0-Root/1-Leaf>] [V1=<OuterVLAN>] [V2=<InnerVlan>] [V1op=<OVlanOp>/<new>/<ing>] [V2Op=<IVlanOp>/<new>/<ing>]",
     7,
-    {"evc","p","mef","ov","iv","pcp","eth"},
+    {"evc","p","mef","v1","v2","v1o","v2o"},
     evc_intf_add,
   },
   {
     "evc_port_remove",
     "Remove port from EVC",
-    "EVC=<EvcId> Port=<type>/<id> [OVid=<OuterVLAN>] [IVid=<InnerVlan>] [PCP=<prio>] [ETHtype=<etherType>]",
-    6,
-    {"evc","p","ov","iv","pcp","eth"},
+    "EVC=<EvcId> Port=<type>/<id> [V1=<OuterVLAN>] [V2=<InnerVlan>]",
+    4,
+    {"evc","p","v1","v2"},
     evc_intf_remove,
   },
 };

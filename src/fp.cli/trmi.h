@@ -29,6 +29,16 @@
 #define PTIN_SYSTEM_N_LAGS        PTIN_SYSTEM_N_PORTS
 #define PTIN_SYSTEM_N_INTERF      (PTIN_SYSTEM_N_PORTS+PTIN_SYSTEM_N_LAGS)
 
+/* Vlan translation operation */
+typedef enum
+{
+  PTIN_XLATE_ACTION_NONE,        /* = bcmVlanActionNone,    */
+  PTIN_XLATE_ACTION_ADD,         /* = bcmVlanActionAdd,     */
+  PTIN_XLATE_ACTION_REPLACE,     /* = bcmVlanActionReplace, */
+  PTIN_XLATE_ACTION_DELETE,      /* = bcmVlanActionDelete,  */
+  PTIN_XLATE_ACTION_COPY,        /* = bcmVlanActionCopy,    */
+} ptin_vlanXlate_action_enum;
+
 //MESSAGE STRUCTS*******************************************************************************
 
 /* Generic structs */
@@ -190,6 +200,15 @@ typedef struct {
   L7_uint16 inner_vid;    // Inner VLAN id [1..4094]
   L7_uint8  pcp;          // Packet's priority (to be valid should have bit 4 = 1)
   L7_uint16 ethertype;    // Packet's ethertype
+
+  // Translation Actions
+  L7_uint16 new_vid;
+  L7_uint16 new_inner_vid;
+  ptin_vlanXlate_action_enum xlate_action_ingress_outerVid;
+  ptin_vlanXlate_action_enum xlate_action_ingress_innerVid;
+  ptin_vlanXlate_action_enum xlate_action_egress_outerVid;
+  ptin_vlanXlate_action_enum xlate_action_egress_innerVid;
+
 } __attribute__((packed)) msg_HwEthMef10Intf_t;
 
 /* EVC config */

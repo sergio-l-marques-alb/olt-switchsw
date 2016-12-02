@@ -15,8 +15,8 @@ typedef int(*T_CLI_SET_GET_FUNCTION_HELP)(void);
 
 typedef struct {
   char         name[21];
-  char         description[201];
-  char         syntax[201];
+  char         description[251];
+  char         syntax[251];
   unsigned int params_max;
   char         params[MAX_PARAMS][MAX_PARAM_NAME_SIZE];
   T_CLI_SET_GET_FUNCTION function;
