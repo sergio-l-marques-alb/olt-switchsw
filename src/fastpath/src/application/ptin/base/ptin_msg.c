@@ -4765,6 +4765,8 @@ L7_RC_t ptin_msg_l2_maclimit_status(msg_l2_maclimit_status_t *maclimit_status)
   maclimit_status->status = entry.status;
 
   maclimit_status->mask = 0x03;
+ 
+  maclimit_status->mask = ENDIAN_SWAP32(maclimit_status->mask);
 
   PT_LOG_DEBUG(LOG_CTX_MSG," Status Response");
   PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      maclimit_status->slotId);
