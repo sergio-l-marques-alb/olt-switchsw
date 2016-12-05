@@ -1071,7 +1071,7 @@ L7_RC_t dtlMacAddrChange(L7_uchar8 *newMac, L7_uchar8 *ifName, L7_uint16 vlanId)
 *************************************************************************/
 L7_int32 dtlFdbMacAddrChange( L7_uchar8 *newMac )
 {
-  L7_uint32 vlanId;
+  L7_uint32 vlanId,intIfNum;
   L7_RC_t   rc;
 
   rc = osapiMacAddrChange(newMac, L7_DTL_PORT_IF, 0);
@@ -1082,7 +1082,9 @@ L7_int32 dtlFdbMacAddrChange( L7_uchar8 *newMac )
     */
 
     vlanId = simMgmtVlanIdGet();
-    fdbSysMacAddEntry(newMac, vlanId, 1, L7_FDB_ADDR_FLAG_MANAGEMENT);
+
+    nimFirstValidIntfNumberByType(L7_CPU_INTF, &intIfNum);
+    fdbSysMacAddEntry(newMac, vlanId, intIfNum, L7_FDB_ADDR_FLAG_MANAGEMENT);
 
 #if ((PTIN_BOARD == PTIN_BOARD_OLT1T0) || (PTIN_BOARD == PTIN_BOARD_OLT1T0F))
     dtlMacAddrChange(newMac, "dtl0", DTL0INBANDVID);
@@ -1107,7 +1109,7 @@ void dtlNetInit(void)
 {
 
   L7_uchar8 empty[6], mac[6];
-  L7_uint32 vlanId;
+  L7_uint32 vlanId, intIfNum;
 #ifdef DTL_USE_TAP
   struct ifreq ifr;
 #endif
@@ -1218,7 +1220,8 @@ void dtlNetInit(void)
   if (bcmp (empty, mac, L7_MAC_ADDR_LEN))
   {
     vlanId = simMgmtVlanIdGet();
-    fdbSysMacAddEntry(mac, vlanId, 1, L7_FDB_ADDR_FLAG_MANAGEMENT);
+    nimFirstValidIntfNumberByType(L7_CPU_INTF, &intIfNum);
+    fdbSysMacAddEntry(mac, vlanId, intIfNum, L7_FDB_ADDR_FLAG_MANAGEMENT);
   }
 
   #if ((PTIN_BOARD == PTIN_BOARD_OLT1T0) || (PTIN_BOARD == PTIN_BOARD_OLT1T0F))
