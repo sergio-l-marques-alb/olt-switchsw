@@ -474,6 +474,10 @@ L7_RC_t ptin_l2_mac_table_entry_remove( ptin_switch_mac_entry *entry )
   else
   {
     vlanId = entry->vlanId;
+
+    #if PTIN_BOARD_IS_STANDALONE 
+    ptin_evc_get_intVlan_fromNNIvlan(entry->vlanId,&vlanId,0);
+    #endif
     PT_LOG_TRACE(LOG_CTX_L2,"Vlan to be used will be the provided one: %u",vlanId);
   }
 
