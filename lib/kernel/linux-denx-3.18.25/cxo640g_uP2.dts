@@ -173,8 +173,6 @@
 			interrupts = <29 2 30 2 34 2>;
 			interrupt-parent = <&mpic>;
 			phy-connection-type = "gmii";
-			//phy-handle = <&phy1>;
-			//#fixed-link = <1 1 1000 0 0>;
 			managed = "auto";
 			fixed-link {
 				speed = <1000>;
@@ -192,8 +190,6 @@
 			interrupts = <31 2 32 2 33 2>;
 			interrupt-parent = <&mpic>;
 			phy-connection-type = "gmii";
-			//phy-handle = <&phy0>;
-			//#fixed-link = <1 1 1000 0 0>;
                         managed = "auto";
                         fixed-link {
 				speed = <1000>;
@@ -268,23 +264,20 @@
 
 	
 	pci2: pcie@e0009000 {
+		//fsl,pci-agent-force-enum;
 		cell-index = <1>;
 		compatible = "fsl,mpc8548-pcie";
 		device_type = "pci";
 		#interrupt-cells = <1>;
 		#size-cells = <2>;
 		#address-cells = <3>;
-		//reg = <0xe0009000 0x1000>;
-		reg = <0x0 0xe0009000 0x0 0x1000>;
+		reg = <0xe0009000 0x1000>;
 		bus-range = <0 255>;
 		ranges = <0x2000000 0x0 0xa0000000 0xa0000000 0x0 0x8000000
 			  0x1000000 0x0 0x00000000 0xe1020000 0x0 0x10000>;
-                //ranges = <0x2000000 0x0 0xa0000000 0x0 0xa0000000 0x0 0x8000000
-                //          0x1000000 0x0 0x00000000 0x0 0xe1020000 0x0 0x10000>;
 
 		clock-frequency = <33333333>;
 		interrupt-parent = <&mpic>;
-		//interrupts = <45 2>;
                 interrupts = <45 2 0 0>;
 		interrupt-map-mask = <0xf800 0x0 0x0 0x7>;
 		interrupt-map = <
@@ -300,18 +293,20 @@
 			#size-cells = <2>;
 			#address-cells = <3>;
 			device_type = "pci";
-			ranges = <0x2000000 0x0 0xa0000000
-				  0x2000000 0x0 0xa0000000
-				  0x0 0x8000000
+                        ranges = <0x2000000 0x0 0xa0000000
+                                  0x2000000 0x0 0xa0000000
+                                  0x0 0x8000000
 
-				  0x1000000 0x0 0x0
-				  0x1000000 0x0 0x0
-				  0x0 0x10000>;
+                                  0x1000000 0x0 0x0
+                                  0x1000000 0x0 0x0
+                                  0x0 0x10000>;
+
 		};
 	};
 	pci0: pci@e0008000 {
+		//fsl,pci-agent-force-enum;
 		cell-index = <0>;
-		compatible = "bcm,bcm-pci","fsl,mpc8540-pci";
+		compatible = "bcm,fastpath-pci","bcm,bcm-pci","fsl,mpc8540-pci";
 		device_type = "pci";
 		interrupt-map-mask = <0xf800 0x0 0x0 0x7>;
 		interrupt-map = <
@@ -323,7 +318,6 @@
                         0x5000 0x0 0x0 0x4 &mpic 0x1 0x1 0x0 0x0>;
 
 		interrupt-parent = <&mpic>;
-		//interrupts = <11 1>;
                 interrupts = <11 1 0 0>;
 		bus-range = <0 255>;
 		ranges = <0x2000000 0x0 0xc0000000 0xc0000000 0x0 0x8000000
@@ -332,14 +326,14 @@
 		#interrupt-cells = <1>;
 		#size-cells = <2>;
 		#address-cells = <3>;
-		//reg = <0xe0008000 0x1000>;
-                reg = <0x0 0xe0008000 0x0 0x1000>;
+		reg = <0xe0008000 0x1000>;
 	};
 	
-	chosen {
-		linux,stdout-path = &serial0;
-		bootargs = "root=/dev/ram rw ip=off console=ttyS0,115200 ramdisk_size=196608";
-		linux,initrd-start = <0x1D977000>;
-		linux,initrd-end = <0x1FE9F315>;
+	chosen{
+		//linux,stdout-path = &serial0;
+		linux,stdout-path = "/soc8544@e0000000/serial@4500";
+		bootargs = "root=/dev/ram rw ip=off console=ttyS0,115200 pci=realloc ramdisk_size=196608";
+                //linux,initrd-start = <0x1d956000>;
+                //linux,initrd-end = <0x1ffff5ec>;
 	};
 };

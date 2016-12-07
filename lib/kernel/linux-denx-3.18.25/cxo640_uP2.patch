@@ -6,8 +6,8 @@ diff -rupN linux-denx-3.18.25-ori/arch/powerpc/kernel/prom.c linux-denx-3.18.25-
  	DBG(" -> early_init_devtree(%p)\n", params);
  
 +	//Para que este kernel possa ser lançado via uboot-1.3.0
-+        initrd_start=(unsigned long) *((unsigned long *)((unsigned char *)params+0x167C));
-+        initrd_end  =(unsigned long) *((unsigned long *)((unsigned char *)params+0x168C));
++        initrd_start=(unsigned long) *((unsigned long *)((unsigned char *)params+0x168C));
++        initrd_end  =(unsigned long) *((unsigned long *)((unsigned char *)params+0x169C));
 +        DBG("%s initrd ----> %08lX %08lX\n", __FUNCTION__, initrd_start, initrd_end);
 +
  	/* Too early to BUG_ON(), do it by hand */
@@ -195,25 +195,6 @@ diff -rupN linux-denx-3.18.25-ori/arch/powerpc/sysdev/mv88e6095x_of.h linux-denx
 +extern struct phy_device * mv88e6095_detect(struct mii_bus *bus, int sw_addr);
 +
 +#endif  //__MARVELL_88E6095X_DRIVER__
-diff -rupN linux-denx-3.18.25-ori/cxo640g_uP2.dts linux-denx-3.18.25-mod/cxo640g_uP2.dts
---- linux-denx-3.18.25-ori/cxo640g_uP2.dts	2016-11-18 09:30:29.000000000 +0000
-+++ linux-denx-3.18.25-mod/cxo640g_uP2.dts	2016-11-23 15:20:31.000000000 +0000
-@@ -336,10 +336,11 @@
-                 reg = <0x0 0xe0008000 0x0 0x1000>;
- 	};
- 	
--	chosen {
--		linux,stdout-path = &serial0;
-+	chosen{
-+		//linux,stdout-path = &serial0;
-+		linux,stdout-path = "/soc8544@e0000000/serial@4500";
- 		bootargs = "root=/dev/ram rw ip=off console=ttyS0,115200 ramdisk_size=196608";
--		linux,initrd-start = <0x1D977000>;
--		linux,initrd-end = <0x1FE9F315>;
-+		//linux,initrd-start = <0x1dad7000>;
-+		//linux,initrd-end = <0x1ffff315>;
- 	};
- };
 diff -rupN linux-denx-3.18.25-ori/drivers/of/fdt.c linux-denx-3.18.25-mod/drivers/of/fdt.c
 --- linux-denx-3.18.25-ori/drivers/of/fdt.c	2016-11-17 14:14:36.000000000 +0000
 +++ linux-denx-3.18.25-mod/drivers/of/fdt.c	2016-11-23 15:19:03.000000000 +0000
