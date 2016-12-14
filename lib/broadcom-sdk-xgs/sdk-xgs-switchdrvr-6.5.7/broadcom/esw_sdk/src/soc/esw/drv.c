@@ -132,6 +132,9 @@
 #include <soc/avs.h>
 #endif /* INCLUDE_AVS */
 
+/* PTin added: PCIe */
+#include "logger.h"
+
 #ifdef BCM_KATANA_SUPPORT
 #define   BCM_SABER_MAX_COUNTER_DIRECTION 2
 #define   BCM_SABER_MAX_COUNTER_POOL      8
@@ -8067,6 +8070,7 @@ soc_do_init(int unit, int reset)
             } else
 #endif
             {
+                PT_LOG_INFO(LOG_CTX_SDK, "Going to make PCIe bw adjustment...");
                 SOC_IF_ERROR_RETURN(cmic_pcie_cdr_bw_adj(unit, pcie_phy_addr));
             }
         }
@@ -16512,6 +16516,8 @@ soc_reset(int unit)
              */
             msi_en = 0;
         }
+
+        PT_LOG_NOTICE(LOG_CTX_SDK, "MSI enable=%d", msi_en);
 
         addr = CMIC_CMCx_PCIE_MISCEL_OFFSET(SOC_PCI_CMC(unit));
         rval = soc_pci_read(unit, addr);

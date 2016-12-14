@@ -6175,6 +6175,7 @@ _bcm_esw_vlan_translate_egress_action_add(int unit, int port_class,
     bcm_module_t        modid;
     bcm_trunk_t         tgid = -1;
     int                 id = -1; 
+    int orig_port_class = port_class;
 
     CHECK_INIT(unit);
 #if defined(BCM_TRIDENT2PLUS_SUPPORT) && defined(INCLUDE_L3) 
@@ -6251,6 +6252,9 @@ _bcm_esw_vlan_translate_egress_action_add(int unit, int port_class,
 
 #ifdef BCM_TRX_SUPPORT
     if (SOC_IS_TRX(unit) && soc_feature(unit, soc_feature_vlan_action)) {
+        if(BCM_GPORT_IS_VLAN_PORT(orig_port_class)) {
+            port_class = orig_port_class;
+        }
         return _bcm_trx_vlan_translate_egress_action_add(unit, port_class, 
                                              outer_vlan, inner_vlan, 
                                              action);
@@ -6284,6 +6288,7 @@ _bcm_esw_vlan_translate_egress_action_get (int unit, int port_class,
     bcm_module_t        modid;
     bcm_trunk_t         tgid = -1;
     int                 id = -1; 
+    int orig_port_class = port_class;
 
     CHECK_INIT(unit);
 #if defined(BCM_TRIDENT2PLUS_SUPPORT) && defined(INCLUDE_L3)
@@ -6359,6 +6364,9 @@ _bcm_esw_vlan_translate_egress_action_get (int unit, int port_class,
 
 #ifdef BCM_TRX_SUPPORT
     if (SOC_IS_TRX(unit) && soc_feature(unit, soc_feature_vlan_action)) {
+        if(BCM_GPORT_IS_VLAN_PORT(orig_port_class)) {
+            port_class = orig_port_class;
+        }
         return _bcm_trx_vlan_translate_egress_action_get(unit, port_class, 
                                                         outer_vlan, inner_vlan, 
                                                         action);
@@ -6390,6 +6398,7 @@ _bcm_esw_vlan_translate_egress_action_delete(int unit, int port_class,
     bcm_module_t        modid;
     bcm_trunk_t         tgid = -1;
     int                 id = -1; 
+    int orig_port_class = port_class;
 
     CHECK_INIT(unit); 
 #if defined(BCM_TRIDENT2PLUS_SUPPORT) && defined(INCLUDE_L3) 
@@ -6461,6 +6470,9 @@ _bcm_esw_vlan_translate_egress_action_delete(int unit, int port_class,
 
 #ifdef BCM_TRX_SUPPORT
     if (SOC_IS_TRX(unit) && soc_feature(unit, soc_feature_vlan_action)) {
+        if(BCM_GPORT_IS_VLAN_PORT(orig_port_class)) {
+            port_class = orig_port_class;
+        }
         return _bcm_trx_vlan_translate_egress_action_delete(unit, port_class, 
                                                            outer_vlan, 
                                                            inner_vlan);
