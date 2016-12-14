@@ -94,6 +94,12 @@ Index: ../../lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.4.3/broadcom/esw_sdk/system
 
 mruas@vxcomp-ubuntu:~/repositorio/svn/trunk/fastpath$
 
+#################################
+### Alteracoes ao file system ###
+#################################
+sed -i 's/dmasize=16M/dmasize=16M himem=1/g' /usr/local/ptin/scripts/fp.insmods.sh
+mknod /dev/linux-kernel-bde c 127 0
+
 
 ######################################################
 ### Makefile utilizada cxo640g.make-kernel-3.18.25 ###
