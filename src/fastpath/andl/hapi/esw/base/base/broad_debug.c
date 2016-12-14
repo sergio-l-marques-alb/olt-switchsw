@@ -1244,7 +1244,11 @@ L7_RC_t hapiBroadDebugMemoryDump(L7_int32 memtype, L7_uint32 unit, L7_int32 copy
 
 L7_RC_t hapiBroadDebugUCMemDump(L7_int32 ingress_port)
 {
+#if (SDK_VERSION_IS < SDK_VERSION(6,5,0,0))
   return(hapiBroadDebugMemoryDump(MEM_UCm, 0, SOC_PORT_BLOCK(0, ingress_port), 0, 0, 0));
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 #ifdef BCM_ESW_SUPPORT
@@ -1781,7 +1785,9 @@ L7_RC_t hapiBroadDebugPortStat(int unit)
   PBMP_ITER(pbm, p)
   {
     if (p < SOC_MAX_NUM_PORTS) {
-      #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
+      #if (SDK_VERSION_IS >= SDK_VERSION(6,5,0,0))
+       brief_port_info(unit, p, &info_all[p], mask);
+      #elif (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
        brief_port_info(unit, SOC_PORT_NAME(unit, p), &info_all[p], mask);
       #else
        brief_port_info(SOC_PORT_NAME(unit, p), &info_all[p], mask);
