@@ -1,0 +1,36 @@
+systems/bde/linux/kernel/linux-kernel-bde.c: #1,2,4,9,10,11,12,13,14 + #6,8	OK!*
+systems/bde/linux/kernel/linux_dma.c (new)	OK!
+make/Make.config: #1,2,3,4,5			OK!
+src/appl/diag/shell.c: #2,3,7 + #1,6		OK!*
+src/bcm/esw/field.c: #1,2			OK!
+src/bcm/esw/field_common.c (new)		OK!
+src/bcm/esw/multicast.c: #1,2			OK!
+src/soc/esw/drv.c: #1,2				OK!*
+src/soc/phy/phyreg.c: #10,12			OK!
+src/soc/phy/wcmod/src/wcmod_cfg_seq.c: #1,2	OK!*
+src/soc/phy/wcmod/src/wcmod_phyreg.c: #2	OK!
+
+src/soc/common/cm.c: #1 + #2	OK!
+src/bcm/esw/port.c: #2 + #4	OK!*
+src/appl/diag/cmdlist.c: #1	OK!
+src/appl/diag/esw/hash.c: #1	OK!
+src/bcm/common/rx.c: #1		OK!
+src/bcm/esw/katana2/cosq.c: #1	OK!
+src/bcm/esw/triumph3/ipmc.c: #1	OK!
+src/bcm/rpc/rpc.c: #1		OK!
+src/sal/core/unix/alloc.c: #1	OK!
+src/sal/core/unix/thread.c: #8	OK!
+src/soc/common/dma.c: #2	OK!
+src/soc/common/mem.c: #1	OK!
+include/bcm/vlan.h: #1		OK!
+include/sal/core/alloc.h: #1	OK!
+include/soc/arl.h: #1		OK!
+include/soc/property.h: #2	OK!
+include/soc/field.h: #1		OK!
+include/sal/core/alloc.h: #1	OK!
+
+src/bcm/dispatch.c: #1			OK!
+src/bcm/esw/vlan.c: #1,3,5		OK!
+src/soc/phy/wcmod/src/wcmod.c: #2	OK!
+
+44+12=56
