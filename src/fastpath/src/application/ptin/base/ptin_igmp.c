@@ -192,6 +192,7 @@ typedef struct ptinIgmpClientGroupInfoData_s
   dl_queue_t                  queue_clientDevices;
   ptin_IGMP_Statistics_t      stats_client;
   L7_uint8                    onuId;
+  L7_uint32                   evcId;
   L7_uint8                    groupClientId;
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   ptinIgmpAdmissionControl_t  admissionControl;   
@@ -498,6 +499,7 @@ static ptinIgmpMulticastPackage_t          multicastPackage[PTIN_SYSTEM_IGMP_MAX
 
 static ptinIgmpNoOfMulticastServices_t     multicastServices[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF];
 static ptinIgmpMulticastServiceId_t        multicastServiceId[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF][PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID];
+static ptinIgmpMulticastServiceEvcId_t     serviceId_evcUc[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF][8];         /* Array defined to store all the servicesId's in use */
 
 static void ptin_igmp_multicast_service_reset(void);
 
@@ -693,7 +695,7 @@ static L7_uint32 igmp_quattro_stacked_evcs = 0;
 
 /* Local functions prototypes */
 static L7_RC_t ptin_igmp_group_client_find(ptin_client_id_t *client_ref, ptinIgmpGroupClientInfoData_t **client_info, L7_uint32 matchType);
-static L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxAllowedBandwidth, L7_uint16 maxAllowedChannels, L7_BOOL addOrRemove, L7_uint32 *packagePtr, L7_uint32 noOfPackages);
+static L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxAllowedBandwidth, L7_uint16 maxAllowedChannels, L7_BOOL addOrRemove, L7_uint32 *packagePtr, L7_uint32 noOfPackages, L7_uint32 evcId);
 static L7_RC_t ptin_igmp_group_client_remove(ptinIgmpClientDataKey_t *avl_key);
 static L7_RC_t ptin_igmp_group_client_remove_all(void);
 
@@ -2066,7 +2068,7 @@ L7_RC_t ptin_igmp_proxy_reset(void)
   PT_LOG_INFO(LOG_CTX_IGMP,"Multicast queriers reset:");
 
 #if PTIN_SNOOP_USE_MGMD
-  if (ptin_igmp_generalquerier_reset() != L7_SUCCESS)
+  if (ptin_igmp_generalquerier_reset( (L7_uint32) -1) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_IGMP, "Unable to reset MGMD General Queriers");
     return L7_FAILURE;
@@ -2890,12 +2892,14 @@ L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_intf_t 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_generalquerier_reset(void)
+L7_RC_t ptin_igmp_generalquerier_reset(L7_uint32 serviceId)
 {
   PTIN_MGMD_EVENT_t             reqMsg       = {0};
   PTIN_MGMD_EVENT_t             resMsg       = {0};
   PTIN_MGMD_EVENT_CTRL_t        ctrlResMsg   = {0};
   PTIN_MGMD_CTRL_QUERY_CONFIG_t mgmdQuerierConfigMsg = {0}; 
+
+  mgmdQuerierConfigMsg.serviceId = serviceId;
 
   mgmdQuerierConfigMsg.family = PTIN_MGMD_AF_INET;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdQuerierConfigMsg, sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t));
@@ -4149,7 +4153,11 @@ L7_RC_t ptin_igmp_client_timer_update(L7_uint32 intIfNum, L7_uint32 client_idx)
  */
 L7_RC_t ptin_igmp_api_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxAllowedBandwidth, L7_uint16 maxAllowedChannels, L7_BOOL addOrRemove, L7_uint32 *packagePtr, L7_uint32 noOfPackages)
 {
- return (ptin_igmp_group_client_add(client,uni_ovid,uni_ivid,onuId,mask,maxAllowedBandwidth,maxAllowedChannels,addOrRemove,packagePtr,noOfPackages));
+  ptin_HwEthMef10Evc_t evc;
+
+  ptin_evc_get_fromIntVlan(client->outerVlan, &evc);
+
+ return (ptin_igmp_group_client_add(client,uni_ovid,uni_ivid,onuId,mask,maxAllowedBandwidth,maxAllowedChannels,addOrRemove,packagePtr,noOfPackages,evc.index));
 }
 /**
  * Add a new Multicast client group
@@ -4173,7 +4181,7 @@ L7_RC_t ptin_igmp_api_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxAllowedBandwidth, L7_uint16 maxAllowedChannels, L7_BOOL addOrRemove, L7_uint32 *packagePtr, L7_uint32 noOfPackages)
+L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid, L7_uint16 uni_ivid, L7_uint8 onuId, L7_uint8 mask, L7_uint64 maxAllowedBandwidth, L7_uint16 maxAllowedChannels, L7_BOOL addOrRemove, L7_uint32 *packagePtr, L7_uint32 noOfPackages, L7_uint32 evcId)
 {
   ptinIgmpClientDataKey_t        avl_key;
   ptinIgmpGroupClientAvlTree_t  *avl_tree = &igmpGroupClients.avlTree;
@@ -4460,6 +4468,9 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
 #endif
                );
     }
+
+    /* Save evcID */
+    avl_infoData->evcId = evcId;
 
     /* Save associated vlans */
     avl_infoData->uni_ovid = uni_ovid;
@@ -13190,10 +13201,7 @@ static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupI
 
       /* check if the device client belongs to the desired group client */
       if(device_client->ptin_port == clientGroup->ptin_port && device_client->uni_ivid == clientGroup->uni_ivid && device_client->uni_ovid == clientGroup->uni_ovid)
-      {
-
         i_client++;
-      }
 
             /* Prepare next key */
         memcpy(&avl_key, &device_client->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
@@ -18167,6 +18175,93 @@ RC_t ptin_igmp_multicast_service_remove(L7_uint32 ptinPort, L7_uint32 onuId, L7_
   return L7_SUCCESS;
 }
 
+
+/**
+ * @purpose get all the servicesId's in use on a specific 
+ *          ptin_port and onuId
+ * 
+ * @param ptinPort 
+ * @param onuId 
+ * @param   
+ *  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+RC_t ptin_igmp_multicast_get_all_serviceId_per_onu(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 *listOfServices, L7_uint32 *nOfServices)
+{
+  L7_uint8 i = 0;
+  
+  ptinIgmpClientDataKey_t   avl_key;;
+  ptinIgmpGroupClientInfoData_t  *group_client;
+
+
+  /* ptinPort is valid? */
+  if (ptinPort >= PTIN_SYSTEM_N_UPLINK_INTERF)
+  {
+    PT_LOG_TRACE(LOG_CTX_IGMP, "ptin_port is out of range! (ptin_port_id=%u max=%u)", ptinPort, PTIN_SYSTEM_N_UPLINK_INTERF);
+    return L7_FAILURE;
+  }
+
+  /* onuId is valid? */
+  if (onuId >= PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF)
+  {
+    PT_LOG_TRACE(LOG_CTX_IGMP, "onuId is out of range! (onuId=%u max=%u)", onuId, PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF);
+    return L7_FAILURE;
+  }
+
+  /* Run all cells in AVL tree */
+  memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
+
+  while ( ( group_client = (ptinIgmpGroupClientInfoData_t *)
+            avlSearchLVL7(&igmpGroupClients.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR ) 
+  {
+
+    if (group_client->onuId == onuId && group_client->ptin_port == ptinPort)
+    {
+      if (serviceId_evcUc[ptinPort][onuId][i].inUse == L7_FALSE)
+      {
+        serviceId_evcUc[ptinPort][onuId][i].inUse     = L7_TRUE;
+        serviceId_evcUc[ptinPort][onuId][i].serviceId = group_client->evcId;
+
+        listOfServices[i] = group_client->evcId;
+
+        i++;
+        *nOfServices = i;
+      }
+    }
+
+    /* Prepare next key */
+    memcpy(&avl_key, &group_client->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
+  }
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * @purpose querier reset is done on a specific serviceId 
+ * 
+ * @param none 
+ *  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+RC_t ptin_igmp_multicast_querierReset_on_specific_serviceID(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 serviceId)
+{
+
+  PT_LOG_TRACE(LOG_CTX_IGMP, "Going to send query to serviceId %u", serviceId);
+  ptin_igmp_generalquerier_reset(serviceId);
+   
+  return L7_SUCCESS;
+}
+
   #if 0
 /**
  * @purpose Get Next Multicast Service Identifier
@@ -19350,5 +19445,38 @@ static RC_t ptin_igmp_package_channel_conflict_validation(L7_uint32 packageId, p
 
 #endif//IGMPASSOC_MULTI_MC_SUPPORTED
 /********************************End Multicast Group Packages*********************************************************/
+
+
+/*************** dump all services in use on a specific onuID *****************/
+
+void ptin_igmp_onu_services_inUse_dump(L7_uint32 ptinPort, L7_uint32 onuId)
+{
+  printf("Services in use on a specific onuID (local struct):\n");
+
+  L7_uint8  i = 0;
+  L7_uint32 nOfServices = 0;
+
+  L7_uint32 lista_de_servicos[8];
+
+  ptin_igmp_multicast_get_all_serviceId_per_onu(ptinPort, onuId, lista_de_servicos, &nOfServices);
+
+  while (i < PTIN_SYSTEM_MAX_SERVICES_PER_ONU)
+  {
+    if (serviceId_evcUc[ptinPort][onuId][i].inUse != L7_FALSE)
+    {
+      printf("ServiceId: %u\n", serviceId_evcUc[ptinPort][onuId][i].serviceId);
+    }
+    i++;
+  }
+
+}
+
+void ptin_igmp_general_query_reset_teste(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 serviceId)
+{
+
+  printf("Going to call ptin_igmp_multicast_querierReset_on_specific_serviceID!!\n");
+  ptin_igmp_multicast_querierReset_on_specific_serviceID(ptinPort, onuId, serviceId);
+
+}
 
 
