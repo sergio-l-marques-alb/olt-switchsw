@@ -249,10 +249,19 @@ sal_thread_create(char *name, int ss, int prio, void (f)(void *), void *arg)
 #ifdef LVL7_FIXUP
     L7_int32 salTaskHandle;
 
-    salTaskHandle = osapiTaskCreate(name, f, (L7_uint32) arg,
-                                    L7_NULLPTR, ss,
-                                    L7_DEFAULT_TASK_PRIORITY,
-                                    L7_DEFAULT_TASK_SLICE);
+    {//PTIn modified
+     L7_uint32 pri, tslice;
+
+        if (0==strcmp("bcmRX",name))    {pri=80; tslice=1;}
+        else
+        if (0==strcmp("bcmINTR",name))  {pri=87; tslice=1;}
+        else                            {pri=L7_DEFAULT_TASK_PRIORITY; tslice=L7_DEFAULT_TASK_SLICE;}
+
+        salTaskHandle = osapiTaskCreate(name, f, (L7_uint32) arg,
+                                        L7_NULLPTR, ss,
+                                        pri,
+                                        tslice);
+    }
 
     return (sal_thread_t) salTaskHandle;
 #else

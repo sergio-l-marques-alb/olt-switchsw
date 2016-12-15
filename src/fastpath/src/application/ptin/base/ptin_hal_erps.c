@@ -101,8 +101,8 @@ L7_RC_t ptin_hal_erps_init(void)
   // Create task for Tx packets
   ptin_hal_apsPacketTx_TaskId = osapiTaskCreate("ptin_hal_apsPacketTx_task", ptin_hal_apsPacketTx_task, 0, 0,
                                            L7_DEFAULT_STACK_SIZE,
-                                           10,
-                                           0);
+                                           12,
+                                           1);
 
   if (ptin_hal_apsPacketTx_TaskId == L7_ERROR) {
     PT_LOG_FATAL(LOG_CTX_ERPS, "Could not create task ptin_hal_apsPacketTx_task");
@@ -704,7 +704,7 @@ void ptin_hal_apsPacketTx_task(void)
   signal(PTIN_ERPS_WAKE_UP_SIGNAL, __ptin_hal_erps_signal_handler);
 
   /* Give more priority to this thread */
-  nice(-20);
+  //nice(-20);
 
   /* Sleep Thread for 5s */
   requiredSleepTime.tv_sec  = 5;
@@ -775,6 +775,7 @@ void ptin_hal_apsPacketTx_task(void)
           memcpy(&requiredSleepTime, &remainingSleepTime, sizeof(requiredSleepTime));
           requiredSleepTime.tv_sec  = 0;
           requiredSleepTime.tv_nsec = 3;
+          //requiredSleepTime.tv_nsec = 3300000;
         }
       }
 
@@ -1429,6 +1430,7 @@ L7_BOOL ptin_hal_erps_evcProtectedRemove(L7_uint root_intf, L7_uint16 vlan, L7_u
 int ptin_hal_erps_rd_alarms(L7_uint8 slot, L7_uint32 index)
 {
   return MEP_is_in_LOC(index, 0xffff, &oam) |  MEP_is_in_RDI(index, 0xffff, &oam);
+  //return MEP_is_in_LOC(index, 0xffff, &oam) ||  MEP_is_in_RDI(index, 0xffff, &oam);
 }
 
 #endif  // PTIN_ENABLE_ERPS

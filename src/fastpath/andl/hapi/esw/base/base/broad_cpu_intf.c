@@ -667,7 +667,7 @@ void hapiBroadCpuTxRxInit(DAPI_t *dapi_g)
 
   /* spawn RX task */
   if (osapiTaskCreate("hapiRxTask",hapiBroadReceiveTask,1,dapi_g, L7_DEFAULT_STACK_SIZE,
-                      L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+                      L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)  //80,1) == L7_ERROR) //L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)     //PTIn modified
   {
     L7_LOG_ERROR(0);
   }
@@ -2373,6 +2373,15 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
 
   /* Increment number of received packets */
   hapiBroadReceive_packets_count++;
+
+  {//PTIn added
+   extern void proc_runtime_start(int instance);  //#include "ptin_debug.h"
+   extern unsigned char debug_APS_CCM_pktTimer;
+   if (debug_APS_CCM_pktTimer) {
+          proc_runtime_start(1);
+          proc_runtime_start(4);
+   }
+  }
   #endif
 
   //PTIN Added
@@ -3193,6 +3202,29 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   cmdInfo.cmdData.receive.timestamp = bcm_pkt->rx_timestamp;       //PTIN added
   pktRxMsg.cmdInfo = cmdInfo;
   pktRxMsg.cos = bcm_pkt->cos;
+
+//#ifdef APS_CCM_hapiBroadReceive_2_callback_SHORTCUT     //PTIN added
+#ifdef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
+  if (L7_ETYPE_CFM==ether_type) do {
+   extern L7_RC_t common_aps_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
+   sysnet_pdu_info_t pduInfo;
+   nimUSP_t nimUsp;
+
+   nimUsp.unit = usp.unit;
+   nimUsp.slot = usp.slot;
+   nimUsp.port = usp.port+1;
+   if (L7_SUCCESS!=nimGetIntIfNumFromUSP(&nimUsp, &pduInfo.intIfNum)) break;     /* Source port */
+
+   pduInfo.vlanId        = outerVlanId; //cmdInfo.cmdData.receive.vlanID; outerVlanId;       /* Vlan */
+   pduInfo.innerVlanId   = innerVlanId; //cmdInfo.cmdData.receive.innerVlanId; innerVlanId;  /* Inner vlan */
+   pduInfo.timestamp     = bcm_pkt->rx_timestamp;
+   common_aps_ccm_packetRx_callback(frameHdl, &pduInfo);
+
+   SYSAPI_NET_MBUF_FREE((L7_netBufHandle)frameHdl);
+   return BCM_RX_HANDLED;
+  } while (0);
+#endif
+//#endif
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL3)
     PT_LOG_TRACE(LOG_CTX_HAPI,"Going to send packet to hapiRxQueue queue");
