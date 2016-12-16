@@ -12,6 +12,7 @@
 #define _PTIN_OPENSAF_H
 
 #include "ptin_include.h"
+#include "ptin_igmp.h"
 #include "osapi.h"
 #include <stdio.h>
 #include <string.h>
@@ -289,7 +290,7 @@ void ptin_opensaf_task_OnuMac( void )
     /* Get ONU State */
     ptin_checkpoint_getSection(ONU_STATE, section, &onuStatus, &size);
 
-    if(onuStatus.state != ONU_STATE_DISABLED) /* Is the ONU is disable remove MAC, DHCP binding and IGMP channels*/
+    if(onuStatus.state == ONU_STATE_DISABLED) /* If the ONU is disable remove MAC, DHCP binding and IGMP channels*/
     {
       /*Retrieve MAC form a particular ONU*/
       ptin_checkpoint_getSection(SWITCHDRVR_ONU, event_data.onuId, &data, &size); 
@@ -320,10 +321,36 @@ void ptin_opensaf_task_OnuMac( void )
         p = p + MAC_SIZE_BYTES;
         /* get next MAC */
       }
+
+      /* send query */ 
+
+
       
       /* Delete ONT MAC section from the checkpoint */  
       ptin_opensaf_checkpoint_deleteSection(SWITCHDRVR_ONU, event_data.onuId);
     }
+    /*
+    if (onuStatus.state != ONU_STATE_DISABLED)
+    {
+      L7_uint32 servicesId[PTIN_SYSTEM_MAX_SERVICES_PER_ONU];
+      L7_uint32 nOfServices;
+      L7_uint32 i = 0;
+     
+      memset(&servicesId, (L7_uint32) -1, sizeof(servicesId));
+     
+      PT_LOG_TRACE(LOG_CTX_OPENSAF, " event_data.memberIndex = %u, event_data.onuId = %u", event_data.memberIndex, event_data.onuId);
+     
+      ptin_igmp_multicast_get_all_serviceId_per_onu( event_data.memberIndex, event_data.onuId, servicesId, &nOfServices);
+     
+     
+      while (i < PTIN_SYSTEM_MAX_SERVICES_PER_ONU)
+      {
+        if (servicesId[i] != (L7_uint32) -1)
+        ptin_igmp_multicast_querierReset_on_specific_serviceID(ptinPort, onuId, servicesId[i]);
+      }
+     
+    } 
+    */ 
   }
                                             
   osapiSleepMSec(500);
