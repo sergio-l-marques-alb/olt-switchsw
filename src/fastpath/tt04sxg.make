@@ -2,8 +2,8 @@
 #                                              #
 #   FastPath Makefile for the TT04SXG card     #
 #                                              #
-#	Rui Fernandes, 2016                        #
-#	rui-f-fernandes@alticelabs.com             #
+#	Rui Fernandes, 2016                    #
+#	rui-f-fernandes@alticelabs.com         #
 #                                              #
 ################################################
 
@@ -47,7 +47,7 @@ export KERNEL_SRC	:= $(KERNEL_PATH)
 export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 
 export SDK_LINK := vendor/broadcom
-export SDK_PATH := $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-switchdrvr-6.4.8/broadcom
+export SDK_PATH := $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-switchdrvr-6.5.7/broadcom
 #export SDK_PATH := /home/olt/svnrepo/olt-switchsw/trunk/lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.4.3/broadcom
 
 export FP_CLI_PATH   := ../fastpath.cli
@@ -123,7 +123,7 @@ welcome:
 	@echo ""
 	@echo "##############################################"
 	@echo "#                                            #"
-	@echo "#  FastPath Makefile for the TT04SXG card     #"
+	@echo "#  FastPath Makefile for the TT04SXG card    #"
 	@echo "#                                            #"
 	@echo "##############################################"
 	@echo ""
