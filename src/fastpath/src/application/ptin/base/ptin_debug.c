@@ -362,7 +362,7 @@ L7_uint64 hapiBroadReceice_pppoe_count  = 0;
 /* Measure of packet processing time */
 ptin_debug_pktTimer_t debug_pktTimer;
 
-unsigned char debug_APS_CCM_pktTimer = 1;
+unsigned char debug_APS_CCM_pktTimer = 0;
 void set_debug_APS_CCM_pktTimer(unsigned char v) {debug_APS_CCM_pktTimer=v;}
 
 void ptin_igmptimer_clear(void)
