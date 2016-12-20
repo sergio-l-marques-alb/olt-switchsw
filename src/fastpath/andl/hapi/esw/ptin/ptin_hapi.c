@@ -4874,7 +4874,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   {
     L7_uint8  prio_mask  = 0x7;
     L7_uint8  vlanFormat_value, vlanFormat_mask;
-    bcmx_lport_t lport;
+    //bcmx_lport_t lport;
     BROAD_POLICY_t      policyId;
     BROAD_POLICY_RULE_t ruleId;
 
@@ -4935,6 +4935,9 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       hapiBroadPolicyCreateCancel();
       return L7_FAILURE;
     }
+
+
+    #if 0
     /* Only apply to downlink interfaces */
     rc = hapiBroadPolicyRemoveFromAll(policyId);
     if (rc != L7_SUCCESS)
@@ -4944,6 +4947,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       return L7_FAILURE;
     }
     for (port = 0; port < max(PTIN_SYSTEM_N_PONS, PTIN_SYSTEM_N_ETH); port++)
+    //for (port = 0; port < PTIN_SYSTEM_N_PORTS -1; port++)
     {
       rc = hapi_ptin_bcmPort_get(port, &bcm_port);
       if (rc != L7_SUCCESS)  break;
@@ -4961,7 +4965,10 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       hapiBroadPolicyDelete(policyId);
       return L7_FAILURE;
     }
+    #endif
   }
+   
+
 #endif
 
 #if (PTIN_BOARD_IS_GPON)
