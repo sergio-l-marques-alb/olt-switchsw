@@ -21,6 +21,9 @@ void tpid_set(unsigned int new_outer_tpid, unsigned int new_inner_tpid)
 
 unsigned int advanced_vlan_editing = 0;
 
+static int pcp_in_map_id  = -1;
+static int pcp_out_map_id = -1;
+
 /*
  * Global initialization (first steps before doing anything else)
  */
@@ -31,8 +34,6 @@ int global_init()
  bcm_pbmp_t pbmp;
  bcm_gport_t gport;
  bcm_port_config_t pc;
- bcm_port_tpid_class_t port_tpid_class;
- bcm_vlan_action_set_t action;
 
  advanced_vlan_editing = soc_property_get(unit ,"bcm886xx_vlan_translate_mode",0);
 
@@ -94,80 +95,35 @@ int global_init()
   }
  }
 
- /* Configure translations */
- if (xlate_config && advanced_vlan_editing) {
-  // Create egress translation action: swap+none
-  rv = bcm_vlan_translate_action_id_create(unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID, &action_swap_id);
-  if (rv != BCM_E_NONE) {
-   printf("Error, bcm_vlan_translate_action_id_create\n");
-   print rv;
+ /* Check if double lb key range is enabled (relevant for gracefull load balancing) */
+ rv = bcm_switch_control_set(unit, bcmSwitchMcastTrunkIngressCommit, 0);
+ if (rv != BCM_E_NONE)
+ {
+   printf("Error, bcm_switch_control_set(), rv=%d.\n", rv);
    return rv;
-  }
-  bcm_vlan_action_set_t_init(&action);
-  action.ut_outer = bcmVlanActionAdd;
-  action.ut_inner = bcmVlanActionNone;
-  action.ot_outer = bcmVlanActionReplace;
-  action.ot_inner = bcmVlanActionNone;
-  action.dt_outer = bcmVlanActionReplace;
-  action.dt_inner = bcmVlanActionNone;
-  action.outer_tpid = outer_tpid;
-  action.inner_tpid = inner_tpid;
-  rv = bcm_vlan_translate_action_id_set(unit, BCM_VLAN_ACTION_SET_EGRESS, action_swap_id, &action);
-  if (rv != BCM_E_NONE) {
-   printf("Error, bcm_vlan_translate_action_id_set swap\n");
-   print rv;
-   return rv;
-  }
-  printf("Created new xlate action with for swap operation: action_id=%u\n", action_swap_id);
-
-  // Create egress translation action: swap+push
-  rv = bcm_vlan_translate_action_id_create(unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID, &action_push_id);
-  if (rv != BCM_E_NONE) {
-   printf("Error, bcm_vlan_translate_action_id_create\n");
-   print rv;
-   return rv;
-  }
-  bcm_vlan_action_set_t_init(&action);
-  action.ut_outer = bcmVlanActionAdd;
-  action.ut_inner = bcmVlanActionAdd;
-  action.ot_outer = bcmVlanActionReplace;
-  action.ot_inner = bcmVlanActionAdd;
-  action.dt_outer = bcmVlanActionReplace;
-  action.dt_inner = bcmVlanActionAdd;
-  action.outer_tpid = outer_tpid;
-  action.inner_tpid = inner_tpid;
-  rv = bcm_vlan_translate_action_id_set(unit, BCM_VLAN_ACTION_SET_EGRESS, action_push_id, &action);
-  if (rv != BCM_E_NONE) {
-   printf("Error, bcm_vlan_translate_action_id_set swap+push\n");
-   print rv;
-   return rv;
-  }
-  printf("Created new xlate action with for swap+push operations: action_id=%u\n", action_push_id);
-
-  // Create egress translation action: swap+pop
-  rv = bcm_vlan_translate_action_id_create(unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID, &action_pop_id);
-  if (rv != BCM_E_NONE) {
-   printf("Error, bcm_vlan_translate_action_id_create\n");
-   print rv;
-   return rv;
-  }
-  bcm_vlan_action_set_t_init(&action);
-  action.ut_outer = bcmVlanActionAdd;
-  action.ut_inner = bcmVlanActionNone;
-  action.ot_outer = bcmVlanActionReplace;
-  action.ot_inner = bcmVlanActionNone;
-  action.dt_outer = bcmVlanActionReplace;
-  action.dt_inner = bcmVlanActionDelete;
-  action.outer_tpid = outer_tpid;
-  action.inner_tpid = inner_tpid;
-  rv = bcm_vlan_translate_action_id_set(unit, BCM_VLAN_ACTION_SET_EGRESS, action_pop_id, &action);
-  if (rv != BCM_E_NONE) {
-   printf("Error, bcm_vlan_translate_action_id_set swap+pop\n");
-   print rv;
-   return rv;
-  }
-  printf("Created new xlate action with for swap+pop operations: action_id=%u\n", action_pop_id);
  }
+ rv = bcm_switch_control_set(unit, bcmSwitchMcastTrunkEgressCommit, 0);
+ if (rv != BCM_E_NONE)
+ {
+   printf("Error, bcm_switch_control_set(), rv=%d.\n", rv);
+   return rv;
+ }
+
+ /* QoS initialization */
+ rv = qos_init();
+ if (rv != BCM_E_NONE)
+ {
+  printf("QoS init failed: rv=%u (%s)\n", rv, bcm_errmsg(rv));
+  return rv;
+ }
+
+ /* Translations initialization */
+ rv = translations_init();
+ if (rv != BCM_E_NONE)
+ {
+  printf("Translations init failed: rv=%u (%s)\n", rv, bcm_errmsg(rv));
+  return rv;
+ } 
 
  printf("Switch initialized!\n");
 
@@ -316,6 +272,143 @@ int port_init(int port, unsigned int otpid, unsigned int itpid)
  return 0;
 }
 
+/**
+ * Initialize VLAN translations
+ */
+int translations_init(void)
+{
+ int rv;
+ bcm_vlan_action_set_t action;
+
+ /* Configure translations */
+ if (xlate_config && advanced_vlan_editing) {
+  // Create egress translation action: swap+none
+  rv = bcm_vlan_translate_action_id_create(unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID, &action_swap_id);
+  if (rv != BCM_E_NONE) {
+   printf("Error, bcm_vlan_translate_action_id_create\n");
+   print rv;
+   return rv;
+  }
+  bcm_vlan_action_set_t_init(&action);
+  action.ut_outer = bcmVlanActionAdd;
+  action.ut_inner = bcmVlanActionNone;
+  action.ot_outer = bcmVlanActionReplace;
+  action.ot_inner = bcmVlanActionNone;
+  action.dt_outer = bcmVlanActionReplace;
+  action.dt_inner = bcmVlanActionNone;
+  action.outer_tpid = outer_tpid;
+  action.inner_tpid = inner_tpid;
+  action.ot_outer_pkt_prio = bcmVlanActionReplace;
+  action.priority = pcp_out_map_id;
+  rv = bcm_vlan_translate_action_id_set(unit, BCM_VLAN_ACTION_SET_EGRESS, action_swap_id, &action);
+  if (rv != BCM_E_NONE) {
+   printf("Error, bcm_vlan_translate_action_id_set swap\n");
+   print rv;
+   return rv;
+  }
+  printf("Created new xlate action with for swap operation: action_id=%u\n", action_swap_id);
+
+  // Create egress translation action: swap+push
+  rv = bcm_vlan_translate_action_id_create(unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID, &action_push_id);
+  if (rv != BCM_E_NONE) {
+   printf("Error, bcm_vlan_translate_action_id_create\n");
+   print rv;
+   return rv;
+  }
+  bcm_vlan_action_set_t_init(&action);
+  action.ut_outer = bcmVlanActionAdd;
+  action.ut_inner = bcmVlanActionAdd;
+  action.ot_outer = bcmVlanActionReplace;
+  action.ot_inner = bcmVlanActionAdd;
+  action.dt_outer = bcmVlanActionReplace;
+  action.dt_inner = bcmVlanActionAdd;
+  action.outer_tpid = outer_tpid;
+  action.inner_tpid = inner_tpid;
+  action.ot_outer_pkt_prio = bcmVlanActionReplace;
+  action.priority = pcp_out_map_id;
+  rv = bcm_vlan_translate_action_id_set(unit, BCM_VLAN_ACTION_SET_EGRESS, action_push_id, &action);
+  if (rv != BCM_E_NONE) {
+   printf("Error, bcm_vlan_translate_action_id_set swap+push\n");
+   print rv;
+   return rv;
+  }
+  printf("Created new xlate action with for swap+push operations: action_id=%u\n", action_push_id);
+
+  // Create egress translation action: swap+pop
+  rv = bcm_vlan_translate_action_id_create(unit, BCM_VLAN_ACTION_SET_EGRESS | BCM_VLAN_ACTION_SET_WITH_ID, &action_pop_id);
+  if (rv != BCM_E_NONE) {
+   printf("Error, bcm_vlan_translate_action_id_create\n");
+   print rv;
+   return rv;
+  }
+  bcm_vlan_action_set_t_init(&action);
+  action.ut_outer = bcmVlanActionAdd;
+  action.ut_inner = bcmVlanActionNone;
+  action.ot_outer = bcmVlanActionReplace;
+  action.ot_inner = bcmVlanActionNone;
+  action.dt_outer = bcmVlanActionReplace;
+  action.dt_inner = bcmVlanActionDelete;
+  action.outer_tpid = outer_tpid;
+  action.inner_tpid = inner_tpid;
+  action.ot_outer_pkt_prio = bcmVlanActionReplace;
+  action.priority = pcp_out_map_id;
+  rv = bcm_vlan_translate_action_id_set(unit, BCM_VLAN_ACTION_SET_EGRESS, action_pop_id, &action);
+  if (rv != BCM_E_NONE) {
+   printf("Error, bcm_vlan_translate_action_id_set swap+pop\n");
+   print rv;
+   return rv;
+  }
+  printf("Created new xlate action with for swap+pop operations: action_id=%u\n", action_pop_id);
+ }
+
+ return BCM_E_NONE;
+}
+
+/**
+ * Initialize QoS
+ */
+int qos_init(void)
+{
+ bcm_qos_map_t qos_l2_map;
+ int idx;
+ int rv;
+
+ /* Configure a PCP map to be applied to IVE/EVE */
+ rv = bcm_qos_map_create(unit, BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_L2_VLAN_PCP, &pcp_in_map_id);
+ if (rv != BCM_E_NONE)
+ {
+  printf("error in ingress PCP bcm_qos_map_create(): rv=%u (%s)\n", rv, bcm_errmsg(rv));
+  return rv;
+ }
+ rv = bcm_qos_map_create(unit, BCM_QOS_MAP_EGRESS | BCM_QOS_MAP_L2_VLAN_PCP, &pcp_out_map_id);
+ if (rv != BCM_E_NONE)
+ {
+  printf("error in egress PCP bcm_qos_map_create(): rv=%u (%s)\n", rv, bcm_errmsg(rv));
+  return rv;
+ }
+ bcm_qos_map_t_init(&qos_l2_map);
+ for (idx=0; idx<16; idx++)
+ {
+  qos_l2_map.pkt_pri = idx >> 1; //qos_map_l2_pcp[idx];
+  qos_l2_map.pkt_cfi = idx % 2;  //qos_map_l2_cfi[idx];
+  qos_l2_map.int_pri = idx >> 1; //qos_map_l2_internal_pri[idx];
+  qos_l2_map.color   = ((idx % 2) == 0) ? bcmColorGreen : bcmColorYellow; //qos_map_l2_internal_color[idx];
+  
+  rv = bcm_qos_map_add(unit, BCM_QOS_MAP_L2_OUTER_TAG | BCM_QOS_MAP_L2_VLAN_PCP, &qos_l2_map, pcp_in_map_id);
+  if (rv != BCM_E_NONE) {
+   printf("error in PCP ingress bcm_qos_map_add(): rv=%d (%d)\n", rv, bcm_errmsg(rv));
+   return rv;
+  }
+  rv = bcm_qos_map_add(unit, BCM_QOS_MAP_L2_OUTER_TAG | BCM_QOS_MAP_L2_VLAN_PCP, &qos_l2_map, pcp_out_map_id);
+  if (rv != BCM_E_NONE) {
+   printf("error in PCP egress bcm_qos_map_add(): rv=%d (%d)\n", rv, bcm_errmsg(rv));
+   return rv;
+  }
+ }
+
+ return BCM_E_NONE;
+}
+
 /*
  * Configure a VLAN Edit Profile
  */
@@ -346,7 +439,9 @@ int adv_xlate_vep(unsigned int gport, int new_ovid, int new_ivid, int edit_class
 /*
  * Create an action for translations
  */
-int adv_xlate_action_create(int action_id, int ut_outer, int ut_inner, int ot_outer, int ot_inner, int dt_outer, int dt_inner, unsigned outer_tpid, unsigned inner_tpid, int new_ovid, int new_ivid, int is_ingress)
+int adv_xlate_action_create(int action_id, int is_ingress,
+                            int ot_outer, int dt_outer, int ot_inner, int dt_inner,
+                            int ot_outer_pri, int dt_outer_pri, int ot_inner_pri, int dt_inner_pri, int map_id)
 {
   int rv;
   unsigned int flags = 0;
@@ -365,14 +460,24 @@ int adv_xlate_action_create(int action_id, int ut_outer, int ut_inner, int ot_ou
   }
 
   bcm_vlan_action_set_t_init(&action);
-  action.ut_outer = ut_outer;
-  action.ut_inner = ut_inner;
   action.ot_outer = ot_outer;
   action.ot_inner = ot_inner;
   action.dt_outer = dt_outer;
   action.dt_inner = dt_inner;
-  action.outer_tpid = outer_tpid;
-  action.inner_tpid = inner_tpid;
+  action.ot_outer_prio     = ot_outer_pri;
+  action.ot_outer_pkt_prio = ot_outer_pri;
+  action.ot_inner_pkt_prio = ot_inner_pri;
+  action.dt_outer_prio     = dt_outer_pri;
+  action.dt_outer_pkt_prio = dt_outer_pri;
+  action.dt_inner_prio     = dt_inner_pri;
+  action.dt_inner_pkt_prio = dt_inner_pri;
+  action.ot_outer_cfi      = ot_outer_pri;
+  action.ot_inner_cfi      = ot_inner_pri;
+  action.dt_outer_cfi      = dt_outer_pri;
+  action.dt_inner_cfi      = dt_inner_pri;
+  action.priority          = map_id;
+  action.outer_tpid        = outer_tpid;
+  action.inner_tpid        = inner_tpid;
 
   rv = bcm_vlan_translate_action_id_set(unit, (is_ingress) ? BCM_VLAN_ACTION_SET_INGRESS : BCM_VLAN_ACTION_SET_EGRESS, action_id, &action);
 
