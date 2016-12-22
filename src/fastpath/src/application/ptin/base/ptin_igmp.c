@@ -13271,6 +13271,7 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_add(struct ptinIgmpClien
   dl_queue_remove_head(&igmpDeviceClients.queue_free_clientDevices[PTIN_IGMP_CLIENT_PORT(ptin_port)], (dl_queue_elem_t**) &clientDevice);
   dl_queue_add_tail(&clientGroup->queue_clientDevices, (dl_queue_elem_t*) clientDevice);
 
+  #if 0
   /* Update number of clients */
   if (clientDevice->client == L7_NULLPTR)
   {
@@ -13285,6 +13286,8 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_add(struct ptinIgmpClien
         igmpDeviceClients.number_of_clients_per_intf[ptin_port]++;
     }
   }
+  #endif
+
   /* Update client pointer */
   clientDevice->client = clientInfo;
   /* Return pointer to new node */
