@@ -1151,6 +1151,7 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     /* Set new PCP */
     if (qos_cfg->pbits_remark)
     {
+      PT_LOG_TRACE(LOG_CTX_HAPI,"Remark rule added (%u)", qos_cfg->int_priority);
       if (hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, qos_cfg->int_priority & 0x7, 0, 0) != L7_SUCCESS ||
           hapiBroadPolicyRuleExceedActionAdd(ruleId, BROAD_ACTION_SET_USERPRIO, qos_cfg->int_priority & 0x7, 0, 0) != L7_SUCCESS)
       {
