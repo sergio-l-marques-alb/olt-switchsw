@@ -4453,7 +4453,7 @@ L7_RC_t ptin_msg_l2_macTable_get(msg_switch_mac_table_t *mac_table, int struct1o
   }
 
   /* Read table */
-  if (ptin_l2_mac_table_get(mac_table->intro.startEntryId, &numEntries, &entries_list)!=L7_SUCCESS)
+  if (ptin_l2_mac_table_get(ENDIAN_SWAP32(mac_table->intro.startEntryId), &numEntries, &entries_list)!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error getting MAC list");
     return L7_FAILURE;
