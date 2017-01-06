@@ -8533,6 +8533,23 @@ soc_do_init(int unit, int reset)
             }   
         }
 #endif /* BCM_TRIUMPH_SUPPORT */
+/* CSP#1108422: Start */
+#if defined(BCM_TRIUMPH2_SUPPORT)
+        if (SOC_IS_TRIUMPH2(unit) || SOC_IS_VALKYRIE2(unit)) {
+            if (mem == MMU_WRED_THD_0_CELLm ||
+                mem == MMU_WRED_THD_1_CELLm ||
+                mem == MMU_WRED_THD_0_PACKETm ||
+                mem == MMU_WRED_THD_1_PACKETm ||
+                mem == MMU_WRED_PORT_THD_0_CELLm ||
+                mem == MMU_WRED_PORT_THD_1_CELLm ||
+                mem == MMU_WRED_PORT_THD_0_PACKETm ||
+                mem == MMU_WRED_PORT_THD_1_PACKETm ) {
+                SOC_MEM_INFO(unit, mem).flags |= SOC_MEM_FLAG_CACHABLE;
+                SOC_MEM_INFO(unit, mem).flags |= SOC_MEM_FLAG_SER_CACHE_RESTORE;
+            }
+        }
+#endif /* BCM_TRIUMPH2_SUPPORT */
+/* CSP#1108422: End */
 #if defined(BCM_SCORPION_SUPPORT)
         if (SOC_IS_SCORPION(unit)) {
             if (mem == MMU_WRED_THD_0_CELLm ||

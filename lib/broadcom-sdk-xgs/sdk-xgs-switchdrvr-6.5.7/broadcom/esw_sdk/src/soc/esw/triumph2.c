@@ -1957,6 +1957,11 @@ _soc_triumph2_process_dual_parity_error(int unit, int group,
     return SOC_E_NONE;
 }
 
+/* CSP#1108422: Start */
+STATIC int
+_soc_triumph2_parity_mmu_clear(int unit, soc_field_t status_field);
+/* CSP#1108422: End */
+
 STATIC int
 _soc_triumph2_process_mmu_parity_error(int unit, int group,
         soc_port_t block_port, int table,
@@ -2010,8 +2015,128 @@ _soc_triumph2_process_mmu_parity_error(int unit, int group,
         SOC_CONTROL(unit)->stat.err_cfap++;
     }
 
+    /* CSP#1108422: Start */
+    if (info[table].mem == MMU_IPMC_VLAN_TBLm) {
+        _soc_ser_correct_info_t spci;
+        uint32 rval = 0;
+        memset(&spci, 0, sizeof(_soc_ser_correct_info_t));
+        spci.flags = SOC_SER_SRC_MEM | SOC_SER_REG_MEM_KNOWN;
+        spci.reg = INVALIDr;
+        spci.mem = info[table].mem;
+        spci.blk_type = SOC_BLK_MMU;
+        spci.index = index;
+
+        SOC_IF_ERROR_RETURN(READ_MISCCONFIGr(unit, &rval));
+        soc_reg_field_set(unit, MISCCONFIGr, &rval, PARITY_CHK_ENf, 0);
+        SOC_IF_ERROR_RETURN(WRITE_MISCCONFIGr(unit, rval));
+
+        (void)soc_ser_correction(unit, &spci);
+        SOC_IF_ERROR_RETURN(_soc_triumph2_parity_mmu_clear(unit, MEM1_VLAN_TBL_PAR_ERRf));
+
+        SOC_IF_ERROR_RETURN(READ_MISCCONFIGr(unit, &rval));
+        soc_reg_field_set(unit, MISCCONFIGr, &rval, PARITY_CHK_ENf, 1);
+        SOC_IF_ERROR_RETURN(WRITE_MISCCONFIGr(unit, rval));
+    }
+    /* CSP#1108422: End */
+
     return SOC_E_NONE;
 }
+
+/* CSP#1108422: Start */
+STATIC int
+_soc_triumph2_parity_process_mmuwred(int unit, _soc_parity_info_t *info,
+                                     soc_port_t block_port, char *msg)
+{
+    soc_reg_t reg;
+    uint32 addr0, addr1, entry_idx, status, rval;
+    _soc_ser_correct_info_t spci;
+
+    /*
+     * status0 (WRED_PARITY_ERROR_INFOr) is index
+     * status1 (WRED_PARITY_ERROR_BITMAPr) is table id
+     */
+    reg = info->intr_status0_reg;
+    addr0 = soc_reg_addr(unit, reg, block_port, 0);
+    SOC_IF_ERROR_RETURN(soc_reg32_read(unit, addr0, &entry_idx));
+    reg = info->intr_status1_reg;
+    addr1 = soc_reg_addr(unit, reg, block_port, 0);
+    SOC_IF_ERROR_RETURN(soc_reg32_read(unit, addr1, &status));
+    sal_memset(&spci, 0, sizeof(spci));
+    spci.mem = info->mem;
+    if (status & 0x000003) {
+        msg = "WRED_CFG_CELL";
+        spci.mem = MMU_WRED_CFG_CELLm;
+    } else if (status & 0x00000c) {
+        msg = "WRED_THD_0_CELL";
+        spci.mem = MMU_WRED_THD_0_CELLm;
+    } else if (status & 0x000030) {
+        msg = "WRED_THD_1_CELL";
+        spci.mem = MMU_WRED_THD_1_CELLm;
+    } else if (status & 0x0000c0) {
+        msg = "WRED_CFG_PACKET";
+        spci.mem = MMU_WRED_CFG_PACKETm;
+    } else if (status & 0x000300) {
+        msg = "WRED_THD_0_PACKET";
+        spci.mem = MMU_WRED_THD_0_PACKETm;
+    } else if (status & 0x000c00) {
+        msg = "WRED_THD_1_PACKET";
+        spci.mem = MMU_WRED_THD_1_PACKETm;
+    } else if (status & 0x003000) {
+        msg = "WRED_PORT_CFG_CELL";
+        spci.mem = MMU_WRED_PORT_CFG_CELLm;
+    } else if (status & 0x00c000) {
+        msg = "WRED_PORT_THD_0_CELL";
+        spci.mem = MMU_WRED_PORT_THD_0_CELLm;
+    } else if (status & 0x030000) {
+        msg = "WRED_PORT_THD_1_CELL";
+        spci.mem = MMU_WRED_PORT_THD_1_CELLm;
+    } else if (status & 0x0c0000) {
+        msg = "WRED_PORT_CFG_PACKET";
+        spci.mem = MMU_WRED_PORT_CFG_PACKETm;
+    } else if (status & 0x300000) {
+        msg = "WRED_PORT_THD_0_PACKET";
+        spci.mem = MMU_WRED_PORT_THD_0_PACKETm;
+    } else if (status & 0xc00000) {
+        msg = "WRED_PORT_THD_1_PACKET";
+        spci.mem = MMU_WRED_PORT_THD_1_PACKETm;
+    } else {
+        LOG_ERROR(BSL_LS_SOC_COMMON,
+                  (BSL_META_U(unit,
+                  "unit %d %s parity hardware inconsistency\n"),
+                  unit, msg));
+        return SOC_E_NONE;
+    }
+
+    soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
+            SOC_SWITCH_EVENT_DATA_ERROR_PARITY,
+            info->mem, info->error_field);
+    LOG_ERROR(BSL_LS_SOC_COMMON,
+              (BSL_META_U(unit,
+              "unit %d %s entry %d parity error\n"),
+              unit, msg, entry_idx));
+
+    if (spci.mem != INVALIDm) {
+        spci.flags = SOC_SER_SRC_MEM | SOC_SER_REG_MEM_KNOWN;
+        spci.reg = INVALIDr;
+        spci.blk_type = SOC_BLK_MMU;
+        spci.index = entry_idx;
+
+        SOC_IF_ERROR_RETURN(READ_MISCCONFIGr(unit, &rval));
+        soc_reg_field_set(unit, MISCCONFIGr, &rval, PARITY_CHK_ENf, 0);
+        SOC_IF_ERROR_RETURN(WRITE_MISCCONFIGr(unit, rval));
+
+        (void)soc_ser_correction(unit, &spci);
+        SOC_IF_ERROR_RETURN(soc_reg32_write(unit, addr0, 0));
+        SOC_IF_ERROR_RETURN(soc_reg32_write(unit, addr1, 0));
+        SOC_IF_ERROR_RETURN(_soc_triumph2_parity_mmu_clear(unit, WRED_PAR_ERRf));
+
+        SOC_IF_ERROR_RETURN(READ_MISCCONFIGr(unit, &rval));
+        soc_reg_field_set(unit, MISCCONFIGr, &rval, PARITY_CHK_ENf, 1);
+        SOC_IF_ERROR_RETURN(WRITE_MISCCONFIGr(unit, rval));
+    }
+    return SOC_E_NONE;
+}
+/* CSP#1108422: End */
 
 STATIC int
 _soc_triumph2_mtro_mmu_port_index_get(int instance_num, int ptr,
@@ -2399,6 +2524,8 @@ _soc_triumph2_process_parity_error(int unit)
                     }
                     break;
                     case _SOC_PARITY_INFO_TYPE_MMUWRED:
+                    /* CSP#1108422: Start */
+                    #if 0
                     /*
                      * status0 (WRED_PARITY_ERROR_INFOr) is index
                      * status1 (WRED_PARITY_ERROR_BITMAPr) is table id
@@ -2440,6 +2567,12 @@ _soc_triumph2_process_parity_error(int unit)
                     soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
                             SOC_SWITCH_EVENT_DATA_ERROR_PARITY,
                             info[table].mem, info[table].error_field);
+                    #else
+                    SOC_IF_ERROR_RETURN(
+                        _soc_triumph2_parity_process_mmuwred(unit, &info[table],
+                                                             block_port, msg));
+                    #endif
+                    /* CSP#1108422: End */
                     LOG_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s entry %d parity error\n"),
