@@ -2108,7 +2108,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   // or the receiving Ethernet ring node's node ID. An R-APS (NR) message received by this process
   // does not cause a flush FDB, however, it causes the deletion of the current (node ID, BPR) pair on
   // the receiving ring port. However, the received (node ID, BPR) pair is not stored.
-  if (remoteRequest == RReq_NR) {
+  if (remoteRequest == RReq_NR      &&      !(APS_GET_STATUS(apsStatusRx) & RReq_STAT_RB)) {
     memset(tbl_erps[erps_idx].apsNodeIdRx[apsRxPort], 0, PROT_ERPS_MAC_SIZE);
     tbl_erps[erps_idx].apsBprRx[apsRxPort] = 0;
   }
