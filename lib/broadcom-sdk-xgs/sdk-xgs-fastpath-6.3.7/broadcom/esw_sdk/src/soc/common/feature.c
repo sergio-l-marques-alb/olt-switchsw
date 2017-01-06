@@ -917,6 +917,7 @@ soc_features_bcm56634_a0(int unit, soc_feature_t feature)
     case soc_feature_mem_cache:
     case soc_feature_ipmc_remap:
     case soc_feature_proxy_port_property:
+    case soc_feature_regs_as_mem:
         return TRUE;
     case soc_feature_wlan:
     case soc_feature_egr_mirror_true:
