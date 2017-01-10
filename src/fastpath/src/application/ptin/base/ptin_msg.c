@@ -16128,7 +16128,7 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
 
   int i=0;
 
-  for (i=0; i<PTIN_IGMP_PACKAGE_BITMAP_SIZE-1;i++)
+  for (i=0; i<PTIN_IGMP_PACKAGE_BITMAP_SIZE;i++)
   {
     ENDIAN_SWAP32_MOD(msg->packageBmpList[i]);   
   }
@@ -16204,7 +16204,7 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
 
   int i=0;
 
-  for (i=0; i<PTIN_IGMP_PACKAGE_BITMAP_SIZE-1;i++)
+  for (i=0; i<PTIN_IGMP_PACKAGE_BITMAP_SIZE;i++)
   {
     ENDIAN_SWAP32_MOD(msg->packageBmpList[i]);   
   }
