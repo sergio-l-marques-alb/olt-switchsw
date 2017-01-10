@@ -1217,7 +1217,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       PT_LOG_TRACE(LOG_CTX_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
-        L7_LOG_ERROR(rv);
+        result = L7_FAILURE;
       }
 
       break;
@@ -1242,7 +1242,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       PT_LOG_TRACE(LOG_CTX_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
-         L7_LOG_ERROR(rv);
+         result = L7_FAILURE;
       }
 
       break;
@@ -1267,7 +1267,7 @@ L7_RC_t hapiBroadIntfBroadcastControlModeSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, vo
       PT_LOG_TRACE(LOG_CTX_HAPI, "rv=%d", rv);
       if (L7_BCMX_OK(rv) != L7_TRUE)
       {
-         L7_LOG_ERROR(rv);
+         result = L7_FAILURE;
       }
 
       break;
