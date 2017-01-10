@@ -6793,6 +6793,25 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
   ptin_intf.intf_type = msgStormControl->intf.intf_type;
   ptin_intf.intf_id   = msgStormControl->intf.intf_id;
 
+  //KATANA2 workaround ( KT2 doesn't support 1 pps rate limit)
+  if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F)
+  {
+    if(msgStormControl->broadcast.rate_value == 1 && msgStormControl->broadcast.rate_units == 0 /* PPS */)
+    {
+      msgStormControl->broadcast.rate_value = 2;
+      PT_LOG_NOTICE(LOG_CTX_MSG," Broadcast = %ld (%u) (changed)", msgStormControl->broadcast.rate_value,  msgStormControl->broadcast.rate_units);
+    }
+    if(msgStormControl->multicast.rate_value == 1 && msgStormControl->multicast.rate_units == 0 /* PPS */)
+    {
+      msgStormControl->multicast.rate_value = 2;
+      PT_LOG_NOTICE(LOG_CTX_MSG," Multicast = %ld (%u) (changed)", msgStormControl->multicast.rate_value,  msgStormControl->multicast.rate_units);
+    }
+    if(msgStormControl->unknown_uc.rate_value == 1 && msgStormControl->unknown_uc.rate_units == 0 /* PPS */)
+    {
+      msgStormControl->unknown_uc.rate_value = 2;
+      PT_LOG_NOTICE(LOG_CTX_MSG," UnknownUC = %ld (%u) (changed)", msgStormControl->unknown_uc.rate_value,  msgStormControl->unknown_uc.rate_units);
+    }
+  }
 
   /* -------- BROADCAST STORMCONTROL -------- */
   if (msgStormControl->mask & MSG_STORMCONTROL_MASK_BCAST)
