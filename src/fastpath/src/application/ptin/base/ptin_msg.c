@@ -7269,7 +7269,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
   ptin_intf.intf_id   = msgStormControl->intf.intf_id;
 
   //KATANA2 workaround ( KT2 doesn't support 1 pps rate limit)
-  if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F)
+  if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_TT04SXG)
   {
     if(msgStormControl->broadcast.rate_value == 1 && msgStormControl->broadcast.rate_units == 0 /* PPS */)
     {
