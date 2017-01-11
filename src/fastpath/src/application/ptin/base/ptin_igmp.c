@@ -13268,8 +13268,18 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_add(struct ptinIgmpClien
   BITMAP_BIT_SET(clientGroup->client_bmp_list, clientIdx, UINT32_BITSIZE);
 
   /* Add client to the EVC struct */
-  dl_queue_remove_head(&igmpDeviceClients.queue_free_clientDevices[PTIN_IGMP_CLIENT_PORT(ptin_port)], (dl_queue_elem_t**) &clientDevice);
-  dl_queue_add_tail(&clientGroup->queue_clientDevices, (dl_queue_elem_t*) clientDevice);
+
+  if(dl_queue_remove_head(&igmpDeviceClients.queue_free_clientDevices[PTIN_IGMP_CLIENT_PORT(ptin_port)], (dl_queue_elem_t**) &clientDevice) != NOERR)
+  {
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "Error in queue management"); 
+    return L7_NULLPTR;   
+  }
+
+  if(dl_queue_add_tail(&clientGroup->queue_clientDevices, (dl_queue_elem_t*) clientDevice) != NOERR)
+  {
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "Error in queue management"); 
+    return L7_NULLPTR; 
+  }
 
   #if 0
   /* Update number of clients */
@@ -13334,10 +13344,20 @@ static struct ptinIgmpClientDevice_s *igmp_clientDevice_remove(struct ptinIgmpCl
 
   /* Set clientIdx in the client bitmap */
   BITMAP_BIT_CLR(clientGroup->client_bmp_list, clientIdx, UINT32_BITSIZE);
+
   /* Remove node from client devices queue */
 
-  dl_queue_remove(&clientGroup->queue_clientDevices, (dl_queue_elem_t*) clientDevice_ret);
-  dl_queue_add_tail(&igmpDeviceClients.queue_free_clientDevices[PTIN_IGMP_CLIENT_PORT(ptin_port)], (dl_queue_elem_t*) clientDevice_ret);
+  if(dl_queue_remove(&clientGroup->queue_clientDevices, (dl_queue_elem_t*) clientDevice_ret) != NOERR)
+  {
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "Error in queue management");
+    return L7_NULLPTR;
+  }
+
+  if( dl_queue_add_tail(&igmpDeviceClients.queue_free_clientDevices[PTIN_IGMP_CLIENT_PORT(ptin_port)], (dl_queue_elem_t*) clientDevice_ret) != NOERR)
+  {
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "Error in queue management");
+    return L7_NULLPTR;
+  }
   #if 0
   /* Update number of clients */
   if (clientDevice_ret->client != L7_NULLPTR)
