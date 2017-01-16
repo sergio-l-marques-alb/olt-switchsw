@@ -774,8 +774,7 @@ void ptin_hal_apsPacketTx_task(void)
           /* 3 R-APS should be sent with a period of 3.33ms */
           memcpy(&requiredSleepTime, &remainingSleepTime, sizeof(requiredSleepTime));
           requiredSleepTime.tv_sec  = 0;
-          requiredSleepTime.tv_nsec = 3;
-          //requiredSleepTime.tv_nsec = 3300000;
+          requiredSleepTime.tv_nsec = 3300000;
         }
       }
 
@@ -1429,8 +1428,7 @@ L7_BOOL ptin_hal_erps_evcProtectedRemove(L7_uint root_intf, L7_uint16 vlan, L7_u
  */
 int ptin_hal_erps_rd_alarms(L7_uint8 slot, L7_uint32 index)
 {
-  return MEP_is_in_LOC(index, 0xffff, &oam) |  MEP_is_in_RDI(index, 0xffff, &oam);
-  //return MEP_is_in_LOC(index, 0xffff, &oam) ||  MEP_is_in_RDI(index, 0xffff, &oam);
+  return MEP_is_in_LOC(index, 0xffff, &oam) ||  MEP_is_in_RDI(index, 0xffff, &oam);
 }
 
 #endif  // PTIN_ENABLE_ERPS
