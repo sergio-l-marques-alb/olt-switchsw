@@ -3891,15 +3891,15 @@ void ptin_erps_task(void)
     
     ptin_prot_erps_proc();
 
-    usleep(PROT_ERPS_CALL_PROC_US);
-    //{
-    // struct timespec requiredSleepTime;
-    // struct timespec remainingSleepTime;
-    // 
-    // requiredSleepTime.tv_sec  = 0;
-    // requiredSleepTime.tv_nsec = PROT_ERPS_CALL_PROC_US*1000;
-    // nanosleep(&requiredSleepTime, &remainingSleepTime);
-    //}
+    //usleep(PROT_ERPS_CALL_PROC_US);
+    {
+     struct timespec requiredSleepTime;
+     struct timespec remainingSleepTime;
+     
+     requiredSleepTime.tv_sec  = 0;
+     requiredSleepTime.tv_nsec = PROT_ERPS_CALL_PROC_US*1000;
+     nanosleep(&requiredSleepTime, &remainingSleepTime);
+    }
 
     if (debug_APS_CCM_pktTimer) proc_runtime_meter_update(PTIN_PROC_ERPS_INSTANCE, (L7_uint32) (osapiTimeMicrosecondsGet() - time_ref));
   }

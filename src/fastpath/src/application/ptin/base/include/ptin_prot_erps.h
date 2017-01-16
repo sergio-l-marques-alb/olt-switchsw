@@ -22,8 +22,7 @@
 //-------------------------------------------------------------------------
 //  Constants Definitions
 //-------------------------------------------------------------------------
-#define PROT_ERPS_CALL_PROC_MS                10
-//#define PROT_ERPS_CALL_PROC_MS                5
+#define PROT_ERPS_CALL_PROC_MS                2
 #define PROT_ERPS_CALL_PROC_US                (1000*PROT_ERPS_CALL_PROC_MS)
 #define PROT_ERPS_WAITING_CICLES_INIT         (30000/PROT_ERPS_CALL_PROC_MS)
 #define PROT_ERPS_WAITING_CICLES_PROC         (100/PROT_ERPS_CALL_PROC_MS)
