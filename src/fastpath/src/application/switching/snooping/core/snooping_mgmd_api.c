@@ -121,7 +121,7 @@ unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t
   L7_uint16      mcastRootVlan;
   L7_RC_t        res = SUCCESS;  
 
-  PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portType:%u portList:%p noOfPorts:%p]", serviceId, portType, portList, noOfPorts);
+  //PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portType:%u portList:%p noOfPorts:%p]", serviceId, portType, portList, noOfPorts);
 
   if ( portList == L7_NULLPTR || noOfPorts == L7_NULLPTR)
   {
