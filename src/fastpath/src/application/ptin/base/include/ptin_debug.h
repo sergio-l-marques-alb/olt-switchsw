@@ -6,9 +6,19 @@
 typedef enum
 {
   PTIN_PROC_ERPS_INSTANCE=0,
+
+  PTIN_PROC_RAPS_RX_INSTANCE,
+  PTIN_PROC_RAPS_RX_INSTANCE2,
+  PTIN_PROC_RAPS_RX_INSTANCE3,
+
+  PTIN_PROC_CCM_RX_INSTANCE,
+  PTIN_PROC_CCM_RX_INSTANCE2,
+  PTIN_PROC_CCM_RX_INSTANCE3,
   PTIN_PROC_MAX
 } ptin_proc_instance_t;
 
+extern unsigned char debug_APS_CCM_pktTimer;
+extern void set_debug_APS_CCM_pktTimer(unsigned char v);
 
 /**
  * Example to use Generic DTL processor
@@ -42,7 +52,7 @@ void proc_runtime_stop(ptin_proc_instance_t instance);
  * @param msg_id : message id
  * @param time_delta : time taken to process message
  */
-extern void proc_runtime_meter_update(ptin_proc_instance_t instance, L7_uint32 time_delta);
+extern void proc_runtime_meter_update(ptin_proc_instance_t instance, L7_uint64 time_delta);
 
 /**
  * Initializes proc runtime meter 

@@ -14,6 +14,7 @@
 #include "ptin_evc.h"
 #include "ptin_intf.h"
 #include "dtl_ptin.h"
+#include "ptin_debug.h"
 
 /* R-APS MAC address */
 #define PTIN_APS_MACADDR  {0x01,0x19,0xA7,0x00,0x00,0x00}   // Correct Ring ID (last Byte) will be set on each rule/trap creation.
@@ -71,6 +72,46 @@ void ptin_oam_packet_debug( L7_BOOL enable)
 {
   ptin_oam_packet_debug_enable = enable & 1;
 }
+
+
+
+
+/*
+void time_rx_aps(unsigned char init0_sample1_printf2) {
+extern ptin_debug_pktTimer_t debug_pktTimer;
+static unsigned long m=-1, M=0;
+static unsigned long c;
+
+ switch (init0_sample1_printf2) {
+ case 1:
+     c=osapiTimeMillisecondsDiff(osapiTimeMillisecondsGet(), debug_pktTimer.time_start);
+     if (m>c) m=c;
+     if (M<c) M=c;
+     break;
+ default:
+ case 2:
+     printf("\tmin=%lu\tlast=%lu\tMax=%lu\n\r", m, c, M);
+     break;
+ }//switch
+}
+void time_rx_ccm(unsigned char init0_sample1_printf2) {
+extern ptin_debug_pktTimer_t debug_pktTimer;
+static unsigned long m=-1, M=0;
+static unsigned long c;
+
+ switch (init0_sample1_printf2) {
+ case 1:
+     c=osapiTimeMillisecondsDiff(osapiTimeMillisecondsGet(), debug_pktTimer.time_start);
+     if (m>c) m=c;
+     if (M<c) M=c;
+     break;
+ default:
+ case 2:
+     printf("\tmin=%lu\tlast=%lu\tMax=%lu\n\r", m, c, M);
+     break;
+ }//switch
+}
+*/
 
 
 /**********************
@@ -506,6 +547,10 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   L7_RC_t rc = L7_SUCCESS;
 
 
+  if (debug_APS_CCM_pktTimer) {
+      proc_runtime_stop(PTIN_PROC_RAPS_RX_INSTANCE);
+      proc_runtime_start(PTIN_PROC_RAPS_RX_INSTANCE2);
+  }
   if (ptin_oam_packet_debug_enable)
     PT_LOG_TRACE(LOG_CTX_ERPS,"Packet received at intIfNum=%u with vlanId=%u and innerVlanId=%u",
               intIfNum, vlanId, innerVlanId);
@@ -553,6 +598,11 @@ L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
 
     ptin_aps_packet_forward(erpsIdx_from_controlVidInternal[vlanId], &msg);
 
+    if (debug_APS_CCM_pktTimer) {
+        proc_runtime_stop(PTIN_PROC_RAPS_RX_INSTANCE2);
+        proc_runtime_start(PTIN_PROC_RAPS_RX_INSTANCE3);
+    }
+
     /* Send packet to queue */
     rc = osapiMessageSend(ptin_aps_packetRx_queue[erpsIdx_from_controlVidInternal[vlanId]], &msg, PTIN_APS_PDU_MSG_SIZE, L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
   }
@@ -591,6 +641,11 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
   L7_uint16 innerVlanId = pduInfo->innerVlanId;  /* Inner vlan */
 
   L7_RC_t rc = L7_SUCCESS;
+
+  if (debug_APS_CCM_pktTimer) {
+      proc_runtime_stop(PTIN_PROC_CCM_RX_INSTANCE);
+      proc_runtime_start(PTIN_PROC_CCM_RX_INSTANCE2);
+  }
 
   if (ptin_oam_packet_debug_enable)
     PT_LOG_TRACE(LOG_CTX_OAM,"Packet received at intIfNum=%u with vlanId=%u and innerVlanId=%u",
@@ -765,6 +820,9 @@ L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_req, L7_uint
       *aps_status         = aps_frame->aspmsg.status;
       memcpy(aps_nodeid,  aps_frame->aspmsg.nodeid, L7_ENET_MAC_ADDR_LEN);
       *aps_rxport         = msg.intIfNum;
+
+      //time_rx_aps(1);
+      if (debug_APS_CCM_pktTimer) proc_runtime_stop(PTIN_PROC_RAPS_RX_INSTANCE3);
 
       return L7_SUCCESS;
 

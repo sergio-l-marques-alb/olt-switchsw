@@ -1520,7 +1520,7 @@ L7_RC_t sysapiCpuUtilTaskStart ()
                                             2,
                                             &argv,
                                             L7_DEFAULT_STACK_SIZE,
-                                            1,
+                                            90, //1,                     //PTIn modified
                                             1);
 
     if ( cpuUtilMonitorTaskPtr == L7_ERROR )

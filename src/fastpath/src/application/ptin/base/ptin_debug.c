@@ -28,11 +28,11 @@
 typedef struct
 {
   uint32 number_of_calls;
-  uint32 total_runtime;
-  uint32 last_runtime;
-  uint32 min_runtime;
-  uint32 max_runtime;
-  uint32 average_runtime;
+  uint64 total_runtime;
+  uint64 last_runtime;
+  uint64 min_runtime;
+  uint64 max_runtime;
+  uint64 average_runtime;
 
   L7_uint64 time_ref;
 } struct_runtime_t;
@@ -263,6 +263,7 @@ void ptin_debug(void)
 #if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_OLT1T0 || PTIN_BOARD == PTIN_BOARD_TT04SXG)
   printf("  cpld_spi_read_debug <addr>                                      - Read CPLD register using SPI\r\n");
   printf("  cpld_spi_write_debug <addr> <value>                             - Write CPLD register using SPI\r\n");
+  printf("  set_debug_APS_CCM_pktTimer <0/1>                                - (De)activate rx APS/CCM packets' timing measurements");
 #endif
   printf("\r\n");
   printf("  logger_help                                                     - displays logger help\r\n");
@@ -361,6 +362,9 @@ L7_uint64 hapiBroadReceice_pppoe_count  = 0;
 
 /* Measure of packet processing time */
 ptin_debug_pktTimer_t debug_pktTimer;
+
+unsigned char debug_APS_CCM_pktTimer = 0;
+void set_debug_APS_CCM_pktTimer(unsigned char v) {debug_APS_CCM_pktTimer=v;}
 
 void ptin_igmptimer_clear(void)
 {
@@ -514,6 +518,12 @@ void proc_runtime_start(ptin_proc_instance_t instance)
 {
   L7_uint64 time_now;
   struct_runtime_t *proc_runtime_ptr;
+  static char _1st_time=1;
+
+  if (_1st_time) {
+      for (time_now=0; time_now<PTIN_PROC_MAX; time_now++) proc_runtime_meter_init(time_now);
+      _1st_time=0;
+  }
 
   if (instance >= PTIN_PROC_MAX)
     return;
@@ -542,9 +552,15 @@ void proc_runtime_stop(ptin_proc_instance_t instance)
 
   proc_runtime_ptr = &proc_runtime[instance];
 
-  time_now = osapiTimeMicrosecondsGet();
+  time_now = osapiTimeMicrosecondsGet(); 
 
-  proc_runtime_meter_update(instance, time_now - proc_runtime_ptr->time_ref);
+  if (proc_runtime_ptr->time_ref != (L7_uint64)-1 &&
+      proc_runtime_ptr->time_ref <= time_now)
+  {
+    proc_runtime_meter_update(instance, time_now - proc_runtime_ptr->time_ref);
+  }
+
+  proc_runtime_ptr->time_ref = (L7_uint64)-1;
 }
 
 /**
@@ -553,7 +569,7 @@ void proc_runtime_stop(ptin_proc_instance_t instance)
  * @param msg_id : message id
  * @param time_delta : time taken to process message
  */
-void proc_runtime_meter_update(ptin_proc_instance_t instance, L7_uint32 time_delta)
+void proc_runtime_meter_update(ptin_proc_instance_t instance, L7_uint64 time_delta)
 {
   struct_runtime_t *proc_runtime_ptr;
 
@@ -572,15 +588,16 @@ void proc_runtime_meter_update(ptin_proc_instance_t instance, L7_uint32 time_del
   /* Update database */
   proc_runtime_ptr->number_of_calls++;
   proc_runtime_ptr->last_runtime    = time_delta;
-  proc_runtime_ptr->total_runtime  += time_delta;
+  proc_runtime_ptr->total_runtime  += (L7_uint64) time_delta;
 
-  if ( (proc_runtime_ptr->number_of_calls == 1) || (proc_runtime_ptr->min_runtime == 0) || (time_delta < proc_runtime_ptr->min_runtime) )
+  if ( /*1==proc_runtime_ptr->number_of_calls || 0==proc_runtime_ptr->min_runtime ||*/ time_delta<(proc_runtime_ptr->min_runtime) )
     proc_runtime_ptr->min_runtime = time_delta;
 
   if ( time_delta > proc_runtime_ptr->max_runtime )
     proc_runtime_ptr->max_runtime = time_delta;
 
-  proc_runtime_ptr->average_runtime = proc_runtime_ptr->total_runtime/proc_runtime_ptr->number_of_calls;
+  proc_runtime_ptr->average_runtime = //(L7_uint32)
+                                       (proc_runtime_ptr->total_runtime/proc_runtime_ptr->number_of_calls);
 }
 
 /**
@@ -590,13 +607,22 @@ void proc_runtime_meter_update(ptin_proc_instance_t instance, L7_uint32 time_del
  */
 void proc_runtime_meter_init(ptin_proc_instance_t instance)
 {
-  if (instance >= PTIN_PROC_MAX)
+  L7_uint i;
+
+  if (instance < PTIN_PROC_MAX)
   {
-    memset(proc_runtime,0x00,sizeof(proc_runtime));
+    memset(&proc_runtime[instance], 0x00 ,sizeof(struct_runtime_t));
+    proc_runtime[instance].time_ref = (L7_uint64)-1;
+    proc_runtime[instance].min_runtime = -1;
   }
   else
   {
-    memset(&proc_runtime[instance],0x00,sizeof(struct_runtime_t));
+    for (i = 0; i < PTIN_PROC_MAX; i++)
+    {
+      memset(&proc_runtime[instance], 0x00 ,sizeof(struct_runtime_t));
+      proc_runtime[instance].time_ref = (L7_uint64)-1;
+      proc_runtime[instance].min_runtime = -1;
+    }
   }
 }
 
@@ -615,7 +641,7 @@ void proc_runtime_meter_print(void)
   {
     if (proc_runtime[i].number_of_calls==0)  continue;
 
-    printf("|   0x%04X   | %10u | %10u us | %10u us | %10u us | %10u us | %10u us |\r\n",
+    printf("|   0x%04X   | %10u | %10llu us | %10llu us | %10llu us | %10llu us | %10llu us |\r\n",
            i,
            proc_runtime[i].number_of_calls,
            proc_runtime[i].total_runtime,

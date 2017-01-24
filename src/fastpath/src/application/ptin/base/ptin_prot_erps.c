@@ -3891,9 +3891,17 @@ void ptin_erps_task(void)
     
     ptin_prot_erps_proc();
 
-    usleep(PROT_ERPS_CALL_PROC_US);
+    //usleep(PROT_ERPS_CALL_PROC_US);
+    {
+     struct timespec requiredSleepTime;
+     struct timespec remainingSleepTime;
+     
+     requiredSleepTime.tv_sec  = 0;
+     requiredSleepTime.tv_nsec = PROT_ERPS_CALL_PROC_US*1000;
+     nanosleep(&requiredSleepTime, &remainingSleepTime);
+    }
 
-    proc_runtime_meter_update(PTIN_PROC_ERPS_INSTANCE, (L7_uint32) (osapiTimeMicrosecondsGet() - time_ref));
+    if (debug_APS_CCM_pktTimer) proc_runtime_meter_update(PTIN_PROC_ERPS_INSTANCE, (L7_uint32) (osapiTimeMicrosecondsGet() - time_ref));
   }
 }
 
@@ -3918,8 +3926,8 @@ L7_RC_t ptin_prot_erps_init(void)
   /* Create task for ERProtection State Machine */
   erps_TaskId = osapiTaskCreate("ptin_prot_erps_task", ptin_erps_task, 0, 0,
                                 L7_DEFAULT_STACK_SIZE,
-                                11,
-                                0);
+                                16,
+                                1);
 
   if (erps_TaskId == L7_ERROR) {
     PT_LOG_FATAL(LOG_CTX_CNFGR, "Could not create task ptin_prot_erps_task");

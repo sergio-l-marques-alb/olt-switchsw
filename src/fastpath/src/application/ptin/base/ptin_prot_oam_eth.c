@@ -23,6 +23,7 @@
 #include "ptin_xlate_api.h"
 #include "ptin_fpga_api.h"
 #include "ptin_control.h"
+#include "ptin_debug.h"
 
 #include <fdb_api.h>
 #include <usmdb_util_api.h>
@@ -639,12 +640,19 @@ void ptin_oam_eth_task(void)
                    //if (vid>4095) vid=(msg.payload[i+2]<<8 | msg.payload[i+3])&0xfff;
                    break;
                case OAM_ETH_TYPE:
+                   if (debug_APS_CCM_pktTimer) {
+                       proc_runtime_stop(PTIN_PROC_CCM_RX_INSTANCE2);
+                       proc_runtime_start(PTIN_PROC_CCM_RX_INSTANCE3);
+                   }
+
                    {
                     int r;
 
                     if ((r=rx_oam_pckt(ptin_port, &msg.payload[i], msg.payloadLen-i, /*msg.vlanId*/ newOuterVlanId, msg.payload, &msg.payload[L7_MAC_ADDR_LEN], &oam, msg.timestamp)))
                         PT_LOG_INFO(LOG_CTX_OAM,"rx_oam_pckt()==%d", r);
                    }
+                   //time_rx_ccm(1);
+                   if (debug_APS_CCM_pktTimer) proc_runtime_stop(PTIN_PROC_CCM_RX_INSTANCE3);
                    goto _ptin_oam_eth_task1;
                default:
                    PT_LOG_INFO(LOG_CTX_OAM,"but unexpected ETH type");
@@ -775,8 +783,8 @@ L7_RC_t ptin_oam_eth_init(void)
 
   oam_eth_TaskId = osapiTaskCreate("ptin_oam_eth_task", ptin_oam_eth_task, 0, 0,
                                 L7_DEFAULT_STACK_SIZE,
-                                9,
-                                0);
+                                8,
+                                1);
 
   if (oam_eth_TaskId == L7_ERROR) {
     PT_LOG_FATAL(LOG_CTX_CNFGR, "Could not create task ptin_oam_eth_task");

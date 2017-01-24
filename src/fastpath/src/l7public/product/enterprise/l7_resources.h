@@ -156,7 +156,8 @@
 */
 #define L7_DEFAULT_STACK_SIZE                           (1024 * 32)
 #define L7_DEFAULT_TASK_SLICE                                1
-#define L7_DEFAULT_TASK_PRIORITY                           255
+//#define L7_DEFAULT_TASK_PRIORITY                           255
+#define L7_DEFAULT_TASK_PRIORITY                           254      /*PTIn modified*/
 #define L7_MEDIUM_TASK_PRIORITY                            100
 #define L7_TASK_PRIORITY_LEVEL(x)                           (x)
 /* Maximum number of records in the buffered log. */
