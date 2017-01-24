@@ -194,8 +194,6 @@ unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, 
 {
   L7_uint8 port_type;
 
-  PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u portType:%u]", serviceId, portId, *portType);
-
   if (SUCCESS != ptin_evc_port_type_get(serviceId, portId, &port_type))
   {
     PT_LOG_ERR(LOG_CTX_IGMP,"Unknown port type");
@@ -204,14 +202,12 @@ unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, 
 
   if (port_type == PTIN_EVC_INTF_LEAF)
   {
-    PT_LOG_DEBUG(LOG_CTX_IGMP, "Port is leaf");
     *portType = PTIN_MGMD_PORT_TYPE_LEAF;
   }
   else
   {
     if (port_type == PTIN_EVC_INTF_ROOT)
     {
-      PT_LOG_DEBUG(LOG_CTX_IGMP, "Port is root");
       *portType = PTIN_MGMD_PORT_TYPE_ROOT;
     }
     else
@@ -266,7 +262,7 @@ unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int cl
 
 unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int *noOfClients)
 {
-  PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u clientList:%p noOfClients:%p]", serviceId, portId, clientList, noOfClients);
+  //PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u clientList:%p noOfClients:%p]", serviceId, portId, clientList, noOfClients);
 
   memset(clientList->value, 0x00, PTIN_MGMD_CLIENT_BITMAP_SIZE * sizeof(uint8));
   

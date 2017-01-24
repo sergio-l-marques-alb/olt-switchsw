@@ -9009,7 +9009,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
     avl_infoData->pClientGroup = clientGroup;
 
     /* Removed not necessary routines to managem device clients */
-    #if 1
+    #if 0
     if (clientGroup != L7_NULLPTR)
     {
       /* Do not clear igmp statistics */
@@ -11081,6 +11081,8 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   }                                              
 
   L7_uint16 noOfClients=igmp_clientDevice_get_devices_number(clientGroup);
+
+  PT_LOG_DEBUG(LOG_CTX_IGMP,  "  noOfClients %u", noOfClients);
   if (noOfClients>0) {
     L7_uint16 noOfClientsFound=0;
     ptinIgmpClientDataKey_t     avl_key;
@@ -11161,10 +11163,10 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
         statistics->v3.groupRecords.toExcludeRx        += mgmdStatsResMsg.v3.groupRecords.toExcludeRx;
         statistics->v3.groupRecords.toExcludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.toExcludeInvalidRx;                                  
 
-        statistics->query.generalQueryTx               += mgmdStatsResMsg.query.generalQueryTx;     
+        statistics->query.generalQueryTx               += mgmdStatsResMsg.query.generalQueryTx;             
         statistics->query.generalQueryRx               += mgmdStatsResMsg.query.generalQueryRx;
-        statistics->query.groupQueryTx                 += mgmdStatsResMsg.query.groupQueryTx;       
-        statistics->query.groupQueryRx                 += mgmdStatsResMsg.query.groupQueryRx;  
+        statistics->query.groupQueryTx                 += mgmdStatsResMsg.query.groupQueryTx; 
+        statistics->query.groupQueryRx                 += mgmdStatsResMsg.query.groupQueryRx;         
         statistics->query.sourceQueryTx                += mgmdStatsResMsg.query.sourceQueryTx;      
         statistics->query.sourceQueryRx                += mgmdStatsResMsg.query.sourceQueryRx; 
 
@@ -13190,7 +13192,6 @@ static L7_uint8 igmp_clientDevice_get_devices_number(struct ptinIgmpClientGroupI
     /* check if the device client belongs to the desired group client */
     if(device_client->ptin_port == clientGroup->ptin_port && device_client->uni_ivid == clientGroup->uni_ivid && device_client->uni_ovid == clientGroup->uni_ovid)
     {
-
       i_client++;
     }
 
@@ -15950,9 +15951,12 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
 {
   L7_uint32                       ptin_port;  
   L7_uint32                       client_idx;
-  L7_uint32                       clientExtendedEvcId;
+  //L7_uint32                       clientExtendedEvcId;
   ptinIgmpGroupClientInfoData_t  *clientGroup;
-  ptinIgmpDeviceClient_t         *client_device;          
+  ptinIgmpDeviceClient_t         *client_device;
+  ptinIgmpClientDataKey_t     avl_key;
+  ptinIgmpClientInfoData_t    *device_client;
+  L7_uint32 deviceClientId;          
 
   if (intIfNum==0 || intIfNum >= L7_MAX_INTERFACE_COUNT)
   {
@@ -15994,22 +15998,16 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
     {
       continue;
     }
-       
+          
     clientGroup   = igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup;
-    client_device = L7_NULLPTR;       
-
-    /********************************************************************/
-
-    L7_uint16 nClients=igmp_clientDevice_get_devices_number(clientGroup);
-
-    PT_LOG_DEBUG(LOG_CTX_IGMP,  "  noOfClients %u", nClients);
-
-    if (nClients>0)
+    client_device = L7_NULLPTR;
+    
+    if (igmpDeviceClients.number_of_clients == 0)
     {
-      ptinIgmpClientDataKey_t     avl_key;
-      ptinIgmpClientInfoData_t    *device_client;
-      L7_uint32 deviceClientId;
-
+      continue;
+    }
+                    
+    /********************************************************************/    
       /* Run all cells in AVL tree */
       memset(&avl_key, 0x00, sizeof(ptinIgmpClientDataKey_t));
 
@@ -16031,35 +16029,26 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
             continue;
           }
 
-#if (MC_CLIENT_OUTERVLAN_SUPPORTED)     
-          if (L7_SUCCESS != ptin_evc_get_evcIdfromIntVlan(clientGroup->igmpClientDataKey.outerVlan,&clientExtendedEvcId))
-          {
-            PT_LOG_ERR(LOG_CTX_IGMP, "Unable to get external EVC Id for outerVlan:%u", clientGroup->igmpClientDataKey.outerVlan);        
-            continue;
-          }
-
-          if (clientExtendedEvcId != extendedEvcId)
-          {
-            continue;
-          }
-#endif
           PTIN_CLIENT_SET_MASKBIT(clientBmpPtr, deviceClientId);
           (*noOfClients)++;
-           
+                
+          #if 0
           if (ptin_debug_igmp_snooping)
           {
             PT_LOG_TRACE(LOG_CTX_IGMP,"Client Found [extendedEvcId:%u ptin_port:%u clientId:%u]",extendedEvcId, ptin_port, deviceClientId);
           }
+          #endif
         }
      }    
     /******************************************************/
-    }
   }
 
+  #if 0
   if (ptin_debug_igmp_snooping)
   {
     PT_LOG_TRACE(LOG_CTX_IGMP,"Number of Clients found [extendedEvcId:%u ptin_port:%u noOfClients:%u] %p",extendedEvcId, ptin_port, *noOfClients, clientBmpPtr);
   }
+  #endif
 
 #if 0
   L7_uint                        i_client = 0;            
