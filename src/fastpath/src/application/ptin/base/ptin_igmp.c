@@ -15983,7 +15983,7 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
     return L7_FAILURE;
   }
 
-  osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
+  //osapiSemaTake(ptin_igmp_clients_sem, L7_WAIT_FOREVER);
 
   for ( client_idx = 0; client_idx < PTIN_IGMP_CLIENTIDX_MAX; client_idx++)
   {
@@ -16006,6 +16006,10 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
     {
       continue;
     }
+    if (igmpDeviceClients.number_of_clients_per_intf[PTIN_IGMP_CLIENT_PORT(ptin_port)] == 0)
+    {
+      continue;
+    }
                     
     /********************************************************************/    
       /* Run all cells in AVL tree */
@@ -16015,9 +16019,18 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
               avlSearchLVL7(&igmpDeviceClients.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
              ) != L7_NULLPTR )
       {
+        if ( (*noOfClients) == igmpDeviceClients.number_of_clients_per_intf[PTIN_IGMP_CLIENT_PORT(ptin_port)])
+        {
+          break;
+        }
+        if ( (*noOfClients) == igmpDeviceClients.number_of_clients)
+        {
+          break;
+        }
+
         /* Prepare next key */
         memcpy(&avl_key, &device_client->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
-
+ 
         if( device_client->igmpClientDataKey.ptin_port == clientGroup->igmpClientDataKey.ptin_port &&
             device_client->igmpClientDataKey.innerVlan == clientGroup->igmpClientDataKey.innerVlan &&
             device_client->igmpClientDataKey.outerVlan == clientGroup->igmpClientDataKey.outerVlan )
@@ -16034,8 +16047,8 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
                 
           #if 0
           if (ptin_debug_igmp_snooping)
-          {
-            PT_LOG_TRACE(LOG_CTX_IGMP,"Client Found [extendedEvcId:%u ptin_port:%u clientId:%u]",extendedEvcId, ptin_port, deviceClientId);
+          //{
+            //PT_LOG_TRACE(LOG_CTX_IGMP,"Client Found [extendedEvcId:%u ptin_port:%u clientId:%u]",extendedEvcId, ptin_port, deviceClientId);
           }
           #endif
         }
@@ -16152,7 +16165,7 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
   if (ptin_debug_igmp_snooping)
     PT_LOG_TRACE(LOG_CTX_IGMP,"Done!");
 #endif
-  osapiSemaGive(ptin_igmp_clients_sem);
+  //osapiSemaGive(ptin_igmp_clients_sem);
 
   return L7_SUCCESS;
 }
