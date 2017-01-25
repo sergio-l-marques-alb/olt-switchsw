@@ -152,7 +152,7 @@ extern int _cpu_pci_register(int d);
 
 #define MAX_NUM_DEVICES (SOC_SAND_MAX_DEVICE)
 #define MAX_COS         (8)
-#define MAX_MODIDS_PER_DEVICE 2
+#define MAX_MODIDS_PER_DEVICE 1	/* PTin modified (2) */
 #define MODIDS_PER_DEVICE (g_dii.is_symmetric ? MAX_MODIDS_PER_DEVICE : 1)
 #define OLP_DEFAULT_CORE 0
 #define CORE_ID2INDEX(core_id) ((core_id == BCM_CORE_ALL) ? 0 : core_id)
