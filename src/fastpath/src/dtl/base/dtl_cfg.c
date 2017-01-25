@@ -217,8 +217,8 @@ L7_RC_t dtlStartTask(L7_uint32 *taskId)
 
   *taskId = osapiTaskCreate("dtlTask",dtlTask,0,L7_NULLPTR,
                             dtlSidTaskStackSizeGet(),
-                            dtlSidTaskPriorityGet(),
-                            dtlSidTaskSliceGet());
+                            dtlSidTaskPriorityGet(),    //80,//dtlSidTaskPriorityGet(),     //PTIn modified
+                            dtlSidTaskSliceGet());  //1);//dtlSidTaskSliceGet());
 
   if (*taskId == L7_ERROR)
   {

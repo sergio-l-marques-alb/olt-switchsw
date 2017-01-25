@@ -98,6 +98,11 @@ extern void *ptin_ccm_packetRx_queue;
  ******************************************************************/
 
 
+//extern void time_rx_aps(unsigned char init0_sample1_printf2);
+//extern void time_rx_ccm(unsigned char init0_sample1_printf2);
+
+
+
 /**
  * Configure APS packet trapping in HW
  * 
