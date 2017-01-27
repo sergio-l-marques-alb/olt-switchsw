@@ -245,6 +245,7 @@ typedef struct
   L7_uint16                      number_of_clients_per_intf[PTIN_SYSTEM_N_INTERF];   /* Number of clients per interface for one IGMP instance */
 
   ptinIgmpDeviceClient_t         client_devices[PTIN_IGMP_INTFPORT_MAX][PTIN_IGMP_CLIENTIDX_MAX];
+  L7_uchar8                      client_bmp[PTIN_IGMP_INTFPORT_MAX][PTIN_MGMD_CLIENT_BITMAP_SIZE];
 
   /* Removed not necessary routines to managem device clients */
   #if 0
@@ -259,6 +260,7 @@ typedef struct
   L7_uint32                      appTimerBufferPoolId;
   handle_list_t                 *appTimer_handle_list;
   void                          *appTimer_handleListMemHndl;
+
 } ptinIgmpDeviceClients_t;
 
 /******************************* 
@@ -273,6 +275,7 @@ ptinIgmpGroupClients_t igmpGroupClients;
 
 /* Unified list with all clients (to be added dynamically) */
 ptinIgmpDeviceClients_t igmpDeviceClients;
+
 
 /******************************* 
  * MULTI MULTICAST FEATURE
@@ -13587,6 +13590,8 @@ static void igmp_clientIndex_mark(L7_uint ptin_port, L7_uint client_idx, ptinIgm
   }
 
   igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client = infoData;
+
+  PTIN_CLIENT_SET_MASKBIT(igmpDeviceClients.client_bmp[PTIN_IGMP_CLIENT_PORT(ptin_port)], infoData->deviceClientId);
 }
 
 /**
@@ -13632,6 +13637,7 @@ static void igmp_clientIndex_unmark(L7_uint ptin_port, L7_uint client_idx)
     }
   }
 
+  PTIN_CLIENT_UNSET_MASKBIT(igmpDeviceClients.client_bmp[PTIN_IGMP_CLIENT_PORT(ptin_port)], igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->deviceClientId);
   igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client = L7_NULLPTR;
 }
 
@@ -15954,9 +15960,8 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
   //L7_uint32                       clientExtendedEvcId;
   ptinIgmpGroupClientInfoData_t  *clientGroup;
   ptinIgmpDeviceClient_t         *client_device;
-  ptinIgmpClientDataKey_t     avl_key;
-  ptinIgmpClientInfoData_t    *device_client;
-  L7_uint32 deviceClientId;          
+  //ptinIgmpClientDataKey_t     avl_key;
+  //ptinIgmpClientInfoData_t    *device_client;     
 
   if (intIfNum==0 || intIfNum >= L7_MAX_INTERFACE_COUNT)
   {
@@ -16010,40 +16015,31 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
     {
       continue;
     }
-                    
+     
+    //clientBmpPtr = igmpDeviceClients.client_bmp[PTIN_IGMP_CLIENT_PORT(ptin_port)];
+
+    memcpy(clientBmpPtr, igmpDeviceClients.client_bmp[PTIN_IGMP_CLIENT_PORT(ptin_port)], (PTIN_MGMD_CLIENT_BITMAP_SIZE * sizeof(L7_uint8)) );
+
+  }
+  (*noOfClients) = (*noOfClients) + igmpDeviceClients.number_of_clients_per_intf[ptin_port]; 
+    #if 0          
     /********************************************************************/    
       /* Run all cells in AVL tree */
       memset(&avl_key, 0x00, sizeof(ptinIgmpClientDataKey_t));
 
-      while ( ( device_client = (ptinIgmpClientInfoData_t *)
-              avlSearchLVL7(&igmpDeviceClients.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+      if ( ( device_client = (ptinIgmpClientInfoData_t *)
+              avlSearchLVL7(&igmpDeviceClients.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_EXACT)
              ) != L7_NULLPTR )
-      {
-        if ( (*noOfClients) == igmpDeviceClients.number_of_clients_per_intf[PTIN_IGMP_CLIENT_PORT(ptin_port)])
-        {
-          break;
-        }
-        if ( (*noOfClients) == igmpDeviceClients.number_of_clients)
-        {
-          break;
-        }
+     {
+       
 
-        /* Prepare next key */
-        memcpy(&avl_key, &device_client->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
- 
-        if( device_client->igmpClientDataKey.ptin_port == clientGroup->igmpClientDataKey.ptin_port &&
-            device_client->igmpClientDataKey.innerVlan == clientGroup->igmpClientDataKey.innerVlan &&
-            device_client->igmpClientDataKey.outerVlan == clientGroup->igmpClientDataKey.outerVlan )
-        {
-          deviceClientId  = device_client->deviceClientId;
+         if (  PTIN_CLIENT_IS_MASKBITSET(clientBmpPtr, device_client->deviceClientId) == L7_TRUE )
+         {
+           continue;
+         }
 
-          if (  PTIN_CLIENT_IS_MASKBITSET(clientBmpPtr, deviceClientId) == L7_TRUE )
-          {
-            continue;
-          }
-
-          PTIN_CLIENT_SET_MASKBIT(clientBmpPtr, deviceClientId);
-          (*noOfClients)++;
+         PTIN_CLIENT_SET_MASKBIT(clientBmpPtr, device_client->deviceClientId);
+         (*noOfClients)++;
                 
           #if 0
           if (ptin_debug_igmp_snooping)
@@ -16051,17 +16047,10 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
             //PT_LOG_TRACE(LOG_CTX_IGMP,"Client Found [extendedEvcId:%u ptin_port:%u clientId:%u]",extendedEvcId, ptin_port, deviceClientId);
           }
           #endif
-        }
+        
      }    
     /******************************************************/
-  }
-
-  #if 0
-  if (ptin_debug_igmp_snooping)
-  {
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Number of Clients found [extendedEvcId:%u ptin_port:%u noOfClients:%u] %p",extendedEvcId, ptin_port, *noOfClients, clientBmpPtr);
-  }
-  #endif
+    #endif
 
 #if 0
   L7_uint                        i_client = 0;            
