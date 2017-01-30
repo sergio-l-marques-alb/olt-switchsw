@@ -188,11 +188,13 @@ typedef struct ptinIgmpClientGroupInfoData_s
   L7_uint16                   uni_ovid;               /* Ext. OVID to be used for packet transmission */
   L7_uint16                   uni_ivid;               /* Ext. IVID to be used for packet transmission */
   L7_uint8                    ptin_port;              /* Port */
+  L7_uint32                   client_bmp[PTIN_IGMP_CLIENT_BITMAP_SIZE];
   L7_uint32                   client_bmp_list[PTIN_IGMP_CLIENT_BITMAP_SIZE];  /* Clients (children) bitmap (only for one interface) */
   dl_queue_t                  queue_clientDevices;
   ptin_IGMP_Statistics_t      stats_client;
   L7_uint8                    onuId;
   L7_uint8                    groupClientId;
+  L7_uint16                   number_of_clients;
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
   ptinIgmpAdmissionControl_t  admissionControl;   
 #endif
@@ -13588,10 +13590,12 @@ static void igmp_clientIndex_mark(L7_uint ptin_port, L7_uint client_idx, ptinIgm
         igmpDeviceClients.number_of_clients_per_intf[ptin_port]++;
     }
   }
-
   igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client = infoData;
+  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->client_bmp[igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients] = infoData->deviceClientId;
+  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients = igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients + 1;
+  //PTIN_CLIENT_SET_MASKBIT(igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->client_bmp, infoData->deviceClientId);
+  //PTIN_CLIENT_SET_MASKBIT(igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->client_bmp, infoData->deviceClientId);
 
-  PTIN_CLIENT_SET_MASKBIT(igmpDeviceClients.client_bmp[PTIN_IGMP_CLIENT_PORT(ptin_port)], infoData->deviceClientId);
 }
 
 /**
@@ -15957,7 +15961,7 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
 {
   L7_uint32                       ptin_port;  
   L7_uint32                       client_idx;
-  //L7_uint32                       clientExtendedEvcId;
+  L7_uint32                       clientExtendedEvcId,i;
   ptinIgmpGroupClientInfoData_t  *clientGroup;
   ptinIgmpDeviceClient_t         *client_device;
   //ptinIgmpClientDataKey_t     avl_key;
@@ -16006,7 +16010,17 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
           
     clientGroup   = igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup;
     client_device = L7_NULLPTR;
-    
+
+    if (L7_SUCCESS != ptin_evc_get_evcIdfromIntVlan(clientGroup->igmpClientDataKey.outerVlan,&clientExtendedEvcId))
+    {
+      continue;
+    }
+
+    if (clientExtendedEvcId != extendedEvcId)
+    {
+       continue;
+    }
+   
     if (igmpDeviceClients.number_of_clients == 0)
     {
       continue;
@@ -16015,13 +16029,13 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
     {
       continue;
     }
+    for(i=0; i < igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients;i++)
+    {
+      PTIN_CLIENT_SET_MASKBIT(clientBmpPtr, igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->client_bmp[i]);
+      (*noOfClients)++;
+    }
      
-    //clientBmpPtr = igmpDeviceClients.client_bmp[PTIN_IGMP_CLIENT_PORT(ptin_port)];
-
-    memcpy(clientBmpPtr, igmpDeviceClients.client_bmp[PTIN_IGMP_CLIENT_PORT(ptin_port)], (PTIN_MGMD_CLIENT_BITMAP_SIZE * sizeof(L7_uint8)) );
-
   }
-  (*noOfClients) = (*noOfClients) + igmpDeviceClients.number_of_clients_per_intf[ptin_port]; 
     #if 0          
     /********************************************************************/    
       /* Run all cells in AVL tree */
