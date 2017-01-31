@@ -11371,14 +11371,14 @@ L7_RC_t ptin_msg_static_channel_remove(msg_MCStaticChannel_t *channel, L7_uint16
     memset(&channel_list, 0x00, sizeof(channel_list));
 
     channel_list.SlotId=channel[i].SlotId;
-    channel_list.evcid_mc=staticGroup.serviceId;
+    channel_list.evcid_mc=channel[i].evc_id;
 
     channel_list.channel_dstIp.family=PTIN_AF_INET;
-    channel_list.channel_dstIp.addr.ipv4=staticGroup.groupIp;
+    channel_list.channel_dstIp.addr.ipv4=channel[i].channelIp.s_addr;
     channel_list.channel_dstmask=32;//32 Bits of Mask
 
     channel_list.channel_srcIp.family=PTIN_AF_INET;
-    channel_list.channel_srcIp.addr.ipv4 = staticGroup.sourceIp;
+    channel_list.channel_srcIp.addr.ipv4 = channel[i].sourceIp.s_addr;
     channel_list.channel_srcmask=32;
 
     channel_list.channelBandwidth = channel[i].channelBandwidth;
