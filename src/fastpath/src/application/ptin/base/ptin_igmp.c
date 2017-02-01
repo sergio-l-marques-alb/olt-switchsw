@@ -16048,7 +16048,7 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
     }
 #endif
 
-#if (PTIN_BOARD == PTIN_BOARD_TG16G)
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_OLT1T0 || PTIN_BOARD == PTIN_BOARD_TA48GE)
      memset(&avl_key, 0x00, sizeof(ptinIgmpClientDataKey_t));
 
       while ( ( device_client = (ptinIgmpClientInfoData_t *)
