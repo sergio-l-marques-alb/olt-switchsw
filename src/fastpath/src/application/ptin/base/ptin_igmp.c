@@ -188,7 +188,7 @@ typedef struct ptinIgmpClientGroupInfoData_s
   L7_uint16                   uni_ovid;               /* Ext. OVID to be used for packet transmission */
   L7_uint16                   uni_ivid;               /* Ext. IVID to be used for packet transmission */
   L7_uint8                    ptin_port;              /* Port */
-  L7_uint32                   client_bmp[PTIN_IGMP_CLIENT_BITMAP_SIZE];
+  L7_uint8                    client_bmp[PTIN_IGMP_CLIENT_BITMAP_SIZE];
   L7_uint32                   client_bmp_list[PTIN_IGMP_CLIENT_BITMAP_SIZE];  /* Clients (children) bitmap (only for one interface) */
   dl_queue_t                  queue_clientDevices;
   ptin_IGMP_Statistics_t      stats_client;
@@ -247,8 +247,6 @@ typedef struct
   L7_uint16                      number_of_clients_per_intf[PTIN_SYSTEM_N_INTERF];   /* Number of clients per interface for one IGMP instance */
 
   ptinIgmpDeviceClient_t         client_devices[PTIN_IGMP_INTFPORT_MAX][PTIN_IGMP_CLIENTIDX_MAX];
-  L7_uchar8                      client_bmp[PTIN_IGMP_INTFPORT_MAX][PTIN_MGMD_CLIENT_BITMAP_SIZE];
-
   /* Removed not necessary routines to managem device clients */
   #if 0
   dl_queue_t                     queue_free_clientDevices[PTIN_IGMP_INTFPORT_MAX]; /* Queue with free (device) clients */
@@ -273,7 +271,7 @@ typedef struct
 ptinIgmpClientGroupsSnapshotAvlTree_t igmpSnapshotClientGroups;
 
 /* Client Groups (to be added manually) */
-ptinIgmpGroupClients_t igmpGroupClients;
+static ptinIgmpGroupClients_t igmpGroupClients;
 
 /* Unified list with all clients (to be added dynamically) */
 ptinIgmpDeviceClients_t igmpDeviceClients;
@@ -4472,6 +4470,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
     avl_infoData->ptin_port = ptin_port;
     memset(avl_infoData->client_bmp_list, 0x00, sizeof(avl_infoData->client_bmp_list));
 
+      
     /* Initialize client devices queue */
     dl_queue_init(&avl_infoData->queue_clientDevices);
 
@@ -8839,6 +8838,10 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
 
     /* Get client group */
     clientGroup = avlSearchLVL7( &(avl_tree_group->igmpClientsAvlTree), (void *)&avl_key_group, AVL_EXACT);
+     if (clientGroup == L7_NULLPTR)
+    {
+        PT_LOG_ERR(LOG_CTX_IGMP,"Client Group not found!");
+    }
 
 #if (!PTIN_BOARD_IS_MATRIX)
     /* If not found the client group, return error */
@@ -9005,7 +9008,6 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
     /* Save associated vlans */
     avl_infoData->uni_ovid = uni_ovid;
     avl_infoData->uni_ivid = uni_ivid;
-
     /* Dynamic entry? */
     avl_infoData->isDynamic = isDynamic & 1;
 
@@ -9031,7 +9033,10 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
     #endif
 
     /* Mark one more client for unified list of clients */
+    osapiSemaTake(ptin_igmp_stats_sem,L7_WAIT_FOREVER);
     igmp_clientIndex_mark(ptin_port, device_client_id, avl_infoData);
+    osapiSemaGive(ptin_igmp_stats_sem);
+
   }
   else
   {
@@ -11085,10 +11090,11 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
                                                      statistics->igmpValidRx;             
   }                                              
 
-  L7_uint16 noOfClients=igmp_clientDevice_get_devices_number(clientGroup);
+    L7_uint16 noOfClients=igmp_clientDevice_get_devices_number(clientGroup);
+    PT_LOG_DEBUG(LOG_CTX_IGMP,  "  noOfClients %u", noOfClients);
 
-  PT_LOG_DEBUG(LOG_CTX_IGMP,  "  noOfClients %u", noOfClients);
-  if (noOfClients>0) {
+    if (noOfClients>0) 
+    {
     L7_uint16 noOfClientsFound=0;
     ptinIgmpClientDataKey_t     avl_key;
     ptinIgmpClientInfoData_t    *device_client;
@@ -11100,7 +11106,6 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
             avlSearchLVL7(&igmpDeviceClients.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
            ) != L7_NULLPTR )
     {
-
       /* Prepare next key */
       memcpy(&avl_key, &device_client->igmpClientDataKey, sizeof(ptinIgmpClientDataKey_t));
 
@@ -11108,7 +11113,7 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
       if( device_client->igmpClientDataKey.ptin_port == clientGroup->igmpClientDataKey.ptin_port &&
           device_client->igmpClientDataKey.innerVlan == clientGroup->igmpClientDataKey.innerVlan &&
           device_client->igmpClientDataKey.outerVlan == clientGroup->igmpClientDataKey.outerVlan )
-      {
+       {
         /* Request client statistics to MGMD */
         mgmdStatsReqMsg.portId   = intIfNum;
         mgmdStatsReqMsg.clientId = device_client->deviceClientId;
@@ -11182,7 +11187,89 @@ L7_RC_t ptin_igmp_stat_client_get(L7_uint32 evc_idx, const ptin_client_id_t *cli
   }
   else 
   {
-    PT_LOG_DEBUG(LOG_CTX_IGMP, "This groupClient has zero devices currently attached!");
+    L7_int16 iteration = 0;
+   /* Request client statistics to MGMD */
+    while ( iteration < PTIN_IGMP_CLIENT_BITMAP_SIZE)
+    {
+      mgmdStatsReqMsg.portId   = intIfNum;
+      mgmdStatsReqMsg.clientId = clientGroup->client_bmp[iteration];
+
+      ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_CLIENT_STATS_GET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsReqMsg, sizeof(PTIN_MGMD_CTRL_STATS_REQUEST_t));
+      ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+      ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+      PT_LOG_DEBUG(LOG_CTX_IGMP, "Response");
+      PT_LOG_DEBUG(LOG_CTX_IGMP,  "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+      PT_LOG_DEBUG(LOG_CTX_IGMP,  "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+      PT_LOG_DEBUG(LOG_CTX_IGMP,  "  CTRL Res     : %u",   ctrlResMsg.res);
+      PT_LOG_DEBUG(LOG_CTX_IGMP,  "  CTRL Length  : %u",   ctrlResMsg.dataLength);
+
+      if (L7_SUCCESS != ctrlResMsg.res) 
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Error reading clientId[%u] statistics rc:%u", clientGroup->client_bmp[iteration], ctrlResMsg.res);
+        /*Give Semaphore*/
+        osapiSemaGive(ptin_igmp_clients_sem);
+        return ctrlResMsg.res;
+      }
+
+        //Sum the current statistics on all set-top-boxes
+        memcpy(&mgmdStatsResMsg, ctrlResMsg.data, sizeof(PTIN_MGMD_CTRL_STATS_RESPONSE_t));
+        statistics->activeGroups                       += mgmdStatsResMsg.activeGroups;            
+        statistics->activeClients                      += mgmdStatsResMsg.activeClients; 
+
+        statistics->igmpTx                             += mgmdStatsResMsg.igmpTx;
+        statistics->igmpValidRx                        += mgmdStatsResMsg.igmpValidRx;
+        statistics->igmpInvalidRx                      += mgmdStatsResMsg.igmpInvalidRx;    
+        statistics->igmpDroppedRx                      += mgmdStatsResMsg.igmpDroppedRx; 
+        statistics->igmpTotalRx                        += mgmdStatsResMsg.igmpTotalRx;  
+
+        statistics->v2.joinTx                          += mgmdStatsResMsg.v2.joinTx;               
+        statistics->v2.joinRx                          += mgmdStatsResMsg.v2.joinRx;   
+        statistics->v2.joinInvalidRx                   += mgmdStatsResMsg.v2.joinInvalidRx;    
+        statistics->v2.leaveTx                         += mgmdStatsResMsg.v2.leaveTx;              
+        statistics->v2.leaveRx                         += mgmdStatsResMsg.v2.leaveRx;    
+        statistics->v2.leaveInvalidRx                  += mgmdStatsResMsg.v2.leaveInvalidRx;    
+
+        statistics->v3.membershipReportTx              += mgmdStatsResMsg.v3.membershipReportTx; 
+        statistics->v3.membershipReportRx              += mgmdStatsResMsg.v3.membershipReportRx;
+        statistics->v3.membershipReportInvalidRx       += mgmdStatsResMsg.v3.membershipReportInvalidRx;          
+        statistics->v3.groupRecords.allowTx            += mgmdStatsResMsg.v3.groupRecords.allowTx;
+        statistics->v3.groupRecords.allowRx            += mgmdStatsResMsg.v3.groupRecords.allowRx;
+        statistics->v3.groupRecords.allowInvalidRx     += mgmdStatsResMsg.v3.groupRecords.allowInvalidRx;
+        statistics->v3.groupRecords.blockTx            += mgmdStatsResMsg.v3.groupRecords.blockTx;
+        statistics->v3.groupRecords.blockRx            += mgmdStatsResMsg.v3.groupRecords.blockRx;
+        statistics->v3.groupRecords.blockInvalidRx     += mgmdStatsResMsg.v3.groupRecords.blockInvalidRx;
+        statistics->v3.groupRecords.isIncludeTx        += mgmdStatsResMsg.v3.groupRecords.isIncludeTx;
+        statistics->v3.groupRecords.isIncludeRx        += mgmdStatsResMsg.v3.groupRecords.isIncludeRx;
+        statistics->v3.groupRecords.isIncludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.isIncludeInvalidRx;
+        statistics->v3.groupRecords.isExcludeTx        += mgmdStatsResMsg.v3.groupRecords.isExcludeTx;
+        statistics->v3.groupRecords.isExcludeRx        += mgmdStatsResMsg.v3.groupRecords.isExcludeRx;
+        statistics->v3.groupRecords.isExcludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.isExcludeInvalidRx;
+        statistics->v3.groupRecords.toIncludeTx        += mgmdStatsResMsg.v3.groupRecords.toIncludeTx;
+        statistics->v3.groupRecords.toIncludeRx        += mgmdStatsResMsg.v3.groupRecords.toIncludeRx;
+        statistics->v3.groupRecords.toIncludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.toIncludeInvalidRx;
+        statistics->v3.groupRecords.toExcludeTx        += mgmdStatsResMsg.v3.groupRecords.toExcludeTx;
+        statistics->v3.groupRecords.toExcludeRx        += mgmdStatsResMsg.v3.groupRecords.toExcludeRx;
+        statistics->v3.groupRecords.toExcludeInvalidRx += mgmdStatsResMsg.v3.groupRecords.toExcludeInvalidRx;                                  
+
+        statistics->query.generalQueryTx               += mgmdStatsResMsg.query.generalQueryTx;             
+        statistics->query.generalQueryRx               += mgmdStatsResMsg.query.generalQueryRx;
+        statistics->query.groupQueryTx                 += mgmdStatsResMsg.query.groupQueryTx; 
+        statistics->query.groupQueryRx                 += mgmdStatsResMsg.query.groupQueryRx;         
+        statistics->query.sourceQueryTx                += mgmdStatsResMsg.query.sourceQueryTx;      
+        statistics->query.sourceQueryRx                += mgmdStatsResMsg.query.sourceQueryRx;
+
+        iteration++;
+
+        if (iteration == PTIN_IGMP_CLIENT_BITMAP_SIZE)
+        {
+          break;
+        }
+        if(clientGroup->client_bmp[iteration] == 0)
+        {
+          break;
+        }
+    }
+
   }
   /*Give Semaphore*/
   osapiSemaGive(ptin_igmp_clients_sem);
@@ -13577,7 +13664,6 @@ static void igmp_clientIndex_mark(L7_uint ptin_port, L7_uint client_idx, ptinIgm
   {
     return;
   }
-
   /* Update number of clients */
   if (igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client == L7_NULLPTR)
   {
@@ -13592,15 +13678,12 @@ static void igmp_clientIndex_mark(L7_uint ptin_port, L7_uint client_idx, ptinIgm
   }
   igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client = infoData;
 
-#if (PTIN_BOARD == PTIN_BOARD_TG16GF)
+  #if PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE
+  L7_uint16 nClients =  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients;
 
-  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->client_bmp[igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients] = infoData->deviceClientId;
-  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients = igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients + 1;
-
-#endif
-  //PTIN_CLIENT_SET_MASKBIT(igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->client_bmp, infoData->deviceClientId);
-  //PTIN_CLIENT_SET_MASKBIT(igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->client_bmp, infoData->deviceClientId);
-
+  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->client_bmp[nClients] = infoData->deviceClientId;
+  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients    = nClients + 1;
+  #endif
 }
 
 /**
@@ -13646,7 +13729,9 @@ static void igmp_clientIndex_unmark(L7_uint ptin_port, L7_uint client_idx)
     }
   }
 
-  PTIN_CLIENT_UNSET_MASKBIT(igmpDeviceClients.client_bmp[PTIN_IGMP_CLIENT_PORT(ptin_port)], igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->deviceClientId);
+  L7_uint16 nClients = igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients;
+
+  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients = nClients - 1;
   igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client = L7_NULLPTR;
 }
 
@@ -15967,15 +16052,12 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
   L7_uint32                       ptin_port;  
   L7_uint32                       client_idx;
   L7_uint32                       clientExtendedEvcId;
-  #if (PTIN_BOARD == PTIN_BOARD_TG16GF)
+#if PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE
   L7_uint32                       i;
-  #endif
+#endif
   ptinIgmpGroupClientInfoData_t  *clientGroup;
   ptinIgmpDeviceClient_t         *client_device;
-  #if (PTIN_BOARD == PTIN_BOARD_TG16G)
-  ptinIgmpClientDataKey_t     avl_key;
-  ptinIgmpClientInfoData_t    *device_client;
-  #endif     
+  
 
   if (intIfNum==0 || intIfNum >= L7_MAX_INTERFACE_COUNT)
   {
@@ -16040,7 +16122,7 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
     {
       continue;
     }
-#if (PTIN_BOARD == PTIN_BOARD_TG16GF)
+#if PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE
     for(i=0; i < igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients;i++)
     {
       PTIN_CLIENT_SET_MASKBIT(clientBmpPtr, igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->client_bmp[i]);
@@ -16048,7 +16130,7 @@ L7_RC_t ptin_igmp_groupclients_bmp_get(L7_uint32 extendedEvcId, L7_uint32 intIfN
     }
 #endif
 
-#if (PTIN_BOARD == PTIN_BOARD_TG16G )
+#if 0//(PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TA48GE || PTIN_BOARD == PTIN_BOARD_OLT1T0)
      memset(&avl_key, 0x00, sizeof(ptinIgmpClientDataKey_t));
 
       while ( ( device_client = (ptinIgmpClientInfoData_t *)
