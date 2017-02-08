@@ -271,7 +271,7 @@ typedef struct
 ptinIgmpClientGroupsSnapshotAvlTree_t igmpSnapshotClientGroups;
 
 /* Client Groups (to be added manually) */
-static ptinIgmpGroupClients_t igmpGroupClients;
+ptinIgmpGroupClients_t igmpGroupClients;
 
 /* Unified list with all clients (to be added dynamically) */
 ptinIgmpDeviceClients_t igmpDeviceClients;
@@ -13729,9 +13729,11 @@ static void igmp_clientIndex_unmark(L7_uint ptin_port, L7_uint client_idx)
     }
   }
 
+  #if PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE
   L7_uint16 nClients = igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients;
-
   igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients = nClients - 1;
+  #endif
+   
   igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client = L7_NULLPTR;
 }
 
