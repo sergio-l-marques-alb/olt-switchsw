@@ -203,7 +203,7 @@ void logger_help(void)
     printf("Logger help:\n"
            "\n"
            "Configuration functions\n"
-           "  log_sev_set  (<ctx_mask>, <severity>)\n"
+           "  logger_sev_set  (<ctx_mask>, <severity>)\n"
            "  logger_color_set(<ctx_mask>, <color>)\n");
 
     printf("\nContext mask\n");
