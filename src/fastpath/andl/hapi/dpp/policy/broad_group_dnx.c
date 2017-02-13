@@ -64,42 +64,20 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyL4DstPort,  /* DPORT   */
     bcmFieldQualifyIp6HopLimit,    /* IP6_HOPLIMIT   */
     bcmFieldQualifyIp6NextHeader,  /* IP6_NEXTHEADER   */
-    bcmFieldQualifyLookupStatus,   /* LOOKUP_STATUS */
     bcmFieldQualifySrcIp6,         /* Source IPv6 Address */
     bcmFieldQualifyDstIp6,         /* Destination IPv6 Address */
     bcmFieldQualifyIp6FlowLabel,   /* IPv6 Flow Label */
     bcmFieldQualifyIp6TrafficClass,/* IPv6 Traffic Class */
-    customFieldQualifyIcmpMsgType, /* ICMP Message Type   */
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
+    //customFieldQualifyIcmpMsgType, /* ICMP Message Type   */
     bcmFieldQualifyDstClassField,  /* Class ID from VFP, to be used in IFP - PTin added: FP */
     bcmFieldQualifySrcClassField,  /* Class ID from VFP, to be used in IFP - PTin added: FP */
-#else
-    bcmFieldQualifyLookupClass0,   /* Class ID from VFP, to be used in IFP */
-	bcmFieldQualifyLookupClass0,   /* PTin added: FP */
-#endif
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifySrcClassL2,
-#else
-    bcmFieldQualifySrcMacGroup,     /* Class ID from L2X, to be used in IFP */
-#endif
-    customFieldQualifyUdf1,         /* iSCSI PDU opCode field */
-    customFieldQualifyUdf1,         /* iSCSI PDU opCode field, w/ TCP options */
     bcmFieldQualifyTcpControl,
     bcmFieldQualifyVlanFormat,     /* VLAN Format */
     bcmFieldQualifyL2Format,       /* L2 Header Format */
-    bcmFieldQualifySnap,           /* SNAP Header */ 
     bcmFieldQualifyIpType,         /* IP Type */
     bcmFieldQualifyInPorts,        /* InPorts, PTin added: FP */
     bcmFieldQualifyOutPort,        /* OutPort, PTin added: FP */
-    bcmFieldQualifySrcTrunk,       /* SrcTrunk, PTin added: FP */
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
     bcmFieldQualifyInterfaceClassPort,
-#else
-    bcmFieldQualifyPortClass,      /* PortClass, PTin added: FP */
-#endif
     bcmFieldQualifyDrop,           /* Drop, PTin added: FP */
     bcmFieldQualifyL2SrcHit,       /* L2 Source hit, PTin added: FP */
     bcmFieldQualifyL2DestHit,      /* L2 Destination hit, PTin added: FP */
@@ -119,9 +97,7 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
 
 typedef struct
 {
-    bcm_field_action_t green[ACTIONS_PER_MAP_ENTRY];
-    bcm_field_action_t yellow[ACTIONS_PER_MAP_ENTRY];
-    bcm_field_action_t red[ACTIONS_PER_MAP_ENTRY];
+    bcm_field_action_t action[ACTIONS_PER_MAP_ENTRY];
 }
 action_map_entry_t;
 
@@ -129,463 +105,209 @@ static action_map_entry_t ingress_action_map[BROAD_ACTION_LAST] =
 {
     /* SOFT_DROP - do not switch */
     {
-        { bcmFieldActionGpDrop, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionYpDrop, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionRpDrop, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
+        { bcmFieldActionDrop, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
     },
     /* HARD_DROP - override all other rules */
     {
-        { bcmFieldActionGpDrop, bcmFieldActionGpCopyToCpuCancel, bcmFieldActionRedirectCancel, PROFILE_ACTION_NONE},
-        { bcmFieldActionYpDrop, bcmFieldActionYpCopyToCpuCancel, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionRpDrop, bcmFieldActionRpCopyToCpuCancel, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
+        { bcmFieldActionDrop, bcmFieldActionCopyToCpuCancel, bcmFieldActionRedirectCancel, PROFILE_ACTION_NONE}
     },
     /* PERMIT - default behavior */
     {
-        { bcmFieldActionGpDropCancel, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { bcmFieldActionYpDropCancel, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { bcmFieldActionRpDropCancel, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE}
+        { bcmFieldActionDropCancel, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE}
     },
     /* REDIRECT */
     {
-        { bcmFieldActionRedirect, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionRedirect,   PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
     },
     /* MIRROR */
     {
-        { bcmFieldActionMirrorIngress, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,      PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,      PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionMirrorIngress, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE}
     },
     /* TRAP_TO_CPU */
     {
-        { bcmFieldActionRedirect, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionRedirect, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE}
     },
     /* COPY_TO_CPU */
     {
-        { bcmFieldActionGpCopyToCpu, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionCopyToCpu, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE}
     },
     /* TS_TO_CPU */
     {
-        { bcmFieldActionTimeStampToCpu, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,       PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,       PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionTimeStampToCpu, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE}
     },
     /* SET_COSQ */
     {
         /* PTin modified: QOS */
-        { bcmFieldActionPrioIntNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionPrioIntNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE}
     },
     /* SET_DSCP */
     {
-        { bcmFieldActionGpDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionYpDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionRpDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
+        { bcmFieldActionDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
     },
     /* SET_TOS */
     {
-        { bcmFieldActionGpDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionYpDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionRpDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
+        { bcmFieldActionDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
     },
     /* SET_USERPRIO */
     {
-        { bcmFieldActionPrioPktNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionPrioPktNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE}
     },
     /* PTin added */
     /* SET_USERPRIO_INNERTAG */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_DROPPREC */
     {
-        { bcmFieldActionGpDropPrecedence, bcmFieldActionYpDropPrecedence, bcmFieldActionRpDropPrecedence, PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionDropPrecedence, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
     },
     /* SET_OUTER_VID */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_INNER_VID */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* ADD_OUTER_VID */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* ADD_INNER_VID */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* DO_NOT_LEARN */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_CLASS_ID */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* PTin added: FP */
     /* SET_SRC_CLASS_ID */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_REASON_CODE */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_USERPRIO_AS_INNER_DOT1P*/
     {
-        { bcmFieldActionPrioPktCopy, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionPrioPktCopy, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE}
     },
-};
-
-static action_map_entry_t lookup_action_map[BROAD_ACTION_LAST] =
-{
-    /* SOFT_DROP - do not switch */
-    {
-        { bcmFieldActionDrop,     PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* HARD_DROP - override all other rules */
-    {
-        { bcmFieldActionDrop,     PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* PERMIT - default behavior */
-    {
-        { bcmFieldActionDropCancel, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* REDIRECT */
-    {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* MIRROR */
-    {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* TRAP_TO_CPU */
-    {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* COPY_TO_CPU */
-    {
-        { bcmFieldActionCopyToCpu, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* TS_TO_CPU */
-    {
-        { bcmFieldActionTimeStampToCpu, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,       PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,       PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* SET_COSQ */
-    {
-        { bcmFieldActionPrioIntNew, PROFILE_ACTION_NONE,  PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE   },
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* SET_DSCP */
-    {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* SET_TOS */
-    {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* SET_USERPRIO */
-    {
-        { bcmFieldActionOuterVlanPrioNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,         PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,         PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* PTin added */
-    /* SET_USERPRIO_INNERTAG */
-    {
-        { bcmFieldActionInnerVlanPrioNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,         PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,         PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* SET_DROPPREC */
-    {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* SET_OUTER_VID */
-    {
-        { bcmFieldActionOuterVlanNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* SET_INNER_VID */
-    {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* ADD_OUTER_VID */
-    {
-        { bcmFieldActionOuterVlanAdd,  PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,      PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,      PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* ADD_INNER_VID */
-    {
-        { bcmFieldActionInnerVlanAdd, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* DO_NOT_LEARN */
-    {
-        { bcmFieldActionDoNotLearn, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-/* PTin added: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    /* PTin added: FP */
-    /* SET_CLASS_ID */
-    {
-        { bcmFieldActionClassDestSet, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* PTin added: FP */
-    /* SET_SRC_CLASS_ID */
-    {
-        { bcmFieldActionClassSourceSet, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-#else
-    /* SET_CLASS_ID */
-    {
-        { bcmFieldActionClassSet, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* PTin added: FP */
-    /* SET_SRC_CLASS_ID */
-    {
-        { bcmFieldActionClassSet, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-#endif
-    /* SET_REASON_CODE*/
-    {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID , PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-    /* SET_USERPRIO_AS_INNER_DOT1P*/
-    {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID , PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
-    },
-
 };
 
 static action_map_entry_t egress_action_map[BROAD_ACTION_LAST] =
 {
     /* SOFT_DROP - do not switch */
     {
-        { bcmFieldActionGpDrop, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionYpDrop, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionRpDrop, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
+        { bcmFieldActionDrop, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
     },
     /* HARD_DROP - override all other rules */
     {
-        { bcmFieldActionGpDrop, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionYpDrop, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionRpDrop, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
+        { bcmFieldActionDrop, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
     },
     /* PERMIT - default behavior */
     {
-        { bcmFieldActionGpDropCancel, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionYpDropCancel, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionRpDropCancel, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
+        { bcmFieldActionDropCancel, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
     },
     /* REDIRECT */
     {
-        { bcmFieldActionRedirect, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionRedirect, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE}
     },
     /* MIRROR */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* TRAP_TO_CPU */
     {
-        { bcmFieldActionRedirect, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionRedirect, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE}
     },
     /* COPY_TO_CPU */
     {
-        { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* TS_TO_CPU */
     {
-        { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID,  PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_COSQ */
     {
-        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID,   PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_DSCP */
     {
-        { bcmFieldActionGpDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionYpDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionRpDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
+        { bcmFieldActionDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
     },
     /* SET_TOS */
     {
-        { bcmFieldActionGpDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionYpDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionRpDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
+        { bcmFieldActionDscpNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
     },
     /* SET_USERPRIO */
     {
-        { bcmFieldActionGpOuterVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionYpOuterVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE},
-        { bcmFieldActionRpOuterVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
+        { bcmFieldActionOuterVlanPrioNew, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE, PROFILE_ACTION_NONE}
     },
     /* PTin added */
     /* SET_USERPRIO_INNERTAG */
     {
-        { bcmFieldActionGpInnerVlanPrioNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { bcmFieldActionYpInnerVlanPrioNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { bcmFieldActionRpInnerVlanPrioNew, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionInnerVlanPrioNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE}
     },
     /* SET_DROPPREC */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_OUTER_VID */
     {
-        { bcmFieldActionOuterVlanNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionOuterVlanNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE}
     },
     /* SET_INNER_VID */
     {
-        { bcmFieldActionInnerVlanNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE},
-        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID,     PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
+        { bcmFieldActionInnerVlanNew, PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE,    PROFILE_ACTION_NONE}
     },
     /* ADD_OUTER_VID */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* ADD_INNER_VID */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* DO_NOT_LEARN */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_CLASS_ID */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* PTin added: FP */
     /* SET_SRC_CLASS_ID */
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_REASON_CODE*/
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
     /* SET_USERPRIO_AS_INNER_DOT1P*/
     {
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
-        { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID},
         { PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID, PROFILE_ACTION_INVALID}
     },
 
 };
 
 /* Drop Precedence (Color) Map */
-static uint32 color_map[BROAD_COLOR_LAST] = 
+uint32 color_map[BROAD_COLOR_LAST] = 
 {
     BCM_FIELD_COLOR_GREEN,
     BCM_FIELD_COLOR_YELLOW,
     BCM_FIELD_COLOR_RED
 };
 
+//static int policy_udf_id[SOC_MAX_NUM_DEVICES];
 
 #define SUPER_XSET_TABLE_SIZE  32    /* total number of super qsets */
 
@@ -611,8 +333,6 @@ group_alloc_table_t;
 
 /* PTin modified: policer */
 static group_alloc_table_t group_alloc_table[SOC_MAX_NUM_DEVICES][BROAD_POLICY_STAGE_COUNT][ALLOC_BLOCK_MAX /*ALLOC_BLOCK_HIGH+1*/];
-
-static int _policy_group_lookupstatus_qualify(int unit, bcm_field_entry_t eid, L7_uint32 data, L7_uint32 mask);
 
 /* Utility Functions */
 
@@ -762,7 +482,6 @@ static int _policy_super_xset_find_free(int unit, int *idx)
     return BCM_E_FAIL;
 }
 
-
 static int _policy_super_xset_add(int                      unit,
                                   super_xset_definition_t *sxset_def,
                                   L7_BOOL                 *applicablePolicyTypes)
@@ -797,6 +516,9 @@ static int _policy_super_xset_add(int                      unit,
       return rv;
     }
 
+    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+      sysapiPrintf("%s(%d) qset index=%d\n", __FUNCTION__, __LINE__, i);
+
     xsetPtr = &super_xset_table[unit][i];
 
     xsetPtr->flags = SUPER_XSET_USED;
@@ -818,6 +540,7 @@ static int _policy_super_xset_add(int                      unit,
     }
 
     BCM_FIELD_QSET_INIT(qset1);
+    BCM_FIELD_ASET_INIT(aset1);
 
     /* initialize the 1st component qset */
     for (i = 0; i < q1Size; i++)
@@ -834,6 +557,7 @@ static int _policy_super_xset_add(int                      unit,
     BCM_FIELD_QSET_INIT(xsetPtr->qsetAgg);
     _policy_qset_union(qset1, &xsetPtr->qset1);
     _policy_qset_union(qset1, &xsetPtr->qsetAgg);
+    
 
     BCM_FIELD_ASET_INIT(xsetPtr->aset);
     BCM_FIELD_ASET_INIT(xsetPtr->asetAgg);
@@ -845,7 +569,7 @@ static int _policy_super_xset_add(int                      unit,
     {
       bcm_field_group_config_t_init(&group_config);
       group_config.flags = BCM_FIELD_GROUP_CREATE_WITH_MODE |
-                           BCM_FIELD_GROUP_CREATE_LARGE |
+                           /*BCM_FIELD_GROUP_CREATE_LARGE |*/
                            BCM_FIELD_GROUP_CREATE_WITH_ASET;
       group_config.qset  = xsetPtr->qsetAgg;
       group_config.mode  = bcmFieldGroupModeDefault;
@@ -862,6 +586,9 @@ static int _policy_super_xset_add(int                      unit,
       }
       /* Extract gid */
       gid = group_config.group;
+
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+        sysapiPrintf("%s(%d) gid=%d\n", __FUNCTION__, __LINE__, gid);
 
       rv = bcm_field_group_status_get(unit, gid, &xsetPtr->status);
       if (rv != BCM_E_NONE)
@@ -889,58 +616,17 @@ static int _policy_super_xset_add(int                      unit,
     return rv;
 }
 
-static int _policy_super_xset_init_vfp(int unit)
-{
-#if 0
-  L7_BOOL applicable_policy_types[BROAD_POLICY_TYPE_LAST];
-
-  if(policy_stage_supported(unit, BROAD_POLICY_STAGE_LOOKUP))
-  {
-    memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
-    applicable_policy_types[BROAD_POLICY_TYPE_LLPF] = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_IPSG] = L7_TRUE;
-    _policy_super_qset_add(unit, &llpfQsetLookupDef, applicable_policy_types);
-
-    memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
-    applicable_policy_types[BROAD_POLICY_TYPE_PORT] = L7_TRUE;
-    //applicable_policy_types[BROAD_POLICY_TYPE_IPSG] = L7_TRUE;    /* PTin removed: IPSG */
-    applicable_policy_types[BROAD_POLICY_TYPE_COSQ] = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_PTIN]         = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]     = L7_TRUE;
-    applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT]  = L7_TRUE;
-
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-      sysapiPrintf("Adding qset l2l3l4QsetLookup\r\n");
-
-    /* The following qsets use intra-slice doublewide mode, so the number of rules is cut in half. */
-    _policy_super_qset_add(unit, &l2l3l4QsetLookupDef, applicable_policy_types);
-
-    /* PTin removed: IPSG */
-    //_policy_super_qset_add(unit, &ipv6L3L4QsetLookupDef, applicable_policy_types);
-
-    memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
-    applicable_policy_types[BROAD_POLICY_TYPE_DOT1AD] = L7_TRUE;
-
-    _policy_super_qset_add(unit, &dot1adQsetLookupDef, applicable_policy_types);
-  }
-#endif
-  return BCM_E_NONE;
-}
-
 static int _policy_super_xset_init_ifp(int unit)
 {
   L7_BOOL applicable_policy_types[BROAD_POLICY_TYPE_LAST];
 
-#if 0
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_PORT] = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_VLAN] = L7_TRUE;
 
-  _policy_super_qset_add(unit, &l2l3l4Xgs4ClassIdQsetDef, applicable_policy_types);
-  _policy_super_qset_add(unit, &ipv6L3L4ClassIdQsetDef,  applicable_policy_types);
-  _policy_super_qset_add(unit, &ipv6SrcL4ClassIdQsetDef, applicable_policy_types);
-  _policy_super_qset_add(unit, &ipv6DstL4ClassIdQsetDef, applicable_policy_types);
-#endif
+  _policy_super_xset_add(unit, &l2l3l4Xgs4ClassIdQsetDef, applicable_policy_types);
+  _policy_super_xset_add(unit, &ipv6SrcL4QsetDef, applicable_policy_types);
+  _policy_super_xset_add(unit, &ipv6DstL4QsetDef, applicable_policy_types);
 
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_SYSTEM]      = L7_TRUE;
@@ -954,9 +640,7 @@ static int _policy_super_xset_init_ifp(int unit)
   /* Doublewide mode. */
   _policy_super_xset_add(unit, &systemXsetAradDef, applicable_policy_types);
 
-#if 0
   /* PTin added: ICAP */
-  #if 1
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_PTIN]        = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;
@@ -966,41 +650,38 @@ static int _policy_super_xset_init_ifp(int unit)
     sysapiPrintf("Adding qset systemQsetPTin\r\n");
 
   /* Doublewide mode. */
-  _policy_super_qset_add(unit, &systemQsetPTinDef, applicable_policy_types);
-  #endif
-
+  _policy_super_xset_add(unit, &systemQsetPTinDef, applicable_policy_types);
+#if 0
   /* The following sqset is used for iSCSI control rules. */
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_ISCSI] = L7_TRUE;
 
   _policy_super_qset_add(unit, &iscsiQsetDef, applicable_policy_types);
-
+#endif
   /* The following sqsets are used only for user policies. */
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_VLAN]        = L7_TRUE;
-  _policy_super_qset_add(unit, &vlanl3QsetDef,      applicable_policy_types);
+  _policy_super_xset_add(unit, &vlanl3QsetDef,      applicable_policy_types);
 
   /* The following sqset is used for IPSG policies but may also be used for user
      policies on devices that do not support doublewide mode. */
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_PORT] = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_VLAN] = L7_TRUE;
-  _policy_super_qset_add(unit, &l2l3SrcQsetDef, applicable_policy_types);
+  _policy_super_xset_add(unit, &l2l3SrcQsetDef, applicable_policy_types);
 
   /* The following sqsets are used only for user policies. */
   memset(applicable_policy_types, 0, sizeof(applicable_policy_types));
   applicable_policy_types[BROAD_POLICY_TYPE_PORT]        = L7_TRUE;
   applicable_policy_types[BROAD_POLICY_TYPE_VLAN]        = L7_TRUE;
 
-  _policy_super_qset_add(unit, &l2l3DstQsetDef,     applicable_policy_types);
-#endif
+  _policy_super_xset_add(unit, &l2l3DstQsetDef,     applicable_policy_types);
 
   return BCM_E_NONE;
 }
 
 static int _policy_super_xset_init_efp(int unit)
 {
-#if 0
   L7_BOOL applicable_policy_types[BROAD_POLICY_TYPE_LAST];
 
   if(policy_stage_supported(unit, BROAD_POLICY_STAGE_EGRESS))
@@ -1013,16 +694,13 @@ static int _policy_super_xset_init_efp(int unit)
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_EVC]    = L7_TRUE;   /* PTin added: stats */
     applicable_policy_types[BROAD_POLICY_TYPE_STAT_CLIENT] = L7_TRUE;   /* PTin added: stats */
 
-    //printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-    _policy_super_qset_add(unit, &l2QsetEgressDef, applicable_policy_types);
+    _policy_super_xset_add(unit, &l2QsetEgressDef, applicable_policy_types);
 
-    //printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-    _policy_super_qset_add(unit, &l3l4QsetEgressDef, applicable_policy_types);
+    _policy_super_xset_add(unit, &l3l4QsetEgressDef, applicable_policy_types);
 
-    //printf("%s(%d)\r\n",__FUNCTION__,__LINE__);
-    _policy_super_qset_add(unit, &ipv6L3L4QsetEgressDef, applicable_policy_types);
+    //_policy_super_xset_add(unit, &ipv6L3L4QsetEgressDef, applicable_policy_types);
   }
-#endif
+
   return BCM_E_NONE;
 }
 
@@ -1036,7 +714,6 @@ static int _policy_super_xset_init(int unit)
     super_xset_table[unit][i].flags = SUPER_XSET_NONE;
   }
 
-  _policy_super_xset_init_vfp(unit);
   _policy_super_xset_init_ifp(unit);
   _policy_super_xset_init_efp(unit);
 
@@ -1552,13 +1229,14 @@ int _policy_group_calc_xset(int                             unit,
               char                *value;
               char                *mask;
               bcm_field_qualify_t  bcm_field = 0;
-              L7_ushort16          temp16;
 
               value = (char*)hapiBroadPolicyFieldValuePtr(&(rulePtr->fieldInfo), f);
               mask  = (char*)hapiBroadPolicyFieldMaskPtr(&(rulePtr->fieldInfo), f);
 
               switch (f)
               {
+              /* DNX: todo */
+              #if 0
               /* custom fields go here */
               case BROAD_FIELD_ICMP_MSG_TYPE:
                 /* Use L4 src port for ICMP Msg Type. We can do this because
@@ -1566,76 +1244,7 @@ int _policy_group_calc_xset(int                             unit,
                    bytes following the IP header. */
                 BCM_FIELD_QSET_ADD(resourceReq->qsetAgg,bcmFieldQualifyL4SrcPort);
                 break;
-
-              case BROAD_FIELD_ISCSI_OPCODE:
-                CUSTOM_FIELD_QSET_ADD(resourceReq->customQset, customFieldQualifyIscsiOpcode);
-                break;
-
-              case BROAD_FIELD_ISCSI_OPCODE_TCP_OPTIONS:
-                CUSTOM_FIELD_QSET_ADD(resourceReq->customQset, customFieldQualifyIscsiOpcodeTcpOptions);
-                break;
-
-              case BROAD_FIELD_LOOKUP_STATUS:
-                memcpy(&temp16, mask, sizeof(L7_ushort16));
-                if (temp16 & BROAD_LOOKUPSTATUS_DOS_ATTACK_PKT)
-                  BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyDosAttack);
-
-                if (temp16 & BROAD_LOOKUPSTATUS_UNRESOLVED_SA)
-                  BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyL2StationMove);
-
-                if (temp16 & BROAD_LOOKUPSTATUS_LPM_HIT)
-                  BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyL3DestRouteHit);
-
-                if (temp16 & BROAD_LOOKUPSTATUS_STARGV_HIT)
-                  BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyIpmcStarGroupHit);
-
-                if (temp16 & BROAD_LOOKUPSTATUS_L3_DST_HIT)
-                  BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyL3DestHostHit);
-
-                if (temp16 & BROAD_LOOKUPSTATUS_L3_UC_SRC_HIT)
-                  BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyL3SrcHostHit);
-
-                if (temp16 & BROAD_LOOKUPSTATUS_L2_USER_ENTRY_HIT)
-                  BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyL2CacheHit);
-
-                if (temp16 & BROAD_LOOKUPSTATUS_L2_TABLE_DST_L3)
-                  BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyL3Routable);
-
-                if (temp16 & BROAD_LOOKUPSTATUS_L2_DST_HIT)
-                  BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyL2DestHit);
-
-                if (temp16 & BROAD_LOOKUPSTATUS_L2_SRC_STATIC)
-                  BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyL2SrcStatic);
-
-                if (temp16 & BROAD_LOOKUPSTATUS_L2_SRC_HIT)
-                  BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyL2SrcHit);
-
-                if (temp16 & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK)
-                  BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyIngressStpState);
-
-                if (temp16 & BROAD_LOOKUPSTATUS_FB_VLAN_ID_VALID)
-                  BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyForwardingVlanValid); /* ?? */
-
-                if (temp16 & BROAD_LOOKUPSTATUS_VXLT_HIT)
-                  BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyVlanTranslationHit);
-
-                if (temp16 & BROAD_LOOKUPSTATUS_TUNNEL_HIT)
-                {
-                  /* PTin added: new switch 56689 (Valkyrie2) */
-                  /* PTin added: new switch 5664x (Triumph3) */
-                  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) ||
-                      SOC_IS_TRIUMPH3(unit))
-                  {
-                    /* TunnelTerminated not supported in IFP, so check for TunnelType instead. */
-                    BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyTunnelType);
-                  }
-                  else
-                  {
-                    BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyTunnelTerminated);
-                  }
-                }
-
-                break;
+              #endif
 
               default:
                 rv = _policy_field_to_bcm_field(f, entryPtr->policyStage, (char*)value, (char*)mask, &bcm_field, resourceReq->requiresEtype);
@@ -1658,9 +1267,6 @@ int _policy_group_calc_xset(int                             unit,
 
     switch (entryPtr->policyStage)
     {
-    case BROAD_POLICY_STAGE_LOOKUP:
-      BCM_FIELD_QSET_ADD(resourceReq->qsetAgg,bcmFieldQualifyStageLookup);
-      break;
     case BROAD_POLICY_STAGE_INGRESS:
       BCM_FIELD_QSET_ADD(resourceReq->qsetAgg,bcmFieldQualifyStageIngress);
       break;
@@ -1679,17 +1285,7 @@ int _policy_group_calc_xset(int                             unit,
     case BROAD_POLICY_TYPE_IPSG:
     case BROAD_POLICY_TYPE_SYSTEM_PORT:
     case BROAD_POLICY_TYPE_COSQ:
-      if (entryPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP)
-      {
-        BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInPort);
-        /* PTin modified: SDK 6.3.0 */
-        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-        BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInterfaceClassPort);
-        #else
-        BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyPortClass);
-        #endif
-      }
-      else if (entryPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
+      if (entryPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
       {
         BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyInPorts);
       }
@@ -2034,98 +1630,6 @@ static int _policy_group_delete_group(int unit, BROAD_POLICY_STAGE_t policyStage
 }
 
 
-/* Group Management Functions */
-static void _policy_group_lookupstatus_convert(L7_ushort16 hapiStatus, L7_ushort16 *bcmStatus, L7_BOOL isMask)
-{
-  *bcmStatus = 0;
-
-  /* PTin modified: SDK 6.3.0 */
-  #if 1
-  if (hapiStatus & BROAD_LOOKUPSTATUS_DOS_ATTACK_PKT)
-  {
-    *bcmStatus |= BROAD_LOOKUPSTATUS_DOS_ATTACK_PKT;
-  }
-  if (hapiStatus & BROAD_LOOKUPSTATUS_UNRESOLVED_SA)
-  {
-    *bcmStatus |= BROAD_LOOKUPSTATUS_UNRESOLVED_SA;
-  }
-  if (hapiStatus & BROAD_LOOKUPSTATUS_LPM_HIT)
-  {
-    *bcmStatus |= BROAD_LOOKUPSTATUS_LPM_HIT;
-  }
-  if (hapiStatus & BROAD_LOOKUPSTATUS_STARGV_HIT)
-  {
-    *bcmStatus |= BROAD_LOOKUPSTATUS_STARGV_HIT;
-  }
-  if (hapiStatus & BROAD_LOOKUPSTATUS_L3_DST_HIT)
-  {
-    *bcmStatus |= BROAD_LOOKUPSTATUS_L3_DST_HIT;
-  }
-  if (hapiStatus & BROAD_LOOKUPSTATUS_L3_UC_SRC_HIT)
-  {
-    *bcmStatus |= BROAD_LOOKUPSTATUS_L3_UC_SRC_HIT;
-  }
-  if (hapiStatus & BROAD_LOOKUPSTATUS_L2_USER_ENTRY_HIT)
-  {
-    *bcmStatus |= BROAD_LOOKUPSTATUS_L2_USER_ENTRY_HIT;
-  }
-  if (hapiStatus & BROAD_LOOKUPSTATUS_L2_TABLE_DST_L3)
-  {
-    *bcmStatus |= BROAD_LOOKUPSTATUS_L2_TABLE_DST_L3;
-  }
-  if (hapiStatus & BROAD_LOOKUPSTATUS_L2_DST_HIT)
-  {
-    *bcmStatus |= BROAD_LOOKUPSTATUS_L2_DST_HIT;
-  }
-  if (hapiStatus & BROAD_LOOKUPSTATUS_L2_SRC_STATIC)
-  {
-    *bcmStatus |= BROAD_LOOKUPSTATUS_L2_SRC_STATIC;
-  }
-  if (hapiStatus & BROAD_LOOKUPSTATUS_L2_SRC_HIT)
-  {
-    *bcmStatus |= BROAD_LOOKUPSTATUS_L2_SRC_HIT;
-  }
-  if (isMask)
-  {
-    if (hapiStatus & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK)
-    {
-      *bcmStatus |= BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK;
-    }
-  }
-  else
-  {
-    if ((hapiStatus & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK) == BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_DIS)
-    {
-      *bcmStatus |= BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_DIS;
-    }
-    if ((hapiStatus & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK) == BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_BLK)
-    {
-      *bcmStatus |= BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_BLK;
-    }
-    if ((hapiStatus & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK) == BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_LRN)
-    {
-      *bcmStatus |= BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_LRN;
-    }
-    if ((hapiStatus & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK) == BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_FWD)
-    {
-      *bcmStatus |= BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_FWD;
-    }
-  }
-  if (hapiStatus & BROAD_LOOKUPSTATUS_FB_VLAN_ID_VALID)
-  {
-    *bcmStatus |= BROAD_LOOKUPSTATUS_FB_VLAN_ID_VALID;
-  }
-  if (hapiStatus & BROAD_LOOKUPSTATUS_VXLT_HIT)
-  {
-    *bcmStatus |= BROAD_LOOKUPSTATUS_VXLT_HIT;
-  }
-  if (hapiStatus & BROAD_LOOKUPSTATUS_TUNNEL_HIT)
-  {
-    *bcmStatus |= BROAD_LOOKUPSTATUS_TUNNEL_HIT;
-  }
-  #endif
-}
-
 static int _policy_group_add_std_field(int                   unit,
                                        BROAD_POLICY_STAGE_t  policyStage,
                                        bcm_field_entry_t     eid,
@@ -2137,12 +1641,9 @@ static int _policy_group_add_std_field(int                   unit,
     L7_ushort16 tempValue16      = 0;
     L7_ushort16 tempMask16       = 0;
     uint32 ipType = bcmFieldIpTypeAny;
-    L7_ushort16 lookupStatus     = 0;
-    L7_ushort16 lookupStatusMask = 0;
     L7_uint32   tempValue32      = 0;
     L7_uint32   tempMask32       = 0;
     bcm_vlan_t  tempVlan = 0, tempVlanMask = 0;
-    bcm_field_snap_header_t snapValue, snapMask;
 
     switch (field)
     {
@@ -2195,12 +1696,6 @@ static int _policy_group_add_std_field(int                   unit,
              rv = BCM_E_NOT_FOUND;
              break;
         }
-        break;
-
-    case BROAD_FIELD_SNAP:
-        memcpy(&snapValue, value, sizeof(snapValue));
-        memcpy(&snapMask,  mask,  sizeof(snapMask));
-        rv = bcm_field_qualify_Snap(unit, eid, snapValue, snapMask);
         break;
 
     case BROAD_FIELD_TCP_CONTROL:
@@ -2263,6 +1758,8 @@ static int _policy_group_add_std_field(int                   unit,
           rv = bcm_field_qualify_DstIp(unit, eid, localIP, localMask );
         }
         break;
+    /* DNX: todo */
+    #if 0
     case BROAD_FIELD_ICMP_MSG_TYPE:
       /* Use L4 src port for ICMP Msg Type. We can do this because
          XGS3 just treats the L4 src port field as the first two
@@ -2271,6 +1768,7 @@ static int _policy_group_add_std_field(int                   unit,
         tempMask16  = *((uint8 *)mask) << 8;
         rv = bcm_field_qualify_L4SrcPort(unit, eid, tempValue16, tempMask16);
         break;
+    #endif
     case BROAD_FIELD_SPORT:
         tempValue16 = tempMask16 = 0;
         memcpy(&tempValue16, value, sizeof(uint16));
@@ -2328,23 +1826,6 @@ static int _policy_group_add_std_field(int                   unit,
         rv = bcm_field_qualify_LookupClass0(unit, eid, *((uint8*)value), 0xF);
         break;
 #endif
-    case BROAD_FIELD_L2_CLASS_ID:
-        /* PTin modified: SDK 6.3.0 */
-        #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-        rv = bcm_field_qualify_SrcClassL2(unit, eid, *((uint8*)value), 0xF);
-        #else
-        rv = bcm_field_qualify_SrcMacGroup(unit, eid, *((uint8*)value), 0xF);
-        #endif
-        break;
-    case BROAD_FIELD_LOOKUP_STATUS:
-        tempValue16 = value[0]<<8;
-        tempValue16 |= value[1];
-        _policy_group_lookupstatus_convert(tempValue16, &lookupStatus,     L7_FALSE);
-        tempMask16 = mask[0]<<8;
-        tempMask16 |= mask[1];
-        _policy_group_lookupstatus_convert(tempMask16,  &lookupStatusMask, L7_TRUE);
-        rv = _policy_group_lookupstatus_qualify(unit, eid, lookupStatus, lookupStatusMask);
-        break;
     case BROAD_FIELD_VLAN_FORMAT:
         {
            uint32 vlanFormat=0;
@@ -2429,9 +1910,6 @@ static int _policy_group_add_std_field(int                   unit,
     case BROAD_FIELD_OUTPORT:
         rv = bcm_field_qualify_OutPort(unit, eid, *((bcm_port_t *) value), *((bcm_port_t *) mask));
         break;
-    case BROAD_FIELD_SRCTRUNK:
-        rv = bcm_field_qualify_SrcTrunk(unit, eid, *((bcm_trunk_t*)value), *((bcm_trunk_t*)mask));
-        break;
     case BROAD_FIELD_PORTCLASS:
         /* PTin modified: SDK 6.3.0 */
         #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
@@ -2460,146 +1938,6 @@ static int _policy_group_add_std_field(int                   unit,
 
     return rv;
 }
-static int _policy_group_lookupstatus_qualify(int unit, bcm_field_entry_t entry, L7_uint32 data, L7_uint32 mask)
-{
-  /* PTin modified: SDK 6.3.0 */
-  #if 1
-  uint32 value;
-
-  if (mask & BROAD_LOOKUPSTATUS_DOS_ATTACK_PKT)
-  {
-    value = (data & BROAD_LOOKUPSTATUS_DOS_ATTACK_PKT) ? 0x1 : 0x0;
-    BCM_IF_ERROR_RETURN(bcm_field_qualify_DosAttack(unit, entry, value, 0x1));
-  }
-  
-  if (mask & BROAD_LOOKUPSTATUS_UNRESOLVED_SA) 
-  {
-    value = (data & BROAD_LOOKUPSTATUS_UNRESOLVED_SA) ? 0x1 : 0x0;
-    BCM_IF_ERROR_RETURN
-        (bcm_field_qualify_L2StationMove(unit, entry, value, 0x1));
-  }
-  
-  if (mask & BROAD_LOOKUPSTATUS_LPM_HIT) 
-  {
-    value = (data & BROAD_LOOKUPSTATUS_LPM_HIT) ? 0x1 : 0x0;
-    BCM_IF_ERROR_RETURN
-        (bcm_field_qualify_L3DestRouteHit(unit, entry, value, 0x1));
-  }
-  
-  if (mask & BROAD_LOOKUPSTATUS_STARGV_HIT) 
-  {
-    value = (data & BROAD_LOOKUPSTATUS_STARGV_HIT) ? 0x1 : 0x0;
-    BCM_IF_ERROR_RETURN
-        (bcm_field_qualify_IpmcStarGroupHit(unit, entry, value, 0x1));
-  }
-
-  if (mask & BROAD_LOOKUPSTATUS_L3_DST_HIT) 
-  {
-    value = (data & BROAD_LOOKUPSTATUS_L3_DST_HIT) ? 0x1 : 0x0;
-    BCM_IF_ERROR_RETURN
-        (bcm_field_qualify_L3DestHostHit(unit, entry, value, 0x1));
-  }
-
-  if (mask & BROAD_LOOKUPSTATUS_L3_UC_SRC_HIT) 
-  {
-    value = (data & BROAD_LOOKUPSTATUS_L3_UC_SRC_HIT) ? 0x1 : 0x0;
-    BCM_IF_ERROR_RETURN
-        (bcm_field_qualify_L3SrcHostHit(unit, entry, value, 0x1));
-  }
-
-  if (mask & BROAD_LOOKUPSTATUS_L2_USER_ENTRY_HIT) 
-  {
-    value = (data & BROAD_LOOKUPSTATUS_L2_USER_ENTRY_HIT) ? 0x1 : 0x0;
-    BCM_IF_ERROR_RETURN
-        (bcm_field_qualify_L2CacheHit(unit, entry, value, 0x1));
-  }
-
-  if (mask & BROAD_LOOKUPSTATUS_L2_DST_HIT) 
-  {
-    value = (data & BROAD_LOOKUPSTATUS_L2_DST_HIT) ? 0x1 : 0x0;
-    BCM_IF_ERROR_RETURN
-        (bcm_field_qualify_L2DestHit(unit, entry, value, 0x1));
-  }
-
-  if (mask & BROAD_LOOKUPSTATUS_L2_SRC_STATIC) 
-  {
-    value = (data & BROAD_LOOKUPSTATUS_L2_SRC_STATIC) ? 0x1 : 0x0;
-    BCM_IF_ERROR_RETURN
-        (bcm_field_qualify_L2SrcStatic(unit, entry, value, 0x1));
-  }
-  
-  if (mask & BROAD_LOOKUPSTATUS_L2_SRC_HIT) 
-  {
-    value = (data & BROAD_LOOKUPSTATUS_L2_SRC_HIT) ? 0x1 : 0x0;
-    BCM_IF_ERROR_RETURN
-        (bcm_field_qualify_L2SrcHit(unit, entry, value, 0x1));
-  }
-
-  if (mask & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK) 
-  {
-    switch (data & BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK)
-    {
-      case BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_DIS:
-        value = BCM_STG_STP_DISABLE;
-        break;
-      case BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_BLK:
-        value = BCM_STG_STP_BLOCK;
-        break;
-      case BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_LRN:
-        value = BCM_STG_STP_LEARN;
-        break;
-      case BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_FWD:
-        value = BCM_STG_STP_FORWARD;
-        break;
-      default:
-        return (BCM_E_PARAM);
-    }
-    BCM_IF_ERROR_RETURN
-        (bcm_field_qualify_IngressStpState(unit, entry, value, 0x3));
-  }
-
-  if (mask & BROAD_LOOKUPSTATUS_FB_VLAN_ID_VALID) 
-  {
-    value = (data & BROAD_LOOKUPSTATUS_FB_VLAN_ID_VALID) ? 0x1 : 0x0;
-    BCM_IF_ERROR_RETURN
-        (bcm_field_qualify_ForwardingVlanValid(unit, entry, value, 0x1));
-  }
-
-  if (mask & BROAD_LOOKUPSTATUS_VXLT_HIT)
-  {
-    value = (data & BROAD_LOOKUPSTATUS_VXLT_HIT) ? 0x1 : 0x0;
-    BCM_IF_ERROR_RETURN
-        (bcm_field_qualify_VlanTranslationHit(unit, entry, value, 0x1));
-  }
-
-  if (mask & BROAD_LOOKUPSTATUS_TUNNEL_HIT)
-  {
-    /* PTin added: new switch 56689 (Valkyrie2) */
-    /* PTin added: new switch 5664x (Triumph3) */
-    if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) ||
-        SOC_IS_TRIUMPH3(unit))
-    {
-      /* TunnelTerminated not supported in IFP, use TunnelType instead. */
-      BCM_IF_ERROR_RETURN
-        (bcm_field_qualify_TunnelType(unit, entry, bcmFieldTunnelTypeIp));
-    }
-    else
-    {
-      value = (data & BROAD_LOOKUPSTATUS_TUNNEL_HIT) ? 0x1 : 0x0;
-      BCM_IF_ERROR_RETURN
-        (bcm_field_qualify_TunnelTerminated(unit, entry, value, 0x1));
-    }
-  }
-
-  if ((mask & BROAD_LOOKUPSTATUS_L2_TABLE_DST_L3)) 
-  {
-    value = (data & BROAD_LOOKUPSTATUS_L2_TABLE_DST_L3) ? 0x1 : 0x0;
-    BCM_IF_ERROR_RETURN
-      (bcm_field_qualify_L3Routable(unit, entry, value, 0x1));
-  }
-  #endif
-  return (BCM_E_NONE);
-}
 
 static int _policy_group_add_field(int                   unit,
                                    BROAD_POLICY_STAGE_t  policyStage,
@@ -2623,18 +1961,13 @@ static int _policy_group_add_actions(int                   unit,
 {
   int                         rv = BCM_E_NONE;
   int                         i;
-  int                         dscp; 
   bcm_field_action_t          bcm_action;
   action_map_entry_t         *action_map;
   BROAD_POLICY_ACTION_t       action;
-  BROAD_POLICY_ACTION_SCOPE_t action_scope;
   L7_uint32                   param0, param1, param2;
 
   switch (policyStage)
   {
-  case BROAD_POLICY_STAGE_LOOKUP:
-    action_map = lookup_action_map;
-    break;
   case BROAD_POLICY_STAGE_INGRESS:
     action_map = ingress_action_map;
     break;
@@ -2650,149 +1983,91 @@ static int _policy_group_add_actions(int                   unit,
   {
     for (i = 0; i < ACTIONS_PER_MAP_ENTRY; i++)
     {
-      for (action_scope = BROAD_POLICY_ACTION_CONFORMING; action_scope < BROAD_POLICY_ACTION_LAST; action_scope++)
+      /* Get action value */
+      bcm_action = action_map[action].action[i];
+
+      /* handle case of redirect to invalid port, e.g. LAG with no members */
+      if ((BROAD_ACTION_REDIRECT == action) || (BROAD_ACTION_MIRROR == action))
       {
-        if ((action_scope == BROAD_POLICY_ACTION_EXCEEDING) && BROAD_EXCEEDING_ACTION_IS_SPECIFIED(actPtr, action))
-        {
-          bcm_action = action_map[action].yellow[i];
-        }
-        else if ((action_scope == BROAD_POLICY_ACTION_NONCONFORMING) && BROAD_NONCONFORMING_ACTION_IS_SPECIFIED(actPtr, action))
-        {
-          bcm_action = action_map[action].red[i];
-        }
-        else if ((action_scope == BROAD_POLICY_ACTION_CONFORMING) && BROAD_CONFORMING_ACTION_IS_SPECIFIED(actPtr, action))
-        {
-          bcm_action = action_map[action].green[i];
-        }
-        else
-        {
-          /* Action is not specified. */
-          continue;
-        }
-
-        /* handle case of redirect to invalid port, e.g. LAG with no members */
-        if ((BROAD_ACTION_REDIRECT == action) || (BROAD_ACTION_MIRROR == action))
-        {
-          if (BCMX_LPORT_INVALID == actPtr->u.ifp_parms.modid)
-          {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-              sysapiPrintf("%s(%d) Skipped action %u\n",__FUNCTION__,__LINE__,action);
-            /* Skip this action for now. 
-               This policy will be updated later when a member is added to the LAG. */
-            continue;
-          }
-        }
-
-        if (BROAD_ACTION_TRAP_TO_CPU == action)
-        {
-          if (hpcBroadMasterCpuModPortGet(&param0, &param1) != BCM_E_NONE)
-          {
-            L7_LOGF(L7_LOG_SEVERITY_CRITICAL, L7_DRIVER_COMPONENT_ID, "Couldn't get CPU port info.");
-            return BCM_E_FAIL;
-          }
-        }
-        else
-        {
-          hapiBroadPolicyActionParmsGet(actPtr, policyStage, action, action_scope, &param0, &param1, &param2);
-        }
-
-        /* handle case of SET_TOS action. for non-conforming/exceeding traffic, there is 
-         * no field in POLICY Table to set TOS. instead, we use bcmFieldActionRpDscpNew action,
-         * and require to shift TOS value.
-         */
-        if ((action == BROAD_ACTION_SET_TOS) &&
-            ((bcm_action == bcmFieldActionYpDscpNew) || (bcm_action == bcmFieldActionRpDscpNew) || 
-             (bcm_action == bcmFieldActionGpDscpNew)))
-        {
-          dscp = param0 << 3; /* Treat TOS as a DSCP value */
-          param0 = dscp;
-        }
-
-        if (PROFILE_ACTION_INVALID == bcm_action)
+        if (BCMX_LPORT_INVALID == actPtr->u.ifp_parms.modid)
         {
           if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-            sysapiPrintf("%s(%d) bcm_action=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, rv);
-          return BCM_E_CONFIG;
+            sysapiPrintf("%s(%d) Skipped action %u\n",__FUNCTION__,__LINE__,action);
+          /* Skip this action for now. 
+             This policy will be updated later when a member is added to the LAG. */
+          continue;
         }
-        else if (bcmFieldActionGpDropPrecedence == bcm_action)
-        {
-          /* conforming color in sysparam0 */
-          rv = bcm_field_action_add(unit, eid, bcm_action, color_map[param0], 0);
-          if (BCM_E_NONE != rv)
-          {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-              sysapiPrintf("%s(%d) bcm_action=%d color_map=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, color_map[param0], rv);
-          }
-        }
-        else if (bcmFieldActionYpDropPrecedence == bcm_action)
-        {
-          /* conforming color in sysparam1 */
-          rv = bcm_field_action_add(unit, eid, bcm_action, color_map[param1], 0);
-          if (BCM_E_NONE != rv)
-          {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-              sysapiPrintf("%s(%d) bcm_action=%d color_map=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, color_map[param1], rv);
-          }
-        }
-        else if (bcmFieldActionRpDropPrecedence == bcm_action)
-        {
-          /* conforming color in sysparam2 */
-          rv = bcm_field_action_add(unit, eid, bcm_action, color_map[param2], 0);
-          if (BCM_E_NONE != rv)
-          {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-              sysapiPrintf("%s(%d) bcm_action=%d color_map=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, color_map[param2], rv);
-          }
-        }
-        else if (PROFILE_ACTION_NONE != bcm_action)
-        {
-          /* set remaining actions */
-          rv = bcm_field_action_add(unit, eid, bcm_action, param0, param1);
-          if (BCM_E_NONE != rv)
-          {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-              sysapiPrintf("%s(%d) bcm_action=%d param0=%d param1=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, param0, param1, rv);
+      }
 
-            return rv;
-          }
+      if (BROAD_ACTION_TRAP_TO_CPU == action)
+      {
+        if (hpcBroadMasterCpuModPortGet(&param0, &param1) != BCM_E_NONE)
+        {
+          L7_LOGF(L7_LOG_SEVERITY_CRITICAL, L7_DRIVER_COMPONENT_ID, "Couldn't get CPU port info.");
+          return BCM_E_FAIL;
         }
+      }
+      else
+      {
+        hapiBroadPolicyActionParmsGet(actPtr, policyStage, action, BROAD_POLICY_ACTION_CONFORMING, &param0, &param1, &param2);
+      }
 
+      if (PROFILE_ACTION_INVALID == bcm_action)
+      {
         if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-          sysapiPrintf("%s(%d) Added bcm_action=%d (param0=%d param1=%d): rv = %d\n",__FUNCTION__,__LINE__, bcm_action, param0, param1, rv);
-
-        /* For a redirect action, add an implicit lookup status qualifier to 
-         * forward based on STP status - allow only if the state is set to "forwarding" */
-        /* Allow redirecting to CPU regardless of STP state */
-        if ((bcmFieldActionRedirect == bcm_action) && (param1 != CMIC_PORT(unit)))
+          sysapiPrintf("%s(%d) bcm_action=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, rv);
+        return BCM_E_CONFIG;
+      }
+      else if (PROFILE_ACTION_NONE != bcm_action)
+      {
+        /* set remaining actions */
+        rv = bcm_field_action_add(unit, eid, bcm_action, param0, param1);
+        if (BCM_E_NONE != rv)
         {
-          L7_ushort16 val  = BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_FWD;
-          L7_ushort16 mask = BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK;
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+            sysapiPrintf("%s(%d) bcm_action=%d param0=%d param1=%d: rv = %d\n",__FUNCTION__,__LINE__, bcm_action, param0, param1, rv);
 
-          /* Try and add a lookup status qualifier */
-          rv = _policy_group_add_std_field(unit, policyStage, eid, BROAD_FIELD_LOOKUP_STATUS,
-                                           (char *)&val, (char *)&mask);
-          if (BCM_E_NONE != rv)
+          return rv;
+        }
+      }
+
+      if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+        sysapiPrintf("%s(%d) Added bcm_action=%d (param0=%d param1=%d): rv = %d\n",__FUNCTION__,__LINE__, bcm_action, param0, param1, rv);
+
+      /* DNX: todo */
+      #if 0
+      /* For a redirect action, add an implicit lookup status qualifier to 
+       * forward based on STP status - allow only if the state is set to "forwarding" */
+      /* Allow redirecting to CPU regardless of STP state */
+      if ((bcmFieldActionRedirect == bcm_action) && (param1 != CMIC_PORT(unit)))
+      {
+        L7_ushort16 val  = BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_FWD;
+        L7_ushort16 mask = BROAD_LOOKUPSTATUS_INGRESS_SPG_STATE_MASK;
+
+        /* Try and add a lookup status qualifier */
+        rv = _policy_group_add_std_field(unit, policyStage, eid, BROAD_FIELD_LOOKUP_STATUS,
+                                         (char *)&val, (char *)&mask);
+        if (BCM_E_NONE != rv)
+        {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+            sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
+
+          /* If error is BCM_E_NOT_FOUND, it means that the sqset for the group does not contain
+             lookup status. This could happen only with a system policy.
+             In this case, clear the error and return.
+           */
+          if((BCM_E_NOT_FOUND == rv) || (BCM_E_PARAM == rv))
           {
-            if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-              sysapiPrintf("%s(%d) rv = %d\n",__FUNCTION__,__LINE__,rv);
-
-            /* If error is BCM_E_NOT_FOUND, it means that the sqset for the group does not contain
-               lookup status. This could happen only with a system policy.
-               In this case, clear the error and return.
-             */
-            if((BCM_E_NOT_FOUND == rv) || 
-               ((SOC_IS_HAWKEYE(unit)) && (BCM_E_PARAM == rv)))
-            {
-              rv = BCM_E_NONE;
-            }
-            /* Otherwise log the error */
-            else if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-            {
-              sysapiPrintf("Add lookup status to redirect/mirror action FAILED with ret val = %d\n", rv);
-            }
+            rv = BCM_E_NONE;
+          }
+          /* Otherwise log the error */
+          else if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+          {
+            sysapiPrintf("Add lookup status to redirect/mirror action FAILED with ret val = %d\n", rv);
           }
         }
       }
+      #endif
     }
   }
   return rv;
@@ -3111,76 +2386,73 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
 
     switch (policyStage)
     {
-    case BROAD_POLICY_STAGE_LOOKUP:
-      /* Not supported */
-      break;
-
-    case BROAD_POLICY_STAGE_EGRESS:
-      /* low priority group starts at 0 and goes for 4 */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio     = 0;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = 0;
-
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = 1;
-
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = 2;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = 2;
-
-      /* PTin added: policer */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = 1;
-
-      /* PTin added: EVC stats: groups 3 [ 1 * 128/(4*2) = 16 services/ports counters ] */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = 2;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = 2;
-
-      /* PTin added: client stats: groups 0-2 [ 3 * 128/(4*2) = 48 clients ] */
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = 2;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = 2;
-      /* PTin end */
-
-      break;
     case BROAD_POLICY_STAGE_INGRESS:
       /* low priority group starts at 0 and goes for 1 or 2 */
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio     = 0;
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = 0;
 
       group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = 1;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = 1;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = 2;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = 2;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = 2;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = 3;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = 4;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = 3;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = 3;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = 5;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = 5;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = 4;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = 4;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = 6;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = 6;
 
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = 5;
-      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = 5;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = 7;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = 7;
+
+      break;
+
+    case BROAD_POLICY_STAGE_EGRESS:
+      /* low priority group starts at 0 and goes for 4 */
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio     = 8;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio    = 8;
+
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio  = 8;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio = 8;
+
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio    = 8;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio   = 8;
+
+      /* PTin added: policer */
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio    = 9;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio   = 9;
+
+      /* PTin added: EVC stats: groups 3 [ 1 * 128/(4*2) = 16 services/ports counters ] */
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio     = 10;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio    = 10;
+
+      /* PTin added: client stats: groups 0-2 [ 3 * 128/(4*2) = 48 clients ] */
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio  = 11;
+      group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio = 11;
+      /* PTin end */
 
       break;
     default:
       break;
     }
 
-    PT_LOG_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_LOW   : Groups %u - %u",
-             group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio,
-             group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio);
-    PT_LOG_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_MEDIUM: Groups %u - %u",
+    PT_LOG_INFO(LOG_CTX_STARTUP,"PolicyStage=%u => ALLOC_BLOCK_LOW   : Groups %u - %u", policyStage,
+                group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].lowPrio,
+                group_alloc_table[unit][policyStage][ALLOC_BLOCK_LOW].highPrio);
+    PT_LOG_INFO(LOG_CTX_STARTUP,"PolicyStage=%u => ALLOC_BLOCK_MEDIUM: Groups %u - %u", policyStage,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].lowPrio,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_MEDIUM].highPrio);
-    PT_LOG_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_HIGH  : Groups %u - %u",
+    PT_LOG_INFO(LOG_CTX_STARTUP,"PolicyStage=%u => ALLOC_BLOCK_HIGH  : Groups %u - %u", policyStage,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].lowPrio,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio);
-    PT_LOG_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_PTIN  : Groups %u - %u",
+    PT_LOG_INFO(LOG_CTX_STARTUP,"PolicyStage=%u => ALLOC_BLOCK_PTIN  : Groups %u - %u", policyStage,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio);
-    PT_LOG_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_STATS_EVC   : Groups %u - %u",
+    PT_LOG_INFO(LOG_CTX_STARTUP,"PolicyStage=%u => ALLOC_BLOCK_STATS_EVC   : Groups %u - %u", policyStage,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].lowPrio,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_EVC].highPrio);
-    PT_LOG_INFO(LOG_CTX_STARTUP," ALLOC_BLOCK_STATS_CLIENT: Groups %u - %u",
+    PT_LOG_INFO(LOG_CTX_STARTUP,"PolicyStage=%u => ALLOC_BLOCK_STATS_CLIENT: Groups %u - %u", policyStage,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio,
              group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].highPrio);
 
@@ -3222,37 +2494,21 @@ static int _policy_group_table_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
 
 int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
 {
-    int          total_slices = 0;
+    int total_slices = 12;
 
     switch (policyStage)
     {
-    case BROAD_POLICY_STAGE_LOOKUP:
-      total_slices = 0;
-      break;
-
     case BROAD_POLICY_STAGE_INGRESS:
-      if (SOC_IS_JERICHO(unit))
-      {
-        total_slices = 8;
-      }
-      else
-      {
-        total_slices = 6;
-      }
+      total_slices = 8;
 
     case BROAD_POLICY_STAGE_EGRESS:
-      if (SOC_IS_JERICHO(unit))
-      {
-        total_slices = 4;
-      }
-      else
-      {
-        total_slices = 3;
-      }
+      total_slices = 4;
       break;
+
     default:
       break;
     }
+
     return total_slices;
 }
 
@@ -3264,18 +2520,7 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
   switch (policyStage)
   {
   case BROAD_POLICY_STAGE_LOOKUP:
-    if (SOC_IS_FIREBOLT2(unit) ||
-        SOC_IS_TR_VL(unit)     ||
-        SOC_IS_SCORPION(unit)  || 
-        SOC_IS_TRIUMPH2(unit)  ||
-        SOC_IS_APOLLO(unit)    ||
-        SOC_IS_ENDURO(unit)    ||
-        SOC_IS_VALKYRIE2(unit) ||
-        SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch 56843 (Trident) */
-        SOC_IS_TRIUMPH3(unit) )     /* PTin added: new switch 5664x (Triumph3) */
-    {
-      supported = L7_TRUE;
-    }
+    supported = L7_FALSE;
     break;
 
   case BROAD_POLICY_STAGE_INGRESS:
@@ -3283,18 +2528,7 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
     break;
 
   case BROAD_POLICY_STAGE_EGRESS:
-    if (SOC_IS_FIREBOLT2(unit) ||
-        SOC_IS_TR_VL(unit)     ||
-        SOC_IS_SCORPION(unit)  || 
-        SOC_IS_TRIUMPH2(unit)  || 
-        SOC_IS_APOLLO(unit)    ||
-        SOC_IS_ENDURO(unit)    ||
-        SOC_IS_VALKYRIE2(unit) ||
-        SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch 56843 (Trident) */
-        SOC_IS_TRIUMPH3(unit) )     /* PTin added: new switch 5664x (Triumph3) */
-    {
-      supported = L7_TRUE;
-    }
+    supported = L7_TRUE;
     break;
 
   default: 
@@ -3313,24 +2547,27 @@ int policy_group_init(int unit)
     if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("policy_group_init(%d)\n", unit);
 
-    for (policyStage = BROAD_POLICY_STAGE_LOOKUP; policyStage < BROAD_POLICY_STAGE_COUNT; policyStage++)
+    for (policyStage = BROAD_POLICY_STAGE_FIRST; policyStage < BROAD_POLICY_STAGE_COUNT; policyStage++)
     {
-      total_slices = _policy_group_total_slices(unit, policyStage);
-
-      rv = _policy_group_alloc_init(unit, policyStage, total_slices);
-      if (BCM_E_NONE != rv)
+      if (policy_stage_supported(unit, policyStage) == L7_TRUE)
       {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-            sysapiPrintf("_policy_group_alloc_init failed (%d)\n", rv);
-        return rv;
-      }
+        total_slices = _policy_group_total_slices(unit, policyStage);
 
-      rv = _policy_group_table_init(unit, policyStage, total_slices);
-      if (BCM_E_NONE != rv)
-      {
-        if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-            sysapiPrintf("_policy_group_table_init failed (%d)\n", rv);
-        return rv;
+        rv = _policy_group_alloc_init(unit, policyStage, total_slices);
+        if (BCM_E_NONE != rv)
+        {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+              sysapiPrintf("_policy_group_alloc_init failed (%d)\n", rv);
+          return rv;
+        }
+
+        rv = _policy_group_table_init(unit, policyStage, total_slices);
+        if (BCM_E_NONE != rv)
+        {
+          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+              sysapiPrintf("_policy_group_table_init failed (%d)\n", rv);
+          return rv;
+        }
       }
     }
 
@@ -3775,13 +3012,7 @@ int policy_group_set_portclass(int                  unit,
       {
         BCM_PBMP_ITER(pbm, bcm_port)
         {
-          if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-          {
-            rv = bcm_field_qualify_InPort(unit, eid, bcm_port, portMask);
-            if (BCM_E_NONE != rv)
-                return rv;
-          }
-          else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+          if (policyStage == BROAD_POLICY_STAGE_EGRESS)
           {
             rv = bcm_field_qualify_OutPort(unit, eid, bcm_port, portMask);
             if (BCM_E_NONE != rv)
@@ -3801,13 +3032,7 @@ int policy_group_set_portclass(int                  unit,
       }
       else
       {
-        if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-        {
-          rv = bcm_field_qualify_InPort(unit, eid, 0, 0);
-          if (BCM_E_NONE != rv)
-              return rv;
-        }
-        else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+        if (policyStage == BROAD_POLICY_STAGE_EGRESS)
         {
           rv = bcm_field_qualify_OutPort(unit, eid, 0, 0);
           if (BCM_E_NONE != rv)
@@ -3848,11 +3073,7 @@ int policy_port_class_add_remove(int                  unit,
     L7_uint32         portClassBmp;
     bcm_port_class_t  portClassType;
 
-    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-    {
-      portClassType = bcmPortClassFieldLookup;
-    }
-    else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+    if (policyStage == BROAD_POLICY_STAGE_EGRESS)
     {
       portClassType = bcmPortClassFieldEgress;
     }
@@ -3937,7 +3158,7 @@ int policy_group_set_outervlan(int                  unit,
        (as a NULL pbmp would do for ingress) */
     if ((policyType == BROAD_POLICY_TYPE_VLAN) ||
         (policyStage == BROAD_POLICY_STAGE_INGRESS) ||
-        (((policyStage == BROAD_POLICY_STAGE_LOOKUP) || (policyStage == BROAD_POLICY_STAGE_EGRESS)) && BCM_PBMP_NOT_NULL(policyPtr->pbm)))
+        (((policyStage == BROAD_POLICY_STAGE_EGRESS)) && BCM_PBMP_NOT_NULL(policyPtr->pbm)))
     {
       rv = bcm_field_entry_install(unit, eid);
 
@@ -4534,6 +3755,10 @@ int _policy_minimal_sxset_get(int unit, BROAD_POLICY_TYPE_t policyType, policy_r
 
 void _policy_group_status_to_sxset_width(bcm_field_group_status_t *status, sqsetWidth_t *sqsetWidth)
 {
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    sysapiPrintf("%s(%d) slice_width_physical=%u intraslice_mode_enable=%u\n", __FUNCTION__, __LINE__,
+                 status->slice_width_physical, status->intraslice_mode_enable);
+
   if ((status->slice_width_physical == 1) && (status->intraslice_mode_enable == 0))
   {
     *sqsetWidth = sqsetWidthSingle;
@@ -4548,8 +3773,11 @@ void _policy_group_status_to_sxset_width(bcm_field_group_status_t *status, sqset
   }
   else
   {
-    *sqsetWidth = sqsetWidthQuad;
+    *sqsetWidth = sqsetWidthSingle;
   }
+
+  if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
+    sysapiPrintf("%s(%d) *sqsetWidth=%u\n", __FUNCTION__, __LINE__, *sqsetWidth);
 }
 
 /* Debug */
@@ -4582,15 +3810,12 @@ void debug_group_stats(int unit)
 
   sysapiPrintf("\nUnit %d Group Stats\n", unit);
 
-  for (policyStage = BROAD_POLICY_STAGE_LOOKUP; policyStage < BROAD_POLICY_STAGE_COUNT; policyStage++)
+  for (policyStage = BROAD_POLICY_STAGE_FIRST; policyStage < BROAD_POLICY_STAGE_COUNT; policyStage++)
   {
     if (policy_stage_supported(unit, policyStage) == L7_TRUE)
     {
       switch (policyStage)
       {
-      case BROAD_POLICY_STAGE_LOOKUP:
-        sysapiPrintf("Stage: Lookup\n");
-        break;
       case BROAD_POLICY_STAGE_INGRESS:
         sysapiPrintf("Stage: Ingress\n");
         break;
@@ -4637,15 +3862,12 @@ void debug_group_table(int unit)
 
     sysapiPrintf("\nUnit %d\n", unit);
 
-    for (policyStage = BROAD_POLICY_STAGE_LOOKUP; policyStage < BROAD_POLICY_STAGE_COUNT; policyStage++)
+    for (policyStage = BROAD_POLICY_STAGE_FIRST; policyStage < BROAD_POLICY_STAGE_COUNT; policyStage++)
     {
       if (policy_stage_supported(unit, policyStage) == L7_TRUE)
       {
         switch (policyStage)
         {
-        case BROAD_POLICY_STAGE_LOOKUP:
-          sysapiPrintf("Stage: Lookup\n");
-          break;
         case BROAD_POLICY_STAGE_INGRESS:
           sysapiPrintf("Stage: Ingress\n");
           break;

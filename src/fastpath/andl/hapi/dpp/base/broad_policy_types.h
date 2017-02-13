@@ -131,26 +131,20 @@ typedef enum
     BROAD_FIELD_DPORT,
     BROAD_FIELD_IP6_HOPLIMIT,
     BROAD_FIELD_IP6_NEXTHEADER,
-    BROAD_FIELD_LOOKUP_STATUS,
     BROAD_FIELD_IP6_SRC,
     BROAD_FIELD_IP6_DST,
     BROAD_FIELD_IP6_FLOWLABEL,
     BROAD_FIELD_IP6_TRAFFIC_CLASS,
-    BROAD_FIELD_ICMP_MSG_TYPE,
+    //BROAD_FIELD_ICMP_MSG_TYPE,
     BROAD_FIELD_CLASS_ID,       /* For use in the IFP, determined by VFP results */
     BROAD_FIELD_SRC_CLASS_ID,   /* PTin added: FP */
-    BROAD_FIELD_L2_CLASS_ID,    /* For use in the IFP, determined by L2X results */
-    BROAD_FIELD_ISCSI_OPCODE,
-    BROAD_FIELD_ISCSI_OPCODE_TCP_OPTIONS, /* Use this field for iSCSI clients that default to 12 bytes of TCP options (e.g. Linux). */
     BROAD_FIELD_TCP_CONTROL,
     BROAD_FIELD_VLAN_FORMAT,
     BROAD_FIELD_L2_FORMAT,
-    BROAD_FIELD_SNAP,
     BROAD_FIELD_IP_TYPE,
  /* ... add new fields here ... */
     BROAD_FIELD_INPORTS,          /* PTin added: FP */
     BROAD_FIELD_OUTPORT,          /* PTin added: FP */
-    BROAD_FIELD_SRCTRUNK,         /* PTin added: FP */
     BROAD_FIELD_PORTCLASS,        /* PTin added: FP */
     BROAD_FIELD_DROP,             /* PTin added: FP */
     BROAD_FIELD_L2_SRCHIT,        /* PTin added: FP */
@@ -223,7 +217,8 @@ BROAD_POLICY_ACTION_t;
 
 typedef enum
 {
-  BROAD_POLICY_ACTION_CONFORMING,    /* applies to conforming traffic */    
+  BROAD_POLICY_ACTION_SCOPE_SINGLE=0,
+  BROAD_POLICY_ACTION_CONFORMING=0,    /* applies to conforming traffic */    
   BROAD_POLICY_ACTION_EXCEEDING,     /* applies to exceeding traffic */     
   BROAD_POLICY_ACTION_NONCONFORMING, /* applies to non-conforming traffic */
   BROAD_POLICY_ACTION_LAST
@@ -370,25 +365,21 @@ BROAD_POLICY_STATS_t;
 #define BROAD_FIELD_DPORT_SIZE                     2
 #define BROAD_FIELD_IP6_HOPLIMIT_SIZE              1
 #define BROAD_FIELD_IP6_NEXTHEADER_SIZE            1
-#define BROAD_FIELD_LOOKUP_STATUS_SIZE             2
 #define BROAD_FIELD_IP6_SRC_SIZE                   16
 #define BROAD_FIELD_IP6_DST_SIZE                   16
 #define BROAD_FIELD_IP6_FLOWLABEL_SIZE             4
 #define BROAD_FIELD_IP6_TRAFFIC_CLASS_SIZE         1
-#define BROAD_FIELD_ICMP_MSG_TYPE_SIZE             1
+//#define BROAD_FIELD_ICMP_MSG_TYPE_SIZE             1
 #define BROAD_FIELD_CLASS_ID_SIZE                  sizeof(uint32)       /* PTin modified: FP */
 #define BROAD_FIELD_SRC_CLASS_ID_SIZE              sizeof(uint32)       /* PTin modified: FP */
 #define BROAD_FIELD_TCP_CONTROL_SIZE               1
-#define BROAD_FIELD_L2_CLASS_ID_SIZE               1
 #define BROAD_FIELD_ISCSI_OPCODE_SIZE              1
 #define BROAD_FIELD_ISCSI_OPCODE_TCP_OPTIONS_SIZE  1
 #define BROAD_FIELD_VLAN_FORMAT_SIZE               1
 #define BROAD_FIELD_L2_FORMAT_SIZE                 1
-#define BROAD_FIELD_SNAP_SIZE                      6
 #define BROAD_FIELD_IP_TYPE_SIZE                   1
 #define BROAD_FIELD_INPORTS_SIZE                   sizeof(bcm_pbmp_t)   /* PTin added: FP */
 #define BROAD_FIELD_OUTPORT_SIZE                   sizeof(bcm_port_t)   /* PTin added: FP */
-#define BROAD_FIELD_SRCTRUNK_SIZE                  sizeof(bcm_trunk_t)  /* PTin added: FP */
 #define BROAD_FIELD_PORTCLASS_SIZE                 sizeof(uint32)       /* PTin added: FP */
 #define BROAD_FIELD_DROP_SIZE                      1                    /* PTin added: FP */
 #define BROAD_FIELD_L2_SRCHIT_SIZE                 1                    /* PTin added: FP */
@@ -520,12 +511,6 @@ typedef struct
 
   struct 
   {
-    L7_uchar8  value[BROAD_FIELD_LOOKUP_STATUS_SIZE];
-    L7_uchar8  mask[BROAD_FIELD_LOOKUP_STATUS_SIZE];
-  } fieldLookupStatus;
-
-  struct 
-  {
     L7_uchar8  value[BROAD_FIELD_IP6_FLOWLABEL_SIZE];
     L7_uchar8  mask[BROAD_FIELD_IP6_FLOWLABEL_SIZE];
   } fieldIp6Flowlabel;
@@ -536,11 +521,14 @@ typedef struct
     L7_uchar8  mask[BROAD_FIELD_IP6_TRAFFIC_CLASS_SIZE];
   } fieldIp6TrafficClass;
 
+  /* DNX: todo */
+  #if 0
   struct 
   {
     L7_uchar8  value[BROAD_FIELD_ICMP_MSG_TYPE_SIZE];
     L7_uchar8  mask[BROAD_FIELD_ICMP_MSG_TYPE_SIZE];
   } fieldIcmpMsgType;
+  #endif
 
   /* PTin modified: FP */
   struct
@@ -562,18 +550,6 @@ typedef struct
     L7_uchar8  mask[BROAD_FIELD_TCP_CONTROL_SIZE];
   } fieldTCPControl;
 
-
-  struct 
-  {
-    L7_uchar8  value[BROAD_FIELD_L2_CLASS_ID_SIZE];
-  } fieldL2ClassId;
-
-  struct 
-  {
-    L7_uchar8  value[BROAD_FIELD_ISCSI_OPCODE_SIZE];
-    L7_uchar8  mask[BROAD_FIELD_ISCSI_OPCODE_SIZE];
-  } fieldIscsiOpcode;
-
   struct 
   {
     L7_uchar8  value[BROAD_FIELD_VLAN_FORMAT_SIZE];
@@ -583,12 +559,6 @@ typedef struct
   {
     L7_uchar8  value[BROAD_FIELD_L2_FORMAT_SIZE];
   } fieldL2Format;
-
-  struct 
-  {
-    L7_uchar8  value[BROAD_FIELD_SNAP_SIZE];
-    L7_uchar8  mask[BROAD_FIELD_SNAP_SIZE];
-  } fieldSnap;
   
   struct 
   {
@@ -607,12 +577,6 @@ typedef struct
     L7_uchar8  value[BROAD_FIELD_OUTPORT_SIZE];
     L7_uchar8  mask[BROAD_FIELD_OUTPORT_SIZE];
   } fieldOutport;
-
-  struct 
-  {
-    L7_uchar8  value[BROAD_FIELD_SRCTRUNK_SIZE];
-    L7_uchar8  mask[BROAD_FIELD_SRCTRUNK_SIZE];
-  } fieldSrcTrunk;
 
   struct 
   {
@@ -705,6 +669,7 @@ BROAD_POLICY_RULE_ENTRY_t;
 
 /* Policy Entry */
 typedef unsigned char BROAD_POLICY_STAGE_t;
+#define BROAD_POLICY_STAGE_FIRST   0
 #define BROAD_POLICY_STAGE_LOOKUP  0
 #define BROAD_POLICY_STAGE_INGRESS 1
 #define BROAD_POLICY_STAGE_EGRESS  2

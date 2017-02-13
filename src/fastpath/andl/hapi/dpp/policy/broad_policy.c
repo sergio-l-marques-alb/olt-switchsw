@@ -173,76 +173,17 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
     {
     case BROAD_ACTION_REDIRECT:
     case BROAD_ACTION_MIRROR:
-      if (((action == BROAD_ACTION_REDIRECT) &&
-                      (BROAD_CONFORMING_ACTION_IS_SPECIFIED(actionPtr, BROAD_ACTION_MIRROR) ||
-                       BROAD_CONFORMING_ACTION_IS_SPECIFIED(actionPtr, BROAD_ACTION_TRAP_TO_CPU))) ||
-          ((action == BROAD_ACTION_MIRROR) &&
-                      BROAD_CONFORMING_ACTION_IS_SPECIFIED(actionPtr, BROAD_ACTION_REDIRECT)))
-      {
-        /* These actions are mutually exclusive. */
-        actionPtr->actions[action_scope] &= ~(1 << action);
-        return L7_ERROR;
-      }
-
-      /*supported for ROBO*/
-      if(hapiBroadRoboVariantCheck() != __BROADCOM_53115_ID)
-      {
-       if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
-       {
-         L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
-       }
-      }
       actionPtr->u.ifp_parms.usp.unit = param0;
       actionPtr->u.ifp_parms.usp.slot = param1;
       actionPtr->u.ifp_parms.usp.port = param2;
       break;
 
-    case BROAD_ACTION_TRAP_TO_CPU:
-      if (BROAD_CONFORMING_ACTION_IS_SPECIFIED(actionPtr, BROAD_ACTION_REDIRECT))
-      {
-        /* These actions are mutually exclusive. */
-        actionPtr->actions[action_scope] &= ~(1 << action);
-        return L7_ERROR;
-      }
-      break;
-
-    case BROAD_ACTION_COPY_TO_CPU:
-      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-      {
-        actionPtr->u.vfp_parms.cpu_cosq = param0;
-      }
-      break;
-
-    case BROAD_ACTION_TS_TO_CPU:
-      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-      {
-        actionPtr->u.vfp_parms.cpu_cosq = param0;
-      }
-      break;
-
     case BROAD_ACTION_SET_COSQ:
-      /* PTin added: FP */
-      #if 1
-      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-      {
-        actionPtr->u.vfp_parms.set_cosq[action_scope] = param0;
-      }
-      else
-      #endif
-      {
-        actionPtr->u.ifp_parms.set_cosq[action_scope] = param0;
-      }
+      actionPtr->u.ifp_parms.set_cosq[action_scope] = param0;
       break;
 
     case BROAD_ACTION_SET_TOS:
     case BROAD_ACTION_SET_DSCP:
-      if (((action == BROAD_ACTION_SET_TOS)  && (actionPtr->actions[action_scope] & (1 << BROAD_ACTION_SET_DSCP))) ||
-          ((action == BROAD_ACTION_SET_DSCP) && (actionPtr->actions[action_scope] & (1 << BROAD_ACTION_SET_TOS))))
-      {
-        /* These actions are mutually exclusive. */
-        actionPtr->actions[action_scope] &= ~(1 << action);
-        return L7_ERROR;
-      }
       if (policyStage == BROAD_POLICY_STAGE_EGRESS)
       {
         actionPtr->u.efp_parms.set_dscp[action_scope] = param0;
@@ -254,11 +195,7 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
       break;
 
     case BROAD_ACTION_SET_USERPRIO:
-      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-      {
-        actionPtr->u.vfp_parms.set_userprio[action_scope] = param0;
-      }
-      else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+      if (policyStage == BROAD_POLICY_STAGE_EGRESS)
       {
         actionPtr->u.efp_parms.set_userprio[action_scope] = param0;
       }
@@ -271,11 +208,7 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
     /* PTin added */
     #if 1
     case BROAD_ACTION_SET_USERPRIO_INNERTAG:
-      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-      {
-        actionPtr->u.vfp_parms.set_userprio_innertag[action_scope] = param0;
-      }
-      else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+      if (policyStage == BROAD_POLICY_STAGE_EGRESS)
       {
         actionPtr->u.efp_parms.set_userprio_innertag[action_scope] = param0;
       }
@@ -287,90 +220,37 @@ static L7_RC_t hapiBroadPolicyActionAdd(BROAD_POLICY_RULE_ENTRY_t  *rulePtr,
     #endif
 
     case BROAD_ACTION_SET_DROPPREC:
-      if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
-      {
-        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
-      }
       actionPtr->u.ifp_parms.set_dropprec.conforming    = param0;
       actionPtr->u.ifp_parms.set_dropprec.exceeding     = param1;
       actionPtr->u.ifp_parms.set_dropprec.nonconforming = param2;
       break;
 
     case BROAD_ACTION_SET_OUTER_VID:
-      if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
-      {
-        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
-      }
-      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-      {
-        actionPtr->u.vfp_parms.set_ovid = param0;
-      }
-      else
-      {
-        actionPtr->u.efp_parms.set_ovid = param0;
-      }
+      actionPtr->u.efp_parms.set_ovid = param0;
       break;
 
     case BROAD_ACTION_SET_INNER_VID:
-      if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
-      {
-        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
-      }
       actionPtr->u.efp_parms.set_ivid = param0;
       break;
 
     case BROAD_ACTION_ADD_OUTER_VID:
-      if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
-      {
-        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
-      }
       actionPtr->u.vfp_parms.add_ovid = param0;
       break;
 
     case BROAD_ACTION_ADD_INNER_VID:
-      if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
-      {
-        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
-      }
       actionPtr->u.vfp_parms.add_ivid = param0;
       break;
 
     case BROAD_ACTION_SET_CLASS_ID:
-      if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
-      {
-        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
-      }
-      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-      {
-        actionPtr->u.vfp_parms.set_class_id = param0;
-      }
-      else
-      {
-        actionPtr->u.ifp_parms.set_class_id = param0;
-      }
+      actionPtr->u.ifp_parms.set_class_id = param0;
       break;
 
     /* PTin added: FP */
     case BROAD_ACTION_SET_SRC_CLASS_ID:
-      if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
-      {
-        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
-      }
-      if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-      {
-        actionPtr->u.vfp_parms.set_src_class_id = param0;
-      }
-      else
-      {
-        actionPtr->u.ifp_parms.set_src_class_id = param0;
-      }
+      actionPtr->u.ifp_parms.set_src_class_id = param0;
       break;
 
     case BROAD_ACTION_SET_REASON_CODE:
-      if (action_scope != BROAD_POLICY_ACTION_CONFORMING)
-      {
-        L7_LOG_ERROR(action_scope); /* Catch programming errors... BROAD_ACTION_ENTRY_t may need to be updated to support multiple action scopes. */
-      }
       actionPtr->u.ifp_parms.set_reason = param0;
       break;
 
@@ -418,10 +298,6 @@ static void hapiBroadPolicyActionUpdate(BROAD_POLICY_ENTRY_t *policyInfo)
         switch (actionIdx)
         {
         case BROAD_ACTION_REDIRECT:
-         /* RoBo's SDK code does not support using lport as parameter for
-            redirect actions. It should by modid, port*/
-         if(hapiBroadRoboCheck() != L7_TRUE)
-         {
           if (hapiBroadPolicyPortSelect(&actionPtr->u.ifp_parms.usp, &lport) == L7_SUCCESS)
           {
             /* Use gport (i.e. lport) for parameter */
@@ -435,7 +311,6 @@ static void hapiBroadPolicyActionUpdate(BROAD_POLICY_ENTRY_t *policyInfo)
             actionPtr->u.ifp_parms.modport = BCMX_LPORT_INVALID;
           }
           break;
-         }
         case BROAD_ACTION_MIRROR:
           if (hapiBroadPolicyPortSelect(&actionPtr->u.ifp_parms.usp, &lport) == L7_SUCCESS)
           {
@@ -2524,12 +2399,12 @@ void hapiBroadPolicyDebugRule(BROAD_POLICY_RULE_ENTRY_t *rulePtr, BROAD_POLICY_S
     {
         if (BROAD_CONFORMING_ACTION_IS_SPECIFIED((&rulePtr->actionInfo), i))
         {
-            sysapiPrintf("     Action %10s: ",
-                         hapiBroadPolicyActionName(i));
+          sysapiPrintf("     Action %10s: ",
+                       hapiBroadPolicyActionName(i));
 
-            sysapiPrintf("/IN-PROF/");
+          sysapiPrintf("/IN-PROF/");
 
-            hapiBroadPolicyDebugAction(&rulePtr->actionInfo, policyStage, i, BROAD_POLICY_ACTION_CONFORMING);
+          hapiBroadPolicyDebugAction(&rulePtr->actionInfo, policyStage, i, BROAD_POLICY_ACTION_CONFORMING);
         }
         if (BROAD_EXCEEDING_ACTION_IS_SPECIFIED((&rulePtr->actionInfo), i))
         {

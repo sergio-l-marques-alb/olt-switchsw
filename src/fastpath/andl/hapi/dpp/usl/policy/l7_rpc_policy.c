@@ -222,9 +222,7 @@ int custom_policy_init()
 
   rv = L7_SUCCESS;
 
-  #if 0
   rv = l7_bcm_policy_init();
-  #endif
 
   return rv;
 }

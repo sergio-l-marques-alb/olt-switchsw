@@ -79,7 +79,6 @@ static char *policyTypeStr[BROAD_POLICY_TYPE_LAST] =
 
 static char *policyStageStr[BROAD_POLICY_STAGE_COUNT] = 
 {
-  "Lookup",
   "Ingress",
   "Egress"
 };

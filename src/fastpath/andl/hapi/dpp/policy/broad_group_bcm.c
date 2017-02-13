@@ -81,14 +81,6 @@ static L7_uint32 _policy_max_port_classes(L7_uint32 unit)
 {
   L7_uint32 max_port_classes = EFP_STD_CLASS_ID_MAX;
 
-  /* Return the maximum number of port classes supported for this unit. 
-     The max number is the number of bits in the port class field in HW. 
-     Most devices support 8 bits, FB2 supports 4. */
-  if (SOC_IS_FIREBOLT2(unit))
-  {
-    max_port_classes = 4;
-  }
-
   return max_port_classes;
 }
 
@@ -408,8 +400,7 @@ static int _policy_apply_to_ports(int unit, BROAD_POLICY_t policy)
 
   policyPtr = &policy_map_table[unit][policyIdx];
 
-  if ((policyPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP) ||
-      (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS))
+  if (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
   {
     oldPortClass = policyPtr->portClass;
     rv = _policy_alloc_portclass(unit, policy);
@@ -458,8 +449,7 @@ static int _policy_apply_to_ports(int unit, BROAD_POLICY_t policy)
           return rv;
         }
       }
-      else if ((policyPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP) ||
-               (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS))
+      else if (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
       {
         if ((oldPortClass != policyPtr->portClass) || (policyPtr->portClass == BROAD_INVALID_PORT_CLASS))
         {
@@ -517,8 +507,7 @@ static int _policy_apply_to_ports(int unit, BROAD_POLICY_t policy)
         rv = policy_group_set_pbm(unit, policyPtr->policyStage, policyPtr->group, policyPtr->entry[i],
                                   tempPbm);           
       }
-      else if ((policyPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP) ||
-               (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS))
+      else if (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
       {
         /* set the portclass */
         if ((oldPortClass != policyPtr->portClass) || (policyPtr->portClass == BROAD_INVALID_PORT_CLASS))
@@ -557,175 +546,6 @@ static int _policy_apply_to_ports(int unit, BROAD_POLICY_t policy)
   return rv;
 }
 
-static int _policy_apply_egress_mask(int unit, BROAD_POLICY_t policy, bcm_pbmp_t affectedPortsPbm, BROAD_POLICY_EPBM_CMD_t action)
-{
-  policy_map_table_t  *policyPtr;
-  L7_short16           policyIdx;
-  policy_map_table_t         *tmpPolicyPtr;
-  policy_efp_on_ifp_table_t  *globalPolicyPtr;
-  bcm_pbmp_t                  permitPbm, denyPbm, tempPbm;
-  int                         i, p;
-  int                         rv = BCM_E_NONE;
-  BROAD_POLICY_ENTRY_t policyInfo;
-  BROAD_POLICY_RULE_ENTRY_t *rulePtr;
-  
-  CHECK_UNIT(unit);
-  CHECK_POLICY(policy);
-
-  policyIdx = policy_map_index_map[unit][policy];
-
-  if (policyIdx == BROAD_POLICY_MAP_INVALID)
-  {
-    return BCM_E_NOT_FOUND;
-  }
-  policyPtr = &policy_map_table[unit][policyIdx];   
-
-  globalPolicyPtr = &policy_efp_on_ifp_table[unit];
-
-  BCM_PBMP_CLEAR(permitPbm);
-  BCM_PBMP_CLEAR(denyPbm);
-
-  /* Following changes are needed when a policy is applied on the port:
-     1) Update all the permit rules of the policy with ports in unit epbm
-        except ports on which this policy is applied.
-     2) Update all the deny rules of the policy with ports on which this
-        policy is applied.
-     3) If the policy has an implicit deny-all rule, then update all the 
-        outbound policy rules in the unit to mask out this port. Also 
-        update the unit egress mask to include this port.
-     4) Create the global default rule.
-  */
-  if (action == BROAD_POLICY_EPBM_CMD_ADD)
-  {
-    BCM_PBMP_OR(policyPtr->pbm, affectedPortsPbm);
-  }
-  else if (action == BROAD_POLICY_EPBM_CMD_REMOVE)
-  {
-    BCM_PBMP_REMOVE(policyPtr->pbm, affectedPortsPbm);
-    BCM_PBMP_REMOVE(globalPolicyPtr->unitEpbm, affectedPortsPbm);
-  }
-  else 
-  {
-    return BCM_E_FAIL;
-  }
-
-  BCM_PBMP_ASSIGN(permitPbm,  globalPolicyPtr->unitEpbm);
-  BCM_PBMP_REMOVE(permitPbm, policyPtr->pbm);
-  BCM_PBMP_ASSIGN(denyPbm,  globalPolicyPtr->unitEpbm);
-  BCM_PBMP_OR(denyPbm, policyPtr->pbm);
-
-  /* Get the policy information for policy ID from USL database */
-  rv = usl_db_policy_info_get(USL_CURRENT_DB, policy, &policyInfo);
-  if (rv != BCM_E_NONE)
-  {
-    if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-      sysapiPrintf("couldn't retrieve policy %d info from USL DB: rv = %d\n\n", policy, rv);
-     return rv;
-  }
-  
-  for (i = 0; i < policyPtr->entryCount; i++)
-  {
-    rulePtr = policy_rule_ptr_get(&policyInfo, i);
-    if (rulePtr == L7_NULLPTR)
-    {
-      /* Free any rules allocated by usl_db_policy_info_get(). */
-      hapiBroadPolicyRulesPurge(&policyInfo);
-      return BCM_E_FAIL;
-    }
-
-    /* Set the inports explicitly to all ports to activate the rule 
-       Set the inports explicitly to zero to deactivate the rule */
-    if(rulePtr->ruleFlags & BROAD_RULE_STATUS_ACTIVE)
-    {
-       BCM_PBMP_ASSIGN(tempPbm, PBMP_E_ALL(unit));
-       rv = policy_group_set_pbm(unit, policyPtr->policyStage, policyPtr->group, policyPtr->entry[i],
-                                tempPbm);
-       if (BCM_E_NONE != rv)
-       {
-         /* Free any rules allocated by usl_db_policy_info_get(). */
-         hapiBroadPolicyRulesPurge(&policyInfo);
-         return rv;
-       }
-    }
-    else
-    {  
-       BCM_PBMP_CLEAR(tempPbm);
-       rv = policy_group_set_pbm(unit, policyPtr->policyStage, policyPtr->group, policyPtr->entry[i],
-                                tempPbm);
-       if (BCM_E_NONE != rv)
-       {
-          /* Free any rules allocated by usl_db_policy_info_get(). */
-          hapiBroadPolicyRulesPurge(&policyInfo);
-          return rv;
-       }
-    }
- 
-      rv = policy_group_set_epbm(unit, policyPtr->group, policyPtr->entry[i],
-                                 (ENTRY_DENY_ISMASKBITSET(policyPtr, i)) ? denyPbm : permitPbm, 
-                                 BROAD_POLICY_EPBM_CMD_ASSIGN);
-      if (BCM_E_NONE != rv)
-      {
-         /* Free any rules allocated by usl_db_policy_info_get(). */
-         hapiBroadPolicyRulesPurge(&policyInfo); 
-         return rv;
-      }
-  }
-
-  /* Update all the outbound policy rules on this unit masking out this port */
-  if (policyPtr->flags & GROUP_MAP_REQUIRES_IMPLICIT_DENY) 
-  {
-      for (p = 0; p < BROAD_MAX_POLICIES_PER_BCM_UNIT; p++) 
-      {
-          tmpPolicyPtr = &policy_map_table[unit][p];
-          if (((tmpPolicyPtr->flags & (GROUP_MAP_USED | GROUP_MAP_EFP_ON_IFP)) == (GROUP_MAP_USED | GROUP_MAP_EFP_ON_IFP)) && 
-              (tmpPolicyPtr->group == policyPtr->group) &&
-              (tmpPolicyPtr != policyPtr))
-          {
-              for (i = 0; i < tmpPolicyPtr->entryCount; i++)
-              {
-                  rv = policy_group_set_epbm(unit, tmpPolicyPtr->group, 
-                                             tmpPolicyPtr->entry[i],
-                                             affectedPortsPbm, 
-                                             action);
-                  if (BCM_E_NONE != rv)
-                  {
-                      /* Free any rules allocated by usl_db_policy_info_get(). */
-                      hapiBroadPolicyRulesPurge(&policyInfo);
-                      return rv;
-                  }
-              }
-          }
-      }
-
-    /* Set the port in unitEpbm */
-    if (action == BROAD_POLICY_EPBM_CMD_ADD)
-    {
-      BCM_PBMP_OR(globalPolicyPtr->unitEpbm, affectedPortsPbm);
-    }
-  }
-
-  /* Add the global default rule */
-  if (globalPolicyPtr->entry != BROAD_ENTRY_INVALID)
-  {
-      /* PTin modified: policer */
-      policy_group_delete_rule(unit, BROAD_POLICY_STAGE_INGRESS, policyPtr->group,
-                               globalPolicyPtr->entry, globalPolicyPtr->entry,  /* PTin modified: Policer/Counter */
-                               0, 0); /* PTin modified: SDK 6.3.0 */
-      globalPolicyPtr->entry = BROAD_ENTRY_INVALID;
-  }
-
-  if (BCM_PBMP_NOT_NULL(globalPolicyPtr->unitEpbm))
-  {
-    rv = policy_group_create_default_rule(unit, policyPtr->group, 
-                                          globalPolicyPtr->unitEpbm,      
-                                         &(globalPolicyPtr->entry));
-  }
-
-  /* Free any rules allocated by usl_db_policy_info_get(). */
-  hapiBroadPolicyRulesPurge(&policyInfo);
-  return rv;
-
-}
 
 int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *policyData)
 {
@@ -738,10 +558,7 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
   int                          rv = BCM_E_NONE;
   L7_short16                   policyIdx;
   BROAD_POLICY_RULE_ENTRY_t   *rulePtr;
-  L7_uint32                    actions, actionMask;
-  L7_ushort16                  ethType;
   policy_efp_on_ifp_table_t   *globalPolicyPtr;
-  BROAD_ACTION_ENTRY_t        *actionPtr;
   L7_int                       policer_id = 0, counter_id = 0;  /* PTin added: SDK 6.3.0 */
 
   L7_ushort16 vlanId;
@@ -841,19 +658,6 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
   policyPtr->general_policer_id = policyData->general_policer_id;
   #endif
 
-  /* If we're supporting Egress ACLs using the IFP,
-     process the stage as IFP instead of EFP. */
-  if (cnfgrIsFeaturePresent(L7_FLEX_QOS_ACL_COMPONENT_ID, L7_FEAT_EGRESS_ACL_ON_IFP_ID))
-  {
-    if ((policyData->policyStage == BROAD_POLICY_STAGE_EGRESS) &&
-        (policyData->policyType  == BROAD_POLICY_TYPE_PORT))
-    {
-      policyPtr->policyStage   = BROAD_POLICY_STAGE_INGRESS;
-      policyPtr->flags        |= GROUP_MAP_EFP_ON_IFP;
-      policyData->policyFlags |= BROAD_POLICY_EGRESS_ON_INGRESS;
-    }
-  }
-
   if (FALSE == savePbm)
   {
     _policy_group_set_default_pbm(unit, policyData->policyType, policyData->policyStage, policyPtr);
@@ -866,8 +670,7 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
     SOC_PBMP_ASSIGN(policyPtr->pbm, savedPbm);
   }
 
-  if ((policyPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP) ||
-      (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS))
+  if (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
   {
     if ((policyData->policyType == BROAD_POLICY_TYPE_PORT)   ||
         (policyData->policyType == BROAD_POLICY_TYPE_DOT1AD) ||
@@ -886,11 +689,6 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
     {
       policyPtr->portClass = BROAD_INVALID_PORT_CLASS;
     }
-  }
-
-  if (policyPtr->flags & GROUP_MAP_EFP_ON_IFP)
-  {
-    ENTRY_DENY_CLRMASK(policyPtr);
   }
 
   if (policyData->ruleCount > 0)
@@ -925,19 +723,6 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
     /* populate the group mapping table */
     policyPtr->group = group;
 
-    if (policyPtr->flags & GROUP_MAP_EFP_ON_IFP)
-    {
-      /* Delete the default deny rule now. It will be added back later after this policy's rules
-         are put in HW. */
-      if (globalPolicyPtr->entry != BROAD_ENTRY_INVALID)
-      {
-        policy_group_delete_rule(unit, policyPtr->policyStage, policyPtr->group,
-                                 globalPolicyPtr->entry, globalPolicyPtr->entry, /* PTin modified: Policer/Counter */
-                                 0, 0); /* PTin modified: SDK 6.3.0 */
-        globalPolicyPtr->entry = BROAD_ENTRY_INVALID;
-      }
-    }
-
     /* add new rules to policy */
     rulePtr = policyData->ruleInfo;
     i = 0;
@@ -949,70 +734,6 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
       if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
         sysapiPrintf("- add rule %d\n", i);
 
-      /* For EFP rules on IFP, ensure that only valid actions of permit/deny are allowed */
-      if (policyPtr->flags & GROUP_MAP_EFP_ON_IFP)
-      {
-        actions = policyData->ruleInfo[i].actionInfo.actions[BROAD_POLICY_ACTION_CONFORMING];
-        actionMask = ~((1 << BROAD_ACTION_HARD_DROP) | (1 << BROAD_ACTION_PERMIT));
-        if (actions & actionMask)
-        {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-            sysapiPrintf("- invalid action in rule %d\n", i);
-
-          _policy_sem_give();
-          (void)l7_bcm_policy_destroy(unit, policy);
-
-          return BCM_E_FAIL;
-        }
-
-        /* Check that only valid qualifiers of IPv4/Layer 4 are allowed and that
-           at least one qualifier is present. The only time there would be no 
-           qualifiers is for the implicit deny rule of a MAC ACL, which we want to
-           forbid. */
-        if ((policyData->ruleInfo[i].fieldInfo.flags & 
-             ~((1 << BROAD_FIELD_ETHTYPE) | 
-               (1 << BROAD_FIELD_DSCP)    | 
-               (1 << BROAD_FIELD_PROTO)   | 
-               (1 << BROAD_FIELD_SIP)     | 
-               (1 << BROAD_FIELD_DIP)     | 
-               (1 << BROAD_FIELD_SPORT)   | 
-               (1 << BROAD_FIELD_DPORT))) ||
-            (policyData->ruleInfo[i].fieldInfo.flags == 0))
-        {
-          if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
-            sysapiPrintf("- invalid qualifier in rule %d\n", i);
-
-          _policy_sem_give();
-          (void)l7_bcm_policy_destroy(unit, policy);
-
-          return BCM_E_FAIL;
-        }
-
-        /* Check for an implicit deny rule. If present, skip adding this rule since there 
-           will be a single deny rule used for the group performing EFP on IFP. */
-        actionPtr = &(policyData->ruleInfo[i].actionInfo);
-        if (policyData->ruleInfo[i].fieldInfo.flags == (1 << BROAD_FIELD_ETHTYPE))
-        {
-          memcpy(&ethType, policyData->ruleInfo[i].fieldInfo.fieldEthtype.value, sizeof(ethType));
-          if (ethType == 0x0800)
-          {
-            if (BROAD_CONFORMING_ACTION_IS_SPECIFIED(actionPtr, BROAD_ACTION_HARD_DROP))
-            {
-              policyPtr->flags |= GROUP_MAP_REQUIRES_IMPLICIT_DENY;
-            }
-
-            /* Don't bother adding implicit rule regardless of action. */
-            continue;
-          }
-        }
-
-        /* Keep track of which rules have a deny action. */
-        if (BROAD_CONFORMING_ACTION_IS_SPECIFIED(actionPtr, BROAD_ACTION_HARD_DROP))
-        {
-          ENTRY_DENY_SETMASKBIT(policyPtr, i);
-        }
-      }
-
       /* convert srcEntry from rule to entry number so lower layer understands */
       srcRule = rulePtr->meterSrcEntry;
       rulePtr->meterSrcEntry = policyPtr->entry[srcRule];       /* PTin modified: entry */
@@ -1022,7 +743,7 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
       /* PTin modified: SDK 6.3.0 */
       policer_id = policyData->general_policer_id;
       counter_id = 0;
-      rv = policy_group_add_rule(unit, policyPtr->policyStage, policyData->policyType, group, rulePtr, policyPtr->pbm, policyPtr->flags & GROUP_MAP_EFP_ON_IFP,
+      rv = policy_group_add_rule(unit, policyPtr->policyStage, policyData->policyType, group, rulePtr, policyPtr->pbm, L7_FALSE,
                                  &entry, &policer_id, &counter_id);
 
       if (entry != BROAD_ENTRY_INVALID)
@@ -1107,17 +828,7 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
       if (policyPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
       {
         /* must set pbm for each entry */
-        if (policyPtr->flags & GROUP_MAP_EFP_ON_IFP)
-        {
-          bcm_pbmp_t tmpPbm;
-
-          BCM_PBMP_CLEAR(tmpPbm);
-          /* Set the epbm based on whether the rule action is deny/permit. */
-          rv = policy_group_set_epbm(unit, group, entry,
-                                     (ENTRY_DENY_ISMASKBITSET(policyPtr, i)) ? policyPtr->pbm : tmpPbm, 
-                                     BROAD_POLICY_EPBM_CMD_ASSIGN);
-        }
-        else if ( !( ( rulePtr->fieldInfo.flags >> BROAD_FIELD_INPORTS) & 1) )
+        if ( !( ( rulePtr->fieldInfo.flags >> BROAD_FIELD_INPORTS) & 1) )
         {
           rv = policy_group_set_pbm(unit, policyPtr->policyStage, group, entry, policyPtr->pbm);
           if (hapiBroadPolicyDebugLevel() > POLICY_DEBUG_LOW)
@@ -1140,8 +851,7 @@ int l7_bcm_policy_create(int unit, BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *
           return rv;
         }
       }
-      else if ((policyPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP) ||
-               (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS))
+      else if (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
       {
         if ((policyData->policyType == BROAD_POLICY_TYPE_PORT)   ||
             (policyData->policyType == BROAD_POLICY_TYPE_DOT1AD) ||
@@ -1185,8 +895,6 @@ int l7_bcm_policy_destroy(int unit, BROAD_POLICY_t policy)
     L7_short16                 tempPolicyIdx;
     policy_map_table_t        *policyPtr;
     policy_map_table_t        *tempPolicyPtr;
-    L7_BOOL                    isEfpOnIfpPolicy;
-    policy_efp_on_ifp_table_t *globalPolicyPtr;
 
     CHECK_UNIT(unit);
     CHECK_POLICY(policy);
@@ -1209,8 +917,7 @@ int l7_bcm_policy_destroy(int unit, BROAD_POLICY_t policy)
                policy, 
                policyPtr->group, policyPtr->entryCount);
 
-    isEfpOnIfpPolicy = (policyPtr->flags & GROUP_MAP_EFP_ON_IFP) ? L7_TRUE : L7_FALSE;
-    policyPtr->flags      = GROUP_MAP_NONE;
+    policyPtr->flags = GROUP_MAP_NONE;
     policy_map_index_map[unit][policy] = BROAD_POLICY_MAP_INVALID;
 
     /* remove each group entry used by policy */
@@ -1247,18 +954,6 @@ int l7_bcm_policy_destroy(int unit, BROAD_POLICY_t policy)
       if (tempPolicyIdx == BROAD_MAX_POLICIES_PER_BCM_UNIT)
       {
         /* indicate the group is no longer used by this policy */
-        if (isEfpOnIfpPolicy)
-        {
-          /* If this policy was EFP on IFP, then we need to destroy the global rule. */
-          globalPolicyPtr = &policy_efp_on_ifp_table[unit];
-          if (globalPolicyPtr->entry != BROAD_ENTRY_INVALID)
-          {
-              policy_group_delete_rule(unit, BROAD_POLICY_STAGE_INGRESS, policyPtr->group,
-                                       globalPolicyPtr->entry, globalPolicyPtr->entry,  /* PTin modified: Policer/Counter */
-                                       0, 0); /* PTin modified: SDK 6.3.0 */
-              globalPolicyPtr->entry = BROAD_ENTRY_INVALID;
-          }
-        }
         tmprv = policy_group_destroy(unit, policyPtr->policyStage, policyPtr->group);
         if (BCM_E_NONE != tmprv)
             rv = tmprv;
@@ -1311,7 +1006,6 @@ int l7_bcm_policy_apply(int unit, BROAD_POLICY_t policy, bcm_port_t port)
     bcm_pbmp_t           tempPbm;
     L7_short16           policyIdx;
     unsigned int         oldPortClass = BROAD_INVALID_PORT_CLASS;
-    bcm_pbmp_t           affectedPortsPbm;
 
     CHECK_UNIT(unit);
     CHECK_POLICY(policy);
@@ -1329,18 +1023,11 @@ int l7_bcm_policy_apply(int unit, BROAD_POLICY_t policy, bcm_port_t port)
     policyPtr = &policy_map_table[unit][policyIdx];
 
     BCM_PBMP_ASSIGN(tempPbm, policyPtr->pbm);
-    if (policyPtr->flags & GROUP_MAP_EFP_ON_IFP)
-    {
-      BCM_PBMP_PORT_SET(affectedPortsPbm, port); 
-      rv = _policy_apply_egress_mask(unit, policy, affectedPortsPbm, BROAD_POLICY_EPBM_CMD_ADD);
-    }
-    else
-    {
-      BCM_PBMP_PORT_ADD(policyPtr->pbm, port); 
+    BCM_PBMP_PORT_ADD(policyPtr->pbm, port); 
 
-      oldPortClass = policyPtr->portClass; /* save the original portClass */
-      rv = _policy_apply_to_ports(unit, policy);
-    }
+    oldPortClass = policyPtr->portClass; /* save the original portClass */
+    rv = _policy_apply_to_ports(unit, policy);
+
     if (BCM_E_NONE != rv)
     {
       /* Restore the PBMP */
@@ -1349,8 +1036,7 @@ int l7_bcm_policy_apply(int unit, BROAD_POLICY_t policy, bcm_port_t port)
       return rv;
     }
 
-    if ((policyPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP) ||
-        (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS))
+    if (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
     {
       /* Update port class for this port. */
       BCM_PBMP_PORT_SET(tempPbm, port);
@@ -1381,7 +1067,6 @@ int l7_bcm_policy_apply_all(int unit, BROAD_POLICY_t policy)
     bcm_pbmp_t          tempPbm;
     L7_short16          policyIdx;
     unsigned int        oldPortClass = BROAD_INVALID_PORT_CLASS;
-    bcm_pbmp_t          affectedPortsPbm;
 
     CHECK_UNIT(unit);
     CHECK_POLICY(policy);
@@ -1399,18 +1084,11 @@ int l7_bcm_policy_apply_all(int unit, BROAD_POLICY_t policy)
     policyPtr = &policy_map_table[unit][policyIdx];
 
     BCM_PBMP_ASSIGN(tempPbm, policyPtr->pbm);
-    if (policyPtr->flags & GROUP_MAP_EFP_ON_IFP)
-    {
-      BCM_PBMP_ASSIGN(affectedPortsPbm, PBMP_E_ALL(unit));
-      rv = _policy_apply_egress_mask(unit, policy, affectedPortsPbm, BROAD_POLICY_EPBM_CMD_ADD);
-    }
-    else
-    {
-      BCM_PBMP_ASSIGN(policyPtr->pbm, PBMP_E_ALL(unit));
+    BCM_PBMP_ASSIGN(policyPtr->pbm, PBMP_E_ALL(unit));
 
-      oldPortClass = policyPtr->portClass; /* save the original portClass */
-      rv = _policy_apply_to_ports(unit, policy);
-    }
+    oldPortClass = policyPtr->portClass; /* save the original portClass */
+    rv = _policy_apply_to_ports(unit, policy);
+
     if (BCM_E_NONE != rv)
     {
       /* Restore the PBMP */
@@ -1419,8 +1097,7 @@ int l7_bcm_policy_apply_all(int unit, BROAD_POLICY_t policy)
       return rv;
     }
 
-    if ((policyPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP) ||
-        (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS))
+    if (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
     {
       rv = policy_port_class_pbmp_update(unit, policyPtr->pbm, policyPtr->policyStage, oldPortClass, policyPtr->portClass);
       if (BCM_E_NONE != rv)
@@ -1441,7 +1118,6 @@ int l7_bcm_policy_remove(int unit, BROAD_POLICY_t policy, bcm_port_t port)
     bcm_pbmp_t          tempPbm;
     L7_short16          policyIdx;
     unsigned int        oldPortClass = BROAD_INVALID_PORT_CLASS;
-    bcm_pbmp_t          affectedPortsPbm;
 
     CHECK_UNIT(unit);
     CHECK_POLICY(policy);
@@ -1459,18 +1135,11 @@ int l7_bcm_policy_remove(int unit, BROAD_POLICY_t policy, bcm_port_t port)
     policyPtr = &policy_map_table[unit][policyIdx];
 
     BCM_PBMP_ASSIGN(tempPbm, policyPtr->pbm);
-    if (policyPtr->flags & GROUP_MAP_EFP_ON_IFP)
-    {
-      BCM_PBMP_PORT_SET(affectedPortsPbm, port); 
-      rv = _policy_apply_egress_mask(unit, policy, affectedPortsPbm, BROAD_POLICY_EPBM_CMD_REMOVE);
-    }
-    else
-    {
-      BCM_PBMP_PORT_REMOVE(policyPtr->pbm, port);
+    BCM_PBMP_PORT_REMOVE(policyPtr->pbm, port);
 
-      oldPortClass = policyPtr->portClass; /* save the original portClass */
-      rv = _policy_apply_to_ports(unit, policy);
-    }
+    oldPortClass = policyPtr->portClass; /* save the original portClass */
+    rv = _policy_apply_to_ports(unit, policy);
+
     if (BCM_E_NONE != rv)
     {
       /* Restore the PBMP */
@@ -1479,8 +1148,7 @@ int l7_bcm_policy_remove(int unit, BROAD_POLICY_t policy, bcm_port_t port)
       return rv;
     }
 
-    if ((policyPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP) ||
-        (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS))
+    if (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
     {
       /* Update port class for this port. */
       rv = policy_port_class_add_remove(unit, port, policyPtr->policyStage, oldPortClass, L7_FALSE);
@@ -1572,79 +1240,13 @@ int l7_bcm_policy_rule_status_set(int unit, BROAD_POLICY_t policy, BROAD_POLICY_
    */
   if (status == BROAD_POLICY_RULE_STATUS_ACTIVE)
   {
-    if (policyPtr->flags & GROUP_MAP_EFP_ON_IFP)
+    /* if policy is port based */
+    if (policyData.policyType == BROAD_POLICY_TYPE_PORT)
     {
-      /* set the Inports Qualifier to all ports to activate outbound rule on EFP_ON_IFP*/
-      BCM_PBMP_ASSIGN(tempPbm, PBMP_E_ALL(unit));
-      rv = policy_group_set_pbm(unit, policyPtr->policyStage, policyPtr->group, policyPtr->entry[rule], tempPbm);
-      if (BCM_E_NONE != rv)
+      if (policyPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
       {
-        /* Free any rules allocated by usl_db_policy_info_get(). */
-        hapiBroadPolicyRulesPurge(&policyData);
-        _policy_sem_give();
-        return rv;
-      }
-    }
-    else
-    {
-      /* if policy is port based */
-      if (policyData.policyType == BROAD_POLICY_TYPE_PORT)
-      {
-        if (policyPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
-        {
-          /* set the pbm for the corresponding entry for rule from policy_map_table_t */
-          rv = policy_group_set_pbm(unit, policyPtr->policyStage, policyPtr->group, policyPtr->entry[rule], policyPtr->pbm);
-          if (BCM_E_NONE != rv)
-          {
-            /* Free any rules allocated by usl_db_policy_info_get(). */
-            hapiBroadPolicyRulesPurge(&policyData);
-            _policy_sem_give();
-            return rv;
-          }
-        }
-        else if ((policyPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP) ||
-                 (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS))
-        {
-          /* set the outerVlan for the corresponding entry for rule from policy_map_table_t
-           * 
-           */
-          if (hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_OVID) == BROAD_FIELD_SPECIFIED)
-          {
-            rv = policy_group_set_outervlan(unit, policyPtr, rule,
-                                            (char*)hapiBroadPolicyFieldValuePtr(&rulePtr->fieldInfo,BROAD_FIELD_OVID),
-                                            (char*)hapiBroadPolicyFieldMaskPtr(&rulePtr->fieldInfo, BROAD_FIELD_OVID));           
-            if (BCM_E_NONE != rv)
-            {
-              /* Free any rules allocated by usl_db_policy_info_get(). */
-              hapiBroadPolicyRulesPurge(&policyData);
-              _policy_sem_give();
-              return rv;
-            }
-          }
-          else
-          {
-            /* if the rule is not qualified for BROAD_FIELD_OVID
-             * then set the outerVlan field as dont care
-             */
-            vlanId = 0;
-            mask = FIELD_MASK_ALL;
-            rv = policy_group_set_outervlan(unit, policyPtr, rule, (char*) &vlanId,(char*)&mask);
-            if (BCM_E_NONE != rv)
-            {
-              /* Free any rules allocated by usl_db_policy_info_get(). */
-              hapiBroadPolicyRulesPurge(&policyData);
-              _policy_sem_give();
-              return rv;
-            }
-          } 
-        }
-      }
-      else if (policyData.policyType == BROAD_POLICY_TYPE_VLAN)
-      {
-        /* for VLAN Based policies TYPE VLAN should be configured */
-        rv = policy_group_set_outervlan(unit, policyPtr, rule,
-                                        (char*)hapiBroadPolicyFieldValuePtr(&rulePtr->fieldInfo,BROAD_FIELD_OVID),
-                                        (char*)hapiBroadPolicyFieldMaskPtr(&rulePtr->fieldInfo, BROAD_FIELD_OVID));
+        /* set the pbm for the corresponding entry for rule from policy_map_table_t */
+        rv = policy_group_set_pbm(unit, policyPtr->policyStage, policyPtr->group, policyPtr->entry[rule], policyPtr->pbm);
         if (BCM_E_NONE != rv)
         {
           /* Free any rules allocated by usl_db_policy_info_get(). */
@@ -1653,17 +1255,48 @@ int l7_bcm_policy_rule_status_set(int unit, BROAD_POLICY_t policy, BROAD_POLICY_
           return rv;
         }
       }
-    }   /* end of check for policy EFP_ON_IFP*/ 
-  }
-  /* Rule status inactive */
-  else
-  {
-    if (policyPtr->flags & GROUP_MAP_EFP_ON_IFP)
+      else if (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
+      {
+        /* set the outerVlan for the corresponding entry for rule from policy_map_table_t
+         * 
+         */
+        if (hapiBroadPolicyFieldFlagsGet(&rulePtr->fieldInfo, BROAD_FIELD_OVID) == BROAD_FIELD_SPECIFIED)
+        {
+          rv = policy_group_set_outervlan(unit, policyPtr, rule,
+                                          (char*)hapiBroadPolicyFieldValuePtr(&rulePtr->fieldInfo,BROAD_FIELD_OVID),
+                                          (char*)hapiBroadPolicyFieldMaskPtr(&rulePtr->fieldInfo, BROAD_FIELD_OVID));           
+          if (BCM_E_NONE != rv)
+          {
+            /* Free any rules allocated by usl_db_policy_info_get(). */
+            hapiBroadPolicyRulesPurge(&policyData);
+            _policy_sem_give();
+            return rv;
+          }
+        }
+        else
+        {
+          /* if the rule is not qualified for BROAD_FIELD_OVID
+           * then set the outerVlan field as dont care
+           */
+          vlanId = 0;
+          mask = FIELD_MASK_ALL;
+          rv = policy_group_set_outervlan(unit, policyPtr, rule, (char*) &vlanId,(char*)&mask);
+          if (BCM_E_NONE != rv)
+          {
+            /* Free any rules allocated by usl_db_policy_info_get(). */
+            hapiBroadPolicyRulesPurge(&policyData);
+            _policy_sem_give();
+            return rv;
+          }
+        } 
+      }
+    }
+    else if (policyData.policyType == BROAD_POLICY_TYPE_VLAN)
     {
-      /* set the Inports Qualifier to all ports to activate outbound rule on EFP_ON_IFP*/
-      BCM_PBMP_CLEAR(tempPbm);
-      rv = policy_group_set_pbm(unit, policyPtr->policyStage, policyPtr->group,
-                                policyPtr->entry[rule], tempPbm);
+      /* for VLAN Based policies TYPE VLAN should be configured */
+      rv = policy_group_set_outervlan(unit, policyPtr, rule,
+                                      (char*)hapiBroadPolicyFieldValuePtr(&rulePtr->fieldInfo,BROAD_FIELD_OVID),
+                                      (char*)hapiBroadPolicyFieldMaskPtr(&rulePtr->fieldInfo, BROAD_FIELD_OVID));
       if (BCM_E_NONE != rv)
       {
         /* Free any rules allocated by usl_db_policy_info_get(). */
@@ -1672,48 +1305,32 @@ int l7_bcm_policy_rule_status_set(int unit, BROAD_POLICY_t policy, BROAD_POLICY_
         return rv;
       }
     }
-    else
+  }
+  /* Rule status inactive */
+  else
+  {
+    if (policyData.policyType == BROAD_POLICY_TYPE_PORT)
     {
-      if (policyData.policyType == BROAD_POLICY_TYPE_PORT)
+      if (policyPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
       {
-        if (policyPtr->policyStage == BROAD_POLICY_STAGE_INGRESS)
+        /* set the pbm as 0 to deactivate the rule for the corresponding entry */
+        BCM_PBMP_CLEAR(tempPbm);
+        rv = policy_group_set_pbm(unit, policyPtr->policyStage, policyPtr->group,
+                                  policyPtr->entry[rule],
+                                  tempPbm);
+        if (BCM_E_NONE != rv)
         {
-          /* set the pbm as 0 to deactivate the rule for the corresponding entry */
-          BCM_PBMP_CLEAR(tempPbm);
-          rv = policy_group_set_pbm(unit, policyPtr->policyStage, policyPtr->group,
-                                    policyPtr->entry[rule],
-                                    tempPbm);
-          if (BCM_E_NONE != rv)
-          {
-            /* Free any rules allocated by usl_db_policy_info_get(). */
-            hapiBroadPolicyRulesPurge(&policyData);
-            _policy_sem_give();
-            return rv;
-          }
-        }
-        else if ((policyPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP) ||
-                 (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS))
-        {
-          /* set the outerVlan for the corresponding entry to 4095 to deactivate the rule 
-           *
-           */
-          vlanId = 4095;
-          mask = FIELD_MASK_NONE;
-          rv = policy_group_set_outervlan(unit, policyPtr, rule, (char*)&vlanId,(char*)&mask);
-          if (BCM_E_NONE != rv)
-          {
-            /* Free any rules allocated by usl_db_policy_info_get(). */
-            hapiBroadPolicyRulesPurge(&policyData);
-            _policy_sem_give();
-            return rv;
-          }
+          /* Free any rules allocated by usl_db_policy_info_get(). */
+          hapiBroadPolicyRulesPurge(&policyData);
+          _policy_sem_give();
+          return rv;
         }
       }
-      else if (policyData.policyType == BROAD_POLICY_TYPE_VLAN)
+      else if (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
       {
         /* set the outerVlan for the corresponding entry to 4095 to deactivate the rule 
-        *
-        */
+         *
+         */
         vlanId = 4095;
         mask = FIELD_MASK_NONE;
         rv = policy_group_set_outervlan(unit, policyPtr, rule, (char*)&vlanId,(char*)&mask);
@@ -1725,7 +1342,23 @@ int l7_bcm_policy_rule_status_set(int unit, BROAD_POLICY_t policy, BROAD_POLICY_
           return rv;
         }
       }
-    } /* end of check for policy EFP_ON_IFP*/
+    }
+    else if (policyData.policyType == BROAD_POLICY_TYPE_VLAN)
+    {
+      /* set the outerVlan for the corresponding entry to 4095 to deactivate the rule 
+      *
+      */
+      vlanId = 4095;
+      mask = FIELD_MASK_NONE;
+      rv = policy_group_set_outervlan(unit, policyPtr, rule, (char*)&vlanId,(char*)&mask);
+      if (BCM_E_NONE != rv)
+      {
+        /* Free any rules allocated by usl_db_policy_info_get(). */
+        hapiBroadPolicyRulesPurge(&policyData);
+        _policy_sem_give();
+        return rv;
+      }
+    }
   }
 
   /* Free any rules allocated by usl_db_policy_info_get(). */
@@ -1741,7 +1374,6 @@ int l7_bcm_policy_remove_all(int unit, BROAD_POLICY_t policy)
     policy_map_table_t *policyPtr;
     bcm_pbmp_t          tempPbm;
     L7_short16          policyIdx;
-    bcm_pbmp_t          affectedPortsPbm;
     unsigned int        oldPortClass = BROAD_INVALID_PORT_CLASS;
 
     CHECK_UNIT(unit);
@@ -1760,18 +1392,11 @@ int l7_bcm_policy_remove_all(int unit, BROAD_POLICY_t policy)
     policyPtr = &policy_map_table[unit][policyIdx];
 
     BCM_PBMP_ASSIGN(tempPbm, policyPtr->pbm);
-    if (policyPtr->flags & GROUP_MAP_EFP_ON_IFP)
-    {
-      BCM_PBMP_ASSIGN(affectedPortsPbm, PBMP_E_ALL(unit));
-      rv = _policy_apply_egress_mask(unit, policy, affectedPortsPbm, BROAD_POLICY_EPBM_CMD_REMOVE);
-    }
-    else
-    {
-      BCM_PBMP_CLEAR(policyPtr->pbm);
+    BCM_PBMP_CLEAR(policyPtr->pbm);
 
-      oldPortClass = policyPtr->portClass; /* save the original portClass */
-      rv = _policy_apply_to_ports(unit, policy);
-    }
+    oldPortClass = policyPtr->portClass; /* save the original portClass */
+    rv = _policy_apply_to_ports(unit, policy);
+
     if (BCM_E_NONE != rv)
     {
       /* Restore the PBMP */
@@ -1780,8 +1405,7 @@ int l7_bcm_policy_remove_all(int unit, BROAD_POLICY_t policy)
       return rv;
     }
 
-    if ((policyPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP) ||
-        (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS))
+    if (policyPtr->policyStage == BROAD_POLICY_STAGE_EGRESS)
     {
       rv = policy_port_class_pbmp_update(unit, tempPbm, policyPtr->policyStage, oldPortClass, policyPtr->portClass);
       if (BCM_E_NONE != rv)
@@ -1963,7 +1587,7 @@ int _policy_map_get_info(int unit, int policy, policy_map_table_t *policyPtr)
 void debug_policy_table(int unit)
 {
   int i, j;
-  char policyStageString[BROAD_POLICY_STAGE_COUNT][10] = {"VFP","IFP","EFP"};
+  char policyStageString[BROAD_POLICY_STAGE_COUNT][10] = {"IFP","EFP"};
   L7_short16 policyIdx;
   policy_map_table_t *policyPtr;
   char pfmt1[SOC_PBMP_FMT_LEN];
@@ -1980,9 +1604,8 @@ void debug_policy_table(int unit)
       policyPtr = &policy_map_table[unit][policyIdx];
       if (policyPtr->group != BROAD_GROUP_INVALID)
       {
-        sysapiPrintf("[%2d]       %2d %3s   %1s%s %s %02d         [",
+        sysapiPrintf("[%2d]       %2d %3s   %s %s %02d         [",
                i, policyPtr->group, policyStageString[policyPtr->policyStage],
-               (policyPtr->flags & GROUP_MAP_EFP_ON_IFP) ? "E" : " ",
                SOC_PBMP_FMT(policyPtr->pbm, pfmt1),
                SOC_PBMP_FMT(PBMP_PORT_ALL(unit), pfmt2),
                (int)policyPtr->entryCount);
@@ -1993,32 +1616,6 @@ void debug_policy_table(int unit)
     }
   }
 
-  if (policy_stage_supported(unit, BROAD_POLICY_STAGE_LOOKUP))
-  {
-    sysapiPrintf("Lookup Stage:\n");
-    sysapiPrintf("Port Class      PBM                 Policies\n");
-    for (i = 0; i < _policy_max_port_classes(unit); i++)
-    {
-      if (BCM_PBMP_NOT_NULL(port_class_table[unit][BROAD_POLICY_STAGE_LOOKUP][i].pbm))
-      {
-        sysapiPrintf("[%2d]          %s    ",i, SOC_PBMP_FMT(port_class_table[unit][BROAD_POLICY_STAGE_LOOKUP][i].pbm, pfmt1));
-        for (j = 0; j < BROAD_MAX_POLICIES; j++)
-        {
-          policyIdx = policy_map_index_map[unit][j];
-          if (policyIdx != BROAD_POLICY_MAP_INVALID)
-          {
-            policyPtr = &policy_map_table[unit][policyIdx];
-            if ((policyPtr->policyStage == BROAD_POLICY_STAGE_LOOKUP) && 
-                (BCM_PBMP_EQ(policyPtr->pbm, port_class_table[unit][BROAD_POLICY_STAGE_LOOKUP][i].pbm)))
-            {
-              sysapiPrintf("[%d] ", j);
-            }
-          }
-        }
-        sysapiPrintf("\n");
-      }
-    }
-  }
   if (policy_stage_supported(unit, BROAD_POLICY_STAGE_EGRESS))
   {
     sysapiPrintf("Egress Stage:\n");

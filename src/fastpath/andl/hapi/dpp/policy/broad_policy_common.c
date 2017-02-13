@@ -38,25 +38,19 @@ static int broadFieldMapTable[BROAD_FIELD_LAST] =
   BROAD_FIELD_DPORT_SIZE,
   BROAD_FIELD_IP6_HOPLIMIT_SIZE,
   BROAD_FIELD_IP6_NEXTHEADER_SIZE,
-  BROAD_FIELD_LOOKUP_STATUS_SIZE,
   BROAD_FIELD_IP6_SRC_SIZE,
   BROAD_FIELD_IP6_DST_SIZE,
   BROAD_FIELD_IP6_FLOWLABEL_SIZE,
   BROAD_FIELD_IP6_TRAFFIC_CLASS_SIZE,
-  BROAD_FIELD_ICMP_MSG_TYPE_SIZE,
+  //BROAD_FIELD_ICMP_MSG_TYPE_SIZE,
   BROAD_FIELD_CLASS_ID_SIZE,
   BROAD_FIELD_SRC_CLASS_ID_SIZE,    /* PTin added: FP */
-  BROAD_FIELD_L2_CLASS_ID_SIZE,
-  BROAD_FIELD_ISCSI_OPCODE_SIZE,
-  BROAD_FIELD_ISCSI_OPCODE_TCP_OPTIONS_SIZE,
   BROAD_FIELD_TCP_CONTROL_SIZE, 
   BROAD_FIELD_VLAN_FORMAT_SIZE,
   BROAD_FIELD_L2_FORMAT_SIZE,
-  BROAD_FIELD_SNAP_SIZE,
   BROAD_FIELD_IP_TYPE_SIZE,
   BROAD_FIELD_INPORTS_SIZE,         /* PTin added: FP */
   BROAD_FIELD_OUTPORT_SIZE,         /* PTin added: FP */
-  BROAD_FIELD_SRCTRUNK_SIZE,        /* PTin added: FP */
   BROAD_FIELD_PORTCLASS_SIZE,       /* PTin added: FP */
   BROAD_FIELD_DROP_SIZE,            /* PTin added: FP */
   BROAD_FIELD_L2_SRCHIT_SIZE,       /* PTin added: FP */
@@ -79,25 +73,19 @@ static char *broadFieldNameTable[BROAD_FIELD_LAST] =
     "DPORT  ",
     "IP6_HOPLIMIT",
     "IP6_NEXTHEADER",
-    "LOOKUP_STATUS",
     "IP6_SRC",
     "IP6_DST",
     "IP6_FLOWLABEL",
     "IP6_TRAFFIC_CLASS",
-    "ICMP_MSG_TYPE",
+    //"ICMP_MSG_TYPE",
     "CLASS_ID",
     "SRC_CLASS_ID",     /* PTin added: FP */
-    "L2_CLASS_ID",
-    "ISCSI_OPCODE",
-    "ISCSI_OPCODE_TCP_OPTIONS",
     "TCP_CONTROL",
     "VLAN_FORMAT",
     "L2_FORMAT",
-    "SNAP",
     "IP_TYPE",
     "INPORTS",          /* PTin added: FP */
     "OUTPORT" ,         /* PTin added: FP */
-    "SRCTRUNK",         /* PTin added: FP */
     "PORTCLASS",        /* PTin added: FP */
     "DROP_PACKET",      /* PTin added: FP */
     "L2_SRCHIT",        /* PTin added: FP */
@@ -260,9 +248,6 @@ L7_uchar8 *hapiBroadPolicyFieldValuePtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_PO
   case BROAD_FIELD_IP6_NEXTHEADER:
     ptr = fieldInfo->fieldIp6Nextheader.value;
     break;
-  case BROAD_FIELD_LOOKUP_STATUS:
-    ptr = fieldInfo->fieldLookupStatus.value;
-    break;
   case BROAD_FIELD_IP6_SRC:
     //Modified by MMELO@16-04-15
 //  ptr = fieldInfo->u.Ipv6.fieldIp6Src.value;
@@ -279,22 +264,18 @@ L7_uchar8 *hapiBroadPolicyFieldValuePtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_PO
   case BROAD_FIELD_IP6_TRAFFIC_CLASS:
     ptr = fieldInfo->fieldIp6TrafficClass.value;
     break;
+  /* DNX: todo */
+  #if 0
   case BROAD_FIELD_ICMP_MSG_TYPE:
     ptr = fieldInfo->fieldIcmpMsgType.value;
     break;
+  #endif
   case BROAD_FIELD_CLASS_ID:
     ptr = fieldInfo->fieldClassId.value;
     break;
   /* PTin added: FP */
   case BROAD_FIELD_SRC_CLASS_ID:
     ptr = fieldInfo->fieldSrcClassId.value;
-    break;
-  case BROAD_FIELD_L2_CLASS_ID:
-    ptr = fieldInfo->fieldL2ClassId.value;
-    break;
-  case BROAD_FIELD_ISCSI_OPCODE:
-  case BROAD_FIELD_ISCSI_OPCODE_TCP_OPTIONS:
-    ptr = fieldInfo->fieldIscsiOpcode.value;
     break;
   case BROAD_FIELD_TCP_CONTROL:
     ptr = fieldInfo->fieldTCPControl.value;
@@ -305,9 +286,6 @@ L7_uchar8 *hapiBroadPolicyFieldValuePtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_PO
   case BROAD_FIELD_L2_FORMAT:
     ptr = fieldInfo->fieldL2Format.value;
     break;
-  case BROAD_FIELD_SNAP:
-    ptr = fieldInfo->fieldSnap.value;
-    break;
   case BROAD_FIELD_IP_TYPE:
     ptr = fieldInfo->fieldIpType.value;
     break;
@@ -317,9 +295,6 @@ L7_uchar8 *hapiBroadPolicyFieldValuePtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_PO
     break;
   case BROAD_FIELD_OUTPORT:
     ptr = fieldInfo->fieldOutport.value;
-    break;
-  case BROAD_FIELD_SRCTRUNK:
-    ptr = fieldInfo->fieldSrcTrunk.value;
     break;
   case BROAD_FIELD_PORTCLASS:
     ptr = fieldInfo->fieldPortClass.value;
@@ -391,9 +366,6 @@ L7_uchar8 *hapiBroadPolicyFieldMaskPtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
   case BROAD_FIELD_IP6_NEXTHEADER:
     ptr = fieldInfo->fieldIp6Nextheader.mask;
     break;
-  case BROAD_FIELD_LOOKUP_STATUS:
-    ptr = fieldInfo->fieldLookupStatus.mask;
-    break;
   case BROAD_FIELD_IP6_SRC:
     //Modified by MMELO@16-04-15
 //  ptr = fieldInfo->u.Ipv6.fieldIp6Src.mask;
@@ -410,18 +382,14 @@ L7_uchar8 *hapiBroadPolicyFieldMaskPtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
   case BROAD_FIELD_IP6_TRAFFIC_CLASS:
     ptr = fieldInfo->fieldIp6TrafficClass.mask;
     break;
+  /* DNX: todo */
+  #if 0
   case BROAD_FIELD_ICMP_MSG_TYPE:
     ptr = fieldInfo->fieldIcmpMsgType.mask;
     break;
-  case BROAD_FIELD_ISCSI_OPCODE:
-  case BROAD_FIELD_ISCSI_OPCODE_TCP_OPTIONS:
-    ptr = fieldInfo->fieldIscsiOpcode.mask;
-    break;
+  #endif
   case BROAD_FIELD_TCP_CONTROL:
     ptr = fieldInfo->fieldTCPControl.mask;
-    break;
-  case BROAD_FIELD_SNAP:
-    ptr = fieldInfo->fieldSnap.mask;
     break;
   // PTin added: FP
   case BROAD_FIELD_INPORTS:
@@ -429,9 +397,6 @@ L7_uchar8 *hapiBroadPolicyFieldMaskPtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
     break;
   case BROAD_FIELD_OUTPORT:
     ptr = fieldInfo->fieldOutport.mask;
-    break;
-  case BROAD_FIELD_SRCTRUNK:
-    ptr = fieldInfo->fieldSrcTrunk.mask;
     break;
   case BROAD_FIELD_PORTCLASS:
     ptr = fieldInfo->fieldPortClass.mask;
@@ -450,7 +415,6 @@ L7_uchar8 *hapiBroadPolicyFieldMaskPtr(BROAD_FIELD_ENTRY_t *fieldInfo, BROAD_POL
   case BROAD_FIELD_L2_FORMAT:
   case BROAD_FIELD_IP_TYPE:
   //case BROAD_FIELD_CLASS_ID:
-  case BROAD_FIELD_L2_CLASS_ID:
   case BROAD_FIELD_DROP:            /* PTin added: FP */
   case BROAD_FIELD_L2_SRCHIT:       /* PTin added: FP */
   case BROAD_FIELD_L2_DSTHIT:       /* PTin added: FP */
@@ -488,31 +452,7 @@ void hapiBroadPolicyActionParmsGet(BROAD_ACTION_ENTRY_t       *actionPtr,
     break;
 
   case BROAD_ACTION_SET_COSQ:
-    /* PTin added: FP */
-    #if 1
-    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-    {
-      *param0 = actionPtr->u.vfp_parms.set_cosq[action_scope];
-    }
-    else
-    #endif
-    {
-      *param0 = actionPtr->u.ifp_parms.set_cosq[action_scope];
-    }
-    break;
-
-  case BROAD_ACTION_COPY_TO_CPU:
-    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-    {
-      *param0 = actionPtr->u.vfp_parms.cpu_cosq;
-    }
-    break;
-
-  case BROAD_ACTION_TS_TO_CPU:
-    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-    {
-      *param0 = actionPtr->u.vfp_parms.cpu_cosq;
-    }
+    *param0 = actionPtr->u.ifp_parms.set_cosq[action_scope];
     break;
 
   case BROAD_ACTION_SET_TOS:
@@ -528,11 +468,7 @@ void hapiBroadPolicyActionParmsGet(BROAD_ACTION_ENTRY_t       *actionPtr,
     break;
 
   case BROAD_ACTION_SET_USERPRIO:
-    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-    {
-      *param0 = actionPtr->u.vfp_parms.set_userprio[action_scope];
-    }
-    else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+    if (policyStage == BROAD_POLICY_STAGE_EGRESS)
     {
       *param0 = actionPtr->u.efp_parms.set_userprio[action_scope];
     }
@@ -545,11 +481,7 @@ void hapiBroadPolicyActionParmsGet(BROAD_ACTION_ENTRY_t       *actionPtr,
   /* PTin added */
   #if 1
   case BROAD_ACTION_SET_USERPRIO_INNERTAG:
-    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-    {
-      *param0 = actionPtr->u.vfp_parms.set_userprio_innertag[action_scope];
-    }
-    else if (policyStage == BROAD_POLICY_STAGE_EGRESS)
+    if (policyStage == BROAD_POLICY_STAGE_EGRESS)
     {
       *param0 = actionPtr->u.efp_parms.set_userprio_innertag[action_scope];
     }
@@ -567,14 +499,7 @@ void hapiBroadPolicyActionParmsGet(BROAD_ACTION_ENTRY_t       *actionPtr,
     break;
 
   case BROAD_ACTION_SET_OUTER_VID:
-    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-    {
-      *param0 = actionPtr->u.vfp_parms.set_ovid;
-    }
-    else
-    {
-      *param0 = actionPtr->u.efp_parms.set_ovid;
-    }
+    *param0 = actionPtr->u.efp_parms.set_ovid;
     break;
 
   case BROAD_ACTION_SET_INNER_VID:
@@ -590,26 +515,12 @@ void hapiBroadPolicyActionParmsGet(BROAD_ACTION_ENTRY_t       *actionPtr,
     break;
 
   case BROAD_ACTION_SET_CLASS_ID:
-    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-    {
-      *param0 = actionPtr->u.vfp_parms.set_class_id;
-    }
-    else
-    {
-      *param0 = actionPtr->u.ifp_parms.set_class_id;
-    }
+    *param0 = actionPtr->u.ifp_parms.set_class_id;
     break;
 
   /* PTin added: FP */
   case BROAD_ACTION_SET_SRC_CLASS_ID:
-    if (policyStage == BROAD_POLICY_STAGE_LOOKUP)
-    {
-      *param0 = actionPtr->u.vfp_parms.set_src_class_id;
-    }
-    else
-    {
-      *param0 = actionPtr->u.ifp_parms.set_src_class_id;
-    }
+    *param0 = actionPtr->u.ifp_parms.set_src_class_id;
     break;
 
   case BROAD_ACTION_SET_REASON_CODE:
@@ -731,7 +642,7 @@ char *hapiBroadPolicyTypeName(BROAD_POLICY_TYPE_t type)
 
 /* Debug */
 
-static BROAD_POLICY_DEBUG_LEVEL_t debugOutput = /*POLICY_DEBUG_HIGH*/ POLICY_DEBUG_NONE;
+static BROAD_POLICY_DEBUG_LEVEL_t debugOutput = POLICY_DEBUG_HIGH /*POLICY_DEBUG_NONE*/;
 
 void hapiBroadPolicyDebugEnable(BROAD_POLICY_DEBUG_LEVEL_t val)
 {

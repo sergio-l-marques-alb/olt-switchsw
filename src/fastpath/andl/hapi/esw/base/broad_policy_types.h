@@ -139,7 +139,6 @@ typedef enum
     BROAD_FIELD_ICMP_MSG_TYPE,
     BROAD_FIELD_CLASS_ID,       /* For use in the IFP, determined by VFP results */
     BROAD_FIELD_SRC_CLASS_ID,   /* PTin added: FP */
-    BROAD_FIELD_L2_CLASS_ID,    /* For use in the IFP, determined by L2X results */
     BROAD_FIELD_ISCSI_OPCODE,
     BROAD_FIELD_ISCSI_OPCODE_TCP_OPTIONS, /* Use this field for iSCSI clients that default to 12 bytes of TCP options (e.g. Linux). */
     BROAD_FIELD_TCP_CONTROL,

@@ -29,24 +29,44 @@
  * 2) InPorts (PBM) if it is required to qualify on ingress.
  */
 
-bcm_field_qualify_t l2l3SrcQset[] =    /* l2/3 src */
+bcm_field_qualify_t l3l4Qset[] =    /* IPv4 six-tuple => 160b (+2b: pfq2_ip_has_options) */
 {
-    bcmFieldQualifyInPorts,
-    bcmFieldQualifySrcMac,
-    bcmFieldQualifySrcIp,
-    bcmFieldQualifyEtherType,
-    bcmFieldQualifyOuterVlan,
-    bcmFieldQualifyL2Format,
-    bcmFieldQualifyVlanFormat,
-    bcmFieldQualifyIpType,
+    bcmFieldQualifyInterfaceClassPort,  /* 16b */
+    bcmFieldQualifyInVPort,             /* 16b */
+    bcmFieldQualifySrcIp,               /* 32b */
+    bcmFieldQualifyDstIp,               /* 32b */
+    bcmFieldQualifyIpProtocol,          /*  8b */
+    bcmFieldQualifyL4SrcPort,           /* 16b */
+    bcmFieldQualifyL4DstPort,           /* 16b */
+    bcmFieldQualifyDSCP,                /*  8b */
+    bcmFieldQualifyL2Format,            /*  3b */
+    bcmFieldQualifyVlanFormat,          /*  4b */
+    bcmFieldQualifyIpType,              /*  7b */
+    bcmFieldQualifyStageIngress
+};
+
+#define l3l4QsetSize (sizeof(l3l4Qset) / sizeof(bcm_field_qualify_t))
+
+bcm_field_qualify_t l2l3SrcQset[] =    /* l2/3 src => 160b (+2b: pfq2_ip_has_options) */
+{
+    bcmFieldQualifyInterfaceClassPort,  /* 16b */
+    bcmFieldQualifyInVPort,             /* 16b */
+    bcmFieldQualifySrcMac,              /* 48b */
+    bcmFieldQualifySrcIp,               /* 32b */
+    bcmFieldQualifyEtherType,           /* 16b */
+    bcmFieldQualifyOuterVlan,           /* 16b */
+    bcmFieldQualifyL2Format,            /*  3b */
+    bcmFieldQualifyVlanFormat,          /*  4b */
+    bcmFieldQualifyIpType,              /*  7b */
     bcmFieldQualifyStageIngress
 };
 
 #define l2l3SrcQsetSize (sizeof(l2l3SrcQset) / sizeof(bcm_field_qualify_t))
 
-bcm_field_qualify_t l2l3DstQset[] =    /* l2/3 dst */
+bcm_field_qualify_t l2l3DstQset[] =    /* l2/3 dst => 158b */
 {
-    bcmFieldQualifyInPorts,
+    bcmFieldQualifyInterfaceClassPort,
+    bcmFieldQualifyInVPort,
     bcmFieldQualifyDstMac,
     bcmFieldQualifyDstIp,
     bcmFieldQualifyEtherType,
@@ -59,44 +79,31 @@ bcm_field_qualify_t l2l3DstQset[] =    /* l2/3 dst */
 
 #define l2l3DstQsetSize (sizeof(l2l3DstQset) / sizeof(bcm_field_qualify_t))
 
-
 /* The following sqset is used on Triumph to allow classifications on the
    CLASS_ID determined via the LOOKUP engine. Compared to l2l3l4ClassIdQset,
    this qset requires the InnerVlan. 
 */
-bcm_field_qualify_t l2l3l4Xgs4ClassIdQset[] =    /* l2/l3/l4 */
+bcm_field_qualify_t l2l3l4Xgs4ClassIdQset[] =    /* l2/l3/l4 => 308b */
 {
-    bcmFieldQualifyInPorts,
-    bcmFieldQualifySrcMac,
-    bcmFieldQualifyDstMac,
-    bcmFieldQualifySrcIp,
-    bcmFieldQualifyDstIp,
-    bcmFieldQualifyEtherType,
-    bcmFieldQualifyInnerVlan,
-    bcmFieldQualifyOuterVlan,
-    bcmFieldQualifyL2Format,
-    bcmFieldQualifyVlanFormat,
-    bcmFieldQualifyIpType,
-    bcmFieldQualifyIpProtocol,
-    bcmFieldQualifyL4SrcPort,
-    bcmFieldQualifyL4DstPort,
-    bcmFieldQualifyDSCP,
-    bcmFieldQualifyL2StationMove,
+    bcmFieldQualifyInterfaceClassPort,  /* 16b */
+    bcmFieldQualifyInVPort,             /* 16b */
+    bcmFieldQualifySrcMac,              /* 48b */
+    bcmFieldQualifyDstMac,              /* 48b */
+    bcmFieldQualifySrcIp,               /* 32b */
+    bcmFieldQualifyDstIp,               /* 32b */
+    bcmFieldQualifyOuterVlan,           /* 16b */
+    bcmFieldQualifyInnerVlan,           /* 16b */
+    bcmFieldQualifyEtherType,           /* 16b */
+    bcmFieldQualifyL2Format,            /*  3b */
+    bcmFieldQualifyVlanFormat,          /*  4b */
+    bcmFieldQualifyIpType,              /*  7b */
+    bcmFieldQualifyIpProtocol,          /*  8b */
+    bcmFieldQualifyL4SrcPort,           /* 16b */
+    bcmFieldQualifyL4DstPort,           /* 16b */
+    bcmFieldQualifyDSCP,                /*  8b */
+    /*bcmFieldQualifyL2StationMove,
     bcmFieldQualifyL3DestRouteHit,
-    bcmFieldQualifyL3DestHostHit,
-    bcmFieldQualifyIngressStpState,
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifyDstClassField,
-#else
-    bcmFieldQualifyLookupClass0,
-#endif
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifySrcClassL2,
-#else
-    bcmFieldQualifySrcMacGroup,
-#endif
+    bcmFieldQualifyL3DestHostHit,*/
     bcmFieldQualifyStageIngress
 };
 
@@ -106,18 +113,19 @@ bcm_field_qualify_t l2l3l4Xgs4ClassIdQset[] =    /* l2/l3/l4 */
  * Note that it does not qualify on InPorts, so it will be applied to
  * all ports.
  */
-bcm_field_qualify_t vlanl3Qset[] =    /* vlan/l3 */
+bcm_field_qualify_t vlanl3Qset[] =    /* vlan/l3 => 160b */
 {
-    bcmFieldQualifyOuterVlan,
-    bcmFieldQualifySrcIp,
-    bcmFieldQualifyDstIp,
-    bcmFieldQualifyIpProtocol,
-    bcmFieldQualifyL4SrcPort,
-    bcmFieldQualifyL4DstPort,
-    bcmFieldQualifyDSCP,
-    bcmFieldQualifyL2Format,
-    bcmFieldQualifyVlanFormat,
-    bcmFieldQualifyIpType,
+    bcmFieldQualifyOuterVlan,           /* 16b */
+    bcmFieldQualifyInnerVlan,           /* 16b */
+    bcmFieldQualifySrcIp,               /* 32b */
+    bcmFieldQualifyDstIp,               /* 32b */
+    bcmFieldQualifyIpProtocol,          /*  8b */
+    bcmFieldQualifyL4SrcPort,           /* 16b */
+    bcmFieldQualifyL4DstPort,           /* 16b */
+    bcmFieldQualifyDSCP,                /*  8b */
+    bcmFieldQualifyL2Format,            /*  3b */
+    bcmFieldQualifyVlanFormat,          /*  4b */
+    bcmFieldQualifyIpType,              /*  7b */
     bcmFieldQualifyStageIngress
 };
 
@@ -128,376 +136,277 @@ bcm_field_qualify_t vlanl3Qset[] =    /* vlan/l3 */
    a qualifier in the IFP. So this sqset excludes 
    bcmFieldQualifyTunnelTerminated compared to systemQsetDouble[],
    and adds bcmFieldQualifyTunnelType and bcmFieldQualifyLoopbackType. */
-bcm_field_qualify_t systemQsetArad[] =  /* System requirement */
+bcm_field_qualify_t systemQsetArad[] =  /* System requirement => 278b */
 {
-  bcmFieldQualifyInterfaceClassPort,
-  bcmFieldQualifySrcMac,
-  bcmFieldQualifyDstMac,
-  bcmFieldQualifyOuterVlan,
-  bcmFieldQualifyInnerVlan,
-  bcmFieldQualifyL4SrcPort,
-  bcmFieldQualifyL4DstPort,
-  bcmFieldQualifyEtherType,
-  bcmFieldQualifyIpProtocol,
-  bcmFieldQualifyTtl,
-  bcmFieldQualifyL2StationMove,
-  bcmFieldQualifyIpType,
-  bcmFieldQualifyVlanFormat,
+  bcmFieldQualifyInterfaceClassPort,    /* 16b */
+  bcmFieldQualifySrcPort,               /* 16b */
+  bcmFieldQualifyDstPort,               /* 19b */
+  bcmFieldQualifyInVPort,               /* 16b */
+  bcmFieldQualifyOutVPort,              /* 16b */
+  bcmFieldQualifyDstMulticastGroup,     /* 19b = bcmFieldQualifyDstPort */
+  bcmFieldQualifySrcMac,                /* 48b */
+  bcmFieldQualifyDstMac,                /* 48b */
+  bcmFieldQualifyOuterVlan,             /* 16b */
+  bcmFieldQualifyInnerVlan,             /* 16b */
+  bcmFieldQualifyL4SrcPort,             /* 16b */
+  bcmFieldQualifyL4DstPort,             /* 16b */
+  bcmFieldQualifyEtherType,             /* 16b */
+  bcmFieldQualifyIpProtocol,            /*  8b */
+  bcmFieldQualifyIpType,                /*  7b */
+  bcmFieldQualifyVlanFormat,            /*  4b */
 
   bcmFieldQualifyStageIngress
 };
 #define systemQsetAradSize (sizeof(systemQsetArad) / sizeof(bcm_field_qualify_t))
 
-bcm_field_action_t systemAsetArad[] =  /* System requirement */
-{
-  bcmFieldActionSnoop,
-  bcmFieldActionTrap,
-  bcmFieldActionRedirect,
-  bcmFieldActionPrioIntNew,
-};
-#define systemAsetAradSize (sizeof(systemAsetArad) / sizeof(bcm_field_action_t))
-
-
 /* PTin added: ICAP */
 #if 1
-bcm_field_qualify_t systemQsetPTin[] =  /* System requirement */
+bcm_field_qualify_t systemQsetPTin[] =  /* System requirement => 160b */
 {
-  bcmFieldQualifyInPorts,
-  bcmFieldQualifySrcMac,
-  bcmFieldQualifyDstMac,
-  bcmFieldQualifyOuterVlan,
-  bcmFieldQualifyInnerVlan,     /* PTin added: FP */
-  bcmFieldQualifyL2StationMove,
-  bcmFieldQualifyEtherType,
-  bcmFieldQualifyIpType,
-  bcmFieldQualifyDrop,          /* PTin added: FP */
-  bcmFieldQualifySrcTrunk,      /* PTin added: FP */
-  bcmFieldQualifyVlanFormat,    /* PTin added: FP */
-  bcmFieldQualifyDstIp,         /* PTin added: FP */
-
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G || \
-     PTIN_BOARD == PTIN_BOARD_TA48GE ||  \
-     PTIN_BOARD == PTIN_BOARD_OLT1T0)
-  bcmFieldQualifyIntPriority,   /* PTin added: FP */
-#endif
-/* PTin added: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-  bcmFieldQualifyDstClassField, /* PTin added: FP */
-  bcmFieldQualifySrcClassField, /* PTin added: FP */
-#else
-  bcmFieldQualifyLookupClass0,
-#endif
-
+  //bcmFieldQualifyInterfaceClassPort,    /* 16b */
+  bcmFieldQualifyInVPort,               /* 16b */
+  //bcmFieldQualifySrcMac,                /* 48b */
+  bcmFieldQualifyDstMac,                /* 48b */
+  bcmFieldQualifyOuterVlan,             /* 16b */
+  bcmFieldQualifyInnerVlan,             /* 16b */
+  bcmFieldQualifyL2StationMove,         /*  1b */
+  bcmFieldQualifyEtherType,             /* 16b */
+  bcmFieldQualifyIpType,                /*  7b */
+  //bcmFieldQualifyDrop,                  /* 19b */
+  bcmFieldQualifyVlanFormat,            /*  4b */
+  bcmFieldQualifyDstIp,                 /* 32b */
+  bcmFieldQualifyIntPriority,           /*  3b */
   bcmFieldQualifyStageIngress
 };
 #define systemQsetPTinSize (sizeof(systemQsetPTin) / sizeof(bcm_field_qualify_t))
 #endif
 
-
-bcm_field_qualify_t iscsiQset[] =  /* iSCSI requirement */
+/* Too big */
+#if 0
+bcm_field_qualify_t ipv6L3L4Qset[] =  /* includes VLAN ID */
 {
-    bcmFieldQualifyInPorts,
-    bcmFieldQualifyL2StationMove,
-    bcmFieldQualifyL3DestRouteHit,
+    bcmFieldQualifyInterfaceClassPort,  /* 16b */
+    bcmFieldQualifySrcPort,             /* 16b */
+    bcmFieldQualifyInVPort,             /* 16b */
+    bcmFieldQualifyEtherType,           /* 16b */
+    bcmFieldQualifyOuterVlan,           /* 16b */
+    bcmFieldQualifySrcIp6,              /* 128b */
+    bcmFieldQualifyDstIp6,              /* 128b */
+    bcmFieldQualifyIp6TrafficClass,     /*  8b */
+    bcmFieldQualifyIp6FlowLabel,        /* 20b */
+    bcmFieldQualifyIp6NextHeader,       /*  8b */
+    bcmFieldQualifyIp6HopLimit,         /*  8b */
+    bcmFieldQualifyL4SrcPort,           /* 16b */    /* also used for ICMP Msg Type */
+    bcmFieldQualifyL4DstPort,           /* 16b */
+    bcmFieldQualifyL2StationMove,       /*  1b */
+    /*bcmFieldQualifyL3DestRouteHit,
     bcmFieldQualifyL3DestHostHit,
-    bcmFieldQualifyIngressStpState,
+    bcmFieldQualifyIngressStpState,*/
+    bcmFieldQualifyL2Format,            /*  3b */
+    bcmFieldQualifyVlanFormat,          /*  4b */
+    bcmFieldQualifyIpType,              /*  7b */
     bcmFieldQualifyStageIngress
 };
 
-#define iscsiQsetSize (sizeof(iscsiQset) / sizeof(bcm_field_qualify_t))
+#define ipv6L3L4QsetSize (sizeof(ipv6L3L4Qset) / sizeof(bcm_field_qualify_t))
+#endif
 
-custom_field_qualify_t iscsiCustomQset[] =  /* iSCSI requirement */
+bcm_field_qualify_t ipv6SrcL4Qset[] =  /* includes VLAN ID => 280b */
 {
-    BROAD_ISCSI_UDF          /* DSTIP, L4SRC/DEST, iSCSI opCode, iSCSI opCode w/ TCP options */
-};
-
-#define iscsiCustomQsetSize (sizeof(iscsiCustomQset) / sizeof(custom_field_qualify_t))
-
-
-/* The following sqset is used on FB2 to allow classifications on the 
-   CLASS_ID determined via the LOOKUP engine. Compared to ipv6L3L4Qset,
-   this qset requires removal of the Ethertype. */
-bcm_field_qualify_t ipv6L3L4ClassIdQset[] =  /* includes VLAN ID */
-{
-    bcmFieldQualifyInPorts,
-    bcmFieldQualifyOuterVlan,
-    bcmFieldQualifySrcIp6,          
-    bcmFieldQualifyDstIp6,          
-    bcmFieldQualifyIp6TrafficClass,          
-    bcmFieldQualifyIp6FlowLabel,          
-    bcmFieldQualifyIp6NextHeader,          
-    bcmFieldQualifyIp6HopLimit,          
-    bcmFieldQualifyL4SrcPort,    /* also used for ICMP Msg Type */
-    bcmFieldQualifyL4DstPort,
-    bcmFieldQualifyL2StationMove,
-    bcmFieldQualifyL3DestRouteHit,
+    bcmFieldQualifyInterfaceClassPort,  /* 16b */
+    bcmFieldQualifySrcPort,             /* 16b */
+    bcmFieldQualifyInVPort,             /* 16b */
+    bcmFieldQualifyOuterVlan,           /* 16b */
+    bcmFieldQualifyInnerVlan,           /* 16b */
+    bcmFieldQualifySrcIp6,              /* 128b */
+    bcmFieldQualifyIp6TrafficClass,     /*  8b */
+    bcmFieldQualifyIp6FlowLabel,        /* 20b */
+    bcmFieldQualifyIp6NextHeader,       /*  8b */
+    bcmFieldQualifyIp6HopLimit,         /*  8b */
+    bcmFieldQualifyL4SrcPort,           /* 16b */
+    bcmFieldQualifyL4DstPort,           /* 16b */
+    bcmFieldQualifyL2StationMove,       /*  1b */
+    /*bcmFieldQualifyL3DestRouteHit,
     bcmFieldQualifyL3DestHostHit,
-    bcmFieldQualifyIngressStpState,
-    bcmFieldQualifyL2Format,
-    bcmFieldQualifyVlanFormat,
-    bcmFieldQualifyIpType,
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifyDstClassField,
-#else
-    bcmFieldQualifyLookupClass0,
-#endif
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifySrcClassL2,
-#else
-    bcmFieldQualifySrcMacGroup,
-#endif
+    bcmFieldQualifyIngressStpState,*/
+    bcmFieldQualifyIpType,              /*  7b */
     bcmFieldQualifyStageIngress
 };
 
-#define ipv6L3L4ClassIdQsetSize (sizeof(ipv6L3L4ClassIdQset) / sizeof(bcm_field_qualify_t))
+#define ipv6SrcL4QsetSize (sizeof(ipv6SrcL4Qset) / sizeof(bcm_field_qualify_t))
 
-bcm_field_qualify_t ipv6SrcL4ClassIdQset[] =  /* includes VLAN ID */
+bcm_field_qualify_t ipv6DstL4Qset[] =  /* includes VLAN ID => 280b */
 {
-    bcmFieldQualifyInPorts,
-    bcmFieldQualifyOuterVlan,
-    bcmFieldQualifySrcIp6,          
-    bcmFieldQualifyIp6NextHeader,          
-    bcmFieldQualifyL4SrcPort,
-    bcmFieldQualifyL4DstPort,
-    bcmFieldQualifyL2StationMove,
-    bcmFieldQualifyL3DestRouteHit,
+    bcmFieldQualifyInterfaceClassPort,  /* 16b */
+    bcmFieldQualifySrcPort,             /* 16b */
+    bcmFieldQualifyInVPort,             /* 16b */
+    bcmFieldQualifyOuterVlan,           /* 16b */
+    bcmFieldQualifyInnerVlan,           /* 16b */
+    bcmFieldQualifyDstIp6,              /* 128b */
+    bcmFieldQualifyIp6TrafficClass,     /*  8b */
+    bcmFieldQualifyIp6FlowLabel,        /* 20b */
+    bcmFieldQualifyIp6NextHeader,       /*  8b */
+    bcmFieldQualifyIp6HopLimit,         /*  8b */
+    bcmFieldQualifyL4SrcPort,           /* 16b */
+    bcmFieldQualifyL4DstPort,           /* 16b */
+    bcmFieldQualifyL2StationMove,       /*  1b */
+    /*bcmFieldQualifyL3DestRouteHit,
     bcmFieldQualifyL3DestHostHit,
-    bcmFieldQualifyIngressStpState,
-    bcmFieldQualifyL2Format,
-    bcmFieldQualifyVlanFormat,
-    bcmFieldQualifyIpType,
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifyDstClassField,
-#else
-    bcmFieldQualifyLookupClass0,
-#endif
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifySrcClassL2,
-#else
-    bcmFieldQualifySrcMacGroup,
-#endif
+    bcmFieldQualifyIngressStpState,*/
+    bcmFieldQualifyIpType,              /*  7b */
     bcmFieldQualifyStageIngress
 };
 
-#define ipv6SrcL4ClassIdQsetSize (sizeof(ipv6SrcL4ClassIdQset) / sizeof(bcm_field_qualify_t))
-
-bcm_field_qualify_t ipv6DstL4ClassIdQset[] =  /* includes VLAN ID */
-{
-    bcmFieldQualifyInPorts,
-    bcmFieldQualifyOuterVlan,
-    bcmFieldQualifyDstIp6,          
-    bcmFieldQualifyIp6NextHeader,          
-    bcmFieldQualifyL4SrcPort,
-    bcmFieldQualifyL4DstPort,
-    bcmFieldQualifyL2StationMove,
-    bcmFieldQualifyL3DestRouteHit,
-    bcmFieldQualifyL3DestHostHit,
-    bcmFieldQualifyIngressStpState,
-    bcmFieldQualifyL2Format,
-    bcmFieldQualifyVlanFormat,
-    bcmFieldQualifyIpType,
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifyDstClassField,
-#else
-    bcmFieldQualifyLookupClass0,
-#endif
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifySrcClassL2,
-#else
-    bcmFieldQualifySrcMacGroup,
-#endif
-    bcmFieldQualifyStageIngress
-};
-
-#define ipv6DstL4ClassIdQsetSize (sizeof(ipv6DstL4ClassIdQset) / sizeof(bcm_field_qualify_t))
-
+#define ipv6DstL4QsetSize (sizeof(ipv6DstL4Qset) / sizeof(bcm_field_qualify_t))
 
 /* SQSet used for single wide mode policies */
-bcm_field_qualify_t l2QsetEgress[] =    /* l2 */
+bcm_field_qualify_t l2QsetEgress[] =    /* l2 => 153b */
 {
-    bcmFieldQualifySrcMac,
-    bcmFieldQualifyDstMac,
-    bcmFieldQualifyEtherType,
-    bcmFieldQualifyOuterVlan,
-    bcmFieldQualifyInnerVlanId,
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifyInterfaceClassPort,
-#else
-    bcmFieldQualifyPortClass,
-#endif
-    bcmFieldQualifyOutPort,
-    bcmFieldQualifyVlanFormat,
-    bcmFieldQualifyDstIp,         /* PTin added: FP */
-    bcmFieldQualifyDrop,          /* PTin added: FP */
-    bcmFieldQualifyIntPriority,   /* PTin added: FP */
+    //bcmFieldQualifyInterfaceClassPort,  /* 32b */
+    //bcmFieldQualifyDstPort,             /* 16b */
+    bcmFieldQualifyOutVPort,            /* 24b */
+    bcmFieldQualifyDstClassField,       /*  8b */
+    bcmFieldQualifySrcMac,              /* 48b */
+    bcmFieldQualifyDstMac,              /* 48b */
+    bcmFieldQualifyOuterVlan,           /* 16b */
+    bcmFieldQualifyVlanFormat,          /*  5b */
+    bcmFieldQualifyIntPriority,         /*  4b */
     bcmFieldQualifyStageEgress
 };
 #define l2QsetEgressSize (sizeof(l2QsetEgress) / sizeof(bcm_field_qualify_t))
 
-bcm_field_qualify_t l3l4QsetEgress[] =    /* l3/l4 */
+bcm_field_qualify_t l3l4QsetEgress[] =    /* l3/l4 => 153b */
 {
-    bcmFieldQualifySrcIp,
-    bcmFieldQualifyDstIp,
-    bcmFieldQualifyOuterVlan,
-    bcmFieldQualifyIpProtocol,
-    bcmFieldQualifyL4SrcPort,
-    bcmFieldQualifyL4DstPort,
-    bcmFieldQualifyDSCP,
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifyInterfaceClassPort,
-#else
-    bcmFieldQualifyPortClass,
-#endif
-    bcmFieldQualifyOutPort,
-    bcmFieldQualifyIp4,
-    bcmFieldQualifyVlanFormat,
-    bcmFieldQualifyDrop,          /* PTin added: FP */
-    bcmFieldQualifyIntPriority,   /* PTin added: FP */
+    //bcmFieldQualifyInterfaceClassPort,  /* 32b */
+    //bcmFieldQualifyDstPort,             /* 16b */
+    bcmFieldQualifyOutVPort,            /* 24b */
+    bcmFieldQualifyDstClassField,       /*  8b */
+    //bcmFieldQualifySrcClassField,       /*  8b */
+    bcmFieldQualifySrcIp,               /* 32b */
+    bcmFieldQualifyDstIp,               /* 32b */
+    //bcmFieldQualifyOuterVlan,           /* 16b */
+    bcmFieldQualifyIpProtocol,          /*  8b */
+    bcmFieldQualifyL4SrcPort,           /* 16b */
+    bcmFieldQualifyL4DstPort,           /* 16b */
+    bcmFieldQualifyDSCP,                /*  8b */
+    bcmFieldQualifyIpType,              /*  4b */
+    //bcmFieldQualifyVlanFormat,          /*  5b */
+    //bcmFieldQualifyIntPriority,         /*  4b */
     bcmFieldQualifyStageEgress
 };
 #define l3l4QsetEgressSize (sizeof(l3l4QsetEgress) / sizeof(bcm_field_qualify_t))
 
-/* SQSet used for double wide mode policies */
-bcm_field_qualify_t ipv6L3L4QsetEgress[] =  /* includes VLAN ID */
+
+bcm_field_action_t destl2AsetIngress[] =  /* System requirement => 38b */
 {
-    bcmFieldQualifyOuterVlan,
-    bcmFieldQualifySrcIp6,          
-    bcmFieldQualifyDstIp6,          
-    bcmFieldQualifyTos,          
-    bcmFieldQualifyIp6NextHeader,          
-    bcmFieldQualifyL4SrcPort,     /* also used for ICMP Msg Type */
-    bcmFieldQualifyL4DstPort,
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifyInterfaceClassPort,
-#else
-    bcmFieldQualifyPortClass,
-#endif
-    bcmFieldQualifyOutPort,
-    bcmFieldQualifyIp6,
-    bcmFieldQualifyDrop,          /* PTin added: FP */
-    bcmFieldQualifyIntPriority,   /* PTin added: FP */
-    bcmFieldQualifyStageEgress
+  bcmFieldActionVportNew,           /* 17b */
+  bcmFieldActionVSwitchNew,         /* 17b */
+  bcmFieldActionPrioIntNew,         /*  4b */
 };
-#define ipv6L3L4QsetEgressSize (sizeof(ipv6L3L4QsetEgress) / sizeof(bcm_field_qualify_t))
+#define destl2AsetIngressSize (sizeof(destl2AsetIngress) / sizeof(bcm_field_action_t))
 
-/* SQSet used for double wide mode policies */
-bcm_field_qualify_t l2l3l4QsetLookup[] =    /* l2/l3 */
+bcm_field_action_t destl3AsetIngress[] =  /* System requirement => 37b */
 {
-    bcmFieldQualifyInPort,
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifyInterfaceClassPort,
-#else
-    bcmFieldQualifyPortClass,
-#endif
-    bcmFieldQualifySrcMac,
-    bcmFieldQualifyDstMac,        /* PTin added: Destination MAC */
-    bcmFieldQualifySrcIp,
-    bcmFieldQualifyDstIp,
-    bcmFieldQualifyOuterVlan,
-    bcmFieldQualifyInnerVlan,     /* PTin added: Inner Vlan */
-    bcmFieldQualifyIpProtocol,
-    bcmFieldQualifyDSCP,
-    bcmFieldQualifyL4DstPort,
-    bcmFieldQualifyL2Format,
-    bcmFieldQualifyVlanFormat,
-    bcmFieldQualifyIpType,
-    bcmFieldQualifySnap,          /* PTin added: snap */
-    bcmFieldQualifyStageLookup
+  bcmFieldActionIncomingIpIfSet,    /* 13b */
+  bcmFieldActionVSwitchNew,         /* 17b */
+  bcmFieldActionPrioIntNew,         /*  4b */
+  bcmFieldActionDropPrecedence,     /*  3b */
 };
-#define l2l3l4QsetLookupSize (sizeof(l2l3l4QsetLookup) / sizeof(bcm_field_qualify_t))
+#define destl3AsetIngressSize (sizeof(destl3AsetIngress) / sizeof(bcm_field_action_t))
 
-/******************************************************************************
- * DOT1AD specific QSET with vlan format and both VLANs                       *
- *****************************************************************************/
-bcm_field_qualify_t dot1adQsetLookup[] =    /* dot1ad specific qset */
-{                                                  
-    bcmFieldQualifyInPort,
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifyInterfaceClassPort,
-#else
-    bcmFieldQualifyPortClass,
-#endif
-    bcmFieldQualifyOuterVlan,
-    bcmFieldQualifyInnerVlan,
-    bcmFieldQualifyL2Format,
-    bcmFieldQualifyVlanFormat,
-    bcmFieldQualifyIpType,
-    bcmFieldQualifyStageLookup
+
+bcm_field_action_t redirectAsetIngress[] =  /* System requirement => 37b */
+{
+  bcmFieldActionRedirect,           /* 20b */
+  bcmFieldActionRedirectMcast,      /* 20b = bcmFieldActionRedirect */
+  bcmFieldActionDrop,               /* 20b = bcmFieldActionRedirect */
+  bcmFieldActionMirrorIngress,      /*  5b */
+  bcmFieldActionVlanActionSetNew,   /*  7b */
+  bcmFieldActionOuterVlanPrioNew    /*  5b */
 };
+#define redirectAsetIngressSize (sizeof(redirectAsetIngress) / sizeof(bcm_field_action_t))
 
-#define dot1adQsetLookupSize (sizeof(dot1adQsetLookup) / sizeof(bcm_field_qualify_t))
-
-/* This sqset is shared by LLPF and IPSG. */
-bcm_field_qualify_t llpfQsetLookup[] =    /* llpf specific qset */
-{                                                  
-    bcmFieldQualifyInPort,
-/* PTin modified: SDK 6.3.0 */
-#if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
-    bcmFieldQualifyInterfaceClassPort,
-#else
-    bcmFieldQualifyPortClass,
-#endif
-    bcmFieldQualifySrcMac,
-    bcmFieldQualifyDstMac,
-    bcmFieldQualifySrcIp,
-    bcmFieldQualifyIpProtocol,
-    bcmFieldQualifyL4DstPort,
-    bcmFieldQualifyL2Format,
-    bcmFieldQualifyIpType,
-    bcmFieldQualifySnap,
-    bcmFieldQualifyOuterVlan,
-
-    bcmFieldQualifySrcIp6,  /* PTin added: FP */
-
-    bcmFieldQualifyStageLookup
+bcm_field_action_t snoopTrapAsetIngress[] =  /* System requirement => 30b */
+{
+  bcmFieldActionSnoop,              /* 11b */
+  bcmFieldActionTrapReduced,        /* 12b */
+  bcmFieldActionPrioIntNew,         /*  4b */
+  bcmFieldActionDropPrecedence,     /*  3b */
 };
+#define snoopTrapAsetIngressSize (sizeof(snoopTrapAsetIngress) / sizeof(bcm_field_action_t))
 
-#define llpfQsetLookupSize (sizeof(llpfQsetLookup) / sizeof(bcm_field_qualify_t))
+bcm_field_action_t voqAsetIngress[] =  /* System requirement => 36b */
+{
+  bcmFieldActionISQ,                /* 20b */
+  bcmFieldActionVSQ,                /*  9b */
+  bcmFieldActionPrioIntNew,         /*  4b */
+  bcmFieldActionDropPrecedence,     /*  3b */
+};
+#define voqAsetIngressSize (sizeof(voqAsetIngress) / sizeof(bcm_field_action_t))
+
+bcm_field_action_t policerAsetIngress[] =  /* System requirement => 36b */
+{
+  bcmFieldActionPolicerLevel0,      /* 17b */
+  bcmFieldActionVlanActionSetNew,   /*  7b */
+  bcmFieldActionOuterVlanPrioNew,   /*  5b */
+  bcmFieldActionPrioIntNew,         /*  4b */
+  bcmFieldActionDropPrecedence,     /*  3b */
+};
+#define policerAsetIngressSize (sizeof(policerAsetIngress) / sizeof(bcm_field_action_t))
+
+bcm_field_action_t statAsetIngress[] =  /* System requirement => 36b */
+{
+  bcmFieldActionStat0,              /* 18b */
+  bcmFieldActionStatTag,            /*  9b */
+  bcmFieldActionVSQ,                /*  9b */
+};
+#define policerAsetIngressSize (sizeof(policerAsetIngress) / sizeof(bcm_field_action_t))
+
+
+bcm_field_action_t systemAsetArad[] =  /* System requirement => 39b */
+{
+  bcmFieldActionTrapReduced,        /* 12b */
+  bcmFieldActionRedirect,           /* 20b */
+  bcmFieldActionDrop,               /* 20b = bcmFieldActionRedirect */
+  bcmFieldActionPrioIntNew,         /*  4b */
+  bcmFieldActionDropPrecedence,     /*  3b */
+};
+#define systemAsetAradSize (sizeof(systemAsetArad) / sizeof(bcm_field_action_t))
+
+bcm_field_action_t systemAsetEgress[] =  /* System requirement => 36b */
+{
+  bcmFieldActionRedirect,
+  bcmFieldActionDrop,
+  bcmFieldActionMirrorEgress,
+};
+#define systemAsetEgressSize (sizeof(systemAsetEgress) / sizeof(bcm_field_action_t))
+
 
 
 /* Sqsets for system policies. */
 //super_xset_definition_t systemQsetDoubleDef = {systemQsetDouble,      systemQsetDoubleSize,      0, 0};
 
-super_xset_definition_t systemXsetAradDef = {systemQsetArad,    systemQsetAradSize,
-                                             0, 0,
-                                             systemAsetArad,    systemAsetAradSize};
-#if 0
-super_xset_definition_t systemQsetPTinDef        = {systemQsetPTin,        systemQsetPTinSize,    0, 0};
+super_xset_definition_t systemXsetAradDef = {systemQsetArad,    systemQsetAradSize, 0, 0, systemAsetArad,    systemAsetAradSize};
+
+super_xset_definition_t systemQsetPTinDef        = {systemQsetPTin,        systemQsetPTinSize,    0, 0, systemAsetArad,    systemAsetAradSize}; /*Y*/
 
 /* Sqsets for other policies. */
 /* Singlewide */
-super_xset_definition_t l2l3SrcQsetDef           = {l2l3SrcQset,           l2l3SrcQsetSize,           0, 0};
-super_xset_definition_t l2l3DstQsetDef           = {l2l3DstQset,           l2l3DstQsetSize,           0, 0};
-super_xset_definition_t vlanl3QsetDef            = {vlanl3Qset,            vlanl3QsetSize,            0, 0};
-super_xset_definition_t iscsiQsetDef             = {iscsiQset,             iscsiQsetSize,             
-                                                    iscsiCustomQset,       iscsiCustomQsetSize};
+super_xset_definition_t l3l4QsetDef              = {l3l4Qset,              l3l4QsetSize,              0, 0, systemAsetArad,    systemAsetAradSize}; /*Y*/
+super_xset_definition_t l2l3SrcQsetDef           = {l2l3SrcQset,           l2l3SrcQsetSize,           0, 0, systemAsetArad,    systemAsetAradSize}; /*Y*/
+super_xset_definition_t l2l3DstQsetDef           = {l2l3DstQset,           l2l3DstQsetSize,           0, 0, systemAsetArad,    systemAsetAradSize}; /*Y*/
+super_xset_definition_t vlanl3QsetDef            = {vlanl3Qset,            vlanl3QsetSize,            0, 0, systemAsetArad,    systemAsetAradSize}; /*Y*/
 
 /* Doublewide */
-super_xset_definition_t l2l3l4Xgs4ClassIdQsetDef = {l2l3l4Xgs4ClassIdQset, l2l3l4Xgs4ClassIdQsetSize, 0, 0};
-super_xset_definition_t ipv6SrcL4ClassIdQsetDef  = {ipv6SrcL4ClassIdQset,  ipv6SrcL4ClassIdQsetSize,  0, 0};
-super_xset_definition_t ipv6DstL4ClassIdQsetDef  = {ipv6DstL4ClassIdQset,  ipv6DstL4ClassIdQsetSize,  0, 0};
+super_xset_definition_t l2l3l4Xgs4ClassIdQsetDef = {l2l3l4Xgs4ClassIdQset, l2l3l4Xgs4ClassIdQsetSize, 0, 0, systemAsetArad,    systemAsetAradSize}; /*Y*/
+super_xset_definition_t ipv6SrcL4QsetDef         = {ipv6SrcL4Qset,         ipv6SrcL4QsetSize,         0, 0, systemAsetArad,    systemAsetAradSize}; /*Y*/
+super_xset_definition_t ipv6DstL4QsetDef         = {ipv6DstL4Qset,         ipv6DstL4QsetSize,         0, 0, systemAsetArad,    systemAsetAradSize}; /*Y*/
 
 /* Quadwide */
-super_xset_definition_t ipv6L3L4ClassIdQsetDef   = {ipv6L3L4ClassIdQset,   ipv6L3L4ClassIdQsetSize,   0, 0};
+//super_xset_definition_t ipv6L3L4QsetDef          = {ipv6L3L4Qset,          ipv6L3L4QsetSize,          0, 0, systemAsetArad,    systemAsetAradSize}; /*Y*/
 
 /* Sqsets for EFP */
-super_xset_definition_t l2QsetEgressDef          = {l2QsetEgress,          l2QsetEgressSize,          0, 0};
-super_xset_definition_t l3l4QsetEgressDef        = {l3l4QsetEgress,        l3l4QsetEgressSize,        0, 0};
-super_xset_definition_t ipv6L3L4QsetEgressDef    = {ipv6L3L4QsetEgress,    ipv6L3L4QsetEgressSize,    0, 0};
+super_xset_definition_t l2QsetEgressDef          = {l2QsetEgress,          l2QsetEgressSize,          0, 0, systemAsetEgress,    systemAsetEgressSize}; /*Y*/
+super_xset_definition_t l3l4QsetEgressDef        = {l3l4QsetEgress,        l3l4QsetEgressSize,        0, 0, systemAsetEgress,    systemAsetEgressSize}; /*Y*/
 
-/* Sqsets for VFP */
-super_xset_definition_t l2l3l4QsetLookupDef      = {l2l3l4QsetLookup,      l2l3l4QsetLookupSize,      0, 0};
-super_xset_definition_t dot1adQsetLookupDef      = {dot1adQsetLookup,      dot1adQsetLookupSize,      0, 0};
-super_xset_definition_t llpfQsetLookupDef        = {llpfQsetLookup,        llpfQsetLookupSize,        0, 0};
-#endif
+

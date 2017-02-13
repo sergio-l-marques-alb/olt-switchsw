@@ -61,13 +61,9 @@ typedef int           BROAD_ENTRY_t;
 
 typedef enum custom_field_qualify_e 
 {
-    customFieldQualifyFirst = bcmFieldQualifyCount,    /* Not useable        */
-    customFieldQualifyUdf0 = customFieldQualifyFirst, /* User defined field */
-    customFieldQualifyUdf1,                           /* User defined field */
-    customFieldQualifyIscsiOpcode,                    /*                     */
-    customFieldQualifyIscsiOpcodeTcpOptions,          /* Includes 12 bytes of TCP options (typical of Linux clients) */
-    customFieldQualifyIcmpMsgType,                    /* ICMP Message Type */
-    customFieldQualifyLast                            /* Must be last */
+    customFieldQualifyFirst       = bcmFieldQualifyCount,    /* Not useable        */
+    customFieldQualifyIcmpMsgType = customFieldQualifyFirst,  /* ICMP Message Type */
+    customFieldQualifyLast                                    /* Must be last */
 } custom_field_qualify_t;
 
 typedef struct custom_field_qset_t {
@@ -105,8 +101,7 @@ typedef struct
 
 #define GROUP_MAP_NONE                   0
 #define GROUP_MAP_USED                   1
-#define GROUP_MAP_EFP_ON_IFP             2 /* Used to indicate that the policy is configured for egress filtering
-                                              even though it is applied on ingress. */
+
 #define GROUP_MAP_REQUIRES_IMPLICIT_DENY 4 /* This policy is configured for EFP on IFP and requires an implicit deny rule. */
 
 typedef struct
