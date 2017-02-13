@@ -450,12 +450,15 @@ L7_RC_t hapi_ptin_fpCounters_set(DAPI_USP_t *usp, ptin_evcStats_profile_t *profi
         /* Trunk id field */
         else if (portDescriptor.trunk_id>=0)
         {
+          /* DNX: todo */
+          #if 0
           if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_SRCTRUNK, (L7_uint8 *)&(portDescriptor.trunk_id), (L7_uint8 *) mask))!=L7_SUCCESS)
           {
             PT_LOG_ERR(LOG_CTX_HAPI,"Error with hapiBroadPolicyRuleQualifierAdd(SRCTRUNK)");
             break;
           }
           PT_LOG_TRACE(LOG_CTX_HAPI,"Source TrunkId qualifier added");
+          #endif
         }
       }
       else if (stage==BROAD_POLICY_STAGE_EGRESS)

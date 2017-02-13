@@ -501,6 +501,8 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
     /* Trunk id field */
     if (portDescriptor.trunk_id >= 0)
     {
+      /* DNX: todo */
+      #if 0
       if ((result=hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_SRCTRUNK, (L7_uint8 *)&portDescriptor.trunk_id, (L7_uint8 *) mask))!=L7_SUCCESS)
       {
         hapiBroadPolicyCreateCancel();
@@ -508,6 +510,7 @@ L7_RC_t hapi_ptin_bwPolicer_set(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer, DA
         return result;
       }
       PT_LOG_TRACE(LOG_CTX_HAPI,"TrunkId qualifier added");
+      #endif
     }
     else if (!BCM_PBMP_IS_NULL(pbm))
     {

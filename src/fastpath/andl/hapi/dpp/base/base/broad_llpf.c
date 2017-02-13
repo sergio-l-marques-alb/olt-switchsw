@@ -305,12 +305,15 @@ static L7_RC_t hapiBroadLlpfPolicyInstallProcess(DAPI_t                *dapi_g,
           break;
         }
 
+        /* DNX: todo */
+        #if 0
         if (L7_SUCCESS != hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_SNAP,
                                                           (L7_uchar8 *)&snapHeader, exact_match))
         {
           hapiBroadPolicyCreateCancel();
           break;
         }
+        #endif
       }
 
       for (i = 0; i < actionCount; i++)

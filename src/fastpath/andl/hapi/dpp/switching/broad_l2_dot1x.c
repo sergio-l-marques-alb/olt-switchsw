@@ -1095,8 +1095,8 @@ L7_RC_t hapiBroadDot1xViolationPolicyCreate(DAPI_t *dapi_g)
 {
   L7_RC_t                  result = L7_SUCCESS;
   BROAD_SYSTEM_t          *hapiSystem;
-  BROAD_POLICY_RULE_t      ruleId;
-  L7_ushort16              lookupStatusUnresolvedSa = BROAD_LOOKUPSTATUS_UNRESOLVED_SA;
+  //BROAD_POLICY_RULE_t      ruleId;
+  //L7_ushort16              lookupStatusUnresolvedSa = BROAD_LOOKUPSTATUS_UNRESOLVED_SA;
 
   hapiSystem = (BROAD_SYSTEM_t *)dapi_g->system->hapiSystem;
 
@@ -1105,6 +1105,8 @@ L7_RC_t hapiBroadDot1xViolationPolicyCreate(DAPI_t *dapi_g)
     result = L7_FAILURE;
     if (hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM) == L7_SUCCESS)
     {
+      /* DNX: todo */
+      #if 0
       hapiBroadPolicyRuleAdd(&ruleId);
       hapiBroadPolicyRuleQualifierAdd(ruleId,
                                       BROAD_FIELD_LOOKUP_STATUS,
@@ -1119,6 +1121,7 @@ L7_RC_t hapiBroadDot1xViolationPolicyCreate(DAPI_t *dapi_g)
           result = L7_SUCCESS;
         }
       }
+      #endif
     }
   }
   return result;

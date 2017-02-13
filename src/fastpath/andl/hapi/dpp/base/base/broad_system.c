@@ -2732,6 +2732,8 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
           return L7_FAILURE;
         }
 
+        /* DNX: todo */
+        #if 0
         if((rc = hapiBroadPolicyRuleQualifierAdd(ruleId,
                                                BROAD_FIELD_ICMP_MSG_TYPE,
                                                (L7_uchar8 *)&icmpV6Query, exact_match)) !=
@@ -2740,6 +2742,7 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
           hapiBroadPolicyCreateCancel();
           return L7_FAILURE;
         }
+        #endif
 
         /* give MLD-Reports frames high priority and trap to the CPU. */
         if ((rc = hapiBroadPolicyRuleAdd(&ruleIdReport)) != L7_SUCCESS)
@@ -2774,6 +2777,8 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
           return L7_FAILURE;
         }
 
+        /* DNX: todo */
+        #if 0
         if((rc = hapiBroadPolicyRuleQualifierAdd(ruleIdReport,
                                                BROAD_FIELD_ICMP_MSG_TYPE,
                                                (L7_uchar8 *)&icmpV6Report, exact_match)) !=
@@ -2782,6 +2787,7 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
           hapiBroadPolicyCreateCancel();
           return L7_FAILURE;
         }
+        #endif
 
         /* give MLD-ReportDone frames high priority and trap to the CPU. */
         if ((rc = hapiBroadPolicyRuleAdd(&ruleIdReportDone)) != L7_SUCCESS)
@@ -2816,6 +2822,8 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
           return L7_FAILURE;
         }
 
+        /* DNX: todo */
+        #if 0
         if((rc = hapiBroadPolicyRuleQualifierAdd(ruleIdReportDone,
                                                BROAD_FIELD_ICMP_MSG_TYPE,
                                                (L7_uchar8 *)&icmpV6ReportDone, exact_match)) !=
@@ -2824,6 +2832,7 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
           hapiBroadPolicyCreateCancel();
           return L7_FAILURE;
         }
+        #endif
 
 
 #if defined(FEAT_METRO_CPE_V1_0)

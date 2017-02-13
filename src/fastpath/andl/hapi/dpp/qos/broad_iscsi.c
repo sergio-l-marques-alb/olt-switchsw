@@ -472,7 +472,7 @@ L7_RC_t hapiBroadQosIscsiTargetPortAdd(DAPI_USP_t * usp, DAPI_CMD_t cmd, void *d
   L7_uchar8                 opcode;
   L7_uchar8                 opcode_mask = 0x3f;
   L7_uchar8                 exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
-  BROAD_POLICY_FIELD_t      opcodeField[] = {BROAD_FIELD_ISCSI_OPCODE, BROAD_FIELD_ISCSI_OPCODE_TCP_OPTIONS};
+  BROAD_POLICY_FIELD_t      opcodeField[] = {/*BROAD_FIELD_ISCSI_OPCODE, BROAD_FIELD_ISCSI_OPCODE_TCP_OPTIONS*/};
   L7_uint32                 opcodeFieldIdx, numOpcodeFields;
 
   if (hapiBroadIscsiDebugLevel() > ISCSI_DEBUG_LOW)

@@ -617,11 +617,14 @@ L7_RC_t hapiBroadSystemPolicyInstall(DAPI_t *dapi_g)
   /* Note: This rule will send OSPFv3 packets coming over a tunnel to CPU 
      fully encapsulated and on higher priority.
    */
+  /* DNX: todo */
+  #if 0
   hapiBroadPolicyRuleAdd(&ruleId);
   hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_LOOKUP_STATUS, (L7_uchar8 *)&tunnel_hit, (L7_uchar8 *)&tunnel_l3_hit);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_COPY_TO_CPU, 0, 0, 0);
   hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, HAPI_BROAD_INGRESS_MED_PRIORITY_COS, 0, 0);
   PT_LOG_TRACE(LOG_CTX_STARTUP,"OSPFv3 rule added");
+  #endif
   }
 #endif /* L7_IPV6_PACKAGE */
 

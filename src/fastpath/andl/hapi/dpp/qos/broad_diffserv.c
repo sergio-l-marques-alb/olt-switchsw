@@ -1075,6 +1075,8 @@ static L7_RC_t hapiBroadQosDiffServClassAdd(DAPI_USP_t         *usp,
 
     if (groupId != HAPI_DOT1X_GROUP_ID_INVALID)
     {
+      /* DNX: todo */
+      #if 0
       L7_uchar8 tempVal;
       L7_uchar8 tempMask = 0xff;
 
@@ -1088,6 +1090,7 @@ static L7_RC_t hapiBroadQosDiffServClassAdd(DAPI_USP_t         *usp,
       {
           return result;
       }
+      #endif
     }
 
     /* If we are not intending to drop this packet, then we need to explicitly permit it.

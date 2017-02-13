@@ -1143,11 +1143,14 @@ static L7_RC_t hapiBroadQosAclInstAdd(DAPI_USP_t               *usp,
                 break;
 
             case L7_QOS_ACL_TLV_MATCH_ICMPMSG_TYPE:
+                /* DNX: todo */
+                #if 0
                 result = hapiBroadPolicyRuleQualifierAdd(ruleId,
                                                          BROAD_FIELD_ICMP_MSG_TYPE,
                                                          GET_VALUE_PTR(pMatchTLV,0),
                                                          GET_VALUE_PTR(pMatchTLV,1));
                 l3OrL4RuleFound = L7_TRUE;
+                #endif
                 break;
 
             case L7_QOS_ACL_TLV_ATTR_ASSIGN_QUEUE_TYPE:
