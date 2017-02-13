@@ -103,6 +103,7 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier);
 L7_RC_t ptin_hapi_phy_init_matrix(void);
 L7_RC_t ptin_hapi_phy_init_olt1t0(void);
 L7_RC_t ptin_hapi_phy_init_tolt8g_tg16g(void);
+L7_RC_t ptin_hapi_phy_init_tg16gf(void);
 L7_RC_t ptin_hapi_phy_init_ta48ge(void);
 L7_RC_t ptin_hapi_phy_init_tg4g(void);
 
@@ -428,6 +429,17 @@ L7_RC_t ptin_hapi_phy_init(void)
   else
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing TOLT8G/TG16G phys");
+  }
+
+  /* TG16GF boards */
+#elif (PTIN_BOARD == PTIN_BOARD_TG16GF)
+  if (ptin_hapi_phy_init_tg16gf() == L7_SUCCESS)
+  {
+    PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing TG16GF phys");
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing TG16GF phys");
   }
 
   /* OLT1T0 */
@@ -824,6 +836,49 @@ L7_RC_t ptin_hapi_phy_init_tolt8g_tg16g(void)
     }
 
     PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at XAUI mode", i, bcm_port);
+  }
+#else
+  rc = L7_NOT_SUPPORTED;
+#endif
+
+  return rc;
+}
+
+/**
+ * Initialize PHYs for TOLT8G and TG16G boards
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t ptin_hapi_phy_init_tg16gf(void)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+#if (PTIN_BOARD == PTIN_BOARD_TG16GF)
+  int i;
+  bcm_port_t bcm_port;
+
+  for (i=PTIN_SYSTEM_N_PONS; i<PTIN_SYSTEM_N_PORTS; i++)
+  {
+    /* If is a 10G port, apply SFI mode */
+    if ((PTIN_SYSTEM_10G_PORTS_MASK >> i) & 1)
+    {
+      /* Get bcm_port format */
+      if (hapi_ptin_bcmPort_get(i, &bcm_port)!=BCM_E_NONE)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error obtaining bcm_port for port %u", i);
+        continue;
+      }
+
+      /* Set XAUI mode */
+      if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing port %u (bcm_port %u) at SFI mode", i, bcm_port);
+        rc = L7_FAILURE;
+        continue;
+      }
+
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at SFI mode", i, bcm_port);
+    }
   }
 #else
   rc = L7_NOT_SUPPORTED;
@@ -4349,7 +4404,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     return rc;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G /*|| PTIN_BOARD == PTIN_BOARD_TG16GF*/)
   /* Reset Firmware mode */
   rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 0);
   if (rc != BCM_E_NONE)
@@ -4390,7 +4445,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     return rc;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G /*|| PTIN_BOARD == PTIN_BOARD_TG16GF*/)
   /* Firmware mode 2 */
   rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 2);
   if (rc != BCM_E_NONE)
@@ -4399,7 +4454,9 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     return rc;
   }
   PT_LOG_INFO(LOG_CTX_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
+#endif
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
   /* Reconfigure tap settings */
   rc = soc_phyctrl_control_set(0, bcm_port, SOC_PHY_CONTROL_PREEMPHASIS, PTIN_PHY_PREEMPHASIS_NEAREST_SLOTS);
   if (rc != BCM_E_NONE)
