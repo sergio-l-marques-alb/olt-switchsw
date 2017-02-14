@@ -98,6 +98,10 @@ void ptin_force_capture(L7_BOOL force)
 }
 
 
+
+/* Structs for comutation functions */
+ptin_HwEthMef10Intf_t evcPortTest[PTIN_SYSTEM_N_EXTENDED_EVCS];
+
 /******************************************************** 
  * EXTERNAL FUNCTIONS IMPLEMENTATION
  ********************************************************/
@@ -5745,6 +5749,17 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error creating/reconfiguring EVC# %u", ptinEvcConf.index);
     return L7_FAILURE;
+  }
+  else
+  {
+        /*teste*/
+    evcPortTest[ptinEvcConf.index-1].evcId         = ptinEvcConf.index;
+    evcPortTest[ptinEvcConf.index-1].intf.format   = PTIN_INTF_FORMAT_TYPEID;
+    evcPortTest[ptinEvcConf.index-1].action_outer  = ptinEvcConf.intf[i].action_outer;
+    evcPortTest[ptinEvcConf.index-1].action_inner  = ptinEvcConf.intf[i].action_inner;
+    evcPortTest[ptinEvcConf.index-1].vid_inner     = ptinEvcConf.intf[i].vid_inner;
+    evcPortTest[ptinEvcConf.index-1].vid           = ptinEvcConf.intf[i].vid;
+    evcPortTest[ptinEvcConf.index-1].mef_type      = ptinEvcConf.intf[i].mef_type;
   }
 
   /* Get EVC flags */
@@ -17820,4 +17835,54 @@ L7_RC_t ptin_msg_switch_temperature_get(msg_ptin_temperature_monitor_t *msg)
   msg->SlotId = ENDIAN_SWAP8(ptin_fpga_board_slot_get());
 
   return L7_SUCCESS; 
+}
+
+
+
+/**************** test functions ****************/
+
+
+/**
+ * ADD or REMOVE evc port without a message
+ * 
+ * @param evcId 
+ * @param portId 
+ * @param oper 
+ * 
+ * @return L7_RC_t 
+ */
+void ptin_msg_evc_port_add_rem(L7_uint32 evcId, L7_uint8 portId, L7_uint8 oper)
+{
+
+  msg_HWevcPort_t struct_teste[1]; 
+
+  printf("evcPortTest.evcId %u\n", evcPortTest[evcId-1].evcId);
+  printf("evcPortTest.intf.format %u\n", evcPortTest[evcId-1].intf.format);
+  printf("evcPortTest.mef_type %u\n", evcPortTest[evcId-1].mef_type);
+  printf("evcPortTest.vid %u\n", evcPortTest[evcId-1].vid);
+  printf("evcPortTest.vid_inner %u\n", evcPortTest[evcId-1].vid_inner);
+  printf("evcPortTest.action_outer %u\n", evcPortTest[evcId-1].action_outer);
+  printf("evcPortTest.action_inner %u\n", evcPortTest[evcId-1].action_inner);
+
+  printf("Valores recebidos como argumento\n");
+  printf("ptinPort %u\n", portId);
+  printf("evcId %u\n", evcId);
+
+  struct_teste[0].evcId          = ENDIAN_SWAP32(evcId);
+  struct_teste[0].intf.intf_id   = ENDIAN_SWAP8(portId);
+  struct_teste[0].intf.intf_type = ENDIAN_SWAP8(0);
+  struct_teste[0].intf.mef_type  = ENDIAN_SWAP8(evcPortTest[evcId-1].mef_type);
+  struct_teste[0].intf.inner_vid = ENDIAN_SWAP16(evcPortTest[evcId-1].vid_inner);
+  struct_teste[0].intf.vid       = ENDIAN_SWAP16(evcPortTest[evcId-1].vid);
+
+  if (oper == 1)
+  {
+    ptin_msg_evc_port(struct_teste, 1, PTIN_MSG_OPER_ADD);
+  }
+  else
+  {
+    if (oper == 0)
+      ptin_msg_evc_port(struct_teste, 1, PTIN_MSG_OPER_REMOVE);
+  }
+
 }

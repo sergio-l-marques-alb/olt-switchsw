@@ -773,6 +773,7 @@ typedef struct
   L7_uint16 vid_inner;    // Inner vlan associated to this interface
   ptin_vlanXlate_action_enum action_outer; // Action associated to the outer VLAN
   ptin_vlanXlate_action_enum action_inner; // Action associated to the inner VLAN
+  L7_uint32 evcId;
 } ptin_HwEthMef10Intf_t;
 
 #define PTIN_EVC_OPTIONS_MASK_FLAGS   0x0001
