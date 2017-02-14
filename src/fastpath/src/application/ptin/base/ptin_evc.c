@@ -4102,6 +4102,48 @@ L7_RC_t ptin_evc_destroy_all(void)
   return L7_SUCCESS;
 }
 
+L7_RC_t ptin_evc_p2p_bridge_replicate(L7_uint32 evc_ext_id, L7_uint32 ptin_port, L7_uint32 ptin_port_ngpon2)
+{
+  L7_uint32 evc_id;
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evc_ext_id);
+    return L7_FAILURE;
+  }
+
+  ptin_HwEthEvcBridge_t evcBridge;
+
+  evcBridge.index = evc_ext_id;
+  
+  /* Validate leaf interface (from received message) */
+  if ((ptin_port >= PTIN_SYSTEM_N_INTERF) ||
+      (!evcs[evc_id].intf[ptin_port].in_use) ||
+      (evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF))
+  {
+    return L7_FAILURE;
+  }
+
+  evcBridge.inn_vlan =  evcs[evc_id].intf[ptin_port_ngpon2].out_vlan;
+  evcBridge.intf.intf.value.ptin_intf.intf_id   = PTIN_EVC_INTF_PHYSICAL;
+  evcBridge.intf.intf.value.ptin_intf.intf_type = ptin_port;
+  evcBridge.intf.mef_type                       = PTIN_EVC_INTF_LEAF;
+  evcBridge.intf.vid                            = evcs[evc_id].intf[ptin_port_ngpon2].int_vlan;
+  evcBridge.intf.vid_inner                      = evcs[evc_id].intf[ptin_port_ngpon2].inner_vlan;
+
+
+  ptin_evc_p2p_bridge_add(&evcBridge);
+
+  return L7_SUCCESS;
+}
 
 /**
  * Adds a bridge to a stacked EVC between the root and a particular interface
@@ -5121,6 +5163,115 @@ L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_client_pack
 
 /*****************************End Multicast Channel Packages Feature*****************************/
 
+
+/**
+ * Adds a flow to the EVC
+ * 
+ * @param evcFlow : Flow info
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_flow_remove_port(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_uint32 vport_id)
+{
+  L7_uint32 evc_id ;
+
+  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evc_id);
+    return L7_FAILURE;
+  }
+
+  struct ptin_evc_client_s *pclientFlow;
+  /* Find this client vlan in EVC */
+  ptin_evc_find_flow_fromVPort(vport_id, &(evcs[evc_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
+ 
+  ptin_evc_flow_unconfig(evc_id, ptin_port, pclientFlow->uni_ovid);
+
+  return L7_SUCCESS;
+
+}
+/**
+ * Adds a flow to the EVC
+ * 
+ * @param evcFlow : Flow info
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_flow_replicate(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_uint32 vport_id)
+{
+  ptin_HwEthEvcFlow_t evcFlow;
+  L7_uint32 leaf_port, evc_id, intIfNum;
+
+ /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
+  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u]", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS-1);
+    return L7_FAILURE;
+  }
+
+  /* Is EVC in use? */
+  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evc_id);
+    return L7_FAILURE;
+  }
+
+  leaf_port = 3; //test
+
+  /* Validate leaf interface (from received message) */
+  if ((leaf_port >= PTIN_SYSTEM_N_INTERF) ||
+      (!evcs[evc_id].intf[leaf_port].in_use) ||
+      (evcs[evc_id].intf[leaf_port].type != PTIN_EVC_INTF_LEAF))
+  {
+    return L7_FAILURE;
+  }
+
+  /* Convert to intIfNum */
+  if (ptin_intf_port2intIfNum(leaf_port, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Cannot get intIfNum from port %u", evc_id, leaf_port);
+    return L7_FAILURE;
+  }
+
+  struct ptin_evc_client_s *pclientFlow;
+  /* Find this client vlan in EVC */
+  ptin_evc_find_flow_fromVPort(vport_id, &(evcs[evc_id].intf[leaf_port].clients), (dl_queue_elem_t **) &pclientFlow);
+
+
+  evcFlow.evc_idx  = evc_ext_id;               // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+  evcFlow.flags    = pclientFlow->flags;        // Protocol flags
+  evcFlow.int_ivid = pclientFlow->int_ivid;    // C-VLAN tagged in the upstream flows (inside the switch)
+
+  /* Determine leaf ptin_intf */
+  evcFlow.ptin_intf.intf_id   = ptin_port;
+  evcFlow.ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+
+  /* Client interface (root is already known by the EVC) */
+  evcFlow.uni_ovid    = pclientFlow->uni_ovid;     // GEM id
+  evcFlow.uni_ivid    = pclientFlow->uni_ivid;     // UNI cvlan
+
+  evcFlow.macLearnMax = 2; // pclientFlow-;  // Maximum number of Learned MAC addresses                           
+  evcFlow.onuId       = 1; //pclientFlow->onuId;        // ONU/CPE Identifier
+  evcFlow.mask        = 0; //pclientFlow->mask;
+  evcFlow.maxChannels = 0; //pclientFlow-> maxChannels;  // [mask = 0x01] Maximum number of channels this client can simultaneously watch
+  evcFlow.maxBandwidth = 0;//pclientFlow->bwprofile; // [mask = 0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
+  //L7_uint32   packageBmpList[(PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/(sizeof(L7_uint32)*8)+1];  //[mask=0x04]  Package Bitmap List   
+  evcFlow.noOfPackages = 0 ; //[mask=0x08]  Number of Packages
+
+
+  ptin_evc_flow_add(&evcFlow);
+
+  return L7_SUCCESS;
+}
+
 /**
  * Adds a flow to the EVC
  * 
@@ -5212,7 +5363,8 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
       return L7_FAILURE;
     }
 
-    PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Going to create new flow (client %u)", evc_id, evcFlow->int_ivid);
+    PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Going to create new flow (client %u)", evc_id, evcFlow->int_ivid);
+    PT_LOG_ERR(LOG_CTX_EVC, "%u  %u  %u ", multicast_group, evcFlow->int_ivid, evcFlow->int_ivid, evcFlow->macLearnMax);
 
     /* Create virtual port */
     if (ptin_virtual_port_add(intIfNum,
