@@ -1618,7 +1618,14 @@ static L7_RC_t hapiBroadQosCosWredApply(DAPI_USP_t *usp)
 	  /* For XGS4, we are just disabling WRED in-chip, so the parameters 
 	     don't matter. If we want to support configurable tail-drop, 
 	     add BCM_COSQ_DISCARD_ENABLE to the flags. */
-            parms.flags[cosIndex] = BCM_COSQ_DISCARD_ENABLE;
+            if (SOC_IS_KATANA2(usp->unit))
+            {
+              parms.flags[cosIndex] = BCM_COSQ_DISCARD_ENABLE; 
+            }
+            else
+            {
+              parms.flags[cosIndex] = 0; 
+            }
             parms.gain[cosIndex] = 0;
             /* PTin modified: Allow 6 DP levels */
             for(colorIndex = 0; colorIndex < (L7_MAX_CFG_DROP_PREC_LEVELS*2); colorIndex++) 
