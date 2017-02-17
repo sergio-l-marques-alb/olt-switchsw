@@ -54,6 +54,11 @@
 #include <soc/metrolite.h>
 #endif
 
+/* PTin added */
+//#define EXT_MEM_Q_MIN_CELL          8
+//#define EXT_MEM_Q_SHARED_ALPHA_CELL 1
+/* PTin end */
+
 #ifdef BCM_WARM_BOOT_SUPPORT
 
 #define KT2_MAX_TDM_SLOTS_VER_1_1         128
@@ -9589,6 +9594,7 @@ int _soc_katana2_mmu_config_extra_queue(int unit, uint32 queue)
      soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
                          &mmu_thdo_qconfig_cell_entry, 
                          Q_SHARED_LIMIT_CELLf, 7);
+
      soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
                          &mmu_thdo_qconfig_cell_entry, 
                          Q_LIMIT_DYNAMIC_CELLf, 1);
@@ -10007,6 +10013,10 @@ int _soc_katana2_mmu_init_helper_dyn(int unit, int port, int ext_mem_enable)
                      soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
                          &mmu_thdo_qconfig_cell_entry, Q_SHARED_LIMIT_CELLf,
                          temp_val);
+                     /* PTin added */
+                     /*soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
+                                         &mmu_thdo_qconfig_cell_entry,
+                                         Q_SHARED_ALPHA_CELLf, 1);*/
 
                      /* C400:THDO_QCONFIG_CELL.Q_LIMIT_DYNAMIC_CELL
                              =IF($C$14, 0, 1) */
@@ -10152,6 +10162,11 @@ int _soc_katana2_mmu_init_helper_dyn(int unit, int port, int ext_mem_enable)
                      soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
                          &mmu_thdo_qconfig_cell_entry, Q_SHARED_LIMIT_CELLf,
                          temp_val);
+                     /* PTin added */
+                     #ifdef EXT_MEM_Q_SHARED_ALPHA_CELL
+                     soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
+                         &mmu_thdo_qconfig_cell_entry, Q_SHARED_ALPHA_CELLf, EXT_MEM_Q_SHARED_ALPHA_CELL);
+                     #endif
 
                      /* C415:THDO_QCONFIG_CELL.Q_LIMIT_DYNAMIC_CELL
                              =IF($C$14, 0, 1) */
@@ -11171,10 +11186,14 @@ static const float  kt2_baf_profile_indexes[]={0.015625,0.03125,0.0625,
     if ((_soc_kt2_mmu_params.lossless_mode_d_c == 0) ||
          _soc_kt2_mmu_params.packing_mode_d_c) { 
         if (_soc_kt2_mmu_params.extbuf_used_d_c) {
-            output_port_threshold->min_grntd_res_queue_cells_ext_buff = 
-                  ceil_func((output_port_threshold->
+            /* PTin modified */
+            #ifdef EXT_MEM_Q_MIN_CELL
+            output_port_threshold->min_grntd_res_queue_cells_ext_buff = EXT_MEM_Q_MIN_CELL;
+            #else
+            output_port_threshold->min_grntd_res_queue_cells_ext_buff = ceil_func((output_port_threshold->
                              min_grntd_res_queue_cells_int_buff),
                             (general_info->ratio_of_ext_buff_to_int_buff_size));
+            #endif
         }
     }
 
@@ -13442,6 +13461,9 @@ static const float  kt2_baf_profile_indexes[]={0.015625,0.03125,0.0625,
                  soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm, 
                      &mmu_thdo_qconfig_cell_entry, Q_SHARED_LIMIT_CELLf, 
                      temp_val);
+                 /* PTin added */
+                 /*soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
+                     &mmu_thdo_qconfig_cell_entry, Q_SHARED_ALPHA_CELLf, 1);*/
 
                  if ((buf_queue->pool_scale != -1) && 
                          mmu_config_enabled) {
@@ -13588,6 +13610,11 @@ static const float  kt2_baf_profile_indexes[]={0.015625,0.03125,0.0625,
                  soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm, 
                      &mmu_thdo_qconfig_cell_entry, Q_SHARED_LIMIT_CELLf, 
                      temp_val);
+                 /* PTin added */
+                 #ifdef EXT_MEM_Q_SHARED_ALPHA_CELL
+                 soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
+                     &mmu_thdo_qconfig_cell_entry, Q_SHARED_ALPHA_CELLf, EXT_MEM_Q_SHARED_ALPHA_CELL);
+                 #endif
 
                  /* C415:THDO_QCONFIG_CELL.Q_LIMIT_DYNAMIC_CELL
                          =IF($C$14, 0, 1) */
@@ -24360,6 +24387,10 @@ soc_kt2_mmu_config_shared_buf_recalc(int unit, int shared_size,
                                             &mmu_thdo_qconfig_cell_entry, 
                                             Q_SHARED_LIMIT_CELLf,
                                             shared_size);
+                        /* PTin added */
+                        /*soc_mem_field32_set(unit, MMU_THDO_QCONFIG_CELLm,
+                                            &mmu_thdo_qconfig_cell_entry, Q_SHARED_ALPHA_CELLf, 1);*/
+
                         SOC_IF_ERROR_RETURN(WRITE_MMU_THDO_QCONFIG_CELLm(unit,
                                     MEM_BLOCK_ANY,queue,
                                     &mmu_thdo_qconfig_cell_entry));
