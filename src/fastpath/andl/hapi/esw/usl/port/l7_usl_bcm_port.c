@@ -1591,6 +1591,12 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
       cellsize = 208;
       totalmem = 46080;
     }
+    /* OLT1T0F/TG16GF board */
+    else if (SOC_IS_KATANA2(unit))
+    {
+      cellsize = 2880;    /* Cell size for external memory */
+      totalmem = 256000;  /* Considering 6x2Gbit external memory */
+    }
     /* OLT1T0 board */
     else if (SOC_IS_HELIX4(unit))
     {
@@ -1615,8 +1621,16 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
       totalmem = 16383;
     }
 
-    /* subtract 1 from NUM_PORT to correct for CPU port, which never has WRED or taildrop */
-    conversion_factor = cellsize * 8 * totalmem / (1 + 2 * (NUM_PORT(unit)-1));
+    if (SOC_IS_KATANA2(unit))
+    {
+      /* Katana2 have 4K queues (56450-DS106-RDS.pdf) */
+      conversion_factor = cellsize * totalmem / 4096;
+    }
+    else
+    {
+      /* subtract 1 from NUM_PORT to correct for CPU port, which never has WRED or taildrop */
+      conversion_factor = cellsize * 8 * totalmem / (1 + 2 * (NUM_PORT(unit)-1));
+    }
   }
 
   return ((percent * conversion_factor) / 100);

@@ -610,6 +610,7 @@ L7_RC_t hpcConfigBoardSet()
 
         /* External memory configuration: All physical ports associated to external memory */
         /* 1-16 (PON); 25, 27, 33, 36 (BCK) */
+        //if (sal_config_set(spn_PBMP_EXT_MEM, "0") != 0)
         if (sal_config_set(spn_PBMP_EXT_MEM, "0x120a01fffe") != 0)
           return(L7_FAILURE);
         if (sal_config_set(spn_DDR3_PLL_MHZ, "914") != 0)
@@ -626,8 +627,10 @@ L7_RC_t hpcConfigBoardSet()
           return(L7_FAILURE);
 
         /* Configure mmu lossy mode */
-        if (sal_config_set(spn_MMU_LOSSLESS, "0") != 0)
+        if (sal_config_set(spn_LOSSLESS_MODE, "0") != 0)
           return(L7_FAILURE);
+        //if (sal_config_set(spn_MMU_MULTI_PACKETS_PER_CELL, "1") != 0)
+        //  return(L7_FAILURE);
 
         /*
          * On 568xx devices, the XPORT block defaults to XE ports.  Uncomment the

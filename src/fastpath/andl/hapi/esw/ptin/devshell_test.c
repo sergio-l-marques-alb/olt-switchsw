@@ -18,6 +18,20 @@
 #include "bcmx/vlan.h"
 #include "logger.h"
 
+void ptin_mem_mod(uint32 mem, uint32 field, uint32 i, uint32 val)
+{
+  uint32    entry[SOC_MAX_MEM_WORDS];
+  int rv;
+
+  rv = soc_mem_read(0, mem, MEM_BLOCK_ANY, i, &entry);
+  if (rv != 0)
+  {
+    printf("Error reading MMU_THDO_QCONFIG_CELL[%u] contents: rv=%d\r\n", i, rv);
+    return;
+  }
+  //soc_mem_field32_set(0, MMU_THDO_QCONFIG_CELLm, &entry, Q_MIN_CELLf, val);/*c366, 382*/
+  soc_mem_field32_set(0, mem, &entry, field, val);
+}
 
 void ptin_temperature_monitor(int number_of_sensors)
 {

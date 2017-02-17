@@ -457,10 +457,10 @@ void cosDefaultQueueConfigBuild(L7_cosQueueCfg_t *pCfgQ, L7_uint32 queueId)
       break;
     } /* endswitch */
 
-    pCfgQ->dropPrec[i].tdropThresh = tdropThreshBase;
-    pCfgQ->dropPrec[i].wredMinThresh = wredMinThreshBase;
-    pCfgQ->dropPrec[i].wredMaxThresh = wredMaxThreshBase;
-    pCfgQ->dropPrec[i].wredDropProb = FD_QOS_COS_QCFG_WRED_DROP_PROB;
+    pCfgQ->dropPrec[i].tdropThresh   = 100; //tdropThreshBase;
+    pCfgQ->dropPrec[i].wredMinThresh = 100; //wredMinThreshBase;
+    pCfgQ->dropPrec[i].wredMaxThresh = 100; //wredMaxThreshBase;
+    pCfgQ->dropPrec[i].wredDropProb  = 100; //FD_QOS_COS_QCFG_WRED_DROP_PROB;
 
   } /* endfor i */
 }
