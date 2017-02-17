@@ -97,10 +97,25 @@ void ptin_force_capture(L7_BOOL force)
   force_capture = force;
 }
 
+typedef struct
+{
+  L7_uint16 uni_ovid;
+  L7_uint16 uni_ivid;
+  L7_uint8  onuId;
+  L7_uint8  mask;
+  L7_uint64 maxBandwidth;
+  L7_uint16 maxChannels;
+  ptin_client_id_t client;
+  //msg_IgmpClient_t McastClient;
+}ptin_McastClient_info;
 
 
 /* Structs for comutation functions */
+/*EVC's*/
 ptin_HwEthMef10Intf_t evcPortTest[PTIN_SYSTEM_N_EXTENDED_EVCS];
+
+/*Clients*/
+ptin_McastClient_info McastClient_info[PTIN_SYSTEM_N_EXTENDED_EVCS];
 
 /******************************************************** 
  * EXTERNAL FUNCTIONS IMPLEMENTATION
@@ -9699,11 +9714,11 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
           }
          
           igmpAdmissionControl.serviceId      = ENDIAN_SWAP32(msgAdmissionControl->evcId);    
-  #if  !PTIN_BOARD_IS_ACTIVETH
+#if  !PTIN_BOARD_IS_ACTIVETH
           igmpAdmissionControl.onuId         = msgAdmissionControl->onuId;
-  #else
+#else
           igmpAdmissionControl.onuId         = 0;
-  #endif  
+#endif  
           igmpAdmissionControl.maxAllowedChannels   = ENDIAN_SWAP16(msgAdmissionControl->maxChannels);
           igmpAdmissionControl.maxAllowedBandwidth  = ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth);
 
@@ -9734,11 +9749,11 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
       }
      
       igmpAdmissionControl.serviceId      = ENDIAN_SWAP32(msgAdmissionControl->evcId);    
-  #if  !PTIN_BOARD_IS_ACTIVETH
+#if  !PTIN_BOARD_IS_ACTIVETH
       igmpAdmissionControl.onuId         = msgAdmissionControl->onuId;
-  #else
+#else
       igmpAdmissionControl.onuId         = 0;
-  #endif  
+#endif  
       igmpAdmissionControl.maxAllowedChannels   = ENDIAN_SWAP16(msgAdmissionControl->maxChannels);
       igmpAdmissionControl.maxAllowedBandwidth  = ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth);
 
@@ -10145,6 +10160,16 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
            {
              PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client");
              return rc;
+           }
+           else
+           {
+             McastClient_info[McastClient[i].mcEvcId-1].uni_ivid      = uni_ivid;
+             McastClient_info[McastClient[i].mcEvcId-1].uni_ovid      = uni_ovid;
+             McastClient_info[McastClient[i].mcEvcId-1].mask          = McastClient[i].mask;
+             McastClient_info[McastClient[i].mcEvcId-1].maxBandwidth  = ENDIAN_SWAP64(McastClient[i].maxBandwidth);
+             McastClient_info[McastClient[i].mcEvcId-1].maxChannels   = ENDIAN_SWAP16(McastClient[i].maxChannels);
+             memcpy(&McastClient_info[McastClient[i].mcEvcId-1].client, &McastClient[i].client, sizeof(ptin_client_id_t));
+             //memcpy(&McastClient_info[McastClient[i].mcEvcId-1], &McastClient[i], sizeof(msg_IgmpClient_t));
            }
          }
          shift_index++;
@@ -17886,3 +17911,62 @@ void ptin_msg_evc_port_add_rem(L7_uint32 evcId, L7_uint8 portId, L7_uint8 oper)
   }
 
 }
+
+
+/**
+ * ADD Mcast igmp client to a ngpon2 group
+ * 
+ * @param  evcId
+ * @param  portId
+ * @param  
+ * 
+ * @return L7_RC_t 
+ */
+void ptin_msg_igmp_client_add_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
+{
+  L7_RC_t rc;
+
+  printf("ADD Mcast igmp client to a ngpon2 group\n");
+  printf("Function parameters:");
+  printf("EvcID: %u", evcId); 
+  printf("PortID: %u", portId);
+
+  McastClient_info[evcId-1].client.ptin_intf.intf_id = portId;
+
+  /* call API igmp client add */ 
+  rc = ptin_igmp_api_client_add(&McastClient_info[evcId-1].client, 
+                           McastClient_info[evcId-1].uni_ovid, 
+                           McastClient_info[evcId-1].uni_ivid, 
+                           McastClient_info[evcId-1].onuId, 
+                           McastClient_info[evcId-1].mask, 
+                           McastClient_info[evcId-1].maxBandwidth,   
+                           McastClient_info[evcId-1].maxChannels,   
+                           L7_FALSE, 
+                           L7_NULLPTR/*McastClient[i].packageBmpList*/, 
+                           0/*McastClient[i].noOfPackages*/);          
+
+  if (rc != L7_SUCCESS)
+    printf("ERROR TO ADD MC CLIENT\n");
+
+}
+
+void ptin_msg_igmp_client_rem_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
+{
+
+  L7_RC_t rc;
+
+  printf("REMOVE Mcast igmp client to a ngpon2 group\n");
+  printf("Function parameters:");
+  printf("EvcID: %u", evcId); 
+  printf("PortID: %u", portId);
+
+  McastClient_info[evcId-1].client.ptin_intf.intf_id = portId;
+
+  /* call API igmp client remove */
+  rc = ptin_igmp_api_client_remove(&McastClient_info[evcId-1].client);
+
+  if (rc != L7_SUCCESS)
+    printf("ERROR TO REMOVE MC CLIENT\n");
+
+}
+  

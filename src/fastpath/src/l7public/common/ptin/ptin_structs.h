@@ -776,6 +776,7 @@ typedef struct
   L7_uint32 evcId;
 } ptin_HwEthMef10Intf_t;
 
+
 #define PTIN_EVC_OPTIONS_MASK_FLAGS   0x0001
 #define PTIN_EVC_OPTIONS_MASK_TYPE    0x0002
 #define PTIN_EVC_OPTIONS_MASK_MCFLOOD 0x0004
