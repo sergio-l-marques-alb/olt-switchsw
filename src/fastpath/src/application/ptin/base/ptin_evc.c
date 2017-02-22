@@ -382,9 +382,9 @@ L7_RC_t ptin_evc_client_clean( L7_uint evc_id, L7_uint8 intf_type, L7_uint8 intf
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 //static L7_RC_t ptin_evc_port_flows_clean(L7_uint16 evc_id, L7_uint ptin_port);
-
-#endif
 static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 uni_ovid);
+#endif
+
 /* Local functions prototypes */
 static L7_RC_t ptin_evc_pclientFlow_clean( L7_uint evc_id, L7_uint ptin_port, struct ptin_evc_client_s *pclientFlow, L7_BOOL force );
 
@@ -5229,8 +5229,9 @@ L7_RC_t ptin_evc_flow_remove_port(L7_uint32 ptin_port, L7_uint32 evc_ext_id)
    //L7_uint32   packageBmpList[(PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/(sizeof(L7_uint32)*8)+1];  //[mask=0x04]  Package Bitmap List   
    evcFlow.noOfPackages = 0; //[mask=0x08]  Number of Packages
 
+#if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
    ptin_evc_flow_unconfig(evc_id, ptin_port, pclientFlow->uni_ovid);
-
+#endif
 
    pclientFlow = (struct ptin_evc_client_s *) dl_queue_get_next(queue, (dl_queue_elem_t *)pclientFlow);
   }
