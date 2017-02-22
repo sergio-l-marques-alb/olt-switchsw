@@ -1014,4 +1014,14 @@ extern void *ptin_evc_l3_intf_sem_get(void);
  */
 extern void ptin_evc_l3_intf_sem_give(L7_uint32 vlanId, L7_uint32 intfIfnum);
 
+/**
+ * Test EVC functions
+ *
+ */
+
+extern L7_RC_t ptin_evc_flow_replicate(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_uint32 leaf_port);
+extern L7_RC_t ptin_evc_p2p_bridge_replicate(L7_uint32 evc_ext_id, L7_uint32 ptin_port, L7_uint32 ptin_port_ngpon2, ptin_HwEthMef10Intf_t *intf);
+extern L7_RC_t ptin_evc_flow_remove_port(L7_uint32 ptin_port, L7_uint32 evc_ext_id);
+extern L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile);
+
 #endif /* _PTIN_EVC_H */

@@ -5767,14 +5767,26 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   }
   else
   {
-        /*teste*/
-    evcPortTest[ptinEvcConf.index-1].evcId         = ptinEvcConf.index;
-    evcPortTest[ptinEvcConf.index-1].intf.format   = PTIN_INTF_FORMAT_TYPEID;
-    evcPortTest[ptinEvcConf.index-1].action_outer  = ptinEvcConf.intf[i].action_outer;
-    evcPortTest[ptinEvcConf.index-1].action_inner  = ptinEvcConf.intf[i].action_inner;
-    evcPortTest[ptinEvcConf.index-1].vid_inner     = ptinEvcConf.intf[i].vid_inner;
-    evcPortTest[ptinEvcConf.index-1].vid           = ptinEvcConf.intf[i].vid;
-    evcPortTest[ptinEvcConf.index-1].mef_type      = ptinEvcConf.intf[i].mef_type;
+
+    //if (msgEvcConf->evc.intf[index_port].intf_type == PTIN_EVC_INTF_NGPON2)
+    //{
+      get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
+      /*teste*/
+      evcPortTest[ptinEvcConf.index-1].evcId         = ptinEvcConf.index;
+      evcPortTest[ptinEvcConf.index-1].intf.format   = PTIN_INTF_FORMAT_TYPEID;
+      evcPortTest[ptinEvcConf.index-1].action_outer  = ptinEvcConf.intf[i].action_outer;
+      evcPortTest[ptinEvcConf.index-1].action_inner  = ptinEvcConf.intf[i].action_inner;
+      evcPortTest[ptinEvcConf.index-1].vid_inner     = ptinEvcConf.intf[i].vid_inner;
+      evcPortTest[ptinEvcConf.index-1].vid           = ptinEvcConf.intf[i].vid;
+      evcPortTest[ptinEvcConf.index-1].mef_type      = ptinEvcConf.intf[i].mef_type;
+
+      PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
+      NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ptinEvcConf.index;
+      NGPON2_GROUP.number_services++;
+
+      set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);  
+
+    //}
   }
 
   /* Get EVC flags */
@@ -6028,7 +6040,7 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
           PT_LOG_DEBUG(LOG_CTX_MSG, " .InnerVlan = %u",      ptinEvcPort.vid_inner);
 
 
-                    /* Add/remove port */
+          /* Add/remove port */
           switch (oper)
           {
           case PTIN_MSG_OPER_ADD:
@@ -6407,6 +6419,23 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
       PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u bridge", ptinEvcBridge.index);
       return L7_FAILURE;
     }
+
+    
+   get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
+      /*teste*/
+   evcPortTest[ptinEvcBridge.index-1].evcId         = ptinEvcBridge.index;
+   evcPortTest[ptinEvcBridge.index-1].intf.format   = PTIN_INTF_FORMAT_TYPEID;
+   evcPortTest[ptinEvcBridge.index-1].action_outer  = ptinEvcBridge.intf.action_outer;
+   evcPortTest[ptinEvcBridge.index-1].action_inner  = ptinEvcBridge.intf.action_inner;
+   evcPortTest[ptinEvcBridge.index-1].vid_inner     = ptinEvcBridge.inn_vlan;
+   evcPortTest[ptinEvcBridge.index-1].vid           = ptinEvcBridge.intf.vid;
+   evcPortTest[ptinEvcBridge.index-1].mef_type      = ptinEvcBridge.intf.mef_type;
+
+   PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
+   NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ptinEvcBridge.index;
+   NGPON2_GROUP.number_services++;
+
+   set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);     
   }
 
   return L7_SUCCESS;
@@ -6670,7 +6699,9 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flow", ptinEvcFlow.evc_idx);
       return rc;
-    } 
+    }
+    
+     
   }
 
   return L7_SUCCESS;
@@ -7075,14 +7106,6 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
   ENDIAN_SWAP64_MOD(msgBwProfile->profile.eir);
   ENDIAN_SWAP64_MOD(msgBwProfile->profile.ebs);
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," evcId  = %u",    msgBwProfile->evcId);
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",msgBwProfile->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG," SVID   = %u",    msgBwProfile->service_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," CVID   = %u",    msgBwProfile->client_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG," SrcIntf= %u/%u", msgBwProfile->intf_src.intf_type, msgBwProfile->intf_src.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," DstIntf= %u/%u", msgBwProfile->intf_dst.intf_type, msgBwProfile->intf_dst.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Meter {CIR,CBS}={%llu,%llu}",msgBwProfile->profile.cir, msgBwProfile->profile.cbs);
-  PT_LOG_DEBUG(LOG_CTX_MSG," Meter {EIR,EBS}={%llu,%llu}",msgBwProfile->profile.eir, msgBwProfile->profile.ebs);
 
   /* Extract EVC id */
   evcId = msgBwProfile->evcId;
@@ -7097,12 +7120,17 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
   /* Add bandwidth profile */
   switch (msgId) {
   case CCMSG_ETH_BW_PROFILE_SET:
+
       profile.cos=-1;   //Set to ignore
       if ((rc=ptin_evc_bwProfile_set(evcId, &profile, &meter)) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG,"Error applying profile!");
         return rc;
       }
+
+      evcPortTest[evcId-1].profile = profile;
+      evcPortTest[evcId-1].meter   = meter;
+
       break;
   case CCMSG_ETH_BW_PROFILE_SET_II:
       {
@@ -17910,6 +17938,150 @@ void ptin_msg_evc_port_add_rem(L7_uint32 evcId, L7_uint8 portId, L7_uint8 oper)
       ptin_msg_evc_port(struct_teste, 1, PTIN_MSG_OPER_REMOVE);
   }
 
+}
+
+/**
+ * 
+ * 
+ * @param msg 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old_port)
+{ 
+  L7_int32  evc_ext_id=0, index;
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 evc_type;
+
+  /* Get NGPON2 group information*/
+  get_NGPON2_group_info(&NGPON2_GROUP, 1);
+
+  index = NGPON2_GROUP.number_services-1;
+
+  while (index >= 0)
+  {
+
+    /* Get EVC id configured in the NGPON group*/
+    evc_ext_id = NGPON2_GROUP.evcPort[index] - 1; //due to array initial value
+    evcPortTest[evc_ext_id].intf.value.ptin_port = ptin_port;
+    evcPortTest[evc_ext_id].mef_type = PTIN_EVC_INTF_LEAF;
+
+    PT_LOG_TRACE(LOG_CTX_MSG, "evc_ext_id %d ", evc_ext_id);
+
+    if (ptin_intf_any_format(&evcPortTest[evc_ext_id].intf) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid interfaces");
+
+      index--;
+      continue;
+    }
+
+    /* Add port to EVC */
+    if ( ptin_evc_port_add(evcPortTest[evc_ext_id].evcId, &evcPortTest[evc_ext_id])!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC,"Error adding port to EVC");
+    }
+
+    ptin_evc_check_evctype(NGPON2_GROUP.evcPort[index], &evc_type);
+    PT_LOG_TRACE(LOG_CTX_MSG, "evc_type %d ", evc_type);
+
+    if(evc_type == PTIN_EVC_TYPE_QUATTRO_UNSTACKED || evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
+    {
+      /* Read policer information */
+      if ((ptin_evc_flow_replicate( ptin_port, evcPortTest[evc_ext_id].evcId, old_port)!=L7_SUCCESS))
+      {
+        PT_LOG_ERR(LOG_CTX_EVC,"Error replicating flow");
+
+        index--;
+        continue;
+      }
+    }
+    else
+    {
+      /* Get EVC id configured in the NGPON group*/
+      evc_ext_id = NGPON2_GROUP.evcPort[index] - 1; //due to array initial value
+
+      if ((ptin_evc_p2p_bridge_replicate(NGPON2_GROUP.evcPort[index], ptin_port, old_port, &evcPortTest[evc_ext_id]))!= L7_SUCCESS )
+      {
+        PT_LOG_ERR(LOG_CTX_EVC,"Error replicate p2p bridge");
+
+        index--;
+        continue;         
+      }
+    }
+
+    /* Read and set policer information */
+    if ((ptin_bwPolicer_set(&evcPortTest[evc_ext_id].profile, &evcPortTest[evc_ext_id].meter, -1))!= L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC,"Error reading policer profile");
+
+      index--;
+      continue;
+    }
+    index--;
+  }
+  return L7_SUCCESS;
+}
+
+/**
+ * 
+ * 
+ * @param msg 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
+{
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  get_NGPON2_group_info(&NGPON2_GROUP, 1);
+
+  L7_uint32 index = NGPON2_GROUP.number_services -1 ;      //due to array initial value
+  L7_uint32 evc_ext_id = NGPON2_GROUP.evcPort[index] - 1;  //due to array initial value
+  L7_uint8 evc_type;
+
+  if (ptin_evc_bwProfile_delete(evc_ext_id, &evcPortTest[evc_ext_id].profile)!= L7_SUCCESS)
+  { 
+    PT_LOG_ERR(LOG_CTX_MSG,"Error removing policer");
+    //return L7_FAILURE;
+  }
+
+  ptin_evc_check_evctype(NGPON2_GROUP.evcPort[index], &evc_type);
+  PT_LOG_ERR(LOG_CTX_MSG, "evc_type %d ", evc_type);
+
+
+  if(evc_type == PTIN_EVC_TYPE_QUATTRO_UNSTACKED || evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
+  {
+    /* Remove flows if (any) from EVC */
+    if (ptin_evc_flow_remove_port(ptin_port, evc_ext_id)!= L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG,"Error removing flow");
+      //return L7_FAILURE;
+    }
+  }
+  else
+  {
+    ptin_HwEthEvcBridge_t evcBridge;
+    evcBridge.index = evc_ext_id;
+  
+    evcBridge.inn_vlan =  evcPortTest[evc_ext_id].vid_inner;
+
+    evcBridge.intf = evcPortTest[evc_ext_id];
+    evcBridge.intf.intf.value.ptin_intf.intf_id        =  ptin_port;
+    evcBridge.intf.intf.value.ptin_intf.intf_type      = PTIN_EVC_INTF_PHYSICAL;
+
+    ptin_evc_p2p_bridge_remove(&evcBridge);
+  }
+
+  /* Removing port from EVC */
+  evcPortTest[evc_ext_id].intf.value.ptin_port = ptin_port;
+
+  if( ptin_evc_port_remove(evcPortTest[evc_ext_id].evcId, &evcPortTest[evc_ext_id])!= L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG,"Error port from EVC");
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
 }
 
 

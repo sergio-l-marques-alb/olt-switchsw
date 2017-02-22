@@ -22,8 +22,6 @@
 
 extern L7_BOOL linkscan_update_control;
 
-
-
 /*Data structure with groups information*/  // NGPON2 EVC
 static ptin_NGPON2_groups_t NGPON2_groups_info[PTIN_SYSTEM_MAX_NGPON2_GROUPS];
 
@@ -58,6 +56,8 @@ L7_RC_t ptin_intf_NGPON2_group_check(L7_uint8 intf_index, L7_uint8 *group_index)
  *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
  */
 extern L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *NGPON2_GROUP, L7_uint8 group_index);
+
+extern L7_RC_t set_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_index);
 
 /**
  * Initializes the ptin_intf module (structures) and several interfaces 

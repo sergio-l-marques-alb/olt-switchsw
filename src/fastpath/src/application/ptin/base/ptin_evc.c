@@ -83,6 +83,13 @@ struct ptin_evc_client_s {
   L7_uint32  vport_id;
   L7_uint32  flags;         /* Client/flow flags */
 
+  L7_uint8    macLearnMax;  // Maximum number of Learned MAC addresses                           
+  L7_uint8    onuId;        // ONU/CPE Identifier
+  L7_uint8    mask;
+  L7_uint16   maxChannels;  // [mask = 0x01] Maximum number of channels this client can simultaneously watch
+  L7_uint64   maxBandwidth; // [mask = 0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
+
+
   /* Counters/Profiles per client on stacked EVCs (S+C) */
   void      *counter[2];    /* Pointer to a counter struct entry (Root + Leaf port) */
   void      *bwprofile[2][L7_COS_INTF_QUEUE_MAX_COUNT];  /* Pointer to a BW profile struct entry (Root + Leaf port) */
@@ -451,7 +458,7 @@ static L7_RC_t switching_vlan_delete(L7_uint16 vid);
 static L7_RC_t switching_vlan_config(L7_uint16 vid, L7_uint16 fwd_vid, L7_BOOL mac_learning, L7_uint8 mc_flood, L7_uint8 cpu_trap);
 
 static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf);
-static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile);
+
 static L7_RC_t ptin_evc_evcStats_verify(L7_uint evc_id, ptin_evcStats_profile_t *profile);
 
 static L7_RC_t ptin_evc_probe_get(L7_uint evc_id, ptin_evcStats_profile_t *profile, ptin_evcStats_counters_t *stats);
@@ -4102,7 +4109,7 @@ L7_RC_t ptin_evc_destroy_all(void)
   return L7_SUCCESS;
 }
 
-L7_RC_t ptin_evc_p2p_bridge_replicate(L7_uint32 evc_ext_id, L7_uint32 ptin_port, L7_uint32 ptin_port_ngpon2)
+L7_RC_t ptin_evc_p2p_bridge_replicate(L7_uint32 evc_ext_id, L7_uint32 ptin_port, L7_uint32 ptin_port_ngpon2, ptin_HwEthMef10Intf_t *intf)
 {
   L7_uint32 evc_id;
 
@@ -4132,13 +4139,17 @@ L7_RC_t ptin_evc_p2p_bridge_replicate(L7_uint32 evc_ext_id, L7_uint32 ptin_port,
     return L7_FAILURE;
   }
 
-  evcBridge.inn_vlan =  evcs[evc_id].intf[ptin_port_ngpon2].out_vlan;
-  evcBridge.intf.intf.value.ptin_intf.intf_id   = PTIN_EVC_INTF_PHYSICAL;
-  evcBridge.intf.intf.value.ptin_intf.intf_type = ptin_port;
-  evcBridge.intf.mef_type                       = PTIN_EVC_INTF_LEAF;
-  evcBridge.intf.vid                            = evcs[evc_id].intf[ptin_port_ngpon2].int_vlan;
-  evcBridge.intf.vid_inner                      = evcs[evc_id].intf[ptin_port_ngpon2].inner_vlan;
+  evcBridge.inn_vlan =  intf->vid_inner;
 
+  evcBridge.intf.action_inner = intf->action_inner;
+  evcBridge.intf.action_outer = intf->action_outer;
+  evcBridge.intf.evcId        = intf->evcId;
+  evcBridge.intf.mef_type     = intf->mef_type;
+  evcBridge.intf.vid          = intf->vid;
+  evcBridge.intf.vid_inner    = intf->vid_inner;
+  evcBridge.intf.intf.value.ptin_intf.intf_id        = ptin_port;
+  evcBridge.intf.intf.value.ptin_intf.intf_type      = PTIN_EVC_INTF_PHYSICAL;
+  evcBridge.intf.intf.format  = PTIN_INTF_FORMAT_TYPEID;
 
   ptin_evc_p2p_bridge_add(&evcBridge);
 
@@ -5171,9 +5182,10 @@ L7_RC_t ptin_evc_macbridge_client_packages_remove(ptin_evc_macbridge_client_pack
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_flow_remove_port(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_uint32 vport_id)
+L7_RC_t ptin_evc_flow_remove_port(L7_uint32 ptin_port, L7_uint32 evc_ext_id)
 {
-  L7_uint32 evc_id ;
+  L7_uint32 evc_id;
+  dl_queue_t *queue;
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -5189,11 +5201,39 @@ L7_RC_t ptin_evc_flow_remove_port(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_
     return L7_FAILURE;
   }
 
-  struct ptin_evc_client_s *pclientFlow;
-  /* Find this client vlan in EVC */
-  ptin_evc_find_flow_fromVPort(vport_id, &(evcs[evc_id].intf[ptin_port].clients), (dl_queue_elem_t **) &pclientFlow);
- 
-  ptin_evc_flow_unconfig(evc_id, ptin_port, pclientFlow->uni_ovid);
+  struct ptin_evc_client_s *pclientFlow = NULL;
+
+  queue = &evcs[evc_id].intf[ptin_port].clients;
+  dl_queue_get_head( queue, (dl_queue_elem_t **)&pclientFlow);
+
+  while (pclientFlow != NULL)
+  {
+
+   ptin_HwEthEvcFlow_t evcFlow;
+  
+   evcFlow.evc_idx  = evc_ext_id;               // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+   evcFlow.flags    = pclientFlow->flags;        // Protocol flags
+   evcFlow.int_ivid = pclientFlow->int_ivid;    // C-VLAN tagged in the upstream flows (inside the switch)
+   /* Determine leaf ptin_intf */
+   evcFlow.ptin_intf.intf_id   = ptin_port;
+   evcFlow.ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+   /* Client interface (root is already known by the EVC) */
+   evcFlow.uni_ovid     = pclientFlow->uni_ovid;     // GEM id
+   evcFlow.uni_ivid     = pclientFlow->uni_ivid;     // UNI cvlan
+
+   evcFlow.macLearnMax  = pclientFlow->macLearnMax; // pclientFlow-;  // Maximum number of Learned MAC addresses                           
+   evcFlow.onuId        = pclientFlow->onuId; //pclientFlow->onuId;        // ONU/CPE Identifier
+   evcFlow.mask         = pclientFlow->mask; //pclientFlow->mask;
+   evcFlow.maxChannels  = pclientFlow->maxChannels; //pclientFlow-> maxChannels;  // [mask = 0x01] Maximum number of channels this client can simultaneously watch
+   evcFlow.maxBandwidth = pclientFlow->maxBandwidth;//pclientFlow->bwprofile; // [mask = 0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
+   //L7_uint32   packageBmpList[(PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/(sizeof(L7_uint32)*8)+1];  //[mask=0x04]  Package Bitmap List   
+   evcFlow.noOfPackages = 0; //[mask=0x08]  Number of Packages
+
+   ptin_evc_flow_unconfig(evc_id, ptin_port, pclientFlow->uni_ovid);
+
+
+   pclientFlow = (struct ptin_evc_client_s *) dl_queue_get_next(queue, (dl_queue_elem_t *)pclientFlow);
+  }
 
   return L7_SUCCESS;
 
@@ -5205,10 +5245,10 @@ L7_RC_t ptin_evc_flow_remove_port(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_evc_flow_replicate(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_uint32 vport_id)
-{
-  ptin_HwEthEvcFlow_t evcFlow;
-  L7_uint32 leaf_port, evc_id, intIfNum;
+L7_RC_t ptin_evc_flow_replicate(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_uint32 leaf_port)
+{ 
+  L7_uint32  evc_id, intIfNum;
+  dl_queue_t *queue;
 
  /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EVCS[) */
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
@@ -5224,13 +5264,12 @@ L7_RC_t ptin_evc_flow_replicate(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_ui
     return L7_FAILURE;
   }
 
-  leaf_port = 3; //test
-
   /* Validate leaf interface (from received message) */
   if ((leaf_port >= PTIN_SYSTEM_N_INTERF) ||
       (!evcs[evc_id].intf[leaf_port].in_use) ||
       (evcs[evc_id].intf[leaf_port].type != PTIN_EVC_INTF_LEAF))
   {
+    PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evc_id);
     return L7_FAILURE;
   }
 
@@ -5241,33 +5280,39 @@ L7_RC_t ptin_evc_flow_replicate(L7_uint32 ptin_port, L7_uint32 evc_ext_id, L7_ui
     return L7_FAILURE;
   }
 
-  struct ptin_evc_client_s *pclientFlow;
-  /* Find this client vlan in EVC */
-  ptin_evc_find_flow_fromVPort(vport_id, &(evcs[evc_id].intf[leaf_port].clients), (dl_queue_elem_t **) &pclientFlow);
+  struct ptin_evc_client_s *pclientFlow = NULL;
 
+  queue = &evcs[evc_id].intf[leaf_port].clients;
+  dl_queue_get_head( queue, (dl_queue_elem_t **)&pclientFlow);
 
-  evcFlow.evc_idx  = evc_ext_id;               // EVC Id [1..PTIN_SYSTEM_N_EVCS]
-  evcFlow.flags    = pclientFlow->flags;        // Protocol flags
-  evcFlow.int_ivid = pclientFlow->int_ivid;    // C-VLAN tagged in the upstream flows (inside the switch)
+  while (pclientFlow != NULL)
+  {
 
-  /* Determine leaf ptin_intf */
-  evcFlow.ptin_intf.intf_id   = ptin_port;
-  evcFlow.ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+   ptin_HwEthEvcFlow_t evcFlow;
+  
+   evcFlow.evc_idx  = evc_ext_id;               // EVC Id [1..PTIN_SYSTEM_N_EVCS]
+   evcFlow.flags    = pclientFlow->flags;        // Protocol flags
+   evcFlow.int_ivid = pclientFlow->int_ivid;    // C-VLAN tagged in the upstream flows (inside the switch)
+   /* Determine leaf ptin_intf */
+   evcFlow.ptin_intf.intf_id   = ptin_port;
+   evcFlow.ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+   /* Client interface (root is already known by the EVC) */
+   evcFlow.uni_ovid     = pclientFlow->uni_ovid;     // GEM id
+   evcFlow.uni_ivid     = pclientFlow->uni_ivid;     // UNI cvlan
 
-  /* Client interface (root is already known by the EVC) */
-  evcFlow.uni_ovid    = pclientFlow->uni_ovid;     // GEM id
-  evcFlow.uni_ivid    = pclientFlow->uni_ivid;     // UNI cvlan
+   evcFlow.macLearnMax  = pclientFlow->macLearnMax; // pclientFlow-;  // Maximum number of Learned MAC addresses                           
+   evcFlow.onuId        = pclientFlow->onuId; //pclientFlow->onuId;        // ONU/CPE Identifier
+   evcFlow.mask         = pclientFlow->mask; //pclientFlow->mask;
+   evcFlow.maxChannels  = pclientFlow->maxChannels; //pclientFlow-> maxChannels;  // [mask = 0x01] Maximum number of channels this client can simultaneously watch
+   evcFlow.maxBandwidth = pclientFlow->maxBandwidth;//pclientFlow->bwprofile; // [mask = 0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
 
-  evcFlow.macLearnMax = 2; // pclientFlow-;  // Maximum number of Learned MAC addresses                           
-  evcFlow.onuId       = 1; //pclientFlow->onuId;        // ONU/CPE Identifier
-  evcFlow.mask        = 0; //pclientFlow->mask;
-  evcFlow.maxChannels = 0; //pclientFlow-> maxChannels;  // [mask = 0x01] Maximum number of channels this client can simultaneously watch
-  evcFlow.maxBandwidth = 0;//pclientFlow->bwprofile; // [mask = 0x02] Maximum bandwidth that this client can simultaneously consume (bit/s)
-  //L7_uint32   packageBmpList[(PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/(sizeof(L7_uint32)*8)+1];  //[mask=0x04]  Package Bitmap List   
-  evcFlow.noOfPackages = 0 ; //[mask=0x08]  Number of Packages
+   //L7_uint32   packageBmpList[(PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/(sizeof(L7_uint32)*8)+1];  //[mask=0x04]  Package Bitmap List   
+   // evcFlow.noOfPackages = 0; //[mask=0x08]  Number of Packages
 
+   ptin_evc_flow_add(&evcFlow);
 
-  ptin_evc_flow_add(&evcFlow);
+   pclientFlow = (struct ptin_evc_client_s *) dl_queue_get_next(queue, (dl_queue_elem_t *)pclientFlow);
+  }
 
   return L7_SUCCESS;
 }
@@ -5309,8 +5354,6 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
       leaf_port = evcFlow->ptin_intf.intf_id;
     else
       leaf_port = evcFlow->ptin_intf.intf_id + PTIN_SYSTEM_N_PORTS;
- 
-
   /* Validate leaf interface (from received message) */
   if ((leaf_port >= PTIN_SYSTEM_N_INTERF) ||
       (!evcs[evc_id].intf[leaf_port].in_use) ||
@@ -5396,9 +5439,15 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     pflow->uni_ovid   = evcFlow->uni_ovid;
     pflow->uni_ivid   = evcFlow->uni_ivid;
     pflow->client_vid = evcFlow->uni_ivid;
-    pflow->flags      = 0; //evcFlow->flags;
+    pflow->flags      = evcFlow->flags;
     pflow->virtual_gport = vport_id;
     pflow->vport_id   = vport_id & 0xffffff;
+    pflow->macLearnMax  = evcFlow->macLearnMax;
+    pflow->onuId        = evcFlow->onuId;
+    pflow->mask         = evcFlow->mask;
+    pflow->maxBandwidth = evcFlow->maxBandwidth;
+    pflow->maxChannels  = evcFlow->maxChannels;
+
     dl_queue_add_tail(&evcs[evc_id].intf[leaf_port].clients, (dl_queue_elem_t*) pflow); /* add it to the corresponding interface */
     evcs[evc_id].n_clientflows++;
 
@@ -12077,7 +12126,7 @@ static L7_RC_t ptin_evc_param_verify(ptin_HwEthMef10Evc_t *evcConf)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile)
+L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile)
 {
   L7_int   ptin_port, i_port,num_ports=0,port_count=0;
   struct ptin_evc_client_s *pclientFlow;
