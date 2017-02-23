@@ -106,16 +106,44 @@ typedef struct
   L7_uint64 maxBandwidth;
   L7_uint16 maxChannels;
   ptin_client_id_t client;
-  //msg_IgmpClient_t McastClient;
 }ptin_McastClient_info;
 
+typedef struct
+{
+  L7_uint16 uni_ovid;
+  L7_uint16 uni_ivid;
+  L7_uint8  onuId;
+  L7_uint32 packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];
+  L7_uint16 nOfPackets;
+  L7_BOOL   addOrRemove;
+  ptin_client_id_t client;
+}ptin_UcastPackage_info;
 
-/* Structs for comutation functions */
+typedef struct
+{
+  L7_uint32            evcId;        // EVC Id
+  msg_HwEthInterface_t intf;         // Interface 
+  L7_uint8             onuId;        // ONU Identifier                                     
+}ptin_mcast_service_info;
+
+/* Structs for comutation functions (NGPON2) */
 /*EVC's*/
 ptin_HwEthMef10Intf_t evcPortTest[PTIN_SYSTEM_N_EXTENDED_EVCS];
 
 /*Clients*/
 ptin_McastClient_info McastClient_info[PTIN_SYSTEM_N_EXTENDED_EVCS];
+
+/*Admission control*/
+ptin_igmp_admission_control_t igmpAdmissionControl_info[PTIN_SYSTEM_N_EXTENDED_EVCS];
+
+/* Unicast package */
+ptin_UcastPackage_info UcastClient_info[PTIN_SYSTEM_N_EXTENDED_EVCS];
+
+/* Macbridge package */
+ptin_evc_macbridge_client_packages_t MacbridgePackage_info[PTIN_SYSTEM_N_EXTENDED_EVCS];
+
+/* Multicast service info */
+ptin_mcast_service_info mcast_service_info[PTIN_SYSTEM_N_EXTENDED_EVCS];
 
 /******************************************************** 
  * EXTERNAL FUNCTIONS IMPLEMENTATION
@@ -9697,9 +9725,9 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
 
   if ( ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_INTF) !=  PTIN_MSG_ADMISSION_CONTROL_MASK_INTF) ||
        ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_EVCID) !=  PTIN_MSG_ADMISSION_CONTROL_MASK_EVCID) ||
-      #if  !PTIN_BOARD_IS_ACTIVETH
+#if  !PTIN_BOARD_IS_ACTIVETH
        ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_ONUID) !=  PTIN_MSG_ADMISSION_CONTROL_MASK_ONUID) ||
-       #endif         
+#endif         
       ( ( (msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH ) &&
         (ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth) != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth) > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
        ( ( (msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS ) &&
@@ -9761,6 +9789,14 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
             PT_LOG_ERR(LOG_CTX_MSG,"Failed to set multicast admission control parameters");
             return L7_FAILURE;
           }
+
+          /*save data*/
+            igmpAdmissionControl_info[msgAdmissionControl->evcId-1].mask                = igmpAdmissionControl.mask;
+            igmpAdmissionControl_info[msgAdmissionControl->evcId-1].maxAllowedBandwidth = igmpAdmissionControl.maxAllowedBandwidth;
+            igmpAdmissionControl_info[msgAdmissionControl->evcId-1].maxAllowedChannels  = igmpAdmissionControl.maxAllowedChannels;
+            igmpAdmissionControl_info[msgAdmissionControl->evcId-1].onuId               = igmpAdmissionControl.onuId;
+            igmpAdmissionControl_info[msgAdmissionControl->evcId-1].ptin_port           = igmpAdmissionControl.ptin_port;
+            igmpAdmissionControl_info[msgAdmissionControl->evcId-1].serviceId           = igmpAdmissionControl.serviceId;
           j++;
         }
         shift_index++;
@@ -10191,13 +10227,13 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
            }
            else
            {
-             McastClient_info[McastClient[i].mcEvcId-1].uni_ivid      = uni_ivid;
-             McastClient_info[McastClient[i].mcEvcId-1].uni_ovid      = uni_ovid;
-             McastClient_info[McastClient[i].mcEvcId-1].mask          = McastClient[i].mask;
-             McastClient_info[McastClient[i].mcEvcId-1].maxBandwidth  = ENDIAN_SWAP64(McastClient[i].maxBandwidth);
-             McastClient_info[McastClient[i].mcEvcId-1].maxChannels   = ENDIAN_SWAP16(McastClient[i].maxChannels);
-             memcpy(&McastClient_info[McastClient[i].mcEvcId-1].client, &McastClient[i].client, sizeof(ptin_client_id_t));
-             //memcpy(&McastClient_info[McastClient[i].mcEvcId-1], &McastClient[i], sizeof(msg_IgmpClient_t));
+               McastClient_info[McastClient[i].mcEvcId-1].uni_ivid      = uni_ivid;
+               McastClient_info[McastClient[i].mcEvcId-1].uni_ovid      = uni_ovid;
+               McastClient_info[McastClient[i].mcEvcId-1].mask          = McastClient[i].mask;
+               McastClient_info[McastClient[i].mcEvcId-1].onuId         = McastClient[i].onuId;
+               McastClient_info[McastClient[i].mcEvcId-1].maxBandwidth  = ENDIAN_SWAP64(McastClient[i].maxBandwidth);
+               McastClient_info[McastClient[i].mcEvcId-1].maxChannels   = ENDIAN_SWAP16(McastClient[i].maxChannels);
+               memcpy(&McastClient_info[McastClient[i].mcEvcId-1].client, &McastClient[i].client, sizeof(ptin_client_id_t));
            }
          }
          shift_index++;
@@ -16704,6 +16740,20 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
                 PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client");
                 return rc;
               }
+              else
+              {
+                 UcastClient_info[msg[messageIterator].evcId-1].uni_ivid      = uni_ivid;
+                 UcastClient_info[msg[messageIterator].evcId-1].uni_ovid      = uni_ovid;
+                 UcastClient_info[msg[messageIterator].evcId-1].uni_ovid      = msg[messageIterator].onuId;
+                 UcastClient_info[msg[messageIterator].evcId-1].addOrRemove   = addOrRemove;
+                 UcastClient_info[msg[messageIterator].evcId-1].nOfPackets    = msg[messageIterator].noOfPackages;
+                 memcpy(UcastClient_info[msg[messageIterator].evcId-1].packageBmpList, 
+                        msg[messageIterator].packageBmpList, 
+                        sizeof(UcastClient_info[msg[messageIterator].evcId-1].packageBmpList));
+                 memcpy(&UcastClient_info[msg[messageIterator].evcId-1].client, 
+                        &msg[messageIterator].client, 
+                        sizeof(ptin_client_id_t));
+              }
               j++;
             }
             shift_index++;
@@ -17114,13 +17164,27 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
           PT_LOG_DEBUG(LOG_CTX_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);      
           PT_LOG_DEBUG(LOG_CTX_MSG, " packageBmpList:%s", packageBmpStr);
 
-
           if (ptinEvcFlow.noOfPackages >= 0)
           {
             if ((rc=ptin_evc_macbridge_client_packages_add(&ptinEvcFlow)) != L7_SUCCESS)
             {        
               PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flow rc:%u", ptinEvcFlow.evc_idx, rc);
               return rc;
+            }
+            else
+            {
+                /* Save data */
+                MacbridgePackage_info[ptinEvcFlow.evc_idx-1].evc_idx           = ptinEvcFlow.evc_idx;
+                MacbridgePackage_info[ptinEvcFlow.evc_idx-1].int_ivid          = ptinEvcFlow.int_ivid;
+                MacbridgePackage_info[ptinEvcFlow.evc_idx-1].noOfPackages      = ptinEvcFlow.noOfPackages;
+                MacbridgePackage_info[ptinEvcFlow.evc_idx-1].onuId             = ptinEvcFlow.onuId;
+                MacbridgePackage_info[ptinEvcFlow.evc_idx-1].ptin_intf.intf_id = ptinEvcFlow.ptin_intf.intf_id;
+                MacbridgePackage_info[ptinEvcFlow.evc_idx-1].uni_ivid          = ptinEvcFlow.uni_ivid;
+                MacbridgePackage_info[ptinEvcFlow.evc_idx-1].uni_ovid          = ptinEvcFlow.uni_ovid;
+                /*Copy Multicast Package Bitmap*/
+                memcpy(MacbridgePackage_info[ptinEvcFlow.evc_idx-1].packageBmpList, 
+                       msg[messageIterator].packageBmpList, 
+                       sizeof(MacbridgePackage_info[ptinEvcFlow.evc_idx-1].packageBmpList));
             }
           }
           j++;
@@ -17461,6 +17525,12 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
           {
             return rc;
           }
+          else
+          {
+            mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].evcId         = ENDIAN_SWAP32(msg[messageIterator].evcId);
+            mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].onuId         = ENDIAN_SWAP32(msg[messageIterator].onuId);
+            mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].intf.intf_id  = ptinPort;
+          }
 
           j++;
         }
@@ -17483,6 +17553,12 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
       if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_add(ptinPort, ENDIAN_SWAP8(msg[messageIterator].onuId), ENDIAN_SWAP32(msg[messageIterator].evcId))) )
       {
         return rc;
+      }
+      else
+      {
+        mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].evcId         = ENDIAN_SWAP32(msg[messageIterator].evcId);
+        mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].onuId         = ENDIAN_SWAP32(msg[messageIterator].onuId);
+        mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].intf.intf_id  = ptinPort;
       }
     }
   }
@@ -18122,6 +18198,16 @@ void ptin_msg_igmp_client_add_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
 
 }
 
+
+/**
+ * REM Mcast igmp client to a ngpon2 group
+ * 
+ * @param  evcId
+ * @param  portId
+ * @param  
+ * 
+ * @return L7_RC_t 
+ */
 void ptin_msg_igmp_client_rem_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
 {
 
@@ -18141,4 +18227,170 @@ void ptin_msg_igmp_client_rem_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
     printf("ERROR TO REMOVE MC CLIENT\n");
 
 }
-  
+ 
+ 
+void ptin_msg_igmp_admissionControl(L7_uint32 evcId, L7_uint32 portId)
+{
+  //L7_RC_t rc;
+
+  printf("\n");
+  printf("Function parameters:");
+  printf("EvcID: %u", evcId); 
+  printf("PortID: %u", portId);
+
+}
+
+
+/**
+ * ADD/REM Unicast packages
+ * 
+ * @param  evcId
+ * @param  portId
+ * @param  onuId 
+ * @param  oper 
+ * 
+ * @return L7_RC_t 
+ */
+void ptin_msg_igmp_unicast_client_packages_add_or_remove(L7_uint32 evcId, L7_uint8 portId, L7_uint8 onuId, L7_uint8 oper)
+{
+  L7_RC_t rc;
+
+  printf("\n");
+  printf("Function parameters:");
+  printf("EvcID: %u", evcId); 
+  printf("onuID: %u", onuId);
+  printf("PortID: %u", portId);
+  printf("oper: %u", oper);
+
+  UcastClient_info[evcId-1].client.ptin_intf.intf_id = portId;
+  UcastClient_info[evcId-1].onuId                    = onuId;
+
+  if (oper == 1)
+  {
+    /* Apply config */
+    rc = ptin_igmp_api_client_add(&UcastClient_info[evcId-1].client, 
+                                  UcastClient_info[evcId-1].uni_ovid, 
+                                  UcastClient_info[evcId-1].uni_ivid, 
+                                  onuId, 
+                                  0x00, 
+                                  0, 
+                                  0, 
+                                  UcastClient_info[evcId-1].addOrRemove, 
+                                  UcastClient_info[evcId-1].packageBmpList, 
+                                  UcastClient_info[evcId-1].nOfPackets);
+  }
+  else if (oper == 0)
+  {
+        /* Apply config */
+    rc = ptin_igmp_api_client_add(&UcastClient_info[evcId-1].client, 
+                                  UcastClient_info[evcId-1].uni_ovid, 
+                                  UcastClient_info[evcId-1].uni_ivid, 
+                                  onuId, 
+                                  0x00, 
+                                  0, 
+                                  0, 
+                                  !UcastClient_info[evcId-1].addOrRemove, 
+                                  UcastClient_info[evcId-1].packageBmpList, 
+                                  UcastClient_info[evcId-1].nOfPackets);
+  }
+}
+
+
+/**
+ * ADD/REM Macbridge packages
+ * 
+ * @param  evcId
+ * @param  portId
+ * @param  onuId 
+ * @param  oper 
+ * 
+ * @return L7_RC_t 
+ */
+void ptin_msg_igmp_macbridge_client_packages_add_or_remove(L7_uint32 evcId, L7_uint8 portId, L7_uint8 onuId, L7_uint8 oper)
+{
+  L7_RC_t rc;
+
+  printf("\n");
+  printf("Function parameters:");
+  printf("EvcID: %u", evcId); 
+  printf("onuID: %u", onuId);
+  printf("PortID: %u", portId);
+  printf("oper: %u", oper);
+
+  MacbridgePackage_info[evcId-1].ptin_intf.intf_id = portId;
+  MacbridgePackage_info[evcId-1].onuId             = onuId;
+
+
+  if (oper == 1)
+  {
+    if (MacbridgePackage_info[evcId-1].noOfPackages >= 0)
+    {
+      if ((rc=ptin_evc_macbridge_client_packages_add(&MacbridgePackage_info[evcId-1])) != L7_SUCCESS)
+      {        
+        PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flow rc:%u", MacbridgePackage_info[evcId-1].evc_idx, rc);
+      }
+    }
+  }
+  else if (oper == 0)
+  {
+    if (MacbridgePackage_info[evcId-1].noOfPackages > 0)
+    {
+      if ((rc=ptin_evc_macbridge_client_packages_remove(&MacbridgePackage_info[evcId-1])) != L7_SUCCESS)
+      {
+        if (rc != L7_NOT_EXIST)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", MacbridgePackage_info[evcId-1].evc_idx);
+        }
+      }
+    }
+  }
+}
+
+
+#if 0
+ 
+/* Nao esta acabada esta funcao */ 
+ 
+/**
+ * ADD/REM multicast service
+ * 
+ * @param  evcId
+ * @param  portId
+ * @param  onuId 
+ * @param  oper 
+ * 
+ * @return L7_RC_t 
+ */
+void ptin_msg_igmp_multicast_service_add_or_remove(L7_uint32 evcId, L7_uint32 portId, L7_uint8 onuId, L7_uint8 oper)
+{
+  L7_RC_t rc;
+
+  printf("\n");
+  printf("Function parameters:");
+  printf("EvcID: %u", evcId); 
+  printf("onuID: %u", onuId);
+  printf("PortID: %u", portId);
+  printf("oper: %u", oper);
+
+  mcast_service_info[evcId-1].ptin_intf.intf_id = portId;
+  mcast_service_info[evcId-1].onuId             = onuId;
+
+
+  if (oper == 1)
+  {
+    /*If Any Error Occurs It is Already Logged*/
+    if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_add(ptinPort, onuId, evcId)) )
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error adding multicast service! rc:%u", mcast_service_info[evcId-1].evcId, rc);
+    }
+  }
+  else if (oper == 0)
+  {
+    /*If Any Error Occurs It is Already Logged*/
+    if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_remove(ptinPort, ENDIAN_SWAP8(msg[messageIterator].onuId), ENDIAN_SWAP32(msg[messageIterator].evcId)) ) )
+    {
+      return rc;
+    }
+  }
+}
+#endif

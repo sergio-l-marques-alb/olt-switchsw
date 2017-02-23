@@ -5029,7 +5029,7 @@ L7_RC_t ptin_evc_macbridge_client_packages_add(ptin_evc_macbridge_client_package
   ptin_client_id_t          clientId;
   struct ptin_evc_client_s *pflow;
   L7_BOOL                   addOrRemove = L7_FALSE;//Add Packages
-   L7_RC_t                  rc = L7_SUCCESS;
+  L7_RC_t                   rc = L7_SUCCESS;
 
   /* Get internal vlan and inner NNI vlan */
   int_ovid = evcs[evc_id].intf[leaf_port].int_vlan;
