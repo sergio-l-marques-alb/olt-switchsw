@@ -11190,7 +11190,8 @@ static const float  kt2_baf_profile_indexes[]={0.015625,0.03125,0.0625,
             #ifdef EXT_MEM_Q_MIN_CELL
             output_port_threshold->min_grntd_res_queue_cells_ext_buff = EXT_MEM_Q_MIN_CELL;
             #else
-            output_port_threshold->min_grntd_res_queue_cells_ext_buff = ceil_func((output_port_threshold->
+            output_port_threshold->min_grntd_res_queue_cells_ext_buff =
+                  ceil_func((output_port_threshold->
                              min_grntd_res_queue_cells_int_buff),
                             (general_info->ratio_of_ext_buff_to_int_buff_size));
             #endif
