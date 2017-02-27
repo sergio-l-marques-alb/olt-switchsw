@@ -767,6 +767,9 @@ L7_RC_t hapiBroadConfigApsTrap(/*DAPI_USP_t *usp,*/ L7_uint16 vlanId, L7_uint16 
 
 L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlanId, L7_uchar8 oam_level,
                                  DAPI_t *dapi_g);
+
+L7_RC_t hapiBroadConfigMEPFilter(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uchar8 oam_level, DAPI_t *dapi_g, BROAD_POLICY_t *policy_id);
+L7_RC_t hapiBroadConfigMIPFilter(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uchar8 oam_level, DAPI_t *dapi_g, BROAD_POLICY_t *policy_id);
 #endif
 
 /* PTin modified: IGMP snooping */

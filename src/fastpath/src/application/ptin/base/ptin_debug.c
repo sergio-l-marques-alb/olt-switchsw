@@ -214,8 +214,8 @@ void ptin_debug(void)
   printf("  ptin_hapi_qos_dump                                              - Dump VLAN-QoS rules\r\n");
   printf("  ptin_vcap_defvid_dump                                           - Flush configured VCAP rules associated to defVID\r\n");
   printf("  ptin_aclDbDump_all                                              - Flush configured ACL \r\n");
-  printf("  hapiBroadReconfigTrap <packet_type> <reenable>                  - Reconfigure IGMP=1/MLD=2/DHCP=3/PPPoE=4/APS=5/IPDTL0=7 trap rules\r\n");
-  printf("  hapiBroadReconfigTrapMeter <packet_type> <cir> <cbs>            - Reconfigure meters for IGMP=1/MLD=2/DHCP=3/PPPoE=4/APS=5/IPDTL0=7 trap rules\r\n");
+  printf("  hapiBroadReconfigTrap <packet_type> <reenable>                  - Reconfigure IGMP=1/MLD=2/DHCP=3/PPPoE=4/APS=5/IPDTL0=7/MEP=8/MIP=9 trap rules\r\n");
+  printf("  hapiBroadReconfigTrapMeter <packet_type> <cir> <cbs>            - Reconfigure meters for IGMP=1/MLD=2/DHCP=3/PPPoE=4/APS=5/IPDTL0=7/MEP=8/MIP=9 trap rules\r\n");
   printf("  hapiBroadReconfigInbandMeter <cir> <cbs>                        - Reconfigure meter for the INBAND trap rule\r\n");
   printf("  hapi_ptin_stormControl_cpu_set <enable> <cir> <cbs>             - Reconfigure egress meter for CPU packets\r\n");  
   printf("  hapiBroadDebugPolicyEnable <level>                              - Enable policy management debug messages (minimum level should be 3)\r\n");

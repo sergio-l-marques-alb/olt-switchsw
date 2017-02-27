@@ -114,10 +114,135 @@ static unsigned long c;
 */
 
 
+
+#define MEP_TRAP_MAX    N_MEPs
+#define MIP_TRAP_MAX    MEP_TRAP_MAX
+L7_RC_t ptin_MxP_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL mep0_mip1, L7_BOOL enable) {
+  DAPI_SYSTEM_CMD_t dapiCmd;
+  L7_RC_t rc;
+
+  static L7_BOOL          first_time = L7_TRUE;
+  struct vl {
+      L7_ulong32    n_using;
+      L7_ushort16   vid;
+      L7_uchar8     lvl;
+  } *vid_lvl;
+  static struct vl mep_vid_lvl[MEP_TRAP_MAX], mip_vid_lvl[MIP_TRAP_MAX];
+  L7_ulong32 index, mep_index, mep_index_free;
+
+
+  // Initialization
+  if (first_time) {
+    PT_LOG_TRACE(LOG_CTX_HAPI, "First time processing... make some initializations");
+    memset(mep_vid_lvl, 0, sizeof(mep_vid_lvl));
+    memset(mip_vid_lvl, 0, sizeof(mip_vid_lvl));
+    first_time   = L7_FALSE;
+  }
+
+
+
+
+
+  if (!(vlanId >= PTIN_VLAN_MIN && vlanId <= PTIN_VLAN_MAX)) return L7_FAILURE;
+  if (oam_level>=8) return L7_FAILURE;
+
+  vid_lvl=  mep0_mip1?  mip_vid_lvl:    mep_vid_lvl;
+
+  for (index=0, mep_index=mep_index_free=-1; index<MEP_TRAP_MAX; index++) {
+      if (vid_lvl[index].n_using) {
+          if (vid_lvl[index].vid!=vlanId    ||  vid_lvl[index].lvl!=oam_level) continue;
+
+          if (enable) {
+              vid_lvl[index].n_using++;
+              return L7_SUCCESS;
+          }
+          else
+          if (vid_lvl[index].n_using>1) {
+              vid_lvl[index].n_using--;
+              return L7_SUCCESS;
+          }
+
+          mep_index=index;
+      }
+      else
+      if (mep_index_free>=MEP_TRAP_MAX) mep_index_free=index;
+  }//for
+
+  //If still here, we whether are...
+  if (mep_index>=MEP_TRAP_MAX) {
+      if (!enable) return L7_FAILURE;   //...deleting an inexistent entry
+  }
+
+
+  if (enable) { //...adding a new entry
+      if (mep_index_free>=MEP_TRAP_MAX) return L7_TABLE_IS_FULL;
+      index=mep_index_free;
+      vid_lvl[index].n_using=1;
+      vid_lvl[index].vid=vlanId;
+      vid_lvl[index].lvl=oam_level;
+  }
+  else {    // or deleting an entry with n==1
+      index=mep_index;
+      vid_lvl[index].n_using=0;
+      vid_lvl[index].vid=0;
+      vid_lvl[index].lvl=0;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  /* Policer must be a valid pointer */
+  if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
+  {
+    PT_LOG_ERR(LOG_CTX_API,"Invalid argument");
+    return L7_FAILURE;
+  }
+
+  memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
+
+  dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
+  dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
+  dapiCmd.cmdData.snoopConfig.CoS         = (L7_uint8) -1;
+  dapiCmd.cmdData.snoopConfig.level       = oam_level;
+  dapiCmd.cmdData.snoopConfig.packet_type = mep0_mip1?  PTIN_PACKET_MIP_TRAPPED:    PTIN_PACKET_MEP_TRAPPED;
+
+  rc=dtlPtinPacketsTrap(L7_ALL_INTERFACES,&dapiCmd);
+  if (rc!=L7_SUCCESS)  {
+    PT_LOG_ERR(LOG_CTX_API,"Error setting rule to %u",enable);
+    return rc;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
+
+  return L7_SUCCESS;
+}//ptin_MxP_packet_vlan_trap
+
+
+
 /**********************
  * EXTERNAL ROUTINES
  **********************/
 
+#ifdef PTIN_ENABLE_ERPS
+#if defined(__MxP_FILTER__INSTEAD_OF__APS_AND_CCM__)
+L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId_oam_level, L7_BOOL enable) {
+ return ptin_MxP_packet_vlan_trap(vlanId, ringId_oam_level, 0, enable);
+}
+#else
 /**
  * Configure APS packet trapping in HW
  * 
@@ -129,7 +254,6 @@ static unsigned long c;
  * 
  * @return L7_RC_t 
  */
-#ifdef PTIN_ENABLE_ERPS
 L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId_oam_level, L7_BOOL enable)
 {
   DAPI_SYSTEM_CMD_t dapiCmd;
@@ -162,6 +286,7 @@ L7_RC_t ptin_aps_packet_vlan_trap(L7_uint16 vlanId, L7_uint8 ringId_oam_level, L
 
   return L7_SUCCESS;
 }
+#endif
 
 /**
  * Set global enable for APS packets to go to the CPU
@@ -199,6 +324,11 @@ L7_RC_t ptin_aps_packet_global_trap(L7_BOOL enable)
 #endif  // PTIN_ENABLE_ERPS
 
 
+#if defined(__MxP_FILTER__INSTEAD_OF__APS_AND_CCM__)
+L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL enable) {
+ return ptin_MxP_packet_vlan_trap(vlanId, oam_level, 0, enable);
+}
+#else
 /**
  * Configure CCM packet trapping in HW
  * 
@@ -246,6 +376,7 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL
   return L7_SUCCESS;
 #endif
 }
+#endif
 
 
 /**

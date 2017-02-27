@@ -494,7 +494,7 @@ L7_RC_t ptin_hal_erps_entry_init(L7_uint8 erps_idx)
   ptin_hal_erps_convert_vid_init(erps_idx);
 
   // Create HW Rule
-#ifdef __APS_AND_CCM_COMMON_FILTER__
+#if defined(__MxP_FILTER__INSTEAD_OF__APS_AND_CCM__) || defined(__APS_AND_CCM_COMMON_FILTER__)
   ptin_aps_packet_vlan_trap(tbl_halErps[erps_idx].controlVidInternal, tbl_erps[erps_idx].protParam.megLevel, 1 /* enable */);
 #else
   ptin_aps_packet_vlan_trap(tbl_halErps[erps_idx].controlVidInternal, tbl_erps[erps_idx].protParam.ringId, 1 /* enable */);
@@ -554,7 +554,7 @@ L7_RC_t ptin_hal_erps_entry_deinit(L7_uint8 erps_idx)
   }
 
   // Delete HW Rule
-#ifdef __APS_AND_CCM_COMMON_FILTER__
+#if defined(__MxP_FILTER__INSTEAD_OF__APS_AND_CCM__) || defined(__APS_AND_CCM_COMMON_FILTER__)
   ptin_aps_packet_vlan_trap(tbl_halErps[erps_idx].controlVidInternal, tbl_erps[erps_idx].protParam.megLevel, 0 /* disable */);
 #else
   ptin_aps_packet_vlan_trap(tbl_halErps[erps_idx].controlVidInternal, tbl_erps[erps_idx].protParam.ringId, 0 /* disable */);

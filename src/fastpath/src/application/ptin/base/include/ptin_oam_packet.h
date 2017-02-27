@@ -101,7 +101,7 @@ extern void *ptin_ccm_packetRx_queue;
 //extern void time_rx_aps(unsigned char init0_sample1_printf2);
 //extern void time_rx_ccm(unsigned char init0_sample1_printf2);
 
-
+extern L7_RC_t ptin_MxP_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL mep0_mip1, L7_BOOL enable);
 
 /**
  * Configure APS packet trapping in HW

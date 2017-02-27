@@ -183,8 +183,12 @@ extern int ptin_sys_number_of_ports;
 #define RATE_LIMIT_IGMP     256
 #define RATE_LIMIT_DHCP     256
 #define RATE_LIMIT_PPPoE    256
-#define RATE_LIMIT_APS      256
+
+#define RATE_LIMIT_APS      64
 #define RATE_LIMIT_CCM      256
+#define RATE_LIMIT_MEP_TRAP 288
+#define RATE_LIMIT_MIP_TRAP 64
+
 #define RATE_LIMIT_IPDTL0   256
 #define RATE_LIMIT_QUATTRO  1024
 #define RATE_LIMIT_INBAND   4096

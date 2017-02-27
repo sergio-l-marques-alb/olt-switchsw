@@ -2041,6 +2041,8 @@ L7_RC_t hapiBroadSystemPacketTrapConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
     case PTIN_PACKET_PPPOE:
     /* APS packets */
     case PTIN_PACKET_APS:
+    case PTIN_PACKET_MEP_TRAPPED:
+    case PTIN_PACKET_MIP_TRAPPED:
     /* ARP/IP dtl0 packets */
     case PTIN_PACKET_IPDTL0:
       status = hapiBroadConfigTrap(usp, &dapiCmd->cmdData.snoopConfig, L7_FALSE, dapi_g);
@@ -3144,8 +3146,12 @@ typedef struct
   BROAD_METER_ENTRY_t mld;
   BROAD_METER_ENTRY_t dhcp;
   BROAD_METER_ENTRY_t pppoe;
+
   BROAD_METER_ENTRY_t aps;
-  BROAD_METER_ENTRY_t ccm;
+//  BROAD_METER_ENTRY_t ccm;
+  BROAD_METER_ENTRY_t mep_trap;
+  BROAD_METER_ENTRY_t mip_trap;
+
   BROAD_METER_ENTRY_t ipdtl0;
   BROAD_METER_ENTRY_t quattro;
 } ptin_components_meter_t;
@@ -3156,8 +3162,12 @@ ptin_components_meter_t ptin_components_meter=
   .mld     = {RATE_LIMIT_IGMP   , 128, RATE_LIMIT_IGMP   , 128, BROAD_METER_COLOR_BLIND},
   .dhcp    = {RATE_LIMIT_DHCP   , 128, RATE_LIMIT_DHCP   , 128, BROAD_METER_COLOR_BLIND},
   .pppoe   = {RATE_LIMIT_PPPoE  , 128, RATE_LIMIT_PPPoE  , 128, BROAD_METER_COLOR_BLIND},
+
   .aps     = {RATE_LIMIT_APS    , 128, RATE_LIMIT_APS    , 128, BROAD_METER_COLOR_BLIND},
-  .ccm     = {RATE_LIMIT_CCM    , 128, RATE_LIMIT_CCM    , 128, BROAD_METER_COLOR_BLIND},
+//  .ccm     = {RATE_LIMIT_CCM    , 128, RATE_LIMIT_CCM    , 128, BROAD_METER_COLOR_BLIND},
+  .mep_trap= {RATE_LIMIT_MEP_TRAP    , 128, RATE_LIMIT_MEP_TRAP    , 128, BROAD_METER_COLOR_BLIND},
+  .mip_trap= {RATE_LIMIT_MIP_TRAP    , 128, RATE_LIMIT_MIP_TRAP    , 128, BROAD_METER_COLOR_BLIND},
+
   .ipdtl0  = {RATE_LIMIT_IPDTL0 , 128, RATE_LIMIT_IPDTL0 , 128, BROAD_METER_COLOR_BLIND},
   .quattro = {RATE_LIMIT_QUATTRO, 128, RATE_LIMIT_QUATTRO, 128, BROAD_METER_COLOR_BLIND},
 };
@@ -3244,6 +3254,16 @@ L7_RC_t hapiBroadReconfigTrap(ptin_packet_type_t packet_type, L7_BOOL reenable)
                                       &ptin_trap_policy[index].policyId);
       break;
 
+    case PTIN_PACKET_MEP_TRAPPED:
+      result = hapiBroadConfigMEPFilter(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].param, dapi_g,
+                                        &ptin_trap_policy[index].policyId);
+      break;
+
+    case PTIN_PACKET_MIP_TRAPPED:
+      result = hapiBroadConfigMIPFilter(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].param, dapi_g,
+                                          &ptin_trap_policy[index].policyId);
+      break;
+
     case PTIN_PACKET_IPDTL0:
       result = hapiBroadConfigIpDtl0Trap(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].macAddr.addr, dapi_g,
                                          &ptin_trap_policy[index].policyId);
@@ -3313,8 +3333,14 @@ L7_RC_t hapiBroadReconfigTrapMeter(ptin_packet_type_t packet_type, L7_uint32 cir
   case PTIN_PACKET_APS:
     ptr = &ptin_components_meter.aps;
     break;
-  case PTIN_PACKET_CCM:
-    ptr = &ptin_components_meter.ccm;
+//  case PTIN_PACKET_CCM:
+//    ptr = &ptin_components_meter.ccm;
+//    break;
+  case PTIN_PACKET_MEP_TRAPPED:
+    ptr = &ptin_components_meter.mep_trap;
+    break;
+  case PTIN_PACKET_MIP_TRAPPED:
+    ptr = &ptin_components_meter.mip_trap;
     break;
   case PTIN_PACKET_IPDTL0:
     ptr = &ptin_components_meter.ipdtl0;
@@ -3356,6 +3382,7 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
   if (ptin_trap_policy_first_time)
   {
     memset(ptin_trap_policy_global_enable, 0x00, sizeof(ptin_trap_policy_global_enable));
+    ptin_trap_policy_global_enable[PTIN_PACKET_MEP_TRAPPED] = ptin_trap_policy_global_enable[PTIN_PACKET_MIP_TRAPPED] = 1;
     memset(ptin_trap_policy, 0x00, sizeof(ptin_trap_policy)); 
 
     ptin_trap_policy_first_time = L7_FALSE;
@@ -3545,6 +3572,14 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
     case PTIN_PACKET_APS:
       result = hapiBroadConfigApsTrap(/*usp,*/ ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].param, dapi_g,
                                       &ptin_trap_policy[index].policyId);
+      break;
+    case PTIN_PACKET_MEP_TRAPPED:
+      result = hapiBroadConfigMEPFilter(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].param, dapi_g,
+                                        &ptin_trap_policy[index].policyId);
+      break;
+    case PTIN_PACKET_MIP_TRAPPED:
+      result = hapiBroadConfigMIPFilter(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].param, dapi_g,
+                                          &ptin_trap_policy[index].policyId);
       break;
     case PTIN_PACKET_IPDTL0:
       result = hapiBroadConfigIpDtl0Trap(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].macAddr.addr, dapi_g,
@@ -4413,14 +4448,19 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
 
   /* CCM packets on any port must go to the CPU and be rate limited to 64 kbps */
   /* Rate limit */
-  if (PTIN_VLAN_IS_QUATTRO(vlanId))
-  {
-    meterInfo = ptin_components_meter.quattro;
-  }
-  else
-  {
-    meterInfo = ptin_components_meter.ccm;
-  }
+  meterInfo.cir       = RATE_LIMIT_CCM;
+  meterInfo.cbs       = 128;
+  meterInfo.pir       = RATE_LIMIT_CCM;
+  meterInfo.pbs       = 128;
+  meterInfo.colorMode = BROAD_METER_COLOR_BLIND;
+  //if (PTIN_VLAN_IS_QUATTRO(vlanId))
+  //{
+  //  meterInfo = ptin_components_meter.quattro;
+  //}
+  //else
+  //{
+  //  meterInfo = ptin_components_meter.ccm;
+  //}
 
   /* If vlan value is valid, Find index */
   if (!(vlanId >= PTIN_VLAN_MIN && vlanId <= PTIN_VLAN_MAX)) return L7_FAILURE;
@@ -4616,8 +4656,267 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
   PT_LOG_TRACE(LOG_CTX_HAPI, "Finished CCM trapping processing");
 
   return result;
-}
+}//hapiBroadConfigCcmFilter
 #endif
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+L7_RC_t hapiBroadConfigMEPFilter(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uchar8 oam_level, DAPI_t *dapi_g,
+                                 BROAD_POLICY_t *policy_id)
+//Filter MEP traffic to CPU (trapping; ICAP)
+//Mutual exclusive with ptin_hapi_oam_entry_add/ptin_hapi_oam_entry_del(DTL's ptin_oam_fpga_entry) (VCAP[+ICAP?])
+//Mutual exclusive with hapiBroadConfigCcmFilter and hapiBroadConfigApsTrap
+{
+  L7_RC_t                 result = L7_SUCCESS;
+  BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
+  L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
+                                          FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
+  //L7_uint16               vlan_match = 0xfff;
+  BROAD_METER_ENTRY_t     meterInfo;
+  BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Starting MEP trapping processing\tvlanId=%u\toam_level=%u", vlanId, oam_level);
+
+
+  /* Rate limit */
+  if (PTIN_VLAN_IS_QUATTRO(vlanId))
+  {
+    meterInfo = ptin_components_meter.quattro;
+  }
+  else
+  {
+    meterInfo = ptin_components_meter.mep_trap;
+  }
+
+  /* If vlan value is valid, Find index */
+  if (vlanId == 0 || vlanId >= 4096 || oam_level>=8 || policy_id == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid VLAN (%u) or oam_level (%u) or policy_id pointer", vlanId, oam_level);
+    return L7_FAILURE;
+  }
+
+
+
+
+  //WR to HW
+  {
+    do
+    {
+      result = hapiBroadPolicyCreate(policyType);
+      if (result != L7_SUCCESS) break;
+
+      PT_LOG_TRACE(LOG_CTX_HAPI, "MEP policy created");
+
+      result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+      if (result != L7_SUCCESS) break;
+      
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *)&vlan_match);
+      if (result != L7_SUCCESS) break;
+
+
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
+      if (result != L7_SUCCESS) break;
+
+      /* Trap the frames to CPU, so that they are not switched */
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+      if (result != L7_SUCCESS) break;
+      result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+      if (result != L7_SUCCESS) break;
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      if (result != L7_SUCCESS) break;
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+      if (result != L7_SUCCESS) break;
+
+      {//MC DMAC can't be used for frames like LMR, DMR...
+       L7_ushort16             ethtype;
+
+       ethtype  = L7_ETYPE_CFM;
+       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ethtype, exact_match);
+       if (result != L7_SUCCESS)  break;
+
+       {//OAM ETH's MEL 3 bits (Check SDK's _bcm_tr3_oam_fp_create())
+        bcm_ip6_t mdl_data, mdl_mask;
+
+        memset(&mdl_data, 0, sizeof(bcm_ip6_t));
+        mdl_data[0] = oam_level << 5;
+        memset(&mdl_mask, 0, sizeof(bcm_ip6_t));
+        mdl_mask[0] = 0xE0;
+
+        result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP6_DST, mdl_data, mdl_mask);
+        if (result != L7_SUCCESS) break;
+       }
+      }//MC DMAC can't be used for frames like LMR, DMR...
+    } while ( 0 );
+
+    if (result == L7_SUCCESS) {
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Commiting MEP policy");
+      *policy_id = BROAD_POLICY_INVALID;
+      if (L7_SUCCESS == (result=hapiBroadPolicyCommit(policy_id)))
+          PT_LOG_TRACE(LOG_CTX_HAPI, "MEP policy %d commited successfully", *policy_id);
+      else
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting policy");
+    }
+
+    if (result != L7_SUCCESS) {
+      hapiBroadPolicyCreateCancel();
+      *policy_id = BROAD_POLICY_INVALID;
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Some error ocurred: canceling MEP policy");
+    }
+  }
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished MEP trapping processing");
+
+  return result;
+}//hapiBroadConfigMEPFilter
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+L7_RC_t hapiBroadConfigMIPFilter(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uchar8 oam_level, DAPI_t *dapi_g,
+                                 BROAD_POLICY_t *policy_id)
+//Filter MIP traffic to CPU (trapping; ICAP)
+//Mutual exclusive with ptin_hapi_oam_entry_add/ptin_hapi_oam_entry_del(DTL's ptin_oam_fpga_entry) (VCAP[+ICAP?])
+{
+  L7_RC_t                 result = L7_SUCCESS;
+  BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
+//L7_ushort16             ccm_ethtype  = L7_ETYPE_CCM;
+  L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
+                                          FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
+  //L7_uint16               vlan_match = 0xfff;
+  BROAD_METER_ENTRY_t     meterInfo;
+  BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Starting MIP trapping processing\tvlanId=%u\toam_level=%u", vlanId, oam_level);
+
+
+  /* Rate limit */
+  if (PTIN_VLAN_IS_QUATTRO(vlanId))
+  {
+    meterInfo = ptin_components_meter.quattro;
+  }
+  else
+  {
+    meterInfo = ptin_components_meter.mip_trap;
+  }
+
+  /* If vlan value is valid, Find index */
+  if (vlanId == 0 || vlanId >= 4096 || oam_level>=8 || policy_id == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid VLAN (%u) or oam_level (%u) or policy_id pointer", vlanId, oam_level);
+    return L7_FAILURE;
+  }
+
+
+
+
+  //WR to HW
+  {
+    do
+    {
+      result = hapiBroadPolicyCreate(policyType);
+      if (result != L7_SUCCESS)
+        break;
+
+      PT_LOG_TRACE(LOG_CTX_HAPI, "MIP policy created");
+
+      result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+      if (result != L7_SUCCESS)  break;
+      
+      result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *)&vlan_match);
+      if (result != L7_SUCCESS)  break;
+
+
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
+      if (result != L7_SUCCESS)  break;
+
+      /* Trap the frames to CPU, so that they are not switched */
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+      if (result != L7_SUCCESS)  break;
+
+      {
+          L7_uchar8 ccm_MacAddr[] = {0x01,0x80,0xC2,0x00,0x00,0x38};    //MC Class2 DMAC
+          //L7_ushort16             ethtype=L7_ETYPE_CFM;
+
+          ccm_MacAddr[5]&=0xf8;
+          ccm_MacAddr[5]|=oam_level;
+          result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, ccm_MacAddr, exact_match);
+          if (result != L7_SUCCESS)  break;
+
+          //result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ethtype, exact_match);
+          //if (result != L7_SUCCESS)  break;
+      }
+    } while ( 0 );
+
+    if (result == L7_SUCCESS)
+    {
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Commiting MIP policy");
+      if (L7_SUCCESS == (result=hapiBroadPolicyCommit(policy_id)))
+      {
+        PT_LOG_TRACE(LOG_CTX_HAPI, "MIP policy commited successfully");
+      }
+    }
+    else
+    {
+      hapiBroadPolicyCreateCancel();
+
+      *policy_id = BROAD_POLICY_INVALID;
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Some error ocurred: canceling MIP policy");
+    }
+  }
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished MIP trapping processing");
+
+  return result;
+}//hapiBroadConfigMIPFilter
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 #if 1
@@ -4727,8 +5026,12 @@ void ptin_traprules_dump(void)
           printf("[PPPoE"); break;
         case PTIN_PACKET_APS:
           printf("[APS  "); break;
-        case PTIN_PACKET_CCM:
-          printf("[CCM  "); break;
+//        case PTIN_PACKET_CCM:
+//          printf("[CCM  "); break;
+        case PTIN_PACKET_MEP_TRAPPED:
+          printf("[MEP TRAPPED  "); break;
+        case PTIN_PACKET_MIP_TRAPPED:
+          printf("[MIP TRAPPED  "); break;
         case PTIN_PACKET_IPDTL0:
           printf("[IPDTL"); break;
         default:
@@ -4795,8 +5098,12 @@ void ptin_traprules_dump(void)
         printf("PPPoE:"); break;
       case PTIN_PACKET_APS:
         printf("APS:"); break;
-      case PTIN_PACKET_CCM:
-        printf("CCM:"); break;
+//      case PTIN_PACKET_CCM:
+//        printf("CCM:"); break;
+      case PTIN_PACKET_MEP_TRAPPED:
+        printf("[MEP TRAPPED  "); break;
+      case PTIN_PACKET_MIP_TRAPPED:
+        printf("[MIP TRAPPED  "); break;
       case PTIN_PACKET_IPDTL0:
         printf("IPDTL:"); break;
       default:
