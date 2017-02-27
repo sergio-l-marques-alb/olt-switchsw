@@ -18109,52 +18109,61 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
 L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
 {
   ptin_NGPON2_groups_t NGPON2_GROUP;
-  get_NGPON2_group_info(&NGPON2_GROUP, 1);
-
-  L7_uint32 index = NGPON2_GROUP.number_services -1 ;      //due to array initial value
-  L7_uint32 evc_ext_id = NGPON2_GROUP.evcPort[index] - 1;  //due to array initial value
   L7_uint8 evc_type;
+  get_NGPON2_group_info(&NGPON2_GROUP, 1);
+  L7_int32 index = NGPON2_GROUP.number_services - 1 ;      //due to array initial value
 
-  if (ptin_evc_bwProfile_delete(evc_ext_id, &evcPortTest[evc_ext_id].profile)!= L7_SUCCESS)
-  { 
-    PT_LOG_ERR(LOG_CTX_MSG,"Error removing policer");
-    //return L7_FAILURE;
-  }
+  while (index >= 0)
+  {  
+    L7_uint32 evc_ext_id = NGPON2_GROUP.evcPort[index] - 1;  //due to array initial value
 
-  ptin_evc_check_evctype(NGPON2_GROUP.evcPort[index], &evc_type);
-  PT_LOG_ERR(LOG_CTX_MSG, "evc_type %d ", evc_type);
+    PT_LOG_ERR(LOG_CTX_MSG, "evc_ext_id = %d ", evc_ext_id);
 
-
-  if(evc_type == PTIN_EVC_TYPE_QUATTRO_UNSTACKED || evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
-  {
-    /* Remove flows if (any) from EVC */
-    if (ptin_evc_flow_remove_port(ptin_port, evc_ext_id)!= L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_MSG,"Error removing flow");
+    if (ptin_evc_bwProfile_delete(evc_ext_id, &evcPortTest[evc_ext_id].profile)!= L7_SUCCESS)
+    { 
+      PT_LOG_ERR(LOG_CTX_MSG,"Error removing policer");
       //return L7_FAILURE;
     }
-  }
-  else
-  {
-    ptin_HwEthEvcBridge_t evcBridge;
-    evcBridge.index = evc_ext_id;
+
+    ptin_evc_check_evctype(NGPON2_GROUP.evcPort[index], &evc_type);
+
+    if(evc_type == PTIN_EVC_TYPE_QUATTRO_UNSTACKED || evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
+    {
+      /* Remove flows if (any) from EVC */
+      if (ptin_evc_flow_remove_port(ptin_port, evcPortTest[evc_ext_id].evcId)!= L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG,"Error removing flow");
+        //return L7_FAILURE;
+      }
+    }
+    else
+    {
+      ptin_HwEthEvcBridge_t evcBridge;
+      evcBridge.index = evcPortTest[evc_ext_id].evcId;
   
-    evcBridge.inn_vlan =  evcPortTest[evc_ext_id].vid_inner;
+      evcBridge.inn_vlan =  evcPortTest[evc_ext_id].vid_inner;
 
-    evcBridge.intf = evcPortTest[evc_ext_id];
-    evcBridge.intf.intf.value.ptin_intf.intf_id        =  ptin_port;
-    evcBridge.intf.intf.value.ptin_intf.intf_type      = PTIN_EVC_INTF_PHYSICAL;
+      evcBridge.intf = evcPortTest[evc_ext_id];
+      evcBridge.intf.intf.value.ptin_intf.intf_id        = ptin_port;
+      evcBridge.intf.intf.value.ptin_intf.intf_type      = PTIN_EVC_INTF_PHYSICAL;
 
-    ptin_evc_p2p_bridge_remove(&evcBridge);
-  }
+      if(ptin_evc_p2p_bridge_remove(&evcBridge)!= L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG,"Error removing brigde EVC");
+      }
+    }
 
-  /* Removing port from EVC */
-  evcPortTest[evc_ext_id].intf.value.ptin_port = ptin_port;
+    /* Removing port from EVC */
+    evcPortTest[evc_ext_id].intf.value.ptin_port = ptin_port;
 
-  if( ptin_evc_port_remove(evcPortTest[evc_ext_id].evcId, &evcPortTest[evc_ext_id])!= L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG,"Error port from EVC");
-    return L7_FAILURE;
+    if( ptin_evc_port_remove(evcPortTest[evc_ext_id].evcId, &evcPortTest[evc_ext_id])!= L7_SUCCESS)
+    {
+      index--;
+      PT_LOG_ERR(LOG_CTX_MSG,"Error port from EVC");
+      continue;
+    }
+
+    index--;
   }
 
   return L7_SUCCESS;
