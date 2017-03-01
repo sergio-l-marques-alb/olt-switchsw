@@ -1193,8 +1193,8 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_8_TENGIG_1_GS_56450_REV
 /* slotNum  portNum bcm_cpuunit bcm_port portName *
  * -------  ------- ----------- -------- -------- */
 {
-{       0,       0,          0,      25,       "" }, /* 10G ETH to FPGA */
-{       0,       1,          0,      27,       "" },
+{       0,       0,          0,      27,       "" }, /* 10G ETH to FPGA */
+{       0,       1,          0,      25,       "" },
 {       0,       2,          0,      33,       "" },
 {       0,       3,          0,      36,       "" },
 {       0,       4,          0,      39,       "" }, /* 10G ETH to Backplane (via Cortina) */
