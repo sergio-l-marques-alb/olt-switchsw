@@ -27,7 +27,7 @@
 #include "fdb_api.h"
 
 
-#if (PTIN_BOARD != PTIN_BOARD_IS_STANDALONE)
+#if (PTIN_BOARD != PTIN_BOARD_IS_STANDALONE && PTIN_BOARD != PTIN_BOARD_TG16G)
 #include <saEvt.h>
 
 

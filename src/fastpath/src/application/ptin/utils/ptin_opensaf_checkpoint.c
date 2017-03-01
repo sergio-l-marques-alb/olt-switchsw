@@ -21,7 +21,7 @@
 #include "ptin_opensaf_checkpoint.h"
 #include "ptin_utils.h"
 
-#if (PTIN_BOARD != PTIN_BOARD_IS_STANDALONE)
+#if (PTIN_BOARD != PTIN_BOARD_TG16G && PTIN_BOARD != PTIN_BOARD_IS_STANDALONE )
 #include <saCkpt.h>
 
 typedef struct 
