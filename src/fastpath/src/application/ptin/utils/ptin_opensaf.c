@@ -23,7 +23,9 @@
 #include "ptin_utils.h"
 #include "ptin_opensaf.h"
 #include "ptin_opensaf_checkpoint.h"
+#include "usmdb_dhcp_snooping.h"
 #include "fdb_api.h"
+
 
 #if (PTIN_BOARD != PTIN_BOARD_IS_STANDALONE)
 #include <saEvt.h>
@@ -223,6 +225,12 @@ void ptin_opensaf_task_OnuMac( void )
       PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Data : %c , %c ,%c ,%c , %c , %c, ",    mac.addr[0], mac.addr[1], mac.addr[2], 
                                                                           mac.addr[3], mac.addr[4], mac.addr[5]);
       rc = fdbFlushByMac(mac);
+
+      /* IPv6 */
+      usmDbDsBindingRemove((L7_enetMacAddr_t*)mac.addr, L7_AF_INET6);
+
+      /* IPv4 */
+      usmDbDsBindingRemove((L7_enetMacAddr_t*)mac.addr, L7_AF_INET);
 
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "rc %u", rc);
 
