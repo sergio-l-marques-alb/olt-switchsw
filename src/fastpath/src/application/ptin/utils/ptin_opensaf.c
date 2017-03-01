@@ -25,7 +25,7 @@
 #include "ptin_opensaf_checkpoint.h"
 #include "fdb_api.h"
 
-#if (PTIN_BOARD != PTIN_BOARD_OLT1T0)
+#if (PTIN_BOARD != PTIN_BOARD_IS_STANDALONE)
 #include <saEvt.h>
 
 
