@@ -58,7 +58,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
   /* virtual ports (NGPON2) */
   L7_uint32         position = 0;
 
-  if (msgsType == 1) /* Write a new MAC in a opensaf checkpoint */
+  if (msgsType == ADD_MAC) /* Write a new MAC in a opensaf checkpoint */
   {
     PT_LOG_TRACE(LOG_CTX_L2, "Msgtype %d", msgsType);
     ptin_opensaf_find_free_element(&position, 1 /*onuID / section */, 1 /* checkpoint id */);
