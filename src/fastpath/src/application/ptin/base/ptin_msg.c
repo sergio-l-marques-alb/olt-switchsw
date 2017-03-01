@@ -97,6 +97,8 @@ void ptin_force_capture(L7_BOOL force)
   force_capture = force;
 }
 
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+
 typedef struct
 {
   L7_uint16 uni_ovid;
@@ -106,6 +108,7 @@ typedef struct
   L7_uint64 maxBandwidth;
   L7_uint16 maxChannels;
   ptin_client_id_t client;
+  L7_uint8  admin;
 }ptin_McastClient_info;
 
 typedef struct
@@ -128,22 +131,26 @@ typedef struct
 
 /* Structs for comutation functions (NGPON2) */
 /*EVC's*/
-ptin_HwEthMef10Intf_t evcPortTest[PTIN_SYSTEM_N_EXTENDED_EVCS];
+ptin_HwEthMef10Intf_t evcPortTest[PTIN_SYSTEM_N_EVCS]; //PTIN_SYSTEM_N_EXTENDED_EVCS
 
 /*Clients*/
-ptin_McastClient_info McastClient_info[PTIN_SYSTEM_N_EXTENDED_EVCS];
+ptin_McastClient_info McastClient_info[PTIN_SYSTEM_N_EVCS];
 
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 /*Admission control*/
-ptin_igmp_admission_control_t igmpAdmissionControl_info[PTIN_SYSTEM_N_EXTENDED_EVCS];
+ptin_igmp_admission_control_t igmpAdmissionControl_info[PTIN_SYSTEM_N_EVCS];
+#endif
 
 /* Unicast package */
-ptin_UcastPackage_info UcastClient_info[PTIN_SYSTEM_N_EXTENDED_EVCS];
+ptin_UcastPackage_info UcastClient_info[PTIN_SYSTEM_N_EVCS];
 
 /* Macbridge package */
-ptin_evc_macbridge_client_packages_t MacbridgePackage_info[PTIN_SYSTEM_N_EXTENDED_EVCS];
+ptin_evc_macbridge_client_packages_t MacbridgePackage_info[PTIN_SYSTEM_N_EVCS];
 
 /* Multicast service info */
-ptin_mcast_service_info mcast_service_info[PTIN_SYSTEM_N_EXTENDED_EVCS];
+ptin_mcast_service_info mcast_service_info[PTIN_SYSTEM_N_EVCS];
+
+#endif
 
 /******************************************************** 
  * EXTERNAL FUNCTIONS IMPLEMENTATION
@@ -5798,6 +5805,8 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
     //if (msgEvcConf->evc.intf[index_port].intf_type == PTIN_EVC_INTF_NGPON2)
     //{
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+
       get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
       /*teste*/
       evcPortTest[ptinEvcConf.index-1].evcId         = ptinEvcConf.index;
@@ -5807,6 +5816,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       evcPortTest[ptinEvcConf.index-1].vid_inner     = ptinEvcConf.intf[i].vid_inner;
       evcPortTest[ptinEvcConf.index-1].vid           = ptinEvcConf.intf[i].vid;
       evcPortTest[ptinEvcConf.index-1].mef_type      = ptinEvcConf.intf[i].mef_type;
+      evcPortTest[ptinEvcConf.index-1].admin         = L7_TRUE;
 
       PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
       NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ptinEvcConf.index;
@@ -5815,6 +5825,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);  
 
     //}
+#endif
   }
 
   /* Get EVC flags */
@@ -5967,6 +5978,11 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
   L7_uint16 i;
   L7_RC_t rc_global = L7_SUCCESS;
 
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+  // NGPON2
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+#endif
+
   if (msgEvcConf == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid argument");
@@ -5989,6 +6005,27 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
       PT_LOG_ERR(LOG_CTX_MSG, "Error deleting EVC# %u", ENDIAN_SWAP32(msgEvcConf[i].id));
       rc_global = L7_FAILURE;
       continue;
+    }
+    else
+    {
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+
+      if (evcPortTest[ENDIAN_SWAP32(msgEvcConf[i].id)].admin == L7_TRUE)
+      {
+        get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
+        /*teste*/
+
+        PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
+        NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ENDIAN_SWAP32(msgEvcConf[i].id);
+        NGPON2_GROUP.number_services--;
+
+        memset(&evcPortTest[ENDIAN_SWAP32(msgEvcConf[i].id)-1], 0xFF, sizeof(evcPortTest[ENDIAN_SWAP32(msgEvcConf[i].id)-1]));
+        evcPortTest[msgEvcConf[i].id-1].admin = L7_FALSE;
+
+
+        set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/); 
+      }
+#endif
     }
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u successfully deleted", ENDIAN_SWAP32(msgEvcConf[i].id));
@@ -6448,6 +6485,7 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
       return L7_FAILURE;
     }
 
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
     
    get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
       /*teste*/
@@ -6464,6 +6502,7 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
    NGPON2_GROUP.number_services++;
 
    set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);     
+#endif
   }
 
   return L7_SUCCESS;
@@ -7155,10 +7194,11 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
         PT_LOG_ERR(LOG_CTX_MSG,"Error applying profile!");
         return rc;
       }
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
 
       evcPortTest[evcId-1].profile = profile;
       evcPortTest[evcId-1].meter   = meter;
-
+#endif
       break;
   case CCMSG_ETH_BW_PROFILE_SET_II:
       {
@@ -9789,7 +9829,7 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
             PT_LOG_ERR(LOG_CTX_MSG,"Failed to set multicast admission control parameters");
             return L7_FAILURE;
           }
-
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
           /*save data*/
             igmpAdmissionControl_info[msgAdmissionControl->evcId-1].mask                = igmpAdmissionControl.mask;
             igmpAdmissionControl_info[msgAdmissionControl->evcId-1].maxAllowedBandwidth = igmpAdmissionControl.maxAllowedBandwidth;
@@ -9797,6 +9837,7 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
             igmpAdmissionControl_info[msgAdmissionControl->evcId-1].onuId               = igmpAdmissionControl.onuId;
             igmpAdmissionControl_info[msgAdmissionControl->evcId-1].ptin_port           = igmpAdmissionControl.ptin_port;
             igmpAdmissionControl_info[msgAdmissionControl->evcId-1].serviceId           = igmpAdmissionControl.serviceId;
+#endif
           j++;
         }
         shift_index++;
@@ -10227,13 +10268,17 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
            }
            else
            {
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+
                McastClient_info[McastClient[i].mcEvcId-1].uni_ivid      = uni_ivid;
                McastClient_info[McastClient[i].mcEvcId-1].uni_ovid      = uni_ovid;
                McastClient_info[McastClient[i].mcEvcId-1].mask          = McastClient[i].mask;
                McastClient_info[McastClient[i].mcEvcId-1].onuId         = McastClient[i].onuId;
                McastClient_info[McastClient[i].mcEvcId-1].maxBandwidth  = ENDIAN_SWAP64(McastClient[i].maxBandwidth);
                McastClient_info[McastClient[i].mcEvcId-1].maxChannels   = ENDIAN_SWAP16(McastClient[i].maxChannels);
+               McastClient_info[McastClient[i].mcEvcId-1].admin         = L7_TRUE;
                memcpy(&McastClient_info[McastClient[i].mcEvcId-1].client, &McastClient[i].client, sizeof(ptin_client_id_t));
+#endif
            }
          }
          shift_index++;
@@ -10382,6 +10427,13 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
            {
              PT_LOG_ERR(LOG_CTX_MSG, "Error removing MC client");
              return rc;
+           }
+           else
+           {
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+             memset(&McastClient_info[ENDIAN_SWAP32(McastClient[i].mcEvcId)-1], 0xFF, sizeof(McastClient_info[ENDIAN_SWAP32(McastClient[i].mcEvcId)-1]));
+             McastClient_info[ENDIAN_SWAP32(McastClient[i].mcEvcId)-1].admin = L7_FALSE;
+#endif
            }
           }
           shift_index++;
@@ -16742,6 +16794,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
               }
               else
               {
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
                  UcastClient_info[msg[messageIterator].evcId-1].uni_ivid      = uni_ivid;
                  UcastClient_info[msg[messageIterator].evcId-1].uni_ovid      = uni_ovid;
                  UcastClient_info[msg[messageIterator].evcId-1].uni_ovid      = msg[messageIterator].onuId;
@@ -16753,6 +16806,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
                  memcpy(&UcastClient_info[msg[messageIterator].evcId-1].client, 
                         &msg[messageIterator].client, 
                         sizeof(ptin_client_id_t));
+#endif
               }
               j++;
             }
@@ -17173,6 +17227,8 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
             }
             else
             {
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+
                 /* Save data */
                 MacbridgePackage_info[ptinEvcFlow.evc_idx-1].evc_idx           = ptinEvcFlow.evc_idx;
                 MacbridgePackage_info[ptinEvcFlow.evc_idx-1].int_ivid          = ptinEvcFlow.int_ivid;
@@ -17185,6 +17241,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
                 memcpy(MacbridgePackage_info[ptinEvcFlow.evc_idx-1].packageBmpList, 
                        msg[messageIterator].packageBmpList, 
                        sizeof(MacbridgePackage_info[ptinEvcFlow.evc_idx-1].packageBmpList));
+#endif
             }
           }
           j++;
@@ -17527,9 +17584,11 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
           }
           else
           {
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
             mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].evcId         = ENDIAN_SWAP32(msg[messageIterator].evcId);
             mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].onuId         = ENDIAN_SWAP32(msg[messageIterator].onuId);
             mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].intf.intf_id  = ptinPort;
+#endif
           }
 
           j++;
@@ -17556,9 +17615,11 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
       }
       else
       {
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
         mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].evcId         = ENDIAN_SWAP32(msg[messageIterator].evcId);
         mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].onuId         = ENDIAN_SWAP32(msg[messageIterator].onuId);
         mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].intf.intf_id  = ptinPort;
+#endif
       }
     }
   }
@@ -17969,6 +18030,8 @@ L7_RC_t ptin_msg_switch_temperature_get(msg_ptin_temperature_monitor_t *msg)
 
 
 /**************** test functions ****************/
+
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
 
 
 /**
@@ -18402,4 +18465,5 @@ void ptin_msg_igmp_multicast_service_add_or_remove(L7_uint32 evcId, L7_uint32 po
     }
   }
 }
+#endif
 #endif
