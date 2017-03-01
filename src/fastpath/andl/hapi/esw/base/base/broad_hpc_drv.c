@@ -3383,7 +3383,7 @@ extern int soc_robo_mmu_init(int );
 #endif
 
   /* For katana2, expand XE ports to 4x1G ports regarding to PON and front 1G ports */
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG)
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_TG16GF)
   SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 1, bcmPortControlLanes, 4),  "Port xe0(1) lanes 4");
   SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 5, bcmPortControlLanes, 4),  "Port xe0(5) lanes 4");
   SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 9, bcmPortControlLanes, 4),  "Port xe0(9) lanes 4");
