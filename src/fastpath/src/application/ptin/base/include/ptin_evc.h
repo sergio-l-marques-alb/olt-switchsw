@@ -792,6 +792,7 @@ typedef struct {
     unsigned long   vport_id;
     ptin_intf_t     pon;
     unsigned short  gem_id;
+    unsigned int    onu;
     //unsigned int    evc_id;
     //int             vport_id;
 

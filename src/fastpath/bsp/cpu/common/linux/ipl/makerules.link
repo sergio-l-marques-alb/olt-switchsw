@@ -249,8 +249,8 @@ $(symbols_name): $(exec_name)
 	$(DBG) $(FP_BASE)/src/l7tools/build/gen_devshell_file.pl $(NM) $< $@ $(HUSH)
 
 $(exec_name): $(pkglib_file) $(pkgarc_file) $(iplobjs)
-	$(LINKING_MSG)
-	$(DBG) $(CC) -o $@ \
+	@$(LINKING_MSG)
+	@$(DBG) $(CC) $(LDFLAGS) $(LIBDIR) -o $@ \
 		-Wl,-Map,$@.map \
 		-Wl,--relax \
 		-Wl,--start-group \
