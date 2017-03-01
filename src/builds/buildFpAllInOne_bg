@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=3.9
+version=3.10
 patch=1
 svnUpdate=1
 compile=1
