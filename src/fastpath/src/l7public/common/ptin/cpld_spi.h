@@ -21,6 +21,6 @@ extern unsigned char cpld_spi_read(unsigned int addr);
 
 extern unsigned char cpld_spi_write(unsigned int addr, unsigned char val);
 
-#endif /* PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F */
+#endif /* PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_TT04SXG */
 
 #endif // __CPLD_SPI_H__

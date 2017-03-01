@@ -75,6 +75,7 @@ extern int ptin_sys_number_of_ports;
 #define PTIN_BOARD_TYPE_TR32R     0x2E
 #define PTIN_BOARD_TYPE_TG16G     0x1C
 #define PTIN_BOARD_TYPE_TG16GF    0x60
+#define PTIN_BOARD_TYPE_TT04SGX   0x1E  /* ? */
 #define PTIN_BOARD_TYPE_TOLT8G    0x19
 #define PTIN_BOARD_TYPE_TOLT8GR   0x0E
 #define PTIN_BOARD_TYPE_TA48GE    0x28
@@ -84,6 +85,7 @@ extern int ptin_sys_number_of_ports;
 #define PTIN_BOARD_TYPE_TU100G    0x41
 #define PTIN_BOARD_TYPE_TT08SXG   0x58
 #define PTIN_BOARD_TYPE_TA12XGE   0x43
+
 
 #define PTIN_BOARD_IS_PRESENT(board)  ((board) != 0)
 #define PTIN_BOARD_IS_UPLINK(board)   ((board)==(PTIN_BOARD_TYPE_TOLTU20G) || ((board)==(PTIN_BOARD_TYPE_TOLTU20GR)) || \
@@ -126,6 +128,10 @@ extern int ptin_sys_number_of_ports;
 /* TG16GF */
 #elif (PTIN_BOARD == PTIN_BOARD_TG16GF)
 #include "ptin_globaldefs_tg16gf.h"
+
+/* TG16GF */
+#elif (PTIN_BOARD == PTIN_BOARD_TT04SXG)
+#include "ptin_globaldefs_tt04sxg.h"
 
 /* TG4G */
 #elif (PTIN_BOARD == PTIN_BOARD_TG4G)
