@@ -2572,6 +2572,8 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
   /* Expand interface formats */
   for (i=0; i<evcConf->n_intf; i++)
   {
+    (evcConf->intf[i].intf.port_type == 4)
+
     /* Convert interface to all formats */
     if (ptin_intf_any_format(&evcConf->intf[i].intf) != L7_SUCCESS)
     {
@@ -5147,10 +5149,15 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
   }
 
   /* Determine leaf ptin_intf */
-  if (evcFlow->ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
-    leaf_port = evcFlow->ptin_intf.intf_id;
+  if (evcFlow->ptin_intf.intf_type == PTIN_EVC_INTF_NGPON2)
+   arry_port = [evcFlow->ptin_intf.intf_id];
   else
-    leaf_port = evcFlow->ptin_intf.intf_id + PTIN_SYSTEM_N_PORTS;
+  {
+    if (evcFlow->ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
+      leaf_port = evcFlow->ptin_intf.intf_id;
+    else
+      leaf_port = evcFlow->ptin_intf.intf_id + PTIN_SYSTEM_N_PORTS;
+  }
 
   /* Validate leaf interface (from received message) */
   if ((leaf_port >= PTIN_SYSTEM_N_INTERF) ||
