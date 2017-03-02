@@ -205,7 +205,7 @@ L7_RC_t ptin_prottypeb_intf_switch_notify(L7_uint32 intfNum, L7_uint8 status)
     if (status == L7_ENABLE)
     {
       /* Reset MGMD General Querier state */    
-      if (ptin_igmp_generalquerier_reset()!=L7_SUCCESS)
+      if (ptin_igmp_generalquerier_reset((L7_uint32) -1)!=L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Unable to reset MGMD General Queriers");
       }

@@ -479,6 +479,15 @@ typedef struct {
 } ptin_igmp_admission_control_t;
 
 
+
+
+/* Multicast Service Identifier - estrutura usada para comutacao de ONT's*/
+typedef struct
+{
+  L7_uint8       inUse;
+  L7_uint32      serviceId; 
+} ptinIgmpMulticastServiceEvcId_t;
+
 #endif
 /**End IGMP Admission Control Feature is Enabled **/ 
 
@@ -671,7 +680,7 @@ extern L7_RC_t ptin_igmp_all_clients_flush(void);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_generalquerier_reset(void);
+extern L7_RC_t ptin_igmp_generalquerier_reset(L7_uint32 serviceId);
 
 /**
  * Get list of channels, starting from a specific channel index
@@ -1736,6 +1745,34 @@ extern RC_t ptin_igmp_multicast_service_add(L7_uint32 ptinPort, L7_uint32 onuId,
  */
 extern RC_t ptin_igmp_multicast_service_remove(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 serviceId);
 
+/**
+ * @purpose get all the servicesId's in use on a specific 
+ *          ptin_port and onuId
+ * 
+ * @param ptinPort 
+ * @param onuId 
+ * @param   
+ *  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_multicast_get_all_serviceId_per_onu(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 *listOfServices, L7_uint32 *nOfServices);
+
+/**
+ * @purpose querier reset is done on a specific serviceId 
+ * 
+ * @param none 
+ *  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_multicast_querierReset_on_specific_serviceID(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 serviceId);
 
 #endif//IGMPASSOC_MULTI_MC_SUPPORTED
 

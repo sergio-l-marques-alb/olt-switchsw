@@ -44,7 +44,7 @@ elif [ $2 == "olt1t0" ]; then
  MKBOARDS_FOLDER=CXOLT1T0
  OUTPUT=output/FastPath-Ent-esw-xgs4-helixarm-LR-CSxw-IQH_OLT1T0
  elif [ $2 == "tt04sxg" ]; then
- BOARD="tt04sxg"
+ BOARD="TT04SXG"
  MKBOARDS_FOLDER=TT04SXG
  OUTPUT=output/FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_TT04SXG
 else

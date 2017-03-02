@@ -7931,6 +7931,7 @@ L7_RC_t ptin_intf_NGPON2_add_group(ptin_NGPON2group_t *group_info)
 L7_RC_t ptin_intf_NGPON2_rem_group(ptin_NGPON2group_t *group_info)
 {
   L7_uint32 group_idx;
+  L7_uint8 i = 0;
 
   /* Validate arguments */
   if (group_info == L7_NULLPTR)
@@ -7948,9 +7949,18 @@ L7_RC_t ptin_intf_NGPON2_rem_group(ptin_NGPON2group_t *group_info)
     return L7_SUCCESS;;
   }
 
-      /* group is not active */
-  NGPON2_groups_info[group_idx].admin = 0;
+  /* Remove all ports from the group */
+  while ( i < NGPON2_groups_info[group_idx].nports) // group_info->numIntf 
+  {
+    
+    NGPON2_PORT_REM(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, i); //group_info->NGPON2Port[i].id
 
+    i++;
+  }
+
+      /* group is not active */
+  NGPON2_groups_info[group_idx].admin   = 0;
+  NGPON2_groups_info[group_idx].nports  = 0;
   NGPON2_groups_info[group_idx].groupId = NGPON2_EMPTY_ENTRY;
 
   return L7_SUCCESS;
@@ -7985,6 +7995,7 @@ L7_RC_t ptin_intf_NGPON2_clear()
 L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
 {
   L7_uint32 group_idx;
+  L7_uint8 i = 0;
 
   /* Validate arguments */
   if (group_info == L7_NULLPTR)
@@ -8001,8 +8012,6 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
     PT_LOG_ERR(LOG_CTX_MSG, "NGPON2 Group does not exist!");
     return L7_FAILURE;
   }
-
-  L7_uint8 i = 0;
 
   while ( i < group_info->numIntf )
   {
@@ -8041,6 +8050,7 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
 L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
 {
   L7_uint32 group_idx;
+  L7_uint8 i = 0;
 
   /* Validate arguments */
   if (group_info == L7_NULLPTR)
@@ -8057,8 +8067,6 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
     PT_LOG_ERR(LOG_CTX_MSG, "NGPON2 Group does not exist!");
     return L7_FAILURE;
   }
-
-  L7_uint8 i = 0;
 
   while ( i < group_info->numIntf )
   {
