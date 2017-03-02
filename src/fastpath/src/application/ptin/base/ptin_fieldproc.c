@@ -159,13 +159,16 @@ L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter, L
     PT_LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
-  /* Get intIfNum */
-  if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS) 
-  {
-    PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_port %u", profile->ptin_port);
-    return L7_FAILURE;
-  }
 
+  if(profile->ptin_port_bmp == 0)/*For port bmp ports skip */
+  {
+    /* Get intIfNum */
+    if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS) 
+    {
+      PT_LOG_ERR(LOG_CTX_EVC,"Invalid ptin_port %u", profile->ptin_port);
+      return L7_FAILURE;
+    }
+  }
   /* Get intIfNum */
   if (profile->ptin_port >= 0 && profile->ptin_port < PTIN_SYSTEM_N_INTERF)
   {
@@ -198,6 +201,7 @@ L7_RC_t ptin_bwPolicer_set(ptin_bw_profile_t *profile, ptin_bw_meter_t *meter, L
   else
   {
     intIfNum = L7_ALL_INTERFACES;
+    bwPolicer.ptin_port_bmp = profile->ptin_port_bmp;
   }
 
   memset(&bwPolicer,0x00,sizeof(ptin_bwPolicer_t));
@@ -233,18 +237,27 @@ L7_RC_t ptin_bwPolicer_delete(ptin_bw_profile_t *profile)
     PT_LOG_ERR(LOG_CTX_EVC,"Invalid profile");
     return L7_FAILURE;
   }
-  /* Get intIfNum */
-  if (profile->ptin_port >= 0)
+
+  if(profile->ptin_port_bmp != 0)/*For port bmp ports skip */
   {
-    if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_EVC,"ptin_port %u not valid", profile->ptin_port);
-      return L7_FAILURE;
-    }
+    intIfNum = L7_ALL_INTERFACES;
+    bwPolicer.ptin_port_bmp = profile->ptin_port_bmp;
   }
   else
   {
-    intIfNum = L7_ALL_INTERFACES;
+    /* Get intIfNum */
+    if (profile->ptin_port >= 0)
+    {
+      if (ptin_intf_port2intIfNum(profile->ptin_port, &intIfNum) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC,"ptin_port %u not valid", profile->ptin_port);
+        return L7_FAILURE;
+      }
+    }
+    else
+    {
+      intIfNum = L7_ALL_INTERFACES;
+    }
   }
 
   memset(&bwPolicer,0x00,sizeof(ptin_bwPolicer_t));
