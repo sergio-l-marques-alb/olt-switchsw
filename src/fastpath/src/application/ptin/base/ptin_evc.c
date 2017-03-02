@@ -11964,31 +11964,33 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
     return L7_NOT_EXIST;
   }
 
-  ptin_port = profile->ptin_port;
+  while(num_ports - 1 >= port_count)
+  {    
+   ptin_port = list_port[port_count];
 
-  /* If source interface is provided, validate it */
-  if (ptin_port >= 0 && ptin_port < PTIN_SYSTEM_N_INTERF)
-  {
-    PT_LOG_TRACE(LOG_CTX_EVC,"Processing source interface: ptin_port=%u", ptin_port);
+   /* If source interface is provided, validate it */
+   if (ptin_port >= 0 && ptin_port < PTIN_SYSTEM_N_INTERF)
+   {
+     PT_LOG_TRACE(LOG_CTX_EVC,"Processing source interface: ptin_port=%u", ptin_port);
 
-    /* Verify if interface is in use */
-    if (!evcs[evc_id].intf[ptin_port].in_use)
-    {
-      PT_LOG_WARN(LOG_CTX_EVC,"ptin_port %d is not in use",ptin_port);
-      return L7_NOT_EXIST;
-    }
-    PT_LOG_TRACE(LOG_CTX_EVC,"Source interface is present in EVC");
+     /* Verify if interface is in use */
+     if (!evcs[evc_id].intf[ptin_port].in_use)
+     {
+       PT_LOG_WARN(LOG_CTX_EVC,"ptin_port %d is not in use",ptin_port);
+       return L7_NOT_EXIST;
+     }
+     PT_LOG_TRACE(LOG_CTX_EVC,"Source interface is present in EVC");
 
-    /* Verify Svlan*/
-    if (profile->outer_vlan_lookup>0 &&
+     /* Verify Svlan*/
+     if (profile->outer_vlan_lookup>0 &&
         evcs[evc_id].intf[ptin_port].out_vlan>0 && evcs[evc_id].intf[ptin_port].out_vlan<4096)
-    {
-      if (profile->outer_vlan_lookup!=evcs[evc_id].intf[ptin_port].out_vlan)
-      {
-        PT_LOG_ERR(LOG_CTX_EVC,"OVid_in %u does not match to the one in EVC (%u)",profile->outer_vlan_lookup,evcs[evc_id].intf[ptin_port].out_vlan);
-        return L7_FAILURE;
-      }
-      PT_LOG_TRACE(LOG_CTX_EVC,"Source interface (ptin_port=%u): OVid_in %u verified",ptin_port,profile->outer_vlan_lookup);
+     {
+       if (profile->outer_vlan_lookup!=evcs[evc_id].intf[ptin_port].out_vlan)
+       {
+         PT_LOG_ERR(LOG_CTX_EVC,"OVid_in %u does not match to the one in EVC (%u)",profile->outer_vlan_lookup,evcs[evc_id].intf[ptin_port].out_vlan);
+         return L7_FAILURE;
+       }
+     PT_LOG_TRACE(LOG_CTX_EVC,"Source interface (ptin_port=%u): OVid_in %u verified",ptin_port,profile->outer_vlan_lookup);
     }
 
     #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
@@ -11997,7 +11999,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
         profile->outer_vlan_egress != 0)
     {
       PT_LOG_TRACE(LOG_CTX_EVC,"Outer vlan id = %u", profile->outer_vlan_egress);
-
+ 
       /* profile->outer_vlan_out is the GEM id related to the flow */
       ptin_evc_find_flow(profile->outer_vlan_egress, &(evcs[evc_id].intf[ptin_port].clients), (dl_queue_elem_t **)&pclientFlow);
 
@@ -12074,6 +12076,7 @@ static L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *prof
     PT_LOG_ERR(LOG_CTX_EVC,"No Interface speficied");
     return L7_FAILURE;
   }
+}
 
   PT_LOG_TRACE(LOG_CTX_EVC,"Final bw profile data:");
   PT_LOG_TRACE(LOG_CTX_EVC," evcId       = %u",evc_id);
