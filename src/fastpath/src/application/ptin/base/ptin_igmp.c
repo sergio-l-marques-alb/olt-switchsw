@@ -380,7 +380,7 @@ static RC_t ptin_igmp_max_mask_size(L7_uchar8 family, L7_uchar8 *maxMasklen)
 }
 
 /************IGMP Admission Control Feature****************************************************/ 
-  #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 
 typedef struct
 {
@@ -413,7 +413,7 @@ static igmpMulticastAdmissionControl_t igmpMulticastAdmissionControl[PTIN_SYSTEM
 
 static ptinIgmpAdmissionControlPort_t igmpPortAdmissionControl[PTIN_SYSTEM_N_UPLINK_INTERF];
 
-  #endif
+#endif
 /*******************End IGMP Admission Control Feature***********************************************/
 
 /***************Multicast Channel Package Feature****************************************************/ 
@@ -502,7 +502,7 @@ static ptinIgmpMulticastPackage_t          multicastPackage[PTIN_SYSTEM_IGMP_MAX
 
 static ptinIgmpNoOfMulticastServices_t     multicastServices[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF];
 static ptinIgmpMulticastServiceId_t        multicastServiceId[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF][PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID];
-static ptinIgmpMulticastServiceEvcId_t     serviceId_evcUc[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF][8];         /* Array defined to store all the servicesId's in use */
+static ptinIgmpMulticastServiceEvcId_t     serviceId_evcUc[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF][PTIN_SYSTEM_MAX_SERVICES_PER_ONU];         /* Array defined to store all the servicesId's in use */
 
 static void ptin_igmp_multicast_service_reset(void);
 
@@ -18446,26 +18446,6 @@ RC_t ptin_igmp_multicast_get_all_serviceId_per_onu(L7_uint32 ptinPort, L7_uint32
 }
 
 
-/**
- * @purpose querier reset is done on a specific serviceId 
- * 
- * @param none 
- *  
- *  
- * @return RC_t
- *
- * @notes none 
- *  
- */
-RC_t ptin_igmp_multicast_querierReset_on_specific_serviceID(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 serviceId)
-{
-
-  PT_LOG_TRACE(LOG_CTX_IGMP, "Going to send query to serviceId %u", serviceId);
-  ptin_igmp_generalquerier_reset(serviceId);
-   
-  return L7_SUCCESS;
-}
-
   #if 0
 /**
  * @purpose Get Next Multicast Service Identifier
@@ -19651,18 +19631,42 @@ static RC_t ptin_igmp_package_channel_conflict_validation(L7_uint32 packageId, p
 /********************************End Multicast Group Packages*********************************************************/
 
 
+/**
+ * @purpose querier reset is done on a specific serviceId 
+ * 
+ * @param none 
+ *  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+RC_t ptin_igmp_multicast_querierReset_on_specific_serviceID(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 serviceId)
+{
+
+  PT_LOG_TRACE(LOG_CTX_IGMP, "Going to send query to serviceId %u", serviceId);
+  ptin_igmp_generalquerier_reset(serviceId);
+   
+  return L7_SUCCESS;
+}
+
+
 /*************** dump all services in use on a specific onuID *****************/
 
 void ptin_igmp_onu_services_inUse_dump(L7_uint32 ptinPort, L7_uint32 onuId)
 {
+
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+
   printf("Services in use on a specific onuID (local struct):\n");
 
   L7_uint8  i = 0;
   L7_uint32 nOfServices = 0;
 
-  L7_uint32 lista_de_servicos[8];
+  L7_uint32 listOfServices[PTIN_SYSTEM_MAX_SERVICES_PER_ONU];
 
-  ptin_igmp_multicast_get_all_serviceId_per_onu(ptinPort, onuId, lista_de_servicos, &nOfServices);
+  ptin_igmp_multicast_get_all_serviceId_per_onu(ptinPort, onuId, listOfServices, &nOfServices);
 
   while (i < PTIN_SYSTEM_MAX_SERVICES_PER_ONU)
   {
@@ -19672,7 +19676,9 @@ void ptin_igmp_onu_services_inUse_dump(L7_uint32 ptinPort, L7_uint32 onuId)
     }
     i++;
   }
-
+#else
+  printf("Not supported on this board!\n");
+#endif  
 }
 
 void ptin_igmp_general_query_reset_teste(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 serviceId)
