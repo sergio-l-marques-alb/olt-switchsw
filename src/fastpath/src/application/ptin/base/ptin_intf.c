@@ -113,9 +113,6 @@ static L7_uint32 map_intIfNum2port[L7_MAX_INTERFACE_COUNT];
 #define NGPON2_BIT_PORT(var)     ( var & 0x1 )
                                
 
-/*Data structure with groups information*/
-//static ptin_NGPON2_groups_t NGPON2_groups_info[PTIN_SYSTEM_MAX_NGPON2_GROUPS];
-
 /**************************************/
 
 #if (PTIN_BOARD_IS_MATRIX)
@@ -7955,6 +7952,22 @@ L7_RC_t ptin_intf_NGPON2_rem_group(ptin_NGPON2group_t *group_info)
   NGPON2_groups_info[group_idx].admin = 0;
 
   NGPON2_groups_info[group_idx].groupId = NGPON2_EMPTY_ENTRY;
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * PTIN_INTF NGPON2 clear 
+ * 
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_intf_NGPON2_clear()
+{
+  /* Reset defaults */
+  memset(NGPON2_groups_info,  0x00, sizeof(NGPON2_groups_info));
 
   return L7_SUCCESS;
 }
