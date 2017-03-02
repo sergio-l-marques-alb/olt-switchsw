@@ -6,8 +6,8 @@ scriptVerbose=1
 ########End Debug Flags###########
 
 ###########OLT Version and Patch Version##################
-oltVersion=3.9
-patchVersion=1
+oltVersion=3.11
+patchVersion=0
 
 ###############Input Arguments Validation#########################
 echo "Usage: sh $0 [version] [patch] [\$updateSvn] [\$compile]"
