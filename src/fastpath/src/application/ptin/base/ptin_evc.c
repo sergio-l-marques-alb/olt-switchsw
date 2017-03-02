@@ -1979,15 +1979,16 @@ L7_RC_t ptin_evc_intVlan_get_fromOVlan(ptin_intf_t *ptin_intf, L7_uint16 extOVla
     if (!evcs[evc_id].in_use)
       continue;
 
+
     /* Skip EVCs with this interface not used */
     if (!evcs[evc_id].intf[ptin_port].in_use)
       continue;
+    
 
     /* Ignore leaf ports of IPTV EVCs */
     if (IS_EVC_IPTV(evc_id) && IS_EVC_INTF_LEAF(evc_id,ptin_port))
-    {
       continue;
-    }
+    
     /* If EVC is stacked, and interface is a leaf, search for its clients */
     else if ((IS_EVC_QUATTRO(evc_id) || IS_EVC_STACKED(evc_id)) && IS_EVC_INTF_LEAF(evc_id,ptin_port))
     {
@@ -2001,10 +2002,12 @@ L7_RC_t ptin_evc_intVlan_get_fromOVlan(ptin_intf_t *ptin_intf, L7_uint16 extOVla
       /* Client not found */
       if (pclientFlow == L7_NULLPTR)
         continue;
+      
 
       /* Compare outer vlan: if found, leave cycle */
       if (pclientFlow->uni_ovid == extOVlan)
         break;
+
     }
     /* If EVC unstacked, or interface is root, compare the interface outer vlan */
     else
@@ -2012,7 +2015,7 @@ L7_RC_t ptin_evc_intVlan_get_fromOVlan(ptin_intf_t *ptin_intf, L7_uint16 extOVla
       /* Compare outer vlan: if found, leave cycle */
       if (evcs[evc_id].intf[ptin_port].out_vlan == extOVlan &&
           (evcs[evc_id].intf[ptin_port].inner_vlan == 0 || evcs[evc_id].intf[ptin_port].inner_vlan == extIVlan))
-        break;
+        break; 
     }
   }
 
