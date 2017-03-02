@@ -6440,6 +6440,8 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
 
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
     
+   ptin_NGPON2_groups_t NGPON2_GROUP;
+
    get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
       /*teste*/
    evcPortTest[ptinEvcBridge.index-1].evcId         = ptinEvcBridge.index;
@@ -17919,12 +17921,21 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
 
     /* Get EVC id configured in the NGPON group*/
     evc_ext_id = NGPON2_GROUP.evcPort[index] - 1; //due to array initial value
-    evcPortTest[evc_ext_id].intf.value.ptin_port = ptin_port;
-    evcPortTest[evc_ext_id].mef_type = PTIN_EVC_INTF_LEAF;
+
+    L7_uint evc_idx;
+    /* Get the internal index based on the extended one */
+    if (ptin_evc_ext2int(evc_ext_id, &evc_idx) != L7_SUCCESS)
+    {
+       PT_LOG_NOTICE(LOG_CTX_EVC, "eEVC %u not existent", evc_ext_id);
+       return L7_DEPENDENCY_NOT_MET;
+    }
+
+    evcPortTest[evc_idx].intf.value.ptin_port = ptin_port;
+    evcPortTest[evc_idx].mef_type = PTIN_EVC_INTF_LEAF;
 
     PT_LOG_TRACE(LOG_CTX_MSG, "evc_ext_id %d ", evc_ext_id);
 
-    if (ptin_intf_any_format(&evcPortTest[evc_ext_id].intf) != L7_SUCCESS)
+    if (ptin_intf_any_format(&evcPortTest[evc_idx].intf) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Invalid interfaces");
 
@@ -17933,7 +17944,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
     }
 
     /* Add port to EVC */
-    if ( ptin_evc_port_add(evcPortTest[evc_ext_id].evcId, &evcPortTest[evc_ext_id])!=L7_SUCCESS)
+    if ( ptin_evc_port_add(evcPortTest[evc_idx].evcId, &evcPortTest[evc_idx])!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_EVC,"Error adding port to EVC");
     }
@@ -17944,7 +17955,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
     if(evc_type == PTIN_EVC_TYPE_QUATTRO_UNSTACKED || evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
     {
       /* Read policer information */
-      if ((ptin_evc_flow_replicate( ptin_port, evcPortTest[evc_ext_id].evcId, old_port)!=L7_SUCCESS))
+      if ((ptin_evc_flow_replicate( ptin_port, evcPortTest[evc_idx].evcId, old_port)!=L7_SUCCESS))
       {
         PT_LOG_ERR(LOG_CTX_EVC,"Error replicating flow");
 
@@ -17957,7 +17968,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
       /* Get EVC id configured in the NGPON group*/
       evc_ext_id = NGPON2_GROUP.evcPort[index] - 1; //due to array initial value
 
-      if ((ptin_evc_p2p_bridge_replicate(NGPON2_GROUP.evcPort[index], ptin_port, old_port, &evcPortTest[evc_ext_id]))!= L7_SUCCESS )
+      if ((ptin_evc_p2p_bridge_replicate(NGPON2_GROUP.evcPort[index], ptin_port, old_port, &evcPortTest[evc_idx]))!= L7_SUCCESS )
       {
         PT_LOG_ERR(LOG_CTX_EVC,"Error replicate p2p bridge");
 
@@ -17967,7 +17978,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
     }
 
     /* Read and set policer information */
-    if ((ptin_bwPolicer_set(&evcPortTest[evc_ext_id].profile, &evcPortTest[evc_ext_id].meter, -1))!= L7_SUCCESS)
+    if ((ptin_bwPolicer_set(&evcPortTest[evc_idx].profile, &evcPortTest[evc_idx].meter, -1))!= L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_EVC,"Error reading policer profile");
 
@@ -17997,9 +18008,17 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
   {  
     L7_uint32 evc_ext_id = NGPON2_GROUP.evcPort[index] - 1;  //due to array initial value
 
+    L7_uint evc_idx;
+    /* Get the internal index based on the extended one */
+    if (ptin_evc_ext2int(evc_ext_id, &evc_idx) != L7_SUCCESS)
+    {
+       PT_LOG_NOTICE(LOG_CTX_EVC, "eEVC %u not existent", evc_ext_id);
+       return L7_DEPENDENCY_NOT_MET;
+    }
+
     PT_LOG_ERR(LOG_CTX_MSG, "evc_ext_id = %d ", evc_ext_id);
 
-    if (ptin_evc_bwProfile_delete(evc_ext_id, &evcPortTest[evc_ext_id].profile)!= L7_SUCCESS)
+    if (ptin_evc_bwProfile_delete(evc_ext_id, &evcPortTest[evc_idx].profile)!= L7_SUCCESS)
     { 
       PT_LOG_ERR(LOG_CTX_MSG,"Error removing policer");
       //return L7_FAILURE;
@@ -18010,7 +18029,7 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
     if(evc_type == PTIN_EVC_TYPE_QUATTRO_UNSTACKED || evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
     {
       /* Remove flows if (any) from EVC */
-      if (ptin_evc_flow_remove_port(ptin_port, evcPortTest[evc_ext_id].evcId)!= L7_SUCCESS)
+      if (ptin_evc_flow_remove_port(ptin_port, evcPortTest[evc_idx].evcId)!= L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG,"Error removing flow");
         //return L7_FAILURE;
@@ -18019,11 +18038,11 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
     else
     {
       ptin_HwEthEvcBridge_t evcBridge;
-      evcBridge.index = evcPortTest[evc_ext_id].evcId;
+      evcBridge.index = evcPortTest[evc_idx].evcId;
   
-      evcBridge.inn_vlan =  evcPortTest[evc_ext_id].vid_inner;
+      evcBridge.inn_vlan =  evcPortTest[evc_idx].vid_inner;
 
-      evcBridge.intf = evcPortTest[evc_ext_id];
+      evcBridge.intf = evcPortTest[evc_idx];
       evcBridge.intf.intf.value.ptin_intf.intf_id        = ptin_port;
       evcBridge.intf.intf.value.ptin_intf.intf_type      = PTIN_EVC_INTF_PHYSICAL;
 
@@ -18036,7 +18055,7 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
     /* Removing port from EVC */
     evcPortTest[evc_ext_id].intf.value.ptin_port = ptin_port;
 
-    if( ptin_evc_port_remove(evcPortTest[evc_ext_id].evcId, &evcPortTest[evc_ext_id])!= L7_SUCCESS)
+    if( ptin_evc_port_remove(evcPortTest[evc_idx].evcId, &evcPortTest[evc_idx])!= L7_SUCCESS)
     {
       index--;
       PT_LOG_ERR(LOG_CTX_MSG,"Error port from EVC");
