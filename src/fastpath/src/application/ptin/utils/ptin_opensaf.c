@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include "ptin_utils.h"
+#include "ptin_intf.h"
 #include "ptin_opensaf.h"
 #include "ptin_opensaf_checkpoint.h"
 #include "usmdb_dhcp_snooping.h"
@@ -39,6 +40,10 @@
 /*********************************************************** 
  * Typedefs
  ***********************************************************/
+#define ENCRYPTION_KEY_FIELD_SIZE 16
+#define MAX_NGPON2_PORTS          32
+#define PTIN_MAX_OPENSAF_EVENT    20
+#define STANDALONE_FLAG           1
 
 void *readData;
 int readDataLen=0;
@@ -46,8 +51,6 @@ pthread_mutex_t readDataMux;
 char readDataPublisher[32];
 unsigned long long readEventID;
 L7_BOOL readDataInitFlag = 0;
-
-#define PTIN_MAX_OPENSAF_EVENT 10
 
 typedef struct 
 {
@@ -64,6 +67,57 @@ typedef struct
   L7_char8 publisherNameStr[32];
 
 } ptin_opensaf_event_t; 
+
+typedef enum {  
+	ONU_STATE_NOT_VALID              = 0,
+	ONU_STATE_INACTIVE                  ,
+	ONU_STATE_PROCESSING                ,
+	ONU_STATE_DISABLED                  , 
+	ONU_STATE_ACTIVE                    
+}ptin_onu_state;
+
+
+/* external stuctures from MAC PON*/
+typedef struct  {
+    L7_uint8 losi ;  /* LOSi */
+    L7_uint8 lofi ;  /* LOFi */
+    L7_uint8 loami ; /* LOAMi */
+    L7_uint8 lcdgi ; /* LCDGi */
+    L7_uint8 rdii ;  /* RDIi */
+    L7_uint8 sufi ;  /* SUFi */
+    L7_uint8 loai;   /* LOAi */
+    L7_uint8 dgi;    /* DGi */
+    L7_uint8 dfi;    /* DFi */
+    L7_uint8 dowi;   /* DOWi */
+    L7_uint8 tiwi;   /* TIWi */
+    L7_uint8 sfi;    /* SFi */
+    L7_uint8 sdi;    /* SDi */
+    L7_uint8 loki;   /* LOKi */
+    L7_uint8 tca_fec_corrected_byte;         /* TCA FEC corrected byte */
+    L7_uint8 tca_fec_corrected_code_word;    /* TCA FEC corrected code word */
+    L7_uint8 tca_fec_uncorrected_code_word;  /* TCA FEC uncorrected code word */
+    L7_uint8 tca_bip_error;                  /* TCA BIP error */
+    L7_uint8 tca_rei_error;                  /* TCA REI error */
+} __attribute__ ((packed)) ptin_oltPonOnuAlarms;
+
+typedef struct {
+    L7_uint8             state;
+    L7_uint32            eqd;
+    L7_uint8             aes_key[ENCRYPTION_KEY_FIELD_SIZE];
+    L7_uint8             serial[8];
+    L7_uint8             password[10];
+    ptin_oltPonOnuAlarms alarms;
+    L7_uint8             activeMember;   //NOVO
+    L7_uint16            stateSync[MAX_NGPON2_PORTS]; //NOVO
+}  __attribute__ ((packed))ptin_onuStatus;
+
+typedef struct {
+    struct {
+        L7_uint8     slot;       //slot for the port belonging to the NGPON2 group
+        L7_uint8     link;       //link for a port from this slot belonging to the NGPON2 group
+    } member[MAX_NGPON2_PORTS];
+} __attribute__ ((packed)) ptin_OLTCTList; 
+
 
 ptin_opensaf_event_t ptin_event[PTIN_MAX_OPENSAF_EVENT];
 
@@ -181,12 +235,16 @@ void ptin_opensaf_task_OnuMac( void )
   int           size           = 0;
   unsigned char *chName,*p,*pubName; 
   L7_enetMacAddr_t mac;
+  L7_uint32 section, data_key_OnuState, data_key_NGPON2Group;
+  L7_uint8 slot;
   L7_RC_t rc = L7_FAILURE;      
+  ptin_onuStatus onuStatus;
+  ptin_OLTCTList ngpon2_members;
 
   memset(&mac, 0, sizeof(mac));
 
-  chName        = "PPAUCTL";
-  pubName       = "teste_pub ";
+  chName        = "ONUSTATE";
+  pubName       = "Fastpath";
 
   if (osapiTaskInitDone(L7_PTIN_OPENSAF_TASK) != L7_SUCCESS)
   {
@@ -200,44 +258,72 @@ void ptin_opensaf_task_OnuMac( void )
   while (1) 
   {
     PT_LOG_INFO(LOG_CTX_OPENSAF, "ptin_opensaf_task_OnuMac running...");
+    /* wait for a event in the ONUSTATE*/
     ptin_opensaf_read_event(&event_data, sizeof(event_data), 1, chName, pubName);
 
-    //if(flush mac)
-   
-    event_data.onuId = 1;
-       
+    /* Read the event data */
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "eventId     %u", event_data.eventId);
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "memberIndex %u", event_data.memberIndex);
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "parentId    %u", event_data.parentId);
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "OnuID       %u", event_data.onuId);
 
-    ptin_checkpoint_getSection(1, 1/*event_data.onuId*/, &data, &size);
+    data_key_NGPON2Group = event_data.memberIndex;
+    data_key_NGPON2Group = (data_key_NGPON2Group & 0xff) | (event_data.parentId << 8);
+    section              = data_key_NGPON2Group;
 
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "size %u", size);
+    /* Key to get the slot of the ONU from the NGPON2GROUPS checkpoint */
+    ptin_checkpoint_getSection(NGPON2GROUPS, section, &ngpon2_members, &size);
+    ptin_intf_slot_get(&slot);
 
-    int i = 0;
-    p = data;
+    if(slot != ngpon2_members.member[event_data.memberIndex].slot)
+    {
+      continue;
+    }
+    /* if this event is from this slot */
 
-    while(size > i)
-    {     
-      memcpy(&mac.addr, p, sizeof(mac.addr));
+    /* Key to read section in checkpoint Onu State checkpoint */
+    section  = event_data.onuId;
+    data_key_OnuState = (event_data.parentId << 21) | (ngpon2_members.member[event_data.memberIndex].slot << 25) | (STANDALONE_FLAG << 20);
+    section  = (section & 0x000000FF) | data_key_OnuState;
 
-      PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Data : %c , %c ,%c ,%c , %c , %c, ",    mac.addr[0], mac.addr[1], mac.addr[2], 
-                                                                          mac.addr[3], mac.addr[4], mac.addr[5]);
-      rc = fdbFlushByMac(mac);
+    /* Get ONU State */
+    ptin_checkpoint_getSection(ONU_STATE, section, &onuStatus, &size);
 
-      /* IPv6 */
-      usmDbDsBindingRemove((L7_enetMacAddr_t*)mac.addr, L7_AF_INET6);
+    if(onuStatus.state != ONU_STATE_DISABLED) /* Is the ONU is disable remove MAC, DHCP binding and IGMP channels*/
+    {
+      /*Retrieve MAC form a particular ONU*/
+      ptin_checkpoint_getSection(SWITCHDRVR_ONU, event_data.onuId, &data, &size); 
 
-      /* IPv4 */
-      usmDbDsBindingRemove((L7_enetMacAddr_t*)mac.addr, L7_AF_INET);
+      PT_LOG_TRACE(LOG_CTX_OPENSAF, "size %u", size);
 
-      PT_LOG_TRACE(LOG_CTX_OPENSAF, "rc %u", rc);
+      int i = 0;
+      p = data;
 
-      i = i + MAC_SIZE_BYTES;
-      p = p + MAC_SIZE_BYTES;
-    }  
-    ptin_opensaf_checkpoint_deleteSection(1, 1);
+      while(size > i) /* Flush the each MAC from the L2 table and DHCP binding table */
+      {     
+        memcpy(&mac.addr, p, sizeof(mac.addr));
+
+        PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Data : %c , %c ,%c ,%c , %c , %c, ",    mac.addr[0], mac.addr[1], mac.addr[2], 
+                                                                            mac.addr[3], mac.addr[4], mac.addr[5]);
+        /* MAC */
+        rc = fdbFlushByMac(mac);
+
+        /* IPv6 */
+        usmDbDsBindingRemove((L7_enetMacAddr_t*)mac.addr, L7_AF_INET6);
+
+        /* IPv4 */
+        usmDbDsBindingRemove((L7_enetMacAddr_t*)mac.addr, L7_AF_INET);
+
+        PT_LOG_TRACE(LOG_CTX_OPENSAF, "rc %u", rc);
+
+        i = i + MAC_SIZE_BYTES;
+        p = p + MAC_SIZE_BYTES;
+        /* get next MAC */
+      }
+      
+      /* Delete ONT MAC section from the checkpoint */  
+      ptin_opensaf_checkpoint_deleteSection(SWITCHDRVR_ONU, event_data.onuId);
+    }
   }
                                             
   osapiSleepMSec(500);
