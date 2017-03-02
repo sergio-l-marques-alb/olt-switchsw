@@ -12303,7 +12303,7 @@ L7_RC_t ptin_evc_bwProfile_verify(L7_uint evc_id, ptin_bw_profile_t *profile)
       return L7_FAILURE;
     }
   }
-}
+
 
   PT_LOG_TRACE(LOG_CTX_EVC,"Final bw profile data:");
   PT_LOG_TRACE(LOG_CTX_EVC," evcId       = %u",evc_id);
