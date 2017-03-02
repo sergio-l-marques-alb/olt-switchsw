@@ -32,13 +32,15 @@
 #define unlikely(x)    __builtin_expect(!!(x), 0)
 
 /* Global to all platforms */
-#define PTIN_SYSTEM_MAX_N_FULLSLOTS     20
-#define PTIN_SYSTEM_MAX_N_PORTS         64
-#define PTIN_SYSTEM_MAX_N_LAGS          PTIN_SYSTEM_MAX_N_PORTS
-#define PTIN_SYSTEM_ETH_MTU_SIZE        9600
-#define PTIN_SYSTEM_PON_MTU_SIZE        2048
-#define PTIN_SYSTEM_EXT_EVCS_MGMT       (1UL << 17)     /* 17 bits will be used by management */
-#define PTIN_SYSTEM_N_EXTENDED_EVCS     (PTIN_SYSTEM_EXT_EVCS_MGMT + 64)    /* 64 Extra EVCs */
+#define PTIN_SYSTEM_MAX_N_FULLSLOTS                 20
+#define PTIN_SYSTEM_MAX_N_PORTS                     64
+#define PTIN_SYSTEM_MAX_N_LAGS                      PTIN_SYSTEM_MAX_N_PORTS
+#define PTIN_SYSTEM_MAX_NGPON2_GROUPS               256
+#define PTIN_SYSTEM_MAX_NGPON2_GROUPS_ELEMENTS      32
+#define PTIN_SYSTEM_ETH_MTU_SIZE                    9600
+#define PTIN_SYSTEM_PON_MTU_SIZE                    2048
+#define PTIN_SYSTEM_EXT_EVCS_MGMT                   (1UL << 17)     /* 17 bits will be used by management */
+#define PTIN_SYSTEM_N_EXTENDED_EVCS                 (PTIN_SYSTEM_EXT_EVCS_MGMT + 64)    /* 64 Extra EVCs */
 
 #define PTIN_IS_PORT_PON(p)           ((((unsigned long long)1 << p) & PTIN_SYSTEM_PON_PORTS_MASK) != 0)
 #define PTIN_IS_PORT_ETH(p)           ((((unsigned long long)1 << p) & PTIN_SYSTEM_ETH_PORTS_MASK) != 0)

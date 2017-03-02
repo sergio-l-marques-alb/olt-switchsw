@@ -956,6 +956,81 @@ extern L7_BOOL ptin_intf_link_get(L7_uint32 ptin_port);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
+
+
+/**
+ * PTIN_INTF NGPON2 Add Group 
+ *  
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ *  
+ *  
+ * @author Hugo Araujo: hugo-f-araujo@telecom.pt 
+ */
+extern L7_RC_t ptin_intf_NGPON2_add_group(ptin_NGPON2group_t *group_info);
+
+
+/**
+ * PTIN_INTF NGPON2 Remove Group 
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ *  
+ * @author Hugo Araujo: hugo-f-araujo@telecom.pt  
+ */
+extern L7_RC_t ptin_intf_NGPON2_rem_group(ptin_NGPON2group_t *group_info);
+
+/**
+ * Check if a NGPON2 group already exists 
+ * 
+ * @param group_idx       
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */ 
+extern L7_RC_t ptin_intf_NGPON2_group_exists(L7_uint8 group_idx);
+
+
+
+
+
+/**
+ * PTIN_INTF NGPON2 Add Group Port
+ *  
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ *  
+ *  
+ * @author Hugo Araujo: hugo-f-araujo@telecom.pt 
+ */
+extern L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info);
+
+
+/**
+ * PTIN_INTF NGPON2 Remove Group Port
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ *  
+ * @author Hugo Araujo: hugo-f-araujo@telecom.pt  
+ */
+extern L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info);
+
+
+
 extern L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd);
 extern L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd);
 extern L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_uint slot_new, L7_uint port_new);

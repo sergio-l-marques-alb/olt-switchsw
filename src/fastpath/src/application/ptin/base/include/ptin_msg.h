@@ -1764,6 +1764,65 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
  */
 L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_uint32 noOfMessages);
 
+/*****************************************************************************************************************/
+/*                                                                                                               */  
+/*                                                NGPON2                                                         */ 
+/*                                                                                                               */ 
+/*****************************************************************************************************************/
+ 
+ 
+/**
+ * NGPON2 Add Group 
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ *  
+ *  
+ * @author Hugo Araujo: hugo-f-araujo@telecom.pt  
+ */ 
+L7_RC_t ptin_msg_NGPON2_add_group(ptin_NGPON2group_t *group_info);
+
+/**
+ * NGPON2 Remove Group 
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ *  
+ *  
+ * @author Hugo Araujo: hugo-f-araujo@telecom.pt  
+ */
+L7_RC_t ptin_msg_NGPON2_rem_group(ptin_NGPON2group_t *group_info);
+
+
+/**
+ * NGPON2 Add Group Port 
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_NGPON2_add_group_port(ptin_NGPON2group_t *group_info);
+
+
+/**
+ * NGPON2 Remove Group Port
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+L7_RC_t ptin_msg_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info);
+
 /****************************************End Multicast Package Feature**************************************************/
 
 
