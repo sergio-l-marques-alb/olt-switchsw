@@ -22,6 +22,13 @@
 
 extern L7_BOOL linkscan_update_control;
 
+
+
+/*Data structure with groups information*/  // NGPON2 EVC
+static ptin_NGPON2_groups_t NGPON2_groups_info[PTIN_SYSTEM_MAX_NGPON2_GROUPS];
+
+extern L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *NGPON2_GROUP, L7_uint8 group_index);
+
 /**
  * Initializes the ptin_intf module (structures) and several interfaces 
  * related configurations.
