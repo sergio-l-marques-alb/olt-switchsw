@@ -27,6 +27,26 @@ extern L7_BOOL linkscan_update_control;
 /*Data structure with groups information*/  // NGPON2 EVC
 static ptin_NGPON2_groups_t NGPON2_groups_info[PTIN_SYSTEM_MAX_NGPON2_GROUPS];
 
+
+
+/**
+ * PTIN_INTF NGPON2 check intf
+ *  
+ * @brief check if a physical port belongs to a NGPON2 group 
+ *  
+ */
+
+L7_RC_t ptin_intf_NGPON2_group_check(L7_uint8 intf_index, L7_uint8 *group_index);
+
+/**
+ * PTIN_INTF get NGPON2 group info 
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ * @param group_index     : NGPON2 group index                  
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
 extern L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *NGPON2_GROUP, L7_uint8 group_index);
 
 /**
