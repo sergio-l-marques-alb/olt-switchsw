@@ -2,8 +2,8 @@
 #                                              #
 #   FastPath Makefile for the TT04SXG card     #
 #                                              #
-#	Rui Fernandes, 2016                        #
-#	rui-f-fernandes@alticelabs.com             #
+#	Rui Fernandes, 2016                    #
+#	rui-f-fernandes@alticelabs.com         #
 #                                              #
 ################################################
 
@@ -123,7 +123,7 @@ welcome:
 	@echo ""
 	@echo "##############################################"
 	@echo "#                                            #"
-	@echo "#  FastPath Makefile for the TT04SXG card     #"
+	@echo "#  FastPath Makefile for the TT04SXG card    #"
 	@echo "#                                            #"
 	@echo "##############################################"
 	@echo ""
