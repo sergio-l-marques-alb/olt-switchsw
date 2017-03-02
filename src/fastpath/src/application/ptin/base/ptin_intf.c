@@ -8106,14 +8106,39 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
 L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_index)
 {
 
+  L7_uint32 i=0;
   group_info->admin                   = NGPON2_groups_info[group_index].admin;
   group_info->groupId                 = NGPON2_groups_info[group_index].groupId;
   group_info->nports                  = NGPON2_groups_info[group_index].nports;
   group_info->ngpon2_groups_pbmp64    = NGPON2_groups_info[group_index].ngpon2_groups_pbmp64;
+  group_info->number_services         = NGPON2_groups_info[group_index].number_services;
+
+  PT_LOG_ERR(LOG_CTX_MSG, "group_info->number_services %d", group_info->number_services );
+  for(i=0; i<NGPON2_groups_info[group_index].number_services ; i++)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "GPON2_groups_info[group_index].evcPort[i] %d ",NGPON2_groups_info[group_index].evcPort[i]);
+    group_info->evcPort[i]              = NGPON2_groups_info[group_index].evcPort[i];
+  }
 
   return L7_SUCCESS;
 }
 
+
+
+L7_RC_t set_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_index)
+{
+
+  L7_uint32 index = group_info->number_services - 1;
+  NGPON2_groups_info[group_index].number_services = group_info->number_services;
+
+  PT_LOG_ERR(LOG_CTX_MSG, "group_info->number_services %d", group_info->number_services );
+
+  PT_LOG_ERR(LOG_CTX_MSG, "group_info->evcPort[group_info->number_services] %d ",group_info->evcPort[index]);
+  NGPON2_groups_info[group_index].evcPort[index] = group_info->evcPort[index];
+
+
+  return L7_SUCCESS;
+}
 
 /**
  * PTIN_INTF NGPON2 check intf
@@ -8353,7 +8378,7 @@ void ptin_intf_NGPON2_groups_dump(void)
   {
     if (NGPON2_groups_info[i].admin)
     {
-      printf("GroupID: %u -- Ports Bitmap: %llu -- Number of ports: %u\n", NGPON2_groups_info[i].groupId, NGPON2_groups_info[i].ngpon2_groups_pbmp64, NGPON2_groups_info[i].nports);
+      printf("GroupID: %u -- Ports Bitmap: %llu -- Number of ports: %u %d \n", NGPON2_groups_info[i].groupId, NGPON2_groups_info[i].ngpon2_groups_pbmp64, NGPON2_groups_info[i].nports, NGPON2_groups_info[i].number_services);
     }
     i++;
   }

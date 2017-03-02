@@ -582,14 +582,6 @@ typedef struct {
 } ptin_LACPStats_t;
 
 
-/* NGPON2 structs *************************************************************/
-typedef struct {
-  L7_uint32 groupId;                // GroupID nr. [0..PTIN_SYSTEM_MAX_NGPON2_GROUPS[
-  L7_uint8  nports;                 // Number of ports
-  L7_uint8  admin;                  // 1 - enable; 0 - disabled                                  
-  L7_uint64 ngpon2_groups_pbmp64;   // Ports bitmap
-} ptin_NGPON2_groups_t;
-
 /* Xlate structs **************************************************************/
 
 /* Vlan translation stage */
@@ -765,15 +757,7 @@ typedef struct
   L7_uint16 board_id;
 } ptin_intf_any_format_t;
 
-typedef struct
-{
-  ptin_intf_any_format_t intf;  // Interface Id# (phy ports / LAGs)
-  L7_uint8  mef_type;     // { 0 - root, 1 - leaf }
-  L7_uint16 vid;          // Outer VLAN id [1..4094]
-  L7_uint16 vid_inner;    // Inner vlan associated to this interface
-  ptin_vlanXlate_action_enum action_outer; // Action associated to the outer VLAN
-  ptin_vlanXlate_action_enum action_inner; // Action associated to the inner VLAN
-} ptin_HwEthMef10Intf_t;
+
 
 #define PTIN_EVC_OPTIONS_MASK_FLAGS   0x0001
 #define PTIN_EVC_OPTIONS_MASK_TYPE    0x0002
@@ -839,6 +823,40 @@ typedef enum
 #define PTIN_EVC_PORT_FORWARDING    0
 #define PTIN_EVC_PORT_BLOCKING      1
 
+typedef struct {
+  L7_uint32  ptin_port;                 // Single interface
+  L7_uint64  ptin_port_bmp;             // List of Interfaces
+  L7_uint16  outer_vlan_lookup;         // SVlan (0 value means no appliance)
+  L7_uint16  outer_vlan_ingress;        // SVlan (0 value means no appliance)
+  L7_uint16  outer_vlan_egress;         // SVlan (0 value means no appliance)
+  L7_uint16  inner_vlan_ingress;        // CVlan (0 value means no appliance)               
+  L7_uint16  inner_vlan_egress;         // CVlan (0 value means no appliance)
+  L7_uchar8  cos;                       // (0..[L7_COS_INTF_QUEUE_MAX_COUNT-1]; otherwise field is ignored)
+  L7_uint8   macAddr[L7_MAC_ADDR_LEN];  // MAC Address to apply policer
+} ptin_bw_profile_t;
+
+typedef struct {
+  L7_uint32 cir;                        // Commited Information Rate
+  L7_uint32 cbs;                        // Commited Burst Size
+  L7_uint32 eir;                        // Excess Information Rate
+  L7_uint32 ebs;                        // Excess Burst Size
+} ptin_bw_meter_t;
+
+typedef struct
+{
+  ptin_intf_any_format_t intf;  // Interface Id# (phy ports / LAGs)
+  L7_uint8  mef_type;     // { 0 - root, 1 - leaf }
+  L7_uint16 vid;          // Outer VLAN id [1..4094]
+  L7_uint16 vid_inner;    // Inner vlan associated to this interface
+  ptin_vlanXlate_action_enum action_outer; // Action associated to the outer VLAN
+  ptin_vlanXlate_action_enum action_inner; // Action associated to the inner VLAN
+  L7_uint32 evcId;
+  L7_uint8  admin;        // 1-enbale 0-disable
+
+  ptin_bw_profile_t profile;
+  ptin_bw_meter_t meter;
+
+} ptin_HwEthMef10Intf_t;
 
 typedef struct {
   L7_uint32 index;        // EVC Id [1..PTIN_SYSTEM_N_EVCS]
@@ -865,6 +883,8 @@ typedef struct {
   L7_uint16 internal_vlan;  // Internal VLAN used within this EVC (if not provided, a new one will be selected from a pool)
 
 } ptin_HwEthMef10Evc_t;
+
+
 
 /* EVC Interface configuration */
 typedef struct {
@@ -1003,13 +1023,6 @@ typedef enum
   PTIN_CMD_DESTROY,
 } PTIN_CMD_GET_SET_t;
 
-typedef struct {
-  L7_uint32 cir;                        // Commited Information Rate
-  L7_uint32 cbs;                        // Commited Burst Size
-  L7_uint32 eir;                        // Excess Information Rate
-  L7_uint32 ebs;                        // Excess Burst Size
-} ptin_bw_meter_t;
-
 /* Structure describing the bw policer rule */
 typedef struct {
   L7_uint8   inUse;                     // This entry is in use (TRUE to be in use)
@@ -1027,17 +1040,6 @@ typedef struct {
   L7_int     policy_id;                 // Policer rule id (must be a positive value)
 } ptin_bw_policy_t;
 
-typedef struct {
-  L7_uint32  ptin_port;                 // Single interface
-  L7_uint64  ptin_port_bmp;             // List of Interfaces
-  L7_uint16  outer_vlan_lookup;         // SVlan (0 value means no appliance)
-  L7_uint16  outer_vlan_ingress;        // SVlan (0 value means no appliance)
-  L7_uint16  outer_vlan_egress;         // SVlan (0 value means no appliance)
-  L7_uint16  inner_vlan_ingress;        // CVlan (0 value means no appliance)               
-  L7_uint16  inner_vlan_egress;         // CVlan (0 value means no appliance)
-  L7_uchar8  cos;                       // (0..[L7_COS_INTF_QUEUE_MAX_COUNT-1]; otherwise field is ignored)
-  L7_uint8   macAddr[L7_MAC_ADDR_LEN];  // MAC Address to apply policer
-} ptin_bw_profile_t;
 
 typedef struct {
   L7_int             operation;         // Operation: DAPI_CMD_GET / DAPI_CMD_SET / DAPI_CMD_CLEAR / DAPI_CMD_CLEAR_ALL
@@ -1552,6 +1554,16 @@ typedef struct
     L7_uint8                   numIntf;   
     ptin_NGPON2element_t       NGPON2Port[32];
 } __attribute__ ((packed)) ptin_NGPON2group_t;
+
+/* NGPON2 structs *************************************************************/
+typedef struct {
+  L7_uint32 groupId;                // GroupID nr. [0..PTIN_SYSTEM_MAX_NGPON2_GROUPS[
+  L7_uint8  nports;                 // Number of ports
+  L7_uint8  admin;                  // 1 - enable; 0 - disabled                                  
+  L7_uint64 ngpon2_groups_pbmp64;   // Ports bitmap
+  L7_uint32 evcPort[PTIN_SYSTEM_N_EXTENDED_EVCS];
+  L7_uint32 number_services;
+} ptin_NGPON2_groups_t;
 
 
 #endif /* _PTIN_STRUCTS_H */
