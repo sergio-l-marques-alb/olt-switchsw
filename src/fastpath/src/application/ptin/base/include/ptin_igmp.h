@@ -475,7 +475,8 @@ typedef struct {
   L7_uint8             onuId;        
   L7_uint8             mask;         //Mask of fields to be considered                             
   L7_uint16            maxAllowedChannels;  //[mask=0x01] Maximum number of channels 
-  L7_uint64            maxAllowedBandwidth; //[mask=0x02] Maximum bandwidth (bit/s)  
+  L7_uint64            maxAllowedBandwidth; //[mask=0x02] Maximum bandwidth (bit/s) 
+  //L7_uint8             admin;                                             
 } ptin_igmp_admission_control_t;
 
 

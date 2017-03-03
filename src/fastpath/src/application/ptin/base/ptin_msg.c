@@ -119,6 +119,7 @@ typedef struct
   L7_uint32 packageBmpList[PTIN_IGMP_PACKAGE_BITMAP_SIZE];
   L7_uint16 nOfPackets;
   L7_BOOL   addOrRemove;
+  L7_uint8  admin;
   ptin_client_id_t client;
 }ptin_UcastPackage_info;
 
@@ -126,7 +127,8 @@ typedef struct
 {
   L7_uint32            evcId;        // EVC Id
   msg_HwEthInterface_t intf;         // Interface 
-  L7_uint8             onuId;        // ONU Identifier                                     
+  L7_uint8             onuId;        // ONU Identifier
+  L7_uint8             admin;                                                                          
 }ptin_mcast_service_info;
 
 /* Structs for comutation functions (NGPON2) */
@@ -1434,9 +1436,9 @@ L7_RC_t ptin_msg_intfLinkStatus(ipc_msg *inbuffer)
   L7_uint16 index;
   L7_uint32 ptin_port;
 
-  ENDIAN_SWAP8_MOD (linkStatus->slot_id);
+  ENDIAN_SWAP8_MOD(linkStatus->slot_id);
   ENDIAN_SWAP16_MOD(linkStatus->generic_id);
-  ENDIAN_SWAP8_MOD (linkStatus->number_of_ports);
+  ENDIAN_SWAP8_MOD(linkStatus->number_of_ports);
 
   /* Validate slot */
   if (linkStatus->slot_id < PTIN_SYS_LC_SLOT_MIN || linkStatus->slot_id > PTIN_SYS_LC_SLOT_MAX)
@@ -5803,19 +5805,25 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   else
   {
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+      L7_uint32 evc_id;
+      /* Is EVC in use? */
+      if (ptin_evc_ext2int(ptinEvcConf.index, &evc_id) != L7_SUCCESS)
+      {
+      PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ptinEvcConf.index);
+      return L7_FAILURE;
+      }
     if (msgEvcConf->evc.intf[index_port].intf_type == PTIN_EVC_INTF_NGPON2)
     {
-
       get_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);
       /*teste*/
-      evcPortTest[ptinEvcConf.index-1].evcId         = ptinEvcConf.index;
-      evcPortTest[ptinEvcConf.index-1].intf.format   = PTIN_INTF_FORMAT_TYPEID;
-      evcPortTest[ptinEvcConf.index-1].action_outer  = ptinEvcConf.intf[i].action_outer;
-      evcPortTest[ptinEvcConf.index-1].action_inner  = ptinEvcConf.intf[i].action_inner;
-      evcPortTest[ptinEvcConf.index-1].vid_inner     = ptinEvcConf.intf[i].vid_inner;
-      evcPortTest[ptinEvcConf.index-1].vid           = ptinEvcConf.intf[i].vid;
-      evcPortTest[ptinEvcConf.index-1].mef_type      = ptinEvcConf.intf[i].mef_type;
-      evcPortTest[ptinEvcConf.index-1].admin         = L7_TRUE;
+      evcPortTest[evc_id-1].evcId         = ptinEvcConf.index;
+      evcPortTest[evc_id-1].intf.format   = PTIN_INTF_FORMAT_TYPEID;
+      evcPortTest[evc_id-1].action_outer  = ptinEvcConf.intf[i].action_outer;
+      evcPortTest[evc_id-1].action_inner  = ptinEvcConf.intf[i].action_inner;
+      evcPortTest[evc_id-1].vid_inner     = ptinEvcConf.intf[i].vid_inner;
+      evcPortTest[evc_id-1].vid           = ptinEvcConf.intf[i].vid;
+      evcPortTest[evc_id-1].mef_type      = ptinEvcConf.intf[i].mef_type;
+      evcPortTest[evc_id-1].admin         = L7_TRUE;
 
       PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
       NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ptinEvcConf.index;
@@ -6008,8 +6016,15 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
     else
     {
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+      L7_uint32 evc_id;
+      /* Is EVC in use? */
+      if (ptin_evc_ext2int(ENDIAN_SWAP32(msgEvcConf[i].id), &evc_id) != L7_SUCCESS)
+      {
+      PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(msgEvcConf[i].id));
+      return L7_FAILURE;
+      }
 
-      if (evcPortTest[ENDIAN_SWAP32(msgEvcConf[i].id)].admin == L7_TRUE)
+      if (evcPortTest[evc_id-1].admin == L7_TRUE)
       {
         get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
         /*teste*/
@@ -6018,8 +6033,8 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
         NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ENDIAN_SWAP32(msgEvcConf[i].id);
         NGPON2_GROUP.number_services--;
 
-        memset(&evcPortTest[ENDIAN_SWAP32(msgEvcConf[i].id)-1], 0xFF, sizeof(evcPortTest[ENDIAN_SWAP32(msgEvcConf[i].id)-1]));
-        evcPortTest[msgEvcConf[i].id-1].admin = L7_FALSE;
+        memset(&evcPortTest[evc_id-1], 0xFF, sizeof(evcPortTest[evc_id-1]));
+        evcPortTest[evc_id-1].admin = L7_FALSE;
 
 
         set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/); 
@@ -6416,40 +6431,93 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
 {
   ptin_HwEthEvcBridge_t ptinEvcBridge;
 
-  /* Copy data */
-  ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
-  ptinEvcBridge.inn_vlan       = ENDIAN_SWAP16(msgEvcBridge->inn_vlan);
-  ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
-  ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcBridge->intf.intf_id);
-  ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcBridge->intf.intf_type);
-  ptinEvcBridge.intf.mef_type  = ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
-  ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);
+  // NGPON2
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
-               ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-               ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
-
-  if (ptin_evc_p2p_bridge_add(&ptinEvcBridge) != L7_SUCCESS)
+  if (msgEvcBridge->intf.intf_type == PTIN_EVC_INTF_NGPON2)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u bridge", ptinEvcBridge.index);
-    return L7_FAILURE;
+    get_NGPON2_group_info(&NGPON2_GROUP, msgEvcBridge->intf.intf_id);
+
+    while (j < NGPON2_GROUP.nports)
+    {
+      if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+      {
+        /* Copy data */
+        ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
+        ptinEvcBridge.inn_vlan       = ENDIAN_SWAP16(msgEvcBridge->inn_vlan);
+        ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
+        ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(shift_index);
+        ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
+        ptinEvcBridge.intf.mef_type  = ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
+        ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);
+
+        PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
+        PT_LOG_DEBUG(LOG_CTX_MSG, "intf_type: %u", msgEvcBridge->intf.intf_type);
+        PT_LOG_DEBUG(LOG_CTX_MSG, "mef_type: %u", msgEvcBridge->intf.mef_type);
+        PT_LOG_DEBUG(LOG_CTX_MSG, "NGPON2:");
+        PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
+                     ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                     ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
+        PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
+        PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
+
+        if (ptin_evc_p2p_bridge_add(&ptinEvcBridge) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u bridge", ptinEvcBridge.index);
+          return L7_FAILURE;
+        }
+        j++;
+      }
+      shift_index++;
+    }
+  }
+  else
+  {
+    /* Copy data */
+    ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
+    ptinEvcBridge.inn_vlan       = ENDIAN_SWAP16(msgEvcBridge->inn_vlan);
+    ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
+    ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcBridge->intf.intf_id);
+    ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcBridge->intf.intf_type);
+    ptinEvcBridge.intf.mef_type  = ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
+    ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "intf_type: %u", msgEvcBridge->intf.intf_type);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "mef_type: %u", msgEvcBridge->intf.mef_type);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
+                 ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                 ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
+
+    if (ptin_evc_p2p_bridge_add(&ptinEvcBridge) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u bridge", ptinEvcBridge.index);
+      return L7_FAILURE;
+    }
 
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-    
+  L7_uint32 evc_id;
+  /* Is EVC in use? */
+  if (ptin_evc_ext2int(ptinEvcBridge.index, &evc_id) != L7_SUCCESS)
+  {
+  PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ptinEvcBridge.index);
+  return L7_FAILURE;
+  }    
    ptin_NGPON2_groups_t NGPON2_GROUP;
 
    get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
       /*teste*/
-   evcPortTest[ptinEvcBridge.index-1].evcId         = ptinEvcBridge.index;
-   evcPortTest[ptinEvcBridge.index-1].intf.format   = PTIN_INTF_FORMAT_TYPEID;
-   evcPortTest[ptinEvcBridge.index-1].action_outer  = ptinEvcBridge.intf.action_outer;
-   evcPortTest[ptinEvcBridge.index-1].action_inner  = ptinEvcBridge.intf.action_inner;
-   evcPortTest[ptinEvcBridge.index-1].vid_inner     = ptinEvcBridge.inn_vlan;
-   evcPortTest[ptinEvcBridge.index-1].vid           = ptinEvcBridge.intf.vid;
-   evcPortTest[ptinEvcBridge.index-1].mef_type      = ptinEvcBridge.intf.mef_type;
+   evcPortTest[evc_id-1].evcId         = ptinEvcBridge.index;
+   evcPortTest[evc_id-1].intf.format   = PTIN_INTF_FORMAT_TYPEID;
+   evcPortTest[evc_id-1].action_outer  = ptinEvcBridge.intf.action_outer;
+   evcPortTest[evc_id-1].action_inner  = ptinEvcBridge.intf.action_inner;
+   evcPortTest[evc_id-1].vid_inner     = ptinEvcBridge.inn_vlan;
+   evcPortTest[evc_id-1].vid           = ptinEvcBridge.intf.vid;
+   evcPortTest[evc_id-1].mef_type      = ptinEvcBridge.intf.mef_type;
 
    PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
    NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ptinEvcBridge.index;
@@ -6474,28 +6542,73 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
   ptin_HwEthEvcBridge_t ptinEvcBridge;
   L7_RC_t rc;
 
-  /* Copy data */
-  ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
-  ptinEvcBridge.inn_vlan       = ENDIAN_SWAP16(msgEvcBridge->inn_vlan);
-  ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
-  ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcBridge->intf.intf_id);
-  ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcBridge->intf.intf_type);
-  ptinEvcBridge.intf.mef_type  = ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
-  ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);        /* not used on remove oper. */
+  // NGPON2
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
-               ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-               ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
-  PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
-
-  rc = ptin_evc_p2p_bridge_remove(&ptinEvcBridge);
-
-  if ( rc != L7_SUCCESS)
+  if (msgEvcBridge->intf.intf_type == PTIN_EVC_INTF_NGPON2)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u bridge", ptinEvcBridge.index);
-    return rc;
+    get_NGPON2_group_info(&NGPON2_GROUP, msgEvcBridge->intf.intf_id);
+
+    while (j < NGPON2_GROUP.nports)
+    {
+      if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+      {
+        /* Copy data */
+        ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
+        ptinEvcBridge.inn_vlan       = ENDIAN_SWAP16(msgEvcBridge->inn_vlan);
+        ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
+        ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(shift_index);
+        ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
+        ptinEvcBridge.intf.mef_type  = ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
+        ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);        /* not used on remove oper. */
+
+        PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
+        PT_LOG_DEBUG(LOG_CTX_MSG, "NGPON2:");
+        PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
+                     ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                     ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
+        PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
+        PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
+
+        rc = ptin_evc_p2p_bridge_remove(&ptinEvcBridge);
+
+        if ( rc != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u bridge", ptinEvcBridge.index);
+          return rc;
+        }
+        j++;
+      }
+      shift_index++;
+    }
+  }
+  else
+  {
+    /* Copy data */
+    ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
+    ptinEvcBridge.inn_vlan       = ENDIAN_SWAP16(msgEvcBridge->inn_vlan);
+    ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
+    ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcBridge->intf.intf_id);
+    ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcBridge->intf.intf_type);
+    ptinEvcBridge.intf.mef_type  = ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
+    ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);        /* not used on remove oper. */
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
+                 ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                 ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
+
+    rc = ptin_evc_p2p_bridge_remove(&ptinEvcBridge);
+
+    if ( rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u bridge", ptinEvcBridge.index);
+      return rc;
+    }
   }
 
   return L7_SUCCESS;
@@ -6774,6 +6887,11 @@ L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint 
   ptin_intf_t ptin_intf;
   L7_RC_t     rc = L7_SUCCESS;
 
+  // NGPON2
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
+
   if ( msgEvcFlood == L7_NULLPTR )
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid params");
@@ -6792,26 +6910,66 @@ L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint 
     ENDIAN_SWAP16_MOD(msgEvcFlood[i].oVlanId);
     ENDIAN_SWAP16_MOD(msgEvcFlood[i].iVlanId);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
 
-    ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
-    ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
-
-    if (ptin_evc_flood_vlan_add( msgEvcFlood[i].evcId,
-                                 ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
-                                 ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
-                                 msgEvcFlood[i].oVlanId,
-                                 msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+    if (msgEvcFlood[i].intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flooding vlan", msgEvcFlood[i].evcId);
-      rc = L7_FAILURE;
+      get_NGPON2_group_info(&NGPON2_GROUP, msgEvcFlood[i].intf.intf_id);
+
+      PT_LOG_DEBUG(LOG_CTX_MSG," Intf NGPON2    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
+
+      while (j < NGPON2_GROUP.nports)
+      {
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        {
+          ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+          ptin_intf.intf_id   = shift_index;
+
+          PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
+          PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Intf NGPON2    = %u/%u", PTIN_EVC_INTF_PHYSICAL, shift_index);
+          PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+
+          if (ptin_evc_flood_vlan_add( msgEvcFlood[i].evcId,
+                                       ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
+                                       ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
+                                       msgEvcFlood[i].oVlanId,
+                                       msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+            rc = L7_FAILURE;
+          }
+          j++;
+        }
+        shift_index++;
+      }
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
+      PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
+      PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+
+      ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
+      ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
+
+      if (ptin_evc_flood_vlan_add( msgEvcFlood[i].evcId,
+                                   ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
+                                   ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
+                                   msgEvcFlood[i].oVlanId,
+                                   msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+        rc = L7_FAILURE;
+      }
     }
   }
 
@@ -6832,6 +6990,11 @@ L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_ui
   ptin_intf_t ptin_intf;
   L7_RC_t     rc = L7_SUCCESS;
 
+  // NGPON2
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
+
   if ( msgEvcFlood == L7_NULLPTR )
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid params");
@@ -6850,26 +7013,63 @@ L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_ui
     ENDIAN_SWAP16_MOD(msgEvcFlood[i].oVlanId);
     ENDIAN_SWAP16_MOD(msgEvcFlood[i].iVlanId);
 
-    PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
-    PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
-    PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
-
-    ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
-    ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
-
-    if (ptin_evc_flood_vlan_remove( msgEvcFlood[i].evcId,
-                                    ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
-                                    ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
-                                    msgEvcFlood[i].oVlanId,
-                                    msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+    if (msgEvcFlood[i].intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flooding vlan", msgEvcFlood[i].evcId);
-      rc = L7_FAILURE;
+      get_NGPON2_group_info(&NGPON2_GROUP, msgEvcFlood[i].intf.intf_id);
+
+      PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
+
+      while (j < NGPON2_GROUP.nports)
+      {
+        if( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        {
+          ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+          ptin_intf.intf_id   = shift_index;
+
+          PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
+          PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Intf NGPON2   = %u/%u", PTIN_EVC_INTF_PHYSICAL, shift_index);
+          PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
+          PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+
+          if (ptin_evc_flood_vlan_remove( msgEvcFlood[i].evcId,
+                                          ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
+                                          ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
+                                          msgEvcFlood[i].oVlanId,
+                                          msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+            rc = L7_FAILURE;
+          }
+        }
+      }
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
+      PT_LOG_DEBUG(LOG_CTX_MSG," EVC_idx = %u",    msgEvcFlood[i].evcId);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Mask    = 0x%02x",msgEvcFlood[i].mask);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Intf    = %u/%u", msgEvcFlood[i].intf.intf_type, msgEvcFlood[i].intf.intf_id);
+      PT_LOG_DEBUG(LOG_CTX_MSG," CVlan   = %u",    msgEvcFlood[i].client_vlan);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Outer Vlan : %u", msgEvcFlood[i].oVlanId);
+      PT_LOG_DEBUG(LOG_CTX_MSG," Inner Vlan : %u", msgEvcFlood[i].iVlanId);
+
+      ptin_intf.intf_type = msgEvcFlood[i].intf.intf_type;
+      ptin_intf.intf_id   = msgEvcFlood[i].intf.intf_id;
+
+      if (ptin_evc_flood_vlan_remove( msgEvcFlood[i].evcId,
+                                      ((msgEvcFlood[i].mask & 0x01) ? &ptin_intf : L7_NULLPTR),
+                                      ((msgEvcFlood[i].mask & 0x02) ? msgEvcFlood[i].client_vlan : 0),
+                                      msgEvcFlood[i].oVlanId,
+                                      msgEvcFlood[i].iVlanId ) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flooding vlan", msgEvcFlood[i].evcId);
+        rc = L7_FAILURE;
+      }
     }
   }
 
@@ -7017,9 +7217,15 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
         return rc;
       }
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-
-      evcPortTest[evcId-1].profile = profile;
-      evcPortTest[evcId-1].meter   = meter;
+      L7_uint32 evc_id;
+      /* Is EVC in use? */
+      if (ptin_evc_ext2int(evcId, &evc_id) != L7_SUCCESS)
+      {
+      PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evcId);
+      return L7_FAILURE;
+      }
+      evcPortTest[evc_id-1].profile = profile;
+      evcPortTest[evc_id-1].meter   = meter;
 #endif
       break;
   case CCMSG_ETH_BW_PROFILE_SET_II:
@@ -7986,11 +8192,11 @@ L7_RC_t ptin_msg_ntw_connectivity_set(msg_NtwConnectivity_t *msgNtwConn)
   /* Output data */
   PT_LOG_INFO(LOG_CTX_MSG, "Network Connectivity (mask=0x%08X)", ptinNtwConn.mask);
   PT_LOG_INFO(LOG_CTX_MSG, "  IP Addr         = %u.%u.%u.%u",    (ptinNtwConn.ipaddr  >> 24) & 0xFF, (ptinNtwConn.ipaddr  >> 16) & 0xFF,
-              (ptinNtwConn.ipaddr  >>  8) & 0xFF,  ptinNtwConn.ipaddr         & 0xFF);
+           (ptinNtwConn.ipaddr  >>  8) & 0xFF,  ptinNtwConn.ipaddr         & 0xFF);
   PT_LOG_INFO(LOG_CTX_MSG, "  Mask            = %u.%u.%u.%u",    (ptinNtwConn.netmask >> 24) & 0xFF, (ptinNtwConn.netmask >> 16) & 0xFF,
-              (ptinNtwConn.netmask >>  8) & 0xFF,  ptinNtwConn.netmask        & 0xFF);
+           (ptinNtwConn.netmask >>  8) & 0xFF,  ptinNtwConn.netmask        & 0xFF);
   PT_LOG_INFO(LOG_CTX_MSG, "  Gateway         = %u.%u.%u.%u",    (ptinNtwConn.gateway >> 24) & 0xFF, (ptinNtwConn.gateway >> 16) & 0xFF,
-              (ptinNtwConn.gateway >>  8) & 0xFF,  ptinNtwConn.gateway        & 0xFF);
+           (ptinNtwConn.gateway >>  8) & 0xFF,  ptinNtwConn.gateway        & 0xFF);
   PT_LOG_INFO(LOG_CTX_MSG, "  Mgmt VLAN ID    = %u",             ptinNtwConn.mgmtVlanId);
   PT_LOG_INFO(LOG_CTX_MSG, "  Interfaces (%u)", ptinNtwConn.n_intf);
   for (i=0; i<ptinNtwConn.n_intf; i++)
@@ -8806,7 +9012,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   if (dhcp_stats->client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
   {
     /* Get statistics */
-    rc = ptin_dhcp_stat_client_get(dhcp_stats->evc_id, &client, &stats);
+    rc = ptin_dhcp_stat_client_get(ENDIAN_SWAP32(dhcp_stats->evc_id), &client, &stats);
 
     if (rc!=L7_SUCCESS)
     {
@@ -9652,13 +9858,24 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
             return L7_FAILURE;
           }
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+
+          L7_uint32 evc_id;
+          /* Is EVC in use? */
+          if (ptin_evc_ext2int(msgAdmissionControl->evcId, &evc_id) != L7_SUCCESS)
+          {
+          PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", msgAdmissionControl->evcId);
+          return L7_FAILURE;
+          }
+
           /*save data*/
-            igmpAdmissionControl_info[msgAdmissionControl->evcId-1].mask                = igmpAdmissionControl.mask;
-            igmpAdmissionControl_info[msgAdmissionControl->evcId-1].maxAllowedBandwidth = igmpAdmissionControl.maxAllowedBandwidth;
-            igmpAdmissionControl_info[msgAdmissionControl->evcId-1].maxAllowedChannels  = igmpAdmissionControl.maxAllowedChannels;
-            igmpAdmissionControl_info[msgAdmissionControl->evcId-1].onuId               = igmpAdmissionControl.onuId;
-            igmpAdmissionControl_info[msgAdmissionControl->evcId-1].ptin_port           = igmpAdmissionControl.ptin_port;
-            igmpAdmissionControl_info[msgAdmissionControl->evcId-1].serviceId           = igmpAdmissionControl.serviceId;
+          igmpAdmissionControl_info[evc_id-1].mask                = igmpAdmissionControl.mask;
+          igmpAdmissionControl_info[evc_id-1].maxAllowedBandwidth = igmpAdmissionControl.maxAllowedBandwidth;
+          igmpAdmissionControl_info[evc_id-1].maxAllowedChannels  = igmpAdmissionControl.maxAllowedChannels;
+          igmpAdmissionControl_info[evc_id-1].onuId               = igmpAdmissionControl.onuId;
+          igmpAdmissionControl_info[evc_id-1].ptin_port           = igmpAdmissionControl.ptin_port;
+          igmpAdmissionControl_info[evc_id-1].serviceId           = igmpAdmissionControl.serviceId;
+          //igmpAdmissionControl_info[evc_id-1].admin               = L7_TRUE;
+
 #endif
           j++;
         }
@@ -10091,15 +10308,22 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
            else
            {
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+             L7_uint32 evc_id;
+             /* Is EVC in use? */
+             if (ptin_evc_ext2int(McastClient[i].mcEvcId-1, &evc_id) != L7_SUCCESS)
+             {
+               PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", McastClient[i].mcEvcId);
+               return L7_FAILURE;
+             }
 
-               McastClient_info[McastClient[i].mcEvcId-1].uni_ivid      = uni_ivid;
-               McastClient_info[McastClient[i].mcEvcId-1].uni_ovid      = uni_ovid;
-               McastClient_info[McastClient[i].mcEvcId-1].mask          = McastClient[i].mask;
-               McastClient_info[McastClient[i].mcEvcId-1].onuId         = McastClient[i].onuId;
-               McastClient_info[McastClient[i].mcEvcId-1].maxBandwidth  = ENDIAN_SWAP64(McastClient[i].maxBandwidth);
-               McastClient_info[McastClient[i].mcEvcId-1].maxChannels   = ENDIAN_SWAP16(McastClient[i].maxChannels);
-               McastClient_info[McastClient[i].mcEvcId-1].admin         = L7_TRUE;
-               memcpy(&McastClient_info[McastClient[i].mcEvcId-1].client, &McastClient[i].client, sizeof(ptin_client_id_t));
+             McastClient_info[evc_id-1].uni_ivid      = uni_ivid;
+             McastClient_info[evc_id-1].uni_ovid      = uni_ovid;
+             McastClient_info[evc_id-1].mask          = McastClient[i].mask;
+             McastClient_info[evc_id-1].onuId         = McastClient[i].onuId;
+             McastClient_info[evc_id-1].maxBandwidth  = ENDIAN_SWAP64(McastClient[i].maxBandwidth);
+             McastClient_info[evc_id-1].maxChannels   = ENDIAN_SWAP16(McastClient[i].maxChannels);
+             McastClient_info[evc_id-1].admin         = L7_TRUE;
+             memcpy(&McastClient_info[evc_id-1].client, &McastClient[i].client, sizeof(ptin_client_id_t));
 #endif
            }
          }
@@ -10253,8 +10477,15 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
            else
            {
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-             memset(&McastClient_info[ENDIAN_SWAP32(McastClient[i].mcEvcId)-1], 0xFF, sizeof(McastClient_info[ENDIAN_SWAP32(McastClient[i].mcEvcId)-1]));
-             McastClient_info[ENDIAN_SWAP32(McastClient[i].mcEvcId)-1].admin = L7_FALSE;
+             L7_uint32 evc_id;
+             /* Is EVC in use? */
+             if (ptin_evc_ext2int(ENDIAN_SWAP32(McastClient[i].mcEvcId), &evc_id) != L7_SUCCESS)
+             {
+               PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(McastClient[i].mcEvcId));
+               return L7_FAILURE;
+             }
+             memset(&UcastClient_info[evc_id-1], 0xFF, sizeof(UcastClient_info[evc_id-1]));
+             UcastClient_info[evc_id-1].admin = L7_FALSE;
 #endif
            }
           }
@@ -12439,6 +12670,9 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
   /* CVID */
   profile->inner_vlan_ingress  = 0;
   profile->inner_vlan_egress   = 0;
+
+  profile->ptin_port_bmp       = 0;
+
 
   /* No MAC address provided */
   memset(profile->macAddr, 0x00, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
@@ -15809,13 +16043,14 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
   *n_elements = 0;
 
   while (*n_elements<RFC2819_MAX_BUFFER_GET_NEXT) 
-  { 
+  {
     L7_int32 port1;
     L7_int16 slot_ret,port_ret;
     port1 = (ring_buffer.path >> 14) & 0xFFF;
 
    
     ptin_intf_port2SlotPort(port1, &slot_ret, &port_ret, L7_NULLPTR);
+    first_reg = ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer);
 
     first_reg = ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer);
 
@@ -16125,7 +16360,7 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
   {
     ENDIAN_SWAP32_MOD(msg->packageBmpList[i]);   
   }
-
+      
   /*Input Parameters*/
   PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
 
@@ -16141,7 +16376,7 @@ L7_RC_t ptin_msg_igmp_packages_add(msg_igmp_package_t *msg)
      continue;
     }
 
-    if (IS_BITMAP_BIT_SET(msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
+    if (IS_BITMAP_BIT_SET( msg->packageBmpList, packageIdIterator, UINT32_BITSIZE) == L7_FALSE)
     {
       continue;
     }
@@ -16201,7 +16436,7 @@ L7_RC_t ptin_msg_igmp_packages_remove(msg_igmp_package_t *msg)
   {
     ENDIAN_SWAP32_MOD(msg->packageBmpList[i]);   
   }
-       
+      
   /*Input Parameters*/
   PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u noOfPackages:%u packageBmpList:%s]",msg->slotId, msg->noOfPackages, packageBmpStr);
 
@@ -16613,17 +16848,26 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
               else
               {
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-                 UcastClient_info[msg[messageIterator].evcId-1].uni_ivid      = uni_ivid;
-                 UcastClient_info[msg[messageIterator].evcId-1].uni_ovid      = uni_ovid;
-                 UcastClient_info[msg[messageIterator].evcId-1].uni_ovid      = msg[messageIterator].onuId;
-                 UcastClient_info[msg[messageIterator].evcId-1].addOrRemove   = addOrRemove;
-                 UcastClient_info[msg[messageIterator].evcId-1].nOfPackets    = msg[messageIterator].noOfPackages;
-                 memcpy(UcastClient_info[msg[messageIterator].evcId-1].packageBmpList, 
-                        msg[messageIterator].packageBmpList, 
-                        sizeof(UcastClient_info[msg[messageIterator].evcId-1].packageBmpList));
-                 memcpy(&UcastClient_info[msg[messageIterator].evcId-1].client, 
-                        &msg[messageIterator].client, 
-                        sizeof(ptin_client_id_t));
+
+                L7_uint32 evc_id;
+                /* Is EVC in use? */
+                if (ptin_evc_ext2int(msg[messageIterator].evcId, &evc_id) != L7_SUCCESS)
+                {
+                PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", msg[messageIterator].evcId);
+                return L7_FAILURE;
+                }
+                UcastClient_info[evc_id-1].uni_ivid      = uni_ivid;
+                UcastClient_info[evc_id-1].uni_ovid      = uni_ovid;
+                UcastClient_info[evc_id-1].uni_ovid      = msg[messageIterator].onuId;
+                UcastClient_info[evc_id-1].addOrRemove   = addOrRemove;
+                UcastClient_info[evc_id-1].nOfPackets    = msg[messageIterator].noOfPackages;
+                UcastClient_info[evc_id-1].admin         = L7_TRUE;
+                memcpy(UcastClient_info[evc_id-1].packageBmpList, 
+                      msg[messageIterator].packageBmpList, 
+                      sizeof(UcastClient_info[evc_id-1].packageBmpList));
+                memcpy(&UcastClient_info[evc_id-1].client, 
+                      &msg[messageIterator].client, 
+                      sizeof(ptin_client_id_t));
 #endif
               }
               j++;
@@ -16856,6 +17100,20 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
                 PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client rc:%u", rc);
                 return rc;
               }
+              else
+              {
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+              L7_uint32 evc_id;
+              /* Is EVC in use? */
+              if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) != L7_SUCCESS)
+              {
+              PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(msg[messageIterator].evcId));
+              return L7_FAILURE;
+              }
+              memset(&McastClient_info[evc_id-1], 0xFF, sizeof(McastClient_info[evc_id-1]));
+              McastClient_info[evc_id-1].admin = L7_FALSE;
+#endif
+              }
             }
             j++;
           }
@@ -17047,18 +17305,26 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
             {
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
 
-                /* Save data */
-                MacbridgePackage_info[ptinEvcFlow.evc_idx-1].evc_idx           = ptinEvcFlow.evc_idx;
-                MacbridgePackage_info[ptinEvcFlow.evc_idx-1].int_ivid          = ptinEvcFlow.int_ivid;
-                MacbridgePackage_info[ptinEvcFlow.evc_idx-1].noOfPackages      = ptinEvcFlow.noOfPackages;
-                MacbridgePackage_info[ptinEvcFlow.evc_idx-1].onuId             = ptinEvcFlow.onuId;
-                MacbridgePackage_info[ptinEvcFlow.evc_idx-1].ptin_intf.intf_id = ptinEvcFlow.ptin_intf.intf_id;
-                MacbridgePackage_info[ptinEvcFlow.evc_idx-1].uni_ivid          = ptinEvcFlow.uni_ivid;
-                MacbridgePackage_info[ptinEvcFlow.evc_idx-1].uni_ovid          = ptinEvcFlow.uni_ovid;
-                /*Copy Multicast Package Bitmap*/
-                memcpy(MacbridgePackage_info[ptinEvcFlow.evc_idx-1].packageBmpList, 
-                       msg[messageIterator].packageBmpList, 
-                       sizeof(MacbridgePackage_info[ptinEvcFlow.evc_idx-1].packageBmpList));
+              L7_uint32 evc_id;
+              /* Is EVC in use? */
+              if (ptin_evc_ext2int(ptinEvcFlow.evc_idx, &evc_id) != L7_SUCCESS)
+              {
+              PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ptinEvcFlow.evc_idx);
+              return L7_FAILURE;
+              }
+              /* Save data */
+              MacbridgePackage_info[evc_id-1].evc_idx           = ptinEvcFlow.evc_idx;
+              MacbridgePackage_info[evc_id-1].int_ivid          = ptinEvcFlow.int_ivid;
+              MacbridgePackage_info[evc_id-1].noOfPackages      = ptinEvcFlow.noOfPackages;
+              MacbridgePackage_info[evc_id-1].onuId             = ptinEvcFlow.onuId;
+              MacbridgePackage_info[evc_id-1].ptin_intf.intf_id = ptinEvcFlow.ptin_intf.intf_id;
+              MacbridgePackage_info[evc_id-1].uni_ivid          = ptinEvcFlow.uni_ivid;
+              MacbridgePackage_info[evc_id-1].uni_ovid          = ptinEvcFlow.uni_ovid;
+              MacbridgePackage_info[evc_id-1].admin             = L7_TRUE;
+              /*Copy Multicast Package Bitmap*/
+              memcpy(MacbridgePackage_info[evc_id-1].packageBmpList, 
+                     msg[messageIterator].packageBmpList, 
+                     sizeof(MacbridgePackage_info[evc_id-1].packageBmpList));
 #endif
             }
           }
@@ -17243,7 +17509,18 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
                 return rc;
               }
               else
-              {          
+              {
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+                L7_uint32 evc_id;
+                /* Is EVC in use? */
+                if (ptin_evc_ext2int(ptinEvcFlow.evc_idx, &evc_id) != L7_SUCCESS)
+                {
+                PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ptinEvcFlow.evc_idx);
+                return L7_FAILURE;
+                }
+                memset(&MacbridgePackage_info[evc_id-1], 0xFF, sizeof(MacbridgePackage_info[evc_id-1]));
+                MacbridgePackage_info[evc_id-1].admin = L7_FALSE;
+#endif                          
                 //Warning already logged          
                 rc = L7_SUCCESS;
               }
@@ -17403,9 +17680,17 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
           else
           {
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-            mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].evcId         = ENDIAN_SWAP32(msg[messageIterator].evcId);
-            mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].onuId         = ENDIAN_SWAP32(msg[messageIterator].onuId);
-            mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].intf.intf_id  = ptinPort;
+            L7_uint32 evc_id;
+            /* Is EVC in use? */
+            if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) != L7_SUCCESS)
+            {
+            PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(msg[messageIterator].evcId));
+            return L7_FAILURE;
+            }
+            mcast_service_info[evc_id-1].evcId         = ENDIAN_SWAP32(msg[messageIterator].evcId);
+            mcast_service_info[evc_id-1].onuId         = ENDIAN_SWAP32(msg[messageIterator].onuId);
+            mcast_service_info[evc_id-1].intf.intf_id  = ptinPort;
+            mcast_service_info[evc_id-1].admin         = L7_TRUE;
 #endif
           }
 
@@ -17434,9 +17719,16 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
       else
       {
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-        mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].evcId         = ENDIAN_SWAP32(msg[messageIterator].evcId);
-        mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].onuId         = ENDIAN_SWAP32(msg[messageIterator].onuId);
-        mcast_service_info[ENDIAN_SWAP32(msg[messageIterator].evcId)-1].intf.intf_id  = ptinPort;
+        L7_uint32 evc_id;
+        /* Is EVC in use? */
+        if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) != L7_SUCCESS)
+        {
+        PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(msg[messageIterator].evcId));
+        return L7_FAILURE;
+        }
+        mcast_service_info[evc_id-1].evcId         = ENDIAN_SWAP32(msg[messageIterator].evcId);
+        mcast_service_info[evc_id-1].onuId         = ENDIAN_SWAP32(msg[messageIterator].onuId);
+        mcast_service_info[evc_id-1].intf.intf_id  = ptinPort;
 #endif
       }
     }
@@ -17537,6 +17829,20 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
       if ( L7_SUCCESS != (rc = ptin_igmp_multicast_service_remove(ptinPort, ENDIAN_SWAP8(msg[messageIterator].onuId), ENDIAN_SWAP32(msg[messageIterator].evcId)) ) )
       {
         return rc;
+      }
+      else
+      {
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+      L7_uint32 evc_id;
+      /* Is EVC in use? */
+      if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) != L7_SUCCESS)
+      {
+      PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(msg[messageIterator].evcId));
+      return L7_FAILURE;
+      }
+      memset(&McastClient_info[evc_id-1], 0xFF, sizeof(McastClient_info[evc_id-1]));
+      McastClient_info[evc_id-1].admin = L7_FALSE;
+#endif
       }
     }
   }

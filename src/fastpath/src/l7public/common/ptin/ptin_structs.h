@@ -938,7 +938,8 @@ typedef struct {
   ptin_intf_t ptin_intf;    // PON interface
   L7_uint16   uni_ovid;     // GEM id
   L7_uint16   uni_ivid;     // UNI cvlan  
-  L7_uint8    onuId;        // ONU/CPE Identifier  
+  L7_uint8    onuId;        // ONU/CPE Identifier
+  L7_uint8    admin;
   L7_uint32   packageBmpList[(PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/(sizeof(L7_uint32)*8)+1];  //Package Bitmap List   
   L7_uint32   noOfPackages; // Number of Packages 
 } ptin_evc_macbridge_client_packages_t;
