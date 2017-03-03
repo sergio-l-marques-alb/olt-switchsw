@@ -5802,10 +5802,9 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   }
   else
   {
-
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
     if (msgEvcConf->evc.intf[index_port].intf_type == PTIN_EVC_INTF_NGPON2)
     {
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
 
       get_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);
       /*teste*/
@@ -17851,7 +17850,6 @@ L7_RC_t ptin_msg_switch_temperature_get(msg_ptin_temperature_monitor_t *msg)
 /**************** test functions ****************/
 
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-
 
 /**
  * ADD or REMOVE evc port without a message
