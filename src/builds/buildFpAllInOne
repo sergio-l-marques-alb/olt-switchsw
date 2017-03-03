@@ -15,6 +15,8 @@ echo "Usage: sh $0 [version] [patch] [\$updateSvn] [\$compile]"
 updateSvn=1
 compile=1
 
+svnversion_file=svnversion.txt
+
 if [ $# -ge 1 ]; then
     # Show help 
     if [ $1 == "h" -o $1 == "help" ]; then
@@ -118,9 +120,11 @@ if  [ $updateSvn -eq 1 ]; then
 
 		exit $?
 	fi
-	svnRelease=`svnversion $srcPath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+	#svnRelease=`svnversion $srcPath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+        svnRelease=`svnversion $srcPath`
 else	
-	svnRelease=`svnversion $srcPath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+	#svnRelease=`svnversion $srcPath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+        svnRelease=`svnversion $srcPath`
 	echo "I'm not updating $srcPath: Using current svn release:$svnRelease...press Ctrl+C to abort"
 	sleep 1
 fi
@@ -143,6 +147,14 @@ if  [ $scriptVerbose -eq 1 ]; then
 fi
 cd $builderScriptPath
 
+# Check if is necessary to make a build
+if [ -f $svnversion_file ]; then
+  lastRelease=`cat $svnversion_file`
+  if [ $svnRelease == $lastRelease ]; then
+    echo "SVN revision didn't change since last build... Nothing to be done."
+    exit;
+  fi
+fi
 
 if  [ $scriptDebugCommands -eq 1 ]; then
 	echo sh ./fastpath-olt.build $oltVersion.$patchVersion
@@ -267,6 +279,9 @@ fi
 
 #Restore User Path
 cd $currentPath
+
+#Save current SVN revision
+echo "$svnRelease" > $svnversion_file
 
 # Create backup
 sh ./fastpath-olt.build $oltVersion.$patchVersion backup
