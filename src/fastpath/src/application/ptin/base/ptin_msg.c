@@ -5803,11 +5803,11 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   else
   {
 
-    //if (msgEvcConf->evc.intf[index_port].intf_type == PTIN_EVC_INTF_NGPON2)
-    //{
+    if (msgEvcConf->evc.intf[index_port].intf_type == PTIN_EVC_INTF_NGPON2)
+    {
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
 
-      get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
+      get_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);
       /*teste*/
       evcPortTest[ptinEvcConf.index-1].evcId         = ptinEvcConf.index;
       evcPortTest[ptinEvcConf.index-1].intf.format   = PTIN_INTF_FORMAT_TYPEID;
@@ -5822,9 +5822,9 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ptinEvcConf.index;
       NGPON2_GROUP.number_services++;
 
-      set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);  
+      set_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);  
 
-    //}
+    }
 #endif
   }
 

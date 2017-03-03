@@ -8038,6 +8038,9 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
 
   PT_LOG_TRACE(LOG_CTX_INTF, "Going to replicate configuration from port %d to %d !", aux_port, group_info->NGPON2Port[i].id);
 
+
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+
   if( ptin_msg_replicate_port_configuration(group_info->NGPON2Port[i].id, aux_port) != L7_SUCCESS)
   {
     /* Remove configurations */
@@ -8051,6 +8054,8 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
     PT_LOG_ERR(LOG_CTX_INTF, "Error replicating configuration from port %d to %d !", aux_port, group_info->NGPON2Port[i].id);
     return L7_FAILURE;
   }
+
+#endif
 
   NGPON2_groups_info[group_idx].nports = n_ports;
 
@@ -8111,11 +8116,14 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
 
   PT_LOG_TRACE(LOG_CTX_INTF, "Going to remove configuration from port %d ", group_info->NGPON2Port[i].id);
   /* Remove port configurations */
+
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
   if(ptin_msg_remove_port_configuration(group_info->NGPON2Port[i].id) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Error remove configuration from port %d", group_info->NGPON2Port[i].id);
     return L7_FAILURE;
   }
+#endif
 
   PT_LOG_TRACE(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d", NGPON2_groups_info[group_idx].nports);
   NGPON2_groups_info[group_idx].nports = n_ports;
@@ -8144,6 +8152,7 @@ L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
   group_info->number_services         = NGPON2_groups_info[group_index].number_services;
 
   PT_LOG_ERR(LOG_CTX_MSG, "group_info->number_services %d", group_info->number_services );
+
   for(i=0; i<NGPON2_groups_info[group_index].number_services ; i++)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "GPON2_groups_info[group_index].evcPort[i] %d ",NGPON2_groups_info[group_index].evcPort[i]);
