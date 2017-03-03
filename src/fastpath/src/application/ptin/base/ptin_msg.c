@@ -17991,11 +17991,12 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
 }
 
 /**
+ * Remove Port configurations from a port
  * 
+ * @param 
  * 
- * @param msg 
- * 
- * @return L7_RC_t 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
  */
 L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
 {

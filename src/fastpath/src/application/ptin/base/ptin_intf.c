@@ -29,6 +29,7 @@
 #include "ptin_igmp.h" //Added for Admission Control Support
 #include "ptin_fieldproc.h"
 #include "ptin_fpga_api.h"
+#include "ptin_msg.h"
 
 #define LINKSCAN_MANAGEABLE_BOARD (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
 
@@ -171,7 +172,6 @@ L7_RC_t ptin_intf_pre_init(void)
   memset(lagConf_data,        0xFF, sizeof(lagConf_data));
   memset(phyExt_data,         0x00, sizeof(phyExt_data));
   memset(NGPON2_groups_info,  0x00, sizeof(NGPON2_groups_info));
-
 
 
   /* Initialize phy lookup tables */
@@ -7906,13 +7906,12 @@ L7_RC_t ptin_intf_NGPON2_add_group(ptin_NGPON2group_t *group_info)
     /* check if the group already exists */
   if (ptin_intf_NGPON2_group_exists(group_idx))
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "NGPON2 Group already exists");
+    PT_LOG_ERR(LOG_CTX_INTF, "NGPON2 Group already exists");
     return L7_SUCCESS;
   }
 
     /* group is active */
   NGPON2_groups_info[group_idx].admin = 1;
-
   NGPON2_groups_info[group_idx].groupId = group_idx;
 
   return L7_SUCCESS;
@@ -7942,10 +7941,10 @@ L7_RC_t ptin_intf_NGPON2_rem_group(ptin_NGPON2group_t *group_info)
 
   group_idx = group_info->GroupId;
 
-    /* check if the group already exists */
+  /* check if the group already exists */
   if (!ptin_intf_NGPON2_group_exists(group_idx))
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "NGPON2 Group does not exist!");
+    PT_LOG_ERR(LOG_CTX_INTF, "NGPON2 Group does not exist!");
     return L7_SUCCESS;;
   }
 
@@ -7994,7 +7993,7 @@ L7_RC_t ptin_intf_NGPON2_clear()
  */
 L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
 {
-  L7_uint32 group_idx;
+  L7_uint32 group_idx, aux_port=-1;
   L7_uint8 i = 0;
 
   /* Validate arguments */
@@ -8006,33 +8005,56 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
 
   group_idx = group_info->GroupId;
 
-    /* check if the group exists */
+  /* check if the group exists */
   if (!ptin_intf_NGPON2_group_exists(group_idx))
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "NGPON2 Group does not exist!");
+    PT_LOG_ERR(LOG_CTX_INTF, "NGPON2 Group does not exist!");
     return L7_FAILURE;
   }
 
   while ( i < group_info->numIntf )
   {
-      /* set portId to the NGPON2 group */
+    /* set portId to the NGPON2 group */
     NGPON2_PORT_ADD(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, group_info->NGPON2Port[i].id);
     i++;
   }
 
-    /* increment number of ports for this group */
+  /* increment number of ports for this group */
   L7_uint8 n_ports = 0, temp = 0;
 
   while(temp < 64)
   {
     if  (NGPON2_BIT_PORT(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64 >> temp))
+    {
+      if (temp != group_info->NGPON2Port[i].id)
+      {
+        aux_port = temp;
+      }
       n_ports++;
+    }
 
     temp++;
   }
 
+  PT_LOG_TRACE(LOG_CTX_INTF, "Going to replicate configuration from port %d to %d !", aux_port, group_info->NGPON2Port[i].id);
+
+  if( ptin_msg_replicate_port_configuration(group_info->NGPON2Port[i].id, aux_port) != L7_SUCCESS)
+  {
+    /* Remove configurations */
+    while ( i < group_info->numIntf )
+    {
+      /* set portId to the NGPON2 group */
+      NGPON2_PORT_REM(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, group_info->NGPON2Port[i].id);
+      i++;
+    }
+
+    PT_LOG_ERR(LOG_CTX_INTF, "Error replicating configuration from port %d to %d !", aux_port, group_info->NGPON2Port[i].id);
+    return L7_FAILURE;
+  }
+
   NGPON2_groups_info[group_idx].nports = n_ports;
 
+  PT_LOG_TRACE(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d !", NGPON2_groups_info[group_idx].nports);
 
   return L7_SUCCESS;
 }
@@ -8061,21 +8083,20 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
 
   group_idx = group_info->GroupId;
 
-    /* check if the group already exists */
+  /* check if the group already exists */
   if (!ptin_intf_NGPON2_group_exists(group_idx))
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "NGPON2 Group does not exist!");
+    PT_LOG_ERR(LOG_CTX_INTF, "NGPON2 Group does not exist!");
     return L7_FAILURE;
   }
 
   while ( i < group_info->numIntf )
   {
-      NGPON2_PORT_REM(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, group_info->NGPON2Port[i].id);
-
+    NGPON2_PORT_REM(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, group_info->NGPON2Port[i].id);
     i++;
   }
 
-    /* count number of ports for this group */
+  /* count number of ports for this group */
   L7_uint8 n_ports = 0, temp = 0;
 
   while(temp < 64)
@@ -8088,6 +8109,15 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
     temp++;
   }
 
+  PT_LOG_TRACE(LOG_CTX_INTF, "Going to remove configuration from port %d ", group_info->NGPON2Port[i].id);
+  /* Remove port configurations */
+  if(ptin_msg_remove_port_configuration(group_info->NGPON2Port[i].id) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error remove configuration from port %d", group_info->NGPON2Port[i].id);
+    return L7_FAILURE;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d", NGPON2_groups_info[group_idx].nports);
   NGPON2_groups_info[group_idx].nports = n_ports;
 
   return L7_SUCCESS;
@@ -8123,19 +8153,22 @@ L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
   return L7_SUCCESS;
 }
 
-
-
+/**
+ * PTIN_INTF set NGPON2 group info 
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ * @param group_index     : NGPON2 group index                  
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
 L7_RC_t set_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_index)
 {
 
   L7_uint32 index = group_info->number_services - 1;
+
   NGPON2_groups_info[group_index].number_services = group_info->number_services;
-
-  PT_LOG_ERR(LOG_CTX_MSG, "group_info->number_services %d", group_info->number_services );
-
-  PT_LOG_ERR(LOG_CTX_MSG, "group_info->evcPort[group_info->number_services] %d ",group_info->evcPort[index]);
   NGPON2_groups_info[group_index].evcPort[index] = group_info->evcPort[index];
-
 
   return L7_SUCCESS;
 }
@@ -8146,7 +8179,6 @@ L7_RC_t set_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
  * @brief check if a physical port belongs to a NGPON2 group 
  *  
  */
-
 L7_RC_t ptin_intf_NGPON2_group_check(L7_uint8 intf_index, L7_uint8 *group_index)
 {
   L7_uint16 i = 0;

@@ -1823,6 +1823,27 @@ L7_RC_t ptin_msg_NGPON2_add_group_port(ptin_NGPON2group_t *group_info);
  */
 L7_RC_t ptin_msg_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info);
 
+
+
+/**
+ * Remove Port configurations from a port
+ * 
+ * @param 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+extern L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port);
+
+/**
+ * Replicate Port configuration from old_port to ptin_port
+ * 
+ * @param msg 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old_port);
 /****************************************End Multicast Package Feature**************************************************/
 
 
