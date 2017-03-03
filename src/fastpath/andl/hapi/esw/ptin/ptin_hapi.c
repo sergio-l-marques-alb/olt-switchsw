@@ -529,6 +529,7 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
   }
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+ #if (SDK_VERSION_IS < SDK_VERSION(6,5,0,0))
  #if (PHY_RECOVERY_PROCEDURE)
   for (i = PTIN_SYS_LC_SLOT_MIN; i <= PTIN_SYS_LC_SLOT_MAX; i++)
   {
@@ -543,6 +544,7 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
     }
   }
  #endif
+ #endif /* SDK_VERSION_IS < SDK_VERSION(6,5,0,0) */
 #endif
 
   /* Run all ports */
@@ -635,6 +637,7 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void)
   int i;
   bcm_port_t bcm_port;
 
+ #if (SDK_VERSION_IS < SDK_VERSION(6,5,0,0))
  #if (PHY_RECOVERY_PROCEDURE)
   bcm_pbmp_t pbm, pbm_out;
 
@@ -690,6 +693,7 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void)
   /* Wait 100ms */
   osapiSleepMSec(100);
  #endif
+ #endif /* SDK_VERSION_IS < SDK_VERSION(6,5,0,0) */
 
   for (i=PTIN_SYSTEM_N_ETH; i<PTIN_SYSTEM_N_PORTS; i++)
   {
@@ -709,6 +713,7 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void)
     PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) in KR4", i, bcm_port);
   }
 
+ #if (SDK_VERSION_IS < SDK_VERSION(6,5,0,0))
  #if (PHY_RECOVERY_PROCEDURE)
   /* Outra martelada: set da velocidade de 1G para garantir que nenhuma fica em 2.5G (que supostamente não é suportada) */
   for (i=0; i<PTIN_SYSTEM_N_ETH; i++)
@@ -731,6 +736,7 @@ L7_RC_t ptin_hapi_phy_init_ta48ge(void)
     PT_LOG_NOTICE(LOG_CTX_HAPI, "All front ports were reinitialized to 1G speed");
   }
  #endif
+ #endif /* SDK_VERSION_IS < SDK_VERSION(6,5,0,0) */
 #else
   rc = L7_NOT_SUPPORTED;
 #endif
@@ -899,12 +905,13 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
 #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
   bcm_port_t    bcm_port;
   L7_uint32     rval;
+  int i;
 
   osapiSleep(2);
 
+ #if (SDK_VERSION_IS < SDK_VERSION(6,5,0,0))
  #if (PHY_RECOVERY_PROCEDURE)
   bcm_pbmp_t pbm, pbm_out;
-  int i;
 
   /* A maior martelada da história: reset aos Cores dos PHYs (4 portas) para garantir que arrancam bem! */
   /* Reset PHY cores: Do not apply this configurations to ports 10G ports */
@@ -1020,6 +1027,7 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
   }
 
  #endif // PHY_RECOVERY_PROCEDURE
+ #endif /* SDK_VERSION_IS < SDK_VERSION(6,5,0,0) */
 
   /* Run all ethernet ports */
   for (i = PTIN_SYSTEM_N_PONS; i < PTIN_SYSTEM_N_PONS+PTIN_SYSTEM_N_ETH; i++)
