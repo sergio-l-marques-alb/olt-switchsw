@@ -8,6 +8,8 @@ compile=1
 svn_username=ci-olt-switchsw
 svn_password=c1-olt-switchsw
 
+output_file=output_`date +%Y-%m-%d_%H:%M`.txt
+
 if [ $# -ge 1 ]; then
   # Show help 
   if [ $1 == "h" -o $1 == "help" ]; then
@@ -43,14 +45,16 @@ if [ $svnUpdate -eq 1 ]; then
 fi
 
 echo "Preparing build version $version.$patch in background..."
-#echo "Do you wish to proceed? (type 'yes' to continue) "
-read -p "Do you wish to proceed? (type 'yes' to continue) " answer
-if [ $answer != 'yes' ]; then
-  echo "Aborting procedure. Good bye!"
-  exit 0;
-fi
+#read -p "Do you wish to proceed? (type 'yes' to continue) " answer
+#if [ $answer != 'yes' ]; then
+#  echo "Aborting procedure. Good bye!"
+#  exit 0;
+#fi
 
 echo "Build procedure have started..."
-sh buildFpAllInOne $version $patch 0 $compile > output.txt &
+echo "#******************************************************#" >> $output_file
+echo "# Build started at `date`        #" >> $output_file
+echo "#******************************************************#" >> $output_file
+sh buildFpAllInOne $version $patch 0 $compile >> $output_file &
 echo "You can monitor the results at 'output.txt'. See you."
 
