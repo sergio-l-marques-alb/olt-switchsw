@@ -5,6 +5,9 @@ patch=0
 svnUpdate=1
 compile=1
 
+svn_username=ci-olt-switchsw
+svn_password=c1-olt-switchsw
+
 if [ $# -ge 1 ]; then
   # Show help 
   if [ $1 == "h" -o $1 == "help" ]; then
@@ -35,7 +38,7 @@ fi
 if [ $svnUpdate -eq 1 ]; then
   echo "Updating svn..."
   cd ..
-  svn update
+  svn update --username=$svn_username --password=$svn_password
   cd -
 fi
 
