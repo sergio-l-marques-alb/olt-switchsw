@@ -8419,7 +8419,7 @@ void ptin_intf_NGPON2_groups_dump(void)
   {
     if (NGPON2_groups_info[i].admin)
     {
-      printf("GroupID: %u -- Ports Bitmap: %llu -- Number of ports: %u %d \n", NGPON2_groups_info[i].groupId, NGPON2_groups_info[i].ngpon2_groups_pbmp64, NGPON2_groups_info[i].nports, NGPON2_groups_info[i].number_services);
+      printf("GroupID: %u -- Ports Bitmap: %llu -- Number of ports: %u N of services --%d \n", NGPON2_groups_info[i].groupId, NGPON2_groups_info[i].ngpon2_groups_pbmp64, NGPON2_groups_info[i].nports, NGPON2_groups_info[i].number_services);
     }
     i++;
   }

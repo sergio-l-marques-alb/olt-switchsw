@@ -5812,9 +5812,9 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ptinEvcConf.index);
       return L7_FAILURE;
       }
-    if (msgEvcConf->evc.intf[index_port].intf_type == PTIN_EVC_INTF_NGPON2)
+    //if (msgEvcConf->evc.intf[index_port].intf_type == PTIN_EVC_INTF_NGPON2)
     {
-      get_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);
+      get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
       /*teste*/
       evcPortTest[evc_id-1].evcId         = ptinEvcConf.index;
       evcPortTest[evc_id-1].intf.format   = PTIN_INTF_FORMAT_TYPEID;
@@ -5829,7 +5829,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ptinEvcConf.index;
       NGPON2_GROUP.number_services++;
 
-      set_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);  
+      set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);  
 
     }
 #endif
@@ -18224,7 +18224,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
   {
 
     /* Get EVC id configured in the NGPON group*/
-    evc_ext_id = NGPON2_GROUP.evcPort[index] - 1; //due to array initial value
+    evc_ext_id = NGPON2_GROUP.evcPort[index]; //due to array initial value
 
     L7_uint evc_idx;
     /* Get the internal index based on the extended one */
@@ -18311,7 +18311,7 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
 
   while (index >= 0)
   {  
-    L7_uint32 evc_ext_id = NGPON2_GROUP.evcPort[index] - 1;  //due to array initial value
+    L7_uint32 evc_ext_id = NGPON2_GROUP.evcPort[index];  //due to array initial value
 
     L7_uint evc_idx;
     /* Get the internal index based on the extended one */
