@@ -61,8 +61,8 @@ echo "Subject: OLTSWITCH-Trunk build $version.$patch-r$svnRelease > `date +%Y-%m
 echo "" >> mail.txt
 head -n 8 $output_file >> mail.txt
 echo "..." >> mail.txt
-tail -n 500 >> mail.txt
+tail -n 500 $output_file >> mail.txt
 
-sendmail milton-r-silva@alticelabs.com < tail -n 1000 $output_file
-sendmail rui-f-fernandes@alticelabs.com < tail -n 1000 $output_file
-sendmail celso-r-lemos@alticelabs.com < tail -n 1000 $output_file
+sendmail milton-r-silva@alticelabs.com < mail.txt
+sendmail rui-f-fernandes@alticelabs.com < mail.txt
+sendmail celso-r-lemos@alticelabs.com < mail.txt
