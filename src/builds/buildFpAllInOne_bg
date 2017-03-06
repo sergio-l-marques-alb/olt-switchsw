@@ -52,9 +52,10 @@ echo "Preparing build version $version.$patch in background..."
 #fi
 
 echo "Subject: OLTSWITCH-Trunk build $version.$patch > `date +%Y-%m-%d_%H:%M`" > $output_file
+echo "" >> $output_file
 echo "Build started at `date`" >> $output_file
 sh buildFpAllInOne $version $patch 0 $compile >> $output_file
 echo "Build finished at `date`." >> $output_file
-sendmail milton-r-silva@alticelabs.com < $output_file
-sendmail rui-f-fernandes@alticelabs.com < $output_file
-#sendmail celso-r-lemos@alticelabs.com < $output_file
+sendmail milton-r-silva@alticelabs.com < tail -n 1000 $output_file
+sendmail rui-f-fernandes@alticelabs.com < tail -n 1000 $output_file
+sendmail celso-r-lemos@alticelabs.com < tail -n 1000 $output_file
