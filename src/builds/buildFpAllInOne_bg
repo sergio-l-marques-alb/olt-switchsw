@@ -9,6 +9,7 @@ svn_username=ci-olt-switchsw
 svn_password=c1-olt-switchsw
 
 output_file=output_`date +%Y-%m-%d_%H:%M`.txt
+svnRelease=x.xx
 
 if [ $# -ge 1 ]; then
   # Show help 
@@ -41,6 +42,7 @@ if [ $svnUpdate -eq 1 ]; then
   echo "Updating svn..."
   cd ..
   svn update --username=$svn_username --password=$svn_password
+  svnRelease=`svnversion`
   cd -
 fi
 
@@ -51,11 +53,11 @@ echo "Preparing build version $version.$patch in background..."
 #  exit 0;
 #fi
 
-echo "Build started at `date`" >> $output_file
+echo "Build $version.$patch-r$svnRelease started at `date`" >> $output_file
 sh buildFpAllInOne $version $patch 0 $compile >> $output_file
 echo "Build finished at `date`." >> $output_file
 
-echo "Subject: OLTSWITCH-Trunk build $version.$patch > `date +%Y-%m-%d_%H:%M`" > mail.txt
+echo "Subject: OLTSWITCH-Trunk build $version.$patch-r$svnRelease > `date +%Y-%m-%d_%H:%M`" > mail.txt
 echo "" >> mail.txt
 head -n 8 $output_file >> mail.txt
 echo "..." >> mail.txt
