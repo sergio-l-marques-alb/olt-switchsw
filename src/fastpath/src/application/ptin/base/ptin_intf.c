@@ -8151,11 +8151,10 @@ L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
   group_info->ngpon2_groups_pbmp64    = NGPON2_groups_info[group_index].ngpon2_groups_pbmp64;
   group_info->number_services         = NGPON2_groups_info[group_index].number_services;
 
-  PT_LOG_ERR(LOG_CTX_MSG, "group_info->number_services %d", group_info->number_services );
+  PT_LOG_TRACE(LOG_CTX_MSG, "group_info->number_services %d", group_info->number_services );
 
   for(i=0; i<NGPON2_groups_info[group_index].number_services ; i++)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "GPON2_groups_info[group_index].evcPort[i] %d ",NGPON2_groups_info[group_index].evcPort[i]);
     group_info->evcPort[i]              = NGPON2_groups_info[group_index].evcPort[i];
   }
 

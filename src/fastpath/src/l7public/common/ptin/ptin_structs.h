@@ -851,7 +851,7 @@ typedef struct
   ptin_vlanXlate_action_enum action_outer; // Action associated to the outer VLAN
   ptin_vlanXlate_action_enum action_inner; // Action associated to the inner VLAN
   L7_uint32 evcId;
-  L7_uint8  admin;        // 1-enbale 0-disable
+  L7_uint8  admin;        // 1-enable 0-disable
 
   ptin_bw_profile_t profile;
   ptin_bw_meter_t meter;
