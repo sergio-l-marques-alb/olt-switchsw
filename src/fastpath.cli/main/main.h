@@ -233,10 +233,10 @@ extern int canal_buga;
 
 
 /* NGPON2 */
-#define CCMSG_NGPON2_ADD_GROUP                          0x9300
-#define CCMSG_NGPON2_REM_GROUP                          0x9301
-#define CCMSG_NGPON2_ADD_GROUP_PORT                     0x9302
-#define CCMSG_NGPON2_REM_GROUP_PORT                     0x9303
+#define CCMSG_NGPON2_ADD_GROUP                          0x91EC
+#define CCMSG_NGPON2_REM_GROUP                          0x91EE
+#define CCMSG_NGPON2_ADD_GROUP_PORT                     0x91ED
+#define CCMSG_NGPON2_REM_GROUP_PORT                     0x91EF
 
 /* Fastpath typedefs */
 typedef uint8    L7_uint8;
