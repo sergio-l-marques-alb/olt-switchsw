@@ -5,6 +5,9 @@ patch=1
 svnUpdate=1
 compile=1
 
+svn_username=ci-olt-switchsw
+svn_password=c1-olt-switchsw
+
 output_file=output_`date +%Y-%m-%d_%H:%M`.txt
 
 if [ $# -ge 1 ]; then
@@ -37,7 +40,7 @@ fi
 if [ $svnUpdate -eq 1 ]; then
   echo "Updating svn..."
   cd ..
-  svn update
+  svn update --username=$svn_username --password=$svn_password
   cd -
 fi
 

@@ -14,6 +14,8 @@ echo "Usage: sh $0 [version] [patch] [\$updateSvn] [\$compile]"
 
 updateSvn=1
 compile=1
+svn_username=ci-olt-switchsw
+svn_password=c1-olt-switchsw
 
 svnversion_file=svnversion.txt
 
@@ -108,8 +110,8 @@ fi
 if  [ $updateSvn -eq 1 ]; then
 	echo "Going to update $srcPath...press Ctrl+C to abort"
 	sleep 1
-	cd $srcPath	
-	svn update 
+	cd $srcPath
+	svn update --username=$svn_username --password=$svn_password
 	cd -
 	
 	if  [ $? -ne 0 ]; then
