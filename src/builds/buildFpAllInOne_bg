@@ -4,47 +4,62 @@ version=3.11
 patch=0
 svnUpdate=1
 compile=1
+update_mkboards=1
+send_mail=1
 
 svn_username=ci-olt-switchsw
 svn_password=c1-olt-switchsw
 
 output_file=output_`date +%Y-%m-%d_%H:%M`.txt
-svnRelease=x.xx
+svnRelease=x
 
 if [ $# -ge 1 ]; then
   # Show help 
   if [ $1 == "h" -o $1 == "help" ]; then
-    echo "Syntax: $0 [version] [patch] [update_svn(0/1)] [compile(0/1)]"
+    echo "Syntax: $0 [version] [patch] [update_svn(0/1)] [compile(0/1)] [update_mkboards(0/1)] [send_mail(0/1)]"
     exit 0;
   fi
-  version=$1
+  if [ "$1" != "x" ]; then
+    version=$1
+  fi
 fi
 if [ $# -ge 2 ]; then
-  patch=$2
+  if [ "$2" != "x" ]; then
+    patch=$2
+  fi
 fi
 if [ $# -ge 3 ]; then
   svnUpdate=$3
-  if  [ $updateSvn -ne 1 -a $updateSvn -ne 0 ]; then
-    echo "Invalid Input Parameter: updateSvn=$updateSvn"
-    exit -1
-  fi
 fi
 if [ $# -ge 4 ]; then
   compile=$4
-  if  [ $compile -ne 1 -a $compile -ne 0 ]; then
-    echo "Invalid Input Parameter: compile=$compile"
-    exit -1
-  fi
 fi
+if [ $# -ge 5 ]; then
+  update_mkboards=$5
+fi
+if [ $# -ge 6 ]; then
+  send_mail=$6
+fi
+
+echo "Input parameters:"
+echo "  oltVersion=$version"
+echo "  patchVersion=$patch"
+echo "  svnUpdate=$svnUpdate"
+echo "  compile=$compile"
+echo "  update_mkboards=$update_mkboards"
+echo "  send_mail=$send_mail"
 
 # Update SVN
 if [ $svnUpdate -eq 1 ]; then
   echo "Updating svn..."
   cd ..
   svn update --username=$svn_username --password=$svn_password
-  svnRelease=`svnversion`
   cd -
 fi
+
+cd ..
+svnRelease=`svnversion`
+cd -
 
 echo "Preparing build version $version.$patch in background..."
 #read -p "Do you wish to proceed? (type 'yes' to continue) " answer
@@ -54,15 +69,21 @@ echo "Preparing build version $version.$patch in background..."
 #fi
 
 echo "Build $version.$patch-r$svnRelease started at `date`" >> $output_file
-sh buildFpAllInOne $version $patch 0 $compile >> $output_file 2>&1
+sh buildFpAllInOne $version $patch 0 $compile $update_mkboards >> $output_file 2>&1
 echo "Build finished at `date`." >> $output_file
 
-echo "Subject: OLTSWITCH-Trunk build $version.$patch-r$svnRelease [`date +%Y-%m-%d\ %H:%M`]" > mail.txt
-echo "" >> mail.txt
-head -n 8 $output_file >> mail.txt
-echo "..." >> mail.txt
-tail -n 500 $output_file >> mail.txt
+if [ $send_mail -eq 1 ]; then
+  echo "Subject: OLTSWITCH-Trunk build $version.$patch-r$svnRelease [`date +%Y-%m-%d\ %H:%M`]" > mail.txt
+  echo "" >> mail.txt
+  head -n 8 $output_file >> mail.txt
+  echo "..." >> mail.txt
+  tail -n 400 $output_file >> mail.txt
 
-sendmail milton-r-silva@alticelabs.com < mail.txt
-sendmail rui-f-fernandes@alticelabs.com < mail.txt
-sendmail celso-r-lemos@alticelabs.com < mail.txt
+  sendmail celso-r-lemos@alticelabs.com < mail.txt
+  sendmail milton-r-silva@alticelabs.com < mail.txt
+  sendmail rui-f-fernandes@alticelabs.com < mail.txt
+  sendmail hugo-f-araujo@alticelabs.com < mail.txt
+  sendmail rcosta@alticelabs.com < mail.txt
+fi
+echo "$0 has finished!"
+
