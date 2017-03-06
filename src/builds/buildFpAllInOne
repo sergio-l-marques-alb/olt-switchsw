@@ -199,7 +199,7 @@ fi
 
 ############ Update mkboards ############################
 if [ $update_mkboards -eq 1 ]; then
-    sh ./update_mkboards.sh $oltVersion $patchVersion $svnRelease
+    sh ./mkboards_update.sh $oltVersion $patchVersion $svnRelease
 else
     echo "mkboards updating step was skipped."
 fi
