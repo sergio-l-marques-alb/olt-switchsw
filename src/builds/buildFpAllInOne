@@ -10,10 +10,11 @@ oltVersion=3.9
 patchVersion=1
 
 ###############Input Arguments Validation#########################
-echo "Usage: sh $0 [version] [patch] [\$updateSvn] [\$compile]"
+#echo "Usage: sh $0 [version] [patch] [\$updateSvn] [\$compile] [\$update_mkboards]"
 
 updateSvn=1
 compile=1
+update_mkboards=1
 svn_username=ci-olt-switchsw
 svn_password=c1-olt-switchsw
 
@@ -22,7 +23,7 @@ svnversion_file=svnversion.txt
 if [ $# -ge 1 ]; then
     # Show help 
     if [ $1 == "h" -o $1 == "help" ]; then
-        echo "Syntax: $0 [version] [patch] [update_svn(0/1)] [compile(0/1)]"
+        echo "Syntax: $0 [version] [patch] [update_svn(0/1)] [compile(0/1)] [update_mkboards(0/1)]"
         exit 0;
     fi
     oltVersion=$1
@@ -44,12 +45,20 @@ if [ $# -ge 4 ]; then
         exit -1
     fi
 fi
+if [ $# -ge 5 ]; then
+    update_mkboards=$5
+    if  [ $update_mkboards -ne 1 -a $update_mkboards -ne 0 ]; then
+        echo "Invalid Input Parameter: update_mkboards=$update_mkboards"
+        exit -1
+    fi
+fi
 
 #if  [ $scriptDebugCommands -eq 1 ]; then
     echo "oltVersion=$oltVersion"
     echo "patchVersion=$patchVersion"
     echo "updateSvn=$updateSvn"
     echo "compile=$compile"
+    echo "update_mkboards=$update_mkboards"
 #fi
 ###############End Input Arguments Validation#########################
 
@@ -180,104 +189,21 @@ if [ $? -ne 0 ]; then
 fi
 
 if  [ $? -ne 0 ]; then
-	echo -e "
-      ######################################################################################################################\n
-      # Failed to generate FP build | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ###############################################\n
-      ######################################################################################################################"
-
-	exit $?
+    echo -e "
+    ######################################################################################################################\n
+    # Failed to generate FP build | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ###############################################\n
+    ######################################################################################################################"
+    exit $?
 fi
 ############End Fastpath Build Script####################
 
-############Fastpath MKBoards Update####################
-if  [ $scriptVerbose -eq 1 ]; then
-	echo "Going to extract fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz to $mkBoardsPath...press Ctrl+C to abort"
-	sleep 1
+############ Update mkboards ############################
+if [ $update_mkboards -eq 1 ]; then
+    sh ./update_mkboards.sh $oltVersion $patchVersion $svnRelease
+else
+    echo "mkboards updating step was skipped."
 fi
-cd $buildPath
-if [ ! -f ./fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz ]; then
-    echo "File not found: ./fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz"
-	exit $?
-fi
-
-
-if  [ $scriptDebugCommands -eq 1 ]; then
-	echo "sudo sh image_update.sh  ./fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz $mkBoardsPath"
-fi
-echo $password | sudo -S sh image_update.sh fastpath/fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease.tgz $mkBoardsPath
-
-if  [ $? -ne 0 ]; then
-	echo -e "
-      ######################################################################################################################\n
-      # Failed to update MK Boards | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ################################################\n
-      ######################################################################################################################"
-
-exit $?
-fi
-
-if  [ $scriptVerbose -eq 1 ]; then
-	echo "Going to update fastpath image on mkboards of olt1t0...press Ctrl+C to abort"
-	sleep 1
-fi
-cd $mkBoardsPath/CXOLT1T0
-if  [ $scriptDebugCommands -eq 1 ]; then
-	echo "OLT1T0 -> sudo sh fastpath_olt1t0.sh"
-fi
-echo $password | sudo -S sh fastpath_olt1t0.sh
-
-if  [ $scriptDebugCommands -eq 1 ]; then
-        echo "OLT1T0-AC -> sudo sh fastpath_olt1t0.sh"
-fi
-cd $mkBoardsPath/CXOLT1T0-AC 
-echo $password | sudo -S sh fastpath_olt1t0.sh
-
-if  [ $? -ne 0 ]; then
-	echo -e "
-      ######################################################################################################################\n
-      # Failed to update MK Boards of OLT1T0 | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ################################################\n
-      ######################################################################################################################"
-
-exit $?
-fi
-
-if  [ $scriptVerbose -eq 1 ]; then
-        echo "Going to update fastpath image on mkboards of olt1t0f...press Ctrl+C to abort"
-        sleep 1
-fi
-cd $mkBoardsPath/CXOLT1T0-F
-if  [ $scriptDebugCommands -eq 1 ]; then
-        echo "OLT1T0F -> sudo sh fastpath_olt1t0.sh"
-fi
-echo $password | sudo -S sh fastpath_olt1t0.sh
-
-if  [ $? -ne 0 ]; then
-    echo -e "
-    ######################################################################################################################\n
-    # Failed to update MK Boards of OLT1T0F | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ###############################################\n
-    ######################################################################################################################"
-
-    exit $?
-fi
-
-if  [ $scriptVerbose -eq 1 ]; then
-	echo "Going to update fastpath image on mkboards of olt1t1...press Ctrl+C to abort"
-	sleep 1
-fi
-if  [ $scriptDebugCommands -eq 1 ]; then
-	echo "sudo sh fastpath_cxo160g.sh"
-fi
-cd ../CXO160G 
-echo $password | sudo -S sh fastpath_cxo160g.sh 
-
-if  [ $? -ne 0 ]; then
-	echo -e "
-      ######################################################################################################################\n
-      # Failed to update MK Boards of OLT1T1 | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ################################################\n
-      ######################################################################################################################"
-
-exit $?
-fi
-############Fastpath MKBoards Update####################
+############ End of mkboards update ####################
 
 #Restore User Path
 cd $currentPath
