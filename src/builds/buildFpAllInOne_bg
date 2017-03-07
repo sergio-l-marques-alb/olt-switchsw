@@ -49,6 +49,9 @@ echo "  compile=$compile"
 echo "  update_mkboards=$update_mkboards"
 echo "  send_mail=$send_mail"
 
+# Change to correct foler
+cd `dirname $0`
+
 # Update SVN
 if [ $svnUpdate -eq 1 ]; then
   echo "Updating svn..."

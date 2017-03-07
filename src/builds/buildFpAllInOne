@@ -26,10 +26,14 @@ if [ $# -ge 1 ]; then
         echo "Syntax: $0 [version] [patch] [update_svn(0/1)] [compile(0/1)] [update_mkboards(0/1)]"
         exit 0;
     fi
-    oltVersion=$1
+    if [ "$1" != "x" ]; then
+        oltVersion=$1
+    fi
 fi
 if [ $# -ge 2 ]; then
-    patchVersion=$2
+    if [ "$2" != "x" ]; then
+        patchVersion=$2
+    fi
 fi
 if [ $# -ge 3 ]; then
     updateSvn=$3
@@ -63,6 +67,7 @@ fi
 ###############End Input Arguments Validation#########################
 
 ###############Save Current Path#########
+cd `dirname $0`
 currentPath=$(pwd)
 if  [ $scriptDebugCommands -eq 1 ]; then
     echo $currentPath
@@ -167,6 +172,10 @@ if [ -f $svnversion_file ]; then
   fi
 fi
 
+# Apply environemnt variables
+. ./env_vars.sh
+
+# Compile boards
 if  [ $scriptDebugCommands -eq 1 ]; then
 	echo sh ./fastpath-olt.build $oltVersion.$patchVersion
 fi

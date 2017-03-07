@@ -1,12 +1,4 @@
 export SHELL=/bin/bash
 export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
 export LANG=en_US.UTF-8
-#export LC_PAPER=pt_PT.UTF-8
-#export LC_ADDRESS=pt_PT.UTF-8
-#export LC_MONETARY=pt_PT.UTF-8
-#export LC_NUMERIC=pt_PT.UTF-8
-#export LC_TELEPHONE=pt_PT.UTF-8
-#export LC_IDENTIFICATION=pt_PT.UTF-8
-#export LC_MEASUREMENT=pt_PT.UTF-8
-#export LC_TIME=pt_PT.UTF-8
-#export LC_NAME=pt_PT.UTF-8
+export ENV_VARS_CHANGED=1
