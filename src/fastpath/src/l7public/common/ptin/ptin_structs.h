@@ -853,9 +853,6 @@ typedef struct
   L7_uint32 evcId;
   L7_uint8  admin;        // 1-enable 0-disable
 
-  ptin_bw_profile_t profile;
-  ptin_bw_meter_t meter;
-
 } ptin_HwEthMef10Intf_t;
 
 typedef struct {

@@ -98,7 +98,6 @@ void ptin_force_capture(L7_BOOL force)
 }
 
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-
 typedef struct
 {
   L7_uint16 uni_ovid;
@@ -152,6 +151,8 @@ ptin_evc_macbridge_client_packages_t MacbridgePackage_info[PTIN_SYSTEM_N_EVCS];
 /* Multicast service info */
 ptin_mcast_service_info mcast_service_info[PTIN_SYSTEM_N_EVCS];
 
+ptin_bw_profile_t bwProfile[PTIN_SYSTEM_N_EVCS];
+ptin_bw_meter_t   bwMeter[PTIN_SYSTEM_N_EVCS];
 #endif
 
 /******************************************************** 
@@ -5666,15 +5667,6 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   ptin_HwEthMef10Evc_t ptinEvcConf;
   msg_HwEthMef10EvcQoS_t *msgEvcConf = (msg_HwEthMef10EvcQoS_t *) inbuffer->info;
 
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 index_port = 0;
-  L7_uint8 shift_index = 0;
-  L7_uint8 ports_ngpon2 = 0;
-  L7_BOOL  ngpon2_ports = L7_FALSE;
-
-
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
   if ((ENDIAN_SWAP32(msgEvcConf->evc.id) == PTIN_EVC_INBAND) || (ENDIAN_SWAP32(msgEvcConf->evc.id) >= PTIN_SYSTEM_N_EXTENDED_EVCS))
   {
@@ -5697,7 +5689,6 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   PT_LOG_DEBUG(LOG_CTX_MSG, " .MC Flood = %u (%s)", ptinEvcConf.mc_flood, ptinEvcConf.mc_flood==0?"All":ptinEvcConf.mc_flood==1?"Unknown":"None");
 
 
-
   #ifdef PTIN_ENABLE_ERPS
   if( (flags & PTIN_EVC_MASK_MC_IPTV) && ptin_erps_get_status_void(1) == 1)
   {
@@ -5705,7 +5696,14 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   }
   #endif
 
-
+  // NGPON2
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
+  L7_uint8 ports_ngpon2 = 0;
+  L7_BOOL  ngpon2_ports = L7_FALSE; 
+  L7_uint8 index_port = 0;
+ 
   for (i=0; i < msgEvcConf->evc.n_intf; i++)
   {
     #if (0)
@@ -5727,10 +5725,10 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     ptinEvcConf.flags &= ~PTIN_EVC_MASK_MC_IPTV;     
     #endif
 
+
     if (msgEvcConf->evc.intf[index_port].intf_type == PTIN_EVC_INTF_NGPON2)
     {
-      // NGPON2
-
+     // NGPON2
       ngpon2_ports = L7_TRUE;
 
       get_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);
@@ -5760,7 +5758,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
           index_port++;
         }
         shift_index++;
-      }    
+      }         
     }
     else
     {
@@ -7226,8 +7224,8 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
       PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evcId);
       return L7_FAILURE;
       }
-      evcPortTest[evc_id-1].profile = profile;
-      evcPortTest[evc_id-1].meter   = meter;
+      bwProfile[evc_id-1] = profile;
+      bwMeter[evc_id-1]   = meter;
 #endif
       break;
   case CCMSG_ETH_BW_PROFILE_SET_II:
@@ -18338,7 +18336,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
     if(evcPortTest[evc_idx].admin !=0 )
     {
       /* Read and set policer information */
-      if ((ptin_bwPolicer_set(&evcPortTest[evc_idx].profile, &evcPortTest[evc_idx].meter, -1))!= L7_SUCCESS)
+      if ((ptin_bwPolicer_set(&bwProfile[evc_idx], &bwMeter[evc_idx], -1))!= L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_EVC,"Error reading policer profile");
 
@@ -18382,7 +18380,7 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
     evc_idx = evc_idx - 1;
     PT_LOG_TRACE(LOG_CTX_MSG, "evc_idx = %d ", evc_idx);
 
-    if (ptin_evc_bwProfile_delete(evc_ext_id, &evcPortTest[evc_idx].profile)!= L7_SUCCESS)
+    if (ptin_evc_bwProfile_delete(evc_ext_id, &bwProfile[evc_idx])!= L7_SUCCESS)
     { 
       PT_LOG_ERR(LOG_CTX_MSG,"Error removing policer");
       //return L7_FAILURE;
