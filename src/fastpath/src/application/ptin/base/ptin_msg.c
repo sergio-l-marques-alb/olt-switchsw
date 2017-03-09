@@ -5821,8 +5821,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       evcPortTest[evc_id-1].action_inner  = ptinEvcConf.intf[i].action_inner;
       evcPortTest[evc_id-1].vid_inner     = ptinEvcConf.intf[i].vid_inner;
       evcPortTest[evc_id-1].vid           = ptinEvcConf.intf[i].vid;
-      evcPortTest[evc_id-1].mef_type      = ptinEvcConf.intf[i].mef_type;
-      evcPortTest[evc_id-1].admin         = L7_TRUE;
+      evcPortTest[evc_id-1].mef_type      = ptinEvcConf.intf[i].mef_type;    
 
       PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
       NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ptinEvcConf.index;
@@ -6021,10 +6020,7 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
       {
       PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(msgEvcConf[i].id));
       return L7_FAILURE;
-      }
-
-      if (evcPortTest[evc_id-1].admin == L7_TRUE)
-      {
+      }  
         get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
         /*teste*/
 
@@ -6033,11 +6029,8 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
         NGPON2_GROUP.number_services--;
 
         memset(&evcPortTest[evc_id-1], 0xFF, sizeof(evcPortTest[evc_id-1]));
-        evcPortTest[evc_id-1].admin = L7_FALSE;
 
-
-        set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/); 
-      }
+        set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);     
 #endif
     }
 
@@ -18237,12 +18230,6 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
 
     evc_idx = evc_idx - 1;
 
-    if(evcPortTest[evc_idx].admin == 0 )
-    {
-      index--;
-      continue;
-    }
-
     evcPortTest[evc_idx].intf.value.ptin_port = ptin_port;
     evcPortTest[evc_idx].mef_type = PTIN_EVC_INTF_LEAF;
 
@@ -18287,9 +18274,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
       }
     }
     else
-    {
-      if(evcPortTest[evc_idx].admin !=0)
-      {
+    {      
         /* Get EVC id configured in the NGPON group*/
         if ((ptin_evc_p2p_bridge_replicate(NGPON2_GROUP.evcPort[index], ptin_port, old_port, &evcPortTest[evc_idx]))!= L7_SUCCESS )
         {
@@ -18298,7 +18283,6 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
           index--;
           continue;         
         }
-      }
     }
 
     if(McastClient_info[evc_idx].admin != 0)
@@ -18333,8 +18317,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
 
     }
 
-    if(evcPortTest[evc_idx].admin !=0 )
-    {
+    
       /* Read and set policer information */
       if ((ptin_bwPolicer_set(&bwProfile[evc_idx], &bwMeter[evc_idx], -1))!= L7_SUCCESS)
       {
@@ -18343,7 +18326,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
         index--;
         continue;
       }
-    }
+    
 
     index--;
   }
