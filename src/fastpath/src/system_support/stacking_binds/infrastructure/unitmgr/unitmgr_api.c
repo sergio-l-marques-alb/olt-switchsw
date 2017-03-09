@@ -956,7 +956,7 @@ L7_uint32 unitMgrEventLogEntryNextGet(L7_uint32 UnitIndex, L7_uint32 ptr, L7_cha
 * @notes    Broadcasts a start-config-download message to all units
 *           in the stack.  Connected units will respond by FFTPing
 *           a list of config files from the management unit.  Config
-*           files consist of fastpath.cfg and security key files.
+*           files consist of switchdrvr.cfg and security key files.
 *
 * @end
 *********************************************************************/

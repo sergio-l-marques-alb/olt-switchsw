@@ -1080,24 +1080,24 @@ xLibRC_t fpObjSet_baseSysTransfer_sysTransferUploadFileType (void *wap,
      if (objsysTransferUploadFileTypeValue == L7_FILE_TYPE_CONFIG_SCRIPT)
      {
          memset(fileName,0x0,sizeof(fileName));
-         if( osapiStrncmp(objsysTransferHTTPFileNameLocalValue, "running-config", sizeof("running-config")) == 0 )
+         if( osapiStrncmp(objsysTransferHTTPFileNameLocalValue, "fp.running-config", sizeof("fp.running-config")) == 0 )
          {
            if( usmDbSwDevCtrlSaveConfigurationSet(L7_UNIT_CURRENT, L7_SAVE_CONFIG_TYPE_TEMP) == L7_SUCCESS)
            {
               /*remove running-config in case it still exists*/
-              osapiFsDeleteFile("running-config");
+              osapiFsDeleteFile("fp.running-config");
 
               if( configScriptCopy(L7_SCRIPTS_TEMP_CONFIG_FILENAME) == L7_SUCCESS )
               {
                 osapiFsDeleteFile(L7_SCRIPTS_TEMP_CONFIG_FILENAME);
-                if (osapiFsRenameFile(TEMP_CONFIG_SCRIPT_FILE_NAME, "running-config") != L7_SUCCESS)
+                if (osapiFsRenameFile(TEMP_CONFIG_SCRIPT_FILE_NAME, "fp.running-config") != L7_SUCCESS)
                 {
                   owa.rc = XLIBRC_FAILURE;
                   FPOBJ_TRACE_EXIT (bufp, owa);
                   return owa.rc;
                 }
-                osapiStrncpy(filePromptName,"running-config",15);
-                osapiStrncpy(fileName,"running-config\0",15);
+                osapiStrncpy(filePromptName,"fp.running-config",15);
+                osapiStrncpy(fileName,"fp.running-config\0",15);
               }
               else
               {
@@ -1113,7 +1113,7 @@ xLibRC_t fpObjSet_baseSysTransfer_sysTransferUploadFileType (void *wap,
               if( configScriptCopy(L7_SCRIPTS_STARTUP_CONFIG_FILENAME) == L7_SUCCESS )
               {
                 osapiStrncpy(filePromptName,L7_SCRIPTS_STARTUP_CONFIG_FILENAME,15);
-                osapiStrncpy(fileName,"startup-config\0",14);
+                osapiStrncpy(fileName,"fp.startup-config\0",17);
               }
               else
               {
@@ -1127,7 +1127,7 @@ xLibRC_t fpObjSet_baseSysTransfer_sysTransferUploadFileType (void *wap,
               if( configScriptCopy(L7_SCRIPTS_BACKUP_CONFIG_FILENAME) == L7_SUCCESS )
               {
                 osapiStrncpy(filePromptName,L7_SCRIPTS_BACKUP_CONFIG_FILENAME,14);
-                osapiStrncpy(fileName,"backup-config\0",13);
+                osapiStrncpy(fileName,"fp.backup-config\0",16);
               }
               else
               {

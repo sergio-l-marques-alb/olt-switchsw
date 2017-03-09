@@ -4,9 +4,9 @@
 #include "l7_platformspecs.h"
 #include <sys/utsname.h>
 
-#define LOG_OUTPUT_FILE_DEFAULT   "/var/log/switchdrvr.log"
-#define LOG_OUTPUT_FILE_DEFAULT2  "/var/log/switchdrvr_sdk.log"
-#define LOG_OUTPUT_FILE_DEFAULT3  "/var/log/switchdrvr_events.log"
+#define LOG_OUTPUT_FILE_DEFAULT   "/var/log/switchdrvr/switchdrvr.log"
+#define LOG_OUTPUT_FILE_DEFAULT2  "/var/log/switchdrvr/switchdrvr_sdk.log"
+#define LOG_OUTPUT_FILE_DEFAULT3  "/var/log/switchdrvr/switchdrvr_events.log"
 
 /* ************************** */
 /* Global Features Activation */

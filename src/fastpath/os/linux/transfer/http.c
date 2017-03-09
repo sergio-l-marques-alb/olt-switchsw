@@ -24,10 +24,10 @@
 #include "osapi.h"
 
 #define OSAPI_WEB_FILE_HANDLE_COMP 100
-#define L7_EMWEB_FILE_DOWNLOAD_PATH "/tmp/"                                     /* PTin modified: paths */
+#define L7_EMWEB_FILE_DOWNLOAD_PATH "/tmp/"                            /* PTin modified: paths */
 
-#define L7_EMWEB_NV_FILE_DOWNLOAD_PATH "/usr/local/ptin/log/fastpath/ramnv/"    /* PTin modified: paths */
-#define L7_EMWEB_CP_FILE_DOWNLOAD_PATH "/usr/local/ptin/log/fastpath/ramcp/"    /* PTin modified: paths */
+#define L7_EMWEB_NV_FILE_DOWNLOAD_PATH "/var/log/switchdrvr/ramnv/"    /* PTin modified: paths */
+#define L7_EMWEB_CP_FILE_DOWNLOAD_PATH "/var/log/switchdrvr/ramcp/"    /* PTin modified: paths */
 
 typedef struct
 {

@@ -73,13 +73,13 @@ static L7_char8 *cliGetErrSyntaxCopy (void)
   else
   {
 #ifdef L7_MGMT_SECURITY_PACKAGE
-#if defined(FEAT_METRO_CPE_V1_0) /* If Services, then mask the "fastpath.cfg" as "Switch.cfg".*/
+#if defined(FEAT_METRO_CPE_V1_0) /* If Services, then mask the "switchdrvr.cfg" as "Switch.cfg".*/
     osapiSnprintf(buf, sizeof(buf), "%s",  pStrErr_base_CopyTxSwitchCfg);
 #else
     osapiSnprintf(buf, sizeof(buf), "%s",  pStrErr_base_CopyTx);
 #endif
 #else
-#if defined(FEAT_METRO_CPE_V1_0) /* If Services, then mask the "fastpath.cfg" as "Switch.cfg".*/
+#if defined(FEAT_METRO_CPE_V1_0) /* If Services, then mask the "switchdrvr.cfg" as "Switch.cfg".*/
     osapiSnprintf(buf, sizeof(buf), "%s",  pStrErr_base_CopySecurityPkgTxSwitchCfg);
 #else
     osapiSnprintf(buf, sizeof(buf), "%s",  pStrErr_base_CopySecurityPkgTx);

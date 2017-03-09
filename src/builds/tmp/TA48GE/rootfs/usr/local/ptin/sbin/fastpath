@@ -10,6 +10,8 @@ ntry=0
 
 startup()
 {
+    mkdir -p /var/log/switchdrvr
+
     # Launch app
 #    nice -n -19 $app_path 0>/dev/null &
     $app_path 0>/dev/null &

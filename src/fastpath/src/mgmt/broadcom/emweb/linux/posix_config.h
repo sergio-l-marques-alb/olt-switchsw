@@ -111,12 +111,12 @@
  * See the ewaURLHook function in ewsys.c
  */
 #ifndef EMWEB_FILE_LOCAL_ROOT
-#define EMWEB_FILE_LOCAL_ROOT   "" /* points to /usr/local/ptin/log/fastpath/ by default */
+#define EMWEB_FILE_LOCAL_ROOT   "" /* points to /var/log/switchdrvr/ by default */
 #endif
 #define EMWEB_FILE_LOCAL_PREFIX "/filesystem/"
 
-/* IMPORTANT --  Do not allow access to /usr/local/ptin/log/fastpath/.  This is where the SSL/SSH key files are stored, hence
-it would create a major security problem.  Instead, create the directory called /usr/local/ptin/log/fastpath/public/ and place
+/* IMPORTANT --  Do not allow access to /var/log/switchdrvr/.  This is where the SSL/SSH key files are stored, hence
+it would create a major security problem.  Instead, create the directory called /var/log/switchdrvr/public/ and place
 web accessible files there. ***/
 #define EMWEB_FILE_LOCAL_PUBLIC_PREFIX "/filesystem/public/"  /* avoid realm auth checks on each file */
 #define EMWEB_FILE_LOCAL_RAM_NV_PREFIX "/filesystem/ramnv/"  /* avoid realm auth checks on each file */

@@ -17,6 +17,8 @@ startup()
     SLOT=`/usr/local/ptin/bin/getslotid`
     ftpget -u root -p lampada 192.168.200.`expr $SLOT + 100` /usr/local/ptin/var/bcm_port_map
 
+    mkdir -p /var/log/switchdrvr
+
     # Launch app
 #    nice -n -19 $app_path 0>/dev/null &
     $app_path 0>/dev/null &

@@ -6271,7 +6271,7 @@ L7_RC_t passwdRecoveryFlagGet(L7_int32 *envVar)
 
  /* Open the text file and convert the text data to integer */
  /* PTin modified: paths */
- if(osapiFsRead("/usr/local/ptin/log/fastpath/envFile",(L7_char8 *)passwordBuff,sizeof(passwordBuff)) != L7_SUCCESS)
+ if(osapiFsRead("/var/log/switchdrvr/envFile",(L7_char8 *)passwordBuff,sizeof(passwordBuff)) != L7_SUCCESS)
  {
     return L7_FAILURE;
  }
@@ -6327,7 +6327,7 @@ L7_RC_t passwdRecoveryFlagSet(L7_uint32 value)
   /* Open the text file and Write a text data to the file */
   osapiSnprintf(passwordBuff,sizeof(passwordBuff),"defaultPwdFlag=%d",envVaribles.defaultPasswordFlag);
     /* PTin modified: paths */
-    if(osapiFsWrite("/usr/local/ptin/log/fastpath/envFile",passwordBuff,sizeof(passwordBuff)) != L7_SUCCESS)
+    if(osapiFsWrite("/var/log/switchdrvr/envFile",passwordBuff,sizeof(passwordBuff)) != L7_SUCCESS)
     {
       return L7_FAILURE;
     }

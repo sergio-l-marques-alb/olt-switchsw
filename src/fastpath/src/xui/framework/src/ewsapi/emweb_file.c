@@ -768,12 +768,12 @@ EwaFileHandle fp;
            osapiStrncpy(lbuf,"/filesystem/image1",18);
         }
         
-        if(osapiStrncmp(params->fileInfo.fileName,"startup-config",14) == 0 )
+        if(osapiStrncmp(params->fileInfo.fileName,"fp.startup-config",17) == 0 )
         {
            memset(lbuf,0x0,sizeof(lbuf));
            osapiStrncpy(lbuf,"TempConfigScript.scr",21);
         }
-        if(osapiStrncmp(params->fileInfo.fileName,"backup-config",13) == 0 )
+        if(osapiStrncmp(params->fileInfo.fileName,"fp.backup-config",16) == 0 )
         {
            memset(lbuf,0x0,sizeof(lbuf));
            osapiStrncpy(lbuf,"TempConfigScript.scr",21);

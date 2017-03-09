@@ -39,12 +39,12 @@
 #define DMA_PERIPHERAL_TO_MEM       0x0040
 
 #define SYSAPI_BIG_CONFIG_FILENAME SYSAPI_CONFIG_FILENAME    /* Version used for upload/download */
-#define SYSAPI_CONFIG_FILENAME     "fastpath.cfg" /* Version used for storing across resets */
-#define SYSAPI_CONFIG_RUNING_FILENAME "fastpathRun.cfg"
-#define SYSAPI_TXTCFG_FILENAME     "startup-config"
-#define SYSAPI_TXTCFG_RUNNING_FILENAME  "running-config"
-#define SYSAPI_TXTCFG_BACKUP_FILENAME    "backup-config"
-#define SYSAPI_CONFIG_BACKUP_FILENAME    "backup-fastpath"
+#define SYSAPI_CONFIG_FILENAME     "switchdrvr.cfg" /* Version used for storing across resets */
+#define SYSAPI_CONFIG_RUNING_FILENAME "switchdrvrRun.cfg"
+#define SYSAPI_TXTCFG_FILENAME     "fp.startup-config"
+#define SYSAPI_TXTCFG_RUNNING_FILENAME  "fp.running-config"
+#define SYSAPI_TXTCFG_BACKUP_FILENAME    "fp.backup-config"
+#define SYSAPI_CONFIG_BACKUP_FILENAME    "backup-switchdrvr"
 #define SYSAPI_TXTCFG_SIMPLE_FILENAME        "simple-startup-cfg" /* Last saved simple mode configuration */
 #define SYSAPI_TXTCFG_NORMAL_FILENAME        "normal-startup-cfg" /* Last saved normal mode configuration */
 #define SYSAPI_TXTCFG_SIMPLE_BACKUP_FILENAME "simple-backup-cfg" /* Last saved simple mode backup configuration */

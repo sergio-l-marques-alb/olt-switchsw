@@ -2551,7 +2551,7 @@ L7_char8 *sysapiTxtCfgFileGet(void)
 {
   if(sysapiTxtCfgEnable == L7_TRUE)
   {
-    return "startup-config";
+    return "fp.startup-config";
   }
   return "TxtCfgDsbld.err";
 }
@@ -2559,7 +2559,7 @@ L7_char8 *sysapiTxtRunCfgFileGet(void)
 {
   if(sysapiTxtCfgEnable == L7_TRUE)
   {
-    return "running-config";
+    return "fp.running-config";
   }
   return "TxtRunCfgDsbld.err";
 }
@@ -2571,7 +2571,7 @@ static void sysapiTxtCfgInit(void)
   sysapiTxtCfgEnable = L7_TRUE;
   sysapiTxtCfgValid = L7_TRUE;
 
-  if (osapiFsFileSizeGet("startup-config", &startupFileLen) == L7_SUCCESS)
+  if (osapiFsFileSizeGet("fp.startup-config", &startupFileLen) == L7_SUCCESS)
   {
     sysapiTxtCfgExists = L7_TRUE;
   }

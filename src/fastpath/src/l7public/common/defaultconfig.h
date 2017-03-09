@@ -1406,7 +1406,7 @@ extern L7_ushort16 dot1dUserPriorityRegenTable[8][8];
 #define L7_LOG_REMOTE_PERSISTENT_OPERATION_FILE_MASK    "olog%d%02d.txt"
 #define PERSISTENT_LOG_FILE_NAME "persist.txt"
 
-#define L7_SCRIPTS_STARTUP_CONFIG_FILENAME "startup-config"
+#define L7_SCRIPTS_STARTUP_CONFIG_FILENAME "fp.startup-config"
 /* End of Log Component's Factory Defaults */
 
 /* Start of IPv6 Provisioning Component's Factory Defaults */
@@ -1469,7 +1469,7 @@ extern L7_ushort16 dot1dUserPriorityRegenTable[8][8];
 #define FD_SSHD_PUBKEY_AUTH_MODE     L7_DISABLE
 
 #ifdef _L7_OS_LINUX_
-#define FD_SSHD_PATH_SSH_USER_DIR    "/usr/local/ptin/log/fastpath/"    /* PTin modified: paths */
+#define FD_SSHD_PATH_SSH_USER_DIR    "/var/log/switchdrvr/"    /* PTin modified: paths */
 #endif /* _L7_OS_LINUX_ */
 #ifdef _L7_OS_VXWORKS_
 #define FD_SSHD_PATH_SSH_USER_DIR    ""
@@ -1497,7 +1497,7 @@ extern L7_ushort16 dot1dUserPriorityRegenTable[8][8];
 
 /* file system path */
 #ifdef _L7_OS_LINUX_
-#define FD_LOGO_IMAGE_FILE_DIR    "/usr/local/ptin/log/fastpath/"       /* PTin modified: paths */
+#define FD_LOGO_IMAGE_FILE_DIR    "/var/log/switchdrvr/"       /* PTin modified: paths */
 #endif /* _L7_OS_LINUX_ */
 #ifdef _L7_OS_VXWORKS_
 #define FD_LOGO_IMAGE_FILE_DIR    ""
@@ -1747,7 +1747,7 @@ typedef struct envVar_s
 #define FD_AUTO_INSTALL_START_STOP_DEFAULT           L7_FALSE    /* disable auto-install by default */
 #define FD_AUTO_INSTALL_AUTO_SAVE_DEFAULT            L7_FALSE    /* disable auto-save by default */
 #define FD_AUTO_INSTALL_UNICAST_RETRY_COUNT_DEFAULT  3
-#define AUTO_INSTALL_NETWORK_CONFIG_FILE_DEFAULT     "fastpath-net.cfg"
+#define AUTO_INSTALL_NETWORK_CONFIG_FILE_DEFAULT     "switchdrvr-net.cfg"
 
 /*-------------------------------------*/
 /* Start Dot1ad Factory Defaults       */

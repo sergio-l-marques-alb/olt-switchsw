@@ -54,6 +54,8 @@ signalcxp()
 
 startup()
 {
+    mkdir -p /var/log/switchdrvr
+
     # Insert modules
     insert_modules;
 

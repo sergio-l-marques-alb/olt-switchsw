@@ -1347,14 +1347,14 @@ typedef enum
 } L7_WSAP_IMAGE_MODE_t;
 
 #define L7_WSAP_AUTO_UPD_CMDBUF_SIZE      54
-#define L7_WSAP_AUTO_UPD_IMAGE_VER_CMD    "(cd /usr/local/ptin/log/fastpath/; tar -x version -f apimage-%d.tar)"    /* PTin modified: paths */
-#define L7_WSAP_AUTO_UPD_IMAGE_VER_PATH   "/usr/local/ptin/log/fastpath/version"                                    /* PTin modified: paths */
+#define L7_WSAP_AUTO_UPD_IMAGE_VER_CMD    "(cd /var/log/switchdrvr/; tar -x version -f apimage-%d.tar)"    /* PTin modified: paths */
+#define L7_WSAP_AUTO_UPD_IMAGE_VER_PATH   "/var/log/switchdrvr/version"                                    /* PTin modified: paths */
 
 #define L7_WSAP_AUTO_UPD_NAMEBUF_SIZE     15
 #define L7_WSAP_AUTO_UPD_IMAGE_NAME       "\"apimage*.tar\""
 #define L7_WSAP_AUTO_UPD_IMAGE_NAME_FILE  "apimagenames"
-#define L7_WSAP_AUTO_UPD_IMAGE_NAME_CMD   "(cd /usr/local/ptin/log/fastpath/; find . -name %s > %s)"                /* PTin modified: paths */
-#define L7_WSAP_AUTO_UPD_IMAGE_NAME_PATH  "(cd /usr/local/ptin/log/fastpath/)"                                      /* PTin modified: paths */
+#define L7_WSAP_AUTO_UPD_IMAGE_NAME_CMD   "(cd /var/log/switchdrvr/; find . -name %s > %s)"                /* PTin modified: paths */
+#define L7_WSAP_AUTO_UPD_IMAGE_NAME_PATH  "(cd /var/log/switchdrvr/)"                                      /* PTin modified: paths */
 
 #define L7_WSAP_AUTO_UPD_BUF_SIZE         128
 #define L7_WSAP_AUTO_UPD_IMAGE_LIST_SIZE  (L7_WDM_AP_IMAGE_TYPE_LAST-1)

@@ -25,10 +25,10 @@
 #ifndef __TRANSFER_EXPORTS_H_
 #define __TRANSFER_EXPORTS_H_
 
-#define L7_SCRIPTS_STARTUP_CONFIG_FILENAME "startup-config"
-#define L7_SCRIPTS_BACKUP_CONFIG_FILENAME  "backup-config"
-#define L7_SCRIPTS_RUNNING_CONFIG_FILENAME "running-config"
-#define L7_SCRIPTS_TEMP_CONFIG_FILENAME    "temp-config.scr"
+#define L7_SCRIPTS_STARTUP_CONFIG_FILENAME "fp.startup-config"
+#define L7_SCRIPTS_BACKUP_CONFIG_FILENAME  "fp.backup-config"
+#define L7_SCRIPTS_RUNNING_CONFIG_FILENAME "fp.running-config"
+#define L7_SCRIPTS_TEMP_CONFIG_FILENAME    "fp.temp-config.scr"
 
 /* CLI Text Based Config */
 typedef enum

@@ -32,7 +32,7 @@
 /*
  * filesystem path info
  */
-#define CONFIG_PATH     "/usr/local/ptin/log/fastpath/"     /* PTin modified: paths */
+#define CONFIG_PATH     "/var/log/switchdrvr/"              /* PTin modified: paths */
 #define EXEC_PATH       "/usr/local/ptin/sbin/"             /* PTin modified: paths */
 #ifdef _L7_OS_VXWORKS_
   #define DOWNLOAD_PATH   "/tmp"                            /* PTin modified: paths */

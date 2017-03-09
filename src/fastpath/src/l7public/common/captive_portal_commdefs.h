@@ -44,7 +44,7 @@
 #define RAM_CP_PATH	""
 #define RAM_CP_NAME "RamCP:"
 #else
-#define RAM_CP_PATH	"/usr/local/ptin/log/fastpath/"     /* PTin modified: paths */
+#define RAM_CP_PATH	"/var/log/switchdrvr/"     /* PTin modified: paths */
 #define RAM_CP_NAME "ramcp"
 #endif  
 

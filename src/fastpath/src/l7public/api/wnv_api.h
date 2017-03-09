@@ -33,7 +33,7 @@
 #define RAM_NV_PATH	""
 #define RAM_NV_NAME  "RamNV:"
 #else
-#define RAM_NV_PATH	"/usr/local/ptin/log/fastpath/"         /* PTin modified: paths */
+#define RAM_NV_PATH	"/var/log/switchdrvr/"         /* PTin modified: paths */
 #define RAM_NV_NAME "ramnv"
 #endif  
 

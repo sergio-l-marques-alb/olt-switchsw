@@ -655,11 +655,11 @@ char* emwebFilePathHandler(EwsContext context,char* url)
         {
            osapiStrncpy(lbuf,"image2",7);
         }
-        else if ( strncmp(ewsContextNetHandle( context )->pathName ,"startup-config",14 ) == 0 )
+        else if ( strncmp(ewsContextNetHandle( context )->pathName ,"fp.startup-config",17 ) == 0 )
         {
            osapiStrncpy(lbuf,"TempConfigScript.scr",21);
         }
-        else if ( strncmp(ewsContextNetHandle( context )->pathName ,"backup-config",13 ) == 0 )
+        else if ( strncmp(ewsContextNetHandle( context )->pathName ,"fp.backup-config",16 ) == 0 )
         {
            osapiStrncpy(lbuf,"TempConfigScript.scr",21);
         }
@@ -759,11 +759,11 @@ char* emwebFilePathHandler(EwsContext context,char* url)
             }
           }
 
-       if ((!strcmp(ewsContextNetHandle( context )->pathName,"startup-config")) ||
-            (!strcmp(ewsContextNetHandle( context )->pathName,"running-config")) || 
+       if ((!strcmp(ewsContextNetHandle( context )->pathName,"fp.startup-config")) ||
+            (!strcmp(ewsContextNetHandle( context )->pathName,"fp.running-config")) || 
              (!strcmp(ewsContextNetHandle( context )->pathName,"slog0.txt")) || 
               (!strcmp(ewsContextNetHandle( context )->pathName,"olog0.txt")) ||
-               (!strcmp(ewsContextNetHandle( context )->pathName,"backup-config"))) 
+               (!strcmp(ewsContextNetHandle( context )->pathName,"fp.backup-config"))) 
        {
 #ifdef EW_CONFIG_OPTION_DISPOSITION
            params->fileInfo.contentDisposition = ewsContextNetHandle( context )->pathName;
@@ -999,9 +999,9 @@ char* emwebFilePathHandler(EwsContext context,char* url)
     }
     else
     {
-       if ((!strcmp(path,"/filesystem/running-config")) ||
-            (!strcmp(path,"/filesystem/startup-config")) || 
-              (!strcmp(path,"/filesystem/backup-config"))) 
+       if ((!strcmp(path,"/filesystem/fp.running-config")) ||
+            (!strcmp(path,"/filesystem/fp.startup-config")) || 
+              (!strcmp(path,"/filesystem/fp.backup-config"))) 
        {
 #ifdef EW_CONFIG_OPTION_DISPOSITION
            handle->params->fileInfo.contentDisposition = path+12;
@@ -1365,9 +1365,9 @@ char* emwebFilePathHandler(EwsContext context,char* url)
     }
     else
     {
-       if ((!strcmp(path,"/filesystem/running-config")) ||
-            (!strcmp(path,"/filesystem/startup-config")) || 
-              (!strcmp(path,"/filesystem/backup-config"))) 
+       if ((!strcmp(path,"/filesystem/fp.running-config")) ||
+            (!strcmp(path,"/filesystem/fp.startup-config")) || 
+              (!strcmp(path,"/filesystem/fp.backup-config"))) 
        {
 #ifdef EW_CONFIG_OPTION_DISPOSITION
            handle->params->fileInfo.contentDisposition = path+12;

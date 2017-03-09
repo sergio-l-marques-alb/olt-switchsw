@@ -1863,7 +1863,7 @@ L7_BOOL autoInstallStartupConfigIsExist()
 {
   L7_int32 fileDesc;
   
-  /* SYSAPI_TXTCFG_FILENAME is defined as "startup-config" */
+  /* SYSAPI_TXTCFG_FILENAME is defined as "fp.startup-config" */
   if (osapiFsOpen(SYSAPI_TXTCFG_FILENAME, &fileDesc) != L7_ERROR)
   {
     L7_uint32 startupFileLen = L7_NULL;
