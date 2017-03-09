@@ -5407,9 +5407,6 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
       return L7_FAILURE;
     }
 
-    PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Going to create new flow (client %u)", evc_id, evcFlow->int_ivid);
-    PT_LOG_ERR(LOG_CTX_EVC, "%u  %u  %u ", multicast_group, evcFlow->int_ivid, evcFlow->int_ivid, evcFlow->macLearnMax);
-
     /* Create virtual port */
     if (ptin_virtual_port_add(intIfNum,
                               evcFlow->uni_ovid, evcFlow->uni_ivid,
