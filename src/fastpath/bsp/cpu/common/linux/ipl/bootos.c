@@ -873,6 +873,7 @@ int main(int argc, char *argv[], char *envp[])
   /* Configure output files */
   logger_output_file_set(LOG_OUTPUT_FILE,  LOG_OUTPUT_FILE_DEFAULT);
   logger_output_file_set(LOG_OUTPUT_FILE2, LOG_OUTPUT_FILE_DEFAULT2);
+  logger_output_file_set(LOG_OUTPUT_FILE3, LOG_OUTPUT_FILE_DEFAULT3);
 
   fflush(stdout);
 

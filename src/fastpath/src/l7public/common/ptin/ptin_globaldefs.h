@@ -6,6 +6,7 @@
 
 #define LOG_OUTPUT_FILE_DEFAULT   "/var/log/switchdrvr.log"
 #define LOG_OUTPUT_FILE_DEFAULT2  "/var/log/switchdrvr_sdk.log"
+#define LOG_OUTPUT_FILE_DEFAULT3  "/var/log/switchdrvr_events.log"
 
 /* ************************** */
 /* Global Features Activation */

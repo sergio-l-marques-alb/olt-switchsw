@@ -59,7 +59,7 @@ typedef enum {
     LOG_CTX_EVENTS,
     LOG_CTX_SDK,
     LOG_CTX_STARTUP,
-    LOG_CTX_OPENSAF,    
+    LOG_CTX_OPENSAF,
     /* Last element */
     LOG_CONTEXT_LAST,
 } log_context_t;

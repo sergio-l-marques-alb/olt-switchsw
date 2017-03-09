@@ -94,7 +94,10 @@ L7_uint32 ptin_control_port_activity[PTIN_SYSTEM_N_PORTS];  /* maps each phy por
 
 static L7_uint32 ptin_loop_handle = 0, _10ms_loop_handle=0;  /* periodic timer handle */
 
-static L7_int    linkStatus[PTIN_SYSTEM_N_INTERF];        /* Link status of each interface */
+/* Link status of each interf (instant+history) */
+L7_uint32 linkStatus_alarm[L7_ALL_INTERFACES/32+1];
+
+static L7_int    linkStatus_history[PTIN_SYSTEM_N_INTERF];        /* Link status of each interface */
 static L7_BOOL   lagActiveMembers[PTIN_SYSTEM_N_PORTS];   /* Port is an active Lag member? */
 static L7_uint32 lagIdList[PTIN_SYSTEM_N_PORTS];          /* LAG id that belongs the port */
 
@@ -468,10 +471,13 @@ void ptin_alarms_init(void)
 {
   L7_uint32 port;
 
+  /* Clear alarms */
+  memset(linkStatus_alarm, 0x00, sizeof(linkStatus_alarm));
+
   /* Initialize alarms state */
   for (port=0; port<PTIN_SYSTEM_N_INTERF; port++)
   {
-    linkStatus[port] = L7_TRUE;
+    linkStatus_history[port] = L7_TRUE;
     ptin_alarms_suppressed[port] = L7_FALSE;
   }
   for (port=0; port<PTIN_SYSTEM_N_PORTS; port++)
@@ -658,28 +664,40 @@ static void monitor_alarms(void)
     linkState = L7_DOWN;
 
     // Get Link status
-    if (!interface_is_valid || adminState==L7_DISABLE)
+    if ((!interface_is_valid) || (adminState == L7_DISABLE))
     {
       link = L7_TRUE;       // End of link down
-    } else if (nimGetIntfLinkState(intf, &linkState)==L7_SUCCESS)
+    }
+    /* Did happen a link-down in the last second? This alarm will contain that information */
+    else if ( ((linkStatus_alarm[intf/32]>>(intf%32)) & 1) )
     {
-      link = (linkState==L7_UP);
-    } else
+      link = L7_FALSE;
+      PT_LOG_DEBUG(LOG_CTX_INTF  ,"Alarm-down detected: port=%u, intIfNum=%u", port, intf);
+    }
+    /* Very current link status */
+    else if (nimGetIntfLinkState(intf, &linkState) == L7_SUCCESS)
+    {
+      link = (linkState == L7_UP);
+    }
+    else
     {
       link = L7_FALSE;
     }
 
+    /* Clear Link alarm */
+    linkStatus_alarm[intf/32] &= ~((L7_uint32) 1 << (intf%32));
+
   #if ( PTIN_BOARD_IS_STANDALONE )
     if (port<PTIN_SYSTEM_N_PORTS)
     {
-      pfw_shm->intf[port].link  = (linkState == L7_UP);
+      pfw_shm->intf[port].link  = link;
       pfw_shm->intf[port].link |= 
         (((ptin_control_port_activity[port] & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) << 1) |
         (((ptin_control_port_activity[port] & PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) == PTIN_PORTACTIVITY_MASK_TX_ACTIVITY) << 2);
     }
   #endif
 
-    if (linkStatus[port] != link)
+    if (linkStatus_history[port] != link)
     {
       #if ( PTIN_BOARD_IS_STANDALONE || PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_ACTIVETH )
         #if (PTIN_BOARD_IS_MATRIX)
@@ -694,7 +712,8 @@ static void monitor_alarms(void)
                                  ((!link) ? TRAP_ALARM_LINK_DOWN_START : TRAP_ALARM_LINK_DOWN_END),
                                  TRAP_ALARM_STATUS_EVENT,0) == 0)
           {
-            PT_LOG_NOTICE(LOG_CTX_CONTROL,"Alarm sent: port=%u, link=%u", port, link);
+            PT_LOG_NOTICE(LOG_CTX_INTF  ,"Alarm sent: port=%u, link=%u", port, link);
+            PT_LOG_NOTICE(LOG_CTX_EVENTS,"Alarm sent: port=%u, link=%u", port, link);
           }
         }
         #if (PTIN_BOARD_IS_STANDALONE)
@@ -707,8 +726,9 @@ static void monitor_alarms(void)
         }        
         #endif
       #endif
-      PT_LOG_INFO(LOG_CTX_CONTROL,"Link state changed: port=%u, link=%u", port, link);
-      linkStatus[port]=link;
+      PT_LOG_INFO(LOG_CTX_INTF  ,"Link state changed: port=%u, link=%u", port, link);
+      PT_LOG_INFO(LOG_CTX_EVENTS,"Link state changed: port=%u, link=%u", port, link);
+      linkStatus_history[port] = link;
     }
 
     // Only send lag active member traps, if interface is physical
@@ -727,7 +747,7 @@ static void monitor_alarms(void)
         /* Is this interface an active lag member? */
         if (adminState==L7_DISABLE)
           isActiveMember = L7_TRUE;
-        else if (usmDbDot3adIsActiveMember(1,intf)==L7_SUCCESS)
+        else if ((usmDbDot3adIsActiveMember(1,intf)==L7_SUCCESS) && (link == L7_TRUE))
           isActiveMember = L7_TRUE;
         else
           isActiveMember = L7_FALSE;
@@ -755,11 +775,15 @@ static void monitor_alarms(void)
                                      ((isActiveMember) ? TRAP_ALARM_LAG_INACTIVE_MEMBER_END : TRAP_ALARM_LAG_INACTIVE_MEMBER_START),
                                      TRAP_ALARM_STATUS_EVENT,
                                      lagIdList[port])==0)
-            PT_LOG_NOTICE(LOG_CTX_CONTROL,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
+            {
+              PT_LOG_NOTICE(LOG_CTX_INTF  ,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
+              PT_LOG_NOTICE(LOG_CTX_EVENTS,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
+            }
           }
         #endif
         lagActiveMembers[port]=isActiveMember;
-        PT_LOG_INFO(LOG_CTX_CONTROL,"Active LAG membership changed: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
+        PT_LOG_INFO(LOG_CTX_INTF  ,"Active LAG membership changed: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
+        PT_LOG_INFO(LOG_CTX_EVENTS,"Active LAG membership changed: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
       }
 
       /* Led control */
@@ -900,6 +924,7 @@ static void monitor_matrix_commutation(void)
   if (cx_work_slot)
   {
     PT_LOG_INFO(LOG_CTX_CONTROL,"CX is working");
+    PT_LOG_INFO(LOG_CTX_EVENTS ,"CX is working");
 
     if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum) != L7_SUCCESS ||
         ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum_del) != L7_SUCCESS)
@@ -911,6 +936,7 @@ static void monitor_matrix_commutation(void)
   else
   {
     PT_LOG_INFO(LOG_CTX_CONTROL,"CX is protection");
+    PT_LOG_INFO(LOG_CTX_EVENTS ,"CX is protection");
 
     if (ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH, &intIfNum) != L7_SUCCESS ||
         ptin_intf_port2intIfNum(PTIN_SYSTEM_N_ETH+1, &intIfNum_del) != L7_SUCCESS)
@@ -943,12 +969,14 @@ static void monitor_matrix_commutation(void)
   if (rc!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_CONTROL,"Error commuting to %s slot",(cx_work_slot) ? "working" : "protection");
+    PT_LOG_ERR(LOG_CTX_EVENTS ,"Error commuting to %s slot",(cx_work_slot) ? "working" : "protection");
   }
   else
   {
     /* Save new state */
     cx_work_slot_h = cx_work_slot;
     PT_LOG_NOTICE(LOG_CTX_CONTROL,"Success commuting to %s slot",(cx_work_slot) ? "working" : "protection");
+    PT_LOG_NOTICE(LOG_CTX_EVENTS ,"Success commuting to %s slot",(cx_work_slot) ? "working" : "protection");
   }
 
   /* if successfull, resend queries */
@@ -1075,6 +1103,7 @@ void ptin_control_switchover_monitor(void)
     if (linkscan_update_control)
     {
       PT_LOG_INFO(LOG_CTX_CONTROL, "Switchover detected (to active=%d). Waiting 10 seconds...", matrix_is_active);
+      PT_LOG_INFO(LOG_CTX_EVENTS , "Switchover detected (to active=%d)");
 
       osapiSleep(10);
 
@@ -1100,8 +1129,10 @@ void ptin_control_switchover_monitor(void)
           PT_LOG_TRACE(LOG_CTX_CONTROL, "Going to disable force link-up to slot %u", slot_id); 
           ptin_slot_link_force(slot_id, -1, L7_TRUE, L7_DISABLE);
           PT_LOG_TRACE(LOG_CTX_CONTROL, "Goig to enable linkscan to slot %u", slot_id);
+          PT_LOG_TRACE(LOG_CTX_EVENTS , "Goig to enable linkscan to slot %u", slot_id);
           ptin_slot_linkscan_set(slot_id, -1, L7_ENABLE);
           PT_LOG_INFO(LOG_CTX_CONTROL, "Linkscan enabled for slot %u", slot_id);
+          PT_LOG_INFO(LOG_CTX_EVENTS , "Linkscan enabled for slot %u", slot_id);
         }
 #endif
         PT_LOG_TRACE(LOG_CTX_CONTROL, "Going to disable linkscan to all ports");
@@ -1122,9 +1153,10 @@ void ptin_control_switchover_monitor(void)
           /* ... except for protected ports */
           PT_LOG_TRACE(LOG_CTX_CONTROL, "Going to disable force link-up to interface %u", intIfNum); 
           ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE);
-          PT_LOG_TRACE(LOG_CTX_CONTROL, "Goig to enable linkscan to interface %u", intIfNum);
+          PT_LOG_TRACE(LOG_CTX_CONTROL, "Going to enable linkscan to interface %u", intIfNum);
           ptin_intf_linkscan_set(intIfNum, L7_ENABLE);
           PT_LOG_INFO(LOG_CTX_CONTROL, "Linkscan enabled for interface %u", intIfNum);
+          PT_LOG_INFO(LOG_CTX_EVENTS , "Linkscan enabled for interface %u", intIfNum);
         }
       }
       /* For passive matrix, reset all ports, and disable linkscan for all of them */
@@ -1133,7 +1165,7 @@ void ptin_control_switchover_monitor(void)
         /* Clear historic values of active interfaces */
         memset(switchover_intf_active_h, 0x00, sizeof(switchover_intf_active_h));
 
-        PT_LOG_TRACE(LOG_CTX_CONTROL, "Goig to force link-down to all ports");
+        PT_LOG_TRACE(LOG_CTX_CONTROL, "Going to force link-down to all ports");
 
         /* Disable force linkup for all ports */
         for (port=0; port<ptin_sys_number_of_ports; port++)
@@ -1176,6 +1208,7 @@ void ptin_control_switchover_monitor(void)
         }
 
         PT_LOG_INFO(LOG_CTX_CONTROL, "Linkscan disabled for all ports");
+        PT_LOG_INFO(LOG_CTX_EVENTS , "Linkscan disabled for all ports");
       }
 
       /* End of procedure */
@@ -1268,7 +1301,8 @@ void ptin_control_switchover_monitor(void)
           rc = ptin_intf_slot_reset(slot_id, L7_FALSE);
           if (rc == L7_SUCCESS)
           {
-            PT_LOG_INFO(LOG_CTX_INTF, "Slot %d reseted", slot_id);
+            PT_LOG_INFO(LOG_CTX_INTF  , "Slot %d reseted", slot_id);
+            PT_LOG_INFO(LOG_CTX_EVENTS, "Slot %d reseted", slot_id);
           }
           else if (rc == L7_NOT_EXIST)
           {
@@ -1276,7 +1310,8 @@ void ptin_control_switchover_monitor(void)
           }
           else
           {
-            PT_LOG_ERR(LOG_CTX_INTF, "Error reseting slot %u", slot_id);
+            PT_LOG_ERR(LOG_CTX_INTF  , "Error reseting slot %u", slot_id);
+            PT_LOG_ERR(LOG_CTX_EVENTS, "Error reseting slot %u", slot_id);
           }
         }
         /* Clear flag */
@@ -1309,6 +1344,7 @@ void ptin_control_switchover_monitor(void)
         continue;
 
       PT_LOG_INFO(LOG_CTX_CONTROL, "Port %u status changed to %u", port, interfaces_active[port]);
+      PT_LOG_INFO(LOG_CTX_EVENTS , "Port %u status changed to %u", port, interfaces_active[port]);
 
       /* Update new changes */
       switchover_intf_active_h[port] = interfaces_active[port];
@@ -1339,6 +1375,7 @@ void ptin_control_switchover_monitor(void)
       else
       {
         PT_LOG_TRACE(LOG_CTX_CONTROL, "Forcing link down to port %u", port);
+        PT_LOG_TRACE(LOG_CTX_EVENTS , "Forcing link down to port %u", port);
         /* Disable force link-up */
         if (ptin_intf_link_force(intIfNum, L7_TRUE, L7_DISABLE) != L7_SUCCESS)
         {
@@ -1353,6 +1390,7 @@ void ptin_control_switchover_monitor(void)
         }
       }
       PT_LOG_INFO(LOG_CTX_CONTROL, "Link forced to %u for port%u", interfaces_active[port], port);
+      PT_LOG_INFO(LOG_CTX_EVENTS , "Link forced to %u for port%u", interfaces_active[port], port);
     }
     osapiSemaGive(ptin_boardaction_sem);
   }
@@ -2427,6 +2465,7 @@ void ptin_ta48ge_switch(L7_uint protection)
     else
     {
       PT_LOG_INFO(LOG_CTX_CONTROL,"Success");
+      PT_LOG_INFO(LOG_CTX_EVENTS ,"Switching applied: intIfNum %u -> %u", intIfNum_del, intIfNum);
     }
   }
 #endif // PTIN_BOARD == PTIN_BOARD_TA48GE
@@ -2783,5 +2822,5 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
 
 
 
-L7_int get_linkStatus(L7_uint32 port) {return port<PTIN_SYSTEM_N_INTERF? linkStatus[port]: L7_TRUE;}
+L7_int get_linkStatus(L7_uint32 port) {return port<PTIN_SYSTEM_N_INTERF? linkStatus_history[port]: L7_TRUE;}
 
