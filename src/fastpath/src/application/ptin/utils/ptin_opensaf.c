@@ -1,11 +1,11 @@
 
 /**
- * ptin_opensaf.c 
- *  
+ * ptin_opensaf.c
+ *
  * Implements the opensaf interface module
  *
- * Created on: 2016/07/04 Author: Rui Fernandes(rui-f-fernandes@alticealbs.com) 
- * Notes: 
+ * Created on: 2016/07/04 Author: Rui Fernandes(rui-f-fernandes@alticealbs.com)
+ * Notes:
  *
  */
 #ifndef _PTIN_OPENSAF_H
@@ -33,18 +33,18 @@
 #include <saEvt.h>
 
 
-/******************************* 
+/*******************************
  * FEATURES
  *******************************/
 
 
-/*********************************************************** 
+/***********************************************************
  * Typedefs
  ***********************************************************/
-#define ENCRYPTION_KEY_FIELD_SIZE 16
-#define MAX_NGPON2_PORTS          32
 #define PTIN_MAX_OPENSAF_EVENT    20
 #define STANDALONE_FLAG           1
+#define ENCRYPTION_KEY_FIELD_SIZE 16
+#define MAX_NGPON2_PORTS          32
 
 void *readData;
 int readDataLen=0;
@@ -53,7 +53,7 @@ char readDataPublisher[32];
 unsigned long long readEventID;
 L7_BOOL readDataInitFlag = 0;
 
-typedef struct 
+typedef struct
 {
 
   SaEvtHandleT evtHandle;
@@ -67,62 +67,27 @@ typedef struct
   L7_char8 channelNameStr[32];
   L7_char8 publisherNameStr[32];
 
-} ptin_opensaf_event_t; 
+} ptin_opensaf_event_t;
 
-typedef enum {  
+typedef enum {
 	ONU_STATE_NOT_VALID              = 0,
 	ONU_STATE_INACTIVE                  ,
 	ONU_STATE_PROCESSING                ,
-	ONU_STATE_DISABLED                  , 
-	ONU_STATE_ACTIVE                    
+	ONU_STATE_DISABLED                  ,
+	ONU_STATE_ACTIVE
 }ptin_onu_state;
-
-
-/* external stuctures from MAC PON*/
-typedef struct  {
-    L7_uint8 losi ;  /* LOSi */
-    L7_uint8 lofi ;  /* LOFi */
-    L7_uint8 loami ; /* LOAMi */
-    L7_uint8 lcdgi ; /* LCDGi */
-    L7_uint8 rdii ;  /* RDIi */
-    L7_uint8 sufi ;  /* SUFi */
-    L7_uint8 loai;   /* LOAi */
-    L7_uint8 dgi;    /* DGi */
-    L7_uint8 dfi;    /* DFi */
-    L7_uint8 dowi;   /* DOWi */
-    L7_uint8 tiwi;   /* TIWi */
-    L7_uint8 sfi;    /* SFi */
-    L7_uint8 sdi;    /* SDi */
-    L7_uint8 loki;   /* LOKi */
-    L7_uint8 tca_fec_corrected_byte;         /* TCA FEC corrected byte */
-    L7_uint8 tca_fec_corrected_code_word;    /* TCA FEC corrected code word */
-    L7_uint8 tca_fec_uncorrected_code_word;  /* TCA FEC uncorrected code word */
-    L7_uint8 tca_bip_error;                  /* TCA BIP error */
-    L7_uint8 tca_rei_error;                  /* TCA REI error */
-} __attribute__ ((packed)) ptin_oltPonOnuAlarms;
-
-typedef struct {
-    L7_uint8             state;
-    L7_uint32            eqd;
-    L7_uint8             aes_key[ENCRYPTION_KEY_FIELD_SIZE];
-    L7_uint8             serial[8];
-    L7_uint8             password[10];
-    ptin_oltPonOnuAlarms alarms;
-    L7_uint8             activeMember;   //NOVO
-    L7_uint16            stateSync[MAX_NGPON2_PORTS]; //NOVO
-}  __attribute__ ((packed))ptin_onuStatus;
 
 typedef struct {
     struct {
         L7_uint8     slot;       //slot for the port belonging to the NGPON2 group
         L7_uint8     link;       //link for a port from this slot belonging to the NGPON2 group
     } member[MAX_NGPON2_PORTS];
-} __attribute__ ((packed)) ptin_OLTCTList; 
+} __attribute__ ((packed)) ptin_OLTCTList;
 
 
 ptin_opensaf_event_t ptin_event[PTIN_MAX_OPENSAF_EVENT];
 
-/******************************* 
+/*******************************
  * Debug procedures
  *******************************/
 
@@ -139,11 +104,11 @@ static L7_RC_t ptin_opensaf_eventhandle_deinit(int id);
 
 
 /**
- * Read a event 
- *  
- * @param void data 
- * @param int len 
- *  
+ * Read a event
+ *
+ * @param void data
+ * @param int len
+ *
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_opensaf_read_event(void *data, int len, int id, char *chName, char *pubName)
@@ -161,7 +126,7 @@ L7_RC_t ptin_opensaf_read_event(void *data, int len, int id, char *chName, char 
 
       fds[0].fd = ptin_event[id].evtSelectionObject;
       fds[0].events = POLLIN;
-	  
+
 	  PT_LOG_DEBUG(LOG_CTX_OPENSAF, "Waiting for events on channel %s", ptin_event[id].channelNameStr);
 
 	  int res = poll(fds, 1, 60000);
@@ -234,11 +199,11 @@ void ptin_opensaf_task_OnuMac( void )
   ptin_opensaf_ngpon2_onustate event_data;
   unsigned char data[100]      = "";
   int           size           = 0;
-  unsigned char *chName,*p,*pubName; 
+  unsigned char *chName,*p,*pubName;
   L7_enetMacAddr_t mac;
   L7_uint32 section, data_key_OnuState, data_key_NGPON2Group;
   L7_uint8 slot;
-  L7_RC_t rc = L7_FAILURE;      
+  L7_RC_t rc = L7_FAILURE;
   ptin_onuStatus onuStatus;
   ptin_OLTCTList ngpon2_members;
 
@@ -256,7 +221,7 @@ void ptin_opensaf_task_OnuMac( void )
   ptin_opensaf_eventhandle_init(1, chName, pubName);
 
   /* Loop */
-  while (1) 
+  while (1)
   {
     PT_LOG_INFO(LOG_CTX_OPENSAF, "ptin_opensaf_task_OnuMac running...");
     /* wait for a event in the ONUSTATE*/
@@ -293,7 +258,7 @@ void ptin_opensaf_task_OnuMac( void )
     if(onuStatus.state == ONU_STATE_DISABLED) /* If the ONU is disable remove MAC, DHCP binding and IGMP channels*/
     {
       /*Retrieve MAC form a particular ONU*/
-      ptin_checkpoint_getSection(SWITCHDRVR_ONU, event_data.onuId, &data, &size); 
+      ptin_checkpoint_getSection(SWITCHDRVR_ONU, event_data.onuId, &data, &size);
 
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "size %u", size);
 
@@ -301,10 +266,10 @@ void ptin_opensaf_task_OnuMac( void )
       p = data;
 
       while(size > i) /* Flush the each MAC from the L2 table and DHCP binding table */
-      {     
+      {
         memcpy(&mac.addr, p, sizeof(mac.addr));
 
-        PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Data : %c , %c ,%c ,%c , %c , %c, ",    mac.addr[0], mac.addr[1], mac.addr[2], 
+        PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Data : %c , %c ,%c ,%c , %c , %c, ",    mac.addr[0], mac.addr[1], mac.addr[2],
                                                                             mac.addr[3], mac.addr[4], mac.addr[5]);
         /* MAC */
         rc = fdbFlushByMac(mac);
@@ -322,11 +287,11 @@ void ptin_opensaf_task_OnuMac( void )
         /* get next MAC */
       }
 
-      /* send query */ 
+      /* send query */
 
 
-      
-      /* Delete ONT MAC section from the checkpoint */  
+
+      /* Delete ONT MAC section from the checkpoint */
       ptin_opensaf_checkpoint_deleteSection(SWITCHDRVR_ONU, event_data.onuId);
     }
     /*
@@ -335,24 +300,24 @@ void ptin_opensaf_task_OnuMac( void )
       L7_uint32 servicesId[PTIN_SYSTEM_MAX_SERVICES_PER_ONU];
       L7_uint32 nOfServices;
       L7_uint32 i = 0;
-     
+
       memset(&servicesId, (L7_uint32) -1, sizeof(servicesId));
-     
+
       PT_LOG_TRACE(LOG_CTX_OPENSAF, " event_data.memberIndex = %u, event_data.onuId = %u", event_data.memberIndex, event_data.onuId);
-     
+
       ptin_igmp_multicast_get_all_serviceId_per_onu( event_data.memberIndex, event_data.onuId, servicesId, &nOfServices);
-     
-     
+
+
       while (i < PTIN_SYSTEM_MAX_SERVICES_PER_ONU)
       {
         if (servicesId[i] != (L7_uint32) -1)
         ptin_igmp_multicast_querierReset_on_specific_serviceID(ptinPort, onuId, servicesId[i]);
       }
-     
-    } 
-    */ 
+
+    }
+    */
   }
-                                            
+
   osapiSleepMSec(500);
 }
 
@@ -361,12 +326,12 @@ void ptin_opensaf_task_OnuMac( void )
 /********************************Start PTin Opensaf Event*********************************************************/
 
 /**
- * Process a event 
- * 
+ * Process a event
+ *
  * @param SaEvtSubscriptionIdT subId
  * @param SaEvtEventHandleT eventHdl
  * @param SaSizeT eventDataSize
- * 
+ *
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 void processEvent( SaEvtSubscriptionIdT subId ,SaEvtEventHandleT eventHdl, SaSizeT eventDataSize)
@@ -419,8 +384,8 @@ void processEvent( SaEvtSubscriptionIdT subId ,SaEvtEventHandleT eventHdl, SaSiz
 
 /**
  * Check if the event handle is initialize
- *  
- * 
+ *
+ *
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 static L7_RC_t ptin_opensaf_check_event_initialization(int id, char *chName, char *pubName)
@@ -431,19 +396,19 @@ static L7_RC_t ptin_opensaf_check_event_initialization(int id, char *chName, cha
   {
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "Checkpoint is not initialized: %s", ptin_event[id].channelNameStr);
   	saRet = ptin_opensaf_eventhandle_init(id ,chName, pubName );
-  }                                            
+  }
 
   return saRet;
 }
 
-/*********************************************************** 
- * FUNCTIONS 
+/***********************************************************
+ * FUNCTIONS
  ***********************************************************/
 
 /**
  * Initialize a event handle
- *  
- * 
+ *
+ *
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 static L7_RC_t ptin_opensaf_eventhandle_init(int id, char *chName, char *pubName)
@@ -526,8 +491,8 @@ static L7_RC_t ptin_opensaf_eventhandle_init(int id, char *chName, char *pubName
 
 /**
  * Denitialize a event handle
- *  
- * 
+ *
+ *
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 static L7_RC_t ptin_opensaf_eventhandle_deinit(int id)
@@ -544,8 +509,8 @@ static L7_RC_t ptin_opensaf_eventhandle_deinit(int id)
 
 /**
  * Teste Initialize a event handle
- *  
- * 
+ *
+ *
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_opensaf_eventhandle_init_teste(int id)
@@ -559,11 +524,11 @@ L7_RC_t ptin_opensaf_eventhandle_init_teste(int id)
 }
 
 /**
- * Teste a event 
- *  
- * @param void data 
- * @param int len 
- *  
+ * Teste a event
+ *
+ * @param void data
+ * @param int len
+ *
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_opensaf_read_event_teste(int id)
@@ -586,7 +551,7 @@ L7_RC_t ptin_opensaf_read_event_teste(int id)
 
 /**
  *  Init routine of opensaf event task
- *  
+ *
  *
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
@@ -599,14 +564,14 @@ L7_RC_t ptin_opensaf_event_task_init()
                                                 L7_DEFAULT_TASK_PRIORITY,
                                                 L7_DEFAULT_TASK_SLICE);
 
-  if (ptin_opensaf_TaskId == L7_ERROR) 
+  if (ptin_opensaf_TaskId == L7_ERROR)
   {
     PT_LOG_FATAL(LOG_CTX_OPENSAF, "Could not create task ptin_opensaf_task_OnuMac");
     return L7_FAILURE;
   }
   PT_LOG_TRACE(LOG_CTX_OPENSAF,"Task ptin_opensaf_task_OnuMac created");
 
-  if (osapiWaitForTaskInit(L7_PTIN_OPENSAF_TASK, L7_WAIT_FOREVER) != L7_SUCCESS) 
+  if (osapiWaitForTaskInit(L7_PTIN_OPENSAF_TASK, L7_WAIT_FOREVER) != L7_SUCCESS)
   {
     PT_LOG_FATAL(LOG_CTX_OPENSAF,"Unable to initialize ptin_opensaf_task_OnuMac()");
     return L7_FAILURE;

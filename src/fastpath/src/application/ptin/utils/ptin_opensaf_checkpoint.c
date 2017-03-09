@@ -1,10 +1,10 @@
 /**
- * ptin_opensaf.c 
- *  
+ * ptin_opensaf.c
+ *
  * Implements the opensaf interface module
  *
- * Created on: 2016/07/04 Author: Rui Fernandes(rui-f-fernandes@alticealbs.com) 
- * Notes: 
+ * Created on: 2016/07/04 Author: Rui Fernandes(rui-f-fernandes@alticealbs.com)
+ * Notes:
  *
  */
 #ifndef _PTIN_OPENSAF_CHECKPOINT_H
@@ -23,12 +23,59 @@
 
 #if (PTIN_BOARD != PTIN_BOARD_TG16G && PTIN_BOARD != PTIN_BOARD_IS_STANDALONE )
 #include <saCkpt.h>
+#define ENCRYPTION_KEY_FIELD_SIZE 16
+#define MAX_NGPON2_PORTS          32
 
-typedef struct 
+typedef struct
+{
+
+  L7_uint8 eventId;
+  L7_uint8 memberIndex;
+  L7_uint8 parentId;
+  L7_uint8 onuId;
+
+} __attribute__((packed)) ptin_opensaf_ngpon2_onustate;
+/* external stuctures from MAC PON*/
+typedef struct  {
+    L7_uint8 losi ;  /* LOSi */
+    L7_uint8 lofi ;  /* LOFi */
+    L7_uint8 loami ; /* LOAMi */
+    L7_uint8 lcdgi ; /* LCDGi */
+    L7_uint8 rdii ;  /* RDIi */
+    L7_uint8 sufi ;  /* SUFi */
+    L7_uint8 loai;   /* LOAi */
+    L7_uint8 dgi;    /* DGi */
+    L7_uint8 dfi;    /* DFi */
+    L7_uint8 dowi;   /* DOWi */
+    L7_uint8 tiwi;   /* TIWi */
+    L7_uint8 sfi;    /* SFi */
+    L7_uint8 sdi;    /* SDi */
+    L7_uint8 loki;   /* LOKi */
+    L7_uint8 tca_fec_corrected_byte;         /* TCA FEC corrected byte */
+    L7_uint8 tca_fec_corrected_code_word;    /* TCA FEC corrected code word */
+    L7_uint8 tca_fec_uncorrected_code_word;  /* TCA FEC uncorrected code word */
+    L7_uint8 tca_bip_error;                  /* TCA BIP error */
+    L7_uint8 tca_rei_error;                  /* TCA REI error */
+} __attribute__ ((packed)) ptin_oltPonOnuAlarms;
+
+typedef struct {
+    L7_uint8             state;
+    L7_uint32            eqd;
+    L7_uint8             aes_key[ENCRYPTION_KEY_FIELD_SIZE];
+    L7_uint8             serial[8];
+    L7_uint8             password[10];
+    ptin_oltPonOnuAlarms alarms;
+    L7_uint8             activeMember;   //NOVO
+    L7_uint8             futureMember;
+    L7_uint8             availableChannels;
+    L7_uint16            stateSync[MAX_NGPON2_PORTS]; //NOVO
+}  __attribute__ ((packed))ptin_onuStatus;
+
+typedef struct
 {
   SaCkptHandleT ckptHandle;
   SaCkptCheckpointHandleT checkpointHandle;
-  SaNameT ckptName;  
+  SaNameT ckptName;
   SaCkptCheckpointCreationAttributesT ckptCreateAttr;
   SaCkptCheckpointOpenFlagsT ckptOpenFlags;
   L7_BOOL  initialized;
@@ -38,7 +85,7 @@ typedef struct
   pthread_mutex_t ckptMux; //to be used to guaranty atomicity in macro functions
   L7_uint64 bmp_section[255];
 
-} ptin_opensaf_checkpoint_t; 
+} ptin_opensaf_checkpoint_t;
 
 ptin_opensaf_checkpoint_t ptin_checkpoint[PTIN_MAX_OPENSAF_CHECKPOINTS];
 
@@ -54,26 +101,27 @@ static L7_RC_t ptin_opensaf_checkCheckpointInitialization(int id);
 /********************************Start PTin Opensaf Checkpoint*********************************************************/
 /**
  * Initialize a opensaf checkpoint handler
- * 
- * @param name of the handler, number of section and length of 
+ *
+ * @param name of the handler, number of section and length of
  *             each section
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
- *  
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ *
  */
 L7_RC_t ptin_opensaf_init()
 {
+  ptin_onuStatus onu_status;
   memset(&ptin_checkpoint, 0, sizeof(ptin_checkpoint));
 
   char *switchdvdr_ckpt       = "SWITCHDRVR_ONU";
   char *mac_pon_onustate_ckpt = "ONU_STATE";
 
-  if(ptin_opensaf_checkpoint_init(mac_pon_onustate_ckpt, 256*32 , 60, SWITCHDRVR_ONU) != L7_SUCCESS)
+  if(ptin_opensaf_checkpoint_init(mac_pon_onustate_ckpt, 128*16*16 , sizeof(onu_status), ONU_STATE) != L7_SUCCESS)
   {
     PT_LOG_NOTICE(LOG_CTX_OPENSAF," Some error occour in the initialition of opensaf checkpoint %s ",mac_pon_onustate_ckpt);
   }
 
-  if(ptin_opensaf_readOnly_checkpoint_init(switchdvdr_ckpt, ONU_STATE) != L7_SUCCESS)
+  if(ptin_opensaf_readOnly_checkpoint_init(switchdvdr_ckpt, SWITCHDRVR_ONU) != L7_SUCCESS)
   {
     PT_LOG_NOTICE(LOG_CTX_OPENSAF," Some error occour in the initialition of opensaf checkpoint %s ",switchdvdr_ckpt);
   }
@@ -82,12 +130,12 @@ L7_RC_t ptin_opensaf_init()
 
 /**
  * Initialize a opensaf checkpoint handler
- * 
- * @param name of the handler, number of section and length of 
+ *
+ * @param name of the handler, number of section and length of
  *             each section
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
- *  
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ *
  */
 static L7_RC_t ptin_opensaf_checkpoint_init(const char *name, int sectionsNum, int sectionLen, int id)
 {
@@ -192,7 +240,7 @@ static L7_RC_t ptin_opensaf_checkpoint_init(const char *name, int sectionsNum, i
 
      return L7_FAILURE;
    }
-    
+
 
    PT_LOG_NOTICE(LOG_CTX_OPENSAF, "Opensaf initialized and Checkpoint opened: %s", ptin_checkpoint[id].ckptNameStr);
    ptin_checkpoint[id].initialized = 1;
@@ -204,7 +252,7 @@ static L7_RC_t ptin_opensaf_checkpoint_init(const char *name, int sectionsNum, i
      SaCkptCheckpointDescriptorT checkpointStatus;
      saRet = saCkptCheckpointStatusGet(ptin_checkpoint[id].checkpointHandle, &checkpointStatus);
 
-     if (saRet == SA_AIS_OK)    
+     if (saRet == SA_AIS_OK)
      {
        memcpy(&ptin_checkpoint[id].ckptCreateAttr, &checkpointStatus.checkpointCreationAttributes, sizeof(ptin_checkpoint[id].ckptCreateAttr));
      }
@@ -220,11 +268,11 @@ static L7_RC_t ptin_opensaf_checkpoint_init(const char *name, int sectionsNum, i
 
 /**
  * Initialize a opensaf read-only checkpoint handler
- * 
+ *
  * @param name of the handler
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
- *  
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ *
  */
 static L7_RC_t ptin_opensaf_readOnly_checkpoint_init(const char *name, int id)
 {
@@ -329,7 +377,7 @@ static L7_RC_t ptin_opensaf_readOnly_checkpoint_init(const char *name, int id)
 
     return L7_FAILURE;
   }
-  
+
   PT_LOG_ERR(LOG_CTX_OPENSAF, "Opensaf initialized and Checkpoint opened: %s", ptin_checkpoint[id].ckptNameStr);
   ptin_checkpoint[id].initialized = 1;
 
@@ -355,11 +403,11 @@ static L7_RC_t ptin_opensaf_readOnly_checkpoint_init(const char *name, int id)
 #if (PTIN_BOARD != PTIN_BOARD_OLT1T0)
 /**
  * Deinitialize a opensaf checkpoint handler
- * 
+ *
  * @param name of the handler
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
- *  
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ *
  */
 static L7_RC_t ptin_opensaf_checkpoint_deinit(int id)
 {
@@ -402,11 +450,11 @@ static L7_RC_t ptin_opensaf_checkpoint_deinit(int id)
 #endif
 /**
  * Check if a checkpoint is initialize
- * 
- * 
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
- *  
+ *
+ *
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ *
  */
 static L7_RC_t ptin_opensaf_checkCheckpointInitialization(int id)
 {
@@ -425,11 +473,11 @@ static L7_RC_t ptin_opensaf_checkCheckpointInitialization(int id)
   	if (ptin_checkpoint[id].errorCount >= 100)
   	{
   	   char com[128];
-      
+
   	   PT_LOG_WARN(LOG_CTX_OPENSAF, "RESTART OPENSAF\n");
   	   snprintf(com, sizeof(com), "touch /usr/local/ptin/tmp/opensaf_restart");
   	   system(com);
-      
+
   	   ptin_checkpoint[id].errorCount = 0;
   	}
   	else
@@ -448,12 +496,12 @@ static L7_RC_t ptin_opensaf_checkCheckpointInitialization(int id)
 }
 
 /**
- * Lock a checkpoint 
- * 
- * 
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
- *  
+ * Lock a checkpoint
+ *
+ *
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ *
  */
 void ptin_opensaf_CheckpointLock(int id)
 {
@@ -463,12 +511,12 @@ void ptin_opensaf_CheckpointLock(int id)
 }
 
 /**
- * Unlock a checkpoint 
- * 
- * 
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
- *  
+ * Unlock a checkpoint
+ *
+ *
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ *
  */
 void ptin_opensaf_CheckpointUnlock(int id)
 {
@@ -483,11 +531,11 @@ void ptin_opensaf_CheckpointUnlock(int id)
 
 /**
  * Check if the checkpoint is open/initialized
- * 
+ *
  * @param igmpProxy Structure with config parameters
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
- *  
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ *
  */
 L7_BOOL ptin_opensaf_isOpen(int id)
 {
@@ -502,11 +550,11 @@ L7_BOOL ptin_opensaf_isOpen(int id)
 
 /**
  * Gets the max section of  a checkpoint
- * 
+ *
  * @param igmpProxy Structure with config parameters
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
- *  
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ *
  */
 L7_RC_t ptin_opensaf_getMaxSections(int id)
 {
@@ -515,11 +563,11 @@ L7_RC_t ptin_opensaf_getMaxSections(int id)
 
 /**
  * Gets the max section size of a checkpoint
- * 
+ *
  * @param igmpProxy Structure with config parameters
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
- *  
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ *
  */
 L7_RC_t ptin_opensaf_getMaxSectionSize(int id)
 {
@@ -533,14 +581,14 @@ L7_RC_t ptin_opensaf_getMaxSectionSize(int id)
   return ptin_checkpoint[id].ckptCreateAttr.maxSectionSize;
 }
 
-/** 
- * Write data in a checkpoint 
- *  
+/**
+ * Write data in a checkpoint
+ *
  * @param data void* - data to be stored in the checkpoint
  * @param len int - length of data
- * @param idx SectionIndex - identifier of section where data will be stored 
- * @param offset int (optional) - offset in the section that marks the start where data will be write 
- *  
+ * @param idx SectionIndex - identifier of section where data will be stored
+ * @param offset int (optional) - offset in the section that marks the start where data will be write
+ *
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  *
  */
@@ -554,7 +602,7 @@ L7_RC_t ptin_opensaf_write_checkpoint(void *data, int len, SectionIndex idx, int
     PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid %s", id);
     return L7_FAILURE;
   }
-    
+
   if (ptin_checkpoint[id].ckptCreateAttr.maxSections > 1)
   {
     writeVector.sectionId.id = (unsigned char *)&idx;
@@ -574,9 +622,9 @@ L7_RC_t ptin_opensaf_write_checkpoint(void *data, int len, SectionIndex idx, int
   for (i=0; i<2; ++i)
   {
     ptin_opensaf_checkCheckpointInitialization(id);
-    
+
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "Going to write in checkpoint %s:%u", ptin_checkpoint[id].ckptNameStr, idx);
-    
+
     saRet = saCkptCheckpointWrite(	ptin_checkpoint[id].checkpointHandle,
                                     &writeVector,
                                     1,
@@ -587,7 +635,7 @@ L7_RC_t ptin_opensaf_write_checkpoint(void *data, int len, SectionIndex idx, int
     {
       if( add == 1 )
       {
-        L7_uint64 bmp_aux = 0; 
+        L7_uint64 bmp_aux = 0;
         bmp_aux = 1 << (offset / len);
         ptin_checkpoint[id].bmp_section[idx] |= bmp_aux;
         PT_LOG_TRACE(LOG_CTX_OPENSAF, "Written %d ", ptin_checkpoint[id].bmp_section[idx]);
@@ -603,13 +651,13 @@ L7_RC_t ptin_opensaf_write_checkpoint(void *data, int len, SectionIndex idx, int
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "Written %d bytes at offset %d to checkpoint %s:%u", len, offset, ptin_checkpoint[id].ckptNameStr, idx);
       return L7_SUCCESS;
     }
-    
+
     if (saRet == SA_AIS_ERR_NOT_EXIST && i == 0) //enter here only in first iteration
     {
       PT_LOG_DEBUG(LOG_CTX_OPENSAF, "Section not exists yet: %s:%u", ptin_checkpoint[id].ckptNameStr, idx);
 
       SaCkptSectionCreationAttributesT sectionCreationAttributes;
-        
+
       sectionCreationAttributes.sectionId = &writeVector.sectionId;
       sectionCreationAttributes.expirationTime = SA_TIME_END;
 
@@ -641,18 +689,18 @@ L7_RC_t ptin_opensaf_write_checkpoint(void *data, int len, SectionIndex idx, int
       }
     }
   }
-  
+
   return L7_FAILURE;
 }
 
 /** Read data from a checkpoint
  *
- * @param data void* - buffer to store the data read from checkpoint 
- * @param len int - length of data 
- * @param idx SectionIndex - identifier of section from where data will be read 
+ * @param data void* - buffer to store the data read from checkpoint
+ * @param len int - length of data
+ * @param idx SectionIndex - identifier of section from where data will be read
  * @param offset int (optional) - offset in the section that marks the start where data will be read
- *  
- * @return int 
+ *
+ * @return int
  *
  */
 L7_RC_t ptin_opensaf_read_checkpoint(void *data, int len, SectionIndex idx, int offset, int id)
@@ -757,14 +805,14 @@ L7_RC_t ptin_opensaf_checkpoint_deleteSection(SectionIndex idx, int id)
 
 /** Check if the checkpoint is operational (write and read in a
  *  section)
- *  
+ *
  *
  * @param data void* - data to be stored in the checkpoint
  * @param len int - length of data
- * @param idx SectionIndex - identifier of section where data will be stored 
+ * @param idx SectionIndex - identifier of section where data will be stored
  * @param offset int (optional) - offset in the section that marks the start where data will be write
- *  
- * @return int 
+ *
+ * @return int
  *
  */
 void ptin_checkpoint_runValidation(int step, const char *caller, int id)
@@ -793,7 +841,7 @@ void ptin_checkpoint_runValidation(int step, const char *caller, int id)
  *
  * @return void
  *
- */   
+ */
 L7_RC_t ptin_checkpoint_dumpCheckpoint(int id)
 {
   int saRet;
@@ -821,7 +869,7 @@ L7_RC_t ptin_checkpoint_dumpCheckpoint(int id)
     {
       break;
     }
-    
+
     if ( sectionDescriptor.sectionId.id )
     {
       memcpy( &idx, sectionDescriptor.sectionId.id, sizeof(idx) );
@@ -832,29 +880,29 @@ L7_RC_t ptin_checkpoint_dumpCheckpoint(int id)
     }
     bytesToPrint = sectionDescriptor.sectionSize;
     unsigned char buffer[bytesToPrint];
-        
+
     if (ptin_opensaf_read_checkpoint(buffer, bytesToPrint, idx, 0, id) == 0)
     {
       printf("Dumping %d bytes of section 0x%08X:\n", bytesToPrint, idx);
       printf(" %s \n", buffer);
       for (j=0; j<bytesToPrint; ++j)
       {
-        printf("0x%c ", buffer[j]);      //PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);  
+        printf("0x%c ", buffer[j]);      //PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);
       }
-      printf("\n");                      //PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);  
-    } 
+      printf("\n");                      //PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);
+    }
   }
-  
+
   saCkptSectionIterationFinalize(iteratorHandle);
 
   return L7_SUCCESS;
 }
 
-/** Get section content 
+/** Get section content
  *
  * @return void
  *
- */   
+ */
 L7_RC_t ptin_checkpoint_getSection(int id, int section, void *data, int* size)
 {
   int saRet;
@@ -887,7 +935,7 @@ L7_RC_t ptin_checkpoint_getSection(int id, int section, void *data, int* size)
     {
       continue;
     }
-    
+
     if ( sectionDescriptor.sectionId.id )
     {
       memcpy( &idx, sectionDescriptor.sectionId.id, sizeof(idx) );
@@ -899,17 +947,17 @@ L7_RC_t ptin_checkpoint_getSection(int id, int section, void *data, int* size)
 
     bytesToPrint = sectionDescriptor.sectionSize;
     unsigned char buffer[bytesToPrint];
-        
+
     if (ptin_opensaf_read_checkpoint(buffer, bytesToPrint, idx, 0, id) == 0)
-    {  
+    {
       for (j=0; j<bytesToPrint; ++j)
       {
-        PT_LOG_TRACE(LOG_CTX_OPENSAF,"0x%c ", buffer[j]); //PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);  
+        PT_LOG_TRACE(LOG_CTX_OPENSAF,"0x%c ", buffer[j]); //PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);
       }
       *size = bytesToPrint;
-      memcpy( data, buffer, sizeof(buffer) );  
+      memcpy( data, buffer, sizeof(buffer) );
     }
-  } 
+  }
 
   saCkptSectionIterationFinalize(iteratorHandle);
 
@@ -917,11 +965,11 @@ L7_RC_t ptin_checkpoint_getSection(int id, int section, void *data, int* size)
 }
 
 
-/** Print a section content 
+/** Print a section content
  *
  * @return void
  *
- */   
+ */
 L7_RC_t ptin_checkpoint_dumpSection(int id, int section)
 {
   int saRet;
@@ -930,7 +978,7 @@ L7_RC_t ptin_checkpoint_dumpSection(int id, int section)
   SectionIndex                    idx;
   int                             bytesToPrint, j;
 
- PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);  
+ PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);
 
   if (id>PTIN_MAX_OPENSAF_CHECKPOINTS)
   {
@@ -956,7 +1004,7 @@ L7_RC_t ptin_checkpoint_dumpSection(int id, int section)
     {
       continue;
     }
-    
+
     if ( sectionDescriptor.sectionId.id )
     {
       memcpy( &idx, sectionDescriptor.sectionId.id, sizeof(idx) );
@@ -968,17 +1016,17 @@ L7_RC_t ptin_checkpoint_dumpSection(int id, int section)
 
     bytesToPrint = sectionDescriptor.sectionSize;
     unsigned char buffer[bytesToPrint];
-        
+
     if (ptin_opensaf_read_checkpoint(buffer, bytesToPrint, idx, 0, id) == 0)
     {
-      PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);  
+      PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);
       printf("Dumping %d bytes of section 0x%08X:\n", bytesToPrint, idx);
       printf(" %s \n", buffer);
       for (j=0; j<bytesToPrint; ++j)
       {
-        printf("0x%c ", buffer[j]);      //PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);  
+        printf("0x%c ", buffer[j]);      //PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);
       }
-      printf("\n");                      //PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);  
+      printf("\n");                      //PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);
     }
   }
 
@@ -987,10 +1035,10 @@ L7_RC_t ptin_checkpoint_dumpSection(int id, int section)
   return L7_SUCCESS;
 }
 
-/** Print a section content 
+/** Print a section content
  *
- * @return void 
- */   
+ * @return void
+ */
 L7_RC_t ptin_checkpoint_findDatainSection(int id, int section, void* data, int size, int* position)
 {
   int saRet;
@@ -1024,7 +1072,7 @@ L7_RC_t ptin_checkpoint_findDatainSection(int id, int section, void* data, int s
   //{
     //continue;
   //}
-  
+
   if ( sectionDescriptor.sectionId.id )
   {
     memcpy( &idx, sectionDescriptor.sectionId.id, sizeof(idx) );
@@ -1037,36 +1085,36 @@ L7_RC_t ptin_checkpoint_findDatainSection(int id, int section, void* data, int s
 
   unsigned char buffer[size];
   unsigned char aux_buffer[size];
-  
+
   while(bytesToPrint>offset)
   {
 
     if (ptin_opensaf_read_checkpoint(buffer, size, idx, offset, id) == 0)
-    {         
+    {
        memcpy( &aux_buffer, &buffer, sizeof(aux_buffer));
-       
-       PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Opensaf : %c %c %c %c %c %c ", aux_buffer[0], aux_buffer[1], aux_buffer[2], 
+
+       PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Opensaf : %c %c %c %c %c %c ", aux_buffer[0], aux_buffer[1], aux_buffer[2],
                                                                             aux_buffer[3], aux_buffer[4], aux_buffer[5]);
-            
-       PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Data : %c %c %c %c %c %c ",    aux_data[0], aux_data[1], aux_data[2], 
+
+       PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Data : %c %c %c %c %c %c ",    aux_data[0], aux_data[1], aux_data[2],
                                                                             aux_data[3], aux_data[4], aux_data[5]);
-    
-       if( (aux_buffer[0] != aux_data[0]) || (aux_buffer[1] != aux_data[1]) || (aux_buffer[2] != aux_data[2]) || 
+
+       if( (aux_buffer[0] != aux_data[0]) || (aux_buffer[1] != aux_data[1]) || (aux_buffer[2] != aux_data[2]) ||
            (aux_buffer[3] != aux_data[3]) || (aux_buffer[4] != aux_data[4]) || (aux_buffer[5] != aux_data[5]) )
-       { 
+       {
 
          offset = offset + sizeof(aux_buffer);
-         PT_LOG_TRACE(LOG_CTX_OPENSAF, "Offset : %d ", id); 
-                 
+         PT_LOG_TRACE(LOG_CTX_OPENSAF, "Offset : %d ", id);
+
          continue;
        }
 
        PT_LOG_TRACE(LOG_CTX_OPENSAF, "Data found");
        saCkptSectionIterationFinalize(iteratorHandle);
-       *position = offset; //index 
+       *position = offset; //index
 
        return L7_SUCCESS;
-    }    
+    }
   }
 
   PT_LOG_ERR(LOG_CTX_OPENSAF, "Data not found " );
@@ -1077,12 +1125,12 @@ L7_RC_t ptin_checkpoint_findDatainSection(int id, int section, void* data, int s
 
 /** Find the offset of a free element
  *
- * @return void 
- */   
+ * @return void
+ */
 L7_RC_t ptin_opensaf_find_free_element(int* offset, int section, int id)
 {
 
-  L7_uint64 aux=1, i=0; 
+  L7_uint64 aux=1, i=0;
 
   if(ptin_checkpoint[id].bmp_section[section] == 0)
   {
@@ -1119,18 +1167,18 @@ L7_RC_t ptin_opensaf_find_free_element(int* offset, int section, int id)
 
 /**
  * Initialize a opensaf checkpoint handler
- * 
- * @param name of the handler, number of section and length of 
+ *
+ * @param name of the handler, number of section and length of
  *             each section
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
- *  
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ *
  */
 L7_RC_t ptin_opensaf_checkpoint_teste(int sectionsNum, int sectionLen, int id)
 {
   char *name ="teste";
   L7_RC_t rc;
- 
+
   rc = ptin_opensaf_checkpoint_init(name,sectionsNum,sectionLen,id);
 
   return rc;
@@ -1139,18 +1187,18 @@ L7_RC_t ptin_opensaf_checkpoint_teste(int sectionsNum, int sectionLen, int id)
 
 /**
  * Initialize a opensaf checkpoint handler
- * 
- * @param name of the handler, number of section and length of 
+ *
+ * @param name of the handler, number of section and length of
  *             each section
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE 
- *  
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ *
  */
 L7_RC_t ptin_opensaf_checkpoint_teste2(int id)
 {
   char *name ="teste";
   L7_RC_t rc;
- 
+
   rc = ptin_opensaf_readOnly_checkpoint_init(name, 1);
 
   return rc;
@@ -1161,7 +1209,7 @@ L7_RC_t ptin_opensaf_write_checkpoint_teste(void)
 {
 
   char *name ="olaola";
-  L7_RC_t rc;  
+  L7_RC_t rc;
 
   rc = ptin_opensaf_write_checkpoint(name, 6, 1, 0, 1, 1);
 
@@ -1173,7 +1221,7 @@ L7_RC_t ptin_checkpoint_findDatainSection_teste()
 
   char teste[6] ="olaola";
   L7_uint32 position;
-  
+
   return ptin_checkpoint_findDatainSection(1, 1, &teste, sizeof(teste), &position);
 }
 
