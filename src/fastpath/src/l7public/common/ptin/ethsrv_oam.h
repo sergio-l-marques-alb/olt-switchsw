@@ -115,6 +115,10 @@ const T_ETH_OAM_MAC OAM_MC_MAC={{0x01, 0x80, 0xC2, 0x00, 0x00, 0x30}};
 //const T_ETH_OAM_MAC OAM_MC_MAC={{0x01, 0x06, 0x91, 0x00, 0x00, 0x00}};
 extern const T_ETH_OAM_MAC OAM_MC_MAC;
 
+#define __OAM_MC2_MAC_DECLARATION__ \
+const T_ETH_OAM_MAC OAM_MC2_MAC={{0x01, 0x80, 0xC2, 0x00, 0x00, 0x38}};
+extern const T_ETH_OAM_MAC OAM_MC2_MAC;
+
 
 
 
@@ -880,7 +884,7 @@ extern u64 rd_TxTimeStampf(u16 i_mep);  //Timestamp for packets leaving this car
 
 
 //this function returns the port where the bridge knows this MAC is or an invalid value (all 1s) otherwise
-extern u16 single_egprt_targetMAC(u8 *MAC, u16 ingress_oam_prt, u64 ingress_vid);
+extern u16 single_egprt_targetMAC(u8 *MAC, u16 ingress_oam_prt, u64 ingress_vid, u64 *egress_vid);
 
 extern u8 this_MPs_MAC(u16 oam_prt, u64 vid, u8 mip0_mep1, u8 *mac);
 

@@ -34,6 +34,7 @@
 //PUBLIC VARIABLES/OBJECTS**************************************************************
 __OAM_TIMER_CODE_VALUES_DECLARATION__
 __OAM_MC_MAC_DECLARATION__
+__OAM_MC2_MAC_DECLARATION__
 //OWN ROUTINES**************************************************************************
 static int send_ccm(u16 i_mep, T_MEP_HDR *p_mep, u8 RDI, T_MEP_LM *p_lm, u8 use_mcast_DMAC);
 static int send_csf(u16 oam_prt, T_MEP_HDR *p_mep, u8 CSF_period, u8 CSF_flags);
@@ -1235,8 +1236,9 @@ u16                 ltr_len = sizeof(ETH_LTR_OAM_DATAGRM);
 
 
 
-static int relay_ltm(u16 trg_prt, u8 up1_down0, u64 vid, u8 prior, u8 CoS, ETH_LTM_OAM_DATAGRM *p_ltm, u16 ltm_len, u8 *MP_MAC, u32 i_eg_id_tlv){
+static int relay_ltm(u16 trg_prt, u8 up1_down0, u64 vid, u8 prior, u8 CoS, u8 lvl, ETH_LTM_OAM_DATAGRM *p_ltm, u16 ltm_len, u8 *MP_MAC, u32 i_eg_id_tlv){
 ETH_LTR_OAM_DATAGRM ltm;
+T_ETH_OAM_MAC mac;
 
  memcpy(&ltm, p_ltm, ltm_len);
  //LTM header
@@ -1256,7 +1258,10 @@ ETH_LTR_OAM_DATAGRM ltm;
  //else { //v2006
  //}
 
- return send_eth_pckt(trg_prt, up1_down0, (u8*)&ltm, ltm_len, vid, prior, CoS, 0, OAM_ETH_TYPE, p_ltm->targ_mac);
+ memcpy(mac.byte, OAM_MC2_MAC.byte, sizeof(mac));
+ mac.byte[5]|=lvl;
+
+ return send_eth_pckt(trg_prt, up1_down0, (u8*)&ltm, ltm_len, vid, prior, CoS, 0, OAM_ETH_TYPE, mac.byte);
 }//relay_ltm
 
 
@@ -2090,8 +2095,8 @@ u16 targ_prt;
 u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4;
 u32 alrm_index;
 u8 MEP_in_DB, FwdYes, TerminalMEP, TerminalMP,
-    ud, p, C;
-u64 v;
+    ud, p, C, lvl;
+u64 v, eg_v;
 T_ETH_OAM_MAC this_MP_MAC;
 
 
@@ -2101,7 +2106,7 @@ T_ETH_OAM_MAC this_MP_MAC;
 
 
 
- i_look_r=  finger_lut_index(0, oam_prt, vid, MALEVEL_AND_VERSION_TO_MALEVEL(p_ltm->MAlevel_and_version), 0,
+ i_look_r=  finger_lut_index(0, oam_prt, vid, lvl=MALEVEL_AND_VERSION_TO_MALEVEL(p_ltm->MAlevel_and_version), 0,
                              -1, //LTM packet doesn't bring any MEP_ID...
                              -1 , -1, p_mep_lut, &unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4, &alrm_index);
 
@@ -2162,7 +2167,7 @@ T_ETH_OAM_MAC this_MP_MAC;
              FwdYes= 0;
          }
          else {
-             targ_prt=single_egprt_targetMAC(p_ltm->targ_mac, oam_prt, vid);
+             targ_prt=single_egprt_targetMAC(p_ltm->targ_mac, oam_prt, vid, &eg_v);
              if (targ_prt>=N_OAM_PRTS) return 0;//7;  //NE unaware of this TargetMAC or associating it to more than a single egress port
              if (oam_prt==targ_prt) return 0;//8      //egress port mustn't be the ingressing port
              FwdYes= p_ltm->TTL>1? 1:0;
@@ -2181,7 +2186,7 @@ T_ETH_OAM_MAC this_MP_MAC;
 
      --p_ltm->TTL;  //for both LTR and LTM
 
-     if (FwdYes) relay_ltm(targ_prt, ud, v, p, C, p_ltm, pkt_len-2, this_MP_MAC.byte, i);
+     if (FwdYes) relay_ltm(targ_prt, ud, eg_v, p, C, lvl, p_ltm, pkt_len-2, this_MP_MAC.byte, i);
 
      send_ltr(oam_prt, ud, v, p, C, p_ltm, pkt_len-2, this_MP_MAC.byte,
               i, FwdYes, TerminalMEP,

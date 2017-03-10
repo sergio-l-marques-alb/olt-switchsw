@@ -994,7 +994,7 @@ u8 this_MPs_MAC(u16 oam_prt, u64 vid, u8 mip0_mep1, u8 *mac) {
 
 
 
-u16 single_egprt_targetMAC(u8 *MAC, u16 ingress_oam_prt, u64 ingress_vid) {
+u16 single_egprt_targetMAC(u8 *MAC, u16 ingress_oam_prt, u64 ingress_vid, u64 *egress_vid) {
 L7_uint32 intIfNum, ptin_port;
 L7_uint16 vidInternal;
 L7_uchar8 vidMac[L7_FDB_KEY_SIZE];
@@ -1008,8 +1008,16 @@ dot1dTpFdbData_t fdbEntry;
      (void)usmDbEntryVidMacCombine(vidInternal, MAC, vidMac);
 
      memset(&fdbEntry, 0, sizeof(fdbEntry));
-     if(L7_SUCCESS==fdbFind(vidMac, L7_MATCH_EXACT, &fdbEntry) && L7_SUCCESS==ptin_intf_intIfNum2port(fdbEntry.dot1dTpFdbPort, &ptin_port))
+     if(L7_SUCCESS==fdbFind(vidMac, L7_MATCH_EXACT, &fdbEntry) && L7_SUCCESS==ptin_intf_intIfNum2port(fdbEntry.dot1dTpFdbPort, &ptin_port)) {
+       if (NULL!=egress_vid) {
+       L7_uint16 newOuterVlanId;
+
+           if (L7_SUCCESS==ptin_xlate_egress_get(fdbEntry.dot1dTpFdbPort, vidInternal, PTIN_XLATE_NOT_DEFINED, &newOuterVlanId, L7_NULLPTR))
+                *egress_vid = newOuterVlanId;
+           else *egress_vid = -1;
+         }
        return ptin_port;
+     }
  }
 
  return -1;
