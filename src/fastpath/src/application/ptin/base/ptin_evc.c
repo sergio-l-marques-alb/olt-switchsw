@@ -5437,7 +5437,7 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     pflow->uni_ovid   = evcFlow->uni_ovid;
     pflow->uni_ivid   = evcFlow->uni_ivid;
     pflow->client_vid = evcFlow->uni_ivid;
-    pflow->flags      = evcFlow->flags;
+    pflow->flags      = 0; //evcFlow->flags;    /* Initial value: no flags exist */
     pflow->virtual_gport = vport_id;
     pflow->vport_id   = vport_id & 0xffffff;
     pflow->macLearnMax  = evcFlow->macLearnMax;
