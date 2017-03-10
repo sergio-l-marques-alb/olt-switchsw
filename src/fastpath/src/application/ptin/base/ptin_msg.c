@@ -5664,7 +5664,8 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   L7_uint16 i;
   L7_uint32 evc_id, flags;
   L7_uint16 nni_vlan;
-  ptin_HwEthMef10Evc_t ptinEvcConf;
+
+  static ptin_HwEthMef10Evc_t ptinEvcConf;
   msg_HwEthMef10EvcQoS_t *msgEvcConf = (msg_HwEthMef10EvcQoS_t *) inbuffer->info;
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
@@ -5703,7 +5704,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   L7_uint8 ports_ngpon2 = 0;
   L7_BOOL  ngpon2_ports = L7_FALSE; 
   L7_uint8 index_port = 0;
- 
+
   for (i=0; i < msgEvcConf->evc.n_intf; i++)
   {
     #if (0)
