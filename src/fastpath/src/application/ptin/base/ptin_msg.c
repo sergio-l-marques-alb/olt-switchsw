@@ -9774,29 +9774,41 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid Input Parameters: igmpAdmissionControl=%p", msgAdmissionControl);
     return L7_FAILURE;
   }
+
+  ENDIAN_SWAP8_MOD (msgAdmissionControl->SlotId);
+  ENDIAN_SWAP8_MOD (msgAdmissionControl->mask);
+  ENDIAN_SWAP32_MOD(msgAdmissionControl->evcId);
+  ENDIAN_SWAP8_MOD (msgAdmissionControl->intf.intf_type);
+  ENDIAN_SWAP8_MOD (msgAdmissionControl->intf.intf_id);
+  ENDIAN_SWAP8_MOD (msgAdmissionControl->onuId);
+  ENDIAN_SWAP16_MOD(msgAdmissionControl->outer_vlan);
+  ENDIAN_SWAP16_MOD(msgAdmissionControl->inner_vlan);
+  ENDIAN_SWAP16_MOD(msgAdmissionControl->maxChannels);
+  ENDIAN_SWAP64_MOD(msgAdmissionControl->maxBandwidth);
+
    /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "SlotId       = %u"        , msgAdmissionControl->SlotId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "mask         = 0x%02X"    , msgAdmissionControl->mask);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "evcId        = %u"        , ENDIAN_SWAP32(msgAdmissionControl->evcId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "evcId        = %u"        , msgAdmissionControl->evcId);
   PT_LOG_DEBUG(LOG_CTX_MSG, "intf         = %u/%u"     , msgAdmissionControl->intf.intf_type, msgAdmissionControl->intf.intf_id);
   PT_LOG_DEBUG(LOG_CTX_MSG, "onuId        = %u"        , msgAdmissionControl->onuId);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "outer_vlan   = %u"        , ENDIAN_SWAP16(msgAdmissionControl->outer_vlan));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "inner_vlan   = %u"        , ENDIAN_SWAP16(msgAdmissionControl->inner_vlan));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "maxChannels  = %hu"       , ENDIAN_SWAP16(msgAdmissionControl->maxChannels));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "maxBandwidth = %llu bit/s", ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "outer_vlan   = %u"        , msgAdmissionControl->outer_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "inner_vlan   = %u"        , msgAdmissionControl->inner_vlan);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "maxChannels  = %hu"       , msgAdmissionControl->maxChannels);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "maxBandwidth = %llu bit/s", msgAdmissionControl->maxBandwidth);
 
   if ( ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_INTF) !=  PTIN_MSG_ADMISSION_CONTROL_MASK_INTF) ||
        ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_EVCID) !=  PTIN_MSG_ADMISSION_CONTROL_MASK_EVCID) ||
 #if  !PTIN_BOARD_IS_ACTIVETH
        ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_ONUID) !=  PTIN_MSG_ADMISSION_CONTROL_MASK_ONUID) ||
 #endif         
-      ( ( (msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH ) &&
-        (ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth) != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth) > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
-       ( ( (msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS ) &&
-        (ENDIAN_SWAP16(msgAdmissionControl->maxChannels) != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && ENDIAN_SWAP16(msgAdmissionControl->maxChannels) > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
+      ( ((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_BANDWIDTH ) &&
+        ((msgAdmissionControl->maxBandwidth) != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && (msgAdmissionControl->maxBandwidth) > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
+       (((msgAdmissionControl->mask & PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS) == PTIN_MSG_ADMISSION_CONTROL_MASK_MAX_CHANNELS ) &&
+        ((msgAdmissionControl->maxChannels) != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && (msgAdmissionControl->maxChannels) > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
       
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxChannels:%hu maxBandwidth:%llu bits/s", msgAdmissionControl->mask, ENDIAN_SWAP16(msgAdmissionControl->maxChannels), ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth));
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxChannels:%hu maxBandwidth:%llu bits/s", msgAdmissionControl->mask, msgAdmissionControl->maxChannels, msgAdmissionControl->maxBandwidth);
     return L7_FAILURE;
   }
 
@@ -9831,14 +9843,14 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
             return L7_FAILURE;
           }
          
-          igmpAdmissionControl.serviceId      = ENDIAN_SWAP32(msgAdmissionControl->evcId);    
+          igmpAdmissionControl.serviceId     = msgAdmissionControl->evcId;
 #if  !PTIN_BOARD_IS_ACTIVETH
           igmpAdmissionControl.onuId         = msgAdmissionControl->onuId;
 #else
           igmpAdmissionControl.onuId         = 0;
 #endif  
-          igmpAdmissionControl.maxAllowedChannels   = ENDIAN_SWAP16(msgAdmissionControl->maxChannels);
-          igmpAdmissionControl.maxAllowedBandwidth  = ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth);
+          igmpAdmissionControl.maxAllowedChannels   = msgAdmissionControl->maxChannels;
+          igmpAdmissionControl.maxAllowedBandwidth  = msgAdmissionControl->maxBandwidth;
 
           if (ptin_igmp_multicast_service_add(igmpAdmissionControl.ptin_port, igmpAdmissionControl.onuId, igmpAdmissionControl.serviceId) != L7_SUCCESS)
           {
@@ -9886,14 +9898,14 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
         return L7_FAILURE;
       }
      
-      igmpAdmissionControl.serviceId      = ENDIAN_SWAP32(msgAdmissionControl->evcId);    
+      igmpAdmissionControl.serviceId     = msgAdmissionControl->evcId;
 #if  !PTIN_BOARD_IS_ACTIVETH
       igmpAdmissionControl.onuId         = msgAdmissionControl->onuId;
 #else
       igmpAdmissionControl.onuId         = 0;
 #endif  
-      igmpAdmissionControl.maxAllowedChannels   = ENDIAN_SWAP16(msgAdmissionControl->maxChannels);
-      igmpAdmissionControl.maxAllowedBandwidth  = ENDIAN_SWAP64(msgAdmissionControl->maxBandwidth);
+      igmpAdmissionControl.maxAllowedChannels   = msgAdmissionControl->maxChannels;
+      igmpAdmissionControl.maxAllowedBandwidth  = msgAdmissionControl->maxBandwidth;
 
       if (ptin_igmp_multicast_service_add(igmpAdmissionControl.ptin_port, igmpAdmissionControl.onuId, igmpAdmissionControl.serviceId) != L7_SUCCESS)
       {
@@ -9972,31 +9984,31 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   ptinMgmdProxy.mask                                  |= PTIN_MGMD_CONFIG_WHITELIST_MASK;
 
   /* Output data */
-  PT_LOG_DEBUG(LOG_CTX_MSG, "IGMP Proxy (mask=0x%08X)", ENDIAN_SWAP16(ptinMgmdProxy.mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "IGMP Proxy (mask=0x%08X)", ptinMgmdProxy.mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Admin #                          = %u", ptinMgmdProxy.admin);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Network Version                  = %u", ptinMgmdProxy.networkVersion);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Client Version                   = %u", ptinMgmdProxy.clientVersion);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  IP Addr                          = %u.%u.%u.%u", (ENDIAN_SWAP32(ptinMgmdProxy.ipv4Addr)>>24)&0xFF, (ENDIAN_SWAP32(ptinMgmdProxy.ipv4Addr)>>16)&0xFF, 
-                                                                                  (ENDIAN_SWAP32(ptinMgmdProxy.ipv4Addr)>>8)&0xFF, ENDIAN_SWAP32(ptinMgmdProxy.ipv4Addr)&0xFF);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  IP Addr                          = %u.%u.%u.%u", (ptinMgmdProxy.ipv4Addr>>24)&0xFF, (ptinMgmdProxy.ipv4Addr>>16)&0xFF, 
+                                                                                  (ptinMgmdProxy.ipv4Addr>>8)&0xFF, ptinMgmdProxy.ipv4Addr&0xFF);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  COS                              = %u", ptinMgmdProxy.igmpCos);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  FastLeave                        = %s", ptinMgmdProxy.fastLeave != 0 ? "ON":"OFF");  
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  Querier (mask=0x%08X)", ENDIAN_SWAP16(ptinMgmdProxy.querier.mask));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  Querier (mask=0x%08X)", ptinMgmdProxy.querier.mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "    Flags                          = 0x%04X", ptinMgmdProxy.querier.flags);
   PT_LOG_DEBUG(LOG_CTX_MSG, "    Robustness                     = %u", ptinMgmdProxy.querier.robustness);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Interval                 = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.queryInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Response Interval        = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.queryResponseInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Group Membership Interval      = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.groupMembershipInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Other Querier Present Interval = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.otherQuerierPresentInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Interval         = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.startupQueryInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Count            = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.startupQueryCount));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Interval     = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.lastMemberQueryInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Count        = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.lastMemberQueryCount));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Host Present Timeout     = %u", ENDIAN_SWAP16(ptinMgmdProxy.querier.olderHostPresentTimeout));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Interval                 = %u", ptinMgmdProxy.querier.queryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Query Response Interval        = %u", ptinMgmdProxy.querier.queryResponseInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Group Membership Interval      = %u", ptinMgmdProxy.querier.groupMembershipInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Other Querier Present Interval = %u", ptinMgmdProxy.querier.otherQuerierPresentInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Interval         = %u", ptinMgmdProxy.querier.startupQueryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Startup Query Count            = %u", ptinMgmdProxy.querier.startupQueryCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Interval     = %u", ptinMgmdProxy.querier.lastMemberQueryInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Last Member Query Count        = %u", ptinMgmdProxy.querier.lastMemberQueryCount);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Host Present Timeout     = %u", ptinMgmdProxy.querier.olderHostPresentTimeout);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Host (mask=0x%08X)", ptinMgmdProxy.host.mask);
   PT_LOG_DEBUG(LOG_CTX_MSG, "    Flags                          = 0x%02X", ptinMgmdProxy.host.flags);
   PT_LOG_DEBUG(LOG_CTX_MSG, "    Robustness                     = %u", ptinMgmdProxy.host.robustness);
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Unsolicited Report Interval    = %u", ENDIAN_SWAP16(ptinMgmdProxy.host.unsolicitedReportInterval));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Querier Present Timeout  = %u", ENDIAN_SWAP16(ptinMgmdProxy.host.olderQuerierPresentTimeout));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Unsolicited Report Interval    = %u", ptinMgmdProxy.host.unsolicitedReportInterval);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "    Older Querier Present Timeout  = %u", ptinMgmdProxy.host.olderQuerierPresentTimeout);
   PT_LOG_DEBUG(LOG_CTX_MSG, "    Max Group Records per Packet   = %u", ptinMgmdProxy.host.maxRecordsPerReport);
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Bandwidth Control                = %s", ptinMgmdProxy.bandwidthControl != 0 ? "ON":"OFF");
   PT_LOG_DEBUG(LOG_CTX_MSG, "  Channels Control                 = %s", ptinMgmdProxy.channelsControl != 0 ? "ON":"OFF");
@@ -10122,13 +10134,16 @@ L7_RC_t ptin_msg_igmp_instance_add(msg_IgmpMultcastUnicastLink_t *msgIgmpInst)
     return L7_FAILURE;
   }
 
+  ENDIAN_SWAP32_MOD(msgIgmpInst->multicastEvcId);
+  ENDIAN_SWAP32_MOD(msgIgmpInst->unicastEvcId);
+
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Going to add IGMP Instance:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", ENDIAN_SWAP32(msgIgmpInst->multicastEvcId));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  UC evc_idx = %u", ENDIAN_SWAP32(msgIgmpInst->unicastEvcId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", msgIgmpInst->multicastEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  UC evc_idx = %u", msgIgmpInst->unicastEvcId);
 
   /* Apply config */
-  rc = ptin_igmp_instance_add(ENDIAN_SWAP32(msgIgmpInst->multicastEvcId),ENDIAN_SWAP32(msgIgmpInst->unicastEvcId));
+  rc = ptin_igmp_instance_add(msgIgmpInst->multicastEvcId, msgIgmpInst->unicastEvcId);
 
   if (rc!=L7_SUCCESS)
   {
@@ -10156,13 +10171,16 @@ L7_RC_t ptin_msg_igmp_instance_remove(msg_IgmpMultcastUnicastLink_t *msgIgmpInst
     return L7_FAILURE;
   }
 
+  ENDIAN_SWAP32_MOD(msgIgmpInst->multicastEvcId);
+  ENDIAN_SWAP32_MOD(msgIgmpInst->unicastEvcId);
+
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Going to remove IGMP Instance:");
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", ENDIAN_SWAP32(msgIgmpInst->multicastEvcId));
-  PT_LOG_DEBUG(LOG_CTX_MSG, "  UC evc_idx = %u", ENDIAN_SWAP32(msgIgmpInst->unicastEvcId));
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", msgIgmpInst->multicastEvcId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "  UC evc_idx = %u", msgIgmpInst->unicastEvcId);
 
   /* Apply config */
-  rc = ptin_igmp_instance_remove(ENDIAN_SWAP32(msgIgmpInst->multicastEvcId),ENDIAN_SWAP32(msgIgmpInst->unicastEvcId));
+  rc = ptin_igmp_instance_remove(msgIgmpInst->multicastEvcId, msgIgmpInst->unicastEvcId);
 
   if (rc!=L7_SUCCESS)
   {
@@ -10204,35 +10222,46 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
 
   for (i=0; i<n_clients; i++)
   {
+    ENDIAN_SWAP32_MOD(McastClient[i].mcEvcId);
+    ENDIAN_SWAP8_MOD (McastClient[i].client.mask);
+    ENDIAN_SWAP16_MOD(McastClient[i].client.outer_vlan);
+    ENDIAN_SWAP16_MOD(McastClient[i].client.inner_vlan);
+    ENDIAN_SWAP8_MOD (McastClient[i].client.intf.intf_type);
+    ENDIAN_SWAP8_MOD (McastClient[i].client.intf.intf_id);
+    ENDIAN_SWAP8_MOD (McastClient[i].onuId);
+    ENDIAN_SWAP8_MOD (McastClient[i].mask);
+    ENDIAN_SWAP16_MOD(McastClient[i].maxChannels);
+    ENDIAN_SWAP64_MOD(McastClient[i].maxBandwidth);
+
     /* Output data */
     PT_LOG_DEBUG(LOG_CTX_MSG, "Going to ADD MC client");
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", ENDIAN_SWAP32(McastClient[i].mcEvcId));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u",        McastClient[i].mcEvcId);
     PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Mask  = 0x%02x", McastClient[i].client.mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan = %u", ENDIAN_SWAP16(McastClient[i].client.outer_vlan));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan = %u", ENDIAN_SWAP16(McastClient[i].client.inner_vlan));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf  = %u/%u", McastClient[i].client.intf.intf_type,McastClient[i].client.intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan = %u",     McastClient[i].client.outer_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan = %u",     McastClient[i].client.inner_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf  = %u/%u",  McastClient[i].client.intf.intf_type, McastClient[i].client.intf.intf_id);
 
     if (McastClient[i].mask > PTIN_MSG_IGMP_CLIENT_MASK_VALID)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Mask [mask:0x%02x]",McastClient[i].mask, ENDIAN_SWAP64(McastClient[i].maxBandwidth), ENDIAN_SWAP16(McastClient[i].maxChannels));
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Mask [mask:0x%02x]",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
       return L7_FAILURE;
     }
 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT                                         
     if ( ( ( (McastClient[i].mask & PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_BANDWIDTH) == PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_BANDWIDTH ) &&
-            (ENDIAN_SWAP64(McastClient[i].maxBandwidth) != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && ENDIAN_SWAP64(McastClient[i].maxBandwidth) > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
+            ( McastClient[i].maxBandwidth != PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS_DISABLE && McastClient[i].maxBandwidth > PTIN_IGMP_ADMISSION_CONTROL_MAX_BANDWIDTH_IN_BPS) ) ||
            ( ( (McastClient[i].mask & PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_CHANNELS) == PTIN_MSG_IGMP_CLIENT_MASK_MAX_ALLOWED_CHANNELS ) &&
-            (ENDIAN_SWAP16(McastClient[i].maxChannels) != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && ENDIAN_SWAP16(McastClient[i].maxChannels) > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
+            ( McastClient[i].maxChannels != PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS_DISABLE && McastClient[i].maxChannels > PTIN_IGMP_ADMISSION_CONTROL_MAX_CHANNELS) ) )
           
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu",McastClient[i].mask, ENDIAN_SWAP64(McastClient[i].maxBandwidth), ENDIAN_SWAP16(McastClient[i].maxChannels));
+      PT_LOG_ERR(LOG_CTX_MSG, "Invalid Admission Control Parameters [mask:0x%02x maxBandwidth:%llu bits/s maxChannels:%hu",McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels);
       return L7_FAILURE;
     }
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "   onuId        = %u", McastClient[i].onuId);
     PT_LOG_DEBUG(LOG_CTX_MSG, "   mask         = %u", McastClient[i].mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   maxChannels  = %u", ENDIAN_SWAP16(McastClient[i].maxChannels));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   maxBandwidth = %llu bit/s ", ENDIAN_SWAP64(McastClient[i].maxBandwidth));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   maxChannels  = %u", McastClient[i].maxChannels);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   maxBandwidth = %llu bit/s ", McastClient[i].maxBandwidth);
 #endif
  
 
@@ -10249,12 +10278,12 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
 
           if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
           {
-            client.outerVlan = ENDIAN_SWAP16(McastClient[i].client.outer_vlan);
+            client.outerVlan = McastClient[i].client.outer_vlan;
             client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
           }
           if (McastClient[i].client.mask & MSG_CLIENT_IVLAN_MASK)
           {
-            client.innerVlan = ENDIAN_SWAP16(McastClient[i].client.inner_vlan);
+            client.innerVlan = McastClient[i].client.inner_vlan;
             client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
           }
           if (McastClient[i].client.mask & MSG_CLIENT_INTF_MASK)
@@ -10264,7 +10293,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
             client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           }
 
-          rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(McastClient[i].mcEvcId), &client);
+          rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
           if ( rc != L7_SUCCESS )
           {
             PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
@@ -10274,7 +10303,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
           /* Get interface as intIfNum format */      
           if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
           {
-             if (ptin_evc_extVlans_get(intIfNum, ENDIAN_SWAP32(McastClient[i].mcEvcId),(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+             if (ptin_evc_extVlans_get(intIfNum, McastClient[i].mcEvcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
              { 
                PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                         client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
@@ -10292,7 +10321,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
            }
           
            /* Apply config */
-           rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, McastClient[i].onuId, McastClient[i].mask, ENDIAN_SWAP64(McastClient[i].maxBandwidth), ENDIAN_SWAP16(McastClient[i].maxChannels), L7_FALSE, L7_NULLPTR/*McastClient[i].packageBmpList*/, 0/*McastClient[i].noOfPackages*/);          
+           rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, McastClient[i].onuId, McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels, L7_FALSE, L7_NULLPTR/*McastClient[i].packageBmpList*/, 0/*McastClient[i].noOfPackages*/);          
 
            if (rc!=L7_SUCCESS)
            {
@@ -10314,8 +10343,8 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
              McastClient_info[evc_id-1].uni_ovid      = uni_ovid;
              McastClient_info[evc_id-1].mask          = McastClient[i].mask;
              McastClient_info[evc_id-1].onuId         = McastClient[i].onuId;
-             McastClient_info[evc_id-1].maxBandwidth  = ENDIAN_SWAP64(McastClient[i].maxBandwidth);
-             McastClient_info[evc_id-1].maxChannels   = ENDIAN_SWAP16(McastClient[i].maxChannels);
+             McastClient_info[evc_id-1].maxBandwidth  = McastClient[i].maxBandwidth;
+             McastClient_info[evc_id-1].maxChannels   = McastClient[i].maxChannels;
              McastClient_info[evc_id-1].admin         = L7_TRUE;
              memcpy(&McastClient_info[evc_id-1].client, &McastClient[i].client, sizeof(ptin_client_id_t));
 #endif
@@ -10330,12 +10359,12 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
         memset(&client,0x00,sizeof(ptin_client_id_t));
         if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
         {
-          client.outerVlan = ENDIAN_SWAP16(McastClient[i].client.outer_vlan);
+          client.outerVlan = McastClient[i].client.outer_vlan;
           client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
         }
         if (McastClient[i].client.mask & MSG_CLIENT_IVLAN_MASK)
         {
-          client.innerVlan = ENDIAN_SWAP16(McastClient[i].client.inner_vlan);
+          client.innerVlan = McastClient[i].client.inner_vlan;
           client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
         }
         if (McastClient[i].client.mask & MSG_CLIENT_INTF_MASK)
@@ -10345,7 +10374,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
           client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
         }
 
-        rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(McastClient[i].mcEvcId), &client);
+        rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
         if ( rc != L7_SUCCESS )
         {
           PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
@@ -10355,7 +10384,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
         /* Get interface as intIfNum format */      
         if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
         {
-          if (ptin_evc_extVlans_get(intIfNum, ENDIAN_SWAP32(McastClient[i].mcEvcId),(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
+          if (ptin_evc_extVlans_get(intIfNum, McastClient[i].mcEvcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
           {
             PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
                     client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
@@ -10374,7 +10403,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
     
     
        /* Apply config */
-       rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, McastClient[i].onuId, McastClient[i].mask, ENDIAN_SWAP64(McastClient[i].maxBandwidth), ENDIAN_SWAP16(McastClient[i].maxChannels), L7_FALSE, L7_NULLPTR/*McastClient[i].packageBmpList*/, 0/*McastClient[i].noOfPackages*/);          
+       rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, McastClient[i].onuId, McastClient[i].mask, McastClient[i].maxBandwidth, McastClient[i].maxChannels, L7_FALSE, L7_NULLPTR/*McastClient[i].packageBmpList*/, 0/*McastClient[i].noOfPackages*/);          
 
        if (rc!=L7_SUCCESS)
        {
@@ -10414,13 +10443,24 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
 
   for (i=0; i<n_clients; i++)
   {
+    ENDIAN_SWAP32_MOD(McastClient[i].mcEvcId);
+    ENDIAN_SWAP8_MOD (McastClient[i].client.mask);
+    ENDIAN_SWAP16_MOD(McastClient[i].client.outer_vlan);
+    ENDIAN_SWAP16_MOD(McastClient[i].client.inner_vlan);
+    ENDIAN_SWAP8_MOD (McastClient[i].client.intf.intf_type);
+    ENDIAN_SWAP8_MOD (McastClient[i].client.intf.intf_id);
+    ENDIAN_SWAP8_MOD (McastClient[i].onuId);
+    ENDIAN_SWAP8_MOD (McastClient[i].mask);
+    ENDIAN_SWAP16_MOD(McastClient[i].maxChannels);
+    ENDIAN_SWAP64_MOD(McastClient[i].maxBandwidth);
+
     /* Output data */
     PT_LOG_DEBUG(LOG_CTX_MSG, "Going to remove MC client");
-    PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u", ENDIAN_SWAP32(McastClient[i].mcEvcId));
+    PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u",        McastClient[i].mcEvcId);
     PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Mask  = 0x%02x", McastClient[i].client.mask);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan = %u", ENDIAN_SWAP16(McastClient[i].client.outer_vlan));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan = %u", ENDIAN_SWAP16(McastClient[i].client.inner_vlan));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf  = %u/%u", McastClient[i].client.intf.intf_type,McastClient[i].client.intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan = %u",     McastClient[i].client.outer_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan = %u",     McastClient[i].client.inner_vlan);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf  = %u/%u",  McastClient[i].client.intf.intf_type, McastClient[i].client.intf.intf_id);
 
 
     if ( McastClient[i].client.intf.intf_type == PTIN_EVC_INTF_NGPON2 )
@@ -10438,12 +10478,12 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
            memset(&client,0x00,sizeof(ptin_client_id_t));
           if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
           {
-            client.outerVlan = ENDIAN_SWAP16(McastClient[i].client.outer_vlan);
+            client.outerVlan = McastClient[i].client.outer_vlan;
             client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
           }
           if (McastClient[i].client.mask & MSG_CLIENT_IVLAN_MASK)
           {
-            client.innerVlan = ENDIAN_SWAP16(McastClient[i].client.inner_vlan);
+            client.innerVlan = McastClient[i].client.inner_vlan;
             client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
           }
           if (McastClient[i].client.mask & MSG_CLIENT_INTF_MASK)
@@ -10453,7 +10493,7 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
             client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           }
 
-           rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(McastClient[i].mcEvcId), &client);
+           rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
            if ( rc != L7_SUCCESS )
            {
              PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
@@ -10473,9 +10513,9 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
              L7_uint32 evc_id;
              /* Is EVC in use? */
-             if (ptin_evc_ext2int(ENDIAN_SWAP32(McastClient[i].mcEvcId), &evc_id) != L7_SUCCESS)
+             if (ptin_evc_ext2int(McastClient[i].mcEvcId, &evc_id) != L7_SUCCESS)
              {
-               PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(McastClient[i].mcEvcId));
+               PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", McastClient[i].mcEvcId);
                return L7_FAILURE;
              }
              memset(&UcastClient_info[evc_id-1], 0xFF, sizeof(UcastClient_info[evc_id-1]));
@@ -10493,12 +10533,12 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
       memset(&client,0x00,sizeof(ptin_client_id_t));
       if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
       {
-        client.outerVlan = ENDIAN_SWAP16(McastClient[i].client.outer_vlan);
+        client.outerVlan = McastClient[i].client.outer_vlan;
         client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
       }
       if (McastClient[i].client.mask & MSG_CLIENT_IVLAN_MASK)
       {
-        client.innerVlan = ENDIAN_SWAP16(McastClient[i].client.inner_vlan);
+        client.innerVlan = McastClient[i].client.inner_vlan;
         client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
       }
       if (McastClient[i].client.mask & MSG_CLIENT_INTF_MASK)
@@ -10508,7 +10548,7 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
         client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
       }
 
-      rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(McastClient[i].mcEvcId), &client);
+      rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
       if ( rc != L7_SUCCESS )
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
