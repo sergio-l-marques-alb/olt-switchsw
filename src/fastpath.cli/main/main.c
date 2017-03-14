@@ -378,7 +378,7 @@ int main (int argc, char *argv[])
           exit(0);
         }
 
-        ptr->GroupId = (uint8) valued;
+        ptr->GroupId = (uint8) (valued);
 
         comando.msgId = CCMSG_NGPON2_ADD_GROUP;
         comando.infoDim = sizeof(ptin_NGPON2group_t);
@@ -411,7 +411,7 @@ int main (int argc, char *argv[])
           exit(0);
         }
 
-        ptr->GroupId = (uint8) valued;
+        ptr->GroupId = (uint8) (valued);
 
         comando.msgId = CCMSG_NGPON2_REM_GROUP;
         comando.infoDim = sizeof(ptin_NGPON2group_t);
@@ -451,7 +451,7 @@ int main (int argc, char *argv[])
           exit(0);
         }
 
-        ptr->GroupId = (uint8) valued;      
+        ptr->GroupId = (uint8) (valued);      
 
         // numIntf
         if (StrToLongLong(argv[3+1], &valued) < 0)
@@ -469,7 +469,7 @@ int main (int argc, char *argv[])
           exit(0);
         }
 
-        ptr->NGPON2Port[0].id = (uint8) valued;
+        ptr->NGPON2Port[0].id = (uint8) (valued);
 
 
         /*
@@ -523,7 +523,7 @@ int main (int argc, char *argv[])
           exit(0);
         }
 
-        ptr->GroupId = (uint8) valued;
+        ptr->GroupId = (uint8) (valued);
         // numIntf
         if (StrToLongLong(argv[3+1], &valued) < 0)
         {
@@ -540,7 +540,7 @@ int main (int argc, char *argv[])
           exit(0);
         }
 
-        ptr->NGPON2Port[0].id = (uint8) valued;
+        ptr->NGPON2Port[0].id = (uint8) (valued);
 
 
         /*

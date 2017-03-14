@@ -7901,7 +7901,7 @@ L7_RC_t ptin_intf_NGPON2_add_group(ptin_NGPON2group_t *group_info)
     return L7_FAILURE;
   }
 
-  group_idx = group_info->GroupId;
+  group_idx = group_info->GroupId - 1; // internal index
 
     /* check if the group already exists */
   if (ptin_intf_NGPON2_group_exists(group_idx))
@@ -7939,7 +7939,7 @@ L7_RC_t ptin_intf_NGPON2_rem_group(ptin_NGPON2group_t *group_info)
     return L7_FAILURE;
   }
 
-  group_idx = group_info->GroupId;
+  group_idx = group_info->GroupId - 1; // internal index
 
   /* check if the group already exists */
   if (!ptin_intf_NGPON2_group_exists(group_idx))
@@ -8003,7 +8003,7 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
     return L7_FAILURE;
   }
 
-  group_idx = group_info->GroupId;
+  group_idx = group_info->GroupId - 1; // internal index
 
   /* check if the group exists */
   if (!ptin_intf_NGPON2_group_exists(group_idx))
@@ -8015,7 +8015,7 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
   while ( i < group_info->numIntf )
   {
     /* set portId to the NGPON2 group */
-    NGPON2_PORT_ADD(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, group_info->NGPON2Port[i].id);
+    NGPON2_PORT_ADD(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, (group_info->NGPON2Port[i].id-1));
     i++;
   }
 
@@ -8026,9 +8026,9 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
   {
     if  (NGPON2_BIT_PORT(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64 >> temp))
     {
-      if (temp != group_info->NGPON2Port[i].id)
+      if (temp != group_info->NGPON2Port[i].id-1)
       {
-        aux_port = temp;
+        aux_port = temp - 1;
       }
       n_ports++;
     }
@@ -8036,26 +8036,30 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
     temp++;
   }
 
-  PT_LOG_TRACE(LOG_CTX_INTF, "Going to replicate configuration from port %d to %d !", aux_port, group_info->NGPON2Port[i].id);
+  PT_LOG_TRACE(LOG_CTX_INTF, "Going to replicate configuration from port %d to %d !", aux_port, group_info->NGPON2Port[i].id-1);
 
+
+  if ( aux_port != (group_info->NGPON2Port[i].id-1) && n_ports > 1)
+  {
 
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
 
-  if( ptin_msg_replicate_port_configuration(group_info->NGPON2Port[i].id, aux_port) != L7_SUCCESS)
-  {
-    /* Remove configurations */
-    while ( i < group_info->numIntf )
+    if( ptin_msg_replicate_port_configuration(group_info->NGPON2Port[i].id-1, aux_port) != L7_SUCCESS)
     {
-      /* set portId to the NGPON2 group */
-      NGPON2_PORT_REM(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, group_info->NGPON2Port[i].id);
-      i++;
+      /* Remove configurations */
+      while ( i < group_info->numIntf )
+      {
+        /* set portId to the NGPON2 group */
+        NGPON2_PORT_REM(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, (group_info->NGPON2Port[i].id-1));
+        i++;
+      }
+
+      PT_LOG_ERR(LOG_CTX_INTF, "Error replicating configuration from port %d to %d !", aux_port, group_info->NGPON2Port[i].id-1);
+      return L7_FAILURE;
     }
 
-    PT_LOG_ERR(LOG_CTX_INTF, "Error replicating configuration from port %d to %d !", aux_port, group_info->NGPON2Port[i].id);
-    return L7_FAILURE;
-  }
-
 #endif
+  }
 
   NGPON2_groups_info[group_idx].nports = n_ports;
 
@@ -8086,7 +8090,7 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
     return L7_FAILURE;
   }
 
-  group_idx = group_info->GroupId;
+  group_idx = group_info->GroupId - 1; // internal index
 
   /* check if the group already exists */
   if (!ptin_intf_NGPON2_group_exists(group_idx))
@@ -8097,7 +8101,7 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
 
   while ( i < group_info->numIntf )
   {
-    NGPON2_PORT_REM(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, group_info->NGPON2Port[i].id);
+    NGPON2_PORT_REM(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, (group_info->NGPON2Port[i].id-1));
     i++;
   }
 
@@ -8114,13 +8118,13 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
     temp++;
   }
 
-  PT_LOG_TRACE(LOG_CTX_INTF, "Going to remove configuration from port %d ", group_info->NGPON2Port[i].id);
+  PT_LOG_TRACE(LOG_CTX_INTF, "Going to remove configuration from port %d ", group_info->NGPON2Port[i].id-1);
   /* Remove port configurations */
 
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-  if(ptin_msg_remove_port_configuration(group_info->NGPON2Port[i].id) != L7_SUCCESS)
+  if(ptin_msg_remove_port_configuration(group_info->NGPON2Port[i].id-1) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "Error remove configuration from port %d", group_info->NGPON2Port[i].id);
+    PT_LOG_ERR(LOG_CTX_INTF, "Error remove configuration from port %d", group_info->NGPON2Port[i].id-1);
     return L7_FAILURE;
   }
 #endif
@@ -8143,19 +8147,21 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
  */
 L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_index)
 {
-
   L7_uint32 i=0;
-  group_info->admin                   = NGPON2_groups_info[group_index].admin;
-  group_info->groupId                 = NGPON2_groups_info[group_index].groupId;
-  group_info->nports                  = NGPON2_groups_info[group_index].nports;
-  group_info->ngpon2_groups_pbmp64    = NGPON2_groups_info[group_index].ngpon2_groups_pbmp64;
-  group_info->number_services         = NGPON2_groups_info[group_index].number_services;
+
+  L7_uint8 index = group_index -1; 
+
+  group_info->admin                   = NGPON2_groups_info[index].admin;
+  group_info->groupId                 = NGPON2_groups_info[index].groupId;
+  group_info->nports                  = NGPON2_groups_info[index].nports;
+  group_info->ngpon2_groups_pbmp64    = NGPON2_groups_info[index].ngpon2_groups_pbmp64;
+  group_info->number_services         = NGPON2_groups_info[index].number_services;
 
   PT_LOG_TRACE(LOG_CTX_MSG, "group_info->number_services %d", group_info->number_services );
 
-  for(i=0; i<NGPON2_groups_info[group_index].number_services ; i++)
+  for(i=0; i<NGPON2_groups_info[index].number_services ; i++)
   {
-    group_info->evcPort[i]              = NGPON2_groups_info[group_index].evcPort[i];
+    group_info->evcPort[i]              = NGPON2_groups_info[index].evcPort[i];
   }
 
   return L7_SUCCESS;
@@ -8172,11 +8178,11 @@ L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
  */
 L7_RC_t set_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_index)
 {
-
+  L7_uint8  groupIndex = group_index - 1; // internal index
   L7_uint32 index = group_info->number_services - 1;
 
-  NGPON2_groups_info[group_index].number_services = group_info->number_services;
-  NGPON2_groups_info[group_index].evcPort[index] = group_info->evcPort[index];
+  NGPON2_groups_info[groupIndex].number_services = group_info->number_services;
+  NGPON2_groups_info[groupIndex].evcPort[index] = group_info->evcPort[index];
 
   return L7_SUCCESS;
 }
