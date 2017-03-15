@@ -8005,14 +8005,18 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
 
   group_idx = group_info->GroupId; // internal index
 
+  PT_LOG_TRACE(LOG_CTX_INTF, "group_info->GroupId %d ",group_idx);
+
   /* check if the group exists */
   if (!ptin_intf_NGPON2_group_exists(group_idx))
   {
     PT_LOG_ERR(LOG_CTX_INTF, "NGPON2 Group does not exist!");
-    return L7_FAILURE;
+
+    NGPON2_groups_info[group_idx].admin = 1;
+    //return L7_FAILURE;
   }
 
-  while ( i < group_info->numIntf )
+  while ( i <= group_info->numIntf )
   {
     /* set portId to the NGPON2 group */
     NGPON2_PORT_ADD(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, (group_info->NGPON2Port[i].id-1));
@@ -8026,7 +8030,7 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
   {
     if  (NGPON2_BIT_PORT(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64 >> temp))
     {
-      if (temp != group_info->NGPON2Port[i].id-1)
+      if (temp != group_info->NGPON2Port[i].id)
       {
         aux_port = temp - 1;
       }
@@ -8036,32 +8040,31 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
     temp++;
   }
 
-  PT_LOG_TRACE(LOG_CTX_INTF, "Going to replicate configuration from port %d to %d !", aux_port, group_info->NGPON2Port[i].id-1);
+  PT_LOG_TRACE(LOG_CTX_INTF, "Going to replicate configuration from port %d to %d !", aux_port, group_info->NGPON2Port[i].id);
+  NGPON2_groups_info[group_idx].nports = n_ports;
 
-
-  if ( aux_port != (group_info->NGPON2Port[i].id-1) && n_ports > 1)
+  if ( aux_port != (group_info->NGPON2Port[i].id) && n_ports > 1)
   {
 
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
 
-    if( ptin_msg_replicate_port_configuration(group_info->NGPON2Port[i].id-1, aux_port) != L7_SUCCESS)
+    if( ptin_msg_replicate_port_configuration(group_info->NGPON2Port[i].id, aux_port) != L7_SUCCESS)
     {
       /* Remove configurations */
       while ( i < group_info->numIntf )
       {
         /* set portId to the NGPON2 group */
         NGPON2_PORT_REM(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, (group_info->NGPON2Port[i].id-1));
+        NGPON2_groups_info[group_idx].nports--;
         i++;
       }
 
-      PT_LOG_ERR(LOG_CTX_INTF, "Error replicating configuration from port %d to %d !", aux_port, group_info->NGPON2Port[i].id-1);
+      PT_LOG_ERR(LOG_CTX_INTF, "Error replicating configuration from port %d to %d !", aux_port, group_info->NGPON2Port[i].id);
       return L7_FAILURE;
     }
 
 #endif
   }
-
-  NGPON2_groups_info[group_idx].nports = n_ports;
 
   PT_LOG_TRACE(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d !", NGPON2_groups_info[group_idx].nports);
 
@@ -8149,7 +8152,7 @@ L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
 {
   L7_uint32 i=0;
 
-  L7_uint8 index = group_index -1; 
+  L7_uint8 index = group_index; 
 
   group_info->admin                   = NGPON2_groups_info[index].admin;
   group_info->groupId                 = NGPON2_groups_info[index].groupId;
@@ -8158,6 +8161,8 @@ L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
   group_info->number_services         = NGPON2_groups_info[index].number_services;
 
   PT_LOG_TRACE(LOG_CTX_MSG, "group_info->number_services %d", group_info->number_services );
+  PT_LOG_TRACE(LOG_CTX_MSG, "group_info->nports %d", group_info->nports );
+  PT_LOG_TRACE(LOG_CTX_MSG, "group_info->admin %d", group_info->admin );
 
   for(i=0; i<NGPON2_groups_info[index].number_services ; i++)
   {
@@ -8178,7 +8183,7 @@ L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
  */
 L7_RC_t set_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_index)
 {
-  L7_uint8  groupIndex = group_index - 1; // internal index
+  L7_uint8  groupIndex = group_index ; // internal index
   L7_uint32 index = group_info->number_services - 1;
 
   NGPON2_groups_info[groupIndex].number_services = group_info->number_services;

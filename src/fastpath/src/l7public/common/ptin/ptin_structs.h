@@ -864,7 +864,7 @@ typedef struct {
   L7_uint8  type;         // (not used) { 0 - p2p, 1 - mp2mp, 2 - rooted mp }
   L7_uint8  evc_type;     // EVC type: STD_P2MP, STD_P2P, QUATTRO_P2MP, QUATTRO_P2P
   L7_uint8  mc_flood;     // MC flood type {0-All, 1-Unknown, 2-None} (PTin custom field)
-  L7_uint8  ce_vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   // VLANs mapping (ONLY for bundling) ((bmp[i/8] >> i%8) & 0x01)
+  //L7_uint8  ce_vid_bmp[(1<<12)/(sizeof(L7_uint8)*8)];   // VLANs mapping (ONLY for bundling) ((bmp[i/8] >> i%8) & 0x01)
   
   L7_uint16 n_clientflows;  // Number of attached clients/flows
 

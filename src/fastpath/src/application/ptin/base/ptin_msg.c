@@ -5732,6 +5732,8 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
      // NGPON2
       ngpon2_ports = L7_TRUE;
 
+      PT_LOG_TRACE(LOG_CTX_MSG, "msgEvcConf->evc.intf[i].intf_id %u",              msgEvcConf->evc.intf[i].intf_id);
+
       get_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);
 
       while (j < NGPON2_GROUP.nports)
@@ -5787,8 +5789,11 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
   if (ngpon2_ports == L7_TRUE)
   {
+    PT_LOG_TRACE(LOG_CTX_MSG, "msgEvcConf->evc.n_intf# %u",              msgEvcConf->evc.n_intf);
+    PT_LOG_TRACE(LOG_CTX_MSG, "ports_ngpon2 %u",              ports_ngpon2);
+
     ptinEvcConf.n_intf   = ENDIAN_SWAP8 (msgEvcConf->evc.n_intf + (ports_ngpon2 - 1));
-    PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.Intf  = %u",      ptinEvcConf.n_intf);
+    PT_LOG_TRACE(LOG_CTX_MSG, " .Nr.Intf  = %u",      ptinEvcConf.n_intf);
   }
   else
   {
@@ -6005,6 +6010,13 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
       continue;
     }
 
+    L7_uint32 evc_id;
+    /* Is EVC in use? */
+    if (ptin_evc_ext2int(ENDIAN_SWAP32(msgEvcConf[i].id), &evc_id) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(msgEvcConf[i].id));
+    }  
+
     /* Remove EVC */
     if (ptin_evc_delete(ENDIAN_SWAP32(msgEvcConf[i].id)) != L7_SUCCESS)
     {
@@ -6015,23 +6027,17 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
     else
     {
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-      L7_uint32 evc_id;
-      /* Is EVC in use? */
-      if (ptin_evc_ext2int(ENDIAN_SWAP32(msgEvcConf[i].id), &evc_id) != L7_SUCCESS)
-      {
-      PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(msgEvcConf[i].id));
-      return L7_FAILURE;
-      }  
-        get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
+     
+      get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
         /*teste*/
 
-        PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
-        NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ENDIAN_SWAP32(msgEvcConf[i].id);
-        NGPON2_GROUP.number_services--;
+      PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
+      NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ENDIAN_SWAP32(msgEvcConf[i].id);
+      NGPON2_GROUP.number_services--;
 
-        memset(&evcPortTest[evc_id-1], 0xFF, sizeof(evcPortTest[evc_id-1]));
+      memset(&evcPortTest[evc_id-1], 0xFF, sizeof(evcPortTest[evc_id-1]));
 
-        set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);     
+      set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);     
 #endif
     }
 

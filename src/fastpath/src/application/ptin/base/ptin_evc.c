@@ -1045,7 +1045,7 @@ L7_RC_t ptin_evc_get(ptin_HwEthMef10Evc_t *evcConf)
   evcConf->type     = evcs[evc_id].type;
   evcConf->mc_flood = evcs[evc_id].mc_flood;
   ptin_evc_check_evctype(evc_ext_id, &evcConf->evc_type);
-  memset(evcConf->ce_vid_bmp, 0x00, sizeof(evcConf->ce_vid_bmp));
+  //memset(evcConf->ce_vid_bmp, 0x00, sizeof(evcConf->ce_vid_bmp));
 
   /* Return number of attached clients */
   evcConf->n_clientflows = evcs[evc_id].n_clientflows;
