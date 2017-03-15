@@ -8003,7 +8003,7 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
     return L7_FAILURE;
   }
 
-  group_idx = group_info->GroupId - 1; // internal index
+  group_idx = group_info->GroupId; // internal index
 
   /* check if the group exists */
   if (!ptin_intf_NGPON2_group_exists(group_idx))
