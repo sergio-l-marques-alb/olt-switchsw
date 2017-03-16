@@ -851,6 +851,7 @@ typedef struct
   ptin_vlanXlate_action_enum action_outer; // Action associated to the outer VLAN
   ptin_vlanXlate_action_enum action_inner; // Action associated to the inner VLAN
   L7_uint32 evcId;
+  L7_uint16 ngpon2_bmp;
 
 } ptin_HwEthMef10Intf_t;
 

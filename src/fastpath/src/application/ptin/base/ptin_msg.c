@@ -97,7 +97,20 @@ void ptin_force_capture(L7_BOOL force)
   force_capture = force;
 }
 
+
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+
+/*************** NGPON2 ***************/ 
+
+/* MACROS NGPON 2*/
+
+#define NGPON2_EMPTY_ENTRY            0xff
+#define PTIN_SYSTEM_MAX_NGPON2_GROUP 32
+ 
+#define NGPON2_EVC_ADD(var, n)  ( var |= (0x1 << n))
+#define NGPON2_EVC_REM(var, n)  ( var &= ~(0x1 << n))
+#define NGPON2_BIT_PORT(var)     ( var & 0x1 )
+                               
 typedef struct
 {
   L7_uint16 uni_ovid;
@@ -153,6 +166,8 @@ ptin_mcast_service_info mcast_service_info[PTIN_SYSTEM_N_EVCS];
 
 ptin_bw_profile_t bwProfile[PTIN_SYSTEM_N_EVCS];
 ptin_bw_meter_t   bwMeter[PTIN_SYSTEM_N_EVCS];
+
+/**************************************/
 #endif
 
 /******************************************************** 
@@ -5736,7 +5751,9 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       get_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);
 
-      while (j < NGPON2_GROUP.nports)
+      PT_LOG_ERR(LOG_CTX_MSG, "NGPON2_GROUP.nports %u",              NGPON2_GROUP.nports);
+
+      while (j <= NGPON2_GROUP.nports)
       {
         if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
         {
@@ -5792,7 +5809,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     PT_LOG_TRACE(LOG_CTX_MSG, "msgEvcConf->evc.n_intf# %u",              msgEvcConf->evc.n_intf);
     PT_LOG_TRACE(LOG_CTX_MSG, "ports_ngpon2 %u",              ports_ngpon2);
 
-    ptinEvcConf.n_intf   = ENDIAN_SWAP8 (msgEvcConf->evc.n_intf + (ports_ngpon2 - 1));
+    ptinEvcConf.n_intf   = ENDIAN_SWAP8 (msgEvcConf->evc.n_intf + (ports_ngpon2-1));
     PT_LOG_TRACE(LOG_CTX_MSG, " .Nr.Intf  = %u",      ptinEvcConf.n_intf);
   }
   else
@@ -5817,9 +5834,9 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       return L7_FAILURE;
       }
 
-    //if (msgEvcConf->evc.intf[index_port].intf_type == PTIN_EVC_INTF_NGPON2)
-    //{
-      get_NGPON2_group_info(&NGPON2_GROUP, 1 /*msgEvcConf->evc.intf[i].intf_id) */);
+    if (msgEvcConf->evc.intf[index_port].intf_type == PTIN_EVC_INTF_NGPON2)
+    {
+      get_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);
       /*teste*/
       evcPortTest[evc_id-1].evcId         = ptinEvcConf.index;
       evcPortTest[evc_id-1].intf.format   = PTIN_INTF_FORMAT_TYPEID;
@@ -5827,15 +5844,16 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       evcPortTest[evc_id-1].action_inner  = ptinEvcConf.intf[i].action_inner;
       evcPortTest[evc_id-1].vid_inner     = ptinEvcConf.intf[i].vid_inner;
       evcPortTest[evc_id-1].vid           = ptinEvcConf.intf[i].vid;
-      evcPortTest[evc_id-1].mef_type      = ptinEvcConf.intf[i].mef_type;    
-
+      evcPortTest[evc_id-1].mef_type      = ptinEvcConf.intf[i].mef_type;
+      NGPON2_EVC_ADD (evcPortTest[evc_id-1].ngpon2_bmp, msgEvcConf->evc.intf[i].intf_id);    
+      
       PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
       NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ptinEvcConf.index;
       NGPON2_GROUP.number_services++;
 
-      set_NGPON2_group_info(&NGPON2_GROUP, 1);  
+      set_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);  
 
-    //}
+    }
 #endif
   }
 
@@ -6026,18 +6044,33 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
     }
     else
     {
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-     
-      get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
-        /*teste*/
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )  
+  
+      if (evcPortTest[evc_id-1].ngpon2_bmp != 0)
+      {
+        L7_uint32 bmp_val = 0;
 
-      PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
-      NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ENDIAN_SWAP32(msgEvcConf[i].id);
-      NGPON2_GROUP.number_services--;
+        while(bmp_val < PTIN_SYSTEM_MAX_NGPON2_GROUP)
+        {
+          if(( (evcPortTest[evc_id-1].ngpon2_bmp >> bmp_val) & 0x1))
+          {
+            NGPON2_EVC_REM(evcPortTest[evc_id-1].ngpon2_bmp, bmp_val);  
+            get_NGPON2_group_info(&NGPON2_GROUP, bmp_val);
+            /*teste*/
 
-      memset(&evcPortTest[evc_id-1], 0xFF, sizeof(evcPortTest[evc_id-1]));
+            PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
+            NGPON2_GROUP.evcPort[NGPON2_GROUP.number_services] = ENDIAN_SWAP32(msgEvcConf[i].id);
+            NGPON2_GROUP.number_services--;
 
-      set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);     
+            memset(&evcPortTest[evc_id-1], 0xFF, sizeof(evcPortTest[evc_id-1]));
+
+            set_NGPON2_group_info(&NGPON2_GROUP, bmp_val);
+            
+            bmp_val++;     
+          }
+        }
+
+      }
 #endif
     }
 
@@ -17259,7 +17292,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
   // NGPON2
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
+  L7_uint8 shift_index = 0, iterator = 0;
 
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
@@ -17307,12 +17340,13 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
                  
           bmpIterator = 0;
 
-          while( bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE )
+          while( (bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE)  && iterator == 0)
           {
             ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList[bmpIterator]);
             bmpIterator++;
           }                     
 
+          iterator = 1;
           /*Copy Multicast Package Bitmap*/
           memcpy(ptinEvcFlow.packageBmpList, msg[messageIterator].packageBmpList, sizeof(ptinEvcFlow.packageBmpList));
 #if 0    
@@ -17372,6 +17406,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
         }
         shift_index++;
       }
+      iterator = 0;
     }
     else
     {
