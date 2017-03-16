@@ -36,7 +36,6 @@ static ptin_NGPON2_groups_t NGPON2_groups_info[PTIN_SYSTEM_MAX_NGPON2_GROUPS];
 
 L7_RC_t ptin_intf_NGPON2_clear();
 
-
 /**
  * PTIN_INTF NGPON2 check intf
  *  
