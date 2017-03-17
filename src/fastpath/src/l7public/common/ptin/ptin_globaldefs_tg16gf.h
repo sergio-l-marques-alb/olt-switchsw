@@ -4,8 +4,6 @@
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
 
-/* NGPON2 support */
-#define NGPON2_SUPPORTED
 /* OpenSAF support */
 #define OPENSAF_SUPPORTED
 

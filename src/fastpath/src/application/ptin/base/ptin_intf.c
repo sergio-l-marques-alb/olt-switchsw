@@ -8181,7 +8181,7 @@ L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
 
   for(i=0; i<NGPON2_groups_info[index].number_services ; i++)
   {
-    group_info->evcPort[i]              = NGPON2_groups_info[index].evcPort[i];
+    group_info->evc_groups_pbmp[i]              = NGPON2_groups_info[index].evc_groups_pbmp[i];
   }
 
   return L7_SUCCESS;
@@ -8202,7 +8202,7 @@ L7_RC_t set_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
   L7_uint32 index = group_info->number_services - 1;
 
   NGPON2_groups_info[groupIndex].number_services = group_info->number_services;
-  NGPON2_groups_info[groupIndex].evcPort[index]  = group_info->evcPort[index];
+  NGPON2_groups_info[groupIndex].evc_groups_pbmp[index]  = group_info->evc_groups_pbmp[index];
 
   return L7_SUCCESS;
 }
