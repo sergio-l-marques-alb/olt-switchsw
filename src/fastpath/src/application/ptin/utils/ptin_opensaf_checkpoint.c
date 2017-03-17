@@ -21,7 +21,7 @@
 #include "ptin_opensaf_checkpoint.h"
 #include "ptin_utils.h"
 
-#if (PTIN_BOARD != PTIN_BOARD_TG16G && PTIN_BOARD != PTIN_BOARD_IS_STANDALONE )
+#ifdef OPENSAF_SUPPORTED
 #include <saCkpt.h>
 #define ENCRYPTION_KEY_FIELD_SIZE 16
 #define MAX_NGPON2_PORTS          32
@@ -89,14 +89,12 @@ typedef struct
 
 ptin_opensaf_checkpoint_t ptin_checkpoint[PTIN_MAX_OPENSAF_CHECKPOINTS];
 
-#if (PTIN_BOARD != PTIN_BOARD_OLT1T0)
 
 static L7_RC_t ptin_opensaf_checkpoint_init(const char *name, int sectionsNum, int sectionLen, int id);
 static L7_RC_t ptin_opensaf_readOnly_checkpoint_init(const char *name, int id);
 static L7_RC_t ptin_opensaf_checkpoint_deinit(int id);
 static L7_RC_t ptin_opensaf_checkCheckpointInitialization(int id);
 
-#endif
 
 /********************************Start PTin Opensaf Checkpoint*********************************************************/
 /**
@@ -1225,7 +1223,7 @@ L7_RC_t ptin_checkpoint_findDatainSection_teste()
   return ptin_checkpoint_findDatainSection(1, 1, &teste, sizeof(teste), &position);
 }
 
-#endif
+#endif /*OPENSAF_SUPPORTED*/
 
 #endif
 

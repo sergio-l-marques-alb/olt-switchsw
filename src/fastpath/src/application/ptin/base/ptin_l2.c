@@ -53,7 +53,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
     PT_LOG_ERR(LOG_CTX_L2, "Unknown intIfNum type: %u", intIfNum);
     return L7_FAILURE;
   }
-  #if (PTIN_BOARD != PTIN_BOARD_IS_STANDALONE && PTIN_BOARD != PTIN_BOARD_TG16G && PTIN_BOARD != PTIN_BOARD_CXO640G)
+#ifdef OPENSAF_SUPPORTED
   /* virtual ports (NGPON2) */
   L7_uint32         position = 0;
 
@@ -83,7 +83,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
       PT_LOG_WARN(LOG_CTX_L2, "MAC not present in opensaf ");
     }
   }
-  #endif
+#endif /*OPENSAF_SUPPORTED*/
 
   /* This routine only applies to virtual ports */
   if (intf_type != L7_VLAN_PORT_INTF)

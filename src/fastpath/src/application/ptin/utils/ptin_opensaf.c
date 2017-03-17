@@ -29,7 +29,7 @@
 #include "fdb_api.h"
 
 
-#if (PTIN_BOARD != PTIN_BOARD_IS_STANDALONE && PTIN_BOARD != PTIN_BOARD_TG16G)
+#ifdef OPENSAF_SUPPORTED
 #include <saEvt.h>
 
 
@@ -581,7 +581,7 @@ L7_RC_t ptin_opensaf_event_task_init()
   return L7_SUCCESS;
 }
 
-#endif
+#endif /*OPENSAF_SUPPORTED*/
 
 #endif
 /********************************End PTin Opensaf Event****************************************************************/

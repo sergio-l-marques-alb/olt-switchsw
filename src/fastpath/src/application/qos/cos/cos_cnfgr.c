@@ -466,6 +466,8 @@ L7_RC_t cosCnfgrInitPhase3Process(L7_CNFGR_RESPONSE_t *pResponse,
     if (errLine != 0)
       break;
 
+    PT_LOG_TRACE(LOG_CTX_INTF,"I'm here!");
+
     /* apply the saved configuration data (if any) */
     if (cosConfigDataApply() == L7_SUCCESS)
     {
