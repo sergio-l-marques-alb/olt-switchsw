@@ -36,7 +36,7 @@
 #define PTIN_SYSTEM_MAX_N_FULLSLOTS                 20
 #define PTIN_SYSTEM_MAX_N_PORTS                     64
 #define PTIN_SYSTEM_MAX_N_LAGS                      PTIN_SYSTEM_MAX_N_PORTS
-#define PTIN_SYSTEM_MAX_NGPON2_GROUPS               256
+#define PTIN_SYSTEM_MAX_NGPON2_GROUPS               PTIN_SYSTEM_N_PORTS
 #define PTIN_SYSTEM_MAX_NGPON2_GROUPS_ELEMENTS      32
 #define PTIN_SYSTEM_MAX_SERVICES_PER_ONU            8
 #define PTIN_SYSTEM_ETH_MTU_SIZE                    9600

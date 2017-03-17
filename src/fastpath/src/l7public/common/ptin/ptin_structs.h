@@ -1553,6 +1553,7 @@ typedef struct
     ptin_NGPON2element_t       NGPON2Port[32];
 } __attribute__ ((packed)) ptin_NGPON2group_t;
 
+#ifdef NGPON2_SUPPORTED
 /* NGPON2 structs *************************************************************/
 typedef struct {
   L7_uint32 groupId;                // GroupID nr. [0..PTIN_SYSTEM_MAX_NGPON2_GROUPS[
@@ -1562,7 +1563,7 @@ typedef struct {
   L7_uint32 evcPort[PTIN_SYSTEM_N_EXTENDED_EVCS];
   L7_uint32 number_services;
 } ptin_NGPON2_groups_t;
-
+#endif
 
 #endif /* _PTIN_STRUCTS_H */
 

@@ -5588,7 +5588,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         ENDIAN_SWAP8_MOD(ptr->slotId);
 
         /* Execute command */
-       rc = ptin_msg_NGPON2_rem_group(ptr); 
+        rc = ptin_msg_NGPON2_rem_group(ptr); 
 
         if (L7_SUCCESS != rc)
         {

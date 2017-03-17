@@ -22,42 +22,6 @@
 
 extern L7_BOOL linkscan_update_control;
 
-/*Data structure with groups information*/  // NGPON2 EVC
-static ptin_NGPON2_groups_t NGPON2_groups_info[PTIN_SYSTEM_MAX_NGPON2_GROUPS];
-
-
-/**
- * PTIN_INTF NGPON2 clear 
- * 
- * 
- * @return L7_RC_t : 
- *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
- */
-
-L7_RC_t ptin_intf_NGPON2_clear();
-
-/**
- * PTIN_INTF NGPON2 check intf
- *  
- * @brief check if a physical port belongs to a NGPON2 group 
- *  
- */
-
-L7_RC_t ptin_intf_NGPON2_group_check(L7_uint8 intf_index, L7_uint8 *group_index);
-
-/**
- * PTIN_INTF get NGPON2 group info 
- * 
- * @param group_info      : Pointer to struct with group info 
- * @param group_index     : NGPON2 group index                  
- * 
- * @return L7_RC_t : 
- *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
- */
-extern L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *NGPON2_GROUP, L7_uint8 group_index);
-
-extern L7_RC_t set_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_index);
-
 /**
  * Initializes the ptin_intf module (structures) and several interfaces 
  * related configurations.
@@ -993,7 +957,7 @@ extern L7_BOOL ptin_intf_link_get(L7_uint32 ptin_port);
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 
-
+#ifdef NGPON2_SUPPORTED
 /**
  * PTIN_INTF NGPON2 Add Group 
  *  
@@ -1035,8 +999,6 @@ extern L7_RC_t ptin_intf_NGPON2_group_exists(L7_uint8 group_idx);
 
 
 
-
-
 /**
  * PTIN_INTF NGPON2 Add Group Port
  *  
@@ -1065,6 +1027,40 @@ extern L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info);
  */
 extern L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info);
 
+/**
+ * PTIN_INTF NGPON2 clear 
+ * 
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+
+L7_RC_t ptin_intf_NGPON2_clear();
+
+
+/**
+ * PTIN_INTF NGPON2 check intf
+ *  
+ * @brief check if a physical port belongs to a NGPON2 group 
+ *  
+ */
+
+L7_RC_t ptin_intf_NGPON2_group_check(L7_uint8 intf_index, L7_uint8 *group_index);
+
+/**
+ * PTIN_INTF get NGPON2 group info 
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ * @param group_index     : NGPON2 group index                  
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+extern L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *NGPON2_GROUP, L7_uint8 group_index);
+
+extern L7_RC_t set_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_index);
+
+#endif /*NGPON2_SUPPORTED*/
 
 
 extern L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd);

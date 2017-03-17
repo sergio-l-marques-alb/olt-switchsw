@@ -378,10 +378,11 @@ extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
   PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
   /* Reset NGPON2 groups and ports */
+#ifdef NGPON2_SUPPORTED
   PT_LOG_INFO(LOG_CTX_MSG, "Performing NGPON2 reset...");
   ptin_intf_NGPON2_clear();
   PT_LOG_INFO(LOG_CTX_MSG, "Done.");
-
+#endif
 
   if (mode == DEFAULT_RESET_MODE_FULL)
   {
@@ -5676,7 +5677,6 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
  */
 L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 {
-  L7_uint16 i;
   L7_uint32 evc_id, flags;
   L7_uint16 nni_vlan;
 
@@ -5712,8 +5712,9 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   }
   #endif
 
-  // NGPON2
+#ifdef NGPON2_SUPPORTED
   ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint16 i;
   L7_uint8 j = 0;
   L7_uint8 shift_index = 0;
   L7_uint8 ports_ngpon2 = 0;
@@ -5813,6 +5814,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     PT_LOG_TRACE(LOG_CTX_MSG, " .Nr.Intf  = %u",      ptinEvcConf.n_intf);
   }
   else
+#endif /*NGPON2_SUPPORTED*/
   {
     ptinEvcConf.n_intf   = ENDIAN_SWAP8 (msgEvcConf->evc.n_intf);
     PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.Intf  = %u",      ptinEvcConf.n_intf);
@@ -5825,7 +5827,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   }
   else
   {
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+#ifdef NGPON2_SUPPORTED
       L7_uint32 evc_id;
       /* Is EVC in use? */
       if (ptin_evc_ext2int(ptinEvcConf.index, &evc_id) != L7_SUCCESS)
@@ -5854,7 +5856,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       set_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);  
 
     }
-#endif
+#endif /*NGPON2_SUPPORTED*/
   }
 
   /* Get EVC flags */
@@ -6005,12 +6007,8 @@ L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
 L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_structs)
 {
   L7_uint16 i;
+  L7_uint32 evc_id;
   L7_RC_t rc_global = L7_SUCCESS;
-
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-#endif
 
   if (msgEvcConf == L7_NULLPTR)
   {
@@ -6028,7 +6026,6 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
       continue;
     }
 
-    L7_uint32 evc_id;
     /* Is EVC in use? */
     if (ptin_evc_ext2int(ENDIAN_SWAP32(msgEvcConf[i].id), &evc_id) != L7_SUCCESS)
     {
@@ -6044,7 +6041,8 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
     }
     else
     {
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )  
+#ifdef NGPON2_SUPPORTED
+      ptin_NGPON2_groups_t NGPON2_GROUP;
   
       if (evcPortTest[evc_id-1].ngpon2_bmp != 0)
       {
@@ -6071,7 +6069,7 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
         }
 
       }
-#endif
+#endif /*NGPON2_SUPPORTED*/
     }
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u successfully deleted", ENDIAN_SWAP32(msgEvcConf[i].id));
@@ -6095,13 +6093,6 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
   ptin_HwEthMef10Intf_t ptinEvcPort;
   L7_RC_t rc, rc_global = L7_SUCCESS, rc_global_failure = L7_SUCCESS;
 
-
-    // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
-  L7_uint8 ports_ngpon2 = 0;
-
   /* Validate arguments */
   if (msgEvcPort == L7_NULLPTR)
   {
@@ -6122,6 +6113,11 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
     }
 
 /**************************************************/
+#ifdef NGPON2_SUPPORTED
+    ptin_NGPON2_groups_t NGPON2_GROUP;
+    L7_uint8 j = 0;
+    L7_uint8 shift_index = 0;
+    L7_uint8 ports_ngpon2 = 0;
 
     if (msgEvcPort[i].intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
@@ -6202,6 +6198,7 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
       }    
     }
     else
+#endif /*NGPON2_SUPPORTED*/
     {
 
         /* Copy data to ptin struct */
@@ -6463,7 +6460,7 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
 {
   ptin_HwEthEvcBridge_t ptinEvcBridge;
 
-  // NGPON2
+#ifdef NGPON2_SUPPORTED
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 j = 0;
   L7_uint8 shift_index = 0;
@@ -6506,6 +6503,7 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
     }
   }
   else
+#endif /*NGPON2_SUPPORTED*/
   {
     /* Copy data */
     ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
@@ -6531,7 +6529,7 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
       return L7_FAILURE;
     }
 
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+#ifdef NGPON2_SUPPORTED
   L7_uint32 evc_id;
   /* Is EVC in use? */
   if (ptin_evc_ext2int(ptinEvcBridge.index, &evc_id) != L7_SUCCESS)
@@ -6557,7 +6555,7 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
    NGPON2_GROUP.number_services++;
 
    set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);     
-#endif
+#endif /*NGPON2_SUPPORTED*/
   }
 
   return L7_SUCCESS;
@@ -6575,7 +6573,7 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
   ptin_HwEthEvcBridge_t ptinEvcBridge;
   L7_RC_t rc;
 
-  // NGPON2
+#ifdef NGPON2_SUPPORTED
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 j = 0;
   L7_uint8 shift_index = 0;
@@ -6618,6 +6616,7 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
     }
   }
   else
+#endif /*NGPON2_SUPPORTED*/
   {
     /* Copy data */
     ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
@@ -6659,12 +6658,6 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
   ptin_HwEthEvcFlow_t ptinEvcFlow;
   L7_RC_t rc;
 
-  //NGPON2
-  //ptin_HwEthEvcFlow_t ptinEvcFlow_NGPON2;
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
-
   ENDIAN_SWAP8_MOD (msgEvcFlow->SlotId);
   ENDIAN_SWAP32_MOD(msgEvcFlow->evcId);
   ENDIAN_SWAP32_MOD(msgEvcFlow->flags);
@@ -6681,6 +6674,11 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
 
   /*Initialize Structure*/
   memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
+
+#ifdef NGPON2_SUPPORTED
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
 
   if (msgEvcFlow->intf.intf_type == PTIN_EVC_INTF_NGPON2)
   {
@@ -6759,6 +6757,7 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
     }
   }
   else
+#endif /*NGPON2_SUPPORTED*/
   {
     /* Copy data */
     ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
@@ -6841,7 +6840,7 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
   ptin_HwEthEvcFlow_t ptinEvcFlow;
   L7_RC_t rc;
 
-    // NGPON2
+#ifdef NGPON2_SUPPORTED
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 j = 0;
   L7_uint8 shift_index = 0;
@@ -6880,6 +6879,7 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
     }
   }
   else
+#endif /*NGPON2_SUPPORTED*/
   {
       /* Copy data */
     ptinEvcFlow.evc_idx             = ENDIAN_SWAP32(msgEvcFlow->evcId);
@@ -6920,11 +6920,6 @@ L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint 
   ptin_intf_t ptin_intf;
   L7_RC_t     rc = L7_SUCCESS;
 
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
-
   if ( msgEvcFlood == L7_NULLPTR )
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid params");
@@ -6943,6 +6938,10 @@ L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint 
     ENDIAN_SWAP16_MOD(msgEvcFlood[i].oVlanId);
     ENDIAN_SWAP16_MOD(msgEvcFlood[i].iVlanId);
 
+#ifdef NGPON2_SUPPORTED
+    ptin_NGPON2_groups_t NGPON2_GROUP;
+    L7_uint8 j = 0;
+    L7_uint8 shift_index = 0;
 
     if (msgEvcFlood[i].intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
@@ -6981,6 +6980,7 @@ L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint 
       }
     }
     else
+#endif /*NGPON2_SUPPORTED*/
     {
       PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
       PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
@@ -7023,11 +7023,6 @@ L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_ui
   ptin_intf_t ptin_intf;
   L7_RC_t     rc = L7_SUCCESS;
 
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
-
   if ( msgEvcFlood == L7_NULLPTR )
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid params");
@@ -7045,6 +7040,11 @@ L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_ui
     ENDIAN_SWAP16_MOD(msgEvcFlood[i].client_vlan);
     ENDIAN_SWAP16_MOD(msgEvcFlood[i].oVlanId);
     ENDIAN_SWAP16_MOD(msgEvcFlood[i].iVlanId);
+
+#ifdef NGPON2_SUPPORTED
+    ptin_NGPON2_groups_t NGPON2_GROUP;
+    L7_uint8 j = 0;
+    L7_uint8 shift_index = 0;
 
     if (msgEvcFlood[i].intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
@@ -7081,6 +7081,7 @@ L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_ui
       }
     }
     else
+#endif /*NGPON2_SUPPORTED*/
     {
       PT_LOG_DEBUG(LOG_CTX_MSG,"EVC flood vlan %u:",i);
       PT_LOG_DEBUG(LOG_CTX_MSG," Slot    = %u",    msgEvcFlood[i].SlotId);
@@ -8599,11 +8600,6 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
   ptin_clientCircuitId_t  circuitId;
   L7_RC_t                 rc = L7_SUCCESS;
 
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
-
   /* Validate input parameters */
   if (profile == L7_NULLPTR)
   {
@@ -8613,7 +8609,6 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
 
   for (i=0; i<n_clients; i++)
   {
-    
     ENDIAN_SWAP8_MOD (profile[i].SlotId);
     ENDIAN_SWAP32_MOD(profile[i].evc_id);
     ENDIAN_SWAP8_MOD (profile[i].mask);
@@ -8660,112 +8655,114 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
       return L7_FAILURE;
     }
 
+#ifdef NGPON2_SUPPORTED
+    ptin_NGPON2_groups_t NGPON2_GROUP;
+    L7_uint8 j = 0;
+    L7_uint8 shift_index = 0;
 
+    if ( profile[i].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
+    {
+      get_NGPON2_group_info(&NGPON2_GROUP, profile[i].client.intf.intf_id);
 
-      if ( profile[i].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
+      while ( j < NGPON2_GROUP.nports )
       {
-
-        get_NGPON2_group_info(&NGPON2_GROUP, profile[i].client.intf.intf_id);
-
-        while ( j < NGPON2_GROUP.nports )
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
         {
-          if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
-          {
 
-           /* Extract input data */
-          evc_idx = profile[i].evc_id;
+         /* Extract input data */
+        evc_idx = profile[i].evc_id;
 
-          memset(&client,0x00,sizeof(ptin_client_id_t));
-          if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
-          {
-            client.outerVlan = profile[i].client.outer_vlan;
-            client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-          }
-          if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
-          {
-            client.innerVlan = profile[i].client.inner_vlan;
-            client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-          }
-          if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
-          {
-            client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
-            client.ptin_intf.intf_id    = shift_index;
-            client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-          }
-
-            /* TODO: To be reworked */
-            circuitId.onuid   = profile[i].circuitId.onuid;
-            circuitId.slot    = profile[i].circuitId.slot;
-            circuitId.port    = profile[i].circuitId.port;
-            circuitId.q_vid   = profile[i].circuitId.q_vid;
-            circuitId.c_vid   = profile[i].circuitId.c_vid;
-
-            /* Add circuit and remote ids */
-            rc = ptin_dhcp_client_add(evc_idx, &client, 0, 0, profile[i].options, &circuitId, profile[i].remoteId);
-
-            if (rc!=L7_SUCCESS)
-            {
-              PT_LOG_ERR(LOG_CTX_MSG, "Error adding DHCP circuitId+remoteId entry");
-              return rc;
-            }
-
-            rc = ptin_pppoe_client_add(evc_idx, &client, 0, 0, profile[i].options, &circuitId, profile[i].remoteId);
-            /* TODO */
-#if 0
-            if (rc!=L7_SUCCESS)
-            {
-              PT_LOG_ERR(LOG_CTX_MSG, "Error adding PPPoE circuitId+remoteId entry");
-              return rc;
-            }
-#endif
-            j++;
-          }
-          shift_index++;
+        memset(&client,0x00,sizeof(ptin_client_id_t));
+        if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+        {
+          client.outerVlan = profile[i].client.outer_vlan;
+          client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
         }
+        if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+        {
+          client.innerVlan = profile[i].client.inner_vlan;
+          client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+        }
+        if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
+        {
+          client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
+          client.ptin_intf.intf_id    = shift_index;
+          client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+        }
+
+          /* TODO: To be reworked */
+          circuitId.onuid   = profile[i].circuitId.onuid;
+          circuitId.slot    = profile[i].circuitId.slot;
+          circuitId.port    = profile[i].circuitId.port;
+          circuitId.q_vid   = profile[i].circuitId.q_vid;
+          circuitId.c_vid   = profile[i].circuitId.c_vid;
+
+          /* Add circuit and remote ids */
+          rc = ptin_dhcp_client_add(evc_idx, &client, 0, 0, profile[i].options, &circuitId, profile[i].remoteId);
+
+          if (rc!=L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_MSG, "Error adding DHCP circuitId+remoteId entry");
+            return rc;
+          }
+
+          rc = ptin_pppoe_client_add(evc_idx, &client, 0, 0, profile[i].options, &circuitId, profile[i].remoteId);
+/* TODO */
+#if 0
+          if (rc!=L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_MSG, "Error adding PPPoE circuitId+remoteId entry");
+            return rc;
+          }
+#endif
+          j++;
+        }
+        shift_index++;
+      }
+    }
+    else
+#endif /*NGPON2_SUPPORTED*/
+    {
+       /* Extract input data */
+      evc_idx = profile[i].evc_id;
+
+      memset(&client,0x00,sizeof(ptin_client_id_t));
+      if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+      {
+        client.outerVlan = profile[i].client.outer_vlan;
+        client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+      }
+      if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+      {
+        client.innerVlan = profile[i].client.inner_vlan;
+        client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+      }
+      if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
+      {
+        client.ptin_intf.intf_type  = profile[i].client.intf.intf_type;
+        client.ptin_intf.intf_id    = profile[i].client.intf.intf_id;
+        client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
       }
 
-   if ( profile[i].client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
-   {
+      /* TODO: To be reworked */
+      circuitId.onuid   = profile[i].circuitId.onuid;
+      circuitId.slot    = profile[i].circuitId.slot;
+      circuitId.port    = profile[i].circuitId.port;
+      circuitId.q_vid   = profile[i].circuitId.q_vid;
+      circuitId.c_vid   = profile[i].circuitId.c_vid;
 
-     /* Extract input data */
-    evc_idx = profile[i].evc_id;
+      /* Add circuit and remote ids */
+      rc = ptin_dhcp_client_add(evc_idx, &client, 0, 0, profile[i].options, &circuitId, profile[i].remoteId);
 
-    memset(&client,0x00,sizeof(ptin_client_id_t));
-    if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
-    {
-      client.outerVlan = profile[i].client.outer_vlan;
-      client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+      if (rc!=L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error adding DHCP circuitId+remoteId entry");
+        return rc;
+      }
+
+      rc = ptin_pppoe_client_add(evc_idx, &client, 0, 0, profile[i].options, &circuitId, profile[i].remoteId);
     }
-    if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
-    {
-      client.innerVlan = profile[i].client.inner_vlan;
-      client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-    }
-    if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
-    {
-      client.ptin_intf.intf_type  = profile[i].client.intf.intf_type;
-      client.ptin_intf.intf_id    = profile[i].client.intf.intf_id;
-      client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-    }
-
-    /* TODO: To be reworked */
-    circuitId.onuid   = profile[i].circuitId.onuid;
-    circuitId.slot    = profile[i].circuitId.slot;
-    circuitId.port    = profile[i].circuitId.port;
-    circuitId.q_vid   = profile[i].circuitId.q_vid;
-    circuitId.c_vid   = profile[i].circuitId.c_vid;
-
-    /* Add circuit and remote ids */
-    rc = ptin_dhcp_client_add(evc_idx, &client, 0, 0, profile[i].options, &circuitId, profile[i].remoteId);
-
-    if (rc!=L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_MSG, "Error adding DHCP circuitId+remoteId entry");
-      return rc;
-    }
-
-    rc = ptin_pppoe_client_add(evc_idx, &client, 0, 0, profile[i].options, &circuitId, profile[i].remoteId);
-    /* TODO */
+/* TODO */
 #if 0
     if (rc!=L7_SUCCESS)
     {
@@ -8773,7 +8770,6 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
       return rc;
     }
 #endif
-   }
   }
   return L7_SUCCESS;
 }
@@ -8790,11 +8786,6 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
   L7_uint32         i, evc_idx;
   ptin_client_id_t  client;
   L7_RC_t           rc;
-
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
 
   /* Validate input parameters */
   if (profile == L7_NULLPTR)
@@ -8827,53 +8818,56 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
     PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.IVlan = %u",     profile[i].client.inner_vlan);
     PT_LOG_DEBUG(LOG_CTX_MSG, "  Client.Intf  = %u/%u",  profile[i].client.intf.intf_type, profile[i].client.intf.intf_id);
 
-      if (profile[i].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
-      {
+#ifdef NGPON2_SUPPORTED
+    ptin_NGPON2_groups_t NGPON2_GROUP;
+    L7_uint8 j = 0;
+    L7_uint8 shift_index = 0;
 
-        get_NGPON2_group_info(&NGPON2_GROUP, profile[i].client.intf.intf_id);
-        while (j < NGPON2_GROUP.nports)
-        {
-          if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
-          {
-            /* Extract input data */
-            evc_idx = profile[i].evc_id;
-
-            memset(&client,0x00,sizeof(ptin_client_id_t));
-            if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
-            {
-              client.outerVlan = profile[i].client.outer_vlan;
-              client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-            }
-            if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
-            {
-              client.innerVlan = profile[i].client.inner_vlan;
-              client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-            }
-            if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
-            {
-              client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
-              client.ptin_intf.intf_id    = shift_index;
-              client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-            }
-
-            /* Remove circuitId+remoteId entry */
-            rc = ptin_dhcp_client_delete(evc_idx, &client);
-            if ( rc != L7_SUCCESS)
-            {
-              PT_LOG_ERR(LOG_CTX_MSG, "Error removing DHCP circuitId+remoteId entry");
-              return rc;
-            }
-            rc = ptin_pppoe_client_delete(evc_idx, &client);
-
-            j++;
-          }
-          shift_index++;
-        }
-      }
-
-    if (profile[i].client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
+    if (profile[i].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
+      get_NGPON2_group_info(&NGPON2_GROUP, profile[i].client.intf.intf_id);
+      while (j < NGPON2_GROUP.nports)
+      {
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        {
+          /* Extract input data */
+          evc_idx = profile[i].evc_id;
 
+          memset(&client,0x00,sizeof(ptin_client_id_t));
+          if (profile[i].client.mask & MSG_CLIENT_OVLAN_MASK)
+          {
+            client.outerVlan = profile[i].client.outer_vlan;
+            client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+          }
+          if (profile[i].client.mask & MSG_CLIENT_IVLAN_MASK)
+          {
+            client.innerVlan = profile[i].client.inner_vlan;
+            client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+          }
+          if (profile[i].client.mask & MSG_CLIENT_INTF_MASK)
+          {
+            client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
+            client.ptin_intf.intf_id    = shift_index;
+            client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          }
+
+          /* Remove circuitId+remoteId entry */
+          rc = ptin_dhcp_client_delete(evc_idx, &client);
+          if ( rc != L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_MSG, "Error removing DHCP circuitId+remoteId entry");
+            return rc;
+          }
+          rc = ptin_pppoe_client_delete(evc_idx, &client);
+
+          j++;
+        }
+        shift_index++;
+      }
+    }
+    else
+#endif /*NGPON2_SUPPORTED*/
+    {
       /* Extract input data */
       evc_idx = profile[i].evc_id;
 
@@ -8932,11 +8926,6 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   ptin_DHCP_Statistics_t  stats;
   L7_RC_t                 rc;
 
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
-
   if (dhcp_stats == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
@@ -8975,6 +8964,11 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
   }
   if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_INTF_MASK)
   {
+#ifdef NGPON2_SUPPORTED
+    ptin_NGPON2_groups_t NGPON2_GROUP;
+    L7_uint8 j = 0;
+    L7_uint8 shift_index = 0;
+
     if (dhcp_stats->client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
       get_NGPON2_group_info(&NGPON2_GROUP, dhcp_stats->client.intf.intf_id);
@@ -9035,6 +9029,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
       }
     }
     else
+#endif /*NGPON2_SUPPORTED*/
     {
       client.ptin_intf.intf_type  = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_type);
       client.ptin_intf.intf_id    = ENDIAN_SWAP8(dhcp_stats->client.intf.intf_id);
@@ -9042,7 +9037,9 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
     }
   }
 
+#ifdef NGPON2_SUPPORTED
   if (dhcp_stats->client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
+#endif
   {
     /* Get statistics */
     rc = ptin_dhcp_stat_client_get(ENDIAN_SWAP32(dhcp_stats->evc_id), &client, &stats);
@@ -9085,7 +9082,6 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
 #if 1 /* PTin Daniel OLTTS-4141 - Added to ensure API compatibility with manager in 3.3.0 */
     dhcp_stats->stats.dhcp_rx_server_pkts_withoutOps_onTrustedIntf  = ENDIAN_SWAP32(0);
 #endif
-
   }
 
   return L7_SUCCESS;
@@ -9102,11 +9098,6 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
 {
   ptin_client_id_t  client;
   L7_RC_t           rc;
-
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
 
   if (dhcp_stats == L7_NULLPTR)
   {
@@ -9133,53 +9124,57 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
     return L7_FAILURE;
   }
 
+#ifdef NGPON2_SUPPORTED
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+  L7_uint8 j = 0;
+  L7_uint8 shift_index = 0;
 
-    if (dhcp_stats->client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
+  if (dhcp_stats->client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
+  {
+    get_NGPON2_group_info(&NGPON2_GROUP, dhcp_stats->client.intf.intf_id);
+
+    while (j < NGPON2_GROUP.nports)
     {
-      get_NGPON2_group_info(&NGPON2_GROUP, dhcp_stats->client.intf.intf_id);
-
-      while (j < NGPON2_GROUP.nports)
+      if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
       {
-        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        memset(&client,0x00,sizeof(ptin_client_id_t));
+        if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_OVLAN_MASK)
         {
-          memset(&client,0x00,sizeof(ptin_client_id_t));
-          if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_OVLAN_MASK)
-          {
-            client.outerVlan = ENDIAN_SWAP16(dhcp_stats->client.outer_vlan);
-            client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-          }
-          if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_IVLAN_MASK)
-          {
-            client.innerVlan = ENDIAN_SWAP16(dhcp_stats->client.inner_vlan);
-            client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-          }
-          if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_INTF_MASK)
-          {
-            client.ptin_intf.intf_type  = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
-            client.ptin_intf.intf_id    = ENDIAN_SWAP8(shift_index);
-            client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-          }
-
-          /* Clear client stats */
-          rc = ptin_dhcp_stat_client_clear(dhcp_stats->evc_id, &client);
-
-          if (rc!=L7_SUCCESS)
-          {
-            PT_LOG_ERR(LOG_CTX_MSG, "Error clearing client statistics");
-            return rc;
-          }
-          else
-          {
-            PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing client statistics");
-          }
-
-          j++;
+          client.outerVlan = ENDIAN_SWAP16(dhcp_stats->client.outer_vlan);
+          client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
         }
-        shift_index++;
-      }
-    }
+        if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_IVLAN_MASK)
+        {
+          client.innerVlan = ENDIAN_SWAP16(dhcp_stats->client.inner_vlan);
+          client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+        }
+        if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_INTF_MASK)
+        {
+          client.ptin_intf.intf_type  = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
+          client.ptin_intf.intf_id    = ENDIAN_SWAP8(shift_index);
+          client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+        }
 
-  if (dhcp_stats->client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
+        /* Clear client stats */
+        rc = ptin_dhcp_stat_client_clear(dhcp_stats->evc_id, &client);
+
+        if (rc!=L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG, "Error clearing client statistics");
+          return rc;
+        }
+        else
+        {
+          PT_LOG_DEBUG(LOG_CTX_MSG, "Success clearing client statistics");
+        }
+
+        j++;
+      }
+      shift_index++;
+    }
+  }
+  else
+#endif /*NGPON2_SUPPORTED*/
   {
     memset(&client,0x00,sizeof(ptin_client_id_t));
     if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_OVLAN_MASK)
@@ -9803,11 +9798,6 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
   ptin_igmp_admission_control_t igmpAdmissionControl;                             
   ptin_intf_t                   intf;
   
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
-
   if (msgAdmissionControl == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid Input Parameters: igmpAdmissionControl=%p", msgAdmissionControl);
@@ -9862,10 +9852,13 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
   /*If Mask Is Set */
   if (igmpAdmissionControl.mask != 0x00)
   {
+#ifdef NGPON2_SUPPORTED
+    ptin_NGPON2_groups_t NGPON2_GROUP;
+    L7_uint8 j = 0;
+    L7_uint8 shift_index = 0;
 
     if (msgAdmissionControl->intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
-
       get_NGPON2_group_info(&NGPON2_GROUP, msgAdmissionControl->intf.intf_id);
 
       while (j < NGPON2_GROUP.nports)
@@ -9928,6 +9921,7 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
       }
     }
     else
+#endif /*NGPON2_SUPPORTED*/
     {
       intf.intf_id = msgAdmissionControl->intf.intf_id;  
       intf.intf_type = msgAdmissionControl->intf.intf_type;  
@@ -10247,12 +10241,6 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
   L7_uint16        uni_ovid;
   L7_RC_t          rc;
 
-    // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
-
-
   if (McastClient==L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
@@ -10303,6 +10291,10 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
     PT_LOG_DEBUG(LOG_CTX_MSG, "   maxBandwidth = %llu bit/s ", McastClient[i].maxBandwidth);
 #endif
  
+#ifdef NGPON2_SUPPORTED
+    ptin_NGPON2_groups_t NGPON2_GROUP;
+    L7_uint8 j = 0;
+    L7_uint8 shift_index = 0;
 
     if (McastClient[i].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
@@ -10392,8 +10384,8 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
          shift_index++;
         }
       }
-    
-      if (McastClient[i].client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
+      else
+#endif
       {
         memset(&client,0x00,sizeof(ptin_client_id_t));
         if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
@@ -10469,11 +10461,6 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
   ptin_client_id_t client;
   L7_RC_t rc = L7_SUCCESS;
 
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
-
   if (McastClient==L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid arguments");
@@ -10501,20 +10488,23 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
     PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan = %u",     McastClient[i].client.inner_vlan);
     PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf  = %u/%u",  McastClient[i].client.intf.intf_type, McastClient[i].client.intf.intf_id);
 
+#ifdef NGPON2_SUPPORTED
+    ptin_NGPON2_groups_t NGPON2_GROUP;
+    L7_uint8 j = 0;
+    L7_uint8 shift_index = 0;
 
     if ( McastClient[i].client.intf.intf_type == PTIN_EVC_INTF_NGPON2 )
     {
-
       get_NGPON2_group_info(&NGPON2_GROUP, McastClient[i].client.intf.intf_id);
 
       while ( j < NGPON2_GROUP.nports)
       {
-         if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
-         {
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        {
 
-           j++;
+          j++;
 
-           memset(&client,0x00,sizeof(ptin_client_id_t));
+          memset(&client,0x00,sizeof(ptin_client_id_t));
           if (McastClient[i].client.mask & MSG_CLIENT_OVLAN_MASK)
           {
             client.outerVlan = McastClient[i].client.outer_vlan;
@@ -10532,41 +10522,41 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
             client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           }
 
-           rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
-           if ( rc != L7_SUCCESS )
-           {
-             PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
-             continue;
-           }
-
-           /* Apply config */
-           rc = ptin_igmp_api_client_remove(&client);
-
-           if ( rc != L7_SUCCESS )
-           {
-             PT_LOG_ERR(LOG_CTX_MSG, "Error removing MC client");
-             return rc;
-           }
-           else
-           {
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-             L7_uint32 evc_id;
-             /* Is EVC in use? */
-             if (ptin_evc_ext2int(McastClient[i].mcEvcId, &evc_id) != L7_SUCCESS)
-             {
-               PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", McastClient[i].mcEvcId);
-               return L7_FAILURE;
-             }
-             memset(&UcastClient_info[evc_id-1], 0xFF, sizeof(UcastClient_info[evc_id-1]));
-             UcastClient_info[evc_id-1].admin = L7_FALSE;
-#endif
-           }
+          rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
+          if ( rc != L7_SUCCESS )
+          {
+           PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
+           continue;
           }
-          shift_index++;
+
+          /* Apply config */
+          rc = ptin_igmp_api_client_remove(&client);
+
+          if ( rc != L7_SUCCESS )
+          {
+           PT_LOG_ERR(LOG_CTX_MSG, "Error removing MC client");
+           return rc;
+          }
+          else
+          {
+#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+            L7_uint32 evc_id;
+            /* Is EVC in use? */
+            if (ptin_evc_ext2int(McastClient[i].mcEvcId, &evc_id) != L7_SUCCESS)
+            {
+             PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", McastClient[i].mcEvcId);
+             return L7_FAILURE;
+            }
+            memset(&UcastClient_info[evc_id-1], 0xFF, sizeof(UcastClient_info[evc_id-1]));
+            UcastClient_info[evc_id-1].admin = L7_FALSE;
+#endif
+          }
         }
-     }
-    
-    if ( McastClient[i].client.intf.intf_type != PTIN_EVC_INTF_NGPON2 )
+        shift_index++;
+      }
+    }
+    else
+#endif /*NGPON2_SUPPORTED*/
     {
 
       memset(&client,0x00,sizeof(ptin_client_id_t));
@@ -12771,6 +12761,7 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
       PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
     }
 
+#ifdef NGPON2_SUPPORTED
     if (msgBwProfile->intf_src.intf_type == PTIN_EVC_INTF_NGPON2)
     {
       ptin_NGPON2_groups_t NGPON2_GROUP;
@@ -12782,6 +12773,7 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
 
     }
     else
+#endif
     {
       /* Get ptin_port */
       if (ptin_msg_ptinPort_get(msgBwProfile->intf_src.intf_type, msgBwProfile->intf_src.intf_id, &ptin_port) != L7_SUCCESS)
@@ -12816,6 +12808,7 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
       PT_LOG_DEBUG(LOG_CTX_MSG," CVID extracted!");
     }
 
+#ifdef NGPON2_SUPPORTED
     if (msgBwProfile->intf_dst.intf_type == PTIN_EVC_INTF_NGPON2)
     {
       ptin_NGPON2_groups_t NGPON2_GROUP;
@@ -12827,6 +12820,7 @@ static L7_RC_t ptin_msg_bwProfileStruct_fill(msg_HwEthBwProfile_t *msgBwProfile,
 
     }
     else
+#endif
     {
       /* Get ptin_port */
       if (ptin_msg_ptinPort_get(msgBwProfile->intf_dst.intf_type, msgBwProfile->intf_dst.intf_id, &ptin_port) != L7_SUCCESS)
@@ -16792,13 +16786,6 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
   L7_uint16        uni_ovid;
   L7_RC_t          rc          = L7_SUCCESS;
 
-
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
-  
-    
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
@@ -16846,110 +16833,114 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
 
     if ( msg[messageIterator].noOfPackages > 0 )
     {
-        //NGPON2
-        if (msg[messageIterator].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
+#ifdef NGPON2_SUPPORTED
+      ptin_NGPON2_groups_t NGPON2_GROUP;
+      L7_uint8 j = 0;
+      L7_uint8 shift_index = 0;
+
+      if (msg[messageIterator].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
+      {
+        get_NGPON2_group_info(&NGPON2_GROUP, msg[messageIterator].client.intf.intf_id);
+
+        while (j < NGPON2_GROUP.nports)
         {
-          get_NGPON2_group_info(&NGPON2_GROUP, msg[messageIterator].client.intf.intf_id);
-
-          while (j < NGPON2_GROUP.nports)
+          if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
           {
-            if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+
+            memset(&client,0x00,sizeof(ptin_client_id_t));
+            if (msg[messageIterator].client.mask & MSG_CLIENT_OVLAN_MASK)
             {
+              client.outerVlan = msg[messageIterator].client.outer_vlan;
+              client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+            }
+            if (msg[messageIterator].client.mask & MSG_CLIENT_IVLAN_MASK)
+            {
+              client.innerVlan = msg[messageIterator].client.inner_vlan;
+              client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+            }
+            if (msg[messageIterator].client.mask & MSG_CLIENT_INTF_MASK)
+            {
+              client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
+              client.ptin_intf.intf_id    = shift_index;
+              client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+            }
 
-              memset(&client,0x00,sizeof(ptin_client_id_t));
-              if (msg[messageIterator].client.mask & MSG_CLIENT_OVLAN_MASK)
-              {
-                client.outerVlan = msg[messageIterator].client.outer_vlan;
-                client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-              }
-              if (msg[messageIterator].client.mask & MSG_CLIENT_IVLAN_MASK)
-              {
-                client.innerVlan = msg[messageIterator].client.inner_vlan;
-                client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-              }
-              if (msg[messageIterator].client.mask & MSG_CLIENT_INTF_MASK)
-              {
-                client.ptin_intf.intf_type  = PTIN_EVC_INTF_PHYSICAL;
-                client.ptin_intf.intf_id    = shift_index;
-                client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-              }
+            rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
+            if ( rc != L7_SUCCESS )
+            {
+              PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
+              continue;
+            }
 
-              rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
-              if ( rc != L7_SUCCESS )
+            /* Get interface as intIfNum format */      
+            if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
+            {
+              if (ptin_evc_extVlans_get(intIfNum, msg[messageIterator].evcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
               {
-                PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
-                continue;
-              }
-
-              /* Get interface as intIfNum format */      
-              if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
-              {
-                if (ptin_evc_extVlans_get(intIfNum, msg[messageIterator].evcId,(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
-                {
-                  PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
-                            client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
-                }
-                else
-                {
-                  uni_ovid = uni_ivid = 0;
-                  PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
-                          client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
-                }
+                PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
+                          client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
               }
               else
               {
-                PT_LOG_ERR(LOG_CTX_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+                uni_ovid = uni_ivid = 0;
+                PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
+                        client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
               }
-            
+            }
+            else
+            {
+              PT_LOG_ERR(LOG_CTX_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+            }
+          
 
-              bmpIterator = 0;
+            bmpIterator = 0;
 
-              while( bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE )
-              {
-                ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList[bmpIterator]);
-                bmpIterator++;
-              }
+            while( bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE )
+            {
+              ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList[bmpIterator]);
+              bmpIterator++;
+            }
 
-              /* Apply config */
-              rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, msg[messageIterator].onuId, 0x00, 0, 0, addOrRemove, msg[messageIterator].packageBmpList, msg[messageIterator].noOfPackages);
+            /* Apply config */
+            rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, msg[messageIterator].onuId, 0x00, 0, 0, addOrRemove, msg[messageIterator].packageBmpList, msg[messageIterator].noOfPackages);
 
-              if (rc!=L7_SUCCESS)
-              {
-                PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client");
-                return rc;
-              }
-              else
-              {
+            if (rc!=L7_SUCCESS)
+            {
+              PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client");
+              return rc;
+            }
+            else
+            {
 #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
 
-                L7_uint32 evc_id;
-                /* Is EVC in use? */
-                if (ptin_evc_ext2int(msg[messageIterator].evcId, &evc_id) != L7_SUCCESS)
-                {
-                PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", msg[messageIterator].evcId);
-                return L7_FAILURE;
-                }
-                UcastClient_info[evc_id-1].uni_ivid      = uni_ivid;
-                UcastClient_info[evc_id-1].uni_ovid      = uni_ovid;
-                UcastClient_info[evc_id-1].uni_ovid      = msg[messageIterator].onuId;
-                UcastClient_info[evc_id-1].addOrRemove   = addOrRemove;
-                UcastClient_info[evc_id-1].nOfPackets    = msg[messageIterator].noOfPackages;
-                UcastClient_info[evc_id-1].admin         = L7_TRUE;
-                memcpy(UcastClient_info[evc_id-1].packageBmpList, 
-                      msg[messageIterator].packageBmpList, 
-                      sizeof(UcastClient_info[evc_id-1].packageBmpList));
-                memcpy(&UcastClient_info[evc_id-1].client, 
-                      &msg[messageIterator].client, 
-                      sizeof(ptin_client_id_t));
-#endif
+              L7_uint32 evc_id;
+              /* Is EVC in use? */
+              if (ptin_evc_ext2int(msg[messageIterator].evcId, &evc_id) != L7_SUCCESS)
+              {
+              PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", msg[messageIterator].evcId);
+              return L7_FAILURE;
               }
-              j++;
+              UcastClient_info[evc_id-1].uni_ivid      = uni_ivid;
+              UcastClient_info[evc_id-1].uni_ovid      = uni_ovid;
+              UcastClient_info[evc_id-1].uni_ovid      = msg[messageIterator].onuId;
+              UcastClient_info[evc_id-1].addOrRemove   = addOrRemove;
+              UcastClient_info[evc_id-1].nOfPackets    = msg[messageIterator].noOfPackages;
+              UcastClient_info[evc_id-1].admin         = L7_TRUE;
+              memcpy(UcastClient_info[evc_id-1].packageBmpList, 
+                    msg[messageIterator].packageBmpList, 
+                    sizeof(UcastClient_info[evc_id-1].packageBmpList));
+              memcpy(&UcastClient_info[evc_id-1].client, 
+                    &msg[messageIterator].client, 
+                    sizeof(ptin_client_id_t));
+#endif
             }
-            shift_index++;
+            j++;
           }
+          shift_index++;
         }
-
-      if (msg[messageIterator].client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
+      }
+      else
+#endif
       {
 
         memset(&client,0x00,sizeof(ptin_client_id_t));
@@ -17050,12 +17041,6 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
   L7_uint16        uni_ovid;
   L7_RC_t          rc          = L7_SUCCESS;
 
-
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
-
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
@@ -17098,10 +17083,13 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
 
     if ( ENDIAN_SWAP16(msg[messageIterator].noOfPackages) > 0 )
     {
-      //NGPON2
+#ifdef NGPON2_SUPPORTED
+      ptin_NGPON2_groups_t NGPON2_GROUP;
+      L7_uint8 j = 0;
+      L7_uint8 shift_index = 0;
+
       if (msg[messageIterator].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
       {
-
         get_NGPON2_group_info(&NGPON2_GROUP, msg[messageIterator].client.intf.intf_id);
 
         while ( j < NGPON2_GROUP.nports)
@@ -17192,9 +17180,12 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
           }
           shift_index++;
         }
+#endif /*NGPON2_SUPPORTED*/
       }
 
+#ifdef NGPON2_SUPPORTED
       if (msg[messageIterator].client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
+#endif
       {
         memset(&client,0x00,sizeof(ptin_client_id_t));
         if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_OVLAN_MASK)
@@ -17289,11 +17280,6 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
   ptin_evc_macbridge_client_packages_t ptinEvcFlow;  
   L7_RC_t          rc                = L7_SUCCESS;
 
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0, iterator = 0;
-
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
@@ -17314,10 +17300,13 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
     }    
     #endif
 
+#ifdef NGPON2_SUPPORTED
+    ptin_NGPON2_groups_t NGPON2_GROUP;
+    L7_uint8 iterator = 0, j = 0;
+    L7_uint8 shift_index = 0;
 
     if (msg[messageIterator].intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
-
       get_NGPON2_group_info(&NGPON2_GROUP, msg[messageIterator].intf.intf_id);
 
       while (j < NGPON2_GROUP.nports)
@@ -17409,6 +17398,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
       iterator = 0;
     }
     else
+#endif /*NGPON2_SUPPORTED*/
     {
         /*Initialize Structure*/
         memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
@@ -17489,11 +17479,6 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
   ptin_evc_macbridge_client_packages_t ptinEvcFlow;  
   L7_RC_t          rc                = L7_SUCCESS;
 
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
-
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
@@ -17506,10 +17491,13 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {  
-    
+#ifdef NGPON2_SUPPORTED
+    ptin_NGPON2_groups_t NGPON2_GROUP;
+    L7_uint8 j = 0;
+    L7_uint8 shift_index = 0;
+
     if (msg[messageIterator].intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
-
       get_NGPON2_group_info(&NGPON2_GROUP, msg[messageIterator].intf.intf_id);
 
       while (j < NGPON2_GROUP.nports)
@@ -17605,9 +17593,9 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
         }
         shift_index++;
       }
-
     }
     else
+#endif /*NGPON2_SUPPORTED*/
     {
       /*Initialize Structure*/
       memset(&ptinEvcFlow, 0x00, sizeof(ptinEvcFlow));
@@ -17708,11 +17696,6 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
   L7_uint32         ptinPort;  
   L7_RC_t           rc                = L7_SUCCESS;
 
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
-
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
@@ -17728,6 +17711,11 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
     /*Input Parameters*/
     PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
               ENDIAN_SWAP8(msg[messageIterator].slotId), ENDIAN_SWAP32(msg[messageIterator].evcId), ENDIAN_SWAP8(msg[messageIterator].intf.intf_type), ENDIAN_SWAP8(msg[messageIterator].intf.intf_id), ENDIAN_SWAP8(msg[messageIterator].onuId));
+
+#ifdef NGPON2_SUPPORTED
+    ptin_NGPON2_groups_t NGPON2_GROUP;
+    L7_uint8 j = 0;
+    L7_uint8 shift_index = 0;
 
     if (msg[messageIterator].intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
@@ -17775,6 +17763,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
       }
     }
     else
+#endif /*NGPON2_SUPPORTED*/
     {
       /*Copy to ptin intf struct*/
       ptinIntf.intf_type = ENDIAN_SWAP8(msg[messageIterator].intf.intf_type);
@@ -17833,11 +17822,6 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
   L7_uint32         ptinPort;
   L7_RC_t           rc                = L7_SUCCESS;
 
-  // NGPON2
-  ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 j = 0;
-  L7_uint8 shift_index = 0;
-
   /* Input Argument validation */
   if ( msg  == L7_NULLPTR || noOfMessages == 0)
   {
@@ -17850,6 +17834,11 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {
+#ifdef NGPON2_SUPPORTED
+    ptin_NGPON2_groups_t NGPON2_GROUP;
+    L7_uint8 j = 0;
+    L7_uint8 shift_index = 0;
+
     if (msg[messageIterator].intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
       get_NGPON2_group_info(&NGPON2_GROUP, msg[messageIterator].intf.intf_id);
@@ -17884,6 +17873,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
       }
     }
     else
+#endif /*NGPON2_SUPPORTED*/
     {
       /*Input Parameters*/
       PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [slotId:%u evcId:%u intf.type:%u intf.id:%u onuId:%u]",
@@ -17934,7 +17924,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
 /*                                                NGPON2                                                         */ 
 /*                                                                                                               */ 
 /*****************************************************************************************************************/
- 
+
 /**
  * NGPON2 Add Group 
  * 
@@ -17946,8 +17936,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
  */
 L7_RC_t ptin_msg_NGPON2_add_group(ptin_NGPON2group_t *group_info)
 {
-
-
+#ifdef NGPON2_SUPPORTED
   /* no need for this verification
   // check if GroupID is out of range 
   if (group_info->GroupId < 0 || group_info->GroupId >= PTIN_SYSTEM_MAX_NGPON2_GROUPS)
@@ -17963,7 +17952,7 @@ L7_RC_t ptin_msg_NGPON2_add_group(ptin_NGPON2group_t *group_info)
     PT_LOG_ERR(LOG_CTX_MSG, "Failed to add group. GroupID %u", group_info->GroupId);
     return L7_FAILURE;
   }
-
+#endif
   return L7_SUCCESS;
 }
 
@@ -17978,7 +17967,7 @@ L7_RC_t ptin_msg_NGPON2_add_group(ptin_NGPON2group_t *group_info)
  */
 L7_RC_t ptin_msg_NGPON2_rem_group(ptin_NGPON2group_t *group_info)
 {
-
+#ifdef NGPON2_SUPPORTED
   /* no need for this verification
   // check if GroupID is out of range 
   if (group_info->GroupId < 0 || group_info->GroupId >= PTIN_SYSTEM_MAX_NGPON2_GROUPS)
@@ -17994,7 +17983,7 @@ L7_RC_t ptin_msg_NGPON2_rem_group(ptin_NGPON2group_t *group_info)
     PT_LOG_ERR(LOG_CTX_MSG, "Failed to remove group. GroupID %u", group_info->GroupId);
     return L7_FAILURE;
   }
-
+#endif
   return L7_SUCCESS;
 }
 
@@ -18014,14 +18003,14 @@ L7_RC_t ptin_msg_NGPON2_rem_group(ptin_NGPON2group_t *group_info)
  */
 L7_RC_t ptin_msg_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
 {
-
+#ifdef NGPON2_SUPPORTED
   /* add NGPON2 group */
   if (ptin_intf_NGPON2_add_group_port(group_info) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Failed to add group port. GroupID %u", group_info->GroupId);
     return L7_FAILURE;
   }
-
+#endif
   return L7_SUCCESS;
 }
 
@@ -18036,7 +18025,7 @@ L7_RC_t ptin_msg_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
  */
 L7_RC_t ptin_msg_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
 {
-
+#ifdef NGPON2_SUPPORTED
   /* no need for this verification
   // check if GroupID is out of range 
   if (group_info->GroupId < 0 || group_info->GroupId >= PTIN_SYSTEM_MAX_NGPON2_GROUPS)
@@ -18052,7 +18041,7 @@ L7_RC_t ptin_msg_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
     PT_LOG_ERR(LOG_CTX_MSG, "Failed to add group. GroupID %u", group_info->GroupId);
     return L7_FAILURE;
   }
-
+#endif
   return L7_SUCCESS;
 }
 
@@ -18286,6 +18275,7 @@ void ptin_msg_evc_port_add_rem(L7_uint32 evcId, L7_uint8 portId, L7_uint8 oper)
  */
 L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old_port)
 { 
+#ifdef NGPON2_SUPPORT
   L7_int32  evc_ext_id=0, index;
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 evc_type;
@@ -18412,6 +18402,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
 
     index--;
   }
+#endif /*NGPON2_SUPPORT*/
   return L7_SUCCESS;
 }
 
@@ -18425,6 +18416,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
  */
 L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
 {
+#ifdef NGPON2_SUPPORT
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 evc_type;
   get_NGPON2_group_info(&NGPON2_GROUP, 1);
@@ -18528,7 +18520,7 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
 
     index--;
   }
-
+#endif /*NGPON2_SUPPORT*/
   return L7_SUCCESS;
 }
 
@@ -18544,6 +18536,7 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
  */
 void ptin_msg_igmp_client_add_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
 {
+#ifdef NGPON2_SUPPORT
   L7_RC_t rc;
 
   printf("ADD Mcast igmp client to a ngpon2 group\n");
@@ -18567,7 +18560,7 @@ void ptin_msg_igmp_client_add_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
 
   if (rc != L7_SUCCESS)
     printf("ERROR TO ADD MC CLIENT\n");
-
+#endif /*NGPON2_SUPPORT*/
 }
 
 
@@ -18582,7 +18575,7 @@ void ptin_msg_igmp_client_add_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
  */
 void ptin_msg_igmp_client_rem_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
 {
-
+#ifdef NGPON2_SUPPORT
   L7_RC_t rc;
 
   printf("REMOVE Mcast igmp client to a ngpon2 group\n");
@@ -18597,7 +18590,7 @@ void ptin_msg_igmp_client_rem_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
 
   if (rc != L7_SUCCESS)
     printf("ERROR TO REMOVE MC CLIENT\n");
-
+#endif /*NGPON2_SUPPORT*/
 }
  
  

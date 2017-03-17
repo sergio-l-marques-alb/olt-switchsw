@@ -33,6 +33,10 @@
 
 #define LINKSCAN_MANAGEABLE_BOARD (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
 
+#ifdef NGPON2_SUPPORTED
+static ptin_NGPON2_groups_t NGPON2_groups_info[PTIN_SYSTEM_MAX_NGPON2_GROUPS];
+#endif
+
 /* Uplink protection */
 #if (PTIN_BOARD_IS_MATRIX)
 static L7_uint64 forcelinked_ports_bmp        = 0;
@@ -106,13 +110,15 @@ static L7_uint32 map_intIfNum2port[L7_MAX_INTERFACE_COUNT];
 
 /* MACROS NGPON 2*/
 
+#ifdef NGPON2_SUPPORTED
+
 #define NGPON2_EMPTY_ENTRY     0xff
- 
- 
+
 #define NGPON2_PORT_ADD(var, n)  ( var |= (0x1 << n))
 #define NGPON2_PORT_REM(var, n)  ( var &= ~(0x1 << n))
 #define NGPON2_BIT_PORT(var)     ( var & 0x1 )
                                
+#endif                               
 
 /**************************************/
 
@@ -171,8 +177,9 @@ L7_RC_t ptin_intf_pre_init(void)
   memset(map_intIfNum2port,   0xFF, sizeof(map_intIfNum2port));
   memset(lagConf_data,        0xFF, sizeof(lagConf_data));
   memset(phyExt_data,         0x00, sizeof(phyExt_data));
+#ifdef NGPON2_SUPPORTED
   memset(NGPON2_groups_info,  0x00, sizeof(NGPON2_groups_info));
-
+#endif
 
   /* Initialize phy lookup tables */
   PT_LOG_TRACE(LOG_CTX_INTF, "Port <=> intIfNum lookup tables init:");
@@ -7861,6 +7868,7 @@ void ptin_ta48ge_txdisable_control(L7_uint32 port, L7_uint8 state)
 /*                                                                                                               */ 
 /*****************************************************************************************************************/
  
+#ifdef NGPON2_SUPPORTED
 /**
  * Check if a NGPON2 group already exists 
  * 
@@ -7872,14 +7880,12 @@ void ptin_ta48ge_txdisable_control(L7_uint32 port, L7_uint8 state)
  */ 
 L7_RC_t ptin_intf_NGPON2_group_exists(L7_uint8 group_idx)
 {
-
   /* Check if NGPON2 group already exists */
   if (NGPON2_groups_info[group_idx].admin)
-    return L7_TRUE;                           
+    return L7_TRUE;
 
   return L7_FALSE;
 }
-
 
 /**
  * PTIN_INTF NGPON2 Add Group 
@@ -8226,6 +8232,7 @@ L7_RC_t ptin_intf_NGPON2_group_check(L7_uint8 intf_index, L7_uint8 *group_index)
 
   return L7_FAILURE;
 }
+#endif /*NGPON2_SUPPORTED*/
 
 #if 0
 /**
@@ -8430,6 +8437,7 @@ void ptin_intf_stormcontrol_dump(void)
  */
 void ptin_intf_NGPON2_groups_dump(void)
 {
+#ifdef NGPON2_SUPPORTED
   L7_uint16 i = 0;
 
   printf("Active groups:\n");
@@ -8442,5 +8450,8 @@ void ptin_intf_NGPON2_groups_dump(void)
     }
     i++;
   }
+#else
+  printf("Not supported on this board!\r\n");
+#endif
 }
 
