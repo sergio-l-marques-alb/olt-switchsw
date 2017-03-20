@@ -12,6 +12,9 @@
 #include <sal/core/libc.h>
 #include <sal/core/boot.h>
 
+/* PTin added */
+#include "logger.h"
+
 #include <soc/debug.h>
 #include <soc/cm.h>
 #include <soc/drv.h>
@@ -3709,7 +3712,7 @@ soc_reg_addr(int unit, soc_reg_t reg, int port, int index)
     int               gransh; /* index granularity shift */
     soc_block_types_t regblktype;
     soc_block_t       portblktype;
-    int               phy_port;
+    int               phy_port = -1;
     int               instance_mask = 0;
     int               instance = -1;
     
@@ -3778,6 +3781,8 @@ soc_reg_addr(int unit, soc_reg_t reg, int port, int index)
                 pindex = SOC_PORT_BINDEX(unit, phy_port);
             } else {
                 block = pindex = -1; /* multiple non-port block */
+                PT_LOG_CRITIC(LOG_CTX_SDK, "port=%d phy_port=%d block=%d pindex=%d portblktype=%d regblktype=%d SOC_REG_FIRST_BLK_TYPE=%d SOC_BLOCK_IN_LIST=%d",
+                              port, phy_port, block, pindex, portblktype, regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype)); 
             }
         } else if (port == REG_PORT_ANY) {
             block = pindex = -1;
@@ -3804,12 +3809,16 @@ soc_reg_addr(int unit, soc_reg_t reg, int port, int index)
                     }
                 }
                 if (block < 0) {
+                    PT_LOG_CRITIC(LOG_CTX_SDK, "port=%d phy_port=%d block=%d pindex=%d portblktype=%d regblktype=%d SOC_REG_FIRST_BLK_TYPE=%d SOC_BLOCK_IN_LIST=%d",
+                                  port, phy_port, block, pindex, portblktype, regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype)); 
                     assert(SOC_REG_ADDR_INVALID_PORT); /* invalid port */
                 }
             }
         } else {
         port &= ~SOC_REG_ADDR_INSTANCE_MASK;
         block = pindex = -1;
+        PT_LOG_CRITIC(LOG_CTX_SDK, "port=%d phy_port=%d block=%d pindex=%d portblktype=%d regblktype=%d SOC_REG_FIRST_BLK_TYPE=%d SOC_BLOCK_IN_LIST=%d",
+                      port, phy_port, block, pindex, portblktype, regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype)); 
         }
     }
 
@@ -3887,6 +3896,8 @@ soc_reg_addr(int unit, soc_reg_t reg, int port, int index)
                 break;
             default:
                 block = -1; /* unknown non-port block */
+                PT_LOG_CRITIC(LOG_CTX_SDK, "port=%d phy_port=%d block=%d pindex=%d portblktype=%d regblktype=%d SOC_REG_FIRST_BLK_TYPE=%d SOC_BLOCK_IN_LIST=%d",
+                              port, phy_port, block, pindex, portblktype, regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype)); 
                 break;
             }
         }
@@ -4131,12 +4142,21 @@ soc_reg_addr(int unit, soc_reg_t reg, int port, int index)
                 break;
             default:
                     block = -1; /* unknown non-port block */
+                    PT_LOG_CRITIC(LOG_CTX_SDK, "port=%d phy_port=%d block=%d pindex=%d portblktype=%d regblktype=%d SOC_REG_FIRST_BLK_TYPE=%d SOC_BLOCK_IN_LIST=%d",
+                                  port, phy_port, block, pindex, portblktype, regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype)); 
                     break;
             }
         }
 #ifdef  BCM_SIRIUS_SUPPORT
     }
 #endif
+
+    /* PTin added: sometimes this application crash here! */
+    if (block < 0)
+    {
+      PT_LOG_CRITIC(LOG_CTX_SDK, "assert(block>=0): port=%d phy_port=%d block=%d pindex=%d portblktype=%d regblktype=%d SOC_REG_FIRST_BLK_TYPE=%d SOC_BLOCK_IN_LIST=%d",
+                    port, phy_port, block, pindex, portblktype, regblktype, SOC_REG_FIRST_BLK_TYPE(regblktype), SOC_BLOCK_IN_LIST(regblktype,portblktype)); 
+    }
 
     assert(block >= 0); /* block must be valid */
 
