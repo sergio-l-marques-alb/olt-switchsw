@@ -1508,29 +1508,47 @@ L7_RC_t cosIntfChangeCallback(L7_uint32 intIfNum, L7_uint32 event,
     switch (event)
     {
     case L7_CREATE:
+      PT_LOG_INFO(LOG_CTX_INTF,"Event L7_CREATE received: intIfNUm=%u", intIfNum);
       rc = cosIntfCreate(intIfNum);
+      PT_LOG_INFO(LOG_CTX_INTF,"Event L7_CREATE processed: intIfNUm=%u", intIfNum);
+      PT_LOG_INFO(LOG_CTX_EVENTS,"Event L7_CREATE processed: intIfNUm=%u", intIfNum);
       break;
 
     case L7_ATTACH:
+      PT_LOG_INFO(LOG_CTX_INTF,"Event L7_ATTACH received: intIfNUm=%u", intIfNum);
       if (cosIntfIsConfigurable(intIfNum, &pCfgIntf) == L7_TRUE)
         rc = cosConfigIntfDataApply(intIfNum, pCfgIntf);
+      PT_LOG_INFO(LOG_CTX_INTF,"Event L7_ATTACH processed: intIfNUm=%u", intIfNum);
+      PT_LOG_INFO(LOG_CTX_EVENTS,"Event L7_ATTACH processed: intIfNUm=%u", intIfNum);
       break;
 
     case L7_DETACH:
+      PT_LOG_INFO(LOG_CTX_INTF,"Event L7_DETACH received: intIfNUm=%u", intIfNum);
       if (cosIntfIsConfigurable(intIfNum, &pCfgIntf) == L7_TRUE)
         rc = cosConfigIntfDataUnapply(intIfNum, pCfgIntf);
+      PT_LOG_INFO(LOG_CTX_INTF,"Event L7_DETACH processed: intIfNUm=%u", intIfNum);
+      PT_LOG_INFO(LOG_CTX_EVENTS,"Event L7_DETACH processed: intIfNUm=%u", intIfNum);
       break;
 
     case L7_DELETE:
+      PT_LOG_INFO(LOG_CTX_INTF,"Event L7_DELETE received: intIfNUm=%u", intIfNum);
       rc = cosIntfDelete(intIfNum);
+      PT_LOG_INFO(LOG_CTX_INTF,"Event L7_DELETE processed: intIfNUm=%u", intIfNum);
+      PT_LOG_INFO(LOG_CTX_EVENTS,"Event L7_DELETE processed: intIfNUm=%u", intIfNum);
       break;
 
     case L7_ACTIVE:
+      PT_LOG_INFO(LOG_CTX_INTF,"Event L7_ACTIVE received: intIfNUm=%u", intIfNum);
       pCosIntfInfo_g[intIfNum].intfIsActive = L7_TRUE;
+      PT_LOG_INFO(LOG_CTX_INTF,"Event L7_ACTIVE processed: intIfNUm=%u", intIfNum);
+      PT_LOG_INFO(LOG_CTX_EVENTS,"Event L7_ACTIVE processed: intIfNUm=%u", intIfNum);
       break;
 
     case L7_INACTIVE:
+      PT_LOG_INFO(LOG_CTX_INTF,"Event L7_INACTIVE received: intIfNUm=%u", intIfNum);
       pCosIntfInfo_g[intIfNum].intfIsActive = L7_FALSE;
+      PT_LOG_INFO(LOG_CTX_INTF,"Event L7_INACTIVE processed: intIfNUm=%u", intIfNum);
+      PT_LOG_INFO(LOG_CTX_EVENTS,"Event L7_INACTIVE processed: intIfNUm=%u", intIfNum);
       break;
 
     case L7_LAG_ACQUIRE:
@@ -1542,6 +1560,8 @@ L7_RC_t cosIntfChangeCallback(L7_uint32 intIfNum, L7_uint32 event,
        *        port when it is released from the LAG.  LAG member ports are
        *        controlled by the COS config of the LAG interface itself.
        */
+      PT_LOG_INFO(LOG_CTX_INTF,"Event L7_LAG_ACQUIRE/L7_PROBE_SETUP received: intIfNUm=%u", intIfNum);
+      PT_LOG_INFO(LOG_CTX_EVENTS,"Event L7_LAG_ACQUIRE/L7_PROBE_SETUP received: intIfNUm=%u", intIfNum);
       break;
 
     case L7_LAG_RELEASE:
@@ -1553,10 +1573,13 @@ L7_RC_t cosIntfChangeCallback(L7_uint32 intIfNum, L7_uint32 event,
        *        port when it is released from the LAG.  LAG member ports are
        *        controlled by the COS config of the LAG interface itself.
        */
+      PT_LOG_INFO(LOG_CTX_INTF,"Event L7_LAG_RELEASE/L7_PROBE_TEARDOWN received: intIfNUm=%u", intIfNum);
+      PT_LOG_INFO(LOG_CTX_EVENTS,"Event L7_LAG_RELEASE/L7_PROBE_TEARDOWN received: intIfNUm=%u", intIfNum);
       break;
 
     default:
       /* not interested in this interface event */
+      PT_LOG_INFO(LOG_CTX_INTF,"Event Unknown received: intIfNUm=%u", intIfNum);
       break;
 
     } /* endswitch */
@@ -1602,12 +1625,14 @@ void cosStartupNotifyCallback(NIM_STARTUP_PHASE_t startupPhase)
     switch (startupPhase)
     {
     case NIM_INTERFACE_CREATE_STARTUP:
+      PT_LOG_INFO(LOG_CTX_INTF,"startupPhase=NIM_INTERFACE_CREATE_STARTUP: intIfNum=%u", intIfNum);
       COS_PRT(COS_MSGLVL_LO, "CoS: Create Startup %3u\n", intIfNum);
       (void)cosIntfCreate(intIfNum);
       break;
 
     case NIM_INTERFACE_ACTIVATE_STARTUP:
       COS_PRT(COS_MSGLVL_LO, "CoS: Activate Startup %3u\n", intIfNum);
+      PT_LOG_INFO(LOG_CTX_INTF,"startupPhase=NIM_INTERFACE_ACTIVATE_STARTUP: intIfNum=%u", intIfNum);
       if (cosIntfIsConfigurable(intIfNum, &pCfgIntf) == L7_TRUE)
         rc = cosConfigIntfDataApply(intIfNum, pCfgIntf);
       break;
