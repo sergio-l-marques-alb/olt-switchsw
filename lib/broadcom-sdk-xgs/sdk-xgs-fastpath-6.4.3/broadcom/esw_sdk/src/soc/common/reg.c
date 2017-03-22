@@ -3319,9 +3319,6 @@ soc_reg_addr(int unit, soc_reg_t reg, int port, int index)
                 pindex = SOC_PORT_BINDEX(unit, phy_port);
             } else {
                 block = pindex = -1; /* multiple non-port block */
-                /* PTin added */
-                PT_LOG_CRITIC(LOG_CTX_SDK, "port=%d reg=%d index=%d phy_port=%d block=%d pindex=%d portblktype=%d regblktype=%d SOC_BLOCK_IN_LIST=%d",
-                              port, reg, index, phy_port, block, pindex, portblktype, regblktype, SOC_BLOCK_IN_LIST(regblktype,portblktype)); 
             }
         } else if (port == REG_PORT_ANY) {
             block = pindex = -1;
@@ -3357,9 +3354,6 @@ soc_reg_addr(int unit, soc_reg_t reg, int port, int index)
         } else {
         port &= ~SOC_REG_ADDR_INSTANCE_MASK;
         block = pindex = -1;
-        /* PTin added */
-        PT_LOG_CRITIC(LOG_CTX_SDK, "port=%d reg=%d index=%d phy_port=%d block=%d pindex=%d portblktype=%d regblktype=%d SOC_BLOCK_IN_LIST=%d",
-                      port, reg, index, phy_port, block, pindex, portblktype, regblktype, SOC_BLOCK_IN_LIST(regblktype,portblktype)); 
         }
     }
 
