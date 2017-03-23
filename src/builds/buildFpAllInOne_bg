@@ -57,7 +57,12 @@ if [ $svnUpdate -eq 1 ]; then
   echo "Updating svn..."
   cd ..
   svn update --username=$svn_username --password=$svn_password
+  error=$?
   cd -
+  if [ $error -ne 0 ]; then
+    echo "Error updating source files..."
+    exit -1;
+  fi
 fi
 
 cd ..
@@ -76,7 +81,7 @@ sh buildFpAllInOne $version $patch 0 $compile $update_mkboards >> $output_file 2
 echo "Build finished at `date`." >> $output_file
 
 if [ $send_mail -eq 1 ]; then
-  echo "Subject: OLTSWITCH-Trunk build $version.$patch-r$svnRelease [`date +%Y-%m-%d\ %H:%M`]" > mail.txt
+  echo "Subject: OLTSWITCH build $version.$patch-r$svnRelease [`date +%Y-%m-%d\ %H:%M`]" > mail.txt
   echo "" >> mail.txt
   head -n 8 $output_file >> mail.txt
   echo "..." >> mail.txt
