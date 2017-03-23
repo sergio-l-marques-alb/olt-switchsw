@@ -39,6 +39,7 @@
 #include "usmdb_dai_api.h"
 #include "usmdb_dot3ad_api.h"
 #include "mirror_api.h"
+#include "usmdb_dvlantag_api.h"
 #include "usmdb_mirror_api.h"
 #include "ptin_xlate_api.h"
 #include "ptin_status.h"
@@ -109,7 +110,7 @@ void ptin_force_capture(L7_BOOL force)
  
 #define NGPON2_EVC_ADD(var, n)  ( var |= (0x1 << n))
 #define NGPON2_EVC_REM(var, n)  ( var &= ~(0x1 << n))
-#define NGPON2_BIT_PORT(var)     ( var & 0x1 )
+#define NGPON2_BIT_EVC(var)     ( var & 0x1 )
                                
 typedef struct
 {
@@ -5755,7 +5756,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       PT_LOG_ERR(LOG_CTX_MSG, "NGPON2_GROUP.nports %u",              NGPON2_GROUP.nports);
 
-      while (j <= NGPON2_GROUP.nports)
+      while (j <= NGPON2_GROUP.nports  && NGPON2_GROUP.nports != 0))
       {
         if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
         {
@@ -15130,17 +15131,28 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Remove Monitor Session */
       rc = usmDbSwPortMonitorSessionRemove(unit, sessionNum);
 
-      if(rc != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc);
-        return L7_FAILURE;
-      } 
 
       /* Disable Monitor Session */
-      //rc = usmDbSwPortMonitorModeSet(unit, sessionNum, L7_DISABLE);
-      //rc = usmDbSwPortMonitorSourcePortRemove(unit, sessionNum, intfNum);
-      //rc = usmDbSwPortMonitorDestPortRemove(unit, sessionNum);
+      rc = usmDbSwPortMonitorModeSet(unit, sessionNum, L7_DISABLE);
+      if(rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc);     
+      } 
+      rc = usmDbSwPortMonitorSourcePortRemove(unit, sessionNum, listSrcPorts[0]);
+      if(rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc);     
+      } 
+      rc = usmDbSwPortMonitorDestPortRemove(unit, sessionNum);
       
+      if(rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc);     
+      } 
+
+      usmDbDvlantagIntfModeSet(0, listDstPorts[0], 0 /* service provider double tag mode*/);  
+        PT_LOG_ERR(LOG_CTX_MSG, "listDstPorts[0] (%d)", listDstPorts[0]);
+      usmDbDvlantagIntfModeSet(0, listDstPorts[0], 1 /* service provider double tag mode*/);
     }
   }
 
@@ -17450,7 +17462,6 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
         PT_LOG_DEBUG(LOG_CTX_MSG, " noOfPackages       = %u", ptinEvcFlow.noOfPackages);      
         PT_LOG_DEBUG(LOG_CTX_MSG, " packageBmpList:%s", packageBmpStr);
 
-
         if (ptinEvcFlow.noOfPackages >= 0)
         {
           if ((rc=ptin_evc_macbridge_client_packages_add(&ptinEvcFlow)) != L7_SUCCESS)
@@ -17587,7 +17598,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
                 if (ptin_evc_ext2int(ptinEvcFlow.evc_idx, &evc_id) != L7_SUCCESS)
                 {
                 PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ptinEvcFlow.evc_idx);
-                return L7_FAILURE;
+                //return L7_FAILURE;
                 }
                 memset(&MacbridgePackage_info[evc_id-1], 0xFF, sizeof(MacbridgePackage_info[evc_id-1]));
                 MacbridgePackage_info[evc_id-1].admin = L7_FALSE;
@@ -18281,134 +18292,141 @@ void ptin_msg_evc_port_add_rem(L7_uint32 evcId, L7_uint8 portId, L7_uint8 oper)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old_port)
+L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old_port, L7_uint32 ngpon2_id)
 { 
-#ifdef NGPON2_SUPPORT
-  L7_int32  evc_ext_id=0, index;
+#ifdef NGPON2_SUPPORTED
+
+  L7_int32  index, iteration = 0, position;
+  L7_uint32 max_index = (PTIN_SYSTEM_N_EVCS/sizeof(L7_uint8)) - 1;
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 evc_type;
 
+  PT_LOG_ERR(LOG_CTX_MSG, "ngpon2_id = %d ", ngpon2_id);
   /* Get NGPON2 group information*/
-  get_NGPON2_group_info(&NGPON2_GROUP, 1);
+  get_NGPON2_group_info(&NGPON2_GROUP, ngpon2_id);
 
-  index = NGPON2_GROUP.number_services-1;
+  PT_LOG_ERR(LOG_CTX_MSG, "NGPON2_GROUP.number_services = %d", NGPON2_GROUP.number_services);
 
-  while (index >= 0)
+  for(index = 0; (index < max_index) || (iteration < NGPON2_GROUP.number_services); index++)
   {
-    PT_LOG_TRACE(LOG_CTX_MSG, "index %d ", index);
-    /* Get EVC id configured in the NGPON group*/
-    evc_ext_id = NGPON2_GROUP.evc_groups_pbmp[index]; //due to array initial value
-
-    PT_LOG_TRACE(LOG_CTX_MSG, "evc_ext_id %d ", evc_ext_id);
-    L7_uint evc_idx;
-    /* Get the internal index based on the extended one */
-    if (ptin_evc_ext2int(evc_ext_id, &evc_idx) != L7_SUCCESS)
+    if(NGPON2_GROUP.evc_groups_pbmp[index] == 0)
     {
-       PT_LOG_NOTICE(LOG_CTX_EVC, "eEVC %u not existent", evc_ext_id);
-       return L7_DEPENDENCY_NOT_MET;
-    }
-
-    evc_idx = evc_idx - 1;
-
-    evcPortTest[evc_idx].intf.value.ptin_port = ptin_port;
-    evcPortTest[evc_idx].mef_type = PTIN_EVC_INTF_LEAF;
-
-    PT_LOG_TRACE(LOG_CTX_MSG, "evc_idx %d ", evc_idx);
-
-    if (ptin_intf_any_format(&evcPortTest[evc_idx].intf) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_MSG, "Invalid interfaces");
-
-      index--;
+      PT_LOG_ERR(LOG_CTX_MSG, "NGPON2_GROUP.evc_groups_pbmp[index] = %d", NGPON2_GROUP.evc_groups_pbmp[index]);
       continue;
     }
 
-    /* Add port to EVC */
-    if ( ptin_evc_port_add(evcPortTest[evc_idx].evcId, &evcPortTest[evc_idx])!=L7_SUCCESS)
+    PT_LOG_ERR(LOG_CTX_MSG, "Index = %d ", index);
+
+    for (position = 0 ; (position < 256) || (iteration < NGPON2_GROUP.number_services); position++) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
     {
-      PT_LOG_ERR(LOG_CTX_EVC,"Error adding port to EVC");
-    }
+      PT_LOG_ERR(LOG_CTX_MSG, "Position = %d ", position);
 
-    ptin_evc_check_evctype(NGPON2_GROUP.evcPort[index], &evc_type);
-    PT_LOG_TRACE(LOG_CTX_MSG, "evc_type %d ", evc_type);
-
-    if(evc_type == PTIN_EVC_TYPE_QUATTRO_UNSTACKED || evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
-    {
-      /* Read policer information */
-      if ((ptin_evc_flow_replicate( ptin_port, evcPortTest[evc_idx].evcId, old_port)!=L7_SUCCESS))
+      if( NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] < position)))
       {
-        PT_LOG_ERR(LOG_CTX_EVC,"Error replicating flow");
-        index--;
-        continue;
-      }
+        L7_int32 evc_idx;
 
-      if(MacbridgePackage_info[evc_idx].admin != 0)
-      {
-        if (MacbridgePackage_info[evc_idx].noOfPackages >= 0)
+        /* Increment number of iteration (services replicate)*/
+        iteration++;
+
+        evc_idx = position + (index * sizeof(L7_uint8));
+          
+        PT_LOG_ERR(LOG_CTX_MSG, "Evc_idx = %d   ", evc_idx);
+        PT_LOG_ERR(LOG_CTX_MSG, "iteration = %d ", iteration);
+
+        evcPortTest[evc_idx].intf.value.ptin_port = ptin_port;
+        evcPortTest[evc_idx].mef_type = PTIN_EVC_INTF_LEAF;
+
+        if (ptin_intf_any_format(&evcPortTest[evc_idx].intf) != L7_SUCCESS)
         {
-          if ((ptin_evc_macbridge_client_packages_add(&MacbridgePackage_info[evc_idx])) != L7_SUCCESS)
+          PT_LOG_ERR(LOG_CTX_MSG, "Invalid interfaces");
+
+          continue;
+        }
+
+        /* Add port to EVC */
+        if ( ptin_evc_port_add(evcPortTest[evc_idx].evcId, &evcPortTest[evc_idx])!=L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_EVC,"Error adding port to EVC");
+        }
+
+        ptin_evc_check_evctype(evcPortTest[evc_idx].evcId, &evc_type);
+        PT_LOG_TRACE(LOG_CTX_MSG, "evc_type %d ", evc_type);
+
+        if(evc_type == PTIN_EVC_TYPE_QUATTRO_UNSTACKED || evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
+        {
+          /* Read policer information */
+          if ((ptin_evc_flow_replicate( ptin_port, evcPortTest[evc_idx].evcId, old_port)!=L7_SUCCESS))
           {
-            PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flow", MacbridgePackage_info[evc_idx].evc_idx);
+            PT_LOG_ERR(LOG_CTX_EVC,"Error replicating flow");
+            continue;
+          }
+
+          if(MacbridgePackage_info[evc_idx].admin != 0)
+          {
+            if (MacbridgePackage_info[evc_idx].noOfPackages >= 0)
+            {
+              if ((ptin_evc_macbridge_client_packages_add(&MacbridgePackage_info[evc_idx])) != L7_SUCCESS)
+              {
+                PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u flow", MacbridgePackage_info[evc_idx].evc_idx);
+              }
+            }
           }
         }
-      }
-    }
-    else
-    {      
-        /* Get EVC id configured in the NGPON group*/
-        if ((ptin_evc_p2p_bridge_replicate(NGPON2_GROUP.evcPort[index], ptin_port, old_port, &evcPortTest[evc_idx]))!= L7_SUCCESS )
-        {
-          PT_LOG_ERR(LOG_CTX_EVC,"Error replicate p2p bridge");
+        else
+        {      
+            /* Get EVC id configured in the NGPON group*/
+            if ((ptin_evc_p2p_bridge_replicate(evcPortTest[evc_idx].evcId, ptin_port, old_port, &evcPortTest[evc_idx]))!= L7_SUCCESS )
+            {
+              PT_LOG_ERR(LOG_CTX_EVC,"Error replicate p2p bridge");
 
-          index--;
-          continue;         
+              continue;         
+            }
         }
-    }
 
-    if(McastClient_info[evc_idx].admin != 0)
-    {
-      /* call API igmp client add */
-      ptin_igmp_api_client_add(&McastClient_info[evc_idx].client,
-                                   McastClient_info[evc_idx].uni_ovid,
-                                   McastClient_info[evc_idx].uni_ivid,
-                                   McastClient_info[evc_idx].onuId,
-                                   McastClient_info[evc_idx].mask,
-                                   McastClient_info[evc_idx].maxBandwidth,
-                                   McastClient_info[evc_idx].maxChannels,
-                                   L7_FALSE,
-                                   L7_NULLPTR/*McastClient[i].packageBmpList*/,
-                                   0/*McastClient[i].noOfPackages*/);
+        if(McastClient_info[evc_idx].admin != 0)
+        {
+          /* call API igmp client add */
+          ptin_igmp_api_client_add(&McastClient_info[evc_idx].client,
+                                       McastClient_info[evc_idx].uni_ovid,
+                                       McastClient_info[evc_idx].uni_ivid,
+                                       McastClient_info[evc_idx].onuId,
+                                       McastClient_info[evc_idx].mask,
+                                       McastClient_info[evc_idx].maxBandwidth,
+                                       McastClient_info[evc_idx].maxChannels,
+                                       L7_FALSE,
+                                       L7_NULLPTR/*McastClient[i].packageBmpList*/,
+                                       0/*McastClient[i].noOfPackages*/);
 
-    }
+        }
 
-    if(UcastClient_info[evc_idx].admin !=0 )
-    {
-      /* Apply config */
-      ptin_igmp_api_client_add(&UcastClient_info[evc_idx].client,
-                                    UcastClient_info[evc_idx].uni_ovid,
-                                    UcastClient_info[evc_idx].uni_ivid,
-                                    UcastClient_info[evc_idx].onuId,
-                                    0x00,
-                                    0,
-                                    0,
-                                    L7_FALSE /*ADD*/,
-                                    UcastClient_info[evc_idx].packageBmpList,
-                                    UcastClient_info[evc_idx].nOfPackets);
+        if(UcastClient_info[evc_idx].admin !=0 )
+        {
+          /* Apply config */
+          ptin_igmp_api_client_add(&UcastClient_info[evc_idx].client,
+                                        UcastClient_info[evc_idx].uni_ovid,
+                                        UcastClient_info[evc_idx].uni_ivid,
+                                        UcastClient_info[evc_idx].onuId,
+                                        0x00,
+                                        0,
+                                        0,
+                                        L7_FALSE /*ADD*/,
+                                        UcastClient_info[evc_idx].packageBmpList,
+                                        UcastClient_info[evc_idx].nOfPackets);
 
-    }
-
-    
-      /* Read and set policer information */
-      if ((ptin_bwPolicer_set(&bwProfile[evc_idx], &bwMeter[evc_idx], -1))!= L7_SUCCESS)
+        }
+      
+        /* Read and set policer information */
+        if ((ptin_bwPolicer_set(&bwProfile[evc_idx], &bwMeter[evc_idx], -1))!= L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_EVC,"Error reading policer profile");
+          continue;
+        }
+      }
+      else
       {
-        PT_LOG_ERR(LOG_CTX_EVC,"Error reading policer profile");
-
-        index--;
         continue;
       }
-    
-
-    index--;
+    }
   }
 #endif /*NGPON2_SUPPORT*/
   return L7_SUCCESS;
@@ -18422,48 +18440,65 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
  * @return L7_RC_t : 
  *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
  */
-L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
+L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2_id)
 {
-#ifdef NGPON2_SUPPORT
+ 
+#ifdef NGPON2_SUPPORTED
+  L7_int32 iteration = 0,position;
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 evc_type;
-  get_NGPON2_group_info(&NGPON2_GROUP, 1);
+  L7_uint32 max_index = (PTIN_SYSTEM_N_EVCS/sizeof(L7_uint8)) - 1;
+
+  /* Get NGPON2 group information*/
+  get_NGPON2_group_info(&NGPON2_GROUP, ngpon2_id);
+  iteration = NGPON2_GROUP.number_services;
+
   L7_int32 index = NGPON2_GROUP.number_services - 1 ;      //due to array initial value
 
-  while (index >= 0)
-  {  
-    L7_uint32 evc_ext_id = NGPON2_GROUP.evcPort[index];  //due to array initial value
-
-    L7_uint evc_idx;
-    /* Get the internal index based on the extended one */
-    if (ptin_evc_ext2int(evc_ext_id, &evc_idx) != L7_SUCCESS)
+  for(index = 0; (index < max_index) || (iteration < NGPON2_GROUP.number_services); index++)
+  {
+    if(NGPON2_GROUP.evc_groups_pbmp[index] == 0)
     {
-       PT_LOG_NOTICE(LOG_CTX_EVC, "eEVC %u not existent", evc_ext_id);
-       return L7_DEPENDENCY_NOT_MET;
+      continue;
     }
 
-    evc_idx = evc_idx - 1;
-    PT_LOG_TRACE(LOG_CTX_MSG, "evc_idx = %d ", evc_idx);
+    PT_LOG_TRACE(LOG_CTX_MSG, "Index = %d ", index);
 
-    if (ptin_evc_bwProfile_delete(evc_ext_id, &bwProfile[evc_idx])!= L7_SUCCESS)
-    { 
-      PT_LOG_ERR(LOG_CTX_MSG,"Error removing policer");
-      //return L7_FAILURE;
-    }
+    for (position=0 ;(position < 256) || (iteration < NGPON2_GROUP.number_services); position++ ) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
+    {
+      PT_LOG_TRACE(LOG_CTX_MSG, "Position = %d ", position);
 
-    L7_uint32 rc;
-    McastClient_info[evc_idx].client.ptin_intf.intf_id   = ptin_port;
-    McastClient_info[evc_idx].client.ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+      if( NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] < position)) )
+      {
+        L7_int32 evc_idx;
+      
+        /* Increment number of iteration (services replicate)*/
+        iteration++;
+        evc_idx = position + (index * sizeof(L7_uint8));
 
-    /* call API igmp client remove */
-    rc = ptin_igmp_api_client_remove(&McastClient_info[evc_idx].client);
+ 
+        evc_idx = evc_idx - 1;
+        PT_LOG_TRACE(LOG_CTX_MSG, "evc_idx = %d ", evc_idx);
 
-    PT_LOG_TRACE(LOG_CTX_MSG, "ptin_igmp_api_client_remove = %d ", rc);
+        if (ptin_evc_bwProfile_delete(evcPortTest[evc_idx].evcId, &bwProfile[evc_idx])!= L7_SUCCESS)
+        {    
+          PT_LOG_ERR(LOG_CTX_MSG,"Error removing policer");
+          //return L7_FAILURE;
+        }
 
-    UcastClient_info[evc_idx].client.ptin_intf.intf_id   = ptin_port;
-    UcastClient_info[evc_idx].client.ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+        L7_uint32 rc;
+        McastClient_info[evc_idx].client.ptin_intf.intf_id   = ptin_port;
+        McastClient_info[evc_idx].client.ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
 
-    ptin_igmp_api_client_add(&UcastClient_info[evc_idx].client,
+        /* call API igmp client remove */
+        rc = ptin_igmp_api_client_remove(&McastClient_info[evc_idx].client);
+
+        PT_LOG_TRACE(LOG_CTX_MSG, "ptin_igmp_api_client_remove = %d ", rc);
+
+        UcastClient_info[evc_idx].client.ptin_intf.intf_id   = ptin_port;
+        UcastClient_info[evc_idx].client.ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
+
+        ptin_igmp_api_client_add(&UcastClient_info[evc_idx].client,
                                 UcastClient_info[evc_idx].uni_ovid,
                                 UcastClient_info[evc_idx].uni_ivid,
                                 UcastClient_info[evc_idx].onuId,
@@ -18474,59 +18509,57 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
                                 UcastClient_info[evc_idx].packageBmpList,
                                 UcastClient_info[evc_idx].nOfPackets);
 
-    ptin_evc_check_evctype(NGPON2_GROUP.evcPort[index], &evc_type);
+        ptin_evc_check_evctype(evcPortTest[evc_idx].evcId, &evc_type);
 
-    if(evc_type == PTIN_EVC_TYPE_QUATTRO_UNSTACKED || evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
-    {
-
-      if (MacbridgePackage_info[evc_idx].noOfPackages > 0)
-      {
-        L7_uint32 rc;
-
-        if ((rc=ptin_evc_macbridge_client_packages_remove(&MacbridgePackage_info[evc_idx])) != L7_SUCCESS)
+        if(evc_type == PTIN_EVC_TYPE_QUATTRO_UNSTACKED || evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
         {
-          if (rc != L7_NOT_EXIST)
+
+          if (MacbridgePackage_info[evc_idx].noOfPackages > 0)
           {
-            PT_LOG_ERR(LOG_CTX_MSG, "Error removing package from EVC# %u flow", MacbridgePackage_info[evc_idx].evc_idx);
+            L7_uint32 rc;
+
+            if ((rc=ptin_evc_macbridge_client_packages_remove(&MacbridgePackage_info[evc_idx])) != L7_SUCCESS)
+            {
+              if (rc != L7_NOT_EXIST)
+              {
+                PT_LOG_ERR(LOG_CTX_MSG, "Error removing package from EVC# %u flow", MacbridgePackage_info[evc_idx].evc_idx);
+              }
+            }   
           }
-        } 
-      }
 
-      /* Remove flows if (any) from EVC */
-      if (ptin_evc_flow_remove_port(ptin_port, evcPortTest[evc_idx].evcId)!= L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG,"Error removing flow");
-        //return L7_FAILURE;
+          /* Remove flows if (any) from EVC */
+          if (ptin_evc_flow_remove_port(ptin_port, evcPortTest[evc_idx].evcId)!= L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_MSG,"Error removing flow");
+             //return L7_FAILURE;
+          }
+        }
+        else
+        {
+          ptin_HwEthEvcBridge_t evcBridge;
+
+          evcBridge.index = evcPortTest[evc_idx].evcId;
+          evcBridge.inn_vlan =  evcPortTest[evc_idx].vid_inner;
+          evcBridge.intf = evcPortTest[evc_idx];
+          evcBridge.intf.intf.value.ptin_intf.intf_id        = ptin_port;
+          evcBridge.intf.intf.value.ptin_intf.intf_type      = PTIN_EVC_INTF_PHYSICAL;
+
+          if(ptin_evc_p2p_bridge_remove(&evcBridge)!= L7_SUCCESS)
+          {
+            PT_LOG_ERR(LOG_CTX_MSG,"Error removing brigde EVC");
+          }
+        }
+
+        /* Removing port from EVC */
+        evcPortTest[evc_idx].intf.value.ptin_port = ptin_port;
+
+        if( ptin_evc_port_remove(evcPortTest[evc_idx].evcId, &evcPortTest[evc_idx])!= L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG,"Error port from EVC");
+          continue;
+        }
       }
     }
-    else
-    {
-      ptin_HwEthEvcBridge_t evcBridge;
-      evcBridge.index = evcPortTest[evc_idx].evcId;
-  
-      evcBridge.inn_vlan =  evcPortTest[evc_idx].vid_inner;
-
-      evcBridge.intf = evcPortTest[evc_idx];
-      evcBridge.intf.intf.value.ptin_intf.intf_id        = ptin_port;
-      evcBridge.intf.intf.value.ptin_intf.intf_type      = PTIN_EVC_INTF_PHYSICAL;
-
-      if(ptin_evc_p2p_bridge_remove(&evcBridge)!= L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG,"Error removing brigde EVC");
-      }
-    }
-
-    /* Removing port from EVC */
-    evcPortTest[evc_idx].intf.value.ptin_port = ptin_port;
-
-    if( ptin_evc_port_remove(evcPortTest[evc_idx].evcId, &evcPortTest[evc_idx])!= L7_SUCCESS)
-    {
-      index--;
-      PT_LOG_ERR(LOG_CTX_MSG,"Error port from EVC");
-      continue;
-    }
-
-    index--;
   }
 #endif /*NGPON2_SUPPORT*/
   return L7_SUCCESS;
@@ -18544,7 +18577,7 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port)
  */
 void ptin_msg_igmp_client_add_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
 {
-#ifdef NGPON2_SUPPORT
+#ifdef NGPON2_SUPPORTED
   L7_RC_t rc;
 
   printf("ADD Mcast igmp client to a ngpon2 group\n");
@@ -18583,7 +18616,7 @@ void ptin_msg_igmp_client_add_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
  */
 void ptin_msg_igmp_client_rem_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
 {
-#ifdef NGPON2_SUPPORT
+#ifdef NGPON2_SUPPORTED
   L7_RC_t rc;
 
   printf("REMOVE Mcast igmp client to a ngpon2 group\n");
