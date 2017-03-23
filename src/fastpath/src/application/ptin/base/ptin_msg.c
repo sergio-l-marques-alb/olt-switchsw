@@ -5756,7 +5756,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       PT_LOG_ERR(LOG_CTX_MSG, "NGPON2_GROUP.nports %u",              NGPON2_GROUP.nports);
 
-      while (j <= NGPON2_GROUP.nports  && NGPON2_GROUP.nports != 0))
+      while (j <= NGPON2_GROUP.nports  && NGPON2_GROUP.nports != 0)
       {
         if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
         {
