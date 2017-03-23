@@ -102,6 +102,7 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier);
 
 L7_RC_t ptin_hapi_phy_init_matrix(void);
 L7_RC_t ptin_hapi_phy_init_olt1t0(void);
+L7_RC_t ptin_hapi_phy_init_olt1t0f(void);
 L7_RC_t ptin_hapi_phy_init_tolt8g_tg16g(void);
 L7_RC_t ptin_hapi_phy_init_tg16gf(void);
 L7_RC_t ptin_hapi_phy_init_ta48ge(void);
@@ -451,6 +452,17 @@ L7_RC_t ptin_hapi_phy_init(void)
   else
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing OLT1T0 phys");
+  }
+
+  /* OLT1T0F */
+#elif (PTIN_BOARD == PTIN_BOARD_OLT1T0F)
+  if (ptin_hapi_phy_init_olt1t0f() == L7_SUCCESS)
+  {
+    PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing OLT1T0F phys");
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing OLT1T0F phys");
   }
 #endif
 
@@ -1147,6 +1159,50 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
 
   return rc;
 }
+
+/**
+ * Initialize PHYs for OLT1T0F
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_phy_init_olt1t0f(void)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0F)
+  L7_uint32     rval;
+
+  /* Initialize clocks */
+  READ_TOP_MISC_CONTROL_0r(0, &rval);
+  soc_reg_field_set(0, TOP_MISC_CONTROL_0r, &rval, L1_CLK0_RECOVERY_DIV_CTRLf, 0x1); /* Divide by 5: Select 25MHz (1G) and 31.25MHz (10G) */
+  soc_reg_field_set(0, TOP_MISC_CONTROL_0r, &rval, L1_CLK1_RECOVERY_DIV_CTRLf, 0x1); /* Divide by 5: Select 25MHz (1G) and 31.25MHz (10G) */
+  WRITE_TOP_MISC_CONTROL_0r(0, rval);
+  READ_TOP_MISC_CONTROL_0r(0, &rval);
+  soc_reg_field_set(0, TOP_MISC_CONTROL_0r, &rval, L1_CLK0_RECOVERY_DIV_CTRLf, 0x3); /* Output clock out of reset */
+  soc_reg_field_set(0, TOP_MISC_CONTROL_0r, &rval, L1_CLK1_RECOVERY_DIV_CTRLf, 0x3); /* Output clock out of reset */
+  WRITE_TOP_MISC_CONTROL_0r(0, rval);
+
+  /* Init default references */
+  /* First port 10G: internal/external bcm_port=27 */
+  if (bcm_switch_control_set(0, bcmSwitchSynchronousPortClockSource, 27) != L7_SUCCESS)
+  {
+    rc = L7_FAILURE;
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting recovery clock from bcm_port=27");
+  }
+  /* Second port 10G: internal bcm_port=25, external bcm_port=32 */
+  if (bcm_switch_control_set(0, bcmSwitchSynchronousPortClockSourceBkup, /*25*/ 32) != L7_SUCCESS)
+  {
+    rc = L7_FAILURE;
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting backup recovery clock from bcm_port=25");
+  }
+
+#else
+  rc = L7_NOT_SUPPORTED;
+#endif
+
+  return rc;
+}
+
 
 /**
  * Reset a warpcore
@@ -2097,6 +2153,8 @@ L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t 
 {
   bcm_port_t bcm_port=-1;
 
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "main_port=%d bckp_port=%d", main_port, bckp_port);
+
   /* Main clock */
   if (main_port >= 0)
   {
@@ -2114,8 +2172,13 @@ L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t 
       return L7_FAILURE;
     }
 
+  #if (PLAT_BCM_CHIP == L7_BCM_KATANA2)
+    /* Use external bcm_ports */
+    if (bcm_port == 25)       bcm_port = 32;
+    else if (bcm_port == 36)  bcm_port = 34;
+
+  #elif (PLAT_BCM_CHIP == L7_BCM_HELIX4)
     /* Correct bcm_port id for 10G ports: some bug requires to use an offset of +2 (CSP 814123) */
-  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
     if ((1ULL << main_port) & PTIN_SYSTEM_10G_PORTS_MASK)
     {
       bcm_port += 2;
@@ -2128,6 +2191,7 @@ L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t 
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting main recovery clock from bcm_port=%d", bcm_port);
       return L7_FAILURE;
     }
+    PT_LOG_DEBUG(LOG_CTX_HAPI, "Main clock will be extracted from bcm_port %d", bcm_port);
   }
 
   /* Backup clock */
@@ -2147,8 +2211,13 @@ L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t 
       return L7_FAILURE;
     }
 
+  #if (PLAT_BCM_CHIP == L7_BCM_KATANA2)
+    /* Use external bcm_ports */
+    if (bcm_port == 25)       bcm_port = 32;
+    else if (bcm_port == 36)  bcm_port = 34;
+
+  #elif (PLAT_BCM_CHIP == L7_BCM_HELIX4)
     /* Correct bcm_port id for 10G ports: some bug requires to use an offset of +2 (CSP 814123) */
-  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
     if ((1ULL << bckp_port) & PTIN_SYSTEM_10G_PORTS_MASK)
     {
       bcm_port += 2;
@@ -2161,6 +2230,7 @@ L7_RC_t ptin_hapi_clock_recovery_set(L7_int main_port, L7_int bckp_port, DAPI_t 
       PT_LOG_ERR(LOG_CTX_HAPI, "Error setting backup recovery clock from bcm_port=%d", bcm_port);
       return L7_FAILURE;
     }
+    PT_LOG_DEBUG(LOG_CTX_HAPI, "Backup clock will be extracted from bcm_port %d", bcm_port);
   }
 
   return L7_SUCCESS;
