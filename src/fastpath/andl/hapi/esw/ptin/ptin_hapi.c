@@ -102,6 +102,7 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier);
 
 L7_RC_t ptin_hapi_phy_init_matrix(void);
 L7_RC_t ptin_hapi_phy_init_olt1t0(void);
+L7_RC_t ptin_hapi_phy_init_olt1t0f(void);
 L7_RC_t ptin_hapi_phy_init_tolt8g_tg16g(void);
 L7_RC_t ptin_hapi_phy_init_tg16gf(void);
 L7_RC_t ptin_hapi_phy_init_ta48ge(void);
@@ -451,6 +452,17 @@ L7_RC_t ptin_hapi_phy_init(void)
   else
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing OLT1T0 phys");
+  }
+
+  /* OLT1T0F */
+#elif (PTIN_BOARD == PTIN_BOARD_OLT1T0F)
+  if (ptin_hapi_phy_init_olt1t0f() == L7_SUCCESS)
+  {
+    PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing OLT1T0F phys");
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing OLT1T0F phys");
   }
 #endif
 
@@ -1155,6 +1167,48 @@ L7_RC_t ptin_hapi_phy_init_olt1t0(void)
 
   return rc;
 }
+
+/**
+ * Initialize PHYs for OLT1T0F
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_phy_init_olt1t0f(void)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+#if (PTIN_BOARD == PTIN_BOARD_OLT1T0F)
+  L7_uint32     rval;
+
+  /* Initialize clocks */
+  READ_TOP_MISC_CONTROL_1r(0, &rval);
+  soc_reg_field_set(0, TOP_MISC_CONTROL_0r, &rval, L1_CLK0_RECOVERY_DIV_CTRLf, 0x1); /* Divide by 5: Select 25MHz (1G) and 31.25MHz (10G) */
+  soc_reg_field_set(0, TOP_MISC_CONTROL_0r, &rval, L1_CLK1_RECOVERY_DIV_CTRLf, 0x1); /* Divide by 5: Select 25MHz (1G) and 31.25MHz (10G) */
+  WRITE_TOP_MISC_CONTROL_1r(0, rval);
+  READ_TOP_MISC_CONTROL_1r(0, &rval);
+  soc_reg_field_set(0, TOP_MISC_CONTROL_0r, &rval, L1_CLK0_RECOVERY_DIV_CTRLf, 0x3); /* Output clock out of reset */
+  soc_reg_field_set(0, TOP_MISC_CONTROL_0r, &rval, L1_CLK1_RECOVERY_DIV_CTRLf, 0x3); /* Output clock out of reset */
+  WRITE_TOP_MISC_CONTROL_1r(0, rval);
+
+  /* Init default references */
+  if (bcm_switch_control_set(0, bcmSwitchSynchronousPortClockSource, 27) != L7_SUCCESS)
+  {
+    rc = L7_FAILURE;
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting recovery clock from bcm_port=27");
+  }
+  if (bcm_switch_control_set(0, bcmSwitchSynchronousPortClockSourceBkup, 25) != L7_SUCCESS)
+  {
+    rc = L7_FAILURE;
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting backup recovery clock from bcm_port=25");
+  }
+
+#else
+  rc = L7_NOT_SUPPORTED;
+#endif
+
+  return rc;
+}
+
 
 /**
  * Reset a warpcore
