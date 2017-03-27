@@ -5776,9 +5776,9 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
              ptinEvcConf.intf[index_port].vid,ptinEvcConf.intf[i].vid_inner);
 
           ports_ngpon2++;
-          j++;
           index_port++;
-        }
+          j++;
+        }       
         shift_index++;
       }         
     }
@@ -5833,37 +5833,41 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 #ifdef NGPON2_SUPPORTED
       L7_uint32 evc_id;
       /* Is EVC in use? */
-      if (ptin_evc_ext2int(ptinEvcConf.index, &evc_id) != L7_SUCCESS)
+      if (ptin_evc_ext2int(ptinEvcConf.index, &evc_id) == L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ptinEvcConf.index);
-        return L7_FAILURE;
-      }
+        if (msgEvcConf->evc.intf[index_port].intf_type == PTIN_EVC_INTF_NGPON2)
+        {
+        get_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);
+     
+        /*teste*/
+        PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u ", ptinEvcConf.index);
+        PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u", evc_id);
 
-    if (msgEvcConf->evc.intf[index_port].intf_type == PTIN_EVC_INTF_NGPON2)
-    {
-      get_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);
-      /*teste*/
-      evcPortTest[evc_id-1].evcId         = ptinEvcConf.index;
-      evcPortTest[evc_id-1].intf.format   = PTIN_INTF_FORMAT_TYPEID;
-      evcPortTest[evc_id-1].action_outer  = ptinEvcConf.intf[i].action_outer;
-      evcPortTest[evc_id-1].action_inner  = ptinEvcConf.intf[i].action_inner;
-      evcPortTest[evc_id-1].vid_inner     = ptinEvcConf.intf[i].vid_inner;
-      evcPortTest[evc_id-1].vid           = ptinEvcConf.intf[i].vid;
-      evcPortTest[evc_id-1].mef_type      = ptinEvcConf.intf[i].mef_type;
-      NGPON2_EVC_ADD (evcPortTest[evc_id-1].ngpon2_bmp, msgEvcConf->evc.intf[i].intf_id);    
+        evcPortTest[evc_id].evcId         = ptinEvcConf.index;
+        evcPortTest[evc_id].intf.format   = PTIN_INTF_FORMAT_TYPEID;
+        evcPortTest[evc_id].action_outer  = ptinEvcConf.intf[i].action_outer;
       
-      PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
-      NGPON2_GROUP.evc_groups_pbmp[NGPON2_GROUP.number_services] = ptinEvcConf.index;
+        evcPortTest[evc_id].action_inner  = ptinEvcConf.intf[i].action_inner;
+        evcPortTest[evc_id].vid_inner     = ptinEvcConf.intf[i].vid_inner;
+        evcPortTest[evc_id].vid           = ptinEvcConf.intf[i].vid;
+        evcPortTest[evc_id].mef_type      = ptinEvcConf.intf[i].mef_type;
+        NGPON2_EVC_ADD (evcPortTest[evc_id].ngpon2_bmp, msgEvcConf->evc.intf[i].intf_id);    
+      
+        PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
 
-      L7_uint8 position = evc_id % sizeof(position);
-      L7_uint8 index    = evc_id / sizeof(index);
+        L7_uint8 position = evc_id % sizeof(position);
+        L7_uint8 index    = evc_id / sizeof(index);
 
-      NGPON2_EVC_ADD(NGPON2_GROUP.evc_groups_pbmp[index], position);
-      PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.evc_groups_pbmp[index] %d ",NGPON2_GROUP.evc_groups_pbmp[index]);
-      NGPON2_GROUP.number_services++;
+        PT_LOG_TRACE(LOG_CTX_MSG, " positions %d ",position);
+        PT_LOG_TRACE(LOG_CTX_MSG, " index %d ",index);
 
-      set_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);  
+        NGPON2_EVC_ADD(NGPON2_GROUP.evc_groups_pbmp[index], position);
+        PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.evc_groups_pbmp[index] %d ",NGPON2_GROUP.evc_groups_pbmp[index]);
+        NGPON2_GROUP.number_services++;
 
+        set_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);  
+
+      }
     }
 #endif /*NGPON2_SUPPORTED*/
   }
@@ -6053,19 +6057,19 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
 #ifdef NGPON2_SUPPORTED
       ptin_NGPON2_groups_t NGPON2_GROUP;
   
-      if (evcPortTest[evc_id-1].ngpon2_bmp != 0)
+      if (evcPortTest[evc_id].ngpon2_bmp != 0)
       {
         L7_uint32 bmp_val = 0;
 
         while(bmp_val < PTIN_SYSTEM_MAX_NGPON2_GROUP)
         {
-          if(( (evcPortTest[evc_id-1].ngpon2_bmp >> bmp_val) & 0x1))
+          if(( (evcPortTest[evc_id].ngpon2_bmp >> bmp_val) & 0x1))
           {
-            NGPON2_EVC_REM(evcPortTest[evc_id-1].ngpon2_bmp, bmp_val);
+            NGPON2_EVC_REM(evcPortTest[evc_id].ngpon2_bmp, bmp_val);
             L7_uint8 position = evc_id % sizeof(position);
             L7_uint8 index    = evc_id / sizeof(index);
 
-            NGPON2_EVC_REM(evcPortTest[evc_id-1].ngpon2_bmp, bmp_val);  
+            NGPON2_EVC_REM(evcPortTest[evc_id].ngpon2_bmp, bmp_val);  
             get_NGPON2_group_info(&NGPON2_GROUP, bmp_val);
             /*teste*/
 
@@ -6073,7 +6077,7 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
             NGPON2_EVC_REM(NGPON2_GROUP.evc_groups_pbmp[index], position);
             NGPON2_GROUP.number_services--;
 
-            memset(&evcPortTest[evc_id-1], 0x00, sizeof(evcPortTest[evc_id-1]));
+            memset(&evcPortTest[evc_id], 0x00, sizeof(evcPortTest[evc_id]));
 
             set_NGPON2_group_info(&NGPON2_GROUP, bmp_val);
                             
@@ -6511,33 +6515,42 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
           return L7_FAILURE;
         }
 
-        L7_uint32 evc_id;
+          L7_uint32 evc_id;
+
         /* Is EVC in use? */
-        if (ptin_evc_ext2int(ptinEvcBridge.index, &evc_id) != L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ptinEvcBridge.index);
-          return L7_FAILURE;
-        }    
-        ptin_NGPON2_groups_t NGPON2_GROUP;
+        if (ptin_evc_ext2int(ptinEvcBridge.index, &evc_id) == L7_SUCCESS)
+        {                   
+          ptin_NGPON2_groups_t NGPON2_GROUP;
 
-        get_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);
+          get_NGPON2_group_info(&NGPON2_GROUP, msgEvcBridge->intf.intf_id);
+          /*teste*/
+          evcPortTest[evc_id].evcId         = ptinEvcBridge.index;
+          evcPortTest[evc_id].intf.format   = PTIN_INTF_FORMAT_TYPEID;
+          evcPortTest[evc_id].action_outer  = ptinEvcBridge.intf.action_outer;
+          evcPortTest[evc_id].action_inner  = ptinEvcBridge.intf.action_inner;
+          evcPortTest[evc_id].vid_inner     = ptinEvcBridge.inn_vlan;
+          evcPortTest[evc_id].vid           = ptinEvcBridge.intf.vid;
+          evcPortTest[evc_id].mef_type      = ptinEvcBridge.intf.mef_type;
 
-        /*teste*/
-        evcPortTest[evc_id-1].evcId         = ptinEvcBridge.index;
-        evcPortTest[evc_id-1].intf.format   = PTIN_INTF_FORMAT_TYPEID;
-        evcPortTest[evc_id-1].action_outer  = ptinEvcBridge.intf.action_outer;
-        evcPortTest[evc_id-1].action_inner  = ptinEvcBridge.intf.action_inner;
-        evcPortTest[evc_id-1].vid_inner     = ptinEvcBridge.inn_vlan;
-        evcPortTest[evc_id-1].vid           = ptinEvcBridge.intf.vid;
-        evcPortTest[evc_id-1].mef_type      = ptinEvcBridge.intf.mef_type;
+          PT_LOG_ERR(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
+          NGPON2_EVC_ADD(evcPortTest[evc_id].ngpon2_bmp, ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);    
+        
+          PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
 
-        PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
-        NGPON2_GROUP.evc_groups_pbmp[NGPON2_GROUP.number_services] = ptinEvcBridge.index;
-        NGPON2_GROUP.number_services++;
+          L7_uint8 position = evc_id % sizeof(position);
+          L7_uint8 index    = evc_id / sizeof(index);
 
-        set_NGPON2_group_info(&NGPON2_GROUP, 1/*msgEvcConf->evc.intf[i].intf_id*/);    
-        j++;
+          PT_LOG_TRACE(LOG_CTX_MSG, " positions %d ",position);
+          PT_LOG_TRACE(LOG_CTX_MSG, " index %d ",index);
+
+          NGPON2_EVC_ADD(NGPON2_GROUP.evc_groups_pbmp[index], position);
+          PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.evc_groups_pbmp[index] %d ",NGPON2_GROUP.evc_groups_pbmp[index]);
+          NGPON2_GROUP.number_services++;
+
+          set_NGPON2_group_info(&NGPON2_GROUP, msgEvcBridge->intf.intf_id);         
+        }        
       }
+      j++;
       shift_index++;
     }
   }
@@ -7262,16 +7275,14 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
         PT_LOG_ERR(LOG_CTX_MSG,"Error applying profile!");
         return rc;
       }
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+#ifdef NGPON2_SUPPORTED
       L7_uint32 evc_id;
       /* Is EVC in use? */
-      if (ptin_evc_ext2int(evcId, &evc_id) != L7_SUCCESS)
+      if (ptin_evc_ext2int(evcId, &evc_id) == L7_SUCCESS)
       {
-      PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evcId);
-      return L7_FAILURE;
+        bwProfile[evc_id] = profile;
+        bwMeter[evc_id]   = meter;
       }
-      bwProfile[evc_id-1] = profile;
-      bwMeter[evc_id-1]   = meter;
 #endif
       break;
   case CCMSG_ETH_BW_PROFILE_SET_II:
@@ -9907,25 +9918,23 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
             PT_LOG_ERR(LOG_CTX_MSG,"Failed to set multicast admission control parameters");
             return L7_FAILURE;
           }
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+
+#ifdef NGPON2_SUPPORTED
 
           L7_uint32 evc_id;
           /* Is EVC in use? */
-          if (ptin_evc_ext2int(msgAdmissionControl->evcId, &evc_id) != L7_SUCCESS)
+          if (ptin_evc_ext2int(msgAdmissionControl->evcId, &evc_id) == L7_SUCCESS)
           {
-          PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", msgAdmissionControl->evcId);
-          return L7_FAILURE;
+
+            /*save data*/
+            igmpAdmissionControl_info[evc_id].mask                = igmpAdmissionControl.mask;
+            igmpAdmissionControl_info[evc_id].maxAllowedBandwidth = igmpAdmissionControl.maxAllowedBandwidth;
+            igmpAdmissionControl_info[evc_id].maxAllowedChannels  = igmpAdmissionControl.maxAllowedChannels;
+            igmpAdmissionControl_info[evc_id].onuId               = igmpAdmissionControl.onuId;
+            igmpAdmissionControl_info[evc_id].ptin_port           = igmpAdmissionControl.ptin_port;
+            igmpAdmissionControl_info[evc_id].serviceId           = igmpAdmissionControl.serviceId;
+            //igmpAdmissionControl_info[evc_id].admin               = L7_TRUE;
           }
-
-          /*save data*/
-          igmpAdmissionControl_info[evc_id-1].mask                = igmpAdmissionControl.mask;
-          igmpAdmissionControl_info[evc_id-1].maxAllowedBandwidth = igmpAdmissionControl.maxAllowedBandwidth;
-          igmpAdmissionControl_info[evc_id-1].maxAllowedChannels  = igmpAdmissionControl.maxAllowedChannels;
-          igmpAdmissionControl_info[evc_id-1].onuId               = igmpAdmissionControl.onuId;
-          igmpAdmissionControl_info[evc_id-1].ptin_port           = igmpAdmissionControl.ptin_port;
-          igmpAdmissionControl_info[evc_id-1].serviceId           = igmpAdmissionControl.serviceId;
-          //igmpAdmissionControl_info[evc_id-1].admin               = L7_TRUE;
-
 #endif
           j++;
         }
@@ -10375,20 +10384,18 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
            {
              L7_uint32 evc_id;
              /* Is EVC in use? */
-             if (ptin_evc_ext2int(McastClient[i].mcEvcId-1, &evc_id) != L7_SUCCESS)
+             if (ptin_evc_ext2int(McastClient[i].mcEvcId-1, &evc_id) == L7_SUCCESS)
              {
-               PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", McastClient[i].mcEvcId);
-               return L7_FAILURE;
+      
+               McastClient_info[evc_id].uni_ivid      = uni_ivid;
+               McastClient_info[evc_id].uni_ovid      = uni_ovid;
+               McastClient_info[evc_id].mask          = McastClient[i].mask;
+               McastClient_info[evc_id].onuId         = McastClient[i].onuId;
+               McastClient_info[evc_id].maxBandwidth  = McastClient[i].maxBandwidth;
+               McastClient_info[evc_id].maxChannels   = McastClient[i].maxChannels;
+               McastClient_info[evc_id].admin         = L7_TRUE;
+               memcpy(&McastClient_info[evc_id].client, &McastClient[i].client, sizeof(ptin_client_id_t));
              }
-
-             McastClient_info[evc_id-1].uni_ivid      = uni_ivid;
-             McastClient_info[evc_id-1].uni_ovid      = uni_ovid;
-             McastClient_info[evc_id-1].mask          = McastClient[i].mask;
-             McastClient_info[evc_id-1].onuId         = McastClient[i].onuId;
-             McastClient_info[evc_id-1].maxBandwidth  = McastClient[i].maxBandwidth;
-             McastClient_info[evc_id-1].maxChannels   = McastClient[i].maxChannels;
-             McastClient_info[evc_id-1].admin         = L7_TRUE;
-             memcpy(&McastClient_info[evc_id-1].client, &McastClient[i].client, sizeof(ptin_client_id_t));
            }
          }
          shift_index++;
@@ -10548,16 +10555,14 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
           }
           else
           {
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+#ifdef NGPON2_SUPPORTED
             L7_uint32 evc_id;
             /* Is EVC in use? */
             if (ptin_evc_ext2int(McastClient[i].mcEvcId, &evc_id) != L7_SUCCESS)
             {
-             PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", McastClient[i].mcEvcId);
-             return L7_FAILURE;
+              memset(&UcastClient_info[evc_id], 0xFF, sizeof(UcastClient_info[evc_id]));
+              UcastClient_info[evc_id].admin = L7_FALSE;
             }
-            memset(&UcastClient_info[evc_id-1], 0xFF, sizeof(UcastClient_info[evc_id-1]));
-            UcastClient_info[evc_id-1].admin = L7_FALSE;
 #endif
           }
         }
@@ -16931,27 +16936,24 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
             }
             else
             {
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-
+#ifdef NGPON2_SUPPORTED 
               L7_uint32 evc_id;
               /* Is EVC in use? */
-              if (ptin_evc_ext2int(msg[messageIterator].evcId, &evc_id) != L7_SUCCESS)
+              if (ptin_evc_ext2int(msg[messageIterator].evcId, &evc_id) == L7_SUCCESS)
               {
-              PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", msg[messageIterator].evcId);
-              return L7_FAILURE;
+                UcastClient_info[evc_id].uni_ivid      = uni_ivid;
+                UcastClient_info[evc_id].uni_ovid      = uni_ovid;
+                UcastClient_info[evc_id].uni_ovid      = msg[messageIterator].onuId;
+                UcastClient_info[evc_id].addOrRemove   = addOrRemove;
+                UcastClient_info[evc_id].nOfPackets    = msg[messageIterator].noOfPackages;
+                UcastClient_info[evc_id].admin         = L7_TRUE;
+                memcpy(UcastClient_info[evc_id].packageBmpList, 
+                      msg[messageIterator].packageBmpList, 
+                      sizeof(UcastClient_info[evc_id].packageBmpList));
+                memcpy(&UcastClient_info[evc_id].client, 
+                      &msg[messageIterator].client, 
+                      sizeof(ptin_client_id_t));
               }
-              UcastClient_info[evc_id-1].uni_ivid      = uni_ivid;
-              UcastClient_info[evc_id-1].uni_ovid      = uni_ovid;
-              UcastClient_info[evc_id-1].uni_ovid      = msg[messageIterator].onuId;
-              UcastClient_info[evc_id-1].addOrRemove   = addOrRemove;
-              UcastClient_info[evc_id-1].nOfPackets    = msg[messageIterator].noOfPackages;
-              UcastClient_info[evc_id-1].admin         = L7_TRUE;
-              memcpy(UcastClient_info[evc_id-1].packageBmpList, 
-                    msg[messageIterator].packageBmpList, 
-                    sizeof(UcastClient_info[evc_id-1].packageBmpList));
-              memcpy(&UcastClient_info[evc_id-1].client, 
-                    &msg[messageIterator].client, 
-                    sizeof(ptin_client_id_t));
 #endif
             }
             j++;
@@ -17183,16 +17185,16 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
               }
               else
               {
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+#ifdef NGPON2_SUPPORTED 
               L7_uint32 evc_id;
               /* Is EVC in use? */
-              if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) != L7_SUCCESS)
+              if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) == L7_SUCCESS)
               {
-              PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(msg[messageIterator].evcId));
-              return L7_FAILURE;
-              }
-              memset(&McastClient_info[evc_id-1], 0xFF, sizeof(McastClient_info[evc_id-1]));
-              McastClient_info[evc_id-1].admin = L7_FALSE;
+                PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(msg[messageIterator].evcId));
+                //return L7_FAILURE;
+                memset(&McastClient_info[evc_id], 0xFF, sizeof(McastClient_info[evc_id]));
+                McastClient_info[evc_id].admin = L7_FALSE;
+              }             
 #endif
               }
             }
@@ -17386,28 +17388,26 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
             }
             else
             {
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+#ifdef NGPON2_SUPPORTED
 
               L7_uint32 evc_id;
               /* Is EVC in use? */
-              if (ptin_evc_ext2int(ptinEvcFlow.evc_idx, &evc_id) != L7_SUCCESS)
-              {
-              PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ptinEvcFlow.evc_idx);
-              return L7_FAILURE;
-              }
-              /* Save data */
-              MacbridgePackage_info[evc_id-1].evc_idx           = ptinEvcFlow.evc_idx;
-              MacbridgePackage_info[evc_id-1].int_ivid          = ptinEvcFlow.int_ivid;
-              MacbridgePackage_info[evc_id-1].noOfPackages      = ptinEvcFlow.noOfPackages;
-              MacbridgePackage_info[evc_id-1].onuId             = ptinEvcFlow.onuId;
-              MacbridgePackage_info[evc_id-1].ptin_intf.intf_id = ptinEvcFlow.ptin_intf.intf_id;
-              MacbridgePackage_info[evc_id-1].uni_ivid          = ptinEvcFlow.uni_ivid;
-              MacbridgePackage_info[evc_id-1].uni_ovid          = ptinEvcFlow.uni_ovid;
-              MacbridgePackage_info[evc_id-1].admin             = L7_TRUE;
-              /*Copy Multicast Package Bitmap*/
-              memcpy(MacbridgePackage_info[evc_id-1].packageBmpList, 
+              if (ptin_evc_ext2int(ptinEvcFlow.evc_idx, &evc_id) == L7_SUCCESS)
+              {                    
+                /* Save data */
+                MacbridgePackage_info[evc_id].evc_idx           = ptinEvcFlow.evc_idx;
+                MacbridgePackage_info[evc_id].int_ivid          = ptinEvcFlow.int_ivid;
+                MacbridgePackage_info[evc_id].noOfPackages      = ptinEvcFlow.noOfPackages;
+                MacbridgePackage_info[evc_id].onuId             = ptinEvcFlow.onuId;
+                MacbridgePackage_info[evc_id].ptin_intf.intf_id = ptinEvcFlow.ptin_intf.intf_id;
+                MacbridgePackage_info[evc_id].uni_ivid          = ptinEvcFlow.uni_ivid;
+                MacbridgePackage_info[evc_id].uni_ovid          = ptinEvcFlow.uni_ovid;
+                MacbridgePackage_info[evc_id].admin             = L7_TRUE;
+                /*Copy Multicast Package Bitmap*/
+                memcpy(MacbridgePackage_info[evc_id].packageBmpList, 
                      msg[messageIterator].packageBmpList, 
-                     sizeof(MacbridgePackage_info[evc_id-1].packageBmpList));
+                     sizeof(MacbridgePackage_info[evc_id].packageBmpList));
+              }
 #endif
             }
           }
@@ -17592,17 +17592,18 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
               }
               else
               {
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+#ifdef NGPON2_SUPPORTED
+
                 L7_uint32 evc_id;
                 /* Is EVC in use? */
-                if (ptin_evc_ext2int(ptinEvcFlow.evc_idx, &evc_id) != L7_SUCCESS)
+                if (ptin_evc_ext2int(ptinEvcFlow.evc_idx, &evc_id) == L7_SUCCESS)
                 {
-                PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ptinEvcFlow.evc_idx);
-                //return L7_FAILURE;
-                }
-                memset(&MacbridgePackage_info[evc_id-1], 0xFF, sizeof(MacbridgePackage_info[evc_id-1]));
-                MacbridgePackage_info[evc_id-1].admin = L7_FALSE;
+                  PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ptinEvcFlow.evc_idx);
+                  memset(&MacbridgePackage_info[evc_id], 0xFF, sizeof(MacbridgePackage_info[evc_id-1]));
+                  MacbridgePackage_info[evc_id].admin = L7_FALSE;
 #endif                          
+                }
+                
                 //Warning already logged          
                 rc = L7_SUCCESS;
               }
@@ -17761,21 +17762,18 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
           }
           else
           {
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+#ifdef NGPON2_SUPPORTED
             L7_uint32 evc_id;
             /* Is EVC in use? */
-            if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) != L7_SUCCESS)
-            {
-            PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(msg[messageIterator].evcId));
-            return L7_FAILURE;
+            if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) == L7_SUCCESS)
+            {              
+              mcast_service_info[evc_id].evcId         = ENDIAN_SWAP32(msg[messageIterator].evcId);
+              mcast_service_info[evc_id].onuId         = ENDIAN_SWAP32(msg[messageIterator].onuId);
+              mcast_service_info[evc_id].intf.intf_id  = ptinPort;
+              mcast_service_info[evc_id].admin         = L7_TRUE;
             }
-            mcast_service_info[evc_id-1].evcId         = ENDIAN_SWAP32(msg[messageIterator].evcId);
-            mcast_service_info[evc_id-1].onuId         = ENDIAN_SWAP32(msg[messageIterator].onuId);
-            mcast_service_info[evc_id-1].intf.intf_id  = ptinPort;
-            mcast_service_info[evc_id-1].admin         = L7_TRUE;
 #endif
           }
-
           j++;
         }
         shift_index++;
@@ -17801,17 +17799,15 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
       }
       else
       {
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+#ifdef NGPON2_SUPPORTED
         L7_uint32 evc_id;
         /* Is EVC in use? */
-        if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) != L7_SUCCESS)
+        if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) == L7_SUCCESS)
         {
-        PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(msg[messageIterator].evcId));
-        return L7_FAILURE;
+          mcast_service_info[evc_id].evcId         = ENDIAN_SWAP32(msg[messageIterator].evcId);
+          mcast_service_info[evc_id].onuId         = ENDIAN_SWAP32(msg[messageIterator].onuId);
+          mcast_service_info[evc_id].intf.intf_id  = ptinPort;
         }
-        mcast_service_info[evc_id-1].evcId         = ENDIAN_SWAP32(msg[messageIterator].evcId);
-        mcast_service_info[evc_id-1].onuId         = ENDIAN_SWAP32(msg[messageIterator].onuId);
-        mcast_service_info[evc_id-1].intf.intf_id  = ptinPort;
 #endif
       }
     }
@@ -17916,16 +17912,14 @@ L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_
       }
       else
       {
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-      L7_uint32 evc_id;
-      /* Is EVC in use? */
-      if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) != L7_SUCCESS)
-      {
-      PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(msg[messageIterator].evcId));
-      return L7_FAILURE;
-      }
-      memset(&McastClient_info[evc_id-1], 0xFF, sizeof(McastClient_info[evc_id-1]));
-      McastClient_info[evc_id-1].admin = L7_FALSE;
+#ifdef NGPON2_SUPPORTED
+        L7_uint32 evc_id;
+        /* Is EVC in use? */
+        if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) == L7_SUCCESS)
+        {         
+          memset(&McastClient_info[evc_id], 0xFF, sizeof(McastClient_info[evc_id]));
+          McastClient_info[evc_id].admin = L7_FALSE;
+        }
 #endif
       }
     }
@@ -18292,7 +18286,7 @@ void ptin_msg_evc_port_add_rem(L7_uint32 evcId, L7_uint8 portId, L7_uint8 oper)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old_port, L7_uint32 ngpon2_id)
+L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst_port, L7_uint32 ngpon2_id)
 { 
 #ifdef NGPON2_SUPPORTED
 
@@ -18305,33 +18299,33 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
   /* Get NGPON2 group information*/
   get_NGPON2_group_info(&NGPON2_GROUP, ngpon2_id);
 
-  PT_LOG_ERR(LOG_CTX_MSG, "NGPON2_GROUP.number_services = %d", NGPON2_GROUP.number_services);
+  PT_LOG_TRACE(LOG_CTX_MSG, " Replication %d service on GroupID %d ", NGPON2_GROUP.number_services, ngpon2_id);
 
-  for(index = 0; (index < max_index) || (iteration < NGPON2_GROUP.number_services); index++)
+  for(index = 0; (index < max_index) && (iteration < NGPON2_GROUP.number_services); index++)
   {
     if(NGPON2_GROUP.evc_groups_pbmp[index] == 0)
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "NGPON2_GROUP.evc_groups_pbmp[index] = %d", NGPON2_GROUP.evc_groups_pbmp[index]);
+      PT_LOG_TRACE(LOG_CTX_MSG, "NGPON2_GROUP.evc_groups_pbmp[index] = %d , no NGPON services in the 256 positions", NGPON2_GROUP.evc_groups_pbmp[index]);
       continue;
     }
 
-    PT_LOG_ERR(LOG_CTX_MSG, "Index = %d ", index);
+    PT_LOG_TRACE(LOG_CTX_MSG, "Index = %d ", index);
 
-    for (position = 0 ; (position < 256) || (iteration < NGPON2_GROUP.number_services); position++) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
+    for (position = 0 ;(position < 256) && (iteration < NGPON2_GROUP.number_services); position++) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
     {
-      PT_LOG_ERR(LOG_CTX_MSG, "Position = %d ", position);
+      PT_LOG_TRACE(LOG_CTX_MSG, "Position = %d ", position);
 
       if( NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] < position)))
       {
         L7_int32 evc_idx;
-
         /* Increment number of iteration (services replicate)*/
         iteration++;
 
         evc_idx = position + (index * sizeof(L7_uint8));
           
-        PT_LOG_ERR(LOG_CTX_MSG, "Evc_idx = %d   ", evc_idx);
-        PT_LOG_ERR(LOG_CTX_MSG, "iteration = %d ", iteration);
+        PT_LOG_TRACE(LOG_CTX_MSG, "Evc_idx = %d   ", evc_idx);
+        PT_LOG_TRACE(LOG_CTX_MSG, "iteration = %d ", iteration);
+        PT_LOG_TRACE(LOG_CTX_MSG, "evcPortTest[evc_idx].evcId = %d ", evcPortTest[evc_idx].evcId);
 
         evcPortTest[evc_idx].intf.value.ptin_port = ptin_port;
         evcPortTest[evc_idx].mef_type = PTIN_EVC_INTF_LEAF;
@@ -18339,7 +18333,6 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
         if (ptin_intf_any_format(&evcPortTest[evc_idx].intf) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_MSG, "Invalid interfaces");
-
           continue;
         }
 
@@ -18354,8 +18347,11 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
 
         if(evc_type == PTIN_EVC_TYPE_QUATTRO_UNSTACKED || evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
         {
+          PT_LOG_TRACE(LOG_CTX_MSG, "ptin_port %d ", ptin_port);
+          PT_LOG_TRACE(LOG_CTX_MSG, "dst_port %d ", dst_port);
+
           /* Read policer information */
-          if ((ptin_evc_flow_replicate( ptin_port, evcPortTest[evc_idx].evcId, old_port)!=L7_SUCCESS))
+          if ((ptin_evc_flow_replicate(ptin_port, evcPortTest[evc_idx].evcId, dst_port)!=L7_SUCCESS))
           {
             PT_LOG_ERR(LOG_CTX_EVC,"Error replicating flow");
             continue;
@@ -18375,10 +18371,9 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
         else
         {      
             /* Get EVC id configured in the NGPON group*/
-            if ((ptin_evc_p2p_bridge_replicate(evcPortTest[evc_idx].evcId, ptin_port, old_port, &evcPortTest[evc_idx]))!= L7_SUCCESS )
+            if ((ptin_evc_p2p_bridge_replicate(evcPortTest[evc_idx].evcId, ptin_port, dst_port, &evcPortTest[evc_idx]))!= L7_SUCCESS )
             {
               PT_LOG_ERR(LOG_CTX_EVC,"Error replicate p2p bridge");
-
               continue;         
             }
         }
@@ -18396,7 +18391,6 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
                                        L7_FALSE,
                                        L7_NULLPTR/*McastClient[i].packageBmpList*/,
                                        0/*McastClient[i].noOfPackages*/);
-
         }
 
         if(UcastClient_info[evc_idx].admin !=0 )
@@ -18412,7 +18406,6 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old
                                         L7_FALSE /*ADD*/,
                                         UcastClient_info[evc_idx].packageBmpList,
                                         UcastClient_info[evc_idx].nOfPackets);
-
         }
       
         /* Read and set policer information */
@@ -18453,9 +18446,9 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
   get_NGPON2_group_info(&NGPON2_GROUP, ngpon2_id);
   iteration = NGPON2_GROUP.number_services;
 
-  L7_int32 index = NGPON2_GROUP.number_services - 1 ;      //due to array initial value
+  L7_int32 index = NGPON2_GROUP.number_services - 1;      //due to array initial value
 
-  for(index = 0; (index < max_index) || (iteration < NGPON2_GROUP.number_services); index++)
+  for(index = 0; (index < max_index) && (iteration < NGPON2_GROUP.number_services); index++)
   {
     if(NGPON2_GROUP.evc_groups_pbmp[index] == 0)
     {
@@ -18464,7 +18457,7 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
 
     PT_LOG_TRACE(LOG_CTX_MSG, "Index = %d ", index);
 
-    for (position=0 ;(position < 256) || (iteration < NGPON2_GROUP.number_services); position++ ) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
+    for (position=0 ;(position < 256) && (iteration < NGPON2_GROUP.number_services); position++ ) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
     {
       PT_LOG_TRACE(LOG_CTX_MSG, "Position = %d ", position);
 
@@ -18552,7 +18545,6 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
 
         /* Removing port from EVC */
         evcPortTest[evc_idx].intf.value.ptin_port = ptin_port;
-
         if( ptin_evc_port_remove(evcPortTest[evc_idx].evcId, &evcPortTest[evc_idx])!= L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_MSG,"Error port from EVC");
