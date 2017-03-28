@@ -4800,7 +4800,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
              );
   }
 
-  osapiSemaTake(ptin_igmp_clients_snapshot_sem, L7_WAIT_FOREVER);
+  //osapiSemaTake(ptin_igmp_clients_snapshot_sem, L7_WAIT_FOREVER);
 
   /* Check if this key already exists */
   if ((avl_infoData=avlSearchLVL7( &(avl_tree->avlTree), (void *)&avl_key, AVL_EXACT)) == L7_NULLPTR)
@@ -4841,7 +4841,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
               ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
 #endif
              );
-      osapiSemaGive(ptin_igmp_clients_snapshot_sem);
+      //osapiSemaGive(ptin_igmp_clients_snapshot_sem);
       return L7_FAILURE;
     }
 
@@ -4881,7 +4881,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
               ,avl_key.macAddr[0],avl_key.macAddr[1],avl_key.macAddr[2],avl_key.macAddr[3],avl_key.macAddr[4],avl_key.macAddr[5]
 #endif
              );
-      osapiSemaGive(ptin_igmp_clients_snapshot_sem);
+      //osapiSemaGive(ptin_igmp_clients_snapshot_sem);
       return L7_FAILURE;
     }
 
@@ -4965,7 +4965,7 @@ L7_RC_t ptin_igmp_clientGroupSnapshot_add(ptin_client_id_t *client)
 
   avl_infoData->in_use = L7_TRUE;
 
-  osapiSemaGive(ptin_igmp_clients_snapshot_sem);
+  //osapiSemaGive(ptin_igmp_clients_snapshot_sem);
 
   return L7_SUCCESS;
 }

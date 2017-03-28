@@ -71,7 +71,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
   {
     L7_uchar8 macAddr_aux[MAC_SIZE_BYTES] ="";
     
-    PT_LOG_WARN(LOG_CTX_L2, "Msgtype %d", msgsType);
+    PT_LOG_TRACE(LOG_CTX_L2, "Msgtype %d", msgsType);
 
     if(ptin_checkpoint_findDatainSection(1, 1 /*onu*/, macAddr, MAC_SIZE_BYTES, &position) == 0) /* Find if the MAC is in opensaf and get is position in the section*/
     {
@@ -80,7 +80,7 @@ L7_RC_t ptin_l2_learn_event(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vi
     }
     else
     {
-      PT_LOG_WARN(LOG_CTX_L2, "MAC not present in opensaf ");
+      PT_LOG_TRACE(LOG_CTX_L2, "MAC not present in opensaf ");
     }
   }
 #endif /*OPENSAF_SUPPORTED*/
