@@ -8003,7 +8003,7 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
   L7_uint8 i = 0;
 
   /* Validate arguments */
-  if (group_info == L7_NULLPTR)
+  if (group_info == L7_NULLPTR || group_info->numIntf  == 0)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Invalid arguments");
     return L7_FAILURE;
@@ -8023,58 +8023,55 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
   }
 
   /* Add port to NGPON2 port bmp */
-  while ( i < group_info->numIntf )
-  {
+  for(i=0; i < group_info->numIntf ;i++)
+  { 
     /* set portId to the NGPON2 group */
     NGPON2_PORT_ADD(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, (group_info->NGPON2Port[i].id));
 
     /* increment number of ports for this group */
-    NGPON2_groups_info[group_idx].nports++;
+    
     PT_LOG_TRACE(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d ", NGPON2_groups_info[group_idx].nports);
-    i++;
+
+    L7_uint8 temp = 0;
+
+    /* Find a already configured port in the NGPON2 to replicate configuration */
+    while(temp < 64) // bit map size
+    {
+      if  (NGPON2_BIT_PORT(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64 >> temp))
+      { 
+        NGPON2_groups_info[group_idx].nports++;
+        /*Find a already configured NGPON2 port to replicate the configurations*/
+        if(temp != group_info->NGPON2Port[i].id)
+        {
+          src_port = temp;
+          break;
+        }    
+      }
+     temp++;
+    }
   }
     
-  L7_uint8 temp = 0;
-  /* Find a already configured port in the NGPON2 to replicate configuration */
-  while(temp < 64)
+  for(i=0; i < group_info->numIntf;i++)
   {
-    if  (NGPON2_BIT_PORT(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64 >> temp))
-    { 
-      /*Find a already configured NGPON2 port to replicate the configurations*/
-      if(temp != group_info->NGPON2Port[0].id)
-      {
-        src_port = temp;
-        break;
-      }    
-    }
-    temp++;
-  }
-
-  PT_LOG_TRACE(LOG_CTX_INTF, "Replicating configuration from port %d to %d !", src_port, group_info->NGPON2Port[0].id);
-
-  if ( (src_port != group_info->NGPON2Port[0].id) && (NGPON2_groups_info[group_idx].nports > 1) )
-  {
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
-    if( ptin_msg_replicate_port_configuration((group_info->NGPON2Port[0].id), src_port, group_info->GroupId ) != L7_SUCCESS)
+    PT_LOG_TRACE(LOG_CTX_INTF, "Replicating configuration from port %d to %d !", src_port, group_info->NGPON2Port[i].id);
+    if ( (src_port != group_info->NGPON2Port[i].id) && (NGPON2_groups_info[group_idx].nports > 1) )
     {
-      i = 0;
-      /* Remove configurations */
-      while ( i < group_info->numIntf )
+#ifdef NGPON2_SUPPORTED
+      if( ptin_msg_replicate_port_configuration((group_info->NGPON2Port[i].id), src_port, group_info->GroupId ) != L7_SUCCESS)
       {
         /* set portId to the NGPON2 group */
         NGPON2_PORT_REM(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, (group_info->NGPON2Port[i].id));
         NGPON2_groups_info[group_idx].nports--;
-        i++;
-      }
 
-      PT_LOG_ERR(LOG_CTX_INTF, "Error replicating configuration from port %d to %d !", src_port, group_info->NGPON2Port[i].id);
-      PT_LOG_ERR(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d !", NGPON2_groups_info[group_idx].nports);
-      return L7_SUCCESS;/* Do not return error to the manager*/
-    }
+        PT_LOG_ERR(LOG_CTX_INTF, "Error replicating configuration from port %d to %d !", src_port, group_info->NGPON2Port[i].id);
+        PT_LOG_ERR(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d !",            NGPON2_groups_info[group_idx].nports);
+        return L7_SUCCESS;/* Do not return error to the manager*/
+      }
 #endif
+    }
   }
 
-  PT_LOG_TRACE(LOG_CTX_INTF, "Sucess replication configurations from port %d to %d !", src_port, group_info->NGPON2Port[0].id);
+  PT_LOG_TRACE(LOG_CTX_INTF, "Sucess replication configurations from port %d to %d !", src_port, group_info->NGPON2Port[i].id);
 
   return L7_SUCCESS;
 }
@@ -8132,7 +8129,7 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
   PT_LOG_TRACE(LOG_CTX_INTF, "Going to remove configuration from port %d ", group_info->NGPON2Port[i].id-1);
   /* Remove port configurations */
 
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+#ifdef NGPON2_SUPPORTED
   if(ptin_msg_remove_port_configuration(group_info->NGPON2Port[i].id-1, group_info->GroupId) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Error remove configuration from port %d", group_info->NGPON2Port[i].id-1);
