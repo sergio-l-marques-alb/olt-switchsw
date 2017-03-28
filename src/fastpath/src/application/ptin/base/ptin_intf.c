@@ -8025,12 +8025,14 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
   /* Add port to NGPON2 port bmp */
   for(i=0; i < group_info->numIntf ;i++)
   { 
-    /* set portId to the NGPON2 group */
-    NGPON2_PORT_ADD(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, (group_info->NGPON2Port[i].id));
-
-    /* increment number of ports for this group */
-    
-    PT_LOG_TRACE(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d ", NGPON2_groups_info[group_idx].nports);
+    if(!NGPON2_BIT_PORT(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64 >> group_info->NGPON2Port[i].id))
+    {
+      /* set portId to the NGPON2 group */
+      NGPON2_PORT_ADD(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, (group_info->NGPON2Port[i].id));
+      NGPON2_groups_info[group_idx].nports++;
+    }
+    /* increment number of ports for this group */  
+    PT_LOG_ERR(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d ", NGPON2_groups_info[group_idx].nports);
 
     L7_uint8 temp = 0;
 
@@ -8038,8 +8040,7 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
     while(temp < 64) // bit map size
     {
       if  (NGPON2_BIT_PORT(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64 >> temp))
-      { 
-        NGPON2_groups_info[group_idx].nports++;
+      {    
         /*Find a already configured NGPON2 port to replicate the configurations*/
         if(temp != group_info->NGPON2Port[i].id)
         {
