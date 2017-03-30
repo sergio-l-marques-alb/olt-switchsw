@@ -8123,7 +8123,6 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
     {
       n_ports++;
     }
-
     temp++;
   }
 
@@ -8195,10 +8194,11 @@ L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
 L7_RC_t set_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_index)
 {
   L7_uint8  groupIndex = group_index ; // internal index
-  L7_uint32 index = group_info->number_services - 1;
 
   NGPON2_groups_info[groupIndex].number_services = group_info->number_services;
-  NGPON2_groups_info[groupIndex].evc_groups_pbmp[index]  = group_info->evc_groups_pbmp[index];
+  //NGPON2_groups_info[groupIndex].evc_groups_pbmp = group_info->evc_groups_pbmp;
+
+  memcpy(NGPON2_groups_info[groupIndex].evc_groups_pbmp, group_info->evc_groups_pbmp, sizeof(NGPON2_groups_info[groupIndex].evc_groups_pbmp));
 
   return L7_SUCCESS;
 }
