@@ -99,7 +99,7 @@ void ptin_force_capture(L7_BOOL force)
 }
 
 
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+#if (PTIN_BOARD == PTIN_BOARD_TT04SXG)
 
 /*************** NGPON2 ***************/ 
 
@@ -18244,7 +18244,7 @@ L7_RC_t ptin_msg_switch_temperature_get(msg_ptin_temperature_monitor_t *msg)
 
 /**************** test functions ****************/
 
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+#if (PTIN_BOARD == PTIN_BOARD_TT04SXG )
 
 /**
  * ADD or REMOVE evc port without a message

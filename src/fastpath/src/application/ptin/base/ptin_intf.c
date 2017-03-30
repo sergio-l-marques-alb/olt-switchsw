@@ -8123,6 +8123,7 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
     {
       n_ports++;
     }
+
     temp++;
   }
 
