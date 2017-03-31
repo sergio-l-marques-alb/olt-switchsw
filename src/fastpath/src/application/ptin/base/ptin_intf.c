@@ -8032,7 +8032,7 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
       NGPON2_groups_info[group_idx].nports++;
     }
     /* increment number of ports for this group */  
-    PT_LOG_ERR(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d ", NGPON2_groups_info[group_idx].nports);
+    PT_LOG_TRACE(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d ", NGPON2_groups_info[group_idx].nports);
 
     L7_uint8 temp = 0;
 
@@ -8055,6 +8055,7 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
   for(i=0; i < group_info->numIntf;i++)
   {
     PT_LOG_TRACE(LOG_CTX_INTF, "Replicating configuration from port %d to %d !", src_port, group_info->NGPON2Port[i].id);
+
     if ( (src_port != group_info->NGPON2Port[i].id) && (NGPON2_groups_info[group_idx].nports > 1) )
     {
 #ifdef NGPON2_SUPPORTED
@@ -8108,42 +8109,43 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
     return L7_FAILURE;
   }
 
-  while ( i < group_info->numIntf )
-  {
-    NGPON2_PORT_REM(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, (group_info->NGPON2Port[i].id));
-    i++;
-  }
+  PT_LOG_TRACE(LOG_CTX_INTF, "Going to remove configuration from port %d ", group_info->NGPON2Port[i].id);
+  PT_LOG_TRACE(LOG_CTX_INTF, "group_info->numIntf %d ", group_info->numIntf);
 
-  /* count number of ports for this group */
-  L7_uint8 n_ports = 0, temp = 0;
-
-  while(temp < 64)
+  for (i=0;i < group_info->numIntf; i++)
   {
-    if  (NGPON2_BIT_PORT(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64 >> temp))
+    NGPON2_PORT_REM(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64,(group_info->NGPON2Port[i].id));
+
+    /* count number of ports for this group */
+    L7_uint8 n_ports = 0, temp = 0;
+
+    while(temp < 64)
     {
-      n_ports++;
+      if(NGPON2_BIT_PORT(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64 >> temp))
+      {
+        n_ports++;
+      }
+      temp++;
     }
 
-    temp++;
-  }
-
-  PT_LOG_TRACE(LOG_CTX_INTF, "Going to remove configuration from port %d ", group_info->NGPON2Port[i].id-1);
-  /* Remove port configurations */
+    PT_LOG_TRACE(LOG_CTX_INTF, "Going to remove configuration from port %d ", group_info->NGPON2Port[i].id);
+    /* Remove port configurations */
 
 #ifdef NGPON2_SUPPORTED
-  if(ptin_msg_remove_port_configuration(group_info->NGPON2Port[i].id-1, group_info->GroupId) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_INTF, "Error remove configuration from port %d", group_info->NGPON2Port[i].id-1);
-    return L7_FAILURE;
-  }
+    if(ptin_msg_remove_port_configuration(group_info->NGPON2Port[i].id, group_info->GroupId) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error remove configuration from port %d", group_info->NGPON2Port[i].id);
+      return L7_FAILURE;
+    }
 #endif
 
-  PT_LOG_TRACE(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d", NGPON2_groups_info[group_idx].nports);
-  NGPON2_groups_info[group_idx].nports = n_ports;
+    NGPON2_groups_info[group_idx].nports = n_ports;
+    PT_LOG_TRACE(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d", NGPON2_groups_info[group_idx].nports);
 
-  if(NGPON2_groups_info[group_idx].nports == 0)
-  {
-    NGPON2_groups_info[group_idx].admin = 0;
+    if(NGPON2_groups_info[group_idx].nports == 0)
+    {
+      NGPON2_groups_info[group_idx].admin = 0;
+    }
   }
 
   return L7_SUCCESS;

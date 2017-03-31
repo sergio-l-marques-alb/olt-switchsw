@@ -146,7 +146,7 @@ typedef struct
 
 /* Structs for comutation functions (NGPON2) */
 /*EVC's*/
-static ptin_HwEthMef10Intf_t evcPortTest[PTIN_SYSTEM_N_EVCS]; //PTIN_SYSTEM_N_EXTENDED_EVCS
+static ptin_HwEthMef10Intf_t evcReplicate[PTIN_SYSTEM_N_EVCS]; //PTIN_SYSTEM_N_EXTENDED_EVCS
 
 /*Clients*/
 static ptin_McastClient_info McastClient_info[PTIN_SYSTEM_N_EVCS];
@@ -5678,7 +5678,7 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
  */
 L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 {
-  L7_uint32 evc_id, flags;
+  L7_uint32 evc_id, flags, rc;
   L7_uint16 nni_vlan;
   L7_uint16 i;
   L7_uint8 index_port = 0;
@@ -5748,16 +5748,15 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     {
       // NGPON2
       ngpon2_ports = L7_TRUE;
+      ngponId[ngpon2_groups] = msgEvcConf->evc.intf[i].intf_id;
       ngpon2_groups++;
 
-      ngponId[ngpon2_groups] = msgEvcConf->evc.intf[i].intf_id;
-
-      PT_LOG_ERR(LOG_CTX_MSG, "msgEvcConf->evc.intf[i].intf_id %u",              msgEvcConf->evc.intf[i].intf_id);
+      PT_LOG_TRACE(LOG_CTX_MSG, "msgEvcConf->evc.intf[i].intf_id %u",              msgEvcConf->evc.intf[i].intf_id);
 
       get_NGPON2_group_info(&NGPON2_GROUP, msgEvcConf->evc.intf[i].intf_id);
 
-      PT_LOG_TRACE(LOG_CTX_MSG, "NGPON2_GROUP.nports %u",              NGPON2_GROUP.nports);
-      PT_LOG_TRACE(LOG_CTX_MSG, "j %u",              j);
+      PT_LOG_TRACE(LOG_CTX_MSG, "NGPON2_GROUP.nports %u",                          NGPON2_GROUP.nports);
+
       j = 0;
       shift_index = 0;
 
@@ -5828,10 +5827,12 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.Intf  = %u",      ptinEvcConf.n_intf);
   }
 
-  if (ptin_evc_create(&ptinEvcConf) != L7_SUCCESS)
+  rc = ptin_evc_create(&ptinEvcConf);
+
+  if ( rc != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "Error creating/reconfiguring EVC# %u", ptinEvcConf.index);
-    return L7_FAILURE;
+    PT_LOG_ERR(LOG_CTX_MSG, "Error creating/reconfiguring EVC# %u, rc %d", ptinEvcConf.index, rc);
+    return rc;
   }
   else
   {
@@ -5840,31 +5841,30 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Is EVC in use? */
       if (ptin_evc_ext2int(ptinEvcConf.index, &evc_id) == L7_SUCCESS)
       {
-        for (group = 0; group < ngpon2_groups; group ++)
+        for (group = 0; group < ngpon2_groups; group++)
         {
-          PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u", evc_id);
-          PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u", ngponId[group]);
+          PT_LOG_TRACE(LOG_CTX_EVC, "NGPON ID %u", ngponId[group]);
 
           if (ngpon2_ports)
           {
             get_NGPON2_group_info(&NGPON2_GROUP, ngponId[group]);
        
             /*teste*/
-            PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u ", ptinEvcConf.index);
+            PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u ", ptinEvcConf.index);
             PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u", evc_id);
 
-            evcPortTest[evc_id].evcId         = ptinEvcConf.index;
-            evcPortTest[evc_id].intf.format   = PTIN_INTF_FORMAT_TYPEID;
-            evcPortTest[evc_id].action_outer  = ptinEvcConf.intf[i].action_outer;
+            evcReplicate[evc_id].evcId         = ptinEvcConf.index;
+            evcReplicate[evc_id].intf.format   = PTIN_INTF_FORMAT_TYPEID;
+            evcReplicate[evc_id].action_outer  = ptinEvcConf.intf[i].action_outer;
         
-            evcPortTest[evc_id].action_inner  = ptinEvcConf.intf[i].action_inner;
-            evcPortTest[evc_id].vid_inner     = ptinEvcConf.intf[i].vid_inner;
-            evcPortTest[evc_id].vid           = ptinEvcConf.intf[i].vid;
-            evcPortTest[evc_id].mef_type      = ptinEvcConf.intf[i].mef_type;
-            NGPON2_EVC_ADD (evcPortTest[evc_id].ngpon2_bmp, ngponId[group]);    
+            evcReplicate[evc_id].action_inner  = ptinEvcConf.intf[i].action_inner;
+            evcReplicate[evc_id].vid_inner     = ptinEvcConf.intf[i].vid_inner;
+            evcReplicate[evc_id].vid           = ptinEvcConf.intf[i].vid;
+            evcReplicate[evc_id].mef_type      = ptinEvcConf.intf[i].mef_type;
+            NGPON2_EVC_ADD (evcReplicate[evc_id].ngpon2_bmp, ngponId[group]);    
         
             PT_LOG_TRACE(LOG_CTX_MSG, " msgEvcConf->evc.intf[i].intf_id %d ",ngponId[group]);
-            PT_LOG_ERR(LOG_CTX_MSG,   " NGPON2_GROUP.number_services    %d ",NGPON2_GROUP.number_services);
+            PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services    %d ",NGPON2_GROUP.number_services);
 
             L7_uint8 position = evc_id % sizeof(position);
             L7_uint8 index    = evc_id / sizeof(index);
@@ -6069,19 +6069,19 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
 #ifdef NGPON2_SUPPORTED
       ptin_NGPON2_groups_t NGPON2_GROUP;
   
-      if (evcPortTest[evc_id].ngpon2_bmp != 0)
+      if (evcReplicate[evc_id].ngpon2_bmp != 0)
       {
         L7_uint32 bmp_val = 0;
 
         while(bmp_val < PTIN_SYSTEM_MAX_NGPON2_GROUP)
         {
-          if(( (evcPortTest[evc_id].ngpon2_bmp >> bmp_val) & 0x1))
+          if(( (evcReplicate[evc_id].ngpon2_bmp >> bmp_val) & 0x1))
           {
-            NGPON2_EVC_REM(evcPortTest[evc_id].ngpon2_bmp, bmp_val);
+            NGPON2_EVC_REM(evcReplicate[evc_id].ngpon2_bmp, bmp_val);
             L7_uint8 position = evc_id % sizeof(position);
             L7_uint8 index    = evc_id / sizeof(index);
 
-            NGPON2_EVC_REM(evcPortTest[evc_id].ngpon2_bmp, bmp_val);  
+            NGPON2_EVC_REM(evcReplicate[evc_id].ngpon2_bmp, bmp_val);  
             get_NGPON2_group_info(&NGPON2_GROUP, bmp_val);
             /*teste*/
 
@@ -6089,7 +6089,7 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
             NGPON2_EVC_REM(NGPON2_GROUP.evc_groups_pbmp[index], position);
             NGPON2_GROUP.number_services--;
 
-            memset(&evcPortTest[evc_id], 0x00, sizeof(evcPortTest[evc_id]));
+            memset(&evcReplicate[evc_id], 0x00, sizeof(evcReplicate[evc_id]));
 
             set_NGPON2_group_info(&NGPON2_GROUP, bmp_val);
                             
@@ -6536,16 +6536,16 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
 
           get_NGPON2_group_info(&NGPON2_GROUP, msgEvcBridge->intf.intf_id);
           /*teste*/
-          evcPortTest[evc_id].evcId         = ptinEvcBridge.index;
-          evcPortTest[evc_id].intf.format   = PTIN_INTF_FORMAT_TYPEID;
-          evcPortTest[evc_id].action_outer  = ptinEvcBridge.intf.action_outer;
-          evcPortTest[evc_id].action_inner  = ptinEvcBridge.intf.action_inner;
-          evcPortTest[evc_id].vid_inner     = ptinEvcBridge.inn_vlan;
-          evcPortTest[evc_id].vid           = ptinEvcBridge.intf.vid;
-          evcPortTest[evc_id].mef_type      = ptinEvcBridge.intf.mef_type;
+          evcReplicate[evc_id].evcId         = ptinEvcBridge.index;
+          evcReplicate[evc_id].intf.format   = PTIN_INTF_FORMAT_TYPEID;
+          evcReplicate[evc_id].action_outer  = ptinEvcBridge.intf.action_outer;
+          evcReplicate[evc_id].action_inner  = ptinEvcBridge.intf.action_inner;
+          evcReplicate[evc_id].vid_inner     = ptinEvcBridge.inn_vlan;
+          evcReplicate[evc_id].vid           = ptinEvcBridge.intf.vid;
+          evcReplicate[evc_id].mef_type      = ptinEvcBridge.intf.mef_type;
 
           PT_LOG_ERR(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
-          NGPON2_EVC_ADD(evcPortTest[evc_id].ngpon2_bmp, ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);    
+          NGPON2_EVC_ADD(evcReplicate[evc_id].ngpon2_bmp, ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);    
         
           PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
 
@@ -18260,13 +18260,13 @@ void ptin_msg_evc_port_add_rem(L7_uint32 evcId, L7_uint8 portId, L7_uint8 oper)
 
   msg_HWevcPort_t struct_teste[1]; 
 
-  printf("evcPortTest.evcId %u\n", evcPortTest[evcId-1].evcId);
-  printf("evcPortTest.intf.format %u\n", evcPortTest[evcId-1].intf.format);
-  printf("evcPortTest.mef_type %u\n", evcPortTest[evcId-1].mef_type);
-  printf("evcPortTest.vid %u\n", evcPortTest[evcId-1].vid);
-  printf("evcPortTest.vid_inner %u\n", evcPortTest[evcId-1].vid_inner);
-  printf("evcPortTest.action_outer %u\n", evcPortTest[evcId-1].action_outer);
-  printf("evcPortTest.action_inner %u\n", evcPortTest[evcId-1].action_inner);
+  printf("evcPortTest.evcId %u\n", evcReplicate[evcId-1].evcId);
+  printf("evcPortTest.intf.format %u\n", evcReplicate[evcId-1].intf.format);
+  printf("evcPortTest.mef_type %u\n", evcReplicate[evcId-1].mef_type);
+  printf("evcPortTest.vid %u\n", evcReplicate[evcId-1].vid);
+  printf("evcPortTest.vid_inner %u\n", evcReplicate[evcId-1].vid_inner);
+  printf("evcPortTest.action_outer %u\n", evcReplicate[evcId-1].action_outer);
+  printf("evcPortTest.action_inner %u\n", evcReplicate[evcId-1].action_inner);
 
   printf("Valores recebidos como argumento\n");
   printf("ptinPort %u\n", portId);
@@ -18275,9 +18275,9 @@ void ptin_msg_evc_port_add_rem(L7_uint32 evcId, L7_uint8 portId, L7_uint8 oper)
   struct_teste[0].evcId          = ENDIAN_SWAP32(evcId);
   struct_teste[0].intf.intf_id   = ENDIAN_SWAP8(portId);
   struct_teste[0].intf.intf_type = ENDIAN_SWAP8(0);
-  struct_teste[0].intf.mef_type  = ENDIAN_SWAP8(evcPortTest[evcId-1].mef_type);
-  struct_teste[0].intf.inner_vid = ENDIAN_SWAP16(evcPortTest[evcId-1].vid_inner);
-  struct_teste[0].intf.vid       = ENDIAN_SWAP16(evcPortTest[evcId-1].vid);
+  struct_teste[0].intf.mef_type  = ENDIAN_SWAP8(evcReplicate[evcId-1].mef_type);
+  struct_teste[0].intf.inner_vid = ENDIAN_SWAP16(evcReplicate[evcId-1].vid_inner);
+  struct_teste[0].intf.vid       = ENDIAN_SWAP16(evcReplicate[evcId-1].vid);
 
   if (oper == 1)
   {
@@ -18302,16 +18302,16 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
 { 
 #ifdef NGPON2_SUPPORTED
 
-  L7_int32  index, iteration = 0, position;
+  L7_int32  index, iteration = 0, position=0;
   L7_uint32 max_index = (PTIN_SYSTEM_N_EVCS/sizeof(L7_uint8)) - 1;
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 evc_type;
 
-  PT_LOG_ERR(LOG_CTX_MSG, "ngpon2_id = %d ", ngpon2_id);
+  PT_LOG_ERR(LOG_CTX_MSG, "NGPON_Id = %d ", ngpon2_id);
   /* Get NGPON2 group information*/
   get_NGPON2_group_info(&NGPON2_GROUP, ngpon2_id);
 
-  PT_LOG_TRACE(LOG_CTX_MSG, " Replication %d service on GroupID %d ", NGPON2_GROUP.number_services, ngpon2_id);
+  PT_LOG_TRACE(LOG_CTX_MSG, " Replication service %d on GroupID %d ", NGPON2_GROUP.number_services, ngpon2_id);
 
   for(index = 0; (index < max_index) && (iteration < NGPON2_GROUP.number_services); index++)
   {
@@ -18325,9 +18325,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
 
     for (position = 0 ;(position < 256) && (iteration < NGPON2_GROUP.number_services); position++) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
     {
-      PT_LOG_TRACE(LOG_CTX_MSG, "Position = %d ", position);
-
-      if( NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] < position)))
+      if( NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] << position)))
       {
         L7_int32 evc_idx;
         /* Increment number of iteration (services replicate)*/
@@ -18337,24 +18335,24 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
           
         PT_LOG_TRACE(LOG_CTX_MSG, "Evc_idx = %d   ", evc_idx);
         PT_LOG_TRACE(LOG_CTX_MSG, "iteration = %d ", iteration);
-        PT_LOG_TRACE(LOG_CTX_MSG, "evcPortTest[evc_idx].evcId = %d ", evcPortTest[evc_idx].evcId);
+        PT_LOG_TRACE(LOG_CTX_MSG, "evcReplicate[evc_idx].evcId = %d ", evcReplicate[evc_idx].evcId);
 
-        evcPortTest[evc_idx].intf.value.ptin_port = ptin_port;
-        evcPortTest[evc_idx].mef_type = PTIN_EVC_INTF_LEAF;
+        evcReplicate[evc_idx].intf.value.ptin_port = ptin_port;
+        evcReplicate[evc_idx].mef_type = PTIN_EVC_INTF_LEAF;
 
-        if (ptin_intf_any_format(&evcPortTest[evc_idx].intf) != L7_SUCCESS)
+        if (ptin_intf_any_format(&evcReplicate[evc_idx].intf) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_MSG, "Invalid interfaces");
           continue;
         }
 
         /* Add port to EVC */
-        if ( ptin_evc_port_add(evcPortTest[evc_idx].evcId, &evcPortTest[evc_idx])!=L7_SUCCESS)
+        if ( ptin_evc_port_add(evcReplicate[evc_idx].evcId, &evcReplicate[evc_idx])!=L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_EVC,"Error adding port to EVC");
         }
 
-        ptin_evc_check_evctype(evcPortTest[evc_idx].evcId, &evc_type);
+        ptin_evc_check_evctype(evcReplicate[evc_idx].evcId, &evc_type);
         PT_LOG_TRACE(LOG_CTX_MSG, "evc_type %d ", evc_type);
 
         if(evc_type == PTIN_EVC_TYPE_QUATTRO_UNSTACKED || evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
@@ -18363,7 +18361,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
           PT_LOG_TRACE(LOG_CTX_MSG, "dst_port %d ", dst_port);
 
           /* Read policer information */
-          if ((ptin_evc_flow_replicate(ptin_port, evcPortTest[evc_idx].evcId, dst_port)!=L7_SUCCESS))
+          if ((ptin_evc_flow_replicate(ptin_port, evcReplicate[evc_idx].evcId, dst_port)!=L7_SUCCESS))
           {
             PT_LOG_ERR(LOG_CTX_EVC,"Error replicating flow");
             continue;
@@ -18383,7 +18381,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
         else
         {      
             /* Get EVC id configured in the NGPON group*/
-            if ((ptin_evc_p2p_bridge_replicate(evcPortTest[evc_idx].evcId, ptin_port, dst_port, &evcPortTest[evc_idx]))!= L7_SUCCESS )
+            if ((ptin_evc_p2p_bridge_replicate(evcReplicate[evc_idx].evcId, ptin_port, dst_port, &evcReplicate[evc_idx]))!= L7_SUCCESS )
             {
               PT_LOG_ERR(LOG_CTX_EVC,"Error replicate p2p bridge");
               continue;         
@@ -18449,15 +18447,13 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
 {
  
 #ifdef NGPON2_SUPPORTED
-  L7_int32 iteration = 0,position;
+  L7_int32 iteration = 0, position;
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 evc_type;
   L7_uint32 max_index = (PTIN_SYSTEM_N_EVCS/sizeof(L7_uint8)) - 1;
 
   /* Get NGPON2 group information*/
   get_NGPON2_group_info(&NGPON2_GROUP, ngpon2_id);
-  iteration = NGPON2_GROUP.number_services;
-
   L7_int32 index = NGPON2_GROUP.number_services - 1;      //due to array initial value
 
   for(index = 0; (index < max_index) && (iteration < NGPON2_GROUP.number_services); index++)
@@ -18466,14 +18462,9 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
     {
       continue;
     }
-
-    PT_LOG_TRACE(LOG_CTX_MSG, "Index = %d ", index);
-
-    for (position=0 ;(position < 256) && (iteration < NGPON2_GROUP.number_services); position++ ) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
+    for (position = 0 ;(position < 256) && (iteration < NGPON2_GROUP.number_services); position++ ) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
     {
-      PT_LOG_TRACE(LOG_CTX_MSG, "Position = %d ", position);
-
-      if( NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] < position)) )
+      if( NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] << position)) )
       {
         L7_int32 evc_idx;
       
@@ -18481,11 +18472,9 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
         iteration++;
         evc_idx = position + (index * sizeof(L7_uint8));
 
- 
-        evc_idx = evc_idx - 1;
-        PT_LOG_TRACE(LOG_CTX_MSG, "evc_idx = %d ", evc_idx);
+        PT_LOG_TRACE(LOG_CTX_MSG, "Evc_idx = %d ", evc_idx);
 
-        if (ptin_evc_bwProfile_delete(evcPortTest[evc_idx].evcId, &bwProfile[evc_idx])!= L7_SUCCESS)
+        if (ptin_evc_bwProfile_delete(evcReplicate[evc_idx].evcId, &bwProfile[evc_idx])!= L7_SUCCESS)
         {    
           PT_LOG_ERR(LOG_CTX_MSG,"Error removing policer");
           //return L7_FAILURE;
@@ -18514,7 +18503,7 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
                                 UcastClient_info[evc_idx].packageBmpList,
                                 UcastClient_info[evc_idx].nOfPackets);
 
-        ptin_evc_check_evctype(evcPortTest[evc_idx].evcId, &evc_type);
+        ptin_evc_check_evctype(evcReplicate[evc_idx].evcId, &evc_type);
 
         if(evc_type == PTIN_EVC_TYPE_QUATTRO_UNSTACKED || evc_type == PTIN_EVC_TYPE_QUATTRO_STACKED)
         {
@@ -18533,7 +18522,7 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
           }
 
           /* Remove flows if (any) from EVC */
-          if (ptin_evc_flow_remove_port(ptin_port, evcPortTest[evc_idx].evcId)!= L7_SUCCESS)
+          if (ptin_evc_flow_remove_port(ptin_port, evcReplicate[evc_idx].evcId)!= L7_SUCCESS)
           {
             PT_LOG_ERR(LOG_CTX_MSG,"Error removing flow");
              //return L7_FAILURE;
@@ -18543,9 +18532,9 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
         {
           ptin_HwEthEvcBridge_t evcBridge;
 
-          evcBridge.index = evcPortTest[evc_idx].evcId;
-          evcBridge.inn_vlan =  evcPortTest[evc_idx].vid_inner;
-          evcBridge.intf = evcPortTest[evc_idx];
+          evcBridge.index    = evcReplicate[evc_idx].evcId;
+          evcBridge.inn_vlan = evcReplicate[evc_idx].vid_inner;
+          evcBridge.intf     = evcReplicate[evc_idx];
           evcBridge.intf.intf.value.ptin_intf.intf_id        = ptin_port;
           evcBridge.intf.intf.value.ptin_intf.intf_type      = PTIN_EVC_INTF_PHYSICAL;
 
@@ -18556,8 +18545,8 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
         }
 
         /* Removing port from EVC */
-        evcPortTest[evc_idx].intf.value.ptin_port = ptin_port;
-        if( ptin_evc_port_remove(evcPortTest[evc_idx].evcId, &evcPortTest[evc_idx])!= L7_SUCCESS)
+        evcReplicate[evc_idx].intf.value.ptin_port = ptin_port;
+        if( ptin_evc_port_remove(evcReplicate[evc_idx].evcId, &evcReplicate[evc_idx])!= L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_MSG,"Error port from EVC");
           continue;
