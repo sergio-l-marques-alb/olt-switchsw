@@ -118,6 +118,8 @@ static L7_uint16 SIRerror_get(L7_RC_t error_code)
       return ERROR_CODE_FP_EVC_UNKNOWN;
     case L7_ADDR_INUSE:
       return ERROR_COUNTER_USED;
+    case L7_NO_VALUE:
+      return ERROR_NO_MORE_VLAN_AVAILABLE;
   }
 
   // Default error
