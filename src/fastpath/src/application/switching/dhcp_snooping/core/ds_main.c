@@ -814,32 +814,6 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       }
     }
 
-    /* Make software L2 forwarding? */
-    if (l2_forward)
-    {
-      /* For MX board, ignore DHCP packet */
-    #if (PTIN_BOARD_IS_MATRIX)
-      if (ptin_debug_dhcp_snooping) 
-        PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
-      return SYSNET_PDU_RC_IGNORED;
-    #else
-      if (ptin_debug_dhcp_snooping) 
-        PT_LOG_ERR(LOG_CTX_DHCP, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
-      /* L2 forward */
-      if (ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len) == L7_SUCCESS)
-      {
-        SYSAPI_NET_MBUF_FREE(bufHandle);
-        return SYSNET_PDU_RC_CONSUMED;
-      }
-      else
-      {
-        if (ptin_debug_dhcp_snooping)
-          PT_LOG_ERR(LOG_CTX_PPPOE, "Error trying to L2 forward packet");
-        return SYSNET_PDU_RC_IGNORED;
-      }
-    #endif
-    }
-
     if (((osapiNtohl(ipHeader->iph_src) & L7_CLASS_D_ADDR_NETWORK) == L7_CLASS_D_ADDR_NETWORK) ||
         ((osapiNtohl(ipHeader->iph_src) & L7_CLASS_E_ADDR_NETWORK) == L7_CLASS_E_ADDR_NETWORK))
     {
@@ -865,6 +839,32 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
     if ((osapiNtohs(udpHeader->destPort) == UDP_PORT_DHCP_SERV) ||
         (osapiNtohs(udpHeader->destPort) == UDP_PORT_DHCP_CLNT))
     {
+      /* Make software L2 forwarding? */
+      if (l2_forward)
+      {
+        /* For MX board, ignore DHCP packet */
+      #if (PTIN_BOARD_IS_MATRIX)
+        if (ptin_debug_dhcp_snooping) 
+          PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
+        return SYSNET_PDU_RC_IGNORED;
+      #else
+        if (ptin_debug_dhcp_snooping) 
+          PT_LOG_ERR(LOG_CTX_DHCP, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
+        /* L2 forward */
+        if (ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len) == L7_SUCCESS)
+        {
+          SYSAPI_NET_MBUF_FREE(bufHandle);
+          return SYSNET_PDU_RC_CONSUMED;
+        }
+        else
+        {
+          if (ptin_debug_dhcp_snooping)
+            PT_LOG_ERR(LOG_CTX_PPPOE, "Error trying to L2 forward packet");
+          return SYSNET_PDU_RC_IGNORED;
+        }
+      #endif
+      }
+
       /* This is used only when the packet comes double tagged.*/
       vlanId = pduInfo->vlanId;
       innerVlanId = pduInfo->innerVlanId;
@@ -1207,36 +1207,36 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       }
     }
 
-    /* Make software L2 forwarding? */
-    if (l2_forward)
-    {
-      /* For MX board, ignore DHCP packet */
-    #if (PTIN_BOARD_IS_MATRIX)
-      if (ptin_debug_dhcp_snooping) 
-        PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
-      return SYSNET_PDU_RC_IGNORED;
-    #else
-      if (ptin_debug_dhcp_snooping) 
-        PT_LOG_ERR(LOG_CTX_DHCP, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
-      /* L2 forward */
-      if (ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len) == L7_SUCCESS)
-      {
-        SYSAPI_NET_MBUF_FREE(bufHandle);
-        return SYSNET_PDU_RC_CONSUMED;
-      }
-      else
-      {
-        if (ptin_debug_dhcp_snooping)
-          PT_LOG_ERR(LOG_CTX_PPPOE, "Error trying to L2 forward packet");
-        return SYSNET_PDU_RC_IGNORED;
-      }
-    #endif
-    }
-
     udpHeader = (L7_udp_header_t *)((L7_char8 *)ipv6Header + L7_IP6_HEADER_LEN);
     if ((osapiNtohs(udpHeader->destPort) == UDP_PORT_DHCP6_SERV) ||
         (osapiNtohs(udpHeader->destPort) == UDP_PORT_DHCP6_CLNT))
     {
+      /* Make software L2 forwarding? */
+      if (l2_forward)
+      {
+        /* For MX board, ignore DHCP packet */
+      #if (PTIN_BOARD_IS_MATRIX)
+        if (ptin_debug_dhcp_snooping) 
+          PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
+        return SYSNET_PDU_RC_IGNORED;
+      #else
+        if (ptin_debug_dhcp_snooping) 
+          PT_LOG_ERR(LOG_CTX_DHCP, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
+        /* L2 forward */
+        if (ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len) == L7_SUCCESS)
+        {
+          SYSAPI_NET_MBUF_FREE(bufHandle);
+          return SYSNET_PDU_RC_CONSUMED;
+        }
+        else
+        {
+          if (ptin_debug_dhcp_snooping)
+            PT_LOG_ERR(LOG_CTX_PPPOE, "Error trying to L2 forward packet");
+          return SYSNET_PDU_RC_IGNORED;
+        }
+      #endif
+      }
+
       /* This is used only when the packet comes double tagged.*/
       vlanId = pduInfo->vlanId;
       innerVlanId = pduInfo->innerVlanId;
