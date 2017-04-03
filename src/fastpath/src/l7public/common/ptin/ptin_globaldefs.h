@@ -181,6 +181,7 @@ extern int ptin_sys_number_of_ports;
 #define RATE_LIMIT_MCAST    1024    /* 1 Mbps by default */
 #define RATE_LIMIT_UCUNK    1024    /* 1 Mbps by default */
 #define RATE_LIMIT_CPU      1024    /* 1 Mbps by default */
+#define RATE_LIMIT_CPU_TRAPPED 4096 /* 4 Mbps by default */
 
 /* CoS assigned to trapped packets */
 #define CPU_TRAPPED_PACKETS_COS_DEFAULT 8     /* For IGMP/DHCP/PPPoE/APS/... */
