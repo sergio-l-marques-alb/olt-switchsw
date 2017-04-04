@@ -754,7 +754,7 @@ L7_RC_t ptin_hapi_qos_vlan_remove(L7_uint16 ext_vlan, L7_uint16 int_vlan, L7_BOO
  */
 L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_cfg)
 {
-  L7_int      /*entry, free_entry,*/ rule, free_rule, max_rules;
+  L7_int      rule, max_rules, free_rule=0;
   L7_uint16   vlan_mask = 0xfff;
   bcm_pbmp_t  pbm, pbm_mask;
   L7_int32    classId;
@@ -887,7 +887,63 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     /* Reuse this entry for reconfiguration */
   }
 
-  /* If VLAN entry not found, use the searched free entry */
+  /* Remove rules for reprocessing (only if QoS entry already exists) */
+  if (qos_entry != L7_NULLPTR)
+  {
+    /* Search for a rule matching our configuration (and a free rule) */
+    free_rule = -1;
+    for (rule = 0; rule < PTIN_HAPI_QOS_VLAN_ENTRIES; rule++)
+    {
+      L7_uint8 mask;
+
+      if (!qos_entry->rule[rule].in_use)
+      {
+        if (free_rule < 0)  free_rule = rule;
+        continue;
+      }
+
+      /* Found exact match rule: nothing to do if found */
+      if (qos_cfg->priority      == qos_entry->rule[rule].priority &&
+          qos_cfg->priority_mask == qos_entry->rule[rule].priority_mask &&
+          qos_cfg->pbits_remark  == qos_entry->rule[rule].pbits_remark &&
+          qos_cfg->int_priority  == qos_entry->rule[rule].int_priority)
+      {
+        PT_LOG_TRACE(LOG_CTX_HAPI,"Exact matched rule %u found! Nothing to do... exit!", rule);
+        return L7_SUCCESS;
+      }
+
+      /* Common mask for comparison */
+      mask = qos_cfg->priority_mask & qos_entry->rule[rule].priority_mask;
+
+      if ((qos_cfg->priority & mask) == (qos_entry->rule[rule].priority & mask))
+      {
+        PT_LOG_TRACE(LOG_CTX_HAPI,"Going to remove rule %u: intVlan=%u/extVlan=%u/leaf:%u trust_mode=%u prio=%u/0x%x remark=%u (policyId=%d)",
+                  rule, qos_entry->key.int_vlan, qos_entry->key.ext_vlan, qos_entry->key.leaf_side, qos_entry->key.trust_mode,
+                  qos_entry->rule[rule].priority, qos_entry->rule[rule].priority_mask, qos_entry->rule[rule].pbits_remark, qos_entry->rule[rule].policyId_icap);
+
+        /* Free rule (for later reconfiguration) */
+        if (ptin_hapi_qos_rule_free(qos_entry, rule) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_HAPI,"Error clearing rule %u", rule);
+          return L7_SUCCESS;
+        }
+        PT_LOG_TRACE(LOG_CTX_HAPI,"Rule removed: VLAN rules=%u  Total rules=%u",
+                  qos_entry->number_of_rules, hw_rules_total);
+      }
+    }
+  }
+
+  /* Redundant configuration... do nothing */
+  if ((qos_cfg->trust_mode == 0) ||
+      ((qos_cfg->trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P) &&
+        (qos_cfg->priority_mask & 0x7) == 0x7 && qos_cfg->priority == qos_cfg->int_priority))
+  {
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Redundant rule for trust_mode %u and prio %u/0x%x! Leaving...",
+              qos_cfg->trust_mode, qos_cfg->priority, qos_cfg->priority_mask);
+    return L7_SUCCESS;
+  }
+
+  /* If VLAN entry don't exist, search for a free entry */
   if (qos_entry == L7_NULLPTR)
   {
     PT_LOG_TRACE(LOG_CTX_HAPI,"Entry not found... searching for a free one");
@@ -905,58 +961,9 @@ L7_RC_t ptin_hapi_qos_entry_add(ptin_dapi_port_t *dapiPort, ptin_dtl_qos_t *qos_
     memset(qos_entry, 0x00, sizeof(ptin_hapi_qos_entry_t));
     qos_entry->entry_active   = L7_FALSE;
     qos_entry->classId        = -1;
-  }
 
-  /* Search for a rule matching our configuration (and a free rule) */
-  free_rule = -1;
-  for (rule = 0; rule < PTIN_HAPI_QOS_VLAN_ENTRIES; rule++)
-  {
-    L7_uint8 mask;
-
-    if (!qos_entry->rule[rule].in_use)
-    {
-      if (free_rule < 0)  free_rule = rule;
-      continue;
-    }
-
-    /* Found exact match rule: nothing to do if found */
-    if (qos_cfg->priority      == qos_entry->rule[rule].priority &&
-        qos_cfg->priority_mask == qos_entry->rule[rule].priority_mask &&
-        qos_cfg->pbits_remark  == qos_entry->rule[rule].pbits_remark &&
-        qos_cfg->int_priority  == qos_entry->rule[rule].int_priority)
-    {
-      PT_LOG_TRACE(LOG_CTX_HAPI,"Exact matched rule %u found! Nothing to do... exit!", rule);
-      return L7_SUCCESS;
-    }
-
-    /* Common mask for comparison */
-    mask = qos_cfg->priority_mask & qos_entry->rule[rule].priority_mask;
-
-    if ((qos_cfg->priority & mask) == (qos_entry->rule[rule].priority & mask))
-    {
-      PT_LOG_TRACE(LOG_CTX_HAPI,"Going to remove rule %u: intVlan=%u/extVlan=%u/leaf:%u trust_mode=%u prio=%u/0x%x remark=%u (policyId=%d)",
-                rule, qos_entry->key.int_vlan, qos_entry->key.ext_vlan, qos_entry->key.leaf_side, qos_entry->key.trust_mode,
-                qos_entry->rule[rule].priority, qos_entry->rule[rule].priority_mask, qos_entry->rule[rule].pbits_remark, qos_entry->rule[rule].policyId_icap);
-
-      /* Free rule (for later reconfiguration) */
-      if (ptin_hapi_qos_rule_free(qos_entry, rule) != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_HAPI,"Error clearing rule %u", rule);
-        return L7_SUCCESS;
-      }
-      PT_LOG_TRACE(LOG_CTX_HAPI,"Rule removed: VLAN rules=%u  Total rules=%u",
-                qos_entry->number_of_rules, hw_rules_total);
-    }
-  }
-
-  /* Redundant configuration... do nothing */
-  if ((qos_cfg->trust_mode == 0) ||
-      ((qos_cfg->trust_mode == L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P) &&
-        (qos_cfg->priority_mask & 0x7) == 0x7 && qos_cfg->priority == qos_cfg->int_priority))
-  {
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Redundant rule for trust_mode %u and prio %u/0x%x! Leaving...",
-              qos_cfg->trust_mode, qos_cfg->priority, qos_cfg->priority_mask);
-    return L7_SUCCESS;
+    /* By default, free rule is the first one */
+    free_rule = 0;
   }
 
   /* At this point, we will configure a new rule.
