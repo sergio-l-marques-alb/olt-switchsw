@@ -10297,8 +10297,8 @@ L7_RC_t ptin_msg_igmp_instance_add(msg_IgmpMultcastUnicastLink_t *msgIgmpInst)
     return L7_FAILURE;
   }
 
-  //ENDIAN_SWAP32_MOD(msgIgmpInst->multicastEvcId);
-  //ENDIAN_SWAP32_MOD(msgIgmpInst->unicastEvcId);
+  ENDIAN_SWAP32_MOD(msgIgmpInst->multicastEvcId);
+  ENDIAN_SWAP32_MOD(msgIgmpInst->unicastEvcId);
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Going to add IGMP Instance:");
