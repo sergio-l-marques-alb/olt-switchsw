@@ -881,8 +881,6 @@ typedef struct {
 
 } ptin_HwEthMef10Evc_t;
 
-
-
 /* EVC Interface configuration */
 typedef struct {
   L7_BOOL    in_use;        /* When set, indicates that this entry is valid */

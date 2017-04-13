@@ -4139,19 +4139,26 @@ L7_RC_t ptin_evc_p2p_bridge_replicate(L7_uint32 evc_ext_id, L7_uint32 ptin_port,
     return L7_FAILURE;
   }
 
-  evcBridge.inn_vlan =  intf->vid_inner;
+  if(evcs[evc_id].n_clientflows != 0)
+  {
+    evcBridge.inn_vlan =  intf->vid_inner;
 
-  evcBridge.intf.action_inner = intf->action_inner;
-  evcBridge.intf.action_outer = intf->action_outer;
-  evcBridge.intf.evcId        = intf->evcId;
-  evcBridge.intf.mef_type     = intf->mef_type;
-  evcBridge.intf.vid          = intf->vid;
-  evcBridge.intf.vid_inner    = intf->vid_inner;
-  evcBridge.intf.intf.value.ptin_intf.intf_id        = ptin_port;
-  evcBridge.intf.intf.value.ptin_intf.intf_type      = PTIN_EVC_INTF_PHYSICAL;
-  evcBridge.intf.intf.format  = PTIN_INTF_FORMAT_TYPEID;
+    evcBridge.intf.action_inner = intf->action_inner;
+    evcBridge.intf.action_outer = intf->action_outer;
+    evcBridge.intf.evcId        = intf->evcId;
+    evcBridge.intf.mef_type     = intf->mef_type;
+    evcBridge.intf.vid          = intf->vid;
+    evcBridge.intf.vid_inner    = intf->vid_inner;
+    evcBridge.intf.intf.value.ptin_intf.intf_id        = ptin_port;
+    evcBridge.intf.intf.value.ptin_intf.intf_type      = PTIN_EVC_INTF_PHYSICAL;
+    evcBridge.intf.intf.format  = PTIN_INTF_FORMAT_TYPEID;
 
-  ptin_evc_p2p_bridge_add(&evcBridge);
+    ptin_evc_p2p_bridge_add(&evcBridge);
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_EVC, "No client flow to replicate ");
+  }
 
   return L7_SUCCESS;
 }

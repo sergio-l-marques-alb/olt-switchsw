@@ -5508,7 +5508,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
   #endif // PTIN_BOARD_IS_STANDALONE
-
+#ifdef NGPON2_SUPPORTED
     case CCMSG_NGPON2_ADD_GROUP:
     {
      
@@ -5686,7 +5686,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
     }
     break;
-
+#endif
     default:
     {
       PT_LOG_WARN(LOG_CTX_MSGHANDLER, "Message received: UNKNOWN! (0x%04X)\n", msgId);

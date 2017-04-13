@@ -2204,7 +2204,12 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
      )
   {
     PT_LOG_ERR(LOG_CTX_IGMP,"eEVC ids are not active: [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
+
+    #ifdef NGPON2_SUPPORTED
+    return L7_DEPENDENCY_NOT_MET;
+    #else
     return L7_FAILURE;
+    #endif
   }
 
   /* Check if there is an instance with these parameters */
@@ -2303,14 +2308,18 @@ L7_RC_t ptin_igmp_instance_remove(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
       UcastEvcId>=PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
     PT_LOG_ERR(LOG_CTX_IGMP,"Invalid eEVC ids: [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
-    return L7_FAILURE;
   }
 
   /* Check if there is an instance with these parameters */
   if (ptin_igmp_instance_find(McastEvcId,UcastEvcId,&igmp_idx)!=L7_SUCCESS)
   {
     PT_LOG_WARN(LOG_CTX_IGMP,"There is no instance with [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
+
+    #ifdef NGPON2_SUPPORTED
+    return L7_NO_VALUE;
+    #else
     return L7_SUCCESS;
+    #endif
   }
 
   /* Deconfigure querier for this instance */
