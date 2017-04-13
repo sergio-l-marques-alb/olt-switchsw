@@ -10297,8 +10297,8 @@ L7_RC_t ptin_msg_igmp_instance_add(msg_IgmpMultcastUnicastLink_t *msgIgmpInst)
     return L7_FAILURE;
   }
 
-  ENDIAN_SWAP32_MOD(msgIgmpInst->multicastEvcId);
-  ENDIAN_SWAP32_MOD(msgIgmpInst->unicastEvcId);
+  //ENDIAN_SWAP32_MOD(msgIgmpInst->multicastEvcId);
+  //ENDIAN_SWAP32_MOD(msgIgmpInst->unicastEvcId);
 
   /* Output data */
   PT_LOG_DEBUG(LOG_CTX_MSG, "Going to add IGMP Instance:");
@@ -18716,6 +18716,14 @@ L7_RC_t ptin_msg_replicate_ngpon2_configuration(L7_uint32 ngpon2_id)
     NGPON2_EVC_ADD(NGPON2_GROUP.evc_groups_pbmp[index], position);     
     set_NGPON2_group_info(&NGPON2_GROUP, ngpon2_id); 
   }
+
+  for(i=0 ; i < PTIN_SYSTEM_N_IGMP_INSTANCES; i++)
+  {
+    if (Mc_Uc_instances[i].in_use == 1)
+    {
+      ptin_igmp_instance_add(Mc_Uc_instances[i].multicastEvcId, Mc_Uc_instances[i].unicastEvcId);
+    } 
+  }
  
 #endif /*NGPON2_SUPPORT*/
   return L7_SUCCESS;
@@ -18842,6 +18850,17 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
         }
       }
     }
+  }
+
+  L7_uint32 i;
+
+  for(i = 0;i < PTIN_SYSTEM_N_IGMP_INSTANCES; i++)
+  {
+    if (Mc_Uc_instances[i].in_use == 1)
+    {
+      ptin_igmp_instance_remove(Mc_Uc_instances[i].multicastEvcId, Mc_Uc_instances[i].unicastEvcId);
+      Mc_Uc_instances[i].in_use = 0;
+    } 
   }
 #endif /*NGPON2_SUPPORT*/
   return L7_SUCCESS;
