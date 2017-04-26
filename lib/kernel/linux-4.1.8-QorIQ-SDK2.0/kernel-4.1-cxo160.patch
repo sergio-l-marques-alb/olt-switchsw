@@ -1764,7 +1764,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/spi/pld-ptin-spi.c linux-4.1.8-Q
 +        .modalias = "spidev",
 +        .max_speed_hz = 40000000, //speed your device (slave) can handle
 +        .bus_num = 1,
-+        .chip_select = 3,
++        .chip_select = 0,
 +        .mode = 0,
 +    };
 +     
