@@ -604,6 +604,36 @@ L7_RC_t ptin_evc_init(void)
                    0x10,
                    sizeof(ptinExtEvcIdDataKey_t));
 
+
+#ifdef NGPON2_SUPPORTED
+  /* Extended EVCids AVL tree */
+  memset(&extNGEvcId_avlTree, 0x00, sizeof(ptinExtNGEvcIdAvlTree_t));
+
+  extNGEvcId_avlTree.extNGEvcIdTreeHeap = (avlTreeTables_t *) osapiMalloc(L7_PTIN_COMPONENT_ID, 256*sizeof(avlTreeTables_t));
+  extNGEvcId_avlTree.extNGEvcIdDataHeap = (ptinExtNGEvcIdInfoData_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, 256*sizeof(ptinExtNGEvcIdInfoData_t));
+
+  if ((extNGEvcId_avlTree.extNGEvcIdTreeHeap == L7_NULLPTR) ||
+      (extNGEvcId_avlTree.extNGEvcIdDataHeap == L7_NULLPTR))
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Error allocating data for ExtEvcID AVL Tree\n");
+    return L7_FAILURE;
+  }
+
+  /* Initialize the storage for all the AVL trees */
+  memset (&extNGEvcId_avlTree.extNGEvcIdAvlTree, 0x00, sizeof(avlTree_t));
+  memset ( extNGEvcId_avlTree.extNGEvcIdTreeHeap, 0x00, sizeof(avlTreeTables_t)*256);
+  memset ( extNGEvcId_avlTree.extNGEvcIdDataHeap, 0x00, sizeof(ptinExtNGEvcIdInfoData_t)*256);
+
+  // AVL Tree creations - snoopIpAvlTree
+  avlCreateAvlTree(&(extNGEvcId_avlTree.extNGEvcIdAvlTree),
+                   extNGEvcId_avlTree.extNGEvcIdTreeHeap,
+                   extNGEvcId_avlTree.extNGEvcIdDataHeap,
+                   256,
+                   sizeof(ptinExtNGEvcIdInfoData_t),
+                   0x10,
+                   sizeof(ptinExtNGEvcIdDataKey_t));
+  //
+#endif
   /* Create semaphores */
   ptin_evc_clients_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_evc_clients_sem == L7_NULLPTR)
@@ -8614,6 +8644,124 @@ static L7_RC_t ptin_evc_entry_allocate(L7_uint32 evc_ext_id, L7_uint *evc_id)
   return L7_SUCCESS;
 }
 
+#ifdef NGPON2_SUPPORTED
+/**
+ * Allocates an EVC entry from the pool
+ * 
+ * @author alex (9/18/2013)
+ * 
+ * @param evc_ext_id EVC extended index (input)
+ * @param evc_id     Allocated index (output)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_offline_entry_remove(L7_uint32 evc_ext_id)
+{
+  ptinExtNGEvcIdInfoData_t  *ext_evcId_infoData;
+  ptinExtNGEvcIdDataKey_t   ext_evcId_key;
+
+  /* Key to search for */
+  memset(&ext_evcId_key, 0x00, sizeof(ptinExtNGEvcIdDataKey_t));
+  ext_evcId_key.ext_evcId = evc_ext_id;
+
+  /* Search for this extended id */
+  ext_evcId_infoData = (ptinExtNGEvcIdInfoData_t *) avlSearchLVL7( &(extNGEvcId_avlTree.extNGEvcIdAvlTree), (void *)&ext_evcId_key, AVL_EXACT);
+
+  /* If already in use, removed from the AVL */
+  if (ext_evcId_infoData != L7_NULLPTR)
+  {  
+    avlDeleteEntry(&(extNGEvcId_avlTree.extNGEvcIdAvlTree), (void *)&ext_evcId_key);
+    PT_LOG_TRACE(LOG_CTX_EVC,"Offline EVC removed (ext_evc_id=%u)!",ext_evcId_key.ext_evcId);
+  }
+  
+  return L7_SUCCESS;
+}
+
+
+/**
+ * Allocates an EVC entry from the pool
+ * 
+ * @author alex (9/18/2013)
+ * 
+ * @param evc_ext_id EVC extended index (input)
+ * @param evc_id     Allocated index (output)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_evc_offline_entry_add(ptin_HwEthMef10Evc_t *EvcConf)
+{
+  ptinExtNGEvcIdInfoData_t  *ext_evcId_infoData;
+  ptinExtNGEvcIdDataKey_t   ext_evcId_key;
+
+  /* Key to search for */
+  memset(&ext_evcId_key, 0x00, sizeof(ptinExtNGEvcIdDataKey_t));
+  ext_evcId_key.ext_evcId = EvcConf->index;
+
+  /* Search for this extended id */
+  ext_evcId_infoData = (ptinExtNGEvcIdInfoData_t *) avlSearchLVL7( &(extNGEvcId_avlTree.extNGEvcIdAvlTree), (void *)&ext_evcId_key, AVL_EXACT);
+  /* If already in use, return its (internal) evc_id */
+  if (ext_evcId_infoData != L7_NULLPTR)
+  {
+    if (ext_evcId_infoData->extNGEvcIdDataKey.ext_evcId < PTIN_SYSTEM_N_EXTENDED_EVCS)
+    {
+      /* Nothing to do */
+      return L7_SUCCESS;
+    }
+    /* This node is not valid... delete it */
+    else
+    {
+      PT_LOG_WARN(LOG_CTX_EVC,"Invalid node in AVL TREE eith ext_evc_id = %u", ext_evcId_infoData->extNGEvcIdDataKey.ext_evcId );
+      if (avlDeleteEntry(&(extNGEvcId_avlTree.extNGEvcIdAvlTree), (void *)&ext_evcId_key) == L7_NULLPTR)
+      {
+        return L7_FAILURE;
+      }
+      PT_LOG_WARN(LOG_CTX_EVC,"Cleaned AVL TREE entry");
+    }
+  }
+  /* check if there is free space in AVL TREE */
+  if (extNGEvcId_avlTree.extNGEvcIdAvlTree.count > MAX_NETWORK_SERVICES)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC,"No space in AVL TREE to add one more node");
+    return L7_FAILURE;
+  }
+
+  /* Allocate new node in AVL Tree */
+  if (avlInsertEntry(&(extNGEvcId_avlTree.extNGEvcIdAvlTree), (void *)&ext_evcId_key) != L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_EVC,"No space in AVL TREE to add one more node");
+    return L7_FAILURE;
+  }
+
+  /* Search for the newly created node */
+  ext_evcId_infoData = (ptinExtNGEvcIdInfoData_t *) avlSearchLVL7( &(extNGEvcId_avlTree.extNGEvcIdAvlTree), (void *)&ext_evcId_key, AVL_EXACT);
+
+  /* If already in use, return its (internal) evc_id */
+  if (ext_evcId_infoData == L7_NULLPTR)
+  {
+    PT_LOG_CRITIC(LOG_CTX_EVC,"Something is wrong... new created node, is not found (ext_evc_id=%u)!",ext_evcId_key.ext_evcId);
+    return L7_FAILURE;
+  }
+  /* Fill remaining data into AVL node */
+
+  ext_evcId_infoData->evcNgpon2.evc_type         = EvcConf->evc_type;
+  ext_evcId_infoData->evcNgpon2.flags            = EvcConf->flags;
+  ext_evcId_infoData->evcNgpon2.index            = EvcConf->index;
+  ext_evcId_infoData->evcNgpon2.internal_vlan    = EvcConf->internal_vlan;
+  ext_evcId_infoData->evcNgpon2.n_intf           = EvcConf->n_intf;
+  ext_evcId_infoData->evcNgpon2.n_clientflows    = EvcConf->n_clientflows;
+  ext_evcId_infoData->evcNgpon2.mc_flood         = EvcConf->mc_flood;
+
+  int i;
+
+  for (i=0; i < EvcConf->n_intf ;i++)
+  {
+    memcpy(&ext_evcId_infoData->evcNgpon2.intf[i],&EvcConf->intf[i], sizeof(EvcConf->intf[i]));
+  }
+
+  return L7_SUCCESS;
+}
+
+#endif
 /**
  * Frees EVC pool entry and resets the EVC to the default parameters (empty)
  * 
@@ -13177,3 +13325,36 @@ L7_RC_t test_evc_create(L7_uint evc_id, L7_uint16 int_vlan,
   return L7_SUCCESS;
 }
 
+#ifdef NGPON2_SUPPORTED
+void  remove_all_offlineEvc()
+{
+  ptinExtNGEvcIdInfoData_t  *ext_evcId_infoData;
+  ptinExtNGEvcIdDataKey_t    ext_evcId_key;
+
+  memset(&ext_evcId_key, 0x00, sizeof(ptinExtNGEvcIdDataKey_t));
+  PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# flow");
+  /* Search for this extended id */
+
+  while ( ( ext_evcId_infoData = (ptinExtNGEvcIdInfoData_t *)
+            avlSearchLVL7(&extNGEvcId_avlTree.extNGEvcIdAvlTree, (void *)&ext_evcId_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&ext_evcId_key, &ext_evcId_infoData->extNGEvcIdDataKey , sizeof(ptinExtNGEvcIdDataKey_t));
+
+
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.index);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.n_intf);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.flags);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.intf[0].intf.value.ptin_intf.intf_type);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.intf[0].intf.value.ptin_intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_MSG, " Configuration of NGPON2 services %d of GroupID ", ext_evcId_infoData->evcNgpon2.intf[1].intf.format);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.intf[1].intf.value.ptin_intf.intf_type);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.intf[1].intf.value.ptin_intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_MSG, " Configuration of NGPON2 services %d  GroupID ", ext_evcId_infoData->evcNgpon2.intf[1].intf.format);
+
+    avlDeleteEntry(&(extNGEvcId_avlTree.extNGEvcIdAvlTree), (void *)&ext_evcId_key);
+  }
+
+}
+#endif

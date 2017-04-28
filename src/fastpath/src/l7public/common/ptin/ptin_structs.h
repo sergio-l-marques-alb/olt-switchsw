@@ -1534,7 +1534,7 @@ typedef struct
 /***************************************************************************** 
  * NGPON2 
  *****************************************************************************/
-
+/* Stucture with the physical elements of the NGPON2 group (exchange with manager) */
 typedef struct
 {
     L7_uint8     slot;
@@ -1542,24 +1542,26 @@ typedef struct
     L7_uint8     id; 
 } __attribute__ ((packed))  ptin_NGPON2element_t ;
 
+/* Stucture with the NGPON2 group information*/
 typedef struct
 {
     L7_uint8                   slotId;
     L7_uint32                  mask;          
     L7_uint8                   GroupId;   
-    L7_uint8                   numIntf;   
+    L7_uint8                   numIntf;  
     ptin_NGPON2element_t       NGPON2Port[32];
 } __attribute__ ((packed)) ptin_NGPON2group_t;
 
 #ifdef NGPON2_SUPPORTED
 /* NGPON2 structs *************************************************************/
+/* Stucture NGPON2 group information (internal) */
 typedef struct {
   L7_uint32 groupId;                // GroupID nr. [0..PTIN_SYSTEM_MAX_NGPON2_GROUPS[
   L7_uint8  nports;                 // Number of ports
   L7_uint8  admin;                  // 1 - enable; 0 - disabled                                  
   L7_uint64 ngpon2_groups_pbmp64;   // Ports bitmap
-  L7_uint8  evc_groups_pbmp[(PTIN_SYSTEM_N_EVCS)/sizeof(L7_uint8)-1];
-  L7_uint32 number_services;
+  L7_uint8  evc_groups_pbmp[(PTIN_SYSTEM_N_EVCS)/sizeof(L7_uint8)-1]; //EVC bitmap of the specific group
+  L7_uint32 number_services;        // Number of services of a NGPON2 group
 } ptin_NGPON2_groups_t;
 #endif
 

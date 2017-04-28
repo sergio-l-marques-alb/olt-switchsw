@@ -33,7 +33,8 @@
 
 #define LINKSCAN_MANAGEABLE_BOARD (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
 
-#ifdef NGPON2_SUPPORTED
+#ifdef NGPON2_SUPPORTED 
+/*   */
 static ptin_NGPON2_groups_t NGPON2_groups_info[PTIN_SYSTEM_MAX_NGPON2_GROUPS];
 #endif
 
@@ -8012,12 +8013,10 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
   }
 
   group_idx = group_info->GroupId; // internal index
-
-  PT_LOG_TRACE(LOG_CTX_INTF, "group_info->GroupId %d ",group_idx);
-  PT_LOG_ERR(LOG_CTX_INTF, "group_info->numIntf %d ",group_info->numIntf);
+  PT_LOG_TRACE(LOG_CTX_INTF, "NGPON2 Group ID %d have %d interfaces",group_idx, group_info->numIntf);
 
   /* Add port to NGPON2 port bmp */
-  for(i=0; i < group_info->numIntf; i++)
+  for(i = 0; i < group_info->numIntf; i++)
   { 
     /* check if the group exists */
     if (!ptin_intf_NGPON2_group_exists(group_idx))
@@ -8028,7 +8027,7 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
       {
         new_group = 1;
         NGPON2_groups_info[group_idx].admin = 1; //Enable group
-        PT_LOG_ERR(LOG_CTX_INTF, "Enabling group!");
+        PT_LOG_WARN(LOG_CTX_INTF, "Enabling group!");
       }   
     }
 
@@ -8037,7 +8036,6 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
       /* set portId to the NGPON2 group */
       NGPON2_PORT_ADD(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, (group_info->NGPON2Port[i].id));
       NGPON2_groups_info[group_idx].nports++;
-      PT_LOG_TRACE(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d", NGPON2_groups_info[group_idx].nports);
     }
     /* increment number of ports for this group */  
     PT_LOG_TRACE(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d ", NGPON2_groups_info[group_idx].nports);
@@ -8060,7 +8058,7 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
     }
   }
     
-  for(i=0; i < group_info->numIntf && NGPON2_groups_info[group_idx].admin; i++)
+  for(i = 0; i < group_info->numIntf && NGPON2_groups_info[group_idx].admin; i++)
   {
     PT_LOG_TRACE(LOG_CTX_INTF, "Replicating configuration from port %d to %d !", src_port, group_info->NGPON2Port[i].id);
 
@@ -8116,7 +8114,7 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
   /* check if the group already exists */
   if (!ptin_intf_NGPON2_group_exists(group_idx))
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "NGPON2 Group does not exist!");
+    PT_LOG_ERR(LOG_CTX_INTF, "NGPON2 Group does not exist! %d ",group_idx);
     return L7_FAILURE;
   }
 
@@ -8142,7 +8140,7 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
     PT_LOG_TRACE(LOG_CTX_INTF, "Going to remove configuration from port %d ", group_info->NGPON2Port[i].id);
 
     /* Remove port configurations */
-    if( group_info->NGPON2Port[i].slot == ptin_intf_slot_get(&slot))
+    if(group_info->NGPON2Port[i].slot == ptin_intf_slot_get(&slot))
     {
        remove_conf = 1;
     }
@@ -8213,11 +8211,12 @@ L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
 L7_RC_t set_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_index)
 {
   L7_uint8  groupIndex = group_index ; // internal index
-
   NGPON2_groups_info[groupIndex].number_services = group_info->number_services;
   //NGPON2_groups_info[groupIndex].evc_groups_pbmp = group_info->evc_groups_pbmp;
 
+
   memcpy(NGPON2_groups_info[groupIndex].evc_groups_pbmp, group_info->evc_groups_pbmp, sizeof(NGPON2_groups_info[groupIndex].evc_groups_pbmp));
+
 
   return L7_SUCCESS;
 }

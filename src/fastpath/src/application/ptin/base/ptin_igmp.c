@@ -2205,11 +2205,12 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
   {
     PT_LOG_ERR(LOG_CTX_IGMP,"eEVC ids are not active: [mcEvcId,ucEvcId]=[%u,%u]",McastEvcId,UcastEvcId);
 
-    #ifdef NGPON2_SUPPORTED
+#ifdef NGPON2_SUPPORTED
+    /*Added to isolate the situation where the EVC are not configure (yet) in NGPON2 */
     return L7_DEPENDENCY_NOT_MET;
-    #else
+#else
     return L7_FAILURE;
-    #endif
+#endif
   }
 
   /* Check if there is an instance with these parameters */

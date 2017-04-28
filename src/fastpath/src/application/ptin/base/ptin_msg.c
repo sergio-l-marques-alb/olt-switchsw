@@ -98,21 +98,19 @@ void ptin_force_capture(L7_BOOL force)
   force_capture = force;
 }
 
-
-#if (PTIN_BOARD == PTIN_BOARD_TT04SXG)
-
+#ifdef NGPON2_SUPPORTED
 /*************** NGPON2 ***************/ 
 
 /* MACROS NGPON 2*/
 
 #define NGPON2_EMPTY_ENTRY            0xff
 #define PTIN_SYSTEM_MAX_NGPON2_GROUP  4
-#define PTIN_REPLICATE_EVC            100
- 
+
 #define NGPON2_EVC_ADD(var, n)  ( var |= (0x1 << n))
 #define NGPON2_EVC_REM(var, n)  ( var &= ~(0x1 << n))
 #define NGPON2_BIT_EVC(var)     ( var & 0x1 )
-                               
+   
+/* Stucture to save Mcast client info for NGPON2 configuration replication*/                            
 typedef struct
 {
   L7_uint16 uni_ovid;
@@ -125,6 +123,7 @@ typedef struct
   L7_uint8  admin;
 }ptin_McastClient_info;
 
+/* Stucture to save Package for NGPON2 configuration replication*/                            
 typedef struct
 {
   L7_uint16 uni_ovid;
@@ -137,6 +136,7 @@ typedef struct
   ptin_client_id_t client;
 }ptin_UcastPackage_info;
 
+/* Stucture to Mcast service information for NGPON2 configuration replication*/    
 typedef struct
 {
   L7_uint32            evcId;        // EVC Id
@@ -145,6 +145,7 @@ typedef struct
   L7_uint8             admin;                                                                          
 }ptin_mcast_service_info;
 
+/* Stucture that saves the Mcast and Ucast instance association for NGPON2 configuration replication*/    
 typedef struct 
 {
   L7_uint8  in_use;
@@ -157,29 +158,29 @@ typedef struct
 
 }ptin_IgmpMulticastUnicast;
 
-/* Structs for comutation functions (NGPON2) */
-/*EVC's*/
-static ptin_HwEthMef10Intf_t evcReplicate[PTIN_SYSTEM_N_EVCS]; //PTIN_SYSTEM_N_EXTENDED_EVCS
+/* Statid Structs with NGPON2 EVC, IGMP ,...  group configuration */
+/* EVC Intf save to replication/remove of EVC configuration when a port is added/removed from a NGPON2 group */
+static ptin_HwEthMef10Intf_t evcReplicate[PTIN_SYSTEM_N_EVCS]; 
 
-static ptin_HwEthMef10Evc_t evcNgpon2[PTIN_REPLICATE_EVC];
-/*Clients*/
+//static ptin_HwEthMef10Evc_t evcNgpon2[PTIN_REPLICATE_EVC];
+/* Mcast Clients*/
 static ptin_McastClient_info McastClient_info[PTIN_SYSTEM_N_EVCS];
 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-/*Admission control*/
+/* Admission control*/
 static ptin_igmp_admission_control_t igmpAdmissionControl_info[PTIN_SYSTEM_N_EVCS];
 #endif
 
+/* IGMP instances (Uc and Mc evc association)*/
 static ptin_IgmpMulticastUnicast Mc_Uc_instances[PTIN_SYSTEM_N_IGMP_INSTANCES];
 /* Unicast package */
 static ptin_UcastPackage_info UcastClient_info[PTIN_SYSTEM_N_EVCS];
-
 /* Macbridge package */
 static ptin_evc_macbridge_client_packages_t MacbridgePackage_info[PTIN_SYSTEM_N_EVCS];
-
 /* Multicast service info */
 static ptin_mcast_service_info mcast_service_info[PTIN_SYSTEM_N_EVCS];
 
+/* BW meter and profiles for client services replication in NGPON2 groups*/
 static ptin_bw_profile_t bwProfile[PTIN_SYSTEM_N_EVCS];
 static ptin_bw_meter_t   bwMeter[PTIN_SYSTEM_N_EVCS];
 
@@ -5736,7 +5737,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   L7_uint8 shift_index = 0, ports_ngpon2 = 0, group, ngpon2_groups = 0, j = 0;
   L7_BOOL  ngpon2_ports = L7_FALSE;
   L7_uint8 ngponId[PTIN_SYSTEM_MAX_NGPON2_GROUP];
-  L7_uint8 apply=1;
+  L7_uint8 apply = 1;
 #endif
 
   for (i=0; i < msgEvcConf->evc.n_intf; i++)
@@ -5814,7 +5815,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       else //online group
       {
-        while ( ((j <= NGPON2_GROUP.nports) && (NGPON2_GROUP.nports != 0)) || (apply == 0))
+        while ( ((j <= NGPON2_GROUP.nports) && (NGPON2_GROUP.nports != 0)) || (apply == 0)) /* apply == 0 is to contemplate offline groups that have NGPON2_GROUP.nports == 0*/
         {
           if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1))
           {
@@ -5874,8 +5875,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 #ifdef NGPON2_SUPPORTED
   if (ngpon2_ports == L7_TRUE)
   {
-    PT_LOG_TRACE(LOG_CTX_MSG, "msgEvcConf->evc.n_intf# %u",   msgEvcConf->evc.n_intf);
-    PT_LOG_TRACE(LOG_CTX_MSG, "ports_ngpon2 %u",              ports_ngpon2);
+    PT_LOG_TRACE(LOG_CTX_MSG, "Number of physical interfaces from NGPON groups %u",              ports_ngpon2-1);
 
     if (ports_ngpon2 != 0)
     {
@@ -5913,14 +5913,13 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
         continue;
       }
 
-      /* Save EVC */
-      memcpy(&evcNgpon2[NGPON2_GROUP.number_services], &ptinEvcConf, sizeof(evcNgpon2[NGPON2_GROUP.number_services]));
-      NGPON2_GROUP.number_services++;        
+      /*Add EVC message to the AVL of offline EVC's */
+      ptin_evc_offline_entry_add(&ptinEvcConf);
+      NGPON2_GROUP.number_services++;     
       set_NGPON2_group_info(&NGPON2_GROUP, ngponId[i]);
-      rc = L7_SUCCESS;
-      PT_LOG_TRACE(LOG_CTX_MSG, "Save EVC configuration for EVC %u of NGPON2 group %d",ptinEvcConf.index, ngponId[i]);
-    
+      rc = L7_SUCCESS;    
     }
+     PT_LOG_TRACE(LOG_CTX_MSG, "Save EVC configuration ");
     return L7_SUCCESS;
   }
 #else
@@ -5969,7 +5968,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
             PT_LOG_TRACE(LOG_CTX_MSG, " positions %d ",position);
             PT_LOG_TRACE(LOG_CTX_MSG, " index %d "    ,index);
 
-            memcpy(&evcNgpon2[NGPON2_GROUP.number_services] , &ptinEvcConf, sizeof(evcNgpon2[NGPON2_GROUP.number_services]));
+            PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.evc_groups_pbmp[index] %d ",NGPON2_GROUP.evc_groups_pbmp[index]);
             NGPON2_EVC_ADD(NGPON2_GROUP.evc_groups_pbmp[index], position);          
             PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.evc_groups_pbmp[index] %d ",NGPON2_GROUP.evc_groups_pbmp[index]);
             NGPON2_GROUP.number_services++;
@@ -6129,7 +6128,7 @@ L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
  */
 L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_structs)
 {
-  L7_uint16 i;
+  L7_uint16 i, offline_evc = 0;
   L7_uint32 evc_id;
   L7_RC_t rc_global = L7_SUCCESS;
 
@@ -6153,6 +6152,9 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
     if (ptin_evc_ext2int(ENDIAN_SWAP32(msgEvcConf[i].id), &evc_id) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ENDIAN_SWAP32(msgEvcConf[i].id));
+      offline_evc = 1;
+      PT_LOG_TRACE(LOG_CTX_EVC, "Maybe is a offine EVC %u", ENDIAN_SWAP32(msgEvcConf[i].id));
+         
     }  
 
     /* Remove EVC */
@@ -6166,34 +6168,44 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
     {
 #ifdef NGPON2_SUPPORTED
       ptin_NGPON2_groups_t NGPON2_GROUP;
-  
-      if (evcReplicate[evc_id].ngpon2_bmp != 0)
+
+      if (offline_evc != 1) /* If is a online EVC */
       {
-        L7_uint32 bmp_val = 0;
-
-        while(bmp_val < PTIN_SYSTEM_MAX_NGPON2_GROUP)
+        /* Update NGPON2 stuctures */
+        if (evcReplicate[evc_id].ngpon2_bmp != 0)
         {
-          if(( (evcReplicate[evc_id].ngpon2_bmp >> bmp_val) & 0x1))
+          L7_uint32 ngpon_id = 0;
+
+          while(ngpon_id < PTIN_SYSTEM_MAX_NGPON2_GROUP)
           {
-            NGPON2_EVC_REM(evcReplicate[evc_id].ngpon2_bmp, bmp_val);
-            L7_uint8 position = evc_id % sizeof(position);
-            L7_uint8 index    = evc_id / sizeof(index);
+            if(( (evcReplicate[evc_id].ngpon2_bmp >> ngpon_id) & 0x1))
+            {
+              NGPON2_EVC_REM(evcReplicate[evc_id].ngpon2_bmp, ngpon_id);
+              L7_uint8 position = evc_id % sizeof(position);
+              L7_uint8 index    = evc_id / sizeof(index);
 
-            NGPON2_EVC_REM(evcReplicate[evc_id].ngpon2_bmp, bmp_val);  
-            get_NGPON2_group_info(&NGPON2_GROUP, bmp_val);
-            /*teste*/
+              NGPON2_EVC_REM(evcReplicate[evc_id].ngpon2_bmp, ngpon_id);  
+              get_NGPON2_group_info(&NGPON2_GROUP, ngpon_id);
+              /*teste*/
 
-            PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
-            NGPON2_EVC_REM(NGPON2_GROUP.evc_groups_pbmp[index], position);
-            NGPON2_GROUP.number_services--;
+              NGPON2_EVC_REM(NGPON2_GROUP.evc_groups_pbmp[index], position);
 
-            memset(&evcReplicate[evc_id], 0x00, sizeof(evcReplicate[evc_id]));
-            set_NGPON2_group_info(&NGPON2_GROUP, bmp_val);
-                            
+              NGPON2_GROUP.number_services--;
+              PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2 ID %d has now services %d ",ngpon_id ,NGPON2_GROUP.number_services);
+
+              memset(&evcReplicate[evc_id], 0x00, sizeof(evcReplicate[evc_id]));
+              set_NGPON2_group_info(&NGPON2_GROUP, ngpon_id);
+                              
+            }
+            ngpon_id++;
           }
-          bmp_val++;
         }
       }
+
+      /* Remove EVC from offline evc's AVL */
+      L7_uint32 ext_evc = ENDIAN_SWAP32(msgEvcConf[i].id);
+      ptin_evc_offline_entry_remove(ext_evc);
+
 #endif /*NGPON2_SUPPORTED*/
     }
 
@@ -6247,7 +6259,6 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
     if (msgEvcPort[i].intf.intf_type == PTIN_EVC_INTF_NGPON2)
     {
       // NGPON2
-
       get_NGPON2_group_info(&NGPON2_GROUP, msgEvcPort[i].intf.intf_id);
 
       while (j < NGPON2_GROUP.nports)
@@ -10308,7 +10319,7 @@ L7_RC_t ptin_msg_igmp_instance_add(msg_IgmpMultcastUnicastLink_t *msgIgmpInst)
   /* Apply config */
   rc = ptin_igmp_instance_add(msgIgmpInst->multicastEvcId, msgIgmpInst->unicastEvcId);
 
-  #ifdef NGPON2_SUPPORTED
+#ifdef NGPON2_SUPPORTED
   L7_uint8 i = 0;
   if (rc != L7_SUCCESS && rc != L7_DEPENDENCY_NOT_MET)
   {
@@ -10317,9 +10328,10 @@ L7_RC_t ptin_msg_igmp_instance_add(msg_IgmpMultcastUnicastLink_t *msgIgmpInst)
   }
   else if (rc == L7_DEPENDENCY_NOT_MET)
   {
+    /*for NGPON when the EVC are not active yet, save the configurations*/
     for(i=0 ; i < PTIN_SYSTEM_N_IGMP_INSTANCES; i++)
     {
-      if (Mc_Uc_instances[i].in_use == 0)
+      if (Mc_Uc_instances[i].in_use == L7_DISABLE)
       {
         Mc_Uc_instances[i].in_use          = 1;
         Mc_Uc_instances[i].multicastEvcId  = msgIgmpInst->multicastEvcId;
@@ -10328,13 +10340,13 @@ L7_RC_t ptin_msg_igmp_instance_add(msg_IgmpMultcastUnicastLink_t *msgIgmpInst)
       } 
     }
   }
-  #else
+#else
   if (rc!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error creating/updating IGMP instance");
     return rc;
   }
-  #endif
+#endif
 
   return L7_SUCCESS;
 }
@@ -10376,11 +10388,12 @@ L7_RC_t ptin_msg_igmp_instance_remove(msg_IgmpMultcastUnicastLink_t *msgIgmpInst
   }
   else if (rc == L7_NO_VALUE)
   {
+    /*for NGPON when the EVC are not active yet, remove the configurations for offline db*/
     for(i=0; i < PTIN_SYSTEM_N_IGMP_INSTANCES; i++)
     {
-      if (Mc_Uc_instances[i].in_use  == 1   &&     
+      if (Mc_Uc_instances[i].unicastEvcId   == msgIgmpInst->unicastEvcId   &&              
           Mc_Uc_instances[i].multicastEvcId == msgIgmpInst->multicastEvcId &&
-          Mc_Uc_instances[i].unicastEvcId   == msgIgmpInst->unicastEvcId)
+          Mc_Uc_instances[i].in_use  == L7_ENABLE)
       {
         Mc_Uc_instances[i].in_use          =  0;
         Mc_Uc_instances[i].multicastEvcId  =  0;
@@ -18379,7 +18392,7 @@ L7_RC_t ptin_msg_switch_temperature_get(msg_ptin_temperature_monitor_t *msg)
 
 /**************** test functions ****************/
 
-#if (PTIN_BOARD == PTIN_BOARD_TT04SXG )
+#ifdef NGPON2_SUPPORTED
 
 /**
  * ADD or REMOVE evc port without a message
@@ -18581,56 +18594,73 @@ L7_RC_t ptin_msg_replicate_ngpon2_configuration(L7_uint32 ngpon2_id)
 {
 #ifdef NGPON2_SUPPORTED
 
-  L7_int32 iteration = 0, shift_index, ports_ngpon2 = 0, j, index_port, i;
+  L7_int32 iteration = 0, shift_index, ports_ngpon2 = 0, j, index_port = 0, i, apply = 1;
   ptin_NGPON2_groups_t NGPON2_GROUP;
-  
+  ptinExtNGEvcIdInfoData_t  *ext_evcId_infoData;
+  ptinExtNGEvcIdDataKey_t    ext_evcId_key;
+  ptin_HwEthMef10Evc_t       ngpon_config;
 
-  PT_LOG_ERR(LOG_CTX_MSG, "NGPON_Id = %d ", ngpon2_id);
   /* Get NGPON2 group information*/
   get_NGPON2_group_info(&NGPON2_GROUP, ngpon2_id);
 
-  PT_LOG_TRACE(LOG_CTX_MSG, " Configuration of NGPON2 services %d of GroupID %d ", NGPON2_GROUP.number_services, ngpon2_id);
+  PT_LOG_NOTICE(LOG_CTX_MSG, " Configuration of %d NGPON2 services of GroupID %d ", NGPON2_GROUP.number_services, ngpon2_id);
 
-  for(iteration = 0; iteration < NGPON2_GROUP.number_services; iteration++) // Replicate all network services of the NGPON Group
+  memset(&ext_evcId_key, 0x00, sizeof(ptinExtNGEvcIdDataKey_t));
+
+  /* Search for this extended id */
+  while ( ( ext_evcId_infoData = (ptinExtNGEvcIdInfoData_t *)
+            avlSearchLVL7(&extNGEvcId_avlTree.extNGEvcIdAvlTree, (void *)&ext_evcId_key, AVL_NEXT)
+          ) != L7_NULLPTR )
   {
-    ptin_HwEthMef10Evc_t ngpon_config;
+    index_port = 0; ports_ngpon2 = 0; apply = 1;
 
-    PT_LOG_TRACE(LOG_CTX_MSG, " evcNgpon2[iteration].n_intf %d ", evcNgpon2[iteration].n_intf);
+    memcpy(&ext_evcId_key, &ext_evcId_infoData->extNGEvcIdDataKey , sizeof(ptinExtNGEvcIdDataKey_t));
+    PT_LOG_TRACE(LOG_CTX_MSG, " NGPON Group id %d has %d interfaces", ngpon2_id, ext_evcId_infoData->evcNgpon2.n_intf);
 
-    index_port = 0; ports_ngpon2 = 0;
-
-    for(i = 0; i < evcNgpon2[iteration].n_intf; i++) // Check all the interfaces (expand NGPON2 interfaces)
+    for (i = 0; i < ext_evcId_infoData->evcNgpon2.n_intf; i++) // Check all the interfaces (expand NGPON2 interfaces)
     {
-      shift_index = 0;  j = 0;
+      shift_index = 0;  j = 0; 
 
-      if (evcNgpon2[iteration].intf[i].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_NGPON2)
+      PT_LOG_TRACE(LOG_CTX_MSG, " Intf id %d ", ext_evcId_infoData->evcNgpon2.intf[i].intf.value.ptin_intf.intf_id);
+      PT_LOG_TRACE(LOG_CTX_MSG, " Type    %d ", ext_evcId_infoData->evcNgpon2.intf[i].intf.value.ptin_intf.intf_type);
+      PT_LOG_TRACE(LOG_CTX_MSG, " Format  %d ", ext_evcId_infoData->evcNgpon2.intf[i].intf.format);
+
+      if (ext_evcId_infoData->evcNgpon2.intf[i].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_NGPON2)         
       {
+
+        /* If this EVC is not for this NGPON group advance to other service */
+        if(ext_evcId_infoData->evcNgpon2.intf[i].intf.value.ptin_intf.intf_id != ngpon2_id)
+        {
+          apply = 0;
+          break;
+        }
+
         while ( (j <= NGPON2_GROUP.nports) && (NGPON2_GROUP.nports != 0)) // break the cycle when all the NGPON2 interfaces are found
         {
           if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1))
           {
-            ngpon_config.index                                      = evcNgpon2[iteration].index;
-            ngpon_config.flags                                      = evcNgpon2[iteration].flags;
-            ngpon_config.type                                       = evcNgpon2[iteration].type;
-            ngpon_config.evc_type                                   = evcNgpon2[iteration].evc_type; 
-            ngpon_config.mc_flood                                   = evcNgpon2[iteration].mc_flood;                                   
-            ngpon_config.internal_vlan                              = evcNgpon2[iteration].internal_vlan; 
-            ngpon_config.n_clientflows                              = evcNgpon2[iteration].n_clientflows;
-            ngpon_config.n_intf                                     = evcNgpon2[iteration].n_intf;
+            ngpon_config.index                                      = ext_evcId_infoData->evcNgpon2.index;
+            ngpon_config.flags                                      = ext_evcId_infoData->evcNgpon2.flags;
+            ngpon_config.type                                       = ext_evcId_infoData->evcNgpon2.type;
+            ngpon_config.evc_type                                   = ext_evcId_infoData->evcNgpon2.evc_type; 
+            ngpon_config.mc_flood                                   = ext_evcId_infoData->evcNgpon2.mc_flood;                                   
+            ngpon_config.internal_vlan                              = ext_evcId_infoData->evcNgpon2.internal_vlan; 
+            ngpon_config.n_clientflows                              = ext_evcId_infoData->evcNgpon2.n_clientflows;
+            ngpon_config.n_intf                                     = ext_evcId_infoData->evcNgpon2.n_intf;
             ngpon_config.intf[index_port].intf.format               = PTIN_INTF_FORMAT_TYPEID;
             ngpon_config.intf[index_port].intf.value.ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
             ngpon_config.intf[index_port].intf.value.ptin_intf.intf_id   = shift_index;
 
-            ngpon_config.intf[index_port].mef_type     = evcNgpon2[iteration].intf[i].mef_type;
-            ngpon_config.intf[index_port].vid          = evcNgpon2[iteration].intf[i].vid;
-            ngpon_config.intf[index_port].vid_inner    = evcNgpon2[iteration].intf[i].vid_inner;
+            ngpon_config.intf[index_port].mef_type     = ext_evcId_infoData->evcNgpon2.intf[i].mef_type;
+            ngpon_config.intf[index_port].vid          = ext_evcId_infoData->evcNgpon2.intf[i].vid;
+            ngpon_config.intf[index_port].vid_inner    = ext_evcId_infoData->evcNgpon2.intf[i].vid_inner;
             ngpon_config.intf[index_port].action_outer = PTIN_XLATE_ACTION_REPLACE;
             ngpon_config.intf[index_port].action_inner = PTIN_XLATE_ACTION_NONE;
 
-            PT_LOG_DEBUG(LOG_CTX_MSG, "   %s %02u %s VID=%04u/%-04u", "PHY",
-                 evcNgpon2[iteration].intf[i].intf.value.ptin_intf.intf_id,
-                 evcNgpon2[iteration].intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
-                 evcNgpon2[iteration].intf[i].vid, evcNgpon2[iteration].intf[i].vid_inner);
+            PT_LOG_DEBUG(LOG_CTX_MSG, "           %s %02u %s VID=%04u/%-04u", "PHY",
+                         ext_evcId_infoData->evcNgpon2.intf[i].intf.value.ptin_intf.intf_id,
+                         ext_evcId_infoData->evcNgpon2.intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
+                         ext_evcId_infoData->evcNgpon2.intf[i].vid, ext_evcId_infoData->evcNgpon2.intf[i].vid_inner);
 
             ports_ngpon2++;
             index_port++;
@@ -18638,67 +18668,73 @@ L7_RC_t ptin_msg_replicate_ngpon2_configuration(L7_uint32 ngpon2_id)
           }
           shift_index++;
 
-         if(shift_index == 64) //bit map max value
-         {
-           break;
-         }
-       }
+          if (shift_index == 64) //bit map max value
+          {
+            break;
+          }
+        }
       }
       else
       {
-          ngpon_config.index                                      = evcNgpon2[iteration].index;
-          ngpon_config.flags                                      = evcNgpon2[iteration].flags;
-          ngpon_config.type                                       = evcNgpon2[iteration].type;
-          ngpon_config.evc_type                                   = evcNgpon2[iteration].evc_type; 
-          ngpon_config.mc_flood                                   = evcNgpon2[iteration].mc_flood;                                   
-          ngpon_config.internal_vlan                              = evcNgpon2[iteration].internal_vlan; 
-          ngpon_config.n_clientflows                              = evcNgpon2[iteration].n_clientflows;
-          ngpon_config.n_intf                                     = evcNgpon2[iteration].n_intf;
-          ngpon_config.intf[index_port].intf.format               = evcNgpon2[iteration].intf[i].intf.format;
-          ngpon_config.intf[index_port].intf.value.ptin_intf.intf_type = evcNgpon2[iteration].intf[i].intf.value.ptin_intf.intf_type;
-          ngpon_config.intf[index_port].intf.value.ptin_intf.intf_id   = evcNgpon2[iteration].intf[i].intf.value.ptin_intf.intf_id;
 
-          ngpon_config.intf[index_port].mef_type     = evcNgpon2[iteration].intf[i].mef_type;
-          ngpon_config.intf[index_port].vid          = evcNgpon2[iteration].intf[i].vid;
-          ngpon_config.intf[index_port].vid_inner    = evcNgpon2[iteration].intf[i].vid_inner;
-          ngpon_config.intf[index_port].action_outer = PTIN_XLATE_ACTION_REPLACE;
-          ngpon_config.intf[index_port].action_inner = PTIN_XLATE_ACTION_NONE;
+        PT_LOG_TRACE(LOG_CTX_MSG, " Intf id %d ", ext_evcId_infoData->evcNgpon2.intf[i].intf.value.ptin_intf.intf_id);
+        PT_LOG_TRACE(LOG_CTX_MSG, " Type    %d ", ext_evcId_infoData->evcNgpon2.intf[i].intf.value.ptin_intf.intf_type);
+        PT_LOG_TRACE(LOG_CTX_MSG, " Format  %d ", ext_evcId_infoData->evcNgpon2.intf[i].intf.format);
 
-          PT_LOG_DEBUG(LOG_CTX_MSG, "   %s %02u %s VID=%04u/%-04u", "PHY",
-                 evcNgpon2[iteration].intf[i].intf.value.ptin_intf.intf_id,
-                 evcNgpon2[iteration].intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
-                 evcNgpon2[iteration].intf[i].vid, evcNgpon2[iteration].intf[i].vid_inner);
+        ngpon_config.index                                      = ext_evcId_infoData->evcNgpon2.index;
+        ngpon_config.flags                                      = ext_evcId_infoData->evcNgpon2.flags;
+        ngpon_config.type                                       = ext_evcId_infoData->evcNgpon2.type;
+        ngpon_config.evc_type                                   = ext_evcId_infoData->evcNgpon2.evc_type; 
+        ngpon_config.mc_flood                                   = ext_evcId_infoData->evcNgpon2.mc_flood;                                   
+        ngpon_config.internal_vlan                              = ext_evcId_infoData->evcNgpon2.internal_vlan; 
+        ngpon_config.n_clientflows                              = ext_evcId_infoData->evcNgpon2.n_clientflows;
+        ngpon_config.n_intf                                     = ext_evcId_infoData->evcNgpon2.n_intf;
+        ngpon_config.intf[index_port].intf.format               = PTIN_INTF_FORMAT_TYPEID;
+        ngpon_config.intf[index_port].intf.value.ptin_intf.intf_type = ext_evcId_infoData->evcNgpon2.intf[i].intf.value.ptin_intf.intf_type;
+        ngpon_config.intf[index_port].intf.value.ptin_intf.intf_id   = ext_evcId_infoData->evcNgpon2.intf[i].intf.value.ptin_intf.intf_id;
 
-          index_port++;
-       }    
+        ngpon_config.intf[index_port].mef_type     = ext_evcId_infoData->evcNgpon2.intf[i].mef_type;
+        ngpon_config.intf[index_port].vid          = ext_evcId_infoData->evcNgpon2.intf[i].vid;
+        ngpon_config.intf[index_port].vid_inner    = ext_evcId_infoData->evcNgpon2.intf[i].vid_inner;
+        ngpon_config.intf[index_port].action_outer = PTIN_XLATE_ACTION_REPLACE;
+        ngpon_config.intf[index_port].action_inner = PTIN_XLATE_ACTION_NONE;
+
+        PT_LOG_DEBUG(LOG_CTX_MSG, "   %s %02u %s VID=%04u/%-04u", "PHY",
+                     ext_evcId_infoData->evcNgpon2.intf[i].intf.value.ptin_intf.intf_id,
+                     ext_evcId_infoData->evcNgpon2.intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
+                     ext_evcId_infoData->evcNgpon2.intf[i].vid, ext_evcId_infoData->evcNgpon2.intf[i].vid_inner);
+
+        index_port++;
+      }    
     }
 
-    PT_LOG_TRACE(LOG_CTX_MSG, " index_port  %d ", index_port);
-    ngpon_config.n_intf   = evcNgpon2[iteration].n_intf + (ports_ngpon2-1); 
-    PT_LOG_TRACE(LOG_CTX_MSG, " ngpon_config.n_intf  %d ", ngpon_config.n_intf);
+    PT_LOG_TRACE(LOG_CTX_MSG, " Index_port  %d ", index_port);
+    ngpon_config.n_intf   = ext_evcId_infoData->evcNgpon2.n_intf + (ports_ngpon2-1); 
+    PT_LOG_DEBUG(LOG_CTX_MSG, " Total number of interfaces of evc %d is %d ", ngpon_config.index, ngpon_config.n_intf);
 
-    /* Add port to EVC */
-    if ( ptin_evc_create(&ngpon_config) != L7_SUCCESS)
+    if(apply)
     {
-      PT_LOG_ERR(LOG_CTX_EVC,"Error adding port to EVC");
-      return L7_FAILURE;
+      /* Add port to EVC */
+      if ( ptin_evc_create(&ngpon_config) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC,"Error adding port to EVC");
+        //return L7_FAILURE;  //continue to next EVC
+      }
+      iteration++;
+    }
+    else
+    {
+      continue;
     }
 
-    /* Update NGPON2 structures and bitmap*/
     L7_uint32 evc_id;
-    L7_uint8 position = evc_id % sizeof(position);
-    L7_uint8 index    = evc_id / sizeof(index);
-
-    PT_LOG_TRACE(LOG_CTX_MSG, " positions %d ",position);
-    PT_LOG_TRACE(LOG_CTX_MSG, " index %d "    ,index);
 
     if (ptin_evc_ext2int(ngpon_config.index, &evc_id) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_EVC,"Error converting EVC");
     }
 
-    PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u ", ngpon_config.index);
-    PT_LOG_TRACE(LOG_CTX_EVC, "EVC#  %u ", evc_id);
+    PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u - EVC#  %u", ngpon_config.index, evc_id);
 
     evcReplicate[evc_id].evcId         = ngpon_config.index;
     evcReplicate[evc_id].intf.format   = PTIN_INTF_FORMAT_TYPEID;
@@ -18708,15 +18744,20 @@ L7_RC_t ptin_msg_replicate_ngpon2_configuration(L7_uint32 ngpon2_id)
     evcReplicate[evc_id].vid           = ngpon_config.intf->vid;
     evcReplicate[evc_id].mef_type      = ngpon_config.intf->mef_type;
     NGPON2_EVC_ADD(evcReplicate[evc_id].ngpon2_bmp, ngpon2_id);    
-        
-    memcpy(&evcNgpon2[NGPON2_GROUP.number_services] , &ngpon_config, sizeof(evcNgpon2[NGPON2_GROUP.number_services]));
+
+    //memcpy(&evcNgpon2[NGPON2_GROUP.number_services] , &ngpon_config, sizeof(evcNgpon2[NGPON2_GROUP.number_services]));
     PT_LOG_TRACE(LOG_CTX_MSG, " Group ID %d ", ngpon2_id);
     PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services    %d ",NGPON2_GROUP.number_services);
 
+    L7_uint8 position = evc_id % sizeof(position);
+    L7_uint8 index    = evc_id / sizeof(index);
+
     NGPON2_EVC_ADD(NGPON2_GROUP.evc_groups_pbmp[index], position);     
     set_NGPON2_group_info(&NGPON2_GROUP, ngpon2_id); 
+
   }
 
+  /* Configure the IGMP instances*/
   for(i=0 ; i < PTIN_SYSTEM_N_IGMP_INSTANCES; i++)
   {
     if (Mc_Uc_instances[i].in_use == 1)
@@ -18879,7 +18920,7 @@ L7_RC_t ptin_msg_NGPON2_clear()
 #ifdef NGPON2_SUPPORTED
 
   memset(&evcReplicate,     0x00 ,sizeof(&evcReplicate));
-  memset(&evcNgpon2,        0x00 ,sizeof(evcNgpon2));
+  //memset(&evcNgpon2,        0x00 ,sizeof(evcNgpon2));
   memset(&McastClient_info, 0x00 ,sizeof(McastClient_info));
 
   #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
@@ -19136,4 +19177,32 @@ void ptin_msg_igmp_multicast_service_add_or_remove(L7_uint32 evcId, L7_uint32 po
   }
 }
 #endif
+#endif
+
+#if 0
+void teste_ngpon()
+{
+
+  ptinExtNGEvcIdInfoData_t  *ext_evcId_infoData;
+  ptinExtNGEvcIdDataKey_t    ext_evcId_key;
+
+  PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# flow");
+  /* Search for this extended id */
+  while ( ( ext_evcId_infoData = (ptinExtNGEvcIdInfoData_t *)
+            avlSearchLVL7(&extNGEvcId_avlTree.extNGEvcIdAvlTree, (void *)&ext_evcId_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.index);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.n_intf);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.flags);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.intf[0].intf.value.ptin_intf.intf_type);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.intf[0].intf.value.ptin_intf.intf_id);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.intf[1].intf.value.ptin_intf.intf_type);
+    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.intf[1].intf.value.ptin_intf.intf_id);
+
+  }
+
+
+}
 #endif

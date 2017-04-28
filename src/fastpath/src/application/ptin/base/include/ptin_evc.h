@@ -13,6 +13,39 @@
 
 #include "ptin_include.h"
 
+/**********************************************************
+ * AVL TREE with Ext "offline" EvcId from NGPON2 groups
+ **********************************************************/
+/**********************************************************
+ * Internal functions
+ **********************************************************/
+
+#ifdef NGPON2_SUPPORTED
+
+#define MAX_NETWORK_SERVICES 256
+/* Extended EvcId key */
+typedef struct
+{
+  L7_uint32 ext_evcId;
+} ptinExtNGEvcIdDataKey_t;
+
+/* Extended EvcId Tree node */
+typedef struct ptinExtNGEvcIdInfoData_s
+{
+  ptinExtNGEvcIdDataKey_t extNGEvcIdDataKey;
+  ptin_HwEthMef10Evc_t    evcNgpon2;
+  void *next;
+} ptinExtNGEvcIdInfoData_t;
+
+typedef struct {
+  avlTree_t                 extNGEvcIdAvlTree;
+  avlTreeTables_t           *extNGEvcIdTreeHeap;
+  ptinExtNGEvcIdInfoData_t  *extNGEvcIdDataHeap;
+} ptinExtNGEvcIdAvlTree_t;
+
+ptinExtNGEvcIdAvlTree_t extNGEvcId_avlTree;
+
+#endif
 /**
  * Initializes EVCs data structures
  * 
@@ -63,6 +96,7 @@ extern L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf);
  */
 extern L7_RC_t ptin_evc_port_add(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf);
 
+
 /**
  * Remove port from an EVC
  *  
@@ -72,7 +106,17 @@ extern L7_RC_t ptin_evc_port_add(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *ev
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern L7_RC_t ptin_evc_port_remove(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_intf);
-
+/**
+ * Allocates an EVC entry from the pool
+ * 
+ * @author alex (9/18/2013)
+ * 
+ * @param evc_ext_id EVC extended index (input)
+ * @param evc_id     Allocated index (output)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_offline_entry_add(ptin_HwEthMef10Evc_t *EvcConf);
 /**
  * EVC options reconfiguration
  * 
@@ -93,6 +137,18 @@ extern L7_RC_t ptin_evc_config(L7_uint32 evc_ext_id, ptin_HwEthMef10EvcOptions_t
  */
 extern L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id);
 
+
+/**
+ * Allocates an EVC entry from the pool
+ * 
+ * @author alex (9/18/2013)
+ * 
+ * @param evc_ext_id EVC extended index (input)
+ * @param evc_id     Allocated index (output)
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_evc_offline_entry_remove(L7_uint32 evc_ext_id);
 /**
  * Destroys all EVCs (except INBAND!)
  * 
