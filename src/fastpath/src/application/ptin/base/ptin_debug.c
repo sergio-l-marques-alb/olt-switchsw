@@ -265,6 +265,13 @@ void ptin_debug(void)
   printf("  cpld_spi_write_debug <addr> <value>                             - Write CPLD register using SPI\r\n");
   printf("  set_debug_APS_CCM_pktTimer <0/1>                                - (De)activate rx APS/CCM packets' timing measurements");
 #endif
+
+#ifdef NGPON2_SUPPORTED 
+  printf("  ptin_intf_NGPON2_groups_dump                                    - Dump all NGPON2 groups \r\n");
+  printf("  remove_all_offlineEvc                                           - Remove all the offline EVC's \r\n");
+  printf("  dump_all_offlineEvc                                             - Dump all the offline EVC's \r\n");
+#endif
+
   printf("\r\n");
   printf("  logger_help                                                     - displays logger help\r\n");
   printf("  logger_sev_set   <ctx_mask> <severity>                          - use logger_help for more info\r\n");

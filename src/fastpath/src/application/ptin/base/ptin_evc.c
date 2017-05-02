@@ -358,9 +358,6 @@ typedef struct {
 
 ptinExtEvcIdAvlTree_t extEvcId_avlTree;
 
-/**********************************************************
- * Internal functions
- **********************************************************/
 
 /* DriveShell functions */
 L7_RC_t ptin_evc_allclientsflows_remove( L7_uint evc_id );                                                    /* Used by ptin_evc_delete */
@@ -13342,19 +13339,53 @@ void  remove_all_offlineEvc()
     /* Prepare next key */
     memcpy(&ext_evcId_key, &ext_evcId_infoData->extNGEvcIdDataKey , sizeof(ptinExtNGEvcIdDataKey_t));
 
-
-    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.index);
-    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.n_intf);
-    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.flags);
-    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.intf[0].intf.value.ptin_intf.intf_type);
-    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.intf[0].intf.value.ptin_intf.intf_id);
-    PT_LOG_ERR(LOG_CTX_MSG, " Configuration of NGPON2 services %d of GroupID ", ext_evcId_infoData->evcNgpon2.intf[1].intf.format);
-    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.intf[1].intf.value.ptin_intf.intf_type);
-    PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.intf[1].intf.value.ptin_intf.intf_id);
-    PT_LOG_ERR(LOG_CTX_MSG, " Configuration of NGPON2 services %d  GroupID ", ext_evcId_infoData->evcNgpon2.intf[1].intf.format);
-
+    PT_LOG_TRACE(LOG_CTX_MSG, "Removing EVC# %u flow", ext_evcId_infoData->evcNgpon2.index);
     avlDeleteEntry(&(extNGEvcId_avlTree.extNGEvcIdAvlTree), (void *)&ext_evcId_key);
   }
 
 }
+
+
+void  dump_all_offlineEvc()
+{
+  ptinExtNGEvcIdInfoData_t  *ext_evcId_infoData;
+  ptinExtNGEvcIdDataKey_t    ext_evcId_key;
+
+  L7_uint32 i;
+
+  memset(&ext_evcId_key, 0x00, sizeof(ptinExtNGEvcIdDataKey_t));
+  PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# flow");
+  /* Search for this extended id */
+
+  while ( ( ext_evcId_infoData = (ptinExtNGEvcIdInfoData_t *)
+            avlSearchLVL7(&extNGEvcId_avlTree.extNGEvcIdAvlTree, (void *)&ext_evcId_key, AVL_NEXT)
+          ) != L7_NULLPTR )
+  {
+    /* Prepare next key */
+    memcpy(&ext_evcId_key, &ext_evcId_infoData->extNGEvcIdDataKey , sizeof(ptinExtNGEvcIdDataKey_t));
+
+    printf("EVC# %u ", ext_evcId_infoData->evcNgpon2.index);
+    printf("Nº interfaces %u ", ext_evcId_infoData->evcNgpon2.n_intf);
+    printf("Flags %u ", ext_evcId_infoData->evcNgpon2.flags);
+
+    for (i=0 ; i<ext_evcId_infoData->evcNgpon2.n_intf; i++)
+    {
+      printf("Intf type %d ", ext_evcId_infoData->evcNgpon2.intf[0].intf.value.ptin_intf.intf_type);
+      printf("Intf id %d", ext_evcId_infoData->evcNgpon2.intf[0].intf.value.ptin_intf.intf_id);
+      printf("Intf format %d", ext_evcId_infoData->evcNgpon2.intf[1].intf.format);
+    }
+  }
+
+}
 #endif
+
+
+
+
+
+
+
+
+
+
+    
