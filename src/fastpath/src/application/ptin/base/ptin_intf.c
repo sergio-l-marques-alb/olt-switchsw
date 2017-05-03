@@ -7010,6 +7010,9 @@ L7_BOOL ptin_intf_los_get(L7_uint32 ptin_port)
 
   #if (PTIN_BOARD_IS_STANDALONE)
   los = pfw_shm->intf[ptin_port].port_state & 1;
+  #elif (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+  //los = ptin_intf_link_get(ptin_port)? 0: 1;
+  return ptin_intf_link_get(ptin_port)? L7_FALSE: L7_TRUE;
   #endif
 
   return los;
