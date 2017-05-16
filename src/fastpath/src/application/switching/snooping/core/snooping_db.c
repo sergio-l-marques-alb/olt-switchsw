@@ -2871,7 +2871,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
               return L7_FAILURE;
             }
                    
-            if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+            if (ptin_evc_l3_intf_get(iptv_evc_id, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
             {
               PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
               return L7_FAILURE;
@@ -3032,7 +3032,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
           return L7_FAILURE;
         }
                
-        if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+        if (ptin_evc_l3_intf_get(iptv_evc_id, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
           return L7_FAILURE;
@@ -3487,7 +3487,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
         {
           intf += PTIN_SNOOP_PORT_MASK_UNIT;
           intf -= intf%PTIN_SNOOP_PORT_MASK_UNIT;
-          intf -= 1;
+          intf -= 1; 
           continue;
         }
 
@@ -3507,7 +3507,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
             return L7_FAILURE;
           }
                  
-          if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+          if (ptin_evc_l3_intf_get(iptv_evc_id, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
           {
             PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
             return L7_FAILURE;
@@ -3532,7 +3532,10 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
           #endif
           
           if (++pChannelIntfMask->noOfInterfaces >= pChannelEntry->noOfInterfaces)
+          {
+            PT_LOG_ERR(LOG_CTX_IGMP, "Failed to add L2 Egress intIfNum:%u to multicastGroup:0x%08x (rc%u)", intf, multicast_group, rc);
             break;              
+          }
         }
       }
       if ( pChannelIntfMask->noOfInterfaces != pChannelEntry->noOfInterfaces )
@@ -3553,7 +3556,9 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
         PT_LOG_ERR(LOG_CTX_IGMP, "Failed to get UcastEvcId");
         return L7_FAILURE;
       }
-             
+           
+      PT_LOG_TRACE(LOG_CTX_IGMP, "iptv_evc_id %d", iptv_evc_id);
+        
       if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
       {
         PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
@@ -3626,7 +3631,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
       PT_LOG_ERR(LOG_CTX_IGMP, "Failed to Update Channel on the HW IPMC Table [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x rc:%u noOfEntriesFW:%u]", serviceId, vlanId, intIfNum, 
             inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), sourceAddrStr, dtl_ipmc.group_index, rc, pSnoopEB->snoopChannelAvlTree.count);      
       //Do not abort here the operation!
-  //  return rc;
+     //  return rc;
     }
     rc = L7_SUCCESS;
   }
@@ -3661,7 +3666,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
           return L7_FAILURE;
         }
                
-        if (ptin_evc_l3_intf_get(iptv_evc_id, intIfNum, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
+        if (ptin_evc_l3_intf_get(iptv_evc_id, intf, &l3_intf_id) != L7_SUCCESS || l3_intf_id < 0)
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain l3 intf for EvcId:%u l3_intf_id:%d", iptv_evc_id, l3_intf_id);      
           return L7_FAILURE;
@@ -3672,7 +3677,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
         /*Remove L3 Egress Port of this Multicast Group*/
         rc = ptin_multicast_l3_egress_port_remove(intf, pChannelEntry->pChannelIntfMask->multicastGroup,  l3_intf_id);
 
-        if ( rc != L7_SUCCESS )
+        if (rc != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_IGMP, "Failed to remove egress portId:%d to multicastGroup:0x%08x (rc%u)", l3_intf_id, pChannelEntry->pChannelIntfMask->multicastGroup, rc);      
           return L7_FAILURE;
@@ -3711,6 +3716,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
   {
     /*Remove Interface Mask*/
     rc = snoopChannelIntfMaskEntryDelete(L7_NULL, L7_NULLPTR, pChannelEntry->pChannelIntfMask);
+ 
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_IGMP, "Failed to Remove Intferface Mask [rc:%u evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u]", 
@@ -3725,6 +3731,8 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
 
   /*Update the Number of Channels this Interface Mask Has*/
   pChannelIntfMask->noOfChannelEntries++;
+
+  PT_LOG_TRACE(LOG_CTX_IGMP, "Removed Existing Interface Mask! %d", pChannelIntfMask->noOfChannelEntries);       
 
   return rc;
 }
