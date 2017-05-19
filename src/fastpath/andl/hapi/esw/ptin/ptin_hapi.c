@@ -5106,7 +5106,11 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     bcmx_lport_t  lport;
     //L7_uint32     ip_addr = 0xe0000000, ip_addr_mask=0xf0000000;
     L7_uchar8     macAddr_iptv_value[6] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0x00 };
-    L7_uchar8     macAddr_iptv_mask[6]  = { 0xff, 0xff, 0xff, 0x00, 0x00, 0x00 };
+    L7_uchar8     macAddr_iptv_mask[6]  = { 0xff, 0xff, 0xff, 0x80, 0x00, 0x00 };
+    L7_uint32     ipdst_value = 0xe0000000;
+    L7_uint32     ipdst_mask  = 0xf0000000;
+    L7_uint16     ethType = 0x8100, ethType_mask = 0xffff;
+    L7_uint32     packetRes = 6 /*Unknown L3MC*/, packetRes_mask = 0xff;
     BROAD_POLICY_t      policyId;
     BROAD_POLICY_RULE_t ruleId;
 
@@ -5197,11 +5201,69 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
         }
       }
     }
+
+    /* Create Policy to clear outer pbit field for Multicast services (only for pon ports) */
+    //rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM_PORT);
+    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+      return L7_FAILURE;
+    }
+    /* Egress stage */
+    if (hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_INGRESS) != L7_SUCCESS)
+    {
+      printf("Error creating a egress policy\r\n");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    do
+    {
+      /* Priority higher than dot1p rules */
+      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_LOW);
+      if (rc != L7_SUCCESS)  break;
+
+      /* Multicast MAC addresses */
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, macAddr_iptv_value, macAddr_iptv_mask);
+      if (rc != L7_SUCCESS)  break;
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *) &ethType, (L7_uchar8 *) &ethType_mask);
+      if (rc != L7_SUCCESS)  break;
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DIP, (L7_uchar8 *) &ipdst_value, (L7_uchar8 *) &ipdst_mask);
+      if (rc != L7_SUCCESS)  break;
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PACKETRES, (L7_uchar8 *) &packetRes, (L7_uchar8 *) &packetRes_mask);
+      if (rc != L7_SUCCESS)  break;
+
+      /* Drop traffic */
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+      if (rc != L7_SUCCESS)  break;
+      rc = hapiBroadPolicyRuleExceedActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+      if (rc != L7_SUCCESS)  break;
+    } while (0);
+
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    /* Apply rules */
+    rc = hapiBroadPolicyCommit(&policyId);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
   }
 #endif
 
   return L7_SUCCESS;
 }
+
 
 L7_RC_t teste_case3(void)
 {

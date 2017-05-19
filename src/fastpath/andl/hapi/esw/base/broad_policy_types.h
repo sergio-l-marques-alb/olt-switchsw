@@ -158,6 +158,7 @@ typedef enum
     BROAD_FIELD_L2_DSTHIT,        /* PTin added: FP */
     BROAD_FIELD_INT_PRIO,         /* PTin added: FP */
     BROAD_FIELD_COLOR,            /* PTin added: FP */
+    BROAD_FIELD_PACKETRES,        /* PTin added: FP */
     BROAD_FIELD_LAST,
 
     /* special bit fields */
@@ -406,6 +407,7 @@ BROAD_POLICY_STATS_t;
 #define BROAD_FIELD_L2_DSTHIT_SIZE                 1                    /* PTin added: FP */
 #define BROAD_FIELD_INT_PRIO_SIZE                  1                    /* PTin added: FP */
 #define BROAD_FIELD_COLOR_SIZE                     1                    /* PTin added: FP */
+#define BROAD_FIELD_PACKETRES_SIZE                 sizeof(uint32)       /* PTin added: FP */
 
 typedef struct 
 {
@@ -665,6 +667,12 @@ typedef struct
   {
     L7_uchar8  value[BROAD_FIELD_COLOR_SIZE];
   } fieldColor;
+
+  struct
+  {
+    L7_uchar8  value[BROAD_FIELD_PACKETRES_SIZE];
+    L7_uchar8  mask[BROAD_FIELD_PACKETRES_SIZE];
+  } fieldPacketRes;
   // PTin end
 
 } BROAD_FIELD_ENTRY_t;

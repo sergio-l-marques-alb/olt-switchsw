@@ -260,6 +260,8 @@ bcm_field_qualify_t l2l3l4Xgs4ClassIdQset[] =    /* l2/l3/l4 */
   bcmFieldQualifyIp6HopLimit,
 #endif
 
+  //bcmFieldQualifyPacketRes,
+
   bcmFieldQualifyStageIngress
 };
 
@@ -361,6 +363,9 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyL2SrcHit,      /* PTin added: FP */
   bcmFieldQualifyL2DestHit,     /* PTin added: FP */
   #endif
+
+  bcmFieldQualifyPacketRes,
+  bcmFieldQualifyDstIp,
   bcmFieldQualifyDstIp6,        /* PTin added: FP */
 
 #ifdef L7_IPV6_PACKAGE
