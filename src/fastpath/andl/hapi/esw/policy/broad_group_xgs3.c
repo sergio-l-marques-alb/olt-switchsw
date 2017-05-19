@@ -106,7 +106,8 @@ static bcm_field_qualify_t field_map[BROAD_FIELD_LAST] =
     bcmFieldQualifyL2SrcHit,       /* L2 Source hit, PTin added: FP */
     bcmFieldQualifyL2DestHit,      /* L2 Destination hit, PTin added: FP */
     bcmFieldQualifyIntPriority,    /* Internal priority, PTin added: FP */
-    bcmFieldQualifyColor           /* Packet color, PTin added: FP */
+    bcmFieldQualifyColor,          /* Packet color, PTin added: FP */
+    bcmFieldQualifyPacketRes,      /* Packet type, PTin added: FP */
 };
 
 /* Action Map */
@@ -3375,6 +3376,9 @@ static int _policy_group_add_std_field(int                   unit,
         break;
     case BROAD_FIELD_COLOR:
         rv = bcm_field_qualify_Color(unit,eid,*((uint8*)value));
+        break;
+    case BROAD_FIELD_PACKETRES:
+        rv = bcm_field_qualify_PacketRes(unit,eid,*((uint32*)value),*((uint32*)mask));
         break;
     // PTin end
     default:
