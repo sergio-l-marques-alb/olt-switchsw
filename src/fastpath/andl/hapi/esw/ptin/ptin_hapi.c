@@ -5116,7 +5116,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     bcmx_lport_t  lport;
     //L7_uint32     ip_addr = 0xe0000000, ip_addr_mask=0xf0000000;
     L7_uchar8     macAddr_iptv_value[6] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0x00 };
-    L7_uchar8     macAddr_iptv_mask[6]  = { 0xff, 0xff, 0xff, 0x00, 0x00, 0x00 };
+    L7_uchar8     macAddr_iptv_mask[6]  = { 0xff, 0xff, 0xff, 0x80, 0x00, 0x00 };
     L7_uint32     ipdst_value = 0xe0000000;
     L7_uint32     ipdst_mask  = 0xf0000000;
     L7_uint16     ethType = 0x8100, ethType_mask = 0xffff;
