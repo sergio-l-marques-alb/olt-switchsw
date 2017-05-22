@@ -364,8 +364,10 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyL2DestHit,     /* PTin added: FP */
   #endif
 
+#if (PTIN_BOARD_IS_GPON)
   bcmFieldQualifyPacketRes,
   bcmFieldQualifyDstIp,
+#endif
   bcmFieldQualifyDstIp6,        /* PTin added: FP */
 
 #ifdef L7_IPV6_PACKAGE
