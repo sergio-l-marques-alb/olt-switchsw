@@ -19,9 +19,9 @@
 #include "broad_policy.h"
 #include "broad_group_bcm.h"
 
-#define PTIN_HAPI_QOS_TABLE_SIZE    20
+#define PTIN_HAPI_QOS_TABLE_SIZE    64
 #define PTIN_HAPI_QOS_VLAN_ENTRIES  32
-#define PTIN_HAPI_QOS_HW_RULES_MAX  100
+#define PTIN_HAPI_QOS_HW_RULES_MAX  256
 
 typedef struct
 {
@@ -59,7 +59,7 @@ L7_uint16 hw_rules_total = 0;
 ptin_hapi_qos_entry_t hapi_qos_table[PTIN_HAPI_QOS_TABLE_SIZE];
 
 
-#define MAX_CLASS_ID  1024
+#define MAX_CLASS_ID  256
 
 typedef struct
 {
