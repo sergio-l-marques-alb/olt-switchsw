@@ -341,13 +341,13 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyL4DstPort,
   bcmFieldQualifyEtherType,
   bcmFieldQualifyIpProtocol,
-  bcmFieldQualifyTtl,
-  bcmFieldQualifyL2StationMove,
+  //bcmFieldQualifyTtl,
+  //bcmFieldQualifyL2StationMove,
 #ifdef L7_IPV6_PACKAGE
   bcmFieldQualifyL3DestRouteHit,
   bcmFieldQualifyL3DestHostHit,
 #endif
-  bcmFieldQualifyIngressStpState,
+  //bcmFieldQualifyIngressStpState,
   bcmFieldQualifyIpType,
   bcmFieldQualifyVlanFormat,    /* PTin added: FP */
  /* PTin added: SDK 6.3.0 */
@@ -364,8 +364,10 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyL2DestHit,     /* PTin added: FP */
   #endif
 
+#if (PTIN_BOARD_IS_GPON)
   bcmFieldQualifyPacketRes,
   bcmFieldQualifyDstIp,
+#endif
   bcmFieldQualifyDstIp6,        /* PTin added: FP */
 
 #ifdef L7_IPV6_PACKAGE
