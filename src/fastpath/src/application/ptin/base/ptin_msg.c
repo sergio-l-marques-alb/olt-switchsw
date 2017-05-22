@@ -5718,6 +5718,10 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   ptinEvcConf.mc_flood = ENDIAN_SWAP8 (msgEvcConf->evc.mc_flood);
   //memcpy(ptinEvcConf.ce_vid_bmp, msgEvcConf->evc.ce_vid_bmp, sizeof(ptinEvcConf.ce_vid_bmp));
 
+  if(ptinEvcConf.index == 1)
+  {
+    ptinEvcConf.mc_flood = 0;
+  }
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u",              ptinEvcConf.index);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);
@@ -7392,7 +7396,15 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
       if ((rc=ptin_evc_bwProfile_set(evcId, &profile, &meter)) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG,"Error applying profile!");
+
+#ifdef NGPON2_SUPPORTED
+        if (rc == L7_NOT_EXIST)
+        {
+          return L7_SUCCESS;
+        }
+#else
         return rc;
+#endif
       }
 #ifdef NGPON2_SUPPORTED
       L7_uint32 evc_id;
