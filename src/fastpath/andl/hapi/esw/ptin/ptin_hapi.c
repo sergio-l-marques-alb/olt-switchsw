@@ -5109,7 +5109,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     L7_uchar8     macAddr_iptv_mask[6]  = { 0xff, 0xff, 0xff, 0x80, 0x00, 0x00 };
     L7_uint32     ipdst_value = 0xe0000000;
     L7_uint32     ipdst_mask  = 0xf0000000;
-    L7_uint16     ethType = 0x8100, ethType_mask = 0xffff;
+    L7_uint16     ethType = 0x0800, ethType_mask = 0xffff;
     L7_uint32     packetRes = 6 /*Unknown L3MC*/, packetRes_mask = 0xff;
     BROAD_POLICY_t      policyId;
     BROAD_POLICY_RULE_t ruleId;
@@ -5201,6 +5201,8 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
         }
       }
     }
+
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "Going to create FP rule to prevent IPTV flooding...");
 
     /* Create Policy to clear outer pbit field for Multicast services (only for pon ports) */
     //rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM_PORT);
