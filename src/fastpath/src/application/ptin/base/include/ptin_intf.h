@@ -957,6 +957,27 @@ extern L7_BOOL ptin_intf_link_get(L7_uint32 ptin_port);
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 
+/**
+ * Get the maximum bandwidth associated to a interface (physical
+ * or LAG) 
+ * 
+ * @param intIfNum 
+ * @param bandwidth : bandwidth in Kbps 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_ERROR
+ */
+extern L7_RC_t ptin_intf_max_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth);
+
+/**
+ * Get the AVAILABLE bandwidth of an interface (physical or LAG)
+ * 
+ * @param intIfNum 
+ * @param bandwidth : bandwidth in Kbps 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_ERROR
+ */
+extern L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth);
+
 #ifdef NGPON2_SUPPORTED
 /**
  * PTIN_INTF NGPON2 Add Group 

@@ -5899,9 +5899,10 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
  */
 static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
 {
-  L7_int          i;
+  L7_int          i, j;
   ptin_QoS_intf_t qos_intf_cfg;
   ptin_QoS_cos_t  qos_cos_cfg;
+  ptin_QoS_drop_t qos_cos_drop;
   L7_RC_t         rc = L7_SUCCESS;
 
   /* Validate arguments */
@@ -5927,6 +5928,20 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
   qos_cos_cfg.mask           = PTIN_QOS_COS_SCHEDULER_MASK;
   qos_cos_cfg.scheduler_type = L7_QOS_COS_QUEUE_SCHED_TYPE_STRICT;
 
+  /* Drop management: default is taildrop */
+  memset(&qos_cos_drop,0x00,sizeof(ptin_QoS_drop_t));
+  qos_cos_drop.queue_management_type = L7_QOS_COS_QUEUE_MGMT_TYPE_TAILDROP;
+  qos_cos_drop.wred_decayExp = 9;
+  qos_cos_drop.mask = 0xf;
+  for (j = 0; j < 4; j++)
+  {
+    qos_cos_drop.dp[j].local_mask = 0xf;
+    qos_cos_drop.dp[j].taildrop_threshold = 100;
+    qos_cos_drop.dp[j].wred_min_threshold = 100;
+    qos_cos_drop.dp[j].wred_max_threshold = 100;
+    qos_cos_drop.dp[j].wred_drop_prob     = 100;
+  }
+
   /* Apply configurations to interface */
   if (ptin_QoS_intf_config_set(ptin_intf, &qos_intf_cfg)!=L7_SUCCESS)
   {
@@ -5936,7 +5951,14 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
   /* Apply configurations to CoS */
   for (i=0; i<8; i++)
   {
+    /* Scheduler configuration */
     if (ptin_QoS_cos_config_set (ptin_intf, i, &qos_cos_cfg)!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Intf %u/%u: failed QoS initialization of CoS=%u", ptin_intf->intf_type,ptin_intf->intf_id, i);
+      rc = L7_FAILURE;
+    }
+    /* Drop management configuration */
+    if (ptin_QoS_drop_config_set(ptin_intf, i, &qos_cos_drop) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Intf %u/%u: failed QoS initialization of CoS=%u", ptin_intf->intf_type,ptin_intf->intf_id, i);
       rc = L7_FAILURE;
@@ -8470,5 +8492,205 @@ void ptin_intf_NGPON2_groups_dump(void)
 #else
   printf("Not supported on this board!\r\n");
 #endif
+}
+
+/**
+ * Get the maximum bandwidth associated to a interface (physical
+ * or LAG) 
+ * 
+ * @param intIfNum 
+ * @param bandwidth : bandwidth in Kbps 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_ERROR
+ */
+L7_RC_t ptin_intf_max_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
+{
+  L7_INTF_TYPES_t intf_type;
+  L7_uint32 intf_speed, total_speed = 0;
+  L7_uint32 i, number_of_ports, ports_list[PTIN_SYSTEM_N_LAGS];
+
+  /* Validate intIfNum */
+  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Only process physical and logical interfaces */
+  if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS ||
+      (intf_type != L7_PHYSICAL_INTF && intf_type != L7_LAG_INTF))
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Only physical and logical interfaces are allowed");
+    return L7_FAILURE;
+  }
+
+  if (intf_type == L7_LAG_INTF)
+  {
+    number_of_ports = PTIN_SYSTEM_N_LAGS;
+    if (usmDbDot3adMemberListGet(0, intIfNum, &number_of_ports, ports_list) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,"Can't get members list of intIfNum %u", intIfNum);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    number_of_ports = 1;
+    ports_list[0] = intIfNum;
+  }
+
+  total_speed = 0;
+  for (i = 0; i < number_of_ports; i++)
+  {
+    if (nimGetIntfSpeedStatus(ports_list[i], &intf_speed) == L7_SUCCESS)
+    {
+      switch (intf_speed)
+      {
+        case L7_PORTCTRL_PORTSPEED_HALF_10T:
+        case L7_PORTCTRL_PORTSPEED_FULL_10T:
+          total_speed += 10;
+          break;
+        case L7_PORTCTRL_PORTSPEED_HALF_100TX:
+        case L7_PORTCTRL_PORTSPEED_FULL_100TX:
+        case L7_PORTCTRL_PORTSPEED_FULL_100FX:
+          total_speed += 100;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
+          total_speed += 1000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
+          total_speed += 2500;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
+          total_speed += 10000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+          total_speed += 40000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+          total_speed += 100000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_AUTO_NEG:
+        case L7_PORTCTRL_PORTSPEED_UNKNOWN:
+        default:
+          break;
+      }
+    }
+  }
+
+  PT_LOG_TRACE(LOG_CTX_INTF,"Maximum bandwidth: %u", total_speed);
+
+  if (bandwidth != L7_NULLPTR)
+    *bandwidth = total_speed;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get the AVAILABLE bandwidth of an interface (physical or LAG)
+ * 
+ * @param intIfNum 
+ * @param bandwidth : bandwidth in Kbps 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_ERROR
+ */
+L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
+{
+  L7_INTF_TYPES_t intf_type;
+  L7_uint32 intf_speed, total_speed = 0;
+  L7_uint32 i, number_of_ports = 0, ports_list[PTIN_SYSTEM_N_LAGS];
+
+  /* Validate intIfNum */
+  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Only process physical and logical interfaces */
+  if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS ||
+      (intf_type != L7_PHYSICAL_INTF && intf_type != L7_LAG_INTF))
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Only physical and logical interfaces are allowed");
+    return L7_FAILURE;
+  }
+
+  if (intf_type == L7_LAG_INTF)
+  {
+    number_of_ports = PTIN_SYSTEM_N_LAGS;
+    if (usmDbDot3adActiveMemberListGet(0, intIfNum, &number_of_ports, ports_list) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,"Can't get members list of intIfNum %u", intIfNum);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    L7_uint32 admin_state, link_state;
+
+    if (nimGetIntfAdminState(intIfNum, &admin_state) == L7_SUCCESS && nimGetIntfLinkState(intIfNum, &link_state) == L7_SUCCESS)
+    {
+      if (admin_state == L7_ENABLE && link_state == L7_UP)
+      {
+        number_of_ports = 1; 
+        ports_list[0] = intIfNum;
+      }
+      else
+      {
+        number_of_ports = 0;
+      }
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,"Error reading interface state");
+      return L7_FAILURE;
+    }
+  }
+
+  total_speed = 0;
+  for (i = 0; i < number_of_ports; i++)
+  {
+    if (nimGetIntfSpeedStatus(ports_list[i], &intf_speed) == L7_SUCCESS)
+    {
+      switch (intf_speed)
+      {
+        case L7_PORTCTRL_PORTSPEED_HALF_10T:
+        case L7_PORTCTRL_PORTSPEED_FULL_10T:
+          total_speed += 10;
+          break;
+        case L7_PORTCTRL_PORTSPEED_HALF_100TX:
+        case L7_PORTCTRL_PORTSPEED_FULL_100TX:
+        case L7_PORTCTRL_PORTSPEED_FULL_100FX:
+          total_speed += 100;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
+          total_speed += 1000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
+          total_speed += 2500;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
+          total_speed += 10000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+          total_speed += 40000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+          total_speed += 100000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_AUTO_NEG:
+        case L7_PORTCTRL_PORTSPEED_UNKNOWN:
+        default:
+          break;
+      }
+    }
+  }
+
+  PT_LOG_TRACE(LOG_CTX_INTF,"Available bandwidth: %u", total_speed);
+
+  if (bandwidth != L7_NULLPTR)
+    *bandwidth = total_speed;
+
+  return L7_SUCCESS;
 }
 
