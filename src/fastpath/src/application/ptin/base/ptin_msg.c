@@ -5718,11 +5718,6 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   ptinEvcConf.mc_flood = ENDIAN_SWAP8 (msgEvcConf->evc.mc_flood);
   //memcpy(ptinEvcConf.ce_vid_bmp, msgEvcConf->evc.ce_vid_bmp, sizeof(ptinEvcConf.ce_vid_bmp));
 
-  if(ptinEvcConf.index == 1)
-  {
-    ptinEvcConf.mc_flood = 0;
-  }
-
   PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u",              ptinEvcConf.index);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Type     = %u",      ptinEvcConf.type);
