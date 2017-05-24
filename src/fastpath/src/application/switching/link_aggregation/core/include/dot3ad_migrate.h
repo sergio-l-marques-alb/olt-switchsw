@@ -67,7 +67,8 @@ typedef struct
   L7_uchar8           name[L7_DOT3AD_MAX_NAME];
   L7_BOOL             inuse;  /* aggregator has been assigned */
   L7_uint32           adminMode; /*L7_ENABLE enabled, L7_DISABLE disabled*/
-  L7_uint32           unused;  /*Was linktrapstate. Since that value was always with nim. removed to avoid confusion*/
+  L7_uint32           blockedState; /*When blocked, members are not physically being allocated to the LAG*/
+  //L7_uint32           unused;  /*Was linktrapstate. Since that value was always with nim. removed to avoid confusion*/
   L7_uint32           stpMode;
   L7_BOOL             isStatic;  /* This LAG is static, i.e. no protocol partner
                                   * Using default values to aggregate  */

@@ -58,6 +58,7 @@ typedef enum
   LACPDU_RECEIVE,
   AGG_INUSE,
   AGG_ADMIN_MODE,
+  AGG_BLOCKED_STATE,  /* PTin added: Blocked state */
   /* change LAG_STATIC_MODE to AGG_STATIC_MODE as static mode is per lag */
   AGG_STATIC_MODE,
   AGG_HASHMODE_SET,
@@ -1514,6 +1515,45 @@ L7_RC_t dot3adMemberListGet(L7_uint32 intIfNum, L7_uint32 *pListCount,
 *********************************************************************/
 L7_RC_t dot3adAdminModeSet(L7_uint32 intIfNum, L7_uint32 status, L7_BOOL updateConfig);
 
+/* PTin added: Blocked state */
+#if 1
+/*********************************************************************
+ * @purpose  Block or Unblock a LAG port.
+ *            
+ * @param    intIfNum    internal interface number of the target LAG
+ * @param    status      new admin mode setting
+ *                      
+ * @returns  L7_SUCCESS
+ * @returns  L7_ERROR    if parameter checking fails 
+ * @returns  L7_FAILURE
+ *
+ * @notes    This API command can only be used to update an existing LAG.
+ *
+ * @notes    The allowed @i{status} values are L7_DISABLE or L7_ENABLE.
+ *
+ * @end
+ *********************************************************************/
+L7_RC_t dot3adBlockedStateSet(L7_uint32 intIfNum, L7_uint32 status);
+
+/*********************************************************************
+ * @purpose  Check if a LAG port is Blocked or Unblocked.
+ *            
+ * @param    intIfNum    internal interface number of the target LAG
+ * @param    *status      Blocking state
+ *                      
+ * @returns  L7_SUCCESS
+ * @returns  L7_ERROR    if parameter checking fails 
+ * @returns  L7_FAILURE
+ *
+ * @notes    This API command can only be used to update an existing LAG.
+ *
+ * @notes    The allowed @i{status} values are L7_DISABLE or L7_ENABLE.
+ *
+ * @end
+ *********************************************************************/
+L7_RC_t dot3adBlockedStateGet(L7_uint32 intIfNum, L7_uint32 *status);
+#endif
+
 /*********************************************************************
 * @purpose  Get the admin mode value for the specified LAG interface.
 *
@@ -1708,6 +1748,22 @@ L7_RC_t dot3adLagDataRateGet(L7_uint32 intIfNum, L7_uint32 *pLagDataRate);
  * @end
  *********************************************************************/
 L7_RC_t dot3adLagNumMembersGet(L7_uint32 intIfNum, L7_uint32 *numMembers);
+
+/*********************************************************************
+ * @purpose  Get the number of active members for a LAG
+ *            
+ * @param    intIfNum        internal interface number of the target LAG
+ * @param    *numMembers pointer to output location
+ *                      
+ * @returns  L7_SUCCESS
+ * @returns  L7_FAILURE
+ *
+ * @notes    
+ *
+ * @end
+ *********************************************************************/
+L7_RC_t dot3adLagNumActiveMembersGet(L7_uint32 intIfNum, L7_uint32 *numMembers);
+
 /*********************************************************************
 * @purpose  Checks to see if a LAG interface is static or not
 *

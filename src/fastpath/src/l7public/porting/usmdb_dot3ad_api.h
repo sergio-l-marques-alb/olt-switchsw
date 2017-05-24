@@ -255,6 +255,47 @@ extern L7_RC_t usmDbDot3adMemberListGet(L7_uint32 UnitIndex, L7_uint32 lagIntIfN
  *********************************************************************/
 extern L7_RC_t usmDbDot3adAdminModeSet(L7_uint32 UnitIndex, L7_uint32 ifIndex, L7_uint32 val);
 
+/* PTin added: Blocked state */
+#if 1
+/*********************************************************************
+ *
+ * @purpose  Change the Blocked state of a configured LAG
+ *
+ * @param UnitIndex    the unit for this operation
+ * @param intIfNum     internal interface number of a configured LAG
+ * @param val          blocked state
+ *                       (@b{Input:  L7_ENABLE, L7_DISABLE})
+ *                       
+ * @returns  L7_SUCCESS, if success
+ * @returns  L7_ERROR, if config parameter is invalid 
+ * @returns  L7_FAILURE, if other failure
+ *
+ * @notes none
+ *
+ * @end
+ *********************************************************************/
+extern L7_RC_t usmDbDot3adBlockedStateSet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 val);
+
+/*********************************************************************
+ *
+ * @purpose  Get the Blocked state of a configured LAG
+ *
+ * @param UnitIndex    the unit for this operation
+ * @param intIfNum     internal interface number of a configured LAG
+ * @param val          blocked state
+ *                       (@b{Input:  L7_ENABLE, L7_DISABLE})
+ *                       
+ * @returns  L7_SUCCESS, if success
+ * @returns  L7_ERROR, if config parameter is invalid 
+ * @returns  L7_FAILURE, if other failure
+ *
+ * @notes none
+ *
+ * @end
+ *********************************************************************/
+extern L7_RC_t usmDbDot3adBlockedStateGet(L7_uint32 UnitIndex, L7_uint32 intIfNum, L7_uint32 *val);
+#endif
+
 /*********************************************************************
  *
  * @purpose  Get the administrative mode of a configured LAG

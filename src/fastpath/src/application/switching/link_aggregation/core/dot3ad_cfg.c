@@ -762,16 +762,19 @@ L7_RC_t dot3adIntfProcessIntfUp(L7_uint32 intIfNum)
 
   if (agg->isStatic == L7_TRUE)
   {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACIssueCmd(lacpPortEnabledStaticLag...");
     rc = LACIssueCmd(lacpPortEnabledStaticLag,p->actorPortNum,L7_NULL);
   }
   else
   {
     if (p ->lacpEnabled == L7_FALSE)
     {
+      PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACIssueCmd(lacpPortEnabledLacpDisabled...");
       rc = LACIssueCmd(lacpPortEnabledLacpDisabled, p->actorPortNum, L7_NULL);
     }
     else if (p ->lacpEnabled == L7_TRUE)
     {
+      PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACIssueCmd(lacpPortEnabledLacpEnabled...");
       rc = LACIssueCmd(lacpPortEnabledLacpEnabled, p->actorPortNum, L7_NULL);
     }
 
@@ -805,14 +808,18 @@ L7_RC_t dot3adIntfProcessIntfDown(L7_uint32 intIfNum)
 
   p->portEnabled = L7_FALSE;
 
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACIssueCmd(lacpPortDisabled...");
   rc = LACIssueCmd(lacpPortDisabled, p->actorPortNum, L7_NULL);
 
   if ((p -> begin == L7_FALSE) && (p -> aggPortMoved == L7_FALSE))
   {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACIssueCmd(lacpBeginFalsePortDisabledPortMovedFalse...");
     rc = LACIssueCmd(lacpBeginFalsePortDisabledPortMovedFalse, p->actorPortNum, L7_NULL);
   }
 
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
   (void)dot3adSelectionLogicUnselect(p);
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
   (void)dot3adSelectionLogicUnselect(p);
 
   return rc;

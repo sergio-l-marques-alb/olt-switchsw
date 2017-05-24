@@ -174,6 +174,7 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
 
             if (adminMode == L7_ENABLE && linkState == L7_UP)
             {
+                PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Link-up");
                 /* return set to success for callback*/
                 (void)dot3adIntfProcessIntfUp(intIfNum);
                 rc = L7_SUCCESS;
@@ -206,7 +207,8 @@ L7_uint32 dot3adIntfChangeCallBackProcess(NIM_EVENT_COMPLETE_INFO_t eventInfo)
           rc = L7_SUCCESS;
           break;
         }
-            (void)dot3adIntfProcessIntfDown(intIfNum);
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Link-down");
+        (void)dot3adIntfProcessIntfDown(intIfNum);
     
         break;
 
@@ -671,6 +673,7 @@ void dot3ad_lac_task()
     }
 
     rc = osapiSemaTake(dot3adTaskSyncSema, L7_WAIT_FOREVER);
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Sending event %u",msg.event);
     rc = LACDispatchCmd(msg);
 	rc = osapiSemaGive(dot3adTaskSyncSema);
   }
@@ -860,6 +863,11 @@ L7_RC_t dot3adFillMessage(void* data, dot3adMsg_t *msg)
     memcpy(&msg->intfData.adminMode, data, sizeof(msg->intfData.adminMode));
     break;
 
+  /* PTin added: Blocked state */
+  case AGG_BLOCKED_STATE:
+    memcpy(&msg->intfData.blockedState, data, sizeof(msg->intfData.blockedState));
+    break;
+
   case PORT_PARTNER_ADMIN_SYSTEM_ID:
   case PORT_PARTNER_OPER_SYSTEM_ID:
     /* add to queue mac address */
@@ -970,9 +978,11 @@ L7_RC_t LACDispatchCmd(dot3adMsg_t msg)
 ****/
 
   case lacCollDistEnable:
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"?????????????????");
     rc = aggCollDistEnable(msg.intf);
     break;
   case lacCollDistDisable:
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"?????????????????");
     rc = aggCollDistDisable(msg.intf);
     break;
 
@@ -1008,6 +1018,11 @@ L7_RC_t LACDispatchCmd(dot3adMsg_t msg)
 
   case AGG_ADMIN_MODE:
     rc = aggAdminModeSet(msg.intf, msg.intfData.adminMode.status, msg.intfData.adminMode.updateConfig);
+    break;
+
+  /* PTin added: Blocked state */
+  case AGG_BLOCKED_STATE:
+    rc = aggBlockedStateSet(msg.intf, msg.intfData.blockedState);
     break;
 
   case AGG_STATIC_MODE:
@@ -1048,6 +1063,7 @@ L7_RC_t LACDispatchCmd(dot3adMsg_t msg)
       {
 	    return L7_FAILURE;
       }
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Sending event %u", msg.event);
     rc = dot3adLacpClassifier(msg.event, p, (void *)&nullBuf);
     break;
 
@@ -1163,14 +1179,17 @@ L7_RC_t aggCollDistDisable(L7_uint32 intf)
            (nimQueryData.data.state == L7_INTF_DETACHING) ||
            (nimQueryData.data.state == L7_INTF_ATTACHED))
   {
-    /* only talk to the hardware when the hardware is valid */
-  rc = dtlDot3adPortDelete(a->aggId,1,tmpList, a->hashMode);
-  if (rc == L7_REQUEST_DENIED || 
-	  rc == L7_FAILURE || 
-	  rc == L7_ERROR)
-  {
-	return rc;
-  }
+    if (!a->blockedState)   /* PTin added: Blocked state */
+    {
+      /* only talk to the hardware when the hardware is valid */
+      rc = dtlDot3adPortDelete(a->aggId,1,tmpList, a->hashMode);
+      if (rc == L7_REQUEST_DENIED || 
+          rc == L7_FAILURE || 
+          rc == L7_ERROR)
+      {
+        return rc;
+      }
+    }
   }
   
 
@@ -1292,14 +1311,17 @@ L7_RC_t aggCollDistEnable(L7_uint32 intf)
            (nimQueryData.data.state == L7_INTF_DETACHING) ||
            (nimQueryData.data.state == L7_INTF_ATTACHED))
   {
-    /* only talk to the hardware when the hardware is valid */
-  rc = dtlDot3adPortAdd(a->aggId,1,tmpList, a->hashMode);
-  if (rc == L7_REQUEST_DENIED || 
-	  rc == L7_FAILURE || 
-	  rc == L7_ERROR)
-  {
-	return rc;
-  }
+    if (!a->blockedState)     /* PTin added: Blocked state */
+    {
+      /* only talk to the hardware when the hardware is valid */
+      rc = dtlDot3adPortAdd(a->aggId,1,tmpList, a->hashMode);
+      if (rc == L7_REQUEST_DENIED || 
+          rc == L7_FAILURE || 
+          rc == L7_ERROR)
+      {
+        return rc;
+      }
+    }
   }
   
   if (dot3adNsfFuncTable.dot3adCallCheckpointService)
@@ -1615,15 +1637,19 @@ L7_RC_t aggAdminModeSet(L7_uint32 agg_intf, L7_uint32 status, L7_BOOL updateConf
         {
                 p->portEnabled = L7_FALSE;
 
+          PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACIssueCmd(lacpPortDisabled...");
 		  rc = LACIssueCmd(lacpPortDisabled, p->actorPortNum, L7_NULL);
 
 
 		  if ((p -> begin == L7_FALSE) && (p -> aggPortMoved == L7_FALSE))
 		  {
+            PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACIssueCmd(lacpBeginFalsePortDisabledPortMovedFalse");
 			rc = LACIssueCmd(lacpBeginFalsePortDisabledPortMovedFalse, p->actorPortNum, L7_NULL);
 		  }
 
+          PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
 		  (void)dot3adSelectionLogicUnselect(p);
+          PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
 		  (void)dot3adSelectionLogicUnselect(p);
 		}
 	  }
@@ -1656,6 +1682,113 @@ L7_RC_t aggAdminModeSet(L7_uint32 agg_intf, L7_uint32 status, L7_BOOL updateConf
   else
     return L7_FAILURE;
 }
+
+/* PTin added: Blocked state */
+#if 1
+/*********************************************************************
+* @purpose  Sets the aggregator Blocked state flag.
+*
+* @param    agg_intf     aggregator internal interface number
+* @param    status       L7_ENABLE or L7_DISABLE
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    
+*       
+* @end
+*********************************************************************/
+L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
+{
+  dot3ad_agg_t *a;
+  L7_RC_t rc;
+
+  a = dot3adAggIntfFind(agg_intf);
+  if (a == L7_NULLPTR)
+  {
+    return L7_FAILURE;
+  }
+
+  /* Do nothing for disabled LAGs */
+  if (a->adminMode == L7_DISABLE)
+  {
+    return L7_FAILURE;
+  }
+
+  /* Do nothing if state don't change */
+  if (a->blockedState == status)
+  {
+    return L7_SUCCESS;
+  }
+
+  /* Only do something if number of active members is not null */
+  if (a->activeNumMembers > 0)
+  {
+    if (status)
+    {
+      /* If LAG goes to blocked, remove physically all active ports */
+      rc = dtlDot3adPortDelete(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
+      if (rc == L7_REQUEST_DENIED || rc == L7_FAILURE || rc == L7_ERROR)
+      {
+        return rc;
+      }
+    }
+    else
+    {
+      /* If LAG goes to UNblocked, add physically all active ports */
+      rc = dtlDot3adPortAdd(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
+      if (rc == L7_REQUEST_DENIED || rc == L7_FAILURE || rc == L7_ERROR)
+      {
+        return rc;
+      }
+    }
+  }
+
+  /* Update blocked status */
+  a->blockedState = status;
+
+  return L7_SUCCESS;
+}
+
+/*********************************************************************
+* @purpose  Gets the aggregator blocked state flag.
+*
+* @param    agg_intf     aggregator internal interface number
+* @param    *status      blocked state
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t aggBlockedStateGet(L7_uint32 agg_intf, L7_uint32 *status)
+{
+  dot3ad_agg_t *a;
+
+  a = dot3adAggIntfFind(agg_intf);
+  if (a == L7_NULLPTR)
+  {
+    return L7_FAILURE;
+  }
+
+  /* Do nothing for disabled LAGs */
+  if (a->adminMode == L7_DISABLE)
+  {
+    return L7_FAILURE;
+  }
+
+  /* Return blocked state value */
+  if (status != L7_NULLPTR)
+  {
+    *status = a->blockedState;
+  }
+
+  return L7_SUCCESS;
+}
+#endif
+
 /*********************************************************************
 * @purpose  Gets the aggregator admin mode flag.  
 *
@@ -3077,6 +3210,7 @@ L7_RC_t aggPortActorAdminStateSet(L7_uint32 intf, L7_uchar8 state)
 	  p->portIndividualAgg = L7_TRUE;
 		if (p->selected == UNSELECTED && linkState == L7_UP)
 		{
+          PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicSelect");
 		  (void)dot3adSelectionLogicSelect(p);
 		}
 	  }
@@ -3091,7 +3225,9 @@ L7_RC_t aggPortActorAdminStateSet(L7_uint32 intf, L7_uchar8 state)
 			 send unselect twice to get the mux state machine to 
 			 the DETACHED state
 		*/
+          PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
 		  (void)dot3adSelectionLogicUnselect(p);
+          PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
 		  (void)dot3adSelectionLogicUnselect(p);
 	    }
 	  }
@@ -4001,12 +4137,16 @@ L7_RC_t aggPortDelete(L7_uint32 intIfNum)
     return L7_FAILURE;
   }
   /*reset receive machine*/
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Sending event lacpBeginFalsePortDisabledPortMovedFalse");
   rc = dot3adLacpClassifier(lacpBeginFalsePortDisabledPortMovedFalse,p,(void *)&nullBuf);
   /*reset periodic machine*/
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Sending event lacpPortDisabled");
   rc = dot3adLacpClassifier(lacpPortDisabled,p,(void *)&nullBuf);
   /*reset mux machine*/
   /*send unselected twice to ensure the mux machine is in detached state*/
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Sending event lacpUnselected");
   rc = dot3adLacpClassifier(lacpUnselected,p,(void *)&nullBuf);
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Sending event lacpUnselected");
   rc = dot3adLacpClassifier(lacpUnselected,p,(void *)&nullBuf);
 
   p->actorOperPortKey = intIfNum;
@@ -4874,6 +5014,7 @@ L7_RC_t dot3adPrivateLagCreate(L7_uint32 lagId, L7_char8 *name, L7_uint32 member
      * events to NIM.
      */
     dot3adAgg[aggIndex].adminMode = adminMode;
+    dot3adAgg[aggIndex].blockedState = L7_FALSE;  /* PTin added: Blocked state */
 
     /* Tell everybody that interface is created.
     */

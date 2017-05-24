@@ -755,7 +755,8 @@ dot3adMigrateConfigV4V5Convert (dot3adCfgV4_t * pCfgV4, dot3adCfgV5_t * pCfgV5)
       pCfgV5->cfg.dot3adAgg[i].ready                        = pCfgV4->cfg.dot3adAgg[i].ready;
       pCfgV5->cfg.dot3adAgg[i].inuse                        = pCfgV4->cfg.dot3adAgg[i].inuse;
       pCfgV5->cfg.dot3adAgg[i].adminMode                    = pCfgV4->cfg.dot3adAgg[i].adminMode;
-      pCfgV5->cfg.dot3adAgg[i].unused                       = pCfgV4->cfg.dot3adAgg[i].unused;
+      //pCfgV5->cfg.dot3adAgg[i].unused                       = pCfgV4->cfg.dot3adAgg[i].unused;
+      pCfgV5->cfg.dot3adAgg[i].blockedState                 = pCfgV4->cfg.dot3adAgg[i].blockedState;  /* PTin modified: blocked state */
       pCfgV5->cfg.dot3adAgg[i].stpMode                      = pCfgV4->cfg.dot3adAgg[i].stpMode;
       pCfgV5->cfg.dot3adAgg[i].isStatic                     = pCfgV4->cfg.dot3adAgg[i].isStatic;
       pCfgV5->cfg.dot3adAgg[i].hashMode                     = FD_DOT3AD_HASH_MODE;

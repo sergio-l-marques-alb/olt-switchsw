@@ -2250,6 +2250,52 @@ L7_RC_t dot3adAdminModeGet(L7_uint32 intIfNum, L7_uint32 *status)
   return aggAdminModeGet(intIfNum,status);
 }
 
+/* PTin added: Blocked state */
+#if 1
+/*********************************************************************
+ * @purpose  Block or Unblock a LAG port.
+ *            
+ * @param    intIfNum    internal interface number of the target LAG
+ * @param    status      new admin mode setting
+ *                      
+ * @returns  L7_SUCCESS
+ * @returns  L7_ERROR    if parameter checking fails 
+ * @returns  L7_FAILURE
+ *
+ * @notes    This API command can only be used to update an existing LAG.
+ *
+ * @notes    The allowed @i{status} values are L7_DISABLE or L7_ENABLE.
+ *
+ * @end
+ *********************************************************************/
+L7_RC_t dot3adBlockedStateSet(L7_uint32 intIfNum, L7_uint32 status)
+{
+  //return LACIssueCmd(AGG_BLOCKED_STATE, intIfNum, &status);
+  return aggBlockedStateSet(intIfNum, status);    /* This way is much more faster */
+}
+
+/*********************************************************************
+ * @purpose  Check if a LAG port is Blocked or Unblocked.
+ *            
+ * @param    intIfNum    internal interface number of the target LAG
+ * @param    *status     Blocking state
+ *                      
+ * @returns  L7_SUCCESS
+ * @returns  L7_ERROR    if parameter checking fails 
+ * @returns  L7_FAILURE
+ *
+ * @notes    This API command can only be used to update an existing LAG.
+ *
+ * @notes    The allowed @i{status} values are L7_DISABLE or L7_ENABLE.
+ *
+ * @end
+ *********************************************************************/
+L7_RC_t dot3adBlockedStateGet(L7_uint32 intIfNum, L7_uint32 *status)
+{
+  return aggBlockedStateGet(intIfNum, status);
+}
+#endif
+
 /*********************************************************************
  * @purpose  Set the LACP status on a per-port basis
  *
@@ -2624,6 +2670,35 @@ L7_RC_t dot3adLagNumMembersGet(L7_uint32 intIfNum, L7_uint32 *numMembers)
   }
 
   *numMembers = a->currNumWaitSelectedMembers ;
+
+  return rc;
+}
+
+/*********************************************************************
+ * @purpose  Get the number of active members for a LAG
+ *            
+ * @param    intIfNum        internal interface number of the target LAG
+ * @param    *numMembers pointer to output location
+ *                      
+ * @returns  L7_SUCCESS
+ * @returns  L7_FAILURE
+ *
+ * @notes    
+ *
+ * @end
+ *********************************************************************/
+L7_RC_t dot3adLagNumActiveMembersGet(L7_uint32 intIfNum, L7_uint32 *numMembers)
+{
+  dot3ad_agg_t *a;
+  L7_RC_t rc = L7_SUCCESS;
+
+  a = dot3adAggIntfFind(intIfNum);
+  if (a == L7_NULLPTR)
+  {
+    return L7_FAILURE;
+  }
+
+  *numMembers = a->activeNumMembers ;
 
   return rc;
 }

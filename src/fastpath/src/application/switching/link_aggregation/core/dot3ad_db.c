@@ -764,6 +764,10 @@ L7_RC_t dot3adAggActivePortAdd(L7_uint32 agg_intf, L7_uint32 intf)
       dot3adAgg[dot3adAggIdx[agg_intf]].aggActivePortList[idx] = intf;
       dot3adAgg[dot3adAggIdx[agg_intf]].activeNumMembers++;
 
+      nimNotifyIntfChange(intf, L7_LAG_ACTIVE_MEMBER_ADDED);
+      PT_LOG_INFO(LOG_CTX_TRUNKS,"Added member %u to agg %u", intf, agg_intf);
+      PT_LOG_INFO(LOG_CTX_EVENTS,"Added member %u to agg %u", intf, agg_intf);
+
       return L7_SUCCESS;
     }
   }
@@ -812,9 +816,13 @@ L7_RC_t dot3adAggActivePortDelete(L7_uint32 agg_intf, L7_uint32 intf)
 
   dot3adAgg[dot3adAggIdx[agg_intf]].activeNumMembers--;
 
-  return L7_SUCCESS;
+  nimNotifyIntfChange(intf, L7_LAG_ACTIVE_MEMBER_REMOVED);
+  PT_LOG_INFO(LOG_CTX_TRUNKS,"Removed member %u from agg %u", intf, agg_intf);
+  PT_LOG_INFO(LOG_CTX_EVENTS,"Removed member %u from agg %u", intf, agg_intf);
 
+  return L7_SUCCESS;
 }
+
 /*********************************************************************
 * @purpose  Checks to see if a LAG interface is static or not
 *

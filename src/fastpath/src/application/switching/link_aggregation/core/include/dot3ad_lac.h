@@ -105,6 +105,7 @@ typedef struct
     dot3adLACPDU_t   lacpdu;
     L7_uint32        p;    /* or key or priority */
     dot3adAdminMode_t adminMode;
+    L7_uint32        blockedState;  /* PTin added: Blocked state */
     L7_enetMacAddr_t mac;
     L7_uchar8        state;
     void            *bufHandle;
@@ -1689,6 +1690,7 @@ L7_RC_t aggPortDelete(L7_uint32 intIfNum);
 * @end
 *********************************************************************/
 L7_RC_t aggAdminModeSet(L7_uint32 agg_intf, L7_uint32 status, L7_BOOL updateConfig);
+
 /*********************************************************************
 * @purpose  Gets the aggregator admin mode flag.
 *
@@ -1703,6 +1705,40 @@ L7_RC_t aggAdminModeSet(L7_uint32 agg_intf, L7_uint32 status, L7_BOOL updateConf
 * @end
 *********************************************************************/
 L7_RC_t aggAdminModeGet(L7_uint32 agg_intf, L7_uint32 *status);
+
+/* PTin added: Blocked state */
+#if 1
+/*********************************************************************
+* @purpose  Sets the aggregator Blocked state flag.
+*
+* @param    agg_intf     aggregator internal interface number
+* @param    status       L7_ENABLE or L7_DISABLE
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes    
+*       
+* @end
+*********************************************************************/
+L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status);
+
+/*********************************************************************
+* @purpose  Gets the aggregator blocked state flag.
+*
+* @param    agg_intf     aggregator internal interface number
+* @param    *status      blocked state
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t aggBlockedStateGet(L7_uint32 agg_intf, L7_uint32 *status);
+#endif
+
 /*********************************************************************
 * @purpose  Deletes configured LAGs
 *
