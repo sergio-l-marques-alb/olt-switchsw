@@ -618,6 +618,7 @@ typedef struct
   L7_uint16             maxChannels;                    // [mask=0x010000] Maximum number of channels this port can have simultaneously
   L7_uint64             maxBandwidth;                   // [mask=0x020000] Maximum multicast bandwidth  this port can consume (bits/s)
   L7_uint8              protocol_trusted;               // [Mask=0x100000] Trusted interface for DHCP and PPPoE protocols (only physical interfaces)
+  L7_uint8              router_port;                    // [Mask=0x200000] 
 } __attribute__((packed)) msg_HWPortExt_t;
 
 typedef struct
