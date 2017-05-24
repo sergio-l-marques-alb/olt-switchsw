@@ -68,6 +68,8 @@ L7_char8 *nimGetIntfEvent(L7_PORT_EVENTS_t event)
       case L7_LAG_CFG_MEMBER_CHANGE:    return "L7_LAG_CFG_MEMBER_CHANGE";
       case L7_LAG_CFG_REMOVE:    return "L7_LAG_CFG_REMOVE";
       case L7_LAG_CFG_END:    return "L7_LAG_CFG_END";
+      case L7_LAG_ACTIVE_MEMBER_ADDED:    return "L7_LAG_ACTIVE_MEMBER_ADD";
+      case L7_LAG_ACTIVE_MEMBER_REMOVED:  return "L7_LAG_ACTIVE_MEMBER_REMOVED";
       case L7_PROBE_SETUP:    return "L7_PROBE_SETUP";
       case L7_PROBE_TEARDOWN:    return "L7_PROBE_TEARDOWN";
       case L7_SET_INTF_SPEED:    return "L7_SET_INTF_SPEED";

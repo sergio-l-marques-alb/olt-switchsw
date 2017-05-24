@@ -884,6 +884,8 @@ L7_RC_t nimNotifyUserOfIntfChange(NIM_CORRELATOR_t correlator, NIM_EVENT_NOTIFY_
           case L7_LAG_CFG_MEMBER_CHANGE:
           case L7_LAG_CFG_REMOVE:
           case L7_LAG_CFG_END:
+          case L7_LAG_ACTIVE_MEMBER_ADDED:      /* PTin added: Notify other members when member becomes active/inactive */
+          case L7_LAG_ACTIVE_MEMBER_REMOVED:    /* PTin added: Notify other members when member becomes active/inactive */
           case L7_PORT_STATS_RESET:
             nimDoNotify(correlator,eventInfo);
             break;

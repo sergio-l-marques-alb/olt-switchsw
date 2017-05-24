@@ -397,6 +397,8 @@ typedef enum
   L7_LAG_CFG_MEMBER_CHANGE,
   L7_LAG_CFG_REMOVE,
   L7_LAG_CFG_END,
+  L7_LAG_ACTIVE_MEMBER_ADDED,                                             /* PTin added: Notify other members when member becomes active/inactive */
+  L7_LAG_ACTIVE_MEMBER_REMOVED,                                           /* PTin added: Notify other members when member becomes active/inactive */
   L7_PROBE_SETUP,
   L7_PROBE_TEARDOWN,
   L7_SET_INTF_SPEED,                                                      /* Affects Spanning Tree when path cost dynamically calculated */
