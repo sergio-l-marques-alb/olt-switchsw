@@ -5928,9 +5928,9 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
   qos_cos_cfg.mask           = PTIN_QOS_COS_SCHEDULER_MASK;
   qos_cos_cfg.scheduler_type = L7_QOS_COS_QUEUE_SCHED_TYPE_STRICT;
 
-  /* Drop management: default is taildrop */
+  /* Drop management: default is WRED */
   memset(&qos_cos_drop,0x00,sizeof(ptin_QoS_drop_t));
-  qos_cos_drop.queue_management_type = L7_QOS_COS_QUEUE_MGMT_TYPE_TAILDROP;
+  qos_cos_drop.queue_management_type = L7_QOS_COS_QUEUE_MGMT_TYPE_WRED;
   qos_cos_drop.wred_decayExp = 9;
   qos_cos_drop.mask = 0xf;
   for (j = 0; j < 4; j++)
