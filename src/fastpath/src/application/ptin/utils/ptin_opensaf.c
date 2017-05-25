@@ -155,6 +155,9 @@ L7_RC_t ptin_opensaf_read_event(void *data, int len, int id, char *chName, char 
 	  	data = readData;
 	  	len = readDataLen;
         PT_LOG_DEBUG(LOG_CTX_OPENSAF, "From %s (I am %s), ID %llu, len %d ", readDataPublisher, ptin_event[id].publisherNameStr, readEventID, len);
+
+        PT_LOG_ERR(LOG_CTX_OPENSAF, "len %d", len);
+
 	  	if (strcmp(readDataPublisher, ptin_event[id].publisherNameStr) != 0)
         {
 	      own = 0;
@@ -226,6 +229,7 @@ void ptin_opensaf_task_OnuMac( void )
 
     int len = sizeof(event_data);
 
+    PT_LOG_ERR(LOG_CTX_OPENSAF, "len     %u", len);
     /* wait for a event in the ONUSTATE*/
     ptin_opensaf_read_event(&event_data, len, 1, chName, pubName);
   
@@ -248,11 +252,11 @@ void ptin_opensaf_task_OnuMac( void )
 
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "slotId       %u",  ngpon2_members.member[event_data.memberIndex].slot);
 
-    if(slot != ngpon2_members.member[event_data.memberIndex].slot)
-    {
+    //if(slot != ngpon2_members.member[event_data.memberIndex].slot)
+    //{
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "slot %u", slot);
-      continue;
-    }
+      //continue;
+    //}
 
     /* Key to read section in checkpoint Onu State checkpoint */
     section  = event_data.onuId;
@@ -325,18 +329,15 @@ void ptin_opensaf_task_OnuMac( void )
       PT_LOG_TRACE(LOG_CTX_OPENSAF, " event_data.memberIndex = %u, event_data.onuId = %u", event_data.memberIndex, event_data.onuId);
 
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "Search Data : %c , %c ,%c ,%c , %c , %c, ",    dsBindingIpv4.key.macAddr[0], dsBindingIpv4.key.macAddr[1], dsBindingIpv4.key.macAddr[2],
-                                                                            dsBindingIpv4.key.macAddr[3], dsBindingIpv4.key.macAddr[4], dsBindingIpv4.key.macAddrmac.addr[5]);
+                                                                            dsBindingIpv4.key.macAddr[3], dsBindingIpv4.key.macAddr[4], dsBindingIpv4.key.macAddr[5]);
 
       ptin_igmp_multicast_get_all_serviceId_per_onu( event_data.memberIndex, event_data.onuId, servicesId, &nOfServices);
 
       PT_LOG_TRACE(LOG_CTX_OPENSAF, " event_data.memberIndex = %u, event_data.onuId = %u", event_data.memberIndex, event_data.onuId);
       usmDbDsBindingGet(&dsBindingIpv4);
 
-       PT_LOG_TRACE(LOG_CTX_OPENSAF, " event_data.memberIndex = %u, event_data.onuId = %u", event_data.memberIndex, event_data.onuId);
+      //PT_LOG_TRACE(LOG_CTX_OPENSAF, " event_data.memberIndex = %u, event_data.onuId = %u", event_data.memberIndex, event_data.onuId);
       usmDbDsLeaseStatusUpdateIntf(&dsBindingIpv4.key, L7_AF_INET6, event_data.memberIndex);
-
-
-
 
       while (i < PTIN_SYSTEM_MAX_SERVICES_PER_ONU)
       {
