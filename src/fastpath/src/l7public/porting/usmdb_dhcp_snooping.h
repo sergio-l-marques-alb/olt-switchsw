@@ -1249,6 +1249,20 @@ L7_RC_t usmDbDsBindingGetNextByType(dhcpSnoopBinding_t *dsBinding,
 L7_RC_t usmDbDsTftpDownloadStatus(L7_uint32 direction, L7_BOOL downloadStatus);
 
 
+/*********************************************************************
+* @purpose  
+*           
+*
+* @param    
+* 
+*
+* @returns  L7_SUCCESS 
+*
+* @notes    
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbDsLeaseStatusUpdateIntf(dhcpSnoopBindingKey_t *key, L7_uint inetFamily, L7_uint32 intIfNum);
 
 
 
