@@ -252,11 +252,11 @@ void ptin_opensaf_task_OnuMac( void )
 
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "slotId       %u",  ngpon2_members.member[event_data.memberIndex].slot);
 
-    //if(slot != ngpon2_members.member[event_data.memberIndex].slot)
-    //{
+    if(slot != ngpon2_members.member[event_data.memberIndex].slot)
+    {
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "slot %u", slot);
       //continue;
-    //}
+    }
 
     /* Key to read section in checkpoint Onu State checkpoint */
     section  = event_data.onuId;
