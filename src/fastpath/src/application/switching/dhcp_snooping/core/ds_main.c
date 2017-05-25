@@ -1991,7 +1991,7 @@ L7_RC_t dsDHCPv6ClientFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
 
    //Add or update an existing entry in the binding table
    dsv6BindingAdd(DS_BINDING_TENTATIVE, &client_mac_addr, &client_ip_addr, vlanId, innerVlanId, intIfNum);
-   dsv6LeaseStatusUpdate(&client_mac_addr, dhcp_msg_hdr_ptr->msg_type);
+   dsv6LeaseStatusUpdate(&client_mac_addr, dhcp_msg_hdr_ptr->msg_type, intIfNum );
 
    //Create a new Relay-Agent message. If the received msg is a 'L7_DHCP6_RELAY_FORW', increase hop_count
    relay_agent_header.msg_type  = L7_DHCP6_RELAY_FORW;
@@ -2324,7 +2324,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      key.ipType = L7_AF_INET6;
      dsv6BindingIpAddrSet(&client_mac_addr, &client_ip_addr);
      dsBindingLeaseSet(&key, lease_time);
-     dsv6LeaseStatusUpdate(&client_mac_addr, dhcp_msg_hdr_ptr->msg_type);
+     dsv6LeaseStatusUpdate(&client_mac_addr, dhcp_msg_hdr_ptr->msg_type, intIfNum);
    }
 
    return L7_SUCCESS;
@@ -4614,7 +4614,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
   }
 
   //Update the lease status of the binding table entry. Ignore the return code because the entry might not exist if a release was received.
-  dsv4LeaseStatusUpdate(&chaddr, dhcpPktType);
+  dsv4LeaseStatusUpdate(&chaddr, dhcpPktType, intIfNum);
 
   return L7_SUCCESS;
 }

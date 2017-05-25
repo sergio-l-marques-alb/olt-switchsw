@@ -1746,6 +1746,21 @@ extern RC_t ptin_igmp_multicast_service_add(L7_uint32 ptinPort, L7_uint32 onuId,
  */
 extern RC_t ptin_igmp_multicast_service_remove(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 serviceId);
 
+#endif//IGMPASSOC_MULTI_MC_SUPPORTED
+
+/**
+ * @purpose querier reset is done on a specific serviceId 
+ * 
+ * @param none 
+ *  
+ *  
+ * @return RC_t
+ *
+ * @notes none 
+ *  
+ */
+extern RC_t ptin_igmp_multicast_querierReset_on_specific_serviceID(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 serviceId);
+
 /**
  * @purpose get all the servicesId's in use on a specific 
  *          ptin_port and onuId
@@ -1761,21 +1776,6 @@ extern RC_t ptin_igmp_multicast_service_remove(L7_uint32 ptinPort, L7_uint32 onu
  *  
  */
 extern RC_t ptin_igmp_multicast_get_all_serviceId_per_onu(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 *listOfServices, L7_uint32 *nOfServices);
-
-#endif//IGMPASSOC_MULTI_MC_SUPPORTED
-
-/**
- * @purpose querier reset is done on a specific serviceId 
- * 
- * @param none 
- *  
- *  
- * @return RC_t
- *
- * @notes none 
- *  
- */
-extern RC_t ptin_igmp_multicast_querierReset_on_specific_serviceID(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 serviceId);
 
 
 #endif//_PTIN_IGMP_H

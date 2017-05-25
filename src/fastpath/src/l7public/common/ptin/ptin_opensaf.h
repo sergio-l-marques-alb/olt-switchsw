@@ -24,16 +24,6 @@
 #define ENCRYPTION_KEY_FIELD_SIZE 16
 #define MAX_NGPON2_PORTS          32
 
-
-typedef struct
-{
-
-  L7_uint8 eventId;
-  L7_uint8 memberIndex;
-  L7_uint8 parentId;
-  L7_uint8 onuId;
-
-} __attribute__((packed)) ptin_opensaf_ngpon2_onustate;
 /* external stuctures from MAC PON*/
 typedef struct  {
     L7_uint8 losi ;  /* LOSi */

@@ -18,11 +18,22 @@
 #include <pthread.h>
 #include <unistd.h>
 
-typedef enum {
-    SWITCHDRVR_ONU       = 0x01,
-    ONU_STATE,
-    NGPON2GROUPS
+typedef enum 
+{
+  SWITCHDRVR_ONU       = 0x01,
+  ONU_STATE,
+  NGPON2GROUPS
 } ptin_checkpoints;
+
+typedef struct
+{
+  L7_uint8 eventId;
+  L7_uint8 memberIndex;
+  L7_uint8 parentId;
+  L7_uint8 slotId;
+  L7_uint8 linkId;
+  L7_uint8 onuId;
+} __attribute__((packed)) ptin_opensaf_ngpon2_onustate;
 
 /*********************************************************** */
 

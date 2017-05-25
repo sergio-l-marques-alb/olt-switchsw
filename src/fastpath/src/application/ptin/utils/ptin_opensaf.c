@@ -23,13 +23,13 @@
 #include <pthread.h>
 #include "ptin_utils.h"
 #include "ptin_intf.h"
-#include "ptin_opensaf.h"
-#include "ptin_opensaf_checkpoint.h"
 #include "usmdb_dhcp_snooping.h"
 #include "fdb_api.h"
 
 
 #ifdef OPENSAF_SUPPORTED
+#include "ptin_opensaf_checkpoint.h"
+#include "ptin_opensaf.h"
 #include <saEvt.h>
 
 
@@ -85,7 +85,7 @@ typedef struct {
 } __attribute__ ((packed)) ptin_OLTCTList;
 
 
-ptin_opensaf_event_t ptin_event[PTIN_MAX_OPENSAF_EVENT];
+static ptin_opensaf_event_t ptin_event[PTIN_MAX_OPENSAF_EVENT];
 
 /*******************************
  * Debug procedures
@@ -147,15 +147,14 @@ L7_RC_t ptin_opensaf_read_event(void *data, int len, int id, char *chName, char 
 	  {
 	  	PT_LOG_DEBUG(LOG_CTX_OPENSAF, "Got event on channel %s", ptin_event[id].channelNameStr);
 
-	  	pthread_mutex_lock(&readDataMux);
+	  	pthread_mutex_lock(&readDataMux);   
 	  	readData = data;
 	  	readDataLen = len;
 	  	bzero(readDataPublisher, sizeof(readDataPublisher));
 	  	saRet = saEvtDispatch(ptin_event[id].evtHandle, SA_DISPATCH_ONE);
 	  	data = readData;
 	  	len = readDataLen;
-	  	PT_LOG_DEBUG(LOG_CTX_OPENSAF, "From %s (I am %s), ID %llu", readDataPublisher, ptin_event[id].publisherNameStr, readEventID);
-
+        PT_LOG_DEBUG(LOG_CTX_OPENSAF, "From %s (I am %s), ID %llu, len %d ", readDataPublisher, ptin_event[id].publisherNameStr, readEventID, len);
 	  	if (strcmp(readDataPublisher, ptin_event[id].publisherNameStr) != 0)
         {
 	      own = 0;
@@ -178,7 +177,7 @@ L7_RC_t ptin_opensaf_read_event(void *data, int len, int id, char *chName, char 
 
 	 if (saRet != SA_AIS_OK || len < 0)
 	 {
-	 	PT_LOG_ERR(LOG_CTX_OPENSAF, "Error loading event from channel %s", ptin_event[id].channelNameStr);
+	 	PT_LOG_ERR(LOG_CTX_OPENSAF, "Error loading event from channel %s  len %d saRet %d", ptin_event[id].channelNameStr, len , saRet);
 
 	 	if (saRet != SA_AIS_OK)
         {
@@ -196,10 +195,10 @@ L7_RC_t ptin_opensaf_read_event(void *data, int len, int id, char *chName, char 
 
 void ptin_opensaf_task_OnuMac( void )
 {
-  ptin_opensaf_ngpon2_onustate event_data;
-  unsigned char data[100]      = "";
-  int           size           = 0;
-  unsigned char *chName,*p,*pubName;
+  static ptin_opensaf_ngpon2_onustate event_data;
+  char data[100]      = "";
+  int  size           = 0;
+  char *chName,*p,*pubName;
   L7_enetMacAddr_t mac;
   L7_uint32 section, data_key_OnuState, data_key_NGPON2Group;
   L7_uint8 slot;
@@ -209,7 +208,7 @@ void ptin_opensaf_task_OnuMac( void )
 
   memset(&mac, 0, sizeof(mac));
 
-  chName        = "ONUSTATE";
+  chName        = "ONU_STATE";
   pubName       = "Fastpath";
 
   if (osapiTaskInitDone(L7_PTIN_OPENSAF_TASK) != L7_SUCCESS)
@@ -217,22 +216,28 @@ void ptin_opensaf_task_OnuMac( void )
     PT_LOG_FATAL(LOG_CTX_OPENSAF, "Error syncing task");
     PTIN_CRASH();
   }
-
+ 
   ptin_opensaf_eventhandle_init(1, chName, pubName);
 
   /* Loop */
   while (1)
   {
     PT_LOG_INFO(LOG_CTX_OPENSAF, "ptin_opensaf_task_OnuMac running...");
+
+    int len = sizeof(event_data);
+
     /* wait for a event in the ONUSTATE*/
-    ptin_opensaf_read_event(&event_data, sizeof(event_data), 1, chName, pubName);
-
+    ptin_opensaf_read_event(&event_data, len, 1, chName, pubName);
+  
     /* Read the event data */
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "eventId     %u", event_data.eventId);
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "memberIndex %u", event_data.memberIndex);
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "parentId    %u", event_data.parentId);
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "OnuID       %u", event_data.onuId);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "eventId      %u",  event_data.eventId);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "memberIndex  %u",  event_data.memberIndex);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "parentId     %u",  event_data.parentId);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "OnuID        %u",  event_data.onuId);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "linkId       %u",  event_data.linkId);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "slotId       %u",  event_data.slotId);
 
+   
     data_key_NGPON2Group = event_data.memberIndex;
     data_key_NGPON2Group = (data_key_NGPON2Group & 0xff) | (event_data.parentId << 8);
     section              = data_key_NGPON2Group;
@@ -241,30 +246,35 @@ void ptin_opensaf_task_OnuMac( void )
     ptin_checkpoint_getSection(NGPON2GROUPS, section, &ngpon2_members, &size);
     ptin_intf_slot_get(&slot);
 
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "slotId       %u",  ngpon2_members.member[event_data.memberIndex].slot);
+
     if(slot != ngpon2_members.member[event_data.memberIndex].slot)
     {
+      PT_LOG_TRACE(LOG_CTX_OPENSAF, "slot %u", slot);
       continue;
     }
-    /* if this event is from this slot */
 
     /* Key to read section in checkpoint Onu State checkpoint */
     section  = event_data.onuId;
-    data_key_OnuState = (event_data.parentId << 21) | (ngpon2_members.member[event_data.memberIndex].slot << 25) | (STANDALONE_FLAG << 20);
+    data_key_OnuState = (ngpon2_members.member[event_data.memberIndex].slot << 25) | (event_data.parentId << 21) | (STANDALONE_FLAG << 20);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "data_key_OnuState %u", data_key_OnuState);
+
     section  = (section & 0x000000FF) | data_key_OnuState;
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "section %u", section);
 
     /* Get ONU State */
     ptin_checkpoint_getSection(ONU_STATE, section, &onuStatus, &size);
 
-    if(onuStatus.state == ONU_STATE_DISABLED) /* If the ONU is disable remove MAC, DHCP binding and IGMP channels*/
-    {
-      /*Retrieve MAC form a particular ONU*/
-      ptin_checkpoint_getSection(SWITCHDRVR_ONU, event_data.onuId, &data, &size);
+    /*Retrieve MAC form a particular ONU*/
+    ptin_checkpoint_getSection(SWITCHDRVR_ONU, event_data.onuId, &data, &size);
+    p = data;
 
+    if(onuStatus.state == ONU_STATE_DISABLED) /* If the ONU is disable remove MAC, DHCP binding and IGMP channels*/
+    {    
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "size %u", size);
 
       int i = 0;
-      p = data;
-
+     
       while(size > i) /* Flush the each MAC from the L2 table and DHCP binding table */
       {
         memcpy(&mac.addr, p, sizeof(mac.addr));
@@ -275,10 +285,10 @@ void ptin_opensaf_task_OnuMac( void )
         rc = fdbFlushByMac(mac);
 
         /* IPv6 */
-        usmDbDsBindingRemove((L7_enetMacAddr_t*)mac.addr, L7_AF_INET6);
+        //usmDbDsBindingRemove((L7_enetMacAddr_t*)mac.addr, L7_AF_INET6);
 
         /* IPv4 */
-        usmDbDsBindingRemove((L7_enetMacAddr_t*)mac.addr, L7_AF_INET);
+        //usmDbDsBindingRemove((L7_enetMacAddr_t*)mac.addr, L7_AF_INET);
 
         PT_LOG_TRACE(LOG_CTX_OPENSAF, "rc %u", rc);
 
@@ -287,35 +297,53 @@ void ptin_opensaf_task_OnuMac( void )
         /* get next MAC */
       }
 
-      /* send query */
-
-
-
       /* Delete ONT MAC section from the checkpoint */
       ptin_opensaf_checkpoint_deleteSection(SWITCHDRVR_ONU, event_data.onuId);
     }
-    /*
+    
     if (onuStatus.state != ONU_STATE_DISABLED)
     {
       L7_uint32 servicesId[PTIN_SYSTEM_MAX_SERVICES_PER_ONU];
       L7_uint32 nOfServices;
       L7_uint32 i = 0;
+      dhcpSnoopBinding_t  dsBindingIpv4,dsBindingIpv6;
 
       memset(&servicesId, (L7_uint32) -1, sizeof(servicesId));
+      memcpy(&mac.addr, p, sizeof(mac.addr));
+
+      PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Data : %c , %c ,%c ,%c , %c , %c, ",    mac.addr[0], mac.addr[1], mac.addr[2],
+                                                                            mac.addr[3], mac.addr[4], mac.addr[5]);
+
+      memset(&dsBindingIpv4,0x00,sizeof(dhcpSnoopBinding_t));
+      memcpy(dsBindingIpv4.key.macAddr, mac.addr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+      dsBindingIpv4.key.ipType = L7_AF_INET;  //(table[i].bind_entry.ipAddr.family==0) ;//? (L7_AF_INET) : (L7_AF_INET6);
+
+      memset(&dsBindingIpv6,0x00,sizeof(dhcpSnoopBinding_t));
+      memcpy(dsBindingIpv6.key.macAddr, mac.addr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
+      dsBindingIpv6.key.ipType = L7_AF_INET6;  //(table[i].bind_entry.ipAddr.family==0) ;//? (L7_AF_INET) : (L7_AF_INET6);
 
       PT_LOG_TRACE(LOG_CTX_OPENSAF, " event_data.memberIndex = %u, event_data.onuId = %u", event_data.memberIndex, event_data.onuId);
 
+      PT_LOG_TRACE(LOG_CTX_OPENSAF, "Search Data : %c , %c ,%c ,%c , %c , %c, ",    dsBindingIpv4.key.macAddr[0], dsBindingIpv4.key.macAddr[1], dsBindingIpv4.key.macAddr[2],
+                                                                            dsBindingIpv4.key.macAddr[3], dsBindingIpv4.key.macAddr[4], dsBindingIpv4.key.macAddrmac.addr[5]);
+
       ptin_igmp_multicast_get_all_serviceId_per_onu( event_data.memberIndex, event_data.onuId, servicesId, &nOfServices);
+
+      PT_LOG_TRACE(LOG_CTX_OPENSAF, " event_data.memberIndex = %u, event_data.onuId = %u", event_data.memberIndex, event_data.onuId);
+      usmDbDsBindingGet(&dsBindingIpv4);
+
+       PT_LOG_TRACE(LOG_CTX_OPENSAF, " event_data.memberIndex = %u, event_data.onuId = %u", event_data.memberIndex, event_data.onuId);
+      usmDbDsLeaseStatusUpdateIntf(&dsBindingIpv4.key, L7_AF_INET6, event_data.memberIndex);
+
+
 
 
       while (i < PTIN_SYSTEM_MAX_SERVICES_PER_ONU)
       {
         if (servicesId[i] != (L7_uint32) -1)
-        ptin_igmp_multicast_querierReset_on_specific_serviceID(ptinPort, onuId, servicesId[i]);
+          ptin_igmp_multicast_querierReset_on_specific_serviceID(event_data.memberIndex, event_data.onuId, servicesId[i]);
       }
-
-    }
-    */
+    }    
   }
 
   osapiSleepMSec(500);
@@ -395,7 +423,7 @@ static L7_RC_t ptin_opensaf_check_event_initialization(int id, char *chName, cha
   if (ptin_event[id].initialized == 0)
   {
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "Checkpoint is not initialized: %s", ptin_event[id].channelNameStr);
-  	saRet = ptin_opensaf_eventhandle_init(id ,chName, pubName );
+  	saRet = ptin_opensaf_eventhandle_init(id ,chName, pubName);
   }
 
   return saRet;
@@ -461,7 +489,7 @@ static L7_RC_t ptin_opensaf_eventhandle_init(int id, char *chName, char *pubName
     return L7_FAILURE;
   }
 
-  channelOpenFlags = SA_EVT_CHANNEL_CREATE|SA_EVT_CHANNEL_SUBSCRIBER|SA_EVT_CHANNEL_PUBLISHER;
+  channelOpenFlags = SA_EVT_CHANNEL_SUBSCRIBER;
   saRet = saEvtChannelOpen(ptin_event[id].evtHandle, &ptin_event[id].channelName, channelOpenFlags, timeout, &ptin_event[id].channelHandle);
 
   if (saRet != SA_AIS_OK)
@@ -515,7 +543,7 @@ static L7_RC_t ptin_opensaf_eventhandle_deinit(int id)
  */
 L7_RC_t ptin_opensaf_eventhandle_init_teste(int id)
 {
-  char *chName  = "PPAUCTL";
+  char *chName  = "ONU_STATE";
   char *pubName = " teste_pub ";
 
   ptin_opensaf_eventhandle_init(id, chName, pubName);
@@ -558,6 +586,11 @@ L7_RC_t ptin_opensaf_read_event_teste(int id)
 L7_RC_t ptin_opensaf_event_task_init()
 {
   L7_uint32 ptin_opensaf_TaskId = 0;
+  char *chName,*pubName;
+
+  chName        = "ONU_STATE";
+  pubName       = "Fastpath"; 
+  ptin_opensaf_eventhandle_init(1, chName, pubName);
   // Create task for ptin opensaf processing
   ptin_opensaf_TaskId = osapiTaskCreate("ptin_opensaf_task_OnuMac", ptin_opensaf_task_OnuMac, 0, 0,
                                                 L7_DEFAULT_STACK_SIZE,

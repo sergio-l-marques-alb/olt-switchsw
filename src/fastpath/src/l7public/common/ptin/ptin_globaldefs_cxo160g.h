@@ -3,9 +3,6 @@
 
 #define IGMP_DYNAMIC_CLIENTS_SUPPORTED
 
-/* OpenSAF support */
-#define OPENSAF_SUPPORTED
-
 /* To manage linkscan, uncomment this line */
 #define PTIN_LINKSCAN_CONTROL
 

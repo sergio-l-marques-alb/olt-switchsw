@@ -263,7 +263,7 @@ void ptin_debug(void)
 #if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_OLT1T0 || PTIN_BOARD == PTIN_BOARD_TT04SXG)
   printf("  cpld_spi_read_debug <addr>                                      - Read CPLD register using SPI\r\n");
   printf("  cpld_spi_write_debug <addr> <value>                             - Write CPLD register using SPI\r\n");
-  printf("  set_debug_APS_CCM_pktTimer <0/1>                                - (De)activate rx APS/CCM packets' timing measurements");
+  printf("  set_debug_APS_CCM_pktTimer <0/1>                                - (De)activate rx APS/CCM packets' timing measurements\r\n");
 #endif
 
 #ifdef NGPON2_SUPPORTED 

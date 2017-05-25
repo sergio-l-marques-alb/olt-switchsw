@@ -642,6 +642,27 @@ L7_RC_t usmDbDsVlanConfigSet(L7_uint32 vlanStart, L7_uint32 vlanEnd, L7_uint32 v
 }
 
 /*********************************************************************
+* @purpose  Enable or disable DHCP snooping on a VLAN. (Ptin Added)
+*
+* @param    vlanStart @b((input)) Low end of VLAN range
+* @param    vlanEnd   @b((input)) High end of VLAN range
+* @param    val       @b((input)) L7_ENABLE if DHCP snooping is enabled 
+*                                 on all VLANs in the range
+*
+* @returns  L7_SUCCESS, if mode was set
+*           L7_ERROR, if inputs invalid
+*           L7_FAILURE
+*
+* @notes   
+*
+* @end
+*********************************************************************/
+L7_RC_t usmDbDsLeaseStatusUpdateIntf(dhcpSnoopBindingKey_t *key, L7_uint inetFamily, L7_uint32 intIfNum)
+{
+  return dsLeaseStatusUpdateIntf(key, inetFamily, intIfNum);
+}
+
+/*********************************************************************
 * @purpose  Given a VLAN ID, verify whether the DHCP snooping is
 *           enabled or not.
 *

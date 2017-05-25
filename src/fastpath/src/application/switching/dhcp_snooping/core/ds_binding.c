@@ -52,9 +52,10 @@ static L7_RC_t dsBindingTreeSearch(dsBindingTreeKey_t *key, L7_uint32 matchType,
 
 static L7_RC_t dsBindingCopy(dsBindingTreeNode_t *binding, dhcpSnoopBinding_t *extBinding);
 
-static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, dsLeaseStatus_t leaseStatus);
+static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, dsLeaseStatus_t leaseStatus, L7_uint32 intIfNum);
 
 extern L7_RC_t dsCheckpointCallback(dsCkptEventType_t dsEvent, L7_enetMacAddr_t *macAddr);
+
 
 /*********************************************************************
 * @purpose  Create the bindings database using an AVL tree
@@ -865,7 +866,7 @@ static L7_RC_t dsBindingCopy(dsBindingTreeNode_t *binding,
 *
 * @end
 *********************************************************************/
-static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, L7_uint messageType)
+static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, L7_uint messageType, L7_uint32 intIfNum)
 {
   dsBindingTreeNode_t *binding;
 
@@ -882,6 +883,54 @@ static L7_RC_t dsLeaseStatusUpdate(dsBindingTreeKey_t *key, L7_uint inetFamily, 
 
   dsInfo->dsDbDataChanged = L7_TRUE;
   binding->leaseStatus    = messageType;
+
+
+/* PTIN added -> used to update port when a ONT change channel . Without this the ONT leases was always associated to the same port (intIfNum)*/
+#ifdef OPENSAF_SUPPORTED
+  if( intIfNum <= PTIN_SYSTEM_N_PONS && ((messageType && DS_LEASESTATUS_V4_REQUEST) || (messageType && DS_LEASESTATUS_V6_REQUEST)) )
+  {
+    binding->intIfNum      = intIfNum;
+    PT_LOG_TRACE(LOG_CTX_DHCP, "Updating lease to %d ",binding->intIfNum);
+  }
+#endif
+
+  return L7_SUCCESS;
+}
+
+
+/*********************************************************************
+* @purpose  Update the lease status for an existing binding table entry
+*
+* @param    macAddr:     Mac address that identifies the binding table entry
+* @param    inetFamily:  L7_AF_INET/L7_AF_INET6
+* @param    messageType: DHCP message type in the received packet
+*
+* @returns  L7_SUCCESS
+*
+* @notes    Converts lease time to remaining lease time in minutes.
+*
+* @end
+*********************************************************************/
+L7_RC_t dsLeaseStatusUpdateIntf(dhcpSnoopBindingKey_t *key, L7_uint inetFamily, L7_uint32 intIfNum)
+{
+  dsBindingTreeNode_t *binding;
+  dsBindingTreeKey_t  dhcp_key;
+
+  dhcp_key.ipType = key->ipType;
+
+  memcpy(&dhcp_key, &key, sizeof(dsBindingTreeKey_t));
+
+  if (dsBindingTreeSearch(&dhcp_key, L7_MATCH_EXACT, &binding) != L7_SUCCESS)
+    return L7_FAILURE;
+
+  dsInfo->dsDbDataChanged = L7_TRUE;
+ 
+/* PTIN added -> used to update port when a ONT change channel . Without this the ONT leases was always associated to the same port (intIfNum)*/
+  if( intIfNum <= PTIN_SYSTEM_N_PONS )
+  {
+    binding->intIfNum      = intIfNum;
+    PT_LOG_TRACE(LOG_CTX_DHCP, "Updating lease to %d ",binding->intIfNum);
+  }
 
   return L7_SUCCESS;
 }
@@ -1088,14 +1137,14 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t *ipAddr)
 *
 * @end
 *********************************************************************/
-L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType)
+L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType, L7_uint32 intIfNum)
 {
   dsBindingTreeKey_t key;
 
   memset(&key, 0x00, sizeof(key));
   memcpy(&key.macAddr.addr, &macAddr->addr, L7_ENET_MAC_ADDR_LEN);
   key.ipType = L7_AF_INET;
-  return dsLeaseStatusUpdate(&key, L7_AF_INET, messageType);
+  return dsLeaseStatusUpdate(&key, L7_AF_INET, messageType, intIfNum);
 }
 
 /*********************************************************************
@@ -1111,7 +1160,7 @@ L7_RC_t dsv4LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType)
 *
 * @end
 *********************************************************************/
-L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType)
+L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType, L7_uint32 intIfNum)
 {
   dsBindingTreeKey_t key;
 
@@ -1124,7 +1173,7 @@ L7_RC_t dsv6LeaseStatusUpdate(L7_enetMacAddr_t *macAddr, L7_uint messageType)
    */
   messageType += 10; 
 
-  return dsLeaseStatusUpdate(&key, L7_AF_INET6, messageType);
+  return dsLeaseStatusUpdate(&key, L7_AF_INET6, messageType, intIfNum);
 }
 
 /*********************************************************************

@@ -13698,12 +13698,12 @@ static void igmp_clientIndex_mark(L7_uint ptin_port, L7_uint client_idx, ptinIgm
   }
   igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client = infoData;
 
-  #if PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE
+#if PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE
   L7_uint16 nClients =  igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients;
 
   igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->client_bmp[nClients] = infoData->deviceClientId;
   igmpDeviceClients.client_devices[PTIN_IGMP_CLIENT_PORT(ptin_port)][client_idx].client->pClientGroup->number_of_clients    = nClients + 1;
-  #endif
+#endif
 }
 
 /**
@@ -18456,7 +18456,7 @@ RC_t ptin_igmp_multicast_get_all_serviceId_per_onu(L7_uint32 ptinPort, L7_uint32
 }
 
 
-  #if 0
+#if 0
 /**
  * @purpose Get Next Multicast Service Identifier
  * 
