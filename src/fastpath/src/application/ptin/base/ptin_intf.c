@@ -5930,12 +5930,14 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
 
   /* Drop management: default is WRED */
   memset(&qos_cos_drop,0x00,sizeof(ptin_QoS_drop_t));
-  qos_cos_drop.queue_management_type = L7_QOS_COS_QUEUE_MGMT_TYPE_WRED;
+  qos_cos_drop.queue_management_type = 1; /* WRED */
   qos_cos_drop.wred_decayExp = 9;
-  qos_cos_drop.mask = 0xf;
+  qos_cos_drop.mask = PTIN_QOS_COS_QUEUE_MANGM_MASK | PTIN_QOS_COS_WRED_DECAY_EXP_MASK | PTIN_QOS_COS_WRED_THRESHOLDS_MASK;
   for (j = 0; j < 4; j++)
   {
-    qos_cos_drop.dp[j].local_mask = 0xf;
+    qos_cos_drop.dp[j].local_mask = PTIN_QOS_COS_DP_TAILDROP_THRESH_MASK |
+                                    PTIN_QOS_COS_DP_WRED_THRESH_MIN_MASK | PTIN_QOS_COS_DP_WRED_THRESH_MAX_MASK | 
+                                    PTIN_QOS_COS_DP_WRED_DROP_PROB_MASK;
     qos_cos_drop.dp[j].taildrop_threshold = 100;
     qos_cos_drop.dp[j].wred_min_threshold = 100;
     qos_cos_drop.dp[j].wred_max_threshold = 100;
