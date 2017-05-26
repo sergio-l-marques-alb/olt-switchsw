@@ -1067,6 +1067,8 @@ L7_RC_t ptin_hapi_maclimit_setmax(DAPI_USP_t *ddUsp, L7_uint16 vlan_id, L7_uint3
   bcm_error_t           rv;
   #endif
 
+  PT_LOG_TRACE(LOG_CTX_HAPI,"interface {%d,%d,%d}, vlanId=%u, macLimit=%u action=%u send_trap=%u", ddUsp->unit, ddUsp->slot, ddUsp->port, vlan_id, mac_limit, action, send_trap);
+
   bcm_l2_learn_limit_t_init(&l2_learn_limit);
 
   /* Validate interface */

@@ -5349,7 +5349,8 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
         break;
       }
 
-      SETIPC_INFODIM(sizeof(msg_l2_maclimit_config_t));
+      //SETIPC_INFODIM(sizeof(msg_l2_maclimit_config_t));
+      SETIPCACKOK(outbuffer);
     }
     break;
 
