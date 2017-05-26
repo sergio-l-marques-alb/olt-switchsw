@@ -5869,9 +5869,10 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
  */
 static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
 {
-  L7_int          i;
+  L7_int          i, j;
   ptin_QoS_intf_t qos_intf_cfg;
   ptin_QoS_cos_t  qos_cos_cfg;
+  ptin_QoS_drop_t qos_cos_drop;
   L7_RC_t         rc = L7_SUCCESS;
 
   /* Validate arguments */
@@ -5897,6 +5898,20 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
   qos_cos_cfg.mask           = PTIN_QOS_COS_SCHEDULER_MASK;
   qos_cos_cfg.scheduler_type = L7_QOS_COS_QUEUE_SCHED_TYPE_STRICT;
 
+  /* Drop management: default is taildrop */
+  memset(&qos_cos_drop,0x00,sizeof(ptin_QoS_drop_t));
+  qos_cos_drop.queue_management_type = 1;
+  qos_cos_drop.wred_decayExp = 9;
+  qos_cos_drop.mask = 0xff;
+  for (j = 0; j < 4; j++)
+  {
+    qos_cos_drop.dp[j].local_mask = 0xff;
+    qos_cos_drop.dp[j].taildrop_threshold = 100;
+    qos_cos_drop.dp[j].wred_min_threshold = 100;
+    qos_cos_drop.dp[j].wred_max_threshold = 100;
+    qos_cos_drop.dp[j].wred_drop_prob     = 100;
+  }
+
   /* Apply configurations to interface */
   if (ptin_QoS_intf_config_set(ptin_intf, &qos_intf_cfg)!=L7_SUCCESS)
   {
@@ -5906,7 +5921,14 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
   /* Apply configurations to CoS */
   for (i=0; i<8; i++)
   {
+    /* Scheduler configuration */
     if (ptin_QoS_cos_config_set (ptin_intf, i, &qos_cos_cfg)!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Intf %u/%u: failed QoS initialization of CoS=%u", ptin_intf->intf_type,ptin_intf->intf_id, i);
+      rc = L7_FAILURE;
+    }
+    /* Drop management configuration */
+    if (ptin_QoS_drop_config_set(ptin_intf, i, &qos_cos_drop) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Intf %u/%u: failed QoS initialization of CoS=%u", ptin_intf->intf_type,ptin_intf->intf_id, i);
       rc = L7_FAILURE;
