@@ -255,7 +255,7 @@ void ptin_opensaf_task_OnuMac( void )
     if(slot != ngpon2_members.member[event_data.memberIndex].slot)
     {
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "slot %u", slot);
-      //continue;
+      continue;
     }
 
     /* Key to read section in checkpoint Onu State checkpoint */
@@ -270,7 +270,7 @@ void ptin_opensaf_task_OnuMac( void )
     ptin_checkpoint_getSection(ONU_STATE, section, &onuStatus, &size);
 
     /*Retrieve MAC form a particular ONU*/
-    ptin_checkpoint_getSection(SWITCHDRVR_ONU, event_data.onuId, &data, &size);
+    ptin_checkpoint_getSection(SWITCHDRVR_ONU, event_data.onuId /* xparentdID + 1 */, &data, &size);
     p = data;
 
     if(onuStatus.state == ONU_STATE_DISABLED) /* If the ONU is disable remove MAC, DHCP binding and IGMP channels*/
@@ -347,7 +347,7 @@ void ptin_opensaf_task_OnuMac( void )
     }    
   }
 
-  osapiSleepMSec(500);
+  osapiSleepMSec(1000);
 }
 
 //static void (*SaEvtEventDeliverCallbackT ) (SaEvtSubscriptionIdT, SaEvtHandleT, const SaSizeT);

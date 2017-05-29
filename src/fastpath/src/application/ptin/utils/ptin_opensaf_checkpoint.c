@@ -111,7 +111,7 @@ L7_RC_t ptin_opensaf_init()
     PT_LOG_NOTICE(LOG_CTX_OPENSAF," Some error occour in the initialition of opensaf checkpoint %s ",mac_pon_onustate_ckpt);
   }
 
-  if(ptin_opensaf_readOnly_checkpoint_init(switchdvdr_ckpt, SWITCHDRVR_ONU) != L7_SUCCESS)
+  if(ptin_opensaf_checkpoint_init(switchdvdr_ckpt, 128*32 , 100 ,SWITCHDRVR_ONU) != L7_SUCCESS)
   {
     PT_LOG_NOTICE(LOG_CTX_OPENSAF," Some error occour in the initialition of opensaf checkpoint %s ",switchdvdr_ckpt);
   }
@@ -877,7 +877,7 @@ L7_RC_t ptin_checkpoint_dumpCheckpoint(int id)
       printf(" %s \n", buffer);
       for (j=0; j<bytesToPrint; ++j)
       {
-        printf("0x%c ", buffer[j]);      //PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);
+        printf("0x%d ", buffer[j]);      //PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);
       }
       printf("\n");                      //PT_LOG_ERR(LOG_CTX_OPENSAF, "Checkpoint id %d not valid \n", id);
     }
