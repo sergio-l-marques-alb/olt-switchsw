@@ -4638,14 +4638,24 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      ENDIAN_SWAP8(maclimit->slotId));
-  PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   ENDIAN_SWAP8(maclimit->intf.intf_type), ENDIAN_SWAP8(maclimit->intf.intf_id));
-  PT_LOG_DEBUG(LOG_CTX_MSG," mask         = 0x%.8X",  ENDIAN_SWAP32(maclimit->mask));
-  PT_LOG_DEBUG(LOG_CTX_MSG," vid          = %u",      ENDIAN_SWAP16(maclimit->vid));
-  PT_LOG_DEBUG(LOG_CTX_MSG," system       = %u",      ENDIAN_SWAP8(maclimit->system));
-  PT_LOG_DEBUG(LOG_CTX_MSG," limit        = %u",      ENDIAN_SWAP32(maclimit->limit));
-  PT_LOG_DEBUG(LOG_CTX_MSG," action       = %u",      ENDIAN_SWAP8(maclimit->action));
-  PT_LOG_DEBUG(LOG_CTX_MSG," trap         = %u",      ENDIAN_SWAP8(maclimit->send_trap));
+  ENDIAN_SWAP8_MOD (maclimit->slotId);
+  ENDIAN_SWAP8_MOD (maclimit->intf.intf_type);
+  ENDIAN_SWAP8_MOD (maclimit->intf.intf_id);
+  ENDIAN_SWAP32_MOD(maclimit->mask);
+  ENDIAN_SWAP16_MOD(maclimit->vid);
+  ENDIAN_SWAP8_MOD (maclimit->system);
+  ENDIAN_SWAP32_MOD(maclimit->limit);
+  ENDIAN_SWAP8_MOD (maclimit->action);
+  ENDIAN_SWAP8_MOD (maclimit->send_trap);
+
+  PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      maclimit->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   maclimit->intf.intf_type, maclimit->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG," mask         = 0x%.8X",  maclimit->mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG," vid          = %u",      maclimit->vid);
+  PT_LOG_DEBUG(LOG_CTX_MSG," system       = %u",      maclimit->system);
+  PT_LOG_DEBUG(LOG_CTX_MSG," limit        = %u",      maclimit->limit);
+  PT_LOG_DEBUG(LOG_CTX_MSG," action       = %u",      maclimit->action);
+  PT_LOG_DEBUG(LOG_CTX_MSG," trap         = %u",      maclimit->send_trap);
 
   memset(&entry, 0x00, sizeof(ptin_l2_maclimit_t));
 
@@ -4656,8 +4666,8 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
   else
   {
     /* Get intIfNum */
-    ptin_intf.intf_type = ENDIAN_SWAP8(maclimit->intf.intf_type);
-    ptin_intf.intf_id   = ENDIAN_SWAP8(maclimit->intf.intf_id);  
+    ptin_intf.intf_type = maclimit->intf.intf_type;
+    ptin_intf.intf_id   = maclimit->intf.intf_id;  
 
     if (ptin_intf_ptintf2intIfNum(&ptin_intf, &intIfNum) != L7_SUCCESS)
     {
@@ -4668,7 +4678,7 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
 
   if (maclimit->mask & L2_MACLIMIT_MASK_LIMIT)
   {
-    entry.limit = ENDIAN_SWAP32(maclimit->limit);    
+    entry.limit = maclimit->limit;
   }
   else
   {
@@ -4677,7 +4687,7 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
 
   if (maclimit->mask & L2_MACLIMIT_MASK_ACTION)
   {
-    entry.action = ENDIAN_SWAP8(maclimit->action);
+    entry.action = maclimit->action;
   }
   else
   {
@@ -4686,25 +4696,32 @@ L7_RC_t ptin_msg_l2_maclimit_config(msg_l2_maclimit_config_t *maclimit)
 
   if (maclimit->mask & L2_MACLIMIT_MASK_SEND_TRAP)
   {
-    entry.send_trap = ENDIAN_SWAP8(maclimit->send_trap);
+    entry.send_trap = maclimit->send_trap;
   }
   else
   {
     entry.send_trap = -1;
   }  
 
+  PT_LOG_DEBUG(LOG_CTX_MSG, "interface    = %u/%u",   entry.intf_type, entry.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "mask         = 0x%.8X",  entry.mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "vid          = %u",      entry.vlanId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "limit        = %u",      entry.limit);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "action       = %u",      entry.action);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "trap         = %u",      entry.send_trap);
+
   rc = dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_L2_MACLIMIT, DAPI_CMD_SET, sizeof(ptin_l2_maclimit_t), &entry);
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC,"Failed set limit on hardware: rc:%u!", rc);
-    PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      ENDIAN_SWAP8(maclimit->slotId));
-    PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   ENDIAN_SWAP8(maclimit->intf.intf_type), ENDIAN_SWAP8(maclimit->intf.intf_id));
-    PT_LOG_DEBUG(LOG_CTX_MSG," mask         = 0x%.8X",  ENDIAN_SWAP32(maclimit->mask));
-    PT_LOG_DEBUG(LOG_CTX_MSG," vid          = %u",      ENDIAN_SWAP16(maclimit->vid));
-    PT_LOG_DEBUG(LOG_CTX_MSG," system       = %u",      ENDIAN_SWAP8(maclimit->system));
-    PT_LOG_DEBUG(LOG_CTX_MSG," limit        = %u",      ENDIAN_SWAP32(maclimit->limit));
-    PT_LOG_DEBUG(LOG_CTX_MSG," action       = %u",      ENDIAN_SWAP8(maclimit->action));
-    PT_LOG_DEBUG(LOG_CTX_MSG," trap         = %u",      ENDIAN_SWAP8(maclimit->send_trap));
+    PT_LOG_DEBUG(LOG_CTX_MSG," slotId       = %u",      maclimit->slotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG," interface    = %u/%u",   maclimit->intf.intf_type, maclimit->intf.intf_id);
+    PT_LOG_DEBUG(LOG_CTX_MSG," mask         = 0x%.8X",  maclimit->mask);
+    PT_LOG_DEBUG(LOG_CTX_MSG," vid          = %u",      maclimit->vid);
+    PT_LOG_DEBUG(LOG_CTX_MSG," system       = %u",      maclimit->system);
+    PT_LOG_DEBUG(LOG_CTX_MSG," limit        = %u",      maclimit->limit);
+    PT_LOG_DEBUG(LOG_CTX_MSG," action       = %u",      maclimit->action);
+    PT_LOG_DEBUG(LOG_CTX_MSG," trap         = %u",      maclimit->send_trap);
 
     return rc;
   }
