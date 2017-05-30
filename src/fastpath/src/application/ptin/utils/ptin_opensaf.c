@@ -328,9 +328,9 @@ void ptin_opensaf_task_OnuMac( void )
       PT_LOG_TRACE(LOG_CTX_OPENSAF, " event_data.memberIndex = %u, event_data.onuId = %u", event_data.memberIndex, event_data.onuId);
 
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "Search Data : %c , %c ,%c ,%c , %c , %c, ",    dsBindingIpv4.key.macAddr[0], dsBindingIpv4.key.macAddr[1], dsBindingIpv4.key.macAddr[2],
-                                                                            dsBindingIpv4.key.macAddr[3], dsBindingIpv4.key.macAddr[4], dsBindingIpv4.key.macAddr[5]);
+                                                                                    dsBindingIpv4.key.macAddr[3], dsBindingIpv4.key.macAddr[4], dsBindingIpv4.key.macAddr[5]);
 
-      ptin_igmp_multicast_get_all_serviceId_per_onu( event_data.memberIndex, event_data.onuId, servicesId, &nOfServices);
+      ptin_igmp_multicast_get_all_serviceId_per_onu(event_data.memberIndex, event_data.onuId, servicesId, &nOfServices);
 
       PT_LOG_TRACE(LOG_CTX_OPENSAF, " event_data.memberIndex = %u, event_data.onuId = %u", event_data.memberIndex, event_data.onuId);
       usmDbDsBindingGet(&dsBindingIpv4);
@@ -341,8 +341,9 @@ void ptin_opensaf_task_OnuMac( void )
       while (i < PTIN_SYSTEM_MAX_SERVICES_PER_ONU)
       {
         if (servicesId[i] != (L7_uint32) -1)
+        {
           ptin_igmp_multicast_querierReset_on_specific_serviceID(event_data.memberIndex, event_data.onuId, servicesId[i]);
-
+        }
         i++;
       }
     }  
