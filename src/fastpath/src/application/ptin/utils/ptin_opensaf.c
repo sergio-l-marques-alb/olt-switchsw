@@ -127,7 +127,7 @@ L7_RC_t ptin_opensaf_read_event(void *data, int len, int id, char *chName, char 
       fds[0].fd = ptin_event[id].evtSelectionObject;
       fds[0].events = POLLIN;
 
-	  PT_LOG_DEBUG(LOG_CTX_OPENSAF, "Waiting for events on channel %s", ptin_event[id].channelNameStr);
+	  PT_LOG_TRACE(LOG_CTX_OPENSAF, "Waiting for events on channel %s", ptin_event[id].channelNameStr);
 
 	  int res = poll(fds, 1, 60000);
 	  if (res == 0)
@@ -145,7 +145,7 @@ L7_RC_t ptin_opensaf_read_event(void *data, int len, int id, char *chName, char 
 
 	  if (fds[0].revents & POLLIN)
 	  {
-	  	PT_LOG_DEBUG(LOG_CTX_OPENSAF, "Got event on channel %s", ptin_event[id].channelNameStr);
+	  	PT_LOG_TRACE(LOG_CTX_OPENSAF, "Got event on channel %s", ptin_event[id].channelNameStr);
 
 	  	pthread_mutex_lock(&readDataMux);   
 	  	readData = data;
@@ -154,9 +154,9 @@ L7_RC_t ptin_opensaf_read_event(void *data, int len, int id, char *chName, char 
 	  	saRet = saEvtDispatch(ptin_event[id].evtHandle, SA_DISPATCH_ONE);
 	  	data = readData;
 	  	len = readDataLen;
-        PT_LOG_DEBUG(LOG_CTX_OPENSAF, "From %s (I am %s), ID %llu, len %d ", readDataPublisher, ptin_event[id].publisherNameStr, readEventID, len);
+        PT_LOG_TRACE(LOG_CTX_OPENSAF, "From %s (I am %s), ID %llu, len %d ", readDataPublisher, ptin_event[id].publisherNameStr, readEventID, len);
 
-        PT_LOG_ERR(LOG_CTX_OPENSAF, "len %d", len);
+        PT_LOG_TRACE(LOG_CTX_OPENSAF, "len %d", len);
 
 	  	if (strcmp(readDataPublisher, ptin_event[id].publisherNameStr) != 0)
         {
@@ -191,7 +191,7 @@ L7_RC_t ptin_opensaf_read_event(void *data, int len, int id, char *chName, char 
     break;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_OPENSAF, "Dispatched event from channel %s", ptin_event[id].channelNameStr);
+  PT_LOG_TRACE(LOG_CTX_OPENSAF, "Dispatched event from channel %s", ptin_event[id].channelNameStr);
   return L7_SUCCESS;
 }
 
@@ -220,11 +220,13 @@ void ptin_opensaf_task_OnuMac( void )
     PTIN_CRASH();
   }
  
-  ptin_opensaf_eventhandle_init(1, chName, pubName);
+  //ptin_opensaf_eventhandle_init(1, chName, pubName);
 
   /* Loop */
   while (1)
   {
+    osapiSleepMSec(1000); 
+
     PT_LOG_INFO(LOG_CTX_OPENSAF, "ptin_opensaf_task_OnuMac running...");
 
     int len = sizeof(event_data);
@@ -250,9 +252,7 @@ void ptin_opensaf_task_OnuMac( void )
     ptin_checkpoint_getSection(NGPON2GROUPS, section, &ngpon2_members, &size);
     ptin_intf_slot_get(&slot);
 
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "slotId       %u",  ngpon2_members.member[event_data.memberIndex].slot);
-
-    if(slot != ngpon2_members.member[event_data.memberIndex].slot)
+    if(slot != event_data.slotId)
     {
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "slot %u", slot);
       continue;
@@ -260,7 +260,7 @@ void ptin_opensaf_task_OnuMac( void )
 
     /* Key to read section in checkpoint Onu State checkpoint */
     section  = event_data.onuId;
-    data_key_OnuState = (ngpon2_members.member[event_data.memberIndex].slot << 25) | (event_data.parentId << 21) | (STANDALONE_FLAG << 20);
+    data_key_OnuState = (event_data.slotId << 25) | (event_data.parentId << 21) | (STANDALONE_FLAG << 20);
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "data_key_OnuState %u", data_key_OnuState);
 
     section  = (section & 0x000000FF) | data_key_OnuState;
@@ -277,8 +277,7 @@ void ptin_opensaf_task_OnuMac( void )
     {    
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "size %u", size);
 
-      int i = 0;
-     
+      int i = 0;   
       while(size > i) /* Flush the each MAC from the L2 table and DHCP binding table */
       {
         memcpy(&mac.addr, p, sizeof(mac.addr));
@@ -343,11 +342,13 @@ void ptin_opensaf_task_OnuMac( void )
       {
         if (servicesId[i] != (L7_uint32) -1)
           ptin_igmp_multicast_querierReset_on_specific_serviceID(event_data.memberIndex, event_data.onuId, servicesId[i]);
-      }
-    }    
-  }
 
-  osapiSleepMSec(1000);
+        i++;
+      }
+    }  
+        
+  }
+  
 }
 
 //static void (*SaEvtEventDeliverCallbackT ) (SaEvtSubscriptionIdT, SaEvtHandleT, const SaSizeT);
@@ -592,6 +593,7 @@ L7_RC_t ptin_opensaf_event_task_init()
   chName        = "ONU_STATE";
   pubName       = "Fastpath"; 
   ptin_opensaf_eventhandle_init(1, chName, pubName);
+
   // Create task for ptin opensaf processing
   ptin_opensaf_TaskId = osapiTaskCreate("ptin_opensaf_task_OnuMac", ptin_opensaf_task_OnuMac, 0, 0,
                                                 L7_DEFAULT_STACK_SIZE,
