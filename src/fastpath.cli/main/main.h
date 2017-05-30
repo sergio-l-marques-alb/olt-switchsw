@@ -161,6 +161,14 @@ extern int canal_buga;
 
 #define CHMSG_ETH_UPLINK_COMMAND            0x9116  // Uplink protection command from Mx (fw control): struct msg_uplinkProtCmd
 
+#define CHMSG_UPLINKPROT_SHOW               0x9119  // future use (msg_HWuplinkProtConf)
+#define CHMSG_UPLINKPROT_CREATE             0x911A  // 1 x msg_HWuplinkProtConf
+#define CHMSG_UPLINKPROT_REMOVE             0x911B  // 1 x msg_HWuplinkProtConf (only protIndex is used)
+#define CHMSG_UPLINKPROT_CONFIG             0x911C  // 1 x msg_HWuplinkProtConf
+#define CHMSG_UPLINKPROT_STATUS             0x911D  // 1 x msg_HWuplinkProtStatus
+#define CHMSG_UPLINKPROT_STATUSNEXT         0x911E  // N x msg_HWuplinkProtStatus
+#define CHMSG_UPLINKPROT_COMMAND            0x911F  // msg_HWuplinkProtCommand
+
 #define CCMSG_WR_MEP_LM                     0x9149  // struct msg_bd_mep_lm_t
 #define CCMSG_RM_MEP_LM                     0x914A  // struct msg_bd_mep_lm_t
 #define CCMSG_RD_MEP_LM                     0x914B  // struct msg_frame_loss_t
@@ -459,6 +467,7 @@ typedef struct
   L7_uint16             maxChannels;                    // [mask=0x010000] Maximum number of channels this port can have simultaneously
   L7_uint64             maxBandwidth;                   // [mask=0x020000] Maximum multicast bandwidth  this port can consume
   L7_uint8              protocol_trusted;               // [Mask=0x100000] Trusted interface for DHCP and PPPoE protocols (only physical interfaces)
+  L7_uint8              router_port;                    // [Mask=0x200000] 
 } __attribute__((packed)) msg_HWPortExt_t;
 
 typedef struct
@@ -1658,6 +1667,117 @@ typedef struct
   msg_rxStatus_t       rxStatus;
 } __attribute__((packed)) msg_ptin_pcs_prbs;
 
+/**************************************************************************** 
+ * UPLINK PROTECTION
+ ****************************************************************************/
+
+/* Protection port type */
+typedef enum
+{
+  PORT_WORKING    = 0,
+  PORT_PROTECTION = 1,
+  PORT_ALL        = 254,
+  PORT_NONE       = 255
+} PROT_PortType_t;
+
+/* Protection command received from MX control fw */
+// Message CHMSG_ETH_UPLINK_COMMAND
+typedef struct
+{
+  uint8 slotId;
+  uint8 port;                 // Port index
+  uint8 protCmd;              // Protection command: bit0-Port mode (1:active;0:inactive) / bit1-Command type (1:forced;0:normal)
+} __attribute__ ((packed)) msg_uplinkProtCmd;
+
+
+typedef struct
+{
+    unsigned char   Architecture;
+    unsigned char   OperationMode;
+    unsigned char   HoldOffTimer;
+    unsigned char   WaitToRestoreTimer;
+
+    unsigned char   alarmsEnFlag;      // HWuplink_PortAlarmsMaskEn_t
+
+    unsigned char   slotW;
+    unsigned char   portW;
+    unsigned char   slotP;
+    unsigned char   portP;
+} __attribute__ ((packed)) msg_HWuplinkProtParams_t;
+
+typedef enum
+{
+   HWUPLINKPROT_CONFMASK_None =               0x0000,
+   HWUPLINKPROT_CONFMASK_Architecture =       0x0001,
+   HWUPLINKPROT_CONFMASK_OperationMode =      0x0002,
+   HWUPLINKPROT_CONFMASK_HoldOffTimer =       0x0004,
+   HWUPLINKPROT_CONFMASK_WaitToRestoreTimer = 0x0008,
+   HWUPLINKPROT_CONFMASK_alarmsEnFlag =       0x0010,
+   HWUPLINKPROT_CONFMASK_slotW =              0x0020,
+   HWUPLINKPROT_CONFMASK_portW =              0x0040,
+   HWUPLINKPROT_CONFMASK_slotP =              0x0080,
+   HWUPLINKPROT_CONFMASK_portP =              0x0100,
+   HWUPLINKPROT_CONFMASK_All =                0x01FF,
+} HWUPLINKPROT_CONFMASK;
+
+typedef struct
+{
+   unsigned char          slotId;        // Destination slot for this message
+   unsigned short         protIndex;
+   unsigned short         confMask;
+   msg_HWuplinkProtParams_t protParams;
+
+} __attribute__ ((packed)) msg_HWuplinkProtConf;
+
+
+#define  HWUPLINKPROT_STATUS_PAGE_SIZE 20
+   
+typedef struct
+{
+   unsigned char  slotId;              // Destination slot for this message
+   unsigned short protIndex;
+   unsigned short mask;
+
+   unsigned char  activePortType;      // UPLINK_PortType_t
+
+   unsigned char  alarmsMaskW;
+   unsigned char  alarmsW;             // UPLINK_PortAlarms_t
+   unsigned char  alarmsMaskP;
+   unsigned char  alarmsP;             // UPLINK_PortAlarms_t
+
+   unsigned char  lastSwitchoverCause; // UPLINK_PortAlarms_t
+
+   unsigned short WaitToRestoreTimer;  // elapsed time in seconds
+   unsigned short HoldOffTimer;        // elapsed time in seconds (Unavailable)
+
+} __attribute__ ((packed)) msg_HWuplinkProtStatus;
+
+
+typedef enum
+{
+   HWUPLINKPROT_COMMAND_CLEAR             = 1,
+   HWUPLINKPROT_COMMAND_LOCKOUT           = 2,
+   HWUPLINKPROT_COMMAND_FORCE2PROTECTION  = 3,
+   HWUPLINKPROT_COMMAND_FORCE2WORKING     = 4,
+   HWUPLINKPROT_COMMAND_MANUAL2PROTECTION = 5,
+   HWUPLINKPROT_COMMAND_MANUAL2WORKING    = 6,
+} HWUPLINKPROT_COMMAND;
+
+typedef struct
+{
+   unsigned char  slotId;              // Destination slot for this message
+   unsigned short protIndex;
+   unsigned char  command;
+} __attribute__ ((packed)) msg_HWuplinkProtCommand;
+
+
+/* MUST be in accordance with MGMT */
+typedef enum {
+    PROT_CFG_DISABLED=0,
+    PROT_CFG_WORKING,
+    PROT_CFG_STANDBY,
+} enum_LinkProtCfg;
+
 /***************************************************************************** 
  * ACL Configuration
  *****************************************************************************/
@@ -1877,20 +1997,6 @@ typedef struct
     L7_int16 peak_value;
   } __attribute__((packed)) sensors_data[10];
 } __attribute__((packed)) msg_ptin_temperature_monitor_t;
-
-/**************************************************************************** 
- * UPLINK PROTECTION
- ****************************************************************************/
-
-/* Protection command received from MX control fw */
-// Message CHMSG_ETH_UPLINK_COMMAND
-typedef struct
-{
-  uint8 slotId;
-  uint8 port;                 // Port index
-  uint8 protCmd;              // Protection command: bit0-Port mode (1:active;0:inactive) / bit1-Command type (1:forced;0:normal)
-} __attribute__ ((packed)) msg_uplinkProtCmd;
-
 
 /**************************************************************************** 
  * IP Source Guard

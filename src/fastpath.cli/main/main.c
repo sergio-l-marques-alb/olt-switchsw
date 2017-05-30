@@ -84,6 +84,13 @@ void help_oltBuga(void)
         "m 1042 vlan(1-4095) macAddr(xx:xx:xx:xx:xx:xx) - Remove an entry from MAC table\r\n"
         "m 1043 - Flush all entries of MAC table\r\n"
         "m 1044 EVC# dir(uplink:0/downlink:1) remark(0/1) trustMode(0-None;1-Untrust;2-802.1P;3-IPprec;4-DSCP) cos_pr0(0-7) cos_pr1 ... cos_pr7 - Set QoS classification for an EVC\r\n"
+        "--- Protection -----------------------------------------------------------------------------------------------------------------------\n\r"
+        "m 1050 <protIdx> - Show uplink protection group configuration\r\n"
+        "m 1051 <protIdx> - Show uplink protection group status\r\n"
+        "m 1052 <protIdx> intfType/intfW# intfType/intfP# [alarmFlagsEn] [operationMode] [WaitRestoreTime] - Create new uplink protection group\r\n"
+        "m 1053 <protIdx> - Remove uplink protection group\r\n"
+        "m 1054 <protIdx> [alarmFlagsEn] [operationMode] [WaitRestoreTime] - Reconfigure existent uplink protection group\r\n"
+        "m 1055 <protIdx> <Command> - Send command to uplink protection group\r\n"
         "--- Protocols ------------------------------------------------------------------------------------------------------------------------\n\r"
         "m 1220 EVC# intfType/intf# cvid(1-4095) - Read DHCPop82 profile\n\r"
         "m 1221 EVC# intfType/intf# cvid(1-4095) op82/op37/op18 <circuitId> <remoteId> - Define a DHCPop82 profile\n\r"
@@ -2780,6 +2787,300 @@ int main (int argc, char *argv[])
           comando.infoDim = sizeof(msg_evc_qos_t);
         }
         break;
+
+      /* Show uplink protection group configuration */
+      case 1050:
+      {
+        msg_HWuplinkProtConf *ptr;
+
+        // Validate number of arguments (flow_id + 2 pairs port+svid)
+        if (argc<3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_HWuplinkProtConf *) &(comando.info[0]);
+        memset(ptr,0,sizeof(msg_HWuplinkProtConf));
+
+        ptr->slotId = ENDIAN_SWAP8((uint8)-1);
+
+        // ProtID
+        if (StrToLongLong(argv[3+0],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->protIndex = ENDIAN_SWAP16((uint16) valued);
+        ptr->confMask  = ENDIAN_SWAP16(0xffff);
+
+        comando.msgId = CHMSG_UPLINKPROT_SHOW;
+        comando.infoDim = sizeof(msg_HWuplinkProtConf);
+      }
+      break;
+
+      /* Show uplink protection group status */
+      case 1051:
+      {
+        msg_HWuplinkProtStatus *ptr;
+
+        // Validate number of arguments (flow_id + 2 pairs port+svid)
+        if (argc<3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_HWuplinkProtStatus *) &(comando.info[0]);
+        memset(ptr,0,sizeof(msg_HWuplinkProtStatus));
+
+        ptr->slotId = ENDIAN_SWAP8((uint8)-1);
+
+        // ProtID
+        if (StrToLongLong(argv[3+0],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->protIndex = ENDIAN_SWAP16((uint16) valued);
+        ptr->mask = ENDIAN_SWAP16(0xffff);
+
+        comando.msgId = (valued == (uint64)-1) ? CHMSG_UPLINKPROT_STATUSNEXT : CHMSG_UPLINKPROT_STATUS;
+        comando.infoDim = sizeof(msg_HWuplinkProtStatus);
+      }
+      break;
+
+      /* Create new uplink protection group */
+      case 1052:
+      {
+        msg_HWuplinkProtConf *ptr;
+        int type, intf;
+        unsigned short mask = 0;
+
+        // Validate number of arguments (flow_id + 2 pairs port+svid)
+        if (argc<3+3)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_HWuplinkProtConf *) &(comando.info[0]);
+        memset(ptr,0,sizeof(msg_HWuplinkProtConf));
+
+        ptr->slotId = ENDIAN_SWAP8((uint8)-1);
+
+        // ProtID
+        if (StrToLongLong(argv[3+0],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->protIndex = ENDIAN_SWAP16((uint16) valued);
+
+        // portW
+        if (sscanf(argv[3+1],"%d/%d",&type,&intf) != 2)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        if (type != 1)
+        {
+          printf("Only LAG type is accepted for the interfaces (1/x)\r\n");
+          exit(0);
+        }
+        ptr->protParams.slotW = ENDIAN_SWAP8(0); 
+        ptr->protParams.portW = ENDIAN_SWAP8((uint8) intf);
+        mask |= HWUPLINKPROT_CONFMASK_slotW | HWUPLINKPROT_CONFMASK_portW;
+
+        // portW
+        if (sscanf(argv[3+2],"%d/%d",&type,&intf) != 2)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        if (type != 1)
+        {
+          printf("Only LAG type is accepted for the interfaces (1/x)\r\n");
+          exit(0);
+        }
+        ptr->protParams.slotP = ENDIAN_SWAP8(0); 
+        ptr->protParams.portP = ENDIAN_SWAP8((uint8) intf);
+        mask |= HWUPLINKPROT_CONFMASK_slotP | HWUPLINKPROT_CONFMASK_portP;
+
+        /* Default values */
+        ptr->protParams.alarmsEnFlag  = ENDIAN_SWAP8(0xff);
+        ptr->protParams.OperationMode = ENDIAN_SWAP8(0);
+        ptr->protParams.WaitToRestoreTimer = ENDIAN_SWAP8(0);
+        ptr->protParams.HoldOffTimer  = ENDIAN_SWAP8(0);
+
+        // AlarmsEnFlags
+        if (argc >= 3+4)
+        {
+          if (StrToLongLong(argv[3+3],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->protParams.alarmsEnFlag = ENDIAN_SWAP8((uint8) valued);
+          mask |= HWUPLINKPROT_CONFMASK_alarmsEnFlag;
+        }
+        // OperationMode
+        if (argc >= 3+5)
+        {
+          if (StrToLongLong(argv[3+4],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->protParams.OperationMode = ENDIAN_SWAP8((uint8) valued);
+          mask |= HWUPLINKPROT_CONFMASK_OperationMode;
+        }
+        // WaitToRestoreTimer
+        if (argc >= 3+6)
+        {
+          if (StrToLongLong(argv[3+5],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->protParams.WaitToRestoreTimer = ENDIAN_SWAP8((uint8) valued);
+          mask |= HWUPLINKPROT_CONFMASK_WaitToRestoreTimer;
+        }
+
+        ptr->confMask  = ENDIAN_SWAP16(mask);
+
+        comando.msgId = CHMSG_UPLINKPROT_CREATE;
+        comando.infoDim = sizeof(msg_HWuplinkProtConf);
+      }
+      break;
+
+      /* Remove uplink protection group */
+      case 1053:
+      {
+        msg_HWuplinkProtStatus *ptr;
+
+        // Validate number of arguments (flow_id + 2 pairs port+svid)
+        if (argc<3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_HWuplinkProtStatus *) &(comando.info[0]);
+        memset(ptr,0,sizeof(msg_HWuplinkProtStatus));
+
+        ptr->slotId = ENDIAN_SWAP8((uint8)-1);
+
+        // ProtID
+        if (StrToLongLong(argv[3+0],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->protIndex = ENDIAN_SWAP16((uint16) valued);
+
+        comando.msgId = CHMSG_UPLINKPROT_REMOVE;
+        comando.infoDim = sizeof(msg_HWuplinkProtStatus);
+      }
+      break;
+
+      /* Reconfigure existent uplink protection group */
+      case 1054:
+      {
+        msg_HWuplinkProtConf *ptr;
+        unsigned short mask = 0;
+
+        // Validate number of arguments (flow_id + 2 pairs port+svid)
+        if (argc<3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_HWuplinkProtConf *) &(comando.info[0]);
+        memset(ptr,0,sizeof(msg_HWuplinkProtConf));
+
+        ptr->slotId = ENDIAN_SWAP8((uint8)-1);
+
+        // ProtID
+        if (StrToLongLong(argv[3+0],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->protIndex = ENDIAN_SWAP16((uint16) valued);
+
+        /* Default values */
+        ptr->protParams.alarmsEnFlag  = ENDIAN_SWAP8(0xff);
+        ptr->protParams.OperationMode = ENDIAN_SWAP8(0);
+        ptr->protParams.WaitToRestoreTimer = ENDIAN_SWAP8(0);
+        ptr->protParams.HoldOffTimer  = ENDIAN_SWAP8(0);
+
+        // AlarmsEnFlags
+        if (argc >= 3+2)
+        {
+          if (StrToLongLong(argv[3+1],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->protParams.alarmsEnFlag = ENDIAN_SWAP8((uint8) valued);
+          mask |= HWUPLINKPROT_CONFMASK_alarmsEnFlag;
+        }
+        // OperationMode
+        if (argc >= 3+3)
+        {
+          if (StrToLongLong(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->protParams.OperationMode = ENDIAN_SWAP8((uint8) valued);
+          mask |= HWUPLINKPROT_CONFMASK_OperationMode;
+        }
+        // WaitToRestoreTimer
+        if (argc >= 3+4)
+        {
+          if (StrToLongLong(argv[3+3],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->protParams.WaitToRestoreTimer = ENDIAN_SWAP8((uint8) valued);
+          mask |= HWUPLINKPROT_CONFMASK_WaitToRestoreTimer;
+        }
+
+        ptr->confMask  = ENDIAN_SWAP16(mask);
+
+        comando.msgId = CHMSG_UPLINKPROT_CONFIG;
+        comando.infoDim = sizeof(msg_HWuplinkProtConf);
+      }
+      break;
+
+      /* Send command to protection group */
+      case 1055:
+      {
+        msg_HWuplinkProtCommand *ptr;
+
+        // Validate number of arguments (flow_id + 2 pairs port+svid)
+        if (argc<3+2)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_HWuplinkProtCommand *) &(comando.info[0]);
+        memset(ptr,0,sizeof(msg_HWuplinkProtCommand));
+
+        ptr->slotId = ENDIAN_SWAP8((uint8)-1);
+
+        // ProtID
+        if (StrToLongLong(argv[3+0],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->protIndex = ENDIAN_SWAP16((uint16) valued);
+
+        // Command
+        if (StrToLongLong(argv[3+1],&valued)<0)  {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->command = ENDIAN_SWAP8((uint8) valued);
+
+        comando.msgId = CHMSG_UPLINKPROT_COMMAND;
+        comando.infoDim = sizeof(msg_HWuplinkProtCommand);
+      }
+      break;
 
       case 1220:
         {
@@ -8742,6 +9043,99 @@ int main (int argc, char *argv[])
           printf(" Switch: QoS configuration applied successfully\n\r");
         else
           printf(" Switch: Failed applying QoS configuration - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
+        break;
+
+      case 1050:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        {
+          int i, n;
+          msg_HWuplinkProtConf *ptr;
+
+          if ((resposta.infoDim % sizeof(msg_HWuplinkProtConf)) != 0) {
+            printf(" Switch: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, sizeof(msg_HWuplinkProtConf));
+            break;
+          }
+
+          ptr = (msg_HWuplinkProtConf *) &resposta.info[0];
+          n = resposta.infoDim / sizeof(msg_HWuplinkProtConf);
+
+          for (i = 0; i < n; i++)
+          {
+            printf("Reading group protection %u configuration:\r\n", i);
+            printf(" slotId    = %u\r\n", ptr[i].slotId);
+            printf(" protIndex = %u\r\n", ptr[i].protIndex);
+            printf(" confMask  = 0x%x\r\n", ptr[i].confMask);
+            printf(" protParams.Architecture      = %u\r\n", ptr[i].protParams.Architecture);
+            printf(" protParams.OperationMode     = %u\r\n", ptr[i].protParams.OperationMode);
+            printf(" protParams.HoldOffTimer      = %u\r\n", ptr[i].protParams.HoldOffTimer);
+            printf(" protParams.WaitToRestoreTimer= %u\r\n", ptr[i].protParams.WaitToRestoreTimer);
+            printf(" protParams.alarmsEnFlag      = 0x%02x\r\n", ptr[i].protParams.alarmsEnFlag);
+            printf(" protParams.slotW/portW       = %u / %u\r\n", ptr[i].protParams.slotW, ptr[i].protParams.portW);
+            printf(" protParams.slotP/portP       = %u / %u\r\n", ptr[i].protParams.slotP, ptr[i].protParams.portP);
+          }
+        }
+        else
+          printf(" Switch: Protection group configuration not read - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
+        break;
+
+      case 1051:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        {
+          int i, n;
+          msg_HWuplinkProtStatus *ptr;
+
+          if ((resposta.infoDim % sizeof(msg_HWuplinkProtStatus)) != 0) {
+            printf(" Switch: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, sizeof(msg_HWuplinkProtStatus));
+            break;
+          }
+
+          ptr = (msg_HWuplinkProtStatus *) &resposta.info[0];
+          n = resposta.infoDim / sizeof(msg_HWuplinkProtStatus);
+
+          for (i = 0; i < n; i++)
+          {
+            printf("Reading group protection %u status:\r\n", i);
+            printf(" slotId    = %u\r\n",   ENDIAN_SWAP8 (ptr[i].slotId));
+            printf(" protIndex = %u\r\n",   ENDIAN_SWAP16(ptr[i].protIndex));
+            printf(" mask      = 0x%x\r\n", ENDIAN_SWAP16(ptr[i].mask));
+            printf(" activePortType = %s\r\n", (ENDIAN_SWAP8(ptr[i].activePortType) == PORT_PROTECTION) ? "Protection" : "Working");
+            printf(" alarmsMask     = {W:0x%02x P:0x%02x}\r\n", ENDIAN_SWAP8(ptr[i].alarmsMaskW), ENDIAN_SWAP8(ptr[i].alarmsMaskP));
+            printf(" alarms         = {W:0x%02x P:0x%02x}\r\n", ENDIAN_SWAP8(ptr[i].alarmsW), ENDIAN_SWAP8(ptr[i].alarmsP));
+            printf(" lastSwitchoverCause= %u\r\n", ENDIAN_SWAP8 (ptr[i].lastSwitchoverCause));
+            printf(" WaitToRestoreTimer = %u\r\n", ENDIAN_SWAP16(ptr[i].WaitToRestoreTimer));
+            printf(" HoldOffTimer       = %u\r\n", ENDIAN_SWAP16(ptr[i].HoldOffTimer));
+          }
+        }
+        else
+          printf(" Switch: Protection group status not read - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
+        break;
+
+      case 1052:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: Protection group created successfully\n\r");
+        else
+          printf(" Switch: Failed creating protection group - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
+        break;
+
+      case 1053:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: Protection group removed successfully\n\r");
+        else
+          printf(" Switch: Failed removing protection group - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
+        break;
+
+      case 1054:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: Protection group reconfigured successfully\n\r");
+        else
+          printf(" Switch: Failed reconfiguring protection group - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
+        break;
+
+      case 1055:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+          printf(" Switch: Command sent successfully to protection group\n\r");
+        else
+          printf(" Switch: Failed sending command to protection group - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1220:
