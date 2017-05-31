@@ -115,15 +115,16 @@ endif
 
 
 all:	Makefile $(OBJ)
-		@echo Generating $(TARGET_PATH)/$(TARGET)
+		@echo "Generating $(BOARD) fp.shell -> $(TARGET_PATH)/$(TARGET)"
 		@$(MKDIR) $(TARGET_PATH)
 		@$(CC) $(LDFLAGS) $(OPTIMIZACAO) -o $(TARGET_PATH)/$(TARGET) $(OBJ) -lc -lm -lpthread -lrt
    
 install:	$(TARGET)
+		@echo "Installing $(BOARD)"
 		sh shell.install
 	
 clean cleanall:
-		@echo Cleaning $(TARGET)
+		@echo "Cleaning $(BOARD)"
 		@$(RM) -f $(OBJ) $(TARGET_PATH)/$(TARGET)
 		@$(RM) -rf $(OBJECT_PATH)
 
