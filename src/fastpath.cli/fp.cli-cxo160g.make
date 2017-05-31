@@ -1,21 +1,9 @@
 BOARD=PTIN_BOARD_CXO160G
+CPU=e500mc
 
-export TOOLCHAIN_BASE_DIR=/opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr
-export TOOLCHAIN_BIN_DIR=$(TOOLCHAIN_BASE_DIR)/bin
-export LD_LIBRARY_PATH=$(TOOLCHAIN_BASE_DIR)/lib
-
-# Makefile for a multifile kernel module
-CROSS=$(TOOLCHAIN_BIN_DIR)/ppce500mc-fsl-linux/powerpc-fsl-linux-
-#LIB = 
-CC=$(CROSS)gcc
-LD=$(CROSS)ld
-
-CFLAGS=-DPTIN_BOARD=$(BOARD) -DMAJOR=$(MAJOR) -DMINOR=$(MINOR) -DP_DEBUG -DSTT_UNDERLYING_OS=U_LINUX \
-  -DREVISION=$(REVISION) -DBUILD=$(BUILD) -Wno-strict-aliasing -g
-OPTIMIZACAO = -O6
-
-LDFLAGS = -Wl,-Bdynamic
-
-TARGET_PATH=../fastpath/output/FastPath-Ent-esw-xgs4-e500mc-LR-CSxw-IQH_CXO160G/ipl
+TOOLCHAIN_BASE_DIR=/opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr
+TOOLCHAIN_BIN_DIR=$(TOOLCHAIN_BASE_DIR)/bin
+LD_LIBRARY_PATH=$(TOOLCHAIN_BASE_DIR)/lib
+CROSS_COMPILE=$(TOOLCHAIN_BIN_DIR)/ppce500mc-fsl-linux/powerpc-fsl-linux-
 
 include fp.cli-common.make
