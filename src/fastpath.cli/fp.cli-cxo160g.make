@@ -1,4 +1,4 @@
-BOARD=PTIN_BOARD_CXO160G
+BOARD=CXO160G
 CPU=e500mc
 
 TOOLCHAIN_BASE_DIR=/opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr

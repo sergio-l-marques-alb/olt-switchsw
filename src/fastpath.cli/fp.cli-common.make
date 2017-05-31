@@ -120,15 +120,16 @@ OPTIMIZACAO = -O6
 endif
 
 all:	Makefile $(OBJ)
-		@echo Generating $(TARGET_PATH)/$(TARGET)
+		@echo "Generating $(BOARD) fp.cli -> $(TARGET_PATH)/$(TARGET)"
 		@$(MKDIR) $(TARGET_PATH)
 		@$(CC) $(LDFLAGS) $(OPTIMIZACAO) -o $(TARGET_PATH)/$(TARGET) $(OBJ) -lc -lm -lpthread -lrt
    
 install:	$(TARGET)
+		@echo "Installing $(BOARD)"
 		sh cli.install
 	
 clean cleanall:
-		@echo Cleaning $(TARGET)
+		@echo "Cleaning $(BOARD)"
 		@$(RM) -f $(TARGET_PATH)/$(TARGET)
 		@$(RM) -rf $(OBJECT_PATH)
 
@@ -154,14 +155,14 @@ $(OBJECT_PATH)/%.o : utils/%.c
 $(OBJECT_PATH)/%.o : ipc/%.c
 	@$(MKDIR) $(OBJECT_PATH)
 	@$(RM) $@
-	@echo Building $(BOARD) $@
+	@echo Building $@
 	@$(CC) $(CFLAGS) $(OPTIMIZACAO) -Wall $(HDRS) -c -o $@ $<
 # claudia	$(CC) $(CFLAGS) $(OPTIMIZACAO) -Wall -Werror $(HDRS) -c -o $@ $<
 
 $(OBJECT_PATH)/%.o : main/%.c
 	@$(MKDIR) $(OBJECT_PATH)
 	@$(RM) $@
-	@echo Building $(BOARD) $@
+	@echo Building $@
 	@$(CC) $(CFLAGS) $(OPTIMIZACAO) -Wall $(HDRS) -c -o $@ $<
 # claudia	$(CC) $(CFLAGS) $(OPTIMIZACAO) -Wall -Werror $(HDRS) -c -o $@ $<
 
