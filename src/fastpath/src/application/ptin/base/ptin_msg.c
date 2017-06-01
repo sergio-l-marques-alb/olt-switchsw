@@ -5717,7 +5717,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   L7_uint16 i;
   L7_uint8 index_port = 0;
 
-  static ptin_HwEthMef10Evc_t ptinEvcConf, savePtinEvcConf;
+  static ptin_HwEthMef10Evc_t ptinEvcConf;
   msg_HwEthMef10EvcQoS_t *msgEvcConf = (msg_HwEthMef10EvcQoS_t *) inbuffer->info;
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
@@ -5749,6 +5749,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 #endif
 
 #ifdef NGPON2_SUPPORTED
+  static savePtinEvcConf;
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 shift_index = 0, ports_ngpon2 = 0, group, ngpon2_groups = 0, j = 0, save_ports = 0;
   L7_BOOL  ngpon2_ports = L7_FALSE;
@@ -5893,11 +5894,14 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* If is a physical port apply the EVC */
       if ( ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
       {
+#ifdef NGPON2_SUPPORTED
         apply = 1;
+#endif
         PT_LOG_TRACE(LOG_CTX_MSG, "Apply EVC this configuration ");
       }
-
+#ifdef NGPON2_SUPPORTED
       save_ports++;
+#endif
       index_port++;
     }
   }
