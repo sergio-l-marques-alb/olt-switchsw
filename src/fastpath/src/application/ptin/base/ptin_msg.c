@@ -5749,7 +5749,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 #endif
 
 #ifdef NGPON2_SUPPORTED
-  static savePtinEvcConf;
+  static ptin_HwEthMef10Evc_t savePtinEvcConf;
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 shift_index = 0, ports_ngpon2 = 0, group, ngpon2_groups = 0, j = 0, save_ports = 0;
   L7_BOOL  ngpon2_ports = L7_FALSE;
