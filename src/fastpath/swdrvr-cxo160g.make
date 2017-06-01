@@ -30,5 +30,5 @@ SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-switchdrvr-6.5.7/broadc
 export LVL7_MAKEFILE_LOGGING := N
 export LVL7_MAKEFILE_DISPLAY_MODE := S
 
-include switchdrvr-common.make
+include swdrvr-common.make
 
