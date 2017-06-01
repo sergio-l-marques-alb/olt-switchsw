@@ -5712,12 +5712,12 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
  */
 L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 {
-  L7_uint32 evc_id, flags, rc;
+  L7_uint32 evc_id, flags, rc = L7_SUCCESS;
   L7_uint16 nni_vlan;
   L7_uint16 i;
   L7_uint8 index_port = 0;
 
-  static ptin_HwEthMef10Evc_t ptinEvcConf;
+  static ptin_HwEthMef10Evc_t ptinEvcConf, savePtinEvcConf;
   msg_HwEthMef10EvcQoS_t *msgEvcConf = (msg_HwEthMef10EvcQoS_t *) inbuffer->info;
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
@@ -5750,10 +5750,10 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
 #ifdef NGPON2_SUPPORTED
   ptin_NGPON2_groups_t NGPON2_GROUP;
-  L7_uint8 shift_index = 0, ports_ngpon2 = 0, group, ngpon2_groups = 0, j = 0;
+  L7_uint8 shift_index = 0, ports_ngpon2 = 0, group, ngpon2_groups = 0, j = 0, save_ports = 0;
   L7_BOOL  ngpon2_ports = L7_FALSE;
   L7_uint8 ngponId[PTIN_SYSTEM_MAX_NGPON2_GROUP];
-  L7_uint8 apply = 1;
+  L7_uint8 apply = 1, save = 0;
 #endif
 
   for (i=0; i < msgEvcConf->evc.n_intf; i++)
@@ -5810,24 +5810,26 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       if( NGPON2_GROUP.nports == 0 )
       {
         // NGPON2
-        ptinEvcConf.intf[index_port].intf.format = PTIN_INTF_FORMAT_TYPEID;
-        ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcConf->evc.intf[i].intf_type);
-        ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcConf->evc.intf[i].intf_id);
+        savePtinEvcConf.intf[save_ports].intf.format = PTIN_INTF_FORMAT_TYPEID;
+        savePtinEvcConf.intf[save_ports].intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(msgEvcConf->evc.intf[i].intf_type);
+        savePtinEvcConf.intf[save_ports].intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(msgEvcConf->evc.intf[i].intf_id);
 
-        ptinEvcConf.intf[index_port].mef_type    = ENDIAN_SWAP8 (msgEvcConf->evc.intf[i].mef_type) /*PTIN_EVC_INTF_ROOT*/;
-        ptinEvcConf.intf[index_port].vid         = ENDIAN_SWAP16(msgEvcConf->evc.intf[i].vid);
-        ptinEvcConf.intf[index_port].vid_inner   = ENDIAN_SWAP16(msgEvcConf->evc.intf[i].inner_vid);
-        ptinEvcConf.intf[index_port].action_outer= PTIN_XLATE_ACTION_REPLACE;
-        ptinEvcConf.intf[index_port].action_inner= PTIN_XLATE_ACTION_NONE;
+        savePtinEvcConf.intf[save_ports].mef_type    = ENDIAN_SWAP8 (msgEvcConf->evc.intf[i].mef_type) /*PTIN_EVC_INTF_ROOT*/;
+        savePtinEvcConf.intf[save_ports].vid         = ENDIAN_SWAP16(msgEvcConf->evc.intf[i].vid);
+        savePtinEvcConf.intf[save_ports].vid_inner   = ENDIAN_SWAP16(msgEvcConf->evc.intf[i].inner_vid);
+        savePtinEvcConf.intf[save_ports].action_outer= PTIN_XLATE_ACTION_REPLACE;
+        savePtinEvcConf.intf[save_ports].action_inner= PTIN_XLATE_ACTION_NONE;
 
         PT_LOG_DEBUG(LOG_CTX_MSG, "   %s %02u %s VID=%04u/%-04u",
-        ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
-        ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_id,
-        ptinEvcConf.intf[index_port].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
-        ptinEvcConf.intf[index_port].vid,ptinEvcConf.intf[i].vid_inner);
-        PT_LOG_DEBUG(LOG_CTX_MSG, "PTIN_INTF_TYPE_DEBUG: %u", ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type);
+        savePtinEvcConf.intf[save_ports].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+        savePtinEvcConf.intf[save_ports].intf.value.ptin_intf.intf_id,
+        savePtinEvcConf.intf[save_ports].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
+        savePtinEvcConf.intf[save_ports].vid,ptinEvcConf.intf[i].vid_inner);
 
-        index_port++;
+        PT_LOG_DEBUG(LOG_CTX_MSG, "PTIN_INTF_TYPE: %u", savePtinEvcConf.intf[save_ports].intf.value.ptin_intf.intf_type);
+
+        save = 1; /* Save this EVC */ 
+        save_ports++;
       }
       else //online group
       {
@@ -5850,6 +5852,10 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
                ptinEvcConf.intf[index_port].mef_type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf",
                ptinEvcConf.intf[index_port].vid,ptinEvcConf.intf[i].vid_inner);
 
+            savePtinEvcConf.intf[save_ports] = ptinEvcConf.intf[index_port];
+            save_ports++;
+
+            PT_LOG_TRACE(LOG_CTX_MSG, "Save_ports %u", save_ports);
             ports_ngpon2++;
             index_port++;
             j++;
@@ -5884,6 +5890,14 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
          ptinEvcConf.intf[index_port].vid,ptinEvcConf.intf[i].vid_inner);
       PT_LOG_DEBUG(LOG_CTX_MSG, "PTIN_INTF_TYPE_DEBUG: %u", ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type);
 
+      /* If is a physical port apply the EVC */
+      if ( ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
+      {
+        apply = 1;
+        PT_LOG_TRACE(LOG_CTX_MSG, "Apply EVC this configuration ");
+      }
+
+      save_ports++;
       index_port++;
     }
   }
@@ -5891,7 +5905,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 #ifdef NGPON2_SUPPORTED
   if (ngpon2_ports == L7_TRUE)
   {
-    PT_LOG_TRACE(LOG_CTX_MSG, "Number of physical interfaces from NGPON groups %u",              ports_ngpon2-1);
+    PT_LOG_TRACE(LOG_CTX_MSG, "Number of physical interfaces from NGPON groups %u", ports_ngpon2-1);
 
     if (ports_ngpon2 != 0)
     {
@@ -5899,7 +5913,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     else /* offline groups "have" 0 ports*/
     {
-      ptinEvcConf.n_intf   = ENDIAN_SWAP8(msgEvcConf->evc.n_intf);
+      ptinEvcConf.n_intf   = index_port;
     }
     PT_LOG_TRACE(LOG_CTX_MSG, " .Nr.Intf  = %u",      ptinEvcConf.n_intf);
   }
@@ -5911,14 +5925,13 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   }
 
 #ifdef NGPON2_SUPPORTED
-  if(apply) /* EVC for a "online" group -> apply configuration*/
+  if(apply) /* EVC for a "online" group -> apply configuration */
   {
     rc = ptin_evc_create(&ptinEvcConf);
   }
-  else      /* EVC for a "offline" group -> save configuration*/
+  if(save)  /* EVC for a "offline" group -> save configuration */
   {
     int i;
-
     /* Update offline NGPON2 groups*/
     for (i = 0; i < ngpon2_groups; i++)
     {
@@ -5930,13 +5943,23 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
 
       /*Add EVC message to the AVL of offline EVC's */
-      ptin_evc_offline_entry_add(&ptinEvcConf);
+      ptin_evc_offline_entry_add(&savePtinEvcConf);
       NGPON2_GROUP.number_services++;     
       set_NGPON2_group_info(&NGPON2_GROUP, ngponId[i]);
       rc = L7_SUCCESS;    
     }
-     PT_LOG_TRACE(LOG_CTX_MSG, "Save EVC configuration ");
-    return L7_SUCCESS;
+    PT_LOG_TRACE(LOG_CTX_MSG, "Save EVC configuration ");
+
+    if (!apply)
+    {
+       PT_LOG_TRACE(LOG_CTX_MSG, "... and not applied ");
+       return L7_SUCCESS;
+    }
+  }
+  if (!save && !apply)
+  {
+     PT_LOG_TRACE(LOG_CTX_MSG, "Nothing done??");
+     return L7_SUCCESS;
   }
 #else
   rc = ptin_evc_create(&ptinEvcConf);
@@ -7488,6 +7511,37 @@ L7_RC_t ptin_msg_bwProfile_delete(msg_HwEthBwProfile_t *msgBwProfile, unsigned i
   ENDIAN_SWAP8_MOD (msgBwProfile->intf_src.intf_id);
   ENDIAN_SWAP8_MOD (msgBwProfile->intf_dst.intf_type);
   ENDIAN_SWAP8_MOD (msgBwProfile->intf_dst.intf_id);
+
+
+
+#ifdef NGPON2_SUPPORTED
+  ptin_NGPON2_groups_t NGPON2_GROUP;
+
+  if ( msgBwProfile->intf_dst.intf_type == PTIN_EVC_INTF_NGPON2 || msgBwProfile->intf_src.intf_type == PTIN_EVC_INTF_NGPON2 )
+  {
+    if ( msgBwProfile->mask & 0x04 ) // Src intf mask
+    {
+      get_NGPON2_group_info(&NGPON2_GROUP, msgBwProfile->intf_src.intf_id);
+
+      if ( !NGPON2_GROUP.admin )
+      {
+        PT_LOG_DEBUG(LOG_CTX_MSG, " NGPON2 group %d not in use... ignore message", msgBwProfile->intf_src.intf_id);
+        return L7_SUCCESS;
+      }
+    }
+
+    if ( msgBwProfile->mask & 0x08 ) // Dst intf Mask
+    {
+      get_NGPON2_group_info(&NGPON2_GROUP, msgBwProfile->intf_dst.intf_id);
+
+      if ( !NGPON2_GROUP.admin )
+      {
+        PT_LOG_DEBUG(LOG_CTX_MSG, " NGPON2 group %d not in use... ignore message", msgBwProfile->intf_dst.intf_id);
+        return L7_SUCCESS;
+      }
+    }
+  }
+#endif
 
   PT_LOG_DEBUG(LOG_CTX_MSG," evcId  = %u",    msgBwProfile->evcId);
   PT_LOG_DEBUG(LOG_CTX_MSG," mask   = 0x%02x",msgBwProfile->mask);

@@ -46,6 +46,12 @@
 #define ENCRYPTION_KEY_FIELD_SIZE 16
 #define MAX_NGPON2_PORTS          32
 
+#define ONU_STATE_INDEX(group, onu, slot, link) ( group != 0xFF    \
+                                                    ? (  ( (group&0xFF) << 21 ) | ( 0 << 20 ) | (onu&0xFF) )  \
+                                                    : (  ( (slot&0x7F) << 25 ) | ( (link&0x0F) << 21 ) | ( 1 << 20 ) | (onu&0xFF) )   \
+                                                )
+
+
 void *readData;
 int readDataLen=0;
 pthread_mutex_t readDataMux;
@@ -202,12 +208,11 @@ void ptin_opensaf_task_OnuMac( void )
   char data[100]      = "";
   int  size           = 0;
   char *chName,*p,*pubName;
-  L7_enetMacAddr_t mac;
-  L7_uint32 section, data_key_OnuState, data_key_NGPON2Group;
+  L7_enetMacAddr_t mac;;
   L7_uint8 slot;
   L7_RC_t rc = L7_FAILURE;
   ptin_onuStatus onuStatus;
-  ptin_OLTCTList ngpon2_members;
+  //ptin_OLTCTList ngpon2_members;
 
   memset(&mac, 0, sizeof(mac));
 
@@ -225,13 +230,13 @@ void ptin_opensaf_task_OnuMac( void )
   /* Loop */
   while (1)
   {
-    osapiSleepMSec(1000); 
+    osapiSleepMSec(500); 
 
     PT_LOG_INFO(LOG_CTX_OPENSAF, "ptin_opensaf_task_OnuMac running...");
 
     int len = sizeof(event_data);
 
-    PT_LOG_ERR(LOG_CTX_OPENSAF, "len     %u", len);
+    PT_LOG_ERR(LOG_CTX_OPENSAF, "len            %u", len);
     /* wait for a event in the ONUSTATE*/
     ptin_opensaf_read_event(&event_data, len, 1, chName, pubName);
   
@@ -243,13 +248,7 @@ void ptin_opensaf_task_OnuMac( void )
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "linkId       %u",  event_data.linkId);
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "slotId       %u",  event_data.slotId);
 
-   
-    data_key_NGPON2Group = event_data.memberIndex;
-    data_key_NGPON2Group = (data_key_NGPON2Group & 0xff) | (event_data.parentId << 8);
-    section              = data_key_NGPON2Group;
-
     /* Key to get the slot of the ONU from the NGPON2GROUPS checkpoint */
-    ptin_checkpoint_getSection(NGPON2GROUPS, section, &ngpon2_members, &size);
     ptin_intf_slot_get(&slot);
 
     if(slot != event_data.slotId)
@@ -258,20 +257,14 @@ void ptin_opensaf_task_OnuMac( void )
       continue;
     }
 
-    /* Key to read section in checkpoint Onu State checkpoint */
-    section  = event_data.onuId;
-    data_key_OnuState = (event_data.slotId << 25) | (event_data.parentId << 21) | (STANDALONE_FLAG << 20);
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "data_key_OnuState %u", data_key_OnuState);
-
-    section  = (section & 0x000000FF) | data_key_OnuState;
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "section %u", section);
-
     /* Get ONU State */
-    ptin_checkpoint_getSection(ONU_STATE, section, &onuStatus, &size);
+    ptin_checkpoint_getSection(ONU_STATE, ONU_STATE_INDEX(event_data.parentId , event_data.onuId, event_data.slotId, event_data.linkId), &onuStatus, &size);
 
     /*Retrieve MAC form a particular ONU*/
     ptin_checkpoint_getSection(SWITCHDRVR_ONU, event_data.onuId /* xparentdID + 1 */, &data, &size);
     p = data;
+
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "onuStatus.state %u", onuStatus.state);
 
     if(onuStatus.state == ONU_STATE_DISABLED) /* If the ONU is disable remove MAC, DHCP binding and IGMP channels*/
     {    
@@ -282,7 +275,7 @@ void ptin_opensaf_task_OnuMac( void )
       {
         memcpy(&mac.addr, p, sizeof(mac.addr));
 
-        PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Data : %c , %c ,%c ,%c , %c , %c, ",    mac.addr[0], mac.addr[1], mac.addr[2],
+        PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Data : %d , %d ,%d ,%d , %d , %d, ",    mac.addr[0], mac.addr[1], mac.addr[2],
                                                                             mac.addr[3], mac.addr[4], mac.addr[5]);
         /* MAC */
         rc = fdbFlushByMac(mac);
@@ -314,7 +307,7 @@ void ptin_opensaf_task_OnuMac( void )
       memset(&servicesId, (L7_uint32) -1, sizeof(servicesId));
       memcpy(&mac.addr, p, sizeof(mac.addr));
 
-      PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Data : %c , %c ,%c ,%c , %c , %c, ",    mac.addr[0], mac.addr[1], mac.addr[2],
+      PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Data : %d , %d ,%d ,%d , %d , %d, ",    mac.addr[0], mac.addr[1], mac.addr[2],
                                                                             mac.addr[3], mac.addr[4], mac.addr[5]);
 
       memset(&dsBindingIpv4,0x00,sizeof(dhcpSnoopBinding_t));
