@@ -193,9 +193,6 @@ elif [ "$1" == "CXO640G" ]; then
   BOARD=$1
   CPU=pq3
   
-  echo "CONFIRMAR COMPILADOR!!!"
-  exit 1
-  
   export COMPILER_DIR=/opt/eldk/usr/bin
   export COMPILER_PREFIX=ppc_85xxDP-
 #  export LD_LIB_PATH=/opt/broadcom_kt2_hx4/usr/lib
@@ -331,7 +328,8 @@ if [ $MGMD_REV != $MGMD_CONF_REV ]; then
   echo "[MGMD] Running configure (output suppressed)"
   
   cd $MGMD_OUTPUT_PATH
-  $MGMD_CONFIGURE --prefix=$PREFIXDIR $CROSSOPTS >/dev/null 2>&1
+  $MGMD_CONFIGURE --prefix=$PREFIXDIR $CROSSOPTS
+#>/dev/null 2>&1
   
   if [ $? -ne 0 ]; then
     echo "[MGMD] Error while running configure! Run without output suppressed"
@@ -350,7 +348,8 @@ if [ ! -f $MGMD_OUTPUT_PATH/Makefile ]; then
   echo "[MGMD] Running configure (output suppressed)"
   
   cd $MGMD_OUTPUT_PATH
-  $MGMD_CONFIGURE --prefix=$PREFIXDIR $CROSSOPTS >/dev/null 2>&1
+  $MGMD_CONFIGURE --prefix=$PREFIXDIR $CROSSOPTS
+#>/dev/null 2>&1
   
   if [ $? -ne 0 ]; then
     echo "[MGMD] Error while running configure! Run without output suppressed"
