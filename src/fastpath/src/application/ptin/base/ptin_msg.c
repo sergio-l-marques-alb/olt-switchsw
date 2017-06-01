@@ -43,7 +43,7 @@
 #include "usmdb_mirror_api.h"
 #include "ptin_xlate_api.h"
 #include "ptin_status.h"
-
+#include "usmdb_dvlantag_api.h"
 #include "ptin_acl.h"
 #include "ptin_routing.h"
 
@@ -13917,12 +13917,31 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffer, ipc_msg *outbuffer)
       /* Remove Monitor Session */
       rc = usmDbSwPortMonitorSessionRemove(unit, sessionNum);
 
+      /* Disable Monitor Session */
+      rc = usmDbSwPortMonitorModeSet(unit, sessionNum, L7_DISABLE);
+
       if(rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc);
         return L7_FAILURE;
       } 
+     
+      rc = usmDbSwPortMonitorSourcePortRemove(unit, sessionNum, listSrcPorts[0]);
+      if(rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc);     
+      } 
+      rc = usmDbSwPortMonitorDestPortRemove(unit, sessionNum);
+      
+      if(rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc);     
+      } 
 
+      usmDbDvlantagIntfModeSet(0, listDstPorts[0], 0 /* service provider double tag mode*/);  
+      PT_LOG_ERR(LOG_CTX_MSG, "listDstPorts[0] (%d)", listDstPorts[0]);
+      usmDbDvlantagIntfModeSet(0, listDstPorts[0], 1 /* service provider double tag mode*/); 
+           
       /* Disable Monitor Session */
       //rc = usmDbSwPortMonitorModeSet(unit, sessionNum, L7_DISABLE);
       //rc = usmDbSwPortMonitorSourcePortRemove(unit, sessionNum, intfNum);
