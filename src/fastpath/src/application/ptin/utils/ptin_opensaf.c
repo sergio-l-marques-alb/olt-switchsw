@@ -576,11 +576,6 @@ L7_RC_t ptin_opensaf_read_event_teste(int id)
   return L7_SUCCESS;
 }
 
-
-L7_RC_t teste_opensaf_section()
-{
-  PT_LOG_ERR(LOG_CTX_OPENSAF, " %d ", ONU_STATE_INDEX(128 , 2, 6, 3));
-}
 /**
  *  Init routine of opensaf event task
  *
