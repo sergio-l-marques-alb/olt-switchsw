@@ -232,11 +232,10 @@ void ptin_opensaf_task_OnuMac( void )
   {
     osapiSleepMSec(500); 
 
-    PT_LOG_INFO(LOG_CTX_OPENSAF, "ptin_opensaf_task_OnuMac running...");
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "ptin_opensaf_task_OnuMac running...");
 
     int len = sizeof(event_data);
 
-    PT_LOG_ERR(LOG_CTX_OPENSAF, "len            %u", len);
     /* wait for a event in the ONUSTATE*/
     ptin_opensaf_read_event(&event_data, len, 1, chName, pubName);
   
