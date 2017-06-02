@@ -4,7 +4,7 @@ src_base           := src/application/base
 src_system_support := src/system_support
 src_trapmgr        := src/trapmgr
 src_usmdb_base     := src/usmdb/base
-vendor_sdk         ?= vendor/broadcom/esw_sdk
+vendor_sdk         := vendor/broadcom/esw_sdk
 ifeq (1,$(BLD_L7_PRODUCT_SMARTPATH))
 src_stats_base     := base/services/cstats
 else

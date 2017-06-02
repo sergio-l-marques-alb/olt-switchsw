@@ -101,7 +101,7 @@ PACKAGE_LIST :=         ANDL \
                         MODB \
                         XWEB \
                         XLIB \
-                        PTIN
+			PTIN
 # PTin added: ptin module
 
 # All known package root names are listed here.

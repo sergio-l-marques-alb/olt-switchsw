@@ -5,7 +5,7 @@
 
 # Local source path abbreviations (for convenience).
 #
-vend_sdk ?= vendor/broadcom/esw_sdk
+vend_sdk := vendor/broadcom/esw_sdk
 sal_core := $(vend_sdk)/src/sal/core/linux
 kbde_dir := $(vend_sdk)/systems/bde/linux/kernel
 ubde_dir := $(vend_sdk)/systems/bde/linux/user/kernel

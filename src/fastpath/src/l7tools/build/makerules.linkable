@@ -31,7 +31,7 @@ hapi_make          := andl/hapi/$(L7_CHIP)/make
 ipstack_vend       := src/ipstack/vendor
 src_build          := src/l7tools/build
 src_infrastructure := src/system_support/base/infrastructure
-vendor_sdk         ?= vendor/broadcom/esw_sdk
+vendor_sdk         := vendor/broadcom/esw_sdk
 
 
 # Define output locations.
