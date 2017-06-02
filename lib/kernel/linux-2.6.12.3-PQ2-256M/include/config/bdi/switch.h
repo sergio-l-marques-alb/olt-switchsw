@@ -1,1 +1,0 @@
-#define CONFIG_BDI_SWITCH 1

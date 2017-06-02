@@ -1,1 +1,0 @@
-#undef CONFIG_LITE5200

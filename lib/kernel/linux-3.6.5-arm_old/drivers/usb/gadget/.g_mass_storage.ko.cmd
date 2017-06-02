@@ -1,1 +1,0 @@
-cmd_drivers/usb/gadget/g_mass_storage.ko := /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL -r  -T /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/kernel/linux-3.6.5/scripts/module-common.lds --build-id  -o drivers/usb/gadget/g_mass_storage.ko drivers/usb/gadget/g_mass_storage.o drivers/usb/gadget/g_mass_storage.mod.o

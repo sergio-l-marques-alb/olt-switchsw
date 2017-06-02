@@ -3,6 +3,21 @@
 export MODULE=fastpath-cxp360g
 export PLATFORMS="CXO360G-MX"
 
-export APPLICATION=fastpath
+export APPLICATION=fp
+
+echo "Compiling fastpath for CXO360G..."
+make -C ../fastpath -f cxp360g.make
+if [ $? -ne 0 ]; then
+ echo ERROR!!!
+ exit 1;
+fi
+echo "Copying binaries to apps..."
+make -C ../fastpath -f cxp360g.make install
+if [ $? -ne 0 ]; then
+ echo ERROR!!!
+ exit 1;
+fi
+echo "Done... Going to prepare tarball."
+echo
 
 . ./fastpath.build $1

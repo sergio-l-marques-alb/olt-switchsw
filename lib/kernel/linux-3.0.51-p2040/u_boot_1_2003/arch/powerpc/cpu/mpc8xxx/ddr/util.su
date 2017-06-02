@@ -1,7 +1,0 @@
-util.c:30:14:get_memory_clk_period_ps	32	static
-util.c:46:14:picos_to_mclk	40	static
-util.c:75:14:mclk_to_picos	16	static
-util.c:81:1:__fsl_ddr_set_lawbar	24	static
-util.c:115:6:fsl_ddr_set_intl3r	8	static
-util.c:124:5:fsl_ddr_get_intl3r	8	static
-util.c:134:6:board_add_ram_info	24	static

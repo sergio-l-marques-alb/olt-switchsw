@@ -1,6 +1,0 @@
-main.c:117:6:fsl_ddr_get_spd	8	static
-main.c:179:14:step_to_string	16	static
-main.c:189:27:__step_assign_addresses	24	static
-main.c:363:1:fsl_ddr_compute	40	static
-main.c:528:13:fsl_ddr_sdram	1240	static
-main.c:656:1:fsl_ddr_sdram_size	1224	static

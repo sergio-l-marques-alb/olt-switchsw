@@ -1,2 +1,0 @@
-reloc.o: reloc.S \
- /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/ppc_asm.tmpl

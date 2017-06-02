@@ -1,9 +1,0 @@
-config IPROC_CRYPTO
-	tristate "NS+ symmetric crypto/hash acceleration support"
-	depends on ARCH_IPROC && MACH_NSP && IPROC_FA2
-	default n
-	help
-	  NS+ symmetric crypto acceleration support
-	  This driver provides kernel support for Northstar+ crypto acceleration
-	
-	  If unsure, say N.

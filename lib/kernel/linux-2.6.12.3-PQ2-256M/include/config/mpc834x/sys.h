@@ -1,1 +1,0 @@
-#undef CONFIG_MPC834x_SYS

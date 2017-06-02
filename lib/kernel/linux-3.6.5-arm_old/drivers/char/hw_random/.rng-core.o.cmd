@@ -1,1 +1,0 @@
-cmd_drivers/char/hw_random/rng-core.o := /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o drivers/char/hw_random/rng-core.o drivers/char/hw_random/core.o 

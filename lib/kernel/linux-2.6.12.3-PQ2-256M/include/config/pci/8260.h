@@ -1,1 +1,0 @@
-#define CONFIG_PCI_8260 1

@@ -1,1 +1,0 @@
-cmd_drivers/usb/gadget/g_mass_storage.o := /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o drivers/usb/gadget/g_mass_storage.o drivers/usb/gadget/mass_storage.o 

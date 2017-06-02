@@ -1,3 +1,0 @@
-fdt.c:56:6:ft_fixup_num_cores	56	static
-fdt.c:369:6:fdt_fixup_crypto_node	32	static
-fdt.c:389:5:fdt_fixup_phy_connection	32	static

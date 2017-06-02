@@ -1,1 +1,0 @@
-cmd_net/ipv4/netfilter/iptable_nat.o := /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o net/ipv4/netfilter/iptable_nat.o net/ipv4/netfilter/nf_nat_rule.o net/ipv4/netfilter/nf_nat_standalone.o 
