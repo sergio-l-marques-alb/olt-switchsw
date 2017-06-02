@@ -252,47 +252,6 @@ fi
 
 #################### DO NOT CHANGE ANY LINE BELOW! ####################
 
-readonly LOCKFILE=/tmp/mgmd
-readonly LOCK_FD=200
-readonly LOCK_SLEEP=2
-
-lock() {
-  local fd=$LOCK_FD
-  local lock_file=$LOCKFILE.lock
-
-  # create lock file
-  
-  if (! eval "exec $fd>$lock_file"); then
-    echo "[MGMD] Failed to create $lock_file!"
-	exit 1;
-  fi
-
-  echo -n "[MGMD] Locking file $lock_file: "
-  
-  # acquier the lock
-  while (! flock -n $fd); do
-    sleep $LOCK_SLEEP;
-  done
-
-  echo "done!"
-  return 0;
-}
-
-unlock() {
-  local fd=$LOCK_FD
-  local lock_file=$LOCKFILE.lock
-	
-  # unlock the file
-  if (! flock -u $fd); then
-    echo "[MGMD] Failed to unlock file $lock_file!"
-    exit 1;
-  fi
-
-  echo "[MGMD] $lock_file unlocked!"  
-  return 0
-}
-
-
 # Define the main MGMD path (where autogen.sh will generate the configure file)
 FP_FOLDER="${FP_FOLDER:-$PWD}"
 MGMD_PATH=$FP_FOLDER/src/application/switching/mgmd
@@ -301,6 +260,41 @@ MGMD_CONFIGURE=$MGMD_PATH/configure
 FP_OUTPUT_PATH=$FP_FOLDER/output/FastPath-Ent-esw-xgs4-$CPU-LR-CSxw-IQH_$BOARD
 MGMD_OUTPUT_PATH=$FP_OUTPUT_PATH/objects/mgmd
 EXPORT_FILE=$MGMD_OUTPUT_PATH/export.var
+
+readonly LOCKFILE=$FP_FOLDER/mgmd.lock
+readonly LOCK_FD=200
+readonly LOCK_SLEEP=2
+
+lock() {
+  # create lock file
+  
+  if (! eval "exec $LOCK_FD>$LOCKFILE"); then
+    echo "[MGMD] Failed to create $LOCKFILE!"
+	exit 1;
+  fi
+
+  echo -n "[MGMD] Locking file $LOCKFILE: "
+  
+  # acquier the lock
+  while (! flock -n $LOCK_FD); do
+    sleep $LOCK_SLEEP;
+  done
+
+  echo "done!"
+  return 0;
+}
+
+unlock() {
+  # unlock the file
+  if (! flock -u $LOCK_FD); then
+    echo "[MGMD] Failed to unlock file $LOCKFILE!"
+    exit 1;
+  fi
+
+  echo "[MGMD] Unlocking file $LOCKFILE: done!"
+  return 0
+}
+
 
 # Toolchain and SYS_ROOT_DIR definition
 export DESTDIR=$MGMD_OUTPUT_PATH/rfs
