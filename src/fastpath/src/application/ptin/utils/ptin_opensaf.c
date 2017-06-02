@@ -211,7 +211,7 @@ void ptin_opensaf_task_OnuMac( void )
   L7_enetMacAddr_t mac;;
   L7_uint8 slot;
   L7_RC_t rc = L7_FAILURE;
-  ptin_onuStatus onuStatus;
+  static ptin_onuStatus onuStatus;
   //ptin_OLTCTList ngpon2_members;
 
   memset(&mac, 0, sizeof(mac));
@@ -241,12 +241,12 @@ void ptin_opensaf_task_OnuMac( void )
     ptin_opensaf_read_event(&event_data, len, 1, chName, pubName);
   
     /* Read the event data */
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "eventId      %u",  event_data.eventId);
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "memberIndex  %u",  event_data.memberIndex);
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "parentId     %u",  event_data.parentId);
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "OnuID        %u",  event_data.onuId);
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "linkId       %u",  event_data.linkId);
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "slotId       %u",  event_data.slotId);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "eventId      %d",  event_data.eventId);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "memberIndex  %d",  event_data.memberIndex);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "parentId     %d",  event_data.parentId);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "OnuID        %d",  event_data.onuId);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "linkId       %d",  event_data.linkId);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "slotId       %d",  event_data.slotId);
 
     /* Key to get the slot of the ONU from the NGPON2GROUPS checkpoint */
     ptin_intf_slot_get(&slot);
@@ -257,14 +257,18 @@ void ptin_opensaf_task_OnuMac( void )
       continue;
     }
 
+    L7_uint32 section = ONU_STATE_INDEX(event_data.parentId , event_data.onuId, event_data.slotId, event_data.linkId);
+
     /* Get ONU State */
-    ptin_checkpoint_getSection(ONU_STATE, ONU_STATE_INDEX(event_data.parentId , event_data.onuId, event_data.slotId, event_data.linkId), &onuStatus, &size);
+    ptin_checkpoint_getSection(ONU_STATE, section , &onuStatus, &size);
 
     /*Retrieve MAC form a particular ONU*/
     ptin_checkpoint_getSection(SWITCHDRVR_ONU, event_data.onuId /* xparentdID + 1 */, &data, &size);
     p = data;
 
-    PT_LOG_TRACE(LOG_CTX_OPENSAF, "onuStatus.state %u", onuStatus.state);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "section %d", ONU_STATE_INDEX(event_data.parentId , event_data.onuId, event_data.slotId, event_data.linkId));
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "section %d", section);
+    PT_LOG_TRACE(LOG_CTX_OPENSAF, "onuStatus.state %d", onuStatus.state);
 
     if(onuStatus.state == ONU_STATE_DISABLED) /* If the ONU is disable remove MAC, DHCP binding and IGMP channels*/
     {    
@@ -309,7 +313,6 @@ void ptin_opensaf_task_OnuMac( void )
 
       PT_LOG_TRACE(LOG_CTX_OPENSAF,"Search Data : %d , %d ,%d ,%d , %d , %d, ",    mac.addr[0], mac.addr[1], mac.addr[2],
                                                                             mac.addr[3], mac.addr[4], mac.addr[5]);
-
       memset(&dsBindingIpv4,0x00,sizeof(dhcpSnoopBinding_t));
       memcpy(dsBindingIpv4.key.macAddr, mac.addr, sizeof(L7_uint8)*L7_MAC_ADDR_LEN);
       dsBindingIpv4.key.ipType = L7_AF_INET;  //(table[i].bind_entry.ipAddr.family==0) ;//? (L7_AF_INET) : (L7_AF_INET6);
@@ -573,6 +576,11 @@ L7_RC_t ptin_opensaf_read_event_teste(int id)
   return L7_SUCCESS;
 }
 
+
+L7_RC_t teste_opensaf_section()
+{
+  PT_LOG_ERR(LOG_CTX_OPENSAF, " %d ", ONU_STATE_INDEX(128 , 2, 6, 3));
+}
 /**
  *  Init routine of opensaf event task
  *

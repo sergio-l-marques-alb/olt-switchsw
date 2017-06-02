@@ -3367,7 +3367,7 @@ L7_RC_t ptin_evc_port_remove(L7_uint32 evc_ext_id, ptin_HwEthMef10Intf_t *evc_in
   if (ptin_intf_any_format(&evc_intf->intf) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Invalid interface %u", evc_intf->intf.value.ptin_port);
-    return L7_FAILURE;
+    return L7_SUCCESS; // Do not return error to the manager
   }
   /* ptin_port */
   ptin_port = evc_intf->intf.value.ptin_port;
