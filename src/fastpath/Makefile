@@ -40,7 +40,7 @@ help h:
 	@echo ""
 	
 # Set by default to use the maximum CPUs available
-export MAKEFLAGS += -j `grep -c '^processor' /proc/cpuinfo`
+export MAKEFLAGS += --no-print-directory -j `grep -c '^processor' /proc/cpuinfo`
 
 # Disable jobserver if multiple targets are detected
 ifneq ($(words $(MAKECMDGOALS)), 0)
