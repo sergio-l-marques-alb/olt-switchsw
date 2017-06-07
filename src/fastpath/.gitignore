@@ -1,3 +1,4 @@
 /*.vpj
 /vendor
-/*.lock
+/*.log
+/*.time
