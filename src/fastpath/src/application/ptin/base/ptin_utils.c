@@ -444,3 +444,47 @@ inline int _bmp_is_all_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp)
     return 1;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Setting/getting the CORES a PID can run on
+//(Just a way to allow using sched_getaffinity()/sched_setaffinity() via fp.shell dev)
+//(busybox doesn't have the "taskset" command)
+#include <sched.h>
+#include <errno.h>
+void set_pid_processors(pid_t pid, unsigned int msk) {
+cpu_set_t mask;
+int i;
+
+    CPU_ZERO(&mask);
+    for (i=0; i<64; i++,msk>>=1) {
+        if (msk & 1) {CPU_SET(i, &mask);}
+    }
+    printf("sched_setaffinity()=%d\terrno=%d", sched_setaffinity(pid, sizeof(cpu_set_t), &mask), errno);
+}
+void get_pid_processors(pid_t pid) {
+cpu_set_t mask;
+unsigned long long msk=0;
+int r,i;
+
+    r = sched_getaffinity(pid, sizeof(cpu_set_t), &mask);
+    for (i=0; i<sizeof(cpu_set_t)*8; i++) {
+        if (CPU_ISSET(i, &mask)) msk |= 1<<i;
+    }
+    printf("sched_getaffinity()=%d, mask=%llx, cpu_count=%d", r, msk, CPU_COUNT(&mask));
+}
+
