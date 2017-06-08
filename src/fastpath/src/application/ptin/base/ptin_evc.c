@@ -799,7 +799,7 @@ L7_BOOL ptin_evc_is_intf_in_use_on_evc(L7_uint32 evc_ext_id, L7_uint intfNum)
 
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
   {
-     PT_LOG_ERR(LOG_CTX_EVC, "evc_ext_id:%u is invalid", evc_ext_id);
+     PT_LOG_ERR(LOG_CTX_EVC, "evc_ext_id:0x%x is invalid", evc_ext_id);
      return L7_FALSE;
   }
 
@@ -840,9 +840,9 @@ L7_BOOL ptin_evc_is_intf_leaf(L7_uint32 evc_ext_id, L7_uint intfNum)
   if ( rc != L7_SUCCESS)
   {
      if (rc != L7_NOT_EXIST)
-       PT_LOG_ERR(LOG_CTX_EVC, "evc_ext_id:%u is invalid", evc_ext_id);
+       PT_LOG_ERR(LOG_CTX_EVC, "evc_ext_id:0x%x is invalid", evc_ext_id);
      else
-       PT_LOG_TRACE(LOG_CTX_EVC, "Evc does not exist evc_ext_id:%u", evc_ext_id);
+       PT_LOG_TRACE(LOG_CTX_EVC, "Evc does not exist evc_ext_id:0x%x", evc_ext_id);
 
      return L7_FALSE;
   }
@@ -882,13 +882,13 @@ L7_RC_t ptin_evc_port_type_get(L7_uint32 evc_ext_id, L7_uint intfNum, L7_uint8 *
 
   if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS || intfNum == 0 || intfNum>PTIN_SYSTEM_N_INTERF)
   {
-    PT_LOG_ERR(LOG_CTX_EVC,"Invalid arguments (evc_ext_id=%u intfNum:%u)", evc_ext_id, intfNum);
+    PT_LOG_ERR(LOG_CTX_EVC,"Invalid arguments (evc_ext_id=0x%x intfNum:%u)", evc_ext_id, intfNum);
     return L7_FAILURE;
   }
   
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
   {
-     PT_LOG_ERR(LOG_CTX_EVC, "evc_ext_id:%u is invalid", evc_ext_id);
+     PT_LOG_ERR(LOG_CTX_EVC, "evc_ext_id:0x%x is invalid", evc_ext_id);
      return L7_FAILURE;
   }
 
@@ -901,24 +901,24 @@ L7_RC_t ptin_evc_port_type_get(L7_uint32 evc_ext_id, L7_uint intfNum, L7_uint8 *
 
   if (evcs[evc_id].in_use == L7_FALSE)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "evc_ext_id:%u is not in use (evc_id:%u)", evc_id, evc_ext_id);
+    PT_LOG_ERR(LOG_CTX_EVC, "evc_ext_id:0x%x is not in use (evc_id:%u)", evc_id, evc_ext_id);
     return L7_FAILURE;
   }
 
   if (evcs[evc_id].intf[ptin_port].in_use == L7_FALSE)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "intfNum:%u (ptin_port:%u) is not in use on evc_ext_id:%u  (evc_id:%u)", intfNum, ptin_port, evc_ext_id, evc_id);
+    PT_LOG_ERR(LOG_CTX_EVC, "intfNum:%u (ptin_port:%u) is not in use on evc_ext_id:0x%x  (evc_id:%u)", intfNum, ptin_port, evc_ext_id, evc_id);
     return L7_FAILURE;
   }
 
   if (evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_LEAF && evcs[evc_id].intf[ptin_port].type != PTIN_EVC_INTF_ROOT)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "Invalid portType:%u of intfNum:%u (ptin_port:%u) on evc_ext_id:%u  (evc_id:%u)", evcs[evc_id].intf[ptin_port].type, intfNum, ptin_port, evc_ext_id, evc_id);
+    PT_LOG_ERR(LOG_CTX_EVC, "Invalid portType:%u of intfNum:%u (ptin_port:%u) on evc_ext_id:0x%x  (evc_id:%u)", evcs[evc_id].intf[ptin_port].type, intfNum, ptin_port, evc_ext_id, evc_id);
     return L7_FAILURE;
   }
 
   if (ptin_debug_evc)
-    PT_LOG_TRACE(LOG_CTX_EVC, "portType:%u of intfNum:%u (ptin_port:%u) on evc_ext_id:%u  (evc_id:%u)", evcs[evc_id].intf[ptin_port].type, intfNum, ptin_port, evc_ext_id, evc_id);
+    PT_LOG_TRACE(LOG_CTX_EVC, "portType:%u of intfNum:%u (ptin_port:%u) on evc_ext_id:0x%x  (evc_id:%u)", evcs[evc_id].intf[ptin_port].type, intfNum, ptin_port, evc_ext_id, evc_id);
   *portType = evcs[evc_id].intf[ptin_port].type;
 
   return L7_SUCCESS;
@@ -1629,7 +1629,7 @@ L7_RC_t ptin_evc_flags_get_fromIntVlan(L7_uint16 intOVlan, L7_uint32 *flags, L7_
   /* Get external vlans */
   if (ptin_evc_flags_get(evc_ext_id, flags, mc_flood)!=L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC,"Error getting EVC flags for evc_ext_id=%u, intOVlan=%u", evc_ext_id, intOVlan);
+    PT_LOG_ERR(LOG_CTX_EVC,"Error getting EVC flags for evc_ext_id=0x%x, intOVlan=%u", evc_ext_id, intOVlan);
     return L7_FAILURE;
   }
 
@@ -2288,7 +2288,7 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlan(L7_uint32 intIfNum, L7_uint16 intOVlan
   /* Get external vlans */
   if (ptin_evc_extVlans_get(intIfNum, evc_ext_id, evc_int_id, intIVlan, extOVlan, extIVlan)!=L7_SUCCESS)
   {
-    //PT_LOG_ERR(LOG_CTX_EVC,"Error getting external vlans for intIfNum=%u, evc_ext_id=%u, intIVlan=%u",intIfNum,evc_ext_id,intIVlan);
+    //PT_LOG_ERR(LOG_CTX_EVC,"Error getting external vlans for intIfNum=%u, evc_ext_id=0x%x, intIVlan=%u",intIfNum,evc_ext_id,intIVlan);
     return L7_FAILURE;
   }
 
@@ -2336,7 +2336,7 @@ L7_RC_t ptin_evc_extVlans_get_fromIntVlanVPort(L7_uint16 intOVlan, L7_uint32 vpo
   /* Get external vlans */
   if (ptin_evc_extVlans_get_fromVPort(evc_ext_id, evc_int_id, vport_id, &ptin_port, extOVlan, extIVlan)!=L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC,"Error getting external vlans for evc_ext_id=%u, vport_id=%u",evc_ext_id,vport_id);
+    PT_LOG_ERR(LOG_CTX_EVC,"Error getting external vlans for evc_ext_id=0x%x, vport_id=%u",evc_ext_id,vport_id);
     return L7_FAILURE;
   }
 
@@ -8922,7 +8922,7 @@ L7_RC_t ptin_evc_l3_intf_get(L7_uint32 evc_ext_id, L7_uint32 intfNum, L7_int *l3
 
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS || evc_id >= PTIN_SYSTEM_N_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "Failed to Obtain Internal Id [evc_ext_id:%u, evc_id:%u]", evc_ext_id, evc_id);
+    PT_LOG_ERR(LOG_CTX_EVC, "Failed to Obtain Internal Id [evc_ext_id:0x%x, evc_id:%u]", evc_ext_id, evc_id);
     return L7_FAILURE;
   }
   else
@@ -8991,7 +8991,7 @@ L7_RC_t ptin_evc_l3_multicast_group_get(L7_uint32 evc_ext_id, L7_int *multicast_
 
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS || evc_id >= PTIN_SYSTEM_N_EVCS)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "Failed to Obtain Internal Id [evc_ext_id:%u, evc_id:%u]", evc_ext_id, evc_id);
+    PT_LOG_ERR(LOG_CTX_EVC, "Failed to Obtain Internal Id [evc_ext_id:0x%x, evc_id:%u]", evc_ext_id, evc_id);
     return L7_FAILURE;
   }
   else
@@ -10114,6 +10114,12 @@ static void ptin_evc_vlan_pool_init(void)
   dl_queue_init(&queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM]);
   for (i=PTIN_SYSTEM_EVC_BITSTR_VLAN_MIN; i<=PTIN_SYSTEM_EVC_BITSTR_VLAN_MAX && i<=PTIN_VLAN_MAX; i++)
   {
+    /* Skip reserved VLANs */
+    if (i >= PTIN_RESERVED_VLAN_MIN && i <= PTIN_RESERVED_VLAN_MAX)
+    {
+      continue;
+    }
+    
     vlans_pool[i].vid = i;
     dl_queue_add(&queue_free_vlans[PTIN_VLAN_TYPE_BITSTREAM], (dl_queue_elem_t*)&vlans_pool[i]);
   }
@@ -12940,7 +12946,7 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
       continue;
     }
 
-    printf("eEVC# %02u (internal id %u)\n", ext_id, evc_id);
+    printf("eEVC# 0x%x (internal id %u)\n", ext_id, evc_id);
 
     printf("  Flags     = 0x%08X   ", evcs[evc_id].flags);
 
@@ -13379,13 +13385,3 @@ void  dump_all_offlineEvc()
 }
 #endif
 
-
-
-
-
-
-
-
-
-
-    
