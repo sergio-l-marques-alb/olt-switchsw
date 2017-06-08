@@ -516,6 +516,28 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   }
   PT_LOG_INFO(LOG_CTX_CNFGR, "PTin task launch OK");
 
+  /* Create task for packets management */
+  if (osapiTaskCreate("ptinIntfTask", ptinIntfTask, 0, 0,
+                      L7_DEFAULT_STACK_SIZE,
+                      L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
+                      L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+  {
+    PT_LOG_FATAL(LOG_CTX_CNFGR, "Could not create task ptinIntfTask");
+    *pResponse = 0;
+    *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
+    return L7_FAILURE;
+  }
+  PT_LOG_INFO(LOG_CTX_CNFGR,"Task ptinIntfTask created");
+
+  if (osapiWaitForTaskInit (L7_PTIN_INTF_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS)
+  {
+    PT_LOG_FATAL(LOG_CTX_CNFGR,"Unable to initialize ptinIntfTask\n");
+    *pResponse = 0;
+    *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
+    return(L7_FAILURE);
+  }
+  PT_LOG_TRACE(LOG_CTX_CNFGR,"Task ptinIntfTask initialized");
+
   /* Initialize OAM data structures (includes task and timer) */
   ptin_oam_eth_init();
 

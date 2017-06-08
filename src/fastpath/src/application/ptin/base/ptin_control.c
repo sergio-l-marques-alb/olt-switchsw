@@ -33,6 +33,7 @@
 #include "ptin_msghandler.h"
 #include "ptin_msg.h"
 #include "ptin_fpga_api.h"
+#include "ptin_prot_uplink.h"
 
 #if ( PTIN_BOARD_IS_STANDALONE || PTIN_BOARD_IS_MATRIX )
 #include "fw_shm.h"
@@ -154,6 +155,8 @@ typedef struct
 } ptinIntfEventMsg_t;
 
 /* Queue to manage interface events */
+#define PTIN_INTF_EVENT_QUEUE_MAX 100
+#define PTIN_INTF_EVENT_QUEUE_MSG_SIZE  sizeof(ptinIntfEventMsg_t)
 void *ptin_intf_event_queue = L7_NULLPTR;
 
 static L7_RC_t ptinIntfUpdate(ptinIntfEventMsg_t *eventMsg);
@@ -316,6 +319,26 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
   PT_LOG_INFO(LOG_CTX_CNFGR, "ptin_control_task_process task launch OK");
+
+  /* Initialize uplink protection */
+  if (ptin_prot_uplink_init() != L7_SUCCESS)
+  {
+    PT_LOG_FATAL(LOG_CTX_CONTROL, "Uplink protection initialized!");
+    PTIN_CRASH();
+  }
+
+  /* register callback with NIM for L7_UPs and L7_DOWNs */
+  if (nimRegisterIntfChange(L7_PTIN_COMPONENT_ID,
+                            ptinIntfChangeCallback,
+                            ptinIntfStartupCallback, NIM_STARTUP_PRIO_DEFAULT) != L7_SUCCESS)
+  {
+    PT_LOG_FATAL(LOG_CTX_CONTROL, "Failed to register events reception!");
+    PTIN_CRASH();
+  }
+  else
+  {
+    PT_LOG_INFO(LOG_CTX_CONTROL, "ptinIntfChangeCallback registered!");
+  }
 
   PT_LOG_NOTICE(LOG_CTX_CONTROL, "Free ptin_ready_sem:%p", ptin_ready_sem);
   osapiSemaGive(ptin_ready_sem);  
@@ -2138,6 +2161,26 @@ void ptinIntfTask(L7_uint32 numArgs, void *unit)
 
   PT_LOG_NOTICE(LOG_CTX_CONTROL, "PTinIntf task will now start!");
 
+  /* Queue that will process timer events */
+  ptin_intf_event_queue = (void *) osapiMsgQueueCreate("ptin_intf_event_queue",
+                                                       PTIN_INTF_EVENT_QUEUE_MAX, PTIN_INTF_EVENT_QUEUE_MSG_SIZE);
+  if (ptin_intf_event_queue == L7_NULLPTR)
+  {
+    PT_LOG_FATAL(LOG_CTX_CONTROL,"ptin_intf_event_queue creation error.");
+    PTIN_CRASH();
+  }
+  PT_LOG_INFO(LOG_CTX_CONTROL,"ptin_intf_event_queue created.");
+
+  /* register callback with NIM for L7_UPs and L7_DOWNs */
+  if ((rc = nimRegisterIntfChange(L7_PTIN_COMPONENT_ID,
+                                  ptinIntfChangeCallback,
+                                  ptinIntfStartupCallback, NIM_STARTUP_PRIO_DEFAULT)) != L7_SUCCESS)
+  {
+    PT_LOG_INFO(LOG_CTX_CONTROL,"Failed to register events");
+    PTIN_CRASH();
+  }
+  PT_LOG_INFO(LOG_CTX_CONTROL,"Events registered successfully");
+
   #if 0
   /* Wait for a signal indicating that all other modules
    * configurations were executed */
@@ -2159,11 +2202,11 @@ void ptinIntfTask(L7_uint32 numArgs, void *unit)
     {
       /* Process interface events: only a maximum of 10 per loop */
       rc = ptinIntfUpdate(&eventMsg);
-      PT_LOG_INFO(LOG_CTX_CNFGR, "Event processed: rc=%d", rc);
+      PT_LOG_INFO(LOG_CTX_CONTROL, "Event processed: rc=%d", rc);
     }
     else
     {
-      PT_LOG_ERR(LOG_CTX_CNFGR, "Error receiving queue messages");
+      PT_LOG_ERR(LOG_CTX_CONTROL, "Error receiving queue messages");
     }
   }
 }
@@ -2193,7 +2236,7 @@ L7_RC_t ptinIntfChangeCallback(L7_uint32 intIfNum,
   status.correlator   = correlator;
   status.response.reason = NIM_ERR_RC_UNUSED;
 
-  //PT_LOG_INFO(LOG_CTX_CONTROL, "Event received: event=%u, intIfNum=%u",event, intIfNum);
+  PT_LOG_INFO(LOG_CTX_CONTROL, "Event received: event=%u, intIfNum=%u",event, intIfNum);
 
   if (nimPhaseStatusCheck() != L7_TRUE)
   {
@@ -2207,27 +2250,16 @@ L7_RC_t ptinIntfChangeCallback(L7_uint32 intIfNum,
     return L7_SUCCESS;
   }
 
-  /* Send event to queue */
-  /* For CXO, check if slot have an inserted card */
-  #if (PTIN_BOARD_IS_MATRIX)
-  L7_uint16 slot_id;
-  L7_uint16 board_id;
-
-  /* Get slot associated to this interface */
-  if (ptin_intf_intIfNum2SlotPort(intIfNum, &slot_id, L7_NULLPTR, &board_id) != L7_SUCCESS || slot_id > PTIN_SYS_SLOTS_MAX)
+  /* Other events than those, should be ignored */
+  if (event != L7_UP &&
+      event != L7_DOWN &&
+      event != L7_LAG_ACTIVE_MEMBER_ADDED &&
+      event != L7_LAG_ACTIVE_MEMBER_REMOVED)
   {
-    PT_LOG_ERR(LOG_CTX_CONTROL, "Error getting slot for intIfNum %u", intIfNum);
+    PT_LOG_INFO(LOG_CTX_CONTROL, "Error: event=%u, intIfNum=%u", event, intIfNum);
     nimEventStatusCallback(status);
     return L7_SUCCESS;
   }
-  /* Only disable linkscan if slot have an inserted board */
-  if (board_id == L7_NULL)
-  {
-    PT_LOG_WARN(LOG_CTX_CONTROL, "Slot %u (intIfNum %u) not present", slot_id, intIfNum);
-    nimEventStatusCallback(status);
-    return L7_SUCCESS;
-  }
-  #endif
 
   eventMsg.event    = event; 
   eventMsg.intIfNum = intIfNum;
@@ -2257,23 +2289,69 @@ L7_RC_t ptinIntfChangeCallback(L7_uint32 intIfNum,
 static L7_RC_t ptinIntfUpdate(ptinIntfEventMsg_t *eventMsg)
 {
   L7_RC_t rc = L7_SUCCESS;
+  L7_INTF_TYPES_t intf_type;
 
   if (eventMsg == L7_NULLPTR)
   {
     return L7_FAILURE;
   }
 
-  #ifdef PTIN_LINKSCAN_CONTROL
+  /* Get interface type */
+  if (nimGetIntfType(eventMsg->intIfNum, &intf_type) != L7_SUCCESS)
+  {
+    return L7_SUCCESS;
+  }
+
   if ( eventMsg->event == L7_UP ) /* No need to process any other NIM event than these  */
   {
     PT_LOG_INFO(LOG_CTX_CONTROL, "Link up detected at interface intIfNum %u", eventMsg->intIfNum);
-
-    /* Disable linkscan */
-    rc = ptin_intf_linkscan_set(eventMsg->intIfNum, L7_DISABLE);
-
-    PT_LOG_INFO(LOG_CTX_CONTROL, "Linkscan disabled: rc=%d, intIfNum=%u", rc, eventMsg->intIfNum);
+    rc = uplinkProtEventProcess(eventMsg->intIfNum, eventMsg->event);
   }
-  #endif
+  else if ( eventMsg->event == L7_DOWN )
+  {
+    PT_LOG_INFO(LOG_CTX_CONTROL, "Link down detected at interface intIfNum %u", eventMsg->intIfNum);
+    rc = uplinkProtEventProcess(eventMsg->intIfNum, eventMsg->event);
+  }
+  else if ( eventMsg->event == L7_LAG_ACTIVE_MEMBER_ADDED )
+  {
+    L7_uint32 lag_intIfNum;
+
+    PT_LOG_INFO(LOG_CTX_INTF, "LAG active members addition detected at interface intIfNum %u", eventMsg->intIfNum);
+    if (intf_type == L7_PHYSICAL_INTF)
+    {
+      if (usmDbDot3adIntfIsMemberGet(0, eventMsg->intIfNum, &lag_intIfNum) == L7_SUCCESS)
+      {
+        PT_LOG_INFO(LOG_CTX_CONTROL, "LAG intIfNum is %u / LAG idx is %u", lag_intIfNum);
+        rc = uplinkProtEventProcess(lag_intIfNum, eventMsg->event);
+      }
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error obtainging LAG information");
+      }
+    }
+  }
+  else if ( eventMsg->event == L7_LAG_ACTIVE_MEMBER_REMOVED )
+  {
+    L7_uint32 lag_intIfNum;
+
+    PT_LOG_INFO(LOG_CTX_CONTROL, "LAG active members remotion detected at interface intIfNum %u", eventMsg->intIfNum);
+    if (intf_type == L7_PHYSICAL_INTF)
+    {
+      if (usmDbDot3adIntfIsMemberGet(0, eventMsg->intIfNum, &lag_intIfNum) == L7_SUCCESS)
+      {
+        PT_LOG_INFO(LOG_CTX_CONTROL, "LAG intIfNum is %u / LAG idx is %u", lag_intIfNum);
+        rc = uplinkProtEventProcess(lag_intIfNum, eventMsg->event);
+      }
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_CONTROL, "Error obtainging LAG information");
+      }
+    }
+  }
+  else
+  {
+    PT_LOG_INFO(LOG_CTX_CONTROL, "Unknown event detected at interface intIfNum %u", eventMsg->intIfNum);
+  }
 
   return rc;
 }
@@ -2300,6 +2378,8 @@ void ptinIntfStartupCallback(NIM_STARTUP_PHASE_t startupPhase)
   /* Now ask NIM to send any future changes for these event types */
   PORTEVENT_SETMASKBIT(portEvent_mask, L7_UP);
   PORTEVENT_SETMASKBIT(portEvent_mask, L7_DOWN);
+  PORTEVENT_SETMASKBIT(portEvent_mask, L7_LAG_ACTIVE_MEMBER_ADDED);
+  PORTEVENT_SETMASKBIT(portEvent_mask, L7_LAG_ACTIVE_MEMBER_REMOVED);
 
   /* Event types to be received */
   nimRegisterIntfEvents(L7_PTIN_COMPONENT_ID, portEvent_mask);
