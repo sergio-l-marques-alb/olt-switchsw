@@ -1692,19 +1692,20 @@ typedef struct
 
 typedef struct
 {
-    unsigned char   Architecture;
-    unsigned char   OperationMode;
-    unsigned char   HoldOffTimer;
-    unsigned char   WaitToRestoreTimer;
+    unsigned char   Architecture;       // Don't care
+    unsigned char   OperationMode;      // Auto-reverse active: 0-False/1-True
+    unsigned char   HoldOffTimer;       // Don't care
+    unsigned char   WaitToRestoreTimer; // Restoration Wait time to Working if Auto-reverse is active (in minutes)
 
-    unsigned char   alarmsEnFlag;      // HWuplink_PortAlarmsMaskEn_t
+    unsigned long   alarmsEnFlag;       // Alarms enable flags (PROT_PortAlarmsMask_t)
 
-    unsigned char   slotW;
-    unsigned char   portW;
-    unsigned char   slotP;
-    unsigned char   portP;
+    unsigned char   slotW;              // Working slot (0 for LAG, other for physical ports)
+    unsigned char   portW;              // Working port (LAG id or port index of the slot)
+    unsigned char   slotP;              // Working slot (0 for LAG, other for physical ports)
+    unsigned char   portP;              // Protection port (LAG id or port index of the slot)
 } __attribute__ ((packed)) msg_HWuplinkProtParams_t;
 
+/* Mask for msg_HWuplinkProtConf struct */
 typedef enum
 {
    HWUPLINKPROT_CONFMASK_None =               0x0000,
@@ -1722,10 +1723,10 @@ typedef enum
 
 typedef struct
 {
-   unsigned char          slotId;        // Destination slot for this message
-   unsigned short         protIndex;
-   unsigned short         confMask;
-   msg_HWuplinkProtParams_t protParams;
+   unsigned char          slotId;         // Destination slot for this message
+   unsigned short         protIndex;      // Protection group index
+   unsigned short         confMask;       // Configuration mask (HWUPLINKPROT_CONFMASK)
+   msg_HWuplinkProtParams_t protParams;   // Configuration parameters
 
 } __attribute__ ((packed)) msg_HWuplinkProtConf;
 
@@ -1734,20 +1735,20 @@ typedef struct
    
 typedef struct
 {
-   unsigned char  slotId;              // Destination slot for this message
-   unsigned short protIndex;
-   unsigned short mask;
+   unsigned char  slotId;               // Destination slot for this message
+   unsigned short protIndex;            // Protection group index
+   unsigned short mask;                 // Always 0xffff
 
-   unsigned char  activePortType;      // UPLINK_PortType_t
+   unsigned char  activePortType;       // Port type: Working or Protection (PROT_PortType_t)
 
-   unsigned char  alarmsMaskW;
-   unsigned char  alarmsW;             // UPLINK_PortAlarms_t
-   unsigned char  alarmsMaskP;
-   unsigned char  alarmsP;             // UPLINK_PortAlarms_t
+   unsigned long  alarmsMaskW;          // Working alarms mask (PROT_PortAlarmsMask_t)
+   unsigned long  alarmsW;              // Working alarms value (PROT_PortAlarmsMask_t)
+   unsigned long  alarmsMaskP;          // Protection alarms mask (PROT_PortAlarmsMask_t)
+   unsigned long  alarmsP;              // Protection alarms value (PROT_PortAlarmsMask_t)
 
-   unsigned char  lastSwitchoverCause; // UPLINK_PortAlarms_t
+   unsigned char  lastSwitchoverCause; // Cause of last switchover (PROT_LReq_t)
 
-   unsigned short WaitToRestoreTimer;  // elapsed time in seconds
+   unsigned short WaitToRestoreTimer;  // elapsed time in seconds (Wait Restore Time)
    unsigned short HoldOffTimer;        // elapsed time in seconds (Unavailable)
 
 } __attribute__ ((packed)) msg_HWuplinkProtStatus;
