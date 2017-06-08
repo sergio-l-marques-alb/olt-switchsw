@@ -1161,6 +1161,61 @@ extern L7_RC_t ptin_msg_igmp_static_channel_remove_all(msg_MCStaticChannel_t *ch
 extern L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n);
 
 /**
+ * Get protection group configuration
+ * 
+ * @param inbuffer 
+ * @param outbuffer  
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_uplink_prot_config_get(ipc_msg *inbuffer, ipc_msg *outbuffer);
+
+/**
+ * Get protection group status
+ * 
+ * @param inbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_uplink_prot_status(ipc_msg *inbuffer, ipc_msg *outbuffer);
+
+/**
+ * Create new protection group
+ * 
+ * @param inbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_uplink_prot_create(ipc_msg *inbuffer, ipc_msg *outbuffer);
+
+/**
+ * Configure a protection group
+ * 
+ * @param inbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_uplink_prot_config(ipc_msg *inbuffer, ipc_msg *outbuffer);
+
+/**
+ * Remove protection group
+ * 
+ * @param inbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_uplink_prot_remove(ipc_msg *inbuffer, ipc_msg *outbuffer);
+
+/**
+ * Apply command to protection group
+ * 
+ * @param inbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_uplink_prot_command(ipc_msg *inbuffer, ipc_msg *outbuffer);
+
+/**
  * Sync MGMD open ports
  * 
  * @param port_sync_data : MGMD port to sync

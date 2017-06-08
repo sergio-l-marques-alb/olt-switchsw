@@ -106,6 +106,14 @@
 
 #define CHMSG_ETH_UPLINK_COMMAND            0x9116  // Uplink protection command from Mx (fw control): struct msg_uplinkProtCmd
 
+#define CHMSG_UPLINKPROT_SHOW               0x9119  // future use (msg_HWuplinkProtConf)
+#define CHMSG_UPLINKPROT_CREATE             0x911A  // 1 x msg_HWuplinkProtConf
+#define CHMSG_UPLINKPROT_REMOVE             0x911B  // 1 x msg_HWuplinkProtConf (only protIndex is used)
+#define CHMSG_UPLINKPROT_CONFIG             0x911C  // 1 x msg_HWuplinkProtConf
+#define CHMSG_UPLINKPROT_STATUS             0x911D  // 1 x msg_HWuplinkProtStatus
+#define CHMSG_UPLINKPROT_STATUSNEXT         0x911E  // N x msg_HWuplinkProtStatus
+#define CHMSG_UPLINKPROT_COMMAND            0x911F  // msg_HWuplinkProtCommand
+
 #define CCMSG_SLOT_MAP_MODE_GET             0x91E0  // struct msg_slotModeCfg_t
 #define CCMSG_SLOT_MAP_MODE_VALIDATE        0x91E1  // struct msg_slotModeCfg_t
 #define CCMSG_SLOT_MAP_MODE_APPLY           0x91E2  // struct msg_slotModeCfg_t
@@ -2516,6 +2524,96 @@ typedef struct
   uint8 port;                 // Port index
   uint8 protCmd;              // Protection command: bit0-Port mode (1:active;0:inactive) / bit1-Command type (1:forced;0:normal)
 } __attribute__ ((packed)) msg_uplinkProtCmd;
+
+
+typedef struct
+{
+    unsigned char   Architecture;       // Don't care
+    unsigned char   OperationMode;      // Auto-reverse active: 0-False/1-True
+    unsigned char   HoldOffTimer;       // Don't care
+    unsigned char   WaitToRestoreTimer; // Restoration Wait time to Working if Auto-reverse is active (in minutes)
+
+    unsigned long   alarmsEnFlag;       // Alarms enable flags (PROT_PortAlarmsMask_t)
+
+    unsigned char   slotW;              // Working slot (0 for LAG, other for physical ports)
+    unsigned char   portW;              // Working port (LAG id or port index of the slot)
+    unsigned char   slotP;              // Working slot (0 for LAG, other for physical ports)
+    unsigned char   portP;              // Protection port (LAG id or port index of the slot)
+} __attribute__ ((packed)) msg_HWuplinkProtParams_t;
+
+/* Mask for msg_HWuplinkProtConf struct */
+typedef enum
+{
+   HWUPLINKPROT_CONFMASK_None =               0x0000,
+   HWUPLINKPROT_CONFMASK_Architecture =       0x0001,
+   HWUPLINKPROT_CONFMASK_OperationMode =      0x0002,
+   HWUPLINKPROT_CONFMASK_HoldOffTimer =       0x0004,
+   HWUPLINKPROT_CONFMASK_WaitToRestoreTimer = 0x0008,
+   HWUPLINKPROT_CONFMASK_alarmsEnFlag =       0x0010,
+   HWUPLINKPROT_CONFMASK_slotW =              0x0020,
+   HWUPLINKPROT_CONFMASK_portW =              0x0040,
+   HWUPLINKPROT_CONFMASK_slotP =              0x0080,
+   HWUPLINKPROT_CONFMASK_portP =              0x0100,
+   HWUPLINKPROT_CONFMASK_All =                0x01FF,
+} HWUPLINKPROT_CONFMASK;
+
+typedef struct
+{
+   unsigned char          slotId;         // Destination slot for this message
+   unsigned short         protIndex;      // Protection group index
+   unsigned short         confMask;       // Configuration mask (HWUPLINKPROT_CONFMASK)
+   msg_HWuplinkProtParams_t protParams;   // Configuration parameters
+
+} __attribute__ ((packed)) msg_HWuplinkProtConf;
+
+
+#define  HWUPLINKPROT_STATUS_PAGE_SIZE 20
+   
+typedef struct
+{
+   unsigned char  slotId;               // Destination slot for this message
+   unsigned short protIndex;            // Protection group index
+   unsigned short mask;                 // Always 0xffff
+
+   unsigned char  activePortType;       // Port type: Working or Protection (PROT_PortType_t)
+
+   unsigned long  alarmsMaskW;          // Working alarms mask (PROT_PortAlarmsMask_t)
+   unsigned long  alarmsW;              // Working alarms value (PROT_PortAlarmsMask_t)
+   unsigned long  alarmsMaskP;          // Protection alarms mask (PROT_PortAlarmsMask_t)
+   unsigned long  alarmsP;              // Protection alarms value (PROT_PortAlarmsMask_t)
+
+   unsigned char  lastSwitchoverCause; // Cause of last switchover (PROT_LReq_t)
+
+   unsigned short WaitToRestoreTimer;  // elapsed time in seconds (Wait Restore Time)
+   unsigned short HoldOffTimer;        // elapsed time in seconds (Unavailable)
+
+} __attribute__ ((packed)) msg_HWuplinkProtStatus;
+
+
+typedef enum
+{
+   HWUPLINKPROT_COMMAND_CLEAR             = 1,
+   HWUPLINKPROT_COMMAND_LOCKOUT           = 2,
+   HWUPLINKPROT_COMMAND_FORCE2PROTECTION  = 3,
+   HWUPLINKPROT_COMMAND_FORCE2WORKING     = 4,
+   HWUPLINKPROT_COMMAND_MANUAL2PROTECTION = 5,
+   HWUPLINKPROT_COMMAND_MANUAL2WORKING    = 6,
+} HWUPLINKPROT_COMMAND;
+
+typedef struct
+{
+   unsigned char  slotId;              // Destination slot for this message
+   unsigned short protIndex;
+   unsigned char  command;
+} __attribute__ ((packed)) msg_HWuplinkProtCommand;
+
+
+/* MUST be in accordance with MGMT */
+typedef enum {
+    PROT_CFG_DISABLED=0,
+    PROT_CFG_WORKING,
+    PROT_CFG_STANDBY,
+} enum_LinkProtCfg;
 
 
 /***************************************************************************** 

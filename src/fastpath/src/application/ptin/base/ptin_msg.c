@@ -46,6 +46,7 @@
 
 #include "ptin_acl.h"
 #include "ptin_routing.h"
+#include "ptin_prot_uplink.h"
 
 #ifndef SNOOPING_API_H
 #include "snooping_api.h" //To interact with SNOOP
@@ -12496,6 +12497,531 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
 
   return rc;
 }
+
+
+/**
+ * Get protection group configuration
+ * 
+ * @param inbuffer 
+ * @param outbuffer  
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_uplink_prot_config_get(ipc_msg *inbuffer, ipc_msg *outbuffer)
+{
+  L7_uint protIdx, i;
+  ptin_intf_t intfW, intfP;
+  uplinkprotParams_st prot_config;
+  msg_HWuplinkProtConf *protConfig_in  = (msg_HWuplinkProtConf *) inbuffer->info;
+  msg_HWuplinkProtConf *protConfig_out = (msg_HWuplinkProtConf *) outbuffer->info;
+
+  ENDIAN_SWAP8_MOD (protConfig_in->slotId);
+  ENDIAN_SWAP16_MOD(protConfig_in->protIndex);
+  ENDIAN_SWAP16_MOD(protConfig_in->confMask);
+
+  PT_LOG_TRACE(LOG_CTX_MSG, "Message contents:");
+  PT_LOG_TRACE(LOG_CTX_MSG, " MsgId     = %u"  , inbuffer->msgId);
+  PT_LOG_TRACE(LOG_CTX_MSG, " slotId    = %u"  , protConfig_in->slotId);
+  PT_LOG_TRACE(LOG_CTX_MSG, " protIndex = %u"  , protConfig_in->protIndex);
+  PT_LOG_TRACE(LOG_CTX_MSG, " confMask  = 0x%x", protConfig_in->confMask);
+
+  /* If protIdx is within range, return the statuis of this id */
+  if (protConfig_in->protIndex < MAX_UPLINK_PROT)
+  {
+    protIdx = protConfig_in->protIndex;
+
+    memset(&prot_config, 0x00, sizeof(prot_config));
+    if (ptin_prot_uplink_config_get(protIdx, &prot_config) == L7_SUCCESS) 
+    {
+      /* Convert intIfNum to LagID */
+      if (ptin_intf_intIfNum2ptintf(prot_config.intIfNumW, &intfW) != L7_SUCCESS ||
+          ptin_intf_intIfNum2ptintf(prot_config.intIfNumP, &intfP) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error getting ptin_intf value for intIfNum %u or %u", prot_config.intIfNumW, prot_config.intIfNumP);
+        return L7_FAILURE;
+      }
+
+      memset(protConfig_out, 0x00, sizeof(msg_HWuplinkProtConf));
+      protConfig_out->slotId    = ENDIAN_SWAP8 (protConfig_in->slotId);
+      protConfig_out->protIndex = ENDIAN_SWAP16(protIdx);
+      protConfig_out->confMask  = ENDIAN_SWAP16(0xffff);
+      protConfig_out->protParams.Architecture       = ENDIAN_SWAP8 (0);
+      protConfig_out->protParams.OperationMode      = ENDIAN_SWAP8 (prot_config.revert2working);
+      protConfig_out->protParams.alarmsEnFlag       = ENDIAN_SWAP32(prot_config.alarmsEnFlag);
+      protConfig_out->protParams.WaitToRestoreTimer = ENDIAN_SWAP8 (prot_config.WaitToRestoreTimer);
+      protConfig_out->protParams.HoldOffTimer       = ENDIAN_SWAP8 (prot_config.HoldOffTimer);
+      protConfig_out->protParams.slotW              = ENDIAN_SWAP8 (intfW.intf_type);
+      protConfig_out->protParams.portW              = ENDIAN_SWAP8 (intfW.intf_id);
+      protConfig_out->protParams.slotP              = ENDIAN_SWAP8 (intfP.intf_type);
+      protConfig_out->protParams.portP              = ENDIAN_SWAP8 (intfP.intf_id);
+
+      outbuffer->infoDim = sizeof(msg_HWuplinkProtConf);
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_MSG,"Error reading protection group status");
+      return L7_FAILURE;
+    }
+  }
+  /* Otherwise, return all groups data */
+  else
+  {
+    i = 0;
+    for (protIdx = 0; protIdx < MAX_UPLINK_PROT; protIdx++)
+    {
+      memset(&prot_config, 0x00, sizeof(prot_config));
+      if (ptin_prot_uplink_config_get(protIdx, &prot_config) == L7_SUCCESS)
+      {
+        /* Convert intIfNum to LagID */
+        if (ptin_intf_intIfNum2ptintf(prot_config.intIfNumW, &intfW) != L7_SUCCESS ||
+            ptin_intf_intIfNum2ptintf(prot_config.intIfNumP, &intfP) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG, "Error getting ptin_intf value for intIfNum %u or %u", prot_config.intIfNumW, prot_config.intIfNumP);
+          continue;
+        }
+
+        memset(&protConfig_out[i], 0x00, sizeof(msg_HWuplinkProtConf));
+        protConfig_out[i].slotId    = ENDIAN_SWAP8 (protConfig_in->slotId);
+        protConfig_out[i].protIndex = ENDIAN_SWAP16(protIdx);
+        protConfig_out[i].confMask  = ENDIAN_SWAP16(0xffff);
+        protConfig_out[i].protParams.Architecture       = ENDIAN_SWAP8 (0);
+        protConfig_out[i].protParams.OperationMode      = ENDIAN_SWAP8 (prot_config.revert2working);
+        protConfig_out[i].protParams.alarmsEnFlag       = ENDIAN_SWAP32(prot_config.alarmsEnFlag);
+        protConfig_out[i].protParams.WaitToRestoreTimer = ENDIAN_SWAP8 (prot_config.WaitToRestoreTimer);
+        protConfig_out[i].protParams.HoldOffTimer       = ENDIAN_SWAP8 (prot_config.HoldOffTimer);
+        protConfig_out[i].protParams.slotW              = ENDIAN_SWAP8 (intfW.intf_type);
+        protConfig_out[i].protParams.portW              = ENDIAN_SWAP8 (intfW.intf_id);
+        protConfig_out[i].protParams.slotP              = ENDIAN_SWAP8 (intfP.intf_type);
+        protConfig_out[i].protParams.portP              = ENDIAN_SWAP8 (intfP.intf_id);
+
+        i++;
+      }
+    }
+
+    outbuffer->infoDim = sizeof(msg_HWuplinkProtConf) * i;
+  }
+  return L7_SUCCESS;
+}
+
+/**
+ * Get protection group status
+ * 
+ * @param inbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_uplink_prot_status(ipc_msg *inbuffer, ipc_msg *outbuffer)
+{
+  L7_uint protIdx, i;
+  uplinkprot_status_st prot_status;
+  msg_HWuplinkProtStatus *protStatus_in  = (msg_HWuplinkProtStatus *) inbuffer->info;
+  msg_HWuplinkProtStatus *protStatus_out = (msg_HWuplinkProtStatus *) outbuffer->info;
+
+  ENDIAN_SWAP8_MOD (protStatus_in->slotId);
+  ENDIAN_SWAP16_MOD(protStatus_in->protIndex);
+  ENDIAN_SWAP16_MOD(protStatus_in->mask);
+
+  PT_LOG_TRACE(LOG_CTX_MSG, "Message contents:");
+  PT_LOG_TRACE(LOG_CTX_MSG, " MsgId     = %u"  , inbuffer->msgId);
+  PT_LOG_TRACE(LOG_CTX_MSG, " slotId    = %u"  , protStatus_in->slotId);
+  PT_LOG_TRACE(LOG_CTX_MSG, " protIndex = %u"  , protStatus_in->protIndex);
+  PT_LOG_TRACE(LOG_CTX_MSG, " Mask      = 0x%x", protStatus_in->mask);
+
+  /* Show all entries for CHMSG_UPLINKPROT_STATUSNEXT message */
+  if (inbuffer->msgId == CHMSG_UPLINKPROT_STATUSNEXT)
+  {
+    protStatus_in->protIndex = (unsigned short) -1;
+  }
+
+  /* If protIdx is within range, return the statuis of this id */
+  if (protStatus_in->protIndex < MAX_UPLINK_PROT)
+  {
+    protIdx = protStatus_in->protIndex;
+
+    memset(&prot_status, 0x00, sizeof(prot_status));
+    if (ptin_prot_uplink_status(protIdx, &prot_status) == L7_SUCCESS) 
+    {
+      memset(protStatus_out, 0x00, sizeof(msg_HWuplinkProtStatus));
+      protStatus_out->slotId              = ENDIAN_SWAP8 (protStatus_in->slotId);
+      protStatus_out->protIndex           = ENDIAN_SWAP16(protIdx);
+      protStatus_out->mask                = ENDIAN_SWAP16(0xffff);
+      protStatus_out->activePortType      = ENDIAN_SWAP8 (prot_status.activePortType);
+      protStatus_out->alarmsW             = ENDIAN_SWAP32(prot_status.alarmsW);
+      protStatus_out->alarmsP             = ENDIAN_SWAP32(prot_status.alarmsP);
+      protStatus_out->alarmsMaskW         = ENDIAN_SWAP32(prot_status.alarmsMaskW);
+      protStatus_out->alarmsMaskP         = ENDIAN_SWAP32(prot_status.alarmsMaskP);
+      protStatus_out->lastSwitchoverCause = ENDIAN_SWAP8 (prot_status.lastSwitchoverCause);
+      protStatus_out->WaitToRestoreTimer  = ENDIAN_SWAP16(prot_status.WaitToRestoreTimer);
+      protStatus_out->HoldOffTimer        = ENDIAN_SWAP16(prot_status.HoldOffTimer);
+
+      outbuffer->infoDim = sizeof(msg_HWuplinkProtStatus);
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_MSG,"Error reading protection group status");
+      return L7_FAILURE;
+    }
+  }
+  /* Otherwise, return all groups data */
+  else
+  {
+    i = 0;
+    for (protIdx = 0; protIdx < MAX_UPLINK_PROT; protIdx++)
+    {
+      memset(&prot_status, 0x00, sizeof(prot_status));
+      if (ptin_prot_uplink_status(protIdx, &prot_status) == L7_SUCCESS)
+      {
+        memset(&protStatus_out[i], 0x00, sizeof(msg_HWuplinkProtStatus));
+        protStatus_out[i].slotId              = ENDIAN_SWAP8 (protStatus_in->slotId);
+        protStatus_out[i].protIndex           = ENDIAN_SWAP16(protIdx);
+        protStatus_out[i].mask                = ENDIAN_SWAP16(0xffff);
+        protStatus_out[i].activePortType      = ENDIAN_SWAP8 (prot_status.activePortType);
+        protStatus_out[i].alarmsW             = ENDIAN_SWAP32(prot_status.alarmsW);
+        protStatus_out[i].alarmsP             = ENDIAN_SWAP32(prot_status.alarmsP);
+        protStatus_out[i].alarmsMaskW         = ENDIAN_SWAP32(prot_status.alarmsMaskW);
+        protStatus_out[i].alarmsMaskP         = ENDIAN_SWAP32(prot_status.alarmsMaskP);
+        protStatus_out[i].lastSwitchoverCause = ENDIAN_SWAP8 (prot_status.lastSwitchoverCause);
+        protStatus_out[i].WaitToRestoreTimer  = ENDIAN_SWAP16(prot_status.WaitToRestoreTimer);
+        protStatus_out[i].HoldOffTimer        = ENDIAN_SWAP16(prot_status.HoldOffTimer);
+
+        i++;
+      }
+    }
+
+    outbuffer->infoDim = sizeof(msg_HWuplinkProtStatus) * i;
+  }
+  return L7_SUCCESS;
+}
+
+/**
+ * Create new protection group
+ * 
+ * @param inbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_uplink_prot_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
+{
+  msg_HWuplinkProtConf *protConf = (msg_HWuplinkProtConf *) inbuffer->info;
+  L7_uint16 i, n_elem = inbuffer->infoDim / sizeof(msg_HWuplinkProtConf);
+  L7_uint32 operationMode, alarmFlagsEn, restore_time;
+  L7_RC_t rc_global = L7_SUCCESS;
+  ptin_intf_t intfW, intfP;
+
+  for (i = 0; i < n_elem; i++)
+  {
+    ENDIAN_SWAP8_MOD (protConf[i].slotId);
+    ENDIAN_SWAP16_MOD(protConf[i].protIndex);
+    ENDIAN_SWAP16_MOD(protConf[i].confMask);
+    ENDIAN_SWAP8_MOD (protConf[i].protParams.OperationMode);
+    ENDIAN_SWAP8_MOD (protConf[i].protParams.HoldOffTimer);
+    ENDIAN_SWAP8_MOD (protConf[i].protParams.WaitToRestoreTimer);
+    ENDIAN_SWAP32_MOD(protConf[i].protParams.alarmsEnFlag);
+    ENDIAN_SWAP8_MOD (protConf[i].protParams.slotW);
+    ENDIAN_SWAP8_MOD (protConf[i].protParams.portW);
+    ENDIAN_SWAP8_MOD (protConf[i].protParams.slotP);
+    ENDIAN_SWAP8_MOD (protConf[i].protParams.portP);
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Message index: %u", i);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " slotId    = %u",  protConf[i].slotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protIndex = %u",  protConf[i].protIndex);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " mask      = 0x%x",protConf[i].confMask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.OperationMode     = %u", protConf[i].protParams.OperationMode);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.HoldOffTimer      = %u", protConf[i].protParams.HoldOffTimer);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.WaitToRestoreTimer= %u", protConf[i].protParams.WaitToRestoreTimer);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.alarmsEnFlag      = 0x%08x", protConf[i].protParams.alarmsEnFlag);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.slotW/portW = %u/%u", protConf[i].protParams.slotW, protConf[i].protParams.portW);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.slotP/portP = %u/%u", protConf[i].protParams.slotP, protConf[i].protParams.portP);
+
+    /* Validate index */
+    if (protConf[i].protIndex >= MAX_UPLINK_PROT)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG,"Invalid protection group index");
+      rc_global = L7_FAILURE;
+      continue;
+    }
+
+    if (!(protConf[i].confMask & HWUPLINKPROT_CONFMASK_slotW) || !(protConf[i].confMask & HWUPLINKPROT_CONFMASK_portW) ||
+        !(protConf[i].confMask & HWUPLINKPROT_CONFMASK_slotP) || !(protConf[i].confMask & HWUPLINKPROT_CONFMASK_portP))
+    {
+      PT_LOG_ERR(LOG_CTX_MSG,"At least working and protection ports must be provided");
+      rc_global = L7_FAILURE;
+      continue;
+    }
+
+    /* Operation mode */
+    operationMode = L7_FALSE;
+    if (protConf[i].confMask & HWUPLINKPROT_CONFMASK_OperationMode)
+    {
+      operationMode = protConf[i].protParams.OperationMode;
+    }
+
+    /* Alarm Flags Enable */
+    alarmFlagsEn = MASK_PORT_LINK;
+    if (protConf[i].confMask & HWUPLINKPROT_CONFMASK_alarmsEnFlag)
+    {
+      alarmFlagsEn = protConf[i].protParams.alarmsEnFlag;
+    }
+
+    /* Wait restore time */
+    restore_time = 0;
+    if (protConf[i].confMask & HWUPLINKPROT_CONFMASK_WaitToRestoreTimer)
+    {
+      restore_time = protConf[i].protParams.WaitToRestoreTimer * 60;    /* Convert minutes to seconds */
+    }
+
+    intfW.intf_type = protConf[i].protParams.slotW;
+    intfW.intf_id   = protConf[i].protParams.portW;
+    intfP.intf_type = protConf[i].protParams.slotP;
+    intfP.intf_id   = protConf[i].protParams.portP;
+
+    if (ptin_prot_uplink_create(protConf[i].protIndex, &intfW, &intfP,
+                                restore_time, operationMode, alarmFlagsEn, L7_FALSE) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG,"Error configuring protection group");
+      rc_global = L7_FAILURE;
+      continue;
+    }
+  }
+
+  return rc_global;
+}
+
+/**
+ * Configure a protection group
+ * 
+ * @param inbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_uplink_prot_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
+{
+  msg_HWuplinkProtConf *protConf = (msg_HWuplinkProtConf *) inbuffer->info;
+  L7_uint16 i, n_elem = inbuffer->infoDim / sizeof(msg_HWuplinkProtConf);
+  L7_RC_t rc, rc_global = L7_SUCCESS;
+  ptin_intf_t intfW, intfP;
+
+  for (i = 0; i < n_elem; i++)
+  {
+    ENDIAN_SWAP8_MOD (protConf[i].slotId);
+    ENDIAN_SWAP16_MOD(protConf[i].protIndex);
+    ENDIAN_SWAP16_MOD(protConf[i].confMask);
+    ENDIAN_SWAP8_MOD (protConf[i].protParams.OperationMode);
+    ENDIAN_SWAP8_MOD (protConf[i].protParams.HoldOffTimer);
+    ENDIAN_SWAP8_MOD (protConf[i].protParams.WaitToRestoreTimer);
+    ENDIAN_SWAP32_MOD(protConf[i].protParams.alarmsEnFlag);
+    ENDIAN_SWAP8_MOD (protConf[i].protParams.slotW);
+    ENDIAN_SWAP8_MOD (protConf[i].protParams.portW);
+    ENDIAN_SWAP8_MOD (protConf[i].protParams.slotP);
+    ENDIAN_SWAP8_MOD (protConf[i].protParams.portP);
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Message index: %u", i);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " slotId    = %u", protConf[i].slotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protIndex = %u", protConf[i].protIndex);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " mask      = 0x%x", protConf[i].confMask);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.OperationMode     = %u", protConf[i].protParams.OperationMode);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.HoldOffTimer      = %u", protConf[i].protParams.HoldOffTimer);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.WaitToRestoreTimer= %u", protConf[i].protParams.WaitToRestoreTimer);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.alarmsEnFlag      = 0x%08x", protConf[i].protParams.alarmsEnFlag);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.slotW/portW = %u/%u", protConf[i].protParams.slotW, protConf[i].protParams.portW);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protParams.slotP/portP = %u/%u", protConf[i].protParams.slotP, protConf[i].protParams.portP);
+
+    rc = L7_SUCCESS;
+
+    /* Validate index */
+    if (protConf[i].protIndex >= MAX_UPLINK_PROT)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG,"Invalid protection group index");
+      rc_global = L7_FAILURE;
+      continue;
+    }
+
+    /* Interfaces */
+    if ((protConf[i].confMask & HWUPLINKPROT_CONFMASK_slotW) && (protConf[i].confMask & HWUPLINKPROT_CONFMASK_portW) &&
+        (protConf[i].confMask & HWUPLINKPROT_CONFMASK_slotP) && (protConf[i].confMask & HWUPLINKPROT_CONFMASK_portP))
+    {
+      L7_uint32 operationMode, alarmFlagsEn, restore_time;
+
+      /* Validate slot id */
+      if (protConf[i].protParams.slotW != 0 || protConf[i].protParams.slotP != 0)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG,"slotId must be zero");
+        rc_global = L7_FAILURE;
+        continue;
+      }
+
+      /* Operation mode */
+      operationMode = L7_FALSE;
+      if (protConf[i].confMask & HWUPLINKPROT_CONFMASK_OperationMode)
+      {
+        operationMode = protConf[i].protParams.OperationMode;
+      }
+      /* Alarm Flags Enable */
+      alarmFlagsEn = MASK_PORT_LINK;
+      if (protConf[i].confMask & HWUPLINKPROT_CONFMASK_alarmsEnFlag)
+      {
+        alarmFlagsEn = protConf[i].protParams.alarmsEnFlag;
+      }
+      /* Wait restore time */
+      restore_time = 0;
+      if (protConf[i].confMask & HWUPLINKPROT_CONFMASK_WaitToRestoreTimer)
+      {
+        restore_time = protConf[i].protParams.WaitToRestoreTimer * 60;      // Convert minutes to seconds
+      }
+
+      intfW.intf_type = PTIN_EVC_INTF_LOGICAL;
+      intfW.intf_id   = protConf[i].protParams.portW;
+      intfP.intf_type = PTIN_EVC_INTF_LOGICAL;
+      intfP.intf_id   = protConf[i].protParams.portP;
+
+      /* Recreate protection group */
+      rc = ptin_prot_uplink_create(protConf[i].protIndex, &intfW, &intfP,
+                                   restore_time, operationMode, alarmFlagsEn, L7_TRUE);
+    }
+    else if ((protConf[i].confMask & HWUPLINKPROT_CONFMASK_OperationMode))
+    {
+      rc = ptin_prot_uplink_operationMode_set(protConf[i].protIndex, protConf[i].protParams.OperationMode);
+    }
+    else if ((protConf[i].confMask & HWUPLINKPROT_CONFMASK_alarmsEnFlag))
+    {
+      rc = ptin_prot_uplink_alarmFlagsEn_set(protConf[i].protIndex, protConf[i].protParams.alarmsEnFlag);
+    }
+    else if ((protConf[i].confMask & HWUPLINKPROT_CONFMASK_WaitToRestoreTimer))
+    {
+      rc = ptin_prot_uplink_restoreTime_set(protConf[i].protIndex, protConf[i].protParams.WaitToRestoreTimer);
+    }
+
+    /* Validate result */
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG,"Error reconfiguring protection group");
+      rc_global = L7_FAILURE;
+      continue;
+    }
+  }
+
+  return rc_global;
+}
+
+
+/**
+ * Remove protection group
+ * 
+ * @param inbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_uplink_prot_remove(ipc_msg *inbuffer, ipc_msg *outbuffer)
+{
+  msg_HWuplinkProtConf *protConf = (msg_HWuplinkProtConf *) inbuffer->info;
+  L7_uint16 i, n_elem;
+  L7_RC_t rc_global = L7_SUCCESS;
+
+  /* Several protection groups may be removed */
+  n_elem = inbuffer->infoDim / sizeof(msg_HWuplinkProtConf);
+  if (n_elem == 0)  n_elem = 1;
+
+  for (i = 0; i < n_elem; i++)
+  {
+    ENDIAN_SWAP8_MOD (protConf[i].slotId);
+    ENDIAN_SWAP16_MOD(protConf[i].protIndex);
+    ENDIAN_SWAP16_MOD(protConf[i].confMask);
+
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Message index: %u", i);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " slotId    = %u", protConf[i].slotId);
+    PT_LOG_DEBUG(LOG_CTX_MSG, " protIndex = %u", protConf[i].protIndex);
+
+    /* Validate index */
+    if (protConf[i].protIndex >= MAX_UPLINK_PROT)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG,"Invalid protection group index");
+      rc_global = L7_FAILURE;
+      continue;
+    }
+
+    if (ptin_prot_uplink_clear(protConf[i].protIndex) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_MSG,"Error removing protection group");
+      rc_global = L7_FAILURE;
+      continue;
+    }
+  }
+
+  return rc_global;
+}
+
+/**
+ * Apply command to protection group
+ * 
+ * @param inbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_uplink_prot_command(ipc_msg *inbuffer, ipc_msg *outbuffer)
+{
+  PROT_OPCMD_t command;
+  PROT_PortType_t portType;
+  msg_HWuplinkProtCommand *protComm = (msg_HWuplinkProtCommand *) inbuffer->info;
+
+  ENDIAN_SWAP8_MOD (protComm->slotId);
+  ENDIAN_SWAP16_MOD(protComm->protIndex);
+  ENDIAN_SWAP8_MOD (protComm->command);
+
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Message contents:");
+  PT_LOG_DEBUG(LOG_CTX_MSG, " slotId    = %u", protComm->slotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " protIndex = %u", protComm->protIndex);
+  PT_LOG_DEBUG(LOG_CTX_MSG, " Command   = %u", protComm->command);
+
+  /* Validate index */
+  if (protComm->protIndex >= MAX_UPLINK_PROT)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG,"Invalid protection group index");
+    return L7_FAILURE;
+  }
+
+  switch (protComm->command)
+  {
+  case HWUPLINKPROT_COMMAND_CLEAR:
+    command  = OPCMD_OC;
+    portType = PORT_WORKING;
+    break;
+  case HWUPLINKPROT_COMMAND_LOCKOUT:
+    command  = OPCMD_LO;
+    portType = PORT_WORKING;
+    break;
+  case HWUPLINKPROT_COMMAND_FORCE2PROTECTION:
+    command  = OPCMD_FS;
+    portType = PORT_PROTECTION;
+    break;
+  case HWUPLINKPROT_COMMAND_FORCE2WORKING:
+    command  = OPCMD_FS;
+    portType = PORT_WORKING;
+    break;
+  case HWUPLINKPROT_COMMAND_MANUAL2PROTECTION:
+    command  = OPCMD_MS;
+    portType = PORT_PROTECTION;
+    break;
+  case HWUPLINKPROT_COMMAND_MANUAL2WORKING:
+    command  = OPCMD_MS;
+    portType = PORT_WORKING;
+    break;
+  default:
+    PT_LOG_ERR(LOG_CTX_MSG,"Unknown command: %u", protComm->command);
+    return L7_FAILURE;
+  }
+
+  PT_LOG_DEBUG(LOG_CTX_MSG,"applying command %u/%u to protIdx %u", command, portType, protComm->protIndex);
+
+  /* Apply command */
+  if (ptin_prot_uplink_command(protComm->protIndex, command, portType) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG,"Error applying command %u/%u to protIdx %u", command, portType, protComm->protIndex);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
 
 /**
  * Sync MGMD open ports

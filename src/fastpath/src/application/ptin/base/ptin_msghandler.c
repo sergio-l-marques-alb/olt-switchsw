@@ -91,6 +91,27 @@ static void CHMessage_runtime_meter_update(L7_uint msg_id, L7_uint32 time_delta)
   }                                           \
 }
 
+/* Macro to check infoDim consistency */
+#define CHECK_INFO_SIZE_ATLEAST_ABS(size_bytes) {             \
+  if (inbuffer->infoDim < size_bytes) {  \
+    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting at least %u bytes; Received %u bytes!", size_bytes, inbuffer->infoDim);\
+    res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
+    SetIPCNACK(outbuffer, res);               \
+    break;                                    \
+  }                                           \
+}
+
+/* Macro to check infoDim consistency */
+#define CHECK_INFO_SIZE_ABS(size_bytes) {             \
+  if (inbuffer->infoDim != size_bytes) {  \
+    PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Data size inconsistent! Expecting %u bytes; Received %u bytes!", size_bytes, inbuffer->infoDim);\
+    res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, ERROR_CODE_WRONGSIZE); \
+    SetIPCNACK(outbuffer, res);               \
+    break;                                    \
+  }                                           \
+}
+
+
 static L7_uint16 SIRerror_get(L7_RC_t error_code)
 {
   switch ((int) error_code)
@@ -831,6 +852,138 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       SETIPCACKOK(outbuffer);
       break;  /* CCMSG_HW_LINK_ACTION */
     }
+
+    case CHMSG_UPLINKPROT_SHOW:
+    {
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_UPLINKPROT_SHOW (0x%04X)", msgId);
+
+      CHECK_INFO_SIZE_ATLEAST_ABS(sizeof(unsigned char) + sizeof(unsigned short));
+
+      /* Execute command */
+      rc = ptin_msg_uplink_prot_config_get(inbuffer, outbuffer);
+
+      if (L7_SUCCESS != rc)
+      {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error reading status");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        return IPC_OK;
+      }
+
+      return IPC_OK;
+    }
+    break; /* CHMSG_UPLINKPROT_SHOW */
+
+    case CHMSG_UPLINKPROT_STATUS:
+    case CHMSG_UPLINKPROT_STATUSNEXT:
+    {
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_UPLINKPROT_STATUS (0x%04X)", msgId);
+
+      CHECK_INFO_SIZE_ATLEAST_ABS(sizeof(unsigned char) + sizeof(unsigned short));
+
+      /* Execute command */
+      rc = ptin_msg_uplink_prot_status(inbuffer, outbuffer);
+
+      if (L7_SUCCESS != rc)
+      {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error reading status");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        return IPC_OK;
+      }
+
+      return IPC_OK;
+    }
+    break; /* CHMSG_UPLINKPROT_STATUS */
+
+    /* Uplink protection applied to LAG interfaces */
+    case CHMSG_UPLINKPROT_CREATE:
+    {
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_UPLINKPROT_CREATE (0x%04X)", msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_HWuplinkProtConf);
+
+      /* Hwardware procedure */
+      rc = ptin_msg_uplink_prot_create(inbuffer, outbuffer);
+
+      /* Error? */
+      if (L7_SUCCESS != rc)
+      {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+      /* Success */
+      SETIPCACKOK(outbuffer);
+    }
+    break;  /*CHMSG_UPLINKPROT_CREATE*/
+
+    case CHMSG_UPLINKPROT_CONFIG:
+    {
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_UPLINKPROT_CONFIG (0x%04X)", msgId);
+
+      CHECK_INFO_SIZE_MOD(msg_HWuplinkProtConf);
+
+      /* Hwardware procedure */
+      rc = ptin_msg_uplink_prot_config(inbuffer, outbuffer);
+
+      /* Error? */
+      if (L7_SUCCESS != rc)
+      {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+      /* Success */
+      SETIPCACKOK(outbuffer);
+    }
+    break; /* CHMSG_UPLINKPROT_CONFIG */
+
+    case CHMSG_UPLINKPROT_REMOVE:
+    {
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_UPLINKPROT_REMOVE (0x%04X)", msgId);
+
+      CHECK_INFO_SIZE_ATLEAST_ABS(sizeof(unsigned char) + sizeof(unsigned short));
+
+      /* Hwardware procedure */
+      rc = ptin_msg_uplink_prot_remove(inbuffer, outbuffer);
+
+      /* Error? */
+      if (L7_SUCCESS != rc)
+      {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+      /* Success */
+      SETIPCACKOK(outbuffer);
+    }
+    break; /* CHMSG_UPLINKPROT_REMOVE */
+
+    case CHMSG_UPLINKPROT_COMMAND:
+    {
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_UPLINKPROT_COMMAND (0x%04X)", msgId);
+
+      CHECK_INFO_SIZE(msg_HWuplinkProtCommand);
+
+      /* Hwardware procedure */
+      rc = ptin_msg_uplink_prot_command(inbuffer, outbuffer);
+
+      /* Error? */
+      if (L7_SUCCESS != rc)
+      {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        break;
+      }
+      /* Success */
+      SETIPCACKOK(outbuffer);
+    }
+    break;
 
     /************************************************************************** 
      * SLOT MODE CONFIGURATION
