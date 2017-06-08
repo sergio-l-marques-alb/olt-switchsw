@@ -1727,7 +1727,11 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
     if (status)
     {
       /* If LAG goes to blocked, remove physically all active ports */
+      #if ( LAG_DIRECT_CONTROL_FEATURE )
+      rc = dtlDot3adInternalPortDelete(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
+      #else
       rc = dtlDot3adPortDelete(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
+      #endif
       if (rc == L7_REQUEST_DENIED || rc == L7_FAILURE || rc == L7_ERROR)
       {
         return rc;
@@ -1736,7 +1740,11 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
     else
     {
       /* If LAG goes to UNblocked, add physically all active ports */
+      #if ( LAG_DIRECT_CONTROL_FEATURE )
+      rc = dtlDot3adInternalPortAdd(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
+      #else
       rc = dtlDot3adPortAdd(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
+      #endif
       if (rc == L7_REQUEST_DENIED || rc == L7_FAILURE || rc == L7_ERROR)
       {
         return rc;
