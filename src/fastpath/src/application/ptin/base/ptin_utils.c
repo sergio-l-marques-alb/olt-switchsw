@@ -461,6 +461,7 @@ inline int _bmp_is_all_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp)
 
 
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
 //Setting/getting the CORES a PID can run on
 //(Just a way to allow using sched_getaffinity()/sched_setaffinity() via fp.shell dev)
 //(busybox doesn't have the "taskset" command)
@@ -487,4 +488,5 @@ int r,i;
     }
     printf("sched_getaffinity()=%d, mask=%llx, cpu_count=%d", r, msk, CPU_COUNT(&mask));
 }
+#endif
 
