@@ -5025,7 +5025,7 @@ L7_RC_t ptin_evc_macbridge_client_packages_add(ptin_evc_macbridge_client_package
   if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evc_id);
-    return L7_FAILURE;
+    return L7_SUCCESS;
   }
 
   /* Determine leaf ptin_intf */
