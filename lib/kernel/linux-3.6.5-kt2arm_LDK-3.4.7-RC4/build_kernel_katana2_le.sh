@@ -29,7 +29,7 @@ mv -v .svn .svn.tmp
 
 make clean
 make menuconfig
-make -j8
+make -j `grep -c '^processor' /proc/cpuinfo`
 
 if [ $? -ne 0 ]; then
   echo ""

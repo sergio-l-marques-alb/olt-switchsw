@@ -22,9 +22,11 @@ echo "Setup Compiler Environment"
 
 #cp ../../buildroot/board/broadcom/helix4/linux-3.6.5-flash.config .config #update config to last config used
 
+mv -v .svn .svn.tmp
+
 make clean
 make menuconfig
-make -j8 
+make -j `grep -c '^processor' /proc/cpuinfo`
 make modules
 
 if [ $? -ne 0 ]; then
@@ -36,5 +38,4 @@ echo "Using LOADADDR: $LDADDR.";
 echo "Image -> uImage"
 ../../buildroot/mk_uimage_ptin.sh $LDADDR
 
-
-
+mv -v .svn.tmp .svn
