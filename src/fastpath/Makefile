@@ -38,9 +38,15 @@ help h:
 	@echo ""
 	@echo " NOTE: by default -j<MAX_CPU> is used          "
 	@echo ""
-	
+
+NUMBER_OF_CPUS=$(shell grep -c '^processor' /proc/cpuinfo)
+# For machines with only 2 processores/cores, consider only one to avoid CPU congestion
+ifeq ($(NUMBER_OF_CPUS), 2)
+NUMBER_OF_CPUS=1
+endif
+
 # Set by default to use the maximum CPUs available
-export MAKEFLAGS += --no-print-directory -j `grep -c '^processor' /proc/cpuinfo`
+export MAKEFLAGS += --no-print-directory -j$(NUMBER_OF_CPUS)
 
 # Disable jobserver if multiple targets are detected
 ifneq ($(words $(MAKECMDGOALS)), 0)
