@@ -30,5 +30,7 @@ SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.3.4/broadcom
 export LVL7_MAKEFILE_LOGGING := N
 export LVL7_MAKEFILE_DISPLAY_MODE := S
 
+INSTALL_SCRIPT=cxp360g.install
+
 include swdrvr-common.make
 

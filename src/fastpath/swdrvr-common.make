@@ -46,7 +46,7 @@ export LVL7_MAKEFILE_LOGGING ?= N
 export LVL7_MAKEFILE_DISPLAY_MODE ?= S
 
 
-.PHONY: welcome all clean cleanall help h
+.PHONY: welcome all clean cleanall install help h
 
 all: welcome setsdk cli shell mgmd
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
@@ -111,6 +111,9 @@ welcome:
 	@echo "CARD FOLDER = $(OUTPATH)"
 	@echo "CPU = $(CPU)"
 	@echo ""
+
+install:
+	@sh $(INSTALL_SCRIPT)
 
 cli:
 	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-common.make
