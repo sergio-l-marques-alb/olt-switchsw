@@ -13,6 +13,8 @@ svn_password=c1-olt-switchsw
 output_file=output_`date +%Y-%m-%d_%H:%M`.txt
 svnRelease=x
 
+svnversion_file=svnversion.txt
+
 if [ $# -ge 1 ]; then
   # Show help 
   if [ $1 == "h" -o $1 == "help" ]; then
@@ -68,6 +70,15 @@ fi
 cd ..
 svnRelease=`svnversion`
 cd -
+
+# Check if is necessary to make a build
+if [ -f $svnversion_file ]; then
+  lastRelease=`cat $svnversion_file`
+  if [ $svnRelease == $lastRelease ]; then
+    echo "SVN revision didn't change since last build... Nothing to be done."
+    exit;
+  fi
+fi
 
 echo "Preparing build version $version.$patch in background..."
 #read -p "Do you wish to proceed? (type 'yes' to continue) " answer
