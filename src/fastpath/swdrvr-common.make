@@ -46,7 +46,7 @@ export LVL7_MAKEFILE_LOGGING ?= N
 export LVL7_MAKEFILE_DISPLAY_MODE ?= S
 
 
-.PHONY: welcome all clean cleanall help h kernel
+.PHONY: welcome all clean cleanall help h
 
 all: welcome setsdk cli shell mgmd
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
@@ -81,12 +81,6 @@ mgmd:
 	fi;
 	@sh mgmd_compile.sh $(BOARD)
 
-kernel:
-	cd $(KERNEL_PATH) && ./build_kernel_katana2_le.sh
-
-install:
-	sh tg16gf.install
-
 help h:
 	@echo ""
 	@echo "Makefile Help"
@@ -119,16 +113,16 @@ welcome:
 	@echo ""
 
 cli:
-	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-tg16gf.make
+	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-common.make
 
 shell:
-	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-tg16gf.make
+	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-common.make
 
 clean-cli:
-	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-tg16gf.make clean
+	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-common.make clean
 
 clean-shell:
-	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-tg16gf.make clean
+	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-common.make clean
 
 clean cleanall: welcome setsdk clean-cli clean-shell clean-mgmd
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
