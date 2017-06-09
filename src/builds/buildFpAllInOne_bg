@@ -83,9 +83,7 @@ echo "Build finished at `date`." >> $output_file
 if [ $send_mail -eq 1 ]; then
   echo "Subject: OLTSWITCH build $version.$patch-r$svnRelease [`date +%Y-%m-%d\ %H:%M`]" > mail.txt
   echo "" >> mail.txt
-  head -n 8 $output_file >> mail.txt
-  echo "..." >> mail.txt
-  tail -n 400 $output_file >> mail.txt
+  cat $output_file >> mail.txt
 
   sendmail celso-r-lemos@alticelabs.com < mail.txt
   sendmail licinio-miguel-pereira@alticelabs.com < mail.txt
