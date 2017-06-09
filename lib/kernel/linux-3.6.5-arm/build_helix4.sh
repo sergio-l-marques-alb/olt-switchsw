@@ -17,7 +17,7 @@ mv -v svn .svn.tmp
 #cp ../../buildroot/board/broadcom/helix4/linux-3.6.5-flash.config .config #update config to last config used
 make clean
 make menuconfig
-make -j8 
+make -j `grep -c '^processor' /proc/cpuinfo` 
 
 if [ $? -ne 0 ]; then
   echo "ERROR compiling kernel"
