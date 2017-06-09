@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 #include "ptin_utils.h"
-
+#include "ptin_globaldefs.h"
 
 void hexdump (void *buf, size_t length, const char *startLine, const char *endLine)
 {
@@ -443,14 +443,6 @@ inline int _bmp_is_all_clear(bmp_cell_t bmp[], unsigned int sizeof_bmp)
 
     return 1;
 }
-
-
-
-
-
-
-
-
 
 
 
