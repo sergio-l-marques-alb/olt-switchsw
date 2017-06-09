@@ -27,11 +27,14 @@ if [ "$1" == "distclean" ]; then
   exit;
 fi
 
+mv -v .svn .svn.tmp
+
 make clean
 make menuconfig
-make -Wall -j8 uImage
+make -Wall -j `grep -c '^processor' /proc/cpuinfo` uImage
 
 
 scripts/dtc/dtc -O dtb -o cxo160g.dtb -b 0 -p 1024 arch/powerpc/boot/dts/p2041rdb.dts
 cp arch/powerpc/boot/uImage cxo160g.z
 
+mv -v .svn.tmp .svn
