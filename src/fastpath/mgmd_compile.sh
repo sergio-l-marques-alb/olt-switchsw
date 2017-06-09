@@ -343,7 +343,8 @@ if [ "$2" == "clean" ]; then
 fi
 
 # autogen.sh script must be executed once! It must then be protected by a mutex
-lock
+#lock
+echo "[MGMD] WARNING! autogen.sh script is not protected by a mutex!"
   
 # Run autogen.sh if 'configure' file does not exist
 if [ ! -f $MGMD_CONFIGURE ]; then
@@ -356,7 +357,7 @@ if [ ! -f $MGMD_CONFIGURE ]; then
   
 fi
 
-unlock
+#unlock
 
 # Create output path if it doesn't exist
 mkdir -pv $MGMD_OUTPUT_PATH
@@ -423,10 +424,10 @@ cp -uv $MGMD_PATH/src/ptin_mgmd_api.h $FP_FOLDER/src/l7public/common/ptin/ | awk
 cp -uv $MGMD_PATH/src/ptin_mgmd_ctrl.h $FP_FOLDER/src/l7public/common/ptin/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 # Copy lib
 mkdir -pv $FP_OUTPUT_PATH/libs-ptin/mgmd
-cp -uv $MGMD_OUTPUT_PATH/src/.libs/libmgmd.a $FP_OUTPUT_PATH/libs-ptin/mgmd | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
+cp -uv $MGMD_OUTPUT_PATH/src/.libs/libmgmd.a $FP_OUTPUT_PATH/libs-ptin/mgmd/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 # Copy cli
 mkdir -pv $FP_OUTPUT_PATH/ipl
-cp -uv $MGMD_OUTPUT_PATH/src/.libs/mgmd.cli $FP_OUTPUT_PATH/ipl | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
+cp -uv $MGMD_OUTPUT_PATH/src/.libs/mgmd.cli $FP_OUTPUT_PATH/ipl/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 
 echo "[MGMD] Compilation done!"
 
