@@ -1,9 +1,9 @@
 ################################################
 #                                              #
-#   FastPath Makefile for the TG16GF card      #
+#   Generic Switchdrvr Makefile                #
 #                                              #
-#   Joao Mateiro, 2014                         #
-#   joao-v-mateiro@ptinovacao.pt               #
+#   Milton Ruas, 2017                          #
+#   milton-r-silva@alticelabs.com              #
 #                                              #
 ################################################
 
@@ -12,55 +12,41 @@ MV    =	mv
 CP    =	cp
 TAR   = tar
 
-export vend_sdk		:= vendor/broadcom/esw_sdk
-export BROADCOM_SDK	:= $(vend_sdk)
-
 #NUM_CPUS = 1
 NUM_CPUS = $(shell grep -c 'model name' /proc/cpuinfo)
 
-CURRENT_PATH= $(shell pwd)
-FP_FOLDER	= $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
-OLT_DIR		= $(subst /$(FP_FOLDER),,$(shell pwd))
-USER_NAME	= $(shell whoami)
+CURRENT_PATH ?= $(shell pwd)
+FP_FOLDER    ?= $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
+OLT_DIR      ?= $(subst /$(FP_FOLDER),,$(shell pwd))
 
-TMP_FILE	= /tmp/$(USER_NAME)_fp_compiled_$(FP_FOLDER)_$(CPU)_$(BOARD)
-KO_PATH		= $(CCVIEWS_HOME)/$(OUTPATH)/target
-BIN_PATH	= $(CCVIEWS_HOME)/$(OUTPATH)/ipl
-BIN_FILE	= switchdrvr
-DEVSHSYM_FILE	= devshell_symbols.gz
+CARD_FOLDER ?= FastPath-Ent-esw-xgs4-$(CPU)-LR-CSxw-IQH_$(BOARD)
+CARD        ?= $(word 2,$(subst _, ,$(CARD_FOLDER)))
 
-#export TOOLCHAIN_BASE_DIR = /opt/broadcom
-export TOOLCHAIN_BASE_DIR = /opt/broadcom_kt2_hx4/usr
-export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
-export LD_LIBRARY_PATH	  = $(TOOLCHAIN_BASE_DIR)/lib
+export OUTPATH       ?= output/$(CARD_FOLDER)
+export FP_VIEWNAME   ?= .
+export CROSS_COMPILE ?= $(COMPILER)
+export KERNEL_SRC    ?= $(KERNEL_PATH)
+export CCVIEWS_HOME  ?= $(OLT_DIR)/$(FP_FOLDER)
 
-export COMPILER           = $(TOOLCHAIN_BIN_DIR)/arm-linux-
-export KERNEL_PATH        = $(OLT_DIR)/../lib/kernel/linux-3.6.5-kt2arm_LDK-3.4.7-RC4
-#export KERNEL_PATH        = /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/kernel/linux-3.6.5
+KO_PATH	      = $(CCVIEWS_HOME)/$(OUTPATH)/target
+BIN_PATH      = $(CCVIEWS_HOME)/$(OUTPATH)/ipl
+BIN_FILE      = switchdrvr
+DEVSHSYM_FILE = devshell_symbols.gz
 
-BOARD	= TG16GF
-CPU		= katanaarm
-CARD_FOLDER = FastPath-Ent-esw-xgs4-$(CPU)-LR-CSxw-IQH_$(BOARD)
-CARD	= $(word 2,$(subst _, ,$(CARD_FOLDER)))
-#CPU	= $(word 5,$(subst -, ,$(CARD_FOLDER)))
+SDK_LINK := vendor/broadcom_$(BOARD)
+SDK_PATH ?= $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-switchdrvr-6.5.7/broadcom
 
-export OUTPATH		:= output/$(CARD_FOLDER)
-export FP_VIEWNAME	:= .
-export CROSS_COMPILE    := $(COMPILER)
-export KERNEL_SRC	:= $(KERNEL_PATH)
-export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
+export vend_sdk	    := vendor/broadcom_$(BOARD)/esw_sdk
+export BROADCOM_SDK := $(vend_sdk)
 
-export SDK_LINK := vendor/broadcom
-export SDK_PATH := $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-switchdrvr-6.5.7/broadcom
-#export SDK_PATH := /home/olt/svnrepo/olt-switchsw/trunk/lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.4.3/broadcom
+FP_CLI_PATH   := ../fastpath.cli
+FP_SHELL_PATH := ../fastpath.shell
 
-export FP_CLI_PATH   := ../fastpath.cli
-export FP_SHELL_PATH := ../fastpath.shell
+export LVL7_MAKEFILE_LOGGING ?= N
+export LVL7_MAKEFILE_DISPLAY_MODE ?= S
 
-export LVL7_MAKEFILE_LOGGING := N
-export LVL7_MAKEFILE_DISPLAY_MODE := S
 
-.PHONY: welcome all clean cleanall help h kernel transfer
+.PHONY: welcome all clean cleanall help h kernel
 
 all: welcome setsdk cli shell mgmd
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
@@ -84,12 +70,9 @@ andl os: welcome setsdk
 	fi;
 	@echo ""
 
-transfer:
-	cd $(OUTPATH) && ./transfer_paulo.sh bin
-
 setsdk:
-#	rm -f $(SDK_LINK)
-#	ln -s $(SDK_PATH) $(SDK_LINK)
+	rm -f $(SDK_LINK)
+	ln -s $(SDK_PATH) $(SDK_LINK)
 
 mgmd:
 	@if [ ! -d src/application/switching/mgmd ]; then\
@@ -122,9 +105,7 @@ help h:
 welcome: 
 	@echo ""
 	@echo "##############################################"
-	@echo "#                                            #"
-	@echo "#  FastPath Makefile for the TG16GF card     #"
-	@echo "#                                            #"
+	@echo "   FastPath Makefile for the $(BOARD) card    "
 	@echo "##############################################"
 	@echo ""
 	@echo "FP_FOLDER = $(FP_FOLDER)"
@@ -151,20 +132,17 @@ clean-shell:
 
 clean cleanall: welcome setsdk clean-cli clean-shell clean-mgmd
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
-	#$(RM) -f $(TMP_FILE)
+	@$(RM) $(SDK_LINK)
 
 clean-platform: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-binds clean-plat_bsp clean-cpu_bsp clean-base
-	#$(RM) -f $(TMP_FILE)
 
 clean-mgmd:
 	@sh mgmd_compile.sh $(BOARD) clean
 
 clean-ptin clean-switching clean-routing clean-base clean-andl clean-os: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
-	#$(RM) -f $(TMP_FILE)
 
 clean-xui: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-snmp clean-openssl clean-cli clean-modb clean-xlib clean-xweb clean-emweb
-	#$(RM) -f $(TMP_FILE)
 
