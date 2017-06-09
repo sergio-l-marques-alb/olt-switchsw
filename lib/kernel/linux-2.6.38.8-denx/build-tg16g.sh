@@ -29,10 +29,12 @@ ARCH=powerpc make menuconfig
 
 else
 
+mv -v .svn .svn.tmp
+
 rm vmlinux vmlinux2.gz kernelImage.z
 ARCH=powerpc make oldconfig
 #ARCH=powerpc CROSS_COMPILE=${CROSS} make -j4 vmlinux
-ARCH=powerpc CROSS_COMPILE=${CROSS} make -j4
+ARCH=powerpc CROSS_COMPILE=${CROSS} make -j `grep -c '^processor' /proc/cpuinfo`
 cp arch/powerpc/boot/uImage ${NAME}.kernel.z
 
 if [ "$1" = "all" ];then
@@ -45,6 +47,8 @@ rm vmlinux2.gz
 #sudo cp ${NAME}.kernel.z /tftpboot/
 
 fi
+
+mv -v .svn.tmp .svn
 
 fi
 
