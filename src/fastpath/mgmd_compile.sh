@@ -261,6 +261,41 @@ FP_OUTPUT_PATH=$FP_FOLDER/output/FastPath-Ent-esw-xgs4-$CPU-LR-CSxw-IQH_$BOARD
 MGMD_OUTPUT_PATH=$FP_OUTPUT_PATH/objects/mgmd
 EXPORT_FILE=$MGMD_OUTPUT_PATH/export.var
 
+readonly LOCKFILE=$FP_FOLDER/mgmd.lock
+readonly LOCK_FD=200
+readonly LOCK_SLEEP=2
+
+lock() {
+  # create lock file
+  
+  if (! eval "exec $LOCK_FD>$LOCKFILE"); then
+    echo "[MGMD] Failed to create $LOCKFILE!"
+	exit 1;
+  fi
+
+  echo -n "[MGMD] Locking file $LOCKFILE: "
+  
+  # acquier the lock
+  while (! flock -n $LOCK_FD); do
+    sleep $LOCK_SLEEP;
+  done
+
+  echo "done!"
+  return 0;
+}
+
+unlock() {
+  # unlock the file
+  if (! flock -u $LOCK_FD); then
+    echo "[MGMD] Failed to unlock file $LOCKFILE!"
+    exit 1;
+  fi
+
+  echo "[MGMD] Unlocking file $LOCKFILE: done!"
+  return 0
+}
+
+
 # Toolchain and SYS_ROOT_DIR definition
 export DESTDIR=$MGMD_OUTPUT_PATH/rfs
 export SYSROOTDIR=$DESTDIR
@@ -307,14 +342,21 @@ if [ "$2" == "clean" ]; then
   exit 0
 fi
 
+# autogen.sh script must be executed once! It must then be protected by a mutex
+lock
+  
 # Run autogen.sh if 'configure' file does not exist
 if [ ! -f $MGMD_CONFIGURE ]; then
   echo "[MGMD] File '$MGMD_CONFIGURE' not found!"
-  echo "[MGMD] Running autogen.sh from the main MGMD path"
+  
+  echo "[MGMD] Running autogen.sh from the main MGMD path (protected with a mutex)"
   cd $MGMD_PATH
   sh autogen.sh
   cd - >/dev/null
+  
 fi
+
+unlock
 
 # Create output path if it doesn't exist
 mkdir -pv $MGMD_OUTPUT_PATH
@@ -380,8 +422,10 @@ cp -uv $MGMD_PATH/src/ptin_mgmd_eventqueue.h $FP_FOLDER/src/l7public/common/ptin
 cp -uv $MGMD_PATH/src/ptin_mgmd_api.h $FP_FOLDER/src/l7public/common/ptin/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 cp -uv $MGMD_PATH/src/ptin_mgmd_ctrl.h $FP_FOLDER/src/l7public/common/ptin/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 # Copy lib
+mkdir -pv $FP_OUTPUT_PATH/libs-ptin/mgmd
 cp -uv $MGMD_OUTPUT_PATH/src/.libs/libmgmd.a $FP_OUTPUT_PATH/libs-ptin/mgmd | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 # Copy cli
+mkdir -pv $FP_OUTPUT_PATH/ipl
 cp -uv $MGMD_OUTPUT_PATH/src/.libs/mgmd.cli $FP_OUTPUT_PATH/ipl | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 
 echo "[MGMD] Compilation done!"
