@@ -22,10 +22,14 @@ if [ "$1" == "distclean" ]; then
   exit;
 fi
 
+mv -v .svn .svn.tmp
+
 make clean
 ARCH=powerpc make clean
 ARCH=powerpc make menuconfig
-ARCH=powerpc make -Wall -j6 uImage
+ARCH=powerpc make -Wall -l -j `grep -c '^processor' /proc/cpuinfo` uImage
 
 scripts/dtc/dtc -O dtb -o ta48ge.dtb -b 0 -p 1024 arch/powerpc/boot/dts/p1014_ta48ge.dts
 cp arch/powerpc/boot/uImage  ta48ge.kernel.z
+
+mv -v .svn.tmp .svn
