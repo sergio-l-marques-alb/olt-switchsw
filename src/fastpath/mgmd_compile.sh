@@ -261,37 +261,33 @@ FP_OUTPUT_PATH=$FP_FOLDER/output/FastPath-Ent-esw-xgs4-$CPU-LR-CSxw-IQH_$BOARD
 MGMD_OUTPUT_PATH=$FP_OUTPUT_PATH/objects/mgmd
 EXPORT_FILE=$MGMD_OUTPUT_PATH/export.var
 
-readonly LOCKFILE=$FP_FOLDER/mgmd.lock
-readonly LOCK_FD=200
+readonly LOCKDIR=$FP_FOLDER/.mgmd.lock
 readonly LOCK_SLEEP=2
 
 lock() {
-  # create lock file
-  
-  if (! eval "exec $LOCK_FD>$LOCKFILE"); then
-    echo "[MGMD] Failed to create $LOCKFILE!"
-	exit 1;
-  fi
-
-  echo -n "[MGMD] Locking file $LOCKFILE: "
+  # create lock directory
+  echo -n "[MGMD] Locking $LOCKDIR: "
   
   # acquier the lock
-  while (! flock -n $LOCK_FD); do
+  while (! mkdir $LOCKDIR >/dev/null 2>&1); do
     sleep $LOCK_SLEEP;
   done
+
+  # Enable trap to detect CTRL-C or kill commands
+  trap "rm -rf ${LOCKDIR}; echo '[MGMD] Lock directory unlocked by trap!'; exit" INT TERM
 
   echo "done!"
   return 0;
 }
 
 unlock() {
-  # unlock the file
-  if (! flock -u $LOCK_FD); then
-    echo "[MGMD] Failed to unlock file $LOCKFILE!"
-    exit 1;
-  fi
+  # remove the lock directory
+  rm -rf $LOCKDIR >/dev/null 2>&1
 
-  echo "[MGMD] Unlocking file $LOCKFILE: done!"
+  # Disable trap...
+  trap "exit" INT TERM
+
+  echo "[MGMD] Unlocking directory $LOCKDIR: done!"
   return 0
 }
 
@@ -343,9 +339,8 @@ if [ "$2" == "clean" ]; then
 fi
 
 # autogen.sh script must be executed once! It must then be protected by a mutex
-#lock
-echo "[MGMD] WARNING! autogen.sh script is not protected by a mutex!"
-  
+lock
+
 # Run autogen.sh if 'configure' file does not exist
 if [ ! -f $MGMD_CONFIGURE ]; then
   echo "[MGMD] File '$MGMD_CONFIGURE' not found!"
@@ -357,7 +352,7 @@ if [ ! -f $MGMD_CONFIGURE ]; then
   
 fi
 
-#unlock
+unlock
 
 # Create output path if it doesn't exist
 mkdir -pv $MGMD_OUTPUT_PATH
@@ -368,15 +363,14 @@ MGMD_CONF_REV=`cat $MGMD_CONFIGURE | grep "PACKAGE_VERSION=" -m 1 | sed "s/[^0-9
 echo -n "[MGMD] Checking revision svn=$MGMD_REV configure=$MGMD_CONF_REV: "
 if [ $MGMD_REV != $MGMD_CONF_REV ]; then
   echo "don't match!"
-  echo "[MGMD] Running configure (output suppressed)"
+  echo "[MGMD] Running configure..."
   
   cd $MGMD_OUTPUT_PATH
   $MGMD_CONFIGURE --prefix=$PREFIXDIR $CROSSOPTS
-#>/dev/null 2>&1
   
   if [ $? -ne 0 ]; then
-    echo "[MGMD] Error while running configure! Run without output suppressed"
-	cd - >/dev/null
+    echo "[MGMD] Error while running configure!"
+    cd - >/dev/null
     exit 1
   fi
   
@@ -388,15 +382,14 @@ fi
 echo -n "[MGMD] Checking Makefile: "
 if [ ! -f $MGMD_OUTPUT_PATH/Makefile ]; then
   echo "not found!"
-  echo "[MGMD] Running configure (output suppressed)"
+  echo "[MGMD] Running configure..."
   
   cd $MGMD_OUTPUT_PATH
   $MGMD_CONFIGURE --prefix=$PREFIXDIR $CROSSOPTS
-#>/dev/null 2>&1
   
   if [ $? -ne 0 ]; then
-    echo "[MGMD] Error while running configure! Run without output suppressed"
-	cd - >/dev/null
+    echo "[MGMD] Error while running configure!"
+    cd - >/dev/null
     exit 1
   fi
   

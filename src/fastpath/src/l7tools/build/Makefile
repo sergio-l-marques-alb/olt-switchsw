@@ -248,7 +248,7 @@ define cleanall-shell-cmds
 
 	$(DBG) for i in $$(find $(cleanall_top)/$(OUTPATH)/* -maxdepth 0 -type d -name "*" -print) ; \
 	do \
-		if [[ -d $$i ]] ; \
+		if [[ -d $$i && "`echo $$i | awk -F'/' '{print $$NF}'`" != "libs-ptin" ]] ; \
 		then \
 			$(removing_msg) \
 			$(RM) -r $$i ; \
