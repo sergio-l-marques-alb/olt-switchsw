@@ -6,7 +6,7 @@
 
 # Local source path abbreviations (for convenience).
 #
-vend_sdk := vendor/broadcom/esw_sdk
+vend_sdk ?= vendor/broadcom/esw_sdk
 
 
 # Include target package output settings.

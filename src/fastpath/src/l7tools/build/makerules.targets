@@ -91,7 +91,7 @@ stacking clean-stacking debug-stacking::
 switching clean-switching debug-switching::
 	$(checking_msg)
 	+$(create_dir)
-	+@sh $(FP_BASE)/src/application/switching/make/mgmd_compile.sh $(FP_BASE) $@
+#	+@sh $(FP_BASE)/src/application/switching/make/mgmd_compile.sh $(FP_BASE) $@
 	+$(FP_MAKE) -f $(FP_BASE)/src/application/switching/make/Makefile $(make_cmd_common)
 
 wireless clean-wireless debug-wireless::

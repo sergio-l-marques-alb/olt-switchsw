@@ -12,9 +12,6 @@ MV    =	mv
 CP    =	cp
 TAR   = tar
 
-INSTALL_DIR     = ../../../PR1003/builds_olt360/apps/TG16G
-BACKUP_DIR      = ../../../PR1003/builds_olt360/apps_backup/TG16G
-
 #NUM_CPUS = 2
 NUM_CPUS = $(shell grep -c 'model name' /proc/cpuinfo)
 
@@ -139,7 +136,7 @@ clean-platform: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-binds clean-plat_bsp clean-cpu_bsp clean-base
 	$(RM) -f $(TMP_FILE)
 
-clean-ptin clean-switching clean-routing clean-base clean-andl: setsdk
+clean-ptin clean-switching clean-routing clean-base clean-andl clean-os: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	$(RM) -f $(TMP_FILE)
 

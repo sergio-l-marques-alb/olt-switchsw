@@ -2,8 +2,8 @@
 #                                              #
 #   FastPath Makefile for the TG16GF card      #
 #                                              #
-#	Joao Mateiro, 2014                     #
-#	joao-v-mateiro@ptinovacao.pt           #
+#   Joao Mateiro, 2014                         #
+#   joao-v-mateiro@ptinovacao.pt               #
 #                                              #
 ################################################
 
@@ -12,7 +12,10 @@ MV    =	mv
 CP    =	cp
 TAR   = tar
 
-#NUM_CPUS = 2
+export vend_sdk		:= vendor/broadcom/esw_sdk
+export BROADCOM_SDK	:= $(vend_sdk)
+
+#NUM_CPUS = 1
 NUM_CPUS = $(shell grep -c 'model name' /proc/cpuinfo)
 
 CURRENT_PATH= $(shell pwd)
@@ -35,14 +38,15 @@ export COMPILER           = $(TOOLCHAIN_BIN_DIR)/arm-linux-
 export KERNEL_PATH        = $(OLT_DIR)/../lib/kernel/linux-3.6.5-kt2arm_LDK-3.4.7-RC4
 #export KERNEL_PATH        = /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/kernel/linux-3.6.5
 
-BOARD = TG16GF
-CARD_FOLDER = FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_$(BOARD)
+BOARD	= TG16GF
+CPU		= katanaarm
+CARD_FOLDER = FastPath-Ent-esw-xgs4-$(CPU)-LR-CSxw-IQH_$(BOARD)
 CARD	= $(word 2,$(subst _, ,$(CARD_FOLDER)))
-CPU	= $(word 5,$(subst -, ,$(CARD_FOLDER)))
+#CPU	= $(word 5,$(subst -, ,$(CARD_FOLDER)))
 
 export OUTPATH		:= output/$(CARD_FOLDER)
 export FP_VIEWNAME	:= .
-export CROSS_COMPILE:= $(COMPILER)
+export CROSS_COMPILE    := $(COMPILER)
 export KERNEL_SRC	:= $(KERNEL_PATH)
 export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 
@@ -58,7 +62,7 @@ export LVL7_MAKEFILE_DISPLAY_MODE := S
 
 .PHONY: welcome all clean cleanall help h kernel transfer
 
-all: welcome setsdk cli_clean shell_clean cli shell mgmdconfig
+all: welcome setsdk cli shell mgmd
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)
 	@if [ -f $(BIN_PATH)/$(BIN_FILE) ]; then\
@@ -67,9 +71,6 @@ all: welcome setsdk cli_clean shell_clean cli shell mgmdconfig
 		echo "Stripping $(BIN_FILE) binary...";\
 		$(CROSS_COMPILE)strip $(BIN_PATH)/$(BIN_FILE);\
 	fi;
-	@echo "Copying mgmd.cli to ipl directory..."
-	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/sbin/mgmd.cli $(OUTPATH)/ipl/mgmd.cli
-	@$(CP) src/application/switching/mgmd/rfs/usr/local/ptin/lib/libmgmd.so $(OUTPATH)/ipl/
 	@echo ""
 
 andl os: welcome setsdk
@@ -87,18 +88,15 @@ transfer:
 	cd $(OUTPATH) && ./transfer_paulo.sh bin
 
 setsdk:
-	rm -f $(SDK_LINK)
-	ln -s $(SDK_PATH) $(SDK_LINK)
+#	rm -f $(SDK_LINK)
+#	ln -s $(SDK_PATH) $(SDK_LINK)
 
-mgmdconfig:
+mgmd:
 	@if [ ! -d src/application/switching/mgmd ]; then\
 		@echo "MGMD source-code not found! Please update your working copy.";\
 		false;\
 	fi;
-	@echo "Compiling MGMD..."
-	@sh mgmd_config_$(CARD).sh
-	@sh src/application/switching/make/mgmd_compile.sh $(CURRENT_PATH) switching
-	@echo "...MGMD compiled!"
+	@sh mgmd_compile.sh $(BOARD)
 
 kernel:
 	cd $(KERNEL_PATH) && ./build_kernel_katana2_le.sh
@@ -115,8 +113,10 @@ help h:
 	@echo " make kernel             "
 	@echo " make cli                "
 	@echo " make shell              "
-	@echo " make cli_clean          "
-	@echo " make shell_clean        "
+	@echo " make clean-cli          "
+	@echo " make clean-shell        "
+	@echo " make mgmd               "
+	@echo " make clean-mgmd         "
 	@echo ""
 
 welcome: 
@@ -143,13 +143,13 @@ cli:
 shell:
 	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-tg16gf.make
 
-cli_clean:
+clean-cli:
 	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-tg16gf.make clean
 
-shell_clean:
+clean-shell:
 	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-tg16gf.make clean
 
-clean cleanall: welcome setsdk cli_clean shell_clean
+clean cleanall: welcome setsdk clean-cli clean-shell clean-mgmd
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	#$(RM) -f $(TMP_FILE)
 
@@ -157,7 +157,10 @@ clean-platform: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-binds clean-plat_bsp clean-cpu_bsp clean-base
 	#$(RM) -f $(TMP_FILE)
 
-clean-ptin clean-switching clean-routing clean-base clean-andl clean-cli: setsdk
+clean-mgmd:
+	@sh mgmd_compile.sh $(BOARD) clean
+
+clean-ptin clean-switching clean-routing clean-base clean-andl clean-os: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	#$(RM) -f $(TMP_FILE)
 
