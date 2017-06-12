@@ -49,11 +49,6 @@
 #include "ptin_xconnect_api.h"
 
 /**************************Static Variables********************************/
-//static internalId_t     vlanId2EvcId[L7_MAX_VLAN_ID];
-static internalId_t     evcId2internalEvcId[PTIN_SYSTEM_N_EXTENDED_EVCS];
-//externalId_t          internalEvcId2VlanId[PTIN_SYSTEM_N_IGMP_INSTANCES];
-//externalId_t          internalVlanId2EvcId[PTIN_SYSTEM_N_IGMP_INSTANCES];
-static snoopPtinEvc_t   snoopPtinEvc[PTIN_SYSTEM_N_IGMP_INSTANCES]; 
 /**************************End Static Variables********************************/
 
 /**************************Static Routines********************************/
@@ -6996,106 +6991,6 @@ L7_RC_t snoopInternalIdPop(L7_uint32 externalId, internalId_t *external2Internal
   }
 
   return L7_FAILURE;  
-}
-
-/*********************************************************************
-* @purpose  Add an Evc to the Snoop Module
-* 
-* @param    evcId            @b{(input)}  EVC Id
-* @param    vlanId           @b{(input)}  VLAN Id
-* 
-* 
-* @returns  L7_SUCCESS
-* @returns  L7_ALREADY_CONFIGURED
-* @returns  L7_FAILURE
-*
-* @notes none
-*
-* @end
-*
-*********************************************************************/
-L7_RC_t snoopEvcAdd(L7_uint32 evcId, L7_uint32 vlanId)
-{
-  L7_uint32 internalEvcId = (L7_uint32) -1;
-  L7_RC_t  rc;
-
-  rc = snoopInternalIdPop(evcId, evcId2internalEvcId, PTIN_SYSTEM_N_EXTENDED_EVCS, &internalEvcId);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain internalEvcId for  evcId:%u", evcId);
-    return rc;   
-  }
-
-  if (internalEvcId >= PTIN_SYSTEM_N_IGMP_INSTANCES)
-  {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid internalEvcId:%u (>maxId:%u) for  evcId:%u", internalEvcId, evcId, PTIN_SYSTEM_N_IGMP_INSTANCES);
-    return L7_FAILURE;   
-  }
-
-  if (snoopPtinEvc[internalEvcId].inUse == L7_TRUE)
-  {
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "evcId:%u (internalEvcId:%u) already added to snoop module", evcId, internalEvcId);
-    return L7_ALREADY_CONFIGURED;   
-  }
-
-  memset(&snoopPtinEvc[internalEvcId], 0x00, sizeof(snoopPtinEvc[internalEvcId]));
-
-  snoopPtinEvc[internalEvcId].evcId = evcId;
-  snoopPtinEvc[internalEvcId].vlanId = vlanId;
-
-  snoopPtinEvc[internalEvcId].inUse = L7_TRUE;
-  return L7_SUCCESS;
-}
-
-/*********************************************************************
-* @purpose  Remove an Evc from the Snoop Module
-* 
-* @param    evcId            @b{(input)}  EVC Id
-* 
-* 
-* @returns  L7_SUCCESS 
-* @returns  L7_NOT_EXIST 
-* @returns  L7_FAILURE
-
-*
-* @notes none
-*
-* @end
-*
-*********************************************************************/
-L7_RC_t snoopEvcRemove(L7_uint32 evcId)
-{
-  L7_uint32 internalEvcId = (L7_uint32) -1;
-  L7_RC_t  rc;
-
-  rc = snoopInternalIdGet(evcId, evcId2internalEvcId, &internalEvcId);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to obtain internalEvcId for  evcId:%u", evcId);
-    return rc;   
-  }
-
-  if (internalEvcId >= PTIN_SYSTEM_N_IGMP_INSTANCES)
-  {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid internalEvcId:%u (>maxId:%u) for  evcId:%u", internalEvcId, evcId, PTIN_SYSTEM_N_IGMP_INSTANCES);
-    return L7_FAILURE;   
-  }
-
-  if (snoopPtinEvc[internalEvcId].inUse == L7_FALSE)
-  {
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "evcId:%u (internalEvcId:%u) already removed from snoop module", evcId, internalEvcId);
-    return L7_NOT_EXIST;   
-  }
-
-  memset(&snoopPtinEvc[internalEvcId], 0x00, sizeof(snoopPtinEvc[internalEvcId])); 
-
-  rc = snoopInternalIdPush(evcId, evcId2internalEvcId);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Failed to push internal id for  evcId:%u (internalEvcId:%u)", evcId, internalEvcId);
-    return rc;   
-  }
-  return L7_SUCCESS;
 }
 
 #endif /* L7_MCAST_PACKAGE */

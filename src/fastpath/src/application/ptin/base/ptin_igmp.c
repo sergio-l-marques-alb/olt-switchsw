@@ -1034,18 +1034,8 @@ L7_RC_t ptin_igmp_proxy_init(void)
   /* Multicast Admission Control*/
   memset(&igmpMulticastAdmissionControl, 0x00, sizeof(igmpMulticastAdmissionControl));  
 
-
-  L7_uint8 internalServiceId;
-  for (internalServiceId = 0; internalServiceId < PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID; internalServiceId++)
-  {
-    ptinIgmpAdmissionControlMulticastExternalServiceId[internalServiceId] = (L7_uint32) -1;
-  }
-
-  L7_uint32 externalServiceId;
-  for (externalServiceId = 0; externalServiceId < PTIN_SYSTEM_N_EXTENDED_EVCS; externalServiceId++)
-  {
-    ptinIgmpAdmissionControlMulticastInternalServiceId[externalServiceId] = (L7_uint8) -1;
-  }
+  memset(ptinIgmpAdmissionControlMulticastExternalServiceId, 0xff, sizeof(ptinIgmpAdmissionControlMulticastExternalServiceId));
+  memset(ptinIgmpAdmissionControlMulticastInternalServiceId, 0xff, sizeof(ptinIgmpAdmissionControlMulticastInternalServiceId));
 #endif
 
   igmpGroupClients.avlTree.igmpClientsTreeHeap = (avlTreeTables_t *)osapiMalloc(L7_PTIN_COMPONENT_ID, PTIN_SYSTEM_IGMP_MAXONUS * sizeof(avlTreeTables_t)); 
