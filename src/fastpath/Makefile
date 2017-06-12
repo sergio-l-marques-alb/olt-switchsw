@@ -71,30 +71,33 @@ release:
 
 # Individual targets
 $(cards):
-	@echo "$@ compilation started (log file $@.make.log)"
+	@echo "$@ compilation started (log file $@.make.log) ..."
 	@{ time $(MAKE) -f swdrvr-$@.make > $@.make.log 2>&1; } 2>.$@.make.time; echo "make-retval $$?" >> .$@.make.time;
 
 	@{ ret=`cat .$@.make.time | grep 'make-retval' | awk '{print $$2}'`;\
 	time=`cat .$@.make.time | grep 'real' | awk '{print $$2}'`;\
 	if [ "$$ret" != "0" ]; then \
-		echo "$@ compilation finished with ERRORS!!! ($${time}) Please see log file $@.make.log for more details"; \
+		echo "ERROR!!! $@ compilation finished in $${time} with errors:"; \
+		tail -n 25 $@.make.log; \
+		echo "Please see log file $@.make.log for more details."; \
+		echo; \
 	else \
-		echo "$@ compilation finished successfully in $${time}"; \
+		echo "Success: $@ compilation finished in $${time}"; \
 	fi; \
 	rm .$@.make.time; }
 
 $(addprefix clean-, $(cards)):
-	@echo "$@ started (log: $(subst clean-,,$@).clean.log)"
+	@echo "$@ started (log: $(subst clean-,,$@).clean.log) ..."
 	@$(MAKE) -f swdrvr-$(subst clean-,,$@).make clean > $(subst clean-,,$@).clean.log 2>&1
 	@echo "$@ done!"
 	
 $(addprefix cleanall-, $(cards)):
-	@echo "$@ started (log: $(subst cleanall-,,$@).cleanall.log)"
+	@echo "$@ started (log: $(subst cleanall-,,$@).cleanall.log) ..."
 	@$(MAKE) -f swdrvr-$(subst cleanall-,,$@).make cleanall > $(subst clean-,,$@).cleanall.log 2>&1
 	@echo "$@ done!"
 	
 $(addprefix install-, $(cards)):
-	@echo "$@ started (log: $(subst install-,,$@).install.log)"
+	@echo "$@ started (log: $(subst install-,,$@).install.log) ..."
 	@sh $(subst install-,,$@).install  > $(subst clean-,,$@).install.log 2>&1
 	@echo "$@ done!"
 
