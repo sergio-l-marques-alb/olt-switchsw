@@ -3924,187 +3924,211 @@ L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id)
 L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
 {
   L7_uint     intf_idx;
-  L7_uint     evc_id;
+  L7_uint     evc_id, selected_evc_id;
   ptin_intf_t ptin_intf;
   L7_uint16   int_vlan, nni_vlan;
 
   PT_LOG_TRACE(LOG_CTX_EVC, "Destroying eEVC# %u...", evc_ext_id);
 
   /* Validate EVC# range (EVC index [0..PTIN_SYSTEM_N_EXTENDED_EVCS[) */
-  if (evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
+  if (evc_ext_id != (L7_uint32)-1 && evc_ext_id >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
     PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is out of range [0..%u[", evc_ext_id, PTIN_SYSTEM_N_EXTENDED_EVCS);
     return L7_FAILURE;
   }
 
-  /* Convert to internal evc id */
-  if (ptin_evc_ext2int(evc_ext_id, &evc_id) != L7_SUCCESS)
+  selected_evc_id = (L7_uint) -1;
+
+  /* GEt internal EVC id */
+  if (evc_ext_id != (L7_uint32)-1)
   {
-    PT_LOG_ERR(LOG_CTX_EVC, "eEVC %u not existent", evc_ext_id);
-    return L7_SUCCESS;
-  }
-
-  PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u is mapped to internal id %u", evc_ext_id, evc_id);
-
-  /* Save Internal and NNI VLANs */
-  int_vlan = evcs[evc_id].rvlan;
-  nni_vlan = (IS_EVC_QUATTRO(evc_id) && IS_EVC_STACKED(evc_id)) ? evcs[evc_id].root_info.nni_ovid : 0;
-
-  /* IF this EVC belongs to an IGMP instance, destroy that instance */
-  if (ptin_igmp_is_evc_used(evc_ext_id))
-    ptin_igmp_evc_remove(evc_ext_id);
-
-  #if (!PTIN_BOARD_IS_MATRIX)
-  /* IF this EVC belongs to a DHCP instance, destroy that instance */
-  if (ptin_dhcp_is_evc_used(evc_ext_id))
-  {
-    ptin_dhcp_evc_remove(evc_ext_id);
-  }
-  /* IF this EVC belongs to a PPPoE instance, destroy that instance */
-  if (ptin_pppoe_is_evc_used(evc_ext_id))
-  {
-    ptin_pppoe_evc_remove(evc_ext_id);
-  }
-  #endif
-
-  /* For IGMP enabled evcs, remove trap rules */
-  #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
-  {
-    if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
-                                (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs))
-                               ) != L7_SUCCESS)
+    /* Convert to internal evc id */
+    if (ptin_evc_ext2int(evc_ext_id, &selected_evc_id) != L7_SUCCESS)
     {
-      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error removing IGMP trap rules", evc_id);
+      PT_LOG_ERR(LOG_CTX_EVC, "eEVC %u not existent", evc_ext_id);
+      return L7_SUCCESS;
     }
-    /* Update number of igmp quattro-p2p evcs */
-    DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
-  }
-  #endif
-
-  /* IF this EVC belongs to an DHCP instance, destroy that instance */
-  if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL)
-  {
-    PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: DHCP is not cleared!!!", evc_id);
-//    TODO !!!
-//    ptin_dhcp_instance_destroy(evc_ext_id);
+    PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u is mapped to internal id %u", evc_ext_id, selected_evc_id);
   }
 
-  /* For each interface... */
-  for (intf_idx=0; intf_idx<PTIN_SYSTEM_N_INTERF; intf_idx++)
+  /* Run all (internal) EVCs */
+  for (evc_id = 0; evc_id < PTIN_SYSTEM_N_EVCS; evc_id++)
   {
-    if (!evcs[evc_id].intf[intf_idx].in_use)
+    /* Skip non selected EVCs */
+    if (selected_evc_id != (L7_uint)-1 && selected_evc_id != evc_id)
+      continue;
+    
+    /* Skip Not active EVCs */
+    if (!evcs[evc_id].in_use)
       continue;
 
-    if (ptin_intf_port2ptintf(intf_idx, &ptin_intf)!=L7_SUCCESS)
+    /* If a destroy all is requested, skip reserved EVCs */
+    if ((selected_evc_id == (L7_uint)-1) &&
+        (evc_id == PTIN_EVC_INBAND || evcs[evc_id].extended_id >= PTIN_SYSTEM_EXT_EVCS_MGMT))
+    {
       continue;
-
-    /* Only clean service resources... Clients remotion will do the rest */
-    if (ptin_evc_intf_clean(evc_id, ptin_intf.intf_type, ptin_intf.intf_id, L7_TRUE)!=L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error cleaning service profiles and counters!!!", evc_id);
-      return L7_FAILURE;
     }
+    
+    /* Save Internal and NNI VLANs */
+    int_vlan = evcs[evc_id].rvlan;
+    nni_vlan = (IS_EVC_QUATTRO(evc_id) && IS_EVC_STACKED(evc_id)) ? evcs[evc_id].root_info.nni_ovid : 0;
 
-    if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
-      continue;
+    /* IF this EVC belongs to an IGMP instance, destroy that instance */
+    if (ptin_igmp_is_evc_used(evc_ext_id))
+      ptin_igmp_evc_remove(evc_ext_id);
 
-    /* Remove all clients/flows */
-    if (ptin_evc_intfclientsflows_remove(evc_id, ptin_intf.intf_type, ptin_intf.intf_id)!=L7_SUCCESS)
+    #if (!PTIN_BOARD_IS_MATRIX)
+    /* IF this EVC belongs to a DHCP instance, destroy that instance */
+    if (ptin_dhcp_is_evc_used(evc_ext_id))
     {
-      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error removing clients!!!", evc_id);
-      return L7_FAILURE;
+      ptin_dhcp_evc_remove(evc_ext_id);
     }
-  }
-
-  /* Check if there are clients pending... */
-  if (evcs[evc_id].n_clientflows > 0)
-  {
-    PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: %u clients are still configured! EVC cannot be destroyed!",
-            evc_id, evcs[evc_id].n_clientflows);
-    return L7_FAILURE;
-  }
-
-  /* Remove bridges on N:1 EVCs */
-  if (IS_EVC_ETREE(evc_id))
-  {
-    if (ptin_evc_etree_intf_remove_all(evc_id) != L7_SUCCESS)
+    /* IF this EVC belongs to a PPPoE instance, destroy that instance */
+    if (ptin_pppoe_is_evc_used(evc_ext_id))
     {
-      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing (unstacked) bridges config", evc_id);
-      return L7_FAILURE;
+      ptin_pppoe_evc_remove(evc_ext_id);
     }
-  }
-  /* For unstacked 1:1 EVCs, remove single vlan cross-connection */
-  else if (IS_EVC_BITSTREAM(evc_id) && !IS_EVC_STACKED(evc_id))
-  {
-    L7_int port1 = evcs[evc_id].p2p_port1_intf;
-    L7_int port2 = evcs[evc_id].p2p_port2_intf;
-
-    /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
-    if (switching_p2p_bridge_remove(port1, evcs[evc_id].intf[port2].int_vlan,
-                                    port2, evcs[evc_id].intf[port2].int_vlan,
-                                    0 /* No inner vlan */) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing single vlanbridge between port %u / vlan %u <=> port %u / vlan %u", evc_id,
-              port1, evcs[evc_id].intf[port1].int_vlan,
-              port2, evcs[evc_id].intf[port2].int_vlan);
-      return L7_FAILURE;
-    }
-  }
-
-  /* Remove all previously configured interfaces */
-  if (ptin_evc_intf_remove_all(evc_id) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing interfaces config", evc_id);
-    return L7_FAILURE;
-  }
-
-  if ( ((evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV)
-        #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED                    
-        || (IS_EVC_QUATTRO(evc_id)) 
-        #endif
-       ) &&  evcs[evc_id].multicast_group > 0)
-  {
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-    if (IS_EVC_QUATTRO(evc_id))
-    {
-      /* Virtual ports: Configure multicast group for the vlan */
-      if (ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mc_group=0x%08x)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
-        //return L7_FAILURE;
-      }
-      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed multicast replication for vlan %u / mc_group 0x%08x", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
-    }      
     #endif
 
-    /* Destroy Multicast group */
-    if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
+    /* For IGMP enabled evcs, remove trap rules */
+    #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_IGMP_PROTOCOL)
     {
-      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error destroying mc_group 0x%08x", evc_id, evcs[evc_id].multicast_group);
-      //return L7_FAILURE;/*Operation still running*/
+      if (ptin_igmp_evc_configure(evc_ext_id, L7_FALSE,
+                                  (!(evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) && SINGLE_INSTANCE(evc_id, n_quattro_igmp_evcs))
+                                 ) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error removing IGMP trap rules", evc_id);
+      }
+      /* Update number of igmp quattro-p2p evcs */
+      DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_igmp_evcs);
     }
-    PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed mc_group 0x%08x", evc_id, evcs[evc_id].multicast_group);
-  }  
-  evcs[evc_id].multicast_group = -1;
+    #endif
 
-  #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-  /* Update number of QUATTRO-P2P evcs */
-  DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_evcs);
-  #endif
+    /* IF this EVC belongs to an DHCP instance, destroy that instance */
+    if (evcs[evc_id].flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL)
+    {
+      PT_LOG_WARN(LOG_CTX_EVC, "EVC# %u: DHCP is not cleared!!!", evc_id);
+  //    TODO !!!
+  //    ptin_dhcp_instance_destroy(evc_ext_id);
+    }
 
-  #if (1)   /* EVCid extended feature */
-  ptin_evc_vlan_free(evcs[evc_id].rvlan, evcs[evc_id].queue_free_vlans);
-  #else
-  ptin_evc_matrix_vlan_free(evcs[evc_id].rvlan);
-  #endif
+    /* For each interface... */
+    for (intf_idx=0; intf_idx<PTIN_SYSTEM_N_INTERF; intf_idx++)
+    {
+      if (!evcs[evc_id].intf[intf_idx].in_use)
+        continue;
 
-  ptin_evc_entry_free(evc_ext_id);
+      if (ptin_intf_port2ptintf(intf_idx, &ptin_intf)!=L7_SUCCESS)
+        continue;
 
-  PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u successfully destroyed (internal id %u)", evc_ext_id, evc_id);
+      /* Only clean service resources... Clients remotion will do the rest */
+      if (ptin_evc_intf_clean(evc_id, ptin_intf.intf_type, ptin_intf.intf_id, L7_TRUE)!=L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error cleaning service profiles and counters!!!", evc_id);
+        return L7_FAILURE;
+      }
 
-  /* Clean QoS-VLAN entries */
-  ptin_evc_qos_vlan_clear(nni_vlan, int_vlan);  
+      if (IS_EVC_STD(evc_id) && !IS_EVC_STACKED(evc_id))
+        continue;
+
+      /* Remove all clients/flows */
+      if (ptin_evc_intfclientsflows_remove(evc_id, ptin_intf.intf_type, ptin_intf.intf_id)!=L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error removing clients!!!", evc_id);
+        return L7_FAILURE;
+      }
+    }
+
+    /* Check if there are clients pending... */
+    if (evcs[evc_id].n_clientflows > 0)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: %u clients are still configured! EVC cannot be destroyed!",
+              evc_id, evcs[evc_id].n_clientflows);
+      return L7_FAILURE;
+    }
+
+    /* Remove bridges on N:1 EVCs */
+    if (IS_EVC_ETREE(evc_id))
+    {
+      if (ptin_evc_etree_intf_remove_all(evc_id) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing (unstacked) bridges config", evc_id);
+        return L7_FAILURE;
+      }
+    }
+    /* For unstacked 1:1 EVCs, remove single vlan cross-connection */
+    else if (IS_EVC_BITSTREAM(evc_id) && !IS_EVC_STACKED(evc_id))
+    {
+      L7_int port1 = evcs[evc_id].p2p_port1_intf;
+      L7_int port2 = evcs[evc_id].p2p_port2_intf;
+
+      /* Add bridge between root and leaf port (Proot, Vr, Pleaf, Vs', Vc) */
+      if (switching_p2p_bridge_remove(port1, evcs[evc_id].intf[port2].int_vlan,
+                                      port2, evcs[evc_id].intf[port2].int_vlan,
+                                      0 /* No inner vlan */) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing single vlanbridge between port %u / vlan %u <=> port %u / vlan %u", evc_id,
+                port1, evcs[evc_id].intf[port1].int_vlan,
+                port2, evcs[evc_id].intf[port2].int_vlan);
+        return L7_FAILURE;
+      }
+    }
+
+    /* Remove all previously configured interfaces */
+    if (ptin_evc_intf_remove_all(evc_id) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing interfaces config", evc_id);
+      return L7_FAILURE;
+    }
+
+    if ( ((evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV)
+          #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED                    
+          || (IS_EVC_QUATTRO(evc_id)) 
+          #endif
+         ) &&  evcs[evc_id].multicast_group > 0)
+    {
+      #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+      if (IS_EVC_QUATTRO(evc_id))
+      {
+        /* Virtual ports: Configure multicast group for the vlan */
+        if (ptin_vlanBridge_multicast_clear(evcs[evc_id].rvlan, evcs[evc_id].multicast_group)!=L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error removing Multicast replication for VLAN %u (mc_group=0x%08x)", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+          //return L7_FAILURE;
+        }
+        PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed multicast replication for vlan %u / mc_group 0x%08x", evc_id, evcs[evc_id].rvlan, evcs[evc_id].multicast_group);
+      }      
+      #endif
+
+      /* Destroy Multicast group */
+      if (ptin_multicast_group_destroy(evcs[evc_id].multicast_group)!=L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error destroying mc_group 0x%08x", evc_id, evcs[evc_id].multicast_group);
+        //return L7_FAILURE;/*Operation still running*/
+      }
+      PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: Removed mc_group 0x%08x", evc_id, evcs[evc_id].multicast_group);
+    }  
+    evcs[evc_id].multicast_group = -1;
+
+    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
+    /* Update number of QUATTRO-P2P evcs */
+    DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_evcs);
+    #endif
+
+    #if (1)   /* EVCid extended feature */
+    ptin_evc_vlan_free(evcs[evc_id].rvlan, evcs[evc_id].queue_free_vlans);
+    #else
+    ptin_evc_matrix_vlan_free(evcs[evc_id].rvlan);
+    #endif
+
+    ptin_evc_entry_free(evc_ext_id);
+
+    PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u successfully destroyed (internal id %u)", evc_ext_id, evc_id);
+
+    /* Clean QoS-VLAN entries */
+    ptin_evc_qos_vlan_clear(nni_vlan, int_vlan);  
+  }
 
   return L7_SUCCESS;
 }
@@ -4117,22 +4141,9 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
  */
 L7_RC_t ptin_evc_destroy_all(void)
 {
-  L7_uint i;
+  /* Destroy all active EVCs, except reserved ones */
+  ptin_evc_destroy((L7_uint32) -1);
 
-  /* Start with index 1 because PTIN_EVC_INBAND=0 */
-  for (i=1; i<PTIN_SYSTEM_N_EXTENDED_EVCS; i++)
-  {
-    /* Do not destroy this EVC */
-  #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-    if (i == PTIN_EVC_BL2CPU)
-    {
-      continue;
-    }
-  #endif
-
-    if (IS_eEVC_IN_USE(i))
-      ptin_evc_destroy(i);
-  }
   return L7_SUCCESS;
 }
 
@@ -13253,18 +13264,18 @@ void ptin_evc_map(void)
 {
   L7_uint32 evc_ext_id, evc_idx;
 
-  printf("+---------+---------+\n");
-  printf("| Ext. ID | Int. ID |\n");
-  printf("+---------+---------+\n");
+  printf("+---------+------------+\n");
+  printf("| Int. ID |   Ext. ID  |\n");
+  printf("+---------+------------+\n");
 
-  for (evc_ext_id=0; evc_ext_id < PTIN_SYSTEM_N_EXTENDED_EVCS; evc_ext_id++) {
-
+  for (evc_idx = 0; evc_idx < PTIN_SYSTEM_N_EVCS; evc_idx++)
+  {
+    if (!evcs[evc_idx].in_use)  continue;
+    
     /* Convert to internal evc id */
-    if (ptin_evc_ext2int(evc_ext_id, &evc_idx) != L7_SUCCESS ||
-        !evcs[evc_idx].in_use)
-      continue;
+    evc_ext_id = evcs[evc_idx].extended_id;
 
-    printf("|  %5u  |  %5d  |\n", evc_ext_id, evc_idx);
+    printf("|  %5u  | 0x%08x |\n", evc_idx, evc_ext_id);
   }
 
   printf("+---------+---------+\n");

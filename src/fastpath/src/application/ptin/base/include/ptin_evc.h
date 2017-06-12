@@ -149,6 +149,7 @@ extern L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_evc_offline_entry_remove(L7_uint32 evc_ext_id);
+
 /**
  * Destroys all EVCs (except INBAND!)
  * 
