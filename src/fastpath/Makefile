@@ -77,7 +77,7 @@ $(cards):
 	@{ ret=`cat .$@.make.time | grep 'make-retval' | awk '{print $$2}'`;\
 	time=`cat .$@.make.time | grep 'real' | awk '{print $$2}'`;\
 	if [ "$$ret" != "0" ]; then \
-		echo "$@ compilation finished with errors in $${time}. Please see log file $@.make.log for more details"; \
+		echo "$@ compilation finished with ERRORS!!! ($${time}) Please see log file $@.make.log for more details"; \
 	else \
 		echo "$@ compilation finished successfully in $${time}"; \
 	fi; \
