@@ -152,6 +152,17 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
     /* IP Address */
     if (ntwConn->mask & PTIN_NTWCONN_MASK_IPADDR)
     {
+      /* If a null IP address is provided, it's intended to deconfigure all -> EVC is deleted */
+      if (ntwConn->ipaddr == 0)
+      {
+        rc = ptin_evc_delete(PTIN_EVC_INBAND);
+        if (rc != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_API, "Error setting inBand management IPv4 Address");
+          break;
+        }
+      }
+
       rc = usmDbAgentIpIfAddressSet(1, ntwConn->ipaddr);
       if (rc != L7_SUCCESS)
       {
