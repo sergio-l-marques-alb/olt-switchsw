@@ -9291,7 +9291,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
     #if ( PTIN_BOARD_IS_MATRIX )
     if (is_p2p || !IS_EVC_ETREE(evc_id))
     #else
-    if (!IS_EVC_ETREE(evc_id) && !is_stacked && !is_quattro)
+    if (!IS_EVC_ETREE(evc_id) && /*!is_stacked &&*/ !is_quattro && (intf_vlan.vid >= 1 && intf_vlan.vid <= 4095))
     #endif
     {
       /* Only configure MC EVC partially if we are not at MX */
@@ -9398,13 +9398,10 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
     evcs[evc_id].intf[ptin_port].l3_intf_id = -1;
   #endif
 
-  PT_LOG_TRACE(LOG_CTX_EVC, "...");
-
   #ifdef PTIN_ERPS_EVC
   evcs[evc_id].intf[ptin_port].portState = PTIN_EVC_PORT_FORWARDING;
   #endif
-  #if ( !PTIN_BOARD_IS_MATRIX )
-  PT_LOG_TRACE(LOG_CTX_EVC, "...");
+  #if (0 /*!PTIN_BOARD_IS_MATRIX*/ )
   if (is_stacked && (intf_cfg->mef_type == PTIN_EVC_INTF_LEAF))
   {
     PT_LOG_TRACE(LOG_CTX_EVC, "vid %u -> 0xFFFF, vid_inner %u -> 0", intf_cfg->vid, intf_cfg->vid_inner);
