@@ -396,15 +396,10 @@ static L7_RC_t ptin_evc_entry_free(L7_uint32 evc_ext_id);
 static L7_RC_t ptin_evc_extEvcInfo_get(L7_uint32 evc_ext_id, ptinExtEvcIdInfoData_t **infoData);
 
 static void    ptin_evc_vlan_pool_init(void);
-#if (1)   /* EVCid extended feature */
 static L7_RC_t ptin_evc_freeVlanQueue_allocate(L7_uint16 evc_id, L7_uint32 evc_flags, dl_queue_t **freeVlan_queue);
 static L7_RC_t ptin_evc_freeVlanQueue_free(dl_queue_t *freeVlan_queue);
 static L7_RC_t ptin_evc_vlan_allocate(L7_uint16 *vlan, dl_queue_t *queue_vlans, L7_uint16 evc_id);
 static L7_RC_t ptin_evc_vlan_free(L7_uint16 vlan, dl_queue_t *queue_vlans);
-#else
-static L7_RC_t ptin_evc_matrix_vlan_allocate(L7_uint16 *vlan, L7_uint16 ext_evc_id, L7_uint32 evc_flags);
-static L7_RC_t ptin_evc_matrix_vlan_free(L7_uint16 vlan);
-#endif
 
 static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg);
 static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port);
@@ -2793,7 +2788,6 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     freeVlan_queue = L7_NULLPTR;
     #endif
     
-    #if (1)   /* EVCid extended feature */
     /* Check if there are enough internal VLANs on the pool
      *  P2P:  only one internal VLAN is needed (shared among all the ports)
      *  P2MP: one VLAN is needed per leaf port plus one for all the root ports */
@@ -2822,15 +2816,6 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       ptin_evc_entry_free(evc_ext_id);
       return L7_FAILURE;
     }
-    #else
-    if (ptin_evc_matrix_vlan_allocate(&root_vlan, evc_ext_id, evcConf->flags) != L7_SUCCESS)
-    {
-      PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: Error getting new internal VLAN", evc_id);
-      ptin_evc_entry_free(evc_ext_id);
-      return L7_FAILURE;
-    }
-    #endif
-
 
     PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: Enabling cross-connects?", evc_ext_id);
 
@@ -3205,12 +3190,7 @@ _ptin_evc_create1:
     }
     evcs[evc_id].multicast_group = -1; 
 
-    #if (1)   /* EVCid extended feature */
     ptin_evc_vlan_free(root_vlan, freeVlan_queue);
-    #else
-    ptin_evc_matrix_vlan_free(root_vlan);
-    #endif
-    
     ptin_evc_entry_free(evc_ext_id);
   }
 
@@ -4119,12 +4099,7 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
     DECREMENT_QUATTRO_INSTANCE(evc_id, n_quattro_evcs);
     #endif
 
-    #if (1)   /* EVCid extended feature */
     ptin_evc_vlan_free(evcs[evc_id].rvlan, evcs[evc_id].queue_free_vlans);
-    #else
-    ptin_evc_matrix_vlan_free(evcs[evc_id].rvlan);
-    #endif
-
     ptin_evc_entry_free(evc_ext_id);
 
     PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u successfully destroyed (internal id %u)", evc_ext_id, evc_id);
@@ -9274,12 +9249,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
     {
       PT_LOG_ERR(LOG_CTX_EVC, "EVC# %u: error adding leaf [ptin_port=%u Vl=%u]",
               evc_id, ptin_port, int_vlan);
-
-      #if (1)   /* EVCid extended feature */
       ptin_evc_vlan_free(int_vlan, evcs[evc_id].queue_free_vlans);       /* free VLAN */
-      #else
-      ptin_evc_matrix_vlan_free(int_vlan);
-      #endif
       return L7_FAILURE;
     }
     evcs[evc_id].n_leafs++;
@@ -9591,11 +9561,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
     /* Remove vlan */
     if (IS_EVC_ETREE(evc_id))
     {
-      #if (1)   /* EVCid extended feature */
       ptin_evc_vlan_free(int_vlan, evcs[evc_id].queue_free_vlans); /* free VLAN */
-      #else
-      ptin_evc_matrix_vlan_free(int_vlan);
-      #endif
     }
     
     #if defined IGMP_SMART_MC_EVC_SUPPORTED
@@ -10154,201 +10120,6 @@ static void ptin_evc_vlan_pool_init(void)
   memset(evcId_from_internalVlan, 0xff, sizeof(evcId_from_internalVlan));
 }
 
-/* EVCid extended feature disabled */
-#if (0)
-/**
- * Allocate new internal vlan for matrix board
- * 
- * @param vlan 
- * @param ext_evc_id 
- * @param evc_flags 
- * 
- * @return L7_RC_t
- */
-static L7_RC_t ptin_evc_matrix_vlan_allocate(L7_uint16 *vlan, L7_uint16 ext_evc_id, L7_uint32 evc_flags)
-{
-  L7_uint16 evc_id;
-  L7_uint16 int_vlan, vlan_min, vlan_max, vlan_delta;
-
-  /* EVC index must not be null */
-  if (ext_evc_id == 0)
-  {
-    PT_LOG_ERR(LOG_CTX_EVC,"Invalid EVC index (%u)", ext_evc_id);
-    return L7_FAILURE;
-  }
-
-  /* Get internal EVC id */
-  evc_id = evc_ext2int[ext_evc_id];
-  if (evc_id >= PTIN_SYSTEM_N_EVCS)
-  {
-    PT_LOG_ERR(LOG_CTX_EVC,"No internal EVC id associated to ext_evc_id %u", ext_evc_id);
-    return L7_FAILURE;
-  }
-
-  /* E-Tree EVCs */
-  if ((evc_flags & PTIN_EVC_MASK_ETREE))
-  {
-    /* CPU trap */
-    if (evc_flags & PTIN_EVC_MASK_CPU_TRAPPING)
-    {
-      vlan_min = PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MIN;
-      vlan_max = PTIN_SYSTEM_EVC_ETREE_CPU_VLAN_MAX;
-    }
-    /* Bitstream EVC */
-    else
-    {
-      vlan_min = PTIN_SYSTEM_EVC_ETREE_BS_VLAN_MIN;
-      vlan_max = PTIN_SYSTEM_EVC_ETREE_BS_VLAN_MAX;
-    }
-  }
-  /* Quattro P2P EVCs */
-  else if ((evc_flags & PTIN_EVC_MASK_QUATTRO) &&
-           (evc_flags & PTIN_EVC_MASK_P2P))
-  {
-    #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
-    vlan_min = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MIN;
-    vlan_max = PTIN_SYSTEM_EVC_QUATTRO_P2P_VLAN_MAX;
-    #else
-    PT_LOG_ERR(LOG_CTX_EVC, "No QUATTRO vlan available!");
-    return L7_ERROR;
-    #endif
-  }
-  /* CPU port is on? */
-  else if ((evc_flags & PTIN_EVC_MASK_CPU_TRAPPING))
-  {
-    if (!(evc_flags & PTIN_EVC_MASK_MC_IPTV))
-    {
-      if ((evc_flags & PTIN_EVC_MASK_MACLEARNING))
-      {
-        vlan_min = PTIN_SYSTEM_EVC_MCAST_MACLRN_VLAN_MIN;
-        vlan_max = PTIN_SYSTEM_EVC_MCAST_MACLRN_VLAN_MAX;
-      }
-      else
-      {
-        vlan_min = PTIN_SYSTEM_EVC_MCAST_NOMACL_VLAN_MIN;
-        vlan_max = PTIN_SYSTEM_EVC_MCAST_NOMACL_VLAN_MAX;
-      }
-    }
-    /* IPTV EVCs */
-    else
-    {
-      if ((evc_flags & PTIN_EVC_MASK_MACLEARNING))
-      {
-        vlan_min = PTIN_SYSTEM_EVC_BCAST_MACLRN_VLAN_MIN;
-        vlan_max = PTIN_SYSTEM_EVC_BCAST_MACLRN_VLAN_MAX;
-      }
-      else
-      {
-        vlan_min = PTIN_SYSTEM_EVC_BCAST_NOMACL_VLAN_MIN;
-        vlan_max = PTIN_SYSTEM_EVC_BCAST_NOMACL_VLAN_MAX;
-      }
-    }
-  }
-  /* Finally Bitstream services */
-  else
-  {
-    if ((evc_flags & PTIN_EVC_MASK_MACLEARNING))
-    {
-      vlan_min = PTIN_SYSTEM_EVC_BITSTR_MACLRN_VLAN_MIN;
-      vlan_max = PTIN_SYSTEM_EVC_BITSTR_MACLRN_VLAN_MAX;
-    }
-    else
-    {
-      vlan_min = PTIN_SYSTEM_EVC_BITSTR_NOMACL_VLAN_MIN;
-      vlan_max = PTIN_SYSTEM_EVC_BITSTR_NOMACL_VLAN_MAX;
-    }
-  }
-
-  /* Number of available vlans */
-  vlan_delta = vlan_max - vlan_min;
-
-  /* EVC index must be less than vlan delta */
-  if (ext_evc_id > vlan_delta)
-  {
-    PT_LOG_ERR(LOG_CTX_EVC,"Invalid EVC index (%u): higher or equal than %u", ext_evc_id, vlan_delta);
-    return L7_FAILURE;
-  }
-
-  /* Calculate internal vlan to be used */
-  int_vlan = vlan_min + ext_evc_id - 1;
-
-  /* Check if this vlan is already in use */
-  if (evcId_from_internalVlan[int_vlan] < PTIN_SYSTEM_N_EVCS)
-  {
-    PT_LOG_ERR(LOG_CTX_EVC, "VLAN %u already in use by evc_id %u (eEVC %u)", int_vlan, evc_id, ext_evc_id);
-    return L7_FAILURE;
-  }
-
-  PT_LOG_TRACE(LOG_CTX_EVC, "Allocated Internal VLAN %04u", int_vlan);
-
-  /* Create vlan */
-  if (switching_vlan_create(int_vlan) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_EVC, "Error creating VLAN %u", int_vlan);
-    return L7_FAILURE;
-  }
-  PT_LOG_TRACE(LOG_CTX_EVC, "VLAN %u created", int_vlan);
-
-  /* Mark this internal vlan, as being used by the given evc id */
-  if (int_vlan < 4096)
-  {
-    if (evc_id < PTIN_SYSTEM_N_EVCS)
-    {
-      evcId_from_internalVlan[int_vlan] = evc_id;
-    }
-    else
-    {
-      evcId_from_internalVlan[int_vlan] = -1;
-    }
-  }
-
-  /* Return internal vlan */
-  if (vlan != L7_NULLPTR)  *vlan = int_vlan;
-
-  return L7_SUCCESS;
-}
-
-/**
- * Release internal vlan for matrix board
- * 
- * @param vlan 
- * 
- * @return L7_RC_t 
- */
-static L7_RC_t ptin_evc_matrix_vlan_free(L7_uint16 vlan)
-{
-  /* Validate vlan id */
-  if (vlan >= 4096)
-  {
-    PT_LOG_ERR(LOG_CTX_EVC, "Invalid VLAN %u", vlan);
-    return L7_FAILURE;
-  }
-  /* Check if is in use */
-  if (evcId_from_internalVlan[vlan] >= PTIN_SYSTEM_N_EVCS)
-  {
-    PT_LOG_WARN(LOG_CTX_EVC, "VLAN %u not in use", vlan);
-    return L7_SUCCESS;
-  }
-
-  /* Delete vlan */
-  if (switching_vlan_delete(vlan) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_EVC, "Error deleting VLAN %u", vlan);
-    return L7_FAILURE;
-  }
-
-  PT_LOG_TRACE(LOG_CTX_EVC, "Released Internal VLAN %04u", vlan);
-
-  /* Free this internal vlan, as not being used by any evc */
-  if (vlan < 4096)
-  {
-    evcId_from_internalVlan[vlan] = -1;
-  }
-
-  return L7_SUCCESS;
-}
-
-#else
 
 /**
  * Allocates a free VLAN queue from the pool
@@ -10543,7 +10314,7 @@ static L7_RC_t ptin_evc_vlan_free(L7_uint16 vlan, dl_queue_t *queue_vlans)
 
   return L7_SUCCESS;
 }
-#endif
+
 
 /* Switching configuration functions ******************************************/
 
