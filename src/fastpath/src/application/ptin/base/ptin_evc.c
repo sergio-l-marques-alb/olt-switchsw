@@ -306,6 +306,7 @@ static L7_uint16 n_quattro_igmp_evcs = 0;
 #define IS_EVC_P2MP(evc_id)           ((evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == 0 )
 #define IS_EVC_QUATTRO(evc_id)        ((evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO )
 #define IS_EVC_STD(evc_id)            ((evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == 0 )
+#define IS_EVC_ETREE(evc_id)          ((evcs[evc_id].flags & PTIN_EVC_MASK_ETREE  ) == PTIN_EVC_MASK_ETREE )
 
 #define IS_EVC_STD_P2P(evc_id)        (IS_EVC_STD(evc_id) && IS_EVC_P2P(evc_id))
 #define IS_EVC_STD_P2MP(evc_id)       (IS_EVC_STD(evc_id) && IS_EVC_P2MP(evc_id))
