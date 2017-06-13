@@ -19089,8 +19089,6 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
   get_NGPON2_group_info(&NGPON2_GROUP, ngpon2_id);
 
   PT_LOG_TRACE(LOG_CTX_MSG, " Replication service %d on GroupID %d ", NGPON2_GROUP.number_services, ngpon2_id);
-  PT_LOG_TRACE(LOG_CTX_MSG, " Number of services %u", NGPON2_GROUP.number_services);
-
 
   for(index = 0; (index < max_index) && (iteration < NGPON2_GROUP.number_services); index++)
   {
@@ -19110,7 +19108,6 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
         iteration++;
 
         evc_idx = position + (index * sizeof(L7_uint8));
-        //evc_idx = position + (index * sizeof(L7_uint8)) - 1;
           
         PT_LOG_TRACE(LOG_CTX_MSG, "Evc_idx = %d   ", evc_idx);
         PT_LOG_TRACE(LOG_CTX_MSG, "iteration = %d and index %d", iteration, index);
