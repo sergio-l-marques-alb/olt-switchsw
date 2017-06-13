@@ -39,14 +39,27 @@ help h:
 	@echo " NOTE: by default -j<MAX_CPU> is used          "
 	@echo ""
 
-NUMBER_OF_CPUS=$(shell grep -c '^processor' /proc/cpuinfo)
-# For machines with only 2 processores/cores, consider only one to avoid CPU congestion
-ifeq ($(NUMBER_OF_CPUS), 2)
-NUMBER_OF_CPUS=1
+# Maximum number of CPUs to be used
+MAX_CPUS = $(shell grep -c '^processor' /proc/cpuinfo)
+
+# if SWDRVR_MULTICORE is not defined, parallel board compilation will be done with all available cores
+ifeq ($(SWDRVR_MULTICORE), )
+export NUM_CPUS = $(MAX_CPUS)
+EXTRA_FLAGS+=-j$(MAX_CPUS)
+
+# if SWDRVR_MULTICORE is null, serial board compilation is done, but each board will be compiled with all available CPUs
+else ifeq ($(SWDRVR_MULTICORE), 0)
+export NUM_CPUS = $(MAX_CPUS)
+EXTRA_FLAGS+=
+
+# if SWDRVR_MULTICORE has a positive number, compile all boards with the specified number of CPUs
+else
+export NUM_CPUS = $(SWDRVR_MULTICORE)
+EXTRA_FLAGS+=-j$(SWDRVR_MULTICORE)
 endif
 
 # Set by default to use the maximum CPUs available
-export MAKEFLAGS += --no-print-directory -j$(NUMBER_OF_CPUS)
+export MAKEFLAGS += --no-print-directory $(EXTRA_FLAGS)
 
 # Disable jobserver if multiple targets are detected
 ifneq ($(words $(MAKECMDGOALS)), 0)
