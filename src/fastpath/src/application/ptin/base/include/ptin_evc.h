@@ -37,13 +37,12 @@ typedef struct ptinExtNGEvcIdInfoData_s
   void *next;
 } ptinExtNGEvcIdInfoData_t;
 
-typedef struct {
+typedef struct ptinExtNGEvcIdAvlTree_s
+{
   avlTree_t                 extNGEvcIdAvlTree;
   avlTreeTables_t           *extNGEvcIdTreeHeap;
   ptinExtNGEvcIdInfoData_t  *extNGEvcIdDataHeap;
 } ptinExtNGEvcIdAvlTree_t;
-
-ptinExtNGEvcIdAvlTree_t extNGEvcId_avlTree;
 
 #endif
 /**
