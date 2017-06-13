@@ -266,7 +266,6 @@ static dl_queue_t queue_free_evcs;    /* Queue of free EVCs entries */
 static dl_queue_t queue_free_clients; /* Clients (busy) queues are mapped on each interface per EVC */
 static dl_queue_t queue_free_probes;  /* Queue of free MC probes */
 
-#if (1)   /* EVCid extended feature */
 /* Vlan Queues */
 static struct ptin_vlan_s       vlans_pool[1<<12];              /* 4096 VLANs */
 
@@ -281,7 +280,6 @@ typedef enum
 } ptin_evc_type_enum_t;
 
 static dl_queue_t queue_free_vlans[PTIN_VLAN_TYPE_MAX];
-#endif
 
 /* List with all the ports/lags used by EVCs */
 static L7_uint8 evcs_intfs_in_use[PTIN_SYSTEM_N_INTERF];
@@ -308,7 +306,6 @@ static L7_uint16 n_quattro_igmp_evcs = 0;
 #define IS_EVC_P2MP(evc_id)           ((evcs[evc_id].flags & PTIN_EVC_MASK_P2P    ) == 0 )
 #define IS_EVC_QUATTRO(evc_id)        ((evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO )
 #define IS_EVC_STD(evc_id)            ((evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == 0 )
-#define IS_EVC_ETREE(evc_id)          ((evcs[evc_id].flags & PTIN_EVC_MASK_ETREE  ) == PTIN_EVC_MASK_ETREE )
 
 #define IS_EVC_STD_P2P(evc_id)        (IS_EVC_STD(evc_id) && IS_EVC_P2P(evc_id))
 #define IS_EVC_STD_P2MP(evc_id)       (IS_EVC_STD(evc_id) && IS_EVC_P2MP(evc_id))
@@ -2759,7 +2756,6 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
     PT_LOG_TRACE(LOG_CTX_EVC, "eEVC# %u: allocated new internal EVC id %u...", evc_ext_id, evc_id);
 
     /* Allocate queue of free vlans */
-    #if (1)   /* EVCid extended feature */
     if (evcConf->internal_vlan < PTIN_VLAN_MIN || evcConf->internal_vlan > PTIN_VLAN_MAX)
     {
       if (ptin_evc_freeVlanQueue_allocate(evc_id, evcConf->flags, &freeVlan_queue) != L7_SUCCESS) 
@@ -2784,9 +2780,6 @@ L7_RC_t ptin_evc_create(ptin_HwEthMef10Evc_t *evcConf)
       /* No queue to be used */
       freeVlan_queue = L7_NULLPTR;
     }
-    #else
-    freeVlan_queue = L7_NULLPTR;
-    #endif
     
     /* Check if there are enough internal VLANs on the pool
      *  P2P:  only one internal VLAN is needed (shared among all the ports)
@@ -9099,10 +9092,8 @@ static void ptin_evc_entry_init(L7_uint evc_id)
     }
   }
 
-  #if (1)   /* EVCid extended feature */
   /* Release free vlan queue */
   ptin_evc_freeVlanQueue_free(evcs[evc_id].queue_free_vlans);
-  #endif
 
   /* Reset EVC entry (set all memory to 0x00) */
   memset(&evcs[evc_id], 0x00, sizeof(evcs[evc_id]));
@@ -10064,7 +10055,6 @@ static void ptin_evc_find_flow_fromVPort(L7_uint32 vport_id, dl_queue_t *queue, 
  */
 static void ptin_evc_vlan_pool_init(void)
 {
-#if (1)   /* EVCid extended feature */
   L7_uint i;
   //L7_uint block;
 
@@ -10114,7 +10104,6 @@ static void ptin_evc_vlan_pool_init(void)
   }
   PT_LOG_TRACE(LOG_CTX_EVC,"QUATTRO vlans (type=%u): %u - %u", PTIN_VLAN_TYPE_QUATTRO, PTIN_SYSTEM_EVC_QUATTRO_VLAN_MIN, i-1);
   #endif
-#endif
 
   /* Reset 'evcId reference from internal vlan' array*/
   memset(evcId_from_internalVlan, 0xff, sizeof(evcId_from_internalVlan));
