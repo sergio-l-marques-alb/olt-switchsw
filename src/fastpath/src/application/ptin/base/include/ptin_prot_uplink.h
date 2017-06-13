@@ -108,6 +108,7 @@ typedef struct {
     L7_uint16 WaitToRestoreTimer;   ///< in seconds
 
     L7_uint32 alarmsEnFlag;         ///< UPLINK_PortAlarmsMaskEn_t
+    L7_uint32 flags;                /// Other flags
 
     L7_uint32 intIfNumW;
     L7_uint32 intIfNumP;
@@ -180,11 +181,13 @@ extern L7_RC_t ptin_prot_uplink_init(void);
  * @param restore_time : Restoration time
  * @param operationMode : Should revert to working?
  * @param alarmFlagsEn : Alarm flags enable 
+ * @param flags : Other flags 
  * @param force : Force (re)creation if group already exists 
  *  
  * @return L7_RC_t   
  */
-extern L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_t *intf2, L7_uint32 restore_time, L7_uint8 operationMode, L7_uint32 alarmFlagsEn, L7_BOOL force);
+extern L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_t *intf2,
+                                       L7_uint32 restore_time, L7_uint8 operationMode, L7_uint32 alarmFlagsEn, L7_uint32 flags, L7_BOOL force);
 
 /**
  * Remove protection group

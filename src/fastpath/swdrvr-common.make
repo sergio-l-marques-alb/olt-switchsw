@@ -12,8 +12,8 @@ MV    =	mv
 CP    =	cp
 TAR   = tar
 
-#NUM_CPUS = 1
-NUM_CPUS = $(shell grep -c 'model name' /proc/cpuinfo)
+#By default use all available CPUs
+NUM_CPUS ?= $(shell grep -c 'model name' /proc/cpuinfo)
 
 CURRENT_PATH ?= $(shell pwd)
 FP_FOLDER    ?= $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
@@ -50,6 +50,7 @@ export LVL7_MAKEFILE_DISPLAY_MODE ?= S
 
 all: welcome setsdk cli shell mgmd
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
+	@echo "Compiling switchdrvr for $(BOARD) with $(NUM_CPUS) cores..."
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)
 	@if [ -f $(BIN_PATH)/$(BIN_FILE) ]; then\
 		echo "Saving original $(BIN_FILE) binary...";\

@@ -2534,6 +2534,7 @@ typedef struct
     unsigned char   WaitToRestoreTimer; // Restoration Wait time to Working if Auto-reverse is active (in minutes)
 
     unsigned long   alarmsEnFlag;       // Alarms enable flags (PROT_PortAlarmsMask_t)
+    unsigned char   flags;              // bitmask[0x01] -> 1=laser ON / 0=laser OFF
 
     unsigned char   slotW;              // Working slot (0 for LAG, other for physical ports)
     unsigned char   portW;              // Working port (LAG id or port index of the slot)
@@ -2554,7 +2555,8 @@ typedef enum
    HWUPLINKPROT_CONFMASK_portW =              0x0040,
    HWUPLINKPROT_CONFMASK_slotP =              0x0080,
    HWUPLINKPROT_CONFMASK_portP =              0x0100,
-   HWUPLINKPROT_CONFMASK_All =                0x01FF,
+   HWUPLINKPROT_CONFMASK_flags =              0x0200,
+   HWUPLINKPROT_CONFMASK_All =                0x03FF,
 } HWUPLINKPROT_CONFMASK;
 
 typedef struct

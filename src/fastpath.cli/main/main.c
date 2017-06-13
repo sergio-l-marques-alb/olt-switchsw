@@ -2896,6 +2896,7 @@ int main (int argc, char *argv[])
 
         /* Default values */
         ptr->protParams.alarmsEnFlag  = ENDIAN_SWAP32(0xffff);
+        ptr->protParams.flags         = ENDIAN_SWAP8(0);
         ptr->protParams.OperationMode = ENDIAN_SWAP8(0);
         ptr->protParams.WaitToRestoreTimer = ENDIAN_SWAP8(0);
         ptr->protParams.HoldOffTimer  = ENDIAN_SWAP8(0);
@@ -2994,6 +2995,7 @@ int main (int argc, char *argv[])
 
         /* Default values */
         ptr->protParams.alarmsEnFlag  = ENDIAN_SWAP32(0xffff);
+        ptr->protParams.flags         = ENDIAN_SWAP8(0);
         ptr->protParams.OperationMode = ENDIAN_SWAP8(0);
         ptr->protParams.WaitToRestoreTimer = ENDIAN_SWAP8(0);
         ptr->protParams.HoldOffTimer  = ENDIAN_SWAP8(0);
@@ -9060,6 +9062,7 @@ int main (int argc, char *argv[])
             printf(" protParams.HoldOffTimer      = %u\r\n", ENDIAN_SWAP8 (ptr[i].protParams.HoldOffTimer));
             printf(" protParams.WaitToRestoreTimer= %u\r\n", ENDIAN_SWAP8 (ptr[i].protParams.WaitToRestoreTimer));
             printf(" protParams.alarmsEnFlag      = 0x%08lx\r\n", ENDIAN_SWAP32(ptr[i].protParams.alarmsEnFlag));
+            printf(" protParams.flags             = 0x%02x\r\n",  ENDIAN_SWAP8 (ptr[i].protParams.flags));
             printf(" protParams.slotW/portW       = %u / %u\r\n", ENDIAN_SWAP8 (ptr[i].protParams.slotW), ENDIAN_SWAP8 (ptr[i].protParams.portW));
             printf(" protParams.slotP/portP       = %u / %u\r\n", ENDIAN_SWAP8 (ptr[i].protParams.slotP), ENDIAN_SWAP8 (ptr[i].protParams.portP));
           }
