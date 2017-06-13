@@ -9533,7 +9533,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
     #if ( PTIN_BOARD_IS_MATRIX )
     if (is_p2p || !IS_EVC_ETREE(evc_id))
     #else
-    if (!IS_EVC_ETREE(evc_id) && !is_stacked && !is_quattro)
+    if (!IS_EVC_ETREE(evc_id) /*&& !is_stacked*/ && !is_quattro && (out_vlan >= 1 && out_vlan <= 4095))
     #endif
     {
       /* Add translations for leaf ports, only if we are in matrix board */
