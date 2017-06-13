@@ -383,7 +383,7 @@ static L7_RC_t ptin_evc_flow_unconfig(L7_int evc_id, L7_int ptin_port, L7_int16 
 #endif
 
 #ifdef NGPON2_SUPPORTED
-static ptinExtNGEvcIdAvlTree_t extNGEvcId_avlTree;
+ptinExtNGEvcIdAvlTree_t extNGEvcId_avlTree;
 #endif
 /* Local functions prototypes */
 static L7_RC_t ptin_evc_pclientFlow_clean( L7_uint evc_id, L7_uint ptin_port, struct ptin_evc_client_s *pclientFlow, L7_BOOL force );
@@ -9257,7 +9257,9 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
   else
   {
     if (!IS_EVC_ETREE(evc_id))
+    {
       int_vlan = evcs[evc_id].rvlan;     /* Internal VLAN is the same for all interfaces, including leafs */
+    }
     else
     {
     #if (!PTIN_BOARD_IS_MATRIX)
@@ -11384,6 +11386,7 @@ static L7_RC_t switching_elan_leaf_add(ptin_HwEthMef10Intf_t *intf_vlan,
     }
     else
     {
+      /* Inverted logic: comparison is related to ingress, but the applied action is related to egress */
       intf_vlan_set.action_inner = (intf_vlan->action_inner == PTIN_XLATE_ACTION_ADD) ? PTIN_XLATE_ACTION_DELETE : intf_vlan->action_inner;
     }
 

@@ -44,6 +44,8 @@ typedef struct ptinExtNGEvcIdAvlTree_s
   ptinExtNGEvcIdInfoData_t  *extNGEvcIdDataHeap;
 } ptinExtNGEvcIdAvlTree_t;
 
+extern ptinExtNGEvcIdAvlTree_t extNGEvcId_avlTree;
+
 #endif
 /**
  * Initializes EVCs data structures
