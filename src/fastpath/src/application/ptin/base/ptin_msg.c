@@ -6705,7 +6705,6 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
           evcReplicate[evc_id].vid           = ptinEvcBridge.intf.vid;
           evcReplicate[evc_id].mef_type      = ptinEvcBridge.intf.mef_type;
 
-          PT_LOG_ERR(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
           NGPON2_EVC_ADD(evcReplicate[evc_id].ngpon2_bmp, ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);    
         
           PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
@@ -6718,7 +6717,6 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
 
           NGPON2_EVC_ADD(NGPON2_GROUP.evc_groups_pbmp[index], position);
           PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.evc_groups_pbmp[index] %d ",NGPON2_GROUP.evc_groups_pbmp[index]);
-          //NGPON2_GROUP.number_services++;
 
           set_NGPON2_group_info(&NGPON2_GROUP, msgEvcBridge->intf.intf_id);         
         }
@@ -6742,7 +6740,7 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
     PT_LOG_DEBUG(LOG_CTX_MSG, "intf_type: %u", msgEvcBridge->intf.intf_type);
-    PT_LOG_DEBUG(LOG_CTX_MSG, "mef_type: %u", msgEvcBridge->intf.mef_type);
+    PT_LOG_DEBUG(LOG_CTX_MSG, "mef_type: %u",  msgEvcBridge->intf.mef_type);
     PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
                  ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
                  ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
@@ -17682,7 +17680,6 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
         {
           if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
           {
-
             memset(&client,0x00,sizeof(ptin_client_id_t));
             if (msg[messageIterator].client.mask & MSG_CLIENT_OVLAN_MASK)
             {
@@ -17704,6 +17701,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
             rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
             if ( rc != L7_SUCCESS )
             {
+              j++;
               PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
               continue;
             }
@@ -17747,7 +17745,6 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
             }
             else
             {
-#ifdef NGPON2_SUPPORTED 
               L7_uint32 evc_id;
               /* Is EVC in use? */
               if (ptin_evc_ext2int(msg[messageIterator].evcId, &evc_id) == L7_SUCCESS)
@@ -17765,7 +17762,6 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
                       &msg[messageIterator].client, 
                       sizeof(ptin_client_id_t));
               }
-#endif
             }
             j++;
           }
