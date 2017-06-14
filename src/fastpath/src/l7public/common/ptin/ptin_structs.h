@@ -601,8 +601,8 @@ typedef enum
   PTIN_XLATE_ACTION_REPLACE,     /* = bcmVlanActionReplace, */
   PTIN_XLATE_ACTION_DELETE,      /* = bcmVlanActionDelete,  */
   PTIN_XLATE_ACTION_COPY,        /* = bcmVlanActionCopy,    */
+  PTIN_XLATE_ACTION_MAX
 } ptin_vlanXlate_action_enum;
-
 
 /* Structure used to configure translation entries */
 typedef struct {

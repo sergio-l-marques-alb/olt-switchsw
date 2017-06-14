@@ -18,6 +18,11 @@
 #define PTIN_XLATE_PORTGROUP_ROOTS_10G    (PTIN_XLATE_PORTGROUP_SPECIAL_BASE+2)     /* 10G Root ports */
 
 /**
+ * Inline functions
+ */
+inline char ptin_vlanxlate_action_getchar(ptin_vlanXlate_action_enum action);
+
+/**
  * Module initialization function
  * 
  * @return L7_RC_t : L7_SUCCESS or L7_FAILURE

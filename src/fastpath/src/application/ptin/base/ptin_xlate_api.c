@@ -113,6 +113,22 @@ static L7_RC_t xlate_portgroup_from_intf(L7_uint32 intIfNum, L7_uint32 *portgrou
 
 static L7_RC_t ptin_xlate_PVID_init(void);
 
+/**
+ * Inline functions
+ */
+#define VLANXLATE_ACTION_CHARS { 'N', 'A', 'R', 'D', 'C', '?'}
+inline char ptin_vlanxlate_action_getchar(ptin_vlanXlate_action_enum action)
+{
+  char char_list[] = VLANXLATE_ACTION_CHARS;
+
+  if (action >= PTIN_XLATE_ACTION_MAX)
+  {
+    return char_list[PTIN_XLATE_ACTION_MAX];
+  }
+  return char_list[action];
+}
+
+
 
 /**
  * Add ingress translation entry

@@ -75,6 +75,10 @@ struct ptin_evc_client_s {
   L7_uint16  uni_ovid;      /* S' -> Translated S-VLAN (depends on S+C) */
   L7_uint16  uni_ivid;      /* Inner S' -> Translated C-VLAN */
 
+  /* VLAN actions */
+  ptin_vlanXlate_action_enum action_outer_vlan;
+  ptin_vlanXlate_action_enum action_inner_vlan;
+
   L7_uint16  client_vid;   /* Vlan identifying client (usually is the inner vlan) */
 
   /* GEM ids which will be flooded the ARP packets */
@@ -111,6 +115,9 @@ struct ptin_evc_intf_s {
                              *        (on p2multipoint services we allow a S->S'
                              *         xlate per leaf port) */
   L7_uint16  inner_vlan;    /* Inner VLAN */
+  /* VLAN actions */
+  ptin_vlanXlate_action_enum action_outer_vlan;
+  ptin_vlanXlate_action_enum action_inner_vlan;
 
   L7_uint16  int_vlan;      /* Internal VLAN:
                              *  point-to-point - NOT APPLICABLE
@@ -4337,6 +4344,8 @@ L7_RC_t ptin_evc_p2p_bridge_add(ptin_HwEthEvcBridge_t *evcBridge)
   pclient->int_ivid   = evcBridge->inn_vlan;
   pclient->uni_ovid   = evcBridge->intf.vid;
   pclient->uni_ivid   = 0;
+  pclient->action_outer_vlan = intf_vlan.action_outer;
+  pclient->action_inner_vlan = intf_vlan.action_inner;
   pclient->client_vid = evcBridge->inn_vlan;
   /* Save protocol enable flags */
   pclient->flags    = evcs[evc_id].flags & (PTIN_EVC_MASK_IGMP_PROTOCOL | PTIN_EVC_MASK_DHCPV4_PROTOCOL | PTIN_EVC_MASK_PPPOE_PROTOCOL);
@@ -4572,13 +4581,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
 
   /* Delete client from the EVC struct */
   dl_queue_remove(&evcs[evc_id].intf[leaf_intf].clients, (dl_queue_elem_t*) pclient);
-  pclient->in_use     = L7_FALSE;
-  pclient->int_ovid   = 0;
-  pclient->int_ivid   = 0;
-  pclient->uni_ovid   = 0;
-  pclient->uni_ivid   = 0;
-  pclient->client_vid = 0;
-  pclient->flags      = 0;
+  memset(pclient, 0x00, sizeof(struct ptin_evc_client_s));
   dl_queue_add_tail(&queue_free_clients, (dl_queue_elem_t*) pclient);
   evcs[evc_id].n_clientflows--;
 
@@ -5462,6 +5465,8 @@ L7_RC_t ptin_evc_flow_add(ptin_HwEthEvcFlow_t *evcFlow)
     pflow->int_ivid   = evcFlow->int_ivid;
     pflow->uni_ovid   = evcFlow->uni_ovid;
     pflow->uni_ivid   = evcFlow->uni_ivid;
+    pflow->action_outer_vlan = PTIN_XLATE_ACTION_REPLACE;
+    pflow->action_inner_vlan = PTIN_XLATE_ACTION_NONE;
     pflow->client_vid = evcFlow->uni_ivid;
     pflow->flags      = 0; //evcFlow->flags;    /* Initial value: no flags exist */
     pflow->virtual_gport = vport_id;
@@ -9258,12 +9263,32 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
     /* Data to be used to add interface */
     intf_vlan = *intf_cfg;
 
+#if (PTIN_BOARD_IS_GPON)
+    /* For Stacked bitstream services, where P2MP EVCs will be used,
+       if a Leaf interface only has 1 VLAN defined (outer-vlan), it means we have to push/pop the inner VLAN...
+       The easiest way to do that is to configure a single bridge-client to this EVC */
+    if (!IS_EVC_ETREE(evc_id) && !is_quattro && is_stacked && !cpu_trap && !is_root &&
+        (IS_VLAN_VALID(intf_cfg->vid) && IS_VLAN_VALID(intf_cfg->vid_inner)) )
+    {
+      /* Add inner vlan @ ingress / Remove inner vlan @ egress */
+      intf_cfg->action_outer  = PTIN_XLATE_ACTION_REPLACE;
+      intf_cfg->action_inner  = PTIN_XLATE_ACTION_ADD;
+      rc = switching_elan_leaf_add(intf_cfg, evcs[evc_id].rvlan, L7_TRUE, -1);
+
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "Error configuring single client for Stacked-Bitstream EVCs (rc=%d)", rc);
+        return L7_FAILURE;
+      }
+      PT_LOG_TRACE(LOG_CTX_EVC, "Single client for Stacked-Bitstream EVCs successfully configured");
+    }
+    else
     /* Add translations for leaf ports */
-    #if ( PTIN_BOARD_IS_MATRIX )
+#elif ( PTIN_BOARD_IS_MATRIX )
     if (is_p2p || !IS_EVC_ETREE(evc_id))
-    #else
-    if (!IS_EVC_ETREE(evc_id) && /*!is_stacked &&*/ !is_quattro && (intf_vlan.vid >= 1 && intf_vlan.vid <= 4095))
-    #endif
+#else
+    if (!IS_EVC_ETREE(evc_id) && !is_stacked && !is_quattro)
+#endif
     {
       /* Only configure MC EVC partially if we are not at MX */
       #if ( !PTIN_BOARD_IS_MATRIX )
@@ -9385,6 +9410,8 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
     PT_LOG_TRACE(LOG_CTX_EVC, "vid %u, vid_inner %u", intf_cfg->vid, intf_cfg->vid_inner);
     evcs[evc_id].intf[ptin_port].out_vlan   = intf_cfg->vid;
     evcs[evc_id].intf[ptin_port].inner_vlan = intf_cfg->vid_inner;
+    evcs[evc_id].intf[ptin_port].action_outer_vlan = (IS_VLAN_VALID(intf_cfg->vid))       ? intf_cfg->action_outer : PTIN_XLATE_ACTION_MAX;
+    evcs[evc_id].intf[ptin_port].action_inner_vlan = (IS_VLAN_VALID(intf_cfg->vid_inner)) ? intf_cfg->action_inner : PTIN_XLATE_ACTION_MAX;
   }
 
   evcs[evc_id].intf[ptin_port].counter   = L7_NULLPTR;
@@ -9458,7 +9485,7 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
 static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
 {
   L7_BOOL is_p2p, is_quattro, is_stacked, iptv_flag;
-  L7_BOOL            is_root;
+  L7_BOOL            is_root, cpu_trap;
   L7_uint16          out_vlan;
   L7_uint16          inn_vlan;
   L7_uint16          int_vlan;
@@ -9473,6 +9500,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
   is_quattro = (evcs[evc_id].flags & PTIN_EVC_MASK_QUATTRO) == PTIN_EVC_MASK_QUATTRO;
   is_stacked = (evcs[evc_id].flags & PTIN_EVC_MASK_STACKED) == PTIN_EVC_MASK_STACKED;
   iptv_flag  = (evcs[evc_id].flags & PTIN_EVC_MASK_MC_IPTV) == PTIN_EVC_MASK_MC_IPTV;
+  cpu_trap   = (evcs[evc_id].flags & PTIN_EVC_MASK_CPU_TRAPPING) == PTIN_EVC_MASK_CPU_TRAPPING;
   is_root    = evcs[evc_id].intf[ptin_port].type == PTIN_EVC_INTF_ROOT;
   out_vlan   = evcs[evc_id].intf[ptin_port].out_vlan;
   inn_vlan   = evcs[evc_id].intf[ptin_port].inner_vlan;
@@ -9531,14 +9559,31 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
     }
     evcs[evc_id].n_leafs--;
 
-    #if ( PTIN_BOARD_IS_MATRIX )
+#if (PTIN_BOARD_IS_GPON)
+    /* For Stacked bitstream services, where P2MP EVCs will be used,
+       if a Leaf interface only has 1 VLAN defined (outer-vlan), it means we have to push/pop the inner VLAN...
+       The easiest way to do that is to configure a single bridge-client to this EVC.
+       When removing this interface, we have to remove thi single bridge-client. */
+    if (!IS_EVC_ETREE(evc_id) && !is_quattro && is_stacked && !cpu_trap && !is_root &&
+        (IS_VLAN_VALID(out_vlan) && IS_VLAN_VALID(inn_vlan)) )
+    {
+      rc = switching_elan_leaf_remove(ptin_port, out_vlan, inn_vlan, evcs[evc_id].rvlan);
+
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_EVC, "Error removing single client for Stacked-Bitstream EVCs (rc=%d)", rc);
+        return L7_FAILURE;
+      }
+      PT_LOG_TRACE(LOG_CTX_EVC, "Removed single-bridge client for Stacked-Bitstream EVCs");
+    }
+    else
+#elif ( PTIN_BOARD_IS_MATRIX )
     if (is_p2p || !IS_EVC_ETREE(evc_id))
-    #else
-    if (!IS_EVC_ETREE(evc_id) /*&& !is_stacked*/ && !is_quattro && (out_vlan >= 1 && out_vlan <= 4095))
-    #endif
+#else
+    if (!IS_EVC_ETREE(evc_id) && !is_stacked && !is_quattro)
+#endif
     {
       /* Add translations for leaf ports, only if we are in matrix board */
-      L7_RC_t rc;
 
       /* Only configure MC EVC partially if we are not at MX */
       #if ( !PTIN_BOARD_IS_MATRIX )
@@ -12788,12 +12833,23 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
       else
         printf("  LAG# %02u\n", i - PTIN_SYSTEM_N_PORTS);
 
-      printf("    MEF Type      = %s          ", evcs[evc_id].intf[i].type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf");
+      printf("    MEF Type      = %s               ", evcs[evc_id].intf[i].type == PTIN_EVC_INTF_ROOT ? "Root":"Leaf");
       if (IS_EVC_IPTV(evc_id) && evcs[evc_id].intf[i].type == PTIN_EVC_INTF_LEAF)
         printf("l3IntfId = %u  ", evcs[evc_id].intf[i].l3_intf_id);
       printf("\r\n");
-      printf("    Ext. VLAN     = %-5u+%-5u   Counter  = %s\n", evcs[evc_id].intf[i].out_vlan, evcs[evc_id].intf[i].inner_vlan, evcs[evc_id].intf[i].counter != NULL ? "Active":"Disabled");
-      printf("    Internal VLAN = %-5u         BW Prof. = %s\n", evcs[evc_id].intf[i].int_vlan, evcs[evc_id].intf[i].bwprofile[0] != NULL ? "Active":"Disabled");
+      printf("    Ext. VLAN     = ");
+      if (IS_VLAN_VALID(evcs[evc_id].intf[i].out_vlan))
+        printf("%c:%-5u", ptin_vlanxlate_action_getchar(evcs[evc_id].intf[i].action_outer_vlan), evcs[evc_id].intf[i].out_vlan);
+      else
+        printf("undef  ");
+      if (IS_VLAN_VALID(evcs[evc_id].intf[i].inner_vlan))
+        printf("+ %c:%-5u", ptin_vlanxlate_action_getchar(evcs[evc_id].intf[i].action_inner_vlan), evcs[evc_id].intf[i].inner_vlan);
+      else
+        printf("         ");
+      printf("   Counter  = %s\n", evcs[evc_id].intf[i].counter != NULL ? "Active":"Disabled");
+
+      printf("    Internal VLAN = %-5u           ", evcs[evc_id].intf[i].int_vlan);
+      printf("   BW Prof. = %s\n", evcs[evc_id].intf[i].counter != NULL ? "Active":"Disabled");
       #ifdef PTIN_ERPS_EVC
       printf("    Port State    = %s\n", evcs[evc_id].intf[i].portState == PTIN_EVC_PORT_BLOCKING ? "Blocking":"Forwarding");
       #endif
@@ -12813,14 +12869,18 @@ void ptin_evc_dump(L7_uint32 evc_ext_id)
           #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
           if (IS_EVC_QUATTRO(evc_id))
           {
-            printf("      Flow# %-2u: flags=0x%04x int_vid=%4u+%-4u<->uni_vid=%4u+%-4u (gport=0x%04x)\r\n",
-                   j, pclientFlow->flags & 0xffff,
-                   pclientFlow->int_ovid, pclientFlow->int_ivid, pclientFlow->uni_ovid, pclientFlow->uni_ivid, pclientFlow->virtual_gport & 0xffff);
+            printf("      Flow# %-2u: flags=0x%04x int_vid=%4u+%-4u<->uni_vid=%4u+%-4u [%c+%c] (gport=0x%04x)\r\n", j,
+                   pclientFlow->flags & 0xffff, pclientFlow->int_ovid, pclientFlow->int_ivid,
+                   pclientFlow->uni_ovid, pclientFlow->uni_ivid,
+                   ptin_vlanxlate_action_getchar(pclientFlow->action_outer_vlan), ptin_vlanxlate_action_getchar(pclientFlow->action_inner_vlan),
+                   pclientFlow->virtual_gport & 0xffff);
           }
           else
           #endif
           {
-            printf("      Client# %2u: VID=%4u+%-4u\r\n", j, pclientFlow->uni_ovid, pclientFlow->int_ivid);
+            printf("      Client# %2u: VID=%4u+%-4u [%c+%c]\r\n", j,
+                   pclientFlow->uni_ovid, pclientFlow->int_ivid,
+                   ptin_vlanxlate_action_getchar(pclientFlow->action_outer_vlan), ptin_vlanxlate_action_getchar(pclientFlow->action_inner_vlan));
           }
 
           pclientFlow = (struct ptin_evc_client_s *) dl_queue_get_next(&evcs[evc_id].intf[i].clients, (dl_queue_elem_t *) pclientFlow);
