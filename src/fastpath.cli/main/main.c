@@ -2852,7 +2852,7 @@ int main (int argc, char *argv[])
       case 1052:
       {
         msg_HWuplinkProtConf *ptr;
-        int type, intf;
+        int slot, port;
         unsigned short mask = 0;
 
         // Validate number of arguments (flow_id + 2 pairs port+svid)
@@ -2875,23 +2875,23 @@ int main (int argc, char *argv[])
         ptr->protIndex = ENDIAN_SWAP16((uint16) valued);
 
         // portW
-        if (sscanf(argv[3+1],"%d/%d",&type,&intf) != 2)
+        if (sscanf(argv[3+1],"%d/%d",&slot,&port) != 2)
         {
           help_oltBuga();
           exit(0);
         }
-        ptr->protParams.slotW = ENDIAN_SWAP8((uint8) type);
-        ptr->protParams.portW = ENDIAN_SWAP8((uint8) intf);
+        ptr->protParams.slotW = ENDIAN_SWAP8((uint8) slot);
+        ptr->protParams.portW = ENDIAN_SWAP8((uint8) port);
         mask |= HWUPLINKPROT_CONFMASK_slotW | HWUPLINKPROT_CONFMASK_portW;
 
         // portP
-        if (sscanf(argv[3+2],"%d/%d",&type,&intf) != 2)
+        if (sscanf(argv[3+2],"%d/%d",&slot,&port) != 2)
         {
           help_oltBuga();
           exit(0);
         }
-        ptr->protParams.slotP = ENDIAN_SWAP8((uint8) type);
-        ptr->protParams.portP = ENDIAN_SWAP8((uint8) intf);
+        ptr->protParams.slotP = ENDIAN_SWAP8((uint8) slot);
+        ptr->protParams.portP = ENDIAN_SWAP8((uint8) port);
         mask |= HWUPLINKPROT_CONFMASK_slotP | HWUPLINKPROT_CONFMASK_portP;
 
         /* Default values */

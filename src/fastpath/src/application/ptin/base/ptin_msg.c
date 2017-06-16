@@ -12533,6 +12533,7 @@ L7_RC_t ptin_msg_uplink_prot_config_get(ipc_msg *inbuffer, ipc_msg *outbuffer)
   uplinkprotParams_st prot_config;
   msg_HWuplinkProtConf *protConfig_in  = (msg_HWuplinkProtConf *) inbuffer->info;
   msg_HWuplinkProtConf *protConfig_out = (msg_HWuplinkProtConf *) outbuffer->info;
+  L7_RC_t rc_global = L7_SUCCESS;
 
   ENDIAN_SWAP8_MOD (protConfig_in->slotId);
   ENDIAN_SWAP16_MOD(protConfig_in->protIndex);
@@ -12544,84 +12545,109 @@ L7_RC_t ptin_msg_uplink_prot_config_get(ipc_msg *inbuffer, ipc_msg *outbuffer)
   PT_LOG_TRACE(LOG_CTX_MSG, " protIndex = %u"  , protConfig_in->protIndex);
   PT_LOG_TRACE(LOG_CTX_MSG, " confMask  = 0x%x", protConfig_in->confMask);
 
-  /* If protIdx is within range, return the statuis of this id */
-  if (protConfig_in->protIndex < MAX_UPLINK_PROT)
+  i = 0;
+  for (protIdx = 0; protIdx < MAX_UPLINK_PROT; protIdx++)
   {
-    protIdx = protConfig_in->protIndex;
+    /* Skip not selected indexes */
+    if (protConfig_in->protIndex < MAX_UPLINK_PROT && protConfig_in->protIndex != protIdx)
+      continue;
 
     memset(&prot_config, 0x00, sizeof(prot_config));
-    if (ptin_prot_uplink_config_get(protIdx, &prot_config) == L7_SUCCESS) 
+    if (ptin_prot_uplink_config_get(protIdx, &prot_config) == L7_SUCCESS)
     {
       /* Convert intIfNum to LagID */
       if (ptin_intf_intIfNum2ptintf(prot_config.intIfNumW, &intfW) != L7_SUCCESS ||
           ptin_intf_intIfNum2ptintf(prot_config.intIfNumP, &intfP) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Error getting ptin_intf value for intIfNum %u or %u", prot_config.intIfNumW, prot_config.intIfNumP);
-        return L7_FAILURE;
+        rc_global = L7_FAILURE;
+        continue;
       }
 
-      memset(protConfig_out, 0x00, sizeof(msg_HWuplinkProtConf));
-      protConfig_out->slotId    = ENDIAN_SWAP8 (protConfig_in->slotId);
-      protConfig_out->protIndex = ENDIAN_SWAP16(protIdx);
-      protConfig_out->confMask  = ENDIAN_SWAP16(0xffff);
-      protConfig_out->protParams.Architecture       = ENDIAN_SWAP8 (0);
-      protConfig_out->protParams.OperationMode      = ENDIAN_SWAP8 (prot_config.revert2working);
-      protConfig_out->protParams.alarmsEnFlag       = ENDIAN_SWAP32(prot_config.alarmsEnFlag);
-      protConfig_out->protParams.flags              = ENDIAN_SWAP8 ((L7_uint8) prot_config.flags);
-      protConfig_out->protParams.WaitToRestoreTimer = ENDIAN_SWAP8 (prot_config.WaitToRestoreTimer);
-      protConfig_out->protParams.HoldOffTimer       = ENDIAN_SWAP8 (prot_config.HoldOffTimer);
-      protConfig_out->protParams.slotW              = ENDIAN_SWAP8 (intfW.intf_type);
-      protConfig_out->protParams.portW              = ENDIAN_SWAP8 (intfW.intf_id);
-      protConfig_out->protParams.slotP              = ENDIAN_SWAP8 (intfP.intf_type);
-      protConfig_out->protParams.portP              = ENDIAN_SWAP8 (intfP.intf_id);
+      memset(&protConfig_out[i], 0x00, sizeof(msg_HWuplinkProtConf));
+      protConfig_out[i].slotId    = ENDIAN_SWAP8 (protConfig_in->slotId);
+      protConfig_out[i].protIndex = ENDIAN_SWAP16(protIdx);
+      protConfig_out[i].confMask  = ENDIAN_SWAP16(0xffff);
+      protConfig_out[i].protParams.Architecture       = ENDIAN_SWAP8 (0);
+      protConfig_out[i].protParams.OperationMode      = ENDIAN_SWAP8 (prot_config.revert2working);
+      protConfig_out[i].protParams.alarmsEnFlag       = ENDIAN_SWAP32(prot_config.alarmsEnFlag);
+      protConfig_out[i].protParams.flags              = ENDIAN_SWAP8 ((L7_uint8) prot_config.flags);
+      protConfig_out[i].protParams.WaitToRestoreTimer = ENDIAN_SWAP8 (prot_config.WaitToRestoreTimer);
+      protConfig_out[i].protParams.HoldOffTimer       = ENDIAN_SWAP8 (prot_config.HoldOffTimer);
 
-      outbuffer->infoDim = sizeof(msg_HWuplinkProtConf);
-    }
-    else
-    {
-      PT_LOG_ERR(LOG_CTX_MSG,"Error reading protection group status");
-      return L7_FAILURE;
-    }
-  }
-  /* Otherwise, return all groups data */
-  else
-  {
-    i = 0;
-    for (protIdx = 0; protIdx < MAX_UPLINK_PROT; protIdx++)
-    {
-      memset(&prot_config, 0x00, sizeof(prot_config));
-      if (ptin_prot_uplink_config_get(protIdx, &prot_config) == L7_SUCCESS)
+      /* For SF boards, the interfaces are given in a Slot/Port format */
+      /* If a LAG need to be specified, Slot needs to be zero */
+
+      /* Working interface */
+      if (intfW.intf_type == PTIN_EVC_INTF_LOGICAL)
       {
-        /* Convert intIfNum to LagID */
-        if (ptin_intf_intIfNum2ptintf(prot_config.intIfNumW, &intfW) != L7_SUCCESS ||
-            ptin_intf_intIfNum2ptintf(prot_config.intIfNumP, &intfP) != L7_SUCCESS)
+        protConfig_out[i].protParams.slotW = ENDIAN_SWAP8(0);
+        protConfig_out[i].protParams.portW = ENDIAN_SWAP8(intfW.intf_id);
+      }
+      else if (intfW.intf_type == PTIN_EVC_INTF_PHYSICAL)
+      {
+      #if (PTIN_BOARD_IS_MATRIX)
+        /* Slot/Port format for SF boards */
+        L7_uint16 slot, port;
+        if (ptin_intf_ptintf2SlotPort(&intfW, &slot, &port, L7_NULLPTR) != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_MSG, "Error getting ptin_intf value for intIfNum %u or %u", prot_config.intIfNumW, prot_config.intIfNumP);
+          PT_LOG_ERR(LOG_CTX_MSG, "Error converting intf %u/%u to slot/port format", intfW.intf_type, intfW.intf_id);
+          rc_global = L7_FAILURE;
           continue;
         }
-
-        memset(&protConfig_out[i], 0x00, sizeof(msg_HWuplinkProtConf));
-        protConfig_out[i].slotId    = ENDIAN_SWAP8 (protConfig_in->slotId);
-        protConfig_out[i].protIndex = ENDIAN_SWAP16(protIdx);
-        protConfig_out[i].confMask  = ENDIAN_SWAP16(0xffff);
-        protConfig_out[i].protParams.Architecture       = ENDIAN_SWAP8 (0);
-        protConfig_out[i].protParams.OperationMode      = ENDIAN_SWAP8 (prot_config.revert2working);
-        protConfig_out[i].protParams.alarmsEnFlag       = ENDIAN_SWAP32(prot_config.alarmsEnFlag);
-        protConfig_out[i].protParams.flags              = ENDIAN_SWAP8 ((L7_uint8) prot_config.flags);
-        protConfig_out[i].protParams.WaitToRestoreTimer = ENDIAN_SWAP8 (prot_config.WaitToRestoreTimer);
-        protConfig_out[i].protParams.HoldOffTimer       = ENDIAN_SWAP8 (prot_config.HoldOffTimer);
-        protConfig_out[i].protParams.slotW              = ENDIAN_SWAP8 (intfW.intf_type);
-        protConfig_out[i].protParams.portW              = ENDIAN_SWAP8 (intfW.intf_id);
-        protConfig_out[i].protParams.slotP              = ENDIAN_SWAP8 (intfP.intf_type);
-        protConfig_out[i].protParams.portP              = ENDIAN_SWAP8 (intfP.intf_id);
-
-        i++;
+        protConfig_out[i].protParams.slotW = ENDIAN_SWAP8((L7_uint8) slot);
+        protConfig_out[i].protParams.portW = ENDIAN_SWAP8((L7_uint8) port);
+      #else
+        /* For other boards, any slot!=0 will refer to a physical port */
+        protConfig_out[i].protParams.slotW = ENDIAN_SWAP8(0xff);
+        protConfig_out[i].protParams.portW = ENDIAN_SWAP8(intfW.intf_id);
+      #endif
       }
-    }
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Port type (%u) not supported", intfW.intf_type);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+      /* Protection interface */
+      if (intfP.intf_type == PTIN_EVC_INTF_LOGICAL)
+      {
+        protConfig_out[i].protParams.slotP = ENDIAN_SWAP8(0);
+        protConfig_out[i].protParams.portP = ENDIAN_SWAP8(intfP.intf_id);
+      }
+      else if (intfP.intf_type == PTIN_EVC_INTF_PHYSICAL)
+      {
+      #if (PTIN_BOARD_IS_MATRIX)
+        /* Slot/Port format for SF boards */
+        L7_uint16 slot, port;
+        if (ptin_intf_ptintf2SlotPort(&intfP, &slot, &port, L7_NULLPTR) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG, "Error converting intf %u/%u to slot/port format", intfP.intf_type, intfP.intf_id);
+          rc_global = L7_FAILURE;
+          continue;
+        }
+        protConfig_out[i].protParams.slotP = ENDIAN_SWAP8((L7_uint8) slot);
+        protConfig_out[i].protParams.portP = ENDIAN_SWAP8((L7_uint8) port);
+      #else
+        /* For other boards, any slot!=0 will refer to a physical port */
+        protConfig_out[i].protParams.slotP = ENDIAN_SWAP8(0xff);
+        protConfig_out[i].protParams.portP = ENDIAN_SWAP8(intfP.intf_id);
+      #endif
+      }
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Port type (%u) not supported", intfP.intf_type);
+        rc_global = L7_FAILURE;
+        continue;
+      }
 
-    outbuffer->infoDim = sizeof(msg_HWuplinkProtConf) * i;
+      i++;
+    }
   }
-  return L7_SUCCESS;
+
+  outbuffer->infoDim = sizeof(msg_HWuplinkProtConf) * i;
+
+  return rc_global;
 }
 
 /**
@@ -12654,63 +12680,35 @@ L7_RC_t ptin_msg_uplink_prot_status(ipc_msg *inbuffer, ipc_msg *outbuffer)
     protStatus_in->protIndex = (unsigned short) -1;
   }
 
-  /* If protIdx is within range, return the statuis of this id */
-  if (protStatus_in->protIndex < MAX_UPLINK_PROT)
+  i = 0;
+  for (protIdx = 0; protIdx < MAX_UPLINK_PROT; protIdx++)
   {
-    protIdx = protStatus_in->protIndex;
+    /* Skip not selected indexes */
+    if (protStatus_in->protIndex < MAX_UPLINK_PROT && protStatus_in->protIndex != protIdx)
+      continue;
 
     memset(&prot_status, 0x00, sizeof(prot_status));
-    if (ptin_prot_uplink_status(protIdx, &prot_status) == L7_SUCCESS) 
+    if (ptin_prot_uplink_status(protIdx, &prot_status) == L7_SUCCESS)
     {
-      memset(protStatus_out, 0x00, sizeof(msg_HWuplinkProtStatus));
-      protStatus_out->slotId              = ENDIAN_SWAP8 (protStatus_in->slotId);
-      protStatus_out->protIndex           = ENDIAN_SWAP16(protIdx);
-      protStatus_out->mask                = ENDIAN_SWAP16(0xffff);
-      protStatus_out->activePortType      = ENDIAN_SWAP8 (prot_status.activePortType);
-      protStatus_out->alarmsW             = ENDIAN_SWAP32(prot_status.alarmsW);
-      protStatus_out->alarmsP             = ENDIAN_SWAP32(prot_status.alarmsP);
-      protStatus_out->alarmsMaskW         = ENDIAN_SWAP32(prot_status.alarmsMaskW);
-      protStatus_out->alarmsMaskP         = ENDIAN_SWAP32(prot_status.alarmsMaskP);
-      protStatus_out->lastSwitchoverCause = ENDIAN_SWAP8 (prot_status.lastSwitchoverCause);
-      protStatus_out->WaitToRestoreTimer  = ENDIAN_SWAP16(prot_status.WaitToRestoreTimer);
-      protStatus_out->HoldOffTimer        = ENDIAN_SWAP16(prot_status.HoldOffTimer);
+      memset(&protStatus_out[i], 0x00, sizeof(msg_HWuplinkProtStatus));
+      protStatus_out[i].slotId              = ENDIAN_SWAP8 (protStatus_in->slotId);
+      protStatus_out[i].protIndex           = ENDIAN_SWAP16(protIdx);
+      protStatus_out[i].mask                = ENDIAN_SWAP16(0xffff);
+      protStatus_out[i].activePortType      = ENDIAN_SWAP8 (prot_status.activePortType);
+      protStatus_out[i].alarmsW             = ENDIAN_SWAP32(prot_status.alarmsW);
+      protStatus_out[i].alarmsP             = ENDIAN_SWAP32(prot_status.alarmsP);
+      protStatus_out[i].alarmsMaskW         = ENDIAN_SWAP32(prot_status.alarmsMaskW);
+      protStatus_out[i].alarmsMaskP         = ENDIAN_SWAP32(prot_status.alarmsMaskP);
+      protStatus_out[i].lastSwitchoverCause = ENDIAN_SWAP8 (prot_status.lastSwitchoverCause);
+      protStatus_out[i].WaitToRestoreTimer  = ENDIAN_SWAP16(prot_status.WaitToRestoreTimer);
+      protStatus_out[i].HoldOffTimer        = ENDIAN_SWAP16(prot_status.HoldOffTimer);
 
-      outbuffer->infoDim = sizeof(msg_HWuplinkProtStatus);
-    }
-    else
-    {
-      PT_LOG_ERR(LOG_CTX_MSG,"Error reading protection group status");
-      return L7_FAILURE;
+      i++;
     }
   }
-  /* Otherwise, return all groups data */
-  else
-  {
-    i = 0;
-    for (protIdx = 0; protIdx < MAX_UPLINK_PROT; protIdx++)
-    {
-      memset(&prot_status, 0x00, sizeof(prot_status));
-      if (ptin_prot_uplink_status(protIdx, &prot_status) == L7_SUCCESS)
-      {
-        memset(&protStatus_out[i], 0x00, sizeof(msg_HWuplinkProtStatus));
-        protStatus_out[i].slotId              = ENDIAN_SWAP8 (protStatus_in->slotId);
-        protStatus_out[i].protIndex           = ENDIAN_SWAP16(protIdx);
-        protStatus_out[i].mask                = ENDIAN_SWAP16(0xffff);
-        protStatus_out[i].activePortType      = ENDIAN_SWAP8 (prot_status.activePortType);
-        protStatus_out[i].alarmsW             = ENDIAN_SWAP32(prot_status.alarmsW);
-        protStatus_out[i].alarmsP             = ENDIAN_SWAP32(prot_status.alarmsP);
-        protStatus_out[i].alarmsMaskW         = ENDIAN_SWAP32(prot_status.alarmsMaskW);
-        protStatus_out[i].alarmsMaskP         = ENDIAN_SWAP32(prot_status.alarmsMaskP);
-        protStatus_out[i].lastSwitchoverCause = ENDIAN_SWAP8 (prot_status.lastSwitchoverCause);
-        protStatus_out[i].WaitToRestoreTimer  = ENDIAN_SWAP16(prot_status.WaitToRestoreTimer);
-        protStatus_out[i].HoldOffTimer        = ENDIAN_SWAP16(prot_status.HoldOffTimer);
 
-        i++;
-      }
-    }
+  outbuffer->infoDim = sizeof(msg_HWuplinkProtStatus) * i;
 
-    outbuffer->infoDim = sizeof(msg_HWuplinkProtStatus) * i;
-  }
   return L7_SUCCESS;
 }
 
@@ -12797,10 +12795,65 @@ L7_RC_t ptin_msg_uplink_prot_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       restore_time = protConf[i].protParams.WaitToRestoreTimer * 60;    /* Convert minutes to seconds */
     }
 
-    intfW.intf_type = protConf[i].protParams.slotW;
-    intfW.intf_id   = protConf[i].protParams.portW;
-    intfP.intf_type = protConf[i].protParams.slotP;
-    intfP.intf_id   = protConf[i].protParams.portP;
+    /* For SF boards, the interfaces are given in a Slot/Port format */
+    /* If a LAG need to be specified, Slot needs to be zero */
+
+    /* Working interface */
+    if (protConf[i].protParams.slotW == 0)
+    {
+      if (protConf[i].protParams.portW >= PTIN_SYSTEM_N_LAGS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG,"Invalid LAG id %u", protConf[i].protParams.portW);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+      intfW.intf_type = PTIN_EVC_INTF_LOGICAL;
+      intfW.intf_id   = protConf[i].protParams.portW;
+    }
+    else
+    {
+    #if (PTIN_BOARD_IS_MATRIX)
+      /* Slot/Port format for SF boards */
+      if (ptin_intf_slotPort2ptintf(protConf[i].protParams.slotW, protConf[i].protParams.portW, &intfW) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG,"Slot/Port=%u/%u interface is not recognized.", protConf[i].protParams.slotW, protConf[i].protParams.portW);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+    #else
+      /* For other boards, any slot!=0 will refer to a physical port */
+      intfW.intf_type = PTIN_EVC_INTF_PHYSICAL;
+      intfW.intf_id   = protConf[i].protParams.portW;
+    #endif
+    }
+    /* Protection interface */
+    if (protConf[i].protParams.slotP == 0)
+    {
+      if (protConf[i].protParams.portP >= PTIN_SYSTEM_N_LAGS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG,"Invalid LAG id %u", protConf[i].protParams.portP);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+      intfP.intf_type = PTIN_EVC_INTF_LOGICAL;
+      intfP.intf_id   = protConf[i].protParams.portP;
+    }
+    else
+    {
+    #if (PTIN_BOARD_IS_MATRIX)
+      /* Slot/Port format for SF boards */
+      if (ptin_intf_slotPort2ptintf(protConf[i].protParams.slotP, protConf[i].protParams.portP, &intfP) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG,"Slot/Port=%u/%u interface is not recognized.", protConf[i].protParams.slotP, protConf[i].protParams.portP);
+        rc_global = L7_FAILURE;
+        continue;
+      }
+    #else
+      /* For other boards, any slot!=0 will refer to a physical port */
+      intfP.intf_type = PTIN_EVC_INTF_PHYSICAL;
+      intfP.intf_id   = protConf[i].protParams.portP;
+    #endif
+    }
 
     if (ptin_prot_uplink_create(protConf[i].protIndex, &intfW, &intfP,
                                 restore_time, operationMode, alarmFlagsEn, flags, L7_FALSE) != L7_SUCCESS)
@@ -12871,14 +12924,6 @@ L7_RC_t ptin_msg_uplink_prot_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
     {
       L7_uint32 operationMode, alarmFlagsEn, flags, restore_time;
 
-      /* Validate slot id */
-      if (protConf[i].protParams.slotW != 0 || protConf[i].protParams.slotP != 0)
-      {
-        PT_LOG_ERR(LOG_CTX_MSG,"slotId must be zero");
-        rc_global = L7_FAILURE;
-        continue;
-      }
-
       /* Operation mode */
       operationMode = L7_FALSE;
       if (protConf[i].confMask & HWUPLINKPROT_CONFMASK_OperationMode)
@@ -12904,10 +12949,65 @@ L7_RC_t ptin_msg_uplink_prot_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
         restore_time = protConf[i].protParams.WaitToRestoreTimer * 60;      // Convert minutes to seconds
       }
 
-      intfW.intf_type = PTIN_EVC_INTF_LOGICAL;
-      intfW.intf_id   = protConf[i].protParams.portW;
-      intfP.intf_type = PTIN_EVC_INTF_LOGICAL;
-      intfP.intf_id   = protConf[i].protParams.portP;
+      /* For SF boards, the interfaces are given in a Slot/Port format */
+      /* If a LAG need to be specified, Slot needs to be zero */
+
+      /* Working interface */
+      if (protConf[i].protParams.slotW == 0)
+      {
+        if (protConf[i].protParams.portW >= PTIN_SYSTEM_N_LAGS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG,"Invalid LAG id %u", protConf[i].protParams.portW);
+          rc_global = L7_FAILURE;
+          continue;
+        }
+        intfW.intf_type = PTIN_EVC_INTF_LOGICAL;
+        intfW.intf_id   = protConf[i].protParams.portW;
+      }
+      else
+      {
+      #if (PTIN_BOARD_IS_MATRIX)
+        /* Slot/Port format for SF boards */
+        if (ptin_intf_slotPort2ptintf(protConf[i].protParams.slotW, protConf[i].protParams.portW, &intfW) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG,"Slot/Port=%u/%u interface is not recognized.", protConf[i].protParams.slotW, protConf[i].protParams.portW);
+          rc_global = L7_FAILURE;
+          continue;
+        }
+      #else
+        /* For other boards, any slot!=0 will refer to a physical port */
+        intfW.intf_type = PTIN_EVC_INTF_PHYSICAL;
+        intfW.intf_id   = protConf[i].protParams.portW;
+      #endif
+      }
+      /* Protection interface */
+      if (protConf[i].protParams.slotP == 0)
+      {
+        if (protConf[i].protParams.portP >= PTIN_SYSTEM_N_LAGS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG,"Invalid LAG id %u", protConf[i].protParams.portP);
+          rc_global = L7_FAILURE;
+          continue;
+        }
+        intfP.intf_type = PTIN_EVC_INTF_LOGICAL;
+        intfP.intf_id   = protConf[i].protParams.portP;
+      }
+      else
+      {
+      #if (PTIN_BOARD_IS_MATRIX)
+        /* Slot/Port format for SF boards */
+        if (ptin_intf_slotPort2ptintf(protConf[i].protParams.slotP, protConf[i].protParams.portP, &intfP) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_MSG,"Slot/Port=%u/%u interface is not recognized.", protConf[i].protParams.slotP, protConf[i].protParams.portP);
+          rc_global = L7_FAILURE;
+          continue;
+        }
+      #else
+        /* For other boards, any slot!=0 will refer to a physical port */
+        intfP.intf_type = PTIN_EVC_INTF_PHYSICAL;
+        intfP.intf_id   = protConf[i].protParams.portP;
+      #endif
+      }
 
       /* Recreate protection group */
       rc = ptin_prot_uplink_create(protConf[i].protIndex, &intfW, &intfP,
