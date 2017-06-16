@@ -30,7 +30,7 @@ SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-switchdrvr-6.5.7/broadc
 export LVL7_MAKEFILE_LOGGING := N
 export LVL7_MAKEFILE_DISPLAY_MODE := S
 
-INSTALL_SCRIPT=ta48ge.install
+INSTALL_SCRIPT=swdrvr-ta48ge.install
 
 include swdrvr-common.make
 

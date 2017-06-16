@@ -7,4 +7,4 @@ FILESYSTEM=rootfs
 KO_PATH=./output/FastPath-Ent-esw-xgs4-helixarm-LR-CSxw-IQH_$PLATFORM/target
 BIN_PATH=./output/FastPath-Ent-esw-xgs4-helixarm-LR-CSxw-IQH_$PLATFORM/ipl
 
-. ./common.install
+. ./swdrvr-common.install

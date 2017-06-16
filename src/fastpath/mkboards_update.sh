@@ -86,7 +86,7 @@ if [ $# -ge 3 ]; then
 	echo -n "Generating image for version $3..."
 
 	cd $MKBOARDS/$MKBOARDS_FOLDER
-	sudo ./build_ramdisk_${MKBOARDS_FOLDER}.sh $IMAGE_VERSION
+	./build_ramdisk_${MKBOARDS_FOLDER}.sh $IMAGE_VERSION
         echo "OK!"
 
 	if [ $# -ge 4 ]; then
