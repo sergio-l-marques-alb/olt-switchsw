@@ -111,7 +111,7 @@ $(addprefix cleanall-, $(cards)):
 	
 $(addprefix install-, $(cards)):
 	@echo "$@ started (log: swdrvr-$(subst install-,,$@).install.log) ..."
-	@sh $(subst install-,,$@).install  > swdrvr-$(subst clean-,,$@).install.log 2>&1
+	@sh swdrvr-$(subst install-,,$@).install  > swdrvr-$(subst clean-,,$@).install.log 2>&1
 	@echo "$@ done!"
 
 $(addprefix release-, $(cards)):
