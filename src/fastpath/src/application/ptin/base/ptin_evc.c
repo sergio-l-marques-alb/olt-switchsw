@@ -9165,11 +9165,12 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
   is_root      =  intf_cfg->mef_type == PTIN_EVC_INTF_ROOT;
   root_vlan    =  evcs[evc_id].rvlan;
 
-  PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: adding %s# %02u (MEF %s) ...",
+  PT_LOG_TRACE(LOG_CTX_EVC, "EVC# %u: adding %s# %02u (MEF %s) with VLANs %u + %u...",
             evc_id,
             ptin_port < PTIN_SYSTEM_N_PORTS ? "PHY":"LAG",
             ptin_port < PTIN_SYSTEM_N_PORTS ? ptin_port : ptin_port - PTIN_SYSTEM_N_PORTS,
-            is_root ? "Root":"Leaf");
+            is_root ? "Root":"Leaf",
+            intf_cfg->vid, intf_cfg->vid_inner);
 
   /* Data to be used to add interface */
   intf_vlan = *intf_cfg;
@@ -9386,33 +9387,24 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
   evcs[evc_id].intf[ptin_port].type     = intf_cfg->mef_type;
   evcs[evc_id].intf[ptin_port].int_vlan = int_vlan;
 
+  evcs[evc_id].intf[ptin_port].l3_intf_id = -1;
+
   #if defined IGMP_SMART_MC_EVC_SUPPORTED
   if (iptv_flag)
+  {
     evcs[evc_id].intf[ptin_port].l3_intf_id = l3_intf.l3_intf_id;
-  else
-  #else
-    evcs[evc_id].intf[ptin_port].l3_intf_id = -1;
+  }
   #endif
 
   #ifdef PTIN_ERPS_EVC
   evcs[evc_id].intf[ptin_port].portState = PTIN_EVC_PORT_FORWARDING;
   #endif
-  #if (0 /*!PTIN_BOARD_IS_MATRIX*/ )
-  if (is_stacked && (intf_cfg->mef_type == PTIN_EVC_INTF_LEAF))
-  {
-    PT_LOG_TRACE(LOG_CTX_EVC, "vid %u -> 0xFFFF, vid_inner %u -> 0", intf_cfg->vid, intf_cfg->vid_inner);
-    evcs[evc_id].intf[ptin_port].out_vlan   = 0xFFFF;  /* on stacked EVCs, leafs out.vid is defined per client and not per interface */
-    evcs[evc_id].intf[ptin_port].inner_vlan = 0;
-  }
-  else
-  #endif
-  {
-    PT_LOG_TRACE(LOG_CTX_EVC, "vid %u, vid_inner %u", intf_cfg->vid, intf_cfg->vid_inner);
-    evcs[evc_id].intf[ptin_port].out_vlan   = intf_cfg->vid;
-    evcs[evc_id].intf[ptin_port].inner_vlan = intf_cfg->vid_inner;
-    evcs[evc_id].intf[ptin_port].action_outer_vlan = (IS_VLAN_VALID(intf_cfg->vid))       ? intf_cfg->action_outer : PTIN_XLATE_ACTION_MAX;
-    evcs[evc_id].intf[ptin_port].action_inner_vlan = (IS_VLAN_VALID(intf_cfg->vid_inner)) ? intf_cfg->action_inner : PTIN_XLATE_ACTION_MAX;
-  }
+
+  PT_LOG_TRACE(LOG_CTX_EVC, "VLANs %u + %u (%u + %u)", intf_vlan.vid, intf_vlan.vid_inner, intf_cfg->vid, intf_cfg->vid_inner);
+  evcs[evc_id].intf[ptin_port].out_vlan   = intf_cfg->vid;
+  evcs[evc_id].intf[ptin_port].inner_vlan = intf_cfg->vid_inner;
+  evcs[evc_id].intf[ptin_port].action_outer_vlan = (IS_VLAN_VALID(intf_cfg->vid))       ? intf_cfg->action_outer : PTIN_XLATE_ACTION_MAX;
+  evcs[evc_id].intf[ptin_port].action_inner_vlan = (IS_VLAN_VALID(intf_cfg->vid_inner)) ? intf_cfg->action_inner : PTIN_XLATE_ACTION_MAX;
 
   evcs[evc_id].intf[ptin_port].counter   = L7_NULLPTR;
   {
