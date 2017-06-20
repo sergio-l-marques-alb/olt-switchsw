@@ -8,7 +8,7 @@ int action_push_id = 3;  /* Egress action 1: swap+push */
 int action_pop_id  = 4;  /* Egress action 2: swap+pop  */
 
 unsigned int outer_tpid = 0x8100;
-unsigned int inner_tpid = 0x8100;
+unsigned int inner_tpid = 0x9100;
 
 /*
  * Only set TPID values
@@ -394,12 +394,12 @@ int qos_init(void)
   qos_l2_map.int_pri = idx >> 1; //qos_map_l2_internal_pri[idx];
   qos_l2_map.color   = ((idx % 2) == 0) ? bcmColorGreen : bcmColorYellow; //qos_map_l2_internal_color[idx];
   
-  rv = bcm_qos_map_add(unit, BCM_QOS_MAP_L2_OUTER_TAG | BCM_QOS_MAP_L2_VLAN_PCP, &qos_l2_map, pcp_in_map_id);
+  rv = bcm_qos_map_add(unit, BCM_QOS_MAP_L2 | BCM_QOS_MAP_L2_OUTER_TAG | BCM_QOS_MAP_L2_UNTAGGED | BCM_QOS_MAP_L2_VLAN_PCP, &qos_l2_map, pcp_in_map_id);
   if (rv != BCM_E_NONE) {
    printf("error in PCP ingress bcm_qos_map_add(): rv=%d (%d)\n", rv, bcm_errmsg(rv));
    return rv;
   }
-  rv = bcm_qos_map_add(unit, BCM_QOS_MAP_L2_OUTER_TAG | BCM_QOS_MAP_L2_VLAN_PCP, &qos_l2_map, pcp_out_map_id);
+  rv = bcm_qos_map_add(unit, BCM_QOS_MAP_L2 | BCM_QOS_MAP_L2_OUTER_TAG | BCM_QOS_MAP_L2_UNTAGGED | BCM_QOS_MAP_L2_VLAN_PCP, &qos_l2_map, pcp_out_map_id);
   if (rv != BCM_E_NONE) {
    printf("error in PCP egress bcm_qos_map_add(): rv=%d (%d)\n", rv, bcm_errmsg(rv));
    return rv;

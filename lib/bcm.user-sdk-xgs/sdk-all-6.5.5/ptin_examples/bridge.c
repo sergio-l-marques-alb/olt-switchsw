@@ -370,12 +370,12 @@ int vswitch_remove(int vsi, int vlan_port_id)
 /*
  * Create a MC group for replication purposes
  */
-int multicast_create(int mc_group)
+int multicast_create(int mc_group, int is_ingress)
 {
  int rv;
 
  /* Create Multicast group */
- rv = bcm_multicast_create(unit, BCM_MULTICAST_EGRESS_GROUP | BCM_MULTICAST_WITH_ID| BCM_MULTICAST_TYPE_L2, &mc_group);
+ rv = bcm_multicast_create(unit, ((is_ingress) ? BCM_MULTICAST_INGRESS_GROUP : BCM_MULTICAST_EGRESS_GROUP) | BCM_MULTICAST_WITH_ID | BCM_MULTICAST_TYPE_L2, &mc_group);
  if (rv != BCM_E_NONE) {
   printf("Error, bcm_multicast_create \n");
   return rv;
@@ -406,7 +406,57 @@ int multicast_destroy(int mc_group)
 /*
  * Add a LIF to a MC group (for replication purposes)
  */
-int multicast_vlan_add(int mc_group, int port, int vlan_port_id)
+int multicast_ingress_add(int mc_group, int port, int vlan_port_id)
+{
+ int rv;
+ bcm_if_t encap_id;
+
+ rv = bcm_multicast_vlan_encap_get(unit, mc_group, port, vlan_port_id, &encap_id);
+ if (rv != BCM_E_NONE) {
+  printf("Error, in bcm_multicast_vlan_encap_get mc_group_id:  0x%08x  phy_port:  0x%08x  gport:  0x%08x \n", mc_group, port, vlan_port_id);
+  return rv;
+ }
+
+ rv = bcm_multicast_ingress_add(unit, mc_group, port, encap_id);
+ if (rv != BCM_E_NONE) {
+  printf("Error, in bcm_multicast_ingress_add mc_group_id:  0x%08x  phy_port:  0x%08x  encap_id:  0x%08x \n", mc_group, port, encap_id);
+  return rv;
+ }
+ 
+ printf("Replication entry added\n");
+
+ return BCM_E_NONE;
+}
+
+/*
+ * Remove a LIF from a MC group
+ */
+int multicast_ingress_remove(int mc_group, int port, int vlan_port_id)
+{
+ int rv;
+ bcm_if_t encap_id;
+
+ rv = bcm_multicast_vlan_encap_get(unit, mc_group, port, vlan_port_id, &encap_id);
+ if (rv != BCM_E_NONE) {
+  printf("Error, in bcm_multicast_vlan_encap_get mc_group_id:  0x%08x  phy_port:  0x%08x  gport:  0x%08x \n", mc_group, port, vlan_port_id);
+  return rv;
+ }
+
+ rv = bcm_multicast_ingress_delete(unit, mc_group, port, encap_id);
+ if (rv != BCM_E_NONE) {
+  printf("Error, in bcm_multicast_ingress_delete mc_group_id:  0x%08x  phy_port:  0x%08x  encap_id:  0x%08x \n", mc_group, port, encap_id);
+  return rv;
+ }
+ 
+ printf("Replication entry removed\n");
+
+ return BCM_E_NONE;
+}
+
+/*
+ * Add a LIF to a MC group (for replication purposes)
+ */
+int multicast_egress_add(int mc_group, int port, int vlan_port_id)
 {
  int rv;
  bcm_if_t encap_id;
@@ -431,7 +481,7 @@ int multicast_vlan_add(int mc_group, int port, int vlan_port_id)
 /*
  * Remove a LIF from a MC group
  */
-int multicast_vlan_remove(int mc_group, int port, int vlan_port_id)
+int multicast_egress_remove(int mc_group, int port, int vlan_port_id)
 {
  int rv;
  bcm_if_t encap_id;
