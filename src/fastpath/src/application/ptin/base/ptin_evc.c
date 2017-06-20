@@ -3953,6 +3953,8 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
       continue;
     }
     
+    evc_ext_id = evcs[evc_id].extended_id;
+
     /* Save Internal and NNI VLANs */
     int_vlan = evcs[evc_id].rvlan;
     nni_vlan = (IS_EVC_QUATTRO(evc_id) && IS_EVC_STACKED(evc_id)) ? evcs[evc_id].root_info.nni_ovid : 0;
