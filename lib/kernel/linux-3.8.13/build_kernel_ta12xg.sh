@@ -20,10 +20,13 @@ CPPFLAGS=" -m32 -mhard-float  -mcpu=e500mc --sysroot=/opt/eldk"
 #export CC AS LD CROSS_COMPILE ARCH RANLIB NM 
 export CC AS CPPFLAGS LD  CROSS_COMPILE ARCH RANLIB NM CONFIGURE_FLAGS CFLAGS LDFLAGS CXXFLAGS
 
+mv -v .svn .svn.tmp
+
 make clean
 make menuconfig
-make -Wall -j8 uImage
+make -Wall -j `grep -c '^processor' /proc/cpuinfo` uImage
 
+mv -v .svn.tmp .svn
 
 #scripts/dtc/dtc -O dtb -o cxo160g.dtb -b 0 -p 1024 arch/powerpc/boot/dts/p2041rdb.dts
 cp arch/powerpc/boot/uImage ta12xg.z
