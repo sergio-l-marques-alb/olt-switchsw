@@ -17769,7 +17769,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
     {
 #ifdef NGPON2_SUPPORTED
       ptin_NGPON2_groups_t NGPON2_GROUP;
-      L7_uint8 j = 0;
+      L7_uint8 j = 0, iterator = 0;
       L7_uint8 shift_index = 0;
 
       if (msg[messageIterator].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
@@ -17801,6 +17801,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
             rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
             if ( rc != L7_SUCCESS )
             {
+              shift_index++;
               j++;
               PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
               continue;
@@ -17826,14 +17827,15 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
               PT_LOG_ERR(LOG_CTX_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
             }
           
-
             bmpIterator = 0;
 
-            while( bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE )
+            while ( (bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE) && iterator == 0 )
             {
               ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList[bmpIterator]);
               bmpIterator++;
             }
+
+            iterator = 1;
 
             /* Apply config */
             rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, msg[messageIterator].onuId, 0x00, 0, 0, addOrRemove, msg[messageIterator].packageBmpList, msg[messageIterator].noOfPackages);
