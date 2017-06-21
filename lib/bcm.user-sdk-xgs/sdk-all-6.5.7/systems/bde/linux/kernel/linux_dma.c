@@ -142,9 +142,9 @@ MODULE_PARM_DESC(himem,
 #ifdef SAL_BDE_DMA_MEM_DEFAULT
 #define DMA_MEM_DEFAULT (SAL_BDE_DMA_MEM_DEFAULT * ONE_MB)
 #else
-#define DMA_MEM_DEFAULT (8 * ONE_MB)
+#define DMA_MEM_DEFAULT (16 * ONE_MB)
 #endif
-#define DMA_MEM_DEFAULT_ROBO (4 * ONE_MB)
+#define DMA_MEM_DEFAULT_ROBO (8 * ONE_MB)
 
 /* We try to assemble a contiguous segment from chunks of this size */
 #define DMA_BLOCK_SIZE (512 * ONE_KB)
@@ -547,6 +547,8 @@ _alloc_mpool(size_t size)
         }
         _dma_pbase = pbase;
         _dma_vbase = IOREMAP(_dma_pbase, size);
+        if (dma_debug >= 1)
+          gprintk("_alloc_mpool (himem=1): _dma_vbase:%p pbase:%lx  allocated:%lx\n", _dma_vbase, pbase, (unsigned long)size);
     } else {
         /* Get DMA memory from kernel */
         switch (dmaalloc) {
@@ -558,9 +560,10 @@ _alloc_mpool(size_t size)
             }
             /* get a memory allocation from the kernel */
             {
-                dma_addr_t dma_handle;
+                dma_addr_t dma_handle = 0;
                 if (!(_dma_vbase = dma_alloc_coherent(0, alloc_size, &dma_handle, GFP_KERNEL)) || !dma_handle) {
-                    gprintk("_alloc_mpool: Kernel failed to allocate the memory pool of size 0x%lx\n", (unsigned long)alloc_size);
+                    gprintk("_alloc_mpool: Kernel failed to allocate the memory pool of size 0x%lx (_dma_vbase=0x%08lx dma_handle=0x%08lx)\n",
+                        (unsigned long)alloc_size, (unsigned long) _dma_vbase, (unsigned long) dma_handle);
                     return;
                 }
                 pbase = dma_handle;
@@ -570,6 +573,7 @@ _alloc_mpool(size_t size)
                 gprintk("_alloc_mpool: allocated 0x%lx bytes instead of 0x%lx bytes.\n", (unsigned long)alloc_size, (unsigned long)size);
             }
             size = _dma_mem_size = alloc_size;
+            gprintk("_alloc_mpool: _SIMPLE_MEMORY_ALLOCATION_ successfull\n");
             break;
           }
 #endif /* _SIMPLE_MEMORY_ALLOCATION_ */
@@ -595,6 +599,8 @@ _alloc_mpool(size_t size)
 #ifdef REMAP_DMA_NONCACHED
         _dma_vbase = IOREMAP(_dma_pbase, size);
 #endif
+        if (dma_debug >= 1)
+          gprintk("_alloc_mpool: _dma_vbase:%p pbase:%lx  allocated:%lx\n", _dma_vbase, pbase, (unsigned long)size);
     }
 }
 

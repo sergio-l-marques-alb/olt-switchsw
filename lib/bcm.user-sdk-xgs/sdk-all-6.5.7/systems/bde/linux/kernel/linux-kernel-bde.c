@@ -45,10 +45,18 @@
 
 MODULE_AUTHOR("Broadcom Corporation");
 MODULE_DESCRIPTION("Kernel BDE");
+#ifdef __arm__
 MODULE_LICENSE("Proprietary");
+#else
+MODULE_LICENSE("GPL");
+#endif
 
 /* PCIe max payload */
+#if defined (__arm__)     /* PTin added: PCI */
 int maxpayload = 256;
+#else
+int maxpayload = 128;     /* PTin modified: Max payload limited to 128B */
+#endif
 LKM_MOD_PARAM(maxpayload, "i", int, 0);
 MODULE_PARM_DESC(maxpayload,
 "Limit maximum payload size and request size on PCIe devices");
@@ -404,12 +412,15 @@ robo_spi_write(void *cookie, uint16_t reg, uint8_t *buf, int len);
 #define MAX_PAYLOAD_256B       (1 << 5)
 #define MAX_PAYLOAD_512B       (2 << 5)
 #define MAX_READ_REQ_256B      (1 << 12)
-
+#define MAX_READ_REQ_512B      (2 << 12)          /* PTin added: PCI */
 
 /* Freescale 8548 PCI-E  host Bridge */
 #define FSL_VENDOR_ID                   0x1957
 #define FSL8548PCIE_DEVICE_ID           0x0013
 #define FSL2020EPCIE_DEVICE_ID          0x0070
+#define FSL8544PCIE_DEVICE_ID           0x0033    /* PTin added: PCI PQ3 8544 */
+#define FSL2040EPCIE_DEVICE_ID          0x0411    /* PTin added: PCI P2040 */
+#define FSL2040SECEPCIE_DEVICE_ID       0x0410    /* PTin added: PCI P2040 */
 #define FSL8548PCIE_DEV_CTRL_REG        0x54
 
 /* 4716 PCI-E  host Bridge */
@@ -457,6 +468,17 @@ robo_spi_write(void *cookie, uint16_t reg, uint8_t *buf, int len);
 /* Broadcom BCM58712 */
 #define BCM58712_PCI_VENDOR_ID     0x14E4
 #define BCM58712_PCI_DEVICE_ID     0x168E
+
+/* PTin added: PCI high speed switches */
+#if 1
+/* Broadcom BCM56640 */
+#define BCM56640_PCI_VENDOR_ID     0x14E4
+#define BCM56640_PCI_DEVICE_ID     0xb640
+
+/* Broadcom BCM56846 */
+#define BCM56846_PCI_VENDOR_ID     0x14E4
+#define BCM56846_PCI_DEVICE_ID     0xb846
+#endif
 
 static uint32_t _read(int d, uint32_t addr);
 
@@ -555,6 +577,9 @@ static int
 petra_device_create(void)
 {
     bde_ctrl_t* ctrl;
+
+    /* PTin added: Do not execute this function */
+    return 0;
 
     ctrl = _devices; 
 
@@ -1623,7 +1648,8 @@ p2p_bridge(void)
                                MAX_PAYLOAD_256B | MAX_READ_REQ_256B);
     }
 
-    if ((dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL8548PCIE_DEVICE_ID, NULL)) != NULL ||
+    if ((dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL8544PCIE_DEVICE_ID, NULL)) != NULL ||     /* PTin added: PCI PQ3-8544*/
+        (dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL8548PCIE_DEVICE_ID, NULL)) != NULL ||
         (dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL2020EPCIE_DEVICE_ID, NULL)) != NULL) {
         /*
          * Configure the PCIE cap: Max payload size: 256, Max Read
@@ -1633,6 +1659,21 @@ p2p_bridge(void)
         pci_write_config_dword(dev, FSL8548PCIE_DEV_CTRL_REG,
                                MAX_PAYLOAD_256B | MAX_READ_REQ_256B);
     }
+    /* PTin added: PCI P2040 */
+    #if 1
+    else if ((dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL2040EPCIE_DEVICE_ID, NULL)) != NULL ||
+             (dev = PCI_FIND_DEV(FSL_VENDOR_ID, FSL2040SECEPCIE_DEVICE_ID, NULL)) != NULL)
+    {
+        /*
+         * Configure the PCIE cap: Max payload size: 512, Max Read
+         * Request size: 512, disabling relax ordering.
+         * Writes to the PCIE capability device control register
+         */
+        pci_write_config_dword(dev, FSL8548PCIE_DEV_CTRL_REG,
+                               MAX_PAYLOAD_512B | MAX_READ_REQ_512B);
+    }
+    #endif
+
     if ((dev = PCI_FIND_DEV(BCM4716_VENDOR_ID, BCM4716PCIE_DEVICE_ID, NULL)) != NULL ||
         (dev = PCI_FIND_DEV(BCM53000_VENDOR_ID, BCM53000PCIE_DEVICE_ID, NULL)) != NULL) {
         uint32 tmp, maxpayld, device_bmp=0, mask;
@@ -2018,6 +2059,11 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
             gprintk("Cannot enable PCI device : vendor_id = %x, device_id = %x\n",
                     dev->vendor, dev->device);
         }
+/* PTin added */
+        else {
+            gprintk("LTX: Enabled pci device : vendor_id = %x, device_id = %x\n",dev->vendor, dev->device);
+        }
+/* PTin end */
 
         
         /*
@@ -2032,9 +2078,11 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
          */
         if (pci_resource_start(dev, baroff) < _pci_mem_start) {
             _pci_mem_start = pci_resource_start(dev, baroff);
+            gprintk("LTX: Adjusted _pci_mem_start\n");
         }
         if (pci_resource_end(dev, baroff) > _pci_mem_end) {
             _pci_mem_end = pci_resource_end(dev, baroff);
+            gprintk("LTX: Adjusted _pci_mem_end\n");
         }
 
 #ifdef CONFIG_SANDPOINT
@@ -2132,6 +2180,23 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
                 if (debug >= 1) gprintk("force max payload size to 128\n");
             }
         }
+        /* PTin added: PCI */
+        #if 1
+        else if ((PCI_FIND_DEV(BCM56846_PCI_VENDOR_ID, BCM56846_PCI_DEVICE_ID, NULL)) != NULL) {
+            /* BCM58525 CPU boards support 128 Max payload size */
+            if (maxpayload) {
+                maxpayload = 256;
+                if (debug >= 1) gprintk("force max payload size to 256\n");
+            }
+        }
+        else if ((PCI_FIND_DEV(BCM56640_PCI_VENDOR_ID, BCM56640_PCI_DEVICE_ID, NULL)) != NULL) {
+            /* BCM58525 CPU boards support 128 Max payload size */
+            if (maxpayload) {
+                maxpayload = 512;
+                if (debug >= 1) gprintk("force max payload size to 512\n");
+            }
+        }
+        #endif
 
         if (forceirq > 0 && dev->irq != (uint32) forceirq) {
             if (forceirqubm & (1U << (_ndevices - 1))) {
@@ -2197,6 +2262,42 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
         break;
     default:
         break;
+    }
+#endif
+
+#ifndef __arm__
+    if (debug >= 1) {
+        uint8 aux8;
+        uint32 aux32;
+
+        gprintk("***********PCI Conf registers: api 5.9.2**********\n");
+        pci_read_config_dword(dev, 0x0, &aux32);
+        gprintk("* Vendor ID | Device ID :  0x%08X *\n", aux32);
+        pci_read_config_dword(dev, 0x4, &aux32);
+        gprintk("* Class Code| rev ID    :  0x%08X *\n", aux32);
+        pci_read_config_byte(dev, 0xC, &aux8);
+        gprintk("* Cache line syze       :  0x%02X       *\n", aux8);
+        pci_read_config_byte(dev, 0xD, &aux8);
+        gprintk("* Latency Timer         :  0x%02X       *\n", aux8);
+        pci_read_config_byte(dev, 0xE, &aux8);
+        gprintk("* Header Type           :  0x%02X       *\n", aux8);
+        pci_read_config_dword(dev, 0x10, &aux32);
+        gprintk("* BASE ADDRESS LOW      :  0x%08X *\n", aux32);
+        pci_read_config_dword(dev, 0x14, &aux32);
+        gprintk("* BASE ADDRESS HIGH     :  0x%08X *\n", aux32);
+        pci_read_config_byte(dev, 0x3C, &aux8);
+        gprintk("* Interrupt Line        :  0x%02X       *\n", aux8);
+        pci_read_config_byte(dev, 0x3D, &aux8);
+        gprintk("* Interrupt Pin         :  0x%02X       *\n", aux8);
+        pci_read_config_byte(dev, 0x3E, &aux8);
+        gprintk("* Minimum Grant         :  0x%02X       *\n", aux8);
+        pci_read_config_byte(dev, 0x3F, &aux8);
+        gprintk("* Maximum Latency       :  0x%02X       *\n", aux8);
+        pci_read_config_byte(dev, 0x40, &aux8);
+        gprintk("* Retry Count           :  0x%02X       *\n", aux8);
+        pci_read_config_byte(dev, 0x41, &aux8);
+        gprintk("* TRDY Timeout          :  0x%02X       *\n", aux8);
+        gprintk("****************************\n");
     }
 #endif
 
@@ -2383,6 +2484,7 @@ _pci_probe(struct pci_dev *dev, const struct pci_device_id *ent)
           (unsigned long)ctrl->bde_dev.base_address, (unsigned long)ctrl->bde_dev.base_address1);
     }
     /* Let's boogie */
+    gprintk("LTX: BCM: Reached end of _probe\n");
     return 0;
 }
 
@@ -3900,6 +4002,17 @@ _interrupt_connect(int d,
     int isr2_dev;
     int isr_active;
 
+    /* PTin added: Kernel */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,31)
+#ifndef __arm__
+    struct device_node *np = NULL;
+    unsigned int eirq;
+#endif
+#endif
+
+    gprintk("Setting IRQ...\n");
+    /* PTin end */
+
     isr2_dev = d & LKBDE_ISR2_DEV;
     d &= ~LKBDE_ISR2_DEV;
 
@@ -3942,12 +4055,38 @@ _interrupt_connect(int d,
         }
     }
 
+    /* PTin added: Kernel */
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,31)
+#ifndef __arm__
+    np = of_find_compatible_node(NULL, NULL, "bcm,fastpath-pci");
+	  if (np == NULL){
+      gprintk ("LMP - Nao apanhei nenhum no' da devtree\n\r");
+      return -1;
+    }
+    eirq = irq_of_parse_and_map(np, 0);
+    if (eirq == NO_IRQ)
+    {
+      gprintk ("LMP - Nao apanhei nenhum irq devtree\n\r");
+      return -1;
+    }
+    ctrl->iLine = eirq;
+#endif
+#endif
+    gprintk("irq to be used: %d\n",ctrl->iLine);
+    /* PTin end */
+
     if (ctrl->iLine != -1) {
         irq_flags = IRQF_SHARED;
 #if defined(CONFIG_PCI_MSI)
+        gprintk ("LTX: Trying to enable MSI\n");
         if (ctrl->use_msi && pci_enable_msi(ctrl->pci_device) == 0) {
             irq_flags = 0;
             ctrl->iLine = ctrl->pci_device->irq;
+            gprintk ("LTX: Success enabling MSI\n");
+        }
+        else
+        {
+            gprintk ("LTX: MSI not enabled\n");
         }
 #endif
         if (request_irq(ctrl->iLine,
@@ -3969,6 +4108,7 @@ _interrupt_connect(int d,
 #endif
             return -1;
         }
+        gprintk("Success requesting irq %d\n", ctrl->iLine);
     }
 
     return 0;
