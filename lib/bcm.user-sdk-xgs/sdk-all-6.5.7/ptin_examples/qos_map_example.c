@@ -1,12 +1,12 @@
-int pcp_in_map_id  = -1;
-int pcp_out_map_id = -1;
+int ing_map_id = -1;
+int egr_map_id = -1;
 
 bcm_qos_map_t qos_l2_map;
 int port, idx;
 
 /* Configure a PCP map to be applied to IVE/EVE */
-print bcm_qos_map_create(unit, BCM_QOS_MAP_INGRESS | BCM_QOS_MAP_L2_VLAN_PCP, &pcp_in_map_id);
-print bcm_qos_map_create(unit, BCM_QOS_MAP_EGRESS | BCM_QOS_MAP_L2_VLAN_PCP, &pcp_out_map_id);
+print bcm_qos_map_create(unit, BCM_QOS_MAP_INGRESS, &ing_map_id);
+print bcm_qos_map_create(unit, BCM_QOS_MAP_EGRESS | BCM_QOS_MAP_L2_VLAN_PCP, &egr_map_id);
 
 bcm_qos_map_t_init(&qos_l2_map);
 for (idx=0; idx<16; idx++)
@@ -16,15 +16,13 @@ for (idx=0; idx<16; idx++)
   qos_l2_map.int_pri = idx >> 1; //qos_map_l2_internal_pri[idx];
   qos_l2_map.color   = ((idx % 2) == 0) ? bcmColorGreen : bcmColorYellow; //qos_map_l2_internal_color[idx];
   
-  print bcm_qos_map_add(unit, BCM_QOS_MAP_L2 | BCM_QOS_MAP_L2_VLAN_PCP |BCM_QOS_MAP_L2_UNTAGGED, &qos_l2_map, pcp_in_map_id);
-  print bcm_qos_map_add(unit, BCM_QOS_MAP_L2 | BCM_QOS_MAP_L2_VLAN_PCP |BCM_QOS_MAP_L2_UNTAGGED, &qos_l2_map, pcp_out_map_id);
-  //print bcm_qos_map_add(unit, BCM_QOS_MAP_L2_OUTER_TAG | BCM_QOS_MAP_L2_VLAN_PCP, &qos_l2_map, pcp_in_map_id);
-  //print bcm_qos_map_add(unit, BCM_QOS_MAP_L2_OUTER_TAG | BCM_QOS_MAP_L2_VLAN_PCP, &qos_l2_map, pcp_out_map_id);
+  print bcm_qos_map_add(unit, BCM_QOS_MAP_L2 | BCM_QOS_MAP_L2_OUTER_TAG | BCM_QOS_MAP_L2_UNTAGGED, &qos_l2_map, ing_map_id);
+  print bcm_qos_map_add(unit, BCM_QOS_MAP_L2 | BCM_QOS_MAP_L2_OUTER_TAG | BCM_QOS_MAP_L2_UNTAGGED | BCM_QOS_MAP_L2_VLAN_PCP, &qos_l2_map, egr_map_id);
 }
 
-print bcm_qos_port_map_set(0, 0x44801000, pcp_in_map_id, pcp_out_map_id);
-print bcm_qos_port_map_set(0, 0x44801001, pcp_in_map_id, pcp_out_map_id);
-print bcm_qos_port_map_set(0, 0x44801000, pcp_in_map_id, pcp_out_map_id);
+print bcm_qos_port_map_set(0, 0x44801000, ing_map_id, egr_map_id);
+print bcm_qos_port_map_set(0, 0x44801001, ing_map_id, egr_map_id);
+print bcm_qos_port_map_set(0, 0x44801002, ing_map_id, egr_map_id);
 
 print bcm_switch_control_port_set(0, 9, bcmSwitchColorSelect, BCM_COLOR_OUTER_CFI);
 print bcm_switch_control_port_set(0, 10, bcmSwitchColorSelect, BCM_COLOR_OUTER_CFI);

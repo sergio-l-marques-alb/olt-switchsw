@@ -19,11 +19,12 @@ vswitch_add(4096, 0x44801001 /*LIF2*/);
 vswitch_add(4096, 0x44801002 /*LIF3*/);
 
 /* Create Multicast group */
-multicast_create(4096, 0 /*Egress*/);
+int mc_id=4096;
+multicast_create(&mc_id, 0 /*Egress*/, 0/*Flags*/);
 /* Configure egress replication (MCgroup=16781312=0x1001000) */
-multicast_egress_add(0x1001000 /*MC group*/, 9,  0x44801000);
-multicast_egress_add(0x1001000 /*MC group*/, 10, 0x44801001);
-multicast_egress_add(0x1001000 /*MC group*/, 11, 0x44801002);
+multicast_egress_add(mc_id /*MC group*/, 9,  0x44801000);
+multicast_egress_add(mc_id /*MC group*/, 10, 0x44801001);
+multicast_egress_add(mc_id /*MC group*/, 11, 0x44801002);
 
 /* QoS */
 print bcm_qos_port_map_set(0, 0x44801000, pcp_in_map_id, pcp_out_map_id);

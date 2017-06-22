@@ -19,11 +19,12 @@ vswitch_add(4096, 0x44801001 /*LIF2*/);
 vswitch_add(4096, 0x44801002 /*LIF3*/);
 
 /* Create Multicast group */
-multicast_create(4096, 0 /*Egress*/);
+int mc_id=4096;
+multicast_create(&mc_id, 0 /*Egress*/, 0/*Flags*/);
 /* Configure egress replication (MCgroup=16781312=0x1001000) */
-multicast_egress_add(0x1001000 /*MC group*/, 9,  0x44801000);
-multicast_egress_add(0x1001000 /*MC group*/, 10, 0x44801001);
-multicast_egress_add(0x1001000 /*MC group*/, 11, 0x44801002);
+multicast_egress_add(mc_id /*MC group*/, 9,  0x44801000);
+multicast_egress_add(mc_id /*MC group*/, 10, 0x44801001);
+multicast_egress_add(mc_id /*MC group*/, 11, 0x44801002);
 
 /* VLAN Translations */
 adv_xlate_action_create(5 /*action_id*/, 1 /*is_ingress*/, bcmVlanActionReplace /*ot_outer*/, bcmVlanActionReplace /*dt_outer*/, 0 /*ot_inner*/, 0 /*dt_inner*/, bcmVlanActionReplace /*ot_outer_prio*/, bcmVlanActionReplace /*dt_outer_pri*/, 0 /*ot_inner_pri*/, 0 /*dt_inner_pri*/, pcp_out_map_id);

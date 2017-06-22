@@ -1,5 +1,4 @@
 /* Create Policer */
-
 bcm_policer_t policer_id;
 bcm_policer_config_t pol_cfg;
 
@@ -47,3 +46,4 @@ print bcm_field_action_add(0, entry, bcmFieldActionVlanActionSetNew, 5 /*Action 
 //print bcm_field_action_add(0, entry, bcmFieldActionUsePolicerResult, 0, 0);
 
 print bcm_field_entry_install(0, entry); print entry;
+

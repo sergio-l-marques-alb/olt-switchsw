@@ -25,10 +25,10 @@ vswitch_add(4096, 0x44801001 /*LIF1 gport*/);
 vswitch_add(4096, 0x44801002 /*LIF2 gport*/);
 
 /* Create Multicast group */
-multicast_create(4096);
+multicast_create(4096, 0 /*Egress*/);
 
 /* Configure egress replication (MCgroup=16781312=0x1001000) */
-multicast_vlan_add(16781312, 0x24000060 /*VoQ-Port9 */, 0x44801000 /*LIF0 gport*/);
-multicast_vlan_add(16781312, 0x24000068 /*VoQ-Port10*/, 0x44801001 /*LIF1 gport*/);
-multicast_vlan_add(16781312, 0x24000070 /*VoQ-Port11*/, 0x44801002 /*LIF2 gport*/);
+multicast_egress_add(16781312, 0x24000060 /*VoQ-Port9 */, 0x44801000 /*LIF0 gport*/);
+multicast_egress_add(16781312, 0x24000068 /*VoQ-Port10*/, 0x44801001 /*LIF1 gport*/);
+multicast_egress_add(16781312, 0x24000070 /*VoQ-Port11*/, 0x44801002 /*LIF2 gport*/);
 

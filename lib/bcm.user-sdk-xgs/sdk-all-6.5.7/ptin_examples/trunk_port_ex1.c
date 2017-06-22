@@ -20,10 +20,10 @@ vswitch_add(4096, 0x44801001);
 vswitch_add(4096, 0x44801002);
 
 /* Create Multicast group */
-multicast_create(4096);
+multicast_create(4096, 0 /*Egress*/);
 
 /* Configure egress replication (MCgroup=16781312=0x1001000) */
-multicast_vlan_add(16781312, 9,  0x44801000);
-multicast_vlan_add(16781312, 10, 0x44801001);
-multicast_vlan_add(16781312, 11, 0x44801002);
+multicast_egress_add(16781312, 9,  0x44801000);
+multicast_egress_add(16781312, 10, 0x44801001);
+multicast_egress_add(16781312, 11, 0x44801002);
 
