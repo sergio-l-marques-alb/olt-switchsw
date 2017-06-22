@@ -5853,7 +5853,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
             ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(PTIN_EVC_INTF_LOGICAL);
 #endif
             ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_id = shift_index;
-            ptinEvcConf.intf[index_port].mef_type    = ENDIAN_SWAP8 (msgEvcConf->evc.intf[i].mef_type) /*PTIN_EVC_INTF_ROOT*/;
+            ptinEvcConf.intf[index_port].mef_type    = PTIN_EVC_INTF_LEAF;
             ptinEvcConf.intf[index_port].vid         = ENDIAN_SWAP16(msgEvcConf->evc.intf[i].vid);
             ptinEvcConf.intf[index_port].vid_inner   = ENDIAN_SWAP16(msgEvcConf->evc.intf[i].inner_vid);
             ptinEvcConf.intf[index_port].action_outer= PTIN_XLATE_ACTION_REPLACE;
@@ -6669,7 +6669,7 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
         ptinEvcBridge.intf.intf.format = PTIN_INTF_FORMAT_TYPEID;
         ptinEvcBridge.intf.intf.value.ptin_intf.intf_id   = ENDIAN_SWAP8(shift_index);
         ptinEvcBridge.intf.intf.value.ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
-        ptinEvcBridge.intf.mef_type  = PTIN_EVC_INTF_LEAF;//ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
+        ptinEvcBridge.intf.mef_type  = PTIN_EVC_INTF_LEAF; //ENDIAN_SWAP8 (msgEvcBridge->intf.mef_type);   /* must be Leaf */
         ptinEvcBridge.intf.vid       = ENDIAN_SWAP16(msgEvcBridge->intf.vid);
 
         PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u Bridge",         ptinEvcBridge.index);
@@ -6677,12 +6677,12 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
         PT_LOG_DEBUG(LOG_CTX_MSG, "mef_type: %u", msgEvcBridge->intf.mef_type);
         PT_LOG_DEBUG(LOG_CTX_MSG, "NGPON2:");
         PT_LOG_DEBUG(LOG_CTX_MSG, " %s# %u",
-                     ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY":"LAG",
+                     ptinEvcBridge.intf.intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY" : "LAG",
                      ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);
         PT_LOG_DEBUG(LOG_CTX_MSG, " .Inner VID       = %u", ptinEvcBridge.inn_vlan);
         PT_LOG_DEBUG(LOG_CTX_MSG, " .Outer VID [NEW] = %u", ptinEvcBridge.intf.vid);
 
-        if (ptin_evc_p2p_bridge_add(&ptinEvcBridge) != L7_SUCCESS)
+        if ( ptin_evc_p2p_bridge_add(&ptinEvcBridge) != L7_SUCCESS )
         {
           PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u bridge", ptinEvcBridge.index);
           //return L7_FAILURE;
@@ -6752,7 +6752,6 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
       PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u bridge", ptinEvcBridge.index);
       return L7_FAILURE;
     }
-
   }
 
   return L7_SUCCESS;

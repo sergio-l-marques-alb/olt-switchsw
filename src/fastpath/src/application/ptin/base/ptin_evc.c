@@ -3948,7 +3948,7 @@ L7_RC_t ptin_evc_destroy(L7_uint32 evc_ext_id)
 
     /* If a destroy all is requested, skip reserved EVCs */
     if ((selected_evc_id == (L7_uint)-1) &&
-        (evc_id == PTIN_EVC_INBAND || evcs[evc_id].extended_id >= PTIN_SYSTEM_EXT_EVCS_MGMT))
+        (evcs[evc_id].extended_id == PTIN_EVC_INBAND || evcs[evc_id].extended_id >= PTIN_SYSTEM_EXT_EVCS_MGMT))
     {
       continue;
     }
