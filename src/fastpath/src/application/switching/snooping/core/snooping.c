@@ -464,9 +464,49 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     }
   }
 
+  L7_uchar8          *buffPtr             = L7_NULLPTR;
+  L7_uint16          ipHdrLen             = 0;
+
+  /* Get start and length of incoming frame */
+  SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
+  SYSAPI_NET_MBUF_GET_DATALENGTH(netBufHandle, dataLength);
+  buffPtr = (L7_uchar8 *)(data + sysNetDataOffsetGet(data));
+
+  ipHdrLen = (buffPtr[0] & 0x0f)*4;
+  /* Extract source and group address from packet */
+  /* Point to the start of ethernet payload */
+
+  /* Starting of IGMP header */
+  igmpPtr = (L7_uchar8 *) &buffPtr[ipHdrLen];
+  PT_LOG_TRACE(LOG_CTX_IGMP,"igmpPtr %d ", igmpPtr[0]);
+
+
+  if (igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_MEMBERSHIP_QUERY, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
+                 pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
+  if (igmpPtr[0] == L7_IGMP_V1_MEMBERSHIP_REPORT)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_V1_MEMBERSHIP_REPORT, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
+                 pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
+  if (igmpPtr[0] == L7_IGMP_DVMRP)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_DVMRP, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
+                 pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
+  if (igmpPtr[0] == L7_IGMP_PIM_V1)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_PIM_V1, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
+                 pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
+  if (igmpPtr[0] == L7_IGMP_V2_MEMBERSHIP_REPORT)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_V2_MEMBERSHIP_REPORT, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
+                 pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
+  if (igmpPtr[0] == L7_IGMP_V2_LEAVE_GROUP)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_V2_LEAVE_GROUP, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
+                 pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
+  if (igmpPtr[0] == L7_IGMP_V3_MEMBERSHIP_REPORT)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_V3_MEMBERSHIP_REPORT, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
+                 pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
+#if 0
   PT_LOG_TRACE(LOG_CTX_IGMP,
             "Packet intercepted vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u",
             pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
+#endif
 
   /* Ensure snooping is enabled on the switch */
   if (pSnoopCB->snoopCfgData->snoopAdminMode != L7_ENABLE)
@@ -509,10 +549,11 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     }
   }
 
+#if 0 
   /* Get start and length of incoming frame */
   SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
   SYSAPI_NET_MBUF_GET_DATALENGTH(netBufHandle, dataLength);
-
+#endif  
   if (ptin_debug_igmp_packet_trace)
   {    
     L7_uint32 i;
@@ -672,8 +713,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #endif
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED 
+#if 0 
   L7_uchar8       *buffPtr          = L7_NULLPTR;
   L7_uint16        ipHdrLen         = 0;   
+#endif  
   L7_inet_addr_t   groupAddr;
   L7_inet_addr_t   sourceAddr;
   L7_uint16        noOfGroupRecords = 1;
@@ -696,13 +739,15 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
       return L7_FAILURE;
     }
-
+#if 0 
     /* Extract source and group address from packet */
 
     /* Point to the start of ethernet payload */
+
     buffPtr = (L7_uchar8 *)(data + sysNetDataOffsetGet(data));
 
     ipHdrLen = (buffPtr[0] & 0x0f)*4;
+#endif  
     if ( ipHdrLen < L7_IP_HDR_LEN)
     {
       PT_LOG_DEBUG(LOG_CTX_IGMP, "IP Header Len is invalid %d",ipHdrLen);
@@ -715,9 +760,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
       return L7_FAILURE;
     }
-
+#if 0 
     /* Starting of IGMP header */
     igmpPtr = (L7_uchar8 *) &buffPtr[ipHdrLen];
+#endif 
 
     /* Group address */
     /* For V1/V2 and query messages, the group address is always located at the same place */
