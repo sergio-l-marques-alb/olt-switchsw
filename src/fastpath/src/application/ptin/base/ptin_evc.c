@@ -428,7 +428,7 @@ static L7_RC_t switching_leaf_add(L7_uint leaf_intf, L7_uint16 leaf_int_vlan);
 static L7_RC_t switching_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_int_vlan, L7_BOOL iptv_flag);
 
 static L7_RC_t switching_elan_leaf_add(ptin_HwEthMef10Intf_t *intf_vlan, L7_uint16 int_vlan, L7_BOOL egress_del_ivid, L7_int force_pcp);
-static L7_RC_t switching_elan_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan);
+static L7_RC_t switching_elan_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan, L7_BOOL egress_del_ivid);
 
 /* Leaf add/remove for MC evcs (active IPTV flag) */
 #if ( !PTIN_BOARD_IS_MATRIX )
@@ -4508,7 +4508,7 @@ L7_RC_t ptin_evc_p2p_bridge_remove(ptin_HwEthEvcBridge_t *evcBridge)
   }
   else
   {
-    rc = switching_elan_leaf_remove(leaf_intf, pclient->uni_ovid, pclient->int_ivid, evcs[evc_id].rvlan);
+    rc = switching_elan_leaf_remove(leaf_intf, pclient->uni_ovid, pclient->int_ivid, evcs[evc_id].rvlan, L7_TRUE /*Delete inner vlan at egress*/);
   }
   if (rc != L7_SUCCESS)
   {
@@ -9561,7 +9561,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
     if (!IS_EVC_ETREE(evc_id) && !is_quattro && is_stacked && !cpu_trap && !is_root &&
         (IS_VLAN_VALID(out_vlan) && IS_VLAN_VALID(inn_vlan)) )
     {
-      rc = switching_elan_leaf_remove(ptin_port, out_vlan, inn_vlan, evcs[evc_id].rvlan);
+      rc = switching_elan_leaf_remove(ptin_port, out_vlan, inn_vlan, evcs[evc_id].rvlan, L7_TRUE /*Delete inner vlan at egress*/);
 
       if (rc != L7_SUCCESS)
       {
@@ -9588,7 +9588,7 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
       else
       #endif
       {
-        rc = switching_elan_leaf_remove(ptin_port, out_vlan, 0, int_vlan);
+        rc = switching_elan_leaf_remove(ptin_port, out_vlan, inn_vlan, int_vlan, L7_FALSE /*Don't touch the inner vlan at egress*/);
       }
 
       if (rc != L7_SUCCESS)
@@ -11218,12 +11218,16 @@ static L7_RC_t switching_elan_leaf_add(ptin_HwEthMef10Intf_t *intf_vlan,
 /**
  * Removes a leaf port (for stacked and unstacked EVCs) 
  * 
- * @param leaf_intf Leaf interface (ptin_intf)
- * @param int_vlan  Inner VLAN
+ * @param leaf_intf Leaf interface (ptin_intf) 
+ * @param leaf_out_vlan : Inner VLAN 
+ * @param leaf_inner_vlan : Inner VLAN 
+ * @param int_vlan  Inner : VLAN 
+ * @param egress_del_ivid : Applicable where the inner vlan 
+ *                        should be deleted/added
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-static L7_RC_t switching_elan_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan)
+static L7_RC_t switching_elan_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_vlan, L7_uint16 leaf_inner_vlan, L7_uint16 int_vlan, L7_BOOL egress_del_ivid)
 {
   L7_uint32 intIfNum;
   L7_RC_t   rc = L7_SUCCESS;
@@ -11242,7 +11246,7 @@ static L7_RC_t switching_elan_leaf_remove(L7_uint leaf_intf, L7_uint16 leaf_out_
   /* Remove ingress xlate entry: (leaf_intf) (Vs',Vc) => (Vr,Vc) */
   if (leaf_out_vlan >= 1 && leaf_out_vlan <= 4095)
   {
-    rc = ptin_xlate_ingress_delete(intIfNum, leaf_out_vlan, 0);
+    rc = ptin_xlate_ingress_delete(intIfNum, leaf_out_vlan, (egress_del_ivid) ? 0 : leaf_inner_vlan);
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_EVC, "Error deleting intf %u xlate Ingress entry [Leaf Out.VLAN %u + Inn.VLAN %u] (rc=%d)",
