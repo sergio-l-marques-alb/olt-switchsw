@@ -5806,8 +5806,9 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       if(NGPON2_GROUP.admin)
       {
         apply = 1;
+        PT_LOG_TRACE(LOG_CTX_MSG, "ngpon2_groups %u",                          ngpon2_groups);
         /* check if the group exists */
-        if (!ptin_intf_NGPON2_group_exists(ngponId[ngpon2_groups]))
+        if (!ptin_intf_NGPON2_group_exists(ngponId[ngpon2_groups-1]))
         { 
           PT_LOG_ERR(LOG_CTX_INTF, "NGPON2 Group does not exist in this card!");
         }  
