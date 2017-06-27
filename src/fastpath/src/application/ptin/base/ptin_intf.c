@@ -8042,11 +8042,11 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
   /* Add port to NGPON2 port bmp (in this moment group_info->numIntf is always one) */
   for(i = 0; i < group_info->numIntf; i++)
   { 
+    ptin_intf_slot_get(&slot);
     /* check if the group exists */
     if (!ptin_intf_NGPON2_group_exists(group_idx))
     {
-      PT_LOG_ERR(LOG_CTX_INTF, "NGPON2 Group does not exist!");
-      ptin_intf_slot_get(&slot);
+      PT_LOG_ERR(LOG_CTX_INTF, "NGPON2 Group does not exist!");     
       /* Check if is a new group */
       if( group_info->NGPON2Port[i].slot == slot)
       {
