@@ -8046,8 +8046,6 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
     if (!ptin_intf_NGPON2_group_exists(group_idx))
     {
       PT_LOG_ERR(LOG_CTX_INTF, "NGPON2 Group does not exist!");
-      NGPON2_groups_info[group_idx].admin = 0;
-
       ptin_intf_slot_get(&slot);
       /* Check if is a new group */
       if( group_info->NGPON2Port[i].slot == slot)
