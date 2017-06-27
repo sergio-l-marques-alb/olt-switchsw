@@ -8088,7 +8088,12 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
   {
     PT_LOG_TRACE(LOG_CTX_INTF, "Replicating configuration from port %d to %d !", src_port, group_info->NGPON2Port[i].id);
 
-    if(new_group)
+    if (group_info->NGPON2Port[i].slot != slot)
+    {
+      continue;
+    }
+
+    if ( new_group )
     {
       /* if is a new group replicate all the offline configuration from this group*/
       ptin_msg_replicate_ngpon2_configuration(group_info->GroupId);
@@ -8106,7 +8111,6 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
         PT_LOG_ERR(LOG_CTX_INTF, "NGPON2_groups_info[group_idx].nports %d !",            NGPON2_groups_info[group_idx].nports);
         return L7_SUCCESS;/* Do not return error to the manager*/
       }
-
     }
   }
 
