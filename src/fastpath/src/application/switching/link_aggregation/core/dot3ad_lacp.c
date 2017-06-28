@@ -1763,7 +1763,12 @@ L7_RC_t dot3adTransmitLacpdu(dot3ad_port_t *p)
     return L7_SUCCESS; 
   }
 
-
+  if (agg->blockedState)
+  {
+    /* do not transmit any LACP PDUs for lags in blocked state */
+    return L7_SUCCESS; 
+  }
+  
   if (p->perState != NO_PERIODIC)
   {
 
