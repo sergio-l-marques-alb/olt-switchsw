@@ -8731,6 +8731,7 @@ L7_RC_t ptin_evc_offline_entry_add(ptin_HwEthMef10Evc_t *EvcConf)
   /* Search for the newly created node */
   ext_evcId_infoData = (ptinExtNGEvcIdInfoData_t *) avlSearchLVL7( &(extNGEvcId_avlTree.extNGEvcIdAvlTree), (void *)&ext_evcId_key, AVL_EXACT);
 
+  PT_LOG_CRITIC(LOG_CTX_EVC,"Something is wrong... new created node, is not found (ext_evc_id=%u)!",ext_evcId_key.ext_evcId);
   /* If already in use, return its (internal) evc_id */
   if (ext_evcId_infoData == L7_NULLPTR)
   {
@@ -8751,7 +8752,7 @@ L7_RC_t ptin_evc_offline_entry_add(ptin_HwEthMef10Evc_t *EvcConf)
 
   for (i=0; i < EvcConf->n_intf ;i++)
   {
-    memcpy(&ext_evcId_infoData->evcNgpon2.intf[i],&EvcConf->intf[i], sizeof(EvcConf->intf[i]));
+    memcpy(&ext_evcId_infoData->evcNgpon2.intf[i], &EvcConf->intf[i], sizeof(EvcConf->intf[i]));
   }
 
   return L7_SUCCESS;
@@ -13212,16 +13213,26 @@ void  dump_all_offlineEvc()
     /* Prepare next key */
     memcpy(&ext_evcId_key, &ext_evcId_infoData->extNGEvcIdDataKey , sizeof(ptinExtNGEvcIdDataKey_t));
 
-    printf("EVC# %u ", ext_evcId_infoData->evcNgpon2.index);
-    printf("Nº interfaces %u ", ext_evcId_infoData->evcNgpon2.n_intf);
-    printf("Flags %u ", ext_evcId_infoData->evcNgpon2.flags);
+    printf("EVC# %u \n", ext_evcId_infoData->evcNgpon2.index);
+    printf("Nº interfaces %u \n", ext_evcId_infoData->evcNgpon2.n_intf);
+    printf("Flags %u \n", ext_evcId_infoData->evcNgpon2.flags);
 
     for (i=0 ; i<ext_evcId_infoData->evcNgpon2.n_intf; i++)
     {
-      printf("Intf type %d ", ext_evcId_infoData->evcNgpon2.intf[0].intf.value.ptin_intf.intf_type);
-      printf("Intf id %d", ext_evcId_infoData->evcNgpon2.intf[0].intf.value.ptin_intf.intf_id);
-      printf("Intf format %d", ext_evcId_infoData->evcNgpon2.intf[1].intf.format);
+      if (ext_evcId_infoData->evcNgpon2.intf[i].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_NGPON2)
+      {
+         printf("Intf type %s, ", "NGPON");
+      }
+      else
+      {
+        printf("Intf type %s, ",   ext_evcId_infoData->evcNgpon2.intf[i].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL ? "PHY" : "LAG" );
+      }
+      printf("Intf id %d \n",   ext_evcId_infoData->evcNgpon2.intf[i].intf.value.ptin_intf.intf_id);
+      printf("MEF  type %s \n",   ext_evcId_infoData->evcNgpon2.intf[i].mef_type == PTIN_EVC_INTF_ROOT ? "Root" : "Leaf");
+      printf("Intf format %d \n \n",   ext_evcId_infoData->evcNgpon2.intf[i].intf.format);
     }
+
+    printf("\n");
   }
 
 }
