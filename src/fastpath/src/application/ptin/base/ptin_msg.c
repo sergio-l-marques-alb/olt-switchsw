@@ -6036,8 +6036,11 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
             { 
               NGPON2_EVC_ADD(NGPON2_GROUP.evc_groups_pbmp[index], position);          
               PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.evc_groups_pbmp[index] %d ",NGPON2_GROUP.evc_groups_pbmp[index]);
-              NGPON2_GROUP.number_services++;
-             
+
+              if ( NGPON2_GROUP.admin == 1 ) // Only saved configuration for "offline" groups
+              {
+                NGPON2_GROUP.number_services++;                   
+              }                   
             }
             set_NGPON2_group_info(&NGPON2_GROUP, ngponId[group]);  
           }

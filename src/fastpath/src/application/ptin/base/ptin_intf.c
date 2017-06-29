@@ -8043,22 +8043,27 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
   for(i = 0; i < group_info->numIntf; i++)
   { 
     ptin_intf_slot_get(&slot);
+
+#if !PTIN_BOARD_IS_MATRIX
     if(group_info->NGPON2Port[i].slot != slot)
     {
       continue;
     }
+#endif
 
     /* check if the group exists */
     if (!ptin_intf_NGPON2_group_exists(group_idx))
     {
       PT_LOG_ERR(LOG_CTX_INTF, "NGPON2 Group does not exist!");     
       /* Check if is a new group */
+#if !PTIN_BOARD_IS_MATRIX
       if(group_info->NGPON2Port[i].slot == slot)
       {
         new_group = 1; 
         NGPON2_groups_info[group_idx].admin = 1; //Enable group
         PT_LOG_WARN(LOG_CTX_INTF, "Enabling group!");
       }
+#endif
     }
 
     PT_LOG_TRACE(LOG_CTX_INTF, "Slot %d ", slot);
@@ -8093,11 +8098,12 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
   {
     PT_LOG_TRACE(LOG_CTX_INTF, "Replicating configuration from port %d to %d !", src_port, group_info->NGPON2Port[i].id);
 
+#if !PTIN_BOARD_IS_MATRIX
     if (group_info->NGPON2Port[i].slot != slot)
     {
       continue;
     }
-
+#endif
     if ( new_group )
     {
       /* if is a new group replicate all the offline configuration from this group*/
@@ -8161,10 +8167,13 @@ L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info)
   for (i=0;i < group_info->numIntf; i++)
   {
     ptin_intf_slot_get(&slot);
+
+#if !PTIN_BOARD_IS_MATRIX
     if(group_info->NGPON2Port[i].slot != slot)
     {
       continue;
     }
+#endif
 
     NGPON2_PORT_REM(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64,(group_info->NGPON2Port[i].id));
 
