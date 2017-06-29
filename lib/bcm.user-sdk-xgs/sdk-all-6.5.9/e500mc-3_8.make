@@ -72,7 +72,7 @@ PLATFORM_NAME=$(PLATFORM)-$(KERNEL_VER)
 .PHONY: all clean
 
 all:
-	gmake -C $(SRC_PATH)/$(PLATFORM_NAME)
+	gmake -j4 -C $(SRC_PATH)/$(PLATFORM_NAME)
 	mkdir -p $(SDK)/$(SDKBUILD)
 	mkdir -p $(DST_PATH)/$(PLATFORM_NAME)
 	cp -v $(SRC_PATH)/$(PLATFORM_NAME)/bcm.user* $(SRC_PATH)/$(PLATFORM_NAME)/*.ko $(SRC_PATH)/$(PLATFORM_NAME)/netserve $(DST_PATH)/$(PLATFORM_NAME)
