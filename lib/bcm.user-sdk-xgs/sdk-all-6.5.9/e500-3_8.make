@@ -52,7 +52,7 @@ export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 
 export COMPILER           = $(TOOLCHAIN_BIN_DIR)/ppc_85xxDP-
-export KERNEL_PATH        = /home/mruas/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.8.13
+export KERNEL_PATH        = /home/shared/switchdrvr/trunk/lib/kernel/linux-3.8.13
 #/home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-2.6.35
 #/home/peter/kernel_3_0_51.cxo160g
 #/home/devtools/dev-QorIQ/dev-P204x/cxo640/kernel_3_0_51

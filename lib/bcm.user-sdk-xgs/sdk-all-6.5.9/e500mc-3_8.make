@@ -52,7 +52,7 @@ export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 
 export COMPILER           = $(TOOLCHAIN_BIN_DIR)/ppce500mc-fsl-linux/powerpc-fsl-linux-
-export KERNEL_PATH        = /home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.0.51-p2040
+export KERNEL_PATH        = /home/shared/switchdrvr/trunk/lib/kernel/linux-3.0.51-p2040
 #export KERNEL_PATH        = /home/tiago/temp/linux-3.0.51-smp-e500mc
 #/home/peter/kernel_3_0_51.cxo160g
 #/home/devtools/dev-QorIQ/dev-P204x/cxo640/kernel_3_0_51
