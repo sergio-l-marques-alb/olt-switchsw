@@ -115,9 +115,9 @@ static L7_uint32 map_intIfNum2port[L7_MAX_INTERFACE_COUNT];
 
 #define NGPON2_EMPTY_ENTRY     0xff
 
-#define NGPON2_PORT_ADD(var, n)  ( var |= (0x1 << n))
-#define NGPON2_PORT_REM(var, n)  ( var &= ~(0x1 << n))
-#define NGPON2_BIT_PORT(var)     ( var & 0x1 )
+#define NGPON2_PORT_ADD(var, n)  ( var |= (1LL << n))
+#define NGPON2_PORT_REM(var, n)  ( var &= ~(1LL << n))
+#define NGPON2_BIT_PORT(var)     ( var & 1LL )
                                
 #endif                               
 
@@ -8063,16 +8063,19 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
         NGPON2_groups_info[group_idx].admin = 1; //Enable group
         PT_LOG_WARN(LOG_CTX_INTF, "Enabling group!");
       }
+#else
+      new_group = 1; 
+      NGPON2_groups_info[group_idx].admin = 1; //Enable group
 #endif
     }
 
-    PT_LOG_TRACE(LOG_CTX_INTF, "Slot %d ", slot);
-    if(!NGPON2_BIT_PORT(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64 >> group_info->NGPON2Port[i].id))
+    if(!NGPON2_BIT_PORT(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64 >>group_info->NGPON2Port[i].id))
     {
-      /* set portId to the NGPON2 group */
-      NGPON2_PORT_ADD(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64, (group_info->NGPON2Port[i].id));
-      NGPON2_groups_info[group_idx].nports++;
+     /* set portId to the NGPON2 group */
+     NGPON2_PORT_ADD(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64,(group_info->NGPON2Port[i].id));
+     NGPON2_groups_info[group_idx].nports++;
     }
+
     /* increment number of ports for this group */  
     PT_LOG_TRACE(LOG_CTX_INTF, "GROUP Id %d have %d ports",group_idx, NGPON2_groups_info[group_idx].nports);
 

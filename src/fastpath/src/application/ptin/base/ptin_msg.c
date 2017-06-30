@@ -5848,7 +5848,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       {
         while ( ((j <= NGPON2_GROUP.nports) && (NGPON2_GROUP.nports != 0)) || (apply == 0)) /* apply == 0 is to contemplate offline groups that have NGPON2_GROUP.nports == 0*/
         {
-          if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1))
+          if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL))
           {
             ptinEvcConf.intf[index_port].intf.format = PTIN_INTF_FORMAT_TYPEID;
 
@@ -5886,6 +5886,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
           }
         }         
       }
+      PT_LOG_TRACE(LOG_CTX_MSG, "index_port %u", index_port);
     }
     else
 #endif
@@ -6331,7 +6332,7 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
 
       while (j < NGPON2_GROUP.nports)
       {
-        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
         {
               /* Copy data to ptin struct */
           ptinEvcPort.intf.format = PTIN_INTF_FORMAT_TYPEID;
@@ -6396,8 +6397,8 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
           }
 
           ports_ngpon2++;
-          j++;
         }
+        j++;
         shift_index++;
       }    
     }
@@ -6675,7 +6676,7 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
 
     while (j < NGPON2_GROUP.nports)
     {
-      if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+      if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
       {
         /* Copy data */
         ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
@@ -6794,7 +6795,7 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
 
     while (j < NGPON2_GROUP.nports)
     {
-      if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+      if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
       {
         /* Copy data */
         ptinEvcBridge.index          = ENDIAN_SWAP32(msgEvcBridge->evcId);
@@ -6896,7 +6897,7 @@ L7_RC_t ptin_msg_EVCFlow_add(msg_HwEthEvcFlow_t *msgEvcFlow)
 
     while (j < NGPON2_GROUP.nports)
     {
-      if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+      if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
       {
         /* Copy data */
         ptinEvcFlow.evc_idx             = msgEvcFlow->evcId;
@@ -7061,7 +7062,7 @@ L7_RC_t ptin_msg_EVCFlow_remove(msg_HwEthEvcFlow_t *msgEvcFlow)
 
     while (j < NGPON2_GROUP.nports)
     {
-      if (((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin)
+      if (((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin)
       {
           /* Copy data */
         ptinEvcFlow.evc_idx             = ENDIAN_SWAP32(msgEvcFlow->evcId);
@@ -7161,7 +7162,7 @@ L7_RC_t ptin_msg_EvcFloodVlan_add(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_uint 
 
       while (j < NGPON2_GROUP.nports)
       {
-        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
         {
           ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
           ptin_intf.intf_id   = shift_index;
@@ -7264,7 +7265,7 @@ L7_RC_t ptin_msg_EvcFloodVlan_remove(msg_HwEthEvcFloodVlan_t *msgEvcFlood, L7_ui
 
       while (j < NGPON2_GROUP.nports)
       {
-        if( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        if( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
         {
           ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
           ptin_intf.intf_id   = shift_index;
@@ -9077,7 +9078,7 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
       get_NGPON2_group_info(&NGPON2_GROUP, profile[i].client.intf.intf_id);
       while (j < NGPON2_GROUP.nports)
       {
-        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
         {
           /* Extract input data */
           evc_idx = profile[i].evc_id;
@@ -9224,7 +9225,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_get(msg_DhcpClientStatistics_t *dhcp_stats)
 
       while (j < NGPON2_GROUP.nports)
       {
-        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
         {
           client.ptin_intf.intf_type  = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
           client.ptin_intf.intf_id    = ENDIAN_SWAP8(shift_index);
@@ -9384,7 +9385,7 @@ L7_RC_t ptin_msg_DHCP_clientStats_clear(msg_DhcpClientStatistics_t *dhcp_stats)
 
     while (j < NGPON2_GROUP.nports)
     {
-      if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+      if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
       {
         memset(&client,0x00,sizeof(ptin_client_id_t));
         if (ENDIAN_SWAP8(dhcp_stats->client.mask) & MSG_CLIENT_OVLAN_MASK)
@@ -10113,7 +10114,7 @@ L7_RC_t ptin_msg_igmp_admission_control_set(msg_IgmpAdmissionControl_t *msgAdmis
       while (j < NGPON2_GROUP.nports)
       {
 
-        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
         {
           intf.intf_id = shift_index;  
           intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
@@ -10603,7 +10604,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
 
       while (j < NGPON2_GROUP.nports)
       {
-        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
         {
           j++;
           memset(&client,0x00,sizeof(ptin_client_id_t));
@@ -10796,7 +10797,7 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
 
       while ( j < NGPON2_GROUP.nports)
       {
-        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
         {
 
           j++;
@@ -17791,7 +17792,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
 
         while (j < NGPON2_GROUP.nports)
         {
-          if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+          if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
           {
             memset(&client,0x00,sizeof(ptin_client_id_t));
             if (msg[messageIterator].client.mask & MSG_CLIENT_OVLAN_MASK)
@@ -18038,7 +18039,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
 
         while ( j < NGPON2_GROUP.nports)
         {
-          if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+          if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
           {
             memset(&client,0x00,sizeof(ptin_client_id_t));
             if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_OVLAN_MASK)
@@ -18255,7 +18256,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_add(msg_igmp_macbridge_client_pa
 
       while (j < NGPON2_GROUP.nports)
       {
-        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 0x1) && NGPON2_GROUP.admin )
+        if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
         {
 
           /*Initialize Structure*/
