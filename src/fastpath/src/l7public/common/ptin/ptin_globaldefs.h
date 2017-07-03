@@ -198,11 +198,23 @@ extern int ptin_sys_number_of_ports;
 #define RATE_LIMIT_UCUNK    1024    /* 1 Mbps by default */
 #define RATE_LIMIT_CPU      1024    /* 1 Mbps by default */
 
+#if (PTIN_BOARD_IS_LINECARD)
+ #define RATE_LIMIT_CPU_TRAFFIC   256   /* 256 Kbps by default */
+ #define RATE_LIMIT_CPU_TRAPPED  1024   /* 1 Mbps by default */
+ #define BUCKET_SIZE_CPU_TRAFFIC  128   /* Bucket size in kbits */
+ #define BUCKET_SIZE_CPU_TRAPPED  256   /* Bucket size in kbits */
+#else
+ #define RATE_LIMIT_CPU_TRAFFIC  1024   /* 1 Mbps by default */
+ #define RATE_LIMIT_CPU_TRAPPED  2048   /* 2 Mbps by default */
+ #define BUCKET_SIZE_CPU_TRAFFIC  256   /* Bucket size in kbits */
+ #define BUCKET_SIZE_CPU_TRAPPED  512   /* Bucket size in kbits */
+#endif
+
 /* CoS assigned to trapped packets */
-#define CPU_TRAPPED_PACKETS_COS_DEFAULT 8     /* For IGMP/DHCP/PPPoE/APS/... */
-#define CPU_TRAPPED_PACKETS_COS_INBAND  9     /* For Inband packets */
-#define CPU_TRAPPED_PACKETS_COS_HIPRIO  10    /* High priority */
-#define CPU_TRAPPED_PACKETS_COS_PCAP    11    /* For Packet Capture */
+#define CPU_TRAPPED_PACKETS_COS_DEFAULT HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS8     /* For IGMP/DHCP/PPPoE/APS/... */
+#define CPU_TRAPPED_PACKETS_COS_INBAND  HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS9     /* For Inband packets */
+#define CPU_TRAPPED_PACKETS_COS_HIPRIO  HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS10    /* High priority */
+#define CPU_TRAPPED_PACKETS_COS_PCAP    HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS11    /* For Packet Capture */
 
 /* PTin module states */
 typedef enum {

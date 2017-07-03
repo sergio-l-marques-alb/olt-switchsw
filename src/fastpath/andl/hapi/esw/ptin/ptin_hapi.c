@@ -86,7 +86,7 @@ bcm_pbmp_t pbm_egress_root_ports;
 bcm_pbmp_t pbm_egress_community_ports;
 
 /* Save storm control rate values */
-ptin_stormControl_t stormControl_backup = { 0, 0, RATE_LIMIT_BCAST, RATE_LIMIT_MCAST, RATE_LIMIT_UCUNK, RATE_LIMIT_CPU };
+ptin_stormControl_t stormControl_backup = { 0, 0, RATE_LIMIT_BCAST, RATE_LIMIT_MCAST, RATE_LIMIT_UCUNK, RATE_LIMIT_CPU_TRAFFIC };
 
 /********************************************************************
  * MACROS AND INLINE FUNCTIONS
@@ -3968,7 +3968,9 @@ L7_RC_t hapi_ptin_stormControl_set(ptin_dapi_port_t *dapiPort, L7_BOOL enable, p
   /* CPU storm control */
   if (control->flags & PTIN_STORMCONTROL_MASK_CPU)
   {
-    result = hapi_ptin_stormControl_cpu_set(enable, control->cpu_rate, 128, control->cpu_rate, 128);
+    result = hapi_ptin_stormControl_cpu_set(enable,
+                                            control->cpu_rate, BUCKET_SIZE_CPU_TRAFFIC,
+                                            RATE_LIMIT_CPU_TRAPPED, BUCKET_SIZE_CPU_TRAPPED);
 
     if (result != L7_SUCCESS)
     {

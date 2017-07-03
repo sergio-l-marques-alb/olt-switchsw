@@ -6742,7 +6742,7 @@ L7_RC_t ptin_evc_stormControl_reset(ptin_stormControl_t *stormControl)
   stormControl->bcast_rate = (L7_uint32) RATE_LIMIT_BCAST * 1000;
   stormControl->mcast_rate = (L7_uint32) RATE_LIMIT_MCAST * 1000;
   stormControl->ucunk_rate = (L7_uint32) RATE_LIMIT_UCUNK * 1000;
-  stormControl->cpu_rate   = (L7_uint32) RATE_LIMIT_CPU   * 1000;
+  stormControl->cpu_rate   = (L7_uint32) RATE_LIMIT_CPU_TRAFFIC * 1000;
 
   PT_LOG_TRACE(LOG_CTX_EVC, "Use default rate limits");
 
