@@ -259,10 +259,10 @@ void ptin_opensaf_task_OnuMac( void )
     L7_uint32 section = ONU_STATE_INDEX(event_data.parentId , event_data.onuId, event_data.slotId, event_data.linkId);
 
     /* Get ONU State */
-    ptin_checkpoint_getSection(ONU_STATE, section , &onuStatus, &size);
+    ptin_opensaf_read_checkpoint(&onuStatus,sizeof(onuStatus),section,0,ONU_STATE);
+    ptin_opensaf_read_checkpoint(&data,sizeof(data),event_data.onuId,0,SWITCHDRVR_ONU);
 
     /*Retrieve MAC form a particular ONU*/
-    ptin_checkpoint_getSection(SWITCHDRVR_ONU, event_data.onuId /* xparentdID + 1 */, &data, &size);
     p = data;
 
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "section %d", ONU_STATE_INDEX(event_data.parentId , event_data.onuId, event_data.slotId, event_data.linkId));
@@ -300,7 +300,7 @@ void ptin_opensaf_task_OnuMac( void )
       ptin_opensaf_checkpoint_deleteSection(SWITCHDRVR_ONU, event_data.onuId);
     }
     
-    if (onuStatus.state != ONU_STATE_DISABLED)
+    if (onuStatus.state == ONU_STATE_ACTIVE)
     {
       L7_uint32 servicesId[PTIN_SYSTEM_MAX_SERVICES_PER_ONU];
       L7_uint32 nOfServices;
@@ -337,6 +337,7 @@ void ptin_opensaf_task_OnuMac( void )
       {
         if (servicesId[i] != (L7_uint32) -1)
         {
+          PT_LOG_TRACE(LOG_CTX_OPENSAF, " servicesId[%d] = %d,", i, servicesId[i]);
           ptin_igmp_multicast_querierReset_on_specific_serviceID(event_data.memberIndex, event_data.onuId, servicesId[i]);
         }
         i++;

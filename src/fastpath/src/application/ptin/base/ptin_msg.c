@@ -5909,15 +5909,18 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
          ptinEvcConf.intf[index_port].vid,ptinEvcConf.intf[i].vid_inner);
       PT_LOG_DEBUG(LOG_CTX_MSG, "PTIN_INTF_TYPE_DEBUG: %u", ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type);
 
-      /* If is a physical port apply the EVC */
-      if ( ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
-      {
 #ifdef NGPON2_SUPPORTED
+      /* If is a physical port apply the EVC */
+      if ( ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL )
+      {
         apply = 1;
-#endif
         PT_LOG_TRACE(LOG_CTX_MSG, "Apply EVC this configuration ");
       }
-#ifdef NGPON2_SUPPORTED
+      /* Always apply ngpon evc's in the matrix*/
+      if ( PTIN_BOARD == PTIN_BOARD_IS_MATRIX ) 
+      {
+        apply = 1;
+      }
       savePtinEvcConf.intf[save_ports] = ptinEvcConf.intf[index_port];
       save_ports++;
 #endif
