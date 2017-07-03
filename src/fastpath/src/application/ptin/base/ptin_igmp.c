@@ -502,7 +502,7 @@ static ptinIgmpMulticastPackage_t          multicastPackage[PTIN_SYSTEM_IGMP_MAX
 
 static ptinIgmpNoOfMulticastServices_t     multicastServices[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF];
 static ptinIgmpMulticastServiceId_t        multicastServiceId[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF][PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID];
-static ptinIgmpMulticastServiceEvcId_t     serviceId_evcUc[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF][PTIN_SYSTEM_MAX_SERVICES_PER_ONU];         /* Array defined to store all the servicesId's in use */
+ptinIgmpMulticastServiceEvcId_t            serviceId_evcUc[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF][PTIN_SYSTEM_MAX_SERVICES_PER_ONU];         /* Array defined to store all the servicesId's in use */
 
 static void ptin_igmp_multicast_service_reset(void);
 
@@ -18430,9 +18430,15 @@ RC_t ptin_igmp_multicast_get_all_serviceId_per_onu(L7_uint32 ptinPort, L7_uint32
       {
         serviceId_evcUc[ptinPort][onuId][i].inUse     = L7_TRUE;
         serviceId_evcUc[ptinPort][onuId][i].serviceId = group_client->evcId;
-
         listOfServices[i] = group_client->evcId;
-
+        i++;
+        *nOfServices = i;
+      }
+      else
+      {
+        serviceId_evcUc[ptinPort][onuId][i].inUse     = L7_TRUE;
+        serviceId_evcUc[ptinPort][onuId][i].serviceId = group_client->evcId;
+        listOfServices[i] = group_client->evcId;
         i++;
         *nOfServices = i;
       }
@@ -19670,10 +19676,7 @@ void ptin_igmp_onu_services_inUse_dump(L7_uint32 ptinPort, L7_uint32 onuId)
 
   while (i < PTIN_SYSTEM_MAX_SERVICES_PER_ONU)
   {
-    if (serviceId_evcUc[ptinPort][onuId][i].inUse != L7_FALSE)
-    {
-      printf("ServiceId: %u\n", serviceId_evcUc[ptinPort][onuId][i].serviceId);
-    }
+    printf("ServiceId: %u  (in_use %d )\n", serviceId_evcUc[ptinPort][onuId][i].serviceId, serviceId_evcUc[ptinPort][onuId][i].inUse);
     i++;
   }
 #else

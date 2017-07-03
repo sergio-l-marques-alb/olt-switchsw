@@ -486,7 +486,7 @@ typedef struct {
 typedef struct
 {
   L7_uint8       inUse;
-  L7_uint32      serviceId; 
+  L7_uint32      serviceId;
 } ptinIgmpMulticastServiceEvcId_t;
 
 #endif
