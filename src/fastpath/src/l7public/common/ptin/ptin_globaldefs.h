@@ -222,10 +222,10 @@ extern int ptin_sys_number_of_ports;
 #endif
 
 /* CoS assigned to trapped packets */
-#define CPU_TRAPPED_PACKETS_COS_DEFAULT 8     /* For IGMP/DHCP/PPPoE/APS/... */
-#define CPU_TRAPPED_PACKETS_COS_INBAND  9     /* For Inband packets */
-#define CPU_TRAPPED_PACKETS_COS_HIPRIO  10    /* High priority */
-#define CPU_TRAPPED_PACKETS_COS_PCAP    11    /* For Packet Capture */
+#define CPU_TRAPPED_PACKETS_COS_DEFAULT HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS8     /* For IGMP/DHCP/PPPoE/APS/... */
+#define CPU_TRAPPED_PACKETS_COS_INBAND  HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS9     /* For Inband packets */
+#define CPU_TRAPPED_PACKETS_COS_HIPRIO  HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS10    /* High priority */
+#define CPU_TRAPPED_PACKETS_COS_PCAP    HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS11    /* For Packet Capture */
 
 /* PTin module states */
 typedef enum {
