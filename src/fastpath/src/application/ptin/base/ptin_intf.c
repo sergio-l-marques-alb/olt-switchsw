@@ -8076,6 +8076,12 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
      NGPON2_groups_info[group_idx].nports++;
     }
 
+    /* Avoid mistake in configurations */
+    if(NGPON2_groups_info[group_idx].nports == 0)
+    {
+      NGPON2_groups_info[group_idx].admin = 0; 
+    }
+
     /* increment number of ports for this group */  
     PT_LOG_TRACE(LOG_CTX_INTF, "GROUP Id %d have %d ports",group_idx, NGPON2_groups_info[group_idx].nports);
 

@@ -230,7 +230,7 @@ void ptin_opensaf_task_OnuMac( void )
   /* Loop */
   while (1)
   {
-    osapiSleepMSec(500); 
+    osapiSleepMSec(100); 
 
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "ptin_opensaf_task_OnuMac running...");
 
