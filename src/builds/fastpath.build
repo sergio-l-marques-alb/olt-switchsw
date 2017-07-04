@@ -9,8 +9,8 @@ BUILDS_FOLDER=./output
 APPS_PATH=./apps
 TMP_PATH=./tmp
 
-USERNAME=olt
-DST_IPADDR=10.112.15.243
+#USERNAME=olt
+#DST_IPADDR=10.112.15.243
 DST_PATH=/home/olt/fastpath_builds/fastpath
 
 MAIN_BIN=switchdrvr
@@ -39,6 +39,11 @@ if [ $n_args -lt 1 ]
   echo "Erro de parametros: $0 <version>"
   echo -en $colorReset
   exit;
+fi
+
+# Update destination path
+if [ $# -ge 2 ]; then
+  DST_PATH=$2
 fi
 
 mkdir $BUILDS_FOLDER

@@ -9,14 +9,18 @@ export APPLICATION=fp
 #svn update
 
 if [ $# -eq 0 ]; then
-  echo "Syntax parameters: $0 <version> [build/backup]"
+  echo "Syntax parameters: $0 <version> [all/compile/install/build/backup] [Destination path]"
   exit 0;
 fi
 
-if [ $# -eq 1 ]; then
-  operation="all"
-else
+if [ $# -ge 2 ]; then
   operation=$2
+else
+  operation="all"
+fi
+
+if [ $# -ge 2 ]; then
+  DST_PATH=$2
 fi
 
 if [ "$operation" == "compile" -o "$operation" == "all" ]; then
@@ -43,14 +47,14 @@ fi
 
 if [ "$operation" == "build" -o "$operation" == "all" ]; then
   echo "Preparing tarball..."
-  . ./fastpath.build $1
+  . ./fastpath.build $1 $3
   echo "Done!"
   echo
 fi
 
 if [ "$operation" == "backup" -o "$operation" == "all" ]; then
   echo "Preparing backup..."
-  . ./fastpath.backup $1
+  . ./fastpath.backup $1 $3
   echo "Done!"
   echo
 fi
