@@ -647,11 +647,12 @@ L7_RC_t dot3adRxMachineDefaultedAction(dot3ad_port_t *p)
   }
   if (p->selected == UNSELECTED &&
 	  a->isStatic == L7_TRUE)
-
+  {
       PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicSelect");
-    /* if (p->selected == UNSELECTED &&
-	  dot3adSystem.staticLag == L7_ENABLE)   */
+      /* if (p->selected == UNSELECTED &&
+        dot3adSystem.staticLag == L7_ENABLE)   */
       rc = dot3adSelectionLogicSelect(p);
+  }
   /*invoke generate events*/
   rc = dot3adReceiveMachineGenerateEvent(p);
   return rc;
@@ -694,8 +695,10 @@ L7_RC_t dot3adRxMachineCurrentAction(dot3ad_port_t *p, dot3ad_pdu_t *pdu)
       to ensure the mux state machine can jump states to detached
       depending on the current mux state which must be only ATTACHED*/
       if (dot3adMuxMachineIsAttachedState(p) == L7_TRUE)
+      {
         PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACIssueCmd(lacpUnselected...");
         rc = LACIssueCmd(lacpUnselected,p->actorPortNum,L7_NULLPTR);
+      }
     }
   }
 
