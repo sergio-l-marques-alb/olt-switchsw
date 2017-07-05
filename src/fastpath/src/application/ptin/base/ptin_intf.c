@@ -8065,6 +8065,7 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
       }
 #else
       new_group = 1; 
+      PT_LOG_NOTICE(LOG_CTX_INTF, "Enabling group!");
       NGPON2_groups_info[group_idx].admin = 1; //Enable group
 #endif
     }
@@ -8074,12 +8075,6 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
      /* set portId to the NGPON2 group */
      NGPON2_PORT_ADD(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64,(group_info->NGPON2Port[i].id));
      NGPON2_groups_info[group_idx].nports++;
-    }
-
-    /* Avoid mistake in configurations */
-    if(NGPON2_groups_info[group_idx].nports == 0)
-    {
-      NGPON2_groups_info[group_idx].admin = 0; 
     }
 
     /* increment number of ports for this group */  
@@ -8101,6 +8096,14 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
       }
      temp++;
     }
+  }
+
+  PT_LOG_NOTICE(LOG_CTX_INTF, "Number of ports %d !", NGPON2_groups_info[group_idx].nports );
+  /* Avoid mistake in configurations */
+  if(NGPON2_groups_info[group_idx].nports == 0)
+  {
+    PT_LOG_NOTICE(LOG_CTX_INTF, "Disable group!");
+    NGPON2_groups_info[group_idx].admin = 0; 
   }
     
   for(i = 0; ((i < group_info->numIntf) && NGPON2_groups_info[group_idx].admin); i++)

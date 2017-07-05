@@ -502,7 +502,7 @@ static ptinIgmpMulticastPackage_t          multicastPackage[PTIN_SYSTEM_IGMP_MAX
 
 static ptinIgmpNoOfMulticastServices_t     multicastServices[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF];
 static ptinIgmpMulticastServiceId_t        multicastServiceId[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF][PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID];
-static ptinIgmpMulticastServiceEvcId_t     serviceId_evcUc[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF][PTIN_SYSTEM_MAX_SERVICES_PER_ONU];         /* Array defined to store all the servicesId's in use */
+ptinIgmpMulticastServiceEvcId_t            serviceId_evcUc[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF][PTIN_SYSTEM_MAX_SERVICES_PER_ONU];         /* Array defined to store all the servicesId's in use */
 
 static void ptin_igmp_multicast_service_reset(void);
 
@@ -18409,6 +18409,7 @@ RC_t ptin_igmp_multicast_get_all_serviceId_per_onu(L7_uint32 ptinPort, L7_uint32
     return L7_FAILURE;
   }
 
+   PT_LOG_TRACE(LOG_CTX_IGMP, "%u", *nOfServices);
   /* onuId is valid? */
   if (onuId >= PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF)
   {
@@ -18419,28 +18420,40 @@ RC_t ptin_igmp_multicast_get_all_serviceId_per_onu(L7_uint32 ptinPort, L7_uint32
   /* Run all cells in AVL tree */
   memset(&avl_key,0x00,sizeof(ptinIgmpClientDataKey_t));
 
-  while ( ( group_client = (ptinIgmpGroupClientInfoData_t *)
-            avlSearchLVL7(&igmpGroupClients.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
-          ) != L7_NULLPTR ) 
+  while ( (group_client = (ptinIgmpGroupClientInfoData_t *)
+           avlSearchLVL7(&igmpGroupClients.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
+          ) != L7_NULLPTR )
   {
 
-    if (group_client->onuId == onuId && group_client->ptin_port == ptinPort)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "send  %d", serviceId_evcUc[ptinPort][onuId][i].send);
+    if ( group_client->onuId == onuId && group_client->ptin_port == ptinPort )
     {
-      if (serviceId_evcUc[ptinPort][onuId][i].inUse == L7_FALSE)
+      /* reset flag to send querier*/
+      if ( *nOfServices == -1 )
       {
-        serviceId_evcUc[ptinPort][onuId][i].inUse     = L7_TRUE;
-        serviceId_evcUc[ptinPort][onuId][i].serviceId = group_client->evcId;
-        listOfServices[i] = group_client->evcId;
+        serviceId_evcUc[ptinPort][onuId][i].send = 0;
         i++;
-        *nOfServices = i;
-      }
-      else
+        PT_LOG_TRACE(LOG_CTX_IGMP, "Reset querier flag ");
+      } else if ( serviceId_evcUc[ptinPort][onuId][i].send == 0 )
       {
-        serviceId_evcUc[ptinPort][onuId][i].inUse     = L7_TRUE;
-        serviceId_evcUc[ptinPort][onuId][i].serviceId = group_client->evcId;
-        listOfServices[i] = group_client->evcId;
-        i++;
-        *nOfServices = i;
+        serviceId_evcUc[ptinPort][onuId][i].send = 1;
+        PT_LOG_TRACE(LOG_CTX_IGMP, "Querier flag up ");
+        if ( serviceId_evcUc[ptinPort][onuId][i].inUse == L7_FALSE )
+        {
+          serviceId_evcUc[ptinPort][onuId][i].inUse     = L7_TRUE;
+          serviceId_evcUc[ptinPort][onuId][i].serviceId = group_client->evcId;
+          listOfServices[i] = group_client->evcId;
+          i++;
+          *nOfServices = i;
+        }
+        else
+        {
+          serviceId_evcUc[ptinPort][onuId][i].inUse     = L7_TRUE;
+          serviceId_evcUc[ptinPort][onuId][i].serviceId = group_client->evcId;
+          listOfServices[i] = group_client->evcId;
+          i++;
+          *nOfServices = i;
+        }
       }
     }
 

@@ -269,8 +269,14 @@ void ptin_opensaf_task_OnuMac( void )
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "section %d", section);
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "onuStatus.state %d", onuStatus.state);
 
-    if(onuStatus.state == ONU_STATE_DISABLED) /* If the ONU is disable remove MAC, DHCP binding and IGMP channels*/
+    if(onuStatus.state == ONU_STATE_INACTIVE) /* If the ONU is disable remove MAC, DHCP binding and IGMP channels*/
     {    
+      L7_uint32 servicesId[PTIN_SYSTEM_MAX_SERVICES_PER_ONU];
+      L7_uint32 nOfServices = -1;
+
+      /* reset querier flag*/
+      ptin_igmp_multicast_get_all_serviceId_per_onu(event_data.memberIndex, event_data.onuId, servicesId, &nOfServices);
+
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "size %u", size);
 
       int i = 0;   
@@ -303,7 +309,7 @@ void ptin_opensaf_task_OnuMac( void )
     if (onuStatus.state == ONU_STATE_ACTIVE)
     {
       L7_uint32 servicesId[PTIN_SYSTEM_MAX_SERVICES_PER_ONU];
-      L7_uint32 nOfServices;
+      L7_uint32 nOfServices = (L7_uint32) 0;
       L7_uint32 i = 0;
       dhcpSnoopBinding_t  dsBindingIpv4,dsBindingIpv6;
 

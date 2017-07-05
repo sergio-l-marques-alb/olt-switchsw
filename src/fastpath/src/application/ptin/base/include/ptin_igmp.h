@@ -486,6 +486,7 @@ typedef struct {
 typedef struct
 {
   L7_uint8       inUse;
+  L7_uint8       send; // already sent a query? 1-yes 0-no
   L7_uint32      serviceId;
 } ptinIgmpMulticastServiceEvcId_t;
 
