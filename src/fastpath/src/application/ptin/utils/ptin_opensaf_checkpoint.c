@@ -729,7 +729,7 @@ L7_RC_t ptin_opensaf_read_checkpoint(void *data, int len, SectionIndex idx, int 
   {
     if (!ptin_checkpoint[id].ignoreSectionNotExistDebug)
     {
-  	  PT_LOG_ERR(LOG_CTX_OPENSAF, "Error %d reading from checkpoint %s:%u", saRet, ptin_checkpoint[id].ckptNameStr, idx);
+  	  PT_LOG_TRACE(LOG_CTX_OPENSAF, "Error %d reading from checkpoint %s:%u", saRet, ptin_checkpoint[id].ckptNameStr, idx);
     }
   	//the only acceptable error is the section does not exist, otherwise better reinit opensaf
   	if (saRet != SA_AIS_ERR_NOT_EXIST)
