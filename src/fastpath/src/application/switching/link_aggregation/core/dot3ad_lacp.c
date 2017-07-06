@@ -205,7 +205,7 @@ L7_RC_t dot3adUpdateSelected(dot3ad_port_t *p, dot3ad_pdu_t *pdu)
   {
     p->selected = UNSELECTED;
 
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
     /*call selection logic with unselect*/
     rc = dot3adSelectionLogicUnselect(p);
 	dot3adTablesLastChangedRecord();
@@ -242,7 +242,7 @@ L7_RC_t dot3adUpdateDefaultSelected(dot3ad_port_t *p)
   {
     p->selected = UNSELECTED;
 
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
     /*call selection logic with unselect*/
     rc = dot3adSelectionLogicUnselect(p);
 	dot3adTablesLastChangedRecord();
@@ -408,7 +408,7 @@ L7_RC_t dot3adWaitWhileTimerExpired(L7_uint32 portNum, L7_uint32 nullParm)
   p->readyN = L7_TRUE;
   /*trace call*/
   dot3adPortTrace(p, DOT3AD_TRACE_RX_WAITWHILE_EXP);
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicReady");
+  PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adSelectionLogicReady");
   /*call selection logic for readyselected*/
   rc = dot3adSelectionLogicReady(p);
 
@@ -452,7 +452,7 @@ L7_RC_t dot3adRxMachineInitializeAction(dot3ad_port_t *p)
   p->rxState = INITIALIZE;
 
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
+  PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
   /*call selection logic with unselect*/
   rc = dot3adSelectionLogicUnselect(p);
 
@@ -531,7 +531,7 @@ L7_RC_t dot3adRxMachineLacpDisabledAction(dot3ad_port_t *p)
 
   /*set the state in the receive machine*/
   p->rxState = LACP_DISABLED;
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
+  PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
   /*call selection logic with unselect*/
   rc = dot3adSelectionLogicUnselect(p);
   dot3adTablesLastChangedRecord();
@@ -648,7 +648,7 @@ L7_RC_t dot3adRxMachineDefaultedAction(dot3ad_port_t *p)
   if (p->selected == UNSELECTED &&
 	  a->isStatic == L7_TRUE)
   {
-      PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicSelect");
+      PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adSelectionLogicSelect");
       /* if (p->selected == UNSELECTED &&
         dot3adSystem.staticLag == L7_ENABLE)   */
       rc = dot3adSelectionLogicSelect(p);
@@ -687,7 +687,7 @@ L7_RC_t dot3adRxMachineCurrentAction(dot3ad_port_t *p, dot3ad_pdu_t *pdu)
   mimic the selection logic seeming to run continuously */
   if (p->selected == UNSELECTED)
   {
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicSelect");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adSelectionLogicSelect");
     rc = dot3adSelectionLogicSelect(p);
     if (L7_FAILURE == rc)
     {
@@ -696,7 +696,7 @@ L7_RC_t dot3adRxMachineCurrentAction(dot3ad_port_t *p, dot3ad_pdu_t *pdu)
       depending on the current mux state which must be only ATTACHED*/
       if (dot3adMuxMachineIsAttachedState(p) == L7_TRUE)
       {
-        PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACIssueCmd(lacpUnselected...");
+        PT_LOG_TRACE(LOG_CTX_TRUNKS,"LACIssueCmd(lacpUnselected...");
         rc = LACIssueCmd(lacpUnselected,p->actorPortNum,L7_NULLPTR);
       }
     }
@@ -782,37 +782,37 @@ L7_RC_t dot3adReceiveMachine(dot3ad_lacp_event_t lacpEvent,
     /*get the next event based on the lacp event and the current rx machine state*/
     nextState = rxStateTable[lacpEvent][p->rxState];
 
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"lacpEvent=%d rxState=%d nextState=%d", lacpEvent, p->rxState, nextState);
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"lacpEvent=%d rxState=%d nextState=%d", lacpEvent, p->rxState, nextState);
 
     switch (nextState)
     {
       case INITIALIZE:
-        PT_LOG_DEBUG(LOG_CTX_TRUNKS,"INITIALIZE");
+        PT_LOG_TRACE(LOG_CTX_TRUNKS,"INITIALIZE");
         rc =dot3adRxMachineInitializeAction(p);
         /*UCT to PORT_DISABLED*/
       case PORT_DISABLED:
-        PT_LOG_DEBUG(LOG_CTX_TRUNKS,"PORT_DISABLED");
+        PT_LOG_TRACE(LOG_CTX_TRUNKS,"PORT_DISABLED");
         rc = dot3adRxMachinePortDisabledAction(p);
         break;
       case EXPIRED:
-        PT_LOG_DEBUG(LOG_CTX_TRUNKS,"EXPIRED");
+        PT_LOG_TRACE(LOG_CTX_TRUNKS,"EXPIRED");
         rc = dot3adRxMachineExpiredAction(p);
         break;
       case LACP_DISABLED:
-        PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACP_DISABLED");
+        PT_LOG_TRACE(LOG_CTX_TRUNKS,"LACP_DISABLED");
         rc = dot3adRxMachineLacpDisabledAction(p);
         break;
       case DEFAULTED:
-        PT_LOG_DEBUG(LOG_CTX_TRUNKS,"DEFAULTED");
+        PT_LOG_TRACE(LOG_CTX_TRUNKS,"DEFAULTED");
         rc = dot3adRxMachineDefaultedAction(p);
         break;
       case CURRENT:
-        PT_LOG_DEBUG(LOG_CTX_TRUNKS,"CURRENT");
+        PT_LOG_TRACE(LOG_CTX_TRUNKS,"CURRENT");
         pdu = (dot3ad_pdu_t *)bufHandle;
         rc = dot3adRxMachineCurrentAction(p,pdu);
         break;
       default:
-        PT_LOG_DEBUG(LOG_CTX_TRUNKS,"default");
+        PT_LOG_TRACE(LOG_CTX_TRUNKS,"default");
         break;
     }
 
@@ -1213,28 +1213,28 @@ L7_RC_t dot3adPeriodicMachine(dot3ad_lacp_event_t lacpEvent, dot3ad_port_t *p)
 
   nextState =  perStateTable[normalizedEvent][p->perState];
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"event %d, nortmalizedEvent=%d perState=%d nextState=%d", lacpEvent, normalizedEvent, p->perState, nextState);
+  PT_LOG_TRACE(LOG_CTX_TRUNKS,"event %d, nortmalizedEvent=%d perState=%d nextState=%d", lacpEvent, normalizedEvent, p->perState, nextState);
 
   switch (nextState)
   {
   case NO_PERIODIC:
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"NO_PERIODIC");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"NO_PERIODIC");
     rc = dot3adPerMachineNoPeriodicAction(p);
     break;
   case FAST_PERIODIC:
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"FAST_PERIODIC");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"FAST_PERIODIC");
     rc = dot3adPerMachineFastPeriodicAction(p);
     break;
   case SLOW_PERIODIC:
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"SLOW_PERIODIC");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"SLOW_PERIODIC");
     rc = dot3adPerMachineSlowPeriodicAction(p);
     break;
   case PERIODIC_TX:
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"PERIODIC_TX");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"PERIODIC_TX");
     rc = dot3adPerMachinePeriodicTxAction(p);
     break;
   default:
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"default");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"default");
     break;
   }
   return rc;
@@ -1333,16 +1333,16 @@ L7_RC_t dot3adMuxMachineDetachedAction(dot3ad_port_t *p)
 {
   L7_RC_t rc;
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adDetachMuxFromAgg");
+  PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adDetachMuxFromAgg");
   rc = dot3adDetachMuxFromAgg(p);
   p->actorOperPortState &= ~DOT3AD_STATE_SYNCHRONIZATION;
   p->actorOperPortState &= ~DOT3AD_STATE_COLLECTING;
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adDisableCollDist");
+  PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adDisableCollDist");
   rc = dot3adDisableCollDist(p);
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"done: rc=%d",rc);
+  PT_LOG_TRACE(LOG_CTX_TRUNKS,"done: rc=%d",rc);
   if(rc == L7_REQUEST_DENIED)
   {
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Request denied");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"Request denied");
 	p->muxState = DETACHED;
     rc = LACIssueCmd(lacpDetached,p->actorPortNum,L7_NULLPTR);
 	p->ntt = L7_TRUE;
@@ -1430,7 +1430,7 @@ L7_RC_t dot3adMuxMachineWaitingAction(dot3ad_port_t *p)
      /*trace call*/
     dot3adPortTrace(p, DOT3AD_TRACE_RX_WAITWHILE_EXP);
 
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adSelectionLogicReady");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adSelectionLogicReady");
     rc = dot3adSelectionLogicReady(p);
 
   }
@@ -1455,13 +1455,13 @@ L7_RC_t dot3adMuxMachineAttachedAction(dot3ad_port_t *p)
   L7_RC_t rc;
   dot3ad_agg_t *agg;
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adAttachMuxToAgg");
+  PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adAttachMuxToAgg");
   rc = dot3adAttachMuxToAgg(p);
   p->actorOperPortState |= DOT3AD_STATE_SYNCHRONIZATION;
   p->actorOperPortState &= ~DOT3AD_STATE_COLLECTING;
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"dot3adDisableCollDist");
+  PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adDisableCollDist");
   rc = dot3adDisableCollDist(p);
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"done: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_TRUNKS,"done: rc=%d", rc);
   p->actorOperPortState &= ~DOT3AD_STATE_DISTRIBUTING;
   p->ntt = L7_TRUE;
 
@@ -1589,32 +1589,32 @@ L7_RC_t dot3adMuxMachine(dot3ad_lacp_event_t lacpEvent, dot3ad_port_t *p)
 
   nextState = muxStateTable[normalizedEvent][p->muxState];
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"event=%d normalizedEvent=%d muxState=%d nextState=%d",
+  PT_LOG_TRACE(LOG_CTX_TRUNKS,"event=%d normalizedEvent=%d muxState=%d nextState=%d",
          lacpEvent, normalizedEvent, p->muxState, nextState);
 
   switch (nextState)
   {
   case DETACHED:
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"DETACHED");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"DETACHED");
     rc = dot3adMuxMachineDetachedAction(p);
     break;
   case WAITING:
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"WAITING");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"WAITING");
     rc = dot3adMuxMachineWaitingAction(p);
     break;
   case ATTACHED:
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"ATTACHED");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"ATTACHED");
     rc = dot3adMuxMachineAttachedAction(p);
     break;
   case COLL_DIST:
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"COLL_DIST");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"COLL_DIST");
     rc = dot3adMuxMachineCollDistAction(p);
     break;
   default:
     break;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"machine done: rc=%d", rc);
+  PT_LOG_TRACE(LOG_CTX_TRUNKS,"machine done: rc=%d", rc);
   dot3adMuxMachineGenerateEvents(p);
 
   return rc;
@@ -1765,12 +1765,6 @@ L7_RC_t dot3adTransmitLacpdu(dot3ad_port_t *p)
     /* do not transmit any LACP PDUs for static lags*/
     return L7_SUCCESS; 
   }
-
-  if (agg->blockedState)
-  {
-    /* do not transmit any LACP PDUs for lags in blocked state */
-    return L7_SUCCESS; 
-  }
   
   if (p->perState != NO_PERIODIC)
   {
@@ -1910,7 +1904,7 @@ L7_RC_t dot3adLacpClassifier(dot3ad_lacp_event_t lacpEvent,
 
   if (lacpEvent == lacpBegin)
   {
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Received lacpBegin event (%u)", lacpEvent);
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"Received lacpBegin event (%u)", lacpEvent);
     rc = aggPortResetValues(p);
 
     /*whenever a port is added to the LAG, a ntt timer is created*/
@@ -1927,26 +1921,26 @@ L7_RC_t dot3adLacpClassifier(dot3ad_lacp_event_t lacpEvent,
   }
   else if (lacpEvent < lacpRxEvents)
   {
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Receive Machine %u", lacpEvent);
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"Receive Machine %u", lacpEvent);
     rc = dot3adReceiveMachine(lacpEvent,p,bufHandle);
   }
   else if (lacpEvent < lacpPerEvents && lacpEvent > lacpRxEvents)
   {
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Periodic Machine %u", lacpEvent);
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"Periodic Machine %u", lacpEvent);
     rc = dot3adPeriodicMachine(lacpEvent,p);
   }
   else if (lacpEvent <lacpMuxEvents && lacpEvent > lacpPerEvents)
   {
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Mux Machine %u", lacpEvent);
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"Mux Machine %u", lacpEvent);
     rc = dot3adMuxMachine(lacpEvent,p);
   }
   else
   {
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"event %u", lacpEvent);
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"event %u", lacpEvent);
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Processed event %u", lacpEvent);
+  PT_LOG_TRACE(LOG_CTX_TRUNKS,"Processed event %u", lacpEvent);
 
   return L7_SUCCESS;
 }
@@ -2439,7 +2433,7 @@ L7_RC_t dot3adSelectionLogicUnselect(dot3ad_port_t *p)
   p->selected = UNSELECTED;
   /*send msg to LAC queue with lacpUnselected*/
   /*message E14*/
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACIssueCmd(lacpUnselected...");
+  PT_LOG_TRACE(LOG_CTX_TRUNKS,"LACIssueCmd(lacpUnselected...");
   rc = LACIssueCmd(lacpUnselected,p->actorPortNum,L7_NULLPTR);
   if (L7_ERROR == rc)
   {
