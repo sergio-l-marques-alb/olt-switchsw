@@ -107,9 +107,9 @@ void ptin_force_capture(L7_BOOL force)
 #define NGPON2_EMPTY_ENTRY            0xff
 #define PTIN_SYSTEM_MAX_NGPON2_GROUP  4
 
-#define NGPON2_EVC_ADD(var, n)  ( var |= (0x1 << n))
-#define NGPON2_EVC_REM(var, n)  ( var &= ~(0x1 << n))
-#define NGPON2_BIT_EVC(var)     ( var & 0x1 )
+#define NGPON2_EVC_ADD(var, n)  ( var |= (1LL << n))
+#define NGPON2_EVC_REM(var, n)  ( var &= ~(1LL << n))
+#define NGPON2_BIT_EVC(var)     ( var & 1LL )
    
  
 
@@ -168,7 +168,7 @@ typedef struct
 
 //static ptin_HwEthMef10Evc_t evcNgpon2[PTIN_REPLICATE_EVC];
 /* Mcast Clients*/
-ptin_McastClient_info McastClient_info[PTIN_SYSTEM_N_EVCS];
+static ptin_McastClient_info McastClient_info[PTIN_SYSTEM_N_EVCS];
 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 /* Admission control*/
@@ -176,13 +176,13 @@ static ptin_igmp_admission_control_t igmpAdmissionControl_info[PTIN_SYSTEM_N_EVC
 #endif
 
 /* IGMP instances (Uc and Mc evc association)*/
-ptin_IgmpMulticastUnicast Mc_Uc_instances[PTIN_SYSTEM_N_IGMP_INSTANCES];
+static ptin_IgmpMulticastUnicast Mc_Uc_instances[PTIN_SYSTEM_N_IGMP_INSTANCES];
 /* Unicast package */
-ptin_UcastPackage_info UcastClient_info[PTIN_SYSTEM_N_EVCS];
+static ptin_UcastPackage_info UcastClient_info[PTIN_SYSTEM_N_EVCS];
 /* Macbridge package */
-ptin_evc_macbridge_client_packages_t MacbridgePackage_info[PTIN_SYSTEM_N_EVCS];
+static ptin_evc_macbridge_client_packages_t MacbridgePackage_info[PTIN_SYSTEM_N_EVCS];
 /* Multicast service info */
-ptin_mcast_service_info mcast_service_info[PTIN_SYSTEM_N_EVCS];
+static ptin_mcast_service_info mcast_service_info[PTIN_SYSTEM_N_EVCS];
 
 /* BW meter and profiles for client services replication in NGPON2 groups*/
 ptin_bw_profile_t bwProfile[PTIN_SYSTEM_N_EVCS];
@@ -190,7 +190,7 @@ ptin_bw_meter_t   bwMeter[PTIN_SYSTEM_N_EVCS];
 
 #endif
 
-ptin_HwEthMef10Intf_t evcReplicate[PTIN_SYSTEM_N_EVCS]; 
+static ptin_HwEthMef10Intf_t evcReplicate[PTIN_SYSTEM_N_EVCS]; 
 /**************************************/
 #endif
 
@@ -6028,8 +6028,8 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
             PT_LOG_TRACE(LOG_CTX_MSG, " Group ID %d ",ngponId[group]);
             PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services    %d ",NGPON2_GROUP.number_services);
 
-            L7_uint8 position = evc_id % sizeof(position);
-            L7_uint8 index    = evc_id / sizeof(index);
+            L7_uint8 position = evc_id % (8*sizeof(position));
+            L7_uint8 index    = evc_id / (8*sizeof(index));
 
             PT_LOG_TRACE(LOG_CTX_MSG, " positions %d ",position);
             PT_LOG_TRACE(LOG_CTX_MSG, " index %d "    ,index);
@@ -6253,8 +6253,8 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
             if(( (evcReplicate[evc_id].ngpon2_bmp >> ngpon_id) & 0x1))
             {
               NGPON2_EVC_REM(evcReplicate[evc_id].ngpon2_bmp, ngpon_id);
-              L7_uint8 position = evc_id % sizeof(position);
-              L7_uint8 index    = evc_id / sizeof(index);
+              L7_uint8 position = evc_id % 8*(sizeof(position));
+              L7_uint8 index    = evc_id / 8*(sizeof(index));
 
               NGPON2_EVC_REM(evcReplicate[evc_id].ngpon2_bmp, ngpon_id);  
               get_NGPON2_group_info(&NGPON2_GROUP, ngpon_id);
@@ -6727,8 +6727,8 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
         
           PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
 
-          L7_uint8 position = evc_id % sizeof(position);
-          L7_uint8 index    = evc_id / sizeof(index);
+          L7_uint8 position = evc_id % (8*sizeof(position));
+          L7_uint8 index    = evc_id / (8*sizeof(index));
 
           PT_LOG_TRACE(LOG_CTX_MSG, " positions %d ",position);
           PT_LOG_TRACE(LOG_CTX_MSG, " index %d ",index);
@@ -19521,8 +19521,8 @@ L7_RC_t ptin_msg_replicate_ngpon2_configuration(L7_uint32 ngpon2_id)
     PT_LOG_TRACE(LOG_CTX_MSG, " Group ID %d ", ngpon2_id);
     PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services    %d ",NGPON2_GROUP.number_services);
 
-    L7_uint8 position = evc_id % sizeof(position);
-    L7_uint8 index    = evc_id / sizeof(index);
+    L7_uint8 position = evc_id % 8*(sizeof(position));
+    L7_uint8 index    = evc_id / 8*(sizeof(index));
 
     NGPON2_EVC_ADD(NGPON2_GROUP.evc_groups_pbmp[index], position);     
     set_NGPON2_group_info(&NGPON2_GROUP, ngpon2_id); 
@@ -19579,7 +19579,7 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
       
         /* Increment number of iteration (services replicate)*/
         iteration++;
-        evc_idx = position + (index * sizeof(L7_uint8));
+        evc_idx = position + (index * 8*sizeof(L7_uint8));
 
         PT_LOG_TRACE(LOG_CTX_MSG, "Evc_idx = %d   ", evc_idx);
         PT_LOG_TRACE(LOG_CTX_MSG, "iteration = %d and index %d", iteration, index);
