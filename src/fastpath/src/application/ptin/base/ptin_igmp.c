@@ -502,7 +502,7 @@ static ptinIgmpMulticastPackage_t          multicastPackage[PTIN_SYSTEM_IGMP_MAX
 
 static ptinIgmpNoOfMulticastServices_t     multicastServices[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF];
 static ptinIgmpMulticastServiceId_t        multicastServiceId[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF][PTIN_IGMP_MAX_MULTICAST_INTERNAL_SERVICE_ID];
-ptinIgmpMulticastServiceEvcId_t            serviceId_evcUc[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF][PTIN_SYSTEM_MAX_SERVICES_PER_ONU];         /* Array defined to store all the servicesId's in use */
+static ptinIgmpMulticastServiceEvcId_t     serviceId_evcUc[PTIN_SYSTEM_N_UPLINK_INTERF][PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF][PTIN_SYSTEM_MAX_SERVICES_PER_ONU];         /* Array defined to store all the servicesId's in use */
 
 static void ptin_igmp_multicast_service_reset(void);
 
