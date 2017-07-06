@@ -6017,12 +6017,12 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
             evcReplicate[evc_id].evcId         = ptinEvcConf.index;
             evcReplicate[evc_id].intf.format   = PTIN_INTF_FORMAT_TYPEID;
-            evcReplicate[evc_id].action_outer  = ptinEvcConf.intf[i].action_outer;
+            evcReplicate[evc_id].action_outer  = ptinEvcConf.intf[ptinEvcConf.n_intf-1].action_outer;
         
-            evcReplicate[evc_id].action_inner  = ptinEvcConf.intf[i].action_inner;
-            evcReplicate[evc_id].vid_inner     = ptinEvcConf.intf[i].vid_inner;
-            evcReplicate[evc_id].vid           = ptinEvcConf.intf[i].vid;
-            evcReplicate[evc_id].mef_type      = ptinEvcConf.intf[i].mef_type;
+            evcReplicate[evc_id].action_inner  = ptinEvcConf.intf[ptinEvcConf.n_intf-1].action_inner;
+            evcReplicate[evc_id].vid_inner     = ptinEvcConf.intf[ptinEvcConf.n_intf-1].vid_inner;
+            evcReplicate[evc_id].vid           = ptinEvcConf.intf[ptinEvcConf.n_intf-1].vid;
+            evcReplicate[evc_id].mef_type      = ptinEvcConf.intf[ptinEvcConf.n_intf-1].mef_type;
             NGPON2_EVC_ADD(evcReplicate[evc_id].ngpon2_bmp, ngponId[group]);    
         
             PT_LOG_TRACE(LOG_CTX_MSG, " Group ID %d ",ngponId[group]);
