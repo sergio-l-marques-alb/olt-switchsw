@@ -432,7 +432,7 @@ int main (int argc, char *argv[])
         ptin_NGPON2group_t *ptr;
 
         //validate number of arguments
-        if (argc != 3 + 3)
+        if (argc != 3 + 4)
         {
           help_oltBuga();
           exit(0);
@@ -479,7 +479,7 @@ int main (int argc, char *argv[])
         ptr->NGPON2Port[0].id = (uint8) (valued);
 
 
-        /*
+        
         // PortID 
         if (StrToLongLong(argv[3+3], &valued) < 0)
         {
@@ -487,8 +487,8 @@ int main (int argc, char *argv[])
           exit(0);
         }
 
-        ptr->NGPON2Port[1].id = (uint8) valued;
-        */
+        ptr->NGPON2Port[0].slot = (uint8) valued;
+        
 
         comando.msgId = CCMSG_NGPON2_ADD_GROUP_PORT;
         comando.infoDim = sizeof(ptin_NGPON2group_t);
@@ -503,7 +503,7 @@ int main (int argc, char *argv[])
         ptin_NGPON2group_t *ptr;
 
         //validate number of arguments
-        if (argc != 3 + 3)
+        if (argc != 3 + 4)
         {
           help_oltBuga();
           exit(0);
@@ -550,17 +550,16 @@ int main (int argc, char *argv[])
         ptr->NGPON2Port[0].id = (uint8) (valued);
 
 
-        /*
-        // PortID 
+   
         if (StrToLongLong(argv[3+3], &valued) < 0)
         {
           help_oltBuga();
           exit(0);
         } 
         
-        ptr->NGPON2Port[1].id = (uint8) valued;
+        ptr->NGPON2Port[0].slot = (uint8) valued;
  
-        */
+        
 
 
         comando.msgId = CCMSG_NGPON2_REM_GROUP_PORT;

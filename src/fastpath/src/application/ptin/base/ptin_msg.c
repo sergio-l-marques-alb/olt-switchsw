@@ -8945,8 +8945,9 @@ L7_RC_t ptin_msg_DHCP_profile_add(msg_HwEthernetDhcpOpt82Profile_t *profile, L7_
 
           /* TODO: To be reworked */
           circuitId.onuid   = profile[i].circuitId.onuid;
-          circuitId.slot    = profile[i].circuitId.slot;
-          circuitId.port    = profile[i].circuitId.port;
+          /* in Ngpon2 slot in always 0!*/
+          circuitId.slot    = 0;
+          circuitId.port    = profile[i].client.intf.intf_id;
           circuitId.q_vid   = profile[i].circuitId.q_vid;
           circuitId.c_vid   = profile[i].circuitId.c_vid;
 
