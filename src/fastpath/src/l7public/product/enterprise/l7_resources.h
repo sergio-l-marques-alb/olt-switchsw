@@ -138,8 +138,10 @@
 #define L7_MBUF_RESERVED_RX_MID1_PRIO_BUFFERS               64
 #define L7_MBUF_RESERVED_RX_MID2_PRIO_BUFFERS               64
 #else
-#define L7_MAX_NETWORK_BUFF_PER_BOX                       2048
+#define L7_MAX_NETWORK_BUFF_PER_BOX                       3584
 #define L7_MBUF_RESERVED_TX_BUFFERS                        256
+#define L7_MBUF_RESERVED_RX_HI_PRIO_COSX_BUFFERS           256
+#define L7_MBUF_RESERVED_RX_HI_PRIO_COS8_BUFFERS           256
 #define L7_MBUF_RESERVED_RX_HI_PRIO_BUFFERS                128
 #define L7_MBUF_RESERVED_RX_MID0_PRIO_BUFFERS              128
 #define L7_MBUF_RESERVED_RX_MID1_PRIO_BUFFERS              128

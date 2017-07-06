@@ -3070,7 +3070,19 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
     PT_LOG_TRACE(LOG_CTX_HAPI,"...");
 
   /* Get MBUF to carry the frame to DTL */
-  if (bcm_pkt->cos >= HAPI_BROAD_INGRESS_BPDU_COS)
+  /* PTin added: 2 new levels */
+  if (bcm_pkt->cos >= HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS9)
+  {
+    SYSAPI_NET_RX_MBUF_GET(frameHdl, L7_MBUF_RX_PRIORITY_HIGH_COSX,
+                                  L7_MBUF_FRAME_ALIGNED);
+  }
+  else if (bcm_pkt->cos >= HAPI_BROAD_INGRESS_HIGH_PRIORITY_COS8)
+  {
+    SYSAPI_NET_RX_MBUF_GET(frameHdl, L7_MBUF_RX_PRIORITY_HIGH_COS8,
+                                  L7_MBUF_FRAME_ALIGNED);
+  }
+  /* PTin end */
+  else if (bcm_pkt->cos >= HAPI_BROAD_INGRESS_BPDU_COS)
   {
     SYSAPI_NET_RX_MBUF_GET(frameHdl, L7_MBUF_RX_PRIORITY_HIGH,
                                   L7_MBUF_FRAME_ALIGNED);
