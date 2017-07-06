@@ -673,7 +673,7 @@ void dot3ad_lac_task()
     }
 
     rc = osapiSemaTake(dot3adTaskSyncSema, L7_WAIT_FOREVER);
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Sending event %u",msg.event);
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"Sending event %u",msg.event);
     rc = LACDispatchCmd(msg);
 	rc = osapiSemaGive(dot3adTaskSyncSema);
   }
@@ -978,11 +978,11 @@ L7_RC_t LACDispatchCmd(dot3adMsg_t msg)
 ****/
 
   case lacCollDistEnable:
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"?????????????????");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"lacCollDistEnable");
     rc = aggCollDistEnable(msg.intf);
     break;
   case lacCollDistDisable:
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"?????????????????");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"lacCollDistDisable");
     rc = aggCollDistDisable(msg.intf);
     break;
 
@@ -1063,7 +1063,7 @@ L7_RC_t LACDispatchCmd(dot3adMsg_t msg)
       {
 	    return L7_FAILURE;
       }
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Sending event %u", msg.event);
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"Sending event %u", msg.event);
     rc = dot3adLacpClassifier(msg.event, p, (void *)&nullBuf);
     break;
 
@@ -1139,6 +1139,14 @@ L7_RC_t aggCollDistDisable(L7_uint32 intf)
     return L7_SUCCESS;
   }
 
+  /* PTin added: Blocked state */
+  #if 1
+  if (p->selected == STANDBY)
+  {
+    return L7_SUCCESS;
+  }
+  #endif
+  
    /* inspect collection bits of the attached list members */
   for (i=0;i<a->currNumMembers;i++)
   {
@@ -1702,6 +1710,7 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
 {
   dot3ad_agg_t *a;
   L7_RC_t rc;
+  L7_uint8 i;
 
   a = dot3adAggIntfFind(agg_intf);
   if (a == L7_NULLPTR)
@@ -1726,6 +1735,7 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
   {
     if (status)
     {
+      PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Removing ports from trunk %u...", agg_intf);
       /* If LAG goes to blocked, remove physically all active ports */
       #if ( LAG_DIRECT_CONTROL_FEATURE )
       rc = dtlDot3adInternalPortDelete(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
@@ -1736,9 +1746,17 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
       {
         return rc;
       }
+      PT_LOG_DEBUG(LOG_CTX_TRUNKS, "All trunk %u is going to STANDBY state", agg_intf);
+      /* Put all members in Stand-by (it's only applicable to dynamic LAGs and to members in SELECTED state) */
+      for (i = 0; i < a->activeNumMembers; i++)
+      {
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to STANDBY state", a->aggActivePortList[i]);
+        aggPortActorSelectStateSet(a->aggActivePortList[i], STANDBY);
+      }
     }
     else
     {
+      PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Adding ports to trunk %u...", agg_intf);
       /* If LAG goes to UNblocked, add physically all active ports */
       #if ( LAG_DIRECT_CONTROL_FEATURE )
       rc = dtlDot3adInternalPortAdd(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
@@ -1748,6 +1766,13 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
       if (rc == L7_REQUEST_DENIED || rc == L7_FAILURE || rc == L7_ERROR)
       {
         return rc;
+      }
+      PT_LOG_DEBUG(LOG_CTX_TRUNKS, "All trunk %u is going to UNSELECTED state", agg_intf);
+      /* Restart LACP machine for all members */
+      for (i = 0; i < a->activeNumMembers; i++)
+      {
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to UNSELECTED state", a->aggActivePortList[i]);
+        aggPortActorSelectStateSet(a->aggActivePortList[i], SELECTED);
       }
     }
   }
@@ -3150,6 +3175,102 @@ L7_RC_t aggPortActorAdminStateGet(L7_uint32 intf, L7_uchar8 *state)
   }
   return L7_FAILURE;
 }
+
+/* PTin added: Blocked state */
+#if 1
+/**
+ * Set a new select state for a dynamic LAG
+ * 
+ * @param intf : intIfNum
+ * @param state : UNSELECTED/SELECTED/STANDBY
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t aggPortActorSelectStateSet(L7_uint32 intf, L7_uchar8 state)
+{
+  dot3ad_agg_t  *a;
+  dot3ad_port_t *p;
+  L7_uint32     event;
+  L7_RC_t       rc = L7_SUCCESS;
+
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "I'm here: intf=%u", intf);
+
+  /* is the port a valid lag member */
+  p = dot3adPortIntfFind(intf);
+  if (p == L7_NULLPTR)
+  {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Leaving...");
+    return L7_FAILURE;
+  }
+
+  /* is the aggregator valid */
+  a = dot3adAggIntfFind(p->actorOperPortKey);
+  if (a == L7_NULLPTR)
+  {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Leaving...");
+    return L7_FAILURE;
+  }
+  if (a->inuse == L7_FALSE || a->adminMode == L7_DISABLE)
+  {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Leaving... (in_use=%u adminMode=%u)", a->inuse, a->adminMode);
+    return L7_FAILURE;
+  }
+
+  /* Only applicable to dynamic LAGs */
+  if (a->isStatic)
+  {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Leaving...");
+    return L7_FAILURE;
+  }
+  
+  if (!(p->actorOperPortState & DOT3AD_STATE_AGGREGATION) ||
+      !(p->actorOperPortState & DOT3AD_STATE_LACP_ACTIVITY))
+  {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Leaving... (actorOperPortState=0x%x)", p->actorOperPortState);
+    return L7_FAILURE;
+  }
+  
+  if (state == UNSELECTED)
+  {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to UNSELECTED state...", intf);
+    /*put this port on Selected */
+    p->selected = UNSELECTED;
+    /*put a msg in lac queue with lacpStandby */
+    event = lacpUnselected;
+  }
+  else if (state == SELECTED && p->selected == STANDBY)
+  {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to SELECTED state...", intf);
+    /*put this port on Selected */
+    p->selected = SELECTED;
+    /*put a msg in lac queue with lacpStandby */
+    event = lacpSelected;
+  }
+  else if (state == STANDBY && p->selected == SELECTED)
+  {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to STANDBY state...", intf);
+    /*put this port on STANDBY*/
+    p->selected = STANDBY;
+    /*put a msg in lac queue with lacpStandby*/
+    event = lacpStandby;
+  }
+  else
+  {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is not going to any state. Failed!", intf);
+    return L7_FAILURE;
+  }
+
+  rc = LACIssueCmd(event, p->actorPortNum, L7_NULLPTR);
+  if (L7_ERROR == rc)
+  {
+    rc = L7_FAILURE;
+  }
+
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "rc=%d", rc);
+
+  return rc;
+}
+#endif
 
 /*********************************************************************
 * @purpose  Set 8 bits corresponding to the admin values of actor_state

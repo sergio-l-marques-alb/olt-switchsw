@@ -1052,6 +1052,22 @@ L7_RC_t dot3adAggPortActorAdminStateGet(L7_uint32 intf, L7_uchar8 *state)
   return aggPortActorAdminStateGet(intf, state);
 }
 
+/* PTin added: Blocked state */
+#if 1
+/**
+ * Set a new select state for a dynamic LAG
+ * 
+ * @param intf : intIfNum
+ * @param state : UNSELECTED/SELECTED/STANDBY
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t dot3adAggPortActorSelectStateSet(L7_uint32 intf, L7_uchar8 state)
+{
+  return aggPortActorSelectStateSet(intf, state);
+}
+#endif
+
 /*********************************************************************
  * @purpose  Set 8 bits corresponding to the admin values of actor_state
  *

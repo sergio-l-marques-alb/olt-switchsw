@@ -2462,8 +2462,6 @@ L7_RC_t ptin_prot_uplink_restoreTime_set(L7_uint8 protIdx, L7_uint32 restore_tim
  */
 L7_RC_t ptin_prot_uplink_clear(L7_uint8 protIdx)
 {
-  L7_uint32 intIfNumW, intIfNumP;
-
   if (protIdx >= MAX_UPLINK_PROT)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Invalid index. Max index is %u", MAX_UPLINK_PROT);
@@ -2484,22 +2482,18 @@ L7_RC_t ptin_prot_uplink_clear(L7_uint8 protIdx)
   /* Disable state machine */
   uplinkprotFsmTransition(protIdx, PROT_STATE_Disabled, __LINE__);
 
-  /* Disable entry */
-  uplinkprot[protIdx].admin = L7_FALSE;
-
   /* Initialize operator commands */
   operator_cmd[protIdx] = OPCMD_NR;
   operator_switchToPortType[protIdx] = PORT_WORKING;
 
-  /* Extract interfaces */
-  intIfNumW = uplinkprot[protIdx].protParams.intIfNumW;
-  intIfNumP = uplinkprot[protIdx].protParams.intIfNumP;
+  /* Activate both LAGs */
+  ptin_prot_select_intf(protIdx, PORT_ALL);
+
+  /* Disable entry */
+  uplinkprot[protIdx].admin = L7_FALSE;
 
   /* Clear entry */
   memset(&uplinkprot[protIdx], 0x00, sizeof(uplinkprot[protIdx]));
-
-  /* Activate both LAGs */
-  ptin_prot_select_intf(protIdx, PORT_ALL);
 
   osapiSemaGive(ptin_prot_uplink_sem);
 

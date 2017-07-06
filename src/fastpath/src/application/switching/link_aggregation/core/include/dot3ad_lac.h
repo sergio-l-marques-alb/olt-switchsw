@@ -1172,6 +1172,19 @@ L7_RC_t aggPortPartnerOperPortPriorityGet(L7_uint32 intf, L7_uint32 *priority);
 *********************************************************************/
 L7_RC_t aggPortActorAdminStateGet(L7_uint32 intf, L7_uchar8 *state);
 
+/* PTin added: Blocked state */
+#if 1
+/**
+ * Set a new select state for a dynamic LAG
+ * 
+ * @param intf : intIfNum
+ * @param state : UNSELECTED/SELECTED/STANDBY
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t aggPortActorSelectStateSet(L7_uint32 intf, L7_uchar8 state);
+#endif
+
 /*********************************************************************
 * @purpose  Set 8 bits corresponding to the admin values of actor_state
 *

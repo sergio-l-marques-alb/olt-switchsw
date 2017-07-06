@@ -876,6 +876,19 @@ L7_RC_t dot3adAggPortPartnerOperPortPriorityGet(L7_uint32 intf, L7_uint32 *prior
 *********************************************************************/
 L7_RC_t dot3adAggPortActorAdminStateGet(L7_uint32 intf, L7_uchar8 *state);
 
+/* PTin added: Blocked state */
+#if 1
+/**
+ * Set a new select state for a dynamic LAG
+ * 
+ * @param intf : intIfNum
+ * @param state : UNSELECTED/SELECTED/STANDBY
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t dot3adAggPortActorSelectStateSet(L7_uint32 intf, L7_uchar8 state);
+#endif
+
 /*********************************************************************
 * @purpose  Set 8 bits corresponding to the admin values of actor_state
 *
