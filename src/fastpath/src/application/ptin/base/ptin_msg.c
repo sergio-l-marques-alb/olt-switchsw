@@ -12590,7 +12590,7 @@ L7_RC_t ptin_msg_uplink_prot_config_get(ipc_msg *inbuffer, ipc_msg *outbuffer)
       protConfig_out[i].protParams.OperationMode      = ENDIAN_SWAP8 (prot_config.revert2working);
       protConfig_out[i].protParams.alarmsEnFlag       = ENDIAN_SWAP32(prot_config.alarmsEnFlag);
       protConfig_out[i].protParams.flags              = ENDIAN_SWAP8 ((L7_uint8) prot_config.flags);
-      protConfig_out[i].protParams.WaitToRestoreTimer = ENDIAN_SWAP8 (prot_config.WaitToRestoreTimer);
+      protConfig_out[i].protParams.WaitToRestoreTimer = ENDIAN_SWAP8 ((L7_uint8) (prot_config.WaitToRestoreTimer/60));
       protConfig_out[i].protParams.HoldOffTimer       = ENDIAN_SWAP8 (prot_config.HoldOffTimer);
 
       /* For SF boards, the interfaces are given in a Slot/Port format */
@@ -12702,30 +12702,41 @@ L7_RC_t ptin_msg_uplink_prot_status(ipc_msg *inbuffer, ipc_msg *outbuffer)
   for (protIdx = 0; protIdx < MAX_UPLINK_PROT; protIdx++)
   {
     /* Skip not selected indexes */
-    if (protStatus_in->protIndex < MAX_UPLINK_PROT && protStatus_in->protIndex != protIdx)
-      continue;
-
-    memset(&prot_status, 0x00, sizeof(prot_status));
-    if (ptin_prot_uplink_status(protIdx, &prot_status) == L7_SUCCESS)
+    if ((protStatus_in->protIndex == (unsigned short)-1) || (protStatus_in->protIndex == protIdx))
     {
-      memset(&protStatus_out[i], 0x00, sizeof(msg_HWuplinkProtStatus));
-      protStatus_out[i].slotId              = ENDIAN_SWAP8 (protStatus_in->slotId);
-      protStatus_out[i].protIndex           = ENDIAN_SWAP16(protIdx);
-      protStatus_out[i].mask                = ENDIAN_SWAP16(0xffff);
-      protStatus_out[i].activePortType      = ENDIAN_SWAP8 (prot_status.activePortType);
-      protStatus_out[i].alarmsW             = ENDIAN_SWAP32(prot_status.alarmsW);
-      protStatus_out[i].alarmsP             = ENDIAN_SWAP32(prot_status.alarmsP);
-      protStatus_out[i].alarmsMaskW         = ENDIAN_SWAP32(prot_status.alarmsMaskW);
-      protStatus_out[i].alarmsMaskP         = ENDIAN_SWAP32(prot_status.alarmsMaskP);
-      protStatus_out[i].lastSwitchoverCause = ENDIAN_SWAP8 (prot_status.lastSwitchoverCause);
-      protStatus_out[i].WaitToRestoreTimer  = ENDIAN_SWAP16(prot_status.WaitToRestoreTimer);
-      protStatus_out[i].HoldOffTimer        = ENDIAN_SWAP16(prot_status.HoldOffTimer);
+      memset(&prot_status, 0x00, sizeof(prot_status));
+      if (ptin_prot_uplink_status(protIdx, &prot_status) == L7_SUCCESS)
+      {
+        memset(&protStatus_out[i], 0x00, sizeof(msg_HWuplinkProtStatus));
+        protStatus_out[i].slotId              = ENDIAN_SWAP8 (protStatus_in->slotId);
+        protStatus_out[i].protIndex           = ENDIAN_SWAP16(protIdx);
+        protStatus_out[i].mask                = ENDIAN_SWAP16(0xffff);
+        protStatus_out[i].activePortType      = ENDIAN_SWAP8 (prot_status.activePortType);
+        protStatus_out[i].alarmsW             = ENDIAN_SWAP32(prot_status.alarmsW);
+        protStatus_out[i].alarmsP             = ENDIAN_SWAP32(prot_status.alarmsP);
+        protStatus_out[i].alarmsMaskW         = ENDIAN_SWAP32(prot_status.alarmsMaskW);
+        protStatus_out[i].alarmsMaskP         = ENDIAN_SWAP32(prot_status.alarmsMaskP);
+        protStatus_out[i].lastSwitchoverCause = ENDIAN_SWAP8 (prot_status.lastSwitchoverCause);
+        protStatus_out[i].WaitToRestoreTimer  = ENDIAN_SWAP16(prot_status.WaitToRestoreTimer);
+        protStatus_out[i].HoldOffTimer        = ENDIAN_SWAP16(prot_status.HoldOffTimer);
 
-      i++;
+        i++;
+      }
     }
   }
 
-  outbuffer->infoDim = sizeof(msg_HWuplinkProtStatus) * i;
+  /* If we retrieved no entries, fill all structure with 0xff values */
+  if (i == 0)
+  {
+    memset(protStatus_out, 0xff, sizeof(msg_HWuplinkProtStatus));
+    protStatus_out->mask = 0;
+    outbuffer->infoDim = sizeof(msg_HWuplinkProtStatus);
+  }
+  /* Otherwise, update infodim accordingly */
+  else
+  {
+    outbuffer->infoDim = sizeof(msg_HWuplinkProtStatus) * i;
+  }
 
   return L7_SUCCESS;
 }
@@ -12810,7 +12821,7 @@ L7_RC_t ptin_msg_uplink_prot_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     restore_time = 0;
     if (protConf[i].confMask & HWUPLINKPROT_CONFMASK_WaitToRestoreTimer)
     {
-      restore_time = protConf[i].protParams.WaitToRestoreTimer * 60;    /* Convert minutes to seconds */
+      restore_time = (L7_uint32) protConf[i].protParams.WaitToRestoreTimer * 60;    /* Convert minutes to seconds */
     }
 
     /* For SF boards, the interfaces are given in a Slot/Port format */
@@ -12964,7 +12975,7 @@ L7_RC_t ptin_msg_uplink_prot_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
       restore_time = 0;
       if (protConf[i].confMask & HWUPLINKPROT_CONFMASK_WaitToRestoreTimer)
       {
-        restore_time = protConf[i].protParams.WaitToRestoreTimer * 60;      // Convert minutes to seconds
+        restore_time = (L7_uint32) protConf[i].protParams.WaitToRestoreTimer * 60;      // Convert minutes to seconds
       }
 
       /* For SF boards, the interfaces are given in a Slot/Port format */
