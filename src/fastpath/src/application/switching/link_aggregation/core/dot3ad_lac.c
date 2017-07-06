@@ -1147,7 +1147,7 @@ L7_RC_t aggCollDistDisable(L7_uint32 intf)
   }
   #endif
   
-   /* inspect collection bits of the attached list members */
+  /* inspect collection bits of the attached list members */
   for (i=0;i<a->currNumMembers;i++)
   {
     attached_port = dot3adPortIntfFind(a->aggPortList[i]);
@@ -1211,14 +1211,14 @@ L7_RC_t aggCollDistDisable(L7_uint32 intf)
   rc1 = dot3adAggActivePortDelete(a->aggId,intf);
   if (rc1 == L7_SUCCESS)
   {
-  rc = dot3adLihNotifySystem(a->aggId, L7_SPEED_CHANGE);
+    rc = dot3adLihNotifySystem(a->aggId, L7_SPEED_CHANGE);
   }
-
 
   /*delete this interface from the lag interface stats*/
   rc = dot3adCounterMutlingDelete(a->aggId, intf);
   dot3adLihNotifySystem(intf, L7_LAG_RELEASE);
-  if (tmpCount == 0)/*no members in trunk table*/
+  /* PTin modified: if no active members are present, goto link-down */
+  if (a->activeNumMembers == 0 && tmpCount == 0) /*no members in trunk table*/
   { 
     if (rc1 == L7_SUCCESS)
     {
