@@ -6253,8 +6253,8 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
             if(( (evcReplicate[evc_id].ngpon2_bmp >> ngpon_id) & 0x1))
             {
               NGPON2_EVC_REM(evcReplicate[evc_id].ngpon2_bmp, ngpon_id);
-              L7_uint8 position = evc_id % 8*(sizeof(position));
-              L7_uint8 index    = evc_id / 8*(sizeof(index));
+              L7_uint8 position = evc_id % (8*sizeof(position));
+              L7_uint8 index    = evc_id / (8*sizeof(index));
 
               NGPON2_EVC_REM(evcReplicate[evc_id].ngpon2_bmp, ngpon_id);  
               get_NGPON2_group_info(&NGPON2_GROUP, ngpon_id);
@@ -19239,7 +19239,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
 
         iteration++;
 
-        evc_idx = position + (index * sizeof(L7_uint8));
+        evc_idx = position + (index * 8 *sizeof(L7_uint8));
           
         PT_LOG_TRACE(LOG_CTX_MSG, "Evc_idx = %d   ", evc_idx);
         PT_LOG_TRACE(LOG_CTX_MSG, "iteration = %d and index %d", iteration, index);
@@ -19521,8 +19521,8 @@ L7_RC_t ptin_msg_replicate_ngpon2_configuration(L7_uint32 ngpon2_id)
     PT_LOG_TRACE(LOG_CTX_MSG, " Group ID %d ", ngpon2_id);
     PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services    %d ",NGPON2_GROUP.number_services);
 
-    L7_uint8 position = evc_id % 8*(sizeof(position));
-    L7_uint8 index    = evc_id / 8*(sizeof(index));
+    L7_uint8 position = evc_id % (8*sizeof(position));
+    L7_uint8 index    = evc_id / (8*sizeof(index));
 
     NGPON2_EVC_ADD(NGPON2_GROUP.evc_groups_pbmp[index], position);     
     set_NGPON2_group_info(&NGPON2_GROUP, ngpon2_id); 
@@ -19579,7 +19579,7 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
       
         /* Increment number of iteration (services replicate)*/
         iteration++;
-        evc_idx = position + (index * 8*sizeof(L7_uint8));
+        evc_idx = position + (index * 8 * sizeof(L7_uint8));
 
         PT_LOG_TRACE(LOG_CTX_MSG, "Evc_idx = %d   ", evc_idx);
         PT_LOG_TRACE(LOG_CTX_MSG, "iteration = %d and index %d", iteration, index);
