@@ -247,8 +247,8 @@ void dot3adDebugLagMember(L7_uint32 intIfNum)
   {
     SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                   "Port not a member of any lag");
-  return;
-}
+    return;
+  }
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "Actor port number: %u \n", pPort->actorPortNum);
@@ -270,7 +270,7 @@ void dot3adDebugLagMember(L7_uint32 intIfNum)
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "Actor port OperKey: %u \n", pPort->actorOperPortKey);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "Actor port OperState: %u \n", pPort->actorOperPortState);
+                "Actor port OperState: 0x%x \n", pPort->actorOperPortState);
 
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,"\n");
 
@@ -299,7 +299,7 @@ void dot3adDebugLagMember(L7_uint32 intIfNum)
          pPort->partnerOperSys.addr[2],pPort->partnerOperSys.addr[3],
          pPort->partnerOperSys.addr[4],pPort->partnerOperSys.addr[5]);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
-                "partnerOperPortState: %u \n", pPort->partnerOperPortState);
+                "partnerOperPortState: 0x%x \n", pPort->partnerOperPortState);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "partnerOperSysPri: %u \n", pPort->partnerOperSysPri);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
