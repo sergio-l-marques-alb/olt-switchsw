@@ -1,10 +1,5 @@
 #!/bin/sh
 
-###############Debug Flags#########################
-scriptDebugCommands=0
-scriptVerbose=1
-########End Debug Flags###########
-
 ###########OLT Version and Patch Version##################
 oltVersion=3.11
 patchVersion=0
@@ -19,6 +14,8 @@ svn_username=ci-olt-switchsw
 svn_password=c1-olt-switchsw
 
 svnversion_file=svnversion.txt
+
+dst_path=/home/olt/fastpath_builds/fastpath
 
 if [ $# -ge 1 ]; then
     # Show help 
@@ -57,21 +54,16 @@ if [ $# -ge 5 ]; then
     fi
 fi
 
-#if  [ $scriptDebugCommands -eq 1 ]; then
-    echo "oltVersion=$oltVersion"
-    echo "patchVersion=$patchVersion"
-    echo "updateSvn=$updateSvn"
-    echo "compile=$compile"
-    echo "update_mkboards=$update_mkboards"
-#fi
+echo "oltVersion=$oltVersion"
+echo "patchVersion=$patchVersion"
+echo "updateSvn=$updateSvn"
+echo "compile=$compile"
+echo "update_mkboards=$update_mkboards"
 ###############End Input Arguments Validation#########################
 
 ###############Save Current Path#########
 cd `dirname $0`
 currentPath=$(pwd)
-if  [ $scriptDebugCommands -eq 1 ]; then
-    echo $currentPath
-fi
 ######################################
 
 ###########Validate Current User####################
@@ -111,12 +103,6 @@ if [ ! -d $mkBoardsPath ]; then
     exit $?
 fi
 
-if  [ $scriptDebugCommands -eq 1 ]; then
-    echo "builderScriptPath=$builderScriptPath"
-    echo "srcPath=$srcPath"
-    echo "buildPath=$buildPath"
-    echo "mkBoardsPath=$mkBoardsPath"
-fi
 ############Paths Assignment & Validation#####################
 
 
@@ -145,10 +131,6 @@ else
 	sleep 1
 fi
 
-if  [ $scriptDebugCommands -eq 1 ]; then
-	echo svnRelease=$svnRelease
-fi
-
 #if  [ "$svnRelease"=="*M" ]; then
 #	echo "Local Changes Detected:$svnRelease Aborting process!"
 #	exit -1
@@ -157,10 +139,8 @@ fi
 
 ############Fastpath Build Script####################
 #Go to Fastpath Builder Script
-if  [ $scriptVerbose -eq 1 ]; then
-	echo "Going to build fp-$oltVersion.$patchVersion-r$svnRelease...press Ctrl+C to abort"
-	sleep 1
-fi
+echo "Going to build fp-$oltVersion.$patchVersion-r$svnRelease...press Ctrl+C to abort"
+sleep 1
 cd $builderScriptPath
 
 # Check if is necessary to make a build
@@ -176,9 +156,6 @@ fi
 . ./env_vars.sh
 
 # Compile boards
-if  [ $scriptDebugCommands -eq 1 ]; then
-	echo sh ./fastpath-olt.build $oltVersion.$patchVersion
-fi
 if [ $compile -eq 1 ]; then
     sh ./fastpath-olt.build $oltVersion.$patchVersion compile
     if [ $? -ne 0 ]; then
@@ -186,12 +163,12 @@ if [ $compile -eq 1 ]; then
         exit -1;
     fi
 fi
-sh ./fastpath-olt.build $oltVersion.$patchVersion install
+sh ./fastpath-olt.build $oltVersion.$patchVersion install $dst_path
 if [ $? -ne 0 ]; then
     echo "Error copying binaries!"
     exit -1;
 fi
-sh ./fastpath-olt.build $oltVersion.$patchVersion build
+sh ./fastpath-olt.build $oltVersion.$patchVersion build $dst_path
 if [ $? -ne 0 ]; then
     echo "Error transferring binaries!"
     exit -1;
@@ -221,7 +198,7 @@ cd $currentPath
 echo "$svnRelease" > $svnversion_file
 
 # Create backup
-sh ./fastpath-olt.build $oltVersion.$patchVersion backup
+sh ./fastpath-olt.build $oltVersion.$patchVersion backup $dst_path
 
 echo "Done: fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease!"
 exit 0
