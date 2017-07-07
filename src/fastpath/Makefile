@@ -94,6 +94,7 @@ $(cards):
 		tail -n 25 swdrvr-$@.make.log; \
 		echo "Please see log file swdrvr-$@.make.log for more details."; \
 		echo; \
+		exit -1; \
 	else \
 		echo "Success: $@ compilation finished in $${time}"; \
 	fi; \
