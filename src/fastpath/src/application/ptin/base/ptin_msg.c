@@ -5815,7 +5815,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
         }  
       }
 
-      // Message for a offline group
+      // Message for a offline group i.e. group without ports in this card
       if( NGPON2_GROUP.nports == 0 )
       {
         // NGPON2
@@ -5914,13 +5914,14 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
       if ( ptinEvcConf.intf[index_port].intf.value.ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL )
       {
         apply = 1;
-        PT_LOG_TRACE(LOG_CTX_MSG, "Apply EVC this configuration ");
+        PT_LOG_TRACE(LOG_CTX_MSG, "Apply this EVC configuration ");
       }
       /* Always apply ngpon evc's in the matrix*/
       if ( PTIN_BOARD == PTIN_BOARD_IS_MATRIX ) 
       {
         apply = 1;
       }
+
       savePtinEvcConf.intf[save_ports] = ptinEvcConf.intf[index_port];
       save_ports++;
 #endif
@@ -6007,7 +6008,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
         {
           PT_LOG_TRACE(LOG_CTX_EVC, "NGPON ID %u", ngponId[group]);
 
-          /* If EVC have ngpon2 interfaces save to replicate when a port is added from the group (or removed)*/
+          /* If EVC have ngpon2 interfaces save to replicate configuration when a port is added from the group (or removed)*/
           if (ngpon2_ports)
           {
             get_NGPON2_group_info(&NGPON2_GROUP, ngponId[group]);
@@ -6017,6 +6018,8 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
             evcReplicate[evc_id].evcId         = ptinEvcConf.index;
             evcReplicate[evc_id].intf.format   = PTIN_INTF_FORMAT_TYPEID;
+
+            /* Save last configures intf data in evc replicate*/
             evcReplicate[evc_id].action_outer  = ptinEvcConf.intf[ptinEvcConf.n_intf-1].action_outer;
         
             evcReplicate[evc_id].action_inner  = ptinEvcConf.intf[ptinEvcConf.n_intf-1].action_inner;
@@ -6036,6 +6039,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
 
             PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.evc_groups_pbmp[index] %d ",NGPON2_GROUP.evc_groups_pbmp[index]);
 
+            /* update bitmap and state variable for newly configured EVC's*/
             if( !NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] << position)))
             { 
               NGPON2_EVC_ADD(NGPON2_GROUP.evc_groups_pbmp[index], position);          
@@ -19213,6 +19217,9 @@ void ptin_msg_evc_port_add_rem(L7_uint32 evcId, L7_uint8 portId, L7_uint8 oper)
 
 /**
  * 
+ * ptin_msg_replicate_port_configuration 
+ *  
+ * Replicate configuration from ptin_port port to dst_port 
  * 
  * @param msg 
  * 
@@ -19243,10 +19250,12 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
 
     for (position = 0 ;(position < 256) && (iteration < NGPON2_GROUP.number_services); position++) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
     {
+      /* check the configure EVC from this NGPON2 group*/
       if( NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] << position)))
       {
         L7_int32 evc_idx;
-        /* Increment number of iteration (services replicate)*/
+
+        /* Increment number of iteration (services replicated)*/
 
         iteration++;
 
@@ -19361,16 +19370,16 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
 
 
 /**
- * 
- * 
+ * ptin_msg_apply_ngpon2_configuration(L7_uint32 ngpon2_id)
+ *  
  * @param msg 
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_msg_replicate_ngpon2_configuration(L7_uint32 ngpon2_id)
+L7_RC_t ptin_msg_apply_ngpon2_configuration(L7_uint32 ngpon2_id)
 {
 #ifdef NGPON2_SUPPORTED
-#if !PTIN_BOARD_IS_MATRIX
+#if !PTIN_BOARD_IS_MATRIX // OFFLine EVC are not supported in Matrix
 
   L7_int32 iteration = 0, shift_index, ports_ngpon2 = 0, j, index_port = 0, i, apply = 1;
   ptin_NGPON2_groups_t NGPON2_GROUP;
@@ -19385,6 +19394,7 @@ L7_RC_t ptin_msg_replicate_ngpon2_configuration(L7_uint32 ngpon2_id)
 
   memset(&ext_evcId_key, 0x00, sizeof(ptinExtNGEvcIdDataKey_t));
 
+  /* check all offline EVC*/
   /* Search for this extended id */
   while ( ( ext_evcId_infoData = (ptinExtNGEvcIdInfoData_t *)
             avlSearchLVL7(&extNGEvcId_avlTree.extNGEvcIdAvlTree, (void *)&ext_evcId_key, AVL_NEXT)

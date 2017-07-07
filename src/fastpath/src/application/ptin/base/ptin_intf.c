@@ -8070,6 +8070,7 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
 #endif
     }
 
+    /* update port bitmap */
     if(!NGPON2_BIT_PORT(NGPON2_groups_info[group_idx].ngpon2_groups_pbmp64 >>group_info->NGPON2Port[i].id))
     {
      /* set portId to the NGPON2 group */
@@ -8098,8 +8099,9 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
     }
   }
 
-  PT_LOG_NOTICE(LOG_CTX_INTF, "Number of ports %d !", NGPON2_groups_info[group_idx].nports );
-  /* Avoid mistake in configurations */
+  PT_LOG_NOTICE(LOG_CTX_INTF, "Number of ports %d !", NGPON2_groups_info[group_idx].nports);
+
+  /* Avoid mistakes in configurations */
   if(NGPON2_groups_info[group_idx].nports == 0)
   {
     PT_LOG_NOTICE(LOG_CTX_INTF, "Disable group!");
@@ -8119,7 +8121,7 @@ L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info)
     if ( new_group )
     {
       /* if is a new group replicate all the offline configuration from this group*/
-      ptin_msg_replicate_ngpon2_configuration(group_info->GroupId);
+      ptin_msg_apply_ngpon2_configuration(group_info->GroupId);
     }
     else if ( (src_port != group_info->NGPON2Port[i].id) && (NGPON2_groups_info[group_idx].nports > 1) )
     {
@@ -8268,7 +8270,7 @@ L7_RC_t set_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
   L7_uint8  groupIndex = group_index ; // internal index
   NGPON2_groups_info[groupIndex].number_services = group_info->number_services;
   //NGPON2_groups_info[groupIndex].evc_groups_pbmp = group_info->evc_groups_pbmp;
-  PT_LOG_ERR(LOG_CTX_MSG, "Save EVC configuration ");
+  PT_LOG_NOTICE(LOG_CTX_MSG, "Save NGPON2 configuration ");
 
   memcpy(NGPON2_groups_info[groupIndex].evc_groups_pbmp, group_info->evc_groups_pbmp, sizeof(NGPON2_groups_info[groupIndex].evc_groups_pbmp));
 
