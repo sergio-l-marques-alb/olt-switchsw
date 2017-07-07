@@ -5,7 +5,7 @@ export PLATFORMS="CXO640G-MX CXO160G TA48GE TG16G TG16GF TT04SXG CXOLT1T0 CXOLT1
 
 export APPLICATION=fp
 
-DST_PATH=.
+DST_PATH=./output
 
 #echo "Updating SVN..."
 #svn update
