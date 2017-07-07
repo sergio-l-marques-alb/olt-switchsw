@@ -1891,6 +1891,7 @@ L7_RC_t ptin_msg_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info);
  */
 extern L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2_id);
 
+#ifdef NGPON2_SUPPORTED
 /**
  * Replicate Port configuration from old_port to ptin_port
  * 
@@ -1901,13 +1902,13 @@ extern L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32
 extern L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 old_port, L7_uint32 ngpon2_id);
 
 /**
- * Replicate Port configuration from old_port to ptin_port
- * 
+ * ptin_msg_apply_ngpon2_configuration(L7_uint32 ngpon2_id)
+ *  
  * @param msg 
  * 
  * @return L7_RC_t 
  */
-extern L7_RC_t ptin_msg_replicate_ngpon2_configuration(L7_uint32 ngpon2_id);
+extern L7_RC_t ptin_msg_apply_ngpon2_configuration(L7_uint32 ngpon2_id);
 
 /**
  * ptin_msg_NGPON2_clear
@@ -1918,6 +1919,7 @@ extern L7_RC_t ptin_msg_replicate_ngpon2_configuration(L7_uint32 ngpon2_id);
  *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
  */
 extern L7_RC_t ptin_msg_NGPON2_clear();
+#endif /* NGPON2_SUPPORTED */
 /****************************************End Multicast Package Feature**************************************************/
 
 
