@@ -20,6 +20,7 @@ Historico:  VM 2006.06.22 - Criacao do modulo V1.0.0.0
 #include "ipc_lib.h"
 
 #define TRAP_ARRANQUE       0x3001
+#define TRAP_ALARME_GENERAL 0x3003
 #define TRAP_ALARME_INTF    0x3004
 #define TRAP_ALARME_SWITCH  0x3007
 #define TRAP_LINECARD_INTF  0x300f
@@ -39,6 +40,10 @@ Historico:  VM 2006.06.22 - Criacao do modulo V1.0.0.0
 #define TRAP_ALARM_MAC_LIMIT                    0x9011
 #define TRAP_ALARM_MAC_LIMIT_INTERFACE          0x9012
 #define TRAP_LINECARD_TRAFFIC_RX                0x900F
+
+/* Uplink protection */
+#define  TRAP_ALARM_ETHITFPROT_SWITCH_TO_W      0x0610      // st_HwEventSlot::code  IPC MSGid: 0x3003.
+#define  TRAP_ALARM_ETHITFPROT_SWITCH_TO_P      0x0611      // st_HwEventSlot::code  IPC MSGid: 0x3003.
 
 #define TRAP_LC_TYPE_INTERFACE    4   // For alarmtype
 #define TRAP_ALARM_TYPE_INTERFACE 3   // For alarmtype
@@ -102,6 +107,7 @@ extern uint8 ptin_board_slotId;
    EXTERN_C void CloseIPC	(void);
 
    EXTERN_C int send_trap(int porto, int trap_type, int arg);
+   EXTERN_C int send_trap_alarm_sncp(int source, unsigned short code, unsigned short type, unsigned int param1, unsigned int param2);
    EXTERN_C int send_trap_intf_alarm(unsigned char intfType, int porto, int code, int status, int param);
    EXTERN_C int send_trap_gen_alarm(unsigned char intfType, int porto, int code, int status, int param1, int param2);
    EXTERN_C int send_trap_switch_event(unsigned char intfType, int interface, int code, int status, int param);

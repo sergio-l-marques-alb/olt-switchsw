@@ -19,6 +19,7 @@
 #include "buff_api.h"
 #include "l7apptimer_api.h"
 #include "l7handle_api.h"
+#include "ipc.h"
 
 #define PROT_CALL_PROC_MS     10
 
@@ -930,7 +931,8 @@ L7_RC_t uplinkprotSwitchTo(L7_uint16 protIdx, PROT_PortType_t portType, PROT_LRe
     /* Block Protection LAG, and activate Working LAG */
     ptin_prot_select_intf(protIdx, PORT_WORKING);
 
-    PT_LOG_TRACE(LOG_CTX_INTF, "protIdx %d, lastSwitchoverCause %u", protIdx, uplinkprot[protIdx].lastSwitchoverCause);
+    send_trap_alarm_sncp(protIdx, TRAP_ALARM_ETHITFPROT_SWITCH_TO_W, uplinkprot[protIdx].lastSwitchoverCause, 0, 0);
+    PT_LOG_INFO(LOG_CTX_INTF, "Trap sent: Switchover to Working - protIdx %d, lastSwitchoverCause %u", protIdx, uplinkprot[protIdx].lastSwitchoverCause);
 
   }
   else if (portType == PORT_PROTECTION)
@@ -958,7 +960,8 @@ L7_RC_t uplinkprotSwitchTo(L7_uint16 protIdx, PROT_PortType_t portType, PROT_LRe
     /* Block Working LAG, and activate Protection LAG */
     ptin_prot_select_intf(protIdx, PORT_PROTECTION);
 
-    PT_LOG_TRACE(LOG_CTX_INTF, "protIdx %d, lastSwitchoverCause %d", protIdx, uplinkprot[protIdx].lastSwitchoverCause);
+    send_trap_alarm_sncp(protIdx, TRAP_ALARM_ETHITFPROT_SWITCH_TO_P, uplinkprot[protIdx].lastSwitchoverCause, 0, 0);
+    PT_LOG_INFO(LOG_CTX_INTF, "Trap sent: Switchover to Protection - protIdx %d, lastSwitchoverCause %d", protIdx, uplinkprot[protIdx].lastSwitchoverCause);
   }
 
   PT_LOG_DEBUG(LOG_CTX_INTF, "Switching done to protIdx %d (lastSwitchoverCause %d)", protIdx, uplinkprot[protIdx].lastSwitchoverCause);

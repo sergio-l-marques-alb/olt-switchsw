@@ -24,6 +24,17 @@ static int g_iInterfaceMan = -1;      // Canal de dados com as aplicacoes firmwa
 
 static  int g_iCCounter   = 0;      //
 
+typedef struct {
+  int            index;     //indice do registo
+  int            time;      //Data/hora de registo
+  unsigned short code;      //Codigo do alarme
+  unsigned char  arg;       //Reservado
+  unsigned char  slot;      //slot ao qual respeita o alarme
+  unsigned short tipo;      //Fonte do alarme
+  unsigned int   interface; //Interface fisico ao qual respeita o alarme
+  unsigned int   param1;       //vc4
+  unsigned int   param2;       //vc12 ou vc, depende do tipo de alarme
+} TBufferRegAlarm;
 
 #define EQUIPID_OLT 0x10000
 
@@ -223,6 +234,71 @@ int send_trap(int porto, int trap_type, int arg)
   else
       PT_LOG_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d (Canal =%d), Code = 0x%.4x: arg = 0x%08x (%d)", IPC_CHMSG_TRAP_PORT, g_iInterfaceSW, trap_type,arg,arg);  
   return(ret);
+}
+
+
+/**
+ * ----------------------------------------------------------------------
+ * Function name: regista_alarme_gerais
+ * ----------------------------------------------------------------------
+ * Description:     
+ *   
+ * ----------------------------------------------------------------------
+ * 
+ * @param fifo_id: 
+ * @param fonte: 
+ * @param codigo: 
+ * ----------------------------------------------------------------------
+ * ----------------------------------------------------------------------
+ * @author clemos (9/20/2012)
+ * ----------------------------------------------------------------------
+ */
+int send_trap_alarm_sncp(int source, unsigned short code, unsigned short type, unsigned int param1, unsigned int param2)
+{
+  ipc_msg	comando;
+  //struct tm tmvar;
+  //int mytime = time(NULL);
+  TBufferRegAlarm *alarm_trap;
+  int ret;
+
+  //localtime_r((time_t*)&mytime, &tmvar);
+
+  //sempt_wait(semid_alarmes);
+
+  if(code == 0) {
+    //sempt_post(semid_alarmes);
+    return -1;
+  }
+
+  if(g_iInterfaceSW == -1) 
+    return(-1);
+
+  comando.protocolId= SIR_IPCPROTOCOL_ID;
+  comando.flags     = IPCLIB_FLAGS_CMD;
+  comando.counter   = GetMsgCounter ();
+  comando.msgId     = TRAP_ALARME_GENERAL;
+  comando.infoDim   = sizeof(TBufferRegAlarm);
+  alarm_trap        = (TBufferRegAlarm *) &comando.info[0];
+
+  memset(alarm_trap, 0x00, sizeof(TBufferRegAlarm));
+  alarm_trap->time      = time(NULL);
+  alarm_trap->code      = (unsigned short)code;   //codigo do alarme
+  alarm_trap->arg       = 0;
+  alarm_trap->slot      = 0;
+  alarm_trap->tipo      = type;
+  alarm_trap->interface = source;
+  alarm_trap->param1    = param1;
+  alarm_trap->param2    = param2;
+
+  ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
+  if(ret<0)
+    PT_LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: Code = 0x%.4x, type = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, code, type, ret);
+
+  //sempt_post(semid_alarmes);
+
+  PT_LOG_INFO(LOG_CTX_IPC, "alarm registed (fonte:%d, code:0x%.4x)", source, code);
+
+  return ret;
 }
 
 
