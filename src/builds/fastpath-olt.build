@@ -1,29 +1,34 @@
 #!/bin/sh
 
+version=3.11.0
+operation=all
+
 export MODULE=fastpath-olt
 export PLATFORMS="CXO640G-MX CXO160G TA48GE TG16G TG16GF CXOLT1T0 CXOLT1T0-AC CXOLT1T0-F"
 
 export APPLICATION=fp
 
-DST_PATH=/home/olt/fastpath_builds/fastpath
+DST_PATH=./output
 
 #echo "Updating SVN..."
 #svn update
 
-if [ $# -eq 0 ]; then
-  echo "Syntax parameters: $0 <version> [all/compile/install/build/backup] [Destination path]"
-  exit 0;
+echo "Syntax parameters: $0 [version] [all/compile/install/build/backup] [Destination path]"
+
+#Version
+if [ $# -ge 1 ]; then
+  version=$1
 fi
 # What do do?
 if [ $# -ge 2 ]; then
   operation=$2
-else
-  operation="all"
 fi
 # Update destination path
 if [ $# -ge 3 ]; then
   DST_PATH=$3
 fi
+
+echo "Running '$0 $version $operation $DST_PATH'..."
 
 if [ "$operation" == "compile" -o "$operation" == "all" ]; then
   echo "Compiling fastpath..."
@@ -49,14 +54,14 @@ fi
 
 if [ "$operation" == "build" -o "$operation" == "all" ]; then
   echo "Preparing tarball..."
-  . ./fastpath.build $1 $DST_PATH
+  . ./fastpath.build $version $DST_PATH
   echo "Done!"
   echo
 fi
 
 if [ "$operation" == "backup" -o "$operation" == "all" ]; then
   echo "Preparing backup..."
-  . ./fastpath.backup $1 $DST_PATH
+  . ./fastpath.backup $version $DST_PATH
   echo "Done!"
   echo
 fi
