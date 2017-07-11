@@ -1712,15 +1712,15 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   // R-APS request (Rx check)
   if ( L7_SUCCESS == ptin_erps_aps_rx(erps_idx, &apsReqRx, &apsStatusRx, apsNodeIdRx, &apsRxPort, __LINE__) ) {
 
-    L7_uint8 apsReqRxOtherPort;
-    L7_uint8 apsStatusRxOtherPort;
+    //L7_uint8 apsReqRxOtherPort;
+    //L7_uint8 apsStatusRxOtherPort;
 
     if (apsRxPort > PROT_ERPS_PORT1)
     {
       PT_LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not: apsRxPort %d not valid", erps_idx, apsRxPort);
       return PROT_ERPS_INDEX_VIOLATION;
     }
-#if 0
+#if 1
     remoteRequest = apsReqRx;
 
     apsReqStatusRx = tbl_erps[erps_idx].apsReqStatusRx[apsRxPort];
@@ -1747,11 +1747,13 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       if (apsReqRx != apsReqRxOtherPort) {
         remoteRequest = apsReqRx;
       }
-      else if ((apsReqRx == apsReqRxOtherPort) && (apsStatusRx != apsStatusRxOtherPort)) {
+      else if (/*(apsReqRx == apsReqRxOtherPort) &&*/ (apsStatusRx != apsStatusRxOtherPort)) {
         remoteRequest = apsReqRx;
 
         /* Clear on the other Port */
-        tbl_erps[erps_idx].apsReqStatusRx[!apsRxPort] = 0;
+        //tbl_erps[erps_idx].apsReqStatusRx[!apsRxPort] = 0;
+        //i think it should have been instead...
+        tbl_erps[erps_idx].apsReqStatusRx[!apsRxPort] = ((RReq_NONE << 12) & 0xF000);
       }
       else {
         PT_LOG_NOTICE(LOG_CTX_ERPS,"ERPS#%d: Ignoring Received R-APS. Other Port Request(0x%x) = %s(0x%x)", erps_idx, apsReqRxOtherPort,
