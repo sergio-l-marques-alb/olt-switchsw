@@ -10,11 +10,11 @@ APPS_PATH=./apps
 
 #USERNAME=olt
 #DST_IPADDR=10.112.15.243
-DST_PATH=olt@10.112.15.243:~/fastpath_builds/fastpath
+DST_PATH=$BUILDS_FOLDER
 
 n_args=$#
 
-svn_rev=`svnversion ../fastpath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+svn_rev=`svnversion .. -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
 version=$1-r$svn_rev
 
 backup_file=$MODULE.backup-v$version.tar.bz2
