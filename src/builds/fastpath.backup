@@ -10,14 +10,14 @@ APPS_PATH=./apps
 
 #USERNAME=olt
 #DST_IPADDR=10.112.15.243
-DST_PATH=/home/olt/fastpath_builds/fastpath
+DST_PATH=olt@10.112.15.243:~/fastpath_builds/fastpath
 
 n_args=$#
 
 svn_rev=`svnversion ../fastpath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
 version=$1-r$svn_rev
 
-backup_file=$MODULE.backup-v$version.tgz
+backup_file=$MODULE.backup-v$version.tar.bz2
 
 colorNotice="\033[1m\033[34m"
 colorWarn="\033[1m\033[33m"
@@ -59,13 +59,13 @@ rm -f $BUILDS_FOLDER/$backup_file
 #done
 #sync
 cd $APPS_PATH/backup
-rm -f *.tgz
-tar czvf $backup_file $PLATFORMS
+rm -f *.7z *.tgz *.tar.bz2
+tar cjvf $backup_file $PLATFORMS
 cd -
 mv $APPS_PATH/backup/$backup_file $BUILDS_FOLDER
 
 echo "Transferring backup tarball to final destination..."
-mv $BUILDS_FOLDER/$backup_file $DST_PATH
+mv -v $BUILDS_FOLDER/$backup_file $DST_PATH
 
 echo -en $colorOk
 echo "DONE!"
