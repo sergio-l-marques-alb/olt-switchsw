@@ -555,7 +555,6 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   ptin_prot_erps_init();
 #endif
 
-#ifdef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
   {
 #ifdef PTIN_ENABLE_ERPS
    unsigned long i;
@@ -565,7 +564,6 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
 
    common_aps_ccm_packetRx_callback_register(); //must be after OAM ETH and ERP queues init: ptin_ccm_packet_init(-1) and ptin_aps_packet_init()
   }
-#endif
 
   /* IP dtl0 module initialization. */
 #ifdef PTIN_ENABLE_DTL0TRAP

@@ -8,7 +8,6 @@
 //#define __APS_AND_CCM_COMMON_FILTER__     //can't define this; most likely we aren't being allowed to add BROAD_FIELD_IP6_DST to group existent qualifiers
 //#define __CCM_FILTER__MEANS__MEP_FILTER__
 #define __MxP_FILTER__INSTEAD_OF__APS_AND_CCM__
-#define COMMON_APS_CCM_CALLBACKS__ETYPE_REG
 //#define USING_SDK_OAM_FP_CREATE
 
 #define PHY_RECOVERY_PROCEDURE  1

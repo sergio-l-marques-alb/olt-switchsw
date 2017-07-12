@@ -3228,7 +3228,6 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   pktRxMsg.cos = bcm_pkt->cos;
 
 //#ifdef APS_CCM_hapiBroadReceive_2_callback_SHORTCUT     //PTIN added
-#ifdef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
   if (L7_ETYPE_CFM==ether_type) do {
    extern L7_RC_t common_aps_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
    sysnet_pdu_info_t pduInfo;
@@ -3247,7 +3246,6 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
    SYSAPI_NET_MBUF_FREE((L7_netBufHandle)frameHdl);
    return BCM_RX_HANDLED;
   } while (0);
-#endif
 //#endif
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL3)

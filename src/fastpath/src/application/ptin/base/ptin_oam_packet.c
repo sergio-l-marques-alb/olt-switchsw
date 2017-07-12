@@ -389,9 +389,6 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL
 #ifdef PTIN_ENABLE_ERPS
 L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx)
 {
-#ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
-  sysnetNotifyEntry_t snEntry;
-#endif
   L7_uint8            queue_str[24];
   L7_uchar8           apsMacAddr[L7_MAC_ADDR_LEN] = PTIN_APS_MACADDR;   // Last Byte is the Ring ID
   L7_uint8            i;
@@ -417,24 +414,7 @@ L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx)
     if ( (tbl_erps[i].admin == PROT_ERPS_ENTRY_BUSY) && (tbl_erps[i].protParam.ringId == tbl_erps[erps_idx].protParam.ringId) ) return L7_SUCCESS;
   }
 
-#ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
-
-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register ptin_aps_packetRx_callback related to type=%u: 0x%08x",
-           SYSNET_MAC_ENTRY, (L7_uint32) ptin_aps_packetRx_callback);
-
-  /* Register APS packets */
-  strcpy(snEntry.funcName, "ptin_aps_packetRx_callback");
-  snEntry.notify_pdu_receive = ptin_aps_packetRx_callback;
-  snEntry.type = SYSNET_MAC_ENTRY;
-  memcpy(snEntry.u.macAddr, apsMacAddr, L7_MAC_ADDR_LEN);
-  if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS) {
-    PT_LOG_ERR(LOG_CTX_ERPS, "Cannot register ptin_aps_packetRx_callback callback!");
-    return L7_FAILURE;
-  }
-  PT_LOG_INFO(LOG_CTX_ERPS, "ptin_aps_packetRx_callback registered!");
-#else
   //return common_aps_ccm_packetRx_callback_register(); must register callback elsewhere, being sure both OAM ETH and ERP are up
-#endif
 
   return L7_SUCCESS;
 }
@@ -450,9 +430,6 @@ L7_RC_t ptin_aps_packet_init(L7_uint8 erps_idx)
  */
 L7_RC_t ptin_ccm_packet_init(L7_long32 oam_level)
 {
-#ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
-  sysnetNotifyEntry_t snEntry;
-#endif
   L7_long32 i;
 
   if (oam_level>=N_OAM_TMR_VALUES) {
@@ -474,26 +451,7 @@ L7_RC_t ptin_ccm_packet_init(L7_long32 oam_level)
 
   if (nr_using_ETH_oam_lvl[oam_level]++) return L7_SUCCESS; //No need to register if already done. (Only need that on "nr_us..."'s transition 0->1.)
 
-#ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
-
-  PT_LOG_INFO(LOG_CTX_STARTUP,"Going to register ptin_ccm_packetRx_callback related to type=%u: 0x%08x",
-           SYSNET_MAC_ENTRY, (L7_uint32) ptin_ccm_packetRx_callback);
-
-  /* Register CCM packets */
-  strcpy(snEntry.funcName, "ptin_ccm_packetRx_callback");
-  snEntry.notify_pdu_receive = ptin_ccm_packetRx_callback;
-  snEntry.type = SYSNET_MAC_ENTRY;
-  memcpy(snEntry.u.macAddr, ccmMacAddr, L7_MAC_ADDR_LEN);
-  snEntry.u.macAddr[5]&=0xf0;
-  snEntry.u.macAddr[5]|=oam_level;
-  if (sysNetRegisterPduReceive(&snEntry) != L7_SUCCESS) {
-    PT_LOG_ERR(LOG_CTX_OAM, "Cannot register ptin_ccm_packetRx_callback !");
-    return L7_FAILURE;
-  }
-  PT_LOG_INFO(LOG_CTX_OAM, "ptin_ccm_packetRx_callback registered!");
-#else
   //return common_aps_ccm_packetRx_callback_register(); must register callback elsewhere, being sure both OAM ETH and ERP are up
-#endif
 
   return L7_SUCCESS;
 }
@@ -509,40 +467,6 @@ L7_RC_t ptin_ccm_packet_init(L7_long32 oam_level)
 #ifdef PTIN_ENABLE_ERPS
 L7_RC_t ptin_aps_packet_deinit(L7_uint8 erps_idx)
 {
-#ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
-  sysnetNotifyEntry_t snEntry;
-  L7_uchar8           apsMacAddr[L7_MAC_ADDR_LEN] = PTIN_APS_MACADDR;   // Last Byte is the Ring ID
-  L7_uchar8           i;
-  L7_BOOL             inused = L7_FALSE;
-
-  /* Ring ID needs to be set on rule/trap removal. */
-  apsMacAddr[5] = tbl_erps[erps_idx].protParam.ringId;
-
-  /* Rx_callback is always the same; Do not unregister a snEntry if the MAC is in used by others (same Ring ID) */
-  for (i=0; i<MAX_PROT_PROT_ERPS; i++) {
-    if (i == erps_idx) continue;
-    if ( (tbl_erps[i].admin == PROT_ERPS_ENTRY_BUSY) && (tbl_erps[i].protParam.ringId == tbl_erps[erps_idx].protParam.ringId) ) inused = L7_TRUE;
-  }
-
-  if (!inused) {
-    /* Deregister broadcast packets capture */
-    strcpy(snEntry.funcName, "ptin_aps_packetRx_callback");
-    snEntry.notify_pdu_receive = ptin_aps_packetRx_callback;
-    snEntry.type = SYSNET_MAC_ENTRY;
-    memcpy(snEntry.u.macAddr, apsMacAddr, L7_MAC_ADDR_LEN);
-    if (sysNetDeregisterPduReceive(&snEntry) != L7_SUCCESS) {
-      PT_LOG_ERR(LOG_CTX_ERPS, "Cannot unregister ptin_aps_packetRx_callback callback!");
-      return L7_FAILURE;
-    }
-    PT_LOG_INFO(LOG_CTX_ERPS, "ptin_aps_packetRx_callback unregistered!");
-  }
-
-  /* Queue that will process packets */
-  if (ptin_aps_packetRx_queue[erps_idx] != L7_NULLPTR) {
-    osapiMsgQueueDelete(ptin_aps_packetRx_queue[erps_idx]);
-    ptin_aps_packetRx_queue[erps_idx] = L7_NULLPTR;
-  }
-#endif
 
   PT_LOG_INFO(LOG_CTX_ERPS, "PTin APS packet deinit OK");
 
@@ -576,25 +500,6 @@ L7_RC_t ptin_ccm_packet_deinit(L7_long32 oam_level)
     b=N_OAM_TMR_VALUES-1;
     for (i=0; i<N_OAM_TMR_VALUES; i++) nr_using_ETH_oam_lvl[i]=0;
   }
-
-#ifndef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
-  for (i=a; i<=b; i++) {
-  sysnetNotifyEntry_t snEntry;
-
-    /* Deregister broadcast packets capture */
-    strcpy(snEntry.funcName, "ptin_ccm_packetRx_callback");
-    snEntry.notify_pdu_receive = ptin_ccm_packetRx_callback;
-    snEntry.type = SYSNET_MAC_ENTRY;
-    memcpy(snEntry.u.macAddr, ccmMacAddr, L7_MAC_ADDR_LEN);
-    snEntry.u.macAddr[5]&=0xf0;
-    snEntry.u.macAddr[5]|=i;
-    if (sysNetDeregisterPduReceive(&snEntry) != L7_SUCCESS) {
-      PT_LOG_ERR(LOG_CTX_OAM, "Cannot unregister ptin_ccm_packetRx_callback !");
-      if (oam_level<N_OAM_TMR_VALUES) return L7_FAILURE;
-    }
-    PT_LOG_INFO(LOG_CTX_OAM, "ptin_ccm_packetRx_callback unregistered!");
-  }//for
-#endif
 
   if (oam_level<N_OAM_TMR_VALUES) return L7_SUCCESS;
 
@@ -849,7 +754,6 @@ L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t 
 
 
 
-#ifdef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
 L7_RC_t common_aps_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo) {
     L7_uchar8 *payload;
     //L7_uint32 payloadLen;
@@ -896,7 +800,6 @@ L7_RC_t common_aps_ccm_packetRx_callback_register(void) {
 
 
 //L7_RC_t common_aps_ccm_packetRx_callback_deregister(void) {return L7_SUCCESS;}
-#endif  //COMMON_APS_CCM_CALLBACKS__ETYPE_REG
 
 
 /**

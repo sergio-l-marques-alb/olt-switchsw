@@ -1549,9 +1549,7 @@ L7_RC_t sysNetNotifyListDebugShow()
   extern L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
   extern L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
 #endif
-#ifdef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
   extern L7_RC_t common_aps_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
-#endif
 
   for (i = 0; i < FD_CNFGR_SYSNET_MAX_REGISTRATIONS; i++)
   {
@@ -1593,9 +1591,7 @@ L7_RC_t sysNetNotifyListDebugShow()
   printf("ptin_aps_packetRx_callback      = 0x%08x\r\n", (L7_uint32) ptin_aps_packetRx_callback);
   printf("ptin_ccm_packetRx_callback      = 0x%08x\r\n", (L7_uint32) ptin_ccm_packetRx_callback);
 #endif
-#ifdef COMMON_APS_CCM_CALLBACKS__ETYPE_REG
   printf("common_aps_ccm_packetRx_callback= 0x%08x\r\n", (L7_uint32) common_aps_ccm_packetRx_callback);
-#endif
 
   return L7_SUCCESS;
 }
