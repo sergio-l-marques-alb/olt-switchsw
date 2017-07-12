@@ -1143,7 +1143,7 @@ L7_RC_t aggCollDistDisable(L7_uint32 intf)
 
   /* PTin added: Blocked state */
   #if 1
-  if ((p->selected != UNSELECTED) && (p->partnerOperPortState & DOT3AD_STATE_COLLECTING))
+  if ((p->selected != UNSELECTED) /*&& (p->partnerOperPortState & DOT3AD_STATE_SYNCHRONIZATION) && (p->partnerOperPortState & DOT3AD_STATE_AGGREGATION)*/)
   {
     return L7_SUCCESS;
   }
@@ -3284,6 +3284,120 @@ L7_RC_t aggPortActorSelectStateSet(L7_uint32 intf, L7_uchar8 state)
   PT_LOG_DEBUG(LOG_CTX_TRUNKS, "rc=%d", rc);
 
   return rc;
+}
+
+/**
+ * Debug function: send an event
+ * 
+ * @param intIf 
+ * @param selected 
+ * @param lacpEvent 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t aggDebugPortActorSendEvent(L7_uint32 intf, L7_uint32 selected, L7_uint32 lacpEvent)
+{
+  dot3ad_agg_t  *a;
+  dot3ad_port_t *p;
+  L7_RC_t       rc = L7_SUCCESS;
+
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "I'm here: intf=%u", intf);
+
+  /* Validate selected value */
+  if (selected != UNSELECTED && selected != SELECTED && selected != STANDBY)
+  {
+    PT_LOG_ERR(LOG_CTX_TRUNKS, "Invalid SELECTED value");
+    return L7_FAILURE;
+  }
+  /* Validate LACP event */
+  if (lacpEvent >= lacpLacEvents)
+  {
+    PT_LOG_ERR(LOG_CTX_TRUNKS, "Invalid lacp event");
+    return L7_FAILURE;
+  }
+  
+  /* is the port a valid lag member */
+  p = dot3adPortIntfFind(intf);
+  if (p == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_TRUNKS, "Leaving...");
+    return L7_FAILURE;
+  }
+  /* is the aggregator valid */
+  a = dot3adAggIntfFind(p->actorOperPortKey);
+  if (a == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_TRUNKS, "Leaving...");
+    return L7_FAILURE;
+  }
+  if (a->inuse == L7_FALSE || a->adminMode == L7_DISABLE)
+  {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Leaving... (in_use=%u adminMode=%u)", a->inuse, a->adminMode);
+    return L7_FAILURE;
+  }
+
+  /* Only applicable to dynamic LAGs */
+  if (a->isStatic)
+  {
+    PT_LOG_ERR(LOG_CTX_TRUNKS, "This is a static LAG");
+    return L7_FAILURE;
+  }
+    
+  p->selected = selected;
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "intIfNum %u: actorPortNum=%u selected=%u lacpEvent=%u", p->actorPortNum, intf, p->selected, lacpEvent);
+
+  /* Issue command */
+  rc = LACIssueCmd(lacpEvent, p->actorPortNum, L7_NULLPTR);
+
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "rc=%d", rc);
+
+  return rc;
+}
+
+/**
+ * Debug function: set blockedState value
+ * 
+ * @param agg_intf 
+ * @param value 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t aggDebugLagBlockedStateSet(L7_uint32 agg_intf, L7_uint value)
+{
+  dot3ad_agg_t  *a;
+
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "I'm here: intf=%u", agg_intf);
+
+  a = dot3adAggIntfFind(agg_intf);
+  if (a == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_TRUNKS, "Leaving...");
+    return L7_FAILURE;
+  }
+  if (a->inuse == L7_FALSE || a->adminMode == L7_DISABLE)
+  {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Leaving... (in_use=%u adminMode=%u)", a->inuse, a->adminMode);
+    return L7_FAILURE;
+  }
+    
+  a->blockedState = value;
+
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "Done! blockedState=%u", a->blockedState);
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Print usefull information
+ */
+void agg_help(void)
+{
+  printf("Available debugging functions for DOT3AD module\r\n");
+  printf(" aggDebugLagBlockedStateSet <agg_intIfNum> <value> : Set a new value for the blockedState var\r\n");
+  printf(" aggDebugPortActorSendEvent <intIfNum> <selected> <lacpEvent> : Send an event for the LACP machine\r\n");
+  printf(" dot3adDebugLag <agg_intIfNum>   : print all data about this LAG\r\n");
+  printf(" dot3adDebugLagMember <intIfNum> : print all data about this LAG member\r\n");
+  printf("Done!\r\n");
 }
 #endif
 
