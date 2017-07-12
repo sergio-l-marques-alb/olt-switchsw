@@ -96,6 +96,7 @@ typedef enum
   PTIN_DTL_MSG_PTP_FPGA,
   PTIN_DTL_MSG_OAM_FPGA,
   PTIN_DTL_MSG_TEMPERATURE_MONITOR,   /* ptin_dtl_temperature_monitor_t */
+  PTIN_DTL_MSG_OAM_BCM,
   PTIN_DTL_MSG_MAX
   
 } ptin_dtl_msg_enum;
@@ -1466,7 +1467,9 @@ typedef struct
 
 typedef struct {
     unsigned short  imep;
+    unsigned short  irmep;  //If valid, hapi_mep_t carries an RMEP; if not, an LMEP
     T_MEP_HDR       *m;
+    T_ME            *me;
     T_MEP_LM        *lm;
 } hapi_mep_t;
 

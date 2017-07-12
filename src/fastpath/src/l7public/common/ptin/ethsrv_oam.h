@@ -43,10 +43,19 @@ typedef unsigned long long u64;
 #endif
 #define N_MAX_LOOKUP_MEPs   ((1<<(LOOKUP_MEP_BITS))+1)
 
+#ifndef LOOKUP_MIP_BITS
+    #define LOOKUP_MIP_BITS    10
+#endif
+#define N_MAX_LOOKUP_MIPs   ((1<<(LOOKUP_MIP_BITS))+1)
+
 #ifndef N_MAX_LOOKUP_MEPs_PER_HASH
     #define N_MAX_LOOKUP_MEPs_PER_HASH  16
     //#warning Definable: constant N_MAX_LOOKUP_MEPs_PER_HASH
     //#warning (Nr of sequential lookup entries search after hash index calculation - reduce "for" cycles)
+#endif
+
+#ifndef N_MAX_LOOKUP_MIPs_PER_HASH
+    #define N_MAX_LOOKUP_MIPs_PER_HASH  16
 #endif
 
 #ifndef MEP_MIN_T_ms
@@ -220,6 +229,18 @@ typedef struct {
 } __attribute__ ((packed)) T_LOOKUP_MEP;
 
 #define valid_lookup_index(a) ((a)<(N_MAX_LOOKUP_MEPs))
+
+
+
+
+typedef struct {
+    u32 mip_index;          //RO    auxiliary index to the "T_MIP" table
+    u16 prt;
+    u64 vid;
+    u8 level;
+} __attribute__ ((packed)) T_LOOKUP_MIP;
+
+#define valid_mip_lookup_index(a) ((a)<(N_MAX_LOOKUP_MIPs))
 
 
 
@@ -428,11 +449,13 @@ typedef struct {
 
 
 
-typedef struct {
+typedef struct t_mep_db {
     T_MEP          mep;             //MEP data base
     T_MEP_CSF      mep_csf;         //MEP CSF data base
     T_MEP_LM       lm;              //MEP LM data base
     T_MEP_DM       dm;              //MEP DM data base
+
+    u32            (* hw_ccm_mep_db_update)(u32 i_mep, u32 i_rmep, struct t_mep_db *p_mep_db);
 } T_MEP_DB;
 
 //THIS STRUCTURE AGGREGATES ALL - DECLARE ONE INSTANCE OF THIS TYPE*********************

@@ -32,5 +32,8 @@ int dont_txrx_oam_criterion(unsigned char init0_setbmp1_clrbmp2_rd3, unsigned sh
 //PLAN A
 //Only prt and vid parameters are valid
 
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+unsigned long bcm_hw_ccm_mep_db_update(unsigned long i_mep, unsigned long i_rmep, T_MEP_DB *p_mep_db);
+#endif
 #endif /*_PTIN_PROT_OAM_ETH_*/
 

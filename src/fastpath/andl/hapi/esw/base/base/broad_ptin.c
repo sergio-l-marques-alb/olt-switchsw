@@ -48,6 +48,7 @@ L7_RC_t broad_ptin_time_interface(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation,
 L7_RC_t broad_ptin_ptp_fpga_entry(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_oam_fpga_entry(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 L7_RC_t broad_ptin_temperature_monitor(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
+L7_RC_t broad_ptin_oam_bcm(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g);
 
 L7_RC_t broadPtin_oam_tx( int unit, int flags, bcm_gport_t gport_dst, bcm_mac_t *mac_dst, bcm_mac_t *mac_src, bcm_oam_endpoint_info_t *endpoint_info);
 /* List of callbacks */
@@ -65,6 +66,7 @@ broad_ptin_generic_f ptin_dtl_callbacks[PTIN_DTL_MSG_MAX] = {
   broad_ptin_ptp_fpga_entry,
   broad_ptin_oam_fpga_entry,
   broad_ptin_temperature_monitor,
+  broad_ptin_oam_bcm,
 };
 
 /**
@@ -2422,6 +2424,55 @@ L7_RC_t broad_ptin_temperature_monitor(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t opera
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//2K LMEPs, 8K RMEPs
+#define iMEP_iRMEP_TO_ID(ilmep,irmep)   ((ilmep) | (irmep)<<11)
+#define ID_TO_iMEP(id)                  ((id)& ((1<<11)-1))
+#define ID_TO_iRMEP(id)                 ((id)>>11)
+#define ENDPOINT_MAX                    10240
+#define valid__bcm_ep_id(bcm_ep_id)     ((bcm_ep_id)<ENDPOINT_MAX)
+
+bcm_oam_endpoint_t imep_irmep__2__bcm_ep_id(unsigned short imep, unsigned short irmep) {
+ if (!valid_mep_index(imep)) return -1;
+ if (!valid_rmep_index(irmep)) return iMEP_iRMEP_TO_ID(imep+1, 0);//LMEP (local MEP)
+ return iMEP_iRMEP_TO_ID(imep+1, irmep+1);//RMEP (remote MEP)
+}//imep_irmep__2__bcm_ep_id
+
+unsigned short bcm_ep_id__2__imep(bcm_oam_endpoint_t id) {
+    if (!valid__bcm_ep_id(id)) return -1;
+    return ID_TO_iMEP(id)-1;
+}
+
+unsigned short bcm_ep_id__2__irmep(bcm_oam_endpoint_t id) {
+unsigned short r;
+    if (!valid__bcm_ep_id(id)) return -1;
+    r = ID_TO_iRMEP(id)-1;
+    if (0==r) return -1;
+    return r-1;
+}
+
+
+
 L7_RC_t hapiBroadPtinMEPControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g) {
     T_MEP_HDR         *p;
 
@@ -2464,19 +2515,19 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 
 
   //Check if MAID's already in use...
-  for (i=0, empty=-1, alrdy=0; i<N_MEPs; i++) {    //nMEGsMAIDs<=MEPs
+  for (i=1, empty=-1, alrdy=0; i<=N_MEPs; i++) {    //nMEGsMAIDs<=MEPs
       r=bcm_oam_group_get(0, i, &ginfo);
-      if (BCM_E_NOT_FOUND==r) {
-          if (empty>=N_MEPs) empty=i;
-      }
-      else
-      if (BCM_E_EXISTS==r) {
+      if (BCM_E_NONE==r) {
           if (!memcmp(ginfo.name, &p->meg_id, sizeof(ginfo.name))) {
               ginfo.id=i;
               alrdy=1;
               break;
           }
       }
+      else {//      if (BCM_E_NOT_FOUND==r) {
+          if (empty>=N_MEPs) empty=i;
+      }
+
   }//for
   //... otherwise allocate it
   if (!alrdy) {
@@ -2494,7 +2545,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   }
 
 
-
+//return 0;
 
   //MEP allocation
   bcm_oam_endpoint_info_t_init(&mep);
@@ -2505,11 +2556,12 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 
       //BCM_OAM_ENDPOINT_USE_QOS_MAP | BCM_OAM_ENDPOINT_PRI_TAG |
 
-      BCM_OAM_ENDPOINT_CCM_COPYTOCPU |// BCM_OAM_ENDPOINT_CCM_RX |
+      //BCM_OAM_ENDPOINT_CCM_COPYTOCPU |
+      //BCM_OAM_ENDPOINT_CCM_RX |
       //BCM_OAM_ENDPOINT_CCM_DROP | BCM_OAM_ENDPOINT_CCM_COPYFIRSTTOCPU |
       //BCM_OAM_ENDPOINT_REMOTE_DEFECT_TX | BCM_OAM_ENDPOINT_REMOTE_EVENT_DISABLE |
       //BCM_OAM_ENDPOINT_REMOTE_DEFECT_AUTO_UPDATE |
-
+/*
       //BCM_OAM_ENDPOINT_LOOPBACK | BCM_OAM_ENDPOINT_LINKTRACE |
       BCM_OAM_ENDPOINT_DELAY_MEASUREMENT | BCM_OAM_ENDPOINT_DM_COPYTOCPU |
       //BCM_OAM_ENDPOINT_DM_DROP |
@@ -2517,63 +2569,77 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
       //BCM_OAM_ENDPOINT_LB_DROP |
       BCM_OAM_ENDPOINT_LT_COPYTOCPU |
       //BCM_OAM_ENDPOINT_LT_DROP |
-
+*/
       //BCM_OAM_ENDPOINT_PORT_STATE_TX | BCM_OAM_ENDPOINT_INTERFACE_STATE_TX |
       //BCM_OAM_ENDPOINT_PORT_STATE_UPDATE | BCM_OAM_ENDPOINT_INTERFACE_STATE_UPDATE |
       //BCM_OAM_ENDPOINT_MATCH_INNER_VLAN | BCM_OAM_ENDPOINT_MATCH_OUTER_AND_INNER_VLAN |        // Selection of MEP based on S and C VLAN
       BCM_OAM_ENDPOINT_WITH_ID;
 
-  //if (!invalid_T_MEP_LM(lm))
-      mep.flags |= BCM_OAM_ENDPOINT_LOSS_MEASUREMENT;
- if (p->up1_down0) mep.flags |= BCM_OAM_ENDPOINT_UP_FACING;
+  mep.opcode_flags = BCM_OAM_OPCODE_CCM_IN_HW;  // |= BCM_OAM_OPCODE_OTHER_COPY_TO_CPU;
 
-  //mep.opcode_flags
+  if (!invalid_T_MEP_LM(lm)) {
+      mep.flags |= BCM_OAM_ENDPOINT_LOSS_MEASUREMENT;
+      mep.lm_counter_base_id=((hapi_mep_t *) data)->imep;//mep.id;//0;             // Counter id assosiated to the mep
+  }
+  if (p->up1_down0) mep.flags |= BCM_OAM_ENDPOINT_UP_FACING;
+
   //mep.lm_flags
  
   //memcpy(&lm->endpoint_id, &mep.id, sizeof(lm->endpoint_id)); 
 
-  mep.id=           1;//((hapi_mep_t *) data)->imep;  //1..N (creation function doesn't accept 0)
+  mep.id=   imep_irmep__2__bcm_ep_id(((hapi_mep_t *) data)->imep, ((hapi_mep_t *) data)->irmep);
+            //  1+((hapi_mep_t *) data)->imep;
+            //  1..N (creation function doesn't accept 0)
+  if (valid_rmep_index(((hapi_mep_t *) data)->irmep)) { //RMEP
+      mep.flags |= BCM_OAM_ENDPOINT_REMOTE;
+      mep.local_id= imep_irmep__2__bcm_ep_id(((hapi_mep_t *) data)->imep, -1);  //  0;  // Used by remote endpoints only
+  }
+  else {    //LMEP
+      mep.flags |= BCM_OAM_ENDPOINT_CCM_RX;
+
+      {
+       struct {
+           bcm_mac_t v;
+       } d={{0x01, 0x80, 0xC2, 0x00, 0x00, 0x30}};//, s={{0, 1, 2, 3, 4, 5}};
+
+       d.v[5]|= p->level;
+       memcpy(mep.dst_mac_address, &d, 6);
+       {//SRC MAC ADDRESS
+         L7_uint32 intIfNum;
+         nimUSP_t  nim_usp;
+             nim_usp.unit= usp->unit;
+             nim_usp.slot= usp->slot;
+             nim_usp.port= usp->port+1;
+             if (L7_SUCCESS!=nimGetIntIfNumFromUSP(&nim_usp, &intIfNum)
+                 ||
+                 L7_SUCCESS!=nimGetIntfAddress(intIfNum, L7_SYSMAC_BIA, mep.src_mac_address)) {
+
+                 r=L7_REQUEST_DENIED;
+                 PT_LOG_ERR(LOG_CTX_HAPI, "couldn't get SMAC\n\r");
+                 goto _hapiBroadPtinMEPCreate_nokend;
+             }//memcpy(mep.src_mac_address, &s, 6);
+       }
+      }
+  }    //LMEP
   mep.type=         bcmOAMEndpointTypeEthernet;
   mep.group=        ginfo.id;
   mep.name=         p->mep_id; //0;//mepid
-  //mep.local_id=0;  // Used by remote endpoints only
   mep.level=        p->level; //0;
-  mep.ccm_period=   0; //OAM_TMR_CODE_TO_ms[p->tmout];
+  if (0==p->tmout || p->tmout>=N_OAM_TMR_VALUES)    mep.ccm_period= 0;
+  else                                              mep.ccm_period= OAM_TMR_CODE_TO_ms[p->tmout];
   mep.vlan=         p->vid; //50;
-  mep.inner_vlan=   0;  //...or set to 0 for one-tag
-  mep.gport=        mep.tx_gport=       hapiPortPtr->bcmx_lport;//BCM_GPORT_LOCAL_SET(mep.tx_gport, 2);
+  //mep.inner_vlan=   0;  //...or set to 0 for one-tag
+  //mep.inner_tpid=
+  mep.outer_tpid=   0x8100;
+  //mep.pkt_pri=
+  //mep.inner_pkt_pri=
+  //mep.int_pri=
+  mep.gport=        hapiPortPtr->bcmx_lport;    //mep.gport=        mep.tx_gport=       hapiPortPtr->bcmx_lport;//BCM_GPORT_LOCAL_SET(mep.tx_gport, 2);
+  mep.trunk_index = -1;//_BCM_OAM_INVALID_INDEX;
   //mep.trunk_index= //The trunk port index for this
   //mep.intf_id=
   //mep.mpls_label=
   //mep.egress_label=
-  {
-   struct {
-       bcm_mac_t v;
-   } d={{0x01, 0x80, 0xC2, 0x00, 0x00, 0x30}};//, s={{0, 1, 2, 3, 4, 5}};
-
-   d.v[5]|= p->level;
-   memcpy(mep.dst_mac_address, &d, 6);
-   {//SRC MAC ADDRESS
-     L7_uint32 intIfNum;
-     nimUSP_t  nim_usp;
-         nim_usp.unit= usp->unit;
-         nim_usp.slot= usp->slot;
-         nim_usp.port= usp->port+1;
-         if (L7_SUCCESS!=nimGetIntIfNumFromUSP(&nim_usp, &intIfNum)
-             ||
-             L7_SUCCESS!=nimGetIntfAddress(intIfNum, L7_SYSMAC_BIA, mep.src_mac_address)) {
-
-             r=L7_REQUEST_DENIED;
-             PT_LOG_ERR(LOG_CTX_HAPI, "couldn't get SMAC\n\r");
-             goto _hapiBroadPtinMEPCreate_nokend;
-         }//memcpy(mep.src_mac_address, &s, 6);
-   }
-  }
-  //mep.pkt_pri=
-  //mep.inner_pkt_pri=
-  //mep.inner_tpid=
-  //mep.outer_tpid=
-  //mep.int_pri=
   //mep.cpu_qid=
   //uint8 pri_map[BCM_OAM_INTPRI_MAX];  // Priority mapping for LM counter table
 
@@ -2587,7 +2653,6 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   //mep.port_state;                   // Endpoint port status
   //mep.interface_state;              // Endpoint interface status
 
-  mep.lm_counter_base_id=mep.id;//0;             // Counter id assosiated to the mep
   //mep.loc_clear_threshold;          // Number of packets required to reset the Loss-of-Continuity status per end point
   //mep.timestamp_format;               // DM time stamp format - NTP/IEEE1588(PTP)
 
@@ -2647,32 +2712,163 @@ _hapiBroadPtinMEPCreate_nokend:
 
 L7_RC_t hapiBroadPtinMEPDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g) {
 int r;
-unsigned long i, group_id=-1;
+unsigned long j, k;
+bcm_oam_group_t group_id=-1;
+bcm_oam_endpoint_t i, ep_id;//=-1;
 bcm_oam_endpoint_info_t mep;
 
-    r=bcm_oam_endpoint_get(0, 1+((hapi_mep_t *) data)->imep, &mep); //1..N
+    ep_id=  imep_irmep__2__bcm_ep_id(((hapi_mep_t *) data)->imep, ((hapi_mep_t *) data)->irmep);
+    r=bcm_oam_endpoint_get(0, ep_id, &mep); //1..N
     if (BCM_E_NONE!=r) {PT_LOG_ERR(LOG_CTX_HAPI, "bcm_oam_endpoint_get()=%d\n\r", r); return L7_NOT_EXIST;}
     group_id=mep.group;
 
-    r=bcm_oam_endpoint_destroy(0, 1+((hapi_mep_t *) data)->imep);   //1..N
+    r=bcm_oam_endpoint_destroy(0, ep_id);   //1..N
     if (BCM_E_NONE!=r) {PT_LOG_ERR(LOG_CTX_HAPI, "bcm_oam_endpoint_destroy()=%d\n\r", r); return L7_FAILURE;}
 
     //Delete MEG/MA if unused by any other MEP
-    for (i=1; i<=N_MEPs; i++) {                                      //1..N
-        if (1+((hapi_mep_t *) data)->imep == i) continue;           //no sense processing the MEP we've just deleted
-        if (BCM_E_NONE!=bcm_oam_endpoint_get(0, i, &mep)) continue;
-        if (mep.group==group_id) return L7_SUCCESS;                 //at least one more MEP's using this MEG_ID/MAID
+    for (j=0; j<N_MEPs; j++)
+      for (k=0;k<=N_MAX_MEs_PER_MEP;k++) {
+          if (k>=N_MAX_MEs_PER_MEP) i=  imep_irmep__2__bcm_ep_id(j,-1);
+          else                      i=  imep_irmep__2__bcm_ep_id(j,k);
+    //for (i=1; i<=ENDPOINT_MAX; i++) {       //for (i=1; i<=N_MEPs; i++) {       //1..N
+          if (ep_id == i) continue;                                   //no sense processing the MEP we've just deleted
+          if (BCM_E_NONE!=bcm_oam_endpoint_get(0, i, &mep)) continue;
+          if (mep.group==group_id) return L7_SUCCESS;                 //at least one more MEP's using this MEG_ID/MAID
     }
 
     r=bcm_oam_group_destroy(0, group_id);   //1..N
-    if (BCM_E_NONE!=r) PT_LOG_ERR(LOG_CTX_HAPI, "bcm_oam_endpoint_destroy()=%d\n\r", r);
+    if (BCM_E_NONE!=r) PT_LOG_ERR(LOG_CTX_HAPI, "bcm_oam_group_destroy()=%d\n\r", r);
     return r;
 }//hapiBroadPtinMEPDelete
 
 
+
+
+
+
+
+
+
+
+
+
+
+//L7_RC_t hapiBroadPtinMEPStatus(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g){
+L7_RC_t hapiBroadPtinMEPStatus(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g) {
+int r;
+bcm_oam_endpoint_t ep_id;//=-1;
+bcm_oam_endpoint_info_t mep;
+bcm_oam_group_info_t group_info;
+T_MEP_HDR   *p;
+//T_MEP_LM    *lm;
+T_ME        *p_me;
+
+    ep_id=  imep_irmep__2__bcm_ep_id(((hapi_mep_t *) data)->imep, ((hapi_mep_t *) data)->irmep);
+    if (!valid__bcm_ep_id(ep_id)) return L7_ERROR;
+    
+    mep.clear_persistent_faults =
+        BCM_OAM_ENDPOINT_FAULT_CCM_TIMEOUT |
+        BCM_OAM_ENDPOINT_FAULT_REMOTE ;//|
+        //BCM_OAM_ENDPOINT_FAULT_PORT_DOWN |
+        //BCM_OAM_ENDPOINT_FAULT_INTERFACE_DOWN;
+    r=bcm_oam_endpoint_get(0, ep_id, &mep); //1..N
+    if (BCM_E_NONE!=r) {PT_LOG_ERR(LOG_CTX_HAPI, "bcm_oam_endpoint_get()=%d\n\r", r); return L7_NOT_EXIST;}
+
+    if (valid_rmep_index(((hapi_mep_t *) data)->irmep)) { //RMEP
+        p_me = ((hapi_mep_t *)data)->me;
+
+        if ((mep.faults | mep.persistent_faults) & BCM_OAM_ENDPOINT_FAULT_CCM_TIMEOUT) {
+            p_me->LOC_timer=-1;
+            p_me->RDI=0;
+        }
+        else {
+            p_me->LOC_timer=0;
+            if ((mep.faults | mep.persistent_faults) & BCM_OAM_ENDPOINT_FAULT_REMOTE) p_me->RDI=0xff;
+            else                                                                      p_me->RDI=0;
+        }
+    }
+    else { //LMEP
+        p = ((hapi_mep_t *)data)->m;
+
+        group_info.clear_persistent_faults =
+            //BCM_OAM_GROUP_FAULT_REMOTE |
+            //BCM_OAM_GROUP_FAULT_CCM_TIMEOUT |
+            BCM_OAM_GROUP_FAULT_CCM_ERROR |
+            BCM_OAM_GROUP_FAULT_CCM_XCON;
+        r = bcm_oam_group_get(0, mep.group, &group_info);   //1..N
+        if (BCM_E_NONE!=r) {PT_LOG_ERR(LOG_CTX_HAPI, "bcm_oam_group_get()=%d\n\r", r); return L7_NOT_EXIST;}
+
+        if ((group_info.faults | group_info.persistent_faults) & BCM_OAM_GROUP_FAULT_CCM_ERROR) p->unxp_MEP_timer=0;
+        else                                                                                    p->unxp_MEP_timer=-1;
+
+        if ((group_info.faults | group_info.persistent_faults) & BCM_OAM_GROUP_FAULT_CCM_XCON)  p->mismerge_timer=0;
+        else                                                                                    p->mismerge_timer=-1;
+    }
+
+    return L7_SUCCESS;
+}//hapiBroadPtinMEPStatus
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+L7_RC_t broad_ptin_oam_bcm(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g) {
+    switch (operation) {
+    case DAPI_CMD_SET:
+    case DAPI_CMD_CLEAR:return hapiBroadPtinMEPControl(usp, DAPI_CMD_PTIN_MEP_CTRL, data, dapi_g);
+    case DAPI_CMD_GET:  return hapiBroadPtinMEPStatus(usp, operation, dataSize, data, dapi_g);
+    default: break;
+    }
+
+    return L7_FAILURE;
+}//broad_ptin_oam_bcm
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+int _bcm_oam_event_cb(
+    int unit, 
+    uint32 flags, 
+    bcm_oam_event_type_t event_type, 
+    bcm_oam_group_t group, 
+    bcm_oam_endpoint_t endpoint, 
+    void *user_data) {
+
+ printf("\n\r_bcm_oam_event_cb(unit=%d, flags=0x%8.8x, event_type=%d, group=%d, endpoint=%d, user_data=%p)",
+        unit, flags, event_type, group, endpoint, user_data);
+ return 0;
+}
+
 extern DAPI_t *dapi_g;
 
-void hapitest(unsigned long intIfNum, unsigned short vid, unsigned char level, unsigned char prior) {
+void hapitest(unsigned short imep, unsigned short irmep,
+              unsigned short mep_id,
+              unsigned long intIfNum, unsigned short vid, unsigned char level, unsigned char tmout, unsigned char prior) {
 nimUSP_t  nim_usp;
 DAPI_USP_t usp;
 hapi_mep_t mep;
@@ -2684,16 +2880,17 @@ T_MEP_LM   lm;
     usp.slot= nim_usp.slot;
     usp.port= nim_usp.port-1;
     
-    mep.imep=0;
+    mep.imep=imep;
+    mep.irmep=irmep;
     mep.m=&m;
     mep.lm=&lm;
-    lm.CCMs0_LMMR1=1;
+    invalidate_T_MEP_LM(&lm)    //lm.CCMs0_LMMR1=-1;
     memset(&m.meg_id, 0, 48);
     sprintf((char*)&m.meg_id, "%c%c%cbaby faceABCD", 1, 32, 13);
     m.vid=vid;
-    m.mep_id=1;
+    m.mep_id=mep_id;
     m.level=level;
-    m.tmout=0;
+    m.tmout=tmout;
     m.prt=10;//0;
 
     m.prior=prior;
@@ -2702,9 +2899,28 @@ T_MEP_LM   lm;
 
 
     hapiBroadPtinMEPControl(&usp, 0, &mep, dapi_g);
+
+    {static int _1st_pass=1;
+    
+     if (_1st_pass) {
+     bcm_oam_event_types_t event_types;
+
+         _1st_pass=0;
+
+         BCM_OAM_EVENT_TYPE_CLEAR_ALL(event_types);
+         //memset(&event_types, 0xff, sizeof(event_types));
+         BCM_OAM_EVENT_TYPE_SET_ALL(event_types);
+         bcm_oam_event_register(0, event_types, _bcm_oam_event_cb, NULL);
+     }
+    }
 }
 
-void hapitest2(unsigned long intIfNum, unsigned short vid, unsigned char level, unsigned char prior) {
+
+
+
+void hapitest2(unsigned short imep, unsigned short irmep,
+               unsigned short mep_id,
+               unsigned long intIfNum, unsigned short vid, unsigned char level, unsigned char prior) {
 nimUSP_t  nim_usp;
 DAPI_USP_t usp;
 hapi_mep_t mep;
@@ -2716,14 +2932,14 @@ T_MEP_LM  lm;
     usp.slot= nim_usp.slot;
     usp.port= nim_usp.port-1;
  
-    mep.imep=0;
+    mep.imep=imep;
+    mep.irmep=irmep;
     mep.m=&m;
     mep.lm=&lm;
-    lm.CCMs0_LMMR1=-1;
+    invalidate_T_MEP_LM(&lm)    //lm.CCMs0_LMMR1=-1;
     sprintf((char*)&m.meg_id, "%c%c%cbaby faceABCD", 1, 32, 13);
-    mep.imep=0;
     m.vid=vid;
-    m.mep_id=-1;
+    SET_T_MEP_EMPTY(m)  //m.mep_id=-1;
     m.level=level;
     m.tmout=0;
     m.prt=10;//0;

@@ -112,6 +112,8 @@ T_MEP *_p_mep;
      init_mep_csf(&p_mep_db[i].mep_csf);
      init_mep_lm(&p_mep_db[i].lm);
      init_mep_dm(&p_mep_db[i].dm);
+
+     p_mep_db[i].hw_ccm_mep_db_update = NULL;
  }//for
 }//init_mep_db
 
@@ -613,10 +615,10 @@ T_LOOKUP_MEP *p_mep_lut;
 
 
 void proc_ethsrv_oam(T_ETH_SRV_OAM *p_oam, u32 T_ms) {
-u8 timeout, time_2_send_ccms, time_2_send_csf;
-u32 i, tmout, n_rmeps;
+u8 timeout=0, time_2_send_ccms=0, time_2_send_csf;
+u32 i, tmout, n_rmeps=0;
 T_MEP       *_p_mep;
-T_MEP_DB    *p_mep_db;
+T_MEP_DB    *p_mep_db, *p_mep_dbi;
 T_MEP_CSF   *_p_mep_csf;
 T_MEP_LM    *_p_mep_lm;
 T_MEP_DM    *_p_mep_dm;
@@ -639,34 +641,74 @@ static u32 j, meps_procssd_per_function_call=0;
  for (j=meps_procssd_per_function_call; j; j--) {
     if (++*proc_i_mep>=N_MEPs) *proc_i_mep=0;
     
-    _p_mep= &p_mep_db[*proc_i_mep].mep;             //Get the pointer to this MEP,...
+    p_mep_dbi= &p_mep_db[*proc_i_mep];
+    _p_mep= &p_mep_dbi->mep;             //Get the pointer to this MEP,...
     
-    //Check if it's time to send CCMs on this MEP...
     if (!valid_oam_tmr(_p_mep->tmout)) continue; //return;
     tmout= OAM_TMR_CODE_TO_ms[_p_mep->tmout];// % N_OAM_TMR_VALUES];
-    _p_mep->CCM_timer += T_ms;
-    if (_p_mep->CCM_timer+T_ms/2 > tmout) {time_2_send_ccms=1;   _p_mep->CCM_timer=0;} //if (_p_mep->CCM_timer >= tmout)
-    else time_2_send_ccms=0;
-    
-    //Process this MEP's remote MEPs on every ME...
-    for (i=0, n_rmeps=0, timeout=0; i<N_MAX_MEs_PER_MEP; i++) {
-        if (!valid_mep_id(_p_mep->ME[i].mep_id))   continue;
-        n_rmeps++;
-    
-        if (_p_mep->ME[i].LOC_timer*2 < tmout*7)   _p_mep->ME[i].LOC_timer += T_ms; //3.5*tmout
-        else {//if (_p_mep->ME[i].LOC_timer*2 >= tmout*7) {
-            if (_p_mep->ME[i].LOC_timer!=0L-1) {
-                ethsrv_oam_register_connection_loss((u8*)&_p_mep->meg_id, _p_mep->mep_id, _p_mep->ME[i].mep_id, _p_mep->prt, _p_mep->vid);
-                ETHSRV_OAM_LOG("Connectivity MEP %u to RMEP %u lost"NLS, _p_mep->mep_id, _p_mep->ME[i].mep_id);
-                if (_p_mep->ME[i].RDI) {
-                     ethsrv_oam_register_RDI_END((u8*)&_p_mep->meg_id, _p_mep->mep_id, _p_mep->ME[i].mep_id, _p_mep->prt, _p_mep->vid);
-                     _p_mep->ME[i].RDI=0;
-                }
+
+
+    if (NULL!=p_mep_dbi->hw_ccm_mep_db_update) {    //HW MEP?
+    T_MEP_DB mep_db;
+
+        for (i=0; i<N_MAX_MEs_PER_MEP; i++) {   //RMEPs
+            p_mep_dbi->hw_ccm_mep_db_update(*proc_i_mep, i, &mep_db);
+
+            if (p_mep_dbi->mep.ME[i].RDI != mep_db.mep.ME[i].RDI) {
+                if ((p_mep_dbi->mep.ME[i].RDI = mep_db.mep.ME[i].RDI))
+                    ethsrv_oam_register_receiving_RDI((u8*)&mep_db.mep.meg_id, mep_db.mep.ME[i].mep_id, *proc_i_mep, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
+                else
+                    ethsrv_oam_register_RDI_END((u8*)&mep_db.mep.meg_id, mep_db.mep.ME[i].mep_id, *proc_i_mep, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
             }
-            _p_mep->ME[i].LOC_timer=   0L-1;
-            timeout=1;
+
+            if (p_mep_dbi->mep.ME[i].LOC_timer != mep_db.mep.ME[i].LOC_timer) {
+                if (LOC(p_mep_dbi->mep.ME[i].LOC_timer = mep_db.mep.ME[i].LOC_timer, tmout))
+                    ethsrv_oam_register_connection_loss((u8*)&mep_db.mep.meg_id, mep_db.mep.ME[i].mep_id, *proc_i_mep, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
+                else
+                    ethsrv_oam_register_connection_restored((u8*)&mep_db.mep.meg_id, mep_db.mep.ME[i].mep_id, *proc_i_mep, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
+            }
+        }//for (i=0; i<N_MAX_MEs_PER_MEP; i++)
+
+        //LMEP
+        p_mep_dbi->hw_ccm_mep_db_update(*proc_i_mep, -1, &mep_db);
+        if (0 == mep_db.mep.unxp_MEP_timer) {//if (p_mep_dbi->mep.unxp_MEP_timer != mep_db.mep.unxp_MEP_timer) {
+            if (!UNXP_MEP(p_mep_dbi->mep.unxp_MEP_timer,tmout))
+                ethsrv_oam_register_unexpected_MEP_id(NULL, 0xffff, *proc_i_mep, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
+            p_mep_dbi->mep.unxp_MEP_timer = 0;//mep_db.mep.unxp_MEP_timer;
         }
-    }//for
+
+        if (0 == mep_db.mep.mismerge_timer) {//if (p_mep_dbi->mep.mismerge_timer != mep_db.mep.mismerge_timer) {
+            if (!MISMERGE(p_mep_dbi->mep.mismerge_timer,tmout))
+                ethsrv_oam_register_mismerge(NULL, 0xffff, *proc_i_mep, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
+            p_mep_dbi->mep.mismerge_timer = 0;//mep_db.mep.mismerge_timer;
+        }
+    }//if (NULL!=p_mep_dbi->hw_ccm_mep_db_update)
+    else {
+        //Check if it's time to send CCMs on this MEP...
+        _p_mep->CCM_timer += T_ms;
+        if (_p_mep->CCM_timer+T_ms/2 > tmout) {time_2_send_ccms=1;   _p_mep->CCM_timer=0;} //if (_p_mep->CCM_timer >= tmout)
+        else time_2_send_ccms=0;
+        
+        //Process this MEP's remote MEPs on every ME...
+        for (i=0, n_rmeps=0, timeout=0; i<N_MAX_MEs_PER_MEP; i++) {
+            if (!valid_mep_id(_p_mep->ME[i].mep_id))   continue;
+            n_rmeps++;
+        
+            if (_p_mep->ME[i].LOC_timer*2 < tmout*7)   _p_mep->ME[i].LOC_timer += T_ms; //3.5*tmout
+            else {//if (_p_mep->ME[i].LOC_timer*2 >= tmout*7) {
+                if (_p_mep->ME[i].LOC_timer!=0L-1) {
+                    ethsrv_oam_register_connection_loss((u8*)&_p_mep->meg_id, _p_mep->mep_id, _p_mep->ME[i].mep_id, _p_mep->prt, _p_mep->vid);
+                    ETHSRV_OAM_LOG("Connectivity MEP %u to RMEP %u lost"NLS, _p_mep->mep_id, _p_mep->ME[i].mep_id);
+                    if (_p_mep->ME[i].RDI) {
+                         ethsrv_oam_register_RDI_END((u8*)&_p_mep->meg_id, _p_mep->mep_id, _p_mep->ME[i].mep_id, _p_mep->prt, _p_mep->vid);
+                         _p_mep->ME[i].RDI=0;
+                    }
+                }
+                _p_mep->ME[i].LOC_timer=   0L-1;
+                timeout=1;
+            }
+        }//for
+    }//if (NULL!=p_mep_dbi->hw_ccm_mep_db_update)...else
 
     if (MISMERGE(_p_mep->mismerge_timer,tmout)) _p_mep->mismerge_timer += T_ms;
     else _p_mep->mismerge_timer=    0L-1;
@@ -680,10 +722,15 @@ static u32 j, meps_procssd_per_function_call=0;
     if (UNXP_T(_p_mep->unxp_T_timer,tmout)) _p_mep->unxp_T_timer += T_ms;
     else _p_mep->unxp_T_timer=    0L-1;
     
-    //RDI determination
-    if (time_2_send_ccms)
-        send_ccm(*proc_i_mep, (T_MEP_HDR *)_p_mep, timeout || !n_rmeps, &p_mep_db[*proc_i_mep].lm, 1);
-    
+
+    if (NULL!=p_mep_dbi->hw_ccm_mep_db_update) {
+    }
+    else {
+        //RDI determination
+        if (time_2_send_ccms)
+            send_ccm(*proc_i_mep, (T_MEP_HDR *)_p_mep, timeout || !n_rmeps, &p_mep_db[*proc_i_mep].lm, 1);
+        
+    }
     //Process AIS...
     //if (!timeout) continue; //return;
 
