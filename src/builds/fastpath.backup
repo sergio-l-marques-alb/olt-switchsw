@@ -14,10 +14,10 @@ DST_PATH=$BUILDS_FOLDER
 
 n_args=$#
 
+version=$1
 svn_rev=`svnversion .. -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
-version=$1-r$svn_rev
 
-backup_file=$MODULE.backup-v$version.tar.bz2
+backup_file=$MODULE.backup-v${version}-r${svn_rev}.tar.bz2
 
 colorNotice="\033[1m\033[34m"
 colorWarn="\033[1m\033[33m"

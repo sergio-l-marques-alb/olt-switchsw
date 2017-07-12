@@ -17,12 +17,12 @@ MAIN_BIN=switchdrvr
 
 n_args=$#
 
+version=$1
 svn_rev=`svnversion .. -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
-version=$1-r$svn_rev
 
-image_tgz=$MODULE.image-v$version.tgz
-backup_7z=$MODULE.backup-v$version.7z
-relnotes_file=$MODULE.releasenotes-v$version.txt
+image_tgz=$MODULE.image-v$version-r$svn_rev.tgz
+#backup_7z=$MODULE.backup-v$version-r$svn_rev.7z
+relnotes_file=$MODULE.releasenotes-v$version-r$svn_rev.txt
 
 colorNotice="\033[1m\033[34m"
 colorWarn="\033[1m\033[33m"
@@ -49,7 +49,7 @@ fi
 mkdir $BUILDS_FOLDER
 
 echo -en $colorTitle
-echo "Building $MODULE version $version ..."
+echo "Building $MODULE version $version-r$svn_rev ..."
 echo -en $colorReset
 
 DATE=`date`
@@ -68,12 +68,12 @@ if [ ! -e $APPS_PATH/image ]; then
   exit 1;
 fi
 
-echo echo Modular OLT $MODULE $version > ./$APPLICATION.ver
+echo echo Modular OLT $MODULE $version-r$svn_rev > ./$APPLICATION.ver
 echo echo $DATE >> ./$APPLICATION.ver
 chmod 777 ./$APPLICATION.ver
 
 if [ -e ./$APPLICATION.releasenotes ]; then
-  echo "=== FASTPATH $version RELEASE NOTES ===================================" > ./$APPLICATION.releasenotes.txt
+  echo "=== FASTPATH $version-r$svn_rev RELEASE NOTES ===================================" > ./$APPLICATION.releasenotes.txt
   cat ./$APPLICATION.releasenotes >> ./$APPLICATION.releasenotes.txt
   echo "============================================================================" >> ./$APPLICATION.releasenotes.txt
   echo "Generation date: $DATE" >> ./$APPLICATION.releasenotes.txt
