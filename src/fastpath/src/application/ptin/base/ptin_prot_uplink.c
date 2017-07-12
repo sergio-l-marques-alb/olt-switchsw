@@ -2204,7 +2204,7 @@ L7_RC_t uplinkprotResetStateMachine(L7_uint16 protIdx)
   operator_switchToPortType[protIdx] = PORT_WORKING;
 
   /* Block both LAGs */
-  ptin_prot_select_intf(protIdx, PORT_NONE);
+  ptin_prot_select_intf(protIdx, PORT_ALL);
   uplinkprotInitStateMachine(protIdx);
 
   osapiSemaGive(ptin_prot_uplink_sem);
@@ -2350,7 +2350,7 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
   operator_switchToPortType[protIdx] = PORT_WORKING;
 
   /* Set first port as ACTIVE */
-  ptin_prot_select_intf(protIdx, PORT_NONE);
+  ptin_prot_select_intf(protIdx, PORT_ALL);
   uplinkprotInitStateMachine(protIdx);
 
   osapiSemaGive(ptin_prot_uplink_sem);
