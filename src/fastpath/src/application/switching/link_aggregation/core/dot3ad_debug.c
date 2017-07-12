@@ -233,6 +233,8 @@ void dot3adDebugLag(L7_uint32 lag_intf)
                 "hashMode: %u\n", a->hashMode);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "name: %s\n", a->name);
+  SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                "blockedState: %u\n", a->blockedState);
 
   return;
 }

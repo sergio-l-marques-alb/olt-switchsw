@@ -203,6 +203,7 @@ L7_RC_t dot3adUpdateSelected(dot3ad_port_t *p, dot3ad_pdu_t *pdu)
         ((p->partnerOperPortState & DOT3AD_STATE_AGGREGATION) == (pdu->actorState & DOT3AD_STATE_AGGREGATION))
        ))
   {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intf=%u going to UNSELECTED", p->actorPortNum);
     p->selected = UNSELECTED;
 
     PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
@@ -240,6 +241,7 @@ L7_RC_t dot3adUpdateDefaultSelected(dot3ad_port_t *p)
         ((p->partnerAdminPortState & DOT3AD_STATE_AGGREGATION) == (p->partnerOperPortState & DOT3AD_STATE_AGGREGATION))
        ))
   {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intf=%u going to UNSELECTED", p->actorPortNum);
     p->selected = UNSELECTED;
 
     PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adSelectionLogicUnselect");
@@ -438,6 +440,7 @@ L7_RC_t dot3adRxMachineInitializeAction(dot3ad_port_t *p)
 {
   L7_RC_t rc;
 
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "InitializeAction: intf=%u going to UNSELECTED", p->actorPortNum);
   p->selected = UNSELECTED;
   rc = dot3adRecordDefault(p);
   p->actorOperPortState &= ~DOT3AD_STATE_EXPIRED;
@@ -478,6 +481,8 @@ L7_RC_t dot3adRxMachinePortDisabledAction(dot3ad_port_t *p)
 {
   L7_RC_t rc ;
   L7_BOOL moved;
+
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "PortDisabledAction: intf=%u going to UNSELECTED", p->actorPortNum);
 
   p->partnerOperPortState &= ~DOT3AD_STATE_SYNCHRONIZATION;
 
@@ -520,6 +525,7 @@ L7_RC_t dot3adRxMachineLacpDisabledAction(dot3ad_port_t *p)
 {
   L7_RC_t rc;
 
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "LacpDisabledAction: intf=%u going to UNSELECTED", p->actorPortNum);
   p->selected = UNSELECTED;
   rc = dot3adRecordDefault(p);
   p->partnerOperPortState &= ~DOT3AD_STATE_AGGREGATION;
@@ -557,6 +563,7 @@ L7_RC_t dot3adRxMachineExpiredAction(dot3ad_port_t *p)
   L7_uint32 timeOut;
   dot3ad_agg_t *agg;
 
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "ExpiredAction: intf=%u", p->actorPortNum);
   
   p->partnerOperPortState &= ~DOT3AD_STATE_SYNCHRONIZATION;
   /*set the lacp time to short time out encoded as 1*/
@@ -625,6 +632,9 @@ L7_RC_t dot3adRxMachineDefaultedAction(dot3ad_port_t *p)
 {
   L7_RC_t rc;
   dot3ad_agg_t *a;
+
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "DefaultedAction: intf=%u", p->actorPortNum);
+
   rc = dot3adUpdateDefaultSelected(p);
   rc = dot3adRecordDefault(p);
   /*the sync bit is set to true as per the discussion in the 43.4.12*/
@@ -1333,6 +1343,8 @@ L7_RC_t dot3adMuxMachineDetachedAction(dot3ad_port_t *p)
 {
   L7_RC_t rc;
 
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "DetachedAction: intf=%u", p->actorPortNum);
+
   PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adDetachMuxFromAgg");
   rc = dot3adDetachMuxFromAgg(p);
   p->actorOperPortState &= ~DOT3AD_STATE_SYNCHRONIZATION;
@@ -1390,6 +1402,8 @@ L7_RC_t dot3adMuxMachineWaitingAction(dot3ad_port_t *p)
   L7_RC_t rc;
   L7_uint32 waitTime;
   dot3ad_agg_t *agg;
+
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Waiting Action: intf=%u", p->actorPortNum);
 
   agg= dot3adAggKeyFind(p->actorOperPortKey);
   if (agg == L7_NULLPTR)
@@ -1455,6 +1469,8 @@ L7_RC_t dot3adMuxMachineAttachedAction(dot3ad_port_t *p)
   L7_RC_t rc;
   dot3ad_agg_t *agg;
 
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "AttachedAction: intf=%u", p->actorPortNum);
+
   PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adAttachMuxToAgg");
   rc = dot3adAttachMuxToAgg(p);
   p->actorOperPortState |= DOT3AD_STATE_SYNCHRONIZATION;
@@ -1504,6 +1520,8 @@ L7_RC_t dot3adMuxMachineCollDistAction(dot3ad_port_t *p)
 {
   L7_RC_t rc;
 
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "CollDistAction: intf=%u", p->actorPortNum);
+
   p->actorOperPortState |= DOT3AD_STATE_DISTRIBUTING;
   rc = dot3adEnableCollDist(p);
   if (rc == L7_REQUEST_DENIED || rc == L7_FAILURE)
@@ -1524,6 +1542,36 @@ L7_RC_t dot3adMuxMachineCollDistAction(dot3ad_port_t *p)
   dot3adPortTrace(p, DOT3AD_TRACE_MUX_COLLDIST);
   /*set mux state to collDist*/
   p->muxState = COLL_DIST;
+
+  /* PTin added: Blocked state */
+#if 1
+  /* is the aggregator valid */
+  dot3ad_agg_t  *a;
+  a = dot3adAggIntfFind(p->actorOperPortKey);
+  if (a == L7_NULLPTR)
+  {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Leaving...");
+    return L7_FAILURE;
+  }
+
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "I am here: intf=%u", p->actorPortNum);
+  if (a->blockedState)
+  {
+    L7_uint32 nullBuf = 0;             /* buffer not needed in call to dot3adReceiveMachine */
+
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "COLL+DIST state: going back to STANDBY");
+
+    /* In stand-by */
+    p->selected = STANDBY;
+
+    /* Goto Wait state */
+    rc = dot3adLacpClassifier(lacpStandby, p, (void *)&nullBuf);
+    rc = dot3adLacpClassifier(lacpStandby, p, (void *)&nullBuf);
+    rc = dot3adLacpClassifier(lacpStandby, p, (void *)&nullBuf);
+
+    return rc;
+  }
+#endif
 
   /*call the tx function to tx a lacpdu with the latest parm values*/
 
@@ -2270,6 +2318,7 @@ L7_RC_t dot3adSelectionLogicSelect(dot3ad_port_t *p)
   }
   else
   {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intf=%u going to SELECTED", p->actorPortNum);
     /*select the aggregator*/
     p->selected = SELECTED;
     p->actorPortSelectedAggId = agg->aggId;
@@ -2357,8 +2406,9 @@ L7_RC_t dot3adSelectionLogicReady(dot3ad_port_t *p)
     port = dot3adAggSelectedGetFirst(agg->aggId);
     while (port != L7_NULLPTR)
     {
-      if (port->muxState == WAITING && p->selected == SELECTED)
+      if (port->muxState == WAITING && p->selected == SELECTED && (port->selected != STANDBY /* PTin added: Blocked state*/))
       {
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "lacpSelectedReady: p=%u port=%u", p->actorPortNum, port->actorPortNum);
         /*includes notification for this port as well!*/
         /*since this port is already in the selected list*/
         rc = LACIssueCmd(lacpSelectedReady,port->actorPortNum,L7_NULLPTR);
@@ -2429,6 +2479,7 @@ L7_RC_t dot3adSelectionLogicUnselect(dot3ad_port_t *p)
     agg->partnerSysPri = 0;
     agg->partnerOperAggKey = 0;
   }
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intf=%u going to UNSELECTED", p->actorPortNum);
   /*p->readyN = L7_FALSE;*/
   p->selected = UNSELECTED;
   /*send msg to LAC queue with lacpUnselected*/

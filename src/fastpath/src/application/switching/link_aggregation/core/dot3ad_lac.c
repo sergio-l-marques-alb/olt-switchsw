@@ -1139,9 +1139,11 @@ L7_RC_t aggCollDistDisable(L7_uint32 intf)
     return L7_SUCCESS;
   }
 
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "aggCollDistDisable => intf=%u selected=%u", intf, p->selected);
+
   /* PTin added: Blocked state */
   #if 1
-  if (p->selected == STANDBY)
+  if ((p->selected != UNSELECTED) && (p->partnerOperPortState & DOT3AD_STATE_COLLECTING))
   {
     return L7_SUCCESS;
   }
@@ -1709,6 +1711,7 @@ L7_RC_t aggAdminModeSet(L7_uint32 agg_intf, L7_uint32 status, L7_BOOL updateConf
 L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
 {
   dot3ad_agg_t *a;
+  L7_uint32 blockedState_old;
   L7_RC_t rc;
   L7_uint8 i;
 
@@ -1730,6 +1733,10 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
     return L7_SUCCESS;
   }
 
+  /* Update blocked status */
+  blockedState_old = a->blockedState;
+  a->blockedState = status;
+
   /* Only do something if number of active members is not null */
   if (a->activeNumMembers > 0)
   {
@@ -1744,9 +1751,11 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
       #endif
       if (rc == L7_REQUEST_DENIED || rc == L7_FAILURE || rc == L7_ERROR)
       {
+        a->blockedState = blockedState_old;
         return rc;
       }
-      PT_LOG_DEBUG(LOG_CTX_TRUNKS, "All trunk %u is going to STANDBY state", agg_intf);
+
+      PT_LOG_DEBUG(LOG_CTX_TRUNKS, "All trunk %u is going to STANDBY state (%u members)", agg_intf, a->activeNumMembers);
       /* Put all members in Stand-by (it's only applicable to dynamic LAGs and to members in SELECTED state) */
       for (i = 0; i < a->activeNumMembers; i++)
       {
@@ -1765,20 +1774,19 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
       #endif
       if (rc == L7_REQUEST_DENIED || rc == L7_FAILURE || rc == L7_ERROR)
       {
+        a->blockedState = blockedState_old;
         return rc;
       }
-      PT_LOG_DEBUG(LOG_CTX_TRUNKS, "All trunk %u is going to UNSELECTED state", agg_intf);
+
+      PT_LOG_DEBUG(LOG_CTX_TRUNKS, "All trunk %u is going to SELECTED state (%u members)", agg_intf, a->activeNumMembers);
       /* Restart LACP machine for all members */
       for (i = 0; i < a->activeNumMembers; i++)
       {
-        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to UNSELECTED state", a->aggActivePortList[i]);
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to SELECTED state", a->aggActivePortList[i]);
         aggPortActorSelectStateSet(a->aggActivePortList[i], SELECTED);
       }
     }
   }
-
-  /* Update blocked status */
-  a->blockedState = status;
 
   return L7_SUCCESS;
 }
@@ -3237,22 +3245,30 @@ L7_RC_t aggPortActorSelectStateSet(L7_uint32 intf, L7_uchar8 state)
     p->selected = UNSELECTED;
     /*put a msg in lac queue with lacpStandby */
     event = lacpUnselected;
+    rc = LACIssueCmd(event, p->actorPortNum, L7_NULLPTR);
   }
-  else if (state == SELECTED && p->selected == STANDBY)
+  else if (state == SELECTED && p->selected == STANDBY && p->muxState == WAITING)
   {
     PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to SELECTED state...", intf);
     /*put this port on Selected */
     p->selected = SELECTED;
     /*put a msg in lac queue with lacpStandby */
-    event = lacpSelected;
+    event = lacpSelectedReady;
+    rc = LACIssueCmd(event, p->actorPortNum, L7_NULLPTR);
   }
-  else if (state == STANDBY && p->selected == SELECTED)
+  else if (state == STANDBY && p->selected == SELECTED && p->muxState == COLL_DIST)
   {
+    L7_uint32 nullBuf = 0; /* buffer not needed in call to dot3adReceiveMachine */
+
     PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to STANDBY state...", intf);
     /*put this port on STANDBY*/
     p->selected = STANDBY;
     /*put a msg in lac queue with lacpStandby*/
-    event = lacpStandby;
+    /* Max of 3 transitions: DIST+COLL -> ATTACH -> DETACH -> WAIT */
+    /* Goto Wait state */
+    rc = dot3adLacpClassifier(lacpStandby, p, (void *)&nullBuf);
+    rc = dot3adLacpClassifier(lacpStandby, p, (void *)&nullBuf);
+    rc = dot3adLacpClassifier(lacpStandby, p, (void *)&nullBuf);
   }
   else
   {
@@ -3260,7 +3276,6 @@ L7_RC_t aggPortActorSelectStateSet(L7_uint32 intf, L7_uchar8 state)
     return L7_FAILURE;
   }
 
-  rc = LACIssueCmd(event, p->actorPortNum, L7_NULLPTR);
   if (L7_ERROR == rc)
   {
     rc = L7_FAILURE;
