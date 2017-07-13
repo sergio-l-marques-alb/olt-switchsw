@@ -886,7 +886,7 @@ L7_RC_t dot3adAggPortActorAdminStateGet(L7_uint32 intf, L7_uchar8 *state);
  * 
  * @return L7_RC_t 
  */
-L7_RC_t dot3adAggPortActorSelectStateSet(L7_uint32 intf, L7_uchar8 state);
+L7_RC_t dot3adAggPortActorStandby(L7_uint32 intf, L7_uchar8 state);
 #endif
 
 /*********************************************************************
@@ -1546,7 +1546,7 @@ L7_RC_t dot3adAdminModeSet(L7_uint32 intIfNum, L7_uint32 status, L7_BOOL updateC
  *
  * @end
  *********************************************************************/
-L7_RC_t dot3adBlockedStateSet(L7_uint32 intIfNum, L7_uint32 status);
+L7_RC_t dot3adBlockedStateSet(L7_uint32 intIfNum, L7_int status);
 
 /*********************************************************************
  * @purpose  Check if a LAG port is Blocked or Unblocked.
@@ -1899,4 +1899,28 @@ L7_RC_t dot3adLagCountGet(L7_uint32 *currNumLags);
 *********************************************************************/
 L7_RC_t dot3adLagActiveDataRateGet(L7_uint32 intIfNum, L7_uint32 *pLagDataRate);
 
+/* PTin added */
+#if 1
+/**
+ * Check if a port is an active member of a LAG
+ * 
+ * @param agg_intf 
+ * @param intf 
+ * 
+ * @return L7_BOOL 
+ */
+L7_BOOL dot3adAggIsActivePort(L7_uint32 agg_intf, L7_uint32 intf);
+
+/**
+ * Check if a port is a member of a LAG
+ * 
+ * @author mruas (13/07/17)
+ * 
+ * @param agg_intf 
+ * @param intf 
+ * 
+ * @return L7_BOOL 
+ */
+L7_BOOL dot3adAggIsWaitSelectedPort(L7_uint32 agg_intf, L7_uint32 intf);
+#endif
 #endif /* _DOT3AD_API_H_*/
