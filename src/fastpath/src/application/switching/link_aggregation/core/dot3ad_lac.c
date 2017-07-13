@@ -1140,14 +1140,6 @@ L7_RC_t aggCollDistDisable(L7_uint32 intf)
   }
 
   PT_LOG_DEBUG(LOG_CTX_TRUNKS, "aggCollDistDisable => intf=%u selected=%u", intf, p->selected);
-
-  /* PTin added: Blocked state */
-  #if 1
-  if ((p->selected != UNSELECTED) /*&& (p->partnerOperPortState & DOT3AD_STATE_SYNCHRONIZATION) && (p->partnerOperPortState & DOT3AD_STATE_AGGREGATION)*/)
-  {
-    return L7_SUCCESS;
-  }
-  #endif
   
   /* inspect collection bits of the attached list members */
   for (i=0;i<a->currNumMembers;i++)
@@ -1189,19 +1181,21 @@ L7_RC_t aggCollDistDisable(L7_uint32 intf)
            (nimQueryData.data.state == L7_INTF_DETACHING) ||
            (nimQueryData.data.state == L7_INTF_ATTACHED))
   {
-    if (!a->blockedState)   /* PTin added: Blocked state */
+    /* only talk to the hardware when the hardware is valid */
+    rc = dtlDot3adPortDelete(a->aggId,1,tmpList, a->hashMode);
+    if (rc == L7_REQUEST_DENIED || 
+        rc == L7_FAILURE || 
+        rc == L7_ERROR)
     {
-      /* only talk to the hardware when the hardware is valid */
-      rc = dtlDot3adPortDelete(a->aggId,1,tmpList, a->hashMode);
-      if (rc == L7_REQUEST_DENIED || 
-          rc == L7_FAILURE || 
-          rc == L7_ERROR)
-      {
-        return rc;
-      }
+      return rc;
     }
   }
   
+  /* PTin added: Blocked state */
+  if ((!a->isStatic) && (p->portOnlyRemovableIfUnselected && p->selected != UNSELECTED))
+  {
+    return L7_SUCCESS;
+  }
 
   if (dot3adNsfFuncTable.dot3adCallCheckpointService)
   {
@@ -1321,16 +1315,13 @@ L7_RC_t aggCollDistEnable(L7_uint32 intf)
            (nimQueryData.data.state == L7_INTF_DETACHING) ||
            (nimQueryData.data.state == L7_INTF_ATTACHED))
   {
-    if (!a->blockedState)     /* PTin added: Blocked state */
+    /* only talk to the hardware when the hardware is valid */
+    rc = dtlDot3adPortAdd(a->aggId,1,tmpList, a->hashMode);
+    if (rc == L7_REQUEST_DENIED || 
+        rc == L7_FAILURE || 
+        rc == L7_ERROR)
     {
-      /* only talk to the hardware when the hardware is valid */
-      rc = dtlDot3adPortAdd(a->aggId,1,tmpList, a->hashMode);
-      if (rc == L7_REQUEST_DENIED || 
-          rc == L7_FAILURE || 
-          rc == L7_ERROR)
-      {
-        return rc;
-      }
+      return rc;
     }
   }
   
@@ -1708,33 +1699,50 @@ L7_RC_t aggAdminModeSet(L7_uint32 agg_intf, L7_uint32 status, L7_BOOL updateConf
 *       
 * @end
 *********************************************************************/
-L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
+L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_int status)
 {
   dot3ad_agg_t *a;
-  L7_uint32 blockedState_old;
+  dot3ad_port_t *p;
   L7_RC_t rc;
   L7_uint8 i;
-
+  
   a = dot3adAggIntfFind(agg_intf);
   if (a == L7_NULLPTR)
   {
+    PT_LOG_ERR(LOG_CTX_TRUNKS, "Error!");
     return L7_FAILURE;
   }
 
   /* Do nothing for disabled LAGs */
   if (a->adminMode == L7_DISABLE)
   {
+    PT_LOG_ERR(LOG_CTX_TRUNKS, "Error!");
     return L7_FAILURE;
   }
 
+  /* If status < 0, restore LAG to its original settings */
+
+  /* Apply to all member ports */
+  for (i = 0; i < a->currNumWaitSelectedMembers; i++)
+  {
+    p = dot3adPortIntfFind(a->aggWaitSelectedPortList[i]);
+    p->portOnlyRemovableIfUnselected = (status < 0) ? L7_FALSE : L7_TRUE;
+  }
+  a->membersOnlyRemovableIfUnselected = (status < 0) ? L7_FALSE : L7_TRUE;
+
+  if (status < 0)
+  {
+    status = L7_FALSE;
+  }
+  
   /* Do nothing if state don't change */
   if (a->blockedState == status)
   {
+    PT_LOG_WARN(LOG_CTX_TRUNKS, "Nothing to be done");
     return L7_SUCCESS;
   }
 
   /* Update blocked status */
-  blockedState_old = a->blockedState;
   a->blockedState = status;
 
   /* Only do something if number of active members is not null */
@@ -1742,17 +1750,15 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
   {
     if (status)
     {
-      PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Removing ports from trunk %u...", agg_intf);
-      /* If LAG goes to blocked, remove physically all active ports */
-      #if ( LAG_DIRECT_CONTROL_FEATURE )
-      rc = dtlDot3adInternalPortDelete(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
-      #else
-      rc = dtlDot3adPortDelete(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
-      #endif
-      if (rc == L7_REQUEST_DENIED || rc == L7_FAILURE || rc == L7_ERROR)
+      if (a->isStatic)
       {
-        a->blockedState = blockedState_old;
-        return rc;
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Removing ports from trunk %u...", agg_intf);
+        /* If LAG goes to blocked, remove physically all active ports */
+        #if ( LAG_DIRECT_CONTROL_FEATURE )
+        rc = dtlDot3adInternalPortDelete(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
+        #else
+        rc = dtlDot3adPortDelete(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
+        #endif
       }
 
       PT_LOG_DEBUG(LOG_CTX_TRUNKS, "All trunk %u is going to STANDBY state (%u members)", agg_intf, a->activeNumMembers);
@@ -1760,22 +1766,20 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
       for (i = 0; i < a->activeNumMembers; i++)
       {
         PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to STANDBY state", a->aggActivePortList[i]);
-        aggPortActorSelectStateSet(a->aggActivePortList[i], STANDBY);
+        aggPortActorStandby(a->aggActivePortList[i], L7_TRUE);
       }
     }
     else
     {
-      PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Adding ports to trunk %u...", agg_intf);
-      /* If LAG goes to UNblocked, add physically all active ports */
-      #if ( LAG_DIRECT_CONTROL_FEATURE )
-      rc = dtlDot3adInternalPortAdd(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
-      #else
-      rc = dtlDot3adPortAdd(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
-      #endif
-      if (rc == L7_REQUEST_DENIED || rc == L7_FAILURE || rc == L7_ERROR)
+      if (a->isStatic)
       {
-        a->blockedState = blockedState_old;
-        return rc;
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Adding ports to trunk %u...", agg_intf);
+        /* If LAG goes to UNblocked, add physically all active ports */
+        #if ( LAG_DIRECT_CONTROL_FEATURE )
+        rc = dtlDot3adInternalPortAdd(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
+        #else
+        rc = dtlDot3adPortAdd(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
+        #endif
       }
 
       PT_LOG_DEBUG(LOG_CTX_TRUNKS, "All trunk %u is going to SELECTED state (%u members)", agg_intf, a->activeNumMembers);
@@ -1783,7 +1787,7 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status)
       for (i = 0; i < a->activeNumMembers; i++)
       {
         PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to SELECTED state", a->aggActivePortList[i]);
-        aggPortActorSelectStateSet(a->aggActivePortList[i], SELECTED);
+        aggPortActorStandby(a->aggActivePortList[i], L7_FALSE);
       }
     }
   }
@@ -3194,7 +3198,7 @@ L7_RC_t aggPortActorAdminStateGet(L7_uint32 intf, L7_uchar8 *state)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t aggPortActorSelectStateSet(L7_uint32 intf, L7_uchar8 state)
+L7_RC_t aggPortActorStandby(L7_uint32 intf, L7_uchar8 state)
 {
   dot3ad_agg_t  *a;
   dot3ad_port_t *p;
@@ -3238,25 +3242,7 @@ L7_RC_t aggPortActorSelectStateSet(L7_uint32 intf, L7_uchar8 state)
     return L7_FAILURE;
   }
   
-  if (state == UNSELECTED)
-  {
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to UNSELECTED state...", intf);
-    /*put this port on Selected */
-    p->selected = UNSELECTED;
-    /*put a msg in lac queue with lacpStandby */
-    event = lacpUnselected;
-    rc = LACIssueCmd(event, p->actorPortNum, L7_NULLPTR);
-  }
-  else if (state == SELECTED && p->selected == STANDBY && p->muxState == WAITING)
-  {
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to SELECTED state...", intf);
-    /*put this port on Selected */
-    p->selected = SELECTED;
-    /*put a msg in lac queue with lacpStandby */
-    event = lacpSelectedReady;
-    rc = LACIssueCmd(event, p->actorPortNum, L7_NULLPTR);
-  }
-  else if (state == STANDBY && p->selected == SELECTED && p->muxState == COLL_DIST)
+  if (state == L7_TRUE && p->selected == SELECTED && p->muxState == COLL_DIST)
   {
     L7_uint32 nullBuf = 0; /* buffer not needed in call to dot3adReceiveMachine */
 
@@ -3270,9 +3256,18 @@ L7_RC_t aggPortActorSelectStateSet(L7_uint32 intf, L7_uchar8 state)
     rc = dot3adLacpClassifier(lacpStandby, p, (void *)&nullBuf);
     rc = dot3adLacpClassifier(lacpStandby, p, (void *)&nullBuf);
   }
+  else if (state == L7_FALSE && p->selected == STANDBY && p->muxState == WAITING)
+  {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to SELECTED state...", intf);
+    /*put this port on Selected */
+    p->selected = SELECTED;
+    /*put a msg in lac queue with lacpStandby */
+    event = lacpSelectedReady;
+    rc = LACIssueCmd(event, p->actorPortNum, L7_NULLPTR);
+  }
   else
   {
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is not going to any state. Failed!", intf);
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is not going to any state. Nothing done!", intf);
     return L7_FAILURE;
   }
 
@@ -3388,11 +3383,53 @@ L7_RC_t aggDebugLagBlockedStateSet(L7_uint32 agg_intf, L7_uint value)
 }
 
 /**
+ * Debug function: set blockedState value
+ * 
+ * @param agg_intf 
+ * @param value 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t aggDebugLagMembersOnlyRemovableIfUnselected(L7_uint32 agg_intf, L7_uint value)
+{
+  dot3ad_agg_t  *a;
+  dot3ad_port_t *p;
+  L7_uint i;
+
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "I'm here: intf=%u", agg_intf);
+
+  a = dot3adAggIntfFind(agg_intf);
+  if (a == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_TRUNKS, "Leaving...");
+    return L7_FAILURE;
+  }
+  if (a->inuse == L7_FALSE || a->adminMode == L7_DISABLE)
+  {
+    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Leaving... (in_use=%u adminMode=%u)", a->inuse, a->adminMode);
+    return L7_FAILURE;
+  }
+    
+  /* Apply to all member ports */
+  for (i = 0; i < a->currNumWaitSelectedMembers; i++)
+  {
+    p = dot3adPortIntfFind(a->aggWaitSelectedPortList[i]);
+    p->portOnlyRemovableIfUnselected = value;
+  }
+  a->membersOnlyRemovableIfUnselected = value;
+
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "Done! membersOnlyRemovableIfUnselected=%u", a->membersOnlyRemovableIfUnselected);
+
+  return L7_SUCCESS;
+}
+
+/**
  * Print usefull information
  */
 void agg_help(void)
 {
   printf("Available debugging functions for DOT3AD module\r\n");
+  printf(" aggDebugLagMembersOnlyRemovableIfUnselected <agg_intIfNum> <value>: Set the OnlyRemovableIfUnselected value\r\n");
   printf(" aggDebugLagBlockedStateSet <agg_intIfNum> <value> : Set a new value for the blockedState var\r\n");
   printf(" aggDebugPortActorSendEvent <intIfNum> <selected> <lacpEvent> : Send an event for the LACP machine\r\n");
   printf(" dot3adDebugLag <agg_intIfNum>   : print all data about this LAG\r\n");
@@ -4394,6 +4431,10 @@ L7_RC_t aggPortDelete(L7_uint32 intIfNum)
   {
     return L7_FAILURE;
   }
+
+  /* PTin added: BlockedState */
+  p->portOnlyRemovableIfUnselected = L7_FALSE;
+  
   /*reset receive machine*/
   PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Sending event lacpBeginFalsePortDisabledPortMovedFalse");
   rc = dot3adLacpClassifier(lacpBeginFalsePortDisabledPortMovedFalse,p,(void *)&nullBuf);
@@ -5273,6 +5314,7 @@ L7_RC_t dot3adPrivateLagCreate(L7_uint32 lagId, L7_char8 *name, L7_uint32 member
      */
     dot3adAgg[aggIndex].adminMode = adminMode;
     dot3adAgg[aggIndex].blockedState = L7_FALSE;  /* PTin added: Blocked state */
+    dot3adAgg[aggIndex].membersOnlyRemovableIfUnselected = L7_FALSE;  /* PTin added: Blocked state */
 
     /* Tell everybody that interface is created.
     */

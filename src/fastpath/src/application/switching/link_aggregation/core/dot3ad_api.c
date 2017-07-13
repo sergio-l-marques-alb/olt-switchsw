@@ -1062,9 +1062,9 @@ L7_RC_t dot3adAggPortActorAdminStateGet(L7_uint32 intf, L7_uchar8 *state)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t dot3adAggPortActorSelectStateSet(L7_uint32 intf, L7_uchar8 state)
+L7_RC_t dot3adAggPortActorStandby(L7_uint32 intf, L7_uchar8 state)
 {
-  return aggPortActorSelectStateSet(intf, state);
+  return aggPortActorStandby(intf, state);
 }
 #endif
 
@@ -2056,12 +2056,15 @@ L7_RC_t dot3adLagMemeberAdd(L7_uint32 intIfNum, L7_uint32 count,
     /*set the wait selected agg id to the chossen agg id*/
     p->actorPortWaitSelectedAggId = a->aggId;
 
+    /* PTin added: Blocked state */
+    /* Copy the LAG parameter to each member */
+    p->portOnlyRemovableIfUnselected = a->membersOnlyRemovableIfUnselected;
+
     /* Reset the recieved LACPDUs dropped statistic*/
     if(a->isStatic == L7_TRUE)
     {
       dot3ad_stats[pMemIntf[i]].RxLACPDUsDropped =0;
     }
-
 
     /* set the oper key and notify LACP */
     rc = dot3adAggPortActorOperKeySet(pMemIntf[i], intIfNum);
@@ -2284,7 +2287,7 @@ L7_RC_t dot3adAdminModeGet(L7_uint32 intIfNum, L7_uint32 *status)
  *
  * @end
  *********************************************************************/
-L7_RC_t dot3adBlockedStateSet(L7_uint32 intIfNum, L7_uint32 status)
+L7_RC_t dot3adBlockedStateSet(L7_uint32 intIfNum, L7_int status)
 {
   //return LACIssueCmd(AGG_BLOCKED_STATE, intIfNum, &status);
   return aggBlockedStateSet(intIfNum, status);    /* This way is much more faster */

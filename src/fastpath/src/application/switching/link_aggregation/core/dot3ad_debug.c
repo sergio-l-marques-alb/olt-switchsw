@@ -235,6 +235,8 @@ void dot3adDebugLag(L7_uint32 lag_intf)
                 "name: %s\n", a->name);
   SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
                 "blockedState: %u\n", a->blockedState);
+  SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                "membersOnlyRemovableIfUnselected: %u\n", a->membersOnlyRemovableIfUnselected);
 
   return;
 }
@@ -352,7 +354,8 @@ void dot3adDebugLagMember(L7_uint32 intIfNum)
                 "Actor port linkSpeed: %u \n",
                 dot3adOperPort[intIfNum].linkSpeed);
 
-
+  SYSAPI_PRINTF(SYSAPI_APPLICATION_LOGGING_ALWAYS,
+                "portOnlyRemovableIfUnselected: %u \n", pPort->portOnlyRemovableIfUnselected);
 }
 
 

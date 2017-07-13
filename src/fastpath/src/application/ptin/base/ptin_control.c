@@ -2290,6 +2290,7 @@ static L7_RC_t ptinIntfUpdate(ptinIntfEventMsg_t *eventMsg)
 {
   L7_RC_t rc = L7_SUCCESS;
   L7_INTF_TYPES_t intf_type;
+  L7_uint32 lag_intIfNum;
 
   if (eventMsg == L7_NULLPTR)
   {
@@ -2312,41 +2313,25 @@ static L7_RC_t ptinIntfUpdate(ptinIntfEventMsg_t *eventMsg)
     PT_LOG_INFO(LOG_CTX_CONTROL, "Link down detected at interface intIfNum %u", eventMsg->intIfNum);
     rc = uplinkProtEventProcess(eventMsg->intIfNum, eventMsg->event);
   }
-  else if ( eventMsg->event == L7_LAG_ACTIVE_MEMBER_ADDED )
+  else if ( eventMsg->event == L7_LAG_ACTIVE_MEMBER_ADDED || eventMsg->event == L7_LAG_ACTIVE_MEMBER_REMOVED )
   {
-    L7_uint32 lag_intIfNum;
+    PT_LOG_INFO(LOG_CTX_INTF, "LAG active members addition/remotion (%u) detected at interface intIfNum %u", eventMsg->event, eventMsg->intIfNum);
 
-    PT_LOG_INFO(LOG_CTX_INTF, "LAG active members addition detected at interface intIfNum %u", eventMsg->intIfNum);
-    if (intf_type == L7_PHYSICAL_INTF)
+    if (intf_type == L7_LAG_INTF)
     {
-      if (usmDbDot3adIntfIsMemberGet(0, eventMsg->intIfNum, &lag_intIfNum) == L7_SUCCESS)
-      {
-        PT_LOG_INFO(LOG_CTX_CONTROL, "LAG intIfNum is %u / LAG idx is %u", lag_intIfNum);
-        rc = uplinkProtEventProcess(lag_intIfNum, eventMsg->event);
-      }
-      else
+      lag_intIfNum = eventMsg->intIfNum;
+    }
+    else if (intf_type == L7_PHYSICAL_INTF)
+    {
+      if (usmDbDot3adIntfIsMemberGet(0, eventMsg->intIfNum, &lag_intIfNum) != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_INTF, "Error obtainging LAG information");
+        return L7_FAILURE;
       }
     }
-  }
-  else if ( eventMsg->event == L7_LAG_ACTIVE_MEMBER_REMOVED )
-  {
-    L7_uint32 lag_intIfNum;
 
-    PT_LOG_INFO(LOG_CTX_CONTROL, "LAG active members remotion detected at interface intIfNum %u", eventMsg->intIfNum);
-    if (intf_type == L7_PHYSICAL_INTF)
-    {
-      if (usmDbDot3adIntfIsMemberGet(0, eventMsg->intIfNum, &lag_intIfNum) == L7_SUCCESS)
-      {
-        PT_LOG_INFO(LOG_CTX_CONTROL, "LAG intIfNum is %u / LAG idx is %u", lag_intIfNum);
-        rc = uplinkProtEventProcess(lag_intIfNum, eventMsg->event);
-      }
-      else
-      {
-        PT_LOG_ERR(LOG_CTX_CONTROL, "Error obtainging LAG information");
-      }
-    }
+    PT_LOG_INFO(LOG_CTX_CONTROL, "LAG intIfNum is %u", lag_intIfNum);
+    rc = uplinkProtEventProcess(lag_intIfNum, eventMsg->event);
   }
   else
   {

@@ -1182,7 +1182,7 @@ L7_RC_t aggPortActorAdminStateGet(L7_uint32 intf, L7_uchar8 *state);
  * 
  * @return L7_RC_t 
  */
-L7_RC_t aggPortActorSelectStateSet(L7_uint32 intf, L7_uchar8 state);
+L7_RC_t aggPortActorStandby(L7_uint32 intf, L7_uchar8 state);
 #endif
 
 /*********************************************************************
@@ -1734,7 +1734,7 @@ L7_RC_t aggAdminModeGet(L7_uint32 agg_intf, L7_uint32 *status);
 *       
 * @end
 *********************************************************************/
-L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_uint32 status);
+L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_int status);
 
 /*********************************************************************
 * @purpose  Gets the aggregator blocked state flag.

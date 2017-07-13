@@ -764,7 +764,7 @@ L7_RC_t dot3adAggActivePortAdd(L7_uint32 agg_intf, L7_uint32 intf)
       dot3adAgg[dot3adAggIdx[agg_intf]].aggActivePortList[idx] = intf;
       dot3adAgg[dot3adAggIdx[agg_intf]].activeNumMembers++;
 
-      nimNotifyIntfChange(intf, L7_LAG_ACTIVE_MEMBER_ADDED);
+      nimNotifyIntfChange(agg_intf, L7_LAG_ACTIVE_MEMBER_ADDED);
       PT_LOG_INFO(LOG_CTX_TRUNKS,"Added member %u to agg %u", intf, agg_intf);
       PT_LOG_INFO(LOG_CTX_EVENTS,"Added member %u to agg %u", intf, agg_intf);
 
@@ -816,7 +816,7 @@ L7_RC_t dot3adAggActivePortDelete(L7_uint32 agg_intf, L7_uint32 intf)
 
   dot3adAgg[dot3adAggIdx[agg_intf]].activeNumMembers--;
 
-  nimNotifyIntfChange(intf, L7_LAG_ACTIVE_MEMBER_REMOVED);
+  nimNotifyIntfChange(agg_intf, L7_LAG_ACTIVE_MEMBER_REMOVED);
   PT_LOG_INFO(LOG_CTX_TRUNKS,"Removed member %u from agg %u", intf, agg_intf);
   PT_LOG_INFO(LOG_CTX_EVENTS,"Removed member %u from agg %u", intf, agg_intf);
 
@@ -903,4 +903,59 @@ L7_RC_t dot3adActiveMemberListGet(L7_uint32 intIfNum, L7_uint32 *pListCount,
 
   return L7_SUCCESS;
 }
+
+/* PTin added */
+#if 1
+/**
+ * Check if a port is an active member of a LAG
+ * 
+ * @param agg_intf 
+ * @param intf 
+ * 
+ * @return L7_BOOL 
+ */
+L7_BOOL dot3adAggIsActivePort(L7_uint32 agg_intf, L7_uint32 intf)
+{
+  L7_uint32 i, port;
+
+  for (i = 0; i < L7_MAX_MEMBERS_PER_LAG; i++)
+  {
+    port = dot3adAgg[dot3adAggIdx[agg_intf]].aggActivePortList[i];
+
+    if (port == intf)     /* skip over the one to delete */
+    {
+      return L7_TRUE;
+    }
+  }
+
+  return L7_FALSE;
+}
+
+/**
+ * Check if a port is a member of a LAG
+ * 
+ * @author mruas (13/07/17)
+ * 
+ * @param agg_intf 
+ * @param intf 
+ * 
+ * @return L7_BOOL 
+ */
+L7_BOOL dot3adAggIsWaitSelectedPort(L7_uint32 agg_intf, L7_uint32 intf)
+{
+  L7_uint32 i, port;
+
+  for (i = 0; i < L7_MAX_MEMBERS_PER_LAG; i++)
+  {
+    port = dot3adAgg[dot3adAggIdx[agg_intf]].aggWaitSelectedPortList[i];
+
+    if (port == intf)
+    {
+      return L7_TRUE;
+    }
+  }
+
+  return L7_FALSE;
+}
+#endif
 

@@ -527,6 +527,8 @@ L7_RC_t dot3adPhysIntfDefaultBuild( L7_uint32 intIfNum, L7_uint32 ver, dot3ad_po
 
   intf->actorOperPortState = intf->actorAdminPortState;
 
+  intf->portOnlyRemovableIfUnselected = L7_FALSE;   /* PTin added: Blocked State */
+
   *idx = intIfNum;
 
   return L7_SUCCESS;

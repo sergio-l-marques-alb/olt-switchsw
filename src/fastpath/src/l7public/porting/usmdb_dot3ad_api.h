@@ -1291,7 +1291,7 @@ L7_RC_t usmDbDot3adAggPortActorAdminStateGet(L7_uint32 UnitIndex, L7_uint32 intI
  * 
  * @return L7_RC_t 
  */
-L7_RC_t usmDbDot3adAggPortActorSelectStateSet(L7_uint32 intf, L7_uchar8 state);
+L7_RC_t usmDbDot3adAggPortActorStandby(L7_uint32 intf, L7_uchar8 state);
 #endif
 
 /*********************************************************************

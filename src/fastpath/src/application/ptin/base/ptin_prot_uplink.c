@@ -198,7 +198,7 @@ L7_RC_t ptin_prot_uplink_init(void)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_prot_intf_block(L7_uint32 intIfNum, L7_BOOL block_state)
+L7_RC_t ptin_prot_intf_block(L7_uint32 intIfNum, L7_int block_state)
 {
   ptin_intf_t ptin_intf;
   L7_uint32   ptin_port;
@@ -261,6 +261,20 @@ L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
     return L7_FAILURE;
   }
 
+  /* When portType is all, both LAGs must be restored to its original state */
+  if (portType == PORT_ALL)
+  {
+    /* Undo any special schemes for protection */
+    ptin_prot_intf_block(uplinkprot[protIdx].protParams.intIfNumW, -1);
+    ptin_prot_intf_block(uplinkprot[protIdx].protParams.intIfNumP, -1);
+    /* Flush MAC table */
+    usmDbFdbFlushByPort(uplinkprot[protIdx].protParams.intIfNumW);
+    usmDbFdbFlushByPort(uplinkprot[protIdx].protParams.intIfNumP);
+
+    PT_LOG_INFO(LOG_CTX_INTF, "LAGs %u and %u restored!", uplinkprot[protIdx].protParams.intIfNumW, uplinkprot[protIdx].protParams.intIfNumP);
+    return L7_SUCCESS;
+  }
+  
   if (portType == PORT_WORKING)
   {
     block_intfW = L7_FALSE;

@@ -77,7 +77,8 @@ typedef struct dot3ad_port_s
   L7_uchar8         partnerOperPortState;
 
 
-  L7_BOOL           portEnabled;         
+  L7_BOOL           portEnabled;
+  L7_BOOL           portOnlyRemovableIfUnselected;  /* PTin added: Blocked state */
 
   L7_BOOL           begin;
   L7_BOOL           lacpEnabled;            /* to forward or drop LACPDUs */
@@ -147,7 +148,8 @@ typedef struct dot3ad_agg_s
   L7_BOOL             inuse;  /* aggregator has been assigned */
   L7_uint32           adminMode; /*L7_ENABLE enabled, L7_DISABLE disabled*/
   //L7_uint32           unused;  /*Was linktrapstate. Since that value was always with nim. removed to avoid confusion*/
-  L7_uint32           blockedState; /* PTin added: Blocked state */
+  L7_uint32           blockedState;                     /* PTin added: Blocked state */
+  L7_uint32           membersOnlyRemovableIfUnselected; /* PTin added: Blocked state */
   L7_uint32           stpMode;
   L7_BOOL             isStatic;  /* This LAG is static, i.e. no protocol partner
                                   * Using default values to aggregate
