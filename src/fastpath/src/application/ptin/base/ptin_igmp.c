@@ -18902,7 +18902,7 @@ RC_t ptin_igmp_multicast_channel_client_remove(L7_uint32 packageId, ptinIgmpGrou
 
   if ( IS_BITMAP_BIT_SET(channelAvlTreeEntry->groupClientBmpPerPort[groupClient->igmpClientDataKey.ptin_port], groupClient->groupClientId, UINT32_BITSIZE) == L7_FALSE )
   {
-    PT_LOG_WARN(LOG_CTX_IGMP, "This groupClient does not exist on this channel [ptin_port:%u groupClientId:%u serviceId:%u groupAddr:%s sourceAddr:%s]", groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId, 
+    PT_LOG_TRACE(LOG_CTX_IGMP, "This groupClient does not exist on this channel [ptin_port:%u groupClientId:%u serviceId:%u groupAddr:%s sourceAddr:%s]", groupClient->igmpClientDataKey.ptin_port, groupClient->groupClientId, 
                 channelAvlTreeEntry->channelDataKey.evc_mc, inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_group, groupAddrStr), inetAddrPrint(&channelAvlTreeEntry->channelDataKey.channel_source, sourceAddrStr));    
 #if 0//DO Not Signal this to the Caller
     return L7_NOT_EXIST;    
