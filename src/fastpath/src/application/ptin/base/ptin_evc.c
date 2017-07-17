@@ -4128,6 +4128,13 @@ L7_RC_t ptin_evc_destroy_all(void)
   return L7_SUCCESS;
 }
 
+
+/**
+ * Replicate bridges from one port to other port 
+ * 
+ * @author Rui Fernandes: rui-f-fernandes@telecom.pt 
+ * @return L7_RC_t L7_SUCCESS
+ */
 L7_RC_t ptin_evc_p2p_bridge_replicate(L7_uint32 evc_ext_id, L7_uint32 ptin_port, L7_uint32 ptin_port_ngpon2, ptin_HwEthMef10Intf_t *intf)
 {
   L7_uint32 evc_id;
@@ -8644,7 +8651,7 @@ static L7_RC_t ptin_evc_entry_allocate(L7_uint32 evc_ext_id, L7_uint *evc_id)
 /**
  * Allocates an EVC entry from the pool
  * 
- * @author alex (9/18/2013)
+ * @author Rui Fernandes: rui-f-fernandes@telecom.pt  
  * 
  * @param evc_ext_id EVC extended index (input)
  * @param evc_id     Allocated index (output)
@@ -8675,9 +8682,9 @@ L7_RC_t ptin_evc_offline_entry_remove(L7_uint32 evc_ext_id)
 
 
 /**
- * Allocates an EVC entry from the pool
+ * Removes an EVC entry from the offline pool
  * 
- * @author alex (9/18/2013)
+ * @author Rui Fernandes: rui-f-fernandes@telecom.pt  
  * 
  * @param evc_ext_id EVC extended index (input)
  * @param evc_id     Allocated index (output)

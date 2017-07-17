@@ -142,7 +142,7 @@ extern L7_RC_t ptin_evc_delete(L7_uint32 evc_ext_id);
 /**
  * Allocates an EVC entry from the pool
  * 
- * @author alex (9/18/2013)
+ * @author Rui Fernandes: rui-f-fernandes@telecom.pt  
  * 
  * @param evc_ext_id EVC extended index (input)
  * @param evc_id     Allocated index (output)
