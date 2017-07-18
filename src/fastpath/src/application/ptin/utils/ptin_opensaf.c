@@ -205,12 +205,12 @@ L7_RC_t ptin_opensaf_read_event(void *data, int len, int id, char *chName, char 
 void ptin_opensaf_task_OnuMac( void )
 {
   static ptin_opensaf_ngpon2_onustate event_data;
-  char data[100]      = "";
+  //char data[100]      = "";
   int  size           = 0;
-  char *chName,*p,*pubName;
+  char *chName,*pubName;// *p;
   L7_enetMacAddr_t mac;;
   L7_uint8 slot;
-  L7_RC_t rc = L7_FAILURE;
+  //L7_RC_t rc = L7_FAILURE;
   static ptin_onuStatus onuStatus;
   //ptin_OLTCTList ngpon2_members;
 
@@ -225,7 +225,7 @@ void ptin_opensaf_task_OnuMac( void )
     PTIN_CRASH();
   }
  
-  //ptin_opensaf_eventhandle_init(1, chName, pubName);
+  ptin_opensaf_eventhandle_init(1, chName, pubName);
 
   /* Loop */
   while (1)
@@ -260,10 +260,14 @@ void ptin_opensaf_task_OnuMac( void )
 
     /* Get ONU State */
     ptin_opensaf_read_checkpoint(&onuStatus,sizeof(onuStatus),section,0,ONU_STATE);
+
+#if 0
     ptin_opensaf_read_checkpoint(&data,sizeof(data),event_data.onuId,0,SWITCHDRVR_ONU);
 
     /*Retrieve MAC form a particular ONU*/
     p = data;
+#endif
+
 
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "section %d", ONU_STATE_INDEX(event_data.parentId , event_data.onuId, event_data.slotId, event_data.linkId));
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "section %d", section);
@@ -279,6 +283,7 @@ void ptin_opensaf_task_OnuMac( void )
 
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "size %u", size);
 
+#if 0
       int i = 0;   
       while(size > i) /* Flush the each MAC from the L2 table and DHCP binding table */
       {
@@ -301,9 +306,9 @@ void ptin_opensaf_task_OnuMac( void )
         p = p + MAC_SIZE_BYTES;
         /* get next MAC */
       }
-
       /* Delete ONT MAC section from the checkpoint */
       ptin_opensaf_checkpoint_deleteSection(SWITCHDRVR_ONU, event_data.onuId);
+#endif
     }
     
     if (onuStatus.state == ONU_STATE_ACTIVE)
@@ -311,6 +316,8 @@ void ptin_opensaf_task_OnuMac( void )
       L7_uint32 servicesId[PTIN_SYSTEM_MAX_SERVICES_PER_ONU];
       L7_uint32 nOfServices = (L7_uint32) 0;
       L7_uint32 i = 0;
+
+#if 0
       dhcpSnoopBinding_t  dsBindingIpv4,dsBindingIpv6;
 
       memset(&servicesId, (L7_uint32) -1, sizeof(servicesId));
@@ -331,14 +338,16 @@ void ptin_opensaf_task_OnuMac( void )
       PT_LOG_TRACE(LOG_CTX_OPENSAF, "Search Data : %c , %c ,%c ,%c , %c , %c, ",    dsBindingIpv4.key.macAddr[0], dsBindingIpv4.key.macAddr[1], dsBindingIpv4.key.macAddr[2],
                                                                                     dsBindingIpv4.key.macAddr[3], dsBindingIpv4.key.macAddr[4], dsBindingIpv4.key.macAddr[5]);
 
+#endif
       ptin_igmp_multicast_get_all_serviceId_per_onu(event_data.memberIndex, event_data.onuId, servicesId, &nOfServices);
 
+#if 0
       PT_LOG_TRACE(LOG_CTX_OPENSAF, " event_data.memberIndex = %u, event_data.onuId = %u", event_data.memberIndex, event_data.onuId);
       usmDbDsBindingGet(&dsBindingIpv4);
 
       //PT_LOG_TRACE(LOG_CTX_OPENSAF, " event_data.memberIndex = %u, event_data.onuId = %u", event_data.memberIndex, event_data.onuId);
       usmDbDsLeaseStatusUpdateIntf(&dsBindingIpv4.key, L7_AF_INET6, event_data.memberIndex);
-
+#endif
       while (i < PTIN_SYSTEM_MAX_SERVICES_PER_ONU)
       {
         if (servicesId[i] != (L7_uint32) -1)
