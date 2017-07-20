@@ -261,8 +261,8 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
     PT_LOG_DEBUG(LOG_CTX_INTF, "Going to configure intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
 
     /* Only apply it to TU40G and CXO160G boards */
-    if (board_type != PTIN_BOARD_TYPE_TU40G && board_type != PTIN_BOARD_TYPE_TU40GR &&
-        board_type != PTIN_BOARD_TYPE_CXO160G)
+    if (board_type != PTIN_BOARD_TYPE_TU40G && board_type != PTIN_BOARD_TYPE_TU40GR /*&&
+        board_type != PTIN_BOARD_TYPE_CXO160G*/)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Invalid board type %u for intIfNum_member %u", board_type, intIfNum_member);
       continue;
