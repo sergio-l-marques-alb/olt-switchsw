@@ -5763,6 +5763,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   L7_uint8 apply = 0, save = 0;
 
   memset(&savePtinEvcConf, 0x00, sizeof(savePtinEvcConf));
+  memset(&NGPON2_GROUP,    0x00, sizeof(NGPON2_GROUP));
 #endif
 
   for (i=0; i < msgEvcConf->evc.n_intf; i++)
@@ -6029,21 +6030,25 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
             NGPON2_EVC_ADD(evcReplicate[evc_id].ngpon2_bmp, ngponId[group]);    
         
             PT_LOG_TRACE(LOG_CTX_MSG, " Group ID %d ",ngponId[group]);
-            PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services    %d ",NGPON2_GROUP.number_services);
+            PT_LOG_TRACE(LOG_CTX_MSG, " evcReplicate[evc_id].action_outer    %d ",evcReplicate[evc_id].action_outer);
 
+            PT_LOG_TRACE(LOG_CTX_MSG, " evcReplicate[evc_id].action_inner    %d ",evcReplicate[evc_id].action_inner);
+            PT_LOG_TRACE(LOG_CTX_MSG, " evcReplicate[evc_id].vid_inner       %d ",evcReplicate[evc_id].vid_inner );
+            PT_LOG_TRACE(LOG_CTX_MSG, " evcReplicate[evc_id].vid             %d ",evcReplicate[evc_id].vid  );
+            PT_LOG_TRACE(LOG_CTX_MSG, " evcReplicate[evc_id].mef_type        %d ",evcReplicate[evc_id].mef_type);
+           
             L7_uint8 position = evc_id % (8*sizeof(position));
             L7_uint8 index    = evc_id / (8*sizeof(index));
 
             PT_LOG_TRACE(LOG_CTX_MSG, " positions %d ",position);
             PT_LOG_TRACE(LOG_CTX_MSG, " index %d "    ,index);
 
-            PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.evc_groups_pbmp[index] %d ",NGPON2_GROUP.evc_groups_pbmp[index]);
-
+            PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.evc_groups_pbmp[index] = %d ",NGPON2_GROUP.evc_groups_pbmp[index]);
             /* update bitmap and state variable for newly configured EVC's*/
-            if( !NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] << position)))
+            if( !NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] >> position)))
             { 
               NGPON2_EVC_ADD(NGPON2_GROUP.evc_groups_pbmp[index], position);          
-              PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.evc_groups_pbmp[index] %d ",NGPON2_GROUP.evc_groups_pbmp[index]);
+              PT_LOG_TRACE(LOG_CTX_MSG, " Updated bitmap to NGPON2_GROUP.evc_groups_pbmp[index] = %d ",NGPON2_GROUP.evc_groups_pbmp[index]);
 
               if ( NGPON2_GROUP.admin == 1 ) // Only saved configuration for "offline" groups
               {
@@ -6709,40 +6714,6 @@ L7_RC_t ptin_msg_EVCBridge_add(msg_HwEthEvcBridge_t *msgEvcBridge)
           PT_LOG_ERR(LOG_CTX_MSG, "Error adding EVC# %u bridge", ptinEvcBridge.index);
           //return L7_FAILURE;
         }
-
-         L7_uint32 evc_id;
-
-        /* Is EVC in use? */
-        if (ptin_evc_ext2int(ptinEvcBridge.index, &evc_id) == L7_SUCCESS)
-        {                   
-          ptin_NGPON2_groups_t NGPON2_GROUP;
-
-          get_NGPON2_group_info(&NGPON2_GROUP, msgEvcBridge->intf.intf_id);
-          /*teste*/
-          evcReplicate[evc_id].evcId         = ptinEvcBridge.index;
-          evcReplicate[evc_id].intf.format   = PTIN_INTF_FORMAT_TYPEID;
-          evcReplicate[evc_id].action_outer  = ptinEvcBridge.intf.action_outer;
-          evcReplicate[evc_id].action_inner  = ptinEvcBridge.intf.action_inner;
-          evcReplicate[evc_id].vid_inner     = ptinEvcBridge.inn_vlan;
-          evcReplicate[evc_id].vid           = ptinEvcBridge.intf.vid;
-          evcReplicate[evc_id].mef_type      = ptinEvcBridge.intf.mef_type;
-
-          NGPON2_EVC_ADD(evcReplicate[evc_id].ngpon2_bmp, ptinEvcBridge.intf.intf.value.ptin_intf.intf_id);    
-        
-          PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.number_services %d ",NGPON2_GROUP.number_services);
-
-          L7_uint8 position = evc_id % (8*sizeof(position));
-          L7_uint8 index    = evc_id / (8*sizeof(index));
-
-          PT_LOG_TRACE(LOG_CTX_MSG, " positions %d ",position);
-          PT_LOG_TRACE(LOG_CTX_MSG, " index %d ",index);
-
-          NGPON2_EVC_ADD(NGPON2_GROUP.evc_groups_pbmp[index], position);
-          PT_LOG_TRACE(LOG_CTX_MSG, " NGPON2_GROUP.evc_groups_pbmp[index] %d ",NGPON2_GROUP.evc_groups_pbmp[index]);
-
-          set_NGPON2_group_info(&NGPON2_GROUP, msgEvcBridge->intf.intf_id);         
-        }
-        
       j++;        
       }
       shift_index++;
@@ -19231,8 +19202,8 @@ void ptin_msg_evc_port_add_rem(L7_uint32 evcId, L7_uint8 portId, L7_uint8 oper)
  */
 L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst_port, L7_uint32 ngpon2_id)
 { 
-  L7_int32  index, iteration = 0, position=0;
-  L7_uint32 max_index = (PTIN_SYSTEM_N_EVCS/sizeof(L7_uint8)) - 1;
+  L7_int8  index, iteration = 0, position =  0;
+  L7_uint32 max_index = (PTIN_SYSTEM_N_EVCS/8*sizeof(L7_uint8)) - 1;
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 evc_type;
 
@@ -19246,25 +19217,24 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
   {
     if(NGPON2_GROUP.evc_groups_pbmp[index] == 0)
     {
-      PT_LOG_TRACE(LOG_CTX_MSG, "NGPON2_GROUP.evc_groups_pbmp[index] = %d , no NGPON services in the 256 positions", NGPON2_GROUP.evc_groups_pbmp[index]);
+      PT_LOG_TRACE(LOG_CTX_MSG, "NGPON2_GROUP.evc_groups_pbmp[index] = %d index = %d , no NGPON services in the 256 positions", NGPON2_GROUP.evc_groups_pbmp[index], index);
       continue;
     }
 
     for (position = 0 ;(position < 256) && (iteration < NGPON2_GROUP.number_services); position++) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
     {
       /* check the configure EVC from this NGPON2 group*/
-      if( NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] << position)))
+      if( NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] >> position)) )
       {
         L7_int32 evc_idx;
 
         /* Increment number of iteration (services replicated)*/
-
         iteration++;
 
-        evc_idx = position + (index * 8 *sizeof(L7_uint8));
+        evc_idx = position + (index * 8 * sizeof(L7_uint8));
           
         PT_LOG_TRACE(LOG_CTX_MSG, "Evc_idx = %d   ", evc_idx);
-        PT_LOG_TRACE(LOG_CTX_MSG, "iteration = %d and index %d", iteration, index);
+        PT_LOG_TRACE(LOG_CTX_MSG, "iteration = %d  index = %d position =", iteration, index, position);
         PT_LOG_TRACE(LOG_CTX_MSG, "evcReplicate[evc_idx].evcId = %d ", evcReplicate[evc_idx].evcId);
 
         evcReplicate[evc_idx].intf.value.ptin_intf.intf_id = ptin_port;
@@ -19599,9 +19569,9 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
     }
     for (position = 0 ;(position < 256) && (iteration < NGPON2_GROUP.number_services); position++ ) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
     {
-      if( NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] << position)) )
+      if( NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] >> position)) )
       {
-        L7_int32 evc_idx;
+        L7_int32 evc_idx ;
       
         /* Increment number of iteration (services replicate)*/
         iteration++;

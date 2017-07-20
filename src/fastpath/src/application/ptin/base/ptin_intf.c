@@ -8248,7 +8248,7 @@ L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_i
   PT_LOG_TRACE(LOG_CTX_MSG, "group_info->nports          %d", group_info->nports );
   PT_LOG_TRACE(LOG_CTX_MSG, "group_info->admin           %d", group_info->admin );
 
-  for(i=0; i<NGPON2_groups_info[index].number_services ; i++)
+  for(i=0; i< ((PTIN_SYSTEM_N_EVCS)/(8*sizeof(L7_uint8))); i++)
   {
     group_info->evc_groups_pbmp[i]    = NGPON2_groups_info[index].evc_groups_pbmp[i];
   }

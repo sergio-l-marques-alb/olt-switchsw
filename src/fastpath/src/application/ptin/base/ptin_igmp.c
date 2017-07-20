@@ -18434,10 +18434,12 @@ RC_t ptin_igmp_multicast_get_all_serviceId_per_onu(L7_uint32 ptinPort, L7_uint32
         serviceId_evcUc[ptinPort][onuId][i].send = 0;
         i++;
         PT_LOG_TRACE(LOG_CTX_IGMP, "Reset querier flag ");
-      } else if ( serviceId_evcUc[ptinPort][onuId][i].send == 0 )
+      }
+      else if ( serviceId_evcUc[ptinPort][onuId][i].send == 0 )
       {
         serviceId_evcUc[ptinPort][onuId][i].send = 1;
         PT_LOG_TRACE(LOG_CTX_IGMP, "Querier flag up ");
+
         if ( serviceId_evcUc[ptinPort][onuId][i].inUse == L7_FALSE )
         {
           serviceId_evcUc[ptinPort][onuId][i].inUse     = L7_TRUE;
