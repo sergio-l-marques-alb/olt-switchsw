@@ -19,6 +19,7 @@
 #include "ptin_include.h"
 #include "ptin_control.h"
 #include "ptin_intf.h"
+#include "ptin_prot_uplink.h"
 #include "ptin_evc.h"
 #include "ptin_xlate_api.h"
 #include "ptin_xconnect_api.h"
@@ -3353,7 +3354,14 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         rc = L7_FAILURE;
         continue;
       }
-
+      /* If this LAG is a static LAG and is part of a protection group, ALS should be disabled, and blocked if necessary */
+      if ((lagInfo->static_enable) && 
+          (ptin_prot_uplink_index_find(lag_intf, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS) &&
+          (dot3adBlockedStateGet(lag_intf, &value) == L7_SUCCESS))
+      {
+        ptin_prot_uplink_intf_block(intIfNum, value);
+      }
+      
       #if 0
       /* Restore admin state of this interface */
       if (ptin_intf_LACPAdminState_set(&lacpAdminState) != L7_SUCCESS)
@@ -3407,6 +3415,12 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
         PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u: could not remove member port# %u", lag_idx, port);
         rc = L7_FAILURE;
         continue;
+      }
+      /* If this LAG is a static LAG and is part of a protection group, ALS should be reenabled */
+      if ((lagInfo->static_enable) && 
+          (ptin_prot_uplink_index_find(lag_intf, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS))
+      {
+        ptin_prot_uplink_intf_block(intIfNum, -1 /* Enable ALS */);
       }
 
       /* Update PortGroup for the member removed (reset to default value) */
@@ -3631,6 +3645,13 @@ L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx)
     return L7_FAILURE;
   }
 
+  /* Check if LAG is part of a protection scheme */
+  if (ptin_prot_uplink_index_find(lag_intIfNum, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u is being used in a protection scheme! Cannot be removed", lag_idx);
+    return L7_FAILURE;
+  }
+  
   /* Check if LAG is being used in any EVC */
   if (ptin_evc_is_intf_in_use(lag_port))
   {

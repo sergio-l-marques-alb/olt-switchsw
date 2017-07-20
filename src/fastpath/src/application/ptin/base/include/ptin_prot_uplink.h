@@ -173,6 +173,29 @@ extern uplinkprot_st uplinkprot[MAX_UPLINK_PROT];
 extern L7_RC_t ptin_prot_uplink_init(void);
 
 /**
+ * Search for a protection group with the specified intIfNum
+ * 
+ * @author mruas (19/07/17)
+ * 
+ * @param intIfNum 
+ * @param protIdx
+ * @param portType 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_NOT_EXIST
+ */
+extern L7_RC_t ptin_prot_uplink_index_find(L7_uint32 intIfNum, L7_uint8 *protIdx, L7_uint8 *portType);
+
+/**
+ * Blocking mechanism implemented here
+ * 
+ * @param intIfNum 
+ * @param block_state 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int block_state);
+
+/**
  * Create a protection group
  * 
  * @param protIdx : Protection group

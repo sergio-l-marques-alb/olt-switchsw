@@ -340,6 +340,10 @@
 #define CCMSG_LAST_MSG_ID                                  0x91FF
 
 
+/* Messages sent to other entities */
+#define CHMSG_TUxG_ETH_LASER  0x9418    /* msg_HwLaserConfig_t */
+
+
 /*Multicast Package Defines*/
 #ifndef PTIN_IGMP_PACKAGE_MASK_UNIT
 #define PTIN_IGMP_PACKAGE_MASK_UNIT   (sizeof(L7_uint32) * 8)
@@ -3155,10 +3159,22 @@ typedef struct {
      } __attribute__((packed)) ntw;
 } __attribute__((packed)) T_MSG_PTP_FPGA;
 
-
-
-
 typedef msg_bd_mep_t    T_MSG_OAM_FPGA;
+
+/* CHMSG_TUxG_ETH_LASER */
+typedef struct
+{
+  unsigned char        slotIndex;       // Indice do slot
+  unsigned char        BoardType;       // Tipo de Carta
+  unsigned char        InterfaceIndex;  // Indice do interface
+
+  unsigned char        mask;            
+  unsigned char        laserON_OFF;     // mask=0x01: LaserON / LaserOFF
+  unsigned char        stmALSConf;      // mask=0x02: Als ON /OFF
+  unsigned short       stmDelayTime;    // mask=0x04: Intervalo de tempo para polling ALS
+
+} __attribute__ ((packed)) msg_HwLaserConfig_t;
+
 
 /***************************************************************************** 
  * Functions prototypes
