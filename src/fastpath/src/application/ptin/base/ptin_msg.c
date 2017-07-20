@@ -19207,7 +19207,6 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 evc_type;
 
-  PT_LOG_ERR(LOG_CTX_MSG, "NGPON_Id = %d ", ngpon2_id);
   /* Get NGPON2 group information*/
   get_NGPON2_group_info(&NGPON2_GROUP, ngpon2_id);
 
@@ -19221,7 +19220,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
       continue;
     }
 
-    for (position = 0 ;(position < 256) && (iteration < NGPON2_GROUP.number_services); position++) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
+    for (position = 0 ;(position < 255) && (iteration < NGPON2_GROUP.number_services); position++) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
     {
       /* check the configure EVC from this NGPON2 group*/
       if( NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] >> position)) )
