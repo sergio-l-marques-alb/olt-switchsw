@@ -184,10 +184,11 @@ static ptin_evc_macbridge_client_packages_t MacbridgePackage_info[PTIN_SYSTEM_N_
 /* Multicast service info */
 static ptin_mcast_service_info mcast_service_info[PTIN_SYSTEM_N_EVCS];
 
+#if 0
 /* BW meter and profiles for client services replication in NGPON2 groups*/
 ptin_bw_profile_t bwProfile[PTIN_SYSTEM_N_EVCS];
 ptin_bw_meter_t   bwMeter[PTIN_SYSTEM_N_EVCS];
-
+#endif
 #endif
 
 static ptin_HwEthMef10Intf_t evcReplicate[PTIN_SYSTEM_N_EVCS]; 
@@ -7447,17 +7448,6 @@ L7_RC_t ptin_msg_bwProfile_set(msg_HwEthBwProfile_t *msgBwProfile, unsigned int 
         return rc;
 #endif
       }
-#ifdef NGPON2_SUPPORTED
-#if !PTIN_BOARD_IS_MATRIX
-      L7_uint32 evc_id;
-      /* Is EVC in use? */
-      if (ptin_evc_ext2int(evcId, &evc_id) == L7_SUCCESS)
-      {
-        bwProfile[evc_id] = profile;
-        bwMeter[evc_id]   = meter;
-      }
-#endif
-#endif
       break;
   case CCMSG_ETH_BW_PROFILE_SET_II:
       {
@@ -19716,8 +19706,8 @@ L7_RC_t ptin_msg_NGPON2_clear()
 /* Multicast service info */
   memset(&mcast_service_info, 0x00, sizeof(mcast_service_info));
 
-  memset(&bwProfile, 0x00, sizeof(bwProfile));
-  memset(&bwMeter,   0x00, sizeof(bwMeter));
+  //memset(&bwProfile, 0x00, sizeof(bwProfile));
+  //memset(&bwMeter,   0x00, sizeof(bwMeter));
 
 #endif
 #endif
