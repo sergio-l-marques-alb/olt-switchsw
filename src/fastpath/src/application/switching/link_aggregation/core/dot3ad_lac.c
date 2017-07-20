@@ -1703,7 +1703,7 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_int status)
 {
   dot3ad_agg_t *a;
   dot3ad_port_t *p;
-  L7_RC_t rc;
+  //L7_RC_t rc;
   L7_uint8 i;
   
   a = dot3adAggIntfFind(agg_intf);
@@ -1722,13 +1722,16 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_int status)
 
   /* If status < 0, restore LAG to its original settings */
 
-  /* Apply to all member ports */
-  for (i = 0; i < a->currNumWaitSelectedMembers; i++)
+  if (!a->isStatic)
   {
-    p = dot3adPortIntfFind(a->aggWaitSelectedPortList[i]);
-    p->portOnlyRemovableIfUnselected = (status < 0) ? L7_FALSE : L7_TRUE;
+    /* Apply to all member ports */
+    for (i = 0; i < a->currNumWaitSelectedMembers; i++)
+    {
+      p = dot3adPortIntfFind(a->aggWaitSelectedPortList[i]);
+      p->portOnlyRemovableIfUnselected = (status < 0) ? L7_FALSE : L7_TRUE;
+    }
+    a->membersOnlyRemovableIfUnselected = (status < 0) ? L7_FALSE : L7_TRUE;
   }
-  a->membersOnlyRemovableIfUnselected = (status < 0) ? L7_FALSE : L7_TRUE;
 
   if (status < 0)
   {
@@ -1752,6 +1755,7 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_int status)
     {
       if (a->isStatic)
       {
+      #if 0
         PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Removing ports from trunk %u...", agg_intf);
         /* If LAG goes to blocked, remove physically all active ports */
         #if ( LAG_DIRECT_CONTROL_FEATURE )
@@ -1759,20 +1763,24 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_int status)
         #else
         rc = dtlDot3adPortDelete(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
         #endif
+      #endif
       }
-
-      PT_LOG_DEBUG(LOG_CTX_TRUNKS, "All trunk %u is going to STANDBY state (%u members)", agg_intf, a->activeNumMembers);
-      /* Put all members in Stand-by (it's only applicable to dynamic LAGs and to members in SELECTED state) */
-      for (i = 0; i < a->activeNumMembers; i++)
+      else
       {
-        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to STANDBY state", a->aggActivePortList[i]);
-        aggPortActorStandby(a->aggActivePortList[i], L7_TRUE);
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "All trunk %u is going to STANDBY state (%u members)", agg_intf, a->activeNumMembers);
+        /* Put all members in Stand-by (it's only applicable to dynamic LAGs and to members in SELECTED state) */
+        for (i = 0; i < a->activeNumMembers; i++)
+        {
+          PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to STANDBY state", a->aggActivePortList[i]);
+          aggPortActorStandby(a->aggActivePortList[i], L7_TRUE);
+        }
       }
     }
     else
     {
       if (a->isStatic)
       {
+      #if 0
         PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Adding ports to trunk %u...", agg_intf);
         /* If LAG goes to UNblocked, add physically all active ports */
         #if ( LAG_DIRECT_CONTROL_FEATURE )
@@ -1780,14 +1788,17 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_int status)
         #else
         rc = dtlDot3adPortAdd(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
         #endif
+      #endif
       }
-
-      PT_LOG_DEBUG(LOG_CTX_TRUNKS, "All trunk %u is going to SELECTED state (%u members)", agg_intf, a->activeNumMembers);
-      /* Restart LACP machine for all members */
-      for (i = 0; i < a->activeNumMembers; i++)
+      else
       {
-        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to SELECTED state", a->aggActivePortList[i]);
-        aggPortActorStandby(a->aggActivePortList[i], L7_FALSE);
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS, "All trunk %u is going to SELECTED state (%u members)", agg_intf, a->activeNumMembers);
+        /* Restart LACP machine for all members */
+        for (i = 0; i < a->activeNumMembers; i++)
+        {
+          PT_LOG_DEBUG(LOG_CTX_TRUNKS, "intIfNum %u is going to SELECTED state", a->aggActivePortList[i]);
+          aggPortActorStandby(a->aggActivePortList[i], L7_FALSE);
+        }
       }
     }
   }

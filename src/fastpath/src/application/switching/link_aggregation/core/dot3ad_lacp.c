@@ -1555,7 +1555,7 @@ L7_RC_t dot3adMuxMachineCollDistAction(dot3ad_port_t *p)
   }
 
   PT_LOG_DEBUG(LOG_CTX_TRUNKS, "I am here: intf=%u", p->actorPortNum);
-  if (a->blockedState)
+  if (!a->isStatic && a->blockedState)
   {
     L7_uint32 nullBuf = 0;             /* buffer not needed in call to dot3adReceiveMachine */
 
