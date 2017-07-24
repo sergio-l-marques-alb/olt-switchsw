@@ -8324,6 +8324,33 @@ L7_RC_t ptin_intf_NGPON2_group_check(L7_uint8 intf_index, L7_uint8 *group_index)
 
   return L7_FAILURE;
 }
+
+/**
+ * PTIN_INTF NGPON2 groups dump
+ *  
+ * @brief dump all ngpon2 active groups and their related ports 
+ *  
+ */
+void ptin_intf_NGPON2_groups_dump(void)
+{
+#ifdef NGPON2_SUPPORTED
+  L7_uint16 i = 0;
+
+  printf("Active groups:\n");
+
+  while ( i < PTIN_SYSTEM_MAX_NGPON2_GROUPS)
+  {
+    if (NGPON2_groups_info[i].admin)
+    {
+      printf("GroupID: %u -- Ports Bitmap: %llu -- Number of ports: %u N of services --%d \n", NGPON2_groups_info[i].groupId, NGPON2_groups_info[i].ngpon2_groups_pbmp64, NGPON2_groups_info[i].nports, NGPON2_groups_info[i].number_services);
+    }
+    i++;
+  }
+#else
+  printf("Not supported on this board!\r\n");
+#endif
+}
+
 #endif /*NGPON2_SUPPORTED*/
 
 #if 0
@@ -8520,32 +8547,6 @@ void ptin_intf_stormcontrol_dump(void)
   }
 }
 
-
-/**
- * PTIN_INTF NGPON2 groups dump
- *  
- * @brief dump all ngpon2 active groups and their related ports 
- *  
- */
-void ptin_intf_NGPON2_groups_dump(void)
-{
-#ifdef NGPON2_SUPPORTED
-  L7_uint16 i = 0;
-
-  printf("Active groups:\n");
-
-  while ( i < PTIN_SYSTEM_MAX_NGPON2_GROUPS)
-  {
-    if (NGPON2_groups_info[i].admin)
-    {
-      printf("GroupID: %u -- Ports Bitmap: %llu -- Number of ports: %u N of services --%d \n", NGPON2_groups_info[i].groupId, NGPON2_groups_info[i].ngpon2_groups_pbmp64, NGPON2_groups_info[i].nports, NGPON2_groups_info[i].number_services);
-    }
-    i++;
-  }
-#else
-  printf("Not supported on this board!\r\n");
-#endif
-}
 
 /**
  * Get the maximum bandwidth associated to a interface (physical
