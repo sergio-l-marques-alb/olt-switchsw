@@ -6,7 +6,6 @@
 
 #define __Y1731_802_1ag_OAM_ETH__
 #define __MxP_FILTER__INSTEAD_OF__APS_AND_CCM__
-//#define USING_SDK_OAM_FP_CREATE
 
 #define PHY_RECOVERY_PROCEDURE  1
 /** Service association AVL Tree */

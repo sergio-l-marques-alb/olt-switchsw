@@ -342,9 +342,6 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL
  */
 L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL enable)
 {
-#ifdef USING_SDK_OAM_FP_CREATE
-  return L7_SUCCESS;
-#else
   DAPI_SYSTEM_CMD_t dapiCmd;
   L7_RC_t rc;
 
@@ -374,7 +371,6 @@ L7_RC_t ptin_ccm_packet_vlan_trap(L7_uint16 vlanId, L7_uint16 oam_level, L7_BOOL
   PT_LOG_TRACE(LOG_CTX_API,"Success applying rule to %u",enable);
 
   return L7_SUCCESS;
-#endif
 }
 #endif
 

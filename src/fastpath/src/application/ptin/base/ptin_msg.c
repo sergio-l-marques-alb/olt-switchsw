@@ -13919,9 +13919,8 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   {
   case 0:    r=S_OK;
     //if (changing_trap)  ptin_ccm_packet_trap(old_prt, old_vid, old_level, 0);
-    ptin_ccm_packet_trap(porta, pi[i].bd.vid, pi[i].bd.level, 1);
-#ifdef USING_SDK_OAM_FP_CREATE
-    {
+    if (NULL==oam.db[pi[i].index].hw_ccm_mep_db_update) ptin_ccm_packet_trap(porta, pi[i].bd.vid, pi[i].bd.level, 1);
+    else {
      L7_uint32 intIfNum;
      hapi_mep_t hm;
      L7_uint16 vidInternal;
@@ -13944,7 +13943,6 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
          }
      }
     }
-#endif
     PT_LOG_DEBUG(LOG_CTX_MSG, "i_MEP#%llu\tporta=%lu\tvid=%llu\tlevel=%lu", pi[i].index, porta, pi[i].bd.vid, pi[i].bd.level);
     break;
   case 2:    r=ERROR_CODE_FULLTABLE;    break;
@@ -14012,9 +14010,8 @@ L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   switch (del_mep(i_mep, &oam))
   {
   case 0:    r=S_OK;
-    ptin_ccm_packet_trap(prt, vid, level, 0);
-#ifdef USING_SDK_OAM_FP_CREATE
-    {
+    if (NULL==oam.db[pi[i].index].hw_ccm_mep_db_update) ptin_ccm_packet_trap(prt, vid, level, 0);
+    else {
      L7_uint32 intIfNum;
      hapi_mep_t hm;
 
@@ -14025,7 +14022,6 @@ L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
      else
      if (L7_SUCCESS!=dtlPtinMEPControl(intIfNum, &hm));
     }
-#endif
     {
      L7_uint16 slot, port;
 
