@@ -769,7 +769,7 @@ L7_RC_t ptin_oam_eth_init(void)
    unsigned long i, j;
    for (i=0; i<PTIN_SYS_SLOTS_MAX; i++)
        for (j=0; j<PTIN_SYS_INTFS_PER_SLOT_MAX; j++) send_also_uplinkprot_traps(2,i,j,0ULL-1);
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+#ifdef __BCM_HW_MEPs__
    for (i=0; i<N_MEPs; i++) oam.db[i].hw_ccm_mep_db_update = bcm_hw_ccm_mep_db_update;
 #endif
   }
@@ -1060,14 +1060,14 @@ if (L7_SUCCESS!=ptin_intf_port2intIfNum(oam_prt, &intIfNum)
 
 
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G)
+#ifdef __BCM_HW_MEPs__
 #include <dtl_ptin.h>
 unsigned long bcm_hw_ccm_mep_db_update(unsigned long i_mep, unsigned long i_rmep, T_MEP_DB *p_mep_db) {
 hapi_mep_t hapi_mep;
-L7_uint32 intIfNum=0;
+L7_uint32 intIfNum=1;//L7_ALL_INTERFACES;
 
     if (!valid_mep_index(i_mep))    return 1;
-    if (EMPTY_T_MEP(p_mep_db->mep)) return 2;
+    //if (EMPTY_T_MEP(p_mep_db->mep)) return 2; we're not really passing OAM DB, so this mustn't be checked
     
     hapi_mep.imep   = i_mep;
     hapi_mep.irmep  = i_rmep;
@@ -1076,7 +1076,7 @@ L7_uint32 intIfNum=0;
         hapi_mep.me = &p_mep_db->mep.ME[i_rmep];
     hapi_mep.lm     = &p_mep_db->lm;
 
-    //prt unnecessary here      if (L7_SUCCESS != ptin_intf_port2intIfNum(p_mep_db->mep.prt, &intIfNum)) return 3;
+    //if (L7_SUCCESS != ptin_intf_port2intIfNum(p_mep_db->mep.prt, &intIfNum)) return 3;//prt unused but intIfNum must be in range
     return L7_SUCCESS == dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_OAM_BCM, DAPI_CMD_GET, sizeof(hapi_mep_t), &hapi_mep)? 0: -1;
 }//bcm_hw_ccm_mep_db_update
 #endif

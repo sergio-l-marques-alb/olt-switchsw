@@ -644,6 +644,7 @@ static u32 j, meps_procssd_per_function_call=0;
     p_mep_dbi= &p_mep_db[*proc_i_mep];
     _p_mep= &p_mep_dbi->mep;             //Get the pointer to this MEP,...
     
+    //if (EMPTY_T_MEP(*_p_mep)) continue; //no need; next validation is enough
     if (!valid_oam_tmr(_p_mep->tmout)) continue; //return;
     tmout= OAM_TMR_CODE_TO_ms[_p_mep->tmout];// % N_OAM_TMR_VALUES];
 
@@ -652,34 +653,41 @@ static u32 j, meps_procssd_per_function_call=0;
     T_MEP_DB mep_db;
 
         for (i=0; i<N_MAX_MEs_PER_MEP; i++) {   //RMEPs
+            if (EMPTY_T_MEP(p_mep_dbi->mep.ME[i])) continue;
+            //printf("hw_ccm_mep_db_update()=%lu\ti_mep=%u\ti_rmep=%lu\tRDI=%u\tLOC_timer=%lu\n\r",
             p_mep_dbi->hw_ccm_mep_db_update(*proc_i_mep, i, &mep_db);
+                   //, *proc_i_mep, i, mep_db.mep.ME[i].RDI, mep_db.mep.ME[i].LOC_timer
+                   //);
 
             if (p_mep_dbi->mep.ME[i].RDI != mep_db.mep.ME[i].RDI) {
                 if ((p_mep_dbi->mep.ME[i].RDI = mep_db.mep.ME[i].RDI))
-                    ethsrv_oam_register_receiving_RDI((u8*)&mep_db.mep.meg_id, mep_db.mep.ME[i].mep_id, *proc_i_mep, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
+                    ethsrv_oam_register_receiving_RDI((u8*)&p_mep_dbi->mep.meg_id, p_mep_dbi->mep.mep_id, p_mep_dbi->mep.ME[i].mep_id, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
                 else
-                    ethsrv_oam_register_RDI_END((u8*)&mep_db.mep.meg_id, mep_db.mep.ME[i].mep_id, *proc_i_mep, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
+                    ethsrv_oam_register_RDI_END((u8*)&p_mep_dbi->mep.meg_id, p_mep_dbi->mep.mep_id, p_mep_dbi->mep.ME[i].mep_id, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
             }
 
             if (p_mep_dbi->mep.ME[i].LOC_timer != mep_db.mep.ME[i].LOC_timer) {
                 if (LOC(p_mep_dbi->mep.ME[i].LOC_timer = mep_db.mep.ME[i].LOC_timer, tmout))
-                    ethsrv_oam_register_connection_loss((u8*)&mep_db.mep.meg_id, mep_db.mep.ME[i].mep_id, *proc_i_mep, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
+                    ethsrv_oam_register_connection_loss((u8*)&p_mep_dbi->mep.meg_id, p_mep_dbi->mep.mep_id, p_mep_dbi->mep.ME[i].mep_id, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
                 else
-                    ethsrv_oam_register_connection_restored((u8*)&mep_db.mep.meg_id, mep_db.mep.ME[i].mep_id, *proc_i_mep, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
+                    ethsrv_oam_register_connection_restored((u8*)&p_mep_dbi->mep.meg_id, p_mep_dbi->mep.mep_id, p_mep_dbi->mep.ME[i].mep_id, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
             }
         }//for (i=0; i<N_MAX_MEs_PER_MEP; i++)
 
         //LMEP
+        //printf("hw_ccm_mep_db_update()=%lu\ti_mep=%u\ti_rmep=%u\tunxp_MEP_timer=%lu\tmismerge_timer=%lu\n\r",
         p_mep_dbi->hw_ccm_mep_db_update(*proc_i_mep, -1, &mep_db);
+               //, *proc_i_mep, -1, mep_db.mep.unxp_MEP_timer, mep_db.mep.mismerge_timer
+               //);
         if (0 == mep_db.mep.unxp_MEP_timer) {//if (p_mep_dbi->mep.unxp_MEP_timer != mep_db.mep.unxp_MEP_timer) {
             if (!UNXP_MEP(p_mep_dbi->mep.unxp_MEP_timer,tmout))
-                ethsrv_oam_register_unexpected_MEP_id(NULL, 0xffff, *proc_i_mep, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
+                ethsrv_oam_register_unexpected_MEP_id(&p_mep_dbi->mep.meg_id, -1, *proc_i_mep, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
             p_mep_dbi->mep.unxp_MEP_timer = 0;//mep_db.mep.unxp_MEP_timer;
         }
 
         if (0 == mep_db.mep.mismerge_timer) {//if (p_mep_dbi->mep.mismerge_timer != mep_db.mep.mismerge_timer) {
             if (!MISMERGE(p_mep_dbi->mep.mismerge_timer,tmout))
-                ethsrv_oam_register_mismerge(NULL, 0xffff, *proc_i_mep, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
+                ethsrv_oam_register_mismerge(NULL, -1, *proc_i_mep, p_mep_dbi->mep.prt, p_mep_dbi->mep.vid);
             p_mep_dbi->mep.mismerge_timer = 0;//mep_db.mep.mismerge_timer;
         }
     }//if (NULL!=p_mep_dbi->hw_ccm_mep_db_update)

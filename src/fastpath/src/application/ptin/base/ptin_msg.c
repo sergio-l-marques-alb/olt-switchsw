@@ -13926,7 +13926,10 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
      L7_uint16 vidInternal;
 
      hm.imep=   pi[i].index;
+     hm.irmep=  -1;
      hm.m=      &pi[i].bd;
+     hm.me=     NULL;
+     hm.lm=     NULL;
 
      if (L7_SUCCESS!=ptin_intf_port2intIfNum(porta, &intIfNum))
        PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess port2intfNum");
@@ -13934,9 +13937,10 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
      if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) 
        PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess ingress get");
      else {
-         pi[i].bd.vid=vidInternal;
+         hm.m->vid = vidInternal; //pi[i].bd.vid = vidInternal;
          PT_LOG_DEBUG(LOG_CTX_MSG, "Sucess ingress get");
-         if (L7_SUCCESS!=dtlPtinMEPControl(intIfNum, &hm))
+         //if (L7_SUCCESS!=dtlPtinMEPControl(intIfNum, &hm))
+         if (L7_SUCCESS!=dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_OAM_BCM, DAPI_CMD_SET, sizeof(hm), &hm))
            PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess MEP CONTROL");
          else {
            PT_LOG_DEBUG(LOG_CTX_MSG, "Sucess MEP CONTROL");
@@ -14010,17 +14014,21 @@ L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   switch (del_mep(i_mep, &oam))
   {
   case 0:    r=S_OK;
-    if (NULL==oam.db[pi[i].index].hw_ccm_mep_db_update) ptin_ccm_packet_trap(prt, vid, level, 0);
+    if (NULL==oam.db[i_mep].hw_ccm_mep_db_update) ptin_ccm_packet_trap(prt, vid, level, 0);
     else {
      L7_uint32 intIfNum;
      hapi_mep_t hm;
 
      hm.imep=   i_mep;
+     hm.irmep=  -1;
      hm.m=      (T_MEP_HDR*)&oam.db[i_mep].mep;
+     hm.me=     NULL;
+     hm.lm=     NULL;
 
      if (L7_SUCCESS!=ptin_intf_port2intIfNum(prt, &intIfNum));
      else
-     if (L7_SUCCESS!=dtlPtinMEPControl(intIfNum, &hm));
+     //if (L7_SUCCESS!=dtlPtinMEPControl(intIfNum, &hm));
+     if (L7_SUCCESS!=dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_OAM_BCM, DAPI_CMD_CLEAR, sizeof(hm), &hm));
     }
     {
      L7_uint16 slot, port;
@@ -14093,6 +14101,37 @@ L7_RC_t ptin_msg_wr_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
   {
   case 0:
     r=S_OK;
+    if (NULL!=p_oam->db[i_mep].hw_ccm_mep_db_update) {
+     L7_uint32 intIfNum;
+     hapi_mep_t hm;
+     T_MEP_HDR  mhdr;
+     L7_uint16 vidInternal;
+
+     hm.imep=   i_mep;
+     hm.irmep=  i_rmep;
+
+     memcpy(&mhdr, &p_oam->db[i_mep].mep, sizeof(T_MEP_HDR));
+     mhdr.mep_id = pi[i].bd.mep_id; //all RMEP parameters like LMEP's, but the MEP_ID...
+     hm.m=      &mhdr;
+     hm.me=     NULL;
+     hm.lm=     NULL;
+
+     if (L7_SUCCESS!=ptin_intf_port2intIfNum(pi[i].bd.prt, &intIfNum))
+       PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess port2intfNum");
+     else
+     if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) 
+       PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess ingress get");
+     else {
+         hm.m->vid = vidInternal; //pi[i].bd.vid=vidInternal;   //... and VID needs translation
+         PT_LOG_DEBUG(LOG_CTX_MSG, "Sucess ingress get");
+         if (L7_SUCCESS!=dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_OAM_BCM, DAPI_CMD_SET, sizeof(hm), &hm))
+           PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess MEP CONTROL");
+         else {
+           PT_LOG_DEBUG(LOG_CTX_MSG, "Sucess MEP CONTROL");
+         }
+     }
+    }
+    PT_LOG_DEBUG(LOG_CTX_MSG, "i_MEP#%lu\ti_RMEP#%lu\tporta=%lu\tvid=%llu\tlevel=%lu", i_mep, i_rmep, pi[i].bd.prt, pi[i].bd.vid, pi[i].bd.level);
     break;
   case 4:
     if (CCMSG_FLUSH_RMEP==inbuff->msgId)
@@ -14166,7 +14205,40 @@ L7_RC_t ptin_msg_del_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
   switch (del_rmep(i_mep, i_rmep, p_oam))
   {
-  case 0:    r=S_OK;             break;
+  case 0:
+      r=S_OK;
+      if (NULL!=oam.db[i_mep].hw_ccm_mep_db_update) {
+       L7_uint32 intIfNum;
+       hapi_mep_t hm;
+       T_MEP_HDR  mhdr;
+       L7_uint16 vidInternal;
+
+       hm.imep=   i_mep;
+       hm.irmep=  i_rmep;
+
+       memcpy(&mhdr, &p_oam->db[i_mep].mep, sizeof(T_MEP_HDR));
+       mhdr.mep_id = pi[i].bd.mep_id; //all RMEP parameters like LMEP's, but the MEP_ID
+       hm.m=      &mhdr;
+       hm.me=     NULL;
+       hm.lm=     NULL;
+
+       if (L7_SUCCESS!=ptin_intf_port2intIfNum(pi[i].bd.prt, &intIfNum))
+         PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess port2intfNum");
+       else
+       if (L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, pi[i].bd.vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)) 
+         PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess ingress get");
+       else {
+           pi[i].bd.vid=vidInternal;
+           PT_LOG_DEBUG(LOG_CTX_MSG, "Sucess ingress get");
+           if (L7_SUCCESS!=dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_OAM_BCM, DAPI_CMD_CLEAR, sizeof(hm), &hm))
+             PT_LOG_DEBUG(LOG_CTX_MSG, "Insucess MEP CONTROL");
+           else {
+             PT_LOG_DEBUG(LOG_CTX_MSG, "Sucess MEP CONTROL");
+           }
+       }
+      }
+      PT_LOG_DEBUG(LOG_CTX_MSG, "i_MEP#%lu\ti_RMEP#%lu\tporta=%lu\tvid=%llu\tlevel=%lu", i_mep, i_rmep, pi[i].bd.prt, pi[i].bd.vid, pi[i].bd.level);
+      break;
     //case 2:    r=HW_RESOURCE_UNAVAILABLE; break;
   default:   r=ERROR_CODE_INVALIDPARAM;
   }

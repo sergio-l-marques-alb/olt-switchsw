@@ -2473,19 +2473,9 @@ unsigned short r;
 
 
 
-L7_RC_t hapiBroadPtinMEPControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g) {
-    T_MEP_HDR         *p;
 
-    p= ((hapi_mep_t *) data)->m;
-
-    if (EMPTY_T_MEP(*p))    return hapiBroadPtinMEPDelete(usp, cmd, data, dapi_g);
-    else                    return hapiBroadPtinMEPCreate(usp, cmd, data, dapi_g);
-}//hapiBroadPtinMEPControl
-
-
-
-
-L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g) {
+static
+L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, void *data, DAPI_t *dapi_g) {
   DAPI_PORT_t       *dapiPortPtr;
   BROAD_PORT_t      *hapiPortPtr;
   T_MEP_HDR         *p;
@@ -2507,7 +2497,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
   p= ((hapi_mep_t *) data)->m;
   lm= ((hapi_mep_t *) data)->lm;
 
-  //PT_LOG_TRACE(LOG_CTX_API, ,);
+  //PT_LOG_TRACE(LOG_CTX_HAPI, ,);
 
   //if (IS_PORT_TYPE_PHYSICAL(dapiPortPtr_prev) == L7_TRUE)
   //else if (IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr_prev) == L7_TRUE)
@@ -2515,7 +2505,15 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 
 
   //Check if MAID's already in use...
+  //{
+  // char s[6*48];
+  //    s[0]=0;
+  //    for (i=0; i<sizeof(p->meg_id); i++) sprintf(s, "%s 0x%2.2x", s, p->meg_id.byte[i]);
+  //    PT_LOG_TRACE(LOG_CTX_HAPI, "MEG_ID: %s\n\r", s);
+  //}
+  //
   for (i=1, empty=-1, alrdy=0; i<=N_MEPs; i++) {    //nMEGsMAIDs<=MEPs
+      ginfo.flags=0; //ginfo.flags&=~BCM_OAM_GROUP_GET_FAULTS_ONLY;
       r=bcm_oam_group_get(0, i, &ginfo);
       if (BCM_E_NONE==r) {
           if (!memcmp(ginfo.name, &p->meg_id, sizeof(ginfo.name))) {
@@ -2539,7 +2537,7 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
       ginfo.flags= BCM_OAM_GROUP_WITH_ID; //| BCM_OAM_GROUP_REMOTE_DEFECT_TX;
       r=bcm_oam_group_create(0, &ginfo);
       if (BCM_E_NONE!=r) {
-          PT_LOG_ERR(LOG_CTX_API, "bcm_oam_group_create()=%d\n\r", r);
+          PT_LOG_ERR(LOG_CTX_HAPI, "bcm_oam_group_create()=%d\n\r", r);
           return L7_DEPENDENCY_NOT_MET;
       }
   }
@@ -2577,15 +2575,15 @@ L7_RC_t hapiBroadPtinMEPCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 
   mep.opcode_flags = BCM_OAM_OPCODE_CCM_IN_HW;  // |= BCM_OAM_OPCODE_OTHER_COPY_TO_CPU;
 
-  if (!invalid_T_MEP_LM(lm)) {
+  if (!(NULL==lm || invalid_T_MEP_LM(lm))) {
       mep.flags |= BCM_OAM_ENDPOINT_LOSS_MEASUREMENT;
       mep.lm_counter_base_id=((hapi_mep_t *) data)->imep;//mep.id;//0;             // Counter id assosiated to the mep
+
+      //memcpy(&lm->endpoint_id, &mep.id, sizeof(lm->endpoint_id)); 
   }
   if (p->up1_down0) mep.flags |= BCM_OAM_ENDPOINT_UP_FACING;
 
   //mep.lm_flags
- 
-  //memcpy(&lm->endpoint_id, &mep.id, sizeof(lm->endpoint_id)); 
 
   mep.id=   imep_irmep__2__bcm_ep_id(((hapi_mep_t *) data)->imep, ((hapi_mep_t *) data)->irmep);
             //  1+((hapi_mep_t *) data)->imep;
@@ -2710,7 +2708,8 @@ _hapiBroadPtinMEPCreate_nokend:
 
 
 
-L7_RC_t hapiBroadPtinMEPDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g) {
+static
+L7_RC_t hapiBroadPtinMEPDelete(DAPI_USP_t *usp, void *data, DAPI_t *dapi_g) {
 int r;
 unsigned long j, k;
 bcm_oam_group_t group_id=-1;
@@ -2744,17 +2743,8 @@ bcm_oam_endpoint_info_t mep;
 
 
 
-
-
-
-
-
-
-
-
-
-//L7_RC_t hapiBroadPtinMEPStatus(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g){
-L7_RC_t hapiBroadPtinMEPStatus(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g) {
+static
+L7_RC_t hapiBroadPtinMEPStatus(DAPI_USP_t *usp, void *data, DAPI_t *dapi_g) {
 int r;
 bcm_oam_endpoint_t ep_id;//=-1;
 bcm_oam_endpoint_info_t mep;
@@ -2766,6 +2756,7 @@ T_ME        *p_me;
     ep_id=  imep_irmep__2__bcm_ep_id(((hapi_mep_t *) data)->imep, ((hapi_mep_t *) data)->irmep);
     if (!valid__bcm_ep_id(ep_id)) return L7_ERROR;
     
+    mep.faults = mep.persistent_faults =0;
     mep.clear_persistent_faults =
         BCM_OAM_ENDPOINT_FAULT_CCM_TIMEOUT |
         BCM_OAM_ENDPOINT_FAULT_REMOTE ;//|
@@ -2776,7 +2767,8 @@ T_ME        *p_me;
 
     if (valid_rmep_index(((hapi_mep_t *) data)->irmep)) { //RMEP
         p_me = ((hapi_mep_t *)data)->me;
-
+        if (NULL==p_me) return L7_ERROR;
+        
         if ((mep.faults | mep.persistent_faults) & BCM_OAM_ENDPOINT_FAULT_CCM_TIMEOUT) {
             p_me->LOC_timer=-1;
             p_me->RDI=0;
@@ -2790,11 +2782,13 @@ T_ME        *p_me;
     else { //LMEP
         p = ((hapi_mep_t *)data)->m;
 
+        group_info.faults = group_info.persistent_faults =0;
         group_info.clear_persistent_faults =
             //BCM_OAM_GROUP_FAULT_REMOTE |
             //BCM_OAM_GROUP_FAULT_CCM_TIMEOUT |
             BCM_OAM_GROUP_FAULT_CCM_ERROR |
             BCM_OAM_GROUP_FAULT_CCM_XCON;
+        group_info.flags=BCM_OAM_GROUP_GET_FAULTS_ONLY; //ginfo.flags|=BCM_OAM_GROUP_GET_FAULTS_ONLY;
         r = bcm_oam_group_get(0, mep.group, &group_info);   //1..N
         if (BCM_E_NONE!=r) {PT_LOG_ERR(LOG_CTX_HAPI, "bcm_oam_group_get()=%d\n\r", r); return L7_NOT_EXIST;}
 
@@ -2827,15 +2821,34 @@ T_ME        *p_me;
 
 
 L7_RC_t broad_ptin_oam_bcm(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t operation, L7_uint32 dataSize, void *data, DAPI_t *dapi_g) {
+T_MEP_HDR   *p;
+
+    if (NULL==data) return L7_FAILURE;
+    p = ((hapi_mep_t *)data)->m;
+    if (NULL==p)    return L7_FAILURE;
+    
     switch (operation) {
-    case DAPI_CMD_SET:
-    case DAPI_CMD_CLEAR:return hapiBroadPtinMEPControl(usp, DAPI_CMD_PTIN_MEP_CTRL, data, dapi_g);
-    case DAPI_CMD_GET:  return hapiBroadPtinMEPStatus(usp, operation, dataSize, data, dapi_g);
+    case DAPI_CMD_SET:      if (!EMPTY_T_MEP(*p)) return hapiBroadPtinMEPCreate(usp, data, dapi_g);
+    case DAPI_CMD_CLEAR:    return hapiBroadPtinMEPDelete(usp, data, dapi_g);
+    case DAPI_CMD_GET:      return hapiBroadPtinMEPStatus(usp, data, dapi_g);
     default: break;
     }
 
     return L7_FAILURE;
 }//broad_ptin_oam_bcm
+
+
+
+
+L7_RC_t hapiBroadPtinMEPControl(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g) {
+    return L7_FAILURE;
+    //T_MEP_HDR         *p;
+    //
+    //p= ((hapi_mep_t *) data)->m;
+    //
+    //if (EMPTY_T_MEP(*p))    return hapiBroadPtinMEPDelete(usp, data, dapi_g);
+    //else                    return hapiBroadPtinMEPCreate(usp, data, dapi_g);
+}//hapiBroadPtinMEPControl
 
 
 
@@ -2898,7 +2911,7 @@ T_MEP_LM   lm;
     //u8  CoS, dummy_color;
 
 
-    hapiBroadPtinMEPControl(&usp, 0, &mep, dapi_g);
+    broad_ptin_oam_bcm(&usp, DAPI_CMD_SET, sizeof(mep), &mep, dapi_g);//hapiBroadPtinMEPControl(&usp, 0, &mep, dapi_g);
 
     {static int _1st_pass=1;
     
@@ -2949,7 +2962,7 @@ T_MEP_LM  lm;
     //u8  CoS, dummy_color;
 
 
-    hapiBroadPtinMEPControl(&usp, 0, &mep, dapi_g);
+    broad_ptin_oam_bcm(&usp, DAPI_CMD_CLEAR, sizeof(mep), &mep, dapi_g);//hapiBroadPtinMEPControl(&usp, 0, &mep, dapi_g);
 }
 
 /**
