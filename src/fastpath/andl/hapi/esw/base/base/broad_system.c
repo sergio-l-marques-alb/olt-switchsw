@@ -4405,9 +4405,7 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
   } vid_lvl[CCM_TRAP_MAX_VLANS];
   BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
 //L7_ushort16             ccm_ethtype  = L7_ETYPE_CCM;
-#if !(defined(__CCM_FILTER__MEANS__MEP_FILTER__))
   L7_uchar8 ccm_MacAddr[] = {0x01,0x80,0xC2,0x00,0x00,0x37};
-#endif
   L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
                                           FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
   L7_uint16               vlan_match = 0xfff;
@@ -4526,14 +4524,12 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
         break;
       }
       
-#if !(defined(__CCM_FILTER__MEANS__MEP_FILTER__))
       ccm_MacAddr[5]&=0xf0;
       ccm_MacAddr[5]|=oam_level;
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, ccm_MacAddr, exact_match);
       if (result != L7_SUCCESS)  {
         break;
       }
-#endif
 
       result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *)&vlan_match);
       if (result != L7_SUCCESS)  break;
@@ -4561,64 +4557,6 @@ L7_RC_t hapiBroadConfigCcmFilter(DAPI_USP_t *usp, L7_BOOL enable, L7_uint16 vlan
       if (result != L7_SUCCESS)  {
         break;
       }
-
-#if defined(__CCM_FILTER__MEANS__MEP_FILTER__) //|| defined(__LM_AND_DM_COMMON_FILTER__)
-      {//MC DMAC can't be used for frames like LMR, DMR...
-       BROAD_POLICY_RULE_t     ruleId2 = BROAD_POLICY_RULE_INVALID;
-       L7_ushort16             ethtype;
-#if !(defined(__CCM_FILTER__MEANS__MEP_FILTER__))
-       L7_uchar8               this_prts_SMacAddr[6];
-
-       {//SRC MAC ADDRESS
-         L7_uint32 intIfNum;
-         nimUSP_t  nim_usp;
-             nim_usp.unit= usp->unit;
-             nim_usp.slot= usp->slot;
-             nim_usp.port= usp->port+1;
-             if (L7_SUCCESS!= (result=nimGetIntIfNumFromUSP(&nim_usp, &intIfNum))
-                 ||
-                 L7_SUCCESS!= (result=nimGetIntfAddress(intIfNum, L7_SYSMAC_BIA, this_prts_SMacAddr))) {
-
-                 PT_LOG_ERR(LOG_CTX_HAPI, "couldn't get SMAC");
-                 break;
-             }//memcpy(mep.src_mac_address, &s, 6);
-       }//SRC MAC ADDRESS
-#endif
-
-#if defined(__CCM_FILTER__MEANS__MEP_FILTER__)
-       ruleId2 = ruleId;
-#else
-       hapiBroadPolicyRuleCopy(ruleId, &ruleId2);
-#endif
-
-       //Realized just now: opposite to APSfilter, CCMs aren't filtering ETHtype; to change that, just move RuleCopy below this qualifier and change it to "ruleId", instead of "ruleId2"
-       ethtype  = L7_ETYPE_CFM;
-       result = hapiBroadPolicyRuleQualifierAdd(ruleId2, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ethtype, exact_match);
-       if (result != L7_SUCCESS)  break;
-
-#if !(defined(__CCM_FILTER__MEANS__MEP_FILTER__))
-       result = hapiBroadPolicyRuleQualifierAdd(ruleId2, BROAD_FIELD_MACDA, this_prts_SMacAddr, exact_match);
-       //in this other rule, the MC DMAC match is overwritten by this one
-       if (result != L7_SUCCESS) break;
-#else
-       {//OAM ETH's MEL 3 bits (Check SDK's _bcm_tr3_oam_fp_create())
-        bcm_ip6_t mdl_data, mdl_mask;
-
-        memset(&mdl_data, 0, sizeof(bcm_ip6_t));
-        mdl_data[0] = oam_level << 5;
-        memset(&mdl_mask, 0, sizeof(bcm_ip6_t));
-        mdl_mask[0] = 0xE0;
-
-        result = hapiBroadPolicyRuleQualifierAdd(ruleId2, BROAD_FIELD_IP6_DST, mdl_data, mdl_mask);
-        if (result != L7_SUCCESS) break;
-       }
-      }//MC DMAC can't be used for frames like LMR, DMR...
-#endif
-#endif //#if defined(__CCM_FILTER__MEANS__MEP_FILTER__) //|| defined(__LM_AND_DM_COMMON_FILTER__)
-
-
-
-
     } while ( 0 );
 
     if (result == L7_SUCCESS)

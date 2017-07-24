@@ -12,7 +12,6 @@
 #define LAG_DIRECT_CONTROL_FEATURE  1
 
 #define __Y1731_802_1ag_OAM_ETH__
-//#define __CCM_FILTER__MEANS__MEP_FILTER__
 #define __MxP_FILTER__INSTEAD_OF__APS_AND_CCM__
 
 /* If SSM is not supported, comment this line */

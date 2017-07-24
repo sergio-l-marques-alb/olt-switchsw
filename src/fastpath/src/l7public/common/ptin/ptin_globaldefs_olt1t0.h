@@ -5,7 +5,6 @@
 #define SYNC_SSM_IS_SUPPORTED
 
 #define __Y1731_802_1ag_OAM_ETH__
-//#define __CCM_FILTER__MEANS__MEP_FILTER__
 #define __MxP_FILTER__INSTEAD_OF__APS_AND_CCM__
 //#define USING_SDK_OAM_FP_CREATE
 
