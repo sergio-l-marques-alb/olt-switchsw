@@ -10,7 +10,6 @@
 #define PHY_RECOVERY_PROCEDURE  1
 
 #define __Y1731_802_1ag_OAM_ETH__
-//#define __APS_AND_CCM_COMMON_FILTER__     //can't define this; most likely we aren't being allowed to add BROAD_FIELD_IP6_DST to group existent qualifiers
 #define USING_SDK_OAM_FP_CREATE
 
 #define IGMPASSOC_MULTI_MC_SUPPORTED
