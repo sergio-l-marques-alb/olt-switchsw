@@ -238,9 +238,11 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
   }
 
   /* If no PPPoE instance is configured for this internal vlan, ignore the packet */
-  if(L7_TRUE != ptin_pppoe_vlan_validate(vlanId))
-  {
-    /* For MX board, ignore DHCP packet */
+  /* Only consider L2 forwarding if packet is Unicast and not coming from a MacBridge Stacked service */
+  if (PTIN_VLAN_IS_QUATTRO(pduInfo->vlanId) && !(data[0] & 0x01) &&
+      L7_TRUE != ptin_pppoe_vlan_validate(vlanId))
+  {    
+      /* For MX board, ignore DHCP packet */
   #if (PTIN_BOARD_IS_MATRIX)
     if (ptin_debug_pppoe_snooping)
       PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
