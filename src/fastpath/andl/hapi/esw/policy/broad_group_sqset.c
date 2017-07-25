@@ -368,7 +368,9 @@ bcm_field_qualify_t systemQsetTriumph2[] =  /* System requirement */
   bcmFieldQualifyPacketRes,
   bcmFieldQualifyDstIp,
 #endif
+#if (!PTIN_BOARD_IS_LINECARD)
   bcmFieldQualifyDstIp6,        /* PTin added: FP */
+#endif
 
 #ifdef L7_IPV6_PACKAGE
   bcmFieldQualifyTunnelType,
