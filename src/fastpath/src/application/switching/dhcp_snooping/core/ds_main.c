@@ -762,55 +762,25 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       return SYSNET_PDU_RC_IGNORED;
     }
 
-    /* If either DHCP snooping or the L2 Relay is not enabled on
-       rx interface, ignore packet. */
-    if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
+    /* Only consider L2 forwarding if packet is Unicast and not coming from a MacBridge Stacked service */
+    if (PTIN_VLAN_IS_QUATTRO(pduInfo->vlanId) && !(data[0] & 0x01))
     {
-    #if 1
-      l2_forward = L7_TRUE;
-      //if (ptin_debug_dhcp_snooping)
-      //  PT_LOG_ERR(LOG_CTX_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum);
-      //return SYSNET_PDU_RC_IGNORED;
-    #else
-      #ifdef L7_DHCP_L2_RELAY_PACKAGE
-      if ( _dsVlanIntfL2RelayGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfL2RelayGet(pduInfo->intIfNum)*/ == L7_FALSE) /* PTin modified: DHCP snooping */
+      /* If either DHCP snooping or the L2 Relay is not enabled on
+         rx interface, ignore packet. */
+      if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
       {
-        if (ptin_debug_dhcp_snooping || (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS))
+        l2_forward = L7_TRUE;
+      }
+      else
+      {
+        /* VLAN is active for DHCP processing */
+        /* Check if IPV6 is enabled for this VLAN */
+        L7_uint32 evc_flags;
+        if (ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS ||
+            !(evc_flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL))
         {
-          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
-          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
-                      "(%s)Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.",
-                        __FUNCTION__);
-          dsTraceWrite(traceMsg);
-          PT_LOG_TRACE(LOG_CTX_DHCP,"Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.");
+          l2_forward = L7_TRUE;
         }
-        return SYSNET_PDU_RC_IGNORED;
-      }
-      #else
-      if (ptin_debug_dhcp_snooping)
-        PT_LOG_TRACE(LOG_CTX_DHCP,"Packet ignored");
-      return SYSNET_PDU_RC_IGNORED;
-      #endif
-    #endif
-    }
-    else
-    {
-      /* VLAN is active for DHCP processing */
-      /* Check if IPV6 is enabled for this VLAN */
-      L7_uint32 evc_flags;
-      if (ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS)
-      {
-        l2_forward = L7_TRUE;
-        //if (ptin_debug_dhcp_snooping)
-        //  PT_LOG_ERR(LOG_CTX_DHCP, "Error calling ptin_dhcp_flags_get");
-        //return SYSNET_PDU_RC_IGNORED;
-      }
-      else if (!(evc_flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL))
-      {
-        l2_forward = L7_TRUE;
-        //if (ptin_debug_dhcp_snooping)
-        //  PT_LOG_ERR(LOG_CTX_DHCP, "VLAN %u does not have DHCPv4 enabled!", pduInfo->vlanId);
-        //return SYSNET_PDU_RC_IGNORED;
       }
     }
 
@@ -1157,53 +1127,25 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       return SYSNET_PDU_RC_IGNORED;
     }
 
-    /* If either DHCP snooping or the L2 Relay is not enabled on
-       rx interface, ignore packet. */
-    if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
+    /* Only consider L2 forwarding if packet is Unicast and not coming from a MacBridge Stacked service */
+    if (PTIN_VLAN_IS_QUATTRO(pduInfo->vlanId) && !(data[0] & 0x01))
     {
-    #if 1
-      l2_forward = L7_TRUE;
-      //if (ptin_debug_dhcp_snooping)
-      //  PT_LOG_ERR(LOG_CTX_DHCP, "VLAN %u / intIfNum %u not valid", pduInfo->vlanId, pduInfo->intIfNum); 
-      //return SYSNET_PDU_RC_IGNORED;
-    #else
-      #ifdef L7_DHCP_L2_RELAY_PACKAGE
-      if ( _dsVlanIntfL2RelayGet(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfL2RelayGet(pduInfo->intIfNum)*/ == L7_FALSE) /* PTin modified: DHCP snooping */
+      /* If either DHCP snooping or the L2 Relay is not enabled on
+         rx interface, ignore packet. */
+      if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
       {
-        if (ptin_debug_dhcp_snooping || (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS))
+        l2_forward = L7_TRUE;
+      }
+      else
+      {
+        /* VLAN is active for DHCP processing */
+        /* Check if IPV6 is enabled for this VLAN */
+        L7_uint32 evc_flags;
+        if (ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS ||
+            !(evc_flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
         {
-          L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
-          osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
-                      "(%s)Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.",
-                        __FUNCTION__);
-          dsTraceWrite(traceMsg);
-          PT_LOG_TRACE(LOG_CTX_DHCP,"Packet rx'ed is ignored as neither INTF Snooping nor L2 Relay is enabled at DHCP intercept.");
+          l2_forward = L7_TRUE;
         }
-        return SYSNET_PDU_RC_IGNORED;
-      }
-      #else
-      return SYSNET_PDU_RC_IGNORED;
-      #endif
-    #endif
-    }
-    else
-    {
-      /* VLAN is active for DHCP processing */
-      /* Check if IPV6 is enabled for this VLAN */
-      L7_uint32 evc_flags;
-      if (ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS)
-      {
-        l2_forward = L7_TRUE;
-        //if (ptin_debug_dhcp_snooping)
-        //  PT_LOG_ERR(LOG_CTX_DHCP, "Error calling ptin_dhcp_flags_get");
-        //return SYSNET_PDU_RC_IGNORED;
-      }
-      else if (!(evc_flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
-      {
-        l2_forward = L7_TRUE;
-        //if (ptin_debug_dhcp_snooping)
-        //  PT_LOG_ERR(LOG_CTX_DHCP, "VLAN %u does not have DHCPv6 enabled!", pduInfo->vlanId);
-        //return SYSNET_PDU_RC_IGNORED;
       }
     }
 
