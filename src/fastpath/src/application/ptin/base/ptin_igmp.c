@@ -16610,7 +16610,7 @@ void ptin_igmp_querier_dump(L7_int evc_idx)
   for (evc_idx=0; evc_idx<PTIN_SYSTEM_N_EXTENDED_EVCS; evc_idx++)
   {
     /* Print this? */
-    if (evc_idx>0 && evc_idx!=evc_idx)
+    if (evc_idx>0)
       continue;
 
     /* EVC must be active */
@@ -19627,7 +19627,7 @@ static RC_t ptin_igmp_package_channel_conflict_validation(L7_uint32 packageId, p
   while ( L7_NULLPTR != (channelEntry = queue_channel_entry_get_next(packageId, channelEntry)) && 
           L7_NULLPTR != (channelAvlTreeEntryAux = channelEntry->channelAvlTreeEntry) )
   {
-    if ( channelAvlTreeEntryAux->channelDataKey.evc_mc ==  channelAvlTreeEntryAux->channelDataKey.evc_mc)
+    if ( channelAvlTreeEntryAux->channelDataKey.evc_mc == channelEntry->channelAvlTreeEntry->channelDataKey.evc_mc)
     {
       /*Move to next Channel*/
       continue;
