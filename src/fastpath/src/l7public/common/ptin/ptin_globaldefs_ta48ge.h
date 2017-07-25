@@ -9,7 +9,7 @@
 
 #define PHY_RECOVERY_PROCEDURE  1
 
-#define __Y1731_802_1ag_OAM_ETH__
+//#define __Y1731_802_1ag_OAM_ETH__
 
 #define IGMPASSOC_MULTI_MC_SUPPORTED
 /* Querier will be active for Multicast services */
