@@ -341,7 +341,7 @@
 
 
 /* Messages sent to other entities */
-#define CHMSG_TUxG_ETH_LASER  0x9418    /* msg_HwLaserConfig_t */
+#define CHMSG_TUxG_ETH_CONFIG                     0x9411    /* msg_HwEthernet_t */
 
 
 /*Multicast Package Defines*/
@@ -3161,19 +3161,36 @@ typedef struct {
 
 typedef msg_bd_mep_t    T_MSG_OAM_FPGA;
 
-/* CHMSG_TUxG_ETH_LASER */
+/* CHMSG_TUxG_ETH_CONFIG */
 typedef struct
 {
-  unsigned char        slotIndex;       // Indice do slot
-  unsigned char        BoardType;       // Tipo de Carta
-  unsigned char        InterfaceIndex;  // Indice do interface
+  unsigned char        slotIndex;                    //Indice do slot
+  unsigned char        BoardType;                    //Tipo de Carta
+  unsigned char        InterfaceIndex;               //Indice do interface
+  
+  unsigned short       conf_mask;                    //Mascara de configuracao            
+  unsigned char        ifOperState;                  // 0001 - {0 - down, 1 - up}
+  unsigned char        speed;                        // 0002 - {0 - autoneg, 1 - 10, 2 - 100, 3 - 1000}
+  unsigned char        media;                        // 0004 - {0 - electric, 1 - optic, 2 - serdes}
+  unsigned char        duplex;                       // 0008 - {0 - half, 1 - full}
+  unsigned char        loop;                         // 0020 - {0 - sem, 1 - local, 2 - remoto}
+  unsigned char        flowCtrl;                     // 0040 - {0 - off, 1 - tx, 2 - rx, 3 - both}
+  unsigned short       mtu;                          // 0080 - [1522, 65535]
+  unsigned char        macLearning;                  // 0100 - {0 - down, 1 - up}
+  unsigned char        autoMdi;                      // 0200 - {0 - down, 1 - up}
+  unsigned char        mac[6];                       // 0400 -
 
-  unsigned char        mask;            
-  unsigned char        laserON_OFF;     // mask=0x01: LaserON / LaserOFF
-  unsigned char        stmALSConf;      // mask=0x02: Als ON /OFF
-  unsigned short       stmDelayTime;    // mask=0x04: Intervalo de tempo para polling ALS
+  unsigned char        plinkProtCfg;                 // 0010 - Uplink Protection: UPLINKPROT_DISABLED; UPLINKPROT_WORKING; UPLINKPROT_PROTECTION
+  unsigned char        uplinkProtHoTimer;            // 8000 - Uplink Protection: [0, 10] seconds in steps of 100 ms.
 
-} __attribute__ ((packed)) msg_HwLaserConfig_t;
+  struct
+  {
+     unsigned char     laserON_OFF;                  // 0800 - LaserON / LaserOFF
+     unsigned char     stmALSConf;                   // 1000 - Als ON /OFF
+     unsigned short    stmDelayTime;                 // 2000 - Intervalo de tempo para polling ALS
+  } __attribute__ ((packed)) optico;
+  unsigned char        serviceType;                  // 4000 - { 1 - inni, 0 - uni }
+} __attribute__ ((packed)) msg_HwEthernet_t;
 
 
 /***************************************************************************** 

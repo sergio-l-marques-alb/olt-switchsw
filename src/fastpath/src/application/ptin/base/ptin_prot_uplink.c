@@ -206,7 +206,7 @@ L7_RC_t ptin_prot_uplink_init(void)
 L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
 {
   L7_INTF_TYPES_t sysIntfType;
-  msg_HwLaserConfig_t cfg_msg;
+  msg_HwEthernet_t cfg_msg;
   L7_uint16 slot, port, board_type;
   L7_uint32 i, members_configured, members_number, intIfNum_list[PTIN_SYSTEM_N_PORTS], intIfNum_member;
   L7_uint32 ipAddr;
@@ -280,20 +280,20 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
   #endif      
 
     /* Prepare message contents */
-    memset(&cfg_msg, 0x00, sizeof(msg_HwLaserConfig_t));
+    memset(&cfg_msg, 0x00, sizeof(msg_HwEthernet_t));
     cfg_msg.slotIndex = slot;
     cfg_msg.BoardType = 0;
     cfg_msg.InterfaceIndex = port;
-    cfg_msg.mask = 0x03;
+    cfg_msg.conf_mask = 0x1800;
     if (txdisable < 0)
     {
-      cfg_msg.laserON_OFF = L7_TRUE;
-      cfg_msg.stmALSConf  = L7_TRUE;
+      cfg_msg.optico.laserON_OFF = L7_TRUE;
+      cfg_msg.optico.stmALSConf  = L7_TRUE;
     }
     else
     {
-      cfg_msg.laserON_OFF = !(txdisable & 1);
-      cfg_msg.stmALSConf  = L7_FALSE;
+      cfg_msg.optico.laserON_OFF = !(txdisable & 1);
+      cfg_msg.optico.stmALSConf  = L7_FALSE;
     }
     
     /* 3 tentatives will be made, at the worst case */
@@ -304,10 +304,10 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
 
       ret = send_ipc_message(IPC_HW_PORTO_MSG_CXP,
                              ipAddr,
-                             CHMSG_TUxG_ETH_LASER,
+                             CHMSG_TUxG_ETH_CONFIG,
                              (char *) &cfg_msg,
                              (char *) &answer,
-                             sizeof(msg_HwLaserConfig_t),
+                             sizeof(msg_HwEthernet_t),
                              &answer_size);
 
       if (ret != 0)
@@ -2474,7 +2474,7 @@ L7_RC_t ptin_prot_uplink_command(L7_uint8 protIdx, PROT_OPCMD_t cmd, PROT_PortTy
  * @param restore_time : Restoration time
  * @param operationMode : Should revert to working?
  * @param alarmFlagsEn : Alarm flags enable 
- * @param flags : Other flags
+ * @param flags : Other flags 
  * @param force : Force (re)creation if group already exists
  *  
  * @return L7_RC_t  
@@ -2514,6 +2514,48 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
     return L7_FAILURE;
   }
 
+  /* Obtain intIfNum */
+  if (ptin_intf_ptintf2intIfNum(intf1, &intIfNum1) != L7_SUCCESS ||
+      ptin_intf_ptintf2intIfNum(intf2, &intIfNum2) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error obtaining intIfNum values for ptin_intf %u/%u and %u/%u", intf1->intf_type, intf1->intf_id, intf2->intf_type, intf2->intf_id);
+    return L7_FAILURE;
+  }
+
+  /* It shouldn'be be possible to mix dynamic and static LAGs */
+  if (dot3adIsLag(intIfNum1) && dot3adIsLag(intIfNum2))
+  {
+    L7_BOOL isStatic1, isStatic2;
+
+    if (dot3adIsStaticLag(intIfNum1, &isStatic1) != L7_SUCCESS || dot3adIsStaticLag(intIfNum2, &isStatic2) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error checking if LAGs are static or dynamic");
+      return L7_FAILURE;
+    }
+    /* Check if both are static or dynamic */
+    if (isStatic1 != isStatic2)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Both LAGs (intIfNum1=%u and intIfNum2=%u) should be static or dynamic", intIfNum1, intIfNum2);
+      return L7_FAILURE;
+    }
+    #if 0
+    if (flags != (L7_uint32)-1)
+    {
+      L7_BOOL laserON = (flags & 1);
+      if (isStatic1 && laserON)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "Static LAGs should have its laser OFF");
+        return L7_FAILURE;
+      }
+      if (!isStatic1 && !laserON)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "Dynamic LAGs should have its laser ON");
+        return L7_FAILURE;
+      }
+    }
+    #endif
+  }
+  
   /* If the protection group is already active, clear it */
   if (uplinkprot[protIdx].admin)
   {
@@ -2533,14 +2575,6 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
   }
 
   osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
-
-  if (ptin_intf_ptintf2intIfNum(intf1, &intIfNum1) != L7_SUCCESS ||
-      ptin_intf_ptintf2intIfNum(intf2, &intIfNum2) != L7_SUCCESS)
-  {
-    osapiSemaGive(ptin_prot_uplink_sem);
-    PT_LOG_ERR(LOG_CTX_INTF, "Error obtaining intIfNum values for ptin_intf %u/%u and %u/%u", intf1->intf_type, intf1->intf_id, intf2->intf_type, intf2->intf_id);
-    return L7_FAILURE;
-  }
 
   /* Clear entry */
   memset(&uplinkprot[protIdx], 0x00, sizeof(uplinkprot[protIdx]));
