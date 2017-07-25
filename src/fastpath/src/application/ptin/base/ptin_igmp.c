@@ -18409,7 +18409,6 @@ RC_t ptin_igmp_multicast_get_all_serviceId_per_onu(L7_uint32 ptinPort, L7_uint32
     return L7_FAILURE;
   }
 
-   PT_LOG_TRACE(LOG_CTX_IGMP, "%u", *nOfServices);
   /* onuId is valid? */
   if (onuId >= PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF)
   {
@@ -18425,7 +18424,6 @@ RC_t ptin_igmp_multicast_get_all_serviceId_per_onu(L7_uint32 ptinPort, L7_uint32
           ) != L7_NULLPTR )
   {
 
-    PT_LOG_TRACE(LOG_CTX_IGMP, "send  %d", serviceId_evcUc[ptinPort][onuId][i].send);
     if ( group_client->onuId == onuId && group_client->ptin_port == ptinPort )
     {
       /* reset flag to send querier*/
