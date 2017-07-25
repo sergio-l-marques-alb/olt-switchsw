@@ -239,8 +239,7 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
 
   /* If no PPPoE instance is configured for this internal vlan, ignore the packet */
   /* Only consider L2 forwarding if packet is Unicast and not coming from a MacBridge Stacked service */
-  if (PTIN_VLAN_IS_QUATTRO(pduInfo->vlanId) && !(data[0] & 0x01) &&
-      L7_TRUE != ptin_pppoe_vlan_validate(vlanId))
+  if (L7_TRUE != ptin_pppoe_vlan_validate(vlanId))
   {    
       /* For MX board, ignore DHCP packet */
   #if (PTIN_BOARD_IS_MATRIX)
@@ -248,25 +247,28 @@ L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo)
       PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
     return L7_FAILURE;
   #else
-    /* Make software L2 forwarding */
-    if (ptin_debug_pppoe_snooping)
-      PT_LOG_ERR(LOG_CTX_PPPOE, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
-    /* L2 forward */
-    if (ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len) == L7_SUCCESS)
+    if (PTIN_VLAN_IS_QUATTRO(pduInfo->vlanId) && !(data[0] & 0x01))
     {
-      SYSAPI_NET_MBUF_FREE(bufHandle);
-      return L7_SUCCESS;
-    }
-    else
-    {
+      /* Make software L2 forwarding */
       if (ptin_debug_pppoe_snooping)
-        PT_LOG_ERR(LOG_CTX_PPPOE, "Error trying to L2 forward packet");
-      return L7_FAILURE;
+        PT_LOG_ERR(LOG_CTX_PPPOE, "Going to L2 forward packet from VLAN %u / intIfNum %u", pduInfo->vlanId, pduInfo->intIfNum);
+      /* L2 forward */
+      if (ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len) == L7_SUCCESS)
+      {
+        SYSAPI_NET_MBUF_FREE(bufHandle);
+        return L7_SUCCESS;
+      }
+      else
+      {
+        if (ptin_debug_pppoe_snooping)
+          PT_LOG_ERR(LOG_CTX_PPPOE, "Error trying to L2 forward packet");
+        return L7_FAILURE;
+      }
     }
   #endif
-    //if (ptin_debug_pppoe_snooping)
-    //  PT_LOG_NOTICE(LOG_CTX_PPPOE,"No PPPoE instance found for intVlanId %u. Ignored", vlanId);
-    //return L7_FAILURE;
+    if (ptin_debug_pppoe_snooping)
+      PT_LOG_NOTICE(LOG_CTX_PPPOE,"No PPPoE instance found for intVlanId %u. Ignored", vlanId);
+    return L7_FAILURE;
   }
 
   /* This is used only when the packet comes double tagged.*/
