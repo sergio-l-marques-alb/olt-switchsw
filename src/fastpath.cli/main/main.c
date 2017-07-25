@@ -2332,28 +2332,28 @@ int main (int argc, char *argv[])
           ptr = (msg_switch_mac_intro_t *) &(comando.info[0]);
           memset(ptr,0,sizeof(msg_switch_mac_intro_t));
 
-          ptr->slotId = (uint8)-1;
+          ptr->slotId = ENDIAN_SWAP8((uint8)-1);
 
           // start id
-          ptr->startEntryId = 0;
+          ptr->startEntryId = ENDIAN_SWAP32(0);
           if (argc>=3+1)
           {
             if (StrToLongLong(argv[3+0],&valued)<0)  {
               help_oltBuga();
               exit(0);
             }
-            ptr->startEntryId = valued;
+            ptr->startEntryId = ENDIAN_SWAP32((uint32) valued);
           }
 
           // Num entries
-          ptr->numEntries = MSG_CMDGET_MAC_TABLE_MAXENTRIES;
+          ptr->numEntries = ENDIAN_SWAP32(MSG_CMDGET_MAC_TABLE_MAXENTRIES);
           if (argc>=3+2)
           {
             if (StrToLongLong(argv[3+1],&valued)<0)  {
               help_oltBuga();
               exit(0);
             }
-            ptr->numEntries = valued;
+            ptr->numEntries = ENDIAN_SWAP32((uint32) valued);
           }
 
           comando.msgId = CCMSG_ETH_MAC_TABLE_SHOW;
@@ -2376,19 +2376,19 @@ int main (int argc, char *argv[])
           ptr = (msg_switch_mac_table_t *) &(comando.info[0]);
           memset(ptr,0,sizeof(msg_switch_mac_table_t));
 
-          ptr->intro.slotId       = (uint8)-1;
-          ptr->intro.startEntryId = 0;
-          ptr->intro.numEntries   = 1;
+          ptr->intro.slotId       = ENDIAN_SWAP8 ((uint8)-1);
+          ptr->intro.startEntryId = ENDIAN_SWAP32(0);
+          ptr->intro.numEntries   = ENDIAN_SWAP32(1);
 
-          ptr->entry[0].evcId        = (uint32)-1;
-          ptr->entry[0].static_entry = 1;
+          ptr->entry[0].evcId        = ENDIAN_SWAP32((uint32)-1);
+          ptr->entry[0].static_entry = ENDIAN_SWAP8 (1);
 
           // vlanId
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->entry[0].vlanId = (uint16) valued;
+          ptr->entry[0].vlanId = ENDIAN_SWAP16((uint16) valued);
 
           // MAC address
           if (convert_macaddr2array(argv[3+1],ptr->entry[0].addr)<0)  {
@@ -2402,8 +2402,8 @@ int main (int argc, char *argv[])
             help_oltBuga();
             exit(0);
           }
-          ptr->entry[0].intf.intf_type = (uint8) type;
-          ptr->entry[0].intf.intf_id   = (uint8) intf;
+          ptr->entry[0].intf.intf_type = ENDIAN_SWAP8((uint8) type);
+          ptr->entry[0].intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
 
           comando.msgId = CCMSG_ETH_MAC_ENTRY_ADD;
           comando.infoDim = sizeof(msg_switch_mac_table_t);
@@ -2424,18 +2424,18 @@ int main (int argc, char *argv[])
           ptr = (msg_switch_mac_table_t *) &(comando.info[0]);
           memset(ptr,0,sizeof(msg_switch_mac_table_t));
 
-          ptr->intro.slotId       = (uint8)-1;
-          ptr->intro.startEntryId = 0;
-          ptr->intro.numEntries   = 1;
+          ptr->intro.slotId       = ENDIAN_SWAP8((uint8)-1);
+          ptr->intro.startEntryId = ENDIAN_SWAP32(0);
+          ptr->intro.numEntries   = ENDIAN_SWAP32(1);
 
-          ptr->entry[0].evcId = (uint32)-1;
+          ptr->entry[0].evcId = ENDIAN_SWAP32((uint32)-1);
 
           // vlanId
           if (StrToLongLong(argv[3+0],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
-          ptr->entry[0].vlanId = (uint16) valued;
+          ptr->entry[0].vlanId = ENDIAN_SWAP16((uint16) valued);
 
           // MAC address
           if (convert_macaddr2array(argv[3+1],ptr->entry[0].addr)<0)  {
@@ -2462,9 +2462,9 @@ int main (int argc, char *argv[])
           ptr = (msg_switch_mac_table_t *) &(comando.info[0]);
           memset(ptr,0,sizeof(msg_switch_mac_table_t));
 
-          ptr->intro.slotId       = (uint8)-1;
-          ptr->intro.startEntryId = 0;
-          ptr->intro.numEntries   = (L7_uint32)-1;
+          ptr->intro.slotId       = ENDIAN_SWAP8((uint8)-1);
+          ptr->intro.startEntryId = ENDIAN_SWAP32(0);
+          ptr->intro.numEntries   = ENDIAN_SWAP32((L7_uint32)-1);
 
           comando.msgId = CCMSG_ETH_MAC_ENTRY_REMOVE;
           comando.infoDim = sizeof(msg_switch_mac_table_t);
@@ -8440,31 +8440,33 @@ int main (int argc, char *argv[])
           ptr = (msg_switch_mac_table_t *) resposta.info;
 
           // Validate total size
-          if (resposta.infoDim<sizeof(msg_switch_mac_intro_t)+sizeof(msg_switch_mac_entry)*ptr->intro.numEntries)
+          if ( resposta.infoDim < (sizeof(msg_switch_mac_intro_t) + (sizeof(msg_switch_mac_entry)*ENDIAN_SWAP32(ptr->intro.numEntries))) )
           {
-            printf(" Switch: Invalid structure size (expected=%lu, received=%u bytes)\n\r",sizeof(msg_switch_mac_intro_t)+sizeof(msg_switch_mac_entry)*ptr->intro.numEntries,resposta.infoDim);
+            printf(" Switch: Invalid structure size (expected=%lu, received=%u bytes)\n\r",
+                   sizeof(msg_switch_mac_intro_t) + sizeof(msg_switch_mac_entry)*ENDIAN_SWAP32(ptr->intro.numEntries),
+                   resposta.infoDim);
             break;
           }
           
           printf(" Reading %lu MAC entries from startId %lu (slot=%u):\r\n",ptr->intro.numEntries,ptr->intro.startEntryId,ptr->intro.slotId);
 
-          for (i=0; i<ptr->intro.numEntries; i++) {
-            printf(" Id %-5lu, ",ptr->intro.startEntryId+i);
-            if (ptr->entry[i].evcId!=(uint32)-1)
-              printf("EVC %-4lu, ",ptr->entry[i].evcId);
+          for (i = 0; i < ENDIAN_SWAP32(ptr->intro.numEntries); i++) {
+            printf(" Id %-5lu, ", ENDIAN_SWAP32(ptr->intro.startEntryId)+i);
+            if (ENDIAN_SWAP32(ptr->entry[i].evcId) != (uint32)-1)
+              printf("EVC %-4lu, ", ENDIAN_SWAP32(ptr->entry[i].evcId));
             else
               printf("No EVC  , ");
-            printf("VlanId %-4u, ",ptr->entry[i].vlanId);
-            printf("GEMid %-4u, ",ptr->entry[i].gem_id);
-            printf("Port %-2u/%-2u, ",ptr->entry[i].intf.intf_type,ptr->entry[i].intf.intf_id);
+            printf("VlanId %-4u, ", ENDIAN_SWAP16(ptr->entry[i].vlanId));
+            printf("GEMid %-4u, " , ENDIAN_SWAP16(ptr->entry[i].gem_id));
+            printf("Port %-2u/%-2u, ", ENDIAN_SWAP8(ptr->entry[i].intf.intf_type), ENDIAN_SWAP8(ptr->entry[i].intf.intf_id));
             printf("MAC %02X:%02X:%02X:%02X:%02X:%02X, ",
-                   ptr->entry[i].addr[0],
-                   ptr->entry[i].addr[1],
-                   ptr->entry[i].addr[2],
-                   ptr->entry[i].addr[3],
-                   ptr->entry[i].addr[4],
-                   ptr->entry[i].addr[5]);
-            printf("%s type\r\n",((ptr->entry[i].static_entry) ? "Static" : "Dynamic"));
+                   ENDIAN_SWAP8(ptr->entry[i].addr[0]),
+                   ENDIAN_SWAP8(ptr->entry[i].addr[1]),
+                   ENDIAN_SWAP8(ptr->entry[i].addr[2]),
+                   ENDIAN_SWAP8(ptr->entry[i].addr[3]),
+                   ENDIAN_SWAP8(ptr->entry[i].addr[4]),
+                   ENDIAN_SWAP8(ptr->entry[i].addr[5]));
+            printf("%s type\r\n", ((ENDIAN_SWAP8(ptr->entry[i].static_entry)) ? "Static" : "Dynamic"));
           }
           printf(" Switch: MAC table read successfuly\n\r");
         }
