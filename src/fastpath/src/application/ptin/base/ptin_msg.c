@@ -6408,10 +6408,9 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
             PT_LOG_ERR(LOG_CTX_MSG, "Unknown operation %u", oper);
             rc_global = L7_FAILURE;
           }
-
-          ports_ngpon2++;
-        }
+        ports_ngpon2++;
         j++;
+        }
         shift_index++;
       }    
     }
@@ -19295,7 +19294,12 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
         PT_LOG_TRACE(LOG_CTX_MSG, "evcReplicate[evc_idx].evcId = %d ", evcReplicate[evc_idx].evcId);
 
         evcReplicate[evc_idx].intf.value.ptin_intf.intf_id = ptin_port;
+
+#if !PTIN_BOARD_IS_MATRIX
         evcReplicate[evc_idx].intf.value.ptin_intf.intf_type    = PTIN_EVC_INTF_PHYSICAL;
+#else
+        evcReplicate[evc_idx].intf.value.ptin_intf.intf_type    = PTIN_EVC_INTF_LOGICAL;
+#endif
         evcReplicate[evc_idx].intf.format = PTIN_INTF_FORMAT_TYPEID;
         evcReplicate[evc_idx].mef_type = PTIN_EVC_INTF_LEAF;
 
