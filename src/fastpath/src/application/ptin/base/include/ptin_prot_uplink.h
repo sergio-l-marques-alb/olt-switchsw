@@ -242,6 +242,37 @@ extern L7_RC_t ptin_prot_uplink_config_get(L7_uint8 protIdx, uplinkprotParams_st
 extern L7_RC_t ptin_prot_uplink_status(L7_uint8 protIdx, uplinkprot_status_st *status);
 
 /**
+ * Reload a protection group from the interface
+ * 
+ * @author mruas (26/07/17)
+ * 
+ * @param intIfNum 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 intIfNum);
+
+/**
+ * Reload a protection group
+ * 
+ * @author mruas (26/07/17)
+ * 
+ * @param protIdx 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_prot_uplink_group_reload(L7_int protIdx);
+
+/**
+ * Reload all protection groups
+ * 
+ * @author mruas (26/07/17)
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_prot_uplink_reload(void);
+
+/**
  * Update alarmFlagsEn value
  * 
  * @param protIdx 

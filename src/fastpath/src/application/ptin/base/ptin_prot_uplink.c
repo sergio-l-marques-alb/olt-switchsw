@@ -2428,6 +2428,196 @@ L7_RC_t uplinkprotResetStateMachine(L7_uint16 protIdx)
 }
 
 /**
+ * Reload a protection group from the interface
+ * 
+ * @author mruas (26/07/17)
+ * 
+ * @param intIfNum 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 intIfNum)
+{
+  L7_RC_t rc;
+  L7_BOOL is_lag_member = L7_FALSE;
+  L7_uint32 intIfNum_member, intIfNum_lag;
+  L7_INTF_TYPES_t sysIntfType;
+  L7_uint8 protIdx, portType;
+
+  intIfNum_member = 0;
+  intIfNum_lag    = 0;
+
+  /* If this is a physical interface, check if it belongs to a LAG */
+  if (nimGetIntfType(intIfNum, &sysIntfType) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error getting type of intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+  if (sysIntfType == L7_PHYSICAL_INTF)
+  {
+    if (usmDbDot3adIntfIsMemberGet(1, intIfNum, &intIfNum_lag) == L7_SUCCESS)
+    {
+      L7_uint32 isStatic;
+
+      is_lag_member = L7_TRUE;
+      intIfNum_member = intIfNum;
+      PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u belongs to lag %u", intIfNum, intIfNum_lag);
+
+      /* Dynamic LAGs don't need reload (laser transmission is not touched) */
+      if (usmDbDot3adIsStaticLag(1, intIfNum_lag, &isStatic) == L7_SUCCESS && !isStatic)
+      {
+        PT_LOG_WARN(LOG_CTX_INTF, "intIfNum %u belongs to a dynamic LAG (%u)", intIfNum_member, intIfNum_lag);
+        return L7_SUCCESS;
+      }
+      PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u belongs to a static LAG (%u)... ok!", intIfNum_member, intIfNum_lag);
+    }
+    else
+    {
+      intIfNum_lag = 0;
+      PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u is a physical port and don't belong to any LAG... ok!", intIfNum);
+    }
+  }
+  else if (sysIntfType == L7_LAG_INTF)
+  {
+    L7_uint32 isStatic;
+
+    /* Dynamic LAGs don't need reload (laser transmission is not touched) */
+    if (usmDbDot3adIsStaticLag(1, intIfNum, &isStatic) == L7_SUCCESS && !isStatic)
+    {
+      PT_LOG_WARN(LOG_CTX_INTF, "intIfNum %u is a dynamic LAG", intIfNum);
+      return L7_SUCCESS;
+    }
+    PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u is a static LAG... ok!", intIfNum);
+  }
+
+  /* For the following ops, use the LAG intIfNum, instead the provided one  */
+  if (is_lag_member)
+  {
+    intIfNum = intIfNum_lag;
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Using intIfNum %u...", intIfNum);
+  }
+  
+  rc = ptin_prot_uplink_index_find(intIfNum, &protIdx, &portType);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "No group found using this intIfNum", intIfNum);
+    return L7_SUCCESS;
+  }
+  
+  /* Skip inactive instances */
+  if (!uplinkprot[protIdx].admin)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "protIdx %u not active", protIdx);
+    return L7_FAILURE;
+  }
+
+  PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u belongs to group %u (portType is %u)", intIfNum, protIdx, portType);
+
+  /* For the following ops, use the member intIfNum, instead the provided one  */
+  if (is_lag_member)
+  {
+    intIfNum = intIfNum_member;
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Using intIfNum %u...", intIfNum);
+  }
+
+  /* If this is the active port, unblock this port */
+  if (portType == uplinkprot[protIdx].activePortType)
+  {
+    PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u will be unblocked!", intIfNum);
+    rc = ptin_prot_uplink_intf_block(intIfNum, L7_FALSE);
+  }
+  /* If this is the inactive port, block it */
+  else
+  {
+    PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u will be blocked!", intIfNum);
+    rc = ptin_prot_uplink_intf_block(intIfNum, L7_TRUE);
+  }
+  
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error detected: rc=%d", rc);
+  }
+  
+  return rc;
+}
+
+/**
+ * Reload a protection group
+ * 
+ * @author mruas (26/07/17)
+ * 
+ * @param protIdx 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_prot_uplink_group_reload(L7_int protIdx)
+{
+  L7_RC_t rc;
+
+  if (protIdx >= MAX_UPLINK_PROT)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Invalid protIdx %u value", protIdx);
+    return L7_FAILURE;
+  }
+  
+  /* Skip inactive instances */
+  if (!uplinkprot[protIdx].admin)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "protIdx %u not active", protIdx);
+    return L7_FAILURE;
+  }
+
+  PT_LOG_DEBUG(LOG_CTX_INTF, "Selecting protIdx %u => %u", protIdx, uplinkprot[protIdx].activePortType);
+
+  rc = ptin_prot_select_intf(protIdx, uplinkprot[protIdx].activePortType);
+
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error detected: rc=%d", rc);
+  }
+
+  return rc;
+}
+
+/**
+ * Reload all protection groups
+ * 
+ * @author mruas (26/07/17)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_prot_uplink_reload(void)
+{
+  L7_uint8 i;
+  L7_RC_t rc, rc_global = L7_SUCCESS;
+
+  /* Run all instances to find where the input interface belongs*/
+  for (i = 0; i < MAX_UPLINK_PROT; i++)
+  {
+    /* Skip inactive instances */
+    if (!uplinkprot[i].admin)  continue;
+
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Selecting protIdx %u => %u", i, uplinkprot[i].activePortType);
+
+    rc = ptin_prot_select_intf(i, uplinkprot[i].activePortType);
+
+    if (rc != L7_SUCCESS && rc_global == L7_SUCCESS)
+    {
+      rc_global = rc;
+      PT_LOG_ERR(LOG_CTX_INTF, "protIdx=%u: Error detected: rc=%d", i, rc);
+    }
+  }
+
+  if (rc_global != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error detected: rc_global=%d", rc_global);
+  }
+
+  return rc_global;
+}
+
+
+/**
  * Apply a command to a protection group
  * 
  * @param protIdx : Protection group
