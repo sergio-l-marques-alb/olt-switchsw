@@ -751,6 +751,8 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
   if (((ipHeader->iph_versLen & 0xF0) == (L7_IP_VERSION << 4)) &&
       (ipHeader->iph_prot == IP_PROT_UDP))
   {
+    L7_uint32 evc_flags;
+
     /* Increment packets counter */
     hapiBroadReceice_dhcpv4_count++;
 
@@ -762,25 +764,22 @@ SYSNET_PDU_RC_t dsPacketIntercept(L7_uint32 hookId,
       return SYSNET_PDU_RC_IGNORED;
     }
 
-    /* Only consider L2 forwarding if packet is Unicast and not coming from a MacBridge Stacked service */
-    if (PTIN_VLAN_IS_QUATTRO(pduInfo->vlanId) && !(data[0] & 0x01))
+    /* VLAN is active for DHCP processing */
+    /* Check if IPV6 is enabled for this VLAN */
+    if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) == L7_FALSE ||
+        ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS ||
+        !(evc_flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL))
     {
-      /* If either DHCP snooping or the L2 Relay is not enabled on
-         rx interface, ignore packet. */
-      if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
+      /* Only consider L2 forwarding if packet is Unicast and not coming from a MacBridge Stacked service */
+      if (PTIN_VLAN_IS_QUATTRO(pduInfo->vlanId) && !(data[0] & 0x01))
       {
         l2_forward = L7_TRUE;
       }
       else
       {
-        /* VLAN is active for DHCP processing */
-        /* Check if IPV6 is enabled for this VLAN */
-        L7_uint32 evc_flags;
-        if (ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS ||
-            !(evc_flags & PTIN_EVC_MASK_DHCPV4_PROTOCOL))
-        {
-          l2_forward = L7_TRUE;
-        }
+        if (ptin_debug_dhcp_snooping)
+          PT_LOG_TRACE(LOG_CTX_DHCP,"DHCPv4 Packet ignored");
+        return SYSNET_PDU_RC_IGNORED;
       }
     }
 
@@ -1117,6 +1116,8 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
   if (((osapiNtohl(ipv6Header->ver_class_flow) & 0xF0000000) == (L7_IP6_VERSION << 28)) &&
       (ipv6Header->next == IP_PROT_UDP))
   {
+    L7_uint32 evc_flags;
+
     hapiBroadReceice_dhcpv6_count++;
 
     /* Ignore inband packets */
@@ -1127,25 +1128,22 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       return SYSNET_PDU_RC_IGNORED;
     }
 
-    /* Only consider L2 forwarding if packet is Unicast and not coming from a MacBridge Stacked service */
-    if (PTIN_VLAN_IS_QUATTRO(pduInfo->vlanId) && !(data[0] & 0x01))
+    /* VLAN is active for DHCP processing */
+    /* Check if IPV6 is enabled for this VLAN */
+    if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) == L7_FALSE ||
+        ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS ||
+        !(evc_flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
     {
-      /* If either DHCP snooping or the L2 Relay is not enabled on
-         rx interface, ignore packet. */
-      if (dsVlanIntfIsSnooping(pduInfo->vlanId,pduInfo->intIfNum) /*dsIntfIsSnooping(pduInfo->intIfNum)*/ == L7_FALSE )   /* PTin modified: DHCP snooping */
+      /* Only consider L2 forwarding if packet is Unicast and not coming from a MacBridge Stacked service */
+      if (PTIN_VLAN_IS_QUATTRO(pduInfo->vlanId) && !(data[0] & 0x01))
       {
         l2_forward = L7_TRUE;
       }
       else
       {
-        /* VLAN is active for DHCP processing */
-        /* Check if IPV6 is enabled for this VLAN */
-        L7_uint32 evc_flags;
-        if (ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS ||
-            !(evc_flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
-        {
-          l2_forward = L7_TRUE;
-        }
+        if (ptin_debug_dhcp_snooping)
+          PT_LOG_TRACE(LOG_CTX_DHCP,"DHCPv6 Packet ignored");
+        return SYSNET_PDU_RC_IGNORED;
       }
     }
 
