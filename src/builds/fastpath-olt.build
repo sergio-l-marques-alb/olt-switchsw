@@ -9,7 +9,7 @@ export APPLICATION=fp
 #svn update
 
 if [ $# -eq 0 ]; then
-  echo "Syntax parameters: $0 <version> [build/backup]"
+  echo "Syntax parameters: $0 <version> [all/build/backup]"
   exit 0;
 fi
 

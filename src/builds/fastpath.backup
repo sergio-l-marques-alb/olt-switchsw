@@ -10,14 +10,14 @@ APPS_PATH=./apps
 
 USERNAME=olt
 DST_IPADDR=10.112.15.243
-DST_PATH=/home/olt/fastpath_builds/fastpath
+DST_PATH=output
 
 n_args=$#
 
-svn_rev=`svnversion ../fastpath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+svn_rev=`svnversion .. -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
 version=$1-r$svn_rev
 
-backup_7z=$MODULE.backup-v$version.7z
+backup_file=$MODULE.backup-v$version.tar.bz2
 
 colorNotice="\033[1m\033[34m"
 colorWarn="\033[1m\033[33m"
@@ -47,7 +47,7 @@ echo -en $colorNotice
 echo "Saving unstripped binaries..."
 echo -en $colorReset
 
-rm -f $BUILDS_FOLDER/$backup_7z
+rm -f $BUILDS_FOLDER/$backup_file
 #for plat in $PLATFORMS; do
 #  rm -f $APPS_PATH/backup/$plat/*.ver $APPS_PATH/backup/$plat/*.releasenotes.txt
 #  cp ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt $APPS_PATH/backup/$plat
@@ -55,12 +55,12 @@ rm -f $BUILDS_FOLDER/$backup_7z
 #sync
 cd $APPS_PATH/backup
 rm -f *.tgz
-7z a $backup_7z $PLATFORMS
+tar cjvf $backup_file $PLATFORMS
 cd -
-mv $APPS_PATH/backup/$backup_7z $BUILDS_FOLDER
+mv $APPS_PATH/backup/$backup_file $BUILDS_FOLDER
 
 echo "Transferring backup tarball to final destination..."
-mv $BUILDS_FOLDER/$backup_7z $DST_PATH
+mv $BUILDS_FOLDER/$backup_file $DST_PATH
 
 echo -en $colorOk
 echo "DONE!"
