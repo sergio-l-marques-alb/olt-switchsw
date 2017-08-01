@@ -6290,8 +6290,8 @@ L7_RC_t ptin_msg_EVC_delete(msg_HwEthMef10EvcRemove_t *msgEvcConf, L7_uint16 n_s
       }
 
       /* Remove EVC from offline evc's AVL */
-      L7_uint32 ext_evc = ENDIAN_SWAP32(msgEvcConf[i].id);
-      ptin_evc_offline_entry_remove(ext_evc);
+      //L7_uint32 ext_evc = ENDIAN_SWAP32(msgEvcConf[i].id);
+      //ptin_evc_offline_entry_remove(ext_evc);
 
 #endif /*NGPON2_SUPPORTED*/
     }
@@ -18082,7 +18082,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
     {
 #ifdef NGPON2_SUPPORTED
       ptin_NGPON2_groups_t NGPON2_GROUP;
-      L7_uint8 j = 0;
+      L7_uint8 j = 0, iterator = 0;
       L7_uint8 shift_index = 0;
 
       if (msg[messageIterator].client.intf.intf_type == PTIN_EVC_INTF_NGPON2)
@@ -18144,11 +18144,12 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
 
               bmpIterator = 0;
 
-              while( bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE )
+              while ( (bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE) && iterator == 0 )
               {
                 ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList[bmpIterator]);
                 bmpIterator++;
               }
+              iterator = 1;
 
               /* Apply config */
               rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, ENDIAN_SWAP8(msg[messageIterator].onuId), 0x00, 0, 0, addOrRemove, msg[messageIterator].packageBmpList, ENDIAN_SWAP16(msg[messageIterator].noOfPackages));
@@ -18235,7 +18236,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
 
         bmpIterator = 0;
 
-        while( bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE )
+        while ( bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE)
         {
           ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList[bmpIterator]);
           bmpIterator++;
@@ -18487,7 +18488,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
   {  
 #ifdef NGPON2_SUPPORTED
     ptin_NGPON2_groups_t NGPON2_GROUP;
-    L7_uint8 j = 0;
+    L7_uint8 j = 0,iterator = 0;
     L7_uint8 shift_index = 0;
 
     if (msg[messageIterator].intf.intf_type == PTIN_EVC_INTF_NGPON2)
@@ -18522,11 +18523,12 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
 
           bmpIterator = 0;
 
-          while( bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE )
+          while ( (bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE) && iterator == 0 )
           {
             ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList[bmpIterator]);
             bmpIterator++;
-          }                     
+          }
+          iterator = 1;
 
           /*Copy Multicast Package Bitmap*/
           memcpy(ptinEvcFlow.packageBmpList, msg[messageIterator].packageBmpList, sizeof(ptinEvcFlow.packageBmpList));
@@ -18567,8 +18569,6 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
               }
               else
               {
-#ifdef NGPON2_SUPPORTED
-
                 L7_uint32 evc_id;
                 /* Is EVC in use? */
                 if (ptin_evc_ext2int(ptinEvcFlow.evc_idx, &evc_id) == L7_SUCCESS)
@@ -18576,7 +18576,7 @@ L7_RC_t ptin_msg_igmp_macbridge_client_packages_remove(msg_igmp_macbridge_client
                   PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", ptinEvcFlow.evc_idx);
                   memset(&MacbridgePackage_info[evc_id], 0xFF, sizeof(MacbridgePackage_info[evc_id-1]));
                   MacbridgePackage_info[evc_id].admin = L7_FALSE;
-#endif                          
+                         
                 }
                 
                 //Warning already logged          
