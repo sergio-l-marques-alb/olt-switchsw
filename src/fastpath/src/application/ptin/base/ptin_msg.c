@@ -5958,7 +5958,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   {
     rc = ptin_evc_create(&ptinEvcConf);
   }
-  if(save)  /* EVC for a "offline" group -> save configuration */
+  if(1)  /* EVC for a "offline" group -> save configuration */
   {
     int i;
     /* Update offline NGPON2 groups*/
@@ -5966,11 +5966,16 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
     {
       get_NGPON2_group_info(&NGPON2_GROUP, ngponId[i]);
 
-      if(NGPON2_GROUP.admin == 1) // Only saved configuration for "offline" groups
-      {
-        continue;
-      }
+      //if(NGPON2_GROUP.admin == 1) // Only saved configuration for "offline" groups
+      //{
+        //continue;
+      //}
 
+      savePtinEvcConf.index    = ENDIAN_SWAP32(msgEvcConf->evc.id);
+      savePtinEvcConf.flags    = ENDIAN_SWAP32(msgEvcConf->evc.flags);
+      savePtinEvcConf.type     = ENDIAN_SWAP8 (msgEvcConf->evc.type);
+      savePtinEvcConf.mc_flood = ENDIAN_SWAP8 (msgEvcConf->evc.mc_flood);
+      PT_LOG_DEBUG(LOG_CTX_MSG, " .Nr.savePtinEvcConf.index  = %u",      savePtinEvcConf.index);
       savePtinEvcConf.n_intf = save_ports;
       /*Add EVC message to the AVL of offline EVC's */
       ptin_evc_offline_entry_add(&savePtinEvcConf);
@@ -19536,7 +19541,7 @@ L7_RC_t ptin_msg_apply_ngpon2_configuration(L7_uint32 ngpon2_id)
     }
 
     PT_LOG_TRACE(LOG_CTX_MSG, " Index_port  %d ", index_port);
-    ngpon_config.n_intf   = ext_evcId_infoData->evcNgpon2.n_intf + (ports_ngpon2-1); 
+    ngpon_config.n_intf   = ext_evcId_infoData->evcNgpon2.n_intf + (ports_ngpon2); 
     PT_LOG_DEBUG(LOG_CTX_MSG, " Total number of interfaces of evc %d is %d ", ngpon_config.index, ngpon_config.n_intf);
 
     if(apply)
