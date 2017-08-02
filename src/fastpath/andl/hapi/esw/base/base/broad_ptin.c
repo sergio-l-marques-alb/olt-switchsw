@@ -2788,7 +2788,11 @@ T_ME        *p_me;
             //BCM_OAM_GROUP_FAULT_CCM_TIMEOUT |
             BCM_OAM_GROUP_FAULT_CCM_ERROR |
             BCM_OAM_GROUP_FAULT_CCM_XCON;
+        #if (SDK_VERSION_IS >= SDK_VERSION(6,5,0,0))
         group_info.flags=BCM_OAM_GROUP_GET_FAULTS_ONLY; //ginfo.flags|=BCM_OAM_GROUP_GET_FAULTS_ONLY;
+        #else
+        group_info.flags=0;
+        #endif
         r = bcm_oam_group_get(0, mep.group, &group_info);   //1..N
         if (BCM_E_NONE!=r) {PT_LOG_ERR(LOG_CTX_HAPI, "bcm_oam_group_get()=%d\n\r", r); return L7_NOT_EXIST;}
 
