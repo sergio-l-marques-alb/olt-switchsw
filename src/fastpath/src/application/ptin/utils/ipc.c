@@ -567,23 +567,29 @@ int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *
     return -1;
   }
 
-
   /* Check info */
   if (infoDimAnswer == NULL)
   {
+    #if 0
     if  (resposta.infoDim != infoDimRequest)
     {
       PT_LOG_ERR(LOG_CTX_IPC,"Wrong infodim (expected %u bytes VS received %u bytes)", infoDimRequest, resposta.infoDim);    
       return -1;
     }
-     /* Return answer */
+    #endif
+    /* Return answer */
     memcpy(answer, resposta.info, infoDimRequest); 
+  }
+  else if (resposta.infoDim > IPCLIB_MAX_MSGSIZE)
+  {
+    PT_LOG_ERR(LOG_CTX_IPC,"Infodim (%u) higher than the maximum allowed value (IPCLIB_MAX_MSGSIZE=%u)",resposta.infoDim, IPCLIB_MAX_MSGSIZE);
+    return -1;
   }
   else
   {
-    if( resposta.infoDim>IPCLIB_MAX_MSGSIZE || 0 != (resposta.infoDim % (*infoDimAnswer)))
+    if(*infoDimAnswer != 0 && (resposta.infoDim % (*infoDimAnswer)) != 0)
     {
-      PT_LOG_ERR(LOG_CTX_IPC,"Infodim (%u) higher than the maximum allowed value (IPCLIB_MAX_MSGSIZE=%u)",resposta.infoDim, IPCLIB_MAX_MSGSIZE);    
+      PT_LOG_ERR(LOG_CTX_IPC,"Received infodim is not expected (infodim=%u is not multiple of %u)",resposta.infoDim,*infoDimAnswer);
       return -1;
     }
     

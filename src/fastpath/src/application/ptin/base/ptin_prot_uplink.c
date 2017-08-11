@@ -193,7 +193,6 @@ L7_RC_t ptin_prot_uplink_init(void)
   return L7_SUCCESS;
 }
 
-#if (PTIN_BOARD_IS_MATRIX)
 /**
  * Control uplink laser
  * 
@@ -258,42 +257,93 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
       continue;
     }
 
-    PT_LOG_DEBUG(LOG_CTX_INTF, "Going to configure intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Validating intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
 
-    /* Only apply it to TU40G and CXO160G boards */
-    if (board_type != PTIN_BOARD_TYPE_TU40G && board_type != PTIN_BOARD_TYPE_TU40GR /*&&
-        board_type != PTIN_BOARD_TYPE_CXO160G*/)
+#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+    if (slot < PTIN_SYS_LC_SLOT_MIN || slot > PTIN_SYS_LC_SLOT_MAX || port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
     {
-      PT_LOG_ERR(LOG_CTX_INTF, "Invalid board type %u for intIfNum_member %u", board_type, intIfNum_member);
+      PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid slot (%u) / port (%u)", slot, port);
       continue;
     }
+    /* Only apply it to TU40G boards */
+    if (board_type != PTIN_BOARD_TYPE_TU40G && board_type != PTIN_BOARD_TYPE_TU40GR)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid board type %u for intIfNum_member %u", board_type, intIfNum_member);
+      continue;
+    }
+#elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
+    /* Is a local port? */
+    if (slot == 0)
+    {
+      if (port >= PTIN_SYSTEM_N_LOCAL_PORTS)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "CXO160G: Invalid local port (%u)", port);
+        continue;
+      }
+      /* Correct slot id, in order to obtain successfully its IP address */
+      slot = (port >= PTIN_SYSTEM_N_LOCAL_PORTS/2) ? 5 : 1;
+    }
+    /* If intIfNum refers to another slot, it should be a TU40G */
+    else if (slot >= PTIN_SYS_LC_SLOT_MIN && slot <= PTIN_SYS_LC_SLOT_MAX)
+    {
+      if (port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid port (%u) for slot %u", port, slot);
+        continue;
+      }
+      /* Only apply it to TU40G boards */
+      if (board_type != PTIN_BOARD_TYPE_TU40G && board_type != PTIN_BOARD_TYPE_TU40GR)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid board type %u for intIfNum_member %u", board_type, intIfNum_member);
+        continue;
+      }
+    }
+    /* Invalid slot */
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "CXO160G: Invalid slot (%u)", slot);
+      continue;
+    }
+#elif (PTIN_BOARD_IS_STANDALONE)
+    if (slot != 0 || port >= ptin_sys_number_of_ports)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "OLT1T0: Invalid slot (%u) / port (%u)", slot, port);
+      continue;
+    }
+    slot = 1;
+#else
+    PT_LOG_ERR(LOG_CTX_INTF, "Unknown board");
+    continue;
+#endif
     
-  #if PTIN_BOARD_IS_STANDALONE
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Going to configure intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
+
+#if (PTIN_BOARD_IS_STANDALONE)
     ipAddr = simGetIpcIpAddr();
-  #else
+#else
     /* Determine the IP address of the working port/slot */
     if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(slot, &ipAddr))
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Failed to obtain ipAddress of slotId:%u", slot);
       continue;
     }
-  #endif      
+#endif      
 
     /* Prepare message contents */
     memset(&cfg_msg, 0x00, sizeof(msg_HwEthernet_t));
-    cfg_msg.slotIndex = slot;
-    cfg_msg.BoardType = 0;
-    cfg_msg.InterfaceIndex = port;
-    cfg_msg.conf_mask = 0x1800;
+    cfg_msg.slotIndex = ENDIAN_SWAP8(slot);
+    cfg_msg.BoardType = ENDIAN_SWAP8(0);
+    cfg_msg.InterfaceIndex = ENDIAN_SWAP8(port);
+    cfg_msg.conf_mask = ENDIAN_SWAP16(0x1800);
     if (txdisable < 0)
     {
-      cfg_msg.optico.laserON_OFF = L7_TRUE;
-      cfg_msg.optico.stmALSConf  = L7_TRUE;
+      cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(L7_TRUE);
+      cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_TRUE);
     }
     else
     {
-      cfg_msg.optico.laserON_OFF = !(txdisable & 1);
-      cfg_msg.optico.stmALSConf  = L7_FALSE;
+      cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(!(txdisable & 1));
+      cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_FALSE);
     }
     
     /* 3 tentatives will be made, at the worst case */
@@ -331,7 +381,6 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
 
   return L7_SUCCESS;
 }
-#endif /*PTIN_BOARD_IS_MATRIX*/
 
 /**
  * Blocking mechanism implemented here
@@ -367,13 +416,11 @@ L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int block_state)
       return L7_FAILURE;
     }
 
-  #if (PTIN_BOARD_IS_MATRIX)
     if (isStatic)
     {
       PT_LOG_DEBUG(LOG_CTX_INTF, "Controlling remote laser of intIfNum %u", intIfNum);
       rc = ptin_remote_laser_control(intIfNum, block_state);
     }
-  #endif
     PT_LOG_DEBUG(LOG_CTX_INTF, "Setting block state of intIfNum %u", intIfNum);
     rc = dot3adBlockedStateSet(intIfNum, block_state);
 
@@ -382,10 +429,9 @@ L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int block_state)
   else if (ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
   {
     PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u is a PHY", intIfNum);
-  #if (PTIN_BOARD_IS_MATRIX)
     PT_LOG_DEBUG(LOG_CTX_INTF, "Controlling remote laser of intIfNum %u", intIfNum);
     rc = ptin_remote_laser_control(intIfNum, block_state);
-  #else
+  #if 0
     PT_LOG_DEBUG(LOG_CTX_INTF, "Adding/removing intIfNum %u to all VLANs", intIfNum);
     if (block_state == L7_TRUE)
     {
@@ -1097,7 +1143,7 @@ L7_RC_t uplinkprotSwitchTo(L7_uint16 protIdx, PROT_PortType_t portType, PROT_LRe
     uplinkprot[protIdx].activePortType = PORT_WORKING;
 
     /* Keep information about the last switchover cause */
-    if (localRequest == PROT_LReq_LINK || localRequest == PROT_LReq_WTRExp)
+    if (/*localRequest == PROT_LReq_LINK ||*/ localRequest == PROT_LReq_WTRExp)
     {
       if ((uplinkprot[protIdx].hAlarms[PORT_PROTECTION] & MASK_PORT_LINK))
       {
@@ -1106,6 +1152,10 @@ L7_RC_t uplinkprotSwitchTo(L7_uint16 protIdx, PROT_PortType_t portType, PROT_LRe
       else if ((uplinkprot[protIdx].hAlarms[PORT_PROTECTION] & MASK_PORT_BW))
       {
         uplinkprot[protIdx].lastSwitchoverCause = PROT_LReq_BW;
+      }
+      else
+      {
+        uplinkprot[protIdx].lastSwitchoverCause = PROT_LReq_WTRExp;
       }
     }
     else
@@ -1126,7 +1176,7 @@ L7_RC_t uplinkprotSwitchTo(L7_uint16 protIdx, PROT_PortType_t portType, PROT_LRe
     uplinkprot[protIdx].activePortType = PORT_PROTECTION;
 
     /* Keep information about the last switchover cause */
-    if (localRequest == PROT_LReq_LINK || localRequest == PROT_LReq_WTRExp)
+    if (/*localRequest == PROT_LReq_LINK ||*/ localRequest == PROT_LReq_WTRExp)
     {
       if ((uplinkprot[protIdx].hAlarms[PORT_WORKING] & MASK_PORT_LINK))
       {
@@ -1135,6 +1185,10 @@ L7_RC_t uplinkprotSwitchTo(L7_uint16 protIdx, PROT_PortType_t portType, PROT_LRe
       else if ((uplinkprot[protIdx].hAlarms[PORT_WORKING] & MASK_PORT_BW))
       {
         uplinkprot[protIdx].lastSwitchoverCause = PROT_LReq_BW;
+      }
+      else
+      {
+        uplinkprot[protIdx].lastSwitchoverCause = PROT_LReq_WTRExp;
       }
     }
     else
