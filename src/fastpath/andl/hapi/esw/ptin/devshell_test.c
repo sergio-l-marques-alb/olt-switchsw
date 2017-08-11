@@ -18,6 +18,116 @@
 #include "bcmx/vlan.h"
 #include "logger.h"
 
+int kt2_hqos_set(bcm_port_t port)
+{
+  int unit = 0;
+  int cos;
+  bcm_gport_t gport,port_sched, l0_sched, l1_sched;
+  bcm_gport_t queue[8];
+  int rv;
+
+  /***** PART-1: HQOS creation ******/
+  /* Delete the default hierarchy of given port */ 
+  rv = bcm_port_gport_get(unit, port, &gport); 
+  printf("%s(%d) rv=%d port=%d gport=0x%x\r\n",  __FUNCTION__,  __LINE__,  rv, port, gport);
+
+  rv = bcm_cosq_gport_delete(unit, gport);
+  printf("%s(%d) rv=%d\r\n",  __FUNCTION__,  __LINE__,  rv);
+
+  /* Create port scheduler. specify port scheduler with 1 input */ 
+  rv = bcm_cosq_gport_add(unit, port, 1, 0, &port_sched);
+  printf("%s(%d) rv=%d port_sched=0x%x\r\n",  __FUNCTION__,  __LINE__,  rv, port_sched);
+
+  /* Create L0 scheduler gport object with 1 input */ 
+  rv = bcm_cosq_gport_add(unit, port,1, BCM_COSQ_GPORT_SCHEDULER, &l0_sched);
+  printf("%s(%d) rv=%d l0_sched=0x%x\r\n",  __FUNCTION__,  __LINE__,  rv, l0_sched);
+
+  /* Create L1 scheduler gport object with 1 input */ 
+  rv = bcm_cosq_gport_add(unit, port,8, BCM_COSQ_GPORT_SCHEDULER, &l1_sched);
+  printf("%s(%d) rv=%d l1_sched=0x%x\r\n",  __FUNCTION__,  __LINE__,  rv, l1_sched);
+
+  /* Attach L0 gport to port scheduler at input 0 */ 
+  rv = bcm_cosq_gport_attach(unit, l0_sched, port_sched, 0);
+  printf("%s(%d) rv=%d l0 attached to port\r\n",  __FUNCTION__,  __LINE__,  rv);
+
+  /* Attach L1 gport to L0 at input 0 */
+  rv = bcm_cosq_gport_attach(unit, l1_sched, l0_sched,0);
+  printf("%s(%d) rv=%d l1 attached to l0\r\n",  __FUNCTION__,  __LINE__,  rv);
+
+  /* Create 8 cosq's */
+  for (cos = 0; cos < 8; cos++)
+  {
+    rv = bcm_cosq_gport_add(unit, port, 1,BCM_COSQ_GPORT_UCAST_QUEUE_GROUP, &queue[cos]);
+    printf("%s(%d) rv=%d cos=%d/gportid=0x%x created\r\n",  __FUNCTION__,  __LINE__,  rv, cos, queue[cos]);
+    rv = bcm_cosq_gport_attach(unit, queue[cos], l1_sched, cos);
+    printf("%s(%d) rv=%d cos=%d/gportid=0x%x attached to l1\r\n",  __FUNCTION__,  __LINE__, rv, cos, queue[cos]);
+  }
+
+  printf("Done!\r\n");
+
+  return 0;
+}
+
+int ptin_cosq_control_get(L7_uint port, L7_uint cos, L7_uint prop)
+{
+  int rv, arg;
+
+  rv = bcm_cosq_control_get(0, port, cos, prop, &arg);
+
+  printf("bcm_cosq_control_get(0, %u, %u, %u, &arg) => arg=%u (rv=%d)\r\n", port, cos, prop, arg, rv);
+
+  return rv;
+}
+
+int ptin_cosq_control_set(L7_uint port, L7_uint cos, L7_uint prop, L7_int val)
+{
+  int rv;
+
+  rv = bcm_cosq_control_set(0, port, cos, prop, val);
+
+  printf("bcm_cosq_control_set(0, %u, %u, %u, %d) (rv=%d)\r\n", port, cos, prop, val, rv);
+
+  return rv;
+}
+
+int ptin_reg_get(int bcm_port, unsigned int ctr_reg, unsigned int index)
+{
+  uint64 value = 0;
+  int rv;
+
+     //soc_counter_get(unit, port, ctr_reg, ar_idx, &val)
+  rv = soc_reg64_get(0, ctr_reg, bcm_port, index, &value);
+
+  if ( rv != SOC_E_NONE)
+  {
+    printf("Error reading register: rv=%d\r\n", rv);
+    //return -1;
+  }
+
+  printf("Counter = %llu\r\n",  value);
+
+  return 0;
+}
+
+int ptin_counter_get(int bcm_port, unsigned int ctr_reg, unsigned int index)
+{
+  uint64 value = 0;
+  int rv;
+
+  //soc_counter_get(unit, port, ctr_reg, ar_idx, &val)
+  rv = soc_counter_get(0, bcm_port, ctr_reg, index, &value);
+
+  if ( rv != SOC_E_NONE)
+  {
+    printf("Error reading register: rv=%d\r\n", rv);
+    //return -1;
+  }
+
+  printf("Counter = %llu\r\n",  value);
+
+  return 0;
+}
+
 void ptin_mem_mod(uint32 mem, uint32 field, uint32 i, uint32 val)
 {
   uint32    entry[SOC_MAX_MEM_WORDS];
