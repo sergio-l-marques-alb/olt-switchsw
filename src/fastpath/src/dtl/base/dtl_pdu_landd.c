@@ -299,7 +299,7 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
   // Added temporary debug (To be removed)
   if (ptin_debug_dtl)
   {
-    PT_LOG_DEBUG(LOG_CTX_MISC,"TX PDU: dtlCmd=%u intIfNum=%u prio=%u typeToSend=%u L2.domainId=%u L2.vlanId=%u L2.flags=0x%08x",
+    PT_LOG_DEBUG(LOG_CTX_DTL, "TX PDU: dtlCmd=%u intIfNum=%u prio=%u typeToSend=%u L2.domainId=%u L2.vlanId=%u L2.flags=0x%08x",
               dtlCmd, dtlCmdInfo->intfNum, dtlCmdInfo->priority, dtlCmdInfo->typeToSend,
               dtlCmdInfo->cmdType.L2.domainId, dtlCmdInfo->cmdType.L2.vlanId, dtlCmdInfo->cmdType.L2.flags);
   }

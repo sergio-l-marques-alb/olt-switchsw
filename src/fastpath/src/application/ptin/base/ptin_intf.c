@@ -6052,6 +6052,89 @@ L7_RC_t ptin_pcs_prbs_errors_get(L7_uint32 intIfNum, L7_uint32 *counter)
 }
 
 /**
+ * Apply linkfaults enable procedure
+ *  
+ * @param intIfNum : Interface
+ * @param local_enable : Local faults processing enable 
+ * @param remote_enable : Remote faults processing enable 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_intf_linkfaults_enable(L7_uint32 intIfNum, L7_BOOL local_enable, L7_BOOL remote_enable)
+{
+  ptin_hwproc_t hw_proc;
+  L7_INTF_TYPES_t sysIntfType;
+  L7_RC_t   rc = L7_SUCCESS;
+
+  /* Validate interface */
+  if (intIfNum == 0 || intIfNum > L7_ALL_INTERFACES)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+
+  memset(&hw_proc,0x00,sizeof(hw_proc));
+
+  hw_proc.operation = DAPI_CMD_SET;
+  hw_proc.procedure = PTIN_HWPROC_LINKFAULTS_ENABLE;
+  hw_proc.mask = 0xff;
+  hw_proc.param1 = (L7_int32) local_enable;
+  hw_proc.param2 = (L7_int32) remote_enable;
+
+  /* Get interface type */
+  if (nimGetIntfType(intIfNum, &sysIntfType) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Error obtaining interface type for intIfNum=%u", intIfNum);
+    return L7_FAILURE;
+  }
+  
+  /* Physical interface? */
+  if (sysIntfType == L7_PHYSICAL_INTF)
+  {
+    /* Apply procedure */
+    rc = dtlPtinHwProc(intIfNum, &hw_proc);
+  }
+  /* LAG interface? */
+  else if (sysIntfType == L7_LAG_INTF)
+  {
+    L7_uint32 i, number_of_members = PTIN_SYSTEM_N_PORTS;
+    L7_uint32 memberList[PTIN_SYSTEM_N_PORTS];
+
+    /* Get LAG members */
+    if (usmDbDot3adMemberListGet(1, intIfNum, &number_of_members, memberList) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,"Error obtaining list of members for intIfNum=%u", intIfNum);
+      return L7_FAILURE;
+    }
+
+    /* Apply procedure  to all LAG members */
+    for (i = 0; i < number_of_members; i++)
+    {
+      rc = dtlPtinHwProc(memberList[i], &hw_proc);
+      if (rc != L7_SUCCESS)  break;
+    }
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Unknown interface type (%u) for intIfNum=%u", sysIntfType, intIfNum);
+    return L7_FAILURE;
+  }
+  
+  /* Check return value */
+  if (rc == L7_SUCCESS)
+  {
+    PT_LOG_TRACE(LOG_CTX_INTF,"HW procedure applied to intIfNum=%u", intIfNum);
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Error applying HW procedure to intIfNum=%u", intIfNum);
+  }
+
+  return rc;
+}
+
+
+/**
  * Enable or disable linkscan control for a particular port
  * 
  * @param port 

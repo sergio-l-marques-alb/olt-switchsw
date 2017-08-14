@@ -410,5 +410,19 @@ extern bcm_error_t time_interface_enable(DAPI_USP_t *usp, void *stru, DAPI_t *da
  */
 extern L7_RC_t ptin_hapi_temperature_monitor(ptin_dtl_temperature_monitor_t *temp_info);
 
+/**
+ * Control local/remote linkfaults enable
+ * 
+ * @author mruas (14/08/17)
+ * 
+ * @param ddUsp 
+ * @param dapi_g 
+ * @param local_enable 
+ * @param remote_enable 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL local_enable, L7_BOOL remote_enable);
+
 #endif /*_PTIN_HAPI_H */
 

@@ -791,6 +791,17 @@ extern L7_RC_t ptin_intf_clock_recover_set(L7_int ptin_port_main, L7_int ptin_po
 extern L7_RC_t ptin_intf_frame_oversize_set(L7_uint32 intIfNum, L7_uint32 frame_size);
 
 /**
+ * Apply linkfaults enable procedure
+ *  
+ * @param intIfNum : Interface
+ * @param local_enable : Local faults processing enable 
+ * @param remote_enable : Remote faults processing enable 
+ * 
+ * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_intf_linkfaults_enable(L7_uint32 intIfNum, L7_BOOL local_enable, L7_BOOL remote_enable);
+
+/**
  * Read Maximum frame size
  * 
  * @param intIfNum 

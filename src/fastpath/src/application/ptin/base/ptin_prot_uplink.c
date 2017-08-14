@@ -2727,6 +2727,8 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
                                 L7_uint32 restore_time, L7_uint8 operationMode, L7_uint32 alarmFlagsEn, L7_uint32 flags, L7_BOOL force)
 {
   L7_uint32 intIfNum1, intIfNum2;
+  L7_BOOL isStatic1, isStatic2;
+  L7_BOOL laserON = (flags & 1);
 
   if (protIdx >= MAX_UPLINK_PROT)
   {
@@ -2766,38 +2768,50 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
     return L7_FAILURE;
   }
 
-  /* It shouldn'be be possible to mix dynamic and static LAGs */
-  if (dot3adIsLag(intIfNum1) && dot3adIsLag(intIfNum2))
+  /* Check if LAGs and physical interfaces are being mixed */
+  if (dot3adIsLag(intIfNum1) != dot3adIsLag(intIfNum2))
   {
-    L7_BOOL isStatic1, isStatic2;
-
+    PT_LOG_ERR(LOG_CTX_INTF, "You cannot mix individual interfaces with LAGs");
+    return L7_FAILURE;
+  }
+  /* Both interfaces are LAGs */
+  else if (dot3adIsLag(intIfNum1) && dot3adIsLag(intIfNum2))
+  {
+    /* It shouldn'be be possible to mix dynamic and static LAGs */
     if (dot3adIsStaticLag(intIfNum1, &isStatic1) != L7_SUCCESS || dot3adIsStaticLag(intIfNum2, &isStatic2) != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Error checking if LAGs are static or dynamic");
       return L7_FAILURE;
     }
-    /* Check if both are static or dynamic */
     if (isStatic1 != isStatic2)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Both LAGs (intIfNum1=%u and intIfNum2=%u) should be static or dynamic", intIfNum1, intIfNum2);
       return L7_FAILURE;
     }
-    #if 0
-    if (flags != (L7_uint32)-1)
+    /* Check LASER ON/OFF parameter (but don't return error.. just warn) */
+    if (isStatic1 && laserON)
     {
-      L7_BOOL laserON = (flags & 1);
-      if (isStatic1 && laserON)
-      {
-        PT_LOG_ERR(LOG_CTX_INTF, "Static LAGs should have its laser OFF");
-        return L7_FAILURE;
-      }
-      if (!isStatic1 && !laserON)
-      {
-        PT_LOG_ERR(LOG_CTX_INTF, "Dynamic LAGs should have its laser ON");
-        return L7_FAILURE;
-      }
+      PT_LOG_WARN(LOG_CTX_INTF, "Static LAGs should have its laser OFF");
+      laserON = L7_FALSE;
+      //return L7_FAILURE;
     }
-    #endif
+    else if (!isStatic1 && !laserON)
+    {
+      PT_LOG_WARN(LOG_CTX_INTF, "Dynamic LAGs should have its laser ON");
+      laserON = L7_TRUE;
+      //return L7_FAILURE;
+    }
+  }
+  /* Both are physical interfaces */
+  else
+  {
+    /* Check LASER ON/OFF parameter (but don't return error.. just warn) */
+    if (laserON)
+    {
+      PT_LOG_WARN(LOG_CTX_INTF, "Uplink protection with physical interfaces should have its laser OFF");
+      laserON = L7_FALSE;
+      //return L7_FAILURE;
+    }
   }
   
   /* If the protection group is already active, clear it */
@@ -2814,6 +2828,19 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
     else
     {
       PT_LOG_WARN(LOG_CTX_INTF, "Protection group %u alrteady exists", protIdx);
+      return L7_FAILURE;
+    }
+  }
+
+  /* If Laser can be disabled, disable linkfaults processing */
+  if (!laserON)
+  {
+    if (ptin_intf_linkfaults_enable(intIfNum1, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/) != L7_SUCCESS ||
+        ptin_intf_linkfaults_enable(intIfNum2, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/) != L7_SUCCESS)
+    {
+      ptin_intf_linkfaults_enable(intIfNum1, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
+      ptin_intf_linkfaults_enable(intIfNum2, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
+      PT_LOG_WARN(LOG_CTX_INTF, "Not able to disable remote linkfaults");
       return L7_FAILURE;
     }
   }
@@ -2838,7 +2865,7 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
   uplinkprot[protIdx].admin = L7_TRUE;
 
   operator_cmd[protIdx] = OPCMD_NR;
-  operator_switchToPortType[protIdx] = PORT_WORKING;
+  operator_switchToPortType[protIdx] = PORT_WORKING;  
 
   /* Set first port as ACTIVE */
   ptin_prot_select_intf(protIdx, PORT_ALL);
@@ -2982,6 +3009,10 @@ L7_RC_t ptin_prot_uplink_clear(L7_uint8 protIdx)
 
   /* Activate both LAGs */
   ptin_prot_select_intf(protIdx, PORT_ALL);
+
+  /* Make sure linkfaults are enabled */
+  (void) ptin_intf_linkfaults_enable(uplinkprot[protIdx].protParams.intIfNumW, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
+  (void) ptin_intf_linkfaults_enable(uplinkprot[protIdx].protParams.intIfNumP, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
 
   /* Disable entry */
   uplinkprot[protIdx].admin = L7_FALSE;

@@ -1562,6 +1562,52 @@ L7_RC_t hapi_ptin_egress_ports(L7_uint port_frontier)
   return L7_SUCCESS;
 }
 
+/**
+ * Control local/remote linkfaults enable
+ * 
+ * @author mruas (14/08/17)
+ * 
+ * @param ddUsp 
+ * @param dapi_g 
+ * @param local_enable 
+ * @param remote_enable 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL local_enable, L7_BOOL remote_enable)
+{
+  DAPI_PORT_t  *dapiPortPtr;
+  BROAD_PORT_t *hapiPortPtr;
+  L7_int rv;
+
+  /* Validate interface */
+  if (ddUsp==L7_NULLPTR || (ddUsp->unit<0 && ddUsp->slot<0 && ddUsp->port<0))
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI,"No provided interface!");
+    return L7_SUCCESS;
+  }
+
+  dapiPortPtr = DAPI_PORT_GET( ddUsp, dapi_g );
+  hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
+
+  rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlLinkFaultLocalEnable, local_enable);
+  if (rv != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error setting bcmPortControlLinkFaultLocalEnable for port %u", hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
+
+  rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlLinkFaultRemoteEnable, remote_enable);
+  if (rv != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI,"Error setting bcmPortControlLinkFaultRemoteEnable for port %u", hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+
 /** 
  * Get bcm unit id for this switch. 
  * Normally is ZERO, but nervertheless it's better to be sure 
