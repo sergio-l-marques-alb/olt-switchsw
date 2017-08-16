@@ -132,6 +132,13 @@ static L7_uint16 ptin_slot_boardid[PTIN_SYS_SLOTS_MAX+1];
 #endif
 #endif
 
+/* MAX interface rate to limit shaping (percentage value) */
+/* Index 1: Effective configuration from manager */
+/* Index 2: Max shaper value */
+#define PTIN_INTF_SHAPER_MNG_VALUE  0
+#define PTIN_INTF_SHAPER_MAX_VALUE  1
+L7_uint32 ptin_intf_shaper_max[PTIN_SYSTEM_N_INTERF][2];
+
 /**
  * MACROS
  */
@@ -183,6 +190,13 @@ L7_RC_t ptin_intf_pre_init(void)
   memset(NGPON2_groups_info,  0x00, sizeof(NGPON2_groups_info));
 #endif
 
+  /* For all interfaces, max rate is 100% */
+  for (i = 0; i < PTIN_SYSTEM_N_INTERF; i++)
+  {
+    ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MNG_VALUE] = 0;   /* Shaper value from management */
+    ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MAX_VALUE] = 100; /* Max. Shaper value */
+  }
+  
   /* Initialize phy lookup tables */
   PT_LOG_TRACE(LOG_CTX_INTF, "Port <=> intIfNum lookup tables init:");
   for (i=0; i<ptin_sys_number_of_ports; i++)
@@ -4793,7 +4807,7 @@ L7_RC_t ptin_QoS_intf_cos_policer_clear(const ptin_intf_t *ptin_intf, L7_uint8 c
 L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQos)
 {
   L7_uint8  prio, prio2, cos;
-  L7_uint32 intIfNum;
+  L7_uint32 ptin_port, intIfNum;
   L7_RC_t   rc, rc_global = L7_SUCCESS;
   L7_QOS_COS_MAP_INTF_MODE_t trust_mode;
 
@@ -4822,12 +4836,13 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
             intfQos->pktprio.cos[7]);
 
   /* Validate interface */
-  if (ptin_intf_ptintf2intIfNum(ptin_intf,&intIfNum)!=L7_SUCCESS)
+  if (ptin_intf_ptintf2port(ptin_intf, &ptin_port) != L7_SUCCESS ||
+      ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid",ptin_intf->intf_type,ptin_intf->intf_id);
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", ptin_intf->intf_type, ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is intIfNum=%u",ptin_intf->intf_type,ptin_intf->intf_id,intIfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is ptin_port %u, intIfNum=%u", ptin_intf->intf_type, ptin_intf->intf_id, ptin_port, intIfNum);
 
   /* Is there any configuration to be applied? */
   if (intfQos->mask==0x00)
@@ -4886,15 +4901,16 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   /* Shaping rate */
   if (intfQos->mask & PTIN_QOS_INTF_SHAPINGRATE_MASK)
   {
-    rc = usmDbQosCosQueueIntfShapingRateSet(1,intIfNum,intfQos->shaping_rate);
-    if (rc != L7_SUCCESS)
+    rc = usmDbQosCosQueueIntfShapingRateSet(1, intIfNum, (intfQos->shaping_rate * ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE])/100);
+    if (rc == L7_SUCCESS)
+    {
+      ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE] = intfQos->shaping_rate;
+      PT_LOG_TRACE(LOG_CTX_INTF, "New shaping rate is %u",intfQos->shaping_rate);
+    }
+    else
     {  
       PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateSet (rc=%d)", rc);
       rc_global = rc;
-    }
-    else
-    {
-      PT_LOG_TRACE(LOG_CTX_INTF, "New shaping rate is %u",intfQos->shaping_rate);
     }
   }
   /* WRED decay exponent */
@@ -5009,7 +5025,7 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
 L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *intfQos)
 {
   L7_uint8  prio, prio2;
-  L7_uint32 intIfNum, value, cos;
+  L7_uint32 ptin_port, intIfNum, value, cos;
   L7_RC_t   rc, rc_global = L7_SUCCESS;
   L7_QOS_COS_MAP_INTF_MODE_t trust_mode;
 
@@ -5026,12 +5042,13 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   PT_LOG_TRACE(LOG_CTX_INTF,"Interface = %u/%u",ptin_intf->intf_type,ptin_intf->intf_id);
 
   /* Validate interface */
-  if (ptin_intf_ptintf2intIfNum(ptin_intf,&intIfNum)!=L7_SUCCESS)
+  if (ptin_intf_ptintf2port(ptin_intf, &ptin_port) != L7_SUCCESS ||
+      ptin_intf_ptintf2intIfNum(ptin_intf, &intIfNum) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid",ptin_intf->intf_type,ptin_intf->intf_id);
     return L7_FAILURE;
   }
-  PT_LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is intIfNum=%u",ptin_intf->intf_type,ptin_intf->intf_id,intIfNum);
+  PT_LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is ptin_port %u, intIfNum=%u", ptin_intf->intf_type, ptin_intf->intf_id, ptin_port, intIfNum);
 
   /* Check if interface is valid for QoS configuration */
   if (!usmDbQosCosMapIntfIsValid(1,intIfNum))
@@ -5060,7 +5077,7 @@ L7_RC_t ptin_QoS_intf_config_get(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   intfQos->mask |= PTIN_QOS_INTF_BANDWIDTHUNIT_MASK;
 
   /* Shaping rate */
-  rc = usmDbQosCosQueueIntfShapingRateGet(1,intIfNum,&value);
+  rc = usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, &value);
   if (rc != L7_SUCCESS)
   {  
     PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateGet (rc=%d)", rc);
@@ -8847,5 +8864,129 @@ L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
     *bandwidth = total_speed;
 
   return L7_SUCCESS;
+}
+
+/**
+ * Set the maximum rate for a port
+ * 
+ * @author mruas (16/08/17)
+ * 
+ * @param intf_type 
+ * @param intf_id 
+ * @param max_rate : Percentage
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 max_rate)
+{
+  L7_uint32 ptin_port, intIfNum;
+
+  /* Validate interface */
+  if (ptin_intf_typeId2port(intf_type, intf_id, &ptin_port) != L7_SUCCESS ||
+      ptin_intf_typeId2intIfNum(intf_type, intf_id, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", intf_type, intf_id);
+    return L7_FAILURE;
+  }
+  PT_LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is ptin_port %u, intIfNum %u", intf_type, intf_id, ptin_port, intIfNum);
+
+  /* Limit max rate */
+  if (max_rate > 100)
+  {
+    max_rate = 100;
+  }
+
+  /* Apply correct shaping rate */
+  if (usmDbQosCosQueueIntfShapingRateSet(1, intIfNum, (ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE]*max_rate)/100) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateSet");
+    return L7_FAILURE;
+  }
+
+  /* Save max rate for this interface */
+  ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = max_rate;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get the maximum rate for a port
+ * 
+ * @author mruas (16/08/17)
+ * 
+ * @param intf_type 
+ * @param intf_id 
+ * @param max_rate : Percentage
+ * @param eff_max_rate : Percentage
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_shaper_max_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *max_rate, L7_uint32 *eff_max_rate)
+{
+  L7_uint32 ptin_port, intIfNum;
+
+  /* Validate interface */
+  if (ptin_intf_typeId2port(intf_type, intf_id, &ptin_port) != L7_SUCCESS ||
+      ptin_intf_typeId2intIfNum(intf_type, intf_id, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", intf_type, intf_id);
+    return L7_FAILURE;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is ptin_port %u, intIfNum=%u => max_rate=%u",
+               intf_type, intf_id, ptin_port, intIfNum, ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE]);
+
+  /* Limit max rate */
+  if (max_rate != L7_NULLPTR)
+  {
+    *max_rate = ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE];
+  }
+
+  /* Effective max rate */
+  if (eff_max_rate != L7_NULLPTR)
+  {
+    if (usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, eff_max_rate) != L7_SUCCESS)
+    {
+      *eff_max_rate = 0;
+    }
+  }
+
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Dump the maximum rate for all interfaces
+ * 
+ * @author mruas (16/08/17)
+ */
+void ptin_intf_shaper_max_dump(void)
+{
+  L7_uint32 port, intIfNum, shaper_rate;
+  L7_RC_t rc;
+
+  printf("----------------------------------------\r\n");
+  printf("| Port | Max rate | Mng max | Eff max |\r\n");
+  for (port = 0; port < PTIN_SYSTEM_N_PORTS; port++)
+  {
+    if (ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+    {
+      rc = usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, &shaper_rate);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateGet: rc=%d", rc);
+        shaper_rate = 0;
+      }
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error converting port %u to intIfNum", port);
+      shaper_rate = 0;
+    }
+
+    printf("|  %2u  |    %3u   |   %3u   |   %3u   |\r\n", port,
+           ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MAX_VALUE], ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MNG_VALUE], shaper_rate);
+  }
+  printf("----------------------------------------\r\n");
 }
 

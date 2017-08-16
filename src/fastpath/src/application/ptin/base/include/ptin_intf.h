@@ -989,6 +989,33 @@ extern L7_RC_t ptin_intf_max_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
  */
 extern L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth);
 
+/**
+ * Set the maximum rate for a port
+ * 
+ * @author mruas (16/08/17)
+ * 
+ * @param intf_type 
+ * @param intf_id 
+ * @param max_rate : Percentage
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 max_rate);
+
+/**
+ * Get the maximum rate for a port
+ * 
+ * @author mruas (16/08/17)
+ * 
+ * @param intf_type 
+ * @param intf_id 
+ * @param max_rate : Percentage
+ * @param eff_max_rate : Percentage
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_intf_shaper_max_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *max_rate, L7_uint32 *eff_max_rate);
+
 #ifdef NGPON2_SUPPORTED
 /**
  * PTIN_INTF NGPON2 Add Group 

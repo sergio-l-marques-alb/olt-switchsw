@@ -194,6 +194,18 @@ extern L7_RC_t ptin_msg_PhyActivity_get(msg_HWEthPhyActivity_t *msgPhyAct);
  */
 extern L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus);
 
+/**
+ * Configuration from OLTD application
+ * 
+ * @author mruas (14/08/17)
+ * 
+ * @param inbuffer 
+ * @param outbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_oltd_hw_config(ipc_msg *inbuffer, ipc_msg *outbuffer);
+
 /* Counters Manipulation Functions ********************************************/ 
 /**
  * Read PHY counters
