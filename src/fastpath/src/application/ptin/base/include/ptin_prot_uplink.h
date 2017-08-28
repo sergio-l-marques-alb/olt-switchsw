@@ -221,6 +221,16 @@ extern L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, pti
  */
 extern L7_RC_t ptin_prot_uplink_clear(L7_uint8 protIdx);
 
+
+/**
+ * Remove all protection group
+ * 
+ * @param protIdx 
+ *  
+ * @return L7_RC_t  
+ */
+extern L7_RC_t ptin_prot_uplink_clear_all();
+
 /**
  * Get protection group configuration
  * 

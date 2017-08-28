@@ -3027,6 +3027,67 @@ L7_RC_t ptin_prot_uplink_clear(L7_uint8 protIdx)
   return L7_SUCCESS;
 }
 
+
+
+/**
+ * Remove all  protection group
+ * 
+ * @param protIdx 
+ *  
+ * @return L7_RC_t  
+ */
+L7_RC_t ptin_prot_uplink_clear_all()
+{
+  L7_uint32 protIdx=0;
+
+  for (protIdx=0; protIdx < MAX_UPLINK_PROT ;protIdx++)
+  {
+    if (protIdx >= MAX_UPLINK_PROT)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Invalid index. Max index is %u", MAX_UPLINK_PROT);
+      continue;
+    }
+
+    if (!uplinkprot[protIdx].admin)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Nothing to do... already disabled!");
+      continue;
+    }
+
+    osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+
+    /* Stop any timer */
+    ptin_prot_timer_stop(protIdx);
+
+    /* Disable state machine */
+    uplinkprotFsmTransition(protIdx, PROT_STATE_Disabled, __LINE__);
+
+    /* Initialize operator commands */
+    operator_cmd[protIdx] = OPCMD_NR;
+    operator_switchToPortType[protIdx] = PORT_WORKING;
+
+    /* Activate both LAGs */
+    ptin_prot_select_intf(protIdx, PORT_ALL);
+
+    /* Make sure linkfaults are enabled */
+    (void) ptin_intf_linkfaults_enable(uplinkprot[protIdx].protParams.intIfNumW, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
+    (void) ptin_intf_linkfaults_enable(uplinkprot[protIdx].protParams.intIfNumP, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
+
+    /* Disable entry */
+    uplinkprot[protIdx].admin = L7_FALSE;
+
+    /* Clear entry */
+    memset(&uplinkprot[protIdx], 0x00, sizeof(uplinkprot[protIdx]));
+
+    osapiSemaGive(ptin_prot_uplink_sem);
+
+    PT_LOG_INFO(LOG_CTX_INTF, "ProtIndex %u initialized!\r\n", protIdx);
+  }
+
+  return L7_SUCCESS;
+}
+
+
 /**
  * Get protection group configuration
  * 
