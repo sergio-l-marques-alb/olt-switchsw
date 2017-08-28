@@ -1357,7 +1357,7 @@ L7_RC_t ptin_msg_oltd_hw_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
   if (msgConf->operation == OLTDHWCONFIG_OP_SHAPER_SET)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG, "Applying OLTDHWCONFIG_OP_SHAPER_SET operation...");
-    rc = ptin_intf_shaper_max_set(msgConf->intf.intf_type, msgConf->intf.intf_id, msgConf->param[0]);
+    rc = ptin_intf_shaper_max_set(msgConf->intf.intf_type, msgConf->intf.intf_id, msgConf->param[0], msgConf->param[1]);
   }
   
   PT_LOG_DEBUG(LOG_CTX_MSG, "Result = %d", rc);
