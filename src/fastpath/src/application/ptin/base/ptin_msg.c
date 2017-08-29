@@ -18786,17 +18786,15 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
           }
           else
           {
-#ifdef NGPON2_SUPPORTED
             L7_uint32 evc_id;
             /* Is EVC in use? */
             if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) == L7_SUCCESS)
             {              
               mcast_service_info[evc_id].evcId         = ENDIAN_SWAP32(msg[messageIterator].evcId);
-              mcast_service_info[evc_id].onuId         = ENDIAN_SWAP32(msg[messageIterator].onuId);
+              mcast_service_info[evc_id].onuId         = ENDIAN_SWAP8(msg[messageIterator].onuId); 
               mcast_service_info[evc_id].intf.intf_id  = ptinPort;
               mcast_service_info[evc_id].admin         = L7_TRUE;
             }
-#endif
           }
           j++;
         }
@@ -18829,7 +18827,7 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
         if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) == L7_SUCCESS)
         {
           mcast_service_info[evc_id].evcId         = ENDIAN_SWAP32(msg[messageIterator].evcId);
-          mcast_service_info[evc_id].onuId         = ENDIAN_SWAP32(msg[messageIterator].onuId);
+          mcast_service_info[evc_id].onuId         = ENDIAN_SWAP8(msg[messageIterator].onuId); 
           mcast_service_info[evc_id].intf.intf_id  = ptinPort;
         }
 #endif
