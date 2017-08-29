@@ -18352,7 +18352,7 @@ RC_t ptin_igmp_multicast_service_remove(L7_uint32 ptinPort, L7_uint32 onuId, L7_
     PT_LOG_TRACE(LOG_CTX_IGMP, "Input Parameters [ptinPort:%u onuId:%u serviceId:%u]",
               ptinPort, onuId, serviceId);
 
-  if ( (internalServiceId = ptinIgmpAdmissionControlMulticastInternalServiceId[serviceId]) == (L7_uint8) -1 ||  multicastServiceId[ptinPort][onuId][internalServiceId].inUse == L7_FALSE )
+  if ( (internalServiceId =  ptinIgmpAdmissionControlMulticastInternalServiceId[serviceId]) == (L7_uint8) -1 ||  multicastServiceId[ptinPort][onuId][internalServiceId].inUse == L7_FALSE )
   {
     if (ptin_debug_igmp_snooping)
       PT_LOG_NOTICE(LOG_CTX_IGMP, "Multicast Service Does Not Exist [ptinPort:%u onuId:%u serviceId:%u internalServiceId:%u noOfMulticastServices:%u]",
@@ -18423,11 +18423,10 @@ RC_t ptin_igmp_multicast_get_all_serviceId_per_onu(L7_uint32 ptinPort, L7_uint32
            avlSearchLVL7(&igmpGroupClients.avlTree.igmpClientsAvlTree, (void *)&avl_key, AVL_NEXT)
           ) != L7_NULLPTR )
   {
-
     if ( group_client->onuId == onuId && group_client->ptin_port == ptinPort )
     {
       /* reset flag to send querier*/
-      if ( *nOfServices == -1 )
+      if ( *nOfServices == (L7_uint32) -1 )
       {
         serviceId_evcUc[ptinPort][onuId][i].send = 0;
         i++;
@@ -18438,22 +18437,12 @@ RC_t ptin_igmp_multicast_get_all_serviceId_per_onu(L7_uint32 ptinPort, L7_uint32
         serviceId_evcUc[ptinPort][onuId][i].send = 1;
         PT_LOG_TRACE(LOG_CTX_IGMP, "Querier flag up ");
 
-        if ( serviceId_evcUc[ptinPort][onuId][i].inUse == L7_FALSE )
-        {
-          serviceId_evcUc[ptinPort][onuId][i].inUse     = L7_TRUE;
-          serviceId_evcUc[ptinPort][onuId][i].serviceId = group_client->evcId;
-          listOfServices[i] = group_client->evcId;
-          i++;
-          *nOfServices = i;
-        }
-        else
-        {
-          serviceId_evcUc[ptinPort][onuId][i].inUse     = L7_TRUE;
-          serviceId_evcUc[ptinPort][onuId][i].serviceId = group_client->evcId;
-          listOfServices[i] = group_client->evcId;
-          i++;
-          *nOfServices = i;
-        }
+        serviceId_evcUc[ptinPort][onuId][i].inUse     = L7_TRUE;
+        serviceId_evcUc[ptinPort][onuId][i].serviceId = group_client->evcId;
+        listOfServices[i] = group_client->evcId;
+        i++;
+        *nOfServices = i;
+        
       }
     }
 

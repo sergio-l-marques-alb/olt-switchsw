@@ -314,8 +314,7 @@ void ptin_opensaf_task_OnuMac( void )
     if (onuStatus.state == ONU_STATE_ACTIVE)
     {
       L7_uint32 servicesId[PTIN_SYSTEM_MAX_SERVICES_PER_ONU];
-      L7_uint32 nOfServices = (L7_uint32) 0;
-      L7_uint32 i = 0;
+      L7_uint32 nOfServices = (L7_uint32) 0;      
 
 #if 0
       dhcpSnoopBinding_t  dsBindingIpv4,dsBindingIpv6;
@@ -339,6 +338,7 @@ void ptin_opensaf_task_OnuMac( void )
                                                                                     dsBindingIpv4.key.macAddr[3], dsBindingIpv4.key.macAddr[4], dsBindingIpv4.key.macAddr[5]);
 
 #endif
+      memset(servicesId, 0, PTIN_SYSTEM_MAX_SERVICES_PER_ONU*sizeof(L7_uint32));
       ptin_igmp_multicast_get_all_serviceId_per_onu(event_data.memberIndex, event_data.onuId, servicesId, &nOfServices);
 
 #if 0
@@ -348,11 +348,14 @@ void ptin_opensaf_task_OnuMac( void )
       //PT_LOG_TRACE(LOG_CTX_OPENSAF, " event_data.memberIndex = %u, event_data.onuId = %u", event_data.memberIndex, event_data.onuId);
       usmDbDsLeaseStatusUpdateIntf(&dsBindingIpv4.key, L7_AF_INET6, event_data.memberIndex);
 #endif
-      while (i < PTIN_SYSTEM_MAX_SERVICES_PER_ONU)
+
+      L7_uint32 i = 0;
+      PT_LOG_TRACE(LOG_CTX_OPENSAF, " nOfServices = %d,", nOfServices);
+      while (i < nOfServices)
       {
-        if (servicesId[i] != (L7_uint32) -1)
+        PT_LOG_TRACE(LOG_CTX_OPENSAF, " servicesId[%d] = %u,", i, servicesId[i]);
+        if (servicesId[i] <= PTIN_SYSTEM_N_EVCS)
         {
-          PT_LOG_TRACE(LOG_CTX_OPENSAF, " servicesId[%d] = %d,", i, servicesId[i]);
           ptin_igmp_multicast_querierReset_on_specific_serviceID(event_data.memberIndex, event_data.onuId, servicesId[i]);
         }
         i++;
