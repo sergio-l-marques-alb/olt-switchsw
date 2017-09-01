@@ -140,6 +140,8 @@ static L7_uint16 ptin_slot_boardid[PTIN_SYS_SLOTS_MAX+1];
 L7_uint32 ptin_intf_shaper_max[PTIN_SYSTEM_N_INTERF][2];
 L7_uint32 ptin_burst_size[PTIN_SYSTEM_N_INTERF];
 
+//ptin_intf_shaper_t shaper_max_burst[PTIN_SYSTEM_N_INTERF];
+
 /**
  * MACROS
  */
@@ -8881,6 +8883,7 @@ L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
 L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 max_rate, L7_uint32 burst_size)
 {
   L7_uint32 ptin_port, intIfNum;
+  ptin_intf_shaper_t   entry;
 
   /* Validate interface */
   if (ptin_intf_typeId2port(intf_type, intf_id, &ptin_port) != L7_SUCCESS ||
@@ -8903,16 +8906,30 @@ L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32
     burst_size = 100000;
   }
 
+#if 0 // this will be done with ptin_hapi_qos_shaper_max_burst_config (broad_ptin.c)
   /* Apply correct shaping rate */
   if (usmDbQosCosQueueIntfShapingRateSet(1, intIfNum, (ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE]*max_rate)/100) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateSet");
     return L7_FAILURE;
   }
+#endif
+
+  memset(&entry, 0x00, sizeof(ptin_intf_shaper_t));
+
+  entry.ptin_port  = ptin_port;
+  entry.burst_size = burst_size;
+  entry.max_rate   = ((ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE]*max_rate)/100);
+
+  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port:  %u", entry.ptin_port);
+  PT_LOG_TRACE(LOG_CTX_INTF, "burst_size: %u", entry.burst_size);
+  PT_LOG_TRACE(LOG_CTX_INTF, "max_rate:   %u", entry.max_rate);
+
+  dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_MAX_BURST, DAPI_CMD_SET, sizeof(ptin_intf_shaper_t), &entry);
 
   /* Save max rate for this interface */
-  ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = max_rate;
-  ptin_burst_size[ptin_port] = burst_size;
+  ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = entry.max_rate;
+  ptin_burst_size[ptin_port] = entry.burst_size;
   return L7_SUCCESS;
 }
 
