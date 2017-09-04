@@ -198,6 +198,8 @@ L7_RC_t ptin_intf_pre_init(void)
   {
     ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MNG_VALUE] = 0;   /* Shaper value from management */
     ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MAX_VALUE] = 100; /* Max. Shaper value */
+    ptin_burst_size[i] = 50000; //default bcm value for port max burst rate
+
   }
   
   /* Initialize phy lookup tables */

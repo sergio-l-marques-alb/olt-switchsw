@@ -410,7 +410,9 @@ extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
   PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 #endif
 
+  /* Remove prot uplink configuration  */
   ptin_prot_uplink_clear_all();
+
   if (mode == DEFAULT_RESET_MODE_FULL)
   {
     ptin_NtwConnectivity_t ptinNtwConn;
