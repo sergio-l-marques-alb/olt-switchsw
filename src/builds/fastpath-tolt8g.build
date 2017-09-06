@@ -6,13 +6,13 @@ export PLATFORMS="TOLT8G"
 export APPLICATION=fp
 
 echo "Compiling fastpath for TOLT8G..."
-make -C ../fastpath -f tolt8g.make
+make -C ../fastpath -f swdrvr-tolt8g.make
 if [ $? -ne 0 ]; then
  echo ERROR!!!
  exit 1;
 fi
 echo "Copying binaries to apps..."
-make -C ../fastpath -f tolt8g.make install
+make -C ../fastpath -f swdrvr-tolt8g.make install
 if [ $? -ne 0 ]; then
  echo ERROR!!!
  exit 1;

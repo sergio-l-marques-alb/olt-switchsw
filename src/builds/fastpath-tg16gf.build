@@ -6,13 +6,13 @@ export PLATFORMS="TG16GF TT04SXG "
 export APPLICATION=fp
 
 echo "Compiling fastpath for TG16G..."
-make -C ../fastpath -f tg16gf.make
+make -C ../fastpath -f swdrvr-tg16gf.make
 if [ $? -ne 0 ]; then
  echo ERROR!!!
  exit 1;
 fi
 echo "Copying binaries to apps..."
-make -C ../fastpath -f tg16gf.make install
+make -C ../fastpath -f swdrvr-tg16gf.make install
 if [ $? -ne 0 ]; then
  echo ERROR!!!
  exit 1;

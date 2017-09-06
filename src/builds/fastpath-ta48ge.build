@@ -6,13 +6,13 @@ export PLATFORMS="TA48GE"
 export APPLICATION=fp
 
 echo "Compiling fastpath for TA48GE..."
-make -C ../fastpath -f ta48ge.make
+make -C ../fastpath -f swdrvr-ta48ge.make
 if [ $? -ne 0 ]; then
  echo ERROR!!!
  exit 1;
 fi
 echo "Copying binaries to apps..."
-make -C ../fastpath -f ta48ge.make install
+make -C ../fastpath -f swdrvr-ta48ge.make install
 if [ $? -ne 0 ]; then
  echo ERROR!!!
  exit 1;
