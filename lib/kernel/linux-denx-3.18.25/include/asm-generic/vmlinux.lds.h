@@ -629,6 +629,7 @@
 		*(.initcall##level##.init)				\
 		*(.initcall##level##s.init)				\
 
+/*
 #define INIT_CALLS							\
 		VMLINUX_SYMBOL(__initcall_start) = .;			\
 		*(.initcallearly.init)					\
@@ -642,6 +643,54 @@
 		INIT_CALLS_LEVEL(6)					\
 		INIT_CALLS_LEVEL(7)					\
 		VMLINUX_SYMBOL(__initcall_end) = .;
+
+#define INIT_CALLS                                                      \
+		VMLINUX_SYMBOL(__initcall_start) = .;                   \
+		*(.initcallearly.init)                                  \
+		VMLINUX_SYMBOL(__initcall0_start) = .;			\
+		*(.initcall0.init)					\
+		*(.initcall0s.init)					\
+                INIT_CALLS_LEVEL(1)                                     \
+                INIT_CALLS_LEVEL(2)                                     \
+                INIT_CALLS_LEVEL(3)                                     \
+                INIT_CALLS_LEVEL(4)                                     \
+                INIT_CALLS_LEVEL(5)                                     \
+                INIT_CALLS_LEVEL(rootfs)                                \
+                INIT_CALLS_LEVEL(6)                                     \
+                INIT_CALLS_LEVEL(7)                                     \
+                VMLINUX_SYMBOL(__initcall_end) = .;
+*/
+#define INIT_CALLS                                                       \
+	VMLINUX_SYMBOL(__initcall_start) = .;			\
+        *(.initcallearly.init)                                          \
+	VMLINUX_SYMBOL(__initcall0_start) = .;          \
+        *(.initcall0.init)                                              \
+        *(.initcall0s.init)                                             \
+	VMLINUX_SYMBOL(__initcall1_start) = .;          \
+        *(.initcall1.init)                                              \
+        *(.initcall1s.init)                                             \
+	VMLINUX_SYMBOL(__initcall2_start) = .;          \
+        *(.initcall2.init)                                              \
+        *(.initcall2s.init)                                             \
+	VMLINUX_SYMBOL(__initcall3_start) = .;          \
+        *(.initcall3.init)                                              \
+        *(.initcall3s.init)                                             \
+	VMLINUX_SYMBOL(__initcall4_start) = .;          \
+        *(.initcall4.init)                                              \
+        *(.initcall4s.init)                                             \
+	VMLINUX_SYMBOL(__initcall5_start) = .;          \
+        *(.initcall5.init)                                              \
+        *(.initcall5s.init)                                             \
+	VMLINUX_SYMBOL(__initcallrootfs_start) = .;          \
+        *(.initcallrootfs.init)                                         \
+        *(.initcallrootfss.init)                                        \
+	VMLINUX_SYMBOL(__initcall6_start) = .;          \
+        *(.initcall6.init)                                              \
+        *(.initcall6s.init)                                             \
+	VMLINUX_SYMBOL(__initcall7_start) = .;          \
+        *(.initcall7.init)                                              \
+        *(.initcall7s.init)						\
+        VMLINUX_SYMBOL(__initcall_end) = .;                       
 
 #define CON_INITCALL							\
 		VMLINUX_SYMBOL(__con_initcall_start) = .;		\
