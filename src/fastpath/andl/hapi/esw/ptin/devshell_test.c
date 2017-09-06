@@ -18,6 +18,100 @@
 #include "bcmx/vlan.h"
 #include "logger.h"
 
+int ptin_cosq_discard_set(unsigned int gport, unsigned int queueIndex, unsigned int flags, unsigned int minthresh, unsigned int maxthresh, unsigned int dropprob, unsigned int wredexp)
+{
+  int precIndex;
+  bcm_cosq_gport_discard_t discardParams;
+  bcm_error_t rv;
+
+  memset(&discardParams,  0x00,  sizeof(bcm_cosq_gport_discard_t));
+  //discardParams.flags             = flags;
+  discardParams.min_thresh        = minthresh;
+  discardParams.max_thresh        = maxthresh;
+  discardParams.drop_probability  = dropprob;
+  discardParams.gain              = wredexp;
+
+  for (precIndex = 0; precIndex < 6; precIndex++)
+  {
+    /* Flags */
+    switch (precIndex) 
+    {
+      case 0:
+        discardParams.flags = flags | (BCM_COSQ_DISCARD_COLOR_GREEN | BCM_COSQ_DISCARD_TCP);
+        break;
+      case 1:
+        discardParams.flags = flags | (BCM_COSQ_DISCARD_COLOR_YELLOW | BCM_COSQ_DISCARD_TCP);
+        break;
+      case 2:
+        discardParams.flags = flags | (BCM_COSQ_DISCARD_COLOR_RED | BCM_COSQ_DISCARD_TCP);
+        break;
+      case 3:
+        discardParams.flags = flags | (BCM_COSQ_DISCARD_COLOR_GREEN | BCM_COSQ_DISCARD_NONTCP);
+        break;
+      case 4:
+        discardParams.flags = flags | (BCM_COSQ_DISCARD_COLOR_YELLOW | BCM_COSQ_DISCARD_NONTCP);
+        break;
+      case 5:
+        discardParams.flags = flags | (BCM_COSQ_DISCARD_COLOR_RED | BCM_COSQ_DISCARD_NONTCP);
+        break;
+      default:
+        return(BCM_E_PARAM);
+    }
+
+    rv = bcm_cosq_gport_discard_set(0, gport, queueIndex, &discardParams);
+
+    printf("precIndex=%u: rv = %d (%s)\r\n", precIndex, rv, bcm_errmsg(rv));
+  }
+
+  return rv;
+}
+
+int ptin_cosq_discard_get(unsigned int gport, unsigned int queueIndex, unsigned int flags)
+{
+  int precIndex;
+  bcm_cosq_gport_discard_t discardParams;
+  bcm_error_t rv;
+
+  for (precIndex = 0; precIndex < 6; precIndex++)
+  {
+    memset(&discardParams,  0x00,  sizeof(bcm_cosq_gport_discard_t));
+
+    switch (precIndex) 
+    {
+      case 0:
+        discardParams.flags = flags | (BCM_COSQ_DISCARD_COLOR_GREEN | BCM_COSQ_DISCARD_TCP);
+        break;
+      case 1:
+        discardParams.flags = flags | (BCM_COSQ_DISCARD_COLOR_YELLOW | BCM_COSQ_DISCARD_TCP);
+        break;
+      case 2:
+        discardParams.flags = flags | (BCM_COSQ_DISCARD_COLOR_RED | BCM_COSQ_DISCARD_TCP);
+        break;
+      case 3:
+        discardParams.flags = flags | (BCM_COSQ_DISCARD_COLOR_GREEN | BCM_COSQ_DISCARD_NONTCP);
+        break;
+      case 4:
+        discardParams.flags = flags | (BCM_COSQ_DISCARD_COLOR_YELLOW | BCM_COSQ_DISCARD_NONTCP);
+        break;
+      case 5:
+        discardParams.flags = flags | (BCM_COSQ_DISCARD_COLOR_RED | BCM_COSQ_DISCARD_NONTCP);
+        break;
+      default:
+        return(BCM_E_PARAM);
+    }
+
+    rv = bcm_cosq_gport_discard_get(0, gport, queueIndex, &discardParams);
+
+    printf("precIndex=%u: rv = %d (%s)\r\n", precIndex, rv, bcm_errmsg(rv));
+    printf("   flags=0x%08x gain=%d min_thresh=%d max_thresh=%d drop_prob=%d evc_thresh=%d refresh_time=%d\r\n",
+           discardParams.flags, discardParams.gain, discardParams.min_thresh, discardParams.max_thresh,
+           discardParams.drop_probability, discardParams.ecn_thresh, discardParams.refresh_time);
+  }
+
+  return rv;
+}
+
+
 int kt2_hqos_set(bcm_port_t port)
 {
   int unit = 0;

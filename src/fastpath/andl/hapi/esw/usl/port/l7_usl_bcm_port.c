@@ -1594,7 +1594,7 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
     /* OLT1T0F/TG16GF board */
     else if (SOC_IS_KATANA2(unit))
     {
-      cellsize = 2880;    /* Cell size for external memory */
+      cellsize = 768;     /* Cell size for external memory */
       totalmem = 256000;  /* Considering 6x2Gbit external memory */
     }
     /* OLT1T0 board */
@@ -1624,7 +1624,7 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
     if (SOC_IS_KATANA2(unit))
     {
       /* Katana2 have 4K queues (56450-DS106-RDS.pdf) */
-      conversion_factor = cellsize * totalmem / 4096;
+      conversion_factor = totalmem / (1 + 2 * (NUM_PORT(unit)-1));
     }
     else
     {
@@ -1669,7 +1669,18 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
       /* PTin modified: Allow 6 DP levels */
       for (precIndex=0; precIndex<(L7_MAX_CFG_DROP_PREC_LEVELS*2); precIndex++) 
       {
-        discardParams.flags = BCM_COSQ_DISCARD_BYTES;
+        /* Initialize flags */
+        discardParams.flags = 0;
+
+        if (SOC_IS_KATANA2(unit))
+        {
+          /* Configure in cell units (no flags assigned) */
+        }
+        else
+        {
+          /* Configure in bytes */
+          discardParams.flags |= BCM_COSQ_DISCARD_BYTES;
+        }
         if (wredParams->flags[queueIndex] & BCM_COSQ_DISCARD_CAP_AVERAGE) 
         {
           discardParams.flags |= BCM_COSQ_DISCARD_CAP_AVERAGE;
