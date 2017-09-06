@@ -196,7 +196,7 @@ L7_RC_t ptin_intf_pre_init(void)
   /* For all interfaces, max rate is 100% */
   for (i = 0; i < PTIN_SYSTEM_N_INTERF; i++)
   {
-    ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MNG_VALUE] = 0;   /* Shaper value from management */
+    ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MNG_VALUE] = 100;   /* Shaper value from management */
     ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MAX_VALUE] = 100; /* Max. Shaper value */
     ptin_burst_size[i] = 50000; //default bcm value for port max burst rate
 
@@ -4906,11 +4906,21 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   /* Shaping rate */
   if (intfQos->mask & PTIN_QOS_INTF_SHAPINGRATE_MASK)
   {
+    PT_LOG_NOTICE(LOG_CTX_INTF, "New shaping rate is %u", intfQos->shaping_rate);
+    if(intfQos->shaping_rate == 0)
+    {
+      intfQos->shaping_rate = 100;
+    }
+
+    PT_LOG_TRACE(LOG_CTX_INTF, "ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = %u",ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE]);
+    PT_LOG_TRACE(LOG_CTX_INTF, "intfQos->shaping_rate = %u",intfQos->shaping_rate);
+
     rc = usmDbQosCosQueueIntfShapingRateSet(1, intIfNum, (intfQos->shaping_rate * ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE])/100);
+
     if (rc == L7_SUCCESS)
     {
       ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE] = intfQos->shaping_rate;
-      PT_LOG_TRACE(LOG_CTX_INTF, "New shaping rate is %u",intfQos->shaping_rate);
+      PT_LOG_NOTICE(LOG_CTX_INTF, "New shaping rate is %u",intfQos->shaping_rate);
     }
     else
     {  
@@ -8930,8 +8940,8 @@ L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32
   dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_MAX_BURST, DAPI_CMD_SET, sizeof(ptin_intf_shaper_t), &entry);
 
   /* Save max rate for this interface */
-  ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = entry.max_rate;
-  ptin_burst_size[ptin_port] = entry.burst_size;
+  ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = ((ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE]*max_rate)/100);
+  ptin_burst_size[ptin_port] = burst_size;
   return L7_SUCCESS;
 }
 
@@ -8994,7 +9004,7 @@ L7_RC_t ptin_intf_shaper_max_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32
  */
 void ptin_intf_shaper_max_dump(void)
 {
-  L7_uint32 port, intIfNum, shaper_rate, burst_size;
+  L7_uint32 port, intIfNum, shaper_rate;
   L7_RC_t rc;
 
   printf("------------------------------------------------\r\n");
@@ -9009,13 +9019,6 @@ void ptin_intf_shaper_max_dump(void)
         PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateGet: rc=%d", rc);
         shaper_rate = 0;
       }
-
-      /* Apply correct shaping rate */
-      if (cosQueueIntfShapingRateGet(intIfNum, &burst_size) != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_INTF, "Error with cosQueueIntfShapingRateGet");
-        burst_size = 0;
-      }
     }
     else
     {
@@ -9024,7 +9027,7 @@ void ptin_intf_shaper_max_dump(void)
     }
 
     printf("|  %2u  |    %3u   |   %3u   |   %3u   |   %3u   |\r\n", port,
-           ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MAX_VALUE], ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MNG_VALUE], shaper_rate, burst_size);
+           ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MAX_VALUE], ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MNG_VALUE], shaper_rate, ptin_burst_size[port]);
   }
   printf("------------------------------------------------\r\n");
 }

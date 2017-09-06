@@ -19327,7 +19327,6 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
   {
     if(NGPON2_GROUP.evc_groups_pbmp[index] == 0)
     {
-      PT_LOG_TRACE(LOG_CTX_MSG, "NGPON2_GROUP.evc_groups_pbmp[index] = %d index = %d , no NGPON services in the 256 positions", NGPON2_GROUP.evc_groups_pbmp[index], index);
       continue;
     }
 

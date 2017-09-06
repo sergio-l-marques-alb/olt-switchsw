@@ -8738,7 +8738,6 @@ L7_RC_t ptin_evc_offline_entry_add(ptin_HwEthMef10Evc_t *EvcConf)
   /* Search for the newly created node */
   ext_evcId_infoData = (ptinExtNGEvcIdInfoData_t *) avlSearchLVL7( &(extNGEvcId_avlTree.extNGEvcIdAvlTree), (void *)&ext_evcId_key, AVL_EXACT);
 
-  PT_LOG_CRITIC(LOG_CTX_EVC,"Something is wrong... new created node, is not found (ext_evc_id=%u)!",ext_evcId_key.ext_evcId);
   /* If already in use, return its (internal) evc_id */
   if (ext_evcId_infoData == L7_NULLPTR)
   {
