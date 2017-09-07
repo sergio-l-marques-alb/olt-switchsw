@@ -8962,6 +8962,7 @@ L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32
 L7_RC_t ptin_intf_shaper_max_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *max_rate, L7_uint32 *eff_max_rate, L7_uint32 *burst_size)
 {
   L7_uint32 ptin_port, intIfNum;
+  ptin_intf_shaper_t   entry;
 
   /* Validate interface */
   if (ptin_intf_typeId2port(intf_type, intf_id, &ptin_port) != L7_SUCCESS ||
@@ -8988,13 +8989,22 @@ L7_RC_t ptin_intf_shaper_max_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32
       *eff_max_rate = 0;
     }
   }
-
+#if 0
   /* Apply correct shaping rate */
   if (cosQueueIntfShapingRateGet(intIfNum, burst_size) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Error with cosQueueIntfShapingRateGet");
     *burst_size = 0;
   }
+#endif
+
+  memset(&entry, 0x00, sizeof(ptin_intf_shaper_t));
+
+  entry.ptin_port  = ptin_port;
+
+  dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_MAX_BURST_GET, DAPI_CMD_GET, sizeof(ptin_intf_shaper_t), &entry);
+
+  *burst_size = entry.burst_size;
 
   return L7_SUCCESS;
 }
@@ -9032,5 +9042,6 @@ void ptin_intf_shaper_max_dump(void)
            ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MAX_VALUE], ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MNG_VALUE], shaper_rate, ptin_burst_size[port]);
   }
   printf("------------------------------------------------\r\n");
+
 }
 
