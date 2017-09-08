@@ -18352,7 +18352,7 @@ RC_t ptin_igmp_multicast_service_remove(L7_uint32 ptinPort, L7_uint32 onuId, L7_
     PT_LOG_TRACE(LOG_CTX_IGMP, "Input Parameters [ptinPort:%u onuId:%u serviceId:%u]",
               ptinPort, onuId, serviceId);
   // ptin_igmp_admission_control_multicast_internal_id_get(serviceId) 
-  if ( (internalServiceId = ptinIgmpAdmissionControlMulticastInternalServiceId[serviceId]) == (L7_uint8) -1 ||  multicastServiceId[ptinPort][onuId][internalServiceId].inUse == L7_FALSE )
+  if ( (internalServiceId = ptin_igmp_admission_control_multicast_internal_id_get(serviceId)) == (L7_uint8) -1 ||  multicastServiceId[ptinPort][onuId][internalServiceId].inUse == L7_FALSE )
   {
     if (ptin_debug_igmp_snooping)
       PT_LOG_NOTICE(LOG_CTX_IGMP, "Multicast Service Does Not Exist [ptinPort:%u onuId:%u serviceId:%u internalServiceId:%u noOfMulticastServices:%u]",
