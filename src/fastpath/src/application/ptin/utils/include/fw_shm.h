@@ -62,6 +62,9 @@ typedef struct {
   } intf[SSM_N_SLOTS][SSM_N_INTFS];
 
   L7_uchar8 sysMacAddr[6];      /* System MAC Address */
+#if 0
+  L7_uchar8 BoardPresent[SSM_N_SLOTS];   /* Board present presence per slot (0: not present, 1-present) */
+#endif
 } t_fw_shm;
 
 #elif (/*defined(SYNC_SSM_IS_SUPPORTED) &&*/ (PTIN_BOARD_IS_ACTIVETH))
