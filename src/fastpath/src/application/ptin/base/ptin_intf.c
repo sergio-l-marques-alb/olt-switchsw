@@ -9006,6 +9006,14 @@ L7_RC_t ptin_intf_shaper_max_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32
 
   *burst_size = entry.burst_size;
 
+  PT_LOG_TRACE(LOG_CTX_INTF, "burst_size: %u", *burst_size);
+
+  /* Save the read value (burst_size) if it's different from the value stored on ptin_burst_size[ptin_port] */
+  if (ptin_burst_size[ptin_port] != *burst_size)
+  {
+    ptin_burst_size[ptin_port] = *burst_size;
+  }
+
   return L7_SUCCESS;
 }
 

@@ -1344,8 +1344,6 @@ L7_RC_t ptin_hapi_qos_shaper_max_burst_get(int unit, L7_uint32 ptin_port, L7_uin
   PT_LOG_TRACE(LOG_CTX_HAPI, "max_rate:   %u", *max_rate);
   PT_LOG_TRACE(LOG_CTX_HAPI, "burst_size: %u", *burst_size);
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "rc: %u", rc);
-
   return rc;
 }
 

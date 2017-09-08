@@ -560,10 +560,7 @@ L7_RC_t broad_ptin_shaper_max_burst_get(DAPI_USP_t *usp, DAPI_CMD_GET_SET_t oper
   }
 
   entry->max_rate   = (100 * (entry->max_rate))/(bcmSpeed);
-  //entry->burst_size = burst_size;
 
-  //PT_LOG_TRACE(LOG_CTX_HAPI, "max_rate %u",   max_rate);
-  //PT_LOG_TRACE(LOG_CTX_HAPI, "burst_size %u", burst_size);
   PT_LOG_TRACE(LOG_CTX_HAPI, "entry->max_rate %u",   entry->max_rate);
   PT_LOG_TRACE(LOG_CTX_HAPI, "entry->burst_size %u", entry->burst_size);
 
