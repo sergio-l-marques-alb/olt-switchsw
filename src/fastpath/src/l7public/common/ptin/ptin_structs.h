@@ -733,6 +733,7 @@ typedef struct
 #define PTIN_EVC_INTF_LOGICAL       1
 #define PTIN_EVC_INTF_ROUTING       2
 #define PTIN_EVC_INTF_LOOPBACK      3
+
 #define PTIN_EVC_INTF_ROOT          0
 #define PTIN_EVC_INTF_LEAF          1
 #define PTIN_EVC_INTF_NOTUSED       255

@@ -210,7 +210,7 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
   L7_uint32 i, members_configured, members_number, intIfNum_list[PTIN_SYSTEM_N_PORTS], intIfNum_member;
   L7_uint32 ipAddr;
   L7_uint32 try, answer, answer_size;
-  int ret;
+  int ret = 0;
 
   PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u, txDisable=%d", intIfNum, txdisable);
   
@@ -250,45 +250,23 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
   {
     intIfNum_member = intIfNum_list[i];
 
-    /* Convert to */
-    if (ptin_intf_intIfNum2SlotPort(intIfNum_member, &slot, &port, &board_type) != L7_SUCCESS)
+    /* 3 tentatives will be made, at the worst case */
+    try = 0;
+    do
     {
-      PT_LOG_ERR(LOG_CTX_INTF, "Error converting intIfNum %u to slot/port", intIfNum);
-      continue;
-    }
-
-    PT_LOG_DEBUG(LOG_CTX_INTF, "Validating intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
-
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-    if (slot < PTIN_SYS_LC_SLOT_MIN || slot > PTIN_SYS_LC_SLOT_MAX || port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
-    {
-      PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid slot (%u) / port (%u)", slot, port);
-      continue;
-    }
-    /* Only apply it to TU40G boards */
-    if (board_type != PTIN_BOARD_TYPE_TU40G && board_type != PTIN_BOARD_TYPE_TU40GR)
-    {
-      PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid board type %u for intIfNum_member %u", board_type, intIfNum_member);
-      continue;
-    }
-#elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
-    /* Is a local port? */
-    if (slot == 0)
-    {
-      if (port >= PTIN_SYSTEM_N_LOCAL_PORTS)
+      /* Convert to */
+      if (ptin_intf_intIfNum2SlotPort(intIfNum_member, &slot, &port, &board_type) != L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_INTF, "CXO160G: Invalid local port (%u)", port);
+        PT_LOG_ERR(LOG_CTX_INTF, "Error converting intIfNum %u to slot/port", intIfNum);
         continue;
       }
-      /* Correct slot id, in order to obtain successfully its IP address */
-      slot = (port >= PTIN_SYSTEM_N_LOCAL_PORTS/2) ? 5 : 1;
-    }
-    /* If intIfNum refers to another slot, it should be a TU40G */
-    else if (slot >= PTIN_SYS_LC_SLOT_MIN && slot <= PTIN_SYS_LC_SLOT_MAX)
-    {
-      if (port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
+
+      PT_LOG_DEBUG(LOG_CTX_INTF, "Validating intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
+
+    #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
+      if (slot < PTIN_SYS_LC_SLOT_MIN || slot > PTIN_SYS_LC_SLOT_MAX || port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
       {
-        PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid port (%u) for slot %u", port, slot);
+        PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid slot (%u) / port (%u)", slot, port);
         continue;
       }
       /* Only apply it to TU40G boards */
@@ -297,59 +275,81 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
         PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid board type %u for intIfNum_member %u", board_type, intIfNum_member);
         continue;
       }
-    }
-    /* Invalid slot */
-    else
-    {
-      PT_LOG_ERR(LOG_CTX_INTF, "CXO160G: Invalid slot (%u)", slot);
+    #elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
+      /* Is a local port? */
+      if (slot == 0)
+      {
+        if (port >= PTIN_SYSTEM_N_LOCAL_PORTS)
+        {
+          PT_LOG_ERR(LOG_CTX_INTF, "CXO160G: Invalid local port (%u)", port);
+          continue;
+        }
+        /* Correct slot id, in order to obtain successfully its IP address */
+        slot = (port >= PTIN_SYSTEM_N_LOCAL_PORTS/2) ? 5 : 1;
+      }
+      /* If intIfNum refers to another slot, it should be a TU40G */
+      else if (slot >= PTIN_SYS_LC_SLOT_MIN && slot <= PTIN_SYS_LC_SLOT_MAX)
+      {
+        if (port >= PTIN_SYS_INTFS_PER_SLOT_MAX)
+        {
+          PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid port (%u) for slot %u", port, slot);
+          continue;
+        }
+        /* Only apply it to TU40G boards */
+        if (board_type != PTIN_BOARD_TYPE_TU40G && board_type != PTIN_BOARD_TYPE_TU40GR)
+        {
+          PT_LOG_ERR(LOG_CTX_INTF, "OLT1T3: Invalid board type %u for intIfNum_member %u", board_type, intIfNum_member);
+          continue;
+        }
+      }
+      /* Invalid slot */
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "CXO160G: Invalid slot (%u)", slot);
+        continue;
+      }
+    #elif (PTIN_BOARD_IS_STANDALONE)
+      if (slot != 0 || port >= ptin_sys_number_of_ports)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "OLT1T0: Invalid slot (%u) / port (%u)", slot, port);
+        continue;
+      }
+      slot = 1;
+    #else
+      PT_LOG_ERR(LOG_CTX_INTF, "Unknown board");
       continue;
-    }
-#elif (PTIN_BOARD_IS_STANDALONE)
-    if (slot != 0 || port >= ptin_sys_number_of_ports)
-    {
-      PT_LOG_ERR(LOG_CTX_INTF, "OLT1T0: Invalid slot (%u) / port (%u)", slot, port);
-      continue;
-    }
-    slot = 1;
-#else
-    PT_LOG_ERR(LOG_CTX_INTF, "Unknown board");
-    continue;
-#endif
-    
-    PT_LOG_DEBUG(LOG_CTX_INTF, "Going to configure intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
+    #endif
+      
+      PT_LOG_DEBUG(LOG_CTX_INTF, "Going to configure intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
 
-#if (PTIN_BOARD_IS_STANDALONE)
-    ipAddr = simGetIpcIpAddr();
-#else
-    /* Determine the IP address of the working port/slot */
-    if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(slot, &ipAddr))
-    {
-      PT_LOG_ERR(LOG_CTX_INTF, "Failed to obtain ipAddress of slotId:%u", slot);
-      continue;
-    }
-#endif      
+    #if (PTIN_BOARD_IS_STANDALONE)
+      ipAddr = simGetIpcIpAddr();
+    #else
+      /* Determine the IP address of the working port/slot */
+      if (L7_SUCCESS != ptin_fpga_slot_ip_addr_get(slot, &ipAddr))
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "Failed to obtain ipAddress of slotId:%u", slot);
+        continue;
+      }
+    #endif      
 
-    /* Prepare message contents */
-    memset(&cfg_msg, 0x00, sizeof(msg_HwEthernet_t));
-    cfg_msg.slotIndex = ENDIAN_SWAP8(slot);
-    cfg_msg.BoardType = ENDIAN_SWAP8(0);
-    cfg_msg.InterfaceIndex = ENDIAN_SWAP8(port);
-    cfg_msg.conf_mask = ENDIAN_SWAP16(0x1800);
-    if (txdisable < 0)
-    {
-      cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(L7_TRUE);
-      cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_TRUE);
-    }
-    else
-    {
-      cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(!(txdisable & 1));
-      cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_FALSE);
-    }
+      /* Prepare message contents */
+      memset(&cfg_msg, 0x00, sizeof(msg_HwEthernet_t));
+      cfg_msg.slotIndex = ENDIAN_SWAP8(slot);
+      cfg_msg.BoardType = ENDIAN_SWAP8(0);
+      cfg_msg.InterfaceIndex = ENDIAN_SWAP8(port);
+      cfg_msg.conf_mask = ENDIAN_SWAP16(0x1800);
+      if (txdisable < 0)
+      {
+        cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(L7_TRUE);
+        cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_TRUE);
+      }
+      else
+      {
+        cfg_msg.optico.laserON_OFF = ENDIAN_SWAP8(!(txdisable & 1));
+        cfg_msg.optico.stmALSConf  = ENDIAN_SWAP8(L7_FALSE);
+      }
     
-    /* 3 tentatives will be made, at the worst case */
-    try = 0;
-    do
-    {
       PT_LOG_DEBUG(LOG_CTX_INTF, "Try %u: Sending message to slotId %u / ipAddr 0x%08x", try, slot, ipAddr);
 
       ret = send_ipc_message(IPC_HW_PORTO_MSG_CXP,
@@ -3087,6 +3087,134 @@ L7_RC_t ptin_prot_uplink_clear_all()
   return L7_SUCCESS;
 }
 
+/**
+ * Get protection information about a particular interface
+ * 
+ * @author mruas (07/09/17)
+ * 
+ * @param ptin_intf 
+ * @param protIdx 
+ * @param port_type 
+ * @param flags : 
+ *          0x01: laser on
+ *          0x02: ALS on 0x04 0x04:
+ *          faults on 0x08: RX faults on 0x10: LAG port 0x20:
+ *          Dynamic LAG
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_prot_uplink_info_get(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx, L7_uchar8 *out_portType, L7_uint32 *out_flags)
+{
+  L7_RC_t rc;
+  L7_BOOL is_lag_member = L7_FALSE;
+  L7_uint32 intIfNum, intIfNum_member, intIfNum_lag;
+  L7_INTF_TYPES_t sysIntfType;
+  L7_uint8 protIdx, portType;
+  L7_uint32 lag_is_static;
+  L7_uint32 flags;
+
+  intIfNum_member = 0;
+  intIfNum_lag    = 0;
+  lag_is_static   = 0;
+
+  /* Get intIfNum */
+  if (ptin_intf_typeId2intIfNum(ptin_intf->intf_type, ptin_intf->intf_id, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error obtaining intIfNum from ptin_intf %u/%u", ptin_intf->intf_type, ptin_intf->intf_id);
+    return L7_FAILURE;
+  }
+  
+  /* If this is a physical interface, check if it belongs to a LAG */
+  if (nimGetIntfType(intIfNum, &sysIntfType) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error getting type of intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+  if (sysIntfType == L7_PHYSICAL_INTF)
+  {
+    if (usmDbDot3adIntfIsMemberGet(1, intIfNum, &intIfNum_lag) == L7_SUCCESS)
+    {
+      is_lag_member = L7_TRUE;
+      intIfNum_member = intIfNum;
+      PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u belongs to lag %u", intIfNum, intIfNum_lag);
+
+      /* Dynamic LAGs don't need reload (laser transmission is not touched) */
+      if (usmDbDot3adIsStaticLag(1, intIfNum_lag, &lag_is_static) == L7_SUCCESS && !lag_is_static)
+      {
+        PT_LOG_WARN(LOG_CTX_INTF, "intIfNum %u belongs to a dynamic LAG (%u)", intIfNum_member, intIfNum_lag);
+        return L7_SUCCESS;
+      }
+      PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u belongs to a static LAG (%u)... ok!", intIfNum_member, intIfNum_lag);
+    }
+    else
+    {
+      intIfNum_lag = 0;
+      PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u is a physical port and don't belong to any LAG... ok!", intIfNum);
+    }
+  }
+  else if (sysIntfType == L7_LAG_INTF)
+  {
+    /* Dynamic LAGs don't need reload (laser transmission is not touched) */
+    if (usmDbDot3adIsStaticLag(1, intIfNum, &lag_is_static) == L7_SUCCESS && !lag_is_static)
+    {
+      PT_LOG_WARN(LOG_CTX_INTF, "intIfNum %u is a dynamic LAG", intIfNum);
+      return L7_SUCCESS;
+    }
+    PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u is a static LAG... ok!", intIfNum);
+  }
+
+  /* For the following ops, use the LAG intIfNum, instead the provided one  */
+  if (is_lag_member)
+  {
+    intIfNum = intIfNum_lag;
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Using intIfNum %u...", intIfNum);
+  }
+
+  /* Search for protection group where this interface belongs */
+  rc = ptin_prot_uplink_index_find(intIfNum, &protIdx, &portType);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_WARN(LOG_CTX_INTF, "No group found using intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+
+  flags = PROT_UPLINK_FLAGS_LOCAL_FAULTS_MASK;
+  /* Port belongs to a LAG */
+  if (is_lag_member)
+  {
+    flags |= PROT_UPLINK_FLAGS_LAG_MEMBER_MASK;
+  }
+
+  /* Dynamic LAGs */
+  if (is_lag_member && !lag_is_static)
+  {
+    /* For dynamic LAGs, laser is ON, and ALS is ON */
+    flags |= PROT_UPLINK_FLAGS_LASER_MASK |
+             PROT_UPLINK_FLAGS_ALS_MASK |
+             PROT_UPLINK_FLAGS_LACP_MASK |
+             PROT_UPLINK_FLAGS_REMOTE_FAULTS_MASK;
+  }
+  /* Other types */
+  else
+  {
+    if (portType == PORT_WORKING)
+    {
+      /* Laser is turned ON, and ALS is off */
+      flags |= PROT_UPLINK_FLAGS_LASER_MASK;
+    }
+    else
+    {
+      /* Laser and ALS are OFF */
+    }
+  }
+
+  /* Return output values */
+  if (out_protIdx  != L7_NULLPTR)  *out_protIdx  = protIdx;
+  if (out_portType != L7_NULLPTR)  *out_portType = portType;
+  if (out_flags    != L7_NULLPTR)  *out_flags    = flags;
+  
+  return L7_SUCCESS;
+}
 
 /**
  * Get protection group configuration

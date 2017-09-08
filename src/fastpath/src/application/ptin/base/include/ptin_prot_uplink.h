@@ -232,6 +232,32 @@ extern L7_RC_t ptin_prot_uplink_clear(L7_uint8 protIdx);
 extern L7_RC_t ptin_prot_uplink_clear_all();
 
 /**
+ * Get protection information about a particular interface
+ * 
+ * @author mruas (07/09/17)
+ * 
+ * @param ptin_intf 
+ * @param out_protIdx 
+ * @param out_portType 
+ * @param out_flags : 
+ *          0x01: laser on
+ *          0x02: ALS on 0x04
+ *          0x04: TX faults on
+ *          0x08: RX faults on
+ *          0x10: LAG port
+ *          0x20: Dynamic LAG
+ * 
+ * @return L7_RC_t 
+ */
+#define PROT_UPLINK_FLAGS_LASER_MASK          0x01
+#define PROT_UPLINK_FLAGS_ALS_MASK            0x02
+#define PROT_UPLINK_FLAGS_LOCAL_FAULTS_MASK   0x04
+#define PROT_UPLINK_FLAGS_REMOTE_FAULTS_MASK  0x08
+#define PROT_UPLINK_FLAGS_LAG_MEMBER_MASK     0x10
+#define PROT_UPLINK_FLAGS_LACP_MASK           0x20
+extern L7_RC_t ptin_prot_uplink_info_get(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx, L7_uchar8 *out_portType, L7_uint32 *out_flags);
+
+/**
  * Get protection group configuration
  * 
  * @param protIdx 

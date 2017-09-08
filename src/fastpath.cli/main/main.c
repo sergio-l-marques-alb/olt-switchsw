@@ -91,6 +91,7 @@ void help_oltBuga(void)
         "m 1053 <protIdx> - Remove uplink protection group\r\n"
         "m 1054 <protIdx> [alarmFlagsEn] [operationMode] [WaitRestoreTime] - Reconfigure existent uplink protection group\r\n"
         "m 1055 <protIdx> <Command> - Send command to uplink protection group\r\n"
+        "m 1056 intfType/intfW# - Get protection information about an interface\r\n"
         "--- Protocols ------------------------------------------------------------------------------------------------------------------------\n\r"
         "m 1220 EVC# intfType/intf# cvid(1-4095) - Read DHCPop82 profile\n\r"
         "m 1221 EVC# intfType/intf# cvid(1-4095) op82/op37/op18 <circuitId> <remoteId> - Define a DHCPop82 profile\n\r"
@@ -3071,6 +3072,38 @@ int main (int argc, char *argv[])
 
         comando.msgId = CHMSG_UPLINKPROT_COMMAND;
         comando.infoDim = sizeof(msg_HWuplinkProtCommand);
+      }
+      break;
+
+      /* Get protection information about an interface */
+      case 1056:
+      {
+        msg_HWuplinkProtInfo *ptr;
+        int type, port;
+
+        // Validate number of arguments (flow_id + 2 pairs port+svid)
+        if (argc<3+1)  {
+          help_oltBuga();
+          exit(0);
+        }
+
+        // Pointer to data array
+        ptr = (msg_HWuplinkProtInfo *) &(comando.info[0]);
+        memset(ptr,0,sizeof(msg_HWuplinkProtInfo));
+
+        ptr->slotId = ENDIAN_SWAP8((uint8)-1);
+
+        // Interface
+        if (sscanf(argv[3+0],"%d/%d",&type,&port) != 2)
+        {
+          help_oltBuga();
+          exit(0);
+        }
+        ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
+        ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) port);
+
+        comando.msgId = CHMSG_UPLINKPROT_INFO;
+        comando.infoDim = sizeof(msg_HWuplinkProtInfo);
       }
       break;
 
@@ -9131,6 +9164,37 @@ int main (int argc, char *argv[])
           printf(" Switch: Command sent successfully to protection group\n\r");
         else
           printf(" Switch: Failed sending command to protection group - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
+        break;
+
+      case 1056:
+        if (resposta.flags == (FLAG_RESPOSTA | FLAG_ACK))
+        {
+          int i, n;
+          msg_HWuplinkProtInfo *ptr;
+
+          if ((resposta.infoDim % sizeof(msg_HWuplinkProtInfo)) != 0) {
+            printf(" Switch: Invalid structure size (%u vs %u)\n\r", resposta.infoDim, sizeof(msg_HWuplinkProtInfo));
+            break;
+          }
+
+          ptr = (msg_HWuplinkProtInfo *) &resposta.info[0];
+          n = resposta.infoDim / sizeof(msg_HWuplinkProtInfo);
+
+          for (i = 0; i < n; i++)
+          {
+            printf("Reading group protection %u status:\r\n", i);
+            printf(" slotId    = %u\r\n",    ENDIAN_SWAP8(ptr[i].slotId));
+            printf(" Interface = %u/%u\r\n", ENDIAN_SWAP8(ptr[i].intf.intf_type), ENDIAN_SWAP8(ptr[i].intf.intf_id));
+            printf(" protIdx   = %u\r\n",    ENDIAN_SWAP8(ptr[i].protIndex));
+            printf(" Port type = %u\r\n",    ENDIAN_SWAP8(ptr[i].portType));
+            printf(" LaserON   = %u\r\n",    ENDIAN_SWAP8(ptr[i].laserOn));
+            printf(" ALS ON    = %u\r\n",    ENDIAN_SWAP8(ptr[i].ALSConf));
+            printf(" TX Faults = %u\r\n",    ENDIAN_SWAP8(ptr[i].TXfaults));
+            printf(" LACP port = %u\r\n",    ENDIAN_SWAP8(ptr[i].LACPport));
+          }
+        }
+        else
+          printf(" Switch: Protection group info not read - error %08lx\n\r", ENDIAN_SWAP32(*(unsigned long*)resposta.info));
         break;
 
       case 1220:

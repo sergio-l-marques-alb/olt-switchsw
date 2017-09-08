@@ -853,6 +853,26 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_HW_LINK_ACTION */
     }
 
+    case CHMSG_UPLINKPROT_INFO:
+    {
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_UPLINKPROT_INFO (0x%04X)", msgId);
+
+      CHECK_INFO_SIZE_ATLEAST_ABS(sizeof(unsigned char) + sizeof(msg_HwEthInterface_t));
+
+      /* Execute command */
+      rc = ptin_msg_uplink_prot_info_get(inbuffer, outbuffer);
+
+      if (L7_SUCCESS != rc)
+      {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error reading info");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        return IPC_OK;
+      }
+
+      return IPC_OK;
+    }
+
     case CHMSG_UPLINKPROT_SHOW:
     {
       PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_UPLINKPROT_SHOW (0x%04X)", msgId);

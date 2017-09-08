@@ -1173,6 +1173,18 @@ extern L7_RC_t ptin_msg_igmp_static_channel_remove_all(msg_MCStaticChannel_t *ch
 extern L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n);
 
 /**
+ * Get protection info about a particular interface
+ * 
+ * @author mruas (07/09/17)
+ * 
+ * @param inbuffer 
+ * @param outbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_uplink_prot_info_get(ipc_msg *inbuffer, ipc_msg *outbuffer);
+
+/**
  * Get protection group configuration
  * 
  * @param inbuffer 

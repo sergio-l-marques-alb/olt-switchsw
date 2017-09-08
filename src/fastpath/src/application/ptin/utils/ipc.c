@@ -578,7 +578,8 @@ int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *
     }
     #endif
     /* Return answer */
-    memcpy(answer, resposta.info, infoDimRequest); 
+    //memcpy(answer, resposta.info, infoDimRequest); 
+    return(ret);
   }
   else if (resposta.infoDim > IPCLIB_MAX_MSGSIZE)
   {

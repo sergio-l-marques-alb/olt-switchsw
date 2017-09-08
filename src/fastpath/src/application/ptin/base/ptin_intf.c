@@ -1376,6 +1376,49 @@ L7_RC_t ptin_intf_counters_activity_get(ptin_HWEth_PortsActivity_t *portActivity
 
 /**
  * Get board id for a particular interface
+ * 
+ * @author mruas (07/09/17)
+ * 
+ * @param ptin_port 
+ * 
+ * @return L7_int : board_id or -1 if error
+ */
+L7_int ptin_intf_board(L7_int ptin_port)
+{
+  L7_uint16 board_id;
+
+  if (ptin_intf_boardid_get(ptin_port,  &board_id) != L7_SUCCESS)
+  {
+    return -1;
+  }
+
+  return (L7_int) board_id;
+}
+
+/**
+ * Get board id for a particular slot
+ * 
+ * @author mruas (07/09/17)
+ * 
+ * @param slot_id 
+ * 
+ * @return L7_int : board_id or -1 if error
+ */
+L7_int ptin_slot_board(L7_int slot_id)
+{
+  L7_uint16 board_id;
+
+  if (ptin_slot_boardid_get(slot_id,  &board_id) != L7_SUCCESS)
+  {
+    return -1;
+  }
+
+  return (L7_int) board_id;
+}
+
+
+/**
+ * Get board id for a particular interface
  *  
  * @param ptin_port
  * @param board_id

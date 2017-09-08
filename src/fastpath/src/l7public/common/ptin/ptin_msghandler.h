@@ -108,6 +108,7 @@
 
 #define CHMSG_ETH_UPLINK_COMMAND            0x9116  // Uplink protection command from Mx (fw control): struct msg_uplinkProtCmd
 
+#define CHMSG_UPLINKPROT_INFO               0x9118  // msg_HWuplinkProtInfo
 #define CHMSG_UPLINKPROT_SHOW               0x9119  // future use (msg_HWuplinkProtConf)
 #define CHMSG_UPLINKPROT_CREATE             0x911A  // 1 x msg_HWuplinkProtConf
 #define CHMSG_UPLINKPROT_REMOVE             0x911B  // 1 x msg_HWuplinkProtConf (only protIndex is used)
@@ -2546,6 +2547,19 @@ typedef struct
   uint8 protCmd;              // Protection command: bit0-Port mode (1:active;0:inactive) / bit1-Command type (1:forced;0:normal)
 } __attribute__ ((packed)) msg_uplinkProtCmd;
 
+typedef struct
+{
+   unsigned char slotId;               // Destination slot for this message
+   msg_HwEthInterface_t intf;            // Protection group index
+
+   unsigned char protIndex;       // Protection group index
+
+   unsigned char portType;        // Port type: Working or Protection (PROT_PortType_t)
+   unsigned char laserOn;         // Should the laser be turned on or off
+   unsigned char ALSConf;         // ALS configuration
+   unsigned char TXfaults;        // TX faults can being sent
+   unsigned char LACPport;        // Does this port exhange LACPdu's?
+} __attribute__ ((packed)) msg_HWuplinkProtInfo;
 
 typedef struct
 {
@@ -2591,7 +2605,7 @@ typedef struct
 
 
 #define  HWUPLINKPROT_STATUS_PAGE_SIZE 20
-   
+
 typedef struct
 {
    unsigned char  slotId;               // Destination slot for this message

@@ -12555,12 +12555,90 @@ L7_RC_t ptin_msg_uplink_protection_cmd(msg_uplinkProtCmd *cmd, L7_int n)
   return rc;
 }
 
+/**
+ * Get protection info about a particular interface
+ * 
+ * @author mruas (07/09/17)
+ * 
+ * @param inbuffer 
+ * @param outbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_uplink_prot_info_get(ipc_msg *inbuffer, ipc_msg *outbuffer)
+{
+  msg_HWuplinkProtInfo *protInfo_in  = (msg_HWuplinkProtInfo *) inbuffer->info;
+  msg_HWuplinkProtInfo *protInfo_out = (msg_HWuplinkProtInfo *) outbuffer->info;
+  L7_uint8 protIdx, portType;
+  L7_uint32 i, n, flags;
+  ptin_intf_t ptin_intf;
+  L7_RC_t rc;
+
+  n = inbuffer->infoDim / sizeof(msg_HWuplinkProtInfo);
+
+  for (i = 0; i < n; i++)
+  {
+    ENDIAN_SWAP8_MOD(protInfo_in[i].slotId);
+    ENDIAN_SWAP8_MOD(protInfo_in[i].intf.intf_type);
+    ENDIAN_SWAP8_MOD(protInfo_in[i].intf.intf_id);
+
+    PT_LOG_TRACE(LOG_CTX_MSG, "Message contents:");
+    PT_LOG_TRACE(LOG_CTX_MSG, " MsgId  = %u"    , inbuffer->msgId);
+    PT_LOG_TRACE(LOG_CTX_MSG, " slotId = %u"    , protInfo_in[i].slotId);
+    PT_LOG_TRACE(LOG_CTX_MSG, " intf   = %u/%u" , protInfo_in[i].intf.intf_type, protInfo_in[i].intf.intf_id);
+
+    memset(&protInfo_out[i], 0x00, sizeof(msg_HWuplinkProtInfo));
+    protInfo_out[i].slotId          = ENDIAN_SWAP8(protInfo_in[i].slotId);
+    protInfo_out[i].intf.intf_type  = ENDIAN_SWAP8(ptin_intf.intf_type);
+    protInfo_out[i].intf.intf_id    = ENDIAN_SWAP8(ptin_intf.intf_id);
+
+    /* If message comes from an uplink board, it will follow another representation (slot+port) */
+    if ((protInfo_in[i].slotId >= PTIN_SYS_LC_SLOT_MIN && protInfo_in[i].slotId <= PTIN_SYS_LC_SLOT_MAX) &&
+        (protInfo_in[i].intf.intf_type == (L7_uint8) -1))
+    {
+      if (ptin_intf_slotPort2ptintf(protInfo_in[i].slotId, protInfo_in[i].intf.intf_id, &ptin_intf) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error converting slot %u, port %u to ptin_intf format",
+                   protInfo_in[i].slotId, protInfo_in[i].intf.intf_id);
+        protInfo_out[i].protIndex = ENDIAN_SWAP8((L7_uint8)-1);
+        continue;
+      }
+    }
+    /* ptin_intf representation */
+    else
+    {
+      ptin_intf.intf_type = protInfo_in[i].intf.intf_type;
+      ptin_intf.intf_id   = protInfo_in[i].intf.intf_id;
+    }
+
+    rc = ptin_prot_uplink_info_get(&ptin_intf, &protIdx, &portType, &flags);
+
+    if (rc == L7_SUCCESS)
+    {
+      protInfo_out[i].protIndex = ENDIAN_SWAP8(protIdx);
+      protInfo_out[i].portType  = ENDIAN_SWAP8(portType);
+      protInfo_out[i].laserOn   = ENDIAN_SWAP8((flags & PROT_UPLINK_FLAGS_LASER_MASK) == PROT_UPLINK_FLAGS_LASER_MASK);
+      protInfo_out[i].ALSConf   = ENDIAN_SWAP8((flags & PROT_UPLINK_FLAGS_ALS_MASK) == PROT_UPLINK_FLAGS_ALS_MASK);
+      protInfo_out[i].TXfaults  = ENDIAN_SWAP8((flags & PROT_UPLINK_FLAGS_REMOTE_FAULTS_MASK) == PROT_UPLINK_FLAGS_REMOTE_FAULTS_MASK);
+      protInfo_out[i].LACPport  = ENDIAN_SWAP8((flags & PROT_UPLINK_FLAGS_LACP_MASK) == PROT_UPLINK_FLAGS_LACP_MASK);
+    }
+    else
+    {
+      protInfo_out[i].protIndex = ENDIAN_SWAP8((L7_uint8)-1);
+    }
+
+    /* Update infoDim */
+    outbuffer->infoDim = n*sizeof(msg_HWuplinkProtInfo);
+  }
+  
+  return L7_SUCCESS;
+}
 
 /**
  * Get protection group configuration
  * 
  * @param inbuffer 
- * @param outbuffer  
+ * @param outbuffer 
  * 
  * @return L7_RC_t 
  */
