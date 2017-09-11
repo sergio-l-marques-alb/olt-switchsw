@@ -1428,7 +1428,7 @@ L7_int ptin_slot_board(L7_int slot_id)
 L7_RC_t ptin_intf_boardid_get(L7_int ptin_port, L7_uint16 *board_id)
 {
   /* Only applied to CXO640G boards */
-  #if (PTIN_BOARD_IS_MATRIX)
+#if (PTIN_BOARD_IS_MATRIX)
 
   L7_uint16 slot_id;
 
@@ -1448,9 +1448,12 @@ L7_RC_t ptin_intf_boardid_get(L7_int ptin_port, L7_uint16 *board_id)
   {
     *board_id = ptin_slot_boardid[slot_id]; 
   }
-  #endif
 
   return L7_SUCCESS;
+#else
+
+  return L7_FAILURE;
+#endif
 }
 
 /**
@@ -1499,7 +1502,7 @@ L7_RC_t ptin_intf_boardid_set(L7_int ptin_port, L7_uint16 board_id)
 L7_RC_t ptin_slot_boardid_get(L7_int slot_id, L7_uint16 *board_id)
 {
   /* Only applied to CXO640G boards */
-  #if (PTIN_BOARD_IS_MATRIX)
+#if (PTIN_BOARD_IS_MATRIX)
 
   /* Validate input params */
   if ((slot_id < PTIN_SYS_LC_SLOT_MIN || slot_id > PTIN_SYS_LC_SLOT_MAX) && (slot_id != 0))
@@ -1512,9 +1515,12 @@ L7_RC_t ptin_slot_boardid_get(L7_int slot_id, L7_uint16 *board_id)
   {
     *board_id = ptin_slot_boardid[slot_id]; 
   }
-  #endif
 
   return L7_SUCCESS;
+#else
+
+  return L7_FAILURE;
+#endif
 }
 
 /**

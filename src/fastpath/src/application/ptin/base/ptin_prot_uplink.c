@@ -320,7 +320,6 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
           PT_LOG_ERR(LOG_CTX_INTF, "Board not present at slot %u (intIfNum_member %u)", slot, intIfNum_member);
           break;
 #endif
-        }
       }
       /* Invalid slot */
       else
@@ -389,12 +388,12 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
 
     if (ret != 0)
     {
-      PT_LOG_ERR(LOG_CTX_INTF, "Failed configuring intIfNum_member %u / slot %u + port %u (ipAddr 0x%08x)", intIfNum_member, slot, port, ipAddr);
+      PT_LOG_ERR(LOG_CTX_INTF, "Failed configuring intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
       break;
     }
 
     members_configured++;
-    PT_LOG_DEBUG(LOG_CTX_INTF, "Succesfully configured intIfNum_member %u / slot %u + port %u (ipAddr 0x%08x)", intIfNum_member, slot, port, ipAddr);
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Succesfully configured intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
   }
 
   PT_LOG_DEBUG(LOG_CTX_INTF, "%u members succesfully configured for intIfNum %u", members_configured, intIfNum);
