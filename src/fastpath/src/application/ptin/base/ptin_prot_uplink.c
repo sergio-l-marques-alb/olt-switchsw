@@ -3216,7 +3216,7 @@ L7_RC_t ptin_prot_uplink_info_get(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx,
   /* Other types */
   else
   {
-    if (portType == PORT_WORKING)
+    if (portType == uplinkprot[protIdx].activePortType)
     {
       /* Laser is turned ON, and ALS is off */
       flags |= PROT_UPLINK_FLAGS_LASER_MASK;
