@@ -7123,7 +7123,7 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
         }
         PT_LOG_INFO(LOG_CTX_INTF, "Force link-up disabled for port %u", ptin_port);
       }
-      /* Enable linkscan for uplink boards */
+      /* Disable linkscan for uplink boards */
       else if (PTIN_BOARD_IS_UPLINK(board_id))
       {
         rc = ptin_intf_linkscan_set(intIfNum, L7_DISABLE); 
@@ -7133,6 +7133,14 @@ L7_RC_t ptin_slot_action_remove(L7_uint16 slot_id)
           PT_LOG_ERR(LOG_CTX_INTF, "Error disabling linkscan (%d)", rc);
         }
         PT_LOG_INFO(LOG_CTX_INTF, "Linkscan disabled for port %u", ptin_port);
+        /* Cause link-down */
+        rc = ptin_intf_link_force(intIfNum, L7_FALSE, L7_DISABLE);
+        if (rc != L7_SUCCESS)
+        {
+          rc_global = max(rc, rc_global);
+          PT_LOG_ERR(LOG_CTX_INTF, "Error causing link-down for port %u (%d)", ptin_port, rc);
+        }
+        PT_LOG_INFO(LOG_CTX_INTF, "Link-down caused for port %u", ptin_port);
       }
     }
     #endif
