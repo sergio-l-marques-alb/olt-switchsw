@@ -48,7 +48,6 @@ extern void ptin_flows_fpga_init(void);
 #define EVC_BWPROFILES_REQUIRE_CLEANUP_BEFORE_REMOVAL 1       /* Used for EVC remotion */
 #define EVC_CLIENTS_REQUIRE_CLEANUP_BEFORE_REMOVAL    1       /* Used for EVC remotion */
 
-
 /******************************* 
  * Debug procedures
  *******************************/
