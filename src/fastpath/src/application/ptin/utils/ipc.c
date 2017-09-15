@@ -25,12 +25,14 @@ static int g_iInterfaceMan = -1;      // Canal de dados com as aplicacoes firmwa
 static  int g_iCCounter   = 0;      //
 
 typedef struct {
-  int            index;     //indice do registo
-  int            time;      //Data/hora de registo
+  unsigned long  index;     //indice do registo
+  unsigned long  reserved;
+  signed long    time;      //Data/hora de registo
+
   unsigned short code;      //Codigo do alarme
   unsigned char  arg;       //Reservado
   unsigned char  slot;      //slot ao qual respeita o alarme
-  unsigned short tipo;      //Fonte do alarme
+  unsigned short type;      //Fonte do alarme
   unsigned int   interface; //Interface fisico ao qual respeita o alarme
   unsigned int   param1;       //vc4
   unsigned int   param2;       //vc12 ou vc, depende do tipo de alarme
@@ -285,7 +287,7 @@ int send_trap_alarm_sncp(int source, unsigned short code, unsigned short type, u
   alarm_trap->code      = (unsigned short)code;   //codigo do alarme
   alarm_trap->arg       = 0;
   alarm_trap->slot      = 0;
-  alarm_trap->tipo      = type;
+  alarm_trap->type      = type;
   alarm_trap->interface = source;
   alarm_trap->param1    = param1;
   alarm_trap->param2    = param2;
