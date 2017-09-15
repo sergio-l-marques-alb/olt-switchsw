@@ -140,6 +140,8 @@ static L7_uint16 ptin_slot_boardid[PTIN_SYS_SLOTS_MAX+1];
 L7_uint32 ptin_intf_shaper_max[PTIN_SYSTEM_N_INTERF][2];
 L7_uint32 ptin_burst_size[PTIN_SYSTEM_N_INTERF];
 
+#define MAX_BURST_SIZE 16000
+
 //ptin_intf_shaper_t shaper_max_burst[PTIN_SYSTEM_N_INTERF];
 
 /**
@@ -198,7 +200,7 @@ L7_RC_t ptin_intf_pre_init(void)
   {
     ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MNG_VALUE] = 100;   /* Shaper value from management */
     ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MAX_VALUE] = 100; /* Max. Shaper value */
-    ptin_burst_size[i] = 50000; //default bcm value for port max burst rate
+    ptin_burst_size[i] = MAX_BURST_SIZE; //default bcm value for port max burst rate
 
   }
   
@@ -4966,7 +4968,20 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
     PT_LOG_TRACE(LOG_CTX_INTF, "ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = %u",ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE]);
     PT_LOG_TRACE(LOG_CTX_INTF, "intfQos->shaping_rate = %u",intfQos->shaping_rate);
 
-    rc = usmDbQosCosQueueIntfShapingRateSet(1, intIfNum, (intfQos->shaping_rate * ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE])/100);
+    //rc = usmDbQosCosQueueIntfShapingRateSet(1, intIfNum, (intfQos->shaping_rate * ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE])/100);
+    ptin_intf_shaper_t   entry;
+
+    memset(&entry, 0x00, sizeof(ptin_intf_shaper_t));
+
+    entry.ptin_port  = ptin_port;
+    entry.burst_size = ptin_burst_size[ptin_port];
+    entry.max_rate   = ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE];
+
+    PT_LOG_NOTICE(LOG_CTX_INTF, "ptin_port:  %u", entry.ptin_port);
+    PT_LOG_NOTICE(LOG_CTX_INTF, "burst_size: %u", entry.burst_size);
+    PT_LOG_NOTICE(LOG_CTX_INTF, "max_rate:   %u", entry.max_rate);
+
+    dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_MAX_BURST, DAPI_CMD_SET, sizeof(ptin_intf_shaper_t), &entry);
 
     if (rc == L7_SUCCESS)
     {
@@ -8974,7 +8989,7 @@ L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32
   /* Limit max rate */
   if (burst_size == 0)
   {
-    burst_size = 100000;
+    burst_size = MAX_BURST_SIZE;
   }
 
 #if 0 // this will be done with ptin_hapi_qos_shaper_max_burst_config (broad_ptin.c)
