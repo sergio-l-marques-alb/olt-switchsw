@@ -2854,8 +2854,8 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
   /* If Laser can be disabled, disable linkfaults processing */
   if (!laserON)
   {
-    if (ptin_intf_linkfaults_enable(intIfNum1, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/) != L7_SUCCESS ||
-        ptin_intf_linkfaults_enable(intIfNum2, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/) != L7_SUCCESS)
+    if (ptin_intf_linkfaults_enable(intIfNum1, L7_FALSE /*Local faults*/,  L7_FALSE /*Remote faults*/) != L7_SUCCESS ||
+        ptin_intf_linkfaults_enable(intIfNum2, L7_FALSE /*Local faults*/,  L7_FALSE /*Remote faults*/) != L7_SUCCESS)
     {
       ptin_intf_linkfaults_enable(intIfNum1, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
       ptin_intf_linkfaults_enable(intIfNum2, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);

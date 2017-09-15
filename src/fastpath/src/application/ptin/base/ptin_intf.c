@@ -3429,7 +3429,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
           (ptin_prot_uplink_index_find(lag_intf, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS) &&
           (dot3adBlockedStateGet(lag_intf, &value) == L7_SUCCESS))
       {
-        (void) ptin_intf_linkfaults_enable(intIfNum, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/);
+        (void) ptin_intf_linkfaults_enable(intIfNum, L7_FALSE /*Local faults*/,  L7_FALSE /*Remote faults*/);
         (void) ptin_prot_uplink_intf_block(intIfNum, value);
       }
       
