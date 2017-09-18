@@ -3330,7 +3330,8 @@ L7_RC_t ptin_prot_uplink_status(L7_uint8 protIdx, uplinkprot_status_st *status)
   /* Get time left */
   if (ptin_prot_timer_timeout_get(protIdx, &timeLeft) == L7_SUCCESS)
   {
-    status->WaitToRestoreTimer = timeLeft;
+    /* Invert time order */
+    status->WaitToRestoreTimer = uplinkprot[protIdx].protParams.WaitToRestoreTimer - timeLeft;
   }
   else
   {
