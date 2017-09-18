@@ -483,6 +483,7 @@ L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int block_state)
 L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
 {
   L7_BOOL block_intfW, block_intfP;
+  L7_uint32 portW, portP;
 
   /* Validate arguments */
   if (protIdx >= MAX_UPLINK_PROT)
@@ -497,9 +498,20 @@ L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
     return L7_FAILURE;
   }
 
+  /* Get ptin_port format */
+  if (ptin_intf_intIfNum2port(uplinkprot[protIdx].protParams.intIfNumW, &portW) != L7_SUCCESS ||
+      ptin_intf_intIfNum2port(uplinkprot[protIdx].protParams.intIfNumP, &portP) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error converting intIfNum to ptin_port format");
+    return L7_FAILURE;
+  }
+  
   /* When portType is all, both LAGs must be restored to its original state */
   if (portType == PORT_ALL)
   {
+    /* Open Ports to traffic */
+    ptin_vlan_port_add(portW, 0);
+    ptin_vlan_port_add(portP, 0);
     /* Undo any special schemes for protection */
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumW, -1);
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumP, -1);
@@ -538,20 +550,24 @@ L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
   if (block_intfW)
   {
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumW, L7_TRUE);
+    ptin_vlan_port_remove(portW, 0);
     usmDbFdbFlushByPort(uplinkprot[protIdx].protParams.intIfNumW);
   }
   if (block_intfP)
   {
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumP, L7_TRUE);
+    ptin_vlan_port_remove(portP, 0);
     usmDbFdbFlushByPort(uplinkprot[protIdx].protParams.intIfNumP);
   }
   /* Only then, unblock the active ones */
   if (!block_intfW)
   {
+    ptin_vlan_port_add(portW, 0);
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumW, L7_FALSE);
   }
   if (!block_intfP)
   {
+    ptin_vlan_port_add(portP, 0);
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumP, L7_FALSE);
   }
 
