@@ -252,6 +252,13 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
   {
     intIfNum_member = intIfNum_list[i];
 
+    #if 0
+    if (!txdisable)
+    {
+      ptin_intf_linkfaults_enable(intIfNum_member, L7_FALSE /*Local faults*/,  L7_FALSE /*Remote faults*/);
+    }
+    #endif
+
     /* 3 tentatives will be made, at the worst case */
     try = 0;
     do
@@ -393,8 +400,23 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
     }
 
     members_configured++;
-    PT_LOG_DEBUG(LOG_CTX_INTF, "Succesfully configured intIfNum_member %u / slot %u + port %u", intIfNum_member, slot, port);
+    PT_LOG_INFO(LOG_CTX_INTF, "intIfNum_member %u / slot %u, port %u: Succesfully set txdisable=%u", intIfNum_member, slot, port, txdisable);
   }
+
+  #if 0
+  if (!txdisable)
+  {
+    osapiSleepMSec(500);
+
+    /* Run all physical members */
+    for (i = 0; i < members_number; i++)
+    {
+      intIfNum_member = intIfNum_list[i];
+
+      ptin_intf_linkfaults_enable(intIfNum_member, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/);
+    }
+  }
+  #endif
 
   PT_LOG_DEBUG(LOG_CTX_INTF, "%u members succesfully configured for intIfNum %u", members_configured, intIfNum);
 
@@ -440,7 +462,7 @@ L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int block_state)
       PT_LOG_DEBUG(LOG_CTX_INTF, "Controlling remote laser of intIfNum %u", intIfNum);
       rc = ptin_remote_laser_control(intIfNum, block_state);
     }
-    PT_LOG_DEBUG(LOG_CTX_INTF, "Setting block state of intIfNum %u", intIfNum);
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Setting block state to %u of intIfNum %u", block_state, intIfNum);
     rc = dot3adBlockedStateSet(intIfNum, block_state);
 
     PT_LOG_INFO(LOG_CTX_INTF, "ptin_intf %u/%u blocking state changed to %d value (rc=%d)", ptin_intf.intf_type, ptin_intf.intf_id, block_state, rc);
@@ -448,23 +470,13 @@ L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int block_state)
   else if (ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
   {
     PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u is a PHY", intIfNum);
+
     PT_LOG_DEBUG(LOG_CTX_INTF, "Controlling remote laser of intIfNum %u", intIfNum);
     rc = ptin_remote_laser_control(intIfNum, block_state);
-  #if 0
-    PT_LOG_DEBUG(LOG_CTX_INTF, "Adding/removing intIfNum %u to all VLANs", intIfNum);
-    if (block_state == L7_TRUE)
-    {
-      /* Remove this port from all VLANs */
-      rc = ptin_vlan_port_remove(ptin_port, 0);
-      PT_LOG_INFO(LOG_CTX_INTF, "ptin_intf %u/%u removed from all existent VLANs (rc=%d)", ptin_intf.intf_type, ptin_intf.intf_id, rc);
-    }
-    else
-    {
-      /* Add this port to all configured VLANs */
-      rc = ptin_vlan_port_add(ptin_port, 0);
-      PT_LOG_INFO(LOG_CTX_INTF, "ptin_intf %u/%u added to all existent VLANs (rc=%d)", ptin_intf.intf_type, ptin_intf.intf_id, rc);
-    }
-  #endif
+
+    /* Add this port to all configured VLANs */
+    rc = ptin_vlan_port_add(ptin_port, 0);
+    PT_LOG_INFO(LOG_CTX_INTF, "ptin_intf %u/%u added to all existent VLANs (rc=%d)", ptin_intf.intf_type, ptin_intf.intf_id, rc);
   }
 
   PT_LOG_DEBUG(LOG_CTX_INTF, "rc=%u", rc);
@@ -509,9 +521,6 @@ L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
   /* When portType is all, both LAGs must be restored to its original state */
   if (portType == PORT_ALL)
   {
-    /* Open Ports to traffic */
-    ptin_vlan_port_add(portW, 0);
-    ptin_vlan_port_add(portP, 0);
     /* Undo any special schemes for protection */
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumW, -1);
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumP, -1);
@@ -550,24 +559,20 @@ L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
   if (block_intfW)
   {
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumW, L7_TRUE);
-    ptin_vlan_port_remove(portW, 0);
     usmDbFdbFlushByPort(uplinkprot[protIdx].protParams.intIfNumW);
   }
   if (block_intfP)
   {
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumP, L7_TRUE);
-    ptin_vlan_port_remove(portP, 0);
     usmDbFdbFlushByPort(uplinkprot[protIdx].protParams.intIfNumP);
   }
   /* Only then, unblock the active ones */
   if (!block_intfW)
   {
-    ptin_vlan_port_add(portW, 0);
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumW, L7_FALSE);
   }
   if (!block_intfP)
   {
-    ptin_vlan_port_add(portP, 0);
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumP, L7_FALSE);
   }
 
@@ -2870,8 +2875,8 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
   /* If Laser can be disabled, disable linkfaults processing */
   if (!laserON)
   {
-    if (ptin_intf_linkfaults_enable(intIfNum1, L7_FALSE /*Local faults*/,  L7_FALSE /*Remote faults*/) != L7_SUCCESS ||
-        ptin_intf_linkfaults_enable(intIfNum2, L7_FALSE /*Local faults*/,  L7_FALSE /*Remote faults*/) != L7_SUCCESS)
+    if (ptin_intf_linkfaults_enable(intIfNum1, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/) != L7_SUCCESS ||
+        ptin_intf_linkfaults_enable(intIfNum2, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/) != L7_SUCCESS)
     {
       ptin_intf_linkfaults_enable(intIfNum1, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);
       ptin_intf_linkfaults_enable(intIfNum2, L7_TRUE /*Local faults*/,  L7_TRUE /*Remote faults*/);

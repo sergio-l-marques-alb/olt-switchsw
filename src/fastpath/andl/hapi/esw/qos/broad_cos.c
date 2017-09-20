@@ -719,7 +719,7 @@ static L7_RC_t hapiBroadQosCosIntfRateShape(BROAD_PORT_t *dstPortPtr, L7_uint32 
         shaperConfig.burst = 16000;
     }
 
-    PT_LOG_INFO(LOG_CTX_HAPI, "Shaping rate=%u burst=%u (lport=0x%x)", shaperConfig.rate, shaperConfig.burst, dstPortPtr->bcmx_lport);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Shaping rate=%u burst=%u (lport=0x%x)", shaperConfig.rate, shaperConfig.burst, dstPortPtr->bcmx_lport);
         
     rv = usl_bcmx_port_rate_egress_set(dstPortPtr->bcmx_lport, shaperConfig);
     if (L7_BCMX_OK(rv) != L7_TRUE)

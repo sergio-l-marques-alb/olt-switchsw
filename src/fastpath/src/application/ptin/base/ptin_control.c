@@ -28,6 +28,7 @@
 #include "ipc.h"
 #include "nimapi.h"
 #include "usmdb_dot3ad_api.h"
+#include "dot3ad_api.h"
 #include "usmdb_nim_api.h"
 #include "ptin_fieldproc.h"
 #include "ptin_msghandler.h"
@@ -2202,7 +2203,7 @@ void ptinIntfTask(L7_uint32 numArgs, void *unit)
     {
       /* Process interface events: only a maximum of 10 per loop */
       rc = ptinIntfUpdate(&eventMsg);
-      PT_LOG_INFO(LOG_CTX_CONTROL, "Event processed: rc=%d", rc);
+      PT_LOG_DEBUG(LOG_CTX_CONTROL, "Event processed: rc=%d", rc);
     }
     else
     {
@@ -2256,7 +2257,7 @@ L7_RC_t ptinIntfChangeCallback(L7_uint32 intIfNum,
       event != L7_LAG_ACTIVE_MEMBER_ADDED &&
       event != L7_LAG_ACTIVE_MEMBER_REMOVED)
   {
-    PT_LOG_INFO(LOG_CTX_CONTROL, "Error: event=%u, intIfNum=%u", event, intIfNum);
+    PT_LOG_DEBUG(LOG_CTX_CONTROL, "Error: event=%u, intIfNum=%u", event, intIfNum);
     nimEventStatusCallback(status);
     return L7_SUCCESS;
   }
@@ -2271,7 +2272,7 @@ L7_RC_t ptinIntfChangeCallback(L7_uint32 intIfNum,
   }
   else
   {
-    PT_LOG_INFO(LOG_CTX_CONTROL, "Message sent to queue: event=%u, intIfNum=%u",event, intIfNum);
+    PT_LOG_DEBUG(LOG_CTX_CONTROL, "Message sent to queue: event=%u, intIfNum=%u",event, intIfNum);
   }
 
   nimEventStatusCallback(status);
@@ -2319,7 +2320,16 @@ static L7_RC_t ptinIntfUpdate(ptinIntfEventMsg_t *eventMsg)
 
     if (intf_type == L7_LAG_INTF)
     {
+      L7_uint32 activeMembers;
+
       lag_intIfNum = eventMsg->intIfNum;
+
+      /* If no active members remain, do nothing... a link-down event will come later */
+      if (dot3adLagNumActiveMembersGet(lag_intIfNum, &activeMembers) != L7_SUCCESS || activeMembers == 0)
+      {
+        PT_LOG_WARN(LOG_CTX_INTF, "No active members... not doing nothing.");
+        return L7_SUCCESS;
+      }
     }
     else if (intf_type == L7_PHYSICAL_INTF)
     {

@@ -1390,7 +1390,7 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
   int fault, linkStatus;
   bcm_pbmp_t pbmp;
 
-  PT_LOG_NOTICE(LOG_CTX_HAPI, "Starting Linkscan procedure to bcm_port %u", bcm_port);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Starting Linkscan procedure to bcm_port %u", bcm_port);
 
   /* Execute linkscan */
   BCM_PBMP_CLEAR(pbmp);
@@ -1431,7 +1431,7 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
   if (!enable)
   {
     /* Disable linkscan */
-    PT_LOG_INFO(LOG_CTX_HAPI, "bcm_linkscan_mode_set:0 to bcm_port %u", bcm_port); 
+    PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_linkscan_mode_set:0 to bcm_port %u", bcm_port); 
     if (bcm_linkscan_mode_set(0, bcm_port, BCM_LINKSCAN_MODE_NONE) != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error enabling linkscan for bcm_port %u", bcm_port);
@@ -1439,7 +1439,7 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
     }
   }
 
-  PT_LOG_NOTICE(LOG_CTX_HAPI, "Linkscan applied to bcm_port %u (enable=%u)", bcm_port, enable);
+  PT_LOG_INFO(LOG_CTX_HAPI, "Linkscan applied to bcm_port %u (enable=%u)", bcm_port, enable);
 
   return L7_SUCCESS;
 }
@@ -1578,6 +1578,7 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
 {
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
+  L7_int fault;
   L7_int rv;
 
   /* Validate interface */
@@ -1589,6 +1590,13 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
 
   dapiPortPtr = DAPI_PORT_GET( ddUsp, dapi_g );
   hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
+
+  /* Clear link faults */
+  rv = _ptin_esw_link_fault_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &fault);
+  if (rv != BCM_E_NONE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error clearing faults for bcm_port %u", hapiPortPtr->bcm_port);
+  }
 
   rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlLinkFaultLocalEnable, local_enable);
   if (rv != BCM_E_NONE)
@@ -1930,7 +1938,7 @@ L7_RC_t ptin_hapi_linkscan_get(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 *enable
  */
 L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
 {
-  PT_LOG_INFO(LOG_CTX_HAPI, "Linkscan procedure to usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Linkscan procedure to usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
 
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
@@ -2002,8 +2010,8 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
     return L7_FAILURE;
   }
 
-  PT_LOG_NOTICE(LOG_CTX_HAPI, "Linkscan applied for port {%d,%d,%d}/bcm_port %u/port %u to %u",
-             usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
+  PT_LOG_INFO(LOG_CTX_HAPI, "Linkscan applied for port {%d,%d,%d}/bcm_port %u/port %u to %u",
+              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
 
   return L7_SUCCESS;
 }

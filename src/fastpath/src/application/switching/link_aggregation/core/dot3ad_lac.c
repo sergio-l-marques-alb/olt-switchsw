@@ -1181,13 +1181,16 @@ L7_RC_t aggCollDistDisable(L7_uint32 intf)
            (nimQueryData.data.state == L7_INTF_DETACHING) ||
            (nimQueryData.data.state == L7_INTF_ATTACHED))
   {
-    /* only talk to the hardware when the hardware is valid */
-    rc = dtlDot3adPortDelete(a->aggId,1,tmpList, a->hashMode);
-    if (rc == L7_REQUEST_DENIED || 
-        rc == L7_FAILURE || 
-        rc == L7_ERROR)
+    if (a->isStatic && !a->blockedState)
     {
-      return rc;
+      /* only talk to the hardware when the hardware is valid */
+      rc = dtlDot3adPortDelete(a->aggId,1,tmpList, a->hashMode);
+      if (rc == L7_REQUEST_DENIED || 
+          rc == L7_FAILURE || 
+          rc == L7_ERROR)
+      {
+        return rc;
+      }
     }
   }
   
@@ -1315,13 +1318,16 @@ L7_RC_t aggCollDistEnable(L7_uint32 intf)
            (nimQueryData.data.state == L7_INTF_DETACHING) ||
            (nimQueryData.data.state == L7_INTF_ATTACHED))
   {
-    /* only talk to the hardware when the hardware is valid */
-    rc = dtlDot3adPortAdd(a->aggId,1,tmpList, a->hashMode);
-    if (rc == L7_REQUEST_DENIED || 
-        rc == L7_FAILURE || 
-        rc == L7_ERROR)
+    if (a->isStatic && !a->blockedState)
     {
-      return rc;
+      /* only talk to the hardware when the hardware is valid */
+      rc = dtlDot3adPortAdd(a->aggId,1,tmpList, a->hashMode);
+      if (rc == L7_REQUEST_DENIED || 
+          rc == L7_FAILURE || 
+          rc == L7_ERROR)
+      {
+        return rc;
+      }
     }
   }
   
@@ -1703,7 +1709,7 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_int status)
 {
   dot3ad_agg_t *a;
   dot3ad_port_t *p;
-  //L7_RC_t rc;
+  L7_RC_t rc;
   L7_uint8 i;
   
   a = dot3adAggIntfFind(agg_intf);
@@ -1748,6 +1754,8 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_int status)
   /* Update blocked status */
   a->blockedState = status;
 
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "a->activeNumMembers=%u a->blockedState=%u a->isStatic=%u", a->activeNumMembers, status, a->isStatic);
+
   /* Only do something if number of active members is not null */
   if (a->activeNumMembers > 0)
   {
@@ -1755,7 +1763,6 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_int status)
     {
       if (a->isStatic)
       {
-      #if 0
         PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Removing ports from trunk %u...", agg_intf);
         /* If LAG goes to blocked, remove physically all active ports */
         #if ( LAG_DIRECT_CONTROL_FEATURE )
@@ -1763,7 +1770,6 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_int status)
         #else
         rc = dtlDot3adPortDelete(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
         #endif
-      #endif
       }
       else
       {
@@ -1780,7 +1786,6 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_int status)
     {
       if (a->isStatic)
       {
-      #if 0
         PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Adding ports to trunk %u...", agg_intf);
         /* If LAG goes to UNblocked, add physically all active ports */
         #if ( LAG_DIRECT_CONTROL_FEATURE )
@@ -1788,7 +1793,6 @@ L7_RC_t aggBlockedStateSet(L7_uint32 agg_intf, L7_int status)
         #else
         rc = dtlDot3adPortAdd(a->aggId, a->activeNumMembers, a->aggActivePortList, a->hashMode);
         #endif
-      #endif
       }
       else
       {
