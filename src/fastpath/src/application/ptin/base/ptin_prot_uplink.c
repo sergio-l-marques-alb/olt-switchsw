@@ -252,12 +252,11 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
   {
     intIfNum_member = intIfNum_list[i];
 
-    #if 0
+    /* Disable local faults */
     if (!txdisable)
     {
       ptin_intf_linkfaults_enable(intIfNum_member, L7_FALSE /*Local faults*/,  L7_FALSE /*Remote faults*/);
     }
-    #endif
 
     /* 3 tentatives will be made, at the worst case */
     try = 0;
@@ -403,20 +402,17 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
     PT_LOG_INFO(LOG_CTX_INTF, "intIfNum_member %u / slot %u, port %u: Succesfully set txdisable=%u", intIfNum_member, slot, port, txdisable);
   }
 
-  #if 0
+  /* Reenable local faults */
   if (!txdisable)
   {
-    osapiSleepMSec(500);
+    osapiSleep(1);
 
     /* Run all physical members */
     for (i = 0; i < members_number; i++)
     {
-      intIfNum_member = intIfNum_list[i];
-
-      ptin_intf_linkfaults_enable(intIfNum_member, L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/);
+      ptin_intf_linkfaults_enable(intIfNum_list[i], L7_TRUE /*Local faults*/,  L7_FALSE /*Remote faults*/);
     }
   }
-  #endif
 
   PT_LOG_DEBUG(LOG_CTX_INTF, "%u members succesfully configured for intIfNum %u", members_configured, intIfNum);
 
