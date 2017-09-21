@@ -35,7 +35,7 @@
 
 /* Static Methods */
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *payload, L7_uint32 payloadLength,uchar8 family, L7_uint client_idx);
+L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *payload, L7_uint32 payloadLength,uchar8 family, L7_uint client_idx, L7_uint32 param);
 #endif
 
 /* Initialization of the external API struct */
@@ -781,7 +781,7 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
   return snoopPortClose(serviceId, portId, &groupAddr, &sourceAddr, isProtection);
 }
 
-unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLength, unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned char family)
+unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLength, unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned char family, unsigned int onuId)
 {
   L7_uint16             shortVal;
   L7_uchar8             srcMac[L7_MAC_ADDR_LEN];
@@ -970,7 +970,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
               PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId");
               return FAILURE;
             }          
-            ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
+            ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId,-1);
           }
           if(numberOfQueriesSent>=mgmdNumberOfQueryInstances)
           {          
@@ -989,7 +989,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
     }
     else //General Query
     {
-      ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
+      ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId, onuId);
     }
   }
   #endif
@@ -998,7 +998,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
 }
 
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *payload, L7_uint32 payloadLength,uchar8 family, L7_uint client_idx)
+L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *payload, L7_uint32 payloadLength,uchar8 family, L7_uint client_idx, L7_uint32 onuId)
 {
   ptin_HwEthEvcFlow_t   clientFlow;
   L7_RC_t               rc;
@@ -1018,6 +1018,14 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
       /* First client/flow */
        rc = ptin_evc_vlan_client_next(int_ovlan, portId, &clientFlow, &clientFlow);
 
+       PT_LOG_TRACE(LOG_CTX_IGMP,"onuId=%d", onuId);
+       PT_LOG_TRACE(LOG_CTX_IGMP,"clientFlow.onuId=%d", clientFlow.onuId);
+
+       if ( (onuId != (L7_uint32) -1) && onuId != clientFlow.onuId ) 
+       {
+         continue;
+       }
+       
       /* Internal vlans */
       int_ivlan = clientFlow.int_ivid;
 

@@ -210,7 +210,7 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
   msg_HwEthernet_t cfg_msg;
   L7_uint16 slot, port, board_type;
   L7_uint32 i, members_configured, members_number, intIfNum_list[PTIN_SYSTEM_N_PORTS], intIfNum_member;
-  L7_uint32 ipAddr;
+  L7_uint32 ipAddr = 0;
   L7_uint32 try, answer, answer_size;
   int ret = 0;
 

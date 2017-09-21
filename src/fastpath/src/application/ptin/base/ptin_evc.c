@@ -8130,6 +8130,7 @@ L7_RC_t ptin_evc_client_next( L7_uint32 evc_ext_id, ptin_intf_t *ptin_intf, ptin
     clientFlow_next->int_ivid = client_next->int_ivid;
     clientFlow_next->uni_ovid = client_next->uni_ovid;
     clientFlow_next->uni_ivid = client_next->uni_ivid;
+    clientFlow_next->onuId    = client_next->onuId;
   }
 
   return L7_SUCCESS;

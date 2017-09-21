@@ -2059,7 +2059,7 @@ L7_RC_t ptin_igmp_proxy_reset(void)
   PT_LOG_INFO(LOG_CTX_IGMP,"Multicast queriers reset:");
 
 #if PTIN_SNOOP_USE_MGMD
-  if (ptin_igmp_generalquerier_reset( (L7_uint32) -1) != L7_SUCCESS)
+  if (ptin_igmp_generalquerier_reset( (L7_uint32) -1, (L7_uint32) -1) != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_IGMP, "Unable to reset MGMD General Queriers");
     return L7_FAILURE;
@@ -2893,7 +2893,7 @@ L7_RC_t ptin_igmp_snooping_trap_interface_update(L7_uint32 evc_idx, ptin_intf_t 
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_generalquerier_reset(L7_uint32 serviceId)
+L7_RC_t ptin_igmp_generalquerier_reset(L7_uint32 serviceId, L7_uint32 onuId)
 {
   PTIN_MGMD_EVENT_t             reqMsg       = {0};
   PTIN_MGMD_EVENT_t             resMsg       = {0};
@@ -19654,7 +19654,7 @@ RC_t ptin_igmp_multicast_querierReset_on_specific_serviceID(L7_uint32 ptinPort, 
 {
 
   PT_LOG_TRACE(LOG_CTX_IGMP, "Going to send query to serviceId %u", serviceId);
-  ptin_igmp_generalquerier_reset(serviceId);
+  ptin_igmp_generalquerier_reset(serviceId,onuId);
    
   return L7_SUCCESS;
 }

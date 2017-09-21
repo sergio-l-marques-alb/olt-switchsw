@@ -1387,7 +1387,7 @@ L7_RC_t ptin_intf_counters_activity_get(ptin_HWEth_PortsActivity_t *portActivity
  */
 L7_int ptin_intf_board(L7_int ptin_port)
 {
-  L7_uint16 board_id;
+  L7_uint16 board_id = 0;
 
   if (ptin_intf_boardid_get(ptin_port,  &board_id) != L7_SUCCESS)
   {
@@ -1408,7 +1408,7 @@ L7_int ptin_intf_board(L7_int ptin_port)
  */
 L7_int ptin_slot_board(L7_int slot_id)
 {
-  L7_uint16 board_id;
+  L7_uint16 board_id = 0;
 
   if (ptin_slot_boardid_get(slot_id,  &board_id) != L7_SUCCESS)
   {

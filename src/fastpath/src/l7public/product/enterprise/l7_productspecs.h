@@ -101,7 +101,7 @@
 #define PROD_DIFFSERV_POLICY_LIM                          64
 #define PROD_MAX_CFG_QUEUES_PER_PORT                      8
 #define PROD_MAX_CFG_DROP_PREC_LEVELS                     3
-#define PROD_MAX_VOIP_CALLS                               16
+#define PROD_MAX_VOIP_CALLS                               8
 /*********************************************************************
 **  End of  QOS paramters 
 **********************************************************************/
@@ -110,20 +110,20 @@
 /*********************************************************************
 **  Start of L3 paramters 
 **********************************************************************/
-#define     PROD_L3_ARP_CACHE_SIZE                        (6 * 1024)
-#define     PROD_L3_ROUTE_TBL_SIZE_TOTAL                  (12 * 1024)
-#define     PROD_IPV6_NDP_CACHE_SIZE                      2560
-#define     PROD_IPV6_ROUTE_TBL_SIZE_TOTAL                (4 * 1024)
+#define     PROD_L3_ARP_CACHE_SIZE                        (128)
+#define     PROD_L3_ROUTE_TBL_SIZE_TOTAL                  (128)
+#define     PROD_IPV6_NDP_CACHE_SIZE                      512
+#define     PROD_IPV6_ROUTE_TBL_SIZE_TOTAL                (128)
 #define     PROD_RT_MAX_EQUAL_COST_ROUTES                 16
 #define     PROD_MAX_L3_NUM_IP_ADDRS                      32
 #define     PROD_MAX_L3_NUM_SECONDARIES                   PROD_MAX_L3_NUM_IP_ADDRS - 1
 #define     PROD_MAX_NUM_LOOPBACK_INTF                    8
 #define     PROD_MAX_NUM_TUNNEL_INTF                      8
 #define     PROD_MAX_NUM_VLAN_INTF                        128
-#define     PROD_MAX_NUM_ROUTER_INTF                      128
-#define     PROD_MAX_NUM_WIRELESS_INTF                    64
+#define     PROD_MAX_NUM_ROUTER_INTF                      32
+#define     PROD_MAX_NUM_WIRELESS_INTF                    16
 #define     PROD_MAX_NUM_L2TUNNEL_VLANS                   64
-#define     PROD_IPV6_NHRES_MAX                           32
+#define     PROD_IPV6_NHRES_MAX                           8
 #define     PROD_MAX_NUM_VLAN_PORT_INTF                   1     /* PTin added: virtual ports */
 /*********************************************************************
 **  End of L3 paramters 
@@ -134,37 +134,37 @@
 **  Start of IP Multicast paramters 
 **********************************************************************/
 /* IP Multicast Heap Size */
-#define PROD_MULTICAST_V4_HEAP_SIZE                       ((60)*(1024)*(1024))   /* 60M Heap for IPv4 MRP data */
-#define PROD_MULTICAST_V6_HEAP_SIZE                       ((15.5)*(1024)*(1024)) /* 15.4M Heap for IPv6 MRP data */
-#define PROD_MGMD_V4_HEAP_SIZE                            ((4)*(1024)*(1024))    /* 4M Heap for IPv4 MGMD data */
-#define PROD_MGMD_V6_HEAP_SIZE                            ((4)*(1024)*(1024))    /* 4M Heap for IPv6 MGMD data */
+#define PROD_MULTICAST_V4_HEAP_SIZE                       ((1024)*(1024))   /* 60M Heap for IPv4 MRP data */
+#define PROD_MULTICAST_V6_HEAP_SIZE                       ((1024)*(1024)) /* 15.4M Heap for IPv6 MRP data */
+#define PROD_MGMD_V4_HEAP_SIZE                            ((1024)*(1024))    /* 4M Heap for IPv4 MGMD data */
+#define PROD_MGMD_V6_HEAP_SIZE                            ((1024)*(1024))    /* 4M Heap for IPv6 MGMD data */
 
 #define PROD_PIMSM_MAX_STATIC_RP_NUM                      5         
 #define PROD_PIMSM_MAX_SSM_RANGE                          5         
 #define PROD_PIMSM_MAX_CAND_RP_NUM                        20         
 #define PROD_PIMSM_MAX_RP_GRP_ENTRIES                     64
 #define PROD_PIMSM_MAX_PER_SCOPE_BSR_NODES                1
-#define PROD_PIMSM_MAX_NBR                                256
-#define PROD_PIMDM_MAX_NBR                                256
-#define PROD_DVMRP_MAX_NBR                                256
-#define PROD_DVMRP_MAX_L3_TABLE_SIZE                      224
-#define PROD_DVMRP_MAX_MRT_IPV4_TABLE_SIZE                256
+#define PROD_PIMSM_MAX_NBR                                10
+#define PROD_PIMDM_MAX_NBR                                10
+#define PROD_DVMRP_MAX_NBR                                10
+#define PROD_DVMRP_MAX_L3_TABLE_SIZE                      10
+#define PROD_DVMRP_MAX_MRT_IPV4_TABLE_SIZE                10
 #define PROD_MULTICAST_FIB_MAX_ENTRIES                    2048
-#define PROD_MULTICAST_IPV4_ROUTES_V4ONLY                 2048
-#define PROD_MULTICAST_IPV4_ROUTES_DUAL                   1536
+#define PROD_MULTICAST_IPV4_ROUTES_V4ONLY                 1028
+#define PROD_MULTICAST_IPV4_ROUTES_DUAL                   1000
 #define PROD_MULTICAST_IPV6_ROUTES                        512
 #define PROD_MULTICAST_MAX_IP_MTU                         1500
-#define PROD_MGMD_GROUPS_MAX_ENTRIES                      2048
-#define PROD_PIM_NUM_OPTIMAL_OUTGOING_INTERFACES          48
-#define PROD_MULTICAST_MAX_STATIC_MROUTES                 50
-#define PROD_MULTICAST_MAX_ADMINSCOPE_ENTRIES             50
+#define PROD_MGMD_GROUPS_MAX_ENTRIES                      32
+#define PROD_PIM_NUM_OPTIMAL_OUTGOING_INTERFACES          10
+#define PROD_MULTICAST_MAX_STATIC_MROUTES                 5
+#define PROD_MULTICAST_MAX_ADMINSCOPE_ENTRIES             25
 
 /* Number of Sources learned/processed per Group in a received 
  * IGMPv3 or MLDv2 message.
  * This is arrived based on the following calculation:
  * ((L7_PORT_ENET_ENCAP_DEF_MTU - 24 - 12) / sizeof(L7_inet_addr_t))
  */
-#define PROD_MGMD_MAX_QUERY_SOURCES                       73
+#define PROD_MGMD_MAX_QUERY_SOURCES                       3
 /*********************************************************************
 **  End of IP Multicast parameters 
 **********************************************************************/
@@ -173,11 +173,11 @@
 **  Start of Wireless parameters 
 **********************************************************************/
 /* Wireles Client QoS list/policy usage restrictions (conforming to Access Point limitations)  */
-#define PROD_WIRELESS_CLTQOS_ACL_MAX_LISTS                      50
-#define PROD_WIRELESS_CLTQOS_ACL_MAX_RULES_PER_LIST             10
-#define PROD_WIRELESS_CLTQOS_DIFFSERV_CLASS_LIM                 50
-#define PROD_WIRELESS_CLTQOS_DIFFSERV_POLICY_LIM                50
-#define PROD_WIRELESS_CLTQOS_DIFFSERV_INST_PER_POLICY_LIM       10  
+#define PROD_WIRELESS_CLTQOS_ACL_MAX_LISTS                      5
+#define PROD_WIRELESS_CLTQOS_ACL_MAX_RULES_PER_LIST             1
+#define PROD_WIRELESS_CLTQOS_DIFFSERV_CLASS_LIM                 5
+#define PROD_WIRELESS_CLTQOS_DIFFSERV_POLICY_LIM                5
+#define PROD_WIRELESS_CLTQOS_DIFFSERV_INST_PER_POLICY_LIM       1 
 /*********************************************************************
 **  End of Wireless parameters 
 **********************************************************************/

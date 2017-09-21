@@ -679,7 +679,7 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
 
 #if (PTIN_BOARD_IS_MATRIX)
   /* Reset MGMD General Querier state */
-  rc = ptin_igmp_generalquerier_reset((L7_uint32) -1);
+  rc = ptin_igmp_generalquerier_reset((L7_uint32) -1, (L7_uint32) -1);
   if (rc!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to reset MGMD General Queriers");

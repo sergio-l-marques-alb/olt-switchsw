@@ -682,7 +682,7 @@ extern L7_RC_t ptin_igmp_all_clients_flush(void);
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_generalquerier_reset(L7_uint32 serviceId);
+extern L7_RC_t ptin_igmp_generalquerier_reset(L7_uint32 serviceId, L7_uint32 onuId);
 
 /**
  * Get list of channels, starting from a specific channel index

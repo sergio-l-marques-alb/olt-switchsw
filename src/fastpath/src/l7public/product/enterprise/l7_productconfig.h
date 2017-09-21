@@ -56,8 +56,8 @@
 
 #define L7_PERSISTENT_LOG_SUPPORTED                         L7_TRUE
 #define L7_SYSAPI_FEATURE_KEYING_SUPPORTED           L7_FALSE
-#define L7_DHCPS_MAX_POOL_NUMBER                            16 
-#define L7_DHCPS_MAX_LEASE_NUMBER                           256 
+#define L7_DHCPS_MAX_POOL_NUMBER                            1 
+#define L7_DHCPS_MAX_LEASE_NUMBER                           1 
 
 /* Max allowed DISCOVER messages for ping detection at a time */
 #define L7_DHCPS_MAX_ASYNC_MSGS                              50
@@ -71,16 +71,16 @@
                                      start with L7_*
 **********************************************************************/
 
-#define FD_SSHD_MAX_SESSIONS                5 
-#define FD_TELNET_DEFAULT_MAX_SESSIONS      5
+#define FD_SSHD_MAX_SESSIONS                1 
+#define FD_TELNET_DEFAULT_MAX_SESSIONS      1
 
 #if defined(L7_WEB_PACKAGE) || defined(L7_XWEB_PACKAGE)
-#define FD_HTTP_DEFAULT_MAX_CONNECTIONS     16
-#define FD_CP_HTTP_DEFAULT_MAX_CONNECTIONS  32
+#define FD_HTTP_DEFAULT_MAX_CONNECTIONS     1
+#define FD_CP_HTTP_DEFAULT_MAX_CONNECTIONS  1
 
-#define FD_CLI_WEB_DEFAULT_NUM_SESSIONS     5
+#define FD_CLI_WEB_DEFAULT_NUM_SESSIONS     1
 #ifdef L7_MGMT_SECURITY_PACKAGE
-  #define FD_SECURE_HTTP_DEFAULT_MAX_CONNECTIONS     16
+  #define FD_SECURE_HTTP_DEFAULT_MAX_CONNECTIONS     1
   #define FD_CP_SECURE_HTTP_DEFAULT_MAX_CONNECTIONS  0  /* no need for additional */
 #else
   #define FD_SECURE_HTTP_DEFAULT_MAX_CONNECTIONS     0
@@ -89,7 +89,7 @@
 
 #else /* defined(L7_WEB_PACKAGE) || defined(L7_XWEB_PACKAGE) */
 
-#define FD_CLI_WEB_DEFAULT_NUM_SESSIONS     5
+#define FD_CLI_WEB_DEFAULT_NUM_SESSIONS     1
 
 #define FD_HTTP_DEFAULT_MAX_CONNECTIONS     0
 #define FD_CP_HTTP_DEFAULT_MAX_CONNECTIONS  0
@@ -149,7 +149,7 @@
 #define L3INTF_DEVICE_NAME                                 "rt"
 
 #define L7_RTR_MAX_SUBNETS                                 min(20, L7_MAX_NUM_ROUTER_INTF)
-#define L7_RTR_MAX_RTR_INTERFACES                          L7_MAX_NUM_ROUTER_INTF             
+#define L7_RTR_MAX_RTR_INTERFACES                          5//L7_MAX_NUM_ROUTER_INTF             
 /*       The number of VLANs and VLAN IDs reserved for box management.
 **       This value plus L7_MAX_VLAN_ID must be less or equal to 4095, which means
 **       that a switch that supports the full VLAN range can only have one reserved
@@ -193,39 +193,39 @@
 /* Maximum number of APs this device can manage in the peer group when
 ** it is acting as the WIDS Controller
 */
-#define L7_WIRELESS_MAX_PEER_GROUP_ACCESS_POINTS    96
+#define L7_WIRELESS_MAX_PEER_GROUP_ACCESS_POINTS    1
 
 /* Maximum number of APs in the peer group with which this device 
 ** can co-exist when it is not acting as the WIDS Controller.
 */
-#define L7_WIRELESS_MAX_PEER_GROUP_PARTICIPATION_APS  2000
+#define L7_WIRELESS_MAX_PEER_GROUP_PARTICIPATION_APS  1
 
 /* Maximum number of switches in the peer group.
 */
-#define L7_WIRELESS_MAX_PEER_SWITCHES     64
+#define L7_WIRELESS_MAX_PEER_SWITCHES     1
 
 /* Maximum number of Access Points that can be managed by one switch.
 */
-#define L7_WIRELESS_MAX_ACCESS_POINTS                       48
+#define L7_WIRELESS_MAX_ACCESS_POINTS                       1
 
 /* Maximu number of wireless clients in the peer group.
 */
-#define L7_WIRELESS_MAX_CLIENTS                             4000
+#define L7_WIRELESS_MAX_CLIENTS                             1
 
 /* Maximum number of wireless clients that can be associated
 ** to one radio on the AP.
 */
-#define L7_WIRELESS_MAX_CLIENTS_PER_RADIO                   200
+#define L7_WIRELESS_MAX_CLIENTS_PER_RADIO                   1
 
 /* Amount of memory reserved for storing Network Visulalization
 ** floor plans.
 */
-#define L7_WIRELESS_NV_IMAGES_NVRAM_SIZE                    (1024*1000) /* 1M */
+#define L7_WIRELESS_NV_IMAGES_NVRAM_SIZE                    (128) /* 1M */
 
 /* Amount of memory reserved for storing Captive Portal
 ** branding images.
 */
-#define L7_CAPTIVE_PORTAL_IMAGES_NVRAM_SIZE                 (1024*1000) /* 1M */
+#define L7_CAPTIVE_PORTAL_IMAGES_NVRAM_SIZE                 (128) /* 1M */
 
 /*
  * L3 Tunneling definitions
@@ -239,7 +239,7 @@
 #define L7_WIRELESS_TSPEC_TS_POOL_MAX                       (L7_WIRELESS_MAX_CLIENTS / 4)
 
 /* Maximum number of APs in WDS group */
-#define L7_WDM_WDS_MAX_AP_PER_GROUP                          16
+#define L7_WDM_WDS_MAX_AP_PER_GROUP                          1
 
 /* Maximum number of WDS Links in WDS group */ 
 #define L7_WDM_WDS_MAX_LINKS_PER_GROUP                       (L7_WDM_WDS_MAX_AP_PER_GROUP*4)
@@ -268,8 +268,8 @@
 **  Start of Obsoleted paramters 
 **********************************************************************/
 /* MPLS table sizes (contained in NP FIB) */
-#define L7_TS_MPLS_FTN_TBL_SIZE_TOTAL     128
-#define L7_TS_MPLS_ILM_TBL_SIZE_TOTAL     128
+#define L7_TS_MPLS_FTN_TBL_SIZE_TOTAL     1
+#define L7_TS_MPLS_ILM_TBL_SIZE_TOTAL     1
 
 /* Size of Network Processor Forwarding Information Base when Traffic Services
  * Flex Package is used.
