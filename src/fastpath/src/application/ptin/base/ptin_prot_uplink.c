@@ -453,13 +453,21 @@ L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int block_state)
       return L7_FAILURE;
     }
 
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Setting block state to %u of intIfNum %u", block_state, intIfNum);
+    rc = dot3adBlockedStateSet(intIfNum, block_state);
+
+    /* Clear MAC table entries, when blocking the port */
+    if (block_state != L7_FALSE)
+    {
+      PT_LOG_DEBUG(LOG_CTX_INTF, "Flushing MAc table for intIfNum %u", intIfNum);
+      usmDbFdbFlushByPort(intIfNum);
+    }
+    
     if (isStatic)
     {
       PT_LOG_DEBUG(LOG_CTX_INTF, "Controlling remote laser of intIfNum %u", intIfNum);
       rc = ptin_remote_laser_control(intIfNum, block_state);
     }
-    PT_LOG_DEBUG(LOG_CTX_INTF, "Setting block state to %u of intIfNum %u", block_state, intIfNum);
-    rc = dot3adBlockedStateSet(intIfNum, block_state);
 
     PT_LOG_INFO(LOG_CTX_INTF, "ptin_intf %u/%u blocking state changed to %d value (rc=%d)", ptin_intf.intf_type, ptin_intf.intf_id, block_state, rc);
   }
@@ -467,12 +475,19 @@ L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int block_state)
   {
     PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u is a PHY", intIfNum);
 
-    PT_LOG_DEBUG(LOG_CTX_INTF, "Controlling remote laser of intIfNum %u", intIfNum);
-    rc = ptin_remote_laser_control(intIfNum, block_state);
-
     /* Add this port to all configured VLANs */
     rc = ptin_vlan_port_add(ptin_port, 0);
     PT_LOG_INFO(LOG_CTX_INTF, "ptin_intf %u/%u added to all existent VLANs (rc=%d)", ptin_intf.intf_type, ptin_intf.intf_id, rc);
+
+        /* Clear MAC table entries, when blocking the port */
+    if (block_state != L7_FALSE)
+    {
+      PT_LOG_DEBUG(LOG_CTX_INTF, "Flushing MAc table for intIfNum %u", intIfNum);
+      usmDbFdbFlushByPort(intIfNum);
+    }
+
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Controlling remote laser of intIfNum %u", intIfNum);
+    rc = ptin_remote_laser_control(intIfNum, block_state);
   }
 
   PT_LOG_DEBUG(LOG_CTX_INTF, "rc=%u", rc);
@@ -520,9 +535,6 @@ L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
     /* Undo any special schemes for protection */
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumW, -1);
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumP, -1);
-    /* Flush MAC table */
-    usmDbFdbFlushByPort(uplinkprot[protIdx].protParams.intIfNumW);
-    usmDbFdbFlushByPort(uplinkprot[protIdx].protParams.intIfNumP);
 
     PT_LOG_INFO(LOG_CTX_INTF, "LAGs %u and %u restored!", uplinkprot[protIdx].protParams.intIfNumW, uplinkprot[protIdx].protParams.intIfNumP);
     return L7_SUCCESS;
@@ -555,12 +567,10 @@ L7_RC_t ptin_prot_select_intf(L7_uint32 protIdx, PROT_PortType_t portType)
   if (block_intfW)
   {
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumW, L7_TRUE);
-    usmDbFdbFlushByPort(uplinkprot[protIdx].protParams.intIfNumW);
   }
   if (block_intfP)
   {
     ptin_prot_uplink_intf_block(uplinkprot[protIdx].protParams.intIfNumP, L7_TRUE);
-    usmDbFdbFlushByPort(uplinkprot[protIdx].protParams.intIfNumP);
   }
   /* Only then, unblock the active ones */
   if (!block_intfW)
@@ -2924,6 +2934,9 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
  */
 L7_RC_t ptin_prot_uplink_alarmFlagsEn_set(L7_uint8 protIdx, L7_uint32 alarmFlagsEn)
 {
+  L7_uint32 alarmFlagsEn_h;
+  L7_RC_t rc = L7_SUCCESS;
+
   /* Validate protIndex */
   if (protIdx >= MAX_UPLINK_PROT)
   {
@@ -2938,12 +2951,34 @@ L7_RC_t ptin_prot_uplink_alarmFlagsEn_set(L7_uint8 protIdx, L7_uint32 alarmFlags
   }
 
   osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
-
+  /* Save original status of alarm flags */
+  alarmFlagsEn_h = uplinkprot[protIdx].protParams.alarmsEnFlag;
+  /* Update alarm flags */
   uplinkprot[protIdx].protParams.alarmsEnFlag = alarmFlagsEn;
-
   osapiSemaGive(ptin_prot_uplink_sem);
 
-  return L7_SUCCESS;
+  /* If alarm flags change, reset protection machine */
+  if ( (alarmFlagsEn_h & (MASK_PORT_LINK | MASK_PORT_BW)) != (alarmFlagsEn & (MASK_PORT_LINK | MASK_PORT_BW)) )
+  {
+    PT_LOG_INFO(LOG_CTX_INTF, "Resetting protection group %u", protIdx);
+
+    rc = uplinkprotResetStateMachine(protIdx);
+
+    /* Error? Revert alarm flags */
+    if (rc != L7_SUCCESS)
+    {
+      osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+      uplinkprot[protIdx].protParams.alarmsEnFlag = alarmFlagsEn_h;
+      osapiSemaGive(ptin_prot_uplink_sem);
+      PT_LOG_ERR(LOG_CTX_INTF, "Error resetting protection group %u (rc=%d)", protIdx, rc);
+    }
+    else
+    {
+      PT_LOG_INFO(LOG_CTX_INTF, "Success resetting protection group %u", protIdx);
+    }
+  }
+  
+  return rc;
 }
 
 /**
