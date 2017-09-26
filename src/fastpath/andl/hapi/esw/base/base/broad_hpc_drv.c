@@ -1519,12 +1519,13 @@ void hpcHardwareDefaultConfigApply(void)
           ** up learning.
           */
 #ifndef L7_ROBO_SUPPORT
-#ifdef L7_MACLOCK_PACKAGE
-          rv = bcm_port_learn_set (i,port,  0);
-#else 
+/* PTin modified */
+//#ifdef L7_MACLOCK_PACKAGE
+//          rv = bcm_port_learn_set (i,port,  0);
+//#else 
           /* If PML component is not present, we have to enable the learning mode on all ports */
           rv = bcm_port_learn_set (i,port, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD));
-#endif
+//#endif
 #endif
           if (rv != BCM_E_NONE)
           {
