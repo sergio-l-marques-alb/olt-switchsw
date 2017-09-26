@@ -1345,7 +1345,8 @@ L7_RC_t ptin_msg_intfInfo_get(msg_HwIntfInfo_t *intf_info)
   /* Number of ports */
   intf_info->number_of_ports = ENDIAN_SWAP8(ptin_sys_number_of_ports);
 
-  #ifdef MAP_CPLD
+  //#ifdef MAP_CPLD
+  #if 0
   if (!ptin_fpga_mx_is_matrixactive())
   {
     PT_LOG_ERR(LOG_CTX_MSG, "I am inactive matrix");
