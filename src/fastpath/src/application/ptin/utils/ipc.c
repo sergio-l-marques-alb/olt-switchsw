@@ -394,13 +394,16 @@ int send_trap_switch_event(unsigned char intfType, int interface, int code, int 
   ptin_intf.intf_type = intfType;
   ptin_intf.intf_id   = interface;
 
-  if (ptin_intf_ptintf2SlotPort(&ptin_intf, &slot_to_send, L7_NULLPTR, L7_NULLPTR)!=L7_SUCCESS)
+  if ( ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL )
   {
-    PT_LOG_ERR(LOG_CTX_IPC,"Unable to determine slot to send trap (port=%u)", interface);
-    return -1;
+    if (ptin_intf_ptintf2SlotPort(&ptin_intf, &slot_to_send, L7_NULLPTR, L7_NULLPTR)!=L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_IPC,"Unable to determine slot to send trap (port=%u)", interface);
+      return -1;
+    }
   }
 
-  PT_LOG_TRACE(LOG_CTX_IPC,"%d",slot_to_send);
+  //PT_LOG_TRACE(LOG_CTX_IPC,"%d",slot_to_send);
 
   comando.protocolId= SIR_IPCPROTOCOL_ID;
   comando.flags		= IPCLIB_FLAGS_CMD;
@@ -426,11 +429,11 @@ int send_trap_switch_event(unsigned char intfType, int interface, int code, int 
   alarm->intf_id     = ENDIAN_SWAP8 (interface);
   alarm->outer_vid   = ENDIAN_SWAP16(param);
 
-  PT_LOG_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d, param = %d: ERROR = %d %d", IPC_CHMSG_TRAP_PORT, interface, code, status, param, ret, ENDIAN_SWAP8(alarm->slotId));
+  PT_LOG_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d: intfType=%d, interface=%d, Code = 0x%.4x, status = %d, param = %d: ERROR = %d slotId = %d", IPC_CHMSG_TRAP_PORT, intfType, interface, code, status, param, ret, ENDIAN_SWAP8(alarm->slotId));
 
   ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
-      PT_LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: interface=%d, Code = 0x%.4x, status = %d: ERROR = %d", IPC_CHMSG_TRAP_PORT, interface, code, status, ret);
+      PT_LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d: intfType=%d, interface=%d, Code = 0x%.4x, status = %d: ERROR = %d slotId = %d", IPC_CHMSG_TRAP_PORT, intfType, interface, code, status, ret, ENDIAN_SWAP8(alarm->slotId));
   return(ret);
 }
 

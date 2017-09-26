@@ -145,7 +145,9 @@ extern L7_RC_t ptin_hapi_bridge_crossconnect_delete_all(void);
 extern L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
                                    L7_uint16 match_ovid, L7_uint16 match_ivid, L7_uint16 egress_ovid, L7_uint16 egress_ivid,
                                    L7_int *mcast_group,
-                                   L7_int *virtual_gport);
+                                   L7_int *virtual_gport,
+                                   L7_int port_id, 
+                                   L7_int type);
 
 /**
  * Remove virtual port

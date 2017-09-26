@@ -817,7 +817,6 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
 {
   ptin_vport_t vport;
   L7_RC_t rc = L7_SUCCESS;
-
   /* Validate arguments */
   if ( intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES || 
        int_ovid <= 0 || int_ovid >= 4095 ||
@@ -840,6 +839,29 @@ L7_RC_t ptin_virtual_port_add(L7_uint32 intIfNum,
   vport.virtual_gport    = -1;
   vport.multicast_group  = mcast_group;
   vport.macLearnMax      = macLearnMax;
+
+#ifdef NGPON2_SUPPORTED
+  L7_uint32  port_id;
+  L7_uint8   group_ngpon2_id;
+
+  rc = ptin_intf_intIfNum2port(intIfNum, &port_id);
+  if ( rc == L7_FAILURE )
+  {
+    PT_LOG_ERR(LOG_CTX_API, "Error converting intfNum to ptin_port. intfNum = %u", intIfNum);
+  }
+  else
+  {
+    rc = ptin_intf_NGPON2_group_check((L7_uint8)port_id, &group_ngpon2_id);
+    if ( rc == L7_SUCCESS )
+    {
+      vport.port_id  = group_ngpon2_id;
+      vport.type     = PTIN_EVC_INTF_NGPON2;
+    }
+  }
+#else
+  vport.port_id  = intIfNum;
+  vport.type     = PTIN_EVC_INTF_PHYSICAL;
+#endif //NGPON2_SUPPORTED
 
   /* DTL call */
   rc = dtlPtinVirtualPort(intIfNum, &vport);

@@ -500,7 +500,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
                             L7_uint16 match_ovid, L7_uint16 match_ivid,
                             L7_uint16 egress_ovid, L7_uint16 egress_ivid,
                             L7_int *mcast_group,
-                            L7_int *virtual_gport)
+                            L7_int *virtual_gport, L7_int port_id, L7_int type)
 {
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
@@ -602,7 +602,7 @@ L7_RC_t ptin_hapi_vp_create(ptin_dapi_port_t *dapiPort,
   #endif
 
   /* Configures the information needed to generate alarms related to MAC Limit */
-  ptin_hapi_vport_maclimit_alarmconfig(vlan_port.vlan_port_id, hapiPortPtr->bcm_port, match_ovid);
+  ptin_hapi_vport_maclimit_alarmconfig(vlan_port.vlan_port_id, hapiPortPtr->bcm_port, match_ovid, port_id, type);
 
   /* create egress translation entries for virtual ports to do VLAN tag manipulation 
    * i.e. client -> gem_id + some_c_vlan */

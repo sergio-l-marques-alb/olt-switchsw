@@ -715,6 +715,8 @@ typedef struct
   L7_int virtual_gport;
   L7_int multicast_group;
   L7_uint8 macLearnMax;
+  L7_int  port_id;
+  L7_int  type;
 } ptin_vport_t;
 
 /* Struct used to manipulate cross connects via DTL */

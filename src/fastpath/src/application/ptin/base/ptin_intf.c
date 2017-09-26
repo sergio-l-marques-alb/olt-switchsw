@@ -8529,6 +8529,8 @@ L7_RC_t ptin_intf_NGPON2_group_check(L7_uint8 intf_index, L7_uint8 *group_index)
     i++;
   }
 
+  *group_index = -1;
+
   return L7_FAILURE;
 }
 

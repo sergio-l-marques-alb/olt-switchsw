@@ -1648,11 +1648,13 @@ L7_RC_t hapiBroadPtinVirtualPortSet(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   case DAPI_CMD_SET:
     if (vport->cmd == PTIN_VPORT_CMD_VP_OPER)
     {
+
+
       rc = ptin_hapi_vp_create(&dapiPort, 
                                vport->ext_ovid, vport->ext_ivid,
                                vport->int_ovid, vport->int_ivid,
                                &vport->multicast_group,
-                               &vport->virtual_gport);
+                               &vport->virtual_gport, vport->port_id, vport->type);
 
       if (rc == L7_SUCCESS)
       {

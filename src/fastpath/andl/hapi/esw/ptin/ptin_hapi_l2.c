@@ -1420,7 +1420,7 @@ L7_RC_t ptin_hapi_maclimit_status(DAPI_USP_t *ddUsp, L7_uint32 *mac_learned, L7_
  *  
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_hapi_vport_maclimit_alarmconfig(bcm_gport_t gport, int bcm_port, L7_uint16 outer_vid)
+L7_RC_t ptin_hapi_vport_maclimit_alarmconfig(bcm_gport_t gport, int bcm_port, L7_uint16 outer_vid, L7_uint port_id, L7_uint type)
 {
   L7_uint vport_id = 0;
   L7_int  port;
@@ -1439,10 +1439,17 @@ L7_RC_t ptin_hapi_vport_maclimit_alarmconfig(bcm_gport_t gport, int bcm_port, L7
 
     hapi_ptin_port_get(bcm_port, &port);
 
-    macLearn_info_flow[vport_id].ptin_intf.intf_type =  PTIN_EVC_INTF_PHYSICAL;
-    macLearn_info_flow[vport_id].ptin_intf.intf_id =    port;                   // PON interface
-    macLearn_info_flow[vport_id].uni_ovid =             outer_vid;              // GEM id
+    macLearn_info_flow[vport_id].ptin_intf.intf_type =  type;
+    if( macLearn_info_flow[vport_id].ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
+    {
+      macLearn_info_flow[vport_id].ptin_intf.intf_id =  port;                   // PON interface
+    }
+    else
+    {
+      macLearn_info_flow[vport_id].ptin_intf.intf_id =  port_id;
+    }
 
+    macLearn_info_flow[vport_id].uni_ovid =             outer_vid;              // GEM id
   }
   else
   {
