@@ -1181,7 +1181,7 @@ L7_RC_t aggCollDistDisable(L7_uint32 intf)
            (nimQueryData.data.state == L7_INTF_DETACHING) ||
            (nimQueryData.data.state == L7_INTF_ATTACHED))
   {
-    if (a->isStatic && !a->blockedState)
+    if ((!a->isStatic) || (!a->blockedState))
     {
       /* only talk to the hardware when the hardware is valid */
       rc = dtlDot3adPortDelete(a->aggId,1,tmpList, a->hashMode);
@@ -1318,7 +1318,7 @@ L7_RC_t aggCollDistEnable(L7_uint32 intf)
            (nimQueryData.data.state == L7_INTF_DETACHING) ||
            (nimQueryData.data.state == L7_INTF_ATTACHED))
   {
-    if (a->isStatic && !a->blockedState)
+    if ((!a->isStatic) || (!a->blockedState))
     {
       /* only talk to the hardware when the hardware is valid */
       rc = dtlDot3adPortAdd(a->aggId,1,tmpList, a->hashMode);
