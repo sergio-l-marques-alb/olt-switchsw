@@ -19,6 +19,7 @@
 
 #include "ptin_include.h"
 #include "ipc.h"
+#include "ptin_prot_uplink.h"
 
 /*****************************************************************************
  * IPC Messages codes 
@@ -108,6 +109,7 @@
 
 #define CHMSG_ETH_UPLINK_COMMAND            0x9116  // Uplink protection command from Mx (fw control): struct msg_uplinkProtCmd
 
+#define CHMSG_UPLINKPROT_STATE              0x9117  // msg_uplinkprot_st
 #define CHMSG_UPLINKPROT_INFO               0x9118  // msg_HWuplinkProtInfo
 #define CHMSG_UPLINKPROT_SHOW               0x9119  // future use (msg_HWuplinkProtConf)
 #define CHMSG_UPLINKPROT_CREATE             0x911A  // 1 x msg_HWuplinkProtConf
@@ -2651,6 +2653,19 @@ typedef enum {
     PROT_CFG_WORKING,
     PROT_CFG_STANDBY,
 } enum_LinkProtCfg;
+
+
+/// CHMSG_UPLINKPROT_STATE
+typedef struct
+{
+  unsigned char  slotId;               // Destination slot for this message
+  unsigned short protIndex;            // Protection group index
+
+  uplinkprot_st   protGroup_data;
+  PROT_OPCMD_t    operator_cmd;
+  PROT_PortType_t operator_switchToPortType;
+
+} __attribute__ ((packed)) msg_uplinkprot_st;
 
 
 /***************************************************************************** 

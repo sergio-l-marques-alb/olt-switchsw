@@ -147,6 +147,8 @@ typedef struct {
     PROT_WTR_CMD_t      wait_restore_timer_CMD;
     L7_uint32           wait_restore_timer;
 
+    L7_BOOL             machine_suspended;
+
 } uplinkprot_st;
 
 /// Used to get Status
@@ -278,6 +280,49 @@ extern L7_RC_t ptin_prot_uplink_config_get(L7_uint8 protIdx, uplinkprotParams_st
 extern L7_RC_t ptin_prot_uplink_status(L7_uint8 protIdx, uplinkprot_status_st *status);
 
 /**
+ * Get protection group state
+ * 
+ * @param protIdx 
+ * @param state (out): status
+ * @param cmd (out)  : operator_cmd
+ * @param switchToPortType (out): operator_switchToPortType
+ *  
+ * @return L7_RC_t  
+ */
+extern L7_RC_t ptin_prot_uplink_state(L7_uint8 protIdx, uplinkprot_st *state, PROT_OPCMD_t *cmd, PROT_PortType_t *switchToPortType);
+
+/**
+ * Synchronize protection state from the other SF
+ * 
+ * @author mruas (26/09/17)
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_prot_uplink_state_sync(void);
+
+/**
+ * Suspend uplink protection machine
+ * 
+ * @author mruas (26/09/17)
+ * 
+ * @param void
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_prot_uplink_suspend(void);
+
+/**
+ * Resume uplink protection machine
+ * 
+ * @author mruas (26/09/17)
+ * 
+ * @param void 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_prot_uplink_resume(void);
+
+/**
  * Reload a protection group from the interface
  * 
  * @author mruas (26/07/17)
@@ -287,6 +332,7 @@ extern L7_RC_t ptin_prot_uplink_status(L7_uint8 protIdx, uplinkprot_status_st *s
  * @return L7_RC_t 
  */
 extern L7_RC_t ptin_prot_uplink_intf_reload(L7_uint32 intIfNum);
+
 
 /**
  * Reload a protection group

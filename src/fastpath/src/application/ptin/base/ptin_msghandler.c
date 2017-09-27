@@ -894,6 +894,27 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     }
     break; /* CHMSG_UPLINKPROT_SHOW */
 
+    /* CHMSG_UPLINKPROT_STATE */
+    case CHMSG_UPLINKPROT_STATE:
+    {
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CHMSG_UPLINKPROT_STATE (0x%04X)", msgId);
+
+      CHECK_INFO_SIZE_ATLEAST_ABS(sizeof(unsigned char) + sizeof(unsigned short));
+
+      /* Execute command */
+      rc = ptin_msg_uplink_prot_state(inbuffer, outbuffer);
+
+      if (L7_SUCCESS != rc)
+      {
+        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error reading state");
+        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+        SetIPCNACK(outbuffer, res);
+        return IPC_OK;
+      }
+      return IPC_OK;
+    }
+    break; /* CHMSG_UPLINKPROT_STATE */
+
     case CHMSG_UPLINKPROT_STATUS:
     case CHMSG_UPLINKPROT_STATUSNEXT:
     {

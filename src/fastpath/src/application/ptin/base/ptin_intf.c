@@ -1488,6 +1488,7 @@ L7_RC_t ptin_intf_boardid_set(L7_int ptin_port, L7_uint16 board_id)
   }
 
   ptin_slot_boardid[slot_id] = board_id;
+  PT_LOG_INFO(LOG_CTX_INTF,"Slot %u: updated board_id = %u", slot_id, board_id);
   #endif
 
   return L7_SUCCESS;
@@ -1546,6 +1547,7 @@ L7_RC_t ptin_slot_boardtype_set(L7_int slot_id, L7_uint16 board_id)
   }
 
   ptin_slot_boardid[slot_id] = board_id;
+  PT_LOG_INFO(LOG_CTX_INTF,"Slot %u: updated board_id = %u", slot_id, board_id);
   #endif
 
   return L7_SUCCESS;

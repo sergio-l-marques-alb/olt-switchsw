@@ -12842,6 +12842,70 @@ L7_RC_t ptin_msg_uplink_prot_status(ipc_msg *inbuffer, ipc_msg *outbuffer)
 }
 
 /**
+ * Get protection group status
+ * 
+ * @param inbuffer 
+ * @param outbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_uplink_prot_state(ipc_msg *inbuffer, ipc_msg *outbuffer)
+{
+  L7_uint protIdx, i;
+  uplinkprot_st prot_state;
+  PROT_OPCMD_t cmd;
+  PROT_PortType_t switchToPortType;
+  msg_uplinkprot_st *protState_in  = (msg_uplinkprot_st *) inbuffer->info;
+  msg_uplinkprot_st *protState_out = (msg_uplinkprot_st *) outbuffer->info;
+
+  PT_LOG_TRACE(LOG_CTX_MSG, "Message contents:");
+  PT_LOG_TRACE(LOG_CTX_MSG, " MsgId     = %u"  , inbuffer->msgId);
+  PT_LOG_TRACE(LOG_CTX_MSG, " slotId    = %u"  , protState_in->slotId);
+  PT_LOG_TRACE(LOG_CTX_MSG, " protIndex = %u"  , protState_in->protIndex);
+
+  i = 0;
+  for (protIdx = 0; protIdx < MAX_UPLINK_PROT; protIdx++)
+  {
+    /* Skip not selected indexes */
+    if ((protState_in->protIndex == (unsigned short)-1) || (protState_in->protIndex == protIdx))
+    {
+      /* Get protection state for this group */
+      memset(&prot_state, 0x00, sizeof(uplinkprot_st));
+      if (ptin_prot_uplink_state(protIdx, &prot_state, &cmd, &switchToPortType) == L7_SUCCESS)
+      {
+        memset(&protState_out[i], 0x00, sizeof(msg_uplinkprot_st));
+
+        protState_out[i].slotId     = ptin_fpga_board_slot_get();
+        protState_out[i].protIndex  = protIdx;
+        memcpy(&protState_out[i].protGroup_data, &prot_state, sizeof(uplinkprot_st));
+        protState_out[i].operator_cmd = cmd;
+        protState_out[i].operator_switchToPortType = switchToPortType;
+
+        i++;
+      }
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error reading state for protIdx %u",  protIdx);
+      }
+    }
+  }
+
+  /* If we retrieved no entries, fill all structure with 0xff values */
+  if (i == 0)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "No answer to be retrieved");
+    return L7_FAILURE;
+  }
+
+  outbuffer->infoDim = sizeof(msg_uplinkprot_st) * i;
+
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Success reading state for %u groups", i);
+
+  return L7_SUCCESS;
+}
+
+
+/**
  * Create new protection group
  * 
  * @param inbuffer 

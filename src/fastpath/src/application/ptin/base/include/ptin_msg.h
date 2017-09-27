@@ -1204,6 +1204,16 @@ extern L7_RC_t ptin_msg_uplink_prot_config_get(ipc_msg *inbuffer, ipc_msg *outbu
 extern L7_RC_t ptin_msg_uplink_prot_status(ipc_msg *inbuffer, ipc_msg *outbuffer);
 
 /**
+ * Get protection group status
+ * 
+ * @param inbuffer 
+ * @param outbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_uplink_prot_state(ipc_msg *inbuffer, ipc_msg *outbuffer);
+
+/**
  * Create new protection group
  * 
  * @param inbuffer 

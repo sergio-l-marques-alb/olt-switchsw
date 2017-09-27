@@ -1182,10 +1182,31 @@ void ptin_control_switchover_monitor(void)
           PT_LOG_INFO(LOG_CTX_CONTROL, "Linkscan enabled for interface %u", intIfNum);
           PT_LOG_INFO(LOG_CTX_EVENTS , "Linkscan enabled for interface %u", intIfNum);
         }
+
+        /* Wait a couple of seconds */
+        osapiSleep(3);
+        PT_LOG_INFO(LOG_CTX_CONTROL, "Going to reenable Uplink Protection machine");
+
+        /* If this SF is active, reenable uplink protections */
+        if (ptin_prot_uplink_state_sync() != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_CONTROL, "Error synchronizong Uplink Protection state from the other SF");
+        }
+        else
+        {
+          PT_LOG_INFO(LOG_CTX_CONTROL, "This is active SF: Uplink Protection state synchronized from the other SF!");
+          /* Resume state machine */
+          (void) ptin_prot_uplink_resume();
+          PT_LOG_INFO(LOG_CTX_CONTROL, "This is active SF: Uplink Protection machine operation resumed");
+        }
       }
       /* For passive matrix, reset all ports, and disable linkscan for all of them */
       else
       {
+        /* If this SF is inactive, disable uplink protections */
+        (void) ptin_prot_uplink_suspend();
+        PT_LOG_INFO(LOG_CTX_CONTROL, "This is inactive SF: Uplink Protection machine suspended");
+
         /* Clear historic values of active interfaces */
         memset(switchover_intf_active_h, 0x00, sizeof(switchover_intf_active_h));
 
