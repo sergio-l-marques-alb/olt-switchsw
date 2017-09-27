@@ -1,5 +1,7 @@
 #!/bin/sh
 
+mv -v .svn .svn.tmp
+
 echo "Applying patch..."
 patch -p1 < tipc-4.4.30.patch
 patch -p1 < cxo2t4-mx.patch
@@ -27,7 +29,7 @@ CPPFLAGS=" -m32 -mhard-float  -mcpu=e500mc --sysroot=/opt/fsl/1.2/sysroots/ppce5
 export CC AS CPPFLAGS LD  CROSS_COMPILE ARCH RANLIB NM CONFIGURE_FLAGS CFLAGS LDFLAGS CXXFLAGS
 
 #Clean
-make clean
+#make clean
 
 #compilar
 make -j`grep -c '^processor' /proc/cpuinfo` uImage
@@ -48,3 +50,5 @@ echo "Reverting patch..."
 patch -p1 -R < cxo2t4-mx.patch
 patch -p1 -R < tipc-4.4.30.patch
 echo "Done!"
+
+mv -v .svn.tmp .svn
