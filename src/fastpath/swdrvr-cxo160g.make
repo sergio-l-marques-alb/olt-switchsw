@@ -23,7 +23,7 @@ export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 COMPILER = $(TOOLCHAIN_BIN_DIR)/powerpc-fsl-linux-
 
 # Kernel and SDK paths
-KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-3.0.51-smp-e500mc
+KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-4.1.8-QorIQ-SDK2.0
 SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-switchdrvr-6.5.7/broadcom
 
 # Comilation logging level
