@@ -43,8 +43,8 @@ make modules_install INSTALL_MOD_PATH=$PWD/rootfs
 #instalar os include headers do linux
 make headers_install ARCH=$ARCH INSTALL_HDR_PATH=$PWD/linux-inc
 
-cp arch/powerpc/boot/uImage cxo160.z
-scripts/dtc/dtc -O dtb -o cxo160.dtb -b 0 -p 1024 cxo160.dts
+cp arch/powerpc/boot/uImage cxo160g.z
+scripts/dtc/dtc -O dtb -o cxo160g.dtb -b 0 -p 1024 arch/powerpc/boot/dts/fsl/cxo160.dts
 
 echo "Reverting patch..."
 patch -p1 -R < kernel-4.1-cxo160.patch
