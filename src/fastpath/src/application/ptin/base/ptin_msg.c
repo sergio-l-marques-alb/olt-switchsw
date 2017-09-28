@@ -19613,7 +19613,7 @@ L7_RC_t ptin_msg_apply_ngpon2_configuration(L7_uint32 ngpon2_id)
   ptin_NGPON2_groups_t NGPON2_GROUP;
   ptinExtNGEvcIdInfoData_t  *ext_evcId_infoData;
   ptinExtNGEvcIdDataKey_t    ext_evcId_key;
-  ptin_HwEthMef10Evc_t       ngpon_config;
+  static ptin_HwEthMef10Evc_t       ngpon_config;
 
   /* Get NGPON2 group information*/
   get_NGPON2_group_info(&NGPON2_GROUP, ngpon2_id);
