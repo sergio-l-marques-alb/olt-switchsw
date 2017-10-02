@@ -1091,7 +1091,6 @@ void ptinSwitchoverTask(L7_uint32 numArgs, void *unit)
 
 #if (PTIN_BOARD_IS_MATRIX)
 #ifdef PTIN_LINKSCAN_CONTROL
-
 #ifdef MAP_CPLD
 /* List of active interfaces */
 static L7_uint8 switchover_intf_active_h[PTIN_SYSTEM_MAX_N_PORTS];
@@ -2935,6 +2934,9 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
 L7_int get_linkStatus(L7_uint32 port) {return port<PTIN_SYSTEM_N_INTERF? linkStatus_history[port]: L7_TRUE;}
 
 
+#if (PTIN_BOARD_IS_MATRIX)
+#ifdef PTIN_LINKSCAN_CONTROL
+#ifdef MAP_CPLD
 
 void switchover_intf_active_dump(void)
 {
@@ -2954,3 +2956,6 @@ void switchover_intf_active_clear(void)
   printf("switchover_intf_active_h array cleared\r\n");
 }
 
+#endif /* MAP_CPLD */
+#endif /* PTIN_LINKSCAN_CONTROL */
+#endif /* PTIN_BOARD_IS_MATRIX */
