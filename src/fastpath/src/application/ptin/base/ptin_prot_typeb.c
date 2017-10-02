@@ -124,7 +124,9 @@ L7_RC_t ptin_prottypeb_intf_config_set(ptin_prottypeb_intf_config_t* data)
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "Sending a Snoop Sync Request Message to ipAddr:%08X to Sync the Snoop Entries of remote slotId/intfNum:%u/%u", ipAddr,prottypeb_interfaces[intfNum-1].pairSlotId, prottypeb_interfaces[intfNum-1].pairIntfNum);
   /*Send the snoop sync request to the protection matrix */  
-  if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REQUEST, (char *)(&snoopSyncRequest), NULL, sizeof(snoopSyncRequest), NULL) < 0)
+  if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REQUEST,
+                       (char *)(&snoopSyncRequest), NULL,
+                       sizeof(snoopSyncRequest), NULL) < 0)
   {
     PT_LOG_ERR(LOG_CTX_PROTB, "Failed to send Snoop Sync Request Message");
     return L7_FAILURE;

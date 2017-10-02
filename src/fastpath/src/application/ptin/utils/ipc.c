@@ -593,7 +593,7 @@ int send_ipc_message(int porto, uint32 ipaddr, int msg_id, char *request, char *
   }
   else
   {
-    if(*infoDimAnswer != 0 && (resposta.infoDim % (*infoDimAnswer)) != 0)
+    if(*infoDimAnswer != 0 && resposta.infoDim > *infoDimAnswer)
     {
       PT_LOG_ERR(LOG_CTX_IPC,"Received infodim is not expected (infodim=%u is not multiple of %u)",resposta.infoDim,*infoDimAnswer);
       return -1;

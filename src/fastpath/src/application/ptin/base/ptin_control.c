@@ -112,6 +112,12 @@ L7_BOOL slots_to_be_reseted[PTIN_SYS_SLOTS_MAX]={L7_FALSE, [1 ... (PTIN_SYS_SLOT
 /* Tells if alarms should be suppressed */
 static unsigned char ptin_alarms_suppressed[PTIN_SYSTEM_N_INTERF];
 
+L7_BOOL ptin_control_debug = L7_FALSE;
+void ptin_control_debug_set(L7_BOOL enable)
+{
+  ptin_control_debug = enable;
+}
+
 /* Local prototypes */
 static void startup_trap_send(void);
 static void monitor_throughput(void);
@@ -1272,6 +1278,7 @@ void ptin_control_switchover_monitor(void)
 
   /* Query active matrix, abot active ports */
   msg_HwIntfInfo_t ports_info;
+  L7_uint32 answer_size;
 
   memset(interfaces_active, 0x00, sizeof(interfaces_active));
   memset(&ports_info, 0x00, sizeof(msg_HwIntfInfo_t));
@@ -1280,17 +1287,19 @@ void ptin_control_switchover_monitor(void)
   ports_info.generic_id = 0;
   ports_info.generic_id = ptin_sys_number_of_ports;
 
+  answer_size = sizeof(msg_HwIntfInfo_t);
   if (send_ipc_message(IPC_HW_FASTPATH_PORT,
                        ((ptin_fpga_board_slot_get() <= PTIN_SYS_MX1_SLOT) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING),
                        CCMSG_HW_INTF_INFO_GET,
                        (char *) &ports_info,
                        (char *) &ports_info,
                        sizeof(msg_HwIntfInfo_t),
-                       NULL) < 0)
+                       &answer_size) < 0)
   {
     PT_LOG_ERR(LOG_CTX_CONTROL, "Failed to send interfaces query!");
     return;
   }
+
   #if 0
   PT_LOG_TRACE(LOG_CTX_CONTROL, "ptin_board_slotId=%d",  ptin_board_slotId);
   for (port=0; port<ports_info.number_of_ports; port++)
@@ -1309,15 +1318,30 @@ void ptin_control_switchover_monitor(void)
 
   osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
 
+  if (ptin_control_debug)
+  {
+    PT_LOG_TRACE(LOG_CTX_CONTROL, "ports_info.number_of_ports=%u", ports_info.number_of_ports);
+  }
+
   /* Update list of active interfaces */
   for (port=0; port<ports_info.number_of_ports; port++)
   {
+    if (ptin_control_debug)
+    {
+      PT_LOG_TRACE(LOG_CTX_CONTROL, "ports_info.port[%u].board_id=%u", port, ports_info.port[port].board_id);
+    }
+
     if (ports_info.port[port].board_id != 0)
     {
       if (ports_info.port[port].enable &&
           ports_info.port[port].link)
       {
         interfaces_active[port] = 1;
+      }
+
+      if (ptin_control_debug)
+      {
+        PT_LOG_TRACE(LOG_CTX_CONTROL, "port=%u: interfaces_active=%u", port, interfaces_active[port]);
       }
     }
 
@@ -2908,15 +2932,25 @@ void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim) {
 
 
 
-
-
-
-
-
-
-
-
-
-
 L7_int get_linkStatus(L7_uint32 port) {return port<PTIN_SYSTEM_N_INTERF? linkStatus_history[port]: L7_TRUE;}
+
+
+
+void switchover_intf_active_dump(void)
+{
+  L7_uint i;
+
+  printf("Dumping switchover_intf_active_h contents...\r\n");
+
+  for (i = 0; i < PTIN_SYSTEM_MAX_N_PORTS; i++)
+  {
+    printf("switchover_intf_active_h[%u] = %u\r\n", i, switchover_intf_active_h[i]);
+  }
+}
+
+void switchover_intf_active_clear(void)
+{
+  memset(switchover_intf_active_h,  0x00,  sizeof(switchover_intf_active_h));
+  printf("switchover_intf_active_h array cleared\r\n");
+}
 

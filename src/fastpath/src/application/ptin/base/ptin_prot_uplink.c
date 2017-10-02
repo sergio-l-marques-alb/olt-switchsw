@@ -385,6 +385,7 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
       
       PT_LOG_DEBUG(LOG_CTX_INTF, "Try %u: Sending message to slotId %u / ipAddr 0x%08x", try, slot, ipAddr);
 
+      answer_size = sizeof(L7_uint32);
       ret = send_ipc_message(IPC_HW_PORTO_MSG_CXP,
                              ipAddr,
                              CHMSG_TUxG_ETH_CONFIG,
@@ -3589,6 +3590,7 @@ L7_RC_t ptin_prot_uplink_state_sync(void)
   prot_state[0].slotId    = (ptin_fpga_board_slot_get() <= PTIN_SYS_MX1_SLOT) ? PTIN_SYS_MX2_SLOT : PTIN_SYS_MX1_SLOT;
   prot_state[0].protIndex = (L7_uint16)-1;
 
+  infoDim_ans = sizeof(msg_uplinkprot_st);
   if (send_ipc_message(IPC_HW_FASTPATH_PORT,
                        ((ptin_fpga_board_slot_get() <= PTIN_SYS_MX1_SLOT) ? IPC_MX_IPADDR_PROTECTION : IPC_MX_IPADDR_WORKING),
                        CHMSG_UPLINKPROT_STATE,

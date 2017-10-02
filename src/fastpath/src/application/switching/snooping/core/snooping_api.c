@@ -112,7 +112,9 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
   PT_LOG_TRACE(LOG_CTX_PROTB, "Sending message to card %08X(%u) to set port %u admin to %u for group %08X/%08X", protectionSlotIp, protectionSlotId, protectionPortId, admin, groupAddr, sourceAddr);
 
   /* Send the mfdb port configurations to the remote slot */
-  if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync), NULL) < 0)
+  if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC,
+                       (char *)(&mgmdPortSync), NULL,
+                       sizeof(mgmdPortSync), NULL) < 0)
   {
     PT_LOG_ERR(LOG_CTX_PROTB, "Failed to sync MGMD between active and protection interface");
     return L7_FAILURE;
@@ -165,7 +167,9 @@ L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, ptin_fpga_matrix_type_t matrixTyp
   PT_LOG_TRACE(LOG_CTX_PROTB, "Sending message to matrix %08X(%u) to set port %u admin to %u for group %08X/%08X", matrixIpAddr, matrixSlotId, portId, admin, groupAddr, sourceAddr);
 
   /* Send the mfdb port configurations to the remote slot */
-  if (send_ipc_message(IPC_HW_FASTPATH_PORT, matrixIpAddr, CCMSG_MGMD_PORT_SYNC, (char *)(&mgmdPortSync), NULL, sizeof(mgmdPortSync), NULL) < 0)
+  if (send_ipc_message(IPC_HW_FASTPATH_PORT, matrixIpAddr, CCMSG_MGMD_PORT_SYNC,
+                       (char *)(&mgmdPortSync), NULL,
+                       sizeof(mgmdPortSync), NULL) < 0)
   {
     PT_LOG_ERR(LOG_CTX_PROTB, "Failed to sync MGMD between active and protection interface");
     return L7_FAILURE;

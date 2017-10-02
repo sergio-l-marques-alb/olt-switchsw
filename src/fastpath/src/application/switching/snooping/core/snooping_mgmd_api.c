@@ -1215,7 +1215,9 @@ L7_RC_t ptin_snoop_l3_sync_mx_process_request(L7_uint16 vlanId, L7_inet_addr_t *
     }
     
     /*Send the snoop sync request to the protection matrix */  
-    if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REPLY, (char *)(&snoopSyncReply), NULL, numberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t), NULL) < 0)
+    if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REPLY,
+                         (char *)(&snoopSyncReply), NULL,
+                         numberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t), NULL) < 0)
     {
       PT_LOG_ERR(LOG_CTX_IGMP, "Failed to send Snoop Sync Reply Message");
       return L7_FAILURE;
@@ -1351,7 +1353,9 @@ L7_RC_t ptin_snoop_l3_sync_port_process_request(L7_uint16 vlanId, L7_inet_addr_t
   {    
     PT_LOG_DEBUG(LOG_CTX_IGMP, "Sending a Snoop Sync Reply Message ipAddr:%08X with %u Snoop Entries  to sync slot/port:%u/%u",ipAddr, numberOfSnoopEntries, protTypebIntfConfig.pairSlotId, protTypebIntfConfig.pairIntfNum);
     /*Send the snoop sync request to the protection matrix */  
-    if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REPLY, (char *)(&snoopSyncReply), NULL, numberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t), NULL) < 0)
+    if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REPLY,
+                         (char *)(&snoopSyncReply), NULL,
+                         numberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t), NULL) < 0)
     {
       PT_LOG_ERR(LOG_CTX_IGMP, "Failed to send Snoop Sync Reply Message");
       return L7_FAILURE;
@@ -1520,7 +1524,9 @@ L7_RC_t ptin_snoop_sync_mx_process_request(L7_uint16 vlanId, L7_uint32 groupAddr
     }
     
     /*Send the snoop sync request to the protection matrix */  
-    if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REPLY, (char *)(&snoopSyncReply), NULL, numberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t), NULL) < 0)
+    if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REPLY,
+                         (char *)(&snoopSyncReply), NULL,
+                         numberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t), NULL) < 0)
     {
       PT_LOG_ERR(LOG_CTX_PROTB, "Failed to send Snoop Sync Reply Message");
       return L7_FAILURE;
@@ -1678,7 +1684,9 @@ L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 groupAd
     
     PT_LOG_DEBUG(LOG_CTX_MSG, "Sending a Snoop Sync Reply Message ipAddr:%08X with %u Snoop Entries  to sync slot/port:%u/%u",ipAddr, numberOfSnoopEntries, protTypebIntfConfig.pairSlotId, protTypebIntfConfig.pairIntfNum);
     /*Send the snoop sync request to the protection matrix */  
-    if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REPLY, (char *)(&snoopSyncReply), NULL, numberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t), NULL) < 0)
+    if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REPLY,
+                         (char *)(&snoopSyncReply), NULL,
+                         numberOfSnoopEntries*sizeof(msg_SnoopSyncReply_t), NULL) < 0)
     {
       PT_LOG_ERR(LOG_CTX_PROTB, "Failed to send Snoop Sync Reply Message");
       return L7_FAILURE;

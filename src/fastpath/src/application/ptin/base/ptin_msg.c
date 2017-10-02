@@ -12364,7 +12364,9 @@ L7_RC_t ptin_msg_snoop_sync_reply(msg_SnoopSyncReply_t *snoopSyncReply, L7_uint3
               
   
   /*Send the snoop sync request to the protection matrix */  
-  if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REQUEST, (char *)(&snoopSyncRequest), NULL, sizeof(snoopSyncRequest), NULL) < 0)
+  if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REQUEST,
+                       (char *)(&snoopSyncRequest), NULL,
+                       sizeof(snoopSyncRequest), NULL) < 0)
   {
     PT_LOG_ERR(LOG_CTX_PROTB, "Failed to Send Snoop Sync Request Message");
     return L7_FAILURE;
@@ -17229,7 +17231,9 @@ void ptin_msg_protection_matrix_configuration_flush_end(void)
       PT_LOG_INFO(LOG_CTX_MSG, "Sending a Snoop Sync Request Message to ipAddr:%08X (%u)", ipAddr, MX_PAIR_SLOT_ID);
 
       /*Send the snoop sync request to the protection matrix */  
-      if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REQUEST, (char *)(&snoopSyncRequest), NULL, sizeof(snoopSyncRequest), NULL) < 0)
+      if (send_ipc_message(IPC_HW_FASTPATH_PORT, ipAddr, CCMSG_MGMD_SNOOP_SYNC_REQUEST,
+                           (char *)(&snoopSyncRequest), NULL,
+                           sizeof(snoopSyncRequest), NULL) < 0)
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Failed to send Snoop Sync Request Message");
 //      return;
