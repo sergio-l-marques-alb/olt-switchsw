@@ -436,6 +436,114 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   L7_uint16          mcastRootVlan; /* Internal vlan will be converted to MC root vlan */
   L7_uint8           port_type;
  
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+  L7_uchar8          *buffPtr             = L7_NULLPTR;
+  L7_uint16          ipHdrLen             = 0;
+  L7_uint8           query_count          = 0;
+  L7_uint8           local_router_port_id = -1;
+
+  /* Get start and length of incoming frame */
+  SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
+  SYSAPI_NET_MBUF_GET_DATALENGTH(netBufHandle, dataLength);
+  buffPtr = (L7_uchar8 *)(data + sysNetDataOffsetGet(data));
+
+  ipHdrLen = (buffPtr[0] & 0x0f)*4;
+  /* Extract source and group address from packet */
+  /* Point to the start of ethernet payload */
+
+  /* Starting of IGMP header */
+  igmpPtr = (L7_uchar8 *) &buffPtr[ipHdrLen];
+  PT_LOG_TRACE(LOG_CTX_IGMP,"igmpPtr %d ", igmpPtr[0]);
+  //PT_LOG_TRACE(LOG_CTX_IGMP,"ptin_igmp_get_local_router_port %d ", ptin_igmp_get_local_router_port(&local_router_port_id));
+
+  if (igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "L7_IGMP_MEMBERSHIP_QUERY");
+  if (igmpPtr[0] == L7_IGMP_V1_MEMBERSHIP_REPORT)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "L7_IGMP_V1_MEMBERSHIP_REPORT");
+  if (igmpPtr[0] == L7_IGMP_DVMRP)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "L7_IGMP_DVMRP");
+  if (igmpPtr[0] == L7_IGMP_PIM_V1)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "L7_IGMP_PIM_V1");
+  if (igmpPtr[0] == L7_IGMP_V2_MEMBERSHIP_REPORT)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "L7_IGMP_V2_MEMBERSHIP_REPORT");
+  if (igmpPtr[0] == L7_IGMP_V2_LEAVE_GROUP)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "L7_IGMP_V2_LEAVE_GROUP");
+  if (igmpPtr[0] == L7_IGMP_V3_MEMBERSHIP_REPORT)
+    PT_LOG_TRACE(LOG_CTX_IGMP, "L7_IGMP_V3_MEMBERSHIP_REPORT");
+
+  if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_FAILURE) )
+  {
+    L7_uint32 ptin_port;
+
+    ptin_port = pduInfo->intIfNum-1;
+    PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on uplink port, Going to define local router port. ptin_port = %u ",ptin_port);
+
+    ptin_igmp_set_local_router_port(ptin_port, -1);
+
+    /* Start timmer for the local router port */
+
+    PT_LOG_TRACE(LOG_CTX_IGMP,"Start_timer for the local router port");
+
+    ptin_igmp_ring_osapiSemaTake();
+
+    ptin_igmp_timer_start(ptin_port, PTIN_IGMP_CLIENTIDX_MAX - 1);
+
+    ptin_igmp_ring_osapiSemaGive();
+
+    PT_LOG_TRACE(LOG_CTX_IGMP,"Timer started!");
+
+  }
+
+  else
+  {
+    /* check if the query is received on client port */
+    rc = ptin_igmp_port_type_get(pduInfo->intIfNum-1, &port_type);
+
+    if (rc == L7_SUCCESS)
+    {
+      if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS))
+      {
+        PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on LRP!");
+
+        if ( (port_type == PTIN_IGMP_LOCAL_ROUTER_PORT) )
+        {
+          PT_LOG_TRACE(LOG_CTX_IGMP,"Going to rearm the timer for the LRP.");
+      
+          ptin_igmp_ring_osapiSemaTake();
+          ptin_igmp_timer_start(pduInfo->intIfNum-1, PTIN_IGMP_CLIENTIDX_MAX - 1);
+          ptin_igmp_ring_osapiSemaGive();
+      
+          PT_LOG_TRACE(LOG_CTX_IGMP,"Timer started!");
+        }
+      }
+    
+      if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY)
+      {
+        if ( (port_type == PTIN_IGMP_PORT_CLIENT) )
+        {
+          PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on a dynamic client port!");
+          ptin_igmp_get_port_query_count(pduInfo->intIfNum-1, &query_count);
+
+          if (query_count == 2)
+          {
+            if (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS)
+            {
+              ptin_igmp_ring_osapiSemaTake();
+              ptin_igmp_timer_stop(local_router_port_id, PTIN_IGMP_CLIENTIDX_MAX - 1);
+              ptin_igmp_ring_osapiSemaGive();
+            }
+
+            PT_LOG_NOTICE(LOG_CTX_IGMP,"Dynamic client port (ptin_port %u) has received 2 querys. Going to set all dynamic ports to default!  ", pduInfo->intIfNum-1);
+            ptin_igmp_ports_default(-1);
+            PT_LOG_NOTICE(LOG_CTX_IGMP,"All dynamic ports set to default! ");
+          }
+        }
+      }
+    }
+  }
+
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT  
+   
   if (ptin_debug_igmp_snooping)
     PT_LOG_TRACE(LOG_CTX_IGMP,"{");
 
@@ -509,9 +617,11 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     }
   }
 
+#ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
   /* Get start and length of incoming frame */
   SYSAPI_NET_MBUF_GET_DATASTART(netBufHandle, data);
   SYSAPI_NET_MBUF_GET_DATALENGTH(netBufHandle, dataLength);
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
   if (ptin_debug_igmp_packet_trace)
   {    
@@ -558,6 +668,19 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
    ptin_timer_start(73,"ptin_igmp_clientIntfVlan_validate");
   /*Get Port Type*/   
   rc = ptin_evc_internal_vlan_port_type_get(pduInfo->vlanId, pduInfo->intIfNum, &port_type);
+
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+  L7_uint32 port;
+  port = pduInfo->intIfNum - 1;
+
+  rc = ptin_igmp_port_type_get(port,&port_type);
+
+#if 0
+  if(pduInfo->intIfNum == 13)
+    port_type = PTIN_EVC_INTF_LEAF;
+#endif
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
+
   ptin_timer_stop(73);
   if (rc != L7_SUCCESS)
   {
@@ -672,8 +795,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #endif
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED 
+#ifndef ONE_MULTICAST_VLAN_RING_SUPPORT 
   L7_uchar8       *buffPtr          = L7_NULLPTR;
-  L7_uint16        ipHdrLen         = 0;   
+  L7_uint16        ipHdrLen         = 0;
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT   
   L7_inet_addr_t   groupAddr;
   L7_inet_addr_t   sourceAddr;
   L7_uint16        noOfGroupRecords = 1;
@@ -697,12 +822,15 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       return L7_FAILURE;
     }
 
+#ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
     /* Extract source and group address from packet */
 
     /* Point to the start of ethernet payload */
     buffPtr = (L7_uchar8 *)(data + sysNetDataOffsetGet(data));
 
     ipHdrLen = (buffPtr[0] & 0x0f)*4;
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
+
     if ( ipHdrLen < L7_IP_HDR_LEN)
     {
       PT_LOG_DEBUG(LOG_CTX_IGMP, "IP Header Len is invalid %d",ipHdrLen);
@@ -716,8 +844,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       return L7_FAILURE;
     }
 
+#ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
     /* Starting of IGMP header */
     igmpPtr = (L7_uchar8 *) &buffPtr[ipHdrLen];
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
     /* Group address */
     /* For V1/V2 and query messages, the group address is always located at the same place */
@@ -819,10 +949,32 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       if(igmpPtr!=L7_NULLPTR)
         ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
       else
-      {      
-        ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);    
-      }        
+      {
+#ifndef ONE_MULTICAST_VLAN_RING_SUPPORT                  
+      }
       return L7_FAILURE;
+#else
+      }
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
+
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+      L7_uint8  isDynamic;
+      L7_uint32 ptin_port_aux;
+
+      ptin_port_aux = pduInfo->intIfNum - 1;
+
+      ptin_igmp_port_is_Dynamic(ptin_port_aux,&isDynamic);
+      
+      if(port_type != PTIN_EVC_INTF_LEAF && !isDynamic )
+      {
+        return L7_FAILURE;
+      }
+      else 
+      {
+        PT_LOG_TRACE(LOG_CTX_IGMP,"mcastRootVlan = 512");
+        mcastRootVlan = 512;
+      }
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
     }
     else
     {

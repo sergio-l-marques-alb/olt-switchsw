@@ -1549,7 +1549,7 @@ L7_RC_t ptin_msg_slotMode_apply(void)
  */
 L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
 {
-  L7_uint          i;
+  L7_uint          i;// rc;
   ptin_intf_t      ptin_intf;
   ptin_HWPortExt_t portExt_conf;
 
@@ -1575,6 +1575,7 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
     portExt_conf.maxChannels                   = ENDIAN_SWAP16(portExt[i].maxChannels);
     portExt_conf.maxBandwidth                  = ENDIAN_SWAP64(portExt[i].maxBandwidth);
     portExt_conf.dhcp_trusted                  = ENDIAN_SWAP8 (portExt[i].protocol_trusted);
+    portExt_conf.router_port                   = ENDIAN_SWAP8 (portExt[i].router_port);
 
     ptin_intf.intf_type = ENDIAN_SWAP8(portExt[i].intf.intf_type);
     ptin_intf.intf_id   = ENDIAN_SWAP8(portExt[i].intf.intf_id);
@@ -1585,6 +1586,33 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
       PT_LOG_ERR(LOG_CTX_MSG,"Error setting MEF EXT configurations");
       return L7_FAILURE;
     }
+
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+    L7_RC_t rc;
+    if (portExt_conf.router_port)
+    {
+      PT_LOG_TRACE(LOG_CTX_MSG, "portExt[i].intf.intf_id = %u", portExt[i].intf.intf_id);
+    }
+    /* check if this OLT is connected to a router */
+    if ( portExt_conf.Mask & PTIN_IGMP_LRP )
+    {
+      if ( portExt_conf.router_port )
+      {
+        /* define local router port */
+        rc = ptin_igmp_set_local_router_port(ptin_intf.intf_id, portExt_conf.router_port);
+        if (rc == L7_FAILURE)
+          return L7_FAILURE;
+      }
+      else if ( !portExt_conf.router_port ) //(portExt_conf.Mask & PTIN_IGMP_LRP)
+      {
+        /* set uplink ports states to default */
+        lrp_id = -1; 
+        rc = ptin_igmp_ports_default(portExt_conf.router_port);
+        if (rc == L7_FAILURE)
+          return L7_FAILURE;
+      }
+    }
+#endif // ONE_MULTICAST_VLAN_RING_SUPPORT  
   }
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "Success setting MEF EXT configurations",__FUNCTION__);
@@ -12711,7 +12739,6 @@ L7_RC_t ptin_msg_erps_cmd(msg_erps_cmd_t *msgErpsCmd)
   return L7_SUCCESS;
 
 }
-
 
 
 /***************************************************************************** 

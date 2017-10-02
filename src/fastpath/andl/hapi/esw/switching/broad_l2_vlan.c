@@ -153,7 +153,11 @@ void hapiBroadL2VlanAddPortToVlanHw (DAPI_USP_t *usp,
   /* Notify the IP multicast routing component that a port has been added 
   ** to a VLAN.
   */
+#ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
   hapiBroadL3McastPortVlanAddNotify (usp, vlanId, dapi_g);
+#else
+  printf("Notify the IP multicast routing component that a port has been added to a VLAN -> hapiBroadL3McastPortVlanAddNotify \n\r");
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 #endif
 
 
@@ -203,7 +207,12 @@ void hapiBroadL2VlanRemovePortFromVlanHw (DAPI_USP_t *usp,
   /* Notify the IP multicast routing component that a port is about to be removed
   ** from a VLAN.
   */
+#ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
   hapiBroadL3McastPortVlanRemoveNotify (usp, vlanId, dapi_g);
+#else
+  printf("Notify the IP multicast routing component that a port is about to be removed from a VLAN -> hapiBroadL3McastPortVlanAddNotify \n\r");
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
+
 #endif
 
   BROAD_HW_VLAN_MEMBER_CLEAR(usp,vlanId,dapi_g);
@@ -298,7 +307,12 @@ void hapiBroadAddRemovePortFromVlans (DAPI_USP_t *usp,
         /* Notify the IP multicast routing component that a port has been added 
         ** to a VLAN.
         */
+#ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
         hapiBroadL3McastPortVlanAddNotify (usp, vlan_id, dapi_g);
+#else
+        printf("Notify the IP multicast routing component that a port has been added to a VLAN -> hapiBroadL3McastPortVlanAddNotify \n\r");
+#endif // ONE_MULTICAST_VLAN_RING_SUPPORT
+
 #endif
 
         hapiBroadMgmPortVlanAddNotify (usp, vlan_id, dapi_g);
@@ -307,7 +321,12 @@ void hapiBroadAddRemovePortFromVlans (DAPI_USP_t *usp,
 #ifdef L7_WIRELESS_PACKAGE
         /* Notify the L2 tunnel initiators about tagging changes on a physical port 
         */
+#ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
         hapiBroadL2TunnelVlanAddNotify (usp, vlan_id, tag, dapi_g);
+#else
+        printf("Notify the L2 tunnel initiators about tagging changes on a physical port -> hapiBroadL2TunnelVlanAddNotify \n\r");
+#endif  //ONE_MULTICAST_VLAN_RING_SUPPORT
+
 #endif
       }
       else

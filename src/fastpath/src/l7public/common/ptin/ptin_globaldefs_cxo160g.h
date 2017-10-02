@@ -21,6 +21,8 @@
 #define SYNC_SSM_IS_SUPPORTED
 #define PTIN_PTP_PORT     0   /* PTP interface port nr (xe56) */ /* 10G port */
 
+/* Define for the ring configuration support */
+#define ONE_MULTICAST_VLAN_RING_SUPPORT 0
 
 # define PTIN_PHY_PREEMPHASIS_DEFAULT         0xBF00 /* main=48 post=15 */
 # define PTIN_PHY_PREEMPHASIS_FARTHEST_SLOTS  0xCEC0 /* main=44 post=19 */
@@ -119,7 +121,7 @@
 # define PTIN_SYSTEM_N_IGMP_INSTANCES                  40    /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP           (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_IGMP_MAXINTERFACES                PTIN_SYSTEM_N_INTERF                                                        /* Maximum nr of interfaces per multicast group */
-# define PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF             1
+# define PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF             2
 # define PTIN_SYSTEM_IGMP_MAXONUS                      (PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF*PTIN_SYSTEM_N_INTERF)  /* 20 clients per IGMP instance (20 slots) */
 # define PTIN_SYSTEM_IGMP_MAXDEVICES_PER_ONU           1     /* Settop boxes connected to ONUs */
 # define PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF          PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF

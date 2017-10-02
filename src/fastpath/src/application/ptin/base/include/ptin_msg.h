@@ -1370,6 +1370,13 @@ extern int ptin_msg_erps_status_next(msg_erps_status_t *msgErpsStatus, L7_int *n
  */
 extern L7_RC_t ptin_msg_erps_cmd(msg_erps_cmd_t *msgErpsCmd);
 
+/****************************************************************************** 
+ * Local Router Port Configuration
+ ******************************************************************************/
+
+extern L7_RC_t ptin_msg_lrp_set(ptin_LRP_t *lrp_struct);
+
+
 
 /****************************************************************************** 
  * ACL Configuration

@@ -156,6 +156,18 @@
 /* Otherwise will be used a unique range for all interfaces */
 #define PTIN_IGMP_CLIENTS_ISOLATED_PER_INTF 1
 
+/* Defines for ring configuration support */   
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+
+#define PTIN_IGMP_LRP                 0x200000
+#define PTIN_IGMP_LOCAL_ROUTER_PORT   2
+#define PTIN_IGMP_PORT_CLIENT         1
+#define PTIN_IGMP_PORT_SERVER         0
+
+extern  L7_uint32 lrp_id; 
+
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
+
 #if PTIN_IGMP_CLIENTS_ISOLATED_PER_INTF
   #define PTIN_IGMP_CLIENTIDX_MAX      (PTIN_SYSTEM_IGMP_MAXCLIENTS_PER_INTF)
   #define PTIN_IGMP_INTFPORT_MAX       (PTIN_SYSTEM_N_INTERF)
@@ -1738,6 +1750,90 @@ extern RC_t ptin_igmp_multicast_service_remove(L7_uint32 ptinPort, L7_uint32 onu
 
 
 #endif//IGMPASSOC_MULTI_MC_SUPPORTED
+
+
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+extern L7_RC_t ptin_igmp_timer_start (L7_uint32 ptin_port, L7_uint32 client_idx);
+extern L7_RC_t ptin_igmp_timer_stop (L7_uint32 ptin_port, L7_uint32 client_idx);
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
+
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+
+#if 1
+void ptin_igmp_define_local_router_port(L7_uint32 local_router_port_id);
+#endif
+/**
+ * Set all ring ports to default
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_ports_default(L7_uint32 lrp_flag);
+
+/**
+ * Check the query_count of the port
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_get_port_query_count(L7_uint32 port, L7_uint8* query_count);
+
+
+/**
+ * Check if the port is server or client
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_port_type_get(L7_uint32 port, L7_uint8* port_type);
+
+/**
+ * Check if the port is dynamic
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_port_is_Dynamic(L7_uint32 port, L7_uint8* isDynamic);
+
+/**
+ * Get local router port
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_get_local_router_port(L7_uint8 *local_router_port_id);
+
+/**
+ * osapiSemaTake for the timer of local router port
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_uint8 ptin_igmp_ring_osapiSemaTake();
+
+/**
+ * osapiSemaGive for the timer of local router port
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_uint8 ptin_igmp_ring_osapiSemaGive();
+
+#if 0
+/**
+ * Set LRP from ptin_msg
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_lrp_set(L7_uint32 local_router_port_id);
+#endif
+
+#if 1
+/**
+ * Define local router port 
+ * @param ptin_port
+ * @param local router port flag
+ *
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_set_local_router_port(L7_uint32 port, L7_uint8 lrp_flag);
+#endif
+
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
+
 
 #endif//_PTIN_IGMP_H
 
