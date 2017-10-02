@@ -21,7 +21,7 @@
 #define PTIN_PTP_PORT     0   /* PTP interface port nr (xe56) */ /* 10G port */
 
 /* Define for the ring configuration support */
-#define ONE_MULTICAST_VLAN_RING_SUPPORT 0
+//#define ONE_MULTICAST_VLAN_RING_SUPPORT 0
 
 # define PTIN_PHY_PREEMPHASIS_DEFAULT         0xBF00 /* main=48 post=15 */
 # define PTIN_PHY_PREEMPHASIS_FARTHEST_SLOTS  0xCEC0 /* main=44 post=19 */
