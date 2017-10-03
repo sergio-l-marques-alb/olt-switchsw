@@ -1589,27 +1589,39 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
     L7_RC_t rc;
-    if (portExt_conf.router_port)
-    {
-      PT_LOG_TRACE(LOG_CTX_MSG, "portExt[i].intf.intf_id = %u", portExt[i].intf.intf_id);
-    }
+   
     /* check if this OLT is connected to a router */
     if ( portExt_conf.Mask & PTIN_IGMP_LRP )
     {
       if ( portExt_conf.router_port )
       {
-        /* define local router port */
-        rc = ptin_igmp_set_local_router_port(ptin_intf.intf_id, portExt_conf.router_port);
-        if (rc == L7_FAILURE)
-          return L7_FAILURE;
+        /* If local router port is defined do nothing*/
+        if (lrp_id == ptin_intf.intf_id)
+        {
+          continue;
+        }
+        else
+        {
+          /* define local router port */
+          PT_LOG_NOTICE(LOG_CTX_MSG,"Local router port flag -> enable. Going to define local router port = %u!", portExt[i].intf.intf_id);
+          rc = ptin_igmp_set_local_router_port(ptin_intf.intf_id, portExt_conf.router_port);
+          if (rc == L7_FAILURE)
+            return L7_FAILURE;
+          PT_LOG_NOTICE(LOG_CTX_MSG,"Local router port defined!!");
+        }
       }
       else if ( !portExt_conf.router_port ) //(portExt_conf.Mask & PTIN_IGMP_LRP)
       {
-        /* set uplink ports states to default */
-        lrp_id = -1; 
-        rc = ptin_igmp_ports_default(portExt_conf.router_port);
-        if (rc == L7_FAILURE)
-          return L7_FAILURE;
+        /* Reset ports default */
+        if (lrp_id == ptin_intf.intf_id)
+        {
+          /* set uplink ports states to default */
+          lrp_id = -1; 
+          PT_LOG_NOTICE(LOG_CTX_MSG,"Local router port flag -> disable. Going to execute ptin_imgp_ports_default!!");
+          rc = ptin_igmp_ports_default(portExt_conf.router_port);
+          if (rc == L7_FAILURE)
+            return L7_FAILURE;
+        }
       }
     }
 #endif // ONE_MULTICAST_VLAN_RING_SUPPORT  
