@@ -1156,7 +1156,7 @@ L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
 
 #include <ptin_xlate_api.h>
 static unsigned char ERP_bmp[MAX_PROT_PROT_ERPS];
-unsigned char _1st_time_notification=1;
+static unsigned char _1st_time_notification=1;
 
 int ptin_erps_FSM_transition_notification(unsigned char erps_idx, unsigned char old_state, unsigned char new_state) {
  if (_1st_time_notification) {
