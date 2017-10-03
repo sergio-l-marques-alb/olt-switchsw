@@ -1508,6 +1508,8 @@ int ptin_erps_FSM_transition(L7_uint8 erps_idx, L7_uint8 state_machine, int line
     }
 
     ptin_erps_FSM_remote_transition(erps_idx, state_machine);
+
+    ptin_erps_FSM_transition_notification(erps_idx, ERPS_STATE_IgnoreLocal(tbl_erps[erps_idx].state_machine), ERPS_STATE_IgnoreLocal(state_machine));
   }
 
   return(ret);
