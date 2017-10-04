@@ -1,6 +1,6 @@
-diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo640-post.dtsi linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/boot/dts/fsl/cxo640-post.dtsi
---- linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo640-post.dtsi	1970-01-01 01:00:00.000000000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/boot/dts/fsl/cxo640-post.dtsi	2017-03-28 10:03:05.362437694 +0100
+diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo160-post.dtsi linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/boot/dts/fsl/cxo160-post.dtsi
+--- linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo160-post.dtsi	1970-01-01 01:00:00.000000000 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/boot/dts/fsl/cxo160-post.dtsi	2017-04-26 10:17:03.334475219 +0100
 @@ -0,0 +1,480 @@
 +/*
 + * P2041/P2040 Silicon/SoC Device Tree Source (post include)
@@ -88,33 +88,33 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo640-post.dt
 +//};
 +
 +/* controller at 0x201000 */
-+//&pci1 {
-+//	compatible = "fsl,p2041-pcie", "fsl,qoriq-pcie-v2.2";
-+//	device_type = "pci";
-+//	#size-cells = <2>;
-+//	#address-cells = <3>;
-+//	bus-range = <0 0xff>;
-+//	clock-frequency = <33333333>;
-+//	interrupts = <16 2 1 14>;
-+//	fsl,iommu-parent = <&pamu0>;
-+//	fsl,liodn-reg = <&guts 0x504>; /* PEX2LIODNR */
-+//	pcie@0 {
-+//		reg = <0 0 0 0 0>;
-+//		#interrupt-cells = <1>;
-+//		#size-cells = <2>;
-+//		#address-cells = <3>;
-+//		device_type = "pci";
-+//		interrupts = <16 2 1 14>;
-+//		interrupt-map-mask = <0xf800 0 0 7>;
-+//		interrupt-map = <
-+//			/* IDSEL 0x0 */
-+//			0000 0 0 1 &mpic 41 1 0 0
-+//			0000 0 0 2 &mpic 5 1 0 0
-+//			0000 0 0 3 &mpic 6 1 0 0
-+//			0000 0 0 4 &mpic 7 1 0 0
-+//			>;
-+//	};
-+//};
++&pci1 {
++	compatible = "fsl,p2041-pcie", "fsl,qoriq-pcie-v2.2", "bcm,fastpath-pci";
++	device_type = "pci";
++	#size-cells = <2>;
++	#address-cells = <3>;
++	bus-range = <0 0xff>;
++	clock-frequency = <33333333>;
++	interrupts = <16 2 1 14>;
++	fsl,iommu-parent = <&pamu0>;
++	fsl,liodn-reg = <&guts 0x504>; /* PEX2LIODNR */
++	pcie@0 {
++		reg = <0 0 0 0 0>;
++		#interrupt-cells = <1>;
++		#size-cells = <2>;
++		#address-cells = <3>;
++		device_type = "pci";
++		interrupts = <16 2 1 14>;
++		interrupt-map-mask = <0xf800 0 0 7>;
++		interrupt-map = <
++			/* IDSEL 0x0 */
++			0000 0 0 1 &mpic 41 1 0 0
++			0000 0 0 2 &mpic 5 1 0 0
++			0000 0 0 3 &mpic 6 1 0 0
++			0000 0 0 4 &mpic 7 1 0 0
++			>;
++	};
++};
 +
 +/* controller at 0x202000 */
 +//&pci2 {
@@ -141,7 +141,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo640-post.dt
 +//			0000 0 0 2 &mpic 9 1 0 0
 +//			0000 0 0 3 &mpic 10 1 0 0
 +//			0000 0 0 4 &mpic 11 1 0 0
-+//			>;
++//		>;
 +//	};
 +//};
 +
@@ -482,9 +482,9 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo640-post.dt
 +		fsl,qman-channels-id = <0x62 0x63>;
 +	};
 +};
-diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo640-pre.dtsi linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/boot/dts/fsl/cxo640-pre.dtsi
---- linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo640-pre.dtsi	1970-01-01 01:00:00.000000000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/boot/dts/fsl/cxo640-pre.dtsi	2017-03-28 10:03:05.370438188 +0100
+diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo160-pre.dtsi linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/boot/dts/fsl/cxo160-pre.dtsi
+--- linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo160-pre.dtsi	1970-01-01 01:00:00.000000000 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/boot/dts/fsl/cxo160-pre.dtsi	2017-04-26 10:05:06.559181892 +0100
 @@ -0,0 +1,127 @@
 +/*
 + * P2041 Silicon/SoC Device Tree Source (pre include)
@@ -539,7 +539,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo640-pre.dts
 +		serial2 = &serial2;
 +		serial3 = &serial3;
 +		//pci0 = &pci0;
-+		//pci1 = &pci1;
++		pci1 = &pci1;
 +		//pci2 = &pci2;
 +		usb0 = &usb0;
 +		usb1 = &usb1;
@@ -613,11 +613,11 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo640-pre.dts
 +		};
 +	};
 +};
-diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo640.dts linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/boot/dts/fsl/cxo640.dts
---- linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo640.dts	1970-01-01 01:00:00.000000000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/boot/dts/fsl/cxo640.dts	2017-03-28 10:03:05.362437694 +0100
-@@ -0,0 +1,237 @@
-+/include/ "cxo640-pre.dtsi"
+diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo160.dts linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/boot/dts/fsl/cxo160.dts
+--- linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo160.dts	1970-01-01 01:00:00.000000000 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/boot/dts/fsl/cxo160.dts	2017-04-26 10:24:01.938477453 +0100
+@@ -0,0 +1,253 @@
++/include/ "cxo160-pre.dtsi"
 +
 +/ {
 +        model = "fsl,P2041RDB";
@@ -788,6 +788,21 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo640.dts lin
 +                };
 +        };
 +
++        pci1: pcie@ffe201000 {
++                reg = <0xf 0xfe201000 0 0x1000>;
++                ranges = <0x02000000 0x0 0xa0000000 0x0 0xa0000000 0x0 0x8000000
++                          0x01000000 0x0 0x00000000 0x0 0xf8010000 0x0 0x00010000>;
++                pcie@0 {
++                        ranges = <0x02000000 0 0xa0000000
++                                  0x02000000 0 0xa0000000
++                                  0 0x8000000
++
++                                  0x01000000 0 0x00000000
++                                  0x01000000 0 0x00000000
++                                  0 0x00010000>;
++                };
++        };
++
 +/*
 +        pci0: pcie@ffe200000 {
 +                reg = <0xf 0xfe200000 0 0x1000>;
@@ -835,6 +850,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo640.dts lin
 +                };
 +        };
 +*/
++
 +        fsl,dpaa {
 +                compatible = "fsl,p2041-dpaa", "fsl,dpaa";
 +
@@ -849,14 +865,14 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/boot/dts/fsl/cxo640.dts lin
 +        };
 +};
 +
-+/include/ "cxo640-post.dtsi"
++/include/ "cxo160-post.dtsi"
 +/include/ "qoriq-dpaa-res1.dtsi"
 +
 +
 +
 diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/sysdev/Kconfig linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/sysdev/Kconfig
 --- linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/sysdev/Kconfig	2016-10-20 14:46:32.323588000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/sysdev/Kconfig	2017-03-28 10:03:05.370438188 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/sysdev/Kconfig	2017-04-26 10:03:43.446434019 +0100
 @@ -45,3 +45,7 @@ config FSL_CORENET_RCPM
  	bool
  	help
@@ -867,7 +883,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/sysdev/Kconfig linux-4.1.8-
 +	default y
 diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/sysdev/Makefile linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/sysdev/Makefile
 --- linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/sysdev/Makefile	2016-10-20 14:46:32.323588000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/sysdev/Makefile	2017-03-28 10:03:05.370438188 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/sysdev/Makefile	2017-04-26 10:03:43.446434019 +0100
 @@ -60,6 +60,8 @@ obj-$(CONFIG_UCODE_PATCH)	+= micropatch.
  obj-$(CONFIG_PPC_MPC512x)	+= mpc5xxx_clocks.o
  obj-$(CONFIG_PPC_MPC52xx)	+= mpc5xxx_clocks.o
@@ -879,7 +895,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/sysdev/Makefile linux-4.1.8
  endif
 diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/sysdev/mv88e6095x_of.c linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/sysdev/mv88e6095x_of.c
 --- linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/sysdev/mv88e6095x_of.c	1970-01-01 01:00:00.000000000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/sysdev/mv88e6095x_of.c	2017-03-28 10:05:11.522299110 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/sysdev/mv88e6095x_of.c	2017-04-26 10:03:43.446434019 +0100
 @@ -0,0 +1,731 @@
 +/*
 + * net/dsa/mv88e6095.c - Marvell 88e6095/6095f/6131 switch chip support
@@ -1614,7 +1630,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/sysdev/mv88e6095x_of.c linu
 +
 diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/sysdev/mv88e6095x_of.h linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/sysdev/mv88e6095x_of.h
 --- linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/sysdev/mv88e6095x_of.h	1970-01-01 01:00:00.000000000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/sysdev/mv88e6095x_of.h	2017-03-28 10:03:05.374439993 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/arch/powerpc/sysdev/mv88e6095x_of.h	2017-04-26 10:03:43.450440787 +0100
 @@ -0,0 +1,13 @@
 +
 +#ifndef __MARVELL_88E6095X_DRIVER__
@@ -1631,7 +1647,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/arch/powerpc/sysdev/mv88e6095x_of.h linu
 +#endif  //__MARVELL_88E6095X_DRIVER__
 diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm.c linux-4.1.8-QorIQ-SDK2.0.mod/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm.c
 --- linux-4.1.8-QorIQ-SDK2.0.ori/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm.c	2016-10-20 15:09:36.175248000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm.c	2017-03-28 10:03:05.378209111 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm.c	2017-04-26 10:03:43.450440787 +0100
 @@ -1128,7 +1128,11 @@ static void FreeFmDev(t_LnxWrpFmDev  *p_
  /* FMan character device file operations */
  extern struct file_operations fm_fops;
@@ -1647,7 +1663,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/net/ethernet/freescale/sdk_fman/
  
 diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm_port.c linux-4.1.8-QorIQ-SDK2.0.mod/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm_port.c
 --- linux-4.1.8-QorIQ-SDK2.0.ori/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm_port.c	2016-10-20 15:09:36.175248000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm_port.c	2017-03-28 10:03:05.382474661 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/drivers/net/ethernet/freescale/sdk_fman/src/wrapper/lnxwrp_fm_port.c	2017-04-26 10:03:43.458450073 +0100
 @@ -1299,7 +1299,11 @@ static void FreeFmPortDev(t_LnxWrpFmPort
  			      p_LnxWrpFmPortDev->memSize);
  }
@@ -1663,7 +1679,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/net/ethernet/freescale/sdk_fman/
  	t_LnxWrpFmDev *p_LnxWrpFmDev;
 diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/of/of_mdio.c linux-4.1.8-QorIQ-SDK2.0.mod/drivers/of/of_mdio.c
 --- linux-4.1.8-QorIQ-SDK2.0.ori/drivers/of/of_mdio.c	2016-10-20 15:09:36.175248000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/drivers/of/of_mdio.c	2017-03-28 10:03:05.386437856 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/drivers/of/of_mdio.c	2017-04-26 10:03:43.458450073 +0100
 @@ -20,6 +20,10 @@
  #include <linux/of_mdio.h>
  #include <linux/module.h>
@@ -1707,7 +1723,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/of/of_mdio.c linux-4.1.8-QorIQ-S
  
 diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/spi/Kconfig linux-4.1.8-QorIQ-SDK2.0.mod/drivers/spi/Kconfig
 --- linux-4.1.8-QorIQ-SDK2.0.ori/drivers/spi/Kconfig	2016-10-20 15:09:36.175248000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/drivers/spi/Kconfig	2017-03-28 10:03:05.386437856 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/drivers/spi/Kconfig	2017-04-26 10:03:43.458450073 +0100
 @@ -638,6 +638,11 @@ config SPI_DW_MMIO
  	tristate "Memory-mapped io interface driver for DW SPI core"
  	depends on SPI_DESIGNWARE
@@ -1722,7 +1738,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/spi/Kconfig linux-4.1.8-QorIQ-SD
  # being probably the most widely used ones.
 diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/spi/Makefile linux-4.1.8-QorIQ-SDK2.0.mod/drivers/spi/Makefile
 --- linux-4.1.8-QorIQ-SDK2.0.ori/drivers/spi/Makefile	2016-10-20 15:09:36.175248000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/drivers/spi/Makefile	2017-03-28 10:03:05.386437856 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/drivers/spi/Makefile	2017-04-26 10:03:43.462441420 +0100
 @@ -89,3 +89,5 @@ obj-$(CONFIG_SPI_TXX9)			+= spi-txx9.o
  obj-$(CONFIG_SPI_XCOMM)		+= spi-xcomm.o
  obj-$(CONFIG_SPI_XILINX)		+= spi-xilinx.o
@@ -1731,7 +1747,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/spi/Makefile linux-4.1.8-QorIQ-S
 +
 diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/spi/pld-ptin-spi.c linux-4.1.8-QorIQ-SDK2.0.mod/drivers/spi/pld-ptin-spi.c
 --- linux-4.1.8-QorIQ-SDK2.0.ori/drivers/spi/pld-ptin-spi.c	1970-01-01 01:00:00.000000000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/drivers/spi/pld-ptin-spi.c	2017-03-28 10:03:05.386437856 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/drivers/spi/pld-ptin-spi.c	2017-04-26 10:03:43.462441420 +0100
 @@ -0,0 +1,59 @@
 +#include <linux/init.h>
 +#include <linux/module.h>
@@ -1748,7 +1764,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/spi/pld-ptin-spi.c linux-4.1.8-Q
 +        .modalias = "spidev",
 +        .max_speed_hz = 40000000, //speed your device (slave) can handle
 +        .bus_num = 1,
-+        .chip_select = 3,
++        .chip_select = 0,
 +        .mode = 0,
 +    };
 +     
@@ -1794,7 +1810,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/spi/pld-ptin-spi.c linux-4.1.8-Q
 +MODULE_DESCRIPTION("PLD PTIN SPI module");
 diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/spi/spi-fsl-espi.c linux-4.1.8-QorIQ-SDK2.0.mod/drivers/spi/spi-fsl-espi.c
 --- linux-4.1.8-QorIQ-SDK2.0.ori/drivers/spi/spi-fsl-espi.c	2016-10-20 15:09:36.175248000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/drivers/spi/spi-fsl-espi.c	2017-03-28 10:03:05.386437856 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/drivers/spi/spi-fsl-espi.c	2017-04-26 10:03:43.462441420 +0100
 @@ -377,9 +377,15 @@ static void fsl_espi_rw_trans(struct spi
  	fsl_espi_do_trans(m, espi_trans);
  
@@ -1829,7 +1845,7 @@ diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/drivers/spi/spi-fsl-espi.c linux-4.1.8-Q
  
 diff -rupN linux-4.1.8-QorIQ-SDK2.0.ori/net/dsa/mv88e6xxx.h linux-4.1.8-QorIQ-SDK2.0.mod/net/dsa/mv88e6xxx.h
 --- linux-4.1.8-QorIQ-SDK2.0.ori/net/dsa/mv88e6xxx.h	1970-01-01 01:00:00.000000000 +0100
-+++ linux-4.1.8-QorIQ-SDK2.0.mod/net/dsa/mv88e6xxx.h	2017-03-28 10:03:05.386437856 +0100
++++ linux-4.1.8-QorIQ-SDK2.0.mod/net/dsa/mv88e6xxx.h	2017-04-26 10:03:43.462441420 +0100
 @@ -0,0 +1,95 @@
 +/*
 + * net/dsa/mv88e6xxx.h - Marvell 88e6xxx switch chip support
