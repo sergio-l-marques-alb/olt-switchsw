@@ -285,11 +285,12 @@ extern L7_RC_t ptin_prot_uplink_status(L7_uint8 protIdx, uplinkprot_status_st *s
  * @param protIdx 
  * @param state (out): status
  * @param cmd (out)  : operator_cmd
- * @param switchToPortType (out): operator_switchToPortType
+ * @param switchToPortType (out): operator_switchToPortType 
+ * @param reset_machine (out): Reset machine 
  *  
  * @return L7_RC_t  
  */
-extern L7_RC_t ptin_prot_uplink_state(L7_uint8 protIdx, uplinkprot_st *state, PROT_OPCMD_t *cmd, PROT_PortType_t *switchToPortType);
+extern L7_RC_t ptin_prot_uplink_state(L7_uint8 protIdx, uplinkprot_st *state, PROT_OPCMD_t *cmd, PROT_PortType_t *switchToPortType, L7_BOOL *reset_machine);
 
 /**
  * Synchronize protection state from the other SF

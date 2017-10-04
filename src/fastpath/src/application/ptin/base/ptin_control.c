@@ -1195,7 +1195,8 @@ void ptin_control_switchover_monitor(void)
         /* If this SF is active, reenable uplink protections */
         if (ptin_prot_uplink_state_sync() != L7_SUCCESS)
         {
-          PT_LOG_ERR(LOG_CTX_CONTROL, "Error synchronizong Uplink Protection state from the other SF");
+          PT_LOG_WARN(LOG_CTX_CONTROL, "Error synchronizong Uplink Protection state from the other SF. Resetting machine...");
+          uplinkprotResetStateMachine((L7_uint16)-1 /*All*/);
         }
         else
         {
@@ -1293,7 +1294,7 @@ void ptin_control_switchover_monitor(void)
                        (char *) &ports_info,
                        (char *) &ports_info,
                        sizeof(msg_HwIntfInfo_t),
-                       &answer_size) < 0)
+                       &answer_size) != 0)
   {
     PT_LOG_ERR(LOG_CTX_CONTROL, "Failed to send interfaces query!");
     return;
@@ -2179,7 +2180,7 @@ static void ptin_control_linkstatus_report(void)
                        (char *) &msgLinkStatus,
                        L7_NULLPTR,
                        sizeof(msg_HwIntfStatus_t),
-                       NULL) < 0)
+                       NULL) != 0)
   {
     PT_LOG_ERR(LOG_CTX_CONTROL, "Failed to send interfaces report!");
     return;
@@ -2853,7 +2854,7 @@ uint32 ip, len, i;
                              &((char *) &stat)[i],
                              NULL,//answer,
                              len,
-                             NULL) < 0) {
+                             NULL) != 0) {
             PT_LOG_TRACE(LOG_CTX_CONTROL, "Failed syncing(2) matrixes .3ad wise");
             //return 1;
         }

@@ -1125,7 +1125,7 @@ L7_int32 prot_timer_dataCmp(void *p, void *q, L7_uint32 key)
 
 
 
-
+#if 0
 /**
  * WRT command
  * 
@@ -1154,6 +1154,7 @@ L7_RC_t uplinkprotWtr(L7_uint16 protIdx, PROT_WTR_CMD_t cmd, L7_uint32 __line__)
 
   return (L7_SUCCESS);
 }
+#endif
 
 /**
  * Uplink Protection FSM Transition
@@ -1320,18 +1321,23 @@ L7_RC_t uplinkprotInitStateMachine(L7_uint16 protIdx)
     if (linkState[PORT_WORKING] == L7_UP)
     {
       SF[PORT_WORKING] = L7_FALSE;
+      uplinkprot[protIdx].hAlarms[PORT_WORKING] &= ~((L7_uint32) MASK_PORT_LINK);
     }
     else
     {
       SF[PORT_WORKING] = L7_TRUE;
+      uplinkprot[protIdx].hAlarms[PORT_WORKING] |= (L7_uint32) MASK_PORT_LINK;
     }
     if (linkState[PORT_PROTECTION] == L7_UP)
     {
       SF[PORT_PROTECTION] = L7_FALSE;
+      uplinkprot[protIdx].hAlarms[PORT_PROTECTION] &= ~((L7_uint32)MASK_PORT_LINK);
     }
     else
     {
       SF[PORT_PROTECTION] = L7_TRUE;
+
+      uplinkprot[protIdx].hAlarms[PORT_PROTECTION] |= (L7_uint32)MASK_PORT_LINK;
     }
   }
 
@@ -1343,11 +1349,17 @@ L7_RC_t uplinkprotInitStateMachine(L7_uint16 protIdx)
     {
       SD[PORT_WORKING] = L7_TRUE;
       SD[PORT_PROTECTION] = L7_FALSE;
+
+      uplinkprot[protIdx].hAlarms[PORT_WORKING] |= (L7_uint32) MASK_PORT_BW;
+      uplinkprot[protIdx].hAlarms[PORT_PROTECTION] &= ~((L7_uint32)MASK_PORT_BW);
     }
     else if (bandwidth[PORT_WORKING] > bandwidth[PORT_PROTECTION])
     {
       SD[PORT_WORKING] = L7_FALSE;
       SD[PORT_PROTECTION] = L7_TRUE;
+
+      uplinkprot[protIdx].hAlarms[PORT_WORKING] &= ~((L7_uint32)MASK_PORT_BW);
+      uplinkprot[protIdx].hAlarms[PORT_PROTECTION] |= (L7_uint32) MASK_PORT_BW;
     }
   }
 
@@ -1366,6 +1378,8 @@ L7_RC_t uplinkprotInitStateMachine(L7_uint16 protIdx)
   /* Timer disabled */
   uplinkprot[protIdx].wait_restore_timer_CMD = WTR_CMD_STOP;
   uplinkprot[protIdx].wait_restore_timer = 0;
+
+  uplinkprot[protIdx].machine_suspended = L7_FALSE;
 
   /* If Protection interface is better, go to protection state */
   if (!SF[PORT_PROTECTION] && (SF[PORT_WORKING] || SD[PORT_WORKING]))
@@ -2516,66 +2530,80 @@ else
  */
 L7_RC_t uplinkprotResetStateMachine(L7_uint16 protIdx)
 {
-  L7_RC_t rc;
+  L7_uint16 i;
+  L7_RC_t rc, rc_global = L7_SUCCESS;
 
   PT_LOG_INFO(LOG_CTX_INTF, "Resetting protIdx %d", protIdx);
 
   /* Validate prot index */
-  if (protIdx >= MAX_UPLINK_PROT)
+  if (protIdx != (L7_uint16)-1 && protIdx >= MAX_UPLINK_PROT)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Invalid protIdx=%d", protIdx);
     return L7_FAILURE;
   }
 
-  /* Check if Entry is valid */
-  if (!uplinkprot[protIdx].admin)
+  for (i = 0; i < MAX_UPLINK_PROT; i++)
   {
-    PT_LOG_ERR(LOG_CTX_INTF, "protIdx=%d empty", protIdx);
-    return L7_FAILURE;
+    /* Only reset group index given by input, except if it is -1 */
+    if (protIdx != (L7_uint16)-1 && protIdx != i)  continue;
+    
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Processing protIndex %u", i);
+
+    /* Check if Entry is valid */
+    if (!uplinkprot[i].admin)
+    {
+      //PT_LOG_ERR(LOG_CTX_INTF, "protIdx=%d empty", i);
+      continue;
+    }
+
+    PT_LOG_INFO(LOG_CTX_INTF, "Resetting protIndex %u", i);
+
+    osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
+
+    /* Stop any timer */
+    ptin_prot_timer_stop(i);
+
+    /* Clear entry data */
+    uplinkprot[i].statusSF[PORT_WORKING] = uplinkprot[i].statusSF[PORT_PROTECTION] = L7_FALSE;
+    uplinkprot[i].statusSD[PORT_WORKING] = uplinkprot[i].statusSD[PORT_PROTECTION] = L7_FALSE;
+
+    uplinkprot[i].operator_cmd = OPCMD_NR;
+    uplinkprot[i].operator_switchToPortType = PORT_WORKING;
+
+    uplinkprot[i].localRequest = PROT_LReq_NONE;
+    uplinkprot[i].lastSwitchoverCause = PROT_LReq_NONE;
+
+    uplinkprot[i].state_machine   = PROT_STATE_Disabled;
+    uplinkprot[i].state_machine_h = PROT_STATE_Disabled;
+    uplinkprot[i].activePortType  = PORT_WORKING;
+
+    uplinkprot[i].wait_restore_timer_CMD = WTR_CMD_STOP;
+    uplinkprot[i].wait_restore_timer = 0;
+
+    /* Initialize operator commands */
+    operator_cmd[i] = OPCMD_NR;
+    operator_switchToPortType[i] = PORT_WORKING;
+
+    uplinkprot[i].machine_suspended = L7_FALSE;
+
+    /* Block both LAGs */
+    ptin_prot_select_intf(i, PORT_ALL);
+
+    /* Restart State Machine */
+    rc = uplinkprotInitStateMachine(i);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error restarting protIndex %u", i);
+      rc_global = rc;
+      continue;
+    }
+    
+    osapiSemaGive(ptin_prot_uplink_sem);
+
+    PT_LOG_INFO(LOG_CTX_INTF, "Machine resetted for protIndex %u", i);
   }
 
-  osapiSemaTake(ptin_prot_uplink_sem, L7_WAIT_FOREVER);
-
-  /* Stop any timer */
-  ptin_prot_timer_stop(protIdx);
-
-  /* Clear entry data */
-  uplinkprot[protIdx].statusSF[PORT_WORKING] = uplinkprot[protIdx].statusSF[PORT_PROTECTION] = L7_FALSE;
-  uplinkprot[protIdx].statusSD[PORT_WORKING] = uplinkprot[protIdx].statusSD[PORT_PROTECTION] = L7_FALSE;
-
-  uplinkprot[protIdx].operator_cmd = OPCMD_NR;
-  uplinkprot[protIdx].operator_switchToPortType = PORT_WORKING;
-
-  uplinkprot[protIdx].localRequest = PROT_LReq_NONE;
-  uplinkprot[protIdx].lastSwitchoverCause = PROT_LReq_NONE;
-
-  uplinkprot[protIdx].state_machine   = PROT_STATE_Disabled;
-  uplinkprot[protIdx].state_machine_h = PROT_STATE_Disabled;
-  uplinkprot[protIdx].activePortType  = PORT_WORKING;
-
-  uplinkprot[protIdx].wait_restore_timer_CMD = WTR_CMD_STOP;
-  uplinkprot[protIdx].wait_restore_timer = 0;
-
-  /* Initialize operator commands */
-  operator_cmd[protIdx] = OPCMD_NR;
-  operator_switchToPortType[protIdx] = PORT_WORKING;
-
-  /* Block both LAGs */
-  ptin_prot_select_intf(protIdx, PORT_ALL);
-
-  /* Restart State Machine */
-  rc = uplinkprotInitStateMachine(protIdx);
-  if (rc != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_INTF, "Error restarting protIndex %u", protIdx);
-    return rc;
-  }
-  
-  osapiSemaGive(ptin_prot_uplink_sem);
-
-  PT_LOG_INFO(LOG_CTX_INTF, "Machine resetted for protIndex %u", protIdx);
-
-  return (L7_SUCCESS);
+  return (rc_global);
 }
 
 /**
@@ -2631,6 +2659,13 @@ L7_RC_t ptin_prot_uplink_resume(void)
     if (!uplinkprot[protIdx].admin)  continue;
 
     uplinkprot[protIdx].machine_suspended = L7_FALSE;
+
+    /* If Machine is disabled, we need to restart it */
+    if (uplinkprot[protIdx].state_machine == PROT_STATE_Disabled)
+    {
+      PT_LOG_INFO(LOG_CTX_INTF, "Restarting protIdx %u", protIdx);
+      uplinkprotInitStateMachine(protIdx);
+    }
   }
 
   osapiSemaGive(ptin_prot_uplink_sem);
@@ -3523,11 +3558,12 @@ L7_RC_t ptin_prot_uplink_status(L7_uint8 protIdx, uplinkprot_status_st *status)
  * @param protIdx 
  * @param state (out): status
  * @param cmd (out)  : operator_cmd
- * @param switchToPortType (out): operator_switchToPortType
+ * @param switchToPortType (out): operator_switchToPortType 
+ * @param reset_machine (out): Reset machine
  *  
  * @return L7_RC_t  
  */
-L7_RC_t ptin_prot_uplink_state(L7_uint8 protIdx, uplinkprot_st *state, PROT_OPCMD_t *cmd, PROT_PortType_t *switchToPortType)
+L7_RC_t ptin_prot_uplink_state(L7_uint8 protIdx, uplinkprot_st *state, PROT_OPCMD_t *cmd, PROT_PortType_t *switchToPortType, L7_BOOL *reset_machine)
 {
   if (protIdx >= MAX_UPLINK_PROT)
   {
@@ -3564,6 +3600,11 @@ L7_RC_t ptin_prot_uplink_state(L7_uint8 protIdx, uplinkprot_st *state, PROT_OPCM
     *switchToPortType = operator_switchToPortType[protIdx];
     PT_LOG_DEBUG(LOG_CTX_INTF, "operator_switchToPortType[%u]=%u", protIdx, operator_switchToPortType[protIdx]);
   }
+  if (reset_machine != L7_NULLPTR)
+  {
+    *reset_machine = ptin_prot_timer_isrunning(protIdx);
+    PT_LOG_DEBUG(LOG_CTX_INTF, "reset_machine[%u]=%u", protIdx, *reset_machine);
+  }
   osapiSemaGive(ptin_prot_uplink_sem);
 
   return L7_SUCCESS;
@@ -3597,7 +3638,7 @@ L7_RC_t ptin_prot_uplink_state_sync(void)
                        (char *) &prot_state,
                        (char *) &prot_state,
                        sizeof(msg_uplinkprot_st),
-                       &infoDim_ans) < 0)
+                       &infoDim_ans) != 0)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Failed to get protection info from other SF!");
     return L7_FAILURE;
@@ -3623,9 +3664,18 @@ L7_RC_t ptin_prot_uplink_state_sync(void)
       continue;
     }
     
-    memcpy(&uplinkprot[protIdx], &prot_state[i].protGroup_data, sizeof(uplinkprot_st));
-    operator_cmd[protIdx] = prot_state[i].operator_cmd;
-    operator_switchToPortType[protIdx] = prot_state[i].operator_switchToPortType;
+    /* If in the other side, there are active timers, reset machine! */
+    if (prot_state[i].reset_machine)
+    {
+      PT_LOG_DEBUG(LOG_CTX_INTF, "We have timers active... resetting protection group %u", protIdx);
+      uplinkprotResetStateMachine(protIdx);
+    }
+    else
+    {
+      memcpy(&uplinkprot[protIdx], &prot_state[i].protGroup_data, sizeof(uplinkprot_st));
+      operator_cmd[protIdx] = prot_state[i].operator_cmd;
+      operator_switchToPortType[protIdx] = prot_state[i].operator_switchToPortType;
+    }
     PT_LOG_DEBUG(LOG_CTX_INTF, "Group index %u status copied; operator_cmd=%u; operator_switchToPortType=%u",
                  protIdx, operator_cmd[protIdx], operator_switchToPortType[protIdx]);
 
