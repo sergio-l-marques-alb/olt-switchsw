@@ -269,7 +269,7 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
   DAPI_USP_t       ddUsp;
   nimUSP_t         usp;
   DAPI_FRAME_CMD_t sendData;
-  L7_uint32        activeState;  
+  L7_uint32        linkState;  
   L7_RC_t dr;
 
   /* PTin added: Default flags */
@@ -288,7 +288,7 @@ L7_RC_t dtlPduTransmit( L7_netBufHandle bufHandle,
 
   //Ignore if the port has link down (only consider valid interfaces)
   if ( (nimCheckIfNumber(dtlCmdInfo->intfNum) == L7_SUCCESS) &&
-       ((nimGetIntfActiveState(dtlCmdInfo->intfNum, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE)) )
+      ((nimGetIntfLinkState(dtlCmdInfo->intfNum, &linkState) != L7_SUCCESS) || (linkState != L7_UP)))
   {
     if (ptin_debug_dtl)
       PT_LOG_NOTICE(LOG_CTX_DTL,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is down!",dtlCmdInfo->intfNum);    
