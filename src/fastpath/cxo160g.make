@@ -29,7 +29,8 @@ DEVSHSYM_FILE	= devshell_symbols.gz
 #export LD_LIBRARY_PATH=/opt/fsl/1.2/sysroots/i686-fslsdk-linux/lib
 
 export COMPILER 	= /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr/bin/ppce500mc-fsl-linux/powerpc-fsl-linux-
-export KERNEL_PATH    = $(OLT_DIR)/../lib/kernel/linux-3.0.51-smp-e500mc
+#export KERNEL_PATH    = $(OLT_DIR)/../lib/kernel/linux-3.0.51-smp-e500mc
+export KERNEL_PATH    = $(OLT_DIR)/../lib/kernel/linux-4.1.8-QorIQ-SDK2.0
 
 
 
@@ -68,7 +69,8 @@ export KERNEL_SRC	:= $(KERNEL_PATH)
 export CCVIEWS_HOME	:= $(OLT_DIR)/$(FP_FOLDER)
 
 export SDK_LINK := vendor/broadcom
-export SDK_PATH := $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.3.7/broadcom
+#export SDK_PATH := $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.3.7/broadcom
+export SDK_PATH := $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-switchdrvr-6.5.7/broadcom
 #export SDK_PATH := /home/olt/svnrepo/olt-switchsw/trunk/lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.3.7/broadcom
 
 export FP_CLI_PATH   := ../fastpath.cli
