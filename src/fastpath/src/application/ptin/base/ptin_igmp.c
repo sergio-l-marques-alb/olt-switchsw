@@ -1142,6 +1142,7 @@ L7_RC_t ptin_igmp_set_local_router_port(L7_uint32 port, L7_uint8 lrp_flag)
         ptin_port_list[port].type = PTIN_IGMP_LOCAL_ROUTER_PORT;
       }
       PT_LOG_NOTICE(LOG_CTX_IGMP,"Set lrp_id %u", port);
+
 #endif
   }
     return L7_SUCCESS;
@@ -1181,7 +1182,7 @@ L7_RC_t ptin_igmp_proxy_init(void)
     ptin_igmp_ring_osapiSemaGive();
   }
   
-  ptin_igmp_ports_default(-1);
+  ptin_igmp_ports_default(PTIN_IGMP_LRP_DYNAMIC);
 
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
@@ -2600,6 +2601,13 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
     return L7_FAILURE;
   }
 
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+  L7_uint16 nni_ovlan;
+
+  ptin_evc_get_NNIvlan_fromEvcId(McastEvcId, &nni_ovlan);
+  igmpInst_fromRouterVlan[nni_ovlan]=igmp_idx;
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
+
   return L7_SUCCESS;
 }
 
@@ -3028,6 +3036,7 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
 
   /* One more EVC associated to this instance */
   igmpInstances[igmp_idx].n_evcs++;
+  igmpInst_fromRouterVlan[nni_ovlan]=igmp_idx;
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Update number of QUATTRO-P2P evcs */
@@ -7608,7 +7617,7 @@ void igmp_timer_expiry(void *param)
   /* if the timer associated to the local router port expire execute ptin_igmp_ports_default() */
   if (client_idx == PTIN_IGMP_CLIENTIDX_MAX - 1) {
     PT_LOG_ERR(LOG_CTX_IGMP, "Ring: Timer expired fot the local_router_port, going to execute ptin_igmp_ports_default ");
-    ptin_igmp_ports_default(-1);
+    ptin_igmp_ports_default(PTIN_IGMP_LRP_DYNAMIC);
     PT_LOG_ERR(LOG_CTX_IGMP, "Ring Passou: Timer expired fot the local_router_port, ptin_igmp_ports_default executed successfully ");
   }
 #endif
@@ -20051,7 +20060,7 @@ void ptin_igmp_ring_ports_default()
 {
   printf("Going to call ptin_igmp_ports_default \n\r");
 
-  ptin_igmp_ports_default(-1);
+  ptin_igmp_ports_default(PTIN_IGMP_LRP_DYNAMIC);
 
 }
 

@@ -159,6 +159,7 @@
 /* Defines for ring configuration support */   
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
 
+#define PTIN_IGMP_LRP_DYNAMIC         -1 // independent OLT
 #define PTIN_IGMP_LRP                 0x200000
 #define PTIN_IGMP_LOCAL_ROUTER_PORT   2
 #define PTIN_IGMP_PORT_CLIENT         1
