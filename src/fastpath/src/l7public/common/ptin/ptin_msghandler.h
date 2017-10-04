@@ -2665,6 +2665,8 @@ typedef struct
   PROT_OPCMD_t    operator_cmd;
   PROT_PortType_t operator_switchToPortType;
 
+  L7_BOOL         reset_machine;
+
 } __attribute__ ((packed)) msg_uplinkprot_st;
 
 

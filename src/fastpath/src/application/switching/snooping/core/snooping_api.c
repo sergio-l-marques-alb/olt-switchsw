@@ -114,7 +114,7 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
   /* Send the mfdb port configurations to the remote slot */
   if (send_ipc_message(IPC_HW_FASTPATH_PORT, protectionSlotIp, CCMSG_MGMD_PORT_SYNC,
                        (char *)(&mgmdPortSync), NULL,
-                       sizeof(mgmdPortSync), NULL) < 0)
+                       sizeof(mgmdPortSync), NULL) != 0)
   {
     PT_LOG_ERR(LOG_CTX_PROTB, "Failed to sync MGMD between active and protection interface");
     return L7_FAILURE;
@@ -169,7 +169,7 @@ L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, ptin_fpga_matrix_type_t matrixTyp
   /* Send the mfdb port configurations to the remote slot */
   if (send_ipc_message(IPC_HW_FASTPATH_PORT, matrixIpAddr, CCMSG_MGMD_PORT_SYNC,
                        (char *)(&mgmdPortSync), NULL,
-                       sizeof(mgmdPortSync), NULL) < 0)
+                       sizeof(mgmdPortSync), NULL) != 0)
   {
     PT_LOG_ERR(LOG_CTX_PROTB, "Failed to sync MGMD between active and protection interface");
     return L7_FAILURE;
