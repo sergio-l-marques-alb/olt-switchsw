@@ -21,9 +21,9 @@
 #include "broad_policy.h"
 #include "broad_group_bcm.h"
 
-#define PTIN_HAPI_QOS_TABLE_SIZE    64
-#define PTIN_HAPI_QOS_VLAN_ENTRIES  32
-#define PTIN_HAPI_QOS_HW_RULES_MAX  256
+#define PTIN_HAPI_QOS_TABLE_SIZE    64    /* Maximum number of services */
+#define PTIN_HAPI_QOS_VLAN_ENTRIES  32    /* Maximum number of rules per service */
+#define PTIN_HAPI_QOS_HW_RULES_MAX  256   /* Maximum number of available hardware rules (for all services) */
 
 typedef struct
 {
