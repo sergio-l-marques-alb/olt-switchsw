@@ -2310,11 +2310,11 @@ L7_int32 L7_transfer_task()
     {
       if  ( transfer_result == L7_TRANSFER_SUCCESS)
       {
-        usmDbDsTftpDownloadStatus(L7_FALSE, L7_TRUE);
+        //usmDbDsTftpDownloadStatus(L7_FALSE, L7_TRUE);
       }
       else
       {
-        usmDbDsTftpDownloadStatus(L7_FALSE,L7_FALSE);
+        //smDbDsTftpDownloadStatus(L7_FALSE,L7_FALSE);
       }
     }
     else if ( (transfer_direction == L7_TRANSFER_DIRECTION_UP) &&
@@ -2323,11 +2323,11 @@ L7_int32 L7_transfer_task()
     {
       if  ( transfer_result == L7_TRANSFER_SUCCESS)
       {
-        usmDbDsTftpDownloadStatus(L7_TRUE,L7_TRUE);
+        //usmDbDsTftpDownloadStatus(L7_TRUE,L7_TRUE);
       }
       else
       {
-        usmDbDsTftpDownloadStatus(L7_TRUE,L7_FALSE);
+       // usmDbDsTftpDownloadStatus(L7_TRUE,L7_FALSE);
       }
     }
 
