@@ -2901,6 +2901,7 @@ L7_RC_t ptin_igmp_generalquerier_reset(L7_uint32 serviceId, L7_uint32 onuId)
   PTIN_MGMD_CTRL_QUERY_CONFIG_t mgmdQuerierConfigMsg = {0}; 
 
   mgmdQuerierConfigMsg.serviceId = serviceId;
+  mgmdQuerierConfigMsg.onuID = onuId;
 
   mgmdQuerierConfigMsg.family = PTIN_MGMD_AF_INET;
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdQuerierConfigMsg, sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t));
@@ -19653,7 +19654,7 @@ static RC_t ptin_igmp_package_channel_conflict_validation(L7_uint32 packageId, p
 RC_t ptin_igmp_multicast_querierReset_on_specific_serviceID(L7_uint32 ptinPort, L7_uint32 onuId, L7_uint32 serviceId)
 {
 
-  PT_LOG_TRACE(LOG_CTX_IGMP, "Going to send query to serviceId %u", serviceId);
+  PT_LOG_TRACE(LOG_CTX_IGMP, "Going to send query to serviceId %u Onuid %u ", serviceId, onuId);
   ptin_igmp_generalquerier_reset(serviceId,onuId);
    
   return L7_SUCCESS;
