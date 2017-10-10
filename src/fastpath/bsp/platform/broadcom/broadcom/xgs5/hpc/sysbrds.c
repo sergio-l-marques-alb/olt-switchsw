@@ -1670,6 +1670,8 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
       if (sal_config_set(param_name, param_value) != 0)
         return(L7_FAILURE);
 
+      /* CSP#2555625: For SDK 6.5.7, the definition of serdes_fiber_pref variable, breaks the KR4 link */
+      #if 0
       /* Configurations for 1000 BASE-X mode */
       sprintf(param_name, spn_SERDES_AUTOMEDIUM"_%u", bcm_port);
       sprintf(param_value, "%u", 0);
@@ -1682,6 +1684,7 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
       PT_LOG_INFO(LOG_CTX_STARTUP, "port=%d: sal_config_set(%s,%s)", bcm_port, param_name, param_value);
       if (sal_config_set(param_name, param_value) != 0)
         return(L7_FAILURE);
+      #endif
 
       /* For backplane-10G interfaces */
       if (speed == 10)
