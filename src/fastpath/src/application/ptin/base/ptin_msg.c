@@ -18224,61 +18224,61 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
  * @return L7_RC_t : 
  *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
  */
-L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_packages_t *msg, L7_uint32 noOfMessages)
+L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_packages_t *msg, L7_uint32 noOfMessages) 
 {
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
   L7_uint32       messageIterator, bmpIterator;
 //L7_int32         packageIdIterator;
-  L7_char8         packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES/(sizeof(L7_uint8)*8)-1]={};
+  L7_char8         packageBmpStr[PTIN_SYSTEM_IGMP_MAXPACKAGES / (sizeof(L7_uint8) * 8) - 1] = { };
 //L7_char8        *charPtr           = packageBmpStr;
   ptin_client_id_t client;
-  L7_BOOL          addOrRemove = L7_TRUE;//Remove Packages
+  L7_BOOL          addOrRemove = L7_TRUE; //Remove Packages
   L7_uint32        intIfNum;
   L7_uint16        uni_ivid;
   L7_uint16        uni_ovid;
   L7_RC_t          rc          = L7_SUCCESS;
 
   /* Input Argument validation */
-  if ( msg  == L7_NULLPTR || noOfMessages == 0)
+  if (msg  == L7_NULLPTR || noOfMessages == 0)
   {
-    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]",msg, noOfMessages);    
+    PT_LOG_ERR(LOG_CTX_IGMP, "Invalid arguments [msg:%p noOfMessages:%u]", msg, noOfMessages);
     return L7_FAILURE;
   }
 
   /*Input Parameters*/
-  PT_LOG_DEBUG(LOG_CTX_MSG,"Input Arguments [noOfMessages:%u]", noOfMessages);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Input Arguments [noOfMessages:%u]", noOfMessages);
 
   for (messageIterator = 0; messageIterator < noOfMessages; messageIterator++)
   {
-#if 0    
+#if 0
     for (packageIdIterator =PTIN_IGMP_PACKAGE_BITMAP_SIZE -1; packageIdIterator>=0; --packageIdIterator)
     {
       osapiSnprintf(charPtr, sizeof(*charPtr),
-                "%02X", msg[messageIterator].packageBmpList[packageIdIterator]);
+                    "%02X", msg[messageIterator].packageBmpList[packageIdIterator]);
       charPtr++;
     }
 #endif
 
-    #if PTIN_BOARD_IS_ACTIVETH   
+#if PTIN_BOARD_IS_ACTIVETH
     if (ENDIAN_SWAP8(msg[messageIterator].onuId) != 0)
     {
       PT_LOG_WARN(LOG_CTX_MSG, "   I'm an Active Ethernet Card. OnuId:%u is different from 0. Going to set it to zero", ENDIAN_SWAP8(msg[messageIterator].onuId));
       msg[messageIterator].onuId = 0;
-    }    
-    #endif
-    
-     /* Output data */
+    }
+#endif
+
+    /* Output data */
     PT_LOG_DEBUG(LOG_CTX_MSG, "Going to add MC client");
     PT_LOG_DEBUG(LOG_CTX_MSG, "  MC evc_idx = %u",               ENDIAN_SWAP32(msg[messageIterator].evcId));
     PT_LOG_DEBUG(LOG_CTX_MSG, "   onuId               = %u",     ENDIAN_SWAP8(msg[messageIterator].onuId));
     PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Mask         = 0x%02x", ENDIAN_SWAP8(msg[messageIterator].client.mask));
     PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.OVlan        = %u",     ENDIAN_SWAP16(msg[messageIterator].client.outer_vlan));
     PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.IVlan        = %u",     ENDIAN_SWAP16(msg[messageIterator].client.inner_vlan));
-    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf         = %u/%u",  ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_type),ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_id));    
+    PT_LOG_DEBUG(LOG_CTX_MSG, "   Client.Intf         = %u/%u",  ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_type), ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_id));
     PT_LOG_DEBUG(LOG_CTX_MSG, "   noOfPackages        = %u ",    ENDIAN_SWAP16(msg[messageIterator].noOfPackages));
     PT_LOG_DEBUG(LOG_CTX_MSG, "   PackageBmpList      = %s",     packageBmpStr);
 
-    if ( ENDIAN_SWAP16(msg[messageIterator].noOfPackages) > 0 )
+    if (ENDIAN_SWAP16(msg[messageIterator].noOfPackages) > 0)
     {
 #ifdef NGPON2_SUPPORTED
       ptin_NGPON2_groups_t NGPON2_GROUP;
@@ -18289,12 +18289,13 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
       {
         get_NGPON2_group_info(&NGPON2_GROUP, msg[messageIterator].client.intf.intf_id);
 
-        while ( j < NGPON2_GROUP.nports)
+        while (j < NGPON2_GROUP.nports)
         {
-          if ( ((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin )
+          if (((NGPON2_GROUP.ngpon2_groups_pbmp64 >> shift_index) & 1LL) && NGPON2_GROUP.admin)
           {
             j++;
-            memset(&client,0x00,sizeof(ptin_client_id_t));
+            memset(&client, 0x00, sizeof(ptin_client_id_t));
+
             if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_OVLAN_MASK)
             {
               client.outerVlan = ENDIAN_SWAP16(msg[messageIterator].client.outer_vlan);
@@ -18312,57 +18313,56 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
               client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
             }
 
+            rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(msg[messageIterator].evcId), &client);
+            if (rc != L7_SUCCESS)
             {
-              rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(msg[messageIterator].evcId), &client);
-              if ( rc != L7_SUCCESS )
-              {
-                PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
-                /*The client may not exist!*/
-                rc = L7_SUCCESS;
-                continue;
-              }
+              PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
+              /*The client may not exist!*/
+              rc = L7_SUCCESS;
+              shift_index++;
+              continue;
+            }
 
-              /* Get interface as intIfNum format */      
-              if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
+            /* Get interface as intIfNum format */
+            if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum) == L7_SUCCESS)
+            {
+              if (ptin_evc_extVlans_get(intIfNum, ENDIAN_SWAP32(msg[messageIterator].evcId), (L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
               {
-                if (ptin_evc_extVlans_get(intIfNum, ENDIAN_SWAP32(msg[messageIterator].evcId),(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
-                {
-                  PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
-                            client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
-                }
-                else
-                {
-                  uni_ovid = uni_ivid = 0;
-                  PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
-                          client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
-                }
-              }
+                PT_LOG_TRACE(LOG_CTX_IGMP, "Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
+                             client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
+              } 
               else
               {
-                PT_LOG_ERR(LOG_CTX_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+                uni_ovid = uni_ivid = 0;
+                PT_LOG_ERR(LOG_CTX_IGMP, "Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
+                           client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan);
               }
-             }
+            } 
+            else
+            {
+              PT_LOG_ERR(LOG_CTX_IGMP, "Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+            }
 
-              bmpIterator = 0;
+            bmpIterator = 0;
 
-              while ( (bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE) && iterator == 0 )
-              {
-                ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList[bmpIterator]);
-                bmpIterator++;
-              }
-              iterator = 1;
+            while ((bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE) && iterator == 0)
+            {
+              ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList[bmpIterator]);
+              bmpIterator++;
+            }
+            iterator = 1;
 
-              /* Apply config */
-              rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, ENDIAN_SWAP8(msg[messageIterator].onuId), 0x00, 0, 0, addOrRemove, msg[messageIterator].packageBmpList, ENDIAN_SWAP16(msg[messageIterator].noOfPackages));
+            /* Apply config */
+            rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, ENDIAN_SWAP8(msg[messageIterator].onuId), 0x00, 0, 0, addOrRemove, msg[messageIterator].packageBmpList, ENDIAN_SWAP16(msg[messageIterator].noOfPackages));
 
-              if (rc!=L7_SUCCESS)
-              {
-                PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client rc:%u", rc);
-                return rc;
-              }
-              else
-              {
-#ifdef NGPON2_SUPPORTED 
+            if (rc != L7_SUCCESS)
+            {
+              PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client rc:%u", rc);
+              return rc;
+            } 
+            else
+            {
+#ifdef NGPON2_SUPPORTED
               L7_uint32 evc_id;
               /* Is EVC in use? */
               if (ptin_evc_ext2int(ENDIAN_SWAP32(msg[messageIterator].evcId), &evc_id) == L7_SUCCESS)
@@ -18371,92 +18371,92 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_remove(msg_igmp_unicast_client_pac
                 //return L7_FAILURE;
                 memset(&McastClient_info[evc_id], 0xFF, sizeof(McastClient_info[evc_id]));
                 McastClient_info[evc_id].admin = L7_FALSE;
-              }             
-#endif
               }
+#endif
             }
           }
-          shift_index++;
+        shift_index++;
         }
-#endif /*NGPON2_SUPPORTED*/
+       iterator = 0;     
       }
+#endif /*NGPON2_SUPPORTED*/
+    }
 
 #ifdef NGPON2_SUPPORTED
-      if (msg[messageIterator].client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
+    if (msg[messageIterator].client.intf.intf_type != PTIN_EVC_INTF_NGPON2)
 #endif
+    {
+      memset(&client, 0x00, sizeof(ptin_client_id_t));
+      if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_OVLAN_MASK)
       {
-        memset(&client,0x00,sizeof(ptin_client_id_t));
-        if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_OVLAN_MASK)
-        {
-          client.outerVlan = ENDIAN_SWAP16(msg[messageIterator].client.outer_vlan);
-          client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-        }
-        if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_IVLAN_MASK)
-        {
-          client.innerVlan = ENDIAN_SWAP16(msg[messageIterator].client.inner_vlan);
-          client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-        }
-        if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_INTF_MASK)
-        {
-          client.ptin_intf.intf_type  = ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_type);
-          client.ptin_intf.intf_id    = ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_id);
-          client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-        }
+        client.outerVlan = ENDIAN_SWAP16(msg[messageIterator].client.outer_vlan);
+        client.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+      }
+      if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_IVLAN_MASK)
+      {
+        client.innerVlan = ENDIAN_SWAP16(msg[messageIterator].client.inner_vlan);
+        client.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+      }
+      if (ENDIAN_SWAP8(msg[messageIterator].client.mask) & MSG_CLIENT_INTF_MASK)
+      {
+        client.ptin_intf.intf_type  = ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_type);
+        client.ptin_intf.intf_id    = ENDIAN_SWAP8(msg[messageIterator].client.intf.intf_id);
+        client.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+      }
 
+
+      rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(msg[messageIterator].evcId), &client);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
+        /*The client may not exist!*/
+        rc = L7_SUCCESS;
+        continue;
+      }
+
+      /* Get interface as intIfNum format */
+      if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum) == L7_SUCCESS)
+      {
+        if (ptin_evc_extVlans_get(intIfNum, ENDIAN_SWAP32(msg[messageIterator].evcId), (L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
         {
-          rc = ptin_igmp_clientId_convert(ENDIAN_SWAP32(msg[messageIterator].evcId), &client);
-          if ( rc != L7_SUCCESS )
-          {
-            PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
-            /*The client may not exist!*/
-            rc = L7_SUCCESS;
-            continue;
-          }
-
-          /* Get interface as intIfNum format */      
-          if (ptin_intf_ptintf2intIfNum(&client.ptin_intf, &intIfNum)==L7_SUCCESS)
-          {
-            if (ptin_evc_extVlans_get(intIfNum, ENDIAN_SWAP32(msg[messageIterator].evcId),(L7_uint32)-1, client.innerVlan, &uni_ovid, &uni_ivid) == L7_SUCCESS)
-            {
-              PT_LOG_TRACE(LOG_CTX_IGMP,"Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
-                        client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
-            }
-            else
-            {
-              uni_ovid = uni_ivid = 0;
-              PT_LOG_ERR(LOG_CTX_IGMP,"Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
-                      client.ptin_intf.intf_type,client.ptin_intf.intf_id, client.innerVlan);
-            }
-          }
-          else
-          {
-            PT_LOG_ERR(LOG_CTX_IGMP,"Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
-          }
+          PT_LOG_TRACE(LOG_CTX_IGMP, "Ext vlans for ptin_intf %u/%u, cvlan %u: uni_ovid=%u, uni_ivid=%u",
+                       client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan, uni_ovid, uni_ivid);
         }
-
-        bmpIterator = 0;
-
-        while ( bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE)
+        else
         {
-          ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList[bmpIterator]);
-          bmpIterator++;
+          uni_ovid = uni_ivid = 0;
+          PT_LOG_ERR(LOG_CTX_IGMP, "Cannot get ext vlans for ptin_intf %u/%u, cvlan %u",
+                     client.ptin_intf.intf_type, client.ptin_intf.intf_id, client.innerVlan);
         }
+      } 
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Invalid ptin_intf %u/%u", client.ptin_intf.intf_type, client.ptin_intf.intf_id);
+      }
 
-        /* Apply config */
-        rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, ENDIAN_SWAP8(msg[messageIterator].onuId), 0x00, 0, 0, addOrRemove, msg[messageIterator].packageBmpList, ENDIAN_SWAP16(msg[messageIterator].noOfPackages));
+      bmpIterator = 0;
 
-        if (rc!=L7_SUCCESS)
-        {
-          PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client rc:%u", rc);
-          return rc;
-        }
+      while (bmpIterator < PTIN_IGMP_PACKAGE_BITMAP_SIZE)
+      {
+        ENDIAN_SWAP32_MOD(msg[messageIterator].packageBmpList[bmpIterator]);
+        bmpIterator++;
+      }
+
+      /* Apply config */
+      rc = ptin_igmp_api_client_add(&client, uni_ovid, uni_ivid, ENDIAN_SWAP8(msg[messageIterator].onuId), 0x00, 0, 0, addOrRemove, msg[messageIterator].packageBmpList, ENDIAN_SWAP16(msg[messageIterator].noOfPackages));
+
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Error adding MC client rc:%u", rc);
+        return rc;
       }
     }
+  }
   return rc;
 #else
-  PT_LOG_ERR(LOG_CTX_IGMP, "Featured not supported in this card!");  
-  return L7_NOT_SUPPORTED;  
-#endif 
+  PT_LOG_ERR(LOG_CTX_IGMP, "Featured not supported in this card!");
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /**
