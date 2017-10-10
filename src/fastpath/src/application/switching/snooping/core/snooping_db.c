@@ -3732,7 +3732,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
           ptin_igmp_timer_stop(local_router_port_id, PTIN_IGMP_CLIENTIDX_MAX - 1);
           ptin_igmp_ring_osapiSemaGive();
 
-          ptin_igmp_ports_default(PTIN_IGMP_LRP_DYNAMIC);
+          ptin_igmp_ports_default(0xFF);
         }
       }
     }
