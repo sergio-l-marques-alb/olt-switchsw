@@ -19460,7 +19460,7 @@ void ptin_msg_evc_port_add_rem(L7_uint32 evcId, L7_uint8 portId, L7_uint8 oper)
  */
 L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst_port, L7_uint32 ngpon2_id)
 { 
-  L7_uint8  index, iteration = 0, position =  0;
+  L7_uint32  index, iteration = 0, position =  0;
   L7_uint32 max_index = (PTIN_SYSTEM_N_EVCS/8*sizeof(L7_uint8)) - 1;
   ptin_NGPON2_groups_t NGPON2_GROUP;
   L7_uint8 evc_type;
