@@ -3001,10 +3001,10 @@ L7_RC_t hapi_ptin_l2learn_port_get(ptin_dapi_port_t *dapiPort, L7_int *macLearn_
 L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
 {
   ptin_HWEthRFC2819_StatisticsBlock_t *rx, *tx;
-  L7_uint64 tmp=0, tmp1=0, tmp2=0, tmp3=0;
+  L7_uint64 tmp=0, tmp1=0, tmp2=0/*, tmp3=0*/;
   L7_uint64 mtuePkts=0;
   L7_uint64 pkts1519to2047, pkts2048to4095, pkts4096to9216, pkts9217to16383;
-  L7_uint port, unit;
+  L7_uint cos, port, unit;
 
   if (portStats->Port >= ptin_sys_number_of_ports)
     return L7_FAILURE;
@@ -3066,10 +3066,18 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
       soc_counter_get_rate(unit, port, IRBYTr , 0, &rx->Throughput);                  /* Throughput */               
 
       // Tx counters
-      soc_counter_get(unit, port, DROP_PKT_CNTr   , 0, &tmp1);
+      tmp1 = 0;
+      for (cos = 0; cos < 8; cos++)
+      {
+        if (soc_counter_get(unit, port, SOC_COUNTER_NON_DMA_COSQ_DROP_PKT, cos, &tmp) == SOC_E_NONE)
+        {
+          tmp1 += tmp;
+        }
+      }
+      //soc_counter_get(unit, port, DROP_PKT_CNTr , 0, &tmp1);
       //soc_counter_get(unit, port, HOLDROP_PKT_CNTr, 0, &tmp2);
-      soc_counter_get(unit, port, EGRDROPPKTCOUNTr, 0, &tmp3);
-      tx->etherStatsDropEvents = tmp1 + /*tmp2 +*/ tmp3;                              /* Drop Events */
+      //soc_counter_get(unit, port, EGRDROPPKTCOUNTr, 0, &tmp3);
+      tx->etherStatsDropEvents = tmp1; /* + tmp2 + tmp3;*/                            /* Drop Events */
       soc_counter_get(unit, port, ITBYTr , 0, &tx->etherStatsOctets);                 /* Octets */                   
       soc_counter_get(unit, port, ITPKTr , 0, &tx->etherStatsPkts);                   /* Packets */                  
       soc_counter_get(unit, port, ITBCAr , 0, &tx->etherStatsBroadcastPkts);          /* Broadcasts */               
@@ -3141,10 +3149,18 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
       soc_counter_get_rate(unit, port, GRBYTr , 0, &rx->Throughput);                  /* Throughput */
 
       // Tx counters
-      soc_counter_get(unit, port, DROP_PKT_CNTr   , 0, &tmp1);
+      tmp1 = 0;
+      for (cos = 0; cos < 8; cos++)
+      {
+        if (soc_counter_get(unit, port, SOC_COUNTER_NON_DMA_COSQ_DROP_PKT, cos, &tmp) == SOC_E_NONE)
+        {
+          tmp1 += tmp;
+        }
+      }
+      //soc_counter_get(unit, port, DROP_PKT_CNTr   , 0, &tmp1);
       //soc_counter_get(unit, port, HOLDROP_PKT_CNTr, 0, &tmp2);
-      soc_counter_get(unit, port, EGRDROPPKTCOUNTr, 0, &tmp3);
-      tx->etherStatsDropEvents = tmp1 + /*tmp2 +*/ tmp3;                              /* Drop Events */
+      //soc_counter_get(unit, port, EGRDROPPKTCOUNTr, 0, &tmp3);
+      tx->etherStatsDropEvents = tmp1; /* + tmp2 + tmp3;*/                            /* Drop Events */
       soc_counter_get(unit, port, GTBYTr , 0, &tx->etherStatsOctets);                 /* Octets */                   
       soc_counter_get(unit, port, GTPKTr , 0, &tx->etherStatsPkts);                   /* Packets */                  
       soc_counter_get(unit, port, GTBCAr , 0, &tx->etherStatsBroadcastPkts);          /* Broadcasts */               
@@ -3219,10 +3235,18 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
     soc_counter_get_rate(unit, port, RBYTr , 0, &rx->Throughput);                   /* Throughput */
 
     // Tx counters
-    soc_counter_get(unit, port, DROP_PKT_CNTr   , 0, &tmp1);
+    tmp1 = 0;
+    for (cos = 0; cos < 8; cos++)
+    {
+      if (soc_counter_get(unit, port, SOC_COUNTER_NON_DMA_COSQ_DROP_PKT, cos, &tmp) == SOC_E_NONE)
+      {
+        tmp1 += tmp;
+      }
+    }
+    //soc_counter_get(unit, port, DROP_PKT_CNTr   , 0, &tmp1);
     //soc_counter_get(unit, port, HOLDROP_PKT_CNTr, 0, &tmp2);
-    soc_counter_get(unit, port, EGRDROPPKTCOUNTr, 0, &tmp3);
-    tx->etherStatsDropEvents = tmp1 + /*tmp2 +*/ tmp3;                              /* Drop Events */
+    //soc_counter_get(unit, port, EGRDROPPKTCOUNTr, 0, &tmp3);
+    tx->etherStatsDropEvents = tmp1; /* + tmp2 + tmp3;*/                            /* Drop Events */
     soc_counter_get(unit, port, TBYTr , 0, &tx->etherStatsOctets);                  /* Octets */                   
     soc_counter_get(unit, port, TPKTr , 0, &tx->etherStatsPkts);                    /* Packets */                  
     soc_counter_get(unit, port, TBCAr , 0, &tx->etherStatsBroadcastPkts);           /* Broadcasts */               

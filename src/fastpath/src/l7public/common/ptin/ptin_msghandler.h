@@ -34,6 +34,8 @@
 
 #define CCMSG_SWITCH_TEMPERATURE_GET        0x900A  // struct msg_ptin_temperature_monitor_t
 
+#define CCMSG_ETH_OLTD_HW_CONFIG            0x900B  // struct msg_OLTDHWConfig_t
+
 #define CCMSG_ETH_PHY_CONFIG_SET            0x9010  // struct msg_HWEthPhyConf_t
 #define CCMSG_ETH_PHY_CONFIG_GET            0x9011  // struct msg_HWEthPhyConf_t
 #define CCMSG_ETH_PHY_STATE_GET             0x9012  // struct msg_HWEthPhyState_t
@@ -620,6 +622,21 @@ typedef struct
   L7_uint8              protocol_trusted;               // [Mask=0x100000] Trusted interface for DHCP and PPPoE protocols (only physical interfaces)
   L7_uint8              router_port;                    // [Mask=0x200000] 
 } __attribute__((packed)) msg_HWPortExt_t;
+
+/* List of operations */
+#define OLTDHWCONFIG_OP_NONE         0
+#define OLTDHWCONFIG_OP_SHAPER_SET   1  /* Shaper behavior: param1-max rate; param2-max bucket size */
+/* CCMSG_ETH_OLTD_HW_CONFIG Message */
+typedef struct
+{
+  L7_uint8              SlotId;
+  msg_HwEthInterface_t  intf;                          /* Interface id: can be physical or logical */
+  L7_uint32             flags;                         // [Mask=0x000001] (only physical interfaces)
+  L7_uint32             flags_mask;                    // [Mask=0x000001] (only physical interfaces)
+  L7_uint8              operation;
+  L7_uint32             param[10];
+} __attribute__((packed)) msg_OLTDHWConfig_t;
+
 
 typedef struct
 {
