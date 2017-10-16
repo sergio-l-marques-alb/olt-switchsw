@@ -12,6 +12,7 @@
 
 #include "ptin_igmp.h"
 #include "ptin_xlate_api.h"
+#include "ptin_oam_packet.h"
 #include "ptin_intf.h"
 #include "ptin_utils.h"
 #include "ptin_evc.h"
@@ -364,6 +365,7 @@ static L7_RC_t ptin_igmp_channel_add( ptinIgmpChannelInfoData_t *node );
 static L7_RC_t ptin_igmp_channel_remove( ptinIgmpChannelDataKey_t *avl_key );
 static L7_RC_t ptin_igmp_channel_remove_multicast_service ( L7_uint32 evc_uc, L7_uint32 evc_mc );
 static L7_RC_t ptin_igmp_channel_remove_all ( void );
+static L7_uint8 ptin_igmp_check_topology_change(void);
 
 static ptinIgmpGroupClientInfoData_t* deviceClientId2groupClientPtr(L7_uint32 ptinPort, L7_uint32 clientId);
 static RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 deviceClientId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint32 *serviceId);
@@ -395,7 +397,7 @@ static RC_t ptin_igmp_max_mask_size(L7_uchar8 family, L7_uchar8 *maxMasklen)
 }
 
 /************IGMP Admission Control Feature****************************************************/ 
-  #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
+#if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 
 typedef struct
 {
@@ -700,8 +702,8 @@ static ptin_IGMP_Statistics_t global_stats_intf[PTIN_SYSTEM_N_INTERF];
  *   The main reason is that there might be multiple IGMP instances that use
  *   the same VLANs, but on different interfaces. Only the interval VLAN will
  *   differenciate them. */ 
-L7_uint8 igmpInst_fromRouterVlan[4096];  /* Lookup table to get IGMP instance index based on Router (root) VLAN */
-L7_uint8 igmpInst_fromUCVlan[4096];      /* Lookup table to get IGMP instance index based on Unicast (clients uplink) VLAN */
+L7_uint16 igmpInst_fromRouterVlan[0];  /* Lookup table to get IGMP instance index based on Router (root) VLAN */
+L7_uint16 igmpInst_fromUCVlan[0];      /* Lookup table to get IGMP instance index based on Unicast (clients uplink) VLAN */
 
 #define QUATTRO_IGMP_TRAP_PREACTIVE     0   /* To always have this rule active, set 1 */
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
@@ -871,6 +873,28 @@ static void igmp_clientIndex_unmark(L7_uint ptin_port, L7_uint client_idx);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
+
+void ptin_igmp_1s_task( void )
+{
+  if (osapiTaskInitDone(L7_PTIN_IGMP_1S_TASK_SYNC) != L7_SUCCESS)
+  {
+    PT_LOG_FATAL(LOG_CTX_IGMP, "Error syncing task");
+    PTIN_CRASH();
+  }
+
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "IGMP 1s task launch ");
+
+  while (1) 
+  {
+    if (ptin_debug_igmp_snooping)
+    {
+      PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP 1s task is running ");
+    }
+    ptin_igmp_check_topology_change();
+    osapiSleepMSec(50);
+  }
+}
+
 static L7_RC_t ptin_igmp_multicast_package_init(void)
 {
   L7_uint32 iterator;
@@ -1532,6 +1556,25 @@ L7_RC_t ptin_igmp_proxy_init(void)
 
   PT_LOG_INFO(LOG_CTX_IGMP, "IGMP init OK");
 
+   L7_uint32 ptin_igmp_TaskId = 0;    
+  //Create task for IGMP 1s processing
+  ptin_igmp_TaskId = osapiTaskCreate("ptin_1s_igmp_task", ptin_igmp_1s_task, 0, 0,
+                                                L7_DEFAULT_STACK_SIZE,
+                                                L7_DEFAULT_TASK_PRIORITY,
+                                                L7_DEFAULT_TASK_SLICE);
+
+  if (ptin_igmp_TaskId == L7_ERROR) {
+    PT_LOG_FATAL(LOG_CTX_IGMP, "Could not create task ptin_rfc2819_task");
+    return L7_FAILURE;
+  }
+  PT_LOG_TRACE(LOG_CTX_IGMP,"Task ptin_rfc2819_task created");
+
+  if (osapiWaitForTaskInit (L7_PTIN_IGMP_1S_TASK_SYNC, L7_WAIT_FOREVER) != L7_SUCCESS) {
+    PT_LOG_FATAL(LOG_CTX_IGMP,"Unable to initialize ptin_rfc2819_task()\n");
+    return(L7_FAILURE);
+  }
+  PT_LOG_TRACE(LOG_CTX_IGMP,"Task ptin_rfc2819_task initialized");
+
   return L7_SUCCESS;
 }
 
@@ -1595,7 +1638,6 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
         PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %u ", ptin_port_list[i].port_id, ptin_port_list[i].type );
       }
   #endif
-
       i++;
     }
   }
@@ -2619,7 +2661,7 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
   L7_uint16 nni_ovlan;
 
   ptin_evc_get_NNIvlan_fromEvcId(McastEvcId, &nni_ovlan);
-  igmpInst_fromRouterVlan[nni_ovlan]=igmp_idx;
+  igmpInst_fromRouterVlan[0]=nni_ovlan;
 
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
@@ -3051,7 +3093,7 @@ L7_RC_t ptin_igmp_evc_add(L7_uint32 evc_idx, L7_uint16 nni_ovlan)
 
   /* One more EVC associated to this instance */
   igmpInstances[igmp_idx].n_evcs++;
-  igmpInst_fromRouterVlan[nni_ovlan]=igmp_idx;
+  igmpInst_fromRouterVlan[0]=nni_ovlan;
 
 #if PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
   /* Update number of QUATTRO-P2P evcs */
@@ -19982,6 +20024,20 @@ static RC_t ptin_igmp_package_channel_conflict_validation(L7_uint32 packageId, p
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
 
+
+static L7_uint8 ptin_igmp_check_topology_change(void)
+{
+  PT_LOG_TRACE(LOG_CTX_IGMP, "Mc VLAN %u", igmpInst_fromRouterVlan[0]);
+
+  if( f(igmpInst_fromRouterVlan[0])== L7_SUCCESS) 
+  {
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Mc Topology changed VLAN %u", igmpInst_fromRouterVlan[0]);
+    ptin_igmp_ports_default(0xFF);
+    ptin_igmp_generalquerier_reset();
+  }
+  return L7_SUCCESS;
+}
+
 L7_uint8 ptin_igmp_ring_osapiSemaTake()
 {
 
@@ -20113,6 +20169,8 @@ void ptin_igmp_ring_ports_default()
   ptin_igmp_ports_default(0xFF);
 
 }
+
+
 
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
