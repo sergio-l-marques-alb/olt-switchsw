@@ -109,6 +109,7 @@ void ptin_debug(void)
   printf("\r\n");
   printf("  ptin_intf_dump                                                  - prints info about all PHY interfaces\r\n");
   printf("  ptin_lag_dump                                                   - prints info about all LAG interfaces\r\n");
+  printf("  ptin_intf_shaper_max_dump                                       - prints the max rate for all interfaces\r\n");
   printf("  ptin_evc_dump <id>                                              - prints info about eEVCs (use -1 to display all)\r\n");
   printf("  ptin_evc_map                                                    - prints EVCs extended indexes mapping\r\n");
   printf("  ptin_evc_which <vlan_int>                                       - prints info about the EVC related to the given internal vlan\r\n");

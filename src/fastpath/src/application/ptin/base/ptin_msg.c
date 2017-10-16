@@ -1210,6 +1210,22 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
   return L7_SUCCESS;
 }
 
+/**
+ * Configuration from OLTD application
+ * 
+ * @author mruas (14/08/17)
+ * 
+ * @param inbuffer 
+ * @param outbuffer 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_oltd_hw_config(ipc_msg *inbuffer, ipc_msg *outbuffer)
+{
+  L7_uint16 i;
+  msg_OLTDHWConfig_t *msgConf = (msg_OLTDHWConfig_t *) inbuffer->info;
+  L7_RC_t rc = L7_FAILURE;
+
   /* Endianess conversion */
   ENDIAN_SWAP8_MOD (msgConf->SlotId);
   ENDIAN_SWAP8_MOD (msgConf->intf.intf_type);
