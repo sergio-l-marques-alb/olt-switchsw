@@ -956,6 +956,213 @@ extern L7_BOOL ptin_intf_link_get(L7_uint32 ptin_port);
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
+<<<<<<< .working
+||||||| .merge-left.r6672
+
+/**
+ * Get the maximum bandwidth associated to a interface (physical
+ * or LAG) 
+ * 
+ * @param intIfNum 
+ * @param bandwidth : bandwidth in Kbps 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_ERROR
+ */
+extern L7_RC_t ptin_intf_max_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth);
+
+/**
+ * Get the AVAILABLE bandwidth of an interface (physical or LAG)
+ * 
+ * @param intIfNum 
+ * @param bandwidth : bandwidth in Kbps 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_ERROR
+ */
+extern L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth);
+
+/**
+ * Set the maximum rate for a port
+ * 
+ * @author mruas (16/08/17)
+ * 
+ * @param intf_type 
+ * @param intf_id 
+ * @param max_rate : Percentage
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 max_rate);
+
+/**
+ * Get the maximum rate for a port
+ * 
+ * @author mruas (16/08/17)
+ * 
+ * @param intf_type 
+ * @param intf_id 
+ * @param max_rate : Percentage
+ * @param eff_max_rate : Percentage
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_intf_shaper_max_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *max_rate, L7_uint32 *eff_max_rate);
+
+#ifdef NGPON2_SUPPORTED
+/**
+ * PTIN_INTF NGPON2 Add Group 
+ *  
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ *  
+ *  
+ * @author Hugo Araujo: hugo-f-araujo@telecom.pt 
+ */
+extern L7_RC_t ptin_intf_NGPON2_add_group(ptin_NGPON2group_t *group_info);
+
+
+/**
+ * PTIN_INTF NGPON2 Remove Group 
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ *  
+ * @author Hugo Araujo: hugo-f-araujo@telecom.pt  
+ */
+extern L7_RC_t ptin_intf_NGPON2_rem_group(ptin_NGPON2group_t *group_info);
+
+/**
+ * Check if a NGPON2 group already exists 
+ * 
+ * @param group_idx       
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */ 
+extern L7_RC_t ptin_intf_NGPON2_group_exists(L7_uint8 group_idx);
+
+
+
+/**
+ * PTIN_INTF NGPON2 Add Group Port
+ *  
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ *  
+ *  
+ * @author Hugo Araujo: hugo-f-araujo@telecom.pt 
+ */
+extern L7_RC_t ptin_intf_NGPON2_add_group_port(ptin_NGPON2group_t *group_info);
+
+
+/**
+ * PTIN_INTF NGPON2 Remove Group Port
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ *                            
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ *  
+ * @author Hugo Araujo: hugo-f-araujo@telecom.pt  
+ */
+extern L7_RC_t ptin_intf_NGPON2_rem_group_port(ptin_NGPON2group_t *group_info);
+
+/**
+ * PTIN_INTF NGPON2 clear 
+ * 
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+
+L7_RC_t ptin_intf_NGPON2_clear();
+
+
+/**
+ * PTIN_INTF NGPON2 check intf
+ *  
+ * @brief check if a physical port belongs to a NGPON2 group 
+ *  
+ */
+
+L7_RC_t ptin_intf_NGPON2_group_check(L7_uint8 intf_index, L7_uint8 *group_index);
+
+/**
+ * PTIN_INTF get NGPON2 group info 
+ * 
+ * @param group_info      : Pointer to struct with group info 
+ * @param group_index     : NGPON2 group index                  
+ * 
+ * @return L7_RC_t : 
+ *         L7_SUCCESS/L7_FAILURE/L7_NOT_EXIST/L7_DEPENDENCY_NOT_MET
+ */
+extern L7_RC_t get_NGPON2_group_info(ptin_NGPON2_groups_t *NGPON2_GROUP, L7_uint8 group_index);
+
+extern L7_RC_t set_NGPON2_group_info(ptin_NGPON2_groups_t *group_info, L7_uint8 group_index);
+
+#endif /*NGPON2_SUPPORTED*/
+
+
+=======
+
+/**
+ * Get the maximum bandwidth associated to a interface (physical
+ * or LAG) 
+ * 
+ * @param intIfNum 
+ * @param bandwidth : bandwidth in Kbps 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_ERROR
+ */
+extern L7_RC_t ptin_intf_max_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth);
+
+/**
+ * Get the AVAILABLE bandwidth of an interface (physical or LAG)
+ * 
+ * @param intIfNum 
+ * @param bandwidth : bandwidth in Kbps 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_ERROR
+ */
+extern L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth);
+
+/**
+ * Set the maximum rate for a port
+ * 
+ * @author mruas (16/08/17)
+ * 
+ * @param intf_type 
+ * @param intf_id 
+ * @param max_rate : Percentage
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 max_rate, L7_uint32 burst_size);
+
+/**
+ * Get the maximum rate for a port
+ * 
+ * @author mruas (16/08/17)
+ * 
+ * @param intf_type 
+ * @param intf_id 
+ * @param max_rate : Percentage
+ * @param eff_max_rate : Percentage
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_intf_shaper_max_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *max_rate, L7_uint32 *eff_max_rate,  L7_uint32 *burst_size);
+
 extern L7_RC_t ptin_intf_protection_cmd(L7_uint slot, L7_uint port, L7_uint cmd);
 extern L7_RC_t ptin_intf_protection_cmd_planC(L7_uint slot, L7_uint port, L7_uint cmd);
 extern L7_RC_t ptin_intf_protection_cmd_planD(L7_uint slot_old, L7_uint port_old, L7_uint slot_new, L7_uint port_new);

@@ -107,6 +107,14 @@ static L7_uint16 ptin_slot_boardid[PTIN_SYS_SLOTS_MAX+1];
 #endif
 #endif
 
+/* MAX interface rate to limit shaping (percentage value) */
+/* Index 1: Effective configuration from manager */
+/* Index 2: Max shaper value */
+#define PTIN_INTF_SHAPER_MNG_VALUE  0
+#define PTIN_INTF_SHAPER_MAX_VALUE  1
+L7_uint32 ptin_intf_shaper_max[PTIN_SYSTEM_N_INTERF][2];
+L7_uint32 ptin_burst_size[PTIN_SYSTEM_N_INTERF];
+
 /**
  * MACROS
  */
@@ -8051,3 +8059,676 @@ void ptin_intf_stormcontrol_dump(void)
   }
 }
 
+<<<<<<< .working
+||||||| .merge-left.r6672
+
+/**
+ * Get the maximum bandwidth associated to a interface (physical
+ * or LAG) 
+ * 
+ * @param intIfNum 
+ * @param bandwidth : bandwidth in Kbps 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_ERROR
+ */
+L7_RC_t ptin_intf_max_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
+{
+  L7_INTF_TYPES_t intf_type;
+  L7_uint32 intf_speed, total_speed = 0;
+  L7_uint32 i, number_of_ports, ports_list[PTIN_SYSTEM_N_LAGS];
+
+  /* Validate intIfNum */
+  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Only process physical and logical interfaces */
+  if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS ||
+      (intf_type != L7_PHYSICAL_INTF && intf_type != L7_LAG_INTF))
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Only physical and logical interfaces are allowed");
+    return L7_FAILURE;
+  }
+
+  if (intf_type == L7_LAG_INTF)
+  {
+    number_of_ports = PTIN_SYSTEM_N_LAGS;
+    if (usmDbDot3adMemberListGet(0, intIfNum, &number_of_ports, ports_list) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,"Can't get members list of intIfNum %u", intIfNum);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    number_of_ports = 1;
+    ports_list[0] = intIfNum;
+  }
+
+  total_speed = 0;
+  for (i = 0; i < number_of_ports; i++)
+  {
+    if (nimGetIntfSpeedStatus(ports_list[i], &intf_speed) == L7_SUCCESS)
+    {
+      switch (intf_speed)
+      {
+        case L7_PORTCTRL_PORTSPEED_HALF_10T:
+        case L7_PORTCTRL_PORTSPEED_FULL_10T:
+          total_speed += 10;
+          break;
+        case L7_PORTCTRL_PORTSPEED_HALF_100TX:
+        case L7_PORTCTRL_PORTSPEED_FULL_100TX:
+        case L7_PORTCTRL_PORTSPEED_FULL_100FX:
+          total_speed += 100;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
+          total_speed += 1000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
+          total_speed += 2500;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
+          total_speed += 10000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+          total_speed += 40000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+          total_speed += 100000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_AUTO_NEG:
+        case L7_PORTCTRL_PORTSPEED_UNKNOWN:
+        default:
+          break;
+      }
+    }
+  }
+
+  PT_LOG_TRACE(LOG_CTX_INTF,"Maximum bandwidth: %u", total_speed);
+
+  if (bandwidth != L7_NULLPTR)
+    *bandwidth = total_speed;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get the AVAILABLE bandwidth of an interface (physical or LAG)
+ * 
+ * @param intIfNum 
+ * @param bandwidth : bandwidth in Kbps 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_ERROR
+ */
+L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
+{
+  L7_INTF_TYPES_t intf_type;
+  L7_uint32 intf_speed, total_speed = 0;
+  L7_uint32 i, number_of_ports = 0, ports_list[PTIN_SYSTEM_N_LAGS];
+
+  /* Validate intIfNum */
+  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Only process physical and logical interfaces */
+  if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS ||
+      (intf_type != L7_PHYSICAL_INTF && intf_type != L7_LAG_INTF))
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Only physical and logical interfaces are allowed");
+    return L7_FAILURE;
+  }
+
+  if (intf_type == L7_LAG_INTF)
+  {
+    number_of_ports = PTIN_SYSTEM_N_LAGS;
+    if (usmDbDot3adActiveMemberListGet(0, intIfNum, &number_of_ports, ports_list) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,"Can't get members list of intIfNum %u", intIfNum);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    L7_uint32 admin_state, link_state;
+
+    if (nimGetIntfAdminState(intIfNum, &admin_state) == L7_SUCCESS && nimGetIntfLinkState(intIfNum, &link_state) == L7_SUCCESS)
+    {
+      if (admin_state == L7_ENABLE && link_state == L7_UP)
+      {
+        number_of_ports = 1; 
+        ports_list[0] = intIfNum;
+      }
+      else
+      {
+        number_of_ports = 0;
+      }
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,"Error reading interface state");
+      return L7_FAILURE;
+    }
+  }
+
+  total_speed = 0;
+  for (i = 0; i < number_of_ports; i++)
+  {
+    if (nimGetIntfSpeedStatus(ports_list[i], &intf_speed) == L7_SUCCESS)
+    {
+      switch (intf_speed)
+      {
+        case L7_PORTCTRL_PORTSPEED_HALF_10T:
+        case L7_PORTCTRL_PORTSPEED_FULL_10T:
+          total_speed += 10;
+          break;
+        case L7_PORTCTRL_PORTSPEED_HALF_100TX:
+        case L7_PORTCTRL_PORTSPEED_FULL_100TX:
+        case L7_PORTCTRL_PORTSPEED_FULL_100FX:
+          total_speed += 100;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
+          total_speed += 1000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
+          total_speed += 2500;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
+          total_speed += 10000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+          total_speed += 40000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+          total_speed += 100000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_AUTO_NEG:
+        case L7_PORTCTRL_PORTSPEED_UNKNOWN:
+        default:
+          break;
+      }
+    }
+  }
+
+  PT_LOG_TRACE(LOG_CTX_INTF,"Available bandwidth: %u", total_speed);
+
+  if (bandwidth != L7_NULLPTR)
+    *bandwidth = total_speed;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Set the maximum rate for a port
+ * 
+ * @author mruas (16/08/17)
+ * 
+ * @param intf_type 
+ * @param intf_id 
+ * @param max_rate : Percentage
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 max_rate)
+{
+  L7_uint32 ptin_port, intIfNum;
+
+  /* Validate interface */
+  if (ptin_intf_typeId2port(intf_type, intf_id, &ptin_port) != L7_SUCCESS ||
+      ptin_intf_typeId2intIfNum(intf_type, intf_id, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", intf_type, intf_id);
+    return L7_FAILURE;
+  }
+  PT_LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is ptin_port %u, intIfNum %u", intf_type, intf_id, ptin_port, intIfNum);
+
+  /* Limit max rate */
+  if (max_rate > 100)
+  {
+    max_rate = 100;
+  }
+
+  /* Apply correct shaping rate */
+  if (usmDbQosCosQueueIntfShapingRateSet(1, intIfNum, (ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE]*max_rate)/100) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateSet");
+    return L7_FAILURE;
+  }
+
+  /* Save max rate for this interface */
+  ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = max_rate;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get the maximum rate for a port
+ * 
+ * @author mruas (16/08/17)
+ * 
+ * @param intf_type 
+ * @param intf_id 
+ * @param max_rate : Percentage
+ * @param eff_max_rate : Percentage
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_shaper_max_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *max_rate, L7_uint32 *eff_max_rate)
+{
+  L7_uint32 ptin_port, intIfNum;
+
+  /* Validate interface */
+  if (ptin_intf_typeId2port(intf_type, intf_id, &ptin_port) != L7_SUCCESS ||
+      ptin_intf_typeId2intIfNum(intf_type, intf_id, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", intf_type, intf_id);
+    return L7_FAILURE;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is ptin_port %u, intIfNum=%u => max_rate=%u",
+               intf_type, intf_id, ptin_port, intIfNum, ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE]);
+
+  /* Limit max rate */
+  if (max_rate != L7_NULLPTR)
+  {
+    *max_rate = ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE];
+  }
+
+  /* Effective max rate */
+  if (eff_max_rate != L7_NULLPTR)
+  {
+    if (usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, eff_max_rate) != L7_SUCCESS)
+    {
+      *eff_max_rate = 0;
+    }
+  }
+
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Dump the maximum rate for all interfaces
+ * 
+ * @author mruas (16/08/17)
+ */
+void ptin_intf_shaper_max_dump(void)
+{
+  L7_uint32 port, intIfNum, shaper_rate;
+  L7_RC_t rc;
+
+  printf("----------------------------------------\r\n");
+  printf("| Port | Max rate | Mng max | Eff max |\r\n");
+  for (port = 0; port < PTIN_SYSTEM_N_PORTS; port++)
+  {
+    if (ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+    {
+      rc = usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, &shaper_rate);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateGet: rc=%d", rc);
+        shaper_rate = 0;
+      }
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error converting port %u to intIfNum", port);
+      shaper_rate = 0;
+    }
+
+    printf("|  %2u  |    %3u   |   %3u   |   %3u   |\r\n", port,
+           ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MAX_VALUE], ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MNG_VALUE], shaper_rate);
+  }
+  printf("----------------------------------------\r\n");
+}
+
+=======
+
+/**
+ * Get the maximum bandwidth associated to a interface (physical
+ * or LAG) 
+ * 
+ * @param intIfNum 
+ * @param bandwidth : bandwidth in Kbps 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_ERROR
+ */
+L7_RC_t ptin_intf_max_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
+{
+  L7_INTF_TYPES_t intf_type;
+  L7_uint32 intf_speed, total_speed = 0;
+  L7_uint32 i, number_of_ports, ports_list[PTIN_SYSTEM_N_LAGS];
+
+  /* Validate intIfNum */
+  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Only process physical and logical interfaces */
+  if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS ||
+      (intf_type != L7_PHYSICAL_INTF && intf_type != L7_LAG_INTF))
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Only physical and logical interfaces are allowed");
+    return L7_FAILURE;
+  }
+
+  if (intf_type == L7_LAG_INTF)
+  {
+    number_of_ports = PTIN_SYSTEM_N_LAGS;
+    if (usmDbDot3adMemberListGet(0, intIfNum, &number_of_ports, ports_list) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,"Can't get members list of intIfNum %u", intIfNum);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    number_of_ports = 1;
+    ports_list[0] = intIfNum;
+  }
+
+  total_speed = 0;
+  for (i = 0; i < number_of_ports; i++)
+  {
+    if (nimGetIntfSpeedStatus(ports_list[i], &intf_speed) == L7_SUCCESS)
+    {
+      switch (intf_speed)
+      {
+        case L7_PORTCTRL_PORTSPEED_HALF_10T:
+        case L7_PORTCTRL_PORTSPEED_FULL_10T:
+          total_speed += 10;
+          break;
+        case L7_PORTCTRL_PORTSPEED_HALF_100TX:
+        case L7_PORTCTRL_PORTSPEED_FULL_100TX:
+        case L7_PORTCTRL_PORTSPEED_FULL_100FX:
+          total_speed += 100;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
+          total_speed += 1000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
+          total_speed += 2500;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
+          total_speed += 10000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+          total_speed += 40000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+          total_speed += 100000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_AUTO_NEG:
+        case L7_PORTCTRL_PORTSPEED_UNKNOWN:
+        default:
+          break;
+      }
+    }
+  }
+
+  PT_LOG_TRACE(LOG_CTX_INTF,"Maximum bandwidth: %u", total_speed);
+
+  if (bandwidth != L7_NULLPTR)
+    *bandwidth = total_speed;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Get the AVAILABLE bandwidth of an interface (physical or LAG)
+ * 
+ * @param intIfNum 
+ * @param bandwidth : bandwidth in Kbps 
+ * 
+ * @return L7_RC_t : L7_SUCCESS / L7_ERROR
+ */
+L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
+{
+  L7_INTF_TYPES_t intf_type;
+  L7_uint32 intf_speed, total_speed = 0;
+  L7_uint32 i, number_of_ports = 0, ports_list[PTIN_SYSTEM_N_LAGS];
+
+  /* Validate intIfNum */
+  if (intIfNum == 0 || intIfNum >= L7_ALL_INTERFACES)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Invalid intIfNum %u", intIfNum);
+    return L7_FAILURE;
+  }
+
+  /* Only process physical and logical interfaces */
+  if (nimGetIntfType(intIfNum, &intf_type) != L7_SUCCESS ||
+      (intf_type != L7_PHYSICAL_INTF && intf_type != L7_LAG_INTF))
+  {
+    PT_LOG_ERR(LOG_CTX_INTF,"Only physical and logical interfaces are allowed");
+    return L7_FAILURE;
+  }
+
+  if (intf_type == L7_LAG_INTF)
+  {
+    number_of_ports = PTIN_SYSTEM_N_LAGS;
+    if (usmDbDot3adActiveMemberListGet(0, intIfNum, &number_of_ports, ports_list) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,"Can't get members list of intIfNum %u", intIfNum);
+      return L7_FAILURE;
+    }
+  }
+  else
+  {
+    L7_uint32 admin_state, link_state;
+
+    if (nimGetIntfAdminState(intIfNum, &admin_state) == L7_SUCCESS && nimGetIntfLinkState(intIfNum, &link_state) == L7_SUCCESS)
+    {
+      if (admin_state == L7_ENABLE && link_state == L7_UP)
+      {
+        number_of_ports = 1; 
+        ports_list[0] = intIfNum;
+      }
+      else
+      {
+        number_of_ports = 0;
+      }
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_INTF,"Error reading interface state");
+      return L7_FAILURE;
+    }
+  }
+
+  total_speed = 0;
+  for (i = 0; i < number_of_ports; i++)
+  {
+    if (nimGetIntfSpeedStatus(ports_list[i], &intf_speed) == L7_SUCCESS)
+    {
+      switch (intf_speed)
+      {
+        case L7_PORTCTRL_PORTSPEED_HALF_10T:
+        case L7_PORTCTRL_PORTSPEED_FULL_10T:
+          total_speed += 10;
+          break;
+        case L7_PORTCTRL_PORTSPEED_HALF_100TX:
+        case L7_PORTCTRL_PORTSPEED_FULL_100TX:
+        case L7_PORTCTRL_PORTSPEED_FULL_100FX:
+          total_speed += 100;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
+          total_speed += 1000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:
+          total_speed += 2500;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
+          total_speed += 10000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+          total_speed += 40000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
+          total_speed += 100000;
+          break;
+        case L7_PORTCTRL_PORTSPEED_AUTO_NEG:
+        case L7_PORTCTRL_PORTSPEED_UNKNOWN:
+        default:
+          break;
+      }
+    }
+  }
+
+  PT_LOG_TRACE(LOG_CTX_INTF,"Available bandwidth: %u", total_speed);
+
+  if (bandwidth != L7_NULLPTR)
+    *bandwidth = total_speed;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Set the maximum rate for a port
+ * 
+ * @author mruas (16/08/17)
+ * 
+ * @param intf_type 
+ * @param intf_id 
+ * @param max_rate : Percentage
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 max_rate, L7_uint32 burst_size)
+{
+  L7_uint32 ptin_port, intIfNum;
+
+  /* Validate interface */
+  if (ptin_intf_typeId2port(intf_type, intf_id, &ptin_port) != L7_SUCCESS ||
+      ptin_intf_typeId2intIfNum(intf_type, intf_id, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", intf_type, intf_id);
+    return L7_FAILURE;
+  }
+  PT_LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is ptin_port %u, intIfNum %u", intf_type, intf_id, ptin_port, intIfNum);
+
+  /* Limit max rate */
+  if (max_rate > 100)
+  {
+    max_rate = 100;
+  }
+
+  /* Limit max rate */
+  if (burst_size == 0)
+  {
+    burst_size = 100000;
+  }
+
+  /* Apply correct shaping rate */
+  if (usmDbQosCosQueueIntfShapingRateSet(1, intIfNum, (ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE]*max_rate)/100) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateSet");
+    return L7_FAILURE;
+  }
+
+  /* Save max rate for this interface */
+  ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = max_rate;
+  ptin_burst_size[ptin_port] = burst_size;
+  return L7_SUCCESS;
+}
+
+/**
+ * Get the maximum rate for a port
+ * 
+ * @author mruas (16/08/17)
+ * 
+ * @param intf_type 
+ * @param intf_id 
+ * @param max_rate : Percentage
+ * @param eff_max_rate : Percentage
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_intf_shaper_max_get(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32 *max_rate, L7_uint32 *eff_max_rate, L7_uint32 *burst_size)
+{
+  L7_uint32 ptin_port, intIfNum;
+
+  /* Validate interface */
+  if (ptin_intf_typeId2port(intf_type, intf_id, &ptin_port) != L7_SUCCESS ||
+      ptin_intf_typeId2intIfNum(intf_type, intf_id, &intIfNum) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Interface %u/%u invalid", intf_type, intf_id);
+    return L7_FAILURE;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_INTF, "Interface %u/%u is ptin_port %u, intIfNum=%u => max_rate=%u",
+               intf_type, intf_id, ptin_port, intIfNum, ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE]);
+
+  /* Limit max rate */
+  if (max_rate != L7_NULLPTR)
+  {
+    *max_rate = ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE];
+  }
+
+  /* Effective max rate */
+  if (eff_max_rate != L7_NULLPTR)
+  {
+    if (usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, eff_max_rate) != L7_SUCCESS)
+    {
+      *eff_max_rate = 0;
+    }
+  }
+
+  /* Apply correct shaping rate */
+  if (cosQueueIntfShapingRateGet(intIfNum, burst_size) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_INTF, "Error with cosQueueIntfShapingRateGet");
+    *burst_size = 0;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Dump the maximum rate for all interfaces
+ * 
+ * @author mruas (16/08/17)
+ */
+void ptin_intf_shaper_max_dump(void)
+{
+  L7_uint32 port, intIfNum, shaper_rate, burst_size;
+  L7_RC_t rc;
+
+  printf("------------------------------------------------\r\n");
+  printf("| Port | Max rate | Mng max | Eff max | Burst   |\r\n");
+  for (port = 0; port < PTIN_SYSTEM_N_PORTS; port++)
+  {
+    if (ptin_intf_port2intIfNum(port, &intIfNum) == L7_SUCCESS)
+    {
+      rc = usmDbQosCosQueueIntfShapingRateGet(1, intIfNum, &shaper_rate);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error with usmDbQosCosQueueIntfShapingRateGet: rc=%d", rc);
+        shaper_rate = 0;
+      }
+
+      /* Apply correct shaping rate */
+      if (cosQueueIntfShapingRateGet(intIfNum, &burst_size) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "Error with cosQueueIntfShapingRateGet");
+        burst_size = 0;
+      }
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error converting port %u to intIfNum", port);
+      shaper_rate = 0;
+    }
+
+    printf("|  %2u  |    %3u   |   %3u   |   %3u   |   %3u   |\r\n", port,
+           ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MAX_VALUE], ptin_intf_shaper_max[port][PTIN_INTF_SHAPER_MNG_VALUE], shaper_rate, burst_size);
+  }
+  printf("------------------------------------------------\r\n");
+}
+
+>>>>>>> .merge-right.r6674

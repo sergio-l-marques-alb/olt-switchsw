@@ -1210,6 +1210,38 @@ L7_RC_t ptin_msg_PhyStatus_get(msg_HWEthPhyStatus_t *msgPhyStatus)
   return L7_SUCCESS;
 }
 
+  /* Endianess conversion */
+  ENDIAN_SWAP8_MOD (msgConf->SlotId);
+  ENDIAN_SWAP8_MOD (msgConf->intf.intf_type);
+  ENDIAN_SWAP8_MOD (msgConf->intf.intf_id);
+  ENDIAN_SWAP32_MOD(msgConf->flags);
+  ENDIAN_SWAP32_MOD(msgConf->flags_mask);
+  ENDIAN_SWAP8_MOD (msgConf->operation);
+  for (i = 0; i < 10; i++)
+  {
+    ENDIAN_SWAP32_MOD(msgConf->param[i]);
+  }
+  
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Slot = %u", msgConf->SlotId);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Intf = %u/%u", msgConf->intf.intf_type, msgConf->intf.intf_id);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "flags     = 0x%08x / 0x%08x", msgConf->flags, msgConf->flags_mask);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "operation = %u", msgConf->operation);
+  PT_LOG_DEBUG(LOG_CTX_MSG, "param     = { %u %u %u %u %u %u %u %u %u %u }",
+               msgConf->param[0], msgConf->param[1], msgConf->param[2], msgConf->param[3],
+               msgConf->param[4], msgConf->param[5], msgConf->param[6], msgConf->param[7],
+               msgConf->param[8], msgConf->param[9]);
+
+  /* Operations */
+  if (msgConf->operation == OLTDHWCONFIG_OP_SHAPER_SET)
+  {
+    PT_LOG_DEBUG(LOG_CTX_MSG, "Applying OLTDHWCONFIG_OP_SHAPER_SET operation...");
+    rc = ptin_intf_shaper_max_set(msgConf->intf.intf_type, msgConf->intf.intf_id, msgConf->param[0], msgConf->param[1]);
+  }
+  
+  PT_LOG_DEBUG(LOG_CTX_MSG, "Result = %d", rc);
+
+  return rc;
+}
 
 /* Phy Counters Functions *****************************************************/
 /**
