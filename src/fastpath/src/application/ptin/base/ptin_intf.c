@@ -165,6 +165,14 @@ L7_RC_t ptin_intf_pre_init(void)
   memset(lagConf_data,        0xFF, sizeof(lagConf_data));
   memset(phyExt_data,         0x00, sizeof(phyExt_data));
 
+  /* For all interfaces, max rate is 100% */
+  for (i = 0; i < PTIN_SYSTEM_N_INTERF; i++)
+  {
+    ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MNG_VALUE] = 0;   /* Shaper value from management */
+    ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MAX_VALUE] = 100; /* Max. Shaper value */
+    ptin_burst_size[i] = 50000; //default bcm value for port max burst rate
+
+  }
   /* Initialize phy lookup tables */
   PT_LOG_TRACE(LOG_CTX_INTF, "Port <=> intIfNum lookup tables init:");
   for (i=0; i<ptin_sys_number_of_ports; i++)
