@@ -186,7 +186,7 @@
 #define  L7_L3_NUM_SECONDARIES   PROD_MAX_L3_NUM_SECONDARIES 
 
 /* Number of 6to4 route nexthops allowed */
-#define L7_MAX_6TO4_NEXTHOPS                16
+#define L7_MAX_6TO4_NEXTHOPS                6
 
 #define  L7_MAX_NUM_LOOPBACK_INTF               min(PROD_MAX_NUM_LOOPBACK_INTF, \
                                                     PLAT_MAX_NUM_LOOPBACK_INTF)
@@ -242,8 +242,8 @@
 
 /* Values to be used in SDM templates. Make sure template values
  * are less than value above used in some memory allocations. */
-#define  L7_RT_MAX_EQUAL_COST_ROUTES_LOW        min(4, L7_RT_MAX_EQUAL_COST_ROUTES)
-#define  L7_RT_MAX_EQUAL_COST_ROUTES_HIGH       min(16, L7_RT_MAX_EQUAL_COST_ROUTES)
+#define  L7_RT_MAX_EQUAL_COST_ROUTES_LOW        min(6, L7_RT_MAX_EQUAL_COST_ROUTES)
+#define  L7_RT_MAX_EQUAL_COST_ROUTES_HIGH       min(6, L7_RT_MAX_EQUAL_COST_ROUTES)
 
 /*********************************************************************
 **  End of L3 paramters 

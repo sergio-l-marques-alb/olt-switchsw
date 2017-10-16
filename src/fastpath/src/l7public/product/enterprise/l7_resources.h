@@ -44,9 +44,9 @@
 #define DOT3AD_SID_MSG_COUNT                      DEFAULT_MSG_COUNT
 #define LLDP_MSG_COUNT		                      DEFAULT_MSG_COUNT
 #define PML_MSG_COUNT                             3
-#define FD_CNFGR_RADIUS_MSG_COUNT                 DEFAULT_MSG_COUNT
-#define FD_CNFGR_TACACS_MSG_COUNT                 DEFAULT_MSG_COUNT
-#define DHCPSMAP_QUEUE_MAX_MSG_COUNT                        64
+#define FD_CNFGR_RADIUS_MSG_COUNT                 10
+#define FD_CNFGR_TACACS_MSG_COUNT                 10
+#define DHCPSMAP_QUEUE_MAX_MSG_COUNT                        10
 #define DTL_MSG_COUNT                             (4*1024)
 #define DTL_ADDR_MSG_COUNT                        L7_MAX_FDB_MAC_ENTRIES
 #define HAPI_BROAD_LAG_ASYNC_CMD_QUEUE_SIZE       (L7_MAX_NUM_LAG_INTF * \
@@ -104,7 +104,7 @@
 ** Number = 2 servers * (256 pending requests + 256 request infos) = 1024 
 ** Size = max of (.... or sizeof request info) = 376
 */
-#define RADIUS_SM_BUF_NUM                                 1024
+#define RADIUS_SM_BUF_NUM                                 10
 /* The number of large buffers and the size of each is based upon the limits
 ** of the pending request queue and the maximum expected size of a RADIUS 
 ** packet to be received in a response plus a secret.
@@ -112,7 +112,7 @@
 ** Number = 256 pending requests = 256
 ** Size = RADIUS packet + Secret = 4102
 */
-#define RADIUS_LG_BUF_NUM                                  256
+#define RADIUS_LG_BUF_NUM                                  10
 
 #define DAPI_DEBUG_NUM_BUFFER_MSGS                         512
 
@@ -167,7 +167,7 @@
 /* Maximum number of BCM devices in a single FASTPATH unit */
 #define L7_MAX_BCM_DEVICES_PER_UNIT                          8
 /* Maximum number of ports per BCM device */
-#define L7_MAX_BCM_PORTS_PER_DEVICE                         64
+#define L7_MAX_BCM_PORTS_PER_DEVICE                         2
 
 /*********************************************************************
 **  End of Misc. base paramters 
@@ -192,9 +192,9 @@
 **  Start of Misc. L3 paramters 
 **********************************************************************/
 /* Maximum number of static routes is arbitrarily chosen */
-#define FD_RTR_MAX_STATIC_ROUTES                            64
+#define FD_RTR_MAX_STATIC_ROUTES                            20
 
-#define    FD_RTR6_MAX_STATIC_ROUTES                        64 
+#define    FD_RTR6_MAX_STATIC_ROUTES                        10 
 /* Max static ARPs is largest conceivable for any platform, but is not 
  * necessarily the max supported on a given platform.  This value is only
  * used to give the config array a consistent, platform-independent number 
@@ -203,7 +203,7 @@
  * See L7_IP_ARP_CACHE_STATIC_MAX for the maximum number of configurable 
  * static ARPs supported on a give platform.
  */
-#define FD_RTR_MAX_STATIC_ARP_ENTRIES                      256
+#define FD_RTR_MAX_STATIC_ARP_ENTRIES                      10
 
 /*********************************************************************
 **  End of Misc. L3 paramters 
@@ -218,7 +218,7 @@
    Note: Need to verify how much saving we get from tweaking this.Hence removing them  */
 #define L7_MAX_RMON_INTERFACE_COUNT                    (L7_MAX_PORT_COUNT \
                                                         + L7_MAX_NUM_LAG_INTF + 10)
-#define L7_RMON_ENTRY_NUM                                    3
+#define L7_RMON_ENTRY_NUM                                    1
 /*********************************************************************
 **  End of Misc. Mgmt paramters 
 **********************************************************************/
@@ -269,7 +269,7 @@
 
 #define L7_DOT1S_STACK_SIZE             L7_DEFAULT_STACK_SIZE + (1024 * 32)
 
-#define L7_ISDP_STACK_SIZE              L7_DEFAULT_STACK_SIZE
+#define L7_ISDP_STACK_SIZE              500
 
 #define  L7_CMGR_CARD_INSERT_REMOVE_QUEUE_MSG_COUNT       256
 
