@@ -65,6 +65,19 @@ L7_RC_t ptin_hapi_qos_vlan_remove(L7_uint16 ext_vlan, L7_uint16 int_vlan, L7_BOO
  *  */ 
 L7_RC_t ptin_hapi_qos_shaper_max_burst_config(int unit, L7_uint32 ptin_port, L7_uint32 max_rate, L7_uint32 burst_size);
 
+
+/**
+ * Get shaper max rate and burst size 
+ *  
+ * @param unit 
+ * @param ptin_port 
+ * @param max_rate 
+ * @param burst_size 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_qos_shaper_max_burst_get(int unit, L7_uint32 ptin_port, L7_uint32 *max_rate, L7_uint32 *burst_size);
+
 /**
  * Flush several entries of the QoS table
  * 

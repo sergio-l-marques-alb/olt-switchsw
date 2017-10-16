@@ -1322,6 +1322,32 @@ L7_RC_t ptin_hapi_qos_shaper_max_burst_config(int unit, L7_uint32 ptin_port, L7_
 }
 
 /**
+ * Get shaper max rate and burst size 
+ *  
+ * @param unit 
+ * @param ptin_port 
+ * @param max_rate 
+ * @param burst_size 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_qos_shaper_max_burst_get(int unit, L7_uint32 ptin_port, L7_uint32 *max_rate, L7_uint32 *burst_size)
+{
+  L7_RC_t rc = L7_SUCCESS;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_port:  %u", ptin_port);
+
+  unit = 0;
+  rc = bcm_port_rate_egress_get(unit, ptin_port, max_rate, burst_size);
+
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "max_rate:   %u", *max_rate);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "burst_size: %u", *burst_size);
+
+  return rc;
+}
+
+/**
  * Flush several entries of the QoS table
  * 
  * @param dapiPort 

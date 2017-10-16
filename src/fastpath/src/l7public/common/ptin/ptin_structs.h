@@ -97,6 +97,7 @@ typedef enum
   PTIN_DTL_MSG_OAM_FPGA,
   PTIN_DTL_MSG_TEMPERATURE_MONITOR,   /* ptin_dtl_temperature_monitor_t */
   PTIN_DTL_MSG_SHAPER_MAX_BURST,
+  PTIN_DTL_MSG_SHAPER_MAX_BURST_GET,
   PTIN_DTL_MSG_MAX
   
 } ptin_dtl_msg_enum;
