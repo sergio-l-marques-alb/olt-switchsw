@@ -96,6 +96,7 @@ typedef enum
   PTIN_DTL_MSG_PTP_FPGA,
   PTIN_DTL_MSG_OAM_FPGA,
   PTIN_DTL_MSG_TEMPERATURE_MONITOR,   /* ptin_dtl_temperature_monitor_t */
+  PTIN_DTL_MSG_SHAPER_MAX_BURST,
   PTIN_DTL_MSG_MAX
   
 } ptin_dtl_msg_enum;
@@ -194,6 +195,14 @@ typedef struct
   L7_uint32   status;                  // Check if is over or within the limit. 0-Over, 1- Within*/
 
 } ptin_l2_maclimit_status_t;
+
+typedef struct
+{
+  L7_uint32    ptin_port;       // ptin port
+  L7_uint32    max_rate;        // shaper max rate
+  L7_uint32    burst_size;      // burst size           
+} ptin_intf_shaper_t;
+
 
 /* L3 module defines*/
 #define PTIN_HAPI_BROAD_INVALID_L3_INTF_ID         0xFFFFFFFF
