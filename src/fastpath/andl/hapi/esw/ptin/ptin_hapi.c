@@ -5133,6 +5133,7 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     //L7_uint32     ip_addr = 0xe0000000, ip_addr_mask=0xf0000000;
     L7_uchar8     macAddr_iptv_value[6] = { 0x01, 0x00, 0x5e, 0x00, 0x00, 0x00 };
     L7_uchar8     macAddr_iptv_mask[6]  = { 0xff, 0xff, 0xff, 0x80, 0x00, 0x00 };
+    L7_uint16     vlan_value, vlan_mask;
     L7_uint32     ipdst_value = 0xe0000000;
     L7_uint32     ipdst_mask  = 0xf0000000;
     L7_uint16     ethType = 0x0800, ethType_mask = 0xffff;
@@ -5260,6 +5261,12 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DIP, (L7_uchar8 *) &ipdst_value, (L7_uchar8 *) &ipdst_mask);
       if (rc != L7_SUCCESS)  break;
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PACKETRES, (L7_uchar8 *) &packetRes, (L7_uchar8 *) &packetRes_mask);
+      if (rc != L7_SUCCESS)  break;
+
+      /* MAC-Bridge VLANs only (2048-4095) */
+      vlan_value = 0x0800;
+      vlan_mask  = 0x0800;
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlan_value, (L7_uchar8 *) &vlan_mask);
       if (rc != L7_SUCCESS)  break;
 
       /* Drop traffic */
