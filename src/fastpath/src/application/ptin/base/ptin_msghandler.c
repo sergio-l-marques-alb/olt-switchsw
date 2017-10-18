@@ -477,7 +477,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_HW_INTF_INFO_GET ****************************************************/
     case CCMSG_HW_INTF_INFO_GET:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_HW_INTF_INFO_GET (0x%04X)", msgId);
+      PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "Message received: CCMSG_HW_INTF_INFO_GET (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_ATLEAST(L7_uint32);
       msg_HwIntfInfo_t *ptr;
@@ -502,7 +502,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
     /* CCMSG_HW_INTF_STATUS */
     case CCMSG_HW_INTF_STATUS:
     {
-      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_HW_INTF_STATUS (0x%04X)", msgId);
+      PT_LOG_TRACE(LOG_CTX_MSGHANDLER, "Message received: CCMSG_HW_INTF_STATUS (0x%04X)", msgId);
 
       CHECK_INFO_SIZE_ATLEAST(msg_HwIntfStatus_t);
 

@@ -312,6 +312,8 @@ L7_RC_t ptin_remote_laser_control(L7_uint32 intIfNum, L7_int txdisable)
         }
         /* Correct slot id, in order to obtain successfully its IP address */
         slot = (port >= PTIN_SYSTEM_N_LOCAL_PORTS/2) ? 5 : 1;
+        /* Correct port id: range 0-3 to 0-1 */
+        port %= (PTIN_SYSTEM_N_LOCAL_PORTS/2);
       }
       /* If intIfNum refers to another slot, it should be a TU40G */
       else if (slot >= PTIN_SYS_LC_SLOT_MIN && slot <= PTIN_SYS_LC_SLOT_MAX)
