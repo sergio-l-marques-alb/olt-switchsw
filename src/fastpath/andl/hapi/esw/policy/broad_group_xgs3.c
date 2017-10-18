@@ -4410,15 +4410,17 @@ static int _policy_group_alloc_init(int unit, BROAD_POLICY_STAGE_t policyStage, 
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].highPrio     = lowPrioGroup + 3;   /* PTin modified: policer */
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_HIGH].group_prio   = lowPrioGroup + 0;
 
-          /* PTin added: policer */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio      = lowPrioGroup + 4;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio     = lowPrioGroup + 4;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].group_prio   = lowPrioGroup + 4;
-
           /* PTin added: QoS */
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].lowPrio       = lowPrioGroup + 5;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].lowPrio       = lowPrioGroup + 4;
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].highPrio      = lowPrioGroup + 5;
-          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio    = lowPrioGroup + 5;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_QOS].group_prio    = lowPrioGroup + 4;
+
+          /* PTin added: policer */
+          #if 0
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].lowPrio      = lowPrioGroup + 5;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].highPrio     = lowPrioGroup + 5;
+          group_alloc_table[unit][policyStage][ALLOC_BLOCK_PTIN].group_prio   = lowPrioGroup + 5;
+          #endif
 
           /* PTin added: client stats: groups 0-6 [ 7 * 256/(4*2) = 224 clients ] */
           group_alloc_table[unit][policyStage][ALLOC_BLOCK_STATS_CLIENT].lowPrio    = lowPrioGroup + 6;
