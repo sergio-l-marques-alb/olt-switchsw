@@ -6407,7 +6407,7 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
           j++;
               /* Copy data to ptin struct */
           ptinEvcPort.intf.format = PTIN_INTF_FORMAT_TYPEID;
-          ptinEvcPort.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(PTIN_EVC_INTF_PHYSICAL);
+          ptinEvcPort.intf.value.ptin_intf.intf_type = ENDIAN_SWAP8(PTIN_EVC_INTF_LOGICAL);
           ptinEvcPort.intf.value.ptin_intf.intf_id   = shift_index;
           ptinEvcPort.mef_type  = ENDIAN_SWAP8 (msgEvcPort[i].intf.mef_type);
           ptinEvcPort.vid       = ENDIAN_SWAP16(msgEvcPort[i].intf.vid);
