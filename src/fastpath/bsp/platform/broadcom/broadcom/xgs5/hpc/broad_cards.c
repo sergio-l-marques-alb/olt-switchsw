@@ -27,6 +27,8 @@
 #include "broad_init.h"
 #include "broad_hpc_db.h"
 #include "l7_platformspecs.h"   /* PTin added: defines PTIN_BOARD */
+#include "ptin_globaldefs.h"
+
 
 
 

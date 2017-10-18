@@ -30,10 +30,10 @@
 #define PTIN_PORT_FPGA                (PTIN_SYSTEM_N_PORTS-2)
 #define PTIN_PORT_CPU                 (PTIN_SYSTEM_N_PORTS-1)
 
-#define PTIN_SYS_LC_SLOT_MIN        2
-#define PTIN_SYS_LC_SLOT_MAX        19
-#define PTIN_SYS_SLOTS_MAX          20
-#define PTIN_SYS_INTFS_PER_SLOT_MAX 2
+#define PTIN_SYS_LC_SLOT_MIN        1
+#define PTIN_SYS_LC_SLOT_MAX        1
+#define PTIN_SYS_SLOTS_MAX          1
+#define PTIN_SYS_INTFS_PER_SLOT_MAX 4
 
 # define PTIN_SYSTEM_N_PORTS           18
 # define PTIN_SYSTEM_N_PONS            8 

@@ -3389,7 +3389,18 @@ extern int soc_robo_mmu_init(int );
   SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 5, bcmPortControlLanes, 4),  "Port xe0(5) lanes 4");
   SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 9, bcmPortControlLanes, 4),  "Port xe0(9) lanes 4");
   SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 13, bcmPortControlLanes, 4), "Port xe0(13) lanes 4");
-  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 28, bcmPortControlLanes, 4), "Port xe2(28) lanes 4");
+
+  if (soc_property_get(unit, spn_BCM5645X_CONFIG, 2) == 2)
+  {
+    /* OLT1T0F in mode 2 */
+    SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 27, bcmPortControlLanes, 4), "Port xe4(27) lanes 4");
+    SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 28, bcmPortControlLanes, 4), "Port xe4(28) lanes 4");
+  }
+  else
+  {
+    /* OLT1T0F/TG16GF in mode 5 */
+    SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 28, bcmPortControlLanes, 4), "Port xe2(28) lanes 4");
+  }
 #endif
 
   PT_LOG_INFO(LOG_CTX_STARTUP, "systemInit Finished!");

@@ -900,6 +900,9 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   L7_uint32 value;
   L7_uint32 intIfNum = 0;
   L7_uint32 speed_mode;
+  #if (0 /*PTIN_BOARD == PTIN_BOARD_OLT1T0F*/)
+  L7_uint32 config_mode_new = 0;
+  #endif
 
   /* Validate arguments */
   if (phyConf == L7_NULLPTR)
@@ -1024,15 +1027,15 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
         strcpy(speedstr, "1000Mbps");
         break;
 
-    case PHY_PORT_1000AN_GBPS:
-      #if (PTIN_BOARD == PTIN_BOARD_TA48GE)
-        /* AN should be always disabled: bug to be solved! */
-        speed_mode = L7_PORTCTRL_PORTSPEED_FULL_1000SX; // L7_PORTCTRL_PORTSPEED_AUTO_NEG;  /* PTin modified: solve AN bug */
-      #else
-        speed_mode = L7_PORTCTRL_PORTSPEED_AUTO_NEG;
-      #endif
-        strcpy(speedstr, "1000Mbps-AN");
-        break;
+      case PHY_PORT_1000AN_GBPS:
+        #if (PTIN_BOARD == PTIN_BOARD_TA48GE)
+          /* AN should be always disabled: bug to be solved! */
+          speed_mode = L7_PORTCTRL_PORTSPEED_FULL_1000SX; // L7_PORTCTRL_PORTSPEED_AUTO_NEG;  /* PTin modified: solve AN bug */
+        #else
+          speed_mode = L7_PORTCTRL_PORTSPEED_AUTO_NEG;
+        #endif
+          strcpy(speedstr, "1000Mbps-AN");
+          break;
 
       /* PTin added: Speed 2.5G */
       case PHY_PORT_2500_MBPS:
@@ -1067,10 +1070,67 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
         (usmDbIfDefaultSpeedGet(1, intIfNum, &value) == L7_SUCCESS) &&
         (value != speed_mode))
     {
-      if (usmDbIfSpeedSet(1, intIfNum, speed_mode) != L7_SUCCESS)
+      L7_BOOL apply_speed = L7_TRUE;
+
+    #if (0 /*PTIN_BOARD == PTIN_BOARD_OLT1T0F*/)
+      /* Is it a Katana2-WC0 port? */
+      if (port >= 12 && port <= 15)
       {
-        PT_LOG_ERR(LOG_CTX_INTF, "Failed to set port speed on port# %u", port);
-        return L7_FAILURE;
+        /* In 1G mode, but going to configure a 10G port */
+        if ((olt1t0f_config_mode == WC_SLOT_MODE_4x1G) &&
+            (phyConf->Speed == PHY_PORT_10_GBPS))
+        {
+          PT_LOG_DEBUG(LOG_CTX_INTF, "port %u: Invalid speed (%u) for current config_mode (%u)", port, phyConf->Speed, olt1t0f_config_mode);
+
+          apply_speed = L7_FALSE;
+          phyConf_data[port].Speed = phyConf->Speed;
+
+          /* In case lanes 2 and 4 are already set to 10G, we are able to go to 10G mode */
+          if (phyConf_data[13].Speed == PHY_PORT_10_GBPS &&
+              phyConf_data[15].Speed == PHY_PORT_10_GBPS)
+          {
+            config_mode_new = WC_SLOT_MODE_4x10G;
+            PT_LOG_INFO(LOG_CTX_INTF, "Going to change to config_mode %u", config_mode_new);
+          }
+        }
+        /* In 10G mode, but going to configure a forbiden port (lanes 2 and 4) to 1G */
+        else if ((olt1t0f_config_mode == WC_SLOT_MODE_4x10G) &&
+                 (phyConf->Speed == PHY_PORT_1000_MBPS))
+        {
+          PT_LOG_DEBUG(LOG_CTX_INTF, "port %u: Invalid speed (%u) for current config_mode (%u)", port, phyConf->Speed, olt1t0f_config_mode);
+
+          /* For ports 13 and 15 (lanes 2 and 4, don't apply this speed) */
+          if (port == 13 || port == 15)
+          {
+            apply_speed = L7_FALSE;
+          }
+
+          phyConf_data[port].Speed = phyConf->Speed;
+
+          /* In case all lanes are already set to 1G, we are able to go to 1G mode */
+          if (phyConf_data[12].Speed == PHY_PORT_1000_MBPS &&
+              phyConf_data[13].Speed == PHY_PORT_1000_MBPS &&
+              phyConf_data[14].Speed == PHY_PORT_1000_MBPS &&
+              phyConf_data[15].Speed == PHY_PORT_1000_MBPS)
+          {
+            config_mode_new = WC_SLOT_MODE_4x1G;
+            PT_LOG_INFO(LOG_CTX_INTF, "Going to change to config_mode %u", config_mode_new);
+          }
+        }
+      }
+    #endif
+
+      if (apply_speed)
+      {
+        if (usmDbIfSpeedSet(1, intIfNum, speed_mode) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_INTF, "Failed to set port speed on port# %u", port);
+          return L7_FAILURE;
+        }
+      }
+      else
+      {
+        PT_LOG_WARN(LOG_CTX_INTF, "port %u: New speed mode (%u) was stored, but not applied", port, speed_mode);
       }
 
       phyConf_data[port].Speed = phyConf->Speed; /* update buffered conf data */
@@ -1104,6 +1164,20 @@ L7_RC_t ptin_intf_PhyConfig_set(ptin_HWEthPhyConf_t *phyConf)
   {
     osapiSleepMSec(10); /* Sleep for 10ms */
   }
+  
+  #if (0 /*PTIN_BOARD == PTIN_BOARD_OLT1T0F*/)
+  if (config_mode_new != 0)
+  {
+    PT_LOG_NOTICE(LOG_CTX_INTF, "Going to change config_mode to %u", config_mode_new);
+
+    if (hpcConfigWCmap_write(WC_MAP_FILE, &config_mode_new, 1) == L7_SUCCESS)
+    {
+      PT_LOG_NOTICE(LOG_CTX_INTF, "New bcm_port_map file created");
+    }
+    PT_LOG_INFO(LOG_CTX_CONTROL, "Creating reboot task...");
+    (void) ptin_control_reboot();
+  }
+  #endif
 
   return L7_SUCCESS;
 }

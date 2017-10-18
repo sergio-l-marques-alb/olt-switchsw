@@ -155,5 +155,31 @@ void ptinIntfStartupCallback(NIM_STARTUP_PHASE_t startupPhase);
 extern void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim);
 
 extern L7_int get_linkStatus(L7_uint32 port);
+
+
+/**
+ * Write a new WCmap file in the filesystem
+ * 
+ * @author mruas (13/10/17)
+ * 
+ * @param filename 
+ * @param slot_mode 
+ * @param number_of_slots 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t hpcConfigWCmap_write(char *filename, L7_uint32 *slot_mode, L7_uint32 number_of_slots);
+
+/**
+ * Reboot system
+ * 
+ * @author mruas (13/10/17)
+ * 
+ * @param void 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_control_reboot(void);
+
 #endif /* _PTIN_CONTROL_H */
 

@@ -2633,6 +2633,110 @@ static void ptin_control_sysMacAddr(void)
 }
 #endif
 
+
+/**
+ * Write a new WCmap file in the filesystem
+ * 
+ * @author mruas (13/10/17)
+ * 
+ * @param filename 
+ * @param slot_mode 
+ * @param number_of_slots 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hpcConfigWCmap_write(char *filename, L7_uint32 *slot_mode, L7_uint32 number_of_slots)
+{
+  FILE *fp;
+  L7_uint32 i;
+
+  /* Validate arguments */
+  if (filename==L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP,"Invalid provided filename");
+    return L7_FAILURE;
+  }
+
+  /* Open file for reading */
+  fp = fopen(filename,"w");
+  if(fp == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_STARTUP, "Erro a abrir o ficheiro %s", filename);
+    return L7_FAILURE;
+  }
+
+  /* Write slot modes */
+  for (i = 0; i < number_of_slots; i++)
+  {
+    fprintf(fp, "%d %d\n", i+1, slot_mode[i]);
+  }
+
+  /* Close file */
+  fclose(fp);
+  
+  return L7_SUCCESS;
+}
+
+void hpcConfigWCmap_test(L7_uint mode)
+{
+  L7_RC_t rc;
+
+  rc = hpcConfigWCmap_write("/usr/local/ptin/var/bcm_port_map", &mode, 1);
+
+  printf("rc=%d\r\n", rc);
+}
+
+
+/**
+ * Task for processing 10ms periodicity events
+ */
+void reboot_task(void)
+{
+  PT_LOG_NOTICE(LOG_CTX_CONTROL, "Started thread to reboot system. Waiting 7 seconds...");
+
+  osapiSleep(7);
+
+  PT_LOG_NOTICE(LOG_CTX_CONTROL, "Rebooting system...");
+
+  system("sync");
+  osapiSleep(3);
+  system("reboot");
+
+  /* Loop */
+  while (1)
+  {
+    osapiSleep(1);
+  }
+}
+
+/**
+ * Reboot system
+ * 
+ * @author mruas (13/10/17)
+ * 
+ * @param void 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_control_reboot(void)
+{
+  PT_LOG_INFO(LOG_CTX_CONTROL, "Creating reboot task...");
+  if (osapiTaskCreate("reboot_task", reboot_task, 0, 0,
+                      L7_DEFAULT_STACK_SIZE,
+                      L7_MEDIUM_TASK_PRIORITY,
+                      L7_DEFAULT_TASK_SLICE) == L7_ERROR)
+  {
+    PT_LOG_ERR(LOG_CTX_CONTROL, "Failed to create reboot task... going to crash intentionally!");
+    PTIN_CRASH();
+  }
+  else
+  {
+    PT_LOG_INFO(LOG_CTX_CONTROL, "Reboot task launch OK");
+  }
+
+  return L7_SUCCESS;
+}
+
 /* 
 #include "../../switching/link_aggregation/core/include/dot3ad_db.h"
 extern dot3ad_agg_t dot3adAgg[L7_MAX_NUM_LAG_INTF];

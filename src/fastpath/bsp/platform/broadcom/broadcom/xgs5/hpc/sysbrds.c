@@ -46,6 +46,11 @@
 #include "ptin_fpga_api.h"    /* PTin added */
 #include "logger.h"           /* PTin added */
 
+#if (0 /*PTIN_BOARD == PTIN_BOARD_OLT1T0F*/)
+/* Config mode */
+L7_uint olt1t0f_config_mode = 5;
+#endif
+
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 
 const HAPI_WC_SLOT_MAP_t dapiBroadBaseWCSlotMap_CARD_BROAD_64_TENGIG_56846_V1[] =
@@ -97,6 +102,8 @@ L7_RC_t hpcBoardWCinit_bcm56846(void);
 #elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
 L7_RC_t hpcBoardWCinit_bcm56640(void);
 #endif
+
+L7_RC_t hpcBoardWCinit_bcm56450(void);
 
 int
 bcm_sys_sa_init_56624(const bcm_sys_board_t* brd, int base)
@@ -595,38 +602,12 @@ L7_RC_t hpcConfigBoardSet()
         if (sal_config_set(spn_XGXS_LCPLL_XTAL_REFCLK, "1") != 0)
           return(L7_FAILURE);
 
-      #if (PTIN_BOARD == PTIN_BOARD_TT04SXG)
-
-        /* Enable Mode 6 for TT04SXG */
-        if (sal_config_set(spn_BCM5645X_CONFIG, "6") != 0)
-          return(L7_FAILURE);
-
-        /* External memory configuration: All physical ports associated to external memory */
-        /* 1-16 (PON); 25, 27, 33, 36 (BCK) */
-        if (sal_config_set(spn_PBMP_EXT_MEM, "0x825e000000") != 0)
-          return(L7_FAILURE);
-
-      #else /* PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_TG16GF */
-
-        /* Enable Mode 5 for OLT1T0F */
-        if (sal_config_set(spn_BCM5645X_CONFIG, "5") != 0)
-          return(L7_FAILURE);
-
-        if (sal_config_set(spn_XGXS_RX_LANE_MAP"_1", "0x3210") != 0)
-          return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_RX_LANE_MAP"_5", "0x3210") != 0)
-          return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_RX_LANE_MAP"_9", "0x3210") != 0)
-          return(L7_FAILURE);
-        if (sal_config_set(spn_XGXS_RX_LANE_MAP"_13", "0x3210") != 0)
-          return(L7_FAILURE);
-
-        /* External memory configuration: All physical ports associated to external memory */
-        /* 1-16 (PON); 25, 27, 33, 36 (BCK) */
-        //if (sal_config_set(spn_PBMP_EXT_MEM, "0") != 0)
-        if (sal_config_set(spn_PBMP_EXT_MEM, "0x120a01fffe") != 0)
-          return(L7_FAILURE);
-      #endif
+        /* Apply init mode according to board */
+        if (hpcBoardWCinit_bcm56450() != L7_SUCCESS)
+        {
+          PT_LOG_CRITIC(LOG_CTX_STARTUP,"Error setting init mode");
+          return L7_FAILURE;
+        }
 
         if (sal_config_set(spn_DDR3_PLL_MHZ, "914") != 0)
           return(L7_FAILURE);
@@ -646,17 +627,6 @@ L7_RC_t hpcConfigBoardSet()
           return(L7_FAILURE);
         //if (sal_config_set(spn_MMU_MULTI_PACKETS_PER_CELL, "1") != 0)
         //  return(L7_FAILURE);
-
-        /*
-         * On 568xx devices, the XPORT block defaults to XE ports.  Uncomment the
-         * following line to change all ports to HG ports.  A specific bitmap
-         * may be provided to select some XE and some HG ports, with the set
-         * bits initialized to HG ports.  Note that HG and XE ports may be
-         * exchanged through the bcm_port_encap_set API.
-         */
-        /* XE ports are bcm_port 9, 25(32), 27, 33 and 36(34) */
-        if (sal_config_set(spn_PBMP_XPORT_XE, "0x120A000000") != 0)
-          return(L7_FAILURE);
 
         PT_LOG_TRACE(LOG_CTX_STARTUP,"Katana2 ready to be started!");
         break;
@@ -1059,7 +1029,6 @@ L7_RC_t hpcConfigBoardPhyPostSet(int       portNo,
   return L7_SUCCESS;
 }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
 /**
  * Read a filename with the WC mapping
  * 
@@ -1138,7 +1107,6 @@ L7_RC_t hpcConfigWCmap_read(char *filename, L7_uint32 *slot_mode)
 
   return L7_SUCCESS;
 }
-#endif
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
 /**
@@ -1880,4 +1848,145 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
   return L7_SUCCESS;
 }
 #endif
+
+/**
+ * Initialize WCs
+ * 
+ * @return L7_rc_t : L7_SUCCESS / L7_FAILURE
+ */
+L7_RC_t hpcBoardWCinit_bcm56450(void)
+{
+  #if (PTIN_BOARD == PTIN_BOARD_TT04SXG)
+
+    PT_LOG_NOTICE(LOG_CTX_STARTUP,"Katana2: Applying mode 6");
+
+    /* Enable Mode 6 for TT04SXG */
+    if (sal_config_set(spn_BCM5645X_CONFIG, "6") != 0)
+      return(L7_FAILURE);
+
+    /* External memory configuration: All physical ports associated to external memory */
+    /* 1-16 (PON); 25, 27, 33, 36 (BCK) */
+    if (sal_config_set(spn_PBMP_EXT_MEM, "0x825e000000") != 0)
+      return(L7_FAILURE);
+
+    /*
+     * On 568xx devices, the XPORT block defaults to XE ports.  Uncomment the
+     * following line to change all ports to HG ports.  A specific bitmap
+     * may be provided to select some XE and some HG ports, with the set
+     * bits initialized to HG ports.  Note that HG and XE ports may be
+     * exchanged through the bcm_port_encap_set API.
+     */
+    /* XE ports are bcm_port 25(32), 27, 33 and 36(34) */
+    if (sal_config_set(spn_PBMP_XPORT_XE, "0x120A000000") != 0)
+      return(L7_FAILURE);
+
+  #elif (PTIN_BOARD == PTIN_BOARD_TG16GF)
+
+    PT_LOG_NOTICE(LOG_CTX_STARTUP,"Katana2: Applying mode 5");
+
+    /* Enable Mode 5 for OLT1T0F */
+    if (sal_config_set(spn_BCM5645X_CONFIG, "5") != 0)
+      return(L7_FAILURE);
+
+    if (sal_config_set(spn_XGXS_RX_LANE_MAP"_1", "0x3210") != 0)
+      return(L7_FAILURE);
+    if (sal_config_set(spn_XGXS_RX_LANE_MAP"_5", "0x3210") != 0)
+      return(L7_FAILURE);
+    if (sal_config_set(spn_XGXS_RX_LANE_MAP"_9", "0x3210") != 0)
+      return(L7_FAILURE);
+    if (sal_config_set(spn_XGXS_RX_LANE_MAP"_13", "0x3210") != 0)
+      return(L7_FAILURE);
+
+    /* External memory configuration: All physical ports associated to external memory */
+    /* 1-16 (PON); 25, 27, 33, 36 (BCK) */
+    //if (sal_config_set(spn_PBMP_EXT_MEM, "0") != 0)
+    if (sal_config_set(spn_PBMP_EXT_MEM, "0x120a01fffe") != 0)
+      return(L7_FAILURE);
+
+    /*
+     * On 568xx devices, the XPORT block defaults to XE ports.  Uncomment the
+     * following line to change all ports to HG ports.  A specific bitmap
+     * may be provided to select some XE and some HG ports, with the set
+     * bits initialized to HG ports.  Note that HG and XE ports may be
+     * exchanged through the bcm_port_encap_set API.
+     */
+    /* XE ports are bcm_port 25(32), 27, 33 and 36(34) */
+    if (sal_config_set(spn_PBMP_XPORT_XE, "0x120A000000") != 0)
+      return(L7_FAILURE);
+
+  #elif (PTIN_BOARD == PTIN_BOARD_OLT1T0F)
+    #if 0
+    L7_uint32 slot_mode[PTIN_SYS_SLOTS_MAX];
+    SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor = { L7_PORT_DESC_BCOM_1G_NO_AN };
+
+    if (hpcConfigWCmap_read(WC_MAP_FILE, slot_mode) == L7_SUCCESS &&
+        slot_mode[0] == WC_SLOT_MODE_4x1G)
+    {
+      PT_LOG_NOTICE(LOG_CTX_STARTUP,"Katana2: Applying mode 2");
+
+      olt1t0f_config_mode = WC_SLOT_MODE_4x1G;
+
+      /* Enable Mode 5 for OLT1T0F */
+      if (sal_config_set(spn_BCM5645X_CONFIG, "2") != 0)
+        return(L7_FAILURE);
+
+      if (sal_config_set(spn_PORTGROUP"_27", "4") != 0)
+        return(L7_FAILURE);
+      if (sal_config_set(spn_PORTGROUP"_28", "4") != 0)
+        return(L7_FAILURE);
+
+      /* External memory configuration: All physical ports associated to external memory */
+      /* 1-16 (PON); 25, 27, 33, 36 (BCK) */
+      //if (sal_config_set(spn_PBMP_EXT_MEM, "0") != 0)
+      if (sal_config_set(spn_PBMP_EXT_MEM, "0x07f801fffe") != 0)
+        return(L7_FAILURE);
+
+      /* XE ports are bcm_port 25(32), 27, 33 and 36(34) */
+      if (sal_config_set(spn_PBMP_XPORT_XE,"0x0000000000") != 0)
+        return(L7_FAILURE);
+
+      /* Correct bcm_port ids */
+      dapiBroadPhysicalCardEntry_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1.slotMap[13].bcm_port = 32;
+      dapiBroadPhysicalCardEntry_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1.slotMap[15].bcm_port = 34;
+      /* Change default speed to 1G */
+      hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[12] = port_descriptor;
+      hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[13] = port_descriptor;
+      hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[14] = port_descriptor;
+      hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[15] = port_descriptor;
+    }
+    else
+    #endif
+    {
+      //olt1t0f_config_mode = WC_SLOT_MODE_4x10G;
+
+      PT_LOG_NOTICE(LOG_CTX_STARTUP,"Katana2: Applying mode 5");
+
+      /* Enable Mode 5 for OLT1T0F */
+      if (sal_config_set(spn_BCM5645X_CONFIG, "5") != 0)
+        return(L7_FAILURE);
+
+      /* External memory configuration: All physical ports associated to external memory */
+      /* 1-16 (PON); 27,25,33,36 (10G); 28-31 (1G) */
+      //if (sal_config_set(spn_PBMP_EXT_MEM, "0") != 0)
+      if (sal_config_set(spn_PBMP_EXT_MEM, "0x12fa01fffe") != 0)
+        return(L7_FAILURE);
+
+      /* XE ports are bcm_port 25(32), 27, 33 and 36(34) */
+      if (sal_config_set(spn_PBMP_XPORT_XE,"0x120a000000") != 0)
+        return(L7_FAILURE);
+    }
+
+    if (sal_config_set(spn_XGXS_RX_LANE_MAP"_1", "0x3210") != 0)
+      return(L7_FAILURE);
+    if (sal_config_set(spn_XGXS_RX_LANE_MAP"_5", "0x3210") != 0)
+      return(L7_FAILURE);
+    if (sal_config_set(spn_XGXS_RX_LANE_MAP"_9", "0x3210") != 0)
+      return(L7_FAILURE);
+    if (sal_config_set(spn_XGXS_RX_LANE_MAP"_13", "0x3210") != 0)
+      return(L7_FAILURE);
+
+  #endif
+
+    return L7_SUCCESS;
+}
 

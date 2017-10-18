@@ -1,6 +1,9 @@
 #ifndef _PTIN_GLOBALDEFS_OLT1T0F_H
 #define _PTIN_GLOBALDEFS_OLT1T0F_H
 
+/* Kernel information */
+//extern L7_uint olt1t0f_config_mode;
+
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
 
@@ -23,10 +26,10 @@
 /* Special ports for this equipment */
 #define PTIN_PORT_FPGA                (PTIN_SYSTEM_N_PORTS-1)
 
-#define PTIN_SYS_LC_SLOT_MIN        2
-#define PTIN_SYS_LC_SLOT_MAX        19
-#define PTIN_SYS_SLOTS_MAX          20
-#define PTIN_SYS_INTFS_PER_SLOT_MAX 2
+#define PTIN_SYS_LC_SLOT_MIN        1
+#define PTIN_SYS_LC_SLOT_MAX        1
+#define PTIN_SYS_SLOTS_MAX          1
+#define PTIN_SYS_INTFS_PER_SLOT_MAX 4
 
 # define PTIN_SYSTEM_N_PORTS           17
 # define PTIN_SYSTEM_N_PONS            8 
