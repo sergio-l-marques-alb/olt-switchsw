@@ -8,6 +8,7 @@
  */
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <logger.h>
@@ -961,11 +962,22 @@ L7_RC_t ptin_oam_eth_init(void) {return L7_SUCCESS;}
 
 
 
-u64 rd_TxFCl(u16 i_mep) {return 0;}  //No need to do anything; BCM HW fills this field
+u64 rd_TxFCl(u32 i_mep) {return 0;}  //No need to do anything; BCM HW fills this field
 
-u64 rd_TxTimeStampb(u16 i_mep) {return 0;}  //Need to check what to do; BCM HW should fill this field
-u64 rd_TxTimeStampf(u16 i_mep) {return 0;}  //Need to check what to do; BCM HW should fill this field
 
+
+
+static inline u64 rd_XxTimeStampY(void) {
+struct timespec tp;
+
+ if (0==clock_gettime(CLOCK_REALTIME, &tp)) {return (u64)tp.tv_sec << 32 | tp.tv_nsec;} //CLOCK_MONOTONIC CLOCK_MONOTONIC_RAW
+ else return INVALID_DMx_TS; //0;
+}//rd_XxTimeStampY
+u64 rd_TxTimeStampb(u32 i_mep) {return rd_XxTimeStampY();} //{return 0;}  //Need to check what to do; BCM HW should fill this field
+u64 rd_TxTimeStampf(u32 i_mep) {return rd_XxTimeStampY();} //{return 0;}  //Need to check what to do; BCM HW should fill this field
+
+u64 rd_RxTimeStampf(u32 i_mep) {return rd_XxTimeStampY();} //{return 0;}  //Need to check what to do; BCM HW should fill this field
+u64 rd_RxTimeStampb(u32 i_mep) {return rd_XxTimeStampY();} //{return 0;}  //Need to check what to do; BCM HW should fill this field
 
 
 

@@ -1199,6 +1199,116 @@ static int send_lbr(u16 oam_prt, u8 up1_down0, u64 vid, u8 prior, u8 CoS, ETH_LB
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+//This function considers just positive TSs
+static void _TSs_add_(T_DMx_TS *a, T_DMx_TS *b, T_DMx_TS *sum) {
+u64 s;
+
+ sum->nanoseconds=  (s=(u64)a->nanoseconds+(u64)b->nanoseconds)%1000000000ULL;
+ s/=1000000000ULL;
+
+ sum->seconds.low=  s+= (u64)a->seconds.low+(u64)b->seconds.low;
+ //sum->seconds.high= (s>>32)+(u64)a->seconds.high+(u64)b->seconds.high;
+}//_TSs_add_
+
+
+
+
+//This function considers just positive TSs.
+//"*dif" can though be negative,
+//in which case the return value is negative and "seconds.low" is filled with the seconds' negative value plus 0x100000000LL (so, a positive value)	
+static int _TSs_diff_(T_DMx_TS *minu, T_DMx_TS *sub, T_DMx_TS *dif) {
+long long d;
+
+ d=(long long)minu->nanoseconds-(long long)sub->nanoseconds;
+
+ if (d>=0) {
+     dif->nanoseconds=  d;
+     d=(long long)minu->seconds.low-(long long)sub->seconds.low;
+ }
+ else {
+     dif->nanoseconds=  d+1000000000LL;
+     d=(long long)minu->seconds.low-(long long)sub->seconds.low-1;
+ }
+
+ if (d>=0) {
+     dif->seconds.low= d; return 0;
+     //d=(long long)minu->seconds.high-(long long)sub->seconds.high;
+ }
+ else {
+     dif->seconds.low= d+0x100000000LL; return -1;
+     //d=(long long)minu->seconds.high-(long long)sub->seconds.high-1;
+ }
+
+ //if (d>=0) dif->seconds.high= d;
+ //else dif->seconds.high= d+0x10000LL;
+}//_TSs_diff_
+
+
+
+
+static int TSs_diff(T_DMx_TS *minu, T_DMx_TS *sub, T_DMx_TS *dif) {
+ T_DMx_TS m, s;//, d;
+
+ m=*minu;	m.nanoseconds &= ~0x80000000;
+ s=*sub;	s.nanoseconds &= ~0x80000000;
+
+ switch((minu->nanoseconds & 0x80000000? 2:0) | (sub->nanoseconds & 0x80000000? 1:0)) {
+ case 0:
+	if (_TSs_diff_(&m, &s, dif)>=0) {
+	  dif->nanoseconds &= ~0x80000000;
+	  return 0;
+	}
+	dif->nanoseconds |= 0x80000000;
+	return -1;
+ case 1:
+	_TSs_add_(&m, &s, dif);
+	dif->nanoseconds &= ~0x80000000;
+	return 0;
+ case 2:
+	_TSs_add_(&m, &s, dif);
+	dif->nanoseconds |= 0x80000000;
+	return -1;
+ case 3:
+	if (_TSs_diff_(&s, &m, dif)>=0) {
+	  dif->nanoseconds &= ~0x80000000;
+	  return 0;
+	}
+	dif->nanoseconds |= 0x80000000;
+	return -1;
+ }//switch
+}//TSs_diff
+
+
+
+
+static long long T_DMx_TS__2__ns(T_DMx_TS *p) {
+    if (p->nanoseconds & 0x80000000)
+         return -((p->nanoseconds&0x7fffffff) + p->seconds.low*1000000000ULL);
+    else return p->nanoseconds + p->seconds.low*1000000000ULL;
+}//T_DMx_TS__2__ns
+*/
+
+
+
 static int send_dmm(u16 i_mep, T_MEP_HDR *p_mep, T_MEP_DM *p_dm) {
 T_ETH_OAM_MAC DMAC;
 ETH_DMM_OAM_DATAGRM dmm, *p_dmm;
@@ -1212,13 +1322,25 @@ ETH_DMM_OAM_DATAGRM dmm, *p_dmm;
  p_dmm->opcode=                 DMM_OPCODE;
  p_dmm->flags=                  0;
  p_dmm->TLV_offset=             12;
- p_dmm->RxTimeStampb=           0;
  p_dmm->RxTimeStampf=           0;
  p_dmm->TxTimeStampb=           0;
+ p_dmm->RxTimeStampb=           0;
  p_dmm->end_TLV=                0;
 
- //TODO
- p_dmm->TxTimeStampf=           rd_TxTimeStampf(i_mep);		//Read timestamp of DMM tansmission (equal to TimeRepresentation format in IEEE 1588)
+ {
+  u64 ts;
+
+  ts=rd_TxTimeStampf(i_mep);    //Read DMM tansmission timestamp (TimeRepresentation format IEEE 1588-2002 (v1))
+  if (invalid_DMx_TS(ts)) p_dmm->TxTimeStampf=0;
+  else {
+      T_DMx_TS *p;
+
+      p_dmm->TxTimeStampf = ts;
+      p = (T_DMx_TS*)&p_dmm->TxTimeStampf;
+      p->seconds.low = htonl(p->seconds.low);
+      p->nanoseconds = htonl(p->nanoseconds);
+  }
+ }
 
  return send_eth_pckt(p_mep->prt, p_mep->up1_down0, (u8*)p_dmm, sizeof(ETH_DMM_OAM_DATAGRM), p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, DMAC.byte);
 }//send_dmm
@@ -1251,15 +1373,47 @@ ETH_DMR_OAM_DATAGRM dmr, *p_dmr;
  p_dmr->flags=                  0;
  p_dmr->TLV_offset=             12;
  p_dmr->TxTimeStampf=           p_dmm->TxTimeStampf;
+ p_dmr->RxTimeStampf=           p_dmm->RxTimeStampf;        //Optional: Read timestamp of DMM reception. When not used set to 0.
  p_dmr->RxTimeStampb=           0;
  p_dmr->end_TLV=                0;
- p_dmr->RxTimeStampf=           p_dmm->RxTimeStampf;        //Optional: Read timestamp of DMM reception. When not used set to 0.
 
- //TODO
- p_dmr->TxTimeStampb=           rd_TxTimeStampb(i_mep);     //Optional: Read timestamp of DMR transmission. When not used set to 0.
+ {
+  u64 ts;
+
+  ts=rd_TxTimeStampb(i_mep);    //Read DMR tansmission timestamp (TimeRepresentation format IEEE 1588-2002 (v1))
+  if (invalid_DMx_TS(ts)) p_dmr->TxTimeStampb=0;
+  else {
+      T_DMx_TS *p;
+
+      p_dmr->TxTimeStampb = ts;
+      p = (T_DMx_TS*)&p_dmr->TxTimeStampb;
+      p->seconds.low = htonl(p->seconds.low);
+      p->nanoseconds = htonl(p->nanoseconds);
+  }
+ }
 
  return send_eth_pckt(p_mep->prt, p_mep->up1_down0, (u8*)p_dmr, sizeof(ETH_DMR_OAM_DATAGRM), p_mep->vid, p_mep->prior, p_mep->CoS, 0, OAM_ETH_TYPE, pDMAC);
 }//send_dmr
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1481,13 +1635,13 @@ T_LOOKUP_MEP    *p_mep_lut;
      if (pkt_len<sizeof(ETH_DMM_OAM_DATAGRM)+2)  return 5;
      p_mep_db=  p_oam->db;
      p_mep_lut= p_oam->mep_lut;
-     rx_dmm(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut, RxFCl);	 //TODO TxTimeStamp
+     rx_dmm(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut, RxFCl);
      return 0;
  case DMR_OPCODE:
      if (pkt_len<sizeof(ETH_DMR_OAM_DATAGRM)+2)  return 5;
      p_mep_db=  p_oam->db;
      p_mep_lut= p_oam->mep_lut;
-     rx_dmr(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut, RxFCl);    //TODO Rx valid?
+     rx_dmr(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut, RxFCl);
      return 0;
 
  //case LBR_OPCODE:
@@ -1883,7 +2037,22 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
 
 
      //Response to an DMM
-     p_dmm->RxTimeStampf = RxFCl;
+     if (!invalid_DMx_TS(RxFCl)) p_dmm->RxTimeStampf = RxFCl;
+
+     {
+      u64 ts;
+
+      ts=rd_RxTimeStampf(i_mep);    //Read DMM rx timestamp (TimeRepresentation format IEEE 1588-2002 (v1))
+      if (!invalid_DMx_TS(ts)) {
+          T_DMx_TS *p;
+
+          p_dmm->RxTimeStampf = ts;
+          p = (T_DMx_TS*)&p_dmm->RxTimeStampf;
+          p->seconds.low = htonl(p->seconds.low);
+          p->nanoseconds = htonl(p->nanoseconds);
+      }
+     }
+
      send_dmr(i_mep, (T_MEP_HDR *)_p_mep, (ETH_DMM_OAM_DATAGRM *)p_dmm, pSMAC);
  }
  return 0;
@@ -1934,6 +2103,22 @@ u8 unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4; u32 alrm_index;
 
      if (2!=unxlvl0_msmrg1_unxmep2_unxmeppotentloop3_unxperiod4) return 0;
 
+
+     if (!invalid_DMx_TS(RxFCl)) p_dmr->RxTimeStampb = RxFCl;
+
+     {
+      u64 ts;
+
+      ts=rd_RxTimeStampb(i_mep);    //Read DMR rx timestamp (TimeRepresentation format IEEE 1588-2002 (v1))
+      if (!invalid_DMx_TS(ts)) {
+          T_DMx_TS *p;
+
+          p_dmr->RxTimeStampb = ts;
+          p = (T_DMx_TS*)&p_dmr->RxTimeStampb;
+          p->seconds.low = htonl(p->seconds.low);
+          p->nanoseconds = htonl(p->nanoseconds);
+      }
+     }
 
      //DMR processing
      _p_mep_dm=     &p_mep_db[i_mep].dm;

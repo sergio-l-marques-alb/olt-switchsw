@@ -389,11 +389,42 @@ T_ETH_OAM_MAC  DMAC;
 
 
 
+
+
+
+
+
+struct TimeRepresentation_1588v1 {  //1588-2002
+ struct {
+        //u16    high; // bits 32-47 of 48-bit second
+        u32    low;  // bits 0-31 of 48-bit second
+  } seconds; // 6 bytes second part of Timestamp
+
+ u32 nanoseconds;  //MSB (0x80000000) 0 means a positive timestamp; 1 means a negative timestamp
+};
+
+struct TimeRepresentation_1588v2 {  //1588-2008
+    struct {
+        u16    high; // bits 32-47 of 48-bit second
+        u32    low;  // bits 0-31 of 48-bit second
+    } seconds; // 6 bytes second part of Timestamp
+
+    u32        nanoseconds; // 4 bytes nano-sec part of Timestamp
+};
+
+typedef struct TimeRepresentation_1588v1	T_DMx_TS;
+#define INVALID_DMx_TS  0xffffffffffffffffULL   
+//#define invalid_DMx_TS(ts)  (0==1+(u64)(ts))
+#define invalid_DMx_TS(ts)  (((ts)&0x7fffffff)>=1000000000)
+
+
+
+
 typedef struct {
     //proactive delay measurement [...] DM frames with the following information elements:
 	//	DMM is used to support proactive or on-demand Single-Ended ETH-DM request
 
-	u64 TxTimeStampf,
+	u64 TxTimeStampf,  // T_DMx_TS format
 	    RxTimeStampf,  //for DMM receiving equipment (0)
 	    TxTimeStampb,  //for DMR (0)
 	    RxTimeStampb;  //for DMR receiving equipment (0)
@@ -412,6 +443,7 @@ typedef struct {
 	//	•  TxTimeStampb: TxTimeStampb is an optional 8-octet field that contains the timestamp of
 	//	DMR  transmission.  The  format  of  TxTimeStampb  is  equal  to  the  TimeRepresentation
 	//	format in [IEEE 1588]. When not used, a value of all 0 is used.
+    //  (1588-2002 / v1     (T_DMx_TS))
 
 } __attribute__ ((packed)) T_DM;
 
@@ -611,7 +643,7 @@ typedef struct {
 
  u8  flags;
  u8  TLV_offset;    //Set to 32
- u64 TxTimeStampf,
+ u64 TxTimeStampf,  //T_DMx_TS format
      RxTimeStampf,  //for DMM receiving equipment (0)
      TxTimeStampb,  //for DMR (0)
      RxTimeStampb;  //for DMR receiving equipment (0)
@@ -896,7 +928,12 @@ extern void proc_ethsrv_oam(T_ETH_SRV_OAM *p_oam, u32 T_ms);
 
 //EVENT - to be called for every OAM packet received
 extern int rx_oam_pckt(u16 oam_prt, u8 *pkt, u32 pkt_len, u64 vid, u8 *pDMAC, u8 *pSMAC, T_ETH_SRV_OAM *p_oam, u64 RxFCl);
-//RxFCl is the ETH-LM counter for CCM/LMM/LMR packets or the timestamp, for DMM/DMR; set to 0 if unused
+//RxFCl is the ETH-LM counter for CCM/LMM/LMR packets...or the timestamp, for DMM/DMR
+//Pass 0 if unused (default value to be set to these PDUs)
+//Pass VIRGIN_LM_COUNTER... or INVALID_DMx_TS if you don't want to change the PDU field (incoming in "pkt")
+//Ergo keeping VIRGIN_LM_COUNTER==INVALID_DMx_TS is a good idea
+
+
 
 
 
@@ -924,11 +961,24 @@ extern void ethsrv_oam_register_T(T_MEG_ID *meg_id, u16 mep_id, u16 mep_indx, u1
 
 
 
-extern u64 rd_TxFCl(u16 i_mep);     // counter for in-profile data frames txed twrds peer MEP
+extern u64 rd_TxFCl(u32 i_mep);     // counter for in-profile data frames txed twrds peer MEP
 //extern u64 rd_RxFCl(u16 i_mep);     // counter ...                        rxed from peer
 
-extern u64 rd_TxTimeStampb(u16 i_mep);  //Timestamp for packets leaving this card
-extern u64 rd_TxTimeStampf(u16 i_mep);  //Timestamp for packets leaving this card
+
+
+
+//Format: T_DMx_TS
+//Return INVALID_DMx_TS if you want to fill Tx DMx PDUs' timestamps elsewhere (no action from these functions)
+//Otherwise return "0" when TSs aren't used (default value to set to PDUs)
+extern u64 rd_TxTimeStampf(u32 i_mep);  //Timestamp for packets leaving this card
+extern u64 rd_TxTimeStampb(u32 i_mep);  //Timestamp for packets leaving this card
+
+//Return INVALID_DMx_TS if you want to fill Rx DMx PDUs' timestamps with rx_oam_pckt()'s RxFCl parameter (no action from these functions)
+//Otherwise return "0" when TSs aren't used (default value to set to PDUs)
+extern u64 rd_RxTimeStampf(u32 i_mep);
+extern u64 rd_RxTimeStampb(u32 i_mep);
+
+
 
 
 //this function returns the port where the bridge knows this MAC is or an invalid value (all 1s) otherwise
