@@ -31,6 +31,11 @@ typedef unsigned long long u64;
     //#warning Definable: constant N_MEPs (number of Maintenance end Points)!
 #endif
 
+#ifndef N_MIPs
+    #define N_MIPs  512
+    //#warning Definable: constant N_MIPs (number of Maintenance intermediate Points)!
+#endif
+
 #ifndef N_MAX_MEs_PER_MEP
     #define N_MAX_MEs_PER_MEP   16
     //#warning Definable: constant N_MAX_MEs_PER_MEP (number of remote MEPs each MEP can talk to)!
@@ -43,10 +48,10 @@ typedef unsigned long long u64;
 #endif
 #define N_MAX_LOOKUP_MEPs   ((1<<(LOOKUP_MEP_BITS))+1)
 
-#ifndef LOOKUP_MIP_BITS
-    #define LOOKUP_MIP_BITS    10
-#endif
-#define N_MAX_LOOKUP_MIPs   ((1<<(LOOKUP_MIP_BITS))+1)
+//#ifndef LOOKUP_MIP_BITS
+//    #define LOOKUP_MIP_BITS    10
+//#endif
+//#define N_MAX_LOOKUP_MIPs   ((1<<(LOOKUP_MIP_BITS))+1)
 
 #ifndef N_MAX_LOOKUP_MEPs_PER_HASH
     #define N_MAX_LOOKUP_MEPs_PER_HASH  16
@@ -54,9 +59,9 @@ typedef unsigned long long u64;
     //#warning (Nr of sequential lookup entries search after hash index calculation - reduce "for" cycles)
 #endif
 
-#ifndef N_MAX_LOOKUP_MIPs_PER_HASH
-    #define N_MAX_LOOKUP_MIPs_PER_HASH  16
-#endif
+//#ifndef N_MAX_LOOKUP_MIPs_PER_HASH
+//    #define N_MAX_LOOKUP_MIPs_PER_HASH  16
+//#endif
 
 #ifndef MEP_MIN_T_ms
     #define MEP_MIN_T_ms    10
@@ -193,6 +198,15 @@ typedef struct {
 #define EMPTY_T_MEP(mep)    (!valid_mep_id((mep).mep_id))
 #define SET_T_MEP_EMPTY(mep)    {(mep).mep_id= INVALID_MEP;}
 
+typedef struct {
+    u64 vid;
+    u8  level;
+    u16 prt;
+} __attribute__ ((packed)) T_MIP;
+#define EMPTY_T_MIP(mip)        (!valid_oam_level((mip).level))
+#define SET_T_MIP_EMPTY(pmip)   {memset((pmip), 0xff, sizeof(T_MIP));}
+#define valid_mip_index(a)      ((a)<(N_MIPs))
+
 
 
 
@@ -233,14 +247,14 @@ typedef struct {
 
 
 
-typedef struct {
-    u32 mip_index;          //RO    auxiliary index to the "T_MIP" table
-    u16 prt;
-    u64 vid;
-    u8 level;
-} __attribute__ ((packed)) T_LOOKUP_MIP;
-
-#define valid_mip_lookup_index(a) ((a)<(N_MAX_LOOKUP_MIPs))
+//typedef struct {
+//    u32 mip_index;          //RO    auxiliary index to the "T_MIP" table
+//    u16 prt;
+//    u64 vid;
+//    u8 level;
+//} __attribute__ ((packed)) T_LOOKUP_MIP;
+//
+//#define valid_mip_lookup_index(a) ((a)<(N_MAX_LOOKUP_MIPs))
 
 
 
@@ -461,8 +475,11 @@ typedef struct t_mep_db {
 //THIS STRUCTURE AGGREGATES ALL - DECLARE ONE INSTANCE OF THIS TYPE*********************
 typedef struct {
  u16            proc_i_mep;                 //index to mep being processed by
+
  T_MEP_DB       db[N_MEPs];
  T_LOOKUP_MEP   mep_lut[N_MAX_LOOKUP_MEPs]; //MEP look up table
+
+ T_MIP          mip_db[N_MIPs];
 } T_ETH_SRV_OAM;    //__attribute__ ((packed)) T_ETH_SRV_OAM;
 
 
@@ -863,6 +880,14 @@ extern int wr_rmep(u32 i_mep, u32 i_rmep, T_RMEP *p_rmep, const T_MEP_HDR *p_mep
 //0 - OK
 //1 - Invalid index
 extern int del_rmep(u32 i_mep, u32 i_rmep, T_ETH_SRV_OAM *p_oam);
+
+extern int wr_mip(u32 i_mip, T_MIP *p_mip, T_ETH_SRV_OAM *p_oam);
+
+//Return status:
+//0 - OK
+//1 - Invalid index
+extern int del_mip(u32 i_mip, T_ETH_SRV_OAM *p_oam);
+
 
 
 

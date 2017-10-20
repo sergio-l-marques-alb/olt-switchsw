@@ -30,6 +30,7 @@
 #include "ptin_cnfgr.h"
 #include "nimapi.h"
 #include <ptin_prot_oam_eth.h>
+#include "ptin_oam_packet.h"
 #include "ptin_prot_erps.h"
 #include "ptin_hal_erps.h"
 #include "ptin_xconnect_api.h"
@@ -14170,7 +14171,7 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
     return L7_FAILURE;
   }
 
-}//msg_wr_MEP
+}//ptin_msg_wr_MEP
 
 
 /**
@@ -14254,7 +14255,7 @@ L7_RC_t ptin_msg_del_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
     return L7_FAILURE;
   }
 
-}//msg_del_MEP
+}//ptin_msg_del_MEP
 
 
 
@@ -14366,7 +14367,7 @@ L7_RC_t ptin_msg_wr_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
     return L7_FAILURE;
   }
 
-}//msg_wr_RMEP
+}//ptin_msg_wr_RMEP
 
 
 /**
@@ -14456,7 +14457,7 @@ L7_RC_t ptin_msg_del_RMEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
     return L7_FAILURE;
   }
 
-}//msg_del_RMEP
+}//ptin_msg_del_RMEP
 
 
 /**
@@ -14536,7 +14537,7 @@ L7_RC_t ptin_msg_dump_MEPs(ipc_msg *inbuff, ipc_msg *outbuff)
   outbuff->infoDim = n*sizeof(msg_bd_mep_t);
   return L7_SUCCESS;
 
-}//msg_dump_MEPs
+}//ptin_msg_dump_MEPs
 
 
 /**
@@ -14610,7 +14611,7 @@ L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff) {
 
   return L7_SUCCESS;
 
-}//msg_dump_MEs
+}//ptin_msg_dump_MEs
 
 
 /**
@@ -14677,7 +14678,138 @@ L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff) {
 
   return L7_SUCCESS;
 
-}//msg_dump_LUT_MEPs
+}//ptin_msg_dump_LUT_MEPs
+
+
+
+
+
+
+
+
+
+
+
+
+
+L7_RC_t ptin_msg_wr_MIP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i) {
+  msg_bd_mip_t              *pi;
+  msg_generic_prefix_t      *po;
+  L7_uint16                 r = S_OK, vidInternal;
+  L7_uint32                 intIfNum;
+  T_MIP                     *p;
+
+
+  pi=(msg_bd_mip_t *)inbuff->info;
+  po=(msg_generic_prefix_t *)outbuff->info;
+  po[i].index = pi[i].index;
+
+  p = &pi[i].bd;
+
+#if MNGMT_DIFFERENT_ENDIANNESS
+  {
+   pi[i].index = ENDIAN_SWAP64(pi[i].index);
+   p->vid = ENDIAN_SWAP64(p->vid);
+   p->prt = ENDIAN_SWAP16(p->prt);
+  }
+#endif
+
+  switch (wr_mip(pi[i].index, p, &oam)) {
+  case 0:
+      if (p->level>=N_OAM_LEVELS
+          ||
+          L7_SUCCESS!=ptin_intf_port2intIfNum(p->prt, &intIfNum)
+          ||
+          L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, p->vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)
+          ||
+          L7_SUCCESS!=ptin_MxP_packet_vlan_trap(vidInternal, p->level, 1, 1)) {
+
+          del_mip(pi[i].index, &oam);
+          r=ERROR_CODE_NOTPRESENT; break;
+      }//if
+
+  case 1:   r=S_OK; break;
+  case 3:   r=ERROR_CODE_USED; break;
+  default:  r=ERROR_CODE_INVALIDPARAM; break;
+  }//switch
+
+
+  if (r==S_OK) return L7_SUCCESS;
+  else {
+    PT_LOG_WARN(LOG_CTX_MSG, "Insucess: r=%u", r);
+    return L7_FAILURE;
+  }
+}//ptin_msg_wr_MIP
+
+
+
+
+L7_RC_t ptin_msg_del_MIP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i) {
+  msg_bd_mip_t              *pi;
+  msg_generic_prefix_t      *po;
+  L7_uint16                 r = S_OK, vidInternal;
+  L7_uint32                 intIfNum, i_mip;
+  T_MIP                     *p;
+
+
+  pi=(msg_bd_mip_t *)inbuff->info;
+  po=(msg_generic_prefix_t *)outbuff->info;
+  po[i].index = pi[i].index;
+
+  p = &pi[i].bd;
+
+#if MNGMT_DIFFERENT_ENDIANNESS
+  {
+   pi[i].index = ENDIAN_SWAP64(pi[i].index);
+   p->vid = ENDIAN_SWAP64(p->vid);
+   p->prt = ENDIAN_SWAP16(p->prt);
+  }
+#endif
+
+  i_mip = pi[i].index;
+  if (!valid_mip_index(i_mip)) {
+    PT_LOG_WARN(LOG_CTX_MSG, "Insucess: r=%u", ERROR_CODE_INVALIDPARAM);
+    return L7_FAILURE;
+  }
+
+  p = &oam.mip_db[i_mip];
+
+  if (p->level>=N_OAM_LEVELS
+      ||
+      L7_SUCCESS!=ptin_intf_port2intIfNum(p->prt, &intIfNum)
+      ||
+      L7_SUCCESS!=ptin_xlate_ingress_get(intIfNum, p->vid, PTIN_XLATE_NOT_DEFINED, &vidInternal, L7_NULLPTR)
+      ||
+      L7_SUCCESS!=ptin_MxP_packet_vlan_trap(vidInternal, p->level, 1, 0)) r=ERROR_CODE_NOTPRESENT;
+
+  del_mip(i_mip, &oam);
+
+
+  if (r==S_OK) return L7_SUCCESS;
+  else {
+    PT_LOG_WARN(LOG_CTX_MSG, "Insucess: r=%u", r);
+    return L7_SUCCESS;//L7_FAILURE;
+  }
+}//ptin_msg_del_MIP
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 L7_RC_t ptin_send_lmm(u8* sMAC , u8* dMAC, L7_uint32 intIfNum, u8 endpoint)

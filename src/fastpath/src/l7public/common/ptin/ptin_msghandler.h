@@ -254,6 +254,12 @@
 #define CCMSG_ROUTING_TRACERTSESSION_FREE     0x915F  // msg_RoutingTracertSessionFree
 
 
+/* OAM MEPs Configuration */
+#define CCMSG_WR_MIP                        0x9163
+#define CCMSG_RM_MIP                        0x9164
+
+
+
 /* ERPS Configuration */
 
 #define CCMSG_ERPS_SET                      0x9170
@@ -2400,6 +2406,12 @@ typedef struct {
   _MSG_GENERIC_PREFIX_STRUCT;    //index (only RD operations): 0..N_MAX_LOOKUP_MEPs-1
   msg_lookup_mep_t bd;
 } __attribute__ ((packed)) msg_bd_lut_mep_t;
+
+
+typedef struct {
+  _MSG_GENERIC_PREFIX_STRUCT;    //index: 0..N_MIPs-1
+  T_MIP bd;
+} __attribute__ ((packed)) msg_bd_mip_t;
 
 
 typedef struct {

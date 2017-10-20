@@ -163,10 +163,14 @@ u32 i;
 
 
 void init_eth_srv_oam(T_ETH_SRV_OAM *p) {
+u32 i;
+
  init_mep_db(p->db);
  init_mep_lookup_table(p->mep_lut);
  p->proc_i_mep= 0;
-}//init_eth_srv_oam
+
+ for (i=0; i<N_MIPs; i++) SET_T_MIP_EMPTY(&p->mip_db[i])
+} //init_eth_srv_oam
 
 
 
@@ -580,6 +584,59 @@ T_LOOKUP_MEP *p_mep_lut;
  return 0;
 }//del_rmep
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//Return status:
+//0 - OK
+//1 - MIP table slot occupied with the same configuration (OK; no changes)
+//2 - Invalid T_MIP or MIP index
+//3 - MIP table slot occupied
+int wr_mip(u32 i_mip, T_MIP *p_mip, T_ETH_SRV_OAM *p_oam) {
+  if (!valid_mip_index(i_mip)
+      ||
+      !valid_oam_level(p_mip->level)
+      ||
+      p_mip->prt>=N_OAM_PRTS) return 2;
+
+  if (!EMPTY_T_MIP(p_oam->mip_db[i_mip])) {
+      if (memcmp(p_mip, &p_oam->mip_db[i_mip], sizeof(T_MIP))) return 3;
+      else return 1;
+  }
+
+  p_oam->mip_db[i_mip]=*p_mip;
+  return 0;
+}//wr_mip
+
+
+
+
+
+
+
+
+//Return status:
+//0 - OK
+//1 - Invalid index
+int del_mip(u32 i_mip, T_ETH_SRV_OAM *p_oam) {
+    if (!valid_mip_index(i_mip)) return 1;
+    SET_T_MIP_EMPTY(&p_oam->mip_db[i_mip]);
+    return 0;
+}
 
 
 

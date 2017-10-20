@@ -4499,6 +4499,28 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
 
       break;
 
+    case CCMSG_WR_MIP:
+    case CCMSG_RM_MIP:
+        PT_LOG_INFO(LOG_CTX_MSGHANDLER,
+                    CCMSG_WR_MIP==msgId? "Message received: CCMSG_WR_MIP (0x%04X)"
+                                       : "Message received: CCMSG_RM_MIP (0x%04X)", msgId);
+
+        CHECK_INFO_SIZE_MOD(msg_bd_mip_t);
+
+        if (CCMSG_WR_MIP==msgId)    rc = ptin_msg_wr_MIP(inbuffer, outbuffer, 0);
+        else                        rc = ptin_msg_del_MIP(inbuffer, outbuffer, 0);
+
+        if (L7_SUCCESS != rc) {
+          PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+          res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+          SetIPCNACK(outbuffer, res);
+          break;
+        }
+
+        SETIPCACKOK(outbuffer);
+        break;
+
+
     case CCMSG_WR_MEP_LM:
     case CCMSG_RM_MEP_LM:
       PT_LOG_INFO(LOG_CTX_MSGHANDLER,

@@ -2638,7 +2638,11 @@ void hapiBroadFfpSysMacInstall (DAPI_t      *dapi_g,
     hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
     hapiBroadPolicyRuleAdd(&ruleId);
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_MACDA, new_mac_addr, exact_match);
+/*PTin modified: MIPs (more precisely some OAM ETH traffic, involving MEPs or MIPs) have to be trapped 
+  (and we can't scale multiplying these Xtra rules by VLANs*/
+#if !defined(__MxP_FILTER__INSTEAD_OF__APS_AND_CCM__)
     hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID,  (L7_uchar8*)&new_vlan_id, exact_match);
+#endif
 #ifdef BCM_ROBO_SUPPORT
     hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_REASON_CODE, 
                                       BCM_ROBO_RX_REASON_SWITCHING, 0, 0);

@@ -1387,6 +1387,8 @@ extern L7_RC_t ptin_msg_dump_MEs(ipc_msg *inbuff, ipc_msg *outbuff);
  */
 extern L7_RC_t ptin_msg_dump_LUT_MEPs(ipc_msg *inbuff, ipc_msg *outbuff);
 
+extern L7_RC_t ptin_msg_wr_MIP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i);
+extern L7_RC_t ptin_msg_del_MIP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i);
 
 /****************************************************************************** 
  * ERPS Configuration
