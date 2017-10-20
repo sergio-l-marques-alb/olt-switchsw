@@ -19734,9 +19734,7 @@ L7_RC_t ptin_msg_apply_ngpon2_configuration(L7_uint32 ngpon2_id)
         index_port++;
       }    
     }
-
-    PT_LOG_TRACE(LOG_CTX_MSG, " Index_port  %d ", index_port);
-    ngpon_config.n_intf   = ext_evcId_infoData->evcNgpon2.n_intf + (ports_ngpon2); 
+    ngpon_config.n_intf   = index_port; 
     PT_LOG_DEBUG(LOG_CTX_MSG, " Total number of interfaces of evc %d is %d ", ngpon_config.index, ngpon_config.n_intf);
 
     if(apply)
