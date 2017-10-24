@@ -231,7 +231,7 @@
 #define SNOOP_MAX_MRTR_TIMERS       (L7_MAX_VLANS)
 
 #define FD_SIM_NETWORK_CONFIG_MODE          L7_SYSCONFIG_MODE_NONE
-#define FD_SIM_SERVPORT_CONFIG_MODE         L7_SYSCONFIG_MODE_DHCP
+#define FD_SIM_SERVPORT_CONFIG_MODE         L7_SYSCONFIG_MODE_NONE
 
 /* Product specific default addresses for network and service port */
 #define PROD_SIM_DEFAULT_SERVPORT_IP_ADDR   0x00000000   /* 0.0.0.0 */
