@@ -38,6 +38,10 @@
 #include "dhcp_snooping_api.h"
 #include "ptin_mgmd_eventqueue.h"
 
+
+#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+  #include "ptin_fpga_api.h"
+#endif
 /* PTin added: IGMP snooping */
 #if 1
   #include "snooping_ptin_db.h"
@@ -454,7 +458,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   /* Starting of IGMP header */
   igmpPtr = (L7_uchar8 *) &buffPtr[ipHdrLen];
   PT_LOG_TRACE(LOG_CTX_IGMP,"igmpPtr %d ", igmpPtr[0]);
-  //PT_LOG_TRACE(LOG_CTX_IGMP,"ptin_igmp_get_local_router_port %d ", ptin_igmp_get_local_router_port(&local_router_port_id));
 
   if (igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY)
     PT_LOG_TRACE(LOG_CTX_IGMP, "L7_IGMP_MEMBERSHIP_QUERY");
@@ -471,12 +474,23 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   if (igmpPtr[0] == L7_IGMP_V3_MEMBERSHIP_REPORT)
     PT_LOG_TRACE(LOG_CTX_IGMP, "L7_IGMP_V3_MEMBERSHIP_REPORT");
 
+#if PTIN_BOARD == PTIN_BOARD_CXO160G
+#if 1 //ndef ONE_MULTICAST_VLAN_RING_SUPPORT
+  /* Do nothing for slave matrix */
+  if (!ptin_fpga_mx_is_matrixactive_rt())
+  {
+    PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix ");
+    return SUCCESS;
+  }
+#endif
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
+
   if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_FAILURE) )
   {
     L7_uint32 ptin_port;
 
     ptin_port = pduInfo->intIfNum-1;
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on uplink port, Going to define local router port. ptin_port = %u ",ptin_port);
+    PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on uplink port, going to define local router port. ptin_port = %u ",ptin_port);
 
     rc = ptin_igmp_set_local_router_port(ptin_port, 0xFF);
     if (rc == L7_FAILURE)
@@ -512,10 +526,11 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     {
       if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS))
       {
-        PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on LRP!");
+        PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on uplink port!");
 
         if ( (port_type == PTIN_IGMP_LOCAL_ROUTER_PORT) )
         {
+          PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on LRP!");
           PT_LOG_TRACE(LOG_CTX_IGMP,"Going to rearm the timer for the LRP.");
       
           ptin_igmp_ring_osapiSemaTake();
@@ -553,6 +568,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT  
    
+
+
   if (ptin_debug_igmp_snooping)
     PT_LOG_TRACE(LOG_CTX_IGMP,"{");
 

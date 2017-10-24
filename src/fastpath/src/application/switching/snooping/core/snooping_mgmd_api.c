@@ -829,7 +829,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
 #if PTIN_BOARD_IS_MATRIX
-#if 0 //ndef ONE_MULTICAST_VLAN_RING_SUPPORT
+#if 1 //ndef ONE_MULTICAST_VLAN_RING_SUPPORT
   /* Do nothing for slave matrix */
   if (!ptin_fpga_mx_is_matrixactive_rt())
   {

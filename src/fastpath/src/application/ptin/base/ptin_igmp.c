@@ -130,7 +130,19 @@ typedef struct ptin_igmp_port_type_s {
   /* initialize local router port connected to the router */
 static L7_uint32 lrp_id;  
 
+
+#if PTIN_BOARD == PTIN_BOARD_CXO160G
+
+struct ptin_igmp_port_type_s ptin_port_list[PTIN_SYSTEM_N_INTERF];
+
+#endif
+
+#if PTIN_BOARD == PTIN_BOARD_IS_STANDALONE
+
 struct ptin_igmp_port_type_s ptin_port_list[PTIN_SYSTEM_N_UPLINK_INTERF];
+
+#endif
+
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
 /* Client Device Indentifier Pool */
@@ -367,7 +379,21 @@ static L7_RC_t ptin_igmp_channel_remove_multicast_service ( L7_uint32 evc_uc, L7
 static L7_RC_t ptin_igmp_channel_remove_all ( void );
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
-static L7_uint8 ptin_igmp_check_topology_change(void);
+static void ptin_igmp_check_topology_change(void);
+/*
+void ptin_igmp_check_topology_change(void)
+{
+  PT_LOG_TRACE(LOG_CTX_IGMP, "Mc VLAN %u", igmpInst_fromRouterVlan[0]);
+
+  if( f(igmpInst_fromRouterVlan[0])== L7_SUCCESS) 
+  {
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Mc Topology changed VLAN %u", igmpInst_fromRouterVlan[0]);
+    ptin_igmp_ports_default(0xFF);
+    ptin_igmp_generalquerier_reset();
+  }
+  return L7_SUCCESS;
+}
+*/
 #endif
 
 static ptinIgmpGroupClientInfoData_t* deviceClientId2groupClientPtr(L7_uint32 ptinPort, L7_uint32 clientId);
@@ -869,12 +895,22 @@ static void igmp_clientIndex_unmark(L7_uint ptin_port, L7_uint client_idx);
 /*********************************************************** 
  * FUNCTIONS 
  ***********************************************************/
-/**
- * Initializes Package Feature
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
+
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+
+static void ptin_igmp_check_topology_change(void)
+{
+  //PT_LOG_DEBUG(LOG_CTX_IGMP, "Mc VLAN %u", igmpInst_fromRouterVlan[0]);
+
+  if( f(igmpInst_fromRouterVlan[0])== L7_SUCCESS) 
+  {
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "Mc Topology changed VLAN %u", igmpInst_fromRouterVlan[0]);
+    ptin_igmp_ports_default(0xFF);
+    ptin_igmp_generalquerier_reset();
+  }
+  //return L7_SUCCESS;
+}
+
 void ptin_igmp_1s_task( void )
 {
   if (osapiTaskInitDone(L7_PTIN_IGMP_1S_TASK_SYNC) != L7_SUCCESS)
@@ -889,7 +925,7 @@ void ptin_igmp_1s_task( void )
   {
     if (ptin_debug_igmp_snooping)
     {
-      PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP 1s task is running ");
+      //PT_LOG_DEBUG(LOG_CTX_IGMP, "IGMP 1s task is running ");
     }
     ptin_igmp_check_topology_change();
     osapiSleepMSec(50);
@@ -899,6 +935,11 @@ void ptin_igmp_1s_task( void )
 
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 
+/**
+ * Initializes Package Feature
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
 static L7_RC_t ptin_igmp_multicast_package_init(void)
 {
   L7_uint32 iterator;
@@ -1001,15 +1042,15 @@ void ptin_igmp_device_clients_teste(void)
 L7_RC_t ptin_igmp_port_type_get(L7_uint32 port, L7_uint8* port_type)
 {
 #if PTIN_BOARD == PTIN_BOARD_CXO160G
-  if ( port >= PTIN_SYSTEM_N_LOCAL_PORTS ) { //PTIN_SYSTEM_N_UPLINK_INTERF
-    PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", port);
+  if ( port >= PTIN_SYSTEM_N_INTERF ) { //PTIN_SYSTEM_N_PORTS // PTIN_SYSTEM_N_LOCAL_PORTS //PTIN_SYSTEM_N_INTERF 
+    PT_LOG_ERR(LOG_CTX_IGMP,"Port %u is not valid for RING scenario!", port);
     return L7_FAILURE;
   }
   *port_type = ptin_port_list[port].type;
-  PT_LOG_ERR(LOG_CTX_IGMP,"port type %u", ptin_port_list[port].type);
+  PT_LOG_TRACE(LOG_CTX_IGMP,"port type %u", ptin_port_list[port].type);
 
 #else // OLT1T0
-  if ( port >= PTIN_SYSTEM_N_UPLINK_INTERF ) { //port > PTIN_SYSTEM_N_UPLINK_INTERF 
+  if ( port >= PTIN_SYSTEM_N_UPLINK_INTERF ) { 
     PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", port);
     return L7_FAILURE;
   }
@@ -1026,19 +1067,19 @@ L7_RC_t ptin_igmp_port_type_get(L7_uint32 port, L7_uint8* port_type)
 L7_RC_t ptin_igmp_get_port_query_count(L7_uint32 port, L7_uint8* query_count)
 {
 #if PTIN_BOARD == PTIN_BOARD_CXO160G
-  if ( port >= PTIN_SYSTEM_N_LOCAL_PORTS ) { //port > PTIN_SYSTEM_N_UPLINK_INTERF 
-    PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", port);
+  if ( port >= PTIN_SYSTEM_N_INTERF ) { //PTIN_SYSTEM_N_LOCAL_PORTS 
+    PT_LOG_ERR(LOG_CTX_IGMP,"Port %u is not valid for RING scenario!", port);
     return L7_FAILURE;
   }
   *query_count = ptin_port_list[port].query_count++;
-  PT_LOG_ERR(LOG_CTX_IGMP,"Query count: %u", *query_count);
+  PT_LOG_NOTICE(LOG_CTX_IGMP,"Query count: %u", *query_count);
 #else // OLT1T0
-  if ( port >= PTIN_SYSTEM_N_UPLINK_INTERF ) { //port > PTIN_SYSTEM_N_UPLINK_INTERF 
+  if ( port >= PTIN_SYSTEM_N_UPLINK_INTERF ) { 
     PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", port);
     return L7_FAILURE;
   }
   *query_count = ptin_port_list[port].query_count++;
-  PT_LOG_ERR(LOG_CTX_IGMP,"Query count: %u", *query_count);
+  PT_LOG_NOTICE(LOG_CTX_IGMP,"Query count: %u", *query_count);
 #endif
   return L7_SUCCESS;
 }
@@ -1052,8 +1093,8 @@ L7_RC_t ptin_igmp_get_port_query_count(L7_uint32 port, L7_uint8* query_count)
 L7_RC_t ptin_igmp_port_is_Dynamic(L7_uint32 port, L7_uint8* isDynamic)
 {
 #if PTIN_BOARD == PTIN_BOARD_CXO160G
-  if ( port >= PTIN_SYSTEM_N_LOCAL_PORTS ) { // port > PTIN_SYSTEM_N_UPLINK_INTERF 
-    PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", port);
+  if ( port >= PTIN_SYSTEM_N_INTERF ) { //PTIN_SYSTEM_N_INTERF //PTIN_SYSTEM_N_LOCAL_PORTS
+    PT_LOG_ERR(LOG_CTX_IGMP,"Port %u is not valid for RING scenario!", port);
     return L7_FAILURE;
   }
   *isDynamic = ptin_port_list[port].hybrid;
@@ -1076,7 +1117,7 @@ L7_RC_t ptin_igmp_get_local_router_port(L7_uint8 *local_router_port_id)
 {
   L7_uint i=0;
 #if PTIN_BOARD == PTIN_BOARD_CXO160G
-  while (i < PTIN_SYSTEM_N_LOCAL_PORTS) { // PTIN_SYSTEM_N_UPLINK_INTERF
+  while (i < PTIN_SYSTEM_N_INTERF) { //PTIN_SYSTEM_N_INTERF //PTIN_SYSTEM_N_LOCAL_PORTS
     if (ptin_port_list[i].type == PTIN_IGMP_LOCAL_ROUTER_PORT) {
       PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is PTIN_IGMP_LOCAL_ROUTER_PORT" , i);
       *local_router_port_id = i;
@@ -1109,7 +1150,7 @@ L7_RC_t ptin_igmp_get_local_router_port(L7_uint8 *local_router_port_id)
 L7_RC_t ptin_igmp_get_lrp_id(L7_uint32 *local_router_port_id)
 {
   
-  PT_LOG_TRACE(LOG_CTX_IGMP, "%s: lrp_id %u", __FUNCTION__, lrp_id);
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "%s: lrp_id %u", __FUNCTION__, lrp_id);
 
   *local_router_port_id = lrp_id;
 
@@ -1124,20 +1165,41 @@ L7_RC_t ptin_igmp_get_lrp_id(L7_uint32 *local_router_port_id)
 L7_RC_t ptin_igmp_set_lrp_id(L7_uint32 local_router_port_id)
 {
 
-  PT_LOG_TRACE(LOG_CTX_IGMP, "%s: lrp_id %u", __FUNCTION__, lrp_id);
+#if PTIN_BOARD == PTIN_BOARD_CXO160G
+
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "%s: lrp_id %u", __FUNCTION__, lrp_id);
+
+  /* lrp_id = -1 || lrp_id < PTIN_SYSTEM_N_LOCAL_PORTS && lrp_id > 0 */
+  if ((local_router_port_id == (L7_uint32)-1) ||  
+      (local_router_port_id >= 0 && local_router_port_id < PTIN_SYSTEM_N_LOCAL_PORTS ))
+  {
+    lrp_id = local_router_port_id;
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "%s, lrp_id = %u", __FUNCTION__, lrp_id);
+  }
+  else  
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid to define lrp_id!", local_router_port_id);
+    return L7_FAILURE;
+  }
+
+
+#else //OLT1T0
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "%s: lrp_id %u", __FUNCTION__, lrp_id);
 
   /* lrp_id = -1 || lrp_id < uplink_intf && lrp_id > n_pons */
   if ( (local_router_port_id == (L7_uint32)-1) || 
        ( (local_router_port_id <= PTIN_SYSTEM_N_UPLINK_INTERF) && local_router_port_id >= PTIN_SYSTEM_N_PONS) )
   {
     lrp_id = local_router_port_id;
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "%s, lrp_id = %u", __FUNCTION__, lrp_id);
   }
   else  
   {
-    PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", local_router_port_id);
+    PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid to define lrp_id!", local_router_port_id);
     return L7_FAILURE;
   }
 
+#endif // ONE_MULTICAST_VLAN_RING_SUPPORT
   return L7_SUCCESS;
 }
 
@@ -1160,61 +1222,66 @@ L7_RC_t ptin_igmp_set_local_router_port(L7_uint32 port, L7_uint8 lrp_flag)
 
   L7_uint i=0;
 
-  PT_LOG_NOTICE(LOG_CTX_IGMP, "%s: lrp_id = %u, lrp_flag = %u", __FUNCTION__, lrp_id, lrp_flag);
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "%s: port_param = %u, lrp_id = %u, lrp_flag = %u", __FUNCTION__, port, lrp_id, lrp_flag);
 
   if ( (lrp_flag == 0xFF) || (lrp_flag == 1 && lrp_id == -1)) 
   {
     PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
 
 #if PTIN_BOARD == PTIN_BOARD_CXO160G
+    PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
 
-      if ( port >= PTIN_SYSTEM_N_LOCAL_PORTS ) //PTIN_SYSTEM_N_UPLINK_INTERF) 
-      {
-        PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", port);
-        return L7_FAILURE;
+    if ( port >= PTIN_SYSTEM_N_INTERF ) //PTIN_SYSTEM_N_LOCAL_PORTS)  
+    {
+      PT_LOG_ERR(LOG_CTX_IGMP,"Port %u is not valid for RING scenario!", port);
+      return L7_FAILURE;
+    }
+
+    PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
+
+    if ( lrp_flag == 1 && lrp_id == (L7_uint32)-1 )
+    {
+      lrp_id = port;
+      PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_id is %u ", lrp_id);
+    }
+
+    while (i < PTIN_SYSTEM_N_INTERF) //PTIN_SYSTEM_N_LOCAL_PORTS 
+    {
+      if (ptin_port_list[i].hybrid == 1) {
+        ptin_port_list[i].type = PTIN_IGMP_PORT_CLIENT;
+        ptin_port_list[i].query_count = 0; 
       }
+      i++;
+      ptin_port_list[port].type = PTIN_IGMP_LOCAL_ROUTER_PORT;
+    }
+    PT_LOG_NOTICE(LOG_CTX_IGMP,"Set lrp_id %u", port);
 
-      if ( (lrp_flag == 1 && lrp_id == -1) )
-      {
-        lrp_id = port;
-      }
-
-      //PT_LOG_TRACE(LOG_CTX_IGMP,"ptin_port_list[port].query_count %u", ptin_port_list[port].query_count);
-
-      while (i < PTIN_SYSTEM_N_LOCAL_PORTS) //PTIN_SYSTEM_N_UPLINK_INTERF) 
-      {
-        if (ptin_port_list[i].hybrid == 1) {
-          ptin_port_list[i].type = PTIN_IGMP_PORT_CLIENT;
-          ptin_port_list[i].query_count = 0; 
-        }
-        i++;
-        ptin_port_list[port].type = PTIN_IGMP_LOCAL_ROUTER_PORT;
-      }
 #else // OLT1T0
-      PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
-      if ( port > PTIN_SYSTEM_N_UPLINK_INTERF ) 
-      {
-        PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", port);
-        return L7_FAILURE;
-      }
-      PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
 
-      if ( (lrp_flag == 1 && lrp_id == (L7_uint32)-1) )
-      {
-        lrp_id = port;
-        PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_id is %u ", lrp_id);
-      }
+    PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
+    if ( port > PTIN_SYSTEM_N_UPLINK_INTERF ) 
+    {
+      PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", port);
+      return L7_FAILURE;
+    }
+    PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
 
-      while (i < PTIN_SYSTEM_N_UPLINK_INTERF) 
-      {
-        if (ptin_port_list[i].hybrid == 1) {
-          ptin_port_list[i].type = PTIN_IGMP_PORT_CLIENT;
-          ptin_port_list[i].query_count = 0; 
-        }
-        i++;
-        ptin_port_list[port].type = PTIN_IGMP_LOCAL_ROUTER_PORT;
+    if ( (lrp_flag == 1 && lrp_id == (L7_uint32)-1) )
+    {
+      lrp_id = port;
+      PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_id is %u ", lrp_id);
+    }
+
+    while (i < PTIN_SYSTEM_N_UPLINK_INTERF) 
+    {
+      if (ptin_port_list[i].hybrid == 1) {
+        ptin_port_list[i].type = PTIN_IGMP_PORT_CLIENT;
+        ptin_port_list[i].query_count = 0; 
       }
-      PT_LOG_NOTICE(LOG_CTX_IGMP,"Set lrp_id %u", port);
+      i++;
+      ptin_port_list[port].type = PTIN_IGMP_LOCAL_ROUTER_PORT;
+    }
+    PT_LOG_NOTICE(LOG_CTX_IGMP,"Set lrp_id %u", port);
 
 #endif
   }
@@ -1248,6 +1315,7 @@ L7_RC_t ptin_igmp_proxy_init(void)
 
   L7_uint8 local_router_port_id = -1;
   lrp_id = (L7_uint32) -1;
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "%s, lrp_id = %u", __FUNCTION__, lrp_id);
   if (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS) 
   {
     ptin_igmp_ring_osapiSemaTake();
@@ -1607,10 +1675,8 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
 
     memset(ptin_port_list,0x00,sizeof(ptin_port_list));
 
-    while (i < PTIN_SYSTEM_N_UPLINK_INTERF) {
-      ptin_port_list[i].port_id=i;
 
-  #if PTIN_BOARD == PTIN_BOARD_CXO640G
+#if PTIN_BOARD == PTIN_BOARD_CXO640G
   /*
       if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_LOCAL_PORTS) { //PTIN_SYSTEM_N_UPLINK_INTERF) {
         ptin_port_list[i].type = PTIN_IGMP_PORT_SERVER;
@@ -1621,15 +1687,25 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
         
       }
   */     
-  #elif PTIN_BOARD == PTIN_BOARD_CXO160G
-       if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_LOCAL_PORTS) { //PTIN_SYSTEM_N_UPLINK_INTERF) {
+#elif PTIN_BOARD == PTIN_BOARD_CXO160G
+    while (i < PTIN_SYSTEM_N_INTERF) 
+    {
+      ptin_port_list[i].port_id=i;
+
+      if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_INTERF) { //PTIN_SYSTEM_N_UPLINK_INTERF) {
         ptin_port_list[i].type = PTIN_IGMP_PORT_SERVER;
         ptin_port_list[i].hybrid = 1;
         ptin_port_list[i].query_count = 0;
 
         PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %u ", ptin_port_list[i].port_id, ptin_port_list[i].type );
       }
-  #else
+
+      i++;
+    }
+#else //OLT1T0
+      while (i < PTIN_SYSTEM_N_UPLINK_INTERF) {
+        ptin_port_list[i].port_id=i;
+
       if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_PONS) {
         ptin_port_list[i].type = PTIN_IGMP_PORT_CLIENT;
         ptin_port_list[i].hybrid = 0;
@@ -1643,9 +1719,10 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
 
         PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %u ", ptin_port_list[i].port_id, ptin_port_list[i].type );
       }
-  #endif
+  //#endif
       i++;
     }
+#endif
   }
 
   return L7_SUCCESS;
@@ -20030,19 +20107,6 @@ static RC_t ptin_igmp_package_channel_conflict_validation(L7_uint32 packageId, p
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
 
-static L7_uint8 ptin_igmp_check_topology_change(void)
-{
-  PT_LOG_TRACE(LOG_CTX_IGMP, "Mc VLAN %u", igmpInst_fromRouterVlan[0]);
-
-  if( f(igmpInst_fromRouterVlan[0])== L7_SUCCESS) 
-  {
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Mc Topology changed VLAN %u", igmpInst_fromRouterVlan[0]);
-    ptin_igmp_ports_default(0xFF);
-    ptin_igmp_generalquerier_reset();
-  }
-  return L7_SUCCESS;
-}
-
 L7_uint8 ptin_igmp_ring_osapiSemaTake()
 {
 
@@ -20146,7 +20210,7 @@ void ptin_igmp_lrp_dump(void)
   L7_uint  i=0;
   L7_uint8 local_router_port_id = -1;
 #if PTIN_BOARD == PTIN_BOARD_CXO160G
-  while (i < PTIN_SYSTEM_N_LOCAL_PORTS) { // PTIN_SYSTEM_N_UPLINK_INTERF
+  while (i < PTIN_SYSTEM_N_INTERF) { // PTIN_SYSTEM_N_UPLINK_INTERF
     if (ptin_port_list[i].type == PTIN_IGMP_LOCAL_ROUTER_PORT) {
       local_router_port_id = i;
       printf("Local Router Port: portId = %u \n\r", local_router_port_id);
