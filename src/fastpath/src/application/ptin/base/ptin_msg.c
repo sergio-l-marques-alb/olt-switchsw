@@ -19917,7 +19917,7 @@ L7_RC_t ptin_msg_apply_ngpon2_configuration(L7_uint32 ngpon2_id)
   /* Configure the IGMP instances*/
   for(i=0 ; i < PTIN_SYSTEM_N_IGMP_INSTANCES; i++)
   {
-    if (Mc_Uc_instances[i].in_use == 1)
+    if (Mc_Uc_instances[i].in_use == L7_ENABLE)
     {
       ptin_igmp_instance_add(Mc_Uc_instances[i].multicastEvcId, Mc_Uc_instances[i].unicastEvcId);
     } 
@@ -20067,7 +20067,7 @@ L7_RC_t ptin_msg_remove_port_configuration(L7_uint32 ptin_port, L7_uint32 ngpon2
     if (Mc_Uc_instances[i].in_use == 1)
     {
       ptin_igmp_instance_remove(Mc_Uc_instances[i].multicastEvcId, Mc_Uc_instances[i].unicastEvcId);
-      Mc_Uc_instances[i].in_use = 0;
+      //Mc_Uc_instances[i].in_use = 0;
     } 
   }
 #endif
