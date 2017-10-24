@@ -145,7 +145,7 @@ L7_RC_t ptin_opensaf_read_event(void *data, int len, int id, char *chName, char 
 	  if (res == -1)
 	  {
 	  	PT_LOG_ERR(LOG_CTX_OPENSAF, "Error in poll: %s", strerror(errno));
-	  	sleep(2);
+	  	osapiSleepMSec(500); 
 	  	continue;
 	  }
 
@@ -189,9 +189,9 @@ L7_RC_t ptin_opensaf_read_event(void *data, int len, int id, char *chName, char 
 	 	PT_LOG_ERR(LOG_CTX_OPENSAF, "Error loading event from channel %s  len %d saRet %d", ptin_event[id].channelNameStr, len , saRet);
 
 	 	if (saRet != SA_AIS_OK)
-        {
+    {
 	 	  ptin_opensaf_eventhandle_deinit(id);
-        }
+    }
 	   return L7_FAILURE;
 	 }
     break;
@@ -230,7 +230,7 @@ void ptin_opensaf_task_OnuMac( void )
   /* Loop */
   while (1)
   {
-    osapiSleepMSec(100); 
+    osapiSleepMSec(50); 
 
     PT_LOG_TRACE(LOG_CTX_OPENSAF, "ptin_opensaf_task_OnuMac running...");
 
