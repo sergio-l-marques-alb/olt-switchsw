@@ -3386,9 +3386,11 @@ L7_RC_t ptin_prot_uplink_info_get(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx,
       if (usmDbDot3adIsStaticLag(1, intIfNum_lag, &lag_is_static) == L7_SUCCESS && !lag_is_static)
       {
         PT_LOG_WARN(LOG_CTX_INTF, "intIfNum %u belongs to a dynamic LAG (%u)", intIfNum_member, intIfNum_lag);
-        return L7_SUCCESS;
       }
-      PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u belongs to a static LAG (%u)... ok!", intIfNum_member, intIfNum_lag);
+      else
+      {
+        PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u belongs to a static LAG (%u)... ok!", intIfNum_member, intIfNum_lag);
+      }
     }
     else
     {
@@ -3402,9 +3404,11 @@ L7_RC_t ptin_prot_uplink_info_get(ptin_intf_t *ptin_intf, L7_uint8 *out_protIdx,
     if (usmDbDot3adIsStaticLag(1, intIfNum, &lag_is_static) == L7_SUCCESS && !lag_is_static)
     {
       PT_LOG_WARN(LOG_CTX_INTF, "intIfNum %u is a dynamic LAG", intIfNum);
-      return L7_SUCCESS;
     }
-    PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u is a static LAG... ok!", intIfNum);
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u is a static LAG... ok!", intIfNum);
+    }
   }
 
   /* For the following ops, use the LAG intIfNum, instead the provided one  */
