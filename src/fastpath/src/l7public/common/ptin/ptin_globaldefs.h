@@ -196,6 +196,7 @@ extern int ptin_sys_number_of_ports;
 #define RATE_LIMIT_BCAST    1024    /* 1 Mbps by default */
 #define RATE_LIMIT_MCAST    1024    /* 1 Mbps by default */
 #define RATE_LIMIT_UCUNK    1024    /* 1 Mbps by default */
+
 #if (PTIN_BOARD_IS_LINECARD)
  #define RATE_LIMIT_CPU_TRAFFIC   256   /* 256 Kbps by default */
  #define RATE_LIMIT_CPU_TRAPPED  1024   /* 1 Mbps by default */
@@ -206,18 +207,6 @@ extern int ptin_sys_number_of_ports;
  #define RATE_LIMIT_CPU_TRAPPED  4096   /* 4 Mbps by default */
  #define BUCKET_SIZE_CPU_TRAFFIC  256   /* Bucket size in kbits */
  #define BUCKET_SIZE_CPU_TRAPPED 1024   /* Bucket size in kbits */
-#endif
-
-#if (PTIN_BOARD_IS_LINECARD)
- #define RATE_LIMIT_CPU_TRAFFIC   256   /* 256 Kbps by default */
- #define RATE_LIMIT_CPU_TRAPPED  1024   /* 1 Mbps by default */
- #define BUCKET_SIZE_CPU_TRAFFIC  128   /* Bucket size in kbits */
- #define BUCKET_SIZE_CPU_TRAPPED  256   /* Bucket size in kbits */
-#else
- #define RATE_LIMIT_CPU_TRAFFIC  1024   /* 1 Mbps by default */
- #define RATE_LIMIT_CPU_TRAPPED  2048   /* 2 Mbps by default */
- #define BUCKET_SIZE_CPU_TRAFFIC  256   /* Bucket size in kbits */
- #define BUCKET_SIZE_CPU_TRAPPED  512   /* Bucket size in kbits */
 #endif
 
 /* CoS assigned to trapped packets */
