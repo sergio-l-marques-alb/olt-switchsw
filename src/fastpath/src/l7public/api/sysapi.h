@@ -723,11 +723,15 @@ L7_netBufHandle sysapiNetMbufGet( void );
 *************************************************************************/
 typedef enum
 {
-  L7_MBUF_RX_PRIORITY_HIGH = 1,
-  L7_MBUF_RX_PRIORITY_MID0 = 2,
-  L7_MBUF_RX_PRIORITY_MID1 = 3,
-  L7_MBUF_RX_PRIORITY_MID2 = 4,
-  L7_MBUF_RX_PRIORITY_NORMAL = 5
+  /* PTin added: 2 new levels */
+  L7_MBUF_RX_PRIORITY_HIGH_COSX = 1,
+  L7_MBUF_RX_PRIORITY_HIGH_COS8 = 2,
+  /* PTin end */
+  L7_MBUF_RX_PRIORITY_HIGH = 3,
+  L7_MBUF_RX_PRIORITY_MID0 = 4,
+  L7_MBUF_RX_PRIORITY_MID1 = 5,
+  L7_MBUF_RX_PRIORITY_MID2 = 6,
+  L7_MBUF_RX_PRIORITY_NORMAL = 7
 } L7_MBUF_RX_PRIORITY;
 
 /**************************************************************************

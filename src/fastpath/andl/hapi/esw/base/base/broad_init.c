@@ -2537,7 +2537,9 @@ hapiBroadDestRouteGet(bcmx_lport_t src, bcmx_lport_t dest)
 }
 
 /* Meter for inband traffic */
-BROAD_METER_ENTRY_t inband_meterInfo = {RATE_LIMIT_INBAND, 128, RATE_LIMIT_INBAND, 128, BROAD_METER_COLOR_BLIND};
+BROAD_METER_ENTRY_t inband_meterInfo = {RATE_LIMIT_INBAND, BUCKET_SIZE_CPU_TRAPPED,
+                                        RATE_LIMIT_INBAND, BUCKET_SIZE_CPU_TRAPPED,
+                                        BROAD_METER_COLOR_BLIND};
 
 /**
  * Reconfigure inband rule with new meter

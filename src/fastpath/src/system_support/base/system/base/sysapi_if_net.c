@@ -65,6 +65,10 @@ SYSAPI_IP_STATS_t sysapiIPStats;
 typedef struct {
   L7_uint32  alloc_rx_norm_alloc_attempts;
   L7_uint32  alloc_rx_high_alloc_attempts;
+  /* PTin added: 2 new levels */
+  L7_uint32  alloc_rx_high_cos8_alloc_attempts;
+  L7_uint32  alloc_rx_high_cosx_alloc_attempts;
+  /* PTin end */
   L7_uint32  alloc_tx_alloc_attempts;
   L7_uint32  alloc_rx_mid0_alloc_attempts;
   L7_uint32  alloc_rx_mid1_alloc_attempts;
@@ -72,6 +76,10 @@ typedef struct {
 
   L7_uint32  alloc_rx_norm_failures;
   L7_uint32  alloc_rx_high_failures;
+  /* PTin added: 2 new levels */
+  L7_uint32  alloc_rx_high_cos8_failures;
+  L7_uint32  alloc_rx_high_cosx_failures;
+  /* PTin end */
   L7_uint32  alloc_tx_failures;
   L7_uint32  alloc_rx_mid0_failures;
   L7_uint32  alloc_rx_mid1_failures;
@@ -269,19 +277,27 @@ void sysapiMbufDump(L7_int32 show_bufs)
   printf("Current Time       0x%x\n",osapiUpTimeRaw());
   printf("MbufsFree          %d\n",MbufsFree);
   printf("MbufsRxUsed        %d\n",MbufsRxUsed);
-  printf("Total Rx Norm Alloc Attempts   %d\n", mbuf_stats.alloc_rx_norm_alloc_attempts);
-  printf("Total Rx Mid2 Alloc Attempts   %d\n", mbuf_stats.alloc_rx_mid2_alloc_attempts);
-  printf("Total Rx Mid1 Alloc Attempts   %d\n", mbuf_stats.alloc_rx_mid1_alloc_attempts);
-  printf("Total Rx Mid0 Alloc Attempts   %d\n", mbuf_stats.alloc_rx_mid0_alloc_attempts);
-  printf("Total Rx High Alloc Attempts   %d\n", mbuf_stats.alloc_rx_high_alloc_attempts);
-  printf("Total Tx Alloc Attempts        %d\n", mbuf_stats.alloc_tx_alloc_attempts);
+  printf("Total Rx Norm Alloc Attempts      %d\n", mbuf_stats.alloc_rx_norm_alloc_attempts);
+  printf("Total Rx Mid2 Alloc Attempts      %d\n", mbuf_stats.alloc_rx_mid2_alloc_attempts);
+  printf("Total Rx Mid1 Alloc Attempts      %d\n", mbuf_stats.alloc_rx_mid1_alloc_attempts);
+  printf("Total Rx Mid0 Alloc Attempts      %d\n", mbuf_stats.alloc_rx_mid0_alloc_attempts);
+  printf("Total Rx High Alloc Attempts      %d\n", mbuf_stats.alloc_rx_high_alloc_attempts);
+  /* PTin added: 2 new levels */
+  printf("Total Rx High-COS8 Alloc Attempts %d\n", mbuf_stats.alloc_rx_high_cos8_alloc_attempts);
+  printf("Total Rx High-COSX Alloc Attempts %d\n", mbuf_stats.alloc_rx_high_cosx_alloc_attempts);
+  /* PTin end */
+  printf("Total Tx Alloc Attempts           %d\n", mbuf_stats.alloc_tx_alloc_attempts);
 
-  printf("Total Rx Norm Alloc Failures   %d\n", mbuf_stats.alloc_rx_norm_failures);
-  printf("Total Rx Mid2 Alloc Failures   %d\n", mbuf_stats.alloc_rx_mid2_failures);
-  printf("Total Rx Mid1 Alloc Failures   %d\n", mbuf_stats.alloc_rx_mid1_failures);
-  printf("Total Rx Mid0 Alloc Failures   %d\n", mbuf_stats.alloc_rx_mid0_failures);
-  printf("Total Rx High Alloc Failures   %d\n", mbuf_stats.alloc_rx_high_failures);
-  printf("Total Tx Alloc Failures        %d\n", mbuf_stats.alloc_tx_failures);
+  printf("Total Rx Norm Alloc Failures      %d\n", mbuf_stats.alloc_rx_norm_failures);
+  printf("Total Rx Mid2 Alloc Failures      %d\n", mbuf_stats.alloc_rx_mid2_failures);
+  printf("Total Rx Mid1 Alloc Failures      %d\n", mbuf_stats.alloc_rx_mid1_failures);
+  printf("Total Rx Mid0 Alloc Failures      %d\n", mbuf_stats.alloc_rx_mid0_failures);
+  printf("Total Rx High Alloc Failures      %d\n", mbuf_stats.alloc_rx_high_failures);
+  /* PTin added: 2 new levels */
+  printf("Total Rx High-COS8 Alloc Failures %d\n", mbuf_stats.alloc_rx_high_cos8_failures);
+  printf("Total Rx High-COSX Alloc Failures %d\n", mbuf_stats.alloc_rx_high_cosx_failures);
+  /* Ptin end */
+  printf("Total Tx Alloc Failures           %d\n", mbuf_stats.alloc_tx_failures);
 
   if (show_bufs != 0)
   {
@@ -577,6 +593,8 @@ L7_netBufHandle sysapiRxNetMbufGet( L7_MBUF_RX_PRIORITY priority,
                                     L7_MBUF_ALIGNMENT  alignType)
 {
   SYSAPI_NET_MBUF_HEADER_t *mbufPtr;
+  L7_uint32  rx_high_cosx_level;
+  L7_uint32  rx_high_cos8_level;
   L7_uint32  rx_high_level;
   L7_uint32  rx_mid0_level;
   L7_uint32  rx_mid1_level;
@@ -592,7 +610,11 @@ L7_netBufHandle sysapiRxNetMbufGet( L7_MBUF_RX_PRIORITY priority,
 
   osapiSemaTake(MbufSema, L7_WAIT_FOREVER);
 
-  rx_high_level = L7_MBUF_RESERVED_TX_BUFFERS + MbufsRxUsed;
+  /* PTin added: 2 new levels */
+  rx_high_cosx_level = L7_MBUF_RESERVED_TX_BUFFERS + MbufsRxUsed;
+  rx_high_cos8_level = L7_MBUF_RESERVED_RX_HI_PRIO_COSX_BUFFERS + rx_high_cosx_level;
+  rx_high_level = L7_MBUF_RESERVED_RX_HI_PRIO_COS8_BUFFERS + rx_high_cos8_level;
+  /* PTin end */
   rx_mid0_level = L7_MBUF_RESERVED_RX_HI_PRIO_BUFFERS + rx_high_level;
   rx_mid1_level = L7_MBUF_RESERVED_RX_MID0_PRIO_BUFFERS + rx_mid0_level;
   rx_mid2_level = L7_MBUF_RESERVED_RX_MID1_PRIO_BUFFERS + rx_mid1_level;
@@ -601,6 +623,25 @@ L7_netBufHandle sysapiRxNetMbufGet( L7_MBUF_RX_PRIORITY priority,
   rx_failed = L7_FALSE;
   switch (priority)
   {
+  /* PTin added: 2 new levels */
+  case L7_MBUF_RX_PRIORITY_HIGH_COSX:
+    mbuf_stats.alloc_rx_high_cosx_alloc_attempts++;
+    if (rx_high_cosx_level >= MbufsMaxFree)
+    {
+      rx_failed = L7_TRUE;
+      mbuf_stats.alloc_rx_high_cosx_failures++;
+    }
+    break;
+
+  case L7_MBUF_RX_PRIORITY_HIGH_COS8:
+    mbuf_stats.alloc_rx_high_cos8_alloc_attempts++;
+    if (rx_high_cos8_level >= MbufsMaxFree)
+    {
+      rx_failed = L7_TRUE;
+      mbuf_stats.alloc_rx_high_cos8_failures++;
+    }
+    break;
+  /* PTin end */
   case L7_MBUF_RX_PRIORITY_HIGH:
     mbuf_stats.alloc_rx_high_alloc_attempts++;
     if (rx_high_level >= MbufsMaxFree)

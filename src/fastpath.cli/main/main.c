@@ -71,10 +71,10 @@ void help_oltBuga(void)
         "m 1027 MAC Limiting per interface - [slot] [system] [intf] [limit] [action] [send_trap]\n\r"
         "--- QOS and L2 commandsl --------------------------------------------------------------------------------------------------------------\n\r"
         "m 1030 intfType/intf# - Get QoS configuration\r\n"
-        "m 1031 intfType/intf# trustMode(1-Untrust;2-802.1P;3-IPprec;4-DSCP) shapingRate(Mbps) cos_pr0(0-7) cos_pr1 ... cos_pr7 - Set general QoS configuration\r\n"
+        "m 1031 intfType/intf# shapingRate(Mbps) trustMode(1-Untrust;2-802.1P;3-IPprec;4-DSCP) cos_pr0(0-7) cos_pr1 ... cos_pr7 - Set general QoS configuration\r\n"
         "m 1032 intfType/intf# cos(0-7) scheduler(1:Strict;2:Weighted) min_bandwidth(Mbps) max_bandwidth(Mbps) - Set specific QoS configuration\r\n"
         "m 1033 intfType/intf# - Get QoS3 configuration\r\n"
-        "m 1034 intfType/intf# trustMode(1-Untrust;2-802.1P;3-IPprec;4-DSCP) [cos_pr0(0-7)] [cos_pr1] ... [cos_pr7] - Set QoS3-interface configuration\r\n"
+        "m 1034 intfType/intf# shapingRate(Mbps) trustMode(1-Untrust;2-802.1P;3-IPprec;4-DSCP) [cos_pr0(0-7)] [cos_pr1] ... [cos_pr7] - Set QoS3-interface configuration\r\n"
         "m 1035 intfType/intf# cos(0-7) scheduler(1:Strict;2:Weighted) [weight(1-128)] [shaper(Kbps)] [min_bandwidth(Kbps)] [max_bandwidth(Kbps)] - Set QoS3-cos configuration\r\n"
         "m 1036 intfType/intf# cos(0-7) mgmtType(0/1) [decayExp(0-15)] - Set QoS3-drop configuration\r\n"
         "m 1037 intfType/intf# cos(0-7) dplevel(1-4) [tdThresh(0-100)] [wredMinThresh(0-100)] [wredMaxThresh(0-100)] [wredDropProb(0-100)] - Set QoS3-drop configuration\r\n"
@@ -1735,25 +1735,24 @@ int main (int argc, char *argv[])
           ptr->intf.intf_type = ENDIAN_SWAP8((uint8) type);
           ptr->intf.intf_id   = ENDIAN_SWAP8((uint8) intf);
 
-          // Trust mode
-          if (StrToLongLong(argv[3+1],&valued)<0)  {
-            help_oltBuga();
-            exit(0);
-          }
-          ptr->trust_mode = ENDIAN_SWAP8((uint8) valued);
-          ptr->mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_TRUSTMODE_MASK);
-
-          ptr->bandwidth_unit = ENDIAN_SWAP8(0);
-          ptr->mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_BANDWIDTHUNIT_MASK);
-
           // Shaping rate
-          if (StrToLongLong(argv[3+2],&valued)<0)  {
+          if (StrToLongLong(argv[3+1],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
           ptr->shaping_rate = ENDIAN_SWAP32((uint32) valued*1000);
           ptr->mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_SHAPINGRATE_MASK);
 
+          ptr->bandwidth_unit = ENDIAN_SWAP8(0);
+          ptr->mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_BANDWIDTHUNIT_MASK);
+
+          // Trust mode
+          if (StrToLongLong(argv[3+2],&valued)<0)  {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->trust_mode = ENDIAN_SWAP8((uint8) valued);
+          ptr->mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_TRUSTMODE_MASK);
 
           // Priorities map
           for (i=0; i<8; i++) {
@@ -1903,18 +1902,31 @@ int main (int argc, char *argv[])
         ptr->bandwidth_unit = ENDIAN_SWAP8(0);
         ptr->main_mask |= ENDIAN_SWAP8(MSG_QOS3_BANDWIDTH_UNITS_MASK);
 
-        // Trust mode (mandatory option)
+        // Shaper (mandatory option)
         if (StrToLongLong(argv[3+1],&valued)<0)  {
           help_oltBuga();
           exit(0);
         }
-        ptr->ingress.trust_mode = ENDIAN_SWAP8((uint8) valued);
-        ptr->ingress.ingress_mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_TRUSTMODE_MASK);
-        ptr->main_mask |= ENDIAN_SWAP8(MSG_QOS3_INGRESS_MASK);
+        ptr->egress.shaping_rate = ENDIAN_SWAP32((uint32) valued);
+        ptr->egress.egress_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_INTF_SHAPER_MASK);
+        ptr->main_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_MASK);
+
+        // Trust mode (mandatory option)
+        if (argc >= 3+3)
+        {
+          if (StrToLongLong(argv[3+2], &valued) < 0)
+          {
+            help_oltBuga();
+            exit(0);
+          }
+          ptr->ingress.trust_mode = ENDIAN_SWAP8((uint8) valued);
+          ptr->ingress.ingress_mask |= ENDIAN_SWAP8(MSG_QOS_CONFIGURATION_TRUSTMODE_MASK);
+          ptr->main_mask |= ENDIAN_SWAP8(MSG_QOS3_INGRESS_MASK);
+        }
 
         // Priorities map
-        for (i=0; i<8 && argc>=(3+3+i); i++) {
-          if (StrToLongLong(argv[3+2+i],&valued)<0)  {
+        for (i=0; i<8 && argc>=(3+4+i); i++) {
+          if (StrToLongLong(argv[3+3+i],&valued)<0)  {
             help_oltBuga();
             exit(0);
           }
@@ -2003,7 +2015,7 @@ int main (int argc, char *argv[])
           // WRR weight
           if (argc >= 3+4)
           {
-            if (StrToLongLong(argv[3 + 3], &valued) < 0)
+            if (StrToLongLong(argv[3+3], &valued) < 0)
             {
               help_oltBuga();
               exit(0);
@@ -2013,21 +2025,10 @@ int main (int argc, char *argv[])
             ptr->egress.egress_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_COS_SCHEDULER_MASK);
           }
 
-          // Shaper
+          // Min Bandwidth
           if (argc >= 3+5)
           {
             if (StrToLongLong(argv[3+4],&valued)<0)  {
-              help_oltBuga();
-              exit(0);
-            }
-            ptr->egress.shaping_rate = ENDIAN_SWAP32((uint32) valued);
-            ptr->egress.egress_mask |= ENDIAN_SWAP8(MSG_QOS3_EGRESS_INTF_SHAPER_MASK);
-          }
-
-          // Min Bandwidth
-          if (argc >= 3+6)
-          {
-            if (StrToLongLong(argv[3+5],&valued)<0)  {
               help_oltBuga();
               exit(0);
             }
@@ -2037,9 +2038,9 @@ int main (int argc, char *argv[])
           }
 
           // Max Bandwidth
-          if (argc >= 3+7)
+          if (argc >= 3+6)
           {
-            if (StrToLongLong(argv[3+6],&valued)<0)  {
+            if (StrToLongLong(argv[3+5],&valued)<0)  {
               help_oltBuga();
               exit(0);
             }
