@@ -508,8 +508,28 @@ void ptin_alarms_init(void)
   for (port=0; port<PTIN_SYSTEM_N_INTERF; port++)
   {
     linkStatus_history[port] = L7_TRUE;
-    ptin_alarms_suppressed[port] = L7_FALSE;
+    ptin_alarms_suppressed[port] = L7_TRUE;
+
+    /* Unsupress alarms, only for these conditions: */
+  #if (PTIN_BOARD_IS_STANDALONE)
+    /* For OLT1T0/AC/F Only uplink ports and LAGs should reports alarms (not internal ports) */
+    if ((port >= PTIN_SYSTEM_N_PONS && port < (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH) /* Uplink ports */) ||
+        (port >= PTIN_SYSTEM_N_PORTS && port < (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS) /* LAGs */))
+
+  #elif (PTIN_BOARD_IS_MATRIX)
+    /* For SF boards, there is only alarms for external LAGs */
+    if (port >= PTIN_SYSTEM_N_PORTS && port < (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_N_LAGS_EXTERNAL)/* User LAGs */)
+
+  #elif (PTIN_BOARD_IS_LINECARD)
+    #if (PTIN_BOARD_IS_ACTIVETH)
+    if (port < PTIN_SYSTEM_N_ETH)
+    #endif
+  #endif
+    {
+      ptin_alarms_suppressed[port] = L7_FALSE;
+    }
   }
+
   for (port=0; port<PTIN_SYSTEM_N_PORTS; port++)
     lagActiveMembers[port] = L7_TRUE;
 }
@@ -729,32 +749,24 @@ static void monitor_alarms(void)
 
     if (linkStatus_history[port] != link)
     {
-      #if ( PTIN_BOARD_IS_STANDALONE || PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_ACTIVETH )
-        #if (PTIN_BOARD_IS_MATRIX)
-        /* For CXP360G There is only alarms for external LAGs */
-        if (ptin_intf.intf_type==PTIN_EVC_INTF_LOGICAL && ptin_intf.intf_id<PTIN_SYSTEM_N_LAGS_EXTERNAL)
-        #else
-        /* There is only alarms for non PON interfaces */
-        if (port >= PTIN_SYSTEM_N_PONS)
-        #endif
-        if (!ptin_alarms_is_suppressed(port)) {
-          if (send_trap_intf_alarm(ptin_intf.intf_type, ptin_intf.intf_id,
-                                 ((!link) ? TRAP_ALARM_LINK_DOWN_START : TRAP_ALARM_LINK_DOWN_END),
-                                 TRAP_ALARM_STATUS_EVENT,0) == 0)
-          {
-            PT_LOG_NOTICE(LOG_CTX_INTF  ,"Alarm sent: port=%u, link=%u", port, link);
-            PT_LOG_NOTICE(LOG_CTX_EVENTS,"Alarm sent: port=%u, link=%u", port, link);
-          }
+      if (!ptin_alarms_is_suppressed(port))
+      {
+        if (send_trap_intf_alarm(ptin_intf.intf_type, ptin_intf.intf_id,
+                               ((!link) ? TRAP_ALARM_LINK_DOWN_START : TRAP_ALARM_LINK_DOWN_END),
+                               TRAP_ALARM_STATUS_EVENT,0) == 0)
+        {
+          PT_LOG_NOTICE(LOG_CTX_INTF  ,"Alarm sent: port=%u, link=%u", port, link);
+          PT_LOG_NOTICE(LOG_CTX_EVENTS,"Alarm sent: port=%u, link=%u", port, link);
         }
-        #if (PTIN_BOARD_IS_STANDALONE)
-        if ( ((PTIN_SYSTEM_PON_PORTS_MASK >> intf) & 1) || ((PTIN_SYSTEM_BL_INBAND_PORT_MASK >> intf) & 1))
-        {          
-          if (usmDbIfAdminStateSet(1, intf, L7_ENABLE) != L7_SUCCESS)
-          {
-            PT_LOG_ERR(LOG_CTX_INTF, "Failed to enable port# %u", intf);           
-          }
-        }        
-        #endif
+      }
+      #if (PTIN_BOARD_IS_STANDALONE)
+      if ( ((PTIN_SYSTEM_PON_PORTS_MASK >> intf) & 1) || ((PTIN_SYSTEM_BL_INBAND_PORT_MASK >> intf) & 1))
+      {          
+        if (usmDbIfAdminStateSet(1, intf, L7_ENABLE) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_INTF, "Failed to enable port# %u", intf);           
+        }
+      }        
       #endif
       PT_LOG_INFO(LOG_CTX_INTF  ,"Link state changed: port=%u, link=%u", port, link);
       PT_LOG_INFO(LOG_CTX_EVENTS,"Link state changed: port=%u, link=%u", port, link);
@@ -789,28 +801,19 @@ static void monitor_alarms(void)
       }
 
       // Check if there is a change in the active member state
-      if (lagActiveMembers[port]!=isActiveMember)
+      if (lagActiveMembers[port] != isActiveMember)
       {
-        //if (pfw_shm->intf[port].admin && isMember)
-        #if ( PTIN_BOARD_IS_STANDALONE || PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_ACTIVETH )
-          #if (PTIN_BOARD_IS_MATRIX)
-          /* For CXP360G boards, only send alarms for external LAGs */
-          if (lagIdList[port]<PTIN_SYSTEM_N_LAGS_EXTERNAL)
-          #else
-          /* There is only alarms for non PON interfaces */
-          if (port >= PTIN_SYSTEM_N_PONS)
-          #endif
+        if (!ptin_alarms_is_suppressed(port))
+        {
+          if (send_trap_intf_alarm(PTIN_EVC_INTF_PHYSICAL, port,
+                                   ((isActiveMember) ? TRAP_ALARM_LAG_INACTIVE_MEMBER_END : TRAP_ALARM_LAG_INACTIVE_MEMBER_START),
+                                   TRAP_ALARM_STATUS_EVENT,
+                                   lagIdList[port])==0)
           {
-            if (send_trap_intf_alarm(PTIN_EVC_INTF_PHYSICAL, port,
-                                     ((isActiveMember) ? TRAP_ALARM_LAG_INACTIVE_MEMBER_END : TRAP_ALARM_LAG_INACTIVE_MEMBER_START),
-                                     TRAP_ALARM_STATUS_EVENT,
-                                     lagIdList[port])==0)
-            {
-              PT_LOG_NOTICE(LOG_CTX_INTF  ,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
-              PT_LOG_NOTICE(LOG_CTX_EVENTS,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
-            }
+            PT_LOG_NOTICE(LOG_CTX_INTF  ,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
+            PT_LOG_NOTICE(LOG_CTX_EVENTS,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
           }
-        #endif
+        }
         lagActiveMembers[port]=isActiveMember;
         PT_LOG_INFO(LOG_CTX_INTF  ,"Active LAG membership changed: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
         PT_LOG_INFO(LOG_CTX_EVENTS,"Active LAG membership changed: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
