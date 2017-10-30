@@ -1577,7 +1577,7 @@ typedef struct {
   L7_uint8  nports;                 // Number of ports
   L7_uint8  admin;                  // 1 - enable; 0 - disabled                                  
   L7_uint64 ngpon2_groups_pbmp64;   // Ports bitmap
-  L7_uint8  evc_groups_pbmp[(PTIN_SYSTEM_N_EVCS)/(8*sizeof(L7_uint8))+1]; //EVC bitmap of the specific group
+  L7_uint8 evc_groups_pbmp[(PTIN_SYSTEM_N_EVCS)/(8*sizeof(L7_uint8))+1]; //EVC bitmap of the specific group
   L7_uint32 number_services;        // Number of services of a NGPON2 group
 } ptin_NGPON2_groups_t;
 #endif

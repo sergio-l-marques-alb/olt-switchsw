@@ -8705,15 +8705,16 @@ L7_RC_t ptin_evc_offline_entry_add(ptin_HwEthMef10Evc_t *EvcConf)
   /* If already in use, return its (internal) evc_id */
   if (ext_evcId_infoData != L7_NULLPTR)
   {
-    if (ext_evcId_infoData->extNGEvcIdDataKey.ext_evcId < PTIN_SYSTEM_N_EXTENDED_EVCS)
+    if (ext_evcId_infoData->extNGEvcIdDataKey.ext_evcId > PTIN_SYSTEM_N_EXTENDED_EVCS)
     {
+
+      PT_LOG_WARN(LOG_CTX_EVC,"Invalid node in AVL TREE eith ext_evc_id = %u", ext_evcId_infoData->extNGEvcIdDataKey.ext_evcId );
       /* Nothing to do */
       return L7_SUCCESS;
     }
     /* This node is not valid... delete it */
     else
     {
-      PT_LOG_WARN(LOG_CTX_EVC,"Invalid node in AVL TREE eith ext_evc_id = %u", ext_evcId_infoData->extNGEvcIdDataKey.ext_evcId );
       if (avlDeleteEntry(&(extNGEvcId_avlTree.extNGEvcIdAvlTree), (void *)&ext_evcId_key) == L7_NULLPTR)
       {
         return L7_FAILURE;
