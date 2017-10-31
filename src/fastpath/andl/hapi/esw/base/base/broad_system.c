@@ -3717,7 +3717,7 @@ L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL 
     result = hapiBroadPolicyCommit(&policyId);
 
     if (result == L7_SUCCESS)
-      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id)
     else
       PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting policy");
   }
@@ -3870,7 +3870,7 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     result = hapiBroadPolicyCommit(&policyId);
 
     if (result == L7_SUCCESS)
-      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id)
     else
       PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting policy");
   }
@@ -4020,7 +4020,7 @@ L7_RC_t hapiBroadConfigDhcpV6Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     result = hapiBroadPolicyCommit(&policyId);
 
     if (result == L7_SUCCESS)
-      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id)
     else
       PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting policy");
   }
@@ -4123,7 +4123,7 @@ L7_RC_t hapiBroadConfigPPPoETrap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t 
     result = hapiBroadPolicyCommit(&policyId);
 
     if (result == L7_SUCCESS)
-      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id)
     else
       PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting policy");
   }
@@ -4249,7 +4249,7 @@ L7_RC_t hapiBroadConfigApsTrap(/*DAPI_USP_t *usp,*/ L7_uint16 vlanId, L7_uint16 
     result = hapiBroadPolicyCommit(&policyId);
 
     if (result == L7_SUCCESS)
-      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id)
     else
       PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting policy");
   }
@@ -4368,7 +4368,7 @@ L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uch
     result = hapiBroadPolicyCommit(&policyId);
 
     if (result == L7_SUCCESS)
-      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id)
     else
       PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting policy");
   }
@@ -4765,7 +4765,7 @@ L7_RC_t hapiBroadConfigMEPFilter(L7_uint16 vlanId, L7_uint16 vlan_match, L7_ucha
       PT_LOG_TRACE(LOG_CTX_HAPI, "Commiting MEP policy");
       *policy_id = BROAD_POLICY_INVALID;
       if (L7_SUCCESS == (result=hapiBroadPolicyCommit(policy_id)))
-          PT_LOG_TRACE(LOG_CTX_HAPI, "MEP policy %d commited successfully", *policy_id);
+          PT_LOG_TRACE(LOG_CTX_HAPI, "MEP policy %d commited successfully", *policy_id)
       else
           PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting policy");
     }

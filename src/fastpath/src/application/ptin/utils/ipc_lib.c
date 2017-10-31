@@ -155,7 +155,7 @@ int open_ipc (int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(ipc_msg 
    if (getsockopt (ipc_canais[canal_id].socket_descriptor_cliente, SOL_SOCKET, SO_SNDBUF, (char*)&optVal, &optLen)==0)
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
       PT_LOG_INFO(LOG_CTX_IPC,
-               "Socket cliente do canal %d, SO_SNDBUF=%d.", canal_id, optVal); 
+               "Socket cliente do canal %d, SO_SNDBUF=%d.", canal_id, optVal)
    else
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_ERROR,
       PT_LOG_ERR(LOG_CTX_IPC,

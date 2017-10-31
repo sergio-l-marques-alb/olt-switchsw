@@ -208,7 +208,7 @@ unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, 
   rc = ptin_igmp_port_type_get(portId-1, &port_type_igmp);
 
   if (rc == L7_SUCCESS)
-    PT_LOG_DEBUG(LOG_CTX_IGMP, "Port is %d ",port_type_igmp);
+    PT_LOG_DEBUG(LOG_CTX_IGMP, "Port is %d ",port_type_igmp)
   else
   {
     PT_LOG_DEBUG(LOG_CTX_IGMP, "Port is LAG ");

@@ -6170,7 +6170,7 @@ L7_RC_t ptin_intf_linkscan_control(L7_uint port, L7_BOOL enable)
   osapiSemaGive(ptin_boardaction_sem);
 
   if (rc == L7_SUCCESS)
-    PT_LOG_INFO(LOG_CTX_INTF, "Success setting linkscan to %u of port %u", enable, port); 
+    PT_LOG_INFO(LOG_CTX_INTF, "Success setting linkscan to %u of port %u", enable, port)
   else
     PT_LOG_ERR(LOG_CTX_INTF, "Error setting linkscan to %u of port %u", enable, port);
   #endif
@@ -6279,7 +6279,7 @@ L7_RC_t ptin_intf_linkscan_get(L7_uint32 intIfNum, L7_uint8 *enable)
   rc = dtlPtinHwProc(intIfNum, &hw_proc);
 
   if (rc != L7_SUCCESS)
-    PT_LOG_ERR(LOG_CTX_INTF,"Error applying HW procedure to intIfNum=%u", intIfNum);
+    PT_LOG_ERR(LOG_CTX_INTF,"Error applying HW procedure to intIfNum=%u", intIfNum)
   else
   {
     if (enable != L7_NULLPTR)
@@ -6444,7 +6444,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
       rc = ptin_intf_linkscan_set(intIfNum, enable); 
 
       if (rc != L7_SUCCESS)
-        PT_LOG_ERR(LOG_CTX_INTF,"Error applying LS procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        PT_LOG_ERR(LOG_CTX_INTF,"Error applying LS procedure to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum)
       else
         PT_LOG_TRACE(LOG_CTX_INTF,"LS procedure applied to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, port_idx, intIfNum);
     }
@@ -6494,7 +6494,7 @@ L7_RC_t ptin_slot_linkscan_set(L7_int slot_id, L7_int slot_port, L7_uint8 enable
   }
 
   if (rc != L7_SUCCESS)
-    PT_LOG_ERR(LOG_CTX_INTF,"Terminated with error %d", rc);
+    PT_LOG_ERR(LOG_CTX_INTF,"Terminated with error %d", rc)
   else
     PT_LOG_TRACE(LOG_CTX_INTF,"Finished successfully");
 
@@ -6554,7 +6554,7 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
       rc = ptin_intf_link_force(intIfNum, link, enable);
 
       if (rc != L7_SUCCESS)
-        PT_LOG_ERR(LOG_CTX_INTF,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum);
+        PT_LOG_ERR(LOG_CTX_INTF,"Error forcing link to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", slot_id, port_idx, ptin_port, intIfNum)
       else
         PT_LOG_TRACE(LOG_CTX_INTF,"Link forced to %u to slot_id=%d, slot_port=%d -> port=%d / intIfNum=%u", enable, slot_id, port_idx, port_idx, intIfNum);
     }
@@ -6604,7 +6604,7 @@ L7_RC_t ptin_slot_link_force(L7_int slot_id, L7_int slot_port, L7_uint8 link, L7
   }
 
   if (rc != L7_SUCCESS)
-    PT_LOG_ERR(LOG_CTX_INTF,"Terminated with error %d", rc);
+    PT_LOG_ERR(LOG_CTX_INTF,"Terminated with error %d", rc)
   else
     PT_LOG_TRACE(LOG_CTX_INTF,"Finished successfully");
 

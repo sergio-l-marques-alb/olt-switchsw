@@ -499,6 +499,21 @@ static char* get_time(char* output)
     return output;
 }
 
+
+int logger_check(log_context_t ctx, log_severity_t sev) {
+    /* Validate input parameters */
+    if ( (ctx < 0) || (ctx >= LOG_CONTEXT_LAST) ||
+         (sev < 0) || (sev >= LOG_SEV_LAST) ) {
+        return 0;
+    }
+
+    /* For the requested context, check if log severity allows print */
+    if ( sev > log_cfg[ctx].severity )
+        return 0;
+
+    return 1;
+}
+
 static unsigned int max_log_lines = 0;
 /**
  * Prints a log message
@@ -523,15 +538,15 @@ void logger_print(log_context_t ctx, log_severity_t sev, char const *file,
     char   *color;
     FILE   *stream = stdout;
 
-    /* Validate input parameters */
-    if ( (ctx < 0) || (ctx >= LOG_CONTEXT_LAST) ||
-         (sev < 0) || (sev >= LOG_SEV_LAST) ) {
-        return;
-    }
-
-    /* For the requested context, check if log severity allows print */
-    if ( sev > log_cfg[ctx].severity )
-        return;
+//    /* Validate input parameters */
+//    if ( (ctx < 0) || (ctx >= LOG_CONTEXT_LAST) ||
+//         (sev < 0) || (sev >= LOG_SEV_LAST) ) {
+//        return;
+//    }
+//
+//    /* For the requested context, check if log severity allows print */
+//    if ( sev > log_cfg[ctx].severity )
+//        return;
 
     /* Get color: give priority to context color (only if != default)*/
     if ( log_cfg[ctx].color == LOG_COLOR_DEFAULT )

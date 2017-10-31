@@ -11877,7 +11877,7 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
   if (valid_mep_index(pi[i].index)) {
       p = &oam.db[pi[i].index].mep;
-      if (EMPTY_T_MEP(*p)) PT_LOG_DEBUG(LOG_CTX_MSG, "MEP EMPTY");//changing_trap=0;
+      if (EMPTY_T_MEP(*p)) PT_LOG_DEBUG(LOG_CTX_MSG, "MEP EMPTY")//;//changing_trap=0;
 
       else {
           //old_prt=p->prt;       old_vid=p->vid;     old_level=p->level;
