@@ -66,7 +66,7 @@ struct_linkStatus_monitor_t ls_monitor_info[PTIN_SYS_SLOTS_MAX+1]={
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
   [2 ... (PTIN_SYS_SLOTS_MAX-1)]={10, 0, L7_TRUE , 0},   /* Slot monitor enabled for CXO160G */
 #else
-  [2 ... (PTIN_SYS_SLOTS_MAX-1)]={10, 0, L7_FALSE, 0},   /* Slot monitor disabled for other SF boards */
+  [2 ... (PTIN_SYS_SLOTS_MAX-1)]={10, 0, L7_TRUE , 0},   /* Slot monitor enabled for other SF boards */
 #endif
   {0, 0, L7_FALSE, 0}
 };
