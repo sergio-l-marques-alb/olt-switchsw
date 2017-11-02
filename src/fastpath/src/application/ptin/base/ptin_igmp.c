@@ -1041,13 +1041,21 @@ void ptin_igmp_device_clients_teste(void)
  */
 L7_RC_t ptin_igmp_port_type_get(L7_uint32 port, L7_uint8* port_type)
 {
-#if PTIN_BOARD == PTIN_BOARD_CXO160G
-  if ( port >= PTIN_SYSTEM_N_INTERF ) { //PTIN_SYSTEM_N_PORTS // PTIN_SYSTEM_N_LOCAL_PORTS //PTIN_SYSTEM_N_INTERF 
+#if PTIN_BOARD == PTIN_BOARD_CXO640G
+  if ( port >= PTIN_SYSTEM_N_INTERF ) { 
     PT_LOG_ERR(LOG_CTX_IGMP,"Port %u is not valid for RING scenario!", port);
     return L7_FAILURE;
   }
   *port_type = ptin_port_list[port].type;
-  PT_LOG_TRACE(LOG_CTX_IGMP,"port type %u", ptin_port_list[port].type);
+  PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %s ", port, (ptin_port_list[port].type == 0) ? "PTIN_IGMP_PORT_SERVER" : "PTIN_IGMP_PORT_CLIENT" );
+
+#elif PTIN_BOARD == PTIN_BOARD_CXO160G
+  if ( port >= PTIN_SYSTEM_N_INTERF ) {  
+    PT_LOG_ERR(LOG_CTX_IGMP,"Port %u is not valid for RING scenario!", port);
+    return L7_FAILURE;
+  }
+  *port_type = ptin_port_list[port].type;
+  PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %s ", port, (ptin_port_list[port].type == 0) ? "PTIN_IGMP_PORT_SERVER" : "PTIN_IGMP_PORT_CLIENT" );
 
 #else // OLT1T0
   if ( port >= PTIN_SYSTEM_N_UPLINK_INTERF ) { 
@@ -1055,6 +1063,7 @@ L7_RC_t ptin_igmp_port_type_get(L7_uint32 port, L7_uint8* port_type)
     return L7_FAILURE;
   }
   *port_type = ptin_port_list[port].type;
+  PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %s ", port, (ptin_port_list[port].type == 0) ? "PTIN_IGMP_PORT_SERVER" : "PTIN_IGMP_PORT_CLIENT" );
 #endif
   return L7_SUCCESS;
 }
@@ -1066,8 +1075,17 @@ L7_RC_t ptin_igmp_port_type_get(L7_uint32 port, L7_uint8* port_type)
  */
 L7_RC_t ptin_igmp_get_port_query_count(L7_uint32 port, L7_uint8* query_count)
 {
-#if PTIN_BOARD == PTIN_BOARD_CXO160G
-  if ( port >= PTIN_SYSTEM_N_INTERF ) { //PTIN_SYSTEM_N_LOCAL_PORTS 
+
+#if PTIN_BOARD == PTIN_BOARD_CXO640G
+  if ( port >= PTIN_SYSTEM_N_INTERF ) { 
+    PT_LOG_ERR(LOG_CTX_IGMP,"Port %u is not valid for RING scenario!", port);
+    return L7_FAILURE;
+  }
+  *port_type = ptin_port_list[port].type;
+  PT_LOG_TRACE(LOG_CTX_IGMP,"port type %u", ptin_port_list[port].type);
+
+#elif PTIN_BOARD == PTIN_BOARD_CXO160G
+  if ( port >= PTIN_SYSTEM_N_INTERF ) { 
     PT_LOG_ERR(LOG_CTX_IGMP,"Port %u is not valid for RING scenario!", port);
     return L7_FAILURE;
   }
@@ -1092,7 +1110,15 @@ L7_RC_t ptin_igmp_get_port_query_count(L7_uint32 port, L7_uint8* query_count)
  */
 L7_RC_t ptin_igmp_port_is_Dynamic(L7_uint32 port, L7_uint8* isDynamic)
 {
-#if PTIN_BOARD == PTIN_BOARD_CXO160G
+
+#if PTIN_BOARD == PTIN_BOARD_CXO640G
+  if ( port >= PTIN_SYSTEM_N_INTERF ) { 
+    PT_LOG_ERR(LOG_CTX_IGMP,"Port %u is not valid for RING scenario!", port);
+    return L7_FAILURE;
+  }
+  *isDynamic = ptin_port_list[port].hybrid;
+
+#elif PTIN_BOARD == PTIN_BOARD_CXO160G
   if ( port >= PTIN_SYSTEM_N_INTERF ) { //PTIN_SYSTEM_N_INTERF //PTIN_SYSTEM_N_LOCAL_PORTS
     PT_LOG_ERR(LOG_CTX_IGMP,"Port %u is not valid for RING scenario!", port);
     return L7_FAILURE;
@@ -1116,8 +1142,9 @@ L7_RC_t ptin_igmp_port_is_Dynamic(L7_uint32 port, L7_uint8* isDynamic)
 L7_RC_t ptin_igmp_get_local_router_port(L7_uint8 *local_router_port_id)
 {
   L7_uint i=0;
-#if PTIN_BOARD == PTIN_BOARD_CXO160G
-  while (i < PTIN_SYSTEM_N_INTERF) { //PTIN_SYSTEM_N_INTERF //PTIN_SYSTEM_N_LOCAL_PORTS
+
+#if PTIN_BOARD == PTIN_BOARD_CXO640G
+  while (i < PTIN_SYSTEM_N_INTERF) { 
     if (ptin_port_list[i].type == PTIN_IGMP_LOCAL_ROUTER_PORT) {
       PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is PTIN_IGMP_LOCAL_ROUTER_PORT" , i);
       *local_router_port_id = i;
@@ -1127,6 +1154,19 @@ L7_RC_t ptin_igmp_get_local_router_port(L7_uint8 *local_router_port_id)
   }
 
   *local_router_port_id = -1;
+
+#elif PTIN_BOARD == PTIN_BOARD_CXO160G
+  while (i < PTIN_SYSTEM_N_INTERF) { 
+    if (ptin_port_list[i].type == PTIN_IGMP_LOCAL_ROUTER_PORT) {
+      PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is PTIN_IGMP_LOCAL_ROUTER_PORT" , i);
+      *local_router_port_id = i;
+      return L7_SUCCESS;
+    }
+    i++;
+  }
+
+  *local_router_port_id = -1;
+
 #else //OLT1T0
   while (i < PTIN_SYSTEM_N_UPLINK_INTERF) {
     if (ptin_port_list[i].type == PTIN_IGMP_LOCAL_ROUTER_PORT) {
@@ -1165,7 +1205,36 @@ L7_RC_t ptin_igmp_get_lrp_id(L7_uint32 *local_router_port_id)
 L7_RC_t ptin_igmp_set_lrp_id(L7_uint32 local_router_port_id)
 {
 
-#if PTIN_BOARD == PTIN_BOARD_CXO160G
+
+#if PTIN_BOARD == PTIN_BOARD_CXO640G
+
+  L7_uint16 board_type;
+
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "%s: lrp_id %u", __FUNCTION__, lrp_id);
+
+  /* local_router_port_id = -1 -> deconfig lrp_id -> lrp_id = -1 */
+  if ( local_router_port_id == (L7_uint32)-1 )
+  {
+    lrp_id = local_router_port_id;
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "%s, lrp_id = %u", __FUNCTION__, lrp_id);
+
+    return L7_SUCCESS;
+  }
+  /* local_router_port_id must be a TU40G/TU40GR port */
+  if ((local_router_port_id != (L7_uint32)-1) &&  
+       (ptin_intf_boardid_get(ptin_port_list[local_router_port_id].port_id, &board_type) == L7_SUCCESS && board_type != 0) )
+  {
+
+    lrp_id = local_router_port_id;
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "%s, lrp_id = %u", __FUNCTION__, lrp_id);
+
+    return L7_SUCCESS;
+  }
+
+  PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid to define lrp_id!", local_router_port_id);
+  return L7_FAILURE;
+
+#elif PTIN_BOARD == PTIN_BOARD_CXO160G
 
   PT_LOG_NOTICE(LOG_CTX_IGMP, "%s: lrp_id %u", __FUNCTION__, lrp_id);
 
@@ -1228,7 +1297,46 @@ L7_RC_t ptin_igmp_set_local_router_port(L7_uint32 port, L7_uint8 lrp_flag)
   {
     PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
 
-#if PTIN_BOARD == PTIN_BOARD_CXO160G
+
+#if PTIN_BOARD == PTIN_BOARD_CXO640G
+    PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
+
+    L7_uint16 board_type;
+
+    if ( port >= PTIN_SYSTEM_N_INTERF ) 
+    {
+      PT_LOG_ERR(LOG_CTX_IGMP,"Port %u is not valid for RING scenario!", port);
+      return L7_FAILURE;
+    }
+
+    PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
+
+
+    if (ptin_intf_boardid_get(ptin_port_list[port].port_id, &board_type) == L7_SUCCESS && board_type != 0)
+    {
+
+      if ( (board_type == PTIN_BOARD_TYPE_TU40G) || (board_type == PTIN_BOARD_TYPE_TU40GR ))
+      {
+        if ( lrp_flag == 1 && lrp_id == (L7_uint32)-1 )
+        {
+          lrp_id = port;
+          PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_id is %u ", lrp_id);
+        }
+
+        while (i < PTIN_SYSTEM_N_INTERF) 
+        {
+          if (ptin_port_list[i].hybrid == 1) {
+            ptin_port_list[i].type = PTIN_IGMP_PORT_CLIENT;
+            ptin_port_list[i].query_count = 0; 
+          }
+          i++;
+          ptin_port_list[port].type = PTIN_IGMP_LOCAL_ROUTER_PORT;
+        }
+        PT_LOG_NOTICE(LOG_CTX_IGMP,"Set lrp_id %u", port);
+      }
+    }
+
+#elif PTIN_BOARD == PTIN_BOARD_CXO160G
     PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
 
     if ( port >= PTIN_SYSTEM_N_INTERF ) //PTIN_SYSTEM_N_LOCAL_PORTS)  
@@ -1677,8 +1785,8 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
 
 
 #if PTIN_BOARD == PTIN_BOARD_CXO640G
-  /*
-      if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_LOCAL_PORTS) { //PTIN_SYSTEM_N_UPLINK_INTERF) {
+  
+      if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_INTERF) {
         ptin_port_list[i].type = PTIN_IGMP_PORT_SERVER;
         ptin_port_list[i].hybrid = 1;
         ptin_port_list[i].query_count = 0;
@@ -1686,7 +1794,7 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
         PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %u ", ptin_port_list[i].port_id, ptin_port_list[i].type );
         
       }
-  */     
+      
 #elif PTIN_BOARD == PTIN_BOARD_CXO160G
     while (i < PTIN_SYSTEM_N_INTERF) 
     {
@@ -1697,7 +1805,7 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
         ptin_port_list[i].hybrid = 1;
         ptin_port_list[i].query_count = 0;
 
-        PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %u ", ptin_port_list[i].port_id, ptin_port_list[i].type );
+        PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %s ", ptin_port_list[i].port_id, (ptin_port_list[i].type == 0) ? "PTIN_IGMP_PORT_SERVER" : "PTIN_IGMP_PORT_CLIENT" );
       }
       else if ( ptin_port_list[i].port_id >= PTIN_SYSTEM_N_LOCAL_PORTS && 
                 ptin_port_list[i].port_id < PTIN_SYSTEM_N_INTERF) {
@@ -1712,7 +1820,7 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
       
       i++;
     }
-#else //OLT1T0
+#else // OLT1T0/OLT1T0-F
       while (i < PTIN_SYSTEM_N_UPLINK_INTERF) {
         ptin_port_list[i].port_id=i;
 
@@ -1721,13 +1829,13 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
         ptin_port_list[i].hybrid = 0;
         ptin_port_list[i].query_count = 0;
 
-        PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %u ", ptin_port_list[i].port_id, ptin_port_list[i].type );
+        PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %s ", ptin_port_list[i].port_id, (ptin_port_list[i].type == 0) ? "PTIN_IGMP_PORT_SERVER" : "PTIN_IGMP_PORT_CLIENT" );
       } else {
         ptin_port_list[i].type = PTIN_IGMP_PORT_SERVER;
         ptin_port_list[i].hybrid = 1;
         ptin_port_list[i].query_count = 0;
 
-        PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %u ", ptin_port_list[i].port_id, ptin_port_list[i].type );
+        PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %s ", ptin_port_list[i].port_id, (ptin_port_list[i].type == 0) ? "PTIN_IGMP_PORT_SERVER" : "PTIN_IGMP_PORT_CLIENT" );
       }
   //#endif
       i++;
@@ -3888,9 +3996,32 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
 
 
   #if (MC_CLIENT_INTERF_SUPPORTED)
-          newClientEntry.ptin_intf.intf_type = 0;
-          newClientEntry.ptin_intf.intf_id = ptinPort;
-          newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+
+  #if    PTIN_BOARD == PTIN_BOARD_CXO160G
+          if (ptin_intf_intIfNum2lag(mgmdGroupsRes->portId,&ptinPort) == L7_SUCCESS)
+          {
+            newClientEntry.ptin_intf.intf_type = 1;
+            newClientEntry.ptin_intf.intf_id = ptinPort;
+            newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          }
+          else
+          {
+            newClientEntry.ptin_intf.intf_type = 0;
+            newClientEntry.ptin_intf.intf_id = ptinPort;
+            newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          }
+  #endif // PTIN_BOARD_CXO160G
+       
+#else  // ONE_MULTICAST_VLAN_RING_SUPPORT
+          {
+            newClientEntry.ptin_intf.intf_type = 0;
+            newClientEntry.ptin_intf.intf_id = ptinPort;
+            newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          }
+#endif // ONE_MULTICAST_VLAN_RING_SUPPORT
+
   #endif
   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
           L7_uint16 nni_ovid;
@@ -3914,6 +4045,31 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
         else
         {
   #if (MC_CLIENT_INTERF_SUPPORTED)
+
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+
+  #if PTIN_BOARD == PTIN_BOARD_CXO160G
+          if (ptin_intf_port2ptintf(clientGroup->ptin_port, &newClientEntry.ptin_intf)!=L7_SUCCESS)
+          {
+            *number_of_clients=0;
+            PT_LOG_ERR(LOG_CTX_IGMP,"Unable to Convert intfNum[%u]", clientGroup->ptin_port);
+
+            /*Give Semaphore*/
+            osapiSemaGive(ptin_igmp_clients_sem);
+
+            return L7_FAILURE;
+          }
+
+          if (ptin_intf_intIfNum2lag(mgmdGroupsRes->portId,&ptinPort) == L7_SUCCESS)
+          {
+            /* intf_type is LAG*/
+            newClientEntry.ptin_intf.intf_type = 1;
+            newClientEntry.ptin_intf.intf_id = ptinPort;
+          }
+
+          newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          PT_LOG_DEBUG(LOG_CTX_IGMP, "Port: %u", clientGroup->ptin_port);
+  #else 
           if (ptin_intf_port2ptintf(clientGroup->ptin_port, &newClientEntry.ptin_intf)!=L7_SUCCESS)
           {
             *number_of_clients=0;
@@ -3926,6 +4082,10 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
           }
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           PT_LOG_DEBUG(LOG_CTX_IGMP, "Port: %u", clientGroup->ptin_port);
+  #endif 
+
+#endif // ONE_MULTICAST_VLAN_RING_SUPPORT
+
   #endif
   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
           newClientEntry.outerVlan = clientGroup->igmpClientDataKey.outerVlan;
@@ -19057,7 +19217,11 @@ RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 devic
 
   if ( (groupClient = deviceClientId2groupClientPtr(ptinPort, deviceClientId)) == L7_NULLPTR)
   {
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+    PT_LOG_TRACE(LOG_CTX_IGMP, "Failed to Obtain groupClient [ptinPort:%u deviceClientId:%u serviceId:%u groupAddr:%p sourceAddr:%p serviceId:%p groupClient:%p]",ptinPort, deviceClientId, groupAddr, sourceAddr, serviceId, groupClient);    
+#else
     PT_LOG_ERR(LOG_CTX_IGMP, "Failed to Obtain groupClient [ptinPort:%u deviceClientId:%u serviceId:%u groupAddr:%p sourceAddr:%p serviceId:%p groupClient:%p]",ptinPort, deviceClientId, groupAddr, sourceAddr, serviceId, groupClient);    
+#endif
     return L7_FAILURE;
   }
 

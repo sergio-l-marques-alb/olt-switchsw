@@ -474,7 +474,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   if (igmpPtr[0] == L7_IGMP_V3_MEMBERSHIP_REPORT)
     PT_LOG_TRACE(LOG_CTX_IGMP, "L7_IGMP_V3_MEMBERSHIP_REPORT");
 
-#if PTIN_BOARD == PTIN_BOARD_CXO160G
+#if ( (PTIN_BOARD == PTIN_BOARD_CXO160G) || (PTIN_BOARD == PTIN_BOARD_CXO640G) )
 #if 1 //ndef ONE_MULTICAST_VLAN_RING_SUPPORT
   /* Do nothing for slave matrix */
   if (!ptin_fpga_mx_is_matrixactive_rt())
