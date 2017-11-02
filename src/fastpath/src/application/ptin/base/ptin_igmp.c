@@ -1692,14 +1692,24 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
     {
       ptin_port_list[i].port_id=i;
 
-      if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_INTERF) { //PTIN_SYSTEM_N_UPLINK_INTERF) {
+      if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_LOCAL_PORTS) { //PTIN_SYSTEM_N_UPLINK_INTERF) {
         ptin_port_list[i].type = PTIN_IGMP_PORT_SERVER;
         ptin_port_list[i].hybrid = 1;
         ptin_port_list[i].query_count = 0;
 
         PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %u ", ptin_port_list[i].port_id, ptin_port_list[i].type );
       }
+      else if ( ptin_port_list[i].port_id >= PTIN_SYSTEM_N_LOCAL_PORTS && 
+                ptin_port_list[i].port_id < PTIN_SYSTEM_N_INTERF) {
 
+        ptin_port_list[i].type = PTIN_IGMP_PORT_CLIENT;
+        ptin_port_list[i].hybrid = 0;
+        ptin_port_list[i].query_count = 0;
+
+        PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %u ", ptin_port_list[i].port_id, ptin_port_list[i].type );
+
+      }
+      
       i++;
     }
 #else //OLT1T0
