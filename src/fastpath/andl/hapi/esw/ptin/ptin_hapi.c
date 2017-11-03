@@ -5264,8 +5264,8 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
       if (rc != L7_SUCCESS)  break;
 
       /* MAC-Bridge VLANs only (1-511) */
-      vlan_value = 0x0001;
-      vlan_mask  = 0x01ff;
+      vlan_value = 0x0000;
+      vlan_mask  = 0xFE00;
       rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *) &vlan_value, (L7_uchar8 *) &vlan_mask);
       if (rc != L7_SUCCESS)  break;
 
