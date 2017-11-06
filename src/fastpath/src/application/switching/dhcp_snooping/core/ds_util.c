@@ -1565,7 +1565,7 @@ void dsLogEthernetHeader(L7_enetHeader_t *ethHdr, dsTraceDest_t traceDest)
                 "Ethernet header: dest %s, src %s, type/len %#x.",
                 dstMacStr, srcMacStr, typeOrLen);
   if (traceDest == DS_TRACE_LOG)
-    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID, traceBuf);
+    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID, traceBuf)
   else if (traceDest == DS_TRACE_CONSOLE)
   {
     printf("\n\n%s", traceBuf);
@@ -1598,7 +1598,7 @@ void dsLogIpHeader(L7_ipHeader_t *ipHdr, dsTraceDest_t traceDest)
                 osapiNtohs(ipHdr->iph_ident), ipHdr->iph_flags_frag,
                 ipHdr->iph_ttl, ipHdr->iph_prot, srcStr, destStr);
   if (traceDest == DS_TRACE_LOG)
-    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID, traceBuf);
+    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID, traceBuf)
   else if (traceDest == DS_TRACE_CONSOLE)
   {
     printf("\n\n%s", traceBuf);
@@ -1640,7 +1640,7 @@ void dsLogDhcpPacket(L7_dhcp_packet_t *dhcpPacket, dsTraceDest_t traceDest)
                 siaddr, giaddr, chaddr);
 
   if (traceDest == DS_TRACE_LOG)
-    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID, traceBuf);
+    L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_DHCP_SNOOPING_COMPONENT_ID, traceBuf)
   else if (traceDest == DS_TRACE_CONSOLE)
   {
     printf("\n\n%s", traceBuf);

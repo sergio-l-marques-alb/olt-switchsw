@@ -842,7 +842,7 @@ L7_BOOL ptin_evc_is_intf_leaf(L7_uint32 evc_ext_id, L7_uint intfNum)
   if ( rc != L7_SUCCESS)
   {
      if (rc != L7_NOT_EXIST)
-       PT_LOG_ERR(LOG_CTX_EVC, "evc_ext_id:0x%x is invalid", evc_ext_id);
+       PT_LOG_ERR(LOG_CTX_EVC, "evc_ext_id:0x%x is invalid", evc_ext_id)
      else
        PT_LOG_TRACE(LOG_CTX_EVC, "Evc does not exist evc_ext_id:0x%x", evc_ext_id);
 
@@ -1509,7 +1509,7 @@ L7_RC_t ptin_evc_intRootVlan_get(L7_uint32 evc_ext_id, L7_uint16 *intRootVlan)
   if ( rc != L7_SUCCESS)
   {
     if ( rc != L7_NOT_EXIST)
-      PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evc_ext_id);
+      PT_LOG_ERR(LOG_CTX_EVC, "eEVC# %u is not in use", evc_ext_id)
     else
       PT_LOG_DEBUG(LOG_CTX_EVC, "eEVC# %u is not in use", evc_ext_id);
     return L7_NOT_EXIST;

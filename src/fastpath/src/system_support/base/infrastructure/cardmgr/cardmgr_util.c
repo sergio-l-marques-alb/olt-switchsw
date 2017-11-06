@@ -1657,7 +1657,7 @@ void cmgrDoNotifyCardPlugin(L7_uint32 unit, L7_uint32 slot,
 
       if(rc != L7_SUCCESS)
         L7_LOGF(L7_LOG_SEVERITY_INFO, L7_CARDMGR_COMPONENT_ID,
-                "cmgrDoNotifyCardPlugin: notify unit:%d slot:%d - failed\n", unit, slot);
+                "cmgrDoNotifyCardPlugin: notify unit:%d slot:%d - failed\n", unit, slot)
       else
         CMGR_DEBUG(CMGR_LOG_FLAG,
                    "cmgrDoNotifyCardPlugin: Notification sent to unit:%d slot:%d\n",
