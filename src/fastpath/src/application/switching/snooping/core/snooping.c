@@ -479,7 +479,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   /* Do nothing for slave matrix */
   if (!ptin_fpga_mx_is_matrixactive_rt())
   {
-    PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix ");
+    PT_LOG_TRACE(LOG_CTX_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix ");
     return SUCCESS;
   }
 #endif
