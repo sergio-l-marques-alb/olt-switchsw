@@ -535,6 +535,13 @@ L7_RC_t ptin_prot_erps_init(void);
 
 //-------------------------------------------------------------------------
 
+
+
+//"Callback" to be externally defined
+//Goal: notify other layers of an ERP FSM transition
+//Must be VERY swift/uP "cheap"
+//If unused just define a dummy function
+int ptin_erps_FSM_transition_notification(unsigned char erps_idx, unsigned char old_state, unsigned char new_state);
 #endif //__ERPS_H__
 
 #endif  // PTIN_ENABLE_ERPS

@@ -1040,5 +1040,66 @@ L7_RC_t ptin_aps_packet_forward(L7_uint8 erps_idx, ptin_APS_PDU_Msg_t *pktMsg)
 
   return L7_SUCCESS;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+#include <ptin_xlate_api.h>
+static unsigned char ERP_bmp[MAX_PROT_PROT_ERPS];
+static unsigned char _1st_time_notification=1;
+
+int ptin_erps_FSM_transition_notification(unsigned char erps_idx, unsigned char old_state, unsigned char new_state) {
+ if (_1st_time_notification) {
+     _1st_time_notification=0;
+     memset(ERP_bmp, 0, sizeof(ERP_bmp));
+ }
+
+ if (erps_idx>=MAX_PROT_PROT_ERPS) return 1;
+
+ ERP_bmp[erps_idx]=1;
+
+ PT_LOG_TRACE(LOG_CTX_ERPS, "erps_idx=%u", erps_idx);
+ return 0;
+}//ptin_erps_FSM_transition_notification
+
+
+
+/*
+int f(unsigned short internal_MC_vid) {
+int erps_idx;
+unsigned short MC_vid;
+
+ for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
+    if (!ERP_bmp[erps_idx]) continue;
+
+    ERP_bmp[erps_idx]=0;
+
+    if (L7_SUCCESS==ptin_xlate_egress_get(tbl_halErps[erps_idx].port0intfNum, internal_MC_vid, PTIN_XLATE_NOT_DEFINED, &MC_vid, L7_NULLPTR)) {
+        if (tbl_erps[erps_idx].protParam.vid_bmp[MC_vid/8] & 1<<(MC_vid%8)) {
+            //MC VID in the protected list
+            return 0;
+        }
+    }
+
+    if (L7_SUCCESS==ptin_xlate_egress_get(tbl_halErps[erps_idx].port1intfNum, internal_MC_vid, PTIN_XLATE_NOT_DEFINED, &MC_vid, L7_NULLPTR)) {
+        if (tbl_erps[erps_idx].protParam.vid_bmp[MC_vid/8] & 1<<(MC_vid%8)) {
+            //MC VID in the protected list
+            return 0;
+        }
+    }
+ }//for
+
+ return 1;
+}
+*/
 #endif  // PTIN_ENABLE_ERPS
 
