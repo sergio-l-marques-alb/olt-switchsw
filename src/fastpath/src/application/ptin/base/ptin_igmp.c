@@ -4012,8 +4012,14 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
             newClientEntry.ptin_intf.intf_id = ptinPort;
             newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           }
-  #endif // PTIN_BOARD_CXO160G
-       
+  #else // OLT1T0
+          {
+            newClientEntry.ptin_intf.intf_type = 0;
+            newClientEntry.ptin_intf.intf_id = ptinPort;
+            newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          }
+  #endif       
+
 #else  // ONE_MULTICAST_VLAN_RING_SUPPORT
           {
             newClientEntry.ptin_intf.intf_type = 0;
@@ -4109,7 +4115,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
   #endif
         }
 
-        PT_LOG_ERR(LOG_CTX_IGMP,"Unable to add this clientIdx[%u] port portId[%u] to the clientGroupSnapshot avlTree", mgmdGroupsRes->clientId, mgmdGroupsRes->portId);
+        //PT_LOG_ERR(LOG_CTX_IGMP,"Unable to add this clientIdx[%u] port portId[%u] to the clientGroupSnapshot avlTree", mgmdGroupsRes->clientId, mgmdGroupsRes->portId);
 
         if (L7_SUCCESS != ptin_igmp_clientGroupSnapshot_add(&newClientEntry))
         {
