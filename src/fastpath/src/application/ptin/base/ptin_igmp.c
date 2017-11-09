@@ -4089,8 +4089,20 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           PT_LOG_DEBUG(LOG_CTX_IGMP, "Port: %u", clientGroup->ptin_port);
   #endif 
-
 #endif // ONE_MULTICAST_VLAN_RING_SUPPORT
+
+          if (ptin_intf_port2ptintf(clientGroup->ptin_port, &newClientEntry.ptin_intf)!=L7_SUCCESS)
+          {
+            *number_of_clients=0;
+            PT_LOG_ERR(LOG_CTX_IGMP,"Unable to Convert intfNum[%u]", clientGroup->ptin_port);
+
+            /*Give Semaphore*/
+            osapiSemaGive(ptin_igmp_clients_sem);
+
+            return L7_FAILURE;
+          }
+          newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          PT_LOG_DEBUG(LOG_CTX_IGMP, "Port: %u", clientGroup->ptin_port);
 
   #endif
   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
