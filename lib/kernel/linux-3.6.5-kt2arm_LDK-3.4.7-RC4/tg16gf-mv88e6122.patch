@@ -372,8 +372,25 @@ diff -rupN linux-3.6.5-arm.ori/marvell88e6122/Makefile.ATU linux-3.6.5-arm.mod/m
 +	$(CC) $(CFLAGS) -Wall -Werror -c -o $@ $<
 diff -rupN linux-3.6.5-arm.ori/marvell88e6122/README.txt linux-3.6.5-arm.mod/marvell88e6122/README.txt
 --- linux-3.6.5-arm.ori/marvell88e6122/README.txt	1970-01-01 01:00:00.000000000 +0100
-+++ linux-3.6.5-arm.mod/marvell88e6122/README.txt	2017-11-10 14:36:22.381990956 +0000
-@@ -0,0 +1,9 @@
++++ linux-3.6.5-arm.mod/marvell88e6122/README.txt	2017-11-10 15:06:05.666514978 +0000
+@@ -0,0 +1,26 @@
++#para compilar
++export ARCH=arm
++#export CROSS_COMPILE=/opt/broadcom/bin/arm-linux-
++export CROSS_COMPILE=/opt/broadcom_kt2_hx4/usr/bin/arm-linux-
++export CHIP=katana2
++export LOADADDR=0x61008000
++#export LOADADDR=0x70000000
++echo ""
++echo "Exporting the sympbols..."
++echo "export ARCH=$ARCH"
++echo "export CROSS_COMPILE=$CROSS_COMPILE"
++echo "export CHIP=$CHIP"
++echo "export LOADADDR=$LOADADDR"
++export LD_LIBRARY_PATH=/opt/broadcom/lib
++make -f Makefile.ATU
++
++
 +
 +#No arranque da carta
 +
