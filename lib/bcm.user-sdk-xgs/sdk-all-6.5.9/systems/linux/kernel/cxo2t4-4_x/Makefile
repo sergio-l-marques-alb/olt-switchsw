@@ -1,4 +1,5 @@
-# $Id: Makefile 1.15 Broadcom SDK $
+# -*- Makefile -*-
+# $Id: Makefile 1.10 Broadcom SDK $
 # $Copyright: Copyright 2012 Broadcom Corporation.
 # This program is the proprietary software of Broadcom Corporation
 # and/or its licensors, and may only be used, duplicated, modified
@@ -41,46 +42,63 @@
 # WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
 # ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
 
-PLATFORM=e500mc
-KERNEL_VER=3_0
+#
+# This make job requires the following environment variables to be set:
+#
+# SDK                - path to StrataXGS SDK root directory
+#
+# Optionally the following environment variables can be set to
+# override the default build server configuration:
+#
+# PPC_TOOLS_DIR     - path to build tools (if not in PATH already)
+# PPC_CROSS_COMPILE - cross compile tools prefix
+# LINUX_INCLUDE      - path to Linux kernel include directory
+#
 
-SDK = $(CURDIR)
+SDK :=$(shell if [ -n "$$SDK" ] ; then\
+	echo $$SDK;\
+	else\
+	cd $(dir $(lastword $(MAKEFILE_LIST))); while /usr/bin/test ! -e RELEASE ; do \
+	dir=`cd ../;pwd`;			\
+	if [ "$$dir" = "/" ] ; then		\
+	   echo Cannot find SDK in $(lastword $(MAKEFILE_LIST)) 1>&2;		\
+	   exit 1;				\
+	fi ;					\
+	cd $$dir;				\
+	done ;					\
+	pwd;					\
+	fi)
+
+ifeq ($(SDK),)					
+$(error Please run this in a tree)		
+endif 				
+
 export SDK
 
-export TOOLCHAIN_BASE_DIR = /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr
-export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
-export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
+override kernel_version=4_x
+platform=cxo2t4-$(kernel_version)
 
-export COMPILER           = $(TOOLCHAIN_BIN_DIR)/ppce500mc-fsl-linux/powerpc-fsl-linux-
-export KERNEL_PATH        = /home/shared/switchdrvr/trunk/lib/kernel/testing/kernel_3_0_51
-#/home/peter/kernel_3_0_51.cxo160g
-#/home/devtools/dev-QorIQ/dev-P204x/cxo640/kernel_3_0_51
-#/home/olt/svnrepo/olt-switchsw/trunk/lib/kernel/linux-3.0.51-e500mc
+# Select build platform 
+BUILD_PLATFORM=WR_LINUX
+#BUILD_PLATFORM=ELDK
 
-export CROSS_COMPILE := $(COMPILER)
-export KERNEL_SRC    := $(KERNEL_PATH)
-export KERNDIR       := $(KERNEL_PATH)
+#Select the LINUX KERNEL VERSION 
+#KERN_VER = 2.6.21.7
+#KERN_VER = 2.6.24.4
+KERN_VER = 4.1.8
 
-export SDKBUILD=build
+#Select the ELDK version
+#ELDK_VERSION=4.1
+#ELDK_VERSION=4.0
+
+#Select WRS linux version
+WRS_LINUX_VERSION=2.0
+#WRS_LINUX_VERSION=3.0
 
 
-SRC_PATH=$(SDK)/systems/linux/user
-DST_PATH=$(SDK)/bin
-PLATFORM_NAME=$(PLATFORM)-$(KERNEL_VER)
-
-.PHONY: all clean
-
-all:
-	gmake -j40 -C $(SRC_PATH)/$(PLATFORM_NAME)
-	mkdir -p $(SDK)/$(SDKBUILD)
-	mkdir -p $(DST_PATH)/$(PLATFORM_NAME)
-	cp -v $(SRC_PATH)/$(PLATFORM_NAME)/bcm.user* $(SRC_PATH)/$(PLATFORM_NAME)/*.ko $(SRC_PATH)/$(PLATFORM_NAME)/netserve $(DST_PATH)/$(PLATFORM_NAME)
-
-clean:
-	gmake -C $(SRC_PATH)/$(PLATFORM_NAME) clean
-	rm -f $(SRC_PATH)/$(PLATFORM_NAME)/bcm.user* $(SRC_PATH)/$(PLATFORM_NAME)/*.ko $(SRC_PATH)/$(PLATFORM_NAME)/netserve
-
-cleanall: clean
-	rm -rf $(SDK)/$(SDKBUILD)/*
-	rm -rf $(DST_PATH)/$(PLATFORM_NAME)
+export KERN_VER
+export ELDK_VERSION
+export BUILD_PLATFORM
+export WRS_LINUX_VERSION
+include ${SDK}/make/Make.linux
 
