@@ -2088,7 +2088,14 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
       else PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Local Request with higher Priority...", erps_idx);
 
     }
-    else if ( (remoteRequest == RReq_NR) && ( (APS_GET_STATUS(apsReqStatusRx) & RReq_STAT_RB) != (APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]) & RReq_STAT_RB) ) ) {
+    else if ( remoteRequest == RReq_NR &&
+              (
+               (APS_GET_STATUS(apsReqStatusRx)^APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]))& RReq_STAT_RB
+               ||
+
+               (RReq_NR==APS_MSK_REQSTATE(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1])>>12 &&
+                (APS_GET_STATUS(apsReqStatusRx)^APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1]))& RReq_STAT_RB)
+              )) {
 
       PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: remoteRequest: NR flags change from 0x%x to 0x%x", erps_idx, APS_GET_STATUS(apsReqStatusRx), APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]));
 
