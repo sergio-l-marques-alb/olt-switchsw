@@ -132,8 +132,10 @@
 #define RReq_STAT_BPR                   0x20
 #define RReq_STAT_ZEROS                 0x00
 
-#define RReq_STAT_BPR_SET(port)        (port==1? 0x20 : 0x00)
-#define APS_GET_STATUS(apsReqStatusRx) ( apsReqStatusRx & 0x00E0 )
+#define RReq_STAT_BPR_SET(port)        ((port)==1? 0x20 : 0x00)
+#define APS_GET_STATUS(apsReqStatusRx) ((apsReqStatusRx) & 0x00E0 )
+#define APS_MSK_REQSTATE(apsReqStatusRx)    ((apsReqStatusRx) & 0xF000)
+//#define APS_MSK_REQSTATE_AND_STATUS(apsReqStatusRx) ((apsReqStatusRx) & 0xF0E0)
 
 //-------------------------------------------------------------------------
 //  Node state - The current state of the Ethernet Ring Node
