@@ -3335,15 +3335,25 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
     lagInfo->static_enable &= 1;
     if (lagConf_data[lag_idx].static_enable != lagInfo->static_enable)
     {
-      if (usmDbDot3adLagStaticModeSet(1, lag_intf, lagInfo->static_enable) != L7_SUCCESS)
+      /* If this lag belongs to a protection group, report error */
+      if (ptin_prot_uplink_index_find(lag_intf, L7_NULLPTR, L7_NULLPTR) == L7_SUCCESS)
       {
-        PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u: error setting Static mode to %u", lag_idx, lagInfo->static_enable);
+        PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u: You are not allowed to change this parameter when this LAG belongs to a protection", lag_idx);
         rc = L7_FAILURE;
       }
       else
       {
-        PT_LOG_TRACE(LOG_CTX_INTF, " .static_enable    = %u", lagInfo->static_enable);
-        lagConf_data[lag_idx].static_enable = lagInfo->static_enable;
+        /* Configure new Mode */
+        if (usmDbDot3adLagStaticModeSet(1, lag_intf, lagInfo->static_enable) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_INTF, "LAG# %u: error setting Static mode to %u", lag_idx, lagInfo->static_enable);
+          rc = L7_FAILURE;
+        }
+        else
+        {
+          PT_LOG_TRACE(LOG_CTX_INTF, " .static_enable    = %u", lagInfo->static_enable);
+          lagConf_data[lag_idx].static_enable = lagInfo->static_enable;
+        }
       }
     }
   
