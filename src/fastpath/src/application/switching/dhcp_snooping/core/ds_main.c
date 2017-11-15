@@ -4905,6 +4905,7 @@ L7_RC_t dsFrameIntfFilterSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   if (intfType == DOT1AD_INTFERFACE_TYPE_NNI)
   {
     dsFrameDoubleVlanTagAdd(intIfNum,vlanId,frame, &frameLen, innerVlanId, frameTemp);
+
     if (dsFrameSend(intIfNum, vlanId, innerVlanId, client_idx, frameTemp, frameLen) != L7_SUCCESS)    /* PTin modified: DHCP snooping */
     {
       return L7_FAILURE;
@@ -5078,6 +5079,8 @@ L7_RC_t dsFrameIntfFilterSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
            dsFrameCVlanTagAdd(frame, &frameLen, innerVlanId, frameTemp);
          }
        }
+
+      PT_LOG_TRACE(LOG_CTX_DHCP, "frameLen %u ", frameLen);
       return dsFrameSend(intIfNum, vlanId, innerVlanId, client_idx, frameTemp, frameLen);     /* PTin modified: DHCP snooping */
     }
     else
@@ -5164,13 +5167,18 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
     return L7_FAILURE;
   }
 
+
+  SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
+  memcpy(dataStart, frame, frameLen);
+  SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, frameLen);
+
   /* PTin added: DHCP snooping */
   #if 1
   L7_uint16 extOVlan = vlanId;
   L7_uint16 extIVlan = 0;
 
   if (ptin_debug_dhcp_snooping)
-    PT_LOG_TRACE(LOG_CTX_DHCP, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
+    PT_LOG_TRACE(LOG_CTX_DHCP, "Going to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u, frameLen %u", intIfNum, vlanId, innerVlanId, frameLen);
 
   /* Extract external outer and inner vlan for this tx interface */
   if (ptin_dhcp_extVlans_get(intIfNum, vlanId, innerVlanId, client_idx, &extOVlan,&extIVlan) == L7_SUCCESS)
@@ -5178,9 +5186,9 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
     /* Modify outer vlan */
     if (vlanId!=extOVlan)
     {
-      frame[14] &= 0xf0;
-      frame[14] |= ((extOVlan>>8) & 0x0f);
-      frame[15]  = extOVlan & 0xff;
+      dataStart[14] &= 0xf0;
+      dataStart[14] |= ((extOVlan>>8) & 0x0f);
+      dataStart[15]  = extOVlan & 0xff;
       //vlanId = extOVlan;
     }
     /* Add inner vlan when there exists, and if vlan belongs to a stacked EVC */
@@ -5188,30 +5196,28 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
     {
       //for (i=frameLen-1; i>=16; i--)  frame[i+4] = frame[i];
             /* No inner tag? */
-      if (osapiNtohs(*((L7_uint16 *) &frame[16])) != 0x8100 &&
-          osapiNtohs(*((L7_uint16 *) &frame[16])) != 0x88A8 &&
-          osapiNtohs(*((L7_uint16 *) &frame[16])) != 0x9100)
+      if (osapiNtohs(*((L7_uint16 *) &dataStart[16])) != 0x8100 &&
+          osapiNtohs(*((L7_uint16 *) &dataStart[16])) != 0x88A8 &&
+          osapiNtohs(*((L7_uint16 *) &dataStart[16])) != 0x9100)
       {
-        memmove(&frame[20],&frame[16],frameLen);
-        frame[16] = 0x81;
-        frame[17] = 0x00;
+        memmove(&dataStart[20],&dataStart[16],frameLen);
+        dataStart[16] = 0x81;
+        dataStart[17] = 0x00;
         frameLen += 4;
       }
-      frame[18] = (frame[14] & 0xe0) | ((extIVlan>>8) & 0x0f);
-      frame[19] = extIVlan & 0xff;
+      dataStart[18] = (dataStart[14] & 0xe0) | ((extIVlan>>8) & 0x0f);
+      dataStart[19] = extIVlan & 0xff;
       //innerVlanId = extIVlan;
     }
   }
   #endif
 
-  SYSAPI_NET_MBUF_GET_DATASTART(bufHandle, dataStart);
-  memcpy(dataStart, frame, frameLen);
   SYSAPI_NET_MBUF_SET_DATALENGTH(bufHandle, frameLen);
 
   if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_TX)
   {
     int row, column;
-    L7_uchar8 *pkt = frame;
+    L7_uchar8 *pkt = dataStart;
 
     printf("\n===================\n");
     printf("======DHCP PKT=====\n");
@@ -5229,7 +5235,7 @@ L7_RC_t dsFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId,
   }
 
   if (ptin_debug_dhcp_snooping)
-    PT_LOG_TRACE(LOG_CTX_DHCP, "Ready to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
+    PT_LOG_TRACE(LOG_CTX_DHCP, "Ready to transmit packet to intIfNum %u, vlanId=%u, innerVlanId=%u, frame = %u", intIfNum, vlanId, innerVlanId, frameLen);
 
   if (dtlIpBufSend(intIfNum, vlanId, bufHandle) != L7_SUCCESS)
   {
