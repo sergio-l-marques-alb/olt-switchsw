@@ -902,7 +902,7 @@ static void ptin_igmp_check_topology_change(void)
 {
   //PT_LOG_DEBUG(LOG_CTX_IGMP, "Mc VLAN %u", igmpInst_fromRouterVlan[0]);
 
-  if( f(igmpInst_fromRouterVlan[0])== L7_SUCCESS) 
+  if( ptin_erps_igmp_notify(igmpInst_fromRouterVlan[0])== L7_SUCCESS) 
   {
     PT_LOG_NOTICE(LOG_CTX_IGMP, "Mc Topology changed VLAN %u", igmpInst_fromRouterVlan[0]);
     ptin_igmp_ports_default(0xFF);
