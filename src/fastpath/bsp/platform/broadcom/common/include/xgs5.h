@@ -68,7 +68,7 @@
 #ifdef L7_STACKING_PACKAGE
  #define PLAT_MAX_FDB_MAC_ENTRIES                  32768
 #else
- #define PLAT_MAX_FDB_MAC_ENTRIES                  32768
+ #define PLAT_MAX_FDB_MAC_ENTRIES                  65536
 #endif
 #endif
 
