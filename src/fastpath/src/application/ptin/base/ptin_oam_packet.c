@@ -1074,7 +1074,7 @@ int ptin_erps_FSM_transition_notification(unsigned char erps_idx, unsigned char 
 
 
 
-int f(unsigned short MC_vid) {
+int ptin_erps_igmp_notify(unsigned short MC_vid) {
 int erps_idx;
 //unsigned short MC_vid;
 
