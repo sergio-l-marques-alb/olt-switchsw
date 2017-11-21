@@ -127,7 +127,7 @@ typedef struct ptin_igmp_port_type_s {
 } ptin_igmp_port_type_t;
 
   /* initialize local router port connected to the router */
-  L7_uint32 lrp_id = -1;  
+L7_uint32 lrp_id = -1;  
 
 struct ptin_igmp_port_type_s ptin_port_list[PTIN_SYSTEM_N_UPLINK_INTERF];
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
@@ -1109,7 +1109,7 @@ L7_RC_t ptin_igmp_set_local_router_port(L7_uint32 port, L7_uint8 lrp_flag)
         lrp_id = port;
       }
 
-      PT_LOG_TRACE(LOG_CTX_IGMP,"ptin_port_list[port].query_count %u", ptin_port_list[port].query_count);
+      //PT_LOG_TRACE(LOG_CTX_IGMP,"ptin_port_list[port].query_count %u", ptin_port_list[port].query_count);
 
       while (i < PTIN_SYSTEM_N_LOCAL_PORTS) //PTIN_SYSTEM_N_UPLINK_INTERF) 
       {
@@ -1133,7 +1133,6 @@ L7_RC_t ptin_igmp_set_local_router_port(L7_uint32 port, L7_uint8 lrp_flag)
         lrp_id = port;
       }
 
-      PT_LOG_TRACE(LOG_CTX_IGMP,"ptin_port_list[port].query_count %u", ptin_port_list[port].query_count);
 
       while (i < PTIN_SYSTEM_N_UPLINK_INTERF) 
       {
@@ -1144,6 +1143,7 @@ L7_RC_t ptin_igmp_set_local_router_port(L7_uint32 port, L7_uint8 lrp_flag)
         i++;
         ptin_port_list[port].type = PTIN_IGMP_LOCAL_ROUTER_PORT;
       }
+      PT_LOG_NOTICE(LOG_CTX_IGMP,"Set lrp_id %u", port);
 #endif
   }
     return L7_SUCCESS;
@@ -1489,6 +1489,9 @@ L7_RC_t ptin_igmp_proxy_init(void)
  */
 L7_RC_t ptin_igmp_ports_default(L7_uint32 lrp_flag)
 {
+
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "%s: lrp_id = %u, lrp_flag = %u", __FUNCTION__, lrp_id, lrp_flag);
+
   if ( ((lrp_id == -1) && lrp_flag == -1) || (lrp_flag == 0))
   {
 
@@ -1549,15 +1552,16 @@ L7_RC_t ptin_igmp_ports_default(L7_uint32 lrp_flag)
       }
   #endif
 
-  #if 0
-      if (ptin_port_list[i].port_id == 14) {
+#if 1
+      if (ptin_port_list[i].port_id == lrp_id) {
         ptin_port_list[i].type = PTIN_IGMP_LOCAL_ROUTER_PORT;
         ptin_port_list[i].hybrid = 0;
-
+/*
         ptin_port_list[12].type = PTIN_IGMP_PORT_CLIENT;
         ptin_port_list[13].type = PTIN_IGMP_PORT_CLIENT;
+*/
       }
-  #endif
+#endif
   /* Para teste, sem utilizar mensagem da gestao. */
   #if 0
       if (ptin_port_list[i].port_id == 1) { // MX1_P2

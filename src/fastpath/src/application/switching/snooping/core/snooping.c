@@ -493,7 +493,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     PT_LOG_TRACE(LOG_CTX_IGMP,"Timer started!");
 
   }
-
   else
   {
     /* check if the query is received on client port */
