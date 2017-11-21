@@ -470,6 +470,7 @@ typedef struct
   L7_uint16 maxChannels;                    // 0x00010000 Maximum number of channels this port can have simultaneously
   L7_uint64 maxBandwidth;                   // 0x00020000 Maximum multicast bandwidth  this port can consume (bits/s)
   L7_uint8  dhcp_trusted;                   // 0x00100000
+  L7_uint8  router_port;                    // 0x00200000
 } ptin_HWPortExt_t;
 
 /* MAC address attributions */
@@ -1581,6 +1582,14 @@ typedef struct {
   L7_uint32 number_services;        // Number of services of a NGPON2 group
 } ptin_NGPON2_groups_t;
 #endif
+
+typedef struct
+{
+    L7_uint8                   slotId;
+    L7_uint32                  mask;          
+    ptin_intf_t                ptin_intf;
+    L7_uint8                   admin;   
+} __attribute__ ((packed)) ptin_LRP_t;
 
 #endif /* _PTIN_STRUCTS_H */
 

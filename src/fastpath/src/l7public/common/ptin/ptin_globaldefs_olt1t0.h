@@ -13,6 +13,9 @@
 #define IGMP_QUERIER_IN_UC_EVC
 #define IGMP_DYNAMIC_CLIENTS_SUPPORTED
 
+/* Define for the ring configuration support */
+#define ONE_MULTICAST_VLAN_RING_SUPPORT 1
+
 /* Special EVCs for this equipment */
 #define PTIN_EVC_BL2CPU         (PTIN_SYSTEM_EXT_EVCS_MGMT+0)     /* MACGPON-CPU EVC */
 #define PTIN_EVC_FPGA2CPU       (PTIN_SYSTEM_EXT_EVCS_MGMT+1)     /* FPGA-CPU EVC */

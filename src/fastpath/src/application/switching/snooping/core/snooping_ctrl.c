@@ -3398,12 +3398,14 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 intIfN
     return;
   }
 
+#ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
   if( L7_TRUE != ptin_evc_is_intf_leaf(serviceId, intIfNum))
   {
-    if (ptin_debug_igmp_snooping)
-      PT_LOG_ERR(LOG_CTX_IGMP, "Intfnum is not leaf [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");      
-    return;
+   if (ptin_debug_igmp_snooping)
+     PT_LOG_ERR(LOG_CTX_IGMP, "Intfnum is not leaf [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");
+   return;
   }
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
   #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
   isL3Entry = L7_TRUE;
@@ -3458,12 +3460,14 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 intIf
   }
   #endif    
 
+#ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
   if( L7_TRUE != ptin_evc_is_intf_leaf(serviceId, intIfNum))
   {
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP, "IntIfnum is not leaf [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%s]", serviceId, intIfNum, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");      
     return;
   }
+#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
   if( L7_SUCCESS != ptin_evc_intRootVlan_get(serviceId, &mcastRootVlan))
   {

@@ -3705,6 +3705,36 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
     }              
     if (ptin_debug_igmp_snooping)
       PT_LOG_DEBUG(LOG_CTX_IGMP, "L3 Multicast group 0x%08x removed", pChannelEntry->pChannelIntfMask->multicastGroup);
+
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+
+    L7_uint8  isDynamic;
+    L7_uint32 ptin_port_aux;
+    L7_uint8  local_router_port_id;
+    L7_uint8  port_type;
+
+    ptin_port_aux = intIfNum - 1;
+
+    if (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS)
+    {
+
+      rc = ptin_igmp_port_type_get(intIfNum-1, &port_type);
+      if (rc == L7_TRUE)
+      {
+        if ( (ptin_igmp_port_is_Dynamic(ptin_port_aux,&isDynamic) == L7_SUCCESS) && (port_type == PTIN_IGMP_PORT_CLIENT) )
+        {
+          PT_LOG_DEBUG(LOG_CTX_IGMP, "XXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+
+          ptin_igmp_ring_osapiSemaTake();
+          ptin_igmp_timer_stop(local_router_port_id, PTIN_IGMP_CLIENTIDX_MAX - 1);
+          ptin_igmp_ring_osapiSemaGive();
+
+          ptin_igmp_ports_default(-1);
+        }
+      }
+    }
+
+#endif // ONE_MULTICAST_VLAN_RING_SUPPORT
   }   
   
   if ( removechannelIntfMask == L7_TRUE )
