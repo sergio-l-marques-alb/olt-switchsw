@@ -902,15 +902,6 @@ static void igmp_clientIndex_unmark(L7_uint ptin_port, L7_uint client_idx);
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-||||||| .merge-left.r6775
-/**
- * Initializes Package Feature
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
-=======
-
->>>>>>> .merge-right.r6776
 
 
 static void ptin_igmp_check_topology_change(void)
