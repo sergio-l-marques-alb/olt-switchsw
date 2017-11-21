@@ -1744,8 +1744,8 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
       return L7_FAILURE;
     }
 
-    PT_LOG_ERR(LOG_CTX_MSG, "portExt[i].intf.intf_id = %u", portExt[i].intf.intf_id);
-    PT_LOG_ERR(LOG_CTX_MSG, "ptin_intf.intf_id = %u", ptin_intf.intf_id);
+    PT_LOG_TRACE(LOG_CTX_MSG, "portExt[i].intf.intf_id = %u", portExt[i].intf.intf_id);
+    PT_LOG_TRACE(LOG_CTX_MSG, "ptin_intf.intf_id = %u", ptin_intf.intf_id);
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
     L7_RC_t rc;
