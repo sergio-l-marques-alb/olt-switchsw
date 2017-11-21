@@ -830,7 +830,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
    
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
-#if PTIN_BOARD_IS_MATRIX
+
 #if 1 //ndef ONE_MULTICAST_VLAN_RING_SUPPORT
   /* Do nothing for slave matrix */
   if (!ptin_fpga_mx_is_matrixactive_rt())
@@ -840,20 +840,6 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
     return SUCCESS;
   }
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
-#elif (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
-  ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
-
-  /* Get  the protection status of this switch port */
-  ptin_prottypeb_intf_config_get(portId, &protTypebIntfConfig);
-  if( protTypebIntfConfig.intfRole != PROT_TYPEB_ROLE_NONE &&  protTypebIntfConfig.status != L7_ENABLE)
-  {
-    if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. I'm a Protection Port [portId=%u serviceId=%u]",portId, serviceId );
-    return SUCCESS;
-  }
-#else
-  #error "Not Implemented Yet"
-#endif
 
   //Ignore if the port has link down
   if ( (nimGetIntfActiveState(portId, &activeState) != L7_SUCCESS) || (activeState != L7_ACTIVE) )
@@ -892,11 +878,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   
   //We only get the intRootVLAN here for the General Query and for the Membership Reports
   //For Group Specific Queries we use the  ptin_mgmd_send_leaf_packet to obtain the intRootVLAN
-#if !PTIN_BOARD_IS_MATRIX 
-  if ( (portType == PTIN_MGMD_PORT_TYPE_ROOT || groupAddress==0x00) )
-#else
   if(1)
-#endif
   {  
     //Get outter internal vlan
     if( SUCCESS != ptin_evc_intRootVlan_get(serviceId, &int_ovlan))
@@ -917,31 +899,6 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
     }
   }
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
-  #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-  else
-  {
-    if (clientId != (unsigned int) -1)
-    {
-      L7_uint32 ptin_port;    
-
-      /* Convert to ptin_port format */
-      if (ptin_intf_intIfNum2port(portId, &ptin_port) != L7_SUCCESS || ptin_port >= PTIN_SYSTEM_N_INTERF)
-      {
-        PT_LOG_ERR(LOG_CTX_IGMP,"Cannot convert intIfNum %u to ptin_port format", portId);
-        return L7_FAILURE;
-      }
-
-      if( igmp_intVlan_from_clientId_get(ptin_port, clientId, &int_ovlan) != L7_SUCCESS  
-          || int_ovlan<PTIN_VLAN_MIN || int_ovlan>PTIN_VLAN_MAX)
-      {
-        PT_LOG_ERR(LOG_CTX_IGMP,"Cannot obtain int_ovlan (%u) from client id:%u", int_ovlan, clientId);              
-        return L7_FAILURE;
-      }
-      if (ptin_debug_igmp_snooping)
-        PT_LOG_TRACE(LOG_CTX_IGMP,"Obtained int_ovlan (%u) from client id:%u", int_ovlan, clientId);  
-    }     
-  }
-  #endif
 
   //Get destination MAC from destIpAddr
   destIpPtr = (payload+16);
@@ -985,77 +942,18 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   memcpy(dataPtr, payload, payloadLength * sizeof(uchar8));
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+
   L7_uint8 local_router_port_id;
-  if ( portType == PTIN_MGMD_PORT_TYPE_ROOT /* LRP */ || 
-       (portType == PTIN_MGMD_PORT_TYPE_LEAF && isDynamic && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS)/* Portas de uplink client */) )
-#elif (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-  if ( portType == PTIN_MGMD_PORT_TYPE_ROOT )
-#endif
+ if ( portType == PTIN_MGMD_PORT_TYPE_ROOT /* LRP */ ||
+     (portType == PTIN_MGMD_PORT_TYPE_LEAF && isDynamic && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS)) ||/* Portas de uplink client */ 
+     (portId >= PTIN_SYSTEM_N_LOCAL_PORTS && portId < PTIN_SYSTEM_N_INTERF) )
+#endif                
   { 
     ptin_timer_start(31,"snoopPacketSend"); 
     //Send packet
     snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
     ptin_timer_stop(31);       
   }
-  #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
-  else //To support sending one Membership Query Message per ONU 
-  {
-    if (groupAddress != 0x0 ) //Membership Group or Group and Source Specific Query Message
-    { 
-      if (clientId == (unsigned int) -1)//No Client Id is provided
-      {        
-        mgmdQueryInstances_t *mgmdQueryInstancesPtr=L7_NULLPTR;
-      
-        L7_uint32             mgmdNumberOfQueryInstances;
-        L7_uint32             numberOfQueriesSent=0;
-
-        mgmdQueryInstancesPtr = ptin_mgmd_query_instances_get(&mgmdNumberOfQueryInstances);
-        if ((mgmdNumberOfQueryInstances>0 && mgmdQueryInstancesPtr==L7_NULLPTR) || mgmdNumberOfQueryInstances>=PTIN_SYSTEM_N_EVCS)
-        {
-          PT_LOG_WARN(LOG_CTX_IGMP,"Either mgmdNumberOfQueryInstances [%u] >= PTIN_SYSTEM_N_EVCS [%u] or mgmdQueryInstances=%p",mgmdNumberOfQueryInstances,PTIN_SYSTEM_N_EVCS,mgmdQueryInstancesPtr);
-          mgmdNumberOfQueryInstances=0;
-          return SUCCESS;
-        }
-
-        if (ptin_debug_igmp_snooping)
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Going to send %u Group Specific Queries",mgmdNumberOfQueryInstances);
-      
-        while(mgmdQueryInstancesPtr!=L7_NULLPTR)
-        {        
-          if (mgmdQueryInstancesPtr->inUse==L7_TRUE)
-          {
-            ++numberOfQueriesSent;
-            //Get outter internal vlan
-
-            if( SUCCESS != ptin_evc_intRootVlan_get(mgmdQueryInstancesPtr->UcastEvcId, &int_ovlan))
-            {
-              PT_LOG_ERR(LOG_CTX_IGMP,"Unable to get mcastRootVlan from serviceId");
-              return FAILURE;
-            }          
-            ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId,-1);
-          }
-          if(numberOfQueriesSent>=mgmdNumberOfQueryInstances)
-          {          
-            break;
-          }
-          mgmdQueryInstancesPtr++;     
-        }
-      }
-      else//Client Id is provided
-      {
-        ptin_timer_start(31,"snoopPacketSend"); 
-        //Send packet
-        snoopPacketSend(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId);
-        ptin_timer_stop(31);
-      }
-    }
-    else //General Query
-    {
-      ptin_mgmd_send_leaf_packet(portId, int_ovlan, int_ivlan, packet, packetLength, family, clientId, onuId);
-    }
-  }
-  #endif
-  
   return SUCCESS;
 #else
   L7_uint16             shortVal;
@@ -1074,16 +972,7 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
 
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
-
-#if PTIN_BOARD_IS_MATRIX
-  /* Do nothing for slave matrix */
-  if (!ptin_fpga_mx_is_matrixactive_rt())
-  {
-    if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix [portId=%u serviceId=%u]",portId, serviceId );
-    return SUCCESS;
-  }
-#elif (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
+#if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
 
   /* Get  the protection status of this switch port */
