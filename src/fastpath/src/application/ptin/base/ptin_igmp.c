@@ -921,7 +921,7 @@ static void ptin_igmp_check_topology_change(void)
   {
     PT_LOG_NOTICE(LOG_CTX_IGMP, "Mc Topology changed VLAN %u", igmpInst_fromRouterVlan[0]);
     ptin_igmp_ports_default(0xFF);
-    ptin_igmp_generalquerier_reset();
+    ptin_igmp_proxy_reset();
   }
   //return L7_SUCCESS;
 }
