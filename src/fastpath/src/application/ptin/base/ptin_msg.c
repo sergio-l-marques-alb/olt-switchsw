@@ -1746,21 +1746,23 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
     L7_RC_t rc;
+    L7_uint32 local_router_port_id;
+    ptin_igmp_get_lrp_id(&local_router_port_id);
    
     /* check if this OLT is connected to a router */
     if ( portExt_conf.Mask & PTIN_IGMP_LRP )
     {
-      if ( portExt_conf.router_port )
+      if ( portExt_conf.router_port == 1)
       {
         /* If local router port is defined do nothing*/
-        if (lrp_id == ptin_intf.intf_id)
+        if (local_router_port_id == ptin_intf.intf_id)
         {
           continue;
         }
         else
         {
           /* define local router port */
-          PT_LOG_NOTICE(LOG_CTX_MSG,"Local router port flag -> enable. Going to define local router port = %u!", portExt[i].intf.intf_id);
+          PT_LOG_NOTICE(LOG_CTX_MSG,"Local router port flag -> enable. Going to define local router port = %u, lrp_flag %u", portExt[i].intf.intf_id, portExt_conf.router_port);
           rc = ptin_igmp_set_local_router_port(ptin_intf.intf_id, portExt_conf.router_port);
           if (rc == L7_FAILURE)
             return L7_FAILURE;
@@ -1768,17 +1770,16 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
           /* Send General Query */
           PT_LOG_NOTICE(LOG_CTX_MSG,"RING: Going to send general querys to all client and dynamic ports!!");
           ptin_igmp_generalquerier_reset();
-
           PT_LOG_NOTICE(LOG_CTX_MSG,"Local router port defined!!");
         }
       }
-      else if ( !portExt_conf.router_port ) //(portExt_conf.Mask & PTIN_IGMP_LRP)
+      else if ( portExt_conf.router_port == 0 ) //(portExt_conf.Mask & PTIN_IGMP_LRP)
       {
         /* Reset ports default */
-        if (lrp_id == ptin_intf.intf_id)
+        if (local_router_port_id == ptin_intf.intf_id)
         {
           /* set uplink ports states to default */
-          lrp_id = -1; 
+          ptin_igmp_set_lrp_id(-1); 
           PT_LOG_NOTICE(LOG_CTX_MSG,"Local router port flag -> disable. Going to execute ptin_imgp_ports_default!!");
           rc = ptin_igmp_ports_default(portExt_conf.router_port);
           if (rc == L7_FAILURE)

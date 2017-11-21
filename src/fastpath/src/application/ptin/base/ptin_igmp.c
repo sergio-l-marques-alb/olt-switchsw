@@ -127,7 +127,7 @@ typedef struct ptin_igmp_port_type_s {
 } ptin_igmp_port_type_t;
 
   /* initialize local router port connected to the router */
-L7_uint32 lrp_id = -1;  
+static L7_uint32 lrp_id;  
 
 struct ptin_igmp_port_type_s ptin_port_list[PTIN_SYSTEM_N_UPLINK_INTERF];
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
@@ -1076,6 +1076,47 @@ L7_RC_t ptin_igmp_get_local_router_port(L7_uint8 *local_router_port_id)
 }
 
 /**
+ * Get global local router port id
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_get_lrp_id(L7_uint32 *local_router_port_id)
+{
+  
+  PT_LOG_TRACE(LOG_CTX_IGMP, "%s: lrp_id %u", __FUNCTION__, lrp_id);
+
+  *local_router_port_id = lrp_id;
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Set global local router port id
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+L7_RC_t ptin_igmp_set_lrp_id(L7_uint32 local_router_port_id)
+{
+
+  PT_LOG_TRACE(LOG_CTX_IGMP, "%s: lrp_id %u", __FUNCTION__, lrp_id);
+
+  /* lrp_id = -1 || lrp_id < uplink_intf && lrp_id > n_pons */
+  if ( (local_router_port_id == (L7_uint32)-1) || 
+       ( (local_router_port_id <= PTIN_SYSTEM_N_UPLINK_INTERF) && local_router_port_id >= PTIN_SYSTEM_N_PONS) )
+  {
+    lrp_id = local_router_port_id;
+  }
+  else  
+  {
+    PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", local_router_port_id);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+
+/**
  * Set local router port 
  * @param ptin_port
  * @param local router port flag
@@ -1093,8 +1134,11 @@ L7_RC_t ptin_igmp_set_local_router_port(L7_uint32 port, L7_uint8 lrp_flag)
 
   L7_uint i=0;
 
-  if ( (lrp_flag = -1) || (lrp_flag == 1 && lrp_id == -1)) 
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "%s: lrp_id = %u, lrp_flag = %u", __FUNCTION__, lrp_id, lrp_flag);
+
+  if ( (lrp_flag == 0xFF) || (lrp_flag == 1 && lrp_id == -1)) 
   {
+    PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
 
 #if PTIN_BOARD == PTIN_BOARD_CXO160G
 
@@ -1121,18 +1165,19 @@ L7_RC_t ptin_igmp_set_local_router_port(L7_uint32 port, L7_uint8 lrp_flag)
         ptin_port_list[port].type = PTIN_IGMP_LOCAL_ROUTER_PORT;
       }
 #else // OLT1T0
-
+      PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
       if ( port > PTIN_SYSTEM_N_UPLINK_INTERF ) 
       {
         PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", port);
         return L7_FAILURE;
       }
+      PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
 
-      if ( (lrp_flag == 1 && lrp_id == -1) )
+      if ( (lrp_flag == 1 && lrp_id == (L7_uint32)-1) )
       {
         lrp_id = port;
+        PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_id is %u ", lrp_id);
       }
-
 
       while (i < PTIN_SYSTEM_N_UPLINK_INTERF) 
       {
@@ -1176,7 +1221,7 @@ L7_RC_t ptin_igmp_proxy_init(void)
   /* set all ring ports to default */
 
   L7_uint8 local_router_port_id = -1;
-  
+  lrp_id = (L7_uint32) -1;
   if (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS) 
   {
     ptin_igmp_ring_osapiSemaTake();
@@ -1184,7 +1229,7 @@ L7_RC_t ptin_igmp_proxy_init(void)
     ptin_igmp_ring_osapiSemaGive();
   }
   
-  ptin_igmp_ports_default(PTIN_IGMP_LRP_DYNAMIC);
+  ptin_igmp_ports_default(0xFF);
 
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
@@ -1488,12 +1533,12 @@ L7_RC_t ptin_igmp_proxy_init(void)
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_ports_default(L7_uint32 lrp_flag)
+L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
 {
 
   PT_LOG_NOTICE(LOG_CTX_IGMP, "%s: lrp_id = %u, lrp_flag = %u", __FUNCTION__, lrp_id, lrp_flag);
 
-  if ( ((lrp_id == -1) && lrp_flag == -1) || (lrp_flag == 0))
+  if ( ((lrp_id == -1) && lrp_flag == 0xFF) || (lrp_flag == 0))
   {
 
 /*
@@ -1553,15 +1598,39 @@ L7_RC_t ptin_igmp_ports_default(L7_uint32 lrp_flag)
       }
   #endif
 
-#if 1
-      if (ptin_port_list[i].port_id == lrp_id) {
+#if 0
+/*
+      if (ptin_port_list[i].port_id == lrp_id) 
+      {
         ptin_port_list[i].type = PTIN_IGMP_LOCAL_ROUTER_PORT;
         ptin_port_list[i].hybrid = 0;
-/*
+
         ptin_port_list[12].type = PTIN_IGMP_PORT_CLIENT;
         ptin_port_list[13].type = PTIN_IGMP_PORT_CLIENT;
-*/
       }
+*/
+
+      PT_LOG_NOTICE(LOG_CTX_IGMP, "%s: lrp_id = %u, lrp_flag = %u", __FUNCTION__, lrp_id, lrp_flag);
+
+      L7_RC_t rc;
+      if (lrp_id != (L7_uint32) -1)
+      {
+        /* define local router port */
+        PT_LOG_NOTICE(LOG_CTX_MSG, "%s: Local router port = %u!", __FUNCTION__, lrp_id);
+        rc = ptin_igmp_set_local_router_port(lrp_id, (L7_uint8)-1);
+        if (rc == L7_FAILURE)
+        {
+          PT_LOG_NOTICE(LOG_CTX_MSG, "%s: ERROR: define Local router port = %u!", __FUNCTION__, lrp_id);
+          return L7_FAILURE;
+        }
+
+        /* Send General Query */
+        PT_LOG_NOTICE(LOG_CTX_MSG,"RING: Going to send general querys to all client and dynamic ports!!");
+        ptin_igmp_generalquerier_reset();
+
+        PT_LOG_NOTICE(LOG_CTX_MSG,"Local router port defined!!");
+      }
+
 #endif
   /* Para teste, sem utilizar mensagem da gestao. */
   #if 0
@@ -2604,6 +2673,7 @@ L7_RC_t ptin_igmp_instance_add(L7_uint32 McastEvcId, L7_uint32 UcastEvcId)
 
   ptin_evc_get_NNIvlan_fromEvcId(McastEvcId, &nni_ovlan);
   igmpInst_fromRouterVlan[nni_ovlan]=igmp_idx;
+
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
   return L7_SUCCESS;
@@ -7629,7 +7699,7 @@ void igmp_timer_expiry(void *param)
   /* if the timer associated to the local router port expire execute ptin_igmp_ports_default() */
   if (client_idx == PTIN_IGMP_CLIENTIDX_MAX - 1) {
     PT_LOG_ERR(LOG_CTX_IGMP, "Ring: Timer expired fot the local_router_port, going to execute ptin_igmp_ports_default ");
-    ptin_igmp_ports_default(PTIN_IGMP_LRP_DYNAMIC);
+    ptin_igmp_ports_default(0xFF);
     PT_LOG_ERR(LOG_CTX_IGMP, "Ring Passou: Timer expired fot the local_router_port, ptin_igmp_ports_default executed successfully ");
   }
 #endif
@@ -20194,6 +20264,8 @@ void ptin_igmp_lrp_dump(void)
     i++;
   }
 #endif
+
+    printf("Local Router Port: lrp_id = %u \n\r", lrp_id);
 }
 
 
@@ -20201,7 +20273,7 @@ void ptin_igmp_ring_ports_default()
 {
   printf("Going to call ptin_igmp_ports_default \n\r");
 
-  ptin_igmp_ports_default(PTIN_IGMP_LRP_DYNAMIC);
+  ptin_igmp_ports_default(0xFF);
 
 }
 

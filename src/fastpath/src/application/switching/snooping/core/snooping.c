@@ -478,7 +478,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     ptin_port = pduInfo->intIfNum-1;
     PT_LOG_TRACE(LOG_CTX_IGMP,"Query received on uplink port, Going to define local router port. ptin_port = %u ",ptin_port);
 
-    rc = ptin_igmp_set_local_router_port(ptin_port, -1);
+    rc = ptin_igmp_set_local_router_port(ptin_port, 0xFF);
     if (rc == L7_FAILURE)
     {
       return L7_FAILURE;
@@ -487,7 +487,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     {
       /* Send General Query */
       PT_LOG_NOTICE(LOG_CTX_IGMP,"RING: Going to send general querys to all client and dynamic ports!!");
-      ptin_igmp_generalquerier_reset();
+      ptin_igmp_generalquerier_reset(); 
     }
 
     /* Start timmer for the local router port */
@@ -543,7 +543,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
             }
 
             PT_LOG_NOTICE(LOG_CTX_IGMP,"Dynamic client port (ptin_port %u) has received 2 querys. Going to set all dynamic ports to default!  ", pduInfo->intIfNum-1);
-            ptin_igmp_ports_default(PTIN_IGMP_LRP_DYNAMIC);
+            ptin_igmp_ports_default(0xFF);
             PT_LOG_NOTICE(LOG_CTX_IGMP,"All dynamic ports set to default! ");
           }
         }

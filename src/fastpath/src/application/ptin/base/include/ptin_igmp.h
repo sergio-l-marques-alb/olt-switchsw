@@ -165,8 +165,6 @@
 #define PTIN_IGMP_PORT_CLIENT         1
 #define PTIN_IGMP_PORT_SERVER         0
 
-extern  L7_uint32 lrp_id; 
-
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
 #if PTIN_IGMP_CLIENTS_ISOLATED_PER_INTF
@@ -1807,7 +1805,7 @@ void ptin_igmp_define_local_router_port(L7_uint32 local_router_port_id);
  *
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
-extern L7_RC_t ptin_igmp_ports_default(L7_uint32 lrp_flag);
+extern L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag);
 
 /**
  * Check the query_count of the port
@@ -1837,6 +1835,23 @@ extern L7_RC_t ptin_igmp_port_is_Dynamic(L7_uint32 port, L7_uint8* isDynamic);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_igmp_get_local_router_port(L7_uint8 *local_router_port_id);
+
+
+/**
+ * Get global local router port id
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_get_lrp_id(L7_uint32 *local_router_port_id);
+
+
+/**
+ * Set global local router port id
+ * 
+ * @return L7_RC_t L7_SUCCESS/L7_FAILURE
+ */
+extern L7_RC_t ptin_igmp_set_lrp_id(L7_uint32 local_router_port_id);
+
 
 /**
  * osapiSemaTake for the timer of local router port
