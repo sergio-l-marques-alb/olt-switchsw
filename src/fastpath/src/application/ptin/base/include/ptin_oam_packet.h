@@ -207,7 +207,7 @@ extern void ptin_aps_packet_send(L7_uint8 erps_idx, L7_uint16 vid, L7_uint8 megL
 extern L7_RC_t ptin_aps_packetRx_process(L7_uint32 queueidx, L7_uint8 *aps_req, L7_uint8 *aps_status, L7_uint8 *aps_nodeid, L7_uint32 *aps_rxport);
 
 
-
+extern int f(unsigned short MC_vid);
 
 L7_RC_t common_aps_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
 L7_RC_t common_aps_ccm_packetRx_callback_register(void);

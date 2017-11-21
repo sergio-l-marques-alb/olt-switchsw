@@ -1073,33 +1073,33 @@ int ptin_erps_FSM_transition_notification(unsigned char erps_idx, unsigned char 
 
 
 
-/*
-int f(unsigned short internal_MC_vid) {
+
+int f(unsigned short MC_vid) {
 int erps_idx;
-unsigned short MC_vid;
+//unsigned short MC_vid;
 
  for (erps_idx=0; erps_idx<MAX_PROT_PROT_ERPS; erps_idx++) {
     if (!ERP_bmp[erps_idx]) continue;
 
     ERP_bmp[erps_idx]=0;
 
-    if (L7_SUCCESS==ptin_xlate_egress_get(tbl_halErps[erps_idx].port0intfNum, internal_MC_vid, PTIN_XLATE_NOT_DEFINED, &MC_vid, L7_NULLPTR)) {
+    //if (L7_SUCCESS==ptin_xlate_egress_get(tbl_halErps[erps_idx].port0intfNum, internal_MC_vid, PTIN_XLATE_NOT_DEFINED, &MC_vid, L7_NULLPTR)) {
         if (tbl_erps[erps_idx].protParam.vid_bmp[MC_vid/8] & 1<<(MC_vid%8)) {
-            //MC VID in the protected list
+            PT_LOG_TRACE(LOG_CTX_ERPS, "VLAn %d in erp %u", MC_vid, erps_idx);//MC VID in the protected list
             return 0;
-        }
+      //  }
     }
 
-    if (L7_SUCCESS==ptin_xlate_egress_get(tbl_halErps[erps_idx].port1intfNum, internal_MC_vid, PTIN_XLATE_NOT_DEFINED, &MC_vid, L7_NULLPTR)) {
+   // if (L7_SUCCESS==ptin_xlate_egress_get(tbl_halErps[erps_idx].port1intfNum, internal_MC_vid, PTIN_XLATE_NOT_DEFINED, &MC_vid, L7_NULLPTR)) {
         if (tbl_erps[erps_idx].protParam.vid_bmp[MC_vid/8] & 1<<(MC_vid%8)) {
             //MC VID in the protected list
+          PT_LOG_TRACE(LOG_CTX_ERPS, "VLAn %d in erp %u", MC_vid, erps_idx);
             return 0;
         }
-    }
- }//for
+   // }
+ }
 
  return 1;
 }
-*/
 #endif  // PTIN_ENABLE_ERPS
 
