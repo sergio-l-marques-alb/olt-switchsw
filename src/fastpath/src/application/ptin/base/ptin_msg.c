@@ -1772,7 +1772,7 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
 
           /* Send General Query */
           PT_LOG_NOTICE(LOG_CTX_MSG,"RING: Going to send general querys to all client and dynamic ports!!");
-          ptin_igmp_generalquerier_reset();
+          ptin_igmp_generalquerier_reset((L7_uint32) -1, (L7_uint32) -1);
           PT_LOG_NOTICE(LOG_CTX_MSG,"Local router port defined!!");
         }
       }

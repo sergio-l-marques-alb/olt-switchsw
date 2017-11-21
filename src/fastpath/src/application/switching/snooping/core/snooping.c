@@ -501,7 +501,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     {
       /* Send General Query */
       PT_LOG_NOTICE(LOG_CTX_IGMP,"RING: Going to send general querys to all client and dynamic ports!!");
-      ptin_igmp_generalquerier_reset(); 
+      ptin_igmp_generalquerier_reset((L7_uint32) -1, (L7_uint32) -1); 
     }
 
     /* Start timmer for the local router port */

@@ -378,21 +378,10 @@ static L7_RC_t ptin_igmp_channel_add( ptinIgmpChannelInfoData_t *node );
 static L7_RC_t ptin_igmp_channel_remove( ptinIgmpChannelDataKey_t *avl_key );
 static L7_RC_t ptin_igmp_channel_remove_multicast_service ( L7_uint32 evc_uc, L7_uint32 evc_mc );
 static L7_RC_t ptin_igmp_channel_remove_all ( void );
-static void ptin_igmp_check_topology_change(void);
-/*
-void ptin_igmp_check_topology_change(void)
-{
-  PT_LOG_TRACE(LOG_CTX_IGMP, "Mc VLAN %u", igmpInst_fromRouterVlan[0]);
 
-  if( f(igmpInst_fromRouterVlan[0])== L7_SUCCESS) 
-  {
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Mc Topology changed VLAN %u", igmpInst_fromRouterVlan[0]);
-    ptin_igmp_ports_default(0xFF);
-    ptin_igmp_generalquerier_reset();
-  }
-  return L7_SUCCESS;
-}
-*/
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+static void ptin_igmp_check_topology_change(void);
+#endif
 
 static ptinIgmpGroupClientInfoData_t* deviceClientId2groupClientPtr(L7_uint32 ptinPort, L7_uint32 clientId);
 static RC_t ptin_igmp_multicast_channel_service_get(L7_uint32 ptinPort, L7_uint32 deviceClientId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint32 *serviceId);
@@ -894,16 +883,9 @@ static void igmp_clientIndex_unmark(L7_uint ptin_port, L7_uint client_idx);
 /*********************************************************** 
  * FUNCTIONS 
  ***********************************************************/
-<<<<<<< .working
-
-#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-/**
- * Initializes Package Feature
- * 
- * @return L7_RC_t L7_SUCCESS/L7_FAILURE
- */
 
 
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
 static void ptin_igmp_check_topology_change(void)
 {
   //PT_LOG_DEBUG(LOG_CTX_IGMP, "Mc VLAN %u", igmpInst_fromRouterVlan[0]);
@@ -938,6 +920,9 @@ void ptin_igmp_1s_task( void )
   }
 }
 
+#endif
+
+#ifdef IGMPASSOC_MULTI_MC_SUPPORTED
 /**
  * Initializes Package Feature
  * 
@@ -1729,7 +1714,8 @@ L7_RC_t ptin_igmp_proxy_init(void)
 
   PT_LOG_INFO(LOG_CTX_IGMP, "IGMP init OK");
 
-   L7_uint32 ptin_igmp_TaskId = 0;    
+#ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
+  L7_uint32 ptin_igmp_TaskId = 0;    
   //Create task for IGMP 1s processing
   ptin_igmp_TaskId = osapiTaskCreate("ptin_1s_igmp_task", ptin_igmp_1s_task, 0, 0,
                                                 L7_DEFAULT_STACK_SIZE,
@@ -1747,6 +1733,7 @@ L7_RC_t ptin_igmp_proxy_init(void)
     return(L7_FAILURE);
   }
   PT_LOG_TRACE(LOG_CTX_IGMP,"Task ptin_rfc2819_task initialized");
+#endif
 
   return L7_SUCCESS;
 }
@@ -20390,19 +20377,6 @@ void ptin_igmp_general_query_reset_teste(L7_uint32 ptinPort, L7_uint32 onuId, L7
 
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
-
-static L7_uint8 ptin_igmp_check_topology_change(void)
-{
-  PT_LOG_TRACE(LOG_CTX_IGMP, "Mc VLAN %u", igmpInst_fromRouterVlan[0]);
-
-  if( f(igmpInst_fromRouterVlan[0])== L7_SUCCESS) 
-  {
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Mc Topology changed VLAN %u", igmpInst_fromRouterVlan[0]);
-    ptin_igmp_ports_default(0xFF);
-    ptin_igmp_generalquerier_reset();
-  }
-  return L7_SUCCESS;
-}
 
 L7_uint8 ptin_igmp_ring_osapiSemaTake()
 {

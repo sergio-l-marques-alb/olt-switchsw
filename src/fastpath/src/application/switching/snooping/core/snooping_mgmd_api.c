@@ -942,7 +942,6 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   memcpy(dataPtr, payload, payloadLength * sizeof(uchar8));
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
-
   L7_uint8 local_router_port_id;
  if ( portType == PTIN_MGMD_PORT_TYPE_ROOT /* LRP */ ||
      (portType == PTIN_MGMD_PORT_TYPE_LEAF && isDynamic && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_SUCCESS)) ||/* Portas de uplink client */ 
