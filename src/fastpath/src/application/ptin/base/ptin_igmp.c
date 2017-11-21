@@ -1588,61 +1588,6 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
       }
   #endif
 
-  #if 0
-      if (ptin_port_list[i].port_id == 12) {
-        ptin_port_list[i].type = PTIN_IGMP_PORT_CLIENT;
-      }
-
-      if (ptin_port_list[i].port_id == 13) {
-        ptin_port_list[i].type = PTIN_IGMP_PORT_SERVER;
-      }
-  #endif
-
-#if 0
-/*
-      if (ptin_port_list[i].port_id == lrp_id) 
-      {
-        ptin_port_list[i].type = PTIN_IGMP_LOCAL_ROUTER_PORT;
-        ptin_port_list[i].hybrid = 0;
-
-        ptin_port_list[12].type = PTIN_IGMP_PORT_CLIENT;
-        ptin_port_list[13].type = PTIN_IGMP_PORT_CLIENT;
-      }
-*/
-
-      PT_LOG_NOTICE(LOG_CTX_IGMP, "%s: lrp_id = %u, lrp_flag = %u", __FUNCTION__, lrp_id, lrp_flag);
-
-      L7_RC_t rc;
-      if (lrp_id != (L7_uint32) -1)
-      {
-        /* define local router port */
-        PT_LOG_NOTICE(LOG_CTX_MSG, "%s: Local router port = %u!", __FUNCTION__, lrp_id);
-        rc = ptin_igmp_set_local_router_port(lrp_id, (L7_uint8)-1);
-        if (rc == L7_FAILURE)
-        {
-          PT_LOG_NOTICE(LOG_CTX_MSG, "%s: ERROR: define Local router port = %u!", __FUNCTION__, lrp_id);
-          return L7_FAILURE;
-        }
-
-        /* Send General Query */
-        PT_LOG_NOTICE(LOG_CTX_MSG,"RING: Going to send general querys to all client and dynamic ports!!");
-        ptin_igmp_generalquerier_reset();
-
-        PT_LOG_NOTICE(LOG_CTX_MSG,"Local router port defined!!");
-      }
-
-#endif
-  /* Para teste, sem utilizar mensagem da gestao. */
-  #if 0
-      if (ptin_port_list[i].port_id == 1) { // MX1_P2
-        ptin_port_list[i].type = PTIN_IGMP_LOCAL_ROUTER_PORT;
-        ptin_port_list[i].hybrid = 0;
-
-        ptin_port_list[0].type = PTIN_IGMP_PORT_CLIENT; // MX1_P1
-        ptin_port_list[2].type = PTIN_IGMP_PORT_CLIENT; // MX2_P1
-      }
-  #endif
-
       i++;
     }
   }
@@ -3805,50 +3750,77 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
           mgmdGroupsRes++;                  
           continue;
         }
+
         if (L7_NULLPTR == (clientGroup = client->pClientGroup))
         {
-          *number_of_clients=0;
+          //*number_of_clients=0;
           PT_LOG_ERR(LOG_CTX_IGMP,"Invalid client returned from MGMD clientId:%u", mgmdGroupsRes->clientId);
 
-          /*Give Semaphore*/
-          osapiSemaGive(ptin_igmp_clients_sem);
 
-          return L7_FAILURE;
+  #if (MC_CLIENT_INTERF_SUPPORTED)
+          newClientEntry.ptin_intf.intf_type = 0;
+          newClientEntry.ptin_intf.intf_id = ptinPort;
+          newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+  #endif
+  #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+          L7_uint16 nni_ovid;
+
+          ptin_evc_get_NNIvlan_fromEvcId(McastEvcId, &nni_ovid);
+          newClientEntry.outerVlan = nni_ovid;
+          newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+          //PT_LOG_DEBUG(LOG_CTX_IGMP, "oVlan: %u", newClientEntry.outerVlan);
+  #endif
+  #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+          //newClientEntry.innerVlan = clientGroup->igmpClientDataKey.innerVlan;
+          //newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+          //PT_LOG_DEBUG(LOG_CTX_IGMP, "iVlan: %u", newClientEntry.innerVlan);
+  #endif
+          /*Give Semaphore*/
+          //osapiSemaGive(ptin_igmp_clients_sem);
+
+          //return L7_FAILURE;
+
         }
-#if (MC_CLIENT_INTERF_SUPPORTED)
-        if (ptin_intf_port2ptintf(clientGroup->ptin_port, &newClientEntry.ptin_intf)!=L7_SUCCESS)
+        else
         {
-          *number_of_clients=0;
-          PT_LOG_ERR(LOG_CTX_IGMP,"Unable to Convert intfNum[%u]", clientGroup->ptin_port);
+  #if (MC_CLIENT_INTERF_SUPPORTED)
+          if (ptin_intf_port2ptintf(clientGroup->ptin_port, &newClientEntry.ptin_intf)!=L7_SUCCESS)
+          {
+            *number_of_clients=0;
+            PT_LOG_ERR(LOG_CTX_IGMP,"Unable to Convert intfNum[%u]", clientGroup->ptin_port);
 
-          /*Give Semaphore*/
-          osapiSemaGive(ptin_igmp_clients_sem);
+            /*Give Semaphore*/
+            osapiSemaGive(ptin_igmp_clients_sem);
 
-          return L7_FAILURE;
+            return L7_FAILURE;
+          }
+          newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+          PT_LOG_DEBUG(LOG_CTX_IGMP, "Port: %u", clientGroup->ptin_port);
+  #endif
+  #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
+          newClientEntry.outerVlan = clientGroup->igmpClientDataKey.outerVlan;
+          newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
+          PT_LOG_DEBUG(LOG_CTX_IGMP, "oVlan: %u", newClientEntry.outerVlan);
+  #endif
+  #if (MC_CLIENT_INNERVLAN_SUPPORTED)
+          newClientEntry.innerVlan = clientGroup->igmpClientDataKey.innerVlan;
+          newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
+          PT_LOG_DEBUG(LOG_CTX_IGMP, "iVlan: %u", newClientEntry.innerVlan);
+  #endif
+  #if 0
+  #if (MC_CLIENT_IPADDR_SUPPORTED)
+          newClientEntry.ipv4_addr = clientGroup->ipv4_addr;
+          newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_IPADDR;
+  #endif
+  #if (MC_CLIENT_MACADDR_SUPPORTED)
+          memcpy(newClientEntry.macAddr, clientGroup->macAddr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
+          newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_MACADDR;
+  #endif
+  #endif
         }
-        newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
-        PT_LOG_DEBUG(LOG_CTX_IGMP, "Port: %u", clientGroup->ptin_port);
-#endif
-#if (MC_CLIENT_OUTERVLAN_SUPPORTED)
-        newClientEntry.outerVlan = clientGroup->igmpClientDataKey.outerVlan;
-        newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_OUTERVLAN;
-        PT_LOG_DEBUG(LOG_CTX_IGMP, "oVlan: %u", newClientEntry.outerVlan);
-#endif
-#if (MC_CLIENT_INNERVLAN_SUPPORTED)
-        newClientEntry.innerVlan = clientGroup->igmpClientDataKey.innerVlan;
-        newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INNERVLAN;
-        PT_LOG_DEBUG(LOG_CTX_IGMP, "iVlan: %u", newClientEntry.innerVlan);
-#endif
-#if 0
-#if (MC_CLIENT_IPADDR_SUPPORTED)
-        newClientEntry.ipv4_addr = clientGroup->ipv4_addr;
-        newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_IPADDR;
-#endif
-#if (MC_CLIENT_MACADDR_SUPPORTED)
-        memcpy(newClientEntry.macAddr, clientGroup->macAddr, sizeof(L7_uchar8)*L7_MAC_ADDR_LEN);
-        newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_MACADDR;
-#endif
-#endif
+
+        PT_LOG_ERR(LOG_CTX_IGMP,"Unable to add this clientIdx[%u] port portId[%u] to the clientGroupSnapshot avlTree", mgmdGroupsRes->clientId, mgmdGroupsRes->portId);
+
         if (L7_SUCCESS != ptin_igmp_clientGroupSnapshot_add(&newClientEntry))
         {
           *number_of_clients=0;
@@ -3867,7 +3839,8 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
         /*Increment the Total Number of Clients Found*/
         ++pageClientCount;
         /*Move the Pointer to the Next Client*/
-        mgmdGroupsRes++;        
+        mgmdGroupsRes++; 
+
       }
     } while (pageClientCount == maxResponseEntries); //While the number of clients returned equals the max number of clients per page
 
@@ -3904,7 +3877,8 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
     if (L7_SUCCESS != ptin_evc_get_evcIdfromIntVlan(tempKey.outerVlan,&extendedEvcId[clientBufferIdx]))
     {
       PT_LOG_ERR(LOG_CTX_IGMP, "Unable to get external EVC Id :%u",tempKey.outerVlan);
-      extendedEvcId[clientBufferIdx]=(L7_uint32)-1;
+
+      extendedEvcId[clientBufferIdx]= McastEvcId;//;(L7_uint32)-1;
     }
     /*End MAC Bridge Services Support*/
 
@@ -3913,7 +3887,8 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
     {
       PT_LOG_ERR(LOG_CTX_IGMP, "Unable to convert client[mask:%02X intf:%u/%u oVlan:%u iVlan:%u]", avl_infoData->key.mask, avl_infoData->key.ptin_intf.intf_type, avl_infoData->key.ptin_intf.intf_id,
               avl_infoData->key.outerVlan, avl_infoData->key.innerVlan);
-      return L7_FAILURE;
+      //return L7_FAILURE;
+
     }
     PT_LOG_DEBUG(LOG_CTX_IGMP, "      Idx:   %u",      clientBufferIdx);
     PT_LOG_DEBUG(LOG_CTX_IGMP, "        Mask:  0x%02X",  tempKey.mask);
@@ -9287,6 +9262,7 @@ static L7_RC_t ptin_igmp_device_client_add(ptin_client_id_t *client,
 #ifndef ONE_MULTICAST_VLAN_RING_SUPPORT
       return L7_FAILURE;
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
+
     }
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
@@ -11238,10 +11214,12 @@ static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client)
     {
       PT_LOG_ERR(LOG_CTX_IGMP,"Could not obtain external vlan for intVlan %u, ptin_intf %u/%u",
               client->outerVlan, client->ptin_intf.intf_type, client->ptin_intf.intf_id);
-      return L7_FAILURE;
     }
-    /* Replace outer vlan with the internal one */
-    client->outerVlan = extVlan;
+    else
+    {
+      /* Replace outer vlan with the internal one */
+      client->outerVlan = extVlan;
+    }
   }
 #endif
 

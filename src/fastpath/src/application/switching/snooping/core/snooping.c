@@ -789,7 +789,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
    }  
 
 #ifdef IGMP_DYNAMIC_CLIENTS_SUPPORTED
-  /* For leaf interfaces */
+    /* For leaf interfaces */
   if ( port_type == PTIN_EVC_INTF_LEAF )
   {
     if (client_idx>=PTIN_IGMP_CLIENTIDX_MAX)
