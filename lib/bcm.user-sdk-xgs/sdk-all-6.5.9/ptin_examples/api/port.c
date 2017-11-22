@@ -553,3 +553,5 @@ int port_defvlan_set(unsigned int port, unsigned int pvid)
 
  return 0;                                                                                                                                                                    
 }
+
+global_init();
