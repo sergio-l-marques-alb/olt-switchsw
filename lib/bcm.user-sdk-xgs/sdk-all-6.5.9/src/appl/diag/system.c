@@ -1912,6 +1912,7 @@ typedef enum {
     LOG_SEV_WARNING,
     LOG_SEV_NOTICE,
     LOG_SEV_INFO,
+    LOG_SEV_VERBOSE,
     LOG_SEV_DEBUG,
     LOG_SEV_TRACE,
     /* Last element */
@@ -1928,6 +1929,7 @@ static const char *log_sev_str[LOG_SEV_LAST] = {
     "[WARNING] ",
     "[NOTICE]  ",
     "[INFO]    ",
+    "[VERBOSE] ",
     "[DEBUG]   ",
     "[TRACE]   ",
 };
@@ -2221,9 +2223,17 @@ int hapiBroadCmPrint(bsl_meta_t *meta_data, const char *format, va_list args)
     {
       ptin_log_sev = LOG_SEV_INFO;
     }
-    else
+    else if (meta_data->severity <= bslSeverityVerbose)
+    {
+      ptin_log_sev = LOG_SEV_VERBOSE;
+    }
+    else if (meta_data->severity <= bslSeverityDebug)
     {
       ptin_log_sev = LOG_SEV_DEBUG;
+    }
+    else
+    {
+      ptin_log_sev = LOG_SEV_TRACE;
     }
   }
 
@@ -2286,6 +2296,8 @@ void hapiBroadCmDefaults(void)
   hapiBroadCmSourceSet(bslSourceMim,    1);
   hapiBroadCmSourceSet(bslSourcePhy,    1);
   hapiBroadCmSourceSet(bslSourcePhymod, 1);
+
+  hapiBroadCmSourceSet(bslSourceDram,   1);
 
   hapiBroadCmSeveritySet(bslSeverityInfo);
 }
