@@ -93,6 +93,12 @@ L7_RC_t ptin_prot_uplink_init(void)
   handle_list_t *handle_list;
   L7_APP_TMR_CTRL_BLK_t timerCB;
 
+  /* Init structures */
+  memset(uplinkprot, 0x00, sizeof(uplinkprot));
+  memset(operator_cmd, 0x00, sizeof(operator_cmd));
+  memset(operator_switchToPortType, 0x00, sizeof(operator_switchToPortType));
+
+  /* Semaphores */
   ptin_prot_timers_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
   if (ptin_prot_timers_sem == L7_NULLPTR)
   {
@@ -484,17 +490,42 @@ L7_RC_t ptin_prot_uplink_intf_block(L7_uint32 intIfNum, L7_int block_state)
   }
   else if (ptin_intf.intf_type == PTIN_EVC_INTF_PHYSICAL)
   {
+    L7_uint32 intIfNum_lag;
+
     PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u is a PHY", intIfNum);
 
-    /* Add this port to all configured VLANs */
-    rc = ptin_vlan_port_add(ptin_port, 0);
-    PT_LOG_INFO(LOG_CTX_INTF, "ptin_intf %u/%u added to all existent VLANs (rc=%d)", ptin_intf.intf_type, ptin_intf.intf_id, rc);
+    if (usmDbDot3adIntfIsMemberGet(1, intIfNum, &intIfNum_lag) == L7_SUCCESS)
+    {
+      PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u belongs to lag %u", intIfNum, intIfNum_lag);
+
+      /* Dynamic LAGs don't need reload (laser transmission is not touched) */
+      if (usmDbDot3adIsStaticLag(1, intIfNum_lag, &isStatic) == L7_SUCCESS && !isStatic)
+      {
+        PT_LOG_WARN(LOG_CTX_INTF, "intIfNum %u belongs to a dynamic LAG (%u)... nothing to be done.", intIfNum, intIfNum_lag);
+        return L7_SUCCESS;
+      }
+      PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u belongs to a static LAG (%u)... ok!", intIfNum, intIfNum_lag);
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_INTF, "intIfNum %u is a physical port and don't belong to any LAG!", intIfNum);
+
+      if (!block_state)
+      {
+        /* Add this port to all configured VLANs */
+        rc = ptin_vlan_port_add(ptin_port, 0);
+        PT_LOG_INFO(LOG_CTX_INTF, "ptin_intf %u/%u added to all existent VLANs (rc=%d)", ptin_intf.intf_type, ptin_intf.intf_id, rc);
+      }
+      else
+      {
+        /* Add this port to all configured VLANs */
+        rc = ptin_vlan_port_remove(ptin_port, 0);
+        PT_LOG_INFO(LOG_CTX_INTF, "ptin_intf %u/%u added to all existent VLANs (rc=%d)", ptin_intf.intf_type, ptin_intf.intf_id, rc);
 
         /* Clear MAC table entries, when blocking the port */
-    if (block_state != L7_FALSE)
-    {
-      PT_LOG_DEBUG(LOG_CTX_INTF, "Flushing MAc table for intIfNum %u", intIfNum);
-      usmDbFdbFlushByPort(intIfNum);
+        PT_LOG_DEBUG(LOG_CTX_INTF, "Flushing MAC table for intIfNum %u", intIfNum);
+        usmDbFdbFlushByPort(intIfNum);
+      }
     }
 
     PT_LOG_DEBUG(LOG_CTX_INTF, "Controlling remote laser of intIfNum %u", intIfNum);
@@ -3031,7 +3062,7 @@ L7_RC_t ptin_prot_uplink_create(L7_uint8 protIdx, ptin_intf_t *intf1, ptin_intf_
     else
     {
       PT_LOG_WARN(LOG_CTX_INTF, "Protection group %u alrteady exists", protIdx);
-      return L7_FAILURE;
+      return L7_SUCCESS;
     }
   }
 
