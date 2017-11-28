@@ -4097,7 +4097,7 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
           newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
           PT_LOG_DEBUG(LOG_CTX_IGMP, "Port: %u", clientGroup->ptin_port);
   #endif 
-#else // ONE_MULTICAST_VLAN_RING_SUPPORT
+#endif // ONE_MULTICAST_VLAN_RING_SUPPORT
 //#if  PTIN_BOARD == PTIN_BOARD_CXO640G
 
         if (ptin_intf_port2ptintf(clientGroup->ptin_port, &newClientEntry.ptin_intf)!=L7_SUCCESS)
@@ -4118,9 +4118,11 @@ L7_RC_t ptin_igmp_clientList_get(L7_uint32 McastEvcId, L7_in_addr_t *groupAddr, 
           newClientEntry.ptin_intf.intf_id = ptinPort;
         }
 
+#if  (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_TA48GE)
         newClientEntry.mask |= PTIN_CLIENT_MASK_FIELD_INTF;
+#endif
         PT_LOG_DEBUG(LOG_CTX_IGMP, "Port: %u", clientGroup->ptin_port);
-#endif // ONE_MULTICAST_VLAN_RING_SUPPORT
+//#endif // ONE_MULTICAST_VLAN_RING_SUPPORT
 
   #endif
   #if (MC_CLIENT_OUTERVLAN_SUPPORTED)
@@ -11538,6 +11540,7 @@ static L7_RC_t ptin_igmp_clientId_restore(ptin_client_id_t *client)
     else
     {
       /* Replace outer vlan with the internal one */
+      if (client->outerVlan != extVlan)
       client->outerVlan = extVlan;
     }
   }
