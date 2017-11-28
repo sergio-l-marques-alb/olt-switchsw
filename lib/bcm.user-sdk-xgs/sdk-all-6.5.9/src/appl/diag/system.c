@@ -1893,6 +1893,8 @@ diag_rc_load(int unit)
 }
 #endif /* NO_SAL_APPL */
 
+/* PTin removed */
+#if 0
 #define LOG_MSG_MAX_MSG_SIZE    512
 #define MAX_OUTBUF_LEN          512 /* Output buffer max length */
 #define MAX_FILE_LEN            15  /* Filename max length */
@@ -2301,7 +2303,7 @@ void hapiBroadCmDefaults(void)
 
   hapiBroadCmSeveritySet(bslSeverityInfo);
 }
-
+#endif
 
 /*
  * Diagnostics shell routine.
@@ -2362,7 +2364,7 @@ diag_shell(void)
 
     bslmgmt_init();
 
-#if 1
+#if 0
     bsl_config_t bsl_config;
 
     bsl_config_t_init(&bsl_config);
