@@ -1714,23 +1714,23 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   // R-APS request (Rx check)
   if ( L7_SUCCESS == ptin_erps_aps_rx(erps_idx, &apsReqRx, &apsStatusRx, apsNodeIdRx, &apsRxPort, __LINE__) ) {
 
-    //L7_uint8 apsReqRxOtherPort;
-    //L7_uint8 apsStatusRxOtherPort;
+    L7_uint8 apsReqRxOtherPort;
+    L7_uint8 apsStatusRxOtherPort;
 
     if (apsRxPort > PROT_ERPS_PORT1)
     {
       PT_LOG_ERR(LOG_CTX_ERPS,"ERPS#%d not: apsRxPort %d not valid", erps_idx, apsRxPort);
       return PROT_ERPS_INDEX_VIOLATION;
     }
-#if 1
+#if 0
     remoteRequest = apsReqRx;
 
     apsReqStatusRx = tbl_erps[erps_idx].apsReqStatusRx[apsRxPort];
 
     tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqRx << 12) & 0xF000) | (apsStatusRx & 0x00FF);
 #else
-    apsReqRxOtherPort = (tbl_erps[erps_idx].apsReqStatusRx[!apsRxPort] >> 12) & 0xF;
-    apsStatusRxOtherPort = (tbl_erps[erps_idx].apsReqStatusRx[!apsRxPort] & 0x00FF);
+    apsReqRxOtherPort = (tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1] >> 12) & 0xF;
+    apsStatusRxOtherPort = (tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1] & 0x00FF);
 
     apsReqStatusRx = tbl_erps[erps_idx].apsReqStatusRx[apsRxPort];
     tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqRx << 12) & 0xF000) | (apsStatusRx & 0x00FF);
@@ -1753,13 +1753,13 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
         remoteRequest = apsReqRx;
 
         /* Clear on the other Port */
-        //tbl_erps[erps_idx].apsReqStatusRx[!apsRxPort] = 0;
-        //i think it should have been instead...
-        tbl_erps[erps_idx].apsReqStatusRx[!apsRxPort] = ((RReq_NONE << 12) & 0xF000);
+        tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1] = 0;  //tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1] = ((RReq_NR << 12) & 0xF000);
+        //or?... tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1] = ((RReq_NONE << 12) & 0xF000);
       }
       else {
-        PT_LOG_NOTICE(LOG_CTX_ERPS,"ERPS#%d: Ignoring Received R-APS. Other Port Request(0x%x) = %s(0x%x)", erps_idx, apsReqRxOtherPort,
-              remReqToString[apsReqRxOtherPort], APS_GET_STATUS(apsStatusRxOtherPort));
+        remoteRequest = apsReqRx;
+        //PT_LOG_NOTICE(LOG_CTX_ERPS,"ERPS#%d: Ignoring Received R-APS. Other Port Request(0x%x) = %s(0x%x)", erps_idx, apsReqRxOtherPort,
+        //      remReqToString[apsReqRxOtherPort], APS_GET_STATUS(apsStatusRxOtherPort));
       }
     }
 #endif
@@ -2099,7 +2099,11 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
                 (apsReqStatusRx ^ tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1]) & RReq_STAT_RB)
               )) {
 
-      PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: remoteRequest: NR flags change from 0x%x to 0x%x", erps_idx, APS_GET_STATUS(apsReqStatusRx), APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]));
+      PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: remoteRequest: NR flags change from 0x%x or 0x%x to 0x%x",
+                   erps_idx,
+                   APS_GET_STATUS(apsReqStatusRx),
+                   APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1]),
+                   APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]));
 
       if (topPriorityRequest<100) haveChanges = L7_TRUE;
       else PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: Local Request with higher Priority...", erps_idx);
