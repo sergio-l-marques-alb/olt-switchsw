@@ -61,7 +61,7 @@ int soc_phy_ddrc28_reg_field_set(int unit, soc_reg_t reg, uint32 *regval, soc_fi
         mask = (1 << finfop->len) - 1;
         if ((value & ~mask) != 0) 
         {
-            LOG_ERROR(BSL_LS_SOC_DDR, (BSL_META_U(unit, "soc_phy_ddrc28_reg_field_set(): value too big for field\n")));
+            LOG_ERROR(BSL_LS_SOC_DDR, (BSL_META_U(unit, "soc_phy_ddrc28_reg_field_set(): value too big for field [reg=0x%x regval=%u field=%d value=%u mask=%u]\n"), reg, *regval, field, value, mask));
             return SOC_E_PARAM;
         }
     } else {
