@@ -329,7 +329,8 @@ bslmgmt_init(void)
     bslenable_reset_all();
 
     bsl_config_t_init(&bsl_config);
-    bsl_config.out_hook = hapiBroadCmPrint; //bslmgmt_out_hook;   /* PTin modified */
+    bsl_config.out_hook = bslmgmt_out_hook;
+    //bsl_config.out_hook = hapiBroadCmPrint;   /* PTin modified */
     bsl_config.check_hook = bslmgmt_check_hook;
     bsl_init(&bsl_config);
 
