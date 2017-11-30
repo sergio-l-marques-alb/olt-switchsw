@@ -6,6 +6,8 @@
  * DDR4 & GDDR5 Memory Support
  */
 
+#include <stdio.h>
+
 #include <shared/bsl.h>
 
 #include <sal/core/boot.h>
@@ -1159,6 +1161,8 @@ _shmoo_combo28_dqs2ck(int unit, int drc_ndx, combo28_shmoo_container_t *scPtr)
     
     for(x = (*scPtr).calibStart; x < (*scPtr).sizeX; x++)
     {
+        //printf("%s(%d) x=%u ((*scPtr).calibStart=%u (*scPtr).sizeX=%u)\r\n", __FUNCTION__, __LINE__, x, (*scPtr).calibStart, (*scPtr).sizeX);
+
         SOC_IF_ERROR_RETURN(READ_DDRC28_DQ_BYTE0_WRITE_MAX_VDL_DQSr(unit, drc_ndx, &data0));
         if((x > (*scPtr).endUI[ui]) && (ui < SHMOO_COMBO28_LAST_EFFECTIVE_UI))
         {
@@ -1208,6 +1212,13 @@ _shmoo_combo28_dqs2ck(int unit, int drc_ndx, combo28_shmoo_container_t *scPtr)
             result3 += (data3 & 0x1);
         }
         
+        /*printf("%s(%d) Start=> x=%u: stop={%u,%u,%u,%u} Lcount={%u,%u,%u,%u} result={%u,%u,%u,%u} resultData={%u,%u,%u,%u} resultFinal=%u\r\n", __FUNCTION__, __LINE__, x,
+               stop0, stop1, stop2, stop3,
+               Lcount0, Lcount1, Lcount2, Lcount3,
+               result0, result1, result2, result3,
+               (*scPtr).resultData[0],(*scPtr).resultData[1], (*scPtr).resultData[2], (*scPtr).resultData[3],
+               result);*/
+
         if(!stop0)
         {
             if(result0 > SHMOO_COMBO28_REPEAT_HALF)
@@ -1298,7 +1309,13 @@ _shmoo_combo28_dqs2ck(int unit, int drc_ndx, combo28_shmoo_container_t *scPtr)
         }
         
         (*scPtr).result2D[x] = result;
-        
+        /*printf("%s(%d) Final=> x=%u: stop={%u,%u,%u,%u} Lcount={%u,%u,%u,%u} result={%u,%u,%u,%u} resultData={%u,%u,%u,%u} result2D=%u\r\n", __FUNCTION__, __LINE__, x,
+               stop0, stop1, stop2, stop3,
+               Lcount0, Lcount1, Lcount2, Lcount3,
+               result0, result1, result2, result3,
+               (*scPtr).resultData[0],(*scPtr).resultData[1], (*scPtr).resultData[2], (*scPtr).resultData[3],
+               (*scPtr).result2D[x]);*/
+
         if(stop0 && stop1 && stop2 && stop3)
         {
             (*scPtr).sizeX = x + 1;
@@ -5875,7 +5892,10 @@ _shmoo_combo28_set_new_step(int unit, int drc_ndx, combo28_shmoo_container_t *sc
                     /*    SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE1_WRITE_MIN_VDL_EDCr(unit, drc_ndx, data)); */
                     }
                     
+                    //printf("%s:%s(%d) I was here: ref[%u]=%d min2=%d max2=%d initAdjustment=%d value=%u\r\n", __FILE__, __FUNCTION__, __LINE__,
+                    //       shmoo_dram_info->dq_swap[drc_ndx][2][0] + 16, ((*scPtr).resultData[shmoo_dram_info->dq_swap[drc_ndx][2][0] + 16] & 0xFFFF), min2, max2, initAdjustment, ((*scPtr).resultData[shmoo_dram_info->dq_swap[drc_ndx][2][0] + 16] & 0xFFFF) - min2 + initAdjustment);
                     SOC_IF_ERROR_RETURN( soc_phy_ddrc28_reg_field_set(unit, SOC_PHY_REG_DQ_BYTE2_WRITE_MIN_VDL_BIT0r, &data, SOC_PHY_FLD_MIN_VDL_STEPf, ((*scPtr).resultData[shmoo_dram_info->dq_swap[drc_ndx][2][0] + 16] & 0xFFFF) - min2 + initAdjustment));
+                    //printf("%s:%s(%d) I was here: unit=%d drc_ndx=%d data=%u\r\n", __FILE__, __FUNCTION__, __LINE__, unit, drc_ndx, data);
                     SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_BIT0r(unit, drc_ndx, data));
                     
                     SOC_IF_ERROR_RETURN( soc_phy_ddrc28_reg_field_set(unit, SOC_PHY_REG_DQ_BYTE2_WRITE_MIN_VDL_BIT1r, &data, SOC_PHY_FLD_MIN_VDL_STEPf, ((*scPtr).resultData[shmoo_dram_info->dq_swap[drc_ndx][2][1] + 16] & 0xFFFF) - min2 + initAdjustment));
@@ -5910,7 +5930,10 @@ _shmoo_combo28_set_new_step(int unit, int drc_ndx, combo28_shmoo_container_t *sc
                     /*    SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_EDCr(unit, drc_ndx, data)); */
                     }
                     
+                    //printf("%s:%s(%d) I was here: ref[%u]=%d min3=%d max3=%d initAdjustment=%d value=%u\r\n", __FILE__, __FUNCTION__, __LINE__,
+                    //       shmoo_dram_info->dq_swap[drc_ndx][3][0] + 24, ((*scPtr).resultData[shmoo_dram_info->dq_swap[drc_ndx][3][0] + 24] & 0xFFFF), min3, max3, initAdjustment, ((*scPtr).resultData[shmoo_dram_info->dq_swap[drc_ndx][3][0] + 24] & 0xFFFF) - min3 + initAdjustment);
                     SOC_IF_ERROR_RETURN( soc_phy_ddrc28_reg_field_set(unit, SOC_PHY_REG_DQ_BYTE3_WRITE_MIN_VDL_BIT0r, &data, SOC_PHY_FLD_MIN_VDL_STEPf, ((*scPtr).resultData[shmoo_dram_info->dq_swap[drc_ndx][3][0] + 24] & 0xFFFF) - min3 + initAdjustment));
+                    //printf("%s:%s(%d) I was here: unit=%d drc_ndx=%d data=%u\r\n", __FILE__, __FUNCTION__, __LINE__, unit, drc_ndx, data);
                     SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE3_WRITE_MIN_VDL_BIT0r(unit, drc_ndx, data));
                     
                     SOC_IF_ERROR_RETURN( soc_phy_ddrc28_reg_field_set(unit, SOC_PHY_REG_DQ_BYTE3_WRITE_MIN_VDL_BIT1r, &data, SOC_PHY_FLD_MIN_VDL_STEPf, ((*scPtr).resultData[shmoo_dram_info->dq_swap[drc_ndx][3][1] + 24] & 0xFFFF) - min3 + initAdjustment));
@@ -8549,6 +8572,7 @@ _shmoo_combo28_entry(int unit, int drc_ndx, combo28_shmoo_container_t *scPtr, ui
             SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE1_WRITE_MIN_VDL_BIT7r(unit, drc_ndx, data));
             SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE1_WRITE_MIN_VDL_DBIr(unit, drc_ndx, data));
         /*    SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE1_WRITE_MIN_VDL_EDCr(unit, drc_ndx, data)); */
+            //printf("%s:%s(%d) I was here: unit=%d drc_ndx=%d data=%u\r\n", __FILE__, __FUNCTION__, __LINE__, unit, drc_ndx, data);
             SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_BIT0r(unit, drc_ndx, data));
             SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_BIT1r(unit, drc_ndx, data));
             SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_BIT2r(unit, drc_ndx, data));
@@ -8559,6 +8583,7 @@ _shmoo_combo28_entry(int unit, int drc_ndx, combo28_shmoo_container_t *scPtr, ui
             SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_BIT7r(unit, drc_ndx, data));
             SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_DBIr(unit, drc_ndx, data));
         /*    SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_EDCr(unit, drc_ndx, data)); */
+            //printf("%s:%s(%d) I was here: unit=%d drc_ndx=%d data=%u\r\n", __FILE__, __FUNCTION__, __LINE__, unit, drc_ndx, data);
             SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE3_WRITE_MIN_VDL_BIT0r(unit, drc_ndx, data));
             SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE3_WRITE_MIN_VDL_BIT1r(unit, drc_ndx, data));
             SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE3_WRITE_MIN_VDL_BIT2r(unit, drc_ndx, data));
@@ -9455,6 +9480,7 @@ _shmoo_combo28_restore(int unit, int drc_ndx, combo28_shmoo_config_param_t *conf
     data = (*config_param).dq_byte_macro_reserved_reg[1];
     SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE1_MACRO_RESERVED_REGr(unit, drc_ndx, data));
     
+    //printf("%s:%s(%d) I was here: unit=%d drc_ndx=%d data=%u\r\n", __FILE__, __FUNCTION__, __LINE__, unit, drc_ndx, data);
     data = (uint32) (*config_param).dq_byte_wr_min_vdl_bit[2][0];
     SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_BIT0r(unit, drc_ndx, data));
     data = (uint32) (*config_param).dq_byte_wr_min_vdl_bit[2][1];
@@ -9520,6 +9546,7 @@ _shmoo_combo28_restore(int unit, int drc_ndx, combo28_shmoo_config_param_t *conf
     data = (*config_param).dq_byte_macro_reserved_reg[2];
     SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_MACRO_RESERVED_REGr(unit, drc_ndx, data));
     
+    //printf("%s:%s(%d) I was here: unit=%d drc_ndx=%d data=%u\r\n", __FILE__, __FUNCTION__, __LINE__, unit, drc_ndx, data);
     data = (uint32) (*config_param).dq_byte_wr_min_vdl_bit[3][0];
     SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE3_WRITE_MIN_VDL_BIT0r(unit, drc_ndx, data));
     data = (uint32) (*config_param).dq_byte_wr_min_vdl_bit[3][1];
@@ -9868,6 +9895,43 @@ soc_combo28_shmoo_ctl(int unit, int drc_ndx, int shmoo_type, uint32 flags, int a
                             _SOC_IF_ERR_EXIT(_shmoo_combo28_entry(unit, ndx, scPtr, SHMOO_COMBO28_SINGLE));
                             _SOC_IF_ERR_EXIT(_shmoo_combo28_do(unit, ndx, scPtr));
                             _SOC_IF_ERR_EXIT(_shmoo_combo28_calib_2D(unit, ndx, scPtr));
+
+                            #if 0
+                            {
+                              uint32 i, j;
+                              combo28_shmoo_dram_info_t* shmoo_dram_info;
+
+                              SOC_IF_ERROR_RETURN( _shmoo_combo28_drc_dram_info_access(unit, &shmoo_dram_info));    
+
+                              for (i = 0; i < 8; i++)
+                              {
+                                printf("%s(%d) dq_swap[%u] =", __FUNCTION__, __LINE__, i);
+
+                                for (j = 0; j < 4; j++)
+                                {
+                                  printf(" {%u_%u_%u_%u_%u_%u_%u_%u}",
+                                         shmoo_dram_info->dq_swap[i][j][0],
+                                         shmoo_dram_info->dq_swap[i][j][1],
+                                         shmoo_dram_info->dq_swap[i][j][2],
+                                         shmoo_dram_info->dq_swap[i][j][3],
+                                         shmoo_dram_info->dq_swap[i][j][4],
+                                         shmoo_dram_info->dq_swap[i][j][5],
+                                         shmoo_dram_info->dq_swap[i][j][6],
+                                         shmoo_dram_info->dq_swap[i][j][7]);
+                                }
+                                printf("\r\n");
+                              }
+
+                              printf("%s(%d) (*scPtr).resultData=", __FUNCTION__, __LINE__);
+                              for (i = 0; i < SHMOO_COMBO28_WORD; i++)
+                              {
+                                printf(" %u", (*scPtr).resultData[i]);
+                              }
+                              printf("\r\n");
+                            }
+                            printf("%s:%s(%d) unit=%d ndx=%d: sizeX=%d sizeY=%d yCapMin=%d yCapMax=%d calibMode=%d calibPos=%d calibStart=%d dramType=%d ctlType=%d shmooType=%d\r\n", __FILE__, __FUNCTION__, __LINE__,
+                                   unit, ndx, scPtr->sizeX, scPtr->sizeY, scPtr->yCapMin, scPtr->yCapMax, scPtr->calibMode, scPtr->calibPos, scPtr->calibMode, scPtr->dramType, scPtr->ctlType, scPtr->shmooType);
+                            #endif                            
                             _SOC_IF_ERR_EXIT(_shmoo_combo28_set_new_step(unit, ndx, scPtr));
                             if(plot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO))
                             {
@@ -9883,6 +9947,43 @@ soc_combo28_shmoo_ctl(int unit, int drc_ndx, int shmoo_type, uint32 flags, int a
                                 _SOC_IF_ERR_EXIT(_shmoo_combo28_entry(unit, ndx, scPtr, SHMOO_COMBO28_SEQUENTIAL));
                                 _SOC_IF_ERR_EXIT(_shmoo_combo28_do(unit, ndx, scPtr));
                                 _SOC_IF_ERR_EXIT(_shmoo_combo28_calib_2D(unit, ndx, scPtr));
+                                #if 0
+                                printf("%s:%s(%d) unit=%d ndx=%d: sizeX=%d sizeY=%d yCapMin=%d yCapMax=%d calibMode=%d calibPos=%d calibStart=%d dramType=%d ctlType=%d shmooType=%d\r\n", __FILE__, __FUNCTION__, __LINE__,
+                                       unit, ndx, scPtr->sizeX, scPtr->sizeY, scPtr->yCapMin, scPtr->yCapMax, scPtr->calibMode, scPtr->calibPos, scPtr->calibMode, scPtr->dramType, scPtr->ctlType, scPtr->shmooType);
+                                 {
+                                   uint32 i, j;
+                                   combo28_shmoo_dram_info_t* shmoo_dram_info;
+
+                                   SOC_IF_ERROR_RETURN( _shmoo_combo28_drc_dram_info_access(unit, &shmoo_dram_info));    
+
+                                   for (i = 0; i < 8; i++)
+                                   {
+                                     printf("%s(%d) dq_swap[%u] =", __FUNCTION__, __LINE__, i);
+
+                                     for (j = 0; j < 4; j++)
+                                     {
+                                       printf(" {%u_%u_%u_%u_%u_%u_%u_%u}",
+                                              shmoo_dram_info->dq_swap[i][j][0],
+                                              shmoo_dram_info->dq_swap[i][j][1],
+                                              shmoo_dram_info->dq_swap[i][j][2],
+                                              shmoo_dram_info->dq_swap[i][j][3],
+                                              shmoo_dram_info->dq_swap[i][j][4],
+                                              shmoo_dram_info->dq_swap[i][j][5],
+                                              shmoo_dram_info->dq_swap[i][j][6],
+                                              shmoo_dram_info->dq_swap[i][j][7]);
+                                     }
+                                     printf("\r\n");
+                                   }
+
+                                   printf("%s(%d) (*scPtr).resultData=", __FUNCTION__, __LINE__);
+                                   for (i = 0; i < SHMOO_COMBO28_WORD; i++)
+                                   {
+                                     printf(" %u", (*scPtr).resultData[i]);
+                                   }
+                                   printf("\r\n");
+                                 }
+                                #endif
+
                                 _SOC_IF_ERR_EXIT(_shmoo_combo28_set_new_step(unit, ndx, scPtr));
                                 if(plot || LOG_CHECK(BSL_LS_SOC_DDR | BSL_INFO))
                                 {
@@ -10507,6 +10608,7 @@ soc_combo28_shmoo_phy_init(int unit, int drc_ndx)
         SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE1_WRITE_MIN_VDL_BIT7r(unit, ndx, data));
         SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE1_WRITE_MIN_VDL_DBIr(unit, ndx, data));
     /*    SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE1_WRITE_MIN_VDL_EDCr(unit, ndx, data)); */
+        //printf("%s:%s(%d) I was here: unit=%d drc_ndx=%d data=%u\r\n", __FILE__, __FUNCTION__, __LINE__, unit, drc_ndx, data);
         SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_BIT0r(unit, ndx, data));
         SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_BIT1r(unit, ndx, data));
         SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_BIT2r(unit, ndx, data));
@@ -10517,6 +10619,7 @@ soc_combo28_shmoo_phy_init(int unit, int drc_ndx)
         SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_BIT7r(unit, ndx, data));
         SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_DBIr(unit, ndx, data));
     /*    SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE2_WRITE_MIN_VDL_EDCr(unit, ndx, data)); */
+        //printf("%s:%s(%d) I was here: unit=%d drc_ndx=%d data=%u\r\n", __FILE__, __FUNCTION__, __LINE__, unit, drc_ndx, data);
         SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE3_WRITE_MIN_VDL_BIT0r(unit, ndx, data));
         SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE3_WRITE_MIN_VDL_BIT1r(unit, ndx, data));
         SOC_IF_ERROR_RETURN(WRITE_DDRC28_DQ_BYTE3_WRITE_MIN_VDL_BIT2r(unit, ndx, data));
