@@ -597,6 +597,9 @@ sand_device_create(void)
 {
     bde_ctrl_t* ctrl;
 
+    /* Do not execute this function. Otherwise linux-kerbel-bde.ko insertion will fail! */
+    return 0;
+
     ctrl = _devices; 
 
 #ifndef __DUNE_LINUX_BCM_CPU_PCIE__
@@ -3752,8 +3755,7 @@ _init(void)
 #endif
 
 #if defined(BCM_PETRA_SUPPORT) || defined(BCM_DFE_SUPPORT) || defined(BCM_DNX_SUPPORT) || defined(BCM_DNXF_SUPPORT)
-    /* PTin removed: This function cannot be executed... or else, linux-kernel-bde.ko module insertion will fail! */
-    //sand_device_create();
+    sand_device_create();
 #endif
 
 #if defined(BCM_TK371X_SUPPORT)
