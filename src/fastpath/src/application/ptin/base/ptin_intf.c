@@ -2920,7 +2920,7 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   L7_uint32 maxFrame=0;
   L7_uint32 value;
   L7_char8  lag_name[DOT3AD_MAX_NAME];
-  L7_RC_t   rc=L7_SUCCESS, res;
+  L7_RC_t   rc = L7_SUCCESS, res;
   L7_BOOL   newLag;
   //L7_uint32 ifSpeed;
   L7_uint16 lagEtherType;
@@ -3290,15 +3290,15 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
 
     PT_LOG_TRACE(LOG_CTX_INTF, "LAG# %02u already exists (interface# %02u)", lag_idx, lag_intf);
   }
-
+  
   /* Now lets procceed with the configuration...
    * The idea is to avoid traffic interruption (when adding or removing members) */
 
-  rc = L7_SUCCESS;
   do
   {
-    rc = L7_SUCCESS;
-
+    /* If an error occurred before, don't execute this */
+    if (rc != L7_SUCCESS)  break;
+    
     /* LAG Admin Mode */
     lagInfo->admin &= 1;
     if (lagConf_data[lag_idx].admin != lagInfo->admin)
@@ -3411,8 +3411,6 @@ L7_RC_t ptin_intf_Lag_create(ptin_LACPLagConfig_t *lagInfo)
   if (newLag)
     lagConf_data[lag_idx].members_pbmp64 = 0; /* Previously set to FFs */
   members_pbmp = lagInfo->members_pbmp64;
-
-  rc = L7_SUCCESS;
 
   /* Loop through all the phy ports and check if any is being added or removed */
   for (port = 0; port < ptin_sys_number_of_ports; port++, members_pbmp>>=1)
