@@ -725,8 +725,10 @@ void dot3ad_timer_task()
 	  case NTT_EXPIRED:
 	    rc = dot3adNttTimerExpired(msg.parm1, msg.parm2);
 		break;
-	  case CURRENT_EXPIRED:
+      case CURRENT_EXPIRED:
+        PT_LOG_WARN(LOG_CTX_TRUNKS, "LACP RX expiration for portNum %u is going to be processed", msg.parm1);
 		rc = dot3adCurrentWhileTimerExpired(msg.parm1, msg.parm2);
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACP RX expiration for portNum %u processed: rc=%d", msg.parm1, rc);
 		break;
 	  case WAIT_EXPIRED:
 		rc = dot3adWaitWhileTimerExpired(msg.parm1, msg.parm2);
@@ -4555,11 +4557,15 @@ void dot3adCurrentWhileTimerExpiredToQueue(L7_uint32 portNum, L7_uint32 nullParm
   dot3adTimerMsg_t Message;
   L7_RC_t rc;
 
+  PT_LOG_WARN(LOG_CTX_TRUNKS, "LACP RX expired event generated for portNum %u", portNum);
+
   Message.msgId = CURRENT_EXPIRED;
   Message.parm1 = portNum;
   Message.parm2 = nullParm;
 
   rc = osapiMessageSend(dot3ad_timer_queue,&Message, (L7_uint32)sizeof(dot3adTimerMsg_t),L7_NO_WAIT, L7_MSG_PRIORITY_NORM);
+
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS,"LACP RX expired event for portNum %u sent (rc=%d)", portNum, rc);
 
   if (rc == L7_ERROR)
   {

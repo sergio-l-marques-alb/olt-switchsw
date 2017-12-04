@@ -331,7 +331,9 @@ L7_RC_t dot3adCurrentWhileTimerExpired(L7_uint32 portNum, L7_uint32 nullParm)
     }
     if (agg->isStatic == L7_FALSE)
     {
+      PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Calling dot3adReceiveMachine->lacpCurrentWhileTimerExpired(5) for portNum %u", portNum);
       rc = dot3adReceiveMachine(lacpCurrentWhileTimerExpired,p,(void *)&nullBuf);
+      PT_LOG_DEBUG(LOG_CTX_TRUNKS,"Finished dot3adReceiveMachine->lacpCurrentWhileTimerExpired(5) for portNum %u: rc=%d", portNum, rc);
     }/* mode == static*/
   }
   else
@@ -563,7 +565,7 @@ L7_RC_t dot3adRxMachineExpiredAction(dot3ad_port_t *p)
   L7_uint32 timeOut;
   dot3ad_agg_t *agg;
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "ExpiredAction: intf=%u", p->actorPortNum);
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "Expired Action: intf=%u", p->actorPortNum);
   
   p->partnerOperPortState &= ~DOT3AD_STATE_SYNCHRONIZATION;
   /*set the lacp time to short time out encoded as 1*/
@@ -612,7 +614,9 @@ L7_RC_t dot3adRxMachineExpiredAction(dot3ad_port_t *p)
   rc = dot3adReceiveMachineGenerateEvent(p);
 
   dot3adTablesLastChangedRecord();
-   
+  
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Expired Action: intf=%u, rc=%d", p->actorPortNum, rc);
+
   return rc;
 }
 /**************************************************************************
@@ -633,7 +637,7 @@ L7_RC_t dot3adRxMachineDefaultedAction(dot3ad_port_t *p)
   L7_RC_t rc;
   dot3ad_agg_t *a;
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "DefaultedAction: intf=%u", p->actorPortNum);
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "Defaulted Action: intf=%u", p->actorPortNum);
 
   rc = dot3adUpdateDefaultSelected(p);
   rc = dot3adRecordDefault(p);
@@ -792,7 +796,7 @@ L7_RC_t dot3adReceiveMachine(dot3ad_lacp_event_t lacpEvent,
     /*get the next event based on the lacp event and the current rx machine state*/
     nextState = rxStateTable[lacpEvent][p->rxState];
 
-    PT_LOG_TRACE(LOG_CTX_TRUNKS,"lacpEvent=%d rxState=%d nextState=%d", lacpEvent, p->rxState, nextState);
+    PT_LOG_TRACE(LOG_CTX_TRUNKS,"lacpEvent=%d rxState=%d nextState=%d intIfNum=%u", lacpEvent, p->rxState, nextState, p->actorPortNum);
 
     switch (nextState)
     {
@@ -805,8 +809,9 @@ L7_RC_t dot3adReceiveMachine(dot3ad_lacp_event_t lacpEvent,
         rc = dot3adRxMachinePortDisabledAction(p);
         break;
       case EXPIRED:
-        PT_LOG_TRACE(LOG_CTX_TRUNKS,"EXPIRED");
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS,"EXPIRED: intIfNum=%u", p->actorPortNum);
         rc = dot3adRxMachineExpiredAction(p);
+        PT_LOG_DEBUG(LOG_CTX_TRUNKS,"EXPIRED: intIfNum=%u, rc=%d", p->actorPortNum, rc);
         break;
       case LACP_DISABLED:
         PT_LOG_TRACE(LOG_CTX_TRUNKS,"LACP_DISABLED");
@@ -1343,7 +1348,7 @@ L7_RC_t dot3adMuxMachineDetachedAction(dot3ad_port_t *p)
 {
   L7_RC_t rc;
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "DetachedAction: intf=%u", p->actorPortNum);
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "Detached Action: intf=%u", p->actorPortNum);
 
   PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adDetachMuxFromAgg");
   rc = dot3adDetachMuxFromAgg(p);
@@ -1403,7 +1408,7 @@ L7_RC_t dot3adMuxMachineWaitingAction(dot3ad_port_t *p)
   L7_uint32 waitTime;
   dot3ad_agg_t *agg;
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Waiting Action: intf=%u", p->actorPortNum);
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "Waiting Action: intf=%u", p->actorPortNum);
 
   agg= dot3adAggKeyFind(p->actorOperPortKey);
   if (agg == L7_NULLPTR)
@@ -1469,7 +1474,7 @@ L7_RC_t dot3adMuxMachineAttachedAction(dot3ad_port_t *p)
   L7_RC_t rc;
   dot3ad_agg_t *agg;
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "AttachedAction: intf=%u", p->actorPortNum);
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "Attached Action: intf=%u", p->actorPortNum);
 
   PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adAttachMuxToAgg");
   rc = dot3adAttachMuxToAgg(p);
@@ -1520,7 +1525,7 @@ L7_RC_t dot3adMuxMachineCollDistAction(dot3ad_port_t *p)
 {
   L7_RC_t rc;
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "CollDistAction: intf=%u", p->actorPortNum);
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "Coll+Dist Action: intf=%u", p->actorPortNum);
 
   p->actorOperPortState |= DOT3AD_STATE_DISTRIBUTING;
   rc = dot3adEnableCollDist(p);
@@ -1550,16 +1555,16 @@ L7_RC_t dot3adMuxMachineCollDistAction(dot3ad_port_t *p)
   a = dot3adAggIntfFind(p->actorOperPortKey);
   if (a == L7_NULLPTR)
   {
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Leaving...");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS, "Leaving...");
     return L7_FAILURE;
   }
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "I am here: intf=%u", p->actorPortNum);
+  PT_LOG_TRACE(LOG_CTX_TRUNKS, "I am here: intf=%u", p->actorPortNum);
   if (!a->isStatic && a->blockedState)
   {
     L7_uint32 nullBuf = 0;             /* buffer not needed in call to dot3adReceiveMachine */
 
-    PT_LOG_DEBUG(LOG_CTX_TRUNKS, "COLL+DIST state: going back to STANDBY");
+    PT_LOG_INFO(LOG_CTX_TRUNKS, "COLL+DIST state: going back to STANDBY");
 
     /* In stand-by */
     p->selected = STANDBY;
