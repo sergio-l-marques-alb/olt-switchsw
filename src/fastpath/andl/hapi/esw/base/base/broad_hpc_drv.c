@@ -3312,6 +3312,8 @@ extern int soc_robo_misc_init(int );
 extern int soc_robo_mmu_init(int );
 #endif
 
+  PT_LOG_INFO(LOG_CTX_STARTUP, "Starting systemInit...");
+
 #ifdef BCM_ROBO_SUPPORT
   SYSTEM_INIT_CHECK(soc_robo_reset_init(unit), "Device reset");
   SYSTEM_INIT_CHECK(soc_robo_misc_init(unit), "Misc init");
