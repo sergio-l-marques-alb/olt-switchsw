@@ -51,8 +51,8 @@ if [ "${HOSTNAME%%.*}" == "kompilovat" ]; then
  fi
 fi
 
-#echo "Removing files..."
-#rm ${src_path}/fastpath-olt.*r${svn_rev}.*
+echo "Removing files..."
+rm ${src_path}/fastpath-olt.*r${svn_rev}.*
 
 echo "Done!"
 echo "Goto ${username}@${ip_addr}:${dst_path} and run image_update.sh script."
