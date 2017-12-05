@@ -54,8 +54,8 @@ sal_readline(char *prompt, char *buf, int bufsize, char *defl)
 
 #ifdef INCLUDE_EDITLINE
 
-    //LOG_INFO(BSL_LS_APPL_ECHO,
-    //         (BSL_META("%s"), full_prompt));
+    LOG_INFO(BSL_LS_APPL_ECHO,
+             (BSL_META("%s"), full_prompt));
     s = readline(full_prompt);
 
 #else /* !INCLUDE_EDITLINE */
@@ -90,8 +90,8 @@ sal_readline(char *prompt, char *buf, int bufsize, char *defl)
 	buf = 0;
 	goto done;
     } else {
-        //LOG_INFO(BSL_LS_APPL_ECHO,
-        //         (BSL_META("%s\n"), s));
+        LOG_INFO(BSL_LS_APPL_ECHO,
+                 (BSL_META("%s\n"), s));
     }
 
     len = 0;
