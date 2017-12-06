@@ -139,7 +139,7 @@ struct ptin_igmp_port_type_s ptin_port_list[PTIN_SYSTEM_N_INTERF];
 
 #if PTIN_BOARD == PTIN_BOARD_IS_STANDALONE
 
-struct ptin_igmp_port_type_s ptin_port_list[PTIN_SYSTEM_N_UPLINK_INTERF];
+struct ptin_igmp_port_type_s ptin_port_list[PTIN_SYSTEM_N_INTERF];
 
 #endif
 
@@ -1046,7 +1046,7 @@ L7_RC_t ptin_igmp_port_type_get(L7_uint32 port, L7_uint8* port_type)
   PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %s ", port, (ptin_port_list[port].type == 0) ? "PTIN_IGMP_PORT_SERVER" : "PTIN_IGMP_PORT_CLIENT" );
 
 #else // OLT1T0
-  if ( port >= PTIN_SYSTEM_N_UPLINK_INTERF ) { 
+  if ( port >= PTIN_SYSTEM_N_INTERF ) { 
     PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", port);
     return L7_FAILURE;
   }
@@ -1080,7 +1080,7 @@ L7_RC_t ptin_igmp_get_port_query_count(L7_uint32 port, L7_uint8* query_count)
   *query_count = ptin_port_list[port].query_count++;
   PT_LOG_NOTICE(LOG_CTX_IGMP,"Query count: %u", *query_count);
 #else // OLT1T0
-  if ( port >= PTIN_SYSTEM_N_UPLINK_INTERF ) { 
+  if ( port >= PTIN_SYSTEM_N_INTERF ) { 
     PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", port);
     return L7_FAILURE;
   }
@@ -1113,7 +1113,7 @@ L7_RC_t ptin_igmp_port_is_Dynamic(L7_uint32 port, L7_uint8* isDynamic)
   }
   *isDynamic = ptin_port_list[port].hybrid;
 #else // OLT1T0
-  if ( port >= PTIN_SYSTEM_N_UPLINK_INTERF ) {
+  if ( port >= PTIN_SYSTEM_N_INTERF ) {
     PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", port);
     return L7_FAILURE;
   }
@@ -1156,7 +1156,7 @@ L7_RC_t ptin_igmp_get_local_router_port(L7_uint8 *local_router_port_id)
   *local_router_port_id = -1;
 
 #else //OLT1T0
-  while (i < PTIN_SYSTEM_N_UPLINK_INTERF) {
+  while (i < PTIN_SYSTEM_N_INTERF) {
     if (ptin_port_list[i].type == PTIN_IGMP_LOCAL_ROUTER_PORT) {
       PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is PTIN_IGMP_LOCAL_ROUTER_PORT" , i);
       *local_router_port_id = i;
@@ -1245,7 +1245,7 @@ L7_RC_t ptin_igmp_set_lrp_id(L7_uint32 local_router_port_id)
 
   /* lrp_id = -1 || lrp_id < uplink_intf && lrp_id > n_pons */
   if ( (local_router_port_id == (L7_uint32)-1) || 
-       ( (local_router_port_id <= PTIN_SYSTEM_N_UPLINK_INTERF) && local_router_port_id >= PTIN_SYSTEM_N_PONS) )
+       ( (local_router_port_id <= PTIN_SYSTEM_N_INTERF) && local_router_port_id >= PTIN_SYSTEM_N_PONS) )
   {
     lrp_id = local_router_port_id;
     PT_LOG_NOTICE(LOG_CTX_IGMP, "%s, lrp_id = %u", __FUNCTION__, lrp_id);
@@ -1355,7 +1355,7 @@ L7_RC_t ptin_igmp_set_local_router_port(L7_uint32 port, L7_uint8 lrp_flag)
 #else // OLT1T0
 
     PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_flag %u, lrp_id %u", lrp_flag, lrp_id);
-    if ( port > PTIN_SYSTEM_N_UPLINK_INTERF ) 
+    if ( port > PTIN_SYSTEM_N_INTERF ) 
     {
       PT_LOG_ERR(LOG_CTX_IGMP,"Port %u not valid", port);
       return L7_FAILURE;
@@ -1368,7 +1368,7 @@ L7_RC_t ptin_igmp_set_local_router_port(L7_uint32 port, L7_uint8 lrp_flag)
       PT_LOG_NOTICE(LOG_CTX_IGMP,"lrp_id is %u ", lrp_id);
     }
 
-    while (i < PTIN_SYSTEM_N_UPLINK_INTERF) 
+    while (i < PTIN_SYSTEM_N_INTERF) 
     {
       if (ptin_port_list[i].hybrid == 1) {
         ptin_port_list[i].type = PTIN_IGMP_PORT_CLIENT;
@@ -1799,7 +1799,7 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
       i++;
     }
 #else // OLT1T0/OLT1T0-F
-      while (i < PTIN_SYSTEM_N_UPLINK_INTERF) {
+      while (i < PTIN_SYSTEM_N_INTERF) {
         ptin_port_list[i].port_id=i;
 
       if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_PONS) {
@@ -20485,7 +20485,7 @@ void ptin_igmp_define_local_router_port(L7_uint32 local_router_port_id)
   if(local_router_port_id >= PTIN_SYSTEM_N_PONS && local_router_port_id < (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH))
 #endif
   {
-    while (j < PTIN_SYSTEM_N_UPLINK_INTERF)
+    while (j < PTIN_SYSTEM_N_INTERF)
     {    
       if (ptin_port_list[j].port_id == local_router_port_id) {
         ptin_port_list[j].type = PTIN_IGMP_LOCAL_ROUTER_PORT;
@@ -20565,7 +20565,7 @@ void ptin_igmp_lrp_dump(void)
     i++;
   }
 #else //OLT1T0
-  while (i < PTIN_SYSTEM_N_UPLINK_INTERF) {
+  while (i < PTIN_SYSTEM_N_INTERF) {
     if (ptin_port_list[i].type == PTIN_IGMP_LOCAL_ROUTER_PORT) {
       local_router_port_id = i;
       printf("Local Router Port: portId = %u \n\r", local_router_port_id);
