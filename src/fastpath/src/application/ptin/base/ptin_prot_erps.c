@@ -393,6 +393,7 @@ int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint32 mask, erpsProtParam_t *con
 {
   int ret = erps_idx;
   //int byte, bit, vid;
+  int vid_bmp_reconf=0;
 
   PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d", erps_idx);
 
@@ -430,6 +431,7 @@ int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint32 mask, erpsProtParam_t *con
 
   if (mask & ERPS_CONF_MASK_BIT_VIDBMP)
   {
+    vid_bmp_reconf = memcmp( tbl_erps[erps_idx].protParam.vid_bmp, conf->vid_bmp, sizeof(conf->vid_bmp) );
     memcpy( tbl_erps[erps_idx].protParam.vid_bmp, conf->vid_bmp, sizeof(conf->vid_bmp) );
 
     ptin_hal_erps_convert_vid_init(erps_idx);
@@ -479,6 +481,8 @@ int ptin_erps_conf_entry(L7_uint8 erps_idx, L7_uint32 mask, erpsProtParam_t *con
   
   osapiSemaGive(ptin_prot_erps_sem);
 
+  if (vid_bmp_reconf) ptin_hal_erps_forceHwReconfig(erps_idx);
+  
   //PT_LOG_TRACE(LOG_CTX_ERPS, "ret:%d, done.", ret);
   return(ret);
 }
