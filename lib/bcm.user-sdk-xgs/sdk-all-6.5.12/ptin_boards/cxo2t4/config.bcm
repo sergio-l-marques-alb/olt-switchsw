@@ -207,86 +207,220 @@ invalid_queue_redirect=0
 ########Antonio Excel Aid!
 
 caui_num_lanes_0.BCM88375_B0=4
-ucode_port_1.BCM88375_B0=CGE0:core_0.1
-ucode_port_5.BCM88375_B0=CGE1:core_0.5
-ucode_port_9.BCM88375_B0=CGE2:core_0.9
-ucode_port_21.BCM88375_B0=CGE5:core_0.21
 
-#ucode_port_1.BCM88375_B0=10GBase-R0:core_0.1
-#ucode_port_2.BCM88375_B0=10GBase-R1:core_0.2
-#ucode_port_3.BCM88375_B0=10GBase-R2:core_0.3
-#ucode_port_4.BCM88375_B0=10GBase-R3:core_0.4
+#Uplink ports
+# Slot 10, Unit1: PM25-2,Q2[8:11]
+ucode_port_1.1=CGE2:core_0.9
+#ucode_port_1.1=10GBase-R8:core_0.9
+#ucode_port_2.1=10GBase-R9:core_0.10
+#ucode_port_3.1=10GBase-R10:core_0.11
+#ucode_port_4.1=10GBase-R11:core_0.12
+# Slot 10, Unit0: PM25-1,Q1[4:7]
+ucode_port_1.0=CGE1:core_1.5
+#ucode_port_1.0=10GBase-R4:core_0.5
+#ucode_port_2.0=10GBase-R5:core_0.6
+#ucode_port_3.0=10GBase-R6:core_0.7
+#ucode_port_4.0=10GBase-R7:core_0.8
 
-#ucode_port_5.BCM88375_B0=10GBase-R4:core_0.5
-#ucode_port_6.BCM88375_B0=10GBase-R5:core_0.6
-#ucode_port_7.BCM88375_B0=10GBase-R6:core_0.7
-#ucode_port_8.BCM88375_B0=10GBase-R7:core_0.8
-#ucode_port_9.BCM88375_B0=10GBase-R8:core_0.9
-#ucode_port_10.BCM88375_B0=10GBase-R9:core_0.10
-#ucode_port_11.BCM88375_B0=10GBase-R10:core_0.11
-#ucode_port_12.BCM88375_B0=10GBase-R11:core_0.12
-ucode_port_13.BCM88375_B0=10GBase-R12:core_0.13
-ucode_port_14.BCM88375_B0=10GBase-R13:core_0.14
-ucode_port_15.BCM88375_B0=10GBase-R14:core_0.15
-ucode_port_16.BCM88375_B0=10GBase-R15:core_0.16
-ucode_port_17.BCM88375_B0=10GBase-R16:core_0.17
-ucode_port_18.BCM88375_B0=10GBase-R17:core_0.18
-ucode_port_19.BCM88375_B0=10GBase-R18:core_0.19
-ucode_port_20.BCM88375_B0=10GBase-R19:core_0.20
-#ucode_port_21.BCM88375_B0=10GBase-R20:core_0.21
-#ucode_port_22.BCM88375_B0=10GBase-R21:core_0.22
-#ucode_port_23.BCM88375_B0=10GBase-R22:core_0.23
-#ucode_port_24.BCM88375_B0=10GBase-R23:core_0.24
-ucode_port_25.BCM88375_B0=10GBase-R24:core_0.25
-ucode_port_26.BCM88375_B0=10GBase-R25:core_0.26
-ucode_port_27.BCM88375_B0=10GBase-R26:core_0.27
-ucode_port_28.BCM88375_B0=10GBase-R27:core_0.28
-ucode_port_29.BCM88375_B0=10GBase-R28:core_0.29
-ucode_port_30.BCM88375_B0=10GBase-R29:core_0.30
-ucode_port_31.BCM88375_B0=10GBase-R30:core_0.31
-ucode_port_32.BCM88375_B0=10GBase-R31:core_0.32
-ucode_port_33.BCM88375_B0=10GBase-R32:core_0.33
-ucode_port_34.BCM88375_B0=10GBase-R33:core_0.34
-ucode_port_35.BCM88375_B0=10GBase-R34:core_0.35
-ucode_port_36.BCM88375_B0=10GBase-R35:core_0.36
-ucode_port_37.BCM88375_B0=10GBase-R36:core_0.37
-ucode_port_38.BCM88375_B0=10GBase-R37:core_0.38
-ucode_port_39.BCM88375_B0=10GBase-R38:core_0.39
-ucode_port_40.BCM88375_B0=10GBase-R39:core_0.40
-ucode_port_41.BCM88375_B0=10GBase-R40:core_0.41
-ucode_port_42.BCM88375_B0=10GBase-R41:core_0.42
-ucode_port_43.BCM88375_B0=10GBase-R42:core_0.43
-ucode_port_44.BCM88375_B0=10GBase-R43:core_0.44
-ucode_port_45.BCM88375_B0=10GBase-R44:core_0.45
-ucode_port_46.BCM88375_B0=10GBase-R45:core_0.46
-ucode_port_47.BCM88375_B0=10GBase-R46:core_0.47
-ucode_port_48.BCM88375_B0=10GBase-R47:core_0.48
-ucode_port_49.BCM88375_B0=10GBase-R48:core_0.49
-ucode_port_50.BCM88375_B0=10GBase-R49:core_0.50
-ucode_port_51.BCM88375_B0=10GBase-R50:core_0.51
-ucode_port_52.BCM88375_B0=10GBase-R51:core_0.52
-ucode_port_53.BCM88375_B0=10GBase-R52:core_0.53
-ucode_port_54.BCM88375_B0=10GBase-R53:core_0.54
-ucode_port_55.BCM88375_B0=10GBase-R54:core_0.55
-ucode_port_56.BCM88375_B0=10GBase-R55:core_0.56
-ucode_port_57.BCM88375_B0=10GBase-R56:core_0.57
-ucode_port_58.BCM88375_B0=10GBase-R57:core_0.58
-ucode_port_59.BCM88375_B0=10GBase-R58:core_0.59
-ucode_port_60.BCM88375_B0=10GBase-R59:core_0.60
-ucode_port_61.BCM88375_B0=10GBase-R60:core_0.61
-ucode_port_62.BCM88375_B0=10GBase-R61:core_0.62
-ucode_port_63.BCM88375_B0=10GBase-R62:core_0.63
-ucode_port_64.BCM88375_B0=10GBase-R63:core_0.64
-ucode_port_65.BCM88375_B0=10GBase-R64:core_0.65
+# Slot 11, Unit1: PM25-5,Q5[20:23]
+ucode_port_2.1=CGE5:core_0.21
+#ucode_port_5.1=10GBase-R20:core_1.21
+#ucode_port_6.1=10GBase-R21:core_1.22
+#ucode_port_7.1=10GBase-R22:core_1.23
+#ucode_port_8.1=10GBase-R23:core_1.24
+# Slot 11, Unit0: PM25-0,Q0[0:3]
+ucode_port_2.0=CGE0:core_1.1
+#ucode_port_5.0=10GBase-R0:core_1.1
+#ucode_port_6.0=10GBase-R1:core_1.2
+#ucode_port_7.0=10GBase-R2:core_1.3
+#ucode_port_8.0=10GBase-R3:core_1.4
 
+# Slot 1, Unit1: PM10-8,Q14[56:59] (verified)
+ucode_port_9.1=10GBase-R56:core_0.57
+ucode_port_10.1=10GBase-R57:core_0.58
+ucode_port_11.1=10GBase-R58:core_0.59
+ucode_port_12.1=10GBase-R59:core_0.60
+# Slot 1, Unit0: PM10-2,Q8[32:35]
+ucode_port_9.0=10GBase-R32:core_0.33
+ucode_port_10.0=10GBase-R33:core_0.34
+ucode_port_11.0=10GBase-R34:core_0.35
+ucode_port_12.0=10GBase-R35:core_0.36
 
-ucode_port_0.BCM88375_B0=cpu.0:core_0.0
-ucode_port_201.BCM88375_B0=cpu.8:core_0.201
-ucode_port_202.BCM88375_B0=cpu.16:core_0.202
-ucode_port_203.BCM88375_B0=cpu.24:core_0.203
-ucode_port_204.BCM88375_B0=cpu.32:core_0.204
+# Slot 2, Unit1: PM10-6,Q12[48:51] (verified)
+ucode_port_13.1=10GBase-R48:core_1.49
+ucode_port_14.1=10GBase-R49:core_1.50
+ucode_port_15.1=10GBase-R50:core_1.51
+ucode_port_16.1=10GBase-R51:core_1.52
+# Slot 2, Unit0: PM10-0,Q6[24:27]
+ucode_port_13.0=10GBase-R24:core_1.25
+ucode_port_14.0=10GBase-R25:core_1.26
+ucode_port_15.0=10GBase-R26:core_1.27
+ucode_port_16.0=10GBase-R27:core_1.28
 
+# Slot 3, Unit1: PM10Q-10,Q16[64:67] (verified)
+ucode_port_17.1=10GBase-R64:core_0.65
+ucode_port_18.1=10GBase-R65:core_0.66
+ucode_port_19.1=10GBase-R66:core_0.67
+ucode_port_20.1=10GBase-R67:core_0.68
+# Slot 3, Unit0: PM10Q-4,Q10[40:43]
+ucode_port_17.0=10GBase-R40:core_0.41
+ucode_port_18.0=10GBase-R41:core_0.42
+ucode_port_19.0=10GBase-R42:core_0.43
+ucode_port_20.0=10GBase-R43:core_0.44
 
+# Slot 4, Unit1: PM25-0,Q0[0:3] (links failed and RX-PRBS failed for ports 23-24)
+ucode_port_21.1=10GBase-R0:core_1.1
+ucode_port_22.1=10GBase-R1:core_1.2
+ucode_port_23.1=10GBase-R2:core_1.3
+ucode_port_24.1=10GBase-R3:core_1.4
+# Slot 4, Unit0: PM25-5,Q5[20:23]
+ucode_port_21.0=10GBase-R20:core_1.21
+ucode_port_22.0=10GBase-R21:core_1.22
+ucode_port_23.0=10GBase-R22:core_1.23
+ucode_port_24.0=10GBase-R23:core_1.24
+
+# Slot 5, Unit1: PM10Q-4,Q10[40:43] (verified)
+ucode_port_25.1=10GBase-R40:core_0.41
+ucode_port_26.1=10GBase-R41:core_0.42
+ucode_port_27.1=10GBase-R42:core_0.43
+ucode_port_28.1=10GBase-R43:core_0.44
+# Slot 5, Unit0: PM10Q-11,Q17[68:71]
+ucode_port_25.0=10GBase-R68:core_0.69
+ucode_port_26.0=10GBase-R69:core_0.70
+ucode_port_27.0=10GBase-R70:core_0.71
+ucode_port_28.0=10GBase-R71:core_0.72
+
+# Slot 6, Unit1: PM10-2,Q8[32:35] (verified)
+ucode_port_29.1=10GBase-R32:core_1.33
+ucode_port_30.1=10GBase-R33:core_1.34
+ucode_port_31.1=10GBase-R34:core_1.35
+ucode_port_32.1=10GBase-R35:core_1.36
+# Slot 6, Unit0: PM10Q-10,Q16[64:67]
+ucode_port_29.0=10GBase-R64:core_1.65
+ucode_port_30.0=10GBase-R65:core_1.66
+ucode_port_31.0=10GBase-R66:core_1.67
+ucode_port_32.0=10GBase-R67:core_1.68
+
+# Slot 7, Unit1: PM10-0,Q6[24:27] (verified)
+ucode_port_33.1=10GBase-R24:core_0.25
+ucode_port_34.1=10GBase-R25:core_0.26
+ucode_port_35.1=10GBase-R26:core_0.27
+ucode_port_36.1=10GBase-R27:core_0.28
+# Slot 7, Unit0: PM10-9,Q15[60:63]
+ucode_port_33.0=10GBase-R60:core_0.61
+ucode_port_34.0=10GBase-R61:core_0.62
+ucode_port_35.0=10GBase-R62:core_0.63
+ucode_port_36.0=10GBase-R63:core_0.64
+
+# Slot 8, Unit1: PM25-4,Q4[16:19] (links failed for ports 38,40)
+ucode_port_37.1=10GBase-R16:core_1.17
+ucode_port_38.1=10GBase-R17:core_1.18
+ucode_port_39.1=10GBase-R18:core_1.19
+ucode_port_40.1=10GBase-R19:core_1.20
+# Slot 8, Unit0, PM25-3,Q3[12:15]
+ucode_port_37.0=10GBase-R12:core_1.13
+ucode_port_38.0=10GBase-R13:core_1.14
+ucode_port_39.0=10GBase-R14:core_1.15
+ucode_port_40.0=10GBase-R15:core_1.16
+
+# Slot 13, Unit1: PM10-1,Q7[28:31] (verified)
+ucode_port_41.1=10GBase-R28:core_0.29
+ucode_port_42.1=10GBase-R29:core_0.30
+ucode_port_43.1=10GBase-R30:core_0.31
+ucode_port_44.1=10GBase-R31:core_0.32
+# Slot 13, Unit0: PM10-8,Q14[56:59]
+ucode_port_41.0=10GBase-R56:core_0.57
+ucode_port_42.0=10GBase-R57:core_0.58
+ucode_port_43.0=10GBase-R58:core_0.59
+ucode_port_44.0=10GBase-R59:core_0.60
+
+# Slot 14, Unit1: PM25-1,Q1[4:7] (links failed and RX-PRBS failed for ports 46-48)
+ucode_port_45.1=10GBase-R4:core_1.5
+ucode_port_46.1=10GBase-R5:core_1.6
+ucode_port_47.1=10GBase-R6:core_1.7
+ucode_port_48.1=10GBase-R7:core_1.8
+# Slot 14, Unit0: PM25-4,Q4[16:19]
+ucode_port_45.0=10GBase-R16:core_1.17
+ucode_port_46.0=10GBase-R17:core_1.18
+ucode_port_47.0=10GBase-R18:core_1.19
+ucode_port_48.0=10GBase-R19:core_1.20
+
+# Slot 15, Unit1: PM10-3,Q9[36:39] (verified)
+ucode_port_49.1=10GBase-R36:core_0.37
+ucode_port_50.1=10GBase-R37:core_0.38
+ucode_port_51.1=10GBase-R38:core_0.39
+ucode_port_52.1=10GBase-R39:core_0.40
+# Slot 15, Unit0: PM10-7,Q13[52:55]
+ucode_port_49.0=10GBase-R52:core_0.53
+ucode_port_50.0=10GBase-R53:core_0.54
+ucode_port_51.0=10GBase-R54:core_0.55
+ucode_port_52.0=10GBase-R55:core_0.56
+
+# Slot 16, Unit1: PM10Q-5,Q11[44:47] (verified)
+ucode_port_53.1=10GBase-R44:core_1.45
+ucode_port_54.1=10GBase-R45:core_1.46
+ucode_port_55.1=10GBase-R46:core_1.47
+ucode_port_56.1=10GBase-R47:core_1.48
+# Slot 16, Unit0: PM10-6,Q12[48:51]
+ucode_port_53.0=10GBase-R48:core_1.49
+ucode_port_54.0=10GBase-R49:core_1.50
+ucode_port_55.0=10GBase-R50:core_1.51
+ucode_port_56.0=10GBase-R51:core_1.52
+
+# Slot 17, Unit1: PM25-3,Q3[12:15] (links and RX-PRBS failed to ports 57,59-60)
+ucode_port_57.1=10GBase-R12:core_0.13
+ucode_port_58.1=10GBase-R13:core_0.14
+ucode_port_59.1=10GBase-R14:core_0.15
+ucode_port_60.1=10GBase-R15:core_0.16
+# Slot 17, Unit0: PM25-2,Q2[8:11]
+ucode_port_57.0=10GBase-R8:core_0.9
+ucode_port_58.0=10GBase-R9:core_0.10
+ucode_port_59.0=10GBase-R10:core_0.11
+ucode_port_60.0=10GBase-R11:core_0.12
+
+# Slot 18, Unit1: PM10Q-11,Q17[68:71] (verified)
+ucode_port_61.1=10GBase-R68:core_1.69
+ucode_port_62.1=10GBase-R69:core_1.70
+ucode_port_63.1=10GBase-R70:core_1.71
+ucode_port_64.1=10GBase-R71:core_1.72
+# Slot 18, Unit0: PM10Q-5,Q11[44:47]
+ucode_port_61.0=10GBase-R44:core_1.45
+ucode_port_62.0=10GBase-R45:core_1.46
+ucode_port_63.0=10GBase-R46:core_1.47
+ucode_port_64.0=10GBase-R47:core_1.48
+
+# Slot 19, Unit1: PM10-9,Q15[60:63] (verified)
+ucode_port_65.1=10GBase-R60:core_0.61
+ucode_port_66.1=10GBase-R61:core_0.62
+ucode_port_67.1=10GBase-R62:core_0.63
+ucode_port_68.1=10GBase-R63:core_0.64
+# Slot 19, Unit0: PM10-3,Q9[36:39]
+ucode_port_65.0=10GBase-R36:core_0.37
+ucode_port_66.0=10GBase-R37:core_0.38
+ucode_port_67.0=10GBase-R38:core_0.39
+ucode_port_68.0=10GBase-R39:core_0.40
+
+# Slot 20, Unit1: PM10-7,Q13[52:55] (verified)
+ucode_port_69.1=10GBase-R52:core_1.53
+ucode_port_70.1=10GBase-R53:core_1.54
+ucode_port_71.1=10GBase-R54:core_1.55
+ucode_port_72.1=10GBase-R55:core_1.56
+# Slot 20, Unit0: PM10-1,Q7[28:31]
+ucode_port_69.0=10GBase-R28:core_1.29
+ucode_port_70.0=10GBase-R29:core_1.30
+ucode_port_71.0=10GBase-R30:core_1.31
+ucode_port_72.0=10GBase-R31:core_1.32
+
+# CPUs, Unit0
+ucode_port_0.0=cpu.0:core_0.0
+ucode_port_201.0=cpu.8:core_0.201
+ucode_port_202.0=cpu.16:core_1.202
+ucode_port_203.0=cpu.24:core_1.203
+# CPUs, Unit1
+ucode_port_0.1=cpu.0:core_0.0
+ucode_port_201.1=cpu.8:core_0.201
+ucode_port_202.1=cpu.16:core_1.202
+ucode_port_203.1=cpu.24:core_1.203
 
 
 ### Dram Tuning (Shmoo)
@@ -758,7 +892,7 @@ fabric_segmentation_enable.BCM88650=1
 # Options: FE - presence of a Fabric device (single stage) / MULT_STAGE_FE -  Multi-stage /
 # SINGLE_FAP - stand-alone device / MESH - mesh / BACK2BACK - 2 devices in Mesh
 #fabric_connect_mode.BCM88650=SINGLE_FAP
-fabric_connect_mode.BCM88650=FE
+fabric_connect_mode.BCM88650=MESH
 # The Jericho configuration below will be overriden in jer.soc for multi device configurations
 fabric_connect_mode.BCM88675=SINGLE_FAP
 fabric_connect_mode.BCM88470=SINGLE_FAP
