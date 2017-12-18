@@ -13,7 +13,8 @@
 
 #define __Y1731_802_1ag_OAM_ETH__
 #define __MxP_FILTER__INSTEAD_OF__APS_AND_CCM__
-#define __BCM_HW_MEPs__
+//#define __BCM_HW_MEPs__
+//#define OAM_ETH_TIMER_OPTION2
 
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED
