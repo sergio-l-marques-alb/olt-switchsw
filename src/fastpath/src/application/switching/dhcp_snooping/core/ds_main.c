@@ -1094,8 +1094,6 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
     #ifdef L7_DHCP_L2_RELAY_PACKAGE
     if (dsCfgData->dsL2RelayAdminMode != L7_ENABLE)
     {
-
-			PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
       if (ptin_debug_dhcp_snooping || (dsCfgData->dsTraceFlags & DS_TRACE_OPTION82_EXTERNAL_CALLS))
       {
         L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
@@ -1122,8 +1120,6 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
   if (((osapiNtohl(ipv6Header->ver_class_flow) & 0xF0000000) == (L7_IP6_VERSION << 28)) &&
       (ipv6Header->next == IP_PROT_UDP))
   {
-
-		PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
     L7_uint32 evc_flags;
 
     hapiBroadReceice_dhcpv6_count++;
@@ -1142,8 +1138,6 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
         ptin_dhcp_flags_get(pduInfo->vlanId, L7_NULLPTR, &evc_flags) != L7_SUCCESS ||
         !(evc_flags & PTIN_EVC_MASK_DHCPV6_PROTOCOL))
     {
-
-			PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
       /* Only consider L2 forwarding if packet is Unicast and not coming from a MacBridge Stacked service */
       if (PTIN_VLAN_IS_QUATTRO(pduInfo->vlanId) && !(data[0] & 0x01))
       {
@@ -1157,19 +1151,13 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       }
     }
 
-
-		PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
     udpHeader = (L7_udp_header_t *)((L7_char8 *)ipv6Header + L7_IP6_HEADER_LEN);
     if ((osapiNtohs(udpHeader->destPort) == UDP_PORT_DHCP6_SERV) ||
         (osapiNtohs(udpHeader->destPort) == UDP_PORT_DHCP6_CLNT))
     {
-
-			PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
       /* Make software L2 forwarding? */
       if (l2_forward)
       {
-
-				PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
         /* For MX board, ignore DHCP packet */
       #if (PTIN_BOARD_IS_MATRIX)
         if (ptin_debug_dhcp_snooping) 
@@ -1182,8 +1170,6 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
         if (ptin_packet_frame_l2forward_nonblocking(pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId, data, len) == L7_SUCCESS)
         {
           SYSAPI_NET_MBUF_FREE(bufHandle);
-
-          PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
           return SYSNET_PDU_RC_CONSUMED;
         }
         else
@@ -1202,8 +1188,6 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
 			PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
       if (ptin_debug_dhcp_snooping || (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX))
       {
-
-				PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
         L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
         osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
                       "(%s)Packet rx'ed Dot1q VLAN Id (%d) length(%d)",
@@ -1216,8 +1200,6 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
         ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_INTERCEPTED);
         ptin_dhcp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, DHCP_STAT_FIELD_RX_FILTERED);
         SYSAPI_NET_MBUF_FREE(bufHandle);
-
-				PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
         return SYSNET_PDU_RC_CONSUMED;
       }
 
@@ -1241,8 +1223,6 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
           return SYSNET_PDU_RC_IGNORED;
         }
         #endif
-
-				PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
         /* Client information */
         client.ptin_intf.intf_type = client.ptin_intf.intf_id = 0;
         client.outerVlan = vlanId;
@@ -1258,8 +1238,6 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
         if (1)
         #endif
         {
-
-          PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
           /* Find client index, and validate it */
           if (ptin_dhcp_clientIndex_get(pduInfo->intIfNum, vlanId, &client, &client_idx)!=L7_SUCCESS ||
               client_idx>=PTIN_SYSTEM_DHCP_MAXCLIENTS)
@@ -1278,8 +1256,6 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
         else
         {
           client_idx = (L7_uint) -1;
-
-          PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
         }
       }
       #endif
@@ -1288,8 +1264,6 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
         PT_LOG_TRACE(LOG_CTX_DHCP,"Packet intercepted at intIfNum=%u, oVlan=%u, iVlan=%u",
                   pduInfo->intIfNum, pduInfo->vlanId, pduInfo->innerVlanId);
 
-
-			PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
       rc = dsPacketQueue(data, len, vlanId, pduInfo->intIfNum, innerVlanId, &client_idx);    /* PTin modified: DHCP snooping */
 
       /* Packet intercepted */
@@ -1309,8 +1283,6 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       }
       if (rc == L7_SUCCESS)
       {
-
-				PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
         dsInfo->debugStats.msgsIntercepted++;
         dsInfo->debugStats.msgsInterceptedIntf[pduInfo->intIfNum]++;
 
@@ -1333,24 +1305,17 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
         }
 #endif /* if Relay agent is there */
 #ifdef L7_DHCPS_PACKAGE
-
-				PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
         if ((usmDbDhcpsAdminModeGet(0, &mode) == L7_SUCCESS) &&
             (mode == L7_ENABLE))
         {
-
-          PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
           return SYSNET_PDU_RC_IGNORED;
         }
 #endif /* If DHCP server is there */
         if (_dsVlanIsIntfRoot(pduInfo->vlanId,pduInfo->intIfNum) /*_dsIntfTrustGet(pduInfo->intIfNum)*/) /* Trusted port */   /* PTin modified: DHCP snooping */
         {
 
-          PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
           return SYSNET_PDU_RC_IGNORED;
         }
-
-				PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
         SYSAPI_NET_MBUF_FREE(bufHandle);
         return SYSNET_PDU_RC_CONSUMED;
       }
@@ -1360,8 +1325,6 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       if (ptin_debug_dhcp_snooping)
         PT_LOG_TRACE(LOG_CTX_DHCP,"DHCP Packet is not server nor client");
     }
-
-		PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
   }
 
   if (ptin_debug_dhcp_snooping)
