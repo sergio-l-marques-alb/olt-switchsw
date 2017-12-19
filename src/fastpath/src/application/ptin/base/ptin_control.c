@@ -580,8 +580,11 @@ L7_BOOL ptin_alarms_is_suppressed(L7_uint32 port)
 
   /* Return current state */
   return ptin_alarms_suppressed[port];
-#else
-  return L7_FALSE;
+
+#else 
+
+	return ptin_alarms_suppressed[port];
+
 #endif
 }
 
