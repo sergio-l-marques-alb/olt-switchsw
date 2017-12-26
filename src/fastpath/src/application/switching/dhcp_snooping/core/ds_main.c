@@ -2174,13 +2174,19 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
            relay_op_header_ptr += sizeof(L7_dhcp6_option_packet_t) + sizeof(L7_uint32);
            break;
         }
+				case L7_DHCP6_OPT_IAADDR:
+        {
+           inetAddressSet(L7_AF_INET6, relay_op_header_ptr + sizeof(L7_dhcp6_option_packet_t), &client_ip_addr);
+           lease_time           = osapiNtohl(*(L7_uint32*) (relay_op_header_ptr + sizeof(L7_dhcp6_option_packet_t) + IPV6_ADDRESS_LEN + sizeof(L7_int32)));
+           frame_len           -= sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len);
+           relay_op_header_ptr += sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len);
+           break;
+        }
         case L7_DHCP6_OPT_PREFIX_DELEGA:
         {
 
-					 PT_LOG_ERR(LOG_CTX_DHCP, "DHCPv6 Relay-Agent: Broken frame received, ignoring (invalid UDP.length) %d ", osapiNtohs(dhcp_op_header->option_len));
-
 					 /* The IP adress is11 bytes after after the prefix option in DHCP packet */
-					 L7_uchar8* aux = relay_op_header_ptr + osapiNtohs(dhcp_op_header->option_len) - 11; 
+					 L7_uchar8* aux = relay_op_header_ptr + osapiNtohs(dhcp_op_header->option_len) - 12; 
 					 inetAddressSet(L7_AF_INET6, aux, &client_ip_addr);
            lease_time           = osapiNtohl(*(L7_uint32*) (relay_op_header_ptr + sizeof(L7_dhcp6_option_packet_t) + IPV6_ADDRESS_LEN + sizeof(L7_int32)));
            frame_len           -= sizeof(L7_dhcp6_option_packet_t) + osapiNtohs(dhcp_op_header->option_len);
