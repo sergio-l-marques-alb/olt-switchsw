@@ -5043,7 +5043,8 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
   /* Shaping rate */
   if (intfQos->mask & PTIN_QOS_INTF_SHAPINGRATE_MASK)
   {
-    PT_LOG_NOTICE(LOG_CTX_INTF, "New shaping rate is %u", intfQos->shaping_rate);
+    PT_LOG_NOTICE(LOG_CTX_INTF, "New shaping rate is %u", intfQos->shaping_rate)
+
     if(intfQos->shaping_rate == 0)
     {
       intfQos->shaping_rate = 100;
@@ -5059,7 +5060,7 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
 
     entry.ptin_port  = ptin_port;
     entry.burst_size = ptin_burst_size[ptin_port];
-    entry.max_rate   = ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE];
+    entry.max_rate   = (ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] * intfQos->shaping_rate ) / 100;
 
     PT_LOG_NOTICE(LOG_CTX_INTF, "ptin_port:  %u", entry.ptin_port);
     PT_LOG_NOTICE(LOG_CTX_INTF, "burst_size: %u", entry.burst_size);
@@ -5069,7 +5070,7 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
 
     if (rc == L7_SUCCESS)
     {
-      ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE] = intfQos->shaping_rate;
+      ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE] = (ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] * intfQos->shaping_rate);
       PT_LOG_NOTICE(LOG_CTX_INTF, "New shaping rate is %u",intfQos->shaping_rate);
     }
     else
