@@ -99,18 +99,15 @@ extern int ptin_sys_number_of_ports;
                                        (board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TG16GF) || \
                                        (board)==(PTIN_BOARD_TYPE_TT04SXG) || (board)==(PTIN_BOARD_TYPE_TT08SXG) || \
                                        (board)==(PTIN_BOARD_TYPE_TA48GE) || (board)==(PTIN_BOARD_TYPE_TA48GED))
-#define PTIN_BOARD_IS_OLT360(board)   ((board)==(PTIN_BOARD_TYPE_TOLTU20G) || (board)==(PTIN_BOARD_TYPE_TOLTU20GR) || \
-                                       (board)==(PTIN_BOARD_TYPE_TOLT8G) || (board)==(PTIN_BOARD_TYPE_TOLT8GR))
-#define PTIN_BOARD_IS_OLT1T3(board)   ((board)==(PTIN_BOARD_TYPE_TU40G) || (board)==(PTIN_BOARD_TYPE_TU40GR) || \
-                                       (board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TG16GF) || \
-                                       (board)==(PTIN_BOARD_TYPE_TT04SXG) || (board)==(PTIN_BOARD_TYPE_TT08SXG) || \
-                                       (board)==(PTIN_BOARD_TYPE_TA48GE) || (board)==(PTIN_BOARD_TYPE_TA48GED))
 #define PTIN_BOARD_LS_CTRL(board)     ((board)==(PTIN_BOARD_TYPE_TOLTU20G) || (board)==(PTIN_BOARD_TYPE_TOLTU20GR) || \
                                        (board)==(PTIN_BOARD_TYPE_TU40G) || (board)==(PTIN_BOARD_TYPE_TU40GR) || \
                                        (board)==(PTIN_BOARD_TYPE_TOLT8G) || (board)==(PTIN_BOARD_TYPE_TOLT8GR) || \
                                        (board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TG16GF) || \
                                        (board)==(PTIN_BOARD_TYPE_TT04SXG) || (board)==(PTIN_BOARD_TYPE_TT08SXG) || \
                                        (board)==(PTIN_BOARD_TYPE_CXO160G) || (board)==(PTIN_BOARD_TYPE_CXO640G))
+
+/* These cards will be reseted when a switchover is applied (ptin_control) */
+#define PTIN_BOARD_IS_TORESET(board)  ((board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TG16GF) || (board)==(PTIN_BOARD_TYPE_TT04SXG))
 
 #define WC_MAP_FILE "/usr/local/ptin/var/bcm_port_map"
 

@@ -26,7 +26,7 @@ extern L7_uint32 ptin_control_port_activity[PTIN_SYSTEM_N_PORTS];
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
 #if (PHY_RECOVERY_PROCEDURE)
-extern L7_BOOL slots_to_be_reseted[PTIN_SYS_SLOTS_MAX];
+extern L7_BOOL slots_to_be_reseted[1+PTIN_SYS_SLOTS_MAX];
 #endif
 #endif
 
