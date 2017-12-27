@@ -123,6 +123,116 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable);
  ********************************************************************/
 
 /**
+ * Blocked semaphore associated to physical port
+ * 
+ * @param ptin_port 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_phySemaTake(L7_uint16 ptin_port)
+{
+  DAPI_USP_t     ddUsp;
+  BROAD_PORT_t  *hapiPortPtr;
+  extern DAPI_t *dapi_g;
+
+  /* Validate arguments */
+  if (ptin_port >= ptin_sys_number_of_ports)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid ptin_port %u", ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* Check if dapi_g is valid */
+  if (dapi_g == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "dapi_g pointer is NULL");
+    return L7_FAILURE;
+  }
+  
+  /* Get hapiPortPtr */
+  ddUsp.unit = bcm_unit+1;
+  ddUsp.slot = 0;
+  ddUsp.port = ptin_port;
+
+  hapiPortPtr = HAPI_PORT_GET(&ddUsp, dapi_g);
+
+  /* Check if hapiPortPtr pointer is valid */
+  if (hapiPortPtr == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: hapiPortPtr pointer is NULL", ptin_port);
+    return L7_FAILURE;
+  }
+  /* Block the semaphore related to this phy */
+  if (hapiPortPtr->hapiModeparm.physical.phySemaphore == L7_NULL)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: bcm_port %u does not have any semaphore associated to it", ptin_port, hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
+  if (osapiSemaTake(hapiPortPtr->hapiModeparm.physical.phySemaphore, L7_WAIT_FOREVER) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error blocking semaphore related to bcm_port %u (port %u)", ptin_port, hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
+ * Release semaphore associated to physical port
+ * 
+ * @param ptin_port 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_phySemaGive(L7_uint16 ptin_port)
+{
+  DAPI_USP_t     ddUsp;
+  BROAD_PORT_t  *hapiPortPtr;
+  extern DAPI_t *dapi_g;
+
+  /* Validate arguments */
+  if (ptin_port >= ptin_sys_number_of_ports)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid ptin_port %u", ptin_port);
+    return L7_FAILURE;
+  }
+
+  /* Check if dapi_g is valid */
+  if (dapi_g == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "dapi_g pointer is NULL");
+    return L7_FAILURE;
+  }
+
+  /* Get hapiPortPtr */
+  ddUsp.unit = bcm_unit+1;
+  ddUsp.slot = 0;
+  ddUsp.port = ptin_port;
+
+  hapiPortPtr = HAPI_PORT_GET(&ddUsp, dapi_g);
+
+  /* Check if hapiPortPtr pointer is valid */
+  if (hapiPortPtr == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: hapiPortPtr pointer is NULL", ptin_port);
+    return L7_FAILURE;
+  }
+  /* Release semaphore related to this phy */
+  if (hapiPortPtr->hapiModeparm.physical.phySemaphore == L7_NULL)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: bcm_port %u does not have any semaphore associated to it", ptin_port, hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
+  if (osapiSemaGive(hapiPortPtr->hapiModeparm.physical.phySemaphore) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error releasing semaphore related to bcm_port %u (port %u)", ptin_port, hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
+
+  return L7_SUCCESS;
+}
+
+/**
  * Initializes PTin HAPI data structures
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
@@ -569,6 +679,13 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
       continue;
     }
 
+    /* Block semaphore associated to physical port */
+    if (ptin_hapi_phySemaTake(i) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error blocking semaphore", i);
+      return L7_FAILURE;
+    }
+
   #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
     /* Local ports at 10G XAUI (Only applicable to CXO160G) */
     if (hapiWCMapPtr[i].slotNum < 0 && hapiWCMapPtr[i].wcSpeedG == 10)
@@ -629,6 +746,12 @@ L7_RC_t ptin_hapi_phy_init_matrix(void)
         }
         PT_LOG_NOTICE(LOG_CTX_HAPI, "Port %u (bcm_port %u) at KR4", i, bcm_port);
       }
+    }
+
+    /* Release semaphore related to physical port */
+    if (ptin_hapi_phySemaGive(i) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error releasing semaphore", i);
     }
   }
 #endif
@@ -1221,7 +1344,9 @@ L7_RC_t ptin_hapi_phy_init_olt1t0f(void)
  */
 L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
 {
-  L7_RC_t    rc = L7_SUCCESS;
+  L7_RC_t       rc = L7_SUCCESS;
+  L7_uint8      number_of_ports;
+  L7_uint8      ptin_port_list[8];
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   L7_int     i, wcSpeedG=-1, wcMode=BCM_PORT_IF_NULL;
@@ -1236,8 +1361,9 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiWCMapPtr         = dapiCardPtr->wcPortMap;
-
+  
   BCM_PBMP_CLEAR(pbm);
+  number_of_ports = 0;
 
   /* Run all slots */
   for (i=0; i<ptin_sys_number_of_ports; i++)
@@ -1257,11 +1383,22 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
     /* And add the ports associated to the provided slot_id */
     if (hapiWCMapPtr[i].slotNum == slot_id)
     {
-      BCM_PBMP_PORT_ADD(pbm, bcm_port);
-      /* Save speed of this port */
-      wcSpeedG = hapiWCMapPtr[i].wcSpeedG;
-      wcMode   = hapiWCMapPtr[i].wcMode;
-      PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u (port %u) added to list of ports to be reseted", bcm_port, i);
+      /* Allow up to 8 ports to be configured */
+      if (number_of_ports < 8)
+      {
+        BCM_PBMP_PORT_ADD(pbm, bcm_port);
+        /* Save speed of this port */
+        wcSpeedG = hapiWCMapPtr[i].wcSpeedG;
+        wcMode   = hapiWCMapPtr[i].wcMode;
+        PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u (port %u) added to list of ports to be reseted", bcm_port, i);
+
+        /* Store ptin_port to be configured */
+        ptin_port_list[number_of_ports++] = i;
+      }
+      else
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "bcm_port %u (port %u) can not be added to list of ports to be reseted... 8 ports is the maximum", bcm_port, i);
+      }
     }
   }
   
@@ -1270,6 +1407,23 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
   {
     PT_LOG_WARN(LOG_CTX_HAPI, "List of selected ports is empty... nothing to be done!");
     return L7_NOT_EXIST;
+  }
+
+  /* Lock semaphores */
+  for (i = 0; i < number_of_ports; i++)
+  {
+    /* Block semaphore associated to physical port */
+    if (ptin_hapi_phySemaTake(ptin_port_list[i]) != L7_SUCCESS)
+    {
+      /* Release previous locks */
+      L7_uint8 j;
+      for (j = 0; j < i; j++)
+      {
+        ptin_hapi_phySemaGive(ptin_port_list[j]);
+      }
+      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error blocking semaphore", ptin_port_list[j]);
+      return L7_FAILURE;
+    }
   }
 
   /* Detach ports */
@@ -1362,6 +1516,16 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
     }
   }
 
+  /* Release semaphores */
+  for (i = 0; i < number_of_ports; i++)
+  {
+    /* Release semaphore associated to physical port */
+    if (ptin_hapi_phySemaGive(ptin_port_list[i]) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error releasing semaphore", ptin_port_list[i]);
+    }
+  }
+  
   if (rc == L7_SUCCESS)
   {
     PT_LOG_NOTICE(LOG_CTX_HAPI, "Selected ports reseted successfully");
@@ -1399,19 +1563,19 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
   if (enable)
   {
     /* Clear link faults */
-    PT_LOG_INFO(LOG_CTX_HAPI, "_ptin_esw_link_fault_get from bcm_port %u", bcm_port);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "_ptin_esw_link_fault_get from bcm_port %u", bcm_port);
     if (_ptin_esw_link_fault_get(0, bcm_port, &fault) != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error clearing faults for bcm_port %u", bcm_port);
     }
     /* Read link status once, to update its real value */
-    PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port_link_status_get from bcm_port %u", bcm_port);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_port_link_status_get from bcm_port %u", bcm_port);
     if (bcm_port_link_status_get(0, bcm_port, &linkStatus) != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error reading link status for bcm_port %u", bcm_port);
     }
     /* Enable linkscan */
-    PT_LOG_INFO(LOG_CTX_HAPI, "bcm_linkscan_mode_set:1 to bcm_port %u", bcm_port); 
+    PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_linkscan_mode_set:1 to bcm_port %u", bcm_port); 
     if (bcm_linkscan_mode_set(0, bcm_port, BCM_LINKSCAN_MODE_SW) != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error enabling linkscan for bcm_port %u", bcm_port);
@@ -1439,7 +1603,7 @@ L7_RC_t ptin_hapi_linkscan_execute(bcm_port_t bcm_port, L7_uint8 enable)
     }
   }
 
-  PT_LOG_INFO(LOG_CTX_HAPI, "Linkscan applied to bcm_port %u (enable=%u)", bcm_port, enable);
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "Linkscan applied to bcm_port %u (enable=%u)", bcm_port, enable);
 
   return L7_SUCCESS;
 }
@@ -1580,6 +1744,7 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
   BROAD_PORT_t *hapiPortPtr;
   L7_int fault;
   L7_int rv;
+  L7_RC_t rc = L7_SUCCESS;
 
   /* Validate interface */
   if (ddUsp==L7_NULLPTR || (ddUsp->unit<0 && ddUsp->slot<0 && ddUsp->port<0))
@@ -1590,6 +1755,24 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
 
   dapiPortPtr = DAPI_PORT_GET( ddUsp, dapi_g );
   hapiPortPtr = HAPI_PORT_GET( ddUsp, dapi_g );
+
+  /* Check if hapiPortPtr pointer is valid */
+  if (hapiPortPtr == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: hapiPortPtr pointer is NULL", ddUsp->unit, ddUsp->slot, ddUsp->port);
+    return L7_FAILURE;
+  }
+  if (hapiPortPtr->hapiModeparm.physical.phySemaphore == L7_NULL)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: bcm_port %u does not have any semaphore associated to it", ddUsp->unit, ddUsp->slot, ddUsp->port, hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
+  /* Block the semaphore related to this phy */
+  if (osapiSemaTake(hapiPortPtr->hapiModeparm.physical.phySemaphore, L7_WAIT_FOREVER) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: Error blocking semaphore related to bcm_port %u", ddUsp->unit, ddUsp->slot, ddUsp->port, hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
 
   /* Clear link faults */
   rv = _ptin_esw_link_fault_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &fault);
@@ -1602,17 +1785,23 @@ L7_RC_t ptin_hapi_linkfaults_enable(DAPI_USP_t *ddUsp, DAPI_t *dapi_g, L7_BOOL l
   if (rv != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI,"Error setting bcmPortControlLinkFaultLocalEnable for port %u", hapiPortPtr->bcm_port);
-    return L7_FAILURE;
+    rc = L7_FAILURE;
   }
 
   rv = bcm_port_control_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmPortControlLinkFaultRemoteEnable, remote_enable);
   if (rv != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI,"Error setting bcmPortControlLinkFaultRemoteEnable for port %u", hapiPortPtr->bcm_port);
-    return L7_FAILURE;
+    rc = L7_FAILURE;
   }
 
-  return L7_SUCCESS;
+  /* Release semalhore */
+  if (osapiSemaGive(hapiPortPtr->hapiModeparm.physical.phySemaphore) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: Error releasing semaphore related to bcm_port %u", ddUsp->unit, ddUsp->slot, ddUsp->port, hapiPortPtr->bcm_port);
+  }
+
+  return rc;
 }
 
 
@@ -1938,11 +2127,12 @@ L7_RC_t ptin_hapi_linkscan_get(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 *enable
  */
 L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
 {
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Linkscan procedure to usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "Linkscan procedure to usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
 
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
   L7_int ptin_port;
+  L7_RC_t rc = L7_SUCCESS;
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
@@ -1977,43 +2167,73 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
     return L7_FAILURE;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-  /* Get WC port map */
-  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
-  dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
-  hapiWCMapPtr         = dapiCardPtr->wcPortMap;
-
-  if ((rv = bcm_port_interface_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &intf_type)) != BCM_E_NONE)
+  /* Check if hapiPortPtr pointer is valid */
+  if (hapiPortPtr == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error retrieving interface type {%d,%d,%d}/bcm_port %u", usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: hapiPortPtr pointer is NULL", usp->unit, usp->slot, usp->port);
+    return L7_FAILURE;
+  }
+  if (hapiPortPtr->hapiModeparm.physical.phySemaphore == L7_NULL)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: bcm_port %u does not have any semaphore associated to it", usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
+  /* Block the semaphore related to this phy */
+  if (osapiSemaTake(hapiPortPtr->hapiModeparm.physical.phySemaphore, L7_WAIT_FOREVER) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: Error blocking semaphore related to bcm_port %u", usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port);
     return L7_FAILURE;
   }
 
-  /* Speed of this interface should be 10G */
-  if (ptin_port >= dapiCardPtr->numOfWCPortMapEntries ||    /* Invalid port */
-      hapiWCMapPtr[ptin_port].wcSpeedG > 10 ||
-      intf_type == BCM_PORT_IF_KR ||
-      intf_type == BCM_PORT_IF_KR4 ||
-      intf_type == BCM_PORT_IF_XLAUI)
+  do
   {
-    PT_LOG_WARN(LOG_CTX_HAPI, "Port {%d,%d,%d}/bcm_port %u/port %u cannot be considered",
-                usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port);
-    return L7_NOT_SUPPORTED;
-  }
-#endif
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+    /* Get WC port map */
+    sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
+    dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
+    hapiWCMapPtr         = dapiCardPtr->wcPortMap;
 
-  /* Execute linkscan */
-  if (ptin_hapi_linkscan_execute(hapiPortPtr->bcm_port, enable) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error setting linkscan for port {%d,%d,%d}/bcm_port %u/port %u to %u",
-            usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
-    return L7_FAILURE;
-  }
+    if ((rv = bcm_port_interface_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &intf_type)) != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error retrieving interface type {%d,%d,%d}/bcm_port %u", usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port);
+      rc = L7_FAILURE;
+      break;
+    }
 
-  PT_LOG_INFO(LOG_CTX_HAPI, "Linkscan applied for port {%d,%d,%d}/bcm_port %u/port %u to %u",
+    /* Speed of this interface should be 10G */
+    if (ptin_port >= dapiCardPtr->numOfWCPortMapEntries ||    /* Invalid port */
+        hapiWCMapPtr[ptin_port].wcSpeedG > 10 ||
+        intf_type == BCM_PORT_IF_KR ||
+        intf_type == BCM_PORT_IF_KR4 ||
+        intf_type == BCM_PORT_IF_XLAUI)
+    {
+      PT_LOG_WARN(LOG_CTX_HAPI, "Port {%d,%d,%d}/bcm_port %u/port %u cannot be considered",
+                  usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port);
+      rc = L7_NOT_SUPPORTED;
+      break;
+    }
+  #endif
+
+    /* Execute linkscan */
+    if (ptin_hapi_linkscan_execute(hapiPortPtr->bcm_port, enable) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting linkscan for port {%d,%d,%d}/bcm_port %u/port %u to %u",
               usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
+      rc = L7_FAILURE;
+      break;
+    }
+  } while (0);
 
-  return L7_SUCCESS;
+  /* Release the semaphore related to this phy */
+  if (osapiSemaGive(hapiPortPtr->hapiModeparm.physical.phySemaphore) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: Error blocking semaphore related to bcm_port %u", usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port);
+  }
+
+  PT_LOG_INFO(LOG_CTX_HAPI, "Linkscan applied for port {%d,%d,%d}/bcm_port %u/port %u to %u: rc=%d",
+              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rc);
+
+  return rc;
 }
 
 /**
@@ -2028,13 +2248,14 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
  */
 L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_uint8 enable)
 {
-  PT_LOG_INFO(LOG_CTX_HAPI, "Force link procedure (enable=%u) for usp {%d,%d,%d}", enable, usp->unit, usp->slot, usp->port);
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "Force link procedure (link=%u, enable=%u) for usp {%d,%d,%d}", link, enable, usp->unit, usp->slot, usp->port);
 
   DAPI_PORT_t  *dapiPortPtr;
   BROAD_PORT_t *hapiPortPtr;
   L7_int ptin_port, i, link_status;
   bcm_pbmp_t pbmp;
   bcm_error_t rv;
+  L7_RC_t rc = L7_SUCCESS;
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
@@ -2068,138 +2289,183 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
     return L7_FAILURE;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
-  /* Get WC port map */
-  sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
-  dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
-  hapiWCMapPtr         = dapiCardPtr->wcPortMap;
-
-  if ((rv = bcm_port_interface_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &intf_type)) != BCM_E_NONE)
+  /* Check if hapiPortPtr pointer is valid */
+  if (hapiPortPtr == L7_NULLPTR)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error retrieving interface type {%d,%d,%d}/bcm_port %u", usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port);
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: hapiPortPtr pointer is NULL", usp->unit, usp->slot, usp->port);
+    return L7_FAILURE;
+  }
+  if (hapiPortPtr->hapiModeparm.physical.phySemaphore == L7_NULL)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: bcm_port %u does not have any semaphore associated to it", usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port);
+    return L7_FAILURE;
+  }
+  /* Block the semaphore related to this phy */
+  if (osapiSemaTake(hapiPortPtr->hapiModeparm.physical.phySemaphore, L7_WAIT_FOREVER) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: Error blocking semaphore related to bcm_port %u", usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port);
     return L7_FAILURE;
   }
 
-  /* Speed of this interface should be 10G */
-  if (ptin_port >= dapiCardPtr->numOfWCPortMapEntries ||  /* Invalid port */
-      intf_type == BCM_PORT_IF_KR ||
-      intf_type == BCM_PORT_IF_KR4 ||
-      intf_type == BCM_PORT_IF_XLAUI)
+  /* Do while, to allow break after an error */
+  do
   {
-    PT_LOG_WARN(LOG_CTX_HAPI, "Port {%d,%d,%d}/bcm_port %u/port %u cannot be considered",
-                usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port);
-    return L7_NOT_SUPPORTED;
-  }
-#endif
+  #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
+    /* Get WC port map */
+    sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
+    dapiCardPtr          = sysapiHpcCardInfoPtr->dapiCardInfo;
+    hapiWCMapPtr         = dapiCardPtr->wcPortMap;
 
-  /* Port bitmap */
-  BCM_PBMP_CLEAR(pbmp);
-  BCM_PBMP_PORT_SET(pbmp, hapiPortPtr->bcm_port);
-
-  /* If link is to be down, only */
-  if (!link)
-  {
-    /* Disable loopback */
-    if ((rv = bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE)) != BCM_E_NONE) 
+    if ((rv = bcm_port_interface_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &intf_type)) != BCM_E_NONE)
     {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling PHY loopback, with link change -> port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
-              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
-      return L7_FAILURE;
-    }
-    return L7_SUCCESS;
-  }
-
-  /* If is to force link up */
-  if (enable)
-  {
-    /* Apply Phy loopback */
-    PT_LOG_INFO(LOG_CTX_HAPI, "Going to enable PHY loopback (official) to port {%d,%d,%d}/bcm_port %u/port %u to %u",
-             usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
-    if ((rv = bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_PHY)) != BCM_E_NONE)
-    {
-      bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE);
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error enabling loopback for port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
-              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
-      return L7_FAILURE;
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error retrieving interface type {%d,%d,%d}/bcm_port %u", usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port);
+      rc = L7_FAILURE;
+      break;
     }
 
-    /* Wait for link up */
-    i = 0;
-    do
+    /* Speed of this interface should be 10G */
+    if (ptin_port >= dapiCardPtr->numOfWCPortMapEntries ||  /* Invalid port */
+        intf_type == BCM_PORT_IF_KR ||
+        intf_type == BCM_PORT_IF_KR4 ||
+        intf_type == BCM_PORT_IF_XLAUI)
     {
-      osapiSleepUSec(10000);
-      if ((rv = bcm_port_link_status_get(0, hapiPortPtr->bcm_port, &link_status)) != BCM_E_NONE)
+      PT_LOG_WARN(LOG_CTX_HAPI, "Port {%d,%d,%d}/bcm_port %u/port %u cannot be considered",
+                  usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port);
+      rc = L7_NOT_SUPPORTED;
+      break;
+    }
+  #endif
+
+    /* Port bitmap */
+    BCM_PBMP_CLEAR(pbmp);
+    BCM_PBMP_PORT_SET(pbmp, hapiPortPtr->bcm_port);
+
+    /* If link is to be down, only */
+    if (!link)
+    {
+      /* Disable loopback */
+      if ((rv = bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE)) != BCM_E_NONE) 
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling PHY loopback, with link change -> port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
+                usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
+        rc = L7_FAILURE;
+        break;
+      }
+      rc = L7_SUCCESS;
+      break;
+    }
+
+    /* If is to force link up */
+    if (enable)
+    {
+      /* Apply Phy loopback */
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Going to enable PHY loopback (official) to port {%d,%d,%d}/bcm_port %u/port %u to %u",
+                   usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
+      if ((rv = bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_PHY)) != BCM_E_NONE)
       {
         bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE);
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error reading link status for port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error enabling loopback for port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
                 usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
-        return L7_FAILURE;
+        rc = L7_FAILURE;
+        break;
       }
-      i++;
-    } while (i <= 20 && !link_status);
 
-    if (!link_status)
-    {
-      bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE);
-      PT_LOG_ERR(LOG_CTX_HAPI, "Link is down for port {%d,%d,%d}/bcm_port %u/port %u to %u",
-              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
-      return L7_FAILURE;
-    }
+      osapiSleepUSec(50000);
 
-    osapiSleepUSec(20000);
+      /* Wait for link up */
+      i = 0;
+      do
+      {
+        osapiSleepUSec(10000);
+        if ((rv = bcm_port_link_status_get(0, hapiPortPtr->bcm_port, &link_status)) != BCM_E_NONE)
+        {
+          bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE);
+          PT_LOG_ERR(LOG_CTX_HAPI, "Error reading link status for port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
+                  usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
+          rc = L7_FAILURE;
+          break;
+        }
+        i++;
+      } while (i <= 20 && !link_status);
 
-//  /* Execute a linkscan update */
-//  PT_LOG_INFO(LOG_CTX_HAPI, "bcm_linkscan_update to bcm_port %u", hapiPortPtr->bcm_port);
-//  if (bcm_linkscan_update(0, pbmp) != BCM_E_NONE)
-//  {
-//    PT_LOG_ERR(LOG_CTX_HAPI, "Error applying linkscan to bcm_port %u", hapiPortPtr->bcm_port);
-//  }
+      if (rc != L7_SUCCESS)
+      {
+        break;
+      }
 
-    #if 0
-    /* Disable loopback */
-    PT_LOG_INFO(LOG_CTX_HAPI, "Going to disable physical loopback to port {%d,%d,%d}/bcm_port %u/port %u to %u",
-             usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
-    if ((rv = soc_phyctrl_loopback_set(0, hapiPortPtr->bcm_port, L7_DISABLE)) != SOC_E_NONE)
-    {
-      bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE);
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling physical loopback for port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
-              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
-      return L7_FAILURE;
-    }
-    #else
-    if ((rv = ptin_esw_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE, L7_TRUE)) != BCM_E_NONE) 
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling PHY loopback, with no link change -> port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
-              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
-      return L7_FAILURE;
-    }
-    #endif
+      if (!link_status)
+      {
+        bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Link is down for port {%d,%d,%d}/bcm_port %u/port %u to %u",
+                usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
+        rc = L7_FAILURE;
+        break;
+      }
 
-    /* Wait more 20ms */
-    osapiSleepUSec(20000);
+  //  /* Execute a linkscan update */
+  //  PT_LOG_INFO(LOG_CTX_HAPI, "bcm_linkscan_update to bcm_port %u", hapiPortPtr->bcm_port);
+  //  if (bcm_linkscan_update(0, pbmp) != BCM_E_NONE)
+  //  {
+  //    PT_LOG_ERR(LOG_CTX_HAPI, "Error applying linkscan to bcm_port %u", hapiPortPtr->bcm_port);
+  //  }
 
-    PT_LOG_NOTICE(LOG_CTX_HAPI, "Force link-up applied to port {%d,%d,%d}/bcm_port %u/port %u to %u",
+      #if 0
+      /* Disable loopback */
+      PT_LOG_INFO(LOG_CTX_HAPI, "Going to disable physical loopback to port {%d,%d,%d}/bcm_port %u/port %u to %u",
                usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
-  }
-  else
+      if ((rv = soc_phyctrl_loopback_set(0, hapiPortPtr->bcm_port, L7_DISABLE)) != SOC_E_NONE)
+      {
+        bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling physical loopback for port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
+                usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
+        rc = L7_FAILURE;
+        break;
+      }
+      #else
+      if ((rv = ptin_esw_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE, L7_TRUE)) != BCM_E_NONE) 
+      {
+        bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling PHY loopback, with no link change -> port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
+                usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
+        rc = L7_FAILURE;
+        break;
+      }
+      #endif
+
+      /* Wait more 20ms */
+      osapiSleepUSec(20000);
+
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Force link-up applied to port {%d,%d,%d}/bcm_port %u/port %u to %u",
+                 usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
+    }
+    else
+    {
+      #if 0
+      /* Undo Loopback */
+      PT_LOG_INFO(LOG_CTX_HAPI, "Going to disable force link-up (with no link change) to port {%d,%d,%d}/bcm_port %u/port %u to %u",
+               usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
+      if ((rv = ptin_esw_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE, L7_TRUE)) != BCM_E_NONE) 
+      {
+        bcm_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE);
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling force link-up, with no link change -> port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
+                usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
+        rc = L7_FAILURE;
+        break;
+      }
+
+      PT_LOG_NOTICE(LOG_CTX_HAPI, "Disable force link-up (with no link change) applied to port {%d,%d,%d}/bcm_port %u/port %u to %u",
+                 usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
+      #endif
+    }
+  } while (0);
+
+  /* Release the semaphore related to this phy */
+  if (osapiSemaGive(hapiPortPtr->hapiModeparm.physical.phySemaphore) != L7_SUCCESS)
   {
-    #if 0
-    /* Undo Loopback */
-    PT_LOG_INFO(LOG_CTX_HAPI, "Going to disable force link-up (with no link change) to port {%d,%d,%d}/bcm_port %u/port %u to %u",
-             usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
-    if ((rv = ptin_esw_port_loopback_set(0, hapiPortPtr->bcm_port, BCM_PORT_LOOPBACK_NONE, L7_TRUE)) != BCM_E_NONE) 
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling force link-up, with no link change -> port {%d,%d,%d}/bcm_port %u/port %u to %u (rv=%d)",
-              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rv);
-      return L7_FAILURE;
-    }
-
-    PT_LOG_NOTICE(LOG_CTX_HAPI, "Disable force link-up (with no link change) applied to port {%d,%d,%d}/bcm_port %u/port %u to %u",
-               usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
-    #endif
+    PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: Error blocking semaphore related to bcm_port %u", usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port);
   }
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**
@@ -2585,6 +2851,7 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
 
   /* Get port pointers */
   DAPIPORT_GET_PTR(dapiPort, dapiPortPtr, hapiPortPtr);
+
   /* Accept only physical and lag interfaces */
   if ( !IS_PORT_TYPE_PHYSICAL(dapiPortPtr) && !IS_PORT_TYPE_LOGICAL_LAG(dapiPortPtr) )
   {
@@ -2669,6 +2936,13 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
       continue;
     }
 
+    /* Block semaphore associated to physical port */
+    if (ptin_hapi_phySemaTake(i) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error blocking semaphore", i);
+      return L7_FAILURE;
+    }
+
     /* If this is a root port, apply all ports as egress port map */
     if (BCM_PBMP_MEMBER(pbm_egress_root_ports, bcm_port))
     {
@@ -2695,6 +2969,12 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
         PT_LOG_ERR(LOG_CTX_HAPI,"Error setting egress bitmap for port %u",i);
         return L7_FAILURE;
       }
+    }
+
+    /* Release semaphore related to physical port */
+    if (ptin_hapi_phySemaGive(i) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "ptin_port %u: Error releasing semaphore", i);
     }
   }
 

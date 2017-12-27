@@ -65,6 +65,16 @@ extern L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port);
 extern L7_RC_t ptin_hapi_def_set(bcm_port_t bcm_port);
 
 /**
+ * Control semaphore associated to physical port
+ * 
+ * @param ptin_port 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_hapi_phySemaTake(L7_uint16 ptin_port);
+L7_RC_t ptin_hapi_phySemaGive(L7_uint16 ptin_port);
+
+/**
  * Initializes PTin HAPI data structures
  * 
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
