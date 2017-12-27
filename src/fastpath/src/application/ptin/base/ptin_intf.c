@@ -6509,7 +6509,7 @@ L7_RC_t ptin_intf_slot_reset(L7_int slot_id, L7_BOOL force_linkup)
     }
   }
 
-  PT_LOG_TRACE(LOG_CTX_INTF,"HW procedure applied to slot %d", slot_id);
+  PT_LOG_INFO(LOG_CTX_INTF,"HW-RESET procedure applied to slot %d", slot_id);
 
   return L7_SUCCESS;
 }
@@ -6596,7 +6596,7 @@ L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
     return rc;
   }
 
-  PT_LOG_TRACE(LOG_CTX_INTF,"HW procedure applied to intIfNum=%u", intIfNum);
+  PT_LOG_INFO(LOG_CTX_INTF,"HW-Linkscan procedure applied to intIfNum=%u", intIfNum);
 
   return L7_SUCCESS;
 }
@@ -6659,7 +6659,7 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
   }
 #endif
 
-  PT_LOG_TRACE(LOG_CTX_INTF,"Force link to %u, applied to intIfNum=%u", enable, intIfNum);
+  PT_LOG_INFO(LOG_CTX_INTF,"Force link to %u, applied to intIfNum=%u", enable, intIfNum);
 
   return rc;
 }
@@ -6982,8 +6982,7 @@ L7_RC_t ptin_slot_action_insert(L7_uint16 slot_id, L7_uint16 board_id)
 #if (PHY_RECOVERY_PROCEDURE)
   /* For CXO160G board, only apply reset boards for TG16G and TG16GF boards */
  #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-  if (board_id == PTIN_BOARD_TYPE_TG16G || board_id == PTIN_BOARD_TYPE_TG16GF || board_id == PTIN_BOARD_TYPE_TT04SXG /*||
-      board_id == PTIN_BOARD_TYPE_TT08SXG || board_id == PTIN_BOARD_TYPE_TA12XGE*/)
+  if (PTIN_BOARD_IS_TORESET(board_id))
   /* For CXO640G board, only apply reset boards for TG16GF boards */
  #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
   if (board_id == PTIN_BOARD_TYPE_TG16GF || board_id == PTIN_BOARD_TYPE_TT04SXG /*||

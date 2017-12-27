@@ -1288,7 +1288,7 @@ L7_RC_t ptin_routing_pingsession_free(L7_uint8 sessionIdx)
   /* Ensure that the requested index belongs to a created session */
   if(__ping_sessions[sessionIdx].handle == 0)
   {
-    PT_LOG_INFO(LOG_CTX_ROUTING, "Requested index does not belong to a created session [index:%u]", sessionIdx);
+    PT_LOG_DEBUG(LOG_CTX_ROUTING, "Requested index does not belong to a created session [index:%u]", sessionIdx);
     return L7_SUCCESS;
   }
 
@@ -1542,7 +1542,7 @@ L7_RC_t ptin_routing_traceroutesession_free(L7_uint8 sessionIdx)
   /* Ensure that the requested index belongs to a created session */
   if(__traceroute_sessions[sessionIdx].handle == 0)
   {
-    PT_LOG_INFO(LOG_CTX_ROUTING, "Requested index is does not belong to a created session [index:%u]", sessionIdx);
+    PT_LOG_DEBUG(LOG_CTX_ROUTING, "Requested index is does not belong to a created session [index:%u]", sessionIdx);
     return L7_SUCCESS;
   }
 

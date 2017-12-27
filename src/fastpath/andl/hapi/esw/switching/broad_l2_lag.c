@@ -971,7 +971,7 @@ L7_RC_t hapiBroadLagCreate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
   /* PTin modified: LAGs */
   #if 1
   tid = usp->port;
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Suggested TID is %u", tid);
+  PT_LOG_TRACE(LOG_CTX_TRUNKS, "Suggested TID is %u", tid);
   #else
   tid = hapiPortPtr->hapiModeparm.lag.lastValidTgid; // Try to assign the previous tid * BCM_TRUNK_INVALID;
   #endif
@@ -1099,11 +1099,11 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
   bcm_chip_family_t             board_family=0; 
   usl_bcm_port_frame_size_t    maxFrameSize;
   
-  PT_LOG_TRACE(LOG_CTX_MISC, "This function was called");
+  PT_LOG_TRACE(LOG_CTX_TRUNKS, "This function was called");
 
   if (!ACCESS_LAG_AT_SDK_LEVEL(DAPI_CMD_INTERNAL_LAG_PORT_ADD))
   {
-    PT_LOG_WARN(LOG_CTX_MISC, "Cannot proceed!");
+    PT_LOG_WARN(LOG_CTX_TRUNKS, "Cannot proceed!");
     return L7_SUCCESS;
   }
 
@@ -1303,7 +1303,7 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
     maxFrameSize = cmdLagPortAdd->cmdData.lagPortAdd.maxFrameSize;
     rc = usl_bcmx_port_frame_max_set(lport, maxFrameSize);
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "usp{%d,%d,%d}: maxFrameSize %u applied over lport=0x%x (bcm_port=%u): rc=%d",
+    PT_LOG_TRACE(LOG_CTX_TRUNKS, "usp{%d,%d,%d}: maxFrameSize %u applied over lport=0x%x (bcm_port=%u): rc=%d",
                  usp->unit, usp->slot, usp->port, maxFrameSize, lport, hapiLagMemberPortPtr->bcm_port, rc);
 
     /* Port Priority 
@@ -1454,10 +1454,10 @@ L7_RC_t hapiBroadLagPortAsyncAdd(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
     /* PTin modified */
     rc = usl_bcmx_trunk_set(usp->port, tid, &bcmTrunkInfo);
     if (L7_BCMX_OK(rc) != L7_TRUE) {
-      PT_LOG_ERR(LOG_CTX_MISC, "Error adding port");
+      PT_LOG_ERR(LOG_CTX_TRUNKS, "Error adding port");
       L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set info for trunk ID %d, rv = %d", tid, rc);
     }
-    PT_LOG_TRACE(LOG_CTX_MISC, "Port added");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS, "Port added");
     /* PTin modified */
   }
 
@@ -1658,12 +1658,12 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
   usl_bcm_port_frame_size_t    maxFrameSize;
   L7_BOOL cond0, cond1, cond2, cond3, cond;     /* PTin added: BUG correction */
 
-  PT_LOG_TRACE(LOG_CTX_MISC, "This function was called: usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
+  PT_LOG_TRACE(LOG_CTX_TRUNKS, "This function was called: usp {%d,%d,%d}", usp->unit, usp->slot, usp->port);
 
   if (!ACCESS_LAG_AT_SDK_LEVEL(DAPI_CMD_INTERNAL_LAG_PORT_DELETE) &&
       !ACCESS_LAG_AT_SDK_LEVEL(DAPI_CMD_LAG_DELETE))
   {
-    PT_LOG_WARN(LOG_CTX_MISC, "Cannot proceed!");
+    PT_LOG_WARN(LOG_CTX_TRUNKS, "Cannot proceed!");
     return L7_SUCCESS;
   }
 
@@ -1751,7 +1751,7 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
 
   if (member_found == L7_FALSE)
   {
-    PT_LOG_INFO(LOG_CTX_TRUNKS, "Member not found");
+    PT_LOG_TRACE(LOG_CTX_TRUNKS, "Member not found");
     return L7_SUCCESS;
   }
 
@@ -1954,9 +1954,9 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
       rc = usl_bcmx_trunk_destroy(usp->port, tid);
       if (L7_BCMX_OK(rc) != L7_TRUE) {
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't destroy trunk ID %d, rv = %d", usp->port, rc);
-        PT_LOG_ERR(LOG_CTX_MISC, "Error removing port");
+        PT_LOG_ERR(LOG_CTX_TRUNKS, "Error removing port");
       }
-      PT_LOG_TRACE(LOG_CTX_MISC, "Port removed");
+      PT_LOG_TRACE(LOG_CTX_TRUNKS, "Port removed");
 
       /* PTin added: trunks (code ported from hapiBroadLagPortAsyncAdd()) */
       PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Trunk ID# %d was temporarily removed", tid);
@@ -1986,10 +1986,10 @@ L7_RC_t hapiBroadLagPortAsyncDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
     {
       rc = usl_bcmx_trunk_set(usp->port, tid, &bcmTrunkInfo);
       if (L7_BCMX_OK(rc) != L7_TRUE) {
-        PT_LOG_ERR(LOG_CTX_MISC, "Error removing port");
+        PT_LOG_ERR(LOG_CTX_TRUNKS, "Error removing port");
         L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, "Couldn't set trunk info for ID %d, rv = %d", tid, rc);
       }
-      PT_LOG_INFO(LOG_CTX_MISC, "Port removed");
+      PT_LOG_TRACE(LOG_CTX_TRUNKS, "Port removed");
     }
   }
 
@@ -2248,7 +2248,7 @@ L7_RC_t hapiBroadLagDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
   int           rc;
   BROAD_PORT_t *hapiLagPortPtr;
 
-  PT_LOG_INFO(LOG_CTX_MISC, "This function was called");
+  PT_LOG_TRACE(LOG_CTX_TRUNKS, "This function was called");
 
   dapiPortPtr    = dapi_g->unit[usp->unit]->slot[usp->slot]->port[usp->port];
   hapiLagPortPtr = dapi_g->unit[usp->unit]->slot[usp->slot]->port[usp->port]->hapiPort;
@@ -2312,7 +2312,7 @@ L7_RC_t hapiBroadLagDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
       memberSetBuf[intfCount].port = portLagSet[entry].usp.port;
 
       intfCount++;
-      PT_LOG_INFO(LOG_CTX_MISC, "Going to remove port {%d,%d,%d}...",memberSetBuf[intfCount].unit, memberSetBuf[intfCount].slot, memberSetBuf[intfCount].port);
+      PT_LOG_TRACE(LOG_CTX_TRUNKS, "Going to remove port {%d,%d,%d}...",memberSetBuf[intfCount].unit, memberSetBuf[intfCount].slot, memberSetBuf[intfCount].port);
     }
   }
   cmdLagPortDelete.cmdData.lagPortDelete.getOrSet     = DAPI_CMD_SET;
@@ -2321,11 +2321,11 @@ L7_RC_t hapiBroadLagDelete(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
 
   if (hapiBroadLagPortAsyncDelete(usp, cmd, &cmdLagPortDelete, dapi_g) != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_MISC, "Error removing LAG ports!");
+    PT_LOG_ERR(LOG_CTX_TRUNKS, "Error removing LAG ports!");
     return L7_FAILURE;
   }
   #endif
-  PT_LOG_INFO(LOG_CTX_MISC, "Going to destroy LAG...");
+  PT_LOG_TRACE(LOG_CTX_TRUNKS, "Going to destroy LAG...");
 
   do
   {

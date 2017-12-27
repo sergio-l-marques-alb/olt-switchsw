@@ -442,7 +442,7 @@ L7_RC_t dot3adRxMachineInitializeAction(dot3ad_port_t *p)
 {
   L7_RC_t rc;
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "InitializeAction: intf=%u going to UNSELECTED", p->actorPortNum);
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "InitializeAction: intIfNum=%u going to UNSELECTED", p->actorPortNum);
   p->selected = UNSELECTED;
   rc = dot3adRecordDefault(p);
   p->actorOperPortState &= ~DOT3AD_STATE_EXPIRED;
@@ -484,7 +484,7 @@ L7_RC_t dot3adRxMachinePortDisabledAction(dot3ad_port_t *p)
   L7_RC_t rc ;
   L7_BOOL moved;
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "PortDisabledAction: intf=%u going to UNSELECTED", p->actorPortNum);
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "PortDisabledAction: intIfNum=%u going to UNSELECTED", p->actorPortNum);
 
   p->partnerOperPortState &= ~DOT3AD_STATE_SYNCHRONIZATION;
 
@@ -527,7 +527,7 @@ L7_RC_t dot3adRxMachineLacpDisabledAction(dot3ad_port_t *p)
 {
   L7_RC_t rc;
 
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "LacpDisabledAction: intf=%u going to UNSELECTED", p->actorPortNum);
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "LacpDisabledAction: intIfNum=%u going to UNSELECTED", p->actorPortNum);
   p->selected = UNSELECTED;
   rc = dot3adRecordDefault(p);
   p->partnerOperPortState &= ~DOT3AD_STATE_AGGREGATION;
@@ -565,7 +565,7 @@ L7_RC_t dot3adRxMachineExpiredAction(dot3ad_port_t *p)
   L7_uint32 timeOut;
   dot3ad_agg_t *agg;
 
-  PT_LOG_INFO(LOG_CTX_TRUNKS, "Expired Action: intf=%u", p->actorPortNum);
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "Expired Action: intIfNum=%u", p->actorPortNum);
   
   p->partnerOperPortState &= ~DOT3AD_STATE_SYNCHRONIZATION;
   /*set the lacp time to short time out encoded as 1*/
@@ -615,7 +615,7 @@ L7_RC_t dot3adRxMachineExpiredAction(dot3ad_port_t *p)
 
   dot3adTablesLastChangedRecord();
   
-  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Expired Action: intf=%u, rc=%d", p->actorPortNum, rc);
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Expired Action: intIfNum=%u, rc=%d", p->actorPortNum, rc);
 
   return rc;
 }
@@ -637,7 +637,7 @@ L7_RC_t dot3adRxMachineDefaultedAction(dot3ad_port_t *p)
   L7_RC_t rc;
   dot3ad_agg_t *a;
 
-  PT_LOG_INFO(LOG_CTX_TRUNKS, "Defaulted Action: intf=%u", p->actorPortNum);
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Defaulted Action: intIfNum=%u", p->actorPortNum);
 
   rc = dot3adUpdateDefaultSelected(p);
   rc = dot3adRecordDefault(p);
@@ -1348,7 +1348,7 @@ L7_RC_t dot3adMuxMachineDetachedAction(dot3ad_port_t *p)
 {
   L7_RC_t rc;
 
-  PT_LOG_INFO(LOG_CTX_TRUNKS, "Detached Action: intf=%u", p->actorPortNum);
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "Detached Action: intIfNum=%u", p->actorPortNum);
 
   PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adDetachMuxFromAgg");
   rc = dot3adDetachMuxFromAgg(p);
@@ -1408,7 +1408,7 @@ L7_RC_t dot3adMuxMachineWaitingAction(dot3ad_port_t *p)
   L7_uint32 waitTime;
   dot3ad_agg_t *agg;
 
-  PT_LOG_INFO(LOG_CTX_TRUNKS, "Waiting Action: intf=%u", p->actorPortNum);
+  PT_LOG_DEBUG(LOG_CTX_TRUNKS, "Waiting Action: intIfNum=%u", p->actorPortNum);
 
   agg= dot3adAggKeyFind(p->actorOperPortKey);
   if (agg == L7_NULLPTR)
@@ -1474,7 +1474,7 @@ L7_RC_t dot3adMuxMachineAttachedAction(dot3ad_port_t *p)
   L7_RC_t rc;
   dot3ad_agg_t *agg;
 
-  PT_LOG_INFO(LOG_CTX_TRUNKS, "Attached Action: intf=%u", p->actorPortNum);
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "Attached Action: intIfNum=%u", p->actorPortNum);
 
   PT_LOG_TRACE(LOG_CTX_TRUNKS,"dot3adAttachMuxToAgg");
   rc = dot3adAttachMuxToAgg(p);
@@ -1525,7 +1525,7 @@ L7_RC_t dot3adMuxMachineCollDistAction(dot3ad_port_t *p)
 {
   L7_RC_t rc;
 
-  PT_LOG_INFO(LOG_CTX_TRUNKS, "Coll+Dist Action: intf=%u", p->actorPortNum);
+  PT_LOG_INFO(LOG_CTX_TRUNKS, "Coll+Dist Action: intIfNum=%u", p->actorPortNum);
 
   p->actorOperPortState |= DOT3AD_STATE_DISTRIBUTING;
   rc = dot3adEnableCollDist(p);
