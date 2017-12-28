@@ -1007,8 +1007,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       }
       else 
       {
-        PT_LOG_TRACE(LOG_CTX_IGMP,"mcastRootVlan = 512");
         mcastRootVlan = 512;
+        PT_LOG_TRACE(LOG_CTX_IGMP,"mcastRootVlan = %d", mcastRootVlan);			  
       }
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
     }
@@ -1022,10 +1022,19 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #else
   ptin_timer_start(76,"ptin_igmp_McastRootVlan_get");
   /* !IGMPASSOC_MULTI_MC_SUPPORTED */
-  if (ptin_igmp_McastRootVlan_get(pduInfo->vlanId, &mcastRootVlan)==L7_SUCCESS)
+
+	if (ptin_igmp_McastRootVlanRing_get(pduInfo->vlanId, &mcastRootVlan)==L7_SUCCESS)
   {
     ptin_timer_stop(76);
     PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId,mcastRootVlan);
+
+#if PTIN_BOARD == PTIN_BOARD_CXO160G
+		/* Support of query process in other services other than multicast */
+		if (mcastRootVlan < 512) 
+		{
+			mcastRootVlan = 512;
+		}
+#endif	
   }
   else
   {

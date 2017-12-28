@@ -7068,7 +7068,8 @@ L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_BO
   *mcastRootVlan = intRootVlan;  
   return L7_SUCCESS;
 }
-#else
+#endif
+
 /**
  * Get the MC root vlan associated to the internal vlan
  * 
@@ -7077,7 +7078,7 @@ L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint32 intIfNum, L7_BO
  * 
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
-L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint16 *McastRootVlan)
+L7_RC_t ptin_igmp_McastRootVlanRing_get(L7_uint16 intVlan, L7_uint16 *McastRootVlan)
 {
   st_IgmpInstCfg_t *igmpInst;
   L7_uint16 intRootVlan;
@@ -7103,7 +7104,6 @@ L7_RC_t ptin_igmp_McastRootVlan_get(L7_uint16 intVlan, L7_uint16 *McastRootVlan)
 
   return L7_SUCCESS;
 }
-#endif
 
 /**
  * Get the list of root interfaces associated to a internal vlan
