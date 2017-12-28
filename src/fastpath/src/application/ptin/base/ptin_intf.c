@@ -9041,6 +9041,7 @@ L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
   return L7_SUCCESS;
 }
 
+#if (PTIN_BOARD_IS_MATRIX)
 L7_RC_t ptin_sem_slot_reset(L7_int slot_id, L7_BOOL force_linkup)
 {
   L7_RC_t rc;
@@ -9053,6 +9054,7 @@ L7_RC_t ptin_sem_slot_reset(L7_int slot_id, L7_BOOL force_linkup)
 
   return rc;
 }
+#endif
 
 /**
  * Set the maximum rate for a port
