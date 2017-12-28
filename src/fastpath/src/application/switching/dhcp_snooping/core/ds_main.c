@@ -1185,8 +1185,7 @@ SYSNET_PDU_RC_t dsv6PacketIntercept(L7_uint32 hookId,
       vlanId = pduInfo->vlanId;
       innerVlanId = pduInfo->innerVlanId;
 
-			PT_LOG_ERR(LOG_CTX_DHCP, "Packet will be ignored (VLAN %u / intIfNum %u)", pduInfo->vlanId, pduInfo->intIfNum);
-      if (ptin_debug_dhcp_snooping || (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX))
+			if (ptin_debug_dhcp_snooping || (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX))
       {
         L7_uchar8 traceMsg[DS_MAX_TRACE_LEN];
         osapiSnprintf(traceMsg, DS_MAX_TRACE_LEN,
