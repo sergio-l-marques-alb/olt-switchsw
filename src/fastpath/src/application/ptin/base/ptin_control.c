@@ -2175,7 +2175,7 @@ static void ptin_control_linkstatus_report(void)
   msgLinkStatus.number_of_ports = number_of_ports;
 
   /* Only execute this procedure, if no board action is being taken */
-  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
+//  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
 
   /* Run all (active) backplane ports */
   for (i = 0; i < number_of_ports; i++)
@@ -2222,7 +2222,7 @@ static void ptin_control_linkstatus_report(void)
               msgLinkStatus.port[i].tx_packets, msgLinkStatus.port[i].rx_packets, msgLinkStatus.port[i].rx_error);
   }
 
-  osapiSemaGive(ptin_boardaction_sem);
+  //osapiSemaGive(ptin_boardaction_sem);
 
   /* Send report to active matrix */
   if (send_ipc_message(IPC_HW_FP_CTRL_PORT2,
