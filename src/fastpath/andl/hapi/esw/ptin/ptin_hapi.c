@@ -1390,7 +1390,7 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
         /* Save speed of this port */
         wcSpeedG = hapiWCMapPtr[i].wcSpeedG;
         wcMode   = hapiWCMapPtr[i].wcMode;
-        PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u (port %u) added to list of ports to be reseted", bcm_port, i);
+        PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u (ptin_port %u) will be reseted", bcm_port, i);
 
         /* Store ptin_port to be configured */
         ptin_port_list[number_of_ports++] = i;
@@ -1442,6 +1442,8 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
   }
   PT_LOG_INFO(LOG_CTX_HAPI, "Selected ports probed");
 
+  osapiSleepUSec(20000);
+
   /* Reenable ports */
   BCM_PBMP_ITER(pbm, bcm_port)
   {
@@ -1449,24 +1451,6 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
     if (bcm_port_enable_set(0, bcm_port, L7_DISABLE) != BCM_E_NONE)
     {
       PT_LOG_ERR(LOG_CTX_HAPI, "Error disabling bcm_port %u", bcm_port);
-      rc = L7_FAILURE;
-    }
-    /* No Pause frames */
-    if (bcm_port_pause_set(0, bcm_port, L7_DISABLE, L7_DISABLE) != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_pause_set to bcm_port %u", bcm_port);
-      rc = L7_FAILURE;
-    }
-    /* STP in forward mode */
-    if (bcm_port_stp_set(0, bcm_port, BCM_PORT_STP_FORWARD) != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_stp_set to bcm_port %u", bcm_port);
-      rc = L7_FAILURE;
-    }
-    /* Reconfigure framemax */
-    if (bcm_port_frame_max_set(0, bcm_port, PTIN_SYSTEM_ETH_MTU_SIZE) != BCM_E_NONE)
-    {
-      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_frame_max_set to bcm_port %u", bcm_port);
       rc = L7_FAILURE;
     }
 
@@ -1513,6 +1497,31 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
         }
         PT_LOG_INFO(LOG_CTX_HAPI, "bcm_port %u reconfigured to default mode", bcm_port);
       }
+    }
+
+    /* No Pause frames */
+    if (bcm_port_pause_set(0, bcm_port, L7_DISABLE, L7_DISABLE) != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_pause_set to bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
+    /* STP in forward mode */
+    if (bcm_port_stp_set(0, bcm_port, BCM_PORT_STP_FORWARD) != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_stp_set to bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
+    /* Reconfigure framemax */
+    if (bcm_port_frame_max_set(0, bcm_port, PTIN_SYSTEM_ETH_MTU_SIZE) != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_frame_max_set to bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
+    }
+    /* Reconfigure Learning settings */
+    if (bcm_port_learn_set(0, bcm_port, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD)) != BCM_E_NONE)
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_learn_set to bcm_port %u", bcm_port);
+      rc = L7_FAILURE;
     }
   }
 
@@ -2978,8 +2987,8 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
     }
   }
 
-  PT_LOG_INFO(LOG_CTX_HAPI, "New port type %u correctly set to port {%d,%d,%d}",
-              port_type, dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "New port type %u correctly set to port {%d,%d,%d}",
+               port_type, dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
 
   return L7_SUCCESS;
 }
@@ -4842,7 +4851,16 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     return rc;
   }
 
-#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G /*|| PTIN_BOARD == PTIN_BOARD_TG16GF*/)
+  /* SFI mode */
+  rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_SFI);
+  if (L7_BCMX_OK(rc) != L7_TRUE)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_interface_set to bcm_port %u", bcm_port);
+    return rc;
+  }
+
+#if 0
+#if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
   /* Reset Firmware mode */
   rc = bcm_port_phy_control_set(0, bcm_port, BCM_PORT_PHY_CONTROL_FIRMWARE_MODE, 0);
   if (rc != BCM_E_NONE)
@@ -4852,14 +4870,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
   }
   PT_LOG_DEBUG(LOG_CTX_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
 #endif
-
-  /* SFI mode */
-  rc = bcm_port_interface_set(0, bcm_port, BCM_PORT_IF_SFI);
-  if (L7_BCMX_OK(rc) != L7_TRUE)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_port_interface_set to bcm_port %u", bcm_port);
-    return rc;
-  }
+#endif
 
   /* Set 10G speed */
   rc = bcm_port_speed_set(0, bcm_port, 10000);

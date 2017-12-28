@@ -49,14 +49,15 @@ volatile L7_uint32    ptin_task_msg_id     = (L7_uint32) -1;
 volatile void        *ptin_task_msg_buffer = L7_NULLPTR;
 
 #if (PTIN_BOARD_IS_MATRIX)
-#define LS_RESETS_MAX   6     /* Maximum tolerabled resets */
-#define LS_CREDITS_MAX  10    /* Maximum resets */
+#define LS_RESETS_MAX   10    /* Maximum tolerabled resets */
+#define LS_CREDITS_MAX  10    /* Maximum credits to be given to each slot */
 typedef struct
 {
   L7_int  credits;
   L7_int  resets_counter;
   L7_BOOL monitor_enable;
   L7_uint fcs_threshold;
+  L7_int  total_resets_counter;
 } struct_linkStatus_monitor_t;
 
 /* Slot monitoring info */
@@ -1114,6 +1115,7 @@ void ptin_control_switchover_monitor(void)
   L7_uint8  port;
   L7_uint32 intIfNum;
   L7_uint16 board_id, slot_id;
+  //L7_RC_t rc;
 
   L7_uint8 interfaces_active[PTIN_SYSTEM_MAX_N_PORTS];
   static L7_uint8 matrix_is_active_h = 0xFF;    //L7_TRUE;
@@ -1129,10 +1131,6 @@ void ptin_control_switchover_monitor(void)
   /* First time procedure (after switchover) */
   if (ptin_fpga_mx_is_matrixactive() != matrix_is_active_h)
   {
-    //if (!matrix_is_active && 0xFF!=matrix_is_active_h) tx_dot3ad_matrix_sync_t();
-    
-    matrix_is_active_h = matrix_is_active;
-
     PT_LOG_INFO(LOG_CTX_CONTROL, "Switchover detected");
 
     if (linkscan_update_control)
@@ -1255,32 +1253,35 @@ void ptin_control_switchover_monitor(void)
 #if 0
       #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
         #if (PHY_RECOVERY_PROCEDURE)
-        /* Apply slot reset to all resetable downlink linecards */
-        for (slot_id = PTIN_SYS_LC_SLOT_MIN; slot_id <= PTIN_SYS_LC_SLOT_MAX; slot_id++)
+        if (matrix_is_active_h != 0xFF)   /* Exclude first time */
         {
-          /* Nothing to do for non uplink boards */
-          if (ptin_slot_boardid_get(slot_id, &board_id) == L7_SUCCESS &&
-              !PTIN_BOARD_IS_UPLINK(board_id) &&  /* Downlink boards */
-              PTIN_BOARD_LS_CTRL(board_id) &&     /* Linkscan Controlable boards */
-              (board_id == PTIN_BOARD_TG16GF || board_id == PTIN_BOARD_TT04SXG))
+          /* Apply slot reset to all resetable downlink linecards */
+          for (slot_id = PTIN_SYS_LC_SLOT_MIN; slot_id <= PTIN_SYS_LC_SLOT_MAX; slot_id++)
           {
-            PT_LOG_INFO(LOG_CTX_INTF, "Going to reset warpcore of slot %u", slot_id);
+            /* Nothing to do for non uplink boards */
+            if (ptin_slot_boardid_get(slot_id, &board_id) == L7_SUCCESS &&
+                !PTIN_BOARD_IS_UPLINK(board_id) &&  /* Downlink boards */
+                PTIN_BOARD_LS_CTRL(board_id) &&     /* Linkscan Controlable boards */
+                (board_id == PTIN_BOARD_TYPE_TG16GF || board_id == PTIN_BOARD_TYPE_TT04SXG))
+            {
+              PT_LOG_INFO(LOG_CTX_INTF, "Going to reset warpcore of slot %u", slot_id);
 
-            rc = ptin_intf_slot_reset(slot_id, L7_FALSE);
+              rc = ptin_intf_slot_reset(slot_id, L7_FALSE);
 
-            if (rc == L7_SUCCESS)
-            {
-              PT_LOG_INFO(LOG_CTX_INTF  , "Slot %d reseted", slot_id);
-              PT_LOG_INFO(LOG_CTX_EVENTS, "Slot %d reseted", slot_id);
-            }
-            else if (rc == L7_NOT_EXIST)
-            {
-              PT_LOG_TRACE(LOG_CTX_INTF, "Nothing done to slot %u", slot_id);
-            }
-            else
-            {
-              PT_LOG_ERR(LOG_CTX_INTF  , "Error reseting slot %u", slot_id);
-              PT_LOG_ERR(LOG_CTX_EVENTS, "Error reseting slot %u", slot_id);
+              if (rc == L7_SUCCESS)
+              {
+                PT_LOG_INFO(LOG_CTX_INTF  , "Slot %d reseted", slot_id);
+                PT_LOG_INFO(LOG_CTX_EVENTS, "Slot %d reseted", slot_id);
+              }
+              else if (rc == L7_NOT_EXIST)
+              {
+                PT_LOG_TRACE(LOG_CTX_INTF, "Nothing done to slot %u", slot_id);
+              }
+              else
+              {
+                PT_LOG_ERR(LOG_CTX_INTF  , "Error reseting slot %u", slot_id);
+                PT_LOG_ERR(LOG_CTX_EVENTS, "Error reseting slot %u", slot_id);
+              }
             }
           }
         }
@@ -1313,6 +1314,9 @@ void ptin_control_switchover_monitor(void)
       /* End of procedure */
       osapiSemaGive(ptin_boardaction_sem);
     }
+
+    matrix_is_active_h = matrix_is_active;
+
     return;
   }
 
@@ -1709,6 +1713,7 @@ void ptin_control_linkStatus_monitor(void)
 
         /* One more reset */
         ls_monitor_info[slot_id].resets_counter++;
+        ls_monitor_info[slot_id].total_resets_counter++;
 
         /* If we have 6 consecutive WC resets, simply give up! */
         if (ls_monitor_info[slot_id].resets_counter >= LS_RESETS_MAX)
@@ -2052,6 +2057,7 @@ void slot_monitor_enable(L7_int slot, L7_BOOL monitor_enable, L7_uint fcs_enable
     ls_monitor_info[s].fcs_threshold  = fcs_enable;
     ls_monitor_info[s].credits        = LS_CREDITS_MAX;
     ls_monitor_info[s].resets_counter = 0;
+    ls_monitor_info[s].total_resets_counter = 0;
 
     printf("Slot %u: Link status monitoring=%u / FCS control=%u\r\n", s, monitor_enable, fcs_enable);
   }
@@ -2119,11 +2125,12 @@ void slot_monitor_dump(void)
   printf("\r\nSlot monitoring control info:\r\n");
   for (i = PTIN_SYS_LC_SLOT_MIN; i <= PTIN_SYS_LC_SLOT_MAX; i++)
   {
-    printf("Slot %2u:  monitor_enable=%u  fcs_threshold=%-5u  credits=%-2u  #resets=%-2u\r\n", i,
+    printf("Slot %2u:  monitor_enable=%u  fcs_threshold=%-5u  credits=%-2u  #resets=%-2u  #totalResets=%u\r\n", i,
             ls_monitor_info[i].monitor_enable,
             ls_monitor_info[i].fcs_threshold,
             ls_monitor_info[i].credits,
-            ls_monitor_info[i].resets_counter);
+            ls_monitor_info[i].resets_counter,
+            ls_monitor_info[i].total_resets_counter);
   }
 }
 
@@ -2174,9 +2181,6 @@ static void ptin_control_linkstatus_report(void)
   msgLinkStatus.generic_id = 0;
   msgLinkStatus.number_of_ports = number_of_ports;
 
-  /* Only execute this procedure, if no board action is being taken */
-//  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
-
   /* Run all (active) backplane ports */
   for (i = 0; i < number_of_ports; i++)
   {
@@ -2221,8 +2225,6 @@ static void ptin_control_linkstatus_report(void)
               port, msgLinkStatus.port[i].enable, msgLinkStatus.port[i].link,
               msgLinkStatus.port[i].tx_packets, msgLinkStatus.port[i].rx_packets, msgLinkStatus.port[i].rx_error);
   }
-
-  //osapiSemaGive(ptin_boardaction_sem);
 
   /* Send report to active matrix */
   if (send_ipc_message(IPC_HW_FP_CTRL_PORT2,
@@ -2421,7 +2423,7 @@ static L7_RC_t ptinIntfUpdate(ptinIntfEventMsg_t *eventMsg)
       /* If no active members remain, do nothing... a link-down event will come later */
       if (dot3adLagNumActiveMembersGet(lag_intIfNum, &activeMembers) != L7_SUCCESS || activeMembers == 0)
       {
-        PT_LOG_WARN(LOG_CTX_INTF, "No active members... not doing nothing.");
+        PT_LOG_TRACE(LOG_CTX_INTF, "No active members... not doing nothing.");
         return L7_SUCCESS;
       }
     }
