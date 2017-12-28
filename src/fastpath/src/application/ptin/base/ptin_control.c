@@ -1760,7 +1760,7 @@ void ptin_control_slot_reset(L7_uint ptin_port, L7_uint slot_id, L7_uint board_i
   PT_LOG_WARN(LOG_CTX_CONTROL, "Going to reset WC of port %u", ptin_port);
 
 #ifdef PTIN_LINKSCAN_CONTROL
-  force_link = PTIN_BOARD_IS_TORESET(board_id);
+  force_link = L7_FALSE; //PTIN_BOARD_IS_TORESET(board_id);
 #else
   force_link = L7_FALSE;
 #endif
