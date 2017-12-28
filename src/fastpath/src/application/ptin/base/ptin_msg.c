@@ -12925,7 +12925,7 @@ L7_RC_t ptin_msg_uplink_prot_state(ipc_msg *inbuffer, ipc_msg *outbuffer)
       }
       else
       {
-        PT_LOG_ERR(LOG_CTX_MSG, "Error reading state for protIdx %u",  protIdx);
+        PT_LOG_TRACE(LOG_CTX_MSG, "Error reading state for protIdx %u",  protIdx);
       }
     }
   }
@@ -12933,7 +12933,7 @@ L7_RC_t ptin_msg_uplink_prot_state(ipc_msg *inbuffer, ipc_msg *outbuffer)
   /* If we retrieved no entries, fill all structure with 0xff values */
   if (i == 0)
   {
-    PT_LOG_ERR(LOG_CTX_MSG, "No answer to be retrieved");
+    PT_LOG_WARN(LOG_CTX_MSG, "No answer to be retrieved");
     return L7_FAILURE;
   }
 

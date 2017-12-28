@@ -6596,7 +6596,7 @@ L7_RC_t ptin_intf_linkscan_set(L7_uint32 intIfNum, L7_uint8 enable)
     return rc;
   }
 
-  PT_LOG_INFO(LOG_CTX_INTF,"HW-Linkscan procedure applied to intIfNum=%u", intIfNum);
+  PT_LOG_DEBUG(LOG_CTX_INTF,"HW-Linkscan procedure applied to intIfNum=%u", intIfNum);
 
   return L7_SUCCESS;
 }
@@ -6659,7 +6659,7 @@ L7_RC_t ptin_intf_link_force(L7_uint32 intIfNum, L7_uint8 link, L7_uint8 enable)
   }
 #endif
 
-  PT_LOG_INFO(LOG_CTX_INTF,"Force link to %u, applied to intIfNum=%u", enable, intIfNum);
+  PT_LOG_DEBUG(LOG_CTX_INTF,"Force link to %u, applied to intIfNum=%u", enable, intIfNum);
 
   return rc;
 }
@@ -9039,6 +9039,19 @@ L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
     *bandwidth = total_speed;
 
   return L7_SUCCESS;
+}
+
+L7_RC_t ptin_sem_slot_reset(L7_int slot_id, L7_BOOL force_linkup)
+{
+  L7_RC_t rc;
+
+  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
+
+  rc = ptin_intf_slot_reset(slot_id, force_linkup);
+
+  osapiSemaGive(ptin_boardaction_sem);
+
+  return rc;
 }
 
 /**
