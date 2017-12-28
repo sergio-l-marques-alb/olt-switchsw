@@ -355,60 +355,49 @@ extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
   /* Reset IGMP Module */
   PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on IGMP...");
   ptin_igmp_default_reset();
-  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
    /* Reset DAI Module */
   PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on DAI...");
   daiRestore();
-  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
 #ifdef __Y1731_802_1ag_OAM_ETH__
   PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on OAM...");
   eth_srv_oam_msg_defaults_reset();
-  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 #endif
 
   /* Reset Routing Module*/
   PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on Routing...");
   ptin_routing_intf_remove_all();
-  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
   /* ERPS */
 #ifdef PTIN_ENABLE_ERPS
   PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on ERPS...");
   ptin_erps_clear();
-  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
   PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on HAL...");
   ptin_hal_erps_clear();
-  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 #endif
 
   PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on ACL...");
   ptin_aclCleanAll();
-  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
   /* Reset EVC Module */
   PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on EVC...");
   ptin_evc_destroy_all();
-  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
   /* Reset Mirror */
   PT_LOG_INFO(LOG_CTX_MSG, "Performing Mirror Reset...");
   ptin_mirror_reset();
-  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
   /* Reset RFC 2819 */
   PT_LOG_INFO(LOG_CTX_MSG, "Performing RFC 2819 reset...");
   ptin_rfc2819_init_buffers();
   ptin_rfc2819_init_all_probes();
-  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
   /* Reset NGPON2 groups and ports */
 #ifdef NGPON2_SUPPORTED
   PT_LOG_INFO(LOG_CTX_MSG, "Performing NGPON2 reset...");
   ptin_intf_NGPON2_clear();
   ptin_msg_NGPON2_clear();
-  PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 #endif
 
   /* Remove prot uplink configuration  */
@@ -423,13 +412,13 @@ extern void ptin_msg_defaults_reset(msg_HwGenReq_t *msgPtr)
     ptinNtwConn.mask = PTIN_NTWCONN_MASK_IPADDR;
     PT_LOG_INFO(LOG_CTX_MSG, "(Re)Configure Inband...");
     ptin_cfg_ntw_connectivity_set(&ptinNtwConn);
-    PT_LOG_INFO(LOG_CTX_MSG, "Done.");
 
     /*This Should be the Last Module*/
     PT_LOG_INFO(LOG_CTX_MSG, "Performing Reset on LAG...");
     ptin_intf_Lag_delete_all();
-    PT_LOG_INFO(LOG_CTX_MSG, "Done.");
   }
+
+  PT_LOG_INFO(LOG_CTX_MSG, "Complete!");
 }
 
 
@@ -1620,7 +1609,6 @@ L7_RC_t ptin_msg_slotMode_get(msg_slotModeCfg_t *slotMode)
   {
     PT_LOG_DEBUG(LOG_CTX_MSG,"Slot %02u: Mode=%u", i+1, slot_list[i]);
   }
-  PT_LOG_INFO(LOG_CTX_MSG,"Success");
 
   return L7_SUCCESS;
 }

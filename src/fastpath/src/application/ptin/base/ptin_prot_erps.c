@@ -598,7 +598,7 @@ int ptin_erps_remove_entry(L7_uint8 erps_idx)
 
   if (tbl_erps[erps_idx].admin == PROT_ERPS_ENTRY_FREE) {
     osapiSemaGive(ptin_prot_erps_sem);
-    PT_LOG_NOTICE(LOG_CTX_ERPS, "Entry free.", ret);
+    PT_LOG_TRACE(LOG_CTX_ERPS, "Entry free.", ret);
     return(ret);
   }
 

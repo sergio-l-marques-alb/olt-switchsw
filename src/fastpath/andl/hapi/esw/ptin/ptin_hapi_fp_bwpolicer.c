@@ -878,14 +878,14 @@ L7_RC_t hapi_ptin_bwPolicer_delete(DAPI_USP_t *usp, ptin_bwPolicer_t *bwPolicer,
   /* Validate arguments */
   if (policer_ptr == L7_NULLPTR)
   {
-    PT_LOG_WARN(LOG_CTX_HAPI,"This bwPolicer does not exist");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"This bwPolicer does not exist");
     return L7_SUCCESS;
   }
 
   /* Is there need to destroy this bwPolicer? */
   if (!policer_ptr->inUse)
   {
-    PT_LOG_WARN(LOG_CTX_HAPI,"This bwPolicer does not exist");
+    PT_LOG_TRACE(LOG_CTX_HAPI,"This bwPolicer does not exist");
     return L7_SUCCESS;
   }
 

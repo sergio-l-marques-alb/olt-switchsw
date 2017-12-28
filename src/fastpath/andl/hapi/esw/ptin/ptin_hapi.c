@@ -1345,13 +1345,13 @@ L7_RC_t ptin_hapi_phy_init_olt1t0f(void)
 L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
 {
   L7_RC_t       rc = L7_SUCCESS;
-  L7_uint8      number_of_ports;
-  L7_uint8      ptin_port_list[8];
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G || PTIN_BOARD == PTIN_BOARD_CXO160G)
   L7_int     i, wcSpeedG=-1, wcMode=BCM_PORT_IF_NULL;
   bcm_port_t bcm_port;
   bcm_pbmp_t pbm, pbm_out;
+  L7_uint8   number_of_ports;
+  L7_uint8   ptin_port_list[8];
 
   SYSAPI_HPC_CARD_DESCRIPTOR_t *sysapiHpcCardInfoPtr;
   DAPI_CARD_ENTRY_t            *dapiCardPtr;
@@ -1478,7 +1478,7 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
       {
         if (wcMode == BCM_PORT_IF_XLAUI)
         {
-          PT_LOG_INFO(LOG_CTX_HAPI, "Setting bcm_port %u to XLAUI mode...", bcm_port); 
+          PT_LOG_DEBUG(LOG_CTX_HAPI, "Setting bcm_port %u to XLAUI mode...", bcm_port); 
           if (ptin_hapi_xlaui_set(bcm_port) != L7_SUCCESS)
           {
             PT_LOG_ERR(LOG_CTX_HAPI, "Error resetting bcm_port %u", bcm_port);
@@ -1487,7 +1487,7 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
         }
         else
         {
-          PT_LOG_INFO(LOG_CTX_HAPI, "Setting bcm_port %u to KR4 mode...", bcm_port); 
+          PT_LOG_DEBUG(LOG_CTX_HAPI, "Setting bcm_port %u to KR4 mode...", bcm_port); 
           if (ptin_hapi_kr4_set(bcm_port) != L7_SUCCESS)
           {
             PT_LOG_ERR(LOG_CTX_HAPI, "Error resetting bcm_port %u", bcm_port);
@@ -1497,7 +1497,7 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
       }
       else if (wcSpeedG == 10)
       {
-        PT_LOG_INFO(LOG_CTX_HAPI, "Setting bcm_port %u to SFI mode...", bcm_port);
+        PT_LOG_DEBUG(LOG_CTX_HAPI, "Setting bcm_port %u to SFI mode...", bcm_port);
         if (ptin_hapi_sfi_set(bcm_port) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_HAPI, "Error resetting bcm_port %u", bcm_port);
@@ -1506,7 +1506,7 @@ L7_RC_t ptin_hapi_warpcore_reset(L7_int slot_id, L7_BOOL init)
       }
       else
       {
-        PT_LOG_INFO(LOG_CTX_HAPI, "Setting bcm_port %u to default mode...", bcm_port);
+        PT_LOG_DEBUG(LOG_CTX_HAPI, "Setting bcm_port %u to default mode...", bcm_port);
         if (ptin_hapi_def_set(bcm_port) != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_HAPI, "Error resetting bcm_port %u", bcm_port);
@@ -2230,8 +2230,8 @@ L7_RC_t ptin_hapi_linkscan_set(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 enable)
     PT_LOG_ERR(LOG_CTX_HAPI, "ddUsp={%u,%u,%u}: Error blocking semaphore related to bcm_port %u", usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port);
   }
 
-  PT_LOG_INFO(LOG_CTX_HAPI, "Linkscan applied for port {%d,%d,%d}/bcm_port %u/port %u to %u: rc=%d",
-              usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rc);
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "Linkscan applied for port {%d,%d,%d}/bcm_port %u/port %u to %u: rc=%d",
+               usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable, rc);
 
   return rc;
 }
@@ -2435,8 +2435,8 @@ L7_RC_t ptin_hapi_link_force(DAPI_USP_t *usp, DAPI_t *dapi_g, L7_uint8 link, L7_
       /* Wait more 20ms */
       osapiSleepUSec(20000);
 
-      PT_LOG_NOTICE(LOG_CTX_HAPI, "Force link-up applied to port {%d,%d,%d}/bcm_port %u/port %u to %u",
-                 usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
+      PT_LOG_DEBUG(LOG_CTX_HAPI, "Force link-up applied to port {%d,%d,%d}/bcm_port %u/port %u to %u",
+                   usp->unit, usp->slot, usp->port, hapiPortPtr->bcm_port, ptin_port, enable);
     }
     else
     {
@@ -2978,8 +2978,8 @@ L7_RC_t hapi_ptin_egress_port_type_set(ptin_dapi_port_t *dapiPort, L7_int port_t
     }
   }
 
-  PT_LOG_NOTICE(LOG_CTX_HAPI, "New port type %u correctly set to port {%d,%d,%d}",
-            port_type, dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
+  PT_LOG_INFO(LOG_CTX_HAPI, "New port type %u correctly set to port {%d,%d,%d}",
+              port_type, dapiPort->usp->unit, dapiPort->usp->slot, dapiPort->usp->port);
 
   return L7_SUCCESS;
 }
@@ -4732,7 +4732,7 @@ L7_RC_t ptin_hapi_kr4_set(bcm_port_t bcm_port)
     return L7_FAILURE;
   }
 
-  PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing bcm_port %u", bcm_port);
+  PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing bcm_port %u at KR4 mode", bcm_port);
 
   return L7_SUCCESS;
 }
@@ -4850,7 +4850,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     PT_LOG_ERR(LOG_CTX_HAPI, "Error removing Firmware mode 2 to bcm_port %u (rc=%d)", bcm_port, rc);
     return rc;
   }
-  PT_LOG_NOTICE(LOG_CTX_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
 #endif
 
   /* SFI mode */
@@ -4891,7 +4891,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     PT_LOG_ERR(LOG_CTX_HAPI, "Error applying Firmware mode 2 to bcm_port %u (rc=%d)", bcm_port, rc);
     return rc;
   }
-  PT_LOG_INFO(LOG_CTX_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
+  PT_LOG_DEBUG(LOG_CTX_HAPI, "Success applying Firmware mode 2 to bcm_port %u", bcm_port);
 #endif
 
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G || PTIN_BOARD == PTIN_BOARD_CXO640G)
@@ -4912,7 +4912,7 @@ L7_RC_t ptin_hapi_sfi_set(bcm_port_t bcm_port)
     return L7_FAILURE;
   }
 
-  PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing bcm_port %u", bcm_port);
+  PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing bcm_port %u at SFI mode", bcm_port);
 
   return L7_SUCCESS;
 }
@@ -4976,7 +4976,7 @@ L7_RC_t ptin_hapi_xaui_set(bcm_port_t bcm_port)
   }
 #endif
 
-  PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing bcm_port %u", bcm_port);
+  PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing bcm_port %u at XAUI mode", bcm_port);
 
   return L7_SUCCESS;
 }
@@ -5021,7 +5021,7 @@ L7_RC_t ptin_hapi_def_set(bcm_port_t bcm_port)
     return L7_FAILURE;
   }
 
-  PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing bcm_port %u", bcm_port);
+  PT_LOG_INFO(LOG_CTX_HAPI, "Success initializing bcm_port %u at default mode", bcm_port);
 
   return L7_SUCCESS;
 }

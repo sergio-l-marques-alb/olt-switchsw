@@ -3325,7 +3325,7 @@ L7_RC_t ptin_prot_uplink_clear_all()
 
     if (!uplinkprot[protIdx].admin)
     {
-      PT_LOG_ERR(LOG_CTX_INTF, "Nothing to do... already disabled!");
+      PT_LOG_TRACE(LOG_CTX_INTF, "Nothing to do... already disabled!");
       continue;
     }
 

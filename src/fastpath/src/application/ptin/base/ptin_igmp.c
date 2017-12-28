@@ -1178,7 +1178,7 @@ L7_RC_t ptin_igmp_get_local_router_port(L7_uint8 *local_router_port_id)
 L7_RC_t ptin_igmp_get_lrp_id(L7_uint32 *local_router_port_id)
 {
   
-  PT_LOG_NOTICE(LOG_CTX_IGMP, "%s: lrp_id %u", __FUNCTION__, lrp_id);
+  PT_LOG_TRACE(LOG_CTX_IGMP, "%s: lrp_id %u", __FUNCTION__, lrp_id);
 
   *local_router_port_id = lrp_id;
 

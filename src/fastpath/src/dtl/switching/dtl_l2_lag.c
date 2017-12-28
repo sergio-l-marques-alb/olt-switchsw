@@ -211,7 +211,7 @@ L7_RC_t dtlDot3adPortAdd(L7_uint32 lagIfNum,
     addUSP[i].slot = usp.slot;
     addUSP[i].port = usp.port-1;
 
-    PT_LOG_INFO(LOG_CTX_INTF, "Adding portIntf %u to lagIfNum %u", portIntf[i], lagIfNum);
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Adding portIntf %u to lagIfNum %u", portIntf[i], lagIfNum);
   }
 
   dapiCmd.cmdData.lagPortAdd.getOrSet = DAPI_CMD_SET;
@@ -275,7 +275,7 @@ L7_RC_t dtlDot3adPortDelete(L7_uint32 lagIfNum,
     /* get port max frame size */
     nimGetIntfConfigMaxFrameSize(portIntf[i], &maxFrameSize);
 
-    PT_LOG_INFO(LOG_CTX_INTF, "Removing portIntf %u from lagIfNum %u", portIntf[i], lagIfNum);
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Removing portIntf %u from lagIfNum %u", portIntf[i], lagIfNum);
   }
 
   dapiCmd.cmdData.lagPortDelete.getOrSet = DAPI_CMD_SET;
@@ -455,7 +455,7 @@ L7_RC_t dtlDot3adInternalPortAdd(L7_uint32 lagIfNum,
     addUSP[i].slot = usp.slot;
     addUSP[i].port = usp.port-1;
 
-    PT_LOG_INFO(LOG_CTX_INTF, "Adding directly portIntf %u to lagIfNum %u", portIntf[i], lagIfNum);
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Adding directly portIntf %u to lagIfNum %u", portIntf[i], lagIfNum);
   }
 
   dapiCmd.cmdData.lagPortAdd.getOrSet = DAPI_CMD_SET;
@@ -500,7 +500,7 @@ L7_RC_t dtlDot3adInternalPortDelete(L7_uint32 lagIfNum,
     /* get port max frame size */
     nimGetIntfConfigMaxFrameSize(portIntf[i], &maxFrameSize);
 
-    PT_LOG_INFO(LOG_CTX_INTF, "Removing directly portIntf %u from lagIfNum %u", portIntf[i], lagIfNum);
+    PT_LOG_DEBUG(LOG_CTX_INTF, "Removing directly portIntf %u from lagIfNum %u", portIntf[i], lagIfNum);
   }
 
   dapiCmd.cmdData.lagPortDelete.getOrSet = DAPI_CMD_SET;
