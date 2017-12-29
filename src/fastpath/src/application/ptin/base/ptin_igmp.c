@@ -1043,7 +1043,14 @@ L7_RC_t ptin_igmp_port_type_get(L7_uint32 port, L7_uint8* port_type)
     return L7_FAILURE;
   }
   *port_type = ptin_port_list[port].type;
-  PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %s ", port, (ptin_port_list[port].type == 0) ? "PTIN_IGMP_PORT_SERVER" : "PTIN_IGMP_PORT_CLIENT" );
+
+	if ( (port >= PTIN_SYSTEM_N_PORTS) && (port < (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_INTERNAL_LAGID_BASE))) 
+             
+	{
+	  *port_type = PTIN_IGMP_PORT_SERVER;
+	}
+
+  PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %s ", port, (*port_type == 0) ? "PTIN_IGMP_PORT_SERVER" : "PTIN_IGMP_PORT_CLIENT" );
 
 #else // OLT1T0
   if ( port >= PTIN_SYSTEM_N_INTERF ) { 
@@ -1302,7 +1309,6 @@ L7_RC_t ptin_igmp_set_local_router_port(L7_uint32 port, L7_uint8 lrp_flag)
 
     if (ptin_intf_boardid_get(ptin_port_list[port].port_id, &board_type) == L7_SUCCESS && board_type != 0)
     {
-
       if ( (board_type == PTIN_BOARD_TYPE_TU40G) || (board_type == PTIN_BOARD_TYPE_TU40GR ))
       {
         if ( lrp_flag == 1 && lrp_id == (L7_uint32)-1 )
@@ -1764,7 +1770,8 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
 
 #if PTIN_BOARD == PTIN_BOARD_CXO640G
   
-      if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_INTERF) {
+      if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_INTERF) 
+			{
         ptin_port_list[i].type = PTIN_IGMP_PORT_SERVER;
         ptin_port_list[i].hybrid = 1;
         ptin_port_list[i].query_count = 0;
@@ -1778,16 +1785,30 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
     {
       ptin_port_list[i].port_id=i;
 
-      if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_LOCAL_PORTS) { //PTIN_SYSTEM_N_UPLINK_INTERF) {
+			/* Uplink ports*/
+      if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_LOCAL_PORTS) 
+			{
         ptin_port_list[i].type = PTIN_IGMP_PORT_SERVER;
         ptin_port_list[i].hybrid = 1;
         ptin_port_list[i].query_count = 0;
 
         PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %s ", ptin_port_list[i].port_id, (ptin_port_list[i].type == 0) ? "PTIN_IGMP_PORT_SERVER" : "PTIN_IGMP_PORT_CLIENT" );
       }
-      else if ( ptin_port_list[i].port_id >= PTIN_SYSTEM_N_LOCAL_PORTS && 
-                ptin_port_list[i].port_id < PTIN_SYSTEM_N_INTERF) {
+			/* Uplink Lags*/
+      else if ( (ptin_port_list[i].port_id >= PTIN_SYSTEM_N_PORTS) && 
+                (ptin_port_list[i].port_id < (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_INTERNAL_LAGID_BASE))) 
+			{
+				ptin_port_list[i].type = PTIN_IGMP_PORT_SERVER;
+				ptin_port_list[i].hybrid = 1;
+				ptin_port_list[i].query_count = 0;
 
+        PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %u ", ptin_port_list[i].port_id, ptin_port_list[i].type );
+
+      }
+			/* Internal Lags*/
+			else if ( ptin_port_list[i].port_id >= (PTIN_SYSTEM_N_PORTS + PTIN_SYSTEM_INTERNAL_LAGID_BASE) && 
+                  ptin_port_list[i].port_id < PTIN_SYSTEM_N_INTERF) 
+			{
         ptin_port_list[i].type = PTIN_IGMP_PORT_CLIENT;
         ptin_port_list[i].hybrid = 0;
         ptin_port_list[i].query_count = 0;
@@ -1802,13 +1823,18 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
       while (i < PTIN_SYSTEM_N_INTERF) {
         ptin_port_list[i].port_id=i;
 
-      if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_PONS) {
+			/* PONs*/
+      if (ptin_port_list[i].port_id < PTIN_SYSTEM_N_PONS) 
+			{
         ptin_port_list[i].type = PTIN_IGMP_PORT_CLIENT;
         ptin_port_list[i].hybrid = 0;
         ptin_port_list[i].query_count = 0;
 
         PT_LOG_TRACE(LOG_CTX_IGMP,"Port %u is type %s ", ptin_port_list[i].port_id, (ptin_port_list[i].type == 0) ? "PTIN_IGMP_PORT_SERVER" : "PTIN_IGMP_PORT_CLIENT" );
-      } else {
+      } 
+			/* Uplink Lags and ports*/
+			else 
+			{
         ptin_port_list[i].type = PTIN_IGMP_PORT_SERVER;
         ptin_port_list[i].hybrid = 1;
         ptin_port_list[i].query_count = 0;
@@ -20478,9 +20504,9 @@ void ptin_igmp_define_local_router_port(L7_uint32 local_router_port_id)
 {
   L7_uint8  i, j = 0;
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
-  if(local_router_port_id >= 0 && local_router_port_id < (PTIN_SYSTEM_N_PORTS))
+  if(local_router_port_id >= 0 && local_router_port_id < (PTIN_SYSTEM_N_INTERF))
 #elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
-  if(local_router_port_id >= 0 && local_router_port_id < (PTIN_SYSTEM_N_PORTS))
+  if(local_router_port_id >= 0 && local_router_port_id < (PTIN_SYSTEM_N_INTERF))
 #else 
   if(local_router_port_id >= PTIN_SYSTEM_N_PONS && local_router_port_id < (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH))
 #endif
@@ -20494,7 +20520,7 @@ void ptin_igmp_define_local_router_port(L7_uint32 local_router_port_id)
 #if (PTIN_BOARD == PTIN_BOARD_CXO640G)
         for (i = 0; i < (PTIN_SYSTEM_N_PORTS); i++)
 #elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
-        for (i = 0; i < (PTIN_SYSTEM_N_PORTS); i++)
+        for (i = 0; i < (PTIN_SYSTEM_N_INTERF); i++)
 #else
         for (i = PTIN_SYSTEM_N_PONS; i < (PTIN_SYSTEM_N_PONS + PTIN_SYSTEM_N_ETH); i++)
 #endif
