@@ -67,7 +67,7 @@ int ptin_port_stat(bcm_port_t bcm_port)
          info.local_ability.loopback,
          info.local_ability.flags,
          info.local_ability.eee,
-         info.local_ability.encap,
+         info.local_ability.encap);
   printf(" remote_advert_valid= %u\r\n", info.remote_advert_valid);
   printf(" remote_advert      = %u\r\n", info.remote_advert      );
   printf(" remote_ability     > speedHD=0x%x speedFD=0x%x pause=%u if=%u med=%u lb=%u flg=0x%x eee=%u enc=%u\r\n",
@@ -79,7 +79,7 @@ int ptin_port_stat(bcm_port_t bcm_port)
          info.remote_ability.loopback,
          info.remote_ability.flags,
          info.remote_ability.eee,
-         info.remote_ability.encap,
+         info.remote_ability.encap);
   printf(" mcast_limit        = %u\r\n", info.mcast_limit        );
   printf(" mcast_limit_enable = %u\r\n", info.mcast_limit_enable );
   printf(" bcast_limit        = %u\r\n", info.bcast_limit        );
@@ -97,7 +97,7 @@ int ptin_port_stat(bcm_port_t bcm_port)
          info.port_ability.loopback,
          info.port_ability.flags,
          info.port_ability.eee,
-         info.port_ability.encap,
+         info.port_ability.encap);
   printf(" frame_max          = %u\r\n", info.frame_max          );
   printf(" mdix               = %u\r\n", info.mdix               );
   printf(" mdix_status        = %u\r\n", info.mdix_status        );
