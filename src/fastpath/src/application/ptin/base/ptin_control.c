@@ -1741,6 +1741,27 @@ void ptin_control_linkStatus_monitor(void)
 }
 
 /**
+ * Make a slot reset, inside the boardaction semaphore
+ * 
+ * @param slot_id 
+ * @param force_linkup 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_sem_slot_reset(L7_int slot_id, L7_BOOL force_linkup)
+{
+  L7_RC_t rc;
+
+  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
+
+  rc = ptin_intf_slot_reset(slot_id, force_linkup);
+
+  osapiSemaGive(ptin_boardaction_sem);
+
+  return rc;
+}
+
+/**
  * Procedures to be done when resetting a slot
  * 
  * @author mruas (10/2/2015)
@@ -1751,22 +1772,46 @@ void ptin_control_linkStatus_monitor(void)
  * @param linkStatus : Link status information (Local + Remote)
                                                                 */
 void ptin_control_slot_reset(L7_uint ptin_port, L7_uint slot_id, L7_uint board_id,
-                                    struct_linkStatus_t linkStatus[2])
+                             struct_linkStatus_t linkStatus[2])
 {
-  L7_BOOL force_link;
   struct timespec tm;
   struct L7_localtime_t lt;
+  L7_RC_t rc;
 
   PT_LOG_WARN(LOG_CTX_CONTROL, "Going to reset WC of port %u", ptin_port);
 
-#ifdef PTIN_LINKSCAN_CONTROL
-  force_link = L7_FALSE; //PTIN_BOARD_IS_TORESET(board_id);
-#else
-  force_link = L7_FALSE;
-#endif
-
   /* Reset WarpCore */
-  ptin_intf_slot_reset(slot_id, force_link);
+  rc = ptin_intf_slot_reset(slot_id, L7_FALSE);
+  if (rc != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_CONTROL, "Error reseting slot %u",  slot_id);
+  }
+  else
+  {
+    PT_LOG_NOTICE(LOG_CTX_CONTROL, "Slot %u reseted",  slot_id);
+
+    /* Force link-up for some linecards */
+    if (PTIN_BOARD_IS_TORESET(board_id))
+    {
+      /* Wait 200 milliseconds */
+      osapiSleepMSec(200);
+
+      rc = ptin_slot_link_force(slot_id, -1, L7_FALSE, L7_DISABLE);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_CONTROL, "Error disabling linkUp-force for slot %u",  slot_id);
+      }
+      rc = ptin_slot_link_force(slot_id, -1, L7_TRUE, L7_ENABLE);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_CONTROL, "Error forcing link-up for slot %u",  slot_id);
+      }
+      else
+      {
+        PT_LOG_NOTICE(LOG_CTX_CONTROL, "Link-up forced for slot %u",  slot_id);
+      }
+    }
+  }
 
   /* Get time */
   clock_gettime(CLOCK_REALTIME, &tm);
@@ -2109,15 +2154,13 @@ void slot_monitor_dump(void)
   osapiSemaTake(link_status_sem, L7_WAIT_FOREVER);
   for (i = 0; i < ptin_sys_number_of_ports; i++)
   {
-    if (remote_link_status[i].updated)
-    {
-      printf("Port %2u: enable=%u link=%u tx_packets=%llu rx_packets=%llu rx_errors=%llu\r\n", i,
-              remote_link_status[i].enable,
-              remote_link_status[i].link,
-              remote_link_status[i].tx_packets,
-              remote_link_status[i].rx_packets,
-              remote_link_status[i].rx_error);
-    }
+    printf("Port %2u: update=%u enable=%u link=%u tx_packets=%llu rx_packets=%llu rx_errors=%llu\r\n", i,
+            remote_link_status[i].updated,
+            remote_link_status[i].enable,
+            remote_link_status[i].link,
+            remote_link_status[i].tx_packets,
+            remote_link_status[i].rx_packets,
+            remote_link_status[i].rx_error);
   }
   /* Release semaphore */
   osapiSemaGive(link_status_sem);
@@ -2146,7 +2189,8 @@ void slot_monitor_dump(void)
 static void ptin_control_linkstatus_report(void)
 {
   L7_uint8 active_matrix;
-  L7_int  base_port, number_of_ports, port, i;
+  L7_int   port, i;
+  L7_uint8 number_of_ports, port_list[4];
   ptin_HWEthRFC2819_PortStatistics_t portStats;
   ptin_HWEthPhyConf_t phyConf;
   msg_HwIntfStatus_t  msgLinkStatus;
@@ -2165,12 +2209,21 @@ static void ptin_control_linkstatus_report(void)
   active_matrix = ptin_fpga_mx_get_matrixactive();
 
   /* Determine base port and number of ports */
-#if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF)
-  base_port = PTIN_SYSTEM_N_PONS;
+#if (PTIN_BOARD == PTIN_BOARD_TG16G)
   number_of_ports = 4;
+  port_list[0] = PTIN_SYSTEM_N_PONS + 1;
+  port_list[1] = PTIN_SYSTEM_N_PONS + 3;
+  port_list[2] = PTIN_SYSTEM_N_PONS + 0;
+  port_list[3] = PTIN_SYSTEM_N_PONS + 2;
+#elif (PTIN_BOARD == PTIN_BOARD_TG16GF)
+  number_of_ports = 4;
+  port_list[0] = PTIN_SYSTEM_N_PONS + 0;
+  port_list[1] = PTIN_SYSTEM_N_PONS + 1;
+  port_list[2] = PTIN_SYSTEM_N_PONS + 2;
+  port_list[3] = PTIN_SYSTEM_N_PONS + 3;
 #elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
-  base_port = (active_matrix == PTIN_SLOT_WORK) ? (PTIN_SYSTEM_N_ETH+1) : (PTIN_SYSTEM_N_ETH);
   number_of_ports = 1;
+  port_list[0] = (active_matrix == PTIN_SLOT_WORK) ? (PTIN_SYSTEM_N_ETH+1) : (PTIN_SYSTEM_N_ETH);
 #else
   return;
 #endif
@@ -2184,7 +2237,7 @@ static void ptin_control_linkstatus_report(void)
   /* Run all (active) backplane ports */
   for (i = 0; i < number_of_ports; i++)
   {
-    port = base_port + i;
+    port = port_list[i];
 
     /* Init struct */
     msgLinkStatus.port[i].intf.intf_type = PTIN_EVC_INTF_PHYSICAL;

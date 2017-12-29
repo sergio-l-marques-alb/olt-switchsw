@@ -9041,20 +9041,6 @@ L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
   return L7_SUCCESS;
 }
 
-#if (PTIN_BOARD_IS_MATRIX)
-L7_RC_t ptin_sem_slot_reset(L7_int slot_id, L7_BOOL force_linkup)
-{
-  L7_RC_t rc;
-
-  osapiSemaTake(ptin_boardaction_sem, L7_WAIT_FOREVER);
-
-  rc = ptin_intf_slot_reset(slot_id, force_linkup);
-
-  osapiSemaGive(ptin_boardaction_sem);
-
-  return rc;
-}
-#endif
 
 /**
  * Set the maximum rate for a port
@@ -9225,4 +9211,27 @@ void ptin_intf_shaper_max_dump(void)
   printf("------------------------------------------------\r\n");
 
 }
+
+#if (PTIN_BOARD_IS_MATRIX)
+void ptin_intf_slotportmap_dump(void)
+{
+  L7_uint slot, lane, i;
+
+  printf("Slot to intf mapping (%u interfaces):", ptin_sys_number_of_ports);
+  for (slot=1; slot<=PTIN_SYS_SLOTS_MAX; slot++)
+  {
+    printf("\n Slot %02u: ",slot);
+    for (lane=0; lane<PTIN_SYS_INTFS_PER_SLOT_MAX; lane++)
+    {
+      printf(" %2d",ptin_sys_slotport_to_intf_map[slot][lane]);
+    }
+  }
+  printf("\n");
+  printf("Intf to slot/port map (%u interfaces):\r\n",ptin_sys_number_of_ports);
+  for (i=0; i<PTIN_SYSTEM_N_PORTS; i++)
+  {
+    printf(" Port# %2u => slot=%d/%d\r\n", i, ptin_sys_intf_to_slot_map[i], ptin_sys_intf_to_port_map[i]);
+  }
+}
+#endif
 

@@ -18,6 +18,108 @@
 #include "bcmx/vlan.h"
 #include "logger.h"
 
+
+int ptin_port_stat(bcm_port_t bcm_port)
+{
+  bcm_port_info_t info;
+  bcm_error_t rv;
+
+  bcm_port_info_t_init(&info);
+  info.action_mask  = 0xffffffff;
+  info.action_mask2 = 0xffffffff;
+
+  rv = bcm_port_selective_get(0, bcm_port, &info);
+
+  if (rv != L7_SUCCESS)
+  {
+    printf("Error reading port status\r\n");
+    return -1;
+  }
+
+  printf("bcm_port %u:\r\n",  bcm_port);
+  printf(" enable             = %u\r\n", info.enable             );
+  printf(" linkstatus         = %u\r\n", info.linkstatus         );
+  printf(" autoneg            = %u\r\n", info.autoneg            );
+  printf(" speed              = %u\r\n", info.speed              );
+  printf(" duplex             = %u\r\n", info.duplex             );
+  printf(" linkscan           = %u\r\n", info.linkscan           );
+  printf(" learn              = %u\r\n", info.learn              );
+  printf(" discard            = %u\r\n", info.discard            );
+  printf(" vlanfilter         = %u\r\n", info.vlanfilter         );
+  printf(" untagged_priority  = %u\r\n", info.untagged_priority  );
+  printf(" untagged_vlan      = %u\r\n", info.untagged_vlan      );
+  printf(" stp_state          = %u\r\n", info.stp_state          );
+  printf(" pfm                = %u\r\n", info.pfm                );
+  printf(" loopback           = %u\r\n", info.loopback           );
+  printf(" phy_master         = %u\r\n", info.phy_master         );
+  printf(" interface          = %u\r\n", info.interface          );
+  printf(" pause_tx           = %u\r\n", info.pause_tx           );
+  printf(" pause_rx           = %u\r\n", info.pause_rx           );
+  printf(" encap_mode         = %u\r\n", info.encap_mode         );
+  printf(" pause_mac          = %02u:%02u:%02u:%02u:%02u:%02u\r\n", info.pause_mac[0],info.pause_mac[1],info.pause_mac[2],info.pause_mac[3],info.pause_mac[4],info.pause_mac[5]);
+  printf(" local_advert       = %u\r\n", info.local_advert       );
+  printf(" local_ability      > speedHD=0x%x speedFD=0x%x pause=%u if=%u med=%u lb=%u flg=0x%x eee=%u rsvd=%u enc=%u fec=%u chan=%u\r\n",
+         info.local_ability.speed_half_duplex,
+         info.local_ability.speed_full_duplex,
+         info.local_ability.pause,
+         info.local_ability.interface,
+         info.local_ability.medium,
+         info.local_ability.loopback,
+         info.local_ability.flags,
+         info.local_ability.eee,
+         info.local_ability.rsvd,
+         info.local_ability.encap,
+         info.local_ability.fec,
+         info.local_ability.channel);
+  printf(" remote_advert_valid= %u\r\n", info.remote_advert_valid);
+  printf(" remote_advert      = %u\r\n", info.remote_advert      );
+  printf(" remote_ability     > speedHD=0x%x speedFD=0x%x pause=%u if=%u med=%u lb=%u flg=0x%x eee=%u rsvd=%u enc=%u fec=%u chan=%u\r\n",
+         info.remote_ability.speed_half_duplex,
+         info.remote_ability.speed_full_duplex,
+         info.remote_ability.pause,
+         info.remote_ability.interface,
+         info.remote_ability.medium,
+         info.remote_ability.loopback,
+         info.remote_ability.flags,
+         info.remote_ability.eee,
+         info.remote_ability.rsvd,
+         info.remote_ability.encap,
+         info.remote_ability.fec,
+         info.remote_ability.channel);
+  printf(" mcast_limit        = %u\r\n", info.mcast_limit        );
+  printf(" mcast_limit_enable = %u\r\n", info.mcast_limit_enable );
+  printf(" bcast_limit        = %u\r\n", info.bcast_limit        );
+  printf(" bcast_limit_enable = %u\r\n", info.bcast_limit_enable );
+  printf(" dlfbc_limit        = %u\r\n", info.dlfbc_limit        );
+  printf(" dlfbc_limit_enable = %u\r\n", info.dlfbc_limit_enable );
+  printf(" speed_max          = %u\r\n", info.speed_max          );
+  printf(" ability            = 0x%x\r\n", info.ability            );
+  printf(" port_ability       > speedHD=0x%x speedFD=0x%x pause=%u if=%u med=%u lb=%u flg=0x%x eee=%u rsvd=%u enc=%u fec=%u chan=%u\r\n",
+         info.port_ability.speed_half_duplex,
+         info.port_ability.speed_full_duplex,
+         info.port_ability.pause,
+         info.port_ability.interface,
+         info.port_ability.medium,
+         info.port_ability.loopback,
+         info.port_ability.flags,
+         info.port_ability.eee,
+         info.port_ability.rsvd,
+         info.port_ability.encap,
+         info.port_ability.fec,
+         info.port_ability.channel);
+  printf(" frame_max          = %u\r\n", info.frame_max          );
+  printf(" mdix               = %u\r\n", info.mdix               );
+  printf(" mdix_status        = %u\r\n", info.mdix_status        );
+  printf(" medium             = %u\r\n", info.medium             );
+  printf(" fault              = 0x%x\r\n", info.fault            );
+  printf(" action_mask        = 0x%x\r\n", info.action_mask);
+  printf(" action_mask2       = 0x%x\r\n", info.action_mask2);
+  printf("Done!");
+
+  return 0;
+}
+
+
 int ptin_cosq_discard_set(unsigned int gport, unsigned int queueIndex, unsigned int flags, unsigned int minthresh, unsigned int maxthresh, unsigned int dropprob, unsigned int wredexp)
 {
   int precIndex;
