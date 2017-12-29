@@ -58,7 +58,7 @@ int ptin_port_stat(bcm_port_t bcm_port)
   printf(" encap_mode         = %u\r\n", info.encap_mode         );
   printf(" pause_mac          = %02u:%02u:%02u:%02u:%02u:%02u\r\n", info.pause_mac[0],info.pause_mac[1],info.pause_mac[2],info.pause_mac[3],info.pause_mac[4],info.pause_mac[5]);
   printf(" local_advert       = %u\r\n", info.local_advert       );
-  printf(" local_ability      > speedHD=0x%x speedFD=0x%x pause=%u if=%u med=%u lb=%u flg=0x%x eee=%u rsvd=%u enc=%u fec=%u chan=%u\r\n",
+  printf(" local_ability      > speedHD=0x%x speedFD=0x%x pause=%u if=%u med=%u lb=%u flg=0x%x eee=%u enc=%u\r\n",
          info.local_ability.speed_half_duplex,
          info.local_ability.speed_full_duplex,
          info.local_ability.pause,
@@ -73,7 +73,7 @@ int ptin_port_stat(bcm_port_t bcm_port)
          info.local_ability.channel);
   printf(" remote_advert_valid= %u\r\n", info.remote_advert_valid);
   printf(" remote_advert      = %u\r\n", info.remote_advert      );
-  printf(" remote_ability     > speedHD=0x%x speedFD=0x%x pause=%u if=%u med=%u lb=%u flg=0x%x eee=%u rsvd=%u enc=%u fec=%u chan=%u\r\n",
+  printf(" remote_ability     > speedHD=0x%x speedFD=0x%x pause=%u if=%u med=%u lb=%u flg=0x%x eee=%u enc=%u\r\n",
          info.remote_ability.speed_half_duplex,
          info.remote_ability.speed_full_duplex,
          info.remote_ability.pause,
@@ -94,7 +94,7 @@ int ptin_port_stat(bcm_port_t bcm_port)
   printf(" dlfbc_limit_enable = %u\r\n", info.dlfbc_limit_enable );
   printf(" speed_max          = %u\r\n", info.speed_max          );
   printf(" ability            = 0x%x\r\n", info.ability            );
-  printf(" port_ability       > speedHD=0x%x speedFD=0x%x pause=%u if=%u med=%u lb=%u flg=0x%x eee=%u rsvd=%u enc=%u fec=%u chan=%u\r\n",
+  printf(" port_ability       > speedHD=0x%x speedFD=0x%x pause=%u if=%u med=%u lb=%u flg=0x%x eee=%u enc=%u\r\n",
          info.port_ability.speed_half_duplex,
          info.port_ability.speed_full_duplex,
          info.port_ability.pause,
