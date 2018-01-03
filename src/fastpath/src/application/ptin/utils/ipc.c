@@ -232,9 +232,13 @@ int send_trap(int porto, int trap_type, int arg)
 
   ret=send_data(g_iInterfaceSW, IPC_CHMSG_TRAP_PORT, IPC_SERVER_IPADDR, (ipc_msg *)&comando, (ipc_msg *)NULL);
   if(ret<0)
-      PT_LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d (Canal =%d), Code = 0x%.4x, arg = 0x%08x (%d): ERROR = %d", IPC_CHMSG_TRAP_PORT, g_iInterfaceSW, trap_type,arg,arg, ret)
+  {
+    PT_LOG_ERR(LOG_CTX_IPC,"SENDTRAP to PORT %d (Canal =%d), Code = 0x%.4x, arg = 0x%08x (%d): ERROR = %d", IPC_CHMSG_TRAP_PORT, g_iInterfaceSW, trap_type,arg,arg, ret);
+  }
   else
-      PT_LOG_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d (Canal =%d), Code = 0x%.4x: arg = 0x%08x (%d)", IPC_CHMSG_TRAP_PORT, g_iInterfaceSW, trap_type,arg,arg);  
+  {
+    PT_LOG_TRACE(LOG_CTX_IPC,"SENDTRAP to PORT %d (Canal =%d), Code = 0x%.4x: arg = 0x%08x (%d)", IPC_CHMSG_TRAP_PORT, g_iInterfaceSW, trap_type,arg,arg);  
+  }
   return(ret);
 }
 

@@ -753,10 +753,14 @@ L7_RC_t hapiBroadHwApply(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *da
     {
       rc = ptin_hapi_frame_oversize_get(usp, &hwproc->param1, dapi_g);
       if (rc != L7_SUCCESS)
-        PT_LOG_ERR(LOG_CTX_HAPI, "Error with ptin_hapi_frame_oversize_get: rc=%d", rc)
+      {
+        PT_LOG_ERR(LOG_CTX_HAPI, "Error with ptin_hapi_frame_oversize_get: rc=%d", rc);
+      }
       else
+      {
         PT_LOG_TRACE(LOG_CTX_HAPI, "Oversize frame limite for port {%d,%d,%d} is %u bytes",
-                  usp->unit, usp->slot, usp->port, hwproc->param1);
+                     usp->unit, usp->slot, usp->port, hwproc->param1);
+      }
     }
     else if (hwproc->operation == DAPI_CMD_SET)
     {

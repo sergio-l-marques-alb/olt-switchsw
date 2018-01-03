@@ -153,13 +153,17 @@ int open_ipc (int porto_rx, unsigned int ipaddr, int  (*MessageHandler)(ipc_msg 
    //else
    //   DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_ERROR, "Nao obteve o valor de SO_MAX_MSG_SIZE no Socket cliente do canal %d (errno=%d).", canal_id, errno);
    if (getsockopt (ipc_canais[canal_id].socket_descriptor_cliente, SOL_SOCKET, SO_SNDBUF, (char*)&optVal, &optLen)==0)
+   {
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_INFORMATIONAL,
-      PT_LOG_INFO(LOG_CTX_IPC,
-               "Socket cliente do canal %d, SO_SNDBUF=%d.", canal_id, optVal)
+      PT_LOG_INFO(LOG_CTX_IPC, "Socket cliente do canal %d, SO_SNDBUF=%d.", canal_id, optVal);
+   }
    else
+   {
 //      DEBUGTRACE (TRACE_MODULE_ALL | TRACE_LAYER_IPC, TRACE_SEVERITY_ERROR,
       PT_LOG_ERR(LOG_CTX_IPC,
-                "Nao obteve o valor de SO_SNDBUF no Socket cliente do canal %d (errno=%d).", canal_id, errno); 
+                 "Nao obteve o valor de SO_SNDBUF no Socket cliente do canal %d (errno=%d).", canal_id, errno); 
+   }
+
    ipc_canais[canal_id].timeout = timeout;
    // Inicializacao do socket Servidor
    if(MessageHandler!=NULL && porto_rx>0 && porto_rx<IPCLIB_MAX_PORTNUMBER)	    //Se existir handler para a funcao de escuta inicializa

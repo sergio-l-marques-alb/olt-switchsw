@@ -4904,15 +4904,23 @@ L7_RC_t aggStaticModeSet(L7_uint32 agg_intf, L7_uint32 mode)
         if (linkState == L7_UP)
         {
           if (p->lacpEnabled == L7_TRUE)
+          {
             rc2=LACIssueCmd(lacpPortEnabledLacpEnabled,p->actorPortNum,L7_NULL);
-             if (rc2 != L7_SUCCESS)
-               L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT3AD_COMPONENT_ID,
-                       "\n aggStaticModeSet: Static to Dynamic:Failure to Send lacpPortEnabledLacpEnabled for configured port : %d\n",a->aggWaitSelectedPortList[i])
+            if (rc2 != L7_SUCCESS)
+            {
+              L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT3AD_COMPONENT_ID,
+                      "\n aggStaticModeSet: Static to Dynamic:Failure to Send lacpPortEnabledLacpEnabled for configured port : %d\n",a->aggWaitSelectedPortList[i]);
+            }
+          }
           else
+          {
             rc2=LACIssueCmd(lacpPortEnabledLacpDisabled,p->actorPortNum,L7_NULL);
             if (rc2 != L7_SUCCESS)
-               L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT3AD_COMPONENT_ID,
-                       "\n aggStaticModeSet: Static to Dynamic:Failure to Send lacpPortEnabledLacpDisabled for configured port : %d\n",a->aggWaitSelectedPortList[i]);
+            {
+              L7_LOGF(L7_LOG_SEVERITY_INFO, L7_DOT3AD_COMPONENT_ID,
+                      "\n aggStaticModeSet: Static to Dynamic:Failure to Send lacpPortEnabledLacpDisabled for configured port : %d\n",a->aggWaitSelectedPortList[i]);
+            }
+          }
         }/* link up*/
 
       }/* p!=NULLPTR*/

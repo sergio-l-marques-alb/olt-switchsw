@@ -85,9 +85,13 @@ L7_RC_t ptin_rfc2819_buffer_clear(L7_int buffer_index)
     }
 
     if(buffer_index==RFC2819_BUFFER_15MIN)
-      PT_LOG_TRACE(LOG_CTX_RFC2819, "rfc2819 15min buffer cleared")
+    {
+      PT_LOG_TRACE(LOG_CTX_RFC2819, "rfc2819 15min buffer cleared");
+    }
     else
+    {
       PT_LOG_TRACE(LOG_CTX_RFC2819, "rfc2819 24hours buffer cleared");
+    }
 
     return L7_SUCCESS;
 }
