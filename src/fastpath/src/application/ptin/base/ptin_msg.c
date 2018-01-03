@@ -14142,9 +14142,12 @@ L7_RC_t ptin_msg_wr_MEP(ipc_msg *inbuff, ipc_msg *outbuff, L7_uint32 i)
 
   if (valid_mep_index(pi[i].index)) {
       p = &oam.db[pi[i].index].mep;
-      if (EMPTY_T_MEP(*p)) PT_LOG_DEBUG(LOG_CTX_MSG, "MEP EMPTY");//changing_trap=0;
-
-      else {
+      if (EMPTY_T_MEP(*p))
+      {
+        PT_LOG_DEBUG(LOG_CTX_MSG, "MEP EMPTY");//changing_trap=0;
+      }
+      else
+      {
           //old_prt=p->prt;       old_vid=p->vid;     old_level=p->level;
           //changing_trap=1;  //if (old_prt!=porta || old_vid!=pi[i].bd.vid || old_level!=pi[i].bd.level) changing_trap=1;    else changing_trap=0;
           ptin_msg_del_MEP(inbuff, outbuff, i);
