@@ -28,7 +28,7 @@
 
 #include "ptin_debug.h"
 
-#define SM_MODIFICATIONS  // State machine modification according to Table VIII.1
+//#define SM_MODIFICATIONS  // State machine modification according to Table VIII.1
 
 #define SM_PTIN_MODS      // State machine modification due to observed incoherent situations
 
@@ -2156,8 +2156,12 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
           (tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT0] != tbl_erps[erps_idx].apsBprRx[PROT_ERPS_PORT1]))
       {
         // except when the new R-APS message has DNF
-        // or the receiving Ethernet ring node's node ID.
-        if (!((APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF) || (tbl_erps[erps_idx].dnfStatus)))
+        // or the receiving Ethernet ring node's node ID. (Already checked in ptin_aps_checkOwnNodeId().)
+        if (!((APS_GET_STATUS(apsStatusRx) & RReq_STAT_DNF)
+              #ifdef SM_MODIFICATIONS
+               || (tbl_erps[erps_idx].dnfStatus)
+              #endif
+              ))
         {
           ptin_erps_FlushFDB(erps_idx, __LINE__);
         }
@@ -3707,9 +3711,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
         //Stop WTB
         ptin_erps_startTimer(erps_idx, WTB_TIMER_CMD, TIMER_CMD_STOP, __LINE__);
       }
-
+      else
       //If neither RPL Owner Node nor RPL Neighbour Node:
-      if ( ((tbl_erps[erps_idx].protParam.port0Role != ERPS_PORTROLE_RPL) && (tbl_erps[erps_idx].protParam.port1Role != ERPS_PORTROLE_RPL))                   &&
+      if ( //((tbl_erps[erps_idx].protParam.port0Role != ERPS_PORTROLE_RPL) && (tbl_erps[erps_idx].protParam.port1Role != ERPS_PORTROLE_RPL))                   &&
            ((tbl_erps[erps_idx].protParam.port0Role != ERPS_PORTROLE_RPLNEIGHBOUR) && (tbl_erps[erps_idx].protParam.port1Role != ERPS_PORTROLE_RPLNEIGHBOUR))     ) {
 
         //Unblock ring ports
@@ -3718,10 +3722,15 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
         //Stop Tx R-APS
         ptin_erps_aps_tx(erps_idx, RReq_NONE, RReq_STAT_ZEROS, __LINE__);
+
+        #ifdef SM_PTIN_MODS
+        // Flush FDB
+        ptin_erps_FlushFDB(erps_idx, __LINE__);
+        #endif
       }
 
       //If RPL Neighbour Node:
-      if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPLNEIGHBOUR) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPLNEIGHBOUR) ) {
+      else {    //if ( (tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPLNEIGHBOUR) || (tbl_erps[erps_idx].protParam.port1Role == ERPS_PORTROLE_RPLNEIGHBOUR) ) {
         //Block RPL port
         //Unblock non-RPL port
         if ( tbl_erps[erps_idx].protParam.port0Role == ERPS_PORTROLE_RPLNEIGHBOUR ) {             // Port0 is RPL
