@@ -527,8 +527,8 @@ static unsigned int max_log_lines = 0;
  * @param line Line# (if zero, is ignored)
  * @param fmt  Format string+ arguments (like printf)
  */
-void logger_print(log_context_t ctx, log_severity_t sev, char const *file,
-               char const *func, int line, char const *fmt, ...)
+int logger_print(log_context_t ctx, log_severity_t sev, char const *file,
+                 char const *func, int line, char const *fmt, ...)
 {
     va_list vargs;
     char    timestamp[MAX_TIMESTAMP_LEN];
@@ -599,7 +599,10 @@ void logger_print(log_context_t ctx, log_severity_t sev, char const *file,
     va_end(vargs);
 
     /* Can we print? */
-    if (outFile.lock == WRITE_LOCK)  return;
+    if (outFile.lock == WRITE_LOCK)
+    {
+      return -1;
+    }
 
     /* Use stream inside log_cfg structure (only if not default) */
     if ((log_cfg[ctx].output > LOG_OUTPUT_DEFAULT && log_cfg[ctx].output < LOG_OUTPUT_MAX) &&
@@ -630,6 +633,6 @@ void logger_print(log_context_t ctx, log_severity_t sev, char const *file,
       fflush(stream);
     }
 
-    return;
+    return 1;
 }
 

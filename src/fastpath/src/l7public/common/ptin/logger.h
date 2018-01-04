@@ -188,37 +188,36 @@ extern int logger_color_set(unsigned int ctx_mask, int color);
  * @param fmt  Format string+ arguments (like printf)
  */
 extern int logger_check(log_context_t ctx, log_severity_t sev);
-extern void logger_print(log_context_t ctx, log_severity_t sev, char const *file,
-               char const *func, int line, char const *fmt, ...);
+extern int logger_print(log_context_t ctx, log_severity_t sev, char const *file,
+                        char const *func, int line, char const *fmt, ...);
 
 
-#define PT_LOG_TRACE( ctx , fmt , args... ) \
-    {if (logger_check(ctx,LOG_SEV_TRACE)) logger_print( ctx, LOG_SEV_TRACE, NULL, __FUNCTION__, __LINE__, fmt, ##args );}
+#define PT_LOG_TRACE(ctx , fmt , args... ) \
+    logger_check(ctx, LOG_SEV_TRACE   ) ? logger_print(ctx, LOG_SEV_TRACE   , NULL, __FUNCTION__, __LINE__, fmt, ##args) : 0
     
-#define PT_LOG_DEBUG( ctx , fmt , args... ) \
-    {if (logger_check(ctx,LOG_SEV_DEBUG)) logger_print( ctx, LOG_SEV_DEBUG, NULL, __FUNCTION__, __LINE__, fmt, ##args );}
+#define PT_LOG_DEBUG(ctx , fmt , args... ) \
+    logger_check(ctx, LOG_SEV_DEBUG   ) ? logger_print(ctx, LOG_SEV_DEBUG   , NULL, __FUNCTION__, __LINE__, fmt, ##args) : 0
     
-#define PT_LOG_INFO( ctx , fmt , args... ) \
-    {if (logger_check(ctx,LOG_SEV_INFO)) logger_print( ctx, LOG_SEV_INFO, NULL, __FUNCTION__, __LINE__, fmt, ##args );}
+#define PT_LOG_INFO(ctx , fmt , args... ) \
+    logger_check(ctx, LOG_SEV_INFO    ) ? logger_print(ctx, LOG_SEV_INFO    , NULL, __FUNCTION__, __LINE__, fmt, ##args) : 0
     
-#define PT_LOG_NOTICE( ctx , fmt , args... ) \
-    {if (logger_check(ctx,LOG_SEV_NOTICE)) logger_print( ctx, LOG_SEV_NOTICE, NULL, __FUNCTION__, __LINE__, fmt, ##args );}
+#define PT_LOG_NOTICE(ctx , fmt , args... ) \
+    logger_check(ctx, LOG_SEV_NOTICE  ) ? logger_print(ctx, LOG_SEV_NOTICE  , NULL, __FUNCTION__, __LINE__, fmt, ##args) : 0
     
-#define PT_LOG_WARN( ctx , fmt , args... ) \
-    {if (logger_check(ctx,LOG_SEV_WARNING)) logger_print( ctx, LOG_SEV_WARNING, NULL, __FUNCTION__, __LINE__, fmt, ##args );}
+#define PT_LOG_WARN(ctx , fmt , args... ) \
+    logger_check(ctx, LOG_SEV_WARNING ) ? logger_print(ctx, LOG_SEV_WARNING , NULL, __FUNCTION__, __LINE__, fmt, ##args) : 0
     
-#define PT_LOG_ERR( ctx , fmt , args... ) \
-    {if (logger_check(ctx,LOG_SEV_ERROR)) logger_print( ctx, LOG_SEV_ERROR, NULL, __FUNCTION__, __LINE__, fmt, ##args );}
+#define PT_LOG_ERR(ctx , fmt , args... ) \
+    logger_check(ctx, LOG_SEV_ERROR   ) ? logger_print(ctx, LOG_SEV_ERROR   , NULL, __FUNCTION__, __LINE__, fmt, ##args) : 0
     
-#define PT_LOG_CRITIC( ctx , fmt , args... ) \
-    {if (logger_check(ctx,LOG_SEV_CRITICAL)) logger_print( ctx, LOG_SEV_CRITICAL, NULL, __FUNCTION__, __LINE__, fmt, ##args );}
+#define PT_LOG_CRITIC(ctx , fmt , args... ) \
+    logger_check(ctx, LOG_SEV_CRITICAL) ? logger_print(ctx, LOG_SEV_CRITICAL, NULL, __FUNCTION__, __LINE__, fmt, ##args) : 0
     
-#define PT_LOG_FATAL( ctx , fmt , args... ) \
-    {if (logger_check(ctx,LOG_SEV_FATAL)) logger_print( ctx, LOG_SEV_FATAL, NULL, __FUNCTION__, __LINE__, fmt, ##args );}
-    
-    
-#define PT_LOG_PRINT( ctx , fmt , args... ) \
-    {if (logger_check(ctx,LOG_SEV_PRINT)) logger_print( ctx, LOG_SEV_PRINT, NULL, __FUNCTION__, __LINE__, fmt, ##args );}
+#define PT_LOG_FATAL(ctx , fmt , args... ) \
+    logger_check(ctx, LOG_SEV_FATAL   ) ? logger_print(ctx, LOG_SEV_FATAL   , NULL, __FUNCTION__, __LINE__, fmt, ##args) : 0
+
+#define PT_LOG_PRINT(ctx , fmt , args... ) \
+    logger_check(ctx, LOG_SEV_PRINT   ) ? logger_print(ctx, LOG_SEV_PRINT   , NULL, __FUNCTION__, __LINE__, fmt, ##args) : 0
     
 
 #endif /* _LOGGER_H */
