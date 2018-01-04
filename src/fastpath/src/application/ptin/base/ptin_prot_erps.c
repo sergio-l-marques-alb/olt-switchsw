@@ -1603,6 +1603,7 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
   L7_uint8  localRequest                      = LReq_NONE;
   L7_uint8  remoteRequest                     = RReq_NONE;
   L7_uint16 apsReqStatusRx                    = 0;
+  L7_uint16 apsReqStatusRxOtherPort           = 0;
   L7_uint8  apsReqRx                          = 0;
   L7_uint8  apsStatusRx                       = 0;
   L7_uint8  apsNodeIdRx[PROT_ERPS_MAC_SIZE]   = {0};
@@ -1733,8 +1734,9 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
 
     tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqRx << 12) & 0xF000) | (apsStatusRx & 0x00FF);
 #else
-    apsReqRxOtherPort = (tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1] >> 12) & 0xF;
-    apsStatusRxOtherPort = (tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1] & 0x00FF);
+    apsReqStatusRxOtherPort = tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1];
+    apsReqRxOtherPort = (apsReqStatusRxOtherPort >> 12) & 0xF;
+    apsStatusRxOtherPort = (apsReqStatusRxOtherPort & 0x00FF);
 
     apsReqStatusRx = tbl_erps[erps_idx].apsReqStatusRx[apsRxPort];
     tbl_erps[erps_idx].apsReqStatusRx[apsRxPort] = ((apsReqRx << 12) & 0xF000) | (apsStatusRx & 0x00FF);
@@ -2098,15 +2100,16 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
                //(APS_GET_STATUS(apsReqStatusRx)^APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]))& RReq_STAT_RB
                ||
 
-               (RReq_NR == APS_MSK_REQSTATE(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1])>>12 &&
+               (RReq_NR == APS_MSK_REQSTATE(apsReqStatusRxOtherPort)>>12 && //RReq_NR == APS_MSK_REQSTATE(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1])>>12 &&
                 //(APS_GET_STATUS(apsReqStatusRx)^APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1]))& RReq_STAT_RB)
-                (apsReqStatusRx ^ tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1]) & RReq_STAT_RB)
+                (apsReqStatusRx ^ apsReqStatusRxOtherPort) & RReq_STAT_RB)
               )) {
 
       PT_LOG_TRACE(LOG_CTX_ERPS, "ERPS#%d: remoteRequest: NR flags change from 0x%x or 0x%x to 0x%x",
                    erps_idx,
                    APS_GET_STATUS(apsReqStatusRx),
-                   APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1]),
+                   //APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1]),
+                   APS_GET_STATUS(apsReqStatusRxOtherPort),
                    APS_GET_STATUS(tbl_erps[erps_idx].apsReqStatusRx[apsRxPort]));
 
       if (topPriorityRequest<100) haveChanges = L7_TRUE;
