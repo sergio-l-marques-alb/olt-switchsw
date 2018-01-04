@@ -2120,7 +2120,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
         return L7_SUCCESS;
      }
 
-		 PT_LOG_ERR(LOG_CTX_DHCP, " Option = %d", osapiNtohs(dhcp_op_header->option_code));
+		 PT_LOG_TRACE(LOG_CTX_DHCP, " Option = %d", osapiNtohs(dhcp_op_header->option_code));
      switch (osapiNtohs(dhcp_op_header->option_code))
      {
         case L7_DHCP6_OPT_INTERFACE_ID:
