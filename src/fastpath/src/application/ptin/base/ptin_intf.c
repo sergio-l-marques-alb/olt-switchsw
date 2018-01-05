@@ -137,7 +137,8 @@ static L7_uint16 ptin_slot_boardid[PTIN_SYS_SLOTS_MAX+1];
 /* Index 2: Max shaper value */
 #define PTIN_INTF_SHAPER_MNG_VALUE  0
 #define PTIN_INTF_SHAPER_MAX_VALUE  1
-L7_uint32 ptin_intf_shaper_max[PTIN_SYSTEM_N_INTERF][2];
+#define PTIN_INTF_FEC_VALUE         2
+L7_uint32 ptin_intf_shaper_max[PTIN_SYSTEM_N_INTERF][3];
 L7_uint32 ptin_burst_size[PTIN_SYSTEM_N_INTERF];
 
 #define MAX_BURST_SIZE 16000
@@ -200,6 +201,7 @@ L7_RC_t ptin_intf_pre_init(void)
   {
     ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MNG_VALUE] = 100;   /* Shaper value from management */
     ptin_intf_shaper_max[i][PTIN_INTF_SHAPER_MAX_VALUE] = 100; /* Max. Shaper value */
+    ptin_intf_shaper_max[i][PTIN_INTF_FEC_VALUE]        = 100; /* FEC value value */
     ptin_burst_size[i] = MAX_BURST_SIZE; //default bcm value for port max burst rate
 
   }
@@ -5059,8 +5061,16 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
     memset(&entry, 0x00, sizeof(ptin_intf_shaper_t));
 
     entry.ptin_port  = ptin_port;
-    entry.burst_size = ptin_burst_size[ptin_port];
-    entry.max_rate   = (ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] * intfQos->shaping_rate ) / 100;
+    entry.burst_size = ptin_burst_size[ptin_port]; 
+
+		if (intfQos->shaping_rate <= (ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE]))
+		{
+      entry.max_rate   = intfQos->shaping_rate;
+		}
+    else
+    {
+      entry.max_rate   = ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE];
+    }
 
     PT_LOG_NOTICE(LOG_CTX_INTF, "ptin_port:  %u", entry.ptin_port);
     PT_LOG_NOTICE(LOG_CTX_INTF, "burst_size: %u", entry.burst_size);
@@ -5070,7 +5080,8 @@ L7_RC_t ptin_QoS_intf_config_set(const ptin_intf_t *ptin_intf, ptin_QoS_intf_t *
 
     if (rc == L7_SUCCESS)
     {
-      ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE] = (ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] * intfQos->shaping_rate);
+      ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE] = intfQos->shaping_rate;
+      ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = entry.max_rate;
       PT_LOG_NOTICE(LOG_CTX_INTF, "New shaping rate is %u",intfQos->shaping_rate);
     }
     else
@@ -9114,17 +9125,34 @@ L7_RC_t ptin_intf_shaper_max_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint32
 
   entry.ptin_port  = ptin_port;
   entry.burst_size = burst_size;
-  entry.max_rate   = ((ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE]*max_rate)/100);
+  
+  if (ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE] <= max_rate)
+  {
+    PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port:  %u", entry.ptin_port);
+    PT_LOG_TRACE(LOG_CTX_INTF, "burst_size: %u", entry.burst_size);
+    PT_LOG_TRACE(LOG_CTX_INTF, "max_rate:   %u", entry.max_rate);
 
-  PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port:  %u", entry.ptin_port);
-  PT_LOG_TRACE(LOG_CTX_INTF, "burst_size: %u", entry.burst_size);
-  PT_LOG_TRACE(LOG_CTX_INTF, "max_rate:   %u", entry.max_rate);
+    entry.max_rate   = ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE];
+    ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE];
 
-  dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_MAX_BURST, DAPI_CMD_SET, sizeof(ptin_intf_shaper_t), &entry);
+    dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_MAX_BURST, DAPI_CMD_SET, sizeof(ptin_intf_shaper_t), &entry);
+  }
+  else
+  {
+    PT_LOG_TRACE(LOG_CTX_INTF, "ptin_port:  %u", entry.ptin_port);
+    PT_LOG_TRACE(LOG_CTX_INTF, "burst_size: %u", entry.burst_size);
+    PT_LOG_TRACE(LOG_CTX_INTF, "max_rate:   %u", entry.max_rate);
+
+    entry.max_rate   = max_rate;
+    ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = max_rate;
+
+    dtlPtinGeneric(intIfNum, PTIN_DTL_MSG_SHAPER_MAX_BURST, DAPI_CMD_SET, sizeof(ptin_intf_shaper_t), &entry);
+  }
 
   /* Save max rate for this interface */
-  ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MAX_VALUE] = ((ptin_intf_shaper_max[ptin_port][PTIN_INTF_SHAPER_MNG_VALUE]*max_rate)/100);
+  ptin_intf_shaper_max[ptin_port][PTIN_INTF_FEC_VALUE] = max_rate;
   ptin_burst_size[ptin_port] = burst_size;
+
   return L7_SUCCESS;
 }
 
