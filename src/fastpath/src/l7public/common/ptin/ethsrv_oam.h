@@ -180,10 +180,15 @@ typedef struct {
     u32 mismerge_timer, unxp_MEP_timer, unxp_lvl_timer, unxp_T_timer;   /*RO    (ms)*/\
     u32 c[2][2][2];     /*[t0 t][intrnal_counter packet_counter][Rx Tx]     [0 1]*/\
     u8  CoS, dummy_color;
-#define MISMERGE(MSMRG_timer, CCM_period)   ((MSMRG_timer)*2 < (CCM_period)*7)
-#define UNXP_MEP(UXMEP_timer, CCM_period)   ((UXMEP_timer)*2 < (CCM_period)*7)
-#define UNXP_LVL(UXLVL_timer, CCM_period)   ((UXLVL_timer)*2 < (CCM_period)*7)
-#define UNXP_T(UX_T_timer, CCM_period)      ((UX_T_timer)*2 < (CCM_period)*7)
+//#define MISMERGE(MSMRG_timer, CCM_period)   ((MSMRG_timer)*2 < (CCM_period)*7)
+//#define UNXP_MEP(UXMEP_timer, CCM_period)   ((UXMEP_timer)*2 < (CCM_period)*7)
+//#define UNXP_LVL(UXLVL_timer, CCM_period)   ((UXLVL_timer)*2 < (CCM_period)*7)
+//#define UNXP_T(UX_T_timer, CCM_period)      ((UX_T_timer)*2 < (CCM_period)*7)
+//Changing these defs to 1000ms:
+#define MISMERGE(MSMRG_timer, CCM_period)   ((MSMRG_timer) < 3500)
+#define UNXP_MEP(UXMEP_timer, CCM_period)   ((UXMEP_timer) < 3500)
+#define UNXP_LVL(UXLVL_timer, CCM_period)   ((UXLVL_timer) < 3500)
+#define UNXP_T(UX_T_timer, CCM_period)      ((UX_T_timer) < 3500)
 
 
 typedef struct {
@@ -508,6 +513,8 @@ typedef struct t_mep_db {
 typedef struct {
  u16            proc_i_mep;                 //index to mep being processed by
 
+ u32            mismerge_timer;             //each MEP has its own (please check T_MEP's homonimous)
+                                            //PDUs unrelated to any MEP might however be received, in which case this one is triggered
  T_MEP_DB       db[N_MEPs];
  T_LOOKUP_MEP   mep_lut[N_MAX_LOOKUP_MEPs]; //MEP look up table
 

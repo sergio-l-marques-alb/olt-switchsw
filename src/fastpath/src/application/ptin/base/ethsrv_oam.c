@@ -41,7 +41,7 @@ static int send_csf(u16 oam_prt, T_MEP_HDR *p_mep, u8 CSF_period, u8 CSF_flags);
 //static int send_lmm(u16 i_mep, T_MEP_HDR *p_mep, T_MEP_LM *p_lm);
 static int send_dmm(u16 i_mep, T_MEP_HDR *p_mep, T_MEP_DM *p_dm);
 static int rx_ccm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
-                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl);
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, T_ETH_SRV_OAM *p_oam, u64 RxFCl);
 static int rx_csf(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
                     T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut);
 static int rx_lmm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
@@ -168,6 +168,7 @@ u32 i;
  init_mep_db(p->db);
  init_mep_lookup_table(p->mep_lut);
  p->proc_i_mep= 0;
+ p->mismerge_timer= 0UL-1;
 
  for (i=0; i<N_MIPs; i++) SET_T_MIP_EMPTY(&p->mip_db[i])
 } //init_eth_srv_oam
@@ -687,6 +688,11 @@ static u32 j, meps_procssd_per_function_call=0;
  p_mep_db=      p_oam->db;
  proc_i_mep=    &p_oam->proc_i_mep;
 
+
+ if (MISMERGE(p_oam->mismerge_timer,1000)) p_oam->mismerge_timer += T_ms;
+ else p_oam->mismerge_timer=    0L-1;
+
+
  if (0==meps_procssd_per_function_call) {
      meps_procssd_per_function_call=    N_MEPs*T_ms/MEP_MIN_T_ms;
      if (0 != N_MEPs*T_ms % MEP_MIN_T_ms)    meps_procssd_per_function_call++; //meps_procssd_per_function_call=ceil()...
@@ -694,6 +700,7 @@ static u32 j, meps_procssd_per_function_call=0;
      if (meps_procssd_per_function_call > N_MEPs)    meps_procssd_per_function_call=N_MEPs;
  }
  T_ms= T_ms*N_MEPs/meps_procssd_per_function_call;
+
 
  for (j=meps_procssd_per_function_call; j; j--) {
     if (++*proc_i_mep>=N_MEPs) *proc_i_mep=0;
@@ -1598,7 +1605,7 @@ T_LOOKUP_MEP    *p_mep_lut;
      p_mep_db=  p_oam->db;
      p_mep_lut= p_oam->mep_lut;
      //ETHSRV_OAM_LOG("rx_ccm=%d"NLS,
-            rx_ccm(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut, RxFCl);
+            rx_ccm(oam_prt, pkt_ethtype, pkt_len, vid, pSMAC, p_mep_db, p_mep_lut, p_oam, RxFCl);
             //);
      return 0;
  case CSF_OPCODE:
@@ -1657,7 +1664,7 @@ T_LOOKUP_MEP    *p_mep_lut;
 
 
 static int rx_ccm(u16 oam_prt, u8 *pkt_ethtype, u32 pkt_len, u64 vid, u8 *pSMAC,
-                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, u64 RxFCl) {
+                    T_MEP_DB *p_mep_db, T_LOOKUP_MEP *p_mep_lut, T_ETH_SRV_OAM *p_oam, u64 RxFCl) {
 ETH_SRV_OAM_CCM_DATAGRM *p_ccm;
 T_MEP   *_p_mep;
 u32 i_look_r, i_mep, i_rmep;
@@ -1678,7 +1685,11 @@ u16 ccm_mep_id;
      i_mep= MEP_INDEX_TO_iMEP(alrm_index);
      i_rmep=MEP_INDEX_TO_iRMEP(alrm_index);
      
-     if (!valid_mep_index(i_mep)) {ethsrv_oam_register_mismerge(&p_ccm->meg_id, ccm_mep_id, 0xffff, oam_prt, vid);   return 1;}
+     if (!valid_mep_index(i_mep)) {
+         if (!MISMERGE(p_oam->mismerge_timer, 1000)) ethsrv_oam_register_mismerge(&p_ccm->meg_id, ccm_mep_id, 0xffff, oam_prt, vid);
+         p_oam->mismerge_timer=0;
+         return 1;
+     }
  }
 
  _p_mep=    &p_mep_db[i_mep].mep;
