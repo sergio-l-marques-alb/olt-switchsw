@@ -546,7 +546,6 @@ void ptin_alarms_init(void)
  */
 L7_RC_t ptin_alarms_suppress(L7_uint32 port, L7_BOOL state)
 {
-#if PTIN_BOARD_IS_STANDALONE
   if (port >= PTIN_SYSTEM_N_INTERF)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Invalid port %u", port);
@@ -557,9 +556,6 @@ L7_RC_t ptin_alarms_suppress(L7_uint32 port, L7_BOOL state)
   ptin_alarms_suppressed[port] = state;
 
   return L7_SUCCESS;
-#else
-  return L7_FAILURE;
-#endif
 }
 
 /**
@@ -571,7 +567,6 @@ L7_RC_t ptin_alarms_suppress(L7_uint32 port, L7_BOOL state)
  */
 L7_BOOL ptin_alarms_is_suppressed(L7_uint32 port)
 {
-#if PTIN_BOARD_IS_STANDALONE
   if (port >= PTIN_SYSTEM_N_INTERF)
   {
     PT_LOG_ERR(LOG_CTX_INTF,"Invalid port %u", port);
@@ -580,12 +575,6 @@ L7_BOOL ptin_alarms_is_suppressed(L7_uint32 port)
 
   /* Return current state */
   return ptin_alarms_suppressed[port];
-
-#else 
-
-	return ptin_alarms_suppressed[port];
-
-#endif
 }
 
 
@@ -806,16 +795,17 @@ static void monitor_alarms(void)
       // Check if there is a change in the active member state
       if (lagActiveMembers[port] != isActiveMember)
       {
-        if (!ptin_alarms_is_suppressed(port))
+        if (send_trap_intf_alarm(PTIN_EVC_INTF_PHYSICAL, port,
+                                 ((isActiveMember) ? TRAP_ALARM_LAG_INACTIVE_MEMBER_END : TRAP_ALARM_LAG_INACTIVE_MEMBER_START),
+                                 TRAP_ALARM_STATUS_EVENT,
+                                 lagIdList[port])==0)
         {
-          if (send_trap_intf_alarm(PTIN_EVC_INTF_PHYSICAL, port,
-                                   ((isActiveMember) ? TRAP_ALARM_LAG_INACTIVE_MEMBER_END : TRAP_ALARM_LAG_INACTIVE_MEMBER_START),
-                                   TRAP_ALARM_STATUS_EVENT,
-                                   lagIdList[port])==0)
-          {
-            PT_LOG_NOTICE(LOG_CTX_INTF  ,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
-            PT_LOG_NOTICE(LOG_CTX_EVENTS,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
-          }
+          PT_LOG_NOTICE(LOG_CTX_INTF  ,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
+          PT_LOG_NOTICE(LOG_CTX_EVENTS,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
+        }
+        else
+        {
+          PT_LOG_ERR(LOG_CTX_INTF  ,"Error sending alarm: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
         }
         lagActiveMembers[port]=isActiveMember;
         PT_LOG_INFO(LOG_CTX_INTF  ,"Active LAG membership changed: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
