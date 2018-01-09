@@ -519,6 +519,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
   else
   {
+
     /* check if the query is received on client port */
     rc = ptin_igmp_port_type_get(pduInfo->intIfNum-1, &port_type);
 
@@ -568,8 +569,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT  
    
-
-
   if (ptin_debug_igmp_snooping)
     PT_LOG_TRACE(LOG_CTX_IGMP,"{");
 
@@ -731,10 +730,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
   rc = ptin_igmp_port_type_get(port,&port_type);
 
-#if 0
-  if(pduInfo->intIfNum == 13)
-    port_type = PTIN_EVC_INTF_LEAF;
-#endif
+
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
   ptin_timer_stop(73);
@@ -1007,7 +1003,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       }
       else 
       {
-        mcastRootVlan = 512;
+				if (mcastRootVlan <= 512)
+				{
+			    mcastRootVlan = 512;
+				}
         PT_LOG_TRACE(LOG_CTX_IGMP,"mcastRootVlan = %d", mcastRootVlan);			  
       }
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
@@ -1028,11 +1027,18 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     ptin_timer_stop(76);
     PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId,mcastRootVlan);
 
+		PT_LOG_NOTICE(LOG_CTX_IGMP,"Vlan=%u will be converted ",(ptin_igmp_intfVlan_validate(pduInfo->intIfNum, mcastRootVlan)));
+
 #if PTIN_BOARD == PTIN_BOARD_CXO160G
-		/* Support of query process in other services other than multicast */
-		if (mcastRootVlan < 512) 
-		{
+
+		L7_uint32 evc_id;
+		ptin_evc_get_internal_evcIdfromIntVlan(mcastRootVlan, &evc_id);
+		/* Support of query process in other services other than multicast and MC proxy */
+		if (  mcastRootVlan < 512 && !ptin_igmp_is_evc_used(evc_id) /*L7_FAILURE*/ ) 
+		{			
+			PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId ,mcastRootVlan);
 			mcastRootVlan = 512;
+			PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId ,mcastRootVlan);
 		}
 #endif	
   }
