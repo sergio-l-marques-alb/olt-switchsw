@@ -638,12 +638,10 @@ static void monitor_throughput(void)
  */
 static void monitor_alarms(void)
 {
-  L7_uint32 intf, lagIntf;
-  L7_uint32 port;
-  ptin_intf_t ptin_intf, ptin_intf_lag; 
+  L7_uint32 intf, port;
+  ptin_intf_t ptin_intf; 
   L7_uint32 adminState, linkState, link;
   L7_BOOL   interface_is_valid;
-  L7_BOOL   isMember, isActiveMember;
   L7_uint32 portActivity_valid = L7_FALSE;
   ptin_HWEth_PortsActivity_t portActivity;
 
@@ -768,10 +766,15 @@ static void monitor_alarms(void)
     // Only send lag active member traps, if interface is physical
     if (port<PTIN_SYSTEM_N_PORTS)
     {
+      L7_uint32 lag_intIfNum = 0;
+      L7_uint32 lag_port;
+      ptin_intf_t ptin_intf_lag;
+      L7_BOOL   isMember, isActiveMember;
+
       // Determine if is an active lag member
       if (interface_is_valid &&
-          usmDbDot3adIntfIsMemberGet(1,intf,&lagIntf)==L7_SUCCESS && lagIntf!=0 &&
-          ptin_intf_intIfNum2ptintf(lagIntf,&ptin_intf_lag)==L7_SUCCESS && ptin_intf_lag.intf_type==PTIN_EVC_INTF_LOGICAL)
+          (usmDbDot3adIntfIsMemberGet(1, intf, &lag_intIfNum) == L7_SUCCESS && lag_intIfNum != 0) &&
+          (ptin_intf_intIfNum2ptintf(lag_intIfNum, &ptin_intf_lag) == L7_SUCCESS && ptin_intf_lag.intf_type == PTIN_EVC_INTF_LOGICAL))
       {
         /* This interface is a lag member */
         isMember = L7_TRUE;
@@ -795,17 +798,21 @@ static void monitor_alarms(void)
       // Check if there is a change in the active member state
       if (lagActiveMembers[port] != isActiveMember)
       {
-        if (send_trap_intf_alarm(PTIN_EVC_INTF_PHYSICAL, port,
-                                 ((isActiveMember) ? TRAP_ALARM_LAG_INACTIVE_MEMBER_END : TRAP_ALARM_LAG_INACTIVE_MEMBER_START),
-                                 TRAP_ALARM_STATUS_EVENT,
-                                 lagIdList[port])==0)
+        if (ptin_intf_intIfNum2port(lag_intIfNum, &lag_port) == L7_SUCCESS &&
+            !ptin_alarms_is_suppressed(lag_port))
         {
-          PT_LOG_NOTICE(LOG_CTX_INTF  ,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
-          PT_LOG_NOTICE(LOG_CTX_EVENTS,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
-        }
-        else
-        {
-          PT_LOG_ERR(LOG_CTX_INTF  ,"Error sending alarm: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
+          if (send_trap_intf_alarm(PTIN_EVC_INTF_PHYSICAL, port,
+                                   ((isActiveMember) ? TRAP_ALARM_LAG_INACTIVE_MEMBER_END : TRAP_ALARM_LAG_INACTIVE_MEMBER_START),
+                                   TRAP_ALARM_STATUS_EVENT,
+                                   lagIdList[port])==0)
+          {
+            PT_LOG_NOTICE(LOG_CTX_INTF  ,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
+            PT_LOG_NOTICE(LOG_CTX_EVENTS,"Alarm sent: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
+          }
+          else
+          {
+            PT_LOG_ERR(LOG_CTX_INTF  ,"Error sending alarm: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
+          }
         }
         lagActiveMembers[port]=isActiveMember;
         PT_LOG_INFO(LOG_CTX_INTF  ,"Active LAG membership changed: port=%u, activeMember=%u (lag_id=%u)",port,isActiveMember,lagIdList[port]);
