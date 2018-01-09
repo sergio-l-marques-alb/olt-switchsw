@@ -784,6 +784,13 @@ L7_RC_t ptin_hapi_vp_remove(ptin_dapi_port_t *dapiPort,
     PT_LOG_ERR(LOG_CTX_HAPI, "Error removing MAC addresses related to this vport: error=%d (\"%s\")", error, bcm_errmsg(error));
   }
 
+	/* Remove the Pending MAC addresses related to this virtual port */
+  error = bcm_l2_addr_delete_by_port(0, -1, vlan_port.vlan_port_id, BCM_L2_DELETE_PENDING);
+  if (error != BCM_E_NONE && error != BCM_E_NOT_FOUND)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error removing MAC addresses related to this vport: error=%d (\"%s\")", error, bcm_errmsg(error));
+  }
+
   PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_vp_remove: vport 0x%x removed", vlan_port.vlan_port_id);
 
   return L7_SUCCESS;
