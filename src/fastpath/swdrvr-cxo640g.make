@@ -24,7 +24,7 @@ COMPILER = $(TOOLCHAIN_BIN_DIR)/ppc_85xxDP-
 
 # Kernel and SDK paths
 KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-2.6.27.56
-SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-switchdrvr-6.5.7/broadcom
+SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-xgs-fastpath-6.4.3/broadcom
 
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N
