@@ -71,9 +71,13 @@
 
 /* Helper defines for multi-version kernel  support */
 #if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
+#ifndef LKM_2_4
 #define LKM_2_4
+#endif
 #else
+#ifndef LKM_2_6
 #define LKM_2_6
+#endif
 #endif
 
 #include <linux/kernel.h>   /* printk() */
