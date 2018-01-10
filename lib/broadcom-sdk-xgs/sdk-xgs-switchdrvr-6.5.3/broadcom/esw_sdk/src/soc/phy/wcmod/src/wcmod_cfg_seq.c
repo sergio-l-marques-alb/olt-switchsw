@@ -6309,6 +6309,8 @@ int wcmod_power_control(wcmod_st* pc)
 
   tmp_lane = pc->this_lane;
 
+  /* PTin removed: this section code is pulling down the next QSGMII core link, when the first is disabled (ge0 disable->ge4 goes down) */
+#if 0
   /* if the core is qsgmii core */ 
   if ((pc->model_type) == WCMOD_QS_A0) {
       int power_down = 0;
@@ -6340,6 +6342,7 @@ int wcmod_power_control(wcmod_st* pc)
                                        IEEE0BLK_MIICNTL_PWRDWN_SW_MASK);
       }
   } else {
+#endif
   if (cntl & CHANGE_TX0_POWERED_STATE){
     if (cntl & POWER_DOWN_TX0)
       power_down_val |= 0x1 << (XGXSBLK1_LANECTRL3_PWRDN_TX_SHIFT);
@@ -6404,7 +6407,9 @@ int wcmod_power_control(wcmod_st* pc)
 
   pc->lane_num_ignore = 0;
   pc->this_lane = tmp_lane;
+#if 0
   }
+#endif
 
   return SOC_E_NONE;
 }

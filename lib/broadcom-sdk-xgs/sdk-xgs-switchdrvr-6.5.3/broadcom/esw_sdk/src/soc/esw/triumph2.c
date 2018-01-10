@@ -87,6 +87,7 @@ typedef enum {
     _SOC_PARITY_INFO_TYPE_MMU_PARITY,
     _SOC_PARITY_INFO_TYPE_MMUIPMC,
     _SOC_PARITY_INFO_TYPE_MMUWRED,
+    _SOC_PARITY_INFO_TYPE_MMUMTRO,
     _SOC_PARITY_INFO_TYPE_OAM, /* Not parity, but same interrupt */
     _SOC_PARITY_INFO_TYPE_SER, /* Parity error from CMIC SER module */
     _SOC_PARITY_INFO_TYPE_NUM
@@ -1233,7 +1234,7 @@ STATIC _soc_parity_info_t _soc_tr2_mmu_parity_info[] = {
         INVALIDr, INVALIDr},
     /* what is this memory ? use EGRSHAPEPARITYERRORPTRr for status? */
     {   MTRO_PAR_ERR_ENf, MTRO_PAR_ERRf, NULL,
-        INVALIDm, _SOC_PARITY_INFO_TYPE_GENERIC,
+        INVALIDm, _SOC_PARITY_INFO_TYPE_MMUMTRO,
         INVALIDr,
         INVALIDr, INVALIDr,
         INVALIDr, INVALIDr},
@@ -1303,6 +1304,51 @@ STATIC struct {
     {   0x08000, SOC_BLK_GXPORT, XPORT_INTR_ENABLEr, XPORT_INTR_STATUSr, _soc_tr2_xp_parity_info}, /* x4 */
     {   0x80000, SOC_BLK_SPORT, SPORT_INTR_ENABLEr, SPORT_INTR_STATUSr, _soc_tr2_sp_parity_info},
     {   0}, /* table terminator */
+};
+
+/* MMU MTRO conversion structure*/
+#define MMU_MTRO_MAX_GROUP          30 
+#define MMU_MTRO_MAX_PORT_IN_GROUP  5 
+#define   SOC_TRIUMPH2_MEM_PARITY_INFO(unit, block_info_idx, field_enum)    \
+          ((SOC_BLOCK2SCH(unit, block_info_idx) << SOC_ERROR_BLK_BP)        \
+          | (field_enum & SOC_ERROR_FIELD_ENUM_MASK))
+
+STATIC struct {
+    int    num_port;
+    int    port_list[MMU_MTRO_MAX_PORT_IN_GROUP];
+    int    base_queue;
+    int    numq;
+} _soc_tr2_mtro_group_info[MMU_MTRO_MAX_GROUP] = {
+    {5, {1, 2, 3, 4, 5},              0,  8},
+    {5, {6, 7, 8, 9, 10},             0,  8},
+    {5, {11, 12, 13, 14, 15},         0,  8},
+    {5, {16, 17, 18, 19, 20},         0,  8},
+    {5, {21, 22, 23, 24, 25},         0,  8},
+    {1, {26, -1, -1, -1, -1},         0, 24},
+    {1, {27, -1, -1, -1, -1},         0, 24},
+    {1, {28, -1, -1, -1, -1},         0, 24},
+    {1, {29, -1, -1, -1, -1},         0, 24},
+    {2, {30, 31, -1, -1, -1},         0, 24}, 
+    {2, {32, 33, -1, -1, -1},         0,  8},
+    {1, {34, -1, -1, -1, -1},         0, 24},
+    {3, {35, 36, 37, -1, -1},         0,  8},
+    {2, {38, 39, -1, -1, -1},         0, 24},
+    {2, {40, 41, -1, -1, -1},         0,  8},
+    {2, {42, 43, -1, -1, -1},         0, 24},
+    {2, {44, 45, -1, -1, -1},         0,  8},
+    {1, {46, -1, -1, -1, -1},         0, 24},
+    {3, {47, 48, 49, -1, -1},         0,  8},
+    {2, {50, 51, -1, -1, -1},         0, 24},
+    {2, {52, 53, -1, -1, -1},         0,  8},
+    {1, {54, -1, -1, -1, -1},         0, 24},
+    {1, {0, -1, -1, -1, -1},          0,  2},  
+    {1, {1, -1, -1, -1, -1},          8,  2},
+    {1, {2, -1, -1, -1, -1},          8,  2},
+    {1, {3, -1, -1, -1, -1},          8,  2},
+    {5, {4, 5, 6, 7, 8},              8,  2},
+    {5, {9, 10, 11, 12, 13},          8,  2},
+    {1, {14, -1, -1, -1, -1},         8,  2}, 
+    {1, {REG_PORT_ANY, -1,-1,-1,-1},  0, 48}
 };
 
 STATIC soc_triumph2_oam_handler_t oam_handler[SOC_MAX_NUM_DEVICES];
@@ -1422,6 +1468,7 @@ _soc_triumph2_parity_enable(int unit, int enable)
                     case _SOC_PARITY_INFO_TYPE_MMU_PARITY:
                     case _SOC_PARITY_INFO_TYPE_MMUIPMC:
                     case _SOC_PARITY_INFO_TYPE_MMUWRED:
+                    case _SOC_PARITY_INFO_TYPE_MMUMTRO:
                     case _SOC_PARITY_INFO_TYPE_OAM:
                     enable_field = info[table].enable_field;
                     break;
@@ -1560,6 +1607,7 @@ _soc_triumph2_mem_parity_control(int unit, soc_mem_t mem,
                     case _SOC_PARITY_INFO_TYPE_MMU_PARITY:
                     case _SOC_PARITY_INFO_TYPE_MMUIPMC:
                     case _SOC_PARITY_INFO_TYPE_MMUWRED:
+                    case _SOC_PARITY_INFO_TYPE_MMUMTRO:
                     enable_field = info[table].enable_field;
                     SOC_IF_ERROR_RETURN
                     (soc_reg_field32_modify(unit, group_reg, block_port,
@@ -1950,6 +1998,28 @@ _soc_triumph2_process_dual_parity_error(int unit, int group,
 }
 
 STATIC int
+_soc_triumph2_parity_mmu_clear(int unit, soc_field_t status_field)
+{
+    uint32 rval;
+    SOC_IF_ERROR_RETURN
+        (READ_MEM_FAIL_INT_STATr(unit, &rval));
+    if (soc_reg_field_valid(unit, MEM_FAIL_INT_STATr, status_field)) {
+        soc_reg_field_set(unit, MEM_FAIL_INT_STATr, &rval, status_field, 0);
+    } else {
+        return SOC_E_INTERNAL;
+    }
+    SOC_IF_ERROR_RETURN
+        (WRITE_MEM_FAIL_INT_STATr(unit, rval));
+    SOC_IF_ERROR_RETURN(READ_MISCCONFIGr(unit, &rval));
+    soc_reg_field_set(unit, MISCCONFIGr, &rval, PARITY_STAT_CLEARf, 1);
+    SOC_IF_ERROR_RETURN(WRITE_MISCCONFIGr(unit, rval));
+    SOC_IF_ERROR_RETURN(READ_MISCCONFIGr(unit, &rval));
+    soc_reg_field_set(unit, MISCCONFIGr, &rval, PARITY_STAT_CLEARf, 0);
+    SOC_IF_ERROR_RETURN(WRITE_MISCCONFIGr(unit, rval));
+    return SOC_E_NONE;
+}
+
+STATIC int
 _soc_triumph2_process_mmu_parity_error(int unit, int group,
         soc_port_t block_port, int table,
         char *msg)
@@ -2001,7 +2071,236 @@ _soc_triumph2_process_mmu_parity_error(int unit, int group,
     } else if (info[table].error_field == CFAP_PAR_ERRf) {
         SOC_CONTROL(unit)->stat.err_cfap++;
     }
+    if (info[table].mem == MMU_IPMC_VLAN_TBLm) {
+        _soc_ser_correct_info_t spci;
+        uint32 rval = 0;
+        memset(&spci, 0, sizeof(_soc_ser_correct_info_t));
+        spci.flags = SOC_SER_SRC_MEM | SOC_SER_REG_MEM_KNOWN;
+        spci.reg = INVALIDr;
+        spci.mem = info[table].mem;
+        spci.blk_type = SOC_BLK_MMU;
+        spci.index = index;
 
+        SOC_IF_ERROR_RETURN(READ_MISCCONFIGr(unit, &rval));
+        soc_reg_field_set(unit, MISCCONFIGr, &rval, PARITY_CHK_ENf, 0);
+        SOC_IF_ERROR_RETURN(WRITE_MISCCONFIGr(unit, rval));
+
+        (void)soc_ser_correction(unit, &spci);
+        SOC_IF_ERROR_RETURN(_soc_triumph2_parity_mmu_clear(unit, MEM1_VLAN_TBL_PAR_ERRf));
+
+        SOC_IF_ERROR_RETURN(READ_MISCCONFIGr(unit, &rval));
+        soc_reg_field_set(unit, MISCCONFIGr, &rval, PARITY_CHK_ENf, 1);
+        SOC_IF_ERROR_RETURN(WRITE_MISCCONFIGr(unit, rval));
+    }
+
+    return SOC_E_NONE;
+}
+
+STATIC int
+_soc_triumph2_parity_process_mmuwred(int unit, _soc_parity_info_t *info,
+                                     soc_port_t block_port, char *msg)
+{
+    soc_reg_t reg;
+    uint32 addr0, addr1, entry_idx, status, rval;
+    _soc_ser_correct_info_t spci;
+
+    /*
+     * status0 (WRED_PARITY_ERROR_INFOr) is index
+     * status1 (WRED_PARITY_ERROR_BITMAPr) is table id
+     */
+    reg = info->intr_status0_reg;
+    addr0 = soc_reg_addr(unit, reg, block_port, 0);
+    SOC_IF_ERROR_RETURN(soc_reg32_read(unit, addr0, &entry_idx));
+    reg = info->intr_status1_reg;
+    addr1 = soc_reg_addr(unit, reg, block_port, 0);
+    SOC_IF_ERROR_RETURN(soc_reg32_read(unit, addr1, &status));
+    sal_memset(&spci, 0, sizeof(spci));
+    spci.mem = info->mem;
+    if (status & 0x000003) {
+        msg = "WRED_CFG_CELL";
+        spci.mem = MMU_WRED_CFG_CELLm;
+    } else if (status & 0x00000c) {
+        msg = "WRED_THD_0_CELL";
+        spci.mem = MMU_WRED_THD_0_CELLm;
+    } else if (status & 0x000030) {
+        msg = "WRED_THD_1_CELL";
+        spci.mem = MMU_WRED_THD_1_CELLm;
+    } else if (status & 0x0000c0) {
+        msg = "WRED_CFG_PACKET";
+        spci.mem = MMU_WRED_CFG_PACKETm;
+    } else if (status & 0x000300) {
+        msg = "WRED_THD_0_PACKET";
+        spci.mem = MMU_WRED_THD_0_PACKETm;
+    } else if (status & 0x000c00) {
+        msg = "WRED_THD_1_PACKET";
+        spci.mem = MMU_WRED_THD_1_PACKETm;
+    } else if (status & 0x003000) {
+        msg = "WRED_PORT_CFG_CELL";
+        spci.mem = MMU_WRED_PORT_CFG_CELLm;
+    } else if (status & 0x00c000) {
+        msg = "WRED_PORT_THD_0_CELL";
+        spci.mem = MMU_WRED_PORT_THD_0_CELLm;
+    } else if (status & 0x030000) {
+        msg = "WRED_PORT_THD_1_CELL";
+        spci.mem = MMU_WRED_PORT_THD_1_CELLm;
+    } else if (status & 0x0c0000) {
+        msg = "WRED_PORT_CFG_PACKET";
+        spci.mem = MMU_WRED_PORT_CFG_PACKETm;
+    } else if (status & 0x300000) {
+        msg = "WRED_PORT_THD_0_PACKET";
+        spci.mem = MMU_WRED_PORT_THD_0_PACKETm;
+    } else if (status & 0xc00000) {
+        msg = "WRED_PORT_THD_1_PACKET";
+        spci.mem = MMU_WRED_PORT_THD_1_PACKETm;
+    } else {
+        LOG_ERROR(BSL_LS_SOC_COMMON,
+                  (BSL_META_U(unit,"unit %d %s parity hardware inconsistency\n"),
+                  unit, msg));
+        return SOC_E_NONE;
+    }
+
+    soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
+            SOC_SWITCH_EVENT_DATA_ERROR_PARITY,
+            info->mem, info->error_field);
+    LOG_ERROR(BSL_LS_SOC_COMMON,
+              (BSL_META_U(unit,"unit %d %s entry %d parity error\n"),
+              unit, msg, entry_idx));
+
+    if (spci.mem != INVALIDm) {
+        spci.flags = SOC_SER_SRC_MEM | SOC_SER_REG_MEM_KNOWN;
+        spci.reg = INVALIDr;
+        spci.blk_type = SOC_BLK_MMU;
+        spci.index = entry_idx;
+
+        SOC_IF_ERROR_RETURN(READ_MISCCONFIGr(unit, &rval));
+        soc_reg_field_set(unit, MISCCONFIGr, &rval, PARITY_CHK_ENf, 0);
+        SOC_IF_ERROR_RETURN(WRITE_MISCCONFIGr(unit, rval));
+
+        (void)soc_ser_correction(unit, &spci);
+        SOC_IF_ERROR_RETURN(soc_reg32_write(unit, addr0, 0));
+        SOC_IF_ERROR_RETURN(soc_reg32_write(unit, addr1, 0));
+        SOC_IF_ERROR_RETURN(_soc_triumph2_parity_mmu_clear(unit, WRED_PAR_ERRf));
+
+        SOC_IF_ERROR_RETURN(READ_MISCCONFIGr(unit, &rval));
+        soc_reg_field_set(unit, MISCCONFIGr, &rval, PARITY_CHK_ENf, 1);
+        SOC_IF_ERROR_RETURN(WRITE_MISCCONFIGr(unit, rval));
+    }
+    return SOC_E_NONE;
+}
+
+STATIC int
+_soc_triumph2_mtro_mmu_port_index_get(int instance_num, int ptr,
+                                     int *port, int *queue)
+{
+    int  num_port, numq, base_queue, port_index;
+
+    /* Check if instance_num is valid */
+    if ((instance_num < 0) ||
+        (instance_num >= MMU_MTRO_MAX_GROUP)) {
+        return SOC_E_INTERNAL;
+    }
+
+    num_port = _soc_tr2_mtro_group_info[instance_num].num_port;
+    numq = _soc_tr2_mtro_group_info[instance_num].numq;
+    base_queue = _soc_tr2_mtro_group_info[instance_num].base_queue;
+
+    /* Check if ptr is valid */
+    if ((ptr < 0) || (ptr >= (num_port * numq))) {
+        return SOC_E_INTERNAL;
+    }
+
+    port_index = ptr / numq;
+    *port = _soc_tr2_mtro_group_info[instance_num].port_list[port_index];
+    *queue = base_queue + ptr % numq;
+
+    return SOC_E_NONE;
+}
+
+STATIC int
+_soc_triumph2_parity_process_mmumtro(int unit, _soc_parity_info_t *info,
+                                    soc_block_t block)
+{
+    static soc_reg_t mtro_regs[] = {
+        MINBUCKETCONFIG_64r,
+        MINBUCKETr,
+        MAXBUCKETCONFIG_64r,
+        MAXBUCKETr
+    };
+    static soc_reg_t cpu_mtro_regs[] = {
+        CPUMAXBUCKETCONFIG_64r,
+        CPUMAXBUCKETr
+    };
+    uint32 i, rval, status, val, minfo;
+    _soc_ser_correct_info_t spci;
+    int rv, port, index, instance_num, ptr;
+
+    memset(&spci, 0, sizeof(_soc_ser_correct_info_t));
+    spci.flags = SOC_SER_SRC_REG | SOC_SER_REG_MEM_KNOWN;
+    spci.mem = INVALIDm;
+    spci.blk_type = SOC_BLK_MMU;
+    SOC_IF_ERROR_RETURN(READ_MEM_FAIL_INT_STATr(unit, &status));
+    if (!soc_reg_field_get(unit, MEM_FAIL_INT_STATr, status,
+                           MTRO_PAR_ERRf)) {
+        LOG_ERROR(BSL_LS_SOC_COMMON,
+                  (BSL_META_U(unit,"unit %d MTRO: parity hardware inconsistency\n"),
+                  unit));
+        return SOC_E_NONE;
+    }
+    SOC_IF_ERROR_RETURN(soc_reg32_get(unit, EGRSHAPEPARITYERRORPTRr,
+                                      REG_PORT_ANY, 0, &rval));
+    instance_num = soc_reg_field_get(unit, EGRSHAPEPARITYERRORPTRr,
+                                     rval, INSTANCE_NUMf);
+    ptr = soc_reg_field_get(unit, EGRSHAPEPARITYERRORPTRr, rval, PTRf);
+    SOC_IF_ERROR_RETURN(
+        _soc_triumph2_mtro_mmu_port_index_get(instance_num, ptr,
+                                             &port, &index));
+    /* Disable parity */
+    SOC_IF_ERROR_RETURN(READ_MISCCONFIGr(unit, &val));
+    soc_reg_field_set(unit, MISCCONFIGr, &val, PARITY_CHK_ENf, 0);
+    SOC_IF_ERROR_RETURN(WRITE_MISCCONFIGr(unit, val));
+
+    if (port == REG_PORT_ANY) {
+        for (i = 0; i < COUNTOF(cpu_mtro_regs); i++) {
+            spci.port = port;
+            spci.index = index;
+            spci.reg = cpu_mtro_regs[i];
+            minfo = SOC_TRIUMPH2_MEM_PARITY_INFO(unit, block, info->error_field);
+            soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
+                               SOC_SWITCH_EVENT_DATA_ERROR_PARITY,
+                               index, minfo);
+            rv = soc_ser_correction(unit, &spci);
+            if (SOC_FAILURE(rv)) {
+                soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
+                                   SOC_SWITCH_EVENT_DATA_ERROR_FAILEDTOCORRECT,
+                                   index, minfo);
+            }
+        }
+    } else if (port >=1 && port <= 53) {
+        for (i = 0; i < COUNTOF(mtro_regs); i++) {
+            spci.port = port;
+            spci.index = index;
+            spci.reg = mtro_regs[i];
+            minfo = SOC_TRIUMPH2_MEM_PARITY_INFO(unit, block, info->error_field);
+            soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
+                               SOC_SWITCH_EVENT_DATA_ERROR_PARITY,
+                               index, minfo);
+            rv = soc_ser_correction(unit, &spci);
+            if (SOC_FAILURE(rv)) {
+                soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
+                                   SOC_SWITCH_EVENT_DATA_ERROR_FAILEDTOCORRECT,
+                                   index, minfo);
+            }
+        }
+    } else {
+       LOG_ERROR(BSL_LS_SOC_COMMON,
+                 (BSL_META_U(unit,"unit %d MTRO: parity hardware inconsistency\n"),
+                 unit));
+    }
+    SOC_IF_ERROR_RETURN(_soc_triumph2_parity_mmu_clear(unit, MTRO_PAR_ERRf));
+    /* Enable parity */
+    SOC_IF_ERROR_RETURN(READ_MISCCONFIGr(unit, &val));
+    soc_reg_field_set(unit, MISCCONFIGr, &val, PARITY_CHK_ENf, 1);
+    SOC_IF_ERROR_RETURN(WRITE_MISCCONFIGr(unit, val));
     return SOC_E_NONE;
 }
 
@@ -2250,52 +2549,19 @@ _soc_triumph2_process_parity_error(int unit)
                     }
                     break;
                     case _SOC_PARITY_INFO_TYPE_MMUWRED:
-                    /*
-                     * status0 (WRED_PARITY_ERROR_INFOr) is index
-                     * status1 (WRED_PARITY_ERROR_BITMAPr) is table id
-                     */
-                    reg = info[table].intr_status0_reg;
-                    addr = soc_reg_addr(unit, reg, block_port, 0);
-                    SOC_IF_ERROR_RETURN(soc_reg32_read(unit, addr,
-                                    &entry_idx));
-                    reg = info[table].intr_status1_reg;
-                    addr = soc_reg_addr(unit, reg, block_port, 0);
-                    SOC_IF_ERROR_RETURN(soc_reg32_read(unit, addr, &status));
-                    if (status & 0x000003) {
-                        msg = "WRED_CFG_CELL";
-                    } else if (status & 0x00000c) {
-                        msg = "WRED_THD_0_CELL";
-                    } else if (status & 0x000030) {
-                        msg = "WRED_THD_1_CELL";
-                    } else if (status & 0x0000c0) {
-                        msg = "WRED_CFG_PACKET";
-                    } else if (status & 0x000300) {
-                        msg = "WRED_THD_0_PACKET";
-                    } else if (status & 0x000c00) {
-                        msg = "WRED_THD_1_PACKET";
-                    } else if (status & 0x003000) {
-                        msg = "WRED_PORT_CFG_CELL";
-                    } else if (status & 0x00c000) {
-                        msg = "WRED_PORT_THD_0_CELL";
-                    } else if (status & 0x030000) {
-                        msg = "WRED_PORT_THD_1_CELL";
-                    } else if (status & 0x0c0000) {
-                        msg = "WRED_PORT_CFG_PACKET";
-                    } else if (status & 0x300000) {
-                        msg = "WRED_PORT_THD_0_PACKET";
-                    } else if (status & 0xc00000) {
-                        msg = "WRED_PORT_THD_1_PACKET";
-                    } else {
-                        break;
-                    }
-                    soc_event_generate(unit, SOC_SWITCH_EVENT_PARITY_ERROR,
-                            SOC_SWITCH_EVENT_DATA_ERROR_PARITY,
-                            info[table].mem, info[table].error_field);
+                    SOC_IF_ERROR_RETURN(
+                        _soc_triumph2_parity_process_mmuwred(unit, &info[table],
+                                                             block_port, msg));
                     LOG_ERROR(BSL_LS_SOC_COMMON,
                               (BSL_META_U(unit,
                                           "unit %d %s entry %d parity error\n"),
                                unit, msg, entry_idx));
                     break;
+                    case _SOC_PARITY_INFO_TYPE_MMUMTRO:
+                    SOC_IF_ERROR_RETURN(
+                    _soc_triumph2_parity_process_mmumtro(unit,
+                                                        &info[table], group));
+                    break;		    
                     case _SOC_PARITY_INFO_TYPE_OAM:
                     /* OAM isn't parity-related but shares an interrupt */
 

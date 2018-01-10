@@ -936,6 +936,7 @@ soc_features_bcm56634_a0(int unit, soc_feature_t feature)
     case soc_feature_ipmc_remap:
     case soc_feature_proxy_port_property:
     case soc_feature_udf_support:
+    case soc_feature_regs_as_mem:
     case soc_feature_hg_proxy_module_config:
         return TRUE;
     case soc_feature_led_data_offset_a0:
