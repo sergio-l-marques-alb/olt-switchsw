@@ -254,6 +254,10 @@ sal_thread_create(char *name, int ss, int prio, void (f)(void *), void *arg)
 
         if (0==strcmp("bcmRX",name))    {pri=80; tslice=1;}
         else
+        if (0==strcmp("bcmTX",name))    {pri=83; tslice=1;}
+        else
+        if (0==strcmp("bcmXGS3AsyncTX",name))    {pri=83; tslice=1;}
+        else
         if (0==strcmp("bcmINTR",name))  {pri=87; tslice=1;}
         else                            {pri=L7_DEFAULT_TASK_PRIORITY; tslice=L7_DEFAULT_TASK_SLICE;}
 
