@@ -1180,6 +1180,8 @@ _bcm_esw_link_fault_get(int unit, int port, int *fault)
     soc_reg_t clr_reg;
     soc_persist_t *sop = SOC_PERSIST(unit);
     bcm_port_ability_t  port_ability;
+    _bcm_port_info_t *port_info;
+    int value;
 
     if (SOC_PBMP_MEMBER(sop->lc_pbm_fc, port)) {
         if (!(SOC_USE_PORTCTRL(unit))) {
@@ -1256,8 +1258,21 @@ _bcm_esw_link_fault_get(int unit, int port, int *fault)
 
         SOC_IF_ERROR_RETURN
             (soc_reg_get(unit, reg, port, 0, &lss));
-        rmt_fault = soc_reg64_field32_get(unit, reg, lss, rmt_fault_field);
-        lcl_fault = soc_reg64_field32_get(unit, reg, lss, lcl_fault_field);
+
+        lcl_fault = rmt_fault = 0;
+        _bcm_port_info_access(unit, port, &port_info);
+        if (MAC_CONTROL_GET(port_info->p_mac, unit, port,
+                            SOC_MAC_CONTROL_FAULT_REMOTE_ENABLE, &value) == BCM_E_NONE
+            && value == 1)
+        {
+            rmt_fault = soc_reg64_field32_get(unit, reg, lss, rmt_fault_field);
+        }
+        if (MAC_CONTROL_GET(port_info->p_mac, unit, port,
+                            SOC_MAC_CONTROL_FAULT_LOCAL_ENABLE, &value) == BCM_E_NONE
+            && value == 1)
+        {
+            lcl_fault = soc_reg64_field32_get(unit, reg, lss, lcl_fault_field);
+        }
 
         if (rmt_fault || lcl_fault) {
             *fault = TRUE;
