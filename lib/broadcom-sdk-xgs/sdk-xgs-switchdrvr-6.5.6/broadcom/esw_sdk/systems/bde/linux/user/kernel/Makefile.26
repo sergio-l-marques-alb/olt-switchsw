@@ -1,0 +1,31 @@
+FP_BASE:=$(shell ../../kernel/abspath.sh ../../../../../../../..)
+PWD:=$(shell pwd) 
+# Linux Kernel module kbde.o Makefile
+#
+#
+
+# Do not change this line.
+#
+include $(FP_BASE)/src/l7tools/build/make.cfg
+
+# Specify additional header directories needed by your component
+
+bldlib: ubde.ko
+	cp ubde.ko $(FP_BASE)/bsp/cpu/$(L7_CPU)/$(L7_TARGETOS)/target/ubde.ko 
+	rm -f *.o ../../../../linux/kernel/modules/shared/*.o ../../../../../src/sal/core/linux/*.o ../../../../../src/sal/core/*.o
+
+ubde.ko: linux-user-bde.c 
+	rm -rf ubde.ko .tmp_versions 
+	$(MAKE) -C $(KERNEL_SRC) M=$(PWD) FP_BASE=$(FP_BASE) modules
+	$(CROSS_COMPILE)strip --strip-debug ubde.ko
+
+clean::
+	-$(RM) mpool.c
+	-$(RM) *.o
+	-$(RM) *.map
+	-$(RM) *.kmod
+	-$(RM) *.ko
+	-$(RM) ubde.ko
+
+installexe:
+
