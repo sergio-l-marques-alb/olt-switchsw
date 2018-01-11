@@ -586,7 +586,7 @@ _alloc_mpool(size_t size)
         }
         _dma_pbase = pbase;
         _dma_vbase = IOREMAP(_dma_pbase, size);
-        if (debug >= 1)
+        if (dma_debug >= 1)
           gprintk("_alloc_mpool (himem=1): _dma_vbase:%p pbase:%lx  allocated:%lx\n", _dma_vbase, pbase, (unsigned long)size);
     } else {
         /* Get DMA memory from kernel */
@@ -638,7 +638,7 @@ _alloc_mpool(size_t size)
 #ifdef REMAP_DMA_NONCACHED
         _dma_vbase = IOREMAP(_dma_pbase, size);
 #endif
-        if (debug >= 1)
+        if (dma_debug >= 1)
           gprintk("_alloc_mpool: _dma_vbase:%p pbase:%lx  allocated:%lx\n", _dma_vbase, pbase, (unsigned long)size);
     }
 }
