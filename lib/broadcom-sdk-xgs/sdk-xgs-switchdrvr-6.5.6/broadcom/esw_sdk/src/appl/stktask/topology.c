@@ -200,14 +200,22 @@ tp_weights_init(cpudb_ref_t db_ref, weight_t *weights)
                 continue;
             }
 
+#ifdef LVL7_FIXUP
+            TP_WEIGHT(weights, s_idx, d_idx) = sp_base->weight;
+#else
             TP_WEIGHT(weights, s_idx, d_idx) = TOPO_DEFAULT_WEIGHT;
+#endif
             /* Below indicates is reachable and by what stk port */
             TP_TX_CXN(db_ref, s_idx, d_idx) = i;
             TP_RX_CXN(db_ref, d_idx, s_idx) = sp->tx_stk_idx;
             /* Check for duplex connection and set up if so. */
             if (sp->flags & CPUDB_SPF_DUPLEX) {
                 if (!TP_REACHABLE(db_ref, d_idx, s_idx)) {
+#ifdef LVL7_FIXUP
+                    TP_WEIGHT(weights, d_idx, s_idx) = dest_entry->base.stk_ports[sp->tx_stk_idx].weight;
+#else
                     TP_WEIGHT(weights, d_idx, s_idx) = TOPO_DEFAULT_WEIGHT;
+#endif
                     /* Below indicates is reachable and by what stk port */
                     TP_TX_CXN(db_ref, d_idx, s_idx) = sp->tx_stk_idx;
                     TP_RX_CXN(db_ref, s_idx, d_idx) = i;

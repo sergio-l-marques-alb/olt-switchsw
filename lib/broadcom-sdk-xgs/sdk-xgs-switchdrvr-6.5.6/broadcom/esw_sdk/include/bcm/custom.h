@@ -54,7 +54,11 @@
 #include <bcm/types.h>
 
 #if !defined(BCM_CUSTOM_ARGS_MAX)
+#ifdef LVL7_FIXUP
+#define BCM_CUSTOM_ARGS_MAX     375       
+#else
 #define BCM_CUSTOM_ARGS_MAX     256        
+#endif
 #endif
 
 #define BCM_CUSTOM_SET          1          

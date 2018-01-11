@@ -289,7 +289,11 @@
 
 /* These are used to pre-allocate packet buffers for routing packets */
 #define ROUTE_ENTRIES_PER_PKT_MAX 4    /* Max entries allowed/pkt */
+#if defined(LVL7_FIXUP) && defined(L7_PRODUCT_SMB)
+#define ROUTE_PKTS_MAX            32 /* Max route pkts for table */
+#else
 #define ROUTE_PKTS_MAX            CPUDB_CPU_MAX /* Max route pkts for table */
+#endif
 #define ROUTE_PKT_BYTES_MAX    1500    /* Max route pkts for table */
 
 #endif /* _DISC_INT_H_ */

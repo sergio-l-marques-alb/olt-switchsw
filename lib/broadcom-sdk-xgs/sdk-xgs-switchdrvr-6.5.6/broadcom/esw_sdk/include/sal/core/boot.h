@@ -106,7 +106,6 @@ extern void _default_assert(const char *expr, const char *file, int line);
  */
 extern int sal_core_init(void);
 
-
 /*
  * Returns a string describing the current Operating System
  */

@@ -66,6 +66,10 @@
 #include <soc/scache.h>
 #endif
 
+#include <logger.h>       /* PTin added: WC40 */
+
+#define PTIN_PRBS_ALWAYS_CL49 1
+
 #if defined(INCLUDE_XGXS_WC40)
 #include "phyconfig.h"     /* Must include before other phy related includes */
 #include "phyreg.h"
@@ -5497,10 +5501,11 @@ _phy_wc40_interlaken_speed_get(int unit, soc_port_t port, int *speed)
             *speed = 0;
             break;
     }
-    LOG_INFO(BSL_LS_SOC_PHY,
-             (BSL_META_U(unit,
-                         "_phy_wc40_interlaken_speed_get: u=%d p=%d LANECTRL1r %04x speed= %d\n"),
-              unit, port,data16, *speed));
+    /* PTin modified: logs */
+    LOG_DEBUG(BSL_LS_SOC_PHY,
+                  (BSL_META_U(unit,
+                              "_phy_wc40_interlaken_speed_get: u=%d p=%d LANECTRL1r %04x speed= %d\n"),
+                   unit, port,data16, *speed));
     return SOC_E_NONE;
 }
 
@@ -6723,7 +6728,7 @@ _phy_wc40_c73_adv_local_get(int unit, soc_port_t port,
     }
     ability->pause = pause;
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_VERBOSE(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "_phy_wc40_c73_adv_local_get: u=%d p=%d pause=%08x speeds=%04x\n"),
               unit, port, pause, speeds));
@@ -7068,7 +7073,7 @@ phy_wc40_ability_advert_get(int unit, soc_port_t port,
             (_phy_wc40_c73_adv_local_get(unit, port, ability));
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
+    LOG_VERBOSE(BSL_LS_SOC_PHY,
              (BSL_META_U(unit,
                          "phy_wc40_ability_advert_get:unit=%d p=%d pause=%08x sp=%08x\n"),
               unit, port, ability->pause, ability->speed_full_duplex));
@@ -7694,10 +7699,11 @@ phy_wc40_ability_local_get(int unit, soc_port_t port, soc_port_ability_t *abilit
         ability->flags     = SOC_PA_AUTONEG;
     }
 
-    LOG_INFO(BSL_LS_SOC_PHY,
-             (BSL_META_U(unit,
-                         "phy_wc40_ability_local_get:unit=%d p=%d sp=%08x\n"),
-              unit, port, ability->speed_full_duplex));
+    /* PTin modified: logs */
+    LOG_DEBUG(BSL_LS_SOC_PHY,
+                  (BSL_META_U(unit,
+                              "phy_wc40_ability_local_get:unit=%d p=%d sp=%08x\n"),
+                   unit, port, ability->speed_full_duplex));
 
     return (SOC_E_NONE);
 }
@@ -7851,8 +7857,10 @@ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port,
 {
     uint16      data16;
     uint16      mask16;
+    #if (!PTIN_PRBS_ALWAYS_CL49)
     int an;
     int an_done;
+    #endif
     soc_port_if_t intf;
     int prbs_lanes = 0;
     int lane;
@@ -7862,6 +7870,8 @@ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port,
      * This way the FIR settings negotiated thru CL72 is preserved
      */
 
+    /* PTin modified: PRBS */
+    #if (!PTIN_PRBS_ALWAYS_CL49)
     if (DEV_CTRL_PTR(pc)->prbs.type != WC40_PRBS_TYPE_CL49) {
         SOC_IF_ERROR_RETURN
             (phy_wc40_an_get(unit,port,&an,&an_done));
@@ -7875,6 +7885,12 @@ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port,
             }
         }
     }
+    #else
+    /* check interface */
+    SOC_IF_ERROR_RETURN
+        (phy_wc40_interface_get(unit,port,&intf));
+    DEV_CTRL_PTR(pc)->prbs.type = WC40_PRBS_TYPE_CL49;
+    #endif
 
     if (DEV_CTRL_PTR(pc)->prbs.type == WC40_PRBS_TYPE_CL49) {
         SOC_IF_ERROR_RETURN
@@ -7893,6 +7909,11 @@ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port,
             DEV_CTRL_PTR(pc)->prbs.type = 0;
         } 
 
+        /* PTin added: PRBS */
+        #if (PTIN_PRBS_ALWAYS_CL49)
+        if (intf==SOC_PORT_IF_KR4 || intf==SOC_PORT_IF_KR)
+        {
+        #endif
         if (intf == SOC_PORT_IF_KR4) {
             SOC_IF_ERROR_RETURN
                 (MODIFY_WC40_SERDESDIGITAL_MISC1r(unit, pc, 0x00, 
@@ -7946,6 +7967,17 @@ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port,
         SOC_IF_ERROR_RETURN
             (READ_WC40_AN_IEEE0BLK_AN_IEEECONTROL1r(unit, pc, 0x00, 
                                           &data16));
+
+        /* PTin added: PRBS */
+        #if (PTIN_PRBS_ALWAYS_CL49)
+        }
+        else if (enable)
+        {
+          SOC_IF_ERROR_RETURN
+              (WRITE_WC40_PCS_IEEE2BLK_PCS_TPCONTROLr(unit, pc, 0x00, WC40_PRBS_CL49_POLY31));
+        }
+        #endif
+
         /* not to enable PRBS here. Once PRBS is enabled, the link will go down.
          * Autoneg will be restarted by link partner and Tx settings will be lost.
          * It will be enabled in get function when first time called 
@@ -10375,6 +10407,8 @@ phy_wc40_firmware_load(int unit, int port, int offset, uint8 *array,int datalen)
     LOG_VERBOSE(BSL_LS_SOC_PHY,
                 (BSL_META_U(unit,
                             "WC40 : uC RAM download success: u=%d p=%d ver=%x"), unit, port,ver));
+
+    PT_LOG_NOTICE(LOG_CTX_SDK,"WC40 : uC RAM download success: u=%d p=%d ver=%x\r\n", unit, port,ver);   /* PTin added: WC40 */
 
     if (!no_cksum) {
         LOG_VERBOSE(BSL_LS_SOC_PHY,

@@ -53,6 +53,7 @@
 #include <soc/types.h>
 #include <shared/l3.h>
 
+typedef uint8   mac_addr_t[6];          /* MAC address */   /* PTin added: SDK compatibility */
 typedef _shr_ip_addr_t  ip_addr_t;      /* IP Address */
 typedef _shr_ip6_addr_t  ip6_addr_t;    /* IPv6 Address */
 
