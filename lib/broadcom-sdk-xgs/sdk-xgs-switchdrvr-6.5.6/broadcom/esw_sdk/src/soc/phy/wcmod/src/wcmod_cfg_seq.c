@@ -6403,7 +6403,7 @@ int wcmod_power_control(wcmod_st* pc)
 
   pc->lane_num_ignore = 0;
   pc->this_lane = tmp_lane;
-#if 0
+#if 1
   }
 #endif
 
