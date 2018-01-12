@@ -264,8 +264,6 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       return L7_FAILURE;
     }
 
-		 PT_LOG_TRACE(LOG_CTX_HAPI, "%d %d %d", macLearn_info_flow[vport_id].mac_counter, macLearn_info_flow[vport_id].mac_limit, macLearn_info_flow[vport_id].mac_total);
-
     /* Do not accept more mac addresses, if maximum was reached */
     if (macLearn_info_flow[vport_id].mac_total >= macLearn_info_flow[vport_id].mac_limit)
     {
