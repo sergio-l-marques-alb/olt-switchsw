@@ -1461,8 +1461,23 @@ L7_RC_t uplinkProtApplyOperator(L7_uint protIdx)
     if (uplinkprot[protIdx].state_machine != PROT_STATE_Normal && uplinkprot[protIdx].state_machine != PROT_STATE_Protection)
     {
       /* If Protection interface is better, go to protection state */
-      if ((!uplinkprot[protIdx].statusSF[PORT_PROTECTION]) &&
-          ((uplinkprot[protIdx].statusSF[PORT_WORKING]) || (uplinkprot[protIdx].statusSD[PORT_WORKING])))
+      if ((!uplinkprot[protIdx].statusSF[PORT_PROTECTION] && !uplinkprot[protIdx].statusSF[PORT_WORKING]) &&
+          (!uplinkprot[protIdx].statusSD[PORT_PROTECTION] && !uplinkprot[protIdx].statusSD[PORT_WORKING]))
+      {
+        if (uplinkprot[protIdx].activePortType == PORT_PROTECTION)
+        {
+          PT_LOG_INFO(LOG_CTX_INTF, "Normal state - Maintaining the same active port (Protection)");
+          uplinkprotFsmTransition(protIdx, PROT_STATE_Protection, __LINE__); 
+        }
+        else
+        {
+          PT_LOG_INFO(LOG_CTX_INTF, "Normal state - Maintaining the same active port (Working)");
+          uplinkprotFsmTransition(protIdx, PROT_STATE_WorkAdmin, __LINE__);
+        }
+      }
+      /* If Protection interface is better, go to protection state */
+      else if ((!uplinkprot[protIdx].statusSF[PORT_PROTECTION]) &&
+               ((uplinkprot[protIdx].statusSF[PORT_WORKING]) || (uplinkprot[protIdx].statusSD[PORT_WORKING])))
       {
         PT_LOG_INFO(LOG_CTX_INTF, "Going to PROT_STATE_Protection");
     
