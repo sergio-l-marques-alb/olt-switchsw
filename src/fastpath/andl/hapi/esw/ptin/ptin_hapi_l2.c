@@ -264,8 +264,10 @@ L7_RC_t ptin_hapi_maclimit_inc(bcmx_l2_addr_t *bcmx_l2_addr)
       return L7_FAILURE;
     }
 
+		 PT_LOG_TRACE(LOG_CTX_HAPI, "%d %d %d", macLearn_info_flow[vport_id].mac_counter, macLearn_info_flow[vport_id].mac_limit, macLearn_info_flow[vport_id].mac_total);
+
     /* Do not accept more mac addresses, if maximum was reached */
-    if (macLearn_info_flow[vport_id].mac_counter >= macLearn_info_flow[vport_id].mac_limit)
+    if (macLearn_info_flow[vport_id].mac_total >= macLearn_info_flow[vport_id].mac_limit)
     {
       PT_LOG_TRACE(LOG_CTX_HAPI, "%s: MAC %02x:%02x:%02x:%02x:%02x:%02x on VID %d and GPORT 0x%x rejected (flags 0x%x)",
               __FUNCTION__, 
@@ -555,11 +557,17 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
       if(ptin_hapi_l2_enable)
       PT_LOG_TRACE(LOG_CTX_HAPI, "Count %d in %d ", macLearn_info_flow[vport_id].mac_counter, vport_id);
 
-       if ((macLearn_info_flow[vport_id].mac_total > 0) && (macLearn_info_flow[vport_id].mac_counter > 0))
-      {
-        macLearn_info_flow[vport_id].mac_counter--;
-        macLearn_info_flow[vport_id].mac_total--;
-      }
+    /* Decrement, but only if greater than 0 */
+    if (macLearn_info_flow[vport_id].mac_counter > 0)
+    {
+      macLearn_info_flow[vport_id].mac_counter--;
+    }
+
+		    /* Decrement, but only if greater than 0 */
+    if (macLearn_info_flow[vport_id].mac_total > 0)
+    {
+      macLearn_info_flow[vport_id].mac_total--;
+    }
       return L7_FAILURE;
     }
 
@@ -575,20 +583,29 @@ L7_RC_t ptin_hapi_maclimit_dec(bcmx_l2_addr_t *bcmx_l2_addr)
                 bcmx_l2_addr->mac[0], bcmx_l2_addr->mac[1], bcmx_l2_addr->mac[2], bcmx_l2_addr->mac[3], bcmx_l2_addr->mac[4], bcmx_l2_addr->mac[5], 
                 bcmx_l2_addr->vid);
 
-      /* Decrement, but only if greater than 0 */
-      if ((macLearn_info_flow[vport_id].mac_total > 0) && (macLearn_info_flow[vport_id].mac_counter > 0))
-      {
-        macLearn_info_flow[vport_id].mac_counter--;
-        macLearn_info_flow[vport_id].mac_total--;
-      }
+    /* Decrement, but only if greater than 0 */
+    if (macLearn_info_flow[vport_id].mac_counter > 0)
+    {
+      macLearn_info_flow[vport_id].mac_counter--;
+    }
 
+		    /* Decrement, but only if greater than 0 */
+    if (macLearn_info_flow[vport_id].mac_total > 0)
+    {
+      macLearn_info_flow[vport_id].mac_total--;
+    }
       return L7_FAILURE;
     }
 
     /* Decrement, but only if greater than 0 */
-    if (macLearn_info_flow[vport_id].mac_counter > 0 && (macLearn_info_flow[vport_id].mac_total > 0))
+    if (macLearn_info_flow[vport_id].mac_counter > 0)
     {
       macLearn_info_flow[vport_id].mac_counter--;
+    }
+
+		    /* Decrement, but only if greater than 0 */
+    if (macLearn_info_flow[vport_id].mac_total > 0)
+    {
       macLearn_info_flow[vport_id].mac_total--;
     }
 
