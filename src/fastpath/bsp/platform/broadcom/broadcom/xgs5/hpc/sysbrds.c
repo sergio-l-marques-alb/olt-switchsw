@@ -1866,7 +1866,7 @@ L7_RC_t hpcBoardWCinit_bcm56450(void)
 
     /* External memory configuration: All physical ports associated to external memory */
     /* 1-16 (PON); 25, 27, 33, 36 (BCK) */
-    if (sal_config_set(spn_PBMP_EXT_MEM, "0x825e000000") != 0)
+    if (sal_config_set(spn_PBMP_EXT_MEM, "0x925E000000") != 0)
       return(L7_FAILURE);
 
     /*
@@ -1877,7 +1877,7 @@ L7_RC_t hpcBoardWCinit_bcm56450(void)
      * exchanged through the bcm_port_encap_set API.
      */
     /* XE ports are bcm_port 25(32), 27, 33 and 36(34) */
-    if (sal_config_set(spn_PBMP_XPORT_XE, "0x120A000000") != 0)
+    if (sal_config_set(spn_PBMP_XPORT_XE, "0x925E000000") != 0)
       return(L7_FAILURE);
 
   #elif (PTIN_BOARD == PTIN_BOARD_TG16GF)
