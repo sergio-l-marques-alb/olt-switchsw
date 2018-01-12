@@ -1025,10 +1025,15 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     ptin_timer_stop(76);
 
 #if PTIN_BOARD == PTIN_BOARD_CXO160G
-		L7_uint32 evc_id;
-		ptin_evc_get_evcIdfromIntVlan(mcastRootVlan, &evc_id);
+    L7_uint8  isDynamic;
+    L7_uint32 ptin_port_aux;
+
+    ptin_port_aux = pduInfo->intIfNum - 1;
+
+    ptin_igmp_port_is_Dynamic(ptin_port_aux, &isDynamic);
+
 		/* Support of query process in other services other than multicast and MC proxy */
-		if (  mcastRootVlan < 512 && !ptin_igmp_is_evc_used(evc_id) /*L7_FAILURE*/ ) 
+		if (  mcastRootVlan < 512 && isDynamic /*L7_FAILURE*/ ) 
 		{			
 			mcastRootVlan = 512;
 			PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId ,mcastRootVlan);
