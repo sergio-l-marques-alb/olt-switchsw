@@ -1242,12 +1242,11 @@ L7_RC_t hapiBroadQvlanVlanPurge(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
     BROAD_HW_VLAN_TAGGING_CLEAR(&cpuUsp,vid,dapi_g);
   }
 
-
-
   /* Fill in the structure */
   l2addr_vlan.bcmx_lport = 0; 
   l2addr_vlan.vlanID = vid;
   l2addr_vlan.flushtype = BROAD_FLUSH_BY_VLAN;
+  l2addr_vlan.flushflags = BROAD_FLUSH_FLAGS_NONE;
   l2addr_vlan.port_is_lag = L7_FALSE;
   l2addr_vlan.tgid = 0;
 
@@ -1346,6 +1345,7 @@ L7_RC_t hapiBroadQvlanVlanListPurge(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data,
         l2addr_vlan.bcmx_lport = 0; 
         l2addr_vlan.vlanID = vlanId;
         l2addr_vlan.flushtype = BROAD_FLUSH_BY_VLAN;
+        l2addr_vlan.flushflags = BROAD_FLUSH_FLAGS_NONE;
         l2addr_vlan.port_is_lag = L7_FALSE;
         l2addr_vlan.tgid = 0;
 

@@ -1411,6 +1411,77 @@ L7_RC_t fdbBadAddsGet(L7_uint32 *badAdds)
   return(L7_SUCCESS);
 }
 
+/**
+ * Clear FDB AVL tree entries 
+ * 
+ * @author mruas (15/01/18)
+ * 
+ * @param intIfNum 
+ * @param vlanId 
+ * @param mac 
+ */
+static DAPI_ADDR_FLUSH_FLAG_t fdbClear(L7_uint32 intIfNum, L7_uint32 vlanId, L7_uchar8 *macAddr)
+{
+#if (PLAT_BCM_CHIP == L7_BCM_KATANA2)
+  L7_uint32 vlan_val, i;
+  L7_uchar8 keyNext[L7_FDB_KEY_SIZE];
+  dot1dTpFdbData_t fdbEntry;
+  L7_uint8 mac_null[L7_FDB_MAC_ADDR_LEN] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+  //fdbLearnMsg_t fdbMsg;
+
+  /* Remove all entries with the given MAC */
+  memset(keyNext, 0x00, sizeof(L7_uchar8)*L7_FDB_KEY_SIZE);
+  for (i=0; i<PLAT_MAX_FDB_MAC_ENTRIES && fdbFind(keyNext, L7_MATCH_GETNEXT, &fdbEntry)==L7_SUCCESS; i++)
+  {
+    /* Update keyNext */
+    memcpy(keyNext, fdbEntry.dot1dTpFdbAddress, sizeof(L7_uint8)*L7_FDB_KEY_SIZE);
+
+    /* Extract VLAN value */
+    vlan_val = (((L7_uint16) fdbEntry.dot1dTpFdbAddress[0]) << 8) + ((L7_uint16) fdbEntry.dot1dTpFdbAddress[1]);
+
+    /* Skip entries not related to inputs */
+    if (intIfNum != 0 &&
+        intIfNum != fdbEntry.dot1dTpFdbPort)
+    {
+      continue;
+    }
+    if (vlanId != 0 &&
+        vlanId != vlan_val)
+    {
+      continue;
+    }
+    if ((macAddr != L7_NULLPTR && memcmp(macAddr, mac_null, sizeof(L7_uint8)*L7_FDB_MAC_ADDR_LEN) != 0) &&
+        memcmp(macAddr, &fdbEntry.dot1dTpFdbAddress[2], sizeof(L7_uint8)*L7_FDB_MAC_ADDR_LEN) != 0)
+    {
+      continue;
+    }
+
+    /* Skip static entries */
+    if (fdbEntry.dot1dTpFdbEntryType == L7_FDB_ADDR_FLAG_STATIC)
+    {
+      continue;
+    }
+
+    /* Remove this entry */
+    #if 0
+    fdbMsg.entryType = fdbEntry.dot1dTpFdbEntryType;
+    fdbMsg.intIfNum  = fdbEntry.dot1dTpFdbPort;
+    fdbMsg.vlanId    = vlan_val;
+    fdbMsg.msgsType  = FDB_DEL;
+    memcpy(fdbMsg.mac_addr, &fdbEntry.dot1dTpFdbAddress[2], L7_MAC_ADDR_LEN);
+    if (osapiMessageSend(fdbQueue, &fdbMsg, sizeof(fdbLearnMsg_t), L7_NO_WAIT, L7_MSG_PRIORITY_NORM) != L7_SUCCESS)
+      return(L7_FAILURE);
+    #else
+    (void) fdbDelete(&fdbEntry.dot1dTpFdbAddress[2], vlan_val);
+    #endif
+  }
+
+  return DAPI_ADDR_FLUSH_FLAG_NOEVENTS;
+#else
+  return DAPI_ADDR_FLUSH_FLAG_NONE;
+#endif
+}
+
 /*********************************************************************
 * @purpose  Flush all learned entries from the L2FDB.
 *
@@ -1425,36 +1496,15 @@ L7_RC_t fdbBadAddsGet(L7_uint32 *badAdds)
 *********************************************************************/
 L7_RC_t fdbFlush(void)
 {
-#if 0
-  dot1dTpFdbData_t *entry = L7_NULLPTR;
-  L7_uchar8         key[L7_FDB_KEY_SIZE];
-#endif
+  L7_uint32 flushFlags;
 
-  osapiSemaTake(fdbTreeData.semId, L7_WAIT_FOREVER);
-  if (dtlDot1sFlushAll() != L7_SUCCESS)
+  /* Clear FDB table entries */
+  flushFlags = fdbClear(L7_NULL, L7_NULL, L7_NULLPTR);
+
+  if (dtlFdbFlushAll(flushFlags) != L7_SUCCESS)
   {
-    osapiSemaGive(fdbTreeData.semId);
     return L7_FAILURE;
   }
-#if 0
-  memset(key, 0, L7_FDB_KEY_SIZE);
-  while ((entry = avlSearchLVL7(&fdbTreeData, key, L7_MATCH_GETNEXT)) != L7_NULLPTR)
-  {
-    if (entry->dot1dTpFdbEntryType == L7_FDB_ADDR_FLAG_LEARNED)
-    {
-      /* delete current entry from tree */
-      avlDeleteEntry(&fdbTreeData, entry);
-      fdb_stats.total_dels++;
-      fdb_stats.cur_entries--;
-    } else
-    {
-      /* copy current key */
-      memcpy(key, entry->dot1dTpFdbAddress, L7_FDB_KEY_SIZE);
-    }
-  }
-  fdb_stats.dynamic_entries = 0;
-#endif
-  osapiSemaGive(fdbTreeData.semId);
   return L7_SUCCESS;
 }
 
@@ -1474,11 +1524,17 @@ L7_RC_t fdbFlush(void)
 *********************************************************************/
 L7_RC_t fdbFlushByPort(L7_uint32 intfNum)
 {
+  DAPI_ADDR_FLUSH_FLAG_t flushFlags;
+
   if(L7_FALSE == fdbIsValidIntf(intfNum))
   {
     return L7_FAILURE;
   }
-  return dtlDot1sFlush(intfNum);
+
+  /* Clear FDB table entries */
+  flushFlags = fdbClear(intfNum, L7_NULL, L7_NULLPTR);
+
+  return dtlFdbFlushByPort(intfNum, flushFlags);
 }
 
 /*********************************************************************
@@ -1499,11 +1555,15 @@ L7_RC_t fdbFlushByVlan(L7_uint32 vlanId)
 {
   L7_FDB_TYPE_t type;
   L7_uint32 fdbId;
+  DAPI_ADDR_FLUSH_FLAG_t flushFlags;
 
   if ((vlanId <  L7_DOT1Q_MIN_VLAN_ID) || (vlanId >L7_DOT1Q_MAX_VLAN_ID))
   {
       return L7_FAILURE;
   }
+
+   /* Clear FDB table entries */
+  flushFlags = fdbClear(L7_NULL, vlanId, L7_NULLPTR);
 
   fdbGetTypeOfVL(&type);
 
@@ -1515,11 +1575,11 @@ L7_RC_t fdbFlushByVlan(L7_uint32 vlanId)
             "Failure getting the forwarding database ID for vlanId %d",vlanId);
       return L7_FAILURE;
     } 
-    return dtlFdbFlushByVlan(fdbId);
+    return dtlFdbFlushByVlan(fdbId, flushFlags);
   }
   else
   {
-    return dtlFdbFlushByVlan(vlanId);
+    return dtlFdbFlushByVlan(vlanId, flushFlags);
   }
 }
 
@@ -1539,8 +1599,13 @@ L7_RC_t fdbFlushByVlan(L7_uint32 vlanId)
 *********************************************************************/
 L7_RC_t fdbFlushByMac(L7_enetMacAddr_t mac)
 {
+  DAPI_ADDR_FLUSH_FLAG_t flushFlags;
+
+  /* Clear FDB table entries */
+  flushFlags = fdbClear(L7_NULL, L7_NULL, mac.addr);
+
   /* Call dtl to flush the MAC specific entries in fdb.*/
-  return dtlFdbFlushByMac(mac);
+  return dtlFdbFlushByMac(mac, flushFlags);
 }
 
 /*********************************************************************

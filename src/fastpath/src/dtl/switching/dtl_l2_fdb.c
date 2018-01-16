@@ -356,9 +356,83 @@ L7_RC_t dtlFdbAddressAgingTimeOutSet(L7_uint32 filterDbID,
 }
 
 /*********************************************************************
+* @purpose  Flushes all learned entries in the FDB
+*
+* @param    flags (DAPI_ADDR_FLUSH_FLAG_t)
+*
+* @returns  L7_SUCCESS  on a successful operation
+* @returns  L7_FAILURE  for any error
+*
+* @comments
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t dtlFdbFlushAll(DAPI_ADDR_FLUSH_FLAG_t flags)
+{
+  DAPI_SYSTEM_CMD_t cmd;
+  DAPI_USP_t ddUsp;
+  /* no interface for this command */
+  ddUsp.unit = -1;
+  ddUsp.slot = -1;
+  ddUsp.port = -1;
+
+  cmd.cmdData.l2FlushAll.getOrSet = DAPI_CMD_SET;
+  cmd.cmdData.l2FlushAll.flushFlags = flags;
+
+  return dapiCtl(&ddUsp, DAPI_CMD_ADDR_FLUSH_ALL, &cmd);
+}
+
+/*********************************************************************
+* @purpose  Flushes all entries in fdb learnt on this interface
+*
+* @param    intIfNum    @b((input)) internal interface number
+* @param    flags (DAPI_ADDR_FLUSH_FLAG_t)
+*
+* @returns  L7_SUCCESS  on a successful operation
+* @returns  L7_FAILURE  for any error
+*
+* @comments
+*
+* @notes
+*
+* @end
+*********************************************************************/
+L7_RC_t dtlFdbFlushByPort(L7_uint32 intIfNum, DAPI_ADDR_FLUSH_FLAG_t flags)
+{
+  L7_RC_t rc = L7_FAILURE;
+  L7_RC_t dd_rc;
+  DAPI_USP_t ddUsp;
+  DAPI_ADDR_MGMT_CMD_t cmd;
+  nimUSP_t usp;
+
+  if (nimGetUnitSlotPort(intIfNum, &usp) == L7_SUCCESS)
+  {
+    ddUsp.unit = usp.unit;
+    ddUsp.slot = usp.slot;
+    ddUsp.port = usp.port - 1;
+
+    /*issue the dapi cmd for flushing the entries learnt on this interface*/
+
+    cmd.cmdData.portAddressFlush.getOrSet = DAPI_CMD_SET;
+    cmd.cmdData.portAddressFlush.flushFlags = flags;
+
+    dd_rc = dapiCtl(&ddUsp, DAPI_CMD_ADDR_FLUSH, &cmd);
+
+    if (dd_rc == L7_SUCCESS)
+    {
+      rc = L7_SUCCESS;
+    }
+  }
+  return rc;
+}
+
+/*********************************************************************
 * @purpose  Flushes specific VLAN entries in fdb.
 *
 * @param    vlanId @b((input)) VLAN number.
+* @param    flags (DAPI_ADDR_FLUSH_FLAG_t)
 *
 * @returns  L7_SUCCESS on a successful operation 
 * @returns  L7_FAILURE for any error 
@@ -369,7 +443,7 @@ L7_RC_t dtlFdbAddressAgingTimeOutSet(L7_uint32 filterDbID,
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlFdbFlushByVlan(L7_ushort16 vlanId)
+L7_RC_t dtlFdbFlushByVlan(L7_ushort16 vlanId, DAPI_ADDR_FLUSH_FLAG_t flags)
 {
   DAPI_USP_t ddUsp;
   DAPI_ADDR_MGMT_CMD_t dapiCmd;
@@ -380,6 +454,8 @@ L7_RC_t dtlFdbFlushByVlan(L7_ushort16 vlanId)
 
   dapiCmd.cmdData.portAddressFlushVlan.getOrSet = DAPI_CMD_SET;
   dapiCmd.cmdData.portAddressFlushVlan.vlanID = vlanId;
+  dapiCmd.cmdData.portAddressFlushVlan.flushFlags = flags;
+
   return dapiCtl(&ddUsp, DAPI_CMD_ADDR_FLUSH_VLAN, &dapiCmd);
 }
 
@@ -387,6 +463,7 @@ L7_RC_t dtlFdbFlushByVlan(L7_ushort16 vlanId)
 * @purpose  Flushes All MAC specific entries in fdb.
 *
 * @param    mac @b((input)) MAC address
+* @param    flags (DAPI_ADDR_FLUSH_FLAG_t)
 *
 * @returns  L7_SUCCESS on a successful operation 
 * @returns  L7_FAILURE for any error 
@@ -397,7 +474,7 @@ L7_RC_t dtlFdbFlushByVlan(L7_ushort16 vlanId)
 *
 * @end
 *********************************************************************/
-L7_RC_t dtlFdbFlushByMac(L7_enetMacAddr_t mac)
+L7_RC_t dtlFdbFlushByMac(L7_enetMacAddr_t mac, DAPI_ADDR_FLUSH_FLAG_t flags)
 {
   DAPI_USP_t ddUsp;
   DAPI_ADDR_MGMT_CMD_t dapiCmd;
@@ -409,6 +486,8 @@ L7_RC_t dtlFdbFlushByMac(L7_enetMacAddr_t mac)
   dapiCmd.cmdData.portAddressFlushMac.getOrSet = DAPI_CMD_SET;
   memcpy(dapiCmd.cmdData.portAddressFlushMac.macAddr.addr,
                  mac.addr, L7_ENET_MAC_ADDR_LEN);
+  dapiCmd.cmdData.portAddressFlushMac.flushFlags = flags;
+
   return dapiCtl(&ddUsp, DAPI_CMD_ADDR_FLUSH_MAC, &dapiCmd);
 }
 

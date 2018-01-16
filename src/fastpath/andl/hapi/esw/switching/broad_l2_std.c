@@ -2537,6 +2537,7 @@ L7_RC_t hapiBroadAddrAgingTime(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI
 L7_RC_t hapiBroadAddrFlush(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
   L7_RC_t               result  = L7_SUCCESS;
+  DAPI_ADDR_MGMT_CMD_t *dapiCmd = (DAPI_ADDR_MGMT_CMD_t*)data;
   DAPI_PORT_t          *dapiPortPtr;
   BROAD_PORT_t         *hapiPortPtr;
   BROAD_L2ADDR_FLUSH_t   l2addr_port;
@@ -2549,6 +2550,15 @@ L7_RC_t hapiBroadAddrFlush(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *
   l2addr_port.bcmx_lport  = 0;
   l2addr_port.tgid = 0;
   l2addr_port.flushtype = BROAD_FLUSH_BY_PORT;
+  /* Set flags */
+  if (dapiCmd->cmdData.portAddressFlush.flushFlags == DAPI_ADDR_FLUSH_FLAG_NOEVENTS)
+  {
+    l2addr_port.flushflags = BROAD_FLUSH_FLAGS_NOEVENTS;
+  }
+  else
+  {
+    l2addr_port.flushflags = BROAD_FLUSH_FLAGS_NONE;
+  }
 
   memset(l2addr_port.mac.addr, 0, L7_ENET_MAC_ADDR_LEN);
 
@@ -2605,12 +2615,21 @@ L7_RC_t hapiBroadAddrFlushByVlan(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
 
   /* Fill in the structure */
   l2addr_vlan.bcmx_lport = hapiPortPtr->bcmx_lport;
-  l2addr_vlan.vlanID = dapiCmd->cmdData.agingTime.vlanID;
+  l2addr_vlan.vlanID = dapiCmd->cmdData.portAddressFlushVlan.vlanID;
   l2addr_vlan.flushtype = BROAD_FLUSH_BY_VLAN;
   l2addr_vlan.port_is_lag = L7_FALSE;
   l2addr_vlan.tgid        = 0;
   memset(l2addr_vlan.mac.addr, 0, L7_ENET_MAC_ADDR_LEN);
-
+  /* Set flags */
+  if (dapiCmd->cmdData.portAddressFlushVlan.flushFlags == DAPI_ADDR_FLUSH_FLAG_NOEVENTS)
+  {
+    l2addr_vlan.flushflags = BROAD_FLUSH_FLAGS_NOEVENTS;
+  }
+  else
+  {
+    l2addr_vlan.flushflags = BROAD_FLUSH_FLAGS_NONE;
+  }
+  
   /* Send a message to L2 address flushing task with the vlan info */
   hapiBroadL2FlushRequest(l2addr_vlan);
 
@@ -2650,6 +2669,15 @@ L7_RC_t hapiBroadAddrFlushByMac(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
   memcpy(l2addr_mac.mac.addr,
                  dapiCmd->cmdData.portAddressFlushMac.macAddr.addr,
                  L7_ENET_MAC_ADDR_LEN);
+  /* Set flags */
+  if (dapiCmd->cmdData.portAddressFlushMac.flushFlags == DAPI_ADDR_FLUSH_FLAG_NOEVENTS)
+  {
+    l2addr_mac.flushflags = BROAD_FLUSH_FLAGS_NOEVENTS;
+  }
+  else
+  {
+    l2addr_mac.flushflags = BROAD_FLUSH_FLAGS_NONE;
+  }
 
   /* Send a message to L2 address flushing task with the vlan info */
   hapiBroadL2FlushRequest(l2addr_mac);
@@ -2675,7 +2703,8 @@ L7_RC_t hapiBroadAddrFlushByMac(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAP
 *********************************************************************/
 L7_RC_t hapiBroadAddrFlushAll(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
-  DAPI_SYSTEM_CMD_t         *dapiCmd = (DAPI_SYSTEM_CMD_t*)data;
+  DAPI_SYSTEM_CMD_t   *dapiCmd = (DAPI_SYSTEM_CMD_t*)data;
+  BROAD_FLUSH_FLAGS_t flushFlags = 0;
   L7_RC_t result = L7_SUCCESS;
 
   if (dapiCmd->cmdData.l2FlushAll.getOrSet != DAPI_CMD_SET)
@@ -2687,7 +2716,18 @@ L7_RC_t hapiBroadAddrFlushAll(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_
     return result;
   }
 
-  usl_bcmx_l2_addr_remove_all();
+  /* Set flags */
+  if (dapiCmd->cmdData.l2FlushAll.flushFlags == DAPI_ADDR_FLUSH_FLAG_NOEVENTS)
+  {
+    flushFlags = BROAD_FLUSH_FLAGS_NOEVENTS;
+  }
+  else
+  {
+    flushFlags = BROAD_FLUSH_FLAGS_NONE;
+  }
+
+
+  usl_bcmx_l2_addr_remove_all(flushFlags);
 
   return result;
 }
@@ -4446,6 +4486,7 @@ void hapiBroadL2AddrFlushTask(L7_uint32 numArgs, DAPI_t *dapi_g)
   L7_uint32              vlan = 0;
   L7_uint32              bitpos = 0;
   bcm_mac_t mac;
+  L7_uint32 flags;
 
   while (1)
   {
@@ -4460,6 +4501,16 @@ void hapiBroadL2AddrFlushTask(L7_uint32 numArgs, DAPI_t *dapi_g)
     }
 
     count = 0;
+
+    /* Convert flags */
+    if (l2addr_flush.flushflags == BROAD_FLUSH_FLAGS_NOEVENTS)
+    {
+      flags = BCM_L2_DELETE_NO_CALLBACKS;
+    }
+    else
+    {
+      flags = 0;
+    }
 
     memset((void *)&l2addr_flush, 0, sizeof(l2addr_flush));
 
@@ -4492,7 +4543,7 @@ void hapiBroadL2AddrFlushTask(L7_uint32 numArgs, DAPI_t *dapi_g)
         hapiBroadFlushL2LearnModeSet(l2addr_flush, L7_DISABLE);
 
         hapiBroadFlushStats_g.hapiBroadPortFlushesDone++;
-        (void) usl_bcmx_l2_addr_remove_by_port(lport);
+        (void)usl_bcmx_l2_addr_remove_by_port(lport, flags);
       }
     }
 
@@ -4517,7 +4568,7 @@ void hapiBroadL2AddrFlushTask(L7_uint32 numArgs, DAPI_t *dapi_g)
             l2addr_flush.port_is_lag = L7_TRUE;
             hapiBroadFlushL2LearnModeSet(l2addr_flush, L7_DISABLE);
 
-            (void) usl_bcmx_l2_addr_remove_by_trunk (tgid);
+            (void) usl_bcmx_l2_addr_remove_by_trunk (tgid, flags);
             count++;
           }
         }
@@ -4541,7 +4592,7 @@ void hapiBroadL2AddrFlushTask(L7_uint32 numArgs, DAPI_t *dapi_g)
             if (hapiDot1sDebug & HAPI_BROAD_DOT1S_DEBUG_ENQUEUE)
               printf ("%s : Flushing vlan %d\n", __FUNCTION__, vlan);
 
-            (void) usl_bcmx_l2_addr_remove_by_vlan (vlan);
+            (void) usl_bcmx_l2_addr_remove_by_vlan (vlan, flags);
             count++;
           }
         }
@@ -4551,7 +4602,7 @@ void hapiBroadL2AddrFlushTask(L7_uint32 numArgs, DAPI_t *dapi_g)
     /*supports flush by only one MAC at a time.i.e should issue 
        another flush by mac only after completion of previous flush by mac */
     memcpy(mac, hapiBroadFlushMac, L7_ENET_MAC_ADDR_LEN);
-    (void) usl_bcmx_l2_addr_remove_by_mac (mac);
+    (void) usl_bcmx_l2_addr_remove_by_mac (mac, flags);
 
     usl_mac_table_sync_resume();
 
@@ -5581,6 +5632,7 @@ L7_RC_t hapiBroadIntfCaptivePortalConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
       flushReq.vlanID = 0;
       flushReq.tgid = 0;
       flushReq.flushtype = BROAD_FLUSH_BY_PORT;
+      flushReq.flushflags = BROAD_FLUSH_FLAGS_NONE;
       flushReq.bcmx_lport = hapiPortPtr->bcmx_lport;
       flushReq.port_is_lag = L7_FALSE;
       hapiBroadL2FlushRequest(flushReq);

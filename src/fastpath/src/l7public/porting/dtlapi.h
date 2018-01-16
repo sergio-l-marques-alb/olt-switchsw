@@ -1439,9 +1439,43 @@ EXT_API L7_RC_t dtlFdbAddressAgingTimeOutSet(L7_uint32 filterDbID,
                                              L7_uint32 time);
 
 /*********************************************************************
+* @purpose  Flushes all learned entries in the FDB
+*
+* @param    flags (DAPI_ADDR_FLUSH_FLAG_t)
+*
+* @returns  L7_SUCCESS  on a successful operation
+* @returns  L7_FAILURE  for any error
+*
+* @comments
+*
+* @notes
+*
+* @end
+*********************************************************************/
+EXT_API L7_RC_t dtlFdbFlushAll(DAPI_ADDR_FLUSH_FLAG_t flags);
+
+/*********************************************************************
+* @purpose  Flushes all entries in fdb learnt on this interface
+*
+* @param    intIfNum    @b((input)) internal interface number
+* @param    flags (DAPI_ADDR_FLUSH_FLAG_t)
+*
+* @returns  L7_SUCCESS  on a successful operation
+* @returns  L7_FAILURE  for any error
+*
+* @comments
+*
+* @notes
+*
+* @end
+*********************************************************************/
+EXT_API L7_RC_t dtlFdbFlushByPort(L7_uint32 intIfNum, DAPI_ADDR_FLUSH_FLAG_t flags);
+
+/*********************************************************************
 * @purpose  Flushes specific VLAN entries in fdb.
 *
 * @param    vlanId @b((input)) VLAN number.
+* @param    flags (DAPI_ADDR_FLUSH_FLAG_t)
 *
 * @returns  L7_SUCCESS on a successful operation 
 * @returns  L7_FAILURE for any error 
@@ -1452,12 +1486,13 @@ EXT_API L7_RC_t dtlFdbAddressAgingTimeOutSet(L7_uint32 filterDbID,
 *
 * @end
 *********************************************************************/
-EXT_API L7_RC_t dtlFdbFlushByVlan(L7_ushort16 vlanId);
+EXT_API L7_RC_t dtlFdbFlushByVlan(L7_ushort16 vlanId, DAPI_ADDR_FLUSH_FLAG_t flags);
 
 /*********************************************************************
 * @purpose  Flushes All MAC specific entries in fdb.
 *
 * @param    mac @b((input)) MAC address
+* @param    flags (DAPI_ADDR_FLUSH_FLAG_t)
 *
 * @returns  L7_SUCCESS on a successful operation 
 * @returns  L7_FAILURE for any error 
@@ -1468,7 +1503,7 @@ EXT_API L7_RC_t dtlFdbFlushByVlan(L7_ushort16 vlanId);
 *
 * @end
 *********************************************************************/
-EXT_API L7_RC_t dtlFdbFlushByMac(L7_enetMacAddr_t mac);
+EXT_API L7_RC_t dtlFdbFlushByMac(L7_enetMacAddr_t mac, DAPI_ADDR_FLUSH_FLAG_t flags);
 
 /*********************************************************************
 * @purpose  Sets the MAC addr type for the interface
@@ -2544,7 +2579,7 @@ EXT_API L7_RC_t dtlDot1sInstVlanIdRemove(L7_uint32 instNumber, L7_ushort16 vlanI
 * @purpose  Flushes all entries in fdb learnt on this interface
 *
 * @param    intIfNum    @b((input)) internal interface number
-*
+* 
 * @returns  L7_SUCCESS  on a successful operation
 * @returns  L7_FAILURE  for any error
 *
@@ -3447,8 +3482,6 @@ EXT_API L7_RC_t dtlIntfCableFiberDiagGet( L7_uint32              intIfNum,
 
 /*********************************************************************
 * @purpose  Flushes all learned entries in the FDB
-*
-* @param    none
 *
 * @returns  L7_SUCCESS  on a successful operation
 * @returns  L7_FAILURE  for any error

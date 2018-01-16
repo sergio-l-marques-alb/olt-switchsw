@@ -649,6 +649,14 @@ typedef enum
 
 } BROAD_FLUSH_TYPE_t;
 
+/* PTin added: Flushing flags */
+typedef enum
+{
+  BROAD_FLUSH_FLAGS_NONE = 0,
+  BROAD_FLUSH_FLAGS_NOEVENTS = 1,
+
+} BROAD_FLUSH_FLAGS_t;
+
 typedef struct
 {
   L7_uint32           bcmx_lport;
@@ -657,6 +665,7 @@ typedef struct
   L7_uint32           vlanID;
   L7_enetMacAddr_t mac;
   BROAD_FLUSH_TYPE_t  flushtype;
+  BROAD_FLUSH_FLAGS_t flushflags;
 
 } BROAD_L2ADDR_FLUSH_t;
 

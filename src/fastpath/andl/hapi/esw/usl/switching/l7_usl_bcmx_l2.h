@@ -36,6 +36,7 @@
 * @purpose  Flush dynamic MAC addresses for specified trunk.
 *
 * @param    tgid - BCMX trunk identifier.
+* @param    flags - BCMX flags (BCM_L2_DELETE_*).
 *
 * @returns  BCM_E_NONE
 *
@@ -44,7 +45,7 @@
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid);
+int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid, L7_uint32 flags);
 
 /*********************************************************************
 * @purpose  Flush dynamic MAC addresses for specified wlan port.
@@ -64,6 +65,7 @@ int usl_bcmx_l2_addr_remove_by_wlan_port (bcmx_lport_t port);
 * @purpose  Flush dynamic MAC addresses for specified lport.
 *
 * @param    tgid - BCMX trunk identifier.
+* @param    flags - BCMX flags (BCM_L2_DELETE_*).
 *
 * @returns  BCM_E_NONE
 *
@@ -72,12 +74,13 @@ int usl_bcmx_l2_addr_remove_by_wlan_port (bcmx_lport_t port);
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport);
+int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags);
 
 /*********************************************************************
 * @purpose  Flush specific dynamic MAC addresses.
 *
 * @param    mac - BCMX mac identifier.
+* @param    flags - BCMX flags (BCM_L2_DELETE_*).
 *
 * @returns  BCM_E_NONE
 *
@@ -86,12 +89,12 @@ int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport);
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_by_mac (bcm_mac_t mac);
+int usl_bcmx_l2_addr_remove_by_mac (bcm_mac_t mac, L7_uint32 flags);
 
 /*********************************************************************
 * @purpose  Flush dynamic MAC addresses for all lport.
 *
-* @param    none.
+* @param    flags - BCMX flags (BROAD_FLUSH_FLAGS_t).
 *
 * @returns  BCM_E_NONE
 *
@@ -100,7 +103,7 @@ int usl_bcmx_l2_addr_remove_by_mac (bcm_mac_t mac);
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_all ();
+int usl_bcmx_l2_addr_remove_all (BROAD_FLUSH_FLAGS_t flags);
 
 /*********************************************************************
 * @purpose Synchronize all the dynamic L2 entries w/ the FDB application
@@ -117,6 +120,7 @@ int usl_bcmx_l2_addr_sync();
 * @purpose  Flush dynamic MAC addresses matching specified vlan.
 *
 * @param    vid - BCM VLAN identifier.
+* @param    flags - BCMX flags (BCM_L2_DELETE_*).
 *
 * @returns  BCM_E_NONE
 *
@@ -125,7 +129,7 @@ int usl_bcmx_l2_addr_sync();
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid);
+int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid, L7_uint32 flags);
 
 /*********************************************************************
 * @purpose  Add a L2 MAC address to the HW's forwarding database

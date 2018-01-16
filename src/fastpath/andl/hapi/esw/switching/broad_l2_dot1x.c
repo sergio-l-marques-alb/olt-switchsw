@@ -1341,6 +1341,7 @@ L7_RC_t hapiBroadIntfDot1xStatus(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DA
       l2addr_port.bcmx_lport  = 0;
       l2addr_port.tgid = 0;
       l2addr_port.flushtype = BROAD_FLUSH_BY_PORT;
+      l2addr_port.flushflags = BROAD_FLUSH_FLAGS_NONE;
       l2addr_port.bcmx_lport = hapiPortPtr->bcmx_lport;
       l2addr_port.port_is_lag = L7_FALSE;
 

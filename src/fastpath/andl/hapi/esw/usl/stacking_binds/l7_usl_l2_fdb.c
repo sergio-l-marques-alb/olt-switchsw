@@ -266,6 +266,7 @@ return BCM_E_NONE;
 * @purpose  Flush dynamic MAC addresses for specified trunk.
 *
 * @param    tgid - BCMX trunk identifier.
+* @param    flags - BCMX flags (BCM_L2_DELETE_*).
 *
 * @returns  BCM_E_NONE
 *
@@ -274,7 +275,7 @@ return BCM_E_NONE;
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid)
+int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid, L7_uint32 flags)
 {
   int                  rc = BCM_E_NONE;
   int                  i, bcm_unit;
@@ -302,7 +303,7 @@ int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid)
     }
     else
     {
-  rc =  bcm_l2_addr_delete_by_trunk (bcm_unit, tgid, 0);
+      rc =  bcm_l2_addr_delete_by_trunk (bcm_unit, tgid, flags);
     }
   }
 
@@ -319,6 +320,7 @@ int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid)
 * @purpose  Flush dynamic MAC addresses for specified lport.
 *
 * @param    tgid - BCMX trunk identifier.
+* @param    flags - BCMX flags (BCM_L2_DELETE_*).
 *
 * @returns  BCM_E_NONE
 *
@@ -327,7 +329,7 @@ int usl_bcmx_l2_addr_remove_by_trunk (bcm_trunk_t tgid)
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport)
+int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport, L7_uint32 flags)
 {
   int          rc = BCM_E_NONE;
   L7_uint32    unit;
@@ -351,7 +353,7 @@ int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport)
   else
   { /* In all other cases call the broadcom call to flush */
     bcmx_lport_to_modid_port(lport, &modid, &modport);
-    rc = bcm_l2_addr_delete_by_port(unit, modid, modport, 0);
+    rc = bcm_l2_addr_delete_by_port(unit, modid, modport, flags);
   }
 
   memset((void *)&l2addr_msg, 0, sizeof(l2addr_msg));
@@ -366,7 +368,7 @@ int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport)
 /*********************************************************************
 * @purpose  Flush dynamic MAC addresses for all lport.
 *
-* @param    none.
+* @param    flags - BCMX flags (BROAD_FLUSH_FLAGS_t).
 *
 * @returns  BCM_E_NONE
 *
@@ -375,7 +377,7 @@ int usl_bcmx_l2_addr_remove_by_port (bcmx_lport_t lport)
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_all ()
+int usl_bcmx_l2_addr_remove_all (BROAD_FLUSH_FLAGS_t flags)
 {
   int          rc = BCM_E_NONE;
   L7_uint32    unit;
@@ -385,6 +387,16 @@ int usl_bcmx_l2_addr_remove_all ()
   bcm_port_t modport;
   bcmx_lport_t lport;
 
+  /* Set flags */
+  if (flags == BROAD_FLUSH_FLAGS_NOEVENTS)
+  {
+    flags = BCM_L2_DELETE_NO_CALLBACKS;
+  }
+  else
+  {
+    flags = 0;
+  }
+  
   BCMX_FOREACH_LPORT(lport) {
 	  if ((BCMX_LPORT_FLAGS(lport) & BCMX_PORT_F_FE) ||
 		  (BCMX_LPORT_FLAGS(lport) & BCMX_PORT_F_GE) ||
@@ -412,7 +424,7 @@ int usl_bcmx_l2_addr_remove_all ()
 		  else
 		  { /* In all other cases call the broadcom call to flush */
 			  bcmx_lport_to_modid_port(lport, &modid, &modport);
-			  rc = bcm_l2_addr_delete_by_port(unit, modid, modport, 0);
+			  rc = bcm_l2_addr_delete_by_port(unit, modid, modport, flags);
 		  }
 
 		  /* Re-Enable Learning */
@@ -445,6 +457,7 @@ int usl_bcmx_l2_addr_sync()
 * @purpose  Flush dynamic MAC addresses matching specified vlan.
 *
 * @param    vid - BCMX VLAN identifier.
+* @param    flags - BCMX flags (BCM_L2_DELETE_*).
 *
 * @returns  BCM_E_NONE
 *
@@ -453,7 +466,7 @@ int usl_bcmx_l2_addr_sync()
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid)
+int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid, L7_uint32 flags)
 {
   int                  rc = BCM_E_NONE;
   int                  i, bcm_unit;
@@ -480,7 +493,7 @@ int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid)
     }
     else
     {
-      rc = bcm_l2_addr_delete_by_vlan(bcm_unit, vid, 0);
+      rc = bcm_l2_addr_delete_by_vlan(bcm_unit, vid, flags);
     }
   }
 
@@ -491,6 +504,7 @@ int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid)
 * @purpose  Flush dynamic MAC addresses matching specified Mac.
 *
 * @param    vid - BCM mac identifier.
+* @param    flags - BCMX flags (BCM_L2_DELETE_*).
 *
 * @returns  BCM_E_NONE
 *
@@ -498,9 +512,9 @@ int usl_bcmx_l2_addr_remove_by_vlan (bcm_vlan_t vid)
 *
 * @end
 *********************************************************************/
-int usl_bcmx_l2_addr_remove_by_mac (bcm_mac_t mac)
+int usl_bcmx_l2_addr_remove_by_mac (bcm_mac_t mac, L7_uint32 flags)
 {
-  return bcmx_l2_addr_delete_by_mac(mac, 0);
+  return bcmx_l2_addr_delete_by_mac(mac, flags);
 }
 
 /*********************************************************************

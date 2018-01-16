@@ -980,6 +980,7 @@ L7_RC_t ptin_hapi_maclimit_fdbFlush(bcm_vlan_t vlan_id, bcm_gport_t gport, BROAD
   l2addr_vlan.bcmx_lport = gport;
   l2addr_vlan.vlanID = vlan_id;
   l2addr_vlan.flushtype = type;
+  l2addr_vlan.flushflags = BROAD_FLUSH_FLAGS_NONE;
   l2addr_vlan.port_is_lag = L7_FALSE;
   l2addr_vlan.tgid        = 0;
   memset(l2addr_vlan.mac.addr, 0, L7_ENET_MAC_ADDR_LEN);

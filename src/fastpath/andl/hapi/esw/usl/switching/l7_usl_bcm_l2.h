@@ -21,6 +21,7 @@
 **********************************************************************/
 
 #include "l7_common.h"
+#include "broad_common.h"
 
 #ifndef L7_USL_BCM_L2_H
 #define L7_USL_BCM_L2_H

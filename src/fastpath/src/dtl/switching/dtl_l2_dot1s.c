@@ -438,6 +438,8 @@ L7_RC_t dtlDot1sFlush(L7_uint32 intIfNum)
     /*issue the dapi cmd for flushing the entries learnt on this interface*/
 
     cmd.cmdData.portAddressFlush.getOrSet = DAPI_CMD_SET;
+    cmd.cmdData.portAddressFlush.flushFlags = DAPI_ADDR_FLUSH_FLAG_NONE;
+
     dd_rc = dapiCtl(&ddUsp, DAPI_CMD_ADDR_FLUSH, &cmd);
 
     if (dd_rc == L7_SUCCESS)
@@ -594,6 +596,8 @@ L7_RC_t dtlDot1sFlushAll(void)
   ddUsp.port = -1;
 
   cmd.cmdData.l2FlushAll.getOrSet = DAPI_CMD_SET;
+  cmd.cmdData.l2FlushAll.flushFlags = DAPI_ADDR_FLUSH_FLAG_NONE;
+
   return dapiCtl(&ddUsp, DAPI_CMD_ADDR_FLUSH_ALL, &cmd);
 }
 

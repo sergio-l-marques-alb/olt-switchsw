@@ -644,6 +644,13 @@ typedef enum
 
 } DAPI_CMD_GET_SET_t;
 
+/* PTin added: Flushing flags */
+typedef enum
+{
+  DAPI_ADDR_FLUSH_FLAG_NONE = 0,
+  DAPI_ADDR_FLUSH_FLAG_NOEVENTS = 1,
+} DAPI_ADDR_FLUSH_FLAG_t;
+
 /*********************************************************************
 *
 * @typedef    DAPI_CALLBACK_t
@@ -837,6 +844,7 @@ typedef struct
     {
       DAPI_CMD_GET_SET_t          getOrSet;
       L7_BOOL                     enable;
+      DAPI_ADDR_FLUSH_FLAG_t      flushFlags;
     } l2FlushAll;
 
     struct
@@ -1604,18 +1612,21 @@ typedef struct
     struct
     {
       DAPI_CMD_GET_SET_t          getOrSet;
+      DAPI_ADDR_FLUSH_FLAG_t      flushFlags;
     } portAddressFlush;
 
     struct
     {
       DAPI_CMD_GET_SET_t          getOrSet;
       L7_ushort16                 vlanID;
+      DAPI_ADDR_FLUSH_FLAG_t      flushFlags;
     } portAddressFlushVlan;
 
     struct
     {
       DAPI_CMD_GET_SET_t          getOrSet;
-      L7_enetMacAddr_t                 macAddr;
+      L7_enetMacAddr_t            macAddr;
+      DAPI_ADDR_FLUSH_FLAG_t      flushFlags;
     } portAddressFlushMac;
 
     struct
