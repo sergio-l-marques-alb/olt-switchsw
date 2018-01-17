@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ $# -ne 2 ]; then
+    echo 'Usage: $0 <cxp ip (last octet)> <lc ip (last octet)>'
+    exit 1
+fi
+
+cd output/FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_TA12XG/ipl
+lc_put $1 $2 switchdrvr /usr/local/ptin/sbin
+lc_put $1 $2 devshell_symbols.gz /usr/local/ptin/sbin
+cd -
+
