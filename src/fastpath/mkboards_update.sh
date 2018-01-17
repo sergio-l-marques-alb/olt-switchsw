@@ -23,34 +23,6 @@ if [ $2 == "ta12xg" ]; then
  BOARD="CXO640G"
  MKBOARDS_FOLDER=TA12XG
  OUTPUT=output/FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_TA12XG
-elif [ $2 == "cxo640g" ]; then
- BOARD="CXO640G"
- MKBOARDS_FOLDER=CXO640G-MX
- OUTPUT=output/FastPath-Ent-esw-xgs4-pq3-LR-CSxw-IQH_CXO640G
-elif [ $2 == "cxo160g" ]; then
- BOARD="CXO160G"
- MKBOARDS_FOLDER=CXO160G
- OUTPUT=output/FastPath-Ent-esw-xgs4-e500mc-LR-CSxw-IQH_CXO160G
-elif [ $2 == "tg16g" ]; then
- BOARD="TG16G"
- MKBOARDS_FOLDER=TG16G
- OUTPUT=output/FastPath-Ent-esw-xgs4-pq2pro-LR-CSxw-IQH_TG16G
-elif [ $2 == "tg16gf" ]; then
- BOARD="TG16GF"
- MKBOARDS_FOLDER=TG16GF
- OUTPUT=output/FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_TG16GF
-elif [ $2 == "ta48ge" ]; then
- BOARD="TA48GE"
- MKBOARDS_FOLDER=TA48GE
- OUTPUT=output/FastPath-Ent-esw-xgs4-e500-LR-CSxw-IQH_TA48GE
-elif [ $2 == "olt1t0" ]; then
- BOARD="OLT1T0"
- MKBOARDS_FOLDER=CXOLT1T0
- OUTPUT=output/FastPath-Ent-esw-xgs4-helixarm-LR-CSxw-IQH_OLT1T0
- elif [ $2 == "tt04sxg" ]; then
- BOARD="TT04SXG"
- MKBOARDS_FOLDER=TT04SXG
- OUTPUT=output/FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_TT04SXG
 else
  echo "Invalid board"
  exit;
