@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+-->
+
+<FieldDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns="http://myNameSpace.com"  
+             xsi:schemaLocation="http://myNameSpace.com dbal_fields_definition.xsd">
+
+    <Field Name="IPV4" Size="32" Type="IP">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L3 L2 ALL</FieldLabels>
+    </Field>
+
+    <Field Name="VRF" Size="17" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>ALL L3</FieldLabels>
+        <Encoding EncodeType="MULTIPLE" Param1="-8" Param2="12"/>
+    </Field>
+
+    <Field Name="IPV6" Size="128" Type="ARRAY8">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L3 MPLS</FieldLabels>
+        <DefaultValue>15</DefaultValue>
+        <Encoding EncodeType="PREFIX" Param1="-1" Param2="-2"/>
+    </Field>
+
+    <Field Name="CORE_ID" Size="1" Type="BOOL">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>ALL</FieldLabels>
+        <DefaultValue>-1</DefaultValue>
+    </Field>
+
+    <Field Name="FEC" Size="20" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3 MPLS</FieldLabels>
+        <Parent Name="DESTINATION"/>
+        <Encoding EncodeType="PREFIX" Param1="8" Param2="15"/>
+    </Field>
+</FieldDbCatalog>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns="http://myNameSpace.com"  
+             xsi:schemaLocation="http://myNameSpace.com dbal_logical_tables_hard_logic_definition.xsd">
+
+    <AppDB Name="INGRESS_VLAN_PBMP"> <!-- up to 20 characters -->
+        <OneLineDescription></OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_ID" Size="12"/><!-- Name must be as in the fields xml, Size and Offset are optional -->
+                <Field Name="CORE_ID" Size="1"/><!-- Name must be as in the fields xml, Size and Offset are optional -->
+            </Key>
+            <Result>
+                <Field Name="PP_PORT_MEMBER" Size="256"/> <!-- Name must be as in the fields xml, Size and Offset are optional -->
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels> <!-- enum values: L2/L3/MPLS/FCOE/ALL can have multiple references -->
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/> <!-- enum values: DPC/SBC -->
+            <Access>
+                <Field Name="PP_PORT_MEMBER" Size ="128"> <!-- Name must be as in the fields xml, Size and Offset are optional -->
+                    <Memory Name="IPPA_VSI_PORT_MEMBERSHIPm"> 
+                        <HwField Name="VLAN_PORT_MEMBER_LINEf"/>
+                    </Memory>
+                </Field>
+                <Field Name="PP_PORT_MEMBER" Size ="128" Offset="128"> <!-- Name must be as in the fields xml, Size and Offset are optional -->
+                    <Memory Name="IPPA_VSI_PORT_MEMBERSHIPm"> 
+                        <ArrayOffset EncodeType="HARD_VALUE" Value="1"/>
+                        <EntryOffset EncodeType="DIVIDE" Field="VRF" Value="3"/>
+                        <HwField Name="VLAN_PORT_MEMBER_LINEf"/>
+                    </Memory>
+                </Field>
+            </Access>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_PORT">
+        <OneLineDescription></OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT" Size="8"/>
+                <Field Name="CORE_ID" Size="15"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="PORT_VID" Size="12"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS FCOE</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <Access>
+                <Field Name="VLAN_DOMAIN">
+                    <Condition Type="BIGGER_THAN" Value="14"/>
+                    <Memory Name="ETPPA_PER_PORT_TABLEm"> 
+                        <ArrayOffset EncodeType="MULTIPLE" Field="CORE_ID" Value="4"/>
+                        <HwField Name="VLAN_DOMAINf"/>
+                    </Memory>
+                </Field>
+                <Field Name="VLAN_DOMAIN">
+                    <Condition Type="EQUAL_TO" Value="14"/>
+                    <Memory Name="ETPPA_PER_PORT_TABLEm"> 
+                        <EntryOffset EncodeType="HARD_VALUE" Value="1"/>
+                        <HwField Name="VLAN_DOMAINf"/>
+                    </Memory>
+                </Field>
+                <Field Name="VLAN_DOMAIN">
+                    <Condition Type="LOWER_THAN" Value="14"/>
+                    <Memory Name="ETPPA_PER_PORT_TABLEm"> 
+                        <DataOffset EncodeType="PARTIAL_KEY" Field="PP_PORT"/>
+                    </Memory>
+                </Field>
+            </Access>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

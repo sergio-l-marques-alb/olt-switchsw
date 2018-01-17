@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+    1. Each AppDB represent a table and should be an element inside the AppDbCatalog
+    2. The Name should be specify as AppDB attributes with the following format - <Name="">
+        Name - Up to 64 characters
+    3. OneLineDescription - optinal description field
+    4. The AppDbInterface is an element that contain the table interface (Type,Key,Result):
+       a. Type - one of the following options EM/TCAM/LPM/DIRECT
+       b. Key and Result - Key and Result contain unbounded num of Fields with the following format:
+          <Field Name=""><Size>size</Size><Offset>offset</Offset></Field>
+          *Name - Up to 64 characters
+          *size - Positive Integer
+          *offset - Positive Integer (optional)
+       c. TableLabels (required) - list of(at least 1): L2,L3,MPLS,FCOE,ALL
+          Indicates the label(s) associated with the table
+    4. The AppToPhyDbMapping is an element that contain info about the phy DB of the table:
+       a. CoreMode - one of the following options: DPC/SBC
+       b. Access - TBD
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="dbal_logical_tables_hard_logic_definition.xsd">
+
+    <AppDB Name="INGRESS_VLAN_PBMP"> <!-- up to 20 characters -->
+        <OneLineDescription></OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_ID" Size="12"/><!-- Name must be as in the fields xml, Size and Offset are optional -->
+                <Field Name="CORE_ID" Size="1"/><!-- Name must be as in the fields xml, Size and Offset are optional -->
+            </Key>
+            <Result>
+                <Field Name="PP_PORT_MEMBER" Size="256"/> <!-- Name must be as in the fields xml, Size and Offset are optional -->
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels> <!-- enum values: L2/L3/MPLS/FCOE/ALL can have multiple references -->
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/> <!-- enum values: DPC/SBC -->
+            <Access>
+                <Field Name="PP_PORT_MEMBER" Size ="128" > <!-- Name must be as in the fields xml, Size and Offset are optional -->
+                    <Memory Name="IPPA_VSI_PORT_MEMBERSHIPm"> 
+                        <HwField Name="VLAN_PORT_MEMBER_LINEf"/>
+                    </Memory>
+                </Field>
+                <Field Name="PP_PORT_MEMBER" Size ="128" Offset="128"> <!-- Name must be as in the fields xml, Size and Offset are optional -->
+                    <Memory Name="IPPA_VSI_PORT_MEMBERSHIPm"> 
+                        <ArrayOffset EncodeType="HARD_VALUE" Value="1"/>
+                        <HwField Name="VLAN_PORT_MEMBER_LINEf"/>
+                    </Memory>
+                </Field>
+            </Access>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+    <AppDB Name="EGRESS_VLAN_PBMP">
+        <OneLineDescription></OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_ID" Size="12"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="PP_PORT_MEMBER" Size="256"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <Access>
+                <Field Name="PP_PORT_MEMBER" Size ="128">
+                    <Memory Name="NONE"> 
+                    </Memory>
+                </Field>
+                <Field Name="PP_PORT_MEMBER" Size ="128" Offset="128">
+                    <Memory Name="NONE"> 
+                    </Memory>
+                </Field>
+            </Access>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_PORT">
+        <OneLineDescription></OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT" Size="8"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="PORT_VID" Size="12"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <Access>
+                <Field Name="VLAN_DOMAIN">
+                    <Memory Name="IPPA_VTT_IN_PP_PORT_CONFIG_0m"> 
+                        <HwField Name="VLAN_DOMAINf"/>
+                    </Memory>
+                </Field>
+                <Field Name="PORT_VID">
+                    <Memory Name="IPPA_PINFO_LLRm"> 
+                        <HwField Name="DEFAULT_INITIAL_VIDf"/>
+                    </Memory>
+                </Field>
+            </Access>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_PORT">
+        <OneLineDescription></OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT" Size="8"/>
+                <Field Name="CORE_ID" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="VLAN_DOMAIN" Size="9"/>
+                <Field Name="PORT_VID" Size="12"/>
+                <Field Name="DEFAULT_AC_PROF" Size="4"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <Access>
+                <Field Name="VLAN_DOMAIN">
+                    <Memory Name="ETPPA_PER_PORT_TABLEm"> 
+                        <HwField Name="VLAN_DOMAINf"/>
+                    </Memory>
+                </Field>
+                <Field Name="PORT_VID">
+                    <Memory Name="IPPA_PINFO_LLRm"> 
+                        <HwField Name="DEFAULT_INITIAL_VIDf"/>
+                    </Memory>
+                </Field>
+            </Access>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_PORT_STP">
+        <OneLineDescription></OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT" Size="8"/>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="STG_ID" Size="8"/>
+            </Key>
+            <Result>
+                <Field Name="STP_STATE" Size="2"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <Access>
+                <Field Name="STP_STATE">
+                    <Memory Name="IPPA_STP_TABLEm"> 
+                        <EntryOffset EncodeType="PARTIAL_KEY" Field="PP_PORT"/>
+                        <HwField Name="PER_PORT_STP_STATEf"/>
+                        <DataOffset EncodeType="MULTIPLE" Field="STG_ID" Value="2"/>
+                    </Memory>
+                </Field>
+            </Access>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="EGRESS_PORT_STP">
+        <OneLineDescription></OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="PP_PORT" Size="8"/>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="STG_ID" Size="8"/>
+            </Key>
+            <Result>
+                <Field Name="STP_STATE" Size="2"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <Access>
+                <Field Name="STP_STATE">
+                    <Memory Name="NONE"> 
+                    </Memory>
+                </Field>
+            </Access>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_DEFAULT_AC_PROF">
+        <OneLineDescription></OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID" Size="1"/>
+                <Field Name="DEFAULT_AC_PROF" Size="4"/>
+            </Key>
+            <Result>
+               <Field Name="VLAN_ID" Size="12"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <Access>
+                <Field Name="VLAN_ID">
+                    <Memory Name="NONE"> 
+                    </Memory>
+                </Field>
+            </Access>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
