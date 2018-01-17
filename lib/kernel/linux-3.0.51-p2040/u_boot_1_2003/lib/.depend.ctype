@@ -1,0 +1,2 @@
+ctype.o: ctype.c \
+ /home/devtools/dev-QorIQ/dev-P204x/cxo160/u_boot_1_2003/include/linux/ctype.h

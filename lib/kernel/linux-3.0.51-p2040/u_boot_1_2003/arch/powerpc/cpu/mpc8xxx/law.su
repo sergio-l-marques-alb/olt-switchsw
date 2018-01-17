@@ -1,0 +1,8 @@
+law.c:70:6:set_law	8	static
+law.c:82:6:disable_law	8	static
+law.c:113:5:set_next_law	16	static
+law.c:126:5:set_last_law	16	static
+law.c:145:18:find_law	48	static
+law.c:171:6:print_laws	40	static
+law.c:196:5:set_ddr_laws	40	static
+law.c:238:6:init_laws	24	static

@@ -1,0 +1,7 @@
+bitops.h:12:19:generic_ffs	8	static
+bitops.h:48:19:generic_fls	8	static
+bitops.h:83:28:generic_hweight32	8	static
+bitops.h:92:28:generic_hweight16	8	static
+bitops.h:100:28:generic_hweight8	8	static
+byteorder.h:42:48:___arch__swab16	8	static
+byteorder.h:52:48:___arch__swab32	8	static

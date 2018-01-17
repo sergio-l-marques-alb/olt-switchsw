@@ -1,0 +1,14 @@
+tlb.c:35:6:invalidate_tlb	8	static
+tlb.c:43:6:init_tlbs	24	static
+tlb.c:59:6:read_tlbcam_entry	8	static
+tlb.c:77:6:print_tlbcam	64	static
+tlb.c:113:6:init_used_tlb_cams	8	static
+tlb.c:130:5:find_free_tlbcam	8	static
+tlb.c:150:6:set_tlb	40	static
+tlb.c:182:6:disable_tlb	8	static
+tlb.c:214:5:find_tlb_idx	8	static
+tlb.c:236:6:init_addr_map	64	static
+tlb.c:257:1:setup_ddr_tlbs_phys	88	static
+tlb.c:313:14:setup_ddr_tlbs	8	static
+tlb.c:320:6:clear_ddr_tlbs_phys	64	static
+tlb.c:341:6:clear_ddr_tlbs	8	static
