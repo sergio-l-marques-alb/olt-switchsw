@@ -63,6 +63,10 @@ typedef enum bcm_sys_board_ids_e {
     BCM_SYS_BOARD_56643,    /* PTin added: new switch 5664x (Triumph3) */
     BCM_SYS_BOARD_56340,    /* PTin added: new switch 56340 (Helix4) */
     BCM_SYS_BOARD_56450,    /* PTin added: new switch 56450 (Katana2) */
+    BCM_SYS_BOARD_88650,    /* PTin added: new switch ARAD */
+    BCM_SYS_BOARD_88370,    /* PTin added: new switch Q-MX */
+    BCM_SYS_BOARD_88470,    /* PTin added: new switch Q-AX */
+    BCM_SYS_BOARD_88670     /* PTin added: new switch Jericho */
 BCM_SYS_BOARD_COUNT         /* Last please */
 } bcm_sys_board_ids_t;
 

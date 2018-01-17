@@ -258,6 +258,10 @@ typedef enum
   __BROADCOM_56640_ID,  /* PTin added: new switch 5664x (Triumph3) */
   __BROADCOM_56340_ID,  /* PTin added: new switch 56340 (Helix4) */
   __BROADCOM_56450_ID,  /* PTin added: new switch 56450 (Katana2) */
+  __BROADCOM_88650_ID,  /* PTin added: new switch 88650 (ARAD) */
+  __BROADCOM_88370_ID,  /* PTin added: new switch 88370 (Q-MX) */
+  __BROADCOM_88470_ID,  /* PTin added: new switch 88470 (Q-AX) */
+  __BROADCOM_88670_ID,  /* PTin added: new switch 88670 (Jericho) */
   __MASTER_DRIVER_ID,
 } L7_NPD_ID_t;
 
@@ -278,8 +282,9 @@ typedef enum
   L7_BASE_TECHNOLOGY_TYPE_BROADCOM_XGS5,  /* PTin added: XGS5 family supported */
   L7_BASE_TECHNOLOGY_TYPE_BROADCOM_ROBO,
   L7_BASE_TECHNOLOGY_TYPE_MASTER_DRIVER,
-  L7_BASE_TECHNOLOGY_TYPE_UNKNOWN,      /* unidentified technology type */
-  L7_BASE_TECHNOLOGY_TYPE_TOTAL         /* total number of enum values */
+  L7_BASE_TECHNOLOGY_TYPE_BROADCOM_DNX,   /* PTin added: DNX family supported */
+  L7_BASE_TECHNOLOGY_TYPE_UNKNOWN,        /* unidentified technology type */
+  L7_BASE_TECHNOLOGY_TYPE_TOTAL           /* total number of enum values */
 } L7_BASE_TECHNOLOGY_TYPES_t;
 
 /*  NPD subtype specification
