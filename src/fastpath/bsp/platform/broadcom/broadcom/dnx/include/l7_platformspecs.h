@@ -94,9 +94,9 @@
 /* PTin added: new switch 56340 (Helix4) */
 #if (PTIN_BOARD == PTIN_BOARD_TA12XG)
 #define L7_MAX_PHYSICAL_SLOTS_PER_UNIT           1
-#define L7_MAX_PORTS_PER_SLOT                    12
-#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           12
-#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           12
+#define L7_MAX_PORTS_PER_SLOT                    16
+#define L7_MAX_PHYSICAL_PORTS_PER_SLOT           16
+#define L7_MAX_PHYSICAL_PORTS_PER_UNIT           16
 #endif
 
 /* Start of SNTP (really local clock) specific define statements */
