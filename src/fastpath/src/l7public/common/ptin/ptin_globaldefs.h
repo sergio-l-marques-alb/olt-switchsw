@@ -98,7 +98,9 @@ extern int ptin_sys_number_of_ports;
 #define PTIN_BOARD_IS_DOWNLINK(board) ((board)==(PTIN_BOARD_TYPE_TOLT8G) || (board)==(PTIN_BOARD_TYPE_TOLT8GR) || \
                                        (board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TG16GF) || \
                                        (board)==(PTIN_BOARD_TYPE_TT04SXG) || (board)==(PTIN_BOARD_TYPE_TT08SXG) || \
-                                       (board)==(PTIN_BOARD_TYPE_TA48GE) || (board)==(PTIN_BOARD_TYPE_TA48GED))
+                                       (board)==(PTIN_BOARD_TYPE_TA48GE) || (board)==(PTIN_BOARD_TYPE_TA48GED) || \
+                                       (board)==(PTIN_BOARD_TYPE_TA12XG))
+
 #define PTIN_BOARD_LS_CTRL(board)     ((board)==(PTIN_BOARD_TYPE_TOLTU20G) || (board)==(PTIN_BOARD_TYPE_TOLTU20GR) || \
                                        (board)==(PTIN_BOARD_TYPE_TU40G) || (board)==(PTIN_BOARD_TYPE_TU40GR) || \
                                        (board)==(PTIN_BOARD_TYPE_TOLT8G) || (board)==(PTIN_BOARD_TYPE_TOLT8GR) || \
@@ -176,6 +178,10 @@ extern int ptin_sys_number_of_ports;
 /* OLT1T3 Matrix card */
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
 #include "ptin_globaldefs_cxo640g.h"
+
+/* OLT1T3 Matrix card */
+#elif (PTIN_BOARD == PTIN_BOARD_TA12XGE)
+#include "ptin_globaldefs_ta12xge.h"
 
 #endif
 
