@@ -677,7 +677,7 @@ rmonEtherHistoryEntryFill(rmonHistoryControlEntry_t* hce, L7_uint32 bucketNumber
       break;
 
   /* PTin added: Speed 40G */
-  case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+  case L7_PORTCTRL_PORTSPEED_FULL_40G:
       hb->utilization = hb->utilization / 4000;
       break;
 

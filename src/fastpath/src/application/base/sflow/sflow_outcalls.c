@@ -221,7 +221,7 @@ void sFlowCounterValGet(L7_uint32 intIfNum, L7_uint32 counterType,
       *longval = SFLOW_IFSPEEDMAX_MBPS;
       break;
     /* PTin added: Speed 40G */
-    case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+    case L7_PORTCTRL_PORTSPEED_FULL_40G:
       /* 40,000,000,000 bps */
       *longval = SFLOW_40THOUSAND_MBPS;
       break;

@@ -633,7 +633,7 @@ xLibRC_t fpObjGet_baseSPM_LinkSpeed (void *wap, void *bufp)
               speed = 10000;
               break;
             /* PTin added: Speed 40G */
-            case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+            case L7_PORTCTRL_PORTSPEED_FULL_40G:
               speed = 40000;
               break;
             /* PTin added: Speed 100G */

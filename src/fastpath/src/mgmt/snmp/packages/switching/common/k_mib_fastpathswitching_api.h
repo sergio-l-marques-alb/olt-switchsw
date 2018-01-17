@@ -1421,7 +1421,7 @@ snmpAgentLagSummaryAddPortSet ( L7_uint32 UnitIndex, L7_int32 lagIntf, L7_int32 
       case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
       case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:    /* PTin added: Speed 2.5G */
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
-      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:  /* PTin added: Speed 40G */
+      case L7_PORTCTRL_PORTSPEED_FULL_40G:      /* PTin added: Speed 40G */
       case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP: /* PTin added: Speed 100G */
       case L7_PORTCTRL_PORTSPEED_UNKNOWN: /* preconfigured or link-down port */
         /* let lag determine if the port speed and type are correct for this lag */
@@ -8263,7 +8263,7 @@ snmpAgentPortDuplexModeGet ( L7_uint32 UnitIndex, L7_uint32 intIfIndex, L7_int32
     case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
     case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:    /* PTin added: Speed 2.5G */
     case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
-    case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:  /* PTin added: Speed 40G */
+    case L7_PORTCTRL_PORTSPEED_FULL_40G:      /* PTin added: Speed 40G */
     case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP: /* PTin added: Speed 100G */
       *val = D_agentPortDuplexMode_full_duplex;
       break;
@@ -8581,7 +8581,7 @@ snmpAgentPortDuplexModeSet ( L7_uint32 UnitIndex, L7_uint32 intIfIndex, L7_int32
       case L7_PORTCTRL_PORTSPEED_FULL_1000SX:
       case L7_PORTCTRL_PORTSPEED_FULL_2P5FX:    /* PTin added: Speed 2.5G */
       case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
-      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:  /* PTin added: Speed 40G */
+      case L7_PORTCTRL_PORTSPEED_FULL_40G:      /* PTin added: Speed 40G */
       case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP: /* PTin added: Speed 100G */
         return rc;
 

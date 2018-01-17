@@ -1293,7 +1293,7 @@ L7_char8 *strUtilPortSpeedGet(L7_PORT_SPEEDS_t val, L7_char8 *def)
       return pStrInfo_base_Speed10GigFull;
       /*pass thru */
     /* PTin added: Speed 40G */
-    case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+    case L7_PORTCTRL_PORTSPEED_FULL_40G:
       return pStrInfo_base_Speed40GigFull;
       /*pass thru */
     /* PTin added: Speed 100G */

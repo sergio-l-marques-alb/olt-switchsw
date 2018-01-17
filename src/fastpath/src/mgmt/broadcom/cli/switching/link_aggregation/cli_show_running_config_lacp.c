@@ -207,7 +207,7 @@ L7_RC_t cliRunningConfigDot3Info(EwsContext ewsContext, L7_uint32 unit)
                         osapiSnprintfAddBlanks (1, 0, 0, 0, L7_NULLPTR, stat1, sizeof(stat1), pStrInfo_base_Speed100gFullDuplex);
                         break;
                       /* PTin added: Speed 40G */
-                      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+                      case L7_PORTCTRL_PORTSPEED_FULL_40G:
                         osapiSnprintfAddBlanks (1, 0, 0, 0, L7_NULLPTR, stat1, sizeof(stat1), pStrInfo_base_Speed40gFullDuplex);
                         break;
                       /* PTin end */

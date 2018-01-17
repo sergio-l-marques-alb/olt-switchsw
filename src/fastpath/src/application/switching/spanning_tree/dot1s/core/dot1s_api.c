@@ -2835,7 +2835,7 @@ L7_RC_t dot1sCalcPortPathCost(L7_uint32 intIfNum)
         break;
 
       /* PTin added: Speed 40G */
-      case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+      case L7_PORTCTRL_PORTSPEED_FULL_40G:
         cost = 500;
         break;
 
