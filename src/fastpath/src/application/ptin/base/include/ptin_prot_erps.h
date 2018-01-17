@@ -137,6 +137,35 @@
 #define APS_MSK_REQSTATE(apsReqStatusRx)    ((apsReqStatusRx) & 0xF000)
 //#define APS_MSK_REQSTATE_AND_STATUS(apsReqStatusRx) ((apsReqStatusRx) & 0xF0E0)
 
+static inline L7_uint8 RReq_priority_resolution(L7_uint8 req0, L7_uint8 status0, L7_uint8 req1, L7_uint8 status1, L7_uint8 *reqout, L7_uint8 *statusout) {
+L7_uint8 req, status, r=-1;
+
+    if (RReq_NONE==req0 || RReq_EVENT==req0) {req=req1; status=status1; r=1;}
+    else
+    if (RReq_NONE==req1 || RReq_EVENT==req1) {req=req0; status=status0; r=0;}
+    else
+    if (req0>req1) {req=req0; status=status0; r=0;}
+    else
+    if (req0<req1) {req=req1; status=status1; r=1;}
+    else
+    if (RReq_NR==req0) {
+        req=RReq_NR;
+        if (status0!=status1) {
+            if (status1 & RReq_STAT_RB) {status=status1; r=1;}
+            else {status=status0; r=0;}
+        }
+        else {status=status0; r=0;}
+    }
+    else return -1;
+
+    if (NULL!=reqout) *reqout=req;
+    if (NULL!=statusout) *statusout=status;
+    return r;
+}//in Table 10-1
+
+
+
+
 //-------------------------------------------------------------------------
 //  Node state - The current state of the Ethernet Ring Node
 //-------------------------------------------------------------------------

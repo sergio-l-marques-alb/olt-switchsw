@@ -1752,18 +1752,19 @@ int ptin_prot_erps_instance_proc(L7_uint8 erps_idx)
               apsNodeIdRx[4],
               apsNodeIdRx[5]);
 
+      RReq_priority_resolution(apsReqRx, apsStatusRx, apsReqRxOtherPort, apsStatusRxOtherPort, &remoteRequest, NULL);
       if (apsReqRx != apsReqRxOtherPort) {
-        remoteRequest = apsReqRx;
+        //remoteRequest = apsReqRx;
       }
       else if (/*(apsReqRx == apsReqRxOtherPort) &&*/ (apsStatusRx != apsStatusRxOtherPort)) {
-        remoteRequest = apsReqRx;
+        //remoteRequest = apsReqRx;
 
         /* Clear on the other Port */
         tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1] = 0;  //tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1] = ((RReq_NR << 12) & 0xF000);
         //or?... tbl_erps[erps_idx].apsReqStatusRx[apsRxPort^0x1] = ((RReq_NONE << 12) & 0xF000);
       }
       else {
-        remoteRequest = apsReqRx;
+        //remoteRequest = apsReqRx;
         //PT_LOG_NOTICE(LOG_CTX_ERPS,"ERPS#%d: Ignoring Received R-APS. Other Port Request(0x%x) = %s(0x%x)", erps_idx, apsReqRxOtherPort,
         //      remReqToString[apsReqRxOtherPort], APS_GET_STATUS(apsStatusRxOtherPort));
       }
