@@ -522,6 +522,11 @@ ifneq (,$(filter xgs5,$(L7_PLATFORM)))
   export BLD_L7_PLATFORM_IS_TYPE_XGS4   := 1
 endif
 
+ifneq (,$(filter dnx,$(L7_PLATFORM)))
+  export BLD_L7_PLATFORM_XGS4           := 1
+  export BLD_L7_PLATFORM_IS_TYPE_XGS4   := 1
+endif
+
 ifneq (,$(filter xgs4_dni,$(L7_PLATFORM)))
   export BLD_L7_PLATFORM_XGS4		:= 1
   export BLD_L7_PLATFORM_IS_TYPE_XGS4	:= 1
@@ -568,6 +573,7 @@ endif
 export BLD_L7_TARGETOS_LINUX		:= 0
 export BLD_L7_TARGETOS_LINUX_24		:= 0
 export BLD_L7_TARGETOS_LINUX_26		:= 0
+export BLD_L7_TARGETOS_LINUX_3x		:= 0
 export BLD_L7_TARGETOS_VXWORKS		:= 0
 export BLD_L7_TARGETOS_VXWORKS_PNE	:= 0
 export BLD_L7_TARGETOS_VXWORKS_6x 	:= 0
@@ -579,7 +585,11 @@ ifneq (,$(filter linux,$(L7_TARGETOS)))
   ifneq (,$(filter "2.4","$(L7_TARGETOS_VARIANT)"))
     export BLD_L7_TARGETOS_LINUX_24	:= 1
   else
-    export BLD_L7_TARGETOS_LINUX_26	:= 1
+    ifneq (,$(filter "3.x","$(L7_TARGETOS_VARIANT)"))
+      export BLD_L7_TARGETOS_LINUX_3x	:= 1
+    else
+      export BLD_L7_TARGETOS_LINUX_26	:= 1
+    endif
   endif  
 endif
 
