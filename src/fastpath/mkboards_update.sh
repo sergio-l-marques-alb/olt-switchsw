@@ -19,7 +19,11 @@ if [ $# -eq 0 ]; then
  exit;
 fi
 
-if [ $2 == "cxo640g" ]; then
+if [ $2 == "ta12xg" ]; then
+ BOARD="CXO640G"
+ MKBOARDS_FOLDER=TA12XG
+ OUTPUT=output/FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_TA12XG
+elif [ $2 == "cxo640g" ]; then
  BOARD="CXO640G"
  MKBOARDS_FOLDER=CXO640G-MX
  OUTPUT=output/FastPath-Ent-esw-xgs4-pq3-LR-CSxw-IQH_CXO640G

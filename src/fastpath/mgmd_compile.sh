@@ -21,7 +21,31 @@ fi
 echo "[MGMD] Configuring $1 card"
 
 # Define specific variables according to the selected card
-if [ "$1" == "TG16GF" ]; then
+if [ "$1" == "TA12XG" ]; then
+  BOARD=$1
+  CPU=e500
+
+  export COMPILER_DIR=/opt/eldk/usr/bin
+  export COMPILER_PREFIX=ppc_85xxDP-
+  export LD_LIB_PATH=/opt/eldk/usr/bin
+
+  # Overide local variables with the ones comming from the makefile (if defined)
+  export COMPILER_DIR="${TOOLCHAIN_BIN_DIR:-$COMPILER_DIR}"
+  PREFIX=`echo $COMPILER | awk -F'/' '{print $NF}'`
+  if [ ! -z $PREFIX ]; then export COMPILER_PREFIX=$PREFIX; fi
+  export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-$LD_LIB_PATH}"
+
+  export PTIN_MGMD_PLATFORM_MAX_CHANNELS=4096
+  export PTIN_MGMD_PLATFORM_MAX_WHITELIST=16384
+  export PTIN_MGMD_PLATFORM_MAX_CLIENTS=128
+  export PTIN_MGMD_PLATFORM_MAX_PORTS=12
+  export PTIN_MGMD_PLATFORM_MAX_PORT_ID=16
+  export PTIN_MGMD_PLATFORM_MAX_SERVICES=40
+  export PTIN_MGMD_PLATFORM_MAX_SERVICE_ID=255
+  export PTIN_MGMD_PLATFORM_ADMISSION_CONTROL_SUPPORT=1
+  export PTIN_MGMD_PLATFORM_ROOT_PORT_IS_ON_MAX_PORT_ID=1
+
+elif [ "$1" == "TG16GF" ]; then
   BOARD=$1
   CPU=katanaarm
   
