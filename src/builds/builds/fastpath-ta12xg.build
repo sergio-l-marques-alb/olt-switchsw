@@ -1,0 +1,23 @@
+#!/bin/sh
+
+export MODULE=fastpath-ta12xg
+export PLATFORMS="TA12XG"
+
+export APPLICATION=fp
+
+echo "Compiling fastpath for TA12XG..."
+make -C ../fastpath -f ta12xg.make
+if [ $? -ne 0 ]; then
+ echo ERROR!!!
+ exit 1;
+fi
+echo "Copying binaries to apps..."
+make -C ../fastpath -f ta12xg.make install
+if [ $? -ne 0 ]; then
+ echo ERROR!!!
+ exit 1;
+fi
+echo "Done... Going to prepare tarball."
+echo
+
+. ./fastpath.build $1

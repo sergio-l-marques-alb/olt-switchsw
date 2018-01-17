@@ -1,0 +1,57 @@
+#!/bin/sh
+
+export MODULE=fastpath-olt
+export PLATFORMS="TT08SXG TU100G TA12XG"
+
+export APPLICATION=fp
+
+#echo "Updating SVN..."
+#svn update
+
+if [ $# -eq 0 ]; then
+  echo "Syntax parameters: $0 <version> [build/backup]"
+  exit 0;
+fi
+
+if [ $# -eq 1 ]; then
+  operation="all"
+else
+  operation=$2
+fi
+
+if [ "$operation" == "compile" -o "$operation" == "all" ]; then
+  echo "Compiling fastpath..."
+  make -C ../fastpath all
+  if [ $? -ne 0 ]; then
+    echo ERROR!!!
+   exit 1;
+  fi
+  echo "Done!"
+  echo
+fi
+
+if [ "$operation" == "install" -o "$operation" == "all" ]; then
+  echo "Copying binaries to apps..."
+  make -C ../fastpath install
+  if [ $? -ne 0 ]; then
+   echo ERROR!!!
+   exit 1;
+  fi
+  echo "Done!"
+  echo
+fi
+
+if [ "$operation" == "build" -o "$operation" == "all" ]; then
+  echo "Preparing tarball..."
+  . ./fastpath.build $1
+  echo "Done!"
+  echo
+fi
+
+if [ "$operation" == "backup" -o "$operation" == "all" ]; then
+  echo "Preparing backup..."
+  . ./fastpath.backup $1
+  echo "Done!"
+  echo
+fi
+

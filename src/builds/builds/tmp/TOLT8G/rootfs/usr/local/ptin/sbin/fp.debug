@@ -1,0 +1,17 @@
+mask=0x0ff0
+severity=9
+
+if [ $# -ge 1 ]; then
+  mask=$1
+fi
+
+if [ $# -ge 2 ]; then
+  severity=$2
+fi
+
+echo "Applying mask $mask..."
+
+fp.shell dev log_sev_set 0x0008 8
+fp.shell dev log_sev_set $mask $severity
+
+echo "Done!"
