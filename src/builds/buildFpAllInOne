@@ -1,0 +1,204 @@
+#!/bin/sh
+
+###########OLT Version and Patch Version##################
+oltVersion=3.11
+patchVersion=0
+
+###############Input Arguments Validation#########################
+#echo "Usage: sh $0 [version] [patch] [\$updateSvn] [\$compile] [\$update_mkboards]"
+
+updateSvn=1
+compile=1
+update_mkboards=1
+svn_username=ci-olt-switchsw
+svn_password=c1-olt-switchsw
+
+svnversion_file=svnversion.txt
+
+dst_path=/home/olt/fastpath_builds/fastpath
+
+if [ $# -ge 1 ]; then
+    # Show help 
+    if [ $1 == "h" -o $1 == "help" ]; then
+        echo "Syntax: $0 [version] [patch] [update_svn(0/1)] [compile(0/1)] [update_mkboards(0/1)]"
+        exit 0;
+    fi
+    if [ "$1" != "x" ]; then
+        oltVersion=$1
+    fi
+fi
+if [ $# -ge 2 ]; then
+    if [ "$2" != "x" ]; then
+        patchVersion=$2
+    fi
+fi
+if [ $# -ge 3 ]; then
+    updateSvn=$3
+    if  [ $updateSvn -ne 1 -a $updateSvn -ne 0 ]; then
+        echo "Invalid Input Parameter: updateSvn=$updateSvn"
+        exit -1
+    fi
+fi
+if [ $# -ge 4 ]; then
+    compile=$4
+    if  [ $compile -ne 1 -a $compile -ne 0 ]; then
+        echo "Invalid Input Parameter: compile=$compile"
+        exit -1
+    fi
+fi
+if [ $# -ge 5 ]; then
+    update_mkboards=$5
+    if  [ $update_mkboards -ne 1 -a $update_mkboards -ne 0 ]; then
+        echo "Invalid Input Parameter: update_mkboards=$update_mkboards"
+        exit -1
+    fi
+fi
+
+echo "oltVersion=$oltVersion"
+echo "patchVersion=$patchVersion"
+echo "updateSvn=$updateSvn"
+echo "compile=$compile"
+echo "update_mkboards=$update_mkboards"
+###############End Input Arguments Validation#########################
+
+###############Save Current Path#########
+cd `dirname $0`
+currentPath=$(pwd)
+######################################
+
+###########Validate Current User####################
+builderUser=olt
+password=olttera
+currentUser=$(whoami)
+
+if [ "$builderUser" != "$currentUser" ]; then
+    echo "Current user: \"$currentUser\" is not the \"$builderUser\" user"
+    exit -1
+fi
+###############Validate Current User###################
+
+############Paths Assignment & Validation#####################
+builderScriptPath=.
+srcPath=..
+buildPath=/home/olt/fastpath_builds
+mkBoardsPath=/home/olt/mkboards_$oltVersion
+
+if [ ! -d $srcPath ]; then
+    echo "Path Not Found: $srcPath"
+    exit $?
+fi
+
+if [ ! -d $builderScriptPath ]; then
+    echo "Path Not Found: $builderScriptPath"
+    exit $?
+fi
+
+if [ ! -d $buildPath ]; then
+    echo "Path Not Found: $buildPath"
+    exit $?
+fi
+
+if [ ! -d $mkBoardsPath ]; then
+    echo "Path Not Found: $mkBoardsPath"
+    exit $?
+fi
+
+############Paths Assignment & Validation#####################
+
+
+############SVN Update & Validation#####################
+if  [ $updateSvn -eq 1 ]; then
+	echo "Going to update $srcPath...press Ctrl+C to abort"
+	sleep 1
+	cd $srcPath
+	svn update --username=$svn_username --password=$svn_password
+	cd -
+	
+	if  [ $? -ne 0 ]; then
+		echo -e "
+		######################################################################################################################\n
+		# Failed to update FP  | MKBoardsVersion=$oltVersion  ###############################################\n
+		######################################################################################################################"
+
+		exit $?
+	fi
+	#svnRelease=`svnversion $srcPath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+        svnRelease=`svnversion $srcPath`
+else	
+	#svnRelease=`svnversion $srcPath -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
+        svnRelease=`svnversion $srcPath`
+	echo "I'm not updating $srcPath: Using current svn release:$svnRelease...press Ctrl+C to abort"
+	sleep 1
+fi
+
+#if  [ "$svnRelease"=="*M" ]; then
+#	echo "Local Changes Detected:$svnRelease Aborting process!"
+#	exit -1
+#fi
+############End SVN Update & Validation#####################
+
+############Fastpath Build Script####################
+#Go to Fastpath Builder Script
+echo "Going to build fp-$oltVersion.$patchVersion-r$svnRelease...press Ctrl+C to abort"
+sleep 1
+cd $builderScriptPath
+
+# Check if is necessary to make a build
+if [ -f $svnversion_file ]; then
+  lastRelease=`cat $svnversion_file`
+  if [ $svnRelease == $lastRelease ]; then
+    echo "SVN revision didn't change since last build... Nothing to be done."
+    exit;
+  fi
+fi
+
+# Apply environemnt variables
+. ./env_vars.sh
+
+# Compile boards
+if [ $compile -eq 1 ]; then
+    sh ./fastpath-olt.build $oltVersion.$patchVersion compile
+    if [ $? -ne 0 ]; then
+        echo "Error compiling boards!"
+        exit -1;
+    fi
+fi
+sh ./fastpath-olt.build $oltVersion.$patchVersion install $dst_path
+if [ $? -ne 0 ]; then
+    echo "Error copying binaries!"
+    exit -1;
+fi
+sh ./fastpath-olt.build $oltVersion.$patchVersion build $dst_path
+if [ $? -ne 0 ]; then
+    echo "Error transferring binaries!"
+    exit -1;
+fi
+
+if  [ $? -ne 0 ]; then
+    echo -e "
+    ######################################################################################################################\n
+    # Failed to generate FP build | MKBoardsVersion=$oltVersion | SVNVersion=$svnRelease ###############################################\n
+    ######################################################################################################################"
+    exit $?
+fi
+############End Fastpath Build Script####################
+
+############ Update mkboards ############################
+if [ $update_mkboards -eq 1 ]; then
+    sh ./mkboards_update.sh $oltVersion $patchVersion $svnRelease
+else
+    echo "mkboards updating step was skipped."
+fi
+############ End of mkboards update ####################
+
+#Restore User Path
+cd $currentPath
+
+#Save current SVN revision
+echo "$svnRelease" > $svnversion_file
+
+# Create backup
+sh ./fastpath-olt.build $oltVersion.$patchVersion backup $dst_path
+
+echo "Done: fastpath-olt.image-v$oltVersion.$patchVersion-r$svnRelease!"
+exit 0
