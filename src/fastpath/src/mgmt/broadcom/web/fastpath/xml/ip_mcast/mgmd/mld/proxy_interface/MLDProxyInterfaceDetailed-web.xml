@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="MLDProxyMemberShipInfoDetailed" title="MLD Proxy Interface Detailed Membership Info">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element properties="write-only,hidden" value="IPv6" obj-name="ipmcastmgmdHostSourceListTable_mgmdHostSrcListAddressType" id="1" name="mgmdHostSrcListAddressType"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter" obj-name="ipmcastmgmdHostSourceListTable_mgmdHostSrcListIfIndex" id="1" name="Interface"/>
+            </node>
+            <node id="3">
+                <element control="combo" properties="filter,iterate" obj-name="ipmcastmgmdHostSourceListTable_mgmdHostSrcListAddress" id="1" name="MultiCast Group IP"/>
+            </node>
+            <repeat present="vtable" edit="no" id="4" heading=" ">
+                <element properties="filter,iterate" obj-name="ipmcastmgmdHostSourceListTable_mgmdHostSrcListHostAddress" id="1" name="Source Address">
+                    <action type="value" value="Wrong-family-addr" web_name=""/>
+                </element>
+                <element obj-name="ipmcastmgmdHostSourceListTable_mgmdHostSrcListExpire" id="2" name="Expiry Time(hh:mm:ss)"/>
+            </repeat>
+            <node id="5">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

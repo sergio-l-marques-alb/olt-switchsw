@@ -1,0 +1,283 @@
+
+#
+#
+# Copyright (C) 1992-2006 by SNMP Research, Incorporated.
+#
+# This software is furnished under a license and may be used and copied
+# only in accordance with the terms of such license and with the
+# inclusion of the above copyright notice. This software or any other
+# copies thereof may not be provided or otherwise made available to any
+# other person. No title to and ownership of the software is hereby
+# transferred.
+#
+# The information in this software is subject to change without notice
+# and should not be construed as a commitment by SNMP Research, Incorporated.
+#
+# Restricted Rights Legend:
+#  Use, duplication, or disclosure by the Government is subject to
+#  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+#  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+#  subparagraphs (c)(4) and (d) of the Commercial Computer
+#  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+#  clauses in the NASA FAR Supplement and other corresponding
+#  governmental regulations.
+#
+#
+
+#
+#                PROPRIETARY NOTICE
+#
+# This software is an unpublished work subject to a confidentiality agreement
+# and is protected by copyright and trade secret law.  Unauthorized copying,
+# redistribution or other use of this work is prohibited.
+#
+# The above notice of copyright on this source code product does not indicate
+# any actual or intended publication of such source code.
+#
+#
+
+
+TOPDIR     =    ../..
+
+# 
+# Operating System Information
+#
+
+RM = rm -f
+RMDIR = rmdir
+MOVE = mv
+CP = cp
+CAT = cat
+MKDIR = mkdir
+# PRESERVE is the flag to $(CP) to duplicate the modification time and
+# permission modes of the original file or directory.
+PRESERVE = -p
+
+
+# Extensions to certain kinds of files are set here.
+LIBEXT = a
+BINEXT =
+OBJEXT = o
+
+
+LIBPRF = lib
+
+
+              OS = -DLINUX
+              os = linux
+      SR_OSTYPE =
+         OSFLAGS =
+      SOCKETLIBS =
+            LLIB =
+      LINTLIBOPT =
+        LINTOPTS =
+     THREAD_LIBS = -lpthread
+     SR_SEM_LIBS = -lrt
+      EXTRA_DEFS = 
+
+
+              CC = cc
+              LD = cc
+      DEBUGFLAGS = -g -Wall -fno-builtin -Wpointer-arith -Wstrict-prototypes
+            LINT = lint
+              AR = ar
+             LEX = flex
+            YACC = yacc
+          AROPTS = cr
+          RANLIB = touch
+
+      EXTRA_SRCS =
+      EXTRA_OBJS =
+
+# for shared libraries
+DYNCFLAGS = -fPIC
+DYNLDFLAGS = -shared
+DYN_LINK_FLAGS = -rdynamic
+DYNLDLIBS =
+DYNLD = ld 
+DYN_LIB_LIBS = -ldl
+SHLIBPRF = lib
+SHLIBEXT = so
+IPC_DEFAULT = -DSR_UDS_IPC
+IPC_DEFAULT_LIB = uds
+
+
+#
+# Directories
+#
+
+
+OBD_V1 = 1
+
+OBD_V2c = c
+
+OBD_V3 =
+
+OSBASEDIR = v$(OBD_V1)$(OBD_V2c)$(OBD_V3)
+
+
+SRM_ARCH = $(shell /bin/arch)
+
+OSLIBDIR = $(os)_$(SRM_ARCH)$(OSBASEDIR).lib
+OSOBJDIR = $(os)_$(SRM_ARCH)$(OSBASEDIR).obj
+OSBINDIR = $(os)_$(SRM_ARCH)$(OSBASEDIR).bin
+
+SECUR_DIR = $(TOPDIR)/../basic
+
+LIBDIR      = $(SECUR_DIR)/$(OSLIBDIR)
+BINDIR      = $(SECUR_DIR)/$(OSBINDIR)
+INSTALLDIR  = $(SECUR_DIR)/$(OSBINDIR)
+MIBS_DIR    = $(TOPDIR)/mibs
+RFCS_DIR    = $(TOPDIR)/mibs/rfcs
+IDRAFTS_DIR = $(TOPDIR)/mibs/internet-drafts
+IANA_DIR    = $(TOPDIR)/mibs/iana
+MIBCOMP_DIR = $(SECUR_DIR)/$(OSBINDIR)
+
+
+INCDIRS = \
+        -I. \
+        -I$(TOPDIR)/include \
+        -I$(TOPDIR)/include/osconf \
+        -I$(OSOBJDIR)
+
+CFLAGS = \
+	-g \
+	-w \
+	$(DEBUG) \
+	$(EXTRA_DEFS) \
+	$(OS) \
+	$(SNMP_OPTIONS) \
+	$(SR_CONFIG_FP) \
+	$(SYSOPTS) \
+	$(INCDIRS) \
+	$(SR_OSTYPE)
+
+
+#
+# Compile Commands
+#
+
+
+CORULE = $(CC) -c $(OSFLAGS) $(CFLAGS) -o $@ $(@F:.o=.c)
+THREADRULE = $(CC) -c $(OSFLAGS) $(CFLAGS) -o $@ $(@F:.o=.c)
+REMOTERULE = $(CC) -c $(OSFLAGS) $(CFLAGS) $(REMOTEFLAGS) -o $@ $(REMOTEDIR)/$(@F:.o=.c)
+REMOTERULE2 = $(CC) -c $(OSFLAGS) $(CFLAGS) $(REMOTEFLAGS) -o $@ $(REMOTEDIR2)/$(@F:.o=.c)
+MGRCORULE = $(CC) -c $(OSFLAGS) $(MGRCFLAGS) -o $@ $(@F:.o=.c)
+YACCRULE = $(CC) -c $(OSFLAGS) $(CFLAGS) -o $@ $(OSOBJDIR)/$(@F:.o=.c)
+MOSYRULE = $(CC) -c $(OSFLAGS) $(MGRCFLAGS) -o $@ $(SECLIBDIR)/$(@F:.o=.c)
+
+
+###############################################################################
+# fast for all
+###############################################################################
+
+all::
+
+all:: $(OSOBJDIR) $(OSOBJDIR)/mibgc$(BINEXT) $(OSOBJDIR)/mibgp$(BINEXT)
+
+$(OSOBJDIR):
+	-$(MKDIR) $(OSOBJDIR)
+ 
+
+$(OSOBJDIR)/mibgc$(BINEXT): $(OSOBJDIR)/bison.o $(OSOBJDIR)/fast_flex.o
+	$(LD) $(LDFLAGS) -o $(OSOBJDIR)/mibgc $(OSOBJDIR)/bison.o $(OSOBJDIR)/fast_flex.o
+	-$(MKDIR) $(BINDIR)
+	-$(CP) $(OSOBJDIR)/mibgc$(BINEXT) $(BINDIR)
+
+$(OSOBJDIR)/bison.o: bison.c
+	$(CORULE)	
+
+$(OSOBJDIR)/fast_flex.o: fast_flex.c
+	$(CORULE)	
+
+$(OSOBJDIR)/mibgp$(BINEXT): $(OSOBJDIR)/fast_strip.o
+	$(LD) -g -o $(OSOBJDIR)/mibgp $(OSOBJDIR)/fast_strip.o
+	-$(CP) $(OSOBJDIR)/mibgp$(BINEXT) $(BINDIR)
+ 
+$(OSOBJDIR)/fast_strip.o: fast_strip.c
+	$(CORULE)	
+
+
+###############################################################################
+# gcc produces a much better MIB compiler
+# linux and freebsd are known to have gcc
+# any ANSI-compatible C compiler should work
+
+# the "setargv /link" for windows forces * and ? 
+# on the command-line to be expanded
+
+# unixware doesn't like *.o, must list each object
+###############################################################################
+
+###############################################################################
+# small
+###############################################################################
+
+small:
+	-mkdir $(BINDIR)
+	$(CC) -O2 $(CFLAGS) -o  $(OSOBJDIR)/mibgc bison.c small_flex.c
+	$(CC) -O2 $(CFLAGS) -o  $(OSOBJDIR)/mibgp small_strip.c
+	-$(CP) $(OSOBJDIR)/mibgc$(BINEXT) $(BINDIR)
+	-$(CP) $(OSOBJDIR)/mibgp$(BINEXT) $(BINDIR) 
+	-$(RM) bison.$(OBJEXT) small_flex.$(OBJEXT) small_strip.$(OBJEXT)  
+
+################################################################
+# source for non-windows
+# the sources must be created using flex (NOT lex)
+# and bison (not yacc)
+################################################################
+
+fast_source:
+	bison -d -y parser.y
+	$(MOVE) y.tab.c bison.c
+	$(MOVE) y.tab.h bison.h
+	flex  -Cf -8 lexer.l
+	$(MOVE) lex.yy.c fast_flex.c
+	flex  -Cf -8 stripper.l
+	$(MOVE) lex.yy.c fast_strip.c
+
+small_source:
+	bison -d -y parser.y
+	$(MOVE) y.tab.c bison.c
+	$(MOVE) y.tab.h bison.h
+	flex  -8 lexer.l
+	$(MOVE) lex.yy.c small_flex.c
+	flex -8 stripper.l
+	$(MOVE) lex.yy.c small_strip.c
+
+develop_source:
+	bison -d -t -v -y parser.y
+	$(MOVE) y.tab.c develop_bison.c
+	$(MOVE) y.tab.h bison.h
+	flex -p -p -b -v lexer.l
+	$(MOVE) lex.yy.c develop_flex.c
+	flex -p -p -b -v stripper.l
+	$(MOVE) lex.yy.c develop_strip.c
+
+################################################################
+# developmental production
+################################################################
+
+develop:
+	gcc $(CFLAGS) -o $(OSOBJDIR)/mibgc develop_bison.c develop_flex.c
+	gcc $(CFLAGS) -o $(OSOBJDIR)/mibgp develop_strip.c
+	-$(RM) bison.$(OBJEXT) develop_flex.$(OBJEXT) develop_strip.$(OBJEXT)
+
+
+pure:
+	purify $(CC) $(CFLAGS) -o $(OSOBJDIR)/mibgc develop_bison.c develop_flex.c
+	purify $(CC) $(CFLAGS) -o $(OSOBJDIR)/mibgc small_strip.c
+	-$(RM) bison.$(OBJEXT) develop_flex.$(OBJEXT) develop_strip.$(OBJEXT)
+
+################################################################
+# clean for all
+################################################################
+
+clean:
+	-$(RM) *.$(OBJEXT)
+	-$(RM) $(BINDIR)/mibgc$(BINEXT)
+	-$(RM) $(BINDIR)/mibgp$(BINEXT)
+	-$(RM) $(OSOBJDIR)/mibgc$(BINEXT)
+	-$(RM) $(OSOBJDIR)/mibgp$(BINEXT)
+	-$(RM) $(OSOBJDIR)/*.$(OBJEXT)
+	-$(RMDIR) $(OSOBJDIR)

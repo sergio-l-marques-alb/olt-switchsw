@@ -1,0 +1,19 @@
+#!/bin/bash
+
+cd ipl
+../mxput 126 1 switchdrvr /usr/local/ptin/sbin
+../mxput 126 1 devshell_symbols.gz /usr/local/ptin/sbin
+cd -
+
+cd target
+../mxput 126 1 linux-kernel-bde.ko /usr/local/ptin/sbin
+../mxput 126 1 linux-user-bde.ko /usr/local/ptin/sbin
+
+cp ../../../../../fastpath.shell/bin/fastpath.shell .
+../mxput 126 1 fastpath.shell /usr/local/ptin/sbin .
+
+cp ../../../../../fastpath.cli/bin/fastpath.cli .
+../mxput 126 1 fastpath.cli /usr/local/ptin/sbin .
+
+cd -
+ 

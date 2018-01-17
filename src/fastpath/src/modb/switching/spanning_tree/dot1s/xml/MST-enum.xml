@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+    <enum name="L7_DOT1S_PORTROLE_t">
+      <option macro="L7_DOT1S_ROLEDISABLED" name="Disabled"> </option>
+      <option macro="L7_DOT1S_ROLEROOT" name="Root"> </option>
+      <option macro="L7_DOT1S_ROLEDESIGNATED" name="Designated"> </option>
+      <option macro="L7_DOT1S_ROLEALTERNATE" name="Alternate"> </option>
+      <option macro="L7_DOT1S_ROLEBACKUP" name="Backup"> </option>
+      <option macro="L7_DOT1S_ROLEMASTER" name="Master"> </option>
+    </enum>
+    <enum name="mstpOperation_t">
+         <option macro="L7_MST_OPERATION_NONE" name="None"/>
+         <option macro="L7_MST_OPERATION_CREATE" name="Create"/>
+         <option macro="L7_MST_OPERATION_DELETE" name="Delete"/>
+   </enum>
+  </data-types>
+</FastPathXML>

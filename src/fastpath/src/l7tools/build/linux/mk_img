@@ -1,0 +1,387 @@
+#!/bin/sh
+
+# This script builds the code update packages for use with FASTPATH.
+
+COMPONENTS=1
+
+EXEC_NAME=switchdrvr
+
+
+FIRMWARE_NAME=u-boot.bin
+
+UPDATE_BOOTCODE_NAME=UPDATE_BOOTCODE
+
+VPD_NAME=fastpath.vpd
+
+ROOTFS_NAME=rootfs_image.gz
+
+TARGET_PATH=../target
+SYSTEM_PATH=../system
+
+IPL_PATH=../ipl
+
+SYMBOLS_NAME=devshell_symbols.gz
+SYMBOLS_PATH=${IPL_PATH}
+
+ORIGINAL_PWD=`/bin/pwd`
+
+get_choice()
+{
+	while :
+	do
+		read CHOICE
+		case $CHOICE in
+		y | Y)	CHOICE=Y 
+			break
+			;;
+		n | N)	CHOICE=N
+			break
+			;;
+		*)	echo -n "Invalid selection. (Y/N): "
+			;;
+		esac
+	done
+}
+
+usage()
+{
+cat << __START__
+Usage:  $0 -c <cpu> -i <model_id> -p <platform> -t <target> -r <rel> -v <ver> [-m <maint>] \\
+  [-b <bld>] [-a <start_address>] [-e <execute_address>]
+
+  <cpu>        is CPU name, a char string (required)
+  <model_id>   is model Identifier, a char string (required)
+  <platform>   is platform type, a char string (required)
+  <target>     is target type, a char string (required)
+  <rel>        is Release Number, any numeric value (0-63) (required)
+  <ver>        is Version Number, any numeric value (0-63) (required)
+  <maint>      is Maintanence Level, any numeric value (0-63) (optional)
+  <bld>        is Build Number, any numeric value (0-63) (optional)
+  <start_address> is the start address in RAM 
+  <execute_address> is the address of __init_begin of kernel
+__START__
+exit 0
+}
+
+##############
+# START HERE #
+##############
+
+while getopts c:i:p:t:r:v:m:b:a:e: OPT
+do
+	case $OPT in
+	c)	case $OPTARG in
+		-? | -* ) usage
+			;;
+		*)      CPU=${OPTARG}
+			;;
+		esac 
+		;;
+
+	i)	case $OPTARG in
+		-? | -* ) usage
+			;;
+		*)      MODEL_ID=${OPTARG}
+			;;
+		esac 
+		;;
+
+	p)	case $OPTARG in
+		-? | -* ) usage
+			;;
+		*)      BOARD=${OPTARG}
+			;;
+		esac 
+		;;
+
+	t)	case $OPTARG in
+		-? | -* ) usage
+			;;
+		*)      TYPE=${OPTARG}
+			;;
+		esac 
+		;;
+
+	r)	if [ $OPTARG -lt 0 -o $OPTARG -gt 63 ]
+		then  
+			usage
+		fi
+		REVISION=${OPTARG} 
+		;;
+
+	v)	if [ $OPTARG -lt 0 -o $OPTARG -gt 63 ]
+		then  
+			usage
+		fi
+		VERSION=${OPTARG} 
+		;;
+
+	m)	if [ $OPTARG -lt 0 -o $OPTARG -gt 63 ]
+		then  
+			usage
+		fi
+		MAINT_LVL=${OPTARG} 
+		;;
+
+	b)	if [ $OPTARG -lt 0 -o $OPTARG -gt 63 ]
+		then  
+			usage
+		fi
+		BUILD_NUM=${OPTARG} 
+		;;
+
+	a)	case $OPTARG in
+		-? | -* ) usage
+			;;
+		*)      START_ADDR=${OPTARG}
+			;;
+		esac 
+		;;
+
+	e)	case $OPTARG in
+		-? | -* ) usage
+			;;
+		*)      EXEC_ADDR=${OPTARG}
+			;;
+		esac 
+		;;
+
+	\?)	usage 
+		;;
+	*)	echo "Invalid option!"
+		usage
+		;;
+	esac
+done	
+
+
+if [ -z "$TYPE" -o -z "$REVISION" -o -z "$VERSION" ]
+then
+	usage
+fi
+
+echo
+
+
+# Define location of source files being used here.
+TARGET_SRC=${FP_BASE}/bsp/cpu/${CPU}/linux/target
+SYSTEM_SRC=${FP_BASE}/bsp/cpu/${CPU}/linux/system
+
+          
+FILENAME=${TYPE}r${REVISION}v${VERSION}
+if [ -n "$MAINT_LVL" ]
+then
+	FILENAME=${FILENAME}m${MAINT_LVL}
+else
+	MAINT_LVL=0
+fi
+if [ -n "$BUILD_NUM" ]
+then
+	FILENAME=${FILENAME}b${BUILD_NUM}
+else
+	BUILD_NUM=0
+fi
+
+if [ "$L7_TARGETOS_VARIANT" = "2.4" ]
+then
+	SYSTEM_PATH=../system24
+	SYSTEM_SRC=${FP_BASE}/bsp/cpu/${CPU}/linux/system24
+	ROOTFS_NAME=${SYSTEM_SRC}/ext2rfs.gz
+fi
+
+if [ "$DBG" = "@" ]
+then
+	ZIP_FLAGS=-f9
+else
+	ZIP_FLAGS=-vf9
+fi
+
+# Create appropriate output subdirectories if they do not already exist.
+if [ ! -d ${TARGET_PATH} ]
+then
+	mkdir -p ${TARGET_PATH}
+fi
+
+if [ ! -d ${SYSTEM_PATH} ]
+then
+	mkdir -p ${SYSTEM_PATH}
+fi
+
+
+echo "Making Operational Code Image File, please wait..."
+
+cd ${TARGET_PATH}
+
+rm -f ./${UPDATE_BOOTCODE_NAME}.md5sum
+rm -f ./${FIRMWARE_NAME}.md5sum
+rm -f ./${VPD_NAME}
+rm -f ./${VPD_NAME}.md5sum
+rm -f ./${EXEC_NAME}.gz
+rm -f ./${SYMBOLS_NAME}
+rm -f ./${SYMBOLS_NAME}.md5sum
+
+# Only add u-boot if it exists
+if [ "$BLD_L7_FEAT_METRO_CPE_V1_0" == "1" ]
+then
+	TARGET_SRC=${FP_BASE}/bsp/cpu/${CPU}/linux/system
+	FIRMWARE_NAME=cfe.bin
+        FIRMWARE_NAME_SWAP=cfe.bin.swap
+fi
+if [ -s ${TARGET_SRC}/${UPDATE_BOOTCODE_NAME} ] && [ -s ${TARGET_SRC}/${FIRMWARE_NAME} ] 
+then
+	###############################################################
+	#              Add UPDATE_BOOTCODE to the fastpath.tgz        #
+	###############################################################
+
+	if ! cp -f ${TARGET_SRC}/${UPDATE_BOOTCODE_NAME} ${UPDATE_BOOTCODE_NAME}
+	then
+		echo "Copy of ${TARGET_SRC}/${UPDATE_BOOTCODE_NAME} returned ${?}!"
+		exit 1
+	fi
+	
+	if ! md5sum ${UPDATE_BOOTCODE_NAME} > ${UPDATE_BOOTCODE_NAME}.md5sum
+	then
+		echo "MD5 checksum of ${UPDATE_BOOTCODE_NAME} returned ${?}!"
+		exit 1
+	fi
+
+
+	###############################################################
+	#                Add u-boot.bin to the fastpath.tgz           #
+	###############################################################
+	
+	if ! cp -f ${TARGET_SRC}/${FIRMWARE_NAME} ${FIRMWARE_NAME}
+	then
+		echo "Copy of ${TARGET_SRC}/$FIRMWARE_NAME} returned ${?}!"
+		exit 1
+	fi
+	
+        if [ "$BLD_L7_FEAT_METRO_CPE_V1_0" == "1" ]
+        then
+        	${PERL} ${FP_BASE}/src/l7tools/build/swap.pl  ${FIRMWARE_NAME} ${FIRMWARE_NAME_SWAP} > /dev/null 2>&1 
+                if ! cp -f ${FIRMWARE_NAME_SWAP} ${FIRMWARE_NAME}
+		then
+			echo "Copy of ${FIRMWARE_NAME_SWAP} returned ${?}!"
+			exit 1
+		fi
+		rm -f ${FIRMWARE_NAME_SWAP}
+        fi
+	if ! md5sum ${FIRMWARE_NAME} > ${FIRMWARE_NAME}.md5sum
+	then
+		echo "MD5 checksum of ${FIRMWARE_NAME} returned ${?}!"
+		exit 1
+	fi
+
+fi
+
+
+###############################################################
+#                Create the fastpath.vpd file                 #
+###############################################################
+
+echo "Vital Product Data:-" > ${VPD_NAME}
+echo "         Operational Code Image File Name - ${FILENAME}" >> ${VPD_NAME}
+echo "         Rel $REVISION, Ver $VERSION, Maint Lev $MAINT_LVL, Bld No $BUILD_NUM" >> ${VPD_NAME}
+echo "         Timestamp - `date`" >> ${VPD_NAME}
+echo "         Number of components - $COMPONENTS" >> ${VPD_NAME}
+echo "         Device $MODEL_ID" >> ${VPD_NAME}
+echo "         L7_MODULE_LIST=${L7_MODULE_LIST}" >> ${VPD_NAME}
+
+if ! md5sum ${VPD_NAME} > ${VPD_NAME}.md5sum
+then
+	echo "MD5 checksum of ${VPD_NAME} returned ${?}!"
+	exit 1
+fi
+
+###############################################################
+#            Copy & compress the FastPath executable          #
+###############################################################
+if [ ! -s ${EXEC_NAME} ]
+then
+	echo "File ${EXEC_NAME} not found!"
+	exit 1
+fi
+
+7za a ${EXEC_NAME}.7z ${EXEC_NAME} > /dev/null
+rm -f ${EXEC_NAME}
+
+###############################################################
+#            Add the necessary kernel modules.                #
+###############################################################
+
+for MODULE_NAME in ${L7_MODULE_LIST};
+do
+        if [ -f ./${MODULE_NAME}.md5sum ]
+	then
+	        rm -f ./${MODULE_NAME}.md5sum
+	fi
+done
+
+for MODULE_NAME in ${L7_MODULE_LIST};
+do
+        if [ -f ${MODULE_NAME} ]
+	        then
+	    if ! md5sum ${MODULE_NAME} > ${MODULE_NAME}.md5sum
+	    then
+                    echo "MD5 checksum of ${MODULE_NAME} returned ${?}!"
+		    exit 1
+	    fi
+	fi
+done
+
+###############################################################
+#             Add symbol list to fastpath.tgz.                #
+###############################################################
+if [ ! -s ${SYMBOLS_PATH}/${SYMBOLS_NAME} ]
+then
+	echo "File ${SYMBOLS_PATH}/${SYMBOLS_NAME} not found, devshell will not be usable."
+else
+    if ! cp ${SYMBOLS_PATH}/${SYMBOLS_NAME} ${SYMBOLS_NAME}
+    then
+	echo "Copy of ${SYMBOLS_PATH}/${SYMBOLS_NAME} returned ${?}!"
+	exit 1
+    else 
+        if ! md5sum ${SYMBOLS_NAME} > ${SYMBOLS_NAME}.md5sum
+        then
+                echo "MD5 checksum of ${SYMBOLS_NAME} returned ${?}!"
+                exit 1
+        fi	
+    fi
+fi
+
+tar -czf $SYSTEM_PATH/${FILENAME}.tgz .
+
+cd ${SYSTEM_PATH}
+
+if [ "$L7_CPU" != "raptor" ] && [ "$L7_CPU" != "jag" ] && [ "$L7_CPU" != "robo-bsp" ] && [ "$L7_CPU" != "keystone" ] 
+then
+	mkimage -A ppc -O linux -T multi -C gzip -a 0 -e 0 -n "FASTPATH System for "${CPU}  -d vmlinux.bin.gz:${ROOTFS_NAME}:${SYSTEM_SRC}/ACTIVATE:${FILENAME}.tgz ${IPL_PATH}/${FILENAME}.uim
+
+elif [ "$L7_CPU" == "keystone" ]
+then
+  mkimage -A mips -O linux -T multi -C gzip -a $START_ADDR -e $EXEC_ADDR -n "FASTPATH System for "${CPU}  -d vmlinux.bin.gz:${ROOTFS_NAME}:${SYSTEM_SRC}/ACTIVATE:${FILENAME}.tgz ${IPL_PATH}/${FILENAME}.uim
+
+else
+	# For Raptor, do not package the kernel as part of the .stk file 
+	# to reduce flash requirements.
+
+	cp -f ${FILENAME}.tgz ${IPL_PATH}/${FILENAME}.uim
+fi
+
+${IPL_PATH}/mk_stk ${IPL_PATH}/${FILENAME}.uim
+
+echo "Image File created."
+
+cd ${TARGET_PATH}
+
+if [ -s $VPD_NAME ]
+then
+	echo
+	cat ${VPD_NAME}
+fi
+
+rm -f ${IPL_PATH}/${FILENAME}.uim
+
+cd ${ORIGINAL_PWD}
+
+exit 0

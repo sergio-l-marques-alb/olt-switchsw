@@ -1,0 +1,32 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DHCPServerBindingsInfo" java-script="DHCP_Bindings" title="DHCP Server Bindings Information">
+        <group id="1" heading=" ">
+            <node id="1">
+	      <element control="combo" uienum="dhcpServerBindingSelector_t" properties="filter" value="All Bindings" obj-name="xLibObjects_dummy" id="1" name="DHCP Binding">
+                  <action type="enum" hide="1_2_1|1_3_1" disable="1_2_1|1_3_1" enable="1_5_1" show="1_5_1"/>
+                  <action type="enum"  hide="1_5_1" disable="1_5_1" enable="1_2_1|1_3_1" show="1_2_1|1_3_1"/>		  
+	      </element>	   
+            </node>
+            <node id="2">
+                <element control="textbox" arghelp="IP_Address" properties="write-only" value="" obj-name="xLibObjects_dummy" id="1" name="Binding IP Address" maxLength="15"/>
+            </node>
+            <node id="3">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+			 <node id="5">
+                <button scope="page" type="buttonClear" help="Submits the form on this page to the Switch" id="1" name="Refresh"/>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="4">
+                <element properties="filter,iterate" obj-name="baseDhcpServerLease_IPAddress" id="1" name="IP Address"/>
+                <element properties="" obj-name="baseDhcpServerLease_HWAddress" id="2" name="Hardware Address"/>
+                <element properties="" obj-name="baseDhcpServerLease_RemainingTime" id="3" name="Lease Time Left"/>
+                <element properties="" obj-name="baseDhcpServerLease_Type" id="4"/>
+            </repeat>
+        </group>
+    </webxml>
+</FastPathXML>

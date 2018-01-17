@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="OSPFRouteRedistConfig" title="OSPF Route Redistribution Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="routingOspfRouteRedistributeConfig_Source" id="1" name="Source">
+                    <action type="enum" discard="no"/>
+                    <action type="enum" discard="no"/>
+                    <action type="enum" discard="no"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                </element> 
+            </node>
+            <node id="2">
+                <element arghelp="HELP_FORMAT_FP" maxLength="8" obj-name="routingOspfRouteRedistributeConfig_Metric" id="1" name="Metric"/>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="routingOspfRouteRedistributeConfig_MetricType" id="1" name="Metric Type"/>
+            </node>
+            <node id="4">
+                <element arghelp="HELP_FORMAT_FP" maxLength="10" obj-name="routingOspfRouteRedistributeConfig_Tag" id="1" name="Tag"/>
+            </node>
+            <node id="5">
+		    <element control="combo" obj-name="routingOspfRouteRedistributeConfig_Subnets" id="1" name="Subnets">
+			    <action type="enum" web_name="Enable"/>
+			    <action type="enum" web_name="Disable"/>
+		    </element>
+            </node>
+            <node id="6">
+                <element arghelp="HELP_FORMAT_FP" maxLength="3" obj-name="routingOspfRouteRedistributeConfig_DistList" id="1" name="Distribute  List"/>
+                <element control="checkbox" uienum="enable_t" properties="write-only" value="Disable" obj-name="xLibObjects_dummy" id="2" name="Apply">
+                    <action type="enum" enable="1_6_1" />
+                    <action type="enum" disable="1_6_1" />
+                </element>
+            </node>
+            <node id="7">
+                <element control="combo" obj-name="routingOspfRouteRedistributeConfig_Mode" id="1" name="Redistribute">
+                    <action type="enum" web_name="Enable" enable="1_2_1|1_3_1|1_4_1|1_5_1"/>
+                    <action type="enum" web_name="Disable" disable="1_2_1|1_3_1|1_4_1|1_5_1"/>
+                </element>
+            </node>
+            <node id="8">
+		    <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

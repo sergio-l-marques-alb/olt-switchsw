@@ -1,0 +1,19 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" java-script="loopback_summary" name="LoopbackSummary" title="Loopback Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="routingloopbackSummary_LoopbackIdString" id="1" name="Loopback Interface"/>
+                <element properties="filter,hidden,iterate" obj-name="routingloopbackSummary_LoopbackAddrIndex" id="2" name="Loopback Index"/>
+                <element obj-name="routingloopbackSummary_LoopbackIpAddrString" id="3" name="Addresses"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

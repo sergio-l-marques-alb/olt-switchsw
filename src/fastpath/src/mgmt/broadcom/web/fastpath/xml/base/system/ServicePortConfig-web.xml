@@ -1,0 +1,152 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+
+
+<FastPathXML>
+    <webxml version="1.0" name="ServicePortConfig" title="Service Port Configuration">
+        <group id="1" level="ReadWriteUser" heading="IPv4">
+            <node id="1">
+                <element control="combo" obj-name="basesysServicePort_sysAgentBasicConfigServPortConfigProtocol" id="1" name="Service Port Configuration Protocol">
+                    <action invoke="onChange" type="enum" discard="no" enable="1_2_1|1_3_1|1_4_1" setval_ids="1_2_1|1_3_1|1_4_1" setval_args="Default_IPAddress|Default_IPAddress|Default_IPAddress" />
+                    <action type="enum" disable="1_2_1|1_3_1|1_4_1"/>
+                    <action type="enum" disable="1_2_1|1_3_1|1_4_1"/>
+                </element>
+            </node>
+            <node id="2">
+                <element obj-name="basesysServicePort_sysServicePortIPAddr" id="1" name="IP Address" maxLength="15"/>
+            </node>
+            <node id="3">
+                <element obj-name="basesysServicePort_sysServicePortNetMask" id="1" name="Subnet Mask" maxLength="15"/>
+            </node>
+            <node id="4">
+                <element obj-name="basesysServicePort_sysServicePortGateway" id="1" name="Default Gateway" maxLength="15"/>
+            </node>
+            <node id="5">
+                <element obj-name="basesysServicePort_sysServicePortMacAddress" id="1" name="Burned-in MAC Address"/>
+            </node>
+        </group>
+        <group id="2" level="ReadWriteUser" heading="IPv6" compile_if="IF_IPV6_MGMT_PACKAGE_PRESENT">
+            <node id="1">
+                <element control="combo" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6AdminMode" id="1" name="IPv6 Mode"/>
+            </node>
+            <node id="11">
+                <element control="combo" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPv6ConfigProtocol" id="1" name="Service Port Configuration Protocol">
+                  <action type="enum" discard="no" enable="2_12_1" hide="2_13_1"/>
+                  <action type="enum" discard="yes"/>
+                  <action type="enum" discard="no" disable="2_12_1" show="2_13_1"/>
+                </element>
+            </node>
+            <node id="12">
+                <element control="combo" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIpv6StatelessAutoConfMode" id="1" name="IPv6 Stateless Address AutoConfig Mode"/>
+            </node>
+            <node id="13">
+                <element control="label" obj-name="basedhcpv6Client_dhcp6ClientDuid" id="1" name="DHCPv6 Client DUID"/>
+            </node>
+            <node id="4">
+                <element control="combo" uienum="noneAddRemove_t" value="None" obj-name="xLibObjects_dummy" id="1" name="Add/Delete IPv6 Address">
+                    <action type="enum" disable="2_5_1|2_6_1|2_7_1|3_2_1|3_3_1" hide="2_5_1|2_6_1|2_7_1|3_2_1|3_3_1" enable="3_1_1" show="3_1_1"/>
+                    <action type="enum" enable="2_5_1|2_6_1|3_2_1" show="2_5_1|2_6_1|3_2_1" disable="2_7_1|3_1_1|3_3_1" hide="2_7_1|3_1_1|3_3_1"/>
+                    <action type="enum" enable="2_7_1|3_3_1" show="2_7_1|3_3_1" disable="2_5_1|2_6_1|3_1_1|3_2_1" hide="2_5_1|2_6_1|3_1_1|3_2_1"/>
+                </element>
+            </node>
+            <node id="5">
+                <element control="textbox" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6AddressPrefix" id="1" name="New IPv6 Address" maxLength="39"/>
+            </node>
+            <node id="6">
+                <element control="combo" value="FALSE" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6AddressEUIFlag" id="1" name="EUI Flag">
+                    <action type="enum" web_name="True"/>
+                    <action type="enum" web_name="False"/>
+                </element>
+            </node>
+            <node id="7">
+                <element control="textbox" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6AddressPrefix" id="1" name="IPv6 Address to Delete"/>
+            </node>
+            <node id="2">
+                <element control="checkbox" uienum="disable_t" obj-name="xLibObjects_dummy" id="1" name="Change IPv6 Gateway">
+                    <action type="enum" enable="2_3_1"/>
+                    <action type="enum" disable="2_3_1"/>
+                </element>
+            </node>
+            <node id="3">
+                <element control="textbox" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6GateWay" id="1" name="IPv6 Gateway" maxLength="39"/>
+            </node>
+
+            <repeat present="vtable" edit="no" heading=" " id="8">
+                <element properties="filter,iterate,hidden" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6AddressPrefixIndex" id="1" name="IPv6 Address Index"/>
+                <element properties="read-only" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6AddressPrefix" id="2" name="IPv6 Addresses"/>
+            </repeat>
+            <repeat present="vtable" edit="no" heading=" " id="9">
+                <element properties="hidden,iterate" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6DefaultRouterIndex" id="1" name="Router Index"/>
+                <element properties="read-only" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6DefaultRouter" id="2" name="Default IPv6 Gateway Address"/>
+            </repeat>
+        </group>
+        <group id="3" level="ReadWriteUser" heading=" ">
+            <node id="1">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                    <action type="button" disable="3_4_1"/>
+                </button>
+            </node>
+            <node id="2" compile_if="IF_IPV6_MGMT_PACKAGE_PRESENT">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6AddressPrefixRowStatus" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                    <action type="button" disable="3_4_1"/>
+                </button>
+            </node>
+            <node id="3" compile_if="IF_IPV6_MGMT_PACKAGE_PRESENT">
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6AddressPrefixRowStatus" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                    <action type="button" disable="3_4_1"/>
+                </button>
+            </node>
+            <node id="4">
+                <button scope="page" type="buttonSubmit" target-page="ServicePortConfig.html" value="0" obj-name="basesysServicePort_renewDHCP" help="Submits the form on this page to the Switch" id="1" name="Renew DHCP IPv4 Address">
+                    <action type="button" disable="3_1_1|3_2_1|3_3_1"/>
+                </button>
+            </node>
+        </group>
+        <group id="4" level="ReadOnlyUser" heading=" ">
+            <node id="1">
+                <element control="label" obj-name="basesysServicePort_sysAgentBasicConfigServPortConfigProtocol" id="1" name="Service Port Configuration Protocol"/>
+            </node>
+            <node id="2">
+                <element control="label" obj-name="basesysServicePort_sysServicePortIPAddr" id="1" name="IP Address"/>
+            </node>
+            <node id="3">
+                <element control="label" obj-name="basesysServicePort_sysServicePortNetMask" id="1" name="Subnet Mask"/>
+            </node>
+            <node id="4">
+                <element control="label" obj-name="basesysServicePort_sysServicePortGateway" id="1" name="Default Gateway"/>
+            </node>
+            <node id="5">
+                <element control="label" obj-name="basesysServicePort_sysServicePortMacAddress" id="1" name="Burned In MAC Address"/>
+            </node>
+             <node id="11" compile_if="IF_IPV6_MGMT_PACKAGE_PRESENT">
+                <element control="label" obj-name="basesysNetworkIPv6Mgmt_sysIPV6AdminMode" id="1" name="IPv6 Mode"/>
+            </node>
+            <node id="13" compile_if="IF_IPV6_MGMT_PACKAGE_PRESENT">
+            <element  control="label" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPv6ConfigProtocol" id="1" name="Service Port IPv6 Configuration Protocol"/>
+            <element  control="combo" properties="read-only,hidden" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPv6ConfigProtocol" id="2" name="Service Port IPv6 Configuration Protocol">
+                <action type="enum" hide="4_16_1"/>
+                <action type="enum" hide="4_16_1"/>
+                <action type="enum" show="4_16_1"/>
+            </element>
+            </node>
+            <node id="16" compile_if="IF_IPV6_MGMT_PACKAGE_PRESENT">
+              <element control="label" obj-name="basedhcpv6Client_dhcp6ClientDuid" id="1" name="DHCPv6 Client DUID"/>
+            </node>
+            <node id="17" compile_if="IF_IPV6_MGMT_PACKAGE_PRESENT">
+                <element control="label" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIpv6StatelessAutoConfMode" id="1" name="IPv6 Stateless Address AutoConfig Mode"/>
+            </node>
+            <node id="12" compile_if="IF_IPV6_MGMT_PACKAGE_PRESENT">
+                <element control="label" obj-name="basesysNetworkIPv6Mgmt_sysIPV6GateWay" id="1" name="IPv6 Gateway"/>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="14" compile_if="IF_IPV6_MGMT_PACKAGE_PRESENT">
+                <element properties="filter,iterate,hidden" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6AddressPrefixIndex" id="1" name="IPv6 Address Index"/>
+                <element properties="read-only" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6AddressPrefix" id="2" name="IPv6 Addresses"/>
+            </repeat>
+            <repeat present="vtable" edit="no" heading=" " id="15" compile_if="IF_IPV6_MGMT_PACKAGE_PRESENT">
+                <element properties="hidden,iterate" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6DefaultRouterIndex" id="1" name="Router Index"/>
+                <element properties="read-only" obj-name="basesysServicePortIPv6Mgmt_sysServicePortIPV6DefaultRouter" id="2" name="Default IPv6 Routers"/>
+            </repeat>
+        </group>
+    </webxml>
+</FastPathXML>

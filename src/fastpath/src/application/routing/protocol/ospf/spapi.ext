@@ -1,0 +1,663 @@
+/********************************************************************
+ *
+ * (C) Copyright Broadcom Corporation 2003-2007
+ *
+ * *********************************************************************
+ *
+ * @filename         spapi.ext
+ *
+ * @purpose          External Function & Data Definitions for OSPF
+ *                   Routing Protocol
+ *
+ * @component        Routing OSPF Component
+ *
+ * @comments
+ *
+ * @create           07/17/2002
+ *
+ * @author
+ *
+ * @end
+ *
+ * ********************************************************************/
+#ifndef spapi_ext
+#define spapi_ext
+
+#include <std.h>
+#include <xx.ext>
+#if L7_OSPF_TE
+#include <l7_rtm.ext>
+#endif
+#include <l3_comm_structs.h>
+
+/* For detailed parameter description please check this spcfg.h file */
+#include "spcfg.h"
+
+typedef enum e_RtChange
+{
+   RTE_NOT_MODIFIED,
+   RTE_ADDED,
+   RTE_REMOVED,
+   RTE_MODIFIED
+}  e_RtChange;
+
+typedef enum e_OspfDestType
+{
+   DEST_TYPE_IS_ROUTER             = 0x01,
+   DEST_TYPE_IS_AS_BOUNDARY_ROUTER = 0x02,
+   DEST_TYPE_IS_BORDER_ROUTER      = 0x04,
+   DEST_TYPE_IS_NETWORK            = 0x08,
+   DEST_TYPE_IS_STUB_NETWORK       = 0x10
+}  e_OspfDestType;
+
+#define IS_RTR_CHAIN_TAIL(DestType) ((DestType < DEST_TYPE_IS_NETWORK) ? TRUE : FALSE)
+
+/* Explicit route info */
+typedef struct t_ErPrm
+{
+   struct t_ErPrm *next; /* link to next element */
+
+   byte    RouterId[4]; /* Router Id */
+   byte    IfIndex[4];  /* Outgoing interface index */
+}  t_ErPrm;
+
+/* Path info */
+typedef struct t_OspfPathPrm
+{
+   struct t_OspfPathPrm *next; /* link to next element */
+
+   /* Next hops are sorted. Key for the sort is the combination 
+    * of NextHop and IpAdr */
+   t_Handle NextHop;     /* IFO interface handler to forward packets */
+   SP_IPADR IpAdr;       /* IP address of the next router (BRDCST, PMP, NBMA only) */
+   SP_IPADR AdvertisingRouter;/* Router ID which advertised Summary LSA 
+                                (inter-area and AS-external paths only) */
+#if L7_OSPF_TE
+   t_ErPrm  *ErList;     /* Explicit route info elements list */
+#endif
+}  t_OspfPathPrm;
+
+
+/* Callback structure: OSPF's event and low-level IP forwarding */
+typedef struct t_S_Callbacks
+{
+   /* Area Object creation indication callback */
+   void  (*f_AreaCreateInd)(t_Handle RtoMngId, t_Handle ARO_Id,
+                            t_Handle *p_AroMngId);
+
+   /* Neighbor Object creation indication callback */
+   void  (*f_NeighborCreateInd)(t_Handle AroMngId, t_Handle NBO_Id,
+                            t_Handle *p_NboMngId);
+
+   /* Invoked when neighbor enters or leaves FULL state */
+   void (*f_NeighborFullInd)(t_Handle NBO_Id);
+
+   /* Invoked when DR or BDR changes on broadcast interface */
+   void (*f_DrElected)(t_Handle IFO_Id);
+
+   /* Lower layer IP packet forwarding callback */
+   e_Err (*f_IpForward) (t_Handle Id, void *p_Packet, SP_IPADR DstAdr, t_LIH ifNumber); 
+
+   /* OSPF traps events callback */
+   void  (*p_OspfTrap) (t_Handle RtoMngId, e_OspfTrapType TrapType, 
+                        u_OspfTrap *p_Trap);
+   /* Routing table entry add/delete/change indication */
+   e_Err  (*p_RoutingTableChanged)(t_Handle RtoMngId, e_OspfDestType DestType,
+                        e_RtChange ChangeType, SP_IPADR EntryAdr, SP_IPADR AdrMask,
+                        word PathNum, ulng PathCost, 
+                        t_OspfPathPrm *PathPrm, ulng PathType, Bool isRejectRoute);
+
+   e_Err (*f_InitialRtoUpdateDone)(t_Handle RtoMngId);
+
+   /* Remote VPN Router became reachable/unreachable indication */
+   void  (*p_RemoteVpnRtrInd)(t_Handle RtoMngId, e_RtChange ChangeType, 
+                                    SP_IPADR RouterId, SP_IPADR IfAdr, byte PhyType);
+   /* Receive Opaque LSA notification callback */
+   void  (*f_OpaqueReceive)(t_Handle RtoMngId, t_VpnCos VpnCos, SP_IPADR SrcRouterId,
+                           byte LsType, byte OpqType, ulng OpqId, byte *p_Data, word DataLen); 
+   
+   /* Policy decision request storage (callback and userId) */
+   void  *f_GetPolicyDecision[2];
+
+   /* RTM's async event notification storage (callback and userId) */
+   void  *f_RtmAsyncEvent[2];
+
+   /* Request to get operational status of low-layer interface */
+   void (*f_GetLLOperStatus)(t_Handle RtoMngId, t_LIH IfIndex, Bool *operStatus);
+
+}  t_S_Callbacks;
+
+/*-----------------------------------------------**
+**                                               **
+**              RTO object API                   **
+**                                               **
+**-----------------------------------------------*/
+
+/* Router Object Init:                             */
+/* Parameters:                                     */
+/*    OspfSysLabel - OSPF SW timers notification queue */
+/*    OspfRtbThread - OSPF routing table process thread id */
+/*    CreateDefaultRTB  - Create default (public) Routing Table Object */
+/*    p_RTO_Id - RTO object handler returned here  */
+e_Err RTO_Init(t_SysLabel *OspfSysLabel, 
+               t_SysLabel *OspfRtbThread, Bool CreateDefaultRTB, t_Handle *p_RTO_Id);
+/*    Set RTO's Management object id              */
+e_Err RTO_SetMngId(t_Handle RTO_Id, t_Handle MngObjId);
+#if L7_IMPSF
+/*    Set RTO's IPMS parameters              */
+e_Err RTO_SetIpmsParams(t_Handle RTO_Id, t_Handle IpmsObjId, Bool isStub);
+#endif
+/* Router Object Delete                            */
+e_Err RTO_Delete(t_Handle RTO_Id);
+/* Router Object Config get and set, depend on RowStatus value */
+e_Err RTO_Config(t_Handle RTO_Id, t_S_RouterCfg *p_Cfg);
+/* Purge all external LSAs. */
+e_Err RTO_PurgeExternalLsas(t_Handle RTO_Id);
+/* Router's AS-External LSA origination (only for AS-boundary routers)  */
+e_Err RTO_AsExternalCfg(t_Handle RTO_Id, t_S_AsExternalCfg *p_AsExtCfg);
+/* OSPF SW callbacks setup                         */
+e_Err RTO_SetCallbacks(t_Handle RTO_Id, t_S_Callbacks *p_CallBacks);
+/* OSPF SW trap enable/disable bit mask setup      */
+e_Err RTO_TrapControl(t_Handle RTO_Id, t_S_TrapControl TrapControl);
+/* Clean up all router topology and routing databases. */
+e_Err RTO_Cleanup(t_Handle Id);
+/*    Show OSPF Topology Database and Routing table sizes.
+      Show Routing table computation time statistics. */
+/* Recompute all routing tables */
+e_Err RTO_RecomputeAllRoutes(t_Handle RTO_Id);
+e_Err RTO_GlobalStatusGet(t_Handle RTO_Id, L7_ospfStatus_t *ospfStatus);
+e_Err RTO_CountersClear(t_Handle RTO_Id);
+e_Err RTO_NeighborClear(t_Handle RTO_Id, t_Handle IFO_Id, ulng routerId);
+e_Err o2RestartInitiate(t_Handle RTO_Id);
+e_Err o2GraceLsasPending(t_Handle RTO_Id, L7_BOOL *graceLsasPending);
+e_Err o2FullCheckpoint(t_Handle RTO_Id);
+
+e_Err RTO_ShowStatistics(void);
+#if L7_MIB_OSPF
+/* Bind OSPF MIB handle to the router object. */
+e_Err RTO_BindOspfMibObject (t_Handle RTO_Id, t_Handle ospfMibHandle);
+/* Return OSPF MIB handle bound to the Router object. */
+t_Handle RTO_GetOspfMibObject (t_Handle RTO_Id);
+#endif
+
+#define MAX_VPNS_SCOPE 8
+#define MAX_EQUAL_COST_PATHS 2
+
+#define OSPF_PACK_VPN_COS(Vpn, Cos) ((t_VpnCos) (Vpn << 16) | (Cos &0xffff))
+
+#define DWNSTRM_IS_IFO  0
+#define DWNSTRM_IS_NBO  1
+
+typedef struct t_DwnListEntry
+{
+   struct t_DwnListEntry *next;        /* pointer to the previous entry */
+   struct t_DwnListEntry *prev;        /* pointer to next entry */
+   
+   SP_IPADR    Id;                     /* Entry identifier (IP address) */
+   byte        Type;                   /* Entry type: (IFO/NBO) */
+   t_LIH       IpForwHandler;          /* Low layer IP forwarder handler */
+   SP_IPADR    DestId;                 /* Destination IP address (if Entry is a neighbor) */
+   word        Ttl;                    /* Time-to-Leave value */
+   t_Handle    Handler;                /* Entry handler (IFO/NBO) */
+} t_DwnListEntry;
+
+/* Equal cost paths next hop list element structure */
+typedef struct t_EqCostPathNh
+{
+   struct t_EqCostPathNh *next;        /* pointer to the previous entry */
+   struct t_EqCostPathNh *prev;        /* pointer to next entry */
+
+   t_LIH    IfIndex;   /* IP interface handler to forward packets */
+   SP_IPADR IfAdr;     /* IP address of the interface */ 
+   SP_IPADR IpAdr;     /* IP address of the next router 
+                        defined only for BRDCST, PMP, NBMA */
+   t_ErPrm  *ErList;   /* Explicit route list for the path */
+} t_EqCostPathNh;
+
+/* MACRO to free EqCostPathNhList */
+#define OSPF_FREE_EQCOST_PATHS(nh_prm)\
+while((nh_prm)->EqCostPathNhList)\
+{\
+   t_EqCostPathNh *next = (nh_prm)->EqCostPathNhList->next;\
+   XX_Free((nh_prm)->EqCostPathNhList);\
+   (nh_prm)->EqCostPathNhList = next;\
+}
+
+/* Get Next Hop routine */
+typedef struct t_NextHopParam
+{
+   /* input parameters */
+   SP_IPADR DestAdr;   /* destination address to find path to */
+   SP_IPADR DestPrefix;/* destination prefix the path must to be best match */
+   t_VpnCos VpnCos;    /* VPN ID defining the scope of search and requeired class of service class */
+   Bool     LoadBalance; /* flag to perform loading balance round-robin algorithm on multipaths */
+#if L7_OSPF_TE
+   t_Lay3FlowSpec *fspec; /* flow spec info for QoS next hop on-demand lookup */
+   t_TopConstraints *topConstraints;  /* path computation constraints */
+   t_ResSpec *resSpec;    /* Resource constrains */
+   t_ANInfo *StartAN;     /* start path computation from this AN, 
+                             if NULL start from local router */
+   byte  holdingPriority; /* required path (LSP) holding priority */ 
+   Bool  multiPath;       /* if multipaths required */
+#endif
+   
+   /* output parameters */
+   t_EqCostPathNh *EqCostPathNhList;/* Equal cost paths next hops linked list.  
+                                       If loading balance algorithm usage configured,
+                                       the only first list element is the nexthop interface
+                                       which has to be used. */
+   SP_IPADR DestAdrFound;  /* found destination address */
+   ulng     Cost;      /* Path to destination AS internal cost */
+      
+   /* multicast parameters */
+   SP_IPADR SrcAdr;        /* Source IP address of multicast packet */
+   void     *p_Packet;     /* Packet frame handler for local app forwarding */
+   t_Handle RxIfo;         /* receive interface object handler or NULL
+                              if it is not OSPF interface */
+   Bool     RxAsUnicast;   /* Link Layer information flag:
+                              packet received as a unicast or broadcast/multicast */
+   Bool     IsLocalApp;    /* Flag for Local Application packet forwarding case */                              
+   t_Handle DownStreamList;/* Down stream interfaces/neighbors linked list */
+
+}  t_NextHopParam;
+
+#define OSPF_CLEAN_NEXTHOP_LIST(list)\
+{\
+   t_EqCostPathNh *el,*tmp;\
+\
+   el = list;\
+   while(el)\
+   {\
+      tmp = el->next;\
+      XX_DelFromDLList(el, list);\
+      XX_Free(el);\
+      el = tmp;\
+   }\
+}
+
+/*----------------------------------------------------------------
+ *    Initialize an RTB object.
+ *    At least one RTB object with VPN = 0 (public VPN) must be created
+ *    after RTO object creation and before IFO objects creation.
+ *    For each configured IFO VPN the VPN related RTB object must be created.
+ *    Besides that, the additional RTBs may be created with different VPNs.
+ *    The separate routing table created and calculated for each RTB's VPN.
+ *----------------------------------------------------------------*/
+e_Err RTB_Init(t_Handle RTO_Id, t_VpnCos VpnCos, t_Handle *p_RTB_Id);
+/* Router Table Object Delete                            */
+Bool RTB_Delete( t_Handle Id, ulng flag);
+ulng RTB_NetworkRoutesCount(t_Handle Id);
+unsigned int RTB_SpfStatsReport(t_Handle *RTO_Id, unsigned int maxStats, 
+                                L7_OspfSpfStats_t *spfStats);
+e_Err RtbPrint(t_Handle RTO_Id, t_VpnCos VpnId);
+void RtbEntryPrint(t_RtbEntryInfo *p_RteInfo, byte mode);
+void RTO_TrapPrint(t_Handle rto_Id, e_OspfTrapType TrapType, u_OspfTrap *p_Trap);
+
+/* Generate AS Opaque LSA */
+e_Err RTO_OpaqueGenerate(t_Handle RTO_Id, byte OpqType, ulng OpqId, byte *p_Data, word DataLen);
+
+e_Err RTO_AbrEntryGet(t_Handle RTO_Id,
+                      L7_uint32 destinationIp,
+                      L7_RtbEntryInfo_t *p_rtbEntry);
+e_Err RTO_AsbrEntryGet(t_Handle RTO_Id,
+                       L7_uint32 destinationIp,
+                       L7_RtbEntryInfo_t *p_rtbEntry);
+e_Err RTO_AbrEntryNext(t_Handle RTO_Id,
+                       L7_uint32 *destinationIp,
+                       L7_RtbEntryInfo_t *p_rtbEntry);
+e_Err RTO_AsbrEntryNext(t_Handle RTO_Id,
+                        L7_uint32 *destinationIp,
+                        L7_RtbEntryInfo_t *p_rtbEntry);
+
+/*-----------------------------------------------**
+**                                               **
+**              ARO object API                   **
+**                                               **
+**-----------------------------------------------*/
+
+/* Area Object Config get and set, depend on RowStatus field value */
+e_Err ARO_Config(t_Handle ARO_Id, t_S_AreaCfg *p_Cfg);
+/* NSSA Object Config get and set, depend on RowStatus field value */
+e_Err NSSA_Config(t_Handle ARO_Id, t_S_NssaCfg *p_Cfg);
+/* Stub Area's default metric config set/get                */
+e_Err ARO_StubMetric(t_Handle ARO_Id, t_S_StubAreaEntry *p_StubCfg);
+/* Area address range aggregations set/get                  */
+e_Err ARO_AddressRange(t_Handle ARO_Id, t_S_AreaAggregateEntry *p_AdrRange);
+/* Area local reachable hosts config set/get                  */
+e_Err ARO_HostConfig(t_Handle ARO_Id, t_S_HostRouteCfg *p_Hosts);
+/* Getting the External Lsdb Entry */
+e_Err ARO_ExtLsdbEntry(t_Handle RTO_Id, L7_ospfLsdbEntry_t *p_Lsa);
+/* Getting the External Lsdb Advertisement */
+e_Err ARO_ExtLsdbAdvertisement(t_Handle RTO_Id, L7_ospfLsdbEntry_t *p_Lsa, L7_char8 **p_LsdbAdvertisement);
+/* Getting the Lsdb entry */
+e_Err ARO_LsdbEntry(t_Handle ARO_Id, L7_ospfLsdbEntry_t *p_Lsa);
+/* Getting the Lsdb Advertisement */
+e_Err ARO_LsdbAdvertisement(t_Handle ARO_Id, L7_ospfLsdbEntry_t *p_Lsa, L7_char8 **p_LsdbAdvertisement);
+/* Getting the next external Lsdb entry */
+e_Err ARO_ExtLsdbNextEntry(t_Handle RTO_Id, L7_ospfLsdbEntry_t *p_Lsa);
+/* Getting the next Lsdb entry */
+e_Err ARO_LsdbNextEntry(t_Handle ARO_Id, L7_ospfLsdbEntry_t *p_Lsa);
+
+/* Generate Area Opaque LSA */
+e_Err ARO_OpaqueGenerate(t_Handle ARO_Id, byte OpqType, ulng OpqId, byte *p_Data, word DataLen);
+/* Getting Area LSA stats */
+e_Err ARO_LsaStatsReport(t_Handle ARO_Id, L7_OspfAreaDbStats_t *p_AreaStats);
+
+/* Find a valid forwarding address for Type-7 LSAs */
+t_Handle NSSA_FindForwardingAddress(t_Handle ARO_Id);  
+
+/*-----------------------------------------------**
+**                                               **
+**              NBO object API                   **
+**                                               **
+**-----------------------------------------------*/
+
+/* Get Neighbor object information  */
+e_Err NBO_Config(t_Handle NBO_Id, t_S_NeighborCfg *p_Ngb);
+
+/*-----------------------------------------------**
+**                                               **
+**              IFO object API                   **
+**                                               **
+**-----------------------------------------------*/
+/* Init IP Interface object:                               */
+/*  Parameters:                                            */
+/*    RTO_Id      - parent RTO object handler              */
+/*    LowLayerId - low-layer  object handler               */
+/*    p_IfoId     - IFO Object handler retuned here        */
+e_Err IFO_Init(t_Handle RTO_Id, t_Handle LowLayerId,
+               t_Handle *p_IfoId);
+/* Delete IFO object */
+Bool IFO_Delete(t_Handle IFO_Id, ulng flag);
+/* Config IFO object get/set depend on RowStatus field value */
+e_Err IFO_Config(t_Handle IFO_Id, t_IFO_Cfg *p_Cfg);
+/* IFO object up indication from lower-layer */
+e_Err IFO_Up(t_Handle IFO_Id);
+/* IFO object down indication from lower-layer */
+e_Err  IFO_Down(t_Handle IFO_Id);
+/* IFO object loopback on/off indication from lower-layer */
+e_Err  IFO_Loop(t_Handle IFO_Id, Bool IsOn);
+/* Find vlink across an area to a certain router */
+t_Handle IFO_VirtLinkFind(t_Handle p_ARO, ulng remoteRouterId);
+/* OSPF packet receiving indication from lower-layer */
+e_Err  IFO_Received(t_Handle IFO_Id, void *p_Packet, SP_IPADR SrcAdr, SP_IPADR  DstAdr);
+/* IFO object metric get/set */
+e_Err IFO_MetricConfig(t_Handle IFO_Id, t_S_IfMetric *p_Metric);
+/* NBMA type IFO object's NBMA routers list entry get/set */
+e_Err IFO_NbmaConfig(t_Handle IFO_Id, t_S_IfNbmaCfg *p_NbmaCfg);
+/* IFO object's Authentication Keys get/set */
+e_Err IFO_AuthKeyConfig(t_Handle IFO_Id, t_OspfAuthKey *p_Cfg);
+/* Generate Link Opaque LSA */
+e_Err IFO_OpaqueGenerate(t_Handle IFO_Id, byte OpqType, ulng OpqId, byte *p_Data, word DataLen);
+/* Received IGMP packet processing */
+e_Err  IFO_IgmpReceived(t_Handle Id, void *p_Packet, SP_IPADR SrcAdr, SP_IPADR  DstAdr);
+
+/* received packet processing statistics */
+typedef struct t_PCK_Stats
+{
+   ulng  RxPackets;
+   ulng  DiscardPackets;
+   ulng  BadVersion;
+   ulng  BadNetwork;
+   ulng  BadVirtualLink;
+   ulng  BadArea;
+   ulng  BadDstAdr;
+   ulng  BadAuType;
+   ulng  BadAuthentication;
+   ulng  BadNeighbor;
+   ulng  BadPckType;
+   ulng  TxPackets;
+   ulng  RxHellos;
+   ulng  RxDbDescr;
+   ulng  RxLsReq;
+   ulng  RxLsUpdate;
+   ulng  RxLsAck;
+   ulng  HellosIgnored;
+   ulng  TxHellos;
+   ulng  TxDbDescr;
+   ulng  TxLsReq;
+   ulng  TxLsUpdate;
+   ulng  TxLsAck;
+
+}  t_PCK_Stats;
+
+e_Err IFO_GetPckStatistic(t_Handle IFO_Id, t_PCK_Stats **p_St);
+#if L7_MOSPF
+e_Err IFO_SetIgmpPrm(t_Handle IFO_Id, t_OspfRouterIgmpCfg *p_Prm);
+#endif
+
+/* Generate All types of Opaque LSA */
+e_Err OpaqueGenerate(t_Handle Id, byte LsType, byte OpqType, ulng OpqId, byte *p_Data, word DataLen);
+
+#define RTO_OpaqueGenerate(RTO_Id, OpqType, OpqId, p_Data, DataLen) \
+        OpaqueGenerate(RTO_Id, 11, OpqType, OpqId, p_Data, DataLen)
+#define ARO_OpaqueGenerate(ARO_Id, OpqType, OpqId, p_Data, DataLen) \
+        OpaqueGenerate(ARO_Id, 10, OpqType, OpqId, p_Data, DataLen)
+#define IFO_OpaqueGenerate(IFO_Id, OpqType, OpqId, p_Data, DataLen) \
+        OpaqueGenerate(IFO_Id, 9 , OpqType, OpqId, p_Data, DataLen)
+
+#if L7_OSPF_TE
+
+
+ /*********************************************************************
+ * @purpose         Find required TLV in the Data
+ *
+ *
+ * @param *Data     @b{(input)}  data pointer
+ * @param MaxLen    @b{(input)}  max data length
+ * @param Type      @b{(input)}  TLV type
+ *
+ * @returns         if TLV found returns pointer to TLV
+ * @returns         NULL - otherwise
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+byte *FindTlvInData(byte *Data, word MaxLen, word Type);
+
+
+ /*********************************************************************
+ * @purpose           Update the TE Link information.
+ *
+ *
+ * @param IFO_Id       @b{(input)}  IFO Object handler
+ * @param CosMask      @b{(input)}  specified CoS mask (1- CoS0, 2 - CoS1,
+ *                                  4 -CoS2, 8 - CoS3)
+ * @param unresrv      @b{(input)}  pointer to the array of unreserved
+ *                           bandwidth flow specification information
+ *                           (PDR field) per CoS [0,..,3] per holding
+ *                            priority [0,..7]
+ *
+ *                     draft-lefaucheur-diff-te-reqts-00.txt:
+ *
+ *      - for each Class-Type, that IGP uses the "Unreserved Bandwidth for
+ *      Class-Type N" to directly advertise the amount of bandwidth that
+ *      is effectively useable by Class-Type N. This is computed as the
+ *      smaller of these two values:
+ *          o The Class-Type N bandwidth currently unreserved (i.e. the
+ *            difference between the Maximum Reservable Bandwidth for
+ *            Class-Type N and the bandwidth reserved by existing Class-
+ *            Type N LSPs).
+ *          o The aggregate bandwidth currently unreserved (i.e. the
+ *            difference between the Maximum Reservable Aggregate
+ *            Bandwidth and the bandwidth reserved by existing LSPs of
+ *            all Class-Types).
+ *
+ *     force - force origination of TE Link LSA without checking threshold
+ *
+ * @returns            E_OK           success
+ * @returns            E_FAILED       failed in update information
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TE_LinkInfoUpdate(t_Handle IFO_Id, byte CosMask,
+                        float32 (*unresrv)[TE_NUM_OF_HOLD_PRI], Bool force);
+
+
+
+
+ /*********************************************************************
+ * @purpose          Create the TE Forwarding Adjancency.
+ *
+ *
+ * @param  RTO_Id    @b{(input)}  RTO Object handler
+ * @param  FaIndex   @b{(input)}  Forwarding Adjancency index
+ * @param  faPrm     @b{(input)}  Forwarding Adjancency parameters
+ *
+ * @returns          E_OK           success
+ * @returns          E_FAILED       failed
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TE_FaInit(t_Handle RTO_Id, t_LIH FaIndex, t_ForwAdjPrm *faPrm);
+
+
+
+
+ /*********************************************************************
+ * @purpose           Delete the TE Forwarding Adjancency.
+ *
+ *
+ * @param RTO_Id      @b{(input)}  RTO Object handler
+ * @param FaIndex     @b{(input)}  Forwarding Adjancency Index
+ *
+ * @returns           E_OK           success
+ * @returns           E_FAILED       failed to find corresponding FA
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TE_FaDelete(t_Handle RTO_Id, t_LIH FaIndex);
+
+
+
+ /*********************************************************************
+ * @purpose           Reconfigure the TE Forwarding Adjancency
+ *
+ *
+ * @param RTO_Id      @b{(input)}  RTO Object handler
+ * @param FaIndex     @b{(input)}  Forwarding Adjancency index
+ * @param faPrm       @b{(input)}  Forwarding Adjancency parameters
+ *
+ * @returns           E_OK           success
+ * @returns           E_FAILED       failed
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TE_FaReConfig(t_Handle RTO_Id, t_LIH FaIndex, t_ForwAdjPrm *faPrm);
+
+
+
+ /*********************************************************************
+ * @purpose           Update the Forwarding Adjancency TE Link information.
+ *
+ *
+ * @param RTO_Id      @b{(input)}  RTO Object handler
+ * @param FaIndex     @b{(input)}  Forwarding Adjancency Index
+ * @param bandwidth   @b{(input)}  new unreserved bandwidth value,
+ *
+ * @param CfgChanged  @b{(input)}  if config change, then don't check bandwidth
+ *                                 threshold
+ *
+ * @returns           E_OK           success
+ * @returns           E_FAILED       failed in update information
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TE_FaUpdate(t_Handle RTO_Id, t_LIH FaIndex, ulng bandwidth, Bool CfgChanged);
+
+
+ /*********************************************************************
+ * @purpose         Find match FA going to specified AN
+ *
+ *
+ * @param RTO_Id    @b{(input)}  RTO Object handler
+ * @param Node      @b{(input)}  AN descriptor
+ * @param Bndw      @b{(input)}  required bandwidth
+ * @param CosType   @b{(input)}  Class Of Service Type
+ * @param FaIndex   @b{(input)}  if FA found, FA Index returned here
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TE_FaFindMatch(t_Handle RTO_Id, t_ANInfo *Node, float32 Bndw, byte CosType, t_LIH *FaIndex);
+
+
+
+ /*********************************************************************
+ * @purpose           Detecting of the Link Mux Capabilty Region.
+ *
+ *
+ * @param RTO_Id      @b{(input)}  RTO Object handler
+ * @param er          @b{(input)}  Explicit Route (list of ANs)
+ * @param lmuxcap     @b{(input)}  The link mux capability to look for the
+ *                                 TailEnd
+ *
+ * @param TailEnd     @b{(output)}  if Region tail-end has detected,
+ *                                 the tail-end AN of Region returned here,
+ *                                 otherwise returned NULL
+ *
+ * @returns           E_OK           Region Boundary detected
+ * @returns           E_FAILED       failed in found Region Boundary
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TE_DetectMuxCapRegion(t_Handle RTO_Id, t_ANInfo *er, e_LinkMuxCap lmuxcap, t_ANInfo **TailEnd);
+
+
+
+ /*********************************************************************
+ * @purpose       Checking if AN is really connected to the local node.
+ *
+ *
+ * @param RTO_Id  @b{(input)} RTO Object handler
+ * @param AN      @b{(input)} AN descriptor
+ *
+ * @returns       E_OK           AN is connected by proper link
+ * @returns       E_FAILED       no connection to AN
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TE_CheckAnConnect(t_Handle RTO_Id, t_ANInfo *AN);
+
+
+ /*********************************************************************
+ * @purpose         Update IGP TE database with received feedback
+ *                  information.
+ *
+ *
+ * @param RTO_Id     @b{(input)}  RTO Object handler
+ * @param AN         @b{(input)}  AN descriptor, the feedback freceived from
+ * @param unReserv   @b{(input)}  pointer to the array of unreserved bandwidth
+ *                                flow specification information (PDR field)
+ *                                per CoS [0,..,3] per holding priority [0,..7]
+ *
+ * @returns         E_OK           update successed
+ * @returns         E_FAILED       failed
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err TE_TeInfoFeedback(t_Handle RTO_Id, t_ANInfo *AN, t_Lay3FlowSpec *unReserv);
+
+#endif
+
+#endif
+
+/* --- end of file spapi.ext --- */

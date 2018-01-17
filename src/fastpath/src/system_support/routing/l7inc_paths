@@ -1,0 +1,13 @@
+# List all L7 routing header file paths
+#
+L7INC:= -I.\
+        -I$(L7SRC) \
+        -I$(L7SRC)/arp \
+        -I$(L7SRC)/layer3 \
+        -I$(L7SRC)/tcp \
+        -I$(L7SRC)/utils \
+        -I$(L7SRC)/rtm \
+        -I$(L7SRC)/mibs \
+        -I$(L7SRC)/ipstack \
+        -I$(L7SRC)/ipstack/ip \
+        -I$(L7SRC)/ipstack/igmp 

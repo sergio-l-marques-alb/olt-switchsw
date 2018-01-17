@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="MLDSnoopingMulticastRouterVlanStatus" title="MLD Snooping Multicast Router VLAN Status">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingSnoopingIntfGroup_Interface" id="1" name="Interface"/>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="2">
+                <element properties="write-only,hidden" value="MLDSnooping" obj-name="SwitchingSnoopingIntfGroup_SnoopingProtocol" id="1"/>
+				<element properties="filter,iterate" obj-name="SwitchingSnoopingIntfGroup_SnoopingIntfVlanID" id="2" name="VLAN ID"/>
+                <element  control="label" properties="read-only" obj-name="SwitchingSnoopingIntfGroup_intfMulticastRouterVlanMode" id="3" name="Multicast Router"/>
+            </repeat>
+			<node id="3">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,47 @@
+##############################################################################
+#
+# make.hdr.link
+#
+# Purpose:  
+#      Common include file used to create build variables used by
+#      link-level makefiles.
+#
+# Note:
+#      This file typically used in conjunction with 'installexe' processing.
+#
+##############################################################################
+
+# Specify the default relative location and name of the target link-level Makefile.
+# Override this value prior to including make.magic.link if different.
+#
+MAKEFILE_NAME := Makefile
+
+# The following source information is specified in each make.link file:
+#   - MASTERSRC is a list of source directories to be built from this location.
+#
+MASTERSRC :=
+
+# Specify source file information:
+#   - SRCINCPATHS is a list of other source header file include paths (without the -I).
+#   - EXTRNINCPATHS = list of external header include paths outside of FP_BASE source tree.
+#   - CFLAGSEXTRA are additional compiler flags needed for these source files (optional).
+#
+SRCINCPATHS   =
+EXTRNINCPATHS =
+CFLAGSEXTRA   =
+
+# List extra FP archive files that are unable to be pre-linked into a package library
+# (e.g. certain vendor libraries not wrapped by a mapping layer).
+# 
+ARCSEXTRA :=
+
+# Specify target package output location for these objects:
+#   - OBJDIR specifies package output location (must use FP_ROOT instead of FP_BASE).
+#
+OBJDIR := $(FP_ROOT)/$(OUT_$(PKGID))
+
+# Specify RELOUT as relative path to top-of-view from the OBJDIR output directory.
+# (Note:  This is used to establish FP_BASE dynamically).
+#
+RELOUT := $(RELOUT_$(PKGID))
+

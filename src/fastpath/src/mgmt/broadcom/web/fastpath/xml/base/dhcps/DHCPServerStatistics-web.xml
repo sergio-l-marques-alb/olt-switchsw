@@ -1,0 +1,63 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DHCPServerStatistics" title="DHCP Server Statistics">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element obj-name="baseDhcpServerStats_AutomaticBindingsNos" id="1" name="Automatic Bindings"/>
+            </node>
+            <node id="2">
+                <element obj-name="baseDhcpServerStats_DhcpServerExpiredBindingsNos" id="1" name="Expired Bindings"/>
+            </node>
+            <node id="3">
+                <element obj-name="baseDhcpServerStats_DhcpServerMalformedMessagesReceived" id="1" name="Malformed Messages"/>
+            </node>
+            <node id="4">
+                <element control="label" obj-name="xLibObjects_dummy" properties="write-only,noname" value="" id="1" name="message1"/>
+            </node>
+            <node id="5">
+                <element control="label" obj-name="xLibObjects_dummy" properties="write-only" value="" id="1" name="Message Received"/>
+            </node>
+            <node id="6">
+                <element obj-name="baseDhcpServerStats_DhcpServerDISCOVERMessagesReceived" id="1" name="DHCPDISCOVER"/>
+            </node>
+            <node id="7">
+                <element obj-name="baseDhcpServerStats_DhcpServerREQUESTMessagesReceived" id="1" name="DHCPREQUEST"/>
+            </node>
+            <node id="8">
+                <element obj-name="baseDhcpServerStats_DhcpServerDECLINEMessagesReceived" id="1" name="DHCPDECLINE"/>
+            </node>
+            <node id="9">
+                <element obj-name="baseDhcpServerStats_DhcpServerRELEASEMessagesReceived" id="1" name="DHCPRELEASE"/>
+            </node>
+            <node id="10">
+                <element obj-name="baseDhcpServerStats_DhcpServerINFORMMessagesReceived" id="1" name="DHCPINFORM"/>
+            </node>
+            <node id="11">
+                <element control="label" obj-name="xLibObjects_dummy" properties="write-only,noname" value="" id="1" name="message2"/>
+            </node>
+            <node id="12">
+                <element control="label" obj-name="xLibObjects_dummy" properties="write-only" value="" id="1" name="Message Sent"/>
+            </node>
+            <node id="13">
+                <element obj-name="baseDhcpServerStats_DhcpServerOFFERMessagesSent" id="1" name="DHCPOFFER"/>
+            </node>
+            <node id="14">
+                <element obj-name="baseDhcpServerStats_DhcpServerACKMessagesSent" id="1" name="DHCPACK"/>
+            </node>
+            <node id="15">
+                <element obj-name="baseDhcpServerStats_DhcpServerNAKMessagesSent" id="1" name="DHCPNAK"/>
+            </node>
+            <node id="16">
+                <element control="label" obj-name="xLibObjects_dummy" properties="write-only,noname" value="" id="1" name="message3"/>
+            </node>
+            <node id="17">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" value="Enable" obj-name="baseDhcpServerStats_DhcpServerClearStatistics" help="Submits the form on this page to the Switch" id="2" name="Clear Server Statistics"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

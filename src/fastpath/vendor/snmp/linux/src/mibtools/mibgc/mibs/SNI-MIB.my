@@ -1,0 +1,248 @@
+-- Provided to SNMP Research by Siemens Nixdorf in e-mail sent by
+-- Thomas Bohrer (Thomas.Bohrer@mch.sni.de) to David Partain on 
+-- Mon, 09 Feb 1998 12:42:37 +0100.  E-mail message id is:
+-- Message-Id: <34DEEBAD.4CAA6525@mch.sni.de>
+--
+-- SNMP Research is including this in distributions sent to SNI (and
+-- no one else) but will not accept any responsibility for either the
+-- contents of this MIB or its support.
+--
+
+    SNI-MIB DEFINITIONS ::= BEGIN
+
+-- Date: 16.05.97
+
+    IMPORTS
+	    enterprises, OBJECT-TYPE, ObjectName, ObjectSyntax,
+	    SimpleSyntax, ApplicationSyntax, NetworkAddress,
+	    IpAddress, Counter, Gauge, TimeTicks
+		    FROM RFC1155-SMI;
+
+    sni              OBJECT IDENTIFIER ::= { enterprises 231 }
+
+    sniSystems       OBJECT IDENTIFIER ::= { sni 1 }
+    sniProductMibs   OBJECT IDENTIFIER ::= { sni 2 }
+    sniTemporary     OBJECT IDENTIFIER ::= { sni 3 }
+    sniCustomer      OBJECT IDENTIFIER ::= { sni 4 }
+    sieProductMibs   OBJECT IDENTIFIER ::= { sni 5 }
+    svsProductMibs   OBJECT IDENTIFIER ::= { sni 6 }
+    siemensUnits     OBJECT IDENTIFIER ::= { sni 7 }
+    sap-sni-cc       OBJECT IDENTIFIER ::= { sni 694 }
+
+
+    sniNoSeries     OBJECT IDENTIFIER ::= { sniSystems 1 }
+
+    sniSeriesI      OBJECT IDENTIFIER ::= { sniSystems 2 }
+
+    sinix-L         OBJECT IDENTIFIER ::= { sniSeriesI 1 }
+    sinix-M         OBJECT IDENTIFIER ::= { sniSeriesI 2 }
+    sinix-D         OBJECT IDENTIFIER ::= { sniSeriesI 3 }
+    sinix-K         OBJECT IDENTIFIER ::= { sniSeriesI 4 }
+    sinix-Z         OBJECT IDENTIFIER ::= { sniSeriesI 5 }
+
+    sniSeriesR     OBJECT IDENTIFIER ::= { sniSystems 3 }
+
+    sinix-N        OBJECT IDENTIFIER ::= { sniSeriesR 1 }
+    sinix-P        OBJECT IDENTIFIER ::= { sniSeriesR 2 }
+    sinix-Y        OBJECT IDENTIFIER ::= { sniSeriesR 3 }
+
+    sniSeriesNSC   OBJECT IDENTIFIER ::= { sniSystems 4 }
+
+    sinix-H         OBJECT IDENTIFIER ::= { sniSeriesNSC 1 }
+    sinix-F         OBJECT IDENTIFIER ::= { sniSeriesNSC 2 }
+
+    sniFDDINodes      OBJECT IDENTIFIER ::= { sniSystems 5 }
+
+    ka91848-M         OBJECT IDENTIFIER ::= { sniFDDINodes 1 }
+
+    sniBS2Components   OBJECT IDENTIFIER ::= { sniSystems 6 }
+
+    sniSeriesM        OBJECT IDENTIFIER ::= { sniSystems 7 }
+
+    sinix-TOS-O       OBJECT IDENTIFIER ::= { sniSeriesM 1 }
+
+    sniXTerminals     OBJECT IDENTIFIER ::= { sniSystems 8 }
+
+    tx100C20          OBJECT IDENTIFIER ::= { sniXTerminals 1 }
+    tx100C24          OBJECT IDENTIFIER ::= { sniXTerminals 2 }
+
+    sniPCs            OBJECT IDENTIFIER ::= { sniSystems 9 }
+
+    sniPCGeneral      OBJECT IDENTIFIER ::= { sniPCs 1 }
+
+    sniSinecs         OBJECT IDENTIFIER ::= { sniSystems 10 }
+
+    sniTdProxy        OBJECT IDENTIFIER ::= { sniSystems 11 }
+
+    sniTdSinix        OBJECT IDENTIFIER ::= { sniTdProxy 1 }
+    sniTdBS2000       OBJECT IDENTIFIER ::= { sniTdProxy 2 }
+    sniTdPDN          OBJECT IDENTIFIER ::= { sniTdProxy 3 }
+    sniTdINCA         OBJECT IDENTIFIER ::= { sniTdProxy 4 }
+
+    sieCP141xs        OBJECT IDENTIFIER ::= { sniSystems 12 }
+
+    sniHNChw          OBJECT IDENTIFIER ::= { sniSystems 13 }
+
+    dcosx          OBJECT IDENTIFIER ::= { sniSystems 14 }
+
+    sniMIServer    OBJECT IDENTIFIER ::= { dcosx 1 }
+    sniNile        OBJECT IDENTIFIER ::= { dcosx 2 }
+    sniRM1000      OBJECT IDENTIFIER ::= { dcosx 3 }
+
+    reliantUnix    OBJECT IDENTIFIER ::= { sniSystems 15 }
+
+    reliantUnix-M  OBJECT IDENTIFIER ::= { reliantUnix 1 }
+    reliantUnix-H  OBJECT IDENTIFIER ::= { reliantUnix 2 }
+    reliantUnix-N  OBJECT IDENTIFIER ::= { reliantUnix 3 }
+    reliantUnix-Y  OBJECT IDENTIFIER ::= { reliantUnix 4 }
+    reliantUnix-S  OBJECT IDENTIFIER ::= { reliantUnix 5 }
+
+
+    sniSupportedMibs    OBJECT IDENTIFIER ::= { sniProductMibs 1 }
+
+    sniProductNumber OBJECT-TYPE
+	SYNTAX INTEGER
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION
+	    "This number of products present on the system"
+	::= { sniSupportedMibs 1 }
+
+    sniProductTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF SniProductEntry
+	ACCESS not-accessible
+	STATUS mandatory
+	DESCRIPTION
+	   "A list of product entries of the supported products.
+	    The number of entries is given by the value of sniProductNumber."
+	::= { sniSupportedMibs 2 }
+
+    sniProductEntry OBJECT-TYPE
+	SYNTAX SniProductEntry
+	ACCESS not-accessible
+	STATUS mandatory
+	DESCRIPTION
+	   "A product entry containing objects describing a product."
+	INDEX { sniProductIndex }
+	::= { sniProductTable 1 }
+
+    SniProductEntry ::=
+	SEQUENCE {
+	    sniProductIndex
+		INTEGER,
+	    sniProductIdentifier
+		OBJECT IDENTIFIER,
+	    sniProductOperStatus
+		INTEGER,
+	    sniProductDescr
+		DisplayString
+	    }
+
+    sniProductIndex OBJECT-TYPE
+	SYNTAX INTEGER
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION
+	   "A unique value for each product. Its value ranges between 1 and
+	    the value of sniProductNumber. The value for each product must
+	    remain constant at least from one re-initialization of the
+	    entity's SNMP-Core Agent to the next re-initialization."
+	::= { sniProductEntry 1 }
+
+    sniProductIdentifier OBJECT-TYPE
+	SYNTAX OBJECT IDENTIFIER
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION
+	   "Identification of the product. The value points to the root of
+	    the product subtree and provides es an easy and unambiguous
+	    means for determining 'what kind of box' is being managed."
+	::= { sniProductEntry 2 }
+
+    sniProductOperStatus OBJECT-TYPE
+	SYNTAX INTEGER {
+		   up(1),
+		   down(2)
+	       }
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION
+	   "The current operational state of the product."
+	::= { sniProductEntry 3 }
+
+    sniProductDescr OBJECT-TYPE
+	SYNTAX DisplayString (SIZE (0..255))
+	ACCESS read-only
+	STATUS mandatory
+	DESCRIPTION
+	   "A textual description of the product. The value should include
+	    the name and the version of the product."
+	::= { sniProductEntry 4 }
+
+
+    sniCMX              OBJECT IDENTIFIER ::= { sniProductMibs 2 }
+
+    sniDirAdmin         OBJECT IDENTIFIER ::= { sniProductMibs 3 }
+
+    sniSB               OBJECT IDENTIFIER ::= { sniProductMibs 4 }
+
+    sniPC               OBJECT IDENTIFIER ::= { sniProductMibs 5 }
+
+    sniSinec            OBJECT IDENTIFIER ::= { sniProductMibs 6 }
+
+    sniExtAgent         OBJECT IDENTIFIER ::= { sniProductMibs 7 }
+
+    sniPSN9525Proxy     OBJECT IDENTIFIER ::= { sniProductMibs 8 }
+
+    sniDSM-ER           OBJECT IDENTIFIER ::= { sniProductMibs 9 }
+
+    sniExtensions       OBJECT IDENTIFIER ::= { sniProductMibs 10 }
+
+    sniSIEPRIS          OBJECT IDENTIFIER ::= { sniProductMibs 11 }
+
+    sniSpool            OBJECT IDENTIFIER ::= { sniProductMibs 12 }
+
+    sniSar              OBJECT IDENTIFIER ::= { sniProductMibs 13 }
+
+    sniTcc              OBJECT IDENTIFIER ::= { sniProductMibs 14 }
+
+    sniTransData        OBJECT IDENTIFIER ::= { sniProductMibs 15 }
+
+    sieCP141x           OBJECT IDENTIFIER ::= { sniProductMibs 16 }
+
+    sniBcam             OBJECT IDENTIFIER ::= { sniProductMibs 17 }
+
+    sniFT               OBJECT IDENTIFIER ::= { sniProductMibs 18 }
+
+    sniUTM              OBJECT IDENTIFIER ::= { sniProductMibs 19 }
+
+    sniStorMgmt         OBJECT IDENTIFIER ::= { sniProductMibs 20 }
+
+    sniHNC              OBJECT IDENTIFIER ::= { sniProductMibs 21 }
+
+    sniLlc2             OBJECT IDENTIFIER ::= { sniProductMibs 22 }
+
+    sniAppMonitor       OBJECT IDENTIFIER ::= { sniProductMibs 23 }
+
+    sniAVAS             OBJECT IDENTIFIER ::= { sniProductMibs 24 }
+
+    sniEC               OBJECT IDENTIFIER ::= { sniProductMibs 25 }
+
+    sniSBS-KADSX        OBJECT IDENTIFIER ::= { sniProductMibs 26 }
+
+    sniDSP              OBJECT IDENTIFIER ::= { sniProductMibs 27 }
+
+    hrExtMIB            OBJECT IDENTIFIER ::= { sniProductMibs 28 }
+
+    tunestatMIB         OBJECT IDENTIFIER ::= { sniProductMibs 29 }
+
+    sniAgent            OBJECT IDENTIFIER ::= { sniProductMibs 30 }
+
+    omnis               OBJECT IDENTIFIER ::= { sniProductMibs 31 }
+
+
+    esaNbg              OBJECT IDENTIFIER ::= { sniTemporary 1 }
+    sniTempSystem       OBJECT IDENTIFIER ::= { sniTemporary 2 }
+    sniNmtt             OBJECT IDENTIFIER ::= { sniTemporary 3 }
+
+    END

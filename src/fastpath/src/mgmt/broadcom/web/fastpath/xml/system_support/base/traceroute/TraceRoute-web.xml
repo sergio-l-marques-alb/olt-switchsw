@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+<FastPathXML>
+    <webxml version="1.0" name="TraceRoute" java-script="TraceRoute" title="TraceRoute">
+        <group id="1" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <element control="textbox" arghelp="HELP_FORMAT_TRACEROUTE_IP" maxLength="255" obj-name="basetraceRoute_IPAddress" id="1" name="Hostname / IP Address"/>
+            </node>
+            <node id="2">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" maxLength="2" obj-name="basetraceRoute_probes" id="1" name="Probes Per Hop"/>
+            </node>
+            <node id="3">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" maxLength="3" obj-name="basetraceRoute_maxTTL" id="1" name="MaxTTL"/>
+            </node>
+            <node id="4">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" maxLength="3" obj-name="basetraceRoute_initTTL" id="1" name="InitTTL"/>
+            </node>
+            <node id="5">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" maxLength="3" obj-name="basetraceRoute_maxFail" id="1" name="MaxFail"/>
+            </node>
+            <node id="6">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" maxLength="2" obj-name="basetraceRoute_interval" id="1" name="Interval(secs)"/>
+            </node>
+            <node id="7">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" maxLength="5" obj-name="basetraceRoute_port" id="1" name="Port"/>
+            </node>
+            <node id="8">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" maxLength="5" obj-name="basetraceRoute_size" id="1" name="Size"/>
+            </node>
+            <node id="9">
+                <element control="textarea" properties="read-only" obj-name="basetraceRoute_traceoutput" id="1" name="TraceRoute"/>
+            </node>
+            <node id="10">
+                <button scope="page" value="1" obj-name="basetraceRoute_traceAction" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+               <action type="button" disable="1_9_1"/>
+              </button>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

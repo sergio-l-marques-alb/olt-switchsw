@@ -1,0 +1,79 @@
+<HTML>
+
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Email Alert Global Config</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=EMAILALERTMailServer></a>Help for Email Alert Mail Server Configuration</h2>
+
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Mail Server Address</b> - To configure the Mail Server Address. In this release, only one mail server configuration is allowed.</li>
+
+  <li><b>Mail Server Security</b> - To configure the Mail Server Security. The possible values are TLSv1 and None.</li>
+
+  <li><b>Mail Server User Name</b> - To configure the Mail Server User Name.</li>
+
+  <li><b>Mail Server Password</b> - To configure the Mail Server Password.</li>
+  
+  <li><b>Mail Server Port</b> - To configure the Mail Server Port.</li>
+
+  <li><b>Remove</b> - Check Box to delete the selected Mail Server Entry.</li>
+
+<EMWEB_ELSE>
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Mail Server Address</b> - Displays the Mail Server Address.</li>
+
+  <li><b>Mail Server Security</b> - Displays the Mail Server Security. The possible values are TLSv1 and None.</li>
+
+  <li><b>Mail Server User Name</b> - Displays the Mail Server User Name.</li>
+
+  <li><b>Mail Server Password</b> - Displays the Mail Server Password.</li>
+  
+  <li><b>Mail Server Port</b> - Displays the Mail Server Port.</li>
+
+</EMWEB_IF>
+</ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+ 
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();'></li>
+ 
+  <li><b>Delete </b> - Deletes the Specific row.</li> 
+</EMWEB_IF>
+
+  <li><b>Refresh </b>
+ - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();'></li>
+  
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+
+
+</body>
+
+</html>
+
+
+

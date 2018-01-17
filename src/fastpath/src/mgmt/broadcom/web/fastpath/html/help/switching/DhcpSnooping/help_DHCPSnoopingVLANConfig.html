@@ -1,0 +1,87 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2002-2007
+*
+**********************************************************************
+*
+*
+* @purpose help file for DHCP Snooping
+*
+* @comments
+*
+* @create 23/10/2007
+*
+* @author msudhir
+* @end
+*
+**********************************************************************/
+
+**********************************************************************/
+-->
+</EMWEB_IF>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>DHCP Snooping Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=dhcpsnoopvlancfg></a>Help for DHCP Snooping VLAN Configuration</h2>
+
+<h3>Selection Criteria</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>VLAN ID</b>
+      - Select the VLAN for which information to be displayed or configured for DHCP Snooping Application.
+  </li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>DHCP Snooping Mode</b> - Enables or Disables the DHCP Snooping feature on selected VLAN.
+       The factory default is Disable.
+  </li>
+  </ul>
+</ul>
+<EMWEB_ELSE>
+<h3>Non-configurable data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>DHCP Snooping Mode</b> - Displays the current administration mode of DHCP Snooping for the selected VLAN.</li>
+       The factory default is Disable.
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Command Buttons</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - Update the switch with the values on the screen. If you want the switch to retain the new values across a power cycle you must perform a save.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+</body>
+
+</html>
+

@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0" >
+
+<module name="IpEcmpRoutes" >
+<key-combo list="routeIp,routeMask,protocol,pref,nextHop,Ifindex"/>
+
+<object name="routeIp" >
+<core  type="ipv4" key="yes" access="read-write" descr="The IP Address of destination network."/>
+<ui  name="Network Address" style="plainText">
+</ui>
+</object>
+
+<object name="routeMask" >
+<core  type="ipv4" key="yes" access="read-only" descr="The network mask of destination network."/>
+<ui  name="Subnet Mask" style="plainText">
+</ui>
+</object>
+
+<object name="protocol" >
+<core  type="enum"  xtype = "routeProtocolType_t" key = "yes" access="read-write" descr="Protocol via which the route(s) were learned.A value from L7_RTO_PROTOCOL_INDICES_t.."/>
+<ui  name="Protocol" style="plainText">
+</ui>
+</object>
+
+<object name="pref" >
+<core  type="uint"  key="yes" access="read-write" descr="Route preference (also called administrative distance). [0 to 255].."/>
+<ui  name="Preference" style="plainText">
+</ui>
+</object>
+
+<object name="nextHop" >
+<core  type="ipv4"  key = "yes" access= "read-write" descr="Ip Address of the gateway."/>
+<ui  name="Next HOP Address" style="plainText">
+</ui>
+</object>
+
+<object name="Ifindex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type = "user"  xtype = "uspRouteNextHop_t" key = "yes" access= "read-write" descr="The outgoing internal interface number."/>
+<ui  name="Unit/Slot/Port" style="plainText">
+</ui>
+</object>
+
+<object name="Ifindex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type = "user"  xtype = "uspRouteNextHop_t" key = "yes" access= "read-write" descr="The outgoing internal interface number."/>
+<ui  name="Slot/Port" style="plainText">
+</ui>
+</object>
+
+<object name="metric" depends = "routeIp,routeMask,protocol,pref,nextHop,Ifindex" >
+<core  type="uint"  access="read-only" descr="Cost associated with this route."/>
+<ui  name="Metric" style="plainText">
+</ui>
+</object>
+
+<object name="flags" depends = "routeIp,routeMask,protocol,pref,nextHop,Ifindex" >
+<core  type="uint"  access="read-only" descr="Defined by L7_RT_ENTRY_FLAGS_t . This can be Default, Static, Reject etc.."/>
+<ui  name="Flags" style="plainText">
+</ui>
+</object>
+
+<object name="RouteTypeflag" >
+<core  type="enum" xtype="TrueFalse_t" access="write-only" descr="This flag tells to application call get the best route or not"/>
+<ui  name="Route Type" style="choiceNselect1">
+</ui>
+</object>
+
+</module>
+
+</objectxml>
+</FastPathXML>
+

@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="SNTPGlobalConfiguration" title="SNTP Global Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="baseSntpClient_Mode" id="1" name="Client Mode">
+                    <action type="enum" discard="no"/>
+                    <action type="enum" discard="no"/>
+                    <action type="enum" discard="yes"/> <!-- Multicast Mode -->
+                    <action type="enum" discard="no"/>
+                </element> 
+            </node>
+            <node id="2">
+                <element arghelp="HELP_FORMAT_FP" maxLength="5" obj-name="baseSntpClient_Port" id="1" name="Port"/>
+            </node>
+            <node id="3">
+                <element arghelp="HELP_FORMAT_FP_UNITS_SECS" maxLength="2" obj-name="baseSntpClient_UnicastPollInterval" id="1" name="Unicast Poll Interval"/>
+            </node>
+            <node id="4">
+                <element arghelp="HELP_FORMAT_FP_UNITS_SECS" maxLength="2" obj-name="baseSntpClient_BroadcastInterval" id="1" name="Broadcast Poll Interval"/>
+            </node>
+            <node id="5">
+                <element arghelp="HELP_FORMAT_FP_UNITS_SECS" maxLength="2" obj-name="baseSntpClient_UnicastPollTimeout" id="1" name="Unicast Poll Timeout"/>
+            </node>
+            <node id="6">
+                <element arghelp="HELP_FORMAT_FP" maxLength="2" obj-name="baseSntpClient_UnicastPollRetry" id="1" name="Unicast Poll Retry"/>
+            </node>
+            <node id="7">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="baseSntpClient_Mode" id="1" name="Client Mode"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="baseSntpClient_Port" id="1" name="Port"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="baseSntpClient_UnicastPollInterval" id="1" name="Unicast Poll Interval"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="baseSntpClient_BroadcastInterval" id="1" name="Broadcast Poll Interval"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="baseSntpClient_UnicastPollTimeout" id="1" name="Unicast Poll Timeout"/>
+            </node>
+            <node id="6">
+                <element control="label" properties="read-only" obj-name="baseSntpClient_UnicastPollRetry" id="1" name="Unicast Poll Retry"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

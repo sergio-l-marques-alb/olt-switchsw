@@ -1,0 +1,167 @@
+<HTML>
+<HEAD>
+<TITLE>Building and running EmWeb/Server on Win32</TITLE>
+<BODY>
+<h1>Building and running EmWeb/Server on Win32</h1>
+<p> The following information is contained in this file:</p>
+<UL>
+ <LI><A HREF=#emweb_build>Building win32 sample EmWeb/Server</A> describes how to build a sample win32 EmWeb/Server
+ <LI><A HREF=#emweb_runews>Running EmWeb/Server</A> describes how to run the server
+ <LI><A HREF=#emweb_ewc>How to use EmWeb/Compiler</A> describes how to use the EmWeb/Compiler (ewc.exe)
+</UL>
+
+<p id="emweb_build"><FONT SIZE=+1><strong>Building a Sample WIN32 EmWeb/Server</strong></FONT><P>
+<p>You can use this Win32 port to start development of your target's
+Web content prior to porting EmWeb/Server to your target.  
+<OL>
+<LI> Open up the Visual C++ workspace file, (emweb.dsw),
+   located in the directory where you installed EmWeb 
+   (i.e. <EMWEB_HOME>\win32_win32\emweb.dsw).
+<LI>Select the project "ewsdist".  
+   This produces an executable called "ewsdist.exe".  It is a version
+   of the EmWeb/Server which serves the content shown in the 
+   subdirectory <EMWEB_HOME>\win32_win32\content\.
+   <p>(Note you can begin prototyping your Web project using
+   this target by simply adding/changing the <strong>content</strong> directory
+   OR change the Custom Build Rule for index.htm file in the vc++ project to
+   point to your content).  
+   <p>
+<LI>Build it.  
+   Select the Build tab, and build ewsdist.exe.  
+   (We assume you are familiar with Visual C++ environment).   
+   This project will build the server library (server.lib) automatically
+   and will build the executable (ewsdist.exe).
+
+<LI>Find the executable and run it.
+   In <EMWEB_HOME> (i.e. the directory where you installed EmWeb),
+   You should see one of the following (depending upon whether you 
+   chose to build the Release or Debug version of project):
+<OL>
+<LI><EMWEB_HOME>win32_win32\obj.x86-pc-win-vcc\release\ewsdist.exe <b>OR</b>
+<LI><EMWEB_HOME>win32_win32\obj.x86-pc-win-vcc\debug\ewsdist.exe
+</OL>
+<p>Note:  The VC++ project, emweb.dsw, was created with version 5.00 of Visual C++.
+</OL>
+<P id="emweb_runews"><FONT SIZE=+1>
+<strong>Running EmWeb/Server</strong></FONT><P>
+<p>Once you've completed the build process you'll be able to run the
+server on the local host.  The server is run from the command
+prompt. To run the server, go to the obj.<system> directory in which the ews executable resides.  
+<ol>
+<li>Go to the directory where you have built ewsdist.exe 
+
+<li>ewsdist takes 1 parameter:
+
+<p>ewsdist [host_name|IPaddress]:<port#>
+
+<p>The [host_name|IPaddress] should be the hostname or IP address 
+of the host you are running the server on.  The port# parameter is the TCP
+port number the server should listen for incoming requests on.  It
+defaults to 80.  Note that 80 is reserved to HTTP, and may require
+privileged access to use; specify a large, non-reserved port number
+here (like 1000).
+
+<p>For example: ewsdist myhostname:1000  
+<p>	where host_name=myhostname, port number=1000
+
+<p>The server starts up silently - it will display an error message and
+exit if there is a problem.
+
+<li>Now point a browser to it:
+You would open up the location:
+http://<systemName or ip_address>:port#/
+
+<p>i.e. for the above example, open up the location http://myhostname:1000/
+
+<p>The server will print logging information for every request that it
+receives.  If no output is generated, that indicates that the request
+was never received by the server.  Check that the address is correct,
+proxy server capability is disabled in the browser, or any other
+potential problem that would prevent the request from reaching the
+server.
+
+<p>To terminate the server, interrupt ews as you would any application;
+hit the <break> character, or kill the process.
+
+<p>Note that <systemName> refers to the name of your server where you are
+running ews.exe.
+
+<li> IP ADDRESS:
+Note that depending upon how the browser is set up, you may have to
+use the ip address rather than the systemName when opening up page.
+Using an IP address works on a winNT system.
+i.e. if your server is named "myhostname" and has an ip address of 
+"101.102.103.104", you either will open the page as
+http://myhostname:1000/
+OR
+http://101.102.103.104:100/
+
+<li>If you just type "ewsdist", it will print a help command.
+</ol>
+
+<P id="emweb_ewc"><FONT SIZE=+1><strong>How to use the EmWeb/Compiler</strong></FONT><P>
+<p>The EmWeb/Compiler (ewc.exe) is used to compile your content.
+<ol>
+<li>In the vc++ project for ewsdist.exe, you can
+see how the EmWeb/Compiler (ewc.exe) is used to build the archive
+(the default names of the files created by running ewc are ew_code.c,
+ew_data.c, ew_proto.h and ew_data.dat).   In the File View, select
+index.htm and right-click and choose "Settings" for the .htm file.
+You will see a "Custom Build" rule which invokes the EmWeb/Compiler.
+Note that this custom rule uses a mime.types file that is not the
+default (by using the -m switch to use the mime.types file under the
+<EMWEB_HOME>\websrc\compiler directory).
+
+<li> ewc_compile.bat:
+<p>If you would like to try running it on the command line, we have
+provided a batch file, <EMWEB_HOME>\win32_win32\posix\ewc_compile.bat as a reference.  
+You may modify it as you wish.  
+In ewc_compile.bat file, we build the <EMWEB_HOME>\win32_win32\content\ directory.  
+You may change it as you wish to run it against the HTML pages you will be 
+using.
+NOTE WELL: this uses the mime.types file located in the 
+<EMWEB_HOME>\win32_win32\websrc\compiler directory. 
+
+<p>Here are the contents of ewc_compile.bat:
+..\bin.win32\ewc.exe -v -o ..\obj.x86-pc-win-vcc\ew_ -l -m ..\websrc\compiler\mime.types --raw -c ..\content\    
+
+<p>    ** Note that you must have a valid license and licensing software
+    already installed.
+
+<p>The output created by running the EmWeb/Compiler will be ew_data.dat,
+ew_code.c, and ew_proto.h in the <EMWEB_HOME>\obj.x86-win-pc-vcc directory.
+directory.   
+
+<li>For more information about the EmWeb/Compiler, please see our functional 
+spec.  For syntax, simply type "ewc --help".
+</ol>
+<P id="emweb_req"><FONT SIZE=+1><strong>Requirements to Build/Use the EmWeb Product</strong></FONT><P>
+<OL>
+ <LI>
+  You must have a valid FLEXLM license from Agranat Systems in order to 
+  use the EmWeb/Compiler (ewc.exe). (See "EmWeb License Requirements" below).
+<LI>
+To build the product, you must have Visual C++ installed, and it is 
+assumed you are familiar with Visual C++.  The Visual C++ files are based on 
+Visual C++ version 5.0.  No other version of Visual C++ is supported
+at this time.
+
+</OL><P>
+
+<P id="emweb_lic"><FONT SIZE=+1><strong>EmWeb License Requirements</strong></FONT><P>
+
+Note that to run the EmWeb compiler, ewc.exe, you must first install the 
+EmWeb Licensing Software and obtain a license from Agranat Systems, Inc. <P>
+
+Please contact Agranat Systems for more information about our licensing
+software (<A HREF="mailto:support@agranat.com">support@agranat.com</A>).<P>
+
+The documentation in the EmWeb Licensing software explains how and where 
+to set up the license manager, the Agranat vendor daemon used for licensing, 
+and the license file.<P>
+
+<HR>
+<CENTER>Copyright &copy; 1999 Agranat Systems, Inc.  All Rights Reserved.</CENTER>
+
+</BODY>
+</HTML>

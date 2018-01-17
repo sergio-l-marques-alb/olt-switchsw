@@ -1,0 +1,18 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="MACVLANSummary" title="MAC-based VLAN Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="SwitchingMacVlan_MacAddress" id="1" name="MAC Address"/>
+                <element properties="filter,iterate" obj-name="SwitchingMacVlan_VlanId" id="2" name="VLAN ID"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

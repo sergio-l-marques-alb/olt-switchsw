@@ -1,0 +1,436 @@
+# Local source path abbreviations (for convenience)
+#
+src_mgmt  := src/mgmt
+src_emweb := $(src_mgmt)/$(L7_EMWEBPACKAGE)/emweb
+src_web   := $(src_emweb)/web
+
+
+# This package requires that EmWeb server archive be already built as a pre-requisite.
+#
+# Note: Setting LIBARCS instead PREREQ here so that .lib file has a true dependency on the archive.
+#
+LIBARCS := $(EWS_ARCHIVE)
+
+
+# Master list of source paths to be built into this package library.
+#  - All entries must be specified relative to top-of-view $(FP_ROOT).
+#  - Defines all source locations to be referenced by the package-level makefile.
+#
+MASTERSRC += \
+	$(src_web)/base \
+	$(src_web)/base/dns \
+	$(src_web)/base/java \
+	$(src_web)/base/sntp \
+	$(src_web)/base/system \
+	$(src_web)/base/system/advancekey \
+	$(src_web)/base/system/log \
+	$(src_web)/base/system/port \
+	$(src_web)/base/system/slot \
+	$(src_web)/base/system/snmp \
+	$(src_web)/base/system/stats \
+	$(src_web)/base/system/trapmgr \
+	$(src_web)/base/system/user_mgr \
+	$(src_web)/security/dot1x \
+	$(src_web)/security/radius \
+	$(src_web)/switching \
+	$(src_web)/switching/dot1p \
+	$(src_web)/switching/dot1q \
+	$(src_web)/switching/igmp_snooping \
+	$(src_web)/switching/lag \
+	$(src_web)/switching/lldp \
+	$(src_web)/switching/lldp/lldp_med \
+	$(src_web)/switching/mfdb \
+	$(src_web)/switching/mld_snooping \
+	$(src_web)/switching/spanning_tree \
+	$(src_web)/switching/voice_vlan
+
+
+# List here individual source files to be selectively EXCLUDED from the build
+#
+MASTERSRC_FILE_EXCLUDE +=
+
+
+# List here individual source include directories owned by this package (without the -I).
+#
+MASTERINC +=
+
+
+# Additional source header file search paths (without the -I).
+#
+SRCINCPATHS += \
+	$(src_emweb)/$(CONFIG) \
+	$(src_emweb)/config.$(CONFIG) \
+  $(src_emweb)/porting \
+	$(src_emweb)/websrc/include \
+	$(src_emweb)/websrc/server \
+	$(src_emweb)/lib \
+	$(src_mgmt)/$(L7_EMWEBPACKAGE)/cli_web_mgr/include \
+	$(src_mgmt)/util \
+	src/nls
+
+
+# Additional compiler flags.
+#
+ifeq (1,$(BLD_L7_TARGETOS_LINUX))
+CFLAGSEXTRA += \
+	-DHAVE_CONFIG_H
+endif
+
+
+# Conditional source inclusion -- Flex Packages.
+#
+
+# These sources are included only if BGP flex package is present.
+#
+ifeq (1,$(BLD_L7_FLEX_BGP))
+  MASTERSRC += \
+	$(src_web)/bgp
+endif
+
+
+# These sources are included only if IP_MCAST flex package is present.
+#
+ifeq (1,$(BLD_L7_FLEX_IP_MCAST))
+  MASTERSRC += \
+	$(src_web)/ip_mcast \
+	$(src_web)/ip_mcast/dvmrp \
+	$(src_web)/ip_mcast/igmp \
+	$(src_web)/ip_mcast/mcast \
+	$(src_web)/ip_mcast/pim_dm \
+	$(src_web)/ip_mcast/pim_sm
+
+  # These sources are included only if IPV6 flex package is present with IP_MCAST.
+  ifeq (1,$(BLD_L7_FLEX_IPV6))
+    MASTERSRC += \
+	$(src_web)/ip_mcast6 \
+	$(src_web)/ip_mcast6/mld \
+	$(src_web)/ip_mcast6/pim_dm \
+	$(src_web)/ip_mcast6/pim_sm
+  endif
+endif
+
+
+# These sources are included only if QOS flex package is present.
+#
+ifeq (1,$(BLD_L7_FLEX_QOS))
+  MASTERSRC += \
+	$(src_web)/qos
+endif
+
+
+# These sources are included only if ROUTING package is present.
+#
+ifeq (1,$(BLD_L7_PACKAGE_ROUTING))
+  MASTERSRC += \
+	$(src_web)/routing \
+	$(src_web)/routing/arp \
+	$(src_web)/routing/ip \
+	$(src_web)/routing/relay \
+	$(src_web)/routing/router_discovery \
+	$(src_web)/routing/routing \
+	$(src_web)/routing/vlan_routing
+else
+  MASTERSRC_FILE_EXCLUDE += \
+	$(src_web)/switching/dot1q/internal_usage.c
+endif
+
+
+# These sources are included only if IPV6 flex package is present.
+#
+ifeq (1,$(BLD_L7_FLEX_IPV6))
+  MASTERSRC += \
+	$(src_web)/routingv6 \
+	$(src_web)/routingv6/base \
+	$(src_web)/routingv6/dhcpv6 \
+	$(src_web)/routingv6/ipv6 \
+	$(src_web)/routingv6/ospfv3 \
+	$(src_web)/routingv6/routingv6 \
+	$(src_web)/routingv6/util
+
+  MASTERINC += \
+	$(src_web)/routingv6/include
+endif
+
+
+# These sources are included only if IPV6_MGMT package is present.
+#
+ifeq (1,$(BLD_L7_FLEX_HAS_COMMON_IPV6))
+  MASTERSRC += \
+	$(src_web)/ipv6
+endif
+
+
+# These sources are included only if SECURE_MGMT flex package is present.
+#
+ifeq (1,$(BLD_L7_FLEX_SECURE_MGMT))
+  MASTERSRC += \
+	$(src_web)/security/ssh \
+	$(src_web)/security/ssl
+endif
+
+
+# These sources are included only if STACKING flex package is present
+#
+ifeq (1,$(BLD_L7_FLEX_STACKING))
+  MASTERSRC += \
+	$(src_web)/stacking
+endif
+
+
+# These sources are included only if WIRELESS package is present.
+#
+ifeq (1,$(BLD_L7_FLEX_WIRELESS))
+  MASTERSRC += \
+	$(src_web)/wireless \
+	$(src_web)/wireless/ap \
+	$(src_web)/wireless/approfile \
+	$(src_web)/wireless/channel_pwr \
+	$(src_web)/wireless/client \
+	$(src_web)/wireless/discovery \
+	$(src_web)/wireless/nv \
+	$(src_web)/wireless/peer_switch \
+	$(src_web)/wireless/setup \
+	$(src_web)/wireless/centtnnl \
+	$(src_web)/wireless/wids \
+  $(src_web)/wireless/dist_tunnel
+endif
+
+# These sources are included only if METRO package is present.
+#
+ifeq (1,$(BLD_L7_FLEX_METRO))
+ifeq (1,$(BLD_L7_COMPONENTS_DOT1AD))
+  MASTERSRC += \
+	$(src_web)/metro/dot1ad
+endif
+
+ifeq (1,$(BLD_L7_COMPONENTS_DOT3AH))
+  MASTERSRC += \
+        $(src_web)/metro/dot3ah
+endif
+
+ifeq (1,$(BLD_L7_UI_HAS_TR069))
+  MASTERSRC += \
+	$(src_web)/metro/tr069
+endif
+endif
+
+
+
+# Conditional source inclusion -- Flex Components.
+#
+
+# These source files are included only if ACL flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_ACL))
+  MASTERSRC += \
+	$(src_web)/qos/acl \
+	$(src_web)/qos/acl/ipv6_acl \
+	$(src_web)/qos/acl/mac_acl
+endif
+
+
+# These source files are included only if COS flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_COS))
+  MASTERSRC += \
+	$(src_web)/qos/cos
+
+endif
+
+# These source files are included only if VOIP flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_VOIP))
+  MASTERSRC += \
+	$(src_web)/qos/voip
+endif
+
+
+# These source files are included only if DHCPS flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_DHCPS))
+  MASTERSRC += \
+	$(src_web)/base/dhcp
+endif
+
+# These source files are included only if POE flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_POE))
+  MASTERSRC += \
+        $(src_web)/base/poe
+endif
+
+
+# These source files are included only if sFlow flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_SFLOW))
+  MASTERSRC += \
+        $(src_web)/base/sflow
+endif
+
+# These source files are included only if DHCP_FILTER flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_DHCP_FILTER))
+  MASTERSRC += \
+	$(src_web)/switching/dhcp_filtering
+endif
+
+# These source files are included only if DHCP_SNOOPING flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_DHCP_SNOOPING))
+  MASTERSRC += \
+        $(src_web)/switching/dhcp_snooping
+endif
+
+# These source files are included only if OUTBOUND_TELNET flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_OUTBOUND_TELNET))
+  MASTERSRC += \
+	$(src_web)/base/telnetc
+
+  SRCINCPATHS += \
+	$(src_emweb)/websrc/telnet
+endif
+
+
+# These source files are included only if DIFFSERV flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_DIFFSERV))
+  MASTERSRC += \
+	$(src_web)/qos/diffserv
+
+endif
+
+
+# These source files are included only if DVLAN flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_DVLAN))
+  MASTERSRC +=
+else
+  MASTERSRC_FILE_EXCLUDE += \
+	$(src_web)/base/system/port/double_vlan_tag.c \
+	$(src_web)/base/system/port/double_vlan_tag_summ.c
+endif
+
+
+# These source files are included only if GARP flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_GARP))
+  MASTERSRC += \
+	$(src_web)/switching/garp
+endif
+
+
+# These source files are included only if IPVLAN flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_IPVLAN))
+  MASTERSRC += \
+	$(src_web)/switching/ipsubnetvlan
+endif
+
+
+# These source files are included only if MACLOCK flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_MACLOCK))
+  MASTERSRC += \
+	$(src_web)/switching/port_mac_locking
+endif
+
+
+# These source files are included only if MACVLAN flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_MACVLAN))
+  MASTERSRC += \
+	$(src_web)/switching/mac_vlan
+endif
+
+# These source files are included only if Static filtering flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_STATIC_FILTERING))
+  MASTERSRC += \
+	$(src_web)/switching/filters
+endif
+
+# These source files are included only if OSPF flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_OSPF))
+  MASTERSRC += \
+	$(src_web)/routing/ospf
+endif
+
+# These source files are included only if DAI flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_DAI))
+  MASTERSRC += \
+        $(src_web)/switching/dynamic_arp_inspection
+endif
+
+
+# These source files are included only if PBVLAN flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_PBVLAN))
+  MASTERSRC += \
+	$(src_web)/switching/dot1v
+endif
+
+
+# These source files are included only if PROT_PORTS flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_PROT_PORTS))
+  MASTERSRC += \
+	$(src_web)/switching/protected_ports
+endif
+
+
+# These source files are included only if RIP flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_RIP))
+  MASTERSRC += \
+	$(src_web)/routing/rip
+endif
+
+
+# These source files are included only if RLIM flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_RLIM))
+  MASTERSRC += \
+	$(src_web)/routing/loopback \
+	$(src_web)/routing/tunnel
+endif
+
+
+# These source files are included only if TACACS flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_TACACS))
+  MASTERSRC += \
+	$(src_web)/security/tacacs
+endif
+
+
+# These source files are included only if VRRP flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_VRRP))
+  MASTERSRC += \
+	$(src_web)/routing/vrrp
+endif
+
+
+# These source files are included only if CAPTIVE_PORTAL flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_CAPTIVE_PORTAL))
+  MASTERSRC += \
+	$(src_web)/security/captive_portal
+endif
+
+# These source files are included only if ISDP component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_ISDP))
+  MASTERSRC += \
+  $(src_web)/base/isdp
+endif
+
+# These source files are included only if AUTO_INSTALL flex component is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_AUTO_INSTALL))
+  MASTERSRC += \
+	$(src_web)/base/system/auto_install
+endif

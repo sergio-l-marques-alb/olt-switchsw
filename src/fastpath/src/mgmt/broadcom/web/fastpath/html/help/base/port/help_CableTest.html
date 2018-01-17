@@ -1,0 +1,86 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Cable Test Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+ 
+
+
+
+<hr size=4 width="100%" align=center>
+
+
+
+<h2>Help for Port Cable Test</h2>
+
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>
+	Interface</b> -
+      This field indicates the interface to which the cable to be tested is connected.  
+      </li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Cable Test Results</b> 
+  <li><b>Cable Status</b> 
+      - This displays the cable status as Normal, Open or Short.</li>
+  <ul>
+  <li><b>Normal</b>: the cable is working correctly.</li>
+  <li><b>Open</b>: the cable is disconnected or there is a faulty connector.</li>
+  <li><b>Short</b>: there is an electrical short in the cable.</li>
+  <li><b>Cable Test Failed</b>: The cable status could not be determined. The cable may in fact be working.
+ <BR>This field is displayed after the "Test Cable" button has been clicked and results are available.
+<BR>This field is not visible when the page is initially displayed.
+      </li>
+  </ul>
+   <li><b>Cable Length</b> 
+      - The estimated length of the cable in meters. The length is displayed as a range 
+        between the shortest estimated length and the longest estimated length. 
+        Unknown is displayed if the cable length could not be determined. 
+        The Cable Length is only displayed if the cable status is Normal. 
+        This field is displayed after the "Test Cable" button has been clicked and 
+        results are available. 
+        This field is not visible when the page is initially displayed.
+      </li>
+   <li><b>Failure Location Distance</b> 
+      - The estimated distance in meters from the end of the cable to the failure location. 
+        The failure location is only displayed if the cable status is Open or Short. 
+        This field is displayed after the "Test Cable" button has been clicked and results are available. 
+        This field is not visible when the page is initially displayed. 
+      </li>      
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Test Cable </b>
+      - Perform a cable test on the selected interface. The cable test may take up 
+      to 2 seconds to complete. If the port has an active link then the link is not 
+      taken down and the cable status is always "Normal". The command returns a cable
+      length estimate if this feature is supported by the PHY for the current link speed.
+      Note that if the link is down and a cable is attached to a 10/100 Ethernet 
+      adapter then the cable status may be "Open" or "Short" because some Ethernet 
+      adapters leave unused wire pairs unterminated or grounded. 
+      </li>
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>

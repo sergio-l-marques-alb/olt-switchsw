@@ -1,0 +1,111 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Help for System Utilities</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+<HR size=4 WIDTH="100%">
+
+<h2><a name=systemutil></a>Help for System Resources</h2>
+
+<p><br>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+Use this panel to configure and display the Free Memory and Task CPU Utilization parameters.</p>
+<EMWEB_ELSE>
+Use this panel to display the Memory Usage and Task CPU Utilization.</p>
+</EMWEB_IF>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Rising Threshold</b>
+      - The CPU Rising utilization threshold in percentage. A zero percent threshold indicates 
+        CPU Utilization Notification feature is disabled.</li>
+  <li><b>Rising Threshold Interval</b>
+      - The CPU Rising threshold interval in seconds. The time interval is configured in multiples of 5.
+        A time interval of zero seconds indicates CPU Utilization Notification feature is disabled.</li>
+  <li><b>Falling Threshold</b>
+      - The CPU Falling utilization threshold in percentage. Configuration of this field is optional. 
+        If configured, the Falling threshold value must be equal to or less than the Rising threshold value. 
+        If not configured, it takes the same value as the Rising threshold.</li>
+  <li><b>Falling Threshold Interval</b>
+      - The CPU Falling threshold interval in seconds. Configuration of this field is optional. 
+        If configured, the Falling interval value must be equal to or less than the Rising interval value. 
+        If not configured, it takes the same value as the Rising interval. 
+        The time interval is configured in multiples of 5.</li>
+  <li><b>Free Memory Threshold</b>
+      - The CPU Free Memory threshold in kilobytes. A zero threshold value indicates 
+        CPU Free Memory Notification feature is disabled.</li>
+  </ul>
+</ul>
+</EMWEB_IF>
+
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Free Memory</b>
+      - Available Free Memory on system in kilobytes. </li>
+  <li><b>Alloc Memory</b> -
+      Allocated Memory for the system in kilobytes. </li>
+
+  <EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <EMWEB_ELSE>
+  <li><b>Rising Threshold</b>
+      - The CPU Rising utilization threshold in percentage. A zero percent threshold indicates 
+        CPU Utilization Notification feature is disabled.</li>
+  <li><b>Rising Threshold Interval</b>
+      - The CPU Rising threshold interval in seconds.</li>
+  <li><b>Falling Threshold</b>
+      - The CPU Falling utilization threshold in percentage. 
+        This value is equal to or less than the Rising threshold value.</li>
+  <li><b>Falling Threshold Interval</b>
+      - The CPU Falling threshold interval in seconds. 
+        This value is equal to or less than the Rising interval value.</li>
+  <li><b>Free Memory Threshold</b>
+      - The CPU Free Memory threshold in kilobytes. A zero threshold value indicates 
+        CPU Free Memory Notification feature is disabled.</li>
+  </EMWEB_IF>
+
+  <li><b>Task Id</b>
+      - Id of the Currently Running Tasks. </li>
+  <li><b>Task Name</b>
+      - Name of the Currently Running Tasks. </li>
+  <li><b>5 Seconds</b>
+      - Percentage of CPU utilized by the corresponding task in the last 5 seconds.</li>
+  <li><b>60 Seconds</b>
+      - Percentage of CPU utilized by the corresponding task in the last 60 seconds.</li>
+  <li><b>300 Seconds</b>
+      - Percentage of CPU utilized by the corresponding task in the last 300 seconds.</li>        
+  <li><b>Total CPU Utilization</b>
+      - Total CPU Utilization in terms of Percentage over a period of 5, 60, 300 seconds, 
+        and the Rising threshold period also in seconds, if configured.</li>
+  </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+<ul type=disc>
+ <ul type=circle>
+ <EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Submit</b> - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' >.</li>
+ </EMWEB_IF>
+  <li><b>Refresh</b> - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();' >.</li>
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+

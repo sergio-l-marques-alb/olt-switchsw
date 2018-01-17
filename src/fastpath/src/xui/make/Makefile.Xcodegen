@@ -1,0 +1,93 @@
+PKGID   := xcodegen
+PKGNAME := $(ROOT_$(PKGID))
+
+SRC_DIR=$(FP_ROOT)/src/xui/framework
+DST_DIR=$(FP_ROOT)/$(OUT_OBJECTS)/xui
+XIE_DIR=$(SRC_DIR)/tools/xie
+MAKE_DIR=$(FP_ROOT)/src/xui/make
+
+CAT_NAME="Default"
+CAT_DIR=$(DST_DIR)/workspace
+CAT_FILE=$(DST_DIR)/catalog.txt
+
+define DEPEND_DIR_LIST 
+$(XML_COMMON) $(XML_PRODUCT) $(WEB_CONTENT) $(JAVA_CONTENT)
+endef
+
+SEP = "::==::"
+
+.PHONY: codegen.d
+
+codegen.d : 
+	$(DBG) echo -n build-dependencies : "" > codegen.d
+	$(DBG) for d in $(XML_COMMON); do find $(FP_ROOT)/$$d -maxdepth 1  -type f  -path '*/*.xml' -printf "%p " >> codegen.d; done
+	$(DBG) echo >> codegen.d
+	$(DBG) echo -n build-dependencies : "" >> codegen.d
+	$(DBG) for d in $(XML_PRODUCT); do find $(FP_ROOT)/$$d -maxdepth 1  -type f  -path '*/*.xml' -printf "%p "  >> codegen.d; done
+	$(DBG) echo >> codegen.d
+	$(DBG) echo -n build-dependencies : "" >> codegen.d
+	$(DBG) for d in $(WEB_CONTENT); do find $(FP_ROOT)/$$d -maxdepth 1  -type f  -path '*/*.xml' -printf "%p " >> codegen.d; done
+	$(DBG) echo >> codegen.d
+	$(DBG) echo -n build-dependencies : "" >> codegen.d
+	$(DBG) for d in $(JAVA_CONTENT); do find $(FP_ROOT)/$$d -maxdepth 1  -type f  -path '*/*.xml' -printf "%p " >> codegen.d; done
+	$(DBG) echo >> codegen.d
+
+
+-include codegen.d
+
+build-dependencies :  
+#
+# Setup the required folder structure
+#
+	$(DBG) mkdir -p $(DST_DIR)
+	$(DBG) mkdir -p $(CAT_DIR)
+	$(DBG) mkdir -p $(CAT_DIR)/$(CAT_NAME)
+	$(DBG) mkdir -p $(CAT_DIR)/app
+#
+# Generate the XML file list for the current packages.
+#
+	$(DBG) rm -f $(DST_DIR)/catalog.txt
+	$(DBG) for d in $(XML_COMMON); do find $(FP_ROOT)/$$d -maxdepth 1  -type f  -path '*/*.xml' -printf "%p\n" >> $(DST_DIR)/catalog.txt; done
+	$(DBG) for d in $(XML_PRODUCT); do find $(FP_ROOT)/$$d -maxdepth 1  -type f  -path '*/*.xml' -printf "%p\n" >> $(DST_DIR)/catalog.txt; done
+	$(DBG) for d in $(WEB_CONTENT); do find $(FP_ROOT)/$$d -maxdepth 1  -type f  -path '*/*.xml' -printf "%p\n" >> $(DST_DIR)/catalog.txt; done
+	$(DBG) for d in $(JAVA_CONTENT); do find $(FP_ROOT)/$$d -maxdepth 1  -type f  -path '*/*.xml' -printf "%p\n" >> $(DST_DIR)/catalog.txt; done
+#
+# Copy the Tool and required JAR files in to output folder
+#
+	$(DBG) cp -f $(XIE_DIR)/xie.jar $(CAT_DIR)/app/xie.jar
+	$(DBG) cp -r -f $(XIE_DIR)/lib  $(CAT_DIR)/app/lib
+	$(DBG) cp -f $(XIE_DIR)/yuicompressor-2.4.2.jar $(CAT_DIR)/app/yuicompressor-2.4.2.jar
+#
+# Read the XML files and Generate Code
+#
+	$(DBG) echo "====================Starting XUI : `date`==============================="
+	$(DBG) java -Djava.awt.headless=true  -mx1024m -ms100m -Xss10m -jar $(CAT_DIR)/app/xie.jar -xemode $(CAT_NAME) $(CAT_FILE) $(DST_DIR) $(FP_ROOT)
+	$(DBG) echo "====================Completed XUI : `date`=============================="
+	$(DBG) touch build-dependencies
+
+bldlib : build-dependencies
+
+clean:
+	$(DBG) rm -rf $(DST_DIR)/content/
+	$(DBG) rm -rf $(DST_DIR)/workspace/
+	$(DBG) rm -f $(DST_DIR)/*
+	$(DBG) rm -f codegen.d
+	$(DBG) rm -f build-dependencies
+
+# Do not change or move anything below this line.
+
+# Include target package output settings
+include $(FP_ROOT)/src/l7tools/build/make.hdr.pkg
+
+# Special magic to allow building from output location
+#include $(FP_ROOT)/src/l7tools/build/make.magic.pkg
+# Do not change or move anything below this line.
+
+# Include target package output settings
+include $(FP_ROOT)/src/l7tools/build/make.hdr.pkg
+
+# Define all source locations used to build this package library
+include $(MAKE_DIR)/make.pkg.srcdist
+
+# Special magic to allow building from output location
+#include $(FP_ROOT)/src/l7tools/build/make.magic.pkg

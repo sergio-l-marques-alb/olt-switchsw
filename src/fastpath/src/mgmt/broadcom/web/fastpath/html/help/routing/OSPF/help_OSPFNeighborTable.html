@@ -1,0 +1,58 @@
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+    <META http-equiv="Pragma" content="no-cache">
+    <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+    <TITLE>OSPF Help</TITLE>
+    <LINK REL="stylesheet" HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+        <hr size="4" width="80%" align="center">
+		<h2><a name=ospf_neighbor_table></a>Help For OSPF Neighbor Table</h2>
+
+		<B>This screen shows the OSPF Neighbor Table, either for all interfaces on which valid OSPF Neighbors are present or the neighbors specific
+			to a given interface on which OSPF Neighbors exist. This information is displayed only if OSPF is enabled and there exists at least on
+			OSPF enabled interface having a valid neighbor.
+		</B>
+
+		<h3>Non-Configurable Data</h3>
+
+		<ul type="disc">
+			<ul type="circle">
+                          <li><B>Router ID</B> - A 32-bit integer in dotted decimal format representing the Router ID of the neighbor on the selected Interface.
+		          </LI>
+		          <li><B>IP Address</B> - The IP Address of the neighbor on the selected Interface.
+		          </LI>
+		          <li><B>Neighbor Interface Index</B> - A<EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	                     Unit/Slot/Port
+                            <EMWEB_ELSE>
+	                     Slot/Port
+                            </EMWEB_IF> identifying the neighbor interface index.
+		          </LI>				
+			</UL>
+		</UL>
+
+		<h3>Command Buttons</h3>
+
+        <ul type="disc">
+			<ul type="circle">
+                <li>
+                    <b>Refresh</b> - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();' > with the latest OSPF neighbor information for the selected interface.
+                </li>
+            </ul>
+        </ul>
+
+		<hr size="4" width="80%" align="center">
+
+    </body>
+
+</html>
+
+
+

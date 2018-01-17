@@ -1,0 +1,37 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+
+
+<FastPathXML>
+    <webxml version="1.0" name="VLANRoutingConfig" title="VLAN Routing Configuration">
+        <group id="1" heading=" ">
+
+            <node id="1">
+               <element control="textbox" properties="filter,iterate" maxLength="4" obj-name="routingIpVlanConfig_vlanId" id="1" name="VLAN ID"/>
+            </node>
+
+            <node id="2">
+                <element obj-name="routingIpVlanConfig_USPFormat" id="1" name="Interface"/>
+            </node>
+
+            <node id="3">
+                <element obj-name="routingIpVlanConfig_ifPhysAddress" id="1" name="MAC Address"/>
+            </node>
+
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="routingIpVlanConfig_ipAddress" id="1" name="IP Address"/>
+            </node>
+
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="routingIpVlanConfig_netMask" id="1" name="Subnet Mask"/>
+            </node>
+
+            <node id="7">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="routingIpVlanConfig_vlanRoutingStatus" help="Submits the form on this page to the Switch" id="1" name="Create"/>
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="routingIpVlanConfig_vlanRoutingStatus" help="Submits the form on this page to the Switch" id="2" name="Delete"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
+

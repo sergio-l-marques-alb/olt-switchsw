@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>MLD Snooping Querier Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+
+<BODY class = "helppageattributes">
+
+
+         
+<hr size=4 width="100%" align=center>
+
+<h2><a name=querier_vlan_status>Help For MLD Snooping Querier VLAN Status</a></h2>
+             
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle> 
+  
+  <li><b>VLANID</b>
+  - Specifies the VLAN ID on which MLD Snooping Querier is administratively enabled and VLAN
+    exists in the VLAN database.
+ </li>
+ 
+  <li><b>Operational State</b>
+  - Specifies the operational state of the MLD Snooping Querier on a VLAN. It can be in any of
+    the following states:
+  <ul type=disc>
+    <ul type=circle> 
+    <li> <b> Querier </b> - Snooping switch is the Querier in the VLAN. The Snooping switch will
+    send out periodic queries with a time interval equal to the configured querier query interval.
+    If the snooping switch sees a better querier in the VLAN, it moves to non-querier mode.
+    <li> <b> Non-Querier </b> - Snooping switch is in Non-Querier mode in the VLAN. If the 
+     querier expiry interval timer is expires, the snooping switch will move into querier mode. 
+     <li> <b> Disabled </b> - Snooping Querier is not operational on the VLAN.
+     The Snooping Querier moves to disabled mode when MLD Snooping is not operational on the VLAN
+     or when the querier address is not configured or the network management address is also not 
+     configured.
+     </ul>
+   </ul>   
+  </li>
+  
+  <li><b>Operational Version</b>
+  - Displays the operational MLD protocol version of the querier. 
+     
+  </li>
+  
+  <li><b>Last Querier Address</b>
+  - Displays the IP address of the last querier from which a query was snooped on the VLAN.
+  </li>
+
+  <li><b>Last Querier Version</b>
+  - Displays the IGMP protocol version of the last querier from which a query was snooped on the VLAN.
+  </li>
+
+  <li><b>Operational Max Response Time</b>
+  - Displays maximum response time to be used in the queries that are sent by the Snooping Querier. 
+  </li>
+</ul>  
+</ul>
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+       <li><b>Refresh</b> - Refresh the data on the screen with the present state of the data in the switch. </li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+</body>
+</html>
+
+
+

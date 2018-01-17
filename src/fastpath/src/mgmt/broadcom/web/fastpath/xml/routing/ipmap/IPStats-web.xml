@@ -1,0 +1,143 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IPStats" title="IP Statistics">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element obj-name="baseIPStats_ipInReceives" id="1" name="IpInReceives"/>
+            </node>
+            <node id="2">
+                <element obj-name="baseIPStats_ipInHdrErrors" id="1" name="IpInHdrErrors"/>
+            </node>
+            <node id="3">
+                <element obj-name="baseIPStats_ipInAddrErrors" id="1" name="IpInAddrErrors"/>
+            </node>
+            <node id="4">
+                <element obj-name="baseIPStats_ipForwDatagrams" id="1" name="IpForwDatagrams"/>
+            </node>
+            <node id="5">
+                <element obj-name="baseIPStats_ipInUnknownProtos" id="1" name="IpInUnknownProtos"/>
+            </node>
+            <node id="6">
+                <element obj-name="baseIPStats_ipInDiscards" id="1" name="IpInDiscards"/>
+            </node>
+            <node id="7">
+                <element obj-name="baseIPStats_ipInDelivers" id="1" name="IpInDelivers"/>
+            </node>
+            <node id="8">
+                <element obj-name="baseIPStats_ipOutRequests" id="1" name="IpOutRequests"/>
+            </node>
+            <node id="9">
+                <element obj-name="baseIPStats_ipOutDiscards" id="1" name="IpOutDiscards"/>
+            </node>
+            <node id="10">
+                <element obj-name="baseIPStats_ipOutNoRoutes" id="1" name="IpOutNoRoutes"/>
+            </node>
+            <node id="11">
+                <element obj-name="baseIPStats_ipReasmTimeout" id="1" name="IpReasmTimeout"/>
+            </node>
+            <node id="12">
+                <element obj-name="baseIPStats_ipReasmReqds" id="1" name="IpReasmReqds"/>
+            </node>
+            <node id="13">
+                <element obj-name="baseIPStats_ipReasmOKs" id="1" name="IpReasmOKs"/>
+            </node>
+            <node id="14">
+                <element obj-name="baseIPStats_ipReasmFails" id="1" name="IpReasmFails"/>
+            </node>
+            <node id="15">
+                <element obj-name="baseIPStats_ipFragOKs" id="1" name="IpFragOKs"/>
+            </node>
+            <node id="16">
+                <element obj-name="baseIPStats_ipFragFails" id="1" name="IpFragFails"/>
+            </node>
+            <node id="17">
+                <element obj-name="baseIPStats_ipFragCreates" id="1" name="IpFragCreates"/>
+            </node>
+            <node id="18">
+                <element obj-name="baseIPStats_ipRoutingDiscards" id="1" name="IpRoutingDiscards"/>
+            </node>
+            <node id="19">
+                <element obj-name="baseicmpStats_icmpInMsgs" id="1" name="IcmpInMsgs"/>
+            </node>
+            <node id="20">
+                <element obj-name="baseicmpStats_icmpInErrors" id="1" name="IcmpInErrors"/>
+            </node>
+            <node id="21">
+                <element obj-name="baseicmpStats_icmpInDestUnreachs" id="1" name="IcmpInDestUnreachs"/>
+            </node>
+            <node id="22">
+                <element obj-name="baseicmpStats_icmpInTimeExcds" id="1" name="IcmpInTimeExcds"/>
+            </node>
+            <node id="23">
+                <element obj-name="baseicmpStats_icmpInParmProbs" id="1" name="IcmpInParmProbs"/>
+            </node>
+            <node id="24">
+                <element obj-name="baseicmpStats_icmpInSrcQuenchs" id="1" name="IcmpInSrcQuenchs"/>
+            </node>
+            <node id="25">
+                <element obj-name="baseicmpStats_icmpInRedirects" id="1" name="IcmpInRedirects"/>
+            </node>
+            <node id="26">
+                <element obj-name="baseicmpStats_icmpInEchos" id="1" name="IcmpInEchos"/>
+            </node>
+            <node id="27">
+                <element obj-name="baseicmpStats_icmpInEchoReps" id="1" name="IcmpInEchoReps"/>
+            </node>
+            <node id="28">
+                <element obj-name="baseicmpStats_icmpInTimestamps" id="1" name="IcmpInTimestamps"/>
+            </node>
+            <node id="29">
+                <element obj-name="baseicmpStats_icmpInTimestampReps" id="1" name="IcmpInTimestampReps"/>
+            </node>
+            <node id="30">
+                <element obj-name="baseicmpStats_icmpInAddrMasks" id="1" name="IcmpInAddrMasks"/>
+            </node>
+            <node id="31">
+                <element obj-name="baseicmpStats_icmpInAddrMaskReps" id="1" name="IcmpInAddrMaskReps"/>
+            </node>
+            <node id="32">
+                <element obj-name="baseicmpStats_icmpOutMsgs" id="1" name="IcmpOutMsgs"/>
+            </node>
+            <node id="33">
+                <element obj-name="baseicmpStats_icmpOutErrors" id="1" name="IcmpOutErrors"/>
+            </node>
+            <node id="34">
+                <element obj-name="baseicmpStats_icmpOutDestUnreachs" id="1" name="IcmpOutDestUnreachs"/>
+            </node>
+            <node id="35">
+                <element obj-name="baseicmpStats_icmpOutTimeExcds" id="1" name="IcmpOutTimeExcds"/>
+            </node>
+            <node id="36">
+                <element obj-name="baseicmpStats_icmpOutParmProbs" id="1" name="IcmpOutParmProbs"/>
+            </node>
+            <node id="37">
+                <element obj-name="baseicmpStats_icmpOutSrcQuenchs" id="1" name="IcmpOutSrcQuenchs"/>
+            </node>
+            <node id="38">
+                <element obj-name="baseicmpStats_icmpOutRedirects" id="1" name="IcmpOutRedirects"/>
+            </node>
+            <node id="39">
+                <element obj-name="baseicmpStats_icmpOutEchos" id="1" name="IcmpOutEchos"/>
+            </node>
+            <node id="40">
+                <element obj-name="baseicmpStats_icmpOutEchoReps" id="1" name="IcmpOutEchoReps"/>
+            </node>
+            <node id="41">
+                <element obj-name="baseicmpStats_icmpOutTimestamps" id="1" name="IcmpOutTimestamps"/>
+            </node>
+            <node id="42">
+                <element obj-name="baseicmpStats_icmpOutTimestampReps" id="1" name="IcmpOutTimestampReps"/>
+            </node>
+            <node id="43">
+                <element obj-name="baseicmpStats_icmpOutAddrMasks" id="1" name="IcmpOutAddrMasks"/>
+            </node>
+            <node id="44">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

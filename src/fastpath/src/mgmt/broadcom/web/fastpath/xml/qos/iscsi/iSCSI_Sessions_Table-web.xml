@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+
+
+<FastPathXML>
+    <webxml version="1.0" name="iSCSI_Sessions_Table" title="iSCSI Sessions">
+      
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="inline" heading="" id="1"> 
+                <element obj-name="fastPathQOSIscsi_SessionTargetName" id="2" name="Target Name"/>
+                <element obj-name="fastPathQOSIscsi_SessionInitiatorName" id="3" name="Initiator Name"/>          
+                <element obj-name="fastPathQOSIscsi_SessionISID" id="4" name="ISID (Initiator Session ID)"/>
+                <element control="combo" properties="hidden,filter,iterate" obj-name="fastPathQOSIscsi_SessionIndex" id="1" name="Session Index"/>
+            </repeat>
+            <node id="2">
+               <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>          
+        </group>
+
+    </webxml>
+</FastPathXML>

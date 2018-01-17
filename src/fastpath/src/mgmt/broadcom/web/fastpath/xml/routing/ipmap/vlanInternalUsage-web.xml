@@ -1,0 +1,27 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+<FastPathXML>
+    <webxml version="1.0" name="vlanInternalUsage" title="VLAN Internal Usage">
+        <group id="1" heading=" ">
+           <node id="1">
+              <element control="label" properties="read-only" obj-name="routingVlanInternalUsage_baseVlanId" id="1" name="Base VLAN ID"/>
+           </node>
+           <node id="2">
+              <element control="label" obj-name="routingVlanInternalUsage_AllocationPolicy" id="1" name="Allocation Policy"/>
+           </node>
+           <repeat present="vtable" edit="no" heading=" " id="3">
+              <element properties="iterate" obj-name="routingVlanInternalUsage_VlanId" id="1" name="VLAN ID"/>
+       	      <element obj-name="routingVlanInternalUsage_Interface" id="2"/>
+           </repeat>
+           <node id="4">
+               <button scope="page" type="buttonClear" help="Refreshes the form on this page" id="1" name="Refresh"/>
+           </node>
+        </group>
+    </webxml>
+</FastPathXML>
+
+
+
+

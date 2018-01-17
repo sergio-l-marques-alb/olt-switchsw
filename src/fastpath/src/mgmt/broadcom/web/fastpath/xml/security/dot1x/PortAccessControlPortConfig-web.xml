@@ -1,0 +1,64 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PortAccessControlPortConfig" title="Port Access Control Port Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="securitydot1x_dot1xPaePortNumber" id="1" name="Interface"/>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="securitydot1x_Dot1xPortControlMode" id="1" name="Control Mode">
+                    <action type="enum" web_name="Auto" show="1_14_3|1_14_4"/>
+                    <action type="enum" web_name="Force Authorized" hide="1_14_3|1_14_4"/>
+                    <action type="enum" web_name="Force Unauthorized" hide="1_14_3|1_14_4"/>
+                    <action type="enum" show="1_14_3|1_14_4"/>
+                </element>
+            </node>
+            <node id="3">
+                <element maxLength="5" arghelp="HELP_FORMAT_FP" obj-name="securitydot1x_dot1xAuthQuietPeriod" id="1" name="Quiet Period (secs)"/>
+            </node>
+            <node id="4">
+                <element maxLength="5" arghelp="HELP_FORMAT_FP" obj-name="securitydot1x_dot1xAuthTxPeriod" id="1" name="Transmit Period (secs)"/>
+            </node>
+            <node id="5">
+                <element maxLength="4" arghelp="HELP_FORMAT_FP" obj-name="securitydot1x_Dot1xGuestVlanId" id="1" name="Guest VLAN ID"/>
+            </node>
+            <node id="6">
+                <element maxLength="3" arghelp="HELP_FORMAT_FP" obj-name="securitydot1x_Dot1xGuestVlanPeriod" id="1" name="Guest VLAN Period (secs)"/>
+            </node>
+            <node id="7">
+                <element maxLength="4" arghelp="HELP_FORMAT_FP" obj-name="securitydot1x_Dot1xUnauthenticatedVlan" id="1" name="Unauthenticated VLAN ID"/>
+            </node>
+            <node id="8">
+                <element maxLength="5" arghelp="HELP_FORMAT_FP" obj-name="securitydot1x_Dot1xPortSuppTimeout" id="1" name="Supplicant Timeout (secs)"/>
+            </node>
+            <node id="9">
+                <element maxLength="5" arghelp="HELP_FORMAT_FP" obj-name="securitydot1x_Dot1xPortServerTimeout" id="1" name="Server Timeout (secs)"/>
+            </node>
+            <node id="10">
+                <element maxLength="2" arghelp="HELP_FORMAT_FP" obj-name="securitydot1x_Dot1xPortMaxReq" id="1" name="Maximum Requests"/>
+            </node>
+            <node id="11">
+                <element maxLength="5" arghelp="HELP_FORMAT_FP" obj-name="securitydot1x_dot1xAuthReAuthPeriod" id="1" name="Re-authentication Period (secs)"/>
+            </node>
+            <node id="12">
+                <element control="combo" obj-name="securitydot1x_Dot1xPortReAuthEnabled" id="1" name="Re-authentication Enabled">
+                   <action type="enum" web_name="True"/>
+                   <action type="enum" web_name="False"/>
+                </element>
+            </node>
+            <node id="13">
+                <element maxLength="2" arghelp="HELP_FORMAT_FP" obj-name="securitydot1x_Dot1xPortMaxUsers" id="1" name="Maximum Users"/>
+            </node>
+            <node id="14">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+                <button scope="page" type="buttonSubmit" value="TRUE" obj-name="securitydot1x_dot1xPaePortInitialize" help="Submits the form on this page to the Switch" id="3" name="Initialize"/>
+                <button scope="page" type="buttonSubmit" value="TRUE" obj-name="securitydot1x_dot1xPaePortReauthenticate" help="Submits the form on this page to the Switch" id="4" name="Re-Authenticate"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

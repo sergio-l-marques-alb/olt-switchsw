@@ -1,0 +1,21 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DiffservServiceSummary" title="DiffServ Service Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="qosDiffServService_IfIndex" id="1" name="Interface"/>
+                <element  properties="filter,iterate" obj-name="qosDiffServService_IfDirection" id="2" name="Direction"/>
+                <element properties="" obj-name="qosDiffServService_IfOperStatus" id="3" name="Operational Status"/>
+				<!--<element properties="hidden" obj-name="qosDiffServService_PolicyIndex" id="4"/>-->
+                <element  obj-name="qosDiffServService_PolicyName" id="6" name="Policy Name" control="label"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

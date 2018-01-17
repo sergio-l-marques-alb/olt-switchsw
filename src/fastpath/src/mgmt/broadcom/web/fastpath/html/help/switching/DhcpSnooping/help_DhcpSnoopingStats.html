@@ -1,0 +1,75 @@
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2002-2007
+*
+**********************************************************************
+*
+*
+* @purpose help file for DHCP Snooping
+*
+* @comments
+*
+* @create 23/10/2007
+*
+* @author msudhir
+* @end
+*
+**********************************************************************/
+
+**********************************************************************/
+-->
+</EMWEB_IF>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>DHCP Snooping Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=dhcpsnoopstats></a>Help for DHCP Snooping Statistics</h2>
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface</b> -
+      Select the untrusted and snooping enabled interface for which statistics to be displayed.</li>
+ </ul>
+</ul>
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>MAC Verify Failures</b> - Number of packets that were dropped by DHCP Snooping as
+         there is no matching DHCP Snooping binding entry found. </li>
+  <li><b>Client Ifc Mismatch</b> - The number of DHCP messages that are dropped based on source MAC address 
+         and client HW address verification.</li>
+  <li><b>DHCP Server Msgs Received</b> - The number of Server messages that are dropped on an untrusted port.</li>
+</ul>
+</ul>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Command Buttons</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Clear Statistics</b> -
+          Clears all interfaces statistics.</li> 
+</ul>
+</ul>
+</EMWEB_IF>
+
+</body>
+
+</html>
+

@@ -1,0 +1,96 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Port Channel Status Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=trunkstat></a>Help for Port Channel Status</h2>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Port Channel</b> - The<EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	 Unit/Slot/Port
+<EMWEB_ELSE>
+	 Slot/Port
+</EMWEB_IF> identification of the Port Channel. </li>
+  <li><b>Port Channel Name</b> - The
+      name of the Port Channel. </li>
+  <li><b>Port Channel Type</b> - The
+      type of this Port Channel. </li>
+  <li><b>Admin Mode </b> -
+      The Administrative Mode of the Port Channel, enable or disable.
+      </li>
+  <li><b>Link State</b> - Indicates
+      whether the Link is up or down.</li>
+  <li><b>STP Mode</b> - The
+      Spanning Tree Protocol Administrative Mode associated with the Port Channel.
+      The possible values are: </li>
+  <ul type=square>
+   <li>Disable - spanning tree
+       is disabled for this Port Channel.</li>
+   <li>Enable - spanning tree is enabled for this Port Channel.</li>
+  </ul>
+  <li><b>Static Mode</b>
+      - The Static Mode of the Port Channel, enable or disable.</li>
+  <li><b>Link Trap</b> -
+      Whether or not a trap will be sent when link status
+      changes. The factory default is enable.</li>
+  <li><b> Port Channel Members</b> - A
+      list of the ports that are members of the Port Channel, in
+     <EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	 Unit/Slot/Port
+<EMWEB_ELSE>
+	 Slot/Port
+</EMWEB_IF>
+      notation. There can be a maximum of
+      8
+      ports assigned to a Port Channel. </li>
+  <li><b>Active Ports</b> - A
+      listing of the ports that are actively participating members
+      of this Port Channel, in<EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+	 Unit/Slot/Port
+<EMWEB_ELSE>
+	 Slot/Port
+</EMWEB_IF> notation.
+      There can be a maximum of
+      8
+      ports assigned to a Port Channel. </li>
+  <li><b>Load Balance</b>
+      - The Load balance of the Port Channel. The possible values are:</li>
+  <ul type=square>
+      <li>Source MAC, VLAN, Ethertype, and source port</li>
+      <li>Destination MAC, VLAN, EtherType and source port</li>
+      <li>Source/Destination MAC, VLAN, Ethertype, and source port</li>
+      <li>Source IP and Source TCP/UDP Port</li>
+      <li>Destination IP and Destination TCP/UDP Port</li>
+      <li>Source/Destination IP and source/destination TCP/UDP Port</li>
+      <li>Enhanced hashing mode</li>
+  </ul>
+
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Refresh</b> - Refreshes the data on the screen with the present
+      state of the data in the switch.</li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+
+
+</body>
+
+</html>
+
+

@@ -1,0 +1,48 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+
+   <FastPathXML>
+      <webxml version="1.0" name="iSCSI_Sessions_Detailed_Table" title="iSCSI Sessions Detailed">        
+         <group id="1" heading=" ">
+            <node id="1">
+              <element control="combo" properties="filter,iterate" obj-name="fastPathQOSIscsi_SessionIndex" id="1" name="Session Index"/>
+            </node>              
+            <node id="2">
+               <element control="label" obj-name="fastPathQOSIscsi_SessionTargetName"    id="1" name="Target Name"/>
+            </node>              
+            <node id="3">                       
+               <element control="label" obj-name="fastPathQOSIscsi_SessionInitiatorName" id="2" name="Initiator Name"/>
+            </node>              
+            <node id="4">                       
+               <element control="label" obj-name="fastPathQOSIscsi_SessionStartTime"     id="3" name="Up Time">
+                     <action type="value" value="" show="2_1" hide="1" />
+                     <action type="default" show="1" hide="2_1" />
+               </element>
+            </node>              
+            <node id="5">
+               <element control="label" obj-name="fastPathQOSIscsi_SessionTimeLeft"      id="4" name="Time for aging out (in Seconds)"/>
+            </node>              
+            <node id="6">
+               <element control="label" obj-name="fastPathQOSIscsi_SessionISID"          id="5" name="ISID (Initiator Session ID)"/>
+            </node>
+            <repeat present="vtable" edit="inline" heading=" " id="7">
+               <element control="combo" properties="hidden,filter,iterate" obj-name="fastPathQOSIscsi_ConnectionIndex" id="1" name="Connection Index"/>
+               <element obj-name="fastPathQOSIscsi_ConnectionInitiatorIPAddress" id="2" name="Initiator IP address"/>                      
+               <element obj-name="fastPathQOSIscsi_ConnectionInitiatorTCPPort"   id="3" name="Initiator TCP Port"/>                      
+               <element obj-name="fastPathQOSIscsi_ConnectionTargetIPAddress"    id="4" name="Target IP Address"/>
+               <element obj-name="fastPathQOSIscsi_ConnectionTargetTCPPort"      id="5" name="Target TCP Port"/>                     
+            </repeat>
+         </group>
+
+         <group id="2" heading="" >
+            <node id="1" clazz="unavailableattributes">
+                  <message> No iSCSI Sessions Are Available </message>
+            </node>
+            <node id="2">
+               <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>          
+         </group>           
+
+      </webxml>
+   </FastPathXML>

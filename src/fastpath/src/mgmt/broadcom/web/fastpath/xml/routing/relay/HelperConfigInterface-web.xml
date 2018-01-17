@@ -1,0 +1,61 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="HelperConfigInterface" title="IP Helper Interface Configuration">
+        <group id="1"  heading=" ">
+          <node id="2">
+            <element control="combo" properties="filter,iterate" obj-name="routingswitchHelperTable_IfIndex" id="1" name="Source IP Interface">
+               <action type="extn" position="0" value="All" invoke="onChange" show="1_4" hide="1_3" enable="1_4" setval_ids="1_6_1" setval_args="L7_DISABLE" js_function="pageRefresh"/>
+               <action type="default" invoke="onChange" show="1_3" hide="1_4" disable="1_4" setval_ids="1_6_1" setval_args="L7_ENABLE"/>
+            </element>
+          </node>
+          <repeat present="vtable" edit="inline" heading=" " id="3">
+                <element control="label" properties="filter,iterate" obj-name="routingswitchHelperTable_helperIpDestUDPPort" id="2" name="UDP Destination Port"/>
+                <element control="label" properties="filter,iterate" obj-name="routingswitchHelperTable_helperIpAddress" id="3" name="Server Address"/>
+                <element control="label" properties="read-only" obj-name="routingswitchHelperTable_helperIpDiscard" id="4" name="IsDiscard"/>
+                <element control="label" properties="read-only" obj-name="routingswitchHelperTable_helperIpHitCount" id="5" name="Hit Count"/>
+                <element level="ReadWriteUser" control="checkbox-neg" obj-name="routingswitchHelperTable_helperStatus" id="6" name="Remove">
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="no"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="no"/>
+
+                </element>
+         </repeat>
+         <repeat present="vtable" edit="inline" heading=" " id="4">
+                <element control="label" properties="filter,iterate" obj-name="routingswitchHelperTable_IfIndex" id="1" name="Source IP Interface"/>
+                <element control="label" properties="filter,iterate" obj-name="routingswitchHelperTable_helperIpDestUDPPort" id="2" name="UDP Destination Port"/>
+                <element control="label" properties="filter,iterate" obj-name="routingswitchHelperTable_helperIpAddress" id="3" name="Server Address"/>
+                <element control="label" properties="read-only" obj-name="routingswitchHelperTable_helperIpDiscard" id="4" name="IsDiscard"/>
+                <element control="label" obj-name="routingswitchHelperTable_helperIpHitCount" id="5" name="Hit Count"/>
+                <element level="ReadWriteUser" control="checkbox-neg" obj-name="routingswitchHelperTable_helperStatus" id="6" name="Remove">
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="no"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="no"/>
+
+                </element>
+           </repeat>
+            <node id="5">
+                <button level="ReadWriteUser" scope="page" type="buttonClear" help="Submits the page" id="1" name="Add" target-page="HelperConfigInterfaceAdd.html"/>
+                <button level="ReadWriteUser"  scope="page" type="buttonSubmit"  help="Submits the form on this page to the Switch" id="2" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="3" name="Refresh"/>
+            </node>
+            <node id="6">
+                <element properties="hidden" control="checkbox" uienum="enable_t" obj-name="xLibObjects_dummy" id="1" name="Enable/Disable Items">
+                    <action invoke="onLoad" type="enum" show="1_3" hide="1_4" disable="1_4" />
+                    <action invoke="onLoad" type="enum" show="1_4" hide="1_3" enable="1_4" setval_ids="1_2_1" setval_args="valmapAll" />
+                </element>
+            </node>   
+         </group>
+    </webxml>
+</FastPathXML>

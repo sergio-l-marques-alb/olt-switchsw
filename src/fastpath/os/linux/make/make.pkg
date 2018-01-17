@@ -1,0 +1,79 @@
+# Local source path abbreviations (for convenience).
+#
+src_os      := os/linux
+src_routing := src/application/routing
+
+
+# Master list of source paths to be built into this package library.
+#  - All entries must be specified relative to top-of-view $(FP_ROOT).
+#  - Defines all source locations to be referenced by the package-level makefile.
+#
+MASTERSRC += \
+	$(src_os)/log \
+	$(src_os)/mgmt \
+	$(src_os)/osapi \
+	$(src_os)/tools \
+	$(src_os)/transfer
+
+
+# List here individual source files to be selectively EXCLUDED from the build.
+#
+MASTERSRC_FILE_EXCLUDE += \
+	$(src_os)/tools/logdump.c
+
+
+# List here individual source include directories owned by this package (without the -I).
+#
+MASTERINC +=
+
+
+# Additional source header file search paths (without the -I).
+#
+SRCINCPATHS += \
+	src/dtl/base/include \
+	src/dtl/routing/include \
+	src/mgmt/$(L7_EMWEBPACKAGE)/emweb/linux \
+	src/mgmt/$(L7_EMWEBPACKAGE)/emweb/config.linux \
+	src/mgmt/$(L7_EMWEBPACKAGE)/emweb/websrc/include \
+	src/mgmt/$(L7_EMWEBPACKAGE)/emweb/websrc/server \
+	src/mgmt/$(L7_EMWEBPACKAGE)/emweb/lib \
+	src/mgmt/$(L7_EMWEBPACKAGE)/emweb/websrc/telnet \
+	src/mgmt/$(L7_EMWEBPACKAGE)/cli/base/include \
+	src/mgmt/$(L7_EMWEBPACKAGE)/cli/routing/include \
+	src/mgmt/$(L7_EMWEBPACKAGE)/cli/switching_stubs \
+	src/mgmt/util \
+        $(src_routing)/mapping/ipmap/core/include
+
+
+# Include fully-qualified paths external to FP_BASE (without the -I).
+#
+EXTRNINCPATHS +=
+
+
+# Additional compiler flags.
+#
+CFLAGSEXTRA +=
+
+
+# Conditional source inclusion.
+#
+
+# These sources are included only if the ROUTING package is present.
+#
+ifeq (1,$(BLD_L7_PACKAGE_ROUTING))
+MASTERSRC += \
+	$(src_os)/routing \
+	src/application/routing/mapping/ipmap/include
+
+MASTERINC += \
+	$(src_os)/routing/include
+endif
+
+# These sources are included only if IPV6 or IPV6_MGMT flex package is present.
+#
+ifeq (1,$(BLD_L7_FLEX_HAS_COMMON_IPV6))
+MASTERSRC += \
+	$(src_os)/osapi/ipv6
+endif
+
+

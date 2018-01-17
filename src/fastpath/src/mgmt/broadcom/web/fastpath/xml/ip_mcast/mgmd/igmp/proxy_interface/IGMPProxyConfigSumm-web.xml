@@ -1,0 +1,124 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IGMPProxyConfigSumm" title="IGMP Proxy Interface Configuration Summary">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element properties="write-only,hidden" value="IPv4" obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyIntfType" id="1" name="mgmdProxyIntfType"/>
+            </node>
+            <node id="41">
+                <element properties="write-only,hidden" value="IPv4" obj-name="ipmcastmgmdHostInterfaceTable_mgmdHostInterfaceQuerierType" id="2" name="mgmdProxyIntfType"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyIntfIndex" id="1" name="Interface"/>
+            </node>
+            <node id="3">
+                <element properties="filter,hidden" cpval="ipmcastmgmdProxyInterfaceTable_mgmdProxyIntfIndex" obj-name="routingswitchIPInterfaceConfig_IfIndex" id="1" name="IfIndex"/>
+            </node>
+            <node id="4">
+                <element properties="filter,hidden" cpval="ipmcastmgmdProxyInterfaceTable_mgmdProxyIntfIndex" obj-name="ipmcastmgmdHostInterfaceTable_mgmdHostInterfaceIfIndex" id="1" name="mgmdHostInterfaceIfIndex"/>
+            </node>
+            <node id="5">
+                <element control="label" clazz="custmessage" obj-name="xLibObjects_dummy" id="1" name="Interface Parameters"/> 
+            </node>
+            <node id="6">
+                <element control="label" properties="read-only" arghelp="IP_Address" obj-name="routingswitchIPInterfaceConfig_ipAddress" id="1" name="IP Address"/>
+            </node>
+            <node id="7">
+                <element control="label" properties="read-only" obj-name="routingswitchIPInterfaceConfig_netMask" id="1" name="Subnet Mask"/>
+            </node>
+            <node id="8">
+                <element control="label" properties="read-only" obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyIntfMode" id="1" name="Admin Mode"/>
+            </node>
+            <node id="9">
+                <element obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyIntfOperStatus" id="1" name="Operational Mode"/>
+            </node>
+            <node id="40">
+                <element obj-name="ipmcastmgmdHostInterfaceTable_mgmdHostInterfaceQuerier" id="1" name="Querier Address on Proxy Interface"/>
+            </node>
+            <node id="10">
+                <element obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyInterfaceNumMcastGroups" id="1" name="Number of Groups"/>
+            </node>
+            <node id="11">
+                <element control="label" properties="read-only" obj-name="ipmcastmgmdHostInterfaceTable_mgmdHostInterfaceVersion" id="1" name="Version"/>
+            </node>
+            <node id="12">
+                <element control="label" properties="read-only" obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyIntfUnsolicitedInterval" id="1" name="Unsolicited Report Interval"/>
+            </node>
+            <node id="13">
+                <element obj-name="ipmcastmgmdHostInterfaceTable_mgmdHostInterfaceVersion1QuerierTimer" id="1" name="Version 1 Querier Timeout"/>
+            </node>
+            <node id="14">
+                <element obj-name="ipmcastmgmdHostInterfaceTable_mgmdHostInterfaceVersion2QuerierTimer" id="1" name="Version 2 Querier Timeout"/>
+            </node>
+            <node id="15">
+                <element obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyInterfaceRestartCount" id="1" name="Proxy Start Frequency"/>
+            </node>
+            <node id="16">
+                <element properties="write-only,hidden" value="IPv4" obj-name="ipmcastmgmdHostInterfaceTable_mgmdHostInterfaceQuerierType" id="1" name="mgmdHostInterfaceQuerierType"/>
+            </node>
+            <node id="17">
+                <element control="label" clazz="custmessage" obj-name="xLibObjects_dummy" id="1" name="Proxy Interface Statistics"/> 
+            </node>  
+            <node id="18">
+                <element control="label" clazz="custmessage" obj-name="xLibObjects_dummy" id="1" name="IGMPv1 Statistics"/> 
+            </node>
+            <node id="19">
+                <element obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyV1QueriesRecvd" id="1" name="Queries Received"/>
+            </node>
+            <node id="20">
+                <element obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyV1ReportsRecvd" id="1" name="Reports Received"/>
+            </node>
+            <node id="21">
+                <element obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyV1ReportsSent" id="1" name="Reports Sent"/>
+            </node>
+            <node id="22">
+                <element control="label" clazz="custmessage" obj-name="xLibObjects_dummy" id="1" name="IGMPv2 Statistics"/> 
+            </node>
+            <node id="23">
+                <element obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyV2QueriesRecvd" id="1" name="Queries Received"/>
+            </node>
+            <node id="24">
+                <element obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyV2ReportsRecvd" id="1" name="Reports Received"/>
+            </node>
+            <node id="25">
+                <element obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyV2ReportsSent" id="1" name="Reports Sent"/>
+            </node>
+            <node id="26">
+                <element obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyV2LeavesRecvd" id="1" name="Leaves Received"/>
+            </node>
+            <node id="27">
+                <element obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyV2LeavesSent" id="1" name="Leaves Sent"/>
+            </node>
+            <node id="28">
+                <element control="label" clazz="custmessage" obj-name="xLibObjects_dummy" id="1" name="IGMPv3 Statistics"/> 
+            </node>
+            <node id="29">
+                <element obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyV3QueriesRecvd" id="1" name="Queries Received"/>
+            </node>
+            <node id="30">
+                <element obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyV3ReportsRecvd" id="1" name="Reports Received"/>
+            </node>
+            <node id="31">
+                <element obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyV3ReportsSent" id="1" name="Reports Sent"/>
+            </node>
+            <node id="32">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" value="Edit Me" obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyResetStatus" help="Submits the form on this page to the Switch" id="2" name="Clear Statistics"/>
+            </node>
+            <node id="42" clazz="unavailableattributes">
+                <message>IGMP Proxy is not enabled on this interface</message>
+            </node>
+            <node id="43">
+                <element control="combo" properties="hidden" obj-name="ipmcastmgmdProxyInterfaceTable_mgmdProxyIntfStatus" id="1" name="Proxy Status">
+                    <action type="enum" hide="1_42"/>
+                    <action type="enum" hide="1_1_1|1_2_1|1_3_1|1_4_1|1_5_1|1_6_1|1_7_1|1_8_1|1_9_1|1_10_1|1_11_1|1_12_1|1_13_1|1_14_1|1_15_1|1_16_1|1_17_1|1_18_1|1_19_1|1_20_1|1_21_1|1_22_1|1_23_1|1_24_1|1_25_1|1_26_1|1_27_1|1_28_1|1_29_1|1_30_1|1_31_1|1_32|1_40_1|1_41_2" show="1_42"/>
+                </element>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
+

@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" java-script="range_type" name="ProtectedPortsConfig" title="Protected Ports Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingProtectedPortConfig_GroupId" id="1" name="Group ID"/>
+            </node>
+            <node id="2">
+                <element arghelp="HELP_FORMAT_NAME32" maxLength="32" obj-name="SwitchingProtectedPortConfig_GroupName" id="1" name="Group Name"/>
+            </node>
+            <node id="3">
+                <element properties="collate,list" control="combo-multiselect" obj-name="SwitchingProtectedPortConfig_PortList" id="1" name="Protected Port(s)"/>
+            </node>
+            <node id="4">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="SwitchingProtectedPortConfig_RowStatus" help="Adds the selected port list to the selected group." id="1" name="Add Port(s)"/>
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="SwitchingProtectedPortConfig_RowStatus" help="Deletes the selected port list to the selected group." id="2" name="Delete Port(s)">
+                    <action type="button" disable="1_2" />
+                </button>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

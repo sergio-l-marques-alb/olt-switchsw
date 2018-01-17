@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+
+
+<FastPathXML>
+    <webxml version="1.0" name="MACACLRuleStatusSummary" title="MAC ACL Rule status Summary" help-file="help_MACACLRuleStatusSummary.html">
+        <group id="1" heading=" ">
+          <repeat present="plain" edit="no" heading=" " id="1">
+             <element control="label" properties="iterate,hidden" obj-name="fastPathQOSACLQOSACL_aclMacIndex" id="1" name="MAC ACL"/>
+             <element control="label" obj-name="fastPathQOSACLQOSACL_aclMacName" id="2" name="MAC ACL"/>
+             <element control="label" properties="iterate" obj-name="fastPathQOSACLQOSACL_aclMacRuleIndex" id="3" name="Rule"/>
+              <element control="label" obj-name="fastPathQOSACLQOSACL_aclMacRuleTimeRangeName" id="4" name="Time Range Name"/>
+             <element control="label" obj-name="fastPathQOSACLQOSACL_aclMacRuleTimeRangeStatus" id="5" name="Rule Status"/>
+            </repeat>
+             <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+    </group>
+    </webxml>
+</FastPathXML>
+

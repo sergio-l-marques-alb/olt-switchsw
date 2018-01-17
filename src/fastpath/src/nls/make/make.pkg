@@ -1,0 +1,58 @@
+# Local source path abbreviations (for convenience)
+#
+src_nls := src/nls
+
+
+# Construct a single list of subdir names to be built for the common,
+# cli, and web strings, depending on which packages are included.
+#
+sublist := base common security switching
+
+
+# Conditional source inclusion
+#
+
+# Note: All NLS package subdirs are included here.  Eventually,
+#       these could be conditionally included based on their
+#       BLD_L7_XXX_XXX variable value.
+#
+sublist += bgp chassis ip_mcast ip_mcast6 ipv6 metro qos routing routingv6 stacking wireless
+
+
+# Master list of source paths to be built into this package library.
+#  - All entries must be specified relative to top-of-view $(FP_ROOT).
+#  - Defines all source locations to be referenced by the package-level makefile.
+#
+MASTERSRC += \
+	$(foreach dir,$(sublist),$(src_nls)/common/$(dir)) \
+	$(foreach dir,$(sublist),$(src_nls)/cli/$(dir)) \
+	$(foreach dir,$(sublist),$(src_nls)/web/$(dir))
+
+
+# List here individual source files to be selectively EXCLUDED from the build
+#
+MASTERSRC_FILE_EXCLUDE +=
+
+
+# List here individual source include directories owned by this package (without the -I).
+#
+MASTERINC += \
+	$(src_nls)/include
+
+
+# Additional source header file search paths (without the -I).
+#
+SRCINCPATHS += \
+	src/mgmt/util
+
+
+# Additional CFLAGS.
+#
+CFLAGSEXTRA +=
+
+
+# In SMB product, pass these flags to remove unused function/data for reducing code size.
+ifeq (1,$(BLD_L7_PRODUCT_SMB))
+CFLAGSEXTRA += -ffunction-sections -fdata-sections
+endif
+

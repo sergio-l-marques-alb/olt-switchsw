@@ -1,0 +1,219 @@
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Diffserv Class Configuration Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+ 
+
+<hr size=4 width="100%" align=center>
+
+<!-------------------------------------------------------------------------------------->
+
+<h2><a name=class_cfg></a>Help for DiffServ Class Configuration</h2>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Selection Criteria</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Selector</b> - Along with an option to create a new class, this lists all the
+      existing DiffServ class names, from which one can be selected. The content of this screen 
+      varies based on the selection of this field. If an existing class is selected then the 
+      screen will display the configured class. If '--create--' is selected, another screen 
+      appears to facilitate creation of a new class. The default is the first class created.
+      If no classes exist, the default is '--create--'.</li>
+      
+  <li><b>Class Type</b> - This lists all the platform supported DiffServ class types from which 
+      one can be selected. Options:
+      <ul type=square>
+        <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ALL_FEATURE">
+            <li>All</li>
+        </EMWEB_IF>
+        <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ANY_FEATURE">
+            <li>Any</li>
+        </EMWEB_IF>
+        <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ACL_FEATURE">
+            <li>ACL - If 'ACL' is (supported and) selected, then an access list (ACL) 
+          identifier is required specifying an existing ACL. </li>
+        </EMWEB_IF>
+      </ul>
+      Only when a new class is created, this field is a selector field. After class 
+      creation this becomes a non-configurable field displaying the configured class type.</li>
+  
+  <li><b>Class Layer 3 Protocol</b> - Indicates how to interpret the any layer 3.
+     This lists types of packets supported by Diffserv. Layer 3 Protocol option 
+     is available only when user selects class type as 
+    <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ALL_FEATURE">
+    'All' 
+    </EMWEB_IF>
+    <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ANY_FEATURE">
+     or 'Any'
+    </EMWEB_IF>
+    . Options:
+      <ul type=square>
+        <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_L3PROTO_IPV4_FEATURE">
+            <li>IPv4</li>
+        </EMWEB_IF>
+        <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_L3PROTO_IPV6_FEATURE">
+            <li>IPv6</li> </ul>
+        </EMWEB_IF>
+
+      Only when a new class is created, this field is a selector field. After class 
+      creation this becomes a non-configurable field displaying the configured class type.</li>
+
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ACL_FEATURE">
+  <li><b>Class ACL Type</b> - This field is visible only if 'Class Type' is selected as 'ACL'.
+      This lists all the platform supported class ACL types from which one can be selected. 
+      Possible options are 'IP ACL' or 'MAC ACL'. Only when a new class is created, this field is a selector field. 
+      After class creation this becomes a non-configurable field displaying the configured class type.</li>
+      
+  <li><b>IP ACL</b> - Specifies list of IP ACLs. Only when a new class is created, this field is a selector field.</li>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="IPV6_ACL_TYPE_FEATURE_SUPPORT">
+  <li><b>IPv6 ACL</b> - Specifies list of configured IPv6 ACLs. Only when a new class is created, this field is a selector field.</li>
+  </EMWEB_IF>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_TYPE_MAC_FEATURE">
+  <li><b>MAC ACL</b> - Specifies list of MAC ACLs. Only when a new class is created, this field is a selector field.</li>
+  </EMWEB_IF>  
+  </EMWEB_IF>  
+  
+  <li><b>Class Match Selector</b> - This lists all match criteria from which one can be selected 
+      to be added to a specified class. The match criterion 'Any' denotes that all packets 
+      are considered to match the specified class and no additional input information is needed. 
+      The content of this drop down list varies for a specified class based on the selection of 
+      the match criterion 'Reference Class':
+      <ul type=square>
+          <li>If the specified class does not reference any other class, the 'Reference Class' 
+              match criterion is included in the drop down match criteria list. 
+              A class reference can be established by selecting 'Reference Class' and 
+              invoking the 'Add Match Criteria' button.</li>
+          <li>If the specified class references another class, the 'Reference Class' match 
+              criterion is not included in the drop down match criteria list. This prevents 
+              the user from trying to add yet another class reference, since a specified class 
+              can reference at most one other class of the same type. Moreover, a 
+              'Remove Reference Class' button appears on the screen that can be invoked 
+              to remove the current class reference.</li>
+      </UL>
+  </li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - This is a case-sensitive alphanumeric string from 1 to 31 characters 
+      uniquely identifying a class. Class name 'default' is reserved and must not be used.</li>
+ </ul>
+</ul>
+       
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Type</b> - Displays type of the configured class 
+      only when a new class is created, this field is a selector field. 
+      After class creation this becomes a non-configurable field.</li>
+  
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ACL_FEATURE">
+  <li><b>Class ACL Type</b> - This field is visible only if 'Class Type' is configured as 'acl'.
+      Displays type of the configured ACL class as 'IP', 'IPv6' or 'MAC'. 
+      Only when a new class is created, this field is a selector field. 
+      After class creation this becomes a non-configurable field.</li>
+      
+  <li><b>ACL Identifier</b> - This field is visible only if 'Class Type' is configured as 'acl'.
+  Displays the Identifier of the ACL linked to Diffserv class.</li>
+  </EMWEB_IF>  
+  
+  <li><b>Match Criteria</b> - Displays the configured match criteria for the specified class.</li>
+  <li><b>Values</b> - Displays the values of the configured match criteria.</li>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+  <li><b>Excluded</b> - Displays the inclusion or exclusion of the configured match criteria. 
+      When a match criterion is configured to be excluded, 'Yes'is displayed. Conversely, when 
+      a match criterion is configured to be included, 'No' is displayed.</li>
+  </EMWEB_IF>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+  <li><b>Cancel</b> - <EMWEB_STRING C='return usmWebCancelDescriptionHelp();' >.</li>
+  <li><b>Delete</b> - Delete the currently selected filter.</li>
+  <li><b>Rename</b> - Allows to rename a specified class.</li>
+  <li><b>Add Match Criteria</b> - Only one match criterion can be specified each time 
+      this button is invoked. Based on the selected match criterion, an individual 
+      match criterion screen is provided to configure its value.<BR><BR>
+      NOTE: Match criteria cannot be deleted from a class.  The class must be
+      deleted in order to remove the match criteria.</li><BR><BR>
+  <li><b>Remove Reference Class</b> - This button appears on the screen only if 
+      a specified class references another class. The current class reference, 
+      of the specified class, is removed by invoking this button.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<EMWEB_ELSE>
+<h3>Selection Criteria</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Selector</b> - This lists all the
+      existing DiffServ class names, from which one can be selected. The content of this screen 
+      varies based on the selection of this field. If an existing class is selected then the 
+      screen will display the configured class. The default is the first class created.
+  </li>
+</ul>
+</ul>
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - This is a case-sensitive alphanumeric string from 1 to 31 characters 
+      uniquely identifying a class. Class name 'default' is reserved and must not be used.</li>
+  <li><b>Class Type</b> - Displays type of the configured class 
+      only when a new class is created.</li>
+  <li><b>Class Layer 3 Protocol</b> - Indicates how to interpret the any layer 3.
+     This lists types of packets supported by Diffserv. Layer 3 Protocol option 
+     is available only when user selects class type as 
+    <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ALL_FEATURE">
+    'All' 
+    </EMWEB_IF>
+    <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_TYPE_ANY_FEATURE">
+     or 'Any'
+    </EMWEB_IF>
+    . Options:
+      <ul type=square>
+        <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_L3PROTO_IPV4_FEATURE">
+            <li>IPv4</li>
+        </EMWEB_IF>
+        <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_L3PROTO_IPV6_FEATURE">
+            <li>IPv6</li> </ul>
+        </EMWEB_IF>
+
+      Only when a new class is created, this field is a selector field. After class 
+      creation this becomes a non-configurable field displaying the configured class type.</li>
+  <li><b>Match Criteria</b> - Displays the configured match criteria for the specified class.</li>
+  <li><b>Values</b> - Displays the values of the configured match criteria.</li>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+  <li><b>Excluded</b> - Displays the inclusion or exclusion of the configured match criteria. 
+      When a match criterion is configured to be excluded, 'Yes'is displayed. Conversely, when 
+      a match criterion is configured to be included, 'No' is displayed.</li>
+  </EMWEB_IF>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<!-------------------------------------------------------------------------------------->
+</BODY>
+</HTML>
+
+
+

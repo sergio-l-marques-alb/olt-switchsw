@@ -1,0 +1,155 @@
+<HTML>
+
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Email Alert Global Config</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+<h2><a name=EMAILALERTGlobalCfg></a>Help for Email Alert Global Configuration</h2>
+
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Admin Mode</b> - To enable or disable email alerts to SMTP Server. Setting this to disable stops emailing to SMTP Servers.</li>
+  
+  <li><b>From Address</b> - Configures the email alert from address.</li>
+
+  <li><b>Log Duration (min)</b> - This duration in minutes determines how frequently the non critical messages are sent to the SMTP Server.</li>
+
+  <li><b>Urgent Messages Severity</b> - Configures the severity level for urgent log messages.
+      The severity level options are enumerated below:
+      <ul type=square>
+        <li>Option 'Emergency' indicates system is unusable. It is the highest level of severity.</li>
+        <li>Option 'Alert indicates action must be taken immediately</li>
+        <li>Option 'Critical indicates critical conditions</li>
+        <li>Option 'Error indicates error conditions</li>
+        <li>Option 'Warning indicates warning conditions</li>
+        <li>Option 'Notice indicates normal but significant conditions</li>
+        <li>Option 'Informational' indicates informational messages</li>
+        <li>Option 'Debug' indicates debug-level messages</li>
+      </ul>
+        By default it is Alert.</li>
+
+  <li><b>Non Urgent Messages Severity</b> - Configures the severity level for non-urgent log messages.
+      The severity level options are enumerated below:
+      <ul type=square>
+        <li>Option 'Emergency' indicates system is unusable. It is the highest level of severity.</li>
+        <li>Option 'Alert indicates action must be taken immediately</li>
+        <li>Option 'Critical indicates critical conditions</li>
+        <li>Option 'Error indicates error conditions</li>
+        <li>Option 'Warning indicates warning conditions</li>
+        <li>Option 'Notice indicates normal but significant conditions</li>
+        <li>Option 'Informational' indicates informational messages</li>
+        <li>Option 'Debug' indicates debug-level messages</li>
+      </ul>
+         By default it is Warning.</li>
+
+  <li><b>Traps Severity</b> - Configures the severity level for trap log messages.
+      The severity level options are enumerated below:
+      <ul type=square>
+        <li>Option 'Emergency' indicates system is unusable. It is the highest level of severity.</li>
+        <li>Option 'Alert indicates action must be taken immediately</li>
+        <li>Option 'Critical indicates critical conditions</li>
+        <li>Option 'Error indicates error conditions</li>
+        <li>Option 'Warning indicates warning conditions</li>
+        <li>Option 'Notice indicates normal but significant conditions</li>
+        <li>Option 'Informational' indicates informational messages</li>
+        <li>Option 'Debug' indicates debug-level messages</li>
+      </ul>
+         By default it is Informational.</li>
+
+  <li><b>Test Message Type</b> - Configures the message type for testing email alert functionality.</li>
+
+  <li><b>Test Message Body</b> - Configures the message body for testing email alert functionality.</li>
+
+<EMWEB_ELSE>
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Admin Mode</b> - Displays the global admin mode status for email alert logging. Default value is disable.</li>
+  
+  <li><b>From Address</b> - Displays the email alert from address.</li>
+
+  <li><b>Log Duration (min)</b> - This duration in minutes determines how frequently the non critical messages are sent to the SMTP Server.</li>
+
+  <li><b>Urgent Messages Severity</b> - Displays the severity level for urgent log messages.
+      The severity level options are enumerated below:
+      <ul type=square>
+        <li>Option 'Emergency' indicates system is unusable. It is the highest level of severity.</li>
+        <li>Option 'Alert indicates action must be taken immediately</li>
+        <li>Option 'Critical indicates critical conditions</li>
+        <li>Option 'Error indicates error conditions</li>
+        <li>Option 'Warning indicates warning conditions</li>
+        <li>Option 'Notice indicates normal but significant conditions</li>
+        <li>Option 'Informational' indicates informational messages</li>
+        <li>Option 'Debug' indicates debug-level messages</li>
+      </ul>
+        By default it is Alert.</li>
+
+  <li><b>Non Urgent Messages Severity</b> - Displays the severity level for non-urgent log messages.
+      The severity level options are enumerated below:
+      <ul type=square>
+        <li>Option 'Emergency' indicates system is unusable. It is the highest level of severity.</li>
+        <li>Option 'Alert indicates action must be taken immediately</li>
+        <li>Option 'Critical indicates critical conditions</li>
+        <li>Option 'Error indicates error conditions</li>
+        <li>Option 'Warning indicates warning conditions</li>
+        <li>Option 'Notice indicates normal but significant conditions</li>
+        <li>Option 'Informational' indicates informational messages</li>
+        <li>Option 'Debug' indicates debug-level messages</li>
+      </ul>
+        By default it is Warning.</li>
+
+  <li><b>Traps Severity</b> - Displays the severity level for trap log messages.
+      The severity level options are enumerated below:
+      <ul type=square>
+        <li>Option 'Emergency' indicates system is unusable. It is the highest level of severity.</li>
+        <li>Option 'Alert indicates action must be taken immediately</li>
+        <li>Option 'Critical indicates critical conditions</li>
+        <li>Option 'Error indicates error conditions</li>
+        <li>Option 'Warning indicates warning conditions</li>
+        <li>Option 'Notice indicates normal but significant conditions</li>
+        <li>Option 'Informational' indicates informational messages</li>
+        <li>Option 'Debug' indicates debug-level messages</li>
+      </ul>
+        By default it is Informational.</li>
+
+</EMWEB_IF>
+</ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+ 
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();'></li>
+   <li><b>Test </b>
+ - Tests the logging email alert functionality.</li>
+</EMWEB_IF>
+  <li><b>Refresh </b>
+ - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();'></li>
+  
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+
+
+</body>
+
+</html>
+
+

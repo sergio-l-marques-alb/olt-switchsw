@@ -1,0 +1,64 @@
+# Local source path abbreviations (for convenience)
+#
+src_mgmt  := src/mgmt
+src_emweb := $(src_mgmt)/$(L7_EMWEBPACKAGE)/emweb
+
+# Master list of source paths to be built into this package library.
+#  - All entries must be specified relative to top-of-view $(FP_ROOT).
+#  - Defines all source locations to be referenced by the package-level makefile.
+#
+MASTERSRC += \
+  $(src_emweb)/porting \
+	$(src_emweb)/websrc/telnet \
+	$(src_emweb)/websrc/server \
+	$(src_emweb)/websrc/compress \
+	$(src_emweb)/lib/md5 \
+	$(src_emweb)/lib/buffer \
+	$(src_emweb)/api \
+	$(src_emweb)/$(CONFIG)
+
+# List here individual source files to be selectively EXCLUDED from the build
+#
+MASTERSRC_FILE_EXCLUDE += \
+	$(src_emweb)/websrc/compress/cmp.c \
+	$(src_emweb)/websrc/compress/uncmp.c \
+	$(src_emweb)/websrc/compress/ew_cmp.c \
+	$(src_emweb)/$(CONFIG)/main.c \
+	$(src_emweb)/lib/md5/digest.c \
+	$(src_emweb)/lib/md5/md5.c \
+
+
+# List here individual source include directories owned by this package (without the -I).
+#
+MASTERINC +=
+
+
+# Additional source header file search paths (without the -I).
+#
+SRCINCPATHS += \
+	$(src_emweb)/$(CONFIG) \
+	$(src_emweb)/config.$(CONFIG) \
+  $(src_emweb)/porting \
+	$(src_emweb)/websrc/include \
+	$(src_emweb)/websrc/server \
+	$(src_emweb)/lib \
+	$(src_mgmt)/$(L7_EMWEBPACKAGE)/cli_web_mgr/include \
+	$(src_mgmt)/$(L7_EMWEBPACKAGE)/cli/base/include \
+	$(src_mgmt)/$(L7_EMWEBPACKAGE)/cli/routing/include \
+	$(src_mgmt)/util \
+	$(src_emweb)/api \
+	$(src_emweb)/web/base \
+	src/nls \
+	src/application/base/poe/include
+
+
+# Additional compiler flags.
+#
+ifeq (1,$(BLD_L7_TARGETOS_LINUX))
+CFLAGSEXTRA += \
+	-DHAVE_CONFIG_H
+endif
+
+ifeq (1,$(BLD_L7_TARGETOS_VXWORKS))
+  CFLAGSEXTRA+= -DEMWEB_VXWORKS_TYPES
+endif

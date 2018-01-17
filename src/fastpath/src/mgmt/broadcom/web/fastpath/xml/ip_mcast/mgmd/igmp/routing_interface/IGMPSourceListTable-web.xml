@@ -1,0 +1,50 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IGMPSourceListTable" title="IGMP Routing Interface Source List Information">
+        <group id="1" heading=" ">
+            <node id="1">
+                    <element properties="write-only,hidden" value="IPv4" obj-name="ipmcastmgmdRouterCacheTable_mgmdRouterCacheAddressType" id="1" name="mgmdRouterCacheAddressType"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="ipmcastmgmdRouterCacheTable_mgmdRouterCacheAddress" id="1" name="Multicast Group IP">
+                    <action type="mandate" invoke="onChange" disable="1_3_1" /> 
+                </element>        
+            </node>
+            <node id="3">
+                <element control="combo" properties="filter,iterate" obj-name="ipmcastmgmdRouterCacheTable_mgmdRouterCacheIfIndex" id="1" name ="Interface"/>
+            </node>
+            <node id="4">
+                <element obj-name="ipmcastmgmdRouterCacheTable_mgmdRouterCacheGroupCompatMode" id="1" name="Group Compatibility Mode"/>
+            </node>
+            <node id="5">
+                <element obj-name="ipmcastmgmdRouterCacheTable_mgmdRouterCacheSourceFilterMode" id="1" name="Source Filter Mode"/>
+            </node>
+        </group>
+
+        <group id="2" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="hidden" obj-name="ipmcastmgmdRouterCacheTable_mgmdRouterCacheAddressType" id="8"/>
+                <element properties="hidden" obj-name="ipmcastmgmdRouterCacheTable_mgmdRouterCacheIfIndex" id="9"/>
+                <element properties="hidden" obj-name="ipmcastmgmdRouterCacheTable_mgmdRouterCacheAddress" id="10"/>
+                <element properties="hidden" obj-name="ipmcastmgmdRouterSourceListTable_mgmdRouterSrcListAddressType" cpval="ipmcastmgmdRouterCacheTable_mgmdRouterCacheAddressType" id="3"/>
+                <element properties="hidden" obj-name="ipmcastmgmdRouterSourceListTable_mgmdRouterSrcListIfIndex" cpval="ipmcastmgmdRouterCacheTable_mgmdRouterCacheIfIndex" id="4"/>
+                <element properties="hidden" obj-name="ipmcastmgmdRouterSourceListTable_mgmdRouterSrcListAddress" cpval="ipmcastmgmdRouterCacheTable_mgmdRouterCacheAddress" id="5"/>
+                <element properties="filter,iterate" obj-name="ipmcastmgmdRouterSourceListTable_mgmdRouterSrcListHostAddress" id="6" name="Source Hosts">
+                    <action type="value" value="Wrong-family-addr" web_name=""/>
+                </element>
+                <element obj-name="ipmcastmgmdRouterSourceListTable_mgmdRouterSrcListExpiryTime" id="7" name="Expiry Time(hh:mm:ss)"/>
+            </repeat>
+        </group>
+        <group id="3" heading=" ">
+            <node id="10">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+        
+    </webxml>
+</FastPathXML>
+

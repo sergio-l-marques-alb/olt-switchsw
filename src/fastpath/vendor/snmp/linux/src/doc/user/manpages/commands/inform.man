@@ -1,0 +1,302 @@
+.\"
+.\"
+.\" Copyright (C) 1992-2006 by SNMP Research, Incorporated.
+.\"
+.\" This software is furnished under a license and may be used and copied
+.\" only in accordance with the terms of such license and with the
+.\" inclusion of the above copyright notice. This software or any other
+.\" copies thereof may not be provided or otherwise made available to any
+.\" other person. No title to and ownership of the software is hereby
+.\" transferred.
+.\"
+.\" The information in this software is subject to change without notice
+.\" and should not be construed as a commitment by SNMP Research, Incorporated.
+.\"
+.\" Restricted Rights Legend:
+.\"  Use, duplication, or disclosure by the Government is subject to
+.\"  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+.\"  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+.\"  subparagraphs (c)(4) and (d) of the Commercial Computer
+.\"  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+.\"  clauses in the NASA FAR Supplement and other corresponding
+.\"  governmental regulations.
+.\"
+.\"
+.\"
+.\"                PROPRIETARY NOTICE
+.\"
+.\" This software is an unpublished work subject to a confidentiality agreement
+.\" and is protected by copyright and trade secret law.  Unauthorized copying,
+.\" redistribution or other use of this work is prohibited.
+.\"
+.\" The above notice of copyright on this source code product does not indicate
+.\" any actual or intended publication of such source code.
+.\"
+.\"
+.\"
+.\"
+.\"
+.\"
+.\"
+.\"
+.TH INFORM SR_CMDMAN "15 April 2003"
+
+.SH NAME
+inform \- send InformRequest PDUs to an SNMP entity
+
+.SH SYNOPSIS
+.B inform
+[
+.B \-v1\ |\ \-v2c\ |\ \-v3
+]
+.in+0
+[
+.B \-ctxid\ contextID
+] [
+.B \-ctx\ contextName
+]
+.in+0
+[
+.B \-d
+] [
+.B \-timeout\ seconds
+] [
+.B \-retries\ number
+] [
+.B \-pkt_size number
+] 
+.in+0
+.B dst_addr
+.B userName|community
+.B informName
+.B informValue
+.B [variable_name\ type\ value]\ ...
+
+.SH DESCRIPTION
+The
+.I inform
+utility 
+program illustrates how to send InformRequest PDUs.  It is only meant
+as an example and does not actually use the Manager to Manager MIB.  
+This example sends the InformRequest
+PDU and then waits for a response.  If it receives a response, the response
+is printed out and the program exits.  Otherwise, the program tries to
+resend the PDU until either it gets a response or the maximum number of
+.I retries
+is reached. 
+The
+.I inform
+utility is available for ARL, BRASS, and EPIC products
+
+
+
+The arguments are:
+.IP \-v1\ |\ \-v2c\ |\ \-v3
+The SNMP version to use when sending the reqest.
+.IP \-ctxid\ contextID
+By default, the utility assumes that the response to a request 
+should be provided by the agent residing at 
+.I agent_addr. 
+To send a request in a proxy context, 
+use the 
+.I \-ctxid\ contextID 
+argument to specify the 
+.I snmpEngineID 
+of the agent that should provide the response. The 
+.I contextID 
+(
+.I snmpEngineID
+) is a printable ASCII string.
+.IP \-ctx\ contextName
+By default, the utility sends all requests in the "default" context. 
+To send a request in a different context, 
+The 
+.I \-ctx\ contextName 
+argument specifies the context of the response. The 
+.I contextName
+ is a printable ASCII string.
+.IP \-d
+The
+.I -d
+argument turns on message logging.
+When this feature is selected, the utility prints messages
+containing important information at milestone points of execution,
+and this is useful for problem diagnosis.
+.IP \-timeout\ seconds
+By default, the utility will wait a total of ten(10) seconds
+to receive a response from an SNMP agent.  If no response
+is received within that timeout period, the utility may
+try again to send the request.  The
+.I \-timeout\ seconds
+(or
+.I \-t\ seconds
+)
+argument can be used to change the
+length of the timeout period where `seconds' is the time
+in seconds.
+.IP \-retries\ number
+By default, if the utility receives no response from the
+SNMP agent, it will try again five(5) more times to send the
+request.  The
+.I \-retries\ number
+(or
+.I \-r\ number
+)
+argument can be used to change the number of times the
+utility will send the request where `number' is the number
+of retries.
+.IP \-pkt_size number
+ By default, the utility will not transmit an SNMP request or receive an SNMP notification if the Basic Encoding Rules-encoded length of the packet exceeds 2048 bytes. The 
+.B -pkt_size number 
+argument can be used to set the maximum supported packet size for all SNMPv1, SNMPv2c, and SNMPv3 messages to 
+.b "number" 
+bytes. The value of 
+.b number
+ must be in the range from 484 to 2147483647.
+
+After the previous arguments have been specified, the following arguments should be provided. Unlike the previous arguments, it is important to use the following arguments in order. 
+.IP dst_addr
+The destination of the Inform request.
+.IP community|userName
+Either an SNMPv2C community string or an SNMPv3 user name. 
+.IP informName
+The event's ID, an instance-level object identifier.
+.IP informValue
+The event's value, an object identifier.
+.IP variable_name\ type\ value
+.in +4
+
+.I variable:
+the name of a variable in the inform's VarBind list.
+
+.I type:
+one of:
+
+.in +4
+ \-i \- integer,
+ \-o \- octet,
+ \-d \- object identifier
+ \-a \- ip_addr
+ \-c \- counter
+ \-g \- gauge
+ \-t \- time_ticks
+ \-D \- Display String
+ \-N \- NULL
+ \-T \- DateAndTime
+.in -4
+
+.I value:
+the desired value.
+.IP
+.I Note:\ type
+is an optional field for all but
+.I \-D 
+(Display String).  The type may still be put on the command line, but it is
+only necessary in the case of display strings.
+.IP
+.I Note:
+if
+.I type
+is
+.I \-N
+(NULL), the
+.I value
+field is ignored but must be present.  Use `0'.
+
+.SH EXAMPLES
+The following request will send an Inform request and wait for 
+the receiver to send back an acknowledgement (ACK):
+
+.in+4
+.nf
+% inform -v2c -retries 4 -timeout 1 localhost public \\
+surgeBreakerAlarm 0.0 surgeBreakerStatus.0 -i unknown
+.fi
+.in-4
+
+After waiting a certain amount of time (or.I timeout), the PDU
+will be sent again.  This cycle will repeat until either an ACK is
+received or the maximum number of
+.I retries
+is reached (in this case 4).
+
+.SH ENVIRONMENT
+The following environment variables affects the behavior of
+.I inform.
+.IP SR_MGR_CONF_DIR
+This variable changes the location where
+.I inform
+expects to find the configuration files mgr.cnf and snmpinfo.dat.
+Normally this location is /etc/srconf/mgr/.
+.IP SR_SNMP_TEST_PORT
+This variable changes the UDP port where
+.I inform
+sends SNMP requests (normally 161).
+.IP SR_UTIL_SNMP_VERSION
+This variable sets the default SNMP version to use for all
+subsequent requests.  The value of this environment variable
+may be `-v1', `-v2c', or `-v3'.  If this variable is set, the
+user does not need to specify
+.I \-v1,
+.I \-v2c,
+or
+.I \-v3
+on the command line.
+.IP SR_UTIL_COMMUNITY
+This variable sets the default community string for all subsequent
+SNMPv1 and SNMPv2C requests.  If this variable is set, the user does
+not need to specify a community string on the command line for SNMPv1
+and SNMPv2C requests.
+.IP SR_UTIL_USERNAME
+This variable sets the default user name for all subsequent
+SNMPv3 requests.  If this variable is set, the user does not need to
+specify a his or her user name on the command line for SNMPv3 requests.
+.IP SR_UTIL_AUTH_PASSWORD
+This variable sets the authentication password for all subsequent
+requests.  If this variable is set to the NULL string, the user
+will not be prompted for a password and a request with no authentication
+and no privacy will be sent; otherwise, the user will be prompted
+only for a privacy password.
+.IP SR_UTIL_PRIV_PASSWORD
+This variable sets the privacy password for all subsequent requests.
+If SR_UTIL_AUTH_PASSWORD is not set, this variable is ignored.
+
+.SH FILES
+ /etc/srconf/mgr/mgr.cnf
+ /etc/srconf/mgr/snmpinfo.dat
+
+.SH "SEE ALSO"
+.I getbulk(SR_CMDMAN),
+.I getid(SR_CMDMAN),
+.I getmany(SR_CMDMAN),
+.I getmet(SR_CMDMAN),
+.I getnext(SR_CMDMAN),
+.I getone(SR_CMDMAN),
+.I getroute(SR_CMDMAN),
+.I getsub(SR_CMDMAN),
+.I gettab(SR_CMDMAN),
+.I mgr.cnf(SR_FMTMAN),
+.I setany(SR_CMDMAN),
+.I snmpinfo.dat(SR_FMTMAN),
+.I traprcv(SR_CMDMAN),
+.I trapsend(SR_CMDMAN),
+RFCs 1155, 1157, 1212, 2576, 2579-2580, and 3416-3418.
+
+.SH DIAGNOSTICS
+.IP Cannot\ translate\ MIB\ variable:
+This message indicates that the
+.I snmpinfo.dat(SR_FMTMAN)
+configuration file does not contain OID translation information for
+the indicated MIB variable's English name.
+.IP Failure\ in\ snmpinfo.dat
+This message indicates that there is a problem with the named
+configuration file.  Check to see that there is an
+.I snmpinfo.dat(SR_FMTMAN)
+file located in the default directory
+or in the directory indicated by the environment variable
+SR_MGR_CONF_DIR.  If the file exists, ensure that the file
+is readable and contains the correct information.
+
+.SH LIMITATIONS
+This utility only works with SNMPv2C/SNMPv2*.  There is no
+corresponding SNMPv1 utility.

@@ -1,0 +1,164 @@
+/********************************************************************
+ *
+ * (C) Copyright Broadcom Corporation 2003-2007
+ *
+ * *********************************************************************
+ *
+ * @filename     mem.ext
+ *
+ * @purpose      Memory pool management public API
+ *
+ * @component    Routing Utils Component
+ *
+ * @comments
+ *
+ * @create       01/09/93
+ *
+ * @author
+ *
+ * @end
+ *
+ * ********************************************************************/
+#ifndef _MEM_EXT
+#define _MEM_EXT
+
+#include <string.h>
+
+#include "std.h"
+
+#include "local.h"
+
+#if RTOS != ATMOS_RTOS
+/* native buffer pool */
+#else
+/* CYANPOOL */
+#include "cyanlib.h"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+#if L7_CORE_CPU == 0
+#define MEM_Copy memcpy
+#elif L7_CORE_CPU == MPC860
+
+void mem4cpy( byte *to, byte *from, ulng count);
+
+#define MEM_Copy(to,from,count)               \
+{                                             \
+   if( !(count & 3) )                         \
+{                                             \
+   mem4cpy(to,from,count>>2);                 \
+} else                                        \
+   memcpy(to,from,count);                     \
+}
+#else
+#define MEM_Copy(to,from,count )              \
+{                                             \
+   if( count == 48 )                          \
+{                                             \
+   register ulng *to_l = (ulng *)(to);        \
+   register ulng *from_l = (ulng *)(from);    \
+                                              \
+   /* do 12 straight move longs */            \
+   *to_l++ = *from_l++;                       \
+   *to_l++ = *from_l++;                       \
+   *to_l++ = *from_l++;                       \
+   *to_l++ = *from_l++;                       \
+   *to_l++ = *from_l++;                       \
+   *to_l++ = *from_l++;                       \
+   *to_l++ = *from_l++;                       \
+   *to_l++ = *from_l++;                       \
+   *to_l++ = *from_l++;                       \
+   *to_l++ = *from_l++;                       \
+   *to_l++ = *from_l++;                       \
+   *to_l++ = *from_l++;                       \
+} else                                        \
+   memcpy( to, from, count );                 \
+}
+#endif
+
+
+/* Initiate memory management */
+void  MEM_InitAll(void);
+
+/* Shut down memory management */
+void  MEM_ShutDown( void );
+
+/* Create  a memory pool */
+e_Err MEM_Init( const char Name[],   /* pool name for tracing purposes */
+                t_Handle *p_Handle,  /* pool handle for pool's use     */
+                void *startAddress,  /* pool start address             */
+                word bufferNmb,      /* number of data buffers         */
+                word bufferSize);    /* buffer size                    */
+
+/* Create  a memory pool with alignment */
+e_Err MEM_InitAlign( const char Name[],   /* pool name for tracing purposes */
+                     t_Handle *p_Handle,  /* pool handle for pool's use     */
+                     void *startAddress,  /* pool start address             */
+                     word bufferNmb,      /* number of data buffers         */
+                     word bufferSize,     /* buffer size                    */
+                     word align );        /* alignment                      */
+
+/* Calculates size of data parttion allocated by MEM_InitAlign */
+ulng MEM_SizeofInitAlign(Bool staticPartition,
+                         word bufferNmb,
+                         word bufferSize,
+                         word align);
+
+/* Initialize all free buffers in pool */
+void MEM_InitPool(t_Handle handle, ulng (*f_InitBuffer)(void*,ulng), ulng param);
+
+/* Allocate a buffer from the pool */
+void *MEM_Get( t_Handle handle,      /* handle returned by MEM_Init */
+               word     size);       /* buffer size (relevant only for default pool, handle = NULLP */
+
+/* Allocate n buffers from the pool */
+word  MEM_GetN( t_Handle handle,     /* handle returned by MEM_Init */
+                word size,           /* buffer size (relevant only for default pool, handle = NULLP */
+                word n,              /* number of buffers to allocate */
+                void *buffers[]);    /* array, where to put the pointers*/
+
+/*Release a buffer to the pool */
+e_Err MEM_Put( t_Handle handle,     /* handle returned by MEM_Init */
+               void *p_Block);      /* pointer to the block, returned by MEM_Get or MEM_GetN */
+
+/*Check pool resources*/
+e_Err MEM_ChkResources(t_Handle handle, /* handle returned by MEM_Init */
+                       word *status);   /* pointer to put % of buffers, which are still free */
+
+/* Delete a memory pool */
+e_Err MEM_DeleteExt(t_Handle handle,    /* handle returned by MEM_Init */
+                    Bool     force);    /* TRUE=deallocate even if not all buffers */
+                                        /* are deallocated  */
+
+#define MEM_Delete(handle) MEM_DeleteExt(handle, FALSE)
+
+#if RTOS != ATMOS_RTOS
+#define MEM_GetBufferSize(handle) ((word)(handle?((t_MemPoolInfo *)handle)->bufferSize: 0))
+#else
+#define MEM_GetBufferSize(handle) ((word)(handle?((CYANPOOL *)handle)->size: 0))
+#endif
+
+/* Return alignment of the data buffers in pool */
+word MEM_PoolAlignment(t_Handle pool);
+
+/* Return start address of the partition */
+word MEM_PoolStartAddress(t_Handle pool);
+
+/* Adjust buffer size in pool */
+void MEM_AdjustPoolTrailer(t_Handle pool, word trailerSize);
+
+/* Check pool handle. Asserts if pool handle is invalid */
+void MEM_ChkPool(t_Handle handle);
+
+/* Bind pool empty event notification callback, Thresholds in percents */
+e_Err MEM_BindPoolStateNotify(t_Handle PoolId, t_Handle UserId, word ThresholdDown, word ThresholdUp,
+                              void (*f_UsrCallback)(t_Handle UserId, Bool ThreshCrossedDown));
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /*_MEM_EXT */

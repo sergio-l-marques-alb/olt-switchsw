@@ -1,0 +1,65 @@
+# Local source path abbreviations (for convenience).
+#
+src_cpu  := bsp/cpu
+
+
+# Master list of source paths to be built into this package library.
+#  - All entries must be specified relative to top-of-view $(FP_ROOT).
+#  - Defines all source locations to be referenced by the package-level makefile.
+#
+MASTERSRC += \
+	$(src_cpu)/$(L7_CPU)/src \
+	$(src_cpu)/common/src
+
+
+# List here individual source files to be selectively EXCLUDED from the build.
+#
+MASTERSRC_FILE_EXCLUDE +=
+
+
+# Additional source header file search paths (without the -I).
+#
+SRCINCPATHS += \
+	$(src_cpu)/common/include \
+	bsp/platform/$(L7_COMPANY)/common/include \
+	$(src_cpu)/$(L7_CPU)/$(L7_TARGETOS)/include \
+	$(subst $(FP_BASE)/,,$(BSP_DIR)) \
+	$(subst -I$(FP_BASE)/,,$(BROADCOM_INCL)) \
+	src/system_support/base/l7util/zlib \
+	$(src_cpu)/common/$(L7_TARGETOS)/include
+
+
+# Include fully-qualified paths external to the code base (without the -I).
+#
+ifeq (1,$(BLD_L7_TARGETOS_VXWORKS))
+EXTRNINCPATHS += \
+	$(WIND_BASE)/target/config/comps/src \
+	$(WIND_BASE)/target/config/wrPpmc824x \
+	$(WIND_BASE)/target/src/drv \
+	$(WIND_BASE)/target/h/tffs
+endif
+
+# Additional CFLAGS.
+#
+CFLAGSEXTRA +=
+
+
+# Conditional source inclusion.
+#
+
+
+# Operating system-specific source inclusion.
+#
+# Note: Linux targets use a common OS file for all CPU types.
+#
+ifeq (1,$(BLD_L7_TARGETOS_LINUX))
+  include $(FP_ROOT)/$(src_cpu)/common/$(L7_TARGETOS)/build/make.pkg.os
+endif
+
+ifeq (1,$(BLD_L7_TARGETOS_ECOS))
+  include $(FP_ROOT)/$(src_cpu)/common/$(L7_TARGETOS)/build/make.pkg.os
+endif
+
+ifeq (1,$(BLD_L7_TARGETOS_VXWORKS))
+  include $(FP_ROOT)/$(src_cpu)/$(L7_CPU)/$(L7_TARGETOS)/build/make.pkg.os
+endif

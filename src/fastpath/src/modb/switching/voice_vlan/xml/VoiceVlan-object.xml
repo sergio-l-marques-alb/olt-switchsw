@@ -1,0 +1,208 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "object.dtd" >
+<FastPathXML>
+    <objectxml version="1.0" name="Switching">
+        <module name="VoiceVlanConfig">
+            <object name="GlobalAdminMode">
+                <core descr="This enables or disables Voice VLAN on the system" default="FD_VOICE_VLAN_ADMIN_MODE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Voice VLAN Global Admin Mode"/>
+            </object>
+        </module>
+        <module name="VoiceVlanInterfaceConfig">
+            <object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+                <core descr="This instance specifies the interfaces on which port based parameters will be configured" xtype="usp_t" key="yes" access="read-write" type="user"/>
+                <ui style="inputLine" name="Unit/Slot/Port">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.1"/>
+                </ui>
+            </object>
+            <object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+                <core descr="This instance specifies the interfaces on which port based parameters will be configured" xtype="usp_t" key="yes" access="read-write" type="user"/>
+                <ui style="inputLine" name="Slot/Port">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.1"/>
+                </ui>
+            </object>
+<!-- Invalid Objects Start
+            <object depends="Interface" name="IfIndex">
+                <core descr="IfIndex for this port" access="read-only" type="uint"/>
+                <ui style="plainText" name="IfIndex">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.2"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="IanaType">
+                <core descr="IANA Type for this port" access="read-only" type="uint"/>
+                <ui style="plainText" name="IanaType">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.3"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="AdminMode">
+                <core descr="The switch's Port Admin Mode" default="FD_NIM_ADMIN_STATE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="inputLine" name="AdminMode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.6"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="LinkTrapMode">
+                <core descr="If enabled, link up and link down traps will be sent for this port" default="FD_NIM_TRAP_STATE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="inputLine" name="LinkTrapMode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.9"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="ClearStats">
+                <core descr="clear stats for this port only" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="inputLine" name="ClearStats">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.10"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="DefaultType">
+                <core descr="This object identifies the default administrative port type, to be used in conjunction with the operational port type denoted by agentPortType. The set of possible values for this object is the same as the set defined for the agentPortType object. This ob" access="read-write" type="string"/>
+                <ui style="inputLine" name="DefaultType">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.11"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="PortType">
+                <core descr="This object identifies the port type. An initial set of MAU types are defined in RFC 2668. The assignment of OBJECT IDENTIFIERs to new types of MAUs is managed by the IANA. If the MAU type is unknown, the object identifier unknownMauType OBJECT IDENTIF" access="read-only" type="string"/>
+                <ui style="plainText" name="PortType">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.12"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="AutoNegAdminStatus">
+                <core descr="This object identifies the administration status of auto negotiation for this port." default="FD_NIM_AUTONEG_ENABLE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="inputLine" name="AutoNegAdminStatus">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.13"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="Dot3FlowControlMode">
+                <core descr="Config flowcontrol allows you to enable or disable 802.3x flow control for this port. This value applies to only full-duplex mode ports." default="FD_POLICY_DEFAULT_FLOW_CONTROL_MODE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="inputLine" name="Dot3FlowControlMode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.14"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="DvlanTagMode">
+                <core descr="Controls the Double Vlan Tag mode on this port." default="FD_DVLANTAG_DEFAULT_PORT_MODE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="inputLine" name="DvlanTagMode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.15"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="DVlanTagEthertype">
+                <core descr="Configures the Double Vlan Tag Ethertype for this port. If this object is supported, ethertype cannot be configured globally for the switch. Commonly used are the Ethertypes for vman tags (34984, or 0x88A8) and dot1q tags (33024, or 0x8100)" min="L7_DVLANTAG_MIN_ETHERTYPE" max="L7_DVLANTAG_MAX_ETHERTYPE" default="FD_DVLANTAG_DEFAULT_ETHERTYPE" access="read-write" type="uint"/>
+                <ui style="inputLine" name="DVlanTagEthertype">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.16"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="DVlanTagCustomerId">
+                <core descr="Configures the Customer ID for the Double Vlan Tag for this port." min="L7_DVLANTAG_MIN_CUSTID" max="L7_DVLANTAG_MAX_CUSTID" default="FD_DVLANTAG_DEFAULT_CUSTID" access="read-write" type="uint"/>
+                <ui style="inputLine" name="DVlanTagCustomerId">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.17"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="MaxFrameSizeLimit">
+                <core descr="This object identifies the largest value that can be configured for MaxFrameSize" access="read-write" min="L7_MIN_FRAME_SIZE" max="L7_MAX_FRAME_SIZE" default="FD_NIM_DEFAULT_MAX_FRAME_SIZE" type="uint"/>
+                <ui style="inputLine" name="MaxFrameSizeLimit">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.18"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="MaxFrameSize">
+                <core descr="This object identifies the currently configured maximum frame size value for this port. The maximmum value that this object can be set to is the value of agentPortMaxFrameSizeLimit. For Ethernet ports which support 802.1Q vlan tagging, the minimum value " min="L7_MIN_FRAME_SIZE" max="L7_MAX_FRAME_SIZE" default="FD_NIM_DEFAULT_MAX_FRAME_SIZE" access="read-write" type="uint"/>
+                <ui style="inputLine" name="MaxFrameSize">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.19"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="BroadcastControlMode">
+                <core descr="If enabled, broadcast storm recovery will function on this port. When you specify Enable for Broadcast Storm Recovery and the broadcast traffic on this Ethernet port exceeds the configured threshold, the switch blocks (discards) the broadcast traffic." default="FD_POLICY_DEFAULT_BCAST_STORM_MODE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="inputLine" name="BroadcastControlMode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.20"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="BroadcastControlThreshold">
+                <core descr="Configures the broadcast storm recovery threshold for this port as a percentage of port speed." default="FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD" access="read-write" min="L7_BCAST_STORM_THRESHOLD_MIN" max="L7_BCAST_STORM_THRESHOLD_MAX" type="uint"/>
+                <ui style="inputLine" name="BroadcastControlThreshold">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.21"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="MulticastControlMode">
+                <core descr="If enabled, multicast storm recovery will function on this port.When you specify Enable for Multicast Storm Recovery and the multicast traffic on this Ethernet port exceeds the configured threshold, the switch blocks (discards) the multicast traffic." default="FD_POLICY_DEFAULT_MCAST_STORM_MODE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="inputLine" name="MulticastControlMode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.22"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="MulticastControlThreshold">
+                <core descr="Configures the multicast storm recovery threshold for this port as a percentage of port speed." default="FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD" min="L7_MCAST_STORM_THRESHOLD_MIN" max="L7_MCAST_STORM_THRESHOLD_MAX" access="read-write" type="uint"/>
+                <ui style="inputLine" name="MulticastControlThreshold">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.23"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="UnicastControlMode">
+                <core descr="If enabled, unicast storm recovery will function on this port.When you specify Enable for Unicast Storm Recovery and the unknown unicast traffic on this Ethernet port exceeds the configured threshold, the switch blocks (discards) the unknown unicast traff" default="FD_POLICY_DEFAULT_UCAST_STORM_MODE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="inputLine" name="UnicastControlMode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.24"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="UnicastControlThreshold">
+                <core descr="Configures the unicast storm recovery threshold for this port as a percentage of port speed." default="FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD" min="L7_UCAST_STORM_THRESHOLD_MIN" max="L7_UCAST_STORM_THRESHOLD_MAX" access="read-write" type="uint"/>
+                <ui style="inputLine" name="UnicastControlThreshold">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.25"/>
+                </ui>
+            </object>
+
+Invalid Objects End -->
+
+            <object depends="Interface" name="VoiceVlanMode">
+                <core descr="This instance describes and Configures the Port Voice VLAN Mode"  type="enum" xtype = "L7_XUI_VOICE_VLAN_CONFIG_TYPE_t" access="read-write" />
+                <ui style="choiceNselect1" name="Voice Vlan Mode"/>
+            </object>
+
+            <object depends="Interface" name="VoiceVlanID">
+                <core descr="This instance describes and Configures the Port Voice VLAN ID if the Voice Vlan Mode is Vlan ID" default="FD_VOICE_VLAN_VLAN_ID" max="L7_DOT1Q_MAX_VLAN_ID" min="L7_DOT1Q_MIN_VLAN_ID" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Voice Vlan ID"/>
+            </object>
+            <object depends="Interface" name="VoiceVlanPriority">
+                <core descr="This instance describes and Configures the Port Voice VLAN Priority if the Voice Vlan Mode is dot1p." default="FD_VOICE_VLAN_PRIORITY" max="L7_DOT1P_MAX_PRIORITY" min="L7_DOT1P_MIN_PRIORITY" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Voice Vlan Priority"/>
+            </object>
+            <object depends="Interface" name="VoiceVlanDataPriorityMode">
+                <core descr="This instance describes and Configures the Port Voice VLAN Data Priority Mode" default="FD_VOICE_VLAN_OVERRIDE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Voice Vlan Data Priority Mode"/>
+            </object>
+            <object depends="Interface" name="VoiceVlanDscp">
+                <core descr="This instance describes and Configures the Port Voice VLAN dscp if the Voice Vlan Mode is dscp." default="FD_VOICE_VLAN_PRIORITY" max="L7_VOICE_VLAN_DSCP_MAX" min="L7_VOICE_VLAN_DSCP_MIN" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Voice Vlan Dscp"/>
+            </object>
+            <object depends="Interface" name="VoiceVlanOperationalStatus">
+                <core descr="This instance describes the Port Voice VLAN Operational Status" xtype="enable_t" access="read-only" type="enum"/>
+                <ui style="plainText" name="Voice Vlan Operational Status"/>
+            </object>
+            <object depends="Interface" name="PortLACPMode">
+                <core descr="This instance is used to enable/disable 802.3ad LACP on this port" default="FD_DOT3AD_DEFAULT_LACP_ENABLED" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Port LACP Mode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.12.1.2"/>
+                </ui>
+            </object>
+            <object depends="Interface" name="PortAuthMode">
+                <core descr="This instance is used to enable/disable authentication on this port" default="FD_VOICE_VLAN_AUTH_STATE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Port Auth Mode"/>
+            </object>
+             <object depends="Interface," name="voiceVlanDeviceInfo">
+               <core descr="&lt;HTML&gt;This instance is used to get the voip device identified on the port" key="yes" access="read-write" type="mac"/>
+                 <ui style="inputLine" name="voice Vlan Device Info">
+                     <snmp asn-id=""/>               
+                </ui>
+             </object>
+            <object depends="Interface" name="VoiceVlanModeValue">
+                <core descr="This instance describes and Configures the Port Voice VLAN value or priority value based on the voice vlan mode" type="uint" access="read-write" />
+                <ui style="inputLine" name="Voice Vlan Mode Value"/>
+            </object>
+        </module>
+
+        <module name="VoiceVlanDeviceTable" key-method = "individual">
+        <object name="Interface">
+        <core  type="user" xtype="usp_t" key="yes" access="read-write" descr="This instance gives the value of ifIndex for the interface used to reach this PIM neighbor."/>
+        <ui style="inputLine" name="Interface">
+        <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.13.1.1"/>
+        </ui>
+        </object>
+        <object name="VoiceVlanDeviceMacAddress" depends="Interface" >
+        <core  type="mac" key="yes" access="read-only" descr="This instance gives the MAC address of the VOIP device connected to this interface"/>
+        <ui  name="Voice Vlan Device Mac Address" style="plainText"/>
+        </object>
+        </module>
+    </objectxml>
+</FastPathXML>

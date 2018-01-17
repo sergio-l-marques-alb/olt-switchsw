@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>RADIUS Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+<hr size=4 width="100%" align=center>
+<h2><a name=macaddr></a>Help for RADIUS Server Configuration </h2>
+
+<p><br>
+ Use this panel to view and configure RADIUS Server. If at least one RADIUS server is configured on the switch,
+ and a host address is selected in the RADIUS Server Host Address field, then additional fields are available on 
+ the RADIUS Server Configuration page. After you add a RADIUS server, use the Server Configuration page to configure the server settings.
+ If you select <b>Add </b>from the RADIUS Server Host Address field, the page refreshes and several of the configuration options are hidden.
+</p>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+   <LI><B>RADIUS Server Host Address</B> -
+         Use the drop-down menu to select the IP address of the RADIUS server to view or configure. Select Add to configure additional RADIUS servers.
+    <li><b>Primary Server</b> -
+         Sets the selected server to the Primary (Yes) or Secondary (No) server.
+         If you configure multiple RADIUS servers with the same RADIUS Server Name, designate one server as the primary
+     and the other(s) as the backup server(s). The switch attempts to use the primary server first, and if the primary server
+     does not respond, the switch attempts to use one of the backup servers with the same RADIUS Server Name. If the server is not set as Primary, by default     it is set as Secondary.</li>
+    <li><b>Message Authenticator</b> -
+         Enable or disable the message authenticator attribute for the selected server. By default this mode is enable for the selected server.</li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+   <li><b>RADIUS Server Host Address</b> -
+        IP Address or Hostname of the configured RADIUS server. Hostnames are composed of series of labels concatenated with dots. Each label must be between 1 and 63 characters long, and the entire hostname has a maximum of 255 characters. This object cannot be changed after creation.</li>
+   <li><b>Port</b> -
+        Identifies the authentication port the server uses to verify the RADIUS server authentication.
+		The port is a UDP port, and the valid range is 1-65535. The default port for RADIUS authentication is 1812. </li>
+   <li><b>Secret</b> -
+        Shared secret text string used for authenticating and encrypting all RADIUS communications between the device and the RADIUS server.
+		This secret must match the RADIUS encryption. </li>
+    <ul type=square>		
+   <li><b>Apply</b> :
+         The Secret will only be applied if this box is checked. If the box is not checked, 
+		 anything entered in the Secret field will have no affect and will not be retained.
+		 This field is only displayed if the user has READWRITE access.</li>
+   </ul>
+   <li><b>RADIUS Server Name</b> -
+          Shows the RADIUS server name.
+          To change the name, enter up to 31 alphanumeric characters. Spaces, hyphens, and underscores are also permitted.
+		  If you do not assign a name, the server is assigned the default name Default-RADIUS-Server. You can use the same name 
+		  for multiple RADIUS Authentication servers. RADIUS clients can use RADIUS servers with the same name as backups for each other. </li>		  
+    </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Secret Configured</b> -
+         Indicates whether the shared secret for this server has been configured. By default the secret key will not be set for the server.</li>
+  <li><b>Current</b> -
+         Indicates whether the selected RADIUS server is the current server (Yes) or a backup server (No).
+         If more than one RADIUS server is configured with the same name, the switch selects one of the servers 
+		 to be the current server from the group of servers with the same name. When the switch sends a RADIUS request to the
+		 named server, the request is directed to the server selected as the current server. Initially the primary server is selected as 
+		 the current server. If the primary server fails, one of the other servers becomes the current server. If the primary server is not
+		 configured, the current server is the most recently configured RADIUS server. </li>
+     </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+  <li><b>Remove</b> -
+      To delete a configured RADIUS authentication server, select the IP address of the server from the 
+	  RADIUS Server Host Address menu, and then click Remove. </li>
+  <li><b>Refresh</b> -
+      Refetch the database and display it again starting with the first entry in
+      the table. </li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+  </body>
+</html>

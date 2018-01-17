@@ -1,0 +1,74 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Diffserv Policy Configuration Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=mark_cos></a>Help for Mark CoS</h2>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>CoS Value</b> - This is an integer value in the range 0 to 7.</li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Name</b> - Displays name of the specified DiffServ policy.</li>
+  <li><b>Policy Type</b> - Displays type of the specified policy as 
+      <EMWEB_STRING C='
+       L7_uint32 unit;
+       L7_uint32 inpresent = 0;
+       unit = usmDbThisUnitGet();
+       memset(sBuf, 0x00, sizeof(sBuf));
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_IN_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+       strcpy(sBuf,"In");
+       inpresent++;
+      }
+
+      if ((usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_SLOTPORT_FEATURE_ID) == L7_TRUE) ||(usmDbFeaturePresentCheck(unit, L7_FLEX_QOS_DIFFSERV_COMPONENT_ID,L7_DIFFSERV_SERVICE_OUT_ALLPORTS_FEATURE_ID) == L7_TRUE ))
+      {
+        if(inpresent == 1)
+           strcat(sBuf," or Out");
+        else
+           strcat(sBuf,"Out");
+      }
+      return sBuf;
+       ' >.
+  </li>
+  <li><b>Class Name</b> - Displays name of the DiffServ class to which this policy is attached.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+  <li><b>Cancel</b> - <EMWEB_STRING C='return usmWebCancelDescriptionHelp();' >.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+
+<hr size=4 width="100%" align=center>
+
+
+</body>
+
+</html>
+
+

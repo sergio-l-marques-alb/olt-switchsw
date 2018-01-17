@@ -1,0 +1,32 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="TacacsCfg" title="TACACS+ Configuration">
+        <group id="1" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <element control="textbox-passwd" maxLength="128" arghelp="TacacsKeyRange" obj-name="securityTacacs_TacacsGlobalKey" id="1" name="Key String" value=""/>
+                 <element control="checkbox" properties="write-only" value="L7_FALSE" uienum="TrueFalse_t" obj-name="xLibObjects_dummy" id="2" name="Apply">
+                    <action type="enum" discard="no" enable="1_1_1"/>
+                    <action type="enum" discard="no" disable="1_1_1"/>
+                </element>
+            </node>
+            <node id="2">
+                <element maxLength="2" arghelp="HELP_FORMAT_FP_UNITS_SECS" obj-name="securityTacacs_TacacsGlobalTimeout" id="1" name="Connection Timeout"/>
+            </node>
+            <node id="3">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+         <group id="2" heading=" " level="ReadOnlyUser">
+            <node id="1">
+                <element control="textbox" properties="read-only" obj-name="securityTacacs_TacacsGlobalTimeout" id="1" name="Connection Timeout"/>
+            </node>
+            <node id="2">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

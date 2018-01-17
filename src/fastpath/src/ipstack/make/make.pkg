@@ -1,0 +1,89 @@
+# Local source path abbreviations (for convenience).
+#
+src_ipstack := src/ipstack
+src_mapping := $(src_ipstack)/mapping
+
+ifeq ($(L7_TARGETOS_VARIANT),6.6)
+src_vendor  := vendor/wrs/ipstack
+else
+src_vendor  := vendor/wrs/ipstack-6.5
+endif
+
+# Master list of source paths to be built into this package library.
+#  - All entries must be specified relative to top-of-view $(FP_ROOT).
+#  - Defines all source locations to be referenced by the package-level makefile.
+#
+MASTERSRC += \
+	$(src_mapping)
+
+
+# List here individual source files to be selectively EXCLUDED from the build.
+#  - Note:  There are a significant number of files not being built for FASTPATH.
+#
+MASTERSRC_FILE_EXCLUDE +=
+
+
+# List here individual source include directories owned by this package (without the -I).
+#
+MASTERINC +=
+
+
+# Additional source header file search paths (without the -I).
+#
+SRCINCPATHS += \
+
+
+# Additional compiler flags.
+#
+
+CFLAGSEXTRA += \
+	-DIPCOM_INTERNAL \
+	$(CRC_WARN1_OFF) \
+	-DWRS_IPNET \
+	-DIPNET \
+	-DIPTCP
+
+
+# Conditional source inclusion.
+#
+
+# These sources are included only if VXWORKS is present.
+#
+ifeq (1,$(BLD_L7_TARGETOS_VXWORKS))
+
+# NOTE: This is vendor source that is built using a collection of 
+#       archive files, so no source files are defined here.
+#       See corresponding file makerules.pkg for details.
+#
+
+# This is a special make variable used by the Interpeak stack.
+#
+CINCLUDES += \
+	-I$(FP_BASE)/$(src_vendor)/ipcom/port/vxworks/config \
+	-I$(FP_BASE)/$(src_vendor)/ipcom/port/vxworks/include \
+	-I$(FP_BASE)/$(src_vendor)/ipcom/config \
+	-I$(FP_BASE)/$(src_vendor)/ipcom/include \
+	-I$(FP_BASE)/$(src_vendor)/ipnet2/config \
+	-I$(FP_BASE)/$(src_vendor)/ipnet2/src \
+	-I$(FP_BASE)/$(src_vendor)/ipnet2/include \
+	-I$(FP_BASE)/$(src_vendor)/ipcrypto/include \
+	-I$(FP_BASE)/$(src_vendor)/ipcrypto/config \
+	-I$(FP_BASE)/$(src_vendor)/ipcrypto/openssl-0_9_8/include \
+	-I$(FP_BASE)/$(src_vendor)/iptcp/config \
+	-I$(FP_BASE)/$(src_vendor)/iptcp/src \
+	-I$(FP_BASE)/$(src_vendor)/iptcp/include
+
+
+  # These sources are included only if IPV6 flex package is present with VXWORKS.
+  #
+ifeq (1,$(BLD_L7_FLEX_HAS_COMMON_IPV6))
+  
+    # This is a special make variable used by the Interpeak stack.
+    #
+CINCLUDES += \
+	-I$(FP_BASE)/$(src_vendor)/ipnet2-ipv6/src 
+    
+endif  # common ipv6
+
+endif  # vxworks
+

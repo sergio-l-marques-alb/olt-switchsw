@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="Switching" version="1.0" >
+<module name="ProtectedPortConfig"  >
+<object name="GroupId"  >
+<core  type="uint" min="1" max="L7_PROTECTED_PORT_MAX_GROUPS" access="read-write" key="yes" descr="This object specifies the group that this port belongs to"/>
+<ui  name="Protected Port GroupId" style="inputLine">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.18.1.1.1"/> 
+</ui></object>
+<object name="GroupName" depends="GroupId" >
+<core type = "user" xtype="string_t" access="read-write" descr="This object specifies the name of the group"/>
+<ui  name="Protected Port Group Name" style="inputLine">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.18.1.1.2"/> 
+</ui></object>
+<object name="PortList" depends="GroupId" >
+<core  type="user" access="read-write" xtype="uspRange_t" properties="range,dynamic" descr="This object specifies the set of ports that are protected in this group"/>
+<ui  name="Protected Port Port-List" style="choiceMselectN">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.18.1.1.3"/> 
+</ui></object>
+<object name="AppendPort" depends="GroupId" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type = "user" xtype="usp_t" access="write-only" descr="This object appends the given port to already existing port list in a group"/>
+<ui  name="Unit/Slot/Port" style="inputLine">
+</ui></object>
+<object name="AppendPort" depends="GroupId" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type = "user" xtype="usp_t" access="write-only" descr="This object appends the given port to already existing port list in a group"/>
+<ui  name="Slot/Port" style="inputLine">
+</ui></object>
+<object name="DeletePortt" depends="GroupId" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type = "user" xtype="usp_t" access="write-only" descr="This object deletes the given port to already existing port list in a group"/>
+<ui  name="Unit/Slot/Port" style="inputLine">
+</ui></object>
+<object name="DeletePortt" depends="GroupId" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type = "user" xtype="usp_t" access="write-only" descr="This object deletes the given port to already existing port list in a group"/>
+<ui  name="Slot/Port" style="inputLine">
+</ui></object>
+<object name="RowStatus" depends="GroupId" >
+<core  type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="This object adds or removes an interface to or from protected ports entry"/>
+<ui  name="Protected Port Row Status" style="inputLine" />
+</object>
+</module>
+<module name="ProtectedPortCfg">
+<object name="PortList">
+<core  type="user" access="read-write" xtype="usp_t" key="yes"  descr="This object specifies the set of ports that are protected in this group"/>
+<ui  name="Protected port Port-List" style="inputLine">
+</ui></object>
+<object name="GroupId"  depends="PortList">
+<core type="user" xtype="protectedPortGroupId_t"  properties="dynamic" access="read-write"  descr="This object specifies the group that this port belongs to"/>
+<ui  name="Protected Port Cfg GroupId" style="choiceNselect1">
+</ui></object>
+<object name="GroupName">
+<core  type="string" access="read-write" descr="This object specifies the name of the group"/>
+<ui  name="Protected Port Cfg Group Name" style="inputLine">
+</ui></object>
+<object name="RowStatusCfg" depends="PortList">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="This object specifies the Service Name association rowstatus.Supported values: Add - used to create a new entry delete- removes the entry."/>
+<ui name="Protected Port Cfg Row Status" style="inputLine"/>
+</object>
+</module>
+</objectxml>
+</FastPathXML>

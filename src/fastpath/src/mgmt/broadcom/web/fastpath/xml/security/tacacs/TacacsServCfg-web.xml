@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="TacacsServCfg" title="TACACS+ Server Configuration">
+        <group id="1" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="securityTacacsWeb_TacacsServerIpAddress" id="1" name="TACACS+ Server">
+                    <action type="default" discard="no" hide="1_8_2|1_2" disable="1_2" show="1_8_1|1_8_3|1_1|1_5|1_7|1_4|1_6"/>
+                    <action type="extn" discard="no" value="ADD" setval_args="valMapEmptyString" setval_ids="1_2_1" disable="1_8_1|1_8_3|1_5|1_7|1_4|1_6" hide="1_8_1|1_8_3|1_5|1_7|1_4|1_6" show="1_8_2|1_1|1_2" enable="1_2"/>
+                </element>
+            </node>
+            <node id="2">
+                <element maxLength="255" arghelp="IPv4Address_Hostname" control="textbox" properties="filter,iterate" obj-name="securityTacacsWeb_TacacsServerIpAddress" id="1" name="Server Address"/>
+            </node>
+            <node id="4">
+                <element maxLength="10" arghelp="HELP_FORMAT_FP" obj-name="securityTacacsWeb_TacacsPriority" id="1" name="Priority"/>
+            </node>
+            <node id="5">
+                <element maxLength="10" arghelp="HELP_FORMAT_FP" obj-name="securityTacacsWeb_TacacsPortNumber" id="1" name="Port"/>
+            </node>
+            <node id="6">
+                <element control="textbox-passwd" maxLength="128" arghelp="TacacsKeyRange" obj-name="securityTacacsWeb_TacacsKey" id="1" name="Key String" value=""/>
+                <element control="checkbox" properties="write-only" value="L7_FALSE" uienum="TrueFalse_t" obj-name="xLibObjects_dummy" id="2" name="Apply">
+                    <action type="enum" discard="no" enable="1_6_1"/>
+                    <action type="enum" discard="no" disable="1_6_1"/>
+                </element>
+            </node>
+            <node id="7">
+                <element maxLength="10" arghelp="HELP_FORMAT_FP_UNITS_SECS" obj-name="securityTacacsWeb_TacacsTimeOut" id="1" name="Connection Timeout"/>
+            </node>
+            <node id="8">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                    <action type="button" discard="no" disable="1_8_2|1_8_3"/>
+                </button>
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="securityTacacsWeb_RowStatus" help="Submits the form on this page to the Switch" id="2" name="Submit">
+                    <action type="button" discard="no" disable="1_8_1|1_8_3"/>
+                </button>
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="securityTacacsWeb_RowStatus" help="Submits the form on this page to the Switch" id="3" name="Remove">
+                    <action type="button" discard="no" disable="1_8_1|1_8_2|1_2|1_4|1_5|1_6|1_7"/>
+                </button>
+            </node>
+        </group>
+         <group id="2" heading=" " level="ReadOnlyUser">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="securityTacacsWeb_TacacsServerIpAddress" id="1" name="TACACS+ Server"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="securityTacacsWeb_TacacsPriority" id="1" name="Priority"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="securityTacacsWeb_TacacsPortNumber" id="1" name="Port"/>
+            </node>
+            <node id="7">
+                <element control="label" properties="read-only" obj-name="securityTacacsWeb_TacacsTimeOut" id="1" name="Connection Timeout"/>
+            </node>
+            <node id="8">
+                <button scope="page" type="buttonClear" help="Submits the form on this page to the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

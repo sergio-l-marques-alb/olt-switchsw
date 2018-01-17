@@ -1,0 +1,23 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IPHostMapConfig" title="DNS HostName IP Mapping Configuration">
+        <group id="1" heading=" " level="ReadWriteUser">
+            <node id="1">
+                <element control="textbox" properties="write-only" value="" maxLength="255" arghelp="Def_Domain_Name" obj-name="basednsResCtlStatic_HostName" id="1" name="Host Name" validation="validate_hostname_allowspaceunderscore"/>
+            </node>
+            <node id="2">
+                <element control="textbox" properties="write-only" value="" maxLength="39" obj-name="basednsResCtlStatic_IPAddress" id="1" name="Inet Address"/>
+            </node>
+            <node id="3">
+                <button scope="page" type="buttonSubmit" target-page="DNSHostIPMapping.html" help="Submits the form on this page to the Switch" id="1" name="Back">
+                    <action type="button" disable="1_3_2|1_1|1_2"/>
+                </button>
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="basednsResCtlStatic_Status" help="Submits the form on this page to the Switch" id="2" name="Submit"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

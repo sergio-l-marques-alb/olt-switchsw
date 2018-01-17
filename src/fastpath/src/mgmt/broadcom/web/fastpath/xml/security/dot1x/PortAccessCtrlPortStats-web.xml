@@ -1,0 +1,116 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PortAccessCtrlPortStats" title="Port Access Control Statistics">
+        <group id="1" heading=" ">
+            <node id="1">
+              <!--  <element control="combo" properties="filter,iterate" obj-name="securityDot1xSupplicantIntfStats_Interface" id="1" name="Port"/> 
+                <element control="combo" properties="filter,iterate" obj-name="securitydot1x_dot1xPaePortNumber" id="1" name="Port">
+                </element>-->
+<!--            <element control = "combo" cpval="securitydot1x_dot1xPaePortNumber" properties="filter,iterate,hidden" obj-name="securityDot1xSupplicantIntfConfig_Interface" id="2" name="Interface" />  
+                 <element control="combo" cpval = "securitydot1x_dot1xPaePortNumber"  obj-name= "securityDot1xSupplicantIntfConfig_Interface" id="2" name="Interface" />-->
+              <element control="combo" properties="filter,iterate" obj-name="securitydot1x_dot1xPaePortNumber" id="1" name="Interface" >
+                  <action type="default" hide ="1_29" />
+                  <action type="value" value="1" hide="1_29" />
+                </element>
+              <element cpval="securitydot1x_dot1xPaePortNumber" properties="filter,hidden" obj-name="securityDot1xSupplicantIntfStats_Interface" id="2" name="Interface"/>
+    
+            </node>
+            <node id="2">
+                <message>Authenticator Port Access Control Statistics</message>
+            </node>
+
+            <node id="3">
+                <element control="label" obj-name="securitydot1x_dot1xSuppEapolFramesRx" id="1" name="EAPOL Frames Received"/>
+            </node>
+            <node id="4">
+                <element control="label" obj-name="securitydot1x_dot1xSuppEapolFramesTx" id="1" name="EAPOL Frames Transmitted"/>
+            </node>
+            <node id="5">
+                <element control="label" obj-name="securitydot1x_dot1xSuppEapolStartFramesTx" id="1" name="EAPOL Start Frames Received"/>
+            </node>
+            <node id="6">
+                <element obj-name="securitydot1x_dot1xSuppEapolLogoffFramesTx" id="1" name="EAPOL Logoff Frames Received"/>
+            </node>
+            <node id="7">
+                <element obj-name="securitydot1x_dot1xSuppLastEapolFrameVersion" id="1" name="Last EAPOL Frame Version"/>
+            </node>
+            <node id="8">
+                <element obj-name="securitydot1x_dot1xSuppLastEapolFrameSource" id="1" name="Last EAPOL Frame Source"/>
+            </node>
+            <node id="9">
+                <element obj-name="securitydot1x_dot1xSuppEapolRespIdFramesTx" id="1" name="EAP Response/ID Frames Received"/>
+            </node>
+            <node id="10">
+                <element obj-name="securitydot1x_dot1xSuppEapolRespFramesTx" id="1" name="EAP Response Frames Received"/>
+            </node>
+            <node id="11">
+                <element obj-name="securitydot1x_dot1xSuppEapolReqIdFramesRx" id="1" name="EAP Request/ID Frames Transmitted"/>
+            </node>
+            <node id="12">
+                <element obj-name="securitydot1x_dot1xSuppEapolReqFramesRx" id="1" name="EAP Request Frames Transmitted"/>
+            </node>
+            <node id="13">
+                <element obj-name="securitydot1x_dot1xSuppInvalidEapolFramesRx" id="1" name="Invalid EAPOL Frames Received"/>
+            </node>
+            <node id="14">
+                <element obj-name="securitydot1x_dot1xSuppEapLengthErrorFramesRx" id="1" name="EAPOL Length Error Frames Received"/>
+            </node> 
+
+            <node id="15">
+                <message>Supplicant Port Access Control Statistics</message>
+            </node>
+            <node id="16">
+                <element control="label" properties="label-control" obj-name="securityDot1xSupplicantIntfStats_FramesRx" id="1" name="EAPOL Frames Received"/>
+            </node>
+            <node id="17">
+                <element control="label" obj-name="securityDot1xSupplicantIntfStats_FramesTx" id="1" name="EAPOL Frames Transmitted"/>
+            </node>
+            <node id="18">
+                <element control="label" obj-name="securityDot1xSupplicantIntfStats_StartFramesTx" id="1" name="EAPOL Start Frames Transmitted"/>
+            </node>
+            <node id="19">
+                <element control="label" obj-name="securityDot1xSupplicantIntfStats_LogoffFramesTx" id="1" name="EAPOL Logoff Frames Transmitted"/>
+            </node>
+            <node id="20">
+                <element control="label" obj-name="securityDot1xSupplicantIntfStats_LastEapolFrameVersion" id="1" name="Last EAPOL Frame Version"/>
+            </node>
+            <node id="21">
+                <element control="label" obj-name="securityDot1xSupplicantIntfStats_LastEapolFrameSource" id="1" name="Last EAPOL Frame Source"/>
+            </node>
+            <node id="22">
+                <element control="label" obj-name="securityDot1xSupplicantIntfStats_RespIdFramesTx" id="1" name="EAP Response/Id Frames Transmitted"/>
+            </node>
+            <node id="23">
+                <element control="label" obj-name="securityDot1xSupplicantIntfStats_ResponseFramesTx" id="1" name="EAP Response Frames Transmitted"/>
+            </node>
+            <node id="24">
+                <element control="label" obj-name="securityDot1xSupplicantIntfStats_ReqIdFramesRx" id="1" name="EAP Request/Id Frames Received"/>
+            </node>
+            <node id="25">
+                <element control="label" obj-name="securityDot1xSupplicantIntfStats_ReqFramesRx" id="1" name="EAP Request Frames Received"/>
+            </node>
+            <node id="26">
+                <element control="label" obj-name="securityDot1xSupplicantIntfStats_InvalidEapolFramesRx" id="1" name="Invalid EAPOL Frames Received"/>
+            </node>
+            <node id="27">
+                <element control="label" obj-name="securityDot1xSupplicantIntfStats_EapLengthErrorFramesRx" id="1" name="EAPOL Length Error Frames Received"/>
+            </node>
+            <node id="28">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" value="TRUE" obj-name="securitydot1x_Dot1xPortStatsClear" help="Submits the form on this page to the Switch" id="2" name="Clear"/>
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" value="TRUE" obj-name="securitydot1x_Dot1xPortStatsClearAll" help="Submits the form on this page to the Switch" id="3" name="Clear All"/>
+            </node>
+           <node id="29">
+           <element control="combo" obj-name="securitydot1x_dot1xPaePortCapabilities" id="1" name="Interface Type">
+           <action type="enum" show="1_2|1_3|1_4|1_5|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13|1_14" hide="1_15|1_16|1_17|1_18|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27"/> 
+           <action type="enum" show="1_15|1_16|1_17|1_18|1_19|1_20|1_21|1_22|1_23|1_24|1_25|1_26|1_27" hide="1_2|1_3|1_4|1_5|1_6|1_7|1_8|1_9|1_10|1_11|1_12|1_13|1_14"/>
+           </element>
+           </node>
+
+        </group>
+    </webxml>
+</FastPathXML> 

@@ -1,0 +1,40 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+
+
+<FastPathXML>
+    <webxml version="1.0" name="VRRPTrackIntfRO" title="VRRP Interface Tracking Summary" java-script="VRRPTrackIntf_copy">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="routingvrrpOperationEntry_ifIndex" id="1" />
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="routingvrrpOperationEntry_VrId" id="1" name="Virtual Router ID"/>
+            </node>
+            <node id="3">
+                <element control="combo"  properties="hidden" cpval="routingvrrpOperationEntry_ifIndex" obj-name="routingVrrpTrackIntfTable_ifIndex" id="1" />
+            </node>
+            <node id="4">
+                <element control="combo" properties="hidden"  cpval="routingvrrpOperationEntry_VrId" obj-name="routingVrrpTrackIntfTable_VrrpOperVrId" id="1" name="VRID"/>
+            </node>
+        </group>
+		<group id="2" heading=" ">
+            <repeat present="vtable" edit="inline" heading="VRRP Tracking Interfaces List" id="1">
+                <element properties="hidden" cpval="routingvrrpOperationEntry_ifIndex" obj-name="routingVrrpTrackIntfTable_ifIndex" id="1" />
+                <element properties="hidden" cpval="routingvrrpOperationEntry_VrId" obj-name="routingVrrpTrackIntfTable_VrrpOperVrId" id="2" name="VRID"/>
+                <element properties="filter,iterate,read-only"  obj-name="routingVrrpTrackIntfTable_VrrpTrackIntf" id="3" name="Tracking Interface"/>
+                <element control="label" properties="read-only" obj-name="routingVrrpTrackIntfTable_VrrpTrackIfPrioDec" id="4" name="Priority Decrement" />
+                <element control="label" properties="read-only" obj-name="routingVrrpTrackIntfTable_VrrpTrackIfState" id="5" name="Interface State"/>
+            </repeat>
+        </group>
+		<group id="3" heading=" ">
+            <node id="1">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="3" name="Refresh">
+                    <action type="button" disable="2_1_4"/>
+                </button>
+			</node>
+        </group>
+    </webxml>
+</FastPathXML>
+

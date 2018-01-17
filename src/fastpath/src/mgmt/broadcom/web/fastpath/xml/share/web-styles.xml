@@ -1,0 +1,172 @@
+<!DOCTYPE FastPathXML SYSTEM "web-styles.dtd">
+<FastPathXML>
+  <!--
+        This file specifies the actual HTML styles that need to be used
+        for various "abstract" styles used in the web xml files.
+
+        Multiple such style files may exist and user may choose to 
+        apply a certain file for a "project".
+
+        Tool dependencies -
+
+                - xE reads this file and generates the html code accordingly.
+                - xI allows users to preview their webpages in the defined styles.
+                - No dependency on xL 
+
+        Other XML file dependencies -
+
+                - the object delegate xml files define the abstract styles to be
+                  used for the object. 
+                - web xml files may over-ride the abstract styles for a specific instance.
+                - no dependencies on container xml files. 
+                - this is only used in web pages. no other UI pages use these styles.
+                
+        Thus, the actual html controls are separated from the xml files containing 
+        the core web functionality. the files themselves are unaware of how
+        they are being laid-out on the screen.
+        -->
+  <web-styles version="1">
+    <style name="plainText" control="label" />
+    <style name="boolean" control="checkbox" options="YesNo" />
+    <!-- 
+                Other possible controls  for boolean include
+                        - radio - Radio button group of two
+                        - combo - Combo box with two entries. 
+        
+                Other possible values for options include 
+                        - Enable,Disable
+                        - On,Off
+
+                For "checkbox" control, options is ignored. For other two controls, the options
+                specify what is laid-out on the screen either in the combo box or in the 
+                radio controls, the options should showup on the screen.
+        
+                Default values for options, if not specified is none.
+                Default control for boolean, if not specified is checkbox
+                -->
+    <style name="choice2select1" control="radio" />
+    <!-- 
+                Other possible controls for choice2select1 include
+
+                        - radio - Radio button group of two
+        
+                Default control for choice2select1, if not specified is combo
+                -->
+    <style name="choice3select1" control="radio" />
+    <!-- 
+                Other possible controls for choice3select1 include
+
+                        - radio - Radio button group of three
+        
+                Default control for choice3select1, if not specified is combo
+                -->
+    <style name="choiceNselect1" control="combo" />
+    <style name="choiceMselectN" control="combo-multiselect" />
+    <style name="inputLine" control="textbox" />
+    <style name="inputPara" control="textarea" />
+    <style name="inputPasswd" control="textbox-passwd" />
+    <style name="links" control="url" />
+    <style name="file" control="file" />
+
+    <!-- Buttons -->
+    <button-style name="buttonSubmit" type="buttonSubmit" style="button" prefix="" suffix="" label="Apply" />
+    <button-style name="buttonClear"  type="buttonClear" style="button" prefix="" suffix="" label="Refresh" />
+    <button-style name="buttonNext"  type="buttonNext" style="button" prefix="" suffix="" label="Next" />
+    <button-style name="buttonNone"  type="buttonNone" style="button" prefix="" suffix="" label="Apply" />
+
+ <layout>
+  <tag>
+    <![CDATA[
+<table class="tableroundcorners" cellpadding="0" cellspacing="0">
+  <tbody>
+    <tr class="contentHeader">
+      <td class="pageheaderattributes" width="100%" nowrap="nowrap">[PAGE_TITLE]</td>
+      <td align="right" valign="middle">
+        <a href="#" onClick="displayHelp()"><img src='images/help.gif' border=0 alt='Help Pages'></a>
+      </td>
+    </tr>
+    <TR CLASS="cbstartspace"><td colspan="2" align="center">&nbsp;</td></tr>
+    <TR CLASS="contentBody"><td colspan="2" align="center">
+      [PAGE_CONTENTS]
+      </td>
+    </tr>
+    <tr class="cbendspace"><td>&nbsp;</td></tr>
+    <tr class="cbstartspace" id="buttons">
+      <td colspan="2" align="center">
+        <table>
+          <tbody>
+            <tr>
+            [GLOBAL_BUTTONS]
+            </tr>
+          </tbody>
+        </table>
+      </td>
+    </tr>
+  </tbody>
+</table>
+  ]]>
+ 
+  </tag>
+</layout> 
+
+<grouplayout id="default_scalar">
+    <htmlcontent>
+    <![CDATA[
+[XUI_GROUP_CONTENT]  
+<table id="gbuttons">
+  <tr class="gbdef">
+       [XUI_GROUP_BUTTON_CONTENT]
+  </tr>
+</table>
+    ]]>
+    </htmlcontent>
+</grouplayout>
+
+
+<grouplayout id="default_vector">
+    <htmlcontent>
+    <![CDATA[
+[XUI_TABLE_CONTENT]  
+<table id="gbuttons">
+  <tr class="gbdef">
+       [XUI_GROUP_BUTTON_CONTENT]
+  </tr>
+</table>
+    ]]>
+    </htmlcontent>
+</grouplayout>
+
+
+<grouplayout id="scalar_tbl_content">
+    <htmlcontent>
+    <![CDATA[
+    [XUI_GROUP_CONTENT]  
+    <br/>
+    ]]>
+    </htmlcontent>
+</grouplayout>
+
+<grouplayout id="vector_tbl_content">
+    <htmlcontent>
+    <![CDATA[
+    [XUI_TABLE_CONTENT]  
+    <br/>
+    ]]>
+    </htmlcontent>
+</grouplayout>
+
+<grouplayout id="default_hybrid" scalar_ref_id="scalar_tbl_content" vector_ref_id="vector_tbl_content">
+    <htmlcontent>
+    <![CDATA[
+  [XUI_GROUP_CONTENT]
+<table id="gbuttons">
+  <tr class="gbdef">
+    [XUI_GROUP_BUTTON_CONTENT]
+  </tr>
+</table>
+    ]]>
+    </htmlcontent>
+</grouplayout>
+
+  </web-styles>
+</FastPathXML>

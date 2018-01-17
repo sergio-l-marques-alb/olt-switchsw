@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "types.dtd" >
+
+
+<FastPathXML>
+    <data-types version="1.0">
+        <enum name="L7_LLPF_BLOCK_TYPE_t">
+            <option macro="L7_LLPF_BLOCK_TYPE_ISDP" name="ISDP"/>
+            <option macro="L7_LLPF_BLOCK_TYPE_VTP"  name="VTP"/>
+            <option macro="L7_LLPF_BLOCK_TYPE_DTP"  name="DTP"/>
+            <option macro="L7_LLPF_BLOCK_TYPE_UDLD" name="UDLD"/>
+            <option macro="L7_LLPF_BLOCK_TYPE_PAGP" name="PAGP"/>
+            <option macro="L7_LLPF_BLOCK_TYPE_SSTP" name="SSTP"/>
+            <option macro="L7_LLPF_BLOCK_TYPE_ALL"  name="Blockall"/>
+            <option macro="L7_LLPF_BLOCK_TYPE_LAST" name="Last"/>
+        </enum>
+   </data-types>
+</FastPathXML>

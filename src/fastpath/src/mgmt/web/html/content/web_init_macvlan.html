@@ -1,0 +1,28 @@
+
+<HTML>
+
+<EMWEB_HEAD C='
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include "l7_common.h"
+    #include "log.h"
+    #include "web.h"
+    #include "ewnet.h"
+    
+    /* ----------------------------------------------------------------------- */
+    /* mac_addr.html                                                           */
+    /* ----------------------------------------------------------------------- */
+    extern L7_char8 *usmWebMacBasedVLANConfigurationGet(usmWeb_macBasedVlanEntry_t macVlanIterator);
+
+    
+
+ ' >
+                          
+<EMWEB_IF ID=USMWEB_IF_MAC_VLAN_ENTRY_EXIST C='
+    return NULL;
+' >
+</EMWEB_IF>
+
+
+</HTML>
+

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0" >
+<module name="Rip2InterfaceStats"  >
+<object name="Address" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The IP Address of this system on the indicated subnet. For unnumbered interfaces, the value 0.0.0.N, where the least significant 24 bits (N) is the ifIndex for the IP Interface in network byte order."/>
+<ui  name="Unit/Slot/Port" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.23.2.1.1"/> 
+</ui></object>
+<object name="Address" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The IP Address of this system on the indicated subnet. For unnumbered interfaces, the value 0.0.0.N, where the least significant 24 bits (N) is the ifIndex for the IP Interface in network byte order."/>
+<ui  name="Slot/Port" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.23.2.1.1"/> 
+</ui></object>
+<object name="RcvBadPackets" depends="Address" >
+<core  type="uint" access="read-only" descr="The number of RIP response packets received by the RIP process which were subsequently discarded for any reason (e.g. a version 0 packet, or an unknown command type)."/>
+<ui  name="Bad Packets Received" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.23.2.1.2"/> 
+</ui></object>
+<object name="RcvBadRoutes" depends="Address" >
+<core  type="uint" access="read-only" descr="The number of routes, in valid RIP packets, which were ignored for any reason (e.g. unknown address family, or invalid metric)."/>
+<ui  name="Routes Invalid" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.23.2.1.3"/> 
+</ui></object>
+<object name="SentUpdates" depends="Address" >
+<core  type="uint" access="read-only" descr="The number of triggered RIP updates actually sent on this interface. This explicitly does NOT include full updates sent containing new information."/>
+<ui  name="Triggered Updates Sent" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.23.2.1.4"/> 
+</ui></object>
+<object name="Status" depends="Address" >
+<core  type="uint" access="read-write" descr="Writing invalid has the effect of deleting this interface."/>
+<ui  name="Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.23.2.1.5"/> 
+</ui></object>
+</module>
+</objectxml>
+</FastPathXML>

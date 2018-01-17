@@ -1,0 +1,44 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DAIStatistics" title="Dynamic ARP Inspection Statistics">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingDAISTATS_VlanIndex" id="1" name="VLAN ID"/>
+            </node>
+            <node id="2">
+                <element obj-name="SwitchingDAISTATS_dhcpDrops" id="1" name="DHCP Drops"/>
+            </node>
+            <node id="3">
+                <element obj-name="SwitchingDAISTATS_aclDrops" id="1" name="ACL Drops"/>
+            </node>
+            <node id="4">
+                <element obj-name="SwitchingDAISTATS_dhcpPermits" id="1" name="DHCP Permits"/>
+            </node>
+            <node id="5">
+                <element obj-name="SwitchingDAISTATS_aclPermits" id="1" name="ACL Permits"/>
+            </node>
+            <node id="6">
+                <element obj-name="SwitchingDAISTATS_sMacFailures" id="1" name="Bad Source MAC"/>
+            </node>
+            <node id="7">
+                <element obj-name="SwitchingDAISTATS_dMacFailures" id="1" name="Bad Dest MAC"/>
+            </node>
+            <node id="8">
+                <element obj-name="SwitchingDAISTATS_ipValidFailures" id="1" name="Invalid IP"/>
+            </node>
+            <node id="9">
+                <element obj-name="SwitchingDAISTATS_Forwarded" id="1" name="Forwarded"/>
+            </node>
+            <node id="10">
+                <element obj-name="SwitchingDAISTATS_Dropped" id="1" name="Dropped"/>
+            </node>
+            <node id="11">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

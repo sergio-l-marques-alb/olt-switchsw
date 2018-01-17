@@ -1,0 +1,193 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+  
+    <error name="COMMON_INVALID_VALUE" output="\r\nError! Invalid value."/>
+    <error name="ALREADY_EXSITS" output="\r\nError! Already exsits:Unable to set $$objName$$ with $$objValue$$"/>
+    <error name="INVALID_INT" output="\r\nError: Unable to set '$$objName$$' with '$$objValue$$'. The format is invalid."/>
+    <error name="INVALID_INTEGER" output="\r\nError: Unable to set '$$objName$$' with '$$objValue$$'. The format is invalid."/>
+    <error name="INVALID_UINT" output="\r\nError: Unable to set '$$objName$$' with '$$objValue$$'. The format is invalid."/>
+    <error name="INVALID_STRING" output="\r\nError! Invalid String:Unable to set '$$objName$$' with '$$objValue$$'."/>
+    <error name="INVALID_STRING_ALPHA_NUM" output="\r\nError! Invalid String:Unable to set '$$objName$$' with '$$objValue$$'. Enter string with alphanumeric characters."/>
+    <error name="INVALID_IPv4_ADDRESS_ALL_ZEROS" output="\r\nError! Invalid IPv4 Address 0.0.0.0"/>
+    <error name="INVALID_IPv4_ADDRESS" output="\r\nError: Unable to set '$$objName$$' with '$$objValue$$'. IP address should be in a.b.c.d format."/>
+    <error name="INVALID_HOST_NAME" output="\r\nError! Invalid Host Name. In Host Name, each substring must be less than 64 characters in length,separated by a dot and the length of whole string must not exceed 255 characters."/>
+    <error name="INVALID_HOST_NAME_OR_IPV4_ADDR" output="\r\nError! Invalid Host Name or IPv4 Address. IP address should be in a.b.c.d format. In Host Name, each substring must be less than 64 characters in length,separated by a dot or space and the length of whole string must not exceed 255 characters."/>
+    <error name="INVALID_IPv4_ADDRESS_BROADCAST" output="\r\nError! Invalid IPv4 Address: 255.255.255.255"/>
+    <error name="INVALID_IPV6_ADDRESS" output="\r\nError! Invalid IPv6 address."/>
+    <error name="INVALID_IPV6_ADDRESS_OR_HOSTNAME" output="\r\nError! Invalid IPv6 address or host name."/>
+    <error name="INVALID_SUBNET_MASK" output="\r\nError! Invalid Mask:Subnet Mask must have contiguous ones."/>
+    <error name="INVALID_PREFIX_LENGTH" output="\r\nError: Value ($$objValue$$) is invalid prefix length. The valid range is 1 to 128."/>
+    <error name="INVALID_NEXTHOP_ADDRESS" output="\r\nError! Invalid Next Hop Address."/>
+    <error name="INVALID_DATAGRAM_SIZE" output="\r\nError! Invalid Datagram Size."/>
+    <error name="INVALID_PROBES_PER_HOP" output="\r\nError! Invalid probes per hop value."/>
+    <error name="INVALID_MAX_TTL" output="\r\nError! Invalid MaxTTL value."/>
+    <error name="INVALID_INIT_TTL" output="\r\nError! Invalid InitTTL value."/>
+    <error name="INVALID_MAX_FAIL" output="\r\nError! Invalid MaxFail value."/>
+    <error name="INVALID_TRACE_ROUTE_INTERVAL" output="\r\nError! Invalid interval value."/>
+    <error name="INVALID_PORT" output="\r\nError! Invalid port value."/>
+    <error name="INVALID_HOST_ADDRESS" output="\r\nError! Host Address format is invalid."/>
+    <error name="INVALID_IPV6_GLOBAL_ADDRESS" output="\r\nError! Invalid IPv6 global address."/>
+    <error name="INVALID_IPV6_LINK_LOCAL_ADDRESS" output="\r\nError! Invalid IPv6 link-local address."/>
+    <error name="INVALID_IPV6_MULTICAST_ADDRESS" output="\r\nError! Invalid IPv6 Multicast Address: Unable to set '$$objName$$' with '$$objValue$$'."/>
+    <error name="DNS_LOOKUP_FAILED" output="\r\nDNS Lookup failed."/>
+    <error name="MEMORY_ALLOC_FAILED" output="\r\nError! Unable to allocate memory."/>
+    <error name="CONTEXT_SET_FAILED" output="\r\nError! Output setting in context failed."/>
+    <error name="STATIC_VLAN_SET_FAILED" output="\r\nError! Default VLAN cannot be made static."/>
+    <error name="INVALID_IPv6_ADDRESS" output="\r\nError! Invalid IPv6 Address:Unable to set '$$objName$$' with '$$objValue$$'."/>
+    <error name="INVALID_LINK_LOCAL_IPv6_ADDRESS" output="\r\nError! Invalid IP Address: Address should be Link Local IPv6 Address which starts with fe80 or FE80."/>
+    <error name="INVALID_MAC_ADDRESS" output="\r\nError: Invalid Mac Address. Unable to set '$$objName$$' with '$$objValue$$'."/>
+    <error name="INVALID_DHCP_CLIENT_IDENTIFIER" output="\r\nError: Invalid client identifier. Please enter identifier in xx:xx:xx:xx:xx:xx format."/>
+    <error name="INVALID_LOCAL_MAC_ADDRESS" output="\r\nError: Invalid Local Mac Address. Unable to set '$$objName$$' with '$$objValue$$'."/>
+    <error name="INVALID_TR069_PERIODIC_TIME" output="\r\nError! Invalid TR069 periodic inform time:Unable to set TR069 periodic inform time"/>
+    <error name="INVALID_IP4_IPV6" output="\r\nError! Invalid IPv4 Address or Ipv6"/>
+    <error name="NOT_DECIMAL_DOTTED_FORMAT" output="\r\nError: Unable to set '$$objName$$' with '$$objValue$$'. IP address should be in a.b.c.d format."/>
+    <error name="TEST_ARGS_OUTPUT_CLI_WEB" output="\r\nError! Test: error message for $$objName$$ $$objValue$$ and arguments range %d to %d" args="L7_Min,L7_Max"/>
+    <error name="INVALID_BCAST_STORM_CONTROL_VAL" output="\r\nError! Entered $$objName$$ Value is $$objValue$$ greater than permissible value. Range: (%d-%d)" args="L7_STORMCONTROL_RATE_MIN,L7_STORMCONTROL_RATE_MAX"/>
+
+    <error name="INVALID_BCAST_STORM_CONTROL_PERCENT" output="\r\nError! Entered $$objName$$ Value is $$objValue$$ greater than permissible value. Range: (%d-%d)" args="L7_STORMCONTROL_LEVEL_MIN,L7_STORMCONTROL_LEVEL_MAX"/>
+
+    <error name="INVALID_MCAST_STORM_CONTROL_VAL" output="\r\nError! Entered $$objName$$ Value is $$objValue$$ greater than permissible value. Range: (%d-%d)" args="L7_STORMCONTROL_RATE_MIN,L7_STORMCONTROL_RATE_MAX"/>
+
+    <error name="INVALID_MCAST_STORM_CONTROL_PERCENT" output="\r\nError! Entered $$objName$$ Value is $$objValue$$ greater than permissible value. Range: (%d-%d)" args="L7_STORMCONTROL_LEVEL_MIN,L7_STORMCONTROL_LEVEL_MAX"/>
+
+    <error name="INVALID_UCAST_STORM_CONTROL_VAL" output="\r\nError! Entered $$objName$$ Value is $$objValue$$ greater than permissible value. Range: (%d-%d)" args="L7_STORMCONTROL_RATE_MIN,L7_STORMCONTROL_RATE_MAX"/>
+
+    <error name="INVALID_UCAST_STORM_CONTROL_PERCENT" output="\r\nError! Entered $$objName$$ Value is $$objValue$$ greater than permissible value. Range: (%d-%d)" args="L7_STORMCONTROL_LEVEL_MIN,L7_STORMCONTROL_LEVEL_MAX"/>
+
+    <error name="PORT_ADDED" output="\r\nError! Port Already Added"/>
+    <error name="MIRRIORING_SOURCE_PORT_ADDED" output="\r\nError! Source Port already added to mirrioring session"/>
+    <error name="MIRRIORING_DESTINATION_PORT_ADDED" output="\r\nError! Destination Port already added to mirrioring session "/>
+    <error name="PRIORITY_SET" output="\r\nWarning! Entered priority value has been rounded down to the nearest multiple of 4096 as per IEEE specification."/>
+    <error name="PORT_PRIORITY_SET" output="\r\nWarning! Entered priority value has been rounded down to the nearest multiple of 16 as per IEEE specification."/>
+    <error name="SESSION_ALREADY_EXSITS" output="\r\nError! Session Already exsits"/>
+    <error name="FAILED_CREATING_SESSION" output="\r\nError! Unable to create session"/>
+    <error name="FAILED_CREATION" output="\r\nError! Failed Creation"/>
+    <error name="INVALID_INT_RANGE" output="\r\nError! Invalid range for '$$objName$$':Unable to set '$$objName$$' with $$objValue$$." />
+    <error name="INVALID_USP_RANGE" output="\r\nError! Invalid range format for U/S/P:Unable to set $$objName$$ with $$objValue$$." />
+    <error name="NO_CHAR"  output="\r\nError! Alphabets not allowed"/>
+    <error name="NO_START_WITH_DOT" output="\r\nError!String shall only start with special char ."/>
+    <error name="NOT_IMPLEMENTED" output="\r\nError! Not Implemented" />
+    <error name="INVALID_SYS_STRING" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_ACL" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_alphanum16" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_alphanum33" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_radiusSecret" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_alphanum32" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_alphanum31" output="\r\nError! $$objName$$ must be alphanumeric and maximum characters allowed is 31 characters"/>
+    <error name="INVALID_alphanum43" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_alphanum45" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_alphanum_underscore32" output="\r\nError! $$objName$$ must be alpha-numeric."/>
+    <error name="INVALID_alphanum_underscore31" output="\r\nError! $$objName$$ must be alpha-numeric of length in the range:(%d - %d)" args="L7_DOT1AD_SERVICE_NAME_LEN_MIN,L7_DOT1AD_SERVICE_NAME_LEN_MAX"/>
+    <error name="INVALID_alphanum128" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_alphanum8" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_alphanum256" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_alphanum96" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_alphanum64" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_AciiHexData" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_HEX_DECIMAL_NUMBER" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_hex_uint" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_ipv4_uint" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_castSrvAdr" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_COSQUEUEID" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_VLANID" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_DSCPVALUE" output="\r\nError! Invalid $$objName$$.Valid range is $$objMin to $$objMax"/>
+    <error name="MAC_ADDRESS_OUT_OF_RANGE"  output="\r\nError! $$objName$$ is out of range. The valid range is 01:80:c2:00:00:00 to 01:80:c2:00:00:3f"/>
+    <error name="INVALID_PROTOCOL_ID"  output="\r\nError! Invalid $$objName$$.Valid range is (0x0001 to 0xffff) Or (1 to 65535).Enter 0 for Match All."/>
+    <error name="INVALID_name32" output="\r\nError: $$objName$$ must be alphanumeric."/>
+    <error name="INVALID_name15" output="\r\nError! Invalid $$objName$$."/>
+    <error name="MAX_NEXTHOPS_EXCEEDED" output="\r\nError! The maximum number of configurable next hops for this network has been exceeded."/>
+    <error name="INVALID_NEXTHOP" output="\r\nError! The specified Static Route Next Hop Router Address can't be in the same subnet as the service/network port.."/>
+    <error name="DEFAULT_ROUTE_TABLE_FULL" output="\r\nError! The Route Table is full."/>
+    <error name="DHCPV6_COULDNOT_ADD_HOST" output="\r\nError! Unable to add host to Prefix Delegation."/>
+    <error name="DHCPV6_MAX_HOST_ADDED" output="\r\nError! Maximum number of hosts added."/>
+    <error name="INVALID_DHCPV6_CLIENT_DUID" output="\r\nError! Invalid client's DUID value.Given Client DUID is same as Server DUID."/>
+    <error name="DHCP6_SHOULD_SPECIFY_RELAY_INTF_OR_ADDR" output="\r\nUnable to set DHCPv6 Relay Interface Configuration.Select Interface or enter Destination Prefix."/> 
+    <error name="POOL_DELETION_FAILED" output="\r\nError! Could not delete the Pool." />
+    <error name="ROUTE_ADD_MESSAGE" output="\r\nThe route will not take effect until a routing interface belonging to the same subnet as the next hop IP is created and activated."/>
+    <error name="COULD_NOT_ADD_DEFAULT_ROUTE" output="\r\nError! The Route could not be configured."/>
+    <error name="IPV6_MAX_NEXTHOPS_EXCEEDED" output="\r\nError! The Maximum number of configurable Next Hops for this IPv6 network has been exceeded."/>
+    <error name="IPV6_STATIC_ROUTE_TABLE_FULL" output="\r\nError! The IPv6 Static Route table is full. Route could not be added."/>
+    <error name="IPV6_STATIC_ROUTE_ADD_FAIL" output="\r\nError! Failed to add IPv6 Static Route."/>
+    <error name="UNABLE_TO_SUBSCRIBE_SUBSCRIPTION_ON_INTERFACE" output="\r\nError! Unable to subscribe specified subscription on interface."/>
+    <error name="INVALID_VALUE_GENERIC" output="\r\nError! Invalid $$objName$$."/>
+    <error name="INVALID_VALUE_DHCPSERV_PING" output="\r\nError! Value is out of range for $$objName$$. The valid range is 2 to 10. Use 0 to disable."/>
+    <error name="FILE_TRANSFER_NOT_ALLOWED" output="\r\nError! File transfer not allowed."/>
+    <error name="FILE_EMPTY_NOT_FOUND" output="\r\nError! File is either empty or not found."/>
+    <error name="INVALID_PASSWD_STRING" output="\r\nError! Invalid ."/>
+     <error name="INVALID_PROBE_COUNT" output="\r\nError! Invalid Probe Count ."/>
+     <error name="INVALID_INTERVAL" output="\r\nError! Invalid Interval."/>
+     <error name="PING_FAILED" output="\r\nError! Ping Failed."/>
+    <error name="INVALID_ACL_RULE_INDEX" output="\r\nError! Invalid ACL Rule Index. Valid range is 1 to 28."/>
+    <error name="INVALID_STD_IP_ACL_ID" output="\r\nError! Invalid Standard IP ACL ID. Valid range is 1 to 99."/>
+    <error name="INVALID_EXT_IP_ACL_ID" output="\r\nError! Invalid Extended IP ACL ID. Valid range is 100 to 199."/>
+    <error name="INVALID_name31" output="\r\nError! Invalid Name string. Name string may include alphabetic, numeric, dash, dot or underscore characters only. Name must start with a letter and the size of the name string must be less than or equal to 31 characters."/>
+   <!-- <error name="INVALID_rename31" output="\r\nError! Invalid Name string. Name string may include alphabetic, numeric, dash, dot or underscore characters only. Name must start with a letter and the size of the name string must be less than or equal to 31 characters."/>-->
+    <error name="INVALID_alphanum_underscore_dash_space32" output="\r\nError! Invalid Name string. Name string may include alphabetic, numeric, dash, blank-space or underscore characters only. Size of the name string must be less than or equal to 32 characters."/>
+    <error name="INVALID_alphanum_underscore_dash_space43" output="\r\nError! Invalid Name string. Name string may include alphabetic, numeric, dash, blank-space or underscore characters only. Size of the name string must be greater than or euqal to 1 and less than or equal to 43 characters."/>
+    <error name="INVALID_alphanum_underscore_dash_space45" output="\r\nError! Invalid Name string. Name string may include alphabetic, numeric, dash, blank-space or underscore characters only. Size of the name string must be greater than or equal to 1 and less than or equal to 45 characters."/>
+    <error name="IP_FAILURE" output="\n Error! Couldn't retrieve  IP Address."/>
+    <error name="MAC_FAILURE" output="\n Error! Couldn't retrieve MAC Address."/>
+    <error name="VLANID_FAILURE" output="\n Error! Couldn't retrieve VLAN ID."/>
+    <error name="SUBNET_MASK_FAILURE" output="\n Error! Couldn't retrieve Subnet Mask."/>
+    <error name="INVALID_IP_ADDRESS" output="\n Error! Invalid IP Address."/>
+    <error name="ADMIN_MODE_FAILURE" output="\n Error! Failed to set Admin Mode."/>
+    <error name="INVALID_NON_ZERO_MAC" output="\r\nError! MAC address requires a Non-Zero MAC address."/>
+    <error name="INVALID_VLANID_RANGE" output="\r\nError! Value $$objValue$$ is out of range for $$objName$$. The valid range is %d to %d." args="L7_DOT1Q_MIN_VLAN_ID,L7_DOT1Q_MAX_VLAN_ID"/>
+    <error name="INVALID_VLANID_RANGE_1" output="\r\nError! Value 1 is out of range for VLAN ID-Individual/Range. The valid range is %d to %d." args="L7_DOT1Q_MIN_VLAN_ID+1,L7_DOT1Q_MAX_VLAN_ID"/>
+    <error name="INVALID_MIN_BANDWIDTH" output="\r\n Error Value($$objValue$$) is invalid for $$objName$$. Valid range is 0 to 100 in increments of 5."/>
+    <error name="INVALID_ACL_RULE_ID" output="\r\nError! Invalid Rule ID. Valid range is 1 to 10."/>
+    <error  name="INVALID_RATE_LIMIT" output="\r\nError! Entered value is out of permissible range. Range: (0-300)" />
+    <error  name="INVALID_SAMPLER_RATE_RANGE" output="\r\nError! Entered value is out of permissible range. Valid Range: '0' to Disable, 1024 to 65536" />
+    <error output="\r\nError! Invalid TACACS Host Name / IP Address. It should be a dotted decimal or alphanumeric string of 32 characters" name="INVALID_TACACS_host"/>
+    <error name="IGMP_SNOOPING_MAX_MCAST_MAX_TIME_INVALID" output="\r\nError: Value ($$objValue$$) is out of range for '$$objName$$'. The valid range is %d to %d." args="L7_IGMP_SNOOPING_MIN_MCAST_RTR_EXPIRY_TIME,L7_IGMP_SNOOPING_MAX_MCAST_RTR_EXPIRY_TIME" />
+    <error name="MLD_SNOOPING_MAX_MCAST_MAX_TIME_INVALID" output="\r\nError: Value ($$objValue$$) is out of range for '$$objName$$'. The valid range is %d to %d." args="L7_MLD_SNOOPING_MIN_MCAST_RTR_EXPIRY_TIME,L7_MLD_SNOOPING_MAX_MCAST_RTR_EXPIRY_TIME" />
+    <error name="SNOOPING_HOST_TIMEOUT_SET_ERR" output="\r\nError: Failed to set Value ($$objValue$$). Host Timeout must be greater than Leave Timeout."/>
+    <error name="SNOOPING_LEAVE_TIMEOUT_SET_ERR" output="\r\nError: Failed to set Value ($$objValue$$). Leave Timeout must be less than Host Timeout." />
+    <error name="INPUT_NOT_MULTIPLEOF_10" output="\r\nError: Failed to set '$$objName$$' with '$$objValue$$'. The value entered should be a multiple of 10." />
+
+<error name="INVALID_name31_new" output="\r\nError! Invalid Name string. Name string may include alphabetic, numeric, dash, dot or underscore characters only. The size of the name string must be less than or equal to 31 characters."/>
+     <error output="\r\n Incorrect input: Total minimum bandwidth for an Interface must not exceed 100 percent." name="MIN_BWIDTH_EXCEEDS"/>
+     <error output="\r\nError! Cannot Bind ACLs to Management VLAN." name="ERR_BIND_ACL_MGMT_VLAN"/>
+
+
+    <!-- for SNOOPING GROUP MEMBERSHIP INTERVAL -->
+    <error name="IGMP_SNOOPING_MAX_GROUP_MEMBERSHIP_INTERVAL_INVALID" output="\r\nError: Value ($$objValue$$) is out of range for Host Timeout. The valid range is %d to %d." args="L7_IGMP_SNOOPING_MIN_GROUP_MEMBERSHIP_INTERVAL,L7_IGMP_SNOOPING_MAX_GROUP_MEMBERSHIP_INTERVAL"/>
+    <error name="MLD_SNOOPING_MAX_GROUP_MEMBERSHIP_INTERVAL_INVALID" output="\r\nError: Value ($$objValue$$) is out of range for Host Timeout. The valid range is %d to %d." args="L7_MLD_SNOOPING_MIN_GROUP_MEMBERSHIP_INTERVAL,L7_MLD_SNOOPING_MAX_GROUP_MEMBERSHIP_INTERVAL"/>
+
+<!-- for SNOOPING MAX RESPONSE TIME -->
+    <error name="IGMP_SNOOPING_MAX_RESP_TIME_INVALID" output="\r\nError: Value ($$objValue$$) is out of range for Leave Timeout. The valid range is %d to %d." args="L7_IGMP_SNOOPING_MIN_RESPONSE_TIME,L7_IGMP_SNOOPING_MAX_RESPONSE_TIME"/>
+    <error name="MLD_SNOOPING_MAX_RESP_TIME_INVALID" output="\r\nError: Value ($$objValue$$) is out of range for Leave Timeout. The valid range is %d to %d." args="L7_MLD_SNOOPING_MIN_RESPONSE_TIME,L7_MLD_SNOOPING_MAX_RESPONSE_TIME"/>
+  <!-- for Voice VLAN Error Codes -->
+    <error name="SWPORT_NOTGENERALMODE_DISPLAY" output="\r\nError: Interface not in General Mode." />
+    <error name="SWPORT_MODEGET_FAILURE_DISPLAY" output="\r\nError: Failed to get Interface Mode." />
+    <error name="VOICEVLANAUTH_ERR_DOT1X_DISABLED" output="\r\nError: DOT1X is not enabled." />
+    <error name="VOICEVLANAUTH_ERR_NOT_MAC_BASED" output="\r\nError: DOT1X Port Control Mode not set to MAC-Based." />
+    <error name="VOICEVLANAUTH_ERR" output="\r\nError: Unable to set the voice vlan Auth." />
+    <error name="QOS_COS_RESTORE_TRAFFIC_CLASS_FAILED" output="\r\nError! Failed to reset dot1p to Traffic class mapping."/>
+    <error name="INVALID_STRING_ALPHANUMD"  output="\r\nError: Unable to set $$objName$$' with '$$objValue$$'. It can contain ('a-z' | 'A-Z' | '0-9' | '.')."/>
+   <error name="INVALID_NWDETECTION_INTERVAL" output="\r\nError! Value($$objValue$$) is out of range for '$$objName$$'.The valid range is 0 to 3600" />
+    <error name="CONFIGPORTVOICEVLAN_VLAN" output="\r\n Error! Invalid VLAN ID.The valid range is %d to %d." args="L7_DOT1Q_MIN_VLAN_ID,L7_DOT1Q_MAX_VLAN_ID"/>
+    <error name="CONFIGPORTVOICEVLAN_DOT1P" output="\r\n Error! Invalid Dot1p value. The valid range is %d to %d." args="L7_DOT1P_MIN_PRIORITY,L7_DOT1P_MAX_PRIORITY"/>
+    <error name="SHOULD_SPECIFY_PFX_PFXLEN"  output="\r\nError! Should specify the valid IPv6 Prefix/Prefixlength."/>
+    <error name="ISCSI_TARGET_NAME_ADD_FAILURE"  output="\r\nError! iSCSI Target table is full."/>
+    <error name="TPID_NOT_EXIST"  output="\r\nError! TPID is not configured yet."/>
+    <error name="TPID_INDEX_NOT_FREE"  output="\r\nError! No free TPID Index."/>
+    <error name="TPID_ALREADY_CONFIGURED "  output="\r\nInfo: TPID is already configured."/>
+    <error name="DVLAN_MODE_NOT_ENABLED"  output="\r\nError! Failed to set EtherType as DVLAN mode is not enabled on this interface."/>
+    <error name="INVALID_AP_LOCATION" output="\r\nError! Input for Location must be alpha-numeric.It can contain hyphen,space, and underscore characters."/>
+    <error name="VLAN_EXISTS"  output="\r\nError: Vlan already configured."/>
+    <error name="VLAN_OUT_OF_RANGE"  output="\r\nError: Value ($$objValue$$) is out of range for Vlan. The valid range is %d to %d." args="L7_DOT1Q_MIN_VLAN_ID,L7_DOT1Q_MAX_VLAN_ID"/>
+    <error name="INVALID_stormlevel_percentage"  output="\r\nError: Value ($$objValue$$) is out of range for $$objName$$ in percentage. The valid range is 0 - 100."/>
+    <error name="INVALID_stormlevel_pps"  output="\r\nError: Value ($$objValue$$) is out of range for $$objName$$ in pps. The valid range is 0 - 14880000."/>
+    <error name="PRIORITY_ZERO_STNDBY"  output="\r\nError! Priority of configured Standby switch cannot be set to 0 (Management preference disabled)."/>
+    <error name="INVALID_timeRangeName31" output="\r\nError! Invalid Time Range Name string. Time Range Name string may include alphabetic, numeric, dash, dot or underscore characters only.Time Range Name must start with a letter and the size of the string must be less than or equal to 31 characters."/>
+    <error name="INVALID_IPV4_IPV6_DNS" output="\r\nError! Invalid IPv4 Address or Ipv6 Address or DNS"/>
+    <error name="IMAGE_IN_USE"  output="\r\nError! Another operation on this image is in progress"/>
+    <error name="IMAGE_NOT_PRESENT" output="\r\nError! Specified image does not exist!"/>
+    <error name="INVALID_TIME" output="\r\nError! Invalid Time, Input time should be in 'hh:mm' format"/>
+    <error name="INVALID_IP_MTU_SIZE" output="\r\nError! Value($$objValue$$) is out of range for $$objName$$. The valid range is %d to %d. " args="L7_L3_MIN_IP_MTU, L7_L3_MAX_POSSIBLE_IP_MTU"/>
+    <error name="INVALID_DOMAIN_NAME" output="\r\nError! Invalid Domain Name. In Domain Name, each substring must be less than 64 characters in length,separated by a dot and the length of whole string must not exceed 255 characters."/>    
+  </misc>
+</FastPathXML>

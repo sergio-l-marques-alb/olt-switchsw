@@ -1,0 +1,51 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Help for ARP Cache</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<HR size=4 WIDTH="100%">
+
+<h2><a name=arpcache></a>Help for System ARP Cache</h2>
+
+<p>The Address Resolution Protocol (ARP)
+dynamically maps physical (MAC) addresses to Internet (IP) addresses.
+This panel displays the current contents of the ARP cache.
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+    <LI><b>MAC Address </b> - Displays the associated physical (MAC) Address for the connection.</LI>
+    <LI><b>IP Address </b> - Displays the IP address of the connection.</LI>
+<EMWEB_IF ID=XUI_IF_STACKING_PRESENT>
+    <LI><b>Unit/Slot/Port </b> - Displays the port being used for the connection.</LI>
+<EMWEB_ELSE> 
+    <LI><b>Slot/Port </b> - Displays the port being used for the connection.</LI>
+</EMWEB_IF>	
+ </UL>
+</UL>
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Refresh</b> - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();' >.</li>
+ </ul>
+ <ul type=circle>
+  <li><b>Clear</b> - Clear the Management ARP Cache in the switch.</li>
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+

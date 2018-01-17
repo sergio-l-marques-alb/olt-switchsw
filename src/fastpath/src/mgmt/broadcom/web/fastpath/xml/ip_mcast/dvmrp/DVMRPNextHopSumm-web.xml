@@ -1,0 +1,20 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DVMRPNextHopSumm" title="DVMRP Next Hop Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element control="label" properties="filter,iterate" obj-name="IPMCASTdvmrpRouteNextHopTable_dvmrpRouteNextHopSource" id="1" name="Source IP"/>
+                <element control="label" properties="filter,iterate" obj-name="IPMCASTdvmrpRouteNextHopTable_dvmrpRouteNextHopSourceMask" id="2" name="Source Mask"/>
+                <element control="label" properties="filter,iterate" obj-name="IPMCASTdvmrpRouteNextHopTable_dvmrpRouteNextHopIfIndex" id="3" name="Next Hop Interface"/>
+                <element obj-name="IPMCASTdvmrpRouteNextHopTable_dvmrpRouteNextHopType" id="4" name="Type"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

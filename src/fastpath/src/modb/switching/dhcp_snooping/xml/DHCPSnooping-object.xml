@@ -1,0 +1,223 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="Switching" version="1.0" >
+<module name="DHCPSnooping"  >
+
+<object name="AdminMode"  >
+<core  type="enum" xtype="enable_t" access="read-write" descr="This object specifies the DHCP Snooping Admin mode"/>
+<ui  name="DHCP Snooping Admin Mode" style="choiceNselect1" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.1" />
+</ui>
+</object>
+<object name="RemoteFileName"  >
+<core  type="string" access="read-write" descr="This object specifies the remote file name to store and restore the DHCP SNOOPING database"/>
+<ui  name="Remote File Name" style="inputLine" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.12" />
+</ui>
+</object>
+<object name="RemoteIPAddress"  >
+<core  type="ipv4" access="read-write" descr="This object specifies the remote Ip Addr to store and restore the DHCP SNOOPING database"/>
+<ui  name="Remote IP Address" style="inputLine" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.13" />
+</ui>
+</object>
+<object name="WriteDelay"  >
+<core  type="uint" access="read-write" min="L7_DS_DB_MIN_STORE_INTERVAL" max="L7_DS_DB_MAX_STORE_INTERVAL" default="L7_DS_DB_STORE_INTERVAL" descr="This object specifies the write delay interval to store the DHCP SNOOPING database"/>
+<ui  name="Write Delay" style="inputLine" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.14" />
+</ui>
+</object>
+<object name="StaticBindingsCount"  >
+<core  type="uint" access="read-only" descr="This object specifies the number of DHCP snooping static bindings"/>
+<ui  name="Static Bindings Count" style="plainText" />
+</object>
+<object name="VerifyMac"  >
+<core  type="enum" xtype="enable_t" access="read-write" descr="This object specifies whether DHCP snooping verifies source MAC addresses"/>
+<ui  name="Verify Mac" style="choiceNselect1" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.2" />
+</ui>
+</object>
+
+<object name="Interface"  compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="This instance is used to get the DHCP Snooping Interface"/>
+<ui  name="Unit/Slot/Port" style="inputLine" />
+</object>
+<object name="Interface"  compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="This instance is used to get the DHCP Snooping Interface"/>
+<ui  name="Slot/Port" style="inputLine" />
+</object>
+<object name="EnabledInterface"  compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="Get the DHCP Snooping Enabled Interface"/>
+<ui  name="Unit/Slot/Port" style="plainText" />
+</object>
+<object name="EnabledInterface"  compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="Get the DHCP Snooping Enabled Interface"/>
+<ui  name="Slot/Port" style="plainText" />
+</object>
+
+<object name="LogInvalidPackets" depends="Interface" >
+<core  type="enum" xtype="boolean_t" access="read-write" descr="This instance specifies whether DHCP snooping logs invalid packets"/>
+<ui  name="Log Invalid Packets" style="choiceNselect1" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.4.1.2" />
+</ui>
+</object>
+<object name="RateLimit" depends="Interface" >
+<core  type="int" access="read-write" min="L7_DS_RATE_LIMIT_NONE" max="L7_DS_RATE_LIMIT_MAX"  descr="This instance specifies the rate limit value of incoming DHCP packets on untrusted interfaces"/>
+<ui  name="DHCP Packets Rate Limit" style="inputLine" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.4.1.3" />
+</ui>
+</object>
+<object name="NoLimit" depends="Interface" >
+<core  type="int" default="L7_DS_RATE_LIMIT_NONE" access="read-write" descr="This instance specifies the rate limit value of incoming DHCP packets on untrusted interfaces"/>
+<ui  name="DHCP Packets No Limit" style="inputLine"  >
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.4.1.4" />
+</ui>
+</object>
+<object name="MACVerifyFailures" depends="Interface" >
+<core  type="uint" access="read-only" descr="This instance specifies the number of DHCP client packets whose source MAC address didn't match the client hardware address."/>
+<ui  name="MAC Verify Failures" style="plainText" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.7.1.1" />
+</ui>
+</object>
+<object name="intfMismatch" depends="Interface" >
+<core  type="uint" access="read-only" descr="This instance specifies the number of DHCP client packets received on an interface different from the interface where the DHCP snooping binding says the client should be Only DHCPRELEASE or DHCPDECLINE."/>
+<ui  name="DHCP Interface MisMatch Packets" style="plainText" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.7.1.2" />
+</ui>
+</object>
+<object name="untrustedSvrMsg" depends="Interface" >
+<core  type="uint" access="read-only" descr="This instance specifies the number of DHCP server messages received on an untrusted port."/>
+<ui  name="Untrusted Server Messages" style="plainText" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.7.1.3" />
+</ui>
+</object>
+<object name="TrustedState" depends="Interface" >
+<core  type="enum" xtype="boolean_t" access="read-write" descr="This object gets/Sets whether DHCP snooping considers a port trusted"/>
+<ui  name="DHCP Trusted State" style="choiceNselect1" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.4.1.1" />
+</ui>
+</object>
+<object name="BurstInterval" depends="Interface" >
+<core  type="uint" access="read-write" min="L7_DS_BURST_INTERVAL_MIN" max="L7_DS_BURST_INTERVAL_MAX" default="L7_DS_BURST_INTERVAL_MIN" descr="This object specifies the burst interval value of incoming DHCP packets on untrusted interfaces"/>
+<ui  name="DHCP untrusted Packets Burst Interval" style="inputLine" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.4.1.4" />
+</ui>
+</object>
+<object name="ClearStats" >
+<core  type="enum" xtype="boolean_t" access="write-only" descr="This object clears DHCP snooping statistics."/>
+<ui  name="Clear Statistics" style="inputLine" >
+</ui>
+</object>
+<object name="ClearBindings" depends="Interface" >
+<core  type="enum" xtype="boolean_t"  access="write-only" descr="This object clears DHCP snooping bindings"/>
+<ui  name="Clear DHCP Bindings" style="inputLine" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.6" />
+</ui>
+</object>
+
+<object name="MACAddress"  >
+<core  type="mac" key="yes" access="read-write" descr="This instance specifies the MAC Address for DHCP Binding"/>
+<ui  name="DHCP Binding MAC Address" style="inputLine" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.11.11.3" />
+</ui>
+</object>
+<object name="Vlan"  depends="MACAddress">
+<core  type="uint" access="read-write" dynamic="yes" min="L7_DOT1Q_MIN_VLAN_ID" max="L7_DOT1Q_MAX_VLAN_ID" descr="This instance specifies the client VLANId for DHCP Binding"/>
+<ui  name="DHCP Binding VLAN" style="inputLine" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.11.11.2" />
+</ui>
+</object>
+<object name="intIfNumber"  depends="MACAddress" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core  type="user" xtype="usp_t"  access="read-write" properties="dynamic" descr="This instance specifies the interface  for DHCP Binding"/>
+<ui  name="Unit/Slot/Port" style="choiceNselect1" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.11.11.1" />
+</ui>
+</object>
+<object name="intIfNumber"  depends="MACAddress" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core  type="user" xtype="usp_t"  access="read-write" properties="dynamic" descr="This instance specifies the interface  for DHCP Binding"/>
+<ui  name="Slot/Port" style="choiceNselect1" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.11.11.1" />
+</ui>
+</object>
+<object name="BindingType"  depends="MACAddress">
+<core  type="enum" xtype="dsBindingType_t" access="read-write" descr="This instance specifies the binding type of  DHCP Binding"/>
+<ui  name="DHCP Binding Type" style="choiceNselect1" />
+</object>
+<object name="IPAddress"  depends="MACAddress">
+<core  type="ipv4" access="read-write" descr="This object specifies the IP Address for the DHCP Binding"/>
+<ui  name="DHCP Binding IP Address" style="inputLine" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.11.11.4" />
+</ui>
+</object>
+<!-- For Dynamic DHCP Snooping -->
+<object name="DynMACAddress">
+<core  type="mac" key="yes" access="read-write" descr="This instance specifies the MAC Address for DHCP Binding"/>
+<ui  name="DHCP Binding MAC Address" style="inputLine" >
+  <snmp asn-id="" />
+</ui>
+</object>
+<object name="DynVlan"  depends="DynMACAddress">
+<core  type="uint" access="read-only" descr="This instance specifies the client VLANId for DHCP Binding"/>
+<ui  name="DHCP Binding Client Vlan" style="plainText" >
+  <snmp asn-id="" />
+</ui>
+</object>
+<object name="DynintIfNumber"  depends="DynMACAddress">
+<core  type="user" xtype="usp_t"  access="read-only" descr="This instance specifies the interface  for DHCP Binding"/>
+<ui  name="DHCP Binding Interface Number" style="plainText" >
+  <snmp asn-id="" />
+</ui>
+</object>
+<object name="DynIPAddress"  depends="DynMACAddress">
+<core  type="ipv4" access="read-only" descr="This instance specifies the IP Address for the DHCP Binding"/>
+<ui  name="DHCP Dynamic Binding IP Address" style="plainText" >
+  <snmp asn-id="" />
+</ui>
+</object>
+<object name="LeaseTime" depends="DynMACAddress" >
+<core  type="uint" access="read-only" descr="This instance specifies the Lease time of DHCP dynamic binding"/>
+<ui  name="DHCP Dynamic Binding Lease Time" style="plainText" />
+</object>
+<object name="DynClearBindings" depends="DynMACAddress" >
+<core  type="enum" xtype="boolean_t"  access="write-only" descr="This object clears DHCP snooping bindings"/>
+<ui  name="Clear DHCP Bindings" style="inputLine" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.6" />
+</ui>
+</object>
+<!-- End of Dynamic -->
+<object name="RowStatus" depends="MACAddress" >
+<core  type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="This instance adds or Removes a static entry to the DHCP snooping bindings database"/>
+<ui  name="DHCP Snooping Database RowStatus" style="inputLine" />
+</object>
+
+<object name="VlanID"  >
+<core  type="uint" key="yes" access="read-write" descr="This instance specifies the VLANId for DHCP Binding"/>
+<ui  name="DHCP Snooping VLANID" style="inputLine" />
+</object>
+<object name="VlanDHCPsnoopingMode" depends="VlanID" >
+<core  type="enum" xtype="enable_t" access="read-write" descr="This instance enables or disables DHCP snooping on a VLAN"/>
+<ui  name="Vlan DHCP Snooping Mode" style="choiceNselect1" >
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.23.3.1.2" />
+</ui>
+</object>
+</module>
+
+<module name="DhcpClientVendorGlobalConfig">
+
+<object name="VendorClassIdMode">
+<core  type="enum" xtype="enable_t" access="read-write" descr="This object indicates whether DHCP Vendor Classifier Id Option (60) is enabled for DHCP Network Client."/>
+<ui  name="DHCP Vendor ClassId Mode" style="choiceNselect1" >
+</ui>
+</object>
+
+<object name="VendorClassIdString" >
+<core  type="user" xtype="string_t" access="read-write" descr="When this object is set with a non-empty string, the DHCP Vendor Classifier Id Option (60) string is enabled for DHCP Network Client."/>
+<ui  name="DHCP Vendor ClassId String" style="inputLine" >
+</ui>
+</object>
+
+</module>
+
+</objectxml>
+</FastPathXML>

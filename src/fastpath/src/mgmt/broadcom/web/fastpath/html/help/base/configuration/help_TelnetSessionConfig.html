@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+
+   <META http-equiv="Pragma" content="no-cache">
+
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+
+   <TITLE>Telnet Session Configuration Help</TITLE>
+
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+
+</HEAD>
+
+
+
+<BODY class = "helppageattributes">
+
+<hr size=4 width="100%" align=center>
+<h2><a name=telnetcfg></a>Help for Telnet Session Configuration</h2>
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+   <li><b>Allow New Telnet Sessions</b> 
+
+      - If you set this to no, new telnet sessions will not be allowed.
+
+      The factory default is yes. </li>
+
+	<li><b>Telnet Server Admin Mode</b> 
+		- Administrative mode for inbound telnet sessions. Setting this value to disable shuts down the telnet port.
+		If the admin mode is set to disable, then all existing telnet connections are disconnected. The default value is Enable.
+
+	</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Configurable Data</h3>
+<EMWEB_ELSE>
+<h3>Non-Configurable Data</h3>
+</EMWEB_IF>
+
+<ul type=disc>
+
+ <ul type=circle>
+
+  <li><b>Telnet Session Timeout (minutes)</b> 
+
+      - Specify how many minutes of inactivity should occur on
+
+      a telnet session before the session is logged off.
+
+      You may enter any number from 1 to 160. The
+
+      factory default is 5. </li>
+
+  <li><b>Maximum Number of Telnet Sessions</b> 
+
+      - Specify how many simultaneous telnet sessions
+
+      will be allowed. The Range is 
+       <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(0, FD_CLI_WEB_DEFAULT_NUM_SESSIONS);
+      '>.The Default value is
+        <EMWEB_STRING C='
+      return usmWebIntegerToString(FD_CLI_WEB_DEFAULT_NUM_SESSIONS);
+      '>.
+
+      </li>
+  </ul>
+
+</ul>
+
+
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+
+<h3>Command Buttons </h3>
+
+
+
+<ul type=disc>
+
+ <ul type=circle>
+
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+
+ </ul>
+
+</ul>
+
+</EMWEB_IF>
+
+</body>
+</html>
+
+
+

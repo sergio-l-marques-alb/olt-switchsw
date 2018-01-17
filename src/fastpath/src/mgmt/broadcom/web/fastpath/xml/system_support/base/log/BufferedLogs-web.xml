@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="BufferedLogs" title="Buffered Log">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element obj-name="baselogCfg_LogInMemoryLogCount" id="1" name="Total Number of Messages">
+                  <action type="mandate" js_function="check_removeThHeading" invoke="onLoad"/>
+                </element>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="2">
+                <element properties="iterate,hidden" obj-name="baselogCfg_LogInMemoryMsgIndex" id="1" name=""/>
+                <element obj-name="baselogCfg_LogInMemoryMsgText" id="2" name=""/>
+            </repeat>
+            <node id="3">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+
+        </group>
+    </webxml>
+</FastPathXML>

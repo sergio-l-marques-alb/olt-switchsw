@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "branding.dtd">
+
+<FastPathXML>
+  <branding version="1" title="SmartPATH - ">
+    <product name="fastpath" />
+    <language option="english" />
+    <edit methods="inline,global" />
+    <help displaymethod="inline" />
+    <buttons displaymethod="inline"/>
+    <error name="eleWebName" displaymethod="inline" />
+    <preloadscreen  required="yes" image="/images/bigrotation.gif" message="Loading page, please wait...."/>
+    <style url="style.css" />
+    <cli print-func="" default_level="ReadWriteUser" default_mode="privilaged" default_prompt="SmartPATH>"/>
+    <userDefinedJS jsTitle="globalStyleJS" />
+  </branding>
+</FastPathXML>

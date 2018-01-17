@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0" >
+
+<!-- BEGIN: LocalArpConfig Module -->
+<module name="LocalArpConfig" purpose="To Enable/Disable the Local Proxy ARP mode on a particular interface." >
+  <object name="interface"  compile_if="IF_STACKING_PACKAGE_PRESENT" >
+  <core  type="user" xtype = "usp_t" key="yes" access="read-write" descr="Interfaces for Proxy ARP Configuration"/>
+  <ui  name="Unit/Slot/Port" style="inputLine">
+  <snmp asn-id=".1.3.6.1.2.1.2.2.1.1"/> 
+  </ui></object>
+  <object name="interface"  compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+  <core  type="user" xtype = "usp_t" key="yes" access="read-write" descr="Interfaces for Proxy ARP Configuration"/>
+  <ui  name="Slot/Port" style="inputLine">
+  <snmp asn-id=".1.3.6.1.2.1.2.2.1.1"/> 
+  </ui></object>
+  <object name="intflProxyArpMode" depends="interface" >
+  <core  type="enum" xtype="enable_t" access="read-write" descr="The Local Proxy ARP Mode for the interface."/>
+  <ui  name="Local Proxy Arp Mode" style="choiceNselect1">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.11.1.1"/> 
+  </ui></object>
+</module><!-- END: LocalArpConfig Module -->
+
+<!-- BEGIN: arpIntfConfig Module -->
+<module name="arpIntfConfig" purpose="To Add/View/Remove the ARP entries." >
+<key-combo list="ipAddress,ifIndex"/>
+  <object name="ipAddress"  >
+  <core  type="ipv4" key="yes" access="read-write" descr="The Type of Address assigned to this interface."/>
+  <ui  name="IP Address" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.12.1.1"/> 
+  </ui></object>
+  <object name="ifIndex"  >
+  <core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The Associated IfIndex which identified the ARP Entry. This value must be specified for static ARP entries on an unnumbered interface"/>
+  <ui  name="Interface" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.12.1.2"/> 
+  </ui></object>
+  <object name="age" depends="ipAddress,ifIndex" >
+  <core  type="user" xtype="timeStampHHMMSS_t" access="read-only" descr="This defines the time (in seconds) since the ARP entry was last refreshed. This value is 0 for ARP entries of type local(1) or static(3), since these entries are not subject to aging."/>
+  <ui  name="Age" style="plainText">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.12.1.3"/> 
+  </ui></object>
+  <object name="macAddress" depends="ipAddress,ifIndex" >
+  <core  type="mac" access="read-write" descr="The hardware MAC Address that each interface maps to."/>
+  <ui  name="MAC Address" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.12.1.4"/> 
+  </ui></object>
+  <object name="type" depends="ipAddress,ifIndex" >
+  <core  type="enum" xtype="L7_ARP_ENTRY_TYPE_t" access="read-only" descr="The type of ARP entry.The possible types are local(1),gateway(2),static(3) and dynamic(4)."/>
+  <ui  name="Type" style="choiceNselect1">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.12.1.5"/> 
+  </ui></object>
+  <object name="status" depends="ipAddress,ifIndex" >
+  <core  type="uint" access="read-write" descr="The status of this ARP entry. Setting this object destroy will remove the entry."/>
+  <ui  name="Status" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.12.1.6"/> 
+  </ui></object>
+</module><!-- END: arpIntfConfig Module -->
+
+<!-- BEGIN: arpGlobal Module -->
+<module name="arpGlobal" purpose="To configure ARP Global Parameters like Retries, dynamic renew mode etc." >
+  <object name="maxRetries"  >
+  <core  type="uint" min="L7_IP_ARP_RETRIES_MIN" max="L7_IP_ARP_RETRIES_MAX" default="FD_IP_DEFAULT_ARP_RETRIES" access="read-write" descr="Configures the ARP count of maximum request for retries Allowable range: 0-10"/>
+  <ui  name="Max Retries" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.3"/> 
+  </ui></object>
+  <object name="dynamicRenew"  >
+  <core  type="enum" xtype="enable_t" default="FD_IP_DEFAULT_ARP_DYNAMIC_RENEW" access="read-write" descr="This indicates the current setting of ARP dynamic renew mode. "/>
+  <ui  name="Dynamic Renew" style="choiceNselect1">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.5"/> 
+  </ui></object>
+  <object name="cacheSize"  >
+  <core  type="uint" min="L7_IP_ARP_CACHE_SIZE_MIN" max="platRtrArpMaxEntriesGet()" default="platRtrArpMaxEntriesGet()" access="read-write" descr="Configures the ARP maximum number of entries in the cache. Allowable range is platform-specific."/>
+  <ui  name="Cache Size" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.4"/> 
+  </ui></object>
+  <object name="staticEntryCountMax"  >
+  <core  type="uint" access="read-only" descr="Maximum number of configurable static ARP entries."/>
+  <ui  name="Static Entry Count Max" style="plainText">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.9"/> 
+  </ui></object>
+  <object name="responseTime"  >
+  <core  type="uint" min="L7_IP_ARP_RESP_TIME_MIN" max="L7_IP_ARP_RESP_TIME_MAX" default="FD_IP_DEFAULT_ARP_RESP_TIME" access="read-write" descr="Configures the ARP request response timeout in seconds. Allowable range: 1-10"/>
+  <ui  name="Response Time" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.2"/> 
+  </ui></object>
+  <object name="ageoutTime"  >
+  <core  type="uint" min="L7_IP_ARP_AGE_TIME_MIN" max="L7_IP_ARP_AGE_TIME_MAX" default="FD_IP_DEFAULT_ARP_AGE_TIME" access="read-write" descr="Configures the ARP entry ageout time in seconds.Allowable range: 15-21600"/>
+  <ui  name="Age Out Time" style="inputLine">
+  <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.1"/> 
+  </ui></object>
+  <object name="removeArpEntry"  >
+  <core  type="enum" xtype="L7_ARP_REMOVE_FROM_TABLE_t" access="write-only" descr="Allows the user to remove certain entries from the ARP Table."/>
+  <ui  name="Remove From Table" style="choiceNselect1">
+  </ui></object>
+  <object name="removeArpEntryIP"  >
+  <core  type="ipv4" access="write-only" descr="Allows the user to remove an ARP entry corresponding to an IP Address."/>
+  <ui  name="Remove ARP" style="inputLine">
+  </ui></object>
+</module><!-- END: arpGlobal Module -->
+
+<!-- BEGIN: arpCounters Module -->
+<module name="arpCounters" purpose="To Get ARP Counters" >
+<object name="totalEntryCountPeak"  >
+<core  type="uint" access="read-only" descr="Peak number of entries recorded in the ARP cache over time. This value is restarted whenever the ARP cache size is changed."/>
+<ui  name="Total Peak Entries" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.7"/> 
+</ui></object>
+<object name="staticEntryCountCurrent"  >
+<core  type="uint" access="read-only" descr="Current number of configured static ARP entries."/>
+<ui  name="Total Static Entries" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.8"/> 
+</ui></object>
+<object name="totalEntryCountCurrent"  >
+<core  type="uint" access="read-only" descr="Current number of entries in the ARP cache."/>
+<ui  name="Total ARP Cache Entries" style="plainText">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.2.1.6"/> 
+</ui></object>
+</module><!-- END: arpCounters Module -->
+
+</objectxml>
+</FastPathXML>

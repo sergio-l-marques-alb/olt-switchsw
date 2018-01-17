@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+
+ <FastPathXML>
+    <webxml  version="1.0" name="dhcp4Clientparameters"  title="DHCP Client Parameters"> 
+        <group  id="1" heading=" ">
+            <node id="1">
+                <element properties="hidden" obj-name="routingswitchIPInterfaceConfig_IfIndex" id="2" name="Interface"/>
+                <element control="label" properties="read-only" cpval="routingswitchIPInterfaceConfig_IfIndex" obj-name="dhcp4ClientLeaseParameters_dhcp4ClientInterfaceIndex" id="1" name="Interface"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="dhcp4ClientLeaseParameters_dhcp4ClientIpAddress" id="1" name="IP Address"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="dhcp4ClientLeaseParameters_dhcp4ClientSubnetMask" id="1" name="Subnet Mask"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="dhcp4ClientLeaseParameters_dhcp4ClientDhcpServerAddress" id="1" name="DHCP Server Address"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="dhcp4ClientLeaseParameters_dhcp4ClientState" id="1" name="Client State(Bounds)"/>
+            </node>
+            <node id="6">
+                <element control="label" properties="read-only" obj-name="dhcp4ClientLeaseParameters_dhcp4ClientTransactionID" id="1" name="Transaction ID"/>
+            </node>
+            <node id="7">
+                <element control="label" properties="read-only" obj-name="dhcp4ClientLeaseParameters_dhcp4ClientLeaseTime" id="1" name="Lease Time"/>
+            </node>
+            <node id="8">
+                <element control="label" properties="read-only" obj-name="dhcp4ClientLeaseParameters_dhcp4ClientRenewTime" id="1" name="Renewal Time"/>
+            </node>
+            <node id="9">
+                <element control="label" properties="read-only" obj-name="dhcp4ClientLeaseParameters_dhcp4ClientRebindTime" id="1" name="Rebind Time"/>
+            </node>
+            <node id="10">
+                <element control="label" properties="read-only" obj-name="dhcp4ClientLeaseParameters_dhcp4ClientRetryCount" id="1" name="Retry Count"/>
+            </node>
+            <node id="11">
+                <button scope="page" type="buttonNext" target-page="IPInterfaceConfig.html"  help="Submits the form on this page to the Switch" id="1" name="Back">
+                    <action invoke="both" type="button" discard="no" />
+                </button>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
+ 

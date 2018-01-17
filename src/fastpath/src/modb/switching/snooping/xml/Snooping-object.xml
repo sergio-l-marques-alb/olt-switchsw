@@ -1,0 +1,364 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "object.dtd" >
+<FastPathXML>
+    <objectxml version="1.0" name="Switching">
+        <module name="SwitchSnoopingGroup">
+            <object depends="SnoopingProtocol" name="SnoopingAdminMode">
+                <core descr="This object enables or disables Snooping on the system." default="L7_DISABLE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Snooping Admin Mode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.6.1.1.2"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="SnoopingPortMask">
+                <core descr="This object specifies the IGMP/MLD Snooping Port Mask. This allows configuration of IGMP/MLD Snooping on selected ports.IGMP Snooping cannot be enabled on an interface that has routing enabled, or is a member of a LAG. If a port which has IGMP Snooping enabled" access="read-only" type="user" xtype="usplist_t" properties="dynamic"/>
+                <ui style="choiceNselect1" name="Snooping Port Mask">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.6.1.1.3"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="SnoopingMulticastControlFramesProcessed">
+                <core descr="This object specifies the Multicast Control Frames Processed by CPU. The number of multicast control frames that have been processed by the CPU." access="read-only" type="uint"/>
+                <ui style="plainText" name="Snooping Multicast Control Frames Processed">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.6.1.1.4"/>
+                </ui>
+            </object>
+            <object name="SnoopingProtocol">
+                <core descr="This object specifies the protocol type of network protocol in use" xtype="snoopingProtocol_t" key="yes" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Snooping Protocol">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.6.1.1.1"/>
+                </ui>
+            </object>
+        </module>
+        <module name="SwitchSnoopingQuerierVlanGroup">
+        <key-combo list="SnoopingProtocol,dot1qVlanIndex"/> 
+            <object name="SnoopingProtocol">
+                <core descr="This object specifies the protocol type of network protocol in use" default="L7_AF_INET" max="L7_AF_INET6" min="L7_AF_INET" key="yes" access="read-write" type="enum" xtype="snoopingProtocol_t"/>
+                <ui style="choiceNselect1" name="Querier VLAN Snooping Protocol">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.6.1.1.1"/>
+                </ui>
+            </object>
+            <object name="dot1qVlanIndex" depends="SnoopingProtocol">
+                <core descr="This object specifies the VLAN-ID or other identifier refering to this VLAN" max="L7_DOT1Q_MAX_VLAN_ID" min="L7_DOT1Q_MIN_VLAN_ID" key="yes" access="read-write" type="uint"/>
+                <ui style="inputLine" name="VLAN ID">
+                    <snmp asn-id="1.3.6.1.2.1.17.7.1.4.2.1.2"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol,dot1qVlanIndex" name="SnoopingQuerierVlanAdminMode">
+                <core descr="This enables or disables Snooping Querier on a selected Vlan interface" default="FD_IGMP_SNOOPING_QUERIER_VLAN_MODE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Snooping Querier VLAN Admin Mode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.20.2.1.1"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol,dot1qVlanIndex" name="QuerierVlanOperMode">
+                <core descr="This specifies the current state of the Snooping Querier on a selected vlan interface" xtype="L7_SNOOP_QUERIER_STATE_t" access="read-only" type="enum"/>
+                <ui style="plainText" name="Querier Operational State">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.20.2.1.2"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol,dot1qVlanIndex" name="QuerierElectionParticipateMode">
+                <core descr="This enables or disables the Snooping Querier Election Participation mode. When enabled snooping querier switch will participate in querier election up on discovering another querier in the specified vlan. When disabled, up on discovering another querier," default="FD_IGMP_SNOOPING_QUERIER_VLAN_ELECTION_MODE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Querier Election Participate Mode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.20.2.1.3"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol,dot1qVlanIndex" name="QuerierVlanAddress">
+                <core descr="This specifies the default source ip address to be used while generating general queries on the specified vlan." access="read-write" type="user" xtype="ipv4_ipv6_with_zeros"/>
+                <ui style="inputLine" name="Querier Vlan Address">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.20.2.1.4"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol,dot1qVlanIndex" name="QuerierOperVersion">
+                <core descr="This specifies the multicast protocol version that is currently being used by the snooping switch for the specified vlan while generating query messages" default="FD_IGMP_SNOOPING_QUERIER_VERSION" access="read-only" type="uint"/>
+                <ui style="plainText" name="Snooping Protocol Operational Version">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.20.2.1.5"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol,dot1qVlanIndex" name="QuerierOperMaxResponseTime">
+                <core descr="This object specifies the amount of time in seconds a switch will wait after sending a query on the selected vlan because it did not receive a report for a particular group in the interface participating in the vlan. This object is valid only when SwitchSnoopingQuerierOperVers" access="read-only" type="uint"/>
+                <ui style="plainText" name="Querier Operational Max Response Time (secs)">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.20.2.1.6"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol,dot1qVlanIndex" name="QuerierLastQuerierAddress">
+                <core descr="This specifies the last querier&apos;s ip address for the specified vlan. It represents the detected other multicast querier in the vlan." access="read-only" type="user" xtype="ipv4_ipv6"/>
+                <ui style="plainText" name="Last Querier Address">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.20.2.1.7"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol,dot1qVlanIndex" name="QuerierLastQuerierVersion">
+                <core descr="This specifies the multicast protocol version that is currently being used by the detected other multicast querier for the specified vlan." access="read-only" type="uint"/>
+                <ui style="plainText" name="Last Querier Version">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.20.2.1.8"/>
+                </ui>
+            </object>
+            <object name="SnoopingQuerierVlanCfgDelete">
+                <core descr="This disables Snooping Querier configuration on the VLAN." xtype="enable_t" access="write-only" type="enum"/>
+                <ui style="inputLine" name="Delete Snooping Querier VLAN Configuration">
+                </ui>
+            </object>
+        </module>
+        <module name="SwitchSnoopingQuerierGroup">
+            <object name="SnoopingProtocol">
+                <core descr="This object specifies the protocol type of network protocol in use" xtype="snoopingProtocol_t" key="yes" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Querier Snooping Protocol">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.6.1.1.1"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="QuerierAdminMode">
+                <core descr="This enables or disables Snooping Querier on the system" default="FD_IGMP_SNOOPING_QUERIER_ADMIN_MODE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Querier Admin Mode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.20.1.1.1"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="QuerierVersion">
+                <core descr="This specifies the multicast protocol versions that are supported by the system" min="L7_IGMP_SNOOPING_QUERIER_MIN_VERSION" max="L7_IGMP_SNOOPING_QUERIER_MAX_VERSION" default="FD_IGMP_SNOOPING_QUERIER_VERSION" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Querier Version">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.20.1.1.2"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="QuerierAddress">
+                <core descr="This specifies the default source ip address to be used while generating general queries." access="read-write" type="user" xtype="ipv4_ipv6_with_zeros"/>
+                <ui style="inputLine" name="Querier Address">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.20.1.1.3"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="QuerierQueryInterval">
+                <core descr="This specified the timer interval after which the system generates general queries." default="FD_IGMP_SNOOPING_QUERIER_QUERY_INTERVAL" max="L7_IGMP_SNOOPING_QUERIER_MAX_QUERY_INTERVAL" min="L7_IGMP_SNOOPING_QUERIER_MIN_QUERY_INTERVAL" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Querier Query Interval">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.20.1.1.4"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="QuerierExpiryInterval">
+                <core descr="This specifies the timer interval after which the detected other querier information is no longer valid." default="FD_IGMP_SNOOPING_QUERIER_EXPIRY_INTERVAL" max="L7_IGMP_SNOOPING_QUERIER_MAX_EXPIRY_INTERVAL" min="L7_IGMP_SNOOPING_QUERIER_MIN_EXPIRY_INTERVAL" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Querier Expiry Interval">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.20.1.1.5"/>
+                </ui>
+            </object>
+        </module>
+        <module key-method="individual" name="SnoopingMldGlobalConfig">
+            <object name="SnoopingMldAdminMode">
+                <core descr="This enables or disables Mld Snooping." xtype="enable_t" access="write-only" type="enum"/>
+                <ui style="inputLine" name="Snooping Mld Admin Mode">
+                </ui>
+            </object>
+            <object name="SnoopingMldGroupMembershipInterval">
+                <core descr="This object specifies the amount of time in seconds that a switch will wait for a report from a particular group before deleting the interface participating from the entry. This value must be greater than SnoopingIntfMaxResponseTime" default="FD_IGMP_SNOOPING_GROUP_MEMBERSHIP_INTERVAL" max="L7_IGMP_SNOOPING_MAX_GROUP_MEMBERSHIP_INTERVAL" min="L7_IGMP_SNOOPING_MIN_GROUP_MEMBERSHIP_INTERVAL" access="write-only" type="uint"/>
+                <ui style="inputLine" name="Snooping Mld Group Membership Interval">
+                </ui>
+            </object>
+            <object name="SnoopingMldMaxResponseTime">
+                <core descr="This object specifies the amount of time in seconds a switch will wait after sending a query on the selected vlan because it did not receive a report for a particular group . This value must be less than SnoopingIntfGroupMembershipInte" default="FD_IGMP_SNOOPING_MAX_RESPONSE_TIME" max="L7_IGMP_SNOOPING_MAX_RESPONSE_TIME" min="L7_IGMP_SNOOPING_MIN_RESPONSE_TIME" access="write-only" type="uint"/>
+                <ui style="inputLine" name="Snooping Mld Max Response Time">
+                </ui>
+            </object>
+            <object name="SnoopingMldFastLeaveAdminMode">
+                <core descr="This enables or disables MLD Snooping " xtype="enable_t" access="write-only" type="enum"/>
+                <ui style="inputLine" name="Snooping Mld Fast Leave Admin Mode">
+                </ui>
+            </object>
+            <object name="SnoopingMldMRPExpirationTime">
+                <core descr="This object specifies the amount of time in seconds that a switch will wait for a query to be received on the selected interface before the interface is removed from the list of interfaces with multicast routers attached. This parameter is configurabl" default="FD_IGMP_SNOOPING_MCAST_RTR_EXPIRY_TIME" max="L7_IGMP_SNOOPING_MAX_MCAST_RTR_EXPIRY_TIME" min="L7_IGMP_SNOOPING_MIN_MCAST_RTR_EXPIRY_TIME" access="write-only" type="uint"/>
+                <ui style="inputLine" name="Snooping Mld MRP ExpirationTime">
+                </ui>
+            </object>
+        </module>
+        <module key-method="individual" name="SnoopingVlanGroup">
+        <key-combo list="SnoopingProtocol,dot1qVlanIndex"/> 
+            <object name="SnoopingProtocol">
+                <core descr="This object specifies the protocol type of network protocol in use" key="yes" access="read-write" type="enum" xtype="snoopingProtocol_t"/>
+                <ui style="choiceNselect1" name="VLAN Group Snooping Protocol">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.6.1.1.1"/>
+                </ui>
+            </object>
+            <object name="dot1qVlanIndex" depends="SnoopingProtocol">
+                <core descr="This object specifies the VLAN-ID or other identifier refering to this VLAN" max="L7_DOT1Q_MAX_VLAN_ID" min="L7_DOT1Q_MIN_VLAN_ID" key="yes" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Dot1q VLAN ID">
+                    <snmp asn-id="1.3.6.1.2.1.17.7.1.4.2.1.2"/>
+                </ui>
+            </object>
+            <object depends="dot1qVlanIndex,SnoopingProtocol" name="SnoopingVlanAdminMode">
+                <core descr="This enables or disables IGMP Snooping on a selected Vlan interface." xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Snooping Vlan Admin Mode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.8.1.1.1"/>
+                </ui>
+            </object>
+            <object depends="dot1qVlanIndex,SnoopingProtocol" name="SnoopingVlanGroupMembershipInterval">
+                <core descr="This object specifies the amount of time in seconds that a switch will wait for a report from a particular group on the selected vlan before deleting the interface participating in the vlan from the entry. This value must be greater than SnoopingIntfMaxResponseTime" min="L7_IGMP_SNOOPING_MIN_GROUP_MEMBERSHIP_INTERVAL" max="L7_IGMP_SNOOPING_MAX_GROUP_MEMBERSHIP_INTERVAL" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Snooping Vlan Group Membership Interval">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.8.1.1.2"/>
+                </ui>
+            </object>
+            <object depends="dot1qVlanIndex,SnoopingProtocol" name="SnoopingVlanMaxResponseTime">
+                <core descr="This object specifies the amount of time in seconds a switch will wait after sending a query on the selected vlan because it did not receive a report for a particular group in the interface participating in the vlan. This value must be less than SnoopingIntfGroupMembershipInte" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Snooping Vlan Max Response Time">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.8.1.1.3"/>
+                </ui>
+            </object>
+            <object depends="dot1qVlanIndex,SnoopingProtocol" name="SnoopingVlanFastLeaveAdminMode">
+                <core descr="This enables or disables IGMP Snooping on the selected vlan" xtype="disable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Snooping Vlan Fast Leave Admin Mode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.8.1.1.4"/>
+                </ui>
+            </object>
+            <object depends="dot1qVlanIndex,SnoopingProtocol" name="SnoopingVlanMRPExpirationTime">
+                <core descr="This object specifies the amount of time in seconds that a switch will wait for a query to be received on the selected interface participating in the vlan before the interface is removed from the list of interfaces with multicast routers attached. This parameter is configurabl"  min="L7_IGMP_SNOOPING_MIN_MCAST_RTR_EXPIRY_TIME"  max="L7_IGMP_SNOOPING_MAX_MCAST_RTR_EXPIRY_TIME" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Snooping Vlan MRP Expiration Time">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.8.1.1.5"/>
+                </ui>
+            </object>
+
+            <object name="SnoopingVlanCfgDelete">
+                <core descr="This disables Snooping configuration on the VLAN." xtype="enable_t" access="write-only" type="enum"/>
+                <ui style="inputLine" name="Delete Snooping Vlan Configuration">
+                </ui>
+            </object>
+        </module>
+        <module key-method="individual" name="SnoopingIgmpGlobalConfig">
+            <object name="SnoopingIgmpAdminMode">
+                <core descr="This enables or disables IGMP Snooping on all interfaces." default="FD_IGMP_SNOOPING_INTF_MODE" xtype="enable_t" access="write-only" type="enum"/>
+                <ui style="inputLine" name="Snooping IGMP AdminMode">
+                </ui>
+            </object>
+            <object name="SnoopingIgmpGroupMembershipInterval">
+                <core descr="This object specifies the amount of time in seconds that a switch will wait for a report from a particular group before deleting the interface participating from the entry. This value must be greater than SnoopingIntfMaxResponseTime" default="FD_IGMP_SNOOPING_GROUP_MEMBERSHIP_INTERVAL" max="L7_IGMP_SNOOPING_MAX_GROUP_MEMBERSHIP_INTERVAL" min="L7_IGMP_SNOOPING_MIN_GROUP_MEMBERSHIP_INTERVAL" access="write-only" type="uint"/>
+                <ui style="inputLine" name="Snooping IGMP Group Membership Interval">
+                </ui>
+            </object>
+            <object name="SnoopingIgmpMaxResponseTime">
+                <core descr="This object specifies the amount of time in seconds a switch will wait after sending a query because it did not receive a report for a particular group in the interface. This value must be less than SnoopingIntfGroupMembershipInte" default="FD_IGMP_SNOOPING_MAX_RESPONSE_TIME" max="L7_IGMP_SNOOPING_MAX_RESPONSE_TIME" min="L7_IGMP_SNOOPING_MIN_RESPONSE_TIME" access="write-only" type="uint"/>
+                <ui style="inputLine" name="Snooping IGMP Max Response Time">
+                </ui>
+            </object>
+            <object name="SnoopingIgmpFastLeaveAdminMode">
+                <core descr="This enables or disables IGMP Snooping" xtype="enable_t" access="write-only" type="enum"/>
+                <ui style="inputLine" name="Snooping IGMP Fast Leave Admin Mode">
+                </ui>
+            </object>
+            <object name="SnoopingIgmpMRPExpirationTime">
+                <core descr="This object specifies the amount of time in seconds that a switch will wait for a query to be received on the selected interface before the interface is removed from the list of interfaces with multicast routers attached. This parameter is configurabl" default="FD_IGMP_SNOOPING_MCAST_RTR_EXPIRY_TIME" max="L7_IGMP_SNOOPING_MAX_MCAST_RTR_EXPIRY_TIME" min="L7_IGMP_SNOOPING_MIN_MCAST_RTR_EXPIRY_TIME" access="write-only" type="uint"/>
+                <ui style="inputLine" name="Snooping IGMP MRP Expiration Time">
+                </ui>
+            </object>
+        </module>
+        <module name="SnoopingIntfGroup">
+        <key-combo list="Interface,SnoopingProtocol,SnoopingIntfVlanID"/> 
+            <object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+                <core descr="This object specifies all configurable interfaces for DHCP Filtering." xtype="usp_t" key="yes" access="read-write" type="user"/>
+                <ui style="inputLine" name="Unit/Slot/Port">
+                    <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/>
+                </ui>
+            </object>
+            <object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+                <core descr="This object specifies all configurable interfaces for DHCP Filtering." xtype="usp_t" key="yes" access="read-write" type="user"/>
+                <ui style="inputLine" name="Slot/Port">
+                    <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/>
+                </ui>
+            </object>
+            <object name="SnoopingProtocol">
+                <core descr="This object specifies the protocol type of network protocol in use" key="yes" access="read-write" type="enum" xtype="snoopingProtocol_t"/>
+                <ui style="choiceNselect1" name="Interface Group Snooping Protocol">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.6.1.1.1"/>
+                </ui>
+            </object>
+            <object depends="Interface,SnoopingProtocol" name="SnoopingIntfVlanID">
+                <core descr="This field lists all the VlanID which include the selected interface" key="yes" min="L7_DOT1Q_MIN_VLAN_ID" max="L7_DOT1Q_MAX_VLAN_ID" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Snooping Interface VLAN ID">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.7.1.1.6"/>
+                </ui>
+            </object>
+            <object depends="Interface,SnoopingProtocol,SnoopingIntfVlanID" name="intfMulticastRouterVlanMode">
+                <core descr="This enables or disables Multicast Routing on the selected interface and vlan" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Interface Mcast Router Vlan Mode">
+                </ui>
+            </object>
+            <!-- I dont think this object is required 
+            &lt;object depends=&quot;Interface,SnoopingProtocol&quot; name=&quot;SnoopingIntfIndex&quot;&gt;
+                &lt;core descr=&quot;The port number to be selected. Each port maps to an interface&quot; access=&quot;read-write&quot; type=&quot;uint&quot;/&gt;
+                &lt;ui style=&quot;inputLine&quot; name=&quot;SnoopingIntfIndex&quot;&gt;
+                    &lt;snmp asn-id=&quot;1.3.6.1.2.1.2.2.1.1&quot;/&gt;
+                &lt;/ui&gt;
+            &lt;/object&gt; -->
+            <object depends="Interface,SnoopingProtocol" name="SnoopingIntfAdminMode">
+                <core descr="This enables or disables IGMP Snooping on a selected interface" default="FD_IGMP_SNOOPING_INTF_MODE" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Snooping Interface Admin Mode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.6.1.1.1"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="SnoopingGlobalAdminMode">
+                <core descr="This enables or disables IGMP Snooping on all interfaces" default="FD_IGMP_SNOOPING_ADMIN_MODE" xtype="enable_t" access="write-only" type="enum"/>
+                <ui style="inputLine" name="Snooping Global Admin Mode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.6.1.1.1"/>
+                </ui>
+            </object>
+           <object depends="Interface,SnoopingProtocol" name="SnoopingIntfGroupMembershipInterval">
+                <core descr="This object specifies the amount of time in seconds that a switch will wait for a report from a particular group on the selected interface before deleting the interface from the entry. This value must be greater than SnoopingIntfMaxResponseTime." access="read-write" type="uint"/>
+                <ui style="inputLine" name="Snooping Interface Group Membership Interval">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.7.1.1.1"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="SnoopingGlobalGroupMembershipInterval">
+                <core descr="This object specifies the amount of time in seconds that a switch will wait for a report from a particular group on the selected interface before deleting the interface from the entry. This value must be greater than SnoopingIntfMaxResponseTime." default="FD_IGMP_SNOOPING_GROUP_MEMBERSHIP_INTERVAL" max="L7_IGMP_SNOOPING_MAX_GROUP_MEMBERSHIP_INTERVAL" min="L7_IGMP_SNOOPING_MIN_GROUP_MEMBERSHIP_INTERVAL" access="write-only" type="uint"/>
+                <ui style="inputLine" name="Snooping Global Group Membership Interval">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.7.1.1.1"/>
+                </ui>
+            </object>
+           <object depends="Interface,SnoopingProtocol" name="SnoopingIntfMaxResponseTime">
+                <core descr="This object specifies the amount of time in seconds a switch will wait after sending a query on the selected interface because it did not receive a report for a particular group in that interface. This value must be less than SnoopingIntfGroupMembershipInterval." access="read-write" type="uint"/>
+                <ui style="inputLine" name="Snooping Interface Max Response Time">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.7.1.1.2"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="SnoopingGlobalMaxResponseTime">
+                <core descr="This object specifies the amount of time in seconds a switch will wait after sending a query on the selected interface because it did not receive a report for a particular group in that interface. This value must be less than SnoopingIntfGroupMembershipInterval." default="FD_IGMP_SNOOPING_MAX_RESPONSE_TIME" max="L7_IGMP_SNOOPING_MAX_RESPONSE_TIME" min="L7_IGMP_SNOOPING_MIN_RESPONSE_TIME" access="write-only" type="uint"/>
+                <ui style="inputLine" name="Snooping Global Max Response Time">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.7.1.1.2"/>
+                </ui>
+            </object>
+           <object depends="Interface,SnoopingProtocol" name="SnoopingIntfMRPExpirationTime">
+                <core descr="This object specifies the amount of time in seconds that a switch will wait for a query to be received on the selected interface before the interface is removed from the list of interfaces with multicast routers attached." access="read-write" type="uint"/>
+                <ui style="inputLine" name="Snooping Interface MRP Expiration Time">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.7.1.1.3"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="SnoopingGlobalMRPExpirationTime">
+                <core descr="This object specifies the amount of time in seconds that a switch will wait for a query to be received on the selected interface before the interface is removed from the list of interfaces with multicast routers attached." default="FD_IGMP_SNOOPING_MCAST_RTR_EXPIRY_TIME" max="L7_IGMP_SNOOPING_MAX_MCAST_RTR_EXPIRY_TIME" min="L7_IGMP_SNOOPING_MIN_MCAST_RTR_EXPIRY_TIME" access="write-only" type="uint"/>
+                <ui style="inputLine" name="Snooping Global MRP Expiration Time">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.7.1.1.3"/>
+                </ui>
+            </object>
+           <object depends="Interface,SnoopingProtocol" name="SnoopingIntfFastLeaveAdminMode">
+                <core descr="This enables or disables IGMP Snooping on the selected interface" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Snooping Interface Fast Leave Admin Mode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.7.1.1.4"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="SnoopingGlobalFastLeaveAdminMode">
+                <core descr="This enables or disables IGMP Snooping on all interface" xtype="enable_t" access="write-only" type="enum"/>
+                <ui style="inputLine" name="Snooping Global Fast Leave Admin Mode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.7.1.1.4"/>
+                </ui>
+            </object>
+           <object depends="Interface,SnoopingProtocol" name="SnoopingIntfMulticastRouterMode">
+                <core descr="This enables or disables Multicast Routing on the selected interface" xtype="enable_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Snooping Interface Multicast Router Mode">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.7.1.1.5"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="ClearSnoopEntries">
+                <core descr="This object flushes all Snooping entries and multicast router entries" access="write-only" type="uint"/>
+                <ui style="plainText" name="Clear Snooping Entries">
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="SnoopDataFramesForwarded">
+                <core descr="This object specifies the number of multicast data frames forwarded by the CPU" access="read-only" type="uint"/>
+                <ui style="plainText" name="Snooping Data Frames Forwarded">
+                    <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.8.7.1.1.6"/>
+                </ui>
+            </object>
+            <object depends="SnoopingProtocol" name="VLANIDsEnabled">
+                <core descr="This object specifies the VLAN Ids Enabled for IGMP Snooping" access="read-only" type="user" xtype="vlanRange_t"/>
+                <ui style="plainText" name="VLAN IDs Enabled">
+                </ui>
+            </object>
+        </module>
+    </objectxml>
+</FastPathXML>

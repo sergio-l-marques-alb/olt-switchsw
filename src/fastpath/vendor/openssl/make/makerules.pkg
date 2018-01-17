@@ -1,0 +1,262 @@
+# This file defines special package-level build rules and is included by
+# make.magic.pkg as part of the OPENSSL package.
+#
+# Note: The vendor source files listed here are built into individual archive
+#       files which are subsequently referenced during the final link.
+#
+# Note: Set 'ARC_EXCLUDE := <list of source files>' that are NOT to be built
+#       within a given directory.  Be sure to reset 'ARC_EXCLUDE :=' (i.e. empty)
+#       immediately following the include $(arc_pkg_rules_file) line.
+#
+
+# Local abbreviations (for convenience).
+#
+arc_pkg_rules_file := $(FP_ROOT)/src/l7tools/build/makerules.arc.pkg
+
+
+# Specify the source anchor location of the vendor code tree and the prefix 
+# of the output directory names and archive files that are created.
+#
+ARC_BASE    := $(FP_BASE)/vendor
+ARC_TOPOUT  := vendor
+ARC_PREFIX  := _$(FP_PREFIX)_vend
+
+# Initialize empty, to accumulate information from the include statements below.
+#
+ARC_DIRLIST :=
+
+
+# crypto
+#
+
+ARC_PATH := openssl/crypto
+ARC_EXCLUDE := ia64cpuid.S LPdir_nyi.c LPdir_unix.c LPdir_vms.c LPdir_win32.c \
+		LPdir_win.c LPdir_wince.c o_dir_test.c sparccpuid.S
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/aes
+include $(arc_pkg_rules_file)
+
+ARC_PATH := openssl/crypto/asn1
+ARC_EXCLUDE := p8_key.c tasn_prn.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/bf
+ARC_EXCLUDE := bf_cbc.c bf_opts.c bfs.cpp bfspeed.c bftest.c 
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/bio
+ARC_EXCLUDE := bf_lbuf.c bss_dgram.c bss_rtcp.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/bn
+ARC_EXCLUDE := bn_const.c bnspeed.c bntest.c divtest.c exp.c expspeed.c exptest.c vms-helper.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/buffer
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/cast
+ARC_EXCLUDE := cast_spd.c castopts.c casts.cpp casttest.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/comp
+include $(arc_pkg_rules_file)
+
+ARC_PATH := openssl/crypto/conf
+ARC_EXCLUDE := cnf_save.c test.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/des
+ARC_EXCLUDE := cbc3_enc.c des.c des_opts.c des3s.cpp dess.cpp destest.c ncbc_enc.c read_pwd.c rpw.c speed.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/dh
+ARC_EXCLUDE := dhtest.c p192.c p512.c p1024.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/dsa
+ARC_EXCLUDE := dsagen.c dsatest.c 
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/dso
+include $(arc_pkg_rules_file)
+
+ARC_PATH := openssl/crypto/ec
+ARC_EXCLUDE := ec2_smpt.c ectest.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/ecdh
+ARC_EXCLUDE := ecdhtest.c 
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/ecdsa
+ARC_EXCLUDE := ecdsatest.c 
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/engine
+ARC_EXCLUDE := enginetest.c 
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/err
+include $(arc_pkg_rules_file)
+
+ARC_PATH := openssl/crypto/evp
+ARC_EXCLUDE := e_dsa.c evp_test.c openbsd_hw.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/hmac
+ARC_EXCLUDE := hmactest.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/idea
+ARC_EXCLUDE := idea_spd.c ideatest.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/krb5
+include $(arc_pkg_rules_file)
+
+ARC_PATH := openssl/crypto/lhash
+ARC_EXCLUDE := lh_test.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/md2
+ARC_EXCLUDE := md2.c md2test.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/md4
+ARC_EXCLUDE := md4.c md4s.cpp md4test.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/md5
+ARC_EXCLUDE := md5.c md5s.cpp md5test.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/mdc2
+ARC_EXCLUDE := mdc2test.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/objects
+include $(arc_pkg_rules_file)
+
+ARC_PATH := openssl/crypto/ocsp
+include $(arc_pkg_rules_file)
+
+ARC_PATH := openssl/crypto/pem
+include $(arc_pkg_rules_file)
+
+ARC_PATH := openssl/crypto/pkcs12
+include $(arc_pkg_rules_file)
+
+ARC_PATH := openssl/crypto/pkcs7
+ARC_EXCLUDE := bio_ber.c dec.c enc.c example.c pk7_dgst.c pk7_enc.c sign.c verify.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/rand
+ARC_EXCLUDE := rand_nw.c rand_vms.c randtest.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/rc2
+ARC_EXCLUDE := rc2speed.c rc2test.c tab.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/rc4
+ARC_EXCLUDE := rc4.c rc4s.cpp rc4speed.c rc4test.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/rc5
+ARC_EXCLUDE := rc5s.cpp rc5speed.c rc5test.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/ripemd
+ARC_EXCLUDE := rmd160.c rmdtest.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/rsa
+ARC_EXCLUDE := rsa_test.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/sha
+ARC_EXCLUDE := sha.c sha1.c sha1s.cpp sha1test.c sha256t.c sha512t.c shatest.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+ARC_PATH := openssl/crypto/stack
+include $(arc_pkg_rules_file)
+
+ARC_PATH := openssl/crypto/txt_db
+include $(arc_pkg_rules_file)
+
+ARC_PATH := openssl/crypto/ui
+include $(arc_pkg_rules_file)
+
+ARC_PATH := openssl/crypto/x509
+include $(arc_pkg_rules_file)
+
+ARC_PATH := openssl/crypto/x509v3
+ARC_EXCLUDE := tabtest.c v3conf.c v3prin.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+
+# ssl
+#
+
+ARC_PATH := openssl/ssl
+ARC_EXCLUDE := ssl_task.c ssltest.c
+include $(arc_pkg_rules_file)
+ARC_EXCLUDE :=
+
+
+# Clean vendor output archives and directories
+#
+.PHONY: clean
+clean::
+	-$(DBG) $(RM) $(QT)$(ARC_PREFIX)*.a$(QT)
+	@echo Removing archive directories: $(ARC_DIRLIST) $(HUSH)
+	$(foreach dir, $(ARC_DIRLIST), \
+		$(shell [ ! -d $(dir) ] || ($(RM) $(dir)/* && rmdir $(dir))))
+	$(shell [ ! -d $(ARC_TOPOUT) ] || rmdir $(ARC_TOPOUT))
+      
+  
+.PHONY: debug-variables
+debug-variables::
+	@$(echo) ""
+	@$(echo) "Vendor OpenSSL pkg rules"
+	@$(echo) "------------------------"
+	@$(echo) "ARC_BASE=$(ARC_BASE)"
+	@$(echo) "ARC_PREFIX=$(ARC_PREFIX)"
+	@$(echo) ""
+	@$(echo) "ARC_DIRLIST=$(ARC_DIRLIST)"
+	@$(echo) ""
+

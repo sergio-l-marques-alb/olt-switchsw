@@ -1,0 +1,75 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>DAI Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+ 
+
+<hr size=4 width="100%" align=center>
+<h2><a name=daistats></a>Help for DAI Statistics</h2>
+<P>This screen shows the Statistics per VLAN.
+<BR>
+<h3>Selection Criteria</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>VLAN ID</b> 
+      - Select the DAI enabled VLAN ID for which statistics to be displayed. 
+  </li>
+ </ul>
+</ul>
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>DHCP Drops</b> -
+      Number of ARP packets that were dropped by DAI as
+         there is no matching DHCP Snooping binding entry found.</li>
+  <li><b>ACL Drops</b> -
+      Number of ARP packets that were dropped by DAI as
+      there is no matching ARP ACL rule found for this VLAN and
+     the static flag is set on this VLAN.</li>
+  <li><b>DHCP Permits</b> -
+      Number of ARP packets that were forwarded by DAI as
+      there is a matching DHCP Snooping binding entry found.</li>
+  <li><b>ACL Permits</b> -
+      Number of ARP packets that were permitted by DAI as
+      there is a matching ARP ACL rule found for this VLAN.</li>
+  <li><b>Bad Source MAC</b> -
+      Number of ARP packets that were dropped by DAI as the
+      sender MAC address in ARP packet didn't match the source
+      MAC in ethernet header.</li>
+  <li><b>Bad Dest MAC</b> -
+      Number of ARP packets that were dropped by DAI as the
+      target MAC address in ARP reply packet didn't match the
+      destination MAC in ethernet header.</li>
+  <li><b>Invalid IP</b> -
+      Number of ARP packets that were dropped by DAI as the
+      sender IP address in ARP packet or target IP address in
+      ARP reply packet is invalid. Invalid addresses include
+      0.0.0.0, 255.255.255.255, IP multicast addresses,
+      class E addresses (240.0.0.0/4), loopback addresses (127.0.0.0/8).</li>
+  <li><b>Forwarded</b> -
+      Number of valid ARP packets forwarded by DAI.</li>
+  <li><b>Dropped</b> -
+      Number of invalid ARP packets dropped by DAI.</li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+<ul type=disc>
+ <ul type=circle>
+<li><b>Refresh</b> - Refresh the data on the screen with the present
+      state of the data in the switch.</li>
+ </ul>
+</ul> 
+<hr size=4 width="100%" align=center>
+
+
+</body>
+
+</html>
+
+

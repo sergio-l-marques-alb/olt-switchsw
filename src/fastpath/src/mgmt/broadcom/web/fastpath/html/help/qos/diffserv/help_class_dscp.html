@@ -1,0 +1,67 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Diffserv Class Configuration Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=class_cfg_rule_ipdscp></a>Help for IP DSCP</h2>
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>DSCP Keyword</b> - This lists the keywords for the known DSCP values
+      from which one can be selected. The list includes 'other' as an option
+      for the remaining values.</li>
+ </ul>
+</ul>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>DSCP Value</b> - This is a DiffServ Code Point value in the range 0 to 63
+      to compare against. This field is only displayed when the DSCP Keyword field
+      is specified as 'other'.</li>
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+  <li><b>Exclude</b> - This is a checkbox that specifies the inclusion or exclusion of the
+      configured match criterion. If the match criterion is to be excluded, this box is checked.
+      Conversely, if the match criterion is to be included, this box is left unchecked.</li>
+ </EMWEB_IF>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Class Name</b> - Displays name of the specified DiffServ class.</li>
+  <li><b>Class Type</b> - Displays type of the specified class.
+      </li>
+  <li><b>Class Layer 3 Protocol</b> - Displays type of layer 3 protocol of the specified Diffserv class.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+  <li><b>Cancel</b> - <EMWEB_STRING C='return usmWebCancelDescriptionHelp();' >.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+<HR size="4" width="100%" align="center">
+
+
+</BODY>
+</HTML>

@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Double VLAN Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=dvlan_tag></a>Help for DVLAN Interface Configuration</h2>
+
+<h3>Selection Criteria</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface</b> - Select
+      the physical interface for which you want to display or configure data.
+      Select 'All' to set the parameters for all ports to same values.</li>
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Configurable Data</h3>
+<EMWEB_ELSE>
+<h3>Non-Configurable Data</h3>
+</EMWEB_IF>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface Mode</b> - This specifies the administrative mode via which Double VLAN Tagging can be
+      enabled or disabled.  The default value for this is
+      <EMWEB_STRING C='
+      extern L7_char8 *strUtilEnableDisableGet (L7_int32 val, L7_char8 * def);
+      memset(sBuf, 0x00, sizeof(sBuf));   /* default value */
+      osapiSnprintf(sBuf, sizeof(sBuf), " %s ",strUtilEnableDisableGet(FD_DVLANTAG_DEFAULT_PORT_MODE, "Disable"));
+      return sBuf;
+       ' >. </li>
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+  <EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="L7_DVLANTAG_ETHERTYPE_PER_INTERFACE_FEATURE_ID" >
+</EMWEB_IF>
+  <li><b>Interface EtherType</b> - The two-byte hex EtherType to be used as the first 16 bits of the
+      DVLAN tag.<UL>
+         <LI><I><B>802.1Q Tag</B></I> - Commonly used tag representing
+         0x8100</LI>
+         <li><I><B>vMAN Tag</B></I> - Commonly used tag representing
+         0x88A8</LI>
+         <LI><I><B>Custom Tag</B></I> - Configure the EtherType by providing a Custom value
+
+       </li>
+
+  </EMWEB_IF>
+         </UL>
+ </li>
+<li><b>Custom Value</b> - Configure the value of the Custom Tag in the range from 
+     <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_DVLANTAG_MIN_ETHERTYPE, L7_DVLANTAG_MAX_ETHERTYPE);
+    ' >. This feild is visible only when Custom Tag is selected.
+
+
+       </li>
+
+<EMWEB_IF ID=USMWEB_FEATURE_PRESENT VALUE="L7_DVLANTAG_CUSTID_FEATURE_ID" >
+  <li><b>Customer ID</b> - This is a 12 bit customer ID which will be used as the last 12 bits of the
+      DVLAN tag. The valid range for a customer ID is
+      <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_DVLANTAG_MIN_CUSTID, L7_DVLANTAG_MAX_CUSTID);
+    ' >.  The default customer ID is
+      <EMWEB_STRING C='
+      return usmWebIntegerToString(L7_DVLANTAG_DEFAULT_CUSTID);
+    ' >.
+      </li>
+  </EMWEB_IF>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+  <li><b>Remove</b> - Deletes the selected Ether Type.</li>
+<EMWEB_ELSE >
+  <li> <b>Refresh</b> - Refresh the data on the screen with the present state of
+     the data in the switch. </li>
+</EMWEB_IF>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+
+
+</body>
+
+</html>

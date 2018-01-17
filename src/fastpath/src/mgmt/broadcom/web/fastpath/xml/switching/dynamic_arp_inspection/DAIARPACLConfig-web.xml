@@ -1,0 +1,46 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DAIARPACLConfig" title="Dynamic ARP Inspection ARP ACL Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="textbox" properties="write-only" value="" maxLength="31" arghelp="NAME_FORMAT_ONE" obj-name="SwitchingARPACL_ARPACL" id="1" name="ARP ACL Name"/>
+            </node>
+            <node id="4">
+                <element properties="hidden" obj-name="xLibObjects_dummy" id="1"/>
+            </node>
+            <repeat present="vtable" edit="inline" heading=" " id="2">
+                <element properties="iterate" obj-name="SwitchingARPACL_ARPACL" id="1" name="ARP ACL Name"/>
+                <element control="checkbox-neg" obj-name="SwitchingARPACL_ROWSTATUS" id="2" name="Remove">
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no" />
+                </element>
+            </repeat>
+            <node id="3">
+                <button scope="page" type="buttonSubmit" obj-name="SwitchingARPACL_ROWSTATUS" value="Add" help="Submits the form on this page to the Switch" id="1" name="Add">
+                   <action type="button" disable="1_3_2|1_2"/>
+                </button>
+                <button scope="page" type="buttonSubmit" value="Delete" help="Submits the form on this page to the Switch" id="2" name="Delete">
+                   <action type="button" disable="1_3_1|1_1_1"/>
+                </button>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="3" name="Refresh"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <repeat present="vtable" edit="no" heading="ARP ACL List" id="1">
+                <element properties="iterate" obj-name="SwitchingARPACL_ARPACL" id="1"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

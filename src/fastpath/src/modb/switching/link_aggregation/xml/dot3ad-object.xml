@@ -1,0 +1,292 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="Switching" version="1.0" >
+<module name="dot3adAgg"  >
+<object name="AggInterface" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="This object specifies the aggregator interface"/>
+<ui  name="Unit/Slot/Port" style="inputLine" >
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="AggInterface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="This object specifies the aggregator interface"/>
+<ui  name="Slot/Port" style="inputLine" >
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="AggActorAdminKey" depends="AggInterface" >
+<core  type="uint" access="read-write" default="FD_DOT3AD_PARTNER_DEFAULT_ADMINKEY" descr="This object specifies the current administrative value of the Key for the aggregator"/>
+<ui  name="Aggregator Actor Admin Key" style="inputLine" >
+<snmp asn-id="1.2.840.10006.300.43.1.1.1.1.6"/>
+</ui>
+</object>
+<object name="AggActorOperKey" depends="AggInterface" >
+<core  type="uint" access="read-only" descr="This object specifies the current operational value of the Key for the aggregator"/>
+<ui  name="Aggregator Actor Operational Key" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.1.1.1.7"/>
+</ui>
+</object>
+<object name="AggActorSystemID" depends="AggInterface" >
+<core  type="string" access="read-only" descr="This object specifies the MAC address used as a unique identifier for the system that contains this aggregator"/>
+<ui  name="Aggregator Actor System ID" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.1.1.1.4"/>
+</ui>
+</object>
+<!-- min/max values should be replaced with appropriate macros once they are provided in appropriate overrides.h file we have macros for default but not for min max
+-->
+<object name="AggActorSystemPriority" depends="AggInterface" >
+<core  type="uint" access="read-write" default="FD_DOT3AD_DEFAULT_PRIORITY" min="1" max="65535" descr="This object specifies the priority value associated with the system's actor ID"/>
+<ui  name="Aggregator Actor System Priority" style="inputLine" >
+<snmp asn-id="1.2.840.10006.300.43.1.1.1.1.3"/>
+</ui>
+</object>
+<object name="AggAggregateOrIndividual" depends="AggInterface" >
+<core  type="enum" xtype="boolean_t" access="read-only" descr="This object determines if the aggregator represents an aggregate or an individual link"/>
+<ui  name="Agg Aggregate Or Individual" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.1.1.1.5"/>
+</ui>
+</object>
+<object name="AggCollectorMaxDelay" depends="AggInterface" >
+<core  type="uint" access="read-write" default="FD_DOT3AD_DEFAULT_LACP_MAXDELAY" descr="This object specifies the delay that can be imposed on the frame collector between receving a frame from and aggregator parser and either delivering it to a MAC client or discarding it"/>
+<ui  name="Aggregator Collector Max Delay" style="inputLine" >
+<snmp asn-id="1.2.840.10006.300.43.1.1.1.1.11"/>
+</ui>
+</object>
+<object name="AggPartnerOperKey" depends="AggInterface" >
+<core  type="uint" access="read-only" descr="This object specifies the current operational value of the key for the aggregators current protocol partner"/>
+<ui  name="Aggregator Partner Operational Key" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.1.1.1.10"/>
+</ui>
+</object>
+<object name="AggPartnerSystemID" depends="AggInterface" >
+<core  type="string" access="read-only" descr="This object specifies MAC address of current partner of aggregator"/>
+<ui  name="Aggregator Partner System ID" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.1.1.1.8"/>
+</ui>
+</object>
+<object name="AggPartnerSystemPriority" depends="AggInterface" >
+<core  type="uint" access="read-only" descr="This object gives the priority value associated with partner's system ID"/>
+<ui  name="Aggregator Partner System Priority" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.1.1.1.9"/>
+</ui>
+</object>
+<object name="AggMACAddress" depends="AggInterface" >
+<core  type="string" access="read-only" descr="This object specifies the MAC address assigned to the aggregator"/>
+<ui  name="Aggregator MAC Address" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.1.1.1.2"/>
+</ui>
+</object>
+</module>
+<module name="dot3adAggPort"  >
+<object name="AggPort" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype = "usp_t" key="yes" access="read-write" descr="This object specifies the aggregator port"/>
+<ui  name="Unit/Slot/Port" style="inputLine" >
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="AggPort" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype = "usp_t" key="yes" access="read-write" descr="This object specifies the aggregator port"/>
+<ui  name="Slot/Port" style="inputLine" >
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="AggPortActorAdminKey" depends="AggPort" >
+<core  type="uint" access="read-write" default="FD_DOT3AD_PARTNER_DEFAULT_ADMINKEY" descr="This instance gives the current administrative value of the key for the aggregation port"/>
+<ui  name="Aggregator Port Actor Admin Key" style="inputLine" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.4"/>
+</ui>
+</object>
+<object name="AggPortActorAdminState" depends="AggPort" >
+<core type="enum" xtype="L7_XUI_LACP_TIMEOUT_STATE_t"  access="read-write" descr="This object specifies the 8 bits corresponding to the admin values of actor_state"/>
+<ui  name="Aggregator Port Actor Admin State" style="choiceNselect1" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.20"/>
+</ui>
+</object>
+<object name="AggPortActorOperKey" depends="AggPort" >
+<core  type="uint" access="read-write" default="FD_DOT3AD_PARTNER_DEFAULT_ADMINKEY" descr="This object specifies thecurrent operational value of the key for the aggregation port"/>
+<ui  name="Aggregator Port Actor Operational Key" style="inputLine" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.5"/>
+</ui>
+</object>
+<object name="AggPortActorOperState" depends="AggPort" >
+<core  type="string" access="read-only" descr="This object specifies the 8 bits corresponding to the admin values of actor_state"/>
+<ui  name="Aggregator Port Actor Operational State" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.21"/>
+</ui>
+</object>
+<object name="AggPortActorPort" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the port number locally assigned to this aggregation port"/>
+<ui  name="Aggregator Port Actor Port" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.14"/>
+</ui>
+</object>
+<!-- min/max values should be replaced with appropriate macros once they are provided in appropriate overrides.h file we have macros for default but not for min max
+-->
+<object name="AggPortActorPortPriority" depends="AggPort" >
+<core  type="uint" access="read-write" default="FD_DOT3AD_ACTOR_DEFAULT_PORT_PRIORITY" min="1" max="65535" descr="This object specifies the priority assigned to this aggregation port"/>
+<ui  name="Aggregator Port Actor Port Priority" style="inputLine" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.15"/>
+</ui>
+</object>
+<object name="AggPortActorSystemID" depends="AggPort" >
+<core  type="string" access="read-only" descr="This object specifies the system id for the system that contains this aggregation port"/>
+<ui  name="Aggregator Port Actor System ID" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.3"/>
+</ui>
+</object>
+<!-- min/max values should be replaced with appropriate macros once they are provided in appropriate overrides.h file we have macros for default but not for min max
+-->
+<object name="AggPortActorSystemPriority" depends="AggPort" >
+<core  type="uint" access="read-write" default="FD_DOT3AD_ACTOR_DEFAULT_SYS_PRIORITY" min="1" max="65535" descr="This object specifies the priority value associated with the system actor's ID"/>
+<ui  name="Aggregator Port Actor System Priority" style="inputLine" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.2"/>
+</ui>
+</object>
+<object name="AggPortAggregateOrIndividual" depends="AggPort" >
+<core  type="enum" xtype="boolean_t" access="read-only" descr="This object determines whether an aggregation port is able to aggregate"/>
+<ui  name="Agg Port Aggregate Or Individual" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.24"/>
+</ui>
+</object>
+<object name="AggPortAttachedAggID" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the identifier value of the aggregrator this port is currently attached to"/>
+<ui  name="Agg Port Attached Aggregate ID" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.13"/>
+</ui>
+</object>
+<object name="AggPortList" depends="AggPort" >
+<core  type="string" access="read-only" descr="This object specifies the list of ports included in an aggregator"/>
+<ui  name="Aggregate Port List" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.1.2.1.1"/>
+</ui>
+</object>
+<object name="AggPortPartnerAdminKey" depends="AggPort" >
+<core  type="uint" access="read-write" default="FD_DOT3AD_PARTNER_DEFAULT_ADMINKEY" descr="This object specifies the aggregation port's partner key (administrative)"/>
+<ui  name="Aggregate Port Partner Admin Key" style="inputLine" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.10"/>
+</ui>
+</object>
+<object name="AggPortPartnerAdminPort" depends="AggPort" >
+<core  type="uint" access="read-write" default="FD_DOT3AD_PARTNER_DEFAULT_PORTID" descr="This object specifies the administrative value of the port number for the partner"/>
+<ui  name="Aggregate Port Partner Admin Port" style="inputLine" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.16"/>
+</ui>
+</object>
+<object name="AggPortPartnerAdminPortPriority" depends="AggPort" >
+<core  type="uint" access="read-write" default="FD_DOT3AD_PARTNER_DEFAULT_PORT_PRIORITY" descr="This object specifies the administrative value of the port priority of the partner"/>
+<ui  name="Aggregate Port Partner Admin Port Priority" style="inputLine" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.18"/>
+</ui>
+</object>
+<object name="AggPortPartnerAdminState" depends="AggPort" >
+<core  type="string" access="read-write" default="FD_DOT3AD_PARTNER_ADMIN_PORT_STATE" descr="This object specifies the 8 bits corresponding to the admin values of the partner_state"/>
+<ui  name="Aggregate Port Partner Admin State" style="inputLine" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.22"/>
+</ui>
+</object>
+<object name="AggPortPartnerAdminSystemID" depends="AggPort" >
+<core  type="string" access="read-write" descr="This object specifies the aggregation port's partner system ID (administrative)"/>
+<ui  name="Aggregate Port Partner Admin SystemID" style="inputLine" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.8"/>
+</ui>
+</object>
+<object name="AggPortPartnerAdminSystemPriority" depends="AggPort" >
+<core  type="uint" access="read-write" default="FD_DOT3AD_PARTNER_DEFAULT_SYS_PRIORITY" descr="This object specifies the current administrative priority associated with the partner's system ID"/>
+<ui  name="Aggregate Port Partner Admin System Priority" style="inputLine" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.6"/>
+</ui>
+</object>
+<object name="AggPortPartnerOperKey" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the aggregation port's partner system ID (operational)"/>
+<ui  name="Aggregate Port Partner Operational Key" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.11"/>
+</ui>
+</object>
+<object name="AggPortPartnerOperPort" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the operational value of the port number for the partner"/>
+<ui  name="Aggregate Port Partner Operational Port" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.17"/>
+</ui>
+</object>
+<object name="AggPortPartnerOperPortPriority" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the priority value assigned to this aggregation port by the partner"/>
+<ui  name="Aggregate Port Partner Operational Port Priority" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.19"/>
+</ui>
+</object>
+<object name="AggPortPartnerOperState" depends="AggPort" >
+<core  type="string" access="read-only" descr="This object specifies the 8 bits corresponding to the current values of the partner_state from the most recently received LACPDU (by the partner)"/>
+<ui  name="Aggregate Port Partner Operational State" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.23"/>
+</ui>
+</object>
+<object name="AggPortPartnerOperSystemID" depends="AggPort" >
+<core  type="string" access="read-only" descr="This object specifies the aggregation port's partner system ID (operational)"/>
+<ui  name="Aggregate Port Partner Operational System ID" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.9"/>
+</ui>
+</object>
+<object name="AggPortPartnerOperSystemPriority" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the current operational priority associated with the partner's system ID"/>
+<ui  name="Aggregate Port Partner Operational System Priority" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.7"/>
+</ui>
+</object>
+<object name="AggPortSelectedAggID" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the aggregrator this port has selected"/>
+<ui  name="Aggregate Port Selected AggID" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.12"/>
+</ui>
+</object>
+<object name="AggPortStatsIllegalRx" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the number of invalid LACPDUs received on this aggregation port"/>
+<ui  name="Received Illegal Aggregate Port Stats" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.1.1.12"/>
+</ui>
+</object>
+<object name="AggPortStatsLACPDUsRx" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the number of valid LACPDUs received on this aggregation port"/>
+<ui  name="Received LACPDUs Aggregate Port Statistics" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.2.1.1"/>
+</ui>
+</object>
+<object name="AggPortStatsLACPDUsTx" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the number of valid LACPDUs transmitted on this aggregation port"/>
+<ui  name="Transmitted LACPDUs Aggregate Port Statistics" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.2.1.6"/>
+</ui>
+</object>
+<object name="AggPortStatsMarkerPDUsRx" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the number of marker PDUs received on this aggregation port"/>
+<ui  name="Received PDUs Aggregate Port Statistics Marker" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.2.1.2"/>
+</ui>
+</object>
+<object name="AggPortStatsMarkerPDUsTx" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the number of marker PDUs transmitted on this aggregation port"/>
+<ui  name="Transmitted PDUs Aggregate Port Statistcis Marker" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.2.1.7"/>
+</ui>
+</object>
+<object name="AggPortStatsMarkerResponsePDUsRx" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the number of marker response PDUs received on this aggregation port"/>
+<ui  name="Received PDUs Aggregate Port Stats Marker Response" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.2.1.3"/>
+</ui>
+</object>
+<object name="AggPortStatsMarkerResponsePDUsTx" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the number of marker response PDUs transmitted on this aggregation port"/>
+<ui  name="Transmitted PDUs Aggregate Port Stats Marker Response" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.2.1.8"/>
+</ui>
+</object>
+<object name="AggPortStatsUnknownRx" depends="AggPort" >
+<core  type="uint" access="read-only" descr="This object specifies the number of unknown frames"/>
+<ui  name="Received Unknown Aggregate Port Stats" style="plainText" >
+<snmp asn-id="1.2.840.10006.300.43.1.2.2.1.4"/>
+</ui>
+</object>
+</module>
+</objectxml>
+</FastPathXML>

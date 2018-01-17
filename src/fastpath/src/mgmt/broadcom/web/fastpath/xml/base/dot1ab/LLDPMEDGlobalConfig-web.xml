@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="LLDPMEDGlobalConfig" title="LLDP-MED Global Config">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="textbox" arghelp="HELP_FORMAT_FP" maxLength="2" obj-name="SwitchingLLDPXMedConfig_FastStartRepeatCount" id="1" name="Fast Start Repeat Count"/>
+            </node>
+            <node id="2">
+                <element obj-name="SwitchingLLDPXMedConfig_LocDeviceClass" id="1" name="Device Class"/>
+            </node>
+            <node id="3">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element obj-name="SwitchingLLDPXMedConfig_FastStartRepeatCount" id="1" name="Fast Start Repeat Count"/>
+            </node>
+            <node id="2">
+                <element obj-name="SwitchingLLDPXMedConfig_LocDeviceClass" id="1" name="Device Class"/>
+            </node>
+            <node id="3">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
