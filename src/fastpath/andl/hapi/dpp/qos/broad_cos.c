@@ -2078,11 +2078,12 @@ L7_RC_t hapiBroadQosCosPortLinkUpNotify(DAPI_USP_t *portUsp, DAPI_t *dapi_g)
 {
     BROAD_PORT_t          *hapiPortPtr;
     HAPI_BROAD_QOS_PORT_t *qosPortPtr;
-    L7_RC_t                result;
+    L7_RC_t                result=L7_SUCCESS;
 
     hapiPortPtr = HAPI_PORT_GET(portUsp, dapi_g);
     qosPortPtr  = (HAPI_BROAD_QOS_PORT_t*)hapiPortPtr->qos;
 
+  #ifndef BCM_DPP_SUPPORT
     /* re-apply port policy to take into account possible link speed change */
     result = hapiBroadQosCosIntfRateShape(hapiPortPtr, qosPortPtr->cos.intfShaping);
 
@@ -2090,6 +2091,7 @@ L7_RC_t hapiBroadQosCosPortLinkUpNotify(DAPI_USP_t *portUsp, DAPI_t *dapi_g)
     {
       result = hapiBroadQosCosEgressBwConfig(hapiPortPtr, &qosPortPtr->cos);
     }
+  #endif
 
     return result;
 }
