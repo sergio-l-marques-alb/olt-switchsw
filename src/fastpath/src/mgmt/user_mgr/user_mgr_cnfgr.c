@@ -93,21 +93,25 @@ void userMgrApiCnfgrCommand( L7_CNFGR_CMD_DATA_t *pCmdData )
                 {
                   userMgrPhaseOneFini();
                 }
+                PT_LOG_INFO(LOG_CTX_STARTUP, "userMgrRC=%u", userMgrRC);
                 break;
               case L7_CNFGR_RQST_I_PHASE2_START:
                 if ((userMgrRC = userMgrCnfgrInitPhase2Process( &response, &reason )) != L7_SUCCESS)
                 {
                   userMgrPhaseTwoFini();
                 }
+                PT_LOG_INFO(LOG_CTX_STARTUP, "userMgrRC=%u", userMgrRC);
                 break;
               case L7_CNFGR_RQST_I_PHASE3_START:  /* no configuration data to be read */
                 if ((userMgrRC = userMgrCnfgrInitPhase3Process( &response, &reason )) != L7_SUCCESS)
                 {
                   userMgrPhaseThreeFini();
                 }
+                PT_LOG_INFO(LOG_CTX_STARTUP, "userMgrRC=%u", userMgrRC);
                 break;
               case L7_CNFGR_RQST_I_WAIT_MGMT_UNIT:
                 userMgrRC = userMgrCnfgrNoopProccess( &response, &reason );
+                PT_LOG_INFO(LOG_CTX_STARTUP, "userMgrRC=%u", userMgrRC);
                 break;
               default:
                 /* invalid command/request pair */
@@ -117,15 +121,18 @@ void userMgrApiCnfgrCommand( L7_CNFGR_CMD_DATA_t *pCmdData )
 
       		case L7_CNFGR_CMD_EXECUTE:
       			userMgrRC = userMgrCnfgrNoopProccess( &response, &reason );
+                PT_LOG_INFO(LOG_CTX_STARTUP, "userMgrRC=%u", userMgrRC);
             break;
           case L7_CNFGR_CMD_UNCONFIGURE:
             switch ( request )
             {
               case L7_CNFGR_RQST_U_PHASE1_START:
                 userMgrRC = userMgrCnfgrNoopProccess( &response, &reason );
+                PT_LOG_INFO(LOG_CTX_STARTUP, "userMgrRC=%u", userMgrRC);
                 break;
               case L7_CNFGR_RQST_U_PHASE2_START:
                 userMgrRC = userMgrCnfgrUnConfigPhase1Process( &response, &reason );
+                PT_LOG_INFO(LOG_CTX_STARTUP, "userMgrRC=%u", userMgrRC);
                 break;
               default:
                 /* invalid command/request pair */
@@ -135,6 +142,7 @@ void userMgrApiCnfgrCommand( L7_CNFGR_CMD_DATA_t *pCmdData )
           case L7_CNFGR_CMD_TERMINATE:
           case L7_CNFGR_CMD_SUSPEND:
             userMgrRC = userMgrCnfgrNoopProccess( &response, &reason );
+            PT_LOG_INFO(LOG_CTX_STARTUP, "userMgrRC=%u", userMgrRC);
             break;
 
           default:
@@ -180,6 +188,8 @@ void userMgrApiCnfgrCommand( L7_CNFGR_CMD_DATA_t *pCmdData )
   {
     cbData.asyncResponse.u.reason   = reason;
   }
+
+  PT_LOG_INFO(LOG_CTX_STARTUP, "userMgrRC=%u reason=%u response=%u", userMgrRC, reason, response);
 
   cnfgrApiCallback(&cbData);
 
