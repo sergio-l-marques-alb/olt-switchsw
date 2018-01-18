@@ -72,7 +72,6 @@ L7_RC_t sysapiHpcInit(void)
 
   PT_LOG_INFO(LOG_CTX_STARTUP,"Starting sysapiHpcInit...");
   result = hpcInit();
-  PT_LOG_INFO(LOG_CTX_STARTUP,"sysapiHpcInit finished");
 
   if (result != L7_SUCCESS)
   {

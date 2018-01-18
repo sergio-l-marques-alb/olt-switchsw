@@ -154,9 +154,7 @@ void sysapiInit (void (*box_reset)(void))
     printf("Failed to initialize the SDM template manager.\n\n");
   }
 
-  PT_LOG_INFO(LOG_CTX_STARTUP,"Starting sysapiSystemInit!");
   (void)sysapiSystemInit();
-  PT_LOG_INFO(LOG_CTX_STARTUP,"sysapiSystemInit finished!");
 
   rc = asyncEventHandlerInit();
   if (rc != L7_SUCCESS)
@@ -396,6 +394,8 @@ L7_RC_t sysapiSystemInit(void)
 #endif
 
   osapiSemaGive(MbufSema);
+
+  PT_LOG_INFO(LOG_CTX_STARTUP,"sysapiSystemInit: Finished!");
 
   return(L7_SUCCESS);
 }
@@ -1715,7 +1715,7 @@ L7_RC_t sysapiCfgFileGetImpl(L7_COMPONENT_IDS_t component_id, L7_char8 *fileName
       if (*checkSum != chkSum)
       {
 		L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_SIM_COMPONENT_ID, "File %s corrupted from file system.  "
-					"Checksum mismatch.The calculated checksum of a component’s configuration file "
+					"Checksum mismatch.The calculated checksum of a componentï¿½s configuration file "
 					"in the file system did not match the checksum of the file in memory.\n", fileName);
         buildDefaultFile = L7_TRUE;
       }
