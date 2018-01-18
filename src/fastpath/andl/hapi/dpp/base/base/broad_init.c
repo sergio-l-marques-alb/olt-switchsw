@@ -2308,7 +2308,7 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
 {
   L7_RC_t               result      = L7_SUCCESS;
   int                   rv;
-  int                   bcm_unit, i;
+  //int                   bcm_unit, i;
 
 #ifdef L7_STACKING_PACKAGE
   /* clear the remote event reporting infrastructure 
@@ -2316,6 +2316,8 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
   bcm_rlink_client_clear();
 #endif
 
+/* Test */
+#ifndef BCM_DPP_SUPPORT
   /* refresh any linkscan registrations in the system to assure remote events are sent here */
   rv = bcmx_linkscan_enable_set(-1);
   BCMX_UNIT_ITER(bcm_unit, i)
@@ -2340,9 +2342,14 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
       return result;
     }
   }
+#endif
 
   /* Register for L2 notifications on standalone package */
 #ifndef L7_STACKING_PACKAGE
+/* Test */
+#ifdef BCM_DPP_SUPPORT
+  PT_LOG_NOTICE(LOG_CTX_STARTUP,"No L2 notifications!");
+#else
   {
     rv = bcmx_l2_notify_register((bcmx_l2_notify_f) hapiBroadAddrMacUpdate,dapi_g);
     if (L7_BCMX_OK(rv) != L7_TRUE)
@@ -2370,6 +2377,7 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
     }
   }
 #endif
+#endif
 
   rv = bcmx_linkscan_register(hapiBroadPortLinkStatusChange);
   if (L7_BCMX_OK(rv) != L7_TRUE)
@@ -2388,6 +2396,8 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
  drv_bcm5395_queue_rx_reason_set(0,DRV_RX_REASON_PROTO_SNOOP,3);
 #endif
 
+/* Test */
+#ifndef BCM_DPP_SUPPORT
   rv = bcmx_rx_register("hapiBroadReceive",
                         hapiBroadReceive,
                         10,
@@ -2411,6 +2421,7 @@ L7_RC_t hapiBroadBcmxRegisterUnit(L7_ushort16 unitNum,L7_ushort16 slotNum, DAPI_
     result = L7_FAILURE;
     return result;
   }
+#endif
 
   return result;
 }
