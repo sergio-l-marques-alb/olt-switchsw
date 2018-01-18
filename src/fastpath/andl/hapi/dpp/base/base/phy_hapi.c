@@ -466,7 +466,9 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 				        L7_LOG_ERROR (rc);
 				}
 #else
-			        L7_LOG_ERROR(rc);
+                PT_LOG_ERR(LOG_CTX_HAPI,"Error setting speed: unit=%u bcm_port=%u bcmSpeed=%u",
+                           hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmSpeed);
+			    L7_LOG_ERROR(rc);
 #endif
 			}
 

@@ -2059,6 +2059,8 @@ L7_RC_t hapiBroadPhysicalPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DA
       if ((hapiPortPtr->bcm_modid == HAPI_BROAD_INVALID_MODID) ||
           (mod_port == HAPI_BROAD_INVALID_MODPORT))
       {
+        PT_LOG_ERR(LOG_CTX_STARTUP,"usp={%d,%d,%d} uport=0x%x lport=0x%x modid=%d modport=%d",
+                   usp.unit,usp.slot,usp.port, uport, hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_modid, mod_port);
         L7_LOG_ERROR (0);
       }
 
