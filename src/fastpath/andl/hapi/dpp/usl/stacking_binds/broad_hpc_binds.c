@@ -55,8 +55,10 @@
 #include "appl/diag/system.h"
 #include "appl/diag/bslmgmt.h"
 
+#ifndef BCM_DPP_SUPPORT
 static cpudb_ref_t system_cpudb = L7_NULLPTR;
 static topo_cpu_t  system_topo;
+#endif
 extern void hapiBroadSocFileLoad(char *file_name, L7_BOOL suppressFileNotAvail);
 /*********************************************************************
 * @purpose  Determine whether specified BCM port is a stack port.
@@ -79,6 +81,7 @@ L7_BOOL hpcIsBcmPortStacking (L7_uint32 bcm_unit, L7_uint32 bcm_port)
 
 
 #ifndef L7_ROBO_SUPPORT
+#ifndef BCM_DPP_SUPPORT
 static cpudb_t *hpcBroadLocalCpudbCreate(void)
 {
   cpudb_t *cpudbPtr;
@@ -146,6 +149,7 @@ static cpudb_t *hpcBroadLocalCpudbCreate(void)
   return(cpudbPtr);
 }
 #endif
+#endif
 
 #if (SDK_VERSION_IS < SDK_VERSION(6,4,0,0))
 #ifndef SOC_NDEV_IDX2DEV
@@ -201,7 +205,9 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 {
   L7_RC_t   rc;
   L7_uint32 i;
+#ifndef BCM_DPP_SUPPORT
   int rv;
+#endif
   cpudb_key_t                  cpu_key;
   const bcm_sys_board_t       *board_info;
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
@@ -313,6 +319,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   ** one chip.
   */
 #ifndef L7_ROBO_SUPPORT
+#ifndef BCM_DPP_SUPPORT
   {
      memset(&system_topo, 0, sizeof(system_topo));
 
@@ -349,6 +356,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
      }
   }
 #endif
+#endif
 
 /* Added this for non-stackable, it was lifted from hpcBroadTransportInit */
   for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
@@ -363,7 +371,6 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
       PT_LOG_ERR(LOG_CTX_STARTUP,"RX init failed, unit %d: rv=%d (%s)\n", i, rv, bcm_errmsg(rv));
       break;
     }
-#endif
 
     if (!bcm_rx_active(i))
     {
@@ -374,6 +381,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
         break;
       }
     }
+#endif
   }
 
   hpcBroadRpcInit();
