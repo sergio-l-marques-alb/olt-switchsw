@@ -43,6 +43,8 @@
 #include "cli_web_user_mgmt.h"
 #include "sdm_api.h"
 
+#include "sal/core/boot.h"
+
 #define  SYSAPI_FILE_BUF_SIZE   1024
 
 extern L7_RC_t maskUtilInit (void);
@@ -152,7 +154,10 @@ void sysapiInit (void (*box_reset)(void))
     printf("Failed to initialize the SDM template manager.\n\n");
   }
 
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Starting sysapiSystemInit!");
   (void)sysapiSystemInit();
+  PT_LOG_INFO(LOG_CTX_STARTUP,"sysapiSystemInit finished!");
+
   rc = asyncEventHandlerInit();
   if (rc != L7_SUCCESS)
   {
@@ -308,9 +313,12 @@ L7_RC_t sysapiSystemInit(void)
   /* initialize system timers */
   sysapiTimerTaskStart();
 
+  PT_LOG_INFO(LOG_CTX_STARTUP,"Starting sysapiSystemInit...");
   /* Initialize HPC
    */
   (void)sysapiHpcInit();
+
+  PT_LOG_INFO(LOG_CTX_STARTUP,"sysapiSystemInit: continuing...");
 
   /***********************************
    * Allocate the "mbuf" memory pool

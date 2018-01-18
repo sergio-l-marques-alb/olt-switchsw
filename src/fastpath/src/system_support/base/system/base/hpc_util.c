@@ -92,7 +92,6 @@ L7_RC_t hpcDescriptorDbInit(void)
 *************************************************************************/
 L7_RC_t hpcInit(void)
 {
-
   bzero((L7_uchar8 *)&hpc_config_data, sizeof(hpcCfgData_t));
   bzero((L7_uchar8 *)&hpc_oper_data, sizeof(hpcOperationalData_t));
   bzero((L7_uchar8 *)hpcMessageReceiveNotifyList, sizeof(hpcMessageReceiveNotifyList_t));
@@ -122,13 +121,16 @@ L7_RC_t hpcInit(void)
     return(L7_ERROR);
   }
 
+  PT_LOG_INFO(LOG_CTX_STARTUP,"hpcHardwareInit");
   /* initialize the platform specific part of hpc */
   if (hpcHardwareInit(hpcStackEventCallback, hpcTransportMessageRecvHandler) != L7_SUCCESS)
   {
+    PT_LOG_ERR(LOG_CTX_STARTUP,"Error with hpcHardwareInit");
     L7_LOGF(L7_LOG_SEVERITY_NOTICE, L7_BSP_COMPONENT_ID,
             "hpcInit: bad return code from hpcHardwareInit() call.\n");
     return(L7_ERROR);
   }
+  PT_LOG_INFO(LOG_CTX_STARTUP,"hpcHardwareInit finished");
 
   if (hpcDriverAsfInit() != L7_SUCCESS)
   {
