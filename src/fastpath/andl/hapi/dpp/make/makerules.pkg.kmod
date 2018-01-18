@@ -1,0 +1,190 @@
+# This file defines special package-level build rules and is included by make.magic.
+#
+# Note: Builds kernel modules for Linux 2.6 or 2.4.
+#
+
+# Local source path abbreviations (for convenience).
+#
+vend_sdk := vendor/broadcom/esw_sdk
+sal_core := $(vend_sdk)/src/sal/core/linux
+kbde_dir := $(vend_sdk)/systems/bde/linux/kernel
+ubde_dir := $(vend_sdk)/systems/bde/linux/user/kernel
+
+# Define target output location for kernel modules.
+#
+out_target := $(FP_BASE)/$(OUT_TARGET)
+
+# The kernel and user bde modules need special build rules.
+#
+krnl_bde_src := $(FP_BASE)/$(kbde_dir)/linux-kernel-bde.c
+user_bde_src := $(FP_BASE)/$(ubde_dir)/linux-user-bde.c
+gmodule_src  := $(FP_BASE)/$(vend_sdk)/systems/linux/kernel/modules/shared/gmodule.c
+mpool_src    := $(FP_BASE)/$(vend_sdk)/systems/bde/linux/shared/mpool.c
+sal_src      := $(wildcard $(FP_BASE)/$(sal_core)/*.c)
+
+
+# Isolated differences between 2.6 and 2.4 builds.
+#
+
+ifeq (1,$(BLD_L7_TARGETOS_LINUX_24))
+
+  define clean-common
+	$(NOOP)
+  endef
+
+else
+
+  user_bde_src += $(FP_BASE)/$(ubde_dir)/linux-user-bde.h
+  sal_src      += $(FP_BASE)/$(sal_core)/../dpc.c
+  
+  define clean-common
+	-$(DBG) $(RM) Makefile
+	-$(DBG) $(RM) -r .tmp_versions
+  endef
+  
+  # Control kernel make output in accordance with our display mode setting.
+  #
+  ifneq (verbose,$(CMD_DISPLAY_MODE))
+    msg_ctrl    := -s
+    quiet_mode  := $(DEVNULL) $(REDIRERR)
+  else
+    msg_ctrl   := V=1
+    quiet_mode :=
+  endif
+  
+endif
+
+
+# Original files contained in the source tree.
+#
+kbde_srcs := $(krnl_bde_src) $(gmodule_src) $(mpool_src)
+ubde_srcs := $(user_bde_src) $(gmodule_src) $(sal_src)
+
+
+# Generated intermediate object files.
+#
+kbde_objs := $(patsubst %.c,%.o,$(filter %.c,$(notdir $(kbde_srcs))))
+ubde_objs := $(patsubst %.c,%.o,$(filter %.c,$(notdir $(ubde_srcs))))
+
+
+# This variable is used in the 'define' sections below to identify the specific target prefix (kbde or ubde).
+#
+tref = $(notdir $(basename $(subst clean-,,$@)))
+
+
+
+# Primary build targets (e.g. kbde.ko, clean-kbde.ko, etc.).
+#
+
+bldlib:: $(addprefix $(out_target)/,$(L7_MODULE_LIST_LOCAL_BUILD))
+	$(NOOP)
+
+clean:: $(addprefix clean-,$(L7_MODULE_LIST_LOCAL_BUILD))
+	$(clean-common)
+
+
+
+# Common rules shared by both 2.6 and 2.4.
+#
+
+ifneq (,$(COPYING_MSG))
+  copying_msg1 = $(COPYING_MSG) "$< to $(subst ../,,$@)"
+endif
+
+# Rule to copy a created kernel module file to the output 'target' directory.
+#
+# This rule is equivalent to:  $(out_target)/Xbde.YY: Xbde.YY for each of the
+# various kernel module targets.
+#
+# Note: The 'installexe' processing expects to find this file already there.
+#
+$(addprefix $(out_target)/,$(L7_MODULE_LIST_LOCAL_BUILD)): $(out_target)/% : %
+	$(copying_msg1)
+	$(DBG) mkdir -p $(out_target)
+	$(DBG) cp -f $< $@
+
+
+
+# Linux 2.6 kernel module build rules.
+#
+# Note: Placed kbde.ko dependency on ubde.ko so they are built sequentially
+#       in case of parallel make due to the .o file list overlap.
+#
+
+define clean-ko-files
+	-$(DBG) $(RM) $(notdir $($(tref)_srcs))
+	-$(DBG) $(RM) $($(tref)_objs)
+	-$(DBG) $(RM) $(patsubst %,.%.cmd,$($(tref)_objs))
+endef
+
+define clean-ko-gen-files
+	-$(DBG) $(RM) $(QT)$(tref).*$(QT)
+	-$(DBG) $(RM) $(QT).$(tref).*$(QT)
+	-$(DBG) $(RM) $(out_target)/$(tref).ko
+endef
+
+define build-ko-files
+	$(CREATING_MSG)
+	$(DBG) cp -fp $($(tref)_srcs) .
+	$(DBG) cp -fp $(FP_BASE)/$($(tref)_dir)/Makefile.$(tref) ./Makefile
+	$(DBG) $(MAKE) -C $(KERNEL_SRC) M=$(FP_ROOT)/$(OUT_KMOD) FP_BASE=$(FP_ROOT) $(msg_ctrl) modules $(quiet_mode)
+	$(DBG) $(STRIP) --strip-debug $(notdir $@)
+	$(clean-ko-files)
+	-$(DBG) $(RM) Makefile
+endef
+
+
+kbde.ko: $(kbde_srcs)
+	$(build-ko-files)
+
+ubde.ko: $(ubde_srcs) kbde.ko
+	$(build-ko-files)
+
+
+# Clean out the generated files.
+#
+.PHONY: clean-kbde.ko clean-ubde.ko
+
+clean-kbde.ko clean-ubde.ko::
+	$(clean-ko-files)
+	$(clean-ko-gen-files)
+
+
+
+# Linux 2.4 kernel module build rules.
+#
+# Note: Placed kbde.o dependency on ubde.o so they are built sequentially
+#       in case of parallel make due to the .o file list overlap.
+
+define clean-o-files
+	-$(DBG) $(RM) $($(tref)_objs)
+	-$(DBG) $(RM) $(patsubst %.o,%.d,$($(tref)_objs))
+	-$(DBG) $(RM) $(QT)$(tref).*$(QT)
+	-$(DBG) $(RM) $(out_target)/$(tref).o
+endef
+
+define build-kmod-files
+	$(LINKING_MSG)
+	-$(DBG) $(RM) $@
+	$(DBG) $(linkcmd) -o $@ -Map $(@:.kmod=.map) -r $($(patsubst %.kmod,%,$@)_objs)
+endef
+
+
+kbde.o ubde.o: %.o : %.kmod
+	$(CREATING_MSG)
+	$(DBG) $(STRIP) -g $< -o $@
+
+kbde.kmod: $(kbde_objs)
+	$(build-kmod-files)
+
+ubde.kmod: $(ubde_objs) kbde.kmod
+	$(build-kmod-files)
+
+	
+# Clean out the generated files.
+#
+.PHONY: clean-kbde.o clean-ubde.o
+
+clean-kbde.o clean-ubde.o::
+	$(clean-o-files)
+
