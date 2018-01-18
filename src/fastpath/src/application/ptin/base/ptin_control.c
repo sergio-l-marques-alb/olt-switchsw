@@ -185,6 +185,9 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 
   /* Wait for a signal indicating that all other modules
    * configurations were executed */
+  osapiSleep(10);
+
+#if (!PTIN_BOARD_IS_DNX)
   PT_LOG_INFO(LOG_CTX_CONTROL, "PTin task waiting for other modules to boot up...");
   rc = osapiSemaTake(ptin_ready_sem, L7_WAIT_FOREVER);
   PT_LOG_NOTICE(LOG_CTX_CONTROL, "PTin task will now start!");
@@ -198,6 +201,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
   PT_LOG_INFO(LOG_CTX_CNFGR, "Storm Control is active with default values.");
+#endif
 
   /* Initialize PTin Interface module data structures */
   if (ptin_intf_pre_init() != L7_SUCCESS)
@@ -642,7 +646,7 @@ static void monitor_alarms(void)
   ptin_intf_t ptin_intf; 
   L7_uint32 adminState, linkState, link;
   L7_BOOL   interface_is_valid;
-  L7_uint32 portActivity_valid = L7_FALSE;
+  L7_uint32 portActivity_valid;
   ptin_HWEth_PortsActivity_t portActivity;
 
   static L7_BOOL   first_time=L7_TRUE;
@@ -660,6 +664,8 @@ static void monitor_alarms(void)
 
   /* Get RX activity for all ports */
   memset(&portActivity, 0x00, sizeof(portActivity));
+  portActivity_valid = L7_FALSE;
+#if (!PTIN_BOARD_IS_DNX)
   portActivity.ports_mask    = PTIN_SYSTEM_ETH_PORTS_MASK;    /* Only ETH ports */
   portActivity.activity_mask = PTIN_PORTACTIVITY_MASK_RX_ACTIVITY | PTIN_PORTACTIVITY_MASK_TX_ACTIVITY;  /* Get only rx activity */
   if (ptin_intf_counters_activity_get(&portActivity)==L7_SUCCESS)
@@ -674,6 +680,7 @@ static void monitor_alarms(void)
     PT_LOG_ERR(LOG_CTX_CONTROL,"Stat Activity get failed!");
     portActivity_valid = L7_FALSE;
   }
+#endif
 
   /* Run all ports */
   for (port=0; port<PTIN_SYSTEM_N_INTERF; port++)
