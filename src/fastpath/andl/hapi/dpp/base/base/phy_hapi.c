@@ -245,14 +245,15 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 	BROAD_PORT_t		*hapiPortPtr;
 	L7_int32			bcmSpeed=0, local_advert=0;
 	L7_int32			rc=0;
+    /* PTin removed: Dune */
+    #if 0
 	bcm_phy_config_t	fiber_config;
 	bcm_phy_config_t	copper_config;
+    #endif
 	L7_int32 			bcmDuplex=0, mac_pause_tx = 0, mac_pause_rx = 0;
 	bcm_port_abil_t		local_ability_mask;
     //bcm_port_ability_t  port_local_ability, local_ability;
 	int					jam = L7_FALSE;
-
-    return L7_SUCCESS;
 
 	hapiPortPtr = HAPI_PORT_GET(usp, dapi_g);
 	dapiPortPtr = DAPI_PORT_GET(usp, dapi_g);
@@ -329,6 +330,8 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 		if ((dapiPortPtr->phyCapabilities & L7_PHY_CAP_PORTSPEED_SFP) &&
 				(hapiPortPtr->hapiModeparm.physical.fiber_mode_disabled == L7_FALSE))
 		{
+            /* PTin removed: Dune */
+            #if 0
 			rc = bcmx_port_medium_config_get (hapiPortPtr->bcmx_lport,
 					BCM_PORT_MEDIUM_FIBER, &fiber_config);
 			if (rc == BCM_E_NONE)
@@ -352,8 +355,11 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 					hapiPortPtr->hapiModeparm.physical.fiber_mode_disabled = L7_TRUE;
 				}
 			}
+            #endif
 		}
 
+        /* PTin removed: Dune */
+        #if 0
 		rc = bcmx_port_medium_config_get (hapiPortPtr->bcmx_lport,
 				BCM_PORT_MEDIUM_COPPER, &copper_config);
 		if (rc == BCM_E_NONE)
@@ -431,14 +437,17 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			        L7_LOG_ERROR (rc);
 		}
 		else
+        #endif
 		{
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
+            {
 			        L7_LOG_ERROR (rc);
+            }
 
 			/* port-medium-config command is not supported on this PHY. Use different commands.
 			 */
 
-			rc = bcmx_port_speed_set(hapiPortPtr->bcmx_lport, bcmSpeed);
+			rc = bcm_port_speed_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmSpeed);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 			{
 #ifdef LVL7_ALPHA8245
@@ -464,14 +473,16 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			bcmDuplex = (duplex == DAPI_PORT_DUPLEX_FULL) ?
 							BCM_PORT_DUPLEX_FULL : BCM_PORT_DUPLEX_HALF;
 
-			rc = bcmx_port_duplex_set(hapiPortPtr->bcmx_lport, bcmDuplex);
+			rc = bcm_port_duplex_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, bcmDuplex);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 			        L7_LOG_ERROR(rc);
 
-			rc = bcmx_port_mdix_set(hapiPortPtr->bcmx_lport,BCM_PORT_MDIX_FORCE_AUTO);
+			rc = bcm_port_mdix_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,BCM_PORT_MDIX_FORCE_AUTO);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 			        L7_LOG_ERROR(rc);
 
+            /* PTin removed: Dune */
+            #if 0
 			rc = bcmx_port_ability_get(hapiPortPtr->bcmx_lport,&local_ability_mask);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 			        L7_LOG_ERROR(rc);
@@ -514,22 +525,25 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			rc = bcmx_port_advert_set(hapiPortPtr->bcmx_lport,local_ability_mask);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 			        L7_LOG_ERROR(rc);
+            #endif
 
-			rc = bcmx_port_pause_set(hapiPortPtr->bcmx_lport, mac_pause_tx, mac_pause_rx);
+			rc = bcm_port_pause_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, mac_pause_tx, mac_pause_rx);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 			        L7_LOG_ERROR(rc);
 
-	        rc = bcmx_port_jam_set(hapiPortPtr->bcmx_lport, jam);
+	        rc = bcm_port_jam_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, jam);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 			        L7_LOG_ERROR(rc);
 
-			rc = bcmx_port_autoneg_set(hapiPortPtr->bcmx_lport, FALSE);
-			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
-			        L7_LOG_ERROR(rc);
+            rc = bcm_port_autoneg_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, FALSE);
+            if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
+                    L7_LOG_ERROR(rc);
 		}
 	}
 	else  /* Autonegotiation enabled */
 	{
+        /* PTin removed: Dune */
+        #if 0
 		rc = bcmx_port_medium_config_get (hapiPortPtr->bcmx_lport,
 				BCM_PORT_MEDIUM_COPPER, &copper_config);
 		if (rc == BCM_E_NONE)
@@ -567,19 +581,25 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			/* When autonegotiation is enabled MAC pause and jam setting will be done after
 			* link comes UP */
 
+            /* PTin removed: Dune */
+            #if 0
 			rc = usl_bcmx_port_medium_config_set (hapiPortPtr->bcmx_lport,
 					BCM_PORT_MEDIUM_COPPER, &copper_config);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 			        L7_LOG_ERROR (rc);
+            #endif
 		} else
+        #endif
 		{
 			/* port-medium-config command is not supported on this PHY. Use different commands.
 			 */
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
+            {
 			        L7_LOG_ERROR (rc);
+            }
 
 			/* get the ability of the port */
-			rc = bcmx_port_ability_get(hapiPortPtr->bcmx_lport,&local_ability_mask);
+			rc = bcm_port_ability_get(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, &local_ability_mask);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 			        L7_LOG_ERROR(rc);
 
@@ -604,7 +624,7 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 				* disable both PAUSE  & back pressure for this port */
 			}
 
-			rc = bcmx_port_advert_set(hapiPortPtr->bcmx_lport,local_ability_mask);
+			rc = bcm_port_advert_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, local_ability_mask);
 			if (L7_BCMX_OK(rc) != L7_TRUE)
 			        L7_LOG_ERROR(rc);
 
@@ -630,16 +650,18 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			/*When autonegotiation is enabled MAC pause and jam setting will be done after
 			* link comes UP*/
 
-			rc = bcmx_port_mdix_set(hapiPortPtr->bcmx_lport,BCM_PORT_MDIX_AUTO);
+			rc = bcm_port_mdix_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, BCM_PORT_MDIX_AUTO);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 			        L7_LOG_ERROR(0);
 
 			/* Enable autoneg on port */
-			rc = bcmx_port_autoneg_set(hapiPortPtr->bcmx_lport, TRUE);
+			rc = bcm_port_autoneg_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, TRUE);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 			        L7_LOG_ERROR(rc);
 		}
 
+        /* PTin removed: Dune */
+        #if 0
 		/* Enable auto negotiation on Fiber ports too */
 		if (dapiPortPtr->phyCapabilities & L7_PHY_CAP_PORTSPEED_SFP)
 		{
@@ -672,13 +694,14 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 				}
 			}
 		}
-
+        #endif
 	}
 
 	if (osapiSemaGive(hapiPortPtr->hapiModeparm.physical.phySemaphore) != L7_SUCCESS)
 	{
 	        L7_LOG_ERROR(0);
 	}
+
 	return result;
 }
 

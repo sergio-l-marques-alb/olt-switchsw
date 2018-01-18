@@ -1519,7 +1519,7 @@ void hpcHardwareDefaultConfigApply(void)
           ** up learning.
           */
 #ifndef L7_ROBO_SUPPORT
-/* PTin modified: MAC learning */
+/* PTin modified: Dune */
 #if 1
           /* Enable the learning mode on all ports */
           rv = bcm_port_learn_set (i,port, (BCM_PORT_LEARN_ARL | BCM_PORT_LEARN_FWD));
@@ -1553,7 +1553,8 @@ void hpcHardwareDefaultConfigApply(void)
           ** disable as bcm_clear sets all the port states to forwarding
           ** in bcm_esw_auth_init 
           */
-          rv = bcm_port_stp_set(i, port, BCM_STG_STP_DISABLE);
+          /* PTin modified: Dune */
+          rv = bcm_port_stp_set(i, port, BCM_STG_STP_FORWARD);
           if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
           {
             L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
@@ -1563,6 +1564,7 @@ void hpcHardwareDefaultConfigApply(void)
 
         }
 
+        /* PTin modified: Dune */
         /* Enable ingress+egress filtering on all the ports */
         rv = bcm_port_vlan_member_set(i, port, BCM_PORT_VLAN_MEMBER_INGRESS | BCM_PORT_VLAN_MEMBER_EGRESS | BCM_PORT_VLAN_MEMBER_VP_VLAN_MEMBERSHIP);
         if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
