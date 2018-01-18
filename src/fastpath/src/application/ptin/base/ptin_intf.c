@@ -398,12 +398,14 @@ L7_RC_t ptin_intf_post_init(void)
   }
 
   /* MEF Ext defaults */
+  #if (!PTIN_BOARD_IS_DNX)
   if (ptin_intf_portExt_init()!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Failed initializing MEF Ext parameters");
     return L7_FAILURE;
   }
   PT_LOG_NOTICE(LOG_CTX_INTF, "MEF Ext defaults applied");
+  #endif
 
   /* Initialize phy conf structure (must be run after default configurations!) */
   for (i=0; i<ptin_sys_number_of_ports; i++)
