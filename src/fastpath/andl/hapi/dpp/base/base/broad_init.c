@@ -1999,12 +1999,17 @@ L7_RC_t hapiBroadPhysicalPortMapGet(L7_ushort16 unitNum, L7_ushort16 slotNum, DA
       hapiPortPtr  = (BROAD_PORT_t *)dapi_g->unit[usp.unit]->slot[usp.slot]->port[usp.port]->hapiPort;
       hapiPortPtr->bcm_port =  dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port;
 
+      PT_LOG_TRACE(LOG_CTX_STARTUP,"usp={%d,%d,%d} hapiPortPtr->bcm_port=%d slotMapIndex=%d: slotMap[slotMapIndex].bcm_cpuunit=%d slotMap[slotMapIndex].bcm_port=%d" ,
+                   usp.unit, usp.slot, usp.port, hapiPortPtr->bcm_port, slotMapIndex,
+                   dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit, dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port);
+
       if (hapiBroadMapDbEntryGet(&cpuKey,
                                  dapiCardInfoPtr->slotMap[slotMapIndex].bcm_cpuunit,
                                  dapiCardInfoPtr->slotMap[slotMapIndex].bcm_port,
                                  &hapiPortPtr->bcm_unit,
                                  &hapiPortPtr->bcmx_lport) != L7_SUCCESS)
       {
+        PT_LOG_TRACE(LOG_CTX_STARTUP," Error!");
 #ifdef L7_STACKING_PACKAGE
         /* We may have failed because the remote units are not attached yet.
         ** Attach them now and try again.
