@@ -470,9 +470,9 @@ static CNFGR_COMPONENT_LIST_ENTRY_t cnfgrComponentList[] =
   {L7_POLICY_COMPONENT_ID,               L7_CNFGR_COMPONENT_ENABLE,  policyApiCnfgrCommand,         L7_CNFGR_HW_APPLY_CONFIG},
 #endif
   {L7_PORT_MIRROR_COMPONENT_ID,          L7_CNFGR_COMPONENT_ENABLE,  mirrorApiCnfgrCommand,         L7_CNFGR_HW_APPLY_CONFIG},
-  {L7_FDB_COMPONENT_ID,                  L7_CNFGR_COMPONENT_ENABLE,  fdbApiCnfgrCommand,            L7_CNFGR_HW_APPLY_CONFIG},
+  //{L7_FDB_COMPONENT_ID,                  L7_CNFGR_COMPONENT_ENABLE,  fdbApiCnfgrCommand,            L7_CNFGR_HW_APPLY_CONFIG},
 #ifdef L7_MACLOCK_PACKAGE
-  {L7_PORT_MACLOCK_COMPONENT_ID,         L7_CNFGR_COMPONENT_ENABLE,  pmlApiCnfgrCommand,            L7_CNFGR_HW_APPLY_CONFIG},
+  //{L7_PORT_MACLOCK_COMPONENT_ID,         L7_CNFGR_COMPONENT_ENABLE,  pmlApiCnfgrCommand,            L7_CNFGR_HW_APPLY_CONFIG},
 #endif
 #if 0
 #ifdef L7_DHCP_FILTER_PACKAGE
@@ -529,7 +529,7 @@ static CNFGR_COMPONENT_LIST_ENTRY_t cnfgrComponentList[] =
 #endif
   {L7_UNITMGR_COMPONENT_ID,              L7_CNFGR_COMPONENT_ENABLE,  unitMgrApiCnfgrCommand,        0},
   /*{L7_SNOOPING_COMPONENT_ID,             L7_CNFGR_COMPONENT_ENABLE,  snoopApiCnfgrCommand,          L7_CNFGR_HW_APPLY_CONFIG},*/
-  {L7_DOT3AD_COMPONENT_ID,               L7_CNFGR_COMPONENT_ENABLE,  dot3adApiCnfgrCommand,         L7_CNFGR_HW_APPLY_CONFIG},
+  //{L7_DOT3AD_COMPONENT_ID,               L7_CNFGR_COMPONENT_ENABLE,  dot3adApiCnfgrCommand,         L7_CNFGR_HW_APPLY_CONFIG},
 #if 0
 #ifndef L7_PRODUCT_SMARTPATH
   {L7_TRAPMGR_COMPONENT_ID,              L7_CNFGR_COMPONENT_ENABLE,  trapMgrApiCnfgrCommand,        0},
