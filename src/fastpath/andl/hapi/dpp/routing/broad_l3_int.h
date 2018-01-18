@@ -1251,9 +1251,10 @@ L7_RC_t hapiBroadL3CacheInit(void);
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3HwNhopAdd (L7_uint32 egrFlags, BROAD_L3_NH_ENTRY_t *pNhopEntry,
                            usl_bcm_l3_egress_t *pBcmInfo, L7_BOOL cacheOrCommit);
-
+#endif
 
 /*******************************************************************************
 *
@@ -1272,8 +1273,10 @@ void hapiBroadL3HwNhopAdd (L7_uint32 egrFlags, BROAD_L3_NH_ENTRY_t *pNhopEntry,
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3HwNhopDelete (usl_bcm_l3_egress_t *pBcmInfo, bcm_if_t egressId,
                               L7_BOOL  cacheOrCommit);
+#endif
 
 /*******************************************************************************
 *
@@ -1310,9 +1313,11 @@ void hapiBroadL3NhopCacheCommit (void);
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3HwHostAdd (BROAD_L3_HOST_ENTRY_t *pHostEntry,
                            usl_bcm_l3_host_t *pBcmInfo,
                            L7_BOOL          cacheOrCommit);
+#endif
 
 /*******************************************************************************
 *
@@ -1331,8 +1336,10 @@ void hapiBroadL3HwHostAdd (BROAD_L3_HOST_ENTRY_t *pHostEntry,
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3HwHostDelete (usl_bcm_l3_host_t *pBcmInfo,
                               L7_BOOL          cacheOrCommit);
+#endif
 
 
 /*******************************************************************************
@@ -1370,9 +1377,11 @@ void hapiBroadL3HostCacheCommit (void);
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3HwRouteAdd (BROAD_L3_ROUTE_ENTRY_t *pRouteEntry,
                             usl_bcm_l3_route_t      *pBcmInfo,
                             L7_BOOL                 flag);
+#endif
 
 /*******************************************************************************
 *
@@ -1391,8 +1400,10 @@ void hapiBroadL3HwRouteAdd (BROAD_L3_ROUTE_ENTRY_t *pRouteEntry,
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3HwRouteDelete (usl_bcm_l3_route_t *pBcmInfo,
                                L7_BOOL            flag);
+#endif
 
 /*******************************************************************************
 *

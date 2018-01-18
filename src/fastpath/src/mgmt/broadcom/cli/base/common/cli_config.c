@@ -16029,7 +16029,9 @@ const L7_char8 *commandRemoteTelnet(EwsContext ewsContext, L7_uint32 argc, const
   {
     ewsContext->obtActive = L7_TRUE;
     ewsContext->obtSocket = telnetSocketS;
+  #ifdef L7_CLI_PACKAGE
     usmDbObtLoginSessionStart(cliLoginSessionIndexGet());
+  #endif
   }
 
   return pStrInfo_common_CrLf;

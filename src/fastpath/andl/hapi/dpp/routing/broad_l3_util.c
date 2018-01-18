@@ -841,6 +841,7 @@ L7_RC_t hapiBroadL3PortVlanNotify(DAPI_USP_t  *usp,
                                   L7_BOOL     addDel,
                                   DAPI_t      *dapi_g)
 {
+#ifdef L7_ROUTING_PACKAGE
   L7_uint8 i;
   L7_ushort16 vrid;
   L7_int32  rv, mtu;
@@ -848,8 +849,6 @@ L7_RC_t hapiBroadL3PortVlanNotify(DAPI_USP_t  *usp,
   BROAD_PORT_t *hapiPortPtr;
   DAPI_PORT_t  *dapiPortPtr;
   
-
-
   /* Check if the VLAN is enabled for routing */
   if (hapiBroadL3VlanRoutingEnabled(vlanId, &vlanUsp, dapi_g) == L7_FALSE)
   {
@@ -917,7 +916,7 @@ L7_RC_t hapiBroadL3PortVlanNotify(DAPI_USP_t  *usp,
       }
     }
   }
-
+#endif
   return L7_SUCCESS;
 }
 

@@ -40,6 +40,7 @@ typedef enum {
   BROAD_L3_HW_CMD_DEL        /* Delete entries from hardware */
 } BROAD_L3_HW_CMD_t;
 
+#ifdef L7_ROUTING_PACKAGE
 /* Cache for Next hop entries */
 typedef struct BROAD_L3_NHOP_CACHE_s
 {
@@ -99,6 +100,7 @@ static void hapiBroadL3RouteCacheClear (void);
 static void hapiBroadL3NhopCacheCmdSet (BROAD_L3_HW_CMD_t cmd);
 static void hapiBroadL3HostCacheCmdSet (BROAD_L3_HW_CMD_t cmd);
 static void hapiBroadL3RouteCacheCmdSet (BROAD_L3_HW_CMD_t cmd);
+#endif
 
 /*******************************************************************************
 *
@@ -115,6 +117,7 @@ static void hapiBroadL3RouteCacheCmdSet (BROAD_L3_HW_CMD_t cmd);
 *******************************************************************************/
 L7_RC_t hapiBroadL3CacheInit(void)
 {
+#ifdef L7_ROUTING_PACKAGE
   L7_uint32 size;
 
   /* Init the next hop cache */
@@ -206,6 +209,7 @@ L7_RC_t hapiBroadL3CacheInit(void)
   /* A semaphore lock for cache is not required as it is expected that the hw
    * L3 operations are called from L3 ASYNC TASK only.
    */
+#endif
   return L7_SUCCESS;
 }
 
@@ -223,6 +227,7 @@ L7_RC_t hapiBroadL3CacheInit(void)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3NhopCacheCmdSet (BROAD_L3_HW_CMD_t cmd)
 {
   /* Check if any entries are already in cache */
@@ -251,6 +256,7 @@ static void hapiBroadL3NhopCacheCmdSet (BROAD_L3_HW_CMD_t cmd)
     hapiBroadL3NhopCache.cmd = cmd;
   }
 }
+#endif
 
 
 /*******************************************************************************
@@ -272,6 +278,7 @@ static void hapiBroadL3NhopCacheCmdSet (BROAD_L3_HW_CMD_t cmd)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3HwNhopAdd (L7_uint32 egrFlags, 
                            BROAD_L3_NH_ENTRY_t *pNhopEntry,
                            usl_bcm_l3_egress_t *pBcmInfo,
@@ -301,6 +308,7 @@ void hapiBroadL3HwNhopAdd (L7_uint32 egrFlags,
     hapiBroadL3NhopCacheCommit();
   }
 }
+#endif
 
 
 /*******************************************************************************
@@ -321,6 +329,7 @@ void hapiBroadL3HwNhopAdd (L7_uint32 egrFlags,
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3HwNhopDelete (usl_bcm_l3_egress_t *pBcmInfo,
                               bcm_if_t egressId, 
                               L7_BOOL  cacheOrCommit)
@@ -352,6 +361,7 @@ void hapiBroadL3HwNhopDelete (usl_bcm_l3_egress_t *pBcmInfo,
     hapiBroadL3NhopCacheCommit();
   }
 }
+#endif
 
 
 /*******************************************************************************
@@ -368,6 +378,7 @@ void hapiBroadL3HwNhopDelete (usl_bcm_l3_egress_t *pBcmInfo,
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3NhopCacheCommit (void)
 {
   L7_uint32 i;
@@ -475,6 +486,7 @@ void hapiBroadL3NhopCacheCommit (void)
   /* Clear up cache */
   hapiBroadL3NhopCacheClear();
 }
+#endif
 
 
 /*******************************************************************************
@@ -490,6 +502,7 @@ void hapiBroadL3NhopCacheCommit (void)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3NhopCacheClear (void)
 {
   L7_uint32 size;
@@ -509,6 +522,7 @@ static void hapiBroadL3NhopCacheClear (void)
   size = sizeof (bcm_if_t) * hapiBroadL3NhopCache.maxEntries;
   memset(hapiBroadL3NhopCache.pEgressId, HAPI_BROAD_L3_INVALID_EGR_ID, size);
 }
+#endif
 
 
 /*******************************************************************************
@@ -529,6 +543,7 @@ static void hapiBroadL3NhopCacheClear (void)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3HwHostAdd (BROAD_L3_HOST_ENTRY_t *pHostEntry,
                            usl_bcm_l3_host_t *pBcmInfo,
                            L7_BOOL          cacheOrCommit)
@@ -555,6 +570,7 @@ void hapiBroadL3HwHostAdd (BROAD_L3_HOST_ENTRY_t *pHostEntry,
     hapiBroadL3HostCacheCommit();
   }
 }
+#endif
 
 
 /*******************************************************************************
@@ -570,6 +586,7 @@ void hapiBroadL3HwHostAdd (BROAD_L3_HOST_ENTRY_t *pHostEntry,
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3HostCacheCmdSet (BROAD_L3_HW_CMD_t cmd)
 {
   /* Check if any entries are already in cache */
@@ -599,6 +616,7 @@ static void hapiBroadL3HostCacheCmdSet (BROAD_L3_HW_CMD_t cmd)
     hapiBroadL3HostCache.cmd = cmd;
   }
 }
+#endif
 
 
 /*******************************************************************************
@@ -618,6 +636,7 @@ static void hapiBroadL3HostCacheCmdSet (BROAD_L3_HW_CMD_t cmd)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3HwHostDelete (usl_bcm_l3_host_t *pBcmInfo,
                               L7_BOOL        cacheOrCommit)
 {
@@ -648,6 +667,7 @@ void hapiBroadL3HwHostDelete (usl_bcm_l3_host_t *pBcmInfo,
     hapiBroadL3HostCacheCommit();
   }
 }
+#endif
 
 /*******************************************************************************
 *
@@ -663,6 +683,7 @@ void hapiBroadL3HwHostDelete (usl_bcm_l3_host_t *pBcmInfo,
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3HostCacheCommit (void)
 {
   L7_uint32 i;
@@ -764,6 +785,7 @@ void hapiBroadL3HostCacheCommit (void)
   /* Clear up cache */
   hapiBroadL3HostCacheClear();
 }
+#endif
 
 
 /*******************************************************************************
@@ -779,6 +801,7 @@ void hapiBroadL3HostCacheCommit (void)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3HostCacheClear (void)
 {
   L7_uint32 size;
@@ -792,7 +815,7 @@ static void hapiBroadL3HostCacheClear (void)
   size = sizeof (BROAD_L3_HOST_ENTRY_t *) * hapiBroadL3HostCache.maxEntries;
   memset(hapiBroadL3HostCache.pHostList, 0, size);
 }
-
+#endif
 
 
 /*******************************************************************************
@@ -813,6 +836,7 @@ static void hapiBroadL3HostCacheClear (void)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3HwRouteAdd (BROAD_L3_ROUTE_ENTRY_t *pRouteEntry,
                             usl_bcm_l3_route_t      *pBcmInfo,
                             L7_BOOL          cacheOrCommit)
@@ -839,6 +863,7 @@ void hapiBroadL3HwRouteAdd (BROAD_L3_ROUTE_ENTRY_t *pRouteEntry,
     hapiBroadL3RouteCacheCommit();
   }
 }
+#endif
 
 
 /*******************************************************************************
@@ -854,6 +879,7 @@ void hapiBroadL3HwRouteAdd (BROAD_L3_ROUTE_ENTRY_t *pRouteEntry,
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3RouteCacheCmdSet (BROAD_L3_HW_CMD_t cmd)
 {
   /* Check if any entries are already in cache */
@@ -883,6 +909,7 @@ static void hapiBroadL3RouteCacheCmdSet (BROAD_L3_HW_CMD_t cmd)
     hapiBroadL3RouteCache.cmd = cmd;
   } 
 } 
+#endif
 
 
 /*******************************************************************************
@@ -899,6 +926,7 @@ static void hapiBroadL3RouteCacheCmdSet (BROAD_L3_HW_CMD_t cmd)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3RouteCacheCommit (void)
 {
   L7_uint32 i;
@@ -1001,6 +1029,7 @@ void hapiBroadL3RouteCacheCommit (void)
   /* Clear up cache */
   hapiBroadL3RouteCacheClear();
 }
+#endif
 
 
 /*******************************************************************************
@@ -1020,6 +1049,7 @@ void hapiBroadL3RouteCacheCommit (void)
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3HwRouteDelete (usl_bcm_l3_route_t *pBcmInfo,
                                L7_BOOL            cacheOrCommit)
 {
@@ -1050,6 +1080,7 @@ void hapiBroadL3HwRouteDelete (usl_bcm_l3_route_t *pBcmInfo,
     hapiBroadL3RouteCacheCommit();
   }
 }
+#endif
 
 
 /*******************************************************************************
@@ -1065,6 +1096,7 @@ void hapiBroadL3HwRouteDelete (usl_bcm_l3_route_t *pBcmInfo,
 * @end
 *
 *******************************************************************************/
+#ifdef L7_ROUTING_PACKAGE
 static void hapiBroadL3RouteCacheClear (void)
 {
   L7_uint32 size;
@@ -1078,8 +1110,10 @@ static void hapiBroadL3RouteCacheClear (void)
   size = sizeof (BROAD_L3_ROUTE_ENTRY_t *) * hapiBroadL3RouteCache.maxEntries;
   memset(hapiBroadL3RouteCache.pRouteList, 0, size);
 }
+#endif
 
 
+#ifdef L7_ROUTING_PACKAGE
 void hapiBroadL3CacheStats(void)
 {
   sysapiPrintf ("\nMax Nhop objs adds ever cached %d\n", maxNhopAddsInCache);
@@ -1100,3 +1134,5 @@ void hapiBroadL3CacheStats(void)
   sysapiPrintf ("Number of routes in cache %d\n", hapiBroadL3RouteCache.numEntries);
   sysapiPrintf ("Max routes that can be cached %d\n", hapiBroadL3RouteCache.maxEntries);
 }
+#endif
+

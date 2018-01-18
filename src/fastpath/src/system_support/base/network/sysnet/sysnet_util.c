@@ -1593,6 +1593,11 @@ L7_RC_t sysNetNotifyListDebugShow()
 #endif
   printf("common_aps_ccm_packetRx_callback= 0x%08x\r\n", (L7_uint32) common_aps_ccm_packetRx_callback);
 
+#ifdef L7_ROUTING_PACKAGE
+  printf("ipMapArpRecvIP = 0x%08x\r\n", (L7_uint32) ipMapArpRecvIP);
+  printf("ipMapRecvIP    = 0x%08x\r\n", (L7_uint32) ipMapRecvIP);
+#endif
+
   return L7_SUCCESS;
 }
 #endif

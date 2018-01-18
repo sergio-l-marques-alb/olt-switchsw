@@ -258,6 +258,7 @@ L7_RC_t pbVlanConfigDump(void)
 *********************************************************************/
 L7_RC_t pbVlanApplyConfigData(void)
 {
+#ifdef L7_PBVLAN_PACKAGE
   L7_uint32 i;
   L7_uint32 j;
   L7_uint32 count;
@@ -292,7 +293,7 @@ L7_RC_t pbVlanApplyConfigData(void)
       }
     }
   }
-
+#endif
   return L7_SUCCESS;
 }
 /*********************************************************************
@@ -342,6 +343,7 @@ L7_RC_t pbVlanPortConfigDataRead(L7_uint32 intIfNum)
 L7_RC_t pbVlanPortDataApply(L7_uint32 intIfNum)
 {
   L7_RC_t   rc = L7_SUCCESS;
+#ifdef L7_PBVLAN_PACKAGE
   L7_uint32 maskOffset,i,j;
 
   nimConfigIdMaskOffsetGet(intIfNum, &maskOffset);
@@ -366,6 +368,7 @@ L7_RC_t pbVlanPortDataApply(L7_uint32 intIfNum)
       }
     }
   }
+#endif
   return rc;
 }
 
@@ -386,6 +389,7 @@ L7_RC_t pbVlanPortDataApply(L7_uint32 intIfNum)
 L7_RC_t pbVlanPortDataRemove(L7_uint32 intIfNum)
 {
   L7_RC_t   rc = L7_SUCCESS;
+#ifdef L7_PBVLAN_PACKAGE
   L7_uint32 maskOffset,i,j;
 
   nimConfigIdMaskOffsetGet(intIfNum, &maskOffset);
@@ -410,6 +414,7 @@ L7_RC_t pbVlanPortDataRemove(L7_uint32 intIfNum)
       }
     }
   }
+#endif
   return rc;
 }
 

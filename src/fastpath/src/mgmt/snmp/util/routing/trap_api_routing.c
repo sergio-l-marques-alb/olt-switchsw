@@ -1093,7 +1093,8 @@ L7_RC_t SnmpVrrpTrapAuthFailureTrapSend(L7_uint32 vrrpTrapPacketSrc, L7_int32 vr
 #endif
 void SnmpTestTraps_routing()
 {
-  L7_RC_t rc = L7_FAILURE;
+  L7_RC_t rc;
+  rc = L7_FAILURE;
 #ifdef L7_OSPF_PACKAGE
   rc = SnmpOspfIfStateChangeTrapSend(1, 2, 3, 4);
   sysapiPrintf("SnmpOspfIfStateChangeTrapSend -> %d\n", rc);

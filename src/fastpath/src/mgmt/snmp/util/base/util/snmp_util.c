@@ -490,6 +490,7 @@ void
 snmpInitData()
 {
 #if (!L7_FEAT_SNMP_CONFAPI)
+#ifdef L7_SNMP_PACKAGE
   memcpy((snmpComm_t *)&snmpCfgData.snmpComm, (snmpComm_t *)&FD_snmpComm,
          (sizeof (snmpComm_t) * L7_MAX_SNMP_COMM));
   memcpy((snmpTrapMgr_t *)&snmpCfgData.snmpTrapMgr, (snmpTrapMgr_t *)&FD_snmpTrapMgr,
@@ -500,6 +501,7 @@ snmpInitData()
 
   /* create default Trap Receiver table entries. */
   SnmpTrapMgrTableUpdate();
+#endif
 #endif
 
   /* initialize SNMP Agent traps */

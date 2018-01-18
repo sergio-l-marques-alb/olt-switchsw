@@ -16353,17 +16353,21 @@ k_agentDhcpSnoopingConfigGroup_get(int serialNum, ContextInfo *contextInfo,
   case -1:
       /* pass through */
   case I_agentDhcpSnoopingAdminMode:
+    #ifdef L7_DHCP_SNOOPING_PACKAGE
       if (snmpDhcpSnoopingAdminModeGet(&agentDhcpSnoopingConfigGroupData.agentDhcpSnoopingAdminMode)
                                       == L7_SUCCESS)
       SET_VALID(I_agentDhcpSnoopingAdminMode,
                 agentDhcpSnoopingConfigGroupData.valid);
+    #endif
     if (nominator != -1) break;
     /* else pass through */
   case I_agentDhcpSnoopingVerifyMac:
+    #ifdef L7_DHCP_SNOOPING_PACKAGE
       if (snmpDhcpSnoopingVerifyMacGet(&agentDhcpSnoopingConfigGroupData.agentDhcpSnoopingVerifyMac)
                                       == L7_SUCCESS)
       SET_VALID(I_agentDhcpSnoopingVerifyMac,
                 agentDhcpSnoopingConfigGroupData.valid);
+    #endif
     if (nominator != -1) break;
     /* else pass through */
 #ifdef L7_IPSG_PACKAGE
@@ -16452,6 +16456,7 @@ k_agentDhcpSnoopingConfigGroup_set(agentDhcpSnoopingConfigGroup_t *data,
   L7_char8  snmp_buffer[SNMP_BUFFER_LEN];
 #endif
 
+#ifdef L7_DHCP_SNOOPING_PACKAGE
   if (VALID(I_agentDhcpSnoopingAdminMode, data->valid) &&
       snmpDhcpSnoopingAdminModeSet(data->agentDhcpSnoopingAdminMode) != L7_SUCCESS)
   {
@@ -16464,6 +16469,7 @@ k_agentDhcpSnoopingConfigGroup_set(agentDhcpSnoopingConfigGroup_t *data,
       CLR_VALID(I_agentDhcpSnoopingAdminMode, data->valid);
       return COMMIT_FAILED_ERROR;
   }
+#endif
   
   if (VALID(I_agentDhcpSnoopingStatsReset, data->valid) &&
       (data->agentDhcpSnoopingStatsReset == D_agentDhcpSnoopingStatsReset_reset) &&
@@ -16548,6 +16554,7 @@ k_agentDhcpSnoopingVlanConfigEntry_get(int serialNum, ContextInfo *contextInfo,
                                       agentDhcpSnoopingVlanIndex;
   SET_VALID(I_agentDhcpSnoopingVlanIndex, agentDhcpSnoopingVlanConfigEntryData.valid);
 
+#ifdef L7_DHCP_SNOOPING_PACKAGE
   if ((searchType == EXACT) ?
       (snmpDhcpSnoopingVlanGet(USMDB_UNIT_CURRENT,
                        agentDhcpSnoopingVlanConfigEntryData.agentDhcpSnoopingVlanIndex) != L7_SUCCESS)        :
@@ -16559,6 +16566,7 @@ k_agentDhcpSnoopingVlanConfigEntry_get(int serialNum, ContextInfo *contextInfo,
     ZERO_VALID(agentDhcpSnoopingVlanConfigEntryData.valid);
     return (NULL);
   }
+#endif
 
   switch (nominator)
   {
@@ -16568,9 +16576,11 @@ k_agentDhcpSnoopingVlanConfigEntry_get(int serialNum, ContextInfo *contextInfo,
       /* else pass through */
 
     case I_agentDhcpSnoopingVlanEnable:
+    #ifdef L7_DHCP_SNOOPING_PACKAGE
       if(snmpDhcpSnoopingVlanEnableGet(agentDhcpSnoopingVlanConfigEntryData.agentDhcpSnoopingVlanIndex,
                    &agentDhcpSnoopingVlanConfigEntryData.agentDhcpSnoopingVlanEnable) == L7_SUCCESS)
         SET_VALID(I_agentDhcpSnoopingVlanEnable, agentDhcpSnoopingVlanConfigEntryData.valid);
+    #endif
       break;
       /* else pass through */
     default:
@@ -16619,9 +16629,8 @@ int
 k_agentDhcpSnoopingVlanConfigEntry_set(agentDhcpSnoopingVlanConfigEntry_t *data,
                                        ContextInfo *contextInfo, int function)
 {
-
+#ifdef L7_DHCP_SNOOPING_PACKAGE
   L7_uint32 vlanId;
-
 
   vlanId = data->agentDhcpSnoopingVlanIndex;
   if(snmpDhcpSnoopingVlanGet(USMDB_UNIT_CURRENT, vlanId) != L7_SUCCESS)
@@ -16636,6 +16645,8 @@ k_agentDhcpSnoopingVlanConfigEntry_set(agentDhcpSnoopingVlanConfigEntry_t *data,
       CLR_VALID(I_agentDhcpSnoopingVlanEnable, data->valid);
       return COMMIT_FAILED_ERROR;
   }
+#endif
+
   return NO_ERROR;
 }
 #ifdef SR_agentDhcpSnoopingVlanConfigEntry_UNDO
@@ -16661,11 +16672,13 @@ k_agentDhcpSnoopingIfConfigEntry_get(int serialNum, ContextInfo *contextInfo,
                                      SR_INT32 ifIndex)
 {
   static agentDhcpSnoopingIfConfigEntry_t agentDhcpSnoopingConfigEntryData;
-  L7_uint32 intIfNum;
 
   ZERO_VALID(agentDhcpSnoopingConfigEntryData.valid);
   agentDhcpSnoopingConfigEntryData.ifIndex = ifIndex;
   SET_VALID(I_agentDhcpSnoopingIfConfigEntryIndex_ifIndex, agentDhcpSnoopingConfigEntryData.valid);
+
+#ifdef L7_DHCP_SNOOPING_PACKAGE
+  L7_uint32 intIfNum;
 
   if(((searchType == EXACT) ?
       (snmpDhcpSnoopingIntfGet(agentDhcpSnoopingConfigEntryData.ifIndex) != L7_SUCCESS) :
@@ -16719,6 +16732,8 @@ k_agentDhcpSnoopingIfConfigEntry_get(int serialNum, ContextInfo *contextInfo,
     return(NULL);
     break;
   }
+#endif
+
   if ( nominator >= 0 && !VALID(nominator, agentDhcpSnoopingConfigEntryData.valid) )
     return(NULL);
 
@@ -16757,7 +16772,7 @@ int
 k_agentDhcpSnoopingIfConfigEntry_set(agentDhcpSnoopingIfConfigEntry_t *data,
                                      ContextInfo *contextInfo, int function)
 {
-
+#ifdef L7_DHCP_SNOOPING_PACKAGE
   L7_uint32 intIfNum;
   L7_RC_t rc;
 
@@ -16804,6 +16819,9 @@ k_agentDhcpSnoopingIfConfigEntry_set(agentDhcpSnoopingIfConfigEntry_t *data,
   }
   
   return COMMIT_FAILED_ERROR;
+#else
+  return NO_ERROR;
+#endif
 }
 #ifdef SR_agentDhcpSnoopingIfConfigEntry_UNDO
 /* add #define SR_agentDhcpSnoopingIfConfigEntry_UNDO in sitedefs.h to
@@ -16828,14 +16846,15 @@ k_agentDhcpSnoopingStatsEntry_get(int serialNum, ContextInfo *contextInfo,
                                   SR_INT32 ifIndex)
 {
    static agentDhcpSnoopingStatsEntry_t agentDhcpSnoopingStatsEntryData;
-   dhcpSnoopIntfStats_t stats;
-   L7_uint32 intIfNum;
 
    ZERO_VALID (agentDhcpSnoopingStatsEntryData.valid);
    agentDhcpSnoopingStatsEntryData.ifIndex = ifIndex;
    SET_VALID (I_agentDhcpSnoopingStatsEntryIndex_ifIndex,
                              agentDhcpSnoopingStatsEntryData.valid);
 
+#ifdef L7_DHCP_SNOOPING_PACKAGE
+  L7_uint32 intIfNum;
+  dhcpSnoopIntfStats_t stats;
 
   if(((searchType == EXACT) ?
       (snmpDhcpSnoopingIntfGet(agentDhcpSnoopingStatsEntryData.ifIndex) != L7_SUCCESS) :
@@ -16879,6 +16898,8 @@ k_agentDhcpSnoopingStatsEntry_get(int serialNum, ContextInfo *contextInfo,
       return(NULL);
      break;
   }
+#endif
+
    if ( nominator >= 0 && !VALID(nominator,agentDhcpSnoopingStatsEntryData.valid))
       return(NULL);
    return(&agentDhcpSnoopingStatsEntryData);
@@ -16896,7 +16917,6 @@ k_agentIpsgIfConfigEntry_get(int serialNum, ContextInfo *contextInfo,
 {
 
   static agentIpsgIfConfigEntry_t agentIpsgIfConfigEntryData;
-  L7_uint32 intIfNum;
 
   ZERO_VALID(agentIpsgIfConfigEntryData.valid);
   agentIpsgIfConfigEntryData.ifIndex = ifIndex;
@@ -16907,6 +16927,9 @@ k_agentIpsgIfConfigEntry_get(int serialNum, ContextInfo *contextInfo,
   {
     return (NULL);
   }
+
+#ifdef L7_DHCP_SNOOPING_PACKAGE
+  L7_uint32 intIfNum;
 
   if(((searchType == EXACT) ?
       (snmpDhcpSnoopingIntfGet(agentIpsgIfConfigEntryData.ifIndex) != L7_SUCCESS) :
@@ -16929,14 +16952,18 @@ k_agentIpsgIfConfigEntry_get(int serialNum, ContextInfo *contextInfo,
     if ( nominator != -1 ) break;
     /* else pass through */
   case I_agentIpsgIfVerifySource:
+    #ifdef L7_IPSG_PACKAGE
     if (snmpIpsgIfVerifySourceGet(intIfNum, &agentIpsgIfConfigEntryData.agentIpsgIfVerifySource) == L7_SUCCESS)
       SET_VALID(I_agentIpsgIfVerifySource, agentIpsgIfConfigEntryData.valid);
+    #endif
     if ( nominator != -1 ) break;
     /* else pass through */
 
   case I_agentIpsgIfPortSecurity:
+    #ifdef L7_IPSG_PACKAGE
     if (snmpIpsgIfPortSecurityGet(intIfNum, &agentIpsgIfConfigEntryData.agentIpsgIfPortSecurity) == L7_SUCCESS)
       SET_VALID(I_agentIpsgIfPortSecurity, agentIpsgIfConfigEntryData.valid);
+    #endif
      break;
     /* else pass through */
   default:
@@ -16944,6 +16971,7 @@ k_agentIpsgIfConfigEntry_get(int serialNum, ContextInfo *contextInfo,
     return(NULL);
     break;
   }
+#endif
   if ( nominator >= 0 && !VALID(nominator, agentIpsgIfConfigEntryData.valid) )
     return(NULL);
 
@@ -16982,6 +17010,7 @@ int
 k_agentIpsgIfConfigEntry_set(agentIpsgIfConfigEntry_t *data,
                              ContextInfo *contextInfo, int function)
 {
+#ifdef L7_IPSG_PACKAGE
   L7_uint32 intIfNum;
   L7_RC_t rc;
 
@@ -17016,6 +17045,9 @@ k_agentIpsgIfConfigEntry_set(agentIpsgIfConfigEntry_t *data,
     return NO_ERROR;
   }
   return COMMIT_FAILED_ERROR;
+#else
+  return NO_ERROR;
+#endif
 }
 
 #if 0
@@ -17120,8 +17152,6 @@ k_agentStaticIpsgBindingEntry_get(int serialNum, ContextInfo *contextInfo,
   L7_char8 mac_buffer[SNMP_BUFFER_LEN];
   L7_char8 name_buffer[SNMP_BUFFER_LEN];
   L7_enetMacAddr_t macAddr;
-  static L7_ushort16 vlanIndex;
-  L7_uint32 entryType;
 
   if((cnfgrIsFeaturePresent(L7_DHCP_SNOOPING_COMPONENT_ID,
                             L7_DHCP_SNOOPING_IPSG)) != L7_TRUE)
@@ -17157,6 +17187,10 @@ k_agentStaticIpsgBindingEntry_get(int serialNum, ContextInfo *contextInfo,
   SET_VALID(I_agentStaticIpsgBindingIpAddr, agentStaticIpsgBindingEntryData.valid);
 
   snmpConvertStringToMac ( mac_buffer,macAddr.addr);
+
+#ifdef L7_IPSG_PACKAGE
+  static L7_ushort16 vlanIndex;
+  L7_uint32 entryType;
 
   entryType = IPSG_ENTRY_STATIC;
 
@@ -17202,6 +17236,7 @@ k_agentStaticIpsgBindingEntry_get(int serialNum, ContextInfo *contextInfo,
       return (NULL);
     }
   }
+#endif
 
   /*
    * if ( nominator != -1 ) condition is added to all the case statements
@@ -17267,6 +17302,7 @@ int
 k_agentStaticIpsgBindingEntry_set(agentStaticIpsgBindingEntry_t *data,
                              ContextInfo *contextInfo, int function)
 {
+#ifdef L7_IPSG_PACKAGE
   char snmp_buffer[SNMP_BUFFER_LEN];
   char mac_buffer[SNMP_BUFFER_LEN];
 
@@ -17298,6 +17334,8 @@ k_agentStaticIpsgBindingEntry_set(agentStaticIpsgBindingEntry_t *data,
       return COMMIT_FAILED_ERROR;
     }
   }
+#endif
+
   return NO_ERROR;
 }
 
@@ -17333,8 +17371,6 @@ k_agentDynamicIpsgBindingEntry_get(int serialNum, ContextInfo *contextInfo,
   L7_char8 mac_buffer[SNMP_BUFFER_LEN];
   L7_char8 name_buffer[SNMP_BUFFER_LEN];
   L7_enetMacAddr_t macAddr;
-  static L7_ushort16 vlanIndex;
-  L7_uint32 entryType;
 
   if((cnfgrIsFeaturePresent(L7_DHCP_SNOOPING_COMPONENT_ID,
                             L7_DHCP_SNOOPING_IPSG)) != L7_TRUE)
@@ -17369,6 +17405,10 @@ k_agentDynamicIpsgBindingEntry_get(int serialNum, ContextInfo *contextInfo,
   SET_VALID(I_agentDynamicIpsgBindingIpAddr, agentDynamicIpsgBindingEntryData.valid);
 
   snmpConvertStringToMac ( mac_buffer,macAddr.addr);
+
+#ifdef L7_IPSG_PACKAGE
+  static L7_ushort16 vlanIndex;
+  L7_uint32 entryType;
 
   entryType = IPSG_ENTRY_DYNAMIC;
   
@@ -17415,6 +17455,7 @@ k_agentDynamicIpsgBindingEntry_get(int serialNum, ContextInfo *contextInfo,
       return (NULL);
     }
   }
+#endif
 
   /*
    * if ( nominator != -1 ) condition is added to all the case statements
@@ -17590,6 +17631,7 @@ int
 k_agentStaticDsBindingEntry_set(agentStaticDsBindingEntry_t *data,
                            ContextInfo *contextInfo, int function)
 {
+#ifdef L7_IPSG_PACKAGE
    char snmp_buffer[SNMP_BUFFER_LEN];
    char mac_buffer[SNMP_BUFFER_LEN];
 
@@ -17616,6 +17658,9 @@ k_agentStaticDsBindingEntry_set(agentStaticDsBindingEntry_t *data,
   return NO_ERROR;
   }
   return COMMIT_FAILED_ERROR;
+#else
+  return NO_ERROR;
+#endif
 }
 
 
@@ -17781,16 +17826,20 @@ k_agentDhcpL2RelayConfigGroup_get(int serialNum, ContextInfo *contextInfo,
   case -1:
     /* pass through */
   case I_agentDhcpL2RelayAdminMode:
+    #ifdef L7_DHCP_SNOOPING_PACKAGE   
       if (snmpDhcpL2RelayAdminModeGet(&agentDhcpL2RelayConfigGroupData.agentDhcpL2RelayAdminMode)
                                       == L7_SUCCESS)
       SET_VALID(I_agentDhcpL2RelayAdminMode,
                 agentDhcpL2RelayConfigGroupData.valid);
+    #endif
     if (nominator != -1) break;
     /* else pass through */
   case I_agentDhcpSnoopingStatsReset :
+    #ifdef L7_DHCP_SNOOPING_PACKAGE   
     agentDhcpL2RelayConfigGroupData.agentDhcpL2RelayStatsReset =
                                               D_agentDhcpL2RelayStatsReset_none;
     SET_VALID(I_agentDhcpL2RelayStatsReset, agentDhcpL2RelayConfigGroupData.valid);
+    #endif
   break;
   default:
     /* unknown nominator */
@@ -17825,6 +17874,7 @@ int
 k_agentDhcpL2RelayConfigGroup_set(agentDhcpL2RelayConfigGroup_t *data,
                                    ContextInfo *contextInfo, int function)
 {
+#ifdef L7_DHCP_SNOOPING_PACKAGE
   if (VALID(I_agentDhcpL2RelayAdminMode, data->valid) &&
       snmpDhcpL2RelayAdminModeSet(data->agentDhcpL2RelayAdminMode) != L7_SUCCESS)
   {
@@ -17838,6 +17888,8 @@ k_agentDhcpL2RelayConfigGroup_set(agentDhcpL2RelayConfigGroup_t *data,
       CLR_VALID(I_agentDhcpL2RelayStatsReset, data->valid);
       return COMMIT_FAILED_ERROR;
   }
+#endif
+
   return NO_ERROR;
 }
 #ifdef SR_agentDhcpL2RelayConfigGroup_UNDO
@@ -17861,11 +17913,13 @@ k_agentDhcpL2RelayIfConfigEntry_get(int serialNum, ContextInfo *contextInfo,
                                      SR_INT32 ifIndex)
 {
   static agentDhcpL2RelayIfConfigEntry_t agentDhcpL2RelayConfigEntryData;
-  L7_uint32 intIfNum;
 
   ZERO_VALID(agentDhcpL2RelayConfigEntryData.valid);
   agentDhcpL2RelayConfigEntryData.ifIndex = ifIndex;
   SET_VALID(I_agentDhcpL2RelayIfConfigEntryIndex_ifIndex, agentDhcpL2RelayConfigEntryData.valid);
+
+#ifdef L7_DHCP_SNOOPING_PACKAGE
+  L7_uint32 intIfNum;
 
   if(((searchType == EXACT) ?
       (snmpDhcpL2RelayIntfGet(agentDhcpL2RelayConfigEntryData.ifIndex) != L7_SUCCESS) :
@@ -17906,6 +17960,7 @@ k_agentDhcpL2RelayIfConfigEntry_get(int serialNum, ContextInfo *contextInfo,
     return(NULL);
     break;
   }
+#endif
   if ( nominator >= 0 && !VALID(nominator, agentDhcpL2RelayConfigEntryData.valid) )
     return(NULL);
 
@@ -17944,7 +17999,7 @@ int
 k_agentDhcpL2RelayIfConfigEntry_set(agentDhcpL2RelayIfConfigEntry_t *data,
                                      ContextInfo *contextInfo, int function)
 {
-
+#ifdef L7_DHCP_SNOOPING_PACKAGE
   L7_uint32 intIfNum;
   L7_RC_t rc;
 
@@ -17974,6 +18029,9 @@ k_agentDhcpL2RelayIfConfigEntry_set(agentDhcpL2RelayIfConfigEntry_t *data,
   }
   
   return COMMIT_FAILED_ERROR;
+#else
+  return NO_ERROR;
+#endif
 }
 #ifdef SR_agentDhcpL2RelayIfConfigEntry_UNDO
 /* add #define SR_agentDhcpL2RelayIfConfigEntry_UNDO in sitedefs.h to
@@ -18002,6 +18060,7 @@ k_agentDhcpL2RelayVlanConfigEntry_get(int serialNum, ContextInfo *contextInfo,
                                       agentDhcpL2RelayVlanIndex;
   SET_VALID(I_agentDhcpL2RelayVlanIndex, agentDhcpL2RelayVlanConfigEntryData.valid);
 
+#ifdef L7_DHCP_SNOOPING_PACKAGE
   if ((searchType == EXACT) ?
       (snmpDhcpL2RelayVlanGet(USMDB_UNIT_CURRENT,
                        agentDhcpL2RelayVlanConfigEntryData.agentDhcpL2RelayVlanIndex) != L7_SUCCESS)        :
@@ -18046,6 +18105,7 @@ k_agentDhcpL2RelayVlanConfigEntry_get(int serialNum, ContextInfo *contextInfo,
       return (NULL);
       break;
   }
+#endif
 
   if (nominator >= 0 && !VALID(nominator, agentDhcpL2RelayVlanConfigEntryData.valid))
   {
@@ -18088,9 +18148,8 @@ int
 k_agentDhcpL2RelayVlanConfigEntry_set(agentDhcpL2RelayVlanConfigEntry_t *data,
                                        ContextInfo *contextInfo, int function)
 {
-
+#ifdef L7_DHCP_SNOOPING_PACKAGE
   L7_uint32 vlanId;
-
 
   vlanId = data->agentDhcpL2RelayVlanIndex;
   if(snmpDhcpL2RelayVlanGet(USMDB_UNIT_CURRENT, vlanId) != L7_SUCCESS)
@@ -18118,6 +18177,8 @@ k_agentDhcpL2RelayVlanConfigEntry_set(agentDhcpL2RelayVlanConfigEntry_t *data,
       CLR_VALID(I_agentDhcpL2RelayRemoteIdVlanEnable, data->valid);
       return COMMIT_FAILED_ERROR;
   }
+#endif
+
   return NO_ERROR;
 }
 #ifdef SR_agentDhcpL2RelayVlanConfigEntry_UNDO
@@ -18141,14 +18202,15 @@ k_agentDhcpL2RelayStatsEntry_get(int serialNum, ContextInfo *contextInfo,
                                   SR_INT32 ifIndex)
 {
    static agentDhcpL2RelayStatsEntry_t agentDhcpL2RelayStatsEntryData;
-   dsL2RelayIntfStats_t stats;
-   L7_uint32 intIfNum;
 
    ZERO_VALID (agentDhcpL2RelayStatsEntryData.valid);
    agentDhcpL2RelayStatsEntryData.ifIndex = ifIndex;
    SET_VALID (I_agentDhcpL2RelayStatsEntryIndex_ifIndex,
                              agentDhcpL2RelayStatsEntryData.valid);
 
+#ifdef L7_DHCP_SNOOPING_PACKAGE
+  dsL2RelayIntfStats_t stats;
+  L7_uint32 intIfNum;
 
   if(((searchType == EXACT) ?
       (snmpDhcpL2RelayIntfGet(agentDhcpL2RelayStatsEntryData.ifIndex) != L7_SUCCESS) :
@@ -18198,6 +18260,7 @@ k_agentDhcpL2RelayStatsEntry_get(int serialNum, ContextInfo *contextInfo,
       return(NULL);
      break;
   }
+#endif
    if ( nominator >= 0 && !VALID(nominator,agentDhcpL2RelayStatsEntryData.valid))
       return(NULL);
    return(&agentDhcpL2RelayStatsEntryData);
@@ -18216,9 +18279,6 @@ k_agentDhcpL2RelaySubscriptionConfigEntry_get(int serialNum, ContextInfo *contex
   static agentDhcpL2RelaySubscriptionConfigEntry_t agentDhcpL2RelaySubscriptionConfigEntryData;
   static L7_BOOL firstTime = L7_TRUE;
   L7_uchar8 snmp_buffer[SNMP_BUFFER_LEN];
-  L7_uint32 intfIndex;
-  L7_uchar8 subscName[SNMP_BUFFER_LEN];
-  L7_uchar8 eoStr = L7_EOS;
 
   if (usmDbComponentPresentCheck(USMDB_UNIT_CURRENT, L7_DOT1Q_COMPONENT_ID ) == L7_FALSE )
     return(NULL);
@@ -18250,6 +18310,12 @@ k_agentDhcpL2RelaySubscriptionConfigEntry_get(int serialNum, ContextInfo *contex
 
   SET_VALID(I_agentDhcpL2RelaySubscriptionName,\
             agentDhcpL2RelaySubscriptionConfigEntryData.valid);
+
+#ifdef L7_DHCP_SNOOPING_PACKAGE
+  L7_uint32 intfIndex;
+  L7_uchar8 subscName[SNMP_BUFFER_LEN];
+  L7_uchar8 eoStr = L7_EOS;
+
   /* Validating the row-entries for GET and GETNEXT operations */
   if (searchType == EXACT)
   {
@@ -18328,7 +18394,7 @@ k_agentDhcpL2RelaySubscriptionConfigEntry_get(int serialNum, ContextInfo *contex
     /* unknown nominator value */
     return(NULL);
   }
-
+#endif
 
   if (nominator >= 0 && !VALID(nominator, agentDhcpL2RelaySubscriptionConfigEntryData.valid))
   {
@@ -18399,6 +18465,7 @@ k_agentDhcpL2RelaySubscriptionConfigEntry_set(agentDhcpL2RelaySubscriptionConfig
     }
   }
 
+#ifdef L7_DHCP_SNOOPING_PACKAGE
   if (VALID(I_agentDhcpL2RelaySubscriptionEnable, data->valid))
   {
     if (snmpDhcpL2RelaySubscriptionModeSet(intfIndex, subscName, 
@@ -18425,6 +18492,8 @@ k_agentDhcpL2RelaySubscriptionConfigEntry_set(agentDhcpL2RelaySubscriptionConfig
       return COMMIT_FAILED_ERROR;
     }
   }
+#endif
+
   return NO_ERROR;
 }
 

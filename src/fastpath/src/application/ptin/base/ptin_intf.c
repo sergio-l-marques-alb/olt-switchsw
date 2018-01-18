@@ -274,6 +274,8 @@ L7_RC_t ptin_intf_post_init(void)
   /* Initialize phy default TPID and MTU */
   for (i=0; i<ptin_sys_number_of_ports; i++)
   {
+    PT_LOG_INFO(LOG_CTX_INTF, "Initializing port %u", i);
+
     ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
     ptin_intf.intf_id   = i;
 
@@ -369,11 +371,13 @@ L7_RC_t ptin_intf_post_init(void)
     #endif
 
     /* QoS initialization */
+  #if (PTIN_BOARD != PTIN_BOARD_TA12XG)
     if (ptin_intf_QoS_init(&ptin_intf)!=L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Phy# %u: Error initializing QoS definitions",i);
       return L7_FAILURE;
     }
+  #endif
 
 //#if (PTIN_BOARD == PTIN_BOARD_TOLT8G)
 //    /* For TOLT8G, configure MAC learn priority with higher value on uplink interfaces */
@@ -402,6 +406,7 @@ L7_RC_t ptin_intf_post_init(void)
   {
     phyConf_data[i].Port = i;
     if (ptin_intf_PhyConfig_read(&phyConf_data[i]) != L7_SUCCESS) {
+      PT_LOG_ERR(LOG_CTX_INTF, "Failed reading PHY config");
       return L7_FAILURE;
     }
   }

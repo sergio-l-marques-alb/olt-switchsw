@@ -199,7 +199,9 @@ int L7_util_task( void )
             {
               context->obtActive = L7_FALSE;
               usmDbTelnetDisconnect(cliCurrentSocketGet(), context->obtSocket);
+            #ifdef L7_CLI_PACKAGE
               usmDbObtLoginSessionEnd(index);
+            #endif
               context->obtSocket = 0;
 
               if ((loginType == L7_LOGIN_TYPE_TELNET) || (loginType == L7_LOGIN_TYPE_SSH))

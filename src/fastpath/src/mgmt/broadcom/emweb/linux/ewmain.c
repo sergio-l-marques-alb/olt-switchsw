@@ -4299,9 +4299,11 @@ static
 void NetReceiveLoop( fd_set* fds )
 {
 #ifdef L7_OUTBOUND_TELNET_PACKAGE
+#ifdef L7_CLI_PACKAGE
   L7_RC_t      rc;
   L7_uint32    unit = 0;
   L7_uint32 loginType = 0;
+#endif
 #endif /*L7_OUTBOUND_TELNET_PACKAGE */
   int s;
   EwaNetHandle connection = NULL;
@@ -4532,6 +4534,7 @@ void NetReceiveLoop( fd_set* fds )
              ( Handle[s]->context->obtActive == L7_TRUE && FD_ISSET( Handle[s]->socket, fds ))
             )  /* if OBT client socket is ready */
     {
+    #ifdef L7_CLI_PACKAGE
       rc = usmdbObtClientInputHandle(unit, Handle[s]->socket, Handle[s]->context->obtSocket);
 
       if (rc == L7_SUCCESS)
@@ -4558,11 +4561,13 @@ void NetReceiveLoop( fd_set* fds )
            cliWriteSerial((L7_char8 *)(Handle[s]->context->telnet->prompt));
         }
       }
+    #endif
     }  /* end of client OBT Activity */
     else if (( Handle[s] != NULL ) &&
              ( Handle[s]->context->obtActive == L7_TRUE && FD_ISSET( Handle[s]->context->obtSocket, fds ))
             )  /* if OBT server socket is ready */
     {
+    #ifdef L7_CLI_PACKAGE
       rc = usmdbObtServerInputHandle(unit, Handle[s]->socket, Handle[s]->context->obtSocket);
 
       if (rc == L7_SUCCESS)
@@ -4588,6 +4593,7 @@ void NetReceiveLoop( fd_set* fds )
            cliWriteSerial((L7_char8 *)(Handle[s]->context->telnet->prompt));
         }
       }
+    #endif
     }  /* end of server OBT Activity */
 #endif /* L7_OUTBOUND_TELNET_PACKAGE */
     else if((Handle[s] != NULL) && !(FD_ISSET( Handle[s]->socket, fds )) && (Handle[s]->socket != bspapiConsoleFdGet()))
