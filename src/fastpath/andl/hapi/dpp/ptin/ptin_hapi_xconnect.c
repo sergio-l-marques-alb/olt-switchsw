@@ -37,24 +37,7 @@ L7_uint16 resources_crossconnects = FREE_RESOURCES_CROSSCONNECTS;
  */
 L7_RC_t ptin_hapi_bridge_init(void)
 {
-  int error;
-
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_switch_control_set(%d,%d,1)", bcm_unit, bcmSwitchSharedVlanEnable);
-
-  /* Enable Shared Vlan for using one single vlan in E-Trees when learning MACs */
-  if ( (error = bcmx_switch_control_set( bcmSwitchSharedVlanEnable, L7_TRUE )) != BCM_E_NONE )
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error enabling shared vlan: error=%d (%s)", error, bcm_errmsg(error));
-    return L7_FAILURE;
-  }
-
-  #if 0
-  if ( (error=ptin_hapi_maclimit_init()) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_HAPI, "Error initializing MAC learning control: error=%d (%s)", error, bcm_errmsg(error));
-    return L7_FAILURE;
-  }
-  #endif
+  /* Insert init code here! */
 
   PT_LOG_TRACE(LOG_CTX_HAPI, "ptin_hapi_bridge_init returned success");
 

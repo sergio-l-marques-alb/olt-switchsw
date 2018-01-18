@@ -601,7 +601,9 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
   ptin_dapi_port_t dapiPort;
   ptin_HWPortExt_t  *portExt;
   L7_RC_t rc = L7_SUCCESS;
+#if 0
   L7_int  macLearn_enable, stationMove_enable, stationMove_prio, stationMove_samePrio, port_type;
+#endif
 
   /* Extract priority */
   portExt = (ptin_HWPortExt_t *) data;
@@ -618,6 +620,7 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
   /* Prepare dapiPort structure */
   DAPIPORT_SET(&dapiPort,usp,dapi_g);
 
+#if 0
   /* Set operation */
   if (portExt->operation==DAPI_CMD_GET)
   {
@@ -671,6 +674,7 @@ L7_RC_t hapiBroadPtinPortExt(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t
     }
     PT_LOG_TRACE(LOG_CTX_HAPI, "Result for L2LearnPortSet: %d",rc);
   }
+#endif
 
   return rc;
 }
