@@ -8958,7 +8958,7 @@ L7_RC_t ptin_intf_max_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
         case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
           total_speed += 10000;
           break;
-        case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+        case L7_PORTCTRL_PORTSPEED_FULL_40G:
           total_speed += 40000;
           break;
         case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
@@ -9066,7 +9066,7 @@ L7_RC_t ptin_intf_active_bandwidth(L7_uint32 intIfNum, L7_uint32 *bandwidth)
         case L7_PORTCTRL_PORTSPEED_FULL_10GSX:
           total_speed += 10000;
           break;
-        case L7_PORTCTRL_PORTSPEED_FULL_40G_KR4:
+        case L7_PORTCTRL_PORTSPEED_FULL_40G:
           total_speed += 40000;
           break;
         case L7_PORTCTRL_PORTSPEED_FULL_100G_BKP:
