@@ -5,7 +5,7 @@ PKGLIB =
 
 # Local source path abbreviations (for convenience).
 #
-vend_sdk     := vendor/broadcom/esw_sdk
+vend_sdk     ?= vendor/broadcom/esw_sdk
 vend_sdk_src := $(vend_sdk)/src
 vend_sdk_sys := $(vend_sdk)/systems
 
