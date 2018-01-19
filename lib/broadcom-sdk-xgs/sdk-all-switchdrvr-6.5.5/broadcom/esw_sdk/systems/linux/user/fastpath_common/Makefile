@@ -45,6 +45,8 @@
 
 override-target=unix-user
 
+NUM_CPUS = $(shell grep -c 'model name' /proc/cpuinfo)
+
 all: check build
 
 ifeq ($(LINUX_MAKE_SHARED_LIB),1)
@@ -195,26 +197,26 @@ endif
 build:: $(BLDDIR)/.tree $(build_targets)
 
 kernel_modules:
-	$(MAKE) -C $(SDK)/systems/bde/linux/kernel kernel_version=$(kernel_version) OPT_CFLAGS="$(ADD_TO_CFLAGS)"
-	$(MAKE) -C $(SDK)/systems/bde/linux/user/kernel kernel_version=$(kernel_version) OPT_CFLAGS="$(ADD_TO_CFLAGS)"
+	$(MAKE) -j$(NUM_CPUS) -C $(SDK)/systems/bde/linux/kernel kernel_version=$(kernel_version) OPT_CFLAGS="$(ADD_TO_CFLAGS)"
+	$(MAKE) -j$(NUM_CPUS) -C $(SDK)/systems/bde/linux/user/kernel kernel_version=$(kernel_version) OPT_CFLAGS="$(ADD_TO_CFLAGS)"
 
 # LVL7_FIXUP :
 # 1. Added $(MAKE) -C $(SDK)/systems/linux/user/common -f Makefile.fastpath CFLAGS="$(CFLAGS)"
 # 2. Remove $(MAKE) -C $(SDK)/systems/drv CFLAGS="$(CFLAGS)"
 user_libs:
-	$(MAKE) -C $(SDK)/systems/linux/user/fastpath_common -f Makefile.fastpath CFLAGS="$(CFLAGS)"
-	$(MAKE) -C $(SDK)/systems/bde/linux/user CFLAGS="$(CFLAGS)"
-	$(MAKE) -C $(SDK)/src CFLAGS="$(ADD_TO_CFLAGS)"
+	$(MAKE) -j$(NUM_CPUS) -C $(SDK)/systems/linux/user/fastpath_common -f Makefile.fastpath CFLAGS="$(CFLAGS)"
+	$(MAKE) -j$(NUM_CPUS) -C $(SDK)/systems/bde/linux/user CFLAGS="$(CFLAGS)"
+	$(MAKE) -j$(NUM_CPUS) -C $(SDK)/src CFLAGS="$(ADD_TO_CFLAGS)"
 ifdef BUILD_MACSEC
 	@${ECHO} "Building MACSEC libraries ...."
-	$(MAKE) -C ${MACSEC_HOME} MACSEC_CC="${CC}" MACSEC_LD="${LD}" MACSEC_AR="$(AR)" MACSEC_CFLAGS="${MACSEC_BUILD_FLAG}" MACSEC_TARGET="${targetbase}/${targetplat}/${platform}"
+	$(MAKE) -j$(NUM_CPUS) -C ${MACSEC_HOME} MACSEC_CC="${CC}" MACSEC_LD="${LD}" MACSEC_AR="$(AR)" MACSEC_CFLAGS="${MACSEC_BUILD_FLAG}" MACSEC_TARGET="${targetbase}/${targetplat}/${platform}"
 endif
 	$(info SYSROOT=$(SYSROOT))
 ifdef BUILD_PHYMOD
 	@${ECHO} "Building PHYMOD libraries ...."
 	$(info "CFLAGS=$(CFLAGS)")
 	$(info "ADD_TO_CFLAGS=$(ADD_TO_CFLAGS)")
-	$(MAKE) -C $(SDK)/libs/phymod CFLAGS="$(ADD_TO_CFLAGS)"
+	$(MAKE) -j$(NUM_CPUS) -C $(SDK)/libs/phymod CFLAGS="$(ADD_TO_CFLAGS)"
 endif
 
 # Broadcom Command Monitor
