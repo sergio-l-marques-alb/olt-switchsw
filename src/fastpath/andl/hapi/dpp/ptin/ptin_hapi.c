@@ -80,7 +80,7 @@ bcm_pbmp_t pbm_egress_root_ports;
 bcm_pbmp_t pbm_egress_community_ports;
 
 /* Save storm control rate values */
-ptin_stormControl_t stormControl_backup = { 0, 0, RATE_LIMIT_BCAST, RATE_LIMIT_MCAST, RATE_LIMIT_UCUNK, RATE_LIMIT_CPU };
+ptin_stormControl_t stormControl_backup = { 0, 0, RATE_LIMIT_BCAST, RATE_LIMIT_MCAST, RATE_LIMIT_UCUNK, RATE_LIMIT_CPU_TRAFFIC };
 
 /********************************************************************
  * MACROS AND INLINE FUNCTIONS

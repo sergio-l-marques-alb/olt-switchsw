@@ -66,8 +66,8 @@ typedef enum bcm_sys_board_ids_e {
     BCM_SYS_BOARD_88650,    /* PTin added: new switch ARAD */
     BCM_SYS_BOARD_88370,    /* PTin added: new switch Q-MX */
     BCM_SYS_BOARD_88470,    /* PTin added: new switch Q-AX */
-    BCM_SYS_BOARD_88670     /* PTin added: new switch Jericho */
-BCM_SYS_BOARD_COUNT         /* Last please */
+    BCM_SYS_BOARD_88670,    /* PTin added: new switch Jericho */
+    BCM_SYS_BOARD_COUNT     /* Last please */
 } bcm_sys_board_ids_t;
 
 typedef struct bcm_sys_board_s bcm_sys_board_t;

@@ -43,7 +43,7 @@
 #include "cli_web_user_mgmt.h"
 #include "sdm_api.h"
 
-#include "sal/core/boot.h"
+//#include "sal/core/boot.h"
 
 #define  SYSAPI_FILE_BUF_SIZE   1024
 
