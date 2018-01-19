@@ -1003,9 +1003,11 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       }
       else 
       {
-			    mcastRootVlan = 512;
-
-          PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId ,mcastRootVlan);
+        if (pduInfo->vlanId <= 512 && isDynamic)
+        {
+          mcastRootVlan = 512;
+        }
+        PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId ,mcastRootVlan);
       }
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
     }
