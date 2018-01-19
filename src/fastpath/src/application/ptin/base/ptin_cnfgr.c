@@ -686,9 +686,9 @@ L7_RC_t ptinCnfgrInitPhase3Process( L7_CNFGR_RESPONSE_t *pResponse,
   }
 
   /* Initialize Routing data structures */
-  #if 0
+#if (!PTIN_BOARD_IS_DNX)
   ptin_routing_init();
-  #endif
+#endif
 
   ptinCnfgrState = PTIN_PHASE_INIT_3;
 

@@ -183,17 +183,17 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 
   rc = osapiTaskInitDone(L7_PTIN_TASK_SYNC);
 
-#if 0
+#if (PTIN_BOARD_IS_DNX)
   /* Wait for a signal indicating that all other modules
    * configurations were executed */
   osapiSleep(10);
-
+#else
   PT_LOG_INFO(LOG_CTX_CONTROL, "PTin task waiting for other modules to boot up...");
   rc = osapiSemaTake(ptin_ready_sem, L7_WAIT_FOREVER);
 #endif
   PT_LOG_NOTICE(LOG_CTX_CONTROL, "PTin task will now start!");
 
-#if 0
+#if (!PTIN_BOARD_IS_DNX)
   /* System StormControl no more supported */
   /* Initialize storm control */
   rc = ptin_stormControl_init();
@@ -227,7 +227,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
 
-#if 0
+#if (!PTIN_BOARD_IS_DNX)
   /* Initialize xlate module in application layer */
   if (ptin_xlate_init()!=L7_SUCCESS)
   {
@@ -250,7 +250,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
   }
 #endif
 
-#if 0
+#if (!PTIN_BOARD_IS_DNX)
 #if ( PTIN_BOARD_IS_MATRIX )
   /* Configure InBand bridge if this board is CXP360G */
   if (ptin_cfg_inband_bridge_set() != L7_SUCCESS)

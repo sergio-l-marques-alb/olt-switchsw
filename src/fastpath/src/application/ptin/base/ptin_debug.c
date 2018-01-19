@@ -698,9 +698,9 @@ void ptin_intf_dump(void)
   sysapiHpcCardInfoPtr = sysapiHpcCardDbEntryGet(hpcLocalCardIdGet(0));
   dapiCardPtr = sysapiHpcCardInfoPtr->dapiCardInfo;
   hapiSlotMapPtr = dapiCardPtr->slotMap;
-  printf("+-------+------+------+---------+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
-  printf("| Board | Slot | Port | IfN/Lag | bcm_port | MEF Ext.* | Ena | Link | Speed | FOvr/FMax |   RX:  bytes       bps |   TX:  bytes       bps |\r\n");
-  printf("+-------+------+------+---------+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
+  printf("+-------+------+------+-----+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
+  printf("| Board | Slot | Port | IfN | bcm_port | MEF Ext.* | Ena | Link | Speed | FOvr/FMax |   RX:  bytes       bps |   TX:  bytes       bps |\r\n");
+  printf("+-------+------+------+-----+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
   for (port=0; port<ptin_sys_number_of_ports; port++)
   {
     #if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
@@ -946,7 +946,7 @@ void ptin_intf_dump(void)
            portStats.Tx.Throughput / ((portStats.Tx.Throughput>=1000000000ULL) ? 1000 : 1), (portStats.Tx.Throughput>=1000000000ULL) ? "K" : " ");
     #endif
   }
-  printf("+-------+------+------+---------+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
+  printf("+-------+------+------+-----+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
   printf("MEF Ext: MEF Extension attributes -> Port Type - MAC move enable / MAC move with same prio enable / MAC move prio\r\n");
 
   fflush(stdout);
