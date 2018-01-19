@@ -259,7 +259,7 @@ void ptin_opensaf_task_OnuMac( void )
     L7_uint32 section = ONU_STATE_INDEX(event_data.parentId , event_data.onuId, event_data.slotId, event_data.linkId);
 
     /* Get ONU State */
-    ptin_opensaf_read_checkpoint(&onuStatus,sizeof(onuStatus),section,0,ONU_STATE);
+    ptin_opensaf_read_checkpoint(&onuStatus,sizeof(onuStatus),ENDIAN_SWAP32(section),0,ONU_STATE);
 
 #if 0
     ptin_opensaf_read_checkpoint(&data,sizeof(data),event_data.onuId,0,SWITCHDRVR_ONU);
