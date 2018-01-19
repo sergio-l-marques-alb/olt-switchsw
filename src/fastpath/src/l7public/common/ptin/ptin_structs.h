@@ -99,6 +99,8 @@ typedef enum
   PTIN_DTL_MSG_OAM_BCM,
   PTIN_DTL_MSG_SHAPER_MAX_BURST,
   PTIN_DTL_MSG_SHAPER_MAX_BURST_GET,
+  PTIN_DTL_MSG_VSI,
+  PTIN_DTL_MSG_VSI_MEMBER,
   PTIN_DTL_MSG_MAX
   
 } ptin_dtl_msg_enum;
@@ -174,6 +176,15 @@ typedef struct {
 
 
 
+
+typedef struct
+{
+  L7_uint16   vsi;
+  L7_uint32   vlan_port_id;
+  L7_uint16   outer_vlan;
+  L7_uint16   inner_vlan;
+  L7_uint16   multicast_group;
+} ptinDtlVSI_t;
 
 typedef struct
 {
@@ -620,6 +631,7 @@ typedef enum
 /* Structure used to configure translation entries */
 typedef struct {
   DAPI_CMD_GET_SET_t oper;                  // Operation: DAPI_CMD_SET add, DAPI_CMD_CLEAR remove, and DAPI_CMD_GET reads.
+  L7_uint32                   lif;          // Logical interface
   L7_uint32                   portgroup;    // Group of ports
   ptin_vlanXlate_stage_enum   stage;        // Translation stage
 
@@ -662,6 +674,7 @@ typedef struct
 /* Struct used to configure vlan mode via DTL */
 typedef struct
 {
+  L7_uint32 lif_id;                 // LIF id
   L7_uint16 vlanId;                 // Vlan which will be configured
   L7_BOOL   double_tag;             // Use double tag
     #define PTIN_BRIDGE_VLAN_MODE_MASK_NONE           0x00
@@ -679,6 +692,10 @@ typedef struct
     #define PTIN_BRIDGE_VLAN_MODE_MASK_MC_GROUP       0x20
   L7_int    multicast_group;        // Associate a multicast group
   L7_uint32 multicast_flag;     /* BCM_MULTICAST_TYPE_VLAN  | BCM_MULTICAST_TYPE_L3*/
+    #define PTIN_BRIDGE_VLAN_MODE_MASK_FLOOD          0x40
+  L7_BOOL   mcgroup_flood_unkn_uc;
+  L7_BOOL   mcgroup_flood_unkn_mc;
+  L7_BOOL   mcgroup_flood_bc;
 } ptin_bridge_vlan_mode_t;
 
 /*The below values have been copied from bcm sdk*/  
@@ -718,6 +735,7 @@ typedef struct
   L7_uint8 macLearnMax;
   L7_int  port_id;
   L7_int  type;
+  L7_uint16 vsi;
 } ptin_vport_t;
 
 /* Struct used to manipulate cross connects via DTL */
