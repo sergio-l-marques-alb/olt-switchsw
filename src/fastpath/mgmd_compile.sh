@@ -27,7 +27,7 @@ if [ "$1" == "TA12XG" ]; then
 
   export COMPILER_DIR=/opt/eldk/usr/bin
   export COMPILER_PREFIX=ppc_85xxDP-
-  export LD_LIB_PATH=/opt/eldk/usr/bin
+  export LD_LIB_PATH=/opt/eldk/usr/lib
 
   # Overide local variables with the ones comming from the makefile (if defined)
   export COMPILER_DIR="${TOOLCHAIN_BIN_DIR:-$COMPILER_DIR}"
@@ -57,7 +57,7 @@ FP_FOLDER="${FP_FOLDER:-$PWD}"
 MGMD_PATH=$FP_FOLDER/src/application/switching/mgmd
 MGMD_CONFIGURE=$MGMD_PATH/configure
 
-FP_OUTPUT_PATH=$FP_FOLDER/output/FastPath-Ent-esw-xgs4-$CPU-LR-CSxw-IQH_$BOARD
+FP_OUTPUT_PATH=$FP_FOLDER/output/FastPath-Ent-dpp-dnx-$CPU-LR-CSxw-IQH_$BOARD
 MGMD_OUTPUT_PATH=$FP_OUTPUT_PATH/objects/mgmd
 EXPORT_FILE=$MGMD_OUTPUT_PATH/export.var
 

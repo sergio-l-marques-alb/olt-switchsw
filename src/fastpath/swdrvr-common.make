@@ -19,7 +19,7 @@ CURRENT_PATH ?= $(shell pwd)
 FP_FOLDER    ?= $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
 OLT_DIR      ?= $(subst /$(FP_FOLDER),,$(shell pwd))
 
-CARD_FOLDER ?= FastPath-Ent-esw-xgs4-$(CPU)-LR-CSxw-IQH_$(BOARD)
+CARD_FOLDER ?= FastPath-Ent-dpp-dnx-$(CPU)-LR-CSxw-IQH_$(BOARD)
 CARD        ?= $(word 2,$(subst _, ,$(CARD_FOLDER)))
 
 export OUTPATH       ?= output/$(CARD_FOLDER)
@@ -48,7 +48,7 @@ export LVL7_MAKEFILE_DISPLAY_MODE ?= S
 
 .PHONY: welcome all clean cleanall install help h
 
-all: welcome setsdk cli shell mgmd
+all: welcome setsdk mgmd
 	$(RM) -f $(BIN_PATH)/$(BIN_FILE)
 	@echo "Compiling switchdrvr for $(BOARD) with $(NUM_CPUS) cores..."
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH)
