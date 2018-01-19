@@ -203,6 +203,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
   PT_LOG_INFO(LOG_CTX_CNFGR, "Storm Control is active with default values.");
+#endif
 
   /* Initialize PTin Interface module data structures */
   if (ptin_intf_pre_init() != L7_SUCCESS)
@@ -226,6 +227,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
 
+#if 0
   /* Initialize xlate module in application layer */
   if (ptin_xlate_init()!=L7_SUCCESS)
   {
@@ -246,7 +248,9 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PT_LOG_FATAL(LOG_CTX_CNFGR, "Error enabling PPPoE global trapping! CRASH!");
     PTIN_CRASH();
   }
+#endif
 
+#if 0
 #if ( PTIN_BOARD_IS_MATRIX )
   /* Configure InBand bridge if this board is CXP360G */
   if (ptin_cfg_inband_bridge_set() != L7_SUCCESS)
