@@ -183,15 +183,17 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 
   rc = osapiTaskInitDone(L7_PTIN_TASK_SYNC);
 
+#if 0
   /* Wait for a signal indicating that all other modules
    * configurations were executed */
   osapiSleep(10);
 
-#if (!PTIN_BOARD_IS_DNX)
   PT_LOG_INFO(LOG_CTX_CONTROL, "PTin task waiting for other modules to boot up...");
   rc = osapiSemaTake(ptin_ready_sem, L7_WAIT_FOREVER);
+#endif
   PT_LOG_NOTICE(LOG_CTX_CONTROL, "PTin task will now start!");
 
+#if 0
   /* System StormControl no more supported */
   /* Initialize storm control */
   rc = ptin_stormControl_init();
@@ -201,7 +203,6 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PTIN_CRASH();
   }
   PT_LOG_INFO(LOG_CTX_CNFGR, "Storm Control is active with default values.");
-#endif
 
   /* Initialize PTin Interface module data structures */
   if (ptin_intf_pre_init() != L7_SUCCESS)
@@ -265,6 +266,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
     PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to create default EVCs!");
     PTIN_CRASH();
   }
+#endif
 
   /* Register a period timer */
   if (osapiPeriodicUserTimerRegister(PTIN_LOOP_TICK, &ptin_loop_handle) != L7_SUCCESS)
