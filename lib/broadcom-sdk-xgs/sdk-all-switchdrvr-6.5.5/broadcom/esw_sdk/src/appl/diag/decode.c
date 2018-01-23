@@ -55,8 +55,6 @@
 #undef  _POSIX_C_SOURCE
 #undef _GNU_SOURCE
 #undef _SVID_SOURCE
-/* PTin modified */
-//#define _DEFAULT_SOURCE
 #define _BSD_SOURCE
 #endif
 
