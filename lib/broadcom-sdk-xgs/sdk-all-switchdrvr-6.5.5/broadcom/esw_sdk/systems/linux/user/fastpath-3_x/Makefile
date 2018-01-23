@@ -20,7 +20,7 @@
 #
 
 override kernel_version=3_x
-platform=$(L7_CPU)-$(kernel_version)
+platform=$(BOARD)-$(L7_CPU)-$(kernel_version)
 LINUX_MAKE_USER=1
 LINUX_MAKE_DIR := $(SDK)/systems/linux/user/fastpath_common
 include ${SDK}/make/Make.linux

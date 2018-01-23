@@ -76,7 +76,7 @@ endif
 export SDK
 
 override kernel_version=3_x
-platform=e500mc-$(kernel_version)
+platform=TA12XG-e500-$(kernel_version)
 LINUX_MAKE_USER=1
 export LINKER_RELAX=1
 
@@ -87,8 +87,7 @@ BUILD_PLATFORM=WR_LINUX
 #Select the LINUX KERNEL VERSION
 #KERN_VER = 2.6.21.7
 #KERN_VER = 2.6.24.4
-#KERN_VER = 3.8.13
-KERN_VER=4.1.8
+KERN_VER = 3.8.13
 
 
 # Select the ELDK version

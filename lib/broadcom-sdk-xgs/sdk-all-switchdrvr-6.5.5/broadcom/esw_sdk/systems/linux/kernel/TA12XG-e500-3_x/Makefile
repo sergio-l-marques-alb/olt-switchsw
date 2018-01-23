@@ -76,7 +76,7 @@ endif
 export SDK
 
 override kernel_version=3_x
-platform=e500-$(kernel_version)
+platform=TA12XG-e500-$(kernel_version)
 
 # Select build platform 
 BUILD_PLATFORM=WR_LINUX
