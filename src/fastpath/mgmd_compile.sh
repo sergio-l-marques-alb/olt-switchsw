@@ -45,6 +45,31 @@ if [ "$1" == "TA12XG" ]; then
   export PTIN_MGMD_PLATFORM_ADMISSION_CONTROL_SUPPORT=1
   export PTIN_MGMD_PLATFORM_ROOT_PORT_IS_ON_MAX_PORT_ID=1
 
+elif [ "$1" == "TT08SXG" ]; then
+
+  BOARD=$1
+  CPU=e500mc
+
+  export COMPILER_DIR=/opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr/bin/ppce500mc-fsl-linux
+  export COMPILER_PREFIX=powerpc-fsl-linux-
+  #export LD_LIB_PATH=
+
+  # Overide local variables with the ones comming from the makefile (if defined)
+  export COMPILER_DIR="${TOOLCHAIN_BIN_DIR:-$COMPILER_DIR}"
+  PREFIX=`echo $COMPILER | awk -F'/' '{print $NF}'`
+  if [ ! -z $PREFIX ]; then export COMPILER_PREFIX=$PREFIX; fi
+  export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:-$LD_LIB_PATH}"
+
+  export PTIN_MGMD_PLATFORM_MAX_CHANNELS=4096
+  export PTIN_MGMD_PLATFORM_MAX_WHITELIST=16384
+  export PTIN_MGMD_PLATFORM_MAX_CLIENTS=128
+  export PTIN_MGMD_PLATFORM_MAX_PORTS=12
+  export PTIN_MGMD_PLATFORM_MAX_PORT_ID=12
+  export PTIN_MGMD_PLATFORM_MAX_SERVICES=40
+  export PTIN_MGMD_PLATFORM_MAX_SERVICE_ID=255
+  export PTIN_MGMD_PLATFORM_ADMISSION_CONTROL_SUPPORT=1
+  export PTIN_MGMD_PLATFORM_ROOT_PORT_IS_ON_MAX_PORT_ID=1
+
 else
   echo "[MGMD] Card $BOARD is not valid!"
   exit 1

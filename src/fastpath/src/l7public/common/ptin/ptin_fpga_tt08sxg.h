@@ -1,5 +1,5 @@
-#ifndef _PTIN_FPGA_TA12XG_H
-#define _PTIN_FPGA_TA12XG_H
+#ifndef _PTIN_FPGA_TT08SXG_H
+#define _PTIN_FPGA_TT08SXG_H
 
 /* FPGA AND CPLD BASE ADDRESS */
 //# define MAP_FPGA

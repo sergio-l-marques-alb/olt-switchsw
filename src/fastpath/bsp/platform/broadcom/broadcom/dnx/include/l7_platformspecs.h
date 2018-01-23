@@ -58,7 +58,7 @@
 #define PTIN_BOARD_TG16GF                          0x0400
 #define PTIN_BOARD_TT04SXG                         0x0800
 #define PTIN_BOARD_TA12XG                          0x1000
-#define PTIN_BOARD_TT08SXG                         0x0800
+#define PTIN_BOARD_TT08SXG                         0x2000
 
 /* PTin added: board groups definition */
 #define PTIN_BOARD_MATRIX_FAMILY      ( PTIN_BOARD_CXP360G | PTIN_BOARD_CXO640G | PTIN_BOARD_CXO160G )

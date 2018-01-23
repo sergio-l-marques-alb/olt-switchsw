@@ -68,6 +68,10 @@
 #elif (PTIN_BOARD == PTIN_BOARD_TA12XG)
 #include "ptin_mgmd_defs_ta12xg.h"
 
+/* TT08SXG card */
+#elif (PTIN_BOARD == PTIN_BOARD_TT08SXG)
+#include "ptin_mgmd_defs_tt08sxg.h"
+
 #endif
 
 #endif /* _PTIN_MGMD_DEFS_MAIN_H */
