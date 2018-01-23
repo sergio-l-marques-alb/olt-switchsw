@@ -840,7 +840,7 @@ typedef enum
 #define PTIN_EVC_PORT_BLOCKING      1
 
 typedef struct {
-  L7_uint32  ptin_port;                 // Single interface
+  L7_int32   ptin_port;                 // Single interface
   L7_uint64  ptin_port_bmp;             // List of Interfaces
   L7_uint16  outer_vlan_lookup;         // SVlan (0 value means no appliance)
   L7_uint16  outer_vlan_ingress;        // SVlan (0 value means no appliance)
