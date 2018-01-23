@@ -49,10 +49,10 @@ elif [ "$1" == "TT08SXG" ]; then
 
   BOARD=$1
   CPU=e500mc
-
+  
   export COMPILER_DIR=/opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr/bin/ppce500mc-fsl-linux
   export COMPILER_PREFIX=powerpc-fsl-linux-
-  #export LD_LIB_PATH=
+  export LD_LIBRARY_PATH=/opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr/lib
 
   # Overide local variables with the ones comming from the makefile (if defined)
   export COMPILER_DIR="${TOOLCHAIN_BIN_DIR:-$COMPILER_DIR}"
@@ -116,7 +116,6 @@ unlock() {
   return 0
 }
 
-
 # Toolchain and SYS_ROOT_DIR definition
 export DESTDIR=$MGMD_OUTPUT_PATH/rfs
 export SYSROOTDIR=$DESTDIR
@@ -129,6 +128,7 @@ export PATH=$PATH:$COMPILER_DIR
 #export INCLUDEDIR="/opt/eldk/usr/bin/usr/include"
 export CROSSOPTS="--host=ppc-linux --build=$MACHTYPE"
 #export CFLAGS="-I$INCLUDEDIR -I$SYSROOTDIR$PREFIXDIR/include"
+export CFLAGS=$SYSROOT
 #export LIBDIR="/opt/ppc-ptin-4.2.2/$TARGET_PPC/usr/lib"
 export LIBS=
 #export LD_PATH="-L$LIBDIR -L$SYSROOTDIR$PREFIXDIR/lib"
