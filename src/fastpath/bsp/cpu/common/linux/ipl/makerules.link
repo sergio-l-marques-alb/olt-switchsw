@@ -5,7 +5,7 @@
 #
 src_ipl        := bsp/cpu/common/linux/ipl
 src_tools      := bsp/cpu/common/linux/tools
-src_cpu_linux  := bsp/cpu/$(L7_CPU)/linux
+src_cpu_linux  := bsp/cpu/$(BOARD)-$(L7_CPU)/linux
 src_bld_utils  := src/l7tools/build/utils
 #src_cli_common := src/mgmt/$(L7_EMWEBPACKAGE)/cli/base/common
 ifeq (,$(UIMAGE_ADDR))
@@ -168,8 +168,8 @@ endif
 iplobjs := bootos.o
 
 
-kernel_src     := $(FP_BASE)/bsp/cpu/$(L7_CPU)/$(L7_TARGETOS)/$(sysloc)/vmlinux
-rootfs_src_dir := $(FP_BASE)/bsp/cpu/$(L7_CPU)/$(L7_TARGETOS)/$(sysloc)/rootfs
+kernel_src     := $(FP_BASE)/bsp/cpu/$(BOARD)-$(L7_CPU)/$(L7_TARGETOS)/$(sysloc)/vmlinux
+rootfs_src_dir := $(FP_BASE)/bsp/cpu/$(BOARD)-$(L7_CPU)/$(L7_TARGETOS)/$(sysloc)/rootfs
 
 
 # Define name of stripped/compressed kernel file to create.

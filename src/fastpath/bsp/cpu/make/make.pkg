@@ -8,7 +8,7 @@ src_cpu  := bsp/cpu
 #  - Defines all source locations to be referenced by the package-level makefile.
 #
 MASTERSRC += \
-	$(src_cpu)/$(L7_CPU)/src \
+	$(src_cpu)/$(BOARD)-$(L7_CPU)/src \
 	$(src_cpu)/common/src
 
 
@@ -22,7 +22,7 @@ MASTERSRC_FILE_EXCLUDE +=
 SRCINCPATHS += \
 	$(src_cpu)/common/include \
 	bsp/platform/$(L7_COMPANY)/common/include \
-	$(src_cpu)/$(L7_CPU)/$(L7_TARGETOS)/include \
+	$(src_cpu)/$(BOARD)-$(L7_CPU)/$(L7_TARGETOS)/include \
 	$(subst $(FP_BASE)/,,$(BSP_DIR)) \
 	$(subst -I$(FP_BASE)/,,$(BROADCOM_INCL)) \
 	src/system_support/base/l7util/zlib \
@@ -61,5 +61,5 @@ ifeq (1,$(BLD_L7_TARGETOS_ECOS))
 endif
 
 ifeq (1,$(BLD_L7_TARGETOS_VXWORKS))
-  include $(FP_ROOT)/$(src_cpu)/$(L7_CPU)/$(L7_TARGETOS)/build/make.pkg.os
+  include $(FP_ROOT)/$(src_cpu)/$(BOARD)-$(L7_CPU)/$(L7_TARGETOS)/build/make.pkg.os
 endif

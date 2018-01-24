@@ -23,7 +23,7 @@ MASTERSRC += \
 # Additional source header file search paths (without the -I).
 #
 SRCINCPATHS += \
-	bsp/cpu/$(L7_CPU)/$(L7_TARGETOS)/include \
+	bsp/cpu/$(BOARD)-$(L7_CPU)/$(L7_TARGETOS)/include \
 	os/linux/osapi
 
 

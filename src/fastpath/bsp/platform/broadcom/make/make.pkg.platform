@@ -10,7 +10,7 @@ src_platform  := bsp/platform
 SRCINCPATHS += \
         $(src_cpu)/common/include \
         bsp/platform/$(L7_COMPANY)/common/include \
-        $(src_cpu)/$(L7_CPU)/$(L7_TARGETOS)/include \
+        $(src_cpu)/$(BOARD)-$(L7_CPU)/$(L7_TARGETOS)/include \
         $(subst $(FP_BASE)/,,$(BSP_DIR)) \
         $(subst -I$(FP_BASE)/,,$(BROADCOM_INCL)) \
         src/system_support/base/l7util/zlib \

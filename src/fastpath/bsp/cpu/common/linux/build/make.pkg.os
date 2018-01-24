@@ -11,8 +11,8 @@
 #
 MASTERSRC += \
 	$(src_cpu)/common/linux/ipl \
-	$(src_cpu)/$(L7_CPU)/linux/src \
-	$(src_cpu)/$(L7_CPU)/linux/customer/$(L7_CUSTOMER)/$(L7_PROJECT)/src
+	$(src_cpu)/$(BOARD)-$(L7_CPU)/linux/src \
+	$(src_cpu)/$(BOARD)-$(L7_CPU)/linux/customer/$(L7_CUSTOMER)/$(L7_PROJECT)/src
 
 
 # List here individual source files to be selectively EXCLUDED from the build.
