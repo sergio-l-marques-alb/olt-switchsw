@@ -179,11 +179,15 @@ extern int ptin_sys_number_of_ports;
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
 #include "ptin_globaldefs_cxo640g.h"
 
+/* CXO2T4 linecard */
+#elif (PTIN_BOARD == PTIN_BOARD_CXO2T4)
+#include "ptin_globaldefs_cxo2t4.h"
+
 /* TA12XG linecard */
 #elif (PTIN_BOARD == PTIN_BOARD_TA12XG)
 #include "ptin_globaldefs_ta12xg.h"
 
-/* TA12XG linecard */
+/* TT08SXG linecard */
 #elif (PTIN_BOARD == PTIN_BOARD_TT08SXG)
 #include "ptin_globaldefs_tt08sxg.h"
 

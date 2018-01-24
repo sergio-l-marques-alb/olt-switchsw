@@ -31,6 +31,7 @@
 *
 *******************************************************************************/
 
+#define UNIT_BROAD_CXO2T4_88370_REV_1_ID        0x83700001 /* PTin added: new switch Q-MX */
 #define UNIT_BROAD_12_ETH_4_BCK_88360_REV_1_ID  0x83600001 /* PTin added: new switch ARAD */
 #define UNIT_BROAD_8_ETH_3_BCK_88360_REV_1_ID   0x83600002 /* PTin added: new switch ARAD */
 
@@ -46,6 +47,7 @@
 *******************************************************************************/
 
 /* Broadcom Reference platforms */
+#define CARD_BROAD_CXO2T4_88370_REV_1_ID         0x88370001   /* PTin added: new switch Q-MX */
 #define CARD_BROAD_12_ETH_4_BCK_88360_REV_1_ID   0x88360001   /* PTin added: new switch ARAD */
 #define CARD_BROAD_8_ETH_3_BCK_88360_REV_1_ID    0x88360002   /* PTin added: new switch ARAD */
 

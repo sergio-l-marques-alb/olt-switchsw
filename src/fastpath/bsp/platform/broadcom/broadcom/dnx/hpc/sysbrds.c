@@ -46,6 +46,12 @@
 #include "logger.h"           /* PTin added */
 
 int
+bcm_sys_sa_init_88370(const bcm_sys_board_t* brd, int base)
+{
+    return 0;
+}
+
+int
 bcm_sys_sa_init_88650(const bcm_sys_board_t* brd, int base)
 {
     return 0;
@@ -72,6 +78,12 @@ L7_RC_t hpcConfigBoardSet()
 
     switch (lclUnitDesc->unitTypeDescriptor.unitTypeId)
     {
+      /* PTin added: new switch Q-MX */
+    case UNIT_BROAD_CXO2T4_88370_REV_1_ID:
+
+      PT_LOG_TRACE(LOG_CTX_STARTUP,"QUMRAN-MX 144x10G ready to be started!");
+      break;
+
       /* PTin added: new switch 56340 (Helix4) */
     case UNIT_BROAD_12_ETH_4_BCK_88360_REV_1_ID:
 

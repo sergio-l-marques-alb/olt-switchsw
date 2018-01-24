@@ -33,6 +33,23 @@
 *******************************************************************************/
 /* bcm_sys_board_t bcm_sys_boards[] = { */
 
+    /* PTin added: new switch Q-MX */
+    /* CXO2T4 board */
+    {
+        BCM_SYS_BOARD_88370,
+        /* *soc_brd_info */
+    2,                                          /* Number of units */
+    { 
+        BCM88370_DEVICE_ID, BCM88370_DEVICE_ID  /* List of devices */
+    },
+        bcm_sys_id_defl,
+        bcm_sys_sa_init_defl,
+        bcm_sys_pre_stack_defl,
+        UNIT_BROAD_CXO2T4_88370_REV_1_ID,
+        __BROADCOM_88370_ID,
+        NO_CONNECTION_LIST
+    },
+
     /* PTin added: new switch ARAD */
     /* 88360 board */
     {

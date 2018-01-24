@@ -1,5 +1,5 @@
-#ifndef _PTIN_FPGA_TT08SXG_H
-#define _PTIN_FPGA_TT08SXG_H
+#ifndef _PTIN_FPGA_CXO2T4_H
+#define _PTIN_FPGA_CXO2T4_H
 
 /* FPGA AND CPLD BASE ADDRESS */
 //# define MAP_FPGA
@@ -130,5 +130,5 @@ extern volatile st_fpga_map_t *fpga_map;
 #define FPGA_ID_GET()             0
 #endif
 
-#endif /* _PTIN_FPGA_TT08SXG_H */
+#endif /* _PTIN_FPGA_CXO2T4_H */
 

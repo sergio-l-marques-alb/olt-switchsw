@@ -64,6 +64,10 @@
 #elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
 #include "ptin_mgmd_defs_cxo640g.h"
 
+/* CXO2T4 card */
+#elif (PTIN_BOARD == PTIN_BOARD_CXO2T4)
+#include "ptin_mgmd_defs_cxo2t4.h"
+
 /* TA12XG card */
 #elif (PTIN_BOARD == PTIN_BOARD_TA12XG)
 #include "ptin_mgmd_defs_ta12xg.h"

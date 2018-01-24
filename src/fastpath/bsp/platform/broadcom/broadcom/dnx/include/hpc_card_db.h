@@ -54,6 +54,23 @@
   }
 }
 ,
+/* PTin added: new switch Q-MX 144 ports */
+{
+  {
+    CARD_BROAD_CXO2T4_88370_REV_1_ID,   /* cardtypeID */
+    "DNX-QMX-CXO2T4",                    /* cardModel  */
+    "Broadcom DNX-QMX - 144 ports SF Card",  /* cardDescription  */
+    SYSAPI_CARD_TYPE_LINE,            /* type       */
+    144,
+    SYSAPI_NO_CODE_LOAD,    /* codeLoadTargetId - What code to load on this device */
+    SYSAPI_NO_CONFIG_LOAD,  /* configLoadTargetId - What configuration to load on this device */
+    /* numOfNimPorts (computed from number of SYSAPI_PORT_DESCRIPTOR_t entries in table */
+    hpcPortInfoTable_CARD_BROAD_CXO2T4_88370_REV_1,
+    /* portInfo, refers to table declared above for each card type */
+    &dapiBroadPhysicalCardEntry_CARD_BROAD_CXO2T4_88370_REV_1 /* dapiCardInfo */
+  }
+}
+,
 /* PTin added: new switch ARAD 12+3 */
 {
   {
