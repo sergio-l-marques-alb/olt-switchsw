@@ -17,12 +17,12 @@ FP_FOLDER    = $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURREN
 OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
 
 # Cross-Compiler
-export TOOLCHAIN_BASE_DIR = /opt/fsl-qoriq/1.9/sysroots/i686-fslsdk-linux/usr
-export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin/powerpc-fsl-linux
+export TOOLCHAIN_BASE_DIR = /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr
+export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin/ppce500mc-fsl-linux
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 COMPILER = $(TOOLCHAIN_BIN_DIR)/powerpc-fsl-linux-
 
-export SYSROOT=--sysroot=/opt/fsl-qoriq/1.9/sysroots/ppce500mc-fsl-linux
+#export SYSROOT=--sysroot=/opt/fsl/1.2/sysroots/ppce500mc-fsl-linux
 
 # Kernel and SDK paths
 KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-4.1.8-QorIQ-SDK2.0-CXO2T4
