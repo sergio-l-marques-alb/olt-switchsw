@@ -1843,7 +1843,7 @@ L7_RC_t ptin_igmp_ports_default(L7_uint8 lrp_flag)
       }
   //#endif
       i++;
-    }
+    }	
 #endif
   }
 
@@ -10429,10 +10429,12 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
       }
       #endif
 
-
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
-      clientInfo->pClientGroup->admissionControl.allocatedChannels = 0 ;
+#if PTIN_BOARD_IS_LINECARD
+      clientInfo->pClientGroup->admissionControl.allocatedChannels = 0;
 #endif
+#endif
+
       /* Remove client from unified list of clients */
       igmp_clientIndex_unmark(ptin_port, client_idx);
 
