@@ -3630,7 +3630,7 @@ int bcm_dpp_am_cosq_scheduler_allocate(int unit,
     } else { /* SW_STATE_RES_ALLOC_WITH_ID */
         if (flow_type == SOC_TMC_AM_SCH_FLOW_TYPE_CONNECTOR) {
             region =  _BCM_DPP_AM_COSQ_GET_REGION_INDEX_FROM_FLOW_INDEX(*flow_id);
-            if (nof_remote_cores != SOC_DPP_CONFIG(unit)->arad->region_nof_remote_cores[core][region]) {
+            if (nof_remote_cores <= SOC_DPP_CONFIG(unit)->arad->region_nof_remote_cores[core][region]) {
                 BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM,(_BSL_BCM_MSG("Requested region doesn't support requested number of remote cores")));
             }
         }
