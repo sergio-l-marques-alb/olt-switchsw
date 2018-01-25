@@ -2392,6 +2392,9 @@ L7_RC_t hapiBroadGetSystemBoardFamily(bcm_chip_family_t *board_family)
       *board_family = BCM_FAMILY_TRIDENT;
       break;
     case __BROADCOM_88650_ID:  /* PTin added: new switch 88650 (ARAD) */
+    case __BROADCOM_88370_ID:  /* PTin added: new switch 88370 (Q-MX) */
+    case __BROADCOM_88470_ID:  /* PTin added: new switch 88470 (Q-AX) */
+    case __BROADCOM_88670_ID:  /* PTin added: new switch 88670 (Jericho) */
       *board_family = BCM_FAMILY_DPP;
       break;
   default:

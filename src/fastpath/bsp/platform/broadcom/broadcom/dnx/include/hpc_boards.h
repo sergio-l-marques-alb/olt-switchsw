@@ -40,7 +40,7 @@
         /* *soc_brd_info */
     2,                                          /* Number of units */
     { 
-        BCM88370_DEVICE_ID, BCM88370_DEVICE_ID  /* List of devices */
+        BCM88375_DEVICE_ID, BCM88375_DEVICE_ID  /* List of devices */
     },
         bcm_sys_id_defl,
         bcm_sys_sa_init_defl,

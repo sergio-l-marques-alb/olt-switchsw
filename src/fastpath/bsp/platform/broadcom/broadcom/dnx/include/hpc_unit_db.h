@@ -86,7 +86,7 @@
          {CARD_BROAD_CXO2T4_88370_REV_1_ID}
        }
      },
-     0,      /* three stacking ports */
+     0,      /* number of stacking ports */
      {
      }
    },

@@ -353,6 +353,9 @@ L7_BOOL hapiBroadDot1xVFPTableSupported()
   case __BROADCOM_56640_ID:   /* PTin added: new switch 5664x (Triumph3) */
   case __BROADCOM_56340_ID:   /* PTin added: new switch 56340 (Helix4) */
   case __BROADCOM_88650_ID:   /* PTin added: new switch 88650 (ARAD) */
+  case __BROADCOM_88370_ID:   /* PTin added: new switch 88370 (Q-MX) */
+  case __BROADCOM_88470_ID:   /* PTin added: new switch 88470 (Q-AX) */
+  case __BROADCOM_88670_ID:   /* PTin added: new switch 88670 (Jericho) */
     supported = L7_TRUE;
     break;
   default:
@@ -410,6 +413,9 @@ L7_BOOL hapiBroadDot1xVlanAssignmentSupported()
   case __BROADCOM_56640_ID:   /* PTin added: new switch 5664x (Triumph3) */
   case __BROADCOM_56340_ID:   /* PTin added: new switch 56340 (Helix4) */
   case __BROADCOM_88650_ID:   /* PTin added: new switch 88650 (ARAD) */
+  case __BROADCOM_88370_ID:   /* PTin added: new switch 88370 (Q-MX) */
+  case __BROADCOM_88470_ID:   /* PTin added: new switch 88470 (Q-AX) */
+  case __BROADCOM_88670_ID:   /* PTin added: new switch 88670 (Jericho) */
     supported = L7_TRUE;
     break;
   default:
@@ -468,6 +474,9 @@ L7_BOOL hapiBroadDot1xPolicySupported()
   case __BROADCOM_56640_ID:   /* PTin added: new switch 5664x (Triumph3) */
   case __BROADCOM_56340_ID:   /* PTin added: new switch 56340 (Helix4) */
   case __BROADCOM_88650_ID:   /* PTin added: new switch 88650 (ARAD) */
+  case __BROADCOM_88370_ID:   /* PTin added: new switch 88370 (Q-MX) */
+  case __BROADCOM_88470_ID:   /* PTin added: new switch 88470 (Q-AX) */
+  case __BROADCOM_88670_ID:   /* PTin added: new switch 88670 (Jericho) */
     supported = L7_TRUE;
     break;
   default:

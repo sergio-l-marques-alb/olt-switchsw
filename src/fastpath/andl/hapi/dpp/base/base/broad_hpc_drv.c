@@ -2769,9 +2769,11 @@ L7_RC_t hpcBroadInit()
 #if 1
   var_set_integer("units", total_bcom_units, FALSE, FALSE);
 
+  PT_LOG_TRACE(LOG_CTX_STARTUP,"Total bcom_units: %d", total_bcom_units);
+
   for (bcom_unit = 0; bcom_unit < total_bcom_units; bcom_unit++)
   {
-      PT_LOG_TRACE(LOG_CTX_STARTUP,"bcom_unit=%d", bcm_unit);
+      PT_LOG_TRACE(LOG_CTX_STARTUP,"Attaching bcom_unit %d", bcom_unit);
       /* coverity[stack_use_callee] */
       /* coverity[stack_use_overflow] */
       rv = sysconf_attach(bcom_unit);
@@ -3535,8 +3537,8 @@ done:
   if (msg != NULL)
   {
     PT_LOG_ERR(LOG_CTX_STARTUP,
-               "system_init: %s failed: %s\n",
-               msg, soc_errmsg(rv));
+               "system_init: %s failed: %s (unit=%d)\n",
+               msg, soc_errmsg(rv), unit);
   }
 
   return BCM_E_NONE;
