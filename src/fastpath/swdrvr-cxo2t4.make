@@ -26,7 +26,7 @@ COMPILER = $(TOOLCHAIN_BIN_DIR)/powerpc-fsl-linux-
 
 # Kernel and SDK paths
 KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-4.1.8-QorIQ-SDK2.0-CXO2T4
-SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.5/broadcom
+SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.12/broadcom
 
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N

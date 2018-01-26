@@ -381,14 +381,14 @@ static void create_transmission_header (char  rel,
   strncpy(image_header.vpd.timestamp, ctime(&t), sizeof(image_header.vpd.timestamp)-1);
   strncpy(image_header.vpd.filename, image_file, sizeof(image_header.vpd.filename)-1);
 
-  image_header.component[OPCODE].crc              = htons(opcode_crc);
-  image_header.component[OPCODE].component_id     = htonl(IPL_OPCODE_ID);
-  image_header.component[OPCODE].version          = htonl(IPL_OPCODE_VERSION);
-  image_header.component[OPCODE].component_size   = htonl(opcode_size);
-  image_header.component[OPCODE].component_offset = htonl(current_offset);
-  image_header.component[OPCODE].target_address   = htonl(IPL_OPCODE_TARGET);
-  image_header.component[OPCODE].compressed       = htonl(IPL_OPCODE_LZMA);
-  image_header.component[OPCODE].store_in_flash   = htonl(IPL_OPCODE_FLASH);
+  image_header.component[IPL_OPCODE].crc              = htons(opcode_crc);
+  image_header.component[IPL_OPCODE].component_id     = htonl(IPL_OPCODE_ID);
+  image_header.component[IPL_OPCODE].version          = htonl(IPL_OPCODE_VERSION);
+  image_header.component[IPL_OPCODE].component_size   = htonl(opcode_size);
+  image_header.component[IPL_OPCODE].component_offset = htonl(current_offset);
+  image_header.component[IPL_OPCODE].target_address   = htonl(IPL_OPCODE_TARGET);
+  image_header.component[IPL_OPCODE].compressed       = htonl(IPL_OPCODE_LZMA);
+  image_header.component[IPL_OPCODE].store_in_flash   = htonl(IPL_OPCODE_FLASH);
   current_offset += opcode_size; 
   if ( bootcode_size )
   {
@@ -544,15 +544,15 @@ static void create_transmission_header (char  rel,
 
 
   printf ("Operational Code Size..........0x%x (%u)\n", 
-          (unsigned int)ntohl(image_header.component[OPCODE].component_size),
-          (unsigned int)ntohl(image_header.component[OPCODE].component_size));
+          (unsigned int)ntohl(image_header.component[IPL_OPCODE].component_size),
+          (unsigned int)ntohl(image_header.component[IPL_OPCODE].component_size));
   printf ("Operational Code Offset........0x%x (%u)\n",
-          (unsigned int)ntohl (image_header.component[OPCODE].component_offset),
-          (unsigned int)ntohl (image_header.component[OPCODE].component_offset));
+          (unsigned int)ntohl (image_header.component[IPL_OPCODE].component_offset),
+          (unsigned int)ntohl (image_header.component[IPL_OPCODE].component_offset));
   printf ("Operational Code FLASH flag....%u\n",
-          (unsigned int)ntohl (image_header.component[OPCODE].store_in_flash));
+          (unsigned int)ntohl (image_header.component[IPL_OPCODE].store_in_flash));
   printf ("Operational Code CRC...........0x%X\n\n",
-          (unsigned short)ntohs(image_header.component[OPCODE].crc));
+          (unsigned short)ntohs(image_header.component[IPL_OPCODE].crc));
 
 
   if ( bootcode_size )

@@ -1243,7 +1243,11 @@ L7_RC_t hapiBroadDebugMemoryDump(L7_int32 memtype, L7_uint32 unit, L7_int32 copy
 
 L7_RC_t hapiBroadDebugUCMemDump(L7_int32 ingress_port)
 {
+#if (SDK_VERSION_IS < SDK_VERSION(6,5,10,0))
   return(hapiBroadDebugMemoryDump(MEM_UCm, 0, SOC_PORT_BLOCK(0, ingress_port), 0, 0, 0));
+#else
+  return L7_SUCCESS;
+#endif
 }
 
 #ifdef BCM_ESW_SUPPORT

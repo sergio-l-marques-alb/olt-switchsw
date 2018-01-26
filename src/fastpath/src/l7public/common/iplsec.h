@@ -126,7 +126,7 @@ typedef struct ipl_image_header
 
 
 /* Indices into 'component' array */
-#define OPCODE			0
+#define IPL_OPCODE			0
 #define BOOTCODE		1
 #define SYMBOLS                 2
 
