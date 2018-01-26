@@ -1413,8 +1413,9 @@ L7_RC_t dsPacketQueue(L7_uchar8 *ethHeader, L7_uint32 dataLen,
          return L7_REQUEST_DENIED;
       }
    }
+
    dsInfo->debugStats.msgsReceived++;
-   ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX);
+    ptin_dhcp_stat_increment_field(intIfNum, vlanId, *client_idx, DHCP_STAT_FIELD_RX);
 
    if (dsCfgData->dsTraceFlags & DS_TRACE_FRAME_RX)
    {
@@ -2426,6 +2427,13 @@ L7_BOOL dsFrameFilter(L7_uint32 intIfNum, L7_ushort16 vlanId,
   {
     if (ptin_debug_dhcp_snooping)
       PT_LOG_ERR(LOG_CTX_DHCP,"Packet dropped here: verify MAC");
+    return L7_TRUE;
+  }
+
+  if (client_idx == L7_NULLPTR)
+  {
+    if (ptin_debug_dhcp_snooping)
+      PT_LOG_ERR(LOG_CTX_DHCP,"Client_idx is NULL");
     return L7_TRUE;
   }
 
