@@ -1,0 +1,6 @@
+
+#0x0 - Jericho-mode (description 0x0 used for Jericho/QMX/QAX/QUX mode)
+#0x1 - Jericho2-mode (description 0x1 used for Jericho 2 mode)
+system_headers_mode=1
+ftmh_lb_key_extension_size=0
+ftmh_stacking_extension_size=0
