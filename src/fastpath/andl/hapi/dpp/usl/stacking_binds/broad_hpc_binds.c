@@ -205,9 +205,7 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
 {
   L7_RC_t   rc;
   L7_uint32 i;
-#ifndef BCM_DPP_SUPPORT
   int rv;
-#endif
   cpudb_key_t                  cpu_key;
   const bcm_sys_board_t       *board_info;
 #if (SDK_VERSION_IS >= SDK_VERSION(6,4,0,0))
@@ -362,7 +360,9 @@ L7_RC_t hpcHardwareInit(void (*stack_event_callback_func)(hpcStackEventMsg_t eve
   for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
   {
     hapiBroadMapDbCpuUnitEntryAdd(i, &cpu_key, i);
-    (void) bcmx_device_attach(i);
+    rv = bcmx_device_attach(i);
+
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "bcmx_device_attach(%u): rv=%d", i, rv);
 
 #ifndef BCM_DPP_SUPPORT
     rv = bcm_rx_init(i);

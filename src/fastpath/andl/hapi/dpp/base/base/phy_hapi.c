@@ -479,7 +479,8 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 			        L7_LOG_ERROR(rc);
 
-			rc = bcm_port_mdix_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port,BCM_PORT_MDIX_FORCE_AUTO);
+            /* PTin modified: Dune */
+			rc = bcm_port_mdix_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, BCM_PORT_MDIX_NORMAL /*BCM_PORT_MDIX_FORCE_AUTO*/);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 			        L7_LOG_ERROR(rc);
 
@@ -652,7 +653,8 @@ L7_RC_t hapiBroadPhyModeSet(DAPI_USP_t *usp, DAPI_PORT_SPEED_t speed, DAPI_PORT_
 			/*When autonegotiation is enabled MAC pause and jam setting will be done after
 			* link comes UP*/
 
-			rc = bcm_port_mdix_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, BCM_PORT_MDIX_AUTO);
+            /* PTin removed: Dune */
+            rc = bcm_port_mdix_set(hapiPortPtr->bcm_unit, hapiPortPtr->bcm_port, BCM_PORT_MDIX_NORMAL /*BCM_PORT_MDIX_AUTO*/);
 			if ((L7_BCMX_OK(rc) != L7_TRUE) && (rc != BCM_E_UNAVAIL))
 			        L7_LOG_ERROR(0);
 
