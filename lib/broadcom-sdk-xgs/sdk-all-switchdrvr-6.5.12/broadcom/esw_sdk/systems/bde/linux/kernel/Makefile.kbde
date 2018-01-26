@@ -1,0 +1,11 @@
+# This Makefile is copied to the objects/kmod output directory along with
+# the required .c files in order to build the kernel module in the output
+# location.
+#
+# Using the original kernel Makefile contents, but stripping off the
+# path names from the list of .o files being built.
+#
+
+include $(FP_ROOT)/vendor/broadcom/esw_sdk/systems/bde/linux/kernel/Makefile
+
+kbde-y := $(notdir $(kbde-y))

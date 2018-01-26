@@ -146,7 +146,7 @@ MODULE_PARM_DESC(himem,
 #ifdef SAL_BDE_DMA_MEM_DEFAULT
 #define DMA_MEM_DEFAULT (SAL_BDE_DMA_MEM_DEFAULT * ONE_MB)
 #else
-#define DMA_MEM_DEFAULT (8 * ONE_MB)
+#define DMA_MEM_DEFAULT (16 * ONE_MB)
 #endif
 #define DMA_MEM_DEFAULT_ROBO (4 * ONE_MB)
 
@@ -575,6 +575,8 @@ _alloc_mpool(size_t size)
         }
         _cpu_pbase = _dma_pbase = pbase;
         _dma_vbase = IOREMAP(_dma_pbase, size);
+        if (dma_debug >= 1)
+          gprintk("_alloc_mpool (himem=1): _dma_vbase:%p pbase:%lx  allocated:%lx\n", _dma_vbase, pbase, (unsigned long)size);
     } else {
         /* Get DMA memory from kernel */
         switch (dmaalloc) {
@@ -588,7 +590,8 @@ _alloc_mpool(size_t size)
             {
                 dma_addr_t dma_handle;
                 if (!(_dma_vbase = dma_alloc_coherent(DMA_DEV(0), alloc_size, &dma_handle, GFP_KERNEL)) || !dma_handle) {
-                    gprintk("failed to allocate the memory pool of size 0x%lx\n", (unsigned long)alloc_size);
+                    gprintk("_alloc_mpool: failed to allocate the memory pool of size 0x%lx (_dma_vbase=0x%08lx dma_handle=0x%08lx)\n",
+                        (unsigned long)alloc_size, (unsigned long) _dma_vbase, (unsigned long) dma_handle);
                     return;
                 }
                 _cpu_pbase = pbase = dma_handle;
@@ -599,6 +602,7 @@ _alloc_mpool(size_t size)
                         (unsigned long)alloc_size, (unsigned long)size);
             }
             size = _dma_mem_size = alloc_size;
+            gprintk("_alloc_mpool: _SIMPLE_MEMORY_ALLOCATION_ successfull\n");
             break;
           }
 #endif /* _SIMPLE_MEMORY_ALLOCATION_ */
@@ -714,7 +718,9 @@ void _dma_init(int robo_switch)
     if (himem) {
         if ((himem[0] & ~0x20) == 'Y' || himem[0] == '1') {
             _use_himem = 1;
+            gprintk("LTX: Using himem dma allocation\n");
         } else if ((himem[0] & ~0x20) == 'N' || himem[0] == '0') {
+            gprintk("LTX: NOT Using himem dma allocation\n");
             _use_himem = 0;
         }
     }
@@ -727,6 +733,7 @@ void _dma_init(int robo_switch)
         else {
             mpool_init();
             _dma_pool = mpool_create(_dma_vbase, _dma_mem_size);
+            gprintk("Allocated %d bytes for DMA memory\n", _dma_mem_size);  /* PTin added */
         }
     }
 }

@@ -23,7 +23,10 @@
   0 put device into raw mode. Disable echo so that editline can control it.
   1 restore device back to mode prior to raw mode.
 */
+/* PTin removed: serial port */
+#if (L7_SERIAL_COM_ATTR)
 static int sRESET_CURRENT = -1;
+#endif
 
 #if	defined(HAVE_TCGETATTR)
 #include <termios.h>
@@ -32,6 +35,8 @@ void
 rl_ttyset(Reset)
     int				Reset;
 {
+/* PTin removed: serial port */
+#if (L7_SERIAL_COM_ATTR)
     static struct termios old;
     struct termios		  new;
 
@@ -67,6 +72,7 @@ rl_ttyset(Reset)
 	    (void)tcsetattr(0, TCSADRAIN, &old);
       }
     }
+#endif
 }
 
 #else
@@ -77,6 +83,8 @@ void
 rl_ttyset(Reset)
     int				Reset;
 {
+/* PTin removed: serial port */
+#if (L7_SERIAL_COM_ATTR)
     static struct termio old;
     struct termio		 new;
 
@@ -107,6 +115,7 @@ rl_ttyset(Reset)
         (void)ioctl(0, TCSETAW, &old);
       }
     }
+#endif
 }
 
 #else
@@ -116,6 +125,8 @@ void
 rl_ttyset(Reset)
     int				Reset;
 {
+/* PTin removed: serial port */
+#if (L7_SERIAL_COM_ATTR)
     static struct sgttyb	old_sgttyb;
     static struct tchars	old_tchars;
     struct sgttyb		new_sgttyb;
@@ -157,6 +168,7 @@ rl_ttyset(Reset)
         (void)ioctl(0, TIOCSETC, &old_tchars);
       }
     }
+#endif
 }
 #endif	/* defined(HAVE_TERMIO) */
 #endif	/* defined(HAVE_TCGETATTR) */

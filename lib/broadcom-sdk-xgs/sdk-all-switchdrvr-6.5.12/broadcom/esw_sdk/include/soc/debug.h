@@ -26,9 +26,9 @@ extern void soc_mem_watch_set(int unit, int value);
 
 #else
 
-#define _SOC_MSG(string) string
+#define _SOC_MSG(string) string "\n"
 
-#define _BSL_SOC_MSG(string) _ERR_MSG_MODULE_NAME, unit, string
+#define _BSL_SOC_MSG(string) _ERR_MSG_MODULE_NAME, unit, string "\n"
 
 #endif   /* defined(BROADCOM_DEBUG) */
 

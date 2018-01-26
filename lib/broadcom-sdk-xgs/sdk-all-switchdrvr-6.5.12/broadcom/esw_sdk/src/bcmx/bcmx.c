@@ -1019,9 +1019,9 @@ bcmx_device_attach(int bcm_unit)
         rv = _bcmx_port_add(bcm_unit, port, lport[i], port_flags);
         if (BCM_FAILURE(rv)) {
             LOG_WARN(BSL_LS_BCMX_COMMON,
-                     (BSL_META("BCMX: Failed to add lport 0x%x (unit %d, port %d). "
+                     (BSL_META("BCMX: Failed to add lport 0x%x (unit %d, port %d, port_flags=0x%x). "
                                "%d: %s.\n"),
-                      lport[i], bcm_unit, port, rv, bcm_errmsg(rv)));
+                      lport[i], bcm_unit, port, port_flags, rv, bcm_errmsg(rv)));
 
             /* If BCM_E_EXISTS, do not exit, try remaining ports */
             if (rv != BCM_E_EXISTS) {
@@ -1821,7 +1821,9 @@ _bcmx_dest_to_bcm(_bcmx_dest_bcmx_t *from_bcmx, _bcmx_dest_bcm_t *to_bcm,
         /* Check TRUNK flag next */
         flags_out |= BCMX_DEST_TRUNK;
         to_bcm->trunk = from_bcmx->trunk;
-
+#ifdef LVL7_FIXUP
+        to_bcm->module_id = 0;
+#endif
     } else {
         
         if (BCM_GPORT_IS_SET(from_bcmx->port)) {
