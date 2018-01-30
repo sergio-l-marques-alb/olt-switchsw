@@ -892,9 +892,32 @@ static void ptin_igmp_check_topology_change(void)
 
   if( ptin_erps_igmp_notify(igmpInst_fromRouterVlan[0])== L7_SUCCESS) 
   {
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "Mc Topology changed VLAN %u", igmpInst_fromRouterVlan[0]);
+
+    /* Reset uplink ports state */
     ptin_igmp_ports_default(0xFF);
+
+    /* Get proxy configuraion */
+    //PTIN_MGMD_CTRL_MGMD_CONFIG_t igmpProxy;
+    ptin_IgmpProxyCfg_t igmpProxy;
+
+
+    //ptin_igmp_proxy_config_get(&igmpProxy);
+
+    ptin_igmp_proxy_config_get__snooping_old(&igmpProxy);
+
+    igmpProxy.admin = 0;
+
+    /* Set proxy configuration */
+    //ptin_igmp_proxy_config_set(&igmpProxy);
+    ptin_igmp_proxy_config_set__snooping_old(&igmpProxy);
+
+    igmpProxy.admin = 1;
+
+    ptin_igmp_proxy_config_set__snooping_old(&igmpProxy);
+
+    /* Reset proxy and call general query reset */
     ptin_igmp_proxy_reset();
+
   }
   //return L7_SUCCESS;
 }
