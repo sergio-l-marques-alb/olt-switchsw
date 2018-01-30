@@ -10934,8 +10934,8 @@ L7_RC_t ptin_igmp_mgmd_port_remove(L7_uint32 evc_idx, L7_uint32 intIfNum)
   PTIN_MGMD_EVENT_CTRL_t          ctrlResMsg    = {0};
   PTIN_MGMD_CTRL_PORT_REMOVE_t mgmdConfigMsg = {0}; 
 
-  mgmdConfigMsg.serviceId = evc_idx;
-  mgmdConfigMsg.portId = intIfNum;
+  mgmdConfigMsg.serviceId = ENDIAN_SWAP32(evc_idx);
+  mgmdConfigMsg.portId    = ENDIAN_SWAP32(intIfNum);
   ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_PORT_REMOVE, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdConfigMsg, sizeof(PTIN_MGMD_CTRL_PORT_REMOVE_t));
   ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
   ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
@@ -13954,6 +13954,12 @@ L7_RC_t ptin_igmp_mgmd_port_sync(L7_uint8 admin, L7_uint32 serviceId, L7_uint32 
   L7_RC_t        rc = L7_SUCCESS;
 
   PT_LOG_TRACE(LOG_CTX_IGMP, "Received request to sync port");
+
+  portId    = ENDIAN_SWAP32(portId);
+  serviceId = ENDIAN_SWAP32(serviceId);
+  ipv4GroupAddr  = ENDIAN_SWAP32(ipv4GroupAddr);
+  ipv4SourceAddr = ENDIAN_SWAP32(ipv4SourceAddr);
+
 
   inetAddressSet(L7_AF_INET, &ipv4GroupAddr, &groupAddr);
   inetAddressSet(L7_AF_INET, &ipv4SourceAddr, &sourceAddr);
