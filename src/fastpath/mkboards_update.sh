@@ -1,15 +1,15 @@
 #!/bin/sh
 
 #########################################################################################################
-#  																																	  #
-# Use this script to updated the desired mkboards folder for the requested card. 							  #
+#                                                                                                       #
+# Use this script to updated the desired mkboards folder for the requested card.                        #
 # Optionally, you can also generate an image for the selected card and upload it to a remote equipment. #
-#  																																	  #
-# Usage: 																															  #
-# 		./mkboards_update.sh <$MKBOARDS_PATH> <$CARD> [$VERSION $EQUIP_IP]  										  #
-#  																																	  #
-# Note: This script requires permission elevation. 																	  #
-#  																																	  #
+#                                                                                                       #
+# Usage:                                                                                                #
+#               ./mkboards_update.sh <$MKBOARDS_PATH> <$CARD> [$VERSION $EQUIP_IP]                      #
+#                                                                                                       #
+# Note: This script requires permission elevation.                                                      #
+#                                                                                                       #
 #########################################################################################################
 
 MKBOARDS=$1
@@ -19,8 +19,16 @@ if [ $# -eq 0 ]; then
  exit;
 fi
 
-if [ $2 == "ta12xg" ]; then
- BOARD="CXO640G"
+if [ $2 == "cxo2t4" ]; then
+ BOARD="CXO2T4"
+ MKBOARDS_FOLDER=CXO2T4-MX
+ OUTPUT=output/FastPath-Ent-dpp-dnx-e500mc-LR-CSxw-IQH_CXO2T4
+elif [ $2 == "tt08sxg" ]; then
+ BOARD="TT08SXG"
+ MKBOARDS_FOLDER=TT08SXG
+ OUTPUT=output/FastPath-Ent-dpp-dnx-e500mc-LR-CSxw-IQH_TT08SXG
+elif [ $2 == "ta12xg" ]; then
+ BOARD="TA12XG"
  MKBOARDS_FOLDER=TA12XG
  OUTPUT=output/FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_TA12XG
 else
