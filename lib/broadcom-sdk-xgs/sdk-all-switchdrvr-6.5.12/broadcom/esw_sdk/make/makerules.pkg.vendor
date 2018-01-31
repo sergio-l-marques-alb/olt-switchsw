@@ -9,6 +9,7 @@
 #
 out_vend_sdk := $(OUT_ANDL)/vendor
 
+NUM_CPUS = $(shell grep -c 'model name' /proc/cpuinfo)
 
 # Vendor output log file.
 #
@@ -100,7 +101,7 @@ $(SDK_BUILD_FILE):
 	+$(DBG)[ -d $(FP_BASE)/$(out_vend_sdk) ] || mkdir -p $(FP_BASE)/$(out_vend_sdk)
 	+$(DBG)[ -d $(FP_BASE)/$(OUT_TARGET) ] || mkdir -p $(FP_BASE)/$(OUT_TARGET)
     # Invoke vendor SDK make system to build all of its files.
-	+$(DBG)$(MAKE) -C $(FP_BASE)/$(BROADCOM_SDK) -f ./make/make.sdk bldlib $(vend_logging)
+	+$(DBG)$(MAKE) -j$(NUM_CPUS) -C $(FP_BASE)/$(BROADCOM_SDK) -f ./make/make.sdk bldlib $(vend_logging)
     # Copy the kernel modules to the desired output location
     # (it's done this way so the modules can be found and re-copied after a 'cleanexe').
 	$(DBG) for i in $(krnl_module_list) ; \
