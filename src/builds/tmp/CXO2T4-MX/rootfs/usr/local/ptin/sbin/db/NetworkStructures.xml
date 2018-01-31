@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<top>
+    <signal-structures>
+        <structure name="ETH" size="112" order="msb">
+            <field name="DA" bits="0:47" type="mac" default="00:01:02:03:04:05"/>
+            <field name="SA" bits="48:95" type="mac" default="00:06:07:08:09:0A" />
+            <field name="Type" bits="96:111" default="0x899"/>
+        </structure>
+        <structure name="VLAN" size="32" order="msb">
+            <field name="PCP" bits="0:2" default="2"/>
+            <field name="DEI" bits="3:3"/>
+            <field name="VID" bits="4:15" default="0x1"/>
+            <field name="Type" bits="16:31" default="0x677"/>
+        </structure>
+        <structure name="MPLS" size="32" order="msb">
+            <field name="Label" bits="0:19" />
+            <field name="TC" bits="20:22" />
+            <field name="BOS" bits="23:23" default="1"/>
+            <field name="TTL" bits="24:31" />
+        </structure>
+        <structure name="Speculative_IP" size="320" expansion="Dynamic" order="msb">
+            <option expansion="IPv4" version="4" trim="ms"/>
+            <option expansion="IPv6" version="6" trim="ms"/>
+            <option expansion="ETH" trim="ms"/>
+            <field name="Version" bits="0:3" />
+        </structure>
+        <structure name="TOS" size="8" order="msb">
+            <field name="DSCP" bits="0:5" />
+            <field name="ECN" bits="6:7" />
+        </structure>
+        <structure name="IPv4" size="160" order="msb">
+            <field name="Version" bits="0:3" default="4"/>
+            <field name="IHL" bits="4:7" default="5"/>
+            <field name="TOS" bits="8:15"/>
+            <field name="Total_Length" bits="16:31"/>
+            <field name="Identification" bits="32:47" />
+            <field name="Flags" bits="48:50" />
+            <field name="Fragment_Offset" bits="51:63" />
+            <field name="TTL" bits="64:71" />
+            <field name="Protocol" bits="72:79" />
+            <field name="Checksum" bits="80:95" />
+            <field name="SIP" bits="96:127" type="ip4" default="10.11.12.1"/>
+            <field name="DIP" bits="128:159" type="ip4" default="10.11.12.2"/>
+        </structure>
+        <structure name="IPv6_Address" size="128" order="msb">
+            <field name="Low" bits="0:63" />
+            <field name="High" bits="64:127" />
+        </structure>
+        <structure name="IPv6" size="320" order="msb">
+            <field name="Version" bits="0:3" default="6"/>
+            <field name="Traffic_Class" bits="4:11" />
+            <field name="Flow_Label" bits="12:31" />
+            <field name="Length" bits="32:47" />
+            <field name="Next_Header" bits="48:55" default="0x11"/>
+            <field name="Hop_Limit" bits="56:63" />
+            <field name="SIP" bits="64:191" type="ip6" default="12:12:12:12:12:12:12:12" expansion="IPv6_Address"/>
+            <field name="DIP" bits="192:319" type="ip6" default="34:34:34:34:34:34:34:34" expansion="IPv6_Address"/>
+        </structure>
+        <structure name="UDP" size="64" order="msb">
+            <field name="Src_Port" bits="0:15" default="0x1314"/>
+            <field name="Dst_Port" bits="16:31"  default="0x1315"/>
+            <field name="Length" bits="32:47" />
+            <field name="Checksum" bits="48:63" />
+        </structure>
+        <structure name="TCP" size="160" order="msb">
+            <field name="Src_Port" bits="0:15" />
+            <field name="Dst_Port" bits="16:31" />
+            <field name="SEQ" bits="32:63" />
+            <field name="ACK" bits="64:95" />
+            <field name="Data_Offset" bits="96:99" />
+            <field name="Reserved" bits="100:105" />
+            <field name="Control" bits="106:111" />
+            <field name="Win" bits="111:127" />
+            <field name="Checksum" bits="128:143" />
+            <field name="Urgent" bits="143:159" />
+        </structure>
+        <structure name="ARP" size="224" order="msb">
+            <field name="Hw_Type" bits="0:15"/>
+            <field name="Proto_Type" bits="16:31"/>
+            <field name="Hw_Size" bits="32:39"/>
+            <field name="Proto_Size" bits="40:47"/>
+            <field name="Opcode" bits="48:63"/>
+            <field name="SRC_MAC" bits="64:111" type="mac" default="00:11:22:33:44:55"/>
+            <field name="Sender_IP" bits="112:143" type="ip4" default="192.1.1.10"/>
+            <field name="DST_MAC" bits="144:191" type="mac" default="00:66:77:88:99:AA"/>
+            <field name="Target_IP" bits="192:223" type="ip4" default="195.1.1.15"/>
+        </structure>
+        <structure name="ETH_OAM" size="600" expansion="Dynamic" order="msb">
+            <option expansion="ETH_OAM_CCM" OAM_Opcode="CCM" />
+            <option expansion="ETH_OAM_LB" OAM_Opcode="LBM" trim="MS" />
+            <option expansion="ETH_OAM_LB" OAM_Opcode="LBR" trim="MS" />
+            <option expansion="ETH_OAM_LMM" OAM_Opcode="LMM" trim="MS" />
+            <option expansion="ETH_OAM_LMR" OAM_Opcode="LMR" trim="MS" />
+            <option expansion="ETH_OAM_DMM" OAM_Opcode="DMM" trim="MS" />
+            <option expansion="ETH_OAM_DMR" OAM_Opcode="DMR" trim="MS" />
+            <!-- Add more opcodes -->
+            <field name="OAM_Opcode" bits="8:15" />
+        </structure>
+        <structure name="ETH_OAM_CCM" size="600" order="msb">
+            <field name="MEL" bits="0:2" />
+            <field name="Version" bits="3:7" />
+            <field name="OAM_Opcode" bits="8:15" />
+            <field name="OAM_CCM_Flags" bits="16:23" />
+            <field name="TLV_Offset" bits="24:31" />
+            <field name="Sequence_Number" bits="32:63" />
+            <field name="MEP_ID" bits="64:79" />
+            <field name="MEG_ID" bits="80:463" />
+            <field name="TxFCf" bits="464:495" />
+            <field name="RxFCb" bits="496:527" />
+            <field name="TxFCb" bits="528:559" />
+            <field name="Reserved" bits="560:591" />
+            <field name="EndTLV" bits="592:599" />
+        </structure>
+        <structure name="OAM_CCM_Flags" size="8">
+            <field name="OAM_CCM_Period" bits="2:0" />
+            <field name="RDI" bits="7:7" />
+        </structure>
+        <structure name="ETH_OAM_LMM" size="136" order="msb">
+            <field name="MEL" bits="0:2" />
+            <field name="Version" bits="3:7" />
+            <field name="OAM_Opcode" bits="8:15" />
+            <field name="Flags" bits="16:23" />
+            <field name="TLV_Offset" bits="24:31" />
+            <field name="TxFCf" bits="32:63" />
+            <field name="Reserved" bits="64:127" />
+            <field name="EndTLV" bits="128:135" />
+        </structure>
+        <structure name="ETH_OAM_LMR" size="136" order="msb">
+            <field name="MEL" bits="0:2" />
+            <field name="Version" bits="3:7" />
+            <field name="OAM_Opcode" bits="8:15" />
+            <field name="Flags" bits="16:23" />
+            <field name="TLV_Offset" bits="24:31" />
+            <field name="TxFCf" bits="32:63" />
+            <field name="RxFCf" bits="64:95" />
+            <field name="TxFCb" bits="96:127" />
+            <field name="EndTLV" bits="128:135" />
+        </structure>
+        <structure name="ETH_OAM_DMM" size="296" order="msb">
+            <field name="MEL" bits="0:2" />
+            <field name="Version" bits="3:7" />
+            <field name="OAM_Opcode" bits="8:15" />
+            <field name="Flags" bits="16:23" />
+            <field name="TLV_Offset" bits="24:31" />
+            <field name="TxTimeStampf" bits="32:95" />
+            <field name="Reserved" bits="96:287" />
+            <field name="EndTLV" bits="288:295" />
+        </structure>
+        <structure name="ETH_OAM_DMR" size="296" order="msb">
+            <field name="MEL" bits="0:2" />
+            <field name="Version" bits="3:7" />
+            <field name="OAM_Opcode" bits="8:15" />
+            <field name="Flags" bits="16:23" />
+            <field name="TLV_Offset" bits="24:31" />
+            <field name="TxTimeStampf" bits="32:95" />
+            <field name="RxTimeStampf" bits="96:159" />
+            <field name="TxTimeStampb" bits="160:223" />
+            <field name="Reserved" bits="224:287" />
+            <field name="EndTLV" bits="288:295" />
+        </structure>
+        <structure name="ETH_OAM_LB" size="72" order="msb">
+            <field name="MEL" bits="0:2" />
+            <field name="Version" bits="3:7" />
+            <field name="OAM_Opcode" bits="8:15" />
+            <field name="Flags" bits="16:23" />
+            <field name="TLV_Offset" bits="24:31" />
+            <field name="Sequence_Number" bits="32:63" />
+            <field name="End_TLV" bits="64:71" />
+        </structure>
+        <structure name="BFD" size="160" order="msb">
+            <field name="Version" bits="0:2" />
+            <field name="Diag" bits="3:7" />
+            <field name="Sta" bits="8:9" />
+            <field name="P" bits="10:10" />
+            <field name="F" bits="11:11" />
+            <field name="C" bits="12:12" />
+            <field name="A" bits="13:13" />
+            <field name="D" bits="14:14" />
+            <field name="M" bits="15:15" />
+            <field name="Detect_Multiplier" bits="16:23" />
+            <field name="Length" bits="24:31" />
+            <field name="My_Disc" bits="32:63" />
+            <field name="Your_Disc" bits="64:95" />
+            <field name="Min_RX" bits="96:127" />
+            <field name="Min_Echo_RX" bits="128:159" />
+        </structure>
+        <structure name="VXLAN" size="64" order="msb">
+            <field name="VXLAN_Flags" bits="0:7"/>
+            <field name="VNI" bits="32:55"/>
+        </structure>
+        <structure name="VXLAN_Flags" size="8" order="msb">
+            <field name="I" bits="4:4"/>
+        </structure>
+        <structure name="VXLAN_GPE" size="64" order="msb">
+            <field name="GPE_Flags" bits="0:7"/>
+            <field name="GPE_Next_Protocol" bits="24:31"/>
+            <field name="VNI" bits="32:55"/>
+        </structure>
+        <structure name="GPE_Flags" size="8" order="msb">
+            <field name="Ver" bits="2:3"/>
+            <field name="I" bits="4:4"/>
+            <field name="P" bits="5:5"/>
+            <field name="B" bits="6:6"/>
+            <field name="O" bits="7:7"/>
+        </structure>
+        <structure name="SegmentIDs" size="1408" array="11" perm="1"/>
+        <structure name="SRv6" size="1472" order="msb">
+            <field name="Next_Header" bits="0:7"/>
+            <field name="Header_Length" bits="8:15"/>
+            <field name="Routing_Type" bits="16:23"/>
+            <field name="Segments_Left" bits="24:31"/>
+            <field name="Last_Entry" bits="32:39"/>
+            <field name="U_Flag" bits="40"/>
+            <field name="P_Flag" bits="41"/>
+            <field name="O_Flag" bits="42"/>
+            <field name="A_Flag" bits="43"/>
+            <field name="H_Flag" bits="44"/>
+            <field name="U_Flags" bits="45:47"/>
+            <field name="Tag" bits="48:63"/>
+            <field name="SegmentIDs" bits="64:1471"/>
+        </structure>
+    </signal-structures>
+    <signal-params>
+        <signal name="OAM_Opcode" size="8">
+            <entry value="1" name="CCM" />
+            <entry value="3" name="LBM" />
+            <entry value="2" name="LBR" />
+            <entry value="5" name="LTM" />
+            <entry value="4" name="LTR" />
+            <entry value="33" name="AIS" />
+            <entry value="35" name="LCK" />
+            <entry value="37" name="TST" />
+            <entry value="39" name="Linear_APS" />
+            <entry value="40" name="Ring_APS" />
+            <entry value="41" name="MCC" />
+            <entry value="43" name="LMM" />
+            <entry value="42" name="LMR" />
+            <entry value="45" name="1DM" />
+            <entry value="47" name="DMM" />
+            <entry value="46" name="DMR" />
+            <entry value="49" name="EXM" />
+            <entry value="48" name="EXR" />
+            <entry value="51" name="VSM" />
+            <entry value="50" name="VSR" />
+            <entry value="52" name="CSF" />
+            <entry value="55" name="SLM" />
+            <entry value="54" name="SLR" />
+        </signal>
+        <signal name="OAM_CCM_Period" size="3">
+            <entry value="0" name="Invalid" />
+            <entry value="1" name="3.33ms" />
+            <entry value="2" name="10ms" />
+            <entry value="3" name="100ms" />
+            <entry value="4" name="1s" />
+            <entry value="5" name="10s" />
+            <entry value="6" name="1min" />
+            <entry value="7" name="10min" />
+        </signal>
+        <signal name="ETH_Type" size="16">
+            <entry value="0x0800" name="IPv4"/>
+            <entry value="0x8847" name="MPLS"/>
+            <entry value="0x8902" name="OAM"/>
+        </signal>
+        <signal name="GPE_Next_Protocol" size="8">
+            <entry value="0x1" name="IPv4"/>
+            <entry value="0x2" name="IPv6"/>
+            <entry value="0x3" name="ETH"/>
+            <entry value="0x4" name="Network_Service_Header"/>
+            <entry value="0x5" name="MPLS"/>
+        </signal>
+    </signal-params>
+</top>

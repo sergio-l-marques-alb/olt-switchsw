@@ -1,0 +1,2437 @@
+#23 Jan 2018 Short
+#config-sand.bcm,v 1.140 Broadcom SDK $
+#
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+
+#pci_override_dev.0=0x8375
+
+# Note: comment size is restricted to 128 charecters per line.
+
+#########################################
+##cfg for BCM88640 (PetraB), BCM88650 (Arad) and BCM88202 (Ardon)
+#########################################
+
+## temporary suppressing unknown soc properties warnings - till adding them unknown to property.h/propgen
+## (need to be the first soc property in the file).
+suppress_unknown_prop_warnings=1
+
+
+## Multi device system (Negev): 2 devices, fabric mode is FE, mod id is slot id
+## (Top line card is 0, button is 1).
+#diag_chassis=1
+
+## Disable diag init application. Should be used if one wants to run his own
+## application instead of the diag init example
+#diag_disable=1
+
+## Skip cosq configuration in diag_init
+#diag_cosq_disable=1
+
+## Skip l2 configuration in diag_init
+#diag_l2_disable=1
+
+## L2 mode to load 0=DEFAULT, 1=INGRESS_DIST, 2=INGRESS_CENT, 3=EGRESS_DIST, 4=EGRESS_CENT, 5=EGRESS_INDEPENDENT
+#6=(INGRESS_CENT + LEARN_CPU), 7=(EGRESS_CENT + LEARN_CPU)
+#l2_mode=0
+
+## Skip stk configuration in diag_init
+#diag_no_appl_stk=1
+
+## Skip itmh programmable mode configuration in diag_init
+#diag_no_itmh_prog_mode=1
+
+# Ingress PMF key allocation optimization
+field_key_allocation_msb_balance_enable=1
+
+## Set modid value. Should be used when running multi-fap system.
+### Each fap should have it's unique modid value. Default is described in diag_chassis.
+##module_id=<modid>
+
+### Set base_modid value. Default is 0.
+##base_module_id=<base_modid>
+
+### Set nof_devices value. Should be set when working on multi-faps system.
+### Default is 1 when diag_chassis is not enabled, or 2 when diag_chassis is enabled.
+##n_devices=<nof_devices>
+n_devices=2
+
+#########################################
+##cfg for BCM88650 - Arad
+#########################################
+
+### Device configuration ###
+
+## Activate Emulation partial init. Values: 0 - Normal, 1 - Emulation .Default: 0x0.
+diag_emulator_partial_init.BCM88650=0
+
+#real phy isn't connected - remove on silicon arrival
+#phy_simul.BCM88675=1
+
+## General
+# Set the FAP Device mode
+# Options: PP / TM / TDM_OPTIMIZED / TDM_STANDARD
+fap_device_mode.BCM88650=PP
+#
+
+# PP Fixed Followed SDK-91662
+#
+
+# Options: SYMMETRIC / SINGLE_CORE
+device_core_mode.BCM88675=SYMMETRIC
+device_core_mode.BCM88680=SYMMETRIC
+## Credit worth size (Bytes)
+credit_size.BCM88375=1024
+
+## KBP recovery - allow for recovery sequence to run during init and soft reset (only if necessary)
+custom_feature_kbp_recovery_enable=0
+
+## Clock configurations
+# Core clock speed (MHz). Default- BCM88650: 600 MHz, BCM88675: 720 MHz
+#core_clock_speed_khz.BCM88650=600000
+#core_clock_speed_khz.BCM88675=720000
+#core_clock_speed_khz.BCM88470=600000
+#core_clock_speed_khz.BCM88680=837500
+#core_clock_speed_khz.BCM88270=250000
+
+# System reference clock (MHz). Default- BCM88650: 600 MHz, BCM88675: 800 MHz
+#system_ref_core_clock_khz.BCM88650=1200000
+
+#### Clock configurations
+core_clock_speed_khz.BCM88375=720000
+#### System reference clock (MHz). Default- BCM88650: 600 MHz, BCM88675: 800 MHz
+system_ref_core_clock_khz.BCM88375=1200000
+
+#fabric pcp
+fabric_pcp_enable.BCM88675=1
+
+fabric_pcp_enable.BCM88470=1
+
+#Using Tcam instead of the KAPS for the IPv4 MC and IPV6 MC
+# 0 - Don't use TACM
+# 1 - Use TCAM for IPV4/6 MC
+# 2 - Use TACM for IPV4/6 MC but don't use the VRF field as a qualifier for IPV4 MC entries
+#custom_feature_l3_mc_use_tcam=0
+
+#for IPv6UC: use Tcam instead of KAPS
+#Note that if this property is enabled the IPV6-UC RPF will be disabled
+#custom_feature_l3_ipv6_uc_use_tcam=0
+
+
+#ams pll override value (only for Jericho A0/A1)- possible values: 0x19, 0x1e, 0x1f. Default value 0x1f
+#custom_feature_ams_pll_override.BCM88675=0x1f
+
+#First packet SW bypass: Requires SW link scan to be enabled. Valid only for Jericho and beyond.
+ilkn_first_packet_sw_bypass.BCM88675=0x1
+ilkn_first_packet_sw_bypass.BCM88470=0x1
+
+### Network Interface configuration ###
+
+### Network Interface configuration ###
+## Use of the ucode_port_<Local-Port-Id>=<Interface-type>[<Interface-Id>][.<Channel-Id>]
+## Local port range: 0 - 255.
+## Interface types: XAUI/RXAUI/SGMII/ILKN/10GBase-R/XLGE/CGE/CPU/IGNORE
+
+
+########Antonio Excel Aid!
+########Antonio Excel Aid!
+#ucode_port_<localPortNumber>.<unit_id>=CGE2:<core_id>.<tm_port>
+#localPortNumber - exists in the scope of Unit
+#tm_port – TM Port, exists in the scope of Cor
+
+caui_num_lanes_0.BCM88375_B0=4
+#Uplink ports
+###############################################
+
+###############################################
+# Slot 10, Unit1: PM25-2,Q2[8:11]
+#ucode_port_1.1=CGE2:core_0.1                       #FAP/MODid2
+ucode_port_1.1=10GBase-R8:core_1.1
+ucode_port_2.1=10GBase-R9:core_1.2
+ucode_port_3.1=10GBase-R10:core_1.3
+ucode_port_4.1=10GBase-R11:core_1.4
+#Slot 10, Unit0: PM25-1,Q1[4:7]
+#ucode_port_1.0=CGE1:core_0.1                       #FAP/MODid1
+ucode_port_1.0=10GBase-R4:core_1.1
+ucode_port_2.0=10GBase-R5:core_1.2
+ucode_port_3.0=10GBase-R6:core_1.3
+ucode_port_4.0=10GBase-R7:core_1.4
+# Slot 11, Unit1: PM25-5,Q5[20:23]
+#ucode_port_2.1=CGE5:core_1.2                       #FAP/MODid1
+ucode_port_5.1=10GBase-R20:core_1.5
+ucode_port_6.1=10GBase-R21:core_1.6
+ucode_port_7.1=10GBase-R22:core_1.7
+ucode_port_8.1=10GBase-R23:core_1.8
+# Slot 11, Unit0: PM25-0,Q0[0:3]
+#ucode_port_2.0=CGE0:core_1.2                       #FAP/MODid1
+ucode_port_5.0=10GBase-R0:core_1.5
+ucode_port_6.0=10GBase-R1:core_1.6
+ucode_port_7.0=10GBase-R2:core_1.7
+ucode_port_8.0=10GBase-R3:core_1.8
+#Uplink ports
+
+#Downlink ports
+###############################################
+# Slot 1, Unit1: PM10-8,Q14[56:59] (verified)
+ucode_port_9.1=10GBase-R56:core_0.9
+ucode_port_10.1=10GBase-R57:core_0.10
+ucode_port_11.1=10GBase-R58:core_0.11
+ucode_port_12.1=10GBase-R59:core_0.12
+# Slot 1, Unit0: PM10-2,Q8[32:35]
+ucode_port_9.0=10GBase-R32:core_0.9
+ucode_port_10.0=10GBase-R33:core_0.10
+ucode_port_11.0=10GBase-R34:core_0.11
+ucode_port_12.0=10GBase-R35:core_0.12
+
+# Slot 2, Unit1: PM10-6,Q12[48:51] (verified)
+ucode_port_13.1=10GBase-R48:core_1.13
+ucode_port_14.1=10GBase-R49:core_1.14
+ucode_port_15.1=10GBase-R50:core_1.15
+ucode_port_16.1=10GBase-R51:core_1.16
+# Slot 2, Unit0: PM10-0,Q6[24:27]
+ucode_port_13.0=10GBase-R24:core_1.13
+ucode_port_14.0=10GBase-R25:core_1.14
+ucode_port_15.0=10GBase-R26:core_1.15
+ucode_port_16.0=10GBase-R27:core_1.16
+
+# Slot 3, Unit1: PM10Q-10,Q16[64:67] (verified)
+ucode_port_17.1=10GBase-R64:core_0.17
+ucode_port_18.1=10GBase-R65:core_0.18
+ucode_port_19.1=10GBase-R66:core_0.19
+ucode_port_20.1=10GBase-R67:core_0.20
+# Slot 3, Unit0: PM10Q-4,Q10[40:43]
+ucode_port_17.0=10GBase-R40:core_0.17
+ucode_port_18.0=10GBase-R41:core_0.18
+ucode_port_19.0=10GBase-R42:core_0.19
+ucode_port_20.0=10GBase-R43:core_0.20
+
+# Slot 4, Unit1: PM25-0,Q0[0:3] (links failed and RX-PRBS failed for ports 23-24)
+ucode_port_21.1=10GBase-R0:core_1.21
+ucode_port_22.1=10GBase-R1:core_1.22
+ucode_port_23.1=10GBase-R2:core_1.23
+ucode_port_24.1=10GBase-R3:core_1.24
+# Slot 4, Unit0: PM25-5,Q5[20:23]
+ucode_port_21.0=10GBase-R20:core_1.21
+ucode_port_22.0=10GBase-R21:core_1.22
+ucode_port_23.0=10GBase-R22:core_1.23
+ucode_port_24.0=10GBase-R23:core_1.24
+
+# Slot 5, Unit1: PM10Q-4,Q10[40:43] (verified)
+ucode_port_25.1=10GBase-R40:core_0.25
+ucode_port_26.1=10GBase-R41:core_0.26
+ucode_port_27.1=10GBase-R42:core_0.27
+ucode_port_28.1=10GBase-R43:core_0.28
+# Slot 5, Unit0: PM10Q-11,Q17[68:71]
+ucode_port_25.0=10GBase-R68:core_0.25
+ucode_port_26.0=10GBase-R69:core_0.26
+ucode_port_27.0=10GBase-R70:core_0.27
+ucode_port_28.0=10GBase-R71:core_0.28
+
+# Slot 6, Unit1: PM10-2,Q8[32:35] (verified)
+ucode_port_29.1=10GBase-R32:core_1.29
+ucode_port_30.1=10GBase-R33:core_1.30
+ucode_port_31.1=10GBase-R34:core_1.31
+ucode_port_32.1=10GBase-R35:core_1.32
+# Slot 6, Unit0: PM10Q-10,Q16[64:67]
+ucode_port_29.0=10GBase-R64:core_1.29
+ucode_port_30.0=10GBase-R65:core_1.30
+ucode_port_31.0=10GBase-R66:core_1.31
+ucode_port_32.0=10GBase-R67:core_1.32
+
+# Slot 7, Unit1: PM10-0,Q6[24:27] (verified)
+ucode_port_33.1=10GBase-R24:core_0.33
+ucode_port_34.1=10GBase-R25:core_0.34
+ucode_port_35.1=10GBase-R26:core_0.35
+ucode_port_36.1=10GBase-R27:core_0.36
+# Slot 7, Unit0: PM10-9,Q15[60:63]
+ucode_port_33.0=10GBase-R60:core_0.33
+ucode_port_34.0=10GBase-R61:core_0.34
+ucode_port_35.0=10GBase-R62:core_0.35
+ucode_port_36.0=10GBase-R63:core_0.36
+
+# Slot 8, Unit1: PM25-4,Q4[16:19] (links failed for ports 38,40)
+ucode_port_37.1=10GBase-R16:core_1.37
+ucode_port_38.1=10GBase-R17:core_1.38
+ucode_port_39.1=10GBase-R18:core_1.39
+ucode_port_40.1=10GBase-R19:core_1.40
+# Slot 8, Unit0, PM25-3,Q3[12:15]
+ucode_port_37.0=10GBase-R12:core_1.37
+ucode_port_38.0=10GBase-R13:core_1.38
+ucode_port_39.0=10GBase-R14:core_1.39
+ucode_port_40.0=10GBase-R15:core_1.40
+
+# Slot 13, Unit1: PM10-1,Q7[28:31] (verified)
+ucode_port_41.1=10GBase-R28:core_0.41
+ucode_port_42.1=10GBase-R29:core_0.42
+ucode_port_43.1=10GBase-R30:core_0.43
+ucode_port_44.1=10GBase-R31:core_0.44
+# Slot 13, Unit0: PM10-8,Q14[56:59]
+ucode_port_41.0=10GBase-R56:core_0.41
+ucode_port_42.0=10GBase-R57:core_0.42
+ucode_port_43.0=10GBase-R58:core_0.43
+ucode_port_44.0=10GBase-R59:core_0.44
+
+# Slot 14, Unit1: PM25-1,Q1[4:7] (links failed and RX-PRBS failed for ports 46-48)
+ucode_port_45.1=10GBase-R4:core_1.45
+ucode_port_46.1=10GBase-R5:core_1.46
+ucode_port_47.1=10GBase-R6:core_1.47
+ucode_port_48.1=10GBase-R7:core_1.48
+# Slot 14, Unit0: PM25-4,Q4[16:19]
+ucode_port_45.0=10GBase-R16:core_1.45
+ucode_port_46.0=10GBase-R17:core_1.46
+ucode_port_47.0=10GBase-R18:core_1.47
+ucode_port_48.0=10GBase-R19:core_1.48
+
+# Slot 15, Unit1: PM10-3,Q9[36:39] (verified)
+ucode_port_49.1=10GBase-R36:core_0.49
+ucode_port_50.1=10GBase-R37:core_0.50
+ucode_port_51.1=10GBase-R38:core_0.51
+ucode_port_52.1=10GBase-R39:core_0.52
+# Slot 15, Unit0: PM10-7,Q13[52:55]
+ucode_port_49.0=10GBase-R52:core_0.49
+ucode_port_50.0=10GBase-R53:core_0.50
+ucode_port_51.0=10GBase-R54:core_0.51
+ucode_port_52.0=10GBase-R55:core_0.52
+
+# Slot 16, Unit1: PM10Q-5,Q11[44:47] (verified)
+ucode_port_53.1=10GBase-R44:core_1.53
+ucode_port_54.1=10GBase-R45:core_1.54
+ucode_port_55.1=10GBase-R46:core_1.55
+ucode_port_56.1=10GBase-R47:core_1.56
+# Slot 16, Unit0: PM10-6,Q12[48:51]
+ucode_port_53.0=10GBase-R48:core_1.53
+ucode_port_54.0=10GBase-R49:core_1.54
+ucode_port_55.0=10GBase-R50:core_1.55
+ucode_port_56.0=10GBase-R51:core_1.56
+
+# Slot 17, Unit1: PM25-3,Q3[12:15] (links and RX-PRBS failed to ports 57,59-60)
+ucode_port_57.1=10GBase-R12:core_0.57
+ucode_port_58.1=10GBase-R13:core_0.58
+ucode_port_59.1=10GBase-R14:core_0.59
+ucode_port_60.1=10GBase-R15:core_0.60
+# Slot 17, Unit0: PM25-2,Q2[8:11]
+ucode_port_57.0=10GBase-R8:core_0.57
+ucode_port_58.0=10GBase-R9:core_0.58
+ucode_port_59.0=10GBase-R10:core_0.59
+ucode_port_60.0=10GBase-R11:core_0.60
+
+# Slot 18, Unit1: PM10Q-11,Q17[68:71] (verified)
+ucode_port_61.1=10GBase-R68:core_1.61
+ucode_port_62.1=10GBase-R69:core_1.62
+ucode_port_63.1=10GBase-R70:core_1.63
+ucode_port_64.1=10GBase-R71:core_1.64
+# Slot 18, Unit0: PM10Q-5,Q11[44:47]
+ucode_port_61.0=10GBase-R44:core_1.61
+ucode_port_62.0=10GBase-R45:core_1.62
+ucode_port_63.0=10GBase-R46:core_1.63
+ucode_port_64.0=10GBase-R47:core_1.64
+
+# Slot 19, Unit1: PM10-9,Q15[60:63] (verified)
+ucode_port_65.1=10GBase-R60:core_0.65
+ucode_port_66.1=10GBase-R61:core_0.66
+ucode_port_67.1=10GBase-R62:core_0.67
+ucode_port_68.1=10GBase-R63:core_0.68
+# Slot 19, Unit0: PM10-3,Q9[36:39]
+ucode_port_65.0=10GBase-R36:core_0.65
+ucode_port_66.0=10GBase-R37:core_0.66
+ucode_port_67.0=10GBase-R38:core_0.67
+ucode_port_68.0=10GBase-R39:core_0.68
+
+# Slot 20, Unit1: PM10-7,Q13[52:55] (verified)
+ucode_port_69.1=10GBase-R52:core_1.69
+ucode_port_70.1=10GBase-R53:core_1.70
+ucode_port_71.1=10GBase-R54:core_1.71
+ucode_port_72.1=10GBase-R55:core_1.72
+# Slot 20, Unit0: PM10-1,Q7[28:31]
+ucode_port_69.0=10GBase-R28:core_1.69
+ucode_port_70.0=10GBase-R29:core_1.70
+ucode_port_71.0=10GBase-R30:core_1.71
+ucode_port_72.0=10GBase-R31:core_1.72
+
+# CPUs, Unit0
+ucode_port_0.0=cpu.0:core_0.0
+ucode_port_201.0=cpu.8:core_0.201
+ucode_port_202.0=cpu.16:core_1.202
+ucode_port_203.0=cpu.24:core_1.203
+# CPUs, Unit1
+ucode_port_0.1=cpu.0:core_0.0
+ucode_port_201.1=cpu.8:core_0.201
+ucode_port_202.1=cpu.16:core_1.202
+ucode_port_203.1=cpu.24:core_1.203
+
+#Polarity and lane map configuration required for Broadcom BCM88375_A0 / BCM88375_A1 / BCM88375_B0 boards
+# Slot 1, Unit1: PM10-8,Q14[56:59]
+config add phy_tx_polarity_flip_phy57.1=1
+config add phy_tx_polarity_flip_phy58.1=1
+config add phy_tx_polarity_flip_phy60.1=1
+config add phy_tx_lane_map_quad14.1=0x2130
+
+# Slot 2, Unit1: PM10-6,Q12[48:51]
+config add phy_rx_polarity_flip_phy52.1=1
+config add phy_tx_polarity_flip_phy50.1=1
+config add phy_rx_lane_map_quad12.1=0x2310
+config add phy_tx_lane_map_quad12.1=0x3021
+
+# Slot 3, Unit1: PM10Q-10,Q16[64:67]
+config add phy_rx_polarity_flip_phy65.1=1
+config add phy_tx_polarity_flip_phy67.1=1
+config add phy_tx_polarity_flip_phy68.1=1
+config add phy_rx_lane_map_quad16.1=0x2130
+config add phy_tx_lane_map_quad16.1=0x1032
+
+# Slot 5, Unit1: PM10Q-4,Q10[40:43]
+config add phy_tx_polarity_flip_phy41.1=1
+config add phy_tx_polarity_flip_phy42.1=1
+config add phy_tx_polarity_flip_phy43.1=1
+config add phy_tx_polarity_flip_phy44.1=1
+config add phy_rx_lane_map_quad10.1=0x1302
+config add phy_tx_lane_map_quad10.1=0x2301
+
+# Slot 6, Unit1: PM10-2,Q8[32:35]
+config add phy_tx_polarity_flip_phy33.1=1
+config add phy_tx_polarity_flip_phy35.1=1
+config add phy_tx_polarity_flip_phy36.1=1
+config add phy_rx_lane_map_quad8.1=0x2310
+config add phy_tx_lane_map_quad8.1=0x0312
+
+# Slot 7, Unit1: PM10-0,Q6[24:27]
+config add phy_rx_polarity_flip_phy25.1=1
+config add phy_rx_polarity_flip_phy26.1=1
+config add phy_rx_polarity_flip_phy27.1=1
+config add phy_rx_polarity_flip_phy28.1=1
+config add phy_tx_polarity_flip_phy25.1=1
+config add phy_rx_lane_map_quad6.1=0x3102
+config add phy_tx_lane_map_quad6.1=0x3201
+
+# Slot 13, Unit1: PM10-1,Q7[28:31]
+config add phy_rx_lane_map_quad7.1=0x0123
+config add phy_tx_lane_map_quad7.1=0x0123
+
+# Slot 16, Unit1: PM10Q-5,Q11[44:47]
+config add phy_rx_lane_map_quad11.1=0x0123
+config add phy_tx_lane_map_quad11.1=0x0123
+
+# Slot 18, Unit1: PM10Q-11,Q17[68:71] (verified)
+config add phy_rx_lane_map_quad17.1=0x3102
+
+# Slot 19, Unit1: PM10-9,Q15[60:63]
+config add phy_tx_polarity_flip_phy63.1=1
+config add phy_tx_polarity_flip_phy64.1=1
+config add phy_rx_lane_map_quad15.1=0x1302
+config add phy_tx_lane_map_quad15.1=0x1032
+
+# Slot 20, Unit1: PM10-7,Q13[52:55]
+config add phy_rx_polarity_flip_phy56.1=1
+config add phy_rx_lane_map_quad13.1=0x2310
+config add phy_tx_lane_map_quad13.1=0x3120
+
+########Antonio Excel Aid!
+########Antonio Excel Aid!
+
+#Firmware mode:
+#(Documantation relevant for BCM886xx and BCM887xx)
+#0=DEFAULT
+#1=SFP_OPT_SR4     - optical short range
+#2=SFP_DAC         - direct attach copper
+#3=XLAUI           - 40G XLAUI mode
+#4=FORCE_OSDFE     - force over sample digital feedback equalization
+#5=FORCE_BRDFE     - force baud rate digital feedback equalization
+#6=SW_CL72         - software cl72 with AN on
+#7=CL72_WITHOUT_AN - cl72 without AN
+#For Negev2 chassis enable DFE is recommended
+serdes_firmware_mode.BCM88650=2
+serdes_firmware_mode_il.BCM88650=4
+serdes_firmware_mode_sfi.BCM88650=0
+
+#High voltage driver strap. If 0, connected to 1.4V supply; if 1, connected to 1V mode.
+#for specific quad use srd_tx_drv_hv_disable_quad_X where X is (FSRD num * 4 + internal quad)
+srd_tx_drv_hv_disable.BCM88650=1
+
+
+# This disables serdes initialization
+#phy_null.BCM88650=1
+
+##  Number of Internal ports
+# Enable the ERP port. Values: 0 / 1.
+num_erp_tm_ports.BCM88650=1
+# Enable the OLP port. Values: 0 / 1.
+num_olp_tm_ports.BCM88650=1
+
+## Firmware Load Method
+load_firmware.BCM88650=0x102
+
+### Headers configuration ###
+
+# Set CPU to work with TM header (ITMH)
+#tm_port_header_type_0.BCM88650=TM
+
+tm_port_header_type_in_0.BCM88650=INJECTED_2
+tm_port_header_type_out_0.BCM88650=TM
+
+tm_port_header_type_in_200.BCM88650=INJECTED_2_PP
+tm_port_header_type_out_200.BCM88650=ETH
+tm_port_header_type_in_201.BCM88650=INJECTED_2_PP
+tm_port_header_type_out_201.BCM88650=ETH
+tm_port_header_type_in_202.BCM88650=INJECTED_2_PP
+tm_port_header_type_out_202.BCM88650=ETH
+tm_port_header_type_in_203.BCM88650=INJECTED_2_PP
+tm_port_header_type_out_203.BCM88650=ETH
+
+# Disable UDP parsing, 0 - enable (default), 1 - disable
+#custom_feature_udp_parse_disable=1
+
+#OAMP/SAT port
+#tm_port_header_type_out_232.BCM88650=CPU
+tm_port_header_type_out_232.BCM88675=CPU
+
+### SAT
+## Enable SAT Interface. 0 - Disable, 1 - Enable (Default)
+sat_enable=1
+
+# Set the recycling port processing to be raw (static forwarding)
+tm_port_header_type_rcy.BCM88650=RAW
+
+### RCPU
+# Valid CPU local ports on which RCPU packets can be received by slave device.
+#rcpu_rx_pbmp=0xf00000000000000000000000000000000000000000000000001
+
+#tm_port_header_type_514.BCM88650=RAW
+
+## Header extensions
+# Set if an FTMH Out-LIF extension is present to Unicast and Multicast packets
+# Options: NEVER / IF_MC (only Multicast packets) / ALWAYS
+fabric_ftmh_outlif_extension.BCM88650=IF_MC
+
+# Set the FTMH Load-Balancing Key extension mode
+# Options for 88660: ENABLED, FULL_HASH
+# Options for 88650: ENABLED
+# Options for 88640 compatible: DISABLED / 8B_LB_KEY_8B_STACKING_ROUTE_HISTORY
+# / 16B_STACKING_ROUTE_HISTORY / STANDBY_MC_LB (available only for AradPlus)
+# Default: DISABLED
+system_ftmh_load_balancing_ext_mode.BCM88650=DISABLED
+
+
+first_header_size.BCM88650=0
+
+
+### Trunk - LAG configuration ###
+# Set the number of LAGs: 1024, 512, 256, 128, 64 or 32(QUX only)
+number_of_trunks.BCM88650=256
+number_of_trunks.BCM88270=32
+# Using the lb-key's MSB in trunk resolutions.
+#0=use LSB (default)
+#1=use MSB
+trunk_resolve_use_lb_key_msb_stack=0
+trunk_resolve_use_lb_key_msb_smooth_division=0
+
+
+
+
+fap_tdm_bypass.BCM88650=0
+
+### TDM - RAW/PACKET configuration ###
+# if fap_tdm_packet config to be true, enable specific ports on the device to configure for tdm packet mode traffic.
+fap_tdm_packet.BCM88650=0
+
+
+fabric_tdm_over_primary_pipe.BCM88650=0
+
+### Fabric configuration ###
+#0-LFEC 1-8b\10b 2-FEC 3-BEC
+backplane_serdes_encoding.BCM88650=2
+#Possible values - KR_FEC, 64_66, RS_FEC, LL_RS_FEC
+
+
+#SFI speed rate
+port_init_speed_sfi.BCM88650=10312
+
+
+#CL72
+port_init_cl72_sfi.BCM88650=1
+port_init_cl72_sfi.BCM88675=1
+fabric_segmentation_enable.BCM88650=1
+
+## Fabric transmission mode
+# Set the Connect mode to the Fabric
+# Options: FE - presence of a Fabric device (single stage) / MULT_STAGE_FE -  Multi-stage /
+# SINGLE_FAP - stand-alone device / MESH - mesh / BACK2BACK - 2 devices in Mesh
+fabric_connect_mode.BCM88650=MESH
+
+
+
+## Cell format configuration
+# Indicate if the traffic can be sent in dual pipe
+is_dual_mode.BCM88650=0
+# Indicate on the existance of dual pipe device mode in system
+system_is_dual_mode_in_system.BCM88650=0
+
+# Indicate the format of the cell:
+# A VCS128 cell is used if system_is_vcs_128_in_system or system_is_fe600_in_system is TRUE
+system_is_vcs_128_in_system.BCM88650=0
+system_is_fe600_in_system.BCM88650=0
+
+### WRED ###
+
+# Set the maximum packet size for WRED tests. 0 - means ignore max packet size.
+discard_mtu_size.BCM88650=0
+
+### OCB (On-Chip Buffer) configuration ###
+# Enable the OCB
+# Enable MODES:
+#   0/FALSE        -->  OCB_DISABLED     --> No OCB use
+#   1/TRUE         -->  OCB_ENABLED      --> Like in Arad-A0/B0. Some packets may use both DRAM and OCB resources
+#   ONE_WAY_BYPASS -->  Depends on number of present drams (available only for AradPlus):
+#                      0 drams:   - OCB_ONLY
+#                      1 drams:   - OCB_ONLY_1_DRAM     -->  : OCB-only with 1 DRAM for the free pointers
+#                      2-8 drams: - OCB_DRAM_SEPARATE   -->  : OCB and DRAM coexist separately
+#   Default: TRUE.
+bcm886xx_ocb_enable.BCM88650=0
+
+## OCB (On-Chip Buffer) configuration
+# OCB modes:
+#   0 - Disabled
+#   1 - Enabled (Default).
+bcm886xx_ocb_enable.BCM88675=1
+
+# OCB Data Buffer size. Possible values: 128/256/512/1024. Default: 256.
+bcm886xx_ocb_databuffer_size.BCM88650=256
+# OCB Data Buffer size. Jericho allowed values: 256/512. Default: 256.
+bcm886xx_ocb_databuffer_size.BCM88675=256
+# Repartition between Unicast and Full Multicast buffers.
+# 0: 80% Unicast and 20% Multicast, 1: Unicast-Only
+bcm886xx_ocb_repartition.BCM88650=0
+
+
+### PDM configuration ###
+# Set the PDM Mode.
+# 0: simple (default), 1: extended (mandatory for LLFC-VSQ, PFC-VSQ, or ST-VSQ)
+bcm886xx_pdm_mode.BCM88650=0
+
+### Multicast Number of DBuff mode ###
+# Set IQM FMC buffers-replication sizes
+# Options for 88650: ARAD_INIT_FMC_4K_REP_64K_DBUFF_MODE/ARAD_INIT_FMC_64_REP_128K_DBUFF_MODE
+# Default: ARAD_INIT_FMC_4K_REP_64K_DBUFF_MODE
+multicast_nbr_full_dbuff.BCM88650=ARAD_INIT_FMC_4K_REP_64K_DBUFF_MODE
+
+### Multicast Number of DBuff mode ###
+# Set FMC buffers-replication sizes
+# Options for 88675:
+#    JERICHO_INIT_FMC_64_REP_512K_DBUFF_MODE
+#    JERICHO_INIT_FMC_4K_REP_256K_DBUFF_MODE (Default)
+#    JERICHO_INIT_FMC_NO_REP_DBUFF_MODE
+multicast_nbr_full_dbuff.BCM88675=JERICHO_INIT_FMC_4K_REP_256K_DBUFF_MODE
+multicast_nbr_full_dbuff.BCM88470=JERICHO_INIT_FMC_NO_REP_DBUFF_MODE
+multicast_nbr_full_dbuff.BCM88270=JERICHO_INIT_FMC_NO_REP_DBUFF_MODE
+multicast_nbr_full_dbuff.BCM88680=JERICHO_INIT_FMC_4K_REP_256K_DBUFF_MODE
+
+
+### Multicast configuration ###
+# Multicast egress vlan membership range. By default: 0-4095.
+egress_multicast_direct_bitmap_max.BCM88650=4095
+
+#### Jericho configuration of the number of ingress/egress multicast groups
+# Ingress max MCID can be up to 131070, Egress max MCID in Mesh or single FAP modes is up to 65535,
+# or otherwise is up to 131071.
+#multicast_ingress_group_id_range_max.BCM88675=32768
+#multicast_egress_group_id_range_max.BCM88675=60000
+
+### VOQ - Flow configuration ###
+
+# Set the VOQ mapping mode:
+# DIRECT: More than 4K System Ports are supported. System-level WRED is not supported.
+# INDIRECT: similar to Petra-B. Up to 4K System Ports.
+voq_mapping_mode.BCM88650=INDIRECT
+
+#Enable/disable HQOS support - mapping of many system ports to single modport
+hqos_mapping_enable.BCM88650=0
+
+# Set the Base Queue to be added to the packet flow-id
+# when the Flow-Id is set explicitely either by the ITMH
+# or by the Destination resolution in the Packet processing
+flow_mapping_queue_base.BCM88650=0
+
+
+# The allocation of the total per core resources between source and
+# queue based reservation depends on one of two guarantee modes: strict and loose.
+ingress_congestion_management_guarantee_mode=LOOSE
+#ingress_congestion_management_guarantee_mode=LOOSE
+# Each DP has its own thresholds for source based (dynamic) and for queue based (pools 0,1 and headroom).
+#ingress_congestion_management_{source,queue,all}_threshold_percentage_color_[0-3]=[0-100] default: 100,85,75,0
+#ingress_congestion_management_{ocb_only,dram_mix}_{pool_{0,1},headroom}=size default: 0
+#ingress_congestion_management_min_resource_percentage_dynamic=[0-80] default: 20
+
+# Configure maximum IDs of ST-VSQs, maximum IDs of TM-ports, and enabling/disabling header compensation.
+ingress_congestion_management_stag_max_id.BCM88675=0
+ingress_congestion_management_tm_port_max_id.BCM88675=255
+ingress_congestion_management_pkt_header_compensation_enable.BCM88675=0
+
+# The number of packet buffers used for the allocation of DMA memory at BCM RX task
+# The pool size determined by nof_pkts (256) * 16K.
+#rx_pool_nof_pkts.BCM88675=256
+
+
+# Set the number of priorities supported at egress per Port
+# Options: 1 / 2 / 8
+port_priorities.BCM88650=2
+
+# Set the shared multicast resource mode: Strict / Discrete
+egress_shared_resources_mode.BCM88650=Strict
+
+# Define outgoing port rate mode in data rate or packet rate.
+# Options: DATA / PACKET
+otm_port_packet_rate.BCM88650=DATA
+
+# Set Port egress recycling scheduler configuration.
+# 0: Strict Priority Scheduler, 1: Round Robin Scheduler
+port_egress_recycling_scheduler_configuration.BCM88650=0
+
+# Set statically the region mode per region id
+#0: queue connectors only (InterDigitated=FALSE, OddEven = TRUE)
+#1: queue connectors, SE (InterDigitated=TRUE, OddEven = TRUE, is_cl_cir = TRUE)
+#2: queue connectors, SE (InterDigitated=TRUE, OddEven = FALSE, is_cl_cir = TRUE)
+#5: queue connectors, SE (InterDigitated=TRUE, OddEven = TRUE, is_cl_cir = FALSE)
+#6: queue connectors, SE (InterDigitated=TRUE, OddEven = FALSE, is_cl_cir = FALSE)
+dtm_flow_mapping_mode_region_65.BCM88650=0
+dtm_flow_mapping_mode_region_66.BCM88650=0
+dtm_flow_mapping_mode_region_67.BCM88650=0
+dtm_flow_mapping_mode_region_68.BCM88650=0
+dtm_flow_mapping_mode_region_69.BCM88650=0
+dtm_flow_mapping_mode_region_70.BCM88650=0
+dtm_flow_mapping_mode_region_71.BCM88650=0
+dtm_flow_mapping_mode_region_72.BCM88650=0
+dtm_flow_mapping_mode_region_73.BCM88650=0
+dtm_flow_mapping_mode_region_74.BCM88650=0
+dtm_flow_mapping_mode_region_75.BCM88650=0
+dtm_flow_mapping_mode_region_76.BCM88650=0
+dtm_flow_mapping_mode_region_77.BCM88650=0
+dtm_flow_mapping_mode_region_78.BCM88650=0
+dtm_flow_mapping_mode_region_79.BCM88650=0
+dtm_flow_mapping_mode_region_80.BCM88650=0
+dtm_flow_mapping_mode_region_81.BCM88650=1
+dtm_flow_mapping_mode_region_82.BCM88650=1
+dtm_flow_mapping_mode_region_83.BCM88650=1
+dtm_flow_mapping_mode_region_84.BCM88650=1
+dtm_flow_mapping_mode_region_85.BCM88650=1
+dtm_flow_mapping_mode_region_86.BCM88650=1
+dtm_flow_mapping_mode_region_87.BCM88650=1
+dtm_flow_mapping_mode_region_88.BCM88650=1
+dtm_flow_mapping_mode_region_89.BCM88650=1
+dtm_flow_mapping_mode_region_90.BCM88650=1
+dtm_flow_mapping_mode_region_91.BCM88650=1
+dtm_flow_mapping_mode_region_92.BCM88650=1
+dtm_flow_mapping_mode_region_93.BCM88650=1
+dtm_flow_mapping_mode_region_94.BCM88650=1
+dtm_flow_mapping_mode_region_95.BCM88650=1
+dtm_flow_mapping_mode_region_96.BCM88650=1
+dtm_flow_mapping_mode_region_97.BCM88650=1
+dtm_flow_mapping_mode_region_98.BCM88650=1
+dtm_flow_mapping_mode_region_99.BCM88650=2
+dtm_flow_mapping_mode_region_100.BCM88650=2
+dtm_flow_mapping_mode_region_101.BCM88650=2
+dtm_flow_mapping_mode_region_102.BCM88650=2
+dtm_flow_mapping_mode_region_103.BCM88650=2
+dtm_flow_mapping_mode_region_104.BCM88650=2
+dtm_flow_mapping_mode_region_105.BCM88650=2
+dtm_flow_mapping_mode_region_106.BCM88650=2
+dtm_flow_mapping_mode_region_107.BCM88650=2
+dtm_flow_mapping_mode_region_108.BCM88650=2
+dtm_flow_mapping_mode_region_109.BCM88650=2
+dtm_flow_mapping_mode_region_110.BCM88650=2
+dtm_flow_mapping_mode_region_111.BCM88650=2
+dtm_flow_mapping_mode_region_112.BCM88650=2
+dtm_flow_mapping_mode_region_113.BCM88650=2
+dtm_flow_mapping_mode_region_114.BCM88650=2
+dtm_flow_mapping_mode_region_115.BCM88650=2
+dtm_flow_mapping_mode_region_116.BCM88650=2
+dtm_flow_mapping_mode_region_117.BCM88650=2
+dtm_flow_mapping_mode_region_118.BCM88650=2
+dtm_flow_mapping_mode_region_119.BCM88650=2
+dtm_flow_mapping_mode_region_120.BCM88650=2
+dtm_flow_mapping_mode_region_121.BCM88650=2
+dtm_flow_mapping_mode_region_122.BCM88650=2
+dtm_flow_mapping_mode_region_123.BCM88650=2
+dtm_flow_mapping_mode_region_124.BCM88650=2
+dtm_flow_mapping_mode_region_125.BCM88650=2
+dtm_flow_mapping_mode_region_126.BCM88650=2
+dtm_flow_mapping_mode_region_127.BCM88650=2
+dtm_flow_mapping_mode_region_128.BCM88650=2
+
+## Configure number of symmetric cores each region supports ##
+dtm_flow_nof_remote_cores_region_1.BCM88650=2
+dtm_flow_nof_remote_cores_region_2.BCM88650=2
+dtm_flow_nof_remote_cores_region_3.BCM88650=2
+dtm_flow_nof_remote_cores_region_4.BCM88650=2
+dtm_flow_nof_remote_cores_region_5.BCM88650=2
+dtm_flow_nof_remote_cores_region_6.BCM88650=2
+dtm_flow_nof_remote_cores_region_7.BCM88650=2
+dtm_flow_nof_remote_cores_region_8.BCM88650=2
+dtm_flow_nof_remote_cores_region_9.BCM88650=2
+dtm_flow_nof_remote_cores_region_10.BCM88650=2
+dtm_flow_nof_remote_cores_region_11.BCM88650=2
+dtm_flow_nof_remote_cores_region_12.BCM88650=2
+dtm_flow_nof_remote_cores_region_13.BCM88650=2
+dtm_flow_nof_remote_cores_region_14.BCM88650=2
+dtm_flow_nof_remote_cores_region_15.BCM88650=2
+dtm_flow_nof_remote_cores_region_16.BCM88650=2
+dtm_flow_nof_remote_cores_region_17.BCM88650=2
+dtm_flow_nof_remote_cores_region_18.BCM88650=2
+dtm_flow_nof_remote_cores_region_19.BCM88650=2
+dtm_flow_nof_remote_cores_region_20.BCM88650=2
+dtm_flow_nof_remote_cores_region_21.BCM88650=2
+dtm_flow_nof_remote_cores_region_22.BCM88650=2
+dtm_flow_nof_remote_cores_region_23.BCM88650=2
+dtm_flow_nof_remote_cores_region_24.BCM88650=2
+dtm_flow_nof_remote_cores_region_25.BCM88650=2
+dtm_flow_nof_remote_cores_region_26.BCM88650=2
+dtm_flow_nof_remote_cores_region_27.BCM88650=2
+dtm_flow_nof_remote_cores_region_28.BCM88650=2
+dtm_flow_nof_remote_cores_region_29.BCM88650=2
+dtm_flow_nof_remote_cores_region_30.BCM88650=2
+dtm_flow_nof_remote_cores_region_31.BCM88650=2
+dtm_flow_nof_remote_cores_region_32.BCM88650=2
+dtm_flow_nof_remote_cores_region_33.BCM88650=2
+dtm_flow_nof_remote_cores_region_34.BCM88650=2
+dtm_flow_nof_remote_cores_region_35.BCM88650=2
+dtm_flow_nof_remote_cores_region_36.BCM88650=2
+dtm_flow_nof_remote_cores_region_37.BCM88650=2
+dtm_flow_nof_remote_cores_region_38.BCM88650=2
+dtm_flow_nof_remote_cores_region_39.BCM88650=2
+dtm_flow_nof_remote_cores_region_40.BCM88650=2
+dtm_flow_nof_remote_cores_region_41.BCM88650=2
+dtm_flow_nof_remote_cores_region_42.BCM88650=2
+dtm_flow_nof_remote_cores_region_43.BCM88650=2
+dtm_flow_nof_remote_cores_region_44.BCM88650=2
+dtm_flow_nof_remote_cores_region_45.BCM88650=2
+dtm_flow_nof_remote_cores_region_46.BCM88650=2
+dtm_flow_nof_remote_cores_region_47.BCM88650=2
+dtm_flow_nof_remote_cores_region_48.BCM88650=2
+dtm_flow_nof_remote_cores_region_49.BCM88650=2
+dtm_flow_nof_remote_cores_region_50.BCM88650=2
+dtm_flow_nof_remote_cores_region_51.BCM88650=2
+dtm_flow_nof_remote_cores_region_52.BCM88650=2
+dtm_flow_nof_remote_cores_region_53.BCM88650=2
+dtm_flow_nof_remote_cores_region_54.BCM88650=2
+dtm_flow_nof_remote_cores_region_55.BCM88650=2
+dtm_flow_nof_remote_cores_region_56.BCM88650=2
+dtm_flow_nof_remote_cores_region_57.BCM88650=2
+dtm_flow_nof_remote_cores_region_58.BCM88650=2
+dtm_flow_nof_remote_cores_region_59.BCM88650=2
+dtm_flow_nof_remote_cores_region_60.BCM88650=2
+#dtm_flow_nof_remote_cores_region_core0_2.BCM88675=2
+
+
+
+### Flow Control configuration ###
+# Set the Flow control type per Port.
+# Options: LL (Link-level) / CB2 (Class-Based - 2 classes) /
+# CB8 (Class-Based - 8 classes)
+#flow_control_type.BCM88650=LL
+
+## Out-Of-Band Flow control configuration
+#spn_FC_OOB_TYPE, spn_FC_OOB_MODE, spn_FC_OOB_CALENDER_LENGTH, spn_FC_OOB_CALENDER_REP_COUNT,
+
+## Set voltage mode for oob interfaces
+#HSTL_1.5V
+#3.3V
+#HSTL_1.5V_VDDO_DIV_2
+ext_voltage_mode_oob=3.3V
+
+## Inband Interlaken configuration
+# spn_FC_INBAND_INTLKN_MODE, spn_FC_INBAND_INTLKN_CALENDER_LENGTH, spn_FC_INBAND_INTLKN_CALENDER_REP_COUNT
+# spn_FC_INBAND_INTLKN_CALENDER_LLFC_MODE, spn_FC_INBAND_INTLKN_LLFC_MUB_ENABLE_MASK
+
+### Meter engine configuration ###
+
+# Specify meter operation mode
+# 32 - Two meters per packet (32k total)
+# 64 - One meter per packet (64k total) or two meter per packet in dual core device configured as SINGLE_CORE (128K total)
+# 128 - One meter per packet in dual core device configured as SINGLE_CORE (128K total)
+# Options: 0, 32, 64, 128
+policer_ingress_count.BCM88650=32
+policer_ingress_count.BCM88470=32
+policer_ingress_count.BCM88270=32
+policer_ingress_count.BCM88680=32
+
+
+# For meters in double 32k/64K mode, determine the sharing mode
+# Options:
+# 0 - NONE - For 64k or 128K (one meter per packet)
+# 1 - SERIAL - 32k mode only (two meters per packet)
+# 2 - PARALLEL - For 32k or 64k (two meter per packet)
+policer_ingress_sharing_mode.BCM88650=1
+policer_ingress_sharing_mode.BCM88470=1
+policer_ingress_sharing_mode.BCM88270=1
+policer_ingress_sharing_mode.BCM88680=1
+
+
+# Applies only to Arad+ (88660)
+# For meters in parallel mode, determine the mapping
+# Options: BEST, WORST
+#policer_result_parallel_color_map.BCM88650=WORST
+
+# Applies only to Arad+ (88660)
+# For meters in parallel mode, determine how the buckets are changed
+# Options: CONSTANT, TRANSPARENT, DEFERRED
+#policer_result_parallel_bucket_update.BCM88650=CONSTANT
+
+# Applies only to Arad+ (88660)
+# Set the Ethernet policer to work in color blind mode
+#rate_color_blind.BCM88650=1
+
+# L2 learn limit mode
+# Options: VLAN, VLAN_PORT, TUNNEL or the numeric equivalent 0-2.
+# Default: VLAN
+#l2_learn_limit_mode=VLAN_PORT
+
+# Applies only to Arad+ (88660)
+# Determines the L2 learn limit ranges when l2_learn_limit_mode is set to VLAN_PORT
+# Two range bases can be selected, each of 16K size.
+# Options: 0, 16K, 32K, 48K.
+# Default: 0 & 16K
+#l2_learn_lif_range_base_0=0
+#l2_learn_lif_range_base_1=16K
+
+# SW shadow mode for exact match tables. Required for SER support and DBAL diagnostics.
+#   0 - Disabled (Default)
+#   1 - Enabled
+#   2 - Disabled for LEM, enabled for other exact match tables
+exact_match_tables_shadow_enable.BCM88650=1
+exact_match_tables_shadow_enable.BCM88675=2
+
+# determine how many cmcs connected to the CPU.
+#default value=1
+# applies only to jericho and above.
+pci_cmcs_num.88675=3
+pci_cmcs_num.88470=3
+
+### Counter engine configuration ###
+
+# Set the Counter source
+# Options: INGRESS_FIELD / INGRESS_VOQ / INGRESS_VSQ / INGRESS_CNM /
+# INGRESS_LATENCY / EGRESS_FIELD / EGRESS_VSI / EGRESS_OUT_LIF / EGRESS_TM (per queue) / EGRESS_TM_PORT (per port)
+# EGRESS_RECEIVE_VSI / EGRESS_RECEIVE_OUT_LIF / EGRESS_RECEIVE_TM (per queue) / EGRESS_RECEIVE_TM_PORT (per port)
+# INGRESS_OAM / EGRESS_OAM
+# 2 Counter-Pointers can be set (with _0 and _1) for
+# INGRESS_FIELD / EGRESS_FIELD / EGRESS_VSI / EGRESS_OUT_LIF / EGRESS_TM / EGRESS_TM_PORT
+# Range extension can be set (with _LSB and _MSB) for
+# INGRESS_FIELD / EGRESS_VSI / EGRESS_OUT_LIF / EGRESS_TM / EGRESS_TM_PORT /EGRESS_RECEIVE_VSI /
+# EGRESS_RECEIVE_OUT_LIF / EGRESS_RECEIVE_TM / EGRESS_RECEIVE_TM_PORT
+counter_engine_source_0.BCM88650=INGRESS_FIELD_0
+counter_engine_source_1.BCM88650=INGRESS_FIELD_1
+counter_engine_source_2.BCM88650=INGRESS_VOQ
+counter_engine_source_3.BCM88650=EGRESS_FIELD
+
+# Configure the statistic interface egress transmit PP source and the ingress received PP source
+# Options for egress: EGRESS_VSI / EGRESS_OUT_LIF / EGRESS_TM / EGRESS_TM_PORT (the default is TM)
+# Options for ingress: INGRESS_VSI / INGRESS_IN_LIF / INGRESS_TM (the default is TM)
+# valid just when there is no conflict with the other counter engines
+#counter_engine_source_egress_pp_stat0.BCM88650=EGRESS_TM
+#counter_engine_source_egress_pp_stat1.BCM88650=EGRESS_VSI
+#counter_engine_source_ingress_pp_stat0.BCM88650=INGRESS_IN_LIF
+#counter_engine_source_ingress_pp_stat1.BCM88650=INGRESS_TM
+
+
+# Set the Counter engine resolution
+#SIMPLE_COLOR=green, not green
+#SIMPLE_COLOR_FWD=fwd green, fwd not green (BCM88660_A0 only)
+#SIMPLE_COLOR_DROP=drop green, drop not green (BCM88660_A0 only)
+#FWD_DROP=forwarded, dropped
+#GREEN_NOT_GREEN=fwd grn, drop grn, fwd not grn, drop not grn
+#FULL_COLOR=fwd grn, drop grn, fwd not grn, drop yel, drop red
+#ALL=received
+#FWD=forwarded, DROP = droped (not supported by ARAD_A0)
+#CONFIGURABLE=defined by counter_engine_map_ SOC properties (BCM88660_A0 only)
+counter_engine_statistics_0.BCM88650=FULL_COLOR
+counter_engine_statistics_1.BCM88650=FULL_COLOR
+counter_engine_statistics_2.BCM88650=FULL_COLOR
+counter_engine_statistics_3.BCM88650=FULL_COLOR
+
+# Set the Counter format
+# Options: PACKETS_AND_BYTES / PACKETS / BYTES
+# / MAX_QUEUE_SIZE / LATENCY / PACKETS_AND_PACKETS(supported just in FWD_DROP statistic in BCM88660_A0)
+# If not PACKETS_AND_BYTES or PACKETS_AND_PACKETS, the HW Counter width is 59 bits, thus
+# no background SW operation is performed
+counter_engine_format_0.BCM88650=PACKETS_AND_BYTES
+counter_engine_format_1.BCM88650=PACKETS_AND_BYTES
+counter_engine_format_2.BCM88650=PACKETS_AND_BYTES
+counter_engine_format_3.BCM88650=PACKETS_AND_BYTES
+
+# #enable/disable counter processor background thread (default:1-enable)
+#counter_engine_sampling_interval=1
+
+
+### Control optimization of cosq port initializations: speed for memory ###
+runtime_performance_optimize_enable_sched_allocation.BCM88650=1
+runtime_performance_optimize_enable_sched_allocation.BCM88675=1
+
+### static tables initiation (Supported for Jericho) ###
+# Options: 1 - initiating static tables, 0 - doesn't initiate tables (Default Value for PCID/emulation)
+#custom_feature_static_tbl_full_init.BCM88675=1
+#custom_feature_dynamic_tbl_full_init.BCM88675=1
+
+### Interrupts ###
+## Set interrupts global parameters.
+# Options: 1 - Polling interrupt mode, 0 - Line/MSI interrupt mode. Default: 1.
+polled_irq_mode.BCM88650=0
+polled_irq_mode.BCM88675=0
+#  Set the delay in microsecond between the polling, relevant only to Polling mode.  Default: 0x0.
+polled_irq_delay.BCM88650=50000
+
+## CMIC interrupts:
+# Enable: Use interrupts completion instead of polling completion for the following operations.
+#         Options: 1 - Enable, 0 - Disable. Default: 0.
+# Timeout: delay in Microsecond between the polling, relevant only to Polling completion mode.
+# SCHAN:
+#schan_intr_enable.0=1
+schan_timeout_usec.BCM88650=300000
+# TDMA
+tdma_intr_enable.BCM88650=1
+tdma_intr_enable.BCM88675=0
+tdma_timeout_usec.BCM88650=5000000
+tdma_timeout_usec.BCM88675=560000000
+# TSLAM
+tslam_intr_enable.BCM88650=1
+tslam_intr_enable.BCM88675=0
+tslam_timeout_usec.BCM88650=5000000
+tslam_timeout_usec.BCM88675=560000000
+# MIIM
+#miim_intr_enable.0=1
+miim_timeout_usec.0=300000
+
+### DRAM configuration ###
+
+# DRAM buffer (Dbuff) size
+# Allowed values: 256/512/1024/2048.
+ext_ram_dbuff_size.BCM88375_B0=1024
+
+##############################
+# Config variable below are only accessed from dune.soc, and are used to
+# configure BSP / example application / group of formal config variables.
+##############################
+
+## If set, always configures synthesizers, even if the configured rate is equal to
+## their nominal rate. Can be disabled to speedup bringup time (keep in mind that if
+## disabled, changing a synt to a non-nominal freq and than back to nominal will not
+## work
+#synt_over.BCM88650=1
+
+# Local variables for board synthesizers freq. Fabric, combo and nif also configure
+# the *_ref_clock soc properties for these frequencies. core, ddr and phy only
+# configures the synthesizer
+synt_core.BCM88650=100000000
+synt_ddr.BCM88650=125000000
+synt_phy.BCM88650=156250000
+# in Jericho, this freq is used only for the core synth
+synth_dram_freq.BCM88650=25
+
+#Configure the reference clock frequencies for NIF and Fabric SerDes
+# Options:  0 - 125MHz, 1 - 156.25MHz, -1 - Disable
+serdes_nif_clk_freq.BCM88650=1
+serdes_fabric_clk_freq.BCM88650=1
+#serdes_nif_clk_freq.BCM88270=-1
+#serdes_fabric_clk_freq.BCM88270=-1
+serdes_nif_clk_freq.BCM8206=-1
+serdes_fabric_clk_freq.BCM8206=-1
+#serdes_nif_clk_freq_out0.BCM88675=1
+#serdes_nif_clk_freq_out1.BCM88675=1
+#serdes_nif_clk_freq_out2.BCM88675=1
+#serdes_nif_clk_freq_in0.BCM88675=1
+#serdes_nif_clk_freq_in1.BCM88675=1
+#serdes_nif_clk_freq_in2.BCM88675=1
+#serdes_fabric_clk_freq_out0.BCM88675=1
+#serdes_fabric_clk_freq_out1.BCM88675=1
+serdes_fabric_clk_freq_in0.BCM88675=1
+serdes_fabric_clk_freq_in1.BCM88675=-1
+
+
+# IEEE 1588 / Broadsync -
+# configure clock :
+#  DPLL mode/lock: 0 - eci ts pll clk disabled, 1 - configure eci ts pll clk
+#DPLL phase/freq. Default initial: lo=0x40000000, hi = 0x10000000.
+#phy_1588_dpll_frequency_lock.BCM88650=1
+#phy_1588_dpll_phase_initial_lo.BCM88650=0x40000000
+#phy_1588_dpll_phase_initial_hi.BCM88650=0x10000000
+# IEEE 1588 -
+# port external MAC
+#  indication whether external MAC exists or not.
+#  0: 1588 external MAC does not exist
+#  1: 1588 external MAC exists
+#  the external MAC substracts the RX time from the correction field
+#  and adds the TX time to the correction field.
+#ext_1588_mac_enable_14.BCM88650=1
+#  If set, 48 bits stamping is used for 1588 packets. otherwise 32 bit stamping is used
+#  0: 1588 32b stamping (Default)
+#  1: 1588 48b stamping
+#bcm88660_1588_48b_stamping_enable.BCM88660=1
+
+## Trill configurations
+# Trill mode: 0 (disabled) / 1 (coarse-grained) / 2 (fine-grained)
+#trill_mode.BCM88650=1
+
+# Trill multicast prunning mode:
+# 0: no prunning - vsi is not part of the key
+# 1: VSI prunning: Key is dist-tree,esadit-bit,VSI.
+trill_mc_prune_mode.BCM88650=0
+
+# Enable SA authentication
+#sa_auth_enabled=1
+
+# Bridge default logical interfaces allocation IDS
+logical_port_l2_bridge.BCM88650=0
+logical_port_drop.BCM88650=1
+
+#logical_port_mim_in.BCM88650=2
+#logical_port_mim_out.BCM88650=4096
+
+# Enable EVB application
+#evb_enable=1
+
+# Enable Flexible QinQ application
+#vlan_translation_match_ipv4=1
+
+# Enable presel mgmt advance mode
+#field_presel_mgmt_advanced_mode=1
+
+# Enable ITMH programmable mode
+# ITMH processing fully programmable (not fixed) by using the FP APIs.
+# In this mode ITMH processing uses the TCAM/direct table for TM programs lookup, in same manner as Ethernet frames.
+itmh_programmable_mode_enable.BCM88675=1
+itmh_programmable_mode_enable.BCM88470=1
+itmh_programmable_mode_enable.BCM88270=1
+itmh_programmable_mode_enable.BCM88680=1
+
+# Prepend tag to be 4 bytes or 8 bytes. Default: 4B.
+# Applicable only from ARAD+
+#prepend_tag_bytes=4B
+
+# The Prepend Tag is located at (12 + 2*offset) bytes from the start of the packet.
+# Range: 0-7. Default: 0
+#prepend_tag_offset=0
+
+# Enable ARP (next hop mac extension) feature
+bcm886xx_next_hop_mac_extension_enable.BCM88650=1
+
+# Set VLAN translate mode.
+# 0: normal
+# 1: advanced mode. Enable vlan edit settings with enhanced user control
+#bcm886xx_vlan_translate_mode=0
+
+# Set MPLS termination database mode
+# Set MPLS databases location for each MPLS namespace (L1,L2,L3)
+#bcm886xx_mpls_termination_database_mode=0
+
+# Enable , Disable MPLS indexed.
+# MPLS termination with known label stack location.
+# Must be enabled in case device supports more than 2 MPLS label terminations (L1,L2,L3)
+#mpls_termination_label_index_enable=1
+
+# Enable FastReRoute labels in device.
+#fast_reroute_labels_enable=0
+
+# Enable MPLS Context specific. Upstream label assignment in device.
+#mpls_context_specific_label_enable=0
+
+# MPLS context.
+# Can be global, per port , per interface or per port,interface.
+#mpls_context=global
+
+# MPLS TP MC reserved mac address (01-00-5E-90-00-00).
+# If set device will support My-MAC termination of reserved MC Ethernet
+#mpls_tp_mymac_reserved_address=0
+
+# MPLS ELI enable disable
+mpls_entropy_label_indicator_enable=0
+
+
+#########################################
+##cfg for BCM88750 (FE1600)
+#########################################
+#########################################
+##cfg for BCM88950 (FE3200)
+#########################################
+##############################
+# Configuration for devices run in emulation
+##############################
+##############################
+# Config variable below are only accessed from dune.soc, and are used to
+# configure BSP / example application / group of formal config variables.
+##############################
+############################
+### Warmboot & SW State ####
+############################
+#
+#HW journal working mode. Allowed values: 0-2.
+#   0 : Disabled
+#   1 : Commit After Each Api
+#   2 : Commit Upon User Request
+ha_hw_journal_mode=0
+
+ha_hw_journal_size=15728640
+ha_sw_journal_size=15728640
+ha_crash_recovery=1
+
+
+# stable_size - a strict bound on the application's external storage size
+stable_size.BCM88950=200000
+stable_size.BCM88750=200000
+stable_size.BCM88650=281000000
+stable_size.BCM88675=500000000
+stable_size.BCM88680=500000000
+stable_size.BCM88690=500000000
+stable_size.BCM88470=350000000
+stable_size.BCM88270=650000000
+stable_size=420000000
+
+# determine the memory size pre-allocated for the SDK's SW State
+sw_state_max_size.BCM88650=210000000
+sw_state_max_size.BCM88675=350000000
+sw_state_max_size.BCM88680=350000000
+sw_state_max_size.BCM88470=300000000
+sw_state_max_size.BCM88270=210000000
+sw_state_max_size=350000000
+
+# stable location
+## part of scache initialization for warmboot persistent storage.
+## values: 1-2:Not Valid for dnx 3: Store in a file  4: Use Shared Mem.
+# 4 is the preffered option, using 3 for Arad and FE in order to regress both modes.
+stable_location.BCM88950=3
+stable_location.BCM88750=3
+stable_location.BCM88650=3
+stable_location.BCM88660=3
+stable_location.BCM88675=3
+stable_location=3
+
+# stable_filename - the warmboot file name (if stored on a file)
+stable_filename=/tmp/warmboot_data
+
+# emulation file name
+stable_filename.BCM88470=/tmp/warmboot_data
+
+
+# create the file in memory for a faster warmboot debug
+#stable_filename=/dev/shm/warmboot_data
+
+# stable_flags - not in use
+stable_flags=0
+
+############################
+############################
+
+
+# Bridge default logical interfaces allocation IDS
+logical_port_l2_bridge.BCM88640=1
+logical_port_drop.BCM88640=-1
+
+#logical_port_mim_in.BCM88640=2
+#logical_port_mim_out.BCM88640=3
+
+## IPV6 tunnel
+bcm886xx_ipv6_tunnel_enable=1
+
+## Inlif Profile Management Mode - QoS L3 L2 marking mode
+#
+# BCM88660 ONLY
+#
+# QoS L3 L2 marking allows changing the DSCP and/or EXP values
+# of IP and/or MPLS packets according to the incoming port
+# (or inlif), and the Traffic Class/Drop Precedence.
+#
+# The inlif profile is used to control the DSCP/EXP marking.
+# This SOC property controls which mode is used for the inlif profile:
+# 1: Basic mode (1 bit of the inlif profile is reserved and is used for the DSCP/EXP marking).
+# 0: Advanced mode (the user controls which inlif profile values perform DSCP/EXP marking directly).
+#bcm886xx_qos_l3_l2_marking=1
+
+## Unicast RPF mode per RIF
+#
+# This SOC property allows the user to set the unicast RPF mode - loose, strict or disabled - per RIF.
+# If disabled, the unicast RPF mode of a RIF is set globally.
+# Options: 0 / 1
+
+##Jericho only, number of inrif mac termination combinations. Legal values 0 - 16, default value 16 */
+#Note: Two sets of identical mac termination combinations with different RPF modes (loose and strict)
+#will consume two termination combinations resources.
+#Two sets of identical mac termination combinations with and without loose RPF will consume only one resource.
+number_of_inrif_mac_termination_combinations=8
+
+##Jericho only, ipmc_l3mcastl2_mode SOC allows a per RIF program selection in the case of ipv4 MC with IPMC disable
+#instead of the global bcmSwitchL3McastL2 switch control selection.
+#Legal values:
+#0: bcmSwitchL3McastL2 switch control.
+#1: PER In-RIF selection.
+#Note that enabling this SOC will reduce the number of In-RIF mac termination combinations bits by one to a maximum of 3 bits
+#so it can't be enabled with number_of_inrif_mac_termination_combinations larger than 8.
+ipmc_l3mcastl2_mode=1
+
+# The bcm_ipmc_add adds bridge or route entries according to the BCM_IPMC_L2 flag.
+#Setting custom_feature_ipmc_set_entry_type_by_rif=1 will use the related IN-RIF IPMC state (enable/disable)
+# to select the bcm_ipmc_add entry type (bridge/route).
+#custom_feature_ipmc_set_entry_type_by_rif=0
+
+#bcm886xx_l3_ingress_urpf_enable=1
+
+## BOS handling mode
+# BCM8866X ONLY
+#
+# There are two ways to handle BOS, controlled by bcm886xx_mpls_termination_mode:
+# 0 - Use BOS as key in lookup.
+# 1 - Don't use it (except for reserved labels).
+#
+#bcm886xx_mpls_termination_key_mode=0
+
+# Color resolution mode allows the user to have more detailed metering color information.
+# BCM88660 ONLY
+#
+# Options: 0-2
+#0: A red result from both Ethernet policer and meter implies DP=3.
+#1: A red result from meter implies that DP=2, while a red result from rate (Ethernet policer) implies DP=3.
+#policer_color_resolution_mode=1
+
+## Inlif Profile Management Mode - Disable Same Interface Filter
+# BCM8866X ONLY
+#
+# Controls which mode is used for the inlif profile management.
+# 1: Basic mode (1 bit of the inlif profile is reserved and is used for the same-interface filter).
+# 0: Advanced mode (the user controls which inlif profile values have the same-interface filter disabled for them).
+#bcm886xx_logical_interface_bridge_filter_enable=1
+
+## Default Block Forwarding Strength
+#
+# Configure the default forwarding strength of blocks.
+#
+# SOC Properties:
+#block_trap_strength_vtt - VTT block forwarding strength
+#block_trap_strength_flp - FLP block forwarding strength
+#block_trap_strength_hash - SLB block forwarding strength (BCM8866X ONLY)
+#block_trap_strength_pmf_0 - PMF 1st lookup forwarding strength
+#block_trap_strength_pmf_1 - PMF 2nd lookup forwarding strength
+#
+# Options: 0-7
+
+## Stateful Load Balancing
+# BCM8866X ONLY
+#
+# Stateful Load Balancing (SLB) allows the load balancing of ECMP and LAG
+# groups to become stateful.
+# In standard load balancing, removing a member from the ECMP/LAG
+# group may affect the selected member, since the formula
+# depends on group size.
+# In stateful load balancing the member is selected once and saved.
+# Later, the member is always retrieved, and does not depend on
+# the size of the LAG/ECMP group.
+#
+# resilient_hash_enable - Enable/disable SLB. Values:
+# 1 - Enable SLB.
+# 0 - Disable SLB.
+#resilient_hash_enable=1
+
+#Make Arad SOC properties work for Arad+, by mapping the BCM88660 suffix to BCM88650
+soc_family.BCM88660=BCM88650
+#Make Arad SOC properties work for Jericho, by mapping the BCM88675 suffix to BCM88650
+soc_family.BCM88675=BCM88650
+#Make Arad SOC properties work for QMX, by mapping the BCM88375 suffix to BCM88650
+soc_family.BCM88375=BCM88650
+#Make Arad SOC properties work for Ardon, by mapping the BCM88202 suffix to BCM88650
+soc_family.BCM88202=BCM88650
+#Make FE3200 SOC properties work for FE3200 SKU 8952, by mapping the BCM88952 suffix to BCM88950
+soc_family.BCM88952=BCM88950
+#Make FE1600 SOC properties work for FE1600 SKU 8753, by mapping the BCM88753 suffix to BCM88750
+soc_family.BCM88753=BCM88750
+#Make FE1600 SOC properties work for FE1600 SKU 8752, by mapping the BCM88752 suffix to BCM88750
+soc_family.BCM88752=BCM88750
+#Make Arad SOC properties work for QAX, by mapping the BCM88470 suffix to BCM88650
+soc_family.BCM88470=BCM88650
+
+#Make Arad SOC properties work for QUX, by mapping the BCM88270 suffix to BCM88650
+soc_family.BCM88270=BCM88650
+#Make Arad SOC properties work for FLAIR, by mapping the BCM8206 suffix to BCM88650
+soc_family.BCM8206=BCM88650
+#Make Arad SOC properties work for JERICHO_PLUS, by mapping the BCM88470 suffix to BCM88650
+soc_family.BCM88680=BCM88650
+
+
+mem_cache_enable_parity.BCM88650=1
+mem_cache_enable_parity.BCM88675=1
+mem_cache_enable_parity.BCM88202=1
+mem_cache_enable_parity.BCM88750=1
+mem_cache_enable_parity.BCM88950=1
+mem_cache_enable_ecc=0
+
+
+custom_feature_no_backdoor=1
+# Jericho split horizon mode
+# 0 - Use 0-1 range for lif orientation.
+# 1 (default) - Use 0-1 range for lif orientation in AC lifs and 0-3 range for orientation in other lif types.
+split_horizon_forwarding_groups_mode.BCM88675=1
+split_horizon_forwarding_groups_mode.BCM88470=1
+split_horizon_forwarding_groups_mode.BCM88680=1
+
+
+# Entries capacities for public and private IP forwarding tables
+private_ip_frwrd_table_size=500000
+public_ip_frwrd_table_size=500000
+
+
+#Enable KAPS ARM and Descriptor-DMA
+dma_desc_aggregator_chain_length_max=500
+dma_desc_aggregator_buff_size_kb=100
+dma_desc_aggregator_timeout_usec=1000
+dma_desc_aggregator_enable_specific_KAPS=1
+
+#In Jericho the KAPS ARM DMA already consumes 64KB of buffer memory
+dma_desc_aggregator_buff_size_kb.BCM88675=40
+
+# Entries capacities for direct access tables in KAPS (2000 granularity)
+#pmf_kaps_large_db_size=2000
+
+#enable expose of HW id instead of SW id in Traps.
+bcm886xx_rx_use_hw_trap_id.BCM88650=1
+bcm886xx_rx_use_hw_trap_id.BCM88675=1
+
+# Jericho - maximum RIF Id ( valid range is 0 to 32*1024-1)
+#rif_id_max=20000
+
+#If set, never add the PPH learn extension (unless explictly required in FP action).
+#bcm886xx_pph_learn_extension_disable.BCM88650=0
+#bcm886xx_pph_learn_extension_disable.BCM88660=0
+#bcm886xx_pph_learn_extension_disable.BCM88675=0
+
+# Jericho - field_ip_first_fragment_parsed
+#field_ip_first_fragment_parsed=0
+
+# learning_fifo_dma_buffer_size in bytes (host memory size). Valid range is 20-327680
+learning_fifo_dma_buffer_size=200000
+# learning_fifo_dma_timeout in microseconds. Valid range is 0-65535. 0 means no timeout.
+learning_fifo_dma_timeout=32767
+# learning_fifo_dma_threshold valid range is 1-16384 (0x4000)
+learning_fifo_dma_threshold=4
+
+# DDR PHY TUNE INFO
+combo28_tune_control_regs_shared_vref_dac_config_ci3.0=0x00920000,
+combo28_tune_dq_rd_max_vdl_dqsn_ci0.1=0x00000018,0x0000001e,0x0000001c,0x0000001d,
+combo28_tune_dq_macro_reserved_reg_ci5.1=0x00000029,0x00000028,0x0000002a,0x0000002a,
+ext_ram_addr_bank_swap_dram3_bit17=7
+combo28_tune_aq_u_max_vdl_addr_ci4.0=0x00000203,
+combo28_tune_dq_wr_min_vdl_byte3_ci1.0=0x00000001,0x00000003,0x00000002,0x00000004,0x00000005,0x00000002,0x00000000,0x00000003,
+combo28_tune_dq_wr_min_vdl_byte2_ci3.1=0x00000002,0x00000001,0x00000001,0x00000004,0x00000002,0x00000000,0x00000001,0x00000002,
+combo28_tune_dq_wr_max_vdl_dqs_ci4.0=0x0000040f,0x0000040f,0x0000042b,0x00000435,
+combo28_tune_dq_rd_max_vdl_dqsp_ci6.1=0x00000019,0x0000001e,0x00000019,0x00000020,
+combo28_tune_dq_wr_min_vdl_dbi_ci0.1=0x00000000,0x00000003,0x00000000,0x00000003,
+ext_ram_dq_swap_dram0_byte1_bit3=7
+combo28_tune_dq_wr_min_vdl_edc_ci6.0=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_addr_bank_swap_dram3_bit3=3
+ext_ram_dq_swap_dram6_byte0_bit1=4
+ext_ram_dq_swap_dram5_byte2_bit1=2
+ext_ram_dq_swap_dram3_byte0_bit5=0
+combo28_tune_dq_rd_min_vdl_byte1_ci2.0=0x00000016,0x0000001b,0x00000019,0x00000018,0x00000014,0x00000017,0x0000001b,0x0000001c,
+ext_ram_dq_swap_dram2_byte2_bit5=4
+ext_ram_addr_bank_swap_dram2_bit9=8
+phy_tx_polarity_flip_phy35.1=1
+combo28_tune_dq_rd_min_vdl_byte0_ci4.1=0x00000018,0x00000017,0x00000014,0x00000014,0x00000017,0x00000016,0x00000016,0x00000018,
+combo28_tune_dq_rd_min_vdl_edc_ci0.1=0x00000016,0x00000017,0x00000016,0x00000017,
+combo28_tune_common_macro_reserved_reg_ci0.0=0x00000000,
+ext_ram_dq_swap_dram7_byte3_bit3=1
+ext_ram_dq_swap_dram5_byte1_bit7=7
+phy_tx_lane_map_quad7.1=0x0123
+ext_ram_dq_swap_dram4_byte3_bit7=4
+combo28_tune_aq_l_max_vdl_addr_ci0.1=0x00000210,
+combo28_tune_aq_l_max_vdl_ctrl_ci7.1=0x0000021a,
+combo28_tune_dq_wr_max_vdl_data_ci1.1=0x00000403,0x00000414,0x00000236,0x00000238,
+combo28_tune_control_regs_input_shift_ctrl_ci7.1=0x00000070,
+combo28_tune_dq_rd_min_vdl_dbi_ci5.1=0x00000016,0x00000016,0x00000016,0x00000017,
+ext_ram_addr_bank_swap_dram4_bit11=17
+combo28_tune_control_regs_shared_vref_dac_config_ci3.1=0x00920000,
+phy_tx_lane_map_quad13.1=0x3120
+combo28_tune_aq_u_max_vdl_addr_ci4.1=0x00000200,
+combo28_tune_dq_wr_min_vdl_byte3_ci1.1=0x00000002,0x00000003,0x00000001,0x00000004,0x00000004,0x00000001,0x00000000,0x00000002,
+combo28_tune_dq_wr_min_vdl_byte1_ci6.0=0x00000003,0x00000000,0x00000004,0x00000003,0x00000005,0x00000004,0x00000005,0x00000005,
+combo28_tune_dq_wr_max_vdl_dqs_ci4.1=0x0000040f,0x0000040a,0x0000042e,0x0000042c,
+combo28_tune_dq_edcen_fifo_config_ci5.0=0x00000080,0x00000080,0x00000080,0x00000080,
+combo28_tune_aq_l_macro_reserved_reg_ci3.0=0x00000000,
+ext_ram_dq_swap_dram3_byte1_bit0=4
+combo28_tune_control_regs_reserved_reg_ci1.0=0x00000003,
+ext_ram_dq_swap_dram2_byte3_bit0=1
+ext_ram_dq_swap_dram0_byte1_bit4=1
+combo28_tune_dq_wr_min_vdl_edc_ci6.1=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_addr_bank_swap_dram3_bit4=6
+combo28_tune_control_regs_read_clock_config_ci0.0=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci0.0=0x00000017,0x00000017,0x00000016,0x00000017,0x00000014,0x00000015,0x00000015,0x00000016,
+ext_ram_dq_swap_dram6_byte0_bit2=6
+ext_ram_dq_swap_dram5_byte2_bit2=1
+ext_ram_dq_swap_dram3_byte0_bit6=5
+combo28_tune_dq_rd_min_vdl_byte1_ci2.1=0x00000017,0x0000001b,0x0000001b,0x00000018,0x00000014,0x00000017,0x0000001b,0x0000001c,
+ext_ram_dq_swap_dram2_byte2_bit6=7
+phy_tx_polarity_flip_phy44.1=1
+combo28_tune_common_macro_reserved_reg_ci0.1=0x00000000,
+ext_ram_dq_swap_dram7_byte3_bit4=5
+combo28_tune_dq_read_max_vdl_fsm_ci1.0=0x0000004d,0x0000004d,0x0000004d,0x0000004d,
+combo28_tune_aq_u_max_vdl_ctrl_ci1.0=0x0000004d,
+combo28_tune_control_regs_edcen_fifo_central_init_ci6.0=0x00000000,
+ext_ram_t_wr=14900
+ext_ram_addr_bank_swap_dram4_bit12=5
+combo28_tune_dq_vref_dac_config_ci5.0=0x008a0000,0x00880000,0x00860000,0x00900000,
+combo28_tune_dq_rd_max_vdl_dqsn_ci1.0=0x0000001e,0x00000022,0x0000001a,0x00000021,
+combo28_tune_dq_macro_reserved_reg_ci6.0=0x00000025,0x00000027,0x00000029,0x00000029,
+phy_rx_lane_map_quad16.1=0x2130
+combo28_tune_dq_wr_min_vdl_byte2_ci4.0=0x00000001,0x00000005,0x00000003,0x00000000,0x00000003,0x00000006,0x00000005,0x00000003,
+combo28_tune_dq_wr_min_vdl_byte1_ci6.1=0x00000002,0x00000000,0x00000003,0x00000001,0x00000003,0x00000003,0x00000003,0x00000004,
+combo28_tune_dq_ren_fifo_config_ci0.0=0x00000092,0x00000092,0x00000092,0x00000092,
+combo28_tune_dq_rd_max_vdl_dqsp_ci7.0=0x0000001a,0x0000001e,0x0000001d,0x00000022,
+combo28_tune_dq_edcen_fifo_config_ci5.1=0x00000080,0x00000080,0x00000080,0x00000080,
+combo28_tune_aq_l_macro_reserved_reg_ci3.1=0x00000000,
+combo28_tune_dq_wr_min_vdl_dbi_ci1.0=0x00000001,0x00000003,0x00000001,0x00000002,
+ext_ram_dq_swap_dram3_byte1_bit1=0
+combo28_tune_control_regs_reserved_reg_ci1.1=0x00000003,
+ext_ram_dq_swap_dram2_byte3_bit1=0
+ext_ram_dq_swap_dram0_byte1_bit5=2
+ext_ram_addr_bank_swap_dram3_bit5=2
+combo28_tune_aq_u_macro_reserved_reg_ci0.0=0x00000000,
+combo28_tune_control_regs_read_clock_config_ci0.1=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci0.1=0x00000017,0x00000017,0x00000016,0x00000017,0x00000014,0x00000014,0x00000015,0x00000016,
+ext_ram_dq_swap_dram6_byte0_bit3=2
+ext_ram_dq_swap_dram5_byte2_bit3=5
+ext_ram_dq_swap_dram3_byte0_bit7=2
+combo28_tune_dq_rd_min_vdl_byte0_ci5.0=0x00000015,0x00000016,0x00000014,0x00000016,0x00000015,0x00000015,0x00000016,0x00000015,
+ext_ram_dq_swap_dram2_byte2_bit7=0
+combo28_tune_dq_rd_min_vdl_edc_ci1.0=0x00000018,0x00000018,0x00000015,0x00000019,
+ext_ram_dq_swap_dram7_byte3_bit5=2
+combo28_tune_aq_l_max_vdl_addr_ci1.0=0x0000004d,
+combo28_tune_dq_read_max_vdl_fsm_ci1.1=0x0000004b,0x0000004b,0x0000004b,0x0000004b,
+combo28_tune_dq_wr_max_vdl_data_ci2.0=0x00000236,0x00000237,0x00000246,0x00000248,
+combo28_tune_aq_u_max_vdl_ctrl_ci1.1=0x0000004a,
+combo28_tune_dq_rd_min_vdl_dbi_ci6.0=0x00000015,0x00000018,0x00000015,0x00000018,
+combo28_tune_control_regs_edcen_fifo_central_init_ci6.1=0x00000000,
+ext_ram_addr_bank_swap_dram4_bit13=7
+combo28_tune_dq_vref_dac_config_ci5.1=0x008a0000,0x00880000,0x008a0000,0x008a0000,
+combo28_tune_control_regs_shared_vref_dac_config_ci4.0=0x00920000,
+combo28_tune_dq_rd_max_vdl_dqsn_ci1.1=0x0000001c,0x0000001f,0x0000001b,0x00000024,
+ext_ram_c_wr_latency=16c
+combo28_tune_dq_macro_reserved_reg_ci6.1=0x0000002a,0x0000002a,0x0000002d,0x0000002b,
+combo28_tune_aq_u_max_vdl_addr_ci5.0=0x00000214,
+combo28_tune_dq_wr_min_vdl_byte3_ci2.0=0x00000002,0x00000001,0x00000001,0x00000000,0x00000002,0x00000000,0x00000002,0x00000003,
+combo28_tune_dq_wr_min_vdl_byte2_ci4.1=0x00000003,0x00000005,0x00000003,0x00000000,0x00000003,0x00000006,0x00000006,0x00000005,
+ext_ram_dq_swap_dram1_byte0_bit0=2
+combo28_tune_dq_ren_fifo_config_ci0.1=0x00000092,0x00000092,0x00000092,0x00000092,
+combo28_tune_dq_wr_max_vdl_dqs_ci5.0=0x00000410,0x00000410,0x0000042c,0x00000429,
+ext_ram_dq_swap_dram0_byte2_bit0=5
+combo28_tune_dq_rd_max_vdl_dqsp_ci7.1=0x00000018,0x0000001f,0x0000001a,0x00000021,
+ext_ram_addr_bank_swap_dram4_bit0=4
+combo28_tune_dq_wr_min_vdl_dbi_ci1.1=0x00000001,0x00000001,0x00000002,0x00000002,
+combo28_tune_dq_wr_min_vdl_edc_ci7.0=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_dq_swap_dram3_byte1_bit2=2
+ext_ram_dq_swap_dram2_byte3_bit2=4
+ext_ram_dq_swap_dram0_byte1_bit6=3
+ext_ram_addr_bank_swap_dram3_bit6=10
+combo28_tune_aq_u_macro_reserved_reg_ci0.1=0x00000000,
+combo28_tune_dq_rd_min_vdl_byte1_ci3.0=0x00000015,0x00000015,0x00000014,0x00000019,0x00000017,0x00000016,0x00000016,0x00000016,
+ext_ram_dq_swap_dram6_byte0_bit4=3
+ext_ram_dq_swap_dram5_byte2_bit4=6
+phy_tx_polarity_flip_phy36.1=1
+combo28_tune_dq_rd_min_vdl_byte0_ci5.1=0x00000016,0x00000015,0x00000016,0x00000016,0x00000016,0x00000014,0x00000015,0x00000016,
+combo28_tune_dq_rd_min_vdl_edc_ci1.1=0x00000015,0x00000016,0x00000017,0x0000001b,
+combo28_tune_common_macro_reserved_reg_ci1.0=0x00000000,
+phy_tx_lane_map_quad8.1=0x0312
+ext_ram_dq_swap_dram7_byte3_bit6=4
+ext_ram_addr_bank_swap_dram0_bit10=6
+combo28_tune_aq_l_max_vdl_addr_ci1.1=0x0000004a,
+combo28_tune_dq_wr_max_vdl_data_ci2.1=0x00000233,0x00000236,0x0000023e,0x00000405,
+combo28_tune_dq_rd_min_vdl_dbi_ci6.1=0x00000016,0x00000016,0x00000017,0x00000019,
+ext_ram_t_wtr_l=12c
+ext_ram_addr_bank_swap_dram4_bit14=9
+combo28_tune_control_regs_shared_vref_dac_config_ci4.1=0x00920000,
+phy_tx_lane_map_quad14.1=0x2130
+combo28_tune_aq_u_max_vdl_addr_ci5.1=0x00000212,
+combo28_tune_dq_wr_min_vdl_byte3_ci2.1=0x00000000,0x00000001,0x00000001,0x00000002,0x00000002,0x00000002,0x00000002,0x00000003,
+combo28_tune_dq_wr_min_vdl_byte1_ci7.0=0x00000002,0x00000005,0x00000002,0x00000002,0x00000002,0x00000006,0x00000000,0x00000004,
+ext_ram_dq_swap_dram1_byte0_bit1=0
+combo28_tune_dq_wr_max_vdl_dqs_ci5.1=0x0000040d,0x0000040f,0x00000423,0x0000042b,
+combo28_tune_dq_edcen_fifo_config_ci6.0=0x00000080,0x00000080,0x00000080,0x00000080,
+combo28_tune_aq_l_macro_reserved_reg_ci4.0=0x00000000,
+ext_ram_dq_swap_dram0_byte2_bit1=1
+ext_ram_addr_bank_swap_dram4_bit1=16
+combo28_tune_control_regs_reserved_reg_ci2.0=0x00000003,
+combo28_tune_dq_wr_min_vdl_edc_ci7.1=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_dq_swap_dram3_byte1_bit3=7
+ext_ram_dq_swap_dram2_byte3_bit3=7
+ext_ram_dq_swap_dram0_byte1_bit7=5
+combo28_tune_control_regs_read_clock_config_ci1.0=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci1.0=0x00000014,0x00000015,0x00000015,0x00000014,0x00000015,0x00000014,0x00000014,0x00000014,
+ext_ram_addr_bank_swap_dram3_bit7=15
+combo28_tune_dq_rd_min_vdl_byte1_ci3.1=0x00000014,0x00000015,0x00000015,0x00000016,0x00000016,0x00000014,0x00000016,0x00000016,
+ext_ram_dq_swap_dram6_byte0_bit5=7
+ext_ram_dq_swap_dram5_byte2_bit5=4
+combo28_tune_common_macro_reserved_reg_ci1.1=0x00000000,
+ext_ram_t_rtp_l=12c
+ext_ram_dq_swap_dram7_byte3_bit7=7
+combo28_tune_dq_read_max_vdl_fsm_ci2.0=0x0000004d,0x0000004d,0x0000004d,0x0000004d,
+ext_ram_addr_bank_swap_dram0_bit11=9
+combo28_tune_aq_u_max_vdl_ctrl_ci2.0=0x00000210,
+combo28_tune_control_regs_edcen_fifo_central_init_ci7.0=0x00000000,
+combo28_tune_dq_vref_dac_config_ci6.0=0x008c0000,0x00880000,0x008e0000,0x008e0000,
+ext_ram_addr_bank_swap_dram4_bit15=11
+combo28_tune_dq_rd_max_vdl_dqsn_ci2.0=0x0000001b,0x00000022,0x0000001a,0x00000023,
+combo28_tune_dq_macro_reserved_reg_ci7.0=0x00000029,0x00000025,0x00000029,0x00000026,
+custom_feature_dram_bitamp=0xFF
+phy_rx_lane_map_quad17.1=0x3102
+combo28_tune_dq_wr_min_vdl_byte2_ci5.0=0x00000001,0x00000003,0x00000004,0x00000000,0x00000003,0x00000004,0x00000003,0x00000002,
+combo28_tune_dq_wr_min_vdl_byte1_ci7.1=0x00000000,0x00000004,0x00000002,0x00000002,0x00000003,0x00000005,0x00000003,0x00000003,
+combo28_tune_dq_ren_fifo_config_ci1.0=0x00000092,0x00000092,0x00000092,0x00000092,
+ext_ram_dq_swap_dram1_byte0_bit2=6
+combo28_tune_dq_edcen_fifo_config_ci6.1=0x00000080,0x00000080,0x00000080,0x00000080,
+combo28_tune_aq_l_macro_reserved_reg_ci4.1=0x00000000,
+combo28_tune_dq_wr_min_vdl_dbi_ci2.0=0x00000004,0x00000002,0x00000003,0x00000001,
+ext_ram_dq_swap_dram0_byte2_bit2=6
+ext_ram_addr_bank_swap_dram4_bit2=6
+combo28_tune_control_regs_reserved_reg_ci2.1=0x00000003,
+ext_ram_dq_swap_dram6_byte1_bit0=0
+ext_ram_dq_swap_dram5_byte3_bit0=2
+ext_ram_dq_swap_dram3_byte1_bit4=5
+combo28_tune_aq_u_macro_reserved_reg_ci1.0=0x00000000,
+ext_ram_dq_swap_dram2_byte3_bit4=3
+combo28_tune_control_regs_read_clock_config_ci1.1=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci1.1=0x00000016,0x00000017,0x00000017,0x00000016,0x00000016,0x00000016,0x00000017,0x00000014,
+ext_ram_addr_bank_swap_dram3_bit8=4
+combo28_tune_dq_rd_min_vdl_byte0_ci6.0=0x00000015,0x00000014,0x00000015,0x00000015,0x00000015,0x00000016,0x00000015,0x00000015,
+ext_ram_dq_swap_dram6_byte0_bit6=1
+ext_ram_dq_swap_dram5_byte2_bit6=3
+combo28_tune_dq_rd_min_vdl_edc_ci2.0=0x00000016,0x00000019,0x00000015,0x00000016,
+combo28_tune_aq_l_max_vdl_addr_ci2.0=0x00000210,
+combo28_tune_dq_read_max_vdl_fsm_ci2.1=0x0000004c,0x0000004c,0x0000004c,0x0000004c,
+combo28_tune_dq_wr_max_vdl_data_ci3.0=0x0000024b,0x0000040b,0x00000228,0x00000232,
+ext_ram_addr_bank_swap_dram0_bit12=13
+combo28_tune_aq_u_max_vdl_ctrl_ci2.1=0x00000211,
+combo28_tune_dq_rd_min_vdl_dbi_ci7.0=0x00000015,0x00000016,0x00000015,0x00000018,
+combo28_tune_control_regs_edcen_fifo_central_init_ci7.1=0x00000000,
+combo28_tune_dq_vref_dac_config_ci6.1=0x00920000,0x00860000,0x008a0000,0x00860000,
+combo28_tune_control_regs_shared_vref_dac_config_ci5.0=0x00920000,
+ext_ram_addr_bank_swap_dram4_bit16=1
+combo28_tune_dq_rd_max_vdl_dqsn_ci2.1=0x0000001c,0x00000022,0x0000001a,0x00000020,
+combo28_tune_dq_macro_reserved_reg_ci7.1=0x0000002d,0x0000002a,0x00000029,0x0000002a,
+combo28_tune_aq_u_max_vdl_addr_ci6.0=0x00000048,
+combo28_tune_dq_wr_min_vdl_byte3_ci3.0=0x00000003,0x00000004,0x00000003,0x00000003,0x00000000,0x00000002,0x00000003,0x00000004,
+combo28_tune_dq_wr_min_vdl_byte2_ci5.1=0x00000002,0x00000004,0x00000006,0x00000000,0x00000005,0x00000004,0x00000004,0x00000002,
+combo28_tune_dq_ren_fifo_config_ci1.1=0x00000092,0x00000092,0x00000092,0x00000092,
+combo28_tune_dq_wr_max_vdl_dqs_ci6.0=0x00000434,0x00000434,0x0000041f,0x0000041c,
+ext_ram_dq_swap_dram1_byte0_bit3=4
+combo28_tune_dq_wr_min_vdl_dbi_ci2.1=0x00000003,0x00000002,0x00000003,0x00000001,
+ext_ram_dq_swap_dram0_byte2_bit3=3
+ext_ram_addr_bank_swap_dram4_bit3=3
+ext_ram_dq_swap_dram6_byte1_bit1=4
+ext_ram_dq_swap_dram5_byte3_bit1=6
+ext_ram_dq_swap_dram3_byte1_bit5=6
+combo28_tune_aq_u_macro_reserved_reg_ci1.1=0x00000000,
+combo28_tune_control_regs_ren_fifo_central_initializer_ci0.0=0x0000000f,
+ext_ram_dq_swap_dram2_byte3_bit5=5
+combo28_tune_dq_rd_min_vdl_byte1_ci4.0=0x0000001b,0x0000001a,0x0000001b,0x0000001b,0x00000015,0x00000015,0x00000016,0x00000014,
+ext_ram_addr_bank_swap_dram3_bit9=8
+phy_tx_polarity_flip_phy63.1=1
+combo28_tune_dq_rd_min_vdl_byte0_ci6.1=0x00000014,0x00000015,0x00000015,0x00000016,0x00000017,0x00000017,0x00000017,0x00000016,
+ext_ram_dq_swap_dram6_byte0_bit7=5
+ext_ram_dq_swap_dram5_byte2_bit7=7
+combo28_tune_dq_rd_min_vdl_edc_ci2.1=0x00000017,0x00000019,0x00000016,0x00000017,
+combo28_tune_common_macro_reserved_reg_ci2.0=0x00000000,
+combo28_tune_aq_l_max_vdl_addr_ci2.1=0x00000211,
+combo28_tune_dq_wr_max_vdl_data_ci3.1=0x00000249,0x00000400,0x00000223,0x00000238,
+ext_ram_addr_bank_swap_dram0_bit13=7
+ext_ram_addr_bank_swap_dram5_bit10=9
+combo28_tune_dq_rd_min_vdl_dbi_ci7.1=0x00000016,0x00000017,0x00000016,0x00000017,
+combo28_tune_control_regs_shared_vref_dac_config_ci5.1=0x00920000,
+ext_ram_addr_bank_swap_dram4_bit17=13
+phy_tx_lane_map_quad15.1=0x1032
+combo28_tune_aq_u_max_vdl_addr_ci6.1=0x00000044,
+combo28_tune_dq_wr_min_vdl_byte3_ci3.1=0x00000001,0x00000001,0x00000000,0x00000001,0x00000002,0x00000000,0x00000000,0x00000003,
+combo28_tune_dq_wr_max_vdl_dqs_ci6.1=0x0000042a,0x0000043b,0x0000041c,0x00000418,
+combo28_tune_dq_edcen_fifo_config_ci7.0=0x00000080,0x00000080,0x00000080,0x00000080,
+combo28_tune_aq_l_macro_reserved_reg_ci5.0=0x00000000,
+ext_ram_dq_swap_dram4_byte0_bit0=1
+ext_ram_dq_swap_dram3_byte2_bit0=6
+ext_ram_dq_swap_dram1_byte0_bit4=3
+ext_ram_dq_swap_dram0_byte2_bit4=0
+combo28_tune_control_regs_reserved_reg_ci3.0=0x00000003,
+ext_ram_addr_bank_swap_dram4_bit4=2
+ext_ram_dq_swap_dram6_byte1_bit2=2
+combo28_tune_control_regs_read_clock_config_ci2.0=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci2.0=0x00000015,0x00000014,0x00000014,0x00000017,0x00000014,0x00000016,0x00000014,0x00000016,
+ext_ram_dq_swap_dram5_byte3_bit2=3
+ext_ram_dq_swap_dram3_byte1_bit6=1
+combo28_tune_control_regs_ren_fifo_central_initializer_ci0.1=0x0000000f,
+ext_ram_dq_swap_dram2_byte3_bit6=6
+combo28_tune_dq_rd_min_vdl_byte1_ci4.1=0x00000019,0x00000019,0x00000019,0x00000019,0x00000015,0x00000016,0x00000016,0x00000014,
+combo28_tune_common_macro_reserved_reg_ci2.1=0x00000000,
+combo28_tune_dq_read_max_vdl_fsm_ci3.0=0x0000004d,0x0000004d,0x0000004d,0x0000004d,
+ext_ram_addr_bank_swap_dram0_bit14=5
+combo28_tune_aq_u_max_vdl_ctrl_ci3.0=0x0000004a,
+ext_ram_addr_bank_swap_dram5_bit11=17
+combo28_tune_dq_wr_min_vdl_byte0_ci0.0=0x00000001,0x00000004,0x00000001,0x00000002,0x00000001,0x00000000,0x00000001,0x00000000,
+combo28_tune_dq_vref_dac_config_ci7.0=0x00800000,0x00840000,0x008a0000,0x008c0000,
+combo28_tune_dq_rd_max_vdl_dqsn_ci3.0=0x00000019,0x0000001c,0x0000001c,0x00000020,
+combo28_tune_dq_wr_min_vdl_byte2_ci6.0=0x00000001,0x00000000,0x00000002,0x00000000,0x00000006,0x00000004,0x00000003,0x00000004,
+ext_ram_t_rc=47000
+combo28_tune_dq_ren_fifo_config_ci2.0=0x00000092,0x00000092,0x00000092,0x00000092,
+combo28_tune_dq_edcen_fifo_config_ci7.1=0x00000080,0x00000080,0x00000080,0x00000080,
+combo28_tune_aq_l_macro_reserved_reg_ci5.1=0x00000000,
+combo28_tune_dq_wr_min_vdl_dbi_ci3.0=0x00000002,0x00000000,0x00000002,0x00000002,
+ext_ram_dq_swap_dram4_byte0_bit1=5
+ext_ram_dq_swap_dram3_byte2_bit1=0
+ext_ram_dq_swap_dram1_byte0_bit5=7
+ext_ram_dq_swap_dram0_byte2_bit5=2
+combo28_tune_control_regs_reserved_reg_ci3.1=0x00000003,
+ext_ram_addr_bank_swap_dram4_bit5=0
+combo28_tune_dq_rd_min_vdl_byte3_ci0.0=0x00000019,0x0000001a,0x00000019,0x00000015,0x00000014,0x00000015,0x00000019,0x00000016,
+combo28_tune_aq_u_macro_reserved_reg_ci2.0=0x00000000,
+ext_ram_dq_swap_dram6_byte1_bit3=6
+combo28_tune_control_regs_read_clock_config_ci2.1=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci2.1=0x00000014,0x00000016,0x00000015,0x00000017,0x00000015,0x00000017,0x00000015,0x00000017,
+ext_ram_dq_swap_dram5_byte3_bit3=0
+ext_ram_dq_swap_dram3_byte1_bit7=3
+ext_ram_dq_swap_dram2_byte3_bit7=2
+combo28_tune_dq_rd_min_vdl_byte0_ci7.0=0x00000016,0x00000014,0x00000014,0x00000015,0x00000014,0x00000015,0x00000015,0x00000016,
+combo28_tune_dq_rd_min_vdl_edc_ci3.0=0x00000015,0x00000016,0x00000016,0x00000016,
+combo28_tune_aq_l_max_vdl_addr_ci3.0=0x0000004a,
+combo28_tune_dq_read_max_vdl_fsm_ci3.1=0x0000004a,0x0000004a,0x0000004a,0x0000004a,
+combo28_tune_dq_wr_max_vdl_data_ci4.0=0x0000022e,0x00000230,0x00000245,0x00000406,
+ext_ram_addr_bank_swap_dram0_bit15=16
+combo28_tune_aq_u_max_vdl_ctrl_ci3.1=0x00000047,
+ext_ram_addr_bank_swap_dram5_bit12=13
+combo28_tune_dq_wr_min_vdl_byte0_ci0.1=0x00000000,0x00000000,0x00000001,0x00000002,0x00000000,0x00000000,0x00000002,0x00000000,
+combo28_tune_dq_vref_dac_config_ci7.1=0x008c0000,0x007c0000,0x008a0000,0x008e0000,
+combo28_tune_control_regs_shared_vref_dac_config_ci6.0=0x00920000,
+combo28_tune_dq_rd_max_vdl_dqsn_ci3.1=0x00000019,0x0000001d,0x0000001a,0x00000022,
+combo28_tune_aq_u_max_vdl_addr_ci7.0=0x0000021d,
+combo28_tune_dq_wr_min_vdl_byte3_ci4.0=0x00000001,0x00000001,0x00000000,0x00000003,0x00000002,0x00000002,0x00000003,0x00000001,
+combo28_tune_dq_wr_min_vdl_byte2_ci6.1=0x00000001,0x00000001,0x00000001,0x00000000,0x00000006,0x00000005,0x00000004,0x00000005,
+ext_ram_dq_swap_dram1_byte1_bit0=4
+ext_ram_dq_swap_dram0_byte3_bit0=1
+combo28_tune_dq_ren_fifo_config_ci2.1=0x00000092,0x00000092,0x00000092,0x00000092,
+combo28_tune_dq_wr_max_vdl_dqs_ci7.0=0x0000041b,0x0000041e,0x00000433,0x00000437,
+ext_ram_addr_bank_swap_dram5_bit0=15
+combo28_tune_dq_wr_min_vdl_dbi_ci3.1=0x00000001,0x00000000,0x00000001,0x00000001,
+ext_ram_dq_swap_dram4_byte0_bit2=2
+ext_ram_dq_swap_dram3_byte2_bit2=5
+ext_ram_dq_swap_dram1_byte0_bit6=5
+ext_ram_dq_swap_dram0_byte2_bit6=4
+ext_ram_addr_bank_swap_dram4_bit6=12
+combo28_tune_dq_rd_min_vdl_byte3_ci0.1=0x00000018,0x0000001a,0x00000018,0x00000016,0x00000014,0x00000016,0x00000018,0x00000015,
+ext_ram_c_cas_latency=24c
+combo28_tune_aq_u_macro_reserved_reg_ci2.1=0x00000000,
+combo28_tune_control_regs_ren_fifo_central_initializer_ci1.0=0x0000000f,
+ext_ram_dq_swap_dram6_byte1_bit4=1
+combo28_tune_dq_rd_min_vdl_byte1_ci5.0=0x00000016,0x00000016,0x00000015,0x00000016,0x00000016,0x00000014,0x00000014,0x00000016,
+ext_ram_dq_swap_dram5_byte3_bit4=1
+phy_tx_polarity_flip_phy64.1=1
+combo28_tune_dq_rd_min_vdl_byte0_ci7.1=0x00000014,0x00000015,0x00000014,0x00000015,0x00000016,0x00000016,0x00000015,0x00000016,
+combo28_tune_dq_rd_min_vdl_edc_ci3.1=0x00000015,0x00000016,0x00000016,0x00000018,
+combo28_tune_common_macro_reserved_reg_ci3.0=0x00000000,
+combo28_tune_aq_l_max_vdl_addr_ci3.1=0x00000047,
+combo28_tune_dq_wr_max_vdl_data_ci4.1=0x0000022c,0x00000229,0x00000247,0x00000249,
+ext_ram_addr_bank_swap_dram0_bit16=11
+ext_ram_addr_bank_swap_dram5_bit13=12
+combo28_tune_control_regs_shared_vref_dac_config_ci6.1=0x00920000,
+phy_tx_lane_map_quad16.1=0x1032
+combo28_tune_aq_u_max_vdl_addr_ci7.1=0x0000021a,
+combo28_tune_dq_wr_min_vdl_byte3_ci4.1=0x00000002,0x00000000,0x00000003,0x00000002,0x00000001,0x00000001,0x00000003,0x00000002,
+ext_ram_dq_swap_dram1_byte1_bit1=0
+ext_ram_dq_swap_dram0_byte3_bit1=7
+combo28_tune_dq_wr_max_vdl_dqs_ci7.1=0x0000041a,0x0000041b,0x00000434,0x00000430,
+combo28_tune_aq_l_macro_reserved_reg_ci6.0=0x00000000,
+ext_ram_addr_bank_swap_dram5_bit1=10
+ext_ram_dq_swap_dram4_byte0_bit3=0
+combo28_tune_control_regs_reserved_reg_ci4.0=0x00000003,
+ext_ram_dq_swap_dram3_byte2_bit3=2
+ext_ram_dq_swap_dram1_byte0_bit7=1
+ext_ram_dq_swap_dram0_byte2_bit7=7
+combo28_tune_aq_l_max_vdl_ctrl_ci0.0=0x0000020a,
+ext_ram_addr_bank_swap_dram4_bit7=14
+combo28_tune_control_regs_read_clock_config_ci3.0=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci3.0=0x00000015,0x00000014,0x00000015,0x00000014,0x00000015,0x00000017,0x00000016,0x00000017,
+combo28_tune_control_regs_ren_fifo_central_initializer_ci1.1=0x0000000f,
+combo28_tune_control_regs_input_shift_ctrl_ci0.0=0x00000070,
+ext_ram_dq_swap_dram6_byte1_bit5=7
+combo28_tune_dq_rd_min_vdl_byte1_ci5.1=0x00000016,0x00000017,0x00000015,0x00000016,0x00000014,0x00000014,0x00000015,0x00000017,
+ext_ram_dq_swap_dram5_byte3_bit5=5
+ext_ram_t_zqcs=170c
+combo28_tune_common_macro_reserved_reg_ci3.1=0x00000000,
+ext_ram_addr_bank_swap_dram1_bit10=12
+combo28_tune_dq_read_max_vdl_fsm_ci4.0=0x0000004c,0x0000004c,0x0000004c,0x0000004c,
+combo28_tune_aq_u_max_vdl_ctrl_ci4.0=0x00000203,
+ext_ram_addr_bank_swap_dram0_bit17=1
+combo28_tune_dq_wr_min_vdl_byte0_ci1.0=0x00000003,0x00000001,0x00000005,0x00000001,0x00000001,0x00000000,0x00000001,0x00000001,
+ext_ram_addr_bank_swap_dram5_bit14=14
+combo28_tune_dq_rd_max_vdl_dqsn_ci4.0=0x0000001a,0x00000021,0x0000001d,0x00000023,
+ext_ram_t_wtr_s=4c
+ext_ram_addr_bank_swap_dram0_bit0=2
+combo28_tune_dq_wr_min_vdl_byte2_ci7.0=0x00000008,0x00000000,0x00000002,0x00000001,0x00000001,0x00000005,0x00000002,0x00000005,
+combo28_tune_dq_ren_fifo_config_ci3.0=0x00000092,0x00000092,0x00000092,0x00000092,
+ext_ram_rows=32768
+ext_ram_dq_swap_dram1_byte1_bit2=2
+ext_ram_dq_swap_dram0_byte3_bit2=3
+combo28_tune_aq_l_macro_reserved_reg_ci6.1=0x00000000,
+combo28_tune_dq_wr_min_vdl_dbi_ci4.0=0x00000002,0x00000001,0x00000003,0x00000001,
+ext_ram_addr_bank_swap_dram5_bit2=11
+ext_ram_dq_swap_dram7_byte0_bit0=2
+ext_ram_dq_swap_dram6_byte2_bit0=5
+ext_ram_dq_swap_dram4_byte0_bit4=3
+combo28_tune_control_regs_reserved_reg_ci4.1=0x00000003,
+ext_ram_dq_swap_dram3_byte2_bit4=4
+combo28_tune_dq_rd_min_vdl_byte3_ci1.0=0x00000019,0x0000001a,0x00000017,0x0000001a,0x0000001b,0x00000017,0x00000014,0x0000001c,
+combo28_tune_aq_l_max_vdl_ctrl_ci0.1=0x00000210,
+combo28_tune_aq_u_macro_reserved_reg_ci3.0=0x00000000,
+ext_ram_addr_bank_swap_dram4_bit8=8
+combo28_tune_control_regs_read_clock_config_ci3.1=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci3.1=0x00000014,0x00000014,0x00000016,0x00000014,0x00000014,0x00000017,0x00000016,0x00000016,
+combo28_tune_control_regs_input_shift_ctrl_ci0.1=0x00000070,
+ext_ram_dq_swap_dram6_byte1_bit6=3
+ext_ram_dq_swap_dram5_byte3_bit6=4
+combo28_tune_dq_rd_min_vdl_edc_ci4.0=0x00000017,0x00000018,0x00000015,0x00000017,
+ext_ram_addr_bank_swap_dram1_bit11=6
+combo28_tune_aq_l_max_vdl_addr_ci4.0=0x00000203,
+combo28_tune_dq_read_max_vdl_fsm_ci4.1=0x0000004a,0x0000004a,0x0000004a,0x0000004a,
+combo28_tune_dq_wr_max_vdl_data_ci5.0=0x0000022d,0x0000022f,0x00000246,0x00000246,
+ext_ram_t_rtp_s=12c
+combo28_tune_aq_u_max_vdl_ctrl_ci4.1=0x00000200,
+combo28_tune_dq_wr_min_vdl_byte0_ci1.1=0x00000003,0x00000000,0x00000003,0x00000003,0x00000001,0x00000001,0x00000002,0x00000002,
+ext_ram_addr_bank_swap_dram5_bit15=8
+combo28_tune_control_regs_shared_vref_dac_config_ci7.0=0x00920000,
+combo28_tune_dq_rd_max_vdl_dqsn_ci4.1=0x0000001a,0x0000001f,0x0000001d,0x00000022,
+ext_ram_addr_bank_swap_dram0_bit1=10
+combo28_tune_dq_wr_min_vdl_byte3_ci5.0=0x00000005,0x00000003,0x00000002,0x00000000,0x00000000,0x00000001,0x00000002,0x00000004,
+combo28_tune_dq_wr_min_vdl_byte2_ci7.1=0x00000009,0x00000002,0x00000001,0x00000004,0x00000000,0x00000004,0x00000003,0x00000004,
+ext_ram_abi=0
+combo28_tune_dq_ren_fifo_config_ci3.1=0x00000092,0x00000092,0x00000092,0x00000092,
+ext_ram_dq_swap_dram1_byte1_bit3=6
+ext_ram_dq_swap_dram0_byte3_bit3=2
+combo28_tune_dq_wr_min_vdl_dbi_ci4.1=0x00000001,0x00000001,0x00000003,0x00000001,
+ext_ram_addr_bank_swap_dram5_bit3=3
+phy_rx_polarity_flip_phy25.1=1
+ext_ram_dq_swap_dram7_byte0_bit1=0
+ext_ram_banks=8
+ext_ram_dq_swap_dram6_byte2_bit1=1
+ext_ram_dq_swap_dram4_byte0_bit5=4
+ext_ram_dq_swap_dram3_byte2_bit5=7
+combo28_tune_dq_rd_min_vdl_byte3_ci1.1=0x00000018,0x0000001d,0x00000019,0x0000001c,0x0000001d,0x00000018,0x00000014,0x0000001e,
+combo28_tune_aq_u_macro_reserved_reg_ci3.1=0x00000000,
+combo28_tune_control_regs_ren_fifo_central_initializer_ci2.0=0x0000000f,
+ext_ram_addr_bank_swap_dram4_bit9=10
+combo28_tune_dq_rd_min_vdl_byte1_ci6.0=0x00000017,0x00000014,0x00000018,0x00000016,0x00000019,0x00000019,0x0000001a,0x0000001a,
+ext_ram_dq_swap_dram6_byte1_bit7=5
+ext_ram_dq_swap_dram5_byte3_bit7=7
+combo28_tune_dq_rd_min_vdl_edc_ci4.1=0x00000017,0x00000018,0x00000015,0x00000017,
+combo28_tune_common_macro_reserved_reg_ci4.0=0x00000000,
+ext_ram_addr_bank_swap_dram1_bit12=15
+combo28_tune_aq_l_max_vdl_addr_ci4.1=0x00000200,
+combo28_tune_dq_wr_max_vdl_data_ci5.1=0x00000229,0x0000022c,0x0000023b,0x00000248,
+ext_ram_write_dbi=0
+combo28_tune_dq_rd_max_vdl_dqsp_ci0.0=0x00000019,0x00000021,0x0000001b,0x00000023,
+ext_ram_addr_bank_swap_dram5_bit16=0
+combo28_tune_control_regs_shared_vref_dac_config_ci7.1=0x00920000,
+ext_ram_addr_bank_swap_dram0_bit2=4
+combo28_tune_dq_wr_min_vdl_byte3_ci5.1=0x00000003,0x00000005,0x00000001,0x00000000,0x00000001,0x00000002,0x00000002,0x00000004,
+ext_ram_dq_swap_dram4_byte1_bit0=5
+combo28_tune_aq_l_macro_reserved_reg_ci7.0=0x00000000,
+ext_ram_dq_swap_dram3_byte3_bit0=4
+ext_ram_dq_swap_dram1_byte1_bit4=3
+ext_ram_dq_swap_dram0_byte3_bit4=0
+ext_ram_addr_bank_swap_dram5_bit4=16
+combo28_tune_control_regs_reserved_reg_ci5.0=0x00000003,
+ext_ram_dq_swap_dram7_byte0_bit2=6
+ext_ram_dq_swap_dram6_byte2_bit2=7
+ext_ram_dq_swap_dram4_byte0_bit6=6
+combo28_tune_aq_l_max_vdl_ctrl_ci1.0=0x0000004d,
+ext_ram_dq_swap_dram3_byte2_bit6=1
+combo28_tune_control_regs_read_clock_config_ci4.0=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci4.0=0x00000015,0x00000014,0x00000015,0x00000015,0x00000016,0x00000016,0x00000014,0x00000014,
+combo28_tune_control_regs_ren_fifo_central_initializer_ci2.1=0x0000000f,
+combo28_tune_control_regs_input_shift_ctrl_ci1.0=0x00000070,
+combo28_tune_dq_rd_min_vdl_byte1_ci6.1=0x00000014,0x00000014,0x00000016,0x00000015,0x00000016,0x00000018,0x00000016,0x00000017,
+combo28_tune_common_macro_reserved_reg_ci4.1=0x00000000,
+combo28_tune_dq_read_max_vdl_fsm_ci5.0=0x0000004c,0x0000004c,0x0000004c,0x0000004c,
+ext_ram_addr_bank_swap_dram1_bit13=13
+ext_ram_addr_bank_swap_dram6_bit10=6
+combo28_tune_aq_u_max_vdl_ctrl_ci5.0=0x00000214,
+combo28_tune_dq_wr_min_vdl_byte0_ci2.0=0x00000006,0x00000006,0x00000003,0x00000006,0x00000005,0x00000005,0x00000003,0x00000000,
+combo28_tune_dq_rd_max_vdl_dqsp_ci0.1=0x00000018,0x0000001e,0x0000001c,0x0000001d,
+ext_ram_addr_bank_swap_dram5_bit17=2
+combo28_tune_dq_rd_max_vdl_dqsn_ci5.0=0x0000001c,0x0000001f,0x0000001d,0x0000001f,
+combo28_tune_dq_wr_min_vdl_edc_ci0.0=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_addr_bank_swap_dram0_bit3=3
+combo28_tune_dq_ren_fifo_config_ci4.0=0x00000092,0x00000092,0x00000092,0x00000092,
+ext_ram_dq_swap_dram4_byte1_bit1=1
+combo28_tune_aq_l_macro_reserved_reg_ci7.1=0x00000000,
+combo28_tune_dq_wr_min_vdl_dbi_ci5.0=0x00000001,0x00000001,0x00000002,0x00000002,
+ext_ram_dq_swap_dram3_byte3_bit1=5
+ext_ram_dq_swap_dram1_byte1_bit5=1
+ext_ram_dq_swap_dram0_byte3_bit5=4
+ext_ram_cmd_par_latency=8
+ext_ram_addr_bank_swap_dram5_bit5=4
+combo28_tune_control_regs_reserved_reg_ci5.1=0x00000003,
+ext_ram_dq_swap_dram7_byte0_bit3=4
+combo28_tune_dq_rd_min_vdl_byte3_ci2.0=0x00000016,0x00000015,0x00000014,0x00000017,0x00000016,0x00000016,0x00000015,0x00000016,
+ext_ram_dq_swap_dram6_byte2_bit3=3
+ext_ram_dq_swap_dram4_byte0_bit7=7
+combo28_tune_aq_l_max_vdl_ctrl_ci1.1=0x0000004a,
+combo28_tune_aq_u_macro_reserved_reg_ci4.0=0x00000000,
+ext_ram_dq_swap_dram3_byte2_bit7=3
+combo28_tune_control_regs_read_clock_config_ci4.1=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci4.1=0x00000014,0x00000014,0x00000015,0x00000015,0x00000015,0x00000014,0x00000015,0x00000015,
+combo28_tune_control_regs_input_shift_ctrl_ci1.1=0x00000070,
+phy_tx_polarity_flip_phy57.1=1
+combo28_tune_dq_rd_min_vdl_edc_ci5.0=0x00000016,0x00000016,0x00000015,0x00000016,
+combo28_tune_aq_l_max_vdl_addr_ci5.0=0x00000214,
+combo28_tune_dq_read_max_vdl_fsm_ci5.1=0x00000049,0x00000049,0x00000049,0x00000049,
+combo28_tune_dq_wr_max_vdl_data_ci6.0=0x00000402,0x00000402,0x0000023d,0x0000023d,
+ext_ram_addr_bank_swap_dram1_bit14=14
+ext_ram_addr_bank_swap_dram6_bit11=9
+combo28_tune_aq_u_max_vdl_ctrl_ci5.1=0x00000212,
+ext_ram_t_al=0
+combo28_tune_dq_wr_min_vdl_byte1_ci0.0=0x00000001,0x00000002,0x00000000,0x00000003,0x00000005,0x00000005,0x00000005,0x00000004,
+combo28_tune_dq_wr_min_vdl_byte0_ci2.1=0x00000005,0x00000005,0x00000003,0x00000004,0x00000003,0x00000003,0x00000004,0x00000000,
+combo28_tune_dq_rd_max_vdl_dqsn_ci5.1=0x0000001d,0x00000020,0x0000001a,0x0000001d,
+combo28_tune_dq_wr_min_vdl_edc_ci0.1=0x00000000,0x00000000,0x00000000,0x00000000,
+combo28_tune_dq_wr_min_vdl_byte3_ci6.0=0x00000004,0x00000005,0x00000002,0x00000001,0x00000000,0x00000002,0x00000002,0x00000004,
+ext_ram_dq_swap_dram2_byte0_bit0=2
+os=unix
+ext_ram_dq_swap_dram1_byte2_bit0=6
+ext_ram_addr_bank_swap_dram0_bit4=17
+ext_ram_addr_bank_swap_dram6_bit0=2
+combo28_tune_dq_ren_fifo_config_ci4.1=0x00000092,0x00000092,0x00000092,0x00000092,
+ext_ram_dq_swap_dram4_byte1_bit2=7
+phy_rx_polarity_flip_phy52.1=1
+combo28_tune_dq_wr_min_vdl_dbi_ci5.1=0x00000000,0x00000000,0x00000003,0x00000002,
+ext_ram_dq_swap_dram3_byte3_bit2=6
+ext_ram_dq_swap_dram1_byte1_bit6=7
+phy_rx_polarity_flip_phy26.1=1
+ext_ram_dq_swap_dram0_byte3_bit6=5
+ext_ram_addr_bank_swap_dram5_bit6=1
+ext_ram_dq_swap_dram7_byte0_bit4=3
+combo28_tune_dq_rd_min_vdl_byte3_ci2.1=0x00000017,0x00000015,0x00000014,0x00000019,0x00000018,0x00000018,0x00000015,0x00000016,
+ext_ram_dq_swap_dram6_byte2_bit4=4
+combo28_tune_aq_u_macro_reserved_reg_ci4.1=0x00000000,
+combo28_tune_control_regs_ren_fifo_central_initializer_ci3.0=0x0000000f,
+combo28_tune_dq_rd_min_vdl_byte1_ci7.0=0x00000014,0x00000015,0x00000016,0x00000014,0x00000017,0x00000016,0x00000017,0x00000017,
+combo28_tune_control_regs_edcen_fifo_central_init_ci0.0=0x00000000,
+combo28_tune_dq_rd_min_vdl_edc_ci5.1=0x00000016,0x00000016,0x00000016,0x00000017,
+combo28_tune_common_macro_reserved_reg_ci5.0=0x00000000,
+combo28_tune_dq_macro_reserved_reg_ci0.0=0x00000027,0x00000029,0x00000026,0x00000028,
+combo28_tune_aq_l_max_vdl_addr_ci5.1=0x00000212,
+phy_rx_lane_map_quad10.1=0x1302
+combo28_tune_dq_wr_max_vdl_data_ci6.1=0x00000246,0x0000040d,0x00000237,0x00000237,
+ext_ram_addr_bank_swap_dram1_bit15=1
+ext_ram_addr_bank_swap_dram6_bit12=13
+combo28_tune_dq_wr_min_vdl_byte1_ci0.1=0x00000002,0x00000001,0x00000000,0x00000004,0x00000004,0x00000003,0x00000005,0x00000005,
+combo28_tune_dq_rd_max_vdl_dqsp_ci1.0=0x0000001e,0x00000022,0x0000001a,0x00000021,
+ext_ram_columns=1024
+combo28_tune_dq_wr_min_vdl_byte3_ci6.1=0x00000004,0x00000003,0x00000002,0x00000000,0x00000000,0x00000002,0x00000001,0x00000004,
+ext_ram_dq_swap_dram2_byte0_bit1=4
+ddr3_auto_tune.BCM88375=2
+ext_ram_t_ccd_l=8c
+ext_ram_dq_swap_dram1_byte2_bit1=7
+ext_ram_addr_bank_swap_dram0_bit5=0
+ext_ram_addr_bank_swap_dram6_bit1=10
+ext_ram_t_rfc=260000
+ext_ram_dq_swap_dram4_byte1_bit3=3
+ext_ram_dq_swap_dram3_byte3_bit3=3
+ext_ram_dq_swap_dram1_byte1_bit7=5
+combo28_tune_control_regs_reserved_reg_ci6.0=0x00000003,
+ext_ram_dq_swap_dram0_byte3_bit7=6
+ext_ram_addr_bank_swap_dram5_bit7=7
+combo28_tune_aq_l_max_vdl_ctrl_ci2.0=0x00000210,
+ext_ram_dq_swap_dram7_byte0_bit5=7
+combo28_tune_control_regs_read_clock_config_ci5.0=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci5.0=0x00000014,0x00000014,0x00000016,0x00000014,0x00000014,0x00000014,0x00000015,0x00000015,
+ext_ram_dq_swap_dram6_byte2_bit5=2
+combo28_tune_control_regs_ren_fifo_central_initializer_ci3.1=0x0000000f,
+combo28_tune_control_regs_input_shift_ctrl_ci2.0=0x00000070,
+combo28_tune_dq_rd_min_vdl_byte1_ci7.1=0x00000014,0x00000016,0x00000017,0x00000016,0x00000018,0x00000017,0x00000017,0x00000018,
+combo28_tune_dq_rd_min_vdl_dbi_ci0.0=0x00000017,0x00000017,0x00000016,0x00000018,
+combo28_tune_control_regs_edcen_fifo_central_init_ci0.1=0x00000000,
+combo28_tune_common_macro_reserved_reg_ci5.1=0x00000000,
+combo28_tune_dq_macro_reserved_reg_ci0.1=0x0000002a,0x0000002b,0x0000002a,0x0000002c,
+combo28_tune_dq_read_max_vdl_fsm_ci6.0=0x0000004d,0x0000004d,0x0000004d,0x0000004d,
+ext_ram_addr_bank_swap_dram1_bit16=9
+combo28_tune_aq_u_max_vdl_ctrl_ci6.0=0x00000048,
+ext_ram_addr_bank_swap_dram6_bit13=7
+combo28_tune_dq_wr_min_vdl_byte0_ci3.0=0x00000002,0x00000001,0x00000007,0x00000002,0x00000000,0x00000001,0x00000001,0x00000004,
+combo28_tune_dq_rd_max_vdl_dqsp_ci1.1=0x0000001c,0x0000001f,0x0000001b,0x00000024,
+combo28_tune_dq_rd_max_vdl_dqsn_ci6.0=0x0000001b,0x00000020,0x00000018,0x00000022,
+combo28_tune_dq_wr_min_vdl_edc_ci1.0=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_addr_bank_swap_dram1_bit0=7
+ext_ram_dq_swap_dram2_byte0_bit2=3
+ext_ram_dq_swap_dram1_byte2_bit2=5
+ext_ram_addr_bank_swap_dram0_bit6=14
+combo28_tune_dq_ren_fifo_config_ci5.0=0x00000092,0x00000092,0x00000092,0x00000092,
+ext_ram_addr_bank_swap_dram6_bit2=4
+combo28_tune_dq_wr_min_vdl_dbi_ci6.0=0x00000002,0x00000003,0x00000002,0x00000002,
+ext_ram_dq_swap_dram7_byte1_bit0=4
+ext_ram_dq_swap_dram6_byte3_bit0=5
+ext_ram_dq_swap_dram4_byte1_bit4=6
+ext_ram_t_ref=3900000
+ext_ram_dq_swap_dram3_byte3_bit4=0
+combo28_tune_control_regs_reserved_reg_ci6.1=0x00000003,
+combo28_tune_dq_rd_min_vdl_byte3_ci3.0=0x00000014,0x00000016,0x00000014,0x00000016,0x00000014,0x00000014,0x00000018,0x00000017,
+ext_ram_addr_bank_swap_dram5_bit8=6
+combo28_tune_aq_l_max_vdl_ctrl_ci2.1=0x00000211,
+combo28_tune_aq_u_macro_reserved_reg_ci5.0=0x00000000,
+ext_ram_dq_swap_dram7_byte0_bit6=5
+combo28_tune_control_regs_read_clock_config_ci5.1=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci5.1=0x00000015,0x00000015,0x00000017,0x00000016,0x00000014,0x00000015,0x00000016,0x00000016,
+ext_ram_dq_swap_dram6_byte2_bit6=0
+combo28_tune_control_regs_input_shift_ctrl_ci2.1=0x00000070,
+phy_tx_polarity_flip_phy58.1=1
+combo28_tune_dq_rd_min_vdl_dbi_ci0.1=0x00000016,0x00000017,0x00000016,0x00000017,
+combo28_tune_dq_rd_min_vdl_edc_ci6.0=0x00000015,0x00000018,0x00000015,0x00000018,
+ext_ram_addr_bank_swap_dram2_bit10=4
+combo28_tune_aq_l_max_vdl_addr_ci6.0=0x00000048,
+combo28_tune_dq_read_max_vdl_fsm_ci6.1=0x0000004a,0x0000004a,0x0000004a,0x0000004a,
+combo28_tune_dq_wr_max_vdl_data_ci7.0=0x0000023a,0x0000023d,0x00000400,0x00000408,
+ext_ram_addr_bank_swap_dram1_bit17=11
+combo28_tune_aq_u_max_vdl_ctrl_ci6.1=0x00000044,
+combo28_tune_dq_wr_min_vdl_byte1_ci1.0=0x00000000,0x00000003,0x00000005,0x00000006,0x00000004,0x00000005,0x00000004,0x00000004,
+ext_ram_addr_bank_swap_dram6_bit14=5
+combo28_tune_dq_wr_min_vdl_byte0_ci3.1=0x00000001,0x00000001,0x00000005,0x00000001,0x00000001,0x00000000,0x00000000,0x00000004,
+combo28_tune_dq_edcen_fifo_config_ci0.0=0x00000080,0x00000080,0x00000080,0x00000080,
+combo28_tune_dq_rd_max_vdl_dqsn_ci6.1=0x00000019,0x0000001e,0x00000019,0x00000020,
+combo28_tune_dq_wr_min_vdl_edc_ci1.1=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_addr_bank_swap_dram1_bit1=17
+combo28_tune_dq_wr_min_vdl_byte3_ci7.0=0x00000001,0x00000001,0x00000001,0x00000002,0x00000002,0x00000000,0x00000000,0x00000000,
+ext_ram_dq_swap_dram2_byte0_bit3=6
+ext_ram_dq_swap_dram1_byte2_bit3=3
+ext_ram_addr_bank_swap_dram0_bit7=8
+combo28_tune_dq_ren_fifo_config_ci5.1=0x00000092,0x00000092,0x00000092,0x00000092,
+ext_ram_read_dbi=0
+ext_ram_addr_bank_swap_dram6_bit3=3
+combo28_tune_dq_wr_min_vdl_dbi_ci6.1=0x00000001,0x00000002,0x00000002,0x00000002,
+ext_ram_dq_swap_dram7_byte1_bit1=0
+phy_rx_polarity_flip_phy27.1=1
+ext_ram_dq_swap_dram6_byte3_bit1=7
+ext_ram_dq_swap_dram4_byte1_bit5=2
+ext_ram_dq_swap_dram3_byte3_bit5=2
+combo28_tune_dq_rd_min_vdl_byte3_ci3.1=0x00000015,0x0000001a,0x00000014,0x00000019,0x00000016,0x00000015,0x00000019,0x0000001a,
+ext_ram_addr_bank_swap_dram5_bit9=5
+combo28_tune_aq_u_macro_reserved_reg_ci5.1=0x00000000,
+combo28_tune_control_regs_ren_fifo_central_initializer_ci4.0=0x0000000f,
+ext_ram_dq_swap_dram7_byte0_bit7=1
+ext_ram_dq_swap_dram6_byte2_bit7=6
+phy_tx_polarity_flip_phy67.1=1
+combo28_tune_control_regs_edcen_fifo_central_init_ci1.0=0x00000000,
+ext_ram_t_rcd_wr=15000
+combo28_tune_dq_rd_min_vdl_edc_ci6.1=0x00000016,0x00000016,0x00000017,0x00000019,
+combo28_tune_common_macro_reserved_reg_ci6.0=0x00000000,
+combo28_tune_dq_vref_dac_config_ci0.0=0x00840000,0x00860000,0x008e0000,0x00880000,
+ext_ram_addr_bank_swap_dram2_bit11=0
+combo28_tune_dq_macro_reserved_reg_ci1.0=0x00000027,0x0000002b,0x0000002a,0x00000029,
+combo28_tune_aq_l_max_vdl_addr_ci6.1=0x00000044,
+phy_rx_lane_map_quad11.1=0x0123
+combo28_tune_dq_wr_max_vdl_data_ci7.1=0x00000236,0x00000239,0x00000404,0x00000400,
+combo28_tune_dq_wr_min_vdl_byte1_ci1.1=0x00000000,0x00000001,0x00000002,0x00000000,0x00000000,0x00000001,0x00000003,0x00000003,
+ext_ram_addr_bank_swap_dram6_bit15=16
+combo28_tune_dq_rd_max_vdl_dqsp_ci2.0=0x0000001b,0x00000022,0x0000001a,0x00000023,
+combo28_tune_dq_edcen_fifo_config_ci0.1=0x00000080,0x00000080,0x00000080,0x00000080,
+ext_ram_addr_bank_swap_dram1_bit2=4
+combo28_tune_dq_wr_min_vdl_byte3_ci7.1=0x00000000,0x00000002,0x00000001,0x00000004,0x00000001,0x00000000,0x00000000,0x00000001,
+ext_ram_dq_swap_dram5_byte0_bit0=5
+combo28_tune_dq_rd_min_vdl_byte0_ci0.0=0x00000015,0x00000016,0x00000014,0x00000015,0x00000018,0x00000017,0x00000017,0x00000017,
+ext_ram_dq_swap_dram4_byte2_bit0=5
+ext_ram_dq_swap_dram2_byte0_bit4=1
+ext_ram_dq_swap_dram1_byte2_bit4=1
+ext_ram_addr_bank_swap_dram0_bit8=15
+ext_ram_addr_bank_swap_dram6_bit4=17
+ext_ram_dq_swap_dram7_byte1_bit2=2
+combo28_tune_control_regs_reserved_reg_ci7.0=0x00000003,
+ext_ram_dq_swap_dram6_byte3_bit2=3
+ext_ram_dq_swap_dram4_byte1_bit6=0
+ext_ram_dq_swap_dram3_byte3_bit6=7
+combo28_tune_aq_l_max_vdl_ctrl_ci3.0=0x0000004a,
+combo28_tune_control_regs_read_clock_config_ci6.0=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci6.0=0x00000015,0x00000016,0x00000015,0x00000014,0x00000014,0x00000014,0x00000014,0x00000015,
+combo28_tune_control_regs_ren_fifo_central_initializer_ci4.1=0x0000000f,
+combo28_tune_control_regs_input_shift_ctrl_ci3.0=0x00000070,
+combo28_tune_dq_rd_min_vdl_dbi_ci1.0=0x00000018,0x00000018,0x00000015,0x00000019,
+combo28_tune_control_regs_edcen_fifo_central_init_ci1.1=0x00000000,
+combo28_tune_common_macro_reserved_reg_ci6.1=0x00000000,
+combo28_tune_dq_vref_dac_config_ci0.1=0x008c0000,0x00860000,0x008e0000,0x008a0000,
+ext_ram_addr_bank_swap_dram2_bit12=2
+combo28_tune_dq_macro_reserved_reg_ci1.1=0x0000002b,0x0000002c,0x00000024,0x00000024,
+combo28_tune_dq_read_max_vdl_fsm_ci7.0=0x0000004c,0x0000004c,0x0000004c,0x0000004c,
+combo28_tune_aq_u_max_vdl_addr_ci0.0=0x0000020a,
+combo28_tune_aq_u_max_vdl_ctrl_ci7.0=0x0000021d,
+combo28_tune_dq_wr_min_vdl_byte0_ci4.0=0x00000002,0x00000003,0x00000004,0x00000000,0x00000000,0x00000002,0x00000005,0x00000000,
+combo28_tune_dq_wr_max_vdl_dqs_ci0.0=0x00000406,0x00000419,0x0000042a,0x0000042f,
+ext_ram_addr_bank_swap_dram6_bit16=11
+combo28_tune_dq_rd_max_vdl_dqsp_ci2.1=0x0000001c,0x00000022,0x0000001a,0x00000020,
+combo28_tune_dq_rd_max_vdl_dqsn_ci7.0=0x0000001a,0x0000001e,0x0000001d,0x00000022,
+combo28_tune_dq_wr_min_vdl_edc_ci2.0=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_addr_bank_swap_dram1_bit3=3
+ext_ram_dq_swap_dram5_byte0_bit1=1
+combo28_tune_dq_rd_min_vdl_byte0_ci0.1=0x00000014,0x00000014,0x00000015,0x00000016,0x00000016,0x00000014,0x00000016,0x00000017,
+combo28_tune_dq_ren_fifo_config_ci6.0=0x00000092,0x00000092,0x00000092,0x00000092,
+ext_ram_dq_swap_dram4_byte2_bit1=4
+ext_ram_dq_swap_dram2_byte0_bit5=5
+ext_ram_dq_swap_dram1_byte2_bit5=2
+ext_ram_addr_bank_swap_dram0_bit9=12
+combo28_tune_dq_wr_min_vdl_dbi_ci7.0=0x00000002,0x00000002,0x00000003,0x00000000,
+ext_ram_addr_bank_swap_dram6_bit5=0
+ext_ram_dq_swap_dram7_byte1_bit3=6
+combo28_tune_control_regs_reserved_reg_ci7.1=0x00000003,
+ext_ram_dq_swap_dram6_byte3_bit3=0
+ext_ram_dq_swap_dram4_byte1_bit7=4
+combo28_tune_dq_rd_min_vdl_byte3_ci4.0=0x00000018,0x00000018,0x00000018,0x00000015,0x00000018,0x00000015,0x00000016,0x00000014,
+ext_ram_dq_swap_dram3_byte3_bit7=1
+combo28_tune_aq_l_max_vdl_ctrl_ci3.1=0x00000047,
+combo28_tune_aq_u_macro_reserved_reg_ci6.0=0x00000000,
+combo28_tune_control_regs_read_clock_config_ci6.1=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci6.1=0x00000017,0x00000017,0x00000017,0x00000017,0x00000016,0x00000014,0x00000016,0x00000016,
+combo28_tune_control_regs_input_shift_ctrl_ci3.1=0x00000070,
+combo28_tune_dq_rd_min_vdl_dbi_ci1.1=0x00000015,0x00000016,0x00000017,0x0000001b,
+combo28_tune_dq_rd_min_vdl_edc_ci7.0=0x00000015,0x00000016,0x00000015,0x00000018,
+ext_ram_addr_bank_swap_dram2_bit13=7
+combo28_tune_aq_l_max_vdl_addr_ci7.0=0x0000021d,
+combo28_tune_dq_read_max_vdl_fsm_ci7.1=0x00000049,0x00000049,0x00000049,0x00000049,
+ext_ram_addr_bank_swap_dram7_bit10=6
+combo28_tune_aq_u_max_vdl_addr_ci0.1=0x00000210,
+combo28_tune_aq_u_max_vdl_ctrl_ci7.1=0x0000021a,
+ext_ram_type=DDR4
+combo28_tune_dq_wr_min_vdl_byte1_ci2.0=0x00000001,0x00000003,0x00000001,0x00000003,0x00000000,0x00000003,0x00000003,0x00000004,
+combo28_tune_dq_wr_min_vdl_byte0_ci4.1=0x00000001,0x00000002,0x00000004,0x00000001,0x00000000,0x00000002,0x00000004,0x00000000,
+combo28_tune_dq_wr_max_vdl_dqs_ci0.1=0x00000411,0x00000417,0x0000042b,0x00000427,
+combo28_tune_dq_edcen_fifo_config_ci1.0=0x00000080,0x00000080,0x00000080,0x00000080,
+ext_ram_addr_bank_swap_dram6_bit17=1
+combo28_tune_dq_rd_max_vdl_dqsn_ci7.1=0x00000018,0x0000001f,0x0000001a,0x00000021,
+combo28_tune_dq_wr_min_vdl_edc_ci2.1=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_dq_swap_dram2_byte1_bit0=4
+ext_ram_addr_bank_swap_dram1_bit4=2
+ext_ram_dq_swap_dram1_byte3_bit0=6
+ext_ram_addr_bank_swap_dram7_bit0=2
+ext_ram_dq_swap_dram5_byte0_bit2=2
+combo28_tune_dq_ren_fifo_config_ci6.1=0x00000092,0x00000092,0x00000092,0x00000092,
+ext_ram_dq_swap_dram4_byte2_bit2=7
+ext_ram_dq_swap_dram2_byte0_bit6=7
+ext_ram_dq_swap_dram1_byte2_bit6=0
+combo28_tune_dq_wr_min_vdl_dbi_ci7.1=0x00000002,0x00000002,0x00000003,0x00000001,
+phy_rx_polarity_flip_phy28.1=1
+ext_ram_addr_bank_swap_dram6_bit6=14
+ext_ram_dq_swap_dram7_byte1_bit4=3
+ext_ram_dq_swap_dram6_byte3_bit4=4
+combo28_tune_dq_rd_min_vdl_byte3_ci4.1=0x00000018,0x00000018,0x00000018,0x00000016,0x00000017,0x00000015,0x00000015,0x00000014,
+ext_ram_t_rp=15000
+combo28_tune_aq_u_macro_reserved_reg_ci6.1=0x00000000,
+combo28_tune_control_regs_ren_fifo_central_initializer_ci5.0=0x0000000f,
+phy_tx_polarity_flip_phy68.1=1
+combo28_tune_control_regs_edcen_fifo_central_init_ci2.0=0x00000000,
+combo28_tune_dq_rd_min_vdl_edc_ci7.1=0x00000016,0x00000017,0x00000016,0x00000017,
+combo28_tune_common_macro_reserved_reg_ci7.0=0x00000000,
+combo28_tune_dq_vref_dac_config_ci1.0=0x00900000,0x00840000,0x00840000,0x008c0000,
+combo28_tune_dq_macro_reserved_reg_ci2.0=0x00000029,0x0000002a,0x0000002a,0x00000026,
+ext_ram_addr_bank_swap_dram2_bit14=16
+combo28_tune_aq_l_max_vdl_addr_ci7.1=0x0000021a,
+phy_rx_lane_map_quad12.1=0x2310
+ext_ram_addr_bank_swap_dram7_bit11=9
+combo28_tune_dq_wr_min_vdl_byte2_ci0.0=0x00000003,0x00000003,0x00000003,0x00000002,0x00000000,0x00000005,0x00000002,0x00000002,
+combo28_tune_dq_wr_min_vdl_byte1_ci2.1=0x00000002,0x00000003,0x00000002,0x00000002,0x00000000,0x00000003,0x00000003,0x00000005,
+combo28_tune_dq_rd_max_vdl_dqsp_ci3.0=0x00000019,0x0000001c,0x0000001c,0x00000020,
+combo28_tune_dq_edcen_fifo_config_ci1.1=0x00000080,0x00000080,0x00000080,0x00000080,
+ext_ram_dq_swap_dram2_byte1_bit1=7
+ext_ram_addr_bank_swap_dram1_bit5=0
+ext_ram_dq_swap_dram1_byte3_bit1=3
+combo28_tune_dq_rd_min_vdl_byte0_ci1.0=0x00000014,0x00000018,0x00000019,0x00000017,0x00000018,0x00000019,0x00000018,0x00000018,
+ext_ram_addr_bank_swap_dram7_bit1=10
+ext_ram_dq_swap_dram5_byte0_bit3=0
+ext_ram_dq_swap_dram4_byte2_bit3=1
+ext_ram_dq_swap_dram2_byte0_bit7=0
+ext_ram_dq_swap_dram1_byte2_bit7=4
+ext_ram_t_faw=30000
+ext_ram_addr_bank_swap_dram6_bit7=8
+ext_ram_dq_swap_dram7_byte1_bit5=1
+combo28_tune_aq_l_max_vdl_ctrl_ci4.0=0x00000203,
+ext_ram_dq_swap_dram6_byte3_bit5=6
+combo28_tune_control_regs_read_clock_config_ci7.0=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci7.0=0x00000014,0x00000016,0x00000015,0x00000014,0x00000016,0x00000015,0x00000014,0x00000015,
+combo28_tune_control_regs_ren_fifo_central_initializer_ci5.1=0x0000000f,
+combo28_tune_control_regs_input_shift_ctrl_ci4.0=0x00000070,
+combo28_tune_dq_rd_min_vdl_dbi_ci2.0=0x00000016,0x00000019,0x00000015,0x00000016,
+combo28_tune_control_regs_edcen_fifo_central_init_ci2.1=0x00000000,
+ext_ram_t_ras=32000
+combo28_tune_common_macro_reserved_reg_ci7.1=0x00000000,
+combo28_tune_dq_vref_dac_config_ci1.1=0x008a0000,0x00880000,0x008a0000,0x008c0000,
+combo28_tune_control_regs_shared_vref_dac_config_ci0.0=0x00920000,
+combo28_tune_dq_macro_reserved_reg_ci2.1=0x00000029,0x00000027,0x00000029,0x00000029,
+ext_ram_addr_bank_swap_dram2_bit15=1
+combo28_tune_aq_u_max_vdl_addr_ci1.0=0x0000004d,
+ext_ram_addr_bank_swap_dram7_bit12=13
+combo28_tune_dq_wr_min_vdl_byte2_ci0.1=0x00000002,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,0x00000000,
+combo28_tune_dq_wr_min_vdl_byte0_ci5.0=0x00000000,0x00000001,0x00000001,0x00000002,0x00000001,0x00000003,0x00000004,0x00000000,
+combo28_tune_dq_wr_max_vdl_dqs_ci1.0=0x00000431,0x00000444,0x00000420,0x0000041c,
+combo28_tune_dq_rd_max_vdl_dqsp_ci3.1=0x00000019,0x0000001d,0x0000001a,0x00000022,
+ext_ram_dq_swap_dram0_byte0_bit0=0
+ext_ram_addr_bank_swap_dram2_bit0=14
+combo28_tune_dq_wr_min_vdl_edc_ci3.0=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_dq_swap_dram2_byte1_bit2=5
+ext_ram_addr_bank_swap_dram1_bit6=5
+ext_ram_dq_swap_dram1_byte3_bit2=0
+combo28_tune_dq_rd_min_vdl_byte0_ci1.1=0x00000014,0x00000014,0x00000015,0x00000015,0x00000015,0x00000015,0x00000015,0x00000017,
+combo28_tune_dq_ren_fifo_config_ci7.0=0x00000092,0x00000092,0x00000092,0x00000092,
+ext_ram_addr_bank_swap_dram7_bit2=4
+ext_ram_dq_swap_dram7_byte2_bit0=6
+ext_ram_dq_swap_dram5_byte0_bit4=3
+ext_ram_dq_swap_dram4_byte2_bit4=3
+phy_rx_lane_map_quad6.1=0x3102
+ext_ram_t_ccd_s=4c
+ext_ram_addr_bank_swap_dram6_bit8=15
+combo28_tune_dq_rd_min_vdl_byte3_ci5.0=0x00000016,0x00000015,0x00000016,0x00000014,0x00000016,0x00000015,0x00000015,0x00000018,
+ext_ram_dq_swap_dram7_byte1_bit6=7
+combo28_tune_aq_l_max_vdl_ctrl_ci4.1=0x00000200,
+combo28_tune_aq_u_macro_reserved_reg_ci7.0=0x00000000,
+ext_ram_dq_swap_dram6_byte3_bit6=1
+combo28_tune_control_regs_read_clock_config_ci7.1=0x00000002,
+combo28_tune_dq_rd_min_vdl_byte2_ci7.1=0x00000016,0x00000016,0x00000015,0x00000016,0x00000016,0x00000015,0x00000014,0x00000014,
+combo28_tune_control_regs_input_shift_ctrl_ci4.1=0x00000070,
+combo28_tune_dq_rd_min_vdl_dbi_ci2.1=0x00000017,0x00000019,0x00000016,0x00000017,
+combo28_tune_control_regs_shared_vref_dac_config_ci0.1=0x00920000,
+phy_tx_lane_map_quad10.1=0x2301
+ext_ram_addr_bank_swap_dram2_bit16=10
+combo28_tune_aq_u_max_vdl_addr_ci1.1=0x0000004a,
+ext_ram_addr_bank_swap_dram7_bit13=7
+combo28_tune_dq_wr_min_vdl_byte1_ci3.0=0x00000000,0x00000000,0x00000000,0x00000003,0x00000000,0x00000001,0x00000002,0x00000000,
+combo28_tune_dq_wr_min_vdl_byte0_ci5.1=0x00000000,0x00000000,0x00000001,0x00000000,0x00000001,0x00000001,0x00000003,0x00000001,
+combo28_tune_dq_wr_max_vdl_dqs_ci1.1=0x00000433,0x00000440,0x0000041a,0x0000041c,
+combo28_tune_dq_edcen_fifo_config_ci2.0=0x00000080,0x00000080,0x00000080,0x00000080,
+combo28_tune_aq_l_macro_reserved_reg_ci0.0=0x00000000,
+ext_ram_dq_swap_dram0_byte0_bit1=4
+ext_ram_t_rrd_l=11c
+ext_ram_addr_bank_swap_dram2_bit1=9
+combo28_tune_dq_wr_min_vdl_edc_ci3.1=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_dq_swap_dram2_byte1_bit3=0
+ext_ram_addr_bank_swap_dram1_bit7=10
+ext_ram_dq_swap_dram1_byte3_bit3=1
+phy_tx_polarity_flip_phy41.1=1
+combo28_tune_dq_ren_fifo_config_ci7.1=0x00000092,0x00000092,0x00000092,0x00000092,
+ext_ram_addr_bank_swap_dram7_bit3=3
+ext_ram_dq_swap_dram7_byte2_bit1=7
+ext_ram_dq_swap_dram5_byte0_bit5=4
+ext_ram_dq_swap_dram4_byte2_bit5=6
+ext_ram_addr_bank_swap_dram6_bit9=12
+combo28_tune_dq_rd_min_vdl_byte3_ci5.1=0x00000015,0x00000016,0x00000017,0x00000014,0x00000016,0x00000018,0x00000016,0x00000019,
+ext_ram_dq_swap_dram7_byte1_bit7=5
+combo28_tune_aq_u_macro_reserved_reg_ci7.1=0x00000000,
+combo28_tune_control_regs_ren_fifo_central_initializer_ci6.0=0x0000000f,
+ext_ram_dq_swap_dram6_byte3_bit7=2
+combo28_tune_control_regs_edcen_fifo_central_init_ci3.0=0x00000000,
+ext_ram_addr_bank_swap_dram3_bit10=12
+combo28_tune_dq_vref_dac_config_ci2.0=0x008e0000,0x008e0000,0x00940000,0x00820000,
+combo28_tune_dq_macro_reserved_reg_ci3.0=0x0000002d,0x00000028,0x0000002a,0x0000002a,
+phy_rx_lane_map_quad13.1=0x2310
+ext_ram_addr_bank_swap_dram2_bit17=17
+combo28_tune_dq_wr_min_vdl_byte2_ci1.0=0x00000004,0x00000001,0x00000000,0x00000003,0x00000000,0x00000003,0x00000001,0x00000002,
+ext_ram_addr_bank_swap_dram7_bit14=5
+combo28_tune_dq_wr_min_vdl_byte1_ci3.1=0x00000001,0x00000003,0x00000000,0x00000001,0x00000001,0x00000000,0x00000001,0x00000000,
+combo28_tune_dq_rd_max_vdl_dqsp_ci4.0=0x0000001a,0x00000021,0x0000001d,0x00000023,
+combo28_tune_dq_edcen_fifo_config_ci2.1=0x00000080,0x00000080,0x00000080,0x00000080,
+combo28_tune_aq_l_macro_reserved_reg_ci0.1=0x00000000,
+ext_ram_dq_swap_dram0_byte0_bit2=6
+ext_ram_addr_bank_swap_dram2_bit2=11
+ext_ram_dq_swap_dram5_byte1_bit0=3
+ext_ram_dq_swap_dram4_byte3_bit0=5
+ext_ram_dq_swap_dram2_byte1_bit4=6
+phy_tx_polarity_flip_phy50.1=1
+combo28_tune_dq_rd_min_vdl_byte0_ci2.0=0x00000016,0x00000015,0x00000014,0x00000016,0x00000018,0x00000016,0x00000015,0x00000016,
+ext_ram_addr_bank_swap_dram1_bit8=16
+ext_ram_dq_swap_dram1_byte3_bit4=5
+ext_ram_addr_bank_swap_dram7_bit4=17
+ext_ram_dq_swap_dram7_byte2_bit2=5
+ext_ram_dq_swap_dram5_byte0_bit6=6
+ext_ram_dq_swap_dram4_byte2_bit6=2
+combo28_tune_aq_l_max_vdl_ctrl_ci5.0=0x00000214,
+combo28_tune_control_regs_ren_fifo_central_initializer_ci6.1=0x0000000f,
+combo28_tune_control_regs_input_shift_ctrl_ci5.0=0x00000070,
+combo28_tune_dq_rd_min_vdl_dbi_ci3.0=0x00000015,0x00000016,0x00000016,0x00000016,
+combo28_tune_control_regs_edcen_fifo_central_init_ci3.1=0x00000000,
+ext_ram_addr_bank_swap_dram3_bit11=13
+combo28_tune_dq_vref_dac_config_ci2.1=0x008a0000,0x00920000,0x00960000,0x008e0000,
+combo28_tune_control_regs_shared_vref_dac_config_ci1.0=0x00920000,
+combo28_tune_dq_macro_reserved_reg_ci3.1=0x0000002d,0x0000002a,0x00000028,0x00000029,
+combo28_tune_aq_u_max_vdl_addr_ci2.0=0x00000210,
+combo28_tune_dq_wr_min_vdl_byte2_ci1.1=0x00000004,0x00000000,0x00000000,0x00000002,0x00000002,0x00000005,0x00000002,0x00000002,
+ext_ram_total_size=8192
+ext_ram_addr_bank_swap_dram7_bit15=16
+ext_ram_t_rcd_rd=15000
+combo28_tune_dq_wr_min_vdl_byte0_ci6.0=0x00000002,0x00000003,0x00000005,0x00000003,0x00000004,0x00000003,0x00000002,0x00000000,
+combo28_tune_dq_wr_max_vdl_dqs_ci2.0=0x0000041c,0x00000418,0x0000042c,0x0000042b,
+combo28_tune_dq_rd_max_vdl_dqsp_ci4.1=0x0000001a,0x0000001f,0x0000001d,0x00000022,
+combo28_tune_dq_wr_min_vdl_edc_ci4.0=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_dq_swap_dram0_byte0_bit3=2
+ext_ram_addr_bank_swap_dram2_bit3=3
+combo28_tune_dq_rd_min_vdl_byte1_ci0.0=0x00000015,0x00000014,0x00000015,0x00000019,0x00000018,0x00000017,0x00000019,0x00000019,
+ext_ram_dq_swap_dram5_byte1_bit1=5
+ext_ram_dq_swap_dram4_byte3_bit1=7
+ext_ram_dq_swap_dram2_byte1_bit5=2
+phy_tx_polarity_flip_phy33.1=1
+combo28_tune_dq_rd_min_vdl_byte0_ci2.1=0x00000016,0x00000016,0x00000017,0x00000016,0x0000001a,0x00000017,0x00000018,0x00000014,
+ext_ram_addr_bank_swap_dram1_bit9=8
+ext_ram_dq_swap_dram1_byte3_bit5=2
+ext_ram_addr_bank_swap_dram7_bit5=0
+phy_rx_lane_map_quad7.1=0x0123
+ext_ram_dq_swap_dram7_byte2_bit3=3
+ext_ram_dq_swap_dram5_byte0_bit7=7
+ext_ram_dq_swap_dram4_byte2_bit7=0
+combo28_tune_dq_rd_min_vdl_byte3_ci6.0=0x0000001a,0x0000001b,0x0000001a,0x00000015,0x00000014,0x00000015,0x00000018,0x00000019,
+combo28_tune_aq_l_max_vdl_ctrl_ci5.1=0x00000212,
+combo28_tune_control_regs_input_shift_ctrl_ci5.1=0x00000070,
+combo28_tune_dq_rd_min_vdl_dbi_ci3.1=0x00000015,0x00000016,0x00000016,0x00000018,
+ext_ram_addr_bank_swap_dram3_bit12=17
+combo28_tune_control_regs_shared_vref_dac_config_ci1.1=0x00920000,
+phy_tx_lane_map_quad11.1=0x0123
+combo28_tune_aq_u_max_vdl_addr_ci2.1=0x00000211,
+ext_ram_present=8
+combo28_tune_dq_wr_min_vdl_byte1_ci4.0=0x00000003,0x00000002,0x00000003,0x00000003,0x00000000,0x00000001,0x00000001,0x00000000,
+ext_ram_addr_bank_swap_dram7_bit16=11
+combo28_tune_dq_wr_min_vdl_byte0_ci6.1=0x00000000,0x00000004,0x00000003,0x00000003,0x00000002,0x00000000,0x00000000,0x00000000,
+combo28_tune_dq_wr_max_vdl_dqs_ci2.1=0x00000419,0x0000041a,0x00000425,0x00000434,
+combo28_tune_dq_edcen_fifo_config_ci3.0=0x00000080,0x00000080,0x00000080,0x00000080,
+combo28_tune_aq_l_macro_reserved_reg_ci1.0=0x00000000,
+ext_ram_dq_swap_dram3_byte0_bit0=4
+combo28_tune_dq_wr_min_vdl_edc_ci4.1=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_dq_swap_dram2_byte2_bit0=6
+ext_ram_dq_swap_dram0_byte0_bit4=3
+ext_ram_addr_bank_swap_dram2_bit4=12
+combo28_tune_dq_rd_min_vdl_byte1_ci0.1=0x00000014,0x00000016,0x00000014,0x00000017,0x00000018,0x00000017,0x00000019,0x00000017,
+ext_ram_dq_swap_dram5_byte1_bit2=0
+phy_tx_polarity_flip_phy42.1=1
+ext_ram_dq_swap_dram4_byte3_bit2=3
+ext_ram_dq_swap_dram2_byte1_bit6=3
+ext_ram_dq_swap_dram1_byte3_bit6=4
+phy_rx_polarity_flip_phy56.1=1
+ext_ram_addr_bank_swap_dram7_bit6=14
+ext_ram_dq_swap_dram7_byte2_bit4=1
+combo28_tune_dq_rd_min_vdl_byte3_ci6.1=0x0000001b,0x0000001b,0x0000001b,0x00000014,0x00000015,0x00000017,0x00000019,0x00000018,
+combo28_tune_control_regs_ren_fifo_central_initializer_ci7.0=0x0000000f,
+combo28_tune_control_regs_edcen_fifo_central_init_ci4.0=0x00000000,
+combo28_tune_dq_vref_dac_config_ci3.0=0x00780000,0x008e0000,0x00900000,0x00860000,
+ext_ram_addr_bank_swap_dram3_bit13=5
+combo28_tune_dq_macro_reserved_reg_ci4.0=0x00000027,0x00000027,0x00000025,0x00000028,
+combo28_tune_dq_wr_min_vdl_byte2_ci2.0=0x00000005,0x00000000,0x00000001,0x00000003,0x00000006,0x00000007,0x00000001,0x00000008,
+combo28_tune_dq_wr_min_vdl_byte1_ci4.1=0x00000002,0x00000002,0x00000003,0x00000002,0x00000000,0x00000001,0x00000003,0x00000000,
+ext_ram_addr_bank_swap_dram7_bit17=1
+combo28_tune_dq_rd_max_vdl_dqsp_ci5.0=0x0000001c,0x0000001f,0x0000001d,0x0000001f,
+combo28_tune_dq_edcen_fifo_config_ci3.1=0x00000080,0x00000080,0x00000080,0x00000080,
+combo28_tune_aq_l_macro_reserved_reg_ci1.1=0x00000000,
+ext_ram_dq_swap_dram3_byte0_bit1=3
+ext_ram_dq_swap_dram2_byte2_bit1=5
+ext_ram_dq_swap_dram0_byte0_bit5=7
+ext_ram_t_rst=500000000
+ext_ram_addr_bank_swap_dram2_bit5=15
+combo28_tune_dq_rd_min_vdl_byte0_ci3.0=0x00000014,0x00000015,0x00000015,0x00000015,0x00000015,0x00000015,0x00000015,0x00000015,
+ext_ram_dq_swap_dram5_byte1_bit3=1
+phy_tx_polarity_flip_phy25.1=1
+ext_ram_dq_swap_dram4_byte3_bit3=2
+ext_ram_dq_swap_dram2_byte1_bit7=1
+ext_ram_dq_swap_dram1_byte3_bit7=7
+phy_rx_polarity_flip_phy65.1=1
+ext_ram_addr_bank_swap_dram7_bit7=8
+ext_ram_dq_swap_dram7_byte2_bit5=2
+combo28_tune_aq_l_max_vdl_ctrl_ci6.0=0x00000048,
+combo28_tune_dq_wr_max_vdl_data_ci0.0=0x00000226,0x00000237,0x00000248,0x0000024b,
+combo28_tune_control_regs_ren_fifo_central_initializer_ci7.1=0x0000000f,
+combo28_tune_control_regs_input_shift_ctrl_ci6.0=0x00000070,
+combo28_tune_dq_rd_min_vdl_dbi_ci4.0=0x00000017,0x00000018,0x00000015,0x00000017,
+combo28_tune_control_regs_edcen_fifo_central_init_ci4.1=0x00000000,
+combo28_tune_dq_vref_dac_config_ci3.1=0x00760000,0x00860000,0x00900000,0x00880000,
+combo28_tune_control_regs_shared_vref_dac_config_ci2.0=0x00920000,
+ext_ram_addr_bank_swap_dram3_bit14=11
+combo28_tune_dq_macro_reserved_reg_ci4.1=0x0000002b,0x0000002a,0x00000029,0x0000002b,
+combo28_tune_aq_u_max_vdl_addr_ci3.0=0x0000004a,
+combo28_tune_dq_wr_min_vdl_byte3_ci0.0=0x00000006,0x00000006,0x00000005,0x00000004,0x00000000,0x00000001,0x00000005,0x00000003,
+combo28_tune_dq_wr_min_vdl_byte2_ci2.1=0x00000003,0x00000000,0x00000001,0x00000002,0x00000005,0x00000005,0x00000001,0x00000007,
+combo28_tune_dq_wr_min_vdl_byte0_ci7.0=0x00000003,0x00000004,0x00000003,0x00000005,0x00000002,0x00000002,0x00000000,0x00000002,
+combo28_tune_dq_wr_max_vdl_dqs_ci3.0=0x0000042b,0x00000438,0x00000410,0x00000416,
+combo28_tune_dq_rd_max_vdl_dqsp_ci5.1=0x0000001d,0x00000020,0x0000001a,0x0000001d,
+ext_ram_dq_swap_dram0_byte1_bit0=0
+ext_ram_addr_bank_swap_dram3_bit0=14
+combo28_tune_dq_wr_min_vdl_edc_ci5.0=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_dq_swap_dram3_byte0_bit2=6
+ext_ram_dq_swap_dram2_byte2_bit2=3
+ext_ram_dq_swap_dram0_byte0_bit6=1
+ext_ram_freq=1600
+ext_ram_addr_bank_swap_dram2_bit6=6
+combo28_tune_dq_rd_min_vdl_byte1_ci1.0=0x00000014,0x00000016,0x00000017,0x00000016,0x00000018,0x00000019,0x0000001a,0x0000001a,
+phy_tx_polarity_flip_phy60.1=1
+combo28_tune_dq_rd_min_vdl_byte0_ci3.1=0x00000014,0x00000014,0x00000015,0x00000016,0x00000014,0x00000014,0x00000015,0x00000014,
+ext_ram_dq_swap_dram7_byte3_bit0=6
+ext_ram_dq_swap_dram5_byte1_bit4=2
+ext_ram_dq_swap_dram4_byte3_bit4=1
+phy_tx_lane_map_quad6.1=0x3201
+phy_rx_lane_map_quad8.1=0x2310
+ext_ram_addr_bank_swap_dram7_bit8=15
+ext_ram_dq_swap_dram7_byte2_bit6=0
+combo28_tune_dq_rd_min_vdl_byte3_ci7.0=0x00000016,0x0000001a,0x00000015,0x0000001a,0x0000001a,0x00000014,0x00000017,0x0000001a,
+combo28_tune_aq_l_max_vdl_ctrl_ci6.1=0x00000044,
+combo28_tune_dq_wr_max_vdl_data_ci0.1=0x0000022e,0x00000233,0x00000248,0x00000243,
+combo28_tune_control_regs_input_shift_ctrl_ci6.1=0x00000070,
+combo28_tune_dq_rd_min_vdl_dbi_ci4.1=0x00000017,0x00000018,0x00000015,0x00000017,
+combo28_tune_control_regs_shared_vref_dac_config_ci2.1=0x00920000,
+ext_ram_addr_bank_swap_dram3_bit15=16
+phy_tx_lane_map_quad12.1=0x3021
+combo28_tune_aq_u_max_vdl_addr_ci3.1=0x00000047,
+combo28_tune_dq_wr_min_vdl_byte3_ci0.1=0x00000007,0x00000005,0x00000003,0x00000005,0x00000000,0x00000002,0x00000001,0x00000001,
+combo28_tune_dq_wr_min_vdl_byte1_ci5.0=0x00000002,0x00000000,0x00000002,0x00000000,0x00000002,0x00000001,0x00000002,0x00000002,
+combo28_tune_dq_wr_min_vdl_byte0_ci7.1=0x00000002,0x00000003,0x00000004,0x00000003,0x00000002,0x00000002,0x00000000,0x00000001,
+combo28_tune_dq_wr_max_vdl_dqs_ci3.1=0x0000042b,0x0000042b,0x0000040a,0x0000041d,
+combo28_tune_dq_edcen_fifo_config_ci4.0=0x00000080,0x00000080,0x00000080,0x00000080,
+combo28_tune_aq_l_macro_reserved_reg_ci2.0=0x00000000,
+ext_ram_dq_swap_dram0_byte1_bit1=4
+ext_ram_addr_bank_swap_dram3_bit1=1
+combo28_tune_control_regs_reserved_reg_ci0.0=0x00000003,
+combo28_tune_dq_wr_min_vdl_edc_ci5.1=0x00000000,0x00000000,0x00000000,0x00000000,
+ext_ram_dq_swap_dram3_byte0_bit3=7
+ext_ram_dq_swap_dram2_byte2_bit3=1
+ext_ram_dq_swap_dram0_byte0_bit7=5
+ext_ram_addr_bank_swap_dram2_bit7=5
+combo28_tune_dq_rd_min_vdl_byte1_ci1.1=0x00000014,0x00000015,0x00000015,0x00000015,0x00000017,0x00000016,0x00000018,0x00000017,
+phy_tx_polarity_flip_phy43.1=1
+ext_ram_dq_swap_dram7_byte3_bit1=3
+ext_ram_dq_swap_dram5_byte1_bit5=4
+ext_ram_dq_swap_dram4_byte3_bit5=6
+ext_ram_addr_bank_swap_dram7_bit9=12
+combo28_tune_dq_read_max_vdl_fsm_ci0.0=0x0000004d,0x0000004d,0x0000004d,0x0000004d,
+ext_ram_dq_swap_dram7_byte2_bit7=4
+combo28_tune_dq_rd_min_vdl_byte3_ci7.1=0x00000014,0x0000001a,0x00000015,0x0000001a,0x00000019,0x00000014,0x00000014,0x0000001a,
+combo28_tune_aq_u_max_vdl_ctrl_ci0.0=0x0000020a,
+combo28_tune_control_regs_edcen_fifo_central_init_ci5.0=0x00000000,
+dram_type_DDR4_MICRON_MT40A256M16GE_062_4GBIT=1
+combo28_tune_dq_vref_dac_config_ci4.0=0x00880000,0x00840000,0x008c0000,0x00900000,
+combo28_tune_dq_rd_max_vdl_dqsn_ci0.0=0x00000019,0x00000021,0x0000001b,0x00000023,
+combo28_tune_dq_macro_reserved_reg_ci5.0=0x00000028,0x00000025,0x00000026,0x00000026,
+ext_ram_addr_bank_swap_dram3_bit16=9
+phy_rx_lane_map_quad15.1=0x1302
+combo28_tune_dq_wr_min_vdl_byte2_ci3.0=0x00000004,0x00000003,0x00000003,0x00000005,0x00000003,0x00000000,0x00000002,0x00000003,
+combo28_tune_dq_wr_min_vdl_byte1_ci5.1=0x00000000,0x00000001,0x00000001,0x00000001,0x00000000,0x00000000,0x00000000,0x00000001,
+combo28_tune_dq_rd_max_vdl_dqsp_ci6.0=0x0000001b,0x00000020,0x00000018,0x00000022,
+combo28_tune_dq_edcen_fifo_config_ci4.1=0x00000080,0x00000080,0x00000080,0x00000080,
+combo28_tune_aq_l_macro_reserved_reg_ci2.1=0x00000000,
+combo28_tune_dq_wr_min_vdl_dbi_ci0.0=0x00000001,0x00000003,0x00000002,0x00000003,
+ext_ram_t_crc_alert=13000
+ext_ram_dq_swap_dram0_byte1_bit2=6
+ext_ram_addr_bank_swap_dram3_bit2=0
+combo28_tune_control_regs_reserved_reg_ci0.1=0x00000003,
+ext_ram_dq_swap_dram6_byte0_bit0=0
+ext_ram_dq_swap_dram5_byte2_bit0=0
+ext_ram_dq_swap_dram3_byte0_bit4=1
+ext_ram_dq_swap_dram2_byte2_bit4=2
+ext_ram_t_rrd_s=9c
+ext_ram_addr_bank_swap_dram2_bit8=13
+combo28_tune_dq_rd_min_vdl_byte0_ci4.0=0x00000017,0x00000018,0x00000016,0x00000014,0x00000017,0x00000015,0x00000016,0x00000019,
+combo28_tune_dq_rd_min_vdl_edc_ci0.0=0x00000017,0x00000017,0x00000016,0x00000018,
+ext_ram_dq_swap_dram7_byte3_bit2=0
+ext_ram_dq_swap_dram5_byte1_bit6=6
+ext_ram_dq_swap_dram4_byte3_bit6=0
+combo28_tune_aq_l_max_vdl_addr_ci0.0=0x0000020a,
+combo28_tune_dq_read_max_vdl_fsm_ci0.1=0x00000049,0x00000049,0x00000049,0x00000049,
+combo28_tune_aq_l_max_vdl_ctrl_ci7.0=0x0000021d,
+combo28_tune_dq_wr_max_vdl_data_ci1.0=0x00000400,0x00000413,0x0000023e,0x0000023b,
+combo28_tune_control_regs_input_shift_ctrl_ci7.0=0x00000070,
+combo28_tune_aq_u_max_vdl_ctrl_ci0.1=0x00000210,
+combo28_tune_dq_rd_min_vdl_dbi_ci5.0=0x00000016,0x00000016,0x00000015,0x00000016,
+combo28_tune_control_regs_edcen_fifo_central_init_ci5.1=0x00000000,
+ext_ram_addr_bank_swap_dram4_bit10=15
+combo28_tune_dq_vref_dac_config_ci4.1=0x008a0000,0x00880000,0x00840000,0x008a0000,
+
+#23 Jan 2018 Short
+

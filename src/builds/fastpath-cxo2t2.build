@@ -5,7 +5,7 @@ export PLATFORMS="CXO2T2"
 
 export APPLICATION=fp
 
-echo "Compiling fastpath for TA48GE..."
+echo "Compiling fastpath for CXO2T1..."
 make -C ../fastpath -f swdrvr-cxo2t2.make
 if [ $? -ne 0 ]; then
  echo ERROR!!!
