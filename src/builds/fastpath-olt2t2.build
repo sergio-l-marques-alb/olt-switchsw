@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export MODULE=fastpath-olt2t2
-export PLATFORMS="CXO2T2 TA12XG"
+export PLATFORMS="CXO2T2 TA12XG TT08SXG"
 
 export APPLICATION=fp
 

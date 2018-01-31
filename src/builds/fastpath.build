@@ -22,7 +22,6 @@ svn_rev=`svnversion .. -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
 
 image_tgz=$MODULE.image-v$version-r$svn_rev.tgz
 #backup_7z=$MODULE.backup-v$version-r$svn_rev.7z
-relnotes_file=$MODULE.releasenotes-v$version-r$svn_rev.txt
 
 colorNotice="\033[1m\033[34m"
 colorWarn="\033[1m\033[33m"
@@ -72,23 +71,6 @@ echo echo Modular OLT $MODULE $version-r$svn_rev > ./$APPLICATION.ver
 echo echo $DATE >> ./$APPLICATION.ver
 chmod 777 ./$APPLICATION.ver
 
-if [ -e ./$APPLICATION.releasenotes ]; then
-  echo "=== FASTPATH $version-r$svn_rev RELEASE NOTES ===================================" > ./$APPLICATION.releasenotes.txt
-  cat ./$APPLICATION.releasenotes >> ./$APPLICATION.releasenotes.txt
-  echo "============================================================================" >> ./$APPLICATION.releasenotes.txt
-  echo "Generation date: $DATE" >> ./$APPLICATION.releasenotes.txt
-  chmod 666 ./$APPLICATION.releasenotes.txt
-elif [ ! -e ./$APPLICATION.releasenotes.txt ]; then
-  echo -en $colorKo
-  echo "Release Notes file is missing! ($APPLICATION.releasenotes)"
-  echo -en $colorReset
-  exit 1;
-fi
-
-echo -en $colorNotice
-echo "Transferring release notes to matrix board files..."
-echo -en $colorReset
-
 for plat in $PLATFORMS; do
   cp ./$APPLICATION.ver $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin
   echo "echo OLTSWITCH md5sum: "`md5sum $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin/$MAIN_BIN | awk '{print $1}'` >> $APPS_PATH/image/$plat/rootfs/usr/local/ptin/sbin/$APPLICATION.ver
@@ -114,13 +96,6 @@ cd -
 mv $APPS_PATH/image/$image_tgz $BUILDS_FOLDER
 
 echo -en $colorNotice
-echo "Saving release notes..."
-echo -en $colorReset
-
-rm -f $BUILDS_FOLDER/$relnotes_file
-cp ./$APPLICATION.releasenotes.txt $BUILDS_FOLDER/$relnotes_file
-
-echo -en $colorNotice
 echo "Transferring image tarball to final destination..."
 echo -en $colorReset
 #echo -en $colorReq
@@ -136,11 +111,11 @@ echo -en $colorReset
 #fi
 
 #scp $BUILDS_FOLDER/$image_tgz $BUILDS_FOLDER/$relnotes_file $USERNAME@$DST_IPADDR:$DST_PATH
-mv -v $BUILDS_FOLDER/$image_tgz $BUILDS_FOLDER/$relnotes_file $DST_PATH
+#mv -v $BUILDS_FOLDER/$image_tgz $BUILDS_FOLDER/$relnotes_file $DST_PATH
 
-echo -en $colorOk
-echo "DONE!"
-echo -en $colorReset
+#echo -en $colorOk
+#echo "DONE!"
+#echo -en $colorReset
 
 
 # Only if backup exists
@@ -150,10 +125,6 @@ echo -en $colorReset
 #  echo -en $colorReset
 #
 #  rm -f $BUILDS_FOLDER/$backup_7z
-#  for plat in $PLATFORMS; do
-#    rm -f $APPS_PATH/backup/$plat/*.ver $APPS_PATH/backup/$plat/*.releasenotes.txt
-#    cp ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt $APPS_PATH/backup/$plat
-#  done
 #  sync
 #  cd $APPS_PATH/backup
 #  rm -f *.tgz
@@ -161,11 +132,6 @@ echo -en $colorReset
 #  cd -
 #  mv $APPS_PATH/backup/$backup_7z $BUILDS_FOLDER
 #fi
-
-echo -en $colorNotice
-echo "Cleaning..."
-echo -en $colorReset
-rm ./$APPLICATION.ver ./$APPLICATION.releasenotes.txt
 
 #echo -en $colorNotice
 #echo "Transferring backup tarball to final destination..."
