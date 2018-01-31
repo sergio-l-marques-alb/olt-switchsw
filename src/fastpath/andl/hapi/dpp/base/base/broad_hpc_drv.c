@@ -1575,7 +1575,7 @@ void hpcHardwareDefaultConfigApply(void)
 
         /* PTin modified: Dune */
         /* Enable ingress+egress filtering on all the ports */
-        rv = bcm_port_vlan_member_set(i, port, BCM_PORT_VLAN_MEMBER_INGRESS | BCM_PORT_VLAN_MEMBER_EGRESS | BCM_PORT_VLAN_MEMBER_VP_VLAN_MEMBERSHIP);
+        rv = bcm_port_vlan_member_set(i, port, BCM_PORT_VLAN_MEMBER_INGRESS | BCM_PORT_VLAN_MEMBER_EGRESS /*| BCM_PORT_VLAN_MEMBER_VP_VLAN_MEMBERSHIP*/);
         if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
         {
           L7_LOG_ERROR (rv);
@@ -3453,7 +3453,7 @@ extern int soc_robo_mmu_init(int );
       sal_sleep(3);
     }
     PT_LOG_TRACE(LOG_CTX_STARTUP,"Going to load rc.soc file...");
-    if (sh_rcload_file(SOC_NDEV_IDX2DEV(unit), NULL, "/usr/local/ptin/sbin/rc.soc", FALSE) != CMD_OK)
+    if (sh_rcload_file(SOC_NDEV_IDX2DEV(unit), NULL, "/usr/local/ptin/sbin/swdrvr-config/rc.soc", FALSE) != CMD_OK)
     {
       PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading rc script on unit %d\n", SOC_NDEV_IDX2DEV(unit));
       return L7_FAILURE;
