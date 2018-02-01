@@ -521,8 +521,11 @@ L7_RC_t ptin_msg_multicast_reset(msg_HwGenReq_t *msg)
  */
 L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
 {
+
   L7_RC_t   rc;
+
   L7_uint32 intIfNum;
+
   L7_uint8  status;
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "Type-B Protection switch notification");
@@ -537,11 +540,13 @@ L7_RC_t ptin_msg_typeBprotIntfSwitchNotify(msg_HwTypeBProtSwitchNotify_t *msg)
     return L7_FAILURE;
   }
 
+
   /* Get interface status from the first bit of msg->cmd */
   status = ENDIAN_SWAP8(msg->cmd) & 0x0001;
 
   /* Update interface configurations */
   rc = ptin_prottypeb_intf_switch_notify(intIfNum, status);
+
   if (rc!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to set interface's type-b protection configurations");
@@ -13400,6 +13405,14 @@ L7_RC_t ptin_msg_uplink_prot_command(ipc_msg *inbuffer, ipc_msg *outbuffer)
  */
 L7_RC_t ptin_msg_mgmd_sync_ports(msg_HwMgmdPortSync *port_sync_data)
 {
+
+  ENDIAN_SWAP32_MOD(port_sync_data->serviceId);
+  ENDIAN_SWAP32_MOD(port_sync_data->portId);
+  ENDIAN_SWAP32_MOD(port_sync_data->groupAddr);
+  ENDIAN_SWAP32_MOD(port_sync_data->sourceAddr);
+  ENDIAN_SWAP32_MOD(port_sync_data->groupType);
+
+
   PT_LOG_TRACE(LOG_CTX_MSG, "Received request to sync MGMD port: ");
   PT_LOG_TRACE(LOG_CTX_MSG, " admin      = %u",   port_sync_data->admin);
   PT_LOG_TRACE(LOG_CTX_MSG, " serviceId  = %u",   port_sync_data->serviceId);

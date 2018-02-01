@@ -87,6 +87,10 @@ L7_RC_t ptin_prottypeb_intf_config_set(ptin_prottypeb_intf_config_t* data)
   /* Ensure that we do not modify the 'status' variable. Only the CCMSG_TYPEB_PROT_SWITCH_NOTIFY message is allowed to do that */
   data->status = prottypeb_interfaces[intfNum-1].status;
 
+  ENDIAN_SWAP32_MOD(data->slotId);
+  ENDIAN_SWAP32_MOD(data->intfNum);
+  ENDIAN_SWAP32_MOD(data->pairIntfNum);
+
   /* Return the configurations for the desired interface */
   PT_LOG_DEBUG(LOG_CTX_PROTB, "Setting intfNum[%u] type-b protection configurations", intfNum);
   PT_LOG_TRACE(LOG_CTX_PROTB, "Configurations:");
@@ -159,6 +163,9 @@ L7_RC_t ptin_prottypeb_intf_config_get(L7_uint32 intfNum, ptin_prottypeb_intf_co
     return L7_FAILURE;
   }
 
+  ENDIAN_SWAP32_MOD(data->intfNum);
+  ENDIAN_SWAP32_MOD(data->pairSlotId);
+  ENDIAN_SWAP32_MOD(data->slotId);
   /* Return the configurations for the desired interface */
   PT_LOG_DEBUG(LOG_CTX_PROTB, "Getting intfNum[%u] type-b protection configurations", intfNum);
   memcpy(data, &prottypeb_interfaces[intfNum-1], sizeof(ptin_prottypeb_intf_config_t));
@@ -184,6 +191,7 @@ L7_RC_t ptin_prottypeb_intf_switch_notify(L7_uint32 intfNum, L7_uint8 status)
 {
   L7_uint8 previousStatus;
 
+
   /* Ensure the requested interface is valid */
   if(intfNum==0 || intfNum>=PTIN_SYSTEM_N_INTERF || (status | L7_ENABLE) != L7_ENABLE)
   {
@@ -191,21 +199,27 @@ L7_RC_t ptin_prottypeb_intf_switch_notify(L7_uint32 intfNum, L7_uint8 status)
     return L7_FAILURE;
   }
 
+
   /*Save Previous Status to Further Use*/
   previousStatus = prottypeb_interfaces[intfNum-1].status;
 
+
   if (previousStatus == status)
   {
+
     return L7_SUCCESS;
   }
 
   /*Assign New Status*/
   prottypeb_interfaces[intfNum-1].status = status;
 
+
   if (prottypeb_interfaces[intfNum-1].intfRole != PROT_TYPEB_ROLE_NONE)
   {
+
     if (status == L7_ENABLE)
     {
+
       /* Reset MGMD General Querier state */    
       if (ptin_igmp_generalquerier_reset((L7_uint32) -1, (L7_uint32) -1)!=L7_SUCCESS)
       {
@@ -214,6 +228,7 @@ L7_RC_t ptin_prottypeb_intf_switch_notify(L7_uint32 intfNum, L7_uint8 status)
     }
     else if (status == L7_DISABLE)
     {
+
       /* Remove Port from the the MGMD Control Plane*/    
       if ( ptin_igmp_mgmd_port_remove((L7_uint32) -1, intfNum)!=L7_SUCCESS)
       {
