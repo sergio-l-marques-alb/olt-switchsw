@@ -1,0 +1,48 @@
+# $Id: dnxf.soc,v 1.18 Broadcom SDK $
+# $Copyright: (c) 2017 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+
+#Debug level
+debug info
+debug soc tests warn
+debug appl rcload warn
+debug appl symtab warn
+debug soc phy,schan,reg,socmem,dma,mem,miim,mii,intr,counter,physim warn
+debug sys verinet warn
+debug bcm attach warn
+
+
+# Shutdown threads if system is already running
+counter off
+
+if !$?custom_feature_lane_swap_disable "\
+    local local_custom_feature_lane_swap_disable 0" \
+else "\
+    local local_custom_feature_lane_swap_disable $custom_feature_lane_swap_disable"
+
+expr $local_custom_feature_lane_swap_disable != 1
+if $?BCM88790_A0 || $?BCM_DNXF_DEV && $?\
+  'rcload bcm88790_board.soc;'
+  
+expr $local_custom_feature_lane_swap_disable == 1
+if $?BCM88790_A0 || $?BCM_DNXF_DEV && $?\
+  'rcload bcm88790_board_no_swap.soc;' 
+
+if !$?warmboot "\
+   local warmboot 0"
+
+if !$?custom_feature_access_only "\
+    local local_custom_feature_access_only 0" \
+else "\
+    local local_custom_feature_access_only $custom_feature_access_only"
+
+m0 load 0 0x0 linkscan_led_fw.bin
+m0 load 0 0x3800 custom_led.bin
+# For access only set sbus_access_only
+if $local_custom_feature_access_only " \
+  der 0x40 0x4" \
+else " \
+  INIT_DNX"
+
+echo "dnxf.soc: Done."
