@@ -219,7 +219,6 @@ L7_RC_t ptin_prottypeb_intf_switch_notify(L7_uint32 intfNum, L7_uint8 status)
 
     if (status == L7_ENABLE)
     {
-
       /* Reset MGMD General Querier state */    
       if (ptin_igmp_generalquerier_reset((L7_uint32) -1, (L7_uint32) -1)!=L7_SUCCESS)
       {
@@ -228,7 +227,6 @@ L7_RC_t ptin_prottypeb_intf_switch_notify(L7_uint32 intfNum, L7_uint8 status)
     }
     else if (status == L7_DISABLE)
     {
-
       /* Remove Port from the the MGMD Control Plane*/    
       if ( ptin_igmp_mgmd_port_remove((L7_uint32) -1, intfNum)!=L7_SUCCESS)
       {
@@ -238,6 +236,7 @@ L7_RC_t ptin_prottypeb_intf_switch_notify(L7_uint32 intfNum, L7_uint8 status)
       {
         PT_LOG_TRACE(LOG_CTX_EVC, "Removed Mgmd Port [intIfNum=%u]", intfNum);
       }
+      dsBindingClear(intfNum);     
     }
   }
   
