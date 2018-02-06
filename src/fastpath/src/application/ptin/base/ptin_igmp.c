@@ -10454,7 +10454,11 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
 
 #if PTIN_SYSTEM_IGMP_ADMISSION_CONTROL_SUPPORT
 #if PTIN_BOARD_IS_LINECARD
+      L7_uint32 internalServiceId;
+      
       clientInfo->pClientGroup->admissionControl.allocatedChannels = 0;
+      internalServiceId = ptinIgmpAdmissionControlMulticastInternalServiceId[clientGroup->evcId];
+      igmpMulticastAdmissionControl[ptin_port][clientGroup->onuId][internalServiceId].admissionControl.allocatedChannels = 0 ;
 #endif
 #endif
 
