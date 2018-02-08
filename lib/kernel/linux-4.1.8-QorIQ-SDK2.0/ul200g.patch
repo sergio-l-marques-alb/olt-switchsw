@@ -1,7 +1,7 @@
 diff -rupN linux-4.1.8-UL200.ori/arch/powerpc/boot/dts/fsl/ul200g.dts linux-4.1.8-UL200.mod/arch/powerpc/boot/dts/fsl/ul200g.dts
 --- linux-4.1.8-UL200.ori/arch/powerpc/boot/dts/fsl/ul200g.dts	1970-01-01 01:00:00.000000000 +0100
-+++ linux-4.1.8-UL200.mod/arch/powerpc/boot/dts/fsl/ul200g.dts	2018-02-06 09:50:28.448918809 +0000
-@@ -0,0 +1,388 @@
++++ linux-4.1.8-UL200.mod/arch/powerpc/boot/dts/fsl/ul200g.dts	2018-02-08 14:52:37.724475576 +0000
+@@ -0,0 +1,431 @@
 +/dts-v1/;
 +
 +/ {
@@ -129,10 +129,10 @@ diff -rupN linux-4.1.8-UL200.ori/arch/powerpc/boot/dts/fsl/ul200g.dts linux-4.1.
 +                        interrupt-parent = <0x2>;
 +                        dfsrr;
 +
-+                        rtc@68 {
-+                                compatible = "pericom,pt7c4338";
-+                                reg = <0x68>;
-+                        };
++                        //rtc@68 {
++                        //        compatible = "pericom,pt7c4338";
++                        //        reg = <0x68>;
++                        //};
 +                };
 +
 +                i2c@3100 {
@@ -144,7 +144,50 @@ diff -rupN linux-4.1.8-UL200.ori/arch/powerpc/boot/dts/fsl/ul200g.dts linux-4.1.
 +                        interrupts = <0x2b 0x2>;
 +                        interrupt-parent = <0x2>;
 +                        dfsrr;
++
++                        temp-sensor@4d {
++                                compatible = "maxim,max6581";
++                                reg = <0x4d>;
++                                smbus-timeout-disable;
++                                resistance-cancellation;
++                                alert-mask = <0x72>;
++                                over-temperature-mask = <0x7f>;
++                        };
++			power-mon@67 {
++				compatible = "lltc,ltc2945";
++                                reg = <0x67>;
++			};
 +                };
++
++
++//                i2c@3000 {
++//			#address-cells = <1>;
++//		        #size-cells = <0>;
++//		        cell-index = <0>;
++//		        compatible = "fsl-i2c";
++//		        reg = <0x3000 0x100>;
++//		        interrupts = <43 2 0 0>;
++//		        dfsrr;
++//                };
++//
++//                i2c@3100 {
++//		        #address-cells = <1>;
++//		        #size-cells = <0>;
++//		        cell-index = <1>;
++//		        compatible = "fsl-i2c";
++//		        reg = <0x3100 0x100>;
++//		        interrupts = <43 2 0 0>;
++//		        dfsrr;
++//                
++//			temp-sensor@4d {
++//				compatible = "maxim,max6581";
++//				reg = <0x4d>;
++//				smbus-timeout-disable;
++//				resistance-cancellation;
++//				alert-mask = <0x72>;
++//				over-temperature-mask = <0x7f>;
++//			};
++//		};
 +
 +                serial@4500 {
 +                        cell-index = <0x0>;
@@ -392,7 +435,7 @@ diff -rupN linux-4.1.8-UL200.ori/arch/powerpc/boot/dts/fsl/ul200g.dts linux-4.1.
 +
 diff -rupN linux-4.1.8-UL200.ori/arch/powerpc/sysdev/Kconfig linux-4.1.8-UL200.mod/arch/powerpc/sysdev/Kconfig
 --- linux-4.1.8-UL200.ori/arch/powerpc/sysdev/Kconfig	2016-10-20 14:46:32.323588000 +0100
-+++ linux-4.1.8-UL200.mod/arch/powerpc/sysdev/Kconfig	2018-02-06 09:50:28.364917580 +0000
++++ linux-4.1.8-UL200.mod/arch/powerpc/sysdev/Kconfig	2018-02-08 14:52:37.334505205 +0000
 @@ -45,3 +45,8 @@ config FSL_CORENET_RCPM
  	bool
  	help
@@ -404,7 +447,7 @@ diff -rupN linux-4.1.8-UL200.ori/arch/powerpc/sysdev/Kconfig linux-4.1.8-UL200.m
 +
 diff -rupN linux-4.1.8-UL200.ori/arch/powerpc/sysdev/Makefile linux-4.1.8-UL200.mod/arch/powerpc/sysdev/Makefile
 --- linux-4.1.8-UL200.ori/arch/powerpc/sysdev/Makefile	2016-10-20 14:46:32.323588000 +0100
-+++ linux-4.1.8-UL200.mod/arch/powerpc/sysdev/Makefile	2018-02-06 09:50:28.370917668 +0000
++++ linux-4.1.8-UL200.mod/arch/powerpc/sysdev/Makefile	2018-02-08 14:52:37.344504445 +0000
 @@ -60,6 +60,8 @@ obj-$(CONFIG_UCODE_PATCH)	+= micropatch.
  obj-$(CONFIG_PPC_MPC512x)	+= mpc5xxx_clocks.o
  obj-$(CONFIG_PPC_MPC52xx)	+= mpc5xxx_clocks.o
@@ -416,7 +459,7 @@ diff -rupN linux-4.1.8-UL200.ori/arch/powerpc/sysdev/Makefile linux-4.1.8-UL200.
  endif
 diff -rupN linux-4.1.8-UL200.ori/arch/powerpc/sysdev/mv88e632x_of.c linux-4.1.8-UL200.mod/arch/powerpc/sysdev/mv88e632x_of.c
 --- linux-4.1.8-UL200.ori/arch/powerpc/sysdev/mv88e632x_of.c	1970-01-01 01:00:00.000000000 +0100
-+++ linux-4.1.8-UL200.mod/arch/powerpc/sysdev/mv88e632x_of.c	2018-02-06 09:50:28.367917624 +0000
++++ linux-4.1.8-UL200.mod/arch/powerpc/sysdev/mv88e632x_of.c	2018-02-08 14:52:37.338504901 +0000
 @@ -0,0 +1,170 @@
 +#include <linux/of.h>
 +#include <linux/kernel.h>
@@ -590,7 +633,7 @@ diff -rupN linux-4.1.8-UL200.ori/arch/powerpc/sysdev/mv88e632x_of.c linux-4.1.8-
 +
 diff -rupN linux-4.1.8-UL200.ori/arch/powerpc/sysdev/mv88e632x_of.h linux-4.1.8-UL200.mod/arch/powerpc/sysdev/mv88e632x_of.h
 --- linux-4.1.8-UL200.ori/arch/powerpc/sysdev/mv88e632x_of.h	1970-01-01 01:00:00.000000000 +0100
-+++ linux-4.1.8-UL200.mod/arch/powerpc/sysdev/mv88e632x_of.h	2018-02-06 09:50:28.370917668 +0000
++++ linux-4.1.8-UL200.mod/arch/powerpc/sysdev/mv88e632x_of.h	2018-02-08 14:52:37.345504369 +0000
 @@ -0,0 +1,12 @@
 +#ifndef __MARVELL_88E632X_DRIVER__
 +#define __MARVELL_88E632X_DRIVER__
@@ -606,7 +649,7 @@ diff -rupN linux-4.1.8-UL200.ori/arch/powerpc/sysdev/mv88e632x_of.h linux-4.1.8-
 +#endif  //__MARVELL_88E6095X_DRIVER__
 diff -rupN linux-4.1.8-UL200.ori/drivers/mtd/nand/fsl_ifc_nand.c linux-4.1.8-UL200.mod/drivers/mtd/nand/fsl_ifc_nand.c
 --- linux-4.1.8-UL200.ori/drivers/mtd/nand/fsl_ifc_nand.c	2016-10-20 15:09:36.175248000 +0100
-+++ linux-4.1.8-UL200.mod/drivers/mtd/nand/fsl_ifc_nand.c	2018-02-06 09:50:26.996897575 +0000
++++ linux-4.1.8-UL200.mod/drivers/mtd/nand/fsl_ifc_nand.c	2018-02-08 14:52:35.003682293 +0000
 @@ -463,10 +463,11 @@ static void fsl_ifc_cmdfunc(struct mtd_i
  
  		/*
@@ -654,7 +697,7 @@ diff -rupN linux-4.1.8-UL200.ori/drivers/mtd/nand/fsl_ifc_nand.c linux-4.1.8-UL2
  					__func__, command);
 diff -rupN linux-4.1.8-UL200.ori/drivers/of/of_mdio.c linux-4.1.8-UL200.mod/drivers/of/of_mdio.c
 --- linux-4.1.8-UL200.ori/drivers/of/of_mdio.c	2016-10-20 15:09:36.175248000 +0100
-+++ linux-4.1.8-UL200.mod/drivers/of/of_mdio.c	2018-02-06 09:50:27.126899476 +0000
++++ linux-4.1.8-UL200.mod/drivers/of/of_mdio.c	2018-02-08 14:52:35.186668390 +0000
 @@ -20,6 +20,10 @@
  #include <linux/of_mdio.h>
  #include <linux/module.h>
@@ -689,3 +732,101 @@ diff -rupN linux-4.1.8-UL200.ori/drivers/of/of_mdio.c linux-4.1.8-UL200.mod/driv
  	if (!phy || IS_ERR(phy))
  		return 1;
  
+diff -rupN linux-4.1.8-UL200.ori/drivers/spi/Kconfig linux-4.1.8-UL200.mod/drivers/spi/Kconfig
+--- linux-4.1.8-UL200.ori/drivers/spi/Kconfig	2016-10-20 15:09:36.175248000 +0100
++++ linux-4.1.8-UL200.mod/drivers/spi/Kconfig	2018-02-08 14:52:35.350655931 +0000
+@@ -638,6 +638,12 @@ config SPI_DW_MMIO
+ 	tristate "Memory-mapped io interface driver for DW SPI core"
+ 	depends on SPI_DESIGNWARE
+ 
++config PTIN_SPI
++        tristate "Driver for ptin spi bus"
++        depends on SPI_SPIDEV
++        default y if SPI_SPIDEV
++
++
+ #
+ # There are lots of SPI device types, with sensors and memory
+ # being probably the most widely used ones.
+diff -rupN linux-4.1.8-UL200.ori/drivers/spi/Makefile linux-4.1.8-UL200.mod/drivers/spi/Makefile
+--- linux-4.1.8-UL200.ori/drivers/spi/Makefile	2016-10-20 15:09:36.175248000 +0100
++++ linux-4.1.8-UL200.mod/drivers/spi/Makefile	2018-02-08 14:52:35.355655551 +0000
+@@ -89,3 +89,4 @@ obj-$(CONFIG_SPI_TXX9)			+= spi-txx9.o
+ obj-$(CONFIG_SPI_XCOMM)		+= spi-xcomm.o
+ obj-$(CONFIG_SPI_XILINX)		+= spi-xilinx.o
+ obj-$(CONFIG_SPI_XTENSA_XTFPGA)		+= spi-xtensa-xtfpga.o
++obj-$(CONFIG_PTIN_SPI)              += ptin-spi.o
+diff -rupN linux-4.1.8-UL200.ori/drivers/spi/ptin-spi.c linux-4.1.8-UL200.mod/drivers/spi/ptin-spi.c
+--- linux-4.1.8-UL200.ori/drivers/spi/ptin-spi.c	1970-01-01 01:00:00.000000000 +0100
++++ linux-4.1.8-UL200.mod/drivers/spi/ptin-spi.c	2018-02-08 14:52:35.354655627 +0000
+@@ -0,0 +1,70 @@
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/spi/spi.h>
++
++#define PTIN_SPI_MAX_DEVS 4
++#define PTIN_SPI_BUS_NUM 1
++
++static struct spi_device *spi_device[PTIN_SPI_MAX_DEVS];
++
++static int __init spi_init(void) {
++    int ret, i;
++    struct spi_master *master;
++    struct spi_board_info spi_device_info[PTIN_SPI_MAX_DEVS];
++
++    printk("spi: ptin spi_init\n");
++
++    for (i=0;i<PTIN_SPI_MAX_DEVS;i++) {
++        sprintf(spi_device_info[i].modalias, "%s", "spidev");
++        spi_device_info[i].max_speed_hz = 40000000;
++        spi_device_info[i].bus_num = PTIN_SPI_BUS_NUM;
++        spi_device_info[i].chip_select = i;
++        spi_device_info[i].mode = 0;
++    }
++
++    /*To send data we have to know what spi port/pins should be used. This information
++     *       can be found in the device-tree. */
++    master = spi_busnum_to_master(PTIN_SPI_BUS_NUM);
++    if( !master ){
++        printk("%s ERROR! MASTER not found.\n", __FILE__);
++        return -ENODEV;
++    }
++
++    for (i=0;i<PTIN_SPI_MAX_DEVS;i++) {
++        // create a new slave device, given the master and device info
++        spi_device[i] = spi_new_device( master, &spi_device_info[i]);
++        if( !spi_device[i] ) {
++            printk("%s ERROR! FAILED to create slave device 0.\n", __FUNCTION__);
++          //return -ENODEV;
++        } 
++
++        spi_device[i]->bits_per_word = 8;
++        ret = spi_setup( spi_device[i] );
++        if( ret ){
++            printk("%s ERROR! FAILED to setup slave 0.\n", __FUNCTION__);
++            spi_unregister_device( spi_device[i] );
++            //return -ENODEV;
++        }
++
++    }
++
++    return 0;
++}
++
++
++static void __exit spi_exit(void) {
++    int i;
++
++    for (i=0;i<PTIN_SPI_MAX_DEVS;i++) {
++        if( spi_device[i] ){
++            spi_unregister_device( spi_device[i] );
++        }
++    }
++}
++
++module_init(spi_init);
++module_exit(spi_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Sergio Marques <email protected>");
++MODULE_DESCRIPTION("PTIN SPI module");
