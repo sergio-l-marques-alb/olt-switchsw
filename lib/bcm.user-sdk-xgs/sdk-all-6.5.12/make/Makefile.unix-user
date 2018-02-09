@@ -153,5 +153,5 @@ endif
 #
 
 ifneq (,${LINKER_RELAX})
-LDFLAGS += -Wl,--relax
+LDFLAGS += -Wl,--relax,--gc-sections,--no-keep-memory
 endif
