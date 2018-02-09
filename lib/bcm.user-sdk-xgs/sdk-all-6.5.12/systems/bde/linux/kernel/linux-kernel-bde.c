@@ -964,10 +964,10 @@ iproc_cmicd_get_memregion(struct resource *res_mem)
     iounmap(erom_base);
 
     if (debug >= 1) {
-        gprintk("CMICD info by %s: cmicd_mem.start=%x, cmicd_mem.end=%x\n",
+        gprintk("CMICD info by %s: cmicd_mem.start=%llx, cmicd_mem.end=%llx\n",
                 found_cmicd_dev ? "EROM" : "Default",
-                iproc_cmicd_resources[IPROC_CMICD_RES_MEM].start,
-                iproc_cmicd_resources[IPROC_CMICD_RES_MEM].end);
+                (uint64) iproc_cmicd_resources[IPROC_CMICD_RES_MEM].start,
+                (uint64) iproc_cmicd_resources[IPROC_CMICD_RES_MEM].end);
     }
 }
 #endif /* IPROC_CMICD */
@@ -4257,14 +4257,6 @@ _interrupt_connect(int d,
     int isr_active;
     int ret = 0;
 
-    /* PTin added: Kernel */
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,31)
-#ifndef __arm__
-    struct device_node *np = NULL;
-    unsigned int eirq;
-#endif
-#endif
-
     gprintk("Setting IRQ...\n");
     /* PTin end */
 
@@ -4313,23 +4305,6 @@ _interrupt_connect(int d,
         }
     }
 
-    /* PTin added: Kernel */
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,31)
-#ifndef __arm__
-    np = of_find_compatible_node(NULL, NULL, "bcm,fastpath-pci");
-	  if (np == NULL){
-      gprintk ("LMP - Nao apanhei nenhum no' da devtree\n\r");
-      return -1;
-    }
-    eirq = irq_of_parse_and_map(np, 0);
-    if (eirq == NO_IRQ)
-    {
-      gprintk ("LMP - Nao apanhei nenhum irq devtree\n\r");
-      return -1;
-    }
-    ctrl->iLine = eirq;
-#endif
-#endif
     gprintk("irq to be used: %d\n",ctrl->iLine);
     /* PTin end */
 
