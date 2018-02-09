@@ -91,7 +91,7 @@ modname = $(basetarget)
 
 # Extra variables.
 EXTRA_CFLAGS = -D"KBUILD_STR(s)=\#s" $(basename_flags) $(modname_flags)
-EXTRA_CFLAGS+= -Wno-unused-but-set-variable -Wno-misleading-indentation
+EXTRA_CFLAGS+= -Wno-unused-but-set-variable
 EXTRA_CFLAGS+= -ffunction-sections -fdata-sections
 EXTRA_CFLAGS+= --sysroot=/opt/sysroot-glibc-linaro-2.25-2017.11-aarch64-linux-gnu
 
