@@ -653,6 +653,7 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
 #if (PTIN_BOARD_IS_STANDALONE)
   ptin_intf_t ptin_intf;
   L7_uint32 ptin_port;
+  L7_uint32 intIfNum;
 
   PT_LOG_DEBUG(LOG_CTX_MSG, "ptin_msg_typeBprotSwitch(slot %d, port %d)", ENDIAN_SWAP8(msg->slot), ENDIAN_SWAP8(msg->port));
 
@@ -664,6 +665,8 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   if (rc==L7_SUCCESS)
   {
     rc = switching_fdbFlushVlanByPort(ptin_port);
+    ptin_intf_port2intIfNum(ptin_port, &intIfNum);
+    dsBindingClear(intIfNum)); 
   }
   else
   {
