@@ -238,7 +238,7 @@ L7_RC_t ptin_prottypeb_intf_switch_notify(L7_uint32 intfNum, L7_uint8 status)
       }
 
 #if !PTIN_BOARD_IS_STANDALONE
-      dsBindingClear(intfNum)); 
+      dsBindingClear(intfNum); 
 #endif        
     }
   }

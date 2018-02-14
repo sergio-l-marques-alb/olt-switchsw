@@ -666,7 +666,7 @@ L7_RC_t ptin_msg_typeBprotSwitch(msg_HwTypeBprot_t *msg)
   {
     rc = switching_fdbFlushVlanByPort(ptin_port);
     ptin_intf_port2intIfNum(ptin_port, &intIfNum);
-    dsBindingClear(intIfNum)); 
+    dsBindingClear(intIfNum); 
   }
   else
   {
