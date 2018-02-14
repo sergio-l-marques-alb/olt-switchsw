@@ -39,6 +39,10 @@
 
 #include "logger.h"
 
+#undef SNOOP_PTIN_IGMPv3_GLOBAL
+#undef SNOOP_PTIN_IGMPv3_ROUTER
+#undef SNOOP_PTIN_IGMPv3_PROXY
+
 /* PTin Add: IGMPv3 */
 #if SNOOP_PTIN_IGMPv3_GLOBAL
 
@@ -73,7 +77,6 @@ static snoop_eb_t  snoopEB;   /* Snoop execution block holder */
 static snoop_cb_t *snoopCB;   /* Snoop Control blocks holder */
 
 //PTin Added: MGMD
-#include "ptin_igmp.h"
 #include "snooping_mgmd_api.h"
 
 extern ptin_mgmd_externalapi_t mgmd_external_api;
@@ -1299,10 +1302,10 @@ void  checkIGMPv3Size(void)
 {
   PT_LOG_TRACE(LOG_CTX_IGMP,"L7_uint8: Allocating %u",sizeof(L7_uint8));
   PT_LOG_TRACE(LOG_CTX_IGMP,"L7_inet_addr_t: Allocating %u",sizeof(L7_inet_addr_t));
-
+#if 0
   PT_LOG_TRACE(LOG_CTX_IGMP,"PTIN_IGMP_MAX_ROOT_PORTS=%u L7_MAX_GROUP_REGISTRATION_ENTRIES=%u PTIN_SYSTEM_MAXINTERFACES_PER_GROUP=%u PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE=%u PTIN_SYSTEM_MAXCLIENTS_PER_IGMP_INSTANCE=%u",
             PTIN_IGMP_MAX_ROOT_PORTS,L7_MAX_GROUP_REGISTRATION_ENTRIES,PTIN_SYSTEM_MAXINTERFACES_PER_GROUP,PTIN_SYSTEM_IGMP_CLIENT_BITMAP_SIZE,PTIN_SYSTEM_IGMP_MAXCLIENTS);
-
+#endif
   PT_LOG_TRACE(LOG_CTX_IGMP,"snoopPTinL3AvlTree: Allocating %u",sizeof(avlTree_t));
   PT_LOG_TRACE(LOG_CTX_IGMP,"snoopPTinL3TreeHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(avlTreeTables_t));
   PT_LOG_TRACE(LOG_CTX_IGMP,"snoopPTinL3DataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinL3InfoData_t));
@@ -1320,8 +1323,10 @@ void  checkIGMPv3Size(void)
   PT_LOG_TRACE(LOG_CTX_IGMP,"snoopPTinProxyGroupDataHeap: Allocating %u",L7_MAX_GROUP_REGISTRATION_ENTRIES*sizeof(snoopPTinProxyGroup_t));
 
   PT_LOG_TRACE(LOG_CTX_IGMP,"snoopPTinProxyInterfaceAvlTree: Allocating %u",sizeof(avlTree_t));
+#if 0
   PT_LOG_TRACE(LOG_CTX_IGMP,"snoopPTinProxyInterfaceTreeHeap: Allocating %u",PTIN_IGMP_MAX_ROOT_PORTS*sizeof(avlTreeTables_t));
   PT_LOG_TRACE(LOG_CTX_IGMP,"snoopPTinProxyInterfaceDataHeap: Allocating %u",PTIN_IGMP_MAX_ROOT_PORTS*sizeof(snoopPTinProxyInterface_t));
+#endif
 }
 
 #endif

@@ -1544,13 +1544,14 @@ L7_RC_t sysNetNotifyListDebugShow()
   extern L7_RC_t lldpPduReceiveCallback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
   extern L7_RC_t sFlowPduReceive(L7_netBufHandle netBufHandle, sysnet_pdu_info_t *pduInfo);
   extern L7_RC_t pppoePduReceive(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
+#if 0
   extern L7_RC_t ptinMacBcastRecv(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
 #ifdef PTIN_ENABLE_ERPS
   extern L7_RC_t ptin_aps_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
   extern L7_RC_t ptin_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
 #endif
   extern L7_RC_t common_aps_ccm_packetRx_callback(L7_netBufHandle bufHandle, sysnet_pdu_info_t *pduInfo);
-
+#endif
   for (i = 0; i < FD_CNFGR_SYSNET_MAX_REGISTRATIONS; i++)
   {
     /* Skip empty entries */
@@ -1585,6 +1586,7 @@ L7_RC_t sysNetNotifyListDebugShow()
   printf("isdpPduReceive          = 0x%08x\r\n", (L7_uint32) isdpPduReceive);
   printf("lldpPduReceiveCallback  = 0x%08x\r\n", (L7_uint32) lldpPduReceiveCallback);
   printf("sFlowPduReceive         = 0x%08x\r\n", (L7_uint32) sFlowPduReceive);
+#if 0
   printf("pppoePduReceive         = 0x%08x\r\n", (L7_uint32) pppoePduReceive);
   printf("ptinMacBcastRecv        = 0x%08x\r\n", (L7_uint32) ptinMacBcastRecv);
 #ifdef PTIN_ENABLE_ERPS
@@ -1592,6 +1594,7 @@ L7_RC_t sysNetNotifyListDebugShow()
   printf("ptin_ccm_packetRx_callback      = 0x%08x\r\n", (L7_uint32) ptin_ccm_packetRx_callback);
 #endif
   printf("common_aps_ccm_packetRx_callback= 0x%08x\r\n", (L7_uint32) common_aps_ccm_packetRx_callback);
+#endif
 
 #ifdef L7_ROUTING_PACKAGE
   printf("ipMapArpRecvIP = 0x%08x\r\n", (L7_uint32) ipMapArpRecvIP);

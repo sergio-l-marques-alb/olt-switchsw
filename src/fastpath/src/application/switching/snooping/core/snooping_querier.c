@@ -48,7 +48,7 @@
 #endif
 
 /* PTin added: IGMP snooping */
-#if 1
+#if 0
 #include "ptin_igmp.h"
 #endif
 
@@ -800,6 +800,7 @@ L7_BOOL snoopQuerierAddressReady(L7_uint32 vlanId, snoop_cb_t *pSnoopCB,
 ***************************************************************************/
 L7_BOOL snoopQuerierVlanReady(L7_uint32 vlanId, snoop_cb_t *pSnoopCB)
 {
+#if 0
   L7_inet_addr_t inetAddr; /* temp var */
   L7_uint32 l3Mode = L7_DISABLE;
 
@@ -838,7 +839,7 @@ L7_BOOL snoopQuerierVlanReady(L7_uint32 vlanId, snoop_cb_t *pSnoopCB)
       }/* Snoop mode enabled on vlan */
     } /* Snoop Querier enabled globally */
   } /* Snoop enabled globally */
-
+#endif
   return L7_FALSE;
 }
 /*********************************************************************
@@ -1359,6 +1360,8 @@ L7_RC_t snoopQuerySend(L7_uint32 intIfNum, L7_uint32 vlanId,
                               snoop_cb_t *pSnoopCB, snoopQueryType_t qryType,
                               L7_inet_addr_t *leave_grp_addr)
 {
+return L7_FAILURE;
+#if 0
   L7_netBufHandle  bufHandle;
   L7_uchar8       *dataStart, type;
   L7_INTF_TYPES_t    sysIntfType;
@@ -1556,6 +1559,7 @@ L7_RC_t snoopQuerySend(L7_uint32 intIfNum, L7_uint32 vlanId,
   }
 
   return rc;
+#endif
 }
 /*********************************************************************
 * @purpose  Build IGMP Message
@@ -2061,6 +2065,8 @@ L7_RC_t snoopMLDFrameBuild(L7_uint32       intIfNum,
 *********************************************************************/
 void snoopQuerierPeriodicQuerySend(snoopOperData_t *pSnoopOperEntry)
 {
+return;
+#if 0
   L7_netBufHandle  bufHandle;
   L7_uchar8       *dataStart, type;
   L7_uint32        ipv4Addr, version, frameLength = 0, vlanId;
@@ -2245,4 +2251,5 @@ void snoopQuerierPeriodicQuerySend(snoopOperData_t *pSnoopOperEntry)
   {
     SYSAPI_NET_MBUF_FREE(bufHandle);
   }
+#endif
 }

@@ -31,7 +31,7 @@
 #include "ptin_structs.h"
 
 /* PTin added: IGMP snooping */
-#if 1
+#if 0
 
 /**
  * Get a list of channels consumed by a particular vlan and 
@@ -1210,7 +1210,7 @@ L7_RC_t snoopIntfApiVlanStaticMcastRtrMaskGet(L7_uint32 intIfNum,
 
 L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isStatic, L7_BOOL isProtection);
 L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isProtection);
-extern L7_RC_t ptin_igmp_snooping_channel_reset(L7_uint16 vlanId , L7_uint intf);
+//extern L7_RC_t ptin_igmp_snooping_channel_reset(L7_uint16 vlanId , L7_uint intf);
 
 #endif /* SNOOPING_API_H */
 

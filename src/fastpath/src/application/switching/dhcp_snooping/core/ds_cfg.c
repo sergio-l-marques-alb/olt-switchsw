@@ -34,10 +34,6 @@
 #include "ds_ipsg.h"
 #endif
 
-/* PTin added: DHCP snooping */
-#include "ptin_dhcp.h"
-#include "ptin_evc.h"
-/* PTin end */
 
 extern dsCfgData_t *dsCfgData;
 extern osapiRWLock_t  dsCfgRWLock;
@@ -89,7 +85,7 @@ void _dsVlanDisable(L7_uint32 vlanId)
 L7_BOOL _dsVlanEnableGet(L7_uint32 vlanId)
 {
   /* PTin added: This function should be updated */
-  #if 1
+  #if 0
   return ptin_dhcp_vlan_validate(vlanId);
   #else
   if (L7_VLAN_ISMASKBITSET(dsCfgData->dsVlans, vlanId))
@@ -111,8 +107,10 @@ L7_BOOL _dsVlanEnableGet(L7_uint32 vlanId)
  */
 L7_BOOL dsVlanIntfIsSnooping(L7_uint16 vlanId, L7_uint32 intIfNum)
 {
+return L7_FALSE;
+#if 0
   /* PTin modified: DHCP snooping */
-  #if 1
+  #if 0
   return ptin_dhcp_intfVlan_validate(intIfNum,vlanId);
   #else
   ptin_HwEthMef10Evc_t evcConf;
@@ -136,6 +134,7 @@ L7_BOOL dsVlanIntfIsSnooping(L7_uint16 vlanId, L7_uint32 intIfNum)
   }
   return L7_FALSE;
   #endif
+#endif
 }
 
 #ifdef L7_DHCP_L2_RELAY_PACKAGE
@@ -179,7 +178,7 @@ void _dsIntfL2RelayDisable(L7_uint32 intIfNum)
 L7_BOOL _dsIntfL2RelayGet(L7_uint32 intIfNum)
 {
   /* PTin modified: DHCP snooping */
-  #if 1
+  #if 0
   return ptin_dhcp_intf_validate(intIfNum);
   #else
   if (L7_INTF_ISMASKBITSET(dsCfgData->dsL2RelayIntfMode, intIfNum))
@@ -454,8 +453,10 @@ L7_BOOL _dsIntfTrustGet(L7_uint32 intIfNum)
  */
 L7_BOOL _dsVlanIntfTrustGet(L7_uint16 vlanId, L7_uint32 intIfNum)
 {
+return L7_FALSE;
+#if 0
   /* PTin modified: DHCP snooping */
-  #if 1
+  #if 0
   return ptin_dhcp_is_intfTrusted(intIfNum,vlanId);
   #else
   ptin_HwEthMef10Evc_t evcConf;
@@ -480,6 +481,7 @@ L7_BOOL _dsVlanIntfTrustGet(L7_uint16 vlanId, L7_uint32 intIfNum)
   }
   return L7_FALSE;
   #endif
+#endif
 }
 
 /**
@@ -493,7 +495,8 @@ L7_BOOL _dsVlanIntfTrustGet(L7_uint16 vlanId, L7_uint32 intIfNum)
  */
 L7_BOOL _dsVlanIsIntfRoot(L7_uint16 vlanId, L7_uint32 intIfNum)
 {
-  return ptin_evc_intf_isRoot(vlanId, intIfNum);
+return 0;
+  //return ptin_evc_intf_isRoot(vlanId, intIfNum);
 }
 
 /*********************************************************************

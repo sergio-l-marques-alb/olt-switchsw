@@ -12,7 +12,6 @@
 #define _PTIN_OPENSAF_H
 
 #include "ptin_include.h"
-#include "ptin_igmp.h"
 #include "osapi.h"
 #include <stdio.h>
 #include <string.h>

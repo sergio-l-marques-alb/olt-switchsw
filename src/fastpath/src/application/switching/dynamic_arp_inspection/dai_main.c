@@ -40,7 +40,8 @@
 #include "usmdb_util_api.h"
 
 #include "logger.h"
-#include "ptin_evc.h"
+//#include "ptin_evc.h"
+#undef PTIN_QUATTRO_FLOWS_FEATURE_ENABLED
 #include "ptin_intf.h"
 
 #define DAI_TIMER_EVENT_INTERVAL      1000
@@ -1965,6 +1966,8 @@ L7_RC_t daiFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerV
 L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVlanId, L7_uint32 vport_id,
                     L7_uchar8 *frame, L7_ushort16 frameLen)
 {
+return L7_FAILURE;
+#if 0
   L7_netBufHandle   bufHandle;
   L7_uchar8        *dataStart;
   L7_INTF_TYPES_t   sysIntfType;
@@ -2143,5 +2146,6 @@ L7_RC_t daiFrameSend(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerVl
   }
 
   return rc;
+#endif
 }
 

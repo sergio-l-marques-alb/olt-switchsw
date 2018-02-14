@@ -44,8 +44,6 @@
 #endif
 #endif
 
-#include "ptin_l2.h"
-
 /* local prototypes */
 L7_RC_t fdbIntfChangeCallback(L7_uint32 intIfNum, L7_uint32 event,NIM_CORRELATOR_t correlator);
 void fdbStartupNotifyCallback(NIM_STARTUP_PHASE_t startupPhase);
@@ -798,7 +796,7 @@ void fdbLearnEntryCallBack(L7_uchar8 *macAddr, L7_uint32 intIfNum, L7_uint32 vir
   }
 
   /* PTin added: virtual ports */
-  ptin_l2_learn_event(macAddr, intIfNum, virtual_port, vlanId, msgsType);
+  //ptin_l2_learn_event(macAddr, intIfNum, virtual_port, vlanId, msgsType);
 }
 
 /*********************************************************************

@@ -26,41 +26,12 @@
 
 #include "ptin_msghandler.h"
 #include "ptin_control.h"
-#include "ptin_evc.h"
-#include "ptin_igmp.h"
-#include "ptin_dhcp.h"
-#include "ptin_pppoe.h"
-#include "ptin_prot_typeb.h"
-#include "ptin_routing.h"
-#include "ptin_ssm.h"
-#include "ptin_prot_erps.h"
-#include "ptin_ipdtl0_packet.h"
-#include "ptin_rfc2819.h"
-#include "ptin_ipdtl0_packet.h"
-#include "ptin_acl.h"
 #include "ptin_opensaf_checkpoint.h"
 #include "ptin_opensaf.h"
-#include <ptin_prot_oam_eth.h>
-#include <ptin_oam_packet.h>
 
 #include "ipc.h"
 
 #include <signal.h>
-
-#if ( !PTIN_BOARD_IS_MATRIX )
-#include "ptin_packet.h"
-#endif
-
-#if ( PTIN_BOARD_IS_STANDALONE || defined(SYNC_SSM_IS_SUPPORTED))
-#include "fw_shm.h"
-#endif
-
-//#include "sirerrors.h"
-//#include "traces.h"
-//#include "ptin_cfg.h"
-//#include "ptin_cnfgr.h"
-//#include "ptin_intf.h"
-//#include "ptin_msghandler.h"
 
 
 /* Semaphore to synchronize PTin task execution */
@@ -80,7 +51,7 @@ void* ptin_cnfgr_get_sem(L7_uint8 semId)
     return ptin_busy_sem;
   }
 }
-
+#if 0
 /* MGMD TxQueueId */
 L7_int32 ptinMgmdTxQueueId = -1;
 
@@ -89,13 +60,8 @@ inline L7_int32 ptin_mgmd_txqueue_id_get(void){return ptinMgmdTxQueueId;};
 /* Reinit MGMD TxQueue */
 inline RC_t ptin_mgmd_txqueue_reinit(void) {return ptin_mgmd_txqueue_create(MGMD_TXQUEUE_KEY, &ptinMgmdTxQueueId);};
 
-#if (!PTIN_BOARD_IS_STANDALONE)
-void *ptin_switchover_sem  = L7_NULLPTR;
+//void *ptin_switchover_sem  = L7_NULLPTR;
 #endif
-#if (PTIN_BOARD_IS_MATRIX)
-void *ptin_boardaction_sem = L7_NULLPTR;
-#endif
-
 static ptinCnfgrState_t ptinCnfgrState = PTIN_PHASE_INIT_0;
 
 
@@ -373,39 +339,22 @@ L7_RC_t ptinCnfgrInitPhase1Process( L7_CNFGR_RESPONSE_t *pResponse,
     PTIN_CRASH();
   }
 
-  /* Initialize EVC data structures */
-  ptin_evc_init();
-
-  /* Initialize DHCP data structures */
-  ptin_dhcp_init();
-
-  /* Initialize PPPoE data structures */
-  ptin_pppoe_init();
-
-  /* Initialize Type-B Protection data structures */
-  ptin_prottypeb_init();
-
-#if (PTIN_BOARD_IS_STANDALONE || PTIN_BOARD_IS_MATRIX || defined(SYNC_SSM_IS_SUPPORTED))
-  /* Open shared memory to communicate with the GPON application */
-  if (fw_shm_open() != 0)
-  {
-    PT_LOG_FATAL(LOG_CTX_CNFGR, "Error initializing shared memory!");
-    return L7_FAILURE;
-  }
-  else
-  {
-    memset(pfw_shm->intf, 0x00, sizeof(pfw_shm->intf));
-    PT_LOG_INFO(LOG_CTX_CNFGR, "Shared memory OK");
-
-    #if (PTIN_BOARD_IS_MATRIX)
-    PT_LOG_INFO(LOG_CTX_CNFGR, "sysMacAddr={%02x-%02x-%02x-%02x-%02x-%02x}",
-                pfw_shm->sysMacAddr[0],pfw_shm->sysMacAddr[1],pfw_shm->sysMacAddr[2],pfw_shm->sysMacAddr[3],pfw_shm->sysMacAddr[4],pfw_shm->sysMacAddr[5]);
-    #endif
-  }
-#endif
-
-  /* Create a new TxQueue to handle responses from MGMD */
-  ptin_mgmd_txqueue_create(MGMD_TXQUEUE_KEY, &ptinMgmdTxQueueId);
+  #if 0
+  ///* Initialize EVC data structures */
+  //ptin_evc_init();
+  //
+  ///* Initialize DHCP data structures */
+  //ptin_dhcp_init();
+  //
+  ///* Initialize PPPoE data structures */
+  //ptin_pppoe_init();
+  //
+  ///* Initialize Type-B Protection data structures */
+  //ptin_prottypeb_init();
+  //
+  ///* Create a new TxQueue to handle responses from MGMD */
+  //ptin_mgmd_txqueue_create(MGMD_TXQUEUE_KEY, &ptinMgmdTxQueueId);
+  #endif
 
   ptinCnfgrState = PTIN_PHASE_INIT_1;
 
@@ -468,19 +417,7 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   return L7_FAILURE;
 #endif
 
-#if (PTIN_BOARD_IS_MATRIX)
-  /* Semaphore to control board insertion/remotion */
-  ptin_boardaction_sem = osapiSemaBCreate(OSAPI_SEM_Q_FIFO, OSAPI_SEM_FULL);
-  if (ptin_boardaction_sem == L7_NULLPTR)
-  {
-    PT_LOG_FATAL(LOG_CTX_CNFGR, "Failed to create ptin_boardaction_sem semaphore!");
-
-    *pResponse = 0;
-    *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
-    return L7_FAILURE;
-  }
-#endif
-
+#if 0
   if (ptin_acl_init() != L7_SUCCESS)
   {
     PT_LOG_FATAL(LOG_CTX_CNFGR, "ptin_acl_init() failed!");
@@ -491,7 +428,8 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   }
 
   /* Initialize IGMP data structures (includes semaphores) */
-  ptin_igmp_proxy_init();
+  //ptin_igmp_proxy_init();
+#endif
 
   /* Create PTin task */
   if (osapiTaskCreate("PTin task", ptinTask, 0, 0,
@@ -538,37 +476,38 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   }
   PT_LOG_TRACE(LOG_CTX_CNFGR,"Task ptinIntfTask initialized");
 
-  /* Initialize OAM data structures (includes task and timer) */
-  ptin_oam_eth_init();
-
-  /* Allocate SSM resources */
-  if (ssm_init() != L7_SUCCESS)
-  {
-    *pResponse = 0;
-    *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
-    return L7_FAILURE;
-  }
-  PT_LOG_INFO(LOG_CTX_CNFGR, "SSM init OK");
+  #if 0
+  ///* Initialize OAM data structures (includes task and timer) */
+  //ptin_oam_eth_init();
+  //
+  ///* Allocate SSM resources */
+  //if (ssm_init() != L7_SUCCESS)
+  //{
+  //  *pResponse = 0;
+  //  *pReason   = L7_CNFGR_ERR_RC_LACK_OF_RESOURCES;
+  //  return L7_FAILURE;
+  //}
+  //PT_LOG_INFO(LOG_CTX_CNFGR, "SSM init OK");
 
     /* Initialize ERPS data structures (includes semaphores and timer) */
-#ifdef PTIN_ENABLE_ERPS
-  ptin_prot_erps_init();
-#endif
+//#ifdef PTIN_ENABLE_ERPS
+//  ptin_prot_erps_init();
+//#endif
+//
+//  {
+//#ifdef PTIN_ENABLE_ERPS
+//   unsigned long i;
+//
+//   for (i=0; i<MAX_PROT_PROT_ERPS; i++) ptin_aps_packet_init(i);//Initialize message queues
+//#endif
+//
+//   common_aps_ccm_packetRx_callback_register(); //must be after OAM ETH and ERP queues init: ptin_ccm_packet_init(-1) and ptin_aps_packet_init()
+//  }
 
-  {
-#ifdef PTIN_ENABLE_ERPS
-   unsigned long i;
-
-   for (i=0; i<MAX_PROT_PROT_ERPS; i++) ptin_aps_packet_init(i);//Initialize message queues
-#endif
-
-   common_aps_ccm_packetRx_callback_register(); //must be after OAM ETH and ERP queues init: ptin_ccm_packet_init(-1) and ptin_aps_packet_init()
-  }
-
-  /* IP dtl0 module initialization. */
-#ifdef PTIN_ENABLE_DTL0TRAP
-  ptin_ipdtl0_init();
-#endif
+//  /* IP dtl0 module initialization. */
+//#ifdef PTIN_ENABLE_DTL0TRAP
+//  ptin_ipdtl0_init();
+//#endif
 
 #if ( !PTIN_BOARD_IS_MATRIX )
   if (ptin_packet_init() != L7_SUCCESS)
@@ -612,14 +551,15 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
   PT_LOG_INFO(LOG_CTX_CONTROL, "ptinSwitchoverTask launch OK");
 #endif
 
-  /* Initialize rfc2819 monitoring (includes structures and tasks) */
-  ptin_rfc2819_init();
+//  /* Initialize rfc2819 monitoring (includes structures and tasks) */
+//  ptin_rfc2819_init();
 
   /* Initialize NGPON2 opensaf data structures */
 #ifdef OPENSAF_SUPPORTED
   ptin_opensaf_init();
   ptin_opensaf_event_task_init();
 #endif /*OPENSAF_SUPPORTED*/
+#endif
 
   ptinCnfgrState = PTIN_PHASE_INIT_2;
 
@@ -714,8 +654,8 @@ void ptinCnfgrFiniPhase1Process(void)
 {
   /* deallocate anything that was allocated */
 
-  /* Deconfigure IGMP proxy */
-  ptin_igmp_proxy_deinit();
+//  /* Deconfigure IGMP proxy */
+//  ptin_igmp_proxy_deinit();
 
   PT_LOG_INFO(LOG_CTX_CNFGR, "SSM fini OK");
 
@@ -743,6 +683,7 @@ void ptinCnfgrFiniPhase2Process(void)
    * member in the cosDeregister_g struct is set to L7_FALSE;
    */
 
+#if 0
 #if ( !PTIN_BOARD_IS_MATRIX )
   /* Deinit ptin packet module */
   ptin_packet_deinit();
@@ -750,7 +691,7 @@ void ptinCnfgrFiniPhase2Process(void)
 
   /* Deallocate SSM resources */
   ssm_fini();
-
+#endif
    ptinCnfgrState = PTIN_PHASE_INIT_1;
 }
 

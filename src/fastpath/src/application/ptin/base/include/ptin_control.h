@@ -30,14 +30,6 @@ extern L7_BOOL slots_to_be_reseted[1+PTIN_SYS_SLOTS_MAX];
 #endif
 #endif
 
-/**
- * Initialize interface changes notifier
- * 
- * @author mruas (11/18/2013)
- * 
- * @return L7_RC_t 
- */
-extern L7_RC_t ptin_control_intf_init(void);
 
 /**
  * Task that runs part of the PTin initialization and further periodic 
@@ -47,40 +39,6 @@ extern L7_RC_t ptin_control_intf_init(void);
  * @param unit 
  */
 extern void ptinTask(L7_uint32 numArgs, void *unit);
-
-#if (!PTIN_BOARD_IS_STANDALONE)
-/**
- * Task that checks for Matrix Switchovers
- * 
- * @param numArgs 
- * @param unit 
- */
-extern void ptinSwitchoverTask(L7_uint32 numArgs, void *unit);
-#endif
-
-#if (PTIN_BOARD_IS_MATRIX)
-/**
- * Reset linkStatus data
- * 
- * @param ptin_port 
- * 
- * @return L7_RC_t 
- */
-extern L7_RC_t ptin_control_linkStatus_reset(L7_uint ptin_port);
-
-/**
- * Update local linkStatus data (for all interfaces)
- */
-extern void ptin_control_localLinkStatus_update(void);
-
-/**
- * Update remote linkStatus for a particular interface
- * 
- * @param ptin_port 
- * @param info 
- */
-extern void ptin_control_remoteLinkstatus_update(L7_uint32 ptin_port, struct_linkStatus_t *info);
-#endif /*PTIN_BOARD_IS_MATRIX*/
 
 /**
  * Task that checks for Interface changes
@@ -117,10 +75,6 @@ extern L7_RC_t ptin_alarms_suppress(L7_uint32 port, L7_BOOL state);
  */
 extern L7_BOOL ptin_alarms_is_suppressed(L7_uint32 port);
 
-/**
- * Schedule Multicast machine reset
- */
-extern void schedule_matrix_query_send(void);
 
 /*********************************************************************
 * @purpose  Update the current state of a given interface.
@@ -150,25 +104,7 @@ L7_RC_t ptinIntfChangeCallback(L7_uint32 intIfNum,
 *********************************************************************/
 void ptinIntfStartupCallback(NIM_STARTUP_PHASE_t startupPhase);
 
-//extern int tx_dot3ad_matrix_sync_t(void);
-//extern void rx_dot3ad_matrix_sync_t(char *p, unsigned long dim);
-extern void rx_dot3ad_matrix_sync2_t(char *pbuf, unsigned long dim);
-
 extern L7_int get_linkStatus(L7_uint32 port);
-
-
-/**
- * Write a new WCmap file in the filesystem
- * 
- * @author mruas (13/10/17)
- * 
- * @param filename 
- * @param slot_mode 
- * @param number_of_slots 
- * 
- * @return L7_RC_t 
- */
-extern L7_RC_t hpcConfigWCmap_write(char *filename, L7_uint32 *slot_mode, L7_uint32 number_of_slots);
 
 /**
  * Reboot system

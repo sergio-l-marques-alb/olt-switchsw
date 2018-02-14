@@ -11,7 +11,6 @@
 #include "ptin_debug.h"
 #include "ptin_include.h"
 #include "ptin_intf.h"
-#include "ptin_evc.h"
 #include "ptin_msghandler.h"
 #include "dtl_ptin.h"
 #include "ptin_msg.h"
@@ -46,6 +45,9 @@ extern L7_uint32 hpcLocalCardIdGet(int slotNum);
 /*************************** 
  * EXTERNAL FUNCTIONS
  ***************************/
+
+
+unsigned char ptin_debug_igmp_snooping=0, ptin_debug_dhcp_snooping=0;
  
 #define TIMERS_MAX  90
 
@@ -1175,7 +1177,7 @@ void ptin_process_threshold(void)
 }
 
 
-
+#if 0
 /**
  * ptin_debug_l2_maclimit_config
  * 
@@ -1239,7 +1241,7 @@ void ptin_l2_maclimit_status(L7_uint8 intf_type, L7_uint8 intf_id)
   ptin_msg_l2_maclimit_status(&status);
 
 }
-
+#endif
 void ptin_sys_mac_set(L7_uint8 macAddr0, L7_uint8 macAddr1, L7_uint8 macAddr2, L7_uint8 macAddr3, L7_uint8 macAddr4, L7_uint8 macAddr5)
 {
   L7_uchar8 mac[L7_MAC_ADDR_LEN];

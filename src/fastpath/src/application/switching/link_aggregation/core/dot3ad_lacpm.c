@@ -35,7 +35,7 @@
 #include "dot3ad_helper.h"
 #include "dot3ad_transport.h"
 #include "unitmgr_api.h"
-#if 1
+#if 0
 /* PTin added: SSM packet processing */
 #include "ptin_ssm.h"
 #endif
@@ -142,7 +142,7 @@ L7_RC_t dot3adPduReceive(L7_netBufHandle bufHandle,sysnet_pdu_info_t *pduInfo )
   L7_uchar8 * buffer = L7_NULLPTR;
   L7_uint32 dataLength = 0;
 
-#if 1
+#if 0
   /* PTin added: SSM packet processing */
   if (ssmPDUReceive(bufHandle,pduInfo)==L7_SUCCESS)
   {

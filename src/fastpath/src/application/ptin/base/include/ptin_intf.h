@@ -33,7 +33,7 @@ extern L7_BOOL linkscan_update_control;
  */
 extern L7_RC_t ptin_intf_pre_init(void);
 extern L7_RC_t ptin_intf_post_init(void);
-
+#if 0
 /**
  * Init Port exitension definitions
  * 
@@ -60,7 +60,7 @@ extern L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortEx
  * @return L7_RC_t : L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *mefExt);
-
+#endif
 /**
  * Set MAC address
  * 
@@ -513,7 +513,7 @@ extern L7_BOOL ptin_intf_is_uplinkProtectionActive(L7_uint32 ptin_port);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_intf_LagConfig_get(ptin_LACPLagConfig_t *lagInfo);
-
+#if 0
 /**
  * Creates a LAG
  * 
@@ -540,7 +540,7 @@ extern L7_RC_t ptin_intf_Lag_delete(L7_uint32 lag_idx);
  * @return L7_RC_t L7_SUCCESS/L7_FAILURE
  */
 extern L7_RC_t ptin_intf_Lag_delete_all(void);
-
+#endif
 /**
  * Gets a LAG status
  * 
@@ -669,7 +669,7 @@ L7_RC_t ptin_intf_mcast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
  */
 extern
 L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL enable, L7_uint32 rate_value, L7_uint32 rate_burst, L7_uint8 rate_units);
-
+#if 0
 /**
  * Apply a policer for interface/CoS
  * 
@@ -696,7 +696,7 @@ L7_RC_t ptin_QoS_intf_cos_policer_set(const ptin_intf_t *ptin_intf, L7_uint8 cos
  */
 extern 
 L7_RC_t ptin_QoS_intf_cos_policer_clear(const ptin_intf_t *ptin_intf, L7_uint8 cos);
-
+#endif
 /**
  * Configures priority mapping to classes of services 
  * 

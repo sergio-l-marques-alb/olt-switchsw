@@ -66,14 +66,14 @@
 #else
 #define __ENABLE_DTL0INBANDVID_REMOVAL__      0
 #endif
-
+#if 0
 extern L7_uint16 ptin_cfg_inband_vlan_get(void);
 
 extern L7_uint16 ptin_ipdtl0_dtl0Vid_get(L7_uint16 intVid);
 extern L7_uint16 ptin_ipdtl0_internalVid_get(L7_uint16 dtl0Vid);
 extern L7_uint16 ptin_ipdtl0_outerVid_get(L7_uint16 dtl0Vid);
 extern L7_uint16 ptin_ipdtl0_dtl0Type_get(L7_uint16 dtl0Vid);
-
+#endif
 extern int send_TxTsRecord(ptin_PptTsRecord_t *ptpTs);
 
 #ifdef DTL_USE_TAP
@@ -470,7 +470,7 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
     else
     {
       /* PTin added: IEEE 1588 / PTP TS Activation */
-      #if 1
+      #if 0
       {
         L7_ipHeader_t *ip_header;
         L7_udp_header_t *udpHeader;
@@ -1288,10 +1288,11 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
    /* PTin added: inband */
    L7_uint16    vid = 0;                        
    L7_BOOL      isTaggedPacket = L7_FALSE;      
+#if 0
    L7_BOOL      isInbandVidPacket = L7_FALSE;   
    L7_uint16    dtl0Vid = 0;
    L7_uchar8    etype_8021q[] = {0x81,0x00};    /* L7_ETYPE_8021Q */
-
+#endif
    /* PTin added: Initialize L2 flags */
    info->dtlCmdInfo.cmdType.L2.flags = 0;
 
@@ -1333,7 +1334,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n\r");
      }
    }
-
+#if 0
    /* PTin added: Is this a 802.1Q packet? */
    if (memcmp(&data[12], etype_8021q, 2) == 0)
    {
@@ -1397,7 +1398,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
    }
 
    /* PTin end */
-
+#endif
    /*
     *check to see if this is a multicast frame
     */
@@ -1594,7 +1595,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
           info->discard = L7_FALSE;
 
           /* PTin added: IEEE 1588 / PTP TS Activation */
-          #if 1
+          #if 0
           {
             L7_ipHeader_t *ip_header;
             L7_udp_header_t *udpHeader;

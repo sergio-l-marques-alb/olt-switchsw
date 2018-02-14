@@ -47,8 +47,6 @@
 #include "snooping_defs.h"
 #endif
 
-#include "ptin_evc.h"
-#include "ptin_igmp.h"
 #include "ptin_debug.h"
 
 /*****************************************************************************
@@ -365,9 +363,11 @@ void snoopTask(void)
       
       if (msg.vlanEvent == VLAN_DELETE_PORT_NOTIFY && msg.u.vlanData.numVlans == 1)
       {
+#if 0
         /*Added to avoid the removal of L3 Interfaces from the EVC Module 
           before removing all the L3 snoop entries associated to this vlanId and intIfNum*/
         ptin_evc_l3_intf_sem_give(msg.u.vlanData.data.vlanId, msg.intIfNum);     
+#endif
       }
       break;
 
@@ -3358,6 +3358,8 @@ static void snoopL3McastModeChangeProcess(L7_uint32 l3Mode)
  */
 static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t* groupAddr, L7_inet_addr_t* sourceAddr, L7_BOOL isStatic, L7_BOOL isProtection)
 {
+return;
+#if 0
   L7_uint16      mcastRootVlan;  
   L7_BOOL        isL3Entry;
   char           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
@@ -3419,6 +3421,7 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 intIfN
       PT_LOG_ERR(LOG_CTX_IGMP, "Unable to open port on switch for mcastRootVlan:%u [serviceId:%u portId:%u groupAddr:%s sourceAddr:%s isStatic:%s isProtection:%s]", mcastRootVlan, serviceId, intIfNum, groupAddrStr, sourceAddrStr, isStatic?"Yes":"No", isProtection?"Yes":"No");      
   }
   ptin_timer_stop(88);
+#endif
 }
 
 /**
@@ -3434,6 +3437,8 @@ static void snoopMgmdSwitchPortOpenProcess(L7_uint32 serviceId, L7_uint32 intIfN
  */
 static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isProtection)
 {
+return;
+#if 0
   L7_uint16      mcastRootVlan;
   L7_BOOL        isL3Entry;
   char           groupAddrStr[IPV6_DISP_ADDR_LEN]={};
@@ -3488,5 +3493,6 @@ static void snoopMgmdSwitchPortCloseProcess(L7_uint32 serviceId, L7_uint32 intIf
       PT_LOG_ERR(LOG_CTX_IGMP, "Unable to close port on switch for mcastRootVlan:%u [serviceId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%s]", mcastRootVlan, serviceId, intIfNum, groupAddrStr, sourceAddrStr, isProtection?"Yes":"No");      
   }
   ptin_timer_stop(89);
+#endif
 }
 

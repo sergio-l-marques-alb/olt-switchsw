@@ -50,10 +50,10 @@ extern L3INTF_INFO *l3intfInfo;
 extern L7_uint32 ip6ForwardNotRtrIntf;    /* packets received on non-routing interface */
 extern L7_uint32 ip6ForwardRxIfDown;      /* packets received on down interface */
 extern L7_uint32 ip6ForwardPktsToStack;   /* packets to IP stack */
-
+#if 0
 extern L7_RC_t ptin_routing_intf_physicalport_get(L7_uint16 routingIntfNum, L7_uint16 *physicalIntfNum); /* I am unable to include ptin_routing here */
 extern L7_uint16 ptin_ipdtl0_dtl0Vid_get(L7_uint16 dtl0Vid);
-
+#endif
 
 /*********************************************************************
 *
@@ -128,7 +128,7 @@ L7_RC_t ipmRouterIfBufSend(L7_uint32 intIfNum, L7_netBufHandle  bufHandle) {
 
    ifInfo = &l3intfInfo[rtrIntf];
 
-#if 1 /* PTin Added - Routing support (ensure uplink routing interfaces send ARPs through a single (previously determined) physical interface) */
+#if 0 /* PTin Added - Routing support (ensure uplink routing interfaces send ARPs through a single (previously determined) physical interface) */
 {
   L7_uint16 physicalIntfNum;
 
@@ -187,7 +187,7 @@ L7_RC_t ipmRouterIfBufSend(L7_uint32 intIfNum, L7_netBufHandle  bufHandle) {
    bcopy (pEtype, (L7_uchar8 *)&protocolType, sizeof(L7_ushort16));
    protocolType = ntohs(protocolType);
 // printf("%s(%u) - Received packet [physicalIntfNum:%u intIfNum:%u rtrIntf:%u protocolType:%04X]\n", __FUNCTION__, __LINE__, physicalIntfNum, intIfNum, rtrIntf, protocolType);
-#if 1
+#if 0
    if (protocolType != L7_ETYPE_8021Q)
    {
       L7_uint32 messageLen;

@@ -29,30 +29,27 @@
 #include "snooping_outcalls.h"
 #include "snooping_db.h"
 #include "snooping_proto.h"
-//#include "ipc.h"
-#if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
-  #include "ptin_prot_typeb.h"
-#endif
-#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
-  #include "ptin_fpga_api.h"
-  #include "ptin_msghandler.h"
-#endif
+/* PTin added */
+#include "ptin_fpga_api.h"
+#include "ptin_msghandler.h"
 /* PTin added: IGMP snooping */
 #if 1
   #include "logger.h"  
-  #include  "snooping_ptin_db.h"
-  #include  "ptin_igmp.h"
+  //#include  "snooping_ptin_db.h"
 #endif
 
 /******************Protection Schemes Support************************************/
+#if 0
 #if PTIN_BOARD_IS_LINECARD
 static L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8  protectionslotId, L7_uint8 admin, L7_uint32 serviceId, L7_uint32 workingPortId, L7_uint32 protectionPortId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
 #endif
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
 static L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, ptin_fpga_matrix_type_t matrixType, L7_uint32 serviceId, L7_uint32 slotId, L7_uint32 groupAddr, L7_uint32 sourceAddr, L7_uint8 groupType);
 #endif
+#endif
 
 #if PTIN_BOARD_IS_LINECARD
+#if 0
 /**
  * Send CCMSG_MGMD_PORT_SYNC message to a remote slot to sync a MGMD MFDB port.
  * 
@@ -123,8 +120,10 @@ L7_RC_t __remoteslot_mfdbport_sync(L7_uint8 workingSlotId, L7_uint8 protectionSl
   return L7_SUCCESS;
 }
 #endif
+#endif
 
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
+#if 0
 /**
  * Send CCMSG_MGMD_PORT_SYNC message to a matrix (active or backup) to open/close a port in the MFDB.
  * 
@@ -178,9 +177,10 @@ L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, ptin_fpga_matrix_type_t matrixTyp
   return L7_SUCCESS;
 }
 #endif
+#endif
 /******************End Protection Schemes Support************************************/
 
-#if 1
+#if 0
 /**
  * Get a list of channels consumed by a particular vlan and 
  * client index 
@@ -195,6 +195,8 @@ L7_RC_t __matrix_mfdbport_sync(L7_uint8 admin, ptin_fpga_matrix_type_t matrixTyp
  */
 L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId,L7_uint32 intIfNum, L7_uint16 client_index, ptin_igmpChannelInfo_t *channels, L7_uint16 *nChannels)
 {
+return 0;
+#if 0
   ptin_IgmpProxyCfg_t   igmpCfg;
 
   if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX || channels==L7_NULLPTR || nChannels==L7_NULLPTR)
@@ -228,6 +230,7 @@ L7_RC_t ptin_snoop_activeChannels_get(L7_uint16 vlanId,L7_uint32 intIfNum, L7_ui
   }
   PT_LOG_NOTICE(LOG_CTX_IGMP, "We've read num_channels:%u",*nChannels);
   return L7_SUCCESS;
+#endif
 }
 
 /**
@@ -3968,6 +3971,7 @@ L7_RC_t snoopIntfApiVlanStaticMcastRtrMaskGet(L7_uint32 intIfNum,
 L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_BOOL isStatic, L7_BOOL isProtection)
 {
   L7_RC_t         rc = L7_SUCCESS;
+#if 0
   snoop_cb_t     *pSnoopCB = L7_NULLPTR;
   snoopPDU_Msg_t  msg;
   snoop_eb_t     *pSnoopEB = L7_NULLPTR;
@@ -4070,7 +4074,7 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
     #error "Not Implemented Yet!"
 #endif
   }
-
+#endif
   return rc;
   
 }
@@ -4100,7 +4104,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   }
 #endif
 
-
+#if 0
 #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};
   ptin_prottypeb_intf_config_get(intIfNum, &protTypebIntfConfig);
@@ -4123,7 +4127,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
    
     return rc;
   } 
-
+#endif
   /* Get Snoop Execution Block and Control Block */
   pSnoopEB = snoopEBGet();
   if ((pSnoopCB = snoopCBGet(L7_AF_INET)) == L7_NULLPTR)
@@ -4155,7 +4159,7 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
   {
     PT_LOG_ERR(LOG_CTX_IGMP, "Failed to send request to FP to close a port on the switch");
   }
-
+#if 0
 #if PTIN_BOARD_IS_MATRIX
   /* Sync the status of this switch port on the backup backup matrix, if it exists */
   if(ptin_fpga_mx_is_matrixactive_rt())
@@ -4193,20 +4197,20 @@ L7_RC_t snoopPortClose(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *
 #else
     #error "Not Implemented Yet!"
 #endif
-
+#endif
   return rc;
 }
 
-/**
-* @purpose This method is to reset the snooping channels in a 
-*          specific vlan
-*
-* @return RC_t
-*
-* 
-*/
-L7_RC_t ptin_igmp_snooping_channel_reset(L7_uint16 vlanId , L7_uint intf)
-{
-  snoopChannelReset(vlanId, intf);
-  return L7_SUCCESS;
-}
+///**
+//* @purpose This method is to reset the snooping channels in a 
+//*          specific vlan
+//*
+//* @return RC_t
+//*
+//* 
+//*/
+//L7_RC_t ptin_igmp_snooping_channel_reset(L7_uint16 vlanId , L7_uint intf)
+//{
+//  snoopChannelReset(vlanId, intf);
+//  return L7_SUCCESS;
+//}

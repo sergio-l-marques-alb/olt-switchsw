@@ -29,7 +29,6 @@
 #include "snooping_util.h"
 #include "snooping_ctrl.h"
 #include "snooping_defs.h"
-#include "snooping_ptin_sourcetimer.h"
 
 #ifdef L7_NSF_PACKAGE
   #include "snooping_ckpt.h"
@@ -37,16 +36,16 @@
 
 /* PTin added: IGMP snooping */
 #if 1
-  #include "ptin_igmp.h"
   #include "ptin_intf.h"
   #include "ptin_debug.h"
   #include "logger.h"
   #include "usmdb_mfdb_api.h"
-  #include "snooping_ptin_db.h"
+//  #include "snooping_ptin_db.h"
   #include "l3_addrdefs.h"//MMelo
   #include "dtl_ptin.h"
+  #include <globaldefs.h>
 #endif
-#include "ptin_xconnect_api.h"
+//#include "ptin_xconnect_api.h"
 
 /**************************Static Variables********************************/
 /**************************End Static Variables********************************/
@@ -660,6 +659,7 @@ L7_RC_t snoopIntfRemove(L7_uchar8* macAddr, L7_uint32 vlanId,
                         snoop_cb_t *pSnoopCB)
 {
   L7_RC_t           rc = L7_SUCCESS;
+#if 0
   snoopInfoData_t  *snoopEntry;
   mfdbMemberInfo_t  mfdb;
   snoop_eb_t       *pSnoopEB;
@@ -802,6 +802,7 @@ L7_RC_t snoopIntfRemove(L7_uchar8* macAddr, L7_uint32 vlanId,
     }
   } /* Delete operation success */
 
+#endif
   return rc;
 }
 
@@ -1000,6 +1001,8 @@ L7_BOOL snoopChannelClientsIntfNone(snoopInfoData_t *snoopEntry, L7_uint32 intIf
 ****************************************************************************/
 L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
 {
+return L7_FAILURE;
+#if 0
   L7_uint n_clients;
   L7_uint16 vlan;
   ptin_intf_t ptin_intf;
@@ -1124,6 +1127,7 @@ L7_BOOL snoopIntfClean(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum)
 
   /* Validate arguments */
   return L7_SUCCESS;
+#endif
 }
 
 /***************************************************************************
@@ -1172,8 +1176,10 @@ L7_RC_t snoopChannelCreate(snoopInfoData_t *snoopEntry, L7_inet_addr_t *IPchanne
   /* Validate arguments */
   if (snoopValidateArguments(snoopEntry,0,IPchannel,0)!=L7_SUCCESS)
   {
+#if 0
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP,"snoopIPChannelCreate: Invalid arguments");
+#endif
     return L7_FAILURE;
   }
 
@@ -1183,8 +1189,10 @@ L7_RC_t snoopChannelCreate(snoopInfoData_t *snoopEntry, L7_inet_addr_t *IPchanne
   /* Verify if this channel is already in use */
   if (snoopEntry->channel_list[channel_index].active)
   {
+#if 0
     if (ptin_debug_igmp_snooping)
       PT_LOG_WARN(LOG_CTX_IGMP,"snoopIPChannelCreate: IP channel 0x%8X is already enabled",IPchannel->addr.ipv4.s_addr);
+#endif
     return L7_SUCCESS;
   }
 
@@ -1228,8 +1236,10 @@ L7_RC_t snoopChannelDelete(snoopInfoData_t *snoopEntry, L7_inet_addr_t *IPchanne
   /* Validate arguments */
   if (snoopValidateArguments(snoopEntry,0,IPchannel,0)!=L7_SUCCESS)
   {
+#if 0
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP,"snoopIPChannelDelete: Invalid arguments");
+#endif
     return L7_FAILURE;
   }
 
@@ -1239,8 +1249,10 @@ L7_RC_t snoopChannelDelete(snoopInfoData_t *snoopEntry, L7_inet_addr_t *IPchanne
   /* Verify if this channel is already OFF */
   if (!snoopEntry->channel_list[channel_index].active)
   {
+#if 0
     if (ptin_debug_igmp_snooping)
       PT_LOG_WARN(LOG_CTX_IGMP,"snoopIPChannelDelete: IP channel 0x%8X is already disabled",IPchannel->addr.ipv4.s_addr);
+#endif
     return L7_SUCCESS;
   }
 
@@ -1296,8 +1308,10 @@ L7_RC_t snoopChannelDeleteAll(snoopInfoData_t *snoopEntry)
   /* Validate arguments */
   if (snoopValidateArguments(snoopEntry,0,L7_NULLPTR,0)!=L7_SUCCESS)
   {
+#if 0
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP,"snoopIPChannelDelete: Invalid arguments");
+#endif
     return L7_FAILURE;
   }
 
@@ -1340,16 +1354,20 @@ L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_
   /* Validate arguments */
   if (snoopValidateArguments(snoopEntry,intIfNum,IPchannel,0)!=L7_SUCCESS)
   {
+#if 0
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP,"snoopIPChannelIntfAdd: Invalid arguments");
+#endif
     return L7_FAILURE;
   }
 
   /* Interface must be active */
   if (!snoopEntry->port_list[intIfNum].active)
   {
+#if 0
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP,"snoopIPChannelIntfAdd: Interface %u not active in this channel group",intIfNum);
+#endif
     return L7_FAILURE;
   }
 
@@ -1379,8 +1397,10 @@ L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_
     }
     else
     {
+#if 0
       if (ptin_debug_igmp_snooping)
         PT_LOG_ERR(LOG_CTX_IGMP,"Static channel does not exist!");
+#endif
       return L7_FAILURE;
     }
   }
@@ -1402,8 +1422,10 @@ L7_RC_t snoopChannelIntfAdd(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, L7_
       }
       else
       {
+#if 0
         if (ptin_debug_igmp_snooping)
           PT_LOG_NOTICE(LOG_CTX_IGMP,"Interface %u is already active",intIfNum);
+#endif
       }
       #if PTIN_BOARD_IS_MATRIX
       if (isProtection == L7_TRUE)
@@ -1457,16 +1479,20 @@ L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, 
   /* Validate arguments */
   if (snoopValidateArguments(snoopEntry,intIfNum,IPchannel,0)!=L7_SUCCESS)
   {
+#if 0
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP,"snoopIPChannelIntfRemove: Invalid arguments");
+#endif
     return L7_FAILURE;
   }
 
   /* Interface must be in use */
   if (!snoopEntry->port_list[intIfNum].active)
   {
+#if 0
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP,"snoopIPChannelIntfRemove: Interface %u not active in this channel group",intIfNum);
+#endif
     return L7_FAILURE;
   }
 
@@ -1476,8 +1502,10 @@ L7_RC_t snoopChannelIntfRemove(snoopInfoData_t *snoopEntry, L7_uint32 intIfNum, 
   /* Verify if this channel is already OFF */
   if (!snoopEntry->channel_list[channel_index].active)
   {
+#if 0
     if (ptin_debug_igmp_snooping)
       PT_LOG_WARN(LOG_CTX_IGMP,"snoopIPChannelIntfRemove: IP channel 0x%8X is already disabled",IPchannel->addr.ipv4.s_addr);
+#endif
     return L7_SUCCESS;
   }
 
@@ -1606,8 +1634,10 @@ L7_BOOL snoopChannelClientExists(snoopInfoData_t *snoopEntry, L7_inet_addr_t *IP
   /* Validate arguments */
   if (snoopValidateArguments(snoopEntry,0,IPchannel,client)!=L7_SUCCESS)
   {
+#if 0
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP,"snoopIPChannelAdd: Invalid arguments");
+#endif
     return L7_FALSE;
   }
 
@@ -1617,8 +1647,10 @@ L7_BOOL snoopChannelClientExists(snoopInfoData_t *snoopEntry, L7_inet_addr_t *IP
   /* IP channel must be active */
   if (!snoopEntry->channel_list[channel_index].active)
   {
+#if 0
     if (ptin_debug_igmp_snooping)
       PT_LOG_ERR(LOG_CTX_IGMP,"snoopClientAdd: IP channel 0x%8X is disabled",IPchannel->addr.ipv4.s_addr);
+#endif
     return L7_FALSE;
   }
 
@@ -1648,6 +1680,8 @@ L7_BOOL snoopChannelClientExists(snoopInfoData_t *snoopEntry, L7_inet_addr_t *IP
 L7_RC_t snoopChannelClientAdd(snoopInfoData_t *snoopEntry,
                               L7_uint32 intIfNum, L7_inet_addr_t *IPchannel, L7_uint client)
 {
+return L7_FAILURE;
+#if 0
   L7_uint16 vlan;
   L7_uint channel_index;
 
@@ -1714,6 +1748,7 @@ L7_RC_t snoopChannelClientAdd(snoopInfoData_t *snoopEntry,
 
   /* Validate arguments */
   return L7_SUCCESS;
+#endif
 }
 
 /***************************************************************************
@@ -1733,6 +1768,7 @@ L7_RC_t snoopChannelClientAdd(snoopInfoData_t *snoopEntry,
 L7_RC_t snoopChannelClientRemove(snoopInfoData_t *snoopEntry,
                                  L7_uint32 intIfNum, L7_inet_addr_t *IPchannel, L7_uint client)
 {
+#if 0
   L7_uint16 vlan;
   L7_uint channel_index;
 
@@ -1790,6 +1826,7 @@ L7_RC_t snoopChannelClientRemove(snoopInfoData_t *snoopEntry,
 #endif
 
   /* Validate arguments */
+#endif
   return L7_SUCCESS;
 }
 
@@ -1809,6 +1846,8 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
                                     L7_inet_addr_t *mgmdGroupAddr, L7_BOOL staticChannel,
                                     L7_BOOL *send_leave_to_network)
 {
+return L7_FAILURE;
+#if 0
   L7_inet_addr_t ip_addr;
   L7_uint16 channel_index;
   snoopInfoData_t *snoopEntry;
@@ -2003,6 +2042,7 @@ L7_RC_t snoop_channel_add_procedure(L7_uchar8 *dmac, L7_uint16 vlanId,
   }
 
   return L7_SUCCESS;
+#endif
 }
 
 /**
@@ -2533,6 +2573,8 @@ uint32 noOfL3SnoopEntries(void)
  */
 L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_inet_addr_t* sourceAddr, L7_uint32 intIfNum, L7_BOOL isStatic, L7_BOOL isProtection)
 {
+ return L7_FAILURE;
+#if 0
   snoopChannelInfoData_t             channelEntry;
   snoopChannelInfoData_t            *pChannelEntry = &channelEntry;
   snoopChannelIntfMaskInfoData_t     channelIntfMaskEntry;
@@ -3139,6 +3181,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
   #endif  
 
   return rc;
+#endif
 }
 
 /**
@@ -3155,6 +3198,8 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
  */
 L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_t* groupAddr, L7_inet_addr_t* sourceAddr, L7_uint32 intIfNum, L7_BOOL isProtection)
 {  
+return L7_SUCCESS;
+#if 0
   snoopChannelInfoData_t            *pChannelEntry;
   snoopChannelIntfMaskInfoData_t     channelIntfMaskEntry;
   snoopChannelIntfMaskInfoData_t    *pChannelIntfMask = &channelIntfMaskEntry;  
@@ -3758,6 +3803,7 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
   PT_LOG_TRACE(LOG_CTX_IGMP, "Removed Existing Interface Mask! %d", pChannelIntfMask->noOfChannelEntries);       
 
   return rc;
+#endif
 }
 
 /**
@@ -3944,6 +3990,7 @@ L7_RC_t snoopL2GroupIntfRemove(L7_uint16 vlanId, L7_inet_addr_t *mgmdGroupAddr, 
 ****************************************************************************/
 L7_RC_t snoopChannelClientsRemoveAll(snoopInfoData_t *snoopEntry, L7_inet_addr_t *IPchannel)
 {
+#if 0
   L7_uint16 vlan;
   L7_uint channel_index, client, i;
 
@@ -4013,7 +4060,7 @@ L7_RC_t snoopChannelClientsRemoveAll(snoopInfoData_t *snoopEntry, L7_inet_addr_t
   printf("[%s function]\r\n",__FUNCTION__);
   ptin_dump_snoop_entry(snoopEntry);
 #endif
-
+#endif
   /* Validate arguments */
   return L7_SUCCESS;
 }
@@ -4033,6 +4080,7 @@ L7_RC_t snoopChannelClientsRemoveAll(snoopInfoData_t *snoopEntry, L7_inet_addr_t
 ****************************************************************************/
 L7_RC_t snoopClientsRemoveAll(snoopInfoData_t *snoopEntry)
 {
+#if 0
   L7_uint16 vlan;
   L7_uint channel_index, client, i;
 
@@ -4097,7 +4145,7 @@ L7_RC_t snoopClientsRemoveAll(snoopInfoData_t *snoopEntry)
   printf("[%s function]\r\n",__FUNCTION__);
   ptin_dump_snoop_entry(snoopEntry);
 #endif
-
+#endif
   /* Validate arguments */
   return L7_SUCCESS;
 }
@@ -4391,6 +4439,7 @@ void snoopChannelsGet(L7_uint16 vlanId,
                              ptin_igmpChannelInfo_t *channel_list,
                              L7_uint16 *num_channels)
 {
+#if 0
   snoopPTinL3InfoDataKey_t avlTreeKey;
   snoopPTinL3InfoData_t    *avlTreeEntry;
   snoop_eb_t               *pSnoopEB;
@@ -4512,6 +4561,7 @@ void snoopChannelsGet(L7_uint16 vlanId,
         channelAdded=L7_FALSE;
     }
   }
+#endif
 }
 
   #if PTIN_IGMP_DEBUG
@@ -4576,6 +4626,8 @@ static void ptin_dump_snoop_entry(snoopInfoData_t *snoopEntry)
  */
 void ptin_igmp_snoop_dump(L7_uint16 index)
 {
+return;
+#if 0
   L7_BOOL   isProtection = 0;
   L7_uint16 intVlan;
   L7_uint32 intIfNum;
@@ -4736,6 +4788,7 @@ void ptin_igmp_snoop_dump(L7_uint16 index)
   }
 
   fflush(stdout);
+#endif
 }
 
 /**
@@ -5870,6 +5923,8 @@ snoopPTinProxySource_t *snoopPTinProxySourceEntryFind(snoopPTinProxyGroup_t* gro
  */
 snoopPTinProxySource_t* snoopPTinProxySourceEntryAdd(snoopPTinProxyGroup_t* groupPtr, L7_inet_addr_t* sourceAddr, L7_BOOL* newEntry,L7_uint8 robustnessVariable)
 {
+return L7_NULLPTR;
+#if 0
   snoopPTinProxySource_t snoopEntry;
   snoopPTinProxySource_t *pData;
   char                debug_buf[IPV6_DISP_ADDR_LEN]={},debug_buf2[IPV6_DISP_ADDR_LEN]={};
@@ -5947,6 +6002,7 @@ snoopPTinProxySource_t* snoopPTinProxySourceEntryAdd(snoopPTinProxyGroup_t* grou
 #endif
 
   return pData;
+#endif
 }
 
 /**
@@ -6105,6 +6161,8 @@ snoopPTinProxyGroup_t *snoopPTinProxyGroupEntryFind(L7_uint32 vlanId, L7_inet_ad
  */
 snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* interfacePtr, L7_inet_addr_t* groupAddr,L7_uint8 recordType, L7_BOOL* newEntry,L7_uint8 robustnessVariable)
 {
+return L7_NULLPTR;
+#if 0
   snoopPTinProxyGroup_t snoopEntry;
   snoopPTinProxyGroup_t *pData;
   char                debug_buf[IPV6_DISP_ADDR_LEN]={};
@@ -6180,6 +6238,7 @@ snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* in
   }
 
   return pData;
+#endif
 }
 
 /**
@@ -6192,6 +6251,7 @@ snoopPTinProxyGroup_t* snoopPTinProxyGroupEntryAdd(snoopPTinProxyInterface_t* in
  */
 L7_RC_t snoopPTinProxyGroupEntryDelete(L7_uint32 vlanId, L7_inet_addr_t* groupAddr,L7_uint8 recordType)
 {
+#if 0
   snoopPTinProxyGroup_t *pData;
   snoopPTinProxyGroup_t *snoopEntry;
   snoop_eb_t *pSnoopEB;
@@ -6247,6 +6307,7 @@ L7_RC_t snoopPTinProxyGroupEntryDelete(L7_uint32 vlanId, L7_inet_addr_t* groupAd
 #endif
     return L7_SUCCESS;
   }
+#endif
   return L7_SUCCESS;
 }
 /*End Group*/
@@ -6326,6 +6387,8 @@ snoopPTinProxyInterface_t *snoopPTinProxyInterfaceEntryFind(L7_uint32 vlanId, L7
  */
 snoopPTinProxyInterface_t* snoopPTinProxyInterfaceEntryAdd(L7_uint32 vlanId, L7_BOOL* newEntry)
 {
+return L7_NULLPTR;
+#if 0
   snoopPTinProxyInterface_t snoopEntry;
   snoopPTinProxyInterface_t *pData;
 #if 0
@@ -6384,6 +6447,7 @@ snoopPTinProxyInterface_t* snoopPTinProxyInterfaceEntryAdd(L7_uint32 vlanId, L7_
   /*entry already exists*/
   PT_LOG_NOTICE(LOG_CTX_IGMP, "Root vlan previouly added to the AVL Tree(vlanId:%u)",pData->key.vlanId);
   return pData;
+#endif
 }
 
 /**
@@ -6658,6 +6722,8 @@ L7_RC_t snoopChannelEntryDelete(L7_uint32 vlanId, L7_inet_addr_t *groupAddr, L7_
 *********************************************************************/
 void snoopChannelReset(L7_uint32 vlanId, L7_uint32 intIfNum)
 {
+return;
+#if 0
   snoopChannelInfoData_t    *pEntry;
   snoopChannelInfoDataKey_t  key;
   L7_uint32                  intf =  (L7_uint32) -1;
@@ -6725,6 +6791,7 @@ void snoopChannelReset(L7_uint32 vlanId, L7_uint32 intIfNum)
       #endif       
     }
   }  
+#endif
 }
 
 /*********************************************************************

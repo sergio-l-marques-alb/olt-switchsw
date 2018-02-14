@@ -44,18 +44,21 @@
 #endif
 /* PTin added: IGMP snooping */
 #if 1
-  #include "snooping_ptin_db.h"
-  #include "snooping_ptin_defs.h"
+  //#include "snooping_ptin_db.h"
+  //#include "snooping_ptin_defs.h"
   #include "logger.h" // DFF
-  #include "ptin_igmp.h"
+  //#include "ptin_igmp.h"
   #include "ptin_debug.h"
+
+
+#undef SNOOP_PTIN_IGMPv3_ROUTER
 
 /* PTin Add: IGMPv3 */
   #if SNOOP_PTIN_IGMPv3_GLOBAL
 
     #if SNOOP_PTIN_IGMPv3_PROXY
 
-      #include "snooping_ptin_proxytimer.h"
+      //#include "snooping_ptin_proxytimer.h"
 
     #endif 
 
@@ -69,7 +72,7 @@ extern L7_uint64 hapiBroadReceice_mld_count;
 #endif
 
 
-
+#if 0
 /*****************************************************************
 * @purpose  Create and send a packet event to MGMD, based on the received IGMP packet
 *
@@ -141,10 +144,12 @@ static L7_RC_t mgmdPacketSend(L7_uint16 mcastRootVlan,L7_uint32 portId, L7_uint3
     PT_LOG_TRACE(LOG_CTX_IGMP, "Packet Send}");
   return L7_SUCCESS;
 }
+#endif
 
 /* PTin added: IGMPv3 snooping */
 #if SNOOP_PTIN_IGMPv3_PROXY
 
+#if 0
 /************************************************************************************************************/
 /*PTin Added: MGMD Proxy*/
 
@@ -201,7 +206,7 @@ static L7_int32  snoopPTinProxy_decode_max_resp_code(L7_uchar8 family, L7_int32 
   }
   return max_resp_time;
 }
-
+#endif
 /*****************************************************************
 * @purpose  calculates the selected delay from the max response time
 *
@@ -217,7 +222,7 @@ static L7_int32  snoopPTinProxy_decode_max_resp_code(L7_uchar8 family, L7_int32 
 * @end
 *********************************************************************/
 
-
+#if 0
 static L7_int32 snoopPTinProxy_selected_delay_calculate (L7_int32 maxResponseTime)
 {
 #if 0
@@ -235,13 +240,13 @@ static L7_int32 snoopPTinProxy_selected_delay_calculate (L7_int32 maxResponseTim
 
   randval =  L7_Random();
 #endif
- 
+
   if ((selectedDelay=maxResponseTime/2)<PTIN_IGMP_MIN_UNSOLICITEDREPORTINTERVAL)
     selectedDelay=PTIN_IGMP_DEFAULT_UNSOLICITEDREPORTINTERVAL;
-  
+
  return(selectedDelay);
 }
-
+#endif
 /*End PTin Added: MGMD Proxy*/
 /************************************************************************************************************/
 #endif 
@@ -426,22 +431,22 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                           sysnet_pdu_info_t *pduInfo,
                           L7_uchar8 family)
 {
-#ifndef PTIN_SNOOP_USE_MGMD
-  snoopPDU_Msg_t     msg;
-#endif
   L7_uchar8         *data;
   L7_uint32          dataLength;
   L7_uint32          dot1qMode;
   L7_INTF_TYPES_t    sysIntfType;
-  L7_RC_t            rc;
   snoop_cb_t        *pSnoopCB      = L7_NULLPTR;  
   L7_uchar8         *igmpPtr       = L7_NULLPTR;
+  L7_uchar8          *buffPtr             = L7_NULLPTR;
+  L7_uint16          ipHdrLen             = 0;
+#if 0
+  L7_RC_t            rc;
+#ifndef PTIN_SNOOP_USE_MGMD
+  snoopPDU_Msg_t     msg;
+#endif
   L7_uint32          client_idx    = (L7_uint32) -1;              /* PTin added: IGMP snooping */
   L7_uint16          mcastRootVlan; /* Internal vlan will be converted to MC root vlan */
   L7_uint8           port_type;
-  L7_uchar8          *buffPtr             = L7_NULLPTR;
-  L7_uint16          ipHdrLen             = 0;
- 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   L7_uint8           query_count          = 0;
   L7_uint8           local_router_port_id = -1;
@@ -474,16 +479,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   if (igmpPtr[0] == L7_IGMP_V3_MEMBERSHIP_REPORT)
     PT_LOG_TRACE(LOG_CTX_IGMP, "L7_IGMP_V3_MEMBERSHIP_REPORT");
 
-#if ( (PTIN_BOARD == PTIN_BOARD_CXO160G) || (PTIN_BOARD == PTIN_BOARD_CXO640G) )
-#if 1 //ndef ONE_MULTICAST_VLAN_RING_SUPPORT
-  /* Do nothing for slave matrix */
-  if (!ptin_fpga_mx_is_matrixactive_rt())
-  {
-    PT_LOG_TRACE(LOG_CTX_IGMP,"Silently ignoring packet transmission. I'm a Slave Matrix ");
-    return SUCCESS;
-  }
-#endif
-#endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
   if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_FAILURE) )
   {
@@ -571,7 +566,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
    
   if (ptin_debug_igmp_snooping)
     PT_LOG_TRACE(LOG_CTX_IGMP,"{");
-
+#endif
   /* Get Snoop Control Block */
   if ((pSnoopCB = snoopCBGet(family)) == L7_NULLPTR)
   {
@@ -667,17 +662,18 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
                                  &dot1qMode) != L7_SUCCESS) ||
          (dot1qMode != L7_DOT1Q_FIXED) )
     {
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+      //ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
       return L7_FAILURE;
     }
 
     /* Verify that the receiving interface is valid */
     if (snoopIntfCanBeEnabled(pduInfo->intIfNum, pduInfo->vlanId) != L7_TRUE)
     {
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
+      //ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, (L7_uint32)-1, SNOOP_STAT_FIELD_IGMP_DROPPED);
       return L7_FAILURE;
     }
   }
+#if 0
   if (ptin_debug_igmp_packet_trace)
   {    
     L7_uint32 i;
@@ -691,6 +687,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   PT_LOG_TRACE(LOG_CTX_IGMP, "DMAC=%02x:%02x:%02x:%02x:%02x:%02x SMAC=%02x:%02x:%02x:%02x:%02x:%02x",
               data[0],data[1],data[2],data[3],data[4],data[5],data[6],data[7],data[8],data[9],data[10],data[11]);
   #endif
+#endif
 
 #ifdef L7_DHCP_SNOOPING_PACKAGE
 #ifdef L7_IPSG_PACKAGE
@@ -708,7 +705,8 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
 #endif
 #endif
-  
+
+#if 0
 /*If we support Inband*/
 #if PTIN_EVC_INBAND_SUPPORT 
   if (pduInfo->vlanId == PTIN_VLAN_INBAND)
@@ -1203,7 +1201,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 
   if (ptin_debug_igmp_snooping)
     PT_LOG_TRACE(LOG_CTX_IGMP,"}");
-
+#endif
   return L7_SUCCESS;
 }
 /*************************************************************************
@@ -1223,6 +1221,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 * @end
 *
 *************************************************************************/
+#if 0
 static L7_RC_t snoopPacketParse(snoopPDU_Msg_t *msg,
                                 mgmdSnoopControlPkt_t *mcastPacket)
 {
@@ -1550,6 +1549,7 @@ static L7_RC_t snoopPacketParse(snoopPDU_Msg_t *msg,
   }
   return L7_SUCCESS;
 }
+#endif
 /*********************************************************************
 * @purpose Process incoming snoop control packets
 *
@@ -1566,6 +1566,9 @@ static L7_RC_t snoopPacketParse(snoopPDU_Msg_t *msg,
 *********************************************************************/
 L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
 {
+ bufferPoolFree(msg->snoopBufferPoolId, msg->snoopBuffer);
+ return L7_SUCCESS;
+#if 0
   static mgmdSnoopControlPkt_t mcastPacket;  /* A place holder for received
                                                 packet */
   L7_NIM_QUERY_DATA_t          nimQueryData;
@@ -1930,6 +1933,7 @@ L7_RC_t snoopPacketProcess(snoopPDU_Msg_t *msg)
   //ptin_igmp_dynamic_client_flush(mcastPacket.vlanId, mcastPacket.client_idx);
 
   return rc;
+#endif
 }
 
 /* PTin removed: IGMP snooping */
@@ -2759,14 +2763,14 @@ L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
 
 
   SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family, "snoopMgmdMembershipQueryProcess");
-
+#if 0
   /* Interface must be root */
   if (ptin_igmp_rootIntfVlan_validate(mcastPacket->intIfNum, mcastPacket->vlanId)!=L7_SUCCESS)
   {
     SNOOP_TRACE(SNOOP_DEBUG_PROTO, mcastPacket->cbHandle->family,"snoopMgmdMembershipQueryProcess: This is not a root interface (intIfNum=%u)!",mcastPacket->intIfNum);
     return L7_FAILURE;
   }
-
+#endif
   /* Get Snoop Control Block */
   pSnoopCB = mcastPacket->cbHandle;
   /* If the src IP is non-zero, add this interface to the multicast router list
@@ -2966,7 +2970,7 @@ L7_RC_t snoopMgmdMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
 *********************************************************************/
 L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastPacket)
 {
-
+#if 0
   snoop_cb_t                  *pSnoopCB ;
   snoop_eb_t                  *pSnoopEB ;
 
@@ -3542,7 +3546,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
   PT_LOG_TRACE(LOG_CTX_IGMP, "snoopMgmdSrcSpecificMembershipQueryProcess: Query was processed");         
 
 //ptin_igmp_stat_increment_field(mcastPacket->intIfNum, mcastPacket->vlanId, mcastPacket->client_idx, snoopStatIgmpField);
-
+#endif
   return L7_SUCCESS;
 }
 
@@ -3566,6 +3570,8 @@ L7_RC_t snoopMgmdSrcSpecificMembershipQueryProcess(mgmdSnoopControlPkt_t *mcastP
 *********************************************************************/
 L7_RC_t snoopMgmdMembershipReportProcess(mgmdSnoopControlPkt_t *mcastPacket)
 {
+return L7_SUCCESS;
+#if 0
   L7_uchar8       *dataPtr;
   L7_mgmdMsg_t     mgmdMsg;
   L7_BOOL          fwdFlag = L7_FALSE;
@@ -3801,12 +3807,14 @@ L7_RC_t snoopMgmdMembershipReportProcess(mgmdSnoopControlPkt_t *mcastPacket)
   }
 
   return rc;
+#endif
 }
 
 
 L7_uint8 snoopRecordType2IGMPStatField(L7_uint8 recordType,L7_uint8 fieldType)
 {
-
+return 0;
+#if 0
   switch (recordType)
   {
   case L7_IGMP_MODE_IS_INCLUDE:
@@ -3913,6 +3921,7 @@ L7_uint8 snoopRecordType2IGMPStatField(L7_uint8 recordType,L7_uint8 fieldType)
   default:
     return SNOOP_STAT_FIELD_ALL;
   }
+#endif
 }
 #if SNOOP_PTIN_IGMPv3_ROUTER
 
@@ -4573,7 +4582,7 @@ L7_RC_t snoopMgmdSrcSpecificMembershipReportProcess(mgmdSnoopControlPkt_t
   return rc;
 }
 #endif
-
+#if 0
 /*********************************************************************
 * @purpose Process IGMPv2 Leave/ MLDv1 Done Group message
 *
@@ -4852,7 +4861,7 @@ L7_RC_t snoopMgmdLeaveGroupProcess(mgmdSnoopControlPkt_t *mcastPacket)
 
   return L7_SUCCESS;
 }
-
+#endif
 
 /*********************************************************************
 * @purpose Process IGMP PIMv1 / DVMRP message

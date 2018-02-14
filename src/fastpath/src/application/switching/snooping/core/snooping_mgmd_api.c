@@ -14,8 +14,6 @@
 #include "usmdb_snooping_api.h"
 #include "l3_addrdefs.h"
 #include "comm_mask.h"
-#include "ptin_evc.h"
-#include "ptin_igmp.h"
 #include "snooping_util.h"
 #include "snooping_proto.h"
 #include "snooping_db.h"
@@ -24,14 +22,6 @@
 #include "ptin_cnfgr.h"
 #include "ptin_mgmd_inet_defs.h"
 #include "ptin_debug.h"
-#if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
-  #include "ptin_prot_typeb.h"
-#endif
-#if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
-  #include "ptin_fpga_api.h"  
-  #include "ptin_msghandler.h"
-  #include "ptin_msg.h"
-#endif
 
 /* Static Methods */
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
@@ -116,6 +106,7 @@ unsigned int snooping_cos_set(unsigned char cos)
 
 unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t portType, PTIN_MGMD_PORT_MASK_t *portList, unsigned int *noOfPorts)
 {
+#if 0
   L7_INTF_MASK_t interfaceBitmap;
   L7_uint32      noOfInterfaces = 0;
   L7_uint16      mcastRootVlan;
@@ -186,12 +177,13 @@ unsigned int snooping_portList_get(unsigned int serviceId, ptin_mgmd_port_type_t
 
   memcpy(portList, &interfaceBitmap, sizeof(*portList));
   *noOfPorts = noOfInterfaces;
-
+#endif
   return SUCCESS;
 }
 
 unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, ptin_mgmd_port_type_t *portType)
 {
+#if 0
   L7_uint8 port_type;
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
   L7_uint8 port_type_igmp;
@@ -246,11 +238,13 @@ unsigned int snooping_portType_get(unsigned int serviceId, unsigned int portId, 
       return FAILURE;
     }
   }
+#endif
   return SUCCESS;
 }
 
 unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, unsigned int *serviceId)
 {
+#if 0
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [groupAddr:%08X sourceAddr:%08X serviceId:%p]", groupAddr, sourceAddr, serviceId);
 
   if(serviceId == L7_NULLPTR)
@@ -286,13 +280,14 @@ unsigned int snooping_channel_serviceid_get(unsigned int portId, unsigned int cl
   }
 }
 #endif //(!PTIN_BOARD_IS_MATRIX)
-
+#endif
   return SUCCESS;
 }
 
 unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int *noOfClients)
 {
-  //PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u clientList:%p noOfClients:%p]", serviceId, portId, clientList, noOfClients);
+#if 0
+    //PT_LOG_TRACE(LOG_CTX_IGMP, "Context [serviceId:%u portId:%u clientList:%p noOfClients:%p]", serviceId, portId, clientList, noOfClients);
 
   memset(clientList->value, 0x00, PTIN_MGMD_CLIENT_BITMAP_SIZE * sizeof(uint8));
   
@@ -308,7 +303,7 @@ unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId
 #else
   *noOfClients=0;
 #endif
-
+#endif
   return SUCCESS;
 }
 
@@ -317,6 +312,8 @@ unsigned int snooping_clientList_get(unsigned int serviceId, unsigned int portId
 
 unsigned int snooping_port_resources_available(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr)
 {
+ return 0;
+#if 0
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
   L7_RC_t        rc;
@@ -373,10 +370,13 @@ unsigned int snooping_port_resources_available(unsigned int serviceId, unsigned 
   ptin_timer_stop(61);
 
   return (rc == L7_SUCCESS) ;
+#endif
 }
 
 unsigned int snooping_port_resources_allocate(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr)
 {  
+return 0;
+#if 0
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
   L7_RC_t        rc;
@@ -433,10 +433,13 @@ unsigned int snooping_port_resources_allocate(unsigned int serviceId, unsigned i
   ptin_timer_stop(62);
 
   return rc;
+#endif
 }
 
 unsigned int snooping_port_resources_release(unsigned int serviceId, unsigned int portId, unsigned int groupAddr, unsigned int sourceAddr)
 {  
+return 0;
+#if 0
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
   L7_RC_t        rc;
@@ -493,10 +496,13 @@ unsigned int snooping_port_resources_release(unsigned int serviceId, unsigned in
   ptin_timer_stop(63);
 
   return rc;
+#endif
 }
 
 unsigned int snooping_client_resources_available(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int noOfClients)
 { 
+return 0;
+#if 0
   L7_uint32      channelBandwidth; 
   L7_uint32      ptin_port;
   L7_RC_t        rc;
@@ -586,10 +592,13 @@ unsigned int snooping_client_resources_available(unsigned int serviceId, unsigne
   ptin_timer_stop(67);
     
   return (rc == L7_SUCCESS) ;
+#endif
 }
 
 unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int noOfClients)
 { 
+return 0;
+#if 0
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
   L7_RC_t        rc;
@@ -679,10 +688,13 @@ unsigned int snooping_client_resources_allocate(unsigned int serviceId, unsigned
   ptin_timer_stop(68);
     
   return rc;
+#endif
 }
 
 unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned int groupAddr, unsigned int sourceAddr, PTIN_MGMD_CLIENT_MASK_t *clientList, unsigned int noOfClients)
 {  
+return 0;
+#if 0
   L7_uint32      channelBandwidth;
   L7_uint32      ptin_port;
   L7_RC_t        rc;
@@ -772,6 +784,7 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
   ptin_timer_stop(69);
     
   return rc;
+#endif
 }
 
 #endif //End Admission Control
@@ -813,6 +826,8 @@ unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, un
 
 unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLength, unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned char family, unsigned int onuId)
 {
+return 0;
+#if 0
 #if PTIN_BOARD_IS_MATRIX
   L7_uint16             shortVal;
   L7_uchar8             srcMac[L7_MAC_ADDR_LEN];
@@ -1190,11 +1205,14 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
 
   return SUCCESS;
 #endif
+#endif
 }
 
 #if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
 L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16 int_ivlan, L7_uchar8 *payload, L7_uint32 payloadLength,uchar8 family, L7_uint client_idx, L7_uint32 onuId)
 {
+ return 0;
+#if 0
   ptin_HwEthEvcFlow_t   clientFlow;
   L7_RC_t               rc;
   L7_uchar8             packet[L7_MAX_FRAME_SIZE];
@@ -1288,16 +1306,19 @@ L7_RC_t ptin_mgmd_send_leaf_packet(uint32 portId, L7_uint16 int_ovlan, L7_uint16
     }
   } while (rc==L7_SUCCESS);   /* Next client? */  
   return rc;
+#endif
 }
 #endif
 
 #if (PTIN_BOARD_IS_MATRIX || PTIN_BOARD_IS_LINECARD)
-static msg_SnoopSyncReply_t snoopSyncReply[IPCLIB_MAX_MSGSIZE/sizeof(msg_SnoopSyncReply_t)];
+//static msg_SnoopSyncReply_t snoopSyncReply[IPCLIB_MAX_MSGSIZE/sizeof(msg_SnoopSyncReply_t)];
 
 #if PTIN_SYSTEM_IGMP_L3_MULTICAST_FORWARD
 #if PTIN_BOARD_IS_MATRIX 
 L7_RC_t ptin_snoop_l3_sync_mx_process_request(L7_uint16 vlanId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr)
 {
+  return 0;
+#if 0
   L7_uint32                   maxNumberOfSnoopEntries  = IPCLIB_MAX_MSGSIZE/sizeof(msg_SnoopSyncReply_t); //IPC buffer size / struct size
   L7_uint32                   numberOfSnoopEntries     = avlTreeCount(&(snoopEBGet()->snoopChannelAvlTree));    
   L7_uint16                   internalRootVlan = (L7_uint16) -1;  
@@ -1424,10 +1445,13 @@ L7_RC_t ptin_snoop_l3_sync_mx_process_request(L7_uint16 vlanId, L7_inet_addr_t *
   }
 
   return L7_SUCCESS; 
+#endif
 }
 #else//!PTIN_BOARD_IS_MATRIX 
 L7_RC_t ptin_snoop_l3_sync_port_process_request(L7_uint16 vlanId, L7_inet_addr_t *groupAddr, L7_inet_addr_t *sourceAddr, L7_uint32 portId)
 {
+return 0;
+#if 0
   L7_uint32                       maxNumberOfSnoopEntries  = IPCLIB_MAX_MSGSIZE/sizeof(msg_SnoopSyncReply_t); //IPC buffer size / struct size
   L7_uint32                       numberOfSnoopEntries     = avlTreeCount(&(snoopEBGet()->snoopChannelAvlTree));    
   L7_uint16                       internalRootVlan = (L7_uint16) -1;  
@@ -1557,6 +1581,7 @@ L7_RC_t ptin_snoop_l3_sync_port_process_request(L7_uint16 vlanId, L7_inet_addr_t
     }
   }
   return L7_SUCCESS; 
+#endif
 }
 #endif//!PTIN_BOARD_IS_MATRIX 
 
@@ -1905,6 +1930,8 @@ L7_RC_t ptin_snoop_sync_port_process_request(L7_uint16 vlanId, L7_uint32 groupAd
 */
 L7_RC_t ptin_igmp_mgmd_status_get(void)
 {
+return 0;
+#if 0
   PTIN_MGMD_EVENT_t            inEventMsg  = {0}, outEventMsg = {0};
   PTIN_MGMD_EVENT_CTRL_t       ctrlResMsg  = {0};
   PTIN_MGMD_CTRL_MGMD_STATUS_t mgmdStatus; 
@@ -1933,6 +1960,6 @@ L7_RC_t ptin_igmp_mgmd_status_get(void)
   }
 
   return ctrlResMsg.res;
+#endif
 }
-
 

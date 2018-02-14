@@ -2718,7 +2718,7 @@ static void  _sendARPReq(t_ADR *p_Adr, L7_BOOL rxmt)
    p_Frame = F_New((void *)NULLP);
    ASSERT(p_Frame);
 
-#if 1 /* PTin Added - Routing support (add the dtl0 vlan to the ARP request packet) */
+#if 0 /* PTin Added - Routing support (add the dtl0 vlan to the ARP request packet) */
    {
      L7_uint32   internalVid = 0;
      L7_uint16   dtl0Vid = 0;

@@ -4281,7 +4281,6 @@ L7_RC_t aggPortLacpEnabledSet(L7_uint32 port, L7_BOOL status)
     return L7_FAILURE;
 }
 
-extern int tx_dot3ad_matrix_sync2_t(L7_uint32 intf, dot3ad_pdu_t *pdu); /* PTin added */
 /*********************************************************************
 * @purpose  Forwards a LACPDU onto LACP
 *
@@ -4324,7 +4323,6 @@ L7_RC_t LACPDUReceive(L7_uint32 intf, void * bufHandle)
     }
     /* E4 */
     rc = dot3adLacpClassifier(lacpPduRx, p, bufHandle);
-    tx_dot3ad_matrix_sync2_t(intf, (dot3ad_pdu_t *) bufHandle);     /* PTin added */
 	  bufferPoolFree(dot3adBufferPoolId, bufHandle);
 	  return rc;
 

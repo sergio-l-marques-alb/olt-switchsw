@@ -3,6 +3,8 @@
 
 #include "ptin_include.h"
 
+extern unsigned char ptin_debug_igmp_snooping, ptin_debug_dhcp_snooping;
+
 typedef enum
 {
   PTIN_PROC_ERPS_INSTANCE=0,

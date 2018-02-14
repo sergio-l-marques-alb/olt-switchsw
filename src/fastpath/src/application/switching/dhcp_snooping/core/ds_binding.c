@@ -26,7 +26,6 @@
 #include "avl_api.h"
 #include "ds_util.h"
 #include "ds_cfg.h"
-#include "ptin_evc.h"
 
 #ifdef L7_IPSG_PACKAGE
 #include "ds_ipsg.h"
@@ -1397,6 +1396,8 @@ L7_RC_t dsBindingsValidate(void)
 *********************************************************************/
 void dsBindingEvcRemoveAll(L7_uint32 ext_evc_id)
 {
+return;
+#if 0
   dsBindingTreeNode_t *binding = NULL;
   L7_uint16 internalVlan;
   dsBindingTreeKey_t key;
@@ -1419,6 +1420,7 @@ void dsBindingEvcRemoveAll(L7_uint32 ext_evc_id)
       dsBindingRemove(&key);
     }
   }
+#endif
 }
 
 /*********************************************************************

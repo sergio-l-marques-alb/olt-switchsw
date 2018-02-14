@@ -19,16 +19,8 @@
 #include "ptin_include.h"
 #include "ptin_control.h"
 #include "ptin_intf.h"
-#include "ptin_prot_uplink.h"
-#include "ptin_evc.h"
-#include "ptin_xlate_api.h"
-#include "ptin_xconnect_api.h"
 #include "ptin_cnfgr.h"
-#include "ptin_dhcp.h"
-#include "ptin_pppoe.h"
 #include "fw_shm.h"
-#include "ptin_igmp.h" //Added for Admission Control Support
-#include "ptin_fieldproc.h"
 #include "ptin_fpga_api.h"
 #include "ptin_msg.h"
 
@@ -173,7 +165,7 @@ L7_uint32 ptin_burst_size[PTIN_SYSTEM_N_INTERF];
  */
 static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf);
 //static L7_RC_t ptin_intf_LagConfig_read(ptin_LACPLagConfig_t *lagInfo);
-static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf);
+//static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf);
 
 /**
  * Initializes the ptin_intf module (structures) and several interfaces 
@@ -398,7 +390,7 @@ L7_RC_t ptin_intf_post_init(void)
   }
 
   /* MEF Ext defaults */
-  #if (!PTIN_BOARD_IS_DNX)
+  #if (0 && !PTIN_BOARD_IS_DNX)
   if (ptin_intf_portExt_init()!=L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_INTF, "Failed initializing MEF Ext parameters");
@@ -464,7 +456,7 @@ void ptin_intf_dai_restore_defaults(void)
 /****************************************************************************** 
  * PHY PORT FUNCTIONS
  ******************************************************************************/
-
+#if 0
 /**
  * Init Port exitension definitions
  * 
@@ -807,7 +799,7 @@ L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
 
   return L7_SUCCESS;
 }
-
+#endif
 /**
  * Set MAC address
  * 
@@ -2908,7 +2900,7 @@ L7_BOOL ptin_intf_is_uplinkProtectionActive(L7_uint32 ptin_port)
   return L7_FALSE;
   #endif
 }
-
+#if 0
 /**
  * Creates a LAG 
  *  
@@ -3935,7 +3927,7 @@ L7_RC_t ptin_intf_Lag_delete_all(void)
   }
   return L7_SUCCESS;
 }
-
+#endif
 /**
  * Gets a LAG status
  * 
@@ -4856,7 +4848,7 @@ L7_RC_t ptin_intf_ucast_stormControl_set(const ptin_intf_t *ptin_intf, L7_BOOL e
 
   return L7_SUCCESS;
 }
-
+#if 0
 /**
  * Apply a policer for interface/CoS
  * 
@@ -4953,7 +4945,7 @@ L7_RC_t ptin_QoS_intf_cos_policer_clear(const ptin_intf_t *ptin_intf, L7_uint8 c
 
   return L7_SUCCESS;
 }
-
+#endif
 /**
  * Configures interface properties for QoS
  * 
@@ -6118,7 +6110,7 @@ static L7_RC_t ptin_intf_PhyConfig_read(ptin_HWEthPhyConf_t *phyConf)
 
   return L7_SUCCESS;
 }
-
+#if 0
 /**
  * Apply default QoS configurations to provided interface
  * 
@@ -6198,7 +6190,7 @@ static L7_RC_t ptin_intf_QoS_init(ptin_intf_t *ptin_intf)
 
   return rc;
 }
-
+#endif
 
 /**
  * Activate PRBS generator/checker
@@ -8786,7 +8778,7 @@ void ptinIntfNumrangeGet(L7_INTF_TYPES_t intf_type)
   return;
 }
 
-
+#if 0
 void ptin_debug_intf_cos_policer_set(L7_uint8 intf_type, L7_uint8 intf_id, L7_uint8 cos, L7_uint32 cir, L7_uint32 eir, L7_uint32 cbs, L7_uint32 ebs)
 {
   ptin_intf_t     ptin_intf;
@@ -8823,7 +8815,7 @@ void ptin_debug_intf_cos_policer_clear(L7_uint8 intf_type, L7_uint8 intf_id, L7_
 
   printf("Result of operation: rc=%d", rc);
 }
-
+#endif
 
 void ptin_intf_stormcontrol_dump(void)
 {

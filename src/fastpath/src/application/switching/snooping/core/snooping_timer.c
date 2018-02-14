@@ -1,4 +1,4 @@
-/*********************************************************************
+    /*********************************************************************
 *
 * (C) Copyright Broadcom Corporation 2001-2007
 *
@@ -32,7 +32,7 @@
 #include "snooping_defs.h"
 
 /* PTin added: IGMP */
-#if 1
+#if 0
 #include "ptin_igmp.h"
 #endif
 
@@ -636,7 +636,7 @@ void snoopGroupMembershipExpiry(void *param)
   }
 
   /* PTin added: IGMP */
-  #if 1
+  #if 0
   /* Dynamic clients upadate */
   //ptin_igmp_dynamic_all_clients_flush(shortVid);
   #endif

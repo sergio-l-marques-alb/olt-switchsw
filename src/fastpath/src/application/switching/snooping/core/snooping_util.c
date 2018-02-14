@@ -49,8 +49,8 @@
 
 /* PTin added: IGMP snooping */
 #if 1
-#include "ptin_evc.h"
-#include "ptin_igmp.h"
+//#include "ptin_evc.h"
+//#include "ptin_igmp.h"
 #include "logger.h"
 #include "ptin_debug.h"
 #include "ptin_fpga_api.h"
@@ -1259,8 +1259,8 @@ void snoopPacketSend(L7_uint32 intIfNum,
   */
   if (snoopIntfCanBeEnabled(intIfNum, vlanId) != L7_TRUE)
   {
-    if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u vlanId=%u] is down (or it is been used for routing, or even is a port mirror",intIfNum,vlanId );
+    //if (ptin_debug_igmp_snooping)
+    //  PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u vlanId=%u] is down (or it is been used for routing, or even is a port mirror",intIfNum,vlanId );
     return;
   }
 
@@ -1268,8 +1268,8 @@ void snoopPacketSend(L7_uint32 intIfNum,
   if ( (nimGetIntfType(intIfNum, &sysIntfType) == L7_SUCCESS) &&
        (sysIntfType == L7_CPU_INTF) )
   {
-    if (ptin_debug_igmp_snooping)
-      PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is a CPU interface",intIfNum);
+    //if (ptin_debug_igmp_snooping)
+    //  PT_LOG_NOTICE(LOG_CTX_IGMP,"Silently ignoring packet transmission. Outgoing interface [intIfNum=%u] is a CPU interface",intIfNum);
     return;
   }
 
@@ -1278,23 +1278,23 @@ void snoopPacketSend(L7_uint32 intIfNum,
   if (dot1qVlanMemberGet(vlanId, intIfNum, &member_mode) != L7_SUCCESS ||
       member_mode != L7_DOT1Q_FIXED)
   {
-    if (ptin_debug_igmp_snooping)
-      PT_LOG_TRACE(LOG_CTX_DHCP, "IntIfNum %u does not belong to VLAN %u. Transmission cancelled", intIfNum, vlanId);
+    //if (ptin_debug_igmp_snooping)
+    //  PT_LOG_TRACE(LOG_CTX_DHCP, "IntIfNum %u does not belong to VLAN %u. Transmission cancelled", intIfNum, vlanId);
     return;
   }
 
   SYSAPI_NET_MBUF_GET(bufHandle);
   if (bufHandle == L7_NULL)
   {
-    if (ptin_debug_igmp_snooping)
-      PT_LOG_ERR(LOG_CTX_IGMP,"Silently ignoring packet transmission. Buffer handle is a null pointer");
+    //if (ptin_debug_igmp_snooping)
+    //  PT_LOG_ERR(LOG_CTX_IGMP,"Silently ignoring packet transmission. Buffer handle is a null pointer");
     L7_LOGF(L7_LOG_SEVERITY_WARNING, L7_SNOOPING_COMPONENT_ID,
            "snoopPacketSend: System out of netbuffs");    
     return;
   }
 
   /* PTin added: IGMP snooping */
-  #if 1
+  #if 0
   L7_uint16 extOVlan = vlanId;
   L7_uint16 extIVlan = 0;
 
@@ -1349,7 +1349,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
   snoopFrameTransmit(intIfNum, vlanId, bufHandle, SNOOP_VLAN_INTF_SEND);
   ptin_timer_stop(33);
   ptin_timer_stop(32);
-
+#if 0
   if (ptin_debug_igmp_snooping)
     PT_LOG_TRACE(LOG_CTX_IGMP,"Packet transmited to intIfNum=%u, with oVlan=%u+iVlan=%u (intVlan=%u) payloadLen=%u",
               intIfNum, extOVlan, extIVlan, vlanId, payloadLen);
@@ -1371,6 +1371,7 @@ void snoopPacketSend(L7_uint32 intIfNum,
       printf("\n");
     }
   }
+#endif
 }
 
 /*********************************************************************
@@ -1567,6 +1568,8 @@ L7_RC_t snoopPacketFlood(mgmdSnoopControlPkt_t *mcastPacket)
 *********************************************************************/
 L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 igmp_type)
 {
+ return L7_SUCCESS;
+#if 0
 #if PTIN_SNOOP_USE_MGMD
   /*To Prevent Warnings on Compilation*/
   _UNUSED_(mcastPacket);
@@ -1613,7 +1616,7 @@ L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 
   #endif
 
   /* PTin added: IGMP snooping */
-  #if 1
+  #if 0
   L7_INTF_MASK_t mcastRtrAttached;
 
   ptin_timer_start(29,"snoopPacketRtrIntfsForward-ptin_igmp_rootIntfs_getList");
@@ -1663,6 +1666,7 @@ L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 
   } while(0);
 #endif
 
+#if 0
   /* Forward frame to all interfaces in this VLAN with multicast routers attached */
   for (intf = 1; intf <= L7_MAX_INTERFACE_COUNT; intf++)
   {
@@ -1722,7 +1726,9 @@ L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 
 //    ptin_igmp_stat_increment_field(intf,mcastPacket->vlanId,mcastPacket->client_idx,SNOOP_STAT_FIELD_IGMP_SENT);
     }
   } /* End of interface iterations */
+#endif
   return L7_SUCCESS;
+#endif
 #endif
 }
 
@@ -1747,6 +1753,8 @@ L7_RC_t snoopPacketRtrIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 
 *********************************************************************/
 L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uint8 igmp_type)
 {
+return L7_SUCCESS;
+#if 0
 #if PTIN_SNOOP_USE_MGMD
   /*To Prevent Warnings on Compilation*/
   _UNUSED_(mcastPacket);
@@ -1892,6 +1900,7 @@ L7_RC_t snoopPacketClientIntfsForward(mgmdSnoopControlPkt_t *mcastPacket, L7_uin
     }
   } /* End of interface iterations */
   return L7_SUCCESS;
+#endif
 #endif
 }
 #endif
@@ -2807,7 +2816,7 @@ L7_uint32 snoopCheckPrecedenceParamGet(L7_uint32 vlanId, L7_uint32 intIfNum,
   #endif
 
   /* PTin added: IGMP snooping */
-  #if 1
+  #if 0
   ptin_IgmpProxyCfg_t igmpCfg;
 
   if (ptin_igmp_proxy_config_get__snooping_old(&igmpCfg)!=L7_SUCCESS)
@@ -2835,8 +2844,8 @@ L7_uint32 snoopCheckPrecedenceParamGet(L7_uint32 vlanId, L7_uint32 intIfNum,
     case SNOOP_PARAM_IGMP_CLIENT_VERSION:
       return igmpCfg.clientVersion;
   }
-  return 0;
   #endif
+  return 0;
 }
 
 /*********************************************************************
@@ -2915,6 +2924,8 @@ L7_uchar8 snoopGetEndianess(void)
 
 L7_uint8 snoopPacketType2IGMPStatField(L7_uint8 packetType,L7_uint8 fieldType)
 {
+ return 0;
+#if 0
   switch (packetType)
   {
 //case L7_IGMP_MEMBERSHIP_QUERY:
@@ -3039,6 +3050,7 @@ L7_uint8 snoopPacketType2IGMPStatField(L7_uint8 packetType,L7_uint8 fieldType)
   default:
     return SNOOP_STAT_FIELD_ALL;
   }
+#endif
 }
 
 /*********************************************************************

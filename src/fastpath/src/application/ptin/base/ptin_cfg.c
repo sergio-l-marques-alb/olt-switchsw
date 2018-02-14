@@ -12,14 +12,12 @@
  */
 
 #include "ptin_cfg.h"
-#include "ptin_evc.h"
 #include "ptin_intf.h"
-#include "ptin_fieldproc.h"
 #include "usmdb_sim_api.h"
 
 /* External VLAN used for inBand management purposes */
 static L7_uint16 vlan_inband = 0xFFFF;
-
+#if 0
 /**
  * Gets Network Connectivity configuration (inBand management)
  * 
@@ -331,7 +329,7 @@ L7_RC_t ptin_cfg_ntw_connectivity_set(ptin_NtwConnectivity_t *ntwConn)
 
   return L7_SUCCESS;
 }
-
+#endif
 /**
  * Returns the external inBand VLAN ID
  * 
