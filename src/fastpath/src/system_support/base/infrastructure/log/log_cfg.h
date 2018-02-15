@@ -33,12 +33,14 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+/* PTin added: OpenSSL removed */
+#ifdef L7_OPENSSL_PACKAGE
 #include <openssl/crypto.h>
 #include <openssl/x509.h>
 #include <openssl/pem.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-
+#endif
 
 #define L7_LOG_CFG_FILENAME    "log.cfg"
 #define L7_LOG_CFG_VER_1       0x1
