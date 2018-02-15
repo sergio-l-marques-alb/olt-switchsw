@@ -247,21 +247,22 @@
 #endif
 */
 
-#if 1
 /* CLI definitions */
+/* PTin added: CLI removed
 #ifndef _INCLUDE_CLI_COMPONENT_API_
 #define _INCLUDE_CLI_COMPONENT_API_
 #define L7_CLI_PACKAGE 1
 #endif
 #endif
+*/
 
-#if 0
 /* SNMP definitions */
+/* PTin added: SNMP removed
 #ifndef _INCLUDE_SNMP_COMPONENT_API_
 #define _INCLUDE_SNMP_COMPONENT_API_
 #define L7_SNMP_PACKAGE 1
 #endif
-#endif
+*/
 
 /* xWeb definitions */
 /* PTin removed

@@ -409,12 +409,6 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
     *pReason    = L7_CNFGR_ERR_RC_FATAL;
     return L7_FAILURE;
   }
-#else
-  PT_LOG_FATAL(LOG_CTX_CNFGR, "L7_CLI_PACKAGE is not present!");
-
-  *pResponse  = 0;
-  *pReason    = L7_CNFGR_ERR_RC_FATAL;
-  return L7_FAILURE;
 #endif
 
 #if 0

@@ -68,7 +68,10 @@ static L7_RC_t autoInstallRegisteredComponentsNotify(autoInstallNotifyEvent_t ev
        void autoInstallDispatchCmd(autoInstallMsg_t *msg);
 extern void autoInstallCnfgrParse(L7_CNFGR_CMD_DATA_t *pCmdData);
 
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
 extern L7_RC_t cliAutoInstallConfigScriptApply(L7_char8 * filename);
+#endif
 
 /* auto-install state machine states strings */
 L7_uchar8 *autoInstallStateStrs[AUTO_INSTALL_MAX_STATE + 1] =
@@ -1281,9 +1284,11 @@ static void autoInstallPredefinedFileStateProcess (void)
 static void autoInstallApplyConfig(void *pContext)
 {
   EW_UNUSED(pContext);
-
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
 #if defined(L7_AUTO_INSTALL_PACKAGE) || defined(L7_TR069_PACKAGE)
   autoInstallGblErrorCode = cliAutoInstallConfigScriptApply(AUTO_INSTALL_TEMP_CONFIG_FILENAME);
+#endif
 #endif
   osapiSemaGive(autoTxtCfgSyncSemaphore);  
 }
@@ -1329,7 +1334,10 @@ void autoInstallPredefinedFileStateComplete1 (void)
           configAplyMsg.pContext  = NULL;
           configAplyMsg.CbFuncPtr = autoInstallApplyConfig;
 
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
           if (emwebMessageWrite(&configAplyMsg) == L7_SUCCESS) 
+#endif
           {
               /* Wait for emweb to apply the config */
               osapiSemaTake (autoTxtCfgSyncSemaphore, L7_WAIT_FOREVER);  
@@ -1563,6 +1571,8 @@ void autoInstallHostFileStateComplete(void)
 
 void test_cb(void)
 {
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
     emwebMessage_t configAplyMsg;
 
     configAplyMsg.msgType   = L7_EMWEBMSG_DO_CALLBACK;
@@ -1570,6 +1580,7 @@ void test_cb(void)
     configAplyMsg.CbFuncPtr = autoInstallApplyConfig;
 
     emwebMessageWrite(&configAplyMsg);
+#endif
 }
 
 /*********************************************************************
@@ -1599,7 +1610,10 @@ static void autoInstallApplyStateProcess (void)
   configAplyMsg.pContext  = NULL;
   configAplyMsg.CbFuncPtr = autoInstallApplyConfig;
 
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
   if (emwebMessageWrite(&configAplyMsg) == L7_SUCCESS) 
+#endif
   {
      /* Wait for emweb to apply the config */
      rc = osapiSemaTake (autoTxtCfgSyncSemaphore, (30 * 1000));  

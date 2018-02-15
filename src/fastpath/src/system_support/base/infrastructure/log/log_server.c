@@ -1577,7 +1577,6 @@ static void logTask()
 {
   struct logMsg_s logMsg;
   register L7_uint32 hostNdx;
-  L7_BOOL logConsole;
 
   if (logQueue == L7_NULL)
   {
@@ -1717,6 +1716,10 @@ static void logTask()
 
     printf("LOGF: \"%s\"\r\n",(L7_char8 *) (logMsg.buffer + LOG_STACK_HEADER_LEN));
 
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
+    L7_BOOL logConsole;
+
     /* Log to console? And yes, we do allow mgmt to
      * change things while writing to slow devices.
      */
@@ -1730,6 +1733,7 @@ static void logTask()
       cliWebConsoleLog(b);
       cliWebConsoleLog("\r\n");
     }
+#endif
     /* No memory leaks please */
     if (logMsg.freeAfterWrite != L7_FALSE)
       logBufferFree(logMsg.buffer);

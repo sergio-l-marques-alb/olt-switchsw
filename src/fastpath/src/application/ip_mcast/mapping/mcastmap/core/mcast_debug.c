@@ -1105,6 +1105,216 @@ void mcastMapDebugHeapShow(L7_uchar8 addrFamily)
   heapDbgStatsDisplay(heapId);
 }
 
+/* PTin added: CLI removed */
+#ifndef L7_CLI_PACKAGE
+/*********************************************************************
+* @purpose  CLI helper routine to get interface from user-input
+*
+* @param  **input  @b{(input)) pointer to user-input string
+* @param  *delim   @b{(input)) pointer to the delimiter
+*
+* @returns  Token string
+*
+* @comments
+*
+* @end
+*********************************************************************/
+static L7_char8 *stringSeparateHelp(L7_char8 * * input, const L7_char8 * delim)
+{
+  const L7_char8 * tmp_delim;
+  L7_char8 * tmp_input, * tok;
+    L7_int32 i, j;
+
+    if ((tmp_input = *input) == NULL)
+  {
+    return NULL;
+  }
+
+    for (tok = tmp_input;;)
+  {
+    i = *tmp_input++;
+    tmp_delim = delim;
+    do
+    {
+      if ((j = *tmp_delim++) == i)
+      {
+        if (i == 0)
+        {
+          tmp_input = NULL;
+        }
+        else
+        {
+          *(tmp_input-1) = 0;
+        }
+
+        *input = tmp_input;
+        return tok;
+      }
+    } while (j != 0);
+  }
+}
+
+/*********************************************************************
+* @purpose  Determine specific prefix/prefix_length from user-input
+*
+* @param  *buf   @b{(input)) pointer to user-input string
+* @param  *prefix  @b{(output)) pointer to the prefix index
+* @param  *prefix-len  @b{(output)) pointer to the prefix length index
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @comments If stacking is supported, valid input is `<prefix>/<prefix-length>`
+*
+* @end
+*********************************************************************/
+static L7_RC_t validPrefixPrefixLenCheck(const L7_char8 * buf, L7_in6_addr_t * prefix,
+                                         L7_uint32 * prefixLen)
+{
+
+  L7_uint32 buf_len;
+  L7_char8 strIPaddr[L7_CLI_MAX_STRING_LENGTH];
+  L7_char8  tmp_buf[L7_CLI_MAX_STRING_LENGTH];
+  L7_char8 * p, * plen;
+
+  L7_char8 * input;
+  const L7_char8 * slash = "/";
+  const L7_char8 * end = "";
+
+  buf_len = (L7_uint32)strlen(buf);
+  if (strlen(buf) >= sizeof(tmp_buf))
+  {
+    return L7_FAILURE;
+  }
+
+  memset (tmp_buf, 0, (L7_int32)sizeof(tmp_buf));
+  memcpy(tmp_buf, buf, buf_len);
+
+  if (strcmp(tmp_buf, "") == 0)
+  {
+    return L7_FAILURE;
+  }
+
+  input = tmp_buf;
+  p = stringSeparateHelp(&input, slash);
+  plen= stringSeparateHelp(&input, end);
+
+  if (p != '\0')
+  {
+     if (strlen(p) >= sizeof(strIPaddr))
+    {
+      return L7_FAILURE;
+    }
+
+    OSAPI_STRNCPY_SAFE(strIPaddr, p);
+  }
+  if(osapiInetPton(L7_AF_INET6,strIPaddr, (L7_uchar8 *) prefix) != L7_SUCCESS)
+  {
+    return L7_FAILURE;
+  }
+
+  if (plen == L7_NULLPTR || convertTo32BitUnsignedInteger(plen, prefixLen) != L7_SUCCESS)
+  {
+    return L7_FAILURE;
+  }
+
+/* Put specific prefix range checking here
+      return L7_ERROR;                     */
+
+  return L7_SUCCESS;
+
+}
+
+/*********************************************************************
+* @purpose  Determine specific interface from user-input
+*
+* @param  *buf   @b{(input)) pointer to user-input string
+* @param  *unit  @b{(output)) pointer to the unit index
+* @param  *slot  @b{(output)) pointer to the slot index
+* @param  *port  @b{(output)) pointer to the port index
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @comments If stacking is supported, valid input is `unit/slot/port`
+*
+* @end
+*********************************************************************/
+static L7_RC_t validSpecificUSPCheck(const L7_char8 * buf, L7_uint32 * unit,
+                                     L7_uint32 * slot, L7_uint32 * port)
+{
+  L7_uint32 buf_len;
+  L7_char8  tmp_buf[L7_CLI_MAX_STRING_LENGTH];
+  L7_char8 *s, *p;
+  L7_char8 *input;
+  const L7_char8 * slash = "/";
+  const L7_char8 * end = "";
+
+
+  buf_len = (L7_uint32)strlen(buf);
+  if (strlen(buf) >= sizeof(tmp_buf))
+  {
+    return L7_FAILURE;
+  }
+
+  memset (tmp_buf, 0, (L7_int32)sizeof(tmp_buf));
+  memcpy(tmp_buf, buf, buf_len);
+
+  if (strcmp(tmp_buf, "") == 0)
+  {
+    return L7_FAILURE;
+  }
+
+  /* NOTE: Input of type <a/b/c> only is valid.
+   *
+   * Check for erroneous inputs, i.e, of type <a>, <a/b>, <a/b/c/d> etc.
+   */
+  input = tmp_buf;
+  *unit = 1;
+
+  s = stringSeparateHelp(&input, slash);
+  if(s != L7_NULLPTR)
+  {
+     if(strlen(s)== 0)
+     {
+      return L7_FAILURE;
+     }
+  }
+
+  p = stringSeparateHelp(&input, end);
+  if ((s == L7_NULLPTR) || (convertTo32BitUnsignedInteger(s, slot) != L7_SUCCESS) ||
+      (p == L7_NULLPTR) || (convertTo32BitUnsignedInteger(p, port) != L7_SUCCESS))
+  {
+    return L7_FAILURE;
+  }
+
+#ifdef L7_CHASSIS
+  {
+  if ((*slot > L7_MAX_SLOTS_PER_UNIT) ||
+      (*port == 0) ||
+      (*port > L7_MAX_PORTS_PER_SLOT))
+        (*slot > (L7_MAX_SLOTS_PER_CHASSIS+
+                  L7_MAX_LOGICAL_SLOTS_PER_UNIT+L7_MAX_CPU_SLOTS_PER_UNIT)) ||
+        (*port == 0))
+    {
+      return L7_ERROR;
+    }
+  }
+#else
+  {
+    if ((*slot > L7_MAX_SLOTS_PER_UNIT) ||
+        (*port == 0))
+    {
+      return L7_ERROR;
+    }
+  }
+#endif
+
+  return L7_SUCCESS;
+
+}
+#endif /*#ifndef L7_CLI_PACKAGE*/
+
 #ifndef MCAST_STATIC_MROUTE_DEBUG_UT /* Unit Test Code for Static MRoutes */
 
 L7_RC_t
@@ -1207,14 +1417,21 @@ mcastMapDebugStaticMRouteAdd (L7_uchar8 addrFamily,
       L7_uint32 unit = 0;
       L7_uint32 slot = 0;
       L7_uint32 port = 0;
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
       extern L7_RC_t cliValidPrefixPrefixLenCheck(const L7_char8 * buf, L7_in6_addr_t * prefix, L7_uint32 * prefixLen);
       extern L7_RC_t cliValidSpecificUSPCheck(const L7_char8 * buf, L7_uint32 * unit, L7_uint32 * slot, L7_uint32 * port);
+#endif
 
       /* srcAddr */
       memset (srcAddrStr, 0, sizeof(srcAddrStr));
       OSAPI_STRNCPY_SAFE (srcAddrStr, srcAddr);
-
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
       if (cliValidPrefixPrefixLenCheck (srcAddrStr, &srcAddrV6, &maskLen) != L7_SUCCESS)
+#else
+      if (validPrefixPrefixLenCheck (srcAddrStr, &srcAddrV6, &maskLen) != L7_SUCCESS)
+#endif
       {
         sysapiPrintf("Invalid srcAddr.\n");
         return L7_FAILURE;
@@ -1228,7 +1445,12 @@ mcastMapDebugStaticMRouteAdd (L7_uchar8 addrFamily,
       }
 
       /* USP */
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
       if (cliValidSpecificUSPCheck(usp, &unit, &slot, &port) != L7_SUCCESS)
+#else
+      if (validSpecificUSPCheck(usp, &unit, &slot, &port) != L7_SUCCESS)
+#endif
       {
         sysapiPrintf("Invalid USP.\n");
         return L7_FAILURE;

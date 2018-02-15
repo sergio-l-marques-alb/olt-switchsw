@@ -36,7 +36,10 @@
 #include "usmdb_cnfgr_api.h"
 
 extern void sysapiUncombinedCfgRemove(void);
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
 extern int tEmWebTid;
+#endif
 extern int umRunCfgDlTaskId;
 
 
@@ -177,6 +180,8 @@ static L7_RC_t nvStoreSaveErrorCodeGet(void)
 
 L7_RC_t nvStoreSave_emWebContext_Request(L7_SAVE_CONFIG_TYPE_t type)
 {
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
     emwebMessage_t configAplyMsg;
 
     configAplyMsg.msgType   = L7_EMWEBMSG_DO_CALLBACK;
@@ -193,6 +198,9 @@ L7_RC_t nvStoreSave_emWebContext_Request(L7_SAVE_CONFIG_TYPE_t type)
     }
 
     return nvStoreSaveErrorCodeGet();
+#else
+    return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -247,7 +255,13 @@ L7_RC_t nvStoreSave(L7_SAVE_CONFIG_TYPE_t generateConfig)
 
 #ifndef PROD_USE_BINARY_CONFIGURATION
   taskID = osapiTaskIdSelf();
-  if((taskID != tEmWebTid) && (taskID != umRunCfgDlTaskId))
+/* PTin added: CLI removed */
+  if(
+#ifdef L7_CLI_PACKAGE
+     (taskID != tEmWebTid) &&
+#endif
+     (taskID != umRunCfgDlTaskId)
+    )
   {
       nvStoreSaveErrorCodeGet(); /* Flush */
       return (nvStoreSave_emWebContext_Request(generateConfig));

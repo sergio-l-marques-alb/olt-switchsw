@@ -107,12 +107,14 @@ cpiolist_file := cpiolist_mod
 # Note:  This is only needed if a CLI is present.
 #
 symbols_name := devshell_symbols.gz
-ifeq (1,$(BLD_L7_UI_HAS_CLI))
-  symbols_name_dep := $(symbols_name)
-endif
-ifeq (1,$(BLD_L7_UI_HAS_XCLI))
-  symbols_name_dep := $(symbols_name)
-endif
+# PTin modified: CLI removed
+symbols_name_dep := $(symbols_name)
+#ifeq (1,$(BLD_L7_UI_HAS_CLI))
+#  symbols_name_dep := $(symbols_name)
+#endif
+#ifeq (1,$(BLD_L7_UI_HAS_XCLI))
+#  symbols_name_dep := $(symbols_name)
+#endif
 
 
 # Name of text-based config file download executable used by boot menu (via rc.fastpath).

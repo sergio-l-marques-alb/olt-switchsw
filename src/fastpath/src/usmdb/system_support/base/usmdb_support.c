@@ -131,7 +131,11 @@ void usmDbSupportDebugClear(void)
 *********************************************************************/
 L7_RC_t usmDbConsoleBreakinModeSet(L7_BOOL enable_flag, L7_int32 session)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebConsoleBreakinModeSet(enable_flag);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -151,7 +155,11 @@ L7_RC_t usmDbConsoleBreakinModeSet(L7_BOOL enable_flag, L7_int32 session)
 *********************************************************************/
 L7_BOOL usmDbConsoleBreakinModeGet (L7_int32 session)
 {
+#ifdef L7_CLI_PACKAGE
   return  cliWebConsoleBreakinModeGet();
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -168,7 +176,11 @@ L7_BOOL usmDbConsoleBreakinModeGet (L7_int32 session)
 *********************************************************************/
 L7_RC_t  usmDbConsoleBreakinstringGet(L7_uint32 index, L7_char8 *password)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebConsoleBreakinstringGet(password);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -186,6 +198,10 @@ L7_RC_t  usmDbConsoleBreakinstringGet(L7_uint32 index, L7_char8 *password)
 *********************************************************************/
 L7_RC_t usmDbConsoleBreakinstringSet(L7_uint32 index, L7_char8 *password)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebConsoleBreakinstringSet(password);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 #endif

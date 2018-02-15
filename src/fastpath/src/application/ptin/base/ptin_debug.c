@@ -297,6 +297,8 @@ void ptin_help(void)
 
 void cliTelnetAdminModeSet(L7_int port)
 {
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
   if (port == FD_TELNET_PORT_NUM)
   {
     usmDbAgentTelnetAdminModeSet(1, L7_ENABLE);
@@ -311,10 +313,13 @@ void cliTelnetAdminModeSet(L7_int port)
     }
   }
   fflush(stdout);
+#endif
 }
 
 void webAccessAdminModeSet(L7_int port)
 {
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
   if (port == FD_HTTP_PORT_NUM)
   {
     usmDbSwDevCtrlWebMgmtModeSet(1, L7_ENABLE);
@@ -329,6 +334,7 @@ void webAccessAdminModeSet(L7_int port)
     }
   }
   fflush(stdout);
+#endif
 }
 
 /**

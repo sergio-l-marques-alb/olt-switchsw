@@ -53,7 +53,10 @@
 extern L7_RC_t logWriteInMemoryLogToFile(L7_char8 * fileName);
 extern void cliTxtCfgSaveTransConfig (L7_char8 * filename);
 extern L7_RC_t cliTxtCfgCopyConfig (L7_char8 * readFile, L7_char8 * writeFile, L7_BOOL useComp);
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
 extern L7_RC_t IASUsersScriptValidateAndApply(L7_char8 * scriptFileName, L7_char8 * newFilename);
+#endif
 extern L7_RC_t trapMgrCreateTrapLogFile (L7_char8 * filename);
 extern L7_int32 osapiSystem(const char *fmt, ...);
 extern L7_RC_t usmDbDsTftpDownloadStatus(L7_uint32 direction, L7_BOOL status);
@@ -1656,6 +1659,8 @@ static void transfer_download(void)
             {
               set_result_string("Validating and updating IAS users database file...");
               osapiSleep(3);
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
               rc = IASUsersScriptValidateAndApply(TEMP_CONFIG_SCRIPT_FILE_NAME, transfer_fname_local);
               if (rc == L7_SUCCESS)
               {
@@ -1664,6 +1669,7 @@ static void transfer_download(void)
                 set_result(L7_TRANSFER_FAILED);
               }
               else
+#endif
               {
                 set_result_string("IAS users database update failed.");
                 set_download_result_code(L7_TRANSFER_CODE_SUCCESS);

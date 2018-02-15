@@ -52,7 +52,11 @@
  *********************************************************************/
 L7_RC_t usmDbLoginSessionLogin(L7_uint32 UnitIndex, L7_uint32 *val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionLogin(val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -71,7 +75,11 @@ L7_RC_t usmDbLoginSessionLogin(L7_uint32 UnitIndex, L7_uint32 *val)
  *********************************************************************/
 L7_RC_t usmDbLoginSessionLogout(L7_uint32 UnitIndex, L7_uint32 index)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionLogout(index);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -89,6 +97,7 @@ L7_RC_t usmDbLoginSessionLogout(L7_uint32 UnitIndex, L7_uint32 index)
  *********************************************************************/
 L7_uint32 usmDbLoginNumSessionsActiveGet(L7_BOOL allSessions, L7_uint32 sessionType)
 {
+#ifdef L7_CLI_PACKAGE
   L7_uint32 i, val;
   L7_BOOL   bVal;
   L7_uint32 numSessions;
@@ -120,6 +129,9 @@ L7_uint32 usmDbLoginNumSessionsActiveGet(L7_BOOL allSessions, L7_uint32 sessionT
   }
 
   return numSessions;
+#else
+  return 0;
+#endif
 }
 
 /*********************************************************************
@@ -139,6 +151,7 @@ L7_uint32 usmDbLoginNumSessionsActiveGet(L7_BOOL allSessions, L7_uint32 sessionT
  *********************************************************************/
 L7_RC_t usmDbLoginSessionValidEntry(L7_uint32 UnitIndex, L7_uint32 index, L7_BOOL *val)
 {
+#ifdef L7_CLI_PACKAGE
   if (index >= FD_CLI_DEFAULT_MAX_CONNECTIONS)
   {
     if (EwaSessionIsActive(index-FD_CLI_DEFAULT_MAX_CONNECTIONS) == L7_TRUE)
@@ -155,6 +168,9 @@ L7_RC_t usmDbLoginSessionValidEntry(L7_uint32 UnitIndex, L7_uint32 index, L7_BOO
   {
     return cliWebLoginSessionValidEntry(index, val);
   }
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -174,6 +190,7 @@ L7_RC_t usmDbLoginSessionValidEntry(L7_uint32 UnitIndex, L7_uint32 index, L7_BOO
  *********************************************************************/
 L7_RC_t usmDbLoginSessionRemoteIpAddrGet(L7_uint32 UnitIndex, L7_uint32 index, L7_inet_addr_t *val)
 {
+#ifdef L7_CLI_PACKAGE
   if (index >= FD_CLI_DEFAULT_MAX_CONNECTIONS)
   {
     return EwaSessionInetAddrGet(index-FD_CLI_DEFAULT_MAX_CONNECTIONS, val);
@@ -182,6 +199,9 @@ L7_RC_t usmDbLoginSessionRemoteIpAddrGet(L7_uint32 UnitIndex, L7_uint32 index, L
   {
     return cliWebLoginSessionRemoteIpAddrGet(index, val);
   }
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -203,7 +223,11 @@ L7_RC_t usmDbLoginSessionRemoteIpAddrGet(L7_uint32 UnitIndex, L7_uint32 index, L
  *********************************************************************/
 L7_RC_t usmDbLoginSessionRemoteIpAddrSet(L7_uint32 UnitIndex, L7_uint32 index, L7_inet_addr_t *val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionRemoteIpAddrSet(index, val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -225,6 +249,7 @@ L7_RC_t usmDbLoginSessionRemoteIpAddrSet(L7_uint32 UnitIndex, L7_uint32 index, L
  *********************************************************************/
 L7_RC_t usmDbLoginSessionTypeGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 *val)
 {
+#ifdef L7_CLI_PACKAGE
   if (index >= FD_CLI_DEFAULT_MAX_CONNECTIONS)
   {
     return EwaSessionTypeGet(index-FD_CLI_DEFAULT_MAX_CONNECTIONS, val);
@@ -233,6 +258,9 @@ L7_RC_t usmDbLoginSessionTypeGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32
   {
     return cliWebLoginSessionTypeGet(index, val);
   }
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -254,7 +282,11 @@ L7_RC_t usmDbLoginSessionTypeGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32
  *********************************************************************/
 L7_RC_t usmDbLoginSessionTypeSet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionTypeSet(index, val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -276,7 +308,11 @@ L7_RC_t usmDbLoginSessionTypeSet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32
  *********************************************************************/
 L7_RC_t usmDbLoginSessionSlotPortGet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 *buf)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionSlotPortGet(index, buf);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -301,7 +337,11 @@ L7_RC_t usmDbLoginSessionSlotPortGet(L7_uint32 UnitIndex, L7_uint32 index, L7_ch
 L7_RC_t usmDbLoginSessionUnitSlotPortSet(L7_uint32 UnitIndex, L7_uint32 index,
     L7_uint32 unit, L7_uint32 slot, L7_uint32 port)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionUnitSlotPortSet(index, unit, slot, port);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -323,7 +363,11 @@ L7_RC_t usmDbLoginSessionUnitSlotPortSet(L7_uint32 UnitIndex, L7_uint32 index,
  *********************************************************************/
 L7_RC_t usmDbLoginSessionIfIndexGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 *ifIndex)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionIfIndexGet(index, ifIndex);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -345,7 +389,11 @@ L7_RC_t usmDbLoginSessionIfIndexGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uin
  *********************************************************************/
 L7_RC_t usmDbLoginSessionIfIndexSet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 ifIndex)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionIfIndexSet(index, ifIndex);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -367,6 +415,7 @@ L7_RC_t usmDbLoginSessionIfIndexSet(L7_uint32 UnitIndex, L7_uint32 index, L7_uin
  *********************************************************************/
 L7_RC_t usmDbLoginSessionUserGet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 *buf)
 {
+#ifdef L7_CLI_PACKAGE
   if (index >= FD_CLI_DEFAULT_MAX_CONNECTIONS)
   {
     return EwaSessionUserGet(index-FD_CLI_DEFAULT_MAX_CONNECTIONS, buf);
@@ -375,6 +424,9 @@ L7_RC_t usmDbLoginSessionUserGet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 
   {
     return cliWebLoginSessionUserGet(index, buf);
   }
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -396,7 +448,11 @@ L7_RC_t usmDbLoginSessionUserGet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 
  *********************************************************************/
 L7_RC_t usmDbLoginSessionUserSet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 *buf)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionUserSet(index, buf);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -418,6 +474,7 @@ L7_RC_t usmDbLoginSessionUserSet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 
  *********************************************************************/
 L7_RC_t usmDbLoginSessionTimeGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 *time)
 {
+#ifdef L7_CLI_PACKAGE
   if (index >= FD_CLI_DEFAULT_MAX_CONNECTIONS)
   {
     return EwaSessionUpTimeGet(index-FD_CLI_DEFAULT_MAX_CONNECTIONS, time);
@@ -426,6 +483,9 @@ L7_RC_t usmDbLoginSessionTimeGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32
   {
     return cliWebLoginSessionTimeGet(index, time);
   }
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -447,7 +507,11 @@ L7_RC_t usmDbLoginSessionTimeGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32
  *********************************************************************/
 L7_RC_t usmDbLoginSessionStartTimeGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 *time)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionStartTimeGet(index, time);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -469,6 +533,7 @@ L7_RC_t usmDbLoginSessionStartTimeGet(L7_uint32 UnitIndex, L7_uint32 index, L7_u
  *********************************************************************/
 L7_RC_t usmDbLoginSessionIdleTimeGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 *time)
 {
+#ifdef L7_CLI_PACKAGE
   if (index >= FD_CLI_DEFAULT_MAX_CONNECTIONS)
   {
     return EwaSessionIdleTimeGet(index-FD_CLI_DEFAULT_MAX_CONNECTIONS, time);
@@ -477,6 +542,9 @@ L7_RC_t usmDbLoginSessionIdleTimeGet(L7_uint32 UnitIndex, L7_uint32 index, L7_ui
   {
     return cliWebLoginSessionIdleTimeGet(index, time);
   }
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -497,7 +565,11 @@ L7_RC_t usmDbLoginSessionIdleTimeGet(L7_uint32 UnitIndex, L7_uint32 index, L7_ui
  *********************************************************************/
 L7_RC_t usmDbLoginSessionUpdateActivityTime(L7_uint32 UnitIndex, L7_uint32 index)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionUpdateActivityTime(index);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -519,7 +591,11 @@ L7_RC_t usmDbLoginSessionUpdateActivityTime(L7_uint32 UnitIndex, L7_uint32 index
  *********************************************************************/
 L7_RC_t usmDbLoginSessionStatusGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 *val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionStatusGet(index, val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -541,7 +617,11 @@ L7_RC_t usmDbLoginSessionStatusGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint
  *********************************************************************/
 L7_RC_t usmDbLoginSessionStatusSet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionStatusSet(index, val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -561,7 +641,11 @@ L7_RC_t usmDbLoginSessionStatusSet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint
  *********************************************************************/
 void *usmDbLoginSessionUserStorageGet(L7_uint32 UnitIndex, L7_uint32 index)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionUserStorageGet(index);
+#else
+  return L7_NULLPTR;
+#endif
 }
 
 
@@ -583,7 +667,11 @@ void *usmDbLoginSessionUserStorageGet(L7_uint32 UnitIndex, L7_uint32 index)
  *********************************************************************/
 L7_RC_t usmDbLoginSessionUserStorageSet(L7_uint32 UnitIndex, L7_uint32 index, void *val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionUserStorageSet(index, val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -605,7 +693,11 @@ L7_RC_t usmDbLoginSessionUserStorageSet(L7_uint32 UnitIndex, L7_uint32 index, vo
  *********************************************************************/
 L7_RC_t usmDbLoginSessionResetConnectionGet(L7_uint32 UnitIndex, L7_uint32 index, L7_BOOL *resetConnection)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionResetConnectionGet(index, resetConnection);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -626,7 +718,11 @@ L7_RC_t usmDbLoginSessionResetConnectionGet(L7_uint32 UnitIndex, L7_uint32 index
  *********************************************************************/
 L7_RC_t usmDbLoginSessionResetConnectionSet(L7_uint32 UnitIndex, L7_uint32 index)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionResetConnectionSet(index);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -646,7 +742,11 @@ L7_RC_t usmDbLoginSessionResetConnectionSet(L7_uint32 UnitIndex, L7_uint32 index
  *********************************************************************/
 L7_RC_t usmDbLoginSessionResetConnectionAllSet(L7_uint32 UnitIndex)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginSessionResetConnectionAllSet();
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -668,7 +768,11 @@ L7_RC_t usmDbLoginSessionResetConnectionAllSet(L7_uint32 UnitIndex)
  *********************************************************************/
 L7_RC_t usmDbUserLoginIndexGet(L7_uint32 UnitIndex, L7_char8 *name, L7_uint32 *index)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserIndexGet(name, index);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -690,7 +794,11 @@ L7_RC_t usmDbUserLoginIndexGet(L7_uint32 UnitIndex, L7_char8 *name, L7_uint32 *i
  *********************************************************************/
 L7_RC_t usmDbLoginsGet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 *buf)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserNameGet(index, buf);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -712,7 +820,11 @@ L7_RC_t usmDbLoginsGet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 *buf)
  *********************************************************************/
 L7_RC_t usmDbLoginsSet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 *buf)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserNameSet(index, buf);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -733,7 +845,11 @@ L7_RC_t usmDbLoginsSet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 *buf)
  *********************************************************************/
 L7_RC_t usmDbLoginUserIndexValidGet(L7_uint32 UnitIndex, L7_uint32 index)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserIndexValidGet(index);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -754,7 +870,11 @@ L7_RC_t usmDbLoginUserIndexValidGet(L7_uint32 UnitIndex, L7_uint32 index)
  *********************************************************************/
 L7_RC_t usmDbLoginUserIndexNextValidGet(L7_uint32 UnitIndex, L7_uint32 *index)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserIndexNextValidGet(index);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -777,7 +897,11 @@ L7_RC_t usmDbLoginUserIndexNextValidGet(L7_uint32 UnitIndex, L7_uint32 *index)
  *********************************************************************/
 L7_RC_t usmDbLoginStatusGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 *val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserStatusGet(index, val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -800,7 +924,11 @@ L7_RC_t usmDbLoginStatusGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 *val
  *********************************************************************/
 L7_RC_t usmDbLoginStatusSet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserStatusSet(index, val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -822,7 +950,11 @@ L7_RC_t usmDbLoginStatusSet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 val)
  *********************************************************************/
 L7_RC_t usmDbPasswordGet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 *buf)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserPasswordGet(index, buf);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -845,7 +977,11 @@ L7_RC_t usmDbPasswordGet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 *buf)
  *********************************************************************/
 L7_RC_t usmDbPasswordSet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 *buf, L7_BOOL encrypted)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserPasswordSet(index, buf, encrypted);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -867,7 +1003,11 @@ L7_RC_t usmDbPasswordSet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 *buf, L7
  *********************************************************************/
 L7_RC_t usmDbPasswordIsValid(L7_uint32 UnitIndex, L7_char8 *pw, L7_char8 *enteredString)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserPasswordIsValid(pw, enteredString, L7_PASSWORD_ENCRYPT_ALG);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -889,7 +1029,11 @@ L7_RC_t usmDbPasswordIsValid(L7_uint32 UnitIndex, L7_char8 *pw, L7_char8 *entere
  *********************************************************************/
 L7_RC_t usmDbUserAuthSet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 authProt)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserAuthenticationSet(index, authProt);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -912,7 +1056,11 @@ L7_RC_t usmDbUserAuthSet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 authPro
 L7_RC_t usmDbUserEncryptSet(L7_uint32 UnitIndex, L7_uint32 index,
     L7_uint32 encryptProt, L7_char8 *encryptKey )
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserEncryptionSet(index, encryptProt, encryptKey);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -935,7 +1083,11 @@ L7_RC_t usmDbUserEncryptSet(L7_uint32 UnitIndex, L7_uint32 index,
 L7_RC_t usmDbUserAccessLevelSet(L7_uint32 UnitIndex, L7_uint32 index,
     L7_uint32 accessLevel )
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserAccessModeSet(index, accessLevel);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -957,7 +1109,11 @@ L7_RC_t usmDbUserAccessLevelSet(L7_uint32 UnitIndex, L7_uint32 index,
  *********************************************************************/
 L7_RC_t usmDbUserAuthGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 *authProt)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserAuthenticationGet(index, authProt);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -978,7 +1134,11 @@ L7_RC_t usmDbUserAuthGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 *authPr
  *********************************************************************/
 L7_RC_t usmDbUserEncryptGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 *encryptProt )
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserEncryptionGet(index, encryptProt);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -1001,7 +1161,11 @@ L7_RC_t usmDbUserEncryptGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 *enc
 L7_RC_t usmDbUserAccessLevelGet(L7_uint32 UnitIndex, L7_uint32 index,
     L7_uint32 *accessLevel )
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserAccessModeGet(index, accessLevel);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -1021,7 +1185,11 @@ L7_RC_t usmDbUserAccessLevelGet(L7_uint32 UnitIndex, L7_uint32 index,
  *********************************************************************/
 L7_RC_t usmDbLoginsDelete(L7_uint32 UnitIndex, L7_uint32 index)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserDelete(index);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -1991,7 +2159,11 @@ L7_RC_t usmDbEnablePasswordRemove(L7_uint32 level)
  *********************************************************************/
 L7_RC_t usmDbTerminalLineSet(L7_uint32 unitIndex, L7_uint32 termLine)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebSetTerminalLine(termLine);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -2009,7 +2181,11 @@ L7_RC_t usmDbTerminalLineSet(L7_uint32 unitIndex, L7_uint32 termLine)
  *********************************************************************/
 L7_RC_t usmDbTerminalLineGet(L7_uint32 UnitIndex, L7_uint32 *termLine)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebGetTerminalLine(termLine);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -2024,7 +2200,9 @@ L7_RC_t usmDbTerminalLineGet(L7_uint32 UnitIndex, L7_uint32 *termLine)
 *********************************************************************/
 void usmDbWebSessionTableTimeoutScan()
 {
+#ifdef L7_CLI_PACKAGE
     cliWebEmWebSessionTableTimeoutScan();
+#endif
 }
 
 /*********************************************************************
@@ -2044,7 +2222,11 @@ void usmDbWebSessionTableTimeoutScan()
 *********************************************************************/
 L7_RC_t usmDbLoginUserIndexNextAvailableGet(L7_uint32 *index)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebLoginUserAvailableIndexGet(index);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************

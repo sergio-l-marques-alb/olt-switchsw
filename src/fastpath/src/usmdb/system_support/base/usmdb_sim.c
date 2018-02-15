@@ -1822,6 +1822,7 @@ L7_RC_t usmDbAgentIpIfDefaultRouterSet(L7_uint32 UnitIndex, L7_uint32 val)
  *********************************************************************/
 L7_RC_t usmDbCommandPromptSet(L7_uint32 UnitIndex, L7_char8 *prompt)
 {
+#ifdef L7_CLI_PACKAGE
   if (strlen(prompt) > L7_PROMPT_SIZE-1)
   {
     return L7_FAILURE;
@@ -1831,6 +1832,9 @@ L7_RC_t usmDbCommandPromptSet(L7_uint32 UnitIndex, L7_char8 *prompt)
     cliWebSetSystemCommandPrompt(prompt);
     return usmDb1213SysNameSet(UnitIndex, prompt);
   }
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -1848,9 +1852,13 @@ L7_RC_t usmDbCommandPromptSet(L7_uint32 UnitIndex, L7_char8 *prompt)
  *********************************************************************/
 L7_RC_t usmDbCommandPromptGet(L7_uint32 UnitIndex, L7_char8 *prompt)
 {
+#ifdef L7_CLI_PACKAGE
   cliWebGetSystemCommandPrompt(prompt);
 
   return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -2026,8 +2034,12 @@ L7_RC_t usmDbSwDevCtrlSaveConfigurationGet(L7_uint32 UnitIndex, L7_uint32 *val)
  *********************************************************************/
 L7_RC_t usmDbSwDevCtrlWebMgmtModeGet(L7_uint32 UnitIndex, L7_uint32 *val)
 {
+#ifdef L7_CLI_PACKAGE
   *val = cliWebGetSystemWebMode();
   return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -2045,7 +2057,11 @@ L7_RC_t usmDbSwDevCtrlWebMgmtModeGet(L7_uint32 UnitIndex, L7_uint32 *val)
   L7_RC_t
 usmDbCliWebHttpNumSessionsSet(L7_uint32 val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebHttpNumSessionsSet(val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -2060,7 +2076,11 @@ usmDbCliWebHttpNumSessionsSet(L7_uint32 val)
   L7_RC_t
 usmDbCliWebHttpNumSessionsGet(L7_uint32 *val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebHttpNumSessionsGet(val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -2077,7 +2097,11 @@ usmDbCliWebHttpNumSessionsGet(L7_uint32 *val)
   L7_RC_t
 usmDbCliWebHttpSessionHardTimeOutSet(L7_uint32 val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebHttpSessionHardTimeOutSet(val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -2092,7 +2116,11 @@ usmDbCliWebHttpSessionHardTimeOutSet(L7_uint32 val)
   L7_RC_t
 usmDbCliWebHttpSessionHardTimeOutGet(L7_uint32 *val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebHttpSessionHardTimeOutGet(val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -2109,7 +2137,11 @@ usmDbCliWebHttpSessionHardTimeOutGet(L7_uint32 *val)
   L7_RC_t
 usmDbCliWebHttpSessionSoftTimeOutSet(L7_uint32 val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebHttpSessionSoftTimeOutSet(val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -2124,7 +2156,11 @@ usmDbCliWebHttpSessionSoftTimeOutSet(L7_uint32 val)
   L7_RC_t
 usmDbCliWebHttpSessionSoftTimeOutGet(L7_uint32 *val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebHttpSessionSoftTimeOutGet(val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -2258,10 +2294,13 @@ L7_RC_t usmDbSwDevCtrlLocalAdminAddrSet(L7_uint32 UnitIndex, L7_char8 *buf)
  *********************************************************************/
 L7_RC_t usmDbSwDevCtrlWebMgmtModeSet(L7_uint32 UnitIndex, L7_uint32 val)
 {
-
+#ifdef L7_CLI_PACKAGE
   cliWebSetSystemWebMode(val);
 
   return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -2707,8 +2746,12 @@ L7_RC_t usmDbAccessModeGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 *val)
  *********************************************************************/
 L7_RC_t usmDbWebJavaModeGet(L7_uint32 UnitIndex, L7_uint32 *val)
 {
+#ifdef L7_CLI_PACKAGE
   *val = cliWebGetJavaWebMode();
   return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -2728,7 +2771,11 @@ L7_RC_t usmDbWebJavaModeGet(L7_uint32 UnitIndex, L7_uint32 *val)
  *********************************************************************/
 L7_RC_t usmDbWebJavaModeSet(L7_uint32 UnitIndex, L7_uint32 val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebSetJavaWebMode(val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -2748,8 +2795,12 @@ L7_RC_t usmDbWebJavaModeSet(L7_uint32 UnitIndex, L7_uint32 val)
  *********************************************************************/
 L7_RC_t usmDbAgentTelnetTimeoutGet(L7_uint32 UnitIndex, L7_uint32 *val)
 {
+#ifdef L7_CLI_PACKAGE
   *val = cliWebGetSystemTelnetTimeout();
   return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -2769,8 +2820,12 @@ L7_RC_t usmDbAgentTelnetTimeoutGet(L7_uint32 UnitIndex, L7_uint32 *val)
  *********************************************************************/
 L7_RC_t usmDbAgentTelnetNumSessionsGet(L7_uint32 UnitIndex, L7_uint32 *val)
 {
+#ifdef L7_CLI_PACKAGE
   *val = cliWebGetSystemTelnetNumSessions();
   return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -2790,8 +2845,12 @@ L7_RC_t usmDbAgentTelnetNumSessionsGet(L7_uint32 UnitIndex, L7_uint32 *val)
  *********************************************************************/
 L7_RC_t usmDbAgentTelnetNewSessionsGet(L7_uint32 UnitIndex, L7_uint32 *val)
 {
+#ifdef L7_CLI_PACKAGE
   *val = cliWebGetSystemTelnetNewSessions();
   return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -2811,7 +2870,11 @@ L7_RC_t usmDbAgentTelnetNewSessionsGet(L7_uint32 UnitIndex, L7_uint32 *val)
  *********************************************************************/
 L7_RC_t usmDbAgentTelnetNewSessionsSet(L7_uint32 UnitIndex, L7_uint32 val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebSetSystemTelnetNewSessions(val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -2831,7 +2894,11 @@ L7_RC_t usmDbAgentTelnetNewSessionsSet(L7_uint32 UnitIndex, L7_uint32 val)
  *********************************************************************/
 L7_RC_t usmDbAgentTelnetNumSessionsSet(L7_uint32 UnitIndex, L7_uint32 val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebSetSystemTelnetNumSessions(val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -2851,7 +2918,11 @@ L7_RC_t usmDbAgentTelnetNumSessionsSet(L7_uint32 UnitIndex, L7_uint32 val)
  *********************************************************************/
 L7_RC_t usmDbAgentTelnetTimeoutSet(L7_uint32 UnitIndex, L7_uint32 val)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebSetSystemTelnetTimeout(val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -3751,7 +3822,11 @@ L7_RC_t usmDbTransferFTPPasswordGet(L7_uint32 UnitIndex, L7_char8 *buf)
 *********************************************************************/
 L7_RC_t usmDbSwDevCtrlWebMgmtPortNumSet(L7_uint32 unit, L7_uint32 port, L7_BOOL flag)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebHttpPortSet(port, flag);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -3774,7 +3849,11 @@ L7_RC_t usmDbSwDevCtrlWebMgmtPortNumSet(L7_uint32 unit, L7_uint32 port, L7_BOOL 
 *********************************************************************/
 L7_RC_t usmDbSwDevCtrlTelnetMgmtPortNumSet(L7_uint32 unit, L7_uint32 port, L7_BOOL flag)
 {
+#ifdef L7_CLI_PACKAGE
   return cliWebTelnetPortSet(port, flag);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -3793,7 +3872,11 @@ L7_RC_t usmDbSwDevCtrlTelnetMgmtPortNumSet(L7_uint32 unit, L7_uint32 port, L7_BO
 *********************************************************************/
 L7_RC_t usmDbSwDevCtrlWebMgmtPortNumGet(L7_uint32 unit, L7_uint32 *port)
 {
+#ifdef L7_CLI_PACKAGE
   return  cliWebHttpPortGet(port);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -3812,7 +3895,11 @@ L7_RC_t usmDbSwDevCtrlWebMgmtPortNumGet(L7_uint32 unit, L7_uint32 *port)
 *********************************************************************/
 L7_RC_t usmDbSwDevCtrlTelnetMgmtPortNumGet(L7_uint32 unit, L7_uint32 *port)
 {
+#ifdef L7_CLI_PACKAGE
   return  cliWebTelnetPortGet(port);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************

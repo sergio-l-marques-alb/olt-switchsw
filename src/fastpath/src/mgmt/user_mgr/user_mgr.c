@@ -37,7 +37,10 @@
 #include "trapapi.h"
 #include "usmdb_common.h"
 #include "usmdb_util_api.h"
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
 #include "strlib_base_common.h"
+#endif
 
 userMgrCfgData_t userMgrCfgData;
 userMgrLoginPasswdLastSet_t lastPasswdSet_g;
@@ -1607,6 +1610,8 @@ L7_RC_t userMgrAuthenticateUserLocal(L7_char8 *pUserName, L7_char8 *pPwd, L7_uin
     return L7_FAILURE;
   }
 
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
   if ((cliWebLoginUserPasswordIsValid(pass, pPwd, L7_PASSWORD_ENCRYPT_ALG) == L7_SUCCESS) &&
       (status == L7_ENABLE))
   {
@@ -1621,6 +1626,7 @@ L7_RC_t userMgrAuthenticateUserLocal(L7_char8 *pUserName, L7_char8 *pPwd, L7_uin
     userMgrCfgData.systemLogins[index].passwdLockoutCount = 0;
     return L7_SUCCESS;
   }
+#endif
 
   if (status == L7_ENABLE)
   {
@@ -1696,10 +1702,13 @@ L7_RC_t userMgrAuthenticateUserLine(L7_ACCESS_LINE_t line, L7_char8 *pPwd)
     return L7_SUCCESS;
   }
 
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
   if (cliWebLoginUserPasswordIsValid(pass, pPwd, L7_PASSWORD_ENCRYPT_ALG) == L7_SUCCESS)
   {
       return L7_SUCCESS;
   }
+#endif
   return L7_FAILURE;
 }
 
@@ -1743,10 +1752,13 @@ L7_RC_t userMgrAuthenticateUserEnable(L7_uint32 level, L7_char8 *pPwd)
     return L7_SUCCESS;
   }
 
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
   if (cliWebLoginUserPasswordIsValid(pass, pPwd, L7_PASSWORD_ENCRYPT_ALG) == L7_SUCCESS)
   {
     return L7_SUCCESS;
   }
+#endif
   return L7_FAILURE;
 }
 
@@ -4220,6 +4232,26 @@ L7_RC_t userMgrLoginUserPasswordValidate(L7_uint32  authMethod,
 
   return rc;
 }
+
+/* PTin added: CLI removed */
+#ifndef L7_CLI_PACKAGE
+static L7_char8 pStrInfo_base_SetUsrPasswdPleaseAvoidReusingOldPasswds[] = "set user password! Please avoid reusing old passwords.";
+static L7_char8 pStrErr_base_PasswdMinLengthError[] = "Password Length should be in the range of <%u-%u> characters.";
+static L7_char8 pStrErr_base_PasswdMustBePrintableCharacters[] = "User password must be printable characters.";
+static L7_char8 pStrErr_base_PasswdMustNotContainLoginName[] = "User password must not contain Login name in any form (sub-string, case in-sensitive or reverse).";
+static L7_char8 pStrErr_base_PasswdMustNotContainExcludeKeywords[] = "User password should not contain the exclude keyword '%s' in one of the forms (sub-string, case-insensitive or reverse).";
+static L7_char8 pStrErr_base_PasswdRepeatCharsLenRangeSet[] = "Password should not contain repeated characters more than %u in length.";
+static L7_char8 pStrErr_base_PasswdConsecutiveCharLenRangeSet[] = "Password should not contain consecutive characters more than %u in length.\r\n";
+static L7_char8 pStrErr_base_PasswdCharacterClassesRangeSet[] = "Password should contain at least %u character classes.";
+static L7_char8 pStrErr_base_PasswdUppercaseLenRangeSet[] = "Password should contain at least %u uppercase letters.";
+static L7_char8 pStrErr_base_PasswdLowercaseLenRangeSet[] = "Password should contain at least %u lowercase letters.";
+static L7_char8 pStrErr_base_PasswdNumericLenRangeSet[] = "Password should contain at least %u numeric characters.";
+static L7_char8 pStrErr_base_PasswdSpecialLenRangeSet[] = "Password should contain at least %u special characters.";
+static L7_char8 pStrErr_base_PasswdExceedUpperCaseMaxLengthSet[] = "Password exceeds uppercase characters maximum length limit %d.";
+static L7_char8 pStrErr_base_PasswdExceedLowerCaseMaxLengthSet[] = "Password exceeds lowercase characters maximum length limit %d.";
+static L7_char8 pStrErr_base_PasswdExceedNumericCharMaxLengthSet[] = "Password exceeds numeric characters maximum length limit %d.";
+static L7_char8 pStrErr_base_PasswdExceedSpecialCharMaxLengthSet[] = "Password exceeds special characters maximum length limit %d.";
+#endif
 
 /*********************************************************************
  * @purpose  Log the Password Set Result

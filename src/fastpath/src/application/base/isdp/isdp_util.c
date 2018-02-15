@@ -1859,6 +1859,8 @@ L7_RC_t isdpAllEntryDelete(void)
 ****************************************************************/
 void isdpDevIdGet(L7_uchar8 *isdp_device_id)
 {
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
   L7_char8  prompt[L7_PROMPT_SIZE];
 
   cliWebGetSystemCommandPrompt(prompt);
@@ -1870,6 +1872,7 @@ void isdpDevIdGet(L7_uchar8 *isdp_device_id)
   {
     sysapiRegistryGet(SERIAL_NUM, STR_ENTRY, (void*)isdp_device_id);
   }
+#endif
 }
 
 /*****************************************************************
@@ -1886,6 +1889,8 @@ void isdpDevIdGet(L7_uchar8 *isdp_device_id)
 ****************************************************************/
 L7_uint32 isdpDevIdFmtGet(void)
 {
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
   L7_char8  prompt[L7_PROMPT_SIZE];
   L7_uint32 isdpCurDevIdFormat;
 
@@ -1900,6 +1905,9 @@ L7_uint32 isdpDevIdFmtGet(void)
   }
 
   return isdpCurDevIdFormat;
+#else
+  return 0;
+#endif
 }
 
 /*********************************************************************

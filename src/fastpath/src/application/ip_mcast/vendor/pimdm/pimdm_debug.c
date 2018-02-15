@@ -1031,6 +1031,128 @@ pimdmDebugMRTShow (L7_uint32 addrFamily, L7_BOOL inBriefFlag,L7_uint32 count)
   return;
 }
 
+/* PTin added: CLI removed */
+#ifndef L7_CLI_PACKAGE
+/*********************************************************************
+* @purpose  CLI helper routine to get interface from user-input
+*
+* @param  **input  @b{(input)) pointer to user-input string
+* @param  *delim   @b{(input)) pointer to the delimiter
+*
+* @returns  Token string
+*
+* @comments
+*
+* @end
+*********************************************************************/
+static L7_char8 *stringSeparateHelp(L7_char8 * * input, const L7_char8 * delim)
+{
+  const L7_char8 * tmp_delim;
+  L7_char8 * tmp_input, * tok;
+    L7_int32 i, j;
+
+    if ((tmp_input = *input) == NULL)
+  {
+    return NULL;
+  }
+
+    for (tok = tmp_input;;)
+  {
+    i = *tmp_input++;
+    tmp_delim = delim;
+    do
+    {
+      if ((j = *tmp_delim++) == i)
+      {
+        if (i == 0)
+        {
+          tmp_input = NULL;
+        }
+        else
+        {
+          *(tmp_input-1) = 0;
+        }
+
+        *input = tmp_input;
+        return tok;
+      }
+    } while (j != 0);
+  }
+}
+
+/*********************************************************************
+* @purpose  Determine specific prefix/prefix_length from user-input
+*
+* @param  *buf   @b{(input)) pointer to user-input string
+* @param  *prefix  @b{(output)) pointer to the prefix index
+* @param  *prefix-len  @b{(output)) pointer to the prefix length index
+*
+* @returns  L7_SUCCESS
+* @returns  L7_FAILURE
+*
+* @comments If stacking is supported, valid input is `<prefix>/<prefix-length>`
+*
+* @end
+*********************************************************************/
+static L7_RC_t validPrefixPrefixLenCheck(const L7_char8 * buf, L7_in6_addr_t * prefix,
+                                         L7_uint32 * prefixLen)
+{
+
+  L7_uint32 buf_len;
+  L7_char8 strIPaddr[L7_CLI_MAX_STRING_LENGTH];
+  L7_char8  tmp_buf[L7_CLI_MAX_STRING_LENGTH];
+  L7_char8 * p, * plen;
+
+  L7_char8 * input;
+  const L7_char8 * slash = "/";
+  const L7_char8 * end = "";
+
+  buf_len = (L7_uint32)strlen(buf);
+  if (strlen(buf) >= sizeof(tmp_buf))
+  {
+    return L7_FAILURE;
+  }
+
+  memset (tmp_buf, 0, (L7_int32)sizeof(tmp_buf));
+  memcpy(tmp_buf, buf, buf_len);
+
+  if (strcmp(tmp_buf, "") == 0)
+  {
+    return L7_FAILURE;
+  }
+
+  input = tmp_buf;
+  p = stringSeparateHelp(&input, slash);
+  plen= stringSeparateHelp(&input, end);
+
+  if (p != '\0')
+  {
+     if (strlen(p) >= sizeof(strIPaddr))
+    {
+      return L7_FAILURE;
+    }
+
+    OSAPI_STRNCPY_SAFE(strIPaddr, p);
+  }
+  if(osapiInetPton(L7_AF_INET6,strIPaddr, (L7_uchar8 *) prefix) != L7_SUCCESS)
+  {
+    return L7_FAILURE;
+  }
+
+  if (plen == L7_NULLPTR || convertTo32BitUnsignedInteger(plen, prefixLen) != L7_SUCCESS)
+  {
+    return L7_FAILURE;
+  }
+
+/* Put specific prefix range checking here
+      return L7_ERROR;                     */
+
+  return L7_SUCCESS;
+
+}
+#endif /*#ifndef L7_CLI_PACKAGE*/
+
+
 /*********************************************************************
 *
 * @purpose  To display the info of the MRT (S,G) Tree Database
@@ -1093,12 +1215,20 @@ pimdmDebugMRTSrcGrpShow (L7_uint32 addrFamily,
       L7_char8 srcAddrStr[L7_CLI_MAX_STRING_LENGTH];
       L7_uint32 maskLen;
       L7_in6_addr_t srcAddrV6;
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
       extern L7_RC_t cliValidPrefixPrefixLenCheck(const L7_char8 * buf, L7_in6_addr_t * prefix, L7_uint32 * prefixLen);
+#endif
 
       /* srcAddr */
       memset (srcAddrStr, 0, sizeof(srcAddrStr));
       OSAPI_STRNCPY_SAFE (srcAddrStr, srcAddr);
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
       if (cliValidPrefixPrefixLenCheck (srcAddrStr, &srcAddrV6, &maskLen) != L7_SUCCESS)
+#else
+      if (validPrefixPrefixLenCheck (srcAddrStr, &srcAddrV6, &maskLen) != L7_SUCCESS)
+#endif
       {
         sysapiPrintf("Invalid srcAddr.\n");
         return;
@@ -1108,7 +1238,12 @@ pimdmDebugMRTSrcGrpShow (L7_uint32 addrFamily,
       /* grpAddr */
       memset (srcAddrStr, 0, sizeof(srcAddrStr));
       OSAPI_STRNCPY_SAFE (srcAddrStr, srcAddr);
+/* PTin added: CLI removed */
+#ifdef L7_CLI_PACKAGE
       if (cliValidPrefixPrefixLenCheck (srcAddrStr, &srcAddrV6, &maskLen) != L7_SUCCESS)
+#else
+      if (validPrefixPrefixLenCheck (srcAddrStr, &srcAddrV6, &maskLen) != L7_SUCCESS)
+#endif
       {
         sysapiPrintf("Invalid srcAddr.\n");
         return;
