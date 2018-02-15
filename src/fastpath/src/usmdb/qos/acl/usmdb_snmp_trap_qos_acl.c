@@ -41,7 +41,11 @@
 L7_RC_t usmDbSnmpQosAclRuleLogEventTrapSend(L7_uint32 UnitIndex,
                                             SNMP_QOS_ACL_RULE_LOG_EVENT_TRAP_t *pTrapData)
 {
+#ifndef L7_SNMP_PACKAGE
+    return L7_SUCCESS;
+#else
     return SnmpQosAclRuleLogEventTrapSend(pTrapData);
+#endif
 }
 
 /*********************************************************************
@@ -62,5 +66,9 @@ L7_RC_t usmDbSnmpQosAclRuleLogEventTrapSend(L7_uint32 UnitIndex,
 L7_RC_t usmDbSnmpQosAclRuleTimeRangeEventTrapSend(L7_uint32 UnitIndex,
                                             SNMP_QOS_ACL_RULE_TIMERANGE_EVENT_TRAP_t *pTrapData)
 {
+#ifndef L7_SNMP_PACKAGE
+    return L7_SUCCESS;
+#else
     return SnmpQosAclRuleTimeRangeEventTrapSend(pTrapData);
+#endif
 }

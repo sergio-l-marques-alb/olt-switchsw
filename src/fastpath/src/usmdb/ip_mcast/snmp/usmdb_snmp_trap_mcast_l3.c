@@ -30,12 +30,20 @@
 
 L7_RC_t usmDbSnmpDvmrpTrapNeighborNotPruningTrapSend(L7_uint32 UnitIndex, L7_uint32 dvmrpInfLocalAddress, L7_uint32 dvmrpNeighborCapabilities)
 {
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
     return SnmpDvmrpNeighborNotPruningTrapSend(dvmrpInfLocalAddress, dvmrpNeighborCapabilities);
+#endif
 }
 
 L7_RC_t usmDbSnmpDvmrpTrapNeighborLossTrapSend(L7_uint32 UnitIndex, L7_uint32 dvmrpInfLocalAddress, L7_int32 dvmrpNeighborState)
 {
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
     return SnmpDvmrpNeighborLossTrapSend(dvmrpInfLocalAddress, dvmrpNeighborState);
+#endif
 }
              
 /*********************************************************************
@@ -55,7 +63,11 @@ L7_RC_t usmDbSnmpDvmrpTrapNeighborLossTrapSend(L7_uint32 UnitIndex, L7_uint32 dv
 *********************************************************************/
 L7_RC_t usmDbSnmpPimNeighborLossTrapSend(L7_uint32 UnitIndex, L7_uint32 pimNeighborLossIfIndex, L7_uint32 pimNeighborUpTime, L7_BOOL isPimSm)
 {
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
     return SnmpPimNeighborLossTrapSend(pimNeighborUpTime);
+#endif
 }
 
 /*********************************************************************
@@ -76,7 +88,11 @@ L7_RC_t usmDbSnmpPimNeighborLossTrapSend(L7_uint32 UnitIndex, L7_uint32 pimNeigh
 *********************************************************************/
 L7_RC_t usmDbSnmpDvmrpNeighborNotPruningTrapSend(L7_uint32 UnitIndex, L7_uint32 dvmrpInfLocalAddress, L7_uint32 dvmrpNeighborCapabilities)
 {
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
     return SnmpDvmrpNeighborNotPruningTrapSend(dvmrpInfLocalAddress, dvmrpNeighborCapabilities);
+#endif
 }
 
 /*********************************************************************
@@ -97,6 +113,10 @@ L7_RC_t usmDbSnmpDvmrpNeighborNotPruningTrapSend(L7_uint32 UnitIndex, L7_uint32 
 *********************************************************************/
 L7_RC_t usmDbSnmpDvmrpNeighborLossTrapSend(L7_uint32 UnitIndex, L7_uint32 dvmrpInfLocalAddress, L7_int32 dvmrpNeighborState)
 {
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
     return SnmpDvmrpNeighborLossTrapSend(dvmrpInfLocalAddress, dvmrpNeighborState);
+#endif
 }
 

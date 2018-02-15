@@ -549,13 +549,16 @@ L7_RC_t usmDbCtrlClearTrapLogSwSet(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbTrapManagerEntryIpGet(L7_uint32 UnitIndex, L7_uint32 Index)
 {
+#ifdef L7_SNMP_PACKAGE
   L7_uint32 status;
   /* check to see if it's a valid access entry */
   if (Index >= 0 && Index < L7_MAX_SNMP_COMM &&
       SnmpTrapMgrStatusGet(Index, &status) == L7_SUCCESS && status != L7_SNMP_TRAP_MGR_STATUS_DELETE)
     return L7_SUCCESS;
-
   return L7_FAILURE;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -576,6 +579,7 @@ L7_RC_t usmDbTrapManagerEntryIpGet(L7_uint32 UnitIndex, L7_uint32 Index)
 *********************************************************************/
 L7_RC_t usmDbTrapManagerEntryIpNext(L7_uint32 UnitIndex, L7_uint32 *Index)
 {
+#ifdef L7_SNMP_PACKAGE
   L7_uint32 status;
 
   for (*Index += 1; *Index < L7_MAX_SNMP_COMM; *Index += 1)
@@ -584,6 +588,9 @@ L7_RC_t usmDbTrapManagerEntryIpNext(L7_uint32 UnitIndex, L7_uint32 *Index)
     return L7_SUCCESS;
   }
   return(L7_FAILURE);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -605,7 +612,11 @@ L7_RC_t usmDbTrapManagerEntryIpNext(L7_uint32 UnitIndex, L7_uint32 *Index)
 *********************************************************************/
 L7_RC_t usmDbTrapManagerCommIpGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char8 *buf)
 {
+#ifdef L7_SNMP_PACKAGE
   return SnmpTrapMgrCommunityGet(Index, buf);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -629,7 +640,12 @@ L7_RC_t usmDbTrapManagerCommIpGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char8
 *********************************************************************/
 L7_RC_t usmDbTrapManagerStatusIpGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uint32 *val)
 {
+#ifdef L7_SNMP_PACKAGE
   return SnmpTrapMgrStatusGet(Index, val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
+
 }
 
 
@@ -653,7 +669,11 @@ L7_RC_t usmDbTrapManagerStatusIpGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uin
 *********************************************************************/
 L7_RC_t usmDbTrapManagerVersionGet(L7_uint32 UnitIndex, L7_uint32 Index, snmpTrapVer_t *val)
 {
+#ifdef L7_SNMP_PACKAGE
   return SnmpTrapMgrVersionGet(Index, val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -678,7 +698,11 @@ L7_RC_t usmDbTrapManagerVersionGet(L7_uint32 UnitIndex, L7_uint32 Index, snmpTra
 *********************************************************************/
 L7_RC_t usmDbTrapManagerCommIpSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char8 *buf)
 {
+#ifdef L7_SNMP_PACKAGE
   return SnmpTrapMgrCommunitySet(Index, buf);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -702,7 +726,11 @@ L7_RC_t usmDbTrapManagerCommIpSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char8
 *********************************************************************/
 L7_RC_t usmDbTrapManagerStatusIpSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uint32 val)
 {
+#ifdef L7_SNMP_PACKAGE
   return SnmpTrapMgrStatusSet(Index, val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -725,7 +753,11 @@ L7_RC_t usmDbTrapManagerStatusIpSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uin
 *********************************************************************/
 L7_RC_t usmDbTrapManagerVersionSet(L7_uint32 UnitIndex, L7_uint32 Index, snmpTrapVer_t val)
 {
+#ifdef L7_SNMP_PACKAGE
   return SnmpTrapMgrVersionSet(Index, val);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -766,6 +798,7 @@ L7_RC_t usmDbCtrlClearTrapLogSwGet(L7_uint32 UnitIndex, L7_uint32 *val)
 *********************************************************************/
 L7_RC_t usmDbTrapManagerIpAddrSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char8 *ip_address)
 {
+#ifdef L7_SNMP_PACKAGE
   L7_uint32 inetint;
   L7_RC_t rc;
   rc = usmDbInetAton(ip_address, &inetint);
@@ -778,6 +811,9 @@ L7_RC_t usmDbTrapManagerIpAddrSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char8
     return SnmpTrapMgrIpAddrSet(Index, inetint);
   }
   return L7_FAILURE;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -799,6 +835,7 @@ L7_RC_t usmDbTrapManagerIpAddrSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char8
 *********************************************************************/
 L7_RC_t usmDbTrapManagerIPv6AddrSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_in6_addr_t *ipv6_address)
 {
+#ifdef L7_SNMP_PACKAGE
   L7_inet_addr_t inetAddr;
   inetAddressSet (L7_AF_INET6, ipv6_address, &inetAddr);
 
@@ -807,6 +844,9 @@ L7_RC_t usmDbTrapManagerIPv6AddrSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_in6
     return SnmpTrapMgrIPv6AddrSet(Index, ipv6_address);
   }
   return L7_FAILURE;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -828,11 +868,15 @@ L7_RC_t usmDbTrapManagerIPv6AddrSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_in6
 *********************************************************************/
 L7_RC_t usmDbTrapManagerIpAddrRawSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uint32 ip_address)
 {
+#ifdef L7_SNMP_PACKAGE
   if (usmDbNetworkAddressValidate(ip_address) == L7_SUCCESS)
   {
     return SnmpTrapMgrIpAddrSet(Index, ip_address);
   }
   return L7_FAILURE;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -903,7 +947,11 @@ L7_RC_t usmDbTrapManagerIpAddrTypeSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_u
 *********************************************************************/
 L7_RC_t usmDbTrapManagerIpAddrGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uint32 *ip_address)
 {
+#ifdef L7_SNMP_PACKAGE
   return SnmpTrapMgrIpAddrGet(Index, ip_address);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -924,7 +972,11 @@ L7_RC_t usmDbTrapManagerIpAddrGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uint3
 *********************************************************************/
 L7_RC_t usmDbTrapManagerIPv6AddrGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_in6_addr_t *ipv6_address)
 {
+#ifdef L7_SNMP_PACKAGE
   return SnmpTrapMgrIPv6AddrGet(Index, ipv6_address);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 
@@ -2103,5 +2155,9 @@ L7_RC_t usmDbTrapMgrUnitMgrSfsFailTrapSend(L7_int32 unitNumber)
 *********************************************************************/
 L7_RC_t usmdbTrapLogemailAlertSendEmailFailureTrap(L7_uint32  noEmailFailures)
 {
+#ifdef L7_SNMP_PACKAGE
   return trapMgrLogemailAlertSendEmailFailureTrapSend(noEmailFailures);
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }

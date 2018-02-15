@@ -247,10 +247,12 @@
 #endif
 */
 
+#if 1
 /* CLI definitions */
 #ifndef _INCLUDE_CLI_COMPONENT_API_
 #define _INCLUDE_CLI_COMPONENT_API_
 #define L7_CLI_PACKAGE 1
+#endif
 #endif
 
 #if 0

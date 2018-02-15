@@ -53,6 +53,9 @@
 *********************************************************************/
 L7_RC_t usmDbSnmpCommunityEntryGet(L7_uint32 UnitIndex, L7_uint32 Index)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   L7_uint32 status;
 
   /* check to see if it's a valid access entry */
@@ -61,6 +64,7 @@ L7_RC_t usmDbSnmpCommunityEntryGet(L7_uint32 UnitIndex, L7_uint32 Index)
     return L7_SUCCESS;
 
   return L7_FAILURE;
+#endif
 }
 
 
@@ -82,6 +86,9 @@ L7_RC_t usmDbSnmpCommunityEntryGet(L7_uint32 UnitIndex, L7_uint32 Index)
 *********************************************************************/
 L7_RC_t usmDbSnmpCommunityEntryNext(L7_uint32 UnitIndex, L7_uint32 *Index)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   L7_uint32 status;
     
   for (*Index += 1; *Index < L7_MAX_SNMP_COMM; *Index += 1)
@@ -91,6 +98,7 @@ L7_RC_t usmDbSnmpCommunityEntryNext(L7_uint32 UnitIndex, L7_uint32 *Index)
     return L7_SUCCESS;
   }
   return(L7_FAILURE);
+#endif
 }
 
 
@@ -112,7 +120,11 @@ L7_RC_t usmDbSnmpCommunityEntryNext(L7_uint32 UnitIndex, L7_uint32 *Index)
 *********************************************************************/
 L7_RC_t usmDbSnmpCommunityNameGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char8 *buf)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpCommunityNameGet(Index, buf);
+#endif
 }
 
 
@@ -134,7 +146,11 @@ L7_RC_t usmDbSnmpCommunityNameGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char8
 *********************************************************************/
 L7_RC_t usmDbSnmpCommunityNameSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char8 *buf)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpCommunityNameSet(Index, buf);
+#endif
 }
 
 
@@ -156,7 +172,11 @@ L7_RC_t usmDbSnmpCommunityNameSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char8
 *********************************************************************/
 L7_RC_t usmDbSnmpCommunityOwnerGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char8 *buf)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpCommunityOwnerGet(Index, buf);
+#endif
 }
 
 
@@ -178,7 +198,11 @@ L7_RC_t usmDbSnmpCommunityOwnerGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char
 *********************************************************************/
 L7_RC_t usmDbSnmpCommunityOwnerSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char8 *buf)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpCommunityOwnerSet(Index, buf);
+#endif
 }
 
 
@@ -200,7 +224,11 @@ L7_RC_t usmDbSnmpCommunityOwnerSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_char
 *********************************************************************/
 L7_RC_t usmDbSnmpCommunityIpAddrGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uint32 *val)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpCommunityIpAddrGet(Index, val);
+#endif
 }
 
 
@@ -222,7 +250,11 @@ L7_RC_t usmDbSnmpCommunityIpAddrGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uin
 *********************************************************************/
 L7_RC_t usmDbSnmpCommunityIpAddrSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uint32 val)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpCommunityIpAddrSet(Index, val);
+#endif
 }
 
 
@@ -244,7 +276,11 @@ L7_RC_t usmDbSnmpCommunityIpAddrSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uin
 *********************************************************************/
 L7_RC_t usmDbSnmpCommunityIpMaskGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uint32 *val)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpCommunityIpMaskGet(Index, val);
+#endif
 }
 
 
@@ -266,7 +302,11 @@ L7_RC_t usmDbSnmpCommunityIpMaskGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uin
 *********************************************************************/
 L7_RC_t usmDbSnmpCommunityIpMaskSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uint32 val)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpCommunityIpMaskSet(Index, val);
+#endif
 }
 
 
@@ -288,7 +328,11 @@ L7_RC_t usmDbSnmpCommunityIpMaskSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uin
 *********************************************************************/
 L7_RC_t usmDbSnmpCommunityAccessLevelGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uint32 *val)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpCommunityAccessLevelGet(Index, val);
+#endif
 }
 
 
@@ -310,7 +354,11 @@ L7_RC_t usmDbSnmpCommunityAccessLevelGet(L7_uint32 UnitIndex, L7_uint32 Index, L
 *********************************************************************/
 L7_RC_t usmDbSnmpCommunityAccessLevelSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uint32 val)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpCommunityAccessLevelSet(Index, val);
+#endif
 }
 
 
@@ -332,7 +380,11 @@ L7_RC_t usmDbSnmpCommunityAccessLevelSet(L7_uint32 UnitIndex, L7_uint32 Index, L
 *********************************************************************/
 L7_RC_t usmDbSnmpCommunityStatusGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uint32 *val)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpCommunityStatusGet(Index, val);
+#endif
 }
 
 
@@ -354,7 +406,11 @@ L7_RC_t usmDbSnmpCommunityStatusGet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uin
 *********************************************************************/
 L7_RC_t usmDbSnmpCommunityStatusSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uint32 val)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpCommunityStatusSet(Index, val);
+#endif
 }
 
 /*********************************************************************
@@ -377,7 +433,11 @@ L7_RC_t usmDbSnmpCommunityStatusSet(L7_uint32 UnitIndex, L7_uint32 Index, L7_uin
 L7_RC_t 
 usmDbSnmpUserSet(L7_uint32 UnitIndex, L7_uchar8 *userName, L7_uint32 accessLevel, L7_uint32 authProtocol, L7_uint32 privProtocol, L7_uchar8 *authKey, L7_uchar8 *privKey)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpUserSet(userName, accessLevel, authProtocol, privProtocol, authKey, privKey, L7_FALSE);
+#endif
 }
 
 /*********************************************************************
@@ -398,7 +458,11 @@ usmDbSnmpUserSet(L7_uint32 UnitIndex, L7_uchar8 *userName, L7_uint32 accessLevel
 L7_RC_t 
 usmDbSnmpUserDelete(L7_uint32 UnitIndex, L7_uchar8 *userName, L7_uint32 accessLevel, L7_uint32 authProtocol, L7_uint32 privProtocol)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpUserDelete(userName, accessLevel, authProtocol, privProtocol);
+#endif
 }
 
 /*********************************************************************
@@ -416,7 +480,11 @@ usmDbSnmpUserDelete(L7_uint32 UnitIndex, L7_uchar8 *userName, L7_uint32 accessLe
 *********************************************************************/
 L7_BOOL usmDbSnmpUserTableHasEncryption(L7_uint32 UnitIndex)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_FALSE;
+#else
   return SnmpUserTableHasEncryption();
+#endif
 }
 
 /*********************************************************************
@@ -431,7 +499,11 @@ L7_BOOL usmDbSnmpUserTableHasEncryption(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_uint32 usmDbSnmpStatusGet(L7_uint32 UnitIndex)
 {
+#ifndef L7_SNMP_PACKAGE
+  return 0;
+#else
   return SnmpStatusGet();
+#endif
 }
 
 /*********************************************************************
@@ -449,7 +521,11 @@ L7_uint32 usmDbSnmpStatusGet(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpSupportedMibTableEntryGet(L7_uint32 UnitIndex, L7_uint32 index )
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpSupportedMibTableEntryGet(index);
+#endif
 }
 
 /*********************************************************************
@@ -467,7 +543,11 @@ L7_RC_t usmDbSnmpSupportedMibTableEntryGet(L7_uint32 UnitIndex, L7_uint32 index 
 *********************************************************************/
 L7_RC_t usmDbSnmpSupportedMibTableEntryNextGet(L7_uint32 UnitIndex, L7_uint32 *index )
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpSupportedMibTableEntryNextGet(index);
+#endif
 }
 
 /*********************************************************************
@@ -490,7 +570,11 @@ L7_RC_t usmDbSnmpSupportedMibTableEntryNextGet(L7_uint32 UnitIndex, L7_uint32 *i
 *********************************************************************/
 L7_RC_t usmDbSnmpSupportedMibTableEntryCreate(L7_uint32 UnitIndex, L7_char8 mibName[], L7_char8 mibDescription[], L7_char8 midOID[] )
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpSupportedMibTableEntryCreate(mibName,mibDescription,midOID);
+#endif
 }
 
 /*********************************************************************
@@ -509,7 +593,11 @@ L7_RC_t usmDbSnmpSupportedMibTableEntryCreate(L7_uint32 UnitIndex, L7_char8 mibN
 *********************************************************************/
 L7_RC_t usmDbSnmpSupportedMibTableMibNameGet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 *buf)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpSupportedMibTableMibNameGet(index, buf);
+#endif
 }
 
 /*********************************************************************
@@ -528,7 +616,11 @@ L7_RC_t usmDbSnmpSupportedMibTableMibNameGet(L7_uint32 UnitIndex, L7_uint32 inde
 *********************************************************************/
 L7_RC_t usmDbSnmpSupportedMibTableMibDescriptionGet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 *buf)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpSupportedMibTableMibDescriptionGet(index, buf);
+#endif
 }
 
 /*********************************************************************
@@ -549,7 +641,11 @@ L7_RC_t usmDbSnmpSupportedMibTableMibDescriptionGet(L7_uint32 UnitIndex, L7_uint
 L7_RC_t
 usmDbSnmpSupportedMibTableMibOIDGet(L7_uint32 UnitIndex, L7_uint32 index, L7_char8 *buf)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpSupportedMibTableMibOIDGet(index, buf);
+#endif
 }
 
 /*********************************************************************
@@ -569,7 +665,11 @@ usmDbSnmpSupportedMibTableMibOIDGet(L7_uint32 UnitIndex, L7_uint32 index, L7_cha
 L7_RC_t
 usmDbSnmpSupportedMibTableMibEntryCreationTimeGet(L7_uint32 UnitIndex, L7_uint32 index, L7_uint32 *createTime)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpSupportedMibTableMibEntryCreationTimeGet(index, createTime);
+#endif
 }
 
 /*********************************************************************
@@ -587,7 +687,11 @@ usmDbSnmpSupportedMibTableMibEntryCreationTimeGet(L7_uint32 UnitIndex, L7_uint32
 L7_RC_t
 usmDbSnmpSupportedMibTableLastChangeTimeGet(L7_uint32 UnitIndex, L7_uint32 *lastChangeTime)
 {
+#ifndef L7_SNMP_PACKAGE
+  return L7_NOT_SUPPORTED;
+#else
   return SnmpSupportedMibTableLastChangeTimeGet(lastChangeTime);
+#endif
 }
 
 /* End Function Declarations */

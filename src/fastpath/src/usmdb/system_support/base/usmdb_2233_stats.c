@@ -434,7 +434,11 @@ L7_RC_t usmDbIfInDiscardsGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32
 
 L7_RC_t usmDbSnmpIfInDiscardsGet(L7_uint32 UnitIndex, L7_uint32 interface, L7_uint32 *val)
 {
-  return usmDbStatGet(UnitIndex, L7_CTR_SNMPIFINDISCARD_FRAMES, interface, val);
+#ifndef L7_SNMP_PACKAGE
+    return L7_SUCCESS;
+#else
+    return usmDbStatGet(UnitIndex, L7_CTR_SNMPIFINDISCARD_FRAMES, interface, val);
+#endif
 }
 
 /*********************************************************************

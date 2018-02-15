@@ -53,7 +53,11 @@
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfIfStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfIfIpAddress, L7_uint32 intIfNum, L7_uint32 ospfIfState)
 {
-   return SnmpOspfIfStateChangeTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfIfState);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfIfStateChangeTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfIfState);
+#endif
 }
 
 /*********************************************************************
@@ -77,7 +81,11 @@ L7_RC_t usmDbSnmpOspfIfStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRo
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfVirtIfStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfVirtIfAreaId, L7_uint32 ospfVirtIfNeighbor, L7_uint32 ospfVirtIfState)
 {
-   return SnmpOspfVirtIfStateChangeTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfVirtIfState);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfVirtIfStateChangeTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfVirtIfState);
+#endif
 }
 
 /*********************************************************************
@@ -115,7 +123,11 @@ L7_RC_t usmDbSnmpOspfVirtIfStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 os
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfNbrStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfNbrIpAddr, L7_uint32 intIfNum, L7_uint32 ospfNbrRtrId, L7_uint32 ospfNbrState)
 {
-   return SnmpOspfNbrStateChangeTrapSend(ospfRouterId, ospfNbrIpAddr, intIfNum, ospfNbrRtrId, ospfNbrState);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfNbrStateChangeTrapSend(ospfRouterId, ospfNbrIpAddr, intIfNum, ospfNbrRtrId, ospfNbrState);
+#endif
 }
 
 /*********************************************************************
@@ -145,7 +157,11 @@ L7_RC_t usmDbSnmpOspfNbrStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfR
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfVirtNbrStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfVirtNbrArea, L7_uint32 ospfVirtNbrRtrId, L7_uint32 ospfVirtNbrState)
 {
-   return SnmpOspfVirtNbrStateChangeTrapSend(ospfRouterId, ospfVirtNbrArea, ospfVirtNbrRtrId, ospfVirtNbrState);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfVirtNbrStateChangeTrapSend(ospfRouterId, ospfVirtNbrArea, ospfVirtNbrRtrId, ospfVirtNbrState);
+#endif
 }
 
 /*********************************************************************
@@ -171,7 +187,11 @@ L7_RC_t usmDbSnmpOspfVirtNbrStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 o
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfIfConfigErrorTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfIfIpAddress, L7_uint32 intIfNum, L7_uint32 ospfPacketSrc, L7_uint32 ospfConfigErrorType, L7_uint32 ospfPacketType)
 {
-   return SnmpOspfIfConfigErrorTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfPacketSrc, ospfConfigErrorType, ospfPacketType);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfIfConfigErrorTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfPacketSrc, ospfConfigErrorType, ospfPacketType);
+#endif
 }
 
 /*********************************************************************
@@ -196,7 +216,11 @@ L7_RC_t usmDbSnmpOspfIfConfigErrorTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRo
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfVirtIfConfigErrorTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfVirtIfAreaId, L7_uint32 ospfVirtIfNeighbor, L7_uint32 ospfConfigErrorType, L7_uint32 ospfPacketType)
 {
-   return SnmpOspfVirtIfConfigErrorTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfConfigErrorType, ospfPacketType);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfVirtIfConfigErrorTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfConfigErrorType, ospfPacketType);
+#endif
 }
 
 /*********************************************************************
@@ -222,7 +246,11 @@ L7_RC_t usmDbSnmpOspfVirtIfConfigErrorTrapSend(L7_uint32 UnitIndex, L7_uint32 os
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfIfAuthFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfIfIpAddress, L7_uint32 intIfNum, L7_uint32 ospfPacketSrc, L7_uint32 ospfConfigErrorType, L7_uint32 ospfPacketType)
 {
-   return SnmpOspfIfAuthFailureTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfPacketSrc, ospfConfigErrorType, ospfPacketType);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfIfAuthFailureTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfPacketSrc, ospfConfigErrorType, ospfPacketType);
+#endif
 }
 
 /*********************************************************************
@@ -247,7 +275,11 @@ L7_RC_t usmDbSnmpOspfIfAuthFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRo
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfVirtIfAuthFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfVirtIfAreaId, L7_uint32 ospfVirtIfNeighbor, L7_uint32 ospfConfigErrorType, L7_uint32 ospfPacketType)
 {
-   return SnmpOspfVirtIfAuthFailureTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfConfigErrorType, ospfPacketType);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfVirtIfAuthFailureTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfConfigErrorType, ospfPacketType);
+#endif
 }
 
 /*********************************************************************
@@ -270,7 +302,11 @@ L7_RC_t usmDbSnmpOspfVirtIfAuthFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 os
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfIfRxBadPacketTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfIfIpAddress, L7_uint32 intIfNum, L7_uint32 ospfPacketSrc, L7_uint32 ospfPacketType)
 {
-   return SnmpOspfIfRxBadPacketTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfPacketSrc, ospfPacketType);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfIfRxBadPacketTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfPacketSrc, ospfPacketType);
+#endif
 }
 
 /*********************************************************************
@@ -292,7 +328,11 @@ L7_RC_t usmDbSnmpOspfIfRxBadPacketTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRo
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfVirtIfRxBadPacketTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfVirtIfAreaId, L7_uint32 ospfVirtIfNeighbor, L7_uint32 ospfPacketType)
 {
-   return SnmpOspfVirtIfRxBadPacketTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfPacketType);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfVirtIfRxBadPacketTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfPacketType);
+#endif
 }
 
 /*********************************************************************
@@ -320,7 +360,11 @@ L7_RC_t usmDbSnmpOspfVirtIfRxBadPacketTrapSend(L7_uint32 UnitIndex, L7_uint32 os
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfTxRetransmitTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfIfIpAddress, L7_uint32 intIfNum, L7_uint32 ospfNbrRtrId, L7_uint32 ospfPacketType, L7_uint32 ospfLsdbType, L7_uint32 ospfLsdbLsid, L7_uint32 ospfLsdbRouterId)
 {
-   return SnmpOspfTxRetransmitTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfNbrRtrId, ospfPacketType, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfTxRetransmitTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfNbrRtrId, ospfPacketType, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId);
+#endif
 }
 
 /*********************************************************************
@@ -347,7 +391,11 @@ L7_RC_t usmDbSnmpOspfTxRetransmitTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRou
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfVirtTxRetransmitTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfVirtIfAreaId, L7_uint32 ospfVirtIfNeighbor, L7_uint32 ospfPacketType, L7_uint32 ospfLsdbType, L7_uint32 ospfLsdbLsid, L7_uint32 ospfLsdbRouterId)
 {
-   return SnmpOspfVirtTxRetransmitTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfPacketType, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfVirtTxRetransmitTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfPacketType, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId);
+#endif
 }
 
 /*********************************************************************
@@ -375,7 +423,11 @@ L7_RC_t usmDbSnmpOspfVirtTxRetransmitTrapSend(L7_uint32 UnitIndex, L7_uint32 osp
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfOriginateLsaTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfLsdbAreaId, L7_uint32 ospfLsdbType, L7_uint32 ospfLsdbLsid, L7_uint32 ospfLsdbRouterId)
 {
-   return SnmpOspfOriginateLsaTrapSend(ospfRouterId, ospfLsdbAreaId, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfOriginateLsaTrapSend(ospfRouterId, ospfLsdbAreaId, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId);
+#endif
 }
 
 /*********************************************************************
@@ -398,7 +450,11 @@ L7_RC_t usmDbSnmpOspfOriginateLsaTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRou
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfMaxAgeLsaTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfLsdbAreaId, L7_uint32 ospfLsdbType, L7_uint32 ospfLsdbLsid, L7_uint32 ospfLsdbRouterId)
 {
-   return SnmpOspfMaxAgeLsaTrapSend(ospfRouterId, ospfLsdbAreaId, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfMaxAgeLsaTrapSend(ospfRouterId, ospfLsdbAreaId, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId);
+#endif
 }
 
 /*********************************************************************
@@ -418,7 +474,11 @@ L7_RC_t usmDbSnmpOspfMaxAgeLsaTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouter
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfLsdbOverflowTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfExtLsdbLimit)
 {
-   return SnmpOspfLsdbOverflowTrapSend(ospfRouterId, ospfExtLsdbLimit);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfLsdbOverflowTrapSend(ospfRouterId, ospfExtLsdbLimit);
+#endif
 }
 
 /*********************************************************************
@@ -439,7 +499,11 @@ L7_RC_t usmDbSnmpOspfLsdbOverflowTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRou
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfLsdbApproachingOverflowTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfExtLsdbLimit)
 {
-   return SnmpOspfLsdbApproachingOverflowTrapSend(ospfRouterId, ospfExtLsdbLimit);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpOspfLsdbApproachingOverflowTrapSend(ospfRouterId, ospfExtLsdbLimit);
+#endif
 }
 #endif
 
@@ -461,7 +525,11 @@ L7_RC_t usmDbSnmpOspfLsdbApproachingOverflowTrapSend(L7_uint32 UnitIndex, L7_uin
 *********************************************************************/
 L7_RC_t usmDbSnmpVrrpTrapNewMasterTrapSend(L7_uint32 UnitIndex, L7_uint32 vrrpOperMasterIpAddr)
 {
-  return SnmpVrrpTrapNewMasterTrapSend(vrrpOperMasterIpAddr);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpVrrpTrapNewMasterTrapSend(vrrpOperMasterIpAddr);
+#endif
 }
 
 /*********************************************************************
@@ -482,7 +550,7 @@ L7_RC_t usmDbSnmpVrrpTrapNewMasterTrapSend(L7_uint32 UnitIndex, L7_uint32 vrrpOp
 *********************************************************************/
 L7_RC_t usmDbSnmpVrrpTrapAuthFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 vrrpTrapPacketSrc, L7_int32 vrrpTrapAuthErrorType)
 {
-  return SnmpVrrpTrapAuthFailureTrapSend(vrrpTrapPacketSrc, vrrpTrapAuthErrorType);
+    return SnmpVrrpTrapAuthFailureTrapSend(vrrpTrapPacketSrc, vrrpTrapAuthErrorType);
 }
 #endif
 /* End Function Declarations */
@@ -490,57 +558,61 @@ L7_RC_t usmDbSnmpVrrpTrapAuthFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 vrrp
 
 L7_RC_t usmDbTestSnmpOspfTrapSend(L7_uint32 UnitIndex)
 {
-  L7_RC_t rc = L7_SUCCESS;
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    L7_RC_t rc = L7_SUCCESS;
 
-  if (usmDbSnmpOspfIfStateChangeTrapSend(UnitIndex, 1, 2, 3, 4) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfIfStateChangeTrapSend(UnitIndex, 1, 2, 3, 4) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfVirtIfStateChangeTrapSend(UnitIndex, 1, 2, 3, 4) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfVirtIfStateChangeTrapSend(UnitIndex, 1, 2, 3, 4) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfNbrStateChangeTrapSend(UnitIndex, 1, 2, 3, 4, 5) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfNbrStateChangeTrapSend(UnitIndex, 1, 2, 3, 4, 5) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfVirtNbrStateChangeTrapSend(UnitIndex, 1, 2, 3, 4) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfVirtNbrStateChangeTrapSend(UnitIndex, 1, 2, 3, 4) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfIfConfigErrorTrapSend(UnitIndex, 1, 2, 3, 4, 5, 6) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfIfConfigErrorTrapSend(UnitIndex, 1, 2, 3, 4, 5, 6) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfVirtIfConfigErrorTrapSend(UnitIndex, 1, 2, 3, 4, 5) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfVirtIfConfigErrorTrapSend(UnitIndex, 1, 2, 3, 4, 5) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfIfAuthFailureTrapSend(UnitIndex, 1, 2, 3, 4, 5, 6) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfIfAuthFailureTrapSend(UnitIndex, 1, 2, 3, 4, 5, 6) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfVirtIfAuthFailureTrapSend(UnitIndex, 1, 2, 3, 4, 5) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfVirtIfAuthFailureTrapSend(UnitIndex, 1, 2, 3, 4, 5) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfIfRxBadPacketTrapSend(UnitIndex, 1, 2, 3, 4, 5) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfIfRxBadPacketTrapSend(UnitIndex, 1, 2, 3, 4, 5) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfVirtIfRxBadPacketTrapSend(UnitIndex, 1, 2, 3, 4) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfVirtIfRxBadPacketTrapSend(UnitIndex, 1, 2, 3, 4) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfTxRetransmitTrapSend(UnitIndex, 1, 2, 3, 4, 5, 6, 7, 1) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfTxRetransmitTrapSend(UnitIndex, 1, 2, 3, 4, 5, 6, 7, 1) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfVirtTxRetransmitTrapSend(UnitIndex, 1, 2, 3, 4, 5, 6, 7) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfVirtTxRetransmitTrapSend(UnitIndex, 1, 2, 3, 4, 5, 6, 7) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfOriginateLsaTrapSend(UnitIndex, 1, 2, 3, 4, 5) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfOriginateLsaTrapSend(UnitIndex, 1, 2, 3, 4, 5) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfMaxAgeLsaTrapSend(UnitIndex, 1, 2, 3, 4, 5) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfMaxAgeLsaTrapSend(UnitIndex, 1, 2, 3, 4, 5) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfLsdbOverflowTrapSend(UnitIndex, 1, 2) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfLsdbOverflowTrapSend(UnitIndex, 1, 2) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  if (usmDbSnmpOspfLsdbApproachingOverflowTrapSend(UnitIndex, 1, 2) == L7_FAILURE)
-    rc = L7_FAILURE;
+    if (usmDbSnmpOspfLsdbApproachingOverflowTrapSend(UnitIndex, 1, 2) == L7_FAILURE)
+      rc = L7_FAILURE;
 
-  return rc;
+    return rc;
+#endif
 }
 #endif
 #ifdef  L7_IPV6_PACKAGE
@@ -565,8 +637,8 @@ L7_RC_t usmDbTestSnmpOspfTrapSend(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3IfStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfIfIpAddress, L7_uint32 intIfNum, L7_uint32 ospfIfState)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3IfStateChangeTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfIfState); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3IfStateChangeTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfIfState); */
 }
 
 /*********************************************************************
@@ -590,8 +662,8 @@ L7_RC_t usmDbSnmpOspfv3IfStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 ospf
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3VirtIfStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfVirtIfAreaId, L7_uint32 ospfVirtIfNeighbor, L7_uint32 ospfVirtIfState)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3VirtIfStateChangeTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfVirtIfState); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3VirtIfStateChangeTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfVirtIfState); */
 } 
 
 /*********************************************************************
@@ -629,8 +701,8 @@ L7_RC_t usmDbSnmpOspfv3VirtIfStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3NbrStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfNbrIpAddr, L7_uint32 intIfNum, L7_uint32 ospfNbrRtrId, L7_uint32 ospfNbrState)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3NbrStateChangeTrapSend(ospfRouterId, ospfNbrIpAddr, intIfNum, ospfNbrRtrId, ospfNbrState); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3NbrStateChangeTrapSend(ospfRouterId, ospfNbrIpAddr, intIfNum, ospfNbrRtrId, ospfNbrState); */
 }
 
 /*********************************************************************
@@ -660,8 +732,8 @@ L7_RC_t usmDbSnmpOspfv3NbrStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 osp
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3VirtNbrStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfVirtNbrArea, L7_uint32 ospfVirtNbrRtrId, L7_uint32 ospfVirtNbrState)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3VirtNbrStateChangeTrapSend(ospfRouterId, ospfVirtNbrArea, ospfVirtNbrRtrId, ospfVirtNbrState); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3VirtNbrStateChangeTrapSend(ospfRouterId, ospfVirtNbrArea, ospfVirtNbrRtrId, ospfVirtNbrState); */
 }
 
 /*********************************************************************
@@ -687,8 +759,8 @@ L7_RC_t usmDbSnmpOspfv3VirtNbrStateChangeTrapSend(L7_uint32 UnitIndex, L7_uint32
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3IfConfigErrorTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfIfIpAddress, L7_uint32 intIfNum, L7_uint32 ospfPacketSrc, L7_uint32 ospfConfigErrorType, L7_uint32 ospfPacketType)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3IfConfigErrorTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfPacketSrc, ospfConfigErrorType, ospfPacketType); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3IfConfigErrorTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfPacketSrc, ospfConfigErrorType, ospfPacketType); */
 }
 
 /*********************************************************************
@@ -713,8 +785,8 @@ L7_RC_t usmDbSnmpOspfv3IfConfigErrorTrapSend(L7_uint32 UnitIndex, L7_uint32 ospf
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3VirtIfConfigErrorTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfVirtIfAreaId, L7_uint32 ospfVirtIfNeighbor, L7_uint32 ospfConfigErrorType, L7_uint32 ospfPacketType)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3VirtIfConfigErrorTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfConfigErrorType, ospfPacketType); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3VirtIfConfigErrorTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfConfigErrorType, ospfPacketType); */
 }
 
 /*********************************************************************
@@ -740,8 +812,8 @@ L7_RC_t usmDbSnmpOspfv3VirtIfConfigErrorTrapSend(L7_uint32 UnitIndex, L7_uint32 
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3IfAuthFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfIfIpAddress, L7_uint32 intIfNum, L7_uint32 ospfPacketSrc, L7_uint32 ospfConfigErrorType, L7_uint32 ospfPacketType)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3IfAuthFailureTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfPacketSrc, ospfConfigErrorType, ospfPacketType); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3IfAuthFailureTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfPacketSrc, ospfConfigErrorType, ospfPacketType); */
 }
 
 /*********************************************************************
@@ -766,8 +838,8 @@ L7_RC_t usmDbSnmpOspfv3IfAuthFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 ospf
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3VirtIfAuthFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfVirtIfAreaId, L7_uint32 ospfVirtIfNeighbor, L7_uint32 ospfConfigErrorType, L7_uint32 ospfPacketType)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3VirtIfAuthFailureTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfConfigErrorType, ospfPacketType); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3VirtIfAuthFailureTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfConfigErrorType, ospfPacketType); */
 }
 
 /*********************************************************************
@@ -790,8 +862,8 @@ L7_RC_t usmDbSnmpOspfv3VirtIfAuthFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3IfRxBadPacketTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfIfIpAddress, L7_uint32 intIfNum, L7_uint32 ospfPacketSrc, L7_uint32 ospfPacketType)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3IfRxBadPacketTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfPacketSrc, ospfPacketType); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3IfRxBadPacketTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfPacketSrc, ospfPacketType); */
 }
 
 /*********************************************************************
@@ -813,8 +885,8 @@ L7_RC_t usmDbSnmpOspfv3IfRxBadPacketTrapSend(L7_uint32 UnitIndex, L7_uint32 ospf
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3VirtIfRxBadPacketTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfVirtIfAreaId, L7_uint32 ospfVirtIfNeighbor, L7_uint32 ospfPacketType)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3VirtIfRxBadPacketTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfPacketType); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3VirtIfRxBadPacketTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfPacketType); */
 }
 
 /*********************************************************************
@@ -842,8 +914,8 @@ L7_RC_t usmDbSnmpOspfv3VirtIfRxBadPacketTrapSend(L7_uint32 UnitIndex, L7_uint32 
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3TxRetransmitTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfIfIpAddress, L7_uint32 intIfNum, L7_uint32 ospfNbrRtrId, L7_uint32 ospfPacketType, L7_uint32 ospfLsdbType, L7_uint32 ospfLsdbLsid, L7_uint32 ospfLsdbRouterId)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3TxRetransmitTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfNbrRtrId, ospfPacketType, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3TxRetransmitTrapSend(ospfRouterId, ospfIfIpAddress, intIfNum, ospfNbrRtrId, ospfPacketType, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId); */
 }
 
 /*********************************************************************
@@ -870,8 +942,8 @@ L7_RC_t usmDbSnmpOspfv3TxRetransmitTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfR
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3VirtTxRetransmitTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfVirtIfAreaId, L7_uint32 ospfVirtIfNeighbor, L7_uint32 ospfPacketType, L7_uint32 ospfLsdbType, L7_uint32 ospfLsdbLsid, L7_uint32 ospfLsdbRouterId)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3VirtTxRetransmitTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfPacketType, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3VirtTxRetransmitTrapSend(ospfRouterId, ospfVirtIfAreaId, ospfVirtIfNeighbor, ospfPacketType, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId); */
 }
 
 /*********************************************************************
@@ -899,8 +971,8 @@ L7_RC_t usmDbSnmpOspfv3VirtTxRetransmitTrapSend(L7_uint32 UnitIndex, L7_uint32 o
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3OriginateLsaTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfLsdbAreaId, L7_uint32 ospfLsdbType, L7_uint32 ospfLsdbLsid, L7_uint32 ospfLsdbRouterId)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3OriginateLsaTrapSend(ospfRouterId, ospfLsdbAreaId, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3OriginateLsaTrapSend(ospfRouterId, ospfLsdbAreaId, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId); */
 }
 
 /*********************************************************************
@@ -923,8 +995,8 @@ L7_RC_t usmDbSnmpOspfv3OriginateLsaTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfR
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3MaxAgeLsaTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfLsdbAreaId, L7_uint32 ospfLsdbType, L7_uint32 ospfLsdbLsid, L7_uint32 ospfLsdbRouterId)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3MaxAgeLsaTrapSend(ospfRouterId, ospfLsdbAreaId, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3MaxAgeLsaTrapSend(ospfRouterId, ospfLsdbAreaId, ospfLsdbType, ospfLsdbLsid, ospfLsdbRouterId); */
 }
 
 /*********************************************************************
@@ -944,8 +1016,8 @@ L7_RC_t usmDbSnmpOspfv3MaxAgeLsaTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRout
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3LsdbOverflowTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfExtLsdbLimit)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3LsdbOverflowTrapSend(ospfRouterId, ospfExtLsdbLimit); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3LsdbOverflowTrapSend(ospfRouterId, ospfExtLsdbLimit); */
 }
 
 /*********************************************************************
@@ -966,7 +1038,7 @@ L7_RC_t usmDbSnmpOspfv3LsdbOverflowTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfR
 *********************************************************************/
 L7_RC_t usmDbSnmpOspfv3LsdbApproachingOverflowTrapSend(L7_uint32 UnitIndex, L7_uint32 ospfRouterId, L7_uint32 ospfExtLsdbLimit)
 {
-   return L7_FAILURE;
-   /* return SnmpOspfv3LsdbApproachingOverflowTrapSend(ospfRouterId, ospfExtLsdbLimit); */
+    return L7_FAILURE;
+    /* return SnmpOspfv3LsdbApproachingOverflowTrapSend(ospfRouterId, ospfExtLsdbLimit); */
 }
 #endif

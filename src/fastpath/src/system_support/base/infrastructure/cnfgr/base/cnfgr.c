@@ -728,10 +728,11 @@ L7_BOOL cnfgrIsComponentPresent(L7_COMPONENT_IDS_t  componentId)
       return L7_TRUE;
       break;
 #endif
+#ifdef L7_SNMP_PACKAGE
     case L7_SNMP_COMPONENT_ID:
       return snmpPresent();
       break;
-
+#endif
     case L7_LAYER3_COMPONENT_ID:
 #ifdef L7_ROUTING_PACKAGE
       return L7_TRUE;
@@ -917,6 +918,7 @@ case L7_VOICE_VLAN_COMPONENT_ID:
 *********************************************************************/
 static L7_BOOL cnfgrSNMPIsFeaturePresent(L7_uint32 featureId)
 {
+#ifdef L7_SNMP_PACKAGE
   if (featureId >= L7_SNMP_USER_FEATURE_ID_TOTAL)
     return L7_FALSE;
 
@@ -937,7 +939,7 @@ static L7_BOOL cnfgrSNMPIsFeaturePresent(L7_uint32 featureId)
       return L7_FALSE;
       break;
   }
-
+#endif
   return L7_FALSE;
 }
 

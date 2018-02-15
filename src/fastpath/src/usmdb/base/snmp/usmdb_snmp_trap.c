@@ -91,7 +91,11 @@ usmDbSnmpEnableTrapsSet(L7_uint32 val)
 *********************************************************************/
 L7_RC_t usmDbSnmpEnableAuthenTrapsGet(L7_uint32 UnitIndex, L7_uint32 *val)
 {
-  return SnmpEnableAuthenTrapsGet(val);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpEnableAuthenTrapsGet(val);
+#endif
 }
 
 /*********************************************************************
@@ -108,7 +112,11 @@ L7_RC_t usmDbSnmpEnableAuthenTrapsGet(L7_uint32 UnitIndex, L7_uint32 *val)
 *********************************************************************/
 L7_RC_t usmDbSnmpEnableAuthenTrapsSet(L7_uint32 UnitIndex, L7_uint32 val)
 {
-  return SnmpEnableAuthenTrapsSet(val);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpEnableAuthenTrapsSet(val);
+#endif
 }
 
 /*********************************************************************
@@ -128,7 +136,11 @@ L7_RC_t usmDbSnmpEnableAuthenTrapsSet(L7_uint32 UnitIndex, L7_uint32 val)
 *********************************************************************/
 L7_RC_t usmDbSnmpColdStartTrapSend(L7_uint32 UnitIndex)
 {
-  return SnmpColdStartTrapSend();
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpColdStartTrapSend();
+#endif
 }
 
 /*********************************************************************
@@ -148,7 +160,11 @@ L7_RC_t usmDbSnmpColdStartTrapSend(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpWarmStartTrapSend(L7_uint32 UnitIndex)
 {
-  return SnmpWarmStartTrapSend();
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpWarmStartTrapSend();
+#endif
 }
 
 /*********************************************************************
@@ -169,19 +185,23 @@ L7_RC_t usmDbSnmpWarmStartTrapSend(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpLinkDownTrapSend(L7_uint32 UnitIndex, L7_uint32 intIfNum)
 {
-  L7_uint32 ifIndex;
-  L7_RC_t   rc;
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    L7_uint32 ifIndex;
+    L7_RC_t   rc;
 
-  rc = nimGetIntfIfIndex(intIfNum, &ifIndex);
+    rc = nimGetIntfIfIndex(intIfNum, &ifIndex);
 
-  if (rc ==L7_SUCCESS)
-  {
-    /* @p0430 start */
-    rc = SnmpLinkDownTrapSend(ifIndex);
-  }
+    if (rc ==L7_SUCCESS)
+    {
+      /* @p0430 start */
+      rc = SnmpLinkDownTrapSend(ifIndex);
+    }
 
-  return(rc);
-  /* @p0430 end */
+    return(rc);
+    /* @p0430 end */
+#endif
 }
 
 /*********************************************************************
@@ -202,19 +222,23 @@ L7_RC_t usmDbSnmpLinkDownTrapSend(L7_uint32 UnitIndex, L7_uint32 intIfNum)
 *********************************************************************/
 L7_RC_t usmDbSnmpLinkUpTrapSend(L7_uint32 UnitIndex, L7_uint32 intIfNum)
 {
-  L7_uint32 ifIndex;
-  L7_RC_t   rc;
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    L7_uint32 ifIndex;
+    L7_RC_t   rc;
 
-  rc = nimGetIntfIfIndex(intIfNum, &ifIndex);
+    rc = nimGetIntfIfIndex(intIfNum, &ifIndex);
 
-  if (rc ==L7_SUCCESS)
-  {
-    /* @p0430 start */
-    rc = SnmpLinkUpTrapSend(ifIndex);
-  }
+    if (rc ==L7_SUCCESS)
+    {
+      /* @p0430 start */
+      rc = SnmpLinkUpTrapSend(ifIndex);
+    }
 
-  return(rc);
-  /* @p0430 end */
+    return(rc);
+    /* @p0430 end */
+#endif
 }
 
 /*********************************************************************
@@ -234,7 +258,11 @@ L7_RC_t usmDbSnmpLinkUpTrapSend(L7_uint32 UnitIndex, L7_uint32 intIfNum)
 *********************************************************************/
 L7_RC_t usmDbSnmpAuthenFailureTrapSend(L7_uint32 UnitIndex)
 {
-  return SnmpAuthenFailureTrapSend();
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpAuthenFailureTrapSend();
+#endif
 }
 
 /*********************************************************************
@@ -254,7 +282,11 @@ L7_RC_t usmDbSnmpAuthenFailureTrapSend(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpMultipleUsersTrapSend(L7_uint32 UnitIndex)
 {
-  return SnmpMultipleUsersTrapSend();
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpMultipleUsersTrapSend();
+#endif
 }
 
 /*********************************************************************
@@ -274,7 +306,11 @@ L7_RC_t usmDbSnmpMultipleUsersTrapSend(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpBroadcastStormStartTrapSend(L7_uint32 UnitIndex)
 {
-  return SnmpBroadcastStormStartTrapSend();
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpBroadcastStormStartTrapSend();
+#endif
 }
 
 /*********************************************************************
@@ -294,7 +330,11 @@ L7_RC_t usmDbSnmpBroadcastStormStartTrapSend(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpBroadcastStormEndTrapSend(L7_uint32 UnitIndex)
 {
-  return SnmpBroadcastStormEndTrapSend();
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpBroadcastStormEndTrapSend();
+#endif
 }
 
 /*********************************************************************
@@ -314,7 +354,11 @@ L7_RC_t usmDbSnmpBroadcastStormEndTrapSend(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpLinkFailureTrapSend(L7_uint32 UnitIndex)
 {
-  return SnmpLinkFailureTrapSend();
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpLinkFailureTrapSend();
+#endif
 }
 
 /*********************************************************************
@@ -356,7 +400,11 @@ L7_RC_t usmDbSnmpVlanRequestFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 vlanI
 *********************************************************************/
 L7_RC_t usmDbSnmpVlanDeleteLastTrapSend(L7_uint32 UnitIndex, L7_uint32 vlanID)
 {
-  return SnmpVlanDeleteLastTrapSend(vlanID);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpVlanDeleteLastTrapSend(vlanID);
+#endif
 }
 
 /*********************************************************************
@@ -377,7 +425,11 @@ L7_RC_t usmDbSnmpVlanDeleteLastTrapSend(L7_uint32 UnitIndex, L7_uint32 vlanID)
 *********************************************************************/
 L7_RC_t usmDbSnmpVlanDefaultCfgFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 vlanID)
 {
-  return SnmpVlanDefaultCfgFailureTrapSend(vlanID);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpVlanDefaultCfgFailureTrapSend(vlanID);
+#endif
 }
 
 /*********************************************************************
@@ -398,7 +450,11 @@ L7_RC_t usmDbSnmpVlanDefaultCfgFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 vl
 *********************************************************************/
 L7_RC_t usmDbSnmpVlanRestoreFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 vlanID)
 {
-  return SnmpVlanRestoreFailureTrapSend(vlanID);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpVlanRestoreFailureTrapSend(vlanID);
+#endif
 }
 
 /*********************************************************************
@@ -418,7 +474,11 @@ L7_RC_t usmDbSnmpVlanRestoreFailureTrapSend(L7_uint32 UnitIndex, L7_uint32 vlanI
 *********************************************************************/
 L7_RC_t usmDbSnmpFanFailureTrapSend(L7_uint32 UnitIndex)
 {
-  return SnmpFanFailureTrapSend();
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpFanFailureTrapSend();
+#endif
 }
 
 /*********************************************************************
@@ -438,7 +498,11 @@ L7_RC_t usmDbSnmpFanFailureTrapSend(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpMacLockViolationTrapSend(L7_uint32 intIfNum)
 {
-  return SnmpMacLockViolationTrapSend(intIfNum);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpMacLockViolationTrapSend(intIfNum);
+#endif
 }
 
 /*********************************************************************
@@ -456,7 +520,11 @@ L7_RC_t usmDbSnmpMacLockViolationTrapSend(L7_uint32 intIfNum)
 *********************************************************************/
 L7_RC_t usmDbSnmpPowerSupplyStatusChangeTrapSend(L7_uint32 UnitIndex)
 {
-  return SnmpPowerSupplyStatusChangeTrapSend();
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpPowerSupplyStatusChangeTrapSend();
+#endif
 }
 
 /*********************************************************************
@@ -476,7 +544,11 @@ L7_RC_t usmDbSnmpPowerSupplyStatusChangeTrapSend(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpNewRootTrapSend(L7_uint32 UnitIndex)
 {
-  return SnmpNewRootTrapSend();
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpNewRootTrapSend();
+#endif
 }
 
 /*********************************************************************
@@ -497,7 +569,11 @@ L7_RC_t usmDbSnmpNewRootTrapSend(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpStpInstanceTopologyChangeTrapSend(L7_uint32 UnitIndex, L7_uint32 instanceId)
 {
-  return SnmpStpInstanceTopologyChangeTrapSend(instanceId);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpStpInstanceTopologyChangeTrapSend(instanceId);
+#endif
 }
 
 /*********************************************************************
@@ -518,7 +594,11 @@ L7_RC_t usmDbSnmpStpInstanceTopologyChangeTrapSend(L7_uint32 UnitIndex, L7_uint3
 *********************************************************************/
 L7_RC_t usmDbSnmpStpInstanceNewRootTrapSend(L7_uint32 UnitIndex, L7_uint32 instanceId)
 {
-  return SnmpStpInstanceNewRootTrapSend(instanceId);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpStpInstanceNewRootTrapSend(instanceId);
+#endif
 }
 
 /*********************************************************************
@@ -540,16 +620,20 @@ L7_RC_t usmDbSnmpStpInstanceNewRootTrapSend(L7_uint32 UnitIndex, L7_uint32 insta
 *********************************************************************/
 L7_RC_t usmDbSnmpStpInstanceLoopInconsistentStartTrapSend(L7_uint32 UnitIndex, L7_uint32 instanceId, L7_uint32 intIfNum)
 {
-  L7_RC_t   rc;
-  L7_uint32 ifIndex;
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    L7_RC_t   rc;
+    L7_uint32 ifIndex;
 
-  rc = nimGetIntfIfIndex(intIfNum, &ifIndex);
+    rc = nimGetIntfIfIndex(intIfNum, &ifIndex);
 
-  if (rc == L7_SUCCESS)
-  {
-    rc = SnmpStpInstanceLoopInconsistentStartTrapSend(instanceId, ifIndex);
-  }
-  return(rc);
+    if (rc == L7_SUCCESS)
+    {
+      rc = SnmpStpInstanceLoopInconsistentStartTrapSend(instanceId, ifIndex);
+    }
+    return(rc);
+#endif
 }
 
 /*********************************************************************
@@ -571,16 +655,20 @@ L7_RC_t usmDbSnmpStpInstanceLoopInconsistentStartTrapSend(L7_uint32 UnitIndex, L
 *********************************************************************/
 L7_RC_t usmDbSnmpStpInstanceLoopInconsistentEndTrapSend(L7_uint32 UnitIndex, L7_uint32 instanceId, L7_uint32 intIfNum)
 {
-  L7_RC_t   rc;
-  L7_uint32 ifIndex;
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    L7_RC_t   rc;
+    L7_uint32 ifIndex;
 
-  rc = nimGetIntfIfIndex(intIfNum, &ifIndex);
+    rc = nimGetIntfIfIndex(intIfNum, &ifIndex);
 
-  if (rc == L7_SUCCESS)
-  {
-    rc = SnmpStpInstanceLoopInconsistentEndTrapSend(instanceId, ifIndex);
-  }
-  return(rc);
+    if (rc == L7_SUCCESS)
+    {
+      rc = SnmpStpInstanceLoopInconsistentEndTrapSend(instanceId, ifIndex);
+    }
+    return(rc);
+#endif
 }
 
 /*********************************************************************
@@ -600,7 +688,11 @@ L7_RC_t usmDbSnmpStpInstanceLoopInconsistentEndTrapSend(L7_uint32 UnitIndex, L7_
 *********************************************************************/
 L7_RC_t usmDbSnmpTopologyChangeTrapSend(L7_uint32 UnitIndex)
 {
-  return SnmpTopologyChangeTrapSend();
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpTopologyChangeTrapSend();
+#endif
 }
 
 /*********************************************************************
@@ -619,7 +711,11 @@ L7_RC_t usmDbSnmpTopologyChangeTrapSend(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpRisingAlarmTrapSend(L7_uint32 UnitIndex, L7_uint32 alarmIndex)
 {
-  return SnmpRisingAlarmTrapSend(alarmIndex);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpRisingAlarmTrapSend(alarmIndex);
+#endif
 }
 
 /*********************************************************************
@@ -638,7 +734,11 @@ L7_RC_t usmDbSnmpRisingAlarmTrapSend(L7_uint32 UnitIndex, L7_uint32 alarmIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpFallingAlarmTrapSend(L7_uint32 UnitIndex, L7_uint32 alarmIndex)
 {
-  return SnmpFallingAlarmTrapSend(alarmIndex);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpFallingAlarmTrapSend(alarmIndex);
+#endif
 }
 
 /*********************************************************************
@@ -659,7 +759,11 @@ L7_RC_t usmDbSnmpFallingAlarmTrapSend(L7_uint32 UnitIndex, L7_uint32 alarmIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpAgentInventoryCardMismatchTrapSend(L7_uint32 unitIndex, L7_uint32 slotIndex, L7_uint32 insertedType, L7_uint32 configuredType)
 {
-  return SnmpAgentInventoryCardMismatchTrapSend(unitIndex, slotIndex, insertedType, configuredType);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpAgentInventoryCardMismatchTrapSend(unitIndex, slotIndex, insertedType, configuredType);
+#endif
 }
 
 /*********************************************************************
@@ -681,7 +785,11 @@ L7_RC_t usmDbSnmpAgentInventoryCardUnsupportedTrapSend(L7_uint32 unitIndex,
                                                        L7_uint32 slotIndex,
                                                        L7_uint32 insertedType)
 {
-  return SnmpAgentInventoryCardUnsupportedTrapSend(unitIndex, slotIndex, insertedType);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpAgentInventoryCardUnsupportedTrapSend(unitIndex, slotIndex, insertedType);
+#endif
 }
 
 /******************************************************************************
@@ -766,7 +874,11 @@ L7_RC_t usmDbSnmpAgentInventoryCardFailureTrapSend(L7_uint32 unitIndex, L7_uint3
 *********************************************************************/
 L7_RC_t usmDbSnmpAgentInventoryStackPortLinkUpTrapSend(L7_uint32 agentInventoryStackPortIndex, L7_uint32 agentInventoryStackPortUnit, L7_char8 *agentInventoryStackPortTag)
 {
-  return SnmpAgentInventoryStackPortLinkUpTrapSend(agentInventoryStackPortIndex, agentInventoryStackPortUnit, agentInventoryStackPortTag);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpAgentInventoryStackPortLinkUpTrapSend(agentInventoryStackPortIndex, agentInventoryStackPortUnit, agentInventoryStackPortTag);
+#endif
 }
 
 /*********************************************************************
@@ -787,7 +899,11 @@ L7_RC_t usmDbSnmpAgentInventoryStackPortLinkUpTrapSend(L7_uint32 agentInventoryS
 *********************************************************************/
 L7_RC_t usmDbSnmpAgentInventoryStackPortLinkDownTrapSend(L7_uint32 agentInventoryStackPortIndex, L7_uint32 agentInventoryStackPortUnit, L7_char8 *agentInventoryStackPortTag)
 {
-  return SnmpAgentInventoryStackPortLinkDownTrapSend(agentInventoryStackPortIndex, agentInventoryStackPortUnit, agentInventoryStackPortTag);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpAgentInventoryStackPortLinkDownTrapSend(agentInventoryStackPortIndex, agentInventoryStackPortUnit, agentInventoryStackPortTag);
+#endif
 }
 
 /*********************************************************************
@@ -803,7 +919,11 @@ L7_RC_t usmDbSnmpAgentInventoryStackPortLinkDownTrapSend(L7_uint32 agentInventor
 *********************************************************************/
 L7_RC_t usmDbSnmpEntConfigChangeTrapSend()
 {
-  return SnmpEntConfigChangeTrapSend();
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpEntConfigChangeTrapSend();
+#endif
 }
 
 /*********************************************************************
@@ -821,7 +941,11 @@ L7_RC_t usmDbSnmpEntConfigChangeTrapSend()
 *********************************************************************/
 L7_RC_t usmDbSnmpFailedUserLoginTrapSend()
 {
-  return SnmpFailedUserLoginTrapSend();
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpFailedUserLoginTrapSend();
+#endif
 }
 
 /*********************************************************************
@@ -839,7 +963,11 @@ L7_RC_t usmDbSnmpFailedUserLoginTrapSend()
 *********************************************************************/
 L7_RC_t usmDbSnmpLockedUserLoginTrapSend()
 {
-  return SnmpLockedUserLoginTrapSend();
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpLockedUserLoginTrapSend();
+#endif
 }
 
 /*********************************************************************
@@ -857,17 +985,21 @@ L7_RC_t usmDbSnmpLockedUserLoginTrapSend()
 *********************************************************************/
 L7_RC_t usmDbSnmpDaiIntfErrorDisabledTrapSend(L7_uint32 intIfNum)
 {
-  L7_uint32 ifIndex;
-  L7_RC_t   rc;
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    L7_uint32 ifIndex;
+    L7_RC_t   rc;
 
-  rc = nimGetIntfIfIndex(intIfNum, &ifIndex);
+    rc = nimGetIntfIfIndex(intIfNum, &ifIndex);
 
-  if (rc ==L7_SUCCESS)
-  {
-    return SnmpDaiIntfErrorDisabledTrapSend(ifIndex);
-  }
+    if (rc ==L7_SUCCESS)
+    {
+      return SnmpDaiIntfErrorDisabledTrapSend(ifIndex);
+    }
 
-  return(rc);
+    return(rc);
+#endif
 }
 
 /*********************************************************************
@@ -886,17 +1018,21 @@ L7_RC_t usmDbSnmpDaiIntfErrorDisabledTrapSend(L7_uint32 intIfNum)
 *********************************************************************/
 L7_RC_t usmDbSnmpDsIntfErrorDisabledTrapSend(L7_uint32 intIfNum)
 {
-  L7_uint32 ifIndex;
-  L7_RC_t   rc;
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    L7_uint32 ifIndex;
+    L7_RC_t   rc;
 
-  rc = nimGetIntfIfIndex(intIfNum, &ifIndex);
+    rc = nimGetIntfIfIndex(intIfNum, &ifIndex);
 
-  if (rc ==L7_SUCCESS)
-  {
-    return SnmpDsIntfErrorDisabledTrapSend(ifIndex);
-  }
+    if (rc ==L7_SUCCESS)
+    {
+      return SnmpDsIntfErrorDisabledTrapSend(ifIndex);
+    }
 
-  return(rc);
+    return(rc);
+#endif
 }
 
 /*********************************************************************
@@ -915,7 +1051,11 @@ L7_RC_t usmDbSnmpDsIntfErrorDisabledTrapSend(L7_uint32 intIfNum)
 *********************************************************************/
 L7_RC_t usmDbSnmpIpAddrConflictTrapSend(L7_uint32 ipAddr, L7_uchar8 *macAddr)
 {
-  return SnmpAgentIpAddressConflictTrapSend(ipAddr, macAddr);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpAgentIpAddressConflictTrapSend(ipAddr, macAddr);
+#endif
 }
 
 #ifdef FEAT_METRO_CPE_V1_0
@@ -935,9 +1075,13 @@ L7_RC_t usmDbSnmpIpAddrConflictTrapSend(L7_uint32 ipAddr, L7_uchar8 *macAddr)
 *********************************************************************/
 L7_RC_t usmDbSnmpNoStartupConfigTrapSend(L7_uint32 UnitIndex)
 {
-  L7_RC_t   rc;
-  rc = SnmpNoStartupConfigTrapSend();
-  return(rc);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    L7_RC_t   rc;
+    rc = SnmpNoStartupConfigTrapSend();
+    return(rc);
+#endif
 }
 #endif
 #ifdef L7_CHASSIS
@@ -954,7 +1098,11 @@ L7_RC_t usmDbSnmpNoStartupConfigTrapSend(L7_uint32 UnitIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpChassisRisingAlarmTrapSend(L7_uint32 alarmIndex)
 {
-  return SnmpAgentChassisRisingAlarmReportTrapSend(alarmIndex);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpAgentChassisRisingAlarmReportTrapSend(alarmIndex);
+#endif
 }
 
 /*********************************************************************
@@ -970,7 +1118,11 @@ L7_RC_t usmDbSnmpChassisRisingAlarmTrapSend(L7_uint32 alarmIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpChassisFallingAlarmTrapSend(L7_uint32 alarmIndex)
 {
-   return SnmpAgentChassisFallingAlarmReportTrapSend(alarmIndex);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpAgentChassisFallingAlarmReportTrapSend(alarmIndex);
+#endif
 }
 #endif
 
@@ -988,7 +1140,11 @@ L7_RC_t usmDbSnmpChassisFallingAlarmTrapSend(L7_uint32 alarmIndex)
 *********************************************************************/
 L7_RC_t usmDbSnmpTemperatureChangeTrapSend(L7_uint32 sensorNum, L7_uint32 tempEventType)
 {
-  return SnmpAgentTemperatureChangeReportTrapSend(sensorNum, tempEventType);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpAgentTemperatureChangeReportTrapSend(sensorNum, tempEventType);
+#endif
 }
 
 /*********************************************************************
@@ -1005,7 +1161,11 @@ L7_RC_t usmDbSnmpTemperatureChangeTrapSend(L7_uint32 sensorNum, L7_uint32 tempEv
 *********************************************************************/
 L7_RC_t usmDbSnmpFanStateChangeTrapSend(L7_uint32 itemNum, L7_uint32 fanEventType)
 {
-  return SnmpAgentFanStateChangeReportTrapSend(itemNum, fanEventType);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpAgentFanStateChangeReportTrapSend(itemNum, fanEventType);
+#endif
 }
 
 /*********************************************************************
@@ -1022,7 +1182,11 @@ L7_RC_t usmDbSnmpFanStateChangeTrapSend(L7_uint32 itemNum, L7_uint32 fanEventTyp
 *********************************************************************/
 L7_RC_t usmDbSnmpPowSupplyStateChangeTrapSend(L7_uint32 itemNum, L7_uint32 powSupplyEventType)
 {
-  return SnmpAgentPowerSupplyStateChangeReportTrapSend(itemNum, powSupplyEventType);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpAgentPowerSupplyStateChangeReportTrapSend(itemNum, powSupplyEventType);
+#endif
 }
 
 #ifdef L7_DOT1AG_PACKAGE
@@ -1043,7 +1207,11 @@ L7_RC_t usmDbSnmpPowSupplyStateChangeTrapSend(L7_uint32 itemNum, L7_uint32 powSu
 *********************************************************************/
 L7_RC_t usmDbSnmpDot1agCfmFaultAlarmTrapSend(L7_uint32 mdIndex, L7_uint32 maIndex, L7_uint32 mepId, L7_uint32 highestPriDefect)
 {
-  return SnmpDot1agCfmFaultAlarmTrapSend(mdIndex, maIndex, mepId, highestPriDefect);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpDot1agCfmFaultAlarmTrapSend(mdIndex, maIndex, mepId, highestPriDefect);
+#endif
 }
 #endif /* L7_DOT1AG_PACKAGE */
 
@@ -1061,7 +1229,11 @@ L7_RC_t usmDbSnmpDot1agCfmFaultAlarmTrapSend(L7_uint32 mdIndex, L7_uint32 maInde
 *********************************************************************/
 L7_RC_t usmDbSnmpSwitchCpuFreeMemBelowThresholdTrapSend(L7_uint32 freeMemThreshold)
 {
-  return snmpSwitchCpuFreeMemBelowThresholdTrapSend(freeMemThreshold);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return snmpSwitchCpuFreeMemBelowThresholdTrapSend(freeMemThreshold);
+#endif
 }
 
 /*********************************************************************
@@ -1077,7 +1249,11 @@ L7_RC_t usmDbSnmpSwitchCpuFreeMemBelowThresholdTrapSend(L7_uint32 freeMemThresho
 *********************************************************************/
 L7_RC_t usmDbSnmpSwitchCpuFreeMemAboveThresholdTrapSend(L7_uint32 freeMemThreshold)
 {
-  return snmpSwitchCpuFreeMemAboveThresholdTrapSend(freeMemThreshold);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return snmpSwitchCpuFreeMemAboveThresholdTrapSend(freeMemThreshold);
+#endif
 }
 
 /* End Function Declarations */

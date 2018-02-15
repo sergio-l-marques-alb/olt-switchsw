@@ -1335,8 +1335,12 @@ rmonAlarmStart(rmonAlarmEntry_t* alm)
 L7_RC_t 
 rmonAlarmSampledValueGet(L7_char8 *buf, L7_uint32 *value)
 {
+#ifdef L7_SNMP_PACKAGE
     if((SnmpGetVarUInt(buf, value)) != L7_SUCCESS)
         return L7_FAILURE;
     return L7_SUCCESS;
+#else
+    return L7_NOT_SUPPORTED;
+#endif
 }
 

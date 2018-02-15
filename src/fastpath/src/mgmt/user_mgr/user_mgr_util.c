@@ -127,6 +127,7 @@ userMgrLoginUserEncryptionKeyGet(L7_uint32 index, L7_char8 *encryptKey)
 *********************************************************************/
 L7_RC_t userMgrSnmpUserSet(L7_uint32 index)
 {
+#ifdef L7_SNMP_PACKAGE
   L7_char8 password[L7_PASSWORD_SIZE];
   L7_char8 encryptionKey[L7_ENCRYPTION_KEY_SIZE];
 
@@ -147,6 +148,9 @@ L7_RC_t userMgrSnmpUserSet(L7_uint32 index)
     }
   }
   return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -162,6 +166,7 @@ L7_RC_t userMgrSnmpUserSet(L7_uint32 index)
 *********************************************************************/
 L7_RC_t userMgrSnmpUserDelete(L7_uint32 index)
 {
+#ifdef L7_SNMP_PACKAGE
   if (SnmpUserDelete(userMgrCfgData.systemLogins[index].loginName,
                      userMgrCfgData.systemLogins[index].snmpv3AccessMode,
                      userMgrCfgData.systemLogins[index].authProt,
@@ -171,6 +176,9 @@ L7_RC_t userMgrSnmpUserDelete(L7_uint32 index)
   }
 
   return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -186,6 +194,7 @@ L7_RC_t userMgrSnmpUserDelete(L7_uint32 index)
 *********************************************************************/
 L7_RC_t userMgrRestoreSnmpUsers(void)
 {
+#ifdef L7_SNMP_PACKAGE
   L7_uint32 i;
   L7_char8 password[L7_PASSWORD_SIZE];
   L7_char8 encryptionKey[L7_ENCRYPTION_KEY_SIZE];
@@ -216,6 +225,9 @@ L7_RC_t userMgrRestoreSnmpUsers(void)
     } /* end for all logins */
   } /* end if snmpv3 is supported */
   return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -231,6 +243,7 @@ L7_RC_t userMgrRestoreSnmpUsers(void)
 *********************************************************************/
 L7_RC_t userMgrInitSnmpUsers(void)
 {
+#ifdef L7_SNMP_PACKAGE
   L7_uint32 i;
 
   if (SNMP_USER_SUPPORTED == L7_TRUE )
@@ -245,6 +258,9 @@ L7_RC_t userMgrInitSnmpUsers(void)
     } /* end for all logins */
   } /* end if snmpv3 is supported */
   return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************
@@ -484,6 +500,7 @@ void userMgrAPLResetMethodsIndex(L7_ACCESS_LINE_t line,
 L7_RC_t
 userMgrNotifyListeners(L7_uint32 category, L7_uint32 index, L7_uint32 changeType)
 {
+#ifdef L7_SNMP_PACKAGE
   switch (category)
   {
     case L7_USER_MGR_USER_LISTENER:
@@ -515,6 +532,9 @@ userMgrNotifyListeners(L7_uint32 category, L7_uint32 index, L7_uint32 changeType
   }
 
   return L7_SUCCESS;
+#else
+  return L7_NOT_SUPPORTED;
+#endif
 }
 
 /*********************************************************************

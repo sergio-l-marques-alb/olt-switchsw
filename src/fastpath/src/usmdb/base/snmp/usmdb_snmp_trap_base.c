@@ -49,7 +49,11 @@ L7_RC_t usmDbSnmpPethPsePortOnOffNotificationTrapSend(L7_uint32 unitIndex,
                                                       L7_uint32 intIfNum, 
                                                       L7_uint32 detection)
 {
-  return SnmpPethPsePortOnOffNotificationTrapSend(unitIndex, intIfNum, detection);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpPethPsePortOnOffNotificationTrapSend(unitIndex, intIfNum, detection);
+#endif
 }
 
 /*********************************************************************
@@ -73,7 +77,11 @@ L7_RC_t usmDbSnmpPethPsePortOnOffNotificationTrapSend(L7_uint32 unitIndex,
 L7_RC_t usmDbSnmpPethMainPowerUsageOnNotificationTrapSend(L7_uint32 unitIndex,
                                                           L7_uint32 allocPower)
 {
-  return SnmpPethMainPowerUsageOnNotificationTrapSend(unitIndex, allocPower);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpPethMainPowerUsageOnNotificationTrapSend(unitIndex, allocPower);
+#endif
 }
 
 /*********************************************************************
@@ -96,7 +104,11 @@ L7_RC_t usmDbSnmpPethMainPowerUsageOnNotificationTrapSend(L7_uint32 unitIndex,
 L7_RC_t usmDbSnmpPethMainPowerUsageOffNotificationTrapSend(L7_uint32 unitIndex, 
                                                            L7_uint32 allocPower)
 {
-  return SnmpPethMainPowerUsageOffNotificationTrapSend(unitIndex, allocPower);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpPethMainPowerUsageOffNotificationTrapSend(unitIndex, allocPower);
+#endif
 }
 
 /*********************************************************************
@@ -115,10 +127,14 @@ L7_RC_t usmDbSnmpLldpXMedTopologyChangeDetectedTrapSend(L7_uint32 lldpRemChassis
                                                         L7_uint32 lldpRemChassisId_len,
                                                         L7_uint32 lldpXMedRemDeviceClass)
 {
-  return SnmpLldpXMedTopologyChangeDetectedTrapSend(lldpRemChassisIdSubtype,
-                                                    lldpRemChassisId,
-                                                    lldpRemChassisId_len,
-                                                    lldpXMedRemDeviceClass);
+#ifndef L7_SNMP_PACKAGE
+    return L7_NOT_SUPPORTED;
+#else
+    return SnmpLldpXMedTopologyChangeDetectedTrapSend(lldpRemChassisIdSubtype,
+                                                      lldpRemChassisId,
+                                                      lldpRemChassisId_len,
+                                                      lldpXMedRemDeviceClass);
+#endif
 }
 
 /* End Function Declarations */
