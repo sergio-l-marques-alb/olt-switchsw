@@ -292,8 +292,10 @@ L7_RC_t mfcHwEntryUpdate(mfcCacheEntry_t* pData,
 
   if (snoopNotify == L7_TRUE)
   {
-    /* Notify snooping component of entry addition */
+#if 0
+      /* Notify snooping component of entry addition */
     snoopMcastNotify(pGroup, pSource, vlanId, &outVlanRtrIntfMask, L7_TRUE);
+#endif
   }
   return L7_SUCCESS;
 }
@@ -414,9 +416,10 @@ L7_RC_t mfcHwEntryDelete(L7_inet_addr_t *pSource,
 #ifdef L7_NSF_PACKAGE
   mcastCkptEntryDelete(pSource, pGroup);
 #endif
-
+#if 0
     /* Notify snooping component of entry deletion */
   snoopMcastNotify(pGroup, pSource, L7_NULL, L7_NULLPTR, L7_FALSE);
+#endif
   return L7_SUCCESS;
 }
 
