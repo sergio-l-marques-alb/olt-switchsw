@@ -236,10 +236,7 @@ L7_RC_t ptin_prottypeb_intf_switch_notify(L7_uint32 intfNum, L7_uint8 status)
       {
         PT_LOG_TRACE(LOG_CTX_EVC, "Removed Mgmd Port [intIfNum=%u]", intfNum);
       }
-
-#if !PTIN_BOARD_IS_STANDALONE
-      dsBindingClear(intfNum); 
-#endif        
+      dsBindingClear(intfNum);      
     }
   }
   
