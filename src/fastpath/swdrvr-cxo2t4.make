@@ -32,7 +32,7 @@ SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.12/broad
 export LVL7_MAKEFILE_LOGGING := N
 export LVL7_MAKEFILE_DISPLAY_MODE := S
 
-#NUM_CPUS=1
+#NUM_CPUS=2
 
 INSTALL_SCRIPT=swdrvr-cxo2t4.install
 
