@@ -122,13 +122,19 @@ cli:
 shell:
 	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-common.make
 
+clean-appl:
+	mv $(CCVIEWS_HOME)/$(OUTPATH)/objects/andl $(CCVIEWS_HOME)/$(OUTPATH)
+	rm -rf $(CCVIEWS_HOME)/$(OUTPATH)/objects/*
+	mv $(CCVIEWS_HOME)/$(OUTPATH)/andl $(CCVIEWS_HOME)/$(OUTPATH)/objects
+	rm $(CCVIEWS_HOME)/$(OUTPATH)/libs/*
+
 clean-cli:
 	@$(MAKE) -C $(FP_CLI_PATH) -f fp.cli-common.make clean
 
 clean-shell:
 	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-common.make clean
 
-clean cleanall: welcome setsdk clean-cli clean-shell clean-mgmd
+clean cleanall: welcome setsdk clean-mgmd
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	@$(RM) $(SDK_LINK)
 
@@ -138,9 +144,10 @@ clean-platform: setsdk
 clean-mgmd:
 	@sh mgmd_compile.sh $(BOARD) clean
 
-clean-ptin clean-switching clean-routing clean-base clean-andl clean-os: setsdk
+clean-ptin clean-switching clean-routing clean-base clean-andl clean-os clean-openssl clean-modb clean-xlib clean-xweb clean-cli clean-mgmt: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 
 clean-xui: setsdk
-	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-snmp clean-openssl clean-cli clean-modb clean-xlib clean-xweb clean-emweb
+	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-snmp clean-cli clean-emweb
+	#$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-snmp clean-openssl clean-cli clean-modb clean-xlib clean-xweb clean-emweb
 
