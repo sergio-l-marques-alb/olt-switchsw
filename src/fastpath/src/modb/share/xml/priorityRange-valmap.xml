@@ -1,8 +1,0 @@
-<?xml version='1.0'?>
-<!DOCTYPE FastPathXML SYSTEM  "misc.dtd" >
-
-<FastPathXML>
-    <misc version="1.0">
-        <valueMap value="(0 to 7)" id="priorityRange"/>
-    </misc>
-</FastPathXML>

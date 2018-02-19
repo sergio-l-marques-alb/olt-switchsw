@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
-<FastPathXML>
-  <misc version="1.0">
-    <error name="HTTPS_SSL_CERTIFICATE_GENERATE_FAILURE" output="\nError! Failed to generate the certificate, please disable HTTPS before generating the certificate."/>
-    <error name="HTTPS_SSL_CERTIFICATE_DELETE_FAILURE" output="\nError! Failed to delete the certificate, please disable HTTPS before deleting the certificate."/>
-  </misc>
-</FastPathXML>
