@@ -13,7 +13,6 @@
 #include "usmdb_qos_cos_api.h"
 #include "usmdb_mib_vlan_api.h"
 #include "usmdb_policy_api.h"
-#include "usmdb_dai_api.h"
 
 #include "dtlapi.h"
 #include "ptin_include.h"
@@ -425,7 +424,7 @@ L7_RC_t ptin_intf_post_init(void)
 
 
 /* For internal ports (linecards only) */
-#if (PTIN_BOARD_IS_LINECARD)
+#if 0 && (PTIN_BOARD_IS_LINECARD)
 /**
  * Restore DAI Setting for Internal Interfaces
  *  

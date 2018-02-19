@@ -1196,7 +1196,7 @@ extern void ptin_ta48ge_txdisable_control(L7_uint32 port, L7_uint8 state);
  *  
  * @return none
  */
-extern void ptin_intf_dai_restore_defaults(void);
+//extern void ptin_intf_dai_restore_defaults(void);
 #endif
 
 #endif  /* _PTIN_INTERFACE_H */

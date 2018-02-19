@@ -25,7 +25,6 @@
 #include "fdb_api.h"
 #include "usmdb_ip_api.h"
 #include "usmdb_dot1q_api.h"
-#include "usmdb_dai_api.h"
 #include "usmdb_dot3ad_api.h"
 #include "mirror_api.h"
 #include "usmdb_dvlantag_api.h"
@@ -42,7 +41,6 @@
 
 #include "ptin_fpga_api.h"//To interact with CPLD register
 
-#include "dai_api.h"
 #include <dtl_ptin.h>
 
 #include "sirerrors.h"
