@@ -19,18 +19,17 @@ if [ $# -eq 0 ]; then
  exit;
 fi
 
+BOARD=$2
+
 if [ $2 == "cxo2t4" ]; then
- BOARD="CXO2T4"
  MKBOARDS_FOLDER=CXO2T4-MX
- OUTPUT=output/FastPath-Ent-dpp-dnx-e500mc-LR-CSxw-IQH_CXO2T4
+ OUTPUT=output/swdrv-dpp-dnx-cxo2t4-e500mc
 elif [ $2 == "tt08sxg" ]; then
- BOARD="TT08SXG"
  MKBOARDS_FOLDER=TT08SXG
- OUTPUT=output/FastPath-Ent-dpp-dnx-e500mc-LR-CSxw-IQH_TT08SXG
+ OUTPUT=output/swdrv-dpp-dnx-tt08sxg-e500mc
 elif [ $2 == "ta12xg" ]; then
- BOARD="TA12XG"
  MKBOARDS_FOLDER=TA12XG
- OUTPUT=output/FastPath-Ent-dpp-dnx-e500-LR-CSxw-IQH_TA12XG
+ OUTPUT=output/swdrv-dpp-dnx-ta12xg-e500
 else
  echo "Invalid board"
  exit;

@@ -8,7 +8,7 @@
 ################################################
 
 # Board and CPU identification
-export BOARD = TA12XG
+export BOARD = ta12xg
 export CPU   = e500
 
 # Base folders (using absolute references)
@@ -24,7 +24,7 @@ COMPILER = $(TOOLCHAIN_BIN_DIR)/ppc_85xxDP-
 
 # Kernel and SDK paths
 KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-3.8.13
-SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.5/broadcom
+SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.12/broadcom
 
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N

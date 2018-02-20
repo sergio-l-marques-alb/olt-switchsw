@@ -19,8 +19,7 @@ CURRENT_PATH ?= $(shell pwd)
 FP_FOLDER    ?= $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURRENT_PATH)))
 OLT_DIR      ?= $(subst /$(FP_FOLDER),,$(shell pwd))
 
-CARD_FOLDER ?= FastPath-Ent-dpp-dnx-$(CPU)-LR-CSxw-IQH_$(BOARD)
-CARD        ?= $(word 2,$(subst _, ,$(CARD_FOLDER)))
+CARD_FOLDER ?= swdrv-dpp-dnx-$(BOARD)-$(CPU)
 
 export OUTPATH       ?= output/$(CARD_FOLDER)
 export FP_VIEWNAME   ?= .
@@ -75,13 +74,6 @@ setsdk:
 	rm -f $(SDK_LINK)
 	ln -s $(SDK_PATH) $(SDK_LINK)
 
-mgmd:
-	@if [ ! -d src/application/switching/mgmd ]; then\
-		@echo "MGMD source-code not found! Please update your working copy.";\
-		false;\
-	fi;
-	@sh mgmd_compile.sh $(BOARD)
-
 help h:
 	@echo ""
 	@echo "Makefile Help"
@@ -93,8 +85,6 @@ help h:
 	@echo " make shell              "
 	@echo " make clean-cli          "
 	@echo " make clean-shell        "
-	@echo " make mgmd               "
-	@echo " make clean-mgmd         "
 	@echo ""
 
 welcome: 
@@ -134,15 +124,12 @@ clean-cli:
 clean-shell:
 	@$(MAKE) -C $(FP_SHELL_PATH) -f fp.shell-common.make clean
 
-clean cleanall: welcome setsdk clean-mgmd
+clean cleanall: welcome setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@
 	@$(RM) $(SDK_LINK)
 
 clean-platform: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) clean-binds clean-plat_bsp clean-cpu_bsp clean-base
-
-clean-mgmd:
-	@sh mgmd_compile.sh $(BOARD) clean
 
 clean-ptin clean-switching clean-routing clean-base clean-andl clean-os clean-openssl clean-modb clean-xlib clean-xweb clean-cli clean-mgmt: setsdk
 	$(MAKE) -j$(NUM_CPUS) -C $(CCVIEWS_HOME)/$(OUTPATH) $@

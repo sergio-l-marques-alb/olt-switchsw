@@ -8,7 +8,7 @@
 ################################################
 
 # Board and CPU identification
-export BOARD = TT08SXG
+export BOARD = tt08sxg
 export CPU   = e500mc
 
 # Base folders (using absolute references)
@@ -26,7 +26,7 @@ export SYSROOT=--sysroot=/opt/fsl-qoriq/1.9/sysroots/ppce500mc-fsl-linux
 
 # Kernel and SDK paths
 KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-3.0.51-p2040
-SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.5/broadcom
+SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.12/broadcom
 
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N
