@@ -4,7 +4,7 @@ version=4.0
 operation=all
 
 export MODULE=fastpath-olt
-export PLATFORMS="CXO2T4-MX CXO2T2 TA12XG"
+export PLATFORMS="cxo2t4 tt08sxg ta12xg"
 
 export APPLICATION=fp
 
