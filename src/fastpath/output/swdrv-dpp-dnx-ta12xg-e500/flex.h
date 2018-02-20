@@ -248,18 +248,20 @@
 */
 
 /* CLI definitions */
+/* PTin removed
 #ifndef _INCLUDE_CLI_COMPONENT_API_
 #define _INCLUDE_CLI_COMPONENT_API_
 #define L7_CLI_PACKAGE 1
 #endif
+*/
 
-#if 0
 /* SNMP definitions */
+/* PTin removed
 #ifndef _INCLUDE_SNMP_COMPONENT_API_
 #define _INCLUDE_SNMP_COMPONENT_API_
 #define L7_SNMP_PACKAGE 1
 #endif
-#endif
+*/
 
 /* xWeb definitions */
 /* PTin removed
