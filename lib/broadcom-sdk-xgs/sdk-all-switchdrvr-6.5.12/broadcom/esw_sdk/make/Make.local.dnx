@@ -396,7 +396,7 @@ INCLUDE_BCMX=1
 #BCM_88230_B0 = 1
 #BCM_88230_C0 = 1
 
-ifeq ($(BOARD),CXO2T4)
+ifeq ($(BOARD),cxo2t4)
 DPP_CHIPS = 1
 BCM_88675_A0 = 1
 BCM_88675_B0 = 1
@@ -405,7 +405,7 @@ BCM_88375_B0 = 1
 BCM_88650_A0 = 1
 endif
 
-ifeq ($(BOARD),CXO2T2)
+ifeq ($(BOARD),cxo2t2)
 DPP_CHIPS = 1
 BCM_88470_A0 = 1
 BCM_88375_A0 = 1
@@ -413,14 +413,14 @@ BCM_88375_B0 = 1
 BCM_88650_A0 = 1
 endif
 
-ifeq ($(BOARD),TA12XG)
+ifeq ($(BOARD),ta12xg)
 DPP_CHIPS = 1
 BCM_88660_A0 = 1
 BCM_88650_A0 = 1
 BCM_88650_B0 = 1
 endif
 
-ifeq ($(BOARD),TT08SXG)
+ifeq ($(BOARD),tt08sxg)
 DPP_CHIPS = 1
 BCM_88660_A0 = 1
 BCM_88650_A0 = 1
