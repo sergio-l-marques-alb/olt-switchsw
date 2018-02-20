@@ -1581,7 +1581,7 @@ L7_RC_t sysNetNotifyListDebugShow()
   printf("dot1xPduReceive         = 0x%08x\r\n", (L7_uint32) dot1xPduReceive);
   printf("dot3adPduReceive        = 0x%08x\r\n", (L7_uint32) dot3adPduReceive);
   printf("dtlRecvIP6              = 0x%08x\r\n", (L7_uint32) dtlRecvIP6);
-  printf("GarpRecvPkt             = 0x%08x\r\n", (L7_uint32) GarpRecvPkt);
+  //printf("GarpRecvPkt             = 0x%08x\r\n", (L7_uint32) GarpRecvPkt);
   //printf("ipv6ProvRecvPkt         = 0x%08x\r\n", (L7_uint32) ipv6ProvRecvPkt);
   printf("isdpPduReceive          = 0x%08x\r\n", (L7_uint32) isdpPduReceive);
   printf("lldpPduReceiveCallback  = 0x%08x\r\n", (L7_uint32) lldpPduReceiveCallback);
