@@ -15,7 +15,7 @@
 #include "tty_ptin.h"
 #include "sirerrors.h"
 #include "ptin_control.h"
-#include "ptin_mgmd_api.h"
+//#include "ptin_mgmd_api.h"
 #include "ptin_debug.h"//Added by MMelo to use ptin_timer routines
 #include "ipc.h"
 #include <ptin_intf.h>
