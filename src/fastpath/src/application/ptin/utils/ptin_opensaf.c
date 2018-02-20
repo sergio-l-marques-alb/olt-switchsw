@@ -22,7 +22,7 @@
 #include <pthread.h>
 #include "ptin_utils.h"
 #include "ptin_intf.h"
-#include "usmdb_dhcp_snooping.h"
+//#include "usmdb_dhcp_snooping.h"
 #include "fdb_api.h"
 
 
