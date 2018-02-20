@@ -7,4 +7,4 @@ FILESYSTEM=rootfs
 KO_PATH=./output/swdrv-dpp-dnx-cxo2t4-e500mc/target
 BIN_PATH=./output/swdrv-dpp-dnx-cxo2t4-e500mc/ipl
 
-. ./swdrvr-common.install
+. ./swdrv-common.install

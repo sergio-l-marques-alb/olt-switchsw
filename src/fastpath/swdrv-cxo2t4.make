@@ -1,6 +1,6 @@
 ################################################
 #                                              #
-#   FastPath Makefile for the TA12XG card      #
+#   FastPath Makefile for the CXO2T4 card      #
 #                                              #
 #       Milton Ruas, 2018                      #
 #       milton-r-silva@alticelabs.com          #
@@ -8,8 +8,8 @@
 ################################################
 
 # Board and CPU identification
-export BOARD = ta12xg
-export CPU   = e500
+export BOARD = cxo2t4
+export CPU   = e500mc
 
 # Base folders (using absolute references)
 CURRENT_PATH = $(shell pwd)
@@ -17,20 +17,24 @@ FP_FOLDER    = $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURREN
 OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
 
 # Cross-Compiler
-export TOOLCHAIN_BASE_DIR = /opt/eldk/usr
-export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
+export TOOLCHAIN_BASE_DIR = /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr
+export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin/ppce500mc-fsl-linux
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
-COMPILER = $(TOOLCHAIN_BIN_DIR)/ppc_85xxDP-
+COMPILER = $(TOOLCHAIN_BIN_DIR)/powerpc-fsl-linux-
+
+#export SYSROOT=--sysroot=/opt/fsl/1.2/sysroots/ppce500mc-fsl-linux
 
 # Kernel and SDK paths
-KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-3.8.13
+KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-4.1.8-QorIQ-SDK2.0-CXO2T4
 SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.12/broadcom
 
 # Comilation logging level
 export LVL7_MAKEFILE_LOGGING := N
 export LVL7_MAKEFILE_DISPLAY_MODE := S
 
-INSTALL_SCRIPT=swdrvr-ta12xg.install
+#NUM_CPUS=1
 
-include swdrvr-common.make
+INSTALL_SCRIPT=swdrv-cxo2t4.install
+
+include swdrv-common.make
 
