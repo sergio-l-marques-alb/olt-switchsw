@@ -8,7 +8,7 @@
 ################################################
 
 # List of all supported cards
-cards = ta12xg
+cards = cxo2t4 tt08sxg ta12xg
 
 
 ######################## Do not change any line below ########################
@@ -84,35 +84,35 @@ release:
 
 # Individual targets
 $(cards):
-	@echo "$@ compilation started (log file swdrvr-$@.make.log) ..."
-	@{ time $(MAKE) -f swdrvr-$@.make > swdrvr-$@.make.log 2>&1; } 2>.swdrvr-$@.make.time; echo "make-retval $$?" >> .swdrvr-$@.make.time;
+	@echo "$@ compilation started (log file swdrv-$@.make.log) ..."
+	@{ time $(MAKE) -f swdrv-$@.make > swdrv-$@.make.log 2>&1; } 2>.swdrv-$@.make.time; echo "make-retval $$?" >> .swdrv-$@.make.time;
 
-	@{ ret=`cat .swdrvr-$@.make.time | grep 'make-retval' | awk '{print $$2}'`;\
-	time=`cat .swdrvr-$@.make.time | grep 'real' | awk '{print $$2}'`;\
+	@{ ret=`cat .swdrv-$@.make.time | grep 'make-retval' | awk '{print $$2}'`;\
+	time=`cat .swdrv-$@.make.time | grep 'real' | awk '{print $$2}'`;\
 	if [ "$$ret" != "0" ]; then \
 		echo "ERROR!!! $@ compilation finished in $${time} with errors:"; \
-		tail -n 25 swdrvr-$@.make.log; \
-		echo "Please see log file swdrvr-$@.make.log for more details."; \
+		tail -n 25 swdrv-$@.make.log; \
+		echo "Please see log file swdrv-$@.make.log for more details."; \
 		echo; \
 		exit -1; \
 	else \
 		echo "Success: $@ compilation finished in $${time}"; \
 	fi; \
-	rm .swdrvr-$@.make.time; }
+	rm .swdrv-$@.make.time; }
 
 $(addprefix clean-, $(cards)):
-	@echo "$@ started (log: swdrvr-$(subst clean-,,$@).clean.log) ..."
-	@$(MAKE) -f swdrvr-$(subst clean-,,$@).make clean > swdrvr-$(subst clean-,,$@).clean.log 2>&1
+	@echo "$@ started (log: swdrv-$(subst clean-,,$@).clean.log) ..."
+	@$(MAKE) -f swdrv-$(subst clean-,,$@).make clean > swdrv-$(subst clean-,,$@).clean.log 2>&1
 	@echo "$@ done!"
 	
 $(addprefix cleanall-, $(cards)):
-	@echo "$@ started (log: swdrvr-$(subst cleanall-,,$@).cleanall.log) ..."
-	@$(MAKE) -f swdrvr-$(subst cleanall-,,$@).make cleanall > swdrvr-$(subst clean-,,$@).cleanall.log 2>&1
+	@echo "$@ started (log: swdrv-$(subst cleanall-,,$@).cleanall.log) ..."
+	@$(MAKE) -f swdrv-$(subst cleanall-,,$@).make cleanall > swdrv-$(subst clean-,,$@).cleanall.log 2>&1
 	@echo "$@ done!"
 	
 $(addprefix install-, $(cards)):
-	@echo "$@ started (log: swdrvr-$(subst install-,,$@).install.log) ..."
-	@sh swdrvr-$(subst install-,,$@).install  > swdrvr-$(subst clean-,,$@).install.log 2>&1
+	@echo "$@ started (log: swdrv-$(subst install-,,$@).install.log) ..."
+	@sh swdrv-$(subst install-,,$@).install  > swdrv-$(subst clean-,,$@).install.log 2>&1
 	@echo "$@ done!"
 
 $(addprefix release-, $(cards)):
