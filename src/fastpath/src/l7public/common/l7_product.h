@@ -30,6 +30,15 @@
 #include "l7_productspecs.h"
 #include "l7_platformspecs.h"
 
+/**************************************************************** 
+ * Default PATHS
+ ****************************************************************/
+
+#define FILESYSTEM_LOG_PATH     "/var/log/swdrv-logs/"
+#define FILESYSTEM_SCRIPTS_PATH "/usr/local/scripts/swdrv-scripts/"
+#define FILESYSTEM_VAR_PATH     "/usr/local/var/swdrv-config/"
+#define FILESYSTEM_SBIN_PATH    "/usr/local/sbin/"
+#define FILESYSTEM_TMP_PATH     "/tmp/"
 
 /*********************************************************************
 **  Start of Base paramters 

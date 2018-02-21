@@ -465,7 +465,7 @@ static L7_RC_t ptin_opensaf_checkCheckpointInitialization(int id)
   	   char com[128];
 
   	   PT_LOG_WARN(LOG_CTX_OPENSAF, "RESTART OPENSAF\n");
-  	   snprintf(com, sizeof(com), "touch /usr/local/ptin/tmp/opensaf_restart");
+       snprintf(com, sizeof(com), "touch " FILESYSTEM_TMP_PATH "opensaf_restart");
   	   system(com);
 
   	   ptin_checkpoint[id].errorCount = 0;

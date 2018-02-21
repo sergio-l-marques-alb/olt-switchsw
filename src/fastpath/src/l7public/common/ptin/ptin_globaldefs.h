@@ -2,11 +2,12 @@
 #define _PTIN_GLOBALDEFS_H
 
 #include "l7_platformspecs.h"
+#include "defaultconfig.h"
 #include <sys/utsname.h>
 
-#define LOG_OUTPUT_FILE_DEFAULT   "/var/log/switchdrvr/switchdrvr.log"
-#define LOG_OUTPUT_FILE_DEFAULT2  "/var/log/switchdrvr/switchdrvr_sdk.log"
-#define LOG_OUTPUT_FILE_DEFAULT3  "/var/log/switchdrvr/switchdrvr_events.log"
+#define LOG_OUTPUT_FILE_DEFAULT   FILESYSTEM_LOG_PATH "switchdrvr.log"
+#define LOG_OUTPUT_FILE_DEFAULT2  FILESYSTEM_LOG_PATH "switchdrvr_sdk.log"
+#define LOG_OUTPUT_FILE_DEFAULT3  FILESYSTEM_LOG_PATH "switchdrvr_events.log"
 
 /* ************************** */
 /* Global Features Activation */
@@ -58,8 +59,8 @@
 #define CPLD_ID0_VAL                  ((CPLD_ID >> 8) & 0xFF)
 #define CPLD_ID1_VAL                  (CPLD_ID & 0xFF)
 
-#define PTIN_INBAND_BRIDGE_SCRIPT     "/bin/sh /usr/local/ptin/scripts/startBridge.sh"  /* Only applicable to CXP640G */
-#define PTIN_PCAP_BRIDGE_SCRIPT       "/bin/sh /usr/local/ptin/scripts/startPcapBridge.sh"  /* Applicable to CXP640G and Line Cards */
+#define PTIN_INBAND_BRIDGE_SCRIPT     "/bin/sh " FILESYSTEM_SCRIPTS_PATH "startBridge.sh"  /* Only applicable to CXP640G */
+#define PTIN_PCAP_BRIDGE_SCRIPT       "/bin/sh " FILESYSTEM_SCRIPTS_PATH "startPcapBridge.sh"  /* Applicable to CXP640G and Line Cards */
 
 #define PTIN_SYSTEM_GROUP_VLANS  1
 
@@ -111,7 +112,7 @@ extern int ptin_sys_number_of_ports;
 /* These cards will be reseted when a switchover is applied (ptin_control) */
 #define PTIN_BOARD_IS_TORESET(board)  ((board)==(PTIN_BOARD_TYPE_TG16G) || (board)==(PTIN_BOARD_TYPE_TG16GF) || (board)==(PTIN_BOARD_TYPE_TT04SXG))
 
-#define WC_MAP_FILE "/usr/local/ptin/var/bcm_port_map"
+#define WC_MAP_FILE   FILESYSTEM_VAR_PATH "bcm_port_map"
 
 #define WC_SLOT_MODE_NONE         0
 #define WC_SLOT_MODE_2x10G        1

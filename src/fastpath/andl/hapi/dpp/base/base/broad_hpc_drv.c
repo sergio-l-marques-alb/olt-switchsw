@@ -2814,7 +2814,7 @@ L7_RC_t hpcBroadInit()
               sal_sleep(3);
           }
           PT_LOG_TRACE(LOG_CTX_STARTUP,"Going to load rc.soc file...");
-          if (sh_rcload_file(SOC_NDEV_IDX2DEV(bcom_unit), NULL, "/usr/local/ptin/sbin/rc.soc", FALSE) != CMD_OK) {
+          if (sh_rcload_file(SOC_NDEV_IDX2DEV(bcom_unit), NULL, FILESYSTEM_VAR_PATH "rc.soc", FALSE) != CMD_OK) {
               PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading rc script on unit %d\n", SOC_NDEV_IDX2DEV(bcom_unit));
           }
           else
@@ -3453,7 +3453,7 @@ extern int soc_robo_mmu_init(int );
       sal_sleep(3);
     }
     PT_LOG_TRACE(LOG_CTX_STARTUP,"Going to load rc.soc file...");
-    if (sh_rcload_file(SOC_NDEV_IDX2DEV(unit), NULL, "/usr/local/ptin/sbin/swdrvr-config/rc.soc", FALSE) != CMD_OK)
+    if (sh_rcload_file(SOC_NDEV_IDX2DEV(unit), NULL, FILESYSTEM_VAR_PATH "rc.soc", FALSE) != CMD_OK)
     {
       PT_LOG_ERR(LOG_CTX_STARTUP,"ERROR loading rc script on unit %d\n", SOC_NDEV_IDX2DEV(unit));
       return L7_FAILURE;

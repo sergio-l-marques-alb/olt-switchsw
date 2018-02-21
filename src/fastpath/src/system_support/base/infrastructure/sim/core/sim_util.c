@@ -2110,8 +2110,8 @@ void simBuildTestConfigData(void)
   simTransferInfo.systemTransferServerIp.addr.ipv6.in6.addr32[2] =  0x0A0A0A05;
   simTransferInfo.systemTransferServerIp.addr.ipv6.in6.addr32[3] =  0x0A0A0A05;
 
-  strncpy(simTransferInfo.systemTransferFilePathRemote, "/tmp/tftp", L7_MAX_FILENAME);
-  strncpy(simTransferInfo.systemTransferFileNameRemote, "/transferFile",L7_MAX_FILENAME);
+  strncpy(simTransferInfo.systemTransferFilePathRemote, FILESYSTEM_TMP_PATH "tftp", L7_MAX_FILENAME);
+  strncpy(simTransferInfo.systemTransferFileNameRemote, FILESYSTEM_TMP_PATH "transferFile", L7_MAX_FILENAME);
   simTransferInfo.systemUploadFileType   =  L7_FILE_TYPE_TRAP_LOG;
   simTransferInfo.systemDownloadFileType =  L7_FILE_TYPE_CONFIG;
 

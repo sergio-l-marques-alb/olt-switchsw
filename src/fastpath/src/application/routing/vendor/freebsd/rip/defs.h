@@ -806,7 +806,7 @@ typedef struct ripPipeMsg_s
 }ripPipeMsg_t;
 
 /* RIP task communication pipe defines */
-#define RIP_INTF_PIPE_NAME      "/tmp/ripIntfPipe"    /* Should not be greater than
+#define RIP_INTF_PIPE_NAME      FILESYSTEM_TMP_PATH "ripIntfPipe"    /* Should not be greater than
                                                     RIP_INTF_PIPE_NAME_LEN */
 #define RIP_INTF_PIPE_NAME_LEN  20  /* Arbitrary Number*/
 #define RIP_INTF_PIPE_MAX_MSGS  25  /* Arbitrary Number*/
