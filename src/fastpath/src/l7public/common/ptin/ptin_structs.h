@@ -1333,7 +1333,7 @@ typedef struct {
 /* MGMD Query Instance Array
  * This structure is used to save the Query Instances currently configured on the MGMD
   */
-#if (!PTIN_BOARD_IS_MATRIX && (defined (IGMP_QUERIER_IN_UC_EVC)))
+#if (defined (IGMP_QUERIER_IN_UC_EVC))
 typedef struct {
   L7_BOOL   inUse;  
   L7_uint32 UcastEvcId;

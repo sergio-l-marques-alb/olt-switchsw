@@ -44,12 +44,6 @@ typedef enum
 #endif
 
 
-#if PTIN_BOARD_IS_MATRIX
-#define is_matrix_protection() (CPLD_SLOT_ID_GET() != 0)   /* To know if we are in protection matrix */
-#define matrix_board_version() ((CPLD_ID_GET() == CPLD_ID_CXO640G_V1) ? 1 : 2)
-#endif  // PTIN_BOARD_IS_MATRIX
-
-
 /**
  * Maps FPGA and PLD registers map
  * 
@@ -60,48 +54,6 @@ extern L7_RC_t ptin_fpga_init(void);
 
 #ifdef MAP_CPLD
 
-#if (PTIN_BOARD_IS_MATRIX)
-
-/**************************************************************************
-*
-* @purpose  Verify if this Matrix is Currently in Active State. 
-*           (Only for Matrix board)
-* 
-* @param    void
-*
-* @returns  TRUE or FALSE
-*
-* @comments If this Card is not a Matrix it is returned 0.
-*
-* @end
-*
-*************************************************************************/
-L7_uint8 ptin_fpga_mx_is_matrixactive(void);
-
-/**************************************************************************
-*
-* @purpose  Verify if this Matrix is Currently in Active State.
-*           (Only for Matrix board)
-*
-* @param    void
-*
-* @returns  TRUE or FALSE
-*
-* @comments 
-*
-* @end
-*
-*************************************************************************/
-L7_uint8 ptin_fpga_mx_is_matrixactive_rt(void);
-
-/**
- * Check if current Matrix is the Working one (slot 1) 
- * (Only for Matrix board)
- * 
- * @return L7_uint8 : L7_TRUE / L7_FALSE
- */
-L7_uint8 ptin_fpga_mx_is_matrix_in_workingslot(void);
-#endif
 
 #if (PTIN_BOARD_IS_LINECARD)
 /**

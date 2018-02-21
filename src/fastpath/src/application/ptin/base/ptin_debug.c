@@ -223,11 +223,9 @@ void ptin_debug(void)
   printf("  hapi_ptin_stormControl_cpu_set <enable> <cir> <cbs>             - Reconfigure egress meter for CPU packets\r\n");  
   printf("  hapiBroadDebugPolicyEnable <level>                              - Enable policy management debug messages (minimum level should be 3)\r\n");
   printf("\r\n");
-#if (PTIN_BOARD_IS_STANDALONE)
   printf("  ptin_ptp_oam_prtvid_dump                                        - Dump FPGA PRT VID table (just OLT1T0-AC)\r\n");
   printf("  ptin_hapi_ptp_dump                                              - Dump FPGA PTP table (just OLT1T0-AC)\r\n");
   printf("  ptin_hapi_oam_dump                                              - Dump FPGA OAM table (just OLT1T0-AC)\r\n");
-#endif
   printf("\r\n");
   printf("Multicast Admission Control\r\n");
   printf("  ptin_igmp_admission_control_port_dump_active                    - Dump Admission Control Parameters of Port\r\n");
@@ -263,11 +261,6 @@ void ptin_debug(void)
   printf("  ptin_debug_dtl_set <enable>                                     - Show more debugging logs for the DTL module\r\n");
   printf("  ptin_debug_hapi_l2_enable <enable>                              - Show more debugging logs for the HAPI L2 module\r\n");
   printf("  ptin_debug_opensaf_enable <enable>                              - Show more debugging logs for the OPENSAF module\r\n");
-#if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_OLT1T0 || PTIN_BOARD == PTIN_BOARD_TT04SXG)
-  printf("  cpld_spi_read_debug <addr>                                      - Read CPLD register using SPI\r\n");
-  printf("  cpld_spi_write_debug <addr> <value>                             - Write CPLD register using SPI\r\n");
-  printf("  set_debug_APS_CCM_pktTimer <0/1>                                - (De)activate rx APS/CCM packets' timing measurements\r\n");
-#endif
 
 #ifdef NGPON2_SUPPORTED 
   printf("  ptin_intf_NGPON2_groups_dump                                    - Dump all NGPON2 groups \r\n");
@@ -831,13 +824,6 @@ void ptin_intf_dump(void)
 
     /* Get slot and port id */
     slot = sport = 0;
-  #if (PTIN_BOARD_IS_MATRIX)
-    if (ptin_intf_port2SlotPort(port, &slot, &sport, L7_NULLPTR) != L7_SUCCESS)
-    {
-      slot  = 0;
-      sport = port;
-    }
-  #endif
 
   #if (!PTIN_BOARD_IS_DNX)
     /* Apply configuration */
@@ -851,69 +837,6 @@ void ptin_intf_dump(void)
     /* bcm_port_t */
     bcm_port = hapiSlotMapPtr[port].bcm_port;
 
-  #if (PTIN_BOARD_IS_MATRIX)
-    L7_uint16 board_type;
-
-    if (slot == 0)
-    {
-      sprintf(board_id_str,"local");
-    }
-    else if (ptin_intf_boardid_get(port, &board_type) == L7_SUCCESS && board_type != 0)
-    {
-      switch (board_type)
-      {
-      case PTIN_BOARD_TYPE_TU40G:
-        sprintf(board_id_str,"TU40G");
-        break;
-      case PTIN_BOARD_TYPE_TU40GR:
-        sprintf(board_id_str,"TU40GR");
-        break;
-      case PTIN_BOARD_TYPE_TOLTU20G:
-        sprintf(board_id_str,"TU20G");
-        break;
-      case PTIN_BOARD_TYPE_TOLTU20GR:
-        sprintf(board_id_str,"TU20GR");
-        break;
-      case PTIN_BOARD_TYPE_TR32R:
-        sprintf(board_id_str,"TR32R");
-        break;
-      case PTIN_BOARD_TYPE_TG16G:
-        sprintf(board_id_str,"TG16G");
-        break;
-      case PTIN_BOARD_TYPE_TG16GF:
-        sprintf(board_id_str,"TG16GF");
-        break;
-      case PTIN_BOARD_TYPE_TOLT8G:
-        sprintf(board_id_str,"TOLT8G");
-        break;
-      case PTIN_BOARD_TYPE_TOLT8GR:
-        sprintf(board_id_str,"TOLT8GR");
-        break;
-      case PTIN_BOARD_TYPE_TA48GE:
-        sprintf(board_id_str,"TA48GE");
-        break;
-      case PTIN_BOARD_TYPE_TA48GED:
-        sprintf(board_id_str,"TA48GED");
-        break;
-      case PTIN_BOARD_TYPE_TT04SXG:
-        sprintf(board_id_str,"TT04SXG");
-        break;
-      case PTIN_BOARD_TYPE_TT08SXG:
-        sprintf(board_id_str,"TT08SXG");
-        break;
-      case PTIN_BOARD_TYPE_TU100G:
-        sprintf(board_id_str,"TU100G");
-        break;
-      case PTIN_BOARD_TYPE_TA12XGE:
-        sprintf(board_id_str,"TA12XG");
-        break;
-      default:
-        sprintf(board_id_str," 0x%02x", board_type);
-        break;
-      }
-    }
-    else
-  #endif
     {
       sprintf(board_id_str,"  ---  ");
     }
@@ -921,7 +844,6 @@ void ptin_intf_dump(void)
     /* Switch port: ge/xe (indexes changed according to the board) */
     sprintf(bcm_port_str,"%.7s", hapiSlotMapPtr[port].portName);
 
-  #if (PTIN_BOARD_IS_DNX)
     printf("|%-7.7s| %2u/%-2u|  %2u  |  %2u | %2u (%-4.4s)|    ---    | %-3.3s | %4.4s | %5.5s |     %5u |%s%12llu %9llu%s|%s%12llu %9llu%s|\r\n",
            board_id_str, slot, sport,
            port,
@@ -935,24 +857,6 @@ void ptin_intf_dump(void)
            portStats.Rx.Throughput / ((portStats.Rx.Throughput>=1000000000ULL) ? 1000 : 1), (portStats.Rx.Throughput>=1000000000ULL) ? "K" : " ",
            (portStats.Tx.etherStatsOctets >= 1000000000000ULL) ? "*" : " ", portStats.Tx.etherStatsOctets % 1000000000000ULL,
            portStats.Tx.Throughput / ((portStats.Tx.Throughput>=1000000000ULL) ? 1000 : 1), (portStats.Tx.Throughput>=1000000000ULL) ? "K" : " ");
-  #else
-    printf("|%-7.7s| %2u/%-2u|  %2u  |  %2u/%-3d | %2u (%-4.4s)| %-3.3s-%u/%u/%u | %-3.3s | %4.4s | %5.5s |%5u/%-5u|%s%12llu %9llu%s|%s%12llu %9llu%s|\r\n",
-           board_id_str, slot, sport,
-           port,
-           intIfNum,
-           intIfNum==lagIntfNum?-1:lagIntfNum,
-           bcm_port, bcm_port_str,
-           (portExt.egress_type == PTIN_PORT_EGRESS_TYPE_ISOLATED) ? "ISO" : ((portExt.egress_type == PTIN_PORT_EGRESS_TYPE_COMMUNITY) ? "COM" : "PRO"),
-           portExt.macLearn_stationMove_enable, portExt.macLearn_stationMove_samePrio, portExt.macLearn_stationMove_prio,
-           admin ? "Ena" : "Dis",
-           link == L7_UP ? " Up " : "Down",
-           speed,
-           frameOversize, frameMax,
-           (portStats.Rx.etherStatsOctets >= 1000000000000ULL) ? "*" : " ", portStats.Rx.etherStatsOctets % 1000000000000ULL,
-           portStats.Rx.Throughput / ((portStats.Rx.Throughput>=1000000000ULL) ? 1000 : 1), (portStats.Rx.Throughput>=1000000000ULL) ? "K" : " ",
-           (portStats.Tx.etherStatsOctets >= 1000000000000ULL) ? "*" : " ", portStats.Tx.etherStatsOctets % 1000000000000ULL,
-           portStats.Tx.Throughput / ((portStats.Tx.Throughput>=1000000000ULL) ? 1000 : 1), (portStats.Tx.Throughput>=1000000000ULL) ? "K" : " ");
-    #endif
   }
   printf("+-------+------+------+-----+----------+-----------+-----+------+-------+-----------+------------------------+------------------------+\r\n");
   printf("MEF Ext: MEF Extension attributes -> Port Type - MAC move enable / MAC move with same prio enable / MAC move prio\r\n");
