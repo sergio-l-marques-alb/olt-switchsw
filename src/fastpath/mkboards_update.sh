@@ -37,24 +37,25 @@ fi
 
 echo "Clearing output folders..."
 mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/
-mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/sbin/
-mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/lib/
-mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/scripts/
+mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/sbin/
+mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/lib/
+mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/scripts/
+mkdir -p $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/var/
 mkdir $MKBOARDS/$MKBOARDS_FOLDER/backup/
 
 echo "Updating $BOARD board..."
 cd $OUTPUT
-cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko ipl/fp.cli ipl/fp.shell ipl/mgmd.cli $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/sbin/
-cp -v ipl/libmgmd.so $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/lib/
+cp -v ipl/switchdrvr ipl/devshell_symbols.gz target/*.ko $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/sbin/
+#ipl/fp.cli ipl/fp.shell ipl/mgmd.cli 
 cd - > /dev/null 2>&1
-cp -vr ../builds/tmp/$MKBOARDS_FOLDER/rootfs/* $MKBOARDS/$MKBOARDS_FOLDER/rootfs/
+cp -vr ../builds/tmp/$BOARD/* $MKBOARDS/$MKBOARDS_FOLDER/rootfs/
 
 version=r`svnversion .. -n | sed -e 's/.*://' -e 's/[A-Z]*$$//'`
 echo echo Modular OLT $MODULE $version > ./fp.ver
 echo echo "Built @ `date`" >> ./fp.ver
 echo "echo OLTSWITCH md5sum: "`md5sum $OUTPUT/ipl/switchdrvr | awk '{print $1}'` >> ./fp.ver
 chmod 777 ./fp.ver
-cp ./fp.ver $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/ptin/sbin
+cp ./fp.ver $MKBOARDS/$MKBOARDS_FOLDER/rootfs/usr/local/scripts/swdrvr-scripts
 echo "OK!"
 
 #echo "Backing up unstripped binary..."
