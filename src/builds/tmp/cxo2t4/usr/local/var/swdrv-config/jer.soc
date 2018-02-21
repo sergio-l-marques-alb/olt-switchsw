@@ -27,24 +27,24 @@ if $?BCM88680_A0 || $?BCM88681_A0 ||  $?BCM88682_A0 || $?BCM88683_A0 ||  $?BCM88
    'local JERPLUS 1'
 
 if $?QMX \
-    'rcload /usr/local/ptin/sbin/swdrvr-config/bcm88375_board.soc'
+    'rcload /usr/local/var/swdrv-config/bcm88375_board.soc'
 if $?JERICHO \
-    'rcload /usr/local/ptin/sbin/swdrvr-config/bcm88675_board.soc'
+    'rcload /usr/local/var/swdrv-config/bcm88675_board.soc'
 
 if $?JERPLUS \
-    'rcload /usr/local/ptin/sbin/swdrvr-config/bcm88680_board.soc'
+    'rcload /usr/local/var/swdrv-config/bcm88680_board.soc'
 
 # Load DRAM tuning properties from local File. RcLoad will not fail if file not found, and will not show errors of missing file.
 set RCError=off
 debug appl shell warn
 if $?QMX \
-    'rcload /usr/local/ptin/sbin/swdrvr-config/bcm88375_dram_tune.soc'
+    'rcload /usr/local/var/swdrv-config/bcm88375_dram_tune.soc'
 
 if $?JERICHO \
-    'rcload /usr/local/ptin/sbin/swdrvr-config/bcm88675_dram_tune_v1.soc'
+    'rcload /usr/local/var/swdrv-config/bcm88675_dram_tune_v1.soc'
 
 if $?JERPLUS \
-    'rcload /usr/local/ptin/sbin/swdrvr-config/bcm88680_dram_tune_v1.soc'
+    'rcload /usr/local/var/swdrv-config/bcm88680_dram_tune_v1.soc'
 
 
 debug appl shell =
@@ -52,9 +52,9 @@ set RCError=on
 
 set RCError=off
 if $?diag_chassis && $?JERICHO \
-    'rcload /usr/local/ptin/sbin/swdrvr-config/combo28_dram_multi_88675.soc' \
+    'rcload /usr/local/var/swdrv-config/combo28_dram_multi_88675.soc' \
 else \
-    'rcload /usr/local/ptin/sbin/swdrvr-config/combo28_dram.soc'    
+    'rcload /usr/local/var/swdrv-config/combo28_dram.soc'    
 set RCError=on
 
 #Set fabric connect mode as FE for multi FAP system

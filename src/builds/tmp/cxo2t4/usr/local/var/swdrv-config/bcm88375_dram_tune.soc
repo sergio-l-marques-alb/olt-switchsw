@@ -1,0 +1,548 @@
+# $Id: bcm88375_dram_tune.soc,v 1.18 Broadcom SDK $
+# $Copyright: (c) 2016 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+#########
+
+config add ext_ram_dq_swap_dram0_byte0_bit0=0
+config add ext_ram_dq_swap_dram0_byte0_bit1=4
+config add ext_ram_dq_swap_dram0_byte0_bit2=6
+config add ext_ram_dq_swap_dram0_byte0_bit3=2
+config add ext_ram_dq_swap_dram0_byte0_bit4=3
+config add ext_ram_dq_swap_dram0_byte0_bit5=7
+config add ext_ram_dq_swap_dram0_byte0_bit6=1
+config add ext_ram_dq_swap_dram0_byte0_bit7=5
+
+config add ext_ram_dq_swap_dram0_byte1_bit0=0
+config add ext_ram_dq_swap_dram0_byte1_bit1=4
+config add ext_ram_dq_swap_dram0_byte1_bit2=6
+config add ext_ram_dq_swap_dram0_byte1_bit3=7
+config add ext_ram_dq_swap_dram0_byte1_bit4=1
+config add ext_ram_dq_swap_dram0_byte1_bit5=2
+config add ext_ram_dq_swap_dram0_byte1_bit6=3
+config add ext_ram_dq_swap_dram0_byte1_bit7=5
+
+config add ext_ram_dq_swap_dram0_byte2_bit0=5
+config add ext_ram_dq_swap_dram0_byte2_bit1=1
+config add ext_ram_dq_swap_dram0_byte2_bit2=6
+config add ext_ram_dq_swap_dram0_byte2_bit3=3
+config add ext_ram_dq_swap_dram0_byte2_bit4=0
+config add ext_ram_dq_swap_dram0_byte2_bit5=2
+config add ext_ram_dq_swap_dram0_byte2_bit6=4
+config add ext_ram_dq_swap_dram0_byte2_bit7=7
+
+config add ext_ram_dq_swap_dram0_byte3_bit0=1
+config add ext_ram_dq_swap_dram0_byte3_bit1=7
+config add ext_ram_dq_swap_dram0_byte3_bit2=3
+config add ext_ram_dq_swap_dram0_byte3_bit3=2
+config add ext_ram_dq_swap_dram0_byte3_bit4=0
+config add ext_ram_dq_swap_dram0_byte3_bit5=4
+config add ext_ram_dq_swap_dram0_byte3_bit6=5
+config add ext_ram_dq_swap_dram0_byte3_bit7=6
+
+config add ext_ram_addr_bank_swap_dram0_bit0=2
+config add ext_ram_addr_bank_swap_dram0_bit1=10
+config add ext_ram_addr_bank_swap_dram0_bit2=4
+config add ext_ram_addr_bank_swap_dram0_bit3=3
+config add ext_ram_addr_bank_swap_dram0_bit4=17
+config add ext_ram_addr_bank_swap_dram0_bit5=0
+config add ext_ram_addr_bank_swap_dram0_bit6=14
+config add ext_ram_addr_bank_swap_dram0_bit7=8
+config add ext_ram_addr_bank_swap_dram0_bit8=15
+config add ext_ram_addr_bank_swap_dram0_bit9=12
+config add ext_ram_addr_bank_swap_dram0_bit10=6
+config add ext_ram_addr_bank_swap_dram0_bit11=9
+config add ext_ram_addr_bank_swap_dram0_bit12=13
+config add ext_ram_addr_bank_swap_dram0_bit13=7
+config add ext_ram_addr_bank_swap_dram0_bit14=5
+config add ext_ram_addr_bank_swap_dram0_bit15=16
+config add ext_ram_addr_bank_swap_dram0_bit16=11
+config add ext_ram_addr_bank_swap_dram0_bit17=1
+
+
+config add ext_ram_dq_swap_dram1_byte0_bit0=2
+config add ext_ram_dq_swap_dram1_byte0_bit1=0
+config add ext_ram_dq_swap_dram1_byte0_bit2=6
+config add ext_ram_dq_swap_dram1_byte0_bit3=4
+config add ext_ram_dq_swap_dram1_byte0_bit4=3
+config add ext_ram_dq_swap_dram1_byte0_bit5=7
+config add ext_ram_dq_swap_dram1_byte0_bit6=5
+config add ext_ram_dq_swap_dram1_byte0_bit7=1
+
+config add ext_ram_dq_swap_dram1_byte1_bit0=4
+config add ext_ram_dq_swap_dram1_byte1_bit1=0
+config add ext_ram_dq_swap_dram1_byte1_bit2=2
+config add ext_ram_dq_swap_dram1_byte1_bit3=6
+config add ext_ram_dq_swap_dram1_byte1_bit4=3
+config add ext_ram_dq_swap_dram1_byte1_bit5=1
+config add ext_ram_dq_swap_dram1_byte1_bit6=7
+config add ext_ram_dq_swap_dram1_byte1_bit7=5
+
+config add ext_ram_dq_swap_dram1_byte2_bit0=6
+config add ext_ram_dq_swap_dram1_byte2_bit1=7
+config add ext_ram_dq_swap_dram1_byte2_bit2=5
+config add ext_ram_dq_swap_dram1_byte2_bit3=3
+config add ext_ram_dq_swap_dram1_byte2_bit4=1
+config add ext_ram_dq_swap_dram1_byte2_bit5=2
+config add ext_ram_dq_swap_dram1_byte2_bit6=0
+config add ext_ram_dq_swap_dram1_byte2_bit7=4
+
+config add ext_ram_dq_swap_dram1_byte3_bit0=6
+config add ext_ram_dq_swap_dram1_byte3_bit1=3
+config add ext_ram_dq_swap_dram1_byte3_bit2=0
+config add ext_ram_dq_swap_dram1_byte3_bit3=1
+config add ext_ram_dq_swap_dram1_byte3_bit4=5
+config add ext_ram_dq_swap_dram1_byte3_bit5=2
+config add ext_ram_dq_swap_dram1_byte3_bit6=4
+config add ext_ram_dq_swap_dram1_byte3_bit7=7
+
+config add ext_ram_addr_bank_swap_dram1_bit0=7
+config add ext_ram_addr_bank_swap_dram1_bit1=17
+config add ext_ram_addr_bank_swap_dram1_bit2=4
+config add ext_ram_addr_bank_swap_dram1_bit3=3
+config add ext_ram_addr_bank_swap_dram1_bit4=2
+config add ext_ram_addr_bank_swap_dram1_bit5=0
+config add ext_ram_addr_bank_swap_dram1_bit6=5
+config add ext_ram_addr_bank_swap_dram1_bit7=10
+config add ext_ram_addr_bank_swap_dram1_bit8=16
+config add ext_ram_addr_bank_swap_dram1_bit9=8
+config add ext_ram_addr_bank_swap_dram1_bit10=12
+config add ext_ram_addr_bank_swap_dram1_bit11=6
+config add ext_ram_addr_bank_swap_dram1_bit12=15
+config add ext_ram_addr_bank_swap_dram1_bit13=13
+config add ext_ram_addr_bank_swap_dram1_bit14=14
+config add ext_ram_addr_bank_swap_dram1_bit15=1
+config add ext_ram_addr_bank_swap_dram1_bit16=9
+config add ext_ram_addr_bank_swap_dram1_bit17=11
+
+
+config add ext_ram_dq_swap_dram2_byte0_bit0=2
+config add ext_ram_dq_swap_dram2_byte0_bit1=4
+config add ext_ram_dq_swap_dram2_byte0_bit2=3
+config add ext_ram_dq_swap_dram2_byte0_bit3=6
+config add ext_ram_dq_swap_dram2_byte0_bit4=1
+config add ext_ram_dq_swap_dram2_byte0_bit5=5
+config add ext_ram_dq_swap_dram2_byte0_bit6=7
+config add ext_ram_dq_swap_dram2_byte0_bit7=0
+
+config add ext_ram_dq_swap_dram2_byte1_bit0=4
+config add ext_ram_dq_swap_dram2_byte1_bit1=7
+config add ext_ram_dq_swap_dram2_byte1_bit2=5
+config add ext_ram_dq_swap_dram2_byte1_bit3=0
+config add ext_ram_dq_swap_dram2_byte1_bit4=6
+config add ext_ram_dq_swap_dram2_byte1_bit5=2
+config add ext_ram_dq_swap_dram2_byte1_bit6=3
+config add ext_ram_dq_swap_dram2_byte1_bit7=1
+
+config add ext_ram_dq_swap_dram2_byte2_bit0=6
+config add ext_ram_dq_swap_dram2_byte2_bit1=5
+config add ext_ram_dq_swap_dram2_byte2_bit2=3
+config add ext_ram_dq_swap_dram2_byte2_bit3=1
+config add ext_ram_dq_swap_dram2_byte2_bit4=2
+config add ext_ram_dq_swap_dram2_byte2_bit5=4
+config add ext_ram_dq_swap_dram2_byte2_bit6=7
+config add ext_ram_dq_swap_dram2_byte2_bit7=0
+
+config add ext_ram_dq_swap_dram2_byte3_bit0=1
+config add ext_ram_dq_swap_dram2_byte3_bit1=0
+config add ext_ram_dq_swap_dram2_byte3_bit2=4
+config add ext_ram_dq_swap_dram2_byte3_bit3=7
+config add ext_ram_dq_swap_dram2_byte3_bit4=3
+config add ext_ram_dq_swap_dram2_byte3_bit5=5
+config add ext_ram_dq_swap_dram2_byte3_bit6=6
+config add ext_ram_dq_swap_dram2_byte3_bit7=2
+
+config add ext_ram_addr_bank_swap_dram2_bit0=14
+config add ext_ram_addr_bank_swap_dram2_bit1=9
+config add ext_ram_addr_bank_swap_dram2_bit2=11
+config add ext_ram_addr_bank_swap_dram2_bit3=3
+config add ext_ram_addr_bank_swap_dram2_bit4=12
+config add ext_ram_addr_bank_swap_dram2_bit5=15
+config add ext_ram_addr_bank_swap_dram2_bit6=6
+config add ext_ram_addr_bank_swap_dram2_bit7=5
+config add ext_ram_addr_bank_swap_dram2_bit8=13
+config add ext_ram_addr_bank_swap_dram2_bit9=8
+config add ext_ram_addr_bank_swap_dram2_bit10=4
+config add ext_ram_addr_bank_swap_dram2_bit11=0
+config add ext_ram_addr_bank_swap_dram2_bit12=2
+config add ext_ram_addr_bank_swap_dram2_bit13=7
+config add ext_ram_addr_bank_swap_dram2_bit14=16
+config add ext_ram_addr_bank_swap_dram2_bit15=1
+config add ext_ram_addr_bank_swap_dram2_bit16=10
+config add ext_ram_addr_bank_swap_dram2_bit17=17
+
+
+config add ext_ram_dq_swap_dram3_byte0_bit0=4
+config add ext_ram_dq_swap_dram3_byte0_bit1=3
+config add ext_ram_dq_swap_dram3_byte0_bit2=6
+config add ext_ram_dq_swap_dram3_byte0_bit3=7
+config add ext_ram_dq_swap_dram3_byte0_bit4=1
+config add ext_ram_dq_swap_dram3_byte0_bit5=0
+config add ext_ram_dq_swap_dram3_byte0_bit6=5
+config add ext_ram_dq_swap_dram3_byte0_bit7=2
+
+config add ext_ram_dq_swap_dram3_byte1_bit0=4
+config add ext_ram_dq_swap_dram3_byte1_bit1=0
+config add ext_ram_dq_swap_dram3_byte1_bit2=2
+config add ext_ram_dq_swap_dram3_byte1_bit3=7
+config add ext_ram_dq_swap_dram3_byte1_bit4=5
+config add ext_ram_dq_swap_dram3_byte1_bit5=6
+config add ext_ram_dq_swap_dram3_byte1_bit6=1
+config add ext_ram_dq_swap_dram3_byte1_bit7=3
+
+config add ext_ram_dq_swap_dram3_byte2_bit0=6
+config add ext_ram_dq_swap_dram3_byte2_bit1=0
+config add ext_ram_dq_swap_dram3_byte2_bit2=5
+config add ext_ram_dq_swap_dram3_byte2_bit3=2
+config add ext_ram_dq_swap_dram3_byte2_bit4=4
+config add ext_ram_dq_swap_dram3_byte2_bit5=7
+config add ext_ram_dq_swap_dram3_byte2_bit6=1
+config add ext_ram_dq_swap_dram3_byte2_bit7=3
+
+config add ext_ram_dq_swap_dram3_byte3_bit0=4
+config add ext_ram_dq_swap_dram3_byte3_bit1=5
+config add ext_ram_dq_swap_dram3_byte3_bit2=6
+config add ext_ram_dq_swap_dram3_byte3_bit3=3
+config add ext_ram_dq_swap_dram3_byte3_bit4=0
+config add ext_ram_dq_swap_dram3_byte3_bit5=2
+config add ext_ram_dq_swap_dram3_byte3_bit6=7
+config add ext_ram_dq_swap_dram3_byte3_bit7=1
+
+config add ext_ram_addr_bank_swap_dram3_bit0=14
+config add ext_ram_addr_bank_swap_dram3_bit1=1
+config add ext_ram_addr_bank_swap_dram3_bit2=0
+config add ext_ram_addr_bank_swap_dram3_bit3=3
+config add ext_ram_addr_bank_swap_dram3_bit4=6
+config add ext_ram_addr_bank_swap_dram3_bit5=2
+config add ext_ram_addr_bank_swap_dram3_bit6=10
+config add ext_ram_addr_bank_swap_dram3_bit7=15
+config add ext_ram_addr_bank_swap_dram3_bit8=4
+config add ext_ram_addr_bank_swap_dram3_bit9=8
+config add ext_ram_addr_bank_swap_dram3_bit10=12
+config add ext_ram_addr_bank_swap_dram3_bit11=13
+config add ext_ram_addr_bank_swap_dram3_bit12=17
+config add ext_ram_addr_bank_swap_dram3_bit13=5
+config add ext_ram_addr_bank_swap_dram3_bit14=11
+config add ext_ram_addr_bank_swap_dram3_bit15=16
+config add ext_ram_addr_bank_swap_dram3_bit16=9
+config add ext_ram_addr_bank_swap_dram3_bit17=7
+
+
+config add ext_ram_dq_swap_dram4_byte0_bit0=1
+config add ext_ram_dq_swap_dram4_byte0_bit1=5
+config add ext_ram_dq_swap_dram4_byte0_bit2=2
+config add ext_ram_dq_swap_dram4_byte0_bit3=0
+config add ext_ram_dq_swap_dram4_byte0_bit4=3
+config add ext_ram_dq_swap_dram4_byte0_bit5=4
+config add ext_ram_dq_swap_dram4_byte0_bit6=6
+config add ext_ram_dq_swap_dram4_byte0_bit7=7
+
+config add ext_ram_dq_swap_dram4_byte1_bit0=5
+config add ext_ram_dq_swap_dram4_byte1_bit1=1
+config add ext_ram_dq_swap_dram4_byte1_bit2=7
+config add ext_ram_dq_swap_dram4_byte1_bit3=3
+config add ext_ram_dq_swap_dram4_byte1_bit4=6
+config add ext_ram_dq_swap_dram4_byte1_bit5=2
+config add ext_ram_dq_swap_dram4_byte1_bit6=0
+config add ext_ram_dq_swap_dram4_byte1_bit7=4
+
+config add ext_ram_dq_swap_dram4_byte2_bit0=5
+config add ext_ram_dq_swap_dram4_byte2_bit1=4
+config add ext_ram_dq_swap_dram4_byte2_bit2=7
+config add ext_ram_dq_swap_dram4_byte2_bit3=1
+config add ext_ram_dq_swap_dram4_byte2_bit4=3
+config add ext_ram_dq_swap_dram4_byte2_bit5=6
+config add ext_ram_dq_swap_dram4_byte2_bit6=2
+config add ext_ram_dq_swap_dram4_byte2_bit7=0
+
+config add ext_ram_dq_swap_dram4_byte3_bit0=5
+config add ext_ram_dq_swap_dram4_byte3_bit1=7
+config add ext_ram_dq_swap_dram4_byte3_bit2=3
+config add ext_ram_dq_swap_dram4_byte3_bit3=2
+config add ext_ram_dq_swap_dram4_byte3_bit4=1
+config add ext_ram_dq_swap_dram4_byte3_bit5=6
+config add ext_ram_dq_swap_dram4_byte3_bit6=0
+config add ext_ram_dq_swap_dram4_byte3_bit7=4
+
+config add ext_ram_addr_bank_swap_dram4_bit0=4
+config add ext_ram_addr_bank_swap_dram4_bit1=16
+config add ext_ram_addr_bank_swap_dram4_bit2=6
+config add ext_ram_addr_bank_swap_dram4_bit3=3
+config add ext_ram_addr_bank_swap_dram4_bit4=2
+config add ext_ram_addr_bank_swap_dram4_bit5=0
+config add ext_ram_addr_bank_swap_dram4_bit6=12
+config add ext_ram_addr_bank_swap_dram4_bit7=14
+config add ext_ram_addr_bank_swap_dram4_bit8=8
+config add ext_ram_addr_bank_swap_dram4_bit9=10
+config add ext_ram_addr_bank_swap_dram4_bit10=15
+config add ext_ram_addr_bank_swap_dram4_bit11=17
+config add ext_ram_addr_bank_swap_dram4_bit12=5
+config add ext_ram_addr_bank_swap_dram4_bit13=7
+config add ext_ram_addr_bank_swap_dram4_bit14=9
+config add ext_ram_addr_bank_swap_dram4_bit15=11
+config add ext_ram_addr_bank_swap_dram4_bit16=1
+config add ext_ram_addr_bank_swap_dram4_bit17=13
+
+
+config add ext_ram_dq_swap_dram5_byte0_bit0=5
+config add ext_ram_dq_swap_dram5_byte0_bit1=1
+config add ext_ram_dq_swap_dram5_byte0_bit2=2
+config add ext_ram_dq_swap_dram5_byte0_bit3=0
+config add ext_ram_dq_swap_dram5_byte0_bit4=3
+config add ext_ram_dq_swap_dram5_byte0_bit5=4
+config add ext_ram_dq_swap_dram5_byte0_bit6=6
+config add ext_ram_dq_swap_dram5_byte0_bit7=7
+
+config add ext_ram_dq_swap_dram5_byte1_bit0=3
+config add ext_ram_dq_swap_dram5_byte1_bit1=5
+config add ext_ram_dq_swap_dram5_byte1_bit2=0
+config add ext_ram_dq_swap_dram5_byte1_bit3=1
+config add ext_ram_dq_swap_dram5_byte1_bit4=2
+config add ext_ram_dq_swap_dram5_byte1_bit5=4
+config add ext_ram_dq_swap_dram5_byte1_bit6=6
+config add ext_ram_dq_swap_dram5_byte1_bit7=7
+
+config add ext_ram_dq_swap_dram5_byte2_bit0=0
+config add ext_ram_dq_swap_dram5_byte2_bit1=2
+config add ext_ram_dq_swap_dram5_byte2_bit2=1
+config add ext_ram_dq_swap_dram5_byte2_bit3=5
+config add ext_ram_dq_swap_dram5_byte2_bit4=6
+config add ext_ram_dq_swap_dram5_byte2_bit5=4
+config add ext_ram_dq_swap_dram5_byte2_bit6=3
+config add ext_ram_dq_swap_dram5_byte2_bit7=7
+
+config add ext_ram_dq_swap_dram5_byte3_bit0=2
+config add ext_ram_dq_swap_dram5_byte3_bit1=6
+config add ext_ram_dq_swap_dram5_byte3_bit2=3
+config add ext_ram_dq_swap_dram5_byte3_bit3=0
+config add ext_ram_dq_swap_dram5_byte3_bit4=1
+config add ext_ram_dq_swap_dram5_byte3_bit5=5
+config add ext_ram_dq_swap_dram5_byte3_bit6=4
+config add ext_ram_dq_swap_dram5_byte3_bit7=7
+
+config add ext_ram_addr_bank_swap_dram5_bit0=15
+config add ext_ram_addr_bank_swap_dram5_bit1=10
+config add ext_ram_addr_bank_swap_dram5_bit2=11
+config add ext_ram_addr_bank_swap_dram5_bit3=3
+config add ext_ram_addr_bank_swap_dram5_bit4=16
+config add ext_ram_addr_bank_swap_dram5_bit5=4
+config add ext_ram_addr_bank_swap_dram5_bit6=1
+config add ext_ram_addr_bank_swap_dram5_bit7=7
+config add ext_ram_addr_bank_swap_dram5_bit8=6
+config add ext_ram_addr_bank_swap_dram5_bit9=5
+config add ext_ram_addr_bank_swap_dram5_bit10=9
+config add ext_ram_addr_bank_swap_dram5_bit11=17
+config add ext_ram_addr_bank_swap_dram5_bit12=13
+config add ext_ram_addr_bank_swap_dram5_bit13=12
+config add ext_ram_addr_bank_swap_dram5_bit14=14
+config add ext_ram_addr_bank_swap_dram5_bit15=8
+config add ext_ram_addr_bank_swap_dram5_bit16=0
+config add ext_ram_addr_bank_swap_dram5_bit17=2
+
+
+config add ext_ram_dq_swap_dram6_byte0_bit0=0
+config add ext_ram_dq_swap_dram6_byte0_bit1=4
+config add ext_ram_dq_swap_dram6_byte0_bit2=6
+config add ext_ram_dq_swap_dram6_byte0_bit3=2
+config add ext_ram_dq_swap_dram6_byte0_bit4=3
+config add ext_ram_dq_swap_dram6_byte0_bit5=7
+config add ext_ram_dq_swap_dram6_byte0_bit6=1
+config add ext_ram_dq_swap_dram6_byte0_bit7=5
+
+config add ext_ram_dq_swap_dram6_byte1_bit0=0
+config add ext_ram_dq_swap_dram6_byte1_bit1=4
+config add ext_ram_dq_swap_dram6_byte1_bit2=2
+config add ext_ram_dq_swap_dram6_byte1_bit3=6
+config add ext_ram_dq_swap_dram6_byte1_bit4=1
+config add ext_ram_dq_swap_dram6_byte1_bit5=7
+config add ext_ram_dq_swap_dram6_byte1_bit6=3
+config add ext_ram_dq_swap_dram6_byte1_bit7=5
+
+config add ext_ram_dq_swap_dram6_byte2_bit0=5
+config add ext_ram_dq_swap_dram6_byte2_bit1=1
+config add ext_ram_dq_swap_dram6_byte2_bit2=7
+config add ext_ram_dq_swap_dram6_byte2_bit3=3
+config add ext_ram_dq_swap_dram6_byte2_bit4=4
+config add ext_ram_dq_swap_dram6_byte2_bit5=2
+config add ext_ram_dq_swap_dram6_byte2_bit6=0
+config add ext_ram_dq_swap_dram6_byte2_bit7=6
+
+config add ext_ram_dq_swap_dram6_byte3_bit0=5
+config add ext_ram_dq_swap_dram6_byte3_bit1=7
+config add ext_ram_dq_swap_dram6_byte3_bit2=3
+config add ext_ram_dq_swap_dram6_byte3_bit3=0
+config add ext_ram_dq_swap_dram6_byte3_bit4=4
+config add ext_ram_dq_swap_dram6_byte3_bit5=6
+config add ext_ram_dq_swap_dram6_byte3_bit6=1
+config add ext_ram_dq_swap_dram6_byte3_bit7=2
+
+config add ext_ram_addr_bank_swap_dram6_bit0=2
+config add ext_ram_addr_bank_swap_dram6_bit1=10
+config add ext_ram_addr_bank_swap_dram6_bit2=4
+config add ext_ram_addr_bank_swap_dram6_bit3=3
+config add ext_ram_addr_bank_swap_dram6_bit4=17
+config add ext_ram_addr_bank_swap_dram6_bit5=0
+config add ext_ram_addr_bank_swap_dram6_bit6=14
+config add ext_ram_addr_bank_swap_dram6_bit7=8
+config add ext_ram_addr_bank_swap_dram6_bit8=15
+config add ext_ram_addr_bank_swap_dram6_bit9=12
+config add ext_ram_addr_bank_swap_dram6_bit10=6
+config add ext_ram_addr_bank_swap_dram6_bit11=9
+config add ext_ram_addr_bank_swap_dram6_bit12=13
+config add ext_ram_addr_bank_swap_dram6_bit13=7
+config add ext_ram_addr_bank_swap_dram6_bit14=5
+config add ext_ram_addr_bank_swap_dram6_bit15=16
+config add ext_ram_addr_bank_swap_dram6_bit16=11
+config add ext_ram_addr_bank_swap_dram6_bit17=1
+
+
+config add ext_ram_dq_swap_dram7_byte0_bit0=2
+config add ext_ram_dq_swap_dram7_byte0_bit1=0
+config add ext_ram_dq_swap_dram7_byte0_bit2=6
+config add ext_ram_dq_swap_dram7_byte0_bit3=4
+config add ext_ram_dq_swap_dram7_byte0_bit4=3
+config add ext_ram_dq_swap_dram7_byte0_bit5=7
+config add ext_ram_dq_swap_dram7_byte0_bit6=5
+config add ext_ram_dq_swap_dram7_byte0_bit7=1
+
+config add ext_ram_dq_swap_dram7_byte1_bit0=4
+config add ext_ram_dq_swap_dram7_byte1_bit1=0
+config add ext_ram_dq_swap_dram7_byte1_bit2=2
+config add ext_ram_dq_swap_dram7_byte1_bit3=6
+config add ext_ram_dq_swap_dram7_byte1_bit4=3
+config add ext_ram_dq_swap_dram7_byte1_bit5=1
+config add ext_ram_dq_swap_dram7_byte1_bit6=7
+config add ext_ram_dq_swap_dram7_byte1_bit7=5
+
+config add ext_ram_dq_swap_dram7_byte2_bit0=6
+config add ext_ram_dq_swap_dram7_byte2_bit1=7
+config add ext_ram_dq_swap_dram7_byte2_bit2=5
+config add ext_ram_dq_swap_dram7_byte2_bit3=3
+config add ext_ram_dq_swap_dram7_byte2_bit4=1
+config add ext_ram_dq_swap_dram7_byte2_bit5=2
+config add ext_ram_dq_swap_dram7_byte2_bit6=0
+config add ext_ram_dq_swap_dram7_byte2_bit7=4
+
+config add ext_ram_dq_swap_dram7_byte3_bit0=6
+config add ext_ram_dq_swap_dram7_byte3_bit1=3
+config add ext_ram_dq_swap_dram7_byte3_bit2=0
+config add ext_ram_dq_swap_dram7_byte3_bit3=1
+config add ext_ram_dq_swap_dram7_byte3_bit4=5
+config add ext_ram_dq_swap_dram7_byte3_bit5=2
+config add ext_ram_dq_swap_dram7_byte3_bit6=4
+config add ext_ram_dq_swap_dram7_byte3_bit7=7
+
+config add ext_ram_addr_bank_swap_dram7_bit0=2
+config add ext_ram_addr_bank_swap_dram7_bit1=10
+config add ext_ram_addr_bank_swap_dram7_bit2=4
+config add ext_ram_addr_bank_swap_dram7_bit3=3
+config add ext_ram_addr_bank_swap_dram7_bit4=17
+config add ext_ram_addr_bank_swap_dram7_bit5=0
+config add ext_ram_addr_bank_swap_dram7_bit6=14
+config add ext_ram_addr_bank_swap_dram7_bit7=8
+config add ext_ram_addr_bank_swap_dram7_bit8=15
+config add ext_ram_addr_bank_swap_dram7_bit9=12
+config add ext_ram_addr_bank_swap_dram7_bit10=6
+config add ext_ram_addr_bank_swap_dram7_bit11=9
+config add ext_ram_addr_bank_swap_dram7_bit12=13
+config add ext_ram_addr_bank_swap_dram7_bit13=7
+config add ext_ram_addr_bank_swap_dram7_bit14=5
+config add ext_ram_addr_bank_swap_dram7_bit15=16
+config add ext_ram_addr_bank_swap_dram7_bit16=11
+config add ext_ram_addr_bank_swap_dram7_bit17=1
+
+
+
+##Dram HW properties
+
+
+
+
+## Dram Address bus inversion. Valid values: 0 - Enable, 1 - Disable. Default: 0x0.
+## this soc is configured in per board soc file (bcm88x7x_board.soc)
+#ext_ram_abi.BCM88675=0
+config add ext_ram_abi=0
+## Data bus inversion on write/read direction. Valid values: 0 - Disable, 1 - Enable. Default: 0x0.
+## those socs are configured in per board soc file (bcm88x7x_board.soc)
+config add ext_ram_write_dbi=0
+config add ext_ram_read_dbi=0
+## Enable write/read CRC (DDR4 does not support read CRC). Default: 0x0.
+## those socs are configured in per board soc file (bcm88x7x_board.soc)
+config add ext_ram_write_crc=0
+config add ext_ram_read_crc=0
+# DRAM maximum number of crc error per buffer, buffer deleted by interrupt application.
+config add dram_crc_del_buffer_max_reclaims=0
+
+## Command parity latency. Valid values: 0 - Disable, 4,5 or 6 - Valid values. Default: 0x0.
+## this soc is configured in per board soc file (bcm88x7x_board.soc)
+#config add ext_ram_cmd_par_latency.BCM88375_B0=6
+
+
+
+
+config add  ext_ram_present=8
+
+#3200MHz
+#config add dram_type_DDR4_MICRON_MT40A256M16GE_062_4GBIT=1
+#config add ext_ram_freq=1600
+
+#2400MHz
+config add dram_type_DDR4_MICRON_MT40A256M16HA_083_4GBIT=1
+config add ext_ram_freq=1200
+
+
+# Total Dram Size (MBytes)
+# For 8 drams interfaces, 2 channel each, Each channel 2Gbit Dram. the total DRAM size is 32GBits=4000MBytes.
+#config add ext_ram_total_size=8192
+ config add ext_ram_total_size=8000
+
+
+  config add ext_ram_type=DDR4
+# config add ext_ram_freq=1600
+  config add ext_ram_t_rfc=260000
+  config add ext_ram_t_rc=47000
+  config add ext_ram_t_rcd_wr=15000
+  config add ext_ram_t_rcd_rd=15000
+  config add ext_ram_t_rrd_l=11c
+  config add ext_ram_t_rrd_s=9c
+  config add ext_ram_t_ras=32000
+  config add ext_ram_t_rp=15000
+  config add ext_ram_t_wr=14900
+  config add ext_ram_t_faw=30000
+  config add ext_ram_t_rtp_s=12c
+  config add ext_ram_t_rtp_l=12c
+  config add ext_ram_t_wtr_s=4c
+  config add ext_ram_t_wtr_l=12c
+  config add ext_ram_t_ccd_l=8c
+  config add ext_ram_t_ccd_s=4c
+  config add ext_ram_t_zqcs=170c
+  config add ext_ram_t_crc_alert=13000
+  config add ext_ram_t_rst=500000000
+  config add ext_ram_t_ref=3900000
+  config add ext_ram_c_wr_latency=16c
+  config add ext_ram_t_al=0
+  config add ext_ram_columns=1024
+  config add ext_ram_rows=32768
+  config add ext_ram_banks=8
+  config delete ext_ram_cmd_par_latency*
+  config add ext_ram_cmd_par_latency=8
+  config add ext_ram_c_cas_latency=24c
+  #config add ext_ram_c_cas_latency=28c
+###ext_ram_gear_down_mode.BCM88375_B0=0 ???????????
+
+
+### Dram Tuning (Shmoo)
+# 3 = Skip Dram Tuning (Shmoo).
+# 2 = Use Dram saved config Parameters, if no Parameters Perform Shmoo on init. Default option.
+# 1 = Perform Shmoo on init.
+# 0 = Use Dram saved config Parameters, if no Parameters do nothing.
+config add ddr3_auto_tune.BCM88375=2
+
+# DRAM banks bitmap to be used
+config add custom_feature_dram_bitamp=0xFF
+
+### Enable BIST
+## Run Dram BIST on initialization, if BIST fail the initialization will fail. Default: 1.
+config add bist_enable_dram.BCM88375_B0=1
+
+##10Jan2018

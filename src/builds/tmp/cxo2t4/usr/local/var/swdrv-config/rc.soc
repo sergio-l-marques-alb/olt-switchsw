@@ -127,7 +127,7 @@ if $?JERICHO_A0 ||  $?BCM88670_A0 || $?BCM88671_A0 || $?BCM88671M_A0 || $?BCM886
    $?JERICHO_B0 ||  $?BCM88670_B0 || $?BCM88671_B0 || $?BCM88671M_B0 || $?BCM88672_B0 || $?BCM88673_B0 || $?BCM88674_B0 || $?BCM88675_B0 || $?BCM88675M_B0 || $?BCM88676_B0 || $?BCM88676M_B0 || $?BCM88677_B0 || $?BCM88678_B0 || $?BCM88679_B0 || \
    $?QMX_B0     ||  $?BCM88370_B0 || $?BCM88371_B0 || $?BCM88371M_B0 || $?BCM88375_B0 || $?BCM88376_B0 || $?BCM88376M_B0 || $?BCM88377_B0 || $?BCM88378_B0 || $?BCM88379_B0 || $?BCM88379_A1 || \
    $?JERPLUS    ||  $?BCM88680_A0 || $?BCM88681_A0 ||  $?BCM88682_A0 || $?BCM88683_A0 || $?BCM88684_A0 || $?BCM88685_A0 || $?BCM88380_A0 ||  $?BCM88381_A0 || $?BCM88680_A1 || $?BCM88681_A1 ||  $?BCM88682_A1 || $?BCM88683_A1 || $?BCM88684_A1 || $?BCM88685_A1 || $?BCM88380_A1 ||  $?BCM88381_A1 \
-    'rcload /usr/local/ptin/sbin/swdrvr-config/jer.soc ; exit'
+    'rcload /usr/local/var/swdrv-config/jer.soc ; exit'
 
 if $?BCM88690_A0  \
     'rcload dnx.soc ; exit'
