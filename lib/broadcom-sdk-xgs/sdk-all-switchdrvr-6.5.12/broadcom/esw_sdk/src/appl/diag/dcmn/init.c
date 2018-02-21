@@ -375,8 +375,6 @@ appl_dpp_misc_diag_init (int unit, int mymodid, int base_modid, int nof_devices)
     g_dii.base_modid = g_base_modid;
     g_dii.my_modid_idx = (mymodid - g_dii.base_modid) / MAX_MODIDS_PER_DEVICE;
    
-    printf("g_dii.nof_devices=%u MAX_MODIDS_PER_DEVICE=%u g_dii.base_modid=%u\r\n", g_dii.nof_devices, MAX_MODIDS_PER_DEVICE, g_dii.base_modid);
- 
     if (mymodid >= (g_dii.nof_devices * MAX_MODIDS_PER_DEVICE + g_dii.base_modid) || mymodid < g_dii.base_modid) {
         LOG_ERROR(BSL_LS_APPL_COMMON,
                   (BSL_META_U(unit,
