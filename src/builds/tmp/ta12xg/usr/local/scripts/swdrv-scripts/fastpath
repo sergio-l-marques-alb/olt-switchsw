@@ -3,10 +3,9 @@
 thisapp=$0
 mode="run"
 app_name=switchdrvr
-app_path=/usr/local/ptin/sbin/$app_name
-cli=/usr/local/ptin/sbin/fp.cli
-proc_txt=/usr/local/ptin/log/fastpath/proc.txt
-ntry=0
+app_path=/usr/local/sbin/$app_name
+cli=/usr/local/sbin/fp.cli
+proc_txt=/tmp/proc.txt
 
 insert_modules()
 {
@@ -18,8 +17,8 @@ insert_modules()
       mknod /dev/linux-user-bde c 126 0
     fi
     echo "Inserting modules..."
-    insmod /usr/local/ptin/sbin/linux-kernel-bde.ko dmasize=16M debug=1
-    insmod /usr/local/ptin/sbin/linux-user-bde.ko
+    insmod /usr/local/sbin/linux-kernel-bde.ko dmasize=16M debug=1
+    insmod /usr/local/sbin/linux-user-bde.ko
     sleep 1
     echo "Ready to start Fastpath!"
 }
@@ -38,8 +37,6 @@ startup()
 
     # Wait 200 seconds for FP to boot up
     #$cli ping p=20 t=10
-
-    #let "ntry=ntry+1"
 }
 
 # If no options, define default mode

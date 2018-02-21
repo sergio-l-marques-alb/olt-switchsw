@@ -3,11 +3,9 @@
 thisapp=$0
 mode="run"
 app_name=switchdrvr
-app_path=/usr/local/ptin/sbin/$app_name
-cli=/usr/local/ptin/sbin/fp.cli
-startup_log=/usr/local/ptin/log/fastpath/startup.log
-proc_txt=/usr/local/ptin/log/fastpath/proc.txt
-ntry=0
+app_path=/usr/local/sbin/$app_name
+cli=/usr/local/sbin/fp.cli
+proc_txt=/tmp/proc.txt
 
 insert_modules()
 {
@@ -19,8 +17,8 @@ insert_modules()
       mknod /dev/linux-user-bde c 126 0
     fi
     echo "Inserting modules..."
-    insmod /usr/local/ptin/sbin/linux-kernel-bde.ko dmasize=16M debug=1
-    insmod /usr/local/ptin/sbin/linux-user-bde.ko
+    insmod /usr/local/sbin/linux-kernel-bde.ko dmasize=16M debug=1
+    insmod /usr/local/sbin/linux-user-bde.ko
     sleep 1
     echo "Ready to start Fastpath!"
 }
@@ -28,12 +26,6 @@ insert_modules()
 
 startup()
 {
-    # Add header info to startup log file
-    echo "*************************************************************" >> $startup_log
-    echo "FASTPATH STARTED AT: `date` [retry $ntry]" >> $startup_log
-    ps >> $startup_log
-    free >> $startup_log
-
     # Insert modules
     insert_modules;
 
@@ -42,8 +34,6 @@ startup()
 
     # Wait 200 seconds for FP to boot up
     $cli ping p=20 t=10
-
-    let "ntry=ntry+1"
 }
 
 # If no options, define default mode
@@ -79,19 +69,6 @@ elif [ $mode = "boot" ]; then
         exit 1;
     fi
     
-    # Handle startup log oversize issues
-    filesize=`du $startup_log`
-    if [ "$?" -eq "0" ]; then
-        filesize=`echo $filesize | awk '{print $1}'`
-        echo "File $startup_log has a size of $filesize KB"
-    else
-        filesize=0;
-    fi
-    if [ $filesize -gt "2048" ]; then
-      echo "Move file $startup_log => startup_log.old"
-      mv -f $startup_log $startup_log.old
-    fi
-
     # Query application to determine if it is running or not
     $cli ping p=4 t=6 > /dev/null
     # Start application
