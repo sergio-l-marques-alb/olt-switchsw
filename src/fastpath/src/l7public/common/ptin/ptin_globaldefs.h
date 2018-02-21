@@ -72,20 +72,20 @@ extern struct utsname kernel_uname;
 extern int ptin_sys_number_of_ports;
 
 #define PTIN_BOARD_TYPE_NONE      0
-#define PTIN_BOARD_TYPE_TU40G     0x21
-#define PTIN_BOARD_TYPE_TU40GR    0x2D
-#define PTIN_BOARD_TYPE_TOLTU20G  0x18
-#define PTIN_BOARD_TYPE_TOLTU20GR 0x0C
-#define PTIN_BOARD_TYPE_TR32R     0x2E
-#define PTIN_BOARD_TYPE_TG16G     0x1C
-#define PTIN_BOARD_TYPE_TG16GF    0x60
-#define PTIN_BOARD_TYPE_TT04SXG   0x64
-#define PTIN_BOARD_TYPE_TOLT8G    0x19
-#define PTIN_BOARD_TYPE_TOLT8GR   0x0E
-#define PTIN_BOARD_TYPE_TA48GE    0x28
-#define PTIN_BOARD_TYPE_TA48GED   0x59
-#define PTIN_BOARD_TYPE_CXO160G   0x39
-#define PTIN_BOARD_TYPE_CXO640G   0x33
+//#define PTIN_BOARD_TYPE_TU40G     0x21
+//#define PTIN_BOARD_TYPE_TU40GR    0x2D
+//#define PTIN_BOARD_TYPE_TOLTU20G  0x18
+//#define PTIN_BOARD_TYPE_TOLTU20GR 0x0C
+//#define PTIN_BOARD_TYPE_TR32R     0x2E
+//#define PTIN_BOARD_TYPE_TG16G     0x1C
+//#define PTIN_BOARD_TYPE_TG16GF    0x60
+//#define PTIN_BOARD_TYPE_TT04SXG   0x64
+//#define PTIN_BOARD_TYPE_TOLT8G    0x19
+//#define PTIN_BOARD_TYPE_TOLT8GR   0x0E
+//#define PTIN_BOARD_TYPE_TA48GE    0x28
+//#define PTIN_BOARD_TYPE_TA48GED   0x59
+//#define PTIN_BOARD_TYPE_CXO160G   0x39
+//#define PTIN_BOARD_TYPE_CXO640G   0x33
 #define PTIN_BOARD_TYPE_TU100G    0x41
 #define PTIN_BOARD_TYPE_TT08SXG   0x58
 #define PTIN_BOARD_TYPE_TA12XGE   0x43
@@ -131,56 +131,8 @@ extern int ptin_sys_number_of_ports;
 #define WC_SLOT_MODE_2x20G        15
 #define WC_SLOT_MODE_MAX          16
 
-/* OLT10 */
-#if (PTIN_BOARD == PTIN_BOARD_OLT1T0)
-#include "ptin_globaldefs_olt1t0.h"
-
-/* OLT10F */
-#elif (PTIN_BOARD == PTIN_BOARD_OLT1T0F)
-#include "ptin_globaldefs_olt1t0f.h"
-
-/* OLT7-8CH */
-#elif (PTIN_BOARD == PTIN_BOARD_OLT7_8CH_B)
-#include "ptin_globaldefs_olt7-8ch-b.h"
-
-/* TOLT8G */
-#elif (PTIN_BOARD == PTIN_BOARD_TOLT8G)
-#include "ptin_globaldefs_tolt8g.h"
-
-/* TG16G */
-#elif (PTIN_BOARD == PTIN_BOARD_TG16G)
-#include "ptin_globaldefs_tg16g.h"
-
-/* TG16GF */
-#elif (PTIN_BOARD == PTIN_BOARD_TG16GF)
-#include "ptin_globaldefs_tg16gf.h"
-
-/* TG16GF */
-#elif (PTIN_BOARD == PTIN_BOARD_TT04SXG)
-#include "ptin_globaldefs_tt04sxg.h"
-
-/* TG4G */
-#elif (PTIN_BOARD == PTIN_BOARD_TG4G)
-#include "ptin_globaldefs_tg4g.h"
-
-/* TA48GE */
-#elif (PTIN_BOARD == PTIN_BOARD_TA48GE)
-#include "ptin_globaldefs_ta48ge.h"
-
-/* CXO160G */
-#elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
-#include "ptin_globaldefs_cxo160g.h"
-
-/* OLT360 Matrix card */
-#elif (PTIN_BOARD == PTIN_BOARD_CXP360G)
-#include "ptin_globaldefs_cxo360g.h"
-
-/* OLT1T3 Matrix card */
-#elif (PTIN_BOARD == PTIN_BOARD_CXO640G)
-#include "ptin_globaldefs_cxo640g.h"
-
 /* CXO2T4 linecard */
-#elif (PTIN_BOARD == PTIN_BOARD_CXO2T4)
+#if (PTIN_BOARD == PTIN_BOARD_CXO2T4)
 #include "ptin_globaldefs_cxo2t4.h"
 
 /* TA12XG linecard */
