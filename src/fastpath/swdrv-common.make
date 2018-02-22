@@ -26,6 +26,7 @@ export FP_VIEWNAME   ?= .
 export CROSS_COMPILE ?= $(COMPILER)
 export KERNEL_SRC    ?= $(KERNEL_PATH)
 export CCVIEWS_HOME  ?= $(OLT_DIR)/$(FP_FOLDER)
+export BUILDIR       ?= $(OLT_DIR)/../build_dir
 
 KO_PATH	      = $(CCVIEWS_HOME)/$(OUTPATH)/target
 BIN_PATH      = $(CCVIEWS_HOME)/$(OUTPATH)/ipl
@@ -101,6 +102,7 @@ welcome:
 	@echo "CARD = $(CARD)"
 	@echo "CARD FOLDER = $(OUTPATH)"
 	@echo "CPU = $(CPU)"
+	@echo "BUILDIR = $(BUILDIR)"
 	@echo ""
 
 install:
