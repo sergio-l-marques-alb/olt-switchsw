@@ -2,7 +2,7 @@
 
 PLATFORM=tt08sxg
 PLATFORM_FOLDER=$PLATFORM
-FILESYSTEM=rootfs
+#FILESYSTEM=rootfs
 
 KO_PATH=./output/swdrv-dpp-dnx-tt08sxg-e500mc/target
 BIN_PATH=./output/swdrv-dpp-dnx-tt08sxg-e500mc/ipl
