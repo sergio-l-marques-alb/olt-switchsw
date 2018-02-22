@@ -26,7 +26,7 @@ export FP_VIEWNAME   ?= .
 export CROSS_COMPILE ?= $(COMPILER)
 export KERNEL_SRC    ?= $(KERNEL_PATH)
 export CCVIEWS_HOME  ?= $(OLT_DIR)/$(FP_FOLDER)
-export BUILDIR       ?= $(OLT_DIR)/../build_dir
+export BUILDIR       ?= $(DESTDIR)
 
 KO_PATH	      = $(CCVIEWS_HOME)/$(OUTPATH)/target
 BIN_PATH      = $(CCVIEWS_HOME)/$(OUTPATH)/ipl

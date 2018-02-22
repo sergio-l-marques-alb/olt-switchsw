@@ -17,15 +17,22 @@ FP_FOLDER    = $(word $(words $(subst /, ,$(CURRENT_PATH))),$(subst /, ,$(CURREN
 OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
 
 # Cross-Compiler
-export TOOLCHAIN_BASE_DIR = /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr
-export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin/ppce500mc-fsl-linux
-export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
+TOOLCHAIN_BASE_DIR = /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr
+TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin/ppce500mc-fsl-linux
+LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 COMPILER = $(TOOLCHAIN_BIN_DIR)/powerpc-fsl-linux-
 
 #export SYSROOT=--sysroot=/opt/fsl/1.2/sysroots/ppce500mc-fsl-linux
 
+ifeq ($(DESTDIR),)
+ DESTDIR = $(OLT_DIR)/../build_dir
+endif
+ifeq ($(KERNEL_SOURCE_DIR),)
+ KERNEL_SOURCE_DIR = $(OLT_DIR)/../lib/kernel/linux-4.1.8-QorIQ-SDK2.0-CXO2T4
+endif
+
 # Kernel and SDK paths
-KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-4.1.8-QorIQ-SDK2.0-CXO2T4
+KERNEL_PATH = $(KERNEL_SOURCE_DIR)
 SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.12/broadcom
 
 # Comilation logging level

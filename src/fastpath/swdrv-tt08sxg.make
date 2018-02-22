@@ -24,8 +24,15 @@ COMPILER = $(TOOLCHAIN_BIN_DIR)/powerpc-fsl-linux-
 
 export SYSROOT=--sysroot=/opt/fsl-qoriq/1.9/sysroots/ppce500mc-fsl-linux
 
+ifeq ($(DESTDIR),)
+ DESTDIR = $(OLT_DIR)/../build_dir
+endif
+ifeq ($(KERNEL_SOURCE_DIR),)
+ KERNEL_SOURCE_DIR = $(OLT_DIR)/../lib/kernel/linux-3.0.51-p2040
+endif
+
 # Kernel and SDK paths
-KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-3.0.51-p2040
+KERNEL_PATH = $(KERNEL_SOURCE_DIR)
 SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.12/broadcom
 
 # Comilation logging level

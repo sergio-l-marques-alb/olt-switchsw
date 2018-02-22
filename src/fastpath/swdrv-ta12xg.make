@@ -22,8 +22,15 @@ export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 COMPILER = $(TOOLCHAIN_BIN_DIR)/ppc_85xxDP-
 
+ifeq ($(DESTDIR),)
+ DESTDIR = $(OLT_DIR)/../build_dir
+endif
+ifeq ($(KERNEL_SOURCE_DIR),)
+ KERNEL_SOURCE_DIR = $(OLT_DIR)/../lib/kernel/linux-3.8.13
+endif
+
 # Kernel and SDK paths
-KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-3.8.13
+KERNEL_PATH = $(KERNEL_SOURCE_DIR)
 SDK_PATH    = $(OLT_DIR)/../lib/broadcom-sdk-xgs/sdk-all-switchdrvr-6.5.12/broadcom
 
 # Comilation logging level
