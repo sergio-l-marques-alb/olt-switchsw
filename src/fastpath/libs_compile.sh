@@ -12,21 +12,43 @@
 
 PLATFORMS="cxo2t4 ta12xg tt08sxg"
 
-SVN_NB_TOOLS_PATH=../../../../netband-tools
-SVN_MGMD_TOOLS_PATH=../../../../netband-mgmd
+export NB_TOOLS_PATH=$PWD/../../../../../netband-tools/trunk
+export MGMD_TOOLS_PATH=$PWD/../../../../../netband-mgmd/trunk
 
 # Check for folder existence
-if [ ! -e "$SVN_NB_TOOLS_PATH" ]; then
-	echo "Missing folders in $SVN_NB_TOOLS_PATH , please checkout NB_TOOLS from URL http://svn.ptin.corppt.com/repo/netband-tools/trunk"
+if [ ! -e "$NB_TOOLS_PATH" ]; then
+	echo "Missing folders in $NB_TOOLS_PATH , please checkout NB_TOOLS from URL http://svn.ptin.corppt.com/repo/netband-tools/trunk"
 	exit 1;
 fi
-if [ ! -e "$SVN_MGMD_TOOLS_PATH" ]; then
-	echo "Missing folders in $SVN_MGMD_TOOLS_PATH , please checkout MGMD from URL http://svn.ptin.corppt.com/repo/netband-mgmd/trunk"
+if [ ! -e "$MGMD_TOOLS_PATH" ]; then
+	echo "Missing folders in $MGMD_TOOLS_PATH , please checkout MGMD from URL http://svn.ptin.corppt.com/repo/netband-mgmd/trunk"
 	exit 1;
 fi
 
-
+echo "Cleaning and Compiling NBTOOLS"
 for plat in $PLATFORMS; do 
+	sh ./nbtools_compile.sh $plat clean
+	if [ $# -ne 0 ]; then
+		echo "[NBTOOLS] Error cleaning for $plat"
+		exit 1
+	fi
 	sh ./nbtools_compile.sh $plat
-	sh ./mgmd_compile.sh $plat
+        if [ $# -ne 0 ]; then
+                echo "[NBTOOLS] Error compiling for $plat"
+                exit 1
+        fi
+done
+
+echo "Cleaning and Compiling MGMD"
+for plat in $PLATFORMS; do
+        sh ./mgmd_compile.sh $plat clean
+        if [ $# -ne 0 ]; then
+                echo "[MGMD] Error cleaning for $plat"
+                exit 1
+        fi
+        sh ./mgmd_compile.sh $plat
+	if [ $# -ne 0 ]; then
+                echo "[MGMD] Error compiling for $plat"
+                exit 1
+        fi
 done

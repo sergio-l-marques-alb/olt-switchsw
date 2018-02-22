@@ -103,9 +103,9 @@ fi
 #################### DO NOT CHANGE ANY LINE BELOW! ####################
 
 # Define the main MGMD path (where autogen.sh will generate the configure file)
-FP_FOLDER="${FP_FOLDER:-$PWD}"
-MGMD_PATH=$FP_FOLDER/../../../../netband-mgmd/trunk
-MGMD_CONFIGURE=$MGMD_PATH/configure
+FP_FOLDER="${FP_FOLDER:=$PWD}"
+MGMD_TOOLS_PATH=${MGMD_TOOLS_PATH:=$FP_FOLDER/../../../../netband-mgmd/trunk}
+MGMD_CONFIGURE=$MGMD_TOOLS_PATH/configure
 
 FP_OUTPUT_PATH=$FP_FOLDER/output/swdrv-dpp-dnx-$BOARD-$CPU
 MGMD_OUTPUT_PATH=$FP_OUTPUT_PATH/objects/mgmd
@@ -197,7 +197,7 @@ if [ ! -f $MGMD_CONFIGURE ]; then
   echo "[MGMD] File '$MGMD_CONFIGURE' not found!"
   
   echo "[MGMD] Running autogen.sh from the main MGMD path (protected with a mutex)"
-  cd $MGMD_PATH
+  cd $MGMD_TOOLS_PATH
   sh autogen.sh
   cd - >/dev/null
   
@@ -208,11 +208,11 @@ unlock
 # Create output path if it doesn't exist
 mkdir -pv $MGMD_OUTPUT_PATH
 
-MGMD_REV=`svn info $MGMD_PATH | grep 'Revision' | awk '{print $2}'`
+MGMD_REV=`svn info $MGMD_TOOLS_PATH | grep 'Revision' | awk '{print $2}'`
 MGMD_CONF_REV=`cat $MGMD_CONFIGURE | grep "PACKAGE_VERSION=" -m 1 | sed "s/[^0-9]*//; s/'//; s/M//" | awk -F. '{print $4}'`
 
 echo -n "[MGMD] Checking revision svn=$MGMD_REV configure=$MGMD_CONF_REV: "
-if [ $MGMD_REV != $MGMD_CONF_REV ]; then
+if [ "$MGMD_REV" != "$MGMD_CONF_REV" ]; then
   echo "don't match!"
   echo "[MGMD] Running configure..."
   
@@ -272,13 +272,13 @@ cp -uv $MGMD_OUTPUT_PATH/src/ptin_mgmd_defs.h $BUILDIR/$BOARD/usr/local/include/
 
 # Copy other .h files
 
-cp -uv $MGMD_PATH/src/ptin_mgmd_eventqueue.h $FP_FOLDER/src/l7public/common/ptin/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
-cp -uv $MGMD_PATH/src/ptin_mgmd_api.h $FP_FOLDER/src/l7public/common/ptin/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
-cp -uv $MGMD_PATH/src/ptin_mgmd_ctrl.h $FP_FOLDER/src/l7public/common/ptin/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
+cp -uv $MGMD_TOOLS_PATH/src/ptin_mgmd_eventqueue.h $FP_FOLDER/src/l7public/common/ptin/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
+cp -uv $MGMD_TOOLS_PATH/src/ptin_mgmd_api.h $FP_FOLDER/src/l7public/common/ptin/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
+cp -uv $MGMD_TOOLS_PATH/src/ptin_mgmd_ctrl.h $FP_FOLDER/src/l7public/common/ptin/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 
-cp -uv $MGMD_PATH/src/ptin_mgmd_eventqueue.h $BUILDIR/$BOARD/usr/local/include/mgmd | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
-cp -uv $MGMD_PATH/src/ptin_mgmd_api.h $BUILDIR/$BOARD/usr/local/include/mgmd | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
-cp -uv $MGMD_PATH/src/ptin_mgmd_ctrl.h $BUILDIR/$BOARD/usr/local/include/mgmd | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
+cp -uv $MGMD_TOOLS_PATH/src/ptin_mgmd_eventqueue.h $BUILDIR/$BOARD/usr/local/include/mgmd | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
+cp -uv $MGMD_TOOLS_PATH/src/ptin_mgmd_api.h $BUILDIR/$BOARD/usr/local/include/mgmd | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
+cp -uv $MGMD_TOOLS_PATH/src/ptin_mgmd_ctrl.h $BUILDIR/$BOARD/usr/local/include/mgmd | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 
 # Copy lib
 cp -uv $MGMD_OUTPUT_PATH/src/.libs/libmgmd.so $BUILDIR/$BOARD/usr/local/lib/mgmd | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"

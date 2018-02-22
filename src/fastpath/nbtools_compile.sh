@@ -73,8 +73,8 @@ fi
 #################### DO NOT CHANGE ANY LINE BELOW! ####################
 
 # Define the main NB_TOOLS path (where autogen.sh will generate the configure file)
-FP_FOLDER="${FP_FOLDER:-$PWD}"
-NB_TOOLS_PATH=$FP_FOLDER/../../../../netband-tools/trunk
+FP_FOLDER=${FP_FOLDER:=$PWD}
+NB_TOOLS_PATH=${NB_TOOLS_PATH:=$FP_FOLDER/../../../../netband-tools/trunk}
 NB_TOOLS_CONFIGURE=$NB_TOOLS_PATH/configure
 BUILDIR=$FP_FOLDER/../../build_dir
 
