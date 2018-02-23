@@ -33,7 +33,7 @@
 
 #include <signal.h>
 
-#include "UD_nbtools_conf.h"
+#include "nb_tools/UD_nbtools_conf.h"
 
 
 /* Semaphore to synchronize PTin task execution */
