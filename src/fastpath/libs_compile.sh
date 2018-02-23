@@ -12,7 +12,7 @@
 
 PLATFORMS="cxo2t4 ta12xg tt08sxg"
 
-export PACKAGES_DIR=$PWD/../../../..
+export PACKAGES_DIR=$PWD/../../../../..
 export NB_TOOLS_PATH=$PACKAGES_DIR/netband-tools/trunk
 export MGMD_TOOLS_PATH=$PACKAGES_DIR/netband-mgmd/trunk
 
