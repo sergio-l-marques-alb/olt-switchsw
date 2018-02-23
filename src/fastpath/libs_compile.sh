@@ -12,9 +12,9 @@
 
 PLATFORMS="cxo2t4 ta12xg tt08sxg"
 
-export DESTDIR=${DESTDIR:=$PWD/../../../..}
-export NB_TOOLS_PATH=$DESTDIR/netband-tools/trunk
-export MGMD_TOOLS_PATH=$DESTDIR/netband-mgmd/trunk
+export PACKAGES_DIR=$PWD/../../../..
+export NB_TOOLS_PATH=$PACKAGES_DIR/netband-tools/trunk
+export MGMD_TOOLS_PATH=$PACKAGES_DIR/netband-mgmd/trunk
 
 # Check for folder existence
 if [ ! -e "$NB_TOOLS_PATH" ]; then
