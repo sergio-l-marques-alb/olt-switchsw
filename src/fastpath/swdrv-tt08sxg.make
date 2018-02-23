@@ -24,9 +24,11 @@ COMPILER = $(TOOLCHAIN_BIN_DIR)/powerpc-fsl-linux-
 
 export SYSROOT=--sysroot=/opt/fsl-qoriq/1.9/sysroots/ppce500mc-fsl-linux
 
+# DESTDIR will point to build_dir location (external libs and includes)
 ifeq ($(DESTDIR),)
- DESTDIR = $(OLT_DIR)/../build_dir
+ DESTDIR = $(OLT_DIR)/../build_dir/$BOARD
 endif
+# KERNEL_SOURCE_DIR will point to the kernel location
 ifeq ($(KERNEL_SOURCE_DIR),)
  KERNEL_SOURCE_DIR = $(OLT_DIR)/../lib/kernel/linux-3.0.51-p2040
 endif

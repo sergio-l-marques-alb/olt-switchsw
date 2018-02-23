@@ -22,9 +22,11 @@ export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 COMPILER = $(TOOLCHAIN_BIN_DIR)/ppc_85xxDP-
 
+# DESTDIR will point to build_dir location (external libs and includes)
 ifeq ($(DESTDIR),)
- DESTDIR = $(OLT_DIR)/../build_dir
+ DESTDIR = $(OLT_DIR)/../build_dir/$BOARD
 endif
+# KERNEL_SOURCE_DIR will point to the kernel location
 ifeq ($(KERNEL_SOURCE_DIR),)
  KERNEL_SOURCE_DIR = $(OLT_DIR)/../lib/kernel/linux-3.8.13
 endif
