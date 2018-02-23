@@ -13,9 +13,9 @@ CP    =	cp
 TAR   = tar
 
 # Undefine previous definitions of these variables, to avoid conflicts
-undefine CFLAGS
-undefine CPPFLAGS
-undefine LDFLAGS
+unexport CFLAGS
+unexport CPPFLAGS
+unexport LDFLAGS
 
 #By default use all available CPUs
 NUM_CPUS ?= $(shell grep -c 'model name' /proc/cpuinfo)

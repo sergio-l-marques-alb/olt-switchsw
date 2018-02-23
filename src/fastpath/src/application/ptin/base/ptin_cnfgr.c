@@ -33,6 +33,8 @@
 
 #include <signal.h>
 
+#include "UD_nbtools_conf.h"
+
 
 /* Semaphore to synchronize PTin task execution */
 void *ptin_ready_sem = L7_NULLPTR;
