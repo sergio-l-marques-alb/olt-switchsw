@@ -26,7 +26,7 @@ COMPILER = $(TOOLCHAIN_BIN_DIR)/powerpc-fsl-linux-
 
 # DESTDIR will point to build_dir location (external libs and includes)
 ifeq ($(DESTDIR),)
- DESTDIR = $(OLT_DIR)/../build_dir/$BOARD
+ DESTDIR = $(OLT_DIR)/../build_dir/$(BOARD)
 endif
 # KERNEL_SOURCE_DIR will point to the kernel location
 ifeq ($(KERNEL_SOURCE_DIR),)
