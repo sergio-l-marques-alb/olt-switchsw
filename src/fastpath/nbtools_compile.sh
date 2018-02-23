@@ -231,9 +231,9 @@ board=`echo $BOARD | awk '{print tolower($0)}'`
 mkdir -pv $FP_OUTPUT_PATH/libs-ptin/nb_tools
 cp -uv $NB_TOOLS_OUTPUT_PATH/src/lib/logger/.libs/*.so $FP_OUTPUT_PATH/libs-ptin/nb_tools/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 
-mkdir -pv $BUILDIR/$BOARD/usr/local/lib/nb_tools
+mkdir -pv $BUILDIR/$BOARD/usr/local/lib
 mkdir -pv $BUILDIR/$BOARD/usr/local/include/nb_tools
-cp -uv $NB_TOOLS_OUTPUT_PATH/src/lib/logger/.libs/*.so $BUILDIR/$BOARD/usr/local/lib/nb_tools/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
+cp -uv $NB_TOOLS_OUTPUT_PATH/src/lib/logger/.libs/*.so $BUILDIR/$BOARD/usr/local/lib/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 cp -uv $NB_TOOLS_OUTPUT_PATH/rfs/include/nbtools/*.h $BUILDIR/$BOARD/usr/local/include/nb_tools/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 
 echo "[NB_TOOLS] Compilation done!"
