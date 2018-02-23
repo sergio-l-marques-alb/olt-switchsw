@@ -26,7 +26,7 @@ export SYSROOT=--sysroot=/opt/fsl-qoriq/1.9/sysroots/ppce500mc-fsl-linux
 
 # DESTDIR will point to build_dir location (external libs and includes)
 ifeq ($(DESTDIR),)
- DESTDIR = $(OLT_DIR)/../build_dir/$BOARD
+ DESTDIR = $(OLT_DIR)/../build_dir/$(BOARD)
 endif
 # KERNEL_SOURCE_DIR will point to the kernel location
 ifeq ($(KERNEL_SOURCE_DIR),)
