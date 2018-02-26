@@ -79,10 +79,10 @@ NB_TOOLS_CONFIGURE=$NB_TOOLS_PATH/configure
 BUILDIR=$FP_FOLDER/../../build_dir
 
 FP_OUTPUT_PATH=$FP_FOLDER/output/swdrv-dpp-dnx-$BOARD-$CPU
-NB_TOOLS_OUTPUT_PATH=$FP_OUTPUT_PATH/objects/nb_tools
+NB_TOOLS_OUTPUT_PATH=$FP_OUTPUT_PATH/objects/nbtools
 EXPORT_FILE=$NB_TOOLS_OUTPUT_PATH/export.var
 
-readonly LOCKDIR=$FP_FOLDER/.nb_tools.lock
+readonly LOCKDIR=$FP_FOLDER/.nbtools.lock
 readonly LOCK_SLEEP=2
 
 lock() {
@@ -228,13 +228,13 @@ board=`echo $BOARD | awk '{print tolower($0)}'`
 #cp -uv $NB_TOOLS_PATH/src/ptin_mgmd_api.h $FP_FOLDER/src/l7public/common/ptin/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 #cp -uv $NB_TOOLS_PATH/src/ptin_mgmd_ctrl.h $FP_FOLDER/src/l7public/common/ptin/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 # Copy lib
-mkdir -pv $FP_OUTPUT_PATH/libs-ptin/nb_tools
-cp -uv $NB_TOOLS_OUTPUT_PATH/src/lib/logger/.libs/*.so $FP_OUTPUT_PATH/libs-ptin/nb_tools/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
+mkdir -pv $FP_OUTPUT_PATH/libs-ptin/nbtools
+cp -uv $NB_TOOLS_OUTPUT_PATH/src/lib/logger/.libs/*.so $FP_OUTPUT_PATH/libs-ptin/nbtools/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 
 mkdir -pv $BUILDIR/$BOARD/usr/local/lib
-mkdir -pv $BUILDIR/$BOARD/usr/local/include/nb_tools
+mkdir -pv $BUILDIR/$BOARD/usr/local/include/nbtools
 cp -uv $NB_TOOLS_OUTPUT_PATH/src/lib/logger/.libs/*.so $BUILDIR/$BOARD/usr/local/lib/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
-cp -uv $NB_TOOLS_OUTPUT_PATH/rfs/include/nbtools/*.h $BUILDIR/$BOARD/usr/local/include/nb_tools/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
+cp -uv $NB_TOOLS_OUTPUT_PATH/rfs/include/nbtools/*.h $BUILDIR/$BOARD/usr/local/include/nbtools/ | awk -F'/' '{if ($NF != "") print $NF " updated!"}' | sed "s/'//"
 
 echo "[NB_TOOLS] Compilation done!"
 
