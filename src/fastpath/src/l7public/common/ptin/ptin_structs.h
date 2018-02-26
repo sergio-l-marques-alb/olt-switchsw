@@ -383,25 +383,6 @@ typedef struct
 #define PTIN_PHYCONF_MASK_PORTEN        0x0020
 #define PTIN_PHYCONF_MASK_MAXFRAME      0x0040
 
-typedef enum
-{
-  HW_ETHERNET_STATUS_MASK_SPEED100_BIT   = 0x0001,                                 // aplicavel apenas se nao for SPEED1000
-  HW_ETHERNET_STATUS_MASK_TX_BIT         = 0x0002,                                 //
-  HW_ETHERNET_STATUS_MASK_RX_BIT         = 0x0004,                                 //
-  HW_ETHERNET_STATUS_MASK_COLLISION_BIT  = 0x0008,                                 //
-  HW_ETHERNET_STATUS_MASK_LINK_BIT       = 0x0010,                                 // obtido via (64/66b)
-  HW_ETHERNET_STATUS_MASK_AUTONEG_BIT    = 0x0020,                                 //
-  HW_ETHERNET_STATUS_MASK_FULLDUPLEX_BIT = 0x0040,                                 //
-  HW_ETHERNET_STATUS_MASK_SPEED1000_BIT  = 0x0080,                                 //
-  HW_ETHERNET_STATUS_MASK_MEDIAX_BIT     = 0x0100,                                 //
-  HW_ETHERNET_STATUS_MASK_HIGH_BER_BIT   = 0x0200,                                 // obtido via (64/66b)
-  HW_ETHERNET_STATUS_MASK_SPEED10G_BIT   = 0x0400,                                 // 
-  HW_ETHERNET_STATUS_MASK_LOS            = 0x8000,                                 // 
-
-  HW_ETHERNET_STATUS_MASK_PWRDWN_LOOP    = (1<<31),
-} HW_ETHERNET_STATUS_MASK;
-
-
 typedef struct {
   L7_uint8   Port;              // 0-7:Pon; 8-15:1/2.5G Eth; 16-17:10G Eth
   L7_uint16  Mask;
@@ -427,29 +408,6 @@ typedef struct {
   L7_uint8  LinkUp;             // 0x0020   0 - Down;     1 - Up
   L7_uint8  AutoNegComplete;    // 0x0040   0 - incompleted; 1 - completed
 } ptin_HWEthPhyState_t;
-
-/* MEF extension definitions for a specific port */
-typedef enum
-{
-  PTIN_HWPORTEXT_MASK_DEFVID                            = 0x0001,
-  PTIN_HWPORTEXT_MASK_DEFPRIO                           = 0x0002,
-  PTIN_HWPORTEXT_MASK_ACCEPTABLE_FRAME_TYPES            = 0x0004,
-  PTIN_HWPORTEXT_MASK_INGRESS_FILTER                    = 0x0008,
-  PTIN_HWPORTEXT_MASK_RESTRICTED_VLAN_REG               = 0x0010,
-  PTIN_HWPORTEXT_MASK_VLAN_AWARE                        = 0x0020,
-  PTIN_HWPORTEXT_MASK_TYPE                              = 0x0040,
-  PTIN_HWPORTEXT_MASK_DOUBLETAG                         = 0x0100,
-  PTIN_HWPORTEXT_MASK_OUTER_TPID                        = 0x0200,
-  PTIN_HWPORTEXT_MASK_INNER_TPID                        = 0x0400,
-  PTIN_HWPORTEXT_MASK_EGRESS_TYPE                       = 0x0800,
-  PTIN_HWPORTEXT_MASK_MACLEARN_ENABLE                   = 0x1000,
-  PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_ENABLE       = 0x2000,
-  PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_PRIO         = 0x4000,
-  PTIN_HWPORTEXT_MASK_MACLEARN_STATIONMOVE_SAMEPRIO     = 0x8000,
-  PTIN_HWPORTEXT_MASK_MAXCHANNELS_INTF              = 0x00010000,
-  PTIN_HWPORTEXT_MASK_MAXBANDWIDTH_INTF             = 0x00020000,
-  PTIN_HWPORTEXT_MASK_DHCP_TRUSTED                  = 0x00100000,
-} HWPORTEXT_MASK;
 
 typedef enum
 {
@@ -792,7 +750,7 @@ typedef struct
 } ptin_intf_any_format_t;
 
 
-
+#if 0
 #define PTIN_EVC_OPTIONS_MASK_FLAGS   0x0001
 #define PTIN_EVC_OPTIONS_MASK_TYPE    0x0002
 #define PTIN_EVC_OPTIONS_MASK_MCFLOOD 0x0004
@@ -856,7 +814,7 @@ typedef enum
 
 #define PTIN_EVC_PORT_FORWARDING    0
 #define PTIN_EVC_PORT_BLOCKING      1
-
+#endif
 typedef struct {
   L7_uint32  ptin_port;                 // Single interface
   L7_uint64  ptin_port_bmp;             // List of Interfaces
@@ -914,7 +872,7 @@ typedef struct {
   L7_uint16 internal_vlan;  // Internal VLAN used within this EVC (if not provided, a new one will be selected from a pool)
 
 } ptin_HwEthMef10Evc_t;
-
+#if 0
 /* EVC Interface configuration */
 typedef struct {
   L7_BOOL    in_use;        /* When set, indicates that this entry is valid */
@@ -997,7 +955,7 @@ typedef struct {                    /* Mask values used here come from the varia
   L7_uint16   q_vid;                /* [mask=0x0200] VLAN ID on U interface */
   L7_uint16   c_vid;                /* [mask=0x0400] C-VLAN on U interface */
 } ptin_clientCircuitId_t;
-
+#endif
 /* Resources ******************************************************************/
 
 #define PTIN_POLICY_MAX_GROUPS  16
@@ -1201,7 +1159,7 @@ typedef struct {
 
 
 /* DHCP */
-
+#if 0
 /* DHCP Binding Table */
 typedef struct {
   L7_uint32             entry_index;            // Entry index (from 0 to bind_table_total_entries-1)
@@ -1339,15 +1297,15 @@ typedef struct {
   L7_uint32 UcastEvcId;
 } mgmdQueryInstances_t;
 #endif
-
-
+#endif
+#if 0
 typedef struct
 {
    L7_inet_addr_t groupAddr;
    L7_inet_addr_t sourceAddr;
    L7_uint8 static_type;      // 0: Dynamic; 1: Static
 } ptin_igmpChannelInfo_t;
-
+#endif
 /* QoS mapping */ 
 #define PTIN_QOS_INTF_TRUSTMODE_MASK        0x01
 #define PTIN_QOS_INTF_BANDWIDTHUNIT_MASK    0x02
@@ -1409,7 +1367,7 @@ typedef struct
   } dp[3+1];
 } ptin_QoS_drop_t;
 
-
+#if 0
 /***************************************************************************** 
  * ERPS Configuration
  *****************************************************************************/
@@ -1447,7 +1405,7 @@ typedef enum
 } ERPS_CONF_MASK;
 
 #define HW_ERPS_MASK_FULL 0x7FFF
-
+#endif
 
 /***************************************************************************** 
  * L3 Management
@@ -1538,7 +1496,7 @@ typedef struct {
   L7_uint16 sequenceId;           /* sequence ID                    */
   L7_uint8 domainNumber;          /* Domain Number                  */
 } ptin_PptTsRecord_t;                                               
-
+#if 0
 /***************************************************************************** 
  * OAM
  *****************************************************************************/
@@ -1566,7 +1524,7 @@ typedef struct
  L7_uint32 lmr_TxFCb;
 
 } ptin_check_counters_lm_t;
-
+#endif
 /***************************************************************************** 
  * NGPON2 
  *****************************************************************************/
@@ -1600,7 +1558,7 @@ typedef struct {
   L7_uint32 number_services;        // Number of services of a NGPON2 group
 } ptin_NGPON2_groups_t;
 #endif
-
+#if 0
 typedef struct
 {
     L7_uint8                   slotId;
@@ -1608,6 +1566,6 @@ typedef struct
     ptin_intf_t                ptin_intf;
     L7_uint8                   admin;   
 } __attribute__ ((packed)) ptin_LRP_t;
-
+#endif
 #endif /* _PTIN_STRUCTS_H */
 
