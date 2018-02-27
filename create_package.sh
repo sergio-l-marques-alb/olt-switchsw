@@ -10,10 +10,6 @@ LOG_FILE=$PWD/create_package.log
 echo "-- start script --" > $LOG_FILE
 echo "" >> $LOG_FILE
 
-
-# variable CROSSCOMPILE must be unseted to proceed with compilation
-unset CROSS_COMPILE
-
 APPLICATION=fp
 
 BUILD_PATH=./src/builds
@@ -96,7 +92,7 @@ mv $image_tgz $DESTDIR/$image_tgz
 
 #done without errors
 echo "" >> $LOG_FILE
-echo "-- end scrpit --" >> $LOG_FILE
+echo "-- end script --" >> $LOG_FILE
 
 echo "Tarball of $DEV_BOARD created and moved to $DESTDIR"
 
