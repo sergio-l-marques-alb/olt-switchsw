@@ -11,6 +11,9 @@ echo "-- start script --" > $LOG_FILE
 echo "" >> $LOG_FILE
 
 
+# variable CROSSCOMPILE must be unseted to proceed with compilation
+unset CROSS_COMPILE
+
 APPLICATION=fp
 
 BUILD_PATH=./src/builds
