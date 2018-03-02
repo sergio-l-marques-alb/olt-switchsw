@@ -17519,11 +17519,10 @@ L7_RC_t ptin_msg_get_next_qualRFC2819_inv(L7_int buffer_index, msg_rfc2819_buffe
   {
     L7_int32 port1 = -1;
     L7_int16 slot_ret,port_ret;
-      
-    ptin_intf_port2SlotPort(port1, &slot_ret, &port_ret, L7_NULLPTR);
- 
+     
     first_reg = ptin_rfc2819_buffer_get_inv(buffer_index, first_reg, &ring_buffer);
 		port1 = (ring_buffer.path >> 14) & 0xFFF;
+    ptin_intf_port2SlotPort(port1, &slot_ret, &port_ret, L7_NULLPTR);
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "slot_ret %d", slot_ret);
     PT_LOG_DEBUG(LOG_CTX_MSG, "Port1 %d", port1);  
