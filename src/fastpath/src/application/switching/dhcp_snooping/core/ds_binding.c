@@ -1395,7 +1395,7 @@ L7_RC_t dsBindingsValidate(void)
 *
 * @end
 *********************************************************************/
-void dsBindingEvcRemoveAll(L7_uint32 ext_evc_id)
+void dsBindingEvcRemoveAll(L7_uint32 ext_evc_id,L7_uint32 innerVlan)
 {
   dsBindingTreeNode_t *binding = NULL;
   L7_uint16 internalVlan;
@@ -1413,11 +1413,20 @@ void dsBindingEvcRemoveAll(L7_uint32 ext_evc_id)
     /* store key for use in next search */
     memcpy(&key, &binding->key, sizeof(dsBindingTreeKey_t));
 
+#if PTIN_BOARD_IS_STANDALONE
     /* If this entry belongs to our service, remove it */
-    if(binding->vlanId == internalVlan)
+    if((binding->vlanId == internalVlan) && (binding->innerVlanId == innerVlan))
     {
       dsBindingRemove(&key);
     }
+#else
+    /* If this entry belongs to our service, remove it */
+    if(binding->vlanId == internalVlan)
+    {                                   
+      dsBindingRemove(&key);            
+    }                                   
+#endif
+
   }
 }
 

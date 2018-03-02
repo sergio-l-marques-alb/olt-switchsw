@@ -2057,7 +2057,7 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
             dhcp_idx);
 
   /* Remove all associated DHCP leases */
-  if (L7_SUCCESS != dsEvcBindingsClear(evc_idx))
+  if (L7_SUCCESS != dsEvcBindingsClear(evc_idx, avl_key.innerVlan))
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to remove DHCP leases [evc_idx:%u]", evc_idx);
     return L7_FAILURE;

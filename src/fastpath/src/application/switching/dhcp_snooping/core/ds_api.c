@@ -2277,14 +2277,14 @@ L7_RC_t dsBindingClear(L7_uint32 intIfNum)
 *
 * @end
 *********************************************************************/
-L7_RC_t dsEvcBindingsClear(L7_uint32 ext_evc_id)
+L7_RC_t dsEvcBindingsClear(L7_uint32 ext_evc_id, L7_uint32 innerVlan)
 {
   L7_RC_t            retval = L7_SUCCESS;
   
   if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) != L7_SUCCESS)
     return L7_FAILURE;
 
-  dsBindingEvcRemoveAll(ext_evc_id);
+  dsBindingEvcRemoveAll(ext_evc_id, innerVlan);
 
   osapiWriteLockGive(dsCfgRWLock);
   return retval;

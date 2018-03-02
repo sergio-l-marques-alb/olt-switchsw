@@ -992,7 +992,7 @@ L7_RC_t dsBindingClear(L7_uint32 intIfNum);
 *
 * @end
 *********************************************************************/
-L7_RC_t dsEvcBindingsClear(L7_uint32 ext_evc_id);
+L7_RC_t dsEvcBindingsClear(L7_uint32 ext_evc_id, L7_uint32 innerVlan);
 
 
 /*********************************************************************

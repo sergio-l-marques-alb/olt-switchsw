@@ -929,7 +929,7 @@ L7_RC_t dsBindingsValidate(void);
 *
 * @end
 *********************************************************************/
-void dsBindingEvcRemoveAll(L7_uint32 ext_evc_id);
+void dsBindingEvcRemoveAll(L7_uint32 ext_evc_id,L7_uint32 innerVlan);
 
 /* ds_outcalls.c */
 L7_BOOL dsIntfTypeIsValid(L7_uint32 intIfNum, L7_uint32 sysIntfType);
