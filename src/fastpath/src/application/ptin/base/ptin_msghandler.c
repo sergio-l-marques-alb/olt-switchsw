@@ -3807,10 +3807,7 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       ptin_timer_stop(42);
       if (L7_SUCCESS != rc)
       {
-        PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
-        res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
-        SetIPCNACK(outbuffer, res);      
-        break;
+        SETIPCACKOK(outbuffer);
       }
 
       SETIPCACKOK(outbuffer);
