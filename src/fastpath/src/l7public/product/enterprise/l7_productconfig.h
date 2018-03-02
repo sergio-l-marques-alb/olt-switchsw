@@ -56,8 +56,8 @@
 
 #define L7_PERSISTENT_LOG_SUPPORTED                         L7_TRUE
 #define L7_SYSAPI_FEATURE_KEYING_SUPPORTED           L7_FALSE
-#define L7_DHCPS_MAX_POOL_NUMBER                            1 
-#define L7_DHCPS_MAX_LEASE_NUMBER                           1 
+#define L7_DHCPS_MAX_POOL_NUMBER                            4 
+#define L7_DHCPS_MAX_LEASE_NUMBER                           16 
 
 /* Max allowed DISCOVER messages for ping detection at a time */
 #define L7_DHCPS_MAX_ASYNC_MSGS                              50
