@@ -1,4 +1,4 @@
-int unit = 0;
+
 
 // Do not configure translations
 int xlate_config = 1;
@@ -27,7 +27,7 @@ static int pcp_out_map_id = -1;
 /*
  * Global initialization (first steps before doing anything else)
  */
-int global_init()
+int global_init(unsigned char unit)
 {
  int rv;
  bcm_port_t port;
@@ -56,7 +56,7 @@ int global_init()
 
  BCM_PBMP_ITER(pc.xe, port)
  {
-  rv = port_init(port, outer_tpid, inner_tpid);
+  rv = port_init(unit, port, outer_tpid, inner_tpid);
   if (rv != BCM_E_NONE)
   {
    printf("error: port_init.\n");
@@ -66,7 +66,7 @@ int global_init()
  }
  BCM_PBMP_ITER(pc.xl, port)
  {
-  rv = port_init(port, outer_tpid, inner_tpid);
+  rv = port_init(unit, port, outer_tpid, inner_tpid);
   if (rv != BCM_E_NONE)
   {
    printf("error: port_init.\n");
@@ -76,7 +76,7 @@ int global_init()
  }
  BCM_PBMP_ITER(pc.ce, port)
  {
-  rv = port_init(port, outer_tpid, inner_tpid);
+  rv = port_init(unit, port, outer_tpid, inner_tpid);
   if (rv != BCM_E_NONE)
   {
    printf("error: port_init.\n");
@@ -86,7 +86,7 @@ int global_init()
  }
  BCM_PBMP_ITER(pc.hg, port)
  {
-  rv = port_init(port, outer_tpid, inner_tpid);
+  rv = port_init(unit, port, outer_tpid, inner_tpid);
   if (rv != BCM_E_NONE)
   {
    printf("error: port_init.\n");
@@ -110,20 +110,20 @@ int global_init()
  }
 
  /* QoS initialization */
- rv = qos_init();
+ rv = qos_init(unit);
  if (rv != BCM_E_NONE)
  {
-  printf("QoS init failed: rv=%u (%s)\n", rv, bcm_errmsg(rv));
+  printf("QoS init failed: rv=%d (%s)\n", rv, bcm_errmsg(rv));
   return rv;
  }
 
  /* Translations initialization */
- rv = translations_init();
+ rv = translations_init(unit);
  if (rv != BCM_E_NONE)
  {
-  printf("Translations init failed: rv=%u (%s)\n", rv, bcm_errmsg(rv));
+  printf("Translations init failed: rv=%d (%s)\n", rv, bcm_errmsg(rv));
   return rv;
- } 
+ }
 
  printf("Switch initialized!\n");
 
@@ -133,7 +133,7 @@ int global_init()
 /*
  * Initialize a physical port
  */
-int port_init(int port, unsigned int otpid, unsigned int itpid)
+int port_init(unsigned char unit, int port, unsigned int otpid, unsigned int itpid)
 {
  int rv;
  bcm_pbmp_t pbmp;
@@ -152,7 +152,7 @@ int port_init(int port, unsigned int otpid, unsigned int itpid)
  }
 
  /* Filtering */
- rv = bcm_port_vlan_member_set(unit, port, BCM_PORT_VLAN_MEMBER_INGRESS | BCM_PORT_VLAN_MEMBER_EGRESS | BCM_PORT_VLAN_MEMBER_VP_VLAN_MEMBERSHIP);
+ rv = bcm_port_vlan_member_set(unit, port, BCM_PORT_VLAN_MEMBER_INGRESS | BCM_PORT_VLAN_MEMBER_EGRESS /*| BCM_PORT_VLAN_MEMBER_VP_VLAN_MEMBERSHIP*/);
  if (rv != BCM_E_NONE)
  {
   printf("error: bcm_port_vlan_member_set for port %d.\n", port);
@@ -226,7 +226,7 @@ int port_init(int port, unsigned int otpid, unsigned int itpid)
   printf("Error configuring bcmVlanPortDoubleLookupEnable=1 to port %u: rv=%d\n", port, rv);
   return rv;
  }
- 
+
  rv = bcm_switch_control_port_set(unit, port, /*type*/bcmSwitchTrunkHashPktHeaderCount,/*argumento*/ 0x2);
  //doc116, p71
  if (rv != BCM_E_NONE)
@@ -275,7 +275,7 @@ int port_init(int port, unsigned int otpid, unsigned int itpid)
 /**
  * Initialize VLAN translations
  */
-int translations_init(void)
+int translations_init(unsigned char unit)
 {
  int rv;
  bcm_vlan_action_set_t action;
@@ -367,7 +367,7 @@ int translations_init(void)
 /**
  * Initialize QoS
  */
-int qos_init(void)
+int qos_init(unsigned char unit)
 {
  bcm_qos_map_t qos_l2_map;
  int idx;
@@ -393,7 +393,7 @@ int qos_init(void)
   qos_l2_map.pkt_cfi = idx % 2;  //qos_map_l2_cfi[idx];
   qos_l2_map.int_pri = idx >> 1; //qos_map_l2_internal_pri[idx];
   qos_l2_map.color   = ((idx % 2) == 0) ? bcmColorGreen : bcmColorYellow; //qos_map_l2_internal_color[idx];
-  
+
   rv = bcm_qos_map_add(unit, BCM_QOS_MAP_L2 | BCM_QOS_MAP_L2_OUTER_TAG | BCM_QOS_MAP_L2_UNTAGGED | BCM_QOS_MAP_L2_VLAN_PCP, &qos_l2_map, pcp_in_map_id);
   if (rv != BCM_E_NONE) {
    printf("error in PCP ingress bcm_qos_map_add(): rv=%d (%d)\n", rv, bcm_errmsg(rv));
@@ -412,7 +412,7 @@ int qos_init(void)
 /*
  * Configure a VLAN Edit Profile
  */
-int adv_xlate_vep(unsigned int gport, int new_ovid, int new_ivid, int edit_class_id, int is_ingress)
+int adv_xlate_vep(unsigned char unit, unsigned int gport, int new_ovid, int new_ivid, int edit_class_id, int is_ingress)
 {
  bcm_vlan_port_translation_t port_xlate;
  int rv;
@@ -439,7 +439,7 @@ int adv_xlate_vep(unsigned int gport, int new_ovid, int new_ivid, int edit_class
 /*
  * Create an action for translations
  */
-int adv_xlate_action_create(int action_id, int is_ingress,
+int adv_xlate_action_create(unsigned char unit, int action_id, int is_ingress,
                             int ot_outer, int dt_outer, int ot_inner, int dt_inner,
                             int ot_outer_pri, int dt_outer_pri, int ot_inner_pri, int dt_inner_pri, int map_id)
 {
@@ -491,7 +491,7 @@ int adv_xlate_action_create(int action_id, int is_ingress,
 /*
  * ???
  */
-int adv_xlate_action_add(int action_id, int outer_action, int inner_action, unsigned int outer_tpid, unsigned int inner_tpid, int new_ovid, int new_ivid, int is_ingress)
+int adv_xlate_action_add(unsigned char unit ,int action_id, int outer_action, int inner_action, unsigned int outer_tpid, unsigned int inner_tpid, int new_ovid, int new_ivid, int is_ingress)
 {
   int rv;
   unsigned int flags = 0;
@@ -511,7 +511,7 @@ int adv_xlate_action_add(int action_id, int outer_action, int inner_action, unsi
 /*
  * Configure Tag format for translations
  */
-int adv_xlate_action_class_set(int tag_class_id, int edit_class_id, int action_id, int is_ingress)
+int adv_xlate_action_class_set(unsigned char  unit, int tag_class_id, int edit_class_id, int action_id, int is_ingress)
 {
  bcm_vlan_translate_action_class_t action_class;
  int rv;
@@ -537,7 +537,7 @@ int adv_xlate_action_class_set(int tag_class_id, int edit_class_id, int action_i
 /*
  * Configure the default VLAN for a physical port
  */
-int port_defvlan_set(unsigned int port, unsigned int pvid)
+int port_defvlan_set(unsigned char unit, unsigned int port, unsigned int pvid)
 {
  int rv;
 
@@ -551,7 +551,8 @@ int port_defvlan_set(unsigned int port, unsigned int pvid)
 
  printf("PVID %u applied to port %u\r\n", pvid, port);
 
- return 0;                                                                                                                                                                    
+ return 0;
 }
 
-global_init();
+//global_init(0);
+//global_init(1);
