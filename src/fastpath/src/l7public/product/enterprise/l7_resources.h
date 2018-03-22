@@ -44,9 +44,9 @@
 #define DOT3AD_SID_MSG_COUNT                      DEFAULT_MSG_COUNT
 #define LLDP_MSG_COUNT		                      DEFAULT_MSG_COUNT
 #define PML_MSG_COUNT                             3
-#define FD_CNFGR_RADIUS_MSG_COUNT                           10
-#define FD_CNFGR_TACACS_MSG_COUNT                           10
-#define DHCPSMAP_QUEUE_MAX_MSG_COUNT                        32
+#define FD_CNFGR_RADIUS_MSG_COUNT                 DEFAULT_MSG_COUNT
+#define FD_CNFGR_TACACS_MSG_COUNT                 DEFAULT_MSG_COUNT
+#define DHCPSMAP_QUEUE_MAX_MSG_COUNT                        64
 #define DTL_MSG_COUNT                             (4*1024)
 #define DTL_ADDR_MSG_COUNT                        L7_MAX_FDB_MAC_ENTRIES
 #define HAPI_BROAD_LAG_ASYNC_CMD_QUEUE_SIZE       (L7_MAX_NUM_LAG_INTF * \
@@ -271,7 +271,7 @@
 
 #define L7_DOT1S_STACK_SIZE             L7_DEFAULT_STACK_SIZE + (1024 * 32)
 
-#define L7_ISDP_STACK_SIZE              500
+#define L7_ISDP_STACK_SIZE              L7_DEFAULT_STACK_SIZE
 
 #define  L7_CMGR_CARD_INSERT_REMOVE_QUEUE_MSG_COUNT       256
 
