@@ -1033,9 +1033,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     ptin_port_aux = pduInfo->intIfNum - 1;
 
     ptin_igmp_port_is_Dynamic(ptin_port_aux, &isDynamic);
+		ptin_igmp_get_local_router_port(&local_router_port_id);
 
 		/* Support of query process in other services other than multicast and MC proxy */
-		if (  mcastRootVlan < 512 && isDynamic /*L7_FAILURE*/ ) 
+		if ( (mcastRootVlan < 512) && (isDynamic == 1) ) 
 		{			
 			mcastRootVlan = 512;
 			PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId ,mcastRootVlan);
@@ -1064,13 +1065,18 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       ptin_igmp_intfVlan_validate(pduInfo->intIfNum, mcastRootVlan)!=L7_SUCCESS)
   {
     PT_LOG_DEBUG(LOG_CTX_IGMP,"intIfNum=%u,vlan=%u are not accepted",pduInfo->intIfNum,pduInfo->vlanId);
-    if(igmpPtr!=L7_NULLPTR)
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
-    else
-    {      
-      ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);    
-    }        
-    return L7_FAILURE;
+
+    if (ptin_igmp_McastRootVlanRing_get(pduInfo->vlanId, &mcastRootVlan)==L7_SUCCESS)
+    {
+      if (ptin_igmp_intfVlan_validate(pduInfo->intIfNum, mcastRootVlan)!=L7_SUCCESS)
+      {	
+        if(igmpPtr!=L7_NULLPTR)
+          ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, snoopPacketType2IGMPStatField(igmpPtr[0],SNOOP_STAT_FIELD_DROPPED_RX));
+        else
+          ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_DROPPED);    
+        return L7_FAILURE;
+      }
+    }
   }
 
   /* Update Vlan ID of the root MC service vlan */
