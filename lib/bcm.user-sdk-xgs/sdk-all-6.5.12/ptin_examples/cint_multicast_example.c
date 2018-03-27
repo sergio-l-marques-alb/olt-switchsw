@@ -28,14 +28,18 @@ bcm_gport_t voqs_gport[3]={0x24000140,0x24000148,0x24000150};
 
 
 
-int ingress=0;
-int voqs=0;
+int ingress=1;
+int voqs=1;
 int mc_id, vsi;
 
-if (voqs) ingress=1;
+//if (voqs) ingress=1;
 
 if (ingress) vsi=mc_id=5005;
 else         vsi=mc_id=4096;
+/* Create Multicast group */
+if (ingress)    multicast_create(unit, &mc_id, 1, 0/*Flags*/);
+else            multicast_create(unit, &mc_id, 0 /*Egress*/, 0/*Flags*/);
+vsi=mc_id;
 
 unsigned short vid=100;
 bcm_gport_t vid_prt_gport[3]={0x44801000, 0x44801001, 0x44801002};
@@ -45,6 +49,16 @@ bcm_gport_t vid_prt_gport[3]={0x44801000, 0x44801001, 0x44801002};
 //     BCM_GPORT_VLAN_PORT_ID_SET(vid_prt_gport[i], p[i]<<12 | vid);
 // }
 //} //results in index error
+
+
+
+
+vlan_create(unit, vid);
+vlan_add(unit, vid, p[0]);
+vlan_add(unit, vid, p[1]);
+vlan_add(unit, vid, p[2]);
+
+
 
 
 /* Create LIFs instantiating the physical ports + VLAN */
@@ -68,7 +82,7 @@ vswitch_add(unit, vsi, vid_prt_gport[2] /*LIF3*/);
 
 if (ingress) {
 /* Create Multicast group */
-    multicast_create(unit, &mc_id, 1, 0/*Flags*/);
+    //multicast_create(unit, &mc_id, 1, 0/*Flags*/);
     /* Configure ingress replication */
     if (voqs) {
         multicast_ingress_add(unit, mc_id /*MC group*/, voqs_gport[0], vid_prt_gport[0]);
@@ -83,7 +97,7 @@ if (ingress) {
 }
 else {
 /* Create Multicast group */
-    multicast_create(unit, &mc_id, 0 /*Egress*/, 0/*Flags*/);
+    //multicast_create(unit, &mc_id, 0 /*Egress*/, 0/*Flags*/);
     /* Configure egress replication (MCgroup=16781312=0x1001000) */
     multicast_egress_add(unit, mc_id /*MC group*/, p[0], vid_prt_gport[0]);
     multicast_egress_add(unit, mc_id /*MC group*/, p[1], vid_prt_gport[1]);
