@@ -52,7 +52,7 @@ export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
 
 export COMPILER           = $(TOOLCHAIN_BIN_DIR)/ppce500mc-fsl-linux/powerpc-fsl-linux-
-export KERNEL_PATH        = /home/shared/switchdrvr/trunk/lib/kernel/linux-4.1.8-QorIQ-SDK2.0-CXO2T4
+export KERNEL_PATH        = /mnt/lib/olt-switchsw/branches/switchdrvr-4.0/lib/kernel/linux-4.1.8-QorIQ-SDK2.0-CXO2T4
 #export KERNEL_PATH        = /home/shared/switchdrvr/trunk/lib/kernel/testing/kernel_3_0_51
 #/home/peter/kernel_3_0_51.cxo160g
 #/home/devtools/dev-QorIQ/dev-P204x/cxo640/kernel_3_0_51
@@ -72,7 +72,7 @@ PLATFORM_NAME=$(PLATFORM)-$(KERNEL_VER)
 .PHONY: all clean
 
 all:
-	gmake -j40 -C $(SRC_PATH)/$(PLATFORM_NAME)
+	gmake -j3 -C $(SRC_PATH)/$(PLATFORM_NAME)
 	mkdir -p $(SDK)/$(SDKBUILD)
 	mkdir -p $(DST_PATH)/$(PLATFORM_NAME)
 	cp -v $(SRC_PATH)/$(PLATFORM_NAME)/bcm.user* $(SRC_PATH)/$(PLATFORM_NAME)/*.ko $(SRC_PATH)/$(PLATFORM_NAME)/netserve $(DST_PATH)/$(PLATFORM_NAME)
