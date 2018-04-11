@@ -43,8 +43,8 @@ make modules_install INSTALL_MOD_PATH=$PWD/rootfs
 #instalar os include headers do linux
 make headers_install ARCH=$ARCH INSTALL_HDR_PATH=$PWD/linux-inc
 
-cp arch/powerpc/boot/uImage cxo2t4-mx.z
-scripts/dtc/dtc -O dtb -o cxo2t4-mx.dtb -b 0 -p 1024 cxo2t4-mx.dts
+cp arch/powerpc/boot/uImage kernel-cxo2t4-sf.z
+scripts/dtc/dtc -O dtb -o cxo2t4-sf.dtb -b 0 -p 1024 cxo2t4-mx.dts
 
 echo "Reverting patch..."
 patch -p1 -R < cxo2t4-mx.patch
