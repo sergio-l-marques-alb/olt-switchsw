@@ -72,7 +72,7 @@ void ptin_debug_pppoe_enable(L7_BOOL enable)
 
 typedef struct
 {
-  L7_uint8  pppoe_instance;
+  L7_uint16 pppoe_instance;
 
   #if (PPPOE_CLIENT_INTERF_SUPPORTED)
   L7_uint8  ptin_port;                /* PTin port, which is attached */
@@ -228,7 +228,7 @@ static L7_RC_t ptin_pppoe_clientId_convert(L7_uint32 evc_idx, ptin_client_id_t *
  * INLINE FUNCTIONS
  ***********************************************************/
 
-inline L7_BOOL pppoe_clientIndex_check_free(L7_uint8 pppoe_idx)
+inline L7_BOOL pppoe_clientIndex_check_free(L7_uint pppoe_idx)
 {
   /* Validate arguments */
   if (pppoe_idx >= PTIN_SYSTEM_N_PPPOE_INSTANCES)
@@ -241,7 +241,7 @@ inline L7_BOOL pppoe_clientIndex_check_free(L7_uint8 pppoe_idx)
           queue_free_clients.n_elems > 0);
 }
 
-inline L7_int pppoe_clientIndex_allocate(L7_uint8 pppoe_idx, ptinPppoeClientInfoData_t *infoData)
+inline L7_int pppoe_clientIndex_allocate(L7_uint pppoe_idx, ptinPppoeClientInfoData_t *infoData)
 {
   L7_int  client_idx;
   struct ptin_clientIdx_entry_s  *clientIdx_pool_entry;
@@ -306,7 +306,7 @@ inline L7_int pppoe_clientIndex_allocate(L7_uint8 pppoe_idx, ptinPppoeClientInfo
   return client_idx;
 }
 
-inline void pppoe_clientIndex_release(L7_uint8 pppoe_idx, L7_uint32 client_idx)
+inline void pppoe_clientIndex_release(L7_uint pppoe_idx, L7_uint32 client_idx)
 {
   struct ptin_clientIdx_entry_s  *clientIdx_pool_entry;
   struct ptin_clientInfo_entry_s *clientInfo_pool_entry;
@@ -3677,7 +3677,7 @@ static L7_RC_t ptin_pppoe_instance_deleteAll_clients(L7_uint pppoe_idx)
 static L7_RC_t ptin_pppoe_inst_get_fromIntVlan(L7_uint16 intVlan, st_PppoeInstCfg_t **pppoeInst, L7_uint *pppoeInst_idx)
 {
   L7_uint32 evc_idx;
-  L7_uint8  pppoe_idx;
+  L7_uint   pppoe_idx;
 
   /* Verify if this internal vlan is associated to an EVC */
   if (ptin_evc_get_evcIdfromIntVlan(intVlan, &evc_idx)!=L7_SUCCESS)
@@ -3753,7 +3753,7 @@ static L7_RC_t ptin_pppoe_instance_find_free(L7_uint *pppoe_idx)
 static L7_RC_t ptin_pppoe_instance_find(L7_uint32 evc_idx, L7_uint *pppoe_idx)
 {
   #if 1
-  L7_uint8 pppoe_inst;
+  L7_uint pppoe_inst;
 
   /* Validate evc index */
   if (evc_idx >= PTIN_SYSTEM_N_EXTENDED_EVCS)

@@ -942,7 +942,7 @@ L7_RC_t ptin_evc_flood_vlan_get( L7_uint32 intIfNum, L7_uint intVlan, L7_uint cl
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern
-L7_RC_t ptin_evc_igmpInst_set(L7_uint32 evc_ext_id, L7_uint8 igmp_inst);
+L7_RC_t ptin_evc_igmpInst_set(L7_uint32 evc_ext_id, L7_uint igmp_inst);
 
 /**
  * Get igmp instance from a particular evc
@@ -953,7 +953,7 @@ L7_RC_t ptin_evc_igmpInst_set(L7_uint32 evc_ext_id, L7_uint8 igmp_inst);
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern
-L7_RC_t ptin_evc_igmpInst_get(L7_uint32 evc_ext_id, L7_uint8 *igmp_inst);
+L7_RC_t ptin_evc_igmpInst_get(L7_uint32 evc_ext_id, L7_uint *igmp_inst);
 
 /**
  * Set dhcp instance for a particular evc
@@ -964,7 +964,7 @@ L7_RC_t ptin_evc_igmpInst_get(L7_uint32 evc_ext_id, L7_uint8 *igmp_inst);
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern
-L7_RC_t ptin_evc_dhcpInst_set(L7_uint32 evc_ext_id, L7_uint8 dhcp_inst);
+L7_RC_t ptin_evc_dhcpInst_set(L7_uint32 evc_ext_id, L7_uint dhcp_inst);
 
 /**
  * Get dhcp instance from a particular evc
@@ -975,7 +975,7 @@ L7_RC_t ptin_evc_dhcpInst_set(L7_uint32 evc_ext_id, L7_uint8 dhcp_inst);
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern
-L7_RC_t ptin_evc_dhcpInst_get(L7_uint32 evc_ext_id, L7_uint8 *dhcp_inst);
+L7_RC_t ptin_evc_dhcpInst_get(L7_uint32 evc_ext_id, L7_uint *dhcp_inst);
 
 /**
  * Set pppoe instance for a particular evc
@@ -986,7 +986,7 @@ L7_RC_t ptin_evc_dhcpInst_get(L7_uint32 evc_ext_id, L7_uint8 *dhcp_inst);
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern
-L7_RC_t ptin_evc_pppoeInst_set(L7_uint32 evc_ext_id, L7_uint8 pppoe_inst);
+L7_RC_t ptin_evc_pppoeInst_set(L7_uint32 evc_ext_id, L7_uint pppoe_inst);
 
 /**
  * Get pppoe instance from a particular evc
@@ -997,7 +997,7 @@ L7_RC_t ptin_evc_pppoeInst_set(L7_uint32 evc_ext_id, L7_uint8 pppoe_inst);
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
 extern
-L7_RC_t ptin_evc_pppoeInst_get(L7_uint32 evc_ext_id, L7_uint8 *pppoe_inst);
+L7_RC_t ptin_evc_pppoeInst_get(L7_uint32 evc_ext_id, L7_uint *pppoe_inst);
 
 /**
  * Verify if a particular evc is MAC Bridge

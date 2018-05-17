@@ -93,7 +93,7 @@
 #  define PTIN_SYSTEM_EVC_QUATTRO_VLAN_MASK     (~(PTIN_SYSTEM_EVC_QUATTRO_VLANS-1) & 0xfff) /*0x0c00*/
 # endif
 
-# define PTIN_SYSTEM_N_IGMP_INSTANCES                  40    /* Maximum nr of IGMP instances */
+# define PTIN_SYSTEM_N_IGMP_INSTANCES                  256    /* Maximum nr of IGMP instances */
 # define PTIN_SYSTEM_MAXINTERFACES_PER_GROUP           (L7_MAX_PORT_COUNT + L7_MAX_CPU_SLOTS_PER_UNIT + L7_MAX_NUM_LAG_INTF + 2)   /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_IGMP_MAXINTERFACES                PTIN_SYSTEM_N_INTERF                                                        /* Maximum nr of interfaces per multicast group */
 # define PTIN_SYSTEM_IGMP_MAXONUS_PER_INTF             1

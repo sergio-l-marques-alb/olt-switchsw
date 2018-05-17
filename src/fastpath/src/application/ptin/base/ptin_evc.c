@@ -348,9 +348,9 @@ typedef struct ptinExtEvcIdInfoData_s
 {
   ptinExtEvcIdDataKey_t extEvcIdDataKey;
   L7_uint16             evc_id;           /* Internal evc id */
-  L7_uint8              igmp_inst;        /* IGMP instance */
-  L7_uint8              dhcp_inst;        /* DHCP instance */
-  L7_uint8              pppoe_inst;       /* PPPoE instance */
+  L7_uint16             igmp_inst;        /* IGMP instance */
+  L7_uint16             dhcp_inst;        /* DHCP instance */
+  L7_uint16             pppoe_inst;       /* PPPoE instance */
   void *next;
 } ptinExtEvcIdInfoData_t;
 
@@ -8207,7 +8207,7 @@ L7_RC_t ptin_evc_vlan_client_next( L7_uint intVid, L7_uint32 intIfNum, ptin_HwEt
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evc_igmpInst_set(L7_uint32 evc_ext_id, L7_uint8 igmp_inst)
+L7_RC_t ptin_evc_igmpInst_set(L7_uint32 evc_ext_id, L7_uint igmp_inst)
 {
   ptinExtEvcIdInfoData_t  *ext_evcId_infoData;
 
@@ -8233,7 +8233,7 @@ L7_RC_t ptin_evc_igmpInst_set(L7_uint32 evc_ext_id, L7_uint8 igmp_inst)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evc_igmpInst_get(L7_uint32 evc_ext_id, L7_uint8 *igmp_inst)
+L7_RC_t ptin_evc_igmpInst_get(L7_uint32 evc_ext_id, L7_uint *igmp_inst)
 {
   ptinExtEvcIdInfoData_t  *ext_evcId_infoData;
 
@@ -8268,7 +8268,7 @@ L7_RC_t ptin_evc_igmpInst_get(L7_uint32 evc_ext_id, L7_uint8 *igmp_inst)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evc_dhcpInst_set(L7_uint32 evc_ext_id, L7_uint8 dhcp_inst)
+L7_RC_t ptin_evc_dhcpInst_set(L7_uint32 evc_ext_id, L7_uint dhcp_inst)
 {
   ptinExtEvcIdInfoData_t  *ext_evcId_infoData;
 
@@ -8294,7 +8294,7 @@ L7_RC_t ptin_evc_dhcpInst_set(L7_uint32 evc_ext_id, L7_uint8 dhcp_inst)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evc_dhcpInst_get(L7_uint32 evc_ext_id, L7_uint8 *dhcp_inst)
+L7_RC_t ptin_evc_dhcpInst_get(L7_uint32 evc_ext_id, L7_uint *dhcp_inst)
 {
   ptinExtEvcIdInfoData_t  *ext_evcId_infoData;
 
@@ -8329,7 +8329,7 @@ L7_RC_t ptin_evc_dhcpInst_get(L7_uint32 evc_ext_id, L7_uint8 *dhcp_inst)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evc_pppoeInst_set(L7_uint32 evc_ext_id, L7_uint8 pppoe_inst)
+L7_RC_t ptin_evc_pppoeInst_set(L7_uint32 evc_ext_id, L7_uint pppoe_inst)
 {
   ptinExtEvcIdInfoData_t  *ext_evcId_infoData;
 
@@ -8355,7 +8355,7 @@ L7_RC_t ptin_evc_pppoeInst_set(L7_uint32 evc_ext_id, L7_uint8 pppoe_inst)
  * 
  * @return L7_RC_t : L7_SUCCESS / L7_FAILURE
  */
-L7_RC_t ptin_evc_pppoeInst_get(L7_uint32 evc_ext_id, L7_uint8 *pppoe_inst)
+L7_RC_t ptin_evc_pppoeInst_get(L7_uint32 evc_ext_id, L7_uint *pppoe_inst)
 {
   ptinExtEvcIdInfoData_t  *ext_evcId_infoData;
 

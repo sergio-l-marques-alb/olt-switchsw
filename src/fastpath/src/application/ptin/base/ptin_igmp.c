@@ -3169,8 +3169,8 @@ L7_RC_t ptin_igmp_mgmd_resetdefaults(void)
  */
 L7_RC_t ptin_igmp_instances_reactivate(void)
 {
-  L7_uint8 igmp_idx;
-  L7_RC_t  rc = L7_SUCCESS;
+  L7_uint igmp_idx;
+  L7_RC_t rc = L7_SUCCESS;
 
   for (igmp_idx=0; igmp_idx<PTIN_SYSTEM_N_IGMP_INSTANCES; igmp_idx++)
   {
@@ -3452,9 +3452,9 @@ L7_RC_t ptin_igmp_evc_remove(L7_uint32 evc_idx)
  */
 L7_RC_t ptin_igmp_evcs_reactivate(void)
 {
-  L7_uint  evc_idx;
-  L7_uint8 igmp_idx;
-  L7_RC_t  rc = L7_SUCCESS;
+  L7_uint evc_idx;
+  L7_uint igmp_idx;
+  L7_RC_t rc = L7_SUCCESS;
 
   /* Run all EVCs with IGMP instance association */
   for (evc_idx=0; evc_idx<PTIN_SYSTEM_N_EXTENDED_EVCS; evc_idx++)
@@ -9279,7 +9279,7 @@ L7_RC_t ptin_igmp_evc_configure(L7_uint32 evc_idx, L7_BOOL enable, L7_BOOL set_t
 static L7_RC_t ptin_igmp_instance_delete(L7_uint16 igmp_idx)
 {
   L7_uint32 i;
-  L7_uint8 igmp_inst;
+  L7_uint igmp_inst;
 
   /* Validate arguments */
   if (igmp_idx >= PTIN_SYSTEM_N_IGMP_INSTANCES)
@@ -10563,7 +10563,7 @@ static L7_RC_t ptin_igmp_device_client_remove(L7_uint ptin_port, L7_uint client_
 static L7_RC_t ptin_igmp_inst_get_fromIntVlan(L7_uint16 intVlan, st_IgmpInstCfg_t **igmpInst, L7_uint *igmpInst_idx)
 {
   L7_uint32 evc_idx;
-  L7_uint8  igmp_idx;
+  L7_uint   igmp_idx;
 
   /* Verify if this internal vlan is associated to an EVC */
   if (ptin_evc_get_evcIdfromIntVlan(intVlan,&evc_idx)!=L7_SUCCESS)
@@ -11149,7 +11149,7 @@ static L7_uint ptin_igmp_instance_find_agg(L7_uint16 nni_ovlan, L7_uint *igmp_id
 static L7_RC_t ptin_igmp_instance_find(L7_uint32 McastEvcId, L7_uint32 UcastEvcId, L7_uint *igmp_idx)
 {
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  L7_uint8 igmp_inst;
+  L7_uint igmp_inst;
 
   if (McastEvcId >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
@@ -11197,7 +11197,7 @@ static L7_RC_t ptin_igmp_instance_find(L7_uint32 McastEvcId, L7_uint32 UcastEvcI
 static L7_RC_t ptin_igmp_instance_find_fromSingleEvcId(L7_uint32 evc_idx, L7_uint *igmp_idx)
 {
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  L7_uint8 igmp_inst;
+  L7_uint igmp_inst;
 
   if (evc_idx >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
@@ -11248,7 +11248,7 @@ static L7_RC_t ptin_igmp_instance_find_fromSingleEvcId(L7_uint32 evc_idx, L7_uin
 static L7_RC_t ptin_igmp_instance_find_fromMcastEvcId(L7_uint32 McastEvcId, L7_uint *igmp_idx)
 {
 #ifdef IGMPASSOC_MULTI_MC_SUPPORTED
-  L7_uint8 igmp_inst;
+  L7_uint igmp_inst;
 
   if (McastEvcId >= PTIN_SYSTEM_N_EXTENDED_EVCS)
   {
