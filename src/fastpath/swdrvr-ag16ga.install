@@ -1,0 +1,10 @@
+#!/bin/sh
+
+PLATFORM="AG16GA"
+PLATFORM_FOLDER=$PLATFORM
+FILESYSTEM=
+
+KO_PATH=./output/FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_TG16GF/target
+BIN_PATH=./output/FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_TG16GF/ipl
+
+. ./swdrvr-common.install
