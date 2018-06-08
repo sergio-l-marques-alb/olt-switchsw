@@ -32,7 +32,7 @@
 
 #include "cpld_spi.h"
 
-#if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_TT04SXG /*|| PTIN_BOARD == PTIN_BOARD_OLT1T0*/)
+#if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_TT04SXG || PTIN_BOARD == PTIN_BOARD_AG16GA/*|| PTIN_BOARD == PTIN_BOARD_OLT1T0*/)
 
 #include <linux/spi/spidev.h>
 #include <stdint.h>
@@ -741,5 +741,5 @@ int cpld_spi_write_debug(unsigned int addr, unsigned char val)
   return 0;
 }
 
-#endif /* PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F */
+#endif /* PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_AG16GA */
 

@@ -47,6 +47,10 @@ elif [ $2 == "olt1t0" ]; then
  BOARD="TT04SXG"
  MKBOARDS_FOLDER=TT04SXG
  OUTPUT=output/FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_TT04SXG
+elif [ $2 == "ag16ga" ]; then
+ BOARD="AG16GA"
+ MKBOARDS_FOLDER=AG16GA
+ OUTPUT=output/FastPath-Ent-esw-xgs4-katanaarm-LR-CSxw-IQH_AG16GA
 else
  echo "Invalid board"
  exit;

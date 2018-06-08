@@ -1569,6 +1569,8 @@ void osapiConvertRawUpTime(L7_uint32 rawTime, L7_timespec *ts)
 * @end
 *
 *************************************************************************/
+
+#include <time.h>
 L7_uint32 osapiUpTimeRaw(void)
 {
   struct timespec tp;

@@ -495,7 +495,7 @@ L7_RC_t dtlIPProtoRecvAny(L7_netBufHandle bufHandle, char *data, L7_uint32 nbyte
               osapiSemaTake(dtltod.tsSemaphore, L7_WAIT_FOREVER);
 
               /* Deal with wraparounds of the hardware timestamp counter */
-              #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF)
+              #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_AG16GA)
               {
                 /* On VK2 the timer wraps every (10^9)-1 nanoseconds */
                 if (pduInfo->timestamp < dtltod.tsHwCounter)
@@ -1629,7 +1629,7 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 
                 if (osapiNtohs(udpHeader->destPort) == UDP_PORT_EVENT_PTP)
                 {
-                  #if ((PTIN_BOARD == PTIN_BOARD_TG16G) || (PTIN_BOARD == PTIN_BOARD_TG16GF) || (PTIN_BOARD == PTIN_BOARD_TA48GE))
+                  #if ((PTIN_BOARD == PTIN_BOARD_TG16G) || (PTIN_BOARD == PTIN_BOARD_TG16GF) || (PTIN_BOARD == PTIN_BOARD_TA48GE) ||(PTIN_BOARD == PTIN_BOARD_AG16GA))
                   ptpTs.validTsRecord = L7_TRUE; 
                   ptpTs.inetAddr.ipv4Addr = ip_header->iph_dst;
                   ptpTs.encap = 0; /* TBD: unused for now */
@@ -1696,7 +1696,7 @@ dtlSendCmdExit:
           osapiSemaTake(dtltod.tsSemaphore, L7_WAIT_FOREVER);
 
           /* Deal with wraparounds of the hardware timestamp counter */
-          #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF)
+          #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_AG16GA)
           {
             /* On VK2 the timer wraps every (10^9)-1 nanoseconds */
             if (info->dtlCmdInfo.cmdResponse.L2.timestamp < dtltod.tsHwCounter)

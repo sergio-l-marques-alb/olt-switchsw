@@ -8,7 +8,7 @@
 ################################################
 
 # Board and CPU identification
-export BOARD = TG16GF
+export BOARD = AG16GA
 export CPU   = katanaarm
 
 # Base folders (using absolute references)

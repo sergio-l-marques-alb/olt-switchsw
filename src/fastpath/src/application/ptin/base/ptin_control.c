@@ -251,7 +251,7 @@ void ptinTask(L7_uint32 numArgs, void *unit)
 #endif
 
 #if ( PTIN_BOARD == PTIN_BOARD_CXO640G || \
-      PTIN_BOARD == PTIN_BOARD_TA48GE || PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF)
+      PTIN_BOARD == PTIN_BOARD_TA48GE || PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_AG16GA)
   ptin_cfg_pcap_bridge_set();
 #endif
 
@@ -2213,6 +2213,12 @@ static void ptin_control_linkstatus_report(void)
   port_list[2] = PTIN_SYSTEM_N_PONS + 0;
   port_list[3] = PTIN_SYSTEM_N_PONS + 2;
 #elif (PTIN_BOARD == PTIN_BOARD_TG16GF)
+  number_of_ports = 4;
+  port_list[0] = PTIN_SYSTEM_N_PONS + 0;
+  port_list[1] = PTIN_SYSTEM_N_PONS + 1;
+  port_list[2] = PTIN_SYSTEM_N_PONS + 2;
+  port_list[3] = PTIN_SYSTEM_N_PONS + 3;
+#elif (PTIN_BOARD == PTIN_BOARD_AG16GA)
   number_of_ports = 4;
   port_list[0] = PTIN_SYSTEM_N_PONS + 0;
   port_list[1] = PTIN_SYSTEM_N_PONS + 1;
