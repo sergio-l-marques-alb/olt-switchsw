@@ -5058,7 +5058,7 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
     /*Allocate Group Client Identifier*/
     if ( (group_client_id = ptin_igmp_group_client_identifier_pop(ptin_port)) >= PTIN_IGMP_CLIENTIDX_MAX )
     {
-      PT_LOG_ERR(LOG_CTX_IGMP,"Failed to Obtain Group Client Identifier (groupClientId:%u) {"              
+      PT_LOG_ERR(LOG_CTX_IGMP,"Failed to Obtain Group Client Identifier {"              
 #if (MC_CLIENT_INTERF_SUPPORTED)
               "port=%u,"
 #endif
@@ -5075,7 +5075,6 @@ L7_RC_t ptin_igmp_group_client_add(ptin_client_id_t *client, L7_uint16 uni_ovid,
               "MacAddr=%02x:%02x:%02x:%02x:%02x:%02x"
 #endif
               "}"
-              ,avl_infoData->groupClientId
 #if (MC_CLIENT_INTERF_SUPPORTED)
               ,avl_key.ptin_port
 #endif
