@@ -40,10 +40,6 @@
 #elif (PTIN_BOARD == PTIN_BOARD_TG16GF)
 #include "ptin_mgmd_defs_tg16gf.h"
 
-/* AG16GA */
-#elif (PTIN_BOARD == PTIN_BOARD_AG16GA)
-#include "ptin_mgmd_defs_ag16ga.h"
-
 /* TG16GF */
 #elif (PTIN_BOARD == PTIN_BOARD_TT04SXG)
 #include "ptin_mgmd_defs_tt04sxg.h"

@@ -1162,7 +1162,7 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56
 {       0,      16,          0,      40,       "" }, /* GS port for FPGA */
 };
 
-/* PTin added: new switch 56450 (Katana2) - TG16GF && AG16GA */
+/* PTin added: new switch 56450 (Katana2) - TG16GF */
 HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1[] =
 /* slotNum  portNum bcm_cpuunit bcm_port portName *
  * -------  ------- ----------- -------- -------- */
@@ -2252,7 +2252,7 @@ dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1, sizeof(dap
 dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_K2_REV_1, sizeof(dapiBroadBaseCardPortMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_K2_REV_1)/sizeof(HAPI_CARD_PORT_MAP_t),
 0, NULL, 0,
 };
-/* PTin added: new switch 56450 (Katana2) - TG16GF && AG16GA */
+/* PTin added: new switch 56450 (Katana2) - TG16GF */
 DAPI_CARD_ENTRY_t dapiBroadPhysicalCardEntry_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1 = {
 hapiBroadPhysicalCardInsert,hapiBroadCardRemove,
 dapiBroadBaseCardSlotMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1, sizeof(dapiBroadBaseCardSlotMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1)/sizeof(HAPI_CARD_SLOT_MAP_t),

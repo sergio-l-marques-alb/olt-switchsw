@@ -154,10 +154,6 @@ extern int ptin_sys_number_of_ports;
 #include "ptin_globaldefs_tg16gf.h"
 
 /* TG16GF */
-#elif (PTIN_BOARD == PTIN_BOARD_AG16GA)
-#include "ptin_globaldefs_ag16ga.h"
-
-/* TT04SXG */
 #elif (PTIN_BOARD == PTIN_BOARD_TT04SXG)
 #include "ptin_globaldefs_tt04sxg.h"
 

@@ -1880,7 +1880,7 @@ L7_RC_t hpcBoardWCinit_bcm56450(void)
     if (sal_config_set(spn_PBMP_XPORT_XE, "0x925E000000") != 0)
       return(L7_FAILURE);
 
-  #elif (PTIN_BOARD == PTIN_BOARD_TG16GF) || (PTIN_BOARD == PTIN_BOARD_AG16GA)
+  #elif (PTIN_BOARD == PTIN_BOARD_TG16GF)
 
     PT_LOG_NOTICE(LOG_CTX_STARTUP,"Katana2: Applying mode 5");
 

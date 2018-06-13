@@ -276,7 +276,7 @@
   }
 }
 ,
-#elif (PTIN_BOARD == PTIN_BOARD_TG16GF) || (PTIN_BOARD == PTIN_BOARD_AG16GA)
+#elif (PTIN_BOARD == PTIN_BOARD_TG16GF)
 /* PTin added: new switch 56450 (Katana2) - TG16GF */
 {
   {
