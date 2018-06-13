@@ -41,10 +41,16 @@
 #include "ptin_structs.h"
 #include "ptin_intf.h"
 
+//Performance registering period
 #define PERIODO_1MIN     1
 #define PERIODO_15MIN    2
 #define PERIODO_24HORAS  4
 #define PERIODO_60MIN    8
+
+//Reg control flags
+#define REG_CTRL_FLAG_DISABLE 0
+#define REG_CTRL_FLAG_ENABLE  1
+
 
 TBufferRegQualRFC2819 aux_qual_RFC2819;
 
@@ -211,6 +217,7 @@ void ptin_rfc2819_clear_buffers(void)
  */
 void ptin_rfc2819_regista_15min(L7_uint8 slot, T_QUALIDADE_RFC2819 *qual)
 {
+
 
   if (/*(slot==0) || */(slot>=MAX_QUAL_RFC2819_BUFFERS))
     return;
@@ -692,9 +699,9 @@ void ptin_rfc2819_task( void )
   time_t tm;
   struct tm tm_time;
   L7_int tgl_clock;
-  int old_sec, old_day;
+  int old_day, old_min;
   L7_int Port;
-
+ 
   if (osapiTaskInitDone(L7_PTIN_RFC2819_TASK_SYNC) != L7_SUCCESS)
   {
     PT_LOG_FATAL(LOG_CTX_RFC2819, "Error syncing task");
@@ -703,8 +710,8 @@ void ptin_rfc2819_task( void )
 
   time(&tm);
   memcpy(&tm_time, localtime(&tm), sizeof(tm_time));
-  old_sec = tm_time.tm_sec;
   old_day = tm_time.tm_mday;
+  old_min = tm_time.tm_min;
 
   /* Loop */
   while (1) {
@@ -715,22 +722,21 @@ void ptin_rfc2819_task( void )
 
     tgl_clock   = 0;
 
-    if(tm_time.tm_sec==0) {
-        tgl_clock=PERIODO_1MIN;
+    if ((tm_time.tm_min != old_min)) {
+        
+        old_min = tm_time.tm_min;
+
         //PT_LOG_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...1 min");
         if ((tm_time.tm_min%15)==0) {
             //PT_LOG_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...15 min");
             tgl_clock |= PERIODO_15MIN;
         }
-        if (tm_time.tm_min==0) {
-            //PT_LOG_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...60 min");
-            tgl_clock |= PERIODO_60MIN;
-        }
+
         if(tm_time.tm_mday!=old_day) {
             //PT_LOG_INFO(LOG_CTX_RFC2819, "ptin_rfc2819_task running...24 hours");
             old_day=tm_time.tm_mday;
             tgl_clock |= PERIODO_24HORAS;
-        }
+        }      
     }      
 
     for (Port=0; Port<ptin_sys_number_of_ports; Port++)
@@ -742,7 +748,7 @@ void ptin_rfc2819_task( void )
       }
 
       ptin_rfc2819_proc(RFC2819_BUFFER_15MIN, RFC2819_BUFFER_24HOURS, &RFC2819_probes_Rx[Port], &tm_time, tgl_clock);
-      ptin_rfc2819_proc(RFC2819_BUFFER_15MIN, RFC2819_BUFFER_24HOURS, &RFC2819_probes_Tx[Port], &tm_time, tgl_clock);   
+      ptin_rfc2819_proc(RFC2819_BUFFER_15MIN, RFC2819_BUFFER_24HOURS, &RFC2819_probes_Tx[Port], &tm_time, tgl_clock);        
     }
                                     
     osapiSleep(1);
