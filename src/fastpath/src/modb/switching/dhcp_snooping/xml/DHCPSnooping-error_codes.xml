@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
-<FastPathXML>
-  <misc version="1.0">
-    <error name="BINDING_ADD_FAILURE" output="\n Error! Failed to add binding."/>
-     <error name="BINDING_DEL_FAILURE" output="\n Error! Failed to delete binding."/>
-  </misc>
-</FastPathXML>
-
