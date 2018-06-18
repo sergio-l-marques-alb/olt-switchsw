@@ -1,0 +1,20 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="sFlowAgentSumm" title="sFlow Agent Summary">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element obj-name="basesflowGlobalCfg_Version" id="1" name="Version"/>
+            </node>
+            <node id="2">
+                <element obj-name="basesflowGlobalCfg_AgentAddress" id="1" name="Agent Address"/>
+            </node>
+            <node id="3">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

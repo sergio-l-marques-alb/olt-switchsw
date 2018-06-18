@@ -1,0 +1,251 @@
+--
+--
+-- Copyright (C) 1999-2006 by SNMP Research, Incorporated.
+--
+-- This software is furnished under a license and may be used and copied
+-- only in accordance with the terms of such license and with the
+-- inclusion of the above copyright notice. This software or any other
+-- copies thereof may not be provided or otherwise made available to any
+-- other person. No title to and ownership of the software is hereby
+-- transferred.
+--
+-- The information in this software is subject to change without notice
+-- and should not be construed as a commitment by SNMP Research, Incorporated.
+--
+-- Restricted Rights Legend:
+--  Use, duplication, or disclosure by the Government is subject to
+--  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+--  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+--  subparagraphs (c)(4) and (d) of the Commercial Computer
+--  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+--  clauses in the NASA FAR Supplement and other corresponding
+--  governmental regulations.
+--
+--
+
+--
+--                PROPRIETARY NOTICE
+--
+-- This software is an unpublished work subject to a confidentiality agreement
+-- and is protected by copyright and trade secret law.  Unauthorized copying,
+-- redistribution or other use of this work is prohibited.
+--
+-- The above notice of copyright on this source code product does not indicate
+-- any actual or intended publication of such source code.
+--
+
+   SECURITY-PACK-MIB DEFINITIONS ::= BEGIN
+
+   IMPORTS
+       MODULE-IDENTITY, NOTIFICATION-TYPE
+           FROM SNMPv2-SMI;
+
+   snmpResearch                OBJECT IDENTIFIER ::= { enterprises 99 }
+
+   snmpResearchMIBs            OBJECT IDENTIFIER ::= { snmpResearch 12 }
+
+   snmpSecurityPackMIB MODULE-IDENTITY
+       LAST-UPDATED "200403130000Z"
+       ORGANIZATION "SNMP Research"
+       CONTACT-INFO
+              " Postal: SNMP Research
+                        3001 Kimberlin Heights Road
+                        Knoxville, TN  37920-9716
+
+                   Tel: +1 865 573 1434
+                   Fax: +1 865 573 9197
+
+                E-mail: info@snmp.com"
+
+       DESCRIPTION
+               "Object Identifiers used by SNMP Research Security
+                Pack for identifying remote agents for requests
+                and notifications."
+
+       REVISION	"200403190000Z"
+       DESCRIPTION
+               "Modified objects to use RFC3419 textual conventions,
+                rather than those of RFC3417.  While RFC3419 does
+                not specifically address UDPv6 as an SNMP transport,
+                it provides a sufficiently rich set of transport
+                domains for the enumerations in SecurityPackTargetAddress.
+
+                Added additional notification types for relaying
+                SNMP Reports and Security Pack Error information back
+                to the manager."
+
+        REVISION "200210150000Z"
+        DESCRIPTION
+                "The initial version."
+
+       ::= { snmpResearchMIBs 45 }
+
+-- MIB groups
+
+   snmpSecurityPackRequestObjects OBJECT IDENTIFIER ::= 
+         { snmpSecurityPackMIB 1 }
+   snmpSecurityPackNotificationObjects OBJECT IDENTIFIER ::= 
+         { snmpSecurityPackMIB 2 }
+   snmpSecurityPackNotifications OBJECT IDENTIFIER ::= 
+         { snmpSecurityPackMIB 3 }
+
+-- Textual Conventions
+
+   SecurityPackTargetAddress ::= TEXTUAL-CONVENTION
+       STATUS      current
+       DESCRIPTION
+          "The target address, stored as an octet string.  The
+           first octet indicates the address type, the subsequent
+           octets contain the address and port information if any.
+
+           The values for the first octet are the final 
+           subid of the domain objects registered under
+           snmpDomains (see RFC3419 for an exhaustive list).
+           An example defined value is
+
+           Value   Name             Description 
+           -----   ----             -----------
+             1     udpIpv4(1)       SNMP over UDP over IPv4
+
+           All values encoded in these objects are assumed to be
+           in network byte order.
+
+
+           The full encoding of an udpIpv4(1) address is
+
+           Octets   contents        encoding
+           1        1               
+           2-5      IP-address      8 bits per octet
+           6-7      UDP-port        8 bits per octet, 
+                                    first octet most significant
+
+           The IP address is stored in network order (i.e. starting with 
+           the most significant octet).  The most significant 8 bits of 
+           the port are stored in the sixth octet, the least significant 
+           8 bits of the port are stored in the seventh octet.
+
+           If use of the default port is desired, omit the port number 
+           (i.e., use an octet string of length 5), or specify a port 
+           number of 0. "
+
+       SYNTAX     OCTET STRING(SIZE(7..65))
+
+-- Security Pack Request Objects Group  ********************************
+
+   snmpSecurityPackAgentAddress OBJECT-TYPE
+       SYNTAX      SecurityPackTargetAddress
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION
+           "The address of the agent to which this request should
+            be sent.  This variable binding is removed from the
+            packet before the packet is forwarded to the target
+            agent.
+
+            An instance of this object sent from the management
+            application to Security Pack identifies the destination
+            of the SNMP message.  An instance of this object is
+            added to response messages to identify the source
+            of the message.  
+
+            There is no default value for this object.  If the
+            object is specified in an outgoing SNMP Request, the
+            target IP address and port MUST be supplied.
+
+            Note that, consistent with SNMP practice, this document 
+            does not specify where in the variable binding list this 
+            object may be placed.
+
+            Note that the request-id in the response packet sent
+            to the management application by Security Pack will match
+            the request-id in the message sent by the management
+            application to Security Pack.  However, this request-id
+            will not necessarily be used by Security Pack when
+            it communicates with the destination agent."
+       ::= { snmpSecurityPackRequestObjects 1 }
+
+--  Security Pack Notification Objects Group  *************************
+
+    snmpSecurityPackNotificationAddress OBJECT-TYPE
+       SYNTAX      SecurityPackTargetAddress
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION
+           "The address of the agent sending the notification
+            to which this object is added before forwarding the
+            the notification to the manager who has registered for
+            notifications from Security Pack.
+
+            The port reported is the port to which the packet
+            was sent, not the port from which it was sent. 
+            Usually the port from which a packet is sent is not
+            of interest, as it is usually an ephemeral port.
+            However, if Security Pack is listening to an alternate
+            notification port, the actual port number may be of interest
+            to the management application.
+
+            Note that, consistent with SNMP practice, this document 
+            does not specify where in the variable binding list this 
+            object may be placed."
+       ::= { snmpSecurityPackNotificationObjects 1 }
+
+    snmpSecurityPackCommunityString OBJECT-TYPE
+        SYNTAX    DisplayString
+        MAX-ACCESS accessible-for-notify
+        STATUS     current
+        DESCRIPTION
+                "The complete Security Pack formatted community string 
+                 used in the original manager request.  This community
+                 string is returned in an snmpSecurityPackError or
+                 snmpSecurityPackV3Report to help associate the error
+                 with the original request."
+       ::= { snmpSecurityPackNotificationObjects 2 }
+
+    snmpSecurityPackErrorReason OBJECT-TYPE
+        SYNTAX    DisplayString
+        MAX-ACCESS accessible-for-notify
+        STATUS     current
+        DESCRIPTION
+            "A user-friendly description identifying the
+             error that causes the initiation of 
+             the snmpSecurityPackError notification. An
+             example of this would be 'Error parsing SNMP
+             request message.'"
+        ::= { snmpSecurityPackNotificationObjects 3 }
+
+    snmpSecurityPackReportReason OBJECT-TYPE
+        SYNTAX    DisplayString
+        MAX-ACCESS accessible-for-notify
+        STATUS     current
+        DESCRIPTION
+            "A user-friendly description of the usm error
+             report code returned in an SNMPv3 report.
+             An example of this would be a
+             usmStatsWrongDigests error translated to
+             'Authentication password error (Digest mismatch)'."
+        ::= { snmpSecurityPackNotificationObjects 4 }
+
+    snmpSecurityPackError NOTIFICATION-TYPE
+        OBJECTS     { snmpSecurityPackErrorReason,
+                      snmpSecurityPackCommunityString
+                    }
+        STATUS      current
+        DESCRIPTION 
+            "A notification generated by Security Pack
+             in the event of an internal error that 
+             prevents the successful processing of a
+             proxied request."  
+        ::= { snmpSecurityPackNotifications 1 }
+
+    snmpSecurityPackV3Report NOTIFICATION-TYPE
+        OBJECTS     { snmpSecurityPackReportReason,
+                      snmpSecurityPackCommunityString
+                    }
+        STATUS      current
+        DESCRIPTION 
+            "A notification generated by Security Pack
+             when an SNMPv3 report is received from an 
+             agent due to a failed SNMPv3 request."
+        ::= { snmpSecurityPackNotifications 2 }
+
+END

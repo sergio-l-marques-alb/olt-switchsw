@@ -1,0 +1,40 @@
+# Source files distributed for this package.
+#
+# These files are used for normal builds, but not when creating linkable objects.
+#
+# Note: This file replaces the corresponding make.pkg file when a
+#       buildable view is converted to a linkable object build.
+#
+
+# Source-distributed files are not built when generating the linkable objects.
+#
+ifeq (0,$(LINKABLE_OBJECT_BUILD))
+  
+  # Master list of source paths to be built into this package library.
+  #  - All entries must be specified relative to top-of-view $(FP_ROOT).
+  #  - Defines all source locations to be referenced by the package-level makefile.
+  #
+  
+  # These sources are included only if CLIWEB management package NOT present.
+  ifeq (0,$(BLD_L7_UI_HAS_CLI))
+  ifeq (0,$(BLD_L7_UI_HAS_WEB))
+    MASTERSRC += \
+	src/mgmt/cli_web_mgr_binds \
+	src/mgmt/emweb_binds
+  endif
+  endif
+  
+  
+  # These sources are included only if SNMP management package NOT present.
+  ifeq (0,$(BLD_L7_UI_HAS_SNMP))
+  ifeq (0,$(BLD_L7_UI_HAS_XNETSNMP))
+    MASTERSRC += \
+	src/mgmt/snmp_binds/snmp_util
+  	
+    MASTERINC += \
+	src/mgmt/snmp_binds/snmp_util/include
+  endif
+  endif
+  
+endif  # not LINKABLE_OBJECT_BUILD
+

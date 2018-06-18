@@ -1,0 +1,156 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="CoSTrustModeConfig" title="CoS Trust Mode Configuration">
+        <group level="ReadWriteUser" id="1" heading="">
+            <node id="1">
+           	  	<element properties="filter,iterate" obj-name="fastPathQOSCOSCosMapCfg_CosMapIntfTrustIntfIndex" id="1" name="Interface">
+		               <action type="extn" discard="no" value="Global" position="0" show="1_7_1|1_7_2|1_4_1|1_4_3|1_5_1|3_9_1|3_9_2" enable="1_7_1|1_7_2|1_4_1|1_4_3|1_5_1|3_9_1|3_9_2" hide="1_2_1|1_2_2|1_3_1|1_4_2|3_6_1|3_6_2|3_6_3|1_8_1|1_11_1|1_12_1" disable="1_2_1|1_2_2|1_3_1|1_4_2|3_6_1|3_6_2|3_6_3|1_8_1|1_11_1|1_12_1|1_13_1" />
+	                 <action type="default" hide="1_7_1|1_7_2|1_8_1|1_4_3|3_9_1|3_9_2|1_11_1" disable="1_7_1|1_7_2|1_8_1|1_4_3|3_9_1|3_9_2|1_11_1|1_13_1"/>	
+                   <action type="mandate" copy_from="1_7_1|1_7_2|1_13_1" copy_to="1_7_1|1_7_2|1_13_1" />
+                </element>
+                <element obj-name="xLibObjects_dummy" control="textbox" id="2" properties="hidden" name="HoldIntfIndexGlobal">
+                    <action type="value" value="Global" setval_ids="1_1_1|1_13_1" setval_args="valmapGlobal|valmapGlobal" />
+                </element>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="fastPathQOSCOSCosMapCfg_CosMapIntfTrustMode" id="1" name="Interface Trust Mode" run_if="QOS_COS_MAP_IPPREC_FEATURE_NOT_PRESENT">
+                   <action type="enum" invoke="onLoad" show="1_3_1" enable="1_3_1" hide="1_12_1" disable="1_12_1"/>
+                   <action type="enum" hide="1_3_1|1_12_1" disable="1_3_1|1_12_1"/>
+                   <action type="enum" discard="yes" hide="1_8_1|1_11_1" disable="1_8_1|1_11_1"/>
+                   <action type="enum" invoke="onLoad" show="1_12_1" enable="1_12_1" hide="1_3_1" disable="1_3_1"/>
+                </element>
+                <element control="combo" obj-name="fastPathQOSCOSCosMapCfg_CosMapIntfTrustMode" id="2" name="Interface Trust Mode" run_if="QOS_COS_MAP_IPPREC_FEATURE">
+                   <action type="enum" invoke="onLoad" show="1_3_1" enable="1_3_1" hide="1_12_1" disable="1_12_1"/>
+                   <action type="enum" invoke="onLoad" hide="1_3_1|1_12_1" disable="1_3_1|1_12_1" />
+                   <action type="enum" invoke="onLoad" show="1_12_1" enable="1_12_1" hide="1_3_1" disable="1_3_1"/>
+                   <action type="enum" invoke="onLoad" show="1_12_1" enable="1_12_1" hide="1_3_1" disable="1_3_1"/>
+                </element>
+            </node>
+            <node id="3">
+            <element control="label" obj-name="fastPathQOSCOSCosMapCfg_CosMapUntrustedTrafficClass" id="1" name="Untrusted Traffic Class"/>
+      	    </node>
+            <node id="12">
+                <element control="label" obj-name="fastPathQOSCOSCosMapCfg_CosMapUntrustedTrafficClass" id="1" name="Non-IP Traffic Class"/>
+      	    </node>
+            <node id="7">
+                <element control="combo" obj-name="fastPathQOSCOSCosMapCfg_CosMapGlobalTrustMode" id="1" name="Global Trust Mode" run_if="QOS_COS_MAP_IPPREC_FEATURE_NOT_PRESENT">
+                   <action type="enum" invoke="onLoad" show="1_8_1" enable="1_8_1" hide="1_11_1" disable="1_11_1"/>
+                   <action type="enum" hide="1_8_1|1_11_1" disable="1_8_1|1_11_1"/>
+                   <action type="enum" discard="yes" hide="1_8_1|1_11_1" disable="1_8_1|1_11_1"/>
+                   <action type="enum" invoke="onLoad" show="1_11_1" enable="1_11_1" hide="1_8_1" disable="1_8_1"/>
+                </element>
+                <element control="combo" obj-name="fastPathQOSCOSCosMapCfg_CosMapGlobalTrustMode" id="2" name="Global Trust Mode" run_if="QOS_COS_MAP_IPPREC_FEATURE">
+                   <action type="enum" invoke="onLoad" show="1_8_1" enable="1_8_1" hide="1_11_1" disable="1_11_1"/>
+                   <action type="enum" invoke="onLoad" hide="1_8_1|1_11_1" disable="1_8_1|1_11_1"/>
+                   <action type="enum" invoke="onLoad" show="1_11_1" enable="1_11_1" hide="1_8_1" disable="1_8_1"/>
+                   <action type="enum" invoke="onLoad" show="1_11_1" enable="1_11_1" hide="1_8_1" disable="1_8_1"/>
+                </element>
+	          </node>
+            <node id="13">
+           	  	<element properties="hidden,filter,iterate" obj-name="fastPathQOSCOSCosMapCfg_CosMapIntfTrustIntfIndex" id="1" >
+		               <action type="extn" discard="no" value="Global" position="0" hide="1_3_1|1_12_1" disable="1_3_1|1_12_1"/>
+	                 <action type="default" hide="1_8_1|1_11_1" disable="1_8_1|1_11_1"/>	
+                </element>
+            </node>
+            <node id="8">
+                <element control="label" obj-name="fastPathQOSCOSCosMapCfg_GlobalCosMapUntrustedTrafficClass" id="1" name="Untrusted Traffic Class"/>
+            </node>
+            <node id="11">
+                <element control="label" obj-name="fastPathQOSCOSCosMapCfg_GlobalCosMapUntrustedTrafficClass" id="1" name="Non-IP Traffic Class"/>
+            </node>
+	          <node id="4">
+                <button scope="group" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                   <action type="button" disable="1_4_2|1_4_3" copy_from="1_1_1" copy_to="1_1_2"/> 
+                </button>
+                <button scope="group" type="buttonSubmit" help="Restore the defaults" id="2" name="Restore Defaults" obj-name="fastPathQOSCOSCosMapCfg_CosMapIntfTrustRestoreDefaults" value="8">
+                   <action type="button" disable="1_2_1|1_2_2|1_3_1|1_4_1|1_4_3"/> 
+      	        </button>
+                <button scope="group" type="buttonSubmit" help="Restore the global defaults" id="3" name="Restore Defaults" obj-name="fastPathQOSCOSCosMapCfg_CosMapGlobalTrustRestoreDefaults" value="8">
+                   <action type="button" disable="1_7_1|1_7_2|1_8_1|1_4_1|1_4_2"/> 
+                </button>
+            </node>
+        </group>
+        <group id="3" heading="">  
+            <node id="5">  
+                <message>Current 802.1p Priority Mapping</message>
+	          </node>
+            <node id="10">
+                <element properties="hidden" obj-name="SwitchingDot1dTrafficClass_dot1dTrafficClassPort" cpval ="fastPathQOSCOSCosMapCfg_CosMapIntfTrustIntfIndex" id="1"/>
+	        </node>
+            <repeat present="vtable" edit="no" heading=" " id="6">
+		            <element properties="filter,iterate" obj-name="SwitchingDot1dTrafficClass_dot1dTrafficClassPriority" id="2" name="802.1p Priority"/>
+                <element obj-name="SwitchingDot1dTrafficClass_Dot1dTrafficClass" id="3" control="label" name="Traffic Class"/>
+            </repeat>
+         <repeat present="vtable" edit="no" heading=" " id="9">
+            		<element properties="filter,iterate" obj-name="SwitchingDot1dTrafficClassGlobal_dot1dTrafficClassPriority" id="1" name="802.1p Priority"/>
+                <element obj-name="SwitchingDot1dTrafficClassGlobal_Dot1dTrafficClass" id="2" control="label" name="Traffic Class"/>
+	       </repeat>
+         <!-- added for actions -->
+            <node id="14">
+                <element obj-name="xLibObjects_dummy" control="textbox" properties="hidden" id="1">
+                    <action type="mandate" setval_ids="1_1_2" setval_args="None"/>
+                </element>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="">
+            <node id="1">
+                <element properties="filter,iterate" obj-name="fastPathQOSCOSCosMapCfg_CosMapIntfTrustIntfIndex" id="1" name="Interface">
+                   <action type="extn" discard="no" value="Global" position="0" show="2_5_1|2_6_1|2_6_2|2_3_1|2_9_1|2_10_1" enable="2_5_1|2_6_1|2_6_2|2_3_1|2_9_1|2_10_1" hide="2_2_1|2_4_1|2_4_2|2_4_3|2_7_1|2_8_1" disable="2_2_1|2_4_1|2_4_2|2_4_3|2_7_1|2_8_1|2_13_1"/>
+		               <action type="default" hide="2_5_1|2_6_1|2_6_2|2_9_1|2_10_1" disable="2_5|2_6_1|2_6_2|2_9_1|2_10_1|2_13_1"/>
+                </element>		
+            </node>
+            <node id="2">
+                <element obj-name="fastPathQOSCOSCosMapCfg_CosMapIntfTrustMode" id="1" name="Interface Trust Mode" control="label">
+                   <action type="enum" show="2_7_1" enable="2_7_1" hide="2_8_1" disable="2_8_1"/>
+                   <action type="enum" hide="2_7_1|2_8_1" disable="2_7_1|2_8_1" />
+                   <action type="enum" show="2_8_1" enable="2_8_1" hide="2_7_1" disable="2_7_1"/>
+                   <action type="enum" show="2_8_1" enable="2_8_1" hide="2_7_1" disable="2_7_1"/>
+                </element>
+	          </node>
+            <node id="7">
+            <element control="label" obj-name="fastPathQOSCOSCosMapCfg_CosMapUntrustedTrafficClass" id="1" name="Untrusted Traffic Class"/>
+            </node>
+            <node id="8">
+                <element control="label" obj-name="fastPathQOSCOSCosMapCfg_CosMapUntrustedTrafficClass" id="1" name="Non-IP Traffic Class"/>
+            </node>
+            <node id="5">
+                <element control="label" obj-name="fastPathQOSCOSCosMapCfg_CosMapGlobalTrustMode" id="1" name="Global Trust Mode">
+                   <action type="enum" show="2_9_1" enable="2_9_1" hide="2_10_1" disable="2_10_1"/>
+                   <action type="enum" hide="2_9_1|2_10_1" disable="2_9_1|2_10_1"/>
+                   <action type="enum" show="2_10_1" enable="2_10_1" hide="2_9_1" disable="2_9_1"/>
+                   <action type="enum" show="2_10_1" enable="2_10_1" hide="2_9_1" disable="2_9_1"/>
+                </element>
+	          </node>
+            <node id="13">
+           	  	<element properties="hidden,filter,iterate" obj-name="fastPathQOSCOSCosMapCfg_CosMapIntfTrustIntfIndex" id="1" >
+		               <action type="extn" discard="no" value="Global" position="0" hide="2_7_1|2_8_1" disable="2_7_1|2_8_1"/>
+	                 <action type="default" hide="2_9_1|2_10_1" disable="2_9_1|2_10_1"/>	
+                </element>
+            </node>
+            <node id="9">
+                <element control="label" obj-name="fastPathQOSCOSCosMapCfg_GlobalCosMapUntrustedTrafficClass" id="1" name="Untrusted Traffic Class"/>
+            </node>
+            <node id="10">
+                <element control="label" obj-name="fastPathQOSCOSCosMapCfg_GlobalCosMapUntrustedTrafficClass" id="1" name="Non-IP Traffic Class"/>
+            </node>
+
+	          <node id="3">
+                <message>Current 802.1p Priority Mapping</message>
+	          </node>
+            <repeat present="vtable" edit="no" heading="  " id="4">
+                <element properties="hidden" obj-name="SwitchingDot1dTrafficClass_dot1dTrafficClassPort" cpval ="fastPathQOSCOSCosMapCfg_CosMapIntfTrustIntfIndex" id="1"/>
+                <element properties="filter,iterate" obj-name="SwitchingDot1dTrafficClass_dot1dTrafficClassPriority" id="2" name="802.1p Priority"/>
+                <element control="label" obj-name="SwitchingDot1dTrafficClass_Dot1dTrafficClass" id="3" name="Traffic Class"/>
+	          </repeat>
+            <repeat present="vtable" edit="no" heading=" " id="6">
+	            	<element properties="filter,iterate" obj-name="SwitchingDot1dTrafficClassGlobal_dot1dTrafficClassPriority" id="1" name="Global dot1d Traffic Class Priority"/>
+                <element obj-name="SwitchingDot1dTrafficClassGlobal_Dot1dTrafficClass" id="2" control="label"/>
+	          </repeat>	
+        </group>
+    </webxml>
+</FastPathXML>
+

@@ -1,0 +1,52 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="DiffservConfig" title="Diffserv Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="qosDiffServGenStatus_AdminMode" id="1" name="DiffServ Admin Mode"/>
+            </node>
+            <node id="2">
+                <button scope="group" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element obj-name="qosDiffServGenStatus_AdminMode" id="1" name="DiffServ Admin Mode"/>
+            </node>
+            <node id="2">
+                <button scope="node" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+        <group id="3" heading="   ">
+            <node id="1">
+                <element control="label" properties="noname,write-only" obj-name="xLibObjects_dummy" id="1" name="Blank Row" value=""/>
+            </node>
+            <node id="2">
+                <element control="label" clazz="rowdataheader" properties="noname,write-only" obj-name="xLibObjects_dummy" id="1" value="MIB Table"/>
+                <element control="label" clazz="rowdataheader" properties="noname,write-only" obj-name="xLibObjects_dummy" id="2" value="Current Number / Maximum Number"/>
+            </node>
+            <node id="3">
+                <element clazz="rowdataattributes" properties="read-only" obj-name="qosDiffServGenStatus_ClassTableSizeAndMax" id="1" name="Class Table"/>
+            </node>
+            <node id="4">
+                <element clazz="rowdataattributes" properties="read-only" obj-name="qosDiffServGenStatus_ClassRuleTableSizeAndMax" id="1" name="Class Rule Table"/>
+            </node>
+            <node id="5">
+                <element clazz="rowdataattributes" properties="read-only" obj-name="qosDiffServGenStatus_PolicyTableSizeAndMax" id="1" name="Policy Table"/>
+            </node>
+            <node id="6">
+                <element clazz="rowdataattributes" properties="read-only" obj-name="qosDiffServGenStatus_PolicyInstTableSizeAndMax" id="1" name="Policy Instance Table"/>
+            </node>
+            <node id="7">
+                <element clazz="rowdataattributes" properties="read-only" obj-name="qosDiffServGenStatus_PolicyAttrTableSizeAndMax" id="1" name="Policy Attribute Table"/>
+            </node>
+            <node id="8">
+                <element clazz="rowdataattributes" properties="read-only" obj-name="qosDiffServGenStatus_ServiceTableSizeAndMax" id="1" name="Service Table"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

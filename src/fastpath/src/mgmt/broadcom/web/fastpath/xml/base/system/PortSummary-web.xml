@@ -1,0 +1,43 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PortSummary" title="Port Summary">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingStpMstConfig_MstId" id="1" name="MST ID">
+                 <action type="default" hide="1_2"/>
+                 <action type="value" value="valMapMRET" show="1_2"/>
+                 </element>  
+            </node>
+            <node id="2">
+		    <message>MST : CST</message>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="3">
+                <element properties="filter,iterate" obj-name="baseport_Interface" id="1" name="Interface"/>
+                <element obj-name="baseport_Type" id="2" name="Port Type"/>
+                <element control="label" properties="edit,read-only" obj-name="baseport_STPMode" id="3" name="STP Mode"/>
+                <element obj-name="baseport_STPStatus" id="4" name="Forwarding State"/>
+                <element obj-name="baseport_portRole" id="5" name="Port Role"/>
+                <element control="label" properties="edit,read-only" obj-name="baseport_AdminMode" id="6" name="Admin Mode"/>
+                <element control="label" properties="edit,read-only" obj-name="baseport_BroadcastMode" id="7" name="Bcast Storm Mode"/>
+                <element control="label" properties="edit,read-only" obj-name="baseport_BroadcastLevelUnit" id="8" name="Bcast Storm Level"/>
+                <element control="label" properties="edit,read-only" obj-name="baseport_MulticastMode" id="9" name="Mcast Storm Mode"/>
+                <element control="label" properties="edit,read-only" obj-name="baseport_MulticastLevelUnit" id="10" name="Mcast Storm Level"/>
+                <element control="label" properties="edit,read-only" obj-name="baseport_UnicastMode" id="11" name="Ucast Storm Mode"/>
+                <element control="label" properties="edit,read-only" obj-name="baseport_UnicastLevelUnit" id="12" name="Ucast Storm Level"/>
+                <element control="label" properties="edit,read-only" obj-name="baseport_LACPMode" id="13" name="LACP Mode"/>
+                <element control="label" properties="edit,read-only" obj-name="baseport_PhysicalMode" id="14" name="Physical Mode"/>
+                <element obj-name="baseport_PhysicalStatus" id="15" name="Physical Status"/>
+                <element obj-name="baseport_LinkStatus" id="16" name="Link Status"/>
+                <element control="label" properties="edit,read-only" obj-name="baseport_LinkTrap" id="17" name="Link Trap"/>
+                <element properties="hidden" obj-name="baseport_mstid" id="18" cpval="SwitchingStpMstConfig_MstId" name="MST ID"/>
+            </repeat>
+            <node id="4">
+              <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+          </node>
+        </group>
+    </webxml>
+</FastPathXML>

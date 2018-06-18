@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+  <error name="COMMON_PORTCFG_PHYSMODE_LAG_ERROR" output="The physical mode for Port Channel members.\r\nChanging the speed of Port Channel members requires removal from the Port Channel"/>
+  <error name="COMMON_PORTCFG_MAC_LOOP_ERROR"  output="The MAC layer Loopback test is not supported in the platform!"/>
+  <error name="COMMON_SAVECONFIG_MESSAGE"  output="The running system configuration is successfully saved."/>
+  <error name="SLOT_POWER_SET_DISABLE_UNSUPPORTED" output="\r\nError: Power mode not disabled as it cannot be disabled."/>
+  <error name="SLOT_POWER_SET_ENABLE_UNSUPPORTED" output="\r\nError: Power mode not enabled as it cannot be enabled."/>
+  <error name="SLOT_ADMIN_SET_ENABLE_UNSUPPORTED" output="\r\nError: Admin mode not enabled on slot as cards are not pluggable in this slot."/>
+  <error name="SLOT_ADMIN_SET_DISABLE_UNSUPPORTED" output="\r\nError: Admin mode not disabled on slot as cards are not pluggable in this slot."/>
+  <error name="CARD_UNSUPPORTED" output="\r\nError: Unsupported card index."/>
+  <error name="SLOT_CARD_UNSUPPORTED" output="\r\nError: Selected Card index not supported on the specified slot."/>
+  <error name="SLOT_CARD_EXISTS" output="\r\nError: Selected Slot is already configured for the specified card type."/>
+  <error name="SLOT_CARD_CONFIGURE_ERROR" output="\r\nError: Could not configure specified slot."/>
+  <error name="SLOT_CARD_CLEAR_ERROR" output="\r\nError: Selected Slot configuration not cleared as cards are not pluggable in slot ."/>
+  <error name="SLOT_CLEAR_ERROR" output="\r\nError: Could not clear configuration of selected slot ."/>
+  <error name="UNIT_NO_EXISTS" output="\r\nError: Selected Unit Switch does not exist."/>
+  <error name="SLOT_DOES_NOT_EXISTS" output="\r\nError: Selected slot  does not exists!."/>
+  <error name="SWITCH_TYPE_NOT_SUPPORTED" output="\r\nError: Selected Unit's Switch type not supported."/>
+
+  </misc>
+</FastPathXML>

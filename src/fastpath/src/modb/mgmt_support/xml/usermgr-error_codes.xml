@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+
+<FastPathXML>
+  <misc version="1.0">
+      <error name="USERMGR_PASSWD_INVALID_PRINTABLE_CHARACTERS" output="\nError! User password must be printable characters."/>
+
+      <error name="USERMGR_PASSWD_INVALID_MIN_LENGTH" output="\nError! Could not set user password. Password should be in between 8 and 64 characters in length. \r\nOr set minimum password length to 0."/>
+
+      <error name="USERMGR_PASSWD_INVALID_MAX_LENGTH" output="\nError! Could not set user password. Password should be in between 8 and 64 characters in length. \r\nOr set minimum password length to 0."/>
+
+      <error name="USERMGR_PASSWD_INVALID_UPPERCASE_LEN" output="\nError! Could not set user password.\n\rPassword should contain at least minimum uppercase letters as defined in 'Password Management' web page."/>
+
+      <error name="USERMGR_PASSWD_INVALID_LOWERCASE_LEN" output="\nError! Could not set user password.\n\rPassword should contain at least minimum lowercase letters as defined in 'Password Management' web page."/>
+
+      <error name="USERMGR_PASSWD_INVALID_NUMERIC_CHAR_LEN" output="\nError! Could not set user password.\r\nPassword should contain at least minimum numeric characters in length as defined in 'Password Management' web page."/>
+
+      <error name="USERMGR_PASSWD_INVALID_SPECIAL_CHAR_LEN" output="\nError! Could not set user password! \r\nPassword should contain at least minimum special characters in length as defined in 'Password Management' web page."/>
+
+      <error name="USERMGR_PASSWD_INVALID_CONSECUTIVE_CHAR_LEN" output="\nError! Could not set user password! \r\nPassword should not contain more than maximum consecutive characters in length as defined in 'Password Management' web page."/>
+
+      <error name="USERMGR_PASSWD_INVALID_REPEATED_CHAR_LEN" output="\nError! Could not set user password! \r\nPassword should not contain more than maximum repeated characters in length as defined in 'Password Management' web page."/>
+
+      <error name="USERMGR_PASSWD_INVALID_CHARACTER_CLASSES" output="\nError! Could not set user password! \r\nPassword should contain minimum character classes as defined in 'Password Management' web page."/>
+
+      <error name="USERMGR_PASSWD_EXCLUDE_LOGIN_NAME_ERROR" output="\nError! User password should not contain Login name in any form (sub-string, case in-sensitive or reverse)."/>
+
+      <error name="USERMGR_PASSWD_EXCLUDE_KEYWORDS_ERROR" output="\nError! User password should not contain configured exclude-keywords in any form (sub-string, case in-sensitive or reverse). Exclude keywords are defined in 'Password Management' web page."/>
+
+      <error name="USERMGR_PASSWD_EXCLUDE_KEYWORD_ALREADY_EXIST" output="\nError! The keyword is already exist in one of the (sub-string, case in-sensitive or reverse) form."/>
+      
+      <error name="USERMGR_PASSWD_EXCEED_MAX_KEYWORDS" output="\nError! Passwords strength reaches the maximum limit of exclude keywords."/>
+      <error name="USERMGR_PASSWD_INVALID_QUOTATION_SPECIAL_CHAR" output="\nError! Could not set user password! \r\nPassword should not contain quotation special character."/>
+      <error name="USERMGR_PASSWD_INVALID_QUESTIONMARK_SPECIAL_CHAR" output="\nError! Could not set user password! \r\nPassword should not contain question mark (?) special character."/>
+      <error name="USERMGR_PASSWD_EXCEEDS_UPPERCASE_CHAR_MAX_LIMIT" output="\nError! Could not set user password! \r\nPassword exceeds uppercase letters maximum length limit 16."/>
+      <error name="USERMGR_PASSWD_EXCEEDS_LOWERCASE_CHAR_MAX_LIMIT" output="\nError! Could not set user password! \r\nPassword exceeds lowercase letters maximum length limit 16."/>
+      <error name="USERMGR_PASSWD_EXCEEDS_NUMERIC_CHAR_MAX_LIMIT" output="\nError! Could not set user password! \r\nPassword exceeds numeric characters maximum length limit 16."/>
+      <error name="USERMGR_PASSWD_EXCEEDS_SPECIAL_CHAR_MAX_LIMIT" output="\nError! Could not set user password! \r\nPassword exceeds special characters maximum length limit 16."/>
+      <error name="USERMGR_PASSWD_EXCLUDE_KEYWORD_INVALID_QUOTATION_SPECIAL_CHAR" output="\nError! Could not set the exclude keyword! \r\nThe keyword should not contain quotation special character."/>
+      <error name="USERMGR_PASSWD_EXCLUDE_KEYWORD_INVALID_QUESTIONMARK_SPECIAL_CHAR" output="\nError! Could not set the exclude password! \r\nThe keyword should not contain question mark (?) special character."/>
+  </misc>
+</FastPathXML>
+

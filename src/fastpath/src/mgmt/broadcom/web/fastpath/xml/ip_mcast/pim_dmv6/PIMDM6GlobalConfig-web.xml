@@ -1,0 +1,20 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PIMDM6GlobalConfig" title="PIM-DM Global Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element properties="write-only,hidden" value="MLDSnooping" obj-name="IPMCASTagentMulticastPIMDMConfigGroup_agentMulticastPIMDMFamily" id="1" name="agentMulticastPIMDMFamily"/>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="IPMCASTagentMulticastPIMDMConfigGroup_agentMulticastPIMDMAdminMode" id="1" name="Admin Mode"/>
+            </node>
+            <node id="3">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

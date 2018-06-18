@@ -1,0 +1,74 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="OSPFAreaRangeConfiguration" title="OSPF Area Range Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+		<element control="combo" properties="filter,iterate" obj-name="routingospfAreaAggregate_AreaID" id="1" name="Area ID">
+		<action type="value" value="valMapEmptyString" disable="1_1_2" hide="1_1_1|1_2|1_3|1_4|1_5|1_6|1_10_1|1_8|1_10" show="1_9"/>
+		<action type="default" hide="1_9"/>
+                <action type="mandate" invoke="onChange" disable="1_3_1|1_4|1_5|1_8"/>		
+		</element>		    
+            </node>
+            <node id="2">
+                <element control="combo" uienum="L7_OSPF_AREA_AGGREGATE_LSDBTYPE_t" obj-name="xLibObjects_dummy" id="1" name="LSDB Type">
+                    <action type="enum" setval_ids="1_3_1" setval_args="OspfLSDB_Summary"/>
+                    <action type="enum" setval_ids="1_3_1" setval_args="OspfLSDB_External"/>
+                </element>
+            </node>
+            <node id="3">
+                <element control="textbox" properties="hidden" obj-name="routingospfAreaAggregate_LsdbType" id="1" name="LsdbType"/>
+	    </node>
+            <node id="4">
+                <element control="textbox" properties="write-only" value="" maxLength="15" obj-name="routingospfAreaAggregate_Net" id="1" name="IP Address"/>
+            </node>
+            <node id="5">
+                <element control="textbox" properties="write-only" value="" maxLength="15" obj-name="routingospfAreaAggregate_Mask" id="1" name="Subnet Mask"/>
+	    </node>
+            <node id="6">
+                <element control="combo" obj-name="routingospfAreaAggregate_Effect" id="1" name="Advertise"/>
+            </node>
+            <node id="9" clazz="unavailableattributes">
+                <message>No Valid Areas Available</message>
+            </node>
+	    <repeat present="vtable" edit="inline" heading="Configured Area Ranges" id="8">
+                  <element control="label" properties="read-only" obj-name="routingospfAreaAggregate_AreaID" id="1" name="Area ID"/>
+                  <element control="label" properties="iterate,read-only" obj-name="routingospfAreaAggregate_LsdbType" id="2" name="LSDB Type"/>
+                  <element control="label" properties="iterate,read-only" obj-name="routingospfAreaAggregate_Net" id="3" name="IP Address"/>
+                  <element control="label" properties="iterate,read-only" obj-name="routingospfAreaAggregate_Mask" id="4" name="Subnet Mask"/>
+                  <element control="label" properties="read-only" obj-name="routingospfAreaAggregate_Effect" id="5" name="Advertise"/>
+                  <element control="checkbox-neg" obj-name="routingospfAreaAggregate_Status" id="6" name="Remove">
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="no"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="yes"/>
+                    <action type="enum" discard="no"/>
+                </element>
+	    </repeat>
+	    <node id="10">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="routingospfAreaAggregate_Status" help="Submits the form on this page to the Switch" id="1" name="Create" disable="1_10_2|1_10_3"/>		    
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="2" name="Delete">
+		    <action type="button" disable="1_3_1|1_4_1|1_5_1|1_6_1|1_10_1|1_10_3|1_1_1"/>
+                </button>
+		<button scope="page" type="buttonClear" value="Add" help="Submits the form on this page to the Switch" id="3" name="Refresh"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading=" ">
+            <repeat present="vtable" edit="no" heading="Configured Area Ranges" id="1">
+                  <element control="label" properties="filter,iterate,read-only" obj-name="routingospfAreaAggregate_AreaID" id="1" name="Area ID"/>
+                  <element control="label" properties="filter,iterate,read-only" obj-name="routingospfAreaAggregate_LsdbType" id="2" name="LSDB Type"/>
+                  <element control="label" properties="filter,iterate,read-only" obj-name="routingospfAreaAggregate_Net" id="3" name="IP Address"/>
+                  <element control="label" properties="filter,iterate,read-only" obj-name="routingospfAreaAggregate_Mask" id="4" name="Subnet Mask"/>
+                  <element control="label" properties="read-only" obj-name="routingospfAreaAggregate_Effect" id="5" name="Advertise"/>
+              </repeat>
+            <node id="2">
+                  <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

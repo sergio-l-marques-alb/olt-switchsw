@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>FDB Configuration Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+<HR size=4 WIDTH="100%">
+
+<h2><a name=macaddrcfg></a>Help for Forwarding Database Configuration</h2>
+
+<p><br>
+You use this panel to set the Address Aging Timeout for the
+forwarding database.
+</p>
+
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Aging Interval (secs)</b> - The forwarding database contains static entries, which are never aged out,
+    and dynamically learned entries, which are removed if they are not updated within a given time.
+    You specify that time by entering a value for the Address Aging Timeout.
+    You may enter any number of seconds between
+        <EMWEB_STRING C='
+            return usmWebIntegerToString(L7_FDB_MIN_AGING_TIMEOUT);
+        ' >
+    and
+        <EMWEB_STRING C='
+            return usmWebIntegerToString(L7_FDB_MAX_AGING_TIMEOUT);
+        ' >. </li>
+    IEEE 802.1D recommends a
+    default of 300 seconds, which is the factory default.
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+

@@ -1,0 +1,23 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IGMPSnoopingQuerierVLANStatus" title="IGMP Snooping Querier VLAN Status">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="SwitchingSwitchSnoopingQuerierVlanGroup_dot1qVlanIndex" id="1" name="VLAN ID"/>
+                <element properties="write-only,hidden" value="IGMPSnooping" obj-name="SwitchingSwitchSnoopingQuerierVlanGroup_SnoopingProtocol" id="2"/>
+                <element control="label" properties="" obj-name="SwitchingSwitchSnoopingQuerierVlanGroup_QuerierVlanOperMode" id="3" name="Operational State"/>
+                <element control="label" properties="read-only" obj-name="SwitchingSwitchSnoopingQuerierVlanGroup_QuerierOperVersion" id="4" name="Opearational Version"/>
+                <element control="label" properties="read-only" obj-name="SwitchingSwitchSnoopingQuerierVlanGroup_QuerierLastQuerierAddress" id="5" name="Last Querier Address"/>
+                <element control="label" properties="read-only" obj-name="SwitchingSwitchSnoopingQuerierVlanGroup_QuerierLastQuerierVersion" id="6" name="Last Querier Version"/>
+                <element control="label" properties="read-only" obj-name="SwitchingSwitchSnoopingQuerierVlanGroup_QuerierOperMaxResponseTime" id="7" name="Opearational Max Response Time(secs)"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

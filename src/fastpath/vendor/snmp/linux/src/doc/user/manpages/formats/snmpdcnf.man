@@ -1,0 +1,438 @@
+.\"
+.\"
+.\" Copyright (C) 1992-2006 by SNMP Research, Incorporated.
+.\"
+.\" This software is furnished under a license and may be used and copied
+.\" only in accordance with the terms of such license and with the
+.\" inclusion of the above copyright notice. This software or any other
+.\" copies thereof may not be provided or otherwise made available to any
+.\" other person. No title to and ownership of the software is hereby
+.\" transferred.
+.\"
+.\" The information in this software is subject to change without notice
+.\" and should not be construed as a commitment by SNMP Research, Incorporated.
+.\"
+.\" Restricted Rights Legend:
+.\"  Use, duplication, or disclosure by the Government is subject to
+.\"  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+.\"  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+.\"  subparagraphs (c)(4) and (d) of the Commercial Computer
+.\"  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+.\"  clauses in the NASA FAR Supplement and other corresponding
+.\"  governmental regulations.
+.\"
+.\"
+.\"
+.\"                PROPRIETARY NOTICE
+.\"
+.\" This software is an unpublished work subject to a confidentiality agreement
+.\" and is protected by copyright and trade secret law.  Unauthorized copying,
+.\" redistribution or other use of this work is prohibited.
+.\"
+.\" The above notice of copyright on this source code product does not indicate
+.\" any actual or intended publication of such source code.
+.\"
+.\"
+.\"
+.\"
+.\"
+.\"
+.\"
+.\"
+.TH SNMPD.CNF SR_FMTMAN "13 May 1996"
+
+.SH NAME
+snmpd.cnf \- the SNMP agent configuration
+
+.SH SYNOPSIS
+TAG VALUE
+
+.SH DESCRIPTION
+The configuration file
+.I snmpd.cnf
+is required by the SNMP agent entities to supply initial values for
+MIB\-II system group variables, to configure authentication\-failure
+traps, to configure which managers should receive traps, and to
+authorize SNMPv1/SNMPv2C community strings and SNMPv2* users.
+.PP
+The default location of
+.I snmpd.cnf
+is
+
+.in+4
+.nf
+/etc/srconf/agt/                     Most UNIX Systems
+/etc/SnmpAgent.d/                    HP/UX
+/home/vxworks/snmp\-dev/config/agt/   VxWorks
+\\ETC\\SRCONF\\AGT\\ (current drive)     MS\-DOS
+.fi
+.in-4
+
+but this location can be changed by assigning the full pathname
+of a directory to the environment variable 
+.B SR_AGT_CONF_DIR.
+.PP
+The format of
+.I snmpd.cnf
+is:
+
+.I TAG VALUE
+.PP
+Where 
+.I TAG 
+is one of 
+
+.in+4
+.nf
+acEntry                 sysContact
+community               sysDescr
+communityEntry          sysLocation
+MAX_OUTPUT_WAITING      sysName
+MAX_PDU_TIME            sysObjectID
+MAX_SUBAGENTS           transportEntry
+MAX_THREADS             trap
+notifyEntry             userNameEntry
+snmpBoots               v2ContextEntry
+snmpEnableAuthenTraps   viewTreeEntry
+.fi
+.in-4
+
+.PP
+and 
+.I VALUE
+is a valid value for the given key.
+.PP
+The set of legal tags is different for agents which do and do not
+support SNMPv2*, and some tags apply only to EMANATE.  A tag which
+is not recognized by an agent is ignored.  White space (tabs, spaces,
+line\-feeds/carriage\-returns) and blank lines are also ignored.
+
+.SS "System Variable Initialization"
+When the 
+.I TAG 
+is one of the MIB\-II system group variables
+.IP 
+ sysContact
+ sysDescr 
+ sysLocation
+ sysName
+ sysObjectID
+ snmpEnableAuthenTraps
+.PP
+that variable will be initialized to
+.I VALUE.
+According to RFC1213, the variables sysContact, sysDescr, sysLocation,
+and sysName can be any string of 0 to 255 NVT ASCII characters,
+sysObjectID is an object identifier (OID), and snmpEnableAuthenTraps
+can be either
+
+.in+4
+1 to enable traps
+.in-4
+
+or
+
+.in+4
+2 to disable traps.
+.in-4
+
+.SS "Agents that Support SNMPv2*"
+When the 
+.I TAG 
+is "userNameEntry," the format of the 
+.I VALUE 
+clause is:
+.IP
+.I userAuthSnmpID
+.I userName
+.I userGroupName
+.I userTransportLabel
+.I userMemoryType
+.PP
+where
+.IP \ \ \ \(bu\ userAuthSnmpID
+is an OctetString, usually localSnmpID.
+.IP \ \ \ \(bu\ userName
+is the user name in ASCII text.
+.IP \ \ \ \(bu\ userGroupName
+is the user's group name in ASCII text.
+.IP \ \ \ \(bu\ userTransportLabel
+is a
+.I transportEntry.
+.IP \ \ \ \(bu\ userMemoryType
+is `nonVolatile', `permanent', or `readOnly'.
+
+.PP
+When the 
+.I TAG 
+is "v2ContextEntry," the format of the 
+.I VALUE 
+clause is:
+.IP
+.I v2ContextSnmpID
+.I v2ContextName
+.I v2ContextLocalEntity
+.I v2ContextLocalTime
+.I v2ContextMemoryType
+.PP
+where
+.IP \ \ \ \(bu\ v2ContextSnmpID
+is an OctetString, usually localSnmpID.
+.IP \ \ \ \(bu\ v2ContextName
+is the unique context identifier in ASCII text.
+.IP \ \ \ \(bu\ v2ContextLocalEntity
+is a nonunique string that will be associated with the context.
+.IP \ \ \ \(bu\ v2ContextLocalTime
+is an integer, zero for a new context.
+.IP \ \ \ \(bu\ v2ContextMemoryType
+is `nonVolatile', `permanent', or `readOnly'.
+
+.PP
+When the
+.I TAG
+is "viewTreeEntry," the format of the
+.I VALUE
+clause is:
+.IP
+.I viewTreeName
+.I viewTreeSubTree
+.I viewTreeMask
+.I viewTreeType
+.I viewTreeMemoryType
+.PP
+where
+.IP \ \ \ \(bu\ viewTreeName
+is the MIB view identifier in ASCII text.
+.IP \ \ \ \(bu\ viewTreeSubTree
+is the OID of the MIB subtree.
+.IP \ \ \ \(bu\ viewTreeMask
+is an OctetString represented as a sequence of
+hexadecimal numbers separated by colons.  Each octet is within the
+range 0x00 through 0xff (a zero\-length OctetString is represented
+with a dash (\-).
+.IP \ \ \ \(bu\ viewTreeType
+is `included' or `excluded' and indicates if the
+.I viewTreeSubTree
+is explicitly accessable or not accessible in this MIB view.
+.IP \ \ \ \(bu\ v2ContextMemoryType
+is `nonVolatile', `permanent', or `readOnly'.
+
+.PP
+When the
+.I TAG
+is "communityEntry," the format of the
+.I VALUE
+clause is:
+.IP
+.I communityAuthSnmpID
+.I communityName
+.I communityGroupName
+.I communityContextSnmpID
+.I communityContextName
+.I communityTransportLabel
+.I communityMemoryType
+.PP
+where
+.IP \ \ \ \(bu\ communityAuthSnmpID
+is an OctetString, usually localSnmpID.
+.IP \ \ \ \(bu\ communityName
+is the community string in ASCII text.
+.IP \ \ \ \(bu\ communityGroupName
+is the community's group name in ASCII text.
+.IP \ \ \ \(bu\ communityContextSnmpID
+is an OctetString, usually localSnmpID.
+.IP \ \ \ \(bu\ communityContextName
+is the community's context.
+.IP \ \ \ \(bu\ communityTransportLabel
+is a
+.I transportEntry.
+.IP \ \ \ \(bu\ communityMemoryType
+is `nonVolatile', `permanent', or `readOnly'.
+
+.PP
+When the
+.I TAG
+is "notifyEntry," the format of the
+.I VALUE
+clause is:
+.IP
+.I notifySPI
+.I notifyIdentityName
+.I notifyTransportLabel
+.I notifyContextName
+.I notifyViewName
+.I notifyMemoryType
+.PP
+where
+.IP \ \ \ \(bu\ notifySPI
+is `snmpv1', `snmpv1_5', `usecNoAuth', `usecAuth', or `usecPriv'.
+.IP \ \ \ \(bu\ notifyIdentityName
+is the community string or user which will be
+used to authenticate the trap or inform.
+.IP \ \ \ \(bu\ notifyTransportLabel
+is a
+.I transportEntry.
+.IP \ \ \ \(bu\ notifyContextName
+is the context which will be used to authenticate the trap or inform.
+.IP \ \ \ \(bu\ notifyViewName
+is a MIB view (i.e.,
+.I viewTreeName
+value) which will be used to authenticate the trap or inform.
+.IP \ \ \ \(bu\ notifyMemoryType
+is `nonVolatile', `permanent', or `readOnly'.
+
+.PP
+When the
+.I TAG
+is "transportEntry," the format of the
+.I VALUE
+clause is:
+.IP
+.I transportLabel
+.I transportSubIndex
+.I transportDomain
+.I transportAddress
+.I transportReceiveMask
+.I transportMMS
+.I transportMemoryType
+.PP
+where
+.IP \ \ \ \(bu\ transportLabel
+is the unique transport identifier in ASCII text.
+.IP \ \ \ \(bu\ transportSubIndex
+is an integer.
+.IP \ \ \ \(bu\ transportDomain
+is the transport type, e.g., `snmpUDPDomain' for
+IP transport, `snmpIPXDomain' for IPX transport, etc.
+.IP \ \ \ \(bu\ transportAddress
+is an address in the
+.I transportDomain.
+For example, if the
+.I transportDomain
+is `snmpUDPDomain', a valid address would be `127.0.0.1:0'.
+.IP \ \ \ \(bu\ transportReceiveMask
+is a bit field mask for the
+.I transportAddress
+and appears in the snmpd.cnf file in the same format as the
+.I transportAddress.
+For example, if
+.I transportDomain
+is `snmpUDPDomain', a valid mask would be `255.255.255.0:0'.
+This mask is used in conjunction with the
+.I transportAddress.
+to determine if an incoming request has arrived from an authorized
+address.  For example, if the
+.I transportAddress
+is `192.147.142.254:0' and the
+.I transportReceiveMask
+is `255.255.255.0:0', a request from any port on the subnet
+192.147.142.xxx would not be rejected on the basis of the source address.
+.IP \ \ \ \(bu\ transportMMS
+is an integer representing the maximum message
+size capable on this transport.
+.IP \ \ \ \(bu\ transportMemoryType
+is `nonVolatile', `permanent', or `readOnly'.
+
+.SS "Agents that do NOT Support SNMPv2*"
+When the 
+.I TAG 
+is "community," the format of the 
+.I VALUE 
+clause is:
+.IP
+.I community\-name IP\-address privileges community\-id
+.PP
+where
+.IP \ \ \ \(bu\ community\-name
+may be any string.
+.IP \ \ \ \(bu\ IP\-address
+indicates the remote's site for which this community is valid.
+If the IP address is 0.0.0.0,any address may communicate using that
+session name.
+.IP \ \ \ \(bu\ privileges
+is `READ' for read\-only or `WRITE' for read\-write.
+.IP \ \ \ \(bu\ community\-id
+is ignored.
+
+.PP
+When the 
+.I TAG 
+is "trap," the format of the 
+.I VALUE 
+clause is:
+.IP
+.I trap\-community\-name IP\-address
+.PP
+where
+.IP \ \ \ \(bu\ trap\-community\-name
+may be any string.
+.IP \ \ \ \(bu\ IP\-address
+indicates the destination address to be included in the trap PDU.
+
+.SS "EMANATE Master Agents only"
+When the 
+.I TAG 
+is "MAX_OUTPUT_WAITING," the format of the 
+.I VALUE 
+clause is:
+.IP
+.I buffer\-size
+.PP
+where
+.IP \ \ \ \(bu\ buffer\-size
+is the maximum amount of serialized data which will be allowed to
+accumulate before the Subagent communication stream is considered
+to overflow.
+
+.PP
+When the 
+.I TAG 
+is "MAX_PDU_TIME," the format of the 
+.I VALUE 
+clause is:
+.IP
+.I time
+.PP
+where
+.IP \ \ \ \(bu\ time
+is the maximum length of time in centiseconds that the Master Agent
+will wait for a PDU to be processed.  This is equivalent to the amount
+of time that the Master Agent will wait for a response from a Subagent
+before the Subagent times out.  If this value is not specified, the
+default is 2500.
+
+.PP
+When the
+.I TAG
+is "MAX_SUBAGENTS," the format of the
+.I VALUE
+clause is:
+.IP
+.I number
+.PP
+where
+.IP \ \ \ \(bu\ number
+is the maximum number of Subagents which can be connected to the
+Master Agent.  If this value is not specified, the default is 10.
+
+.PP
+When the
+.I TAG
+is "MAX_THREADS," the format of the
+.I VALUE
+clause is:
+.IP
+.I number
+.PP
+where
+.IP \ \ \ \(bu\ number
+is the maximum number of threads permitted to execute in the
+Master Agent.  Since a thread is created for each PDU, this is
+equivalent to the maximum number of SNMP requests which can be
+processed asynchronously in the Master Agent.  If this value is
+not specified, the default is 10.
+
+.SH "SEE ALSO"
+.I snmpd(SR_CMDMAN),
+.I snmpdm(SR_CMDMAN),
+RFCs 1155, 1157, 1212, and 1902-1908.

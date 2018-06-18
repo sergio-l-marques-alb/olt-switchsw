@@ -1,0 +1,35 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="SpanningTreeStats" title="Spanning Tree Statistics">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingStpPortConfig_Interface" id="1" name="Interface"/>
+            </node>
+            <node id="2">
+                <element obj-name="SwitchingStpPortConfig_StpPortStatsStpBpduRx" id="1" name="STP BPDUs Received "/>
+            </node>
+            <node id="3">
+                <element obj-name="SwitchingStpPortConfig_StpPortStatsStpBpduTx" id="1" name="STP BPDUs Transmitted "/>
+            </node>
+            <node id="4">
+                <element obj-name="SwitchingStpPortConfig_StpPortStatsRstpBpduRx" id="1" name="RSTP BPDUs Received "/>
+            </node>
+            <node id="5">
+                <element obj-name="SwitchingStpPortConfig_StpPortStatsRstpBpduTx" id="1" name="RSTP BPDUs Transmitted "/>
+            </node>
+            <node id="6">
+                <element obj-name="SwitchingStpPortConfig_StpPortStatsMstpBpduRx" id="1" name="MSTP BPDUs Received "/>
+            </node>
+            <node id="7">
+                <element obj-name="SwitchingStpPortConfig_StpPortStatsMstpBpduTx" id="1" name="MSTP BPDUs Transmitted "/>
+            </node>
+            <node id="8">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

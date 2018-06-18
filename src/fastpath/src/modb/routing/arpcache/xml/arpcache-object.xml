@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0" >
+
+<!-- BEGIN: staticArp Module -->
+<module name="staticArp"  >
+  <object name="StaticArpCount"  >
+  <core  type="uint" access="read-only" descr="Count the number of static ARP entries currently configured."/>
+  <ui  name="Total Static ARP Count" style="plainText" />
+  </object>
+  </module>
+  <module name="arpCache" purpose="To clear the ARP Entries" >
+  <object name="ArpCacheClear"  >
+  <core  type="enum" xtype="enable_t" access="write-only" descr="Clears the ARP cache of all dynamic/gateway entries"/>
+  <ui  name="ARP Cache Clear" style="choiceNselect1" />
+  </object>
+</module>
+<!-- END: staticArp Module -->
+
+<!-- BEGIN: arpEntryPurge Module -->
+<module name="arpEntryPurge" >
+  <key-combo list="ipaddress,interface"/>
+  <object name="ipaddress"  >
+  <core  type="ipv4" key="yes" access="read-write" descr="IP address of the ARP entry to start the search (for deleting the entry)"/>
+  <ui  name="IP Address" style="inputLine" />
+  </object>
+  <object name="interface"  >
+  <core  type="uint" key="yes" access="read-write" descr="Internal interface number of the ARP entry for deleting.L7_INVALID_INTF if interface not configured"/>
+  <ui  name="Interface" style="inputLine" />
+  </object>
+  <object name="rowStatus" depends="ipaddress,interface" >
+  <core  type="row-status" xtype= "L7_ROW_STATUS_t" access="read-write" descr="The row status variable, used according to installation and removal conventions for conceptual rows.Destroying the entry removes the associated entry from ARP table."/>
+  <ui  name="Row Status" style="inputLine" />
+  </object>
+</module><!-- END: arpEntryPurge Module -->
+</objectxml>
+</FastPathXML>

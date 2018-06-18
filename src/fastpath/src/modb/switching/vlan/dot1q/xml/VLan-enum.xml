@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "types.dtd" >
+
+
+<FastPathXML>
+    <data-types version="1.0">
+        <enum name="acceptFrameTypeVal_t">
+            <option macro="L7_DOT1Q_ADMIT_ALL" name="Admit All"/>
+            <option macro="L7_DOT1Q_ADMIN_ONLY_VLAN_TAGGED" name="AdmitTaggedOnly"/>
+            <option macro="L7_DOT1Q_ADMIN_ONLY_VLAN_UNTAGGED" name="AdmitUntaggedOnly"/>
+        </enum>
+        <enum name="L7_VLAN_TYPE_t">
+            <option macro="L7_DOT1Q_TYPE_DEFAULT" name="Default"/>
+            <option macro="L7_DOT1Q_TYPE_ADMIN" name="Static"/>
+            <option macro="L7_DOT1Q_TYPE_GVRP_REGISTERED" name="Dynamic (GVRP)"/>
+            <option macro="L7_DOT1Q_TYPE_WS_L2_TNNL_REGISTERED" name="Dynamic (L2 Tunnel)"/>
+            <option macro="L7_DOT1Q_TYPE_IP_INTERNAL_VLAN" name="Dynamic (IP VLAN)"/>
+            <option macro="L7_DOT1Q_TYPE_DOT1X_REGISTERED" name="Dynamic (DOT1X)"/>
+        </enum>
+        <enum name="L7_VLAN_INTERFACE_STATUS_t">
+            <option macro="L7_DOT1Q_FIXED" name="Include"/>
+            <option macro="L7_DOT1Q_NORMAL_REGISTRATION" name="Auto"/>
+            <option macro="L7_DOT1Q_FORBIDDEN" name="Exclude"/>
+        </enum>
+        <enum name="L7_VLAN_TAGG_TYPE_t">
+            <option macro="L7_DOT1Q_UNTAGGED" name="Untagged"/>
+            <option macro="L7_DOT1Q_TAGGED" name="Tagged"/>
+        </enum>
+    </data-types>
+</FastPathXML>

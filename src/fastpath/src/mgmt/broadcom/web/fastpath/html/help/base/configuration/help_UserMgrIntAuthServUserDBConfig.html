@@ -1,0 +1,80 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Internal Authentication Server Users Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=users></a>Help for Internal Authentication Server Users</h2>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<P>Use this page to configure Internal Authentication Server Users. </P>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+   <LI><B>User </B> -
+      You can use this screen to reconfigure an existing account, or to create a new one.
+      Use this pull-down menu to select one of the existing accounts, or select 'Create' to add a new one,
+      provided the maximum of 100 accounts has not been reached.
+    </LI>
+ </ul>
+</ul>
+
+
+
+<h3>Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+    <li><b>User Name</b> - Enter the name for the new user. User names can be up to 32 Alpha numeric characters in length and are not case sensitive. Valid characters include all the alphanumeric characters as well as the dash ('-') and underscore ('_') characters.</li>
+    <li><b>Password</b> - Enter the optional new or changed password for the account. Passwords can be up to
+       64 characters in length, they are case sensitive and special characters are permitted. 
+      </li>
+ </ul>
+</ul>
+<EMWEB_ELSE>
+
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+    <li><b>User Name</b> - User names can be up to 32 Alpha numeric characters in length and are not case sensitive. Valid characters include all the alphanumeric characters as well as the dash ('-') and underscore ('_') characters.
+                           This column will shows the configured user names if any.</li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+  <li>
+     <b>Add</b> - This is used to create a new User Name. This button is  visible only when the 'Create' option is selected in the 'User' field.</li>
+  <li><b>Submit</b> - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+  <li><b>Delete</b> - Deletes the currently selected user account.</li>
+  <li><b>Clear All Users</b> - Deletes all the created IAS users.</li>
+  <li><b>Refresh</b> - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();' >.</li>
+<EMWEB_ELSE>
+  <li><b>Refresh</b> - <EMWEB_STRING C='return usmWebRefreshDescriptionHelp();' >.</li>
+</EMWEB_IF>
+
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+
+
+

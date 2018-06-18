@@ -1,0 +1,81 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>DiffServ Service Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+ 
+
+<hr size=4 width="100%" align=center>
+
+
+<h2><a name=servCfg></a>Help for Differentiated Services Service Configuration</h2>
+
+<h3>Selection Criteria</h3>
+                                                      
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface</b> - Select the Interface that uniquely specifies an interface.
+        This is a list of all valid slot number and port number combinations in the system.
+        For Read/Write users where 'All' appears in the list, select it to specify all 
+        interfaces.</li>
+  <li><b>Direction</b> - Select the traffic direction of this service interface.
+        This selection is only available to Read/Write users when interface is specified 
+        as 'All'.</li>
+ </ul>
+</ul>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy In</b> - This lists all the policy names of type 'In' from which one can be selected. If 'none'
+         is selected, this will detach the policy from the interface in this direction.
+         This field is not shown for Read/Write users where inbound service policy attachment
+         is not supported by the platform.</li>
+  </ul>
+</ul>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Policy Out</b> - This lists all the policy names of type 'Out' from
+         which one can be selected. If 'none' is selected, this will detach the
+         policy from the interface in this direction. This field is not shown
+         for Read/Write users where outbound service policy attachment is not
+         supported by the platform.</li>
+  </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+
+This information is only displayed when Interface is specified as 'All'.
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Table Interface</b> - Shows the interface that uniquely specifies an interface. </li>
+  <li><b>Table Direction</b> - Shows traffic direction for this service interface.</li>
+  <li><b>Table Operational Status</b> - Shows the operational status of this service interface, either Up or Down. </li>
+  <li><b>Table Policy Name</b> - Shows the name of the attached policy. </li>
+ </ul>
+</ul>
+
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE >
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<hr size=4 width="100%" align=center>
+
+
+</body>
+
+</html>
+
+

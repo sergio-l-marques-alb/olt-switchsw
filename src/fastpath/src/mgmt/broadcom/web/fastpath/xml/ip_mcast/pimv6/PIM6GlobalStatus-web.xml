@@ -1,0 +1,32 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PIM6GlobalStatus" title="PIM Global Status">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element properties="write-only,hidden" value="IPv6" obj-name="IPMCASTagentMulticastPIMConfigGroup_agentMulticastPIMFamily" id="1" name="agentMulticastPIMFamily"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter" obj-name="IPMCASTagentMulticastPIMConfigGroup_agentMulticastPimProtocolType" id="1" name="PIM Protocol Type">
+                    <action type="value" value="PIM-SM" show="1_3|1_4|1_5|1_6" enable="1_3|1_4|1_5|1_6" />
+                    <action type="value" value="PIM-DM" show="1_3|1_6"  hide="1_4|1_5" disable="1_4|1_5" enable="1_3|1_6" />
+                </element>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="IPMCASTagentMulticastPIMConfigGroup_agentMulticastPIMAdminMode" id="1" name="Admin Mode"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="IPMCASTagentMulticastPIMConfigGroup_agentMulticastPIMSMDataThresholdRate" id="1" name="Data Threshold Rate(Kbps)"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="IPMCASTagentMulticastPIMConfigGroup_agentMulticastPIMSMRegThresholdRate" id="1" name="Register Threshold Rate(Kbps)"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

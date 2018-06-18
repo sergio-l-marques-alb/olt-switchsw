@@ -1,0 +1,333 @@
+
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>ACL Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="80%" align=center>
+
+
+<h2><a name=mac_acl_rule_cfg></a>Help for MAC ACL Rule Config</h2>
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>MAC ACL Name</b> - Select the MAC ACL for which to create or update a rule.
+      </li>
+  <li><b>Rule</b> - Select an existing rule or select 'Create New Rule' to add a new Rule.
+      New rules cannot be created if the maximum number of rules has been reached.
+      For each rule, a packet must match all the specified criteria in order to be true
+      against that rule and for the specified rule action (Permit/Deny) to take place.
+      </li>
+  <li><b>Action</b> - Specify what action should be taken if a packet matches the rule's criteria.
+     The choices are permit or deny. </li>
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_EVERY_FEATURE">
+  <li><b>Match Every</b> - Specifies an indication to match every Layer 2 MAC packet.
+      <BR>Valid values are
+        <ul type=square>
+          <li><I><B>True</B></I> - Signifies that every packet is considered to match the selected ACL Rule.</li>
+        </UL>
+        <ul type=square>
+          <li><I><B>False</B></I> - Signifies that it is not mandatory for every packet to match the selected ACL Rule.</li>
+        </UL>
+    </li>
+</EMWEB_IF>
+
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Configurable Data</h3>
+<EMWEB_ELSE>
+<h3>Non-Configurable Data</h3>
+</EMWEB_IF>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Rule ID</b> - Enter a whole number in the range of
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_ACL_MIN_RULE_NUM, L7_ACL_MAX_RULE_NUM);
+       ' > that will be used to identify the rule.
+      </li>
+
+<EMWEB_IF ID = USMWEB_ACL_MAC_RULE_LOGGING_FEATURE_PRESENT>
+  <li><b>Logging</b> - When set to 'True', logging is enabled for this ACL
+  rule (subject to resource availability in the device).  If the Access List
+  Trap Flag is also enabled, this will cause periodic traps to be generated
+  indicating the number of times this rule was 'hit' during the current report
+  interval.  A fixed
+  <EMWEB_STRING C='
+   return usmWebIntegerToString(FD_QOS_ACL_LOGGING_INTERVAL);
+    ' >
+  minute report interval is used for the entire system.  A trap is not issued if the
+  ACL rule hit count is zero for the current interval.
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_LOG_DENY_FEATURE">
+    <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_LOG_PERMIT_FEATURE">
+    <EMWEB_ELSE>
+      This field is visible for a 'Deny' Action.
+    </EMWEB_IF>
+  <EMWEB_ELSE>
+      This field is visible for a 'Permit' Action.
+  </EMWEB_IF>
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_TIME_RANGE_FEATURE">
+ <EMWEB_IF ID=USMWEB_IF_READWRITE >
+ <li><b>Time Range Name</b> - Select the time range name to be associated with the MAC ACL rule.
+     On selecting the option 'other' from the list, a non-existing time range name can be specified in the "Time Range Name (other)" field.
+      </li>
+  <li><b>Time Range Name (other)</b> - Specify a non-existing time range name to be associated with the MAC ACL rule.
+     No time restriction will be applied to this rule until the time range specified is created and active in the system.
+      </li>
+ <EMWEB_ELSE>
+  <li><b>Time Range Name</b> - Time range name associated with the MAC ACL rule.
+      </li>
+ </EMWEB_IF>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_ASSIGN_QUEUE_FEATURE">
+  <li><b>Assign Queue ID</b> - Specifies the hardware egress queue identifier used to
+  handle all packets matching this ACL rule. Valid range of Queue Ids is
+     <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_ACL_ASSIGN_QUEUE_ID_MIN, L7_ACL_ASSIGN_QUEUE_ID_MAX);
+       ' >.
+  This field is visible for a 'Permit' Action.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_MIRROR_FEATURE">
+  <li><b>Mirror Interface</b> - Specifies the specific egress interface where the
+  matching traffic stream is copied in addition to being forwarded normally
+  by the device.
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_REDIRECT_FEATURE">
+    This field cannot be set if a Redirect Interface is already
+    configured for the ACL rule.
+  </EMWEB_IF>
+  This field is visible for a 'Permit' Action.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_REDIRECT_FEATURE">
+  <li><b>Redirect Interface</b> - Specifies the specific egress interface where the
+  matching traffic stream is forced, bypassing any forwarding decision normally performed
+  by the device.
+  <EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_MIRROR_FEATURE">
+    This field cannot be set if a Mirror Interface is already
+    configured for the ACL rule.
+  </EMWEB_IF>
+  This field is visible for a 'Permit' Action.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_COS_FEATURE">
+  <li><b>CoS</b> - Specifies the 802.1p user priority to compare against an Ethernet frame.
+  Valid range of values is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_ACL_MIN_COS, L7_ACL_MAX_COS);
+       ' >.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_COS2_FEATURE">
+  <li><b>Secondary CoS</b> - Specifies the Secondary  802.1p user priority to compare against an Ethernet frame.
+  Valid range of values is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_ACL_MIN_COS, L7_ACL_MAX_COS);
+       ' >.
+  </li>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_DSTMAC_FEATURE">
+  <li><b>Destination MAC</b> - Specifies the destination MAC address to compare against an Ethernet frame.
+  Valid format is
+ <EMWEB_STRING C='
+      memset(sBuf, 0x00, sizeof(sBuf));   /* min to max*/
+      strcpy(sBuf," (xx:xx:xx:xx:xx:xx)");
+      return sBuf;
+       ' >.
+  </li>
+  The BPDU keyword may be specified using a Destination MAC address of 01:80:C2:xx:xx:xx.
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_DSTMAC_MASK_FEATURE">
+  <li><b>Destination MAC Mask</b> - Specifies the destination MAC address mask specifying
+  which bits in the destination MAC to compare against an Ethernet frame.
+  Valid format is
+ <EMWEB_STRING C='
+      memset(sBuf, 0x00, sizeof(sBuf));   /* min to max*/
+      strcpy(sBuf," (xx:xx:xx:xx:xx:xx)");
+      return sBuf;
+       ' >.
+  </li>
+  The BPDU keyword may be specified using a Destination MAC mask of 00:00:00:ff:ff:ff.
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_ETYPE_FEATURE">
+  <li><b>Ethertype Key</b> - Specifies the Ethertype value to compare against an Ethernet frame.
+      <BR>Valid values are
+        <ul type=square>
+          <li><I><B>Appletalk</B></I></li>
+        </UL>
+        <ul type=square>
+          <li><I><B>ARP</B></I></li>
+        </UL>
+        <ul type=square>
+          <li><I><B>IBM SNA</B></I></li>
+        </UL>
+        <ul type=square>
+          <li><I><B>IPv4</B></I></li>
+        </UL>
+        <ul type=square>
+          <li><I><B>IPv6</B></I></li>
+        </UL>
+        <ul type=square>
+          <li><I><B>IPX</B></I></li>
+        </UL>
+        <ul type=square>
+          <li><I><B>MPLS multicast</B></I></li>
+        </UL>
+        <ul type=square>
+          <li><I><B>MPLS unicast</B></I></li>
+        </UL>
+        <ul type=square>
+          <li><I><B>NetBIOS</B></I></li>
+        </UL>
+        <ul type=square>
+          <li><I><B>Novell</B></I></li>
+        </UL>
+        <ul type=square>
+          <li><I><B>PPPoE</B></I></li>
+        </UL>
+        <ul type=square>
+          <li><I><B>Reverse ARP</B></I></li>
+        </UL>
+        <ul type=square>
+          <li><I><B>User Value</B></I></li>
+        </UL>
+  </li>
+
+  <li><b>Ethertype User Value</b> - Specifies the user defined customized Ethertype value
+  to be used when the user has selected "User Value" as Ethertype Key, to compare against
+  an Ethernet frame. Valid range of values is
+ <EMWEB_STRING C='
+      memset(sBuf, 0x00, sizeof(sBuf));   /* min to max*/
+      strcpy(sBuf," (0x0600 to 0xFFFF)");
+      return sBuf;
+       ' >.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_SRCMAC_FEATURE">
+  <li><b>Source MAC</b> - Specifies the Source MAC address to compare against an Ethernet frame.
+  Valid format is
+ <EMWEB_STRING C='
+      memset(sBuf, 0x00, sizeof(sBuf));   /* min to max*/
+      strcpy(sBuf," (xx:xx:xx:xx:xx:xx)");
+      return sBuf;
+       ' >.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_SRCMAC_MASK_FEATURE">
+  <li><b>Source MAC Mask</b> - Specifies the Source MAC address mask specifying
+  which bits in the Source MAC to compare against an Ethernet frame.
+  Valid format is
+ <EMWEB_STRING C='
+      memset(sBuf, 0x00, sizeof(sBuf));   /* min to max*/
+      strcpy(sBuf," (xx:xx:xx:xx:xx:xx)");
+      return sBuf;
+       ' >.
+  </li>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_VLANID_RANGE_FEATURE">
+  <li><b>VLAN Range : From</b> - Specifies the VLAN ID to compare against an Ethernet frame.
+  Valid range of values is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_ACL_MIN_VLAN_ID, L7_ACL_MAX_VLAN_ID);
+       ' >.
+  </li>
+
+  <li><b>VLAN Range : To</b> - Specifies the VLAN ID to compare against an Ethernet frame.
+  Valid range of values is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_ACL_MIN_VLAN_ID, L7_ACL_MAX_VLAN_ID);
+       ' >.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_VLANID_FEATURE">
+  <li><b>VLAN</b> - Specifies the VLAN ID to compare against an Ethernet frame.
+  Valid range of values is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_ACL_MIN_VLAN_ID, L7_ACL_MAX_VLAN_ID);
+       ' >. Either VLAN Range or VLAN can be configured.
+  </li>
+</EMWEB_IF>
+
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_VLANID2_RANGE_FEATURE">
+  <li><b>Secondary VLAN Range : From</b> - Specifies the Secondary VLAN ID to compare against an Ethernet frame.
+  Valid range of values is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_ACL_MIN_VLAN_ID, L7_ACL_MAX_VLAN_ID);
+       ' >.
+  </li>
+
+  <li><b>Secondary VLAN Range : To</b> - Specifies the Secondary VLAN ID to compare against an Ethernet frame.
+  Valid range of values is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_ACL_MIN_VLAN_ID, L7_ACL_MAX_VLAN_ID);
+       ' >.
+  </li>
+</EMWEB_IF>
+
+<EMWEB_IF ID = USMWEB_FEATURE_PRESENT VALUE="ACL_RULE_MATCH_VLANID2_FEATURE">
+  <li><b>Secondary VLAN</b> - Specifies the Secondary VLAN ID to compare against an Ethernet frame.
+  Valid range of values is
+  <EMWEB_STRING C='
+      return usmWebIntegerRangeHelp(L7_ACL_MIN_VLAN_ID, L7_ACL_MAX_VLAN_ID);
+       ' >. Either Secondary VLAN Range or Secondary VLAN can be configured.
+  </li>
+</EMWEB_IF>
+
+ </ul>
+</ul>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li> <b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+      </li>
+  <li><b>Delete</b> - Remove the currently selected Rule from the selected ACL.
+      These changes will not be retained across a power cycle unless a save configuration is performed.
+      </li>
+ </ul>
+</ul>
+</EMWEB_IF>
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+
+
+
+

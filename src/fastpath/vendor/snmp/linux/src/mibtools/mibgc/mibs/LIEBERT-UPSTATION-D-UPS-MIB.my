@@ -1,0 +1,204 @@
+-- Version:  v1.2
+
+--
+--  This MIB defines the Select objects for the Liebert UPS SNMP Agents.
+--  These are objects common across all product platforms.
+--
+
+LIEBERT-UPSTATION-D-UPS-MIB DEFINITIONS ::= BEGIN
+
+          IMPORTS
+              OBJECT-TYPE                         FROM RFC-1212
+              sysUpTime				  FROM RFC1213-MIB
+	      TRAP-TYPE                           FROM RFC-1215
+	      luExtensions			  FROM LIEBERT-CORE-UPS-MIB;
+	     
+--
+-- The UPStation D Extension
+--
+	  luUPStationD OBJECT IDENTIFIER ::= { luExtensions 3 }
+
+--
+-- Select Alarms 
+--
+
+          ldUpsAlarm        OBJECT IDENTIFIER ::= { luUPStationD 6 }
+
+          ldUpsAlarmConditions      OBJECT IDENTIFIER ::= { ldUpsAlarm 1 }
+
+          ldUpsAlarmDCOverVoltageShutdown      OBJECT IDENTIFIER 
+		::= { ldUpsAlarmConditions 1 }
+	  -- The UPS has detected an excessive voltage in the DC circuitry
+ 	  -- and shutdown.
+	
+          ldUpsAlarmOutputShortShutdown    OBJECT IDENTIFIER 
+		::= { ldUpsAlarmConditions 2 }
+	  -- The UPS has detected a short circuit and shutdown.
+
+          ldUpsAlarmLNReversedShutdown    OBJECT IDENTIFIER 
+		::= { ldUpsAlarmConditions 3 }
+	  -- The UPS has detected that Line and Neutral are reversed and
+	  -- shutdown.
+
+          ldUpsAlarmImminentShutdown    OBJECT IDENTIFIER 
+		::= { ldUpsAlarmConditions 4 }
+	  -- The UPS is about to shutdown.
+
+          ldUpsAlarmInputFreqError    OBJECT IDENTIFIER 
+		::= { ldUpsAlarmConditions 5 }
+	  -- The UPS has detected an error in the input frequency.
+
+          ldUpsAlarmBoostOn    OBJECT IDENTIFIER 
+		::= { ldUpsAlarmConditions 6 }
+	  -- The UPS is running on boost.
+
+          ldUpsAlarmReplaceBattery   OBJECT IDENTIFIER 
+		::= { ldUpsAlarmConditions 7 }
+	  -- The UPS has detected that the battery needs replacement.
+
+          ldUpsAlarmOutputOverVoltage    OBJECT IDENTIFIER 
+		::= { ldUpsAlarmConditions 8 }
+	  -- The UPS has detected excessive voltage on the output.
+
+          ldUpsAlarmOutputUnderVoltage    OBJECT IDENTIFIER 
+		::= { ldUpsAlarmConditions 9 }
+	  -- The UPS has detected deficient voltage on the output.
+
+          ldUpsAlarmChargerFailed    OBJECT IDENTIFIER 
+		::= { ldUpsAlarmConditions 10 }
+	  -- The UPS has detected that the charger has failed.
+
+--
+--  The Liebert Select UPS traps
+--
+	ldUpsTraps        OBJECT IDENTIFIER ::= { luUPStationD 11 }
+ 
+	ldUpsDCOverVoltageShutdownTrap	TRAP-TYPE
+			ENTERPRISE	ldUpsTraps
+			VARIABLES  	{ sysUpTime }
+			DESCRIPTION
+			"An ldUpsDCOverVoltageShutdownTrap signifies that 
+			 the UPS has detected that battery voltage is over 
+			 the tolarable level."
+			::= 1
+
+	ldUpsOutputShortShutdownTrap	TRAP-TYPE
+			ENTERPRISE	ldUpsTraps
+			VARIABLES  	{ sysUpTime }
+			DESCRIPTION
+			"An ldUpsOutputShortShutdownTrap signifies that 
+			 the UPS has detected a short circuit across the
+ 			 output."
+			::= 2
+
+
+	ldUpsLNReversedShutdownTrap	TRAP-TYPE
+			ENTERPRISE	ldUpsTraps
+			VARIABLES  	{ sysUpTime }
+			DESCRIPTION
+			"An ldUpsLNReversedShutdownTrap signifies that 
+			 the UPS has detected that Line and Neutral have
+			 been reversed."
+			::= 3
+
+	ldUpsImminentShutdownTrap	TRAP-TYPE
+			ENTERPRISE	ldUpsTraps
+			VARIABLES  	{ sysUpTime }
+			DESCRIPTION
+			"An ldUpsImminentShutdownTrap signifies that 
+			 the UPS is about to turn off output power."
+			::= 4
+
+	ldUpsInputFreqErrorTrap	TRAP-TYPE
+			ENTERPRISE	ldUpsTraps
+			VARIABLES  	{ sysUpTime }
+			DESCRIPTION
+			"An ldUpsInputFreqErrorTrap signifies that 
+			 the UPS has detected that input frequency is outside
+			 tolerable variance."
+			::= 5
+
+	ldUpsOutputOverVoltageTrap	TRAP-TYPE
+			ENTERPRISE	ldUpsTraps
+			VARIABLES  	{ sysUpTime }
+			DESCRIPTION
+			"An ldUpsOutputOverVoltageTrap signifies that the 
+			 UPS has detected that the output voltage is too high."
+			::= 6
+
+	ldUpsOutputUnderVoltageTrap	TRAP-TYPE
+			ENTERPRISE	ldUpsTraps
+			VARIABLES  	{ sysUpTime }
+			DESCRIPTION
+			"An ldUpsOutputUnderVoltageTrap signifies that the 
+			 UPS has detected that the output voltage is too low."
+			::= 7
+
+	ldUpsChargerFailedTrap	TRAP-TYPE
+			ENTERPRISE	ldUpsTraps
+			VARIABLES  	{ sysUpTime }
+			DESCRIPTION
+			"An ldUpsChargerFailedTrap signifies that the UPS 
+			 has detected that the battery charger has failed."
+			::= 8
+
+
+--
+--  The Select Input Group
+--
+
+	ldUpsInput	OBJECT IDENTIFIER  ::= { luUPStationD 3 }
+
+	ldUpsInputMaxVoltsSinceLastPoll OBJECT-TYPE
+		SYNTAX INTEGER (0..65536)
+		ACCESS read-only
+		STATUS optional
+		DESCRIPTION
+		"The maximum input voltage encountered since the object was
+		 last retrieved.  Note: if there are multiple managers talking
+		 to the same agent, the use of this object needs to be 
+		 coordinated."
+		::= { ldUpsInput 1 }
+
+	ldUpsInputMinVoltsSinceLastPoll OBJECT-TYPE
+		SYNTAX INTEGER (0..65536)
+		ACCESS read-only
+		STATUS optional
+		DESCRIPTION
+		"The minimum input voltage encountered since the object was
+		 last retrieved.  Note: if there are multiple managers talking
+		 to the same agent, the use of this object needs to be 
+		 coordinated."
+		::= { ldUpsInput 2 }
+
+
+--
+--  The Select Output Group
+--
+
+	ldUpsOutput	OBJECT IDENTIFIER  ::= { luUPStationD 4 }
+
+	ldUpsOutputMaxVoltsSinceLastPoll OBJECT-TYPE
+		SYNTAX INTEGER (0..65536)
+		ACCESS read-only
+		STATUS optional
+		DESCRIPTION
+		"The maximum output voltage encountered since the object was
+		 last retrieved.  Note: if there are multiple managers talking
+		 to the same agent, the use of this object needs to be 
+		 coordinated."
+		::= { ldUpsOutput 1 }
+
+	ldUpsOutputMinVoltsSinceLastPoll OBJECT-TYPE
+		SYNTAX INTEGER (0..65536)
+		ACCESS read-only
+		STATUS optional
+		DESCRIPTION
+		"The minimum output voltage encountered since the object was
+		 last retrieved.  Note: if there are multiple managers talking
+		 to the same agent, the use of this object needs to be 
+		 coordinated."
+		::= { ldUpsOutput 2 }
+
+
+END

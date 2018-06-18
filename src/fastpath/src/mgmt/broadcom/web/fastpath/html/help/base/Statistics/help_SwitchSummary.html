@@ -1,0 +1,125 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Switch Summary Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+
+
+<hr size=4 width="100%" align=center>
+
+
+
+<h2><a name=swsumstat></a>Help for Switch Statistics Summary</h2>
+
+
+
+<h3>Non-Configurable Data</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Interface</b> - This
+      object indicates the interface index of the interface table entry associated with
+      the Processor of this switch. </li>
+
+
+
+<!---------------------------------------------------------------------------
+     packets received without error -- L7_CTR_RX_TOTAL_FRAMES
+-->
+  <li><b>Packets Received Without Errors</b>
+      - The total number of packets (including broadcast
+      packets and multicast packets) received by the processor. </li>
+ 
+
+<!-- -------------------------------------------------------------------------
+     Broadcast Packets Received -- L7_CTR_RX_BCAST_FRAMES
+-->
+  <li><b>Broadcast Packets Received</b>
+      - The total number of packets received that were directed to
+      the broadcast address. Note that this does not include multicast packets.
+      </li>
+ 
+
+<!-- -------------------------------------------------------------------------
+     Packets Received With Error -- L7_CTR_RX_TOTAL_MAC_ERROR_FRAMES
+-->
+  <li><b>Packets Received With Error</b>
+      - The number of inbound packets that contained errors
+      preventing them from being deliverable to a higher-layer protocol. </li>
+ 
+
+<!-- -------------------------------------------------------------------------
+     Packets Transmitted without Errors -- L7_CTR_TX_TOTAL_FRAMES
+-->
+  <li><b>Packets Transmitted Without Errors</b>
+      - The total number of packets transmitted out of the
+      interface. </li>
+ 
+
+<!-- -------------------------------------------------------------------------
+     Broadcast Packets Transmitted -- L7_CTR_TX_BCAST_FRAMES
+-->
+  <li><b>Broadcast Packets Transmitted</b>
+    - The total number of packets that higher-level protocols
+      requested to be transmitted to the Broadcast address, including those that
+      were discarded or not sent. </li>
+ 
+
+<!-- -------------------------------------------------------------------------
+     Transmit Packet Errors -- L7_CTR_TX_TOTAL_ERROR_FRAMES
+-->
+  <li><b>Transmit Packet Errors</b>
+      - The number of outbound packets that could not be transmitted
+      because of errors. </li>
+ 
+
+
+<!-- -------------------------------------------------------------------------
+     Address Entries Currently in Use
+-->
+  <li><b>Address Entries Currently in Use</b>
+      - The total number of Forwarding Database Address
+      Table entries now active on the switch, including learned and static
+      entries. </li>
+ 
+
+<!-- -------------------------------------------------------------------------
+     VLAN Entries Currently in Use
+-->
+  <li><b>VLAN Entries Currently in Use</b>
+      - The number of VLAN entries presently occupying the
+      VLAN table. </li>
+
+  <li><b>Time Since Counters Last Cleared</b>
+      - The elapsed time, in days, hours, minutes, and seconds since the
+      statistics for this switch were last cleared (in dd:hh:mm:ss). </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+<EMWEB_IF ID=USMWEB_IF_READWRITE> 
+  <li><b>Clear Counters</b>
+      - Clear all the counters, resetting all summary and switch detailed statistics to defaults.
+The discarded packets count cannot be cleared. </li>
+</EMWEB_IF>
+
+  <li><b>Refresh</b> - Refresh
+      the data on the screen with the present state of the data in the switch. </li>
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+

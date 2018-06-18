@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+    <enum name="L7_XUI_VOICE_VLAN_CONFIG_TYPE_t">
+      <option macro= "XUI_VOICE_VLAN_CONFIG_DISABLE" name="Disable"/>
+      <option macro= "XUI_VOICE_VLAN_CONFIG_VLAN_ID" name="VLAN ID"/>
+      <option macro= "XUI_VOICE_VLAN_CONFIG_DOT1P" name="Dot1p"/>
+      <option macro= "XUI_VOICE_VLAN_CONFIG_NONE" name="None"/>
+      <option macro= "XUI_VOICE_VLAN_CONFIG_UNTAGGED" name="Untagged"/>
+    </enum>
+  </data-types>
+</FastPathXML>
+

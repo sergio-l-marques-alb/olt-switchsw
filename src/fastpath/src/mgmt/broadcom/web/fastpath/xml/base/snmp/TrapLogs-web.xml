@@ -1,0 +1,30 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="TrapLogs" title="Trap Logs" >
+        <group id="1" heading=" ">
+            <node id="1">
+                <element obj-name="baseTrapLog_TrapLogTotalSinceLastReset" id="1" name="Number of Traps Since Last Reset"/>
+            </node>
+            <node id="2">
+                <element obj-name="baseTrapLog_TrapLogCapacity" id="1" name="Trap Log Capacity"/>
+            </node>
+            <node id="3">
+                <element obj-name="baseTrapLog_TrapLogTotalSinceLastViewed" id="1" name="Number of Traps Since Log Last Viewed"/>
+            </node>
+
+            <repeat present="plain" edit="no" heading=" " id="4">
+
+                <element control="label" properties="iterate" obj-name="baseTrapLog_TrapLogIndex" id="1" name="Log"/>
+                <element control="label" properties="" obj-name="baseTrapLog_TrapLogSystemUptime" id="2" name="System Up Time"/>
+                <element control="label" properties="" obj-name="baseTrapLog_TrapLogTrapMessage" id="3" name="Trap"/>
+            </repeat>
+            <node id="5">
+                <button scope="page" type="buttonSubmit" level="ReadWriteUser" value="Enable" obj-name="baseTrapLog_TrapLogClear" help="Submits the form on this page to the Switch" id="1" name="Clear Log"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

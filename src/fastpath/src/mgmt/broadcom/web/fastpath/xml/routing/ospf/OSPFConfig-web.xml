@@ -1,0 +1,235 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="OSPFConfig" title="OSPF Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element maxLength="15" obj-name="routingospfGeneralConfig_RouterId" id="1" name="Router ID"/>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="routingospfGeneralConfig_AdminStat" id="1" name="OSPF Admin State"/>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="routingospfGeneralConfig_ASBdrRtrStatus" id="1" name="ASBRStatus">
+                    <action type="enum" show="1_27_1" hide="1_28_1|1_3_1"/> 
+                    <action type="enum" show="1_28_1" hide="1_27_1|1_3_1"/> 
+                </element>
+            </node>
+            <node id="27">
+                <element control="label" properties="write-only" obj-name="xLibObjects_dummy" id="1" name="ASBR Status" value="Enabled"/>
+            </node>
+            <node id="28">
+                <element control="label" properties="write-only" obj-name="xLibObjects_dummy" id="1" name="ASBR Status" value="Disabled"/>
+            </node>
+            <node id="4">
+                <element control="combo" obj-name="routingospfRouterConfigGroup_RFC1583CompatibilityMode" id="1" name="RFC 1583 Compatibility"/>
+            </node>
+            <node id="5">
+                <element control="combo" obj-name="routingospfGeneralConfig_AreaBdrRtrStatus" id="1" name="ABRStatus">
+                    <action type="enum" show="1_29_1" hide="1_30_1|1_5_1"/> 
+                    <action type="enum" show="1_30_1" hide="1_29_1|1_5_1"/> 
+                </element>
+            </node>
+            <node id="29">
+                <element control="label" properties="write-only" obj-name="xLibObjects_dummy" id="1" name="ABR Status" value="Enabled"/>
+            </node>
+            <node id="30">
+                <element control="label" properties="write-only" obj-name="xLibObjects_dummy" id="1" name="ABR Status" value="Disabled"/>
+            </node>
+            <node id="6">
+		    <element control="combo" obj-name="routingospfRouterConfigGroup_OpaqueLsaSupport" id="1" name="Opaque LSA Status">
+			    <action type="enum" web_name="Enable"/>
+			    <action type="enum" web_name="Disable"/>
+		    </element>
+            </node>
+            <node id="7">
+                <element arghelp="HELP_FORMAT_FP" maxLength="10" obj-name="routingospfGeneralConfig_ExitOverflowInterval" id="1" name="Exit Overflow Interval (secs)"/>
+            </node>
+            <node id="8">
+                <element arghelp="HELP_FORMAT_FP" maxLength="5" obj-name="routingospfRouterConfigGroup_DelayTime" id="1" name="SPF Delay Time(secs)"/>
+            </node>
+            <node id="9">
+                <element arghelp="HELP_FORMAT_FP" maxLength="5" obj-name="routingospfRouterConfigGroup_HoldTime" id="1" name="SPF Hold Time(secs)"/>
+            </node>
+            <node id="10">
+                <element obj-name="routingospfGeneralConfig_ExternLsaCount" id="1" name="External LSA Count"/>
+            </node>
+            <node id="11">
+                <element obj-name="routingospfGeneralConfig_ExternLsaCksumSum" id="1" name="External LSA Checksum"/>
+            </node>
+            <node id="12">
+                <element obj-name="routingospfGeneralConfig_opaqueASLSACount" id="1" name="AS_OPAQUE LSA Count"/>
+            </node>
+            <node id="13">
+                <element obj-name="routingospfGeneralConfig_ASOpaqueLSAChecksumSum" id="1" name="AS_OPAQUE LSA Checksum"/>
+            </node>
+            <node id="14">
+                <element obj-name="routingospfGeneralConfig_OriginateNewLsas" id="1" name="New LSAs Originated"/>
+            </node>
+            <node id="15">
+                <element obj-name="routingospfGeneralConfig_RxNewLsas" id="1" name="LSAs Received"/>
+            </node>
+            <node id="16">
+                <element arghelp="ospf_extlsdb_limit_range" maxLength="11" obj-name="routingospfGeneralConfig_ExtLsdbLimit" id="1" name="External LSDB Limit"/>
+            </node>
+            <node id="17">
+                <element arghelp="ospf_default_redistribute_metric" maxLength="8" obj-name="routingospfRouterConfigGroup_Metric" id="1" name="Default Metric"/>
+            </node>
+            <node id="18">
+                <element arghelp="HELP_FORMAT_FP" maxLength="1" obj-name="routingospfRouterConfigGroup_MaxPaths" id="1" name="Maximum Paths"/>
+            </node>
+            <node id="19">
+                <element arghelp="HELP_FORMAT_FP" maxLength="7" obj-name="routingospfRouterConfigGroup_AutoCostRefBw" id="1" name="AutoCost Reference Bandwidth"/>
+            </node>
+            <node id="20">
+		    <element control="combo" obj-name="routingospfRouterConfigGroup_PassiveMode" id="1" name="Default Passive Setting">
+			    <action type="enum" web_name="Enable"/>
+			    <action type="enum" web_name="Disable"/>
+		    </element>
+            </node>
+            <node id="21" clazz="unavailableattributes">
+                <message>Default Route Advertise</message>
+            </node>
+            <node id="22">
+		    <element control="combo" obj-name="routingospfRouterConfigGroup_InfoOriginate" id="1" name="Default Information Originate">
+			    <action type="enum" web_name="Enable" enable="1_23_1|1_24_1|1_25_1"/>
+			    <action type="enum" web_name="Disable" disable="1_23_1|1_24_1|1_25_1"/>
+		    </element>
+            </node>
+            <node id="23">
+                <element control="combo" obj-name="routingospfRouterConfigGroup_InfoOriginateAlways" id="1" name="Always"/>
+            </node>
+            <node id="24">
+                <element arghelp="ospf_default_route_metric" maxLength="8" obj-name="routingospfRouterConfigGroup_InfoOriginateMetric" id="1" name="Metric"/>
+            </node>
+            <node id="25">
+                <element control="combo" maxLength="10" obj-name="routingospfRouterConfigGroup_InfoOriginateMetricType" id="1" name="MetricType"/>
+            </node>
+            <node id="31">
+                <element control="combo" obj-name="routingospfGeneralConfig_OspfHelperSupportMode" id="1" name="Helper Support Mode"/>
+            </node>
+            <node id="32">
+                <element control="combo" obj-name="routingospfGeneralConfig_OspfHelperStrictLSAChecking" id="1" name="Helper Strict LSA Checking"/>
+            </node>
+            <node id="26">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="routingospfGeneralConfig_RouterId" id="1" name="Router ID"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="routingospfGeneralConfig_AdminStat" id="1" name="OSPF Admin State"/>
+            </node>
+            <node id="3">
+                <element control="combo" properties="hidden" obj-name="routingospfGeneralConfig_ASBdrRtrStatus" id="1" name="ASBRStatus">
+                    <action type="enum" show="2_27_1" hide="2_28_1"/> 
+                    <action type="enum" show="2_28_1" hide="2_27_1"/> 
+                </element>
+            </node>
+            <node id="27">
+                <element control="label" properties="write-only" obj-name="xLibObjects_dummy" id="1" name="ASBR Status" value="Enabled"/>
+            </node>
+            <node id="28">
+                <element control="label" properties="write-only" obj-name="xLibObjects_dummy" id="1" name="ASBR Status" value="Disabled"/>
+            </node>
+            <node id="4">
+                <element control="combo" properties="hidden" obj-name="routingospfGeneralConfig_AreaBdrRtrStatus" id="1" name="ABRStatus">
+                    <action type="enum" show="2_29_1" hide="2_30_1"/> 
+                    <action type="enum" show="2_30_1" hide="2_29_1"/> 
+                </element>
+            </node>
+            <node id="29">
+                <element control="label" properties="write-only" obj-name="xLibObjects_dummy" id="1" name="ABR Status" value="Enabled"/>
+            </node>
+            <node id="30">
+                <element control="label" properties="write-only" obj-name="xLibObjects_dummy" id="1" name="ABR Status" value="Disabled"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="routingospfRouterConfigGroup_RFC1583CompatibilityMode" id="1" name="RFC 1583 Compatibility"/>
+            </node>
+            <node id="6">
+		    <element control="label" properties="read-only" obj-name="routingospfRouterConfigGroup_OpaqueLsaSupport" id="1" name="Opaque LSA Status">
+			    <action type="enum" web_name="Enable"/>
+			    <action type="enum" web_name="Disable"/>
+		    </element>
+            </node>
+            <node id="7">
+                <element control="label" properties="read-only" obj-name="routingospfGeneralConfig_ExitOverflowInterval" id="1" name="Exit Overflow Interval (secs)"/>
+            </node>
+            <node id="8">
+                <element control="label" properties="read-only" obj-name="routingospfRouterConfigGroup_DelayTime" id="1" name="SPF DelayTime(secs)"/>
+            </node>
+            <node id="9">
+                <element control="label" properties="read-only" obj-name="routingospfRouterConfigGroup_HoldTime" id="1" name="SPF HoldTime(secs)"/>
+            </node>
+            <node id="10">
+                <element obj-name="routingospfGeneralConfig_ExternLsaCount" id="1" name="External LSA Count"/>
+            </node>
+            <node id="11">
+                <element obj-name="routingospfGeneralConfig_ExternLsaCksumSum" id="1" name="External LSA Checksum"/>
+            </node>
+            <node id="12">
+                <element obj-name="routingospfGeneralConfig_opaqueASLSACount" id="1" name="AS_OPAQUE LSA Count"/>
+            </node>
+            <node id="13">
+                <element obj-name="routingospfGeneralConfig_ASOpaqueLSAChecksumSum" id="1" name="AS_OPAQUE LSA Checksum"/>
+            </node>
+            <node id="14">
+                <element obj-name="routingospfGeneralConfig_OriginateNewLsas" id="1" name="New LSAs Originated"/>
+            </node>
+            <node id="15">
+                <element obj-name="routingospfGeneralConfig_RxNewLsas" id="1" name="LSAs Received"/>
+            </node>
+            <node id="16">
+                <element control="label" properties="read-only" obj-name="routingospfGeneralConfig_ExtLsdbLimit" id="1" name="External LSDB Limit"/>
+            </node>
+            <node id="17">
+                <element control="label" properties="read-only" obj-name="routingospfRouterConfigGroup_Metric" id="1" name="Default Metric"/>
+            </node>
+            <node id="18">
+                <element control="label" properties="read-only" obj-name="routingospfRouterConfigGroup_MaxPaths" id="1" name="Maximum Paths"/>
+            </node>
+            <node id="19">
+                <element control="label" properties="read-only" obj-name="routingospfRouterConfigGroup_AutoCostRefBw" id="1" name="AutoCost Reference Bandwidth"/>
+            </node>
+            <node id="20">
+		    <element control="label" properties="read-only" obj-name="routingospfRouterConfigGroup_PassiveMode" id="1" name="Default Passive Setting">
+			    <action type="enum" web_name="Enable"/>
+			    <action type="enum" web_name="Disable"/>
+		    </element>
+            </node>
+            <node id="21" clazz="unavailableattributes">
+                <message>Default Route Advertise</message>
+            </node>
+            <node id="22">
+	        <element control="label" properties="read-only" obj-name="routingospfRouterConfigGroup_InfoOriginate" id="1" name="Default Information Originate">
+                    <action type="enum" web_name="Enable"/>
+                    <action type="enum" web_name="Disable"/>
+                </element>			    
+            </node>
+            <node id="23">
+                <element control="label" properties="read-only" obj-name="routingospfRouterConfigGroup_InfoOriginateAlways" id="1" name="Always"/>
+            </node>
+            <node id="24">
+                <element control="label" properties="read-only" obj-name="routingospfRouterConfigGroup_InfoOriginateMetric" id="1" name="Metric"/>
+            </node>
+            <node id="25">
+                <element control="label" properties="read-only" obj-name="routingospfRouterConfigGroup_InfoOriginateMetricType" id="1" name="Metric Type"/>
+            </node>
+            <node id="31">
+                <element control="combo" properties="read-only" obj-name="routingospfGeneralConfig_OspfHelperSupportMode" id="1" name="Helper Support Mode"/>
+            </node>
+            <node id="32">
+                <element control="combo" properties="read-only" obj-name="routingospfGeneralConfig_OspfHelperStrictLSAChecking" id="1" name="Helper Strict LSA Checking"/>
+            </node>
+            <node id="26">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

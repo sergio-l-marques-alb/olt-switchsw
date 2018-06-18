@@ -1,0 +1,65 @@
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>IPv6 ACL Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="80%" align=center>
+<h2>Help for IPv6 Access Control Lists Configuration</h2>
+<p>
+      An IPv6 ACL consists of a set of rules which are matched
+      sequentially against a packet. When a packet meets the match
+      criteria of a rule, the specified rule action (Permit/Deny)
+      is taken and the additional rules are not checked for a match.
+      On this menu the interfaces to which an IPv6 ACL applies must
+      be specified, as well as whether it applies to inbound or
+      outbound traffic. Rules for the IPv6 ACL are specified/created
+      using the IPv6 ACL Rule Configuration menu.</P>
+
+<h3>Selection Criteria </h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IPv6 ACL</b> - A new IPv6 ACL may be created or the configuration
+    of an existing IPv6 ACL can be updated by selecting right option from
+    the pull down menu.
+  </li>
+ </ul>
+</ul>
+<h3>Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IPv6 ACL Name</b> - Specifies IPv6 ACL Name string which includes alphanumeric
+    characters only. The name must start with an alphabetic character. This field displays
+    the name of the currently selected IPv6 ACL if the ACL has already been created. The name can have <1-31> alphanumeric characters.
+    </li>
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Table</b> - Displays the current number/maximum number of ACLs.
+   </li>
+ </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+<ul type=disc>
+ <ul type=circle>
+  <li> <b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li> This button is shown when you create a new IPv6 ACL.
+      </li>
+  <li><b>Rename</b> - This button is used to rename the currently selected IPv6 ACL and shows up only when an existing IPv6 ACL is selected.</li>
+  <li><b>Delete</b> - This button is used to delete the currently selected IPv6 ACL and shows up only when an existing IPv6 ACL is selected.</li>
+  </ul>
+</ul>
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+

@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0" >
+<module name="ospfArea"  >
+<object name="Id"  >
+<core  type="user" xtype="ipv4_uint" key="yes" access="read-write" descr="A 32-bit integer uniquely identifying an area. Area ID 0.0.0.0 is used for the OSPF backbone"/>
+<ui  name="Area Id" style="plainText">
+ <snmp asn-id="1.3.6.1.2.1.14.2.1.1"/> 
+</ui></object>
+<object name="ImportAsExtern" depends="Id" >
+<core type = "enum" xtype="L7_OSPF_AREA_EXT_ROUTING_t" access="read-write" descr="The area's support for importing AS external link state advertisements."/>
+<ui  name="Import AS External LSAs" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.2.1.3"/> 
+</ui></object>
+<object name="SpfRuns" depends="Id" >
+<core  type="int" access="read-only" descr="The number of times that the intra-area route table has been calculated using this area's link-state database. This is typically done using Dijkstra's algorithm."/>
+<ui  name="Number of SPF Runs" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.2.1.4"/> 
+</ui></object>
+<object name="BdrRtrCount" depends="Id" >
+<core  type="uint" access="read-only" descr="The total number of area border routers reachable within this area. This is initially zero, and is calculated in each SPF Pass."/>
+<ui  name="ABR Count" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.2.1.5"/> 
+</ui></object>
+<object name="ospfAsBdrRtrCount" depends="Id" >
+<core  type="uint" access="read-only" descr="The total number of Autonomous System border routers reachable within this area. This is initially zero, and is calculated in each SPF Pass."/>
+<ui  name="ASBR Count" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.2.1.6"/> 
+</ui></object>
+<object name="LsaCount" depends="Id" >
+<core  type="uint" access="read-only" descr="The total number of link-state advertisements in this area's link-state database, excluding AS External LSA's."/>
+<ui  name="LSA Count" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.2.1.7"/> 
+</ui></object>
+<object name="LsaCksumSum" depends="Id" >
+<core  type="user" xtype="hex_uint_t" access="read-only" descr="The 32-bit unsigned sum of the link-state advertisements' LS checksums contained in this area's link-state database. This sum excludes external (LS type 5) link-state advertisements. The sum can be used to determine if there has been a change in a router's link state database, and to compare the link-state database of two routers."/>
+<ui  name="LSA Checksum Sum" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.2.1.8"/> 
+</ui></object>
+<object name="Summary" depends="Id" >
+<core  type="enum" xtype="L7_OSPF_AREA_SUMMARY_t" access="read-write" descr="The variable ospfAreaSummary controls the import of summary LSAs into stub areas. It has no effect on other areas. If it is noAreaSummary, the router will neither originate nor propagate summary LSAs into the stub area. It will rely entirely on its default route. If it is sendAreaSummary, the router will both summarize and propagate summary LSAs."/>
+<ui  name="Import Summary LSAs" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.14.2.1.9"/> 
+</ui></object>
+<object name="Status" depends="Id" >
+<core  type="row-status" xtype= "L7_ROW_STATUS_t" access="read-write" descr="This variable displays the status of the entry. Setting it to 'invalid' has the effect of rendering it inoperative. The internal effect (row removal) is implementation dependent."/>
+<ui  name="Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.2.1.10"/> 
+</ui></object>
+<object name="NSSAdefInfoOrig" depends="Id" >
+<core type="enum" xtype="L7_TrueFalse" access="read-write" descr="Get/Set the default information origination configuration for the specified NSSA"/>
+<ui  name="NSSA Default Information Originate" style="choiceNselect1" />
+</object>
+<object name="NSSAdefMetric" depends="Id" >
+<core  type="uint" access="read-write" min="L7_OSPF_AREA_NSSA_DEFAULT_METRIC_MIN" max="L7_OSPF_AREA_NSSA_DEFAULT_METRIC_MAX" descr="Get/Set the NSSA default metric value."/>
+<ui  name="NSSA Default Metric" style="inputLine" />
+</object>
+<object name="NSSAdefMetricType" depends="Id" >
+<core  type="enum" xtype="L7_OSPF_AREA_STUB_METRIC_TYPE_t" access="read-write" descr="Set/Get the metric type of the default route for the NSSA"/>
+<ui  name="NSSA Default Route Metric Type" style="inputLine" />
+</object>
+<object name="NSSAimportSummaries" depends="Id" >
+<core  type="enum" xtype="enable_t" access="read-write" descr="Get/Set the import summary configuration for the specified NSSA"/>
+<ui  name="Import Summaries Into NSSA" style="choiceNselect1" />
+</object>
+<object name="NSSAredistribute" depends="Id" >
+<core type="enum" xtype="enable_t" access="read-write" descr="Get/Set the route redistribution configuration for the specified NSSA"/>
+<ui  name="NSSA Redistribute Configuration" style="inputLine" />
+</object>
+<object name="NSSAtranslatorRole" depends="Id" >
+<core type="enum" xtype="L7_OSPF_NSSA_TRANSLATOR_ROLE_t" access="read-write" descr="Get/Set the NSSA Translator Role of the specified NSSA"/>
+<ui  name="NSSA Translator Role" style="choiceNselect1" />
+</object>
+<object name="NSSAtranslatorStabilityInterval" depends="Id" >
+<core  type="uint" access="read-write" min="L7_OSPF_NSSA_TRANS_STABILITY_INT_MIN" max="L7_OSPF_NSSA_TRANS_STABILITY_INT_MAX" descr="Get/Set the Translator Stability Interval of the specified NSSA"/>
+<ui  name="NSSA Translator Stability Interval" style="inputLine" />
+</object>
+<object name="NSSATranslatorState" depends="Id" >
+<core type="enum" xtype = "L7_OSPF_NSSA_TRANSLATOR_STATE_t" access="read-only" descr="Get the NSSA Translator State of the specified NSSA"/>
+<ui  name="NSSA Translator State" style="plainText" />
+</object>
+<object name="ImportSummaryLSA" depends="Id" >
+<core type="enum" xtype = "enable_t" access="read-write" descr="Summary LSA mode for a given stub area."/>
+<ui  name="Import Summaries into Stub Area" style="choiceNselect1" />
+</object>
+<object name="NSSAStatus" depends="Id" >
+<core type="row-status" xtype= "L7_ROW_STATUS_t" access="read-write" descr="This variable displays the status of the entry."/>
+<ui  name="NSSA Status" style="inputLine">
+</ui></object>
+</module>
+</objectxml>
+</FastPathXML>

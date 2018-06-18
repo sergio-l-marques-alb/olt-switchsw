@@ -1,0 +1,121 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<HTML>
+
+<HEAD>
+
+   <META http-equiv="Pragma" content="no-cache">
+
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+
+   <TITLE>Service Port IPv6 Configuration Help</TITLE>
+
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<EMWEB_IF ID=USMWEB_IF_SERVICE_PORT_PRESENT >
+
+<hr size=4 width="100%" align=center>
+
+
+
+
+
+<h2><a name=service></a>Help for Configuration Service Port IPv6 </h2>
+
+
+
+<p><br>
+
+You use this panel to specify the parameters needed to communicate with the switch over a network
+
+using the service port. </p>
+<h3>IPv6 Selection Criteria</h3>
+<ul type=disc>
+ <ul type=circle>
+<li><b>IPv6 Mode</b> -
+
+      Enable/Disable IPv6 Admin Mode. </li>
+
+  <li><b>Service Port Configuration Protocol</b> -
+
+      Enable or Disable DHCPv6 Client protocol on the management port. The factory default is None. </li>
+
+  <li><b>IPv6 Stateless Address AutoConfig Mode</b> -
+
+      Enable or Disable the IPv6 stateless address autoconfiguration on the management port. The factory default is Disable. </li>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Add/Delete IPv6 Addresses</b> -
+      To Add or Delete the IPv6 Addresses, select Add or Remove from the drop-down menu. The fields "New IPv6 Address" and "EUI Flag" are visible when we select the "Add" from this menu.</li>
+</EMWEB_IF>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>Change IPv6 Gateway</b> -
+      Select the checkbox to configure/change/Remove IPv6 Gateway Addresses. To Configure / Change the Ipv6 gateway, select the checkbox and enter the desired value in the "IPv6 Gateway" textbox. To remove, select the checkbox, the textbox "IPv6 Gateway" has to be empty and click submit button.
+     </li>
+</EMWEB_IF>
+</ul>
+</ul>
+<h3>IPv6 Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+
+  <li><b>DHCPv6 Client DUID</b> -
+
+      Displays the Client Identifier used by DHCPv6 Client when sending messages to the DHCPv6 Server.
+      This entry is visible to user only if IPv6 Service Port Configuration Protocol is set to DHCP. </li>
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+  <li><b>New IPv6 Address</b> -
+      To configure the field, select Add from the "Add/Delete IPv6 Addresses" drop down menu. </li>
+  <li><b>EUI Flag</b> -
+      To set the EUI flag while configuring "New IPv6 Address" select True from the drop down menu.Default is False.</li>
+  <li><b>IPv6 Address to Delete</b> - To configure the field to delete IPv6 address, select Delete from the "Add/Delete IPv6 Addresses" drop down menu. 
+</EMWEB_IF>
+<li><b>IPv6 Gateway</b> -
+      The default gateway for the IPv6 Interface. </li>
+
+ </ul>
+</ul>
+
+<h3>IPv6 Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>IPv6 Addresses</b> - List of configured IPv6 addresses. </li>
+  <li><b>Default IPv6 Gateway Address</b> - Default IPv6 Gateway addresses. </li>
+ </ul>
+</ul>
+
+
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+
+<h3>Command Buttons</h3>
+
+
+
+<ul type=disc>
+
+ <ul type=circle>
+
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+
+ </ul>
+
+</ul>
+
+</EMWEB_IF>
+
+
+
+</EMWEB_IF>
+
+<hr size=4 width="100%" align=center>
+
+</body>
+
+</html>
+

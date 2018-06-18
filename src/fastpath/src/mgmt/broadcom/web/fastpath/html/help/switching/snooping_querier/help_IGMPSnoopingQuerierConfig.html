@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>IGMP Snooping Querier Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+
+<BODY class = "helppageattributes">
+
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=querier_cfg></a>Help for IGMP Snooping Querier Configuration</h2>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+<h3>Configurable Data</h3>
+
+<ul type=disc>
+<ul type=circle>
+
+   <li><b>Snooping Querier Admin Mode</b>
+  - Select the administrative mode for IGMP Snooping for the switch from the
+    pull-down menu. The default is disable.
+  </li>
+
+  <li><b>Snooping Querier Address</b>
+  - Specify the Snooping Querier Address to be used as source address in periodic
+    IGMP queries. This address is used when no address is configured on the VLAN on
+    which query is being sent.
+  </li>
+                                                     
+  <li><b>IGMP Version</b>
+  - Specify the IGMP protocol version used in periodic IGMP queries.
+    IGMP queries.
+  </li>
+
+  <li><b>Query Interval(secs)</b>
+  - Specify the time interval in seconds between periodic queries sent by the snooping querier.
+    The Query Interval must be a value in the range of 1 and 1800. The default value is 60.
+  </li>
+ 
+  <li><b>Querier Expiry Interval(secs)</b>
+  - Specify the time interval in seconds after which the last querier information is removed.
+    The Querier Expiry Interval must be a value in the range of 60 and 300. The default value is 60. 
+  </li>
+</ul>
+</ul>
+<EMWEB_ELSE>
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Snooping Querier Admin Mode</b>
+  - Displays  the administrative mode for IGMP Snooping for the switch .
+    The default is disable.
+  </li>
+  <li><b>Snooping Querier Address</b>
+  - Specify the Snooping Querier Address to be used as source address in periodic
+    IGMP queries. This address is used when no address is configured on the VLAN on
+    which query is being sent.
+  </li>
+
+  <li><b>IGMP Version</b>
+  - Specify the IGMP protocol version used in periodic IGMP queries.
+    IGMP queries.
+  </li>
+
+  <li><b>Query Interval(secs)</b>
+  - Specify the time interval in seconds between periodic queries sent by the snooping querier.
+    The Query Interval must be a value in the range of 1 and 1800. The default value is 60.
+  </li>
+
+  <li><b>Querier Expiry Interval(secs)</b>
+  - Specify the time interval in seconds after which the last querier information is removed.
+    The Querier Expiry Interval must be a value in the range of 60 and 300. The default value is 60.
+  </li>
+</ul>
+</ul>
+</EMWEB_IF>
+
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+	<ul type=circle>
+<EMWEB_IF ID=USMWEB_IF_READWRITE>
+       <li><b>Submit </b>
+ - Update the switch with the values on the screen. If you want the switch to retain the new values across a power cycle you must perform a save.</li>
+</EMWEB_IF>
+       <li><b>Refresh</b> - Refresh the data on the screen with the present state of the data in the switch. </li>
+ </ul>
+</ul>
+
+<hr size=4 width="100%" align=center>
+</body>
+</html>
+
+
+

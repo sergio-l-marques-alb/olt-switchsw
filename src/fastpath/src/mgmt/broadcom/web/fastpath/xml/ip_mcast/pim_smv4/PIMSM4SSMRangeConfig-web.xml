@@ -1,0 +1,74 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PIMSM4SSMRangeConfig" title="PIM-SM SSM Range Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <message>SSM Configuration</message>
+            </node>
+            <node id="2">
+                <element properties="hidden,write-only" value="IPv4" obj-name="ipmcastipMcastSsmRangeTable_ipMcastSsmRangeAddressType" id="1" name="ipMcastSsmRangeAddressType"/>
+
+            </node>
+            <node id="3">
+                <element properties="write-only" obj-name="ipmcastipMcastSsmRangeTable_ipMcastSsmRangeAddress" id="1" name="SSM Group Address" value="" control="textbox">
+                </element>
+            </node>
+            <node id="4">
+                <element properties="write-only" obj-name="ipmcastipMcastSsmRangeTable_ipMcastSsmRangePrefixLength" id="1" name="SSM Group Mask" value="" control="textbox">
+                </element>
+            </node>
+            <node id="10">
+                <element properties="read-only,hidden" obj-name="ipmcastipMcastSsmRangeTable_ipMcastSsmRangeAddress" id="1" name="SSM Group Address" value="" control="textbox">
+                </element>
+            </node>
+            <node id="11">
+                <element properties="read-only,hidden" obj-name="ipmcastipMcastSsmRangeTable_ipMcastSsmRangePrefixLength" id="1" name="SSM Group Mask" value="" control="textbox">
+                </element>
+            </node>
+
+            <repeat present="vtable" edit="inline" heading=" " id="6">
+                <element properties="write-only,hidden" value="IPv4" obj-name="ipmcastipMcastSsmRangeTable_ipMcastSsmRangeAddressType" id="1"/>
+                <element properties="iterate,read-write" obj-name="ipmcastipMcastSsmRangeTable_ipMcastSsmRangeAddress" id="2" name="SSM Group Address"/>
+                <element properties="iterate,read-write" obj-name="ipmcastipMcastSsmRangeTable_ipMcastSsmRangePrefixLength" id="3" name="SSM Group Mask"/>
+                <element control="checkbox-neg" properties="edit" obj-name="ipmcastipMcastSsmRangeTable_ipMcastSsmRangeRowStatus" id="4" name="Delete">
+               <action type="enum" discard="yes" />
+               <action type="enum" discard="yes" />
+               <action type="enum" discard="yes" />
+               <action type="enum" discard="yes" />
+               <action type="enum" discard="no" />
+               <action type="enum" discard="yes" />
+               <action type="enum" discard="no" />
+               </element>
+            </repeat>
+            <node id="7">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="ipmcastipMcastSsmRangeTable_ipMcastSsmRangeRowStatus" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                  <action type="button" disable="1_7_2|1_7_3|1_6|1_10|1_11" />
+                </button>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh">
+                  <action type="button" disable="1_7_1|1_2|1_3|1_4|1_7_3|1_10|1_11" />
+                </button>
+                <button scope="page" type="buttonSubmit" help="Deletes the form on this page to the Switch" id="3" name="Delete" >
+                  <action type="button" disable="1_2|1_3|1_4|1_10|1_11" />
+                </button>
+            </node>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading=" ">
+            <node id="1">
+                <message>SSM Configuration</message>
+            </node>
+            <repeat present="vtable" edit="inline" heading=" " id="2">
+                <element properties="filter,iterate,hidden" obj-name="ipmcastipMcastSsmRangeTable_ipMcastSsmRangeAddressType" id="1"/>
+                <element properties="filter,iterate" obj-name="ipmcastipMcastSsmRangeTable_ipMcastSsmRangeAddress" id="2" name="SSM Group Address"/>
+                <element properties="filter,iterate" obj-name="ipmcastipMcastSsmRangeTable_ipMcastSsmRangePrefixLength" id="3" name="SSM Group Mask"/>
+            </repeat>
+            <node id="3">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
+

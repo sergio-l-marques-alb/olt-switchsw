@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+    <error name="LAG_CREATE_FAILURE" output="\n Error! Failed to create LAG."/>
+     <error name="LAG_DEL_FAILURE" output="\n Error! Failed to remove LAG."/>
+     <error name="LAG_HASH_MODE_APPLY_FAILURE" output="\n Error! Failed to change load-balance value."/>
+     <error name="LAG_HASH_MODE_APPLY_DUE_TO_ADMIN_DOWN_FAILURE" output="\n Error! Failed to change load-balance value as the port-channel is administratively disabled."/>
+  </misc>
+</FastPathXML>
+
+

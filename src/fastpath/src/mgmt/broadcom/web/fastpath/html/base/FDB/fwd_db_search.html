@@ -1,0 +1,351 @@
+<EMWEB_HEAD C='
+#include "usmdb_common.h"
+#include "usmdb_mib_bridge_api.h"
+#include "usmdb_unitmgr_api.h"
+'>
+<EMWEB_IF ID=USMWEB_IF_LVL_HDR_NOT_REQ>
+<!--
+/*********************************************************************
+*
+* (C) Copyright Broadcom Corporation 2001-2007
+*
+**********************************************************************
+*
+* @filename fwd_db_search.html
+*
+* @purpose html content
+*
+* @comments
+*
+* @create 01-Mar-2001
+*
+* @author gaunce
+* @end
+*
+**********************************************************************/
+
+**********************************************************************/
+-->
+</EMWEB_IF>
+emweb:/USMWEB_PAGE_DTD_HEADER_GET;
+<HTML>
+<HEAD>
+   emweb:/USMWEB_PAGE_META_DATA_GET; <!-- Style Sheet link and Meta data     -->
+   <TITLE>emweb:/USMWEB_BASE_OEM_STRING_GET?1002;</TITLE>
+
+<script type='text/javascript' language='JavaScript'>
+function DisplayErrorMsg()
+//******************************************************************************
+//* Purpose: Display an input error message.
+//* Return:  none
+//******************************************************************************
+{
+    alert(document.forms[0].err_msg.value);
+}
+
+function CheckError()
+{
+   if (document.forms[0].err_flag.value == 1) {
+      DisplayErrorMsg();
+   }
+}
+function screen_refresh()
+{
+    document.forms[0].submit();
+}
+</script>
+</HEAD>
+
+<body CLASS="bodyframeattributes" ONLOAD='CheckError()'>
+
+<form method="post" EMWEB_NAME= "fwd_db_search" ONLOAD = 'CheckError()'>
+
+
+<!-- ----------------------------------------------------------------------- -->
+<!--         Web page header                                                 -->
+<!-- ----------------------------------------------------------------------- -->
+ emweb:/USMWEB_BASE_PAGE_HEADER_1ST_GET?1002;   <!-- Includes page title          -->
+ emweb:/USMWEB_BASE_PAGE_HEADER_2ND_GET?2762;   <!-- Includes help page link      -->
+
+
+
+<table CLASS="tablecontent" emweb:/USMWEB_TABLE_CONTENT_ALIGN;>
+
+<EMWEB_IF ID=USMWEB_COMPONENT_PRESENT VALUE=STACKING >
+    <!-- Management Unit-->
+    <TR>
+        <TD class = "rowidentifierattributes" >emweb:/USMWEB_BASE_GET_NLS_STRING?14105; </TD>
+        <TD><INPUT TYPE="text" NAME="mgmt_unitid" class = "rowvalue" READONLY SIZE="16" MAXLENGTH="15"  EMWEB_TYPE=DECIMAL_UINT>
+        </TD>
+    </TR>
+</EMWEB_IF>    
+
+<tr></tr>
+<tr></tr>
+<tr></tr>
+
+<EMWEB_IF ID= USMWEB_CHECK_UNIT_MGMT_PRESENT C='
+
+  L7_RC_t   rc;
+  L7_uint32 mgmt_unit;
+
+  rc = usmDbUnitMgrMgrNumberGet(&mgmt_unit);
+  if (rc == L7_SUCCESS)
+    return "UNIT_MGMT_PRESENT";
+  else
+    return NULL;
+'>
+
+<TR>
+<TD class="rowidentifierattributes" nowrap COLSPAN=4><B><font size=+1 >emweb:/USMWEB_BASE_GET_NLS_STRING?2112;</font></B>
+ <SELECT class="selectfield" NAME="filter" size="1" EMWEB_TYPE=DECIMAL_UINT ONCHANGE="screen_refresh()" >
+  <OPTION class="selectfield" VALUE='learned'>emweb:/USMWEB_BASE_GET_NLS_STRING?5006;</OPTION>
+  <OPTION class="selectfield" VALUE='all'>emweb:/USMWEB_BASE_GET_NLS_STRING?1108;</OPTION>
+
+ </SELECT>
+</TD>
+</TR>
+
+<TR>
+ <TD class = "rowidentifierattributes" nowrap COLSPAN=4>emweb:/USMWEB_BASE_GET_NLS_STRING?1310;
+ <INPUT class="inputfield" TYPE="text" NAME="mactofind" SIZE="24" MAXLENGTH="23">
+ &nbsp;&nbsp;<input class="buttonattributes" type="submit" name="macSearch" VALUE = "Search">
+ </TD>
+</TR>
+
+
+
+<EMWEB_IF ID= USMWEB_CHECK_FWD_DB_ENTRY_PRESENT C='
+
+   usmdbFdbEntry_t      fdbValue;
+   L7_uint32            mgmt_unit;
+   L7_RC_t              rc;
+   L7_BOOL              search;
+   EwaNetHandle         net;
+   usmWeb_AppInfo_t     appInfo;
+
+   memset(&fdbValue, 0x00, sizeof(usmdbFdbEntry_t));
+
+   net = ewsContextNetHandle(ewsContext);
+   if (net->app_pointer != NULL)
+   {
+     memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+     search = (L7_BOOL) appInfo.data[1];
+   }
+   else
+   {
+     search = L7_FALSE;
+   }
+
+   rc = usmDbUnitMgrMgrNumberGet(&mgmt_unit);  /*Get the Management unit*/
+   if (rc != L7_SUCCESS)
+     return NULL;
+
+   rc = usmWebMacAddrGet(search, (L7_char8 *) appInfo.buf, &fdbValue);
+   if (rc == L7_SUCCESS)
+     rc = usmDbFDBEntryGet(mgmt_unit, &fdbValue);
+   else
+     rc = usmDbFDBEntryNextGet(mgmt_unit, &fdbValue);
+
+   if (rc == L7_SUCCESS)
+     return "FWD_DB_ENTRY_PRESENT";
+   else
+     return NULL;
+'>
+
+<TR><TD COLSPAN=4>
+<TABLE class="datatableattributes"  emweb:/USMWEB_DATA_TABLE_ALIGN;>
+
+<THEAD>
+<TR>
+  <TH class = "datatableheading">emweb:/USMWEB_BASE_GET_NLS_STRING?5001;</TH>
+  <TH class = "datatableheading">Source emweb:/USMWEB_UNIT_SLOT_PORT_DISPLAY;(s)</TH>
+  <!--<TH class = "datatableheading">emweb:/USMWEB_BASE_GET_NLS_STRING?1107;</TH> -->
+  <TH class = "datatableheading">Interface Index</TH>
+  <TH class = "datatableheading">emweb:/USMWEB_BASE_GET_NLS_STRING?5003;</TH>
+</TR>
+</THEAD>
+
+
+
+<EMWEB_ITERATE
+ C='
+   static usmdbFdbEntry_t  fdbEntry;
+   static L7_BOOL          first = L7_FALSE;
+   L7_RC_t                 rc;
+   L7_uint32               mgmt_unit;
+   L7_BOOL                 search;
+   EwaNetHandle            net;
+   usmWeb_AppInfo_t        appInfo;
+
+   net = ewsContextNetHandle(ewsContext);
+   if (net->app_pointer != NULL)
+   {
+     memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+     search = (L7_BOOL) appInfo.data[1];
+   }
+   else
+   {
+     search = L7_FALSE;
+   }
+
+   rc = usmDbUnitMgrMgrNumberGet(&mgmt_unit);  /*Get the Management unit*/
+
+   if (rc != L7_SUCCESS)
+      return NULL;
+
+   if (ewsContextIterator(ewsContext) == NULL)
+   {
+     memset(&fdbEntry, 0x00, sizeof(usmdbFdbEntry_t));
+
+     rc = usmWebMacAddrGet(search, (L7_char8 *) appInfo.buf, &fdbEntry);
+
+     if (rc == L7_SUCCESS)
+       first = L7_TRUE;
+     else
+       first = L7_FALSE;
+   }
+
+   if (first == L7_TRUE)
+   {
+     first = L7_FALSE;
+     rc = usmDbFDBEntryGet(mgmt_unit, &fdbEntry);
+     if (rc == L7_SUCCESS)
+     {
+       return (const void *) &fdbEntry;
+     }
+   }
+   else
+   {
+     rc = usmDbFDBEntryNextGet(mgmt_unit, &fdbEntry);
+     if ((rc == L7_SUCCESS) && (search == L7_FALSE))
+     {
+       return (const void *) &fdbEntry;
+     }
+     else
+     {
+       return NULL;
+     }
+   }
+
+   '>
+
+   <EMWEB_STRING C='
+
+   usmdbFdbEntry_t fdbEntry_itr;
+
+   EwaNetHandle         net;
+   usmWeb_AppInfo_t     appInfo;
+   L7_int32             value = 0;
+   L7_uint32            mgmt_unit;
+   L7_RC_t              rc;
+
+   rc = usmDbUnitMgrMgrNumberGet(&mgmt_unit);
+
+   if (rc == L7_SUCCESS)
+   {
+     net = ewsContextNetHandle(ewsContext);
+     if (net->app_pointer != L7_NULL)
+     {
+       memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+       if (appInfo.data[0] == learned)
+         value = L7_TRUE;
+       else
+         value = L7_FALSE;
+     }
+
+     if (ewsContextIterator(ewsContext) == NULL)
+       memset(&fdbEntry_itr, 0x00, sizeof(usmdbFdbEntry_t));
+     else
+       memcpy(&fdbEntry_itr, (usmdbFdbEntry_t *) ewsContextIterator(ewsContext), sizeof(usmdbFdbEntry_t));
+
+     return usmWebFDBSearch(L7_FALSE, mgmt_unit, value, fdbEntry_itr );
+   }
+   else
+   {
+     return NULL;
+   }
+
+   '>
+
+</EMWEB_ITERATE>
+
+
+
+
+</TABLE>
+
+</TD></TR>
+
+<EMWEB_ELSE>   <!-- else for USMWEB_CHECK_FWD_DB_ENTRY_PRESENT -->
+
+
+<TR>
+    <TD class="message">
+
+
+    <EMWEB_IF ID= USMWEB_CHECK_FWD_DB_SEARCH_FAILED C='
+       L7_BOOL              search;
+       EwaNetHandle         net;
+       usmWeb_AppInfo_t     appInfo;
+
+       net = ewsContextNetHandle(ewsContext);
+       if (net->app_pointer != NULL)
+       {
+         memcpy(&appInfo, net->app_pointer, sizeof(usmWeb_AppInfo_t));
+         search = (L7_BOOL) appInfo.data[1];
+       }
+       else
+       {
+         search = L7_FALSE;
+       }
+
+       if (search)
+         return "SEARCH FAILED";
+       else
+         return NULL;
+    '>
+ 
+       <B><CENTER>Search for the specified mac address Failed to find any entries</CENTER></B>
+
+    <EMWEB_ELSE>
+
+       <B><CENTER>Forwarding Data Base Empty</CENTER></B>
+
+    </EMWEB_IF>
+
+    </TD>
+</TR>
+
+</EMWEB_IF>   <!-- end USMWEB_CHECK_FWD_DB_ENTRY_PRESENT -->
+
+<tr></TR><TR><td colspan=4 emweb:/USMWEB_BUTTON_ALIGN;><BR>
+<input class="buttonattributes" type=SUBMIT name="Reset">
+</TD>
+</TR>
+
+
+<EMWEB_ELSE>  <!-- else for USMWEB_CHECK_UNIT_MGMT_PRESENT -->
+<TR>
+    <TD class = "rowidentifierattributes" >
+    <B><CENTER>No Management Unit Present</CENTER></B>
+    </TD>
+</TR>
+
+</EMWEB_IF>   <!-- end for USMWEB_CHECK_UNIT_MGMT_PRESENT -->
+</TABLE>
+
+<INPUT TYPE="hidden" NAME="err_flag" SIZE="4" MAXLENGTH="3" EMWEB_TYPE=DECIMAL_UINT>
+<INPUT TYPE="hidden" NAME="err_msg" SIZE="32" MAXLENGTH="512" >
+
+<!-- ----------------------------------- -->
+<!--         Web page footer             -->
+<!-- ----------------------------------- -->
+ emweb:/USMWEB_PAGE_FOOTER_GET;
+
+</form>
+
+</BODY>
+</HTML>
+
+

@@ -1,0 +1,786 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="base" version="1.0">
+
+<module name="UsrMgrLoginAuthList">
+
+<object name="CreateLoginAPLName">
+<core type="string" access="write-only" descr="Create login Authentication profile list."/>
+<ui name="Login Authentication Profile List Name" style="inputLine">
+</ui></object>
+
+<object name="DefaultLoginConsoleAuthList">
+<core type="string" properties="dynamic" access="read-write" descr="Default login console authentication list."/>
+<ui name="Default Login Console AuthList" style="choiceNselect1">
+</ui></object>
+
+<object name="DefaultLoginTelnetAuthList">
+<core type="string" properties="dynamic" access="read-write" descr="Default login telnet authentication list."/>
+<ui name="Default Login Telnet AuthList" style="choiceNselect1">
+</ui></object>
+
+<object name="DefaultLoginSSHAuthList">
+<core type="string" properties="dynamic" access="read-write" descr="Default login SSH authentication list."/>
+<ui name="Default Login SSH AuthList" style="choiceNselect1">
+</ui></object>
+
+<object name="LoginAPLName">
+<core type="string" key="yes" access="read-write" descr="The name of the login Authentication profile list."/>
+<ui name="Login Auth Profile List Name" style="inputLine">
+</ui></object>
+
+<object name="LoginAuthListRowStatus" depends="LoginAPLName">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Create or Delete the login authentication list."/>
+<ui name="Login AuthList RowStatus" style="inputLine">
+</ui></object>
+
+<object name="LoginAuthMethodOrder">
+<core type="uint" key="yes" access="read-write" descr="The order of the Login authentication method."/>
+<ui name="Login Authentication Method Order" style="plainText">
+</ui></object>
+
+<object name="LoginAuthMethod" depends="LoginAPLName,LoginAuthMethodOrder">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The Login authentication method being set ."/>
+<ui name="Login Authentication Method" style="plainText">
+</ui></object>
+
+<object name="AuthenticationListMethod1" depends="LoginAPLName">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" access="read-write" descr="The authentication method1 at the specified index in the list"/>
+<ui name="Authentication List Method1" style="inputLine">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.3"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod2" depends="LoginAPLName">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" access="read-write" descr="The authentication method2 at the specified index in the list"/>
+<ui name="Authentication List Method2" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.4"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod3" depends="LoginAPLName">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" access="read-write" descr="The authentication method3 at the specified index in the list"/>
+<ui name="Authentication List Method3" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.5"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod4" depends="LoginAPLName">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" access="read-write" descr="The authentication method4 at the specified index in the list"/>
+<ui name="Authentication List Method4" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.7"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod5" depends="LoginAPLName">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The authentication method5 at the specified index in the list"/>
+<ui name="Authentication List Method5" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.6"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod6" depends="LoginAPLName">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The authentication method6 at the specified index in the list"/>
+<ui name="Authentication List Method6" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.2"/>
+</ui>
+</object>
+<object name="MethodList" depends="LoginAPLName">
+<core type="string" access="read-only" descr="The authentication method list"/>
+<ui name="Method List" style="plainText">
+</ui>
+</object>
+</module>
+
+<module name="UsrMgrEnableAuthList">
+
+<object name="CreateEnableAPLName">
+<core type="string" access="write-only" descr="Create/enable Authentication profile list."/>
+<ui name="Authentication Profile List Name" style="inputLine">
+</ui></object>
+
+<object name="DefaultEnableConsoleAuthList">
+<core type="string" properties="dynamic" access="read-write" descr="Enabled default console authentication list."/>
+<ui name="Enable Default Console AuthList" style="choiceNselect1">
+</ui></object>
+
+<object name="DefaultEnableTelnetAuthList">
+<core type="string" properties="dynamic" access="read-write" descr="Enabled default telnet authentication list."/>
+<ui name="Enable Default Telnet AuthList" style="choiceNselect1">
+</ui></object>
+
+<object name="DefaultEnableSSHAuthList">
+<core type="string" properties="dynamic" access="read-write" descr="Enabled default SSH authentication list."/>
+<ui name="Enable Default SSH AuthList" style="choiceNselect1">
+</ui></object>
+
+<object name="EnableAPLName">
+<core type="string" key="yes" access="read-write" descr="The name of the Authentication profile list."/>
+<ui name="Authentication Profile List Name" style="inputLine">
+</ui></object>
+
+<object name="EnableAuthListRowStatus" depends="EnableAPLName">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Create or Delete the enabled Authentication list."/>
+<ui name="Authentication List RowStatus" style="inputLine">
+</ui></object>
+
+<object name="EnableAuthMethodOrder">
+<core type="uint" key="yes" access="read-write" descr="The order of the enabled authentication method."/>
+<ui name="Authentication Method Order" style="inputLine">
+</ui></object>
+
+<object name="EnableAuthMethod" depends="EnableAPLName,EnableAuthMethodOrder">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The enabled authentication method being set ."/>
+<ui name="Authentication Method" style="choiceNselect1">
+</ui></object>
+
+<object name="AuthenticationListMethod1" depends="EnableAPLName">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" access="read-write" descr="The authentication method1 at the specified index in the list"/>
+<ui name="Authentication List Method1" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.3"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod2" depends="EnableAPLName">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" access="read-write" descr="The authentication method2 at the specified index in the list"/>
+<ui name="Authentication List Method2" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.4"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod3" depends="EnableAPLName">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" access="read-write" descr="The authentication method3 at the specified index in the list"/>
+<ui name="Authentication List Method3" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.5"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod4" depends="EnableAPLName">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" access="read-write" descr="The authentication method4 at the specified index in the list"/>
+<ui name="Authentication List Method4" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.7"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod5" depends="EnableAPLName">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" access="read-write" default="L7_AUTH_METHOD_UNDEFINED" descr="The authentication method5 at the specified index in the list"/>
+<ui name="Authentication List Method5" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.6"/>
+</ui>
+</object>
+<object name="MethodList" depends="EnableAPLName">
+<core type="string" access="read-only" descr="The authentication method list"/>
+<ui name="Method List" style="plainText">
+</ui>
+</object>
+
+</module>
+
+<!-- FP 
+&lt;module name=&quot;UsrMgrEnableAuthList&quot;&gt;
+&lt;object name=&quot;AuthenticationListName&quot;&gt;
+&lt;core type=&quot;string&quot; key=&quot;yes&quot; access=&quot;read-write&quot; descr=&quot;configured APL Name&quot;/&gt;
+&lt;ui name=&quot;AuthenticationListName&quot; style=&quot;plainText&quot;&gt;
+&lt;snmp asn-id=&quot;1.3.6.1.4.1.4413.1.1.1.2.16.2.1.2&quot;/&gt;
+&lt;/ui&gt;
+&lt;/object&gt;
+&lt;object name=&quot;DefaultEnableConsoleAuthList&quot;  &gt;
+&lt;core  type=&quot;string&quot; properties=&quot;dynamic&quot; access=&quot;read-write&quot; descr=&quot;default login console authentication list.&quot;/&gt;
+&lt;ui  name=&quot;DefaultLoginConsoleAuthList&quot; style=&quot;choiceNselect1&quot; &gt;
+&lt;/ui&gt;&lt;/object&gt;
+
+&lt;object name=&quot;DefaultEnableTelnetAuthList&quot;  &gt;
+&lt;core  type=&quot;string&quot; properties=&quot;dynamic&quot; access=&quot;read-write&quot; descr=&quot;default login telnet authentication list.&quot;/&gt;
+&lt;ui  name=&quot;DefaultLoginTelnetAuthList&quot; style=&quot;choiceNselect1&quot; &gt;
+&lt;/ui&gt;&lt;/object&gt;
+
+&lt;object name=&quot;DefaultEnableSSHAuthList&quot;  &gt;
+&lt;core  type=&quot;string&quot; properties=&quot;dynamic&quot; access=&quot;read-write&quot; descr=&quot;default login SSH authentication list.&quot;/&gt;
+&lt;ui  name=&quot;DefaultLoginSSHAuthList&quot; style=&quot;choiceNselect1&quot; &gt;
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;AuthenticationListMethod1&quot; depends=&quot;AuthenticationListName&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;L7_USER_MGR_AUTH_METHOD_t&quot; access=&quot;read-write&quot; descr=&quot;authentication method1 at the specified index in the list&quot;/&gt;
+&lt;ui name=&quot;AuthenticationListMethod1&quot; style=&quot;inputLine&quot;&gt;
+&lt;snmp asn-id=&quot;1.3.6.1.4.1.4413.1.1.1.2.16.2.1.3&quot;/&gt;
+&lt;/ui&gt;
+&lt;/object&gt;
+&lt;object name=&quot;AuthenticationListMethod2&quot; depends=&quot;AuthenticationListName&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;L7_USER_MGR_AUTH_METHOD_t&quot; access=&quot;read-write&quot; descr=&quot;authentication method2 at the specified index in the list&quot;/&gt;
+&lt;ui name=&quot;AuthenticationListMethod2&quot; style=&quot;inputLine&quot;&gt;
+&lt;snmp asn-id=&quot;1.3.6.1.4.1.4413.1.1.1.2.16.2.1.4&quot;/&gt;
+&lt;/ui&gt;
+&lt;/object&gt;
+&lt;object name=&quot;AuthenticationListMethod3&quot; depends=&quot;AuthenticationListName&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;L7_USER_MGR_AUTH_METHOD_t&quot; access=&quot;read-write&quot; descr=&quot;authentication method3 at the specified index in the list&quot;/&gt;
+&lt;ui name=&quot;AuthenticationListMethod3&quot; style=&quot;inputLine&quot;&gt;
+&lt;snmp asn-id=&quot;1.3.6.1.4.1.4413.1.1.1.2.16.2.1.5&quot;/&gt;
+&lt;/ui&gt;
+&lt;/object&gt;
+&lt;object name=&quot;AuthenticationListMethod4&quot; depends=&quot;AuthenticationListName&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;L7_USER_MGR_AUTH_METHOD_t&quot; access=&quot;read-write&quot; descr=&quot;authentication method4 at the specified index in the list&quot;/&gt;
+&lt;ui name=&quot;AuthenticationListMethod4&quot; style=&quot;inputLine&quot;&gt;
+&lt;snmp asn-id=&quot;1.3.6.1.4.1.4413.1.1.1.2.16.2.1.7&quot;/&gt;
+&lt;/ui&gt;
+&lt;/object&gt;
+&lt;object name=&quot;AuthenticationListStatus&quot; depends=&quot;AuthenticationListName&quot;&gt;
+&lt;core type=&quot;row-status&quot; xtype=&quot;L7_ROW_STATUS_t&quot; access=&quot;read-write&quot; descr=&quot;Status of given index row of APL&quot;/&gt;
+&lt;ui name=&quot;AuthenticationListStatus&quot; style=&quot;inputLine&quot;&gt;
+&lt;snmp asn-id=&quot;1.3.6.1.4.1.4413.1.1.1.2.16.2.1.6&quot;/&gt;
+&lt;/ui&gt;
+&lt;/object&gt;
+&lt;/module&gt;
+
+&lt;module name=&quot;UsrMgrLoginAuthList&quot;&gt;
+&lt;object name=&quot;AuthenticationListName&quot;&gt;
+&lt;core type=&quot;string&quot; key=&quot;yes&quot; access=&quot;read-write&quot; descr=&quot;configured APL Name&quot;/&gt;
+&lt;ui name=&quot;AuthenticationListName&quot; style=&quot;plainText&quot;&gt;
+&lt;snmp asn-id=&quot;1.3.6.1.4.1.4413.1.1.1.2.16.2.1.2&quot;/&gt;
+&lt;/ui&gt;
+&lt;/object&gt;
+&lt;object name=&quot;DefaultLoginConsoleAuthList&quot;  &gt;
+&lt;core  type=&quot;string&quot; properties=&quot;dynamic&quot; access=&quot;read-write&quot; descr=&quot;default login console authentication list.&quot;/&gt;
+&lt;ui  name=&quot;DefaultLoginConsoleAuthList&quot; style=&quot;choiceNselect1&quot; &gt;
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;DefaultLoginTelnetAuthList&quot;  &gt;
+&lt;core  type=&quot;string&quot; properties=&quot;dynamic&quot; access=&quot;read-write&quot; descr=&quot;default login telnet authentication list.&quot;/&gt;
+&lt;ui  name=&quot;DefaultLoginTelnetAuthList&quot; style=&quot;choiceNselect1&quot; &gt;
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;DefaultLoginSSHAuthList&quot;  &gt;
+&lt;core  type=&quot;string&quot; properties=&quot;dynamic&quot; access=&quot;read-write&quot; descr=&quot;default login SSH authentication list.&quot;/&gt;
+&lt;ui  name=&quot;DefaultLoginSSHAuthList&quot; style=&quot;choiceNselect1&quot; &gt;
+&lt;/ui&gt;&lt;/object&gt;
+&lt;object name=&quot;AuthenticationListMethod1&quot; depends=&quot;AuthenticationListName&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;L7_USER_MGR_AUTH_METHOD_t&quot; access=&quot;read-write&quot; descr=&quot;authentication method1 at the specified index in the list&quot;/&gt;
+&lt;ui name=&quot;AuthenticationListMethod1&quot; style=&quot;inputLine&quot;&gt;
+&lt;snmp asn-id=&quot;1.3.6.1.4.1.4413.1.1.1.2.16.2.1.3&quot;/&gt;
+&lt;/ui&gt;
+&lt;/object&gt;
+&lt;object name=&quot;AuthenticationListMethod2&quot; depends=&quot;AuthenticationListName&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;L7_USER_MGR_AUTH_METHOD_t&quot; access=&quot;read-write&quot; descr=&quot;authentication method2 at the specified index in the list&quot;/&gt;
+&lt;ui name=&quot;AuthenticationListMethod2&quot; style=&quot;inputLine&quot;&gt;
+&lt;snmp asn-id=&quot;1.3.6.1.4.1.4413.1.1.1.2.16.2.1.4&quot;/&gt;
+&lt;/ui&gt;
+&lt;/object&gt;
+&lt;object name=&quot;AuthenticationListMethod3&quot; depends=&quot;AuthenticationListName&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;L7_USER_MGR_AUTH_METHOD_t&quot; access=&quot;read-write&quot; descr=&quot;authentication method3 at the specified index in the list&quot;/&gt;
+&lt;ui name=&quot;AuthenticationListMethod3&quot; style=&quot;inputLine&quot;&gt;
+&lt;snmp asn-id=&quot;1.3.6.1.4.1.4413.1.1.1.2.16.2.1.5&quot;/&gt;
+&lt;/ui&gt;
+&lt;/object&gt;
+&lt;object name=&quot;AuthenticationListMethod4&quot; depends=&quot;AuthenticationListName&quot;&gt;
+&lt;core type=&quot;enum&quot; xtype=&quot;L7_USER_MGR_AUTH_METHOD_t&quot; access=&quot;read-write&quot; descr=&quot;authentication method4 at the specified index in the list&quot;/&gt;
+&lt;ui name=&quot;AuthenticationListMethod4&quot; style=&quot;inputLine&quot;&gt;
+&lt;snmp asn-id=&quot;1.3.6.1.4.1.4413.1.1.1.2.16.2.1.7&quot;/&gt;
+&lt;/ui&gt;
+&lt;/object&gt;
+&lt;object name=&quot;AuthenticationListStatus&quot; depends=&quot;AuthenticationListName&quot;&gt;
+&lt;core type=&quot;row-status&quot; xtype=&quot;L7_ROW_STATUS_t&quot; access=&quot;read-write&quot; descr=&quot;Status of given index row of APL&quot;/&gt;
+&lt;ui name=&quot;AuthenticationListStatus&quot; style=&quot;inputLine&quot;&gt;
+&lt;snmp asn-id=&quot;1.3.6.1.4.1.4413.1.1.1.2.16.2.1.6&quot;/&gt;
+&lt;/ui&gt;
+&lt;/object&gt;
+&lt;/module&gt;
+
+-->
+<module name="UsrMgrHTTPAuthListNew">
+<object name="AuthenticationListMethod1">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The authentication method1 at the specified index in the list"/>
+<ui name="Authentication List Method1" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.3"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod2">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The authentication method2 at the specified index in the list"/>
+<ui name="Authentication List Method2" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.4"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod3">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The authentication method3 at the specified index in the list"/>
+<ui name="Authentication List Method3" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.5"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod4">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The authentication method4 at the specified index in the list"/>
+<ui name="Authentication List Method4" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.7"/>
+</ui>
+</object>
+<object name="MethodList">
+<core type="string" access="read-only" descr="The authentication method list"/>
+<ui name="Method List" style="plainText">
+</ui>
+</object>
+</module>
+
+<module name="UsrMgrHTTPSAuthListNew">
+
+<object name="AuthenticationListMethod1">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The authentication method1 at the specified index in the list"/>
+<ui name="Authentication List Method1" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.3"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod2">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The authentication method2 at the specified index in the list"/>
+<ui name="Authentication List Method2" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.4"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod3">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The authentication method3 at the specified index in the list"/>
+<ui name="Authentication List Method3" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.5"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod4">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The authentication method4 at the specified index in the list"/>
+<ui name="Authentication List Method4" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.7"/>
+</ui>
+</object>
+<object name="MethodList">
+<core type="string" access="read-only" descr="The authentication method list"/>
+<ui name="Method List" style="plainText">
+</ui>
+</object>
+</module>
+
+<module name="UsrMgrDot1xAuthListNew">
+
+<object name="AuthenticationListMethod1">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The authentication method1 at the specified index in the list"/>
+<ui name="Authentication List Method1" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.3"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod2">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The authentication method2 at the specified index in the list"/>
+<ui name="Authentication List Method2" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.4"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod3">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The authentication method3 at the specified index in the list"/>
+<ui name="Authentication List Method3" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.5"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod4">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The authentication method4 at the specified index in the list"/>
+<ui name="Authentication List Method4" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.6"/>
+</ui>
+</object>
+<object name="MethodList">
+<core type="string" access="read-only" descr="The Authentication method list"/>
+<ui name="Method List" style="plainText">
+</ui>
+</object>
+
+</module>
+
+
+<module name="UsrMgrHTTPAuthList">
+
+<object name="HTTPAuthMethodOrder">
+<core type="uint" key="yes" access="read-write" descr="The order of the HTTP authentication method."/>
+<ui name="HTTP Authentication Method Order" style="inputLine">
+</ui></object>
+
+<object name="HTTPAuthMethod" depends="HTTPAuthMethodOrder">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The HTTP authentication method being set ."/>
+<ui name="HTTP Authentication Method" style="inputLine">
+</ui></object>
+
+</module>
+
+<module name="UsrMgrHTTPSAuthList">
+
+<object name="HTTPSAuthMethodOrder">
+<core type="uint" key="yes" access="read-write" descr="The order of the HTTPS authentication method."/>
+<ui name="HTTPS Authentication Method Order" style="inputLine">
+</ui></object>
+
+<object name="HTTPSAuthMethod" depends="HTTPSAuthMethodOrder">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The HTTPS authentication method being set ."/>
+<ui name="HTTPS Authentication Method" style="choiceNselect1">
+</ui></object>
+
+</module>
+
+<module name="UsrMgrDot1xAuthList">
+
+<object name="Dot1xAuthMethodOrder">
+<core type="uint" key="yes" access="read-write" descr="The order of the HTTPS authentication method."/>
+<ui name="Dot1x Authentication Method Order" style="inputLine">
+</ui></object>
+
+<object name="Dot1xAuthMethod" depends="Dot1xAuthMethodOrder">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" default="L7_AUTH_METHOD_UNDEFINED" access="read-write" descr="The Dot1x authentication method being set ."/>
+<ui name="Dot1x Authentication Method" style="choiceNselect1">
+</ui></object>
+
+<!-- The below object is a temporary fix unitl the required feature is implemented in tool 
+-->
+
+<object name="Dot1xAuthenticationMethod">
+<core type="enum" xtype="L7_XUI_DOT1X_AUTH_METHOD_t" access="read-write" descr="This object is a tempory object until the required feature is implemented in tool."/>
+<ui name="Dot1x Authentication Method" style="choiceNselect1">
+</ui></object>
+
+
+</module>
+
+<module name="UsrMgrUserConfig">
+<object name="UserIndex">
+<core type="uint" key="yes" access="read-write" descr="Login table index"/>
+<ui name="User Index" style="inputLine"/>
+</object>
+<object name="UserName" depends="UserIndex">
+<core type="string" properties="pseudo-key" access="read-write" descr="The login user name per index"/>
+<ui name="User Name" style="inputLine"/>
+</object>
+<object name="UserPassword" depends="UserIndex">
+<core type="user" xtype="string_t" access="write-only" descr="The login user password in clear text per index"/>
+<ui name="User Password" style="inputLine"/>
+</object>
+<object name="OldPassword" depends="UserIndex">
+<core type="string" access="write-only" descr="The login Old password to Validate in clear text per index"/>
+<ui name="Old Password" style="inputLine"/>
+</object>
+<object name="UserStatus" depends="UserIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The login status per index"/>
+<ui name="User Status" style="inputLine"/>
+</object>
+<object name="UserAuthType" depends="UserIndex">
+<core type="enum" xtype="L7_SNMP_USER_AUTH_PROTO_t" access="read-write" descr="The authentication parameters for a user"/>
+<ui name="User Authentication Type" style="choiceNselect1"/>
+</object>
+<object name="UserEncryptType" depends="UserIndex">
+<core type="enum" xtype="L7_SNMP_USER_PRIV_PROTO_t" access="read-write" descr="The encryption type used to store the userr key"/>
+<ui name="User Encryption Type" style="choiceNselect1"/>
+</object>
+<object name="UserEncryptPassword" depends="UserIndex">
+<core type="string" access="write-only" descr="The encryption parameters for a user"/>
+<ui name="User Encryption Password" style="inputLine"/>
+</object>
+<object name="UserAuthenticationList" depends="UserIndex">
+<core type="string" access="read-write" descr="An APL assigned to a user for a specific component"/>
+<ui name="User Authentication List" style="inputLine"/>
+</object>
+<object name="UserLockoutStatus" depends="UserIndex">
+<core type="enum" xtype="TrueFalse_t" access="read-only" descr="To know whether the user is locked or not"/>
+<ui name="User Lockout Status" style="plainText"/>
+</object>
+<object name="UserPasswordExpireTime" depends="UserIndex">
+<core type="string" access="read-only" descr="The time the user&apos;s password expired"/>
+<ui name="User Password ExpireTime" style="plainText"/>
+</object>
+<object name="UserPasswordChangeTime" depends="UserIndex">
+<core type="string" access="read-only" descr="The time when the password got set"/>
+<ui name="User Password ChangeTime" style="plainText"/>
+</object>
+<object name="UserUnLock" depends="UserIndex">
+<core type="uint" access="write-only" descr="Unlock the locked user"/>
+<ui name="User UnLock" style="inputLine"/>
+</object>
+<object name="UserTotalLockoutCount" depends="UserIndex">
+<core type="uint" access="read-only" descr="Gets the total number of times the user account has been locked"/>
+<ui name="User Total Lockout Count" style="plainText"/>
+</object>
+<object name="UserTotalLoginFailures" depends="UserIndex">
+<core type="uint" access="read-only" descr="The total number of password failures for the user account"/>
+<ui name="User Total Login Failures" style="plainText"/>
+</object>
+<object name="UserCurrentLockoutCount" depends="UserIndex">
+<core type="uint" access="read-only" descr="The current password failure count used for determining when the account should be locked.The value is reset on a successful login"/>
+<ui name="User Current Lockout Count" style="plainText"/>
+</object>
+<object name="UserAccessMode" depends="UserIndex">
+<core type="enum" xtype="L7_SNMP_COMMUNITY_ACCESS_LEVEL_t" access="read-write" descr="The login user password after encryption per index"/>
+<ui name="User Access Mode" style="choiceNselect1"/>
+</object>
+<object name="UserAccessLevel" depends="UserIndex">
+<core type="enum" xtype="L7_XUI_USER_ACCESS_LEVEL_t" access="read-write" descr="The login user access level"/>
+<ui name="User Access Level" style="choiceNselect1"/>
+</object>
+<object name="ResetPassword" depends="UserIndex">
+<core type="string" access="write-only" descr="The login user password in clear text per index"/>
+<ui name="Reset Password" style="inputLine"/>
+</object>
+
+<object name="UserPasswordOverrideComplexityCheck" depends="UserIndex">
+<core type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="Enable/Disable the override password strength check feature"/>
+<ui name="User Password Override Complexity check" style="inputLine"/>
+</object>
+
+</module>
+
+<module name="UserMgrIntAuthServUserDBConfig">
+<object name="UserIndex">
+<core type="uint" key="yes" access="read-write" descr="Login table index"/>
+<ui name="User Index" style="inputLine"/>
+</object>
+<object name="UserName" depends="UserIndex">
+<core type="string" properties="pseudo-key" access="read-write" descr="The user name per index"/>
+<ui name="User Name" style="inputLine"/>
+</object>
+<object name="UserPassword" depends="UserIndex">
+<core type="user" xtype="string_t" access="read-write" descr="The dot1x user password in clear text per index"/>
+<ui name="User Password" style="plainText"/>
+</object>
+<object name="UserStatus" depends="UserIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The login status per index"/>
+<ui name="User Status" style="inputLine"/>
+</object>
+<object name="ClearAllUsers">
+<core type="enum" xtype="clear_t" access="write-only" descr="Clear All the IAS Users configured."/>
+<ui name="Clear All" style="inputLine"/>
+</object>
+</module>
+
+
+<module name="UsrMgrGlobal">
+<object name="PasswordManagementMinLength">
+<core type="uint" min="L7_MIN_PASSWORD_SIZE" max="L7_PASSWORD_SIZE-1" default="FD_USER_MGR_PASSWD_MIN_LENGTH" access="read-write" descr="The minimum password length value"/>
+<ui name="Password Minimum Length" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementHistory">
+<core type="uint" min="L7_MIN_HIST_LENGTH" max="L7_MAX_HIST_LENGTH" default="FD_USER_MGR_PASSWD_HIST_LENGTH" access="read-write" descr="This configures the history table size."/>
+<ui name="Password History" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementAging">
+<core type="uint" min="0" max="L7_MAX_PASSWD_AGING" default="FD_USER_MGR_PASSWD_AGING_PERIOD" access="read-write" descr="The password aging value"/>
+<ui name="Password Aging" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementLockAttempts">
+<core type="uint" min="0" max="L7_MAX_LOCKOUT_COUNT" default="FD_USER_MGR_PASSWD_USER_LOCKOUT" access="read-write" descr="The number of user lockout attempts"/>
+<ui name="Password Lock Attempts" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementPasswdStrengthCheck">
+<core type="enum" xtype="enable_t" access="read-write" descr="Enable/Disable the password strength check feature"/>
+<ui name="Password Strength check" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementMinUpperCaseCharLength">
+<core type="uint" min="L7_PASSWD_UPPERCASE_CHARS_MIN_LEN" max="L7_PASSWD_UPPERCASE_CHARS_MAX_LEN" default="FD_USER_MGR_PASSWD_MIN_UPPERCASE_CHARS" access="read-write" descr="The minimum password upper case length value"/>
+<ui name="Password Minimum Upper Case Characters Length" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementMinLowerCaseCharLength">
+<core type="uint" min="L7_PASSWD_LOWERCASE_CHARS_MIN_LEN" max="L7_PASSWD_LOWERCASE_CHARS_MAX_LEN" default="FD_USER_MGR_PASSWD_MIN_LOWERCASE_CHARS" access="read-write" descr="The minimum password lower case length value"/>
+<ui name="Password Minimum Lower Case Characters Length" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementMinNumericCharLength">
+<core type="uint" min="L7_PASSWD_NUMERIC_CHARS_MIN_LEN" max="L7_PASSWD_NUMERIC_CHARS_MAX_LEN" default="FD_USER_MGR_PASSWD_MIN_NUMERIC_CHARS" access="read-write" descr="The minimum password numeric char length value"/>
+<ui name="Password Minimum Numeric Characters Length" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementMinSpecialCharLength">
+<core type="uint" min="L7_PASSWD_SPECIAL_CHARS_MIN_LEN" max="L7_PASSWD_SPECIAL_CHARS_MAX_LEN" default="FD_USER_MGR_PASSWD_MIN_SPL_CHARS" access="read-write" descr="The minimum password numeric char length value"/>
+<ui name="Password Minimum Numeric Characters Length" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementMaxConsecutiveCharLength">
+<core type="uint" min="L7_PASSWD_MAX_CONSECUTIVE_CHARS_MIN_LEN" max="L7_PASSWD_MAX_CONSECUTIVE_CHARS_MAX_LEN" default="FD_USER_MGR_PASSWD_MAX_CONSECUTIVE_CHARS" access="read-write" descr="The maximum consecutive characters length value in a password"/>
+<ui name="Password Maximim Consecutive Characters Limit Length" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementMaxRepeatedCharLength">
+<core type="uint" min="L7_PASSWD_MAX_REPEATED_CHARS_MIN_LEN" max="L7_PASSWD_MAX_REPEATED_CHARS_MAX_LEN" default="FD_USER_MGR_PASSWD_MAX_REPEATED_CHARS" access="read-write" descr="The maximum repeated characters length value in a password"/>
+<ui name="Password Maximim Repetition of Characters Limit Length" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementMinCharacterClasses">
+<core type="uint" min="L7_PASSWD_CHARACTER_CLASSES_MIN" max="L7_PASSWD_CHARACTER_CLASSES_MAX" default="FD_USER_MGR_PASSWD_MIN_CHARACTER_CLASSES" access="read-write" descr="The minimum character classes value"/>
+<ui name="Password Minimum Character Classes" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementLastPasswordSetResult">
+<core type="string" access="read-only" descr="Get the last password set"/>
+<ui name="Last Password Set Result" style="plainText"/>
+</object>
+
+<object name="PasswordManagementExcludeKeyword" >
+<core type="string" key="yes" access="read-write" descr="Configure Exclude Keyword"/>
+<ui name="Password Exclude Keyword" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementExcludeKeywordStatus" depends="PasswordManagementExcludeKeyword">
+<core type="row-status"  xtype="L7_ROW_STATUS_t" access="read-write" descr="Row status object to create/delete Exclude Keyword"/>
+<ui name="Password Exclude Keyword Status" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementStrengthScore">
+<core type="uint" max="L7_PASSWORD_SIZE" access="read-write" descr="The password strength score value"/>
+<ui name="Password Strength Score" style="inputLine"/>
+</object>
+
+<object name="PasswordManagementIsExcludeKeywordMaxLimit" >
+<core type="enum" xtype="TrueFalse_t" access="read-only" descr="Check if the exclude keywords reached the max limit"/>
+<ui name="Password Exclude Keyword Is exist" style="plainText"/>
+</object>
+
+<object name="ConsolePassword">
+<core type="user" xtype="string_t" access="write-only" descr="The password for console login."/>
+<ui name="Console Password" style="inputLine"/>
+</object>
+
+<object name="TelnetPassword">
+<core type="user" xtype="string_t" access="write-only" descr="The password for telnet login."/>
+<ui name="Telnet Password" style="inputLine"/>
+</object>
+
+<object name="SSHPassword">
+<core type="user" xtype="string_t" access="write-only" descr="The password for SSH login."/>
+<ui name="SSH Password" style="inputLine"/>
+</object>
+
+<object name="EnablePassword">
+<core type="user" xtype="string_t" access="write-only" descr="The password for enable login."/>
+<ui name="Enable Password" style="inputLine"/>
+</object>
+
+
+</module>
+
+<module name="UsrMgrAuthList">
+<object name="AuthProfileListCount">
+<core type="uint" access="read-only" descr="Total number of configured APLs"/>
+<ui name="Authentication Profile ListCount" style="plainText"/>
+</object>
+<object name="AuthProfileListCreate">
+<core type="string" access="write-only" descr="Creates a named APL with no authentication methods"/>
+<ui name="Authentication Profile List Create" style="inputLine">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.1"/>
+</ui>
+</object>
+<object name="UserConfigDefaultAuthenticationList">
+<core type="string" access="read-write" descr="The Authentication Profile List assigned to nonconfigured users for a specific component"/>
+<ui name="User Config Default Authentication List" style="inputLine"/>
+</object>
+<object name="AuthenticationListIndex">
+<core type="uint" key="yes" access="read-write" descr="The index of Authentication Profile List in the list"/>
+<ui name="Authentication List Index" style="inputLine"/>
+</object>
+<object name="AuthenticationListName" depends="AuthenticationListIndex">
+<core type="string" properties="pseudo-key" access="read-write" descr="The configured Authentication Profile List Name"/>
+<ui name="Authentication List Name" style="inputLine">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.2"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod1" depends="AuthenticationListIndex">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" access="read-write" descr="The authentication method1 at the specified index in the list"/>
+<ui name="Authentication List Method1" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.3"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod2" depends="AuthenticationListIndex">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" access="read-write" descr="The authentication method2 at the specified index in the list"/>
+<ui name="Authentication List Method2" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.4"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod3" depends="AuthenticationListIndex">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" access="read-write" descr="authentication method3 at the specified index in the list"/>
+<ui name="Authentication List Method3" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.5"/>
+</ui>
+</object>
+<object name="AuthenticationListMethod4" depends="AuthenticationListIndex">
+<core type="enum" xtype="L7_USER_MGR_AUTH_METHOD_t" access="read-write" descr="authentication method4 at the specified index in the list"/>
+<ui name="Authentication List Method4" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.7"/>
+</ui>
+</object>
+<object name="MethodList" depends="AuthenticationListIndex">
+<core type="string" access="read-only" descr="The authentication method list"/>
+<ui name="Method List" style="plainText">
+</ui>
+</object>
+<object name="AuthenticationListLoginUsers" depends="AuthenticationListIndex">
+<core type="string" access="read-only" descr="The authentication Login Users"/>
+<ui name="Authentication List Login Users" style="plainText">
+</ui>
+</object>
+<object name="AuthenticationList802xUsers" depends="AuthenticationListIndex">
+<core type="string" access="read-only" descr="The authentication 802.1x Users"/>
+<ui name="Authentication List 802.1x Users" style="plainText">
+</ui>
+</object>
+<object name="AuthenticationListStatus" depends="AuthenticationListIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The status of given index row of APL"/>
+<ui name="Authentication List Status" style="inputLine">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.16.2.1.6"/>
+</ui>
+</object>
+
+<object name="UserName">
+<core type="string" key="yes" access="read-write" descr="The list of the users assigned to the authentication list."/>
+<ui name="User Name" style="choiceNselect1"/>
+</object>
+
+<object name="AuthListForNonDefaultUser" depends="UserName">
+<core type="string" access="read-write" properties="dynamic" descr="The Authentiation Profile List assigned to given configured users for the User Manager component."/>
+<ui name="Authentication List For NonDefault User" style="choiceNselect1"/>
+</object>
+
+<object name="AuthListForDefaultUser">
+<core type="string" access="read-write" properties="dynamic" descr="The Authentiation Profile List assigned to nonconfigured users for the user manager component."/>
+<ui name="Authentication List For Default User" style="choiceNselect1"/>
+</object>
+
+</module>
+
+
+<module name="UsrMgrLoginSession">
+<object name="SessionType">
+<core type="enum" xtype="L7_LOGIN_TYPE_t" access="write-only" descr="Pass the Type Of session. Choose Unknown to get count of all connection types."/>
+<ui name="Session Type" style="choiceNselect1"/>
+</object>
+<object name="NoOfActiveSessions">
+<core type="uint" access="read-only" descr="The number of active login sessions on switch"/>
+<ui name="Active Sessions" style="plainText"/>
+</object>
+<object name="SessionIndex">
+<core type="uint" key="yes" access="read-write" descr="To determine if the given login session exists"/>
+<ui name="Session Index" style="inputLine"/>
+</object>
+<object name="RemoteIpAddr" depends="SessionIndex">
+<core type="user" xtype="ipv4_ipv6_serial" access="read-write" descr="The remote IP address for current telnet session"/>
+<ui name="Remote IP Address" style="inputLine"/>
+</object>
+<object name="Type" depends="SessionIndex">
+<core type="enum" xtype="L7_LOGIN_TYPE_t" access="read-write" descr="The login session type"/>
+<ui name="Type" style="choiceNselect1"/>
+</object>
+<object name="InterfaceIndex" depends="SessionIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" access="read-write" descr="The login session interface index"/>
+<ui name="Unit/Slot/Port" style="inputLine"/>
+</object>
+<object name="InterfaceIndex" depends="SessionIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" access="read-write" descr="The login session interface index"/>
+<ui name="Slot/Port" style="inputLine"/>
+</object>
+<object name="UserName" depends="SessionIndex">
+<core type="string" access="read-only" descr="The login session username."/>
+<ui name="User Name" style="plainText"/>
+</object>
+<object name="ActiveTime" depends="SessionIndex">
+<core type="user" xtype="timeStampHHMMSS_t" access="read-only" descr="The login session time"/>
+<ui name="Active Time" style="plainText"/>
+</object>
+<object name="StartTime" depends="SessionIndex">
+<core type="user" xtype="timeStampHHMMSS_t" access="read-only" descr="The login session start time"/>
+<ui name="Start Time" style="plainText"/>
+</object>
+<object name="IdleTime" depends="SessionIndex">
+<core type="user" xtype="timeStampHHMMSS_t" access="read-only" descr="The login session idle time"/>
+<ui name="Idle Time" style="plainText"/>
+</object>
+<object name="Status" depends="SessionIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="The login session status"/>
+<ui name="Status" style="inputLine"/>
+</object>
+</module>
+</objectxml>
+</FastPathXML>

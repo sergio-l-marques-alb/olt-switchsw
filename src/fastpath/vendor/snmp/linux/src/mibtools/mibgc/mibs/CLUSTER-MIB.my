@@ -1,0 +1,250 @@
+          CLUSTER-MIB DEFINITIONS ::= BEGIN
+
+          IMPORTS
+              MODULE-IDENTITY, OBJECT-TYPE, NOTIFICATION-TYPE, experimental,
+              Integer32, IpAddress, Counter32, Gauge32, TimeTicks, NsapAddress,
+              Counter64, UInteger32,
+              snmpModules
+                  FROM SNMPv2-SMI
+              DisplayString, TestAndIncr, RowStatus
+                  FROM SNMPv2-TC
+              MODULE-COMPLIANCE, OBJECT-GROUP
+                  FROM SNMPv2-CONF;
+
+          snmpResearch    OBJECT IDENTIFIER ::= { enterprises 99 }
+
+          clusterMIB MODULE-IDENTITY
+              LAST-UPDATED "9310150000Z"
+              ORGANIZATION "SNMP Research, Inc."
+              CONTACT-INFO
+                      "   David B. Levi
+                          Postal: SNMP Research, Inc.
+                          3001 Kimberlin Heights Road
+                          Knoxville, TN 37920-9716
+                          Tel: (615)573-1434
+                          Fax: (615)573-9197
+                          E-mail: levi@snmp.com"
+              DESCRIPTION
+                      "The MIB module for the SNMP Cluster MIB"
+              ::= { snmpResearch 12 15 }
+
+          clusterMIBObjects OBJECT IDENTIFIER ::= { clusterMIB 1 }
+
+
+          -- clusterCompileTable
+          --   Contains description of clusters available on a BRASS server.
+
+          clusterTable OBJECT-TYPE
+              SYNTAX      SEQUENCE OF ClusterEntry
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION
+                      "Contains description of clusters"
+              ::= { clusterMIBObjects 1 }
+
+          clusterEntry OBJECT-TYPE
+              SYNTAX      ClusterEntry
+              MAX-ACCESS  not-accessible
+              STATUS      current
+              DESCRIPTION
+                      "An entry in the cluster table."
+              INDEX   { clusterName }
+              ::= { clusterTable 1 }
+
+          ClusterEntry ::=
+              SEQUENCE {
+                  clusterName
+                      DisplayString,
+                  clusterReadSrcParty
+                      Integer32,
+                  clusterReadDstParty
+                      Integer32,
+                  clusterReadContext
+                      Integer32,
+                  clusterWriteSrcParty
+                      Integer32,
+                  clusterWriteDstParty
+                      Integer32,
+                  clusterWriteContext
+                      Integer32,
+                  clusterNoAuthSrcParty
+                      Integer32,
+                  clusterNoAuthDstParty
+                      Integer32,
+                  clusterNoAuthContext
+                      Integer32,
+                  clusterMD5AuthSrcParty
+                      Integer32,
+                  clusterMD5AuthDstParty
+                      Integer32,
+                  clusterMD5AuthContext
+                      Integer32,
+                  clusterAdminSrcParty
+                      Integer32,
+                  clusterAdminDstParty
+                      Integer32,
+                  clusterAdminContext
+                      Integer32,
+                  clusterStatus
+                      RowStatus
+              }
+
+          clusterName OBJECT-TYPE
+              SYNTAX      DisplayString
+              MAX-ACCESS  read-only
+              STATUS      current
+              DESCRIPTION
+                      "This variable contains the textual handle for this
+                      cluster.  This handle is used by BRASS clients for
+                      performing SNMPv2 operations.  This variable is also
+                      used as the index for the clusterTable."
+              ::= { clusterEntry 1 }
+
+          clusterReadSrcParty OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The partyIdentity of the source party to be used
+                      for SNMPv2 read operations (i.e. get, get-next, etc.)."
+              ::= { clusterEntry 2 }
+
+          clusterReadDstParty OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The partyIdentity of the destination party to be used
+                      for SNMPv2 read operations (i.e. get, get-next, etc.)."
+              ::= { clusterEntry 3 }
+
+          clusterReadContext OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The contextIdentity of the context to be used for
+                      SNMPv2 read operations (i.e. get, get-next, etc.)."
+              ::= { clusterEntry 4 }
+
+          clusterWriteSrcParty OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The partyIdentity of the source party to be used
+                      for SNMPv2 write operations."
+              ::= { clusterEntry 5 }
+
+          clusterWriteDstParty OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The partyIdentity of the destination party to be used
+                      for SNMPv2 write operations."
+              ::= { clusterEntry 6 }
+
+          clusterWriteContext OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The contextIdentity of the context to be used for
+                      SNMPv2 write operations."
+              ::= { clusterEntry 7 }
+
+          clusterNoAuthSrcParty OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The partyIdentity of the source party to be used
+                      for SNMPv2 noauth clock sync operations."
+              ::= { clusterEntry 8 }
+
+          clusterNoAuthDstParty OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The partyIdentity of the destination party to be used
+                      for SNMPv2 noauth clock sync operations."
+              ::= { clusterEntry 9 }
+
+          clusterNoAuthContext OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The contextIdentity of the context to be used for
+                      for SNMPv2 noauth clock sync operations."
+              ::= { clusterEntry 10 }
+
+          clusterMD5AuthSrcParty OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The partyIdentity of the source party to be used
+                      for SNMPv2 md5 clock sync operations."
+              ::= { clusterEntry 11 }
+
+          clusterMD5AuthDstParty OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The partyIdentity of the destination party to be used
+                      for SNMPv2 md5 clock sync operations."
+              ::= { clusterEntry 12 }
+
+          clusterMD5AuthContext OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The contextIdentity of the context to be used for
+                      for SNMPv2 md5 clock sync operations."
+              ::= { clusterEntry 13 }
+
+          clusterAdminSrcParty OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The partyIdentity of the source party to be used
+                      for SNMPv2 admin operations."
+              ::= { clusterEntry 14 }
+
+          clusterAdminDstParty OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The partyIdentity of the destination party to be used
+                      for SNMPv2 admin operations."
+              ::= { clusterEntry 15 }
+
+          clusterAdminContext OBJECT-TYPE
+              SYNTAX      Integer32
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "The contextIdentity of the context to be used for
+                      for SNMPv2 admin operations."
+              ::= { clusterEntry 16 }
+
+          clusterStatus OBJECT-TYPE
+              SYNTAX      RowStatus
+              MAX-ACCESS  read-write
+              STATUS      current
+              DESCRIPTION
+                      "Status of a cluster entry.  A cluster can only be
+                      used by a BRASS client if the status of the row is
+                      active.  The status can only become active if there
+                      is at least one set of srcParty/dstParty/context
+                      in the row that is valid."
+              ::= { clusterEntry 17 }
+
+          END

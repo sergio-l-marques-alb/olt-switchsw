@@ -1,0 +1,662 @@
+/********************************************************************
+ *
+ * (C) Copyright Broadcom Corporation 2003-2007
+ *
+ * *********************************************************************
+ *
+ * @filename         l3am.ext
+ *
+ * @purpose          Layer 3 ARP Table Manager (L3AM) external API
+ *
+ * @component        ARP Component
+ *
+ * @comments
+ *
+ * @create           02/13/2002
+ *
+ * @author           Igor Bryskin
+ *
+ * @end
+ *
+ * ********************************************************************/
+
+
+
+#ifndef     _L7_l3am_ext
+#define     _L7_l3am_ext
+
+#include "cm_lay3.ext"
+#include "xx.ext"
+#include "l3_comm_structs.h"
+
+/* ARP Resolution info */
+typedef struct t_ARPResInfo
+{
+   t_Lay3Addr destAddr;               /* dest. layer 3 address (filled in by
+                                         L3AM user */
+   t_LIH    lanNmb;                   /* Layer 2 interface ID to send
+                                         ARP Resolution request (filled in by
+                                         L3AM user)  */
+   byte    dllHeaderSize;             /* DLL header size (filled by L3AM)*/
+   byte    dllHeader[MAXDLLHEADERLEN];/* DLL header (filled by L3AM)*/
+} t_ARPResInfo;
+
+/* Static L3AM ARP entry info */
+typedef struct t_ARPStatInfo
+{
+   t_Lay3Addr l3Addr;                    /* layer 3 address */
+   t_LIH      lanNmb;                    /* Layer 2 interface Id */
+   byte       l2Addr[sizeof(t_MACAddr)]; /* layer 2 assosiated address */
+}t_ARPStatInfo;
+
+/* ARP Table events */
+typedef enum
+{
+   L3AM_EVNT_NewEntry      = 1, /* new L3AM entry */
+   L3AM_EVNT_ModifiedEntry = 2, /* modified L3AM entry */
+   L3AM_EVNT_DeletedEntry  = 4, /* deleted L3AM entry */
+   L3AM_EVNT_Refresh       = 8  /* refresh ARP entry callback */
+}e_L3amEvent;
+
+/* Callback to be called on ARP Table events */
+typedef e_Err (* L3AM_ASYNC_EVENT_CALLBACK)
+(
+   IN t_Handle userId,                 /* user Id passed in
+                                          L3AM_RegisterUser call */
+   IN t_ARPResInfo *arpRes,            /* ARP entry resolution content */
+   IN e_L3amEvent  event               /* ARP Table event */
+);
+    
+
+/* ARP Resolution response callback */
+typedef e_Err (* L3AM_ARP_RES_IND)
+(
+   IN t_Handle userId,                 /* L3AM user Id passed to
+                                          L3AM_Lay3ARPResolution call*/
+   IN t_Handle reqId,                  /* request Id passed to
+                                          L3AM_Lay3ARPResolution call*/
+   IN OUT t_ARPResInfo *arpInfo        /* ARP Resolution request/response */
+);
+
+
+/* Typedef for Layer 2 transmit function */
+typedef e_Err (* L3AM_L2_TRANSMIT)
+(
+    IN t_Handle userId ,       /* layer 2 object handle */
+    void       *p_Frame,       /* Data frame pointer */
+    word        flags,         /* Flags */
+    t_Handle    reservHandle); /* Resource reservation handle associated with the 
+                                  packet's data flow
+                               */
+
+/* L3AM object configuration */
+typedef struct t_L3AMConfig
+{
+   word             arpAgeTime;  /* ARP age time (in seconds) */
+   word             arpRespTime; /* ARP response timeout (in seconds) 
+                                 */
+   word             arpCacheSize;/* max number of ARP entries */
+   word             retrNmb;     /* number of retransmissions */
+   word             arpDynamicRenew; /* ARP dynamic entry renew mode */
+}t_L3AMConfig;
+
+
+/* L3AM flags */
+#define L3AM_FLG_TRACEF  0x8000
+
+
+/*********************************************************************
+ * @purpose     Creates new L3AM object
+ *
+ *
+ * @param  name      @b{(input)} pointer to ASCII string with the L3AM
+ *                          object's name. needed for tracing purposes
+ * @param  flags     @b{(input)} L3AM object flags
+ * @param  flags     @b{(input)} maximum length of queue of packets with
+ *                               pending layer 3 ARP resolution
+ * @param  flags     @b{(input)} thread Id / processor Id L3AM object belongs
+ *                               to (not used in this version must be
+ *                               specified as NULLP)
+ *
+ * @param  flags     @b{(output)} pointer to return handle of successfully
+ *                               created L3AM object
+ *
+ * @returns          E_OK          - success
+ * @returns          not E_OK      - request failed, look at std.h for
+ *                                   definitions of all possible causes
+ *                                   of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AM_Init ( IN char  *name,
+                  IN word flags,
+                  IN word  ul2eQueueLen, 
+                  IN t_SysLabel  *sysLabel,
+                  IN t_L3AMConfig *l3AMConfig,
+                  IN t_Handle    *p_l3amHandle);
+
+
+
+
+
+/*********************************************************************
+ * @purpose     Deallocates all resources allocated for the L3AM object
+ *              and destroy the object.
+ *
+ *
+ * @param  p_l3amHandle   @b{(output)} pointer to the L3AM object handle returned
+ *                          by the L3AM_Init,zeroed on success
+ *
+ * @returns         E_OK          - success
+ * @returns         not E_OK      - request failed, look at std.h for
+ *                                  definitions of all possible causes
+ *                                  of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AM_Destroy (IN OUT t_Handle   *p_l3amHandle);
+
+
+
+
+
+/*********************************************************************
+ * @purpose     L3AM_GetFlags returns L3AM object current flags
+ *
+ *
+ * @param l3amHandle      @b{(input)}  Handle of L3AM object returned by RTM_Init
+ * @param p_flags      @b{(input)}  Pointer to return L3AM object current flags
+ *
+ * @returns           E_OK     -  Success
+ * @returns           Not E_OK -  Failure, look at std.h for details
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AM_GetFlags(IN t_Handle l3amHandle, OUT word *p_flags);
+
+
+
+
+
+/*********************************************************************
+ * @purpose     L3AM_GetFlags overwrites L3AM object current flags
+ *
+ *
+ * @param  l3amHandle     @b{(input)}  Handle of L3AM object returned
+ *                                     by RTM_Init
+ * @param  flags     @b{(input)}  L3AM object new flags
+ *
+ * @returns         E_OK     -  Success
+ * @returns         Not E_OK -  Failure, look at std.h for details
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AM_SetFlags(IN t_Handle l3amHandle, IN word flags);
+
+
+
+
+/*********************************************************************
+ * @purpose     Adds layer 2 interface to L3AM object
+ *
+ *
+ * @param l3amHandle      @b{(input)} handle of L3AM object returned
+ *                                    by L3AM_Init
+ * @param f_L2Transmit      @b{(input)} layer 2 transmit function pointer,
+ * @param l2Handle      @b{(input)} handle of layer 2 object,
+ * @param ifNumber      @b{(input)} logical layer 2 interface number
+ *
+ * @returns             E_OK          - success
+ * @returns             not E_OK      - request failed, look at std.h for
+ *                                      definitions of all possible causes
+ *                                      of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AM_AddInterface( IN t_Handle         l3amHandle,
+                         IN L3AM_L2_TRANSMIT f_L2Transmit, 
+                         IN t_Handle         l2Handle,
+                         IN t_LIH            ifNumber);
+
+
+
+/*********************************************************************
+ * @purpose    Deletes an interface from the L3AM object
+ *
+ *
+ * @param  l3amHandle     @b{(input)}  handle of L3AM object returned
+ *                                     by L3AM_Init,
+ * @param  ifNumber     @b{(input)}  logical layer 2 interface number
+ *
+ * @returns             E_OK          - success
+ * @returns             not E_OK      - request failed, look at std.h
+ *                                      for definitions of all
+ *                                      possible causes of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AM_DelInterface( IN t_Handle         l3amHandle,
+                         IN t_LIH            ifNumber);
+
+/* lvl7_p0265 start */
+
+
+
+
+/*********************************************************************
+ * @purpose     Associates local layer 3 address - layer 2 address
+ *              binding with L3AM object
+ *
+ *
+ * @param l3amHandle      @b{(input)}  handle of L3AM object returned by L3AM_Init,
+ * @param p_l3Addr     @b{(input)}  pointer to layer 3 address,
+ * @param p_l2Addr      @b{(input)}  pointer to layer 2 address
+ * @param flags      @b{(input)}  control bit flag (e.g., interface number)
+ *
+ * @returns          E_OK          - success
+ * @returns          not E_OK      - request failed, look at std.h for
+ *                                   definitions of all possible causes
+ *                                   of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AM_AddLocalAddress ( IN t_Handle l3amHandle,  IN t_Lay3Addr *p_l3Addr, IN byte *p_l2Addr,
+                             IN word flags);
+/* lvl7_p0265 end */
+
+
+
+
+
+/*********************************************************************
+ * @purpose    Disassociates local layer 3 address - layer 2 address 
+ *             binding from L3AM object
+ *
+ *
+ * @param l3amHandle      @b{(input)}  handle of L3AM object returned by L3AM_Init
+ * @param p_l3Addr      @b{(input)}  pointer to layer 3 address
+ * @param p_l2Addr      @b{(input)}  pointer to layer 2 address
+ * @param flags         @b{(input)}  Layer-2 Interface index
+ *
+ * @returns             E_OK          - success
+ * @returns             not E_OK      - request failed, look at std.h for definitions of all
+ *                                      possible causes of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AM_DelLocalAddress ( IN t_Handle l3amHandle,  IN t_Lay3Addr *p_l3Addr,
+IN byte *p_l2Addr, IN word flags);
+
+
+
+
+/*********************************************************************
+ * @purpose              Adds static ARP Table entry.  
+ *
+ *
+ * @param  l3amHandle     @b{(input)}   handle of L3AM object returned by L3AM_Init
+ * @param statARPInfo      @b{(input)}   static AT entry information,
+ *
+ * @returns           E_OK          - success
+ * @returns           not E_OK      - request failed, look at std.h for 
+ *                                    definitions of all
+ *                                    possible causes of failure
+ *
+ * @notes
+ *              These entries are of the
+ *              highest priority and are looked up before
+ *              dynamic ARP Table entries created by the ARP engine.
+ *              These entries are not aging out and are
+ *              removed only via L3AM_DeleteStaticATEntry
+ *           
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AM_AddStaticATEntry ( IN t_Handle l3amHandle,  IN t_ARPStatInfo *statARPInfo);
+
+
+
+
+
+/*********************************************************************
+ * @purpose     Deletes static ARP Table entry.
+ *
+ *
+ * @param l3amHandle      @b{(input)}  handle of L3AM object returned by L3AM_Init,
+ * @param statARPInfo      @b{(input)}  static AT entry information
+ *
+ * @returns         E_OK          - success
+ * @returns         not E_OK      - request failed, look at std.h for definitions of all
+ *                  possible causes of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AM_DeleteStaticATEntry( IN t_Handle l3amHandle,  IN t_ARPStatInfo *statARPInfo);
+
+
+
+
+/*********************************************************************
+ * @purpose    Registers user application to be notified about ARP Table
+ *             asynchronous events
+ *
+ *
+ * @param l3amHandle      @b{(input)}  handle of L3AM object returned by L3AM_Init
+ * @param name            @b{(input)}  pointer to ASCII string with the user's name,
+ *                                     needed for tracing purposes (may be NULLP)
+ * @param userId          @b{(input)}  user ID to be passed to the eventCallback
+ * @param eventCallback   @b{(input)}  callback to be called on ARP Table events
+ * @param p_userHandle    @b{(output)} pointer to return the handle associated with
+ *                                      the user
+ *
+ * @returns            E_OK          - success
+ * @returns            not E_OK      - request failed, look at std.h for definitions of all
+ *                                     possible causes of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AM_RegisterUser (IN t_Handle l3amHandle,  IN char  *name,  IN t_Handle userId,
+                         IN L3AM_ASYNC_EVENT_CALLBACK eventCallback,
+                         OUT t_Handle *p_userHandle);
+
+
+
+
+
+
+
+/*********************************************************************
+ * @purpose     Unregisters user application to be notified about ARP
+  *             Table asynchronous events
+ *
+ *
+ * @param       @b{(input)}  handle of L3AM object returned by L3AM_Init
+ * @param       @b{(output)}  pointer to a handle assigned to the user via
+ *                           L3AM_RegisterUser, zeroed on success
+ *
+ * @returns     E_OK          - success
+ * @returns     not E_OK      - request failed, look at std.h for
+ *                              definitions of all possible causes of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AM_UnregisterUser(IN t_Handle l3amHandle, IN OUT t_Handle *p_userHandle);
+
+
+
+
+/*********************************************************************
+ * @purpose     Initiates Layer 3 ARP Resolution lookup
+ *
+ *
+ * @param l3amHandle        @b{(input)}  handle returned by the L3AM_Init,
+ * @param reqId             @b{(input)}  user Id to be passed to the 
+ *                                       arpResIndCallback
+ * @param reqId             @b{(input)}  request Id to be passed to the
+ *                                        arpResIndCallback
+ * @param arpResInfo        @b{(input)}  RP Resolution request /response
+ * @param arpResIndCallback @b{(input)}  callback to the requestor on ARP 
+ *                                       Resolution response
+ *
+ * @returns         E_OK          - success,
+ * @returns         E_BUSY        - request was successfully initiated and
+ *                                  pending, the callback will be called 
+ *                                  when it is finished
+ * @returns         not E_OK      - request failed, look at std.h for 
+ *                                  definitions of all possible causes of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+
+
+
+
+/**************************L3AM_Lay3ARPResolution******************************/
+/*
+   Initiates Layer 3 ARP Resolution lookup
+
+   l3amHandle        - handle returned by the L3AM_Init,
+   userId            - user Id to be passed to the arpResIndCallback
+   reqId             - request Id to be passed to the arpResIndCallback
+   arpResInfo        - ARP Resolution request /response
+   arpResIndCallback - callback to the requestor on ARP Resolution response
+
+   Returns:
+   E_OK          - success,
+   E_BUSY        - request was successfully initiated and pending, the callback will be
+                   called when it is finished
+   not E_OK      - request failed, look at std.h for definitions of all
+                   possible causes of failure
+*/
+e_Err L3AM_Lay3ARPResolution (IN t_Handle   l3amHandle,
+                              IN t_Handle   userId,
+                              IN t_Handle   reqId,
+                              IN OUT t_ARPResInfo *arpResInfo,
+                              IN L3AM_ARP_RES_IND arpResIndCallback);
+
+/*----------------------------------------------------------------
+ * ROUTINE:    L3AM_GratArpSend
+ *
+ * DESCRIPTION:
+ *   Triggers the transmission of a gratuitous ARP for a local IP address.
+ *
+ * ARGUMENTS:
+ *  l3amHandle    - ARP instance
+ *  arpResInfo    - gratuitous ARP request 
+ *
+ * RESULTS:
+ *  E_OK          - success
+ *  not E_OK      - request failed
+ *----------------------------------------------------------------*/
+e_Err L3AM_GratArpSend(IN t_Handle l3amHandle,
+                       IN t_ARPResInfo *arpResInfo);
+
+/* ========================================================================== */
+/* ==           API EXTENSIONS (PROVIDED BY LVL7 SYSTEMS, INC.)            == */
+/* ========================================================================== */
+
+
+
+
+/*********************************************************************
+ * @purpose    Processes a received ARP packet, either request or response,
+ *             and updates the ARP cache with the sender's addressing information.
+ *
+ *
+ * @param  l3amHandle     @b{(input)}  handle of L3AM object returned by L3AM_Init,
+ * @param  p_arpPacket     @b{(output)}  pointer to start of packet ARP header
+ * @param  flags     @b{(input)}  control flags (e.g., interface number)
+ *
+ * @returns           E_OK          - success
+ * @returns           not E_OK      - request failed, look at std.h for definitions of all
+ *                                    possible causes of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AMX_ReceiveArpPacket ( IN t_Handle l3amHandle, IN void * p_arpPacket, IN word flags);
+
+
+
+
+/*********************************************************************
+ * @purpose     Adjusts each ARP entry timeout to the current arpAgeTime value.
+ *
+ *
+ * @param l3amHandle      @b{(input)}  handle of L3AM object returned by L3AM_Init,
+ * @param newAgeTime      @b{(input)}  new value for ARP ageout time (in seconds)
+ *
+ * @returns        E_OK          - success
+ * @returns        not E_OK      - request failed, look at std.h for definitions of all
+ *                                 possible causes of failure
+ *
+ * @notes
+ *            This is mainly used whenever the arpAgeTime is changed so 
+ *            that the entries are aged out based on the new value.  
+ *            Entries older than the new arpAgeTime
+ *            are aged out right away (i.e., within one second).
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AMX_AdjustArpTimeout ( IN t_Handle l3amHandle,
+                               IN ulng newAgeTime);
+
+
+
+
+/*********************************************************************
+ * @purpose     Removes entries from the ARP cache until the current 
+ *               ARP size is within the specified maxEnt.
+ *
+ *
+ * @param  l3amHandle @b{(input)}  handle of L3AM object returned by L3AM_Init,
+ * @param  maxEnt     @b{(input)}  new maximum ARP cache size
+ *
+ * @returns           E_OK          - success
+ * @returns           not E_OK      - request failed, look at std.h 
+ *                                    for definitions of all
+ *                                    possible causes of failure
+ *
+ * @notes
+ *             The oldest dynamic entries are removed.  This
+ *             allows the ARP cache size to be changed dynamically while
+ *             continuing proper ARP cache management operation.      
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AMX_TrimArpCache ( IN t_Handle l3amHandle,
+                           IN word maxEnt);
+
+
+
+
+
+/*********************************************************************
+ * @purpose    Clears the ARP table of dynamic (and optionally gateway)
+ *            entries for the specified interface(s).
+ *            Does not affect local or static ARP entries.
+ *
+ * @param  l3amHandle  @b{(input)} handle of L3AM object returned by L3AM_Init
+ * @param  intf        @b{(input)} interface whose entries should be 
+ *                                 purged, or 0 for all intfs
+ * @param  allowGw     @b{(input)} denotes whether gateway entries should
+ *                                 be cleared as well
+ *
+ * @returns           E_OK          - success
+ * @returns           not E_OK      - request failed, look at std.h for 
+ *                                    definitions of all
+ *                                    possible causes of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AMX_ClearArpCache ( IN t_Handle l3amHandle,
+                            IN word intf,
+                            IN Bool allowGw);
+
+
+
+
+
+/*********************************************************************
+ * @purpose             Retrieves various statistics associated with 
+ *                      the ARP cache.
+ *
+ *
+ * @param l3amHandle    @b{(input)}  handle of L3AM object returned 
+ *                                   by L3AM_Init,
+ * @param *pStats       @b{(output)} pointer to structure to return 
+ *                                   ARP cache stats
+ *
+ * @returns   E_OK          - success
+ * @returns   not E_OK      - request failed, look at std.h for 
+ *                            definitions of all
+ *                            possible causes of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AMX_GetCacheStats ( IN t_Handle l3amHandle,
+                            OUT L7_arpCacheStats_t *pStats);
+
+
+
+
+
+/*********************************************************************
+ * @purpose     Stops all timers associated with this ARP entry
+ *
+ *
+ * @param l3amHandle      @b{(input)}  handle of L3AM object returned 
+ *                                     by L3AM_Init,
+ * @param p_adrEntry      @b{(input)}  pointer to ARP entry
+ *
+ * @returns         E_OK          - success
+ * @returns         not E_OK      - request failed, look at std.h for 
+ *                                  definitions of all
+ *                                  possible causes of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AMX_StopArpEntryTimers ( IN t_Handle l3amHandle,
+                                 IN t_Handle p_adrEntry);
+
+
+
+/*********************************************************************
+ * @purpose    Deletes a single entry from the ARP cache, as specified
+ *             by its IP address.Only works for dynamic ARP entries.
+ *
+ *
+ * @param l3amHandle    @b{(input)}  handle of L3AM object returned 
+ *                                  by L3AM_Init,
+ * @param p_l3Addr      @b{(input)}  pointer to layer 3 address
+ * @param flags         @b{(input)}  L2 Interface index
+ *
+ * @returns      E_OK          - success
+ * @returns      not E_OK      - request failed, look at std.h for
+ *                               definitions of all
+ *                               possible causes of failure
+ *
+ * @notes
+ *
+ * @end
+ * ********************************************************************/
+e_Err L3AMX_DeleteArpEntry ( IN t_Handle l3amHandle,  IN t_Lay3Addr *p_l3Addr,
+        IN word flags);
+
+
+#include "arp.ext"
+#include "l3am2arp.h"
+
+#endif /* _L7_l3am_ext */
+

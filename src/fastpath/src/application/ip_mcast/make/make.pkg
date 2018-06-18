@@ -1,0 +1,145 @@
+# Local source path abbreviations (for convenience).
+#
+src_mc         := src/application/ip_mcast
+src_mc_mapping := $(src_mc)/mapping
+src_mc_util    := $(src_mc)/util
+src_mc_vendor  := $(src_mc)/vendor
+src_usmdb_mc   := src/usmdb/ip_mcast
+
+
+# Master list of source paths to be built into this package library.
+#  - All entries must be specified relative to top-of-view $(FP_ROOT).
+#  - Defines all source locations to be referenced by the package-level makefile.
+#
+# Note: The trapmgr code is built as part of the BASE package.
+#
+MASTERSRC += \
+	$(src_mc_mapping)/dvmrpmap \
+	$(src_mc_mapping)/dvmrpmap/dvmrpmap_sid \
+	$(src_mc_mapping)/mcastmap/core \
+	$(src_mc_mapping)/mcastmap/mcastmap_sid \
+	$(src_mc_mapping)/mgmdmap \
+	$(src_mc_mapping)/mgmdmap/mgmdmap_sid \
+	$(src_mc_mapping)/pimdmmap \
+	$(src_mc_mapping)/pimdmmap/pimdmmap_sid \
+	$(src_mc_mapping)/pimsmmap \
+	$(src_mc_mapping)/pimsmmap/pimsmmap_sid \
+	$(src_mc_util) \
+	$(src_mc_util)/heapmgr \
+	$(src_mc_util)/pktrcvr \
+	src/dtl/ip_mcast \
+	$(src_usmdb_mc)/dvmrp \
+	$(src_usmdb_mc)/mcastmap \
+	$(src_usmdb_mc)/mgmd \
+	$(src_usmdb_mc)/pim \
+	$(src_usmdb_mc)/pimdm \
+	$(src_usmdb_mc)/pimsm \
+	$(src_usmdb_mc)/snmp
+
+
+# List here individual source files to be selectively EXCLUDED from the build.
+#
+MASTERSRC_FILE_EXCLUDE += \
+	$(src_mc_util)/heapmgr/heapUt.c
+
+
+# List here individual source include directories owned by this package (without the -I).
+#
+MASTERINC += \
+	$(src_mc_mapping)/dvmrpmap/include \
+	$(src_mc_mapping)/mcastmap/include \
+	$(src_mc_mapping)/mgmdmap/include \
+	$(src_mc_mapping)/pimdmmap/include \
+	$(src_mc_mapping)/pimsmmap/include
+
+
+# These source files are included only if NSF feature is part of the build.
+#
+ifeq (1,$(BLD_L7_COMPONENTS_NSF))
+
+  MASTERSRC += \
+	$(src_mc_mapping)/mcastmap/nsf
+
+  MASTERINC += \
+	$(src_mc_mapping)/mcastmap/nsf
+endif
+
+# Additional source header file search paths (without the -I).
+#
+SRCINCPATHS += \
+	src/application/routing/services \
+	src/application/routing/vendor/freebsd/forwarding \
+	src/application/routing/mapping/ipmap/include \
+	src/dtl/base/include \
+	src/dtl/routing/include
+
+
+# Additional compiler flags.
+#
+CFLAGSEXTRA += \
+	-O0
+
+
+# Vendor routing source code files.
+#
+MASTERSRC += \
+	$(src_mc_vendor)/dvmrp \
+	$(src_mc_vendor)/mfc \
+	$(src_mc_vendor)/mgmd \
+	$(src_mc_vendor)/pimdm \
+	$(src_mc_vendor)/pimsm
+
+
+MASTERSRC_FILE_EXCLUDE += \
+	$(src_mc_vendor)/dvmrp/dvmrp_ifutil.c \
+        $(src_mc_vendor)/pimdm/pimdm_unit_test.c \
+        $(src_mc_vendor)/pimsm/pimsmdebugut.c
+
+# List here individual source include directories owned by this package (without the -I).
+#
+MASTERINC += \
+	$(src_mc_vendor)/dvmrp/include \
+	$(src_mc_vendor)/mfc/include \
+	$(src_mc_vendor)/pimdm/include \
+	$(src_mc_vendor)/pimsm/include
+
+
+SRCINCPATHS += \
+	src/application/routing/services \
+	src/application/routing/vendor/freebsd/forwarding \
+	src/application/routing/vendor/freebsd/include \
+	os/$(L7_TARGETOS)/osapi
+
+
+CFLAGSEXTRA +=
+
+
+# Special exclusions.
+
+# These sources are *excluded* depending on whether IPV6 flex package is present.
+#
+ifeq (1,$(BLD_L7_FLEX_IPV6))
+  MASTERSRC_FILE_EXCLUDE += \
+	$(src_mc_mapping)/mcastmap/core/mcast_stub.c \
+	$(src_mc_mapping)/mgmdmap/mgmdmap_stub.c \
+	$(src_mc_mapping)/pimdmmap/pimdm_map_stub.c \
+	$(src_mc_mapping)/pimsmmap/pimsm_map_v6stubs.c \
+	$(src_mc_util)/mcast_v6_binds.c \
+	$(src_mc_vendor)/mfc/mfc_v6_stub.c \
+	$(src_mc_vendor)/mgmd/mgmd_v6_stub.c \
+	$(src_mc_vendor)/pimdm/pimdm_v6_stub.c \
+	$(src_mc_vendor)/pimsm/pimsmv6stub.c
+else	
+  MASTERSRC_FILE_EXCLUDE += \
+	$(src_mc_mapping)/mcastmap/core/mcast_v6_packet.c \
+	$(src_mc_mapping)/mgmdmap/mgmdmap_v6_wrappers.c \
+	$(src_mc_mapping)/pimdmmap/pimdm_map_v6_wrappers.c \
+	$(src_mc_mapping)/pimsmmap/pimsm_map_v6utils.c \
+	$(src_mc_util)/mcast_v6.c \
+	$(src_mc_vendor)/mfc/mfc_v6.c \
+        $(src_mc_vendor)/mgmd/mgmd_v6.c \
+	$(src_mc_vendor)/pimdm/pimdm_v6_util.c \
+	$(src_mc_vendor)/pimsm/pimsmv6util.c
+endif
+
+

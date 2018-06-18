@@ -1,0 +1,35 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="RouterDiscConfig" title="Router Discovery Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="routingIpRouterDiscovery_IfIndex" id="1" name="Interface"/>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="routingIpRouterDiscovery_advertiseMode" id="1" name="Advertise Mode"/>
+            </node>
+            <node id="3">
+                <element maxLength="15" obj-name="routingIpRouterDiscovery_advertisementAddress" id="1" name="Advertise Address"/>
+            </node>
+            <node id="4">
+                <element arghelp="HELP_FORMAT_FP" maxLength="4" obj-name="routingIpRouterDiscovery_maxAdvertisementInterval" id="1" name="Maximum Advertise Interval (secs)"/>
+            </node>
+            <node id="5">
+                <element arghelp="RouterDisc_MinAdvInterval" maxLength="4" obj-name="routingIpRouterDiscovery_minAdvertisementInterval" id="1" name="Minimum Advertise Interval (secs)"/>
+            </node>
+            <node id="6">
+                <element arghelp="RouterDisc_AdvLifetime" maxLength="4" obj-name="routingIpRouterDiscovery_advertisementLifetime" id="1" name="Advertise Lifetime (secs)"/>
+            </node>
+            <node id="7">
+                <element arghelp="HELP_FORMAT_FP" maxLength="11" obj-name="routingIpRouterDiscovery_preferenceLevel" id="1" name="Preference Level"/>
+            </node>
+            <node id="8">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

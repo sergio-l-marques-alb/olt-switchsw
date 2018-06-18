@@ -1,0 +1,184 @@
+.\"
+.\"
+.\" Copyright (C) 1992-2006 by SNMP Research, Incorporated.
+.\"
+.\" This software is furnished under a license and may be used and copied
+.\" only in accordance with the terms of such license and with the
+.\" inclusion of the above copyright notice. This software or any other
+.\" copies thereof may not be provided or otherwise made available to any
+.\" other person. No title to and ownership of the software is hereby
+.\" transferred.
+.\"
+.\" The information in this software is subject to change without notice
+.\" and should not be construed as a commitment by SNMP Research, Incorporated.
+.\"
+.\" Restricted Rights Legend:
+.\"  Use, duplication, or disclosure by the Government is subject to
+.\"  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+.\"  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+.\"  subparagraphs (c)(4) and (d) of the Commercial Computer
+.\"  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+.\"  clauses in the NASA FAR Supplement and other corresponding
+.\"  governmental regulations.
+.\"
+.\"
+.\"
+.\"                PROPRIETARY NOTICE
+.\"
+.\" This software is an unpublished work subject to a confidentiality agreement
+.\" and is protected by copyright and trade secret law.  Unauthorized copying,
+.\" redistribution or other use of this work is prohibited.
+.\"
+.\" The above notice of copyright on this source code product does not indicate
+.\" any actual or intended publication of such source code.
+.\"
+.\"
+.\" auth_lib.c
+.\"
+.TH BuildAuthentication SR_CLIBMAN "27 May 1996"
+.SH NAME
+.HP 10
+BuildAuthentication, FreeAuthentication, ParseAuthentication \- manipulate
+the SNMP authentication header.
+.HP 5
+.SH SYNOPSIS
+.br
+.LP
+.B int
+.br
+.BI BuildAuthentication " (auth_ptr, pdu_ptr) "
+.br
+.B struct _AuthHeader \(**auth_ptr;
+.br
+.B struct _Pdu \(**pdu_ptr;
+.br
+.LP
+void
+.br
+.BI FreeAuthentication (auth_ptr)
+.br
+.B struct _AuthHeader \(**auth_ptr;
+.br
+.LP
+AuthHeader \(**
+.br
+.BI ParseAuthentication " (packet_ptr, length, error_code) "
+.br
+.B unsigned char \(**packet_ptr;
+.br   
+.B SR_INT32 length;
+.br
+.B int \(**error_code;
+.LP
+.SH DESCRIPTION
+The BuildAuthentication, FreeAuthentication, and ParseAuthentication
+routines are used for manipulating the SNMP authentication header. 
+.\" BR is bold then roman
+.HP 5
+.I BuildAuthentication
+takes the Pdu (pdu_ptr) and the authentication information (auth_ptr) and
+builds the actual SNMP packet in the authentication data structure's
+packlet octet string area.  The result of this function is a fully
+serialized, ready-to-send SNMP packet.
+
+The steps required to reach this stage are
+.in+8
+\h'-6'
+1) Create the Pdu with a call to 
+.BR MakePdu (SR_CLIBMAN).
+
+\h'-4'
+2) Create the VarBind list in the Pdu, using 
+.BR MakeVarBindWithNull (SR_CLIBMAN) 
+or
+.BR MakeVarBindWithValue (SR_CLIBMAN) 
+and a subsequent call to 
+.BR LinkVarBind (SR_CLIBMAN).
+
+\h'-5'
+3) Serializing the Pdu with a call to 
+.BR BuildPdu (SR_CLIBMAN).
+
+\h'-4'
+4) Create the authentication structure with a call to
+.BR MakeAuthentication.
+
+\h'-4'
+5) Call BuildAuthentication to complete the serialization.
+
+.PP
+The "packlet" is free'ed when FreeAuthentication() is called, so it should
+be copied to a holding area or the authentication should not be free'ed
+until the packet is actually sent. Once this has been done, the
+authentication structure (auth_ptr) can be free'ed with a call to
+FreeAuthentication().
+.HP 5
+The parameter
+.I auth_ptr 
+is a pointer to an authentication header (type AuthHeader).
+You should use the value returned by a call to
+.BR MakeAuthentication.
+.HP 5
+Upon successful completion, the packlet field of this structure will
+contain the message to be sent. The packlet field should contain the
+serialization of the SNMP Pdu, which was stored in the incoming parameter,
+pdu_ptr, specifically in pdu_ptr\->packlet.  It should also contain the
+serialized information for the SNMP wrapper. 
+.HP 5             
+The parameter
+.I pdu_ptr  
+contains the serialized SNMP packet to be sent in the pdu_ptr\->packlet
+field. 
+.HP 5
+.I FreeAuthentication
+frees all memory associated with the authentication header.  The Pdu
+structure created by the call to 
+.BR MakePdu (SR_CLIBMAN) 
+is not freed; a call to 
+.BR FreePdu (SR_CLIBMAN)
+frees that structure.  However, the serialized Pdu in the
+auth_ptr\->packlet is freed.  
+
+The moral of the story is, call FreeAuthentication, then call FreePdu.
+.HP 5
+The parameter
+.I auth_ptr  
+points to the authentication header to be freed.
+.HP 5
+.I ParseAuthentication
+parses the authentication header of an incoming packet pointed to by 
+.B packet_ptr.  
+It creates a
+library-format authentication header data structure from an incoming SNMP
+packet. If parsing errors occur, a message is printed (if SR_DEBUG is
+defined), the error_code parameter is set to the correct error code, and
+the routine returns NULL.
+
+It should be noted that the state of the authentication header created
+during the building phase after a call to BuildAuthentication() is nearly
+identical to the state of the authentication header after this call on the
+parsing side.
+.HP 5
+The parameter
+.I packet_ptr 
+is the pointer to the incoming serialized message (SNMP packet).
+.HP 5
+The parameter
+.I length     
+is the length of the packet.
+.HP 5
+The parameter
+.I error_code 
+contains the specific error that occurred if this routine returns NULL.
+.HP 5
+.I ParseAuthentication
+returns: 
+.in+10
+\h'-10' 
+On success: A pointer to the filled in AuthHeader structure. All of
+the authentication information should be parsed at this point.  A call to
+.BR ParsePdu (SR_CLIBMAN) 
+will be needed to retrieve the values in the SNMP Pdu.
+
+\h'-10'
+On failure: Returns NULL.

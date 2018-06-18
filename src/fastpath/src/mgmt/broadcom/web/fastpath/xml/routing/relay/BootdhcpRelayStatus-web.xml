@@ -1,0 +1,38 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="BootdhcpRelayStatus" title="BOOTP/DHCP Status">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="label" properties="read-only" obj-name="routingbootpdhcpConfig_MaxHopCount" id="1" name="Maximum Hop Count"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="routingbootpdhcpConfig_ForwardingIp" id="1" name="Server IP Address"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="routingbootpdhcpConfig_ForwardMode" id="1" name="Admin Mode"/>
+            </node>
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="routingbootpdhcpConfig_MinWaitTime" id="1" name="Minimum Wait Time (secs)"/>
+            </node>
+            <node id="5">
+                <element control="label" properties="read-only" obj-name="routingbootpdhcpConfig_CircuitIdOptionMode" id="1" name="Circuit ID Option Mode"/>
+            </node>
+            <node id="6">
+                <element obj-name="routingbootpdhcpConfig_NumOfRequestsReceived" id="1" name="Requests Received"/>
+            </node>
+            <node id="7">
+                <element obj-name="routingbootpdhcpConfig_NumOfRequestsForwarded" id="1" name="Requests Relayed"/>
+            </node>
+            <node id="8">
+                <element obj-name="routingbootpdhcpConfig_NumOfDiscards" id="1" name="Packets Discarded"/>
+            </node>
+            <node id="9">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

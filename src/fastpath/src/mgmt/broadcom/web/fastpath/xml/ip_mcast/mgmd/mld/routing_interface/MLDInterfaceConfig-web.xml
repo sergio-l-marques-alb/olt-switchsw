@@ -1,0 +1,52 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="MLDInterfaceConfig" title="MLD Routing Interface Configuration ">
+        <group level="ReadWriteUser" id="1" heading=" ">
+         
+            <node id="2">
+                <element obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceQuerierType" properties="write-only,hidden" value="IPv6" id="1" name="Query Type"/>
+	    </node>
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceIfIndex" id="1" name="Interface"/>
+            </node>
+            <node id="3">
+                <element control="combo" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceMode" id="1" name="Interface Mode"/>
+            </node>
+            <node id="4">
+                <element control="combo" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceVersion" id="1" name="Version">
+                  <action type="enum" discard="no" />
+                  <action type="enum" discard="no" />
+                  <action type="enum" discard="yes" />
+                </element>
+            </node>
+            <node id="5">
+                <element arghelp="HELP_FORMAT_FP" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceQueryInterval" id="1" maxLength="4" name="Query Interval (secs)"/>
+            </node>
+            <node id="6">
+                <element arghelp="MLD_QUERY_MAX_RESP_TIME" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceQueryMaxResponseTime" id="1" maxLength="5" name="Query Max Response Time(milli-secs)" validation="int0to65535validation"/>
+            </node>
+            <node id="7">
+                <element control="label" properties="read-only" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceRobustness" id="1" name="Robustness"/>
+            </node>
+            <node id="8">
+                <element control="label" properties="read-only" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceStartupQueryIntvl" id="1" name="Startup Query Interval (secs)"/>
+            </node>
+            <node id="9">
+                <element control="label" properties="read-only" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceStartupQueryCount" id="1" name="Startup Query Count"/>
+            </node>
+            <node id="10">
+                <element arghelp="MLD_LAST_MEM_QUERY_INTERVAL" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceLastMembQueryIntvl" id="1" maxLength="5" name="Last Member Query Interval(milli-secs)"  validation="int0to65535validation" />
+            </node>
+            <node id="11">
+                <element arghelp="HELP_FORMAT_FP" obj-name="ipmcastmgmdRouterInterfaceTable_mgmdRouterInterfaceLastMemberQuerycount" id="1" maxLength="2" name="Last Member Query Count"/>
+            </node>
+            <node id="12">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

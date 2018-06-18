@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="EMAILALERTMailServer" title="Email Alert Mail Server Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">            
+            <node id="6">
+                <element properties="read-write,hidden" value="" obj-name="baselogemailAlertMailServerTable_mailServerTableServerAddrType" id="1" name="Mail Server Address Type"/>
+            </node>
+            <node id="1">
+                <element properties="write-only" value="" maxLength="255" arghelp= "HELP_FORMAT_NAME255" control="textbox" obj-name="baselogemailAlertMailServerTable_mailServerTableServerAddr" id="1" name="Mail Server Address"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="read-write" obj-name="baselogemailAlertMailServerTable_mailServerTableServerSecurity" id="1" name="Mail Server Security">
+                    <action type="enum" disable="1_3_1|1_4_1" hide="1_3_1|1_4_1"/>
+                    <action type="enum" enable="1_3_1|1_4_1" show="1_3_1|1_4_1"/>
+                </element>
+            </node>
+            <node id="3">
+                <element properties="write-only" value="" maxLength="16" arghelp= "HELP_FORMAT_NAME16" obj-name="baselogemailAlertMailServerTable_mailServerTableloginID" id="1" name="Mail Server User Name"/>
+            </node>
+            <node id="4">
+                <element properties="write-only" value="" maxLength="16" arghelp= "HELP_FORMAT_NAME16" obj-name="baselogemailAlertMailServerTable_mailServerTablePasswd" id="1" name="Mail Server Password"/>
+            </node>
+            <node id="7">
+                <element properties="write-only" value="" maxLength="5" obj-name="baselogemailAlertMailServerTable_mailServerTableServerPort" arghelp="mailServerPort" id="1" name="Mail Server Port"/>
+            </node>
+            <node id="5">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="baselogemailAlertMailServerTable_mailServerTableStatus" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                <action type="button" disable="2_1|2_2"/>
+              </button>
+            </node>
+        </group>
+	<group id="2" heading=" ">
+            <repeat present="vtable" edit="inline" heading=" " id="1">
+                <element properties="hidden,iterate" value="" obj-name="baselogemailAlertMailServerTable_mailServerTableServerAddrType" id="7" name="Mail Server Address Type"/>
+                <element control="label" properties="iterate" obj-name="baselogemailAlertMailServerTable_mailServerTableServerAddr" id="1" name="Mail Server Address"/>
+                <element control="label" properties="read-only" obj-name="baselogemailAlertMailServerTable_mailServerTableServerPort" id="2" name="Mail Server Port"/>
+                 <element control="label" properties="read-only" obj-name="baselogemailAlertMailServerTable_mailServerTableServerSecurity" id="3" name="Mail Server Security"/>
+                <element control="label" properties="read-only" obj-name="baselogemailAlertMailServerTable_mailServerTableloginID" id="4" name="Mail Server User Name"/>
+                <element control="label" properties="read-only" obj-name="baselogemailAlertMailServerTable_mailServerTablePasswd" id="5" name="Mail Server Password"/>
+                <element control="checkbox-neg" level="ReadWriteUser" properties="edit" obj-name="baselogemailAlertMailServerTable_mailServerTableStatus" id="6" name="Remove">
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="yes" />
+                    <action type="enum" discard="no" />
+	            </element> 
+            </repeat>
+	    <node id="2">
+	          <button scope="page" level="ReadWriteUser" type="buttonSubmit" help="Deletes the form on this page to the Switch" id="1" name="Delete">
+	          <action type="button" disable="1_1_1|1_7_1|1_2_1|1_3_1|1_4_1|1_5_1|2_1_2|2_1_3|2_1_4|2_1_5|2_2_2"/>
+              </button>
+              <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

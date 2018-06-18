@@ -1,0 +1,46 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+<!-- exmaple for pseudo-keys where extended-actions are associated to pseudo-key and user need not input the key value -->
+
+<FastPathXML>
+    <webxml version="1.0" name="IPV6ACLConfig" title="IPv6 ACL Configuration">
+        <group id="1" heading=" ">
+            <node id="4">
+                <element properties="hidden" obj-name="fastPathQOSACLQOSACL_aclIpv6Index" id="1" name="IPV6 ACL ID"/>
+            </node>
+            <node id="1">
+                <element control="combo"  obj-name="fastPathQOSACLQOSACL_aclIpv6Name" properties="filter" id="1" name="IPv6 ACL">
+                    <action type="extn" value="Create New IPV6 ACL" disable="1_7_2|1_7_3" hide="1_7_2|1_7_3" enable="1_2|1_7_1" show="1_2|1_7_1" setval_args="valMapEmptyString" setval_ids="1_2" position="0"/>
+                    <action type="default" hide="1_7_1" disable="1_7_1" enable="1_2" show="1_2|1_7_2|1_7_3"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="textbox" maxLength="31" obj-name="fastPathQOSACLQOSACL_aclIpv6Name" id="1" name="IPv6 ACL Name" arghelp= "HELP_FORMAT_NAME31" validation="validate_name31"/>
+            </node>
+
+            <node id="7">
+                <button scope="group" type="buttonSubmit" value="Add" obj-name="fastPathQOSACLQOSACL_aclIpv6Status" help="Submits the form on this page to the Switch" id="1" name="Submit"/>                
+                <button scope="group" type="buttonSubmit" value="Active" obj-name="fastPathQOSACLQOSACL_aclIpv6Status" help="Submits the form and renames the selected IPV6 ACL" id="2" name="Rename"/>
+                  <action type="button" disable="1_7_3" enable="1_7_2" show="1_7_2|1_7_3" />
+               <button scope="group" type="buttonSubmit" value="Delete" obj-name="fastPathQOSACLQOSACL_aclIpv6Status" help="Delete the selected IPV6 ACL" id="3" name="Delete">
+                  <action type="button" disable="1_7_2" enable="1_7_3" show="1_7_2|1_7_3" />
+               </button> 
+            </node>
+        </group>
+
+        <group id="2" heading=" ">
+            <node id="1">
+                <element control="label" properties="noname,write-only" obj-name="xLibObjects_dummy" id="1" name="Blank Row" value=""/>
+            </node>
+            <node id="2">
+                <element control="label" clazz="rowdataheader" value="Table" properties="noname,write-only" obj-name="xLibObjects_dummy" id="1"/>
+                <element control="label" clazz="rowdataheader" value="Current Number / Maximum Number" properties="noname,write-only" obj-name="xLibObjects_dummy" id="2"/>
+            </node>
+            <node id="3">
+                <element clazz="rowdataattributes" properties="read-only" obj-name="fastPathQOSACLQOSACLTABLE_aclTableSizeAndMax" id="1" name="ACL"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

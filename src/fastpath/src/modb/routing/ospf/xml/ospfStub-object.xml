@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0" >
+<module name="ospfStub" >
+<key-combo list="AreaId,TOS"/>
+<object name="AreaId"  >
+<core  type="user" xtype="ipv4_uint" key="yes" access="read-write" descr="The 32 bit identifier for the Stub Area. On creation, this can be derived from the instance."/>
+<ui  name="Area Id" style="plainText">
+ <snmp asn-id="1.3.6.1.2.1.14.3.1.1"/> 
+</ui></object>
+<object name="TOS"  >
+<core  type="enum" xtype = "L7_TOSTYPES" key="yes" access="read-write" descr="The Type of Service associated with the metric. On creation, this can be derived from the instance."/>
+<ui  name="Type Of Service" style="plainText">
+ <snmp asn-id=".1.3.6.1.2.1.14.3.1.2"/> 
+</ui></object>
+<object name="Metric" depends="AreaId,TOS" >
+<core  type="uint" access="read-write"  min="L7_OSPF_AREA_STUBMETRIC_MIN" max="L7_OSPF_AREA_STUBMETRIC_MAX" descr="The metric value applied at the indicated type of service. By default, this equals the least metric at the type of service among the interfaces to other areas."/>
+<ui  name="Metric" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.3.1.3"/> 
+</ui></object>
+<object name="Status" depends="AreaId,TOS" >
+<core type="row-status" xtype= "L7_ROW_STATUS_t" access="read-write" descr="This variable displays the status of the entry. Setting it to 'invalid' has the effect of rendering it inoperative. The internal effect (row removal) is implementation dependent."/>
+<ui  name="Status" style="inputLine">
+ <snmp asn-id=".1.3.6.1.2.1.14.3.1.4"/> 
+</ui></object>
+<object name="MetricType" depends="AreaId,TOS" >
+<core  type="enum" xtype="L7_OSPF_STUB_METRIC_TYPE_t" access="read-write" descr="This variable displays the type of metric advertised as a default route."/>
+<ui  name="Metric Type" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.2.1.14.3.1.5"/> 
+</ui></object>
+</module>
+</objectxml>
+</FastPathXML>

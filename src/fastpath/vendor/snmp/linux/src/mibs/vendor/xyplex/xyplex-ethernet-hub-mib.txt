@@ -1,0 +1,846 @@
+            
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+            
+            
+            
+                             Definitions of Managed Objects
+                              for Xyplex Ethernet Hubs
+            
+                                     17 October 1991
+            
+                            Xyplex Document Number 420-0540-A
+            
+                                       Xyplex, Inc.
+                                  330 Codman Hill Road
+                                  Boxborough, MA 01719
+                                     (508) 264-9900
+            
+                                   support@xyplex.com
+            
+            
+            1.  Status of this Memo
+            
+            This document is submitted to the Internet MIB repository 
+            and to Xyplex users as a Xyplex private extension to the 
+            SNMP MIB.  Distribution of this memo is unlimited.  Please 
+            express comments to Xyplex.
+            
+            2.  Abstract
+            
+            This memo defines a private portion of the Management 
+            Information Base (MIB), within the Xyplex branch, for use 
+            with SNMP over various transport services, such as UDP or 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   1]
+
+
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+            Ethernet.  In particular, it defines objects for managing a 
+            Xyplex Ethernet hub.
+            
+            This memo does not specify a standard for the Internet 
+            community.  It describes a standard for Xyplex products.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   2]
+
+
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+            3.  Historical Perspective
+            
+            As reported in RFC 1052, IAB Recommendations for the 
+            Development of Internet Network Management Standards [1], a 
+            two-prong strategy for network management of TCP/IP-based 
+            internets was undertaken.  In the short-term, the Simple 
+            Network Management Protocol (SNMP), defined in RFC 1067, was 
+            to be used to manage nodes in the Internet community.  In 
+            the long-term, the use of the OSI network management 
+            framework was to be examined.  Two documents were produced 
+            to define the management information: RFC 1065, which 
+            defined the Structure of Management Information (SMI), and 
+            RFC 1066, which defined the Management Information Base 
+            (MIB).  Both of these documents were designed so as to be 
+            compatible with both the SNMP and the OSI network management 
+            framework.
+            
+            This strategy was quite successful in the short-term: 
+            Internet-based network management technology was fielded, by 
+            both the research and commercial communities, within a few 
+            months.  As a result of this, portions of the Internet 
+            community became network manageable in a timely fashion.
+            
+            As reported in RFC 1109, Report of the Second Ad Hoc Network 
+            Management Review Group [2], the requirements of the SNMP 
+            and the OSI network management frameworks were more 
+            different than anticipated.  As such, the requirement for 
+            compatibility between the SMI/MIB and both frameworks was 
+            suspended.  This action permitted the operational network 
+            management framework, based on the SNMP, to respond to new 
+            operational needs in the Internet community by producing 
+            MIB-II.
+            
+            In May of 1990, the core documents were elevated to 
+            "Standard Protocols" with "Recommended" status.  As such, 
+            the Internet- standard network management framework consists 
+            of: Structure and Identification of Management Information 
+            for TCP/IP-based internets, RFC 1155 [4], which describes 
+            how managed objects contained in the MIB are defined; 
+            Management Information Base for Network Management of 
+            TCP/IP-based internets, which describes the managed objects 
+            contained in the MIB, RFC 1156 [5]; and, the Simple Network 
+            Management Protocol, RFC 1157 [6], which defines the 
+            protocol used to manage these objects.
+            
+            Consistent with the IAB directive to produce simple, 
+
+            
+            
+                                                               [Page   3]
+
+
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+            workable systems in the short-term, the list of managed 
+            objects defined in the Internet-standard MIB was derived by 
+            taking only those elements which are considered essential.  
+            However, the SMI defined three extensibility mechanisms: 
+            one, the addition of new standard objects through the 
+            definitions of new versions of the MIB; two, the addition of 
+            widely-available but non- standard objects through the 
+            experimental subtree; and three, the addition of private 
+            objects through the enterprises subtree.  Such additional 
+            objects can not only be used for vendor-specific elements, 
+            but also for experimentation as required to further the 
+            knowledge of which other objects are essential.
+            
+            This memo defines extensions to the MIB using the third 
+            method.  It contains definitions of managed objects in 
+            various Xyplex products, using ASN.1 conventions specified 
+            in [10].
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   4]
+
+
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+            4.  Objects
+            
+            Managed objects are accessed via a virtual information 
+            store, termed the Management Information Base or MIB.  
+            Objects in the MIB are defined using the subset of Abstract 
+            Syntax Notation One (ASN.1) [7] defined in the SMI.  In 
+            particular, each object has a name, a syntax, and an 
+            encoding.  The name is an object identifier, an 
+            administratively assigned name, which specifies an object 
+            type.  The object type together with an object instance 
+            serves to uniquely identify a specific instantiation of the 
+            object.  For human convenience, we often use a textual 
+            string, termed the OBJECT DESCRIPTOR, to also refer to the 
+            object type.
+            
+            The syntax of an object type defines the abstract data 
+            structure corresponding to that object type.  The ASN.1 
+            language is used for this purpose.  However, the SMI [4] 
+            purposely restricts the ASN.1 constructs which may be used. 
+            These restrictions are explicitly made for simplicity.
+            
+            The encoding of an object type is simply how that object 
+            type is represented using the object type's syntax.  
+            Implicitly tied to the notion of an object type's syntax and 
+            encoding is how the object type is represented when being 
+            transmitted on the network.
+            
+            The SMI specifies the use of the basic encoding rules of 
+            ASN.1 [8], subject to the additional requirements imposed by 
+            the SNMP.
+            
+            
+            4.1.  Format of Definitions
+            
+            Section 6 contains the specification of all object types 
+            contained in this MIB module.  The object types are defined 
+            using the conventions defined in the SMI, as amended by the 
+            extensions specified in [9].
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   5]
+
+
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+            5.  Overview
+            
+            The Xyplex Hub MIB applies to Xyplex systems that act as an 
+            Ethernet hub.  It is a supplement to the draft IEEE 802 hub 
+            MIB as defined in [11].
+            
+            The Hub MIB is mandatory for all Xyplex hubs managed via 
+            SNMP.
+            
+            A Xyplex Ethernet hub has two types of ports, distinquished 
+            by hardware:  twisted-pair ports and other ports.  The 
+            latter may be thick or thin Ethernet coax, or a Xyplex 
+            LANBUS.
+            
+            The MIB comprises two base objects and a table.
+            
+            As a convenience to the reader, the base objects are:
+            
+                hubTwistedPairPortNumber
+                hubNonTwistedPairPortNumber
+            
+            The table contains:
+            
+                hubPortIndex
+                hubPortName
+                hubPortAutoPolarity
+                hubPortSensedPolarity
+                hubPortPulse
+                hubPortPulseStatus
+                hubPortMissedPulses
+                hubPortJabbers
+                hubPortBadPreambles
+                hubPortBitRateErrors
+                hubPortLateCollisions
+                hubPortNormalCollisions
+                hubPortZero
+                hubPortZeroTime
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   6]
+
+
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+            6.  Definitions
+            
+                    XYPLEX-HUB-MIB DEFINITIONS ::= BEGIN
+            
+                    IMPORTS
+                            enterprises, Counter
+                                    FROM RFC1155-SMI
+                            DisplayString
+                                    FROM RFC1158-MIB
+                            OBJECT-TYPE
+                                    FROM RFC1212-CONCISE-MIB
+                            DateTime
+                                    FROM XYPLEX-SYSTEM-MIB;
+            
+            xyplex          OBJECT IDENTIFIER ::= { enterprises 33 }
+            hub             OBJECT IDENTIFIER ::= { xyplex 9 }
+            
+            --  This MIB module uses the extended OBJECT-TYPE macro as
+            --  defined in [9]
+            
+            --  this is the MIB module for Xyplex Ethernet hubs
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   7]
+
+
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+            -- the Hub group
+            
+            -- Implementation of this group is mandatory for all Xyplex
+            -- Ethernet hubs that support SNMP management
+            
+            hubTwistedPairPortNumber OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of twisted-pair hub ports.  By 
+                    convention, these are the lower numbered hub ports.  
+                    Corresponds indirectly to the numbered, twisted-pair 
+                    port numbers labeled 'Port' in the SHOW HUB SUMMARY 
+                    display."
+            ::= { hub 1 }
+            
+            hubNonTwistedPairPortNumber OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of non-twisted-pair hub ports.  By 
+                    convention, these are the higher numbered hub ports.  
+                    Corresponds indirectly to the unnumbered, 
+                    non-twisted-pair ports in the SHOW HUB SUMMARY 
+                    display."
+            ::= { hub 2 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page   8]
+
+
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+            -- the Hub Port table
+            
+            hubPortTable OBJECT-TYPE
+                SYNTAX SEQUENCE OF HubPortEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "A list of hub Ethernet port entries."
+                ::= { hub 3 }
+            
+            hubPortEntry OBJECT-TYPE
+                SYNTAX HubPortEntry
+                ACCESS not-accessible
+                STATUS mandatory
+                DESCRIPTION
+                    "Hub parameter values for an Ethernet port."
+                INDEX { hubPortIndex }
+                ::= { hubPortTable 1 }
+            
+            HubPortEntry ::=
+                SEQUENCE {
+                    hubPortIndex
+                        INTEGER,
+                    hubPortName
+                        DisplayString,
+                    hubPortAutoPolarity
+                        INTEGER,
+                    hubPortSensedPolarity
+                        INTEGER,
+                    hubPortPulse
+                        INTEGER,
+                    hubPortPulseStatus
+                        INTEGER,
+                    hubPortMissedPulses
+                        COUNTER,
+                    hubPortJabbers
+                        COUNTER,
+                    hubPortBadPreambles
+                        COUNTER,
+                    hubPortBitRateErrors
+                        COUNTER,
+                    hubPortLateCollisions
+                        COUNTER,
+                    hubPortNormalCollisions
+                        COUNTER,
+                    hubPortZero
+
+            
+            
+                                                               [Page   9]
+
+
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+                        INTEGER,
+                    hubPortZeroTime
+                        TimeTicks
+                }
+            
+            hubPortIndex OBJECT-TYPE
+                SYNTAX INTEGER
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "An index value that uniquely identifies a port.  
+                    The port identified by a particular value of this 
+                    index is the same port as identified by portBasicID 
+                    in hmBasicPortTable in the IEEE Hub MIB [11].  
+                    Corresponds directly to the numbered, twisted-pair 
+                    port numbers labeled 'port' and indirectly to the 
+                    unnumbered, non-twisted-pair ports in the SHOW HUB 
+                    SUMMARY display."
+                ::= { hubPortEntry 1 }
+            
+            hubPortName OBJECT-TYPE
+                SYNTAX DisplayString (SIZE (0..16))
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "An administratively assigned name for a 
+                    twisted-pair port, typically with some local 
+                    significance.  Corresponds directly to PORT NAME and 
+                    the value labeled 'Name' in the SHOW HUB SUMMARY 
+                    display."
+                ::= { hubPortEntry 2 }
+            
+            hubPortAutoPolarity OBJECT-TYPE
+                SYNTAX INTEGER { disabled(1), enabled(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "A control for automatic determination of 
+                    twisted-pair port polarity.  'disabled' locks the 
+                    port into positive polarity.  'enabled' allows the 
+                    hub to sense polarity and adapt accordingly.  
+                    Corresponds directly to PORT POLARITY and the value 
+                    labeled 'Auto Polarity:' in the PORT display."
+                ::= { hubPortEntry 3 }
+            
+            hubPortSensedPolarity OBJECT-TYPE
+
+            
+            
+                                                               [Page  10]
+
+
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+                SYNTAX INTEGER { reversed(1), normal(2) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Polarity of a twisted-pair port.  Corresponds 
+                    directly to PORT POLARITY and the value labeled 
+                    'Polarity:' in the HUB SUMMARY display."
+                ::= { hubPortEntry 4 }
+            
+            hubPortPulse OBJECT-TYPE
+                SYNTAX INTEGER { disabled(1), enabled(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "A control for periodic, automatic generation of a 
+                    test pulse on a twisted-pair port.  Corresponds 
+                    directly to PORT TEST PULSE and the value labeled 
+                    'Test Pulse:' in the PORT display."
+                ::= { hubPortEntry 5 }
+            
+            hubPortPulseStatus OBJECT-TYPE
+                SYNTAX INTEGER { missed(1), detected(2) }
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Status of the last attempt to generate and detect a 
+                    test pulse.  Corresponds directly to the value 
+                    labeled 'STATUS' and 'Test Pulse:' in the PORT 
+                    display."
+                ::= { hubPortEntry 6 }
+            
+            hubPortMissedPulses OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of times that a generated test pulse was not 
+                    seen in return.  Corresponds directly to the value 
+                    labeled 'Test Pulse Lost:' in the PORT display."
+                ::= { hubPortEntry 7 }
+            
+            hubPortJabbers OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+
+            
+            
+                                                               [Page  11]
+
+
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+                    "Number of times that a received frame was 
+                    terminated by the jabber timer.  Corresponds 
+                    directly to the value labeled 'Jabbers:' in the PORT 
+                    display."
+                ::= { hubPortEntry 8 }
+            
+            hubPortBadPreambles OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of times that two one bits (Start of Frame) 
+                    did not follow an interpacket gap and alternating 
+                    one and zero bits.  Corresponds directly to the 
+                    value labeled 'SOF Missing:' in the PORT display."
+                ::= { hubPortEntry 9 }
+            
+            hubPortBitRateErrors OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of times that bits were received with 
+                    improper timing.  Corresponds directly to the value 
+                    labeled 'Out of Spec. Bit Rate:' in the PORT 
+                    display."
+                ::= { hubPortEntry 10 }
+            
+            hubPortLateCollisions OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of times that a frame collision came after 
+                    the allowed collision window.  Corresponds directly 
+                    to the value labeled 'Late Collisions:' in the PORT 
+                    display."
+                ::= { hubPortEntry 11 }
+            
+            hubPortNormalCollisions OBJECT-TYPE
+                SYNTAX Counter
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "Number of times that a frame collision came within 
+                    the allowed collision window.  Corresponds directly 
+
+            
+            
+                                                               [Page  12]
+
+
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+                            to the value labeled 'Collisions:' in the PORT 
+                    display."
+                ::= { hubPortEntry 12 }
+            
+            hubPortZero OBJECT-TYPE
+                SYNTAX INTEGER { ready(1), execute(2) }
+                ACCESS read-write
+                STATUS mandatory
+                DESCRIPTION
+                    "Control to zero counters kept for the port.  In 
+                    response to a get-request or get-next-request, the 
+                    agent always returns 'ready' for this value.  
+                    Setting the value to 'ready' has no effect.  Setting 
+                    it to 'execute' causes all the system's counters to 
+                    be zeroed.  Corresponds to the ZERO PORT command."
+                ::= { hubPortEntry 13 }
+            
+            hubPortZeroTime OBJECT-TYPE
+                SYNTAX TimeTicks
+                ACCESS read-only
+                STATUS mandatory
+                DESCRIPTION
+                    "The number of hundredths of a second since the most 
+                    recent zeroing of the counters kept for the port, 
+                    such as through execution of sysZeroAll or 
+                    hubPortZero.  Corresponds directly to the value 
+                    labeled 'Since Zeroed:' in the PORT COUNTERS 
+                    display."
+                ::= { hubPortEntry 14 }
+            
+            END
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  13]
+
+
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+            7.  References
+            
+            [1]  V. Cerf, IAB Recommendations for the Development of 
+            Internet Network Management Standards.  Internet Working 
+            Group Request for Comments 1052.  Network Information 
+            Center, SRI International, Menlo Park, California, (April, 
+            1988).
+            
+            [2]  V. Cerf, Report of the Second Ad Hoc Network Management 
+            Review Group, Internet Working Group Request for Comments 
+            1109.  Network Information Center, SRI International, Menlo 
+            Park, California, (August, 1989).
+            
+            [3]  M.T. Rose (editor), Management Information Base for 
+            Network Management of TCP/IP-based internets, Internet 
+            Working Group Request for Comments 1158.  Network 
+            Information Center, SRI International, Menlo Park, 
+            California, (May, 1990).
+            
+            [4]  M.T. Rose and K. McCloghrie, Structure and 
+            Identification of Management Information for TCP/IP-based 
+            internets, Internet Working Group Request for Comments 1155. 
+            Network Information Center, SRI International, Menlo Park, 
+            California, (May, 1990).
+            
+            [5]  K. McCloghrie and M.T. Rose, Management Information 
+            Base for Network Management of TCP/IP-based 
+            internets:MIB-II, Internet Working Group Request for 
+            Comments 1213. Network Information Center, SRI 
+            International, Menlo Park, California, (March 1991).
+            
+            [6]  J.D. Case, M.S. Fedor, M.L. Schoffstall, and J.R. 
+            Davin, Simple Network Management Protocol, Internet Working 
+            Group Request for Comments 1157.  Network Information 
+            Center, SRI International, Menlo Park, California, (May, 
+            1990).
+            
+            [7]  Information processing systems - Open Systems 
+            Interconnection - Specification of Abstract Syntax Notation 
+            One (ASN.1), International Organization for Standardization.  
+            International Standard 8824, (December, 1987).
+            
+            [8]  Information processing systems - Open Systems 
+            Interconnection - Specification of Basic Encoding Rules for 
+            Abstract Notation One (ASN.1), International Organization 
+            for Standardization.  International Standard 8825, 
+
+            
+            
+                                                               [Page  14]
+
+
+            
+                              XYPLEX ETHERNET HUB MIB        17 Oct 91
+            
+            
+            
+            (December, 1987).
+            
+            [9] M.T. Rose, K. McCloghrie (editors), Towards Concise MIB 
+            Definitions, Internet Working Group Request for Comments 
+            1212. Network Information Center, SRI International, Menlo 
+            Park, California, (March, 1991).
+            
+            [10] Definitions of Managed Objects for Xyplex Systems, 
+            Xyplex document number 420-0545, (August, 1991).
+            
+            [11] Draft Supplement to ANSI/IEEE STD 802.3 - 1990 Edition, 
+            CSMA/CD Access Method & Physical Layer Specifications, Layer 
+            Management for Hub Devises, Section 18, draft of 5 
+            September 1990.
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            
+            
+                                                               [Page  15]
+

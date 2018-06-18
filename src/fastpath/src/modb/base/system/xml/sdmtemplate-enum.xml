@@ -1,0 +1,12 @@
+<?xml version="1.0"?> 
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+ <FastPathXML>
+   <data-types version="1.0">
+     <enum name="L7_SDM_TEMPLATE_ID_TYPE_t">
+        <option macro="SDM_TEMPLATE_NONE" name="Default"> </option>
+        <option run_if="SDM_TEMPLATE_DUAL_IP_SUPPORTED" macro="SDM_TEMPLATE_DUAL_DEFAULT" name="Dual IPv4 and IPv6"> </option>
+        <option macro="SDM_TEMPLATE_V4_DEFAULT" name="IPv4-routing Default"> </option>
+        <option run_if="SDM_TEMPLATE_DATACENTER_SUPPORTED" macro="SDM_TEMPLATE_V4_DATA_CENTER" name="IPv4 Data Center"> </option>
+     </enum>
+   </data-types>
+ </FastPathXML> 

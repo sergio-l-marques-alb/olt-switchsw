@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+  <webxml version="1.0" name="class_dscp" title="DiffServ Class Rule Match IP DSCP">
+    <group id="1" heading="">
+      <node id="1">
+        <element properties="hidden" obj-name="qosDiffServClassRule_ClassIndex" id="1" name="Class Index"/>
+      </node>
+      <node id="2">
+        <element properties="hidden" obj-name="qosDiffServClassRule_ClassRuleIndex" id="1" name="ClassRuleIndex"/>
+      </node>
+      <node id="3">
+        <element control="label" obj-name="qosDiffServClassRule_Name" id="1" name="Class Name"/>
+      </node>
+      <node id="4">
+        <element control="label" obj-name="qosDiffServClassRule_Type" id="1" name="Class Type"/>
+      </node>
+      <node id="5">
+        <element control="label" obj-name="qosDiffServClassRule_ProtoType" id="1" name="Class Layer 3 Protocol"/>
+      </node>
+      <node id="6">
+        <element obj-name="qosDiffServClassRule_MatchEntryType" id="1" name="Entry type" control="textbox" properties="hidden,write-only" value="IP DSCP"/>
+        <element control="combo" properties="hidden" obj-name="qosDiffServClassRule_MatchExcludeFlag" id="2" name="Exclude" value="False" run_if="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE"/>
+      </node>
+      <node id="8">
+        <element control="combo" obj-name="xLibObjects_dummy" id="1" name="IP DSCP KeyWord" uienum="diffServClassDscpValues_t">
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="af11"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="af12"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="af13"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="af21"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="af22"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="af23"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="af31"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="af32"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="af33"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="af41"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="af42"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="af43"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="BE"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="CS0"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="CS1"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="CS2"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="CS3"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="CS4"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="CS5"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="CS6"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="CS7"/>
+          <action type="enum" hide="1_9_1" setval_ids="1_9_1" setval_args="EF"/>
+          <action type="enum" show="1_9_1" enable="1_9_1"/>
+        </element>
+        <element control="checkbox" uienum="TrueFalse_t" obj-name="xLibObjects_dummy" id="2" name="Exclude" run_if="DIFFSERV_CLASS_MATCH_EXCLUDE_FEATURE">
+          <action type="enum" discard="no" setval_args="TRUTH_VALUE_TRUE" setval_ids="1_6_2"/>
+          <action type="enum" discard="no" setval_args="TRUTH_VALUE_FALSE" setval_ids="1_6_2"/>
+        </element>
+      </node>
+      <node id="9">
+        <element control="textbox" obj-name="qosDiffServClassRule_MatchIpDscp" id="1" maxLength="2" name="IP DSCP Value" arghelp="ipdscprange"/>
+      </node>
+      <node id="7">
+        <button scope="page" type="buttonSubmit" target-page="DiffservClassConfig.html" value="Add" obj-name="qosDiffServClassRule_RowStatus" help="Submits the form on this page to the Switch" id="1" name="Submit">
+          <action type="button" discard="no" disable="1_3_1|1_4_1|1_5_1"/>
+        </button>
+        <button scope="page" type="buttonClear" target-page="DiffservClassConfig.html" help="Refreshes the form on this page from the Switch" id="2" name="Cancel"/>
+      </node>
+    </group>
+  </webxml>
+</FastPathXML>

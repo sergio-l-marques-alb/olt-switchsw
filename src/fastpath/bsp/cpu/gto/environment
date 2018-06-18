@@ -1,0 +1,2 @@
+# Directly set CROSS_COMPILE and KERNEL_SRC for Linux 2.6 views
+include bsp/cpu/gto/environment_linux_2.6

@@ -1,0 +1,27 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PortSecurityDynamic" title="Port Security Dynamically Learned MAC Addresses">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingPortSecurityDynamicEntries_Interface" id="1" name="Interface"/>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="2">
+                <element properties="filter,iterate" obj-name="SwitchingPortSecurityDynamicEntries_DynamicMACAddress" id="1" name="MAC Address"/>
+                <element properties="filter,iterate" obj-name="SwitchingPortSecurityDynamicEntries_DynamicVLANId" id="2" name="VLAN ID"/>
+            </repeat>
+            <node id="3">
+                <element control="label" properties="hidden" cpval="SwitchingPortSecurityDynamicEntries_Interface" obj-name="SwitchingPortSecurityGroup_Interface" id="1" />
+            </node> 
+            <node id="4">
+                <element control="label" properties="read-only" obj-name="SwitchingPortSecurityGroup_DynamicCount" id="1" name="Number Of Dynamic MAC Addresses Learned"/>
+            </node> 
+            <node id="5">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

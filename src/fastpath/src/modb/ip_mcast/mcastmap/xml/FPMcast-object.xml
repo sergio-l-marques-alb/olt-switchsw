@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="IPMCAST" version="1.0" >
+<module name="agentMulticastIGMPConfigGroup"  >
+<object name="agentMulticastIGMPFamily"  >
+<core  type="enum" key="yes" xtype="L7_L3PROTOCOL_t" access="read-write" descr="The Address Family to enable IGMP globally on the router"/>
+<ui  name="IGMP Address Family" style="choiceNselect1">
+<snmp asn-id=""/>
+</ui></object>
+<object name="agentMulticastIGMPAdminMode" depends="agentMulticastIGMPFamily" >
+<core  type="enum" xtype="enable_t"  default="FD_IGMP_DEFAULT_ADMIN_MODE" access="read-write" descr="Enable/Disable IGMP globally on the router"/>
+<ui  name="IGMP Global Admin Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.4.1.1"/> 
+</ui></object>
+<!-- ObjectAddedStart -->
+<object name="MulticastMCacheDebugTraceTxFlag" depends="agentMulticastIGMPFamily"  >
+<core  type="enum" xtype="TrueFalse_t" default="L7_FALSE" access="read-write" descr="Enable/Disable MCache Data Debug Tx Flag on the router"/>
+<ui  name="Multicast Tx Debug Trace" style="choiceNselect1">
+</ui></object>
+<object name="MulticastMCacheDebugTraceRxFlag" depends="agentMulticastIGMPFamily"  >
+<core  type="enum" xtype="TrueFalse_t" default="L7_FALSE" access="read-write" descr="Enable/Disable MCache Data Debug Rx Flag on the router"/>
+<ui  name="Multicast Rx Debug Trace" style="choiceNselect1">
+</ui></object>
+<!-- ObjectAddedEnd -->
+</module>
+<module name="agentSnmpTrapFlagsConfigGroupMulticast"  >
+<object name="agentSnmpDVMRPTrapFlag"  >
+<core  type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="Enable/Disable DVMRP Traps on the router"/>
+<ui  name="DVMRP Trap Flag" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.4.7.1"/> 
+</ui></object>
+<object name="agentSnmpPIMTrapFlag"  >
+<core  type="enum" xtype="enable_t" default="L7_DISABLE" access="read-write" descr="Enable/Disable PIM Traps on the router"/>
+<ui  name="PIM Trap Flag" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.4.7.2"/> 
+</ui></object>
+</module>
+<module name="agentMulticastPIMSMConfigGroup"  >
+<object name="agentMulticastPIMSMFamily"  >
+<core  type="enum" key="yes" xtype="snoopingProtocol_t" access="read-write" descr="The Address Family to enable PIMSM globally on the router"/>
+<ui  name="PIMSM Address Family" style="choiceNselect1">
+<snmp asn-id=""/>
+</ui></object>
+<object name="agentMulticastPIMSMAdminMode" depends="agentMulticastPIMSMFamily"  >
+<core  type="enum" xtype="enable_t" default="FD_PIMSM_DEFAULT_ADMIN_MODE" access="read-write" descr="Enable/Disable PIM Sparse Mode globally on the router"/>
+<ui  name="PIMSM Global Admin Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.4.3.1"/> 
+</ui></object>
+<object name="agentMulticastPIMSMDataThresholdRate" depends="agentMulticastPIMSMFamily" >
+<core  type="uint" access="read-write" min="L7_PIMSM_DATATHRESHOLD_RATE_MIN" max="L7_PIMSM_DATATHRESHOLD_RATE_MAX" descr="Specifies the minimum rate in Kbits/sec for the last hop router to initiate switching to the shortest path"/>
+<ui  name="PIMSM Data Threshold Rate" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.4.3.2"/> 
+</ui></object>
+<object name="agentMulticastPIMSMRegThresholdRate" depends="agentMulticastPIMSMFamily" >
+<core  type="uint" access="read-write" min="L7_PIMSM_REGTHRESHOLD_RATE_MIN" max="L7_PIMSM_REGTHRESHOLD_RATE_MAX" descr="Specifies the minimum rate in Kbits/sec for the RP to switch to the shortest path"/>
+<ui  name="PIMSM Register Threshold Rate" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.4.3.3"/> 
+</ui></object>
+<!-- ObjectAddedStart -->
+<object name="MulticastPIMSMDebugTraceTxFlag" depends="agentMulticastPIMSMFamily"  >
+<core  type="enum" xtype="TrueFalse_t" default="L7_FALSE" access="read-write" descr="Enable/Disable PIMSM Control packets Tx Debug Trace on the system"/>
+<ui  name="PIMSM Tx Debug Trace" style="choiceNselect1">
+</ui></object>
+<object name="MulticastPIMSMDebugTraceRxFlag" depends="agentMulticastPIMSMFamily"  >
+<core  type="enum" xtype="TrueFalse_t" default="L7_FALSE" access="read-write" descr="Enable/Disable PIMSM Control packets Rx Debug Trace on the system"/>
+<ui  name="PIMSM Rx Debug Trace" style="choiceNselect1">
+</ui></object>
+<!-- ObjectAddedEnd -->
+</module>
+<module name="agentMulticastRoutingConfigGroup"  >
+<object name="agentMulticastRoutingAdminMode"  >
+<core  type="enum" xtype="enable_t" access="read-write" descr="Enable/Disable Multicast Routing on the router"/>
+<ui  name="Multicast-Routing Global Admin Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.4.5.1"/> 
+</ui></object>
+</module>
+
+<module name="agentMulticastPIMConfigGroup"  >
+<key-combo list="agentMulticastPIMFamily,agentMulticastPimProtocolType" />
+<object name="agentMulticastPIMFamily"  >
+<core  type="enum" key="yes" xtype="L7_InetAddrType_t" access="read-write" descr="The Address Family to enable PIM globally on the router"/>
+<ui  name="PIM Address Family" style="choiceNselect1">
+</ui></object>
+
+<object name="agentMulticastPimProtocolType"  >
+<core  type="enum" xtype="L7_XUI_SUPPORTED_PIM_MODE_t" key="yes" access="read-write" descr="This configures the PIM mode (Dense/Sparse) to be used for routing Multicast Groups"/>
+<ui  name="PIM Protocol" style="choiceNselect1">
+</ui></object>
+
+<object name="agentMulticastEnabledPimProtocolType" depends="agentMulticastPIMFamily" >
+<core  type="enum" xtype="L7_XUI_SUPPORTED_PIM_MODE_t" key="yes" access="read-only" descr="The PIM protocol that is enabled globally on the router"/>
+<ui  name="Enabled PIM Protocol" style="plainText">
+</ui></object>
+
+<object name="agentMulticastPIMAdminMode" depends="agentMulticastPIMFamily,agentMulticastPimProtocolType"  >
+<core  type="enum" xtype="enable_t" default="FD_PIMDM_DEFAULT_ADMIN_MODE" access="read-write" descr="Enable/Disable the PIM protocol specified by agentMulticastEnabledPimProtocolType globally on the router"/>
+<ui  name="PIM Global Admin Mode" style="choiceNselect1">
+</ui></object>
+
+<object name="agentMulticastPIMSMDataThresholdRate" depends="agentMulticastPIMSMFamily" >
+<core  type="uint" access="read-write" min="L7_PIMSM_DATATHRESHOLD_RATE_MIN" max="L7_PIMSM_DATATHRESHOLD_RATE_MAX" descr="Specifies the minimum rate in Kbits/sec for the last hop router to initiate switching to the shortest path."/>
+<ui  name="PIMSM Data Threshold Rate" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.4.3.2"/> 
+</ui></object>
+
+<object name="agentMulticastPIMSMRegThresholdRate" depends="agentMulticastPIMSMFamily" >
+<core  type="uint" access="read-write" min="L7_PIMSM_REGTHRESHOLD_RATE_MIN" max="L7_PIMSM_REGTHRESHOLD_RATE_MAX" descr="Specifies the minimum rate in Kbits/sec for the RP to switch to the shortest path."/>
+<ui  name="PIMSM Register Threshold Rate" style="inputLine">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.4.3.3"/> 
+</ui></object>
+
+</module>
+
+<module name="agentMulticastPIMDMConfigGroup"  >
+<object name="agentMulticastPIMDMFamily"  >
+<core  type="enum" key="yes" xtype="snoopingProtocol_t" access="read-write" descr="The Address Family to enable PIMSM globally on the router"/>
+<ui  name="PIMDM Address Family" style="choiceNselect1">
+</ui></object>
+<object name="agentMulticastPIMDMAdminMode" depends="agentMulticastPIMDMFamily"  >
+<core  type="enum" xtype="enable_t" default="FD_PIMDM_DEFAULT_ADMIN_MODE" access="read-write" descr="Enable/Disable PIM Dense Mode globally on the router"/>
+<ui  name="PIMSM Global Admin Mode" style="choiceNselect1">
+ <snmp asn-id=".1.3.6.1.4.1.4413.1.1.4.4.1"/> 
+</ui></object>
+
+<!-- ObjectAddedStart -->
+<object name="MulticastPIMDMDebugTraceTxFlag" depends="agentMulticastPIMDMFamily"  >
+<core  type="enum" xtype="TrueFalse_t" default="L7_FALSE" access="read-write" descr="Enable/Disable PIMDM Control packets Tx Debug Trace on the system"/>
+<ui  name="PIMDM Tx Debug Trace" style="choiceNselect1">
+</ui></object>
+<object name="MulticastPIMDMDebugTraceRxFlag" depends="agentMulticastPIMDMFamily"  >
+<core  type="enum" xtype="TrueFalse_t" default="L7_FALSE" access="read-write" descr="Enable/Disable PIMDM Control packets Rx Debug Trace on the system"/>
+<ui  name="PIMDM Rx Debug Trace" style="choiceNselect1">
+</ui></object>
+<!-- ObjectAddedEnd -->
+
+<object name="globalMcastMode"  >
+<core  type="enum" xtype="enable_t" default="FD_MCAST_DEFAULT_ADMIN_MODE" access="read-write" descr="Enable/Disable Multicast Routing on the router"/>
+<ui  name="Multicast-Routing Global Admin Mode" style="choiceNselect1">
+ <snmp asn-id="1.3.6.1.3.60.1.1.1"/> 
+</ui></object>
+</module>
+</objectxml>
+</FastPathXML>

@@ -1,0 +1,31 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="ISDPCacheTable" title="ISDP Cache Table">
+        <group id="1" heading=" ">
+            <node id="1">
+                <message>Capability Codes: R - Router, T - Trans Bridge, B - Source Route Bridge, S - Switch, H - Host, I - IGMP, r - Repeater</message>
+            </node>
+            <repeat present="vtable" edit="no" heading=" " id="2">
+                <element properties="filter,iterate,hidden" obj-name="baseIsdpCacheTable_IsdpCacheIfIndex" id="1" name="Interface"/>
+                <element properties="iterate" obj-name="baseIsdpCacheTable_IsdpCacheDeviceId" id="3" name="Device ID"/>
+                <element properties="filter,iterate" obj-name="baseIsdpCacheTable_IsdpCacheIfIndex" id="4" name="Interface"/>
+                <element obj-name="baseIsdpCacheTable_IsdpCacheAddress" id="5" name="IP Address"/>
+                <element obj-name="baseIsdpCacheTable_IsdpCacheVersion" id="6" name="Version"/>
+                <element obj-name="baseIsdpCacheTable_IsdpCacheHoldtime" id="7" name="Hold Time(secs)"/>
+                <element obj-name="baseIsdpCacheTable_IsdpCacheCapabilities" id="8" name="Capability"/>
+                <element obj-name="baseIsdpCacheTable_IsdpCachePlatform" id="9" name="Platform"/>
+                <element obj-name="baseIsdpCacheTable_IsdpCacheDevicePort" id="10" name="PortID"/>
+                <element obj-name="baseIsdpCacheTable_IsdpCacheProtocolVersion" id="11" name="Protocol Version"/>
+                <element obj-name="baseIsdpCacheTable_IsdpCacheLastChange" id="12" name="Last Time Changed(dd:hh:mm:ss)"/>
+            </repeat>
+            <node id="3">
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" value="1" obj-name="baseIsdpGlobal_IsdpClearEntries" help="Submits the form on this page to the Switch" id="1" name="Clear"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

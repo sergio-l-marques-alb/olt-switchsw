@@ -1,0 +1,204 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PortConfig" title="Port Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="baseport_Interface" id="1" name="Interface">
+                    <action type="extn" position="0" value="All" show="1_12_1|1_13_1|1_14_1|1_15_1|1_15_2|1_16_1|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_22_1|1_26_1|1_29_1|1_30_1|1_120_1" enable="1_12_1|1_13_1|1_14_1|1_15_1|1_15_2|1_16_1|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_22_1|1_26_1|1_29_1|1_30_1|1_120_1" hide="1_3_1|1_4_1|1_5_1|1_6_1|1_7_1|1_7_2|1_7_3|1_8_1|1_9_1|1_9_2|1_9_3|1_10_1|1_11_1|1_11_2|1_11_3|1_20_1|1_21_1|1_23_1|1_24_1|1_25_1|1_27_1|1_28_1|1_31_1" disable="1_3_1|1_4_1|1_5_1|1_6_1|1_7_1|1_7_2|1_8_1|1_9_1|1_9_2|1_10_1|1_11_1|1_11_2|1_20_1|1_21_1|1_23_1|1_24_1|1_25_1|1_27_1|1_28_1|1_31_1"/>
+                    <action type="default" hide="1_12_1|1_13_1|1_14_1|1_15_1|1_15_2|1_16_1|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_22_1|1_26_1|1_29_1|1_30_1|1_120_1" disable="1_12_1|1_13_1|1_14_1|1_15_1|1_15_2|1_16_1|1_17_1|1_17_2|1_18_1|1_19_1|1_19_2|1_22_1|1_26_1|1_29_1|1_30_1|1_120_1" show="1_23_1|1_24_1|1_27_1|1_28_1|1_31_1" enable="1_23_1|1_24_1|1_27_1|1_28_1|1_31_1"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate,hidden" obj-name="baseport_mstid" id="1" name="mstid"/>
+            </node>
+            <node id="200">
+                <element control="combo" properties="hidden" obj-name="baseport_InterfaceType" id="1" name="Interface type">
+                   <action type="enum" hide="" disable="" show="1_6|1_7_2|1_8|1_9_2|1_10|1_11_2|1_20|1_21" enable="1_6|1_7_2|1_8|1_9_2|1_10|1_11_2|1_20|1_21"/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                </element>
+            </node>
+            <node id="3">
+                <element obj-name="baseport_Type" id="1" name="Port Type"/>
+            </node>
+            <node id="4">
+                <element control="combo" obj-name="baseport_STPMode" id="1" name="STP Mode"/>
+            </node>
+            <node id="5">
+                <element control="combo" obj-name="baseport_AdminMode" id="1" name="Admin Mode"/>
+            </node>
+            <node id="6">
+                <element control="combo" obj-name="baseport_BroadcastMode" id="1" name="Broadcast Storm Recovery Mode"/>
+            </node>
+            <node id="7">
+                <element obj-name="baseport_BroadcastLevel" id="1" validation="validate_stormLevel_Percentage" name="Broadcast Storm Recovery Level" maxLength="3"/>
+                <element obj-name="baseport_BroadcastLevel" id="3" validation="validate_stormLevel_Pps" name="Broadcast Storm Recovery Level" maxLength="8"/>
+                <element control="combo" clazz="def4" obj-name="baseport_BroadcastLevelThresholdUnit" id="2" name="Unit">
+                   <action type="enum" discard="no" enable="1_7_1" disable="1_7_3" show="1_7_1" hide="1_7_3" copy_from="1_7_3" copy_to="1_7_1"/>   
+                   <action type="enum" discard="yes"/>   
+                   <action type="enum" discard="no" enable="1_7_3" disable="1_7_1" show="1_7_3" hide="1_7_1" copy_from="1_7_1" copy_to="1_7_3"/>
+				</element>         
+			</node>
+            <node id="8">
+                <element control="combo" obj-name="baseport_MulticastMode" id="1" name="Multicast Storm Recovery Mode"/>
+            </node>
+            <node id="9">
+                <element obj-name="baseport_MulticastLevel" id="1" validation="validate_stormLevel_Percentage" name="Multicast Storm Recovery Level" maxLength="3"/>
+                <element obj-name="baseport_MulticastLevel" id="3" validation="validate_stormLevel_Pps" name="Multicast Storm Recovery Level" maxLength="8"/>
+                <element control="combo" clazz="def4" obj-name="baseport_MulticastLevelThresholdUnit" id="2" name="Unit">
+        				   <action type="enum" discard="no" enable="1_9_1" disable="1_9_3" show="1_9_1" hide="1_9_3" copy_from="1_9_3" copy_to="1_9_1"/>   
+                   <action type="enum" discard="yes"/>   
+                   <action type="enum" discard="no" enable="1_9_3" disable="1_9_1" show="1_9_3" hide="1_9_1" copy_from="1_9_1" copy_to="1_9_3"/>
+				</element> 
+            </node>
+            <node id="10">
+                <element control="combo" obj-name="baseport_UnicastMode" id="1" name="Unicast Storm Recovery Mode"/>
+            </node>
+            <node id="11">
+                <element obj-name="baseport_UnicastLevel" id="1" validation="validate_stormLevel_Percentage" name="Unicast Storm Recovery Level" maxLength="3"/>
+                <element obj-name="baseport_UnicastLevel" id="3" validation="validate_stormLevel_Pps" name="Unicast Storm Recovery Level" maxLength="8"/>
+                <element control="combo" clazz="def4" obj-name="baseport_UnicastLevelThresholdUnit" id="2" name="Unit">
+        				   <action type="enum" discard="no" enable="1_11_1" disable="1_11_3" show="1_11_1" hide="1_11_3" copy_from="1_11_3" copy_to="1_11_1"/>   
+                   <action type="enum" discard="yes"/>   
+                   <action type="enum" discard="no" enable="1_11_3" disable="1_11_1" show="1_11_3" hide="1_11_1" copy_from="1_11_1" copy_to="1_11_3"/>
+				</element> 
+            </node>
+            <node id="12">
+                <element control="combo" value="Disable" obj-name="baseportCfgglobal_GlobalSTPMode" id="1" name="STP Mode"/>
+            </node>
+            <node id="13">
+                <element control="combo" value="Disable" obj-name="baseportCfgglobal_GlobalAdminMode" id="1" name="Admin Mode"/>
+            </node>
+            <node id="14">
+                <element control="combo" obj-name="baseStormControl_BroadcastControlMode" id="1" name="Broadcast Storm Recovery Mode"/>
+            </node>
+            <node id="15">
+                <element obj-name="baseStormControl_BroadcastControlThreshold" id="1" name="Broadcast Storm Recovery Level" maxLength="10"/>
+                <element control="combo" properties="noname" obj-name="baseStormControl_BroadcastControlThresholdUnit" id="2" name="BroadcastControlThresholdUnit">
+				   <action type="enum" discard="no"/>   
+                   <action type="enum" discard="yes"/>   
+                   <action type="enum" discard="no"/>
+				</element>  
+            </node>
+            <node id="16">
+                <element control="combo" obj-name="baseStormControl_MulticastControlMode" id="1" name="Multicast Storm Recovery Mode"/>
+            </node>
+            <node id="17">
+                <element obj-name="baseStormControl_MulticastControlThreshold" id="1" name="Multicast Storm Recovery Level" maxLength="10"/>
+                <element control="combo" properties="noname" obj-name="baseStormControl_MulticastControlThresholdUnit" id="2" name="MulticastControlThresholdUnit">
+                   <action type="enum" discard="no"/>   
+                   <action type="enum" discard="yes"/>   
+                   <action type="enum" discard="no"/>
+				</element>              
+			</node>
+            <node id="18">
+                <element control="combo" obj-name="baseStormControl_UnicastControlMode" id="1" name="Unicast Storm Recovery Mode"/>
+            </node>
+            <node id="19">
+                <element obj-name="baseStormControl_UnicastControlThreshold" id="1" name="Unicast Storm Recovery Level" maxLength="10"/>
+                <element control="combo" properties="noname" obj-name="baseStormControl_UnicastControlThresholdUnit" id="2" name="UnicastControlThresholdUnit">
+		   <action type="enum" discard="no"/>   
+                   <action type="enum" discard="yes"/>   
+                   <action type="enum" discard="no"/>
+		</element>   
+            </node>
+            <node id="20">
+                <element control="combo" obj-name="baseport_LACPMode" id="1" name="LACP Mode"/>
+            </node>
+            <node id="120">
+                <element control="combo" value="Disable" obj-name="baseportCfgglobal_GlobalLACPMode" id="1" name="LACP Mode"/>
+            </node>
+           <node id="21">
+                <element control="combo" obj-name="baseport_PhysicalMode" id="1" name="Physical Mode">
+                   <!-- PTin added (2.5)
+                         Two more entries were added and updated accordingly -->
+                   <action type="enum" discard="yes"/>
+                   <action type="enum" discard="yes"/>
+                   <action type="enum" discard="yes"/>
+                   <action type="enum" discard="yes"/>
+                   <action type="enum" discard="yes"/>
+                   <action type="enum" discard="yes"/>
+                   <action type="enum" discard="no"/>
+                   <action type="enum" discard="no"/>
+                   <action type="enum" discard="no"/>
+                   <action type="enum" discard="yes"/>
+                </element>
+            </node>
+            <node id="22">
+                <element control="combo" value="Auto" obj-name="baseportCfgglobal_GlobalPhysicalMode" id="1" name="Physical Mode">
+                  <!-- PTin added (2.5)
+                        Two more entries were added and updated accordingly -->
+                  <action type="enum" discard="yes"/>
+                  <action type="enum" discard="yes"/>
+                  <action type="enum" discard="yes"/>
+                  <action type="enum" discard="yes"/>
+                  <action type="enum" discard="yes"/>
+                  <action type="enum" discard="yes"/>
+                  <action type="enum" discard="no"/>
+                  <action type="enum" discard="no"/>
+                  <action type="enum" discard="no"/>
+                  <action type="enum" discard="yes"/>
+                </element>
+           </node>
+            <node id="23">
+                <element obj-name="baseport_PhysicalStatus" id="1" name="Physical Status"/>
+            </node>
+            <node id="24">
+                <element obj-name="baseport_LinkStatus" id="1" name="Link Status"/>
+            </node>
+            <node id="25">
+                <element control="combo" obj-name="baseport_LinkTrap" id="1" name="Link Trap"/>
+            </node>
+            <node id="26">
+                <element control="combo" value="Disable" obj-name="baseportCfgglobal_GlobalLinkTrap" id="1" name="Link Trap"/>
+            </node>
+            <node id="27">
+                <element arghelp="HELP_FORMAT_MTUSIZE" obj-name="baseport_FrameSize" id="1" name="Maximum Frame Size" run_if="norobo53115" maxLength="4"/>
+            </node>
+            <node id="28">
+                <element arghelp="HELP_FORMAT_53115_MTUSIZE" obj-name="baseport_FrameSize" id="1" name="Maximum Frame Size" run_if="robo53115" maxLength="10"/>
+            </node>
+            <node id="29">
+                <element arghelp="HELP_FORMAT_MTUSIZE" obj-name="baseportCfgglobal_GlobalFrameSize" value="1518" id="1" name="Maximum Frame Size" run_if="norobo53115"/>
+            </node>
+            <node id="30">
+                <element arghelp="HELP_FORMAT_53115_MTUSIZE" obj-name="baseportCfgglobal_GlobalFrameSize" value="1518" id="1" name="Maximum Frame Size" run_if="robo53115"/>
+            </node>
+            <node id="31">
+                <element obj-name="baseport_ifIndex" id="1" name="Interface Index"/>
+            </node>
+             <node id="201">
+                <element control="combo" properties="hidden" obj-name="baseport_InterfaceType" id="1" name="Interface type">
+                   <action type="enum" hide="" disable="" show="1_6|1_7_2|1_8|1_9_2|1_10|1_11_2|1_20|1_21" enable="1_6|1_7_2|1_8|1_9_2|1_10|1_11_2|1_20|1_21"/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                   <action type="enum" hide="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" disable="1_6|1_7|1_8|1_9|1_10|1_11|1_20|1_21" show="" enable=""/>
+                </element>
+            </node>
+            <node id="32">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

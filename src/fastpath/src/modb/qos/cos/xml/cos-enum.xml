@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "types.dtd" >
+
+
+<FastPathXML>
+    <data-types version="1.0">
+        <enum name="L7_QOS_COS_MAP_INTF_MODE_t">
+            <option macro="L7_QOS_COS_MAP_INTF_MODE_UNTRUSTED" name="untrusted"/>
+            <option macro="L7_QOS_COS_MAP_INTF_MODE_TRUST_DOT1P" name="trust dot1p"/>
+            <option macro="L7_QOS_COS_MAP_INTF_MODE_TRUST_IPPREC" name="trust ip-precedence"/>
+            <option macro="L7_QOS_COS_MAP_INTF_MODE_TRUST_IPDSCP" name="trust ip-dscp"/>
+        </enum>
+        <enum name="L7_QOS_COS_QUEUE_MGMT_TYPE_t">
+            <option macro="L7_QOS_COS_QUEUE_MGMT_TYPE_TAILDROP" name="TailDrop"/>
+            <option macro="L7_QOS_COS_QUEUE_MGMT_TYPE_WRED" name="WRED"/>
+        </enum>
+        <enum name="L7_QOS_COS_QUEUE_SCHED_TYPE_t">
+            <option macro="L7_QOS_COS_QUEUE_SCHED_TYPE_STRICT" name="Strict"/>
+            <option macro="L7_QOS_COS_QUEUE_SCHED_TYPE_WEIGHTED" name="Weighted"/>
+        </enum>
+    </data-types>
+</FastPathXML>

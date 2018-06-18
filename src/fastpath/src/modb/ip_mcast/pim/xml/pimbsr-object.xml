@@ -1,0 +1,242 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "object.dtd" >
+
+
+<FastPathXML>
+    <objectxml version="1.0" name="ipmcast">
+        <module key-method="individual" name="pimBsrCandidateRPTable">
+            <key-combo list="pimBsrCandidateRPAddress,pimBsrCandidateRPGroupAddress,pimBsrCandidateRPGroupPrefixLength"/>
+            <object name="pimBsrCandidateRPAddressType">
+                <core descr="The Inet address type of the Candidate-RP." xtype="L7_InetAddrType_t" key="yes" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="C-RP Address Type">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.1.1.1"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateRPAddressType" name="pimBsrCandidateRPAddress">
+                <core descr="The (unicast) address that will be advertised as a Candidate-RP. The InetAddressType is given by the pimBsrCandidateRPAddressType object." xtype="ipv4_ipv6" key="yes" access="read-write" type="user"/>
+                <ui style="inputLine" name="C-RP Address">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.1.1.2"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateRPAddressType" name="pimBsrCandidateRPGroupAddress">
+                <core descr="The IP multicast group address that, when combined with the corresponding value of pimBsrCandidateRPGroupPrefixLength, identifies a group prefix for which the local router will advertise itself as a Candidate-RP. The InetAddressType is given by the pimBsrCandidateRPAddressType object. This address object is only significant up to pimBsrCandidateRPGroupPrefixLength bits. The remainder of the address bits are zero. This is especially important for this field, which is part of the index of this entry. Any non-zero bits would signify an entirely different entry." xtype="ipv4_ipv6" key="yes" access="read-write" type="user"/>
+                <ui style="inputLine" name="C-RP Group Address">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.1.1.3"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateRPAddressType" name="pimBsrCandidateRPGroupPrefixLength">
+                <core xtype="formatv4v6mask_t" descr="The multicast group address mask that, when combined with the corresponding value of pimBsrCandidateRPGroupAddress, identifies a group prefix for which the local router will advertise itself as a Candidate-RP. The InetAddressType is given by the pimBsrCandidateRPAddressType object." key="yes" access="read-write" type="user"/>
+                <ui style="inputLine" name="C-RP Group Prefix Length">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.1.1.4"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateRPAddressType,pimBsrCandidateRPAddress,pimBsrCandidateRPGroupAddress,pimBsrCandidateRPGroupPrefixLength" name="pimBsrCandidateRPBidir">
+                <core descr="If this object is set to TRUE, this group range is advertised with this RP as a BIDIR-PIM group range. If it is set to FALSE, it is advertised as a PIM-SM group range." xtype="TrueFalse_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="C-RP Bi-dir">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.1.1.5"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateRPAddressType,pimBsrCandidateRPAddress,pimBsrCandidateRPGroupAddress,pimBsrCandidateRPGroupPrefixLength" name="pimBsrCandidateRPAdvTimer"> 
+                <core descr="The time remaining before the local router next sends a Candidate-RP-Advertisement to the elected BSR for this zone." access="read-only" type="user" xtype="timeStampHHMMSS_t"/>
+                <ui style="plainText" name="C-RP Advertisement Timer">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.1.1.6"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateRPAddressType,pimBsrCandidateRPAddress,pimBsrCandidateRPGroupAddress,pimBsrCandidateRPGroupPrefixLength" name="pimBsrCandidateRPPriority">
+                <core descr="The priority for this Candidate RP advertised in Candidate-RP-Advertisements." access="read-write" type="uint"/>
+                <ui style="inputLine" name="C-RP Priority">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.1.1.7"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateRPAddressType,pimBsrCandidateRPAddress,pimBsrCandidateRPGroupAddress,pimBsrCandidateRPGroupPrefixLength" name="pimBsrCandidateRPAdvInterval">
+                <core descr="A Candidate RP generates Candidate-RP-Advertisements periodically. This object represents the time interval in seconds between two consecutive advertisements." access="read-write" type="uint"/>
+                <ui style="inputLine" name="C-RP Advertisement Interval">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.1.1.8"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateRPAddressType,pimBsrCandidateRPAddress,pimBsrCandidateRPGroupAddress,pimBsrCandidateRPGroupPrefixLength" name="pimBsrCandidateRPHoldtime">
+                <core descr="Holdtime for this Candidate RP. The amount of time (in seconds) this Candidate-RP entry is valid. This object&apos;s value can be zero only when this C-RP is shutting down" access="read-write" type="uint"/>
+                <ui style="inputLine" name="C-RP Holdtime">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.1.1.9"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateRPAddressType,pimBsrCandidateRPAddress,pimBsrCandidateRPGroupAddress,pimBsrCandidateRPGroupPrefixLength" name="pimBsrCandidateRPStatus">
+                <core descr="The status of this row, by which new entries may be created, or old entries deleted from this table. This status object can be set to active(1) without setting any other columnar objects in this entry. All writable objects in this entry can be modified when the status of this entry is active(1)." xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+                <ui style="inputLine" name="C-RP Row Status">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.1.1.10"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateRPAddressType,pimBsrCandidateRPAddress,pimBsrCandidateRPGroupAddress,pimBsrCandidateRPGroupPrefixLength" name="pimBsrCandidateRPStorageType">
+                <core descr="The storage type for this row. Rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row." xtype="L7_StorageType_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="C-RP Storage Type">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.1.1.11"/>
+                </ui>
+            </object>
+            <object name="pimBsrCandidateCandidateRPInterface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+                <core type="user" xtype="usp_t" key="yes" access="read-write" descr="Specifies all configurable interfaces for Candidate RP configuration."/>
+                <ui name="C-RP Interface" style="plainText"/>
+            </object>
+            <object name="pimBsrCandidateCandidateRPInterface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+                <core type="user" xtype="usp_t" key="yes" access="read-write" descr="Specifies all configurable interfaces for Candidate RP configuration."/>
+                <ui name="C-RP Interface" style="plainText"/>
+            </object>
+            <object name="pimBsrCandidateCandidateRPInterfaceConfig" depends="pimBsrCandidateRPAddressType,pimBsrCandidateRPAddress,pimBsrCandidateRPGroupAddress,pimBsrCandidateRPGroupPrefixLength">
+                <core type="user" xtype="usp_t" access="read-only" descr="Specifies Candidate RP configured interface."/>
+                <ui name="C-RP Configured Interface" style="plainText"/>
+            </object>
+        </module>
+        <module key-method="individual" name="pimBsrElectedBSRRPSetTable">
+            <key-combo list="pimBsrElectedBSRGrpMappingGrpAddr,pimBsrElectedBSRGrpMappingGrpPrefixLen,pimBsrElectedBSRGrpMappingRPAddr"/>
+            <object name="pimBsrElectedBSRGrpMappingAddrType">
+                <core descr="The Inet address type of the IP multicast group prefix." xtype="L7_InetAddrType_t" key="yes" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="Group Mapping Address Type">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.2.1.2"/>
+                </ui>
+            </object>
+            <object depends="pimBsrElectedBSRGrpMappingAddrType" name="pimBsrElectedBSRGrpMappingGrpAddr">
+                <core descr="The IP multicast group address which, when combined with pimBsrElectedBSRGrpMappingGrpPrefixLen, gives the group prefix for this mapping. The InetAddressType is given by the pimBsrElectedBSRGrpMappingAddrType object. This address object is only significant up to pimBsrElectedBSRGrpMappingGrpPrefixLen bits. The remainder of the address bits are zero. This is especially important for this field, which is part of the index of this entry. Any non-zero bits would signify an entirely different entry." xtype="ipv4_ipv6" key="yes" access="read-write" type="user"/>
+                <ui style="inputLine" name="Group Mapping Group Address">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.2.1.3"/>
+                </ui>
+            </object>
+            <object depends="pimBsrElectedBSRGrpMappingAddrType" name="pimBsrElectedBSRGrpMappingGrpPrefixLen">
+                <core descr="The multicast group prefix length that, when combined with pimBsrElectedBSRGrpMappingGrpAddr, gives the group prefix for this mapping. The InetAddressType is given by the pimBsrElectedBSRGrpMappingAddrType object. If pimBsrElectedBSRGrpMappingAddrType is &apos;ipv4&apos; or &apos;ipv4z&apos;, this object must be in the range 4..32. If pimBsrElectedBSRGrpMappingAddrType is &apos;ipv6&apos; or &apos;ipv6z&apos;, this object must be in the range 8..128." key="yes" access="read-write" type="uint"/>
+                <ui style="inputLine" name="Group Mapping Group Prefix Len">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.2.1.4"/>
+                </ui>
+            </object>
+            <object depends="pimBsrElectedBSRGrpMappingAddrType" name="pimBsrElectedBSRGrpMappingRPAddr">
+                <core descr="The IP address of the RP to be used for groups within this group prefix. The InetAddressType is given by the pimBsrElectedBSRGrpMappingAddrType object." xtype="ipv4_ipv6" key="yes" access="read-write" type="user"/>
+                <ui style="inputLine" name="Group Mapping RP Address">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.2.1.5"/>
+                </ui>
+            </object>
+            <object depends="pimBsrElectedBSRGrpMappingAddrType,pimBsrElectedBSRGrpMappingGrpAddr,pimBsrElectedBSRGrpMappingGrpPrefixLen,pimBsrElectedBSRGrpMappingRPAddr" name="pimBsrElectedBSRRPSetPriority">
+                <core descr="The priority for RP. Numerically higher values for this object indicate lower priorities, with the value zero denoting the highest priority." access="read-only" type="uint"/>
+                <ui style="plainText" name="RP-Set Priority">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.2.1.6"/>
+                </ui>
+            </object>
+            <object depends="pimBsrElectedBSRGrpMappingAddrType,pimBsrElectedBSRGrpMappingGrpAddr,pimBsrElectedBSRGrpMappingGrpPrefixLen,pimBsrElectedBSRGrpMappingRPAddr" name="pimBsrElectedBSRRPSetHoldtime">
+                <core descr="The holdtime for RP" access="read-only" type="uint"/>
+                <ui style="plainText" name="RP-Set Holdtime">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.2.1.7"/>
+                </ui>
+            </object>
+            <object depends="pimBsrElectedBSRGrpMappingAddrType,pimBsrElectedBSRGrpMappingGrpAddr,pimBsrElectedBSRGrpMappingGrpPrefixLen,pimBsrElectedBSRGrpMappingRPAddr" name="pimBsrElectedBSRRPSetExpiryTime">
+                <core descr="The minimum time remaining before this entry will be aged out. The value zero indicates that this entry will never be aged out." access="read-only" type="uint"/>
+                <ui style="plainText" name="RP-Set Expiry Time">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.2.1.8"/>
+                </ui>
+            </object>
+            <object depends="pimBsrElectedBSRGrpMappingAddrType,pimBsrElectedBSRGrpMappingGrpAddr,pimBsrElectedBSRGrpMappingGrpPrefixLen,pimBsrElectedBSRGrpMappingRPAddr" name="pimBsrElectedBSRRPSetGrpBidir">
+                <core descr="If this object is TRUE, this group range with this RP is a BIDIR-PIM group range. If it is set to FALSE, it is a PIM-SM group range." xtype="TrueFalse_t" access="read-only" type="enum"/>
+                <ui style="plainText" name="RP-Set Group Bidir">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.2.1.9"/>
+                </ui>
+            </object>
+        </module>
+        <module key-method="individual" name="pimBsrCandidateBSRTable">
+            <object name="pimBsrCandidateBSRZoneIndex">
+                <core descr="The zone index uniquely identifies the zone on a device to which this Candidate BSR is attached. There is one entry for each zone in ipMcastZoneTable. Scope-level information for this zone can be extracted from ipMcastZoneTable in IP Multicast MIB [RFC5132]. Zero is a special value used to request the default zone for a given scope. Zero is not a valid value for this object." key="yes" access="write-only" type="uint"/>
+                <ui style="inputLine" name="C-BSR Zone Index">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.3.1.1"/>
+                </ui>
+            </object>
+            <object name="pimBsrCandidateBSRInterface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+                <core type="user" xtype="usp_t" key="yes" access="read-write" descr="Specifies all configurable interfaces for BSR."/>
+                <ui name="C-BSR Interface" style="plainText"/>
+            </object>
+            <object name="pimBsrCandidateBSRInterface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+                <core type="user" xtype="usp_t" key="yes" access="read-write" descr="Specifies all configurable interfaces for BSR."/>
+                <ui name="C-BSR Interface" style="plainText"/>
+            </object>
+            <object depends="pimBsrCandidateBSRZoneIndex,pimBsrCandidateBSRInterface" name="pimBsrCandidateBSRAddressType">
+                <core descr="The address type of the Candidate-BSR." xtype="L7_InetAddrType_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="C-BSR Address Type">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.3.1.2"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateBSRInterface" name="pimBsrCandidateBSRAddress">
+                <core descr="The (unicast) address that the local router will use to advertise itself as a Candidate-BSR. The InetAddressType is given by the pimBsrCandidateBSRAddressType object." xtype="ipv4_ipv6" access="read-write" type="user"/>
+                <ui style="inputLine" name="C-BSR Address">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.3.1.3"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateBSRZoneIndex,pimBsrCandidateBSRInterface" name="pimBsrCandidateBSRPriority">
+                <core min="L7_PIMSM_INTERFACE_CBSR_PREFERENCE_MIN" max="L7_PIMSM_INTERFACE_CBSR_PREFERENCE_MAX" descr="The priority value for the local router as a Candidate-BSR for this zone. Numerically higher values for this object indicate higher priorities." access="read-write" type="uint"/>
+                <ui style="inputLine" name="C-BSR Priority">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.3.1.4"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateBSRZoneIndex,pimBsrCandidateBSRInterface" name="pimBsrCandidateBSRHashMaskLength">
+                <core min="L7_PIMSM6_INTERFACE_CBSR_HASH_MASK_LENGTH_MIN" max="L7_PIMSM6_INTERFACE_CBSR_HASH_MASK_LENGTH_MAX" descr="The hash mask length (used in the RP hash function) that the local router will advertise in its Bootstrap messages for this zone. This object defaults to 30 if pimBsrCandidateBSRAddressType is &apos;ipv4&apos; or &apos;ipv4z&apos; , and defaults to 126 if pimBsrCandidateBSRAddressType is &apos;ipv6&apos; or &apos;ipv6z&apos;." access="read-write" type="uint"/>
+                <ui style="inputLine" name="C-BSR Hash-mask Length">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.3.1.5"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateBSRZoneIndex,pimBsrCandidateBSRInterface" name="pimBsrCandidateBSRElectedBSR">
+                <core descr="Whether the local router is the elected BSR for this zone." xtype="TrueFalse_t" access="read-only" type="enum"/>
+                <ui style="plainText" name="C-BSR is Elected BSR">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.3.1.6"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateBSRZoneIndex,pimBsrCandidateBSRInterface" name="pimBsrCandidateBSRBootstrapTimer">
+                <core descr="The time remaining before the local router next originates a Bootstrap message for this zone. Value of this object is zero if pimBsrCandidateBSRElectedBSR is &apos;FALSE&apos;." access="read-only"  type="user" xtype="timeStampHHMMSS_t"/>
+                <ui style="plainText" name="C-BSR Bootstrap Timer">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.3.1.7"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateBSRZoneIndex,pimBsrCandidateBSRInterface" name="pimBsrCandidateBSRStatus">
+                <core descr="The status of this row, by which new entries may be created, or old entries deleted from this table. This status object can be set to active(1) without setting any other columnar objects in this entry. All writable objects in this entry can be modified when the status of this entry is active(1)." xtype="L7_ROW_STATUS_t" access="read-write" type="row-status"/>
+                <ui style="inputLine" name="C-BSR Status">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.3.1.8"/>
+                </ui>
+            </object>
+            <object depends="pimBsrCandidateBSRZoneIndex,pimBsrCandidateBSRInterface" name="pimBsrCandidateBSRStorageType">
+                <core descr="The storage type for this row. Rows having the value &apos;permanent&apos; need not allow write-access to any columnar objects in the row." xtype="L7_StorageType_t" access="read-write" type="enum"/>
+                <ui style="choiceNselect1" name="C-BSR Storage Type">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.3.1.9"/>
+                </ui>
+            </object>
+        </module>
+        <module key-method="individual" name="pimBsrElectedBSRTable">
+            <object name="pimBsrElectedBSRZoneIndex">
+                <core descr="The zone index uniquely identifies the zone on a device to which this Elected BSR is attached. There is one entry for each zone in ipMcastZoneTable. Scope-level information for this zone can be extracted from ipMcastZoneTable in IP MCAST MIB. Zero is a special value used to request the default zone for a given scope. Zero is not a valid value for this object." key="yes" type="uint" access="read-only"/>
+                <ui style="inputLine" name="Elected BSR Zone Index">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.4.1.1"/>
+                </ui>
+            </object>
+            <object depends="pimBsrElectedBSRZoneIndex" name="pimBsrElectedBSRAddressType">
+                <core descr="The address type of the elected BSR." xtype="L7_InetAddrType_t" access="read-write" type="enum"/>
+                <ui style="plainText" name="Elected BSR Address Type">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.4.1.2"/>
+                </ui>
+            </object>
+            <object depends="pimBsrElectedBSRZoneIndex" name="pimBsrElectedBSRAddress">
+                <core descr="The (unicast) address of the elected BSR. The InetAddressType is given by the pimBsrElectedBSRAddressType object." xtype="ipv4_ipv6" access="read-only" type="user"/>
+                <ui style="plainText" name="Elected BSR Address">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.4.1.3"/>
+                </ui>
+            </object>
+            <object depends="pimBsrElectedBSRZoneIndex" name="pimBsrElectedBSRPriority">
+                <core descr="The priority value for the elected BSR for this address type. Numerically higher values for this object indicate higher priorities." access="read-only" type="uint"/>
+                <ui style="plainText" name="Elected BSR Priority">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.4.1.4"/>
+                </ui>
+            </object>
+            <object depends="pimBsrElectedBSRZoneIndex" name="pimBsrElectedBSRHashMaskLength">
+                <core descr="The hash mask length (used in the RP hash function) advertised by the elected BSR for this zone." access="read-only" type="uint"/>
+                <ui style="plainText" name="Elected BSR Hash-mask Length">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.4.1.5"/>
+                </ui>
+            </object>
+            <object depends="pimBsrElectedBSRZoneIndex" name="pimBsrElectedBSRExpiryTime">
+                <core descr="The minimum time remaining before the elected BSR for this zone will be declared down." access="read-only" type="user" xtype="timeStampHHMMSS_t"/>
+                <ui style="plainText" name="Elected BSR Expiry Time">
+                    <snmp asn-id=".1.3.6.1.4.1.4413.1.1.44.1.4.1.6"/>
+                </ui>
+            </object>
+        </module>
+    </objectxml>
+</FastPathXML>

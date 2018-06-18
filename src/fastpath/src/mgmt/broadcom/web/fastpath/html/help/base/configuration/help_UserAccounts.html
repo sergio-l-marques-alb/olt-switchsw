@@ -1,0 +1,110 @@
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>User Accounts Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+
+<h2><a name=users></a>Help for User Accounts Configuration</h2>
+
+<P>By default, two user accounts exist:
+<UL TYPE=disc>
+ <LI>admin, with 'Read-Write' privileges</LI>
+ <LI>guest, with 'Read-Only' privileges</LI>
+</UL>
+By default, both of these accounts have blank passwords. The names are not case sensitive.</P>
+
+<P>If you logon with a user account with 'Read-Write' privileges (i.e. as admin)
+you can use the User Accounts screen to assign passwords and set security parameters for the
+default accounts, and to add and delete accounts (other than admin) up to the maximum of six.
+Only a user with 'Read-Write' privileges may alter data on this screen.</P>
+
+
+<h3>Selection Criteria </h3>
+
+<ul type=disc>
+ <ul type=circle>
+   <LI><B>User </B> -
+      You can use this screen to reconfigure an existing account, or to create a new one.
+      Use this pull-down menu to select one of the existing accounts, or select 'Create' to add a new one,
+      provided the maximum of five 'Read-Only' accounts has not been reached.
+   </LI>
+   <li><b>Access Level</B> - User access level. The lowest user access level is 1 (Read-Only), and 15 (Read-Write) is the highest. To suspend a user's access, set level to 0 (only a level 15 user has this ability).</LI>
+   <li><b>Password Override-Complexity-Check</B> - This selector lists the two options for Override-Complexity-Check: Enable and Disable.
+   The default value is Disable. Enable is to override the password strength check feature, Disable is to perform the password strength check feature.</LI>
+   <li><b> Authentication Protocol</b> - Specify the SNMPv3 Authentication Protocol setting for the selected user account. The valid Authentication Protocols are None, MD5 or SHA. If you select None, the user will be unable to access the SNMP data from an SNMP browser. If you select MD5 or SHA, the user login password will be used as the SNMPv3 authentication password, and you must therefore specify a password, and it must be eight characters long.</li>
+   <li><b>Encryption Protocol</b> - Specify the SNMPv3 Encryption Protocol setting for the selected user account. The valid Encryption Protocols are None or DES. If you select the DES Protocol you must enter a key in the Encryption Key field. If None is specified for the Protocol, the Encryption Key is ignored.</li>
+
+ </ul>
+</ul>
+
+
+
+<h3>Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+    <li><b>User Name</b> - Enter the name you want to give to the new account.
+    (You can only enter data in this field when you are creating a new account.)
+     User names are up to 32 Alpha numeric characters in length
+      and are not case sensitive.  Valid characters include all the alphanumeric
+      characters as well as the dash ('-') and underscore ('_') characters.User name "default" is
+      not valid.
+      </li>
+    <li><b>Password</b> - Enter the optional new or changed password for the account. It will not
+    display as it is typed, only asterisks (*) or dots(.) will show based on the browser used. Passwords must be greater than 8 characters and can be up to
+       64 characters in length, and are case sensitive. The special characters allowed in the password are ~ ` ! @ # $ % ^ &#38; * ( ) _ - + = [ ] { } \ | : ; ' &#60; &#62; . , / ". Special characters " and ? are not allowed.
+      </li>
+    <li><b>Confirm Password</b> - Enter the password again, to confirm that you
+     entered it correctly.  This field will not display, but will
+      show asterisks (*) or dots(.) based on the browser used.
+      </li>
+   <li><b>Configure Encryption </b> - The check box must be checked in order to change the Encryption Protocol and Encryption Key.</li>
+    <li><b>Encryption Key</b> - If you selected DES in the Encryption Protocol field enter the SNMPv3 Encryption Key here. Otherwise this field is ignored. Key should be 8 to 64 characters in length.</li>
+
+ </ul>
+</ul>
+
+<h3>Non-Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+     <!-- SNMP_USER_AUTHENTICATION -->
+   <li><b>Lockout Status</B> - Indicates whether the user account is locked due to excessive failed login
+   attempts.  The threshold for number of attempts before lockout is specified by 'lockout attempts' on the 
+   password management page.</LI>
+   <li><b>Password Expiration Date</B> - Displays the date after which the user will be required to change
+   passwords if password aging is enabled.</LI>
+   <li><b>SNMP v3 Access Mode</b> - Indicates the SNMPv3 access privileges for the user account. The admin account always has 'Read-Write' access, and all other accounts have 'Read-Only' access.</li>
+  </ul>
+</ul>
+
+<h3>Command Buttons </h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li>
+     <b>Add</b> - This is used to create New User Name. </li>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' ></li>
+  <li><b>Delete</b> - Deletes the currently selected user account.
+      If you want the switch to retain the new values across a power cycle, you must perform a save.
+       This button is only visible when you have selected a user account with 'Read-Only' access.
+     You cannot delete the 'Read-Write' user.  </li>
+
+ </ul>
+</ul>
+
+<hr size=4 width="80%" align=center>
+</body>
+
+</html>
+
+
+

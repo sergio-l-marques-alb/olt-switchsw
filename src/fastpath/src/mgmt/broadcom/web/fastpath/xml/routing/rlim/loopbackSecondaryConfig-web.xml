@@ -1,0 +1,58 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="loopbackSecondaryConfig" title="Loopback Secondary IP Configuration">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter" obj-name="routingloopbackConfig_ID" id="1" name="Loopback">
+                 <action type="mandate" disable="1_2_1|1_6_1|1_7_1|1_8_1" invoke="onChange" />
+               </element>
+            </node>
+            <node id="2">
+                <element properties="read-only,hidden" obj-name="routingloopbackConfig_SecondaryIfIndex" id="1" name="Loopback ifIndex"/>
+            </node>
+            <node id="3">
+                <element uienum="ipAddrType_t" properties="filter" obj-name="routingloopbackConfig_Protocol" id="1" name="Protocol"/>
+            </node>
+            <node id="4">
+                <element properties="read-only" maxLength="15" obj-name="routingloopbackConfig_IPAddress" id="1" name="IPv4 Address"/>
+            </node>
+            <node id="5">
+                <element properties="read-only" maxLength="15" obj-name="routingloopbackConfig_IPSubnet" id="1" name="IPv4 Subnet Mask"/>
+            </node>
+			<node id="11">
+                <element control="textbox" properties="hidden" obj-name="routingloopbackConfig_IPAddress" id="1" name="IPv4 Address"/>
+            </node>
+            <node id="12">
+                <element control="textbox" properties="hidden" obj-name="routingloopbackConfig_IPSubnet" id="1" name="IPv4 Subnet Mask"/>
+            </node>
+            <node id="6">
+                <element cpval="routingloopbackConfig_SecondaryIfIndex" properties="filter,hidden,read-only" obj-name="routingswitchIPConfig_IfIndex" id="1" name="Secondary IfIndex"/>
+            </node>
+            <node id="7">
+                <element control="combo" properties="filter,iterate" obj-name="routingswitchIPConfig_secondaryIpAddress" id="1" name="Secondary Address">
+                    <action type="extn" discard="no" value="Add Secondary" setval_ids="1_8|1_9" setval_args="valMapEmptyIpString|valMapEmptyIpString" enable="1_8|1_9|1_10_3" disable="1_10_4" hide="1_10_4" show="1_8|1_9|1_10_3"/>
+                    <action type="default" discard="no" enable="1_10_4" disable="1_8|1_10_3" hide="1_8|1_9|1_10_3" show="1_10_4"/>
+                </element>
+            </node>
+            <node id="8">
+                <element control="textbox" properties="filter,iterate" obj-name="routingswitchIPConfig_secondaryIpAddress" id="1" name="Secondary IP Address"/>
+            </node>
+            <node id="9">
+                <element control="textbox" obj-name="routingswitchIPConfig_secondaryNetMask" id="1" name="Secondary Subnet Mask"/>
+            </node>			
+            <node id="10">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="routingswitchIPConfig_secondaryStatus" help="Submits the form on this page to the Switch" id="3" name="Submit">
+                    <action type="button" discard="no" disable="1_10_4"/>
+                </button>
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="routingswitchIPConfig_secondaryStatus" help="Submits the form on this page to the Switch" id="4" name="Delete Selected Secondary">
+                    <action type="button" discard="no" enable="1_7" disable="1_10_3"/>
+                </button>
+                <button scope="page" type="buttonClear" target-page="loopbackConfig.html" help="Refreshes the form on this page from the Switch" id="5" name="Cancel"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

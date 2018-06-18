@@ -1,0 +1,13 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "misc.dtd" >
+
+
+<FastPathXML>
+    <misc version="1.0">        
+	  <error name="STATIC_MAC_FILTER_INVALID_MAC" output="\r\nError! Invalid Mac Address:Unable to set MAC FILTER"/>
+      <error name="STATIC_MAC_FILTER_INVALID_VLAN" output="\r\nError! Invalid VLAN ID:Unable to set MAC FILTER"/>        		
+       <error name="MAC_FILTER_CREATE_FAILURE" output="\r\nError! Failed to create MAC Filter."/>
+        <error name="MAC_FILTER_DEL_FAILURE" output="\r\nError! Failed to delete MAC Filter."/>
+     
+    </misc>
+</FastPathXML>

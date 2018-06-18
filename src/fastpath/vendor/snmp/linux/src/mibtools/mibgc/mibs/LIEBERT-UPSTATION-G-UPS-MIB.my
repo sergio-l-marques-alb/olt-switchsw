@@ -1,0 +1,96 @@
+-- Version:  v1.2
+--
+--  This MIB defines the Gold objects for the Liebert UPS SNMP Agents.
+--
+
+LIEBERT-UPSTATION-G-UPS-MIB DEFINITIONS ::= BEGIN
+
+          IMPORTS
+              sysUpTime				  FROM RFC1213-MIB
+	      TRAP-TYPE                           FROM RFC-1215
+	      luExtensions			  FROM LIEBERT-CORE-UPS-MIB;
+	     
+--
+-- The UPStation G Extension
+--
+	  luUPStationG OBJECT IDENTIFIER ::= { luExtensions 4 }
+
+--
+-- Gold Alarms
+--
+
+          lgUpsAlarm        OBJECT IDENTIFIER ::= { luUPStationG 6 }
+
+          lgUpsAlarmConditions      OBJECT IDENTIFIER ::= { lgUpsAlarm 1 }
+
+          lgUpsAlarmDCOverVoltageShutdown          OBJECT IDENTIFIER 
+		::= { lgUpsAlarmConditions 1 }
+	  -- The UPS has detected an excessive voltage in the DC circuitry
+ 	  -- and shutdown.
+
+          lgUpsAlarmOutputShortShutdown    OBJECT IDENTIFIER 
+		::= { lgUpsAlarmConditions 2 }
+	  -- The UPS has detected a short circuit and shutdown.
+
+          lgUpsAlarmLNReversedShutdown    OBJECT IDENTIFIER 
+		::= { lgUpsAlarmConditions 3 }
+	  -- The UPS has detected that Line and Neutral are reversed and
+	  -- shutdown.
+
+          lgUpsAlarmRemoteShutdown    OBJECT IDENTIFIER 
+		::= { lgUpsAlarmConditions 4 }
+	  -- The UPS has be requested to shutdown by a remote entity.
+
+          lgUpsAlarmInputUVOnStartup    OBJECT IDENTIFIER 
+		::= { lgUpsAlarmConditions 5 }
+	  -- The UPS has detected a low voltage on the input line at
+	  -- startup.
+
+          lgUpsAlarmPFCFailedOnStartup    OBJECT IDENTIFIER 
+		::= { lgUpsAlarmConditions 6 }
+	  -- The UPS has detected a problem with the PFC at startup.
+	
+--
+--  The Liebert GOLD UPS traps
+--
+	lgUpsTraps        OBJECT IDENTIFIER ::= { luUPStationG 11 }
+ 
+	lgUpsDCOverVoltageShutdownTrap	TRAP-TYPE
+			ENTERPRISE	lgUpsTraps
+			VARIABLES  	{ sysUpTime }
+			DESCRIPTION
+			"An lgUpsDCOverVoltageShutdownTrap signifies that 
+			 the UPS has detected that battery voltage is over 
+			 the nominal level."
+			::= 1
+
+	lgUpsOutputShortShutdownTrap	TRAP-TYPE
+			ENTERPRISE	lgUpsTraps
+			VARIABLES  	{ sysUpTime }
+			DESCRIPTION
+			"An lgUpsOutputShortShutdownTrap signifies that 
+			 the UPS has detected a short circuit across the
+			 output."
+			::= 2
+
+	lgUpsLNReversedShutdownTrap	TRAP-TYPE
+			ENTERPRISE	lgUpsTraps
+			VARIABLES  	{ sysUpTime }
+			DESCRIPTION
+			"An lgUpsLNReversedShutdownTrap signifies that 
+			 the UPS has detected that Line and Neutral have
+			 been reversed."
+			::= 3
+
+	lgUpsInputUVOnStartupTrap	TRAP-TYPE
+			ENTERPRISE	lgUpsTraps
+			VARIABLES  	{ sysUpTime }
+			DESCRIPTION
+			"An lgUpsInputUVOnStartupTrap signifies that the UPS 
+			 detected a low voltage condition upon system
+ 			 startup."
+			::= 4
+
+
+
+END

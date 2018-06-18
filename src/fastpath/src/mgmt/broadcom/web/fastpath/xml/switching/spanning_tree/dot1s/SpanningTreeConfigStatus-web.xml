@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="SpanningTreeConfigStatus" title="Spanning Tree Switch Configuration/Status">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="SwitchingStpGlobalConfig_StpAdminMode" id="1" name="Spanning Tree Admin Mode"/>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="SwitchingStpGlobalConfig_StpForceVersion" id="1" name="Force Protocol Version"/>
+            </node>
+            <node id="3">
+                <element arghelp="NAME_FORMAT_31CHAR" obj-name="SwitchingStpGlobalConfig_StpConfigName" id="1" name="Configuration Name" maxLength="31"/>
+            </node>
+            <node id="4">
+                <element arghelp="HELP_FORMAT_FP" obj-name="SwitchingStpGlobalConfig_StpConfigRevision" id="1" maxLength="5" name="Configuration Revision Level"/>
+            </node>
+            <node id="5">
+                <element obj-name="SwitchingStpGlobalConfig_StpConfigDigestKey" id="1" name="Configuration Digest Key"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+            <repeat present="plain" edit="no" heading=" " id="7">
+                <element control="label" properties="iterate" obj-name="SwitchingStpMstConfig_MstId" id="1" name="MST ID"/>
+                <element control="label" properties="iterate" obj-name="SwitchingStpMstConfig_Dot1sMstiVID" id="2" name="VID"/>
+                <element control="label" properties="iterate" obj-name="SwitchingStpMstConfig_Dot1sMstiFID" id="3" name="FID"/>
+            </repeat>
+        </group>
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="label" obj-name="SwitchingStpGlobalConfig_StpAdminMode" id="1" name="Spanning Tree Admin Mode"/>
+            </node>
+            <node id="2">
+                <element control="label" properties="read-only" obj-name="SwitchingStpGlobalConfig_StpForceVersion" id="1" name="Force Protocol Version"/>
+            </node>
+            <node id="3">
+                <element control="label" obj-name="SwitchingStpGlobalConfig_StpConfigName" id="1" name="Configuration Name"/>
+            </node>
+            <node id="4">
+                <element control="label" obj-name="SwitchingStpGlobalConfig_StpConfigRevision" id="1" name="Configuration Revision Level"/>
+            </node>
+            <node id="5">
+                <element control="label" obj-name="SwitchingStpGlobalConfig_StpConfigDigestKey" id="1" name="Configuration Digest Key"/>
+            </node>
+            <node id="6">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+            <repeat present="vtable" edit="no" heading="  " id="7">
+                <element properties="filter,iterate" obj-name="SwitchingStpMstConfig_MstId" id="1" name="MST ID"/>
+                <element properties="filter,iterate" obj-name="SwitchingStpMstConfig_Dot1sMstiVID" id="2" name="VID"/>
+                <element properties="filter,iterate" obj-name="SwitchingStpMstConfig_Dot1sMstiFID" id="3" name="FID"/>
+            </repeat>
+        </group>
+    </webxml>
+</FastPathXML>

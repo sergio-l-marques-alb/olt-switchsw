@@ -1,0 +1,231 @@
+--
+--
+-- Copyright (C) 2004-2006 by SNMP Research, Incorporated.
+--
+-- This software is furnished under a license and may be used and copied
+-- only in accordance with the terms of such license and with the
+-- inclusion of the above copyright notice. This software or any other
+-- copies thereof may not be provided or otherwise made available to any
+-- other person. No title to and ownership of the software is hereby
+-- transferred.
+--
+-- The information in this software is subject to change without notice
+-- and should not be construed as a commitment by SNMP Research, Incorporated.
+--
+-- Restricted Rights Legend:
+--  Use, duplication, or disclosure by the Government is subject to
+--  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+--  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+--  subparagraphs (c)(4) and (d) of the Commercial Computer
+--  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+--  clauses in the NASA FAR Supplement and other corresponding
+--  governmental regulations.
+--
+--
+
+--
+--                PROPRIETARY NOTICE
+--
+-- This software is an unpublished work subject to a confidentiality agreement
+-- and is protected by copyright and trade secret law.  Unauthorized copying,
+-- redistribution or other use of this work is prohibited.
+--
+-- The above notice of copyright on this source code product does not indicate
+-- any actual or intended publication of such source code.
+--
+
+APO-CAPABILITIES-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY, OBJECT-TYPE
+         FROM SNMPv2-SMI
+    SnmpSecurityModel, SnmpAdminString
+         FROM SNMP-FRAMEWORK-MIB
+    apoModules
+         FROM APO-CONSORTIUM-MIB;
+
+apoCapabilitiesMIB MODULE-IDENTITY
+    LAST-UPDATED "200410201741Z"    -- October 20, 2004
+    ORGANIZATION "SNMP Research"
+    CONTACT-INFO 
+        "SNMP Research
+        3001 Kimberlin Heights Rd.
+        Knoxville, TN 37920-9716
+        USA
+        
+        Tel: +1 865 579 3311
+        Fax: +1 865 579 6565
+        E-mail:  info@snmp.com
+        WWW: http://www.snmp.com"
+    DESCRIPTION 
+        "Capabilities MIB for APO"
+    ::= { apoModules 1 }
+
+apoCapabilitiesObjects   OBJECT IDENTIFIER ::= { apoCapabilitiesMIB 1 }
+
+apoSupportedPduClasses OBJECT-TYPE
+    SYNTAX       BITS{snmpv1(0), snmpv2(1), apo1(2), apo2(3)}
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  
+        ""
+    ::= { apoCapabilitiesObjects 1 }
+
+
+apoSupportedSnmpVersions OBJECT-TYPE
+    SYNTAX       BITS{snmpv1(0), snmpv2c(1), snmpv3(2)}
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  
+        ""
+    ::= { apoCapabilitiesObjects 2 }
+
+
+apoSupportedSecurityModels OBJECT-TYPE
+    SYNTAX       BITS{other(0), snmpv1(1), snmpv2c(2), usm(3)}
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  
+        ""
+    ::= { apoCapabilitiesObjects 3 }
+
+
+apoAdditionalSupportedSecurityModelsTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF ApoAdditionalSupportedSecurityModelsEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION  
+        ""
+    ::= { apoCapabilitiesObjects 4 }
+
+apoAdditionalSupportedSecurityModelsEntry OBJECT-TYPE
+    SYNTAX       ApoAdditionalSupportedSecurityModelsEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION  
+        ""
+    INDEX   { apoAdditionalSupportedSecurityModels }
+    ::= { apoAdditionalSupportedSecurityModelsTable 1 }
+
+ApoAdditionalSupportedSecurityModelsEntry ::= SEQUENCE {
+    apoAdditionalSupportedSecurityModels  SnmpSecurityModel,
+    apoAdditionalSupportedSecurityModelsDescr  SnmpAdminString
+}
+
+apoAdditionalSupportedSecurityModels OBJECT-TYPE
+    SYNTAX       SnmpSecurityModel
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION  
+        ""
+    ::= { apoAdditionalSupportedSecurityModelsEntry 1 }
+
+
+apoAdditionalSupportedSecurityModelsDescr OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  
+        ""
+    ::= { apoAdditionalSupportedSecurityModelsEntry 2 }
+
+
+apoSupportedAuthProtocols OBJECT-TYPE
+    SYNTAX       BITS{other(0), hmacMD5(1), hmacSHA(2)}
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  
+        ""
+    ::= { apoCapabilitiesObjects 5 }
+
+
+apoAdditionalSupportedAuthProtocolsTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF ApoAdditionalSupportedAuthProtocolsEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION  
+        ""
+    ::= { apoCapabilitiesObjects 6 }
+
+apoAdditionalSupportedAuthProtocolsEntry OBJECT-TYPE
+    SYNTAX       ApoAdditionalSupportedAuthProtocolsEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION  
+        ""
+    INDEX   { apoAdditionalSupportedAuthProtocols }
+    ::= { apoAdditionalSupportedAuthProtocolsTable 1 }
+
+ApoAdditionalSupportedAuthProtocolsEntry ::= SEQUENCE {
+    apoAdditionalSupportedAuthProtocols  OBJECT IDENTIFIER,
+    apoAdditionalSupportedAuthProtocolsDescr  SnmpAdminString
+}
+
+apoAdditionalSupportedAuthProtocols OBJECT-TYPE
+    SYNTAX       OBJECT IDENTIFIER
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION  
+        ""
+    ::= { apoAdditionalSupportedAuthProtocolsEntry 1 }
+
+
+apoAdditionalSupportedAuthProtocolsDescr OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  
+        ""
+    ::= { apoAdditionalSupportedAuthProtocolsEntry 2 }
+
+
+apoSupportedPrivProtocols OBJECT-TYPE
+    SYNTAX       BITS{other(0), des(1), tripleDes(2), aes128(3)}
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  
+        ""
+    ::= { apoCapabilitiesObjects 7 }
+
+
+apoAdditionalSupportedPrivProtocolsTable OBJECT-TYPE
+    SYNTAX       SEQUENCE OF ApoAdditionalSupportedPrivProtocolsEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION  
+        ""
+    ::= { apoCapabilitiesObjects 8 }
+
+apoAdditionalSupportedPrivProtocolsEntry OBJECT-TYPE
+    SYNTAX       ApoAdditionalSupportedPrivProtocolsEntry
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION  
+        ""
+    INDEX   { apoAdditionalSupportedPrivProtocols }
+    ::= { apoAdditionalSupportedPrivProtocolsTable 1 }
+
+ApoAdditionalSupportedPrivProtocolsEntry ::= SEQUENCE {
+    apoAdditionalSupportedPrivProtocols  OBJECT IDENTIFIER,
+    apoAdditionalSupportedPrivProtocolsDescr  SnmpAdminString
+}
+
+apoAdditionalSupportedPrivProtocols OBJECT-TYPE
+    SYNTAX       OBJECT IDENTIFIER
+    MAX-ACCESS   not-accessible
+    STATUS       current
+    DESCRIPTION  
+        ""
+    ::= { apoAdditionalSupportedPrivProtocolsEntry 1 }
+
+
+apoAdditionalSupportedPrivProtocolsDescr OBJECT-TYPE
+    SYNTAX       SnmpAdminString
+    MAX-ACCESS   read-only
+    STATUS       current
+    DESCRIPTION  
+        ""
+    ::= { apoAdditionalSupportedPrivProtocolsEntry 2 }
+
+
+END

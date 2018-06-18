@@ -1,0 +1,102 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="OspfTrapFlags" title="OSPFv2 Trap Flags">
+        <group id="1" heading="Error Traps">
+            <node id="1">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapErrosAuthFail" id="1" name="Authentication Failure"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapErrosAuthFail" id="2" name="Authentication Failure"/>
+            </node>
+            <node id="2">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapBadPkt" id="1" name="Bad Packet"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapBadPkt" id="2" name="Bad Packet"/>
+            </node>
+            <node id="3">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapConfgError" id="1" name="Configuration Error"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapConfgError" id="2" name="Configuration Error"/>
+            </node>
+            <node id="4">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapVirtAuthFail" id="1" name="Virtual Authentication Failure"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapVirtAuthFail" id="2" name="Virtual Link Authentication Failure"/>
+            </node>
+            <node id="5">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapVirtBadPkt" id="1" name="Virtual Bad packet"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapVirtBadPkt" id="2" name="Virtual Link Bad Packet"/>
+            </node>
+            <node id="6">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapVirtCfgError" id="1" name="Virtual Link Configuration Error"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapVirtCfgError" id="2" name="Virtual Link Configuration Error"/>
+            </node>
+        </group>
+<!--
+        <group id="2" heading="If-Rx Traps">
+            <node id="1">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapIfRxPkt" id="1" name="If-Rx Packet"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapIfRxPkt" id="2" name="If-Rx Packet"/>
+            </node>
+        </group> -->
+         <group id="3" heading="LSA Traps">
+            <node id="1">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapLSAMaxAge" id="1" name="LSA Max Age"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapLSAMaxAge" id="2" name="LSA Max Age"/>
+            </node>
+            <node id="2">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapLSAOriginate" id="1" name="LSA Originate"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapLSAOriginate" id="2" name="LSA Originate"/>
+            </node>
+        </group>
+        <group id="4" heading="LSDB Overflow Traps">
+            <node id="1">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapLsdbOverFlow" id="1" name="LSDB Overflow"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapLsdbOverFlow" id="2" name="LSDB Overflow"/>
+            </node>
+            <node id="2">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapLsdbApproachOverflow" id="1" name="LSDB Approaching Overflow"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapLsdbApproachOverflow" id="2" name="LSDB Approaching Overflow"/>
+            </node>
+        </group>
+        <group id="5" heading="Retransmit Traps">
+            <node id="1">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapRetxPkts" id="1" name="Retransmit Packets"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapRetxPkts" id="2" name="Retransmit Packets"/>
+            </node>
+            <node id="2">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapRetxVirtualPkts" id="1" name="Virtual Link Retransmit Packets"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapRetxVirtualPkts" id="2" name="Virtual Link Retransmit Packets"/>
+            </node>
+        </group>
+<!--
+        <group id="6" heading="RTB Entry Traps">
+            <node id="1">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapRTBEntryInfo" id="1" name="RTB Entry Info"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapRTBEntryInfo" id="2" name="RTB Entry Info"/>
+            </node>
+        </group> -->
+        <group id="7" heading="State Change Traps">
+            <node id="1">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapIfStateChng" id="1" name="Interface State Change"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapIfStateChng" id="2" name="Interface State Change"/>
+            </node>
+            <node id="2">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapNbrStateChng" id="1" name="Neighbor State Change"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapNbrStateChng" id="2" name="Neighbor State Change"/>
+            </node>
+            <node id="3">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapVirtIfStateChng" id="1" name="Virtual Link Interface State Change"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapVirtIfStateChng" id="2" name="Virtual Link Interface State Change"/>
+            </node>
+            <node id="4">
+                <element level="ReadWriteUser" control="combo" obj-name="routingospfv2GranularTraps_TrapVirtNbrStateChng" id="1" name="Virtual Neighbor State Change"/>
+                <element level="ReadOnlyUser" control="label" properties="read-only" obj-name="routingospfv2GranularTraps_TrapVirtNbrStateChng" id="2" name="Virtual Neighbor State Change"/>
+            </node>
+        </group>
+        <group level="ReadWriteUser" id="8" heading=" " div-name="NoStyle">
+            <node id="1">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

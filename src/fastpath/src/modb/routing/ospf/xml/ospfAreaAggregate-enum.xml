@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+<FastPathXML>
+  <data-types version="1.0">
+    <enum name="L7_OSPF_AREA_AGGREGATE_LSDBTYPE_t">
+      <option macro="L7_OSPF_AREA_AGGREGATE_LSDBTYPE_SUMMARYLINK" name="Network Summary"> </option>
+      <option macro="L7_OSPF_AREA_AGGREGATE_LSDBTYPE_NSSAEXTERNALLINK" name="NSSA External"> </option>
+    </enum>
+    <enum name="row_status">
+      <option macro="L7_ROW_STATUS_ACTIVE" name="active"> </option>
+    </enum>
+    <enum name="L7_OSPF_AREA_AGGREGATE_STATUS_t">
+      <option macro="L7_OSPF_AREA_AGGREGATE_EFFECT_ADVERTISEMATCHING" name="Advertise"> </option>
+      <option macro="L7_OSPF_AREA_AGGREGATE_EFFECT_DONOT_ADVERTISEMATCHING" name="Do Not Advertise"> </option>
+    </enum>
+  </data-types>
+</FastPathXML>

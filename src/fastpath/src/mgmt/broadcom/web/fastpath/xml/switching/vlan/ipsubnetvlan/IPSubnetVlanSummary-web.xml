@@ -1,0 +1,19 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="IPSubnetVlanSummary" title="IP Subnet-based VLAN Summary">
+        <group id="1" heading=" ">
+            <repeat present="vtable" edit="no" heading=" " id="1">
+                <element properties="filter,iterate" obj-name="SwitchingIpSubnetVlanConfig_IPAddress" id="1" name="IP Address"/>
+                <element properties="filter,iterate" obj-name="SwitchingIpSubnetVlanConfig_SubnetMask" id="2" name="Subnet Mask"/>
+                <element properties="filter,iterate" obj-name="SwitchingIpSubnetVlanConfig_VlanId" id="3" name="VLAN ID"/>
+            </repeat>
+            <node id="2">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<!--
+  - featallxml  Superset of all the features across platforms
+    - Also maps a string to the CnfgrFeature Id
+    - Strings are used in the UI and FeatureIs will be used in the generated code
+  - featxml     All the features available for a platform
+-->
+<FastPathXML>
+  <misc version="1.0">
+    <feature name="L7_PRODUCT_ENTERPRISE" YesOrNo="yes" />
+  </misc>
+</FastPathXML>

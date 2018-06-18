@@ -1,0 +1,83 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="memoryInfo" title="System Resources">
+        <group id="1" heading="Memory Usage">
+            <node id="1">
+                <element obj-name="baseMemoryInfo_FreeMemory" id="1" name="Free Memory (kbytes)"/>
+            </node>
+            <node id="2">
+                <element obj-name="baseMemoryInfo_AllocMemory" id="1" name="Alloc Memory (kbytes)"/>
+            </node>
+        </group>
+        <group id="2" heading=" ">
+            <node id="1">
+                <message>CPU Utilization and Memory Thresholds</message>
+            </node>
+            <node id="2">
+                <element level="ReadWriteUser" name="Rising Threshold (%)" obj-name="baseMemoryInfo_RisingThreshold" arghelp="cpuRTRange" id="1" maxLength="3">
+                    <action type="value" value="0" disable="2_4_1|2_5_1" hide="2_4_1|2_5_1"/>
+                    <action type="default" enable="2_4_1|2_5_1"/>
+                </element>
+            </node>
+            <node id="3">
+                <element level="ReadWriteUser" name="Rising Threshold Interval (seconds)" obj-name="baseMemoryInfo_RisingThresholdIntvl" arghelp="cpuRTIntvlRange" id="1" maxLength="5">
+                    <action type="value" value="0" disable="2_4_1|2_5_1" hide="2_4_1|2_5_1"/>
+                    <action type="default" enable="2_4_1|2_5_1"/>
+                </element>
+            </node>
+            <node id="4">
+                <element level="ReadWriteUser" name="Falling Threshold (%)" obj-name="baseMemoryInfo_FallingThreshold" arghelp="cpuFTRange" id="1" maxLength="3"/>
+            </node>
+            <node id="5">
+                <element level="ReadWriteUser" name="Falling Threshold Interval (seconds)" obj-name="baseMemoryInfo_FallingThresholdIntvl" arghelp="cpuFTIntvlRange" id="1" maxLength="5"/>
+            </node>
+            <node id="6">
+                <element level="ReadWriteUser" name="Free Memory Threshold (kbytes)" obj-name="baseMemoryInfo_FreeMemoryThreshold" arghelp="cpuFreeMemRange" id="1" maxLength="10"/>
+            </node>
+            <node id="7">
+                <element level="ReadOnlyUser" name="Rising Threshold (%)" obj-name="baseMemoryInfo_RisingThreshold" control="label" id="1"/>
+            </node>
+            <node id="8">
+                <element level="ReadOnlyUser" name="Rising Threshold Interval (seconds)" obj-name="baseMemoryInfo_RisingThresholdIntvl" control="label" id="1"/>
+            </node>
+            <node id="9">
+                <element level="ReadOnlyUser" name="Falling Threshold (%)" obj-name="baseMemoryInfo_FallingThreshold" control="label" id="1"/>
+            </node>
+            <node id="10">
+                <element level="ReadOnlyUser" name="Falling Threshold Interval (seconds)" obj-name="baseMemoryInfo_FallingThresholdIntvl" control="label" id="1"/>
+            </node>
+            <node id="11">
+                <element level="ReadOnlyUser" name="Free Memory Threshold (kbytes)" obj-name="baseMemoryInfo_FreeMemoryThreshold" control="label" id="1"/>
+            </node>
+            <node id="12" level="ReadOnlyUser">
+                <message></message>
+            </node>
+        </group>
+        <group id="3" heading=" ">
+           <repeat present="vtable" edit="no" heading="CPU Utilization Report" id="1">
+              <element properties="iterate,hidden" control="label" obj-name="baseCPUUtilTable_TaskIndex" id="1" name="Task Index"/>
+              <element properties="iterate,hidden" control="label" obj-name="baseCPUUtilTable_Utilization" id="2" name="Utilization"/>
+              <element obj-name="baseCPUUtilTable_TaskId" id="7" name="Task Id"/>
+              <element  control="label" obj-name="baseCPUUtilTable_TaskName" id="3" name="Task Name"/>
+              <element control="label" obj-name="baseCPUUtilTable_UtilizationFor5seconds" id="4" name="5 Seconds"/>
+              <element  control="label" obj-name="baseCPUUtilTable_UtilizationFor1Minute" id="5" name="60 Seconds"/>
+              <element  control="label" obj-name="baseCPUUtilTable_UtilizationFor5Minutes" id="6" name="300 Seconds"/>
+           </repeat>
+           <node id="2">
+                <element obj-name="baseCPUUtilTable_TotalUtilization" id="1" name="Total CPU Utilization"/>
+           </node>
+        </group>      
+        <group id="4" heading=" ">
+            <node id="1">
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page" id="2" name="Refresh"/>
+            </node>
+        </group>
+
+    </webxml>
+</FastPathXML>
+

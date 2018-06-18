@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="GARPPortConfig" title="GARP Port Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="SwitchingVlanPortConfig_Interface" id="1" name="Interface">
+                    <action type="extn" position="0" value="All" disable="1_2_1|1_3_1|1_4_1|1_8_1|1_9_1|1_10_1|1_11_1" hide="1_2_1|1_3_1|1_4_1|1_8_1|1_9_1|1_10_1|1_11_1" show="1_5_1|1_6_1|1_12_1|1_13_1|1_14_1" enable="1_5_1|1_6_1|1_12_1|1_13_1|1_14_1"/>
+                    <action type="default" disable="1_5_1|1_6_1|1_12_1|1_13_1|1_14_1" hide="1_5_1|1_6_1|1_12_1|1_13_1|1_14_1" show="1_2_1|1_4_1|1_9_1|1_10_1|1_11_1" enable="1_2_1|1_3_1|1_4_1|1_8_1|1_9_1|1_10_1|1_11_1"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="combo" obj-name="SwitchingVlanPortConfig_GvrpStatus" id="1" name="Port GVRP Mode"/>
+            </node>
+            <node id="3">
+                <element cpval="SwitchingVlanPortConfig_Interface" properties="filter,hidden" obj-name="Switchingdot1dGmrpPortConfig_Interface" id="1" name="Interface"/>
+            </node>
+            <node id="4">
+                <element control="combo" obj-name="Switchingdot1dGmrpPortConfig_Status" id="1" name="Port GMRP Mode"/>
+            </node>
+            <node id="5">
+                <element control="combo" value="Disable" obj-name="SwitchingGarpGlobalPortConfig_GvrpStatus" id="1" name="Port GVRP Mode"/>
+            </node>
+            <node id="6">
+                <element control="combo" value="Disable" obj-name="SwitchingGarpGlobalPortConfig_GmrpStatus" id="1" name="Port GMRP Mode"/>
+            </node>
+            <node id="7">
+                <message>GARP Timers</message>
+            </node>
+            <node id="8">
+                <element cpval="SwitchingVlanPortConfig_Interface" properties="filter,hidden" obj-name="Switchingdot1dGarpPortTimerConfig_Interface" id="1" name="Interface"/>
+            </node>
+            <node id="9">
+                <element arghelp="HELP_FORMAT_FP" maxLength="3" obj-name="Switchingdot1dGarpPortTimerConfig_JoinTime" id="1" name="Join Timer (centisecs)"/>
+            </node>
+            <node id="10">
+                <element arghelp="HELP_FORMAT_FP" maxLength="3" obj-name="Switchingdot1dGarpPortTimerConfig_LeaveTime" id="1" name="Leave Timer (centisecs)"/>
+            </node>
+            <node id="11">
+                <element arghelp="HELP_FORMAT_FP" maxLength="4" obj-name="Switchingdot1dGarpPortTimerConfig_LeaveAllTime" id="1" name="Leave All Timer (centisecs)"/>
+            </node>
+            <node id="12">
+                <element arghelp="HELP_FORMAT_FP" value="20" maxLength="3" obj-name="SwitchingGarpGlobalPortConfig_JoinTime" id="1" name="Join Timer (centisecs)"/>
+            </node>
+            <node id="13">
+                <element arghelp="HELP_FORMAT_FP" value="60" maxLength="3" obj-name="SwitchingGarpGlobalPortConfig_LeaveTime" id="1" name="Leave Timer (centisecs)"/>
+            </node>
+            <node id="14">
+                <element arghelp="HELP_FORMAT_FP" value="1000" maxLength="4" obj-name="SwitchingGarpGlobalPortConfig_LeaveAllTime" id="1" name="Leave All Timer (centisecs)"/>
+            </node>
+            <node id="15">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

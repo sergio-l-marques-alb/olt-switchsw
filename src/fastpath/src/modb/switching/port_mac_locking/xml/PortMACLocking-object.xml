@@ -1,0 +1,202 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="Switching" version="1.0" >
+<module name="PortSecurityGroup"  >
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="This object specifies the interface to be configured for PortSecurity"/>
+<ui  name="Unit/Slot/Port" style="inputLine">
+ <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/> 
+</ui></object>
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="This object specifies the interface to be configured for PortSecurity"/>
+<ui  name="Slot/Port" style="inputLine">
+ <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/> 
+</ui></object>
+<object name="Mode" depends="Interface" >
+<core  type="enum" xtype="enable_t" default="FD_PML_INTF_LOCK_MODE" access="read-write" descr="This object specifies the mode showing whether at port level security is enabled or not"/>
+<ui  name="PML Interface Lock Mode" style="choiceNselect1">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.20.1.2.1.1"/> 
+</ui></object>
+<object name="DynamicLimit" depends="Interface" >
+<core  type="uint" min="0" max="L7_MACLOCKING_MAX_DYNAMIC_ADDRESSES" access="read-write" descr="This variable signifies the limit of dynamically locked MAC addresses allowed on a specific port."/>
+<ui  name="PML Dynamic Address Limit" style="inputLine">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.20.1.2.1.2"/> 
+</ui></object>
+<object name="StaticLimit" depends="Interface" >
+<core  type="uint" min="0" max="L7_MACLOCKING_MAX_STATIC_ADDRESSES" access="read-write" descr="This variable signifies the limit of statically locked MAC addresses allowed on a specific port."/>
+<ui  name="PML Static Address Limit" style="inputLine">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.20.1.2.1.3"/> 
+</ui></object>
+<object name="ViolationTrapMode" depends="Interface" >
+<core  type="enum" xtype="enable_t" default="FD_PML_INTF_VIOLATION_TRAP_MODE" access="read-write" descr="This variable is used to enable or disable the sending of new violation traps designating when a packet with a disallowed MAC address is received on a locked port."/>
+<ui  name="PML Interface Violation Trap Mode" style="choiceNselect1">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.20.1.2.1.4"/> 
+</ui></object>
+<object name="TrapFrequency" depends="Interface">
+<core  type="uint" min="L7_PML_VIOLATION_TRAPS_SECONDS_MIN" max="L7_PML_VIOLATION_TRAPS_SECONDS_MAX" access="read-write" descr="This object specifies the Frequency interval between successive SNMP traps."/>
+<ui  name="PML Trap Frequency" style="inputLine">
+</ui></object>
+
+<object name="LastDiscardedMAC" depends="Interface" >
+<core  type="mac" access="read-only" descr="This variable displays the vlan-id and source MAC address of the last packet that was discarded on a locked port."/>
+<ui  name="PML Last Discarded MAC" style="plainText">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.20.1.2.1.7"/> 
+</ui></object>
+<object name="LastDiscardedVLAN" depends="Interface" >
+<core  type="uint" access="read-only" descr="This variable displays the vlan-id and source MAC address of the last packet that was discarded on a locked port."/>
+<ui  name="PML Last Discarded VLAN" style="plainText"/>
+</object>
+<object name="MACAddressAdd" depends="Interface" >
+<core  type="mac" access="write-only" descr="This MIB variable accepts a VLAN id and MAC address to be added to the list of statically locked MAC addresses on a port. The VLAN id and MAC address combination would be entered in a particular fashion like :- 2 a0:b0:c0:d1:e2:a1(the vlan-id and MAC addr"/>
+<ui  name="PML MAC Address Add" style="inputLine">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.20.1.2.1.8"/> 
+</ui></object>
+<object name="VlanId" depends="Interface" >
+<core  type="uint" properties="dynamic" access="write-only" default="L7_DOT1Q_DEFAULT_VLAN" max="L7_DOT1Q_MAX_VLAN_ID" min="L7_DOT1Q_MIN_VLAN_ID" descr="This MIB variable accepts a VLAN id and MAC address to be added to the list of statically locked MAC addresses on a port. The VLAN id and MAC address combination would be entered in a particular fashion like :- 2 a0:b0:c0:d1:e2:a1(the vlan-id and MAC addr"/>
+<ui  name="PML VLAN Id" style="choiceNselect1" /> <!-- properties of this object is added to support list feature  -->
+</object>
+<object name="MACAddressMove" depends="Interface" >
+<core  type="string" access="write-only" descr="This MIB variable accepts a VLAN id and MAC address to be removed from the list of statically locked MAC addresses on a port.. The VLAN id and MAC address combination would be entered in a particular fashion like :- 2 a0:b0:c0:d1:e2:a1(the vlan-id and MAC"/>
+<ui  name="PML MAC Address Move" style="inputLine">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.20.1.2.1.9"/> 
+</ui></object>
+<object name="GlobalPortSecurityMode"  >
+<core  type="enum" xtype="enable_t" default="FD_PML_ADMIN_MODE" access="read-write" descr="This object specifies the mode showing whether at the global level, port security is enabled or not"/>
+<ui  name="Global Port Security Mode" style="choiceNselect1">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.20.1.1"/> 
+</ui></object>
+<object name="DynamicMaxLimit" depends="Interface" >
+<core  type="uint" access="read-only" descr="This instance specifies Port MAC Locking maximum dynamic limit for the specified interface"/>
+<ui  name="PML Dynamic Max Limit" style="plainText" />
+</object>
+<object name="DynamicCount" depends="Interface" >
+<core  type="uint" access="read-only" descr="This instance specifies Port MAC Locking current Dynamic entries used count for the specified interface"/>
+<ui  name="PML Dynamic Count" style="plainText" />
+</object>
+<object name="StaticCount" depends="Interface" >
+<core  type="uint" access="read-only" descr="This instance specifies Port MAC Locking current static entries used count for the specified interface"/>
+<ui  name="PML Static Count" style="plainText" />
+</object>
+<object name="StaticMaxLimit" depends="Interface" >
+<core  type="uint" access="read-only" descr="This instance specifies Port MAC Locking maximum static limit for the specified interface"/>
+<ui  name="PML Static Max Limit" style="plainText" />
+</object>
+<object name="CheckStaticLimit" depends="Interface" >
+<core  type="enum" xtype="enable_t" access="read-only" descr="The Port MAC Locking check static limit for the specified interface"/>
+<ui  name="CheckStaticLimit" style="plainText" />
+</object>
+</module>
+<module name="PortSecurityDynamicEntries"  >
+<key-combo list="Interface,DynamicVLANId,DynamicMACAddress" />
+
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="This object specifies the interface to be configured for PortSecurity"/>
+<ui  name="Unit/Slot/Port" style="inputLine">
+<!--  Can we have same asn id that is the group module -->
+ <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/> 
+</ui></object>
+
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="This object specifies the interface to be configured for PortSecurity"/>
+<ui  name="Slot/Port" style="inputLine">
+ <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/> 
+</ui></object>
+
+<object name="DynamicMACAddress" depends="Interface,DynamicVLANId">
+<core  type="mac" access="read-write" key="yes" descr="This object specifies the source MAC address of the packet that is received on the dynamically locked port."/>
+<ui  name="Port Security Dynamic MAC Address" style="inputLine">
+<!--  Can we have same asn id that is the group module -->
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.20.1.3.1.2"/> 
+</ui></object>
+
+<object name="DynamicVLANId" depends="Interface">
+<core  type="uint" access="read-write" key="yes" descr="This object specifies the source VLAN id of the packet that is received on the dynamically locked port."/>
+<ui  name="Port Security Dynamic VLANId" style="inputLine">
+<!--  Can we have same asn id that is the group module -->
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.20.1.3.1.1"/> 
+</ui></object>
+
+</module> 
+
+<module name="PortSecurityStaticEntries"  >
+<key-combo list="Interface,StaticVLANId,StaticMACAddress" />
+
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="This object specifies the interface to be configured for PortSecurity"/>
+<ui  name="Unit/Slot/Port" style="inputLine">
+ <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/> <!--  Can we have same asn id that is the group module -->
+</ui></object>
+
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="This object specifies the interface to be configured for PortSecurity"/>
+<ui  name="Slot/Port" style="inputLine">
+ <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/> <!--  Can we have same asn id that is the group module -->
+</ui></object>
+
+<object name="StaticMACAddress" depends="Interface,StaticVLANId" >
+<core  type="mac" access="read-write" key="yes" descr="This object specifies the source MAC address of the packet that is received on the statically locked port."/>
+<ui  name="Port Security Static MAC Address" style="inputLine">
+</ui></object>
+
+<object name="StaticVLANId" depends="Interface" >
+<core  type="uint" access="read-write" key="yes" descr="This object specifies the source VLAN id of the packet that is received on the statically locked port."/>
+<ui  name="Port Security Static VLAN Id" style="inputLine">
+</ui></object>
+
+<object name="VlanId" depends="Interface" >
+<core  type="uint" access="write-only" descr="This MIB variable accepts a VLAN id and MAC address to be added to the list of statically locked MAC addresses on a port. The VLAN id and MAC address combination would be entered in a particular fashion like :- 2 a0:b0:c0:d1:e2:a1(the vlan-id and MAC addr"/>
+<ui  name="Port Security VLANId" style="inputLine" />
+</object>
+<object name="StaticVidMac" depends="Interface">
+<core access="read-only" key="yes" descr="This object displays the Static MAC Address configured on the selected interface. " type="user" xtype="vidMac" />
+<ui name="Port Security Static MAC Address" style="plainText" />
+</object>
+
+<object name="DynamicVidMac" depends="Interface">
+<core access="read-only" key="yes" descr="This object displays the Dynamic MAC Addresses learnt on the selected interface." type="user" xtype="vidMac" />
+<ui name="Port Security Dynamic MAC Address" style="plainText" />
+</object>
+
+<object name="StaticEntryDelete" depends="Interface" >
+<core  type="mac" access="write-only" descr="This object deletes a statically locked entry from an interface."/>
+<ui  name="Port Security Static Entry Delete" style="inputLine" />
+</object>
+
+<object name="StaticMACEntryDelete" depends="Interface,StaticVLANId,StaticMACAddress" >
+<core  type="uint" access="write-only" descr="This object deletes a statically locked entry from an interface."/>
+<ui  name="Port Security Static MAC Entry Delete" style="inputLine" />
+</object> <!-- This object is added as becuase the StaticEntryDelete is not generic -->
+
+</module>
+<!--these objects are specifically written for  smartpath web requirements-->
+<module name="PortSecurityStaticConfig">
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="This object specifies the interface to be configured for PortSecurity"/>
+<ui  name="Unit/Slot/Port" style="inputLine">
+ <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/> <!--  Can we have same asn id that is the group module -->
+</ui></object>
+
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="This object specifies the interface to be configured for PortSecurity"/>
+<ui  name="Slot/Port" style="inputLine">
+ <snmp asn-id="1.3.6.1.2.1.2.2.1.1"/> <!--  Can we have same asn id that is the group module -->
+</ui></object>
+
+<object name="MACAddressAction" >
+<core  type="enum" xtype="noneAddRemove_t" access="read-write" descr="This object specifies the action of either add/remove/none " />
+<ui  name="MAC Address Action" style="choiceNselect1">
+</ui></object>
+
+<object name="MACAddress" depends="Interface" >
+<core  type="mac" access="write-only" descr="This MIB variable accepts MAC address to be added to the list of statically locked MAC addresses on a port.  and MAC address would be entered in a particular fashion like  a0:b0:c0:d1:e2:a1"/>
+<ui  name="Port Security Static MAC Address" style="inputLine" >
+</ui></object>
+<object name="VlanId" depends="Interface" >
+<core  type="uint" access="write-only" descr="This MIB variable accepts a VLAN id  to be added to the list of statically locked MAC addresses on a port. "/>
+<ui  name="Port Security static VLANId" style="inputLine" >
+</ui>
+</object>
+</module>
+</objectxml>
+</FastPathXML>

@@ -1,0 +1,65 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="SecAddressCfg" title="IP Interface Secondary Address Configuration">
+        <group id="1" level="ReadWriteUser" heading="">
+             <node id="1">
+                <element control="label" cpval="routingswitchIPInterfaceConfig_IfIndex" properties="filter" obj-name="routingswitchIPConfig_IfIndex" id="1" />
+                <element properties="filter,hidden" obj-name="routingswitchIPInterfaceConfig_IfIndex" id="2" />
+            </node>
+            <node id="2">
+                <element control="label" obj-name="routingswitchIPInterfaceConfig_ipAddress" id="1" name="Primary IP Address"/>
+            </node>
+            <node id="3">
+                <element control="combo" properties="filter,iterate" obj-name="routingswitchIPConfig_secondaryIpAddress" id="1" name="Secondary Address">
+                  <action type="extn" discard="no" value="Create" hide="1_4_2|1_5_2|1_6_1|2_1_2" disable="1_4_2|1_5_2" enable="1_4_1|1_5_1" show="1_4_1|1_5_1|2_1_1|2_1_3" setval_args="valMapEmptyString|valMapEmptyString" setval_ids="1_4_1|1_5_1"/> 
+                  <action type="default" discard="no" hide="1_4_1|1_5_1|1_6_1|2_1_1" disable="1_4_1|1_4_2|1_5_1" enable="1_5_2" show="1_4_2|1_5_2|2_1_2|2_1_3"/>
+                </element>
+            </node>
+            <node id="4">
+                <element control="textbox" obj-name="routingswitchIPConfig_secondaryIpAddress" id="1" name="IP Address"/>
+                <element control="label" obj-name="routingswitchIPConfig_secondaryIpAddress" id="2" name="IP Address"/>
+            </node>
+            <node id="5">
+                <element control="textbox" obj-name="routingswitchIPConfig_secondaryNetMask" id="1" name="Subnet Mask"/>
+                <element control="label" obj-name="routingswitchIPConfig_secondaryNetMask" id="2" name="Subnet Mask"/>
+            </node>
+            <node id="6">
+                <element obj-name="routingswitchIPConfig_MaxSecAddressConfigured" id="1" name="MaxSecAddressConfigured"/>
+            </node>
+        </group>
+        <group id="2" level="ReadWriteUser" heading="">
+            <node id="1">
+                <button scope="page" type="buttonSubmit" value="Add" obj-name="routingswitchIPConfig_secondaryStatus" help="Submits the form on this page to the Switch" id="1" name="Submit">
+                  <action type="button" disable="1_2_1" />
+                </button>
+                <button scope="page" type="buttonSubmit" value="Delete" obj-name="routingswitchIPConfig_secondaryStatus" help="Submits the form on this page to the Switch" id="2" name="Delete">
+                  <action type="button" disable="1_2_1" />
+                </button>
+                <button scope="page" type="buttonClear" help="Return to the IP Interface Configuration screen." id="3" name="Cancel" target-page="IPInterfaceConfig.html"/>
+            </node>
+        </group>
+        <group id="3" level="ReadOnlyUser" heading="">
+             <node id="1">
+                <element control="label" cpval="routingswitchIPInterfaceConfig_IfIndex" properties="filter" obj-name="routingswitchIPConfig_IfIndex" id="1" />
+                <element properties="filter,hidden" obj-name="routingswitchIPInterfaceConfig_IfIndex" id="2" />
+            </node>
+            <node id="2">
+                <element control="label" obj-name="routingswitchIPInterfaceConfig_ipAddress" id="1" name="Primary IP Address"/>
+            </node>
+            <node id="3">
+                <element control="combo" properties="filter,iterate" obj-name="routingswitchIPConfig_secondaryIpAddress" id="1" name="Secondary Address"/>
+            </node>
+            <node id="4">
+                <element control="label" obj-name="routingswitchIPConfig_secondaryIpAddress" id="1" name="IP Address"/>
+            </node>
+            <node id="5">
+                <element control="label" obj-name="routingswitchIPConfig_secondaryNetMask" id="1" name="Subnet Mask"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
+

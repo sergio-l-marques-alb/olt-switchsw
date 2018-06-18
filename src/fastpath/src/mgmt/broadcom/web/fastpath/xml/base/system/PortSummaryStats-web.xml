@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="PortSummaryStats" title="Port Statistics Summary">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="hidden" value="Port" obj-name="basePortStats_statsInterfaceType" id="1" name="statsInterfaceType"/>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate" obj-name="basePortStats_Interface" id="1" name="Interface"/>
+            </node>
+            <node id="3">
+                <element control="combo" cpval="basePortStats_Interface" properties="filter,hidden" obj-name="baseport_Interface" id="1" name="Interface(intf_Index)"/>
+            </node>
+            <node id="4">
+                <element obj-name="baseport_ifIndex" id="1" name="ifIndex"/>
+            </node>
+            <node id="5">
+                <element control="label" obj-name="basePortStats_TotalFramesRx" id="1" name="Total Packets Received Without Errors"/>
+            </node>
+            <node id="6">
+                <element control="label" obj-name="basePortStats_TotalErrorFramesRx" id="1" name="Packets Received With Error"/>
+            </node>
+            <node id="7">
+                <element control="combo" properties="filter,iterate,hidden" obj-name="baseInterfaceInfo_ifIndex" id="1" name="ifIndex"/>
+            </node>
+            <node id="8">
+                <element obj-name="baseInterfaceInfo_ifInBroadcastPkts" id="1" name="Broadcast Packets Received"/>
+            </node>
+            <node id="9">
+                <element control="label" obj-name="basePortStats_TotalFramesTx" id="1" name="Packets Transmitted Without Errors"/>
+            </node>
+            <node id="10">
+                <element control="label" obj-name="basePortStats_TotalErrorFramesTx" id="1" name="Transmit Packet Errors"/>
+            </node>
+            <node id="11">
+                <element control="label" obj-name="basePortStats_TotalCollisionFramesTx" id="1" name="Collision Frames"/>
+            </node>
+            <node id="12">
+                <element control="combo" properties="filter,iterate,hidden" obj-name="SwitchingDot1d_Dot1dBasePort" id="1" name="Dot1dBasePort"/>
+            </node>
+            <node id="13">
+                <element obj-name="basePortStats_timeSinceCountersLastCleared" id="1" name="Time Since Counters Last Cleared" arghelp="valMapTimeofCountersString"/>
+            </node>
+            <node id="14" level="ReadWriteUser">
+                <button scope="page" type="buttonSubmit" value="TRUE" obj-name="basePortStats_resetintfPortStats" help="Submits the form on this page to the Switch" id="1" name="Clear Counters"/>
+                <button scope="page" type="buttonSubmit" value="TRUE" obj-name="basePortStats_resetAllPortStats" help="Submits the form on this page to the Switch" id="2" name="Clear All Counters"/>
+            </node>
+            <node id="15">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

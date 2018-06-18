@@ -1,0 +1,22 @@
+#!/bin/sh
+
+PLATFORM=CXP360G
+
+IP_ADDR=10.112.15.243
+USER=bcmfastpath
+
+DST_DIR=/home/olt/fastpath_builds/builds_olt360
+
+INSTALL_DIR=$DST_DIR/apps/$PLATFORM
+BACKUP_DIR=$DST_DIR/apps_backup/$PLATFORM
+
+KO_PATH=./output/FastPath-Ent-esw-xgs4-pq3-LR-CSxw-IQH_$PLATFORM/target
+BIN_PATH=./output/FastPath-Ent-esw-xgs4-pq3-LR-CSxw-IQH_$PLATFORM/ipl
+
+BIN_FILE=switchdrvr
+DEVSHSYM_FILE=devshell_symbols.gz
+
+echo "Copying $PLATFORM binaries to $DST_DIR"
+scp $BIN_PATH/$BIN_FILE $BIN_PATH/$DEVSHSYM_FILE $KO_PATH/*.ko $USER@$IP_ADDR:$INSTALL_DIR
+scp $BIN_PATH/$BIN_FILE.unstripped $USER@$IP_ADDR:$BACKUP_DIR
+echo "Done!"

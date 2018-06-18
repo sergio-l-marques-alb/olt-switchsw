@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="routing" version="1.0" >
+<!-- BEGIN: bootpdhcpConfig Module -->
+<module name="bootpdhcpConfig" purpose="To Configure/View the BOOTPDHCP Relay Parameters"  >
+  <object name="MaxHopCount"  >
+  <core  type="uint" min="L7_DHCP_MIN_HOP_COUNT" max="L7_DHCP_MAX_HOP_COUNT" default="FD_RTR_DEFAULT_BOOTP_DHCP_RELAY_MAXHOPCOUNT" access="read-write" descr="The BOOTP/DHCP Max Hop Count. The relay agent silently discards BOOTREQUEST messages whose hops field exceeds the value 16 assuming that the request is looped through the intermediate agents. The default value is 4."/>
+  <ui  name="Max Hop Count" style="inputLine">
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.2.6.1"/> 
+  </ui></object>
+  <object name="ForwardingIp"  >
+  <core  type="ipv4" default="L7_RTR_DEFAULT_BOOTP_DHCP_RELAY_SERVER" access="read-write" descr="The BOOTP/DHCP Server IP Address. All the requests will be forwarded and the replies expected from this address."/>
+  <ui  name="Forwarding IP" style="inputLine">
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.2.6.2"/> 
+  </ui></object>
+  <object name="ForwardMode"  >
+  <core  type="enum" xtype="enable_t" default="FD_RTR_DEFAULT_BOOTP_DHCP_RELAY" access="read-write" descr="The BOOTP/DHCP Admin Mode.The relaying functionality can be administratively enabled or disabled by this object"/>
+  <ui  name="Forward Mode" style="choiceNselect1">
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.2.6.3"/> 
+  </ui></object>
+  <object name="MinWaitTime"  >
+  <core  type="uint" min="L7_DHCP_MIN_WAIT_TIME" max="L7_DHCP_MAX_WAIT_TIME" default="FD_RTR_DEFAULT_BOOTP_DHCP_RELAY_MINWAITTIME" access="read-write" descr="The BOOTP/DHCP Minimum Wait Time. When the BOOTP relay agent receives a BOOTREQUEST message, it MAY use the value of the 'secs' (seconds since client began booting) field of the request as a factor in deciding whether to relay the request or not."/>
+  <ui  name="Min Wait Time" style="inputLine">
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.2.6.4"/> 
+  </ui></object>
+  <object name="CircuitIdOptionMode"  >
+  <core  type="enum" xtype="enable_t" default="FD_RTR_DEFAULT_BOOTP_DHCP_RELAY_CIRCUITIDOPTION" access="read-write" descr="The BOOTP/DHCP Circuit ID Option Mode. This flag is set to enable/disable the network element to add/remove the DHCP Relay agent Circuit ID sub-options."/>
+  <ui  name="CircuitId Option Mode" style="choiceNselect1">
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.2.6.5"/> 
+  </ui></object>
+  <object name="NumOfRequestsReceived"  >
+  <core  type="uint" access="read-only" descr="The Number of BOOTP/DHCP Requests Received. Total number of BOOTREQUESTs received from all clients."/>
+  <ui  name="No Of Requests Received" style="plainText">
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.2.6.6"/> 
+  </ui></object>
+  <object name="NumOfRequestsForwarded"  >
+  <core  type="uint" access="read-only" descr="The Number of BOOTP/DHCP Requests Forwarded. Total number of BOOTREQUESTs forwarded to the next agents/servers."/>
+  <ui  name="No Of Requests Forwarded" style="plainText">
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.2.6.7"/> 
+  </ui></object>
+  <object name="NumOfDiscards"  >
+  <core  type="uint" access="read-only" descr="The Number of BOOTP/DHCP Discards.Total number of packets discarded by the network element because of error in the packet. "/>
+  <ui  name="No Of Discards" style="plainText">
+  <snmp asn-id="1.3.6.1.4.1.4413.1.1.2.6.8"/> 
+  </ui></object>
+</module><!-- END: bootpdhcpConfig Module -->
+</objectxml>
+</FastPathXML>

@@ -1,0 +1,383 @@
+--
+--
+-- Copyright (C) 1999-2006 by SNMP Research, Incorporated.
+--
+-- This software is furnished under a license and may be used and copied
+-- only in accordance with the terms of such license and with the
+-- inclusion of the above copyright notice. This software or any other
+-- copies thereof may not be provided or otherwise made available to any
+-- other person. No title to and ownership of the software is hereby
+-- transferred.
+--
+-- The information in this software is subject to change without notice
+-- and should not be construed as a commitment by SNMP Research, Incorporated.
+--
+-- Restricted Rights Legend:
+--  Use, duplication, or disclosure by the Government is subject to
+--  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+--  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+--  subparagraphs (c)(4) and (d) of the Commercial Computer
+--  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+--  clauses in the NASA FAR Supplement and other corresponding
+--  governmental regulations.
+--
+--
+
+--
+--                PROPRIETARY NOTICE
+--
+-- This software is an unpublished work subject to a confidentiality agreement
+-- and is protected by copyright and trade secret law.  Unauthorized copying,
+-- redistribution or other use of this work is prohibited.
+--
+-- The above notice of copyright on this source code product does not indicate
+-- any actual or intended publication of such source code.
+--
+--
+
+   HTTP-TO-SNMP-AUTH-MAPPING-MIB DEFINITIONS ::= BEGIN
+
+   IMPORTS
+       MODULE-IDENTITY,
+       OBJECT-TYPE
+           FROM SNMPv2-SMI
+
+       DisplayString,
+       RowStatus,
+       TestAndIncr
+           FROM SNMPv2-TC
+
+       HttpTCPIPAddress
+           FROM SR-TC
+
+       snmpResearch,
+       snmpResearchMIBs
+	   FROM SNMP-RESEARCH-MIB
+
+       TransportLabel,
+       AuthName,
+       SPI,
+       SnmpID
+           FROM V2ADMIN-MIB
+
+       SnmpMessageProcessingModel,
+       SnmpSecurityLevel,
+       SnmpSecurityModel,
+       SnmpAdminString
+           FROM SNMP-FRAMEWORK-MIB;
+
+   httpToSnmpAuthMappingMIB MODULE-IDENTITY
+       LAST-UPDATED "9703130000Z"
+       ORGANIZATION "SNMP Research"
+       CONTACT-INFO
+              "         Editor: Steve Moulton
+
+                Postal: SNMP Research
+                        3001 Kimberlin Heights Road
+                        Knoxville, TN  37920-9716
+
+                   Tel: +1 865 573 1434
+                   Fax: +1 865 573 9197
+
+                E-mail: info@snmp.com"
+       DESCRIPTION
+               "A MIB module to describe and to allow remote
+                management of DR-Web Manager data."
+
+       REVISION "9706240000Z"
+       DESCRIPTION
+            " Initial creation of the DR-Web Manager Mib."
+       ::= { snmpResearchMIBs 32 }
+
+-- The next OIDs are simply for organizational purposes
+
+httpToSnmpMappingGlobals OBJECT IDENTIFIER ::= { httpToSnmpAuthMappingMIB 1 }
+httpToSnmpMappingObjects OBJECT IDENTIFIER ::= { httpToSnmpAuthMappingMIB 2 }
+
+--
+-- httpToSnmpMappingGlobals objects
+--
+
+   httpToSnmpMappingSpinLock OBJECT-TYPE
+       SYNTAX      TestAndIncr
+       MAX-ACCESS  read-write
+       STATUS      current
+       DESCRIPTION
+                "An advisory lock used to allow several cooperating
+                SNMPv2 entities, all acting in a manager role, to
+                coordinate their use of the Set operation in creating
+                or altering conceptual rows of the httpToSnmpMappingTable.
+
+                Since this is an advisory lock, entities acting in an
+                agent role do not enforce the use of
+                httpToSnmpMappingSpinLock.
+
+                Note that this object is not saved to stable storage."
+       REFERENCE "See SNMPv2-TC for definition of TestAndIncr"
+       ::= { httpToSnmpMappingGlobals 1 }
+
+-- httpToSnmpMappingObjects objects
+-- 
+--  The httpToSnmpMappingTable is used to maintain user identity
+--  information for a given agent for the DR-Web manager.  
+--
+--    The API for accessing this table would look something like this:
+-- 
+--     getIdentity(group, dst, contextName, contextSnmpID, operation,
+--                 messageProcessingModel, securityLevel,
+--                 securityModel, securityName)
+--
+--    where input arguments are:
+--    
+--    group:         httpToSnmpMappingGroupName.  Required, must have
+--                   exact match
+--    dst:           destination address.  Will be matched against
+--                   httpToSnmpMappingAddress and
+--                   httpToSnmpMappingAddressMask below.
+--    contextName:   will be matched against
+--                   httpToSnmpMappingContextName below
+--    contextSnmpID: will be matched against
+--                   httpToSnmpMappingContextSnmpID below
+--    operation:     will be matched against
+--                   httpToSnmpMappingOperation below
+--
+--    and output arguments are:
+--       messageProcessingModel, securityLevel,
+--       securityModel, securityName
+--
+--    I will put in something analogous to acContextNameMask
+--    for context name, and some sort of mask 
+--    httpToSnmpMappingContextSnmpID if the sort of matching for these
+--    fields we have now are not adequate.
+--
+
+    httpToSnmpMappingTable OBJECT-TYPE
+       SYNTAX      SEQUENCE OF HttpToSnmpMappingEntry
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION 
+               "Each conceptual row in this table holds a mapping
+                from http credentials to snmp credentials."
+       ::= { httpToSnmpMappingObjects 1 }
+
+   httpToSnmpMappingEntry OBJECT-TYPE
+       SYNTAX      HttpToSnmpMappingEntry
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION 
+               "An entry (conceptual row) in the
+		httpToSnmpMappingTable."
+       INDEX { httpToSnmpMappingGroupName, httpToSnmpMappingIndex }
+       ::= { httpToSnmpMappingTable 1 }
+
+   HttpToSnmpMappingEntry ::= SEQUENCE {
+       httpToSnmpMappingGroupName      AuthName,
+       httpToSnmpMappingIndex          INTEGER (1..65535),
+       httpToSnmpMappingMatchPriority  INTEGER (1..65535),
+       httpToSnmpMappingAddress        HttpTCPIPAddress,
+       httpToSnmpMappingAddressMask    HttpTCPIPAddress, 
+       httpToSnmpMappingContextName    AuthName,
+       httpToSnmpMappingContextSnmpID  SnmpID,
+       httpToSnmpMappingOperation      INTEGER,
+       httpToSnmpMappingStorageType    StorageType,
+       httpToSnmpMappingRowStatus      RowStatus,
+       httpToSnmpMappingMPModel        SnmpMessageProcessingModel,
+       httpToSnmpMappingSecurityLevel  SnmpSecurityLevel,
+       httpToSnmpMappingSecurityModel  SnmpSecurityModel,
+       httpToSnmpMappingSecurityName   SnmpAdminString
+   }
+       
+   httpToSnmpMappingGroupName OBJECT-TYPE
+       SYNTAX      AuthName (SIZE(1..32))
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION
+               "The value of httpUserGroupName for this user.  This
+                is a required key (as well as an index).  Its value
+		is obtained from the security services as described in
+		HTTP-based Security for SNMPv2*.
+               "
+       REFERENCE "See HTTP-SEC for definition of httpUserNameTable"
+       ::= { httpToSnmpMappingEntry 1 }
+
+   httpToSnmpMappingIndex OBJECT-TYPE
+       SYNTAX      INTEGER(1..65535)
+       MAX-ACCESS  not-accessible
+       STATUS      current
+       DESCRIPTION
+               "There may be many conceptual rows with a given value of 
+                httpUserGroupName.  This index is used to
+                differentiate these rows."
+       ::= { httpToSnmpMappingEntry 2}
+
+   httpToSnmpMappingMatchPriority OBJECT-TYPE
+       SYNTAX      INTEGER(1..65535)
+       MAX-ACCESS  read-create
+       STATUS      current
+       DESCRIPTION
+               "There may be many rows in this table that match 
+                against a given set of object values.  This 
+                index specifies an ordering for these matches.
+                Of two conceptual rows that match, the row
+                with the smaller httpToSnmpMappingMatchPriority will
+                win.  If two rows have the same value of 
+                httpToSnmpMappingMatchPriority and
+		httpToSnmpMappingGroupName, then
+                the match order is indeterminate.
+        "
+       DEFVAL { 1 }
+       ::= { httpToSnmpMappingEntry 3}
+
+   httpToSnmpMappingAddress OBJECT-TYPE
+       SYNTAX      HttpTCPIPAddress
+       MAX-ACCESS  read-create
+       STATUS      current
+       DESCRIPTION 
+               "The agent address and port for the agent described
+                by this row.
+               "
+       DEFVAL { '7f00000100a1'H}  -- 127.0.0.1 port 161
+       ::= { httpToSnmpMappingEntry 4 }
+
+   httpToSnmpMappingAddressMask OBJECT-TYPE
+       SYNTAX      HttpTCPIPAddress
+       MAX-ACCESS  read-create
+       STATUS      current
+       DESCRIPTION 
+               "A mask for httpToSnmpMappingAddress.  An arbitrary
+                httpTCPIPAddress matches the value of
+		httpToSnmpMappingAddress
+                if (arbitrary-address & httpToSnmpMappingAddressMask) ==
+                (httpToSnmpMappingAddress & httpToSnmpMappingAddressMask).
+                A value of 0.0.0.0.0.0 for httpToSnmpMappingAddressMask will
+                cause the value of httpToSnmpMappingAddress to match any address
+                at any port.
+
+               "
+       DEFVAL { 'FFFFFFFFFFFF'H}    --  255.255.255.255 port 65535
+       ::= { httpToSnmpMappingEntry 5 }
+
+   httpToSnmpMappingContextSnmpID OBJECT-TYPE
+       SYNTAX       SnmpID
+       MAX-ACCESS   read-create
+       STATUS       current
+       DESCRIPTION
+             "The agent entity's administratively-unique
+             identifier.  If all zeros, any snmpID value
+             will match.
+              "
+       DEFVAL { '000000000000000000000000'H }
+       ::= { httpToSnmpMappingEntry 6 }
+
+   httpToSnmpMappingContextName OBJECT-TYPE
+       SYNTAX      AuthName (SIZE(0..255))
+       MAX-ACCESS  read-create
+       STATUS      current
+       DESCRIPTION 
+               "A textual name uniquely identifying a particular context
+                on a particular agent.  If zero lenght, any string
+                will match.
+               "
+       DEFVAL { "default" }
+       ::= { httpToSnmpMappingEntry 7 }
+
+   httpToSnmpMappingOperation OBJECT-TYPE
+       SYNTAX      INTEGER {
+                     matchany(1),
+                     get(2),
+                     set(3)
+                   }
+       MAX-ACCESS  read-create
+       STATUS      current
+       DESCRIPTION 
+               "The type of operation for which the identity information
+                is being requested.  matchany(1) matches any currently
+                defined operation.
+               "
+       DEFVAL { matchany }
+       ::= { httpToSnmpMappingEntry 8 }
+
+    httpToSnmpMappingStorageType OBJECT-TYPE
+        SYNTAX      StorageType
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+                "This object specifies how this row of the table should
+                 be stored."
+        REFERENCE "See SNMPv2-TC for definition of StorageType"
+        DEFVAL { volatile }
+        ::= { httpToSnmpMappingEntry 12 }
+
+
+    httpToSnmpMappingRowStatus OBJECT-TYPE
+        SYNTAX       RowStatus
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+                "The status of this conceptual row.
+ 
+                 An entry is not qualified for activation until instances of
+                 all its columns have an appropriate value.  In particular,
+                 one or more management set operations are required to
+                 configure the objects:
+
+                     httpToSnmpMappingMPModel
+                     httpToSnmpMappingSecurityLevel
+                     httpToSnmpMappingSecurityModel
+                     httpToSnmpMappingSecurityName
+
+                 Until instances of all corresponding columns are
+                 appropriately configured, the value of the corresponding
+                 instance of httpToSnmpMappingRowStatus is `notReady'.
+               "
+        REFERENCE "See SNMPv2-TC for definition of RowStatus"
+        ::= { httpToSnmpMappingEntry 13 }
+
+    httpToSnmpMappingMPModel OBJECT-TYPE
+       SYNTAX      SnmpMessageProcessingModel
+       MAX-ACCESS  read-create
+       STATUS current
+       DESCRIPTION
+               "The message processing model output from a matching
+                of this row.  No default value is provided, i.e.
+                httpToSnmpMappingMPModel must be explicitly
+                specified on conceptual row creation.
+               "
+       ::= { httpToSnmpMappingEntry 14 }
+
+    httpToSnmpMappingSecurityLevel OBJECT-TYPE
+       SYNTAX      SnmpSecurityLevel
+       MAX-ACCESS  read-create
+       STATUS current
+       DESCRIPTION
+               "The security level output from a matching
+                of this row.  No default value is provided, i.e.
+                httpToSnmpMappingSecurityLevel must be explicitly
+                specified on conceptual row creation.
+               "
+       ::= { httpToSnmpMappingEntry 15 }
+
+    httpToSnmpMappingSecurityModel OBJECT-TYPE
+       SYNTAX      SnmpSecurityModel
+       MAX-ACCESS  read-create
+       STATUS current
+       DESCRIPTION
+               "The security model output from a matching
+                of this row.  No default value is provided, i.e.
+                httpToSnmpMappingSecurityModel must be explicitly
+                specified on conceptual row creation.
+               "
+       ::= { httpToSnmpMappingEntry 16 }
+
+    httpToSnmpMappingSecurityName OBJECT-TYPE
+        SYNTAX       SnmpAdminString (SIZE(1..32))
+        MAX-ACCESS   read-create
+        STATUS       current
+        DESCRIPTION
+              "This variable contains the securityName for the
+               Principal identified by this row.  This object
+               must be set for conceptual row creation.
+              "
+        ::= { httpToSnmpMappingEntry 17 }
+               
+END 

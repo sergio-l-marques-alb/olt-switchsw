@@ -1,0 +1,999 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="base" version="1.0">
+<module name="sysServicePort">
+<object name="sysAgentBasicConfigServPortConfigProtocol">
+<core type="enum" xtype="L7_SYSCFG_MODE_t" default="L7_SYSCONFIG_MODE_NONE" access="read-write" descr="The units basic service port config mode"/>
+<ui name="Service Port Configuration Protocol" style="choiceNselect1"/>
+</object>
+<object name="sysServicePortGateway">
+<core type="user" xtype="rtoipv4_t" access="read-write" descr="the service port Gateway"/>
+<ui name="Service Port Gateway" style="inputLine"/>
+</object>
+<object name="sysServicePortIPAddr">
+<core type="user" xtype="rtoipv4_t" access="read-write" descr="The service port IP Addr"/>
+<ui name=" Service Port IP Address" style="inputLine"/>
+</object>
+<object name="sysServicePortNetMask">
+<core type="user" xtype="rtoipv4_t" access="read-write" descr="The service port NetMask"/>
+<ui name="Service Port Subnet Mask" style="inputLine"/>
+</object>
+<object name="sysServicePortMacAddress">
+<core type="mac" access="read-only" descr="The service port Mac Address"/>
+<ui name="Service Port MAC Address" style="plainText"/>
+</object>
+<object name="sysServicePortLinkStatus">
+<core type="uint" access="read-only" descr="Service Port Link Status"/>
+<ui name="Service Port Link Status" style="plainText"/>
+</object>
+<object name="renewDHCP">
+<core type="uint" default="0" access="write-only" descr="Renew the IP Address learned through DHCP"/>
+<ui name="Renew DHCP IP Address" style="inputLine"/> </object>
+</module>
+<module name="SysTransfer">
+<object name="sysTransferMode">
+<core type="enum" xtype="L7_TRANSFER_TYPES_t" access="read-write" descr="Current transfer mode of the system"/>
+<ui name="Transfer Mode" style="choiceNselect1"/>
+</object>
+<object name="sysTransferServerAddressType">
+<core type="enum" xtype="ipAddrDnsType_t" default="L7_AF_INET" access="read-write" descr="Current address type of destination server"/>
+<ui name="Server Address Type" style="choiceNselect1"/>
+</object>
+<object name="sysTransferServerAddress">
+<core type="string" access="read-write" descr="Current IP address of destination server"/>
+<ui name="Server Address" style="inputLine"/>
+</object>
+<object name="sysTransferFilePathLocal">
+<core type="user" xtype="string_t" access="read-write" descr="The local transfer file path"/>
+<ui name="Transfer File Path" style="inputLine"/>
+</object>
+<object name="sysTransferFileNameLocal">
+<core type="string" access="read-write" descr="The local transfer file name"/>
+<ui name="Transfer File Name" style="inputLine"/>
+</object>
+<object name="sysTransferLogFileNameLocal">
+<core type="string" access="write-only" descr="Log file name"/>
+<ui name="Log File Name" style="inputLine"/>
+</object>
+<object name="sysTransferScriptFileNameLocal">
+<core type="string" access="write-only" descr="Script file name"/>
+<ui name="Script File Name" style="inputLine"/>
+</object>
+<object name="sysTransferActiveImageFileNameLocal">
+<core type="string" access="write-only" descr="Active Image name on unit manager"/>
+<ui name="Active Image File Name" style="inputLine"/>
+</object>
+<object name="sysTransferBackupImageFileNameLocal">
+<core type="string" access="read-only" descr="Backup Image name on unit manager"/>
+<ui name="Backup Image File Name" style="plainText"/>
+</object>
+<object name="sysTransferDirection">
+<core type="enum" xtype="L7_TRANSFER_DIRECTION_t" access="read-only" descr="Current Transfer Direction"/>
+<ui name="Transfer Direction" style="plainText"/>
+</object>
+
+<object name="sysTransferHTTPFileNameLocal">
+<core type="string" access="write-only" descr="The local transfer file name"/>
+<ui name="Local HTTP File Name" style="inputLine"/>
+</object>
+<object name="sysTransferFilePathRemote">
+<core type="user" xtype="string_t" access="read-write" descr="The remote transfer file path"/>
+<ui name="Remote File Path" style="inputLine"/>
+</object>
+<object name="sysTransferFileNameRemote">
+<core type="string" access="read-write" descr="The remote transfer file name"/>
+<ui name="Remote File Name" style="inputLine"/>
+</object>
+<object name="sysTransferHTTPFileNameRemote">
+<core type="string" access="write-only" descr="The remote HTTP transfer file name"/>
+<ui name="Remote HTTP File Name" style="file"/>
+</object>
+<object name="sysTransferUploadFileType">
+<core type="enum" xtype="L7_FILE_TYPES_t" access="read-write" descr="The transfer upload file type"/>
+<ui name="Upload File Type" style="choiceNselect1"/>
+</object>
+<object name="sysTransferDownloadFileType">
+<core type="enum" xtype="L7_FILE_TYPES_t" access="read-write" descr="The transfer download file type"/>
+<ui name="Download File Type" style="choiceNselect1"/>
+</object>
+<object name="sysTransferDownStart">
+<core type="uint" access="write-only" descr="Start download "/>
+<ui name="Download Start" style="inputLine"/>
+</object>
+<object name="sysTransferHTTPDownStart">
+<core type="uint" access="write-only" descr="Start HTTP download "/>
+<ui name="HTTP Download Start" style="inputLine"/>
+</object>
+<object name="sysTransferHTTPUploadStart">
+<core type="uint" access="write-only" descr="Start HTTP Upload "/>
+<ui name="HTTP Upload Start" style="inputLine"/>
+</object>
+<object name="sysTransferActiveHTTPUploadStart">
+<core type="uint" access="write-only" descr="Start HTTP Upload "/>
+<ui name="Active HTTP UploadStart" style="inputLine"/>
+</object>
+<object name="sysTransferCompleteStatus">
+<core type="string" access="read-only" descr="Transfer Complete Status "/>
+<ui name="Transfer Complete Status" style="plainText"/>
+</object>
+<object name="sysTransferUploadStart">
+<core type="uint" access="write-only" descr="Start Upload "/>
+<ui name="Upload Start" style="inputLine"/>
+</object>
+<object name="sysTransferResult">
+<core type="string" access="read-only" descr="Transfer result"/>
+<ui name="Transfer Result" style="plainText"/>
+</object>
+<object name="sysTransferUploadResultCode">
+<core type="enum" xtype="L7_TRANSFER_CODE_t" access="read-only" descr="the status of a transfer Upload"/>
+<ui name="Upload Result Code" style="plainText"/>
+</object>
+<object name="sysTransferDownloadResultCode">
+<core type="enum" xtype="L7_TRANSFER_CODE_t" access="read-only" descr="the status of a transfer Upload"/>
+<ui name="Download Result Code" style="plainText"/>
+</object>
+<object name="sysTransferInProgress">
+<core type="enum" xtype="L7_BOOL" access="read-write" descr="Transfer progress"/>
+<ui name="Transfer In Progress" style="inputLine"/>
+</object>
+<object name="pageRefresh">
+<core type="uint" access="read-only" descr="Wheather page should be refresh or not"/>
+<ui name="Page Refresh" style="inputLine"/>
+</object>
+</module>
+<module name="sysSerialPort">
+<object name="sysAgentBasicConfigSerialBaudRate">
+<core type="enum" xtype="L7_BAUDRATES_t" default="FD_SIM_DEFAULT_SYSTEM_BAUD_RATE" access="read-write" descr="Baud Rate for the Serial Interface"/>
+<ui name="Serial Baud Rate" style="choiceNselect1"/>
+</object>
+<object name="sysSerialTimeOut">
+<core type="uint" min="USMDB_SERIAL_TIMEOUT_MIN" max="USMDB_SERIAL_TIMEOUT_MAX" default="FD_SIM_DEFAULT_SERIAL_PORT_TIMEOUT" access="read-write" descr="the Timeout for the Serial Interface"/>
+<ui name="Serial Time Out" style="inputLine"/>
+</object>
+<object name="sysSerialPortParmCharSize">
+<core type="uint" access="read-only" descr="The Serial Port Parameter Char size "/>
+<ui name="Serial Port Parmeter Char Size" style="plainText"/>
+</object>
+<object name="sysSerialPortParmFlowControl">
+<core type="enum" xtype="enable_t" access="read-only" descr="The Serial Port Parameter flow control "/>
+<ui name="Flow Control" style="plainText"/>
+</object>
+<object name="sysSerialPortParmParityType">
+<core type="enum" xtype="L7_PARITY_t" access="read-only" descr="The Serial Port Parameter parity "/>
+<ui name="Parity Type" style="plainText"/>
+</object>
+<object name="sysSerialPortParmStopBits">
+<core type="uint" access="read-only" descr="The Serial Port Parameter stop bit "/>
+<ui name="Stop Bits" style="plainText"/>
+</object>
+<object name="sysSerialPortLinkStatus">
+<core type="uint" access="read-only" descr="The Serial Port Link Status"/>
+<ui name="Serial Port Link Status" style="plainText"/>
+</object>
+</module>
+<module name="SysWebConnection">
+<object name="sysWebMgmtMode">
+<core type="enum" xtype="enable_t" default="L7_ENABLE" access="read-write" descr="Enable/Disable Web Management mode of the switch"/>
+<ui name="HTTP Admin Mode" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.18.1"/>
+</ui>
+</object>
+<object name="sysWebJavaMode">
+<core type="enum" xtype="enable_t" default="L7_ENABLE" access="read-write" descr="Enable/Disable Web java mode of the switch"/>
+<ui name="Web Java Mode" style="choiceNselect1">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.18.2"/>
+</ui>
+</object>
+<object name="sysCliWebHttpNumSessions">
+<core type="uint" min="0" max="FD_HTTP_DEFAULT_MAX_CONNECTIONS" default="FD_HTTP_DEFAULT_MAX_CONNECTIONS" access="read-write" descr="maximum number of web sessions"/>
+<ui name="Maximum Number of HTTP Sessions" style="inputLine">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.18.3"/>
+</ui>
+</object>
+<object name="sysCliWebHttpSessionHardTimeOut">
+<core type="uint" min="FD_HTTP_SESSION_HARD_TIMEOUT_MIN" max="FD_HTTP_SESSION_HARD_TIMEOUT_MAX" default="FD_HTTP_SESSION_HARD_TIMEOUT_DEFAULT" access="read-write" descr="http session hard timeout (in hours)"/>
+<ui name="HTTP Session Hard Time Out" style="inputLine">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.18.4"/>
+</ui>
+</object>
+<object name="sysCliWebHttpSessionSoftTimeOut">
+<core type="uint" min="FD_HTTP_SESSION_SOFT_TIMEOUT_MIN" max="FD_HTTP_SESSION_SOFT_TIMEOUT_MAX" default="FD_HTTP_SESSION_SOFT_TIMEOUT_DEFAULT" access="read-write" descr="http session soft timeout (in minutes)"/>
+<ui name="HTTP Session Soft Time Out" style="inputLine">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.1.2.18.5"/>
+</ui>
+</object>
+<object name="sysWebHTTPPortNumber">
+<core descr="&lt;HTML&gt;Get Port-Number of Access for HTTP" access="read-write" type="uint"/>
+<ui style="inputLine" name="HTTP Port Number">
+<snmp asn-id=""/>
+</ui>
+</object>
+<object name="sysWebHTTPPortFlag" depends="sysWebHTTPPortNumber">
+<core descr="&lt;HTML&gt;Set the flag port-number for HTTP Access" xtype="enable_t" access="write-only" type="enum"/>
+<ui style="inputLine" name="HTTP Port Flag">
+<snmp asn-id=""/>
+</ui>
+</object>
+</module>
+<module name="SysInboundTelnet">
+<object name="Timeout">
+<core type="uint" min="1" max="160" default="FD_CLI_WEB_DEFAULT_REMOTECON_TIMEOUT" access="read-write" descr="Telnet timeout period in minutes"/>
+<ui name="Time Out" style="inputLine"/>
+</object>
+<object name="NumSessions">
+<core type="uint" min="0" max="FD_CLI_WEB_DEFAULT_NUM_SESSIONS" default="FD_CLI_WEB_DEFAULT_NUM_SESSIONS" access="read-write" descr="Number of telnet sessions"/>
+<ui name="Number Of Telnet Sessions" style="inputLine"/>
+</object>
+<object name="NewSessions">
+<core type="enum" xtype="enable_t" default="L7_ENABLE" access="read-write" descr="Allow or disallow new telnet sessions"/>
+<ui name="Allow New Sessions" style="choiceNselect1"/>
+</object>
+<object name="AdminMode">
+<core type="enum" xtype="enable_t" default="L7_ENABLE" access="read-write" descr="Admin Mode of the telnet connection"/>
+<ui name="Admin Mode" style="choiceNselect1"/>
+</object>
+
+<object name="sysTelnetPortFlag" depends="sysWebHTTPPortNumber">
+<core descr="Set the flag port-number for Telnet Access.Set it to enable if the port change needs immediate effect. Set to DISABLE if port change has to be applied on next reboot of the box." xtype="enable_t" access="write-only" type="enum"/>
+<ui style="inputLine" name="Flag To Set Telnet Port Immediately"/>
+</object>
+
+<object name="TelnetPortNumber">
+<core type="uint" min="1" max="65535" default="23" access="read-write" descr="The port on which telnet has to access. Note that sysTelnetPortFlag has to be set in order to have immediate effect."/>
+<ui name="Telnet Port Number" style="inputLine"/>
+</object>
+
+</module>
+
+<module name="UserMgrPort">
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="interfaceIndex. "/>
+<ui name="Unit/Slot/Port" style="plainText">
+</ui></object>
+<object name="ifIndex" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="interfaceIndex. "/>
+<ui name="Slot/Port" style="plainText">
+</ui></object>
+<object name="portUserName" depends="ifIndex">
+<core type="string" access="read-write" properties="dynamic" descr="the name of the first user with access to the port."/>
+<ui name="Port User Name" style="choiceMselectN">
+</ui></object>
+
+<!-- this object is only for summary page -->
+<object name="portUserNameSummary" depends="ifIndex">
+<core type="string" access="read-only" descr="the name of the first user with access to the port."/>
+<ui name="Port User Name" style="plainText">
+</ui></object>
+
+
+<object name="portUserAccess" depends="ifIndex">
+<core type="enum" xtype="AllowDeny_t" access="read-write" descr="the port access for the specified user on the specified port"/>
+<ui name="Port User Access" style="choiceNselect1">
+</ui></object>
+<!-- this object is to set user access for all ports -->
+
+<object name="portUserAccessGlobal" depends="ifIndex">
+<core type="enum" xtype="AllowDeny_t" access="write-only" descr="To set user access for all ports."/>
+<ui name="User Access On All Ports" style="inputLine">
+</ui></object>
+
+</module>
+
+<module name="SysMiscObjects">
+<object name="SaveDeviceConfiguration">
+<core type="enum" xtype="L7_TrueFalse" access="read-write" descr="Save the configuration of the device. "/>
+<ui name="Save Device Configuration" style="choiceNselect1">
+</ui></object>
+</module>
+
+<module name="SlotInfo">
+
+<object name="UnitNumber">
+<core type="uint" key="yes" access="read-write" descr="Unit Number. "/>
+<ui name="Unit" style="plainText">
+</ui></object>
+
+<object name="SlotIndex" depends="UnitNumber">
+<core type="uint" key="yes" access="read-write" descr="Slot Number. "/>
+<ui name="Slot Index" style="plainText">
+</ui></object>
+
+<object name="SlotStatus" depends="UnitNumber,SlotIndex">
+<core type="enum" xtype="L7_XUI_SLOT_STATUS" access="read-only" descr="Slot Status. "/>
+<ui name="Slot Status" style="plainText">
+</ui></object>
+
+<object name="SlotPowerMode" depends="UnitNumber,SlotIndex">
+<core type="enum" xtype="enable_t" access="read-write" descr="Slot Powerr Mode. "/>
+<ui name="Slot Power Mode" style="choiceNselect1">
+</ui></object>
+
+<object name="SlotAdminMode" depends="UnitNumber,SlotIndex">
+<core type="enum" xtype="enable_t" access="read-write" descr="Slot Admin Mode. "/>
+<ui name="Slot Admin Mode" style="choiceNselect1">
+</ui></object>
+
+<object name="InsertedCardType" depends="UnitNumber,SlotIndex">
+<core type="uint" access="read-only" descr="Slot Inserted Card Type. "/>
+<ui name="Inserted Card Type" style="plainText">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.13.4.1.1.2"/>
+</ui></object>
+
+<object name="ConfiguredCardType" depends="UnitNumber,SlotIndex">
+<core type="string" access="read-only" descr="Slot Configured Card Type. "/>
+<ui name="Configured Card Type" style="plainText">
+</ui></object>
+
+<object name="SlotCapabilities" depends="UnitNumber,SlotIndex">
+<core type="enum" xtype="L7_TrueFalse" access="read-only" descr="Slot Capabilities. "/>
+<ui name="Slot Capabilities" style="plainText">
+</ui></object>
+
+<object name="SlotPowerDown" depends="UnitNumber,SlotIndex">
+<core type="enum" xtype="L7_TrueFalse" access="read-only" descr="Slot Power Down Status. "/>
+<ui name="Slot Power Down Status" style="plainText">
+</ui></object>
+
+<object name="SlotConfigClear" depends="UnitNumber,SlotIndex">
+<core type="enum" xtype="enable_t" access="write-only" descr="Clear Card Configuration. "/>
+<ui name="SlotConfigClear" style="inputLine">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.3.2"/>
+</ui></object>
+<!--  The objects InsertedCardModel, ConfiguredCardModel, InsertedCardDescription and  ConfiguredCardDescription were added to get the card information for inserted card type and configured card type for an Unit/Slot ,Instead of using java script to gets this values from module &quot;CardTypeDetails&quot; and using it these objects  are added additionally to slove the purpose -->
+<!-- Adding SNMP AsNId&apos;s needs to be revisted -->
+<object name="InsertedCardModel" depends="UnitNumber,SlotIndex">
+<core type="string" access="read-only" descr="Slot Inserted Card Model. "/>
+<ui name="Inserted Card Model" style="plainText">
+</ui></object>
+
+<object name="ConfiguredCardModel" depends="UnitNumber,SlotIndex">
+<core type="string" access="read-only" descr="Slot Configured Card Model. "/>
+<ui name="Configured Card Model" style="plainText">
+</ui></object>
+
+
+<object name="InsertedCardDescription" depends="UnitNumber,SlotIndex">
+<core type="string" access="read-only" descr="Inserted Card Description."/>
+<ui name="Inserted Card Description" style="plainText">
+</ui></object>
+
+<object name="ConfiguredCardDescription" depends="UnitNumber,SlotIndex">
+<core type="string" access="read-only" descr="Configured Card Description."/>
+<ui name="Configured Card Description" style="plainText">
+</ui></object>
+
+<!-- This object is included to display Slot in Unit/Slot format in Slot Summary Page -->
+<object name="Slot" depends="UnitNumber,SlotIndex">
+<core type="string" access="read-only" descr="object is included to display Slot in Unit/Slot format in Slot  Summary Page."/>
+<ui name="Slot" style="plainText">
+</ui></object>
+
+<object name="RowStatus" depends="UnitNumber,SlotIndex">
+<core type="row-status" xtype="L7_ROW_STATUS_t" access="read-write" descr="Creates or delets unit/slot and card association entries."/>
+<ui name="RowStatus" style="inputLine">
+</ui></object>
+
+</module>
+
+<module name="CardTypeDetails">
+<key-combo list="SwitchIndex,CardIndex"/>
+
+<object name="SwitchIndex">
+<core type="uint" key="yes" access="read-write" descr="Index for Supported Switch Model. "/>
+<ui name="Switch Index" style="plainText">
+</ui></object>
+
+<object name="CardIndex">
+<core type="uint" key="yes" access="read-write" descr="Card Number. "/>
+<ui name="Card Index" style="plainText">
+</ui></object>
+
+<object name="SupportedCard" depends="CardIndex">
+<core type="string" properties="pseudo-key" access="read-write" descr="Supported Card."/>
+<ui name="Supported Card" style="plainText">
+</ui></object>
+
+<object name="CardType" depends="CardIndex">
+<core type="string" access="read-only" descr="Card Type. "/>
+<ui name="Card Type" style="plainText">
+</ui></object>
+
+<object name="CardModelIdentifier" depends="CardIndex">
+<core type="string" access="read-only" descr="Card Model Identifier. "/>
+<ui name="Card Model Identifier" style="plainText">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.13.4.1.1.3"/>
+</ui></object>
+
+<object name="CardDescription" depends="CardIndex">
+<core type="string" access="read-only" descr="Card Description. "/>
+<ui name="Card Description" style="plainText">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.13.4.1.1.4"/>
+</ui></object>
+
+<object name="SupportedSlotIndex" depends="SwitchIndex">
+<core type="uint" key="yes" access="read-write" descr="Supported Slot Index. "/>
+<ui name="Supported Slot Index" style="plainText">
+</ui></object>
+
+<object name="SupportedSlotNumber" depends="SupportedSlotIndex">
+<core type="uint" access="read-only" descr="Supported Slot Number. "/>
+<ui name="Supported Slot Number" style="plainText">
+</ui></object>
+
+<object name="SupportedCardIndex" depends="SupportedSlotIndex">
+<core type="uint" key="yes" access="read-write" descr="Supported Card Index. "/>
+<ui name="Supported Card Index" style="plainText">
+</ui></object>
+
+<object name="SupportedCardModelIdentifier" depends="SupportedCardIndex">
+<core type="string" access="read-only" descr="Card Model Identifier. "/>
+<ui name="Card Model Identifier" style="plainText">
+<snmp asn-id="1.3.6.1.4.1.4413.1.1.13.4.1.1.3"/>
+</ui></object>
+</module>
+
+<module name="ARPInfo">
+<key-combo list="ARPIndex,IpAddress"/>
+<object name="ARPIndex">
+<core type="uint" key="yes" access="read-write" descr="ARP index."/>
+<ui name="ARP Index" style="plainText">
+</ui></object>
+
+<object name="IpAddress">
+<core type="ipv4" key="yes" access="read-only" descr="IP Address of an ARP Entry."/>
+<ui name="IP Address" style="plainText">
+</ui></object>
+
+<object name="MacAddress" depends="ARPIndex,IpAddress">
+<core type="mac" access="read-only" descr="MAC Address of an ARP Entry."/>
+<ui name="MAC Address" style="plainText">
+</ui></object>
+
+<object name="IntIfNum" depends="ARPIndex,IpAddress" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" access="read-only" descr="Interface number for an ARP entry."/>
+<ui name="Unit/Slot/Port" style="plainText">
+</ui></object>
+<object name="IntIfNum" depends="ARPIndex,IpAddress" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" access="read-only" descr="Interface number for an ARP Entry."/>
+<ui name="Slot/Port" style="plainText">
+</ui></object>
+
+<object name="ArpSwitchClear"  >
+<core  type="enum" xtype="clear_t" access="write-only" descr="Clears the IP stack's ARP cache entries"/>
+<ui  name="ARP Switch Clear" style="choiceNselect1" />
+</object>
+</module>
+
+<module name="port">
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="This will lists the Physical and LAG interfaces on the switch."/>
+<ui name="Unit/Slot/Port" style="plainText">
+</ui></object>
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="This will lists the Physical and LAG interfaces on the switch."/>
+<ui name="Slot/Port" style="plainText">
+</ui></object>
+<object depends="Interface" name="AutoNegStatus">
+<core access="read-only" descr="Gets the Auto Negotiation Status on the selected interface." type="enum" xtype="enable_t"/>
+<ui name="Auto Negotiation Status" style="boolean"/>
+</object>
+<object name="Type" depends="Interface">
+<core type="enum" xtype="L7_SPECIAL_PORT_TYPE_t" access="read-only" descr="Gets the type of the port, like is it a member of the LAG or is it a monitoring port etc.."/>
+<ui name="Type" style="plainText">
+</ui></object>
+<object name="InterfaceType" depends="Interface">
+<core type="enum" xtype="InterfaceType_t" access="read-only" descr="Gets the type of the Interface, It can either be a physical or lag or CPU etc.."/>
+<ui name="Type" style="plainText">
+</ui></object>
+<object name="Capabilities" depends="Interface">
+<core type="enum" xtype="L7_PHY_CAPABILITIES_t" access="read-only" descr="Gets the Port Speed"/>
+<ui name="Capabilities" style="plainText">
+</ui></object>
+<object name="STPMode" depends="Interface">
+<core type="enum" xtype="enable_t" access="read-write" descr="The Spanning Tree Protocol Administrative Mode for the port or LAG."/>
+<ui name="STP Admin Mode" style="choiceNselect1">
+</ui></object>
+<object name="AdminMode" depends="Interface">
+<core type="enum" xtype="enable_t" access="read-write" descr="The Port control administration state.You must select enable if you want the port to participate in the network."/>
+<ui name="Admin Mode" style="choiceNselect1">
+</ui></object>
+<object name="BroadcastMode" depends="Interface">
+<core type="enum" xtype="enable_t" access="read-write" descr="To Enable/Disable the Port Broadcast Storm Recovery Mode.When Enable, the broadcast traffic on the specified Ethernet port exceeds the configured threshold, the switch blocks (discards) the broadcast traffic. "/>
+<ui name="Broadcast Storm Recovery Mode" style="inputLine">
+</ui></object>
+<object name="BroadcastLevel" depends="Interface">
+<core type="uint" access="read-write" descr="Specify the broadcast data rate at which storm control activates.The level units can be set to percent or packets-per-second."/>
+<ui name="Broadcast Storm Recovery Level" style="inputLine">
+</ui></object>
+<object name="BroadcastLevelUnit" depends="Interface">
+<core type="user" xtype="ppsPercent_t" access="read-only" descr="To show Broadcast Storm Control level and unit"/>
+<ui name="Broadcast Level Unit" style="plainText">
+</ui></object>
+<!-- ObjectAddedStart -->
+<object name="BroadcastLevelThresholdUnit">
+<core type="enum" xtype="L7_RATE_UNIT_t" default="FD_POLICY_DEFAULT_BCAST_STORM_THRESHOLD_UNIT" access="read-write" descr="Configures the broadcast storm recovery threshold unit for this port."/>
+<ui name="Broadcast Level Threshold Unit" style="choiceNselect1"/>
+</object>
+<!-- ObjectAddedEnd -->
+<object name="MulticastMode" depends="Interface">
+<core type="enum" xtype="enable_t" access="read-write" descr="To Enable/Disable the Port Multicast Storm Recovery Mode.When Enable, the the multicast traffic on the specified Ethernet port exceeds the configured threshold, the switch blocks (discards) the multicast traffic."/>
+<ui name="Multicast Storm Recovery Mode" style="choiceNselect1">
+</ui></object>
+<object name="MulticastLevel" depends="Interface">
+<core type="uint" access="read-write" descr="Configure the multicast storm recovery threshold.The level units can be set to percent or packets-per-second."/>
+<ui name="Multicast Storm Recovery Level" style="inputLine">
+</ui></object>
+<object name="MulticastLevelUnit" depends="Interface">
+<core type="user" xtype="ppsPercent_t" access="read-only" descr="To show Multicast Storm Control level and unit"/>
+<ui name="Multicast Level Unit" style="plainText">
+</ui></object>
+<!-- ObjectAddedStart -->
+<object name="MulticastLevelThresholdUnit">
+<core type="enum" xtype="L7_RATE_UNIT_t" default="FD_POLICY_DEFAULT_MCAST_STORM_THRESHOLD_UNIT" access="read-write" descr="Configures the multicast storm recovery threshold unit for this port."/>
+<ui name="Multicast Level Threshold Unit" style="choiceNselect1"/>
+</object>
+<!-- ObjectAddedEnd -->
+<object name="UnicastMode" depends="Interface">
+<core type="enum" xtype="enable_t" access="read-write" descr="Configures the unicast  storm recovery mode.When Specify Enable for Unicast Storm Recovery and the unicast traffic on the specified Ethernet port exceeds the configured threshold, the switch blocks (discards) the unicast traffic."/>
+<ui name="Unicast Storm Recovery Mode" style="choiceNselect1">
+</ui></object>
+<object name="UnicastLevel" depends="Interface">
+<core type="uint" access="read-write" descr="Configure the unicast storm recovery threshold"/>
+<ui name="Unicast Storm Recovery Level" style="inputLine">
+</ui></object>
+<object name="UnicastLevelUnit" depends="Interface">
+<core type="user" xtype="ppsPercent_t" access="read-only" descr="To show Unicast Storm Control level and unit"/>
+<ui name="Unicast Level Unit" style="plainText">
+</ui></object>
+<!-- ObjectAddedStart -->
+<object name="UnicastLevelThresholdUnit">
+<core type="enum" xtype="L7_RATE_UNIT_t" default="FD_POLICY_DEFAULT_UCAST_STORM_THRESHOLD_UNIT" access="read-write" descr="Configures the unicast storm recovery threshold unit for this port."/>
+<ui name="Unicast Level Threshold Unit" style="choiceNselect1"/>
+</object>
+<!-- ObjectAddedEnd -->
+<object name="LACPMode" depends="Interface">
+<core type="enum" xtype="enable_t" access="read-write" descr="Selects the Link Aggregation Control Protocol administration state. The mode must be enabled in order for the port to participate in Link Aggregation. May be enabled or disabled by selecting the corresponding line on the pulldown entry field."/>
+<ui name="LACP Mode" style="choiceNselect1">
+</ui></object>
+<object name="MemberOfLAG" depends="Interface">
+<core type="user" xtype="usp_t" access="read-write" descr="Determine if a particluar internal interface is member of a configured LAG and return that LAG. Also add  member port to the configured LAG."/>
+<ui name="Member Of LAG" style="inputLine">
+</ui></object>
+<object name="FlowControlMode" depends="Interface">
+<core type="enum" xtype="enable_t" access="read-write" descr="Set the Flow Control mode of an interface."/>
+<ui name="Flow Control Mode" style="choiceNselect1">
+</ui></object>
+<object name="PhysicalMode" depends="Interface">
+<core type="enum" xtype="L7_PORT_SPEEDS_t" access="read-write" descr="To Specify the the port&apos;s speed and duplex mode.If user specifies auto the duplex mode and speed will be set by the auto-negotiation process. Note that the port&apos;s maximum capability (full duplex and 100 Mbps) will be advertised. Otherwise, your selection will determine the port&apos;s duplex mode and transmission rate."/>
+<ui name="Physical Mode" style="inputLine">
+</ui></object>
+<object name="PhysicalStatus" depends="Interface">
+<core type="enum" xtype="L7_PORT_SPEEDS_t" access="read-only" descr="Indicates the port speed and duplex mode."/>
+<ui name="Physical Status" style="plainText">
+</ui></object>
+<object name="LinkStatus" depends="Interface">
+<core type="string" access="read-only" descr="Indicates whether the Link is up or down."/>
+<ui name="Link Status" style="plainText">
+</ui></object>
+<object name="LinkTrap" depends="Interface">
+<core type="enum" xtype="enable_t" access="read-write" descr="This object determines whether or not to send a trap when link status changes."/>
+<ui name="LinkTrap" style="choiceNselect1">
+</ui></object>
+<object name="FrameSize" depends="Interface">
+<core type="uint" access="read-write" min="L7_MIN_FRAME_SIZE" max="PLAT_MAX_FRAME_SIZE" default="FD_NIM_DEFAULT_MAX_FRAME_SIZE" descr="The maximum ethernet frame size the interface supports or is configured, including ethernet header, CRC, and payload"/>
+<ui name="Frame Size" style="inputLine">
+</ui></object>
+<object name="ifIndex" depends="Interface">
+<core type="uint" access="read-only" descr="The ifIndex of the interface table entry associated with this port."/>
+<ui name="Interface Index" style="plainText">
+</ui></object>
+<object name="IntfSpeedSimplexDataRate" depends="Interface">
+<core type="uint" access="read-only" descr="Gets the physical link data rate of the specified interface."/>
+<ui name="Link Speed" style="plainText">
+</ui></object>
+
+<object name="Duplex" depends="Interface">
+<core type="enum" xtype="L7_XUI_DUPLEX_STATE_t" access="read-only" descr="Gets the physical link duplex state."/>
+<ui name="Duplex State" style="plainText">
+</ui></object>
+
+
+<object name="activeState" depends="Interface">
+<core type="enum" xtype="L7_XUI_INTF_STATE_t" access="read-only" descr="Gets the active state of the specified interface."/>
+<ui name="Active State" style="plainText">
+</ui></object>
+
+<object name="mstid">
+<core type="uint" key="yes" access="read-write" descr="Select the Multiple Spanning Tree instance ID from the list of all currently configured MST ID&apos;s to determine the values displayed for the Spanning Tree parameters. Changing the selected MST ID will generate a screen refresh. If Spanning Tree is disabled this will be a static value, CST, instead of a selector."/>
+<ui name="MSTP ID" style="plainText">
+</ui></object>
+<object name="portRole" depends="Interface,mstid">
+<core type="string" access="read-only" descr="Each MST Bridge Port that is enabled is assigned a Port Role for each spanning tree. The port role will be one of the following values: Root Port, Designated Port, Alternate Port, Backup Port, Master Port or Disabled Port."/>
+<ui name="Port Role" style="plainText">
+</ui></object>
+<object name="STPStatus" depends="Interface,mstid">
+<core type="string" access="read-only" descr="The port&apos;s current state Spanning Tree state. This state controls what action a port takes on receipt of a frame. If the bridge detects a malfunctioning port it will place that port into the broken state. The other five states are defined in IEEE 802.1D: Disabled, Blocking, Listening, Learning, Forwarding, Broken."/>
+<ui name="STP Status" style="plainText">
+</ui></object>
+
+<object name="lagMember">
+<core type="string" access="read-only" descr="Gets LAG details  if it is part of "/>
+<ui name="LAG" style="plainText"/>
+</object>
+
+<!-- These objets are another way of configuring speed and duplex. This objects can be used when speed and duplx need
+     to be configured independently
+-->
+<object name="PhysicalInftSpeed" depends="Interface">
+<core type="enum" xtype="L7_ONLY_SPEEDS_t" access="read-write" descr="To Configure only Speed"/>
+<ui name="Physical Interface Speed" style="choiceNselect1">
+</ui></object>
+<object name="PhysicalIntfDuplex" depends="Interface">
+<core type="enum" xtype="L7_ONLY_DUPLEX_t" access="read-write" descr="To Configure Only Duplex mode"/>
+<ui name="Physical Intf Duplex" style="choiceNselect1">
+</ui></object>
+<object name="AutoNegotiation" depends="Interface">
+<core type="enum" xtype="enable_t" access="read-write" descr="To set the auto negotiation mode."/>
+<ui name="Auto Negotiation" style="choiceNselect1">
+</ui></object>
+
+<!-- This object is for port duplex admin advertisement -->
+<object name="PortAdminAdvertisement" depends="Interface">
+<core type="uint" access="read-write" descr="For port duplex admin advertisement"/>
+<ui name="PortAdminAdvertisement" style="inputLine">
+</ui>
+</object>
+<!-- This object is for port physical capability -->
+<object name="PortConnectorType" depends="Interface">
+<core type="enum" xtype="L7_CONNECTOR_TYPES_t" access="read-only" descr="Port Connector Type"/>
+<ui name="Port Connector Type" style="plainText"/>
+</object>
+
+<!-- This object is for current flow control status -->
+<object name="currentFlowControl" depends="Interface">
+<core type="enum" xtype="enable_t" access="read-only" descr="current flow control status on this port."/>
+<ui name="Current Flow Control" style="plainText"/>
+</object>
+<!-- Objects related to  transceiver firmware -->
+<object name="TransceiverFirmwarePartNumber" depends="Interface">
+<core type="string" access="read-only" descr="Displays firmware part number of port transceiver, if available. Valid only for SFX7101 transceivers on 10GBase-T non-stacking ports."/>
+<ui name="Transceiver Firmware Part Number" style="plainText">
+</ui> 
+</object>
+<object name="TransceiverFirmwareRevision" depends="Interface">
+<core type="string" access="read-only" descr="Displays firmware revision of port transceiver, if available. Valid only for SFX7101 transceivers on 10GBase-T non-stacking ports."/>
+<ui name="Transceiver Firmware Revision" style="plainText">
+</ui>
+</object>
+</module>
+
+<module name="portCfgglobal">
+
+<object name="GlobalSTPMode">
+<core type="enum" xtype="enable_t" access="write-only" descr="To Enable/Disable the STP Mode on all the Dot1s valid interfaces. "/>
+<ui name="STP Mode" style="inputLine">
+</ui></object>
+
+<object name="GlobalAdminMode">
+<core type="enum" xtype="enable_t" access="write-only" descr="To Set the port admin state on all the ports."/>
+<ui name="Global Admin Mode" style="inputLine">
+</ui></object>
+
+<object name="GlobalLinkTrap">
+<core type="enum" xtype="enable_t" access="write-only" descr="To Set the Link Trap mode on all the ports."/>
+<ui name="Global Link Trap" style="inputLine">
+</ui></object>
+
+<object name="GlobalFrameSize">
+<core type="uint" access="write-only" default="FD_NIM_DEFAULT_MAX_FRAME_SIZE" descr="To Set the given Frame Size on all the Physical Interfaces."/>
+<ui name="Global Frame Size" style="inputLine">
+</ui></object>
+
+<object name="GlobalPhysicalMode">
+<core type="enum" xtype="L7_PORT_SPEEDS_t" access="write-only" descr="To Set the Speed on all Physical Interfaces."/>
+<ui name="Global Physical Mode" style="inputLine">
+</ui></object>
+
+<object name="GlobalLACPMode">
+<core type="enum" xtype="enable_t" access="write-only" descr="To Set the LACP mode on all the Physical Interfaces. "/>
+<ui name="Global LACP Mode" style="inputLine">
+</ui></object>
+
+</module>
+
+<module name="CableTest">
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="Lists all the Physical Interfaces."/>
+<ui name="Unit/Slot/Port" style="plainText">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.4.2"/>
+</ui></object>
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core type="user" xtype="usp_t" key="yes" access="read-write" descr="Lists all the Physical Interfaces."/>
+<ui name="Slot/Port" style="plainText">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.4.2"/>
+</ui></object>
+<object name="Status" depends="Interface">
+<core type="enum" xtype="L7_CABLE_STATUS_t" access="read-only" descr="This displays the cable status as Normal, Open or Short.Normal: the cable is working correctly.Open: the cable is disconnected or there is a faulty connector. Short: there is an electrical short in the cable."/>
+<ui name="Cable Status" style="plainText">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.4.3"/>
+</ui></object>
+<object name="Length" depends="Interface">
+<core type="string" access="read-only" descr="The estimated length of the cable in meters. The length is displayed as a range between the shortest estimated length and the longest estimated length. Unknown is displayedif the cable length could not be determined. The Cable Length is only displayed if the cable status is Normal. This field is displayed after the Test Cable button has been clicked and results are available. This field is not visible when the page is initially displayed."/>
+<ui name="Cable Length" style="plainText">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.4.5"/>
+</ui></object>
+<object name="FailureLoc" depends="Interface">
+<core type="string" access="read-only" descr="The estimated distance in meters from the end of the cable to the failure location. The failure location is only displayed if the cable status is Open or Short. This field is displayed after the Test Cable button has been clicked and results are available. This field is not visible when the page is initially displayed."/>
+<ui name="Failure Location" style="plainText">
+ <snmp asn-id="1.3.6.1.4.1.4413.1.1.1.4.6"/>
+</ui></object>
+</module>
+
+<module key-method="individual" name="PortTest">
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core descr="Gets the interface number in unit/slot/port format" xtype="usp_t" key="yes" access="read-write" type="user"/>
+<ui style="plainText" name="Unit/Slot/Port"/>
+</object>
+<object name="Interface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core descr="Gets the interface number in unit/slot/port format" xtype="usp_t" key="yes" access="read-write" type="user"/>
+<ui style="plainText" name="Slot/Port"/>
+</object>
+<object name="PortTestType">
+<core descr="Gets the Port Test type from user" xtype="porttest_t" access="read-write" type="enum"/>
+<ui style="choiceNselect1" name="Loopback Test Type"/>
+</object>
+<object name="IsLoopbackPass">
+<core descr="Port Loopback Status." access="read-only" type="enum" xtype="loopTest_t"/>
+<ui style="plainText" name="Is Loopback Pass">
+</ui>
+</object>
+<object depends="Interface" name="Status">
+<core descr="Gets the Status of the Test" access="read-only" type="string"/>
+<ui style="plainText" name="Status"/>
+</object>
+<object depends="Interface" name="dataFrameTx">
+<core descr="Gets how many data frames transmitted" access="read-only" type="uint"/>
+<ui style="plainText" name="Data Frames Transmitted"/>
+</object>
+<object depends="Interface" name="dataFrameRx">
+<core descr="Gets how many data frames received" access="read-only" type="uint"/>
+<ui style="plainText" name="Data Frames Received"/>
+</object>
+<object depends="Interface" name="errorFrameTx">
+<core descr="Gets how many errored data frames transmitted" access="read-only" type="uint"/>
+<ui style="plainText" name="Data TX Errored Frames"/>
+</object>
+<object depends="Interface" name="errorFrameRx">
+<core descr="Gets how many errored data frames received" access="read-only" type="uint"/>
+<ui style="plainText" name="Data RX Errored Frames"/>
+</object>
+</module>
+
+<module name="cableTestCopperSumm">
+            <object name="copperInterface">
+                <core properties="key" descr="Lists all Copper Iterfaces" xtype="usp_t" key="yes" access="read-write" type="user"/>
+                <ui style="choiceNselect1" name="Copper Inteface">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="copperInterface," name="TestCopperTrigger">
+                <core descr="&lt;HTML&gt;Cable Test copper " access="write-only" type="uint"/>
+                <ui style="inputLine" name="Test Copper Trigger">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="copperInterface," name="CableFailureLength">
+                <core descr="&lt;HTML&gt;Failure length of the given interface" access="read-only" type="uint"/>
+                <ui style="plainText" name="Copper Cable Fault Distance">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="copperInterface," name="CableStatus">
+                <core descr="&lt;HTML&gt;Copper Cable Status of the given Interface" xtype="L7_CABLE_STATUS_t" access="read-only" type="enum"/>
+                <ui style="plainText" name="Copper Cable Status">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="copperInterface," name="LengthKnown">
+                <core descr="&lt;HTML&gt;Boolean value whether the length is known or not" xtype="enable_t" access="read-only" type="enum"/>
+                <ui style="plainText" name="Copper Cable Length Known">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="copperInterface," name="LongestLength">
+                <core descr="&lt;HTML&gt;Longest Lengh of the given Copper Interface" access="read-only" type="uint"/>
+                <ui style="plainText" name="Copper Cable Longest Length">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <!-- This is made as string to pair up couple of objects.Support is expected from Tool for pairing up of object. As that support is not made yet marking this as string and proceeding further 
+            -->
+            <object depends="copperInterface," name="ShortestLength">
+                <core descr="&lt;HTML&gt;Shortest Length of the copper cable for given interface" access="read-only" type="string"/>
+                <ui style="plainText" name="Copper Cable Shortest Length">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="copperInterface," name="TimeStamp">
+                <core descr="&lt;HTML&gt;Time stamp of the Cable Test Performed" access="read-only" type="string"/>
+                <ui style="plainText" name="Copper Cable Time Stamp">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+        </module>
+        <module name="cableTestFiberSumm">
+            <object name="fiberInterface">
+                <core properties="key" descr="&lt;HTML&gt;Fiber Interface " xtype="usp_t" key="yes" access="read-write" type="user"/>
+                <ui style="choiceNselect1" name="Fiber Interface">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="fiberInterface" name="GetFiberResult">
+                <core descr="&lt;HTML&gt;Object to Get the Cable Test for Fiber" access="read-write" type="uint"/>
+                <ui style="inputLine" name="GetFiberResult">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="fiberInterface," name="Voltage">
+                <core descr="&lt;HTML&gt;Voltage Level of the Fiber Interface" access="read-only" type="string"/>
+                <ui style="plainText" name="Fiber Cable Voltage">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="fiberInterface," name="Temperature">
+                <core descr="&lt;HTML&gt;Temperature of the Fiber Cable Interface" access="read-only" type="string"/>
+                <ui style="plainText" name="Fiber Cable Temperature">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="fiberInterface," name="Current">
+                <core validation="validate_uint" descr="&lt;HTML&gt;Current Level of the given Interface" access="read-only" type="string"/>
+                <ui style="plainText" name="Fiber Cable Current Level">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="fiberInterface," name="PowerOutput">
+                <core validation="validate_uint" descr="&lt;HTML&gt;Output Power of the given Interface" access="read-only" type="string"/>
+                <ui style="plainText" name="Fiber Output Power">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="fiberInterface," name="PowerInput">
+                <core validation="validate_uint" descr="&lt;HTML&gt;Input Power of the given Interface" access="read-only" type="string"/>
+                <ui style="plainText" name="Fiber Input Power">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="fiberInterface," name="TxFault">
+                <core validation="validate_uint" descr="&lt;HTML&gt;Fiber Tx Fault" xtype="TrueFalse_t" access="read-only" type="enum"/>
+                <ui style="plainText" name="Transmitter Fault">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+            <object depends="fiberInterface," name="LOS">
+                <core validation="validate_uint" descr="&lt;HTML&gt;Fiber LOS" xtype="TrueFalse_t" access="read-only" type="enum"/>
+                <ui style="plainText" name="Loss of Signal">
+                    <snmp asn-id=""/>
+                </ui>
+            </object>
+        </module>
+
+        <module name="interfaceListing">
+        
+	       <object name="UnitIndex">
+		  <core type="uint" key="yes" access="read-write" descr="Index for Supported Unit Types"/>
+		  <ui name="UnitIndex" style="choiceNselect1"/>
+		</object>
+
+		<object name="PhysicalInterfaces" depends="UnitIndex">
+		    <core type="user" xtype="usp_t" key="yes" access="read-write" descr="Physical Interface List"/>
+		    <ui style="choiceNselect1" name="Physical Interface Listing">
+		    </ui>
+		</object>
+		<object name="fiberInterface" depends="UnitIndex">
+            <core type="user" xtype="usp_t" key="yes" access="read-write" descr="Fiber Interface List"/>
+		    <ui style="choiceNselect1" name="Fiber Interface Listing">
+		    </ui>
+		</object>
+     <!--Start: Adding these to support all Show All Pages Repeats which should not conflict with the uiObjects Refer to objects -->
+    <object name="UnitIndex2">
+      <core type="uint" key="yes" access="read-write" descr="Index for Supported Unit Types"/>
+      <ui name="UnitIndex" style="choiceNselect1"/>
+    </object>
+
+    <object name="PhysicalInterfaces2" depends="UnitIndex2">
+        <core type="user" xtype="usp_t" key="yes" access="read-write" descr="Physical Interface List"/>
+        <ui style="choiceNselect1" name="Physical Interface Listing">
+        </ui>
+    </object>
+
+    <object name="LagInterfaces2">
+        <core type="user" xtype="usp_t" key="yes" access="read-write" descr="Lag Interface List"/>
+        <ui style="choiceNselect1" name="Lag Interface Listing">
+        </ui>
+    </object> 
+    
+    <object name="VlanIndex2">
+       <core descr="The VLAN-ID in integer format" max="L7_DOT1Q_MAX_VLAN_ID" min="L7_DOT1Q_MIN_VLAN_ID" key="yes" access="read-write" type="uint"/>
+           <ui style="plainText" name="VLAN ID"/>
+    </object>
+   <!-- END-->
+		<object name="LagInterfaces">
+		    <core type="user" xtype="usp_t" key="yes" access="read-write" descr="Lag Interface List"/>
+		    <ui style="choiceNselect1" name="Lag Interface Listing">
+		    </ui>
+		</object>
+
+		<object name="VLANInterfaces">
+		    <core type="user" xtype="usp_t" key="yes" access="read-write" descr="VLAN Interface List"/>
+		    <ui style="choiceNselect1" name="VLAN Interface">
+		    </ui>
+		</object>
+                <object name="VLANRoutingInterfacesList">
+                  <core type="user" xtype="usp_t" dynamic="yes" access="read-write" descr="VLAN Interface List"/>
+                  <ui style="choiceNselect1" name="VLAN Interface">
+                 </ui>
+                </object>
+
+                 <object name="VlanIndex">
+                     <core descr="The VLAN-ID in integer format" max="L7_DOT1Q_MAX_VLAN_ID" min="L7_DOT1Q_MIN_VLAN_ID" key="yes" access="read-write" type="uint"/>
+                    <ui style="plainText" name="VLAN ID"/>
+                </object>
+
+    <object name="VlanRtngIntfsLoopbacks">
+		    <core type="user" xtype="usp_t" key="yes" access="read-write" descr="VLAN Routing Interfaces, Loopbacks List"/>
+		    <ui style="choiceNselect1" name="Interface"/>
+    </object>
+    <object name="VlanRtngIntfsLoopbacksTunnels">
+		    <core type="user" xtype="usp_t" key="yes" access="read-write" descr="VLAN Routing Interfaces, Loopbacks and Tunnels List"/>
+		    <ui style="choiceNselect1" name="Interface"/>
+    </object>
+    <object name="VlanRtngIntfsTunnels">
+		    <core type="user" xtype="usp_t" key="yes" access="read-write" descr="VLAN Routing Interfaces and Tunnels List"/>
+		    <ui style="choiceNselect1" name="Interface"/>
+    </object>
+   
+    <!-- Objects to support the Routing Cfg on the configured VLANs -->
+    <object name="PopupTunnels">
+       <core type="enum" xtype="TrueFalse_t" key="yes" descr="do we list the tunnels or not" access="read-write"/>
+           <ui style="choiceNselect1" name="Tunnels"/>
+    </object>
+
+    <object name="AllRtrIntfVlansLoopbacksTunnels">
+       <core type="user" xtype="vlansRtngIntfs_t" key="yes" access="read-write" descr="All Created Vlans ,Routing intfs which includes loopbacks and tunnels."/>
+          <ui style="choiceNselect1" name="RoutingCapableInterfaceListing">
+          </ui>
+    </object>
+    <object name="IsRoutingIntf" depends="AllRtrIntfVlansLoopbacksTunnels">
+       <core type="enum" xtype="TrueFalse_t" descr="Is the given intf is a valid routing intf or not" access="read-only"/>
+           <ui style="choiceNselect1" name="VLAN ID"/>
+    </object>
+    <object name="RoutingIntfValue" depends="AllRtrIntfVlansLoopbacksTunnels">
+       <core type="user" xtype="usp_t" access="read-only" descr="Routing Interface Number for the given interface."/>
+        <ui style="choiceNselect1" name="RouterInterface"/>
+    </object>
+    <object name="VlanIdValue" depends="AllRtrIntfVlansLoopbacksTunnels">
+       <core descr="The VLAN-ID in integer format" access="read-only" type="uint"/>
+         <ui style="plainText" name="VLAN ID"/>
+    </object>
+    <object name="LoopbackID" depends="AllRtrIntfVlansLoopbacksTunnels">
+       <core descr="The Loopback-ID in integer format" key="yes" access="read-write" type="uint"/>
+         <ui style="plainText" name="Loopback ID"/>
+    </object>
+    <object name="TunnelID" depends="AllRtrIntfVlansLoopbacksTunnels">
+       <core descr="The Tunnel-ID in integer format" key="yes" access="read-write" type="uint"/>
+         <ui style="plainText" name="Tunnel ID"/>
+    </object>
+    <object name="Intf" depends="Intf"> 
+       <core type="user" xtype="usp_t" key="yes" descr="The IfIndex associated with this instance." access="read-write"/> 
+         <ui style="plainText" name="Is Loopback Intf">
+         </ui> 
+    </object>
+<!-- end -->
+ 
+ 
+        </module>
+
+</objectxml>
+</FastPathXML>

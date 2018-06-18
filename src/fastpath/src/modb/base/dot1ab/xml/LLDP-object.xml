@@ -1,0 +1,1058 @@
+<?xml version="1.0"?>
+<!DOCTYPE FastPathXML SYSTEM "object.dtd">
+<FastPathXML>
+<objectxml name="Switching" version="1.0" >
+<module name="LLDPManAddrConfig"  >
+<object name="LLDPLocManAddrSubtype"  >
+<core  type="uint" key="yes" access="read-write" descr="The type of management address identifier encoding used in the associated 'lldpLocManagmentAddr' object."/>
+<ui  name="LLDPLocManAddrSubtype" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.8.1.1"/> 
+</ui></object>
+<object name="LLDPLocManAddr"  >
+<core  type="string" key="yes" access="read-write" descr="The string value used to identify the management address Component associated with the local system. The purpose of this address is to contact the management entity."/>
+<ui  name="LLDPLocManAddr" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.8.1.2"/> 
+</ui></object>
+<object name="LLDPConfigManAddrPortsTxEnable" depends="LLDPLocManAddrSubtype,LLDPLocManAddr" >
+<core  type="string" access="read-write" descr="A set of ports that are identified by a PortList, in which each port is represented as a bit. The corresponding local system management address instance will be transmitted on the member ports of the lldpManAddrPortsTxEnable.The default value for lldpCon"/>
+<ui  name="LLDPConfigManAddrPortsTxEnable" style="inputLine">
+ <snmp asn-id="1.0.8802.1.1.2.1.1.7.1.1"/> 
+</ui></object>
+</module>
+<module name="LLDPPortConfig"  >
+<object name="PortNum" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="Interfaces for LLDP Port Configuration"/>
+<ui  name="Unit/Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.1.6.1.1"/> 
+</ui></object>
+<object name="PortNum" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="Interfaces for LLDP Port Configuration"/>
+<ui  name="Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.1.6.1.1"/> 
+</ui></object>
+<object name="AdminStatus" depends="PortNum" >
+<core  type="enum" xtype="enable_t" access="read-write" descr="The administratively desired status of the local LLDP agent. If the associated lldpPortConfigAdminStatus object has a value of 'txOnly(1)', then LLDP agent will transmit LLDP frames on this port and it will not store any information about the remote syst"/>
+<ui  name="AdminStatus" style="inputLine">
+ <snmp asn-id="1.0.8802.1.1.2.1.1.6.1.2"/> 
+</ui></object>
+<object name="NotificationEnable" depends="PortNum" >
+<core  type="enum" xtype="enable_t" access="read-write" descr="The NotificationEnable controls, on a per port basis, whether or not notifications from the agent are enabled. The value true(1) means that notifications are enabled; the value false(2) means that they are not."/>
+<ui  name="NotificationEnable" style="inputLine">
+ <snmp asn-id="1.0.8802.1.1.2.1.1.6.1.3"/> 
+</ui></object>
+<object name="TLVsTxEnable" depends="PortNum" >
+<core  type="string" access="read-only" descr="The lldpPortConfigTLVsTxEnable, defined as a bitmap,includes the basic set of LLDP TLVs whose transmission is allowed on the local LLDP agent by the network management. Each bit in the bitmap corresponds to a TLV type associated with a specific optional T"/>
+<ui  name="TLVsTxEnable" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.1.6.1.4"/> 
+</ui></object>
+<object name="TLVsTxSystemName" depends="PortNum" >
+<core  type="enum" xtype="boolean_t" access="read-write" descr="The lldpPortConfigTLVsTxEnable, defined as a bitmap,includes the basic set of LLDP TLVs whose transmission is allowed on the local LLDP agent by the network management. Each bit in the bitmap corresponds to a TLV type associated with a specific optional T"/>
+<ui  name="TLVsTxSystemName" style="inputLine"/>
+</object>
+<object name="TLVsTxSystemDescr" depends="PortNum" >
+<core  type="enum" xtype="boolean_t" access="read-write" descr="The lldpPortConfigTLVsTxEnable, defined as a bitmap,includes the basic set of LLDP TLVs whose transmission is allowed on the local LLDP agent by the network management. Each bit in the bitmap corresponds to a TLV type associated with a specific optional T"/>
+<ui  name="TLVsTxSystemDescr" style="inputLine"/>
+</object>
+<object name="TLVsTxSystemCap" depends="PortNum" >
+<core  type="enum" xtype="boolean_t" access="read-write" descr="The lldpPortConfigTLVsTxEnable, defined as a bitmap,includes the basic set of LLDP TLVs whose transmission is allowed on the local LLDP agent by the network management. Each bit in the bitmap corresponds to a TLV type associated with a specific optional T"/>
+<ui  name="TLVsTxSystemCap" style="inputLine"/>
+</object>
+<object name="TLVsTxPortDescr" depends="PortNum" >
+<core  type="enum" xtype="boolean_t" access="read-write" descr="The lldpPortConfigTLVsTxEnable, defined as a bitmap,includes the basic set of LLDP TLVs whose transmission is allowed on the local LLDP agent by the network management. Each bit in the bitmap corresponds to a TLV type associated with a specific optional T"/>
+<ui  name="TLVsTxPortDescr" style="inputLine"/>
+</object>
+<object name="TxMgmtInfo" depends="PortNum" >
+<core type="enum" xtype="TrueFalse_t" access="read-write" descr="mgmt addr transmit mode for the specified interface"/>
+<ui name="TxMgmtInfo" style="inputLine">	
+</ui></object>
+<object name="LldpPortReceiveMode" depends="PortNum" >
+<core  type="enum" xtype="enable_t" access="read-write" descr="LLDP - 802.1AB receive mode for the selected interface"/>
+<ui  name="LldpPortReceiveMode" style="inputLine" />
+</object>
+<object name="LldpXPortTransmitMode" depends="PortNum" >
+<core  type="enum" xtype="enable_t" access="read-write" descr="LLDP - 802.1AB transmit mode for the selected interface"/>
+<ui  name="LldpXPortTransmitMode" style="inputLine" />
+</object>
+<object name="LinkStatus" depends="PortNum" >
+<core  type="string" access="read-only" descr="Specifies interface Link Status"/>
+<ui  name="LinkStatus" style="inputLine" />
+</object>
+</module>
+<module name="LLDPGlobalConfig"  >
+<object name="ReinitDelay"  >
+<core  type="uint" access="read-write" min="L7_LLDP_MIN_REINIT_DELAY" max="L7_LLDP_MAX_REINIT_DELAY" default="FD_LLDP_REINIT_DELAY" descr="The ReinitDelay indicates the delay (in units of seconds) from when AdminStatus object of a particular port becomes 'disabled' until re-initialization will be attempted. The default value for ReintDelay object is two seconds. The value of this object must"/>
+<ui  name="ReinitDelay" style="inputLine">
+ <snmp asn-id="1.0.8802.1.1.2.1.1.3"/> 
+</ui></object>
+<object name="MessageTxInterval"  >
+<core  type="uint" min="L7_LLDP_TX_INTERVAL_MIN" max="L7_LLDP_TX_INTERVAL_MAX" default="FD_LLDP_TX_INTERVAL" access="read-write" descr="The interval at which LLDP frames are transmitted on behalf of this LLDP agent.The default value for MessageTxInterval object is 30 seconds.The value of this object must be restored from non-volatile storage after a re-initialization of the management sys"/>
+<ui  name="MessageTxInterval" style="inputLine">
+ <snmp asn-id="1.0.8802.1.1.2.1.1.1"/> 
+</ui></object>
+<object name="NotificationInterval"  >
+<core  type="uint" min="L7_LLDP_MIN_NOTIFICATION_INTERVAL" max="L7_LLDP_MAX_NOTIFICATION_INTERVAL" default="FD_LLDP_NOTIFICATION_INTERVAL" access="read-write" descr="This object controls the transmission of LLDP notifications. the agent must not generate more than one RemTablesChange notification-event in the indicated period, where a 'notification-event' is the transmission of a single notification PDU type to a list"/>
+<ui  name="NotificationInterval" style="inputLine">
+ <snmp asn-id="1.0.8802.1.1.2.1.1.5"/> 
+</ui></object>
+<object name="MessageTxHoldMultiplier"  >
+<core  type="uint" min="L7_LLDP_MIN_HOLD_MULTIPLIER" max="L7_LLDP_MAX_HOLD_MULTIPLIER" default="FD_LLDP_TX_HOLD_MULTIPLIER" access="read-write" descr="The time-to-live value expressed as a multiple of the MessageTxInterval object. The actual time-to-live value used in LLDP frames, transmitted on behalf of this LLDP agent,can be expressed by the following formula: TTL = min(65535,(MessageTxInterval * Me"/>
+<ui  name="MessageTxHoldMultiplier" style="inputLine">
+ <snmp asn-id="1.0.8802.1.1.2.1.1.2"/> 
+</ui></object>
+<object name="TxDelay"  >
+<core  type="uint" min="L7_LLDP_TX_DELAY_MIN" max="L7_LLDP_TX_DELAY_MAX" access="read-write" descr="The TxDelay indicates the delay (in units of seconds) between successive LLDP frame transmissions initiated by value/status changes in the LLDP local systems MIB. The recommended value for the TxDelay is set by the following formula: 1  TxDelay 0."/>
+<ui  name="TxDelay" style="inputLine">
+ <snmp asn-id="1.0.8802.1.1.2.1.1.4"/> 
+</ui></object>
+</module>
+<module name="LLDPStats"  >
+<object name="TxPortNum" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="Transmit Port"/>
+<ui  name="Unit/Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.6.1.1"/> 
+</ui></object>
+<object name="TxPortNum" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="Transmit Port"/>
+<ui  name="Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.6.1.1"/> 
+</ui></object>
+<object name="TxPortFramesTotal" depends="TxPortNum" >
+<core  type="uint" access="read-only" descr="The number of LLDP frames transmitted by this LLDP agent on the indicated port."/>
+<ui  name="TxPortFramesTotal" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.6.1.2"/> 
+</ui></object>
+<object name="RxPortNum" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="Receive Port"/>
+<ui  name="Unit/Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.7.1.1"/> 
+</ui></object>
+<object name="RxPortNum" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="Receive Port"/>
+<ui  name="Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.7.1.1"/> 
+</ui></object>
+<object name="RxPortFramesDiscardedTotal" depends="RxPortNum" >
+<core  type="uint" access="read-only" descr="The number of LLDP frames received by this LLDP agent on the indicated port, and then discarded for any reason. This counter can provide an indication that LLDP header formating problems may exist with the local LLDP agent in the sending system or that LL"/>
+<ui  name="RxPortFramesDiscardedTotal" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.7.1.3"/> 
+</ui></object>
+<object name="RxPortFramesErrors" depends="RxPortNum" >
+<core  type="uint" access="read-only" descr="The number of invalid LLDP frames received by this LLDP agent on the indicated port, while this LLDP agent is enabled."/>
+<ui  name="RxPortFramesErrors" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.7.1.3"/> 
+</ui></object>
+<object name="RxPortFramesTotal" depends="RxPortNum" >
+<core  type="uint" access="read-only" descr="The number of valid LLDP frames received by this LLDP agent on the indicated port, while this LLDP agent is enabled."/>
+<ui  name="RxPortFramesTotal" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.7.1.4"/> 
+</ui></object>
+<object name="RxPortTLVsDiscardedTotal" depends="RxPortNum" >
+<core  type="uint" access="read-only" descr="The number of LLDP TLVs discarded for any reason by this LLDP agent on the indicated port."/>
+<ui  name="RxPortTLVsDiscardedTotal" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.7.1.5"/> 
+</ui></object>
+<object name="RxPortTLVsUnrecognizedTotal" depends="RxPortNum" >
+<core  type="uint" access="read-only" descr="The number of LLDP TLVs received on the given port that are not recognized by this LLDP agent on the indicated port.An unrecognized TLV is referred to as the TLV whose type value is in the range of reserved TLV types (000 1001 - 111 1110) in T"/>
+<ui  name="RxPortTLVsUnrecognizedTotal" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.7.1.6"/> 
+</ui></object>
+<object name="RxPortAgeoutsTotal" depends="RxPortNum" >
+<core  type="uint" access="read-only" descr="The counter that represents the number of age-outs that occurred on a given port. An age-out is the number of times the complete set of information advertised by a particular MSAP has been deleted from tables contained in RemoteSystemsData and lldpExtens"/>
+<ui  name="RxPortAgeoutsTotal" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.7.1.7"/> 
+</ui></object>
+<!-- Missing Object Start-->
+<object name="LldpStatsRxPortTLVs8021" depends="RxPortNum" >
+<core  type="uint" access="read-only" descr="The counter that represents the LLDP TLV 8021 count for the specified interface."/>
+<ui  name="LldpStatsRxPortTLVs8021" style="plainText">
+</ui></object>
+<object name="LldpStatsRxPortTLVs8023" depends="RxPortNum" >
+<core  type="uint" access="read-only" descr="The counter that represents the LLDP TLV 8023 count for the specified interface."/>
+<ui  name="LldpStatsRxPortTLVs8023" style="plainText">
+</ui></object>
+<object name="LldpStatsRxPortTLVsMED" depends="RxPortNum" >
+<core  type="uint" access="read-only" descr="The counter that represents the LLDP MED TLV count for the specified interface."/>
+<ui  name="LldpStatsRxPortTLVsMED" style="plainText">
+</ui></object>
+<!-- Missing Object End-->
+<object name="TablesDeletes"  >
+<core  type="uint" access="read-only" descr="The number of times the complete set of information advertised by a particular MSAP has been deleted from tables contained in lldpRemoteSystemsData and lldpExtensions objects. This counter should be incremented only once when the complete set of informat"/>
+<ui  name="TablesDeletes" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.3"/> 
+</ui></object>
+<object name="TablesDrops"  >
+<core  type="uint" access="read-only" descr="The number of times the complete set of information advertised by a particular MSAP could not be entered into tables contained in lldpRemoteSystemsData and lldpExtensions objects because of insufficient resources."/>
+<ui  name="TablesDrops" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.4"/> 
+</ui></object>
+<object name="TablesInserts"  >
+<core  type="uint" access="read-only" descr="The number of times the complete set of information advertised by a particular MSAP has been inserted into tables contained in lldpRemoteSystemsData and lldpExtensions objects. The complete set of information received from a particular MSAP should be inse"/>
+<ui  name="TablesInserts" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.2"/> 
+</ui></object>
+<object name="TablesAgeouts"  >
+<core  type="uint" access="read-only" descr="The number of times the complete set of information advertised by a particular MSAP has been deleted from tables contained in lldpRemoteSystemsData and lldpExtensions objects because the information timeliness interval has expired."/>
+<ui  name="TablesAgeouts" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.5"/> 
+</ui></object>
+<!-- Missing Object Start-->
+<object name="LastChangeTime"  >
+<core  type="user" xtype="timeStampDHHMMSS_t" access="read-only" descr="The value of sysUpTime object (defined in IETF RFC 3418) at the time an entry is created, modified, or deleted in the in tables associated with the lldpRemoteSystemsData objects and all LLDP extension objects associated with remote systems"/>
+<ui  name="LastChangeTime" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.2.1"/> 
+</ui></object>
+<object name="ClearStatistics"  >
+<core  type="enum" xtype="enable_t" access="write-only" descr="Clears all 802.1AB statistics"/>
+<ui  name="ClearStatistics" style="plainText">
+</ui></object>
+<object name="LldpEnabledPortNum" compile_if="IF_STACKING_PACKAGE_PRESENT">
+<core key="yes" descr="Object contains lldp enabled ports" xtype="usp_t" access="read-only" type="user"/>
+<ui style="plainText" name="Unit/Slot/Port">
+<snmp asn-id=""/>
+</ui></object>
+<object name="LldpEnabledPortNum" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT">
+<core key="yes" descr="Object contains lldp enabled ports" xtype="usp_t" access="read-only" type="user"/>
+<ui style="plainText" name="Slot/Port">
+<snmp asn-id=""/>
+</ui></object>
+<!-- Missing Object End-->
+</module>
+<module name="LLDPLocalSystemData"  >
+<object name="ChassisId"  >
+<core  type="string" access="read-only" descr="The string value used to identify the chassis component associated with the local system."/>
+<ui  name="ChassisId" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.2"/> 
+</ui></object>
+<object name="ChassisIdSubtype"  >
+<core  type="string" access="read-only" descr="The type of encoding used to identify the chassis associated with the local system."/>
+<ui  name="ChassisIdSubtype" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.1"/> 
+</ui></object>
+<object name="SysCapEnabled"  >
+<core  type="string" access="read-only" descr="The bitmap value used to identify which system capabilities are enabled on the local system."/>
+<ui  name="SysCapEnabled" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.6"/> 
+</ui></object>
+<object name="SysDesc"  >
+<core  type="string" access="read-only" descr="The string value used to identify the system description of the local system. If the local agent supports IETF RFC 3418, SysDesc object should have the same value of sysDesc object."/>
+<ui  name="SysDesc" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.4"/> 
+</ui></object>
+<object name="SysName"  >
+<core  type="string" access="read-only" descr="The string value used to identify the system name of the local system. If the local agent supports IETF RFC 3418, SysName object should have the same value of sysName object."/>
+<ui  name="SysName" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.3"/> 
+</ui></object>
+<object name="SysCapSupported"  >
+<core  type="string" access="read-only" descr="The bitmap value used to identify which system capabilities are supported on the local system."/>
+<ui  name="SysCapSupported" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.5"/> 
+</ui></object>
+<object name="PortNum" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The index value used to identify the port component (contained in the local chassis with the LLDP agent) associated with this entry."/>
+<ui  name="Unit/Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.7.1.1"/> 
+</ui></object>
+<object name="PortNum" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" key="yes" access="read-write" descr="The index value used to identify the port component (contained in the local chassis with the LLDP agent) associated with this entry."/>
+<ui  name="Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.7.1.1"/> 
+</ui></object>
+<object name="PortIdSubtype" depends="PortNum" >
+<core  type="string" access="read-only" descr="The type of port identifier encoding used in the associated 'PortId' object."/>
+<ui  name="PortIdSubtype" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.7.1.2"/> 
+</ui></object>
+<object name="PortId" depends="PortNum" >
+<core  type="string" access="read-only" descr="The string value used to identify the port component associated with a given port in the local system."/>
+<ui  name="PortId" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.7.1.3"/> 
+</ui></object>
+<object name="PortDesc" depends="PortNum" >
+<core  type="string" access="read-only" descr="The string value used to identify the 802 LAN station's port description associated with the local system. If the local agent supports IETF RFC 2863, lldpLocPortDesc object should have the same value of ifDescr object"/>
+<ui  name="PortDesc" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.7.1.4"/> 
+</ui></object>
+<object name="ManAddrSubtype"  >
+<core  type="string" access="read-write" key="yes" descr="The type of management address identifier encoding used in the associated 'MantAddr' object"/>
+<ui  name="ManAddrSubtype" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.8.1.1"/> 
+</ui></object>
+<object name="ManAddr"  >
+<core  type="string" access="read-write" key="yes" descr="The string value used to identify the management address component associated with the local system. The purpose of this address is to contact the management entity"/>
+<ui  name="ManAddr" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.8.1.2"/> 
+</ui></object>
+<object name="ManAddrLen" depends="ManAddrSubtype,ManAddr" >
+<core  type="uint" access="read-only" descr="The total length of the management address subtype and the management address fields in LLDPDUs transmitted by the local LLDP agent. The management address length field is needed so that the receiving systems that do not implement SNMP will not be require"/>
+<ui  name="ManAddrLen" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.8.1.3"/> 
+</ui></object>
+<object name="ManAddrIfSubtype" depends="ManAddrSubtype,ManAddr" >
+<core  type="uint" access="read-only" descr="The enumeration value that identifies the interface numbering method used for defining the interface number, associated with the local system."/>
+<ui  name="ManAddrIfSubtype" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.8.1.4"/> 
+</ui></object>
+<object name="ManAddrIfId" depends="ManAddrSubtype,ManAddr" >
+<core  type="uint" access="read-only" descr="The integer value used to identify the interface number regarding the management address component associated with the local system."/>
+<ui  name="ManAddrIfId" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.8.1.5"/> 
+</ui></object>
+<object name="ManAddrOID" depends="ManAddrSubtype,ManAddr" >
+<core  type="string" access="read-only" descr="The OID value used to identify the type of hardware component or protocol entity associated with the management address advertised by the local system agent."/>
+<ui  name="ManAddrOID" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.8.1.6"/> 
+</ui></object>
+<object name="ManAddrReadOnly"  >
+<core  type="string" access="read-only" descr="The string value used to identify the management address component associated with the local system. The purpose of this address is to contact the management entity"/>
+<ui  name="ManAddr" style="plainText" />
+</object>
+<object name="ManAddrSubtypeReadOnly"  >
+<core  type="string" access="read-only" descr="The type of management address identifier encoding used in the associated 'MantAddr' object"/>
+<ui  name="ManAddrSubtype" style="plainText" />
+</object>
+</module>
+<module name="LLDPRemoteSystemData"  >
+
+<object name="LocalPortNum" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="The index value used to identify the port component (contained in the local chassis with the LLDP agent) associated with this entry. The LocalPortNum identifies the port on which the remote system information is received. "/>
+<ui  name="Unit/Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.2"/> 
+</ui></object>
+<object name="LocalPortNum" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="The index value used to identify the port component (contained in the local chassis with the LLDP agent) associated with this entry. The LocalPortNum identifies the port on which the remote system information is received. "/>
+<ui  name="Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.2"/> 
+</ui></object>
+<object name="RemIndex"  depends="LocalPortNum">
+<core  type="uint" access="read-write" key="yes" descr="This object represents an arbitrary local integer value used by this agent to identify a particular connection instance, unique only for the indicated remote system. An agent is encouraged to assign monotonically increasing index values to new entries, s"/>
+<ui  name="RemIndex" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.3"/> 
+</ui></object>
+<object name="TimeMark"  depends="LocalPortNum,RemIndex">
+<core  type="uint" access="read-write" key="yes" descr="A TimeFilter for this entry. See the TimeFilter textual convention in IETF RFC 2021 and http://www.ietf.org/IESG/Implementations/RFC2021-Implementation.txt to see how TimeFilter works."/>
+<ui  name="TimeMark" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.1"/> 
+</ui></object>
+<object name="ManAddrSubtype"  >
+<core  type="uint" access="read-write" key="yes" descr="The type of management address identifier encoding used in the associated 'lldpRemManagmentAddr' object."/>
+<ui  name="ManAddrSubtype" style="plainText" />
+</object>
+<object name="ManAddr"  >
+<core  type="string" access="read-write" key="yes" descr="The string value used to identify the management address component associated with the remote system. The purpose of this address is to contact the management entity."/>
+<ui  name="ManAddr" style="plainText" />
+</object>
+<object name="ChassisIdSubtype" depends="LocalPortNum,RemIndex,TimeMark" >
+<core  type="string" access="read-only" descr="The type of encoding used to identify the chassis associated with the remote system."/>
+<ui  name="ChassisIdSubtype" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.4"/> 
+</ui></object>
+<object name="ChassisId" depends="LocalPortNum,RemIndex,TimeMark" >
+<core  type="string" access="read-only" descr="The string value used to identify the chassis component associated with the remote system."/>
+<ui  name="ChassisId" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.5"/> 
+</ui></object>
+<object name="PortIdSubtype" depends="LocalPortNum,RemIndex,TimeMark" >
+<core  type="string" access="read-only" descr="The type of port identifier encoding used in the associated 'PortId' object."/>
+<ui  name="PortIdSubtype" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.6"/> 
+</ui></object>
+<object name="PortId" depends="LocalPortNum,RemIndex,TimeMark" >
+<core  type="string" access="read-only" descr="The string value used to identify the port component associated with the remote system."/>
+<ui  name="PortId" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.7"/> 
+</ui></object>
+<object name="PortDesc" depends="LocalPortNum,RemIndex,TimeMark" >
+<core  type="string" access="read-only" descr="The string value used to identify the description of the given port associated with the remote system."/>
+<ui  name="PortDesc" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.8"/> 
+</ui></object>
+<object name="SysName" depends="LocalPortNum,RemIndex,TimeMark" >
+<core  type="string" access="read-only" descr="The string value used to identify the system name of the remote system."/>
+<ui  name="SysName" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.9"/> 
+</ui></object>
+<object name="SysDesc" depends="LocalPortNum,RemIndex,TimeMark" >
+<core  type="string" access="read-only" descr="The string value used to identify the system description of the remote system."/>
+<ui  name="SysDesc" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.10"/> 
+</ui></object>
+<object name="SysCapSupported" depends="LocalPortNum,RemIndex,TimeMark" >
+<core  type="string" access="read-only" descr="The bitmap value used to identify which system capabilities are supported on the remote system."/>
+<ui  name="SysCapSupported" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.11"/> 
+</ui></object>
+<object name="SysCapEnabled" depends="LocalPortNum,RemIndex,TimeMark" >
+<core  type="string" access="read-only" descr="The bitmap value used to identify which system capabilities are enabled on the remote system."/>
+<ui  name="SysCapEnabled" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.12"/> 
+</ui></object>
+<!-- Missing Object Start-->
+<object name="LldpRemTTL" depends="LocalPortNum,RemIndex,TimeMark" >
+<core  type="uint" access="read-only" descr="The time to live for a remote entry."/>
+<ui  name="LldpRemTTL" style="plainText">
+</ui></object>
+<!-- Missing Object End-->
+<object name="ManAddrIfSubtype" depends="TimeMark,LocalPortNum,RemIndex,ManAddrSubtype,ManAddr" >
+<core  type="uint" access="read-only" descr="The enumeration value that identifies the interface numbering method used for defining the interface number, associated with the remote system."/>
+<ui  name="ManAddrIfSubtype" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.2.1.3"/> 
+</ui></object>
+<object name="ManAddrIfId" depends="TimeMark,LocalPortNum,RemIndex,ManAddrSubtype,ManAddr" >
+<core  type="uint" access="read-only" descr="The integer value used to identify the interface number regarding the management address component associated with the remote system."/>
+<ui  name="ManAddrIfId" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.2.1.4"/> 
+</ui></object>
+<object name="ManAddrOID" depends="TimeMark,LocalPortNum,RemIndex,ManAddrSubtype,ManAddr" >
+<core  type="string" access="read-only" descr="The OID value used to identify the type of hardware component or protocol entity associated with the management address advertised by the remote system agent."/>
+<ui  name="ManAddrOID" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.2.1.5"/> 
+</ui></object>
+<object name="UnknownTLVType"  >
+<core  type="uint" access="read-write" key="yes" descr="This object represents the value extracted from the type field of the TLV"/>
+<ui  name="UnknownTLVType" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.3.1.1"/> 
+</ui></object>
+<object name="UnknownTLVInfo" depends="TimeMark,LocalPortNum,RemIndex,UnknownTLVType" >
+<core  type="string" access="read-only" descr=" This object represents the value extracted from the value field of the TLV."/>
+<ui  name="UnknownTLVInfo" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.3.1.2"/> 
+</ui></object>
+<object name="OrgDefInfoOUI"  >
+<core  type="string" access="read-write" key="yes" descr="The Organizationally Unique Identifier (OUI), as defined in IEEE std 802-2001, is a 24 bit (three octets) globally unique assigned number referenced by various standards,of the information received from the remote system."/>
+<ui  name="OrgDefInfoOUI" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.4.1.1"/> 
+</ui></object>
+<object name="OrgDefInfoSubtype"  >
+<core  type="uint" access="read-write" key="yes" descr="The integer value used to identify the subtype of the organizationally defined information received from the remote system. The subtype value is required to identify different instances of organizationally defined information that could not be"/>
+<ui  name="OrgDefInfoSubtype" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.4.1.2"/> 
+</ui></object>
+<object name="OrgDefInfoIndex"  >
+<core  type="uint" access="read-write" key="yes" descr="This object represents an arbitrary local integer value used by this agent to identify a particular unrecognized organizationally defined information instance, unique only for the lldpRemOrgDefInfoOUI and lldpRemOrgDefInfoSubtype from the same remote syst"/>
+<ui  name="OrgDefInfoIndex" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.4.1.3"/> 
+</ui></object>
+<object name="OrgDefInfo" depends="TimeMark,LocalPortNum,RemIndex,OrgDefInfoOUI,OrgDefInfoSubtype,OrgDefInfoIndex" >
+<core  type="string" access="read-only" descr="The string value used to identify the organizationally defined information of the remote system. The encoding for this object should be as defined for SnmpAdminString TC."/>
+<ui  name="OrgDefInfo" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.4.1.4"/> 
+</ui></object>
+<object name="ClearAllRemoteData"  >
+<core  type="enum" xtype="enable_t" access="write-only" descr="Clears all 802.1AB remote data"/>
+<ui  name="ClearAllRemoteData" style="plainText">
+</ui></object>
+<object name="LLDPRemoteDataPresent" depends="LocalPortNum">
+<core  type="enum" xtype="boolean_t" access="read-only" descr="Tells whether remote data is present for the usp"/>
+<ui  name="LLDPRemoteDataPresent" style="inputLine" >
+<snmp asn-id="1.0.8802.1.1.2.1.4.1.1.3"/>
+</ui> 
+</object>
+<!-- Added objects to display the entries based on unit in the lldp connections page -->
+<object name="UnitIndex">
+<core  type="uint" access="read-write" key="yes" descr="This object represents an arbitrary local integer value used by this agent to identify a particular connection instance, unique only for the indicated remote system. An agent is encouraged to assign monotonically increasing index values to new entries, s"/>
+<ui  name="Unit" style="plainText">
+</ui></object>
+
+<object name="LocalPortNumPerUnit" compile_if="IF_STACKING_PACKAGE_PRESENT" depends="UnitIndex">
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="The index value used to identify the port component (contained in the local chassis with the LLDP agent) associated with this entry. The LocalPortNum identifies the port on which the remote system information is received. "/>
+<ui  name="Unit/Slot/Port" style="plainText">
+</ui></object>
+<object name="LocalPortNumPerUnit" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" depends="UnitIndex">
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="The index value used to identify the port component (contained in the local chassis with the LLDP agent) associated with this entry. The LocalPortNum identifies the port on which the remote system information is received. "/>
+<ui  name="Slot/Port" style="plainText">
+</ui></object>
+
+<!-- End objects added to support lldp connections page to display based on unit selection -->
+<!--<key-combo list="RomManAddFamily,RomManAddr"/> -->
+<object name="RomManAddFamily" depends="LocalPortNum,TimeMark,RemIndex" >
+<core  type="enum" xtype="lldpIANAAddrFamilyNumber_t"  key="yes"  access="read-only" descr="The gives the remote mgmt address for the interface."/>
+<ui  name="RomManAddFamily" style="plainText">
+</ui></object>
+<object name="RomManAddr"  depends="LocalPortNum,TimeMark,RemIndex,RomManAddFamily" >
+<core  type="string" access="read-only" key="yes" descr="The gives the remote mgmt address for the interface."/>
+<ui  name="RomManAddr" style="plainText" >
+</ui></object>
+</module>
+<module name="LLDPXdot3LocalData"  >
+<object name="LocalPortNum" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="The index value used to identify the port component (contained in the local chassis with the LLDP agent) associated with this entry. "/>
+<ui  name="Unit/Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.7.1.1"/> 
+</ui></object>
+<object name="LocalPortNum" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="The index value used to identify the port component (contained in the local chassis with the LLDP agent) associated with this entry. "/>
+<ui  name="Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.3.7.1.1"/> 
+</ui></object>
+<object name="PortAutoNegSupported" depends="LocalPortNum" >
+<core  type="enum" xtype="enable_t" access="read-only" descr="The truth value used to indicate whether the given port (associated with the local system) supports Auto-negotiation."/>
+<ui  name="PortAutoNegSupported" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4623.1.2.1.1.1"/> 
+</ui></object>
+<object name="PortAutoNegEnabled" depends="LocalPortNum" >
+<core  type="enum" xtype="enable_t" access="read-only" descr="The truth value used to indicate whether port Auto-negotiation is enabled on the given port associated with the local system."/>
+<ui  name="PortAutoNegEnabled" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4623.1.2.1.1.2"/> 
+</ui></object>
+<object name="PortAutoNegAdvertisedCap" depends="LocalPortNum" >
+<core  type="string" access="read-only" descr="This object contains the value (bitmap) of the ifMauAutoNegCapAdvertisedBits object (defined in IETF RFC 3636) which is associated with the given port on the local system."/>
+<ui  name="PortAutoNegAdvertisedCap" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4623.1.2.1.1.3"/> 
+</ui></object>
+<object name="PortOperMauType" depends="LocalPortNum" >
+<core  type="uint" access="read-only" descr="An integer value that indicates the operational MAU type of the given port on the local system. This object contains the integer value derived from the list position of the corresponding dot3MauType as listed in IETF RFC 3636 (or subsequent revisions) and"/>
+<ui  name="PortOperMauType" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4623.1.2.1.1.4"/> 
+</ui></object>
+</module>
+<module name="LLDPXdot3RemoteData"  >
+<object name="TimeMark"  >
+<core  type="uint" access="read-write" key="yes" descr="A TimeFilter for this entry. See the TimeFilter textual convention in IETF RFC 2021 and http://www.ietf.org/IESG/Implementations/RFC2021-Implementation.txt to see how TimeFilter works."/>
+<ui  name="TimeMark" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.1"/> 
+</ui></object>
+<object name="LocalPortNum"  >
+<core  type="uint" access="read-write" key="yes" descr="The index value used to identify the port component (contained in the local chassis with the LLDP agent) associated with this entry. The LocalPortNum identifies the port on which the remote system information is received. "/>
+<ui  name="LocalPortNum" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.2"/> 
+</ui></object>
+<object name="RemIndex"  >
+<core  type="uint" access="read-write" key="yes" descr="This object represents an arbitrary local integer value used by this agent to identify a particular connection instance, unique only for the indicated remote system. An agent is encouraged to assign monotonically increasing index values to new entries, s"/>
+<ui  name="RemIndex" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.3"/> 
+</ui></object>
+<object name="ManAddrSubtype"  >
+<core  type="uint" access="read-write" key="yes" descr="The type of management address identifier encoding used in the associated 'lldpRemManagmentAddr' object."/>
+<ui  name="ManAddrSubtype" style="plainText" />
+</object>
+<object name="ManAddr"  >
+<core  type="string" access="read-write" key="yes" descr="The string value used to identify the management address component associated with the remote system. The purpose of this address is to contact the management entity."/>
+<ui  name="ManAddr" style="plainText" />
+</object>
+<object name="PortAutoNegSupported" depends="TimeMark,LocalPortNum,RemIndex,ManAddrSubtype,ManAddr" >
+<core  type="enum" xtype="enable_t" access="read-only" descr="The truth value used to indicate whether the given port (associated with the local system) supports Auto-negotiation."/>
+<ui  name="PortAutoNegSupported" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4623.1.3.1.1.1"/> 
+</ui></object>
+<object name="PortAutoNegEnabled" depends="TimeMark,LocalPortNum,RemIndex,ManAddrSubtype,ManAddr" >
+<core  type="enum" xtype="enable_t" access="read-only" descr="The truth value used to indicate whether port Auto-negotiation is enabled on the given port associated with the local system."/>
+<ui  name="PortAutoNegEnabled" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4623.1.3.1.1.2"/> 
+</ui></object>
+<object name="PortAutoNegAdvertisedCap" depends="TimeMark,LocalPortNum,RemIndex,ManAddrSubtype,ManAddr" >
+<core  type="string" access="read-only" descr="This object contains the value (bitmap) of the ifMauAutoNegCapAdvertisedBits object (defined in IETF RFC 3636) which is associated with the given port on the local system."/>
+<ui  name="PortAutoNegAdvertisedCap" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4623.1.3.1.1.3"/> 
+</ui></object>
+<object name="PortOperMauType" depends="TimeMark,LocalPortNum,RemIndex,ManAddrSubtype,ManAddr" >
+<core  type="uint" access="read-only" descr="An integer value that indicates the operational MAU type of the given port on the local system. This object contains the integer value derived from the list position of the corresponding dot3MauType as listed in IETF RFC 3636 (or subsequent revisions) and"/>
+<ui  name="PortOperMauType" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4623.1.3.1.1.4"/> 
+</ui></object>
+</module>
+<module name="LLDPXMedConfig" >
+<object name="LocDeviceClass" >
+<core  type="string" access="read-only" descr="Local Device Class"/>
+<ui  name="LocDeviceClass" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.1.1"/> 
+</ui></object>
+<object name="FastStartRepeatCount" >
+<core  type="uint" access="read-write" min="LLDP_MED_FASTSTART_REPEAT_COUNT_MIN" max="LLDP_MED_FASTSTART_REPEAT_COUNT_MAX" default="FD_LLDP_MED_FASTSTART_REPEAT_COUNT" descr="The number of times the fast start LLDPDU are being sent during the activation of the fast start mechanism defined by LLDP-MED."/>
+<ui  name="FastStartRepeatCount" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.1.2"/> 
+</ui></object>
+</module>
+<module name="LLDPXMEDInterfaceConfig"  >
+<object name="LldpXMedInterface" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="uspGlobal_t" key="yes" access="read-write" descr="An interface on the Local System"/>
+<ui  name="Unit/Slot/Port" style="inputLine" >
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.1.2.1.1"/> 
+</ui></object>
+<object name="LldpXMedInterface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="uspGlobal_t" key="yes" access="read-write" descr="An interface on the Local System"/>
+<ui  name="Slot/Port" style="inputLine" >
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.1.2.1.1"/> 
+</ui></object>
+<object name="LldpXMedPortAdminMode" depends="LldpXMedInterface" >
+<core  type="enum" xtype="enable_t" access="read-write" descr="The MED admin mode for this interface"/>
+<ui  name="LldpXMedPortAdminMode" style="inputLine" >
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.1.2.1.2"/> 
+</ui></object>
+<object name="NotifEnabled" depends="LldpXMedInterface" >
+<core  type="enum" xtype="enable_t" access="read-write" descr="A value of 'true(1)' enables sending the topology change traps on this port. A value of 'false(2)' disables sending the topology change traps on this port."/>
+<ui  name="NotifEnabled" style="inputLine">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.1.2.1.3"/> 
+</ui></object>
+<object name="TLVsTxEnable" depends="LldpXMedInterface" >
+<core  type="string" access="read-only" descr="The lldpXMedPortConfigTLVsTxEnable, defined as a bitmap,includes the MED organizationally defined set of LLDP TLVs whose transmission is allowed on the local LLDP agent by the network management. Each bit in the bitmap corresponds to an LLDP-"/>
+<ui  name="TLVsTxEnable" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.1.2.1.4"/> 
+</ui></object>
+<object name="OperationalStatus" depends="LldpXMedInterface" >
+<core  type="enum" xtype="enable_t" access="read-only" descr="Specifies whether the interface will transmit TLVs"/>
+<ui  name="OperationalStatus" style="plainText" />
+</object>
+<object name="LinkStatus" depends="LldpXMedInterface" >
+<core  type="string" access="read-only" descr="Specifies interface Link Status"/>
+<ui  name="LinkStatus" style="inputLine" />
+</object>
+<object name="LLDPMedCapCapabilities" depends="LldpXMedInterface" >
+<core  type="enum" xtype="boolean_t" access="read-write" descr="Specifies whether the interface has LLDP-MED Capabilities"/>
+<ui  name="LLDPMedCapCapabilities" style="inputLine" />
+</object>
+<object name="LLDPMedCapNetworkPolicy" depends="LldpXMedInterface" >
+<core  type="enum" xtype="boolean_t" access="read-write" descr="Specifies whether the interface has LLDP-MED Capabilities"/>
+<ui  name="LLDPMedCapNetworkPolicy" style="inputLine" />
+</object>
+<object name="LLDPMedCapLocationIdentification" depends="LldpXMedInterface" >
+<core  type="enum" xtype="boolean_t" access="read-write" descr="Specifies whether the interface has LLDP-MED Capabilities"/>
+<ui  name="LLDPMedCapLocationIdentification" style="inputLine" />
+</object>
+<object name="LLDPMedCapExtPSE" depends="LldpXMedInterface" >
+<core  type="enum" xtype="boolean_t" access="read-write" descr="Specifies whether the interface has LLDP-MED Capabilities"/>
+<ui  name="LLDPMedCapExtPSE" style="inputLine" />
+</object>
+<object name="LLDPMedCapExtPD" depends="LldpXMedInterface" >
+<core  type="enum" xtype="boolean_t" access="read-write" descr="Specifies whether the interface has LLDP-MED Capabilities"/>
+<ui  name="LLDPMedCapExtPD" style="inputLine" />
+</object>
+<object name="LLDPMedCapInventory" depends="LldpXMedInterface" >
+<core  type="enum" xtype="boolean_t" access="read-write" descr="Specifies whether the interface has LLDP-MED Capabilities"/>
+<ui  name="LLDPMedCapInventory" style="inputLine" />
+</object>
+</module>
+<module name="LLDPXMEDLocalData"  >
+<object name="LocalPortNum" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="The index value used to identify the port component (contained in the local chassis with the LLDP agent) associated with this entry. "/>
+<ui  name="Unit/Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.1.6.1.1"/> 
+</ui></object>
+<object name="LocalPortNum" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="The index value used to identify the port component (contained in the local chassis with the LLDP agent) associated with this entry. "/>
+<ui  name="Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.1.6.1.1"/> 
+</ui></object>
+<object name="MediaPolicyAppType" depends="LocalPortNum" >
+<core  type="uint" access="read-write" key="yes" descr="The media type that defines the primary function of the application for the policy advertised by an endpoint."/>
+<ui  name="MediaPolicyAppType" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.1.1.1"/> 
+</ui></object>
+<object name="MediaPolicyVlanID" depends="LocalPortNum,MediaPolicyAppType" >
+<core  type="uint" access="read-only" descr="An extension of the VLAN Identifier for the port, as defined in IEEE 802.1P-1998. A value of 1 through 4094 is used to define a valid PVID. A value of 0 shall be used if the device is using priority tagged frames, meaning that only the 802.1p priority lev"/>
+<ui  name="MediaPolicyVlanID" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.1.1.2"/> 
+</ui></object>
+<object name="MediaPolicyPriority" depends="LocalPortNum,MediaPolicyAppType" >
+<core  type="uint" access="read-only" descr="This object contains the value of the 802.1p priority which is associated with the given port on the local system."/>
+<ui  name="MediaPolicyPriority" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.1.1.3"/> 
+</ui></object>
+<object name="MediaPolicyDscp" depends="LocalPortNum,MediaPolicyAppType" >
+<core  type="uint" access="read-only" descr="This object contains the value of the Differentiated Service Code Point (DSCP) as defined in IETF RFC 2474 and RFC 2475 which is associated with the given port on the local system."/>
+<ui  name="MediaPolicyDscp" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.1.1.4"/> 
+</ui></object>
+<object name="MediaPolicyUnknown" depends="LocalPortNum,MediaPolicyAppType" >
+<core  type="uint" access="read-only" descr="A value of 'true' indicates that the network policy for the specified application type is currently unknown. In this case, the VLAN ID, the layer 2 priority and the DSCP value fields are ignored. A value of 'false' indicates that this network policy is "/>
+<ui  name="MediaPolicyUnknown" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.1.1.5"/> 
+</ui></object>
+<object name="MediaPolicyTagged" depends="LocalPortNum,MediaPolicyAppType" >
+<core  type="uint" access="read-only" descr="A value of 'true' indicates that the application is using a tagged VLAN. A value of 'false' indicates that for the specific application the device either is using an untagged VLAN or does not support port based VLAN operation. In this case, both the VLAN"/>
+<ui  name="MediaPolicyTagged" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.1.1.6"/> 
+</ui></object>
+<object name="HardwareRev"  >
+<core  type="string" access="read-only" descr="The vendor-specific hardware revision string as advertised by the endpoint."/>
+<ui  name="HardwareRev" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.2"/> 
+</ui></object>
+<!-- Missing Object Start-->
+<object name="LldpXMedLocAssetID"  >
+<core  type="string" access="read-only" descr="The Asset ID"/>
+<ui  name="LldpXMedLocAssetID" style="plainText">
+<snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.8"/> 
+</ui></object>
+<object name="LldpXMedInterface" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="An interface on the Local System."/>
+<ui  name="Unit/Slot/Port" style="plainText">
+</ui></object>
+<object name="LldpXMedInterface" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="An interface on the Local System."/>
+<ui  name="Slot/Port" style="plainText">
+</ui></object>
+<object name="LldpXMedLocLocationSubType" >
+<core  type="enum" xtype="LLDPXMedLocationSubtype_t" access="read-write" key="yes" descr="The location subtype advertised by the local device."/>
+<ui  name="LldpXMedLocLocationSubType" style="inputLine">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.9.1.1"/> 
+</ui></object>
+<object name="lldpXMedLocLocationInfo" depends="LldpXMedInterface,LldpXMedLocLocationSubType" >
+<core  type="string" access="read-write" descr="The location information.."/>
+<ui  name="lldpXMedLocLocationInfo" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.9.1.2"/> 
+</ui></object>
+<!-- Missing Object End-->
+<object name="MfgName"  >
+<core  type="string" access="read-only" descr="The vendor-specific manufacturer name as advertised by the endpoint."/>
+<ui  name="MfgName" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.6"/> 
+</ui></object>
+<object name="PoEPDPowerReq" depends="LocalPortNum" >
+<core  type="string" access="read-only" descr="This object contains the value of the power required by a PD expressed in units of 0.1 watts"/>
+<ui  name="PoEPDPowerReq" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.13"/> 
+</ui></object>
+<object name="SerialNum"  >
+<core  type="string" access="read-only" descr="The vendor-specific serial number as advertised by the endpoint"/>
+<ui  name="SerialNum" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.5"/> 
+</ui></object>
+<object name="ModelName"  >
+<core  type="string" access="read-only" descr="The vendor-specific model name as advertised by the endpoint."/>
+<ui  name="ModelName" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.7"/> 
+</ui></object>
+<object name="SoftwareRev"  >
+<core  type="string" access="read-only" descr="The vendor-specific software revision string as advertised by the endpoint."/>
+<ui  name="SoftwareRev" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.4"/> 
+</ui></object>
+<object name="PoEPSEPowerSource"  >
+<core  type="enum" xtype="LLDPXMedPsePowerSource_t" access="read-only" descr="Defines the type of PSE Power Source advertised by the local device. A value primary(2) indicates that the device advertises its power source as primary. A value backup(3) indicates that the device advertises its power Source as backup."/>
+<ui  name="PoEPSEPowerSource" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.12"/> 
+</ui></object>
+<object name="FirmwareRev"  >
+<core  type="string" access="read-only" descr="The vendor-specific firmware revision string as advertised by the endpoint"/>
+<ui  name="FirmwareRev" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.3"/> 
+</ui></object>
+<object name="PoEPDPowerPriority" depends="LocalPortNum" >
+<core  type="enum"  xtype="LLDPXMedPoePowerPriority_t" access="read-only" descr="Defines the priority advertised as being required by this PD. A value critical(2) indicates that the device advertises its power Priority as critical, as per RFC 3621. A value high(3) indicates that the device advertises its power Priority as high, as p"/>
+<ui  name="PoEPDPowerPriority" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.15"/> 
+</ui></object>
+<object name="PoEDeviceType" depends="LocalPortNum" >
+<core  type="enum" xtype="LLDPXMedPoeDeviceType_t" access="read-only" descr="Defines the type of Power-via-MDI (Power over Ethernet) advertised by the local device. A value pseDevice(2) indicates that the device is advertised as a Power Sourcing Entity (PSE). A value pdDevice(3) indicates that the device is advertised as a Powered"/>
+<ui  name="PoEDeviceType" style="inputLine">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.2.10"/> 
+</ui></object>
+<object name="PoEPSEPortPowerAv" depends="LocalPortNum" >
+<core  type="string" access="read-only" descr="This object contains the value of the power available from the PSE via this port expressed in units of 0.1 watts."/>
+<ui  name="PoEPSEPortPowerAv" style="plainText" />
+</object>
+<object name="PoEPSEPortPDPriority" depends="LocalPortNum" >
+<core  type="enum"  xtype="LLDPXMedPoePowerPriority_t" access="read-only" descr="Reflects the PD power priority that is being advertised on this PSE port. If both locally configure priority and ldpXMedRemXPoEPDPowerPriority are available on this port, it is a matter of local policy which one takes precedence. This object reflects the "/>
+<ui  name="PoEPSEPortPDPriority" style="plainText" />
+</object>
+</module>
+<module name="LLDPXMEDRemoteData"  >
+<object name="TimeMark" depends="LocalPortNum" >
+<core  type="uint" access="read-write" key="yes" descr="A TimeFilter for this entry. See the TimeFilter textual convention in IETF RFC 2021 and http://www.ietf.org/IESG/Implementations/RFC2021-Implementation.txt to see how TimeFilter works."/>
+<ui  name="TimeMark" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.1"/> 
+</ui></object>
+<object name="LocalPortNum" compile_if="IF_STACKING_PACKAGE_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="The index value used to identify the port component (contained in the local chassis with the LLDP agent) associated with this entry. The LocalPortNum identifies the port on which the remote system information is received. "/>
+<ui  name="Unit/Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.2"/> 
+</ui></object>
+<object name="LocalPortNum" compile_if="IF_STACKING_PACKAGE_NOT_PRESENT" >
+<core  type="user" xtype="usp_t" access="read-write" key="yes" descr="The index value used to identify the port component (contained in the local chassis with the LLDP agent) associated with this entry. The LocalPortNum identifies the port on which the remote system information is received. "/>
+<ui  name="Slot/Port" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.2"/> 
+</ui></object>
+<object name="RemIndex" depends="LocalPortNum" >
+<core  type="uint" access="read-write" key="yes" descr="This object represents an arbitrary local integer value used by this agent to identify a particular connection instance, unique only for the indicated remote system. An agent is encouraged to assign monotonically increasing index values to new entries, s"/>
+<ui  name="RemIndex" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.4.1.1.3"/> 
+</ui></object>
+<object name="PolicyAppType" depends="LocalPortNum,RemIndex,TimeMark" >
+<core  type="enum" xtype="lldpXMedPolicyAppTypeValue_t" access="read-write" key="yes" descr="The media type that defines the primary function of the application for the policy advertised by the endpoint connected remotely to this port."/>
+<ui  name="PolicyAppType" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.2.1.1"/> 
+</ui></object>
+<!-- This object has been defined to meet SmartPATH requirements -->
+<object name="MediaApplicationType">
+        <core access="read-only" descr="Specifies the application type. Types of application types supported are unknown, voicesignaling, guestvoice, guestvoicesignaling, softphonevoice, videoconferencing, streammingvideo, vidoesignaling. Each application type that is received has the VLAN ID, priority, DSCP, tagged bit status and unknown bit status. A port may receive one or many such application types. If a network policy TLV has been receive on this port only then would this information be displayed." key="yes" type="enum" xtype="lldpXMedPolicyAppTypeValue_t"/>
+<ui name="Media Application Type" style="plainText"/>
+</object>
+
+<object name="LocationSubtype" depends="LocalPortNum,RemIndex,TimeMark">
+<core type="enum" xtype="LLDPXMedLocationSubtype_t" access="read-write" key="yes" descr="The location subtype advertised by the remote endpoint."/>
+<ui  name="LocationSubtype" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.4.1.1"/> 
+</ui></object>
+<object name="HardwareRev" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="string" access="read-only" descr="The vendor-specific hardware revision string as advertised by the remote endpoint"/>
+<ui  name="HardwareRev" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.3.1.1"/> 
+</ui></object>
+<object name="FirmwareRev" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="string" access="read-only" descr="The vendor-specific firmware revision string as advertised by the remote endpoint."/>
+<ui  name="FirmwareRev" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.3.1.2"/> 
+</ui></object>
+<object name="SoftwareRev" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="string" access="read-only" descr="The vendor-specific software revision string as advertised by the remote endpoint"/>
+<ui  name="SoftwareRev" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.3.1.3"/> 
+</ui></object>
+<object name="SerialNum" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="string" access="read-only" descr="The vendor-specific serial number as advertised by the remote endpoint."/>
+<ui  name="SerialNum" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.3.1.4"/> 
+</ui></object>
+<object name="MfgName" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="string" access="read-only" descr="The vendor-specific manufacturer name as advertised by the remote endpoint."/>
+<ui  name="MfgName" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.3.1.5"/> 
+</ui></object>
+<object name="ModelName" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="string" access="read-only" descr="The vendor-specific model name as advertised by the remote endpoint."/>
+<ui  name="ModelName" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.3.1.6"/> 
+</ui></object>
+<object name="AssetID" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="string" access="read-only" descr="The vendor-specific asset tracking identifier as advertised by the remote endpoint"/>
+<ui  name="AssetID" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.3.1.7"/> 
+</ui></object>
+<object name="PoEDeviceType" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="enum" xtype="LLDPXMedPoeDeviceType_t" access="read-only" descr="Defines the type of Power-via-MDI (Power over Ethernet) advertised by the remote device. A value pseDevice(2) indicates that the device is advertised as a Power Sourcing Entity (PSE). A value pdDevice(3) indicates that the device is advertised as a Power"/>
+<ui  name="PoEDeviceType" style="inputLine">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.5.1.1"/> 
+</ui></object>
+<object name="PoEPDPowerSource" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="enum" xtype="LLDPXMedPdPowerSource_t" access="read-only" descr="Defines the type of Power Source advertised as being used by the device connected remotely to the port. A value fromPSE(2) indicates that the device advertises its power source as received from a PSE. A value local(3) indicates that the device advertise"/>
+<ui  name="PoEPDPowerSource" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.7.1.2"/> 
+</ui></object>
+<object name="PoEPDPowerPriority" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="enum" xtype="LLDPXMedPoePowerPriority_t" access="read-only" descr="Defines the priority advertised as being required by the PD connected remotely to the port. A value critical(2) indicates that the device advertises its power Priority as critical, as per RFC 3621. A value high(3) indicates that the device advertises it"/>
+<ui  name="PoEPDPowerPriority" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.7.1.3"/> 
+</ui></object>
+<!-- Missing Object Start -->
+<object name="PoEPDPowerReq" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="string" access="read-only" descr="This object contains the value of the power required by a PD expressed in units of 0.1 watts."/>
+<ui  name="PoEPDPowerReq" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.7.1.1"/> 
+</ui></object>
+<!-- Missing Object End -->
+<object name="PoEPSEPowerAv" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="string" access="read-only" descr="This object contains the value of the power available from the PSE via this port expressed in units of 0.1 watts on the remote device."/>
+<ui  name="PoEPSEPowerAv" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.6.1.1"/> 
+</ui></object>
+<object name="PoEPSEPowerSource" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="enum" xtype="LLDPXMedPsePowerSource_t" access="read-only" descr="Defines the type of PSE Power Source advertised by the remote device. A value primary(2) indicates that the device advertises its power source as primary. A value backup(3) indicates that the device advertises its power Source as backup."/>
+<ui  name="PoEPSEPowerSource" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.6.1.2"/> 
+</ui></object>
+<object name="PoEPSEPowerPriority" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="enum" xtype="LLDPXMedPoePowerPriority_t" access="read-only" descr="This object contains the value of the PSE power priority advertised by the remote device. A value critical(2) indicates that the device advertises its power priority as critical, as per RFC 3621. A value high(3) indicates that the device advertises its "/>
+<ui  name="PoEPSEPowerPriority" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.6.1.3"/> 
+</ui></object>
+<object name="CapSupported" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="string" access="read-only" descr="The bitmap includes the MED organizationally defined set of LLDP TLVs whose transmission is possible on the LLDP agent of the remote device connected to this port. Each bit in the bitmap corresponds to an LLDP-MED subtype associated with a specific TIA TR"/>
+<ui  name="CapSupported" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.2.1.5.4795.1.3.1.1.1"/> 
+</ui></object>
+<object name="CapCurrent" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="string" access="read-only" descr="The bitmap includes the MED organizationally defined set of LLDP TLVs whose transmission is possible on the LLDP agent of the remote device connected to this port. Each bit in the bitmap corresponds to an LLDP-MED subtype associated with a specific TIA TR"/>
+<ui  name="CapCurrent" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.2.1.5.4795.1.3.1.1.2"/> 
+</ui></object>
+<object name="DeviceClass" depends="TimeMark,LocalPortNum,RemIndex" >
+<core  type="string" access="read-only" descr="Device Class as advertised by the device remotely connected to the port"/>
+<ui  name="DeviceClass" style="plainText">
+ <snmp asn-id=".1.0.8802.1.1.2.1.5.4795.1.3.1.1.3"/> 
+</ui></object>
+<object name="PolicyVlanID" depends="TimeMark,LocalPortNum,RemIndex,PolicyAppType" >
+<core  type="uint" access="read-only" descr="An extension of the VLAN Identifier for the remote system connected to this port, as defined in IEEE 802.1P-1998. A value of 1 through 4094 is used to define a valid PVID. A value of 0 shall be used if the device is using priority tagged frames, meaning t"/>
+<ui  name="PolicyVlanID" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.2.1.2"/> 
+</ui></object>
+<object name="PolicyPriority" depends="TimeMark,LocalPortNum,RemIndex,PolicyAppType" >
+<core  type="uint" access="read-only" descr="This object contains the value of the 802.1p priority which is associated with the remote system connected at given port."/>
+<ui  name="PolicyPriority" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.2.1.3"/> 
+</ui></object>
+<object name="PolicyDscp" depends="TimeMark,LocalPortNum,RemIndex,PolicyAppType" >
+<core  type="uint" access="read-only" descr="This object contains the value of the Differentiated Service Code Point (DSCP) as defined in IETF RFC 2474 and RFC 2475 which is associated with the remote system connected at a given port."/>
+<ui  name="PolicyDscp" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.2.1.4"/> 
+</ui></object>
+<object name="PolicyUnknown" depends="TimeMark,LocalPortNum,RemIndex,PolicyAppType" >
+<core  type="enum" xtype="enable_t" access="read-only" descr="A value of 'true' indicates that the network policy for the specified application type is currently unknown. In this case, the VLAN ID, the layer 2 priority and the DSCP value fields are ignored. A value of 'false' indicates that this network policy is "/>
+<ui  name="PolicyUnknown" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.2.1.5"/> 
+</ui></object>
+<object name="PolicyTagged" depends="TimeMark,LocalPortNum,RemIndex,PolicyAppType" >
+<core  type="enum" xtype="enable_t" access="read-only" descr="A value of 'true' indicates that the application is using a tagged VLAN. A value of 'false' indicates that for the specific application the device either is using an untagged VLAN or does not support port based VLAN operation. In this case, both the VLAN"/>
+<ui  name="PolicyTagged" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.2.1.6"/> 
+</ui></object>
+<object name="LocationInfo" depends="TimeMark,LocalPortNum,RemIndex,LocationSubtype" >
+<core  type="string" access="read-only" descr="The location information advertised by the remote endpoint. Parsing of this information is dependent upon the location subtype, as defined by the value of the corresponding lldpXMedRemLocationSubType object"/>
+<ui  name="LocationInfo" style="plainText">
+ <snmp asn-id="1.0.8802.1.1.2.1.5.4795.1.3.4.1.2"/> 
+</ui></object>
+</module>
+<module key-method="individual" name="LLDPXMEDGlobalConfig">
+<object name="LldpXMedPortAdminMode">
+<core  type="enum" xtype="enable_t" access="read-write" descr="The MED admin mode for this interface"/>
+<ui  name="LldpXMedPortAdminMode" style="inputLine" >
+</ui></object>
+<object name="NotifEnabled" >
+<core  type="enum" xtype="enable_t" access="read-write" descr="A value of 'true(1)' enables sending the topology change traps on this port. A value of 'false(2)' disables sending the topology change traps on this port."/>
+<ui  name="NotifEnabled" style="inputLine">
+</ui></object>
+<object name="LLDPMedCapCapabilities" >
+<core  type="enum" xtype="boolean_t" access="read-write" descr="Specifies whether the interface has LLDP-MED Capabilities"/>
+<ui  name="LLDPMedCapCapabilities" style="inputLine" />
+</object>
+<object name="LLDPMedCapNetworkPolicy">
+<core  type="enum" xtype="boolean_t" access="read-write" descr="Specifies whether the interface has LLDP-MED Capabilities"/>
+<ui  name="LLDPMedCapNetworkPolicy" style="inputLine" />
+</object>
+<object name="LLDPMedCapLocationIdentification" >
+<core  type="enum" xtype="boolean_t" access="read-write" descr="Specifies whether the interface has LLDP-MED Capabilities"/>
+<ui  name="LLDPMedCapLocationIdentification" style="inputLine" />
+</object>
+<object name="LLDPMedCapExtPSE">
+<core  type="enum" xtype="boolean_t" access="read-write" descr="Specifies whether the interface has LLDP-MED Capabilities"/>
+<ui  name="LLDPMedCapExtPSE" style="inputLine" />
+</object>
+<object name="LLDPMedCapExtPD">
+<core  type="enum" xtype="boolean_t" access="read-write" descr="Specifies whether the interface has LLDP-MED Capabilities"/>
+<ui  name="LLDPMedCapExtPD" style="inputLine" />
+</object>
+<object name="LLDPMedCapInventory">
+<core  type="enum" xtype="boolean_t" access="read-write" descr="Specifies whether the interface has LLDP-MED Capabilities"/>
+<ui  name="LLDPMedCapInventory" style="inputLine" />
+</object>
+</module>
+
+<!-- POWER MDI TLV Objects -->
+<module name="LLDPPowerMdiTLV" >
+<object name="LldpXdot3LocpowerPortClass" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="boolean_t" access="read-only" descr="Specifies power class" />
+<ui name="LldpXdot3LocpowerPortClass" style="inputLine" />
+</object>
+
+<object name="LldpXdot3LocPowerMDISupported" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="boolean_t" access="read-only" descr="SSpecifies whether the interface supports MDI" />
+<ui name="LldpXdot3LocPowerMDISupported" style="inputLine" />
+</object>
+
+<object name="LldpXdot3LocPowerMDIEnabled" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="boolean_t" access="read-only" descr="Specifies whether MDI enabled or not on the interface" />
+<ui name="LldpXdot3LocPowerMDIEnabled" style="inputLine" />
+</object>
+
+<object name="LldpXdot3LocPowerPairControlable" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="boolean_t" access="read-only" descr="Specifies whether the interface is MDI pair controlable" />
+<ui name="LldpXdot3LocPowerPairControlable" style="inputLine" />
+</object>
+
+<object name="LldpXdot3LocPowerPairs" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="L7_POE_PORT_POWER_PAIRS_t" access="read-only" descr="Specifies power pair of the interface" />
+<ui name="LldpXdot3LocPowerPairs" style="inputLine" />
+</object>
+
+<object name="LldpXdot3LocPowerClass" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="L7_POE_PORT_XUI_POWER_CLASS_t" access="read-only" descr="Specifies power class" />
+<ui name="LldpXdot3LocPowerClass" style="inputLine" />
+</object>
+
+<object name="LldpXdot3LocPowerType" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="L7_POE_XUI_POWER_DEVICE_TYPES_t" access="read-only" descr="Specifies power type" />
+<ui name="LldpXdot3LocPowerType" style="inputLine" />
+</object>
+
+<object name="LldpXdot3LocPowerSource" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="L7_POE_XUI_POWER_SOURCE_TYPES_t" access="read-only" descr="Specifies power class" />
+<ui name="LldpXdot3LocPowerSource" style="inputLine" />
+</object>
+
+<object name="LldpXdot3LocPowerPriority" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="L7_POE_XUI_PRIORITY_t" access="read-only" descr="Specifies power priority" />
+<ui name="LldpXdot3LocPowerPriority" style="inputLine" />
+</object>
+
+<object name="LldpXdot3LocPDRequestedPowerValue" compile_if="IF_POE_AT_PACKAGE">
+<core type="uint" access="read-only" descr="Specifies power class" />
+<ui name="LldpXdot3LocPDRequestedPowerValue" style="inputLine" />
+</object>
+
+<object name="LldpXdot3LocPSEAllocatedPowerValue" compile_if="IF_POE_AT_PACKAGE">
+<core type="uint" access="read-only" descr="Specifies power class" />
+<ui name="LldpXdot3LocPSEAllocatedPowerValue" style="inputLine" />
+</object>
+
+</module>
+
+<!-- Rem Power MDI TLV Values -->
+<module name="LLDPRemPowerMdiTLV" >
+<object name="LldpXdot3RemPowerPortClass" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="boolean_t" access="read-only" descr="Specifies power class" />
+<ui name="LldpXdot3RempowerPortClass" style="inputLine" />
+</object>
+
+<object name="LldpXdot3RemPowerMDISupported" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="boolean_t" access="read-only" descr="SSpecifies whether the interface supports MDI" />
+<ui name="LldpXdot3RemPowerMDISupported" style="inputLine" />
+</object>
+
+<object name="LldpXdot3RemPowerMDIEnabled" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="boolean_t" access="read-only" descr="Specifies whether MDI enabled or not on the interface" />
+<ui name="LldpXdot3RemPowerMDIEnabled" style="inputLine" />
+</object>
+
+<object name="LldpXdot3RemPowerPairControlable" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="boolean_t" access="read-only" descr="Specifies whether the interface is MDI pair controlable" />
+<ui name="LldpXdot3RemPowerPairControlable" style="inputLine" />
+</object>
+
+<object name="LldpXdot3RemPowerPairs" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="L7_POE_PORT_POWER_PAIRS_t" access="read-only" descr="Specifies power pair of the interface" />
+<ui name="LldpXdot3remPowerPairs" style="inputLine" />
+</object>
+
+<object name="LldpXdot3RemPowerClass" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="L7_POE_PORT_XUI_POWER_CLASS_t" access="read-only" descr="Specifies power class" />
+<ui name="LldpXdot3RemPowerClass" style="inputLine" />
+</object>
+
+<object name="LldpXdot3RemPowerType" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="L7_POE_XUI_POWER_DEVICE_TYPES_t" access="read-only" descr="Specifies power type" />
+<ui name="LldpXdot3RemPowerType" style="inputLine" />
+</object>
+
+<object name="LldpXdot3RemPowerSource" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="L7_POE_XUI_POWER_SOURCE_TYPES_t" access="read-only" descr="Specifies power class" />
+<ui name="LldpXdot3RemPowerSource" style="inputLine" />
+</object>
+
+<object name="LldpXdot3RemPowerPriority" compile_if="IF_POE_AT_PACKAGE">
+<core type="enum" xtype="L7_POE_XUI_PRIORITY_t" access="read-only" descr="Specifies power priority" />
+<ui name="LldpXdot3RemPowerPriority" style="inputLine" />
+</object>
+
+<object name="LldpXdot3RemPDRequestedPowerValue" compile_if="IF_POE_AT_PACKAGE">
+<core type="uint" access="read-only" descr="Specifies power class" />
+<ui name="LldpXdot3RemPDRequestedPowerValue" style="inputLine" />
+</object>
+
+<object name="LldpXdot3RemPSEAllocatedPowerValue" compile_if="IF_POE_AT_PACKAGE">
+<core type="uint" access="read-only" descr="Specifies power class" />
+<ui name="LldpXdot3RemPSEAllocatedPowerValue" style="inputLine" />
+</object>
+</module>
+
+</objectxml>
+</FastPathXML>

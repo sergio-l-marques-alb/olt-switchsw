@@ -1,0 +1,42 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="MLDTraffic" title="MLD Routing Interface Traffic">
+        <group id="1" heading=" ">
+            <node id="9">
+                <element properties="write-only,hidden" value="IPv6" obj-name="ipmcastmgmdStats_mgmdRouterInterfaceType" id="1" name="Interface Type"/>
+            </node>
+            <node id="1">
+                <element obj-name="ipmcastmgmdStats_mgmdValidPktsRecvd" id="1" name="Valid MLD Packets Received"/>
+            </node>
+            <node id="2">
+                <element obj-name="ipmcastmgmdStats_mgmdValidPktsSent" id="1" name="Valid MLD Packets Sent"/>
+            </node>
+            <node id="3">
+                <element obj-name="ipmcastmgmdStats_mgmdQueriesRecvd" id="1" name="Queries Received"/>
+            </node>
+            <node id="4">
+                <element obj-name="ipmcastmgmdStats_mgmdQueriesSent" id="1" name="Queries Sent"/>
+            </node>
+            <node id="5">
+                <element obj-name="ipmcastmgmdStats_mgmdReportsRecvd" id="1" name="Reports Received"/>
+            </node>
+            <node id="6">
+                <element obj-name="ipmcastmgmdStats_mgmdReportsSent" id="1" name="Reports Sent"/>
+            </node>
+            <node id="7">
+                <element obj-name="ipmcastmgmdStats_mgmdLeavesRecvd" id="1" name="Leaves Received"/>
+            </node>
+            <node id="8">
+                <element obj-name="ipmcastmgmdStats_mgmdLeavesSent" id="1" name="Leaves Sent"/>
+            </node>
+            <node id="10">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" value="1" obj-name="ipmcastmgmdStats_mgmdRouterInterfaceClearTrafficCounters" help="Submits the form on this page to the Switch" id="2" name="Clear Traffic"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

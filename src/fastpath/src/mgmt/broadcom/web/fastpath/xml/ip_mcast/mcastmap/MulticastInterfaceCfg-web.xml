@@ -1,0 +1,53 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="MulticastInterfaceCfg" title="IPv4 Multicast Interface Configuration">
+        <group level="ReadWriteUser" id="1" heading=" ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="ipmcastipMcastInterfaceTable_ipMcastInterfaceIfIndex" id="1" name="Interface">
+                  <action type="value" value="valMapEmptyString" hide="1_1|1_2|1_3|1_4|" show="1_5"/>
+                  <action type="default" hide="1_5"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate, hidden" obj-name="ipmcastipMcastInterfaceTable_ipMcastInterfaceIPVersion" id="1" name="IP Version"/>
+            </node>
+            <node id="3">
+                <element arghelp="HELP_FORMAT_FP" maxLength="3" obj-name="ipmcastipMcastInterfaceTable_ipMcastInterfaceTtl" id="1" name="TTL Threshold"/>
+            </node>
+            <node id="4">
+                <button scope="page" type="buttonSubmit" help="Submits the form on this page to the Switch" id="1" name="Submit"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+            <node id="5" clazz="unavailableattributes">
+            <message>No Router Interfaces Available </message>
+            </node>
+        </group>
+
+<!-- Read only user -->
+
+        <group level="ReadOnlyUser" id="2" heading="  ">
+            <node id="1">
+                <element control="combo" properties="filter,iterate" obj-name="ipmcastipMcastInterfaceTable_ipMcastInterfaceIfIndex" id="1" name="Interface">
+                  <action type="value" value="valMapEmptyString" hide="2_1|2_2|2_3|2_4|" show="2_5"/>
+                  <action type="default" hide="2_5" show="2_1|2_2|2_3|2_4|"/>
+                </element>
+            </node>
+            <node id="2">
+                <element control="combo" properties="filter,iterate,hidden" obj-name="ipmcastipMcastInterfaceTable_ipMcastInterfaceIPVersion" id="1" name="IP Version"/>
+            </node>
+            <node id="3">
+                <element control="label" properties="read-only" obj-name="ipmcastipMcastInterfaceTable_ipMcastInterfaceTtl" id="1" name="TTL Threshold"/>
+            </node>
+            <node id="4">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+            <node id="5" clazz="unavailableattributes">
+            <message>No Router Interfaces Available </message>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

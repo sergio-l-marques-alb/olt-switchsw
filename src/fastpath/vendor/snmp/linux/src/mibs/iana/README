@@ -1,0 +1,15 @@
+This directory contains text documents/MIBs that are obtained 
+from the Internet Assigned Numbers Authority (IANA).  These
+documents are updated so frequently that they are not issued 
+as RFCs.
+
+The URL for IANA is:
+
+     http://www.iana.org/
+
+The files are:
+
+     iana-addr-fam.my
+     iana-iftype.my
+     iana-language.my
+     iana-iprouteprotocol.my

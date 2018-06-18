@@ -1,0 +1,99 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+<FastPathXML>
+    <webxml version="1.0" name="http_file_download" title="HTTP File Download" java-script="http_file_download">
+        <group id="2" heading=" ">
+            <node id="1">
+                <element  properties="hidden,read-only" obj-name="baseSysTransfer_pageRefresh" id="1" name="TransferStatus">
+                    <action type="value" value="1" show="3" hide="1" disable="1"/>
+                    <action type="default" show="1" enable="1" hide="3"/>
+                </element>
+            </node>
+        </group>
+        <group id="3" heading=" ">
+            <node id="2">
+                <message> File Transfer is in progress. Please wait... </message>
+            </node>
+        </group>
+        <group id="1" heading=" ">
+            <node id="1">
+                <element control="combo" obj-name="baseSysTransfer_sysTransferDownloadFileType" id="1" name="File Type" run_if="dimFilename">
+                    <action type="enum" discard="no" enable="1_2_2|1_4_1" show="1_2_2"/>
+                    <action type="enum" discard="no" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="no" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="yes" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="yes" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="yes" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="yes" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="no" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="no" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="no" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="no" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="no" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="no" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="no" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="yes" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="yes" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="no" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="yes" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="yes" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="yes" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                    <action type="enum" discard="yes" disable="1_2_2|1_4_1" hide="1_2_2"/>
+                </element>
+                <element control="combo" obj-name="baseSysTransfer_sysTransferDownloadFileType" id="2" name="File Type" run_if="dimNoFilename">
+                    <action type="enum" discard="no" enable="1_2_3|1_4_1" show="1_2_3"/>
+                    <action type="enum" discard="no" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="no" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="yes" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="yes" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="yes" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="yes" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="no" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="no" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="no" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="no" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="no" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="no" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="no" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="yes" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="yes" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="no" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="yes" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="yes" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="yes" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                    <action type="enum" discard="yes" disable="1_2_3|1_4_1" hide="1_2_3"/>
+                </element>
+            </node>
+            <node id="2">
+		    <element control="combo" uienum="L7_XUI_IMAGE_NAME_t" value="image1" obj-name="xLibObjects_dummy" id="2" name="Image Name" run_if="dimFilename">
+                          <action type="enum" setval_ids="1_4_1" setval_args="valMapImage1"/>
+                          <action type="enum" setval_ids="1_4_1" setval_args="valMapImage2"/>			  
+		    </element>
+                <element control="combo" uienum="L7_XUI_IMAGES_t" value="active" obj-name="xLibObjects_dummy" id="3" name="Image" run_if="dimNoFilename">
+                    <action type="enum" setval_ids="1_4_1" setval_args="valMapActive"/>
+                    <action type="enum" setval_ids="1_4_1" setval_args="valMapBackup"/>			  
+                </element>
+            </node>
+            <node id="3">
+                <element control="file" properties="write-only" value="" obj-name="baseSysTransfer_sysTransferHTTPFileNameRemote" id="1" name="Select File"/>
+            </node>
+            <node id="4">
+                <element properties="hidden" value="" obj-name="baseSysTransfer_sysTransferHTTPFileNameLocal" id="1" name="sysTransferHTTPFileNameLocal"/>
+            </node>
+            <node id="11">
+               <element control="combo" properties="write-only,hidden" value="HTTP" obj-name="baseSysTransfer_sysTransferMode" id="1" name="Transfer Mode"/>
+            </node>
+            <node id="12">
+                <element control="label" obj-name="baseSysTransfer_sysTransferResult" id="1" name="File Download Status"/>
+            </node>
+            <node id="5">
+		    <button scope="page" type="buttonSubmit" value="1" obj-name="baseSysTransfer_sysTransferHTTPDownStart" help="Submits the form on this page to the Switch" id="1" name="Start File Transfer">
+                    <prompt value="http_download_prompt" />  
+                    <action type="default" show="3" hide="1"/>
+        </button>     
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

@@ -1,0 +1,11 @@
+<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
+<FastPathXML>
+  <misc version="1.0">
+    <error name="MAX_EMAIL_ADDRESSES_EXCEEDED" output="\r\nError: Maximum number of Email Addresses are configured."/>
+    <error name="INVALID_EMAIL_ADDRESS" output="\r\nError! Email Address is not Valid"/>
+    <error name="INVALID_SEVERITY_LEVEL_URGENT" output="\r\nInvalid severity value. Urgent severity must be less than or equal to non urgent severity."/>
+    <error name="INVALID_SEVERITY_LEVEL_NON_URGENT" output="\r\nInvalid severity value. Non urgent severity must be greater than or equal to urgent severity."/>
+    <error name="MAX_MAIL_SERVERS_EXCEEDED" output="\r\nError: Maximum number of Mail Servers are configured."/>    
+  </misc>
+</FastPathXML>
+

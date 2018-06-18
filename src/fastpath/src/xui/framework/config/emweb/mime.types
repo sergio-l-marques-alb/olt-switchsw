@@ -1,0 +1,107 @@
+##
+## EmWeb MIME types configuration file
+##
+##
+~            ignore; # emacs backup files
+CVS          ignore; # CVS source control directories
+RCS          ignore; # RCS source control directories
+ 
+.           index=index.html; # makes a directory url default to 'index.html' 
+ 
+.html       type=text/html                   compress      parse=emweb_html;
+.htm        type=text/html                   compress      parse=emweb_html;
+.xml        type=text/xml                    compress      parse=emweb_html;
+.css        type=text/css                    compress      parse=emweb_html;
+.txt        type=text/plain                  compress      parse=emweb_html;
+.cli        type=text/plain                  compress      parse=emweb_cli;
+.js         type=text/javascript             compress      parse=emweb_html;
+.jar        type=application/java-archive                  parse=binary;
+
+.map        imagemap;
+
+.bin        type=application/octet-stream                  parse=binary;
+.oda        type=application/oda                           parse=binary;
+.pdf        type=application/pdf             compress      parse=binary;
+.ai         type=application/postscript      compress      parse=text;
+.eps        type=application/postscript      compress      parse=text;
+.ps         type=application/postscript      compress      parse=text;
+.rtf        type=application/rtf             compress      parse=text;
+.mif        type=application/x-mif           compress      parse=text;
+.csh        type=application/x-csh           compress      parse=text;
+.dvi        type=application/x-dvi           compress      parse=binary;
+.hdf        type=application/x-hdf           compress      parse=binary;
+.latex      type=application/x-latex         compress      parse=text;
+.nc         type=application/x-netcdf                      parse=binary;
+.cdf        type=application/x-netcdf                      parse=binary;
+.sh         type=application/x-sh            compress      parse=text;
+.tcl        type=application/x-tcl           compress      parse=text;
+.tex        type=application/x-tex           compress      parse=text;
+.texinfo    type=application/x-texinfo       compress      parse=text;
+.texi       type=application/x-texinfo       compress      parse=text;
+.t          type=application/x-troff         compress      parse=text;
+.tr         type=application/x-troff         compress      parse=text;
+.roff       type=application/x-troff         compress      parse=text;
+.man        type=application/x-troff-man     compress      parse=text;
+.me         type=application/x-troff-me      compress      parse=text;
+.ms         type=application/x-troff-ms      compress      parse=text;
+.src        type=application/x-wais-source   compress      parse=binary;
+.zip        type=application/zip                           parse=binary;
+.bcpio      type=application/x-bcpio         compress      parse=binary;
+.cpio       type=application/x-cpio          compress      parse=binary;
+.gtar       type=application/x-gtar          compress      parse=binary;
+.shar       type=application/x-shar          compress      parse=text;
+.sv4cpio    type=application/x-sv4cpio       compress      parse=binary;
+.sv4crc     type=application/x-sv4crc        compress      parse=binary;
+.tar        type=application/x-tar           compress      parse=binary;
+.ustar      type=application/x-ustar         compress      parse=binary;
+.au         type=audio/basic                               parse=binary;
+.snd        type=audio/basic                               parse=binary;
+.aif        type=audio/x-aiff                              parse=binary;
+.aiff       type=audio/x-aiff                              parse=binary;
+.aifc       type=audio/x-aiff                              parse=binary;
+.wav        type=audio/x-wav                               parse=binary;
+.gif        type=image/gif                                 parse=binary;
+.ief        type=image/ief                                 parse=binary;
+.jpeg       type=image/jpeg                                parse=binary;
+.jpg        type=image/jpeg                                parse=binary;
+.jpe        type=image/jpeg                                parse=binary;
+.tiff       type=image/tiff                                parse=binary;
+.tif        type=image/tiff                                parse=binary;
+.png        type=image/png                                 parse=binary;
+.ico        type=image/x-icon                              parse=binary;
+.ras        type=image/x-cmu-raster          compress      parse=binary;
+.pnm        type=image/x-portable-anymap     compress      parse=binary;
+.pbm        type=image/x-portable-bitmap     compress      parse=binary;
+.pgm        type=image/x-portable-graymap    compress      parse=binary;
+.ppm        type=image/x-portable-pixmap     compress      parse=binary;
+.rgb        type=image/x-rgb                 compress      parse=binary;
+.xbm        type=image/x-xbitmap             compress      parse=binary;
+.xpm        type=image/x-xpixmap             compress      parse=binary;
+.xwd        type=image/x-xwindowdump         compress      parse=binary;
+.sgml       type=text/x-sgml                 compress      parse=text;
+.sgm        type=text/x-sgml                 compress      parse=text;
+.rtx        type=text/richtext               compress      parse=text;
+.tsv        type=text/tab-separated-values   compress      parse=text;
+.etx        type=text/x-setext               compress      parse=binary;
+.mpeg       type=video/mpeg                                parse=binary;
+.mpg        type=video/mpeg                                parse=binary;
+.mpe        type=video/mpeg                                parse=binary;
+.qt         type=video/quicktime                           parse=binary;
+.mov        type=video/quicktime                           parse=binary;
+.fli        type=video/x-fli                               parse=binary;
+.avi        type=video/x-msvideo                           parse=binary;
+.movie      type=video/x-sgi-movie                         parse=binary;
+.class      type=application/octet-stream    compress      parse=binary;
+.ocx        type=application/octet-string                  parse=binary;
+
+##list of files which are exception to the above rules
+xui_load.js      type=text/javascript            compress      parse=text;
+prototype.js     type=text/javascript            compress      parse=text;
+xui_load_old.js  type=text/javascript            compress      parse=text;
+globalStyleJS.js  type=text/javascript            compress      parse=text;
+Add_an_Access_Profile_Rule.js type=text/javascript            compress      parse=text;
+Add_an_Access_Profile.js type=text/javascript            compress      parse=text;
+prototype-1.6.0.2.js     type=text/javascript            compress      parse=text;
+jquery.js type=text/javascript            compress      parse=text;
+lagMembershipView.js type=text/javascript            compress      parse=text;
+jquery-latest.js type=text/javascript            compress      parse=text;

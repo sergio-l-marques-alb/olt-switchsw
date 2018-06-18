@@ -1,0 +1,46 @@
+/********************************************************************
+ *
+ * (C) Copyright Broadcom Corporation 2003-2007
+ *
+ * *********************************************************************
+ *
+ * @filename         cq.ext
+ *
+ * @purpose          External prototypes for the circular queue object
+ *
+ * @component        Routing Utils Component
+ *
+ * @comments
+ *
+ * @create           
+ *
+ * @author
+ *
+ * @end                                                                        
+ *
+ * ********************************************************************/
+#ifndef cq_ext
+#define cq_ext
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
+
+t_Handle CQ_New( word Size );
+void     CQ_Delete( t_Handle CQ );
+int      CQ_Put( t_Handle CQ, void *p );
+void    *CQ_Get( t_Handle CQ );
+word     CQ_HowMany( t_Handle CQ );
+void    *CQ_Read( t_Handle CQ );
+void     CQ_Inc( t_Handle CQ );
+void     CQ_Rewind( t_Handle CQ );
+Bool     CQ_Empty( t_Handle CQ );
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+
+/* --- end of file cq.ext --- */
+

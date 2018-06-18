@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<EMWEB_HEAD C='
+    #include "web.h"
+  '>
+<HEAD>
+   <META http-equiv="Pragma" content="no-cache">
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <TITLE>Console Log Configuration Help</TITLE>
+   <LINK REL=stylesheet HREF="/base/style.css" TYPE="text/css">
+</HEAD>
+
+<BODY class = "helppageattributes">
+
+
+<hr size=4 width="100%" align=center>
+<h2><a name=console></a>Help for Console Log Configuration</h2>
+This allows logging to any serial device attached to the host.
+<h3>Configurable Data</h3>
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Admin Status </b>-A log that is "Disabled" shall not log messages.
+      A log that is "Enabled" shall log messages.
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+      Enable or Disable logging by selecting the
+      corresponding line on the pull down entry field.
+      </EMWEB_IF>
+      By default it is Disable.
+      </li>
+
+   <li><b>Severity Filter</b>
+      - A log records messages equal to or above a configured severity threshold.
+      <EMWEB_IF ID=USMWEB_IF_READWRITE >
+      Select the severity option by selecting the corresponding line on the
+      pull-down entry field.
+      </EMWEB_IF>
+      These severity levels have been enumerated below:<BR>
+        -Emergency : system is unusable <BR>
+        -Alert : action must be taken immediately<BR>
+        -Critical : critical conditions<BR>
+        -Error : error conditions<BR>
+        -Warning : warning conditions<BR>
+        -Notice : normal but significant conditions<BR>
+        -Informational : informational messages<BR>
+        -Debug : debug-level messages<BR></li>
+        By default it is Alert.
+  <EMWEB_IF ID=INCLUDE_COMPONENT_FACILITY_ADDRTYPE>
+
+  <li><b>Component Filter</b>
+      - Logging messages from a set of configured components
+       are the only ones logged.
+       <EMWEB_IF ID=USMWEB_IF_READWRITE >
+       Select the component filter
+       by selecting the corresponding line on the
+       pull-down entry field.
+       </EMWEB_IF>
+       </li>
+  </EMWEB_IF>
+ </ul>
+</ul>
+
+<h3>Command Buttons</h3>
+
+<ul type=disc>
+ <ul type=circle>
+  <li><b>Submit </b>
+ - <EMWEB_STRING C='return usmWebSubmitDescriptionHelp();' >
+  </li>
+ </ul>
+</ul>
+<hr size=4 width="100%" align=center>
+
+</body>
+
+</html>
+
+

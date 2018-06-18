@@ -1,0 +1,51 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="ISDPStats" title="ISDP Statistics">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element obj-name="baseIsdpStatistics_IsdpStatisticsPduReceived" id="1" name="Packets Received"/>
+            </node>
+            <node id="2">
+                <element obj-name="baseIsdpStatistics_IsdpStatisticsPduTransmit" id="1" name="Packets Transmitted"/>
+            </node>
+            <node id="3">
+                <element obj-name="baseIsdpStatistics_IsdpStatisticsV1PduReceived" id="1" name="ISDPv1 Packets Received"/>
+            </node>
+            <node id="4">
+                <element obj-name="baseIsdpStatistics_IsdpStatisticsV1PduTransmit" id="1" name="ISDPv1 Packets Transmitted"/>
+            </node>
+            <node id="5">
+                <element obj-name="baseIsdpStatistics_IsdpStatisticsV2PduReceived" id="1" name="ISDPv2 Packets Received"/>
+            </node>
+            <node id="6">
+                <element obj-name="baseIsdpStatistics_IsdpStatisticsV2PduTransmit" id="1" name="ISDPv2 Packets Transmitted"/>
+            </node>
+            <node id="7">
+                <element obj-name="baseIsdpStatistics_IsdpStatisticsBadHeaderPduReceived" id="1" name="Bad Header"/>
+            </node>
+            <node id="8">
+                <element obj-name="baseIsdpStatistics_IsdpStatisticsChkSumErrorPduReceived" id="1" name="Checksum Error"/>
+            </node>
+            <node id="9">
+                <element obj-name="baseIsdpStatistics_IsdpStatisticsFailurePduTransmit" id="1" name="Transmission Failure"/>
+            </node>
+            <node id="10">
+                <element obj-name="baseIsdpStatistics_IsdpStatisticsInvalidFormatPduReceived" id="1" name="Invalid Format Packets Received"/>
+            </node>
+            <node id="11">
+                <element obj-name="baseIsdpStatistics_IsdpStatisticsTableFull" id="1" name="Table Full"/>
+            </node>
+            <node id="12">
+                <element obj-name="baseIsdpStatistics_IsdpStatisticsIpAddressTableFull" id="1" name="ISDP IP Address Table Full"/>
+            </node>
+            <node id="13">
+                <button scope="page" type="buttonSubmit" value="1" obj-name="baseIsdpGlobal_IsdpClearStats" help="Submits the form on this page to the Switch" id="1" name="Clear" level="ReadWriteUser"/>
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="2" name="Refresh"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>

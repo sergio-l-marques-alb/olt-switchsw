@@ -1,0 +1,246 @@
+.\"
+.\"
+.\" Copyright (C) 1992-2006 by SNMP Research, Incorporated.
+.\"
+.\" This software is furnished under a license and may be used and copied
+.\" only in accordance with the terms of such license and with the
+.\" inclusion of the above copyright notice. This software or any other
+.\" copies thereof may not be provided or otherwise made available to any
+.\" other person. No title to and ownership of the software is hereby
+.\" transferred.
+.\"
+.\" The information in this software is subject to change without notice
+.\" and should not be construed as a commitment by SNMP Research, Incorporated.
+.\"
+.\" Restricted Rights Legend:
+.\"  Use, duplication, or disclosure by the Government is subject to
+.\"  restrictions as set forth in subparagraph (c)(1)(ii) of the Rights
+.\"  in Technical Data and Computer Software clause at DFARS 252.227-7013;
+.\"  subparagraphs (c)(4) and (d) of the Commercial Computer
+.\"  Software-Restricted Rights Clause, FAR 52.227-19; and in similar
+.\"  clauses in the NASA FAR Supplement and other corresponding
+.\"  governmental regulations.
+.\"
+.\"
+.\"
+.\"                PROPRIETARY NOTICE
+.\"
+.\" This software is an unpublished work subject to a confidentiality agreement
+.\" and is protected by copyright and trade secret law.  Unauthorized copying,
+.\" redistribution or other use of this work is prohibited.
+.\"
+.\" The above notice of copyright on this source code product does not indicate
+.\" any actual or intended publication of such source code.
+.\"
+.\"
+.\"
+.\"
+.\"
+.\"
+.\"
+.\"
+.TH GETID SR_CMDMAN "15 April 2003"
+
+.SH NAME
+getid \- retrieve system group MIB variables from an SNMP entity.
+
+.SH SYNOPSIS
+getid 
+.B getid
+[
+.B \-v1\ |\ \-v2c\ |\ \-v3
+]
+.in+0
+[
+.B \-ctxid\ contextID
+] [
+.B \-ctx\ contextName
+]
+.in+0
+[
+.B \-d
+] [
+.B \-timeout\ seconds
+] [
+.B \-retries\ number
+]
+.in+0
+.B agent_addr
+.B userName|community
+
+.SH DESCRIPTION
+.PP
+The primary purpose of this application is to demonstrate
+SNMPv2c/SNMPv3 error codes.  As such,
+.B this
+.B utility
+.B is
+.B designed
+.B to
+.B fail
+.B under
+.B SNMPv1.
+The
+.I getid 
+utility is an SNMP application to retrieve the variables
+sysDescr.0, sysObjectID.0, sysUpTime.0, sysUpTime.2, and iso.2.0
+from a SNMP entity.  The variables sysUpTime.2 and iso.2.0 are
+included to illustrate the SNMPv2/SNMPv3 error codes
+
+     NO_SUCH_INSTANCE_EXCEPTION and
+
+     NO_SUCH_OBJECT_EXCEPTION 
+
+respectively.
+The
+.I getid 
+utility is not available for EPIC or Security Pack.
+.PP
+The arguments to
+.I getid
+are:
+.IP \-v1\ |\ \-v2c\ |\ \-v3
+The SNMP version to use when sending the reqest.
+.IP \-ctxid\ contextID
+By default, the utility assumes that the response to a request 
+should be provided by the agent residing at 
+.I agent_addr. 
+To send a request in a proxy context, 
+use the 
+.I \-ctxid\ contextID 
+argument to specify the 
+.I snmpEngineID 
+of the agent that should provide the response. The 
+.I contextID 
+(
+.I snmpEngineID
+) is a printable ASCII string.
+.IP \-ctx\ contextName
+By default, the utility sends all requests in the "default" context. 
+To send a request in a different context, 
+The 
+.I \-ctx\ contextName 
+argument specifies the context of the response. The 
+.I contextName
+is a printable ASCII string.
+.IP \-d
+The
+.I -d
+argument turns on message logging.
+When this feature is selected, the utility prints messages
+containing important information at milestone points of execution,
+and this is useful for problem diagnosis.
+.IP \-timeout\ seconds
+By default, the utility will wait a total of ten(10) seconds
+to receive a response from an SNMP agent.  If no response
+is received within that timeout period, the utility may
+try again to send the request.  The
+.I \-timeout\ seconds
+(or
+.I \-t\ seconds
+)
+argument can be used to change the
+length of the timeout period where `seconds' is the time
+in seconds.
+.IP \-retries\ number
+By default, if the utility receives no response from the
+SNMP agent, it will try again five(5) more times to send the
+request.  The
+.I \-retries\ number
+(or
+.I \-r\ number
+)
+argument can be used to change the number of times the
+utility will send the request where `number' is the number
+of retries.
+.IP agent_addr
+The address of the SNMP agent.
+.IP community|userName
+Either an SNMPv2C community string or an SNMPv3 user name. 
+
+.SH EXAMPLE
+This example shows the results of running
+.I getid
+with an SNMPv2C or SNMPv3 agent.
+.PP
+The following SNMPv1 request fails on the fourth variable in the VarBind
+list, sysUpTime.2.  This is because sysUpTime does not have an
+instance `2'.
+
+.in+4
+.nf
+% getid -v1 localhost public
+Error code set in packet - No such variable name.  Index:  4.
+.fi
+.in-4
+
+.PP
+The following SNMPv2C request `succeeds' with robust reporting of errors
+on the last two VarBinds.
+
+.in+4
+.nf
+% getid -v2c localhost public
+sysDescr.0 = SNMPv2 agent from SNMP Research, Inc.
+sysObjectID.0 = 0.0
+sysUpTime.0 = 7982
+sysUpTime.2 = NO_SUCH_INSTANCE_EXCEPTION
+iso.2.0 = NO_SUCH_OBJECT_EXCEPTION
+.fi
+.in-4
+
+.PP
+The following SNMPv3 request `succeeds' with robust reporting of errors
+on the last two VarBinds.
+
+.in+4
+.nf
+% getid -v3 localhost public
+Enter Authentication password : 
+sysDescr.0 = SNMPv2 agent from SNMP Research, Inc.
+sysObjectID.0 = 0.0
+sysUpTime.0 = 8672
+sysUpTime.2 = NO_SUCH_INSTANCE_EXCEPTION
+iso.2.0 = NO_SUCH_OBJECT_EXCEPTION
+.fi
+.in-4
+
+.SH FILES
+ /etc/srconf/mgr/mgr.cnf
+ /etc/srconf/mgr/snmpinfo.dat
+
+.SH "SEE ALSO"
+.I getbulk(SR_CMDMAN),
+.I getmany(SR_CMDMAN),
+.I getmet(SR_CMDMAN),
+.I getnext(SR_CMDMAN),
+.I getone(SR_CMDMAN),
+.I getroute(SR_CMDMAN),
+.I getsub(SR_CMDMAN),
+.I gettab(SR_CMDMAN),
+.I mgr.cnf(SR_FMTMAN),
+.I setany(SR_CMDMAN),
+.I snmpinfo.dat(SR_FMTMAN),
+.I traprcv(SR_CMDMAN),
+.I trapsend(SR_CMDMAN),
+.I inform(SR_CMDMAN),
+RFCs 1155, 1157, 1212, 2576, 2579-2580, and 3416-3418.
+
+.SH DIAGNOSTICS
+.IP Failure\ in\ snmpinfo.dat
+This message indicates that there is a problem with the named
+configuration file.  Check to see that there is an
+.I snmpinfo.dat(SR_FMTMAN)
+file located in the default directory
+or in the directory indicated by the environment variable
+SR_MGR_CONF_DIR.  If the file exists, ensure that the file
+is readable and contains the correct information.
+.IP Error\ code\ set\ in\ packet\ \-\ No\ such\ variable\ name.\ Index:\ 4.
+This message
+.B should
+be printed for SNMPv1 executions of
+.I getid.
+This message indicates that there is a problem with the fourth
+VarBind, sysUpTime.2.  The problem is that there is no
+instance 2 for the variable sysUpTime.  Because SNMPv1 does not
+have a robust error-reporting facility, the entire request fails.

@@ -1,0 +1,16 @@
+<?xml version="1.0"?> 
+<!DOCTYPE FastPathXML SYSTEM "types.dtd">
+ <FastPathXML>
+   <data-types version="1.0">
+     <enum name="L7_LOG_EMAIL_ALERT_SECURITY_t">
+        <option macro="L7_LOG_EMAIL_ALERT_NONE" name="None"> </option>
+        <option macro="L7_LOG_EMAIL_ALERT_TLSV1" name="TLSv1"> </option>
+     </enum>
+     <enum name="L7_LOGGING_EMAIL_ALERT_MSGTYPE_t">
+        <option macro="L7_LOGGING_EMAIL_ALERT_URGENT" name="Urgent"> </option>
+        <option macro="L7_LOGGING_EMAIL_ALERT_NON_URGENT" name="Non-Urgent"> </option>
+        <option macro="L7_LOGGING_EMAIL_ALERT_BOTH" name="Both"> </option>
+     </enum>
+   </data-types>
+ </FastPathXML> 
+

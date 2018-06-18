@@ -1,0 +1,27 @@
+<?xml version='1.0'?>
+<!DOCTYPE FastPathXML SYSTEM  "web.dtd" >
+ 
+
+
+<FastPathXML>
+    <webxml version="1.0" name="EMAILALERTStatistics" title="Email Alert Statistics">
+        <group id="1" heading=" ">
+            <node id="1">
+                <element obj-name="baselogemailAlertStatistics_statsemailsSentCount" id="1" name="Number of Emails Sent"/>
+            </node>
+            <node id="2">
+                <element obj-name="baselogemailAlertStatistics_statsemailsFailureCount" id="1" name="Number of Emails Failed"/>
+            </node>
+            <node id="3">
+                <element obj-name="baselogemailAlertStatistics_statsTimeSinceLastEmail" id="1" name="Time Since Last Email Sent"/>
+            </node>
+            <node id="4">
+                <button scope="page" type="buttonClear" help="Refreshes the form on this page from the Switch" id="1" name="Refresh"/>
+            </node>
+            <node id="5">
+                <button scope="page" level="ReadWriteUser" type="buttonSubmit" properties="write-only" value="TRUE" target-page="EMAILALERTStatistics.html" obj-name="baselogemailAlertStatistics_statsClear" help="Clears the Statistics." id="1" name="Clear Counters"/>
+            </node>
+        </group>
+    </webxml>
+</FastPathXML>
+

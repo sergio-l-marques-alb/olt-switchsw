@@ -1,0 +1,14 @@
+#!/bin/sh
+
+cd fastpath
+sh cxp360g.update
+sh tolt8g.update
+cd -
+
+cd fastpath.cli
+sh cli.update
+cd -
+
+cd fastpath.shell
+sh shell.update
+cd -

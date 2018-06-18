@@ -1,0 +1,183 @@
+##############################################################################
+#
+# make.magic.pkg
+#
+# Purpose:  
+#      Performs the necessary "magic" to allow builds to occur from
+#      the output directory instead of begin intermixed with the source
+#      content.  This facilitates supporting multiple build outputs 
+#      for a single source tree view.
+#
+# Note:
+#      This file typically used in conjunction with 'bldlib' processing.
+#
+##############################################################################
+
+# Caller must specify the following variables
+#   - MAKEFILE_NAME   := path and name of target Makefile, relative to sub-make entry location.
+#   - MASTERSRC       := master list of all source files to be built from this location.
+#   - MASTERINC       := master list of source include directories owned by this package (without the -I).
+#   - SRCINCPATHS      = list of header include paths for this component.
+#   - EXTRNINCPATHS    = list of external header include paths outside of FP_BASE source tree.
+#   - LIBOBJSEXTRA     = additional object files to build that are not in LIBOBJS (optional).
+#   - LIBOBJSEXCLUDE   = list of object files to exclude from LIBOBJS (optional).
+#   - CFLAGSEXTRA      = additional compiler flags needed for these source files (optional).
+#   - OBJDIR          := target package output location.
+#   - RELOUT          := relative path back to top-of-view from OBJDIR output directory.
+#
+
+# Do not change these lines.
+#
+
+  # Defines relative path to top-of-view for use in build rules, include paths, etc.
+  #
+  FP_BASE := $(RELOUT)
+
+  include $(FP_ROOT)/src/l7tools/build/make.cfg
+
+  #----- Start Makefile transformation section.
+
+  # Manipulate the source file variables for specific directory or file build requests.
+  #
+  # Note: It is assumed that a local file build takes precedence over a local directory.
+  #       A local file build reuses the CMD_LOCAL_DIR varaible to determine if the source
+  #       file's path is defined for the current package.
+  #
+  # Note: Similar logic is used in both make.magic.pkg and makerules.arc.pkg.
+  #
+  mastersrc_orig := $(MASTERSRC)
+  ifeq (1,$(CMD_LOCAL_DIR_OR_FILE))
+    ifneq (,$(filter $(CMD_LOCAL_DIR),$(MASTERSRC)))
+      ifneq (,$(CMD_LOCAL_FILE))
+        MASTERSRC              :=
+        MASTERSRC_FILE_EXCLUDE :=
+        MASTERSRC_FILE_INCLUDE := $(CMD_LOCAL_FILE)
+      else
+        MASTERSRC := $(filter $(CMD_LOCAL_DIR),$(MASTERSRC))
+      endif
+    else  
+      MASTERSRC              :=
+      MASTERSRC_FILE_EXCLUDE :=
+      MASTERSRC_FILE_INCLUDE :=
+    endif
+  endif
+  
+  # List all source files in the package,
+  # filtering out those source files specifically excluded from the source paths,
+  # then add in individually-specified source files.
+  #
+  find_files = $(patsubst $(FP_BASE)/%,%,$(wildcard $(foreach type, $(SRC_FILE_TYPES), $(FP_BASE)/$(dir)/*.$(type))))
+  sources = $(filter-out $(MASTERSRC_FILE_EXCLUDE), \
+		$(foreach dir, $(MASTERSRC), \
+			$(patsubst $(FP_BASE)/%, %, \
+				$(wildcard $(foreach type, $(SRC_FILE_TYPES), $(FP_BASE)/$(dir)/*.$(type)))))) \
+		$(MASTERSRC_FILE_INCLUDE)
+
+  # Use environment-dependent $(PSEP) to separate multiple paths listed in VPATH.
+  #
+  src_search := $(patsubst %,$(FP_BASE)/%,$(MASTERSRC) $(sort $(patsubst %/,%,$(dir $(MASTERSRC_FILE_INCLUDE)))))
+  VPATH := $(subst $(SPACE),$(PSEP),$(src_search))
+
+  # Specify compiler flags (use SRCDIR for source file include paths). 
+  #
+  CFLAGSLOCAL := $(GFLAG) $(GCOV) $(CRC_WARN1) $(CFLAGSEXTRA)
+
+  # Specify list of paths to search for included header files
+  #
+  C_INCLUDE_PATH := $(subst $(SPACE),$(PSEP),$(strip $(addprefix $(FP_BASE)/,$(mastersrc_orig)) \
+			$(addprefix $(FP_BASE)/,$(MASTERINC)) \
+			$(addprefix $(FP_BASE)/,$(SRCINCPATHS)) \
+			$(EXTRNINCPATHS) ))
+  CPLUS_INCLUDE_PATH := $(C_INCLUDE_PATH)
+  export C_INCLUDE_PATH CPLUS_INCLUDE_PATH
+ifeq (1,$(KLOCWORK_BUILD))
+  export CINCLUDES += $(addprefix -I,$(subst $(PSEP),$(SPACE),$(C_INCLUDE_PATH)))
+endif
+
+  # Specify modules that need to be compiled.
+  #
+  LIBOBJSRAW :=	$(foreach type, $(SRC_FILE_TYPES), $(filter %.o,$(notdir $(sources:.$(type)=.o))))
+  LIBOBJS := $(filter-out $(LIBOBJSEXCLUDE), $(LIBOBJSRAW) $(LIBOBJSEXTRA))
+
+  #----- End Makefile transformation section.
+
+
+  # Pick up specific build rules, if any.
+  #
+  # Note: Define a BLDLIB_PKG variable with target(s) defined in the 
+  #       BLDRULESFILE makefile in order to hook into the 'bldlib' processing.
+  #
+  ifneq (,$(strip $(BLDRULESFILE)))
+    include $(BLDRULESFILE)
+  endif
+
+
+  include $(FP_ROOT)/src/l7tools/build/make.footer
+
+
+.PHONY: debug-variables
+debug-variables::
+	@$(echo) ""
+	@$(echo) "Makefile Debug Variables For '$(PKGNAME)' Package:"
+	@$(echo) "===================================================="
+	@$(echo) "CONFIG=$(CONFIG)"
+	@$(echo) "MAKECMDGOALS=$(MAKECMDGOALS)"
+	@$(echo) "MAKEFLAGS=$(MAKEFLAGS)"
+	@$(echo) "MPARMS=$(MPARMS)"
+	@$(echo) ""
+	@$(echo) "L7_TARGETOS=$(L7_TARGETOS)"
+	@$(echo) "L7_PACKAGE=$(L7_PACKAGE)"
+	@$(echo) "L7_FLEX=$(L7_FLEX)"
+	@$(echo) "L7_UI=$(L7_UI)"
+	@$(echo) ""
+	@$(echo) "LIB_TARGETS=$(LIB_TARGETS)"
+	@$(echo) ""
+	@$(echo) "PKGID=$(PKGID)"
+	@$(echo) "PKGNAME=$(PKGNAME)"
+	@$(echo) "OBJDIR=$(OBJDIR)"
+	@$(echo) "RELOUT=$(RELOUT)"
+	@$(echo) "FP_BASE=$(FP_BASE)"
+	@$(echo) "FP_ROOT=$(FP_ROOT)"
+	@$(echo) ""
+	@$(echo) "BLDLIB_PKG=$(BLDLIB_PKG)"
+	@$(echo) ""
+	@$(echo) "MASTERSRC=$(MASTERSRC)"
+	@$(echo) ""
+	@$(echo) "MASTERSRC_FILE_EXCLUDE=$(MASTERSRC_FILE_EXCLUDE)"
+	@$(echo) ""
+	@$(echo) "MASTERSRC_FILE_INCLUDE=$(MASTERSRC_FILE_INCLUDE)"
+	@$(echo) ""
+	@$(echo) "MASTERINC=$(MASTERINC)"
+	@$(echo) ""
+	@$(echo) "SRCINCPATHS=$(SRCINCPATHS)"
+	@$(echo) ""
+	@$(echo) "EXTRNINCPATHS=$(EXTRNINCPATHS)"
+	@$(echo) ""
+	@$(echo) "PREREQ=$(PREREQ)"
+	@$(echo) ""
+	@$(echo) "LIBOBJSEXTRA=$(LIBOBJSEXTRA)"
+	@$(echo) ""
+	@$(echo) "LIBOBJSEXCLUDE=$(LIBOBJSEXCLUDE)"
+	@$(echo) ""
+	@$(echo) "LIBOBJS=$(LIBOBJS)"
+	@$(echo) ""
+	@$(echo) "LIBARCS=$(LIBARCS)"
+	@$(echo) ""
+	@$(echo) "FPLIB=$(FPLIB)"
+	@$(echo) "PKGLIB=$(PKGLIB)"
+	@$(echo) ""
+	@$(echo) "VPATH=$(VPATH)"
+	@$(echo) ""
+	@$(echo) "CFLAGS=$(CFLAGS)"
+	@$(echo) ""
+	@$(echo) "CPLUSFLAGS=$(CPLUSFLAGS)"
+	@$(echo) ""
+	@$(echo) "CFLAGSLOCAL=$(CFLAGSLOCAL)"
+	@$(echo) ""
+	@$(echo) "CFLAGSEXTRA=$(CFLAGSEXTRA)"
+	@$(echo) ""
+	@$(echo) "CINCLUDES=$(CINCLUDES)"
+	@$(echo) ""
+	@$(echo) "C_INCLUDE_PATH=$(C_INCLUDE_PATH)"
+	@$(echo) ""
+
