@@ -5,7 +5,7 @@
  */
 
 #define PLAT_BCM_CHIP   L7_BCM_KATANA2
-#define PTIN_BOARD      PTIN_BOARD_TG16GF
+#define PTIN_BOARD      PTIN_BOARD_AG16GA
 
 /* SDK version */
 #define SDK_MAJOR_VERSION   6

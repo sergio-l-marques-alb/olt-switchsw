@@ -1680,8 +1680,9 @@ L7_RC_t ptin_intf_boardtype_dump(void)
  * 
  * @return L7_RC_t 
  */
-L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf)
+L7_RC_t ptin_intf_any_format(ptin_intf_any_format_t *intf) 
 {
+   
   L7_uint32 ptin_port, intIfNum, lag_idx;
   L7_INTF_TYPES_t intf_type;
   L7_RC_t rc, rc_global;

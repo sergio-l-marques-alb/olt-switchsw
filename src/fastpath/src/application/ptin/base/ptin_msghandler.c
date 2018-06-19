@@ -5561,6 +5561,33 @@ int CHMessageHandler (ipc_msg *inbuffer, ipc_msg *outbuffer)
       break;  /* CCMSG_IGMP_UNICAST_CLIENT_PACKAGES_REMOVE */
     }
 /************************************End Multicast Package Feature********************************************************/
+
+    case CCMSG_AGENT_TRAP_CONFIGURE:
+    {
+      PT_LOG_INFO(LOG_CTX_MSGHANDLER, "Message received: CCMSG_AGENT_TRAP_CONFIGURE (0x%04X)", inbuffer->msgId);
+
+      CHECK_INFO_SIZE(msg_agent_trap_conf_t);
+
+      msg_agent_trap_conf_t *ptr;
+        
+      ptr = (msg_agent_trap_conf_t *) outbuffer->info;
+      memcpy(&outbuffer->info, &inbuffer->info, sizeof(msg_agent_trap_conf_t));
+
+      ptin_msg_configure_trap(ptr->vlan, ptr->port_id, ptr->protocol, ptr->admin);
+
+      /* Execute command */
+
+      if (L7_SUCCESS != rc)
+      {
+         PT_LOG_ERR(LOG_CTX_MSGHANDLER, "Error sending data");
+         res = SIR_ERROR(ERROR_FAMILY_HARDWARE, ERROR_SEVERITY_ERROR, SIRerror_get(rc));
+         SetIPCNACK(outbuffer, res);
+         break;
+      }
+
+        outbuffer->infoDim = sizeof(msg_agent_trap_conf_t);
+        break;
+    }
     /************************************************************************** 
     * MAC Limiting Configuration
     **************************************************************************/

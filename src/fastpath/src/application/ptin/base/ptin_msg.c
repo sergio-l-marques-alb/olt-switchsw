@@ -513,6 +513,87 @@ L7_RC_t ptin_msg_multicast_reset(msg_HwGenReq_t *msg)
 }
 
 /**
+ * Configure packet trapping in HW
+ * 
+ * @author Rui Fernandes (6/15/2018)
+ * 
+ * @param vlanId
+ * @param portId 
+ * @param protocol 
+ * @param enable 
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ptin_msg_configure_trap(L7_uint16 vlanId, L7_uint8 portId, L7_uint8 protocol, L7_BOOL enable)
+{
+  DAPI_SYSTEM_CMD_t dapiCmd;
+  ptin_intf_any_format_t intf;
+  L7_RC_t rc;
+
+  /* Policer must be a valid pointer */
+  if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
+  {
+    PT_LOG_ERR(LOG_CTX_API,"Invalid argument");
+    return L7_FAILURE;
+  }
+
+  intf.format     = PTIN_INTF_FORMAT_PORT;
+  intf.value.ptin_port = portId;
+
+  /* Expand port formats */
+  if (ptin_intf_any_format(&intf) != L7_SUCCESS)
+  {
+    PT_LOG_ERR(LOG_CTX_MSG, "Invalid interface %u", intf.value.ptin_port);
+    return L7_FAILURE;
+  }
+
+  memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
+
+  dapiCmd.cmdData.snoopConfig.getOrSet    = (enable) ? DAPI_CMD_SET : DAPI_CMD_CLEAR;
+  dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET;
+  dapiCmd.cmdData.snoopConfig.enable      = enable & 1;
+  dapiCmd.cmdData.snoopConfig.vlanId      = vlanId;
+  dapiCmd.cmdData.snoopConfig.vlan_mask   = 0xFFF;
+  dapiCmd.cmdData.snoopConfig.CoS         = (L7_uint8) -1;
+  dapiCmd.cmdData.snoopConfig.level       = 0;
+
+  if (protocol == PROTOCOL_IGMP)
+  {
+    dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_IGMP_ALL;
+  }
+  else if (protocol == PROTOCOL_DHCPV4)
+  {
+    dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_DHCP_ALL;
+  }
+  else if (protocol == PROTOCOL_DHCPV6)
+  {
+    dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET6;
+    dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_DHCP_ALL;
+  }
+  else 
+  {
+    PT_LOG_ERR(LOG_CTX_API,"Invalid argument protocol");
+    return L7_FAILURE;
+  }
+
+  if (intf.value.ptin_port != -1)
+  {
+    rc = dtlPtinPacketsTrap(portId, &dapiCmd);
+  }
+  else
+  {
+    rc = dtlPtinPacketsTrap(L7_ALL_INTERFACES, &dapiCmd);
+  }
+
+  if (rc == L7_SUCCESS)
+  {
+    PT_LOG_NOTICE(LOG_CTX_API, " Succesfully added trap, protocol %d, vlan %d and rc = %u",protocol, vlanId, rc);
+  }
+
+  return rc;
+}
+
+/**
  * TYPE B Protection interface switch notification
  * 
  * @param msg : (no meaning)
@@ -5670,7 +5751,7 @@ static L7_RC_t ptin_msg_qosvlan_config(L7_uint32 evc_id, L7_uint16 nni_vlan, L7_
   #if (PTIN_BOARD_IS_LINECARD)
     if (!downlink)
     {
-    #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG )
+    #if (PTIN_BOARD == PTIN_BOARD_TG16G || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_TT04SXG || PTIN_BOARD == PTIN_BOARD_AG16GA )
       for (i=PTIN_SYSTEM_N_PONS; i<PTIN_SYSTEM_N_PORTS; i++)
       {
         qos_apply.ptin_port[number_of_ports++] = i;
@@ -7770,7 +7851,7 @@ L7_RC_t ptin_msg_stormControl2_set(msg_HwEthStormControl2_t *msgStormControl)
   ptin_intf.intf_id   = msgStormControl->intf.intf_id;
 
   //KATANA2 workaround ( KT2 doesn't support 1 pps rate limit)
-  if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_TT04SXG)
+  if (PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_TT04SXG || PTIN_BOARD == PTIN_BOARD_AG16GA)
   {
     if(msgStormControl->broadcast.rate_value == 1 && msgStormControl->broadcast.rate_units == 0 /* PPS */)
     {
@@ -19722,7 +19803,7 @@ L7_RC_t ptin_msg_replicate_port_configuration(L7_uint32 ptin_port, L7_uint32 dst
       continue;
     }
 
-    for (position = 0 ;(position < 255) && (iteration < NGPON2_GROUP.number_services); position++) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
+    for (position = 0 ; (position < 255) && (iteration < NGPON2_GROUP.number_services); position++) // max number of a L7_uint8 (NGPON2_GROUP.evc_groups_pbmp[index])
     {
       /* check the configure EVC from this NGPON2 group*/
       if( NGPON2_BIT_EVC((NGPON2_GROUP.evc_groups_pbmp[index] >> position)) )
@@ -20425,7 +20506,6 @@ void ptin_msg_igmp_macbridge_client_packages_add_or_remove(L7_uint32 evcId, L7_u
   }
 #endif
 }
-
 
 #if 0
  
