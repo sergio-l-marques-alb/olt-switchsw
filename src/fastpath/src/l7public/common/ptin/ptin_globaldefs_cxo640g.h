@@ -13,6 +13,7 @@
 
 #define __Y1731_802_1ag_OAM_ETH__
 #define __MxP_FILTER__INSTEAD_OF__APS_AND_CCM__
+#define APS_CCM_hapiBroadReceive_2_callback_SHORTCUT
 
 /* If SSM is not supported, comment this line */
 #define SYNC_SSM_IS_SUPPORTED

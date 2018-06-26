@@ -8,6 +8,7 @@
 #define SYNC_SSM_IS_SUPPORTED
 
 #define __Y1731_802_1ag_OAM_ETH__
+#define APS_CCM_hapiBroadReceive_2_callback_SHORTCUT
 
 #define PHY_RECOVERY_PROCEDURE  1
 /** Service association AVL Tree */

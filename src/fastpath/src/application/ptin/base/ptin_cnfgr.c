@@ -562,7 +562,9 @@ L7_RC_t ptinCnfgrInitPhase2Process( L7_CNFGR_RESPONSE_t *pResponse,
    for (i=0; i<MAX_PROT_PROT_ERPS; i++) ptin_aps_packet_init(i);//Initialize message queues
 #endif
 
+#ifdef __Y1731_802_1ag_OAM_ETH__
    common_aps_ccm_packetRx_callback_register(); //must be after OAM ETH and ERP queues init: ptin_ccm_packet_init(-1) and ptin_aps_packet_init()
+#endif
   }
 
   /* IP dtl0 module initialization. */
