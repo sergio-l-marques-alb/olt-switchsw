@@ -1591,5 +1591,15 @@ typedef struct
     L7_uint8                   admin;   
 } __attribute__ ((packed)) ptin_LRP_t;
 
+typedef struct 
+{
+  L7_uint8  slot_id;                     // Slot ID
+  L7_uint8  port_type;                   // Port type: 0-Physical; 1-LAG; 2-LIF; 3-RIF
+  L7_uint8  port_id;                     // Por index
+  L7_uint8  vlan;                        // vlan ID
+  L7_uint8  protocol;                    // 1- IGMP_PROTOCOL, 2- DHCPV4_PROTOCOL,3 - DHCPV6_PROTOCOL 
+  L7_uint8  admin;                        // 1 = enable, 0 - disable
+} agent_trap_conf_t;
+
 #endif /* _PTIN_STRUCTS_H */
 

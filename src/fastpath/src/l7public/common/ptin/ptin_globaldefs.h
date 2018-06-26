@@ -59,7 +59,12 @@
 #define CPLD_ID1_VAL                  (CPLD_ID & 0xFF)
 
 #define PTIN_INBAND_BRIDGE_SCRIPT     "/bin/sh /usr/local/ptin/scripts/startBridge.sh"  /* Only applicable to CXP640G */
+
+#if PTIN_BOARD != PTIN_BOARD_AG16GA
 #define PTIN_PCAP_BRIDGE_SCRIPT       "/bin/sh /usr/local/ptin/scripts/startPcapBridge.sh"  /* Applicable to CXP640G and Line Cards */
+#else
+#define PTIN_PCAP_BRIDGE_SCRIPT       "/bin/sh /usr/local/scripts/startPcapBridge.sh"  /* Applicable to PTIN_BOARD_AG16GA */
+#endif
 
 #define PTIN_SYSTEM_GROUP_VLANS  1
 
@@ -189,7 +194,11 @@ extern int ptin_sys_number_of_ports;
 #define PTIN_RESERVED_VLAN_MIN        2016
 #define PTIN_RESERVED_VLAN_MAX        2047
 #define PTIN_RESERVED_VLANS           (PTIN_RESERVED_VLAN_MAX - PTIN_RESERVED_VLAN_MIN + 1)
+#if PTIN_BOARD != PTIN_BOARD_AG16GA
 #define PTIN_VLAN_PCAP_EXT            2048  /* L7_DOT1Q_MAX_VLAN_ID - Reserved VLAN for packet capture. Only used on Linux interfaces (dtl0 and eth0) */
+#else
+#define PTIN_VLAN_PCAP_EXT            2046
+#endif
 #define PTIN_VLAN_INBAND              2047  /* L7_DOT1Q_MAX_VLAN_ID - Reserved VLAN for inBand management */
 
 #define PTIN_EVC_INBAND               0 /* inBand EVC id */

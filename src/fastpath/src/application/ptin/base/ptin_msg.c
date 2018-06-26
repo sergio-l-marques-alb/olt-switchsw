@@ -530,14 +530,13 @@ L7_RC_t ptin_msg_configure_trap(L7_uint16 vlanId, L7_uint8 portId, L7_uint8 prot
   ptin_intf_any_format_t intf;
   L7_RC_t rc;
 
-  /* Policer must be a valid pointer */
-  if (vlanId<PTIN_VLAN_MIN || vlanId>PTIN_VLAN_MAX)
+  if (vlanId>PTIN_VLAN_MAX)
   {
     PT_LOG_ERR(LOG_CTX_API,"Invalid argument");
     return L7_FAILURE;
   }
 
-  intf.format     = PTIN_INTF_FORMAT_PORT;
+  intf.format          = PTIN_INTF_FORMAT_PORT;
   intf.value.ptin_port = portId;
 
   /* Expand port formats */
@@ -559,16 +558,44 @@ L7_RC_t ptin_msg_configure_trap(L7_uint16 vlanId, L7_uint8 portId, L7_uint8 prot
 
   if (protocol == PROTOCOL_IGMP)
   {
-    dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_IGMP_ALL;
+    if (vlanId == 0) /* Trap all vlans*/
+    {
+      PT_LOG_DEBUG(LOG_CTX_API,"Processing PTIN_PACKET_IGMP_ALL");
+      dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_IGMP_ALL;
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_API,"Processing PTIN_PACKET_IGMP");
+      dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_IGMP;
+    }
   }
   else if (protocol == PROTOCOL_DHCPV4)
   {
-    dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_DHCP_ALL;
+    if (vlanId == 0) /* Trap all vlans*/
+    {
+      PT_LOG_DEBUG(LOG_CTX_API,"Processing PTIN_PACKET_DHCP_ALL");
+      dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_DHCP_ALL;
+    }
+    else
+    {
+      PT_LOG_DEBUG(LOG_CTX_API,"Processing PTIN_PACKET_DHCP");
+      dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_DHCP;
+    }
   }
   else if (protocol == PROTOCOL_DHCPV6)
   {
     dapiCmd.cmdData.snoopConfig.family      = L7_AF_INET6;
-    dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_DHCP_ALL;
+
+    if (vlanId == 0) /* Trap all vlans*/
+    {
+      PT_LOG_DEBUG(LOG_CTX_API,"Processing PTIN_PACKET_DHCP_ALL");
+      dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_DHCP_ALL;
+    }
+    else
+    {  
+      PT_LOG_DEBUG(LOG_CTX_API,"Processing PTIN_PACKET_DHCP");
+      dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_DHCP;
+    }
   }
   else 
   {

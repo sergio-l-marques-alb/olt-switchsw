@@ -107,6 +107,8 @@
 #define CCMSG_ETH_NTW_CONNECTIVITY_GET      0x9060  // struct msg_NtwConnectivity_t
 #define CCMSG_ETH_NTW_CONNECTIVITY_SET      0x9061  // struct msg_NtwConnectivity_t
 
+#define CCMSG_AGENT_TRAP_CONFIGURE          0x9110  // struct msg_agent_trap_conf_t
+
 #define CHMSG_ETH_UPLINK_COMMAND            0x9116  // Uplink protection command from Mx (fw control): struct msg_uplinkProtCmd
 
 #define CHMSG_UPLINKPROT_STATE              0x9117  // msg_uplinkprot_st
@@ -364,6 +366,13 @@
 #define PTIN_IGMP_PACKAGE_BITMAP_SIZE (PTIN_SYSTEM_IGMP_MAXPACKAGES-1)/PTIN_IGMP_PACKAGE_MASK_UNIT+1  /* Packages Bitmap Size = (256-1)/8+1=32*/
 #endif
 /*End Multicast Package Defines*/
+
+typedef enum 
+{
+  PROTOCOL_IGMP,
+  PROTOCOL_DHCPV4,
+  PROTOCOL_DHCPV6
+}protocol_t;
 
 /*****************************************************************************
  * Structures exchanged on the messages
@@ -1468,7 +1477,7 @@ typedef struct {
 
 typedef struct {                    /* Mask values used here come from the variable 'mask' in the struct msg_AccessNodeCircuitId_t */
   L7_uint16   onuid;                /* [mask=0x0040] ONU ID */
-  L7_uint8    slot;             	  /* [mask=0x0080] Slot */
+  L7_uint8    slot;                 /* [mask=0x0080] Slot */
   L7_uint16   port;                 /* [mask=0x0100] Slot Port*/
   L7_uint16   q_vid;                /* [mask=0x0200] VLAN ID on U interface */
   L7_uint16   c_vid;                /* [mask=0x0400] C-VLAN on U interface */
@@ -3251,6 +3260,17 @@ typedef struct
   } __attribute__ ((packed)) optico;
   unsigned char        serviceType;                  // 4000 - { 1 - inni, 0 - uni }
 } __attribute__ ((packed)) msg_HwEthernet_t;
+
+
+typedef struct 
+{
+  L7_uint8   slot_id;                     // Slot ID
+  L7_uint8   port_type;                   // Port type: 0-Physical; 1-LAG; 2-LIF; 3-RIF
+  L7_uint8   port_id;                     // Por index
+  L7_uint16  vlan;                        // vlan ID
+  L7_uint8   protocol;                    // 1- IGMP_PROTOCOL, 2- DHCPV4_PROTOCOL,3 - DHCPV6_PROTOCOL 
+  L7_uint8   admin;                        // 1 = enable, 0 - disable
+}__attribute__((packed)) msg_agent_trap_conf_t;
 
 
 /***************************************************************************** 

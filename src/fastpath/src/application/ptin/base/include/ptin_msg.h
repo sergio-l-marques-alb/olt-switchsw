@@ -1861,6 +1861,22 @@ L7_RC_t ptin_msg_igmp_multicast_service_add(msg_multicast_service_t *msg, L7_uin
  *         L7_SUCCESS/L7_FAILURE
  */
 L7_RC_t ptin_msg_igmp_multicast_service_remove(msg_multicast_service_t *msg, L7_uint32 noOfMessages);
+/**************************************** Trap **************************************************/
+/**
+ * Configure packet trapping in HW
+ * 
+ * @author Rui Fernandes (6/15/2018)
+ * 
+ * @param vlanId
+ * @param portId 
+ * @param protocol 
+ * @param enable 
+ * 
+ * @return L7_RC_t 
+ */
+extern L7_RC_t ptin_msg_configure_trap(L7_uint16 vlanId, L7_uint8 portId, L7_uint8 protocol, L7_BOOL enable);
+
+/**************************************** End Trap Feature **************************************************/
 
 /*****************************************************************************************************************/
 /*                                                                                                               */  
@@ -1974,10 +1990,10 @@ extern L7_RC_t ptin_msg_apply_ngpon2_configuration(L7_uint32 ngpon2_id);
  * @author Rui Fernandes: rui-f-fernandes@telecom.pt   
  */
 extern L7_RC_t ptin_msg_NGPON2_clear();
+
+
 #endif /* NGPON2_SUPPORTED */
 /****************************************End Multicast Package Feature**************************************************/
-
-
 
 
 extern int ptin_msg_PTP_lnx_net_if_set(ipc_msg *inbuffer, ipc_msg *outbuffer);
