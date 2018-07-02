@@ -1913,6 +1913,9 @@ L7_RC_t daiFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerV
   NIM_INTF_MASK_t portMask;
   L7_uint32 i, activeState = L7_INACTIVE;
   L7_RC_t rc = L7_SUCCESS;
+#if (PTIN_BOARD_IS_GPON)
+  L7_uint dst_port, src_port;
+#endif
 
   if (ptin_debug_dai_snooping)
     PT_LOG_TRACE(LOG_CTX_DAI, "intIfNum=%u, vlanId=%u, innerVlanId=%u", intIfNum, vlanId, innerVlanId);
@@ -1926,6 +1929,27 @@ L7_RC_t daiFrameFlood(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 innerV
         /* Don't flood back on the incoming interface */
         if(i != intIfNum)
         {
+
+#if (PTIN_BOARD_IS_GPON)
+
+           /* Validate source port */
+           if (ptin_intf_intIfNum2port(intIfNum, &src_port) != L7_SUCCESS)
+           {
+             return L7_FAILURE;
+           }
+
+           if (ptin_intf_intIfNum2port(i, &dst_port) != L7_SUCCESS)
+           {
+             continue;
+           }
+           /* Prevent both src port and dst port to be PON ports (isolated) */
+           if (((PTIN_SYSTEM_PON_PORTS_MASK >> src_port) & 1) &&
+               ((PTIN_SYSTEM_PON_PORTS_MASK >> dst_port) & 1))
+           {
+             continue;
+           }
+#endif
+
           if((nimGetIntfActiveState(i, &activeState) == L7_SUCCESS) &&
              (activeState == L7_ACTIVE))
           {
