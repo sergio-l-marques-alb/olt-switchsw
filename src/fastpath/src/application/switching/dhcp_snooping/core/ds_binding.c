@@ -1413,7 +1413,7 @@ void dsBindingEvcRemoveAll(L7_uint32 ext_evc_id,L7_uint32 innerVlan)
     /* store key for use in next search */
     memcpy(&key, &binding->key, sizeof(dsBindingTreeKey_t));
 
-#if PTIN_BOARD_IS_STANDALONE
+#if 1
     /* If this entry belongs to our service, remove it */
     if((binding->vlanId == internalVlan) && (binding->innerVlanId == innerVlan))
     {
