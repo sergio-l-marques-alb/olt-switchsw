@@ -3467,7 +3467,7 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
     /* default to forward frame */
     dropFrame = L7_FALSE;
 
-#if HAPI_BROAD_PKT_DEBUG
+#ifdef HAPI_BROAD_PKT_DEBUG
     skip = L7_FALSE;
     if(pktDebugFilter & HAPI_DEBUG_PKT_FILTER_PORT)
     {
