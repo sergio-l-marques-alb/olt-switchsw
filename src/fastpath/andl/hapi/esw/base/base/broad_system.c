@@ -46,7 +46,7 @@
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 /* No include */
 #else
-#include "bcm/filter.h"
+  #include "bcm/filter.h"
 #endif
 #include "soc/cmic.h"
 #include "soc/drv.h"
@@ -64,7 +64,7 @@
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 /* No include */
 #else
-#include "bcmx/filter.h"
+  #include "bcmx/filter.h"
 #endif
 #include "bcmx/switch.h"
 #include "bcmx/bcmx_int.h"
@@ -72,7 +72,7 @@
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
 //#include "soc/ea/tk371x/igmp.h"
 #else
-#include "bcmx/igmp.h"
+  #include "bcmx/igmp.h"
 #endif
 #include "bcmx/custom.h"
 #include "bcm_int/esw/mbcm.h"
@@ -2016,58 +2016,61 @@ L7_RC_t hapiBroadSystemSnoopConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
 L7_RC_t hapiBroadSystemPacketTrapConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_g)
 {
   L7_BOOL enable = L7_TRUE;
-  DAPI_SYSTEM_CMD_t *dapiCmd = (DAPI_SYSTEM_CMD_t*)data;
-  L7_RC_t status=L7_SUCCESS;
+  DAPI_SYSTEM_CMD_t *dapiCmd = (DAPI_SYSTEM_CMD_t *)data;
+  L7_RC_t status = L7_SUCCESS;
 
-  switch (dapiCmd->cmdData.snoopConfig.getOrSet)  {
-    case DAPI_CMD_SET:
-      enable = dapiCmd->cmdData.snoopConfig.enable;
-      break;
-    case DAPI_CMD_CLEAR:
-      enable = L7_FALSE;
-      break;
+  switch (dapiCmd->cmdData.snoopConfig.getOrSet)
+  {
+  case DAPI_CMD_SET:
+    enable = dapiCmd->cmdData.snoopConfig.enable;
+    break;
+  case DAPI_CMD_CLEAR:
+    enable = L7_FALSE;
+    break;
   default:
-      PT_LOG_ERR(LOG_CTX_HAPI,"Invalid command type %u", dapiCmd->cmdData.snoopConfig.getOrSet);
-      return L7_FAILURE;
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid command type %u", dapiCmd->cmdData.snoopConfig.getOrSet);
+    return L7_FAILURE;
   }
 
   switch (dapiCmd->cmdData.snoopConfig.packet_type)
   {
     /* IGMP packets */
-    case PTIN_PACKET_IGMP:
+  case PTIN_PACKET_IGMP:
+  case PTIN_PACKET_IGMP_ALL:
     /* DHCP packets */
-    case PTIN_PACKET_DHCP:
+  case PTIN_PACKET_DHCP:
+  case PTIN_PACKET_DHCP_ALL:
     /* PPPoE packets */
-    case PTIN_PACKET_PPPOE:
+  case PTIN_PACKET_PPPOE:
     /* APS packets */
-    case PTIN_PACKET_APS:
-    case PTIN_PACKET_MEP_TRAPPED:
-    case PTIN_PACKET_MIP_TRAPPED:
+  case PTIN_PACKET_APS:
+  case PTIN_PACKET_MEP_TRAPPED:
+  case PTIN_PACKET_MIP_TRAPPED:
     /* ARP/IP dtl0 packets */
-    case PTIN_PACKET_IPDTL0:
-      status = hapiBroadConfigTrap(usp, &dapiCmd->cmdData.snoopConfig, L7_FALSE, dapi_g);
-      break;
+  case PTIN_PACKET_IPDTL0:
+    status = hapiBroadConfigTrap(usp, &dapiCmd->cmdData.snoopConfig, L7_FALSE, dapi_g);
+    break;
 
     /* MLD packets */
-    case PTIN_PACKET_MLD:
-      status = hapiBroadConfigMldFilter(enable, dapi_g );
-      break;
-    
+  case PTIN_PACKET_MLD:
+    status = hapiBroadConfigMldFilter(enable, dapi_g);
+    break;
+
     /* CCM packets */
-    case PTIN_PACKET_CCM:
-      status = hapiBroadConfigCcmFilter(usp, enable, dapiCmd->cmdData.snoopConfig.vlanId, dapiCmd->cmdData.snoopConfig.level, dapi_g);
-      break;
+  case PTIN_PACKET_CCM:
+    status = hapiBroadConfigCcmFilter(usp, enable, dapiCmd->cmdData.snoopConfig.vlanId, dapiCmd->cmdData.snoopConfig.level, dapi_g);
+    break;
 
     /* Not handled */
-    default:
-      status = L7_FAILURE;
-      break;
+  default:
+    status = L7_FAILURE;
+    break;
   }
 
   /* Check for errors */
   if (status != L7_SUCCESS)
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error: %d", status);
+    PT_LOG_ERR(LOG_CTX_HAPI, "Error: %d", status);
   }
 
   return status;
@@ -3231,6 +3234,10 @@ L7_RC_t hapiBroadReconfigTrap(ptin_packet_type_t packet_type, L7_BOOL reenable)
                                        &ptin_trap_policy[index].policyId);
       break;
 
+    case PTIN_PACKET_IGMP_ALL:
+      result = hapiBroadConfigIgmpTrapAll(L7_FALSE, dapi_g, &ptin_trap_policy[index].policyId);
+      break;
+
     case PTIN_PACKET_DHCP:
       if (ptin_trap_policy[index].ip_version == L7_AF_INET6)
       {
@@ -3244,13 +3251,24 @@ L7_RC_t hapiBroadReconfigTrap(ptin_packet_type_t packet_type, L7_BOOL reenable)
       }
       break;
 
+    case PTIN_PACKET_DHCP_ALL:
+      if (ptin_trap_policy[index].ip_version == L7_AF_INET6)
+      {
+        result = hapiBroadConfigDhcpV6TrapAll(dapi_g, &ptin_trap_policy[index].policyId);
+      }
+      else
+      {
+        result = hapiBroadConfigDhcpV4TrapAll(dapi_g, &ptin_trap_policy[index].policyId);
+      }
+      break;
+
     case PTIN_PACKET_PPPOE:
       result = hapiBroadConfigPPPoETrap(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, dapi_g,
                                         &ptin_trap_policy[index].policyId);
       break;
 
     case PTIN_PACKET_APS:
-      result = hapiBroadConfigApsTrap(/*usp,*/ ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].param, dapi_g,
+      result = hapiBroadConfigApsTrap(/*usp,*/ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].param, dapi_g,
                                       &ptin_trap_policy[index].policyId);
       break;
 
@@ -3261,7 +3279,7 @@ L7_RC_t hapiBroadReconfigTrap(ptin_packet_type_t packet_type, L7_BOOL reenable)
 
     case PTIN_PACKET_MIP_TRAPPED:
       result = hapiBroadConfigMIPFilter(ptin_trap_policy[index].vlan, ptin_trap_policy[index].vlan_mask, ptin_trap_policy[index].param, dapi_g,
-                                          &ptin_trap_policy[index].policyId);
+                                        &ptin_trap_policy[index].policyId);
       break;
 
     case PTIN_PACKET_IPDTL0:
@@ -3485,6 +3503,50 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
     PT_LOG_TRACE(LOG_CTX_HAPI, "Null vlan provided: Global enable is applied (enable=%u)", snoopConfig->enable);
   }
 
+#if PTIN_BOARD == PTIN_BOARD_AG16GA
+
+  ptin_trap_policy[search_index].policyId   = BROAD_POLICY_INVALID;
+  /* only for trap all dhcp, igmp packets*/
+  if (snoopConfig->packet_type == PTIN_PACKET_DHCP_ALL ||
+      snoopConfig->packet_type == PTIN_PACKET_IGMP_ALL)
+  {
+    switch (snoopConfig->packet_type)
+    {
+    case PTIN_PACKET_DHCP_ALL:
+
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Processing DHCP_ALL");
+      if (snoopConfig->family == L7_AF_INET6)
+      {
+        result = hapiBroadConfigDhcpV6TrapAll(dapi_g, &ptin_trap_policy[search_index].policyId);
+      }
+      else
+      {
+        result = hapiBroadConfigDhcpV4TrapAll(dapi_g, &ptin_trap_policy[search_index].policyId);
+      }
+      break;
+
+    case PTIN_PACKET_IGMP_ALL:
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Processing IGMP_ALL");
+      result = hapiBroadConfigIgmpTrapAll(L7_FALSE, dapi_g,
+                                          &ptin_trap_policy[search_index].policyId);
+      break;
+
+    default:
+      result = L7_FAILURE;
+      break;
+    }
+
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Finished igmp trapping processing (result=%d)", result);
+
+    /* If error, clear entry */
+    if (result != L7_SUCCESS || ptin_trap_policy[search_index].policyId == BROAD_POLICY_INVALID)
+    {
+      memset(&ptin_trap_policy[search_index], 0x00, sizeof(ptin_trap_policy[search_index]));
+    }
+    return result;
+  }
+#endif
+
   /* Run all igmp indexes */
   for (index = 0; index < PTIN_TRAP_POLICY_MAX_VLANS; index++)
   {
@@ -3679,9 +3741,13 @@ L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL 
     /* give IGMP frames high priority and trap to the CPU. */
     result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+
+#if (PTIN_BOARD != PTIN_BOARD_AG16GA)
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *)&vlan_match);
     if (result != L7_SUCCESS)  break;
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier OVID=%u/0x%04x defined",vlanId, vlan_match);
+#endif
+
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier OVID=%u/0x%04x defined", vlanId, vlan_match);
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
     if (result != L7_SUCCESS)  break;
     PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier BROAD_FIELD_ETHTYPE defined");
@@ -3708,6 +3774,134 @@ L7_RC_t hapiBroadConfigIgmpTrap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_BOOL 
        if (result != L7_SUCCESS)  break;
     }
   } while ( 0 );
+
+  /* Commit policy */
+  if (result == L7_SUCCESS)
+  {
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Commiting policy");
+
+    result = hapiBroadPolicyCommit(&policyId);
+
+    if (result == L7_SUCCESS)
+    {
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting policy");
+    }
+  }
+
+  if (result != L7_SUCCESS)
+  {
+    hapiBroadPolicyCreateCancel();
+    if (policy_id != L7_NULLPTR)  *policy_id = BROAD_POLICY_INVALID;
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Some error ocurred: canceling policy");
+  }
+  else
+  {
+    if (policy_id != L7_NULLPTR)  *policy_id = policyId;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished igmp trapping processing");
+
+  return result;
+}
+
+
+/**
+ * Create IFP rule to trap IGMP packets
+ * 
+ * @param vlanId      : VLAN ID value
+ * @param vlan_match  : VLAN ID mask
+ * @param switchFrame : Should packets be switched?
+ * @param dapi_g 
+ * @param policy_id   : Configured policy id (output)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadConfigIgmpTrapAll(L7_BOOL switchFrame, DAPI_t *dapi_g,
+                                   BROAD_POLICY_t *policy_id)
+{
+  BROAD_POLICY_t          policyId = BROAD_POLICY_INVALID;
+  BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
+  L7_ushort16             ip_ethtype  = L7_ETYPE_IP;
+  L7_uchar8               igmp_proto[] = { IP_PROT_IGMP };
+  L7_uchar8               exact_match[] = { FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
+    FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE };
+  BROAD_METER_ENTRY_t     meterInfo;
+  L7_RC_t                 result = L7_SUCCESS;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Starting igmp trapping processing");
+
+  /* Validate arguments */
+  if (policy_id == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Invalid or policyId pointer");
+  }
+
+  do
+  {
+#if defined(FEAT_METRO_CPE_V1_0)
+    /*On bcm53115 with DOT1AD package, dot1ad related rules in TCAM will be
+      hit first for IGMP packets (as DOT1AD rules are only based on VLAN tags).
+      As a result IGMP packets will not be trapped to CPU.
+      To fix this problem, we need to install protocol snooping rules at higher
+      priority compared to DOT1AD rules.*/
+    if ((hapiBroadRoboVariantCheck() ==  __BROADCOM_53115_ID) &&
+        (dapi_g->system->dvlanEnable == L7_TRUE))
+    {
+      result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_DOT1AD_SNOOP);
+    }
+    else
+    {
+      /* Don't create the policy now. */
+      /* In CPE code if the IGMP Snooping is enabled a call will be made to this 
+         function after dvlan is enabled */
+      return result;
+      result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+    }
+#else
+    result = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+#endif
+
+    /* Check policy creation */
+    if (result != L7_SUCCESS)
+    {
+      return result;
+    }
+
+    meterInfo = ptin_components_meter.igmp;
+
+    /* give IGMP frames high priority and trap to the CPU. */
+    result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
+    if (result != L7_SUCCESS)  break;
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier BROAD_FIELD_ETHTYPE defined");
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, igmp_proto, exact_match);
+    if (result != L7_SUCCESS)  break;
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Qualifier BROAD_FIELD_PROTO defined");
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
+#ifdef BCM_ROBO_SUPPORT
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_REASON_CODE, 8, 0, 0);
+#endif
+    if (result != L7_SUCCESS)  break;
+
+    /* Check if IGMP frames should be switched or not */
+    if (switchFrame == L7_FALSE)
+    {
+      /* Trap the frames to CPU, so that they are not switched */
+      result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+      if (result != L7_SUCCESS)  break;
+      result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+      if (result != L7_SUCCESS)  break;
+    }
+  }while (0);
 
   /* Commit policy */
   if (result == L7_SUCCESS)
@@ -3798,7 +3992,7 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     if (result != L7_SUCCESS)
       break;
 
-    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell created");
 
     /* Rate limit */
     if (PTIN_VLAN_IS_QUATTRO(vlanId))
@@ -3816,15 +4010,19 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     ip_type = BROAD_IP_TYPE_IPV4;
     result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+
+#if (PTIN_BOARD != PTIN_BOARD_AG16GA)
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *)&vlan_match);
     if (result != L7_SUCCESS)  break;
+#endif
+
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, udp_proto, exact_match);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8*)&dhcpc_dport, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8 *)&dhcpc_dport, exact_match);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8*)&ip_type, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
@@ -3842,15 +4040,19 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     ip_type = BROAD_IP_TYPE_IPV4;
     result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+
+#if (PTIN_BOARD != PTIN_BOARD_AG16GA)
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *)&vlan_match);
     if (result != L7_SUCCESS)  break;
+#endif
+
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, udp_proto, exact_match);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8*)&dhcps_dport, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8 *)&dhcps_dport, exact_match);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8*)&ip_type, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
@@ -3864,7 +4066,7 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
     if (result != L7_SUCCESS)  break;
 
-  } while ( 0 );
+  }while (0);
 
   /* Commit policy */
   if (result == L7_SUCCESS)
@@ -3898,6 +4100,150 @@ L7_RC_t hapiBroadConfigDhcpV4Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
 
   return result;
 }
+
+
+/**
+ * Create IFP rule to trap DHCPv4 packets
+ * 
+ *
+ * @param dapi_g 
+ * @param policy_id  : Configured policy id (output)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
+{
+  BROAD_POLICY_t          policyId = BROAD_POLICY_INVALID;
+  BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
+  L7_ushort16             ip_ethtype  = L7_ETYPE_IP;
+  L7_uchar8               udp_proto[] = { IP_PROT_UDP };
+  L7_ushort16             dhcpc_dport   = UDP_PORT_DHCP_CLNT;
+  L7_ushort16             dhcps_dport   = UDP_PORT_DHCP_SERV;
+  L7_uint8                ip_type;
+  L7_uchar8               exact_match[] = { FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
+    FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE };
+  BROAD_METER_ENTRY_t     meterInfo;
+  BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
+  L7_RC_t                 result = L7_SUCCESS;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Starting dhcp trapping processing");
+
+  /* Validate arguments */
+  if (policy_id == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, " policyId pointer");
+  }
+
+  /* There are 3 set of policies for DHCP packets. Here is why.
+   * When DHCP snoopinvlan_listg is enabled, we will have a set of trusted and
+   * untrusted ports. DHCP packets on trusted ports are copied to CPU
+   * with elevated priorirty. DHCP packets on un-trusted ports are trapped
+   * to CPU and are rate-limited (priority is not elevated).
+   *
+   * When DHCP snooping is disabled (default), priority of all DHCP packets
+   * is elevated so that a bcast/mcast flood doesn't impact the DHCP leasing.
+   * This is the default system-wide policy for DHCP packets, unless DHCP
+   * snooping overrides this. Note, priority is elevated to just above
+   * mcast/bcast/l3 miss packets.
+   */
+
+  do
+  {
+    result = hapiBroadPolicyCreate(policyType);
+    if (result != L7_SUCCESS) break;
+
+    meterInfo = ptin_components_meter.dhcp;
+
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
+
+    /* give dhcp frames high priority and trap to the CPU. */
+
+    /* DHCP packets from client */
+    ip_type = BROAD_IP_TYPE_IPV4;
+    result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    if (result != L7_SUCCESS)  break;
+
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
+    if (result != L7_SUCCESS)  break;
+    //result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, udp_proto, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8 *)&dhcpc_dport, exact_match);
+    if (result != L7_SUCCESS)  break;
+
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
+    if (result != L7_SUCCESS)  break;
+
+    /* Trap the frames to CPU, so that they are not switched */
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+    if (result != L7_SUCCESS)  break;
+
+    /* DHCP packets from server */
+    ip_type = BROAD_IP_TYPE_IPV4;
+    result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, udp_proto, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8 *)&dhcps_dport, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    /* Trap the frames to CPU, so that they are not switched */
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+    if (result != L7_SUCCESS)  break;
+
+  }while (0);
+
+  /* Commit policy */
+  if (result == L7_SUCCESS)
+  {
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Commiting policy");
+
+    result = hapiBroadPolicyCommit(&policyId);
+
+    if (result == L7_SUCCESS)
+    {
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting policy");
+    }
+  }
+
+  if (result != L7_SUCCESS)
+  {
+    hapiBroadPolicyCreateCancel();
+    if (policy_id != L7_NULLPTR)  *policy_id = BROAD_POLICY_INVALID;
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Some error ocurred: canceling policy");
+  }
+  else
+  {
+    if (policy_id != L7_NULLPTR)  *policy_id = policyId;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished dhcp trapping processing");
+
+  return result;
+}
+
 
 /**
  * Create IFP rule to trap DHCPv6 packets
@@ -3970,15 +4316,19 @@ L7_RC_t hapiBroadConfigDhcpV6Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     ip_type = BROAD_IP_TYPE_IPV6;
     result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+
+#if (PTIN_BOARD != PTIN_BOARD_AG16GA)
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *)&vlan_match);
     if (result != L7_SUCCESS)  break;
+#endif
+
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipv6_ethtype, exact_match);
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, udp_proto, exact_match);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8*)&dhcpv6c_dport, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8 *)&dhcpv6c_dport, exact_match);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8*)&ip_type, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
@@ -3996,15 +4346,19 @@ L7_RC_t hapiBroadConfigDhcpV6Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     ip_type = BROAD_IP_TYPE_IPV6;
     result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *) &vlan_match);
+
+#if (PTIN_BOARD != PTIN_BOARD_AG16GA)
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlanId, (L7_uchar8 *)&vlan_match);
     if (result != L7_SUCCESS)  break;
+#endif
+
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipv6_ethtype, exact_match);
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, udp_proto, exact_match);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8*)&dhcpv6s_dport, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8 *)&dhcpv6s_dport, exact_match);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8*)&ip_type, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_DEFAULT, 0, 0);
     if (result != L7_SUCCESS)  break;
@@ -4018,7 +4372,149 @@ L7_RC_t hapiBroadConfigDhcpV6Trap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t
     result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
     if (result != L7_SUCCESS)  break;
 
-  } while ( 0 );
+  }while (0);
+
+  /* Commit policy */
+  if (result == L7_SUCCESS)
+  {
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Commiting policy");
+
+    result = hapiBroadPolicyCommit(&policyId);
+
+    if (result == L7_SUCCESS)
+    {
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting policy");
+    }
+  }
+
+  if (result != L7_SUCCESS)
+  {
+    hapiBroadPolicyCreateCancel();
+    if (policy_id != L7_NULLPTR)  *policy_id = BROAD_POLICY_INVALID;
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Some error ocurred: canceling policy");
+  }
+  else
+  {
+    if (policy_id != L7_NULLPTR)  *policy_id = policyId;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished dhcp trapping processing");
+
+  return result;
+}
+
+
+/**
+ * Create IFP rule to trap DHCPv6 packets
+ * 
+ * @param vlanId     : VLAN ID value
+ * @param vlan_match : VLAN ID mask
+ * @param dapi_g 
+ * @param policy_id  : Configured policy id (output)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadConfigDhcpV6TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
+{
+  BROAD_POLICY_t          policyId = BROAD_POLICY_INVALID;
+  BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
+  L7_ushort16             ipv6_ethtype = L7_ETYPE_IPV6;
+  L7_uchar8               udp_proto[] = { IP_PROT_UDP };
+  L7_ushort16             dhcpv6c_dport   = 546;
+  L7_ushort16             dhcpv6s_dport   = 547;
+  L7_uint8                ip_type;
+  L7_uchar8               exact_match[] = { FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
+    FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE };
+  BROAD_METER_ENTRY_t     meterInfo;
+  BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
+  L7_RC_t                 result = L7_SUCCESS;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Starting dhcp trapping processing");
+
+  /* Validate arguments */
+  if (policy_id == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "policyId pointer");
+  }
+
+  /* There are 3 set of policies for DHCP packets. Here is why.
+   * When DHCP snoopinvlan_listg is enabled, we will have a set of trusted and
+   * untrusted ports. DHCP packets on trusted ports are copied to CPU
+   * with elevated priorirty. DHCP packets on un-trusted ports are trapped
+   * to CPU and are rate-limited (priority is not elevated).
+   *
+   * When DHCP snooping is disabled (default), priority of all DHCP packets
+   * is elevated so that a bcast/mcast flood doesn't impact the DHCP leasing.
+   * This is the default system-wide policy for DHCP packets, unless DHCP
+   * snooping overrides this. Note, priority is elevated to just above
+   * mcast/bcast/l3 miss packets.
+   */
+
+  do
+  {
+    result = hapiBroadPolicyCreate(policyType);
+    if (result != L7_SUCCESS) break;
+
+
+    meterInfo = ptin_components_meter.dhcp;
+
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
+
+    /* give dhcp frames high priority and trap to the CPU. */
+
+    /* DHCP packets from client */
+    ip_type = BROAD_IP_TYPE_IPV6;
+    result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipv6_ethtype, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, udp_proto, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8 *)&dhcpv6c_dport, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    /* Trap the frames to CPU, so that they are not switched */
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+    if (result != L7_SUCCESS)  break;
+
+    /* DHCP packets from server */
+    ip_type = BROAD_IP_TYPE_IPV6;
+    result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ipv6_ethtype, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, udp_proto, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_DPORT, (L7_uchar8 *)&dhcpv6s_dport, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    /* Trap the frames to CPU, so that they are not switched */
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+    if (result != L7_SUCCESS)  break;
+
+  }while (0);
 
   /* Commit policy */
   if (result == L7_SUCCESS)

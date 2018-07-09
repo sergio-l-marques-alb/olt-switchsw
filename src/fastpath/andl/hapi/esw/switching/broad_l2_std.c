@@ -1502,7 +1502,7 @@ L7_RC_t hapiBroadIntfDoubleVlanTagConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
         mode = HAPI_BROAD_DTAG_MODE_EXTERNAL;
 #if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
         /* Need Metro (for NNI and UNI_S ports) specific condition */
-        if((dapiCmd->cmdData.doubleVlanTagConfig.dot1adInterfaceType == DOT1AD_INTFERFACE_TYPE_NNI ||
+        if((dapiCmd->cmdData.doubleVlanTagConfig.dot1adInterfaceType ==  DOT1AD_INTFERFACE_TYPE_NNI ||
             dapiCmd->cmdData.doubleVlanTagConfig.dot1adInterfaceType == DOT1AD_INTFERFACE_TYPE_UNI_S) &&
             isTriumphFamily == L7_TRUE)
         {
@@ -1706,6 +1706,10 @@ static L7_RC_t hapiBroadPortDoubleVlanTagConfig(DAPI_USP_t *usp,
        */
         dtagMode = HAPI_BROAD_DTAG_MODE_INTERNAL;
     }
+
+#if PTIN_BOARD == PTIN_BOARD_AG16GA
+    dtagMode = HAPI_BROAD_DTAG_MODE_EXTERNAL; /* rigid configurations to all the ports*/
+#endif
 
     rc = usl_bcmx_port_dtag_mode_set(hapiPortPtr->bcmx_lport, dtagMode);
 

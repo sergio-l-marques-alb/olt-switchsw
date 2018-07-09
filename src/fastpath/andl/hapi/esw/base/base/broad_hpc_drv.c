@@ -1487,6 +1487,9 @@ void hpcHardwareDefaultConfigApply(void)
     }
 
 
+    bcm_pbmp_t pbmp;
+    BCM_PBMP_ASSIGN(pbmp, PBMP_PORT_ALL(i));
+
     BCM_PBMP_CLEAR(ubmp);
 
     rv = bcm_vlan_create(i,HPC_STACKING_VLAN_ID);
@@ -1549,16 +1552,19 @@ void hpcHardwareDefaultConfigApply(void)
             L7_LOGF(L7_LOG_SEVERITY_ERROR, L7_DRIVER_COMPONENT_ID, 
                     "Failed to set port %d/%d state to disable rv %d\n",
                     i, port, rv);
-          }
-
+          }        
         }
-
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
         /* Enable egress filtering on all the ports */
-        rv = bcm_port_vlan_member_set(i, port, BCM_PORT_VLAN_MEMBER_EGRESS);
+        rv = bcm_port_vlan_member_set(i, port, 0);
+          //PT_LOG_NOTICE(LOG_CTX_STARTUP,"bcm_port_pfm_set configuration to mode C: unit=%d,port=%d => rv=%d (%s)", i, port, rv, bcm_errmsg(rv));
+         
         if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
         {
           L7_LOG_ERROR(rv);
         }
+#endif
+
       }
     }
 

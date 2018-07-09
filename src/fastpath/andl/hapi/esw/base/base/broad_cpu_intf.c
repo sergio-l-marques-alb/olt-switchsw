@@ -2386,10 +2386,16 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
 
   //PTIN Added
   //TO BE DONE - somewhere the under layer is just considering 3 bits for cos (this is NOT an HW issue)
-  //if (bcm_pkt->cos == (CPU_TRAPPED_PACKETS_COS_PCAP & 0x07))  // Current workaround just to proceed
+#if (PTIN_BOARD != PTIN_BOARD_AG16GA)
+  if (bcm_pkt->cos == (CPU_TRAPPED_PACKETS_COS_PCAP & 0x07))  // Current workaround just to proceed
+#else
   if (bcm_pkt->cos == CPU_TRAPPED_PACKETS_COS_PCAP)
+#endif
   {
     BCM_RX_REASON_SET(bcm_pkt->rx_reasons, bcmRxReasonMirror);
+
+   
+    PT_LOG_TRACE(LOG_CTX_HAPI, "rx_timestamp");
   }
 
   // PTin
@@ -3461,7 +3467,7 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
     /* default to forward frame */
     dropFrame = L7_FALSE;
 
-#ifdef HAPI_BROAD_PKT_DEBUG
+#if HAPI_BROAD_PKT_DEBUG
     skip = L7_FALSE;
     if(pktDebugFilter & HAPI_DEBUG_PKT_FILTER_PORT)
     {
@@ -3487,7 +3493,7 @@ void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
         {
           if (BCM_RX_REASON_GET(pktRxMsg.reasons, reason))
           {
-            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s ", pkt_reason_names[reason]);
+            printf( "%s \n", pkt_reason_names[reason]);
           }
         }
         SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n");

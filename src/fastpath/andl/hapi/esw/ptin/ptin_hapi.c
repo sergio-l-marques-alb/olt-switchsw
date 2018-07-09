@@ -292,9 +292,11 @@ L7_RC_t hapi_ptin_config_init(void)
   if (ptin_hapi_phy_init()!=L7_SUCCESS)
     rc = L7_FAILURE;
 
+#if PTIN_BOARD != PTIN_BOARD_AG16GA
   /* ptin_hapi_xlate initializations */
   if (ptin_hapi_xlate_init()!=L7_SUCCESS)
     rc = L7_FAILURE;
+#endif
 
   /* ptin_hapi_bridge initializations */
   if (ptin_hapi_bridge_init()!=L7_SUCCESS)
@@ -5529,6 +5531,17 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
     #endif
   }
    
+#endif
+
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+
+  PT_LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
+
+  rc = ag16ga_bck_static_switching();
+
+  rc |= ag16ga_frontal_static_switching();
+
+  return rc; 
 
 #endif
 
@@ -5707,6 +5720,210 @@ L7_RC_t hapiBroadSystemInstallPtin_postInit(void)
   return L7_SUCCESS;
 }
 
+/**
+ * AG16g static switching 
+ * 
+ * @author Rui Fernandes (19/06/2018)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ag16ga_bck_static_switching()
+{
+  L7_RC_t             rc;
+  L7_uint32           port, i = 0, j = 0;
+
+  /*  VLANs only (0-1023) */
+  L7_uint16 vlan_value[] = { 0x0000, 0x0400, 0x0800, 0x0800 };
+  L7_uint16 vlan_mask[] =  { 0xFC00, 0xFC00, 0xFC00, 0xF800 };
+
+  /* BCK ports */
+  for (port = PTIN_SYSTEM_N_PONS, i = 0; port < (PTIN_SYSTEM_N_PORTS - 1); port++, i++)
+  {
+    for (j = 0; j < 4; j++)
+    {
+      BROAD_POLICY_t      policyId;
+      BROAD_POLICY_RULE_t ruleId;
+      bcm_port_t          bcm_port;
+      pbmp_t              pbm, pbm_mask;
+
+      rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+        return L7_FAILURE;
+      }
+
+      /* Ingress stage */
+      if (hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_INGRESS) != L7_SUCCESS)
+      {
+        printf("Error creating a egress policy\r\n");
+        hapiBroadPolicyCreateCancel();
+        return L7_FAILURE;
+      }
+
+      do
+      {
+
+        rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
+        if (rc != L7_SUCCESS)  break;
+
+
+        if (port >= 0)
+        {
+          printf("Port %d was given\r\n", port);
+
+          /* Validate port */
+          if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
+          {
+            printf("Error getting bcm_port of port %d\r\n", port);
+            return L7_FAILURE;
+          }
+
+          printf("bcm_port = %d\r\n", bcm_port);
+
+        }
+
+        /* Define port bitmap */
+        BCM_PBMP_CLEAR(pbm);
+        BCM_PBMP_PORT_ADD(pbm, bcm_port);
+        hapi_ptin_allportsbmp_get(&pbm_mask);
+
+        rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uchar8 *)&pbm, (L7_uchar8 *)&pbm_mask);
+        if (rc != L7_SUCCESS)  break;
+
+        int index = i * 4 + j;
+
+        rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_OVID, (L7_uchar8 *)&vlan_value[j], (L7_uchar8 *)&vlan_mask[j]);
+        if (rc != L7_SUCCESS)  break;
+
+        L7_short16 port_aux = (usp_map[index].port-1);
+
+        rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_REDIRECT, 1 /*unit*/, 0 /*slot*/, port_aux);
+        if (rc != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule");
+          hapiBroadPolicyCreateCancel();
+          return L7_FAILURE;
+        }
+
+        /* Apply rules */
+        rc = hapiBroadPolicyCommit(&policyId);
+        if (rc != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
+          hapiBroadPolicyCreateCancel();
+          return L7_FAILURE;
+        }
+
+      } while (0);
+
+
+      PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
+
+    }
+
+  }
+
+  return L7_SUCCESS;
+}
+
+
+/**
+ * AG16g static switching 
+ * 
+ * @author Rui Fernandes (19/06/2018)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t ag16ga_frontal_static_switching()
+{
+  L7_RC_t             rc;
+  L7_uint32           port, i = 0, j = 0;
+
+  /* BCK ports */
+  for (port = PTIN_SYSTEM_N_PONS, i = 0; port < (PTIN_SYSTEM_N_PONS + 1); port++, i++)
+  {
+    BROAD_POLICY_t      policyId;
+    BROAD_POLICY_RULE_t ruleId;
+    bcm_port_t          bcm_port;
+    pbmp_t              pbm, pbm_mask;
+
+    rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
+
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_STARTUP, "Error creating policy");
+      return L7_FAILURE;
+    }
+
+    /* Ingress stage */
+    if (hapiBroadPolicyStageSet(BROAD_POLICY_STAGE_INGRESS) != L7_SUCCESS)
+    {
+      printf("Error creating a egress policy\r\n");
+      hapiBroadPolicyCreateCancel();
+      return L7_FAILURE;
+    }
+
+    do
+    {
+
+      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+      if (rc != L7_SUCCESS)  break;
+
+      BCM_PBMP_CLEAR(pbm);
+
+      for (j = 0; j < 1; j++)
+      {
+
+        PT_LOG_ERR(LOG_CTX_STARTUP,"Port %d was given\r\n", port);
+
+        int index = (i * 4) + j;
+
+        /* Validate port */
+        if (hapi_ptin_bcmPort_get(index, &bcm_port) != L7_SUCCESS)
+        {
+          PT_LOG_ERR(LOG_CTX_STARTUP,"Error getting bcm_port of port %d\r\n", port);
+          return L7_FAILURE;
+        }
+
+        PT_LOG_ERR(LOG_CTX_STARTUP,"bcm_port = %d\r\n", bcm_port);
+
+        /* Define port bitmap */
+        BCM_PBMP_PORT_ADD(pbm, bcm_port);
+        hapi_ptin_allportsbmp_get(&pbm_mask);
+
+      }
+
+      rc = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_INPORTS, (L7_uchar8 *)&pbm, (L7_uchar8 *)&pbm_mask);
+      if (rc != L7_SUCCESS)  break;
+
+      rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_REDIRECT, 1/*unit*/, 0 /*slot*/, port);
+
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_STARTUP, "Error configuring rule");
+        hapiBroadPolicyCreateCancel();
+        return L7_FAILURE;
+      }
+
+      /* Apply rules */
+      rc = hapiBroadPolicyCommit(&policyId);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
+        hapiBroadPolicyCreateCancel();
+        return L7_FAILURE;
+      }
+
+    } while (0);
+
+    PT_LOG_TRACE(LOG_CTX_STARTUP, "PolicyId=%u", policyId);
+
+  }
+
+  return L7_SUCCESS;
+}
 
 L7_RC_t teste_case3(void)
 {
@@ -6623,7 +6840,6 @@ L7_RC_t ptin_debug_trap_packets( L7_int port, L7_uint16 ovlan, L7_uint16 ivlan, 
     trap_only_drops = drop;
     printf("Drop qualifier added (drop=%u/0x%02x)\r\n",drop,drop_mask);
   }
-
   /* Trap to cpu action */
   rc = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_COPY_TO_CPU, 0, 0, 0);
   if (rc != L7_SUCCESS)
