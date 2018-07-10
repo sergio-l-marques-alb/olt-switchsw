@@ -20,7 +20,7 @@ OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
 export TOOLCHAIN_BASE_DIR = /opt/fsl/1.2/sysroots/i686-fslsdk-linux/usr
 export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin/ppce500mc-fsl-linux
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
-COMPILER = $(TOOLCHAIN_BIN_DIR)/powerpc-fsl-linux-
+CROSS_COMPILE = powerpc-fsl-linux-
 
 # Kernel and SDK paths
 KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-4.1.8-QorIQ-SDK2.0

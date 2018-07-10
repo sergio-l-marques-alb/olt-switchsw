@@ -12,6 +12,10 @@ MV    =	mv
 CP    =	cp
 TAR   = tar
 
+unexport CFLAGS
+unexport CPPFLAGS
+unexport LDFLAGS
+
 #By default use all available CPUs
 NUM_CPUS ?= $(shell grep -c 'model name' /proc/cpuinfo)
 
@@ -27,6 +31,7 @@ export FP_VIEWNAME   ?= .
 export CROSS_COMPILE ?= $(COMPILER)
 export KERNEL_SRC    ?= $(KERNEL_PATH)
 export CCVIEWS_HOME  ?= $(OLT_DIR)/$(FP_FOLDER)
+export CROSS_COMPILE := $(TOOLCHAIN_BIN_DIR)/$(CROSS_COMPILE)
 
 KO_PATH	      = $(CCVIEWS_HOME)/$(OUTPATH)/target
 BIN_PATH      = $(CCVIEWS_HOME)/$(OUTPATH)/ipl

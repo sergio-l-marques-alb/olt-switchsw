@@ -20,7 +20,7 @@ OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
 export TOOLCHAIN_BASE_DIR = /opt/freescale/usr/local/gcc-4.0.2-glibc-2.3.6-nptl-2/powerpc-e300c3-linux
 export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
-COMPILER = $(TOOLCHAIN_BIN_DIR)/powerpc-e300c3-linux-
+CROSS_COMPILE = powerpc-e300c3-linux-
 
 # Kernel and SDK paths
 KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-denx-3.18.25

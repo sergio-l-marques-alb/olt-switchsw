@@ -5868,7 +5868,7 @@ L7_RC_t ag16ga_frontal_static_switching()
     do
     {
 
-      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+      rc = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_DEFAULT);
       if (rc != L7_SUCCESS)  break;
 
       BCM_PBMP_CLEAR(pbm);

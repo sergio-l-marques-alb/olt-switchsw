@@ -20,7 +20,7 @@ OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
 export TOOLCHAIN_BASE_DIR = /opt/eldk/usr
 export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
-COMPILER = $(TOOLCHAIN_BIN_DIR)/ppc_85xxDP-
+CROSS_COMPILE = ppc_85xxDP-
 
 # Kernel and SDK paths
 KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-2.6.35

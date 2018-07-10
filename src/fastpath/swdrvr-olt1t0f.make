@@ -20,7 +20,7 @@ OLT_DIR      = $(subst /$(FP_FOLDER),,$(shell pwd))
 export TOOLCHAIN_BASE_DIR = /opt/broadcom_kt2_hx4/usr
 export TOOLCHAIN_BIN_DIR  = $(TOOLCHAIN_BASE_DIR)/bin
 export LD_LIBRARY_PATH    = $(TOOLCHAIN_BASE_DIR)/lib
-COMPILER = $(TOOLCHAIN_BIN_DIR)/arm-linux-
+CROSS_COMPILE  = arm-linux-
 
 # Kernel and SDK paths
 KERNEL_PATH = $(OLT_DIR)/../lib/kernel/linux-3.6.5-kt2arm_LDK-3.4.7-RC4
