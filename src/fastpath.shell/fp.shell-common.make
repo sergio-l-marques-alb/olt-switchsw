@@ -10,6 +10,8 @@ FP_FOLDER ?= fastpath
 CARD_FOLDER ?= FastPath-Ent-esw-xgs4-$(CPU)-LR-CSxw-IQH_$(BOARD)
 OUTPATH ?= output/$(CARD_FOLDER)
 
+#CROSS_COMPILE := $(TOOLCHAIN_BIN_DIR)/$(CROSS_COMPILE)
+
 TARGET_PATH=../$(FP_FOLDER)/$(OUTPATH)/ipl
 OBJECT_PATH=../$(FP_FOLDER)/$(OUTPATH)/objects/fp.shell
 

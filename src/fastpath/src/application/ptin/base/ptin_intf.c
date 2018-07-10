@@ -340,24 +340,13 @@ L7_RC_t ptin_intf_post_init(void)
     }
   #endif
 
-#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
-
-    rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], 2);  
-    if (rc != L7_SUCCESS)
-    {
-      PT_LOG_CRITIC(LOG_CTX_INTF, "Failed to enable DVLAN mode on port# %u", i);
-      return L7_FAILURE;
-    }
-#else
-
-    rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], 2);  
+    rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_ENABLE);  
     if (rc != L7_SUCCESS)
     {
       PT_LOG_CRITIC(LOG_CTX_INTF, "Failed to enable DVLAN mode on port# %u", i);
       return L7_FAILURE;
     }
 
-#endif
     rc = usmDbDvlantagIntfEthertypeSet(1, map_port2intIfNum[i], PTIN_TPID_OUTER_DEFAULT, L7_TRUE);
     if ((rc != L7_SUCCESS) && (rc != L7_ALREADY_CONFIGURED))
     {
