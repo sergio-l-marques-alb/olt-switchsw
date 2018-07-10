@@ -1,0 +1,7 @@
+#!/bin/sh
+
+echo "Switch: fastpath"
+/usr/local/ptin/sbin/fastpath boot &
+/usr/local/ptin/sbin/fp.cli ping 10 20
+
+echo "Switch: done!"
