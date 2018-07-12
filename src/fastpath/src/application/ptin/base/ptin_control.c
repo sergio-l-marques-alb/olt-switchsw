@@ -65,9 +65,9 @@ struct_linkStatus_monitor_t ls_monitor_info[PTIN_SYS_SLOTS_MAX+1]={
   {0, 0, L7_FALSE, 0},   /* Dummy: no slot */
   {0, 0, L7_FALSE, 0},
 #if (PTIN_BOARD == PTIN_BOARD_CXO160G)
-  [2 ... (PTIN_SYS_SLOTS_MAX-1)]={10, 0, L7_TRUE , 0},   /* Slot monitor enabled for CXO160G */
+  [2 ... (PTIN_SYS_SLOTS_MAX-1)]={LS_CREDITS_MAX, 0, L7_TRUE , 0},   /* Slot monitor enabled for CXO160G */
 #else
-  [2 ... (PTIN_SYS_SLOTS_MAX-1)]={10, 0, L7_TRUE , 0},   /* Slot monitor enabled for other SF boards */
+  [2 ... (PTIN_SYS_SLOTS_MAX-1)]={LS_CREDITS_MAX, 0, L7_TRUE , 0},   /* Slot monitor enabled for other SF boards */
 #endif
   {0, 0, L7_FALSE, 0}
 };
@@ -2213,6 +2213,12 @@ static void ptin_control_linkstatus_report(void)
   port_list[2] = PTIN_SYSTEM_N_PONS + 0;
   port_list[3] = PTIN_SYSTEM_N_PONS + 2;
 #elif (PTIN_BOARD == PTIN_BOARD_TG16GF)
+  number_of_ports = 4;
+  port_list[0] = PTIN_SYSTEM_N_PONS + 0;
+  port_list[1] = PTIN_SYSTEM_N_PONS + 1;
+  port_list[2] = PTIN_SYSTEM_N_PONS + 2;
+  port_list[3] = PTIN_SYSTEM_N_PONS + 3;
+#elif (PTIN_BOARD == PTIN_BOARD_TT04SXG)
   number_of_ports = 4;
   port_list[0] = PTIN_SYSTEM_N_PONS + 0;
   port_list[1] = PTIN_SYSTEM_N_PONS + 1;
