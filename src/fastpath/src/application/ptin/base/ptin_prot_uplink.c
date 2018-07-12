@@ -1472,7 +1472,7 @@ L7_RC_t uplinkProtApplyOperator(L7_uint protIdx)
         else
         {
           PT_LOG_INFO(LOG_CTX_INTF, "Normal state - Maintaining the same active port (Working)");
-          uplinkprotFsmTransition(protIdx, PROT_STATE_WorkAdmin, __LINE__);
+          uplinkprotFsmTransition(protIdx, PROT_STATE_Normal, __LINE__);
         }
       }
       /* If Protection interface is better, go to protection state */
