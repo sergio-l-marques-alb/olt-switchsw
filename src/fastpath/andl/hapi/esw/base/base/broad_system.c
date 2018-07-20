@@ -3503,7 +3503,7 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
     PT_LOG_TRACE(LOG_CTX_HAPI, "Null vlan provided: Global enable is applied (enable=%u)", snoopConfig->enable);
   }
 
-#if PTIN_BOARD == PTIN_BOARD_AG16GA
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
 
   ptin_trap_policy[search_index].policyId   = BROAD_POLICY_INVALID;
   /* only for trap all dhcp, igmp packets*/
@@ -4160,12 +4160,12 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
 
     /* DHCP packets from client */
     ip_type = BROAD_IP_TYPE_IPV4;
-    result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH2);
     if (result != L7_SUCCESS)  break;
 
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_IP_TYPE, (L7_uchar8 *)&ip_type, exact_match);
     if (result != L7_SUCCESS)  break;
-    //result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_PROTO, udp_proto, exact_match);
     if (result != L7_SUCCESS)  break;
@@ -4187,7 +4187,7 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
 
     /* DHCP packets from server */
     ip_type = BROAD_IP_TYPE_IPV4;
-    result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH2);
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&ip_ethtype, exact_match);
     if (result != L7_SUCCESS)  break;

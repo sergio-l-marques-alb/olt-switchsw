@@ -4430,6 +4430,9 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
   }
 
   dhcpPktType = dsPacketType(dhcpPacket, pktLen);
+
+  PT_LOG_DEBUG(LOG_CTX_DHCP," %d ",dhcpPktType);
+
   switch (dhcpPktType)
   {
     case L7_DHCP_DISCOVER:

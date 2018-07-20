@@ -98,5 +98,7 @@ L7_int dtlVlanIfAdd(L7_uint16 vlanId, L7_uchar8 *ifName);
  */
 L7_RC_t dtlMacAddrChange(L7_uchar8 *newMac, L7_uchar8 *ifName, L7_uint16 vlanId);
 
+extern void ptin_AddTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data, L7_uint32 *data_length);
+
 
 #endif /* _DTL_NET_H_ */

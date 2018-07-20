@@ -340,7 +340,11 @@ L7_RC_t ptin_intf_post_init(void)
     }
   #endif
 
-    rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_ENABLE);  
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+    rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_DISABLE);  
+#else
+	rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_ENABLE);
+#endif
     if (rc != L7_SUCCESS)
     {
       PT_LOG_CRITIC(LOG_CTX_INTF, "Failed to enable DVLAN mode on port# %u", i);
@@ -393,6 +397,15 @@ L7_RC_t ptin_intf_post_init(void)
 //    }
 //#endif
   }
+
+#if (0)//PTIN_BOARD == PTIN_BOARD_AG16GA)
+  int j = 0;
+  for (j=1; j<=4096;j++)
+  {
+    usmDbVlanCreate(1,j);
+    usmDbVlanMemberSet(1,0,j,L7_DOT1Q_FIXED,DOT1Q_SWPORT_MODE_NONE);
+  }
+#endif
 
   /* MEF Ext defaults */
   if (ptin_intf_portExt_init()!=L7_SUCCESS)

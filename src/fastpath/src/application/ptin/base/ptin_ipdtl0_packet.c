@@ -76,13 +76,36 @@ void ptin_ipdtl0_debug(L7_BOOL enable)
 /***************************************
  * INTERNAL ROUTINES
  ***************************************/
-
+#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
 /**
  * Task with infinite loop. 
  * Collects packets from queue and send them to dtl0 
  * 
  * @author joaom (9/27/2013)
  */
+
+/* PTin added: inband */
+static void ptin_AddDoubleTag(L7_ushort16 outer_tpid, L7_ushort16 outer_vlanId, L7_ushort16 inner_tpid, 
+                       L7_ushort16 inner_vlanId, L7_uchar8 *data, L7_uint32 *data_length)
+{
+  L7_int i;
+
+  /* Free 4 bytes to insert the tag */
+  for (i=*data_length-1; i>=12; i--)
+    data[i+8] = data[i];
+
+  /* Insert tag */
+  data[12]= (L7_uchar8) ((outer_tpid >> 8)  & 0xFF);
+  data[13]= (L7_uchar8) ( outer_tpid        & 0xFF);
+  data[14]= (L7_uchar8) ((outer_vlanId >> 8) & 0x0F);
+  data[15]= (L7_uchar8) ( outer_vlanId       & 0xFF);
+  data[16]= (L7_uchar8) ((inner_tpid >> 8)  & 0xFF);
+  data[17]= (L7_uchar8) ( inner_tpid        & 0xFF);
+  data[18]= (L7_uchar8) ((inner_vlanId >> 8) & 0x0F);
+  data[19]= (L7_uchar8) ( inner_vlanId       & 0xFF);
+  *data_length += 8;
+}
+#endif
 static void ptin_ipdtl0_task(void)
 {
     ptin_IPDTL0_PDU_Msg_t   msg;
@@ -180,9 +203,19 @@ static void ptin_ipdtl0_task(void)
 
                 if (msg.vlanId != 2047)
                 {
-                  /* Convert Internal VLAN ID to dtl0 VLAN ID */
+                 
+				#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+                  int pcap_vlan = 2046;
+
+                  ptin_AddDoubleTag(L7_ETYPE_8021Q, pcap_vlan, L7_ETYPE_8021Q, 
+                                    msg.intIfNum, msg.payload, &msg.payloadLen);
+
+
+				#else
+				/* Convert Internal VLAN ID to dtl0 VLAN ID */
                   msg.payload[14] = (PTIN_VLAN_PCAP_EXT >> 8) & 0x0F;
                   msg.payload[15] = (PTIN_VLAN_PCAP_EXT)      & 0xFF;
+				#endif
                   dtlIPProtoRecvAny(msg.bufHandle, msg.payload, msg.payloadLen, &pduInfo, L7_FALSE);
                 }
                 else
@@ -430,7 +463,6 @@ static L7_RC_t ptin_ipdtl0_trapRuleCreate(L7_uint16 vlanId, ptin_ipdtl0_type_t t
             PT_LOG_TRACE(LOG_CTX_API,"sysNetPduInterceptDeregister executed");
         }
     }
-
     return L7_SUCCESS;
 }
 
@@ -743,6 +775,7 @@ L7_uint16 ptin_ipdtl0_dtl0Type_get(L7_uint16 dtl0Vid)
     return (ptin_ipdtl0_dtl0Vid_info[dtl0Vid].type);
 }
 
+
 #else
 
 /***************************************
@@ -768,6 +801,7 @@ L7_uint16 ptin_ipdtl0_dtl0Type_get(L7_uint16 dtl0Vid)
 {
     return 0 /* PTIN_IPDTL0_UNUSED_VLAN_ENTRY*/ ;
 }
+
 
 #endif /* PTIN_ENABLE_DTL0TRAP */
 

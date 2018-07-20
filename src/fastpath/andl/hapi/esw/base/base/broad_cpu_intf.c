@@ -2389,7 +2389,7 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
 #if (PTIN_BOARD != PTIN_BOARD_AG16GA)
   if (bcm_pkt->cos == (CPU_TRAPPED_PACKETS_COS_PCAP & 0x07))  // Current workaround just to proceed
 #else
-  if (bcm_pkt->cos == CPU_TRAPPED_PACKETS_COS_PCAP)
+  if (bcm_pkt->prio_int == CPU_TRAPPED_PACKETS_COS_PCAP)
 #endif
   {
     BCM_RX_REASON_SET(bcm_pkt->rx_reasons, bcmRxReasonMirror);
@@ -2483,6 +2483,8 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
   }
 #endif
 
+
+
   if (idChecked == L7_FALSE)
   {
     idChecked = L7_TRUE;
@@ -2563,8 +2565,11 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
 
   if (cpu_intercept_debug & CPU_INTERCEPT_DEBUG_LEVEL4)
     PT_LOG_TRACE(LOG_CTX_HAPI,"...");
-
+#if PTIN_BOARD != PTIN_BOARD_AG16GA
   if (hapiBroadGetSystemBoardFamily(&board_family) == L7_SUCCESS)
+#else
+  if (0)
+#endif
   {
      if ( (board_family == BCM_FAMILY_TRIUMPH) ||
           (board_family == BCM_FAMILY_TRIUMPH2) ||
@@ -2843,7 +2848,13 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
      that the HW would have otherwise dropped due to ingress filtering. 
      The exception here will be to allow EAP packets and packets to the reserved MAC 
      addresses (BPDUs, LACPDUs, GVRP PDUs) */
+
+
+#if PTIN_BOARD != PTIN_BOARD_AG16GA
   if (hapiPortPtr->ingressFilteringEnabled)
+#else
+  if (0)
+#endif
   {
     L7_ushort16 vlanId;
     L7_uchar8   reservedMacDa[] = {0x01,0x80,0xc2,0x00,0x00};
@@ -3224,12 +3235,23 @@ bcm_rx_t hapiBroadReceive(L7_int32 unit, bcm_pkt_t *bcm_pkt, void *cookie)
       SYSAPI_NET_MBUF_FREE((L7_netBufHandle)frameHdl);
       return result;
     }
-    cmdInfo.cmdData.receive.innerVlanId = 0;
+    PT_LOG_TRACE(LOG_CTX_HAPI,"...");
+
+#if PTIN_BOARD != PTIN_BOARD_AG16GA
+ cmdInfo.cmdData.receive.innerVlanId = 0;
+#endif
   }
   pktRxMsg.usp = usp;
   pktRxMsg.reasons = bcm_pkt->rx_reasons;
   pktRxMsg.rx_untagged = bcm_pkt->rx_untagged;
   cmdInfo.cmdData.receive.timestamp = bcm_pkt->rx_timestamp;       //PTIN added
+
+#if PTIN_BOARD == PTIN_BOARD_AG16GA
+  if ((cmdInfo.cmdData.receive.innerVlanId == 0))
+  {
+    cmdInfo.cmdData.receive.innerVlanId = bcm_pkt->inner_vlan;
+  }
+#endif
   pktRxMsg.cmdInfo = cmdInfo;
   pktRxMsg.cos = bcm_pkt->cos;
 

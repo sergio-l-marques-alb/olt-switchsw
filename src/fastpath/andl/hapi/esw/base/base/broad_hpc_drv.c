@@ -1555,13 +1555,36 @@ void hpcHardwareDefaultConfigApply(void)
           }        
         }
 #if (PTIN_BOARD == PTIN_BOARD_AG16GA)
-        /* Enable egress filtering on all the ports */
         rv = bcm_port_vlan_member_set(i, port, 0);
-          //PT_LOG_NOTICE(LOG_CTX_STARTUP,"bcm_port_pfm_set configuration to mode C: unit=%d,port=%d => rv=%d (%s)", i, port, rv, bcm_errmsg(rv));
-         
-        if (L7_BCMX_OK(rv) != L7_TRUE && rv != BCM_E_UNAVAIL)
+
+        /*Cpu port in added to all the ports 
+         in AG16GA for trapping propose*/
+        if (port == 1)
         {
-          L7_LOG_ERROR(rv);
+          bcm_pbmp_t ubmp,pbmp;
+          BCM_PBMP_CLEAR(ubmp);
+          BCM_PBMP_CLEAR(pbmp);
+          BCM_PBMP_PORT_ADD(pbmp,(port-1) /*cpu port*/);
+
+          int vlan;
+
+          for (vlan = 1 ; vlan < 4095; vlan++)
+          {
+
+            rv = bcm_vlan_create(i, vlan);
+            if ((rv < 0) && (rv != BCM_E_EXISTS))
+            {
+              PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_create failed unit %d\n", i);
+              L7_LOG_ERROR(rv);
+            }
+
+            rv = bcm_vlan_port_add(i, vlan, pbmp, ubmp);
+            if (rv < 0)
+            {
+              PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_port_add failed unit %d, %d, %d \n", i, pbmp, ubmp);
+              L7_LOG_ERROR(rv);
+            }
+          }
         }
 #endif
 

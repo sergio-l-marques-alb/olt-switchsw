@@ -1577,7 +1577,12 @@ L7_RC_t hapiBroadIntfDoubleVlanTagConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
              (dapiCmd->cmdData.doubleVlanTagConfig.enable == L7_FALSE) &&
              (hapiPortPtr->dtag_mode == L7_TRUE))
     {
-        rv = usl_bcmx_dvlan_mode_set(HAPI_BROAD_DTAG_MODE_NONE);
+
+#if PTIN_BOARD == PTIN_BOARD_AG16GA
+      rv = usl_bcmx_dvlan_mode_set(HAPI_BROAD_DTAG_MODE_INTERNAL);
+#else
+      rv = usl_bcmx_dvlan_mode_set(HAPI_BROAD_DTAG_MODE_NONE);
+#endif
         if (L7_BCMX_OK(rv) != L7_TRUE)
         {
           return L7_FAILURE;
@@ -1708,7 +1713,7 @@ static L7_RC_t hapiBroadPortDoubleVlanTagConfig(DAPI_USP_t *usp,
     }
 
 #if PTIN_BOARD == PTIN_BOARD_AG16GA
-    dtagMode = HAPI_BROAD_DTAG_MODE_EXTERNAL; /* rigid configurations to all the ports*/
+    dtagMode = HAPI_BROAD_DTAG_MODE_INTERNAL; /* rigid configurations to all the ports*/
 #endif
 
     rc = usl_bcmx_port_dtag_mode_set(hapiPortPtr->bcmx_lport, dtagMode);

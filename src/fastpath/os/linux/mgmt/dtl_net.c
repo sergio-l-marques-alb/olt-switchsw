@@ -1233,6 +1233,11 @@ void dtlNetInit(void)
   #elif (PTIN_BOARD == PTIN_BOARD_CXO160G)
 
   dtlVlanIfAdd(PTIN_VLAN_PCAP_EXT, "pcap");
+
+  #elif (PTIN_BOARD == PTIN_BOARD_AG16GA)
+
+  dtlVlanIfAdd(PTIN_VLAN_PCAP_EXT, "dtl0.2046");
+
   #endif
 
   dtlNetInitDone = L7_TRUE;
@@ -1256,6 +1261,17 @@ void ptin_AddTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data, L7_uint3
   data[14]= (L7_uchar8) ((vlanId >> 8) & 0x0F);
   data[15]= (L7_uchar8) ( vlanId       & 0xFF);
   *data_length += 4;
+}
+
+void ptin_RemoveTag(L7_uchar8 *data, L7_uint32 *data_length)
+{
+  L7_int i;
+
+  /* Free 4 bytes to insert the tag */
+  for (i=12; i < *data_length-1; i++)
+    data[i] = data[i+4];
+
+  *data_length -= 4;
 }
 
 void ptin_ReplaceTag(L7_ushort16 tpid, L7_ushort16 vlanId, L7_uchar8 *data)
@@ -1358,6 +1374,61 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Repaced original packet VID %u with %u\n\r", __FUNCTION__, __LINE__, dtl0Vid, vid);
 
          vid = simMgmtVlanIdGet();                    /* This is the internal VID */
+      }
+      else if (dtl0Vid == PTIN_VLAN_PCAP_EXT)
+      {
+
+        ptin_RemoveTag(data, &data_length);
+        int intfNum =((data[14]<<8) & 0x0F00) | (data[15] & 0x00FF);
+
+        //ptin_RemoveTag(data, &data_length);
+        int vlan = ((data[18]<<8) & 0x0F00) | (data[19] & 0x00FF);
+
+            if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum );
+        /* static switching*/
+        if ( intfNum < PTIN_SYSTEM_N_PONS)
+        {
+          intfNum = ((intfNum - 1) / 4) + PTIN_SYSTEM_N_PONS + 1 ;
+                     if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum );
+        }
+        else 
+        {
+         intfNum = (intfNum - PTIN_SYSTEM_N_PONS) + (vlan / 1024);
+                      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d):  intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum );
+        }
+
+        int  i;
+       for (i = 0; i < data_length; i=i+6)
+      {
+        if (i % 16 == 0)
+        {
+          if (i != 0) SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n",  __FUNCTION__, __LINE__);
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, " 0x%02x:", __FUNCTION__, __LINE__, i);
+        }
+        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, " %02x %02x %02x %02x %02x %02x", data[i],data[i+1], data[i+2], data[i+3], data[i+4], data[i+5]);
+      }
+        
+
+         if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Repaced original packet VID %u with %u\n\r", __FUNCTION__, __LINE__, intfNum, vlan);
+
+        info->dtlCmdInfo.intfNum = intfNum;
+        info->dtlCmdInfo.priority = 0;
+        info->dtlCmdInfo.typeToSend = DTL_L2RAW_UNICAST;
+        info->dtlCmdInfo.cmdType.L2.domainId = vlan;       /* This is the internal VID */
+        info->dtlCmdInfo.cmdType.L2.vlanId = vlan;
+        info->dtlCmdInfo.cmdType.L2.flags = 0;
+        info->dtlCmd = DTL_CMD_TX_L2;
+        info->discard = L7_FALSE;
+
+        /*
+        *we are done
+        */
+        info->discard = L7_FALSE;
+        goto dtlSendCmdExit;
       }
       else
       {
