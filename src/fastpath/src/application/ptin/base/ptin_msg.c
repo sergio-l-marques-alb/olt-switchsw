@@ -539,12 +539,15 @@ L7_RC_t ptin_msg_configure_trap(L7_uint16 vlanId, L7_uint8 portId, L7_uint8 prot
   intf.format          = PTIN_INTF_FORMAT_PORT;
   intf.value.ptin_port = portId;
 
-  /* Expand port formats */
-  if (ptin_intf_any_format(&intf) != L7_SUCCESS)
-  {
-    PT_LOG_ERR(LOG_CTX_MSG, "Invalid interface %u", intf.value.ptin_port);
-    return L7_FAILURE;
-  }
+   if (intf.value.ptin_port != 0xFF)
+   {
+      /* Expand port formats */
+      if (ptin_intf_any_format(&intf) != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_MSG, "Invalid interface %u", intf.value.ptin_port);
+        return L7_FAILURE;
+      }
+   }
 
   memset(&dapiCmd.cmdData.snoopConfig, 0x00, sizeof(dapiCmd.cmdData.snoopConfig));
 
@@ -603,7 +606,7 @@ L7_RC_t ptin_msg_configure_trap(L7_uint16 vlanId, L7_uint8 portId, L7_uint8 prot
     return L7_FAILURE;
   }
 
-  if (intf.value.ptin_port != -1)
+  if (intf.value.ptin_port != 0xFF)
   {
     rc = dtlPtinPacketsTrap(portId, &dapiCmd);
   }
