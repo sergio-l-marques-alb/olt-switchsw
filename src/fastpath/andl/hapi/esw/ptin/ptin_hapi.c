@@ -5842,7 +5842,7 @@ L7_RC_t ag16ga_frontal_static_switching()
   L7_uint32           port, i = 0, j = 0;
 
   /* BCK ports */
-  for (port = PTIN_SYSTEM_N_PONS, i = 0; port < (PTIN_SYSTEM_N_PONS + 1); port++, i++)
+  for (port = PTIN_SYSTEM_N_PONS, i = 0; port < (PTIN_SYSTEM_N_PONS + 4); port++, i++)
   {
     BROAD_POLICY_t      policyId;
     BROAD_POLICY_RULE_t ruleId;
@@ -5873,7 +5873,7 @@ L7_RC_t ag16ga_frontal_static_switching()
 
       BCM_PBMP_CLEAR(pbm);
 
-      for (j = 0; j < 1; j++)
+      for (j = 0; j < 4; j++)
       {
 
         PT_LOG_ERR(LOG_CTX_STARTUP,"Port %d was given\r\n", port);
