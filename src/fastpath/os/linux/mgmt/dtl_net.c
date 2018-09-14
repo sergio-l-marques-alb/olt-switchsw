@@ -1363,7 +1363,9 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
 
          vid = ptin_cfg_inband_vlan_get();            /* This is the packet outer VID */
          if (vid == 0)
+         {
             vid = simMgmtVlanIdGet();
+         }
 
          ptin_ReplaceTag(L7_ETYPE_8021Q, vid, data);
 
@@ -1371,49 +1373,51 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
          data[14] |= (L7_uchar8) 7 << 5;
 
          if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+         {
            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Repaced original packet VID %u with %u\n\r", __FUNCTION__, __LINE__, dtl0Vid, vid);
+         }
 
          vid = simMgmtVlanIdGet();                    /* This is the internal VID */
       }
       else if (dtl0Vid == PTIN_VLAN_PCAP_EXT)
-      {
-
+      {            
+        /* Remove PTIN_VLAN_PCAP_EXT TAG*/
         ptin_RemoveTag(data, &data_length);
-        int intfNum =((data[14]<<8) & 0x0F00) | (data[15] & 0x00FF);
 
-        //ptin_RemoveTag(data, &data_length);
+        /* Get IntfNum from agent (were the packet were receive)*/
+        int intfNum =((data[14]<<8) & 0x0F00) | (data[15] & 0x00FF);
         int vlan = ((data[18]<<8) & 0x0F00) | (data[19] & 0x00FF);
 
-            if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum );
-        /* static switching*/
-        if ( intfNum < PTIN_SYSTEM_N_PONS)
+        if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
         {
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Initial intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum );
+        }
+        /* static switching, where is calculate the intfNum to send*/
+        if ( intfNum <= PTIN_SYSTEM_N_PONS)
+        {
+          /* Packets US*/
           intfNum = ((intfNum - 1) / 4) + PTIN_SYSTEM_N_PONS + 1 ;
-                     if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum );
+          if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+          {
+            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Send packet to intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum );
+          }
         }
         else 
         {
-         intfNum = (intfNum - PTIN_SYSTEM_N_PONS) + (vlan / 1024);
-                      if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d):  intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum );
+          /* Packets DS*/
+          intfNum = ((intfNum - PTIN_SYSTEM_N_PONS - 1)<<2) + (vlan>>10) + 1;
+
+          if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
+          {
+            SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Send packet t intfnum %u \n\r", __FUNCTION__, __LINE__, intfNum );
+          }
         }
 
-        int  i;
-       for (i = 0; i < data_length; i=i+6)
-      {
-        if (i % 16 == 0)
+
+        if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
         {
-          if (i != 0) SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "\n",  __FUNCTION__, __LINE__);
-          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, " 0x%02x:", __FUNCTION__, __LINE__, i);
+          SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Replaced original packet VID %u with %u\n\r", __FUNCTION__, __LINE__, intfNum, vlan);
         }
-        SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, " %02x %02x %02x %02x %02x %02x", data[i],data[i+1], data[i+2], data[i+3], data[i+4], data[i+5]);
-      }
-        
-
-         if (dtlNetPtinDebug & DTLNET_PTINDEBUG_TX_LEVEL1)
-           SYSAPI_PRINTF(SYSAPI_LOGGING_ALWAYS, "%s(%d): Repaced original packet VID %u with %u\n\r", __FUNCTION__, __LINE__, intfNum, vlan);
 
         info->dtlCmdInfo.intfNum = intfNum;
         info->dtlCmdInfo.priority = 0;
