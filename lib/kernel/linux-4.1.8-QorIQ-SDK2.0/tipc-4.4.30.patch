@@ -1,6 +1,6 @@
-diff -rupN linux-4.1.8.ori/net/tipc/addr.c linux-4.1.8.mod/net/tipc/addr.c
---- linux-4.1.8.ori/net/tipc/addr.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/addr.c	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/addr.c mod/net/tipc/addr.c
+--- ori/net/tipc/addr.c	2018-09-20 16:38:47.652161385 +0100
++++ mod/net/tipc/addr.c	2018-09-20 16:40:10.903057643 +0100
 @@ -38,13 +38,6 @@
  #include "addr.h"
  #include "core.h"
@@ -15,9 +15,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/addr.c linux-4.1.8.mod/net/tipc/addr.c
  /**
   * in_own_cluster - test for cluster inclusion; <0.0.0> always matches
   */
-diff -rupN linux-4.1.8.ori/net/tipc/addr.h linux-4.1.8.mod/net/tipc/addr.h
---- linux-4.1.8.ori/net/tipc/addr.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/addr.h	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/addr.h mod/net/tipc/addr.h
+--- ori/net/tipc/addr.h	2018-09-20 16:38:47.624069843 +0100
++++ mod/net/tipc/addr.h	2018-09-20 16:40:10.903057643 +0100
 @@ -41,10 +41,18 @@
  #include <linux/tipc.h>
  #include <net/net_namespace.h>
@@ -37,9 +37,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/addr.h linux-4.1.8.mod/net/tipc/addr.h
  static inline u32 tipc_zone_mask(u32 addr)
  {
  	return addr & TIPC_ZONE_MASK;
-diff -rupN linux-4.1.8.ori/net/tipc/bcast.c linux-4.1.8.mod/net/tipc/bcast.c
---- linux-4.1.8.ori/net/tipc/bcast.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/bcast.c	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/bcast.c mod/net/tipc/bcast.c
+--- ori/net/tipc/bcast.c	2018-09-20 16:38:47.613033879 +0100
++++ mod/net/tipc/bcast.c	2018-09-20 16:40:10.904057938 +0100
 @@ -35,690 +35,301 @@
   * POSSIBILITY OF SUCH DAMAGE.
   */
@@ -1181,9 +1181,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/bcast.c linux-4.1.8.mod/net/tipc/bcast.c
 +	kfree(tn->bcbase);
 +	kfree(tn->bcl);
  }
-diff -rupN linux-4.1.8.ori/net/tipc/bcast.h linux-4.1.8.mod/net/tipc/bcast.h
---- linux-4.1.8.ori/net/tipc/bcast.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/bcast.h	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/bcast.h mod/net/tipc/bcast.h
+--- ori/net/tipc/bcast.h	2018-09-20 16:38:47.676239851 +0100
++++ mod/net/tipc/bcast.h	2018-09-20 16:40:10.905058232 +0100
 @@ -37,100 +37,44 @@
  #ifndef _TIPC_BCAST_H
  #define _TIPC_BCAST_H
@@ -1318,9 +1318,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/bcast.h linux-4.1.8.mod/net/tipc/bcast.h
 +}
  
  #endif
-diff -rupN linux-4.1.8.ori/net/tipc/bearer.c linux-4.1.8.mod/net/tipc/bearer.c
---- linux-4.1.8.ori/net/tipc/bearer.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/bearer.c	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/bearer.c mod/net/tipc/bearer.c
+--- ori/net/tipc/bearer.c	2018-09-20 16:38:47.669216965 +0100
++++ mod/net/tipc/bearer.c	2018-09-20 16:40:10.905058232 +0100
 @@ -71,8 +71,7 @@ static const struct nla_policy tipc_nl_m
  	[TIPC_NLA_MEDIA_PROP]		= { .type = NLA_NESTED }
  };
@@ -1343,7 +1343,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/bearer.c linux-4.1.8.mod/net/tipc/bearer.c
  	rcu_read_unlock();
  }
  
-@@ -208,10 +205,8 @@ void tipc_bearer_remove_dest(struct net 
+@@ -208,10 +205,8 @@ void tipc_bearer_remove_dest(struct net
  
  	rcu_read_lock();
  	b_ptr = rcu_dereference_rtnl(tn->bearer_list[bearer_id]);
@@ -1373,7 +1373,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/bearer.c linux-4.1.8.mod/net/tipc/bearer.c
  	tipc_disc_reset(net, b_ptr);
  	return 0;
  }
-@@ -354,8 +349,7 @@ static int tipc_reset_bearer(struct net 
+@@ -354,8 +349,7 @@ static int tipc_reset_bearer(struct net
   *
   * Note: This routine assumes caller holds RTNL lock.
   */
@@ -1590,9 +1590,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/bearer.c linux-4.1.8.mod/net/tipc/bearer.c
  
  	if (!info->attrs[TIPC_NLA_BEARER])
  		return -EINVAL;
-diff -rupN linux-4.1.8.ori/net/tipc/bearer.h linux-4.1.8.mod/net/tipc/bearer.h
---- linux-4.1.8.ori/net/tipc/bearer.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/bearer.h	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/bearer.h mod/net/tipc/bearer.h
+--- ori/net/tipc/bearer.h	2018-09-20 16:38:47.677243120 +0100
++++ mod/net/tipc/bearer.h	2018-09-20 16:40:10.906058527 +0100
 @@ -38,9 +38,9 @@
  #define _TIPC_BEARER_H
  
@@ -1629,9 +1629,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/bearer.h linux-4.1.8.mod/net/tipc/bearer.h
 +			 struct sk_buff_head *xmitq);
  
  #endif	/* _TIPC_BEARER_H */
-diff -rupN linux-4.1.8.ori/net/tipc/core.c linux-4.1.8.mod/net/tipc/core.c
---- linux-4.1.8.ori/net/tipc/core.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/core.c	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/core.c mod/net/tipc/core.c
+--- ori/net/tipc/core.c	2018-09-20 16:38:47.618050226 +0100
++++ mod/net/tipc/core.c	2018-09-20 16:40:10.906058527 +0100
 @@ -42,6 +42,7 @@
  #include "bearer.h"
  #include "net.h"
@@ -1671,9 +1671,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/core.c linux-4.1.8.mod/net/tipc/core.c
  	tipc_nametbl_stop(net);
  	tipc_sk_rht_destroy(net);
  }
-diff -rupN linux-4.1.8.ori/net/tipc/core.h linux-4.1.8.mod/net/tipc/core.h
---- linux-4.1.8.ori/net/tipc/core.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/core.h	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/core.h mod/net/tipc/core.h
+--- ori/net/tipc/core.h	2018-09-20 16:38:47.674233312 +0100
++++ mod/net/tipc/core.h	2018-09-20 16:40:10.906058527 +0100
 @@ -60,16 +60,18 @@
  #include <net/netns/generic.h>
  #include <linux/rhashtable.h>
@@ -1753,9 +1753,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/core.h linux-4.1.8.mod/net/tipc/core.h
  #ifdef CONFIG_SYSCTL
  int tipc_register_sysctl(void);
  void tipc_unregister_sysctl(void);
-diff -rupN linux-4.1.8.ori/net/tipc/discover.c linux-4.1.8.mod/net/tipc/discover.c
---- linux-4.1.8.ori/net/tipc/discover.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/discover.c	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/discover.c mod/net/tipc/discover.c
+--- ori/net/tipc/discover.c	2018-09-20 16:38:47.678246390 +0100
++++ mod/net/tipc/discover.c	2018-09-20 16:40:10.907058821 +0100
 @@ -35,7 +35,7 @@
   */
  
@@ -1986,9 +1986,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/discover.c linux-4.1.8.mod/net/tipc/discover
 +		tipc_bearer_xmit_skb(net, req->bearer_id, skb, &req->dest);
  	spin_unlock_bh(&req->lock);
  }
-diff -rupN linux-4.1.8.ori/net/tipc/link.c linux-4.1.8.mod/net/tipc/link.c
---- linux-4.1.8.ori/net/tipc/link.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/link.c	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/link.c mod/net/tipc/link.c
+--- ori/net/tipc/link.c	2018-09-20 16:38:47.682259467 +0100
++++ mod/net/tipc/link.c	2018-09-20 16:40:10.909059410 +0100
 @@ -48,9 +48,9 @@
  /*
   * Error message prefixes
@@ -4974,9 +4974,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/link.c linux-4.1.8.mod/net/tipc/link.c
  	if (!link) {
  		tipc_node_unlock(node);
  		return -EINVAL;
-diff -rupN linux-4.1.8.ori/net/tipc/link.h linux-4.1.8.mod/net/tipc/link.h
---- linux-4.1.8.ori/net/tipc/link.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/link.h	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/link.h mod/net/tipc/link.h
+--- ori/net/tipc/link.h	2018-09-20 16:38:47.653164655 +0100
++++ mod/net/tipc/link.h	2018-09-20 16:40:10.910059705 +0100
 @@ -49,19 +49,26 @@
   */
  #define INVALID_LINK_SEQ 0x10000
@@ -5303,9 +5303,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/link.h linux-4.1.8.mod/net/tipc/link.h
 +int tipc_link_bc_nack_rcv(struct tipc_link *l, struct sk_buff *skb,
 +			  struct sk_buff_head *xmitq);
  #endif
-diff -rupN linux-4.1.8.ori/net/tipc/msg.c linux-4.1.8.mod/net/tipc/msg.c
---- linux-4.1.8.ori/net/tipc/msg.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/msg.c	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/msg.c mod/net/tipc/msg.c
+--- ori/net/tipc/msg.c	2018-09-20 16:38:47.621060034 +0100
++++ mod/net/tipc/msg.c	2018-09-20 16:40:10.911059999 +0100
 @@ -121,7 +121,7 @@ int tipc_buf_append(struct sk_buff **hea
  {
  	struct sk_buff *head = *headbuf;
@@ -5653,9 +5653,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/msg.c linux-4.1.8.mod/net/tipc/msg.c
 +	}
 +	kfree_skb(skb);
  }
-diff -rupN linux-4.1.8.ori/net/tipc/msg.h linux-4.1.8.mod/net/tipc/msg.h
---- linux-4.1.8.ori/net/tipc/msg.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/msg.h	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/msg.h mod/net/tipc/msg.h
+--- ori/net/tipc/msg.h	2018-09-20 16:38:47.614037149 +0100
++++ mod/net/tipc/msg.h	2018-09-20 16:40:10.911059999 +0100
 @@ -38,6 +38,7 @@
  #define _TIPC_MSG_H
  
@@ -5717,7 +5717,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/msg.h linux-4.1.8.mod/net/tipc/msg.h
  {
  	msg_set_bits(m, 2, 0, 0xffff, n);
  }
-@@ -352,18 +353,22 @@ static inline void msg_set_seqno(struct 
+@@ -352,18 +353,22 @@ static inline void msg_set_seqno(struct
   */
  static inline u32 msg_importance(struct tipc_msg *m)
  {
@@ -5763,7 +5763,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/msg.h linux-4.1.8.mod/net/tipc/msg.h
  /*
   * Word 2
   */
-@@ -605,6 +601,11 @@ static inline u32 msg_last_bcast(struct 
+@@ -605,6 +601,11 @@ static inline u32 msg_last_bcast(struct
  	return msg_bits(m, 4, 16, 0xffff);
  }
  
@@ -5924,9 +5924,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/msg.h linux-4.1.8.mod/net/tipc/msg.h
  }
  
  #endif
-diff -rupN linux-4.1.8.ori/net/tipc/name_distr.c linux-4.1.8.mod/net/tipc/name_distr.c
---- linux-4.1.8.ori/net/tipc/name_distr.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/name_distr.c	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/name_distr.c mod/net/tipc/name_distr.c
+--- ori/net/tipc/name_distr.c	2018-09-20 16:38:47.628082920 +0100
++++ mod/net/tipc/name_distr.c	2018-09-20 16:40:10.912060294 +0100
 @@ -96,13 +96,13 @@ void named_cluster_distribute(struct net
  		dnode = node->addr;
  		if (in_own_node(net, dnode))
@@ -5960,9 +5960,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/name_distr.c linux-4.1.8.mod/net/tipc/name_d
  		msg = buf_msg(skb);
  		mtype = msg_type(msg);
  		item = (struct distr_item *)msg_data(msg);
-diff -rupN linux-4.1.8.ori/net/tipc/name_table.c linux-4.1.8.mod/net/tipc/name_table.c
---- linux-4.1.8.ori/net/tipc/name_table.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/name_table.c	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/name_table.c mod/net/tipc/name_table.c
+--- ori/net/tipc/name_table.c	2018-09-20 16:38:47.628082920 +0100
++++ mod/net/tipc/name_table.c	2018-09-20 16:40:10.912060294 +0100
 @@ -330,13 +330,9 @@ static struct publication *tipc_nameseq_
  
  	/* Any subscriptions waiting for notification?  */
@@ -6023,9 +6023,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/name_table.c linux-4.1.8.mod/net/tipc/name_t
  				must_report = 0;
  			}
  		}
-diff -rupN linux-4.1.8.ori/net/tipc/net.c linux-4.1.8.mod/net/tipc/net.c
---- linux-4.1.8.ori/net/tipc/net.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/net.c	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/net.c mod/net/tipc/net.c
+--- ori/net/tipc/net.c	2018-09-20 16:38:47.674233312 +0100
++++ mod/net/tipc/net.c	2018-09-20 16:40:10.912060294 +0100
 @@ -40,6 +40,7 @@
  #include "subscr.h"
  #include "socket.h"
@@ -6034,7 +6034,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/net.c linux-4.1.8.mod/net/tipc/net.c
  
  static const struct nla_policy tipc_nl_net_policy[TIPC_NLA_NET_MAX + 1] = {
  	[TIPC_NLA_NET_UNSPEC]	= { .type = NLA_UNSPEC },
-@@ -111,14 +112,11 @@ int tipc_net_start(struct net *net, u32 
+@@ -111,14 +112,11 @@ int tipc_net_start(struct net *net, u32
  {
  	struct tipc_net *tn = net_generic(net, tipc_net_id);
  	char addr_string[16];
@@ -6058,9 +6058,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/net.c linux-4.1.8.mod/net/tipc/net.c
  	tipc_node_stop(net);
  	rtnl_unlock();
  
-diff -rupN linux-4.1.8.ori/net/tipc/netlink_compat.c linux-4.1.8.mod/net/tipc/netlink_compat.c
---- linux-4.1.8.ori/net/tipc/netlink_compat.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/netlink_compat.c	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/netlink_compat.c mod/net/tipc/netlink_compat.c
+--- ori/net/tipc/netlink_compat.c	2018-09-20 16:38:47.680252928 +0100
++++ mod/net/tipc/netlink_compat.c	2018-09-20 16:40:10.913060588 +0100
 @@ -55,6 +55,7 @@ struct tipc_nl_compat_msg {
  	int rep_type;
  	int rep_size;
@@ -6079,7 +6079,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/netlink_compat.c linux-4.1.8.mod/net/tipc/ne
  };
  
  static int tipc_skb_tailroom(struct sk_buff *skb)
-@@ -281,7 +283,7 @@ static int __tipc_nl_compat_doit(struct 
+@@ -281,7 +283,7 @@ static int __tipc_nl_compat_doit(struct
  	if (!trans_buf)
  		return -ENOMEM;
  
@@ -6315,9 +6315,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/netlink_compat.c linux-4.1.8.mod/net/tipc/ne
  
  	return err;
  }
-diff -rupN linux-4.1.8.ori/net/tipc/node.c linux-4.1.8.mod/net/tipc/node.c
---- linux-4.1.8.ori/net/tipc/node.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/node.c	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/node.c mod/net/tipc/node.c
+--- ori/net/tipc/node.c	2018-09-20 16:38:47.623066573 +0100
++++ mod/net/tipc/node.c	2018-09-20 16:40:10.914060883 +0100
 @@ -1,7 +1,7 @@
  /*
   * net/tipc/node.c: TIPC node management routines
@@ -6372,7 +6372,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/node.c linux-4.1.8.mod/net/tipc/node.c
  
  struct tipc_sock_conn {
  	u32 port;
-@@ -109,7 +141,7 @@ struct tipc_node *tipc_node_find(struct 
+@@ -109,7 +141,7 @@ struct tipc_node *tipc_node_find(struct
  	return NULL;
  }
  
@@ -6522,14 +6522,14 @@ diff -rupN linux-4.1.8.ori/net/tipc/node.c linux-4.1.8.mod/net/tipc/node.c
 +	tipc_link_fsm_evt(nl, LINK_ESTABLISH_EVT);
 +	if (!tipc_link_is_up(nl))
 +		return;
++
++	n->working_links++;
++	n->action_flags |= TIPC_NOTIFY_LINK_UP;
++	n->link_id = nl->peer_bearer_id << 16 | bearer_id;
  
 -	n_ptr->working_links++;
 -	n_ptr->action_flags |= TIPC_NOTIFY_LINK_UP;
 -	n_ptr->link_id = l_ptr->peer_bearer_id << 16 | l_ptr->bearer_id;
-+	n->working_links++;
-+	n->action_flags |= TIPC_NOTIFY_LINK_UP;
-+	n->link_id = nl->peer_bearer_id << 16 | bearer_id;
-+
 +	/* Leave room for tunnel header when returning 'mtu' to users: */
 +	n->links[bearer_id].mtu = nl->mtu - INT_H_SIZE;
 +
@@ -6929,19 +6929,14 @@ diff -rupN linux-4.1.8.ori/net/tipc/node.c linux-4.1.8.mod/net/tipc/node.c
 -		n_ptr->links[i] = NULL;
 -		n_ptr->link_cnt--;
 +		tipc_node_link_down(n, i, false);
- 	}
- }
- 
--static void node_established_contact(struct tipc_node *n_ptr)
++	}
++}
++
 +/* tipc_node_fsm_evt - node finite state machine
 + * Determines when contact is allowed with peer node
 + */
 +static void tipc_node_fsm_evt(struct tipc_node *n, int evt)
- {
--	n_ptr->action_flags |= TIPC_NOTIFY_NODE_UP;
--	n_ptr->bclink.oos_state = 0;
--	n_ptr->bclink.acked = tipc_bclink_get_last_sent(n_ptr->net);
--	tipc_bclink_add_node(n_ptr->net, n_ptr->addr);
++{
 +	int state = n->state;
 +
 +	switch (state) {
@@ -7106,7 +7101,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/node.c linux-4.1.8.mod/net/tipc/node.c
 +	default:
 +		pr_err("Unknown node fsm state %x\n", state);
 +		break;
-+	}
+ 	}
 +	n->state = state;
 +	return;
 +
@@ -7114,9 +7109,13 @@ diff -rupN linux-4.1.8.ori/net/tipc/node.c linux-4.1.8.mod/net/tipc/node.c
 +	pr_err("Illegal node fsm evt %x in state %x\n", evt, state);
  }
  
--static void node_lost_contact(struct tipc_node *n_ptr)
+-static void node_established_contact(struct tipc_node *n_ptr)
 +bool tipc_node_filter_pkt(struct tipc_node *n, struct tipc_msg *hdr)
-+{
+ {
+-	n_ptr->action_flags |= TIPC_NOTIFY_NODE_UP;
+-	n_ptr->bclink.oos_state = 0;
+-	n_ptr->bclink.acked = tipc_bclink_get_last_sent(n_ptr->net);
+-	tipc_bclink_add_node(n_ptr->net, n_ptr->addr);
 +	int state = n->state;
 +
 +	if (likely(state == SELF_UP_PEER_UP))
@@ -7131,8 +7130,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/node.c linux-4.1.8.mod/net/tipc/node.c
 +	}
 +
 +	return true;
-+}
-+
+ }
+ 
+-static void node_lost_contact(struct tipc_node *n_ptr)
 +static void node_lost_contact(struct tipc_node *n,
 +			      struct sk_buff_head *inputq)
  {
@@ -7147,12 +7147,12 @@ diff -rupN linux-4.1.8.ori/net/tipc/node.c linux-4.1.8.mod/net/tipc/node.c
  
  	pr_debug("Lost contact with %s\n",
 -		 tipc_addr_string_fill(addr_string, n_ptr->addr));
-+		 tipc_addr_string_fill(addr_string, n->addr));
- 
+-
 -	/* Flush broadcast link info associated with lost node */
 -	if (n_ptr->bclink.recv_permitted) {
 -		__skb_queue_purge(&n_ptr->bclink.deferdq);
--
++		 tipc_addr_string_fill(addr_string, n->addr));
+ 
 -		if (n_ptr->bclink.reasm_buf) {
 -			kfree_skb(n_ptr->bclink.reasm_buf);
 -			n_ptr->bclink.reasm_buf = NULL;
@@ -7625,9 +7625,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/node.c linux-4.1.8.mod/net/tipc/node.c
  int tipc_nl_node_dump(struct sk_buff *skb, struct netlink_callback *cb)
  {
  	int err;
-diff -rupN linux-4.1.8.ori/net/tipc/node.h linux-4.1.8.mod/net/tipc/node.h
---- linux-4.1.8.ori/net/tipc/node.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/node.h	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/node.h mod/net/tipc/node.h
+--- ori/net/tipc/node.h	2018-09-20 16:38:47.615040418 +0100
++++ mod/net/tipc/node.h	2018-09-20 16:40:10.915061177 +0100
 @@ -45,50 +45,41 @@
  /* Out-of-range value for node signature */
  #define INVALID_NODE_SIG	0x10000
@@ -7823,10 +7823,10 @@ diff -rupN linux-4.1.8.ori/net/tipc/node.h linux-4.1.8.mod/net/tipc/node.h
  	return mtu;
  }
  
-diff -rupN linux-4.1.8.ori/net/tipc/server.c linux-4.1.8.mod/net/tipc/server.c
---- linux-4.1.8.ori/net/tipc/server.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/server.c	2016-11-02 11:06:56.000000000 +0000
-@@ -309,6 +309,10 @@ static int tipc_accept_from_sock(struct 
+diff -rupN ori/net/tipc/server.c mod/net/tipc/server.c
+--- ori/net/tipc/server.c	2018-09-20 16:38:47.689282353 +0100
++++ mod/net/tipc/server.c	2018-09-20 16:40:10.915061177 +0100
+@@ -309,6 +309,10 @@ static int tipc_accept_from_sock(struct
  
  	/* Notify that new connection is incoming */
  	newcon->usr_data = s->tipc_conn_new(newcon->conid);
@@ -7855,9 +7855,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/server.c linux-4.1.8.mod/net/tipc/server.c
  	ret = kernel_setsockopt(sock, SOL_TIPC, TIPC_IMPORTANCE,
  				(char *)&s->imp, sizeof(s->imp));
  	if (ret < 0)
-diff -rupN linux-4.1.8.ori/net/tipc/socket.c linux-4.1.8.mod/net/tipc/socket.c
---- linux-4.1.8.ori/net/tipc/socket.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/socket.c	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/socket.c mod/net/tipc/socket.c
+--- ori/net/tipc/socket.c	2018-09-20 16:38:47.620056765 +0100
++++ mod/net/tipc/socket.c	2018-09-20 16:40:10.916061472 +0100
 @@ -41,6 +41,7 @@
  #include "link.h"
  #include "name_distr.h"
@@ -7874,7 +7874,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/socket.c linux-4.1.8.mod/net/tipc/socket.c
  static int tipc_release(struct socket *sock);
  static int tipc_accept(struct socket *sock, struct socket *new_sock, int flags);
  static int tipc_wait_for_sndmsg(struct socket *sock, long *timeo_p);
-@@ -247,6 +249,22 @@ static void tsk_advance_rx_queue(struct 
+@@ -247,6 +249,22 @@ static void tsk_advance_rx_queue(struct
  	kfree_skb(__skb_dequeue(&sk->sk_receive_queue));
  }
  
@@ -7897,7 +7897,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/socket.c linux-4.1.8.mod/net/tipc/socket.c
  /**
   * tsk_rej_rx_queue - reject all buffers in socket receive queue
   *
-@@ -255,13 +273,9 @@ static void tsk_advance_rx_queue(struct 
+@@ -255,13 +273,9 @@ static void tsk_advance_rx_queue(struct
  static void tsk_rej_rx_queue(struct sock *sk)
  {
  	struct sk_buff *skb;
@@ -8029,7 +8029,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/socket.c linux-4.1.8.mod/net/tipc/socket.c
  	return rc;
  }
  
-@@ -765,35 +775,35 @@ void tipc_sk_mcast_rcv(struct net *net, 
+@@ -765,35 +775,35 @@ void tipc_sk_mcast_rcv(struct net *net,
  /**
   * tipc_sk_proto_rcv - receive a connection mng protocol message
   * @tsk: receiving socket
@@ -8082,7 +8082,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/socket.c linux-4.1.8.mod/net/tipc/socket.c
  }
  
  static int tipc_wait_for_sndmsg(struct socket *sock, long *timeo_p)
-@@ -855,7 +865,7 @@ static int __tipc_sendmsg(struct socket 
+@@ -855,7 +865,7 @@ static int __tipc_sendmsg(struct socket
  	struct net *net = sock_net(sk);
  	struct tipc_msg *mhdr = &tsk->phdr;
  	u32 dnode, dport;
@@ -8091,7 +8091,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/socket.c linux-4.1.8.mod/net/tipc/socket.c
  	struct sk_buff *skb;
  	struct tipc_name_seq *seq;
  	struct iov_iter save;
-@@ -916,34 +926,36 @@ static int __tipc_sendmsg(struct socket 
+@@ -916,34 +926,36 @@ static int __tipc_sendmsg(struct socket
  		msg_set_hdr_sz(mhdr, BASIC_H_SIZE);
  	}
  
@@ -8207,7 +8207,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/socket.c linux-4.1.8.mod/net/tipc/socket.c
  }
  
  static int tipc_wait_for_rcvmsg(struct socket *sock, long *timeop)
-@@ -1504,87 +1519,91 @@ static void tipc_data_ready(struct sock 
+@@ -1504,87 +1519,91 @@ static void tipc_data_ready(struct sock
  	rcu_read_unlock();
  }
  
@@ -8342,7 +8342,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/socket.c linux-4.1.8.mod/net/tipc/socket.c
  }
  
  /**
-@@ -1619,61 +1638,70 @@ static unsigned int rcvbuf_limit(struct 
+@@ -1619,61 +1638,70 @@ static unsigned int rcvbuf_limit(struct
  /**
   * filter_rcv - validate incoming message
   * @sk: socket
@@ -8468,7 +8468,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/socket.c linux-4.1.8.mod/net/tipc/socket.c
  	return 0;
  }
  
-@@ -1712,45 +1728,43 @@ static int tipc_backlog_rcv(struct sock 
+@@ -1712,45 +1728,43 @@ static int tipc_backlog_rcv(struct sock
   * @inputq: list of incoming buffers with potentially different destinations
   * @sk: socket where the buffers should be enqueued
   * @dport: port number for the socket
@@ -8671,9 +8671,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/socket.c linux-4.1.8.mod/net/tipc/socket.c
  		err = nla_parse_nested(sock, TIPC_NLA_SOCK_MAX,
  				       attrs[TIPC_NLA_SOCK],
  				       tipc_nl_sock_policy);
-diff -rupN linux-4.1.8.ori/net/tipc/socket.h linux-4.1.8.mod/net/tipc/socket.h
---- linux-4.1.8.ori/net/tipc/socket.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/socket.h	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/socket.h mod/net/tipc/socket.h
+--- ori/net/tipc/socket.h	2018-09-20 16:38:47.627079651 +0100
++++ mod/net/tipc/socket.h	2018-09-20 16:40:10.916061472 +0100
 @@ -44,7 +44,7 @@
  				  SKB_TRUESIZE(TIPC_MAX_USER_MSG_SIZE))
  int tipc_socket_init(void);
@@ -8683,9 +8683,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/socket.h linux-4.1.8.mod/net/tipc/socket.h
  void tipc_sk_mcast_rcv(struct net *net, struct sk_buff_head *arrvq,
  		       struct sk_buff_head *inputq);
  void tipc_sk_reinit(struct net *net);
-diff -rupN linux-4.1.8.ori/net/tipc/subscr.c linux-4.1.8.mod/net/tipc/subscr.c
---- linux-4.1.8.ori/net/tipc/subscr.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/subscr.c	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/subscr.c mod/net/tipc/subscr.c
+--- ori/net/tipc/subscr.c	2018-09-20 16:38:47.624069843 +0100
++++ mod/net/tipc/subscr.c	2018-09-20 16:40:55.369224508 +0100
 @@ -40,16 +40,21 @@
  
  /**
@@ -8740,7 +8740,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/subscr.c linux-4.1.8.mod/net/tipc/subscr.c
  {
  	if (found_lower < sub->seq.lower)
  		found_lower = sub->seq.lower;
-@@ -98,138 +104,121 @@ int tipc_subscr_overlap(struct tipc_subs
+@@ -98,138 +104,129 @@ int tipc_subscr_overlap(struct tipc_subs
  	return 1;
  }
  
@@ -8776,49 +8776,45 @@ diff -rupN linux-4.1.8.ori/net/tipc/subscr.c linux-4.1.8.mod/net/tipc/subscr.c
  
 -	/* The spin lock per subscriber is used to protect its members */
 -	spin_lock_bh(&subscriber->lock);
+-
+-	/* Validate timeout (in case subscription is being cancelled) */
+-	if (sub->timeout == TIPC_WAIT_FOREVER) {
+-		spin_unlock_bh(&subscriber->lock);
++	if (sub->timeout == TIPC_WAIT_FOREVER)
++	{
++		/*pr_info("Timeout is FOREVER\n");*/
++		mod_timer(&sub->timer, msecs_to_jiffies(sub->timeout)+jiffies);
+ 		return;
+ 	}
+ 
+-	/* Unlink subscription from name table */
+-	tipc_nametbl_unsubscribe(sub);
+ 
+-	/* Unlink subscription from subscriber */
+-	list_del(&sub->subscription_list);
 +	/* Notify subscriber of timeout */
 +	tipc_subscrp_send_event(sub, sub->evt.s.seq.lower, sub->evt.s.seq.upper,
 +				TIPC_SUBSCR_TIMEOUT, 0, 0);
  
--	/* Validate timeout (in case subscription is being cancelled) */
--	if (sub->timeout == TIPC_WAIT_FOREVER) {
--		spin_unlock_bh(&subscriber->lock);
--		return;
--	}
 +	spin_lock_bh(&subscriber->lock);
 +	tipc_subscrp_delete(sub);
-+	spin_unlock_bh(&subscriber->lock);
- 
--	/* Unlink subscription from name table */
--	tipc_nametbl_unsubscribe(sub);
-+	tipc_subscrb_put(subscriber);
-+}
- 
--	/* Unlink subscription from subscriber */
--	list_del(&sub->subscription_list);
-+static void tipc_subscrb_kref_release(struct kref *kref)
-+{
-+	struct tipc_subscriber *subcriber = container_of(kref,
-+					    struct tipc_subscriber, kref);
- 
--	spin_unlock_bh(&subscriber->lock);
-+	kfree(subcriber);
-+}
+ 	spin_unlock_bh(&subscriber->lock);
  
 -	/* Notify subscriber of timeout */
 -	subscr_send_event(sub, sub->evt.s.seq.lower, sub->evt.s.seq.upper,
 -			  TIPC_SUBSCR_TIMEOUT, 0, 0);
-+static void tipc_subscrb_put(struct tipc_subscriber *subscriber)
-+{
-+	kref_put(&subscriber->kref, tipc_subscrb_kref_release);
++	tipc_subscrb_put(subscriber);
 +}
  
 -	/* Now destroy subscription */
 -	kfree(sub);
 -	atomic_dec(&tn->subscription_count);
-+static void tipc_subscrb_get(struct tipc_subscriber *subscriber)
++static void tipc_subscrb_kref_release(struct kref *kref)
 +{
-+	kref_get(&subscriber->kref);
++	struct tipc_subscriber *subcriber = container_of(kref,
++					    struct tipc_subscriber, kref);
++
++	kfree(subcriber);
  }
  
 -/**
@@ -8827,15 +8823,29 @@ diff -rupN linux-4.1.8.ori/net/tipc/subscr.c linux-4.1.8.mod/net/tipc/subscr.c
 - * Called with subscriber lock held.
 - */
 -static void subscr_del(struct tipc_subscription *sub)
-+static struct tipc_subscriber *tipc_subscrb_create(int conid)
++static void tipc_subscrb_put(struct tipc_subscriber *subscriber)
  {
 -	struct tipc_net *tn = net_generic(sub->net, tipc_net_id);
-+	struct tipc_subscriber *subscriber;
++	kref_put(&subscriber->kref, tipc_subscrb_kref_release);
++}
  
 -	tipc_nametbl_unsubscribe(sub);
 -	list_del(&sub->subscription_list);
 -	kfree(sub);
 -	atomic_dec(&tn->subscription_count);
++static void tipc_subscrb_get(struct tipc_subscriber *subscriber)
++{
++	kref_get(&subscriber->kref);
+ }
+ 
+-static void subscr_release(struct tipc_subscriber *subscriber)
++static struct tipc_subscriber *tipc_subscrb_create(int conid)
+ {
+-	struct tipc_subscription *sub;
+-	struct tipc_subscription *sub_temp;
++	struct tipc_subscriber *subscriber;
+ 
+-	spin_lock_bh(&subscriber->lock);
 +	subscriber = kzalloc(sizeof(*subscriber), GFP_ATOMIC);
 +	if (!subscriber) {
 +		pr_warn("Subscriber rejected, no memory\n");
@@ -8847,17 +8857,13 @@ diff -rupN linux-4.1.8.ori/net/tipc/subscr.c linux-4.1.8.mod/net/tipc/subscr.c
 +	spin_lock_init(&subscriber->lock);
 +
 +	return subscriber;
- }
- 
--static void subscr_release(struct tipc_subscriber *subscriber)
++}
++
 +static void tipc_subscrb_delete(struct tipc_subscriber *subscriber)
- {
--	struct tipc_subscription *sub;
--	struct tipc_subscription *sub_temp;
++{
 +	struct tipc_subscription *sub, *temp;
  
- 	spin_lock_bh(&subscriber->lock);
--
++	spin_lock_bh(&subscriber->lock);
  	/* Destroy any existing subscriptions for subscriber */
 -	list_for_each_entry_safe(sub, sub_temp, &subscriber->subscription_list,
 -				 subscription_list) {
@@ -8952,7 +8958,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/subscr.c linux-4.1.8.mod/net/tipc/subscr.c
  {
  	struct tipc_net *tn = net_generic(net, tipc_net_id);
  	struct tipc_subscription *sub;
-@@ -241,7 +230,7 @@ static int subscr_subscribe(struct net *
+@@ -241,7 +238,7 @@ static int subscr_subscribe(struct net *
  	/* Detect & process a subscription cancellation request */
  	if (s->filter & htohl(TIPC_SUB_CANCEL, swap)) {
  		s->filter &= ~htohl(TIPC_SUB_CANCEL, swap);
@@ -8961,7 +8967,16 @@ diff -rupN linux-4.1.8.ori/net/tipc/subscr.c linux-4.1.8.mod/net/tipc/subscr.c
  		return 0;
  	}
  
-@@ -273,62 +262,51 @@ static int subscr_subscribe(struct net *
+@@ -264,7 +261,7 @@ static int subscr_subscribe(struct net *
+ 	sub->seq.type = htohl(s->seq.type, swap);
+ 	sub->seq.lower = htohl(s->seq.lower, swap);
+ 	sub->seq.upper = htohl(s->seq.upper, swap);
+-	sub->timeout = msecs_to_jiffies(htohl(s->timeout, swap));
++	sub->timeout = htohl(s->timeout, swap);
+ 	sub->filter = htohl(s->filter, swap);
+ 	if ((!(sub->filter & TIPC_SUB_PORTS) ==
+ 	     !(sub->filter & TIPC_SUB_SERVICE)) ||
+@@ -273,62 +270,49 @@ static int subscr_subscribe(struct net *
  		kfree(sub);
  		return -EINVAL;
  	}
@@ -8979,9 +8994,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/subscr.c linux-4.1.8.mod/net/tipc/subscr.c
 -		mod_timer(&sub->timer, jiffies + sub->timeout);
 -	}
 +	setup_timer(&sub->timer, tipc_subscrp_timeout, (unsigned long)sub);
-+	if (sub->timeout != TIPC_WAIT_FOREVER)
-+		sub->timeout += jiffies;
-+	if (!mod_timer(&sub->timer, sub->timeout))
++	if (!mod_timer(&sub->timer, msecs_to_jiffies(sub->timeout)+jiffies))
 +		tipc_subscrb_get(subscriber);
  	*sub_p = sub;
  	return 0;
@@ -9045,7 +9058,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/subscr.c linux-4.1.8.mod/net/tipc/subscr.c
  {
  	struct tipc_net *tn = net_generic(net, tipc_net_id);
  	const char name[] = "topology_server";
-@@ -355,9 +333,9 @@ int tipc_subscr_start(struct net *net)
+@@ -355,9 +339,9 @@ int tipc_subscr_start(struct net *net)
  	topsrv->imp			= TIPC_CRITICAL_IMPORTANCE;
  	topsrv->type			= SOCK_SEQPACKET;
  	topsrv->max_rcvbuf_size		= sizeof(struct tipc_subscr);
@@ -9058,7 +9071,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/subscr.c linux-4.1.8.mod/net/tipc/subscr.c
  
  	strncpy(topsrv->name, name, strlen(name) + 1);
  	tn->topsrv = topsrv;
-@@ -366,7 +344,7 @@ int tipc_subscr_start(struct net *net)
+@@ -366,7 +350,7 @@ int tipc_subscr_start(struct net *net)
  	return tipc_server_start(topsrv);
  }
  
@@ -9067,9 +9080,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/subscr.c linux-4.1.8.mod/net/tipc/subscr.c
  {
  	struct tipc_net *tn = net_generic(net, tipc_net_id);
  	struct tipc_server *topsrv = tn->topsrv;
-diff -rupN linux-4.1.8.ori/net/tipc/subscr.h linux-4.1.8.mod/net/tipc/subscr.h
---- linux-4.1.8.ori/net/tipc/subscr.h	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/subscr.h	2016-11-02 11:06:56.000000000 +0000
+diff -rupN ori/net/tipc/subscr.h mod/net/tipc/subscr.h
+--- ori/net/tipc/subscr.h	2018-09-20 16:38:47.624069843 +0100
++++ mod/net/tipc/subscr.h	2018-09-20 16:40:10.917061766 +0100
 @@ -54,7 +54,7 @@ struct tipc_subscriber;
   * @filter: event filtering to be done for subscription
   * @timer: timer governing subscription duration (optional)
@@ -9105,9 +9118,9 @@ diff -rupN linux-4.1.8.ori/net/tipc/subscr.h linux-4.1.8.mod/net/tipc/subscr.h
 +void tipc_topsrv_stop(struct net *net);
  
  #endif
-diff -rupN linux-4.1.8.ori/net/tipc/udp_media.c linux-4.1.8.mod/net/tipc/udp_media.c
---- linux-4.1.8.ori/net/tipc/udp_media.c	2016-10-20 15:22:42.000000000 +0100
-+++ linux-4.1.8.mod/net/tipc/udp_media.c	2016-11-02 11:07:10.000000000 +0000
+diff -rupN ori/net/tipc/udp_media.c mod/net/tipc/udp_media.c
+--- ori/net/tipc/udp_media.c	2018-09-20 16:38:47.627079651 +0100
++++ mod/net/tipc/udp_media.c	2018-09-20 16:40:10.918062061 +0100
 @@ -52,6 +52,8 @@
  /* IANA assigned UDP port */
  #define UDP_PORT_DEFAULT	6118
@@ -9117,7 +9130,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/udp_media.c linux-4.1.8.mod/net/tipc/udp_med
  static const struct nla_policy tipc_nl_udp_policy[TIPC_NLA_UDP_MAX + 1] = {
  	[TIPC_NLA_UDP_UNSPEC]	= {.type = NLA_UNSPEC},
  	[TIPC_NLA_UDP_LOCAL]	= {.type = NLA_BINARY,
-@@ -153,11 +155,15 @@ static int tipc_udp_send_msg(struct net 
+@@ -153,11 +155,15 @@ static int tipc_udp_send_msg(struct net
  	struct udp_bearer *ub;
  	struct udp_media_addr *dst = (struct udp_media_addr *)&dest->value;
  	struct udp_media_addr *src = (struct udp_media_addr *)&b->addr.value;
@@ -9136,7 +9149,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/udp_media.c linux-4.1.8.mod/net/tipc/udp_med
  	ub = rcu_dereference_rtnl(b->media_ptr);
  	if (!ub) {
  		err = -ENODEV;
-@@ -167,7 +173,7 @@ static int tipc_udp_send_msg(struct net 
+@@ -167,7 +173,7 @@ static int tipc_udp_send_msg(struct net
  		struct flowi4 fl = {
  			.daddr = dst->ipv4.s_addr,
  			.saddr = src->ipv4.s_addr,
@@ -9145,7 +9158,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/udp_media.c linux-4.1.8.mod/net/tipc/udp_med
  			.flowi4_proto = IPPROTO_UDP
  		};
  		rt = ip_route_output_key(net, &fl);
-@@ -176,7 +182,7 @@ static int tipc_udp_send_msg(struct net 
+@@ -176,7 +182,7 @@ static int tipc_udp_send_msg(struct net
  			goto tx_error;
  		}
  		ttl = ip4_dst_hoplimit(&rt->dst);
@@ -9154,7 +9167,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/udp_media.c linux-4.1.8.mod/net/tipc/udp_med
  					  src->ipv4.s_addr,
  					  dst->ipv4.s_addr, 0, ttl, 0,
  					  src->udp_port, dst->udp_port,
-@@ -194,11 +200,12 @@ static int tipc_udp_send_msg(struct net 
+@@ -194,11 +200,12 @@ static int tipc_udp_send_msg(struct net
  			.saddr = src->ipv6,
  			.flowi6_proto = IPPROTO_UDP
  		};
@@ -9169,7 +9182,7 @@ diff -rupN linux-4.1.8.ori/net/tipc/udp_media.c linux-4.1.8.mod/net/tipc/udp_med
  					   ndst->dev, &src->ipv6,
  					   &dst->ipv6, 0, ttl, src->udp_port,
  					   dst->udp_port, false);
-@@ -207,7 +214,7 @@ static int tipc_udp_send_msg(struct net 
+@@ -207,7 +214,7 @@ static int tipc_udp_send_msg(struct net
  	return err;
  
  tx_error:
@@ -9186,3 +9199,4 @@ diff -rupN linux-4.1.8.ori/net/tipc/udp_media.c linux-4.1.8.mod/net/tipc/udp_med
  	RCU_INIT_POINTER(ub->bearer, NULL);
  
  	/* sock_release need to be done outside of rtnl lock */
+
