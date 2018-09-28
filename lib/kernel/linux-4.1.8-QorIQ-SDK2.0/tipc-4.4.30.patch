@@ -9199,4 +9199,3 @@ diff -rupN ori/net/tipc/udp_media.c mod/net/tipc/udp_media.c
  	RCU_INIT_POINTER(ub->bearer, NULL);
  
  	/* sock_release need to be done outside of rtnl lock */
-
