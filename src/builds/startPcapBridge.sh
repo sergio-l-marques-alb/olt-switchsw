@@ -9,8 +9,4 @@ vconfig add eth0 2046
 ip link set eth0.2046 up
 ip link set dtl0.2046 up
 
-brctl addbr cap_br
-brctl addif cap_br eth0.2046
-brctl addif cap_br dtl0.2046
-ip link set cap_br up
 
