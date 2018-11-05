@@ -781,6 +781,8 @@ L7_RC_t hapiBroadConfigDhcpV6TrapAll( DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
 L7_RC_t hapiBroadConfigPPPoETrap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t *dapi_g,
                                  BROAD_POLICY_t *policy_id);
 
+L7_RC_t hapiBroadConfigPPPoETrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id);
+
 L7_RC_t hapiBroadConfigIpDtl0Trap(L7_uint16 vlanId, L7_uint16 vlan_match, L7_uchar8 *mac_addr, DAPI_t *dapi_g,
                                   BROAD_POLICY_t *policy_id);
 

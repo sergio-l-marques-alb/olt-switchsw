@@ -600,6 +600,19 @@ L7_RC_t ptin_msg_configure_trap(L7_uint16 vlanId, L7_uint8 portId, L7_uint8 prot
       dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_DHCP;
     }
   }
+  else if (protocol == PROTOCOL_PPPOE)
+  {
+    if (vlanId == 0) /* Trap all vlans*/
+    {
+      PT_LOG_DEBUG(LOG_CTX_API,"Processing PTIN_PACKET_DHCP_ALL");
+      dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_PPPOE_ALL;
+    }
+    else
+    {  
+      PT_LOG_DEBUG(LOG_CTX_API,"Processing PTIN_PACKET_DHCP");
+      dapiCmd.cmdData.snoopConfig.packet_type = PTIN_PACKET_PPPOE;
+    }
+  }
   else 
   {
     PT_LOG_ERR(LOG_CTX_API,"Invalid argument protocol");

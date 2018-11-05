@@ -2042,6 +2042,7 @@ L7_RC_t hapiBroadSystemPacketTrapConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *d
   case PTIN_PACKET_DHCP_ALL:
     /* PPPoE packets */
   case PTIN_PACKET_PPPOE:
+  case PTIN_PACKET_PPPOE_ALL:
     /* APS packets */
   case PTIN_PACKET_APS:
   case PTIN_PACKET_MEP_TRAPPED:
@@ -3508,7 +3509,8 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
   ptin_trap_policy[search_index].policyId   = BROAD_POLICY_INVALID;
   /* only for trap all dhcp, igmp packets*/
   if (snoopConfig->packet_type == PTIN_PACKET_DHCP_ALL ||
-      snoopConfig->packet_type == PTIN_PACKET_IGMP_ALL)
+      snoopConfig->packet_type == PTIN_PACKET_IGMP_ALL ||
+      snoopConfig->packet_type == PTIN_PACKET_PPPOE_ALL)
   {
     switch (snoopConfig->packet_type)
     {
@@ -3523,6 +3525,12 @@ L7_RC_t hapiBroadConfigTrap(DAPI_USP_t *usp, cmdData_snoopConfig_t *snoopConfig,
       {
         result = hapiBroadConfigDhcpV4TrapAll(dapi_g, &ptin_trap_policy[search_index].policyId);
       }
+      break;
+
+    case PTIN_PACKET_PPPOE_ALL:
+      PT_LOG_TRACE(LOG_CTX_HAPI, "Processing PPPOE_ALL");
+      result = hapiBroadConfigPPPoETrapAll(dapi_g,
+                                          &ptin_trap_policy[search_index].policyId);
       break;
 
     case PTIN_PACKET_IGMP_ALL:
@@ -4655,6 +4663,98 @@ L7_RC_t hapiBroadConfigPPPoETrap(L7_uint16 vlanId, L7_uint16 vlan_match, DAPI_t 
 
   return result;
 }
+
+/**
+ * Create IFP rule to trap all PPPoE packets
+ * 
+ * @param dapi_g 
+ * @param policy_id  : Configured policy id (output)
+ * 
+ * @return L7_RC_t 
+ */
+L7_RC_t hapiBroadConfigPPPoETrapAll(DAPI_t *dapi_g,
+                                 BROAD_POLICY_t *policy_id)
+{
+  BROAD_POLICY_t          policyId = BROAD_POLICY_INVALID;
+  BROAD_POLICY_RULE_t     ruleId = BROAD_POLICY_RULE_INVALID;
+  L7_ushort16             pppoe_ethtype  = L7_ETYPE_PPPOE;
+  L7_uchar8               exact_match[] = {FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
+                                           FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE};
+  BROAD_METER_ENTRY_t     meterInfo;
+  BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
+  L7_RC_t                 result = L7_SUCCESS;
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Starting PPPoE trapping processing");
+
+  /* Validate arguments */
+  if (policy_id == L7_NULLPTR)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "PolicyId pointer");
+  }
+
+  do
+  {
+    result = hapiBroadPolicyCreate(policyType);
+    if (result != L7_SUCCESS)
+      break;
+
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
+
+    meterInfo = ptin_components_meter.pppoe;
+ 
+    /* PPPoE packets from client */
+    result = hapiBroadPolicyPriorityRuleAdd(&ruleId, BROAD_POLICY_RULE_PRIORITY_HIGH);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleQualifierAdd(ruleId, BROAD_FIELD_ETHTYPE, (L7_uchar8 *)&pppoe_ethtype, exact_match);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_SET_COSQ, CPU_TRAPPED_PACKETS_COS_PCAP, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    /* Trap the frames to CPU, so that they are not switched */
+    result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
+    if (result != L7_SUCCESS)  break;
+    result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
+    if (result != L7_SUCCESS)  break;
+
+  } while ( 0 );
+
+  /* Commit policy */
+  if (result == L7_SUCCESS)
+  {
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Commiting policy");
+
+    result = hapiBroadPolicyCommit(&policyId);
+
+    if (result == L7_SUCCESS)
+    {
+      PT_LOG_TRACE(LOG_CTX_HAPI, "policy %d commited successfully", *policy_id);
+    }
+    else
+    {
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error commiting policy");
+    }
+  }
+
+  if (result != L7_SUCCESS)
+  {
+    hapiBroadPolicyCreateCancel();
+    if (policy_id != L7_NULLPTR)  *policy_id = BROAD_POLICY_INVALID;
+    PT_LOG_TRACE(LOG_CTX_HAPI, "Some error ocurred: canceling policy");
+  }
+  else
+  {
+    if (policy_id != L7_NULLPTR)  *policy_id = policyId;
+  }
+
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Finished PPPoE trapping processing");
+
+  return result;
+}
+
+
 #endif
 
 /* PTin added: APS */
