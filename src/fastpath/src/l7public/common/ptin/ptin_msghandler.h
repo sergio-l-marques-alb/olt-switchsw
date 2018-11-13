@@ -372,7 +372,7 @@ typedef enum
   PROTOCOL_IGMP   = 0,
   PROTOCOL_DHCPV4 = 1,
   PROTOCOL_DHCPV6 = 2,
-  PROTOCOL_PPPOE  = 4
+  PROTOCOL_PPPOE  = 3
 }protocol_t;
 
 /*****************************************************************************

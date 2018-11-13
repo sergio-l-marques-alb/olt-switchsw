@@ -4130,7 +4130,6 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
   L7_uint8                ip_type;
   L7_uchar8               exact_match[] = { FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
     FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE };
-  BROAD_METER_ENTRY_t     meterInfo;
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
   L7_RC_t                 result = L7_SUCCESS;
 
@@ -4160,8 +4159,6 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     result = hapiBroadPolicyCreate(policyType);
     if (result != L7_SUCCESS) break;
 
-    meterInfo = ptin_components_meter.dhcp;
-
     PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
 
     /* give dhcp frames high priority and trap to the CPU. */
@@ -4188,10 +4185,6 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
-    if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
-    if (result != L7_SUCCESS)  break;
 
     /* DHCP packets from server */
     ip_type = BROAD_IP_TYPE_IPV4;
@@ -4211,10 +4204,6 @@ L7_RC_t hapiBroadConfigDhcpV4TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     result = hapiBroadPolicyRuleActionAdd(ruleId, BROAD_ACTION_TRAP_TO_CPU, 0, 0, 0);
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
-    if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
-    if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
     if (result != L7_SUCCESS)  break;
 
   }while (0);
@@ -4437,7 +4426,6 @@ L7_RC_t hapiBroadConfigDhcpV6TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
   L7_uint8                ip_type;
   L7_uchar8               exact_match[] = { FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE,
     FIELD_MASK_NONE, FIELD_MASK_NONE, FIELD_MASK_NONE };
-  BROAD_METER_ENTRY_t     meterInfo;
   BROAD_POLICY_TYPE_t     policyType = BROAD_POLICY_TYPE_SYSTEM;
   L7_RC_t                 result = L7_SUCCESS;
 
@@ -4467,9 +4455,6 @@ L7_RC_t hapiBroadConfigDhcpV6TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     result = hapiBroadPolicyCreate(policyType);
     if (result != L7_SUCCESS) break;
 
-
-    meterInfo = ptin_components_meter.dhcp;
-
     PT_LOG_TRACE(LOG_CTX_HAPI, "Policy of cell %u created", index);
 
     /* give dhcp frames high priority and trap to the CPU. */
@@ -4493,10 +4478,6 @@ L7_RC_t hapiBroadConfigDhcpV6TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
-    if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
-    if (result != L7_SUCCESS)  break;
 
     /* DHCP packets from server */
     ip_type = BROAD_IP_TYPE_IPV6;
@@ -4517,10 +4498,7 @@ L7_RC_t hapiBroadConfigDhcpV6TrapAll(DAPI_t *dapi_g, BROAD_POLICY_t *policy_id)
     if (result != L7_SUCCESS)  break;
     result = hapiBroadPolicyRuleNonConfActionAdd(ruleId, BROAD_ACTION_HARD_DROP, 0, 0, 0);
     if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleMeterAdd(ruleId, &meterInfo);
-    if (result != L7_SUCCESS)  break;
-    result = hapiBroadPolicyRuleCounterAdd(ruleId, BROAD_COUNT_PACKETS);
-    if (result != L7_SUCCESS)  break;
+
 
   }while (0);
 
