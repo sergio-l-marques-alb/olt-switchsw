@@ -250,8 +250,20 @@ L7_RC_t ptin_intf_pre_init(void)
       return L7_FAILURE;
     }
 
-  }
+#if PTIN_BOARD == PTIN_BOARD_AG16GA
+/* Remove ports from VLAN 1*/
+    if (i == 0)
+    {
+      rc = ptin_vlan_port_remove(i, 1);
+      if (rc != L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_INTF, "Failed to remove port# %u from vlan 1", i);
+        return L7_FAILURE;
+      }
 
+    }
+  }
+#endif
   /* Wait until all requests are attended */
   do
     osapiSleepMSec(100);
@@ -398,14 +410,6 @@ L7_RC_t ptin_intf_post_init(void)
 //#endif
   }
 
-#if (0)//PTIN_BOARD == PTIN_BOARD_AG16GA)
-  int j = 0;
-  for (j=1; j<=4096;j++)
-  {
-    usmDbVlanCreate(1,j);
-    usmDbVlanMemberSet(1,0,j,L7_DOT1Q_FIXED,DOT1Q_SWPORT_MODE_NONE);
-  }
-#endif
 
   /* MEF Ext defaults */
   if (ptin_intf_portExt_init()!=L7_SUCCESS)

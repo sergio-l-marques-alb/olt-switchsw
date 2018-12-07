@@ -1487,8 +1487,8 @@ void hpcHardwareDefaultConfigApply(void)
     }
 
 
-    bcm_pbmp_t pbmp;
-    BCM_PBMP_ASSIGN(pbmp, PBMP_PORT_ALL(i));
+    //bcm_pbmp_t pbmp;
+    //BCM_PBMP_ASSIGN(pbmp, PBMP_PORT_ALL(i));
 
     BCM_PBMP_CLEAR(ubmp);
 
@@ -1554,7 +1554,19 @@ void hpcHardwareDefaultConfigApply(void)
                     i, port, rv);
           }        
         }
+
+
 #if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+        bcm_pbmp_t all_pbmp;
+        BCM_PBMP_ASSIGN(all_pbmp, PBMP_PORT_ALL(i));
+
+        rv = bcm_vlan_port_remove(i, 1, all_pbmp);
+        if (rv < 0)
+        {
+          PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_port_remove failed unit %d, %d, %d \n",all_pbmp);
+          L7_LOG_ERROR(rv);
+        }
+
         rv = bcm_port_vlan_member_set(i, port, 0);
 
         /*Cpu port in added to all the ports 
@@ -1570,14 +1582,12 @@ void hpcHardwareDefaultConfigApply(void)
 
           for (vlan = 1 ; vlan < 4095; vlan++)
           {
-
             rv = bcm_vlan_create(i, vlan);
             if ((rv < 0) && (rv != BCM_E_EXISTS))
             {
               PT_LOG_ERR(LOG_CTX_STARTUP, "bcm_vlan_create failed unit %d\n", i);
               L7_LOG_ERROR(rv);
             }
-
             rv = bcm_vlan_port_add(i, vlan, pbmp, ubmp);
             if (rv < 0)
             {
