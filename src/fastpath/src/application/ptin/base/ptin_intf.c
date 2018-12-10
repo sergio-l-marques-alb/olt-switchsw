@@ -239,19 +239,14 @@ L7_RC_t ptin_intf_pre_init(void)
   /* Initialize phy default TPID and MTU */
   for (i=0; i<ptin_sys_number_of_ports; i++)
   {
-#if PTIN_BOARD != PTIN_BOARD_AG16GA
     rc = usmDbVlanMemberSet(1, 1, map_port2intIfNum[i], L7_DOT1Q_FORBIDDEN, DOT1Q_SWPORT_MODE_NONE);
-#else
-    rc = usmDbVlanMemberSet(1, 1, map_port2intIfNum[i], L7_DOT1Q_FIXED, DOT1Q_SWPORT_MODE_NONE);
-#endif
+
     if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_INTF, "Failed to remove port# %u from vlan 1", i);
       return L7_FAILURE;
     }
 
-#if PTIN_BOARD == PTIN_BOARD_AG16GA
-/* Remove ports from VLAN 1*/
     if (i == 0)
     {
       rc = ptin_vlan_port_remove(i, 1);
@@ -263,7 +258,7 @@ L7_RC_t ptin_intf_pre_init(void)
 
     }
   }
-#endif
+
   /* Wait until all requests are attended */
   do
     osapiSleepMSec(100);
