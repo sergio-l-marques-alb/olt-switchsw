@@ -43,7 +43,7 @@ void ptin_debug_dhcp_enable(L7_BOOL enable)
 #else
  #define DHCP_CLIENT_OUTERVLAN_SUPPORTED 0
 #endif
-#define DHCP_CLIENT_INNERVLAN_SUPPORTED 1
+#define DHCP_CLIENT_INNERVLAN_SUPPORTED 0 //1 - PAULOG CVT
 #define DHCP_CLIENT_IPADDR_SUPPORTED    0
 #define DHCP_CLIENT_MACADDR_SUPPORTED   0
 
@@ -2057,7 +2057,11 @@ L7_RC_t ptin_dhcp_client_delete(L7_uint32 evc_idx, const ptin_client_id_t *clien
             dhcp_idx);
 
   /* Remove all associated DHCP leases */
+  #if (DHCP_CLIENT_INNERVLAN_SUPPORTED)
   if (L7_SUCCESS != dsEvcBindingsClear(evc_idx, avl_key.innerVlan))
+  #else
+  if (L7_SUCCESS != dsEvcBindingsClear(evc_idx, 0))
+  #endif
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Unable to remove DHCP leases [evc_idx:%u]", evc_idx);
     return L7_FAILURE;
