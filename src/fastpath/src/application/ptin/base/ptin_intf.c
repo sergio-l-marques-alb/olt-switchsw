@@ -247,6 +247,7 @@ L7_RC_t ptin_intf_pre_init(void)
       return L7_FAILURE;
     }
 
+#if PTIN_BOARD == PTIN_BOARD_AG16GA
     if (i == 0)
     {
       rc = ptin_vlan_port_remove(i, 1);
@@ -255,8 +256,8 @@ L7_RC_t ptin_intf_pre_init(void)
         PT_LOG_ERR(LOG_CTX_INTF, "Failed to remove port# %u from vlan 1", i);
         return L7_FAILURE;
       }
-
     }
+#endif
   }
 
   /* Wait until all requests are attended */
