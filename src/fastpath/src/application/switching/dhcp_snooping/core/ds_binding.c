@@ -1007,7 +1007,7 @@ L7_RC_t dsBindingFind(dhcpSnoopBinding_t *extBinding, L7_uint32 matchType)
 *
 * @end
 *********************************************************************/
-L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipv4Addr, L7_ushort16 vlanId )
+L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipv4Addr)
 {
   dsBindingTreeNode_t *binding;
   dsBindingTreeKey_t   key;
@@ -1056,10 +1056,6 @@ L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipv4Addr, L7_ush
   }
 
   inetCopy(&binding->ipAddr, &ipAddr);
-  if ( vlanId != (L7_ushort16)-1 )
-  {
-    binding->vlanId = vlanId;
-  }
 
   return L7_SUCCESS;
 }
@@ -1077,7 +1073,7 @@ L7_RC_t dsBindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_uint32 ipv4Addr, L7_ush
 *
 * @end
 *********************************************************************/
-L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t *ipAddr, L7_ushort16 vlanId)
+L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t *ipAddr)
 {
   dsBindingTreeNode_t *binding;
   dsBindingTreeKey_t   key;
@@ -1124,10 +1120,6 @@ L7_RC_t dsv6BindingIpAddrSet(L7_enetMacAddr_t *macAddr, L7_inet_addr_t *ipAddr, 
   }
   
   memcpy(&binding->ipAddr, ipAddr, sizeof(L7_inet_addr_t));
-  if ( vlanId != (L7_ushort16)-1 )
-  {
-    binding->vlanId = vlanId;
-  }
     
   return L7_SUCCESS;
 }
