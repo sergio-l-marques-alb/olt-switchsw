@@ -236,7 +236,8 @@ void dhcpSnoopTask(void)
           if (osapiWriteLockTake(dsCfgRWLock, L7_WAIT_FOREVER) == L7_SUCCESS)
           {
             if (dsBindingIpAddrSet(&eventMsg.dsMsgData.dhcpsEvent.chAddr,
-                                osapiNtohl(eventMsg.dsMsgData.dhcpsEvent.ipAddr))
+                                   osapiNtohl(eventMsg.dsMsgData.dhcpsEvent.ipAddr),
+                                   (L7_ushort16)-1 )
                                   == L7_SUCCESS)
             {
               dsBindingTreeKey_t key;
@@ -2281,7 +2282,7 @@ L7_RC_t dsDHCPv6ServerFrameProcess(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_uc
      memset(&key, 0x00, sizeof(key));
      memcpy(&key.macAddr.addr, &client_mac_addr.addr, L7_ENET_MAC_ADDR_LEN);
      key.ipType = L7_AF_INET6;
-     dsv6BindingIpAddrSet(&client_mac_addr, &client_ip_addr);
+     dsv6BindingIpAddrSet(&client_mac_addr, &client_ip_addr, vlanId);
      dsBindingLeaseSet(&key, lease_time);
      dsv6LeaseStatusUpdate(&client_mac_addr, dhcp_msg_hdr_ptr->msg_type, intIfNum);
    }
@@ -4538,7 +4539,7 @@ L7_RC_t dsBindingExtract(L7_uint32 intIfNum, L7_ushort16 vlanId, L7_ushort16 inn
            /* This is the ACK for the dhcp_offer,IGNORE it */
            break;
          }
-         if (dsBindingIpAddrSet(&chaddr, yiaddr) == L7_SUCCESS)
+         if (dsBindingIpAddrSet(&chaddr, yiaddr, vlanId) == L7_SUCCESS)
          {
            dsInfo->debugStats.bindingsAdded++;
          }
