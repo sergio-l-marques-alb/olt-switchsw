@@ -17,11 +17,12 @@
 #define PTIN_XLATE_PORTGROUP_ROOTS        (PTIN_XLATE_PORTGROUP_SPECIAL_BASE+1)     /* Root ports (1G) */
 #define PTIN_XLATE_PORTGROUP_ROOTS_10G    (PTIN_XLATE_PORTGROUP_SPECIAL_BASE+2)     /* 10G Root ports */
 
+#if 0
 /**
  * Inline functions
  */
 inline char ptin_vlanxlate_action_getchar(ptin_vlanXlate_action_enum action);
-
+#endif
 /**
  * Module initialization function
  * 
