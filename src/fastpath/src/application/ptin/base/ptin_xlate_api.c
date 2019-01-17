@@ -113,7 +113,6 @@ static L7_RC_t xlate_portgroup_from_intf(L7_uint32 intIfNum, L7_uint32 *portgrou
 
 static L7_RC_t ptin_xlate_PVID_init(void);
 
-#if 0
 /**
  * Inline functions
  */
@@ -129,7 +128,7 @@ inline char ptin_vlanxlate_action_getchar(ptin_vlanXlate_action_enum action)
   return char_list[action];
 }
 
-#endif
+
 
 /**
  * Add ingress translation entry
