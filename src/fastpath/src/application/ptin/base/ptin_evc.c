@@ -9282,32 +9282,12 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
     /* Data to be used to add interface */
     intf_vlan = *intf_cfg;
 
-#if (PTIN_BOARD_IS_GPON)
-    /* For Stacked bitstream services, where P2MP EVCs will be used,
-       if a Leaf interface only has 1 VLAN defined (outer-vlan), it means we have to push/pop the inner VLAN...
-       The easiest way to do that is to configure a single bridge-client to this EVC */
-    if (!IS_EVC_ETREE(evc_id) && !is_quattro && is_stacked && !cpu_trap && !is_root &&
-        (IS_VLAN_VALID(intf_cfg->vid) && IS_VLAN_VALID(intf_cfg->vid_inner)) )
-    {
-      /* Add inner vlan @ ingress / Remove inner vlan @ egress */
-      intf_cfg->action_outer  = PTIN_XLATE_ACTION_REPLACE;
-      intf_cfg->action_inner  = PTIN_XLATE_ACTION_ADD;
-      rc = switching_elan_leaf_add(intf_cfg, evcs[evc_id].rvlan, L7_TRUE, -1);
-
-      if (rc != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_EVC, "Error configuring single client for Stacked-Bitstream EVCs (rc=%d)", rc);
-        return L7_FAILURE;
-      }
-      PT_LOG_TRACE(LOG_CTX_EVC, "Single client for Stacked-Bitstream EVCs successfully configured");
-    }
-    else
     /* Add translations for leaf ports */
-#elif ( PTIN_BOARD_IS_MATRIX )
+    #if ( PTIN_BOARD_IS_MATRIX )
     if (is_p2p || !IS_EVC_ETREE(evc_id))
-#else
-    if (!IS_EVC_ETREE(evc_id) && !is_stacked && !is_quattro)
-#endif
+    #else
+    if (!IS_EVC_ETREE(evc_id) && !is_stacked && !is_quattro && (intf_vlan.vid >= 1 && intf_vlan.vid <= 4095))
+    #endif
     {
       /* Only configure MC EVC partially if we are not at MX */
       #if ( !PTIN_BOARD_IS_MATRIX )
@@ -9417,10 +9397,22 @@ static L7_RC_t ptin_evc_intf_add(L7_uint evc_id, ptin_HwEthMef10Intf_t *intf_cfg
   #ifdef PTIN_ERPS_EVC
   evcs[evc_id].intf[ptin_port].portState = PTIN_EVC_PORT_FORWARDING;
   #endif
+  #if ( !PTIN_BOARD_IS_MATRIX )
+  PT_LOG_TRACE(LOG_CTX_EVC, "...");
+  if (is_stacked && (intf_cfg->mef_type == PTIN_EVC_INTF_LEAF))
+  {
+    PT_LOG_TRACE(LOG_CTX_EVC, "vid %u -> 0xFFFF, vid_inner %u -> 0", intf_cfg->vid, intf_cfg->vid_inner);
+    evcs[evc_id].intf[ptin_port].out_vlan   = 0xFFFF;  /* on stacked EVCs, leafs out.vid is defined per client and not per interface */
+    evcs[evc_id].intf[ptin_port].inner_vlan = 0;
+  }
+  else
+  #endif
+  {
+    PT_LOG_TRACE(LOG_CTX_EVC, "VLANs %u + %u (%u + %u)", intf_vlan.vid, intf_vlan.vid_inner, intf_cfg->vid, intf_cfg->vid_inner);
+    evcs[evc_id].intf[ptin_port].out_vlan   = intf_cfg->vid;
+    evcs[evc_id].intf[ptin_port].inner_vlan = intf_cfg->vid_inner;
+  }
 
-  PT_LOG_TRACE(LOG_CTX_EVC, "VLANs %u + %u (%u + %u)", intf_vlan.vid, intf_vlan.vid_inner, intf_cfg->vid, intf_cfg->vid_inner);
-  evcs[evc_id].intf[ptin_port].out_vlan   = intf_cfg->vid;
-  evcs[evc_id].intf[ptin_port].inner_vlan = intf_cfg->vid_inner;
   evcs[evc_id].intf[ptin_port].action_outer_vlan = (IS_VLAN_VALID(intf_cfg->vid))       ? intf_cfg->action_outer : PTIN_XLATE_ACTION_MAX;
   evcs[evc_id].intf[ptin_port].action_inner_vlan = (IS_VLAN_VALID(intf_cfg->vid_inner)) ? intf_cfg->action_inner : PTIN_XLATE_ACTION_MAX;
 
@@ -9569,31 +9561,14 @@ static L7_RC_t ptin_evc_intf_remove(L7_uint evc_id, L7_uint ptin_port)
     }
     evcs[evc_id].n_leafs--;
 
-#if (PTIN_BOARD_IS_GPON)
-    /* For Stacked bitstream services, where P2MP EVCs will be used,
-       if a Leaf interface only has 1 VLAN defined (outer-vlan), it means we have to push/pop the inner VLAN...
-       The easiest way to do that is to configure a single bridge-client to this EVC.
-       When removing this interface, we have to remove thi single bridge-client. */
-    if (!IS_EVC_ETREE(evc_id) && !is_quattro && is_stacked && !cpu_trap && !is_root &&
-        (IS_VLAN_VALID(out_vlan) && IS_VLAN_VALID(inn_vlan)) )
-    {
-      rc = switching_elan_leaf_remove(ptin_port, out_vlan, inn_vlan, evcs[evc_id].rvlan, L7_TRUE /*Delete inner vlan at egress*/);
-
-      if (rc != L7_SUCCESS)
-      {
-        PT_LOG_ERR(LOG_CTX_EVC, "Error removing single client for Stacked-Bitstream EVCs (rc=%d)", rc);
-        return L7_FAILURE;
-      }
-      PT_LOG_TRACE(LOG_CTX_EVC, "Removed single-bridge client for Stacked-Bitstream EVCs");
-    }
-    else
-#elif ( PTIN_BOARD_IS_MATRIX )
+    #if ( PTIN_BOARD_IS_MATRIX )
     if (is_p2p || !IS_EVC_ETREE(evc_id))
-#else
-    if (!IS_EVC_ETREE(evc_id) && !is_stacked && !is_quattro)
-#endif
+    #else
+    if (!IS_EVC_ETREE(evc_id) && !is_stacked && !is_quattro && (out_vlan >= 1 && out_vlan <= 4095))
+    #endif
     {
       /* Add translations for leaf ports, only if we are in matrix board */
+      L7_RC_t rc;
 
       /* Only configure MC EVC partially if we are not at MX */
       #if ( !PTIN_BOARD_IS_MATRIX )
@@ -13229,7 +13204,7 @@ void  dump_all_offlineEvc()
     memcpy(&ext_evcId_key, &ext_evcId_infoData->extNGEvcIdDataKey , sizeof(ptinExtNGEvcIdDataKey_t));
 
     printf("EVC# %u \n", ext_evcId_infoData->evcNgpon2.index);
-    printf("Nº interfaces %u \n", ext_evcId_infoData->evcNgpon2.n_intf);
+    printf("Number of interfaces %u \n", ext_evcId_infoData->evcNgpon2.n_intf);
     printf("Flags %u \n", ext_evcId_infoData->evcNgpon2.flags);
 
     for (i=0 ; i<ext_evcId_infoData->evcNgpon2.n_intf; i++)
