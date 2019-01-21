@@ -290,7 +290,7 @@ L7_RC_t ptin_intf_post_init(void)
     ptin_intf.intf_type = PTIN_EVC_INTF_PHYSICAL;
     ptin_intf.intf_id   = i;
 
-    phyExt_data[i].doubletag  = L7_TRUE;
+    phyExt_data[i].dtag_all2one_bundle  = L7_TRUE;
     phyExt_data[i].outer_tpid = PTIN_TPID_OUTER_DEFAULT;
 //    phyExt_data[i].inner_tpid = PTIN_TPID_INNER_DEFAULT;
 
@@ -510,7 +510,7 @@ L7_RC_t ptin_intf_portExt_init(void)
   mefExt.restricted_vlan_reg          = 0;            /* Not defined */
   mefExt.vlan_aware                   = L7_FALSE;     /* Not defined */
   mefExt.type                         = 0;            /* Not defined */
-  mefExt.doubletag                    = L7_TRUE;
+  mefExt.dtag_all2one_bundle          = L7_FALSE;
   mefExt.outer_tpid                   = 0x8100;
   mefExt.inner_tpid                   = 0x8100;
 
@@ -612,7 +612,7 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   PT_LOG_TRACE(LOG_CTX_INTF," restricted_vlan_reg = %u"         , mefExt->restricted_vlan_reg);
   PT_LOG_TRACE(LOG_CTX_INTF," vlan_aware = %u"                  , mefExt->vlan_aware);
   PT_LOG_TRACE(LOG_CTX_INTF," type       = %u"                  , mefExt->type);
-  PT_LOG_TRACE(LOG_CTX_INTF," doubletag  = %u"                  , mefExt->doubletag);
+  PT_LOG_TRACE(LOG_CTX_INTF," doubletag  = %u"                  , mefExt->dtag_all2one_bundle);
   PT_LOG_TRACE(LOG_CTX_INTF," outer_tpid = 0x%04X"              , mefExt->outer_tpid);
   PT_LOG_TRACE(LOG_CTX_INTF," inner_tpid = 0x%04X"              , mefExt->inner_tpid);
   PT_LOG_TRACE(LOG_CTX_INTF," egress_type = %u"                 , mefExt->egress_type);
@@ -714,6 +714,16 @@ L7_RC_t ptin_intf_portExt_set(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
     }
   }
 
+  /* Double tag mode set */
+  if (mefExt->Mask & MSG_HWPORTEXT_MASK_DTAG_ALL2ONE_BUNDLE)
+  {
+    if (usmDbDvlantagIntfModeSet(1, intIfNum, mefExt->dtag_all2one_bundle == 0) != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_INTF, "Error applying doubletag property (%u)", mefExt->dtag_all2one_bundle);
+      return L7_FAILURE;
+    }
+  }
+  
   if (mefExt->Mask & PTIN_HWPORTEXT_MASK_ACCEPTABLE_FRAME_TYPES)
   {
     //rc = usmDbQportsEnableIngressFilteringSet(unit, intIfNum, L7_ENABLE);
@@ -799,7 +809,7 @@ L7_RC_t ptin_intf_portExt_get(const ptin_intf_t *ptin_intf, ptin_HWPortExt_t *me
   PT_LOG_TRACE(LOG_CTX_INTF," restricted_vlan_reg = %u"         , mefExt->restricted_vlan_reg);
   PT_LOG_TRACE(LOG_CTX_INTF," vlan_aware = %u"                  , mefExt->vlan_aware);
   PT_LOG_TRACE(LOG_CTX_INTF," type       = %u"                  , mefExt->type);
-  PT_LOG_TRACE(LOG_CTX_INTF," doubletag  = %u"                  , mefExt->doubletag);
+  PT_LOG_TRACE(LOG_CTX_INTF," doubletag  = %u"                  , mefExt->dtag_all2one_bundle);
   PT_LOG_TRACE(LOG_CTX_INTF," outer_tpid = %u"                  , mefExt->outer_tpid);
   PT_LOG_TRACE(LOG_CTX_INTF," inner_tpid = %u"                  , mefExt->inner_tpid);
   PT_LOG_TRACE(LOG_CTX_INTF," egress_type = %u"                 , mefExt->egress_type);

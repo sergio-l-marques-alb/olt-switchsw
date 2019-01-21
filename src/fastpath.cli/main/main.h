@@ -434,7 +434,7 @@ typedef struct {
 #define MSG_HWPORTEXT_MASK_RESTRICTED_VLAN_REG              0x0010
 #define MSG_HWPORTEXT_MASK_VLAN_AWARE                       0x0020
 #define MSG_HWPORTEXT_MASK_TYPE                             0x0040
-#define MSG_HWPORTEXT_MASK_DOUBLETAG                        0x0100
+#define MSG_HWPORTEXT_MASK_DTAG_ALL2ONE_BUNDLE              0x0100
 #define MSG_HWPORTEXT_MASK_OUTER_TPID                       0x0200
 #define MSG_HWPORTEXT_MASK_INNER_TPID                       0x0400
 #define MSG_HWPORTEXT_MASK_EGRESS_TYPE                      0x0800
@@ -457,7 +457,7 @@ typedef struct
   L7_uint8              restricted_vlan_reg;            // [Mask=0x000010] (only physical interfaces)
   L7_uint8              vlan_aware;                     // [Mask=0x000020] (only physical interfaces)
   L7_uint8              type;                           // [Mask=0x000040] UNI=1, NNI=2 (only physical interfaces)
-  L7_uint8              doubletag;                      // [Mask=0x000100] (only physical interfaces)
+  L7_uint8              dtag_all2one_bundle;            // [Mask=0x000100] 0: No (Service type), 1: Yes (Customer type)
   L7_uint16             outer_tpid;                     // [Mask=0x000200] (only physical interfaces)
   L7_uint16             inner_tpid;                     // [Mask=0x000400] (only physical interfaces)
   L7_uint8              egress_type;                    // [Mask=0x000800] (only physical interfaces)

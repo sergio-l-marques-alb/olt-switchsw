@@ -1841,7 +1841,7 @@ L7_RC_t ptin_msg_portExt_set(msg_HWPortExt_t *portExt, L7_uint nElems)
     portExt_conf.restricted_vlan_reg           = ENDIAN_SWAP8 (portExt[i].restricted_vlan_reg);
     portExt_conf.vlan_aware                    = ENDIAN_SWAP8 (portExt[i].vlan_aware);
     portExt_conf.type                          = ENDIAN_SWAP8 (portExt[i].type);
-    portExt_conf.doubletag                     = ENDIAN_SWAP8 (portExt[i].doubletag);
+    portExt_conf.dtag_all2one_bundle           = ENDIAN_SWAP8 (portExt[i].dtag_all2one_bundle);
     portExt_conf.inner_tpid                    = ENDIAN_SWAP16(portExt[i].inner_tpid);
     portExt_conf.outer_tpid                    = ENDIAN_SWAP16(portExt[i].outer_tpid);
     portExt_conf.egress_type                   = ENDIAN_SWAP8 (portExt[i].egress_type);
@@ -1992,7 +1992,7 @@ L7_RC_t ptin_msg_portExt_get(msg_HWPortExt_t *portExt, L7_uint *nElems)
     portExt[index].restricted_vlan_reg           = ENDIAN_SWAP8 (portExt_conf.restricted_vlan_reg);
     portExt[index].vlan_aware                    = ENDIAN_SWAP8 (portExt_conf.vlan_aware);
     portExt[index].type                          = ENDIAN_SWAP8 (portExt_conf.type);
-    portExt[index].doubletag                     = ENDIAN_SWAP8 (portExt_conf.doubletag);
+    portExt[index].dtag_all2one_bundle           = ENDIAN_SWAP8 (portExt_conf.dtag_all2one_bundle);
     portExt[index].inner_tpid                    = ENDIAN_SWAP16(portExt_conf.inner_tpid);
     portExt[index].outer_tpid                    = ENDIAN_SWAP16(portExt_conf.outer_tpid);
     portExt[index].egress_type                   = ENDIAN_SWAP8 (portExt_conf.egress_type);

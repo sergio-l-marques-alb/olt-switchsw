@@ -459,7 +459,7 @@ typedef struct
   L7_uint8  restricted_vlan_reg;            // 0x00000010
   L7_uint8  vlan_aware;                     // 0x00000020
   L7_uint8  type;                           // 0x00000040   UNI=1, NNI=2
-  L7_uint8  doubletag;                      // 0x00000100
+  L7_uint8  dtag_all2one_bundle;            // 0x00000100   0: No (Service type), 1: Yes (Customer type)
   L7_uint16 outer_tpid;                     // 0x00000200
   L7_uint16 inner_tpid;                     // 0x00000400
   L7_uint8  egress_type;                    // 0x00000800   PROMISCUOUS=0, COMMUNITY=1, ISOLATED=2

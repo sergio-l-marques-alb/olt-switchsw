@@ -56,7 +56,7 @@ void help_oltBuga(void)
         "m 1013 slot(2-19) - Apply linkscan procedure\n\r"
         "m 1014 slot(2-19) port(0-3) cmd(0/1) - (Uplink) Protection command\n\r"
         "m 1015 intfType/intf# - Get port type definitions\r\n"
-        "m 1016 intf=<type>/<intf#> [defvid=1-4095] [defprio=0-7] [aftypes=0/1] [ifilter=0/1] [rvlanreg=0/1] [vlanaware=0/1] [type=0/1/2] [dtag=0/1]\r\n"
+        "m 1016 intf=<type>/<intf#> [defvid=1-4095] [defprio=0-7] [aftypes=0/1] [ifilter=0/1] [rvlanreg=0/1] [vlanaware=0/1] [type=0/1/2] [all2one=0/1]\r\n"
         "       [otpid=xxxxh] [itpid=xxxxh] [etype=0/1/2] [mlen=0/1] [mlsmen=0/1] [mlsmprio=0-7] [mlsmsp=0/1] [trust=0/1] - Set port type definitions\r\n"
         "m 1017 intfType/intf# - Get MAC address of given interface\r\n"
         "m 1018 intfType/intf# macAddr(xx:xx:xx:xx:xx:xx) - Set MAC address for the provided interface\r\n"
@@ -1269,7 +1269,7 @@ int main (int argc, char *argv[])
         ptr->restricted_vlan_reg          = ENDIAN_SWAP8 (0);
         ptr->vlan_aware                   = ENDIAN_SWAP8 (1);
         ptr->type                         = ENDIAN_SWAP8 (2);
-        ptr->doubletag                    = ENDIAN_SWAP8 (1);
+        ptr->dtag_all2one_bundle          = ENDIAN_SWAP8 (0);
         ptr->outer_tpid                   = ENDIAN_SWAP16(0x8100);
         ptr->inner_tpid                   = ENDIAN_SWAP16(0x8100);
         ptr->egress_type                  = ENDIAN_SWAP8 (0);
@@ -1376,15 +1376,15 @@ int main (int argc, char *argv[])
             ptr->type = ENDIAN_SWAP8((uint8) valued);
             ptr->Mask |= MSG_HWPORTEXT_MASK_TYPE;
           }
-          else if (strcmp(param,"dtag")==0)
+          else if (strcmp(param,"all2one")==0)
           {
             if (StrToLongLong(value,&valued)<0)
             {
               printf("Invalid dtag value\r\n");
               exit(0);
             }
-            ptr->doubletag = ENDIAN_SWAP8((uint8) valued);
-            ptr->Mask |= MSG_HWPORTEXT_MASK_DOUBLETAG;
+            ptr->dtag_all2one_bundle = ENDIAN_SWAP8((uint8) valued);
+            ptr->Mask |= MSG_HWPORTEXT_MASK_DTAG_ALL2ONE_BUNDLE;
           }
           else if (strcmp(param,"otpid")==0)
           {
@@ -8272,8 +8272,8 @@ int main (int argc, char *argv[])
               printf("\tVlan Aware             = %u\n\r", ENDIAN_SWAP8(po[index].vlan_aware));
             if (mask & MSG_HWPORTEXT_MASK_TYPE)
               printf("\tType                   = %u\n\r", ENDIAN_SWAP8(po[index].type));
-            if (mask & MSG_HWPORTEXT_MASK_DOUBLETAG)
-              printf("\tDouble Tag             = %u\n\r", ENDIAN_SWAP8(po[index].doubletag));
+            if (mask & MSG_HWPORTEXT_MASK_DTAG_ALL2ONE_BUNDLE)
+              printf("\tDTag_all2one_bundle    = %u\n\r", ENDIAN_SWAP8(po[index].dtag_all2one_bundle));
             if (mask & MSG_HWPORTEXT_MASK_OUTER_TPID)
               printf("\tOuter TPID             = %u\n\r", ENDIAN_SWAP16(po[index].outer_tpid));
             if (mask & MSG_HWPORTEXT_MASK_INNER_TPID)

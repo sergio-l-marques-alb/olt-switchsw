@@ -1057,7 +1057,7 @@ L7_RC_t hapiBroadPtinVlanTranslate(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, 
   hapi_xlate.newOuterVlanId   = xlate->outerVlan_new;
   hapi_xlate.newInnerVlanId   = xlate->innerVlan_new;
   hapi_xlate.outerVlanAction  = (xlate->remove_VLANs) ? PTIN_XLATE_ACTION_DELETE : xlate->outerVlanAction;
-  hapi_xlate.innerVlanAction  = (xlate->remove_VLANs) ? PTIN_XLATE_ACTION_DELETE : xlate->innerVlanAction;
+  hapi_xlate.innerVlanAction  = /*(xlate->remove_VLANs) ? PTIN_XLATE_ACTION_DELETE :*/ xlate->innerVlanAction;
 
   hapi_xlate.outerPrio        = xlate->outerPrio;
   hapi_xlate.innerPrio        = xlate->innerPrio;
