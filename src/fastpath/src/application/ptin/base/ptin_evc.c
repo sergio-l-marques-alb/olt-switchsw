@@ -303,6 +303,11 @@ static L7_uint16 n_quattro_igmp_evcs = 0;
 
 #define NO_INSTANCE(evcId, counter)       (!IS_EVC_QUATTRO(evcId) || ((counter) == 0))
 #define SINGLE_INSTANCE(evcId, counter)   (!IS_EVC_QUATTRO(evcId) || ((counter) <= 1))
+#else
+#define INCREMENT_QUATTRO_INSTANCE(evcId, counter)   
+#define DECREMENT_QUATTRO_INSTANCE(evcId, counter)   
+#define NO_INSTANCE(evcId, counter)       (L7_TRUE)
+#define SINGLE_INSTANCE(evcId, counter)   (L7_TRUE)
 #endif
 
 /* Local Macros */
