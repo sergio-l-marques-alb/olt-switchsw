@@ -88,7 +88,9 @@ L7_RC_t sysNetPduInterceptRegister(sysnetPduIntercept_t *sysnetPduIntercept)
   if ( (af >= SYSNET_AF_MAX) ||
        (hookId >= L7_SYSNET_PDU_MAX_HOOKS) ||
        (precedence >= L7_SYSNET_HOOK_PRECEDENCE_LAST) )
+  {   
     return L7_FAILURE;
+  }
 
   osapiSemaTake(sysnetPduHookSema, L7_WAIT_FOREVER);
 

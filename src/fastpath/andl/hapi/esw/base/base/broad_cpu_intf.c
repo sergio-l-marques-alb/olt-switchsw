@@ -2267,7 +2267,7 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
   if (cpu_transmited_packets_dump)
   {
     int i;
-    for (i=0; i<bcm_pkt.pkt_data->len && i<128; i++)
+    for (i=0; i<bcm_pkt.pkt_data->len ; i++)
     {
       if (i%16==0)
       {

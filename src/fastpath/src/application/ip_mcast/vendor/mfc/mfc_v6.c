@@ -687,7 +687,7 @@ SYSNET_PDU_RC_t mfcIpv6DataIntercept(L7_uint32 hookId,
                    MCAST_MAC_IP6_DA_MATCH_BYTES) == 0)))
   {
     MFC_DEBUG(MFC_DEBUG_RX, "Addr-mismatch. Data packet discarded");    
-    return SYSNET_PDU_RC_DISCARD;
+    return SYSNET_PDU_RC_IGNORED;
   }
     
  return SYSNET_PDU_RC_IGNORED;  

@@ -344,7 +344,7 @@ L7_RC_t snoopIGMPAdminModeApply(L7_uint32 adminMode, L7_uint16 vlanId /* PTin ad
 
   sysnetPduIntercept.addressFamily   = L7_AF_INET;
   sysnetPduIntercept.hookId          = SYSNET_INET_RECV_IN;
-  sysnetPduIntercept.hookPrecedence  = FD_SYSNET_HOOK_IGMP_SNOOPING_PRECEDENCE;
+  sysnetPduIntercept.hookPrecedence  = FD_SYSNET_HOOK_MLD_PRECEDENCE;
   sysnetPduIntercept.interceptFunc   = snoopIGMPPktIntercept;
   strcpy(sysnetPduIntercept.interceptFuncName, "snoopIGMPPktIntercept");
 

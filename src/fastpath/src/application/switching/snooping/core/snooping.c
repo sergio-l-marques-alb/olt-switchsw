@@ -345,8 +345,11 @@ SYSNET_PDU_RC_t snoopMLDPktIntercept(L7_uint32 hookId,
   /* Support for MLD packets with IPv6 options header is not supported
      by all hardwares.
   */
+
   if ((pSnoopEB = snoopEBGet()) == L7_NULLPTR)
   {
+
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "MLD not initialized");
     return SYSNET_PDU_RC_IGNORED;
   }
 
@@ -357,7 +360,6 @@ SYSNET_PDU_RC_t snoopMLDPktIntercept(L7_uint32 hookId,
     {
       return SYSNET_PDU_RC_IGNORED;
     }
-
     extLength = SNOOP_IP6_HOPBHOP_LEN_GET(ip6ExtHdr.xlen);
     dataPtr   = data + dataOffSet + (sizeof(L7_uchar8) * L7_IP6_HEADER_LEN)
                 + extLength;
@@ -367,11 +369,14 @@ SYSNET_PDU_RC_t snoopMLDPktIntercept(L7_uint32 hookId,
     return SYSNET_PDU_RC_IGNORED;
   }
 
+  PT_LOG_NOTICE(LOG_CTX_IGMP, "MLD packet Receive");
+
   hapiBroadReceice_mld_count++;
 
-  if (pSnoopEB->ipv6OptionsSupport == L7_TRUE)
+  /* IPv6 options are supported*/
+  if (1)
   {
-
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "MLD Receive with ipv6 options");
     if (*dataPtr == L7_MLD_MEMBERSHIP_QUERY ||
         *dataPtr == L7_MLD_V1_MEMBERSHIP_REPORT ||
         *dataPtr == L7_MLD_V1_MEMBERSHIP_DONE ||
@@ -379,12 +384,16 @@ SYSNET_PDU_RC_t snoopMLDPktIntercept(L7_uint32 hookId,
     {
       if (snoopPacketHandle(bufHandle, pduInfo, L7_AF_INET6) == L7_SUCCESS)
       {
-        return SYSNET_PDU_RC_COPIED;
+        SYSAPI_NET_MBUF_FREE(bufHandle);
+        return SYSNET_PDU_RC_CONSUMED;    
       }
     } /* End of valid MLD Packet check */
   }
   else
   {
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "*dataPtr %d ", *dataPtr);
+    PT_LOG_NOTICE(LOG_CTX_IGMP, "*protoPtr %d ", *protoPtr);
+
     if ((*protoPtr == IP_PROT_ICMPV6 && 
          (*dataPtr == L7_MLD_MEMBERSHIP_QUERY || 
           *dataPtr == L7_MLD_V1_MEMBERSHIP_REPORT || 
@@ -402,6 +411,7 @@ SYSNET_PDU_RC_t snoopMLDPktIntercept(L7_uint32 hookId,
     } /* End of valid MLD Packet check */
   }
 
+  PT_LOG_TRACE(LOG_CTX_IGMP, "Packet Ignored");
   return SYSNET_PDU_RC_IGNORED;
 }
 
