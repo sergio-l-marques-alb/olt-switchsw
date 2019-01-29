@@ -319,7 +319,7 @@ typedef enum
 /************************
  * Sysnet PDU Intercept *
  ************************/
-#define L7_SYSNET_PDU_MAX_HOOKS  16  /* Max number of hooks per address family */
+#define L7_SYSNET_PDU_MAX_HOOKS  32  /* Max number of hooks per address family */
 
 typedef enum
 {
@@ -330,7 +330,8 @@ typedef enum
   L7_SYSNET_HOOK_PRECEDENCE_4,
   L7_SYSNET_HOOK_PRECEDENCE_5,
   L7_SYSNET_HOOK_PRECEDENCE_6,
-  L7_SYSNET_HOOK_PRECEDENCE_7,       /* Highest value is lowest precedence */
+  L7_SYSNET_HOOK_PRECEDENCE_7,                                            
+  L7_SYSNET_HOOK_PRECEDENCE_8,       /* Highest value is lowest precedence */
   L7_SYSNET_HOOK_PRECEDENCE_LAST     /* Number of precedence values */
 } L7_SYSNET_HOOK_PRECEDENCE_t;
 
