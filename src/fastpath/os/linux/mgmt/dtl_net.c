@@ -1383,7 +1383,6 @@ void dtlSendCmd(int fd, L7_uint32 dummy_intIfNum, L7_netBufHandle handle, tapDtl
       {            
         /* Remove PTIN_VLAN_PCAP_EXT TAG*/
         ptin_RemoveTag(data, &data_length);
-        SYSAPI_NET_MBUF_SET_DATALENGTH(handle, data_length);
 
         /* Get IntfNum from agent (were the packet were receive)*/
         int intfNum =((data[14]<<8) & 0x0F00) | (data[15] & 0x00FF);
