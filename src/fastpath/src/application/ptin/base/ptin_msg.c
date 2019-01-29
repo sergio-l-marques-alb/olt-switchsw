@@ -842,7 +842,7 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     PT_LOG_INFO(LOG_CTX_MSG,"Insertion detected (slot %u, board_id=%u)", ENDIAN_SWAP8(msg->generic_id), ENDIAN_SWAP8(msg->param));
 
     rc = ptin_slot_action_insert(ENDIAN_SWAP8(msg->generic_id), ENDIAN_SWAP8(msg->param));
-    if ( rc != L7_SUCCESS)
+    if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error inserting card (%d)", rc);
     }
@@ -857,7 +857,7 @@ L7_RC_t ptin_msg_board_action(msg_HwGenReq_t *msg)
     PT_LOG_INFO(LOG_CTX_MSG,"Remotion detected (slot %u)", ENDIAN_SWAP8(msg->generic_id));
 
     rc = ptin_slot_action_remove(ENDIAN_SWAP8(msg->generic_id));
-    if ( rc != L7_SUCCESS)
+    if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error removing card (%d)", rc);
     }
@@ -3889,7 +3889,7 @@ L7_RC_t ptin_msg_CoS3_set(msg_QoSConfiguration3_t *qos_msg)
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error reading interface configuration (rc=%d)", rc);
-    return L7_FAILURE;
+    return rc;
   }
   trust_mode = qos_intf_curr.trust_mode;
 
@@ -5965,7 +5965,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   ptinEvcConf.mc_flood = ENDIAN_SWAP8 (msgEvcConf->evc.mc_flood);
   //memcpy(ptinEvcConf.ce_vid_bmp, msgEvcConf->evc.ce_vid_bmp, sizeof(ptinEvcConf.ce_vid_bmp));
 
-  PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u",              ptinEvcConf.index);
+  PT_LOG_INFO (LOG_CTX_MSG, "EVC# %u",              ptinEvcConf.index);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Flags    = 0x%08X",  ptinEvcConf.flags);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .Type     = %u",      ptinEvcConf.type);
   PT_LOG_DEBUG(LOG_CTX_MSG, " .MC Flood = %u (%s)", ptinEvcConf.mc_flood, ptinEvcConf.mc_flood==0?"All":ptinEvcConf.mc_flood==1?"Unknown":"None");
@@ -6219,7 +6219,7 @@ L7_RC_t ptin_msg_EVC_create(ipc_msg *inbuffer, ipc_msg *outbuffer)
   rc = ptin_evc_create(&ptinEvcConf);
 #endif
 
-  if ( rc != L7_SUCCESS)
+  if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error creating/reconfiguring EVC# %u, rc %d", ptinEvcConf.index, rc);
     return rc;
@@ -6411,7 +6411,7 @@ L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
     if (rc != L7_SUCCESS) 
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error configuring uplink QoS for EVC %u / NNI_VLAN %u", evc_id, nni_vlan);
-      return L7_FAILURE;
+      return rc;
     }
 
     PT_LOG_DEBUG(LOG_CTX_MSG, "Going to configure downlink QoS for EVC %u / NNI VLAN %u", evc_id, nni_vlan);
@@ -6419,7 +6419,7 @@ L7_RC_t ptin_msg_evc_qos_set(ipc_msg *inbuffer, ipc_msg *outbuffer)
     if (rc != L7_SUCCESS) 
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error configuring downlink QoS for EVC %u / NNI_VLAN %u", evc_id, nni_vlan);
-      return L7_FAILURE;
+      return rc;
     }
   }
 
@@ -6583,10 +6583,10 @@ L7_RC_t ptin_msg_evc_port(msg_HWevcPort_t *msgEvcPort, L7_uint16 n_size, ptin_ms
           ptinEvcPort.action_outer = PTIN_XLATE_ACTION_REPLACE;
           ptinEvcPort.action_inner = PTIN_XLATE_ACTION_NONE;
 
-          PT_LOG_DEBUG(LOG_CTX_MSG, "EVC# %u - oper %s",     ext_evc_id,
-                    ((oper==PTIN_MSG_OPER_ADD) ? "ADD" : ((oper==PTIN_MSG_OPER_REMOVE) ? "REMOVE" : "UNKNOWN")));
-          PT_LOG_DEBUG(LOG_CTX_MSG, " .Intf      = NGPON2/Port:%u", ptinEvcPort.intf.value.ptin_intf.intf_id);
-          PT_LOG_DEBUG(LOG_CTX_MSG, " .IntfType  = %s",     (ptinEvcPort.mef_type == PTIN_EVC_INTF_LEAF) ? "LEAF" : "ROOT");
+          PT_LOG_INFO (LOG_CTX_MSG, "EVC# %u - oper %s",     ext_evc_id,
+                       ((oper==PTIN_MSG_OPER_ADD) ? "ADD" : ((oper==PTIN_MSG_OPER_REMOVE) ? "REMOVE" : "UNKNOWN")));
+          PT_LOG_INFO (LOG_CTX_MSG, " .Intf      = NGPON2/Port:%u", ptinEvcPort.intf.value.ptin_intf.intf_id);
+          PT_LOG_INFO (LOG_CTX_MSG, " .IntfType  = %s",     (ptinEvcPort.mef_type == PTIN_EVC_INTF_LEAF) ? "LEAF" : "ROOT");
           PT_LOG_DEBUG(LOG_CTX_MSG, " .OuterVlan = %u",      ptinEvcPort.vid);
           PT_LOG_DEBUG(LOG_CTX_MSG, " .InnerVlan = %u",      ptinEvcPort.vid_inner);
 
@@ -7014,7 +7014,7 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
 
         rc = ptin_evc_p2p_bridge_remove(&ptinEvcBridge);
 
-        if ( rc != L7_SUCCESS)
+        if (rc != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u bridge", ptinEvcBridge.index);
           return rc;
@@ -7044,7 +7044,7 @@ L7_RC_t ptin_msg_EVCBridge_remove(msg_HwEthEvcBridge_t *msgEvcBridge)
 
     rc = ptin_evc_p2p_bridge_remove(&ptinEvcBridge);
 
-    if ( rc != L7_SUCCESS)
+    if (rc != L7_SUCCESS)
     {
       PT_LOG_ERR(LOG_CTX_MSG, "Error removing EVC# %u bridge", ptinEvcBridge.index);
       return rc;
@@ -8568,7 +8568,7 @@ L7_RC_t ptin_msg_evcStats_delete(msg_evcStats_t *msg_evcStats)
   /* Add bandwidth profile */
   rc = ptin_evc_evcStats_delete(evcId, &profile);
 
-  if ( rc != L7_SUCCESS )
+  if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG,"Error deallocating statistics!");
     return rc;
@@ -8602,7 +8602,7 @@ L7_RC_t ptin_msg_ntw_connectivity_get(msg_NtwConnectivity_t *msgNtwConn)
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error getting inband management config");
-    return L7_FAILURE;
+    return rc;
   }
 
   /* Output data */
@@ -8679,7 +8679,7 @@ L7_RC_t ptin_msg_ntw_connectivity_set(msg_NtwConnectivity_t *msgNtwConn)
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error setting inband management config");
-    return L7_FAILURE;
+    return rc;
   }
 
   return L7_SUCCESS;
@@ -9292,7 +9292,7 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
 
           /* Remove circuitId+remoteId entry */
           rc = ptin_dhcp_client_delete(evc_idx, &client);
-          if ( rc != L7_SUCCESS)
+          if (rc != L7_SUCCESS)
           {
             PT_LOG_ERR(LOG_CTX_MSG, "Error removing DHCP circuitId+remoteId entry");
             return rc;
@@ -9331,7 +9331,7 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
 
       /* Remove circuitId+remoteId entry */
       rc = ptin_dhcp_client_delete(evc_idx, &client);
-      if ( rc != L7_SUCCESS)
+      if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Error removing DHCP circuitId+remoteId entry");
         return rc;
@@ -9339,7 +9339,7 @@ L7_RC_t ptin_msg_DHCP_profile_remove(msg_HwEthernetDhcpOpt82Profile_t *profile, 
       rc = ptin_pppoe_client_delete(evc_idx, &client);
       /* TODO */
   #if 0
-      if ( rc != L7_SUCCESS)
+      if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Error removing PPPoE circuitId+remoteId entry");
         return rc;
@@ -10104,7 +10104,7 @@ L7_RC_t ptin_msg_ipsg_static_entry_set(msg_IPSG_static_entry_t* msgIpsgStaticEnt
               msgIpsgStaticEntry[i].macAddr[2],msgIpsgStaticEntry[i].macAddr[3],msgIpsgStaticEntry[i].macAddr[4],msgIpsgStaticEntry[i].macAddr[5]);
     
     rc = ptin_to_fp_ip_notation(&msgIpsgStaticEntry[i].ipAddr,&ipAddr);
-    if ( rc != L7_SUCCESS)
+    if (rc != L7_SUCCESS)
     {
       rc_global = rc;
       continue;
@@ -10489,7 +10489,7 @@ L7_RC_t ptin_msg_igmp_proxy_set(msg_IgmpProxyCfg_t *msgIgmpProxy)
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error setting IGMP Proxy config");
-    return L7_FAILURE;
+    return rc;
   }
 
   return L7_SUCCESS;
@@ -10519,7 +10519,7 @@ L7_RC_t ptin_msg_igmp_proxy_get(msg_IgmpProxyCfg_t *msgIgmpProxy)
   if (rc != L7_SUCCESS)
   {
     PT_LOG_ERR(LOG_CTX_MSG, "Error getting IGMP Proxy config");
-    return L7_FAILURE;
+    return rc;
   }
 
   /* Output data */
@@ -10815,7 +10815,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
           }
 
           rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
-          if ( rc != L7_SUCCESS )
+          if (rc != L7_SUCCESS)
           {
             PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
             continue;
@@ -10893,7 +10893,7 @@ L7_RC_t ptin_msg_igmp_client_add(msg_IgmpClient_t *McastClient, L7_uint16 n_clie
         }
 
         rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
-        if ( rc != L7_SUCCESS )
+        if (rc != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
           continue;
@@ -11009,7 +11009,7 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
           }
 
           rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
-          if ( rc != L7_SUCCESS )
+          if (rc != L7_SUCCESS)
           {
            PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
            continue;
@@ -11018,10 +11018,10 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
           /* Apply config */
           rc = ptin_igmp_api_client_remove(&client);
 
-          if ( rc != L7_SUCCESS )
+          if (rc != L7_SUCCESS)
           {
-           PT_LOG_ERR(LOG_CTX_MSG, "Error removing MC client");
-           return rc;
+            PT_LOG_ERR(LOG_CTX_MSG, "Error removing MC client");
+            return rc;
           }
           else
           {
@@ -11064,7 +11064,7 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
       }
 
       rc = ptin_igmp_clientId_convert(McastClient[i].mcEvcId, &client);
-      if ( rc != L7_SUCCESS )
+      if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
         continue;
@@ -11072,7 +11072,7 @@ L7_RC_t ptin_msg_igmp_client_delete(msg_IgmpClient_t *McastClient, L7_uint16 n_c
 
       /* Apply config */
       rc = ptin_igmp_api_client_remove(&client);
-      if ( rc != L7_SUCCESS )
+      if (rc != L7_SUCCESS)
       {
         PT_LOG_ERR(LOG_CTX_MSG, "Error removing MC client");
         return rc;
@@ -11712,14 +11712,14 @@ L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_
     #endif
     /* Prepare group address */    
     rc = ptin_to_fp_ip_notation(&channel_list[i].channel_dstIp, &groupAddr);
-    if ( rc != L7_SUCCESS)
+    if (rc != L7_SUCCESS)
     {
       return rc;
     }
    
     /* Prepare source address */
     rc = ptin_to_fp_ip_notation(&channel_list[i].channel_srcIp, &sourceAddr);
-    if ( rc != L7_SUCCESS)
+    if (rc != L7_SUCCESS)
     {
       return rc;
     }
@@ -11796,7 +11796,9 @@ L7_RC_t ptin_msg_group_list_add(msg_MCAssocChannel_t *channel_list, L7_uint16 n_
   if (rc_global != L7_SUCCESS)
   {    
     if (rc != L7_SUCCESS)
+    {
       rc_global = rc;
+    }
     PT_LOG_WARN(LOG_CTX_MSG, "One or more channels were already added! rc:%u", rc_global);
   }  
 
@@ -11847,13 +11849,13 @@ L7_RC_t ptin_msg_group_list_remove(msg_MCAssocChannel_t *channel_list, L7_uint16
    
     /* Prepare group address */    
     rc = ptin_to_fp_ip_notation(&channel_list[i].channel_dstIp, &groupAddr);
-    if ( rc != L7_SUCCESS)
+    if (rc != L7_SUCCESS)
     {
       return rc;
     }
     /* Prepare source address */     
     rc = ptin_to_fp_ip_notation(&channel_list[i].channel_srcIp, &sourceAddr);
-    if ( rc != L7_SUCCESS)
+    if (rc != L7_SUCCESS)
     {
       return rc;
     }
@@ -18145,14 +18147,14 @@ L7_RC_t ptin_msg_igmp_package_channels_add(msg_igmp_package_channels_t *msg, L7_
 
     /*Convert Group Address to fp Notation*/
     rc = ptin_to_fp_ip_notation(&msg[messageIterator].groupAddr, &groupAddr);
-    if ( rc != L7_SUCCESS)
+    if (rc != L7_SUCCESS)
     {
       return rc;
     }
 
     /*Convert Source Address to fp Notation*/
     rc = ptin_to_fp_ip_notation(&msg[messageIterator].sourceAddr, &sourceAddr);
-    if ( rc != L7_SUCCESS)
+    if (rc != L7_SUCCESS)
     {
       return rc;
     }
@@ -18255,14 +18257,14 @@ L7_RC_t ptin_msg_igmp_package_channels_remove(msg_igmp_package_channels_t *msg, 
 
     /*Convert Group Address to fp Notation*/
     rc = ptin_to_fp_ip_notation(&msg[messageIterator].groupAddr, &groupAddr);
-    if ( rc != L7_SUCCESS)
+    if (rc != L7_SUCCESS)
     {
       return rc;
     }
 
     /*Convert Source Address to fp Notation*/
     rc = ptin_to_fp_ip_notation(&msg[messageIterator].sourceAddr, &sourceAddr);
-    if ( rc != L7_SUCCESS)
+    if (rc != L7_SUCCESS)
     {
       return rc;
     }
@@ -18433,7 +18435,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
             }
 
             rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
-            if ( rc != L7_SUCCESS )
+            if (rc != L7_SUCCESS)
             {
               shift_index++;
               PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");             
@@ -18528,7 +18530,7 @@ L7_RC_t ptin_msg_igmp_unicast_client_packages_add(msg_igmp_unicast_client_packag
         }
 
         rc = ptin_igmp_clientId_convert(msg[messageIterator].evcId, &client);
-        if ( rc != L7_SUCCESS )
+        if (rc != L7_SUCCESS)
         {
           PT_LOG_ERR(LOG_CTX_MSG, "Error converting clientId");
           continue;
@@ -20390,7 +20392,9 @@ void ptin_msg_igmp_client_add_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
                            0/*McastClient[i].noOfPackages*/);          
 
   if (rc != L7_SUCCESS)
+  {
     printf("ERROR TO ADD MC CLIENT\n");
+  }
 #endif
 #endif /*NGPON2_SUPPORT*/
 }
@@ -20422,7 +20426,9 @@ void ptin_msg_igmp_client_rem_group_ngpon2(L7_uint32 evcId, L7_uint8 portId)
   rc = ptin_igmp_api_client_remove(&McastClient_info[evcId-1].client);
 
   if (rc != L7_SUCCESS)
+  {
     printf("ERROR TO REMOVE MC CLIENT\n");
+  }
 #endif
 #endif /*NGPON2_SUPPORT*/
 }

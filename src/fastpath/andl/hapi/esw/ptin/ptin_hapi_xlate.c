@@ -207,7 +207,17 @@ L7_RC_t ptin_hapi_xlate_singletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
 
   error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, oVlanId, 0, &action);
 
-  if (error != BCM_E_NONE && error != BCM_E_EXISTS)
+  if (error == BCM_E_EXISTS)
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI, "Entry already exists: %d (\"%s\")", error, bcm_errmsg(error));
+    return L7_ALREADY_CONFIGURED;
+  }
+  else if (error == BCM_E_FULL)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Translation resources exhausted: rv=%d (%s)", error, bcm_errmsg(error));
+    return L7_NO_RESOURCES;
+  }
+  else if (error != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
@@ -220,7 +230,7 @@ L7_RC_t ptin_hapi_xlate_singletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
       resources_xlate_ingress++;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u [rc=%d]", newOVlanId, error);
 
   return L7_SUCCESS;
 }
@@ -278,7 +288,7 @@ L7_RC_t ptin_hapi_xlate_singletag_action_delete(ptin_dapi_port_t *dapiPort, L7_u
       resources_xlate_ingress--;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully [rc=%d]", error);
 
   return L7_SUCCESS;
 }
@@ -339,7 +349,17 @@ L7_RC_t ptin_hapi_xlate_doubletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
 
   error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, oVlanId, iVlanId, &action);
 
-  if (error != BCM_E_NONE && error != BCM_E_EXISTS)
+  if (error == BCM_E_EXISTS)
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI, "Entry already exists: %d (\"%s\")", error, bcm_errmsg(error));
+    return L7_ALREADY_CONFIGURED;
+  }
+  else if (error == BCM_E_FULL)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Translation resources exhausted: rv=%d (%s)", error, bcm_errmsg(error));
+    return L7_NO_RESOURCES;
+  }
+  else if (error != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
@@ -351,7 +371,7 @@ L7_RC_t ptin_hapi_xlate_doubletag_action_add(ptin_dapi_port_t *dapiPort, L7_uint
       resources_xlate_ingress++;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u [rc=%d]", newOVlanId, error);
 
   /* Update resources availability */
   return L7_SUCCESS;
@@ -410,7 +430,7 @@ L7_RC_t ptin_hapi_xlate_doubletag_action_delete(ptin_dapi_port_t *dapiPort, L7_u
       resources_xlate_ingress--;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully [rc=%d]", error);
 
   /* Update resources availability */
   return L7_SUCCESS;
@@ -472,7 +492,7 @@ L7_RC_t ptin_hapi_xlate_ingress_action_get(ptin_dapi_port_t *dapiPort, L7_uint16
 
   bcm_vlan_action_set_t_init(&action);
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_get(0, 0x%08X[%d], %u, %u, %u, &action)",
             hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, oVlanId, iVlanId);
 
   error = bcmx_vlan_translate_action_get(hapiPortPtr->bcmx_lport, keyType, oVlanId, iVlanId, &action);
@@ -559,7 +579,17 @@ L7_RC_t ptin_hapi_xlate_ingress_action_add(ptin_dapi_port_t *dapiPort, L7_uint16
 
   error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, oVlanId, iVlanId, &action);
 
-  if (error != BCM_E_NONE && error != BCM_E_EXISTS)
+  if (error == BCM_E_EXISTS)
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI, "Entry already exists: %d (\"%s\")", error, bcm_errmsg(error));
+    return L7_ALREADY_CONFIGURED;
+  }
+  else if (error == BCM_E_FULL)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Translation resources exhausted: rv=%d (%s)", error, bcm_errmsg(error));
+    return L7_NO_RESOURCES;
+  }
+  else if (error != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
@@ -572,7 +602,7 @@ L7_RC_t ptin_hapi_xlate_ingress_action_add(ptin_dapi_port_t *dapiPort, L7_uint16
       resources_xlate_ingress++;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u [%d]", newOVlanId, error);
 
   return L7_SUCCESS;
 }
@@ -640,7 +670,7 @@ L7_RC_t ptin_hapi_xlate_ingress_action_delete(ptin_dapi_port_t *dapiPort, L7_uin
       resources_xlate_ingress--;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully [rc=%d]", error);
 
   return L7_SUCCESS;
 }
@@ -720,7 +750,17 @@ L7_RC_t ptin_hapi_xlate_egress_action_add(L7_uint32 portgroup, L7_uint16 oVlanId
 
   error = bcmx_vlan_translate_egress_action_add(portgroup, oVlanId, iVlanId, &action);
 
-  if (error != BCM_E_NONE && error != BCM_E_EXISTS)
+  if (error == BCM_E_EXISTS)
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI, "Entry already exists: %d (\"%s\")", error, bcm_errmsg(error));
+    return L7_ALREADY_CONFIGURED;
+  }
+  else if (error == BCM_E_FULL)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Translation resources exhausted: rv=%d (%s)", error, bcm_errmsg(error));
+    return L7_NO_RESOURCES;
+  }
+  else if (error != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_egress_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
@@ -733,7 +773,7 @@ L7_RC_t ptin_hapi_xlate_egress_action_add(L7_uint32 portgroup, L7_uint16 oVlanId
       resources_xlate_egress++;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u [rc=%d]", newOVlanId, error);
 
   return L7_SUCCESS;
 }
@@ -767,7 +807,7 @@ L7_RC_t ptin_hapi_xlate_egress_action_delete(L7_uint32 portgroup, L7_uint16 oVla
   if (resources_xlate_egress > 0)
     resources_xlate_egress--;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully [rc=%d]", error);
 
   return L7_SUCCESS;
 }
@@ -791,7 +831,7 @@ L7_RC_t ptin_hapi_xlate_ingress_action_delete_all(void)
 
   resources_xlate_ingress = FREE_RESOURCES_XLATE_INGRESS;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "All ingress translations were removed");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "All ingress translations were removed [rc=%d]", error);
 
   /* Update resources availability */
   return L7_SUCCESS;
@@ -823,7 +863,7 @@ L7_RC_t ptin_hapi_xlate_egress_action_delete_all(void)
 
   resources_xlate_egress = FREE_RESOURCES_XLATE_EGRESS;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "All egress translations were removed");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "All egress translations were removed [rc=%d]", error);
 
   /* Update resources availability */
   return L7_SUCCESS;
@@ -892,7 +932,17 @@ L7_RC_t ptin_hapi_xlate_ingress_replaceOVid_addIVid(ptin_dapi_port_t *dapiPort, 
 
   error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, oVlanId, 0, &action);
 
-  if (error != BCM_E_NONE && error != BCM_E_EXISTS)
+  if (error == BCM_E_EXISTS)
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI, "Entry already exists: %d (\"%s\")", error, bcm_errmsg(error));
+    return L7_ALREADY_CONFIGURED;
+  }
+  else if (error == BCM_E_FULL)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Translation resources exhausted: rv=%d (%s)", error, bcm_errmsg(error));
+    return L7_NO_RESOURCES;
+  }
+  else if (error != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
@@ -905,7 +955,8 @@ L7_RC_t ptin_hapi_xlate_ingress_replaceOVid_addIVid(ptin_dapi_port_t *dapiPort, 
       resources_xlate_ingress++;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u newInnerVlan=%u",newOVlanId,newIVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u newInnerVlan=%u [rc=%d]",
+               newOVlanId, newIVlanId, error);
 
   return L7_SUCCESS;
 }
@@ -944,7 +995,17 @@ L7_RC_t ptin_hapi_xlate_egress_replaceOVid_deleteIVid(L7_uint32 portgroup, L7_ui
 
   error = bcmx_vlan_translate_egress_action_add(portgroup, oVlanId, iVlanId, &action);
 
-  if (error != BCM_E_NONE && error != BCM_E_EXISTS)
+  if (error == BCM_E_EXISTS)
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI, "Entry already exists: %d (\"%s\")", error, bcm_errmsg(error));
+    return L7_ALREADY_CONFIGURED;
+  }
+  else if (error == BCM_E_FULL)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Translation resources exhausted: rv=%d (%s)", error, bcm_errmsg(error));
+    return L7_NO_RESOURCES;
+  }
+  else if (error != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_egress_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
@@ -957,7 +1018,7 @@ L7_RC_t ptin_hapi_xlate_egress_replaceOVid_deleteIVid(L7_uint32 portgroup, L7_ui
       resources_xlate_egress++;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u", newOVlanId);
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOuterVlan=%u [rc=%d]", newOVlanId, error);
 
   return L7_SUCCESS;
 }
@@ -1016,7 +1077,7 @@ L7_RC_t ptin_hapi_xlate_ingress_get(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
 
   bcm_vlan_action_set_t_init(&action);
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_add(0, 0x%08X[%d], %u, %u, %u, &action)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "bcm_vlan_translate_action_get(0, 0x%08X[%d], %u, %u, %u, &action)",
             hapiPortPtr->bcmx_lport, hapiPortPtr->bcm_port, keyType, xlate->outerVlanId, xlate->innerVlanId);
 
   error = bcmx_vlan_translate_action_get(hapiPortPtr->bcmx_lport, keyType, xlate->outerVlanId, xlate->innerVlanId, &action);
@@ -1038,11 +1099,12 @@ L7_RC_t ptin_hapi_xlate_ingress_get(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
   xlate->outerPrioAction = (xlate->innerVlanId!=0) ? action.dt_outer_prio : action.ot_outer_prio;
   xlate->innerPrioAction = (xlate->innerVlanId!=0) ? action.dt_inner_prio : action.ot_inner_pkt_prio;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry read successfully: newOVid=%u.%u (OAction=%u.%u), newIVid=%u.%u (IAction=%u.%u)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry read successfully: newOVid=%u.%u (OAction=%u.%u), newIVid=%u.%u (IAction=%u.%u) [rc=%d]",
             xlate->newOuterVlanId , xlate->newOuterPrio,
             xlate->outerVlanAction, xlate->outerPrioAction,
             xlate->newInnerVlanId , xlate->newInnerPrio,
-            xlate->innerVlanAction, xlate->innerPrioAction);
+            xlate->innerVlanAction, xlate->innerPrioAction,
+            error);
 
   /* Update resources availability */
   return L7_SUCCESS;
@@ -1154,7 +1216,17 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
 
   error = bcmx_vlan_translate_action_add(hapiPortPtr->bcmx_lport, keyType, xlate->outerVlanId, xlate->innerVlanId, &action);
 
-  if (error != BCM_E_NONE && error != BCM_E_EXISTS)
+  if (error == BCM_E_EXISTS)
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI, "Entry already exists: %d (\"%s\")", error, bcm_errmsg(error));
+    return L7_ALREADY_CONFIGURED;
+  }
+  else if (error == BCM_E_FULL)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Translation resources exhausted: rv=%d (%s)", error, bcm_errmsg(error));
+    return L7_NO_RESOURCES;
+  }
+  else if (error != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
@@ -1167,11 +1239,12 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
       resources_xlate_ingress++;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOVlanId=%u.%u (Oaction %u.%u) newIVlanId=%u.%u (Iaction %u.%u)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOVlanId=%u.%u (Oaction %u.%u) newIVlanId=%u.%u (Iaction %u.%u) [rc=%d]",
             xlate->newOuterVlanId , xlate->newOuterPrio,
             xlate->outerVlanAction, xlate->outerPrioAction,
             xlate->newInnerVlanId , xlate->newInnerPrio,
-            xlate->innerVlanAction, xlate->innerPrioAction);
+            xlate->innerVlanAction, xlate->innerPrioAction,
+            error);
 
   return L7_SUCCESS;
 }
@@ -1238,7 +1311,7 @@ L7_RC_t ptin_hapi_xlate_ingress_delete(ptin_dapi_port_t *dapiPort, ptin_hapi_xla
       resources_xlate_ingress--;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully [rc=%d]", error);
 
   return L7_SUCCESS;
 }
@@ -1262,7 +1335,7 @@ L7_RC_t ptin_hapi_xlate_ingress_delete_all(void)
 
   resources_xlate_ingress = FREE_RESOURCES_XLATE_INGRESS;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "All ingress translations were removed");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "All ingress translations were removed [rc=%d]", error);
 
   /* Update resources availability */
   return L7_SUCCESS;
@@ -1307,11 +1380,12 @@ L7_RC_t ptin_hapi_xlate_egress_get(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
   xlate->outerPrioAction = (xlate->innerVlanId!=0) ? action.dt_outer_prio : action.ot_outer_prio;
   xlate->innerPrioAction = (xlate->innerVlanId!=0) ? action.dt_inner_prio : action.ot_inner_pkt_prio;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry read successfully: newOuterVlan=%u.%u (Oaction %u.%u) newInnerVlan=%u.%u (Iaction %u.%u)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry read successfully: newOuterVlan=%u.%u (Oaction %u.%u) newInnerVlan=%u.%u (Iaction %u.%u) [rc=%d]",
             xlate->newOuterVlanId , xlate->newOuterPrio,
             xlate->outerVlanAction, xlate->outerPrioAction,
             xlate->newInnerVlanId , xlate->newInnerPrio,
-            xlate->innerVlanAction, xlate->innerPrioAction);
+            xlate->innerVlanAction, xlate->innerPrioAction,
+            error);
 
   return L7_SUCCESS;
 }
@@ -1394,7 +1468,17 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
 
   error = bcmx_vlan_translate_egress_action_add(portgroup, xlate->outerVlanId, xlate->innerVlanId, &action);
 
-  if (error != BCM_E_NONE && error != BCM_E_EXISTS)
+  if (error == BCM_E_EXISTS)
+  {
+    PT_LOG_WARN(LOG_CTX_HAPI, "Entry already exists: %d (\"%s\")", error, bcm_errmsg(error));
+    return L7_ALREADY_CONFIGURED;
+  }
+  else if (error == BCM_E_FULL)
+  {
+    PT_LOG_ERR(LOG_CTX_HAPI, "Translation resources exhausted: rv=%d (%s)", error, bcm_errmsg(error));
+    return L7_NO_RESOURCES;
+  }
+  else if (error != BCM_E_NONE)
   {
     PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_egress_action_add function: %d (\"%s\")", error, bcm_errmsg(error));
     return L7_FAILURE;
@@ -1407,11 +1491,12 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
       resources_xlate_egress++;
   }
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOVlanId=%u.%u (Oaction %u.%u) newIVlanId=%u.%u (Iaction %u.%u)",
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry added successfully: newOVlanId=%u.%u (Oaction %u.%u) newIVlanId=%u.%u (Iaction %u.%u) [rc=%d]",
             xlate->newOuterVlanId , xlate->newOuterPrio,
             xlate->outerVlanAction, xlate->outerPrioAction,
             xlate->newInnerVlanId , xlate->newInnerPrio,
-            xlate->innerVlanAction, xlate->innerPrioAction);
+            xlate->innerVlanAction, xlate->innerPrioAction,
+            error);
 
   return L7_SUCCESS;
 }
@@ -1444,7 +1529,7 @@ L7_RC_t ptin_hapi_xlate_egress_delete(L7_uint32 portgroup, ptin_hapi_xlate_t *xl
   if (resources_xlate_egress > 0)
     resources_xlate_egress--;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "Translation entry removed successfully [rc=%d]", error);
 
   return L7_SUCCESS;
 }
@@ -1475,7 +1560,7 @@ L7_RC_t ptin_hapi_xlate_egress_delete_all(void)
 
   resources_xlate_egress = FREE_RESOURCES_XLATE_EGRESS;
 
-  PT_LOG_TRACE(LOG_CTX_HAPI, "All egress translations were removed");
+  PT_LOG_TRACE(LOG_CTX_HAPI, "All egress translations were removed [rc=%d]", error);
 
   /* Update resources availability */
   return L7_SUCCESS;

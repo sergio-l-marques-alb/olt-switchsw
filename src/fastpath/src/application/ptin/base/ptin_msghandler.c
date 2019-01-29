@@ -130,6 +130,7 @@ static L7_uint16 SIRerror_get(L7_RC_t error_code)
       return ERROR_CODE_NOSUCHNAME;
 
     case L7_TABLE_IS_FULL:
+    case L7_NO_RESOURCES:
       return ERROR_CODE_FULLTABLE;
 
     case L7_NOT_SUPPORTED:
@@ -149,27 +150,12 @@ static L7_uint16 SIRerror_get(L7_RC_t error_code)
 
 
 
-
-
-
-
-
-
-
-
-
-
 #ifdef __802_1x__
 static void seterror(ipc_msg *outbuffer, const L7_ulong32 severity, const L7_ulong32 error) {
     outbuffer->flags   = IPCLIB_FLAGS_NACK;
     outbuffer->infoDim = sizeof(int);
     *(int *)outbuffer->info = ENDIAN_SWAP32(SIR_ERROR(ERROR_FAMILY_HARDWARE,severity,error));
 }
-
-
-
-
-
 
 
 

@@ -19,10 +19,8 @@ L7_RC_t dtlPtinInit(void)
   ddUsp.port = -1;
 
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_INIT, NULL);
-  if (rc != L7_SUCCESS)
-    return L7_FAILURE;
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 
@@ -132,10 +130,8 @@ L7_RC_t dtlPtinL2PortExtSet(L7_uint32 intIfNum, ptin_HWPortExt_t *mefExt)
   mefExt->operation = DAPI_CMD_SET;
 
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_PORTEXT, (void *) mefExt);
-  if (rc != L7_SUCCESS)
-    return L7_FAILURE;
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**
@@ -172,10 +168,8 @@ L7_RC_t dtlPtinL2PortExtGet(L7_uint32 intIfNum, ptin_HWPortExt_t *mefExt)
   mefExt->operation = DAPI_CMD_GET;
 
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_PORTEXT, (void *) mefExt);
-  if (rc != L7_SUCCESS)
-    return L7_FAILURE;
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**
@@ -197,10 +191,8 @@ L7_RC_t dtlPtinCountersRead(ptin_HWEthRFC2819_PortStatistics_t *data)
   ddUsp.port = -1;
 
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_COUNTERS_READ, (void *) data);
-  if (rc != L7_SUCCESS)
-    return L7_FAILURE;
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 
@@ -224,10 +216,8 @@ L7_RC_t dtlPtinCountersClear(ptin_HWEthRFC2819_PortStatistics_t *data)
   ddUsp.port = -1;
 
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_COUNTERS_CLEAR, (void *) data);
-  if (rc != L7_SUCCESS)
-    return L7_FAILURE;
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 
@@ -251,10 +241,8 @@ L7_RC_t dtlPtinCountersActivityGet(ptin_HWEth_PortsActivity_t *data)
   ddUsp.port = -1;
 
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_COUNTERS_ACTIVITY_GET, (void *) data);
-  if (rc != L7_SUCCESS)
-    return L7_FAILURE;
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**
@@ -288,10 +276,8 @@ L7_RC_t dtlPtinVlanTranslate( L7_uint32 intIfNum, ptin_vlanXlate_t *xlate_ptr )
   }
 
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_VLAN_XLATE, (void *) xlate_ptr);
-  if (rc != L7_SUCCESS)
-    return L7_FAILURE;
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**
@@ -316,10 +302,8 @@ L7_RC_t dtlPtinVlanTranslateEgressPortsGroup( L7_uint32 intIfNum, ptin_vlanXlate
   ddUsp.port = usp.port - 1;
 
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_VLAN_XLATE_EGRESS_PORTGROUP, (void *) portsGroup);
-  if (rc != L7_SUCCESS)
-    return L7_FAILURE;
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**
@@ -339,10 +323,8 @@ L7_RC_t dtlPtinVlanSettings( ptin_vlan_mode_t *vlan_mode )
   ddUsp.port = -1;
 
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_VLAN_SETTINGS, (void *) vlan_mode);
-  if (rc != L7_SUCCESS)
-    return L7_FAILURE;
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**
@@ -362,10 +344,8 @@ L7_RC_t dtlPtinVlanDefinitions( ptin_bridge_vlan_mode_t *vlan_mode )
   ddUsp.port = -1;
 
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_VLAN_DEFS, (void *) vlan_mode);
-  if (rc != L7_SUCCESS)
-    return L7_FAILURE;
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**
@@ -398,10 +378,8 @@ L7_RC_t dtlPtinVlanPortControl( L7_uint32 intIfNum, ptin_vlan_mode_t *vlan_mode 
   }
 
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_VLAN_PORT_CONTROL, (void *) vlan_mode);
-  if (rc != L7_SUCCESS)
-    return rc;
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**
@@ -457,10 +435,8 @@ L7_RC_t dtlPtinBridgeCrossconnect( L7_uint32 intIfNum, L7_uint32 intIfNum2, ptin
   }
 
   rc = dapiCtl(&ddUsp, DAPI_CMD_PTIN_VLAN_CROSSCONNECT, (void *) cross_connect);
-  if (rc != L7_SUCCESS)
-    return L7_FAILURE;
 
-  return L7_SUCCESS;
+  return rc;
 }
 
 /**

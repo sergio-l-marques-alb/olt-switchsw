@@ -2186,6 +2186,9 @@ static L7_RC_t ptin_xlate_operation(L7_int operation, L7_uint32 intIfNum, ptin_v
   /* If addition went well... */
   if (rc == L7_SUCCESS)
   {
+    if (ptin_debug_xlate)
+      PT_LOG_TRACE(LOG_CTX_XLATE, "intIfNum %u: Success configuring entry", intIfNum);
+
     switch (operation)
     {
       case DAPI_CMD_SET:
@@ -2197,9 +2200,20 @@ static L7_RC_t ptin_xlate_operation(L7_int operation, L7_uint32 intIfNum, ptin_v
       case DAPI_CMD_CLEAR_ALL:
         rc = xlate_database_clear_all(xlate->stage);
         break;
+      default:
+        PT_LOG_ERR(LOG_CTX_XLATE, "intIfNum %u: Unknown operation %d", intIfNum, operation);
     }
   }
-
+  else if (rc == L7_ALREADY_CONFIGURED)
+  {
+    PT_LOG_WARN(LOG_CTX_XLATE, "intIfNum %u: Entry already configured", intIfNum);
+    rc = L7_SUCCESS;
+  }
+  else
+  {
+    PT_LOG_ERR(LOG_CTX_XLATE, "intIfNum %u: Error configuring entry (rc=%d)", intIfNum, rc);
+  }
+  
   if (ptin_debug_xlate)
     PT_LOG_TRACE(LOG_CTX_XLATE, "Finished: rc=%d", rc);
 
@@ -2563,6 +2577,9 @@ static L7_RC_t xlate_database_store(L7_uint32 intIfNum, const ptin_vlanXlate_t *
 
   avl_infoData->remove_VLANs = vlanXlate_data->remove_VLANs;
 
+  if (ptin_debug_xlate)
+    PT_LOG_TRACE(LOG_CTX_XLATE, "intIfNum %u: Entry stored", intIfNum);
+
   /* Success */
   return L7_SUCCESS;
 }
@@ -2662,6 +2679,9 @@ static L7_RC_t xlate_database_clear(L7_uint32 intIfNum, const ptin_vlanXlate_t *
       database_xlate[stage].number_of_entries--;
   }
 
+  if (ptin_debug_xlate)
+    PT_LOG_TRACE(LOG_CTX_XLATE, "intIfNum %u: Entry cleared", intIfNum);
+
   /* Success */
   return L7_SUCCESS;
 }
@@ -2699,6 +2719,9 @@ static L7_RC_t xlate_database_clear_all(ptin_vlanXlate_stage_enum stage)
       database_xlate_inv[stage].number_of_entries = 0;
     }
   }
+
+  if (ptin_debug_xlate)
+    PT_LOG_TRACE(LOG_CTX_XLATE, "All entries cleared");
 
   return L7_SUCCESS;
 }

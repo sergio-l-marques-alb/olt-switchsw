@@ -73,6 +73,7 @@ Historico:  VM 2003.10.01 - Criacao do modulo V1.0.0.0
       #define ERROR_CODE_WRONGSTATE          0x000E
       #define ERROR_CODE_NOTSUPPORTED        0x000F
       #define ERROR_CODE_ABNORMALCONTEXT     0x0010   // Contexto anormal (normalmente resultande de validacoes insuficientes)
+      #define ERROR_CODE_NORESOURCES         0x0011   // atingiu nº maximo de elementos
 
    // --------------------------------
    // Erros para a familia Fastpath (0x01)
