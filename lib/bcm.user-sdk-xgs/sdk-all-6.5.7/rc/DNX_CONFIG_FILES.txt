@@ -1,3 +1,0 @@
-rc/config-dcmn.bcm
-rc/config-jer2.bcm
-rc/config-ramon.bcm

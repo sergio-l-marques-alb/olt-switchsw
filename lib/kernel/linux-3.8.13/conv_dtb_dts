@@ -1,3 +1,0 @@
-$KERNEL/scripts/dtc/dtc -I dtb -O dts -o <dts_file> <dtb_file>
-
-./scripts/dtc/dtc -I dtb -O dts -o ./mine.dts ~/TA12XG.dtb

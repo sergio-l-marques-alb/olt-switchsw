@@ -1,1 +1,0 @@
-#undef CONFIG_SERIAL_CPM_SCC4

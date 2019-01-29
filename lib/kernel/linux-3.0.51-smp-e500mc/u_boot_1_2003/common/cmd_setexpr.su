@@ -1,2 +1,0 @@
-cmd_setexpr.c:31:14:0	16	static
-cmd_setexpr.c:53:12:do_setexpr	48	static

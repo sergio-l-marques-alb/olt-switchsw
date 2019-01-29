@@ -1,6 +1,0 @@
-tgec.c:70:13:tgec_enable_mac	8	static
-tgec.c:77:13:tgec_disable_mac	8	static
-tgec.c:84:13:tgec_set_mac_addr	8	static
-tgec.c:101:13:tgec_set_interface_mode	8	static
-tgec.c:43:13:tgec_init_mac	24	static
-tgec.c:108:6:init_tgec	16	static

@@ -1,7 +1,0 @@
-eth.c:110:12:muram_readw	8	static
-eth.c:126:13:muram_writew	8	static
-eth.c:508:12:fm_eth_recv	48	static
-eth.c:452:12:fm_eth_send	48	static
-eth.c:432:13:fm_eth_halt	16	static
-eth.c:384:12:fm_eth_open	24	static
-eth.c:647:5:fm_eth_initialize	80	static

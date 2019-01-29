@@ -1,1 +1,0 @@
-#define CONFIG_ROOT_NFS 1
