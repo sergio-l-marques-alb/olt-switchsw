@@ -16,7 +16,7 @@
  * DATA TYPES
  ****************************************************************/
 
-#define PTIN_XLATE_MAX_SIZE 8192
+#define PTIN_XLATE_MAX_SIZE 8010
 
 typedef struct ptinXlateKey_s
 {
@@ -2177,6 +2177,22 @@ static L7_RC_t ptin_xlate_operation(L7_int operation, L7_uint32 intIfNum, ptin_v
               xlate->innerVlanAction, xlate->innerPrioAction,
               xlate->remove_VLANs);
 
+  if (xlate->stage >= PTIN_XLATE_STAGE_ALL)
+  {
+    PT_LOG_ERR(LOG_CTX_XLATE, "Invalid stage %u", xlate->stage);
+    return L7_FAILURE;
+  }
+
+  /* Check if there is enough room for new rule */
+  if (operation == DAPI_CMD_SET)
+  {
+    if (database_xlate[xlate->stage].number_of_entries >= PTIN_XLATE_MAX_SIZE)
+    {
+      PT_LOG_ERR(LOG_CTX_XLATE, "No more translation entries available!");
+      return L7_NO_RESOURCES;
+    }
+  }
+  
   /* Set operation */
   xlate->oper = operation;
 
@@ -2464,6 +2480,12 @@ static L7_RC_t xlate_database_store(L7_uint32 intIfNum, const ptin_vlanXlate_t *
     return L7_FAILURE;
   }
 
+  if (ptin_debug_xlate)
+  {
+    PT_LOG_TRACE(LOG_CTX_XLATE, "intIfNum %u: Storing new entry: ptin_port=%u portGroup=%u outerVid=%u innerVid=%u",
+                 intIfNum, ptin_port, vlanXlate_data->portgroup, vlanXlate_data->outerVlan, vlanXlate_data->innerVlan);
+  }
+
   stage = vlanXlate_data->stage;
 
   /* Check if there is space in AVL tree */
@@ -2506,6 +2528,15 @@ static L7_RC_t xlate_database_store(L7_uint32 intIfNum, const ptin_vlanXlate_t *
     }
     /* One more entry */
     database_xlate[stage].number_of_entries++;
+  }
+  else if ((void *) avl_infoData == (void *) &avl_key)
+  {
+    PT_LOG_ERR(LOG_CTX_XLATE, "Error adding new entry");
+    return L7_FAILURE;
+  }
+  else
+  {
+    PT_LOG_WARN(LOG_CTX_XLATE, "Duplicate entry");
   }
 
   /* Fill information */
@@ -2553,12 +2584,22 @@ static L7_RC_t xlate_database_store(L7_uint32 intIfNum, const ptin_vlanXlate_t *
     /* Check if item was successfully obtained */
     if (avl_infoData == L7_NULLPTR)
     {
-      PT_LOG_ERR(LOG_CTX_XLATE, " Strange... item looks to not be created");
+      PT_LOG_ERR(LOG_CTX_XLATE, " Strange... item looks to not be created (inv)");
       avlDeleteEntry(&database_xlate[stage].avlTree, (void *)&avl_key);
       return L7_FAILURE;
     }
     /* One more entry */
     database_xlate_inv[stage].number_of_entries++;
+  }
+  else if ((void *) avl_infoData == (void *) &avl_key_inv)
+  {
+    PT_LOG_ERR(LOG_CTX_XLATE, "Error adding new entry (inv)");
+    avlDeleteEntry(&database_xlate[stage].avlTree, (void *)&avl_key);
+    return L7_FAILURE;
+  }
+  else
+  {
+    PT_LOG_WARN(LOG_CTX_XLATE, "Duplicate entry (inv)");
   }
 
   /* Fill information */
@@ -2612,6 +2653,12 @@ static L7_RC_t xlate_database_clear(L7_uint32 intIfNum, const ptin_vlanXlate_t *
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid arguments (stage=%d, intIfNum=%u, ptin_port=%u, oVlan=%u)", vlanXlate_data->stage, intIfNum, ptin_port, vlanXlate_data->outerVlan);
     return L7_FAILURE;
+  }
+
+  if (ptin_debug_xlate)
+  {
+    PT_LOG_TRACE(LOG_CTX_XLATE, "intIfNum %u: Clearing entry: ptin_port=%u portGroup=%u outerVid=%u innerVid=%u",
+                 intIfNum, ptin_port, vlanXlate_data->portgroup, vlanXlate_data->outerVlan, vlanXlate_data->innerVlan);
   }
 
   stage = vlanXlate_data->stage;
@@ -2705,6 +2752,11 @@ static L7_RC_t xlate_database_clear_all(ptin_vlanXlate_stage_enum stage)
   {
     PT_LOG_ERR(LOG_CTX_XLATE, " ERROR: Invalid arguments (stage=%d)", stage);
     return L7_FAILURE;
+  }
+
+  if (ptin_debug_xlate)
+  {
+    PT_LOG_TRACE(LOG_CTX_XLATE, "Clearing all entries");
   }
 
   for (i=PTIN_XLATE_STAGE_INGRESS; i<=PTIN_XLATE_STAGE_EGRESS; i++)
