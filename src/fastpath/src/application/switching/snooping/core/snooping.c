@@ -449,7 +449,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   L7_uint32          client_idx    = (L7_uint32) -1;              /* PTin added: IGMP snooping */
   L7_uint16          mcastRootVlan; /* Internal vlan will be converted to MC root vlan */
   L7_uint8           port_type;
-  L7_uchar8          *buffPtr             = L7_NULLPTR;
+  L7_uchar8          *buffPtr             = L7_NULLPTR, packet_type;
   L7_uint16          ipHdrLen             = 0;
  
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
@@ -529,7 +529,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
   else
   {
-
     /* check if the query is received on client port */
     rc = ptin_igmp_port_type_get(pduInfo->intIfNum-1, &port_type);
 
@@ -739,8 +738,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   port = pduInfo->intIfNum - 1;
 
   rc = ptin_igmp_port_type_get(port,&port_type);
-
-
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
   ptin_timer_stop(73);
@@ -870,7 +867,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   inetAddressZeroSet(family, &sourceAddr);
 
   /* IGMP */
-  if (pSnoopCB->family == family)
+  if (family == L7_AF_INET)
   {
     /* Validate minimum size of packet */
     if (dataLength < L7_ENET_HDR_SIZE + L7_ENET_HDR_TYPE_LEN_SIZE + L7_IP_HDR_LEN + SNOOP_IGMPv1v2_HEADER_LENGTH)
@@ -908,8 +905,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     {
       /*Get Number of Group Records*/
       noOfGroupRecords = osapiNtohs(*((L7_uint16 *) &igmpPtr[6]));
-      
-      
+        
       if ( noOfGroupRecords > 0 )
       { 
         /*Get Multicast Group Address of First Group Record*/         
@@ -968,9 +964,13 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   }
   else
   {
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "IPv6 not supported yet!");
-    ptin_igmp_stat_increment_field(pduInfo->intIfNum, pduInfo->vlanId, client_idx, SNOOP_STAT_FIELD_IGMP_RECEIVED_INVALID);
-    return L7_FAILURE;
+    rc = snoop_mld_packet_parse(&buffPtr[0], dataLength, &groupAddr, &sourceAddr, &packet_type);
+    if (rc != L7_SUCCESS)
+    {
+      PT_LOG_ERR(LOG_CTX_IGMP,"Invalid Ipv6/MLD packet");
+      return L7_FAILURE;
+    }
+
   }
 
   ptin_timer_start(76,"ptin_igmp_McastRootVlan_get");
@@ -996,7 +996,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       }
       return L7_FAILURE;
 #else
-      }
+    }
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
 #ifdef ONE_MULTICAST_VLAN_RING_SUPPORT
@@ -1043,14 +1043,14 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
     ptin_port_aux = pduInfo->intIfNum - 1;
 
     ptin_igmp_port_is_Dynamic(ptin_port_aux, &isDynamic);
-		ptin_igmp_get_local_router_port(&local_router_port_id);
+    ptin_igmp_get_local_router_port(&local_router_port_id);
 
-		/* Support of query process in other services other than multicast and MC proxy */
-		if ( (mcastRootVlan < 512) && (isDynamic == 1) ) 
-		{			
-			mcastRootVlan = 512;
-			PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId ,mcastRootVlan);
-		}
+    /* Support of query process in other services other than multicast and MC proxy */
+    if ( (mcastRootVlan < 512) && (isDynamic == 1) ) 
+    {			
+      mcastRootVlan = 512;
+      PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId ,mcastRootVlan);
+    }
 #endif	
   }
   else
@@ -1567,6 +1567,156 @@ static L7_RC_t snoopPacketParse(snoopPDU_Msg_t *msg,
     }
   }
   return L7_SUCCESS;
+}
+
+
+/*********************************************************************
+* @purpose Parse and process incoming MLD packets
+*
+* @param   ipv6_ptr       @b{(input)}  Pointer to MLD packet
+* @param   data_length    @b{(input)}  Lenght of the packet
+* @param   *group_addr    @b{(output)} MLD packet Group Address
+* @param   *source_addr   @b{(output)} MLD packet Source Address
+* @param   *packet_type   @b{(output)} MLD packet type : L7_MLD_MEMBERSHIP_QUERY           130 
+*                                                        L7_MLD_V1_MEMBERSHIP_REPORT       131 
+* @returns L7_SUCCESS                                    L7_MLD_V1_MEMBERSHIP_DONE         132 
+* @returns L7_FAILURE                                    L7_MLD_V2_MEMBERSHIP_REPORT       143 
+*
+* @notes none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t snoop_mld_packet_parse(L7_uchar8 *ipv6_ptr, L7_uint32 data_length, L7_inet_addr_t *group_addr, L7_inet_addr_t *source_addr, L7_uint8 *packet_type)
+{
+    L7_ip6Header_t     ip6_header;
+    L7_ip6ExtHeader_t  ext_header;
+    L7_ip6IcmpHeader_t icmp_header;
+    L7_in6_addr_t      group_addr_tmp, source_addr_tmp;
+    L7_inet_addr_t     source_ipv6_addr, dest_ipv6_addr;
+    L7_ushort16        reserved, n_mc_adress_record, max_delay;
+    L7_uchar8          record_type, aux_data_len, number_of_sources;
+    L7_uchar8          addr_buff[IPV6_DISP_ADDR_LEN];
+
+    if (data_length < L7_ENET_HDR_SIZE +
+                      L7_ENET_HDR_TYPE_LEN_SIZE +
+                      L7_IP6_HEADER_LEN + 
+                      SNOOP_MLDV1_HEADER_LENGTH)
+    {
+      PT_LOG_TRACE(LOG_CTX_IGMP, "Received pkt is too small %d",
+                   data_length);
+      return L7_FAILURE;
+    }
+
+    /**** Check Ipv6 Header *****/
+    SNOOP_GET_LONG(ip6_header.ver_class_flow, ipv6_ptr);
+    SNOOP_GET_SHORT(ip6_header.paylen, ipv6_ptr);
+    SNOOP_GET_BYTE(ip6_header.next, ipv6_ptr);
+    SNOOP_GET_BYTE(ip6_header.hoplim, ipv6_ptr);
+
+    /* Not received with an IPv6 hop limit as 1, discard.
+       RFC3810 section 5  */
+    if (ip6_header.hoplim != SNOOP_TTL_VALID_VALUE)
+    {
+      PT_LOG_ERR(LOG_CTX_IGMP, "Received pkt with hop limit other than one %d",\
+                  ip6_header.hoplim);
+      return L7_FAILURE;
+    }
+
+    /* Get IPv6 Destination Address*/
+    SNOOP_GET_ADDR6(ip6_header.dst, ipv6_ptr);
+    if (!L7_IP6_IS_ADDR_LINK_LOCAL(&ip6_header.dst))
+    {
+      /* Not received with an IPv6 link local address.
+         Discard RFC3810 5.1.14, 5.2.13 */
+      PT_LOG_ERR(LOG_CTX_IGMP,"Invalid Ipv6 source address");
+      return L7_FAILURE;
+    }
+    inetAddressSet(L7_AF_INET6, ip6_header.dst, &dest_ipv6_addr);
+
+    /* Get IPv6 Source Address */
+    SNOOP_GET_ADDR6(ip6_header.src, ipv6_ptr);
+    inetAddressSet(L7_AF_INET6, ip6_header.src, &source_ipv6_addr);
+
+    /**** Check next header if is ICMPv6 or Ipv6 extHeader *****/
+    /* Extender Ipv6 header */
+    if (ip6_header.next == SNOOP_IP6_IPPROTO_HOPOPTS)
+    {
+      SNOOP_GET_BYTE(ip6_header.next, ipv6_ptr);  /* Next Header from extender IPv6 header*/
+      SNOOP_GET_BYTE(ext_header.xlen, ipv6_ptr); /* Extension hdr length */
+      ipv6_ptr += (SNOOP_IP6_HOPBHOP_LEN_GET(ext_header.xlen)) - 2;
+    }
+
+    /* ICMPv6 header */
+    if (ip6_header.next == IP_PROT_ICMPV6)
+    {                
+      SNOOP_GET_BYTE(icmp_header.icmp6_type, ipv6_ptr);  /* ICMPv6 msg type */
+      SNOOP_GET_BYTE(icmp_header.icmp6_code, ipv6_ptr);  /* ICMPv6 code */
+      SNOOP_GET_SHORT(icmp_header.icmp6_cksum, ipv6_ptr);/* ICMPv6 checksum */
+      SNOOP_GET_SHORT(max_delay, ipv6_ptr);              /* ICMPv6 checksum */
+      SNOOP_GET_SHORT(reserved, ipv6_ptr);               /* ICMPv6 reserved */
+
+      /* Update MLD packet type*/
+      *packet_type = icmp_header.icmp6_type;
+
+      /**** Check MLD Header *****/
+      /* Only MLDv2 report have a different format */
+      if (icmp_header.icmp6_type != L7_MLD_V2_MEMBERSHIP_REPORT)
+      {
+        SNOOP_GET_ADDR6(&group_addr_tmp, ipv6_ptr);   /* Get MLD Multicast Group Address */
+        
+        /* Update output structs*/            
+        inetAddressReset(group_addr);
+        inetAddressSet(L7_AF_INET6, &group_addr_tmp, group_addr);
+        PT_LOG_TRACE(LOG_CTX_IGMP,"group_addr %s", inetAddrPrint(group_addr, addr_buff));
+
+        inetAddressReset(source_addr);                
+        inetInAddressAnyInit(L7_AF_INET6, source_addr); /* Set source to any */
+
+        PT_LOG_TRACE(LOG_CTX_IGMP,"source_addr %s", inetAddrPrint(source_addr, addr_buff));
+             
+      }
+      else
+      {
+        SNOOP_GET_SHORT(n_mc_adress_record, ipv6_ptr);  /* Get MLD number of address records*/
+        SNOOP_GET_BYTE(record_type, ipv6_ptr);          /* Get MLD number of record type*/
+        SNOOP_GET_BYTE(aux_data_len, ipv6_ptr);
+        SNOOP_GET_BYTE(number_of_sources, ipv6_ptr);    /* Get MLD number of sources*/
+        SNOOP_GET_ADDR6(&group_addr_tmp, ipv6_ptr);
+              
+        /* Update output struct*/            
+        inetAddressReset(group_addr);                   /* Get Multicast Group Address*/
+        inetAddressSet(L7_AF_INET6, &group_addr_tmp, group_addr);
+        PT_LOG_TRACE(LOG_CTX_IGMP,"group_addr %s", inetAddrPrint(group_addr, addr_buff));
+
+        /* Get the first source of the packet*/
+        if (number_of_sources != 0)
+        {
+          SNOOP_GET_ADDR6(&source_addr_tmp, ipv6_ptr);
+
+          /* Update output struct*/            
+          inetAddressReset(source_addr);
+          inetAddressSet(L7_AF_INET6, &source_addr_tmp, source_addr);
+
+          PT_LOG_TRACE(LOG_CTX_IGMP,"source_addr %s", inetAddrPrint(source_addr, addr_buff));
+        }
+        /* If the number of sources is 0, initialize source to any*/
+        else
+        {
+          /*Any source*/
+          inetAddressReset(source_addr);
+          inetInAddressAnyInit(L7_AF_INET6, source_addr);
+          PT_LOG_TRACE(LOG_CTX_IGMP,"source_addr %s", inetAddrPrint(source_addr, addr_buff));
+        }
+      }
+    }
+    else
+    {
+      PT_LOG_WARN(LOG_CTX_IGMP,"Invalid next header %d",ip6_header.next);
+      return L7_FAILURE;
+    }
+
+    return L7_SUCCESS;
 }
 /*********************************************************************
 * @purpose Process incoming snoop control packets

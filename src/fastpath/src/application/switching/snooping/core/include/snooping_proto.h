@@ -189,6 +189,25 @@ L7_RC_t snoopPimv1v2DvmrpProcess(mgmdSnoopControlPkt_t *mcastPacket,
                               L7_inet_addr_t *grpAddr, L7_uint32 ipProtoType);
 L7_RC_t snoopMgmdLeaveGroupProcess(mgmdSnoopControlPkt_t *mcastPacket);
 
+/*********************************************************************
+* @purpose Parse and process incoming MLD packets
+*
+* @param   ipv6_ptr       @b{(input)}  Pointer to MLD packet
+* @param   data_length    @b{(input)}  Lenght of the packet
+* @param   *group_addr    @b{(output)} MLD packet Group Address
+* @param   *source_addr   @b{(output)} MLD packet Source Address
+* @param   *packet_type   @b{(output)} MLD packet type : L7_MLD_MEMBERSHIP_QUERY           130 
+*                                                        L7_MLD_V1_MEMBERSHIP_REPORT       131 
+* @returns L7_SUCCESS                                    L7_MLD_V1_MEMBERSHIP_DONE         132 
+* @returns L7_FAILURE                                    L7_MLD_V2_MEMBERSHIP_REPORT       143 
+*
+* @notes none
+*
+* @end
+*
+*********************************************************************/
+L7_RC_t snoop_mld_packet_parse(L7_uchar8 *ipv6_ptr, L7_uint32 data_length, L7_inet_addr_t *group_addr, L7_inet_addr_t *source_addr, L7_uint8 *packet_type);
+
 /* End of function prototypes */
 #endif /* SNOOPING_PROTO_H */
 
