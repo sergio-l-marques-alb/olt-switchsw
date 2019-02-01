@@ -1164,12 +1164,14 @@ L7_RC_t ptin_hapi_xlate_ingress_add(ptin_dapi_port_t *dapiPort, ptin_hapi_xlate_
     keyType = bcmVlanTranslateKeyPortOuter;
   }
 
+#if 0
   /* Check if this entry already exists */
   if (bcmx_vlan_translate_action_get(hapiPortPtr->bcmx_lport, keyType, xlate->outerVlanId, xlate->innerVlanId, &action) == BCM_E_NONE)
   {
     PT_LOG_WARN(LOG_CTX_HAPI, "This entry already exists");
     return L7_ALREADY_CONFIGURED;
   }
+#endif
 
   bcm_vlan_action_set_t_init(&action);
 
@@ -1424,12 +1426,14 @@ L7_RC_t ptin_hapi_xlate_egress_add(L7_uint32 portgroup, ptin_hapi_xlate_t *xlate
 //  return L7_FAILURE;
 //}
 
+#if 0
   /* Check if this entry already exists */
   if (bcmx_vlan_translate_egress_action_get(portgroup, xlate->outerVlanId, xlate->innerVlanId, &action) == BCM_E_NONE)
   {
     PT_LOG_WARN(LOG_CTX_HAPI, "This entry already exists");
     return L7_ALREADY_CONFIGURED;
   }
+#endif
 
   /* Add translation entry */
   bcm_vlan_action_set_t_init(&action);
