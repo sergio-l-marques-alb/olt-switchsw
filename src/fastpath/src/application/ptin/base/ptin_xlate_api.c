@@ -16,7 +16,7 @@
  * DATA TYPES
  ****************************************************************/
 
-#define PTIN_XLATE_MAX_SIZE 8010
+#define PTIN_XLATE_MAX_SIZE 7000
 
 typedef struct ptinXlateKey_s
 {
