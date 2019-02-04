@@ -353,22 +353,23 @@ static int ptin_ipmc_to_bcm(ptin_dtl_ipmc_addr_t  *dtl_ipmc, bcm_ipmc_addr_t *bc
   }
   else
   {
-    memcpy(&(bcm_ipmc->s_ip_addr),  &dtl_ipmc->s_ip_addr.addr.ipv4.s_addr,  L7_IPV4_ADDRESS_SIZE);
-    memcpy(&(bcm_ipmc->mc_ip_addr), &dtl_ipmc->mc_ip_addr.addr.ipv4.s_addr, L7_IPV4_ADDRESS_SIZE);
+      memcpy(&(bcm_ipmc->s_ip_addr),  &dtl_ipmc->s_ip_addr.addr.ipv4.s_addr,  L7_IPV4_ADDRESS_SIZE);
+      memcpy(&(bcm_ipmc->mc_ip_addr), &dtl_ipmc->mc_ip_addr.addr.ipv4.s_addr, L7_IPV4_ADDRESS_SIZE);
+      bcm_ipmc->flags |= BCM_IPMC_SOURCE_PORT_NOCHECK;
   }
-    
+
+  /*Flags*/
+  if ((dtl_ipmc->flags & PTIN_BCM_IPMC_REPLACE) == PTIN_BCM_IPMC_REPLACE)
+  {
+      bcm_ipmc->flags |= BCM_IPMC_REPLACE;
+  }
 //bcm_ipmc->cos = ipmc->cos;
 //bcm_ipmc->ts = ipmc->ts;
 //bcm_ipmc->port_tgid = ipmc->port_tgid;
 //bcm_ipmc->mod_id = ipmc->mod_id;
   bcm_ipmc->v = 1;   /* VALID */
 
-  /*Flags*/  
-  if ( (dtl_ipmc->flags & PTIN_BCM_IPMC_REPLACE) == PTIN_BCM_IPMC_REPLACE )
-    bcm_ipmc->flags |= BCM_IPMC_REPLACE;
-
   //Always Force to Not Check Source Port 
-  bcm_ipmc->flags |= BCM_IPMC_SOURCE_PORT_NOCHECK;
   /*End Flags*/
 
   bcm_ipmc->group = dtl_ipmc->group_index;
@@ -447,7 +448,7 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 
   /* Default flags */
   flags = BCM_MULTICAST_TYPE_L3;
-        
+
   /* Create group, by default */
   create_group = L7_TRUE;
 
@@ -506,7 +507,15 @@ L7_RC_t ptin_hapi_l3_ipmc_add(ptin_dtl_ipmc_addr_t *ptin_ipmc)
 
   if (BCM_FAILURE(rv))
   {
-    PT_LOG_ERR(LOG_CTX_HAPI,"Error adding Channel to IPMC Table: group_index:0x%x rv:%d rv=\"%s\" numberOfIpmcEntries=%u", bcm_ipmc.group, rv, bcm_errmsg(rv), numberOfIpmcEntries);
+      PT_LOG_ERR(LOG_CTX_HAPI, "Error adding Channel to IPMC Table: group_index:0x%x flags:0x%x cos:0x%x rv:%d rv=\"%s\" numberOfIpmcEntries=%u ", 
+                 bcm_ipmc.group,
+                 bcm_ipmc.flags,
+                 bcm_ipmc.cos,
+                 rv,
+                 bcm_errmsg(rv), 
+                 numberOfIpmcEntries                 
+                 );
+
     return ptin_bcm_to_fp_error_code(rv);
   }
   else

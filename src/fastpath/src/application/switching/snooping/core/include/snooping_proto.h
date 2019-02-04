@@ -196,6 +196,9 @@ L7_RC_t snoopMgmdLeaveGroupProcess(mgmdSnoopControlPkt_t *mcastPacket);
 * @param   data_length    @b{(input)}  Lenght of the packet
 * @param   *group_addr    @b{(output)} MLD packet Group Address
 * @param   *source_addr   @b{(output)} MLD packet Source Address
+* @param   *dip           @b{(output)} MLD packet IP Destination address
+* @param   *sip           @b{(output)} MLD packet IP Source address
+* @param   *source_addr   @b{(output)} MLD packet Source Address
 * @param   *packet_type   @b{(output)} MLD packet type : L7_MLD_MEMBERSHIP_QUERY           130 
 *                                                        L7_MLD_V1_MEMBERSHIP_REPORT       131 
 * @returns L7_SUCCESS                                    L7_MLD_V1_MEMBERSHIP_DONE         132 
@@ -206,7 +209,7 @@ L7_RC_t snoopMgmdLeaveGroupProcess(mgmdSnoopControlPkt_t *mcastPacket);
 * @end
 *
 *********************************************************************/
-L7_RC_t snoop_mld_packet_parse(L7_uchar8 *ipv6_ptr, L7_uint32 data_length, L7_inet_addr_t *group_addr, L7_inet_addr_t *source_addr, L7_uint8 *packet_type);
+L7_RC_t snoop_mld_packet_parse(L7_uchar8 *ipv6_ptr, L7_uint32 data_length, L7_inet_addr_t *group_addr, L7_inet_addr_t *source_addr, L7_inet_addr_t *dip, L7_inet_addr_t *sip, L7_uint8 *packet_type);
 
 /* End of function prototypes */
 #endif /* SNOOPING_PROTO_H */

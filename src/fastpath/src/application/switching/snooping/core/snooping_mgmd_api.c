@@ -776,39 +776,37 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
 
 #endif //End Admission Control
 
-unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, unsigned int ipv4GroupAddr, unsigned int ipv4SourceAddr, unsigned char isStatic)
+unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, void* groupAddr, void* sourceAddr, unsigned int family, unsigned char isStatic)
 {
-  L7_inet_addr_t groupAddr;
-  L7_inet_addr_t sourceAddr;
   L7_BOOL        isProtection = L7_FALSE;
+  L7_inet_addr_t group_addr, source_addr;
 
-  inetAddressSet(L7_AF_INET, &ipv4GroupAddr, &groupAddr);
-  inetAddressSet(L7_AF_INET, &ipv4SourceAddr, &sourceAddr);
+  memcpy(&group_addr, groupAddr, sizeof(L7_inet_addr_t));
+  memcpy(&source_addr, sourceAddr, sizeof(L7_inet_addr_t));
 
   /*
    * We were forced to implement this method asynchronous from MGMD as the SDK crashes if the mfdb request is made by the MGMD thread. 
    * The SDK exits in an assert that checks for the in_interrupt() method. As no solution was found, an alternative method was implemented. 
    * Instead of directly calling mfdb, MGMD will place a request in the snooping queue, which will eventually be processed. 
    */
-  return snoopPortOpen(serviceId, portId, &groupAddr, &sourceAddr, isStatic, isProtection);
+  return snoopPortOpen(serviceId, portId, &group_addr, &source_addr, isStatic, isProtection);
   
 }
 
-unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, unsigned int ipv4GroupAddr, unsigned int ipv4SourceAddr)
+unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, void* groupAddr, void* sourceAddr, unsigned int family)
 {
-  L7_inet_addr_t groupAddr;
-  L7_inet_addr_t sourceAddr;
   L7_BOOL        isProtection = L7_FALSE;
+  L7_inet_addr_t group_addr, source_addr;
 
-  inetAddressSet(L7_AF_INET, &ipv4GroupAddr, &groupAddr);
-  inetAddressSet(L7_AF_INET, &ipv4SourceAddr, &sourceAddr);
+  memcpy(&group_addr, groupAddr, sizeof(L7_inet_addr_t));
+  memcpy(&source_addr, sourceAddr, sizeof(L7_inet_addr_t));
 
   /*
    * We were forced to implement this method asynchronous from MGMD as the SDK crashes if the mfdb request is made by the MGMD thread. 
    * The SDK exits in an assert that checks for the in_interrupt() method. As no solution was found, an alternative method was implemented. 
    * Instead of directly calling mfdb, MGMD will place a request in the snooping queue, which will eventually be processed. 
    */
-  return snoopPortClose(serviceId, portId, &groupAddr, &sourceAddr, isProtection);
+  return snoopPortClose(serviceId, portId, &group_addr, &source_addr, isProtection);
 }
 
 unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLength, unsigned int serviceId, unsigned int portId, unsigned int clientId, unsigned char family, unsigned int onuId)
@@ -822,10 +820,11 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   L7_uint32             packetLength = payloadLength;
   L7_uint32             dstIpAddr;
   L7_uchar8            *destIpPtr;
-  L7_inet_addr_t        destIp;
+  L7_inet_addr_t        destIp, srcIp, group_address, source_address;
   L7_uint32             activeState;  
   L7_uint16             int_ovlan; 
   L7_uint16             int_ivlan    = 0; 
+  L7_uint8              packet_type;
   ptin_IgmpProxyCfg_t   igmpCfg;  
    
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
@@ -873,8 +872,21 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
 
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
   //Get Group Address
-  destIpPtr = (payload+28);
-  SNOOP_GET_ADDR(&groupAddress, destIpPtr); 
+  if (family == L7_AF_INET)
+  {
+    destIpPtr = (payload + 28);
+    SNOOP_GET_ADDR(&groupAddress, destIpPtr); 
+  }
+  else
+  {
+    snoop_mld_packet_parse(payload, 
+                           payloadLength, 
+                           &group_address, 
+                           &source_address, 
+                           &destIp, 
+                           &srcIp,
+                           &packet_type);
+  }
   
   //We only get the intRootVLAN here for the General Query and for the Membership Reports
   //For Group Specific Queries we use the  ptin_mgmd_send_leaf_packet to obtain the intRootVLAN
@@ -902,9 +914,12 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
 
   //Get destination MAC from destIpAddr
   destIpPtr = (payload+16);
-  SNOOP_GET_ADDR(&dstIpAddr, destIpPtr);  
-  
-  inetAddressSet(L7_AF_INET, &dstIpAddr, &destIp);
+
+  if (family == L7_AF_INET)
+  {  
+    SNOOP_GET_ADDR(&dstIpAddr, destIpPtr); 
+    inetAddressSet(L7_AF_INET, &dstIpAddr, &destIp);
+  }
   snoopMulticastMacFromIpAddr(&destIp, destMac);
 
   //Get base MAC address (could be BIA or LAA) and use it as src MAC */
@@ -933,10 +948,21 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
   packetLength += 2;
 
-  //IP Ether type
-  shortVal = L7_ETYPE_IP;
-  SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
-  packetLength += 2;
+  if (family == L7_AF_INET)
+  {
+    //IP Ether type
+    shortVal = L7_ETYPE_IP;
+    SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
+    packetLength += 2;
+  }
+  else
+  {
+    //IP Ether type
+    shortVal = L7_ETYPE_IPV6;
+    SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
+    packetLength += 2;
+
+  }
 
   //Copy the L3 and above payload to the packet buffer
   memcpy(dataPtr, payload, payloadLength * sizeof(uchar8));
@@ -963,10 +989,11 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   L7_uint32             packetLength = payloadLength;
   L7_uint32             dstIpAddr;
   L7_uchar8            *destIpPtr;
-  L7_inet_addr_t        destIp;
+  L7_inet_addr_t        destIp, srcIp, group_address, source_address;
   L7_uint32             activeState;
   L7_uint16             int_ovlan;
   L7_uint16             int_ivlan    = 0;
+  L7_uint8              packet_type;
   ptin_IgmpProxyCfg_t   igmpCfg;
 
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
@@ -1019,9 +1046,22 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
 
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
   //Get Group Address
-  destIpPtr = (payload+28);
-  SNOOP_GET_ADDR(&groupAddress, destIpPtr);
-
+//Get Group Address
+  if (family == L7_AF_INET)
+  {
+    destIpPtr = (payload + 28);
+    SNOOP_GET_ADDR(&groupAddress, destIpPtr); 
+  }
+  else
+  {
+    snoop_mld_packet_parse(payload, 
+                           payloadLength, 
+                           &group_address, 
+                           &source_address, 
+                           &destIp, 
+                           &srcIp,
+                           &packet_type);
+  }
   //We only get the intRootVLAN here for the General Query and for the Membership Reports
   //For Group Specific Queries we use the  ptin_mgmd_send_leaf_packet to obtain the intRootVLAN
   if ( (portType == PTIN_MGMD_PORT_TYPE_ROOT || groupAddress==0x00) )
@@ -1074,9 +1114,13 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
 
   //Get destination MAC from destIpAddr
   destIpPtr = (payload+16);
-  SNOOP_GET_ADDR(&dstIpAddr, destIpPtr);
 
-  inetAddressSet(L7_AF_INET, &dstIpAddr, &destIp);
+  if (family == L7_AF_INET)
+  {  
+    SNOOP_GET_ADDR(&dstIpAddr, destIpPtr); 
+    inetAddressSet(L7_AF_INET, &dstIpAddr, &destIp);
+  }
+
   snoopMulticastMacFromIpAddr(&destIp, destMac);
 
   //Get base MAC address (could be BIA or LAA) and use it as src MAC */
@@ -1105,11 +1149,20 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
   packetLength += 2;
 
-  //IP Ether type
-  shortVal = L7_ETYPE_IP;
-  SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
-  packetLength += 2;
-
+  if (family == L7_AF_INET)
+  {
+    //IP Ether type
+    shortVal = L7_ETYPE_IP;
+    SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
+    packetLength += 2;
+  }
+  else
+  {
+    //IP Ether type
+    shortVal = L7_ETYPE_IPV6;
+    SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
+    packetLength += 2;
+  }
   //Copy the L3 and above payload to the packet buffer
   memcpy(dataPtr, payload, payloadLength * sizeof(uchar8));
 

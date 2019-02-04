@@ -2552,8 +2552,7 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
   L7_RC_t                            rc;
 
   /* Validate arguments */
-  if (serviceId == 0 || serviceId >= PTIN_SYSTEM_N_EXTENDED_EVCS || vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX || groupAddr==L7_NULLPTR || groupAddr->family!=L7_AF_INET || sourceAddr == L7_NULLPTR || sourceAddr->family != L7_AF_INET
-      || intIfNum==0 || intIfNum > PTIN_SYSTEM_IGMP_MAXINTERFACES)
+  if (serviceId == 0 || serviceId >= PTIN_SYSTEM_N_EXTENDED_EVCS || vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX || groupAddr==L7_NULLPTR || sourceAddr == L7_NULLPTR || intIfNum==0 || intIfNum > PTIN_SYSTEM_IGMP_MAXINTERFACES)
   {   
     PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments [evcId:%u vlanId:%u groupAddr:%p sourceAddr:%p intIfNum:%u isStatic:%u isProtection:%u", serviceId, vlanId, groupAddr, sourceAddr, intIfNum, isStatic, isProtection);
     return L7_FAILURE;
@@ -2974,7 +2973,13 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
     memcpy(&dtl_ipmc.mc_ip_addr, &pChannelEntry->snoopChannelInfoDataKey.groupAddr, sizeof(dtl_ipmc.mc_ip_addr));
     dtl_ipmc.vid = pChannelEntry->snoopChannelInfoDataKey.vlanId;
 
-    PT_LOG_TRACE(LOG_CTX_IGMP, "evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x", serviceId, vlanId, intIfNum, 
+    if (pChannelEntry->snoopChannelInfoDataKey.groupAddr.family == L7_AF_INET6)
+
+    {
+      dtl_ipmc.flags |= PTIN_BCM_IPMC_IP6;
+    }
+
+    PT_LOG_TRACE(LOG_CTX_IGMP, "evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s multicast_group:0x%08x", serviceId, vlanId, intIfNum,
                 inetAddrPrint(&dtl_ipmc.mc_ip_addr, groupAddrStr), inetAddrPrint(&dtl_ipmc.s_ip_addr, sourceAddrStr), dtl_ipmc.group_index);
     
     rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_SET, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);
@@ -3320,6 +3325,11 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
     /*Only Remove Entries that are in HW*/
     if ((pChannelEntry->flags & SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE) == SNOOP_CHANNEL_ENTRY_IS_IN_HARDWARE)
     {
+      if (pChannelEntry->snoopChannelInfoDataKey.groupAddr.family == L7_AF_INET6)
+
+      {
+        dtl_ipmc.flags |= PTIN_BCM_IPMC_IP6;
+      }
       /*Remove Channel from IPMC Table*/
       rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_CLEAR, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);
       if (rc != L7_SUCCESS)
@@ -3610,6 +3620,11 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
   }
    
   dtl_ipmc.group_index = pChannelIntfMask->multicastGroup;
+  if (pChannelEntry->snoopChannelInfoDataKey.groupAddr.family == L7_AF_INET6)
+  {
+    dtl_ipmc.flags |= PTIN_BCM_IPMC_IP6;
+  }
+
   /*Update the IPMC Entry*/  
   rc = dtlPtinGeneric(L7_ALL_INTERFACES, PTIN_DTL_MSG_L3_IPMC, DAPI_CMD_SET, sizeof(ptin_dtl_ipmc_addr_t), &dtl_ipmc);   
   if (rc != L7_SUCCESS)
