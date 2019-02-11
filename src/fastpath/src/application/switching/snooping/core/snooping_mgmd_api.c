@@ -779,10 +779,26 @@ unsigned int snooping_client_resources_release(unsigned int serviceId, unsigned 
 unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, void* groupAddr, void* sourceAddr, unsigned int family, unsigned char isStatic)
 {
   L7_BOOL        isProtection = L7_FALSE;
-  L7_inet_addr_t group_addr, source_addr;
+  L7_inet_addr_t group_addr, source_addr, *group_addr_ptr, *source_addr_ptr;
 
-  memcpy(&group_addr, groupAddr, sizeof(L7_inet_addr_t));
-  memcpy(&source_addr, sourceAddr, sizeof(L7_inet_addr_t));
+  group_addr_ptr  = groupAddr;
+  source_addr_ptr = sourceAddr;
+
+  inetAddressReset(&group_addr);
+  inetAddressReset(&source_addr);
+
+  if (family == L7_AF_INET)
+  {
+
+    inetAddressSet(L7_AF_INET, &(group_addr_ptr->addr.ipv4.s_addr), &group_addr);
+    inetAddressSet(L7_AF_INET, &(source_addr_ptr->addr.ipv4.s_addr), &source_addr);
+
+  }
+  else
+  {
+    inetAddressSet(L7_AF_INET6, &(group_addr_ptr->addr.ipv6.in6.addr8[0]),  &group_addr);
+    inetAddressSet(L7_AF_INET6, &(source_addr_ptr->addr.ipv6.in6.addr8[0]), &source_addr);
+  }
 
   /*
    * We were forced to implement this method asynchronous from MGMD as the SDK crashes if the mfdb request is made by the MGMD thread. 
@@ -796,10 +812,25 @@ unsigned int snooping_port_open(unsigned int serviceId, unsigned int portId, voi
 unsigned int snooping_port_close(unsigned int serviceId, unsigned int portId, void* groupAddr, void* sourceAddr, unsigned int family)
 {
   L7_BOOL        isProtection = L7_FALSE;
-  L7_inet_addr_t group_addr, source_addr;
+  L7_inet_addr_t group_addr, source_addr, *group_addr_ptr, *source_addr_ptr;
 
-  memcpy(&group_addr, groupAddr, sizeof(L7_inet_addr_t));
-  memcpy(&source_addr, sourceAddr, sizeof(L7_inet_addr_t));
+  group_addr_ptr  = groupAddr;
+  source_addr_ptr = sourceAddr;
+
+  inetAddressReset(&group_addr);
+  inetAddressReset(&source_addr);
+
+  if (family == L7_AF_INET)
+  {
+    inetAddressSet(L7_AF_INET, &(group_addr_ptr->addr.ipv4.s_addr), &group_addr);
+    inetAddressSet(L7_AF_INET, &(source_addr_ptr->addr.ipv4.s_addr), &source_addr);
+
+  }
+  else
+  {
+    inetAddressSet(L7_AF_INET6, &(group_addr_ptr->addr.ipv6.in6.addr8[0]),  &group_addr);
+    inetAddressSet(L7_AF_INET6, &(source_addr_ptr->addr.ipv6.in6.addr8[0]), &source_addr);
+  }
 
   /*
    * We were forced to implement this method asynchronous from MGMD as the SDK crashes if the mfdb request is made by the MGMD thread. 
@@ -997,6 +1028,14 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   ptin_IgmpProxyCfg_t   igmpCfg;
 
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
+
+  if (ptin_debug_igmp_packet_trace)
+  {
+    L7_uint32 i;
+    printf("Tx:PayloadLength:%d\n", packetLength);
+    for (i = 0; i < packetLength; i++) printf("%02x ", payload[i]);
+    printf("\n");
+  }
 
 #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};

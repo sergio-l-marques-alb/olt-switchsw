@@ -1442,8 +1442,8 @@ L7_RC_t snoopQuerySend(L7_uint32 intIfNum, L7_uint32 vlanId,
     }
     else
     {
-    memset(&ipv6Addr, 0x00, sizeof(L7_in6_addr_t));
-    osapiInetPton(L7_AF_INET6, SNOOP_IP6_ALL_HOSTS_ADDR, (L7_uchar8 *)&ipv6Addr);
+      memset(&ipv6Addr, 0x00, sizeof(L7_in6_addr_t));
+      osapiInetPton(L7_AF_INET6, SNOOP_IP6_ALL_HOSTS_ADDR, (L7_uchar8 *)&ipv6Addr);
       inetAddressSet(L7_AF_INET6, &ipv6Addr, &destIp);
     }
      /* MLD */
@@ -1878,7 +1878,6 @@ L7_RC_t snoopMLDFrameBuild(L7_uint32       intIfNum,
   /* IP Version 6 */
   ipv6Header.ver_class_flow = (0x0006 << 28 );
 
-
   /* Payload Length */
   if (version == SNOOP_MLD_VERSION_1)
   {
@@ -1896,7 +1895,7 @@ L7_RC_t snoopMLDFrameBuild(L7_uint32       intIfNum,
   ipv6Header.hoplim = SNOOP_IP6_HOP_LIMIT;
 
   /* Destination IP Address */
-   osapiInetPton(L7_AF_INET6, SNOOP_IP6_ALL_HOSTS_ADDR, ipv6Header.dst);
+  osapiInetPton(L7_AF_INET6, SNOOP_IP6_ALL_HOSTS_ADDR, ipv6Header.dst);
 
   /* Source Address - Snooping Switches send it with null source address */
   vlanId = pSnoopOperEntry->vlanId;

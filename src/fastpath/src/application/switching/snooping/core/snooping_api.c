@@ -3987,6 +3987,7 @@ L7_RC_t snoopPortOpen(L7_uint32 serviceId, L7_uint32 intIfNum, L7_inet_addr_t *g
 
   /* Get Snoop Execution Block and Control Block */
   pSnoopEB = snoopEBGet();
+
   if ((pSnoopCB = snoopCBGet(L7_AF_INET)) == L7_NULLPTR)
   {
     PT_LOG_ERR(LOG_CTX_IGMP, "pSnoopCB:%p", pSnoopCB);

@@ -2590,6 +2590,9 @@ L7_RC_t snoopL3GroupIntfAdd(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_addr_
   memset(&dtl_ipmc, 0X00, sizeof(dtl_ipmc));
 
   channelEntry.snoopChannelInfoDataKey.vlanId = vlanId;  
+  inetAddressReset(&channelEntry.snoopChannelInfoDataKey.groupAddr);
+  inetAddressReset(&channelEntry.snoopChannelInfoDataKey.sourceAddr);
+
   memcpy(&channelEntry.snoopChannelInfoDataKey.groupAddr, groupAddr, sizeof(channelEntry.snoopChannelInfoDataKey.groupAddr));
   memcpy(&channelEntry.snoopChannelInfoDataKey.sourceAddr, sourceAddr, sizeof(channelEntry.snoopChannelInfoDataKey.sourceAddr));
   
@@ -3177,8 +3180,8 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
   L7_RC_t                            rc;
 
   /* Validate arguments */
-  if (serviceId == 0 || serviceId >= PTIN_SYSTEM_N_EXTENDED_EVCS || vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX || groupAddr==L7_NULLPTR || groupAddr->family!=L7_AF_INET || sourceAddr == L7_NULLPTR || sourceAddr->family != L7_AF_INET
-      || intIfNum==0 || intIfNum > PTIN_SYSTEM_IGMP_MAXINTERFACES)
+  if (serviceId == 0 || serviceId >= PTIN_SYSTEM_N_EXTENDED_EVCS || vlanId < PTIN_VLAN_MIN || vlanId > PTIN_VLAN_MAX || groupAddr==L7_NULLPTR || 
+      sourceAddr == L7_NULLPTR || intIfNum==0 || intIfNum > PTIN_SYSTEM_IGMP_MAXINTERFACES)
   {   
     PT_LOG_ERR(LOG_CTX_IGMP,"Invalid arguments [evcId:%u vlanId:%u groupAddr:%p sourceAddr:%p intIfNum:%u isProtection:%u", serviceId, vlanId, groupAddr, sourceAddr, intIfNum, isProtection);
     return L7_FAILURE;
@@ -3195,8 +3198,8 @@ L7_RC_t snoopL3GroupIntfRemove(L7_uint32 serviceId, L7_uint16 vlanId, L7_inet_ad
        pChannelEntry->pChannelIntfMask == L7_NULLPTR || (multicast_group = pChannelEntry->pChannelIntfMask->multicastGroup) <= 0)
   {
     if (ptin_debug_igmp_snooping)
-      PT_LOG_WARN(LOG_CTX_IGMP, "This channel does not exist [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u multicastGroup:0x%08x]", serviceId, vlanId, intIfNum, 
-            groupAddrStr, sourceAddrStr, isProtection, multicast_group); 
+      PT_LOG_WARN(LOG_CTX_IGMP, "This channel does not exist [evcId:%u vlanId:%u intIfNum:%u groupAddr:%s sourceAddr:%s isProtection:%u multicastGroup:0x%08x family_source %d family_group %d]", serviceId, vlanId, intIfNum, 
+                                              groupAddrStr, sourceAddrStr, isProtection, multicast_group, sourceAddr->family, groupAddr->family);
     return L7_NOT_EXIST;
   }
 
@@ -6501,11 +6504,32 @@ snoopChannelInfoData_t *snoopChannelEntryFind(L7_uint32 vlanId, L7_inet_addr_t *
   char                    sourceAddrStr[IPV6_DISP_ADDR_LEN]={};
   
   pSnoopEB = snoopEBGet();
+
   memset((void *)&key, 0x00, sizeof(key));
- 
   memcpy(&key.vlanId, &vlanId, sizeof(key.vlanId));
+
+  inetAddressReset(&key.groupAddr);
+  inetAddressReset(&key.sourceAddr);
+
   memcpy(&key.groupAddr, groupAddr, sizeof(key.groupAddr));
+  PT_LOG_TRACE(LOG_CTX_IGMP, " 0x%02x 0x%02x 0x%02x 0x%02x key.groupAdd[0], key.groupAdd[0], key.groupAdd[0], key.groupAdd[0]",
+                key.groupAddr.addr.ipv6.in6.addr32[0],
+                key.groupAddr.addr.ipv6.in6.addr32[1],
+                key.groupAddr.addr.ipv6.in6.addr32[2],
+                key.groupAddr.addr.ipv6.in6.addr32[3]);
+
+  PT_LOG_TRACE(LOG_CTX_IGMP, "&key.groupAddr.family %d",
+                key.groupAddr.family);
+
   memcpy(&key.sourceAddr, sourceAddr, sizeof(key.sourceAddr));
+  PT_LOG_TRACE(LOG_CTX_IGMP, "0x%02x 0x%02x 0x%02x 0x%02x key.groupAdd[0], key.groupAdd[0], key.groupAdd[0], key.groupAdd[0]",
+                key.sourceAddr.addr.ipv6.in6.addr32[0],
+                key.sourceAddr.addr.ipv6.in6.addr32[1],
+                key.sourceAddr.addr.ipv6.in6.addr32[2],
+                key.sourceAddr.addr.ipv6.in6.addr32[3]);
+
+  PT_LOG_TRACE(LOG_CTX_IGMP, "&key.groupAddr.family %d",
+                key.sourceAddr.family);
  
   snoopEntry = avlSearchLVL7(&pSnoopEB->snoopChannelAvlTree, &key, flag);
   
@@ -6551,6 +6575,24 @@ L7_RC_t snoopChannelEntryAdd(snoopChannelInfoData_t   **snoopEntry)
   }
 
   pSnoopEB = snoopEBGet(); 
+
+  PT_LOG_TRACE(LOG_CTX_IGMP, " 0x%02x 0x%02x 0x%02x 0x%02x key.groupAdd[0], key.groupAdd[0], key.groupAdd[0], key.groupAdd[0]",
+               (*snoopEntry)->snoopChannelInfoDataKey.groupAddr.addr.ipv6.in6.addr32[0],
+               (*snoopEntry)->snoopChannelInfoDataKey.groupAddr.addr.ipv6.in6.addr32[1],
+               (*snoopEntry)->snoopChannelInfoDataKey.groupAddr.addr.ipv6.in6.addr32[2],
+               (*snoopEntry)->snoopChannelInfoDataKey.groupAddr.addr.ipv6.in6.addr32[3]);
+
+  PT_LOG_TRACE(LOG_CTX_IGMP, "&key.groupAddr.family %d",
+                  (*snoopEntry)->snoopChannelInfoDataKey.groupAddr.family);
+
+  PT_LOG_TRACE(LOG_CTX_IGMP, "0x%02x 0x%02x 0x%02x 0x%02x key.groupAdd[0], key.groupAdd[0], key.groupAdd[0], key.groupAdd[0]",
+                (*snoopEntry)->snoopChannelInfoDataKey.sourceAddr.addr.ipv6.in6.addr32[0],
+                (*snoopEntry)->snoopChannelInfoDataKey.sourceAddr.addr.ipv6.in6.addr32[1],
+                (*snoopEntry)->snoopChannelInfoDataKey.sourceAddr.addr.ipv6.in6.addr32[2],
+                (*snoopEntry)->snoopChannelInfoDataKey.sourceAddr.addr.ipv6.in6.addr32[3]);
+
+  PT_LOG_TRACE(LOG_CTX_IGMP, "&key.groupAddr.family %d",
+                (*snoopEntry)->snoopChannelInfoDataKey.sourceAddr.family);
  
   pData = avlInsertEntry(&pSnoopEB->snoopChannelAvlTree, *snoopEntry);
  
