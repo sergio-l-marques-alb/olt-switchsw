@@ -3521,19 +3521,27 @@ L7_RC_t ptin_igmp_generalquerier_reset(L7_uint32 serviceId, L7_uint32 onuId)
   PTIN_MGMD_EVENT_t             resMsg       = {0};
   PTIN_MGMD_EVENT_CTRL_t        ctrlResMsg   = {0};
   PTIN_MGMD_CTRL_QUERY_CONFIG_t mgmdQuerierConfigMsg = {0}; 
+  L7_uint8 querier_family;
+  int i;
 
   mgmdQuerierConfigMsg.serviceId = serviceId;
   mgmdQuerierConfigMsg.onuID = onuId;
 
-  mgmdQuerierConfigMsg.family = PTIN_MGMD_AF_INET;
-  ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdQuerierConfigMsg, sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t));
-  ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
-  ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+  for (i=0;i<PTIN_MGMD_MAX_CB_INSTANCES;i++) 
+  {
+      if (i==0) querier_family=L7_AF_INET;
+      else querier_family=L7_AF_INET6;
 
-  PT_LOG_TRACE(LOG_CTX_IGMP, "Response");
-  PT_LOG_TRACE(LOG_CTX_IGMP, "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
-  PT_LOG_TRACE(LOG_CTX_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
-  PT_LOG_TRACE(LOG_CTX_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
+      mgmdQuerierConfigMsg.family = querier_family;
+      ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_RESET, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdQuerierConfigMsg, sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t));
+      ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+      ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+
+      PT_LOG_TRACE(LOG_CTX_IGMP, "Response");
+      PT_LOG_TRACE(LOG_CTX_IGMP, "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+      PT_LOG_TRACE(LOG_CTX_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+      PT_LOG_TRACE(LOG_CTX_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
+  }
 
   return(L7_RC_t)ctrlResMsg.res;
 }
@@ -10869,20 +10877,28 @@ static L7_RC_t ptin_igmp_evc_querier_configure(L7_uint32 evc_idx, L7_BOOL enable
   PTIN_MGMD_EVENT_t             resMsg       = {0};
   PTIN_MGMD_EVENT_CTRL_t        ctrlResMsg   = {0};
   PTIN_MGMD_CTRL_QUERY_CONFIG_t mgmdStatsMsg = {0}; 
+  L7_uint8 querier_family;
+  int i;
 
   enable &= 1;
 
-  /* Send configurations to MGMD */
-  mgmdStatsMsg.admin     = enable;
-  mgmdStatsMsg.serviceId = evc_idx;
-  mgmdStatsMsg.family    = L7_AF_INET;
-  ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_ADMIN, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsMsg, sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t));
-  ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
-  ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
-  PT_LOG_DEBUG(LOG_CTX_IGMP, "Response");
-  PT_LOG_DEBUG(LOG_CTX_IGMP, "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
-  PT_LOG_DEBUG(LOG_CTX_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
-  PT_LOG_DEBUG(LOG_CTX_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
+  for (i=0;i<PTIN_MGMD_MAX_CB_INSTANCES;i++) 
+  {
+      if (i==0) querier_family=L7_AF_INET;
+      else querier_family=L7_AF_INET6;
+
+      /* Send configurations to MGMD */
+      mgmdStatsMsg.admin     = enable;
+      mgmdStatsMsg.serviceId = evc_idx;
+      mgmdStatsMsg.family    = querier_family;
+      ptin_mgmd_event_ctrl_create(&reqMsg, PTIN_MGMD_EVENT_CTRL_GENERAL_QUERY_ADMIN, rand(), 0, ptinMgmdTxQueueId, (void*)&mgmdStatsMsg, sizeof(PTIN_MGMD_CTRL_QUERY_CONFIG_t));
+      ptin_mgmd_sendCtrlEvent(&reqMsg, &resMsg);
+      ptin_mgmd_event_ctrl_parse(&resMsg, &ctrlResMsg);
+      PT_LOG_DEBUG(LOG_CTX_IGMP, "Response");
+      PT_LOG_DEBUG(LOG_CTX_IGMP, "  CTRL Msg Code: %08X", ctrlResMsg.msgCode);
+      PT_LOG_DEBUG(LOG_CTX_IGMP, "  CTRL Msg Id  : %08X", ctrlResMsg.msgId);
+      PT_LOG_DEBUG(LOG_CTX_IGMP, "  CTRL Res     : %u",   ctrlResMsg.res);
+  }
 
   //Save the unicast EVC Id on which this Query was configured.
   // This is required for the Group Specific Queries
