@@ -2433,7 +2433,23 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
         PT_LOG_ERR(LOG_CTX_IGMP, "Failed to enable L3 IPMC Table!");
         return L7_FAILURE;
       }
+
+      /*Enable L3 IPMC Table*/
+      if (dtlRouterMulticastForwardModeSet(L7_ENABLE, L7_AF_INET6)!=L7_SUCCESS)
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP, "Failed to disable L3 IPMC Table!");
+        return L7_FAILURE;
+      }
       PT_LOG_TRACE(LOG_CTX_IGMP, "Enabled L3 IPMC Table");
+
+      // Snooping MLD global activation
+      if (L7_SUCCESS != usmDbSnoopAdminModeSet(1, L7_ENABLE, L7_AF_INET6)) 
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP,"Error with usmDbSnoopAdminModeSet");
+        return FAILURE;
+      }
+
+      PT_LOG_NOTICE(LOG_CTX_IGMP,"Packet trapping for MLD (enable=%u)", L7_ENABLE);
     }
     else
     {
@@ -2442,6 +2458,12 @@ L7_RC_t ptin_igmp_proxy_config_set__snooping_old(ptin_IgmpProxyCfg_t *igmpProxy)
       {
         PT_LOG_ERR(LOG_CTX_IGMP, "Failed to disable L3 IPMC Table!");
         return L7_FAILURE;
+      }
+      // Snooping MLD global activation
+      if (L7_SUCCESS != usmDbSnoopAdminModeSet(1, L7_DISABLE, L7_AF_INET6)) 
+      {
+        PT_LOG_ERR(LOG_CTX_IGMP,"Error with usmDbSnoopAdminModeSet");
+        return FAILURE;
       }
       PT_LOG_TRACE(LOG_CTX_IGMP, "Disabled L3 IPMC Table");
     }

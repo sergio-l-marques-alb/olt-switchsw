@@ -860,7 +860,6 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
    
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
 
-
 #if 1 //ndef ONE_MULTICAST_VLAN_RING_SUPPORT
   /* Do nothing for slave matrix */
   if (!ptin_fpga_mx_is_matrixactive_rt())
@@ -992,7 +991,6 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
     shortVal = L7_ETYPE_IPV6;
     SNOOP_PUT_SHORT(shortVal, dataPtr);                   // 2 bytes
     packetLength += 2;
-
   }
 
   //Copy the L3 and above payload to the packet buffer
@@ -1028,14 +1026,6 @@ unsigned int snooping_tx_packet(unsigned char *payload, unsigned int payloadLeng
   ptin_IgmpProxyCfg_t   igmpCfg;
 
   PT_LOG_TRACE(LOG_CTX_IGMP, "Context [payLoad:%p payloadLength:%u serviceId:%u portId:%u clientId:%u family:%u]", payload, payloadLength, serviceId, portId, clientId, family);
-
-  if (ptin_debug_igmp_packet_trace)
-  {
-    L7_uint32 i;
-    printf("Tx:PayloadLength:%d\n", packetLength);
-    for (i = 0; i < packetLength; i++) printf("%02x ", payload[i]);
-    printf("\n");
-  }
 
 #if (PTIN_BOARD_IS_LINECARD || PTIN_BOARD_IS_STANDALONE)
   ptin_prottypeb_intf_config_t protTypebIntfConfig = {0};

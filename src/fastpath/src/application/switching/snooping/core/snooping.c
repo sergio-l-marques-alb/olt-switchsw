@@ -116,6 +116,7 @@ static L7_RC_t mgmdPacketSend(L7_uint16 mcastRootVlan,L7_uint32 portId, L7_uint3
     ptin_timer_stop(35);
   }
 
+  serviceId = 2;
   //Create a new MGMD packet event
   ptin_timer_start(36,"ptin_mgmd_event_packet_create");
   if(L7_SUCCESS != ptin_mgmd_event_packet_create(&mgmdPcktEvent, serviceId, portId, clientId, (void*) payload, payloadLength))
@@ -495,6 +496,7 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
 #endif
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
 
+
   if(igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY && (ptin_igmp_get_local_router_port(&local_router_port_id) == L7_FAILURE) )
   {
     L7_uint32 ptin_port;
@@ -618,7 +620,6 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   /* Starting of IGMP header */
   igmpPtr = (L7_uchar8 *) &buffPtr[ipHdrLen];
   PT_LOG_TRACE(LOG_CTX_IGMP,"igmpPtr %d ", igmpPtr[0]);
-
 
   if (igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY)
     PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_MEMBERSHIP_QUERY, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
@@ -1605,14 +1606,11 @@ L7_RC_t snoop_mld_packet_parse(L7_uchar8 *ipv6_ptr, L7_uint32 data_length, L7_in
     L7_inet_addr_t     source_ipv6_addr, dest_ipv6_addr;
     L7_ushort16        reserved, n_mc_adress_record, max_delay;
     L7_uchar8          record_type, aux_data_len, number_of_sources;
-    L7_uchar8          addr_buff[IPV6_DISP_ADDR_LEN];
 
-    if (data_length < L7_ENET_HDR_SIZE +
-                      L7_ENET_HDR_TYPE_LEN_SIZE +
-                      L7_IP6_HEADER_LEN + 
+    if (data_length < L7_IP6_HEADER_LEN + 
                       SNOOP_MLDV1_HEADER_LENGTH)
     {
-      PT_LOG_TRACE(LOG_CTX_IGMP, "Received pkt is too small %d",
+      PT_LOG_WARN(LOG_CTX_IGMP, "Received pkt is too small %d",
                    data_length);
       return L7_FAILURE;
     }
@@ -1641,13 +1639,13 @@ L7_RC_t snoop_mld_packet_parse(L7_uchar8 *ipv6_ptr, L7_uint32 data_length, L7_in
       PT_LOG_ERR(LOG_CTX_IGMP,"Invalid Ipv6 source address");
       return L7_FAILURE;
     }
-    inetAddressSet(L7_AF_INET6, ip6_header.src, &source_ipv6_addr);
-    inetAddressSet(L7_AF_INET6, sip, &source_ipv6_addr);
+    inetAddressSet(L7_AF_INET6, &(ip6_header.src[0]), &source_ipv6_addr);
+    inetAddressSet(L7_AF_INET6, &(source_ipv6_addr.addr.ipv6.in6.addr8[0]), sip);
 
     /* Get IPv6 Source Address */
     SNOOP_GET_ADDR6(ip6_header.dst, ipv6_ptr);
     inetAddressSet(L7_AF_INET6, ip6_header.dst, &dest_ipv6_addr);
-    inetAddressSet(L7_AF_INET6, dip, &source_ipv6_addr);
+    inetAddressSet(L7_AF_INET6, &dest_ipv6_addr, dip);
 
     /**** Check next header if is ICMPv6 or Ipv6 extHeader *****/
     /* Extender Ipv6 header */
@@ -1679,17 +1677,9 @@ L7_RC_t snoop_mld_packet_parse(L7_uchar8 *ipv6_ptr, L7_uint32 data_length, L7_in
         /* Update output structs*/            
         inetAddressReset(group_addr);
         inetAddressSet(L7_AF_INET6, &group_addr_tmp, group_addr);
-        PT_LOG_TRACE(LOG_CTX_IGMP,"group_addr %s", inetAddrPrint(group_addr, addr_buff));
-
-        PT_LOG_NOTICE(LOG_CTX_IGMP, "group_addr %d", group_addr->addr.ipv6.in6.addr32[0]);
-        PT_LOG_NOTICE(LOG_CTX_IGMP, "group_addr %d", group_addr->addr.ipv6.in6.addr32[1]);
-        PT_LOG_NOTICE(LOG_CTX_IGMP, "group_addr %d", group_addr->addr.ipv6.in6.addr32[2]);
-        PT_LOG_NOTICE(LOG_CTX_IGMP, "group_addr %d", group_addr->addr.ipv6.in6.addr32[3]);
 
         inetAddressReset(source_addr);                
         inetInAddressAnyInit(L7_AF_INET6, source_addr); /* Set source to any */
-
-        PT_LOG_TRACE(LOG_CTX_IGMP,"source_addr %s", inetAddrPrint(source_addr, addr_buff));
              
       }
       else
@@ -1703,7 +1693,6 @@ L7_RC_t snoop_mld_packet_parse(L7_uchar8 *ipv6_ptr, L7_uint32 data_length, L7_in
         /* Update output struct*/            
         inetAddressReset(group_addr);                   /* Get Multicast Group Address*/
         inetAddressSet(L7_AF_INET6, &group_addr_tmp, group_addr);
-        PT_LOG_TRACE(LOG_CTX_IGMP,"group_addr %s", inetAddrPrint(group_addr, addr_buff));
 
         /* Get the first source of the packet*/
         if (number_of_sources != 0)
@@ -1713,8 +1702,6 @@ L7_RC_t snoop_mld_packet_parse(L7_uchar8 *ipv6_ptr, L7_uint32 data_length, L7_in
           /* Update output struct*/            
           inetAddressReset(source_addr);
           inetAddressSet(L7_AF_INET6, &source_addr_tmp, source_addr);
-
-          PT_LOG_TRACE(LOG_CTX_IGMP,"source_addr %s", inetAddrPrint(source_addr, addr_buff));
         }
         /* If the number of sources is 0, initialize source to any*/
         else
@@ -1722,7 +1709,6 @@ L7_RC_t snoop_mld_packet_parse(L7_uchar8 *ipv6_ptr, L7_uint32 data_length, L7_in
           /*Any source*/
           inetAddressReset(source_addr);
           inetInAddressAnyInit(L7_AF_INET6, source_addr);
-          PT_LOG_TRACE(LOG_CTX_IGMP,"source_addr %s", inetAddrPrint(source_addr, addr_buff));
         }
       }
     }
