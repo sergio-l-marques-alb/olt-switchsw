@@ -116,7 +116,6 @@ static L7_RC_t mgmdPacketSend(L7_uint16 mcastRootVlan,L7_uint32 portId, L7_uint3
     ptin_timer_stop(35);
   }
 
-  serviceId = 2;
   //Create a new MGMD packet event
   ptin_timer_start(36,"ptin_mgmd_event_packet_create");
   if(L7_SUCCESS != ptin_mgmd_event_packet_create(&mgmdPcktEvent, serviceId, portId, clientId, (void*) payload, payloadLength))
@@ -624,24 +623,31 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
   if (igmpPtr[0] == L7_IGMP_MEMBERSHIP_QUERY)
     PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_MEMBERSHIP_QUERY, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
                  pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
-  if (igmpPtr[0] == L7_IGMP_V1_MEMBERSHIP_REPORT)
+  else if (igmpPtr[0] == L7_IGMP_V1_MEMBERSHIP_REPORT)
     PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_V1_MEMBERSHIP_REPORT, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
                  pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
-  if (igmpPtr[0] == L7_IGMP_DVMRP)
+  else if (igmpPtr[0] == L7_IGMP_DVMRP)
     PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_DVMRP, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
                  pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
-  if (igmpPtr[0] == L7_IGMP_PIM_V1)
+  else if (igmpPtr[0] == L7_IGMP_PIM_V1)
     PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_PIM_V1, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
                  pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
-  if (igmpPtr[0] == L7_IGMP_V2_MEMBERSHIP_REPORT)
+  else if (igmpPtr[0] == L7_IGMP_V2_MEMBERSHIP_REPORT)
     PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_V2_MEMBERSHIP_REPORT, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
                  pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
-  if (igmpPtr[0] == L7_IGMP_V2_LEAVE_GROUP)
+  else if (igmpPtr[0] == L7_IGMP_V2_LEAVE_GROUP)
     PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_V2_LEAVE_GROUP, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
                  pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
-  if (igmpPtr[0] == L7_IGMP_V3_MEMBERSHIP_REPORT)
+  else if (igmpPtr[0] == L7_IGMP_V3_MEMBERSHIP_REPORT)
     PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: IGMP_V3_MEMBERSHIP_REPORT, vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
                  pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
+  else 
+  {
+    /* FIX ME:  MLD packets*/
+    pduInfo->innerVlanId = 512;
+    PT_LOG_TRACE(LOG_CTX_IGMP, "IGMP packet intercepted: vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u", 
+                 pduInfo->vlanId, pduInfo->innerVlanId, pduInfo->intIfNum, pduInfo->rxPort);
+  }
 #if 0
   PT_LOG_TRACE(LOG_CTX_IGMP,
             "Packet intercepted vlan %d, innerVlan=%u, intIfNum %u, rx_port=%u",
@@ -1020,10 +1026,10 @@ L7_RC_t snoopPacketHandle(L7_netBufHandle netBufHandle,
       }
       else 
       {
-        if (pduInfo->vlanId <= 512 && isDynamic)
-        {
+        //if (pduInfo->vlanId <= 512 && isDynamic)
+        //{
           mcastRootVlan = 512;
-        }
+        //}
         PT_LOG_TRACE(LOG_CTX_IGMP,"Vlan=%u will be converted to %u",pduInfo->vlanId ,mcastRootVlan);
       }
 #endif //ONE_MULTICAST_VLAN_RING_SUPPORT
