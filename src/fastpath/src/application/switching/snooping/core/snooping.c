@@ -348,7 +348,6 @@ SYSNET_PDU_RC_t snoopMLDPktIntercept(L7_uint32 hookId,
 
   if ((pSnoopEB = snoopEBGet()) == L7_NULLPTR)
   {
-
     PT_LOG_NOTICE(LOG_CTX_IGMP, "MLD not initialized");
     return SYSNET_PDU_RC_IGNORED;
   }
@@ -369,14 +368,13 @@ SYSNET_PDU_RC_t snoopMLDPktIntercept(L7_uint32 hookId,
     return SYSNET_PDU_RC_IGNORED;
   }
 
-  PT_LOG_NOTICE(LOG_CTX_IGMP, "MLD packet Receive");
-
+  PT_LOG_TRACE(LOG_CTX_IGMP, "MLD packet Receive");
   hapiBroadReceice_mld_count++;
 
   /* IPv6 options are supported*/
   if (1)
   {
-    PT_LOG_NOTICE(LOG_CTX_IGMP, "MLD Receive with ipv6 options");
+    PT_LOG_TRACE(LOG_CTX_IGMP, "MLD Receive with ipv6 options");
     if (*dataPtr == L7_MLD_MEMBERSHIP_QUERY ||
         *dataPtr == L7_MLD_V1_MEMBERSHIP_REPORT ||
         *dataPtr == L7_MLD_V1_MEMBERSHIP_DONE ||

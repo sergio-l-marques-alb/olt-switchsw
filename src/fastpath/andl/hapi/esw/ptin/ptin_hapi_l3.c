@@ -363,6 +363,9 @@ static int ptin_ipmc_to_bcm(ptin_dtl_ipmc_addr_t  *dtl_ipmc, bcm_ipmc_addr_t *bc
   {
       bcm_ipmc->flags |= BCM_IPMC_REPLACE;
   }
+
+  bcm_ipmc->flags |= BCM_IPMC_SOURCE_PORT_NOCHECK;
+  bcm_ipmc->flags |= BCM_IPMC_PROXY_IP6;
 //bcm_ipmc->cos = ipmc->cos;
 //bcm_ipmc->ts = ipmc->ts;
 //bcm_ipmc->port_tgid = ipmc->port_tgid;
@@ -374,7 +377,7 @@ static int ptin_ipmc_to_bcm(ptin_dtl_ipmc_addr_t  *dtl_ipmc, bcm_ipmc_addr_t *bc
 
   bcm_ipmc->group = dtl_ipmc->group_index;
 
-//bcm_ipmc->vrf = ipmc->vrf;
+  bcm_ipmc->vrf = 0;
 //bcm_ipmc->lookup_class = ipmc->lookup_class;
 //bcm_ipmc->distribution_class = ipmc->distribution_class;
 
@@ -648,6 +651,9 @@ L7_RC_t ptin_hapi_l3_intf_create (ptin_dtl_l3_intf_t *intf)
     intfInfo.bcm_data.l3a_intf_flags |= BCM_L3_ADD_TO_ARL;
   }
 
+  intfInfo.bcm_data.l3a_flags |= BCM_L3_IP6;
+  intfInfo.bcm_data.l3a_flags |= BCM_L3_IPMC;
+ 
 #if 0
   bcm_qos_map_t l2_map;
   int l2_map_id;
