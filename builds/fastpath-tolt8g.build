@@ -1,8 +1,0 @@
-#!/bin/sh
-
-export MODULE=fastpath-tolt8g
-export PLATFORMS="TOLT8G"
-
-export APPLICATION=fastpath
-
-. ./fastpath.build $1
