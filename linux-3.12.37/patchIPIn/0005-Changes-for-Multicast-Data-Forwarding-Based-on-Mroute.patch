@@ -1,0 +1,80 @@
+diff -rupN linux-3.12.old/net/ipv6/ip6mr.c linux-3.12.new/net/ipv6/ip6mr.c
+--- linux-3.12.old/net/ipv6/ip6mr.c	2015-10-23 12:34:41.000000000 +0100
++++ linux-3.12.new/net/ipv6/ip6mr.c	2015-10-26 15:06:35.000000000 +0000
+@@ -1068,6 +1068,59 @@ skip:
+ 	return ip6mr_cache_find_any_parent(mrt, mifi);
+ }
+ 
++#if 0
++/* Look for a (*,*,oif) entry */
++static struct mfc6_cache *ip6mr_cache_find_any_parent(struct mr6_table *mrt,
++						      mifi_t mifi)
++{
++	int line = MFC6_HASH(&in6addr_any, &in6addr_any);
++	struct mfc6_cache *c;
++
++	list_for_each_entry(c, &mrt->mfc6_cache_array[line], list)
++		if (ipv6_addr_any(&c->mf6c_origin) &&
++		    ipv6_addr_any(&c->mf6c_mcastgrp) &&
++		    (c->mfc_un.res.ttls[mifi] < 255))
++			return c;
++
++	return NULL;
++}
++#endif
++
++/* Look for a (*,G) entry */
++static struct mfc6_cache *ip6mr_cache_find_any(struct mr6_table *mrt,
++					       struct in6_addr *mcastgrp,
++					       mifi_t mifi)
++{
++	int line = MFC6_HASH(mcastgrp, &in6addr_any);
++	struct mfc6_cache *c; /**proxy;*/
++
++	if (ipv6_addr_any(mcastgrp))
++		goto skip;
++
++	list_for_each_entry(c, &mrt->mfc6_cache_array[line], list)
++		if (ipv6_addr_any(&c->mf6c_origin) &&
++		    ipv6_addr_equal(&c->mf6c_mcastgrp, mcastgrp)) {
++#if 0
++                        /* ZebOS-BIDIR : Incoming interface will fail this */
++			if (c->mfc_un.res.ttls[mifi] < 255)
++#endif
++				return c;
++#if 0
++			/* It's ok if the mifi is part of the static tree */
++			proxy = ip6mr_cache_find_any_parent(mrt,
++							    c->mf6c_parent);
++			if (proxy && proxy->mfc_un.res.ttls[mifi] < 255)
++				return c;
++#endif
++		}
++
++skip:
++        return NULL;
++#if 0
++	return ip6mr_cache_find_any_parent(mrt, mifi);
++#endif
++}
++
+ /*
+  *	Allocate a multicast cache entry
+  */
+@@ -2088,6 +2141,8 @@ static void ip6_mr_forward(struct net *n
+ 	cache->mfc_un.res.bytes += skb->len;
+ 
+ 	if (ipv6_addr_any(&cache->mf6c_origin) && true_vifi >= 0) {
++#if 0
++		/* No (*,*) checks for now */
+ 		struct mfc6_cache *cache_proxy;
+ 
+ 		/* For an (*,G) entry, we only check that the incomming
+@@ -2096,6 +2151,7 @@ static void ip6_mr_forward(struct net *n
+ 		cache_proxy = ip6mr_cache_find_any_parent(mrt, vif);
+ 		if (cache_proxy &&
+ 		    cache_proxy->mfc_un.res.ttls[true_vifi] < 255)
++#endif			
+ 			goto forward;
+ 	}
+ 

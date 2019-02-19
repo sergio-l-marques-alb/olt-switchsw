@@ -1,0 +1,6 @@
+kernel/drivers/rtc/rtc-ds1305.ko
+kernel/drivers/rtc/rtc-ds1307.ko
+kernel/drivers/rtc/rtc-ds1374.ko
+kernel/drivers/rtc/rtc-ds1390.ko
+kernel/drivers/rtc/rtc-ds1672.ko
+kernel/drivers/rtc/rtc-ds3232.ko

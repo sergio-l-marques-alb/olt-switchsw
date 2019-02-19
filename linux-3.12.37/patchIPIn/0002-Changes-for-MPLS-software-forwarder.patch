@@ -1,0 +1,562 @@
+diff -rupN linux-3.12.old/include/linux/skbuff.h linux-3.12.new/include/linux/skbuff.h
+--- linux-3.12.old/include/linux/skbuff.h	2015-10-23 12:53:16.000000000 +0100
++++ linux-3.12.new/include/linux/skbuff.h	2015-10-23 12:54:33.000000000 +0100
+@@ -529,6 +529,8 @@ struct sk_buff {
+ 				*data;
+ 	unsigned int		truesize;
+ 	atomic_t		users;
++
++        int                     enable_mpls_fwd;
+ };
+ 
+ #ifdef __KERNEL__
+diff -rupN linux-3.12.old/include/net/ip_fib.h linux-3.12.new/include/net/ip_fib.h
+--- linux-3.12.old/include/net/ip_fib.h	2015-10-23 12:53:16.000000000 +0100
++++ linux-3.12.new/include/net/ip_fib.h	2015-10-23 12:54:33.000000000 +0100
+@@ -293,6 +293,7 @@ extern int fib_sync_down_dev(struct net_
+ extern int fib_sync_down_addr(struct net *net, __be32 local);
+ extern int fib_sync_up(struct net_device *dev);
+ extern void fib_select_multipath(struct fib_result *res);
++extern int mpls_ip_fib_lookup (struct net *net, struct flowi4 *fl4, struct fib_result *result);
+ 
+ /* Exported by fib_trie.c */
+ extern void fib_trie_init(void);
+diff -rupN linux-3.12.old/include/net/ip.h linux-3.12.new/include/net/ip.h
+--- linux-3.12.old/include/net/ip.h	2015-10-23 12:53:16.000000000 +0100
++++ linux-3.12.new/include/net/ip.h	2015-10-23 12:54:33.000000000 +0100
+@@ -472,4 +472,11 @@ extern void	ip_local_error(struct sock *
+ extern int ip_misc_proc_init(void);
+ #endif
+ 
++extern int mpls_fragment (struct sk_buff *, int);
++extern int l2_send_frame (struct sk_buff *);
++int mpls_ip_output (struct sk_buff *);
++void mpls_register_output_hdlr (int (*fn) (struct sk_buff **));
++void mpls_unregister_output_hdlr (void);
++int mpls_ipip_output (struct sk_buff *);
++
+ #endif	/* _IP_H */
+diff -rupN linux-3.12.old/include/net/sock.h linux-3.12.new/include/net/sock.h
+--- linux-3.12.old/include/net/sock.h	2015-10-23 12:53:16.000000000 +0100
++++ linux-3.12.new/include/net/sock.h	2015-10-23 12:54:33.000000000 +0100
+@@ -407,6 +407,8 @@ struct sock {
+ 	int			(*sk_backlog_rcv)(struct sock *sk,
+ 						  struct sk_buff *skb);
+ 	void                    (*sk_destruct)(struct sock *sk);
++
++        int                     enable_mpls_fwd; /* mpls fwd flag */
+ };
+ 
+ #define __sk_user_data(sk) ((*((void __rcu **)&(sk)->sk_user_data)))
+diff -rupN linux-3.12.old/net/core/rtnetlink.c linux-3.12.new/net/core/rtnetlink.c
+--- linux-3.12.old/net/core/rtnetlink.c	2015-10-23 12:53:16.000000000 +0100
++++ linux-3.12.new/net/core/rtnetlink.c	2015-10-23 12:54:33.000000000 +0100
+@@ -61,6 +61,7 @@ struct rtnl_link {
+ };
+ 
+ static DEFINE_MUTEX(rtnl_mutex);
++EXPORT_SYMBOL(rtnl_mutex);
+ 
+ void rtnl_lock(void)
+ {
+diff -rupN linux-3.12.old/net/ipv4/fib_frontend.c linux-3.12.new/net/ipv4/fib_frontend.c
+--- linux-3.12.old/net/ipv4/fib_frontend.c	2015-10-23 12:53:16.000000000 +0100
++++ linux-3.12.new/net/ipv4/fib_frontend.c	2015-10-23 12:54:33.000000000 +0100
+@@ -1179,3 +1179,13 @@ void __init ip_fib_init(void)
+ 
+ 	fib_trie_init();
+ }
++
++int
++mpls_ip_fib_lookup (struct net *net, struct flowi4 *fl4, 
++                    struct fib_result *result)
++{
++  return fib_lookup (net, fl4, result);
++}
++
++
++EXPORT_SYMBOL(mpls_ip_fib_lookup);
+diff -rupN linux-3.12.old/net/ipv4/ip_input.c linux-3.12.new/net/ipv4/ip_input.c
+--- linux-3.12.old/net/ipv4/ip_input.c	2015-10-23 12:53:16.000000000 +0100
++++ linux-3.12.new/net/ipv4/ip_input.c	2015-10-23 12:54:33.000000000 +0100
+@@ -472,3 +472,5 @@ drop:
+ out:
+ 	return NET_RX_DROP;
+ }
++
++EXPORT_SYMBOL(ip_rcv);
+diff -rupN linux-3.12.old/net/ipv4/ip_output.c linux-3.12.new/net/ipv4/ip_output.c
+--- linux-3.12.old/net/ipv4/ip_output.c	2015-10-23 12:53:16.000000000 +0100
++++ linux-3.12.new/net/ipv4/ip_output.c	2015-10-23 12:54:33.000000000 +0100
+@@ -84,6 +84,8 @@
+ int sysctl_ip_default_ttl __read_mostly = IPDEFTTL;
+ EXPORT_SYMBOL(sysctl_ip_default_ttl);
+ 
++int (*mpls_output) (struct sk_buff **) = NULL;
++
+ /* Generate a checksum for an outgoing IP datagram. */
+ void ip_send_check(struct iphdr *iph)
+ {
+@@ -294,6 +296,15 @@ int ip_output(struct sk_buff *skb)
+ 
+ 	IP_UPD_PO_STATS(dev_net(dev), IPSTATS_MIB_OUT, skb->len);
+ 
++        if (skb->enable_mpls_fwd == 1)
++          {
++            skb->enable_mpls_fwd = 0;
++            if (skb->len > dst_mtu(skb_dst(skb)) && !skb_shinfo(skb)->gso_size)
++              return ip_fragment (skb, mpls_ip_output);
++           
++            return mpls_ip_output (skb);
++          }
++
+ 	skb->dev = dev;
+ 	skb->protocol = htons(ETH_P_IP);
+ 
+@@ -1449,6 +1460,289 @@ static int ip_reply_glue_bits(void *dptr
+ 	return 0;
+ }
+ 
++ /*
++ * macro that sends an sk_buff out. The following fields of the sk_buff
++ * should be set
++ * sk->dev, sk->dst
++ * It takes the nexthop from the sk->dst->neighbour->ha field
++ * The sk_buff passed to it, is freed.
++ */
++int l2_send_frame (struct sk_buff *sk)
++{
++  struct hh_cache *hh = NULL;
++  struct neighbour *n = NULL;
++  int retval;
++  unsigned seq;
++
++  /*
++   * cached hardware header, if any
++   */
++  n = dst_neigh_lookup_skb(skb_dst(sk), sk);
++  //n = dst_get_neighbour_noref (sk);
++  if (n)
++    hh = &(n->hh);
++
++  if(hh) 
++  {
++    /* read_lock_bh(&hh->hh_lock); */
++    seq = read_seqbegin(&hh->hh_lock);
++    memmove(sk->data - 16, hh->hh_data, 16);
++    /*
++     * IMPLICITNULL hack
++     */
++    *((u16 *)sk->data - 1) = sk->protocol;
++    /* read_unlock_bh(&hh->hh_lock); */
++    read_seqretry(&hh->hh_lock, seq);
++    skb_push(sk, hh->hh_len);
++    //retval = hh->hh_output(sk);
++    retval = neigh_hh_output (hh, sk);
++  } 
++  //else if(skb_dst(sk)->neighbour) 
++  else if (dst_neigh_lookup_skb(skb_dst(sk), sk))
++  //else if (dst_get_neighbour_noref (sk))
++  {
++    n = dst_neigh_lookup_skb(skb_dst(sk), sk);
++    //n = dst_get_neighbour_noref(sk);
++    //retval = skb_dst(sk)->neighbour->output(sk);
++    retval = n->output(n, sk);
++  }
++  else
++  {
++    kfree_skb(sk);
++    retval = -1;
++  }
++  return retval;
++} 
++
++/*
++ * Linux ip_fragment function modified to handle MPLS labelled packets
++ * 'max_frag_size' is the maximum permissible size (excluding link layer 
++ * header) of each fragment.
++ */
++int mpls_fragment(struct sk_buff *skb, int max_frag_size)
++{
++  struct iphdr     *iph;
++  unsigned char    *raw;
++  unsigned char    *ptr;
++  struct net_device *dev;
++  struct sk_buff   *skb2;
++  unsigned int      mtu, hlen, left, len;
++  int               offset;
++  int               not_last_frag;
++
++  /*
++   * size of the shim header, 0 if not present
++   */
++  int               shim_size = 0;
++  //struct rtable    *rt = (struct rtable *)skb->_skb_dst;
++  struct rtable     *rt = skb_rtable (skb);
++  int               err = 0;
++  u32               common_to_all;
++
++  //dev = rt->u.dst.dev;
++  dev = rt->dst.dev;
++
++  /*
++   *    Point into the IP datagram header.
++   */
++  raw = skb->network_header;
++  iph = (struct iphdr *)raw;
++
++  shim_size = raw - skb->data;
++
++  /*
++   *    Setup starting values.
++   */
++
++  /*
++   * IP header length including options.
++   */
++  hlen = iph->ihl * 4;
++  /*
++   * how much of the data is to be fragmented.
++   */
++  left = ntohs(iph->tot_len) - hlen;
++  /*
++   * starting from the skb->data pointer, this much of the packet 
++   * should go in all fragments
++   */
++  common_to_all = (raw - skb->data + hlen);
++  /* 
++   * Size of data space in each fragment.
++   */
++  mtu = max_frag_size - common_to_all;
++
++  ptr = raw + hlen;                    /* Where to start from */
++
++  /*
++   *    Fragment the datagram.
++   */
++
++  offset = (ntohs(iph->frag_off) & IP_OFFSET) << 3;
++  not_last_frag = iph->frag_off & htons(IP_MF);
++
++  /*
++   *    Keep copying data until we run out.
++   */
++
++  while (left > 0)
++    {
++      len = left;
++      /* IF: it doesn't fit, use 'mtu' - the data space left */
++      if (len > mtu)
++       len = mtu;
++      /* IF: we are not sending upto and including the packet end
++        then align the next start on an eight byte boundary */
++      if (len < left)
++        {
++         len &= ~7;
++        }
++      /*
++       *    Allocate buffer.
++       */
++
++      if ((skb2 =
++          alloc_skb(len + common_to_all + dev->hard_header_len + 15,
++                    GFP_ATOMIC)) == NULL)
++        {
++         NETDEBUG (KERN_ERR "IP: frag: no memory for new "
++                           "fragment!\n");
++         err = -ENOMEM;
++         goto fail;
++        }
++
++      /*
++       *    Set up data on packet
++       */
++
++      skb2->protocol = skb->protocol;
++      skb2->pkt_type = skb->pkt_type;
++      skb2->priority = skb->priority;
++      skb_reserve(skb2, (dev->hard_header_len + 15) & ~15);
++      skb_put(skb2, common_to_all + len);
++      skb2->network_header = skb2->data + shim_size;
++      skb2->transport_header = skb2->network_header + hlen;
++
++      /*
++       *    Charge the memory for the fragment to any owner
++       *    it might possess
++       */
++
++      if (skb->sk)
++       skb_set_owner_w(skb2, skb->sk);
++      //skb2->_skb_dst = (unsigned long)dst_clone(skb_dst(skb));
++      skb_dst_copy (skb2, skb);
++      skb2->dev = skb->dev;
++
++      /*
++       *    Copy the packet header into the new buffer.
++       */
++      memcpy(skb2->data, skb->data, common_to_all);
++
++      /*
++       *    Copy a block of the IP datagram.
++       */
++      memcpy(skb2->transport_header, ptr, len);
++      left -= len;
++
++      /*
++       *    Fill in the new header fields.
++       */
++      iph = (struct iphdr *)skb2->network_header;
++      iph->frag_off = htons((offset >> 3));
++
++      /* ANK: dirty, but effective trick. Upgrade options only if
++       * the segment to be fragmented was THE FIRST (otherwise,
++       * options are already fixed) and make it ONCE
++       * on the initial skb, so that all the following fragments
++       * will inherit fixed options.
++       */
++
++      if (offset == 0)
++       ip_options_fragment(skb);
++
++      /*
++       *    Added AC : If we are fragmenting a fragment that's not the
++       *           last fragment then keep MF on each bit
++       */
++      if (left > 0 || not_last_frag)
++       iph->frag_off |= htons(IP_MF);
++      ptr += len;
++      offset += len;
++
++      /*
++       *    Put this fragment into the sending queue.
++       */
++
++      iph->tot_len = htons(len + hlen);
++
++      ip_send_check(iph);
++      /*
++       * send it
++       */
++      skb2->network_header = skb2->data;
++      l2_send_frame(skb2);
++
++    }
++  kfree_skb(skb);
++  return err;
++
++ fail:
++  kfree_skb(skb);
++  return err;
++}
++
++int mpls_ipip_output (struct sk_buff *skb)
++{
++  int ret = 1;
++                                                                                
++  if (mpls_output)
++  {
++    ret = mpls_output (&skb);
++  }
++                                                                                
++  if (ret < 0)
++    kfree_skb (skb);
++                                                                                
++  return ret;
++}
++
++
++int mpls_ip_output (struct sk_buff *skb)
++{
++  int ret = 1;
++
++  if (mpls_output)
++    ret = mpls_output (&skb);
++
++  if (ret == 1)
++  {
++    /* pass to ip */
++    ret = skb_dst(skb)->output (skb);
++  }
++  else if (ret < 0)
++    kfree_skb (skb);
++
++  return ret;
++}
++
++void mpls_register_output_hdlr (int (*fn) (struct sk_buff **skb))
++{
++  if (fn)
++    mpls_output = fn;
++}
++
++void mpls_unregister_output_hdlr ()
++{
++  mpls_output = NULL;
++}
++
++EXPORT_SYMBOL(mpls_fragment);
++EXPORT_SYMBOL(l2_send_frame);
++EXPORT_SYMBOL(mpls_register_output_hdlr);
++EXPORT_SYMBOL(mpls_unregister_output_hdlr);
++EXPORT_SYMBOL(mpls_ipip_output);
++
+ /*
+  *	Generic function to send a packet as reply to another packet.
+  *	Used to send some TCP resets/acks so far.
+@@ -1513,6 +1807,18 @@ void ip_send_unicast_reply(struct net *n
+ 
+ 	inet->tos = arg->tos;
+ 	sk = &inet->sk;
++
++        if (mpls_output)
++           {
++             skb->enable_mpls_fwd = 1;
++             sk->enable_mpls_fwd = 1;
++           }
++        else
++           {
++             skb->enable_mpls_fwd = 0;
++             sk->enable_mpls_fwd = 0;
++           }
++	
+ 	sk->sk_priority = skb->priority;
+ 	sk->sk_protocol = ip_hdr(skb)->protocol;
+ 	sk->sk_bound_dev_if = arg->bound_dev_if;
+diff -rupN linux-3.12.old/net/ipv4/ip_tunnel.c linux-3.12.new/net/ipv4/ip_tunnel.c
+--- linux-3.12.old/net/ipv4/ip_tunnel.c	2015-10-23 12:53:16.000000000 +0100
++++ linux-3.12.new/net/ipv4/ip_tunnel.c	2015-10-23 12:55:57.000000000 +0100
+@@ -534,7 +534,7 @@ void ip_tunnel_xmit(struct sk_buff *skb,
+ 	struct rtable *rt;		/* Route to the other host */
+ 	unsigned int max_headroom;	/* The extra header space needed */
+ 	__be32 dst;
+-	int err;
++	int err, ret;
+ 
+ 	inner_iph = (const struct iphdr *)skb_inner_network_header(skb);
+ 
+@@ -655,9 +655,15 @@ void ip_tunnel_xmit(struct sk_buff *skb,
+ 		return;
+ 	}
+ 
+-	err = iptunnel_xmit(rt, skb, fl4.saddr, fl4.daddr, protocol,
++        skb->ip_summed = CHECKSUM_NONE;
++
++        ret = mpls_ipip_output (skb);
++        if (ret == 1) {
++         //tunnel->recursion--;
++		err = iptunnel_xmit(rt, skb, fl4.saddr, fl4.daddr, protocol,
+ 			    tos, ttl, df, !net_eq(tunnel->net, dev_net(dev)));
+-	iptunnel_xmit_stats(err, &dev->stats, dev->tstats);
++		iptunnel_xmit_stats(err, &dev->stats, dev->tstats);
++	}
+ 
+ 	return;
+ 
+diff -rupN linux-3.12.old/net/ipv4/tcp_ipv4.c linux-3.12.new/net/ipv4/tcp_ipv4.c
+--- linux-3.12.old/net/ipv4/tcp_ipv4.c	2015-10-23 12:53:16.000000000 +0100
++++ linux-3.12.new/net/ipv4/tcp_ipv4.c	2015-10-23 12:54:33.000000000 +0100
+@@ -86,6 +86,8 @@
+ #include <linux/crypto.h>
+ #include <linux/scatterlist.h>
+ 
++extern int (*mpls_output) (struct sk_buff *);
++
+ int sysctl_tcp_tw_reuse __read_mostly;
+ int sysctl_tcp_low_latency __read_mostly;
+ EXPORT_SYMBOL(sysctl_tcp_low_latency);
+@@ -602,7 +604,7 @@ static void tcp_v4_send_reset(struct soc
+ 	int genhash;
+ 	struct sock *sk1 = NULL;
+ #endif
+-	struct net *net;
++        struct net *net = dev_net(skb_dst(skb)->dev);
+ 
+ 	/* Never send a reset in response to a reset. */
+ 	if (th->rst)
+@@ -681,14 +683,26 @@ static void tcp_v4_send_reset(struct soc
+ 				      arg.iov[0].iov_len, IPPROTO_TCP, 0);
+ 	arg.csumoffset = offsetof(struct tcphdr, check) / 2;
+ 	arg.flags = (sk && inet_sk(sk)->transparent) ? IP_REPLY_ARG_NOSRCCHECK : 0;
++
+ 	/* When socket is gone, all binding information is lost.
+ 	 * routing might fail in this case. No choice here, if we choose to force
+ 	 * input interface, we will misroute in case of asymmetric route.
+ 	 */
+ 	if (sk)
+ 		arg.bound_dev_if = sk->sk_bound_dev_if;
++#if 0
++        if (mpls_output)
++          {
++            skb->enable_mpls_fwd = 1;
++            net->ipv4.tcp_sock->enable_mpls_fwd = 1;
++          }
++        else
++          {
++            skb->enable_mpls_fwd = 0;
++            net->ipv4.tcp_sock->enable_mpls_fwd = 0;
++          }
++#endif /* 0 */
+ 
+-	net = dev_net(skb_dst(skb)->dev);
+ 	arg.tos = ip_hdr(skb)->tos;
+ 	ip_send_unicast_reply(net, skb, ip_hdr(skb)->saddr,
+ 			      ip_hdr(skb)->daddr, &arg, arg.iov[0].iov_len);
+@@ -838,6 +852,17 @@ static int tcp_v4_send_synack(struct soc
+ 	if (skb) {
+ 		__tcp_v4_send_check(skb, ireq->loc_addr, ireq->rmt_addr);
+ 
++                if (mpls_output)
++                  {
++                    skb->enable_mpls_fwd = 1;
++                    sk->enable_mpls_fwd = 1;
++                  }
++                else
++                  {
++                    skb->enable_mpls_fwd = 0;
++                    sk->enable_mpls_fwd = 0;
++                  }
++
+ 		skb_set_queue_mapping(skb, queue_mapping);
+ 		err = ip_build_and_send_pkt(skb, sk, ireq->loc_addr,
+ 					    ireq->rmt_addr,
+diff -rupN linux-3.12.old/net/ipv4/tcp_output.c linux-3.12.new/net/ipv4/tcp_output.c
+--- linux-3.12.old/net/ipv4/tcp_output.c	2015-10-23 12:53:16.000000000 +0100
++++ linux-3.12.new/net/ipv4/tcp_output.c	2015-10-23 12:54:33.000000000 +0100
+@@ -42,6 +42,8 @@
+ #include <linux/gfp.h>
+ #include <linux/module.h>
+ 
++extern int (*mpls_output) (struct sk_buff *);
++
+ /* People can turn this off for buggy TCP's found in printers etc. */
+ int sysctl_tcp_retrans_collapse __read_mostly = 1;
+ 
+@@ -964,6 +966,15 @@ static int tcp_transmit_skb(struct sock 
+ 	if (skb->len != tcp_header_size)
+ 		tcp_event_data_sent(tp, sk);
+ 
++        if (mpls_output)
++          {
++            skb->enable_mpls_fwd = 1;
++          }
++        else
++          {
++            skb->enable_mpls_fwd = 0;
++          }
++
+ 	if (after(tcb->end_seq, tp->snd_nxt) || tcb->seq == tcb->end_seq)
+ 		TCP_ADD_STATS(sock_net(sk), TCP_MIB_OUTSEGS,
+ 			      tcp_skb_pcount(skb));
+diff -rupN linux-3.12.old/net/netlink/af_netlink.c linux-3.12.new/net/netlink/af_netlink.c
+--- linux-3.12.old/net/netlink/af_netlink.c	2015-10-23 12:53:16.000000000 +0100
++++ linux-3.12.new/net/netlink/af_netlink.c	2015-10-23 12:54:33.000000000 +0100
+@@ -1574,6 +1574,9 @@ static struct sock *netlink_getsockbypor
+ 	if (!sock)
+ 		return ERR_PTR(-ECONNREFUSED);
+ 
++        /* Bypassing the additional check below */
++        return sock;
++
+ 	/* Don't bother queuing skb if kernel socket has no input function */
+ 	nlk = nlk_sk(sock);
+ 	if (sock->sk_state == NETLINK_CONNECTED &&

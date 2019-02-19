@@ -1,0 +1,281 @@
+diff -rupN linux-3.12.old/include/linux/netdevice.h linux-3.12.new/include/linux/netdevice.h
+--- linux-3.12.old/include/linux/netdevice.h	2015-10-22 15:12:16.000000000 +0100
++++ linux-3.12.new/include/linux/netdevice.h	2015-10-23 09:59:59.000000000 +0100
+@@ -1110,6 +1110,13 @@ struct net_device_ops {
+ 						      __be16 port);
+ };
+ 
++struct dev_ma_list
++{
++      struct dev_ma_list      *dml_next;
++      __u8                    dml_addr[MAX_ADDR_LEN];
++      unsigned char   dml_addrlen;
++};
++
+ /*
+  *	The DEVICE structure.
+  *	Actually, this whole structure is a big mistake.  It mixes I/O
+@@ -1247,6 +1254,8 @@ struct net_device {
+ 	unsigned int		promiscuity;
+ 	unsigned int		allmulti;
+ 
++        struct dev_ma_list    *ma_list;       /* Alias mac addresses  */
++        int                    ma_count;       /* Number of alias addresses */
+ 
+ 	/* Protocol specific pointers */
+ 
+@@ -2412,6 +2421,14 @@ extern int		dev_set_mtu(struct net_devic
+ extern void		dev_set_group(struct net_device *, int);
+ extern int		dev_set_mac_address(struct net_device *,
+ 					    struct sockaddr *);
++extern int              dev_ma_list_lookup(struct net_device *dev,
++                                           unsigned char *addr, int alen);
++extern int              dev_ma_list_add(struct net_device *dev,
++                                        unsigned char *addr, int alen);
++extern int              dev_ma_list_delete(struct net_device *dev,
++                                           unsigned char *addr, int alen);
++extern int              dev_ma_list_filter(struct net_device *dev, 
++                                           unsigned char *addr);
+ extern int		dev_change_carrier(struct net_device *,
+ 					   bool new_carrier);
+ extern int		dev_get_phys_port_id(struct net_device *dev,
+diff -rupN linux-3.12.old/include/uapi/linux/sockios.h linux-3.12.new/include/uapi/linux/sockios.h
+--- linux-3.12.old/include/uapi/linux/sockios.h	2015-10-22 13:17:59.000000000 +0100
++++ linux-3.12.new/include/uapi/linux/sockios.h	2015-10-22 16:42:13.000000000 +0100
+@@ -56,6 +56,12 @@
+ #define SIOCGIFHWADDR	0x8927		/* Get hardware address		*/
+ #define SIOCGIFSLAVE	0x8929		/* Driver slaving support	*/
+ #define SIOCSIFSLAVE	0x8930
++
++/* IPI: We reuse these two codes to install secondary/virtual MAC addresses.
++   Address starting with 00:00:5e:00 will be installed on the device
++   on separate list.
++*/
++
+ #define SIOCADDMULTI	0x8931		/* Multicast address lists	*/
+ #define SIOCDELMULTI	0x8932
+ #define SIOCGIFINDEX	0x8933		/* name -> if_index mapping	*/
+diff -rupN linux-3.12.old/net/core/dev.c linux-3.12.new/net/core/dev.c
+--- linux-3.12.old/net/core/dev.c	2015-10-22 15:12:16.000000000 +0100
++++ linux-3.12.new/net/core/dev.c	2015-10-23 09:58:39.000000000 +0100
+@@ -5247,6 +5247,96 @@ int dev_set_allmulti(struct net_device *
+ }
+ EXPORT_SYMBOL(dev_set_allmulti);
+ 
++ /*
++ *    Lookup an alias MAC address
++ */
++EXPORT_SYMBOL(dev_ma_list_lookup);
++
++int dev_ma_list_lookup(struct net_device *dev, unsigned char *addr, int alen)
++{
++	int err = 0;
++	struct dev_ma_list *dml;
++      
++	for (dml = dev->ma_list; dml != NULL; dml = dml->dml_next) {
++		if (memcmp(dml->dml_addr, addr, dml->dml_addrlen) == 0 &&
++		    dml->dml_addrlen == alen) {
++			return 0;
++		}
++	}
++	err = -ENOENT;
++	return err;
++}
++
++/*
++ *      Add an alias MAC address (like a VMAC)
++ */
++EXPORT_SYMBOL(dev_ma_list_add);
++
++int dev_ma_list_add(struct net_device *dev, unsigned char *addr, int alen)
++{
++	struct dev_ma_list *dml;
++      
++	for (dml = dev->ma_list; dml != NULL; dml = dml->dml_next) {
++		if (memcmp(dml->dml_addr, addr, dml->dml_addrlen) == 0 &&
++		    dml->dml_addrlen == alen) {
++			return 0;
++		}
++	}
++	dml = kmalloc(sizeof(*dml), GFP_ATOMIC);
++	if (dml == NULL) {
++		return -ENOMEM;
++	}
++	memcpy(dml->dml_addr, addr, alen);
++	dml->dml_addrlen = alen;
++	dml->dml_next = dev->ma_list;
++	dev->ma_list = dml;
++	dev->ma_count++;
++	if (dev->ma_count == 1) {
++		dev_set_promiscuity(dev, 1);
++	}
++	return 0;
++}
++
++/*
++ *      Delete an alias MAC address
++ */
++
++EXPORT_SYMBOL(dev_ma_list_delete);
++
++int dev_ma_list_delete(struct net_device *dev, unsigned char *addr, int alen)
++{
++	struct dev_ma_list *dml, **dmlp;
++
++	for (dmlp = &dev->ma_list; (dml = *dmlp) != NULL; dmlp = &dml->dml_next) {
++		if (memcmp(dml->dml_addr, addr, dml->dml_addrlen) == 0 &&
++		    alen == dml->dml_addrlen) {
++			*dmlp = dml->dml_next;
++			dev->ma_count--;
++                       kfree(dml);
++			if (! dev->ma_count) {
++				dev_set_promiscuity(dev, -1);
++			}
++			return 0;
++		}
++	}
++	return (-ENOENT);
++}
++
++/*
++ *      Filter any MAC address that should be installed on the ingress.
++ */
++
++EXPORT_SYMBOL(dev_ma_list_filter);
++
++int dev_ma_list_filter(struct net_device *dev, unsigned char *addr)
++{
++	/* We will filter only all VRRP VMAC addresses.
++	 */
++	unsigned char pat[4] = { 0, 0, 0x5e, 0 };
++      
++	return (memcmp(addr, pat, 4) == 0);
++}
++
+ /*
+  *	Upload unicast and multicast address lists to device and
+  *	configure RX filtering. When the device doesn't support unicast
+diff -rupN linux-3.12.old/net/core/dev_ioctl.c linux-3.12.new/net/core/dev_ioctl.c
+--- linux-3.12.old/net/core/dev_ioctl.c	2015-10-22 13:17:48.000000000 +0100
++++ linux-3.12.new/net/core/dev_ioctl.c	2015-10-23 09:15:38.000000000 +0100
+@@ -278,20 +278,39 @@ static int dev_ifsioc(struct net *net, s
+ 		return -EOPNOTSUPP;
+ 
+ 	case SIOCADDMULTI:
+-		if (!ops->ndo_set_rx_mode ||
+-		    ifr->ifr_hwaddr.sa_family != AF_UNSPEC)
++		if (ifr->ifr_hwaddr.sa_family != AF_UNSPEC)
+ 			return -EINVAL;
+ 		if (!netif_device_present(dev))
+ 			return -ENODEV;
+-		return dev_mc_add_global(dev, ifr->ifr_hwaddr.sa_data);
++
++                if (dev_ma_list_filter(dev, ifr->ifr_hwaddr.sa_data)) {
++                        return dev_ma_list_add(dev,
++                                               ifr->ifr_hwaddr.sa_data,
++                                               dev->addr_len);
++                }
++                else {
++                    if ((!ops->ndo_set_rx_mode))
++                        return -EINVAL;
++                        return dev_mc_add(dev, ifr->ifr_hwaddr.sa_data);
++                }
++
+ 
+ 	case SIOCDELMULTI:
+-		if (!ops->ndo_set_rx_mode ||
+-		    ifr->ifr_hwaddr.sa_family != AF_UNSPEC)
++		if (ifr->ifr_hwaddr.sa_family != AF_UNSPEC)
+ 			return -EINVAL;
+ 		if (!netif_device_present(dev))
+ 			return -ENODEV;
+-		return dev_mc_del_global(dev, ifr->ifr_hwaddr.sa_data);
++
++                if (dev_ma_list_filter(dev, ifr->ifr_hwaddr.sa_data)) {
++                       return dev_ma_list_delete(dev,
++                                                 ifr->ifr_hwaddr.sa_data,
++                                                 dev->addr_len);
++               }
++               else {
++                   if ((!ops->ndo_set_rx_mode))
++                                return -EINVAL;
++                        return dev_mc_del(dev, ifr->ifr_hwaddr.sa_data);
++                }
+ 
+ 	case SIOCSIFTXQLEN:
+ 		if (ifr->ifr_qlen < 0)
+diff -rupN linux-3.12.old/net/core/net-procfs.c linux-3.12.new/net/core/net-procfs.c
+--- linux-3.12.old/net/core/net-procfs.c	2015-10-22 13:17:48.000000000 +0100
++++ linux-3.12.new/net/core/net-procfs.c	2015-10-23 09:25:25.000000000 +0100
+@@ -373,6 +373,26 @@ static int dev_mc_seq_show(struct seq_fi
+ 		seq_putc(seq, '\n');
+ 	}
+ 	netif_addr_unlock_bh(dev);
++
++        /* VRRP VMAC: Taking advantage to display installed VMACs.
++        */
++        if (dev->ma_count) {
++            struct dev_ma_list *ma;
++
++            for (ma = dev->ma_list; ma; ma = ma->dml_next) {
++                int i;
++
++                seq_printf(seq, "%-4d %-15s %-5c %-5c ", dev->ifindex,
++                               dev->name, '-', '-');
++
++                for (i = 0; i < ma->dml_addrlen; i++)
++                    seq_printf(seq, "%02x", ma->dml_addr[i]);
++
++                    seq_puts(seq, " (vmac)\n");
++            }
++        }
++
++
+ 	return 0;
+ }
+ 
+diff -rupN linux-3.12.old/net/ipv4/arp.c linux-3.12.new/net/ipv4/arp.c
+--- linux-3.12.old/net/ipv4/arp.c	2015-10-22 13:17:48.000000000 +0100
++++ linux-3.12.new/net/ipv4/arp.c	2015-10-23 09:32:59.000000000 +0100
+@@ -944,10 +944,20 @@ static int arp_rcv(struct sk_buff *skb, 
+ 	const struct arphdr *arp;
+ 
+ 	if (dev->flags & IFF_NOARP ||
+-	    skb->pkt_type == PACKET_OTHERHOST ||
+ 	    skb->pkt_type == PACKET_LOOPBACK)
+ 		goto freeskb;
+ 
++        /* Accept packets if dest MAC is on the device MAC alias list. */
++        if (skb->pkt_type == PACKET_OTHERHOST) {
++            if (! dev_ma_list_lookup(dev, eth_hdr(skb)->h_dest,
++                                         dev->addr_len)) {
++              skb->pkt_type = PACKET_HOST;
++           }
++           else {
++                goto freeskb;
++            }
++        }
++
+ 	skb = skb_share_check(skb, GFP_ATOMIC);
+ 	if (!skb)
+ 		goto out_of_mem;
+diff -rupN linux-3.12.old/net/ipv6/ip6_input.c linux-3.12.new/net/ipv6/ip6_input.c
+--- linux-3.12.old/net/ipv6/ip6_input.c	2015-10-22 13:17:49.000000000 +0100
++++ linux-3.12.new/net/ipv6/ip6_input.c	2015-10-22 16:42:13.000000000 +0100
+@@ -70,8 +70,14 @@ int ipv6_rcv(struct sk_buff *skb, struct
+ 	struct net *net = dev_net(skb->dev);
+ 
+ 	if (skb->pkt_type == PACKET_OTHERHOST) {
+-		kfree_skb(skb);
+-		return NET_RX_DROP;
++            if (! dev_ma_list_lookup(dev, eth_hdr(skb)->h_dest,
++                                         dev->addr_len)) {
++                skb->pkt_type = PACKET_HOST;
++            }
++            else {
++                kfree_skb(skb);
++                return NET_RX_DROP;
++            }
+ 	}
+ 
+ 	rcu_read_lock();

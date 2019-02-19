@@ -1,0 +1,2 @@
+p2041_serdes.c:72:17:serdes_get_prtcl	24	static
+p2041_serdes.c:90:5:is_serdes_prtcl_valid	16	static

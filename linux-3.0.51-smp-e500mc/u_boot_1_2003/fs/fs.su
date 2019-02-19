@@ -1,0 +1,8 @@
+fs.c:192:13:fs_close	16	static
+fs.c:83:12:fs_probe_ext	16	static
+fs.c:44:12:fs_probe_fat	16	static
+fs.c:160:5:fs_set_blk_dev	16	static
+fs.c:208:5:fs_ls	24	static
+fs.c:229:5:fs_read	32	static
+fs.c:250:5:do_load	56	static
+fs.c:317:5:do_ls	24	static

@@ -1,0 +1,1 @@
+cmd_drivers/video/built-in.o :=  /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o drivers/video/built-in.o drivers/video/fb_notify.o drivers/video/backlight/built-in.o drivers/video/omap2/built-in.o 

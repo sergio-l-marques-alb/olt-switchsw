@@ -1,0 +1,1 @@
+cmd_net/ipv6/built-in.o :=  /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o net/ipv6/built-in.o net/ipv6/netfilter/built-in.o net/ipv6/addrconf_core.o net/ipv6/exthdrs_core.o 

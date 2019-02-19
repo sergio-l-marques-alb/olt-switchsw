@@ -1,0 +1,1 @@
+cmd_drivers/input/built-in.o :=  /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o drivers/input/built-in.o drivers/input/input-core.o drivers/input/mousedev.o drivers/input/keyboard/built-in.o drivers/input/mouse/built-in.o 

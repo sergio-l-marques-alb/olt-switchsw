@@ -1,0 +1,9 @@
+config IPROC_PPPOE_FA
+	bool "Broadcom PPPOE offloading"
+	depends on ARCH_IPROC
+	depends on IPROC_FA2
+	default n
+	help
+	  This enables PPPOE hardware offloading support.
+	
+	  If unsure, say N.

@@ -1,0 +1,5 @@
+cpu_init.c:238:6:cpu_init_f	8	static
+cpu_init.c:304:13:__fsl_serdes__init	8	static
+cpu_init.c:383:5:cpu_init_r	280	static
+cpu_init.c:748:6:arch_preboot_os	8	static
+cpu_init.c:774:6:cpu_secondary_init_r	8	static

@@ -1,0 +1,1 @@
+cmd_net/802/built-in.o :=  /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o net/802/built-in.o net/802/p8022.o net/802/psnap.o net/802/stp.o net/802/garp.o 

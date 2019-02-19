@@ -1,0 +1,1 @@
+cmd_drivers/net/ethernet/intel/e1000e/built-in.o :=  /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o drivers/net/ethernet/intel/e1000e/built-in.o drivers/net/ethernet/intel/e1000e/e1000e.o 
