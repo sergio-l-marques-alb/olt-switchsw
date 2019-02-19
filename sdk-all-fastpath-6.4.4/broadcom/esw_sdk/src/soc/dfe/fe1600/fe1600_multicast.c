@@ -1,0 +1,293 @@
+/*
+ * $Id: fe1600_multicast.c,v 1.10 Broadcom SDK $
+ *
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * SOC FE1600 MULTICAST
+ */
+
+#ifdef _ERR_MSG_MODULE_NAME
+  #error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+
+#define _ERR_MSG_MODULE_NAME BSL_SOC_MCAST
+#include <shared/bsl.h>
+#include <soc/dcmn/error.h>
+#include <soc/mem.h>
+
+#include <soc/defs.h>
+#include <soc/error.h>
+#include <soc/mcm/allenum.h>
+#include <soc/mcm/memregs.h>
+
+#include <soc/dfe/cmn/dfe_drv.h>
+#include <shared/bitop.h>
+
+#if defined(BCM_88750_A0)
+
+#include <soc/dfe/fe1600/fe1600_defs.h>
+#include <soc/dfe/fe1600/fe1600_fabric_topology.h>
+#include <soc/dfe/fe1600/fe1600_multicast.h>
+
+/*
+ * Function:
+ *      soc_fe1600_multicast_egress_add
+ * Purpose:
+ *      Add port to a multicast group
+ * Parameters:
+ *      unit     - (IN) Unit number.
+ *      group    - (IN) Multicast group ID
+ *      port     - (IN) Physical GPORT ID 
+ * Returns:
+ *      SOC_E_xxx
+ * Notes:
+ */
+soc_error_t 
+soc_fe1600_multicast_egress_add(int unit, bcm_multicast_t group, soc_gport_t port)
+{
+    uint32 data[SOC_FE1600_MULTICAST_ROW_SIZE_IN_UINT32];
+    SOCDNX_INIT_FUNC_DEFS;
+    
+    /*MULTI_CAST_TABLE_UPDATE is Write Only, so we're reading information from instance 0*/
+    SOCDNX_IF_ERR_EXIT(READ_RTP_MCTm(unit, 0, MEM_BLOCK_ANY, group, data));
+      
+    SHR_BITSET(data, port);
+    
+    /*MULTI_CAST_TABLE_UPDATE duplicates information to all MC tables*/
+    SOCDNX_IF_ERR_EXIT(WRITE_RTP_MULTI_CAST_TABLE_UPDATEm(unit, MEM_BLOCK_ALL, group, data));
+    
+exit:
+    SOCDNX_FUNC_RETURN; 
+}
+
+/*
+ * Function:
+ *      soc_fe1600_multicast_egress_delete
+ * Purpose:
+ *      Delete port from a multicast group
+ * Parameters:
+ *      unit     - (IN) Unit number.
+ *      group    - (IN) Multicast group ID
+ *      port     - (IN) Physical GPORT ID 
+ * Returns:
+ *      SOC_E_xxx
+ * Notes:
+ */
+soc_error_t 
+soc_fe1600_multicast_egress_delete(int unit, bcm_multicast_t group, soc_gport_t port)
+{
+    uint32 data[SOC_FE1600_MULTICAST_ROW_SIZE_IN_UINT32];
+    SOCDNX_INIT_FUNC_DEFS;
+    
+    SOCDNX_IF_ERR_EXIT(READ_RTP_MCTm(unit, 0, MEM_BLOCK_ANY, group, data));
+      
+    SHR_BITCLR(data, port);
+    
+    SOCDNX_IF_ERR_EXIT(WRITE_RTP_MULTI_CAST_TABLE_UPDATEm(unit, MEM_BLOCK_ALL, group, data));
+    
+exit:
+    SOCDNX_FUNC_RETURN; 
+}
+
+/*
+ * Function:
+ *      soc_fe1600_multicast_egress_delete_all
+ * Purpose:
+ *      Clear multicast group from table
+ * Parameters:
+ *      unit  - (IN) Unit number.
+ *      group - (IN) Multicast group ID 
+ * Returns:
+ *      SOC_E_xxx
+ */
+soc_error_t 
+soc_fe1600_multicast_egress_delete_all(int unit, bcm_multicast_t group)
+{
+    uint32 data[SOC_FE1600_MULTICAST_ROW_SIZE_IN_UINT32];
+    SOCDNX_INIT_FUNC_DEFS;
+    
+    sal_memset(data, 0, sizeof(uint32)*SOC_FE1600_MULTICAST_ROW_SIZE_IN_UINT32);
+      
+    SOCDNX_IF_ERR_EXIT(WRITE_RTP_MULTI_CAST_TABLE_UPDATEm(unit, MEM_BLOCK_ALL, group, data));
+     
+exit:
+    SOCDNX_FUNC_RETURN; 
+}
+
+/*
+ * Function:
+ *      soc_fe1600_multicast_egress_get
+ * Purpose:
+ *      Get the set of ports which comprises a multicast group's replication list
+ * Parameters:
+ *      unit           - (IN)  Unit number.
+ *      group          - (IN)  Multicast group ID 
+ *      port_max       - (IN)  Number of items allocated in the array 
+ *      port_array     - (OUT) Array of physical ports 
+ *      port_count     - (OUT) Actual number of ports returned in the array 
+ * Returns:
+ *      SOC_E_xxx
+ * Notes:
+ */
+soc_error_t 
+soc_fe1600_multicast_egress_get(int unit, bcm_multicast_t group, int port_max, soc_gport_t *port_array, int *port_count)
+{
+    uint32 data[SOC_FE1600_MULTICAST_ROW_SIZE_IN_UINT32];
+    soc_gport_t i;
+	int max_nof_links;
+    SOCDNX_INIT_FUNC_DEFS;
+      
+    SOCDNX_IF_ERR_EXIT(READ_RTP_MCTm(unit, 0, MEM_BLOCK_ANY, group, data));
+    
+    *port_count = 0;
+
+    max_nof_links = SOC_DFE_DEFS_GET(unit, nof_links);
+
+    for(i = 0 ; i<max_nof_links ; i++)
+    {
+        if(SHR_BITGET(data,i))
+        {
+            if(*port_count >= port_max)
+            {
+                *port_count = 0;
+                SOCDNX_EXIT_WITH_ERR(SOC_E_PARAM, (_BSL_SOCDNX_MSG("port_array is too small")));
+            }
+            
+            port_array[*port_count] = i;
+            (*port_count)++;
+        }
+    }
+     
+exit:
+    SOCDNX_FUNC_RETURN; 
+}
+
+/*
+ * Function:
+ *      soc_fe1600_multicast_egress_set
+ * Purpose:
+ *      Set the set of ports which comprises a multicast group's replication list
+ * Parameters:
+ *      unit           - (IN)  Unit number.
+ *      group          - (IN)  Multicast group ID 
+ *      port_count     - (IN) Number of ports in the array
+ *      port_array     - (IN) Array of physical ports 
+ * Returns:
+ *      SOC_E_xxx
+ * Notes:
+ */
+soc_error_t 
+soc_fe1600_multicast_egress_set(int unit, bcm_multicast_t group, int port_count, soc_gport_t *port_array)
+{
+    uint32 data[SOC_FE1600_MULTICAST_ROW_SIZE_IN_UINT32];
+    int i;
+    SOCDNX_INIT_FUNC_DEFS;
+    
+    sal_memset(data, 0, sizeof(uint32)*SOC_FE1600_MULTICAST_ROW_SIZE_IN_UINT32);
+  
+    for(i = 0 ; i<port_count ; i++)
+    {
+        SHR_BITSET(data,port_array[i]);
+    }
+    
+    SOCDNX_IF_ERR_EXIT(WRITE_RTP_MULTI_CAST_TABLE_UPDATEm(unit, MEM_BLOCK_ANY, group, data));
+     
+exit:
+    SOCDNX_FUNC_RETURN; 
+}
+
+/*
+ * Function:
+ *      soc_fe1600_multicast_table_size_get
+ * Purpose:
+ *      Get MC table size
+ * Parameters:
+ *      unit           - (IN)  Unit number.
+ * Returns:
+ *      SOC_E_xxx
+ */
+soc_error_t 
+soc_fe1600_multicast_table_size_get(int unit, uint32* mc_table_size)
+{
+	soc_dfe_multicast_table_mode_t multicast_mode;
+    SOCDNX_INIT_FUNC_DEFS;
+	
+#ifdef BCM_88754_A0
+    if (SOC_IS_BCM88754_A0(unit))
+    {
+        *mc_table_size = 32*1024;
+    }
+#endif /*BCM_88754_A0*/
+	SOCDNX_IF_ERR_EXIT(soc_fe1600_multicast_mode_get(unit, &multicast_mode));
+	switch (multicast_mode)
+	{
+		case soc_dfe_multicast_table_mode_64k:
+			*mc_table_size = 64*1024;
+			break;
+		default:
+			SOCDNX_EXIT_WITH_ERR(SOC_E_INTERNAL, (_BSL_SOCDNX_MSG("wrong mc_table_mode value %d"),SOC_DFE_CONFIG(unit).fe_mc_id_range));
+	}
+exit:
+    SOCDNX_FUNC_RETURN;    
+}
+
+soc_error_t
+soc_fe1600_multicast_mode_get(int unit, soc_dfe_multicast_table_mode_t* multicast_mode)
+{
+	SOCDNX_INIT_FUNC_DEFS;
+	*multicast_mode = soc_dfe_multicast_table_mode_64k; /* default */
+	SOCDNX_FUNC_RETURN;
+}
+
+soc_error_t
+soc_fe1600_multicast_table_entry_size_get(int unit, uint32 *entry_size)
+{
+	SOCDNX_INIT_FUNC_DEFS;
+	*entry_size = 128;
+	SOCDNX_FUNC_RETURN;
+}
+
+#endif /*defined(BCM_88750_A0)*/
+
+#undef _ERR_MSG_MODULE_NAME
+

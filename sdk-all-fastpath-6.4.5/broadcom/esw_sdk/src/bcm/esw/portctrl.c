@@ -1,0 +1,8959 @@
+/* 
+ * $Id:$
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File:        portctrl.c
+ * Purpose:     SDK Port Control Layer
+ *
+ *              The purpose is to encapsulate port functionality
+ *              related to the xxPORT block (i.e. XLPORT, CPORT)
+ *              MAC and PHY.
+ *
+ *              Currently, only the PortMod library is being supported.
+ *              The PortMod library provides support for the MAC, PHY,
+ *              and xxPORT registers.
+ *
+ *              Callers of the Port Control routines should check
+ *              before calling into them with the macro:
+ *                  SOC_USE_PORTCTRL()
+ *
+ */
+
+#include <shared/error.h>
+#include <shared/bsl.h>
+#include <soc/types.h>
+#include <soc/error.h>
+#include <soc/macutil.h>
+#include <soc/drv.h>
+
+#include <bcm_int/esw_dispatch.h>
+#include <bcm_int/esw/portctrl.h>
+#include <bcm_int/esw/port.h>
+#include <bcm_int/esw/link.h>
+
+#include <bcm/error.h>
+#include <soc/firebolt.h>
+#include <bcm_int/esw/triumph.h>
+#include <bcm_int/esw/mbcm.h>
+
+#if defined(BCM_TRIDENT2_SUPPORT)
+#include <bcm_int/esw/trident2.h>
+#include <soc/trident2.h>
+#include <bcm_int/esw/trunk.h>
+#endif /* BCM_TRIDENT2_SUPPORT */
+
+#ifdef PORTMOD_SUPPORT
+#include <soc/phy/phymod_sim.h>
+#include <soc/portmod/portmod.h>
+#include <soc/portmod/portmod_common.h>
+
+extern uint32_t phymod_dbg_mask;
+extern uint32_t phymod_dbg_addr;
+extern uint32_t phymod_dbg_lane;
+
+/* TEMP CODE _ REMOVE IT_ */
+#define _TEMP_CODE_FOR_100G
+
+/*
+ * The following definitions allow for easy enhancements and adjustments
+ * in the Port Control module in case the PortMod interface changes.
+ */
+
+
+#define PORTMOD_NIB_SWAP(data)     (((data & 0x0f) << 12) | ((data & 0xf0) << 4 ) |  \
+                                    ((data >> 4) & 0xf0)  | ((data >>12) & 0xf))
+#define PORTMOD_NIB_TRX(data)      ((0x3-(data&0x0f)) | (0x30-(data&0xf0)) | \
+                                    (0x300-(data&0xf00)) | (0x3000-(data&0xf000)))
+
+/*
+ * Define:
+ *      PORTCTRL_PORT_RESOLVE
+ * Purpose:
+ *      Converts a GPORT or non-GPORT format port into:
+ *      - BCM local port '_lport'
+ *      - Port type used in PortMod functions '_pport'
+ */
+#define PORTCTRL_PORT_RESOLVE(_unit, _port, _lport, _pport)             \
+    _bcm_esw_portctrl_port_resolve((_unit), (_port), (_lport), (_pport))
+
+/*
+ * Define:
+ *      PORTCTRL_INIT_CHECK
+ * Purpose:
+ *      Checks that Port Control module has been initialized for given
+ *      unit.  If failure, it causes routine to return with BCM_E_INIT.
+ */
+#define PORTCTRL_INIT_CHECK(_unit)    \
+    if (!portctrl_init[_unit]) { return BCM_E_INIT; }
+
+
+/* Indicates if the Port Control module has been initalized */
+static int portctrl_init[BCM_MAX_NUM_UNITS];
+
+#define _ERR_MSG_MODULE_NAME           BSL_BCM_OTHER
+
+/* PORT MACRO PM */
+#define BCM_LANES_PER_PM4X10          4
+#define BCM_LANE_MASK_PER_PM4X10      0xF
+#define BCM_LANES_PER_PM12X10         10   
+#define BCM_LANE_MASK_PER_PM12X10     0x3FF
+#define BCM_PM12X10_PM4X10_COUNT      3
+#define BCM_LANES_PER_PM4X25          4
+#define BCM_LANE_MASK_PER_PM4X25      0xF
+
+
+/* GreyHound Defines */
+#ifdef BCM_GREYHOUND_SUPPORT
+
+#define BCM_GH_PM4X10_COUNT         6
+#define BCM_GH_PM4X10_PORT_0        02
+#define BCM_GH_PM4X10_PORT_1        18
+#define BCM_GH_PM4X10_PORT_2        22
+#define BCM_GH_PM4X10_PORT_3        26
+#define BCM_GH_PM4X10_PORT_4        30
+#define BCM_GH_PM4X10_PORT_5        34
+
+static uint32_t _gh_addr[BCM_GH_PM4X10_COUNT] = {
+    0x81, 0xA1, 0xA5, 0xA9, 0xAD, 0xB1}; 
+ 
+static uint32_t _gh_port[BCM_GH_PM4X10_COUNT] = {
+    BCM_GH_PM4X10_PORT_0,
+    BCM_GH_PM4X10_PORT_1,
+    BCM_GH_PM4X10_PORT_2,
+    BCM_GH_PM4X10_PORT_3,
+    BCM_GH_PM4X10_PORT_4,
+    BCM_GH_PM4X10_PORT_5,
+}; 
+
+#define BCM_GH_MAX_PHYS              160   /* 128 XLMACS, 32 CLMAC's */
+#endif /* BCM_GREYHOUND_SUPPORT */
+
+/* Trident2+ Defines */
+#ifdef BCM_TRIDENT2PLUS_SUPPORT
+#define BCM_TD2P_PM4X10_COUNT         8
+#define BCM_TD2P_PM12X10_COUNT        8
+
+#define BCM_TD2P_PM4X10_PORT_1        13
+#define BCM_TD2P_PM4X10_PORT_2        17
+#define BCM_TD2P_PM4X10_PORT_3        45
+#define BCM_TD2P_PM4X10_PORT_4        49
+#define BCM_TD2P_PM4X10_PORT_5        77
+#define BCM_TD2P_PM4X10_PORT_6        81
+#define BCM_TD2P_PM4X10_PORT_7        109
+#define BCM_TD2P_PM4X10_PORT_8        113
+
+static uint32_t _td2p_pm4x10_addr[BCM_TD2P_PM4X10_COUNT] = {
+    0x8D, 0x91, 0xC1, 0xC5, 0xED, 0xF1, 0x1A1, 0x1A5}; 
+
+static uint32_t _td2p_pm4x10_core_num[BCM_TD2P_PM4X10_COUNT] = {
+    3, 4, 11, 12, 19, 20, 27, 28}; 
+
+static uint32_t _td2p_pm4x10_port[BCM_TD2P_PM4X10_COUNT] = {
+    BCM_TD2P_PM4X10_PORT_1,
+    BCM_TD2P_PM4X10_PORT_2,
+    BCM_TD2P_PM4X10_PORT_3,
+    BCM_TD2P_PM4X10_PORT_4,
+    BCM_TD2P_PM4X10_PORT_5,
+    BCM_TD2P_PM4X10_PORT_6,
+    BCM_TD2P_PM4X10_PORT_7,
+    BCM_TD2P_PM4X10_PORT_8
+}; 
+
+#define BCM_TD2P_PM12X10_PORT_1        1
+#define BCM_TD2P_PM12X10_PORT_2        21
+#define BCM_TD2P_PM12X10_PORT_3        33
+#define BCM_TD2P_PM12X10_PORT_4        53
+#define BCM_TD2P_PM12X10_PORT_5        65
+#define BCM_TD2P_PM12X10_PORT_6        85
+#define BCM_TD2P_PM12X10_PORT_7        97
+#define BCM_TD2P_PM12X10_PORT_8        117
+
+static uint32_t _td2p_pm12x10_addr[BCM_TD2P_PM12X10_COUNT*BCM_PM12X10_PM4X10_COUNT] = {
+    0x81,  0x85,  0x89,           /* PM12X10 Inst 1, Core 0-2 */
+    0xA1,  0xA5,  0xA9,           /* PM12X10 Inst 2, Core 2-0 */
+    0xAD,  0xB1,  0xB5,           /* PM12X10 Inst 3, Core 0-2 */
+    0xC9,  0xCD,  0xD1,           /* PM12X10 Inst 4, Core 2-0 */
+    0xE1,  0xE5,  0xE9,           /* PM12X10 Inst 5, Core 0-2 */
+    0x181, 0x185, 0x189,          /* PM12X10 Inst 6, Core 2-0 */
+    0x18D, 0x191, 0x195,          /* PM12X10 Inst 7, Core 0-2 */
+    0x1A9, 0x1AD, 0x1B1};         /* PM12X10 Inst 8, Core 2-0 */
+
+static uint32_t _td2p_pm12x10_core_num[BCM_TD2P_PM12X10_COUNT*BCM_PM12X10_PM4X10_COUNT] = {
+    0, 1, 2, 5, 6, 7, 8, 9, 10, 13, 14, 15, 16, 17, 18, 21, 22, 23, 24, 25, 26, 29, 30, 31};
+
+static uint32_t _td2p_pm12x10_port[BCM_TD2P_PM12X10_COUNT] = {
+    BCM_TD2P_PM12X10_PORT_1,
+    BCM_TD2P_PM12X10_PORT_2,
+    BCM_TD2P_PM12X10_PORT_3,
+    BCM_TD2P_PM12X10_PORT_4,
+    BCM_TD2P_PM12X10_PORT_5,
+    BCM_TD2P_PM12X10_PORT_6,
+    BCM_TD2P_PM12X10_PORT_7,
+    BCM_TD2P_PM12X10_PORT_8
+}; 
+
+#define BCM_TD2P_MAX_PHYS              160   /* 128 XLMACS, 32 CLMAC's */
+
+#endif /* BCM_TRIDENT2PLUS_SUPPORT */
+
+
+/* Tomahawk Portmod Defines */
+#ifdef BCM_TOMAHAWK_SUPPORT
+#define BCM_TH_PM4X10_COUNT         1
+#define BCM_TH_PM4X25_COUNT         32 
+
+#define BCM_TH_PM4X10_PORT_1        129  /* xe0 = 66, xe1 = 100 */
+
+static uint32_t _th_pm4x10_addr[BCM_TH_PM4X10_COUNT] = { 0x1C1 };
+static uint32_t _th_pm4x10_port[BCM_TH_PM4X10_COUNT] = { BCM_TH_PM4X10_PORT_1}; 
+
+#define BCM_TH_PM4X25_PORT_1        1
+#define BCM_TH_PM4X25_PORT_2        5
+#define BCM_TH_PM4X25_PORT_3        9
+#define BCM_TH_PM4X25_PORT_4        13 
+#define BCM_TH_PM4X25_PORT_5        17
+#define BCM_TH_PM4X25_PORT_6        21 
+#define BCM_TH_PM4X25_PORT_7        25 
+#define BCM_TH_PM4X25_PORT_8        29
+#define BCM_TH_PM4X25_PORT_9        33 
+#define BCM_TH_PM4X25_PORT_10       37 
+#define BCM_TH_PM4X25_PORT_11       41 
+#define BCM_TH_PM4X25_PORT_12       45
+#define BCM_TH_PM4X25_PORT_13       49
+#define BCM_TH_PM4X25_PORT_14       53
+#define BCM_TH_PM4X25_PORT_15       57
+#define BCM_TH_PM4X25_PORT_16       61
+#define BCM_TH_PM4X25_PORT_17       65 
+#define BCM_TH_PM4X25_PORT_18       69 
+#define BCM_TH_PM4X25_PORT_19       73 
+#define BCM_TH_PM4X25_PORT_20       77 
+#define BCM_TH_PM4X25_PORT_21       81 
+#define BCM_TH_PM4X25_PORT_22       85 
+#define BCM_TH_PM4X25_PORT_23       89 
+#define BCM_TH_PM4X25_PORT_24       93 
+#define BCM_TH_PM4X25_PORT_25       97 
+#define BCM_TH_PM4X25_PORT_26       101 
+#define BCM_TH_PM4X25_PORT_27       105 
+#define BCM_TH_PM4X25_PORT_28       109 
+#define BCM_TH_PM4X25_PORT_29       113 
+#define BCM_TH_PM4X25_PORT_30       117 
+#define BCM_TH_PM4X25_PORT_31       121 
+#define BCM_TH_PM4X25_PORT_32       125 
+
+static uint32_t _th_pm4x25_addr[BCM_TH_PM4X25_COUNT] = {
+    0x81,  0x85,  0x89,  0x8D,  
+    0x91,  0x95,  0xA1,  0xA5,  
+    0xA9,  0xAD,  0xc1,  0xC5,
+    0xC9,  0xCD,  0xD1,  0xD5,  
+    0xE1,  0xE5,  0xE9,  0xED,  
+    0xF1,  0xF5,  0x181, 0x185, 
+    0x189, 0x18D, 0x1A1, 0x1A5,
+    0x1A9, 0x1AD, 0x1B1, 0x1B5
+};
+
+static uint32_t _th_pm4x25_core_num[BCM_TH_PM4X25_COUNT] = {
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31};
+
+static uint32_t _th_pm4x10_core_num[BCM_TH_PM4X10_COUNT] = {33};
+    
+
+static uint32_t _th_pm4x25_port[BCM_TH_PM4X25_COUNT] = {
+    BCM_TH_PM4X25_PORT_1,  BCM_TH_PM4X25_PORT_2,
+    BCM_TH_PM4X25_PORT_3,  BCM_TH_PM4X25_PORT_4,
+    BCM_TH_PM4X25_PORT_5,  BCM_TH_PM4X25_PORT_6,
+    BCM_TH_PM4X25_PORT_7,  BCM_TH_PM4X25_PORT_8,
+    BCM_TH_PM4X25_PORT_9,  BCM_TH_PM4X25_PORT_10,
+    BCM_TH_PM4X25_PORT_11, BCM_TH_PM4X25_PORT_12,
+    BCM_TH_PM4X25_PORT_13, BCM_TH_PM4X25_PORT_14,
+    BCM_TH_PM4X25_PORT_15, BCM_TH_PM4X25_PORT_16,
+    BCM_TH_PM4X25_PORT_17, BCM_TH_PM4X25_PORT_18,
+    BCM_TH_PM4X25_PORT_19, BCM_TH_PM4X25_PORT_20,
+    BCM_TH_PM4X25_PORT_21, BCM_TH_PM4X25_PORT_22,
+    BCM_TH_PM4X25_PORT_23, BCM_TH_PM4X25_PORT_24,
+    BCM_TH_PM4X25_PORT_25, BCM_TH_PM4X25_PORT_26,
+    BCM_TH_PM4X25_PORT_27, BCM_TH_PM4X25_PORT_28,
+    BCM_TH_PM4X25_PORT_29, BCM_TH_PM4X25_PORT_30,
+    BCM_TH_PM4X25_PORT_31, BCM_TH_PM4X25_PORT_32
+}; 
+
+#define BCM_TH_MAX_PHYS               164    /* ((32+1)x4)  132 XLMACS, 32 CLMAC's */
+
+#endif /* BCM_TOMAHAWK_SUPPORT */
+
+
+#ifdef PORTMOD_PM4X10_SUPPORT
+static portmod_default_user_access_t *pm4x10_user_acc[BCM_MAX_NUM_UNITS];
+#endif /* PORTMOD_PM4X10_SUPPORT */
+
+#ifdef PORTMOD_PM12X10_SUPPORT
+static portmod_default_user_access_t *pm12x10_user_acc[BCM_MAX_NUM_UNITS];
+static portmod_default_user_access_t *pm12_4x10_user_acc[BCM_MAX_NUM_UNITS];
+static portmod_default_user_access_t *pm12_4x25_user_acc[BCM_MAX_NUM_UNITS];
+#endif /* PORTMOD_PM12X10_SUPPORT */
+
+#ifdef PORTMOD_PM4X25_SUPPORT
+static portmod_default_user_access_t *pm4x25_user_acc[BCM_MAX_NUM_UNITS];
+#endif /* PORTMOD_PM4X25_SUPPORT */
+
+#define BCM_ESW_PORTCTRL_PHY_REG_INDIRECT _SHR_PORT_PHY_REG_INDIRECT
+#define BCM_ESW_PORTCTRL_PHYCTRL_PRBS_RX_ENABLE _SHR_PORT_PHY_CONTROL_PRBS_RX_ENABLE
+
+#endif /* PORTMOD_SUPPORT */
+
+/*
+ * Macros for use with encapsulation set related functions
+ */
+#define BCM_ESW_PORTCTRL_CFG_ENCAP_MODE 1
+#define BCM_ESW_PORTCTRL_CFG_INTERFACE  2
+#define BCM_ESW_PORTCTRL_CFG_SPEED      3
+
+#ifdef PORTMOD_SUPPORT
+
+int portctrl_reset0_cb(int unit, int port, uint32 in_reset) {
+#if defined(BCM_TRIDENT2_SUPPORT) || defined(BCM_HURRICANE2_SUPPORT)
+    return (!in_reset? soc_tsc_xgxs_reset(unit, port, 0) : SOC_E_NONE);
+#else
+    return (SOC_E_NONE);
+#endif
+}
+
+int portctrl_reset1_cb(int unit, int port, uint32 in_reset) {
+#if defined(BCM_TRIDENT2_SUPPORT) || defined(BCM_HURRICANE2_SUPPORT)
+    return (!in_reset? soc_tsc_xgxs_reset(unit, port, 1) : SOC_E_NONE);
+#else
+    return (SOC_E_NONE);
+#endif
+}
+
+int portctrl_reset2_cb(int unit, int port, uint32 in_reset) {
+#if defined(BCM_TRIDENT2_SUPPORT) || defined(BCM_HURRICANE2_SUPPORT)
+    return (!in_reset? soc_tsc_xgxs_reset(unit, port, 2) : SOC_E_NONE);
+#else
+    return (SOC_E_NONE);
+#endif
+}
+
+int portctrl_reset3_cb(int unit, int port, uint32 in_reset) {
+#if defined(BCM_TRIDENT2_SUPPORT) || defined(BCM_HURRICANE2_SUPPORT)
+    return (!in_reset? soc_tsc_xgxs_reset(unit, port, 3) : SOC_E_NONE);
+#else
+    return (SOC_E_NONE);
+#endif
+}
+
+
+phymod_bus_t portmod_ext_default_bus = {
+    "MDIO Bus",
+    portmod_common_phy_mdio_c45_reg_read,
+    portmod_common_phy_mdio_c45_reg_write,
+    NULL,
+    portmod_common_mutex_take,
+    portmod_common_mutex_give,
+    PHYMOD_BUS_CAP_WR_MODIFY | PHYMOD_BUS_CAP_LANE_CTRL
+};
+
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_port_resolve
+ * Purpose:
+ *      Converts the given BCM port type, bcm_gport_t, to
+ *      the BCM local port type and the port type expected by
+ *      the PortMod functions.
+ * Parameters:
+ *      unit     - (IN) Unit number.
+ *      port     - (IN) BCM Port number, this can be in GPORT format.
+ *      lport    - (OUT) Returns BCM logical local port number.
+ *      pport    - (OUT) Returns port in expected PortMod port type.
+ * Returns:
+ *      BCM_E_xxx
+ */
+STATIC int
+_bcm_esw_portctrl_port_resolve(int unit, bcm_gport_t port,
+                               bcm_port_t *lport, portctrl_pport_t *pport)
+{
+    /*
+     * Currently, the PortMod library expects a logical local
+     * port number, which is equivalent to the BCM port local port.
+     */
+    BCM_IF_ERROR_RETURN(_bcm_esw_port_gport_validate(unit, port, lport));
+
+    *pport = *lport;
+    return BCM_E_NONE;
+}
+
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_from_portmod_ability
+ * Purpose:
+ *      Converts the _port_ability_t structure from PortMod to
+ *      BCM _port_ability_t
+ * Parameters:
+ *      portmod_ability - (IN) PortMod _ability_ structure to convert.
+ *      port_ability    - (OUT) Returns information in BCM bcm_port_ability_t.
+ * Returns:
+ *      None
+ */
+STATIC void
+_bcm_esw_portctrl_from_portmod_ability(portmod_port_ability_t *portmod_ability,
+                                       bcm_port_ability_t *port_ability)
+{
+    /*
+     * Currently, the portmod_port_ability_t definition uses
+     * _shr_port_ability_t, which is used by the 
+     * SOC soc_port_ability_t and BCM bcm_port_ability_t.
+     */
+    *port_ability = *portmod_ability;
+
+    return;
+}
+
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_device_addr_port_get
+ * Purpose:
+ *
+ * Parameters:
+ *      unit  - (IN) Unit number.
+ * Returns:
+ *      BCM_E_XXX
+ */
+STATIC int
+_bcm_esw_portctrl_device_addr_port_get(int unit, int pmType,
+                                       uint32_t **pAddr,  uint32_t **pPort, uint32_t **pCoreNum)
+{
+    *pAddr    = NULL;
+    *pPort    = NULL;
+    *pCoreNum = NULL;
+
+#if defined(BCM_GREYHOUND_SUPPORT)
+    if (SOC_IS_GREYHOUND(unit)) {
+        *pAddr = _gh_addr;
+        *pPort = _gh_port;
+    } else
+#endif /* BCM_GREYHOUND_SUPPORT */
+
+
+#if defined(BCM_TOMAHAWK_SUPPORT)
+    if (SOC_IS_TOMAHAWK(unit)) {
+        if (pmType == portmodDispatchTypePm4x10) {
+            *pAddr = _th_pm4x10_addr;
+            *pPort = _th_pm4x10_port;
+            *pCoreNum = _th_pm4x10_core_num;
+         } else if (pmType == portmodDispatchTypePm4x25){
+            *pAddr = _th_pm4x25_addr;
+            *pPort = _th_pm4x25_port;
+            *pCoreNum = _th_pm4x25_core_num;
+         }
+    } else
+#endif /* BCM_TOMAHAWK_SUPPORT */
+
+#if defined(BCM_TRIDENT2PLUS_SUPPORT)
+    if (SOC_IS_TRIDENT2PLUS(unit)) {
+        if (pmType == portmodDispatchTypePm4x10) {
+            *pAddr = _td2p_pm4x10_addr;
+            *pPort = _td2p_pm4x10_port;
+            *pCoreNum = _td2p_pm4x10_core_num;
+         } else if (pmType == portmodDispatchTypePm12x10){
+            *pAddr = _td2p_pm12x10_addr;
+            *pPort = _td2p_pm12x10_port;
+            *pCoreNum = _td2p_pm12x10_core_num;
+         }
+     } else
+#endif /* BCM_TRIDENT2PLUS_SUPPORT */
+     {
+         return BCM_E_UNAVAIL;
+     }
+ 
+    return BCM_E_NONE;
+}
+
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_user_access_alloc
+ * Purpose:
+ *      Allocate SW data structure for the port macros (PM).
+ * Parameters:
+ *      unit        - (IN) Unit number.
+ *      num         - (IN) Number of PM port macros in device.
+ *      user_acc    - (OUT) Returns allocated PMs structures.
+ * Returns:
+ *      BCM_E_XXX
+ */
+STATIC int
+_bcm_esw_portctrl_pm_user_access_alloc(int unit,
+                                       int num,
+                                       portmod_default_user_access_t **user_acc)
+{
+    if (*user_acc == NULL) {
+        *user_acc = sal_alloc(sizeof(portmod_default_user_access_t) * num,
+                             "PortMod PM4x10");
+        if (*user_acc == NULL) {
+            return BCM_E_MEMORY;
+        }
+    }
+    sal_memset(*user_acc, 0, sizeof(portmod_default_user_access_t) * num);
+
+    return BCM_E_NONE;
+}
+
+/*
+ * Function:
+ *      _is_chip_bonding_swap
+ * Purpose:
+ *      Check if the PM12x10 has a swap 
+ * Parameters:
+ *      pm_inst          - PM12x10 instance number 
+ * Returns:
+ *      BCM_E_XXX
+ */
+STATIC int _is_chip_bonding_swap (int unit, int pm_inst, int core_num, 
+                                          int type, int is_tx)
+{
+    if (SOC_IS_TRIDENT2PLUS(unit)) {
+#ifdef PORTMOD_PM12X10_SUPPORT
+        int is_pm12x10 = (type == portmodDispatchTypePm12x10) ? 1: 0;
+
+        /* remove later
+        LOG_ERROR(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, pm_inst,
+                          "lane map: u=%0d pm=%0d pm12=%0d core=%0d\n"),
+              unit, pm_inst, is_pm12x10, core_num));
+    */
+        /* 
+         * PM4X10 :  ODD  Inst: Rx Flip
+         * PM4X10 :  EVEN Inst: Tx Flip
+         * PM12x10:  ODD  Inst: Core 0,2 Rx Flip, Core 1 Tx Flip
+         * PM12x10:  EVEN Inst: Core 0,2 Tx Flip, Core 1 Rx Flip
+         */
+        return is_tx ?
+            (is_pm12x10? ((pm_inst&1)? !(core_num&1):  (core_num&1)) : !(pm_inst&1)) :
+            (is_pm12x10? ((pm_inst&1)?  (core_num&1): !(core_num&1)) :  (pm_inst&1));
+
+#endif /* PORTMOD_PM12X10_SUPPORT */
+    }
+    return (0);
+}
+
+
+/*
+ * Function:
+ *      _ext_phy_config_parameter_get
+ * Purpose:
+ *      To extract external phy parameter from config.bcm.
+ * Parameters:
+ *      unit             - (IN)  Unit number.
+ *      port             - (IN)  Logical Port Number 
+ *      phy_addr         - (OUT) Ext Phy MDIO address. 0xFF mean no ext phy    
+ *      shift            - (IN)  Phy Port Map Shift from internal map. ( default 0) 
+ * Returns:
+ *      BCM_E_XXX
+ */
+STATIC int
+_ext_phy_config_parameter_get( int unit, int port, uint32 *phy_addr,
+                               uint32 *num_int_cores, uint32 shift[3]) 
+{
+    char *config_str, *sub_str, *sub_str_end;
+    int idx;
+
+    /* set default return values. */
+    *num_int_cores  = 1;
+    shift[0]        = 0;
+    shift[1]        = 0;
+    shift[2]        = 0;
+
+    config_str = soc_property_port_get_str(unit, port, spn_PORT_PHY_ADDR);
+    if (config_str == NULL) {
+        *phy_addr = 0xFF; /* NO PHY */
+        return SOC_E_NONE;        
+    }
+
+    /*
+    * port_phy_addr_<port>=<phy addr>:<num_int_cores>:<shift0>:<shift1>:<shift2>
+    */
+    sub_str = config_str;
+
+    /* Parse phy address  number */
+    *phy_addr  = sal_ctoi(sub_str, &sub_str_end);
+    
+    if( *sub_str_end == '\0' )
+    {
+        return SOC_E_NONE ;
+    }
+ 
+    /* Skip ':' between physical port number and num_internal_cores */
+    sub_str = sub_str_end;
+    if (*sub_str != '\0') {
+        if (*sub_str != ':') {
+            LOG_CLI((BSL_META_U(unit, "Port %d: Bad config string \"%s\"\n"),
+                         port, config_str));
+                return SOC_E_FAIL;
+        }
+        sub_str++;
+    } else {
+        return SOC_E_NONE;
+    }
+
+    /* parse num of cores. */
+    *num_int_cores = sal_ctoi(sub_str, &sub_str_end);
+    if( *num_int_cores > BCM_PM12X10_PM4X10_COUNT)
+    {
+        LOG_CLI((BSL_META_U(unit, "Port %d: Bad config string bad num of cores \"%s\" %d \n"),
+                port, config_str, *num_int_cores));
+        return SOC_E_FAIL;
+
+    }
+
+    /* check for end of string. */
+    if( *sub_str_end == '\0' )
+    {
+        return SOC_E_NONE ;
+    }
+
+    for (idx=0; idx < *num_int_cores; idx++) {
+        /* Skip ':' between physical port number and num_internal_cores */
+        sub_str = sub_str_end;
+        if (*sub_str != '\0') {
+            if (*sub_str != ':') {
+                LOG_CLI((BSL_META_U(unit, "Port %d: Bad config string \"%s\"\n"),
+                         port, config_str));
+                return SOC_E_FAIL;
+            }
+            sub_str++;
+        }
+        shift[idx] = sal_ctoi(sub_str, &sub_str_end);
+        /* check for end of string. */
+        if( *sub_str_end == '\0' )
+        {
+            return SOC_E_NONE ;
+        }
+    } 
+    return SOC_E_NONE;
+}
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_pm4x10_portmod_init
+ * Purpose:
+ *      Add port macros (PM) to the unit's PortMod Manager (PMM).
+ * Parameters:
+ *      unit             - (IN) Unit number.
+ *      num_of_instances - (IN) Number of PM4X10 port macros in device.
+ * Returns:
+ *      BCM_E_XXX
+ */
+STATIC int
+_bcm_esw_portctrl_pm4x10_portmod_init(int unit, int num_of_instances) 
+{
+#ifdef PORTMOD_PM4X10_SUPPORT
+    int rv = BCM_E_NONE;
+    portmod_pm_create_info_t pm_info;
+    int pmid = 0, blk, is_sim, lane, phy, found, logical_port, phy_chain_length;
+    int first_port, idx, ref_clk_prop = 0, core_num, core_cnt;
+    uint32 txlane_map, rxlane_map, rxlane_map_l, i, *pAddr, *pPort, *pCoreNum;
+#ifdef _PORTMOD_VERBOSE_
+    uint32 txlane_map_b, rxlane_map_b ;
+#endif
+    int bonding_swap_tx, bonding_swap_rx ; /*TEMP */
+    uint32 tx_polarity, rx_polarity;
+
+    phymod_core_access_t tmp_ext_phy_access;
+    int xphy_logical_port;
+    portmod_default_user_access_t* local_user_access;
+    uint32 ext_phy_addr;
+    uint32 num_int_cores;
+    uint32 first_phy_lane[3];
+
+
+    BCM_IF_ERROR_RETURN
+        (_bcm_esw_portctrl_device_addr_port_get(unit,
+                                                portmodDispatchTypePm4x10,
+                                                &pAddr, &pPort, &pCoreNum));
+
+    if (!pAddr || !pPort) {
+        return BCM_E_INTERNAL;
+    }
+
+    /* Allocate PMs */
+    BCM_IF_ERROR_RETURN
+        (_bcm_esw_portctrl_pm_user_access_alloc(unit,
+                                                num_of_instances,
+                                                &pm4x10_user_acc[unit]));
+
+    for (pmid = 0; PORTMOD_SUCCESS(rv) && (pmid < num_of_instances); pmid++) {
+
+        rv = portmod_pm_create_info_t_init(unit, &pm_info);
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+        /* PM info */
+        first_port = pPort[pmid];
+
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port);
+        if (!(SOC_IS_TOMAHAWK(unit)))    
+            SOC_PBMP_PORT_ADD(pm_info.phys, first_port+1); 
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+2);
+
+        if (!(SOC_IS_TOMAHAWK(unit)))    
+            SOC_PBMP_PORT_ADD(pm_info.phys, first_port+3); 
+
+        found = 0;
+        for(idx = 0; idx < SOC_DRIVER(unit)->port_num_blktype; idx++){ 
+            blk = SOC_PORT_IDX_INFO(unit, first_port, idx).blk; 
+            if (SOC_BLOCK_INFO(unit, blk).type == SOC_BLK_XLPORT){
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            rv = BCM_E_INTERNAL;
+            break;
+        } 
+
+        pm_info.type         = portmodDispatchTypePm4x10;
+
+        /* Init user_acc for phymod access struct */
+        rv = portmod_default_user_access_t_init(unit,
+                                                &(pm4x10_user_acc[unit][pmid]));
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+
+
+        PORTMOD_USER_ACCESS_REG_VAL_OFFSET_ZERO_SET((&(pm4x10_user_acc[unit][pmid])));
+
+        if ((SOC_IS_TOMAHAWK(unit)))
+        { 
+            PORTMOD_USER_ACCESS_FW_LOAD_REVERSE_SET((&(pm4x10_user_acc[unit][pmid])));
+            PORTMOD_USER_ACCESS_REG_VAL_OFFSET_ZERO_CLR((&(pm4x10_user_acc[unit][pmid])));
+        }
+
+        pm4x10_user_acc[unit][pmid].unit = unit;
+        pm4x10_user_acc[unit][pmid].blk_id = blk; 
+        pm4x10_user_acc[unit][pmid].mutex = sal_mutex_create("core mutex");
+        if (pm4x10_user_acc[unit][pmid].mutex == NULL) {
+            rv = BCM_E_MEMORY;
+            break;
+        }
+
+        /* Specific info for PM4x10 */
+        rv = phymod_access_t_init(&pm_info.pm_specific_info.pm4x10.access);
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+
+        pm_info.pm_specific_info.pm4x10.access.user_acc =
+            &(pm4x10_user_acc[unit][pmid]);
+        pm_info.pm_specific_info.pm4x10.access.addr     = pAddr[pmid];
+        pm_info.pm_specific_info.pm4x10.access.bus      = NULL; /* Use default bus */
+
+        rv = soc_physim_check_sim(unit, phymodDispatchTypeTsce, 
+                                  &(pm_info.pm_specific_info.pm4x10.access),
+                                  0, &is_sim);
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+
+        if (is_sim) {
+            pm_info.pm_specific_info.pm4x10.access.bus->bus_capabilities |= 
+                (PHYMOD_BUS_CAP_WR_MODIFY | PHYMOD_BUS_CAP_LANE_CTRL);
+
+            /* Firmward loader : Don't allow FW load on sim enviroment */
+            pm_info.pm_specific_info.pm4x10.fw_load_method =
+                phymodFirmwareLoadMethodNone;
+        } else {
+            pm_info.pm_specific_info.pm4x10.fw_load_method = 
+                soc_property_suffix_num_get(unit, pmid, 
+                                            spn_LOAD_FIRMWARE, "quad", 
+                                            phymodFirmwareLoadMethodExternal);
+            pm_info.pm_specific_info.pm4x10.fw_load_method &= 0xff;
+        }
+
+        /* Use default external loader if NULL */
+        pm_info.pm_specific_info.pm4x10.external_fw_loader = NULL;
+
+       rv = phymod_polarity_t_init
+            (&(pm_info.pm_specific_info.pm4x10.polarity));
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+
+        /* Polarity */
+        for (lane = 0; lane < BCM_LANES_PER_PM4X10; lane++) {
+            /* need to add more conditions */
+            phy = first_port+lane;
+            rx_polarity =  soc_property_suffix_num_get(unit, phy,
+                            spn_PHY_RX_POLARITY_FLIP, "phy", 0xFFFFFFFF);
+            tx_polarity = soc_property_suffix_num_get(unit, phy,
+                            spn_PHY_TX_POLARITY_FLIP, "phy", 0xFFFFFFFF); 
+                               
+            logical_port = SOC_INFO(unit).port_p2l_mapping[phy];
+
+            if (rx_polarity  == 0xFFFFFFFF) {
+                rx_polarity = soc_property_port_get(unit, logical_port, spn_PHY_RX_POLARITY_FLIP, 0);
+                pm_info.pm_specific_info.pm4x10.polarity.rx_polarity |= rx_polarity;
+            } else {
+                pm_info.pm_specific_info.pm4x10.polarity.rx_polarity |= ((rx_polarity & 0x1) << lane);
+            }             
+
+            if (tx_polarity  == 0xFFFFFFFF) {
+                tx_polarity = soc_property_port_get(unit, logical_port, spn_PHY_TX_POLARITY_FLIP, 0);
+                pm_info.pm_specific_info.pm4x10.polarity.tx_polarity |= tx_polarity;
+            } else {
+                pm_info.pm_specific_info.pm4x10.polarity.tx_polarity |= ((tx_polarity & 0x1) << lane);
+            }
+        }
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+
+        /* Lane map */
+        rv = phymod_lane_map_t_init
+            (&(pm_info.pm_specific_info.pm4x10.lane_map));
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+
+        logical_port = SOC_INFO(unit).port_p2l_mapping[first_port];
+        core_cnt = 1; 
+
+        for (core_num = 0; core_num < core_cnt; core_num++) {
+            txlane_map = soc_property_port_suffix_num_get(unit, logical_port, core_num,
+                                                     spn_XGXS_TX_LANE_MAP,
+                                                     "core", 0x3210);
+            rxlane_map = soc_property_port_suffix_num_get(unit, logical_port, core_num,
+                                                     spn_XGXS_RX_LANE_MAP,
+                                                     "core", 0x3210);
+
+#ifdef _PORTMOD_VERBOSE_
+            txlane_map_b = txlane_map;
+            rxlane_map_b = rxlane_map;
+#endif
+            rxlane_map_l = rxlane_map ;
+            /* For TSC-E/F family, both lane_map_rx and lane_map_tx are logic lane base */
+            /* TD2/TD2+ xgxs_rx_lane_map is phy-lane base */
+            if(SOC_IS_TRIDENT2PLUS(unit)) { /* use TD2 legacy notion system */
+                rxlane_map_l = 0 ;   
+                for (i=0; i<BCM_LANES_PER_PM4X10; i++) {
+                    rxlane_map_l |= i << BCM_LANES_PER_PM4X10 *((rxlane_map >> (i*BCM_LANES_PER_PM4X10))& BCM_LANE_MASK_PER_PM4X10) ;
+                }
+            }
+
+            bonding_swap_tx = _is_chip_bonding_swap(unit, pmid, core_num, portmodDispatchTypePm4x10, 1) ;
+            txlane_map = bonding_swap_tx ?
+                             PORTMOD_NIB_TRX(txlane_map) : txlane_map;
+            
+            bonding_swap_rx = _is_chip_bonding_swap(unit, pmid, core_num, portmodDispatchTypePm4x10, 0) ;
+            rxlane_map = bonding_swap_rx ?
+                             PORTMOD_NIB_TRX(rxlane_map_l) : rxlane_map_l;
+
+#ifdef _PORTMOD_VERBOSE_
+            {
+            static int hdr_flag =0;
+            if (!hdr_flag) {
+                LOG_ERROR(BSL_LS_BCM_PORT,
+                 (BSL_META_UP(unit, logical_port,
+                          "+-------+-------+-------+-------+------+--------+--------+\n")));
+                LOG_ERROR(BSL_LS_BCM_PORT,
+                 (BSL_META_UP(unit, logical_port,
+                              "| PPORT | LPORT | TXMAP | RXMAP | CORE | TXSWAP | RXSWAP |\n")));
+                LOG_ERROR(BSL_LS_BCM_PORT,
+                 (BSL_META_UP(unit, logical_port,
+                              "+-------+-------+-------+-------+------+--------+--------+\n")));
+                hdr_flag=1;
+            }
+            LOG_ERROR(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, logical_port,
+                          "| %04d  | %04d  | %04X  | %04X  | %02d   | %04X   | %04X   |\n"),
+              first_port, logical_port, txlane_map_b, rxlane_map_b, core_num, txlane_map, rxlane_map));
+
+            LOG_ERROR(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, logical_port,
+                          "+-------+-------+-------+-------+------+--------+--------+\n")));
+            }
+#endif /* _PORTMOD_VERBOSE_ */
+            pm_info.pm_specific_info.pm4x10.lane_map.num_of_lanes =
+                BCM_LANES_PER_PM4X10;
+    
+            pm_info.pm_specific_info.pm4x10.core_num = pCoreNum? pCoreNum[pmid] : pmid;
+            pm_info.pm_specific_info.pm4x10.core_num_int = 0;
+
+            for(lane=0 ; lane<BCM_LANES_PER_PM4X10; lane++) {
+                pm_info.pm_specific_info.pm4x10.lane_map.lane_map_tx[lane] =  
+                    (txlane_map >> (lane * BCM_LANES_PER_PM4X10)) &
+                    BCM_LANE_MASK_PER_PM4X10;
+                pm_info.pm_specific_info.pm4x10.lane_map.lane_map_rx[lane] =  
+                    (rxlane_map >> (lane * BCM_LANES_PER_PM4X10)) &
+                    BCM_LANE_MASK_PER_PM4X10;
+            }
+        }
+
+        ref_clk_prop = soc_property_port_get(unit, first_port, spn_XGXS_LCPLL_XTAL_REFCLK, phymodRefClk156Mhz);
+
+    if ((ref_clk_prop == 125) ||( ref_clk_prop == 1))
+            pm_info.pm_specific_info.pm4x10.ref_clk = phymodRefClk125Mhz;
+        else      /* ((ref_clk_prop == 156) ||( ref_clk_prop == 0)) */
+            pm_info.pm_specific_info.pm4x10.ref_clk = phymodRefClk156Mhz;
+
+        pm_info.pm_specific_info.pm4x10.portmod_phy_external_reset = portctrl_reset3_cb;
+
+        /* Add PM to PortMod */
+        rv = portmod_port_macro_add(unit, &pm_info);
+
+        /* add Ext Phy to portmod. */
+        xphy_logical_port = SOC_INFO(unit).port_p2l_mapping[first_port];
+        rv = _ext_phy_config_parameter_get( unit, xphy_logical_port, &ext_phy_addr,
+                                            &num_int_cores,  first_phy_lane);
+        phy_chain_length = soc_property_port_get(unit, xphy_logical_port, spn_PHY_CHAIN_LENGTH, 0);  
+        if((PORTMOD_SUCCESS(rv)) && ((ext_phy_addr != 0xFF) || phy_chain_length)) {
+            cli_out(" EXT PHY Add 4x10 for port %d  ext_phy 0x%x num_of_cores %d shift %d %d %d.\n",
+                      xphy_logical_port,ext_phy_addr, num_int_cores, first_phy_lane[0],first_phy_lane[1],first_phy_lane[2]);
+
+            phymod_core_access_t_init(&tmp_ext_phy_access);
+            tmp_ext_phy_access.access.bus = &portmod_ext_default_bus;
+            tmp_ext_phy_access.access.addr = ext_phy_addr; 
+            tmp_ext_phy_access.type = phymodDispatchTypeCount; /* Make sure it is invalid. */
+            local_user_access = sal_alloc(sizeof(portmod_default_user_access_t), "pm4x10_specific_db");
+            sal_memset(local_user_access, 0, sizeof(portmod_default_user_access_t));
+            local_user_access->unit = unit;
+            local_user_access->port = xphy_logical_port;
+            local_user_access->is_legacy_phy_present = 0;
+            local_user_access->cmd_for_phy = 0; 
+            tmp_ext_phy_access.access.user_acc = local_user_access;
+            for(idx = 0 ; idx < num_int_cores;idx++) {
+                    rv = portmod_ext_phy_attach(unit,first_port, &tmp_ext_phy_access, first_phy_lane[idx]);
+            }
+        }
+    }
+
+    if (PORTMOD_FAILURE(rv)) {
+        for (pmid=0; pmid < num_of_instances; pmid++) {
+            if (pm4x10_user_acc[unit][pmid].mutex) {
+                sal_mutex_destroy(pm4x10_user_acc[unit][pmid].mutex);
+                pm4x10_user_acc[unit][pmid].mutex = NULL;
+            }
+        }
+    }
+
+    return rv;
+#else /* PORTMOD_PM4X10_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_PM4X10_SUPPORT */
+}
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_pm4x25_portmod_init
+ * Purpose:
+ *      Add port macros (PM) to the unit's PortMod Manager (PMM).
+ * Parameters:
+ *      unit             - (IN) Unit number.
+ *      num_of_instances - (IN) Number of PM4X25 port macros in device.
+ * Returns:
+ *      BCM_E_XXX
+ */
+STATIC int
+_bcm_esw_portctrl_pm4x25_portmod_init(int unit, int num_of_instances) 
+{
+#ifdef PORTMOD_PM4X25_SUPPORT
+    int rv = BCM_E_NONE;
+    portmod_pm_create_info_t pm_info;
+    int pmid = 0, blk, is_sim, lane, phy, found, logical_port;
+    int first_port, idx, ref_clk_prop, core_num, core_cnt;
+    uint32 txlane_map, rxlane_map, *pAddr, *pPort,*pCoreNum;
+    int bonding_swap_tx, bonding_swap_rx ; /*TEMP */
+    uint32 tx_polarity, rx_polarity;
+    
+    BCM_IF_ERROR_RETURN
+        (_bcm_esw_portctrl_device_addr_port_get(unit,
+                                                portmodDispatchTypePm4x25,
+                                                &pAddr, &pPort,&pCoreNum));
+
+    if (!pAddr || !pPort) {
+        return BCM_E_INTERNAL;
+    }
+
+    /* Allocate PMs */
+    BCM_IF_ERROR_RETURN
+        (_bcm_esw_portctrl_pm_user_access_alloc(unit,
+                                                num_of_instances,
+                                                &pm4x25_user_acc[unit]));
+
+    for (pmid = 0; PORTMOD_SUCCESS(rv) && (pmid < num_of_instances); pmid++) {
+
+        rv = portmod_pm_create_info_t_init(unit, &pm_info);
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+        /* PM info */
+        first_port = pPort[pmid];
+
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port);
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+1); 
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+2);
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+3);
+
+        found = 0;
+        for(idx = 0; idx < SOC_DRIVER(unit)->port_num_blktype; idx++){ 
+            blk = SOC_PORT_IDX_INFO(unit, first_port, idx).blk; 
+            if (SOC_BLOCK_INFO(unit, blk).type == SOC_BLK_CLPORT){
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            rv = BCM_E_INTERNAL;
+            break;
+        } 
+
+        pm_info.type         = portmodDispatchTypePm4x25;
+
+        /* Init user_acc for phymod access struct */
+        rv = portmod_default_user_access_t_init(unit,
+                                                &(pm4x25_user_acc[unit][pmid]));
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+
+        PORTMOD_USER_ACCESS_FW_LOAD_REVERSE_SET((&(pm4x25_user_acc[unit][pmid])));
+        PORTMOD_USER_ACCESS_REG_VAL_OFFSET_ZERO_CLR((&(pm4x25_user_acc[unit][pmid])));
+        pm4x25_user_acc[unit][pmid].unit = unit;
+        pm4x25_user_acc[unit][pmid].blk_id = blk; 
+        pm4x25_user_acc[unit][pmid].mutex = sal_mutex_create("core mutex");
+        if (pm4x25_user_acc[unit][pmid].mutex == NULL) {
+            rv = BCM_E_MEMORY;
+            break;
+        }
+
+        /* Specific info for PM4x25 */
+        rv = phymod_access_t_init(&pm_info.pm_specific_info.pm4x25.access);
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+
+        pm_info.pm_specific_info.pm4x25.access.user_acc =
+            &(pm4x25_user_acc[unit][pmid]);
+        pm_info.pm_specific_info.pm4x25.access.addr     = pAddr[pmid];
+        pm_info.pm_specific_info.pm4x25.access.bus      = NULL; /* Use default bus */
+
+        rv = soc_physim_check_sim(unit, phymodDispatchTypeTscf, 
+                                  &(pm_info.pm_specific_info.pm4x25.access),
+                                  0, &is_sim);
+
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+
+        if (is_sim) {
+            pm_info.pm_specific_info.pm4x25.access.bus->bus_capabilities |= 
+                (PHYMOD_BUS_CAP_WR_MODIFY | PHYMOD_BUS_CAP_LANE_CTRL);
+
+            /* Firmward loader : Don't allow FW load on sim enviroment */
+            pm_info.pm_specific_info.pm4x25.fw_load_method =
+                phymodFirmwareLoadMethodNone;
+        } else {
+            pm_info.pm_specific_info.pm4x25.fw_load_method = 
+                soc_property_suffix_num_get(unit, pmid, 
+                                            spn_LOAD_FIRMWARE, "quad", 
+                                            phymodFirmwareLoadMethodExternal);
+            pm_info.pm_specific_info.pm4x25.fw_load_method &= 0xff;
+        }
+
+        /* Use default external loader if NULL */
+        pm_info.pm_specific_info.pm4x25.external_fw_loader = NULL;
+
+        /* Polarity */
+        rv = phymod_polarity_t_init (&(pm_info.pm_specific_info.pm4x25.polarity));
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+
+        for (lane = 0; lane < BCM_LANES_PER_PM4X25; lane++) {
+            /* need to add more conditions */
+            phy = first_port+lane;
+            rx_polarity =  soc_property_suffix_num_get(unit, phy,
+                           spn_PHY_RX_POLARITY_FLIP, "phy", 0xFFFFFFFF);
+            tx_polarity = soc_property_suffix_num_get(unit, phy,
+                          spn_PHY_TX_POLARITY_FLIP, "phy", 0xFFFFFFFF); 
+                               
+            logical_port = SOC_INFO(unit).port_p2l_mapping[phy];
+
+            if (rx_polarity  == 0xFFFFFFFF) {
+                rx_polarity =  soc_property_port_get(unit, logical_port, spn_PHY_RX_POLARITY_FLIP, 0xffffffff);
+                if (rx_polarity == 0xffffffff) {
+                    rx_polarity =  soc_property_port_get(unit, logical_port, spn_PHY_XAUI_RX_POLARITY_FLIP, 0);
+                }
+                pm_info.pm_specific_info.pm4x25.polarity.rx_polarity |= rx_polarity;
+            } else {
+                pm_info.pm_specific_info.pm4x25.polarity.rx_polarity |= ((rx_polarity & 0x1) << lane);
+            }
+
+            if (tx_polarity  == 0xFFFFFFFF) {
+                tx_polarity = soc_property_port_get(unit, logical_port, spn_PHY_TX_POLARITY_FLIP, 0xffffffff);
+                if (tx_polarity == 0xffffffff)
+                    tx_polarity = soc_property_port_get(unit, logical_port, spn_PHY_XAUI_TX_POLARITY_FLIP, 0);
+
+                pm_info.pm_specific_info.pm4x25.polarity.tx_polarity |= tx_polarity;
+            } else {
+                pm_info.pm_specific_info.pm4x25.polarity.tx_polarity |= ((tx_polarity & 0x1) << lane);
+            }
+        }
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+
+        /* Lane map */
+        rv = phymod_lane_map_t_init
+            (&(pm_info.pm_specific_info.pm4x25.lane_map));
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+
+        logical_port = SOC_INFO(unit).port_p2l_mapping[first_port];
+        core_cnt = 1; 
+
+        for (core_num = 0; core_num < core_cnt; core_num++) {
+            txlane_map = soc_property_port_suffix_num_get(unit, logical_port, core_num,
+                                                     spn_XGXS_TX_LANE_MAP,
+                                                     "core", 0x3210);
+            rxlane_map = soc_property_port_suffix_num_get(unit, logical_port, core_num,
+                                                     spn_XGXS_RX_LANE_MAP,
+                                                     "core", 0x3210);
+
+            bonding_swap_tx = _is_chip_bonding_swap(unit, pmid, core_num, portmodDispatchTypePm4x25, 1) ;
+            txlane_map = bonding_swap_tx ?
+                             PORTMOD_NIB_SWAP(txlane_map) : txlane_map;
+            
+            bonding_swap_rx = _is_chip_bonding_swap(unit, pmid, core_num, portmodDispatchTypePm4x25, 0) ;
+            rxlane_map = bonding_swap_rx ?
+                             PORTMOD_NIB_SWAP(rxlane_map) : rxlane_map;
+
+            pm_info.pm_specific_info.pm4x25.lane_map.num_of_lanes =
+                BCM_LANES_PER_PM4X25;
+   
+            pm_info.pm_specific_info.pm4x25.core_num = pCoreNum? pCoreNum[pmid] : pmid;
+            pm_info.pm_specific_info.pm4x25.core_num_int = 0;
+ 
+            for(lane=0 ; lane<BCM_LANES_PER_PM4X25; lane++) {
+                pm_info.pm_specific_info.pm4x25.lane_map.lane_map_tx[lane] =  
+                    (txlane_map >> (lane * BCM_LANES_PER_PM4X25)) &
+                    BCM_LANE_MASK_PER_PM4X25;
+                pm_info.pm_specific_info.pm4x25.lane_map.lane_map_rx[lane] =  
+                    (rxlane_map >> (lane * BCM_LANES_PER_PM4X25)) &
+                    BCM_LANE_MASK_PER_PM4X25;
+            }
+        }
+
+        ref_clk_prop = soc_property_port_get(unit, first_port, spn_XGXS_LCPLL_XTAL_REFCLK, phymodRefClk156Mhz);
+
+	if ((ref_clk_prop == 125) ||( ref_clk_prop == 1))
+            pm_info.pm_specific_info.pm4x25.ref_clk = phymodRefClk125Mhz;
+        else      /* ((ref_clk_prop == 156) ||( ref_clk_prop == 0)) */
+            pm_info.pm_specific_info.pm4x25.ref_clk = phymodRefClk156Mhz;
+
+        /* Add PM to PortMod */
+        rv = portmod_port_macro_add(unit, &pm_info);
+    }
+
+    if (PORTMOD_FAILURE(rv)) {
+        for (pmid=0; pmid < num_of_instances; pmid++) {
+            if (pm4x25_user_acc[unit][pmid].mutex) {
+                sal_mutex_destroy(pm4x25_user_acc[unit][pmid].mutex);
+                pm4x25_user_acc[unit][pmid].mutex = NULL;
+            }
+        }
+    }
+
+    return rv;
+#else /* PORTMOD_PM4X25_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_PM4X25_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_pm12x10_portmod_init
+ * Purpose:
+ *      Add port macros (PM) to the unit's PortMod Manager (PMM).
+ * Parameters:
+ *      unit             - (IN) Unit number.
+ *      num_of_instances - (IN) Number of PM 12X10 port macros in device.
+ * Returns:
+ *      BCM_E_XXX
+ */
+STATIC int
+_bcm_esw_portctrl_pm12x10_portmod_init(int unit, int num_of_instances) 
+{
+#if defined(PORTMOD_PM12X10_SUPPORT)
+    int rv = BCM_E_NONE;
+    portmod_pm_create_info_t  pm_info;
+    portmod_pm4x10_create_info_t *pm4x10_info;
+    portmod_pm4x25_create_info_t *pm4x25_info;
+    int pmid = 0, blk, is_sim, lane, phy, found, logical_port, f_logical_port;
+    int first_port, idx, ref_clk_prop = 0, core_num;
+    uint32 txlane_map, rxlane_map, rxlane_map_l, i, *pAddr, *pPort, *pCoreNum;
+    uint32 tx_polarity, rx_polarity;
+    int phy_chain_length = 0;
+#ifdef _PORTMOD_VERBOSE_
+    uint32 txlane_map_b, rxlane_map_b ;
+#endif 
+    phymod_core_access_t tmp_ext_phy_access;
+    int xphy_logical_port;
+    portmod_default_user_access_t* local_user_access;
+    uint32 ext_port_num;
+    uint32 ext_phy_addr, num_int_cores,first_phy_lane[3];
+
+
+
+    BCM_IF_ERROR_RETURN
+        (_bcm_esw_portctrl_device_addr_port_get(unit,
+                                                portmodDispatchTypePm12x10,
+                                                &pAddr, &pPort, &pCoreNum)); 
+    if (!pAddr || !pPort) {
+        return BCM_E_INTERNAL;
+    }
+
+    BCM_IF_ERROR_RETURN
+        (_bcm_esw_portctrl_pm_user_access_alloc(unit,
+                                                num_of_instances,
+                                                &pm12x10_user_acc[unit]));
+
+    BCM_IF_ERROR_RETURN
+        (_bcm_esw_portctrl_pm_user_access_alloc(unit,
+                                                num_of_instances*BCM_PM12X10_PM4X10_COUNT,
+                                                &pm12_4x10_user_acc[unit]));
+
+    BCM_IF_ERROR_RETURN
+        (_bcm_esw_portctrl_pm_user_access_alloc(unit,
+                                                num_of_instances,
+                                                &pm12_4x25_user_acc[unit]));
+
+
+    /* Register PM12x10 */
+    for (pmid = 0; PORTMOD_SUCCESS(rv) && (pmid < num_of_instances); pmid++) {
+        int core_idx, core_blk;
+
+        rv = portmod_pm_create_info_t_init(unit, &pm_info);
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+
+        /* PM info */
+        first_port = pPort[pmid];
+
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port);
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+1); 
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+2);
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+3);
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+4);
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+5); 
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+6);
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+7);
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+8);
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+9); 
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+10);
+        SOC_PBMP_PORT_ADD(pm_info.phys, first_port+11);
+
+        found = 0;
+        for(idx = 0; idx < SOC_DRIVER(unit)->port_num_blktype; idx++){ 
+            blk = SOC_PORT_IDX_INFO(unit, first_port, idx).blk; 
+            if (SOC_BLOCK_INFO(unit, blk).type == SOC_BLK_XLPORT){
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+             rv = BCM_E_INTERNAL;
+             break;
+        } 
+        pm_info.type         = portmodDispatchTypePm12x10;
+
+
+        /* init user_acc for phymod access struct */
+        rv = portmod_default_user_access_t_init(unit,
+                                                &(pm12x10_user_acc[unit][pmid]));
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+
+        PORTMOD_USER_ACCESS_REG_VAL_OFFSET_ZERO_SET((&(pm12x10_user_acc[unit][pmid])));
+        pm12x10_user_acc[unit][pmid].unit = unit;
+        pm12x10_user_acc[unit][pmid].blk_id = blk; 
+        pm12x10_user_acc[unit][pmid].mutex = sal_mutex_create("core mutex");
+        if (pm12x10_user_acc[unit][pmid].mutex == NULL) {
+            rv = BCM_E_MEMORY;
+            break;
+        }
+
+        for (core_num = 0;
+             PORTMOD_SUCCESS(rv) && (core_num < BCM_PM12X10_PM4X10_COUNT);
+             core_num++) {
+
+            /* PM4X10 INFO UPDATE */
+            pm4x10_info = &pm_info.pm_specific_info.pm12x10.pm4x10_infos[core_num];
+
+            /* Specific info for PM12x10 */
+            rv = phymod_access_t_init(&pm4x10_info->access);
+            if (PORTMOD_FAILURE(rv)) {
+                break;
+            }
+            pm12_4x10_user_acc[unit][(pmid*3)+core_num] = pm12x10_user_acc[unit][pmid];
+
+            found = 0;
+            for(core_idx = 0; core_idx < SOC_DRIVER(unit)->port_num_blktype; core_idx++){
+                core_blk = SOC_PORT_IDX_INFO(unit, (first_port+(4*core_num)), core_idx).blk;
+                if (SOC_BLOCK_INFO(unit, core_blk).type == SOC_BLK_XLPORT){
+                    found = 1;
+                    break;
+                }
+            }
+
+            if (!found) {
+                rv = BCM_E_INTERNAL;
+                break;
+            }
+
+            pm12_4x10_user_acc[unit][(pmid*3)+core_num].blk_id = core_blk; 
+            pm4x10_info->access.user_acc = &(pm12_4x10_user_acc[unit][(pmid*3)+core_num]);
+            pm4x10_info->access.addr     = pAddr[(pmid*3) + core_num]; 
+            pm4x10_info->access.bus      = NULL;
+            pm4x10_info->core_num        = pCoreNum? pCoreNum[(pmid*3)+core_num] : ((pmid*3)+core_num);
+            pm4x10_info->core_num_int    = core_num;
+
+            rv = soc_physim_check_sim(unit, phymodDispatchTypeTsce, 
+                                      &(pm4x10_info->access), 0, &is_sim);
+            if (PORTMOD_FAILURE(rv)) {
+                break;
+            }
+
+            if (is_sim) {
+                pm4x10_info->access.bus->bus_capabilities |= 
+                    (PHYMOD_BUS_CAP_WR_MODIFY | PHYMOD_BUS_CAP_LANE_CTRL);
+
+                /* Firmward loader : Don't allow FW load on sim enviroment */
+                pm4x10_info->fw_load_method = phymodFirmwareLoadMethodNone;
+            } else {
+                pm4x10_info->fw_load_method =
+                    soc_property_suffix_num_get
+                    (unit, pmid, spn_LOAD_FIRMWARE, "quad", 
+                     phymodFirmwareLoadMethodExternal);
+                pm4x10_info->fw_load_method &= 0xff;
+            }
+
+            /* Use default external loader */
+            pm4x10_info->external_fw_loader = NULL; 
+
+            /* Polarity */
+            for (lane = 0; lane < BCM_LANES_PER_PM4X10; lane++) {
+                rv = phymod_polarity_t_init (&(pm4x10_info->polarity));
+
+                if (PORTMOD_FAILURE(rv)) {
+                    break;
+                }
+    
+                /* need to add more conditions */
+                phy = first_port+lane;
+                rx_polarity = soc_property_suffix_num_get(unit, phy,
+                                spn_PHY_RX_POLARITY_FLIP, "phy", 0xFFFFFFFF);
+                tx_polarity = soc_property_suffix_num_get(unit, phy,
+                                spn_PHY_TX_POLARITY_FLIP, "phy", 0xFFFFFFFF); 
+                                   
+                logical_port = SOC_INFO(unit).port_p2l_mapping[phy];
+    
+                if (rx_polarity  == 0xFFFFFFFF) {
+                    rx_polarity = soc_property_port_get(unit, logical_port, spn_PHY_RX_POLARITY_FLIP, 0);
+                }
+    
+                if (tx_polarity  == 0xFFFFFFFF) {
+                    tx_polarity = soc_property_port_get(unit, logical_port, spn_PHY_TX_POLARITY_FLIP, 0);
+                }
+
+                pm_info.pm_specific_info.pm4x10.polarity.tx_polarity |= ((tx_polarity & 0x1) << lane);
+                pm_info.pm_specific_info.pm4x10.polarity.rx_polarity |= ((rx_polarity & 0x1) << lane);
+            }
+            if (PORTMOD_FAILURE(rv)) {
+                break;
+            }
+
+            /* Lane map */
+            rv = phymod_lane_map_t_init(&(pm4x10_info->lane_map));
+            if (PORTMOD_FAILURE(rv)) {
+                break;
+            }
+
+            f_logical_port = SOC_INFO(unit).port_p2l_mapping[first_port];
+
+            logical_port = SOC_INFO(unit).port_p2l_mapping[first_port + (core_num * 4)];
+
+            /* in case of 100G - there is no logical port for core1, core2 */
+            /* so if the logical port is -1, check 100G and use core0      */
+            if (core_num && (logical_port == -1)) {
+                /* This could be a 100G port. so mapping is available for core0 only */
+                if (IS_C_PORT(unit, f_logical_port)) {
+                    logical_port = f_logical_port;
+                }
+            }
+            txlane_map = soc_property_port_suffix_num_get(unit, logical_port, core_num,
+                                                     spn_XGXS_TX_LANE_MAP,
+                                                     "core", 0x3210);
+            rxlane_map = soc_property_port_suffix_num_get(unit, logical_port, core_num,
+                                                     spn_XGXS_RX_LANE_MAP,
+                                                     "core", 0x3210);
+#ifdef _PORTMOD_VERBOSE_
+            txlane_map_b = txlane_map;
+            rxlane_map_b = rxlane_map;
+#endif
+
+            rxlane_map_l = rxlane_map ;
+            /* For TSC-E/F family, both lane_map_rx and lane_map_tx are logic lane base */
+            /* TD2/TD2+ xgxs_rx_lane_map is phy-lane base */
+            if(SOC_IS_TRIDENT2PLUS(unit)) { /* use TD2 legacy notion system */
+                rxlane_map_l = 0 ;   
+                for (i=0; i<BCM_LANES_PER_PM4X10; i++) {
+                    rxlane_map_l |= i << BCM_LANES_PER_PM4X10 *((rxlane_map >> (i*BCM_LANES_PER_PM4X10))& BCM_LANE_MASK_PER_PM4X10) ;
+                }
+            }
+   
+            txlane_map = (_is_chip_bonding_swap(unit, pmid, core_num, portmodDispatchTypePm12x10, 1)) ?
+                         PORTMOD_NIB_TRX(txlane_map) : txlane_map;
+            rxlane_map = (_is_chip_bonding_swap(unit, pmid, core_num, portmodDispatchTypePm12x10, 0)) ?
+                         PORTMOD_NIB_TRX(rxlane_map_l) : rxlane_map_l;
+
+            pm4x10_info->lane_map.num_of_lanes = BCM_LANES_PER_PM4X10;
+    
+            for(lane=0 ; lane<BCM_LANES_PER_PM4X10; lane++) {
+                pm4x10_info->lane_map.lane_map_tx[lane] =  
+                    (txlane_map >> (lane * BCM_LANES_PER_PM4X10)) &
+                    BCM_LANE_MASK_PER_PM4X10;
+                pm4x10_info->lane_map.lane_map_rx[lane] =  
+                    (rxlane_map >> (lane * BCM_LANES_PER_PM4X10)) &
+                    BCM_LANE_MASK_PER_PM4X10;
+            }
+#ifdef _PORTMOD_VERBOSE_
+            {
+            static int hdr_flag = 0;
+            if (!hdr_flag) {
+                LOG_ERROR(BSL_LS_BCM_PORT,
+                 (BSL_META_UP(unit, logical_port,
+                          "+-------+-------+-------+-------+------+--------+--------+\n")));
+                LOG_ERROR(BSL_LS_BCM_PORT,
+                 (BSL_META_UP(unit, logical_port,
+                          "| PPORT | LPORT | TXMAP | RXMAP | CORE | TXSWAP | RXSWAP |\n")));
+                LOG_ERROR(BSL_LS_BCM_PORT,
+                 (BSL_META_UP(unit, logical_port,
+                          "+-------+-------+-------+-------+------+--------+--------+\n")));
+                hdr_flag = 1;
+            }
+            LOG_ERROR(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, logical_port,
+                          "| %04d  | %04d  | %04X  | %04X  | %02d   | %04X   | %04X   |\n"),
+              first_port+(core_num*4), logical_port, txlane_map_b, rxlane_map_b, core_num, txlane_map, rxlane_map));
+
+            LOG_ERROR(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, logical_port,
+                          "+-------+-------+-------+-------+------+--------+--------+\n")));
+            }
+#endif /* _PORTMOD_VERBOSE_ */
+
+            ref_clk_prop = soc_property_port_get(unit, first_port, 
+                               spn_XGXS_LCPLL_XTAL_REFCLK, phymodRefClk156Mhz);
+        if ((ref_clk_prop == 125) ||( ref_clk_prop == 1))
+                pm4x10_info->ref_clk = phymodRefClk125Mhz;
+            else      /* ((ref_clk_prop == 156) ||( ref_clk_prop == 0)) */
+                pm4x10_info->ref_clk = phymodRefClk156Mhz;
+        }
+
+        PORTMOD_PM12x10_F_EXTERNAL_TOP_MODE_SET(pm_info.pm_specific_info.pm12x10.flags);
+        PORTMOD_PM12x10_F_USE_PM4x25TD_SET(pm_info.pm_specific_info.pm12x10.flags);
+
+        pm_info.pm_specific_info.pm12x10.pm4x10_infos[1].portmod_phy_external_reset = portctrl_reset1_cb;
+        pm_info.pm_specific_info.pm12x10.pm4x10_infos[0].portmod_phy_external_reset = 
+            (pmid&1)? portctrl_reset2_cb : portctrl_reset0_cb;
+        pm_info.pm_specific_info.pm12x10.pm4x10_infos[2].portmod_phy_external_reset = 
+            (pmid&1)? portctrl_reset0_cb : portctrl_reset2_cb;
+
+
+        /* PM4X25 INFO UPDATE */
+        pm4x25_info = &pm_info.pm_specific_info.pm12x10.pm4x25_info;
+
+        /* Specific info for PM12x10 */
+        rv = phymod_access_t_init(&pm4x25_info->access);
+        if (PORTMOD_FAILURE(rv)) {
+            break;
+        }
+        pm12_4x25_user_acc[unit][pmid] = pm12x10_user_acc[unit][pmid];
+        found = 0;
+        first_port = pPort[pmid];
+        for(core_idx = 0; core_idx < SOC_DRIVER(unit)->port_num_blktype; core_idx++){
+            core_blk = SOC_PORT_IDX_INFO(unit, first_port, core_idx).blk;
+            if (SOC_BLOCK_INFO(unit, core_blk).type == SOC_BLK_CPORT){
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            rv = BCM_E_INTERNAL;
+            break;
+        }
+
+        pm12_4x25_user_acc[unit][pmid].blk_id = core_blk; 
+        pm4x25_info->lane_map.num_of_lanes    = BCM_LANES_PER_PM4X25;
+        pm4x25_info->access.user_acc          = &(pm12_4x25_user_acc[unit][pmid]);
+        pm4x25_info->access.addr              = pAddr[pmid]; 
+        pm4x25_info->access.bus               = NULL;
+        pm4x25_info->core_num                 = pmid; 
+        pm4x25_info->external_fw_loader       = NULL; 
+        pm4x25_info->fw_load_method           = phymodFirmwareLoadMethodNone;
+
+        pm4x25_info->ref_clk = ((ref_clk_prop == 125) ||( ref_clk_prop == 1))?
+                                  phymodRefClk125Mhz : phymodRefClk156Mhz;
+
+        
+        rv  = portmod_port_macro_add(unit, &pm_info);
+
+
+        ext_port_num = first_port;
+        
+        while( ext_port_num < (first_port+11))
+        {
+            xphy_logical_port = SOC_INFO(unit).port_p2l_mapping[ext_port_num];
+            rv = _ext_phy_config_parameter_get( unit, xphy_logical_port, &ext_phy_addr,
+                                                &num_int_cores,  first_phy_lane);
+            phy_chain_length = soc_property_port_get(unit, xphy_logical_port, spn_PHY_CHAIN_LENGTH, 0); 
+            
+            if( PORTMOD_SUCCESS(rv) && ((ext_phy_addr != 0xFF) || (phy_chain_length)))
+            {
+                cli_out(" EXT PHY Add 12x10 for port %d  ext_phy 0x%x num_of_cores %d shift %d %d %d.\n",
+                        xphy_logical_port,ext_phy_addr, num_int_cores, first_phy_lane[0],first_phy_lane[1],first_phy_lane[2]);
+
+                phymod_core_access_t_init(&tmp_ext_phy_access);
+                tmp_ext_phy_access.access.bus = &portmod_ext_default_bus;
+                tmp_ext_phy_access.access.addr = ext_phy_addr; 
+                tmp_ext_phy_access.type = phymodDispatchTypeCount; /* Make sure it is invalid. */
+                local_user_access = sal_alloc(sizeof(portmod_default_user_access_t), "pm4x10_specific_db");
+                sal_memset(local_user_access, 0, sizeof(portmod_default_user_access_t));
+                local_user_access->unit = unit;
+                local_user_access->port = xphy_logical_port;
+                local_user_access->is_legacy_phy_present = 0;
+                local_user_access->cmd_for_phy = 0;  
+                tmp_ext_phy_access.access.user_acc = local_user_access;
+                for(idx = 0 ; idx < num_int_cores;idx++) {
+                    rv = portmod_ext_phy_attach(unit, ext_port_num +(idx*BCM_LANES_PER_PM4X10), &tmp_ext_phy_access, first_phy_lane[idx]);
+                }
+            }
+            ext_port_num += BCM_LANES_PER_PM4X10 ;   
+        }
+    }
+
+    if (PORTMOD_FAILURE(rv)) {
+        for (pmid=0; pmid < num_of_instances; pmid++)  {
+            if (pm12x10_user_acc[unit][pmid].mutex) {
+                sal_mutex_destroy(pm12x10_user_acc[unit][pmid].mutex);
+                pm12x10_user_acc[unit][pmid].mutex = NULL;
+            }
+        }
+    }
+    return rv; 
+#else /* PORTMOD_PM12X10_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_PM12X10_SUPPORT */
+}
+
+
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_setup_soc_prop_config
+ * Purpose:
+ *
+ * Parameters:
+ *      unit  - (IN) Unit number.
+ * Returns:
+ *      BCM_E_XXX
+ */
+
+STATIC int
+_bcm_esw_portctrl_setup_td2plus_soc_prop_config(int unit, bcm_port_t port, 
+                                     portmod_port_interface_config_t* interface_config,
+                                     portmod_port_init_config_t* init_config)
+{
+      /* soc_port_if_t interface_type; */
+    int is_hg = 0, port_num_lanes, fiber_pref = 0, is_scrambler = 0;
+    int an_cl37 = 0, an_cl73=0, max_speed ;
+    /* phymod_tx_t *p_tx; */
+    uint32  preemphasis, driver_current;
+    /*int rxaui_mode = 0; */
+ 
+    /* Initialize both interface config and init config */ 
+    portmod_port_init_config_t_init(unit, init_config);
+    portmod_port_interface_config_t_init(unit,interface_config);
+    port_num_lanes = SOC_INFO(unit).port_num_lanes[port];
+    interface_config->port_num_lanes = port_num_lanes;
+
+    is_hg = (PBMP_MEMBER(SOC_HG2_PBM(unit), port) ||
+             PBMP_MEMBER(PBMP_HG_ALL(unit), port));
+    if (is_hg) {
+        PHYMOD_INTF_MODES_HIGIG_SET(interface_config);
+    }
+
+    fiber_pref = soc_property_port_get(unit, port,
+                                       spn_SERDES_FIBER_PREF, fiber_pref);
+    if (fiber_pref) {
+        PHYMOD_INTF_MODES_FIBER_SET(interface_config);
+    }  
+
+    is_scrambler = soc_property_port_get(unit, port,
+                                         spn_SERDES_SCRAMBLER_ENABLE, 0);
+    if (is_scrambler) {
+        PHYMOD_INTF_MODES_SCR_SET(interface_config);
+    }  
+
+    
+#if 0 
+    if (SOC_IS_FE1600_B0_AND_ABOVE(unit) &&
+        SOC_DFE_CONFIG(unit).serdes_mixed_rate_enable) {
+        /* Dual rate support */
+        PHYMOD_INTF_MODES_OS2_SET(interface_config);
+    }
+#endif    
+    if (IS_C_PORT(unit, port)) {
+        PHYMOD_INTF_MODES_TRIPLE_CORE_SET(interface_config);
+
+        switch(SOC_INFO(unit).port_100g_lane_config[port]) {
+            case SOC_LANE_CONFIG_100G_4_4_2:
+                PHYMOD_INTF_MODES_TC_442_SET(interface_config);
+                break ;
+            case SOC_LANE_CONFIG_100G_2_4_4:
+                PHYMOD_INTF_MODES_TC_244_SET(interface_config);
+                break ;
+            case SOC_LANE_CONFIG_100G_3_4_3:
+                PHYMOD_INTF_MODES_TC_343_SET(interface_config);
+                break ;
+            default:
+                PHYMOD_INTF_MODES_TC_343_SET(interface_config);
+                break ;
+        }
+        init_config->port_fallback_lane =  SOC_INFO(unit).port_fallback_lane[port];
+    }
+
+
+    /* Should be changed based on the speed later in the flow  */
+    interface_config->interface = soc_property_port_get(unit, port,
+                                         spn_SERDES_IF_TYPE, SOC_PORT_IF_XFI);
+
+    max_speed = SOC_INFO(unit).port_speed_max[port];
+    /*
+    if(is_hg) {
+        switch(max_speed) {
+        case 10000: max_speed=11000 ; break ;
+        case 20000: max_speed=21000 ; break ;
+        case 40000: max_speed=42000 ; break ;
+        case 100000: max_speed=107000 ; break ;
+        case 120000: max_speed=127000 ; break ;
+        default:  break ;
+        }
+    }
+    */
+    interface_config->max_speed = max_speed ;
+
+    /* rxaui_mode = soc_property_port_get(unit, port,
+                                          spn_SERDES_RXAUI_MODE, 1);*/
+
+
+    /* Fill in init config */
+    an_cl37 = soc_property_port_get(unit, port,
+                                          spn_PHY_AN_C37, an_cl37) ;
+    an_cl73 = soc_property_port_get(unit, port,
+                                          spn_PHY_AN_C73, an_cl73);
+    if(is_hg) {
+        init_config->an_mode = phymod_AN_MODE_CL37BAM ;
+    } else {
+        init_config->an_mode = phymod_AN_MODE_CL73 ;
+        init_config->an_cl72 = 1 ;
+    }
+    if(an_cl73) {
+        init_config->an_mode = an_cl73;
+        init_config->an_cl72 = 1 ;
+    } else if(an_cl37) {
+        init_config->an_mode = an_cl37;
+        init_config->an_cl72 = 0 ;
+    }
+    
+    init_config->an_cl72 = soc_property_port_get(unit, port,
+                                        spn_PHY_AN_C72, init_config->an_cl72);
+
+    init_config->an_fec = soc_property_port_get(unit, port,
+                                        spn_PHY_AN_FEC, init_config->an_fec);
+
+    init_config->fs_cl72 = soc_property_port_get(unit, port,
+                                        spn_PORT_INIT_CL72,  init_config->fs_cl72);
+
+    interface_config->speed = soc_property_port_get(unit, port, spn_PORT_INIT_SPEED, 
+                                          interface_config->max_speed);
+
+    init_config->pll_divider_req      = soc_property_port_get(unit, port, spn_XGXS_PHY_PLL_DIVIDER, 0xA);
+    
+    init_config->serdes_1000x_at_6250_vco = soc_property_port_get(unit, port,
+                                        spn_SERDES_1000X_AT_6250_VCO,
+                                        init_config->serdes_1000x_at_6250_vco);
+
+    init_config->cx4_10g = soc_property_port_get(unit, port, spn_10G_IS_CX4, TRUE);
+
+    /*
+     * Update this to add all possible interfaces here 
+     */
+    if (port_num_lanes == 1) {
+        if (interface_config->speed >= 10000)
+            interface_config->interface = fiber_pref?  SOC_PORT_IF_SFI : SOC_PORT_IF_XFI;
+    } else if (port_num_lanes == 2) {
+        /* Add the interface later for 20G ports*/
+    } else if (port_num_lanes == 3) {
+        /* Add the interface later (if valid )*/
+    } else if (port_num_lanes == 4) {
+        if (interface_config->speed >= 40000)
+            interface_config->interface = SOC_PORT_IF_XLAUI;
+        else if (interface_config->speed >= 10000)
+            interface_config->interface = 
+                  fiber_pref? SOC_PORT_IF_SFI : SOC_PORT_IF_XFI;
+    } else if (port_num_lanes == 10) {  /* 100G */
+            interface_config->interface = SOC_PORT_IF_CAUI;
+    } else if (port_num_lanes == 12) {  /* 120G */
+            interface_config->interface = SOC_PORT_IF_CAUI;
+    } else {
+        /* Do Nothing - let it be default */
+    }
+
+    preemphasis = 0x0;
+    driver_current = 0x0;
+    preemphasis  = soc_property_port_get(unit, port,
+                                   spn_SERDES_PREEMPHASIS, preemphasis);
+    driver_current  = soc_property_port_get(unit, port,
+                                   spn_SERDES_DRIVER_CURRENT, driver_current);
+    init_config->tx_params_user_flag = 0;
+    if(preemphasis) {
+        init_config->tx_params_user_flag |= PORTMOD_USER_SET_TX_PREEMPHASIS_BY_CONFIG ;
+        init_config->tx_params.pre  = preemphasis & 0xff;
+        init_config->tx_params.main = (preemphasis & 0xff00) >> 8;
+        init_config->tx_params.post = (preemphasis & 0xff0000) >> 16;
+    }
+    if(driver_current){
+        init_config->tx_params_user_flag |= PORTMOD_USER_SET_TX_AMP_BY_CONFIG ;
+        init_config->tx_params.amp  = driver_current ;
+    }
+
+    return SOC_E_NONE;
+}
+
+STATIC int
+_bcm_esw_portctrl_setup_soc_prop_config(int unit, bcm_port_t port, 
+                                     portmod_port_interface_config_t* interface_config,
+                                     portmod_port_init_config_t* init_config)
+{
+    /* Remove SOC_IS_GREYHOUND LATER */
+    if ((SOC_IS_TRIDENT2PLUS(unit)) || (SOC_IS_GREYHOUND(unit))||(SOC_IS_TOMAHAWK(unit))) {
+        return _bcm_esw_portctrl_setup_td2plus_soc_prop_config(unit, port, interface_config, init_config) ;
+    } else {
+        return SOC_E_UNAVAIL;
+    }
+}
+
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_port_fifo_reset
+ * Purpose:
+ *      Toggle the port soft reset.
+ * Parameters:
+ *      unit    - (IN) Unit number.
+ *      port    - (IN) Logical BCM Port number (non-GPORT).
+ *      pport   - (IN) Port type expected by PortMod.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Must be called with PORT_LOCK held.
+ */
+STATIC int
+_bcm_esw_portctrl_port_fifo_reset(int unit, bcm_port_t port,
+                                  portctrl_pport_t pport)
+{
+    int phy_port, block, bindex, i;
+
+    phy_port = SOC_INFO(unit).port_l2p_mapping[port];
+    for (i = 0; i < SOC_DRIVER(unit)->port_num_blktype; i++) {
+        block = SOC_PORT_IDX_BLOCK(unit, phy_port, i);
+        if (SOC_BLOCK_INFO(unit, block).type == SOC_BLK_XLPORT) {
+            bindex = SOC_PORT_IDX_BINDEX(unit, phy_port, i);
+            PORTMOD_IF_ERROR_RETURN
+                (portmod_port_soft_reset_toggle(unit, pport, bindex));
+            break;
+        }
+    }
+
+    return BCM_E_NONE;
+}
+
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_drain_cells
+ * Purpose:
+ *      Drain cells for given port.
+ * Parameters:
+ *      unit    - (IN) Unit number.
+ *      port    - (IN) Logical BCM Port number (non-GPORT).
+ *      pport   - (IN) Port type expected by PortMod.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Must be called with PORT_LOCK held.
+ */
+STATIC int
+_bcm_esw_portctrl_drain_cells(int unit, bcm_port_t port,
+                              portctrl_pport_t pport)
+{
+    portmod_drain_cells_t drain_cells;
+    uint32 cell_count;
+    soc_timeout_t to;
+
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_drain_cell_get(unit, pport, &drain_cells));
+
+    /* Start TX FIFO draining */
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_drain_cell_start(unit, pport));
+
+    /* Reset EP credit before de-assert SOFT_RESET */
+    SOC_IF_ERROR_RETURN(soc_port_credit_reset(unit, port));
+
+    /* De-assert SOFT_RESET to let the drain start */
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_mac_reset_set(unit, pport, 0));
+
+    /* Wait until mmu cell count is 0 */
+    SOC_IF_ERROR_RETURN(soc_egress_drain_cells(unit, port, 250000));
+
+    /* Wait until TX fifo cell count is 0 */
+    soc_timeout_init(&to, 250000, 0);
+    for (;;) {
+        PORTMOD_IF_ERROR_RETURN
+            (portmod_port_txfifo_cell_cnt_get(unit, pport, &cell_count));
+        if (cell_count == 0) {
+            break;
+        }
+        if (soc_timeout_check(&to)) {
+            LOG_ERROR(BSL_LS_BCM_PORT,
+                      (BSL_META_UP(unit, port,
+                                   "ERROR: u=%d p=%d timeout draining "
+                                   "TX FIFO (%d cells remain)\n"),
+                       unit, port, cell_count));
+            return BCM_E_INTERNAL;
+        }
+    }
+   
+    /* Stop TX FIFO draining */
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_drain_cell_stop(unit, pport, &drain_cells));
+
+    return BCM_E_NONE;
+}
+
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_enable_set
+ * Purpose:
+ *      Core function to enable or disable a port.
+ *      This includes all the necessary steps to correctly bring
+ *      up or down a port.
+ *
+ *      The sequence to bring a port UP or DOWN requires a series of
+ *      interleaved steps that falls inside and outside the PortMod library.
+ *      Some operations need to occur in the xxPORT, or MAC, or PHY blocks,
+ *      whereas others need to occur at the EP, or MMU blocks.
+ *
+ *      There are two approaches:
+ *      1) SDK drives the logic calling the corresponding PortMod and
+ *         non-PortMod routines.
+ *      2) PortMod drive the logic calling callback routines provided
+ *         by SDK to perform operations outside the PortMod.
+ *
+ *      At the moment (1) is implemented.
+ * Parameters:
+ *      unit    - (IN) Unit number.
+ *      port    - (IN) Logical BCM Port number (non-GPORT).
+ *      pport   - (IN) Port type expected by PortMod.
+ *      enable  - (IN) Indicates whether to enable or disable port.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Must be called with PORT_LOCK held.
+ *      This mimic the old behavior that
+ *      permitted to set both, the PHY and MAC separately.
+ *      Currently, the PortMod API portmod_port_enable_set() do enable/disable
+ *      the MAC does not have the complete bringup sequence.  Callers
+ *      should be calling this routine instead to bring the port up or down
+ *      properly.
+ */
+STATIC int
+_bcm_esw_portctrl_enable_set(int unit, bcm_port_t port,
+                             portctrl_pport_t pport,
+                             int flags, int enable)
+{
+    pbmp_t mask;
+    int flags_temp;
+    int mac_reset;
+
+    if (enable) {
+        /* Enable PHY */
+        if (PORTMOD_PORT_ENABLE_PHY_GET(flags)) {
+            flags_temp = flags;
+            PORTMOD_PORT_ENABLE_MAC_CLR(flags_temp);
+            PORTMOD_IF_ERROR_RETURN
+                (portmod_port_enable_set(unit, pport, flags_temp, 1));
+        }
+
+        /*
+         * If MAC flag is set, continue with rest of sequence
+         * to bring the port UP, including resetting credits,
+         * cells draining, etc.
+         */
+        if (PORTMOD_PORT_ENABLE_MAC_GET(flags)) {
+
+            PORTMOD_IF_ERROR_RETURN
+                (portmod_port_mac_reset_check(unit, pport,
+                                              enable, &mac_reset));
+            /* If MAC reset is not needed, just return */
+            if (!mac_reset) {
+                return BCM_E_NONE;
+            }
+
+            /* Reset EP credit before de-assert SOFT_RESET */
+            SOC_IF_ERROR_RETURN(soc_port_credit_reset(unit, port));
+
+            /* Release EDB port buffer and enable cell request */
+            SOC_IF_ERROR_RETURN
+                (soc_port_egress_buffer_sft_reset(unit, port, 0));
+
+            /* Release Ingress buffers from reset */
+            SOC_IF_ERROR_RETURN
+                (soc_port_ingress_buffer_reset(unit, port, 0));
+
+            /* Enable both TX and RX, deassert SOFT_RESET */
+            PORTMOD_IF_ERROR_RETURN
+                (portmod_port_drain_cells_rx_enable(unit, pport, 1));
+
+            /* Add port to EPC_LINK */
+            soc_link_mask2_get(unit, &mask);
+            SOC_PBMP_PORT_ADD(mask, port);
+            SOC_IF_ERROR_RETURN(soc_link_mask2_set(unit, mask));
+
+            /* Enable output threshold RX */
+            SOC_IF_ERROR_RETURN(soc_port_thdo_rx_enable_set(unit, port, 1));
+        }
+
+        /* Enable forwarding traffic */
+        if (soc_feature(unit, soc_feature_ingress_dest_port_enable)) {
+            BCM_IF_ERROR_RETURN
+                (_bcm_esw_port_ingress_dest_enable(unit, port, enable));
+        }
+
+    } else {
+
+        /* Disable all forwarding traffic */
+        if (soc_feature(unit, soc_feature_ingress_dest_port_enable)) {
+            BCM_IF_ERROR_RETURN
+                (_bcm_esw_port_ingress_dest_enable(unit, port, enable));
+        }
+
+        /* Remove from EPC_LINK to prevent packet queued to this port from TX */
+        soc_link_mask2_get(unit, &mask);
+        SOC_PBMP_PORT_REMOVE(mask, port);
+        SOC_IF_ERROR_RETURN(soc_link_mask2_set(unit, mask));
+
+        /* Disable PHY */
+        if (PORTMOD_PORT_ENABLE_PHY_GET(flags)) {
+            flags_temp = flags;
+            PORTMOD_PORT_ENABLE_MAC_CLR(flags_temp);
+            PORTMOD_IF_ERROR_RETURN
+                (portmod_port_enable_set(unit, pport, flags_temp, 0));
+        }
+
+        /*
+         * If MAC flag is set, continue with rest of sequence
+         * to bring the port DOWN.
+         */
+        if (PORTMOD_PORT_ENABLE_MAC_GET(flags)) {
+
+            PORTMOD_IF_ERROR_RETURN
+                (portmod_port_mac_reset_check(unit, pport,
+                                              enable, &mac_reset));
+            /* If MAC reset is not needed, just return */
+            if (!mac_reset) {
+                return BCM_E_NONE;
+            }
+
+            /* Reset Ingress buffers */
+            SOC_IF_ERROR_RETURN(soc_port_ingress_buffer_reset(unit, port, 1));
+
+            /* Disable RX */
+            PORTMOD_IF_ERROR_RETURN
+                (portmod_port_drain_cells_rx_enable(unit, pport, 0));
+
+            /* Drain cells */
+            BCM_IF_ERROR_RETURN
+                (_bcm_esw_portctrl_drain_cells(unit, port, pport));
+
+            /* Reset port FIFO */
+            BCM_IF_ERROR_RETURN
+                (_bcm_esw_portctrl_port_fifo_reset(unit, port, pport));
+
+            /* Put port into SOFT_RESET */
+            PORTMOD_IF_ERROR_RETURN
+                (portmod_port_mac_reset_set(unit, pport, 1));
+
+            /* Disable output threshold RX */
+            SOC_IF_ERROR_RETURN
+                (soc_port_thdo_rx_enable_set(unit, port, 0));
+        }
+
+    }
+
+    return BCM_E_NONE;
+}
+
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_egress_queue_drain
+ * Purpose:
+ *      Drain the egress queues without bringing down the port.
+ * Parameters:
+ *      unit    - (IN) Unit number.
+ *      port    - (IN) Logical BCM Port number (non-GPORT).
+ *      pport   - (IN) Port type expected by PortMod.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Must be called with PORT_LOCK held.
+ *      Helper to bcm_esw_portctrl_egress_queue_drain.
+ */
+STATIC int
+_bcm_esw_portctrl_egress_queue_drain(int unit, bcm_port_t port,
+                                     portctrl_pport_t pport)
+{
+    uint64 mac_ctrl;
+    int rx_enable = 0;
+    pbmp_t mask;
+    int is_active = 0;
+
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_egress_queue_drain_get(unit, pport,
+                                             &mac_ctrl, &rx_enable));
+
+    /* Remove port from EPC_LINK */
+    soc_link_mask2_get(unit, &mask);
+    if (SOC_PBMP_MEMBER(mask, port)) {
+        is_active = 1;
+        SOC_PBMP_PORT_REMOVE(mask, port);
+        SOC_IF_ERROR_RETURN(soc_link_mask2_set(unit, mask));
+    }
+
+    /* Drain cells */
+    BCM_IF_ERROR_RETURN
+        (_bcm_esw_portctrl_drain_cells(unit, port, pport));
+
+    /* Reset port FIFO */
+    BCM_IF_ERROR_RETURN
+        (_bcm_esw_portctrl_port_fifo_reset(unit, port, pport));
+
+    /* Put port into SOFT_RESET */
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_mac_reset_set(unit, pport, 1));
+
+    /* Reset EP credit before de-assert SOFT_RESET */
+    SOC_IF_ERROR_RETURN(soc_port_credit_reset(unit, port));
+
+    /* Enable TX, set RX, de-assert SOFT_RESET */
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_egress_queue_drain_rx_en(unit, pport, rx_enable));
+
+    /* Restore XLMAC_CTRL to original value */
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_mac_ctrl_set(unit, pport, mac_ctrl));
+
+    /* Add port to EPC_LINK */
+    if(is_active) {
+        soc_link_mask2_get(unit, &mask);
+        SOC_PBMP_PORT_ADD(mask, port);
+        SOC_IF_ERROR_RETURN(soc_link_mask2_set(unit, mask));
+    }
+ 
+    return BCM_E_NONE;
+}
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_interface_config_set
+ * Purpose:
+ *      Core function to set the port interface configuration.
+ * Parameters:
+ *      unit    - (IN) Unit number.
+ *      port    - (IN) Logical BCM Port number (non-GPORT).
+ *      pport   - (IN) Port type expected by PortMod.
+ *      if_cfg  - (IN) Port Configuration to set.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Must be called with PORT_LOCK held.
+ *
+ *      SDK drivers should NOT call portmod_port_interface_config_set()
+ *      directly, expect for this routine.  Drivers should call
+ *      this routine instead to set the port interface configuration.
+ *
+ *      In order to change a port inteface configuration, the port must
+ *      be properly be disabled and then re-enabled back.  Since the
+ *      port bringup sequence is currenlty in the SDK and not in the PortMod
+ *      library, the complete function to modify the port configuration will
+ *      resides in the SDK driver.
+ */
+STATIC int
+_bcm_esw_portctrl_interface_config_set(int unit, bcm_port_t port,
+                                       portctrl_pport_t pport,
+                                       portmod_port_interface_config_t *if_cfg)
+{
+    int enable;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_enable_get(unit, port, PORTMOD_PORT_ENABLE_MAC, &enable));
+
+    if (enable) {
+        /* Disable port */
+        BCM_IF_ERROR_RETURN
+            (_bcm_esw_portctrl_enable_set(unit, port, pport,
+                                          PORTMOD_PORT_ENABLE_MAC, 0));
+    }
+
+    if (IS_C_PORT(unit, port)) {
+        if_cfg->flags |= PHYMOD_INTF_F_SET_SPD_DISABLE;
+        PORTMOD_IF_ERROR_RETURN
+            (portmod_port_interface_config_set(unit, pport, if_cfg));
+        if_cfg->flags ^= PHYMOD_INTF_F_SET_SPD_DISABLE;
+        
+        if_cfg->flags |= PHYMOD_INTF_F_SET_SPD_NO_TRIGGER ;
+    }    
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_interface_config_set(unit, pport, if_cfg));
+    if (IS_C_PORT(unit, port)) {
+        if_cfg->flags ^= PHYMOD_INTF_F_SET_SPD_NO_TRIGGER ;
+    }
+    /*
+    LOG_ERROR(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, pport, "if=%0d flg=%0d\n"),
+             if_cfg->interface, if_cfg->flags)) ; */
+
+    if (IS_C_PORT(unit, port)) {
+       if_cfg->flags |= PHYMOD_INTF_F_SET_SPD_DISABLE;
+       
+       PORTMOD_IF_ERROR_RETURN
+              (portmod_port_interface_config_set(unit, pport, if_cfg));
+       if_cfg->flags ^= PHYMOD_INTF_F_SET_SPD_DISABLE;
+       
+       if_cfg->flags |= PHYMOD_INTF_F_SET_SPD_TRIGGER;
+       PORTMOD_IF_ERROR_RETURN
+              (portmod_port_interface_config_set(unit, pport, if_cfg));
+       if_cfg->flags ^= PHYMOD_INTF_F_SET_SPD_TRIGGER;
+    }
+
+    if (enable) {
+        /* Re-enable port */
+        BCM_IF_ERROR_RETURN
+            (_bcm_esw_portctrl_enable_set(unit, port, pport,
+                                          PORTMOD_PORT_ENABLE_MAC, 1));
+    }
+
+    return BCM_E_NONE;
+}
+#endif /* PORTMOD_SUPPORT */
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_init
+ * Purpose:
+ *      Initialize the Port Control component and
+ *      corresponding library (PortMod library).
+ *
+ *      This is to be called by the BCM Port module initialization
+ *      function bcm_esw_port_init().
+ * Parameters:
+ *      unit  - (IN) Unit number.
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_init(int unit)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE, pms_arr_len = 0, count, max_phys= 0;
+
+    portmod_pm_instances_t *pm_types = NULL;
+#ifdef BCM_GREYHOUND_SUPPORT
+    portmod_pm_instances_t gh_pm_types[] = {
+#ifdef PORTMOD_PM4X10_SUPPORT
+        {portmodDispatchTypePm4x10,  BCM_GH_PM4X10_COUNT}, 
+#endif
+    };  
+#endif
+#ifdef BCM_TRIDENT2PLUS_SUPPORT
+    portmod_pm_instances_t td2p_pm_types[] = {
+#ifdef PORTMOD_PM4X10_SUPPORT
+        {portmodDispatchTypePm4x10,  BCM_TD2P_PM4X10_COUNT}, 
+#endif
+#ifdef PORTMOD_PM12X10_SUPPORT
+        {portmodDispatchTypePm12x10, BCM_TD2P_PM12X10_COUNT},
+#endif
+    };  
+#endif
+#ifdef BCM_TOMAHAWK_SUPPORT
+    portmod_pm_instances_t th_pm_types[] = {
+#ifdef PORTMOD_PM4X10_SUPPORT
+        {portmodDispatchTypePm4x10,  BCM_TH_PM4X10_COUNT}, 
+#endif
+#ifdef PORTMOD_PM4X25_SUPPORT
+        {portmodDispatchTypePm4x25, BCM_TH_PM4X25_COUNT},
+#endif
+    };  
+#endif
+
+    /* Call PortMod library initialization */
+#ifdef BCM_TOMAHAWK_SUPPORT
+    if (SOC_IS_TOMAHAWK(unit)) {
+        max_phys = BCM_TH_MAX_PHYS;
+        pm_types = th_pm_types;
+        pms_arr_len = sizeof(th_pm_types)/sizeof(portmod_pm_instances_t);
+    } else 
+#endif
+#ifdef BCM_GREYHOUND_SUPPORT
+    if (SOC_IS_GREYHOUND(unit)) {
+        max_phys = BCM_GH_MAX_PHYS;
+        pm_types = gh_pm_types;
+        pms_arr_len = sizeof(gh_pm_types)/sizeof(portmod_pm_instances_t);
+    } else 
+#endif
+#ifdef BCM_TRIDENT2PLUS_SUPPORT
+    if (SOC_IS_TRIDENT2PLUS(unit)) {
+        max_phys = BCM_TD2P_MAX_PHYS;
+        pm_types = td2p_pm_types;
+        pms_arr_len = sizeof(td2p_pm_types)/sizeof(portmod_pm_instances_t);
+    } else 
+#endif
+    {
+        return (BCM_E_UNAVAIL);
+    }
+
+    if (pms_arr_len == 0) {
+        return BCM_E_UNAVAIL;
+    }
+
+    /* 
+     * If portmod was create - destroy and create again 
+     * Better way would be to create once and leave it.
+     */
+    if (portctrl_init[unit] == 1)
+        BCM_IF_ERROR_RETURN(portmod_destroy(unit));
+
+    BCM_IF_ERROR_RETURN
+        (portmod_create(unit, SOC_MAX_NUM_PORTS, max_phys, 
+                        pms_arr_len, pm_types));
+
+    for (count = 0; BCM_SUCCESS(rv) && (count < pms_arr_len); count++) {
+#ifdef PORTMOD_PM4X10_SUPPORT
+        if (pm_types[count].type == portmodDispatchTypePm4x10) {
+            rv = _bcm_esw_portctrl_pm4x10_portmod_init
+                (unit, pm_types[count].instances);
+        } else 
+#endif /* PORTMOD_PM4X10_SUPPORT  */
+#ifdef PORTMOD_PM4X25_SUPPORT
+        if (pm_types[count].type == portmodDispatchTypePm4x25) {
+            rv = _bcm_esw_portctrl_pm4x25_portmod_init
+                (unit, pm_types[count].instances);
+        } else
+#endif /* PORTMOD_PM4X25_SUPPORT  */
+#ifdef PORTMOD_PM12X10_SUPPORT
+        if (pm_types[count].type == portmodDispatchTypePm12x10) {
+            rv = _bcm_esw_portctrl_pm12x10_portmod_init
+                (unit, pm_types[count].instances);
+        } else
+#endif /* PORTMOD_PM12X10_SUPPORT  */
+        {
+            rv = BCM_E_INTERNAL;
+        }
+    }
+
+    /* Successful */
+    if (BCM_SUCCESS(rv)) {
+        portctrl_init[unit] = 1;
+    }
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_deinit
+ * Purpose:
+ *      Uninitialize the Port Control component and
+ *      corresponding library (PortMod library).
+ *
+ *      This function must be called by the BCM Port module
+ *      deinit (or detach) function.
+ * Parameters:
+ *      unit  - (IN) Unit number.
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_deinit(int unit)
+{
+#ifdef PORTMOD_SUPPORT
+    if (!portctrl_init[unit]) {
+        return BCM_E_NONE;
+    }
+
+    /*
+      Possible common calls:
+      PORTCTRL_INIT_CHECK()
+      PORT_LOCK/UNLOCK()
+      PORTCTRL_PORT_RESOLVE()
+    */
+
+    /* Free PMs structures */
+#ifdef PORTMOD_PM4X10_SUPPORT
+    if (pm4x10_user_acc[unit] != NULL) {
+        sal_free(pm4x10_user_acc[unit]);
+    }
+#endif /* PORTMOD_PM4X10_SUPPORT */
+
+#ifdef PORTMOD_PM12X10_SUPPORT
+    if (pm12x10_user_acc[unit] != NULL) {
+        sal_free(pm12x10_user_acc[unit]);
+    }
+#endif /* PORTMOD_PM12X10_SUPPORT */
+
+#ifdef PORTMOD_PM4X25_SUPPORT
+    if (pm4x25_user_acc[unit] != NULL) {
+        sal_free(pm4x25_user_acc[unit]);
+    }
+#endif /* PORTMOD_PM4X25_SUPPORT */
+
+    portctrl_init[unit] = 0;
+    return BCM_E_NONE;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_probe
+ * Purpose:
+ *      Probe given port and add to Portmod.
+ * Parameters:
+ *      unit      - (IN) Unit number.
+ *      port      - (IN) Port number.
+ *      okay      - (OUT) Returns true is port was successfully added.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ * Notes:
+ *     If port is already attached/added in the PortMod, port
+ *     is first removed(detached) and then added again.
+ */
+int
+bcmi_esw_portctrl_probe(int unit, bcm_gport_t port, int *okay)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+    portmod_port_add_info_t add_info;
+    int valid, num_lanes;
+    int lane, phy;
+    int flags = 0;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    *okay = FALSE;
+
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_add_info_t_init(unit, &add_info));
+
+    BCM_IF_ERROR_RETURN
+        (_bcm_esw_portctrl_setup_soc_prop_config
+         (unit, port,
+          &(add_info.interface_config),
+          &(add_info.init_config)));
+
+    PORT_LOCK(unit);
+
+    /* Remove port from PM if this has been already added */
+    rv = portmod_port_is_valid(unit, pport, &valid);
+    if (PORTMOD_SUCCESS(rv) && (valid)) {
+        /* Remove port before adding again */
+        /* PortMod requires port to be disabled before removing it */
+        PORTMOD_PORT_ENABLE_PHY_SET(flags);
+        PORTMOD_PORT_ENABLE_MAC_SET(flags);
+        rv = _bcm_esw_portctrl_enable_set(unit, port, pport, flags, 0);
+
+        if (BCM_SUCCESS(rv)) {
+            rv = portmod_port_remove(unit, pport);
+        }
+    }
+
+    if (PORTMOD_FAILURE(rv)) {
+        PORT_UNLOCK(unit);
+        return rv;
+    }
+
+    /* Probe and add port */
+    phy = SOC_INFO(unit).port_l2p_mapping[port];
+    num_lanes = SOC_INFO(unit).port_num_lanes[port];
+    if (num_lanes == 10) num_lanes = 12;
+    for(lane = 0 ; lane < num_lanes; lane++) { 
+        SOC_PBMP_PORT_ADD(add_info.phys, phy+lane);
+    }
+    if (SAL_BOOT_SIMULATION) {
+        PORTMOD_PORT_ADD_F_FIRMWARE_LOAD_VERIFY_CLR(&add_info);
+    }
+    rv = portmod_port_add(unit, pport, &add_info);
+
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        *okay = TRUE;
+
+        /* Probe function should leave port disabled */
+        if (!SOC_WARM_BOOT(unit)) {
+            BCM_IF_ERROR_RETURN
+                (_bcm_esw_portctrl_enable_set(unit, port, pport,
+                                              PORTMOD_PORT_ENABLE_PHY, 0));
+        }
+    }
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_probe_pbmp
+ * Purpose:
+ *      Probe give port bitmap to identify which ports to add to Portmod.
+ * Parameters:
+ *      unit      - (IN) Unit number.
+ *      pbmp      - (IN) Port bitmap.
+ *      okay_pbmp - (OUT) Port bitmap okay.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_probe_pbmp(int unit, pbmp_t pbmp, pbmp_t *okay_pbmp)
+{
+#ifdef PORTMOD_SUPPORT
+    soc_port_t port;
+    int okay;
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    SOC_PBMP_CLEAR(*okay_pbmp);
+    PBMP_ITER(pbmp, port) {
+        /* Skip RCPU ports */
+#ifdef BCM_RCPU_SUPPORT
+        if (SOC_IS_RCPU_ONLY(unit) &&
+            SOC_PORT_VALID(unit, RCPU_PORT(unit)) &&
+            BCM_PBMP_MEMBER(pbmp, RCPU_PORT(unit))) {
+            continue;
+        }
+#endif /* BCM_RCPU_SUPPORT */
+        if (IS_TDM_PORT(unit, port)) {
+            continue;
+        }
+
+        if (!SOC_WARM_BOOT(unit)) {
+            BCM_IF_ERROR_RETURN
+                (bcmi_esw_portctrl_probe(unit, port, &okay));
+        }
+
+        if (okay) {
+            SOC_PBMP_PORT_ADD(*okay_pbmp, port);
+        }
+
+        BCM_IF_ERROR_RETURN
+            (PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+        rv = _bcm_esw_portctrl_enable_set(unit, port, pport,
+                                          PORTMOD_PORT_ENABLE_MAC, FALSE);
+        if (BCM_FAILURE(rv)) {
+            SOC_PBMP_PORT_REMOVE(*okay_pbmp, port);
+            LOG_WARN(BSL_LS_BCM_PORT,
+                     (BSL_META_U(unit,
+                                 "MAC init failed on port %s\n"),
+                      SOC_PORT_NAME(unit, port)));
+            break;
+        }
+
+        if (soc_property_port_get(unit, port, spn_FCMAP_ENABLE, 0)) {
+            soc_persist_t       *sop = SOC_PERSIST(unit);
+            SOC_PBMP_PORT_ADD(sop->lc_pbm_fc, port);
+        }
+
+        /* This is needed for run-time probing */
+        rv = bcm_esw_port_update(unit, port, TRUE);
+        if (BCM_FAILURE(rv)) {
+            SOC_PBMP_PORT_REMOVE(*okay_pbmp, port);
+            return rv;
+        }
+    }
+
+    return BCM_E_NONE;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_ability_get
+ * Purpose:
+ *      Retrieve the local port abilities.
+ * Parameters:
+ *      unit         - (IN) Unit number.
+ *      port         - (IN) Port number.
+ *      port_ability - (OUT) Returns bcm_port_ability_t structure information.
+ *      ability_mask - (OUT) If !NULL, returns mask of BCM_PORT_ABIL_
+ *                           values indicating the ability of the MAC/PHY.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_ability_get(int unit, bcm_gport_t port,
+                              bcm_port_ability_t *port_ability,
+                              bcm_port_abil_t *ability_mask)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+    portmod_port_ability_t portmod_ability;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+    if(!(SOC_PBMP_MEMBER(PBMP_PORT_ALL(unit), port))) {
+       return BCM_E_PORT;
+    }
+
+    sal_memset(port_ability, 0, sizeof(*port_ability));
+    sal_memset(&portmod_ability, 0, sizeof(portmod_ability));
+    if (ability_mask != NULL) {
+        *ability_mask = 0;
+    }
+
+    PORT_LOCK(unit);
+    rv = portmod_port_ability_local_get(unit, pport, &portmod_ability);
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        _bcm_esw_portctrl_from_portmod_ability(&portmod_ability,
+                                               port_ability);
+
+        port_ability->loopback  |= BCM_PORT_ABILITY_LB_NONE;
+        if(SAL_BOOT_SIMULATION) {
+            port_ability->loopback |= BCM_PORT_ABILITY_LB_MAC;
+            port_ability->loopback &= ~BCM_PORT_ABILITY_LB_PHY;
+        }
+
+        if ((soc_feature(unit, soc_feature_embedded_higig)) &&
+            IS_E_PORT(unit, port)) {
+            port_ability->encap |= BCM_PA_ENCAP_HIGIG2_L2;
+            port_ability->encap |= BCM_PA_ENCAP_HIGIG2_IP_GRE;
+        }
+
+        if ((soc_feature(unit, soc_feature_higig_over_ethernet))) {
+            port_ability->encap |= BCM_PA_ENCAP_HIGIG_OVER_ETHERNET;
+        }
+
+        /* Convert to BCM_PORT_ABIL_ mask if needed */
+        if (ability_mask != NULL) {
+            rv = soc_port_ability_to_mode(port_ability, ability_mask);
+        }
+    }
+
+    if (ability_mask != NULL) {
+        LOG_INFO(BSL_LS_BCM_PORT,
+                 (BSL_META_UP(unit, port,
+                              "Port ability get: u=%d p=%d abil=0x%x "
+                              "rv=%d\n"),
+                  unit, port, *ability_mask, rv));
+    } else {
+        LOG_INFO(BSL_LS_BCM_PORT,
+                 (BSL_META_UP(unit, port,
+                              "Port ability get: u=%d p=%d rv=%d\n"),
+                  unit, port, rv));
+    }
+
+    LOG_VERBOSE(BSL_LS_BCM_PORT,
+                (BSL_META_UP(unit, port,
+                             "Speed(HD=0x%08x, FD=0x%08x) Pause=0x%08x abl_get\n"
+                             "Interface=0x%08x Medium=0x%08x EEE=0x%08x "
+                             "Loopback=0x%08x Flags=0x%08x\n"),
+                 port_ability->speed_half_duplex,
+                 port_ability->speed_full_duplex,
+                 port_ability->pause, port_ability->interface,
+                 port_ability->medium, port_ability->eee,
+                 port_ability->loopback, port_ability->flags));
+
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_ability_remote_get
+ * Purpose:
+ *      Retrieve the remote advertised port abilities.
+ * Parameters:
+ *      unit         - (IN) Unit number.
+ *      port         - (IN) Port number.
+ *      port_ability - (OUT) Returns bcm_port_ability_t structure information.
+ *      ability_mask - (OUT) If !NULL, returns mask of BCM_PORT_ABIL_
+ *                           values indicating the ability of the MAC/PHY.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_ability_remote_get(int unit, bcm_gport_t port,
+                                     bcm_port_ability_t *port_ability,
+                                     bcm_port_abil_t *ability_mask)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+    portmod_port_ability_t portmod_ability;
+    phymod_autoneg_status_t an_status;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    sal_memset(port_ability, 0, sizeof(*port_ability));
+    sal_memset(&portmod_ability, 0, sizeof(portmod_ability));
+    if (ability_mask != NULL) {
+        *ability_mask = 0;
+    }
+
+    PORT_LOCK(unit);
+
+    rv = portmod_port_autoneg_status_get(unit, pport, &an_status);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        if (!an_status.enabled) {
+            rv = BCM_E_DISABLED;
+        } else if (!an_status.locked) {
+            rv = BCM_E_BUSY;
+        } else {
+            rv = portmod_port_ability_remote_get(unit, pport,
+                                                 &portmod_ability);
+        }
+    }
+
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        _bcm_esw_portctrl_from_portmod_ability(&portmod_ability,
+                                               port_ability);
+
+        /* Convert to BCM_PORT_ABIL_ mask if needed */
+        if (ability_mask != NULL) {
+            rv = soc_port_ability_to_mode(port_ability, ability_mask);
+        }
+    }
+
+    if (ability_mask != NULL) {
+        LOG_INFO(BSL_LS_BCM_PORT,
+                 (BSL_META_UP(unit, port,
+                              "Port ability remote get: u=%d p=%d abil=0x%x "
+                              "rv=%d\n"),
+                  unit, port, *ability_mask, rv));
+    } else {
+        LOG_INFO(BSL_LS_BCM_PORT,
+                 (BSL_META_UP(unit, port,
+                              "Port ability remote get: u=%d p=%d rv=%d\n"),
+                  unit, port, rv));
+    }
+
+    LOG_VERBOSE(BSL_LS_BCM_PORT,
+                (BSL_META_UP(unit, port,
+                             "Speed(HD=0x%08x, FD=0x%08x) Pause=0x%08x abl_remote_get\n"
+                             "Interface=0x%08x Medium=0x%08x "
+                             "Loopback=0x%08x Flags=0x%08x\n"),
+                 port_ability->speed_half_duplex,
+                 port_ability->speed_full_duplex,
+                 port_ability->pause, port_ability->interface,
+                 port_ability->medium,
+                 port_ability->loopback, port_ability->flags));
+
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_enable_get
+ * Purpose:
+ *      Gets the enable state as defined by bcm_port_enable_set()
+ * Parameters:
+ *      unit   - (IN) Unit number.
+ *      port   - (IN) Port number.
+ *      enable - (OUT) TRUE, port is enabled, FALSE port is disabled.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      The PHY enable holds the port enable state set by the user.
+ *      The MAC enable transitions up and down automatically via linkscan
+ *      even if user port enable is always up.
+ */
+int
+bcmi_esw_portctrl_enable_get(int unit, bcm_gport_t port, int *enable)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+    _bcm_port_info_t *port_info;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    if (SOC_PBMP_MEMBER(SOC_PORT_DISABLED_BITMAP(unit,all), port)) {
+        *enable = 0;
+        return BCM_E_NONE;
+    }
+
+    PORT_LOCK(unit);
+
+    rv = portmod_port_enable_get(unit, pport, PORTMOD_PORT_ENABLE_PHY, enable);
+
+    _bcm_port_info_access(unit, port, &port_info);
+    *enable = port_info->enable & (*enable);
+
+    PORT_UNLOCK(unit);
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, port,
+                          "Port enable get: u=%d p=%d rv=%d enable=%d\n"),
+              unit, port, rv, *enable));
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_enable_set
+ * Purpose:
+ *      Physically enable/disable the MAC/PHY on this port.
+ * Parameters:
+ *      unit   - (IN) Unit number.
+ *      port   - (IN) Port number.
+ *      enable - (IN) TRUE, port is enabled, FALSE port is disabled.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      If linkscan is running, it also controls the MAC enable state.
+ */
+int
+bcmi_esw_portctrl_enable_set(int unit, bcm_gport_t port, int enable)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+    int link, loopback = BCM_PORT_LOOPBACK_NONE;
+    soc_persist_t *sop = SOC_PERSIST(unit);
+    _bcm_port_info_t *port_info;
+    int flags = 0;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+#ifdef BCM_RCPU_SUPPORT
+    if (SOC_IS_RCPU_ONLY(unit) && IS_RCPU_PORT(unit, port)) {
+        return BCM_E_PORT;
+    }
+#endif /* BCM_RCPU_SUPPORT */
+
+    BCM_IF_ERROR_RETURN
+        (bcmi_esw_portctrl_loopback_get(unit, port, &loopback));
+
+    PORT_LOCK(unit);
+
+
+    
+    /* phyctrl_init and _bcm_port_mode_setup needs to happen here */
+    /* rv = portmod_port_enable_set(unit, port, 0, enable); */
+
+    if (enable) {
+        if (SOC_PBMP_MEMBER(SOC_PORT_DISABLED_BITMAP(unit, all), port)) {
+            PORT_UNLOCK(unit);
+            return BCM_E_NONE;
+        }
+
+        rv = _bcm_esw_portctrl_enable_set(unit, port, pport,
+                                          PORTMOD_PORT_ENABLE_PHY, 1);
+        if (BCM_FAILURE(rv)) {
+            PORT_UNLOCK(unit);
+            return rv;
+        }
+
+        /* Get link status after PHY state has been set */
+        rv = bcm_esw_port_link_status_get(unit, port, &link);
+        if (BCM_FAILURE(rv)) {
+            if (rv == BCM_E_INIT) {
+                link = FALSE;
+                rv = BCM_E_NONE;
+            } else {
+                PORT_UNLOCK(unit);
+                return rv;
+            }
+        }
+
+        if (link || (loopback != BCM_PORT_LOOPBACK_NONE)
+            || SOC_PBMP_MEMBER(sop->lc_pbm_fc, port)
+            || SOC_PBMP_MEMBER(sop->lc_pbm_linkdown_tx, port)) {
+            rv = _bcm_esw_portctrl_enable_set(unit, port, pport,
+                                              PORTMOD_PORT_ENABLE_MAC, 1);
+            if (BCM_FAILURE(rv)) {
+                PORT_UNLOCK(unit);
+                return rv;
+            }
+        }
+
+    } else {
+
+        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    (BSL_META_UP(unit, port,
+                                 "Disable and isolate u=%d p=%d\n"),
+                     unit, port));
+
+        /*
+         * When the port is configured to MAC loopback,
+         * cannot disable MAC.
+         */
+        PORTMOD_PORT_ENABLE_PHY_SET(flags);
+        if (loopback != BCM_PORT_LOOPBACK_MAC) {
+            PORTMOD_PORT_ENABLE_MAC_SET(flags);
+        }
+        rv = _bcm_esw_portctrl_enable_set(unit, port, pport, flags, 0);
+        if (BCM_FAILURE(rv)) {
+            PORT_UNLOCK(unit);
+            return rv;
+        }
+    }
+
+    _bcm_port_info_access(unit, port, &port_info);
+    port_info->enable = enable;
+
+    PORT_UNLOCK(unit);
+
+    /* Unlock before link call */
+    if (loopback != BCM_PORT_LOOPBACK_NONE) {
+        if (loopback == BCM_PORT_LOOPBACK_MAC) {
+            rv = _bcm_esw_link_force(unit, 0, port, TRUE, TRUE);
+        } else {
+            rv = _bcm_esw_link_force(unit, 0, port, TRUE, enable);
+        }
+    }
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, port,
+                          "Port enable set: u=%d p=%d enable=%d rv=%d\n"),
+              unit, port, enable, rv));
+
+#ifdef BCM_WARM_BOOT_SUPPORT
+    SOC_CONTROL_LOCK(unit);
+    SOC_CONTROL(unit)->scache_dirty = 1;
+    SOC_CONTROL_UNLOCK(unit);
+#endif
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_phy_enable_set
+ * Purpose:
+ *      Physically enable/disable the PHY on this port.
+ * Parameters:
+ *      unit   - (IN) Unit number.
+ *      port   - (IN) Port number.
+ *      enable - (IN) TRUE, PHY port is enabled, FALSE PHY port is disabled.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Unlike bcmi_esw_portctl_enable_set(), this routine
+ *      only enables the PHY.  It does not contain any logic
+ *      to handle loopback cases, MAC, or current port state.
+ */
+int
+bcmi_esw_portctrl_phy_enable_set(int unit, bcm_gport_t port, int enable)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_enable_set(unit, pport,
+                                 PORTMOD_PORT_ENABLE_PHY, enable);
+    PORT_UNLOCK(unit);
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_egress_queue_drain
+ * Purpose:
+ *      Drain the egress queues without bringing down the port.
+ * Parameters:
+ *      unit   - (IN) Unit number.
+ *      port   - (IN) Port number.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ */
+int
+bcmi_esw_portctrl_egress_queue_drain(int unit, bcm_gport_t port)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = _bcm_esw_portctrl_egress_queue_drain(unit, port, pport);
+    PORT_UNLOCK(unit);
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_update
+ * Description:
+ *      Get port characteristics from PHY and program MAC to match.
+ * Parameters:
+ *      unit   - (IN) Device number.
+ *      port   - (IN) Port number.
+ *      link   - (IN) TRUE - process as link up.
+ *                    FALSE - process as link down.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      This function cannot hold the PORT_LOCK because it is called
+ *      by the linkscan thread.
+ */
+int
+bcmi_esw_portctrl_update(int unit, bcm_gport_t port, int link)
+{
+#ifdef PORTMOD_SUPPORT
+    portctrl_pport_t pport;
+    portmod_port_interface_config_t if_config;
+    int speed;
+    int duplex;
+    phymod_autoneg_status_t an_status;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    if (!link) {
+        /* PHY is down.  Disable the MAC. */
+        return _bcm_esw_portctrl_enable_set(unit, port, pport,
+                                            PORTMOD_PORT_ENABLE_MAC, 0);
+    }
+
+    /*
+     * Set MAC speed first, since for GTH ports, this will switch
+     * between the 1000Mb/s or 10/100Mb/s MACs.
+     */
+    if (!IS_HG_PORT(unit, port) || IS_GX_PORT(unit, port)) {
+        PORTMOD_IF_ERROR_RETURN
+            (portmod_port_interface_config_get(unit, pport, &if_config));
+        speed = if_config.speed;
+
+        PORTMOD_IF_ERROR_RETURN
+            (portmod_port_duplex_get(unit, pport, &duplex));
+
+        if (IS_HG_PORT(unit, port) && (if_config.speed < 5000)) {
+            speed = 0;
+        }
+
+#ifdef INCLUDE_FCMAP
+        /*
+         * In FCMAP mode, the port is operating in FC-Mode. The switch and the
+         * system side of the PHY operates in 10G, FullDuplex and
+         * Pause enabled mode.
+         */
+        if (soc_property_port_get(unit, port, spn_FCMAP_ENABLE, 0)) {
+            speed = 10000;
+            duplex = 1;
+        }
+#endif
+
+        if (if_config.speed != speed) {
+            if_config.speed = speed;
+            PORTMOD_IF_ERROR_RETURN
+                (_bcm_esw_portctrl_interface_config_set(unit, port, pport,
+                                                        &if_config));
+        }
+        
+        PORTMOD_IF_ERROR_RETURN
+            (portmod_port_duplex_set(unit, pport, duplex));
+    } else {
+        duplex = 1;
+    }
+    PORTMOD_IF_ERROR_RETURN(
+            portmod_port_status_notify(unit, port, link));
+
+    /*
+     * If autonegotiating, check the negotiated PAUSE values, and program
+     * MACs accordingly. Link can also be achieved thru parallel detect.
+     * In this case, it should be treated as in the forced mode.
+     */
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_autoneg_status_get(unit, pport, &an_status));
+
+    if (an_status.enabled && an_status.locked) {
+        bcm_port_ability_t local_advert, remote_advert;
+        int tx_pause, rx_pause;
+        portmod_pause_control_t pause_control;
+
+        BCM_IF_ERROR_RETURN
+            (bcmi_esw_portctrl_ability_advert_get(unit, port,
+                                                  &local_advert, NULL));
+        BCM_IF_ERROR_RETURN
+            (bcmi_esw_portctrl_ability_remote_get(unit, port,
+                                                  &remote_advert, NULL));
+
+        /*
+         * IEEE 802.3 Flow Control Resolution.
+         * Please see $SDK/doc/pause-resolution.txt for more information.
+         */
+        if (duplex) {
+            tx_pause =
+                     ((remote_advert.pause & SOC_PA_PAUSE_RX) &&
+                      (local_advert.pause & SOC_PA_PAUSE_RX)) ||
+                     ((remote_advert.pause & SOC_PA_PAUSE_RX) &&
+                      !(remote_advert.pause & SOC_PA_PAUSE_TX) &&
+                      (local_advert.pause & SOC_PA_PAUSE_TX));
+
+            rx_pause =
+                     ((remote_advert.pause & SOC_PA_PAUSE_RX) &&
+                      (local_advert.pause & SOC_PA_PAUSE_RX)) ||
+                     ((local_advert.pause & SOC_PA_PAUSE_RX) &&
+                      (remote_advert.pause & SOC_PA_PAUSE_TX) &&
+                      !(local_advert.pause & SOC_PA_PAUSE_TX));
+        } else {
+            rx_pause = tx_pause = 0;
+        }
+
+        PORTMOD_IF_ERROR_RETURN
+            (portmod_port_pause_control_get(unit, pport, &pause_control));
+        pause_control.rx_enable = rx_pause;
+        pause_control.tx_enable = tx_pause;
+        PORTMOD_IF_ERROR_RETURN
+            (portmod_port_pause_control_set(unit, pport, &pause_control));
+    }
+
+    /* Enable the MAC */
+    BCM_IF_ERROR_RETURN
+        (_bcm_esw_portctrl_enable_set(unit, port, pport,
+                                      PORTMOD_PORT_ENABLE_MAC, 1));
+
+
+    /* When a link comes up, hardware will not update the
+     * LINK_STATUS register until software has toggled the
+     * the LAG_FAILOVER_CONFIG.LINK_STATUS_UP field.
+     * When a link goes down, hardware will update the
+     * LINK_STATUS register without software intervention.
+     */
+    if (IS_XL_PORT(unit, port) || IS_MXQ_PORT(unit, port)) {
+        /* Toggle link bit to notify IPIPE on link up */
+        PORTMOD_IF_ERROR_RETURN
+            (portmod_port_lag_failover_status_toggle(unit, pport));
+    }
+
+    return BCM_E_NONE;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_fault_get
+ * Description:
+ *      Get link fault type.
+ * Parameters:
+ *      unit   - (IN) Device number.
+ *      port   - (IN) Port number.
+ *      flags  - (OUT) flags to indicate fault type.
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_fault_get(int unit, bcm_gport_t port, uint32 *flags)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+    int local_fault = 0, remote_fault = 0;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_local_fault_status_get(unit, pport, &local_fault);
+    if (PORTMOD_SUCCESS(rv)) {
+        rv = portmod_port_remote_fault_status_get(unit, pport, &remote_fault);
+    }
+    PORT_UNLOCK(unit);
+
+    *flags = 0;
+    if (local_fault) {
+        *flags |= BCM_PORT_FAULT_LOCAL;
+    }
+    if (remote_fault) {
+        *flags |= BCM_PORT_FAULT_REMOTE;
+    }
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_loopback_get
+ * Purpose:
+ *      Recover the current loopback operation for the specified port.
+ * Parameters:
+ *      unit     - (IN) Unit number.
+ *      port     - (IN) Port number.
+ *      loopback - (OUT) One of:
+ *                       BCM_PORT_LOOPBACK_NONE
+ *                       BCM_PORT_LOOPBACK_MAC
+ *                       BCM_PORT_LOOPBACK_PHY
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_loopback_get(int unit, bcm_gport_t port, int *loopback)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+    int i = 0, enable = 0;
+    int phy_lane = -1;
+    int phyn = 0, sys_side = 0;
+    bcm_port_t  local_port = -1;
+    uint32 phy_lb = 0;
+
+    portmod_loopback_mode_t portmod_lb_modes[] = {
+        portmodLoopbackMacOuter,
+        portmodLoopbackPhyGloopPMD,
+        portmodLoopbackPhyGloopPCS,
+        portmodLoopbackPhyRloopPMD
+        /* portmodLoopbackPhyRloopPCS - no support */
+    };
+    int bcm_lb_modes[] = {
+        BCM_PORT_LOOPBACK_MAC,
+        BCM_PORT_LOOPBACK_PHY,
+        BCM_PORT_LOOPBACK_PHY,
+        BCM_PORT_LOOPBACK_PHY_REMOTE,
+        BCM_PORT_LOOPBACK_PHY_REMOTE
+    };
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(
+        _bcm_esw_port_gport_phyn_validate(unit, port,
+                                          &local_port, &phyn,
+                                          &phy_lane, &sys_side));
+
+    if (local_port != -1) {
+        port = local_port;
+    }
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    if (local_port != -1) {
+        PORT_LOCK(unit);
+        rv = portmod_port_redirect_loopback_get(unit, pport, phyn,
+                                                phy_lane, sys_side,
+                                                &phy_lb);
+        PORT_UNLOCK(unit);
+        if (PORTMOD_FAILURE(rv)) {
+            LOG_VERBOSE(BSL_LS_BCM_PORT,
+                        (BSL_META_UP(unit, port,
+                            "Redirect loopback get failed: p=%d, rv=%d"),
+                        port, rv));
+            return rv;
+        }
+    }
+
+    *loopback = BCM_PORT_LOOPBACK_NONE;
+
+    for (i = 0; i < COUNTOF(portmod_lb_modes); i++) {
+        PORT_LOCK(unit);
+        rv = portmod_port_loopback_get(unit, pport,
+                                       portmod_lb_modes[i], &enable);
+        PORT_UNLOCK(unit);
+
+        if (PORTMOD_FAILURE(rv)) {
+            LOG_VERBOSE(BSL_LS_BCM_PORT,
+                        (BSL_META_UP(unit, port,
+                                     "Loopback get failed: p=%d, rv=%d"),
+                        port, rv));
+            return rv;
+        }
+
+        if (enable) {
+            *loopback = bcm_lb_modes[i];
+            break;
+        }
+    }
+
+    if (*loopback != BCM_PORT_LOOPBACK_MAC && phy_lb) {
+        *loopback = BCM_PORT_LOOPBACK_PHY;
+    }
+
+    return BCM_E_NONE;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_loopback_set
+ * Purpose:
+ *      Set loopback mode for the specified port.
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      loopback - one of:
+ *              BCM_PORT_LOOPBACK_NONE
+ *              BCM_PORT_LOOPBACK_MAC
+ *              BCM_PORT_LOOPBACK_PHY
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_loopback_set(int unit, bcm_gport_t port, int loopback)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE, link = TRUE;
+    portctrl_pport_t pport;
+    int phy_lane = -1;
+    int phyn = 0, sys_side = 0;
+    int flags = 0;
+    bcm_port_t local_port = -1;
+    soc_persist_t *sop = SOC_PERSIST(unit);
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(
+        _bcm_esw_port_gport_phyn_validate(unit, port,
+                                          &local_port, &phyn,
+                                          &phy_lane, &sys_side));
+
+    if (local_port != -1) {
+        port = local_port;
+    }
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+#ifdef BCM_RCPU_SUPPORT
+    if (SOC_IS_RCPU_ONLY(unit) && IS_RCPU_PORT(unit, port)) {
+        return BCM_E_PORT;
+    }
+#endif /* BCM_RCPU_SUPPORT */
+
+    PORTMOD_PORT_ENABLE_PHY_SET(flags);
+    PORT_LOCK(unit);
+    rv = portmod_port_enable_get(unit, pport, flags, &link);
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_FAILURE(rv)) {
+        LOG_VERBOSE(BSL_LS_BCM_PORT,
+                    (BSL_META_UP(unit, port,
+                                 "Get port enable failed: p=%d, rv=%d"),
+                    port, rv));
+    }
+
+    if (TRUE == link) {
+        PORT_LOCK(unit);
+
+        if (SOC_PBMP_MEMBER(sop->lc_pbm_override_ports, port)) {
+            if(!SOC_PBMP_MEMBER(sop->lc_pbm_override_link, port)) {
+                link = FALSE;
+            }
+        }
+
+        PORT_UNLOCK(unit);
+    }
+
+    /*
+     * Always force link before changing hardware to avoid
+     * race with the linkscan thread.
+     */
+    if (!(loopback == BCM_PORT_LOOPBACK_NONE)) {
+        rv = _bcm_esw_link_force(unit, 0 /*flags*/, port, TRUE, FALSE);
+    }
+
+    PORT_LOCK(unit);
+
+    if (BCM_SUCCESS(rv)) {
+        rv = portmod_port_loopback_set(unit, pport, 
+                                       portmodLoopbackMacOuter, 
+                                       (loopback == BCM_PORT_LOOPBACK_MAC));
+    }
+
+    if (PORTMOD_SUCCESS(rv)) {
+        if (local_port == -1) {
+            rv = portmod_port_loopback_set(unit, pport,
+                                portmodLoopbackPhyGloopPCS,
+                                (loopback == BCM_PORT_LOOPBACK_PHY));
+        } else {
+            rv = portmod_port_redirect_loopback_set(unit, pport,
+                               phyn, phy_lane, sys_side,
+                               (loopback == BCM_PORT_LOOPBACK_PHY));
+        }
+    }
+
+    PORT_UNLOCK(unit);  /* unlock before link call */
+
+    flags = 0;
+    PORTMOD_PORT_ENABLE_PHY_SET(flags);
+    PORTMOD_PORT_ENABLE_MAC_SET(flags);
+
+    if ((loopback == BCM_PORT_LOOPBACK_NONE) || PORTMOD_FAILURE(rv)) {
+        _bcm_esw_link_force(unit, 0 /*flags*/, port, FALSE, DONT_CARE);
+
+        if ((FALSE == link) && (loopback == BCM_PORT_LOOPBACK_NONE)) {
+            PORT_LOCK(unit);
+            rv = _bcm_esw_portctrl_enable_set(unit, port, pport, flags, 0);
+            PORT_UNLOCK(unit);
+        }
+    } else {
+        PORT_LOCK(unit);
+        rv = _bcm_esw_portctrl_enable_set(unit, port, pport, flags, 1);
+        PORT_UNLOCK(unit);
+
+        if (PORTMOD_SUCCESS(rv)) {
+            /* Make sure that the link status is updated only after the
+             * MAC is enabled so that link_mask2 is set before the
+             * calling thread synchronizes with linkscan thread in
+             * _bcm_link_force call.
+             * If the link is forced before MAC is enabled, there could
+             * be a race condition in _soc_link_update where linkscan 
+             * may use an old view of link_mask2 and override the
+             * EPC_LINK_BMAP after the mac_enable_set updates 
+             * link_mask2 and EPC_LINK_BMAP. 
+             */
+            if (loopback == BCM_PORT_LOOPBACK_MAC) {
+                rv = _bcm_esw_link_force(unit, 0 /*flags*/, port, TRUE, TRUE);
+            } else {
+                rv = _bcm_esw_link_force(unit, 0 /*flags*/, port, TRUE, link);
+            }
+        }
+    }
+
+    if (IS_C_PORT(unit, port)) {
+       portmod_port_interface_config_t if_cfg;
+       PORTMOD_IF_ERROR_RETURN
+              (portmod_port_interface_config_get(unit, port, &if_cfg));
+
+       rv = _bcm_esw_portctrl_interface_config_set(unit, port, pport,
+                                                   &if_cfg);
+    }
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, port,
+                          "bcm_port_loopback_set: p=%d lb=%d rv=%d\n"),
+              port, loopback, rv));
+
+    return rv;
+
+#else   /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif  /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_speed_get
+ * Purpose:
+ *      Getting the speed of the port
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      speed - (OUT) Value in megabits/sec (10, 100, etc)
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ * Notes:
+ *      If port is in MAC loopback, the speed of the loopback is returned.
+ */
+int
+bcmi_esw_portctrl_speed_get(int unit, bcm_gport_t port, int *speed)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t  pport;
+    portmod_port_interface_config_t portmod_if_config;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_interface_config_get(unit, pport, &portmod_if_config);
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        *speed = portmod_if_config.speed;
+
+        if (IS_HG_PORT(unit, port) && *speed < 5000) {
+            *speed = 0;
+        }
+    }
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, port,
+                          "Get port speed: p=%d speed=%d rv=%d\n"),
+              port, BCM_SUCCESS(rv) ? *speed : 0, rv));
+
+    return rv;
+
+#else   /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif  /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_speed_max
+ * Purpose:
+ *      Getting the maximum speed of the port
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      speed - (OUT) Value in megabits/sec (10, 100, etc)
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_speed_max(int unit, bcm_gport_t port, int *speed)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv;
+    bcm_port_ability_t ability;
+    portctrl_pport_t  pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    sal_memset(&ability, 0, sizeof(bcm_port_ability_t));
+
+    if (speed == NULL) {
+        return (BCM_E_PARAM);
+    }
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    rv = bcmi_esw_portctrl_ability_get(unit, port, &ability, NULL);
+
+    if (BCM_SUCCESS(rv)) {
+        *speed = BCM_PORT_ABILITY_SPEED_MAX(ability.speed_full_duplex |
+                                            ability.speed_half_duplex);
+
+        if (*speed == 10000) {
+            if (IS_HG_PORT(unit, port) && SOC_INFO(unit).port_speed_max[port]) {
+                *speed = SOC_INFO(unit).port_speed_max[port];
+            }
+        }
+    } else {
+        *speed = 0;
+    }
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, port,
+                          "Max port speed: p=%d speed=%d rv=%d\n"),
+              port, *speed, rv));
+
+    return rv;
+
+#else   /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif  /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_speed_set
+ * Purpose:
+ *      Setting the speed for a given port
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      speed - Value in megabits/sec (10, 100, etc)
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_speed_set(int unit, bcm_gport_t port, int speed)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv;
+    portctrl_pport_t  pport;
+    bcm_port_ability_t port_ability, requested_ability;
+    portmod_port_interface_config_t portmod_if_config;
+    phymod_autoneg_control_t an;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    sal_memset(&port_ability, 0, sizeof(bcm_port_ability_t));
+    sal_memset(&requested_ability, 0, sizeof(bcm_port_ability_t));
+    sal_memset(&an, 0, sizeof(phymod_autoneg_control_t));
+
+    BCM_IF_ERROR_RETURN
+        (bcmi_esw_portctrl_ability_get(unit, port, &port_ability, NULL));
+
+    if (speed == 0) {
+        /* if speed is 0, set the port speed to max */
+        BCM_IF_ERROR_RETURN
+            (bcmi_esw_portctrl_speed_max(unit, port, &speed));
+    }
+
+    requested_ability.speed_full_duplex = SOC_PA_SPEED(speed);
+    requested_ability.speed_half_duplex = SOC_PA_SPEED(speed);
+
+    if (((port_ability.speed_full_duplex &
+          requested_ability.speed_full_duplex) == 0) &&
+        ((port_ability.speed_half_duplex &
+          requested_ability.speed_half_duplex) == 0)) {
+        LOG_VERBOSE(BSL_LS_BCM_PORT,
+                    (BSL_META_UP(unit, port,
+                                 "Port %d doesn't support %d Mbps speed.\n"),
+                    port, speed));
+        return BCM_E_CONFIG;
+    }
+
+    PORT_LOCK(unit);
+
+    rv = portmod_port_autoneg_get(unit, pport, &an);
+    if (PORTMOD_FAILURE(rv)) {
+        PORT_UNLOCK(unit);
+        return rv;
+    }
+
+    an.enable = FALSE;
+
+    rv = portmod_port_autoneg_set(unit, pport, &an);
+    if (PORTMOD_FAILURE(rv)) {
+        PORT_UNLOCK(unit);
+        return rv;
+    }
+
+    rv = portmod_port_interface_config_get(unit, pport, &portmod_if_config);
+    if (PORTMOD_FAILURE(rv)) {
+        PORT_UNLOCK(unit);
+        return rv;
+    }
+
+    
+    if (PORTMOD_SUCCESS(rv)) {
+        portmod_if_config.speed = speed;
+        if (speed >= 100000)
+            portmod_if_config.interface = SOC_PORT_IF_CAUI;
+        else if (speed >= 40000)
+            portmod_if_config.interface = SOC_PORT_IF_XLAUI;
+        else if (speed >= 10000)
+            portmod_if_config.interface = SOC_PORT_IF_XFI;
+        rv = _bcm_esw_portctrl_interface_config_set(unit, port, pport,
+                                                    &portmod_if_config);
+    }
+
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_FAILURE(rv)) {
+        LOG_VERBOSE(BSL_LS_BCM_PORT,
+                    (BSL_META_UP(unit, port,
+                                "Set port speed failed: p=%d speed=%d rv=%d\n"),
+                    port, speed, rv));
+    }
+
+    return rv;
+
+#else   /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif  /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_stk_my_modid_set
+ * Purpose:
+ *      Set the module-id in the Port block
+ * Parameters:
+ *      unit  - SOC unit#
+ *      port - port #
+ *      my_modid - the value to set
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_stk_my_modid_set(int unit, bcm_gport_t port, int my_modid)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    if (IS_HG_PORT(unit, port)) {
+        PORT_LOCK(unit);
+        rv = portmod_port_modid_set(unit, pport, my_modid);
+        PORT_UNLOCK(unit);
+    }
+
+    return rv;
+
+#else   /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif  /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_pause_get
+ * Purpose:
+ *      Get the TX and RX settings for pause frames.
+ * Parameters:
+ *      unit     - (IN) Unit number.
+ *      port     - (IN) Port number.
+ *      pause_tx - (OUT) Boolean value.
+ *      pause_rx - (OUT) Boolean value.
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_pause_get(int unit, bcm_gport_t port,
+                            int *pause_tx, int *pause_rx)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+    portmod_pause_control_t pause_control;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_pause_control_get(unit, pport, &pause_control);
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        *pause_tx = pause_control.tx_enable;
+        *pause_rx = pause_control.rx_enable;
+    }
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_pause_set
+ * Purpose:
+ *      Enable or disable transmission of pause frames and
+ *      honoring received pause frames on a port.
+ * Parameters:
+ *      unit     - (IN) Unit number.
+ *      port     - (IN) Port number.
+ *      pause_tx - (IN) 0 to disable transmission of pauseframes, 1 to enable.
+ *      pause_rx - (IN) 0 to ignore received pause frames, 1 to honor
+ *                      received pause frames.
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_pause_set(int unit, bcm_gport_t port,
+                            int pause_tx, int pause_rx)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+    portmod_pause_control_t pause_control;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+
+    rv = portmod_port_pause_control_get(unit, pport, &pause_control);
+    if (PORTMOD_SUCCESS(rv)) {
+        pause_control.rx_enable = pause_rx;
+        pause_control.tx_enable = pause_rx;
+        rv = portmod_port_pause_control_set(unit, pport, &pause_control);
+    }
+
+    PORT_UNLOCK(unit);
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_pause_addr_get
+ * Purpose:
+ *      Get the source address for transmitted PAUSE frames.
+ * Parameters:
+ *      unit   - (IN) Unit number.
+ *      port   - (IN) Port number.
+ *      mac    - (OUT) MAC address sent with pause frames.
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_pause_addr_get(int unit, bcm_gport_t port, bcm_mac_t mac)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    /* sal_mac_addr_t and bcm_mac_t typedefs definitions are the same */
+    PORT_LOCK(unit);
+    rv = portmod_port_tx_mac_sa_get(unit, pport, mac);
+    PORT_UNLOCK(unit);
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_pause_addr_set
+ * Purpose:
+ *      Set the source address for transmitted PAUSE frames.
+ * Parameters:
+ *      unit   - (IN) Unit number.
+ *      port   - (IN) Port number.
+ *      mac    - (IN) Station MAC address used for pause frames.
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_pause_addr_set(int unit, bcm_gport_t port, bcm_mac_t mac)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    /* sal_mac_addr_t and bcm_mac_t typedefs definitions are the same */
+    PORT_LOCK(unit);
+    rv = portmod_port_tx_mac_sa_set(unit, pport, mac);
+    PORT_UNLOCK(unit);
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_eee_enable_get
+ * Purpose:
+ *      Retrieve eee enable field.
+ * Parameters:
+ *      unit         - (IN) Unit number.
+ *      port         - (IN) Port number.
+ *      enable       - (OUT) Returns eee enable field.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_eee_enable_get(int unit, bcm_gport_t port, int *enable)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t  pport;
+    portmod_eee_t eee;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_eee_get(unit, pport, &eee);
+    *enable = eee.enable;
+    PORT_UNLOCK(unit);
+
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_eee_enable_set
+ * Purpose:
+ *      Set the eee enable field if different from what is to be set.
+ * Parameters:
+ *      unit         - (IN) Unit number.
+ *      port         - (IN) Port number.
+ *      enable       - (IN) eee enable field.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_eee_enable_set(int unit, bcm_gport_t port, int enable)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t  pport;
+    portmod_eee_t eee;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_eee_get(unit, pport, &eee);
+    if (PORTMOD_SUCCESS(rv)) {
+        if (eee.enable != enable) {
+            eee.enable = enable;
+            rv = portmod_port_eee_set(unit, pport, &eee);
+        }
+    }
+    PORT_UNLOCK(unit);
+
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_portctrl_master_get
+ * Purpose:
+ *      Getting the master status of the port
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      ms - (OUT) BCM_PORT_MS_*
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ * Notes:
+ *      WARNING: assumes BCM_PORT_MS_* matches SOC_PORT_MS_*
+ */
+
+int
+bcmi_esw_portctrl_master_get(int unit, bcm_gport_t port, int *ms)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    /* We return 0 since the underlying phy control functions are null 
+     * functions - they do not access hardware and simply a known, fixed value
+     */
+    *ms = 0;
+
+    return rv;
+
+#else   /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif  /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_port_medium_get
+ * Description:
+ *      Get the current medium used by a combo port
+ * Parameters:
+ *      unit     - Device number
+ *      port     - Port number
+ *      medium   - The medium (BCM_PORT_MEDIUM_COPPER or BCM_PORT_MEDIUM_FIBER)
+ *                 which is currently selected
+ * Return Value:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_medium_get(int unit, bcm_gport_t port,
+                             bcm_port_medium_t *medium)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portmod_port_diag_info_t info;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    memset(&info, 0, sizeof(info)); /* Keep Coverity happy */
+    portmod_port_diag_info_t_init(unit, &info);
+
+    PORT_LOCK(unit);
+
+    rv = portmod_port_diag_info_get(unit, pport, &info);
+
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        *medium = info.medium;
+    }
+
+    return rv;
+
+#else   /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif  /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_portctrl_master_set
+ * Purpose:
+ *      Setting the master status for a given port
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      ms - BCM_PORT_MS_*
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ * Notes:
+ *      Ignored if not supported on port.
+ *      WARNING: assumes BCM_PORT_MS_* matches SOC_PORT_MS_*
+ */
+int
+bcmi_esw_portctrl_master_set(int unit, bcm_gport_t port, int ms)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    pbmp_t pbm;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+#ifdef BCM_RCPU_SUPPORT
+    if (SOC_IS_RCPU_ONLY(unit) && IS_RCPU_PORT(unit, port)) {
+        return BCM_E_PORT;
+    }
+#endif /* BCM_RCPU_SUPPORT */
+
+
+    SOC_PBMP_CLEAR(pbm);
+    SOC_PBMP_PORT_ADD(pbm, port);
+    (void)bcm_esw_link_change(unit, pbm);
+
+    return rv;
+
+#else   /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif  /* PORTMOD_SUPPORT */
+
+}
+
+
+/*
+ * Function:
+ *      bcmi_portctrl_interface_get
+ * Purpose:
+ *      Getting the interface type of a port
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      intf - (OUT) BCM_PORT_IF_*
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ * Notes:
+ *      WARNING: assumes BCM_PORT_IF_* matches SOC_PORT_IF_*
+ */
+
+int
+bcmi_esw_portctrl_interface_get(int unit, bcm_gport_t port, bcm_port_if_t *intf)
+{
+#ifdef PORTMOD_SUPPORT
+    int         rv;
+    portmod_port_interface_config_t port_if_cfg;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    if (!SOC_PBMP_MEMBER(PBMP_PORT_ALL(unit), port)) {
+        return BCM_E_PORT;
+    }
+
+    portmod_port_interface_config_t_init(unit, &port_if_cfg);
+
+    PORT_LOCK(unit);
+    rv = portmod_port_interface_config_get(unit, pport, &port_if_cfg);
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        *intf = port_if_cfg.interface;
+    }
+
+    return rv;
+#else   /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif  /* PORTMOD_SUPPORT */
+
+}
+
+/*
+ * Function:
+ *      bcmi_portctrl_interface_set
+ * Purpose:
+ *      Setting the interface type for a given port
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      if - BCM_PORT_IF_*
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ * Notes:
+ *      WARNING: assumes BCM_PORT_IF_* matches SOC_PORT_IF_*
+ */
+int
+bcmi_esw_portctrl_interface_set(int unit, bcm_gport_t port, bcm_port_if_t intf)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    char *str = "";
+    pbmp_t pbm;
+    portmod_port_interface_config_t port_if_cfg;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    if (!SOC_PBMP_MEMBER(PBMP_PORT_ALL(unit), port)) {
+        return BCM_E_PORT;
+    }
+
+#ifdef BCM_RCPU_SUPPORT
+    if (SOC_IS_RCPU_ONLY(unit) && IS_RCPU_PORT(unit, port)) {
+        return BCM_E_PORT;
+    }
+#endif /* BCM_RCPU_SUPPORT */
+
+    portmod_port_interface_config_t_init(unit, &port_if_cfg);
+
+    PORT_LOCK(unit);
+    rv = portmod_port_interface_config_get(unit, pport, &port_if_cfg);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        
+        /* Set interface type */
+        port_if_cfg.interface = intf;
+        port_if_cfg.flags     = PHYMOD_INTF_F_INTF_PARAM_SET_ONLY ;
+
+        rv = _bcm_esw_portctrl_interface_config_set(unit, port, pport,
+                                                    &port_if_cfg);
+        PORT_UNLOCK(unit);
+
+        /* Unlock before link call */
+        if (PORTMOD_SUCCESS(rv)) {
+            SOC_PBMP_CLEAR(pbm);
+            SOC_PBMP_PORT_ADD(pbm, port);
+            (void)bcm_esw_link_change(unit, pbm);
+        } else {
+            str = "set";
+        }
+    } else {
+        PORT_UNLOCK(unit);
+        str = "get";
+    }
+
+    if (BCM_FAILURE(rv)) {
+        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    (BSL_META_UP(unit, port,
+                    "Interface_%s failed:%s\n"), str, bcm_errmsg(rv)));
+    }
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_portctrl_mdix_get
+ * Description:
+ *      Get the Auto-MDIX mode of a port/PHY
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      mode - (Out) One of:
+ *              BCM_PORT_MDIX_AUTO
+ *                      Enable auto-MDIX when autonegotiation is enabled
+ *              BCM_PORT_MDIX_FORCE_AUTO
+ *                      Enable auto-MDIX always
+ *              BCM_PORT_MDIX_NORMAL
+ *                      Disable auto-MDIX
+ *              BCM_PORT_MDIX_XOVER
+ *                      Disable auto-MDIX, and swap cable pairs
+ * Return Value:
+ *      BCM_E_UNAVAIL - feature unsupported by hardware
+ *      BCM_E_XXX - other error
+ */
+int
+bcmi_esw_portctrl_mdix_get(int unit, bcm_gport_t port, bcm_port_mdix_t *mode)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    *mode = SOC_PORT_MDIX_NORMAL;
+
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_portctrl_mdix_set
+ * Description:
+ *      Set the Auto-MDIX mode of a port/PHY
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      mode - One of:
+ *              BCM_PORT_MDIX_FORCE_AUTO
+ *                      Enable auto-MDIX always
+ *              BCM_PORT_MDIX_NORMAL
+ *                      Disable auto-MDIX
+ *              BCM_PORT_MDIX_XOVER
+ *                      Disable auto-MDIX, and swap cable pairs
+ * Return Value:
+ *      BCM_E_UNAVAIL - feature unsupported by hardware
+ *      BCM_E_XXX - other error
+ */
+int
+bcmi_esw_portctrl_mdix_set(int unit, bcm_gport_t port, bcm_port_mdix_t mode)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    rv = (mode == SOC_PORT_MDIX_NORMAL) ? BCM_E_NONE : BCM_E_UNAVAIL;
+
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_portctrl_mdix_status_get
+ * Description:
+ *      Get the current MDIX status on a port/PHY
+ * Parameters:
+ *      unit    - Device number
+ *      port    - Port number
+ *      status  - (OUT) One of:
+ *              BCM_PORT_MDIX_STATUS_NORMAL
+ *                      Straight connection
+ *              BCM_PORT_MDIX_STATUS_XOVER
+ *                      Crossover has been performed
+ * Return Value:
+ *      BCM_E_UNAVAIL - feature unsupported by hardware
+ *      BCM_E_XXX - other error
+ */
+int
+bcmi_esw_portctrl_mdix_status_get(int unit, bcm_gport_t port,
+                                  bcm_port_mdix_status_t *status)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    *status = SOC_PORT_MDIX_STATUS_NORMAL;
+
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_phy_get
+ * Description:
+ *      General PHY register read
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number or PHY MDIO address (refer BCM_PORT_PHY_NOMAP)
+ *      flags - Logical OR of one or more of the following flags:
+ *              BCM_PORT_PHY_INTERNAL
+ *                      Address internal SERDES PHY for port
+ *              BCM_PORT_PHY_NOMAP
+ *                      Instead of mapping port to PHY MDIO address,
+ *                      treat port parameter as actual PHY MDIO address.
+ *              BCM_PORT_PHY_CLAUSE45
+ *                      Assume Clause 45 device instead of Clause 22
+ *      phy_addr - PHY internal register address
+ *      phy_data - (OUT) Data that was read
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_phy_get(int unit, bcm_gport_t port, uint32 flags,
+                          uint32 phy_reg_addr, uint32 *phy_data)
+{
+#ifdef PORTMOD_SUPPORT
+    uint16  phy_id;
+    uint8  phy_devad;
+    uint16 phy_reg;
+    uint16 phy_rd_data;
+    uint32 reg_flag;
+    int    rv;
+    portctrl_pport_t pport;
+
+    /* In case of no map, pport is port." */
+    pport = port;
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    if (!(flags & BCM_PORT_PHY_NOMAP)) {
+        BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+        if(!(SOC_PBMP_MEMBER(PBMP_PORT_ALL(unit), port))) {
+            return BCM_E_PORT;
+        }
+    }
+
+    if (flags & (BCM_PORT_PHY_I2C_DATA8 | BCM_PORT_PHY_I2C_DATA16)) {
+        PORT_LOCK(unit);
+        rv = portmod_port_phy_reg_read(unit, pport, 0, phy_reg_addr, phy_data);
+        PORT_UNLOCK(unit);
+        return rv;
+    }
+
+    rv       = BCM_E_UNAVAIL;
+    reg_flag = BCM_PORT_PHY_REG_FLAGS(phy_reg_addr);
+    if (reg_flag & BCM_ESW_PORTCTRL_PHY_REG_INDIRECT) {
+        if (flags & BCM_PORT_PHY_NOMAP) {
+            /* Indirect register access is performed through PHY driver.
+             * Therefore, indirect register access is not supported if
+             * BCM_PORT_PHY_NOMAP flag is set.
+             */
+            return BCM_E_PARAM;
+        }
+
+        phy_reg_addr &= ~BCM_ESW_PORTCTRL_PHY_REG_INDIRECT;
+        PORT_LOCK(unit);
+        rv = portmod_port_phy_reg_read(unit, pport, 0, phy_reg_addr, phy_data);
+        PORT_UNLOCK(unit);
+    }
+
+    if (rv == BCM_E_UNAVAIL) {
+        if (flags & BCM_PORT_PHY_NOMAP) {
+            phy_id = pport;
+        } else if (flags & BCM_PORT_PHY_INTERNAL) {
+            PORT_LOCK(unit);
+            phy_id = portmod_port_to_phyaddr_int(unit, pport);
+            PORT_UNLOCK(unit);
+        } else {
+            PORT_LOCK(unit);
+            phy_id = portmod_port_to_phyaddr(unit, pport);
+            PORT_UNLOCK(unit);
+        }
+
+        PORT_LOCK(unit);
+        if (flags & BCM_PORT_PHY_CLAUSE45) {
+            phy_devad = BCM_PORT_PHY_CLAUSE45_DEVAD(phy_reg_addr);
+            phy_reg   = BCM_PORT_PHY_CLAUSE45_REGAD(phy_reg_addr);
+            rv = soc_miimc45_read(unit, phy_id, phy_devad,
+                                  phy_reg, &phy_rd_data);
+
+        } else {
+            phy_reg = phy_reg_addr;
+            rv = soc_miim_read(unit, phy_id, phy_reg, &phy_rd_data);
+        }
+        PORT_UNLOCK(unit);
+
+        if (BCM_SUCCESS(rv)) {
+           *phy_data = phy_rd_data;
+        }
+    }
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_U(unit,
+                         "portctrl_phy_get: u=%d p=%d flags=0x%08x "
+                         "phy_reg=0x%08x, phy_data=0x%08x, rv=%d\n"),
+                         unit, port, flags, phy_reg_addr, *phy_data, rv));
+
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_phy_multi_get
+ * Description:
+ *      General PHY register read
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      flags - Phy's read-specific flags
+ *      dev_addr - Device address on the PHY's bus (ex. I2C addr)
+ *      offset - Offset within device
+ *      max_size - Requested data size
+ *      data - Data buffer
+ *      actual_size - Received data size
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_phy_multi_get(int unit, bcm_gport_t port, uint32 flags,
+                                uint32 dev_addr, uint32 offset, int max_size,
+                                uint8 *data, int *actual_size)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv;
+    portctrl_pport_t pport;
+    portmod_multi_get_t phy_reg_read;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    /* Initialize and fill the structure */
+    portmod_multi_get_t_init(unit, &phy_reg_read);
+
+    phy_reg_read.flags = flags;
+    phy_reg_read.dev_addr = dev_addr;
+    phy_reg_read.offset = offset;
+    phy_reg_read.max_size = max_size;
+    phy_reg_read.data = data;
+    phy_reg_read.actual_size = (uint32 *)actual_size;
+
+    PORT_LOCK(unit);
+    rv = portmod_port_multi_get(unit, pport, &phy_reg_read);
+    PORT_UNLOCK(unit);
+
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_phy_modify
+ * Description:
+ *      General PHY register modify
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number  or PHY MDIO address (refer BCM_PORT_PHY_NOMAP)
+ *      flags - Logical OR of one or more of the following flags:
+ *              BCM_PORT_PHY_INTERNAL
+ *                      Address internal SERDES PHY for port
+ *              BCM_PORT_PHY_NOMAP
+ *                      Instead of mapping port to PHY MDIO address,
+ *                      treat port parameter as actual PHY MDIO address.
+ *              BCM_PORT_PHY_CLAUSE45
+ *                      Assume Clause 45 device instead of Clause 22
+ *      phy_reg_addr - PHY internal register address
+ *      phy_data - Data to write
+ *      phy_mask - Bits to modify using phy_data
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_phy_modify(int unit, bcm_gport_t port, uint32 flags,
+                             uint32 phy_reg_addr, uint32 phy_data,
+                             uint32 phy_mask)
+{
+#ifdef PORTMOD_SUPPORT
+    uint16 phy_id;
+    uint8  phy_devad;
+    uint16 phy_reg;
+    uint16 phy_rd_data;
+    uint16 phy_wr_data;
+    uint32 reg_flag;
+    int    rv;
+    portctrl_pport_t pport;
+
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    if (!(flags & BCM_PORT_PHY_NOMAP)) {
+        if(!(SOC_PBMP_MEMBER(PBMP_PORT_ALL(unit), port))) {
+            return BCM_E_PORT;
+        }
+    }
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_U(unit,
+                         "portctrl_phy_modify: u=%d p=%d flags=0x%08x "
+                         "phy_reg=0x%08x phy_data=0x%08x phy_mask=0x%08x\n"),
+                         unit, port, flags, phy_reg_addr, phy_data, phy_mask));
+
+    rv       = BCM_E_UNAVAIL;
+    reg_flag = BCM_PORT_PHY_REG_FLAGS(phy_reg_addr);
+    if (reg_flag & BCM_ESW_PORTCTRL_PHY_REG_INDIRECT) {
+        if (flags & BCM_PORT_PHY_NOMAP) {
+            /* Indirect register access is performed through PHY driver.
+             * Therefore, indirect register access is not supported if
+             * BCM_PORT_PHY_NOMAP flag is set.
+             */
+            return BCM_E_PARAM;
+        }
+
+        phy_reg_addr &= ~BCM_ESW_PORTCTRL_PHY_REG_INDIRECT;
+        PORT_LOCK(unit);
+        rv = portmod_port_phy_reg_write(unit, pport, 0, phy_reg_addr, phy_data);
+        PORT_UNLOCK(unit);
+    }
+
+    if (rv == BCM_E_UNAVAIL) {
+        if (flags & BCM_PORT_PHY_NOMAP) {
+            phy_id = pport;
+        } else if (flags & BCM_PORT_PHY_INTERNAL) {
+            PORT_LOCK(unit);
+            phy_id = portmod_port_to_phyaddr_int(unit, pport);
+            PORT_UNLOCK(unit);
+        } else {
+            PORT_LOCK(unit);
+            phy_id = portmod_port_to_phyaddr(unit, pport);
+            PORT_UNLOCK(unit);
+        }
+
+        phy_wr_data = (uint16) (phy_data & phy_mask & 0xffff);
+        PORT_LOCK(unit);
+        if (flags & BCM_PORT_PHY_CLAUSE45) {
+            phy_devad = BCM_PORT_PHY_CLAUSE45_DEVAD(phy_reg_addr);
+            phy_reg   = BCM_PORT_PHY_CLAUSE45_REGAD(phy_reg_addr);
+            rv = soc_miimc45_read(unit, phy_id, phy_devad,
+                                  phy_reg, &phy_rd_data);
+            phy_wr_data |= (phy_rd_data & ~phy_mask);
+            rv = soc_miimc45_write(unit, phy_id, phy_devad,
+                                   phy_reg, phy_wr_data);
+        } else {
+            phy_reg = phy_reg_addr;
+            rv = soc_miim_read(unit, phy_id, phy_reg, &phy_rd_data);
+            if (BCM_SUCCESS(rv)) {
+                phy_wr_data |= (phy_rd_data & ~phy_mask);
+                rv = soc_miim_write(unit, phy_id, phy_reg, phy_wr_data);
+            }
+        }
+        PORT_UNLOCK(unit);
+    }
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_phy_set
+ * Description:
+ *      General PHY register write
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number or PHY MDIO address (refer BCM_PORT_PHY_NOMAP)
+ *      flags - Logical OR of one or more of the following flags:
+ *              BCM_PORT_PHY_INTERNAL
+ *                      Address internal SERDES PHY for port
+ *              BCM_PORT_PHY_NOMAP
+ *                      Instead of mapping port to PHY MDIO address,
+ *                      treat port parameter as actual PHY MDIO address.
+ *              BCM_PORT_PHY_CLAUSE45
+ *                      Assume Clause 45 device instead of Clause 22
+ *      phy_reg_addr - PHY internal register address
+ *      phy_data - Data to write
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_phy_set(int unit, bcm_gport_t port, uint32 flags,
+                          uint32 phy_reg_addr, uint32 phy_data)
+{
+#ifdef PORTMOD_SUPPORT
+    uint16 phy_id;
+    uint8  phy_devad;
+    uint16 phy_reg;
+    uint16 phy_wr_data;
+    uint32 reg_flag;
+    int    rv;
+    portctrl_pport_t pport;
+
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    if (!(flags & BCM_PORT_PHY_NOMAP)) {
+        if(!(SOC_PBMP_MEMBER(PBMP_PORT_ALL(unit), port))) {
+            return BCM_E_PORT;
+        }
+    }
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_U(unit,
+                         "portctrl_phy_set: u=%d p=%d flags=0x%08x "
+                         "phy_reg=0x%08x phy_data=0x%08x\n"),
+                         unit, port, flags, phy_reg_addr, phy_data));
+
+    if (flags & (BCM_PORT_PHY_I2C_DATA8 | BCM_PORT_PHY_I2C_DATA16)) {
+        PORT_LOCK(unit);
+        rv = portmod_port_phy_reg_write(unit, pport, 0, phy_reg_addr, phy_data);
+        PORT_UNLOCK(unit);
+        return rv;
+    }
+
+    rv       = BCM_E_UNAVAIL;
+    reg_flag = BCM_PORT_PHY_REG_FLAGS(phy_reg_addr);
+    if (reg_flag & BCM_ESW_PORTCTRL_PHY_REG_INDIRECT) {
+        if (flags & BCM_PORT_PHY_NOMAP) {
+            /* Indirect register access is performed through PHY driver.
+             * Therefore, indirect register access is not supported if
+             * BCM_PORT_PHY_NOMAP flag is set.
+             */
+            return BCM_E_PARAM;
+        }
+        phy_reg_addr &= ~BCM_ESW_PORTCTRL_PHY_REG_INDIRECT;
+        PORT_LOCK(unit);
+        rv = portmod_port_phy_reg_write(unit, pport, 0, phy_reg_addr, phy_data);
+        PORT_UNLOCK(unit);
+    }
+
+    if (rv == BCM_E_UNAVAIL) {
+        if (flags & BCM_PORT_PHY_NOMAP) {
+            phy_id = port;
+        } else if (flags & BCM_PORT_PHY_INTERNAL) {
+            PORT_LOCK(unit);
+            phy_id = portmod_port_to_phyaddr_int(unit, port);
+            PORT_UNLOCK(unit);
+        } else {
+            PORT_LOCK(unit);
+            phy_id = portmod_port_to_phyaddr(unit, port);
+            PORT_UNLOCK(unit);
+        }
+
+        phy_wr_data = (uint16) (phy_data & 0xffff);
+        PORT_LOCK(unit);
+        if (flags & BCM_PORT_PHY_CLAUSE45) {
+            phy_devad = BCM_PORT_PHY_CLAUSE45_DEVAD(phy_reg_addr);
+            phy_reg   = BCM_PORT_PHY_CLAUSE45_REGAD(phy_reg_addr);
+            rv = soc_miimc45_write(unit, phy_id, phy_devad,
+                                   phy_reg, phy_wr_data);
+        } else {
+            phy_reg = phy_reg_addr;
+            rv = soc_miim_write(unit, phy_id, phy_reg, phy_wr_data);
+        }
+        PORT_UNLOCK(unit);
+    }
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_portctrl_phy_drv_name_get
+ * Purpose:
+ *      Return the name of the PHY driver being used on a port.
+ * Parameters:
+ *      unit - StrataSwitch unit #
+ *      port - StrataSwitch port #
+ * Returns:
+ *      Pointer to static string
+ */
+int
+bcmi_esw_portctrl_phy_drv_name_get(int unit, bcm_gport_t port, char *name,
+                                   int len)
+{
+#ifdef PORTMOD_SUPPORT
+    int str_len;
+    int rv;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    rv = PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport);
+
+    if (BCM_FAILURE(rv)) {
+        str_len = sal_strlen("invalid port");
+        if (str_len <= len) {
+            sal_strncpy(name, "invalid port", len);
+        }
+        return BCM_E_PORT;
+    }
+
+    PORT_LOCK(unit);
+
+    rv = portmod_port_drv_name_get(unit, pport, name, len);
+
+    PORT_UNLOCK(unit);
+
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_portctrl_phy_reset
+ * Description:
+ *      This function performs the low-level PHY reset and is intended to be
+ *      called ONLY from callback function registered with
+ *      bcm_port_phy_reset_register. Attempting to call it from any other
+ *      place will break lots of things.
+ * Parameters:
+ *      unit    - Device number
+ *      port    - Port number
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_phy_reset(int unit, bcm_gport_t port)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_reset_set(unit, pport, 
+                                phymodResetModeHard /* Hard reset */,
+                                0 /* Not used */,
+                                phymodResetDirectionInOut /* Toggle reset */);
+    PORT_UNLOCK(unit);
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_ability_advert_get
+ * Purpose:
+ *      Retrieve the local port advertisement for autonegotiation.
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      port_ability - (OUT) Local advertisement in bcm_port_ability_t structure.
+ *      ability_mask - (OUT) Local advertisement in bcm_port_abil_t.
+ *                           If !NULL, returns mask of BCM_PORT_ABIL_.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_ability_advert_get(int unit, bcm_gport_t port, 
+                                     bcm_port_ability_t *port_ability,
+                                     bcm_port_abil_t *ability_mask)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv;
+    portctrl_pport_t pport;
+    portmod_port_ability_t portmod_ability;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    bcm_port_ability_t_init(port_ability);
+    sal_memset(&portmod_ability, 0, sizeof(portmod_port_ability_t));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_ability_advert_get(unit, pport, &portmod_ability);
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        _bcm_esw_portctrl_from_portmod_ability(&portmod_ability, port_ability);
+
+        /* Convert to BCM_PORT_ABIL_ mask if needed */
+        if (ability_mask != NULL) {
+            rv = soc_port_ability_to_mode(port_ability, ability_mask);
+        }
+    }
+
+    LOG_VERBOSE(BSL_LS_BCM_PORT,
+                (BSL_META_UP(unit, port,
+                             "Get port ability advert: u=%d p=%d rv=%d\n"),
+                unit, port, rv));
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_ability_advert_set
+ * Purpose:
+ *      Set the local port advertisement for autonegotiation.
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      port_ability - Local advertisement in bcm_port_ability_t structure.
+ *      ability_mask - Local advertisement in bcm_port_abil_t.
+ *                           If !NULL, returns mask of BCM_PORT_ABIL_.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+  * Notes:
+ *      This call MAY NOT restart autonegotiation (depending on the phy).
+ *      To do that, follow this call with bcm_port_autoneg_set(TRUE).
+ */
+int
+bcmi_esw_portctrl_ability_advert_set(int unit, bcm_gport_t port, 
+                                     bcm_port_ability_t *ability_mask,
+                                     bcm_port_abil_t port_abil)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv;
+    portctrl_pport_t pport;
+    bcm_port_ability_t local_ability;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    sal_memset(&local_ability, 0, sizeof(bcm_port_ability_t));
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    BCM_IF_ERROR_RETURN
+        (bcmi_esw_portctrl_ability_get(unit, port, &local_ability, NULL));
+
+    /* Make sure to advertise only abilities supported by the port */
+    soc_port_ability_mask(&local_ability, ability_mask);
+
+    PORT_LOCK(unit);
+    rv = portmod_port_ability_advert_set(unit, pport, &local_ability);
+    PORT_UNLOCK(unit);
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, port,
+                         "Set port ability advert: u=%d p=%d rv=%d\n"),
+              unit, port, rv));
+
+    LOG_VERBOSE(BSL_LS_BCM_PORT,
+                (BSL_META_UP(unit, port,
+                     "Speed(HD=0x%08x, FD=0x%08x) Pause=0x%08x abl_advert_set\n"
+                            "Interface=0x%08x Medium=0x%08x Loopback=0x%08x Flags=0x%08x\n"),
+                     local_ability.speed_half_duplex,
+                     local_ability.speed_full_duplex,
+                     local_ability.pause, local_ability.interface,
+                     local_ability.medium, local_ability.loopback,
+                     local_ability.flags));
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_autoneg_get
+ * Purpose:
+ *      Get the autonegotiation state of the port
+ * Parameters:
+ *      unit - Unit #
+ *      port - GPORT #
+ *      autoneg - (OUT) Boolean value
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_autoneg_get(int unit, bcm_gport_t port, int *autoneg)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv;
+    portctrl_pport_t pport;
+    int phy_lane = -1;
+    int phyn = 0, sys_side = 0;
+    bcm_port_t local_port = -1;
+    phymod_autoneg_control_t an;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    phymod_autoneg_control_t_init(&an);
+
+    BCM_IF_ERROR_RETURN(
+        _bcm_esw_port_gport_phyn_validate(unit, port,
+                                          &local_port, &phyn,
+                                          &phy_lane, &sys_side));
+
+    if (local_port != -1) {
+        port = local_port;
+    }
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    if (local_port == -1) {
+        /* Configure outermost PHY (common case) */
+        rv = portmod_port_autoneg_get(unit, pport, &an);
+    } else {
+        /* Configure PHY specified by GPORT */
+        rv = portmod_port_redirect_autoneg_get(unit, pport, phyn,
+                                               phy_lane, sys_side, &an);
+    }
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        *autoneg = an.enable;
+    }
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, port,
+                          "Get port autoneg: u=%d p=%d an=%d rv=%d\n"),
+              unit, port, *autoneg, rv));
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_autoneg_set
+ * Purpose:
+ *      Set the autonegotiation state for a given port
+ * Parameters:
+ *      unit - Unit #
+ *      port - GPORT #
+ *      autoneg - Boolean value
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_autoneg_set(int unit, bcm_port_t port, int autoneg)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv;
+    portctrl_pport_t pport;
+    int phy_lane = -1;
+    int phyn = 0, sys_side = 0;
+    bcm_port_t local_port = -1;
+    phymod_autoneg_control_t an;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+#ifdef BCM_RCPU_SUPPORT
+    if (SOC_IS_RCPU_ONLY(unit) && IS_RCPU_PORT(unit, port)) {
+        return BCM_E_PORT;
+    }
+#endif /* BCM_RCPU_SUPPORT */
+
+    phymod_autoneg_control_t_init(&an);
+
+    BCM_IF_ERROR_RETURN(
+        _bcm_esw_port_gport_phyn_validate(unit, port,
+                                          &local_port, &phyn,
+                                          &phy_lane, &sys_side));
+
+    if (local_port != -1) {
+        port = local_port;
+    }
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    portmod_port_autoneg_get(unit, pport, &an);
+    an.enable = autoneg;
+
+    PORT_LOCK(unit);
+    if (local_port == -1) {
+        /* Configure outermost PHY (common case) */
+        rv = portmod_port_autoneg_set(unit, port, &an);
+    } else {
+        /* Configure PHY specified by GPORT */
+        rv = portmod_port_redirect_autoneg_set(unit, pport, phyn,
+                                               phy_lane, sys_side, &an);
+    }
+    PORT_UNLOCK(unit);
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, port,
+                          "Set port autoneg: u=%d p=%d an=%d rv=%d\n"),
+              unit, port, autoneg, rv));
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_duplex_get
+ * Purpose:
+ *      Get the port duplex settings
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      duplex - (OUT) Duplex setting, one of SOC_PORT_DUPLEX_xxx
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_duplex_get(int unit, bcm_gport_t port, int *duplex)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv;
+    portctrl_pport_t pport;
+    int port_duplex;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_duplex_get(unit, pport, &port_duplex);
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        *duplex = port_duplex ? SOC_PORT_DUPLEX_FULL : SOC_PORT_DUPLEX_HALF;
+    } else {
+        *duplex = SOC_PORT_DUPLEX_FULL;
+    }
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, port,
+                          "Get port duplex: u=%d p=%d dup=%d rv=%d\n"),
+              unit, port, *duplex, rv));
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_duplex_set
+ * Purpose:
+ *      Set the port duplex settings.
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      duplex - Duplex setting, one of SOC_PORT_DUPLEX_xxx
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ * Notes:
+ *      Turns off autonegotiation.  Caller must make sure other forced
+ *      parameters (such as speed) are set.
+ */
+int
+bcmi_esw_portctrl_duplex_set(int unit, bcm_port_t port, int duplex)
+{
+#ifdef PORTMOD_SUPPORT
+    int         rv;
+    pbmp_t      pbm;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+#ifdef BCM_RCPU_SUPPORT
+    if (SOC_IS_RCPU_ONLY(unit) && IS_RCPU_PORT(unit, port)) {
+        return BCM_E_PORT;
+    }
+#endif /* BCM_RCPU_SUPPORT */
+
+#if 0
+    /* Disable auto-negotiation if duplex is forced */
+    rv = bcmi_esw_portctrl_autoneg_set(unit, port, FALSE);
+    if (BCM_FAILURE(rv)) {
+        LOG_VERBOSE(BSL_LS_BCM_PORT,
+                    (BSL_META_UP(unit, port,
+                                 "Set port autonego failed:%s\n"),
+                     bcm_errmsg(rv)));
+        return rv;
+    }
+#endif 
+
+    PORT_LOCK(unit);
+
+    rv = portmod_port_duplex_set(unit, pport, duplex);
+
+    PORT_UNLOCK(unit);                  /* Unlock before link call */
+
+    if (PORTMOD_SUCCESS(rv) && !SAL_BOOT_SIMULATION) {
+        /* Force link change event */
+        SOC_PBMP_CLEAR(pbm);
+        SOC_PBMP_PORT_ADD(pbm, port);
+        (void)bcm_esw_link_change(unit, pbm);
+    }
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, port,
+                         "Set port duplex: u=%d p=%d dup=%d rv=%d\n"),
+              unit, port, duplex, rv));
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_clear_rx_lss_status_set
+ * Purpose:
+ *      set the local and remote fault fields of the lss status register.
+ * Parameters:
+ *      unit         - (IN) Unit number.
+ *      port         - (IN) Port number.
+ *      local_fault  - (IN) value of local fault field to be set.
+ *      remote_fault - (IN) value of remote fault field to be set.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+
+int
+bcmi_esw_portctrl_clear_rx_lss_status_set(int unit, bcm_gport_t port,
+                                          int local_fault, int remote_fault)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t  pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_clear_rx_lss_status_set(unit, pport, local_fault,
+                                              remote_fault);
+    PORT_UNLOCK(unit);
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_mode_setup
+ * Purpose:
+ *      Set initial operating mode for a port.
+ * Parameters:
+ *      unit - StrataSwitch unit #.
+ *      port - StrataSwitch port #.
+ *      enable - Whether to enable or disable
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Must be called with PORT_LOCK held.
+ */
+int
+bcmi_esw_portctrl_mode_setup(int unit, bcm_gport_t port, int enable)
+{
+#ifdef PORTMOD_SUPPORT
+#if 0
+    soc_port_if_t   pif;
+#endif
+    portmod_port_ability_t  local_port_ability, advert_port_ability;
+    portctrl_pport_t pport;
+    int rv = BCM_E_NONE;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    if (IS_TDM_PORT(unit, port)) {
+        return BCM_E_NONE;
+    }
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_U(unit,
+                         "_bcm_port_mode_setup: u=%d p=%d\n"), unit, port));
+
+    sal_memset(&local_port_ability,  0, sizeof(bcm_port_ability_t));
+    sal_memset(&advert_port_ability, 0, sizeof(bcm_port_ability_t));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_ability_local_get(unit, pport, &local_port_ability);
+    PORT_UNLOCK(unit);
+    
+    PORTMOD_IF_ERROR_RETURN(rv);
+
+#if 0
+    /* If MII supported, enable it, otherwise use TBI */
+    if (local_port_ability.interface & (SOC_PA_INTF_MII | SOC_PA_INTF_GMII |
+                              SOC_PA_INTF_SGMII | SOC_PA_INTF_XGMII)) {
+        if (IS_GE_PORT(unit, port)) {
+            pif = SOC_PORT_IF_GMII;
+        } else if (IS_HG_PORT(unit, port) || IS_XE_PORT(unit, port)) {
+            if (local_port_ability.interface & SOC_PA_INTF_XGMII) {
+                pif = SOC_PORT_IF_XGMII;
+            } else { /*  external GbE phy in xe port mode */
+                pif = SOC_PORT_IF_SGMII;
+            }
+        } else {
+            pif = SOC_PORT_IF_MII;
+        }
+    } else if (local_port_ability.interface & SOC_PA_INTF_CGMII) {
+        pif = SOC_PORT_IF_CGMII;
+    } else {
+        pif = SOC_PORT_IF_TBI;
+    }
+
+    SOC_IF_ERROR_RETURN
+        (soc_phyctrl_interface_set(unit, port, pif)); 
+    _bcm_esw_portctrl_interface_config_set(unit, port, pport, config);
+#endif
+
+    if (IS_ST_PORT(unit, port)) {
+
+        /* Since stacking port doesn't support flow control,
+         * make sure that PHY is not advertising flow control capabilities.
+         */
+
+        PORT_LOCK(unit);
+        rv = portmod_port_ability_advert_get(unit, pport, &advert_port_ability);
+        if (PORTMOD_SUCCESS(rv)) {
+            advert_port_ability.pause &= ~(SOC_PA_PAUSE | SOC_PA_PAUSE_ASYMM);
+            rv = portmod_port_ability_advert_set(unit, pport,
+                                                 &advert_port_ability);
+        }
+        PORT_UNLOCK(unit);
+    }
+    
+    PORTMOD_IF_ERROR_RETURN(rv);
+
+    if (!SOC_WARM_BOOT(unit) &&
+        !(SOC_PBMP_MEMBER(SOC_PORT_DISABLED_BITMAP(unit, all), port)) ) {
+#ifdef BCM_RCPU_SUPPORT
+        if (SOC_IS_RCPU_ONLY(unit) && IS_RCPU_PORT(unit, port)) {
+            /* Do not enable/disable rcpu port. */
+            return BCM_E_NONE;
+        }
+#endif /* BCM_RCPU_SUPPORT */
+        PORT_LOCK(unit);
+        rv = _bcm_esw_portctrl_enable_set(unit, port, pport,
+                                          PORTMOD_PORT_ENABLE_MAC, enable); 
+        PORT_UNLOCK(unit);
+        BCM_IF_ERROR_RETURN(rv);
+    }
+
+    return BCM_E_NONE;
+#else /* PORTMOD_SUPPORT */
+        return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_clear_rx_lss_status_get
+ * Purpose:
+ *      get the local and remote fault fields of the lss status register.
+ * Parameters:
+ *      unit         - (IN) Unit number.
+ *      port         - (IN) Port number.
+ *      local_fault  - (OUT) value of local fault field to get.
+ *      remote_fault - (OUT) value of remote fault field to get.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+
+int
+bcmi_esw_portctrl_clear_rx_lss_status_get(int unit, bcm_gport_t port,
+                                          int *local_fault,
+                                          int *remote_fault)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t  pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_clear_rx_lss_status_get(unit, pport, local_fault,
+                                              remote_fault);
+    PORT_UNLOCK(unit);
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_detach
+ * Purpose:
+ *      Main part of bcm_port_detach
+ */
+
+#ifdef PORTMOD_SUPPORT
+STATIC int
+_bcm_esw_portctrl_detach(int unit, pbmp_t pbmp, pbmp_t *detached)
+{
+    soc_port_t port;
+    portctrl_pport_t pport;
+    soc_persist_t *sop = SOC_PERSIST(unit); 
+    int rv;
+    int flags = 0;
+    
+    PORTMOD_PORT_ENABLE_PHY_SET(flags);
+    PORTMOD_PORT_ENABLE_MAC_SET(flags);
+
+    SOC_PBMP_CLEAR(*detached);
+
+    SOC_PBMP_ITER(pbmp, port) {
+
+        BCM_IF_ERROR_RETURN
+            (bcm_esw_port_stp_set(unit, port, BCM_STG_STP_DISABLE));
+        rv = bcmi_esw_portctrl_mode_setup(unit, port, FALSE);
+        BCM_IF_ERROR_RETURN(rv);
+
+        BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+        BCM_IF_ERROR_RETURN
+            (_bcm_esw_portctrl_enable_set(unit, port, pport,
+                                          PORTMOD_PORT_ENABLE_PHY, 0));
+        PORTMOD_IF_ERROR_RETURN(portmod_port_remove(unit, port));
+        SOC_PBMP_PORT_ADD(*detached, port);
+
+        if (SOC_PBMP_MEMBER(sop->lc_pbm_fc, port)) {
+            /* Bring down the internal PHY */
+            rv = bcm_esw_port_update(unit, port, FALSE);
+            BCM_IF_ERROR_RETURN(rv);
+            SOC_PBMP_PORT_REMOVE(sop->lc_pbm_fc, port);
+        }
+    }
+
+    return BCM_E_NONE;
+}
+#endif /* PORTMOD_SUPPORT */
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_detach
+ * Purpose:
+ *      Detach a port.  Set phy driver to no connection.
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      pbmp - Bitmap of ports to detach.
+ *      detached (OUT) - Bitmap of ports successfully detached.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_INTERNAL - internal error.
+ * Notes:
+ *      If a port to be detached does not appear in detached, its
+ *      state is not defined.
+ */
+
+int
+bcmi_esw_portctrl_detach(int unit, pbmp_t pbmp, pbmp_t *detached)
+{
+#ifdef PORTMOD_SUPPORT
+    char pfmtp[SOC_PBMP_FMT_LEN],
+         pfmtd[SOC_PBMP_FMT_LEN];
+    int rv = BCM_E_NONE;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    PORT_LOCK(unit);
+
+    rv = _bcm_esw_portctrl_detach(unit, pbmp, detached);
+
+    PORT_UNLOCK(unit);
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_U(unit,
+             "bcm_port_detach: u=%d pbmp=%s det=%s rv=%d\n"),
+             unit,
+             SOC_PBMP_FMT(pbmp, pfmtp),
+             SOC_PBMP_FMT(*detached, pfmtd),
+             rv));
+
+    return rv;
+#else /* PORTMOD_SUPPORT */
+        return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_frame_max_get
+ * Purpose:
+ *      Get the maximum receive frame size for the port.
+ * Parameters:
+ *      unit   - (IN) Unit number.
+ *      port   - (IN) Port number.
+ *      size   - (OUT) Maximum frame size in bytes.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Depending on chip or port type the actual maximum receive frame size
+ *      might be slightly higher.
+ *
+ *      For GE ports that use 2 separate MACs (one for GE and another one for
+ *      10/100 modes) the function returns the maximum rx frame size set for
+ *      the current mode.
+ */
+int
+bcmi_esw_portctrl_frame_max_get(int unit, bcm_gport_t port, int *size)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_max_packet_size_get(unit, pport, size);
+    PORT_UNLOCK(unit);
+
+    if (IS_XE_PORT(unit, port) || IS_GE_PORT(unit, port)) {
+        /* For VLAN tagged packets */
+        *size -= 4;
+    }
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_ifg_set
+ * Purpose:
+ *      Set Inter Frame Gap 
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      port - Port.
+ *      speed  - Speed
+ *      duplex  - Duplex Setting
+ *      ifg  -   InterFrame Gap
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_INTERNAL - internal error.
+ * Notes:
+ *      
+ *      
+ */
+int
+bcmi_esw_portctrl_ifg_set(int unit, bcm_gport_t port, int speed, 
+                          bcm_port_duplex_t duplex, int ifg)
+{
+#ifdef PORTMOD_SUPPORT
+    soc_ipg_t *si;
+    int rv;
+    int real_ifg;
+    portctrl_pport_t pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit); 
+    rv = portmod_port_ifg_set(unit, pport, speed, duplex, ifg, &real_ifg);
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        si = &SOC_PERSIST(unit)->ipg[port];
+        if (IS_XE_PORT(unit, port)) {
+            si->fd_xe = real_ifg ;
+        } else {
+            si->fd_hg = real_ifg ;
+        }
+    }
+    return(rv);  
+#else /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_frame_max_set
+ * Purpose:
+ *      Set the maximum receive frame size for the port.
+
+ * Parameters:
+ *      unit   - (IN) Unit number.
+ *      port   - (IN) Port number.
+ *      mac    - (IN) Station MAC address used for pause frames.
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_frame_max_set(int unit, bcm_gport_t port, int size)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+    int max_size = BCM_PORT_JUMBO_MAXSZ;
+    egr_mtu_entry_t mtu;
+    uint32 mtu_size;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    if ((size < 0) || (size > max_size)) {
+        return BCM_E_PARAM;
+    }
+
+    if (IS_XE_PORT(unit, port) || IS_GE_PORT(unit, port)) {
+        /* For VLAN tagged packets */
+        size += 4;
+    }
+
+    PORT_LOCK(unit);
+    rv = portmod_port_max_packet_size_set(unit, pport, size);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        if (SOC_MEM_IS_VALID(unit, EGR_MTUm)) {
+            rv = soc_mem_read(unit, EGR_MTUm, MEM_BLOCK_ANY, port, &mtu);
+            if (SOC_SUCCESS(rv)) {
+                mtu_size = size;
+                soc_mem_field32_set(unit, EGR_MTUm, &mtu, MTU_SIZEf, mtu_size);
+                rv = soc_mem_write(unit, EGR_MTUm, MEM_BLOCK_ANY, port, &mtu);
+            }
+        }
+    }
+
+    PORT_UNLOCK(unit);
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_ifg_get
+ * Purpose:
+ *      Set Inter Frame Gap 
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      port - Port.
+ *      speed  - Speed
+ *      duplex  - Duplex Setting
+ *      ifg  -   InterFrame Gap
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_INTERNAL - internal error.
+ * Notes:
+ *      
+ *      
+ */
+int
+bcmi_esw_portctrl_ifg_get(int unit, bcm_gport_t port, int speed, 
+                          bcm_port_duplex_t duplex, int *ifg)
+{
+#ifdef PORTMOD_SUPPORT
+    soc_ipg_t  *si;
+    portctrl_pport_t pport;
+  
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    si = &SOC_PERSIST(unit)->ipg[port];
+    if (IS_XE_PORT(unit, port)) {
+        *ifg = si->fd_xe; 
+    } else {
+        *ifg = si->fd_hg; 
+    }
+    return BCM_E_NONE;  
+#else /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_mac_rx_control
+ * Purpose:
+ *      Set Inter Frame Gap 
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      port - Port.
+ *      optype  - operation type
+ *      enable  - enable/disable
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_INTERNAL - internal error.
+ * Notes:
+ *      
+ *      
+ */
+
+int
+bcmi_esw_portctrl_mac_rx_control(int unit, bcm_port_t port, uint8 optype, int *enable)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    int flags = 0;
+
+    PORTMOD_PORT_ENABLE_RX_SET(flags);
+    PORTMOD_PORT_ENABLE_MAC_SET(flags);
+    PORT_LOCK(unit);
+    if(optype) {
+        rv = portmod_port_rx_mac_enable_get(unit, port, enable); 
+    } else {
+        rv = portmod_port_rx_mac_enable_set(unit, port, *enable);
+    }
+    PORT_UNLOCK(unit);
+    return(rv);
+#else /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_encap_get
+ * Purpose:
+ *      Get the port encapsulation mode
+ * Parameters:
+ *      unit - StrataSwitch unit #
+ *      port - StrataSwitch port #
+ *      mode (OUT) - One of BCM_PORT_ENCAP_xxx (see port.h)
+ * Returns:
+ *      BCM_E_XXX
+ */
+
+int
+bcmi_esw_portctrl_encap_get(int unit, bcm_gport_t port, int *mode)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE, flags=0;
+    portctrl_pport_t pport;
+    portmod_port_interface_config_t port_if_cfg;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    if (IS_GE_PORT(unit, port) && IS_ST_PORT(unit, port)) {
+        if (soc_feature(unit, soc_feature_embedded_higig)) {
+            *mode = BCM_PORT_ENCAP_IEEE;
+        } else {
+            portmod_encap_t val;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_encap_get(unit, pport, &flags, &val);
+            PORT_UNLOCK(unit);
+
+            if (PORTMOD_SUCCESS(rv)) {
+                *mode = val ? BCM_PORT_ENCAP_HIGIG2 : BCM_PORT_ENCAP_IEEE;
+            } else {
+                return (BCM_E_CONFIG);
+            }
+        }
+    } else {
+        portmod_port_interface_config_t_init(unit, &port_if_cfg);
+
+        PORT_LOCK(unit);
+        rv = portmod_port_interface_config_get(unit, pport, &port_if_cfg);
+        PORT_UNLOCK(unit);
+
+        if (PORTMOD_SUCCESS(rv)) {
+            *mode = port_if_cfg.encap_mode;
+        }
+    }
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, port,
+              "Port encap get: u=%d p=%d mode=%d rv=%d\n"),
+              unit, port, *mode, rv));
+
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+ 
+#ifdef PORTMOD_SUPPORT
+/*
+ * Function:
+ *      _bcm_esw_portctrl_interface_cfg_set
+ * Purpose:
+ *      This function is called by encap set functions to set encap mode,
+ *      interface type and speed
+ * Parameters:
+ *      unit        - (IN) Unit number
+ *      port        - (IN) Logical BCM Port number (non-GPORT).
+ *      pport       - (IN) Portmod Port number
+ *      field       - (IN) Field of portmod_port_interface_config_t to modify
+ *                         Only encap_mode, speed and interface can be 
+ *                         modified
+ *      field_val   - Value of the Portmod field to program
+ * Returns:
+ *      BCM_E_XXX
+ */
+STATIC
+int _bcm_esw_portctrl_interface_cfg_set(int unit, bcm_port_t port,
+                                        portctrl_pport_t pport,
+                                        int field, void *field_val)
+{
+    portmod_port_interface_config_t port_if_cfg;
+    char *str;
+    int rv = BCM_E_NONE;
+
+    portmod_port_interface_config_t_init(unit, &port_if_cfg);
+
+    PORT_LOCK(unit);
+
+    rv = portmod_port_interface_config_get(unit, pport, &port_if_cfg);
+
+    if (PORTMOD_SUCCESS(rv)) {
+
+        /* Set value of appropriate field */
+        switch (field) {
+            case BCM_ESW_PORTCTRL_CFG_ENCAP_MODE:
+                port_if_cfg.encap_mode = *((portmod_encap_t *)field_val);
+                break;
+
+            case BCM_ESW_PORTCTRL_CFG_INTERFACE:
+                port_if_cfg.interface = *((soc_port_if_t *)field_val);
+                break;
+
+            case BCM_ESW_PORTCTRL_CFG_SPEED:
+                port_if_cfg.speed = *((int *)field_val);
+                break;
+
+            default:
+                PORT_UNLOCK(unit);
+                return BCM_E_PARAM;
+        }
+
+        rv = _bcm_esw_portctrl_interface_config_set(unit, port, pport,
+                                                    &port_if_cfg);
+        PORT_UNLOCK(unit);
+
+        if (PORTMOD_FAILURE(rv)) {
+            str = "set";
+        }
+    } else {
+        PORT_UNLOCK(unit);
+        str = "get";
+    }
+
+    if (PORTMOD_FAILURE(rv)) {
+        LOG_VERBOSE(BSL_LS_SOC_COMMON,
+                    (BSL_META_U(unit, 
+                    "Interface_%s failed:err=%d: %s\n"), str, rv,
+                    bcm_errmsg(rv)));
+
+        rv = BCM_E_CONFIG; /* Returning BCM_ error code */
+    }
+
+    return rv;
+}
+#endif /* PORTMOD_SUPPORT */
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_encap_xport_set
+ * Purpose:
+ *      Convert 10G Ether port to Higig port, or reverse
+ * Parameters:
+ *      unit   - (IN) Unit number.
+ *      port   - (IN) Port number.
+ *      mode   - (IN) Encapsulation mode
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Must be called with PORT_LOCK held.
+ */
+
+int
+bcmi_esw_portctrl_encap_xport_set(int unit, bcm_gport_t port, int mode)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+    bcm_stg_t        stg;
+    int              to_higig;
+    soc_field_t      port_type_field;
+    soc_reg_t        egr_port_reg;
+    soc_port_ability_t ability;
+    soc_port_mode_t  non_ieee_speed;
+    int              force_speed, port_type, higig_type;
+    uint32           entry[SOC_MAX_MEM_WORDS];
+    uint32 rval = 0;
+    uint32 mtu = 0;
+    phymod_autoneg_control_t an_info;
+    bcm_port_abil_t ability_mask=0;
+    soc_reg_t reg;
+    soc_mem_t mem;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    to_higig = (mode != BCM_PORT_ENCAP_IEEE);
+    port_type_field = PORT_TYPEf;
+
+    rv = _bcm_esw_portctrl_interface_cfg_set(unit, port, pport,
+                                             BCM_ESW_PORTCTRL_CFG_ENCAP_MODE,
+                                             (void *)&mode);
+    if (BCM_FAILURE(rv)) {
+        return rv;
+    }
+
+    if (SOC_MEM_IS_VALID(unit, EGR_MTUm)) {
+        mem = EGR_MTUm;
+        mtu = (1 << soc_mem_field_length(unit, mem, MTU_SIZEf)) - 1;
+        SOC_IF_ERROR_RETURN(soc_mem_read(unit, mem, MEM_BLOCK_ANY, port,
+                                         entry));
+        soc_mem_field_set(unit, mem, entry, MTU_SIZEf, &mtu);
+        SOC_IF_ERROR_RETURN(soc_mem_write(unit, mem, MEM_BLOCK_ANY, port,
+                                          entry));
+    } else {
+        reg = EGR_MTUr;
+        mtu = (1 << soc_reg_field_length(unit, reg, MTU_SIZEf)) - 1;
+        soc_reg_field_set(unit, reg, &rval, MTU_SIZEf, mtu);
+        if (soc_reg_field_valid(unit, reg, MTU_ENABLEf)) {
+            soc_reg_field_set(unit, reg, &rval, MTU_ENABLEf, 0);
+        }
+        SOC_IF_ERROR_RETURN(soc_reg32_set(unit, reg, port, 0, rval));
+    }
+
+    if (!to_higig) {
+        soc_port_if_t port_intf;
+
+        port_intf = SOC_PORT_IF_XGMII;
+        rv = _bcm_esw_portctrl_interface_cfg_set(unit, port, pport,
+                                                 BCM_ESW_PORTCTRL_CFG_INTERFACE,
+                                                 (void *)&port_intf);
+        if (BCM_FAILURE(rv)) {
+            return rv;
+        }
+    }
+
+    /* Specific for GH on avoiding port speed change */
+    if (!soc_feature(unit, soc_feature_hg_no_speed_change)) {
+        BCM_IF_ERROR_RETURN(bcm_esw_port_ability_local_get(unit, port,
+                            &ability));
+
+        non_ieee_speed = ability.speed_full_duplex &
+                ~(SOC_PA_SPEED_100GB | SOC_PA_SPEED_40GB | SOC_PA_SPEED_10GB |
+                  SOC_PA_SPEED_2500MB | SOC_PA_SPEED_1000MB |
+                  SOC_PA_SPEED_100MB | SOC_PA_SPEED_10MB);
+
+        BCM_IF_ERROR_RETURN(bcm_esw_port_ability_advert_get(unit, port,
+                            &ability));
+        if (to_higig) {
+            ability.speed_full_duplex |= non_ieee_speed;
+            ability.pause &= ~(SOC_PA_PAUSE | SOC_PA_PAUSE_ASYMM);
+            /* Retrieving the max speed */
+            BCM_IF_ERROR_RETURN(bcm_esw_port_speed_max(unit, port,
+                                &force_speed));
+            force_speed = force_speed == 0 ?
+                          SOC_CONTROL(unit)->info.port_speed_max[port] :
+                          force_speed;
+            ability.speed_full_duplex |= SOC_PA_SPEED(force_speed);
+        } else {
+            ability.speed_full_duplex &= ~non_ieee_speed;
+            force_speed = IS_GE_PORT(unit, port) ? 1000 :
+                          IS_CE_PORT(unit, port) ? 100000 :
+                          SOC_CONTROL(unit)->info.port_speed_max[port] >= 40000?
+                          40000 : 10000;
+        }
+
+        BCM_IF_ERROR_RETURN(bcmi_esw_portctrl_ability_advert_set(unit, port,
+                                                                 &ability,
+                                                                 ability_mask));
+
+        phymod_autoneg_control_t_init(&an_info);
+
+        PORT_LOCK(unit);
+        rv = portmod_port_autoneg_get(unit, pport, &an_info);
+        PORT_UNLOCK(unit);
+
+        /* Some mac driver re-init phy while executing MAC_ENCAP_SET, in that
+         * case autoneg is probably always true here
+         */
+        if (an_info.enable) {
+            SOC_IF_ERROR_RETURN(bcm_esw_port_autoneg_set(unit, port, TRUE));
+        } else {
+            rv = _bcm_esw_portctrl_interface_cfg_set(unit, port, pport,
+                                                     BCM_ESW_PORTCTRL_CFG_SPEED,
+                                                     (void *)&force_speed);
+            if (BCM_FAILURE(rv)) {
+                return rv;
+            }
+        }
+    }
+
+    /* Now we propagate the changes */
+    port_type = to_higig ? 1 : 0;
+
+    if (port_type == 1) {
+        if (mode == BCM_PORT_ENCAP_HIGIG_OVER_ETHERNET) {
+            higig_type = BCM_PORT_HG_TYPE_HGOE_TRANSPORT;
+        } else if (mode == BCM_PORT_ENCAP_HIGIG) {
+            higig_type = BCM_PORT_HG_TYPE_HIGIGPLUS;
+        } else {
+            higig_type = BCM_PORT_HG_TYPE_HIGIG2_NORMAL;
+        }
+    } else {
+        higig_type =  0;
+    }
+
+    if (soc_mem_field_valid(unit, PORT_TABm, port_type_field)) {
+        SOC_IF_ERROR_RETURN(_bcm_esw_port_tab_set(unit, port,
+                            _BCM_CPU_TABS_NONE, port_type_field, port_type));
+    }
+    if (SOC_MEM_IS_VALID(unit, EGR_PORTm)) {
+        if (soc_mem_field_valid(unit, EGR_PORTm, port_type_field)) {
+            SOC_IF_ERROR_RETURN(soc_mem_field32_modify(unit, EGR_PORTm, port,
+                                port_type_field, port_type));
+        }
+        if(soc_mem_field_valid(unit, EGR_PORTm, HG_TYPEf)) {
+            SOC_IF_ERROR_RETURN(soc_mem_field32_modify(unit, EGR_PORTm, port,
+                                HG_TYPEf, higig_type));
+        }
+    } else {
+        if (SOC_REG_IS_VALID(unit, EGR_PORT_64r)) {
+            egr_port_reg = EGR_PORT_64r;
+        } else {
+            egr_port_reg = EGR_PORTr;
+        }
+        SOC_IF_ERROR_RETURN(soc_reg_field32_modify(unit, egr_port_reg, port,
+                            port_type_field, port_type));
+    }
+
+    if (!IS_CPU_PORT(unit, port) && !IS_LB_PORT(unit, port)) {
+        if (SOC_MEM_IS_VALID(unit, EGR_ING_PORTm)) {
+            SOC_IF_ERROR_RETURN(soc_mem_field32_modify(unit, EGR_ING_PORTm,
+                                port, PORT_TYPEf, port_type));
+        }
+        if(SOC_MEM_FIELD_VALID(unit, EGR_ING_PORTm, HG_TYPEf)) {
+            SOC_IF_ERROR_RETURN(soc_mem_field32_modify(unit, EGR_ING_PORTm,
+                                port, HG_TYPEf, higig_type));
+        }
+    }
+
+    
+    if (SOC_MEM_IS_VALID(unit, ICONTROL_OPCODE_BITMAPm)) {
+        icontrol_opcode_bitmap_entry_t entry;
+        soc_pbmp_t pbmp;
+
+        SOC_IF_ERROR_RETURN(READ_ICONTROL_OPCODE_BITMAPm(unit, MEM_BLOCK_ANY,
+                            port, &entry));
+        SOC_PBMP_CLEAR(pbmp);
+        if (to_higig) {
+            SOC_PBMP_PORT_SET(pbmp, CMIC_PORT(unit));
+        }
+        soc_mem_pbmp_field_set(unit, ICONTROL_OPCODE_BITMAPm, &entry, BITMAPf,
+                               &pbmp);
+        SOC_IF_ERROR_RETURN(WRITE_ICONTROL_OPCODE_BITMAPm(unit, MEM_BLOCK_ANY,
+                                                          port, &entry));
+    } else {
+
+        /* Set HG ingress CPU Opcode map to the CPU */
+        /* int pbm_len; */
+        uint32 cpu_pbm = 0;
+
+        if (to_higig) {
+            soc_xgs3_port_to_higig_bitmap(unit, CMIC_PORT(unit), &cpu_pbm);
+        } /* else, cpu_pbm = 0 */
+
+        SOC_IF_ERROR_RETURN(soc_reg_field32_modify(unit,
+                            ICONTROL_OPCODE_BITMAPr, port, BITMAPf, cpu_pbm));
+    }
+
+    if (to_higig) {
+        /* HG ports to forwarding */
+        BCM_IF_ERROR_RETURN(bcm_esw_port_stp_set(unit, port,
+                                                 BCM_STG_STP_FORWARD));
+    }  
+
+    /* Clear mirror enable settings */
+    /* coverity[stack_use_callee] */
+    /* coverity[stack_use_overflow] */
+    BCM_IF_ERROR_RETURN(bcm_esw_mirror_port_set(unit, port, -1, -1, 0));
+
+    /* Set untagged state in default VLAN properly */
+    BCM_IF_ERROR_RETURN(_bcm_esw_vlan_untag_update(unit, port, to_higig));
+
+    /* Resolve STG 0 */
+    BCM_IF_ERROR_RETURN(bcm_esw_stg_default_get(unit, &stg));
+    BCM_IF_ERROR_RETURN(bcm_esw_stg_stp_set(unit, 0, port,
+                        to_higig ? BCM_STG_STP_FORWARD : BCM_STG_STP_DISABLE));
+
+#ifdef BCM_TRX_SUPPORT
+    /* Reset the vlan default action */
+    if (soc_feature(unit, soc_feature_vlan_action)) {
+        bcm_vlan_action_set_t action;
+
+        BCM_IF_ERROR_RETURN(_bcm_trx_vlan_port_egress_default_action_get(unit,
+                            port, &action));
+        /* Backward compatible defaults */
+        if (to_higig) {
+            action.ot_outer = bcmVlanActionDelete;
+            action.dt_outer = bcmVlanActionDelete;
+        } else {
+            action.ot_outer = bcmVlanActionNone;
+            action.dt_outer = bcmVlanActionNone;
+        }
+        BCM_IF_ERROR_RETURN(_bcm_trx_vlan_port_egress_default_action_set(unit,
+                            port, &action));
+    }
+#endif
+
+#ifdef INCLUDE_L3
+    BCM_IF_ERROR_RETURN(bcm_esw_ipmc_egress_port_set(unit, port,
+                        to_higig ? _soc_mac_all_ones : _soc_mac_all_zeroes,
+                        0, 0, 0));
+#endif /* INCLUDE_L3 */
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_encap_higig_lite_set
+ * Purpose:
+ *      Helper function to force a port into HIGIG2_LITE mode
+ * Parameters:
+ *      unit            - (IN) device id
+ *      port            - (IN) port number
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_encap_higig_lite_set(int unit, bcm_gport_t port)
+{
+#ifdef PORTMOD_SUPPORT
+    portctrl_pport_t  pport;
+    portmod_port_ability_t  ability;
+    phymod_autoneg_control_t an_info;
+    int rv;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    sal_memset(&ability, 0, sizeof(soc_port_ability_t));
+    sal_memset(&an_info, 0, sizeof(phymod_autoneg_control_t));
+
+    if (soc_feature(unit, soc_feature_hg_no_speed_change)) {
+        /* HG-Lite process without 2.5G speed setting can calls to
+         * bcmi_esw_portctrl_encap_xport_set() directly.
+         */
+        return bcmi_esw_portctrl_encap_xport_set(unit, port,
+                                                 BCM_PORT_ENCAP_HIGIG2_LITE);
+    }
+
+    if (IS_XE_PORT(unit, port) || IS_HG_PORT(unit, port)) {
+
+        BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port,
+                            &pport));
+
+        /* Restrict the speed to <= 2.5G and set the encap to HG2 */
+        BCM_IF_ERROR_RETURN(portmod_port_ability_local_get(unit, pport,
+                            &ability));
+
+        ability.speed_full_duplex &= ~(SOC_PA_SPEED_10GB |
+                SOC_PA_SPEED_12GB | SOC_PA_SPEED_13GB | SOC_PA_SPEED_15GB |
+                SOC_PA_SPEED_16GB | SOC_PA_SPEED_20GB | SOC_PA_SPEED_21GB |
+                SOC_PA_SPEED_25GB | SOC_PA_SPEED_30GB | SOC_PA_SPEED_40GB);
+
+        BCM_IF_ERROR_RETURN(portmod_port_ability_advert_set(unit, pport,
+                            &ability));
+        BCM_IF_ERROR_RETURN(portmod_port_autoneg_get(unit, pport,
+                            &an_info));
+
+        if (!an_info.enable) {
+            int speed;
+
+            speed = 2500;
+            rv = _bcm_esw_portctrl_interface_cfg_set(unit, port, pport,
+                                                     BCM_ESW_PORTCTRL_CFG_SPEED,
+                                                     (void *)&speed);
+
+            if (BCM_FAILURE(rv)) {
+                return rv;
+            }
+        }
+
+        return bcmi_esw_portctrl_encap_xport_set(unit, port,
+                                                 BCM_PORT_ENCAP_HIGIG2);
+    } else if (IS_ST_PORT(unit, port) || IS_E_PORT(unit, port)) {
+
+        return _bcm_port_encap_stport_set(unit, port, BCM_PORT_ENCAP_HIGIG2);
+    }
+
+    return BCM_E_CONFIG;
+#else   /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif  /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_higig_mode_set
+ * Purpose:
+ *      Set port Higig mode
+ * Parameters:
+ *      unit - StrataSwitch unit #
+ *      port - StrataSwitch port #
+ *      higig_mode - Higig mode
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_higig_mode_set(int unit, bcm_gport_t port, int higig_mode)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv;
+    portctrl_pport_t pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port,
+                                              &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_higig_mode_set(unit, pport, higig_mode);
+    PORT_UNLOCK(unit);
+
+    return rv;
+#else   /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif  /* PORTMOD_SUPPORT */
+}
+/*
+ * Function:
+ *      bcmi_esw_portctrl_higig2_mode_set
+ * Purpose:
+ *      Set port Higig2 mode
+ * Parameters:
+ *      unit - StrataSwitch unit #
+ *      port - StrataSwitch port #
+ *      higig2_mode - Higig2 mode
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_higig2_mode_set(int unit, bcm_gport_t port, int higig2_mode)
+{
+#ifdef PORTMOD_SUPPORT
+    soc_reg_t egr_port_reg;
+    soc_mem_t egr_port_mem;
+    int rv;
+    portctrl_pport_t pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port,
+                                              &pport));
+
+    BCM_IF_ERROR_RETURN(_bcm_esw_port_tab_set(unit, port,
+                        _BCM_CPU_TABS_NONE, HIGIG2f, higig2_mode));
+
+    if (SOC_REG_IS_VALID(unit, EGR_PORT_64r)) {
+        egr_port_reg = EGR_PORT_64r;
+    } else {
+        egr_port_reg = EGR_PORTr;
+    }
+
+    if (SOC_REG_FIELD_VALID(unit, egr_port_reg, HIGIG2f)) {
+        BCM_IF_ERROR_RETURN(soc_reg_field32_modify(unit, egr_port_reg, port,
+                                                   HIGIG2f, higig2_mode));
+    } else if (SOC_MEM_FIELD_VALID(unit, EGR_PORTm, HIGIG2f)) {
+        BCM_IF_ERROR_RETURN(soc_mem_field32_modify(unit, EGR_PORTm, port,
+                                                   HIGIG2f, higig2_mode));
+    }
+
+    PORT_LOCK(unit);
+    rv = portmod_port_higig2_mode_set(unit, pport, higig2_mode);
+    PORT_UNLOCK(unit);
+            
+    if (PORTMOD_FAILURE(rv)) {
+        return rv;
+    }
+
+    egr_port_mem = EGR_ING_PORTm;
+    if (SOC_MEM_FIELD_VALID(unit, egr_port_mem, HIGIG2f)) {
+        if (IS_CPU_PORT(unit, port)) {
+            BCM_IF_ERROR_RETURN(soc_mem_field32_modify(unit, egr_port_mem,
+                                SOC_INFO(unit).cpu_hg_index, HIGIG2f,
+                                higig2_mode));
+        } else {
+            BCM_IF_ERROR_RETURN(soc_mem_field32_modify(unit, egr_port_mem,
+                                                       port, HIGIG2f,
+                                                       higig2_mode));
+        }
+    }
+
+    return BCM_E_NONE;
+#else   /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif  /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_portctrl_encap_set
+ * Purpose:
+ *      Set the port encapsulation mode
+ * Parameters:
+ *      unit - StrataSwitch unit #
+ *      port - StrataSwitch port #
+ *      mode - One of BCM_PORT_ENCAP_xxx (see port.h)
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_encap_set(int unit, bcm_gport_t port, int mode)
+{
+#ifdef PORTMOD_SUPPORT
+    int         rv, xport_swap = FALSE;
+    uint64      val64;
+    portctrl_pport_t pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    LOG_INFO(BSL_LS_BCM_PORT,
+             (BSL_META_UP(unit, port,
+             "bcm_esw_port_encap_set: u=%d p=%d mode=%d\n"),
+              unit, port, mode));
+
+    _bcm_esw_port_mirror_lock(unit);
+
+    if ((IS_HG_PORT(unit,port) && (mode == BCM_PORT_ENCAP_IEEE)) ||
+        ((IS_XE_PORT(unit,port) || IS_CE_PORT(unit,port)) &&
+         (mode != BCM_PORT_ENCAP_IEEE))) {
+        if (soc_feature(unit, soc_feature_xport_convertible)) {
+            xport_swap = TRUE;
+        } else {
+            /* Ether <=> Higig not allowed on all systems */
+            _bcm_esw_port_mirror_unlock(unit);
+            return BCM_E_UNAVAIL;
+        }
+    }
+
+    if (xport_swap) {
+        COUNTER_LOCK(unit);
+        if ((BCM_PORT_ENCAP_HIGIG2_LITE == mode)) {
+            rv = bcmi_esw_portctrl_encap_higig_lite_set(unit, port);
+        } else {
+            rv = bcmi_esw_portctrl_encap_xport_set(unit, port, mode);
+        }
+        
+        COUNTER_UNLOCK(unit);
+    } else if (IS_HG_PORT(unit, port)) {
+
+        rv = _bcm_esw_portctrl_interface_cfg_set(unit, port, pport,
+                                                BCM_ESW_PORTCTRL_CFG_ENCAP_MODE,
+                                                (void *)&mode);
+            if (BCM_FAILURE(rv)) {
+                _bcm_esw_port_mirror_unlock(unit);
+                return rv;
+            }
+    } else if (IS_GE_PORT(unit, port) && IS_ST_PORT(unit, port)) {
+        if (mode == BCM_PORT_ENCAP_IEEE) {
+            bcm_port_encap_config_t encap_config;
+
+            rv = bcm_esw_port_encap_config_get(unit, port,
+                                               &encap_config);
+            if (BCM_SUCCESS(rv)) {
+                if ((BCM_PORT_ENCAP_HIGIG2_L2 == encap_config.encap) ||
+                    (BCM_PORT_ENCAP_HIGIG2_IP_GRE == encap_config.encap) ||
+                    (BCM_PORT_ENCAP_HIGIG2_LITE == encap_config.encap)) {
+                    rv = _bcm_port_encap_stport_set(unit, port,
+                                                    BCM_PORT_ENCAP_IEEE);
+                } else {
+                    _bcm_esw_port_mirror_unlock(unit);
+                    rv = BCM_E_UNAVAIL;
+                }
+            }
+        } else {
+            if ((mode == BCM_PORT_ENCAP_HIGIG2) ||
+                (mode == BCM_PORT_ENCAP_HIGIG2_LITE)) {
+                rv = BCM_E_NONE;
+            } else {
+                rv = BCM_E_UNAVAIL;
+            }
+        }
+    } else if (IS_CE_PORT(unit, port))  {
+         if ((mode == BCM_PORT_ENCAP_HIGIG2) ||
+             (mode == BCM_PORT_ENCAP_HIGIG) ||
+             (mode == BCM_PORT_ENCAP_IEEE)) {
+             rv = _bcm_port_encap_stport_set(unit, port, mode);
+         } else {
+             rv = BCM_E_UNAVAIL;
+         }
+    } else if (mode == BCM_PORT_ENCAP_IEEE) {
+        rv = BCM_E_NONE;
+    } else {
+        rv = BCM_E_UNAVAIL;
+    }
+
+#ifdef BCM_GXPORT_SUPPORT
+    if (IS_GX_PORT(unit, port) || IS_XG_PORT(unit,port) || 
+        IS_HG_PORT(unit, port) || IS_XE_PORT(unit, port) ||
+        IS_CE_PORT(unit, port)) {
+        int hg2 = FALSE;
+
+        if (mode == BCM_PORT_ENCAP_HIGIG2 ||
+            mode == BCM_PORT_ENCAP_HIGIG2_LITE) {
+            hg2 = TRUE;
+        }
+
+        if (BCM_SUCCESS(rv)) {
+            rv = bcmi_esw_portctrl_higig2_mode_set(unit, port, hg2);
+        }
+
+        if (BCM_SUCCESS(rv)) {
+            /* No need for locking; _bcm_esw_port_mirror_lock does it */
+            rv = portmod_port_higig_mode_set(unit, pport,
+                                             mode == BCM_PORT_ENCAP_IEEE ?
+                                             0 : 1);
+        }
+
+        if (PORTMOD_SUCCESS(rv)) {
+            if (SOC_MEM_IS_VALID(unit, EGR_PORTm)) {
+                rv = soc_mem_field32_modify(unit, EGR_PORTm, port,
+                                            PORT_TYPEf,
+                                            mode == BCM_PORT_ENCAP_IEEE ?
+                                            0 : 1);
+            }
+        }
+    }
+#endif /* BCM_GXPORT_SUPPORT */
+
+    if (soc_feature(unit, soc_feature_embedded_higig)) {
+        /* Clear embedded Higig regs, if present */
+        soc_reg_t   ehg_tx_reg = EHG_TX_CONTROLr;
+        soc_reg_t   ehg_rx_reg = EHG_RX_CONTROLr;
+
+        if (BCM_SUCCESS(rv) && SOC_REG_IS_VALID(unit, ehg_tx_reg)) {
+            rv = soc_reg32_set(unit, ehg_tx_reg, port, 0, 0);
+        }
+        if (BCM_SUCCESS(rv) && SOC_REG_IS_VALID(unit, ehg_rx_reg)) {
+            rv = soc_reg32_set(unit, ehg_rx_reg, port, 0, 0);
+        }
+    }
+
+    if (BCM_SUCCESS(rv) && soc_feature(unit, soc_feature_higig_over_ethernet)) {
+        /* Disable HGoE if needed*/
+
+        uint32 tab_port_type;
+        uint32 tab_higig_type;
+
+        tab_port_type =  (mode == BCM_PORT_ENCAP_IEEE) ? 0 : 1;
+
+        if (tab_port_type == 1) {
+            if (mode == BCM_PORT_ENCAP_HIGIG_OVER_ETHERNET) {
+                tab_higig_type = BCM_PORT_HG_TYPE_HGOE_TRANSPORT;
+            } else if (mode == BCM_PORT_ENCAP_HIGIG) {
+                tab_higig_type = BCM_PORT_HG_TYPE_HIGIGPLUS;
+            } else {
+                tab_higig_type = BCM_PORT_HG_TYPE_HIGIG2_NORMAL;
+            }
+        } else {
+            tab_higig_type = 0;
+        }
+
+        if(SOC_REG_IS_VALID(unit, PGW_CELL_ASM_EMBEDDED_HG_CONTROL0r)) {
+            uint64 field64;
+            uint32 tmp32;
+            tmp32 = (BCM_PORT_ENCAP_HIGIG_OVER_ETHERNET == mode);
+            COMPILER_64_SET(field64, 0, tmp32);
+            SOC_IF_ERROR_RETURN
+                (soc_reg_get(unit, PGW_CELL_ASM_EMBEDDED_HG_CONTROL0r, port, 0,
+                             &val64));
+            soc_reg64_field_set(unit, PGW_CELL_ASM_EMBEDDED_HG_CONTROL0r,
+                                &val64, TRANSPORT_ENf,
+                                field64);
+            rv = soc_reg_set(unit, PGW_CELL_ASM_EMBEDDED_HG_CONTROL0r, port, 0,
+                             val64);
+        }
+        if (BCM_SUCCESS(rv) &&
+            SOC_MEM_FIELD_VALID(unit, EGR_PORTm, PORT_TYPEf)) {
+            rv = soc_mem_field32_modify(unit, EGR_PORTm, port, PORT_TYPEf, tab_port_type);
+        }
+        if (BCM_SUCCESS(rv) && SOC_MEM_FIELD_VALID(unit, EGR_PORTm, HG_TYPEf)) {
+            rv = soc_mem_field32_modify(unit, EGR_PORTm, port,
+                                        HG_TYPEf, tab_higig_type);
+        }
+        if (BCM_SUCCESS(rv) &&
+            SOC_MEM_FIELD_VALID(unit, EGR_ING_PORTm, PORT_TYPEf)) {
+            rv = soc_mem_field32_modify(unit, EGR_ING_PORTm, port, PORT_TYPEf, tab_port_type);
+
+        }
+        if (BCM_SUCCESS(rv) &&
+            SOC_MEM_FIELD_VALID(unit, EGR_ING_PORTm, HG_TYPEf)) {
+            rv = soc_mem_field32_modify(unit, EGR_ING_PORTm, port,
+                                        HG_TYPEf, tab_higig_type);
+        }
+
+        if (BCM_SUCCESS(rv) &&
+            SOC_MEM_FIELD_VALID(unit, PORT_TABm, PORT_TYPEf)) {
+            rv = _bcm_esw_port_tab_set(unit, port,
+                                       _BCM_CPU_TABS_NONE, PORT_TYPEf, tab_port_type);
+
+        }
+        if (BCM_SUCCESS(rv) && SOC_MEM_FIELD_VALID(unit, PORT_TABm, HG_TYPEf)) {
+
+            rv = _bcm_esw_port_tab_set(unit, port,
+                                       _BCM_CPU_TABS_NONE, HG_TYPEf, tab_higig_type); 
+        }
+    }
+
+    /* Update cached version of HiGig2 encapsulation */
+    if (BCM_SUCCESS(rv)) {
+        if (mode == BCM_PORT_ENCAP_HIGIG2 ||
+            mode == BCM_PORT_ENCAP_HIGIG2_LITE) {
+            SOC_HG2_ENABLED_PORT_ADD(unit, port);
+        } else {
+            SOC_HG2_ENABLED_PORT_REMOVE(unit, port);
+        }
+    }
+
+    /* Update cached version of HiGig2 encapsulation */
+    if (BCM_SUCCESS(rv)) {
+        if (mode == BCM_PORT_ENCAP_HIGIG2 ||
+            mode == BCM_PORT_ENCAP_HIGIG2_LITE) {
+            SOC_HG2_ENABLED_PORT_ADD(unit, port);
+        } else {
+            SOC_HG2_ENABLED_PORT_REMOVE(unit, port);
+        }
+    }
+
+    _bcm_esw_port_mirror_unlock(unit);
+
+    return rv;
+
+#else   /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif  /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+*      bcmi_esw_portctrl_llfc_get
+ * Purpose:
+ *      
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      port - Port.
+ *      type - Command Type  
+ *      value  - Value  
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_INTERNAL - internal error.
+ * Notes:
+ *      
+ *      
+ */
+
+int
+bcmi_esw_portctrl_llfc_get(int unit, bcm_gport_t port, bcm_port_control_t type, int *value)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_UNAVAIL;
+    portmod_llfc_control_t control;
+
+    PORT_LOCK(unit);
+    switch(type) {
+    case bcmPortControlLLFCReceive:
+#if defined(BCM_XGS3_SWITCH_SUPPORT)
+        if (SOC_IS_XGS3_SWITCH(unit)) {
+            if (!SOC_PORT_VALID(unit, port)) {
+                PORT_UNLOCK(unit);
+                return BCM_E_PORT;
+            }
+            rv = portmod_port_llfc_control_get(unit, port, &control);
+            *value = control.rx_enable;
+        }
+#endif /* BCM_XGS3_SWITCH_SUPPORT */
+        break;
+    case bcmPortControlLLFCTransmit:
+#if defined(BCM_XGS3_SWITCH_SUPPORT)
+        if (SOC_IS_XGS3_SWITCH(unit)) {
+            if (!SOC_PORT_VALID(unit, port)) {
+                PORT_UNLOCK(unit);
+                return BCM_E_PORT;
+            }
+            rv = portmod_port_llfc_control_get(unit, port, &control);
+            *value = control.tx_enable;
+        }
+#endif /* BCM_XGS3_SWITCH_SUPPORT */
+        break;
+    default:
+        break;
+    }
+    PORT_UNLOCK(unit);
+    return(rv);
+#else /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_llfc_set
+ * Purpose:
+ *      
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      port - Port.
+ *      type - Command Type  
+ *      value  - Value  
+ *
+ *
+ */
+int
+bcmi_esw_portctrl_llfc_set(int unit, bcm_port_t port, bcm_port_control_t type, int value)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_UNAVAIL;
+    soc_reg_t port_config;
+    int llfc_enable = 0;
+    portmod_llfc_control_t control;
+
+    switch(type) {
+    case bcmPortControlLLFCReceive:
+#if defined(BCM_XGS3_SWITCH_SUPPORT)
+        if (SOC_IS_XGS3_SWITCH(unit)) {
+
+            if (!SOC_PORT_VALID(unit, port)) {
+                return BCM_E_PORT;
+            }
+            PORT_LOCK(unit);
+            rv = portmod_port_llfc_control_get(unit, port, &control);
+            if(PORTMOD_SUCCESS(rv)) { 
+                control.rx_enable = value;
+                rv =  portmod_port_llfc_control_set(unit,port, &control);
+                if(PORTMOD_SUCCESS(rv)) {
+                    if( value == 0 ) {
+                        rv = portmod_port_llfc_control_get(unit, port, &control);
+                        if(PORTMOD_SUCCESS(rv)) {
+                            llfc_enable = control.tx_enable ;
+                        }
+                    } else {
+                        llfc_enable = TRUE;
+                    }
+                }
+            }
+            PORT_UNLOCK(unit);
+            if (SOC_REG_FIELD_VALID(unit, XLPORT_CONFIGr, LLFC_ENf)) {
+                port_config = XLPORT_CONFIGr;
+            } else if (SOC_REG_FIELD_VALID(unit, XPORT_CONFIGr, LLFC_ENf)) {
+                port_config = XPORT_CONFIGr;
+            } else if (SOC_REG_FIELD_VALID(unit, PORT_CONFIGr, LLFC_ENf)) {
+                port_config = PORT_CONFIGr;
+            } else {
+                port_config = INVALIDr;
+            }
+
+            if (port_config != INVALIDr){
+                BCM_IF_ERROR_RETURN
+                    (soc_reg_field32_modify(unit, port_config, port, LLFC_ENf,
+                                            llfc_enable ? 1 : 0));
+            }
+        }
+#endif /* BCM_XGS3_SWITCH_SUPPORT */
+        break;
+    case bcmPortControlLLFCTransmit:
+#if defined(BCM_XGS3_SWITCH_SUPPORT)
+        if (SOC_IS_XGS3_SWITCH(unit)) {
+            if (!SOC_PORT_VALID(unit, port)) {
+                PORT_UNLOCK(unit);
+                return BCM_E_PORT;
+            }
+            PORT_LOCK(unit);
+            rv = portmod_port_llfc_control_get(unit, port, &control);
+            if(PORTMOD_SUCCESS(rv)) {
+                control.tx_enable = value;
+                rv =  portmod_port_llfc_control_set(unit,port, &control);
+                if(PORTMOD_SUCCESS(rv)) {
+                    if( value == 0 ) {
+                        rv = portmod_port_llfc_control_get(unit, port, &control);
+                        if(PORTMOD_SUCCESS(rv)) {
+                            llfc_enable = control.tx_enable ;
+                        }
+                    } else {
+                        llfc_enable = TRUE;
+                    }
+                }
+            }
+            PORT_UNLOCK(unit);
+            if (SOC_REG_FIELD_VALID(unit, XLPORT_CONFIGr, LLFC_ENf)) {
+                port_config = XLPORT_CONFIGr;
+            } else if (SOC_REG_FIELD_VALID(unit, XPORT_CONFIGr, LLFC_ENf)) {
+                port_config = XPORT_CONFIGr;
+            } else if (SOC_REG_FIELD_VALID(unit, PORT_CONFIGr, LLFC_ENf)) {
+                port_config = PORT_CONFIGr;
+            } else {
+                port_config = INVALIDr;
+            }
+
+            if (port_config != INVALIDr){
+                BCM_IF_ERROR_RETURN
+                    (soc_reg_field32_modify(unit, port_config, port, LLFC_ENf,
+                                            llfc_enable ? 1 : 0));
+            }
+
+        }
+#endif /* BCM_XGS3_SWITCH_SUPPORT */
+        break;
+    default:
+        break;
+    }
+    return rv;
+#else /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_link_get
+ * Purpose:
+ *      Return current PHY up/down status
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      hw - If TRUE, assume hardware linkscan is active and use it
+ *              to reduce PHY reads.
+ *           If FALSE, do not use information from hardware linkscan.
+ *      up - (OUT) TRUE for link up, FALSE for link down.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_link_get(int unit, bcm_gport_t port, int hw, int *up)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv;
+    int flags = 0;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+
+    if (hw) {
+        pbmp_t hw_linkstat;
+
+        rv = soc_linkscan_hw_link_get(unit, &hw_linkstat);
+
+        *up = PBMP_MEMBER(hw_linkstat, port);
+
+        /*
+         * We need to confirm link down because we may receive false link
+         * change interrupts when hardware and software linkscan are mixed.
+         * Processing a false link down event is known to cause packet
+         * loss, which is obviously unacceptable.
+         */
+        if (!(*up)) {
+            rv = portmod_port_link_get(unit, pport, up);
+        }
+    } else {
+        if (SOC_IS_RCPU_ONLY(unit)) {
+            PORTMOD_PORT_ENABLE_MAC_SET(flags);
+            rv = portmod_port_enable_get(unit, pport, flags, up);
+        } else {
+            rv = portmod_port_link_get(unit, pport, up);
+        }
+    }
+
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_SUCCESS(rv) && 
+        portmod_port_flags_test(unit, port, PHY_FLAGS_MEDIUM_CHANGE) == 1) {
+        soc_port_medium_t medium;
+
+        rv = bcmi_esw_portctrl_medium_get(unit, port, &medium);
+        if (BCM_SUCCESS(rv)) {
+            soc_phy_medium_status_notify(unit, port, medium);
+        }
+    }
+
+    LOG_VERBOSE(BSL_LS_BCM_PORT,
+                (BSL_META_UP(unit, port,
+                    "Get port link status: u=%d p=%d hw=%d up=%d rv=%d\n"),
+                 unit, port, hw, *up, rv));
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_lag_failover_disable
+ * Purpose:
+ *      Disable lag failover
+ *
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      port - Port.
+ */
+int
+bcmi_esw_portctrl_lag_failover_disable(int unit, bcm_gport_t port)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t  pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_lag_failover_disable(unit, pport);
+    PORT_UNLOCK(unit);
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_lag_failover_loopback_get
+ * Purpose:
+ *      Get lag failover loopback mode for specified port.
+ *
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      port - Port.
+ *      value  - Value
+ */
+int
+bcmi_esw_portctrl_lag_failover_loopback_get(int unit,
+                                            bcm_gport_t port, int* value)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t  pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_lag_failover_loopback_get(unit, pport, value);
+    PORT_UNLOCK(unit);
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_lag_failover_status_toggle
+ * Purpose:
+ *      Toggle lag failover status
+ *
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      port - Port.
+ */
+int
+bcmi_esw_portctrl_lag_failover_status_toggle(int unit, bcm_gport_t port)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t  pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_lag_failover_status_toggle(unit, pport);
+    PORT_UNLOCK(unit);
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_lag_remove_failover_lpbk_set
+ * Purpose:
+ *      Set lag remove failover loopback
+ *
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      port - Port.
+ */
+int
+bcmi_esw_portctrl_lag_remove_failover_lpbk_set(int unit,
+                                               bcm_gport_t port, int value)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t  pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_lag_remove_failover_lpbk_set(unit, pport, value);
+    PORT_UNLOCK(unit);
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_trunk_hwfailover_set
+ * Purpose:
+ *      Set trunk hwfailover
+ *
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      port - Port.
+ *      hw_count - hw count
+ */
+int
+bcmi_esw_portctrl_trunk_hwfailover_set(int unit, bcm_gport_t port, int hw_count)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t  pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_trunk_hwfailover_config_set(unit, pport, hw_count);
+    PORT_UNLOCK(unit);
+    return rv;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+#ifdef BCM_TRIDENT2_SUPPORT
+/*
+ * Function:
+ *      bcmi_esw_td2_portctrl_lanes_set
+ * Purpose:
+ *
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      port_base - Port Base.
+ *      lanes  - lanes
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_INTERNAL - internal error.
+ * Notes:
+ *
+ *
+ */
+int
+bcmi_esw_td2_portctrl_lanes_set(int unit, bcm_port_t port_base, int lanes)
+{
+#ifdef PORTMOD_SUPPORT
+    soc_info_t *si = &SOC_INFO(unit);
+    soc_td2_port_lanes_t lanes_ctrl;
+    int port, i;
+    int enable, okay;
+
+    sal_memset(&lanes_ctrl, 0, sizeof(lanes_ctrl));
+    lanes_ctrl.port_base = port_base;
+    lanes_ctrl.lanes = lanes;
+    SOC_IF_ERROR_RETURN
+        (soc_trident2_port_lanes_validate(unit, &lanes_ctrl));
+
+    if(lanes_ctrl.lanes == lanes_ctrl.cur_lanes) {
+        return BCM_E_NONE;
+    }
+
+    /* All existing ports are required to be disasbled */
+    SOC_IF_ERROR_RETURN(bcm_esw_port_enable_get(unit, port_base, &enable));
+    if (enable) {
+        return BCM_E_BUSY;
+    }
+    if(lanes_ctrl.lanes > lanes_ctrl.cur_lanes) { /* port(s) to be removed */
+        for (i = 0; i < lanes_ctrl.phy_ports_len; i++) {
+            port = si->port_p2l_mapping[lanes_ctrl.phy_ports[i]];
+            SOC_IF_ERROR_RETURN(bcm_esw_port_enable_get(unit, port, &enable));
+            if (enable) {
+                return BCM_E_BUSY;
+            }
+        }
+    }
+    SOC_IF_ERROR_RETURN
+        (soc_trident2_port_lanes_set(unit, &lanes_ctrl));
+
+    /* Probe PHY on all port(s) after conversion */
+    BCM_IF_ERROR_RETURN(_bcm_port_probe(unit, port_base, &okay));
+    BCM_IF_ERROR_RETURN(_bcm_port_mode_setup(unit, port_base, FALSE));
+    if(lanes_ctrl.lanes < lanes_ctrl.cur_lanes) { /* port(s) to be added */
+        for (i = 0; i < lanes_ctrl.phy_ports_len; i++) {
+            port = si->port_p2l_mapping[lanes_ctrl.phy_ports[i]];
+            BCM_IF_ERROR_RETURN(_bcm_port_probe(unit, port, &okay));
+            BCM_IF_ERROR_RETURN(_bcm_port_mode_setup(unit, port, FALSE));
+        }
+    }
+
+    return BCM_E_NONE;
+#else /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+
+}
+#endif /* BCM_TRIDENT2_SUPPORT */
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_hwfailover_enable_set
+ * Purpose:
+ *      Set front panel trunk hardware failover config.
+ * Parameters:
+ *      unit - (IN) SOC unit number. 
+ *      port - (IN) Port ID of the fail port.
+ *      enable - (IN) Set the HW failover config.
+ * Returns:
+ *      BCM_E_xxx
+ */
+int
+bcmi_esw_portctrl_hwfailover_enable_set(int unit, bcm_gport_t port, int enable)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN
+        (PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_trunk_hwfailover_config_set(unit, pport, enable);
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_FAILURE(rv)) {
+        LOG_VERBOSE(BSL_LS_BCM_TRUNK,
+                    (BSL_META_UP(unit, port,
+                        "Failed to set HW failover: u=%d p=%d rv=%d\n"),
+                    unit, port, rv));
+    }
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_hwfailover_enable_get
+ * Purpose:
+ *      Get front-panel trunk hardware failover config.
+ * Parameters:
+ *      unit - (IN) SOC unit number. 
+ *      port - (IN) Port ID of the fail port.
+ *      enable - (OUT) Get the HW failover config.
+ * Returns:
+ *      BCM_E_xxx
+ */
+int
+bcmi_esw_portctrl_hwfailover_enable_get(int unit, bcm_gport_t port, int *enable)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN
+        (PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_trunk_hwfailover_config_get(unit, pport, enable);
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_FAILURE(rv)) {
+        LOG_VERBOSE(BSL_LS_BCM_TRUNK,
+                    (BSL_META_UP(unit, port,
+                        "Failed to get HW failover config: u=%d p=%d rv=%d\n"),
+                    unit, port, rv));
+    }
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_hwfailover_status_get
+ * Purpose:
+ *      Get front-panel trunk hardware failover status.
+ * Parameters:
+ *      unit - (IN) SOC unit number. 
+ *      port - (IN) Port ID of the fail port.
+ *      status - (OUT) failover status.
+ * Returns:
+ *      BCM_E_xxx
+ */
+int
+bcmi_esw_portctrl_hwfailover_status_get(int unit, bcm_gport_t port, int *status)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN
+        (PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_trunk_hwfailover_status_get(unit, pport, status);
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_FAILURE(rv)) {
+        LOG_VERBOSE(BSL_LS_BCM_TRUNK,
+                    (BSL_META_UP(unit, port,
+                        "Failed to get HW failover status: u=%d p=%d rv=%d\n"),
+                    unit, port, rv));
+    }
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *     bcmi_esw_portctrl_phy_control_get
+ * Description:
+ *     Set PHY specific properties
+ * Parameters:
+ *     unit        device number
+ *     port        port number
+ *     type        configuration type
+ *     value       value for the configuration
+ * Return:
+ *     BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_phy_control_get(int unit, bcm_gport_t port,
+                                  bcm_port_phy_control_t type, uint32 *value)
+{
+#ifdef PORTMOD_SUPPORT
+    int         rv;
+    portctrl_pport_t pport;
+    int phy_lane = -1;
+    int phyn = -1, sys_side = 0;
+    bcm_port_t local_port = -1;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN
+        (_bcm_esw_port_gport_phyn_validate(unit, port,
+                                           &local_port, &phyn,
+                                           &phy_lane, &sys_side));
+
+    if (local_port != -1) {
+        port = local_port;
+    }
+
+    BCM_IF_ERROR_RETURN
+        (PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+
+    if (local_port != -1) {
+        /* Configure outermost PHY (common case) */
+        rv = soc_portctrl_phy_control_get(unit, pport,
+                                          -1, -1, 0,
+                                          (soc_phy_control_t) type, value);
+    } else {
+        /* Configure PHY specified by GPORT */
+        rv = soc_portctrl_phy_control_get(unit, pport,
+                                          phyn, phy_lane, sys_side,
+                                          (soc_phy_control_t) type, value);
+    }
+
+    PORT_UNLOCK(unit);
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *     bcmi_esw_portctrl_phy_control_set
+ * Description:
+ *     Set PHY specific properties
+ * Parameters:
+ *     unit        device number
+ *     port        port number
+ *     type        configuration type
+ *     value       new value for the configuration
+ * Return:
+ *     BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_phy_control_set(int unit, bcm_gport_t port,
+                                 bcm_port_phy_control_t type, uint32 value)
+{
+#ifdef PORTMOD_SUPPORT
+    int         rv;
+    portctrl_pport_t pport;
+    int phy_lane = -1;
+    int phyn = -1, sys_side = 0;
+    bcm_port_t local_port = -1;
+    _bcm_port_info_t *port_info;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN
+        (_bcm_esw_port_gport_phyn_validate(unit, port,
+                                           &local_port, &phyn,
+                                           &phy_lane, &sys_side));
+
+    if (local_port != -1) {
+        port = local_port;
+    }
+
+    BCM_IF_ERROR_RETURN
+        (PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+
+    if (local_port != -1) {
+        /* Configure outermost PHY (common case) */
+        rv = soc_portctrl_phy_control_set(unit, pport,
+                                          -1, -1, 0,
+                                          (soc_phy_control_t) type, value);
+    } else {
+        /* Configure PHY specified by GPORT */
+        rv = soc_portctrl_phy_control_set(unit, pport,
+                                          phyn, phy_lane, sys_side,
+                                          (soc_phy_control_t) type, value);
+    }
+
+    /* Provide Warmboot support for SW RX LOS status */
+    if (SOC_SUCCESS(rv) && 
+        (type == BCM_PORT_PHY_CONTROL_SOFTWARE_RX_LOS)) {
+        _bcm_port_info_access(unit, port, &port_info);
+        port_info->rx_los = value;
+    }
+
+    PORT_UNLOCK(unit);
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+#ifdef PORTMOD_SUPPORT
+/*
+ * Function:
+ *      _bcm_esw_portctrl_control_pfc_receive_set
+ * Purpose:
+ *      Set the bcmPortControlPFCReceive port control.
+ * Parameters:
+ *      unit      - (IN) Unit number.
+ *      port      - (IN) BCM port number (NONE gport format).
+ *      pport     - (IN) Portmod port number.
+ *      value     - (IN) value to be set.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Assumes caller will:
+ *      - Check for PORTCTRL_INIT()
+ *      - Provide LOCKs
+ */
+STATIC int
+_bcm_esw_portctrl_control_pfc_receive_set(int unit, bcm_port_t port,
+                                          portctrl_pport_t pport,
+                                          int value)
+{
+    int pfc_enable;
+    portmod_pfc_control_t pfc_control;
+
+    if (!soc_feature(unit, soc_feature_priority_flow_control)) {
+        return BCM_E_UNAVAIL;
+    }
+
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_pfc_control_get(unit, pport, &pfc_control));
+
+    pfc_control.rx_enable = value;            
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_pfc_control_set(unit, pport, &pfc_control));
+
+    if (value == 0) {
+        pfc_enable = pfc_control.tx_enable;
+    } else {
+        pfc_enable = TRUE;
+    }
+
+    if (value == 0) {
+        /* Disabling RX, flush MMU XOFF state */
+        pfc_control.force_xon = 1;
+        PORTMOD_IF_ERROR_RETURN
+            (portmod_port_pfc_control_set(unit, pport, &pfc_control));
+        pfc_control.force_xon = 0;
+        PORTMOD_IF_ERROR_RETURN
+            (portmod_port_pfc_control_set(unit, pport, &pfc_control));
+    }
+
+    /* Stats enable */
+    pfc_control.stats_en = pfc_enable ? 1 : 0;
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_pfc_control_set(unit, pport, &pfc_control));
+    
+    if (SOC_REG_IS_VALID(unit, XPORT_TO_MMU_BKPr) && (pfc_enable == 0)) {
+        BCM_IF_ERROR_RETURN(WRITE_XPORT_TO_MMU_BKPr(unit, port, 0));
+    }
+
+    return BCM_E_NONE;
+}
+
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_control_pfc_transmit_set
+ * Purpose:
+ *      Set the bcmPortControlPFCTransmit port control.
+ * Parameters:
+ *      unit      - (IN) Unit number.
+ *      port      - (IN) BCM port number (NONE gport format).
+ *      pport     - (IN) Portmod port number.
+ *      value     - (IN) value to be set.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Assumes caller will:
+ *      - Check for PORTCTRL_INIT()
+ *      - Provide LOCKs
+ */
+STATIC int
+_bcm_esw_portctrl_control_pfc_transmit_set(int unit, bcm_port_t port,
+                                           portctrl_pport_t pport,
+                                           int value)
+{
+    int pfc_enable;
+    portmod_pfc_control_t pfc_control;
+    uint32 rval;
+
+    if (!soc_feature(unit, soc_feature_priority_flow_control)) {
+        return BCM_E_UNAVAIL;
+    }
+
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_pfc_control_get(unit, pport, &pfc_control));
+
+    pfc_control.tx_enable = value;            
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_pfc_control_set(unit, pport, &pfc_control));
+
+    if (value == 0) {
+        pfc_enable = pfc_control.rx_enable;
+    } else {
+        pfc_enable = TRUE;
+    }
+
+    /* Port config settings */
+    if (SOC_REG_IS_VALID(unit, THDI_INPUT_PORT_XON_ENABLESr)) {
+        SOC_IF_ERROR_RETURN
+            (soc_reg32_get(unit, THDI_INPUT_PORT_XON_ENABLESr,
+                           port, 0, &rval));
+        soc_reg_field_set(unit, THDI_INPUT_PORT_XON_ENABLESr, &rval,
+                          PORT_PRI_XON_ENABLEf,
+                          pfc_enable ? 0xffff : 0);
+        soc_reg_field_set(unit, THDI_INPUT_PORT_XON_ENABLESr, &rval,
+                          PORT_PAUSE_ENABLEf, pfc_enable ? 0 : 1);
+        SOC_IF_ERROR_RETURN
+            (soc_reg32_set(unit, THDI_INPUT_PORT_XON_ENABLESr,
+                           port, 0, rval));
+    }
+
+    /* Stats enable */
+    pfc_control.stats_en = pfc_enable ? 1 : 0;
+    PORTMOD_IF_ERROR_RETURN
+        (portmod_port_pfc_control_set(unit, pport, &pfc_control));
+
+    return BCM_E_NONE;
+}
+
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_control_eee_enable_set
+ * Purpose:
+ *      Set the bcmPortControlEEEEnable port control.
+ * Parameters:
+ *      unit      - (IN) Unit number.
+ *      port      - (IN) BCM port number (NONE gport format).
+ *      pport     - (IN) Portmod port number.
+ *      value     - (IN) value to be set.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Assumes caller will:
+ *      - Check for PORTCTRL_INIT()
+ *      - Provide LOCKs
+ */
+STATIC int
+_bcm_esw_portctrl_control_eee_enable_set(int unit, bcm_port_t port,
+                                         portctrl_pport_t pport,
+                                         int value)
+{
+#if 0
+    
+    portmod_eee_t eee;
+    uint32 phy_val;
+
+    if (!soc_feature (unit, soc_feature_eee)) {
+        return BCM_E_UNAVAIL;
+    }
+
+    PORTMOD_IF_ERROR_RETURN(portmod_eee_t_init(unit, &eee));
+
+    rv = portmod_port_eee_get(unit, pport, &eee);
+                            
+    
+    
+    if ((MAC_CONTROL_GET(PORT(unit, port).p_mac, unit, port,
+                         SOC_MAC_CONTROL_EEE_ENABLE,
+                         &mac_val) != SOC_E_UNAVAIL) &&
+        (soc_phyctrl_control_get(unit, port,
+                                 BCM_PORT_PHY_CONTROL_EEE,
+                                 &phy_val) != SOC_E_UNAVAIL)) {
+
+        /* If MAC/Switch is EEE aware (Native EEE mode is supported)
+         * and PHY also supports Native EEE mode
+         */
+
+        /* a. Disable AutoGrEEEn mode by PHY if applicable */
+        rv = (soc_phyctrl_control_get(unit, port,
+                                      BCM_PORT_PHY_CONTROL_EEE_AUTO,
+                                      &phy_val));
+
+        if ((rv != SOC_E_UNAVAIL) && (phy_val != 0)) {
+            rv = soc_phyctrl_control_set(unit, port,
+                                         BCM_PORT_PHY_CONTROL_EEE_AUTO,
+                                         0);
+        }
+
+        /* b. Enable/Disable Native EEE in PHY */
+        rv = soc_phyctrl_control_set (unit, port,
+                                      BCM_PORT_PHY_CONTROL_EEE, value ? 1 : 0);
+
+        if (SOC_SUCCESS(rv)) {
+            /* EEE standard compliance Work Around:
+             * Store the software copy of eee value in eee_cfg flag
+             */
+            eee_cfg[unit][port] = value;
+            /* If (value==1), EEE will be enabled in MAC after 1 sec.
+             * during linkscan update*/
+            if (value == 0) {
+                /* Disable EEE in MAC immediately*/
+                rv = MAC_CONTROL_SET(PORT(unit, port).p_mac,
+                                     unit, port,
+                                     SOC_MAC_CONTROL_EEE_ENABLE, 0);
+            }
+
+            /* Notify Int-PHY to bypass LPI for native EEE mode.
+             *
+             * Note :
+             *  1. Not all internal SerDes support the setting to
+             *     enable/disable bypass LPI signal.
+             *  2. Int-PHY to bypass LPI will sync with Ext-PHY's EEE
+             *     enabling status for Native EEE mode.
+             */
+            (void)soc_phyctrl_notify(unit, port,
+                                     phyEventLpiBypass, value? 1: 0);
+        }
+
+    } else {
+        /* If native EEE mode is not supported,
+         * set PHY in AutoGrEEEn mode.
+         */
+
+        /* a. Disable Native EEE mode in PHY if applicable */
+        rv = (soc_phyctrl_control_get(unit, port,
+                                      BCM_PORT_PHY_CONTROL_EEE,
+                                      &phy_val));
+
+        if ((rv != SOC_E_UNAVAIL) && (phy_val != 0)) {
+            rv = soc_phyctrl_control_set (unit, port,
+                                          BCM_PORT_PHY_CONTROL_EEE,
+                                          0);
+        }
+
+        /* b. Enable/Disable AutoGrEEEn in PHY.
+         * If PHY does not support AutoGrEEEn mode,
+         * rv will be assigned SOC_E_UNAVAIL.
+         */
+        rv = soc_phyctrl_control_set (unit, port,
+                                      BCM_PORT_PHY_CONTROL_EEE_AUTO,
+                                      value ? 1 : 0);
+        if (SOC_SUCCESS(rv)) {
+            eee_cfg[unit][port] = value;
+        }
+    }
+#endif
+
+    return BCM_E_NONE;
+}
+
+/*
+ * Function:
+ *      _bcm_esw_portctrl_eee_statistics_clear
+ * Purpose:
+ *      Set the bcmPortControlEEEStatisticsClear port control.
+ * Parameters:
+ *      unit      - (IN) Unit number.
+ *      port      - (IN) BCM port number (NONE gport format).
+ *      pport     - (IN) Portmod port number.
+ *      value     - (IN) value to be set.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Assumes caller will:
+ *      - Check for PORTCTRL_INIT()
+ *      - Provide LOCKs
+ */
+STATIC int
+_bcm_esw_portctrl_eee_statistics_clear(int unit, bcm_port_t port,
+                                         portctrl_pport_t pport,
+                                         int value)
+{
+
+#if 0
+    uint32 val = 0;
+    uint64 val64;
+    uint32 phy_val;
+    int idx;
+    soc_reg_t regs[] = {
+        RX_EEE_LPI_DURATION_COUNTERr,
+        RX_EEE_LPI_EVENT_COUNTERr,
+        TX_EEE_LPI_DURATION_COUNTERr,
+        TX_EEE_LPI_EVENT_COUNTERr
+    };
+
+    if (!soc_feature(unit, soc_feature_eee)) {
+        return BCM_E_UNAVAIL;
+    }
+
+    COMPILER_64_ZERO(val64);
+    if ((MAC_CONTROL_GET(PORT(unit, port).p_mac, unit, port,
+                         SOC_MAC_CONTROL_EEE_ENABLE, &mac_val)
+         != SOC_E_UNAVAIL) &&
+        (soc_phyctrl_control_get(unit, port,
+                                 BCM_PORT_PHY_CONTROL_EEE, &phy_val)
+         != SOC_E_UNAVAIL)) {
+
+        only for TD2...
+            for (idx = 0; idx < sizeof(regs) / sizeof(regs[0]); idx++) {
+                SOC_IF_ERROR_RETURN
+                    (soc_counter_set(unit, port, regs[idx], 0, val64));
+            }
+        return ??
+
+        /* MAC/Switch is EEE aware (Native EEE mode is supported) */
+        if (soc_feature(unit, soc_feature_unified_port)) {
+            if (SOC_REG_IS_VALID(unit, PORT_XGXS_COUNTER_MODEr)) {
+                _BCM_PORT_IF_ERROR_RETURN_WITH_UNLOCK
+                    (READ_PORT_XGXS_COUNTER_MODEr(unit, port, &val));
+                soc_reg_field_set(unit, PORT_XGXS_COUNTER_MODEr, &val,
+                                  CNT_MODEf, 0);
+                _BCM_PORT_IF_ERROR_RETURN_WITH_UNLOCK
+                    (WRITE_PORT_XGXS_COUNTER_MODEr(unit, port, val));
+            }
+        } 
+
+        /* Read counters to clear them*/
+        SOC_IF_ERROR_RETURN
+            (READ_RX_EEE_LPI_DURATION_COUNTERr(unit, port, &val64));
+        SOC_IF_ERROR_RETURN
+            (READ_RX_EEE_LPI_EVENT_COUNTERr(unit, port, &val64));
+        SOC_IF_ERROR_RETURN
+            (READ_TX_EEE_LPI_DURATION_COUNTERr(unit, port, &val64));
+        SOC_IF_ERROR_RETURN
+            (READ_TX_EEE_LPI_EVENT_COUNTERr(unit, port, &val64));
+
+        /* Set counter rollover bit to 1*/
+        if (soc_feature(unit, soc_feature_unified_port)) {
+            if (SOC_REG_IS_VALID(unit,
+                                 PORT_XGXS_COUNTER_MODEr)) {
+                SOC_IF_ERROR_RETURN
+                    (READ_PORT_XGXS_COUNTER_MODEr(unit, port, &val));
+                soc_reg_field_set(unit, PORT_XGXS_COUNTER_MODEr, &val,
+                                  CNT_MODEf, 1);
+                SOC_IF_ERROR_RETURN
+                    (WRITE_PORT_XGXS_COUNTER_MODEr(unit, port, val));
+            }
+        }
+    } else {
+        /* native EEE mode is not supported, */
+        rv = soc_phyctrl_control_set
+            (unit, port,
+             BCM_PORT_PHY_CONTROL_EEE_STATISTICS_CLEAR, value);
+    }
+#endif
+
+    return BCM_E_NONE;
+}
+#endif /* PORTMOD_SUPPORT */
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_control_validate
+ * Purpose:
+ *      Check that given port control feature in valid in Port Control.
+ * Parameters:
+ *      unit    - (IN) Unit number.
+ *      type    - (IN) Port control feature bcmPortControlxxx.
+ *      valid   - (OUT) Indicates if control feature is valid.
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_control_validate(int unit, bcm_port_control_t type,
+                                   int *valid)
+{
+#ifdef PORTMOD_SUPPORT
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    *valid = 0;
+    switch (type) {
+    case bcmPortControlEEEEnable:
+    case bcmPortControlEEEReceiveDuration:
+    case bcmPortControlEEEReceiveEventCount:
+    case bcmPortControlEEEReceiveQuietTime:
+    case bcmPortControlEEEReceiveSleepTime:
+    case bcmPortControlEEEReceiveWakeTime:
+    case bcmPortControlEEEStatisticsClear:
+    case bcmPortControlEEETransmitDuration:
+    case bcmPortControlEEETransmitEventCount:
+    case bcmPortControlEEETransmitIdleTime:
+    case bcmPortControlEEETransmitQuietTime:
+    case bcmPortControlEEETransmitRefreshTime:
+    case bcmPortControlEEETransmitSleepTime:
+    case bcmPortControlEEETransmitWakeTime:
+    case bcmPortControlFrameSpacingStretch:
+    case bcmPortControlLinkdownTransmit:
+    case bcmPortControlLinkFaultLocal:
+    case bcmPortControlLinkFaultLocalEnable:
+    case bcmPortControlLinkFaultRemote:
+    case bcmPortControlLinkFaultRemoteEnable:
+    case bcmPortControlPassControlFrames:
+    case bcmPortControlPFCClasses:
+    case bcmPortControlPFCDestMacNonOui:
+    case bcmPortControlPFCDestMacOui:
+    case bcmPortControlPFCEthertype:
+    case bcmPortControlPFCOpcode:
+    case bcmPortControlPFCPassFrames:
+    case bcmPortControlPFCReceive:
+    case bcmPortControlPFCRefreshTime:
+    case bcmPortControlPFCTransmit:
+    case bcmPortControlPFCXOffTime:
+    case bcmPortControlPrbsPolynomial:
+    case bcmPortControlPrbsRxEnable:
+    case bcmPortControlPrbsRxStatus:
+    case bcmPortControlPrbsTxEnable:
+    case bcmPortControlPrbsTxInvertData:
+    case bcmPortControlRxEnable:
+    case bcmPortControlSerdesDriverTune:
+    case bcmPortControlSerdesDriverEqualizationTuneStatusFarEnd:
+    case bcmPortControlSerdesTuneMarginMax:
+    case bcmPortControlSerdesTuneMarginMode:
+    case bcmPortControlSerdesTuneMarginValue:
+    case bcmPortControlTimestampTransmit:
+        *valid = 1;
+        break;
+    default:
+        *valid = 0;
+        break;
+    }
+
+    return BCM_E_NONE;
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_control_set
+ * Purpose:
+ *      Set specified port control feature.
+ * Parameters:
+ *      unit      - (IN) Unit number.
+ *      port      - (IN) Port number.
+ *      type      - (IN) Port control feature to set.
+ *      value     - (IN) Value of port control feature.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Any new control needs to be included in
+ *      bcmi_esw_portctrl_control_validate().
+ */
+int
+bcmi_esw_portctrl_control_set(int unit, bcm_gport_t port,
+                              bcm_port_control_t type, int value)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_UNAVAIL;
+    portctrl_pport_t pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN
+        (PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    switch (type) {
+    case bcmPortControlPassControlFrames:
+        if (IS_E_PORT(unit, port)) {
+            rv = _bcm_esw_port_tab_set(unit, port, _BCM_CPU_TABS_NONE,
+                                       PASS_CONTROL_FRAMESf,
+                                       (value) ? 1 : 0);
+        }
+
+        if (IS_XE_PORT(unit, port) || IS_CE_PORT(unit, port) ||
+            (IS_GE_PORT(unit, port)
+             && soc_feature(unit, soc_feature_unified_port))) {
+            /* Enable Control Frames in BigMAC */
+            if(soc_feature(unit, soc_feature_pgw_mac_control_frame)) {
+                uint32 rval32 = 0;
+
+                PORT_LOCK(unit);
+                rv = READ_PGW_MAC_RSV_MASKr(unit, port, &rval32);
+                if (BCM_SUCCESS(rv)) {
+                    /* PGW_MAC_RSV_MASK: Bit 11 Control Frame recieved
+                     * Enable  Control Frame : Set 0. Packet go through
+                     * Disable Control Frame : Set 1. Packet is purged.
+                     */
+                    if(value) {
+                        rval32 &= ~(1 << 11);
+                    } else {
+                        rval32 |= (1 << 11);
+                    }
+                    rv = WRITE_PGW_MAC_RSV_MASKr(unit, port, rval32);
+                }
+                PORT_UNLOCK(unit);
+            } else {
+                portmod_rx_control_t rx_control;
+
+                PORTMOD_IF_ERROR_RETURN
+                    (portmod_rx_control_t_init(unit, &rx_control));
+
+                rx_control.pass_control_frames = value;
+                PORT_LOCK(unit);
+                rv = portmod_port_rx_control_set(unit, pport, &rx_control);
+                PORT_UNLOCK(unit);
+            }
+        }
+        break;
+
+    case bcmPortControlFrameSpacingStretch:
+        PORT_LOCK(unit);
+        rv = portmod_port_frame_spacing_stretch_set(unit, pport, value);
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlPFCEthertype:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            portmod_pfc_config_t pfc_config;
+
+            if (value < 0 || value > 0xffff) {
+                return BCM_E_PARAM;
+            }
+
+            PORT_LOCK(unit);
+            rv = portmod_port_pfc_config_get(unit, pport, &pfc_config);
+            if (PORTMOD_SUCCESS(rv)) {
+                pfc_config.type = value;
+                rv = portmod_port_pfc_config_set(unit, pport, &pfc_config);
+            }
+            PORT_UNLOCK(unit);
+        }
+        break;
+
+    case bcmPortControlPFCOpcode:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            portmod_pfc_config_t pfc_config;
+
+            if (value < 0 || value > 0xffff) {
+                return BCM_E_PARAM;
+            }
+
+            PORT_LOCK(unit);
+            rv = portmod_port_pfc_config_get(unit, pport, &pfc_config);
+            if (PORTMOD_SUCCESS(rv)) {
+                pfc_config.opcode = value;
+                rv = portmod_port_pfc_config_set(unit, pport, &pfc_config);
+            }
+            PORT_UNLOCK(unit);
+        }
+        break;
+
+    case bcmPortControlPFCReceive:
+        PORT_LOCK(unit);
+        rv = _bcm_esw_portctrl_control_pfc_receive_set(unit, port,
+                                                       pport, value);
+        PORT_UNLOCK(unit); 
+        break;
+
+    case bcmPortControlPFCTransmit:
+        PORT_LOCK(unit);
+        rv = _bcm_esw_portctrl_control_pfc_transmit_set(unit, port,
+                                                        pport, value);
+        PORT_UNLOCK(unit); 
+        break;
+
+    case bcmPortControlPFCClasses:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            
+        }
+        break;
+
+    case bcmPortControlPFCPassFrames:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            if(soc_feature(unit, soc_feature_pgw_mac_pfc_frame)) {
+                uint32 rval32 = 0;
+                PORT_LOCK(unit);
+                rv = READ_PGW_MAC_RSV_MASKr(unit, port, &rval32);
+                if (BCM_SUCCESS(rv)) {
+                    /* PGW_MAC_RSV_MASK: Bit 18 PFC frame detected
+                     * Enable  PFC Frame : Set 0. Go through
+                     * Disable PFC Frame : Set 1. Purged.
+                     */
+                    if(value) {
+                        rval32 &= ~(1 << 18);
+                    } else {
+                        rval32 |= (1 << 18);
+                    }
+                    rv = WRITE_PGW_MAC_RSV_MASKr(unit, port, rval32);
+                }
+                PORT_UNLOCK(unit);
+            } else {
+                PORT_LOCK(unit);
+                
+                PORT_UNLOCK(unit);
+            }
+        }
+        break;
+
+    case bcmPortControlPFCDestMacOui:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            portmod_pfc_config_t pfc_config;
+
+            if (value < 0 || value > 0xffffff) {
+                return BCM_E_PARAM;
+            }
+            
+            PORT_LOCK(unit);
+            rv = portmod_port_pfc_config_get(unit, pport, &pfc_config);
+            if (PORTMOD_SUCCESS(rv)) {
+                pfc_config.da_oui = value;
+                rv = portmod_port_pfc_config_set(unit, pport, &pfc_config);
+            }
+            PORT_UNLOCK(unit);
+        }
+        break;
+
+    case bcmPortControlPFCDestMacNonOui:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            portmod_pfc_config_t pfc_config;
+
+            if (value < 0 || value > 0xffffff) {
+                return BCM_E_PARAM;
+            }
+
+            PORT_LOCK(unit);
+            rv = portmod_port_pfc_config_get(unit, pport, &pfc_config);
+            if (PORTMOD_SUCCESS(rv)) {
+                pfc_config.da_nonoui = value;
+                rv = portmod_port_pfc_config_set(unit, pport, &pfc_config);
+            }
+            PORT_UNLOCK(unit);
+        }
+        break;
+
+    case bcmPortControlPFCRefreshTime:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            portmod_pfc_control_t pfc_control;
+
+            if (value < 0 || value > 0xffff) {
+                return BCM_E_PARAM;
+            }
+
+            PORT_LOCK(unit);
+            rv = portmod_port_pfc_control_get(unit, pport, &pfc_control);
+            if (PORTMOD_SUCCESS(rv)) {
+                pfc_control.refresh_timer = value;
+                rv = portmod_port_pfc_control_set(unit, pport, &pfc_control);
+            }
+            PORT_UNLOCK(unit);
+        }
+        break;
+
+    case bcmPortControlPFCXOffTime:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            portmod_pfc_control_t pfc_control;
+
+            if (value < 0 || value > 0xffff) {
+                return BCM_E_PARAM;
+            }
+
+            PORT_LOCK(unit);
+            rv = portmod_port_pfc_control_get(unit, pport, &pfc_control);
+            if (PORTMOD_SUCCESS(rv)) {
+                pfc_control.xoff_timer = value;
+                rv = portmod_port_pfc_control_set(unit, pport, &pfc_control);
+            }
+            PORT_UNLOCK(unit);
+        }
+        break;
+
+    case bcmPortControlPrbsPolynomial:
+        PORT_LOCK(unit);
+        rv = bcmi_esw_portctrl_phy_control_set(unit, port, 
+             BCM_PORT_PHY_CONTROL_PRBS_POLYNOMIAL, value);
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlPrbsTxEnable:
+        PORT_LOCK(unit);
+        rv = bcmi_esw_portctrl_phy_control_set(unit, port, 
+             BCM_PORT_PHY_CONTROL_PRBS_TX_ENABLE, value);
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlPrbsRxEnable:
+        PORT_LOCK(unit);
+        rv = bcmi_esw_portctrl_phy_control_set(unit, port, 
+             BCM_ESW_PORTCTRL_PHYCTRL_PRBS_RX_ENABLE, value);
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlPrbsTxInvertData:
+        PORT_LOCK(unit);
+        rv = bcmi_esw_portctrl_phy_control_set(unit, port, 
+             BCM_PORT_PHY_CONTROL_PRBS_TX_INVERT_DATA, value);
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlLinkFaultLocalEnable:
+        {
+            portmod_local_fault_control_t control;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_local_fault_control_get(unit, pport, &control);
+            if (PORTMOD_SUCCESS(rv)) {
+                control.enable = value;
+                rv = portmod_port_local_fault_control_set(unit,
+                                                          pport, &control);
+            }
+            PORT_UNLOCK(unit);
+        }
+        break;
+
+    case bcmPortControlLinkFaultRemoteEnable:
+        {
+            portmod_remote_fault_control_t control;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_remote_fault_control_get(unit, pport, &control);
+            if (PORTMOD_SUCCESS(rv)) {
+                control.enable = value;
+                rv = portmod_port_remote_fault_control_set(unit,
+                                                           pport, &control);
+            }
+            PORT_UNLOCK(unit);
+        }
+        break;
+
+    case bcmPortControlSerdesDriverTune:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_set(unit, port,
+           SOC_PHY_CONTROL_SERDES_DRIVER_TUNE, value);
+        */
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlLinkdownTransmit:
+#if 0
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_set(unit, port,
+           SOC_PHY_CONTROL_LINKDOWN_TRANSMIT, value);
+        */
+        PORT_UNLOCK(unit);
+        if (rv == SOC_E_NONE) {
+            rv = _bcm_esw_link_down_tx_set(unit, port, value);
+        }
+#endif
+        break;
+
+    case bcmPortControlSerdesTuneMarginMode:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_set(unit, port,
+           SOC_PHY_CONTROL_SERDES_TUNE_MARGIN_MODE, value);
+        */
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlSerdesTuneMarginValue:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_set(unit, port,
+           SOC_PHY_CONTROL_SERDES_TUNE_MARGIN_VALUE, value);
+        */
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlEEEEnable:
+        PORT_LOCK(unit);
+        
+        rv = _bcm_esw_portctrl_control_eee_enable_set(unit, port,
+                                                      pport, value);
+        PORT_UNLOCK(unit);
+
+        break;
+
+    case bcmPortControlEEEStatisticsClear:
+        PORT_LOCK(unit);
+        
+        rv = _bcm_esw_portctrl_eee_statistics_clear(unit, port,
+                                                    pport, value);
+        PORT_UNLOCK (unit);
+        break;
+
+
+ /**********************      EEE Mode Overview    ************************
+ *                      |DET|                              |  WT |
+ *   Signalling   |idles|   |------------------------------|     | idles   |
+ *   from Tx MAC  | or  |   |   Low Power Idle (LPI)       |idles|  or     |
+ *   to local PHY |data |   |------------------------------|     | data    |
+ *                          *                              *
+ *                          *                              *
+ *                          *  -------LPI state------------*
+ *   Local PHY    |         |  |      |  |       |  |      |   |           |
+ *   signaling    |   Active|Ts|  Tq  |Tr|  Tq   |Tr|  Tq  |Tw |Active     |
+ *   on MDI       |         |  |      |  |       |  |      |   |           |
+ *                          *------------------------------*
+ *                          *                              *
+ *                          *                               *
+ *   Signaling    |   idles |-------------------------------|id| PHY is    |
+ *   from LP PHY  |     or  |  Low Power Idle (LPI)         |le| ready     |
+ *   to Rx MAC    |   data  |-------------------------------|s | for data  |
+ *
+ *   where DET = Delay Entry Timer    WT = Tx MAC Wake Timer
+ */
+    case bcmPortControlEEETransmitIdleTime:
+        /* DET = Time (in microsecs) for which condition to move to LPI state
+         * is satisfied, at the end of which MAC TX transitions to LPI state */
+        if (soc_feature (unit, soc_feature_eee)) {
+            portmod_eee_t eee;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_eee_get(unit, pport, &eee);
+            if (PORTMOD_SUCCESS(rv)) {
+                eee.tx_idle_time = value;
+                rv = portmod_port_eee_set(unit, pport, &eee);
+            }
+            PORT_UNLOCK(unit);
+        }
+        break;
+
+    case bcmPortControlEEETransmitRefreshTime:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_set(unit, port,
+           BCM_PORT_PHY_CONTROL_EEE_TRANSMIT_REFRESH_TIME, value);
+        */
+        PORT_UNLOCK (unit);
+        break;
+
+    case bcmPortControlEEETransmitSleepTime:
+        PORT_LOCK (unit);
+        
+        /* rv = soc_phyctrl_control_set(unit, port,
+           BCM_PORT_PHY_CONTROL_EEE_TRANSMIT_SLEEP_TIME, value);
+        */
+        PORT_UNLOCK (unit);
+        break;
+
+    case bcmPortControlEEETransmitQuietTime:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_set(unit, port,
+           BCM_PORT_PHY_CONTROL_EEE_TRANSMIT_QUIET_TIME, value);
+        */
+        PORT_UNLOCK (unit);
+        break;
+
+    case bcmPortControlEEETransmitWakeTime:
+        /* Time(in microsecs) to wait before transmitter can leave LPI State*/
+        if (soc_feature (unit, soc_feature_eee)) {
+            portmod_eee_t eee;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_eee_get(unit, pport, &eee);
+            if (PORTMOD_SUCCESS(rv)) {
+                eee.tx_wake_time = value;
+                rv = portmod_port_eee_set(unit, pport, &eee);
+            }
+            PORT_UNLOCK(unit);
+        }
+        break;
+
+     case bcmPortControlEEEReceiveSleepTime:
+        PORT_LOCK (unit);
+        
+        /* rv = soc_phyctrl_control_set(unit, port,
+           BCM_PORT_PHY_CONTROL_EEE_RECEIVE_SLEEP_TIME, value);
+        */
+        PORT_UNLOCK (unit);
+        break;
+
+    case bcmPortControlEEEReceiveQuietTime:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_set(unit, port,
+           BCM_PORT_PHY_CONTROL_EEE_RECEIVE_QUIET_TIME, value);
+        */
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlEEEReceiveWakeTime:
+        PORT_LOCK(unit);
+
+        
+        /* rv = soc_phyctrl_control_set (unit, port,
+           BCM_PORT_PHY_CONTROL_EEE_RECEIVE_WAKE_TIME, value);
+        */
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlRxEnable:
+        rv = bcmi_esw_portctrl_mac_rx_control(unit, port, 0, &value);
+        break;
+
+    default:
+        /* Control is not supported */
+        break;
+    }
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_control_get
+ * Purpose:
+ *      Get the status of the specified port control feature.
+ * Parameters:
+ *      unit      - (IN) Unit number.
+ *      port      - (IN) Port number.
+ *      type      - (IN) Port control.
+ *      value     - (OUT) Value of port control feature.
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      Any new control needs to be included in
+ *      bcmi_esw_portctrl_control_validate().
+ */
+int
+bcmi_esw_portctrl_control_get(int unit, bcm_gport_t port,
+                              bcm_port_control_t type, int *value)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_UNAVAIL;
+    portctrl_pport_t pport;
+
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN
+        (PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    switch (type) {
+    case bcmPortControlPassControlFrames:
+        if (IS_XE_PORT(unit, port) || IS_CE_PORT(unit, port) ||
+            (IS_GE_PORT(unit, port)
+             && soc_feature(unit, soc_feature_unified_port))) {
+            if(soc_feature(unit, soc_feature_pgw_mac_control_frame)) {
+                uint32 rval32 = 0;
+                rv = READ_PGW_MAC_RSV_MASKr(unit, port, &rval32);
+                if (BCM_SUCCESS(rv)) {
+                    /* PGW_MAC_RSV_MASK: Bit 11 Control Frame recieved
+                     * the bit value needs to be reversed
+                     */
+                    *value = ((rval32 & 0x800) >> 11) ? 0 : 1 ;
+                }
+            } else {
+                
+                /* portmod_rx_control_t rx_control;
+                   PORT_LOCK(unit);
+                   rv = portmod_port_rx_control_get(unit, pport, &rx_control);
+                   PORT_UNLOCK(unit);
+                   if (PORTMOD_SUCCESS(rv)) {
+                   *value = rx_control.pass_control_frames;
+                   }
+                */
+            }
+        }
+        break;
+
+    case bcmPortControlFrameSpacingStretch:
+        PORT_LOCK(unit);
+        rv = portmod_port_frame_spacing_stretch_get(unit, pport, value);
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlPFCEthertype:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            portmod_pfc_config_t pfc_config;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_pfc_config_get(unit, pport, &pfc_config);
+            PORT_UNLOCK(unit);
+            if (PORTMOD_SUCCESS(rv)) {
+                *value = pfc_config.type;
+            }
+        }
+        break;
+
+    case bcmPortControlPFCOpcode:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            portmod_pfc_config_t pfc_config;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_pfc_config_get(unit, pport, &pfc_config);
+            PORT_UNLOCK(unit);
+            if (PORTMOD_SUCCESS(rv)) {
+                *value = pfc_config.opcode;
+            }
+        }
+        break;
+
+    case bcmPortControlPFCReceive:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            portmod_pfc_control_t pfc_control;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_pfc_control_get(unit, pport, &pfc_control);
+            PORT_UNLOCK(unit);
+            if (PORTMOD_SUCCESS(rv)) {
+                *value = pfc_control.rx_enable;
+            }
+        }
+        break;
+
+    case bcmPortControlPFCTransmit:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            portmod_pfc_control_t pfc_control;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_pfc_control_get(unit, pport, &pfc_control);
+            PORT_UNLOCK(unit);
+            if (PORTMOD_SUCCESS(rv)) {
+                *value = pfc_control.tx_enable;
+            }
+        }
+        break;
+
+    case bcmPortControlPFCClasses:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            
+            /* rv = MAC_CONTROL_GET(PORT(unit, port).p_mac, unit, port,
+               SOC_MAC_CONTROL_PFC_CLASSES, value);
+            */
+        }
+        break;
+
+    case bcmPortControlPFCPassFrames:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            if(soc_feature(unit, soc_feature_pgw_mac_pfc_frame)) {
+                uint32 rval32 = 0;
+                rv = READ_PGW_MAC_RSV_MASKr(unit, port, &rval32);
+                if (BCM_SUCCESS(rv)) {
+                    /* PGW_MAC_RSV_MASK: Bit 18 PFC frame detected
+                     * the bit value needs to be reversed
+                     */
+                    *value = ((rval32 & 0x40000) >> 18) ? 0 : 1 ;
+                }
+            } else {
+                
+                /* rv = MAC_CONTROL_GET(PORT(unit, port).p_mac, unit, port,
+                   SOC_MAC_CONTROL_PFC_RX_PASS, value);
+                */
+            }
+        }
+        break;
+
+    case bcmPortControlPFCDestMacOui:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            portmod_pfc_config_t pfc_config;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_pfc_config_get(unit, pport, &pfc_config);
+            PORT_UNLOCK(unit);
+            if (PORTMOD_SUCCESS(rv)) {
+                *value = pfc_config.da_oui;
+            }
+        }
+        break;
+
+    case bcmPortControlPFCDestMacNonOui:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            portmod_pfc_config_t pfc_config;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_pfc_config_get(unit, pport, &pfc_config);
+            PORT_UNLOCK(unit);
+            if (PORTMOD_SUCCESS(rv)) {
+                *value = pfc_config.da_nonoui;
+            }
+        }
+        break;
+
+    case bcmPortControlPFCRefreshTime:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            portmod_pfc_control_t pfc_control;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_pfc_control_get(unit, pport, &pfc_control);
+            PORT_UNLOCK(unit);
+            if (PORTMOD_SUCCESS(rv)) {
+                *value = pfc_control.refresh_timer;
+            }
+        }
+        break;
+
+    case bcmPortControlPFCXOffTime:
+        if (soc_feature(unit, soc_feature_priority_flow_control)) {
+            portmod_pfc_control_t pfc_control;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_pfc_control_get(unit, pport, &pfc_control);
+            PORT_UNLOCK(unit);
+            if (PORTMOD_SUCCESS(rv)) {
+                *value = pfc_control.xoff_timer;
+            }
+        }
+        break;
+
+    case bcmPortControlPrbsPolynomial:
+        rv = bcmi_esw_portctrl_phy_control_get(unit, port,
+             BCM_PORT_PHY_CONTROL_PRBS_POLYNOMIAL, (uint32 *)value);
+        break;
+    case bcmPortControlPrbsTxEnable:
+        rv = bcmi_esw_portctrl_phy_control_get(unit, port, 
+             BCM_PORT_PHY_CONTROL_PRBS_TX_ENABLE, (uint32 *)value);
+        break;
+
+    case bcmPortControlPrbsRxEnable:
+        rv = bcmi_esw_portctrl_phy_control_get(unit, port, 
+             BCM_ESW_PORTCTRL_PHYCTRL_PRBS_RX_ENABLE, (uint32 *)value);
+        break;
+
+    case bcmPortControlPrbsTxInvertData:
+        rv = bcmi_esw_portctrl_phy_control_get(unit, port, 
+             BCM_PORT_PHY_CONTROL_PRBS_TX_INVERT_DATA, (uint32 *)value);
+        break;
+
+    case bcmPortControlPrbsRxStatus:
+        rv = bcmi_esw_portctrl_phy_control_get(unit, port, 
+             BCM_PORT_PHY_CONTROL_PRBS_RX_STATUS, (uint32 *)value);
+        break;
+
+    case bcmPortControlLinkFaultLocalEnable:
+        {
+            portmod_local_fault_control_t control;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_local_fault_control_get(unit, pport, &control);
+            PORT_UNLOCK(unit);
+            if (PORTMOD_SUCCESS(rv)) {
+                *value = control.enable;
+            }
+        }
+        break;
+    case bcmPortControlLinkFaultRemoteEnable:
+        {
+            portmod_remote_fault_control_t control;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_remote_fault_control_get(unit, pport, &control);
+            PORT_UNLOCK(unit);
+            if (PORTMOD_SUCCESS(rv)) {
+                *value = control.enable;
+            }
+        }
+        break;
+
+    case bcmPortControlLinkFaultLocal:
+        PORT_LOCK(unit);
+        rv = portmod_port_local_fault_status_get(unit, pport, value);
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlLinkFaultRemote:
+        PORT_LOCK(unit);
+        rv = portmod_port_remote_fault_status_get(unit, pport, value);
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlTimestampTransmit:
+        if (soc_feature(unit, soc_feature_timesync_support)) {
+            portmod_fifo_status_t info;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_diag_fifo_status_get(unit, pport, &info);
+            PORT_UNLOCK(unit);
+            if (PORTMOD_SUCCESS(rv)) {
+                *value = info.timestamps_in_fifo;
+            }
+        }
+
+        break;
+
+    case bcmPortControlSerdesDriverEqualizationTuneStatusFarEnd:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_get(unit, port,
+           SOC_PHY_CONTROL_SERDES_DRIVER_EQUALIZATION_TUNE_STATUS_FAR_END,
+           (uint32 *)value);
+        */
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlLinkdownTransmit:
+#if 0        
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_get(unit, port,
+           SOC_PHY_CONTROL_LINKDOWN_TRANSMIT,
+           (uint32 *)value);
+        */
+        PORT_UNLOCK(unit);
+        if (rv == SOC_E_NONE) {
+            rv = _bcm_esw_link_down_tx_get(unit, port, value);
+        }
+#endif
+        break;
+
+    case bcmPortControlSerdesTuneMarginMode:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_get(unit, port,
+           SOC_PHY_CONTROL_SERDES_TUNE_MARGIN_MODE,
+           (uint32 *)value);
+        */
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlSerdesTuneMarginValue:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_get(unit, port,
+           SOC_PHY_CONTROL_SERDES_TUNE_MARGIN_VALUE,
+           (uint32 *)value);
+        */
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlSerdesTuneMarginMax:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_get(unit, port,
+           SOC_PHY_CONTROL_SERDES_TUNE_MARGIN_MAX,
+           (uint32 *)value);
+        */
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlEEEEnable:
+        
+#if 0
+        if (soc_feature(unit, soc_feature_eee)) {
+            *value = eee_cfg[unit][port];
+            rv = BCM_E_NONE;
+        }
+#endif
+        break;
+
+ /**********************      EEE Mode Overview    ************************
+ *                      |DET|                              |  WT |
+ *   Signalling   |idles|   |------------------------------|     | idles   |
+ *   from Tx MAC  | or  |   |   Low Power Idle (LPI)       |idles|  or     |
+ *   to local PHY |data |   |------------------------------|     | data    |
+ *                          *                              *
+ *                          *                              *
+ *                          *  -------LPI state------------*
+ *   Local PHY    |         |  |      |  |       |  |      |   |           |
+ *   signaling    |   Active|Ts|  Tq  |Tr|  Tq   |Tr|  Tq  |Tw |Active     |
+ *   on MDI       |         |  |      |  |       |  |      |   |           |
+ *                          *------------------------------*
+ *                          *                              *
+ *                          *                               *
+ *   Signaling    |   idles |-------------------------------|id| PHY is    |
+ *   from LP PHY  |     or  |  Low Power Idle (LPI)         |le| ready     |
+ *   to Rx MAC    |   data  |-------------------------------|s | for data  |
+ *
+ *   where DET = Delay Entry Timer    WT = MAC Wake Timer
+ */
+    case bcmPortControlEEETransmitIdleTime:
+        /* DET = Time (in microsecs) for which condition to move to LPI state
+         * is satisfied, at the end of which MAC TX transitions to LPI state */
+        if (soc_feature (unit, soc_feature_eee)) {
+            portmod_eee_t eee;
+            PORT_LOCK(unit);
+            rv = portmod_port_eee_get(unit, pport, &eee);
+            PORT_UNLOCK(unit);
+            if (PORTMOD_SUCCESS(rv)) {
+                *value = eee.tx_idle_time;
+            }
+        }
+
+        break;
+
+    case bcmPortControlEEETransmitEventCount:
+        /* Number of time MAC TX enters LPI state for
+         * a given measurement interval*/
+        if (soc_feature(unit, soc_feature_eee)) {
+            uint64 rval64;
+            
+            rv = READ_TX_EEE_LPI_EVENT_COUNTERr(unit, port, &rval64);
+            if (SOC_SUCCESS(rv)) {
+                *value = COMPILER_64_LO(rval64);
+            }
+        }
+        break;
+
+    case bcmPortControlEEETransmitDuration:
+        /* Time in (microsecs) for which MAC TX enters LPI state
+         * during a measurement interval*/
+        if (soc_feature(unit, soc_feature_eee)) {
+            uint64 rval64;
+
+            rv = READ_TX_EEE_LPI_DURATION_COUNTERr(unit, port, &rval64);
+            if (SOC_SUCCESS(rv)) {
+                *value = COMPILER_64_LO(rval64);
+            }
+        }
+
+        break;
+
+    case bcmPortControlEEEReceiveEventCount:
+        /* Number of time MAC RX enters LPI state for
+         * a given measurement interval */
+        if (soc_feature(unit, soc_feature_eee)) {
+            uint64 rval64;
+
+            rv = READ_RX_EEE_LPI_EVENT_COUNTERr(unit, port, &rval64);
+            if (SOC_SUCCESS(rv)) {
+                *value = COMPILER_64_LO(rval64);
+            }
+        }
+        break;
+
+    case bcmPortControlEEEReceiveDuration:
+        /* Time in (microsecs) for which MAC RX enters LPI state
+         * during a measurement interval*/
+        if (soc_feature(unit, soc_feature_eee)) {
+            uint64 rval64;
+
+            rv = READ_RX_EEE_LPI_DURATION_COUNTERr(unit, port, &rval64);
+            if (SOC_SUCCESS(rv)) {
+                *value = COMPILER_64_LO(rval64);
+            }
+        }
+        break;
+
+    case bcmPortControlEEETransmitRefreshTime:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_get(unit, port,
+           BCM_PORT_PHY_CONTROL_EEE_TRANSMIT_REFRESH_TIME,
+           (uint32 *)value);
+        */
+        PORT_UNLOCK (unit);
+        break;
+
+    case bcmPortControlEEETransmitSleepTime:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_get(unit, port,
+           BCM_PORT_PHY_CONTROL_EEE_TRANSMIT_SLEEP_TIME, (uint32 *)value);
+        */
+        PORT_UNLOCK (unit);
+        break;
+
+    case bcmPortControlEEETransmitQuietTime:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_get(unit, port,
+           BCM_PORT_PHY_CONTROL_EEE_TRANSMIT_QUIET_TIME, (uint32 *)value);
+        */
+        PORT_UNLOCK (unit);
+        break;
+
+    case bcmPortControlEEETransmitWakeTime:
+        /* Time(in microsecs) to wait before transmitter can leave LPI State*/
+        if (soc_feature(unit, soc_feature_eee)) {
+            portmod_eee_t eee;
+
+            PORT_LOCK(unit);
+            rv = portmod_port_eee_get(unit, pport, &eee);
+            PORT_UNLOCK(unit);
+            if (PORTMOD_SUCCESS(rv)) {
+                *value = eee.tx_wake_time;
+            }
+        }
+        break;
+
+    case bcmPortControlEEEReceiveSleepTime:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_get(unit, port,
+           BCM_PORT_PHY_CONTROL_EEE_RECEIVE_SLEEP_TIME, (uint32 *)value);
+        */
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlEEEReceiveQuietTime:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_get(unit, port,
+           BCM_PORT_PHY_CONTROL_EEE_RECEIVE_QUIET_TIME, (uint32 *)value);
+        */
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlEEEReceiveWakeTime:
+        PORT_LOCK(unit);
+        
+        /* rv = soc_phyctrl_control_get(unit, port,
+           BCM_PORT_PHY_CONTROL_EEE_RECEIVE_WAKE_TIME, (uint32 *)value);
+        */
+        PORT_UNLOCK(unit);
+        break;
+
+    case bcmPortControlRxEnable:
+        rv = bcmi_esw_portctrl_mac_rx_control(unit, port, 1, value);
+        break;
+
+    default:
+        /* Control is not supported */
+        break;
+    }
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *      bcmi_esw_portctrl_mode_get
+ * Description:
+ *      Get the current mode used for MAC
+ * Parameters:
+ *      unit(IN)  - Device number
+ *      port(IN)  - Port number
+ *      mode(OUT) - The configured MAC mode  
+ * Return Value:
+ *      BCM_E_XXX
+ */
+int
+bcmi_esw_portctrl_mode_get(int unit, bcm_gport_t port, int *mode)
+{
+#ifdef PORTMOD_SUPPORT
+    int rv = BCM_E_NONE;
+    portctrl_pport_t pport;
+    portmod_port_mode_info_t info;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+    BCM_IF_ERROR_RETURN(PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    portmod_port_mode_info_t_init(unit, &info);
+
+    PORT_LOCK(unit);
+
+    rv = portmod_port_mode_get(unit, pport, &info);
+
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        *mode = info.cur_mode;
+    }
+
+    return rv;
+
+#else   /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif  /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *     bcmi_esw_portctrl_e2e_tx_enable_get
+ * Purpose:
+ *      Get E2E Enable
+ * Parameters:
+ *      unit - (IN) SOC unit number.
+ *      port - (IN) Port number.
+ *      enable - (OUT) Whether to enable or disable
+ * Returns:
+ *      BCM_E_xxx
+ */
+int
+bcmi_esw_portctrl_e2e_tx_enable_get(int unit, bcm_gport_t port, int *enable)
+{
+#ifdef PORTMOD_SUPPORT
+    int         rv;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN
+        (PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_e2e_enable_get(unit, pport, enable);
+    PORT_UNLOCK(unit);
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *     bcmi_esw_portctrl_e2e_tx_enable_set
+ * Purpose:
+ *      Set E2E Tx Enable
+ * Parameters:
+ *      unit - (IN) SOC unit number.
+ *      port - (IN) Port number.
+ *      enable - (IN) Whether to enable or disable
+ * Returns:
+ *      BCM_E_xxx
+ */
+int
+bcmi_esw_portctrl_e2e_tx_enable_set(int unit, bcm_gport_t port, int enable)
+{
+#ifdef PORTMOD_SUPPORT
+    int         rv;
+    portctrl_pport_t pport;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    BCM_IF_ERROR_RETURN
+        (PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_e2e_enable_set(unit, pport, enable);
+    PORT_UNLOCK(unit);
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *     bcmi_esw_portctrl_e2ecc_hdr_get
+ * Purpose:
+ *      Get E2ECC header data
+ * Parameters:
+ *      unit - (IN) SOC unit number.
+ *      port - (IN) Port number.
+ *      e2ecc_hdr - (OUT) E2ECC header.
+ * Returns:
+ *      BCM_E_xxx
+ */
+int
+bcmi_esw_portctrl_e2ecc_hdr_get(int unit, bcm_gport_t port,
+                               soc_higig_e2ecc_hdr_t *e2ecc_hdr)
+{
+#ifdef PORTMOD_SUPPORT
+    int         rv;
+    portctrl_pport_t pport;
+    portmod_port_higig_e2ecc_hdr_t portmod_hdr;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    if (!e2ecc_hdr) {
+        return BCM_E_PARAM;
+    }
+
+    portmod_port_higig_e2ecc_hdr_t_init(unit, &portmod_hdr);
+
+    BCM_IF_ERROR_RETURN
+        (PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_e2ecc_hdr_get(unit, pport, &portmod_hdr);
+    PORT_UNLOCK(unit);
+
+    if (PORTMOD_SUCCESS(rv)) {
+        sal_memcpy(e2ecc_hdr, &portmod_hdr, sizeof(soc_higig_e2ecc_hdr_t));
+    }
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}
+
+/*
+ * Function:
+ *     bcmi_esw_portctrl_e2ecc_hdr_set
+ * Purpose:
+ *      Set E2ECC header data
+ * Parameters:
+ *      unit - (IN) SOC unit number.
+ *      port - (IN) Port number.
+ *      e2ecc_hdr - (IN) E2ECC header.
+ * Returns:
+ *      BCM_E_xxx
+ */
+int
+bcmi_esw_portctrl_e2ecc_hdr_set(int unit, bcm_gport_t port,
+                               soc_higig_e2ecc_hdr_t *e2ecc_hdr)
+{
+#ifdef PORTMOD_SUPPORT
+    int         rv;
+    portctrl_pport_t pport;
+    portmod_port_higig_e2ecc_hdr_t portmod_hdr;
+
+    /* Make sure port module is initialized. */
+    PORTCTRL_INIT_CHECK(unit);
+
+    if (!e2ecc_hdr) {
+        return BCM_E_PARAM;
+    }
+
+    portmod_port_higig_e2ecc_hdr_t_init(unit, &portmod_hdr);
+
+    BCM_IF_ERROR_RETURN
+        (PORTCTRL_PORT_RESOLVE(unit, port, &port, &pport));
+
+    sal_memcpy(&portmod_hdr, e2ecc_hdr, sizeof(portmod_port_higig_e2ecc_hdr_t));
+
+    PORT_LOCK(unit);
+    rv = portmod_port_e2ecc_hdr_set(unit, pport, &portmod_hdr);
+    PORT_UNLOCK(unit);
+
+    return rv;
+
+#else  /* PORTMOD_SUPPORT */
+    return BCM_E_UNAVAIL;
+#endif /* PORTMOD_SUPPORT */
+}

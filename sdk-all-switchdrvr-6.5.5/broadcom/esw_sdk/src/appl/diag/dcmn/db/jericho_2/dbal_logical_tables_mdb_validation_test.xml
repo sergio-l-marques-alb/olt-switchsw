@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns="http://myNameSpace.com"  
+             xsi:schemaLocation="http://myNameSpace.com dbal_logical_tables_mdb_definition.xsd">
+
+    <AppDB Name="MACT">
+        <OneLineDescription>Lookup FID X MAC Address in the MACT to detrmine the destination interface ot interface group</OneLineDescription>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="FID" Size="15"/>
+                <Field Name="L2_MAC" Size="48"/>
+            </Key>
+            <Result>
+                <Field Name="DESTINATION" Size="21"/>
+                <Field Name="OUT_LIF" Size="18"/>
+            </Result>
+            <TableLabels>L2 L3 MPLS ALL</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <PhyDb>LEM</PhyDb>
+            <MAG>MAG_FWD2LEM_0</MAG>
+            <MAG>MAG_FWD2LEM_1</MAG>
+            <AppDbId>15</AppDbId>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="ING_VSI_INFO">
+        <OneLineDescription> </OneLineDescription>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VSI" Size="17"/>
+            </Key>
+            <Result>
+                <Field Name="STP_TOPOLOGY_ID" Size="8"/>
+                <Field Name="MY_MAC" Size="10"/>
+                <Field Name="MY_MAC_PREFIX" Size="6"/>
+            </Result>
+            <TableLabels>MPLS FCOE</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <PhyDb>IVSI</PhyDb>
+            <MAG>MAG_VTT2VSI_STG0_0</MAG>
+            <MAG>MAG_VTT2VSI_STG0_1</MAG>
+            <AppDbId>-1</AppDbId> 
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>

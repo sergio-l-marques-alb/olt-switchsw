@@ -1,0 +1,17580 @@
+/*
+ * $Id: port.c,v 1.418 Broadcom SDK $
+ *
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * Petra-B PORTS
+ */
+#ifdef _ERR_MSG_MODULE_NAME
+#error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+
+#define _ERR_MSG_MODULE_NAME BSL_BCM_PORT
+
+#include <shared/bsl.h>
+
+#include <soc/dcmn/dcmn_defs.h>
+#include <soc/dcmn/dcmn_wb.h>
+
+#include <sal/core/time.h>
+#include <shared/bitop.h>
+#include <soc/defs.h>
+#include <soc/types.h>
+#include <soc/portmode.h>
+#include <soc/linkctrl.h>
+#include <soc/dcmn/error.h>
+#include <soc/dpp/drv.h>
+#include <soc/dpp/mbcm.h>
+#include <soc/dpp/mbcm_pp.h>
+#include <soc/dpp/TMC/tmc_api_general.h>
+#include <soc/dpp/TMC/tmc_api_ports.h>
+#include <soc/dpp/TMC/tmc_api_mgmt.h>
+#include <soc/phy/phyctrl.h>
+#include <soc/dpp/dpp_wb_engine.h>
+#include <soc/dpp/dpp_config_defs.h>
+#include <soc/dpp/dpp_config_imp_defs.h>
+
+#include <soc/dpp/TMC/tmc_api_mgmt.h>
+#include <soc/dpp/TMC/tmc_api_fabric.h>
+#include <soc/dpp/TMC/tmc_api_flow_control.h>
+#include <soc/dpp/TMC/tmc_api_egr_queuing.h>
+
+#ifdef  BCM_PETRAB_SUPPORT
+  #include <soc/dpp/Petra/petra_api_mgmt.h>
+  #include <soc/dpp/Petra/PB_TM/pb_api_nif.h>
+  #include <soc/dpp/Petra/petra_api_serdes.h>
+  #include <soc/dpp/Petra/PB_TM/pb_nif.h>
+  #include <soc/dpp/Petra/PB_TM/pb_api_flow_control.h>
+  #include <soc/dpp/Petra/petra_sw_db.h>
+  #include <soc/dpp/Petra/PB_TM/pb_api_mgmt.h>
+  #include <soc/dpp/Petra/PB_TM/pb_api_ports.h>
+#endif
+
+
+#ifdef BCM_ARAD_SUPPORT
+  #include <soc/dpp/ARAD/arad_drv.h>
+  #include <soc/dpp/ARAD/arad_api_ports.h>
+  #include <soc/dpp/ARAD/arad_ports.h>
+  #include <soc/dpp/ARAD/arad_nif.h>
+  #include <soc/dpp/ARAD/arad_api_flow_control.h>
+  #include <soc/dpp/ARAD/arad_serdes.h>
+  #include <soc/dpp/ARAD/arad_api_mgmt.h>
+  #include <soc/dpp/ARAD/arad_api_cnm.h>
+  #include <soc/dpp/ARAD/arad_egr_queuing.h>
+  #include <soc/dpp/ARAD/arad_tbl_access.h>
+  #include <soc/dpp/ARAD/arad_fabric.h>
+  #include <soc/dpp/ARAD/ARAD_PP/arad_pp_occupation_mgmt.h>
+
+  #include <soc/dpp/ARAD/NIF/ports_manager.h>
+  #include <soc/dpp/port_sw_db.h>
+  #include <soc/dpp/PORT/arad_ps_db.h>
+
+  /* phy includes */
+  #include <soc/phyctrl.h>
+  #include <soc/phyreg.h>
+#endif
+
+#ifdef BCM_88660
+  #include <soc/dpp/PPD/ppd_api_eg_qos.h>
+#endif /* BCM_88660 */
+
+#include <soc/dpp/PPD/ppd_api_llp_vid_assign.h>
+#include <soc/dpp/PPD/ppd_api_lif.h>
+#include <soc/dpp/PPD/ppd_api_llp_parse.h>
+#include <soc/dpp/PPD/ppd_api_trap_mgmt.h>
+#include <soc/dpp/PPD/ppd_api_llp_cos.h>
+#include <soc/dpp/PPD/ppd_api_frwrd_mact_mgmt.h>
+#include <soc/dpp/PPD/ppd_api_frwrd_fec.h>
+#include <soc/dpp/PPD/ppd_api_port.h>
+#include <soc/dpp/PPD/ppd_api_fp.h>
+#include <soc/dpp/PPD/ppd_api_eg_filter.h>
+#include <soc/dpp/PPD/ppd_api_eg_ac.h>
+#include <soc/dpp/PPD/ppd_api_lif_cos.h>
+#include <soc/dpp/PPD/ppd_api_lif_table.h>
+#include <soc/dpp/PPD/ppd_api_llp_filter.h>
+#include <soc/dpp/PPD/ppd_api_llp_sa_auth.h>
+#include <soc/dpp/PPD/ppd_api_ptp.h>
+
+#include <bcm/error.h>
+#include <bcm_int/common/debug.h>
+#include <bcm/types.h>
+#include <bcm/cosq.h>
+#include <bcm_int/petra_dispatch.h>
+#include <bcm_int/api_xlate_port.h>
+#include <bcm_int/petra_dispatch.h>
+#include <bcm_int/common/link.h>
+#include <bcm_int/common/multicast.h>
+#include <bcm_int/dpp/cosq.h>
+#include <bcm_int/dpp/link.h>
+#include <bcm_int/dpp/utils.h>
+#include <bcm_int/dpp/error.h>
+#include <bcm_int/dpp/vlan.h>
+#include <bcm_int/dpp/policer.h>
+#include <bcm_int/dpp/gport_mgmt.h>
+#include <bcm_int/dpp/utils.h>
+#include <bcm_int/dpp/alloc_mngr.h>
+#include <bcm_int/dpp/error.h>
+#include <bcm_int/dpp/port.h>
+#include <bcm_int/dpp/state.h>
+#include <bcm_int/dpp/vswitch.h>
+#include <bcm_int/dpp/mim.h>
+#include <bcm_int/dpp/wb_db_port.h>
+#include <bcm_int/dpp/rx.h>
+#include <bcm_int/dpp/switch.h>
+#include <bcm_int/dpp/failover.h>
+#include <bcm_int/dpp/trill.h>
+#include <bcm_int/dpp/alloc_mngr_glif.h>
+
+#include <shared/shr_template.h>
+#ifdef BCM_CMICM_SUPPORT
+#include <soc/shared/llm_msg.h>
+#endif
+
+bcm_dpp_port_config_t _dpp_port_config[BCM_MAX_NUM_UNITS] = {{0}};
+
+
+#define _DPP_PORT_INIT_GET(unit) \
+    (_dpp_port_config[unit].bcm_petra_port_init_arrays_done)
+
+#define _DPP_PORT_INIT_SET(unit, val) \
+    _dpp_port_config[unit].bcm_petra_port_init_arrays_done = (val);
+
+#define _DPP_PORT_INIT_CHECK(unit)    \
+    if (_DPP_PORT_INIT_GET(unit) == FALSE) {                        \
+        BCMDNX_ERR_EXIT_MSG(BCM_E_INIT, (_BSL_BCM_MSG("Device isn't initialized")));   \
+    }
+
+
+#define _DPP_PORT_TRAP_TO_FLAG_GET(unit, idx, flags)                    \
+    _rv = _bcm_dpp_wb_port_trap_to_flag_get(unit, &flags, idx); \
+    if (_rv != BCM_E_NONE) { \
+        BCMDNX_ERR_EXIT_MSG(_rv, (_BSL_BCM_MSG("%s: get trap_to_flag failed, unit %d"),FUNCTION_NAME(), unit)); \
+    }
+   
+#define _DPP_PORT_TRAP_TO_FLAG_SET(unit, idx, flags)   \
+      _rv = _bcm_dpp_wb_port_trap_to_flag_set(unit, flags, idx); \
+      if (_rv != BCM_E_NONE) { \
+        BCMDNX_ERR_EXIT_MSG(_rv, (_BSL_BCM_MSG("%s: set trap_to_flag failed, unit %d"),FUNCTION_NAME(), unit)); \
+      }   
+
+#define _BCM_PETRA_PORT_TPID_GET(unit, indx1, indx2, tpid)                    \
+    _rv = _bcm_dpp_wb_port_tpid_get(unit, &tpid, indx1, indx2); \
+    if (_rv != BCM_E_NONE) { \
+        BCMDNX_ERR_EXIT_MSG(_rv, (_BSL_BCM_MSG("%s: get tpid failed, unit %d"),FUNCTION_NAME(), unit)); \
+    }
+   
+#define _BCM_PETRA_PORT_TPID_SET(unit, indx1, indx2, tpid)   \
+      _rv = _bcm_dpp_wb_port_tpid_set(unit, tpid, indx1, indx2); \
+      if (_rv != BCM_E_NONE) { \
+        BCMDNX_ERR_EXIT_MSG(_rv, (_BSL_BCM_MSG("%s: set tpid failed, unit %d"),FUNCTION_NAME(), unit)); \
+      }
+      
+#define _BCM_PETRA_PORT_TPID_COUNT_GET(unit, indx1, indx2, tpid_count)                    \
+    _rv = _bcm_dpp_wb_port_tpid_count_get(unit, &tpid_count, indx1, indx2); \
+    if (_rv != BCM_E_NONE) { \
+        BCMDNX_ERR_EXIT_MSG(_rv, (_BSL_BCM_MSG("%s: get tpid_count failed, unit %d"),FUNCTION_NAME(), unit)); \
+    }
+   
+#define _BCM_PETRA_PORT_TPID_COUNT_SET(unit, indx1, indx2, tpid_count)   \
+      _rv = _bcm_dpp_wb_port_tpid_count_set(unit, tpid_count, indx1, indx2); \
+      if (_rv != BCM_E_NONE) { \
+        BCMDNX_ERR_EXIT_MSG(_rv, (_BSL_BCM_MSG("%s: set tpid_count failed, unit %d"),FUNCTION_NAME(), unit)); \
+      }   
+
+#define PORT_PP_IS_INIT(unit)    \
+  (SOC_DPP_PP_ENABLE(unit) ? _dpp_port_config[unit].port_pp_initialized : FALSE)  
+
+#define PORT_PP_INIT_SET(unit, val)    \
+    _dpp_port_config[unit].port_pp_initialized = (val);
+
+#define BCM_DPP_MAX_FCOE_VFT_VALUE                  4095
+
+#define BCM_DPP_CLASS_ID_NO_CLASS                   (0xFFFFFFFF)    /* Special Class ID value that is used to de associate a LIF
+                                                                       from a Ring Protection group */
+
+#define BCM_DPP_PORT_MATCH_LIF_LEARNT               (0)
+
+#define BCM_DPP_PORT_RX_DISABLE_TDM_MIN_SIZE        (192)
+
+#define BCM_DPP_NIF_IPG_MIN                         8
+
+#ifdef BCM_88660_A0
+# define BCM_PORT_INLIF_PROFILE_MAX 15
+/* Only 2 lsbs are passed to egress. */
+# define BCM_PORT_INLIF_PROFILE_PASSED_TO_EGRESS_MASK 0x3
+#endif
+
+  /* Advanced mode for vlan editing
+     this is according to soc property 886xx_vlan_translate_mode
+   */
+#define _BCM_DPP_TPID_PARSE_ADVANCED_MODE(__unit)  (SOC_DPP_IS_VLAN_TRANSLATE_MODE_ADVANCED((__unit)))
+#define _BCM_PETRA_PORT_NOF_TPID_VALS  (4)
+
+
+  /* API not supported for parsing ADVANCED mode, other API should be used in stead */
+#define _BCM_DPP_TPID_PARSE_ADVANCED_MODE_API_UNAVAIL(__unit)   \
+  if (_BCM_DPP_TPID_PARSE_ADVANCED_MODE(__unit)) {                        \
+      BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("API not supported in advanced mode")));   \
+  }
+
+  /* API supported only when working in advance vlan editing mode */
+#define _BCM_DPP_TPID_PARSE_ADVANCED_MODE_CHECK(__unit)  \
+  if (!(_BCM_DPP_TPID_PARSE_ADVANCED_MODE(__unit))) {                        \
+      BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("API supported only in advanced mode ")));   \
+  }
+
+/* Port default TPID profile */
+#define _BCM_DPP_PORT_DFLT_TPID_PROFILE (0)
+
+#ifdef BCM_PORT_DEFAULT_DISABLE
+    int _default_port_enable = FALSE;
+#else
+    int _default_port_enable = TRUE;
+#endif  /* BCM_PORT_DEFAULT_DISABLE */
+/* Value for Invalid TPID-Profile */
+#define _BCM_DPP_TPID_PROFILE_INVALID (-1)
+
+/* TPID reference counter modification enumeration */
+  typedef enum _bcm_dpp_tpid_counter_modify_type_e {
+    bcmDppTpidCounterModifyTypeDecrement = -1,  /* Decrement value */
+    bcmDppTpidCounterModifyTypeIncrement = 1    /* Increment value */
+} _bcm_dpp_tpid_counter_modify_type_t;
+
+pbmp_t _bcm_dpp_port_prbs_mac_mode[BCM_MAX_NUM_UNITS];
+
+int bcm_petra_port_pp_init(int unit);
+
+/*
+ * Exported Functions
+ */
+
+int
+bcm_petra_port_init(int unit)
+{
+    pbmp_t okay_ports;
+    int rv, init_speed, port_enable;
+    bcm_port_t port;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (_DPP_PORT_INIT_GET(unit) == FALSE) {
+        _DPP_PORT_INIT_SET(unit, TRUE);
+    }
+
+    /********************************************/
+    /*          PP Related init                 */
+    /********************************************/
+
+#ifdef BCM_WARM_BOOT_SUPPORT
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_wb_port_state_init(unit));
+#endif /* BCM_WARM_BOOT_SUPPORT */
+
+    rv = _bcm_dpp_wb_port_tpid_allocate(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if (SOC_DPP_PP_ENABLE(unit))
+    {
+        if (!PORT_PP_IS_INIT(unit)) {
+            BCMDNX_IF_ERR_EXIT(bcm_petra_port_pp_init(unit));
+            PORT_PP_INIT_SET(unit, TRUE);
+        }
+    }
+
+    /********************************************/
+    /*       NIF\Fabric Related init            */
+    /********************************************/
+
+    /* Set refclk for fabric ports */
+    PBMP_SFI_ITER(unit, port) {
+        if((ARAD_INIT_SERDES_REF_CLOCK_125 == SOC_DPP_CONFIG(unit)->arad->init.pll.fabric_clk_freq)) {
+           SOC_INFO(unit).port_refclk_int[port] = 125;
+        } else {
+           SOC_INFO(unit).port_refclk_int[port] = 156;
+        }
+    }
+
+    /*Clear PRBS mode bitmap*/
+    SOC_PBMP_CLEAR(_bcm_dpp_port_prbs_mac_mode[unit]);
+
+    /* initialize */
+    rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_init,(unit));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* Probe */
+    BCMDNX_IF_ERR_EXIT(bcm_petra_port_probe(unit, PBMP_PORT_ALL(unit), &okay_ports));
+
+    /* Post-probe operations */
+    if (!SOC_WARM_BOOT(unit)) {
+        PBMP_ITER(okay_ports, port) {
+            port_enable = _default_port_enable;
+            init_speed = soc_property_port_get(unit, port, spn_PORT_INIT_SPEED, 0);
+            if(-1 == init_speed) {
+                port_enable = FALSE;
+            }
+            BCMDNX_IF_ERR_EXIT(bcm_petra_port_enable_set(unit, port, port_enable)); 
+        }
+    }
+
+    /* Post init sequence */
+    rv = MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_port_post_init,(unit, &okay_ports));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /*Configure ALDWP*/
+    if (!SOC_WARM_BOOT(unit)) {
+        rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_fabric_aldwp_config,(unit));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+    
+
+    /* Set all fabric links in loopback if single fap system */
+    if (!SOC_WARM_BOOT(unit)) {
+        if (SOC_DPP_SINGLE_FAP(unit)) {
+            PBMP_SFI_ITER(unit, port) {
+                BCMDNX_IF_ERR_EXIT(bcm_petra_port_loopback_set(unit, port, BCM_PORT_LOOPBACK_PHY));
+            }
+        }
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_deinit(int unit)
+{
+    int result = BCM_E_NONE;
+    int rv;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* this unit not init, no nothing to detach; done. */
+    if (!_DPP_PORT_INIT_GET(unit)) {
+        BCM_EXIT;
+    }
+
+     /* initialize */
+    rv = MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_port_deinit,(unit));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* get rid of _BCM_PETRA_PORT_TPID for this unit */
+    result = _bcm_dpp_wb_port_tpid_free(unit);
+    if(BCM_FAILURE(result)) {
+        LOG_ERROR(BSL_LS_BCM_PORT, (BSL_META_U(unit, "failed _bcm_dpp_wb_port_tpid_free, error 0x%x"), result));
+    }
+
+#ifdef BCM_WARM_BOOT_SUPPORT
+    result = _bcm_dpp_wb_port_state_deinit(unit);
+    if(BCM_FAILURE(result)) {
+        LOG_ERROR(BSL_LS_BCM_PORT, (BSL_META_U(unit, "failed warmboot deinit, error 0x%x"), result));
+    }
+#endif /* BCM_WARM_BOOT_SUPPORT */
+
+    PORT_PP_INIT_SET(unit, FALSE);
+    _DPP_PORT_INIT_SET(unit, FALSE);
+
+    BCMDNX_IF_ERR_EXIT(result);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_clear
+ * Purpose:
+ *      Initialize the PORT interface layer for the specified SOC device
+ *      without resetting stacking ports.
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ * Returns:
+ *      BCM_E_NONE - success (or already initialized)
+ *      BCM_E_INTERNAL- failed to write PTABLE entries
+ *      BCM_E_MEMORY - failed to allocate required memory.
+ * Notes:
+ *      By default ports come up enabled. They can be made to come up disabled
+ *      at startup by a compile-time application policy flag in your Make.local
+ *      A call to bcm_petra_port_clear should exhibit similar behavior for 
+ *      non-stacking ethernet ports
+ *      PTABLE initialized.
+ */
+
+int
+bcm_petra_port_clear(int unit)
+{
+    bcm_port_config_t *port_config = NULL;
+    bcm_pbmp_t reset_ports;
+    bcm_port_t port;
+    int rv, port_enable;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    BCMDNX_ALLOC(port_config, sizeof(bcm_port_config_t), "bcm_petra_port_clear.port_config");
+    if (!port_config) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_MEMORY, (_BSL_BCM_MSG("Memory allocation failure")));
+    }
+    BCMDNX_IF_ERR_EXIT(bcm_petra_port_config_get(unit, port_config));
+
+    /* Clear all non-stacking ethernet ports */
+    BCM_PBMP_ASSIGN(reset_ports, port_config->xe);
+    BCM_PBMP_REMOVE(reset_ports, SOC_PBMP_STACK_CURRENT(unit));
+    if (SOC_DPP_PP_ENABLE(unit))
+    {
+        
+        if (!PORT_PP_IS_INIT(unit))
+        {
+            rv = bcm_petra_port_pp_init(unit);
+            if (rv != BCM_E_NONE) {
+              LOG_VERBOSE(BSL_LS_BCM_PORT,
+                          (BSL_META_U(unit,
+                                      "bcm_petra_port_pp_init failed: %s"),
+                           bcm_errmsg(rv)));
+              BCMDNX_IF_ERR_EXIT(rv);
+            }
+
+            PORT_PP_INIT_SET(unit, TRUE);
+        }        
+    }
+    PBMP_ITER(reset_ports, port) {
+        LOG_DEBUG(BSL_LS_BCM_PORT,
+                  (BSL_META_U(unit,
+                              "bcm_petra_port_clear: unit %d port %s\n"),
+                   unit, SOC_PORT_NAME(unit, port)));
+  
+        /*
+         * A compile-time application policy may prefer to disable 
+         * ports at startup. The same behavior should be observed 
+         * when bcm_petra_port_clear gets called.
+         */
+  
+#ifdef BCM_PORT_DEFAULT_DISABLE
+  port_enable = FALSE;
+#else
+  port_enable = TRUE;
+#endif  /* BCM_PORT_DEFAULT_DISABLE */
+  
+
+  if ((rv = bcm_petra_port_enable_set(unit, port, port_enable)) < 0) {
+            LOG_WARN(BSL_LS_BCM_PORT,
+                     (BSL_META_U(unit,
+                                 "Warning: Unit %d Port %s: "
+                                 "Failed to %s port: %s\n"),
+                      unit, SOC_PORT_NAME(unit, port),(port_enable) ? "enable" : "disable" ,bcm_errmsg(rv)));
+        }
+  
+    }
+
+exit:
+    BCM_FREE(port_config);
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_config_get
+ * Purpose:g_
+ *      Get port configuration of a device
+ * Parameters:
+ *      unit   - Device unit number
+ *      config - (OUT) Structure returning port configuration
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_config_get(int unit, bcm_port_config_t *config)
+{
+    soc_pbmp_t nif_ports;
+    soc_port_t port;
+    uint32     flags;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(config);
+    
+    bcm_port_config_t_init(config);
+
+    config->il   = PBMP_IL_ALL(unit);
+    config->xl   = PBMP_XL_ALL(unit);
+    config->ge   = PBMP_GE_ALL(unit);
+    config->ce   = PBMP_CE_ALL(unit);
+    config->xe   = PBMP_XE_ALL(unit);
+    config->hg   = PBMP_HG_ALL(unit);
+    config->e    = PBMP_E_ALL(unit);
+    config->sfi  = PBMP_SFI_ALL(unit);
+    config->port = PBMP_PORT_ALL(unit);
+    config->stack_ext  = PBMP_ST_ALL(unit);
+    config->cpu  = PBMP_CMIC(unit);
+    config->rcy  = PBMP_RCY_ALL(unit);
+    config->all  = PBMP_ALL(unit);
+    config->pon  = PBMP_PON_ALL(unit);
+
+    /* get nif ports */
+    BCM_PBMP_CLEAR(config->nif);
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_valid_ports_get(unit, SOC_PORT_FLAGS_NETWORK_INTERFACE, &nif_ports));
+    BCM_PBMP_ITER(nif_ports, port) {
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_flags_get(unit, port, &flags));
+        if ( !(SOC_PORT_IS_ELK_INTERFACE(flags) || SOC_PORT_IS_STAT_INTERFACE(flags)) ) {
+            BCM_PBMP_PORT_ADD(config->nif,port);
+        }
+    }
+
+exit:
+    _DCMN_BCM_WARM_BOOT_API_TEST_MODE_SKIP_WB_SEQUENCE(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function    : bcm_petra_port_local_get
+ * Description : Get the local port from the given GPORT ID.
+ *
+ * Parameters  : (IN)  unit         - BCM device number
+ *               (IN)  gport        - global port identifier
+ *               (OUT) local_port   - local port encoded in gport
+ * Returns     : BCM_E_XXX
+ */
+int
+bcm_petra_port_local_get(int unit, bcm_gport_t gport, bcm_port_t *local_port)
+{
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(local_port);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, gport, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    *local_port = gport_info.local_port;
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_enable_set(int unit, bcm_port_t port, int enable)
+{
+    int                     rv = BCM_E_NONE;
+    soc_port_t              port_i;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+         rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_enable_set,(unit, port_i, 0, enable)));
+         BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_enable_get(int unit, bcm_port_t port, int *enable)
+{
+    int                     rv = BCM_E_NONE;
+    _bcm_dpp_gport_info_t   gport_info;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+    rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_enable_get,(unit, gport_info.local_port, enable)));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_speed_set(int unit, bcm_port_t port, int speed)
+{
+    int                     rv = BCM_E_NONE;
+    soc_port_t              port_i;
+    int                     soc_sand_rv;
+    int                     has_fabric_port = 0;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+    if (speed == 0) {
+        /* if speed is 0, set the port speed to max */
+        BCMDNX_IF_ERR_EXIT(bcm_petra_port_speed_max(unit, port, &speed));   
+    }
+    
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+        rv = MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_speed_set,(unit, port_i, speed));
+        BCMDNX_IF_ERR_EXIT(rv);
+        
+        if (IS_SFI_PORT(unit, port)) {
+            has_fabric_port = 1;
+        }
+    }
+
+    /*ALDWP should be configured after init time for every speed change*/
+    if (has_fabric_port) {
+        rv = bcm_petra_init_check(unit);
+        if (rv == BCM_E_UNIT /*init*/)
+        {
+            /*Avoiding ALDWP config at init time*/
+        } else if (rv == BCM_E_NONE)
+        {
+            soc_sand_rv = MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_fabric_aldwp_config ,(unit));      
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        } else {
+            BCMDNX_IF_ERR_EXIT(rv);
+        }
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_speed_get(int unit, bcm_port_t port, int *speed)
+{
+    int rv;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(speed);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+    
+    rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_speed_get,(unit, gport_info.local_port, speed)));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_speed_max(int unit,
+                       bcm_port_t port,
+                       int *speed)
+{
+    soc_info_t              *si;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(speed);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    si  = &SOC_INFO(unit);
+    *speed = si->port_speed_max[gport_info.local_port];
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int
+bcm_petra_port_interface_set(int unit,
+                 bcm_port_t port,
+                 bcm_port_if_t intf)
+{
+    soc_port_t port_i;
+    int rv;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+    
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+        rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_interface_set,(unit, port_i, intf)));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_interface_get(int unit,
+                 bcm_port_t port,
+                 bcm_port_if_t *intf)
+{
+    int rv;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(intf);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+    
+    rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_interface_get,(unit, gport_info.local_port, intf)));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int
+bcm_petra_port_link_state_get(int unit,
+                              bcm_port_t port,
+                              uint32 flags,
+                              bcm_port_link_state_t *state)
+{
+    int status, latch_down, rv;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(state);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+    
+    rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_link_state_get,(unit, gport_info.local_port, 1, &status, &latch_down)));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    state->status = status;
+    state->latch_down = latch_down;
+
+exit:
+    BCMDNX_FUNC_RETURN;
+
+}
+
+int 
+bcm_petra_port_encap_set(int unit, bcm_port_t port, int mode)
+{
+    int is_supported_mode = FALSE;
+    uint32 is_initialized = FALSE;
+    bcm_port_t port_i;
+    int rv;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+    /* This API is invalid for port which already initialized */
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+         BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_initialized_get(unit, port_i, &is_initialized));
+         if(is_initialized){
+             BCMDNX_ERR_EXIT_MSG(BCM_E_CONFIG, (_BSL_BCM_MSG("Can't set encap mode when the port is initailized")));
+         }
+     }
+
+    rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_is_supported_encap_get,(unit, mode, &is_supported_mode)));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if (!is_supported_mode){
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Mode %d not supported"), mode));
+    } 
+
+    /* Only store in DB, actul encap will be updated when port is initialized */
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_encap_mode_set(unit, port_i, (soc_encap_mode_t)mode));
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+
+}
+
+int 
+bcm_petra_port_encap_get(int unit, bcm_port_t port, int *mode)
+{
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(mode);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+    
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_encap_mode_get(unit, gport_info.local_port, (soc_encap_mode_t *)mode));
+
+exit:
+    BCMDNX_FUNC_RETURN; 
+}
+
+
+int
+bcm_petra_port_interface_config_get(int unit,
+                                    bcm_port_t port,
+                                    bcm_port_interface_config_t *config)
+{
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+        
+    BCMDNX_NULL_CHECK(config);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_interface_type_get(unit, gport_info.local_port, &(config->interface)));
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_channel_get(unit, gport_info.local_port, &(config->channel)));
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_first_phy_port_get(unit, gport_info.local_port, &(config->phy_port)));
+    
+exit:    
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_loopback_set(int unit, bcm_port_t port, int loopback)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    int lb_start; 
+    uint32 cl72_start;
+    soc_dcmn_loopback_mode_t dcmn_loopback;
+    _bcm_dpp_gport_info_t   gport_info;
+    soc_port_t port_i;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    _BCM_DPP_SWITCH_API_START(unit);
+
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+    
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+
+        switch(loopback) {
+            case BCM_PORT_LOOPBACK_MAC:
+                if(IS_SFI_PORT(unit, port_i)) {
+                    dcmn_loopback = soc_dcmn_loopback_mode_mac_async_fifo;
+                } else {
+                    dcmn_loopback = soc_dcmn_loopback_mode_mac_outer;
+                }
+                break;
+            case BCM_PORT_LOOPBACK_PHY:
+                dcmn_loopback = soc_dcmn_loopback_mode_phy_gloop;
+                break;
+            case BCM_PORT_LOOPBACK_PHY_REMOTE:
+                dcmn_loopback = soc_dcmn_loopback_mode_phy_rloop;
+                break;
+            case BCM_PORT_LOOPBACK_NONE:
+                dcmn_loopback = soc_dcmn_loopback_mode_none;
+                break;
+            default:
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unsupported loopback %d"), loopback)); 
+                break;
+        }
+
+        /* Disable CL72 when closing loopback */
+        BCMDNX_IF_ERR_EXIT(bcm_petra_port_loopback_get(unit, port_i, &lb_start));
+        if ((loopback != 0) && (lb_start == 0) && (ext_phy_ctrl[unit] == NULL || EXT_PHY_SW_STATE(unit, port_i) == NULL)) {
+            BCMDNX_IF_ERR_EXIT(bcm_petra_port_phy_control_get(unit, port_i, BCM_PORT_PHY_CONTROL_CL72, &cl72_start));
+            SOC_DPP_PORT_PARAMS(unit).cl72_configured[port_i] = cl72_start;
+            if (cl72_start == 1) {
+                BCMDNX_IF_ERR_EXIT(bcm_petra_port_phy_control_set(unit, port_i, BCM_PORT_PHY_CONTROL_CL72, 0)); 
+            }
+        }
+        
+
+        rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_loopback_set,(unit, port_i, dcmn_loopback));
+        BCMDNX_IF_ERR_EXIT(rv);
+        
+        if ((loopback == 0) && (lb_start != 0) && (ext_phy_ctrl[unit] == NULL || EXT_PHY_SW_STATE(unit, port_i) == NULL)) {
+            cl72_start = SOC_DPP_PORT_PARAMS(unit).cl72_configured[port_i];
+            if (cl72_start == 1) {
+                rv = bcm_petra_port_phy_control_set(unit, port_i, BCM_PORT_PHY_CONTROL_CL72, 1);
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+        }
+    }
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_loopback_get(int unit, bcm_port_t port, int *loopback)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    _bcm_dpp_gport_info_t   gport_info;
+    soc_dcmn_loopback_mode_t dcmn_loopback;
+    BCMDNX_INIT_FUNC_DEFS;
+
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+    rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_loopback_get,(unit, gport_info.local_port, &dcmn_loopback));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    switch(dcmn_loopback) {
+        case soc_dcmn_loopback_mode_none:
+            *loopback = BCM_PORT_LOOPBACK_NONE;
+            break;
+        case soc_dcmn_loopback_mode_mac_outer:
+        case soc_dcmn_loopback_mode_mac_pcs:
+        case soc_dcmn_loopback_mode_mac_async_fifo:
+            *loopback = BCM_PORT_LOOPBACK_MAC;
+            break;
+        case soc_dcmn_loopback_mode_phy_gloop:
+            *loopback = BCM_PORT_LOOPBACK_PHY;
+            break;
+        case soc_dcmn_loopback_mode_phy_rloop:
+            *loopback = BCM_PORT_LOOPBACK_PHY_REMOTE;
+            break;
+        default:
+            BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("unrecognized loopback type %d"), dcmn_loopback)); 
+            break;
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * returns gport of type "local" or "mod:port"
+ * This reurns handle to port. Not to Interface. From a port the interface handle is retreived
+ * via bcm_petra_fabric_port_get() API.
+ * Following internal functionality required by other modules (internal functions)
+ *    - convert the port to "fap port"
+ *    - get the port type (e.g. to indicate that some operations cannot occur on some port types)
+ */
+int
+bcm_petra_port_internal_get(int unit, uint32 flags, int internal_ports_max, bcm_gport_t *internal_gport, int *internal_ports_count)
+{
+    int count = 0;
+    bcm_gport_t gport;
+    soc_info_t  *si;
+    int modid;
+    int cores, core_i;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    si  = &SOC_INFO(unit);
+
+    if (flags & BCM_PORT_INTERNAL_RECYCLE) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("recycle ports are no longer internal - they are available in pbmp")));
+    }
+
+    if((flags & BCM_PORT_INTERNAL_CONF_SCOPE_CORE0) &&  
+        (flags & BCM_PORT_INTERNAL_CONF_SCOPE_CORE1)){
+        cores = SOC_CORE_ALL;
+    } else if(flags & BCM_PORT_INTERNAL_CONF_SCOPE_CORE0) {
+        cores = 0;
+    } else if (flags & BCM_PORT_INTERNAL_CONF_SCOPE_CORE1) {
+        if(SOC_DPP_DEFS_GET(unit, nof_cores) < 2) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Only single core supported for the device")));
+        }
+        cores = 1;
+    } else {
+        cores = SOC_CORE_ALL;
+    }
+
+    BCMDNX_IF_ERR_EXIT(bcm_petra_stk_my_modid_get(unit, &modid));
+
+    SOC_DPP_CORES_ITER(cores, core_i) {
+        if ((flags & BCM_PORT_INTERNAL_EGRESS_REPLICATION) && (NUM_ERP_PORT(unit) > 0)) {
+            if (count >= internal_ports_max) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("interl_port_max < number of internal ports (now adding ERP)")));
+            }
+            if(SOC_IS_PETRAB(unit)) {
+                BCM_GPORT_LOCAL_SET(gport, BCM_DPP_PORT_INTERNAL_ERP(core_i));
+            } else {
+                BCM_GPORT_LOCAL_SET(gport, si->erp_port[core_i]);
+            }
+            internal_gport[count++] = gport;
+        }
+
+        if ((flags & BCM_PORT_INTERNAL_OLP)  && (NUM_OLP_PORT(unit) > 0)) {
+            if (count >= internal_ports_max) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("interl_port_max < number of internal ports (now adding OLP)")));
+            }
+            if(SOC_IS_PETRAB(unit)) {
+                BCM_GPORT_LOCAL_SET(gport, BCM_DPP_PORT_INTERNAL_OLP(core_i));
+            } else {
+                BCM_GPORT_LOCAL_SET(gport, si->olp_port[core_i]);
+            }
+            internal_gport[count++] = gport;
+        }
+
+        if ((flags & BCM_PORT_INTERNAL_OAMP)  && (NUM_OAMP_PORT(unit) > 0)) {
+            if (count >= internal_ports_max) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("interl_port_max < number of internal ports (now adding OAMP)")));
+            }
+            if(SOC_IS_PETRAB(unit)) {
+                BCM_GPORT_LOCAL_SET(gport, BCM_DPP_PORT_INTERNAL_OAMP(core_i));
+            } else {
+                BCM_GPORT_LOCAL_SET(gport, si->oamp_port[core_i]);
+            }
+            internal_gport[count++] = gport;
+        }
+    }
+    
+    *internal_ports_count = count;
+
+exit:
+    _DCMN_BCM_WARM_BOOT_API_TEST_MODE_SKIP_WB_SEQUENCE(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+_bcm_petra_global_control_set(int unit, bcm_port_control_t type, int value);
+
+STATIC int
+_bcm_petra_port_fabric_control_set(int unit, bcm_port_t port,
+                                   bcm_port_control_t type, int value)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    portmod_prbs_mode_t prbs_mode; 
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCM_DPP_UNIT_CHECK(unit);
+
+    prbs_mode = SOC_PBMP_MEMBER(_bcm_dpp_port_prbs_mac_mode[unit], port) ? portmodPrbsModeMac : portmodPrbsModePhy;
+       
+    switch (type) {
+        case bcmPortControlPCS:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_control_pcs_set, (unit, port, value)); 
+            BCMDNX_IF_ERR_EXIT(rv);
+
+            /*ALDWP should be configured at init time for every pcs change*/
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_fabric_aldwp_config ,(unit));      
+            BCMDNX_IF_ERR_EXIT(rv);
+
+            break;
+
+        case bcmPortControlLinkDownPowerOn:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_control_power_set,(unit, port, 0, value ? soc_dcmn_port_power_on :  soc_dcmn_port_power_off));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlStripCRC:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_control_strip_crc_set,(unit, port, value ? 1 :  0));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlRxEnable:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_control_rx_enable_set,(unit, port, 0, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlTxEnable:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_control_tx_enable_set,(unit, port, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPrbsPolynomial:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_prbs_polynomial_set,(unit, port, prbs_mode, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;;
+
+        case bcmPortControlPrbsTxEnable:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_prbs_tx_enable_set,(unit, port, prbs_mode, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;;
+
+        case bcmPortControlPrbsRxEnable:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_prbs_rx_enable_set,(unit, port, prbs_mode, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;;
+
+        case bcmPortControlPrbsTxInvertData:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_prbs_tx_invert_data_set,(unit, port, prbs_mode, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;;
+
+        case bcmPortControlPrbsMode:
+            if(0 == value) { /*PRBS PHY MODE*/
+                SOC_PBMP_PORT_REMOVE(_bcm_dpp_port_prbs_mac_mode[unit], port); 
+            } else if (1 == value){ /*PRBS MAC MODE*/
+                SOC_PBMP_PORT_ADD(_bcm_dpp_port_prbs_mac_mode[unit], port); 
+            } else {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid value")));
+            }
+            break;
+
+        case bcmPortControlLowLatencyLLFCEnable:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_control_low_latency_set,(unit, port, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlFecErrorDetectEnable:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_control_fec_error_detect_set,(unit,port,value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+       case bcmPortControlLlfcCellsCongestionIndEnable:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_extract_cig_from_llfc_enable_set,(unit,port,value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        default:
+            BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unsupported Type %d"), type));
+            break;
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+_bcm_petra_port_eee_control_set(int unit, bcm_port_t port,
+                                bcm_port_control_t type, int value)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    switch(type) {
+        case bcmPortControlEEEEnable:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_enable_set,(unit, gport_info.local_port, value ? 1 : 0));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlEEEStatisticsClear:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_statistics_clear,(unit, gport_info.local_port));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlEEETransmitIdleTime:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_tx_idle_time_set,(unit, gport_info.local_port, (uint32)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlEEETransmitWakeTime:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_tx_wake_time_set,(unit, gport_info.local_port, (uint32)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlEEEEventCountSymmetric:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_event_count_symmetric_set,(unit, gport_info.local_port, (uint32)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlEEELinkActiveDuration:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_link_active_duration_set,(unit, gport_info.local_port, (uint32)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+
+        default:
+            BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("The api is not available for the required type\n")));
+    }
+
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+_bcm_petra_port_nif_control_set(int unit, bcm_port_t port,
+                                bcm_port_control_t type, int value)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    soc_error_t soc_rv = SOC_E_NONE;
+    _bcm_dpp_gport_info_t   gport_info;
+    soc_port_t port_ndx;
+    SOC_TMC_FC_ENABLE_BITMAP cfc_enables;
+    SOC_TMC_FC_INBND_MODE fc_inbnd_mode = SOC_TMC_FC_INBND_MODE_DISABLED;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    switch(type) {
+        case bcmPortControlLinkDownPowerOn:
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_enable_set,(unit, port_ndx, 1, value));
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+            break;
+
+        case bcmPortControlPrbsPolynomial:
+            /* call with original port - gport will be handled by bcm_petra_port_phy_control_set */
+            rv = bcm_petra_port_phy_control_set(unit, port, SOC_PHY_CONTROL_PRBS_POLYNOMIAL, value);
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPrbsTxInvertData:
+            /* call with original port - gport will be handled by bcm_petra_port_phy_control_set */
+            rv = bcm_petra_port_phy_control_set(unit, port, SOC_PHY_CONTROL_PRBS_TX_INVERT_DATA, value);
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPrbsTxEnable:
+            /* call with original port - gport will be handled by bcm_petra_port_phy_control_set */
+            rv = bcm_petra_port_phy_control_set(unit, port, SOC_PHY_CONTROL_PRBS_TX_ENABLE, value);
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPrbsRxEnable:
+            /* call with original port - gport will be handled by bcm_petra_port_phy_control_set */
+            rv = bcm_petra_port_phy_control_set(unit, port, SOC_PHY_CONTROL_PRBS_RX_ENABLE, value);
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPrbsRxStatus:
+            /* call with original port - gport will be handled by bcm_petra_port_phy_control_set */
+            rv = bcm_petra_port_phy_control_set(unit, port, SOC_PHY_CONTROL_PRBS_RX_STATUS, value);
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+ 
+       /* Flow Control */
+        case bcmPortControlPFCRefreshTime:
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_pfc_refresh_set,(unit, port_ndx, value));
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+            break;
+
+        case bcmPortControlPFCTransmit:
+        case bcmPortControlLLFCTransmit:
+        case bcmPortControlSAFCTransmit:
+
+            SHR_BITCLR_RANGE(cfc_enables.bmp, 0, SOC_TMC_FC_NOF_ENABLEs);
+            if(value == 0) {
+                fc_inbnd_mode = SOC_TMC_FC_INBND_MODE_DISABLED;
+            }
+            else {
+                if(type == bcmPortControlPFCTransmit) {
+                    fc_inbnd_mode = SOC_TMC_FC_INBND_MODE_PFC;
+                    SHR_BITSET(cfc_enables.bmp, SOC_TMC_FC_PFC_VSQ_TO_NIF_EN);
+                    if (SOC_IS_JERICHO(unit)) {  
+                        SHR_BITSET(cfc_enables.bmp, SOC_TMC_FC_GLB_RSC_TO_NIF_PFC_EN);
+                    }
+                }
+                if(type == bcmPortControlSAFCTransmit) {
+                    fc_inbnd_mode = SOC_TMC_FC_INBND_MODE_SAFC;
+                    SHR_BITSET(cfc_enables.bmp, SOC_TMC_FC_PFC_VSQ_TO_NIF_EN);
+                    if (SOC_IS_JERICHO(unit)) {  
+                        SHR_BITSET(cfc_enables.bmp, SOC_TMC_FC_GLB_RSC_TO_NIF_PFC_EN);
+                    }
+                }
+                if(type == bcmPortControlLLFCTransmit) {
+                    fc_inbnd_mode = SOC_TMC_FC_INBND_MODE_LL;
+                    SHR_BITSET(cfc_enables.bmp, SOC_TMC_FC_LLFC_VSQ_TO_NIF_EN);
+                    if (SOC_IS_JERICHO(unit)) {  
+                        SHR_BITSET(cfc_enables.bmp, SOC_TMC_FC_GLB_RSC_TO_NIF_LLFC_EN);
+                    }
+                }
+            }
+        
+            soc_rv = MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_fc_inbnd_mode_set,(unit, port, TRUE, fc_inbnd_mode));
+            if (soc_rv != SOC_E_NONE) {
+                rv = soc_rv;
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+
+            soc_rv = MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_fc_enables_set,(unit, &cfc_enables, &cfc_enables));
+            if (soc_rv != SOC_E_NONE) {
+                rv = soc_rv;
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+
+            break;
+
+        case bcmPortControlPFCReceive:
+        case bcmPortControlLLFCReceive:
+        case bcmPortControlSAFCReceive:
+
+            if(value == 0) {
+                fc_inbnd_mode = SOC_TMC_FC_INBND_MODE_DISABLED;
+            }
+            else {
+                if(type == bcmPortControlPFCReceive) {
+                    fc_inbnd_mode = SOC_TMC_FC_INBND_MODE_PFC;
+                }
+                if(type == bcmPortControlSAFCReceive) {
+                    fc_inbnd_mode = SOC_TMC_FC_INBND_MODE_SAFC;
+                }
+                if(type == bcmPortControlLLFCReceive) {
+                    fc_inbnd_mode = SOC_TMC_FC_INBND_MODE_LL;
+                }
+            }
+
+            soc_rv = MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_fc_inbnd_mode_set,(unit, port, FALSE, fc_inbnd_mode));
+            if (soc_rv != SOC_E_NONE) {
+                rv = soc_rv;
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+
+            break;
+
+        case bcmPortControlLinkFaultLocal:
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_local_fault_clear,(unit, port_ndx));
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+            break;
+
+        case bcmPortControlLinkFaultRemote:
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_remote_fault_clear,(unit, port_ndx));
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+            break;
+
+        case bcmPortControlPadToSize:
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_pad_size_set,(unit, port_ndx, value));
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+            break;
+
+        default:
+            BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("The api is not available for the required type\n")));
+    }
+    
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+_bcm_petra_pp_port_control_set(int unit, bcm_port_t port,
+                           bcm_port_control_t type, int value);
+
+STATIC int _bcm_petra_port_inlif_profile_set(
+   const int unit, 
+   const bcm_port_t port, 
+   const uint32 arg, 
+   const SOC_OCC_MGMT_INLIF_APP kind,
+
+   /* Allocated lif_info */
+   SOC_PPD_LIF_ENTRY_INFO *lif_info);
+
+STATIC int
+_bcm_petra_port_control_set(int unit, bcm_port_t port,
+                            bcm_port_control_t type, int value)
+{
+    bcm_error_t rv =  BCM_E_NONE;
+    uint32 soc_sand_rv;
+    SOC_PPD_LIF_ENTRY_INFO *lif_info = NULL;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    /* Global type check */
+    switch (type)
+    {
+          /* PP */
+          case bcmPortControlMpls:
+          case bcmPortControlIP4:
+          case bcmPortControlIP6:
+          case bcmPortControlIP4Mcast:
+          case bcmPortControlIP6Mcast:
+          case bcmPortControlDoNotCheckVlan:
+          case bcmPortControlMacInMac:
+          case bcmPortControlL2Move:
+          case bcmPortControlBridge:
+          case bcmPortControlPrivateVlanIsolate:
+          case bcmPortControlFloodUnknownUcastGroup:
+          case bcmPortControlFloodUnknownMcastGroup:
+          case bcmPortControlFloodBroadcastGroup:
+          case bcmPortControlDiscardMacSaAction:
+          case bcmPortControlUnknownMacDaAction:
+          case bcmPortControlTrillDesignatedVlan:
+          case bcmPortControlL2SaAuthenticaion:
+          case bcmPortControlLocalSwitching:
+          case bcmPortControlMplsFRREnable:
+          case bcmPortControlMplsContextSpecificLabelEnable:
+          case bcmPortControlTrill:
+          case bcmPortControlEgressFilterDisable:
+          case bcmPortControlOverlayRecycle:
+          case bcmPortControlEvbType:
+          case bcmPortControlVMac:
+          case bcmPortControlErspanEnable:
+          case bcmPortControlFcoeNetworkPort:
+          case bcmPortControlFcoeFabricId:
+          case bcmPortControlMplsExplicitNullEnable:
+          case bcmPortControlOamDefaultProfile:
+          case bcmPortControlMplsEncapsulateExtendedLabel:
+              /* PP Configuration. Port check is done in pp port API */
+              rv = _bcm_petra_pp_port_control_set(unit, port, type, value);    
+              BCMDNX_IF_ERR_EXIT(rv);   
+              break;
+
+          /* TM */
+          case bcmPortControlPrbsPolynomial:
+          case bcmPortControlPrbsTxEnable:
+          case bcmPortControlPrbsRxEnable:
+          case bcmPortControlLinkDownPowerOn:
+          case bcmPortControlTxEnable:
+          case bcmPortControlPrbsTxInvertData:
+          case bcmPortControlPrbsRxStatus:
+          case bcmPortControlPFCTransmit:
+          case bcmPortControlPFCReceive:
+          case bcmPortControlLLFCReceive:
+          case bcmPortControlLLFCTransmit:
+          case bcmPortControlSAFCReceive:
+          case bcmPortControlSAFCTransmit:
+          case bcmPortControlPFCRefreshTime:
+          case bcmPortControlLinkFaultLocal:
+          case bcmPortControlLinkFaultRemote:
+          case bcmPortControlPadToSize:
+              rv = _bcm_petra_port_nif_control_set(unit, port, type, value);
+              BCMDNX_IF_ERR_EXIT(rv);   
+              break;
+
+        case bcmPortControlEEEEnable:
+        case bcmPortControlEEEStatisticsClear:
+        case bcmPortControlEEETransmitIdleTime:
+        case bcmPortControlEEETransmitWakeTime:
+        case bcmPortControlEEEEventCountSymmetric:
+        case bcmPortControlEEELinkActiveDuration:
+            rv = _bcm_petra_port_eee_control_set(unit, port, type, value);
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlRxEnable :
+            if (!SOC_IS_PETRAB(unit)) 
+            {
+                uint8
+                    traffic_enable = 0;
+                SOC_SAND_U32_RANGE 
+                    size_range;
+                if (value == 0)
+                {
+                if ((IS_TDM_PORT(unit,port) == TRUE))
+                    {
+                        soc_sand_rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_mgmt_enable_traffic_get,(unit, &traffic_enable)));
+                        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                        soc_sand_SAND_U32_RANGE_clear(&size_range);
+                        soc_sand_rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_tdm_stand_size_range_get,(unit, &size_range)));
+                        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                        /* 
+                         * When disabling the port rx, 
+                         * If this is a tdm port and the traffic is enabled
+                         * Then the min size tdm filter (register IRE_TDM_SIZEr, field TDM_MIN_SIZEf)
+                         * must be set to 192B or above.
+                         */
+
+                        if ((size_range.start < BCM_DPP_PORT_RX_DISABLE_TDM_MIN_SIZE) &&
+                            (traffic_enable) &&
+                            (soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "allow_modifications_during_traffic", 0) == 0))
+                        {
+                            BCMDNX_ERR_EXIT_MSG(BCM_E_CONFIG, 
+                                         (_BSL_BCM_MSG("unit %d, When disabling traffic for tdm ports, tdm min size filter must be set to over 192B, currently it is set to %d"), unit ,size_range.start));
+                        }
+                    }   
+                }
+            }
+            soc_sand_rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_rx_enable_set,(unit, port, value)));
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+            break;
+
+        case bcmPortControlEgressModifyDscp:
+            if (SOC_IS_ARADPLUS(unit)) {
+                int simple_mode = soc_property_get(unit, spn_BCM886XX_QOS_L3_L2_MARKING, 0);
+
+                if (value < 0 || value > 1) {
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid arg (may only be 0 or 1)")));
+                }
+
+                if (simple_mode) {
+                    /* In simple mode the port is gport. */
+                    
+                    BCMDNX_ALLOC(lif_info, sizeof(SOC_PPD_LIF_ENTRY_INFO), "_bcm_petra_port_class_set.lif_info");
+                    if (lif_info == NULL) {        
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_MEMORY, (_BSL_BCM_MSG("failed to allocate memory")));
+                    }
+
+                    rv = _bcm_petra_port_inlif_profile_set(unit, port, value, SOC_OCC_MGMT_INLIF_APP_SIMPLE_DSCP_MARKING, lif_info);
+                    BCMDNX_IF_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("failed setting the inlif profile")));
+
+                } else {
+                    /* In advanced mode the port is the inlif profile. */
+                    uint32 mask;
+                    SOC_PPC_EG_QOS_GLOBAL_INFO info;
+
+                    if ((port < 0) || (port > BCM_PORT_INLIF_PROFILE_MAX)) {
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Invalid inlif profile")));
+                    }
+                    /* We can only use the 2 lsbs for DSCP/EXP marking (2 lsbs are passed to egress only). */
+                    port &= BCM_PORT_INLIF_PROFILE_PASSED_TO_EGRESS_MASK;
+                    mask = (1 << port);
+                    SOC_PPC_EG_QOS_GLOBAL_INFO_clear(&info);
+                    soc_sand_rv = soc_ppd_eg_qos_global_info_get(unit, &info);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                    if (value == 0) {
+                        info.in_lif_profile_bitmap &= ~mask;
+                    } else {
+                        info.in_lif_profile_bitmap |= mask;
+                    }
+
+                    soc_sand_rv = soc_ppd_eg_qos_global_info_set(unit, &info);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                }
+            } else {
+                BCMDNX_IF_ERR_EXIT(BCM_E_UNAVAIL);
+            }
+            break;
+
+        case bcmPortControlExtenderEnable:
+            {
+                _bcm_dpp_gport_info_t   gport_info;
+                bcm_port_t port_ndx = 0;
+                SOC_PPD_PORT soc_ppd_port = 0;
+                int core;
+
+                rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+                BCMDNX_IF_ERR_EXIT(rv);
+
+                BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+                    break;
+                }
+
+                soc_sand_rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_ports_extender_mapping_enable_set,(unit, soc_ppd_port, value)));
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+            }
+            break;
+        default:
+            BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Invalid control")));
+            break;
+
+    }
+
+exit:
+    BCM_FREE(lif_info);
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_control_set(int unit, bcm_port_t port,
+                           bcm_port_control_t type, int value)
+{
+    int rv = BCM_E_UNAVAIL;
+    _bcm_dpp_gport_info_t   gport_info;
+    /* In some cases port is actually inlif profile (e.g. bcmPortControlEgressModifyDscp). */
+    /* In those cases we shouldn't do any checking on the port. */
+    uint8 port_skip_port_validation = FALSE;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    switch(type) {
+        case bcmPortControlEgressModifyDscp:
+        case bcmPortControlOamDefaultProfile:
+            port_skip_port_validation = TRUE;
+            break;
+        default:
+            break;
+    }
+
+    if (port == -1) { 
+        /* port is invalid - used for gloabl configurations */
+        rv = _bcm_petra_global_control_set(unit, type, value);  
+        BCMDNX_IF_ERR_EXIT(rv);    
+    } else if (port_skip_port_validation) {
+        rv = _bcm_petra_port_control_set(unit, port, type, value);
+        BCMDNX_IF_ERR_EXIT(rv);
+    } else {
+
+        BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+        if(gport_info.lane != -1) {
+            if(SOC_INFO(unit).port_num_lanes[gport_info.local_port]  <= gport_info.lane) {
+                 BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("Invalid lane")));
+            }
+        }
+
+        if(IS_SFI_PORT(unit, gport_info.local_port)) {
+            BCMDNX_IF_ERR_EXIT(_bcm_petra_port_fabric_control_set(unit, gport_info.local_port, type, value));
+        } else {
+            /* TM / PP - Pass original gpoty */
+            BCMDNX_IF_ERR_EXIT(_bcm_petra_port_control_set(unit, port, type, value));     
+        }
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+_bcm_petra_port_nif_control_get(int unit, bcm_port_t port,
+                                bcm_port_control_t type, int *value)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    soc_error_t soc_rv = SOC_E_NONE;
+    uint32 flags;
+    _bcm_dpp_gport_info_t gport_info;
+    SOC_TMC_FC_INBND_MODE fc_inbnd_mode;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    switch(type) {
+        case bcmPortControlLinkDownPowerOn:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_enable_get,(unit, gport_info.local_port, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPrbsPolynomial:
+            /* call with original port - gport will be handled by bcm_petra_port_phy_control_get */
+            rv = bcm_petra_port_phy_control_get(unit, port, SOC_PHY_CONTROL_PRBS_POLYNOMIAL, (uint32*)value);
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPrbsTxEnable:
+            /* call with original port - gport will be handled by bcm_petra_port_phy_control_get */
+            rv = bcm_petra_port_phy_control_get(unit, port, SOC_PHY_CONTROL_PRBS_TX_ENABLE, (uint32*)value);
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPrbsRxEnable:
+            /* call with original port - gport will be handled by bcm_petra_port_phy_control_get */
+            rv = bcm_petra_port_phy_control_get(unit, port, SOC_PHY_CONTROL_PRBS_RX_ENABLE, (uint32*)value);
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPrbsRxStatus:
+            /* call with original port - gport will be handled by bcm_petra_port_phy_control_get */
+            rv = bcm_petra_port_phy_control_get(unit, port, SOC_PHY_CONTROL_PRBS_RX_STATUS, (uint32*)value);
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        /* Flow Control */
+        case bcmPortControlPFCRefreshTime:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_pfc_refresh_get,(unit, gport_info.local_port, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPFCTransmit:
+        case bcmPortControlLLFCTransmit:
+        case bcmPortControlSAFCTransmit:
+        
+            soc_rv = MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_fc_inbnd_mode_get,(unit, port, TRUE, &fc_inbnd_mode));
+            if (soc_rv != SOC_E_NONE) {
+                rv = soc_rv;
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+
+            if(fc_inbnd_mode == SOC_TMC_FC_INBND_MODE_DISABLED)
+            {
+                *value = 0;
+            }
+            else
+            {
+                if(type == bcmPortControlPFCTransmit)
+                {
+                    *value = (fc_inbnd_mode == SOC_TMC_FC_INBND_MODE_PFC) ? 1 : 0;
+                }
+                if(type == bcmPortControlSAFCTransmit)
+                {
+                    *value = (fc_inbnd_mode == SOC_TMC_FC_INBND_MODE_SAFC) ? 1 : 0;
+                }
+                if(type == bcmPortControlLLFCTransmit)
+                {
+                    *value = (fc_inbnd_mode == SOC_TMC_FC_INBND_MODE_LL) ? 1 : 0;
+                }
+            }
+            break;
+
+        case bcmPortControlPFCReceive:
+        case bcmPortControlLLFCReceive:
+        case bcmPortControlSAFCReceive:
+
+            soc_rv = MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_fc_inbnd_mode_get,(unit, port, FALSE, &fc_inbnd_mode));
+            if (soc_rv != SOC_E_NONE) {
+                rv = soc_rv;
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+
+            if(fc_inbnd_mode == SOC_TMC_FC_INBND_MODE_DISABLED)
+            {
+                *value = 0;
+            }
+            else
+            {
+                if(type == bcmPortControlPFCReceive)
+                {
+                    *value = (fc_inbnd_mode == SOC_TMC_FC_INBND_MODE_PFC) ? 1 : 0;
+                }
+                if(type == bcmPortControlSAFCReceive)
+                {
+                    *value = (fc_inbnd_mode == SOC_TMC_FC_INBND_MODE_SAFC) ? 1 : 0;
+                }
+                if(type == bcmPortControlLLFCReceive)
+                {
+                    *value = (fc_inbnd_mode == SOC_TMC_FC_INBND_MODE_LL) ? 1 : 0;
+                }         
+            }
+            break;
+
+        case bcmPortControlLinkFaultLocal:
+            /* call with original port - gport will be handled by bcm_petra_port_fault_get */
+            BCMDNX_IF_ERR_EXIT(bcm_petra_port_fault_get(unit, port, &flags));
+            (*value) = (flags & BCM_PORT_FAULT_LOCAL ? 1 : 0);
+            break;
+
+        case bcmPortControlLinkFaultRemote:
+            /* call with original port - gport will be handled by bcm_petra_port_fault_get */
+            BCMDNX_IF_ERR_EXIT(bcm_petra_port_fault_get(unit, port, &flags));
+            (*value) = (flags & BCM_PORT_FAULT_REMOTE ? 1 : 0);
+            break;
+
+        case bcmPortControlPadToSize:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_pad_size_get,(unit, gport_info.local_port, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        default:
+            BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("The api is not available for the required type")));
+        }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+_bcm_petra_port_eee_control_get(int unit, bcm_port_t port,
+                                bcm_port_control_t type, int *value)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    _bcm_dpp_gport_info_t gport_info;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    switch(type) {
+        case bcmPortControlEEEEnable:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_enable_get,(unit, gport_info.local_port, (uint32 *)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlEEETransmitIdleTime:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_tx_idle_time_get,(unit, gport_info.local_port, (uint32 *)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlEEETransmitEventCount:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_tx_event_count_get,(unit, gport_info.local_port, (uint32 *)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlEEETransmitDuration:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_tx_duration_get,(unit, gport_info.local_port, (uint32 *)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlEEEReceiveEventCount:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_rx_event_count_get,(unit, gport_info.local_port, (uint32 *)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlEEEReceiveDuration:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_rx_duration_get,(unit, gport_info.local_port, (uint32 *)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlEEETransmitWakeTime:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_tx_wake_time_get,(unit, gport_info.local_port, (uint32 *)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlEEEEventCountSymmetric:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_event_count_symmetric_get,(unit, gport_info.local_port, (uint32 *)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlEEELinkActiveDuration:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_eee_link_active_duration_get,(unit, gport_info.local_port, (uint32 *)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+
+        default:
+            BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("The api is not available for the required type")));
+        }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+STATIC int
+_bcm_petra_pp_port_control_get(int unit, bcm_port_t port,
+                            bcm_port_control_t type, int *value);
+
+STATIC int _bcm_petra_port_inlif_profile_get(
+   const int unit, 
+   const bcm_port_t port, 
+   uint32 *arg, 
+   const SOC_OCC_MGMT_INLIF_APP kind,
+
+   /* Allocated lif_info */
+   SOC_PPD_LIF_ENTRY_INFO *lif_info);
+
+STATIC int
+_bcm_petra_port_control_lanes_get(int unit, bcm_port_t port, int* value);
+
+STATIC int
+_bcm_petra_port_control_get(int unit, bcm_port_t port,
+                            bcm_port_control_t type, int *value) 
+{
+    bcm_error_t rv = BCM_E_UNAVAIL;
+    uint32 soc_sand_rv;
+    SOC_PPD_LIF_ENTRY_INFO *lif_info = NULL;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    switch (type)
+    {
+        case bcmPortControlMpls:
+        case bcmPortControlIP4:
+        case bcmPortControlIP6:
+        case bcmPortControlIP4Mcast:
+        case bcmPortControlIP6Mcast:
+        case bcmPortControlDoNotCheckVlan:
+        case bcmPortControlMacInMac:
+        case bcmPortControlL2Move:
+        case bcmPortControlPrivateVlanIsolate:
+        case bcmPortControlBridge:
+        case bcmPortControlFloodBroadcastGroup:
+        case bcmPortControlFloodUnknownMcastGroup:
+        case bcmPortControlFloodUnknownUcastGroup:
+        case bcmPortControlUnknownMacDaAction:
+        case bcmPortControlDiscardMacSaAction:
+        case bcmPortControlMplsFRREnable:
+        case bcmPortControlMplsContextSpecificLabelEnable:
+        case bcmPortControlPreservePacketPriority:
+        case bcmPortControlTrillDesignatedVlan:
+        case bcmPortControlL2SaAuthenticaion:
+        case bcmPortControlLocalSwitching:
+        case bcmPortControlTrill:
+        case bcmPortControlEgressFilterDisable:
+        case bcmPortControlOverlayRecycle:
+        case bcmPortControlEvbType:
+        case bcmPortControlVMac:           
+        case bcmPortControlErspanEnable:
+        case bcmPortControlFcoeNetworkPort:
+        case bcmPortControlFcoeFabricId:
+        case bcmPortControlMplsExplicitNullEnable:
+        case bcmPortControlOamDefaultProfile:
+        case bcmPortControlMplsEncapsulateExtendedLabel:
+            rv = _bcm_petra_pp_port_control_get(unit, port, type, value);
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+        case bcmPortControlPrbsPolynomial:
+        case bcmPortControlPrbsTxEnable:
+        case bcmPortControlPrbsRxEnable:
+        case bcmPortControlLinkDownPowerOn:
+        case bcmPortControlTxEnable:
+        case bcmPortControlPrbsTxInvertData:
+        case bcmPortControlPrbsRxStatus:
+        case bcmPortControlPFCTransmit:
+        case bcmPortControlPFCReceive:
+        case bcmPortControlLLFCReceive:
+        case bcmPortControlLLFCTransmit:
+        case bcmPortControlSAFCTransmit:
+        case bcmPortControlSAFCReceive:
+        case bcmPortControlPFCRefreshTime:
+        case bcmPortControlLinkFaultLocal:
+        case bcmPortControlLinkFaultRemote:
+        case bcmPortControlPadToSize:
+            /* NIF configuration. must get physical port */
+            rv = _bcm_petra_port_nif_control_get(unit, port, type, value);
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlEEEEnable:
+        case bcmPortControlEEETransmitIdleTime:
+        case bcmPortControlEEETransmitEventCount:
+        case bcmPortControlEEETransmitDuration:
+        case bcmPortControlEEEReceiveEventCount:
+        case bcmPortControlEEEReceiveDuration:
+        case bcmPortControlEEETransmitWakeTime:
+        case bcmPortControlEEEEventCountSymmetric:
+        case bcmPortControlEEELinkActiveDuration:
+            rv = _bcm_petra_port_eee_control_get(unit, port, type, value);
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+                 
+        case bcmPortControlLanes:
+           /* get nof_lanes */
+            rv = _bcm_petra_port_control_lanes_get(unit, port, value);
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+        case bcmPortControlRxEnable :
+            rv =  BCM_E_NONE;
+            soc_sand_rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_rx_enable_get,(unit,  port, value)));
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);           
+            break;            
+#ifdef BCM_88660
+        case bcmPortControlEgressModifyDscp:
+            if (SOC_IS_ARADPLUS(unit)) {
+                int simple_mode = soc_property_get(unit, spn_BCM886XX_QOS_L3_L2_MARKING, 0);
+
+                rv = BCM_E_NONE;
+
+                if (simple_mode) {
+                    uint32 inlif_profile = 0;
+                    
+                    BCMDNX_ALLOC(lif_info, sizeof(SOC_PPD_LIF_ENTRY_INFO), "_bcm_petra_port_control_get.lif_info");
+                    if (lif_info == NULL) {        
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_MEMORY, (_BSL_BCM_MSG("failed to allocate memory")));
+                    }
+
+                    rv = _bcm_petra_port_inlif_profile_get(unit, port, &inlif_profile, SOC_OCC_MGMT_INLIF_APP_SIMPLE_DSCP_MARKING, lif_info);
+                    *value = (int)inlif_profile;
+
+                    BCMDNX_IF_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("failed getting the inlif profile")));
+
+                } else {
+                    uint32 mask;
+                    SOC_PPC_EG_QOS_GLOBAL_INFO info;
+
+                    if ((port < 0) || (port > BCM_PORT_INLIF_PROFILE_MAX)) {
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Invalid inlif profile")));
+                    }
+
+                    SOC_PPC_EG_QOS_GLOBAL_INFO_clear(&info);
+                    soc_sand_rv = soc_ppd_eg_qos_global_info_get(unit, &info);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                    mask = (1 << port);
+                    *value = ((info.in_lif_profile_bitmap & mask) != 0) ? 1 : 0;
+                }
+
+            } else {
+                rv = BCM_E_UNAVAIL;
+            }
+            BCMDNX_IF_ERR_EXIT(rv);
+        break;
+#endif
+    case bcmPortControlExtenderEnable:
+        {
+            _bcm_dpp_gport_info_t   gport_info;
+            bcm_port_t port_ndx = 0;
+            SOC_PPD_PORT soc_ppd_port = 0;
+            int core;
+        
+            rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+            BCMDNX_IF_ERR_EXIT(rv);
+        
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+                break;
+            }
+        
+            soc_sand_rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_ports_extender_mapping_enable_get,(unit, soc_ppd_port, value)));
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);            
+        }
+        break;
+
+    default:
+          BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Invalid control")));
+          break;
+    }       
+
+exit:
+    BCM_FREE(lif_info);
+    BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+_bcm_petra_port_fabric_control_get(int unit, bcm_port_t port,
+                                bcm_port_control_t type, int *value)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    int locked = 0, prbs_mode;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    prbs_mode = SOC_PBMP_MEMBER(_bcm_dpp_port_prbs_mac_mode[unit], port) ? 1: 0;
+
+    switch (type) {
+        case bcmPortControlPCS:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_control_pcs_get, (unit, port, (soc_dcmn_port_pcs_t*)value)); 
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlLinkDownPowerOn:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_control_power_get,(unit, port, (soc_dcmn_port_power_t*)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlStripCRC:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_control_strip_crc_get,(unit, port, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlRxEnable:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_control_rx_enable_get,(unit, port, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlTxEnable:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_control_tx_enable_get,(unit, port, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPrbsPolynomial:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_prbs_polynomial_get,(unit, port, prbs_mode, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPrbsTxEnable:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_prbs_tx_enable_get,(unit, port, prbs_mode, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPrbsRxEnable:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_prbs_rx_enable_get,(unit, port, prbs_mode,  value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPrbsRxStatus:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_prbs_rx_status_get,(unit, port, prbs_mode, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+        
+        case bcmPortControlPrbsTxInvertData:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_prbs_tx_invert_data_get,(unit, port, prbs_mode, value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlPrbsMode:
+            if(SOC_PBMP_MEMBER(_bcm_dpp_port_prbs_mac_mode[unit],port)) {
+                *value = 1; /*PRBS MAC MODE*/
+            } else {
+                *value = 0; /*PRBS PHY MODE*/
+            }
+            break;
+
+        case bcmPortControlLowLatencyLLFCEnable:
+            rv = MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_control_low_latency_get,(unit, port, (int *)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        case bcmPortControlFecErrorDetectEnable:
+            rv = MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_control_fec_error_detect_get,(unit, port, (int *)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+        case bcmPortControlLlfcCellsCongestionIndEnable:
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_extract_cig_from_llfc_enable_get,(unit,port,(int *)value));
+            BCMDNX_IF_ERR_EXIT(rv);
+            break;
+
+        default:
+            BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unsupported Type %d"), type));
+            break;
+    }
+
+exit:
+    if (locked) {
+        MIIM_UNLOCK(unit);
+    }
+    BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+_bcm_petra_global_control_get(int unit, bcm_port_control_t type, int *value);
+
+int
+bcm_petra_port_control_get(int unit, bcm_port_t port,
+                            bcm_port_control_t type, int *value)
+{
+    int rv = BCM_E_UNAVAIL;
+    _bcm_dpp_gport_info_t   gport_info;
+    /* In some cases port is actually inlif profile (e.g. bcmPortControlEgressModifyDscp). */
+    /* In those cases we shouldn't do any checking on the port. */
+    uint8 port_skip_port_validation = FALSE;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(value);
+
+    switch(type) {
+        case bcmPortControlEgressModifyDscp:
+        case bcmPortControlOamDefaultProfile:
+            port_skip_port_validation = TRUE;
+            break;
+        default:
+            break;
+    }
+
+    if (port == -1) { 
+        /* port is invalid - used for gloabl configurations */
+        rv = _bcm_petra_global_control_get(unit, type, value);      
+    } else if (port_skip_port_validation) {
+        rv = _bcm_petra_port_control_get(unit, port, type, value);
+    } else {
+        BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+        if(gport_info.lane != -1) {
+            if(SOC_INFO(unit).port_num_lanes[gport_info.local_port]  <= gport_info.lane) {
+                 BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("Invalid lane")));
+            }
+        }
+
+        if(IS_SFI_PORT(unit, gport_info.local_port)) {
+            rv = _bcm_petra_port_fabric_control_get(unit, gport_info.local_port, type, value);
+            BCMDNX_IF_ERR_EXIT(rv);
+        } else {
+            /* TM / PP */
+            rv = _bcm_petra_port_control_get(unit, port, type, value);
+            BCMDNX_IF_ERR_EXIT(rv);
+        } 
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_linkscan_get(int unit,
+                          bcm_port_t port,
+                          int *linkscan)
+{
+    _bcm_dpp_gport_info_t   gport_info;
+    int rv;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(linkscan);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    rv = bcm_common_linkscan_mode_get(unit, gport_info.local_port, linkscan);
+    if(rv == BCM_E_INIT) {
+        *linkscan = BCM_LINKSCAN_MODE_NONE;
+        rv = BCM_E_NONE;
+    }
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_linkscan_set(int unit,
+                          bcm_port_t port,
+                          int linkscan)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* _bcm_dpp_gport_to_phy_port is handled inside bcm_petra_linkscan_mode_set*/
+    BCMDNX_IF_ERR_EXIT(bcm_petra_linkscan_mode_set(unit, port, linkscan));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_phy_reset(int unit, bcm_port_t port)
+{
+    uint32 flags;
+    int rv;
+    _bcm_dpp_gport_info_t   gport_info;
+    soc_port_t port_ndx;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+        if (!IS_SFI_PORT(unit, port_ndx)) {
+            BCMDNX_IF_ERR_EXIT(soc_port_sw_db_flags_get(unit, port_ndx, &flags));
+            if(!SOC_PORT_IS_NETWORK_INTERFACE(flags)) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("Port %d isn't NIF"), port_ndx));
+            }
+        }
+
+
+        rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_reset,(unit, port_ndx)));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_probe(int unit, pbmp_t pbmp, pbmp_t *okay_pbmp) 
+{
+    int rv, is_init_sequence;
+    soc_port_t port;
+    soc_pbmp_t virtual_pbmp;
+    soc_port_if_t interface;
+    BCMDNX_INIT_FUNC_DEFS;
+
+   PBMP_ITER(pbmp, port) {
+       if(IS_SFI_PORT(unit, port)) {
+           if((ARAD_INIT_SERDES_REF_CLOCK_125 == SOC_DPP_CONFIG(unit)->arad->init.pll.fabric_clk_freq)) {
+               SOC_INFO(unit).port_refclk_int[port] = 125;
+           } else {
+               SOC_INFO(unit).port_refclk_int[port] = 156;
+           }
+       } else {
+           if((ARAD_INIT_SERDES_REF_CLOCK_125 == SOC_DPP_CONFIG(unit)->arad->init.pll.nif_clk_freq)) {
+               SOC_INFO(unit).port_refclk_int[port] = 125;
+           } else {
+               SOC_INFO(unit).port_refclk_int[port] = 156;
+           }  
+        }
+    }
+
+    rv = bcm_petra_init_check(unit);
+    if (rv == BCM_E_UNIT) {/* init */ 
+        is_init_sequence = 1;
+    }
+    else if (rv == BCM_E_NONE) {
+        is_init_sequence = 0;
+    }
+    else {
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_probe, (unit, pbmp, okay_pbmp, is_init_sequence));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* set virtual ports to initialized */
+    if (is_init_sequence && !SOC_WARM_BOOT(unit)) {
+
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_valid_ports_get(unit, 0, &virtual_pbmp));
+
+        PBMP_ITER(virtual_pbmp, port) {
+            BCMDNX_IF_ERR_EXIT(soc_port_sw_db_interface_type_get(unit, port, &interface));
+            switch (interface) {
+                case SOC_PORT_IF_CPU:
+                case SOC_PORT_IF_TM_INTERNAL_PKT:
+                case SOC_PORT_IF_RCY:
+                case SOC_PORT_IF_OLP:
+                case SOC_PORT_IF_ERP:
+                case SOC_PORT_IF_OAMP:
+                     /*mark port as initialized*/
+                    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_initialized_set(unit, port, 1));
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_detach(int unit,
+          pbmp_t pbmp,
+          pbmp_t *detached)
+{
+    bcm_port_t  port;
+    uint32  rv, is_valid, is_initialized;
+    int counter_interval;
+    uint32 counter_flags;
+    pbmp_t counter_pbmp; 
+    BCMDNX_INIT_FUNC_DEFS;
+
+    SOC_PBMP_CLEAR(*detached);
+
+    PBMP_ITER(pbmp, port) {
+        rv = bcm_petra_port_enable_set(unit, port, 0);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        if (SOC_PBMP_MEMBER(SOC_INFO(unit).cmic_bitmap, port)) {
+            /*mark port as not initialized*/
+            BCMDNX_IF_ERR_EXIT(soc_port_sw_db_initialized_set(unit, port, 0));
+        } else {
+            BCMDNX_IF_ERR_EXIT(bcm_port_linkscan_set(unit, port, BCM_LINKSCAN_MODE_NONE));
+
+
+            /* stop counter thread */
+            BCMDNX_IF_ERR_EXIT(soc_counter_status(unit, &counter_flags, &counter_interval, &counter_pbmp));
+            soc_counter_stop(unit);
+            
+            /*validate port is valid*/
+            BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_valid_port_get(unit, port, &is_valid));
+            if(!is_valid) {
+                BCMDNX_ERR_EXIT_MSG(SOC_E_PORT, (_BSL_BCM_MSG("Can't deinit invalid port %d"), port));
+            }
+
+            /*make sure port is initialized*/
+            BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_initialized_get(unit, port, &is_initialized));
+            if(!is_initialized) {
+                BCMDNX_ERR_EXIT_MSG(SOC_E_PORT, (_BSL_BCM_MSG("Port isn't initialized %d"), port));
+            }
+            
+            /*mark port as not initialized*/
+            BCMDNX_IF_ERR_EXIT(soc_port_sw_db_initialized_set(unit, port, 0));
+
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_detach, (unit, port));
+            BCMDNX_IF_ERR_EXIT(rv);
+
+            /* remove port and start counter thread */
+            SOC_PBMP_PORT_REMOVE(counter_pbmp, port);
+            BCMDNX_IF_ERR_EXIT(soc_counter_start(unit, counter_flags, counter_interval, counter_pbmp));
+        }
+
+        SOC_PBMP_PORT_ADD(*detached, port);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_phy_control_set(int unit, bcm_port_t port, bcm_port_phy_control_t type, uint32 value)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    int enable;
+    bcm_port_t port_ndx;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+        
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    if(BCM_PORT_PHY_CONTROL_CL72 == type) {
+        BCMDNX_IF_ERR_EXIT(bcm_petra_port_enable_get(unit, port, &enable));
+        if(enable) {
+            BCMDNX_IF_ERR_EXIT(bcm_petra_port_enable_set(unit, port, 0));
+        }
+    }
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+
+        rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_phy_control_set, (unit, 
+                                                                            port_ndx, 
+                                                                            gport_info.phyn, 
+                                                                            gport_info.lane, 
+                                                                            _BCM_DPP_GPORT_INFO_IS_SYS_SIDE(gport_info),
+                                                                            (soc_phy_control_t)type,
+                                                                            value));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    if(BCM_PORT_PHY_CONTROL_CL72 == type) {
+        if(enable) {
+            BCMDNX_IF_ERR_EXIT(bcm_petra_port_enable_set(unit, port, 1));
+        }
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_phy_control_get(int unit, bcm_port_t port,
+                             bcm_port_phy_control_t type, uint32 *value)
+{
+    _bcm_dpp_gport_info_t   gport_info;
+    bcm_error_t rv = BCM_E_NONE;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(value);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_phy_control_get, (unit, 
+                                                                            gport_info.local_port, 
+                                                                            gport_info.phyn, 
+                                                                            gport_info.lane, 
+                                                                            _BCM_DPP_GPORT_INFO_IS_SYS_SIDE(gport_info),
+                                                                            (soc_phy_control_t)type,
+                                                                            value));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_petra_port_phy_get
+ * Description:
+ *      General PHY register read
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      flags - Logical OR of one or more of the following flags:
+ *              BCM_PORT_PHY_INTERNAL
+ *                      Address internal SERDES PHY for port
+ *              BCM_PORT_PHY_NOMAP
+ *                      Instead of mapping port to PHY MDIO address,
+ *                      treat port parameter as actual PHY MDIO address.
+ *              BCM_PORT_PHY_CLAUSE45
+ *                      Assume Clause 45 device instead of Clause 22
+ *      phy_addr - PHY internal register address
+ *      phy_data - (OUT) Data that was read
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_phy_get(int unit, bcm_port_t port, uint32 flags,
+                 uint32 phy_reg_addr, uint32 *phy_data)
+{
+    int rv;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(phy_data);
+
+    if(flags & BCM_PORT_PHY_NOMAP) {
+        rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_phy_get, (unit, port, flags, phy_reg_addr, phy_data));
+        BCMDNX_IF_ERR_EXIT(rv);
+    } else {
+        BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+        rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_phy_get, (unit, gport_info.local_port, flags, phy_reg_addr, phy_data));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_phy_set
+ * Description:
+ *      General PHY register write
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      flags - Logical OR of one or more of the following flags:
+ *              BCM_PORT_PHY_INTERNAL
+ *                      Address internal SERDES PHY for port
+ *              BCM_PORT_PHY_NOMAP
+ *                      Instead of mapping port to PHY MDIO address,
+ *                      treat port parameter as actual PHY MDIO address.
+ *              BCM_PORT_PHY_CLAUSE45
+ *                      Assume Clause 45 device instead of Clause 22
+ *      phy_addr - PHY internal register address
+ *      phy_data - Data to write
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_phy_set(int unit, bcm_port_t port, uint32 flags,
+                 uint32 phy_reg_addr, uint32 phy_data)
+{
+    int rv;
+    bcm_port_t port_ndx;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if(flags & BCM_PORT_PHY_NOMAP) {
+        rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_phy_set, (unit, port, flags, phy_reg_addr, phy_data));
+        BCMDNX_IF_ERR_EXIT(rv);
+    } else {
+        BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+        BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_phy_set, (unit, port_ndx, flags, phy_reg_addr, phy_data));
+            BCMDNX_IF_ERR_EXIT(rv);
+        }
+
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_phy_modify
+ * Description:
+ *      General PHY register modify
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      flags - Logical OR of one or more of the following flags:
+ *              BCM_PORT_PHY_INTERNAL
+ *                      Address internal SERDES PHY for port
+ *              BCM_PORT_PHY_NOMAP
+ *                      Instead of mapping port to PHY MDIO address,
+ *                      treat port parameter as actual PHY MDIO address.
+ *              BCM_PORT_PHY_CLAUSE45
+ *                      Assume Clause 45 device instead of Clause 22
+ *      phy_addr - PHY internal register address
+ *      phy_data - Data to write
+ *      phy_mask - Bits to modify using phy_data
+ * Returns:
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_phy_modify(int unit, bcm_port_t port, uint32 flags,
+                        uint32 phy_reg_addr, uint32 phy_data, uint32 phy_mask)
+{
+    int rv;
+    bcm_port_t port_ndx;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if(flags & BCM_PORT_PHY_NOMAP) {
+        rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_phy_modify, (unit, port, flags, phy_reg_addr, phy_data, phy_mask));
+        BCMDNX_IF_ERR_EXIT(rv);
+    } else {
+        BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+   
+        BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+            rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_phy_modify, (unit, port_ndx, flags, phy_reg_addr, phy_data, phy_mask));
+            BCMDNX_IF_ERR_EXIT(rv);
+        }
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_pause_addr_set(int unit, bcm_port_t port, bcm_mac_t mac)
+{
+    int rv;
+    bcm_port_t port_ndx;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+        rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_mac_sa_set, (unit, port_ndx, mac));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int
+bcm_petra_port_pause_addr_get(int unit, bcm_port_t port, bcm_mac_t mac)
+{
+    int rv;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_mac_sa_get, (unit, gport_info.local_port, mac));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_pause_set(int unit, bcm_port_t port, int pause_tx, int pause_rx)
+{
+    int                         rv = BCM_E_NONE;
+    bcm_port_t                  port_ndx;
+    _bcm_dpp_gport_info_t       gport_info;
+    SOC_TMC_FC_INBND_MODE       rec_mode;
+    SOC_TMC_FC_GEN_INBND_INFO   gen_info;
+    soc_port_if_t               interface_type;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+        rv = soc_port_sw_db_interface_type_get(unit, port_ndx, &interface_type);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        if (interface_type == SOC_PORT_IF_ILKN) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unsupported for Interlaken configuration")));
+        }
+    }
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+        rec_mode = pause_rx ? SOC_TMC_FC_INBND_MODE_LL : SOC_TMC_FC_INBND_MODE_DISABLED;
+        rv = (MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_fc_inbnd_mode_set,(unit, port_ndx, 0, rec_mode)));
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        SOC_TMC_FC_GEN_INBND_INFO_clear(&gen_info);
+        gen_info.mode = pause_tx ? SOC_TMC_FC_INBND_MODE_LL : SOC_TMC_FC_INBND_MODE_DISABLED;
+        gen_info.ll.cnm_enable = TRUE;
+        rv = (MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_fc_gen_inbnd_set,(unit, port_ndx, &gen_info)));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_pause_get(int unit, bcm_port_t port, int *pause_tx, int *pause_rx)
+{
+    int                         rv = BCM_E_NONE;
+    _bcm_dpp_gport_info_t       gport_info;
+    SOC_TMC_FC_INBND_MODE       mode;
+    SOC_TMC_FC_GEN_INBND_INFO   gen_info;
+    soc_port_if_t               interface_type;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    rv = soc_port_sw_db_interface_type_get(unit, gport_info.local_port, &interface_type);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if (interface_type == SOC_PORT_IF_ILKN) {
+        *pause_rx = *pause_tx = 0;
+    } else {
+        rv = (MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_fc_inbnd_mode_get,(unit, gport_info.local_port, 0, &mode)));
+        BCMDNX_IF_ERR_EXIT(rv);
+        *pause_rx = (mode == SOC_TMC_FC_INBND_MODE_LL ? 1 : 0);
+        
+        rv = (MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_fc_gen_inbnd_get,(unit, gport_info.local_port, &gen_info)));
+        BCMDNX_IF_ERR_EXIT(rv);
+        *pause_tx = (gen_info.mode == SOC_TMC_FC_INBND_MODE_LL ? 1 : 0);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int
+bcm_petra_port_pause_sym_get(int unit, bcm_port_t port, int *pause)
+{
+    int rv = BCM_E_NONE;
+    int pause_tx;
+    int pause_rx;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    rv = bcm_petra_port_pause_get(unit, port, &pause_tx, &pause_rx);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    switch((pause_tx << 1) | pause_rx) {
+    case 0:
+        *pause = BCM_PORT_PAUSE_NONE;
+        break;
+
+    case 1:
+        *pause = BCM_PORT_PAUSE_ASYM_RX;
+        break;
+
+    case 2:
+        *pause = BCM_PORT_PAUSE_ASYM_TX;
+        break;
+
+    case 3:
+        *pause = BCM_PORT_PAUSE_SYM;
+        break;
+
+    default:
+        BCMDNX_IF_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("Invalid Pause configuration")));
+        break;
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_pause_sym_set(int unit, bcm_port_t port, int pause)
+{
+    int pause_tx = 0;
+    int pause_rx = 0;
+    
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (pause == BCM_PORT_PAUSE_ASYM_RX) {
+        pause_rx = 1;
+    } else if (pause == BCM_PORT_PAUSE_ASYM_TX) {
+        pause_tx = 1;
+    } else if (pause == BCM_PORT_PAUSE_SYM) {
+        pause_tx = 1;
+        pause_rx = 1;
+    }
+
+    BCMDNX_IF_ERR_EXIT(bcm_petra_port_pause_set(unit, port, pause_tx, pause_rx));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+#ifdef BCM_88650_A0
+int
+_bcm_petra_port_link_up_mac_update(int unit, bcm_port_t port){
+    int an = 0, an_done = 0, rv;
+    int speed;
+    bcm_port_if_t intf = BCM_PORT_IF_NULL;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    rv = bcm_petra_port_interface_get(unit, port, &intf);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if(intf == BCM_PORT_IF_ILKN){
+        BCM_EXIT;
+    }
+    /*phycntrl gets*/
+    MIIM_LOCK(unit);
+    rv = soc_phyctrl_speed_get(unit, port, &speed);
+    if (rv == BCM_E_NONE){
+        rv = soc_phyctrl_auto_negotiate_get(unit, port, &an, &an_done);
+    }
+    MIIM_UNLOCK(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if(!an || !an_done){
+        BCM_EXIT;
+    }
+    rv = soc_pm_mac_enable_set(unit, port, FALSE);
+    BCMDNX_IF_ERR_EXIT(rv);
+    rv = soc_pm_mac_speed_set(unit, port, speed);
+    BCMDNX_IF_ERR_EXIT(rv);
+    rv = soc_pm_mac_enable_set(unit, port, TRUE);
+    BCMDNX_IF_ERR_EXIT(rv);
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+#endif
+/*
+ * Function:
+ *      bcm_petra_port_update
+ * Purpose:
+ *      Get port characteristics from PHY and program MAC to match.
+ * Parameters:
+ *      unit - Unit #.
+ *      port - port #.
+ *      link - TRUE - process as link up.
+ *             FALSE - process as link down.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+
+int
+bcm_petra_port_update(int unit, bcm_port_t port, int link)
+{
+    int rv = BCM_E_NONE;
+    int                 soc_sand_dev_id;
+    int soc_sand_rv = 0;
+#ifdef BCM_88660_A0
+    bcm_port_if_t interface;
+#endif
+    SOC_SAND_PP_SYS_PORT_ID
+        pp_sys_port;
+    SOC_TMC_DEST_INFO
+        tm_dest_info;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+    LOG_DEBUG(BSL_LS_BCM_PORT,
+              (BSL_META_U(unit,
+                          "bcm_petra_port_update: u=%d p=%d link=%d rv=%d\n"),
+               unit, port, link, rv));
+
+    soc_sand_dev_id = (unit);
+
+    soc_sand_SAND_PP_SYS_PORT_ID_clear(&pp_sys_port);
+    SOC_TMC_DEST_INFO_clear(&tm_dest_info);
+
+    /* 
+     *  API is releavant only if port given is system port.
+     *  API should be called global over all devices.
+     */
+    if (!BCM_GPORT_IS_SYSTEM_PORT(port)) {
+        if (BCM_GPORT_IS_LOCAL(port) || SOC_PORT_VALID(unit, port)) {
+#ifdef BCM_88650_A0
+            if(SOC_IS_ARAD(unit)){
+                if((link)){
+                    rv = _bcm_petra_port_link_up_mac_update(unit, port);
+                    BCMDNX_IF_ERR_EXIT(rv);
+#ifdef BCM_88660_A0
+                    if(SOC_IS_ARADPLUS(unit) && (!IS_SFI_PORT(unit, port))){
+                        rv = soc_port_sw_db_interface_type_get(unit, port, &interface);
+                        BCMDNX_IF_ERR_EXIT(rv);
+                        if(interface == BCM_PORT_IF_CAUI){
+                            rv = soc_pm_tx_remote_fault_enable_set(unit, port, 0);
+                            BCMDNX_IF_ERR_EXIT(rv);
+                        }
+                    }
+#endif /*BCM_88660_A0*/
+                }
+                else{ /*link down*/
+#ifdef BCM_88660_A0
+                    if(SOC_IS_ARADPLUS(unit) && (!IS_SFI_PORT(unit, port))){
+                        rv = soc_port_sw_db_interface_type_get(unit, port, &interface);
+                        BCMDNX_IF_ERR_EXIT(rv);
+                        if(interface == BCM_PORT_IF_CAUI){
+                            rv = soc_pm_tx_remote_fault_enable_set(unit, port, 1);
+                            BCMDNX_IF_ERR_EXIT(rv);
+                        }
+                    }
+#endif /*BCM_88660_A0*/
+                }
+            }
+            
+#endif /*BCM_88650_A0*/
+            BCM_EXIT;
+        }
+
+        /* Invliad port */
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("Invalid port expacted")));
+        
+    }
+
+    rv = _bcm_dpp_gport_to_tm_dest_info(unit,port,&tm_dest_info);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if(tm_dest_info.type == SOC_TMC_DEST_TYPE_SYS_PHY_PORT) {
+        pp_sys_port.sys_port_type = SOC_SAND_PP_SYS_PORT_TYPE_SINGLE_PORT;
+        pp_sys_port.sys_id = tm_dest_info.id;
+    }
+    else if(tm_dest_info.type == SOC_TMC_DEST_TYPE_LAG) {
+        pp_sys_port.sys_port_type = SOC_SAND_PP_SYS_PORT_TYPE_LAG;
+        pp_sys_port.sys_id = tm_dest_info.id;
+    }
+    else{
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid type %d"), tm_dest_info.type));
+    }
+
+    soc_sand_rv = soc_ppd_frwrd_fec_protection_sys_port_status_set(soc_sand_dev_id, &pp_sys_port, link);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_ifg_set(int unit,
+                     bcm_port_t port,
+                     int speed,
+                     bcm_port_duplex_t duplex,
+                     int ifg)
+{
+    int rv = 0;
+    bcm_port_t port_ndx;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    if (duplex != BCM_PORT_DUPLEX_FULL) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Only Full Duplex Mode supported")));
+    }
+
+    if(ifg < BCM_DPP_NIF_IPG_MIN) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("IFG size is out of range")));
+    }
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+        rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_ipg_set, (unit, port_ndx, ifg));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_ifg_get(int unit,
+                     bcm_port_t port,
+                     int speed,
+                     bcm_port_duplex_t duplex,
+                     int *ifg)
+{
+    int ifg_val = 0;
+    int rv = 0;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    if (!SOC_PORT_VALID(unit, gport_info.local_port)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("Invalid Port")));
+    }
+
+    if (duplex != BCM_PORT_DUPLEX_FULL) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Only Full Duplex Mode supported")));
+    }
+
+    rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_ipg_get, (unit, gport_info.local_port, &ifg_val));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    *ifg = ifg_val;
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_petra_port_selective_get
+ * Purpose:
+ *      Get requested port parameters
+ * Parameters:
+ *      unit - switch Unit
+ *      port - switch port
+ *      info - (OUT) port information structure
+ * Returns:
+ *      BCM_E_XXX
+ * Notes:
+ *      The action_mask field of the info argument is used as an input
+ */
+
+int
+bcm_petra_port_selective_get(int unit, bcm_port_t port, bcm_port_info_t *info)
+{
+    int    rv = BCM_E_NONE;
+    uint32 mask = 0;
+    _bcm_dpp_gport_info_t   gport_info;
+    bcm_port_t              port_ndx;
+    bcm_port_if_t           interface;
+    uint32                  is_valid, flags;
+    
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+    port_ndx = gport_info.local_port;
+
+    if (!IS_SFI_PORT(unit, port_ndx)) {
+        /*clear masks not relevant for nif links*/
+        mask = info->action_mask & ~(BCM_PORT_ATTR_ENCAP_MASK        |
+             BCM_PORT_ATTR_LOCAL_ADVERT_MASK |
+             BCM_PORT_ATTR_PFM_MASK          |
+             BCM_PORT_ATTR_PHY_MASTER_MASK   |
+             BCM_PORT_ATTR_RATE_MCAST_MASK   |
+             BCM_PORT_ATTR_RATE_BCAST_MASK   |
+             BCM_PORT_ATTR_RATE_DLFBC_MASK   |
+             BCM_PORT_ATTR_ABILITY_MASK      |
+             BCM_PORT_ATTR_MDIX_MASK         |
+             BCM_PORT_ATTR_MDIX_STATUS_MASK  |
+             BCM_PORT_ATTR_MEDIUM_MASK       |
+             BCM_PORT_ATTR_DISCARD_MASK      |
+             BCM_PORT_ATTR_FAULT_MASK);
+
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_valid_port_get(unit, port_ndx, &is_valid));
+        if(!is_valid) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("invalid local port %d"), port_ndx));
+        }
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_interface_type_get(unit, port_ndx, &interface));
+        if(BCM_PORT_IF_ILKN == interface) {
+            mask &= ~(BCM_PORT_ATTR_FRAME_MAX_MASK |
+                      BCM_PORT_ATTR_PAUSE_MAC_MASK);
+        }
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_flags_get(unit, port_ndx, &flags));
+        if(!SOC_PORT_IS_NETWORK_INTERFACE(flags)) {
+            mask = info->action_mask & ~(BCM_PORT_ATTR_PAUSE_TX_MASK | BCM_PORT_ATTR_PAUSE_RX_MASK);
+        }
+    } else {
+        /*clear masks not relevant for fabric links*/
+        mask = info->action_mask & ~(BCM_PORT_ATTR_PAUSE_TX_MASK            | 
+                  BCM_PORT_ATTR_PAUSE_RX_MASK                               |
+                  BCM_PORT_ATTR_LEARN_MASK                                  |
+                  BCM_PORT_ATTR_DISCARD_MASK                                |
+                  BCM_PORT_ATTR_VLANFILTER_MASK                             |
+                  BCM_PORT_ATTR_UNTAG_PRI_MASK                              |
+                  BCM_PORT_ATTR_UNTAG_VLAN_MASK                             |
+                  BCM_PORT_ATTR_STP_STATE_MASK                              |
+                  BCM_PORT_ATTR_INTERFACE_MASK                              |
+                  BCM_PORT_ATTR_FRAME_MAX_MASK                              |
+                  BCM_PORT_ATTR_AUTONEG_MASK                                |
+                  BCM_PORT_ATTR_LOCAL_ADVERT_MASK                           |
+                  BCM_PORT_ATTR_REMOTE_ADVERT_MASK                          |
+                  BCM_PORT_ATTR_ENCAP_MASK                                  |
+                  BCM_PORT_ATTR_PFM_MASK                                    |
+                  BCM_PORT_ATTR_PHY_MASTER_MASK                             |
+                  BCM_PORT_ATTR_RATE_MCAST_MASK                             |
+                  BCM_PORT_ATTR_RATE_BCAST_MASK                             |
+                  BCM_PORT_ATTR_ABILITY_MASK                                |
+                  BCM_PORT_ATTR_MDIX_MASK                                   |
+                  BCM_PORT_ATTR_MDIX_STATUS_MASK                            |
+                  BCM_PORT_ATTR_DUPLEX_MASK                                 |
+                  BCM_PORT_ATTR_PAUSE_MAC_MASK                              |
+                  BCM_PORT_ATTR_RATE_DLFBC_MASK                             |
+                  BCM_PORT_ATTR_MEDIUM_MASK);
+    } 
+
+
+    if (mask & BCM_PORT_ATTR_ENABLE_MASK) {
+        rv = bcm_petra_port_enable_get(unit, port_ndx, &info->enable);
+        if (rv != BCM_E_NONE) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_enable_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_LINKSTAT_MASK) {
+        rv = bcm_petra_port_link_status_get(unit, port_ndx, &info->linkstatus);
+        if (rv != BCM_E_NONE) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_link_status_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_SPEED_MASK) {
+        if ((rv = bcm_petra_port_speed_get(unit, port_ndx, &info->speed)) < 0) {
+            if (rv != BCM_E_BUSY) {
+                if (rv != BCM_E_NONE) {
+                    BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_speed_get failed: %s"), bcm_errmsg(rv)));
+                }
+            } else {
+                info->speed = 0;
+            }
+        }
+    }
+
+    /* get both if either mask bit set */
+    if (mask & (BCM_PORT_ATTR_PAUSE_TX_MASK |
+                BCM_PORT_ATTR_PAUSE_RX_MASK)) {
+        rv = bcm_petra_port_pause_get(unit, port_ndx,
+                      &info->pause_tx, &info->pause_rx);
+        if (rv != BCM_E_NONE) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_pause_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_LINKSCAN_MASK) {
+        rv = bcm_petra_port_linkscan_get(unit, port_ndx, &info->linkscan);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_linkscan_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (IS_E_PORT(unit, port_ndx) && (mask & BCM_PORT_ATTR_LEARN_MASK)) {
+        rv = bcm_petra_port_learn_get(unit, port_ndx, &info->learn);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_learn_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (IS_E_PORT(unit, port_ndx) && (mask & BCM_PORT_ATTR_DISCARD_MASK)) {
+        rv = bcm_petra_port_discard_get(unit, port_ndx, &info->discard);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_discard_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (IS_E_PORT(unit, port_ndx) && (mask & BCM_PORT_ATTR_VLANFILTER_MASK)) {
+        rv = bcm_petra_port_vlan_member_get(unit, port_ndx, &info->vlanfilter);
+        if (BCM_FAILURE(rv)) {
+            LOG_ERROR(BSL_LS_BCM_PORT,
+                      (BSL_META_U(unit,
+                                  "bcm_petra_port_vlan_member_get failed: %s"),
+                       bcm_errmsg(rv)));
+            BCMDNX_IF_ERR_EXIT(rv);
+        }
+    }
+
+    if (IS_E_PORT(unit, port_ndx) && (mask & BCM_PORT_ATTR_UNTAG_PRI_MASK)) {
+        rv = bcm_petra_port_untagged_priority_get(unit, port_ndx,
+                                            &info->untagged_priority);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_untagged_priority_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (IS_E_PORT(unit, port_ndx) && (mask & BCM_PORT_ATTR_UNTAG_VLAN_MASK)) {
+        rv = bcm_petra_port_untagged_vlan_get(unit, port_ndx, &info->untagged_vlan);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_untagged_vlan_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (IS_E_PORT(unit, port_ndx) && (mask & BCM_PORT_ATTR_STP_STATE_MASK)) {
+        rv = bcm_petra_port_stp_get(unit, port_ndx, &info->stp_state);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_stp_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_LOOPBACK_MASK) {
+        rv = bcm_petra_port_loopback_get(unit, port_ndx, &info->loopback);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_loopback_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_INTERFACE_MASK) {
+        rv = bcm_petra_port_interface_get(unit, port_ndx, &info->interface);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_interface_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_SPEED_MAX_MASK) {
+        rv = bcm_petra_port_speed_max(unit, port_ndx, &info->speed_max);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_speed_max failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_FRAME_MAX_MASK) {
+        rv = bcm_petra_port_frame_max_get(unit, port_ndx, &info->frame_max);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_frame_max_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    /* Currently unsupported */
+    if (mask & BCM_PORT_ATTR_ENCAP_MASK) {
+    rv = bcm_petra_port_encap_get(unit, port_ndx, &info->encap_mode);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_encap_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_AUTONEG_MASK) {
+        rv = bcm_petra_port_autoneg_get(unit, port_ndx, &info->autoneg);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_autoneg_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_LOCAL_ADVERT_MASK) {
+        rv = bcm_port_advert_get(unit, port_ndx, &info->local_advert);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_port_advert_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_REMOTE_ADVERT_MASK) {
+        if ((rv = bcm_petra_port_advert_remote_get(unit, port_ndx,
+                                             &info->remote_advert)) < 0) {
+            info->remote_advert = 0;
+            info->remote_advert_valid = FALSE;
+      rv = BCM_E_NONE;
+        } else {
+            info->remote_advert_valid = TRUE;
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_DUPLEX_MASK) {
+        rv = bcm_petra_port_duplex_get(unit, port_ndx, &info->duplex);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_duplex_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_PAUSE_MAC_MASK) {
+        rv = bcm_petra_port_pause_addr_get(unit, port_ndx, info->pause_mac);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_pause_addr_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_PFM_MASK) {
+        rv = bcm_port_pfm_get(unit, port_ndx, &info->pfm);
+        if (BCM_FAILURE(rv)) {
+            if (rv != BCM_E_UNAVAIL) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_port_pfm_get failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_PHY_MASTER_MASK) {
+        rv = bcm_port_master_get(unit, port_ndx, &info->phy_master);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_port_master_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_RATE_MCAST_MASK) {
+        rv = bcm_rate_mcast_get(unit, &info->mcast_limit,
+                                &info->mcast_limit_enable, port_ndx);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_rate_mcast_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_RATE_BCAST_MASK) {
+        rv = bcm_rate_bcast_get(unit, &info->bcast_limit,
+                                &info->bcast_limit_enable, port_ndx);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_rate_bcast_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_RATE_DLFBC_MASK) {
+        rv = bcm_rate_dlfbc_get(unit, &info->dlfbc_limit,
+                                &info->dlfbc_limit_enable, port_ndx);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_rate_dlfbc_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_ABILITY_MASK) {
+        rv = bcm_petra_port_ability_get(unit, port_ndx, &info->ability);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_ability_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_MDIX_MASK) {
+        rv = bcm_petra_port_mdix_get(unit, port_ndx, &info->mdix);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_port_mdix_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_MDIX_STATUS_MASK) {
+        rv = bcm_petra_port_mdix_status_get(unit, port_ndx, &info->mdix_status);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_port_mdix_status_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_MEDIUM_MASK) {
+        rv = bcm_port_medium_get(unit, port_ndx, &info->medium);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_port_medium_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+    if (mask & BCM_PORT_ATTR_FAULT_MASK) {
+        rv = bcm_petra_port_fault_get(unit, port_ndx, &info->fault);
+        if (BCM_FAILURE(rv)) {
+            BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_fault_get failed: %s"), bcm_errmsg(rv)));
+        }
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_petra_port_selective_set
+ * Purpose:
+ *      Set requested port parameters
+ * Parameters:
+ *      unit - switch unit
+ *      port - switch port
+ *      info - port information structure
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ * Notes:
+ *      Does not set spanning tree state.
+ */
+
+int
+bcm_petra_port_selective_set(int unit, bcm_port_t port, bcm_port_info_t *info)
+{
+    int    rv;
+    uint32 mask;
+    int flags = 0;
+    _bcm_dpp_gport_info_t   gport_info;
+    bcm_port_t              port_ndx;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+        if (IS_SFI_PORT(unit, port_ndx)) {
+            mask = info->action_mask & ~(BCM_PORT_ATTR_PAUSE_TX_MASK        |
+                 BCM_PORT_ATTR_INTERFACE_MASK    |
+                 BCM_PORT_ATTR_PAUSE_RX_MASK     |
+                 BCM_PORT_ATTR_LEARN_MASK        |
+                 BCM_PORT_ATTR_DISCARD_MASK      |
+                 BCM_PORT_ATTR_VLANFILTER_MASK   |
+                 BCM_PORT_ATTR_UNTAG_PRI_MASK    |
+                 BCM_PORT_ATTR_UNTAG_VLAN_MASK   |
+                 BCM_PORT_ATTR_STP_STATE_MASK    |
+                 BCM_PORT_ATTR_FRAME_MAX_MASK    |
+                 BCM_PORT_ATTR_ENCAP_MASK        |
+                 BCM_PORT_ATTR_PAUSE_MAC_MASK    |
+                 BCM_PORT_ATTR_PHY_MASTER_MASK   |
+                 BCM_PORT_ATTR_PFM_MASK          |
+                 BCM_PORT_ATTR_LOCAL_ADVERT_MASK |
+                 BCM_PORT_ATTR_RATE_MCAST_MASK   |
+                 BCM_PORT_ATTR_RATE_BCAST_MASK   |
+                 BCM_PORT_ATTR_RATE_DLFBC_MASK   |
+                 BCM_PORT_ATTR_MDIX_MASK);
+        } else {
+            bcm_port_if_t interface;
+
+            mask = info->action_mask & ~(BCM_PORT_ATTR_ENCAP_MASK        |
+                 BCM_PORT_ATTR_LOCAL_ADVERT_MASK |
+                 BCM_PORT_ATTR_PFM_MASK          |
+                 BCM_PORT_ATTR_PHY_MASTER_MASK   |
+                 BCM_PORT_ATTR_RATE_MCAST_MASK   |
+                 BCM_PORT_ATTR_RATE_BCAST_MASK   |
+                 BCM_PORT_ATTR_RATE_DLFBC_MASK   |
+                 BCM_PORT_ATTR_MDIX_MASK);
+
+            BCMDNX_IF_ERR_EXIT(soc_port_sw_db_interface_type_get(unit, port_ndx, &interface));
+            if(BCM_PORT_IF_ILKN == interface) {
+                mask &= ~(BCM_PORT_ATTR_FRAME_MAX_MASK | 
+                          BCM_PORT_ATTR_PAUSE_MAC_MASK);
+            }
+        }
+    
+        if (mask & BCM_PORT_ATTR_LINKSCAN_MASK) {
+            rv = bcm_petra_port_linkscan_set(unit, port_ndx, info->linkscan);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_linkscan_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_ENABLE_MASK) {
+            rv = bcm_petra_port_enable_set(unit, port_ndx, info->enable);
+            if (rv != BCM_E_NONE) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_enable_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_INTERFACE_MASK) {
+            rv = bcm_petra_port_interface_set(unit, port_ndx, info->interface);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_interface_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_SPEED_MASK) {
+            rv = bcm_petra_port_speed_set(unit, port_ndx, info->speed);
+            if (rv != BCM_E_NONE) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_speed_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & (BCM_PORT_ATTR_PAUSE_TX_MASK |
+                    BCM_PORT_ATTR_PAUSE_RX_MASK)) {
+            int     tpause, rpause;
+
+            tpause = rpause = -1;
+            if (mask & BCM_PORT_ATTR_PAUSE_TX_MASK) {
+                tpause = info->pause_tx;
+            }
+            if (mask & BCM_PORT_ATTR_PAUSE_RX_MASK) {
+                rpause = info->pause_rx;
+            }
+            rv = bcm_petra_port_pause_set(unit, port_ndx, tpause, rpause);
+            if (rv != BCM_E_NONE) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_pause_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_LEARN_MASK) {
+            rv = bcm_petra_port_learn_set(unit, port_ndx, info->learn);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_learn_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_DISCARD_MASK) {
+            rv = bcm_petra_port_discard_set(unit, port_ndx, info->discard);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_discard_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_VLANFILTER_MASK) {
+            rv = bcm_petra_port_vlan_member_set(unit, port_ndx, info->vlanfilter);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_vlan_member_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_UNTAG_PRI_MASK) {
+            rv = bcm_petra_port_untagged_priority_set(unit, port_ndx, info->untagged_priority);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_untagged_priority_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_UNTAG_VLAN_MASK) {
+            rv = bcm_petra_port_untagged_vlan_set(unit, port_ndx, info->untagged_vlan);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_untagged_vlan_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        /*
+         * Set loopback mode before setting the speed/duplex, since it may
+         * affect the allowable values for speed/duplex.
+         */
+
+        if (mask & BCM_PORT_ATTR_LOOPBACK_MASK) {
+            rv = bcm_petra_port_loopback_set(unit, port_ndx, info->loopback);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_loopback_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_AUTONEG_MASK) {
+            rv = bcm_petra_port_autoneg_set(unit, port_ndx, info->autoneg);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_autoneg_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_STP_STATE_MASK) {
+            rv = bcm_petra_port_stp_set(unit, port_ndx, info->stp_state);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_stp_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_FRAME_MAX_MASK) {
+            rv = bcm_petra_port_frame_max_set(unit, port_ndx, info->frame_max);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_frame_max_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        /* Currently unsupported */
+
+        if (mask & BCM_PORT_ATTR_ENCAP_MASK) {
+            rv = bcm_petra_port_encap_set(unit, port_ndx, info->encap_mode);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_encap_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_PAUSE_MAC_MASK) {
+            rv = bcm_petra_port_pause_addr_set(unit, port_ndx, info->pause_mac);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_pause_addr_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_PHY_MASTER_MASK) {
+            rv = bcm_port_master_set(unit, port_ndx, info->phy_master);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_port_master_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_PFM_MASK) {
+            rv = bcm_port_pfm_set(unit, port_ndx, info->pfm);
+            if (BCM_FAILURE(rv) && (rv != BCM_E_UNAVAIL)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_port_pfm_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_DUPLEX_MASK) {
+            rv = bcm_petra_port_duplex_set(unit, port_ndx, info->duplex);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_duplex_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_RATE_MCAST_MASK) {
+            flags = (info->mcast_limit_enable) ? BCM_RATE_MCAST : 0;
+            rv = bcm_rate_mcast_set(unit, info->mcast_limit, flags, port_ndx);
+            if (rv == BCM_E_UNAVAIL) {
+                rv = BCM_E_NONE;     /* Ignore if not supported on chip */
+            }
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_rate_mcast_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_RATE_BCAST_MASK) {
+            flags = (info->bcast_limit_enable) ? BCM_RATE_BCAST : 0;
+            rv = bcm_rate_bcast_set(unit, info->bcast_limit, flags, port_ndx);
+            if (rv == BCM_E_UNAVAIL) {
+                rv = BCM_E_NONE;     /* Ignore if not supported on chip */
+            }
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_rate_bcast_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_RATE_DLFBC_MASK) {
+            flags = (info->dlfbc_limit_enable) ? BCM_RATE_DLF : 0;
+            rv = bcm_rate_dlfbc_set(unit, info->dlfbc_limit, flags, port_ndx);
+            if (rv == BCM_E_UNAVAIL) {
+                rv = BCM_E_NONE;     /* Ignore if not supported on chip */
+            }
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_rate_dlfbc_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+
+        if (mask & BCM_PORT_ATTR_MDIX_MASK) {
+            rv = bcm_port_mdix_set(unit, port_ndx, info->mdix);
+            if (BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_port_mdix_set failed: %s"), bcm_errmsg(rv)));
+            }
+        }
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_info_set(int unit, bcm_port_t port, bcm_port_info_t *info)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(info);
+
+    info->action_mask = BCM_PORT_ATTR_ALL_MASK;
+    info->action_mask2 = BCM_PORT_ATTR_ALL_MASK;
+
+    if (SOC_DPP_IS_VLAN_TRANSLATE_MODE_ADVANCED(unit)) {
+        info->action_mask &= ~(BCM_PORT_ATTR_DISCARD_MASK);
+    }
+
+    BCMDNX_IF_ERR_EXIT(bcm_petra_port_selective_set(unit, port, info));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_info_get(int unit, bcm_port_t port, bcm_port_info_t *info)
+{
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(info);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    bcm_port_info_t_init(info);
+    info->action_mask = BCM_PORT_ATTR_ALL_MASK;
+
+    if (SOC_DPP_IS_VLAN_TRANSLATE_MODE_ADVANCED(unit)) {
+        info->action_mask &= ~(BCM_PORT_ATTR_DISCARD_MASK);
+    }
+
+
+    if(!BCM_PBMP_MEMBER(PBMP_SFI_ALL(unit), gport_info.local_port)) {
+        uint32 flags;
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_flags_get(unit, gport_info.local_port, &flags));
+        if(SOC_PORT_IS_STAT_INTERFACE(flags)) {
+            info->action_mask &= ~(BCM_PORT_ATTR_LINKSCAN_MASK | BCM_PORT_ATTR_LINKSTAT_MASK);
+        }
+    }
+
+    if(SOC_IS_ARDON(unit) && !IS_SFI_PORT(unit, gport_info.local_port) ) {
+        soc_port_if_t interface_type;
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_interface_type_get(unit, gport_info.local_port, &interface_type));
+        if (interface_type == SOC_PORT_IF_TM_INTERNAL_PKT) {
+            info->action_mask = BCM_PORT_ATTR_ENABLE_MASK | BCM_PORT_ATTR_SPEED_MASK;
+        }
+    }
+
+    BCMDNX_IF_ERR_EXIT(bcm_petra_port_selective_get(unit, port, info));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_info_save(int unit,
+             bcm_port_t port,
+             bcm_port_info_t *info)
+{
+    int rv = BCM_E_NONE;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(info);
+
+    rv = bcm_petra_port_info_get(unit, port, info);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_info_restore(int unit,
+                bcm_port_t port,
+                bcm_port_info_t *info)
+{
+    int rv = BCM_E_NONE;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(info);
+
+    rv = bcm_petra_port_selective_set(unit, port, info);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      _bcm_petra_port_link_get
+ * Purpose:
+ *      Return current up/down status
+ * Parameters:
+ *      unit - Device unit number.
+ *      port - Port number.
+ *      hw   - If TRUE, assume hardware linkscan is active and use it.
+ *             If FALSE, do not use information from hardware linkscan.
+ *      up   - (OUT) TRUE for link up, FALSE for link down.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ * Notes:
+ *      HW linkscan is not supported by device.
+ *      This routine will be called by the SW linkscan thread at each
+ *      linkscan interval.
+ */
+int
+_bcm_petra_port_link_get(int unit, bcm_port_t port, int hw, int *up)
+{
+    int rv = BCM_E_NONE;    
+    BCMDNX_INIT_FUNC_DEFS;
+
+    rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_link_get,(unit, port, up));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_link_status_get
+ * Purpose:
+ *      Return current Link up/down status.
+ * Parameters:
+ *      unit - PetraSwitch Unit #.
+ *      port - PetraSwitch port #.
+ *      up - (OUT) Boolean value, FALSE for link down and TRUE for link up
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_link_status_get(int unit, bcm_port_t port, int *up)
+{
+    int  rv = BCM_E_NONE;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(up);
+
+    rv = _bcm_link_get(unit, port, up);
+
+    if (rv == BCM_E_DISABLED) {
+        rv = _bcm_petra_port_link_get(unit, port, 0, up);
+        BCMDNX_IF_ERR_EXIT(rv);
+    } else {
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/* Set the Auto MDIX mode for a port. */
+int
+bcm_petra_port_mdix_set(int unit, 
+    bcm_port_t port, 
+    bcm_port_mdix_t mode)
+{
+    bcm_port_t port_ndx;
+    _bcm_dpp_gport_info_t   gport_info;
+    bcm_error_t rv = BCM_E_NONE;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* Just make sure 'port' value is legal */
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+        rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_mdix_set,(unit, gport_info.local_port, mode));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+exit: 
+    BCMDNX_FUNC_RETURN;
+}
+
+/* Get the Auto MDIX mode for a port. */
+int
+bcm_petra_port_mdix_get(int unit, 
+    bcm_port_t port, 
+    bcm_port_mdix_t *mode)
+{
+    _bcm_dpp_gport_info_t   gport_info;
+   bcm_error_t rv = BCM_E_NONE; 
+   BCMDNX_INIT_FUNC_DEFS ; 
+
+   /* Just make sure 'port' value is legal */
+   BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+   rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_mdix_get,(unit, gport_info.local_port, mode));
+   BCMDNX_IF_ERR_EXIT(rv);
+
+exit: 
+   BCMDNX_FUNC_RETURN ;
+}
+
+/* Get the Auto MDIX status  for a port. */
+int
+bcm_petra_port_mdix_status_get(int unit, 
+    bcm_port_t port, 
+    bcm_port_mdix_status_t *status)
+{
+    _bcm_dpp_gport_info_t   gport_info;
+    bcm_error_t rv = BCM_E_NONE;
+    BCMDNX_INIT_FUNC_DEFS ;
+
+    /* Just make sure 'port' value is legal */
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_mdix_status_get,(unit, gport_info.local_port, status));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    exit:
+    BCMDNX_FUNC_RETURN ;
+}
+
+int
+bcm_petra_port_frame_max_set(int unit, bcm_port_t port, int size)
+{
+    int rv = BCM_E_NONE;
+    bcm_port_t              port_ndx;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+        rv = MBCM_DPP_SOC_DRIVER_CALL(unit,  mbcm_dpp_mgmt_max_pckt_size_set, (unit, port_ndx, size));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_frame_max_get(int unit, bcm_port_t port, int *size)
+{
+    int  rv = BCM_E_NONE;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+    rv = MBCM_DPP_SOC_DRIVER_CALL(unit,  mbcm_dpp_mgmt_max_pckt_size_get, (unit, gport_info.local_port, size));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Configure or retrieve the current autonegotiation settings for a port,
+ * or restart autonegotiation if already enabled.
+ */
+int
+bcm_petra_port_autoneg_set(int unit, bcm_port_t port, int autoneg)
+{
+    int                 rv = BCM_E_NONE;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    /* Make sure the port module is initialized */
+    _DPP_PORT_INIT_CHECK(unit);
+
+    /* PORT_LOCK(unit); */
+    MIIM_LOCK(unit);
+    rv = soc_phyctrl_auto_negotiate_set(unit, port, autoneg);
+    MIIM_UNLOCK(unit);
+    BCMDNX_IF_ERR_EXIT(rv);
+    /* PORT_UNLOCK(unit); */
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Configure or retrieve the current autonegotiation settings for a port,
+ * or restart autonegotiation if already enabled.
+ */
+int
+bcm_petra_port_autoneg_get(int unit, bcm_port_t port, int *autoneg)
+{
+    int  rv = BCM_E_NONE;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+    rv = MBCM_DPP_SOC_DRIVER_CALL(unit,  mbcm_dpp_port_autoneg_get, (unit, gport_info.local_port, autoneg));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function     : bcm_petra_port_gport_get
+ * Description  : Get the GPORT ID for the specified physical port.
+ * Parameters   : (IN)  unit      - BCM device number
+ *                (IN)  port      - Port number
+ *                (OUT) gport     - GPORT ID
+ * Returns      : BCM_E_XXX
+ * Notes        : Always returns a MODPORT gport or an error.
+ */
+int
+bcm_petra_port_gport_get(int unit, bcm_port_t port, bcm_gport_t *gport)
+{
+    _bcm_dpp_gport_info_t   gport_info;
+    soc_port_if_t           interface;
+    bcm_module_t            my_modid;
+    bcm_gport_t             l_gport;
+    uint32                  tm_port;
+    int                     core;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(gport);
+
+    _DPP_PORT_INIT_CHECK(unit);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+    BCMDNX_IF_ERR_EXIT(bcm_petra_stk_my_modid_get(unit, &my_modid));
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_tm_port_get(unit, gport_info.local_port, &tm_port, &core));
+
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_interface_type_get(unit, gport_info.local_port, &interface));
+
+    BCM_GPORT_MODPORT_SET(l_gport, SOC_DPP_CORE_TO_MODID(my_modid, core), (SOC_PORT_IF_ERP != interface) ? tm_port : port);
+
+    *gport = l_gport;
+
+exit:
+    _DCMN_BCM_WARM_BOOT_API_TEST_MODE_SKIP_WB_SEQUENCE(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_ability_get(int unit,
+         bcm_port_t port,
+         bcm_port_abil_t *ability_mask)
+{
+    int rv = BCM_E_PORT;
+    bcm_port_ability_t  port_ability;                                      
+    
+    BCMDNX_INIT_FUNC_DEFS;
+    BCMDNX_NULL_CHECK(ability_mask);
+
+    rv = bcm_petra_port_ability_local_get(unit, port, &port_ability);
+    if (BCM_SUCCESS(rv)) {
+      rv = soc_port_ability_to_mode(&port_ability, ability_mask);
+    }
+
+    LOG_DEBUG(BSL_LS_BCM_PORT,
+              (BSL_META_U(unit,
+                          "bcm_port_advert_get: u=%d p=%d abil=0x%x rv=%d\n"),
+               unit, port, *ability_mask, rv));
+
+    BCMDNX_IF_ERR_EXIT(rv);
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_ability_advert_get(int unit,
+          bcm_port_t port,
+          bcm_port_ability_t *ability_mask)
+{
+    int rv = BCM_E_PARAM;
+    
+    BCMDNX_INIT_FUNC_DEFS;
+    BCMDNX_NULL_CHECK(ability_mask);
+
+#ifdef  BCM_PETRAB_SUPPORT
+    if (SOC_IS_PETRAB(unit)) {
+    rv = bcm_petra_port_ability_local_get(unit, port, ability_mask);
+    BCMDNX_IF_ERR_EXIT(rv);
+    } 
+#endif /* BCM_PETRAB_SUPPORT */
+
+#ifdef  BCM_ARAD_SUPPORT
+    if (SOC_IS_ARAD(unit)) {
+        int port_i;
+        _bcm_dpp_gport_info_t gport_info;
+
+        BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+        BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {  
+            /* PORT_LOCK(unit); */
+            MIIM_LOCK(unit);
+            rv = soc_phyctrl_ability_advert_get(unit, port_i, ability_mask);
+            MIIM_UNLOCK(unit);
+            BCMDNX_IF_ERR_EXIT(rv);
+            /* PORT_UNLOCK(unit); */
+            break;
+        }
+    }
+#endif  /* BCM_ARAD_SUPPORT */
+
+    LOG_DEBUG(BSL_LS_BCM_PORT,
+              (BSL_META_U(unit,
+                          "bcm_petra_port_ability_advert_get: u=%d p=%d rv=%d\n"),
+               unit, port, rv));
+
+    BCMDNX_IF_ERR_EXIT(rv);
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_ability_advert_set(int unit,
+          bcm_port_t port,
+          bcm_port_ability_t *ability_mask)
+{
+    int             rv = BCM_E_NONE;
+    bcm_port_ability_t port_ability;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+    
+    BCMDNX_NULL_CHECK(ability_mask);
+    
+    BCMDNX_IF_ERR_EXIT
+        (bcm_petra_port_ability_local_get(unit, port, &port_ability));
+
+    /* Make sure to advertise only abilities supported by the port */
+    port_ability.speed_half_duplex   = SOC_PA_ABILITY_NONE;
+    port_ability.speed_full_duplex   &= ability_mask->speed_full_duplex;
+    port_ability.pause      &= ability_mask->pause;
+    port_ability.interface  &= ability_mask->interface;
+    port_ability.medium     &= ability_mask->medium;
+    port_ability.eee        &= ability_mask->eee;
+    port_ability.loopback   &= ability_mask->loopback;
+    port_ability.flags      &= ability_mask->flags;
+
+    LOG_DEBUG(BSL_LS_BCM_PORT,
+              (BSL_META_U(unit,
+                          "bcm_petra_port_ability_advert_set: u=%d p=%d rv=%d\n"),
+               unit, port, rv));
+    LOG_VERBOSE(BSL_LS_BCM_PORT,
+                (BSL_META_U(unit,
+                            "Speed(HD=0x%08x, FD=0x%08x) Pause=0x%08x\n"
+                            "Interface=0x%08x Medium=0x%08x EEE=0x%08x Loopback=0x%08x Flags=0x%08x\n"),
+                 port_ability.speed_half_duplex,
+                 port_ability.speed_full_duplex,
+                 port_ability.pause, port_ability.interface,
+                 port_ability.medium, port_ability.eee,
+                 port_ability.loopback, port_ability.flags));
+#ifdef  BCM_ARAD_SUPPORT
+    if (SOC_IS_ARAD(unit)) {
+        /* PORT_LOCK(unit); */
+        MIIM_LOCK(unit);
+        rv = soc_phyctrl_ability_advert_set(unit, port, &port_ability);
+        MIIM_UNLOCK(unit);
+        BCMDNX_IF_ERR_EXIT(rv);
+        /* PORT_UNLOCK(unit); */
+    }
+#endif  /* BCM_ARAD_SUPPORT */
+
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_ability_remote_get(int unit,
+          bcm_port_t port,
+          bcm_port_ability_t *ability_mask)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+    BCMDNX_NULL_CHECK(ability_mask);
+
+    BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unavaliable")));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_ability_local_get(int unit,
+         bcm_port_t port,
+         bcm_port_ability_t *ability_mask)
+{
+  bcm_port_info_t info;
+  bcm_port_t local_port;
+  bcm_port_ability_t phy_ability, mac_ability;
+  _bcm_dpp_gport_info_t gport_info;
+  int rv;
+  BCMDNX_INIT_FUNC_DEFS;
+
+  BCMDNX_NULL_CHECK(ability_mask);
+
+  rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+  BCMDNX_IF_ERR_EXIT(rv);
+
+  BCM_PBMP_ITER(gport_info.pbmp_local_ports, local_port) {
+    bcm_port_ability_t_init(&phy_ability);
+    bcm_port_ability_t_init(&mac_ability);
+    bcm_port_info_t_init(&info);
+    info.action_mask |= (BCM_PORT_ATTR_DUPLEX_MASK    |
+       BCM_PORT_ATTR_PAUSE_TX_MASK  |
+       BCM_PORT_ATTR_SPEED_MAX_MASK |
+       BCM_PORT_ATTR_LOOPBACK_MASK  |
+       BCM_PORT_ATTR_INTERFACE_MASK |
+       BCM_PORT_ATTR_MEDIUM_MASK);
+    BCMDNX_IF_ERR_EXIT(bcm_petra_port_selective_get(unit, local_port, &info));
+#ifdef BCM_ARAD_SUPPORT
+    if (SOC_IS_ARAD(unit))
+    {
+        if (!_BCM_DPP_GPORT_INFO_IS_LOCAL_PORT(gport_info) ) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PORT,(_BSL_BCM_MSG("Invalid port %d"), port));
+        }
+        BCM_PBMP_ITER(gport_info.pbmp_local_ports, local_port) {  
+            bcm_port_if_t interface;
+            uint32 is_valid;
+            
+            
+            BCMDNX_IF_ERR_EXIT(soc_phyctrl_ability_local_get(unit, local_port, &phy_ability));
+            ability_mask->speed_full_duplex = phy_ability.speed_full_duplex;
+            ability_mask->speed_half_duplex = phy_ability.speed_half_duplex;
+            if (!IS_SFI_PORT(unit,local_port))
+            {
+                BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_valid_port_get(unit, local_port, &is_valid));
+                if(!is_valid) {
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_PORT,(_BSL_BCM_MSG("Invalid local port %d"), local_port));
+                }
+                BCMDNX_IF_ERR_EXIT(soc_port_sw_db_interface_type_get(unit, local_port, &interface));
+
+                if(interface != BCM_PORT_IF_ILKN){
+                    BCMDNX_IF_ERR_EXIT(soc_pm_mac_ability_get(unit, local_port, &mac_ability));
+                    ability_mask->speed_full_duplex &= mac_ability.speed_full_duplex;
+                    ability_mask->speed_half_duplex &= mac_ability.speed_half_duplex;
+                }
+            }
+            
+            break;
+        }
+    }
+#endif
+        
+#ifdef BCM_PETRAB_SUPPORT
+    if (SOC_IS_PETRAB(unit)) {
+        if (info.duplex == BCM_PORT_DUPLEX_FULL)
+        {
+            ability_mask->speed_full_duplex  = info.speed_max;
+        } else
+        {
+            ability_mask->speed_half_duplex  = SOC_PA_ABILITY_NONE;
+        }
+    }
+#endif
+
+    ability_mask->pause              = (info.pause_tx | info.pause_rx);
+    ability_mask->interface          = info.interface;
+    ability_mask->medium             = info.medium;
+
+    /* mac_ability.eee without phy_ability.eee makes no sense */
+    ability_mask->eee    = SOC_PA_ABILITY_ALL;
+
+    ability_mask->loopback  = (info.loopback | BCM_PORT_ABILITY_LB_PHY | BCM_PORT_ABILITY_LB_NONE);
+    ability_mask->flags     = 0;
+    ability_mask->encap     = SOC_PA_ABILITY_ALL;
+  }
+
+exit:
+  BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_petra_port_duplex_get
+ * Purpose:
+ *      Get the port duplex settings
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      duplex - (OUT) Duplex setting, one of SOC_PORT_DUPLEX_xxx
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+
+int
+bcm_petra_port_duplex_get(int unit, bcm_port_t port, int *duplex)
+{
+    _bcm_dpp_gport_info_t   gport_info;
+    int                     phy_duplex;
+    int                     rv;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+    rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_duplex_get, (unit, gport_info.local_port, &phy_duplex));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    *duplex = phy_duplex ? SOC_PORT_DUPLEX_FULL : SOC_PORT_DUPLEX_HALF;
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_duplex_set
+ * Purpose:
+ *      Set the port duplex settings.
+ * Parameters:
+ *      unit - StrataSwitch Unit #.
+ *      port - StrataSwitch port #.
+ *      duplex - Duplex setting, one of SOC_PORT_DUPLEX_xxx
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ * Notes:
+ *      Turns off autonegotiation.  Caller must make sure other forced
+ *      parameters (such as speed) are set.
+ */
+
+int
+bcm_petra_port_duplex_set(int unit, bcm_port_t port, int duplex)
+{
+    int rv;
+    int port_i;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+        rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_duplex_set, (unit, port_i, duplex));
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_modid_egress_set(int unit,
+        bcm_port_t port,
+        bcm_module_t modid,
+        bcm_pbmp_t pbmp)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unavaliable")));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_modid_egress_get(int unit,
+        bcm_port_t port,
+        bcm_module_t modid,
+        bcm_pbmp_t *pbmp)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unavaliable")));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_modid_enable_set(int unit,
+        bcm_port_t port,
+        int modid,
+        int enable)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unavaliable")));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_modid_enable_get(int unit,
+        bcm_port_t port,
+        int modid,
+        int *enable)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unavaliable")));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_stat_enable_set(int unit, bcm_gport_t port, int enable)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unavaliable")));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int
+bcm_petra_port_stat_get(int unit, bcm_gport_t port, bcm_port_stat_t stat, 
+                      uint64 *val)
+{
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+    if (!SOC_ARAD_STAT_COUNTER_MODE_PACKETS_PER_CHANNEL(unit, gport_info.local_port)) {
+        /*case of physical port counters mode*/
+        if(stat == bcmPortStatEgressBytes) {
+            BCMDNX_IF_ERR_EXIT(bcm_petra_stat_get(unit, gport_info.local_port, snmpIfOutOctets,val));
+        }
+        else if (stat == bcmPortStatIngressBytes) {
+            BCMDNX_IF_ERR_EXIT(bcm_petra_stat_get(unit, gport_info.local_port, snmpIfInOctets,val));
+        }
+        else if (stat == bcmPortStatIngressPackets) {
+            BCMDNX_IF_ERR_EXIT(bcm_petra_stat_get(unit, gport_info.local_port, snmpIfInUcastPkts,val));
+        }
+        else if (stat == bcmPortStatEgressPackets) {
+            BCMDNX_IF_ERR_EXIT(bcm_petra_stat_get(unit, gport_info.local_port, snmpIfOutUcastPkts,val));
+        }
+
+    } else {
+        int rv;
+        uint32 channel;
+
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_channel_get(unit, gport_info.local_port, &channel));
+        if (SOC_PBMP_MEMBER(PBMP_IL_ALL(unit), gport_info.local_port) && channel <= SOC_ARAD_NIF_ILKN_COUNTER_PER_CHANNEL_CANNEL_SUPPORTED_MAX) {
+            if (stat == bcmPortStatIngressPackets) {
+                rv = SOC_CONTROL(unit)->controlled_counters[ARAD_NIF_RX_ILKN_PER_CHANNEL].controlled_counter_f(unit, ARAD_NIF_RX_ILKN_PER_CHANNEL, gport_info.local_port, val);
+                BCMDNX_IF_ERR_EXIT(rv);
+            } else if (stat == bcmPortStatEgressPackets) {
+                rv = SOC_CONTROL(unit)->controlled_counters[ARAD_NIF_TX_ILKN_PER_CHANNEL].controlled_counter_f(unit, ARAD_NIF_TX_ILKN_PER_CHANNEL, gport_info.local_port, val);
+                BCMDNX_IF_ERR_EXIT(rv);
+            } else {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unavaliable per channel counter")));
+            }
+        } else {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unavaliable per channel counter")));
+        }
+    }
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int
+bcm_petra_port_stat_get32(int unit, bcm_gport_t port, 
+                        bcm_port_stat_t stat, uint32 *val)
+{
+    int     rv = BCM_E_NONE;
+    uint64  val64;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    rv = bcm_petra_port_stat_get(unit, port, stat, &val64);
+
+    COMPILER_64_TO_32_LO(*val, val64);
+
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int
+bcm_petra_port_stat_multi_get(int unit, bcm_gport_t port, int nstat, 
+                            bcm_port_stat_t *stat_arr, 
+                            uint64 *value_arr)
+{
+    int stix;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (nstat <= 0) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid nstat %d"), nstat));
+    }
+
+    BCMDNX_NULL_CHECK(stat_arr);
+    BCMDNX_NULL_CHECK(value_arr);
+    
+    for (stix = 0; stix < nstat; stix++) {
+        BCMDNX_IF_ERR_EXIT
+            (bcm_petra_port_stat_get(unit, port, stat_arr[stix],
+             &(value_arr[stix])));
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int
+bcm_petra_port_stat_multi_get32(int unit, bcm_gport_t port, int nstat, 
+                              bcm_port_stat_t *stat_arr, 
+                              uint32 *value_arr)
+{
+    int stix;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (nstat <= 0) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid nstat %d"), nstat));
+    }
+
+    BCMDNX_NULL_CHECK(stat_arr);
+    BCMDNX_NULL_CHECK(value_arr);
+    
+    for (stix = 0; stix < nstat; stix++) {
+        BCMDNX_IF_ERR_EXIT
+      (bcm_petra_port_stat_get32(unit, port, stat_arr[stix],
+               &(value_arr[stix])));
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int
+bcm_petra_port_stat_multi_set(int unit, bcm_gport_t port, int nstat, 
+                            bcm_port_stat_t *stat_arr, 
+                            uint64 *value_arr)
+{
+    int stix;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (nstat <= 0) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid nstat %d"), nstat));
+    }
+
+    BCMDNX_NULL_CHECK(stat_arr);
+    BCMDNX_NULL_CHECK(value_arr);
+    
+    for (stix = 0; stix < nstat; stix++) {
+        BCMDNX_IF_ERR_EXIT
+            (bcm_petra_port_stat_set(unit, port, stat_arr[stix],
+             value_arr[stix]));
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int
+bcm_petra_port_stat_multi_set32(int unit, bcm_gport_t port, int nstat, 
+                              bcm_port_stat_t *stat_arr, 
+                              uint32 *value_arr)
+{
+    int stix;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (nstat <= 0) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid nstat %d"), nstat));
+    }
+
+    BCMDNX_NULL_CHECK(stat_arr);
+    BCMDNX_NULL_CHECK(value_arr);
+    
+    for (stix = 0; stix < nstat; stix++) {
+        BCMDNX_IF_ERR_EXIT
+            (bcm_petra_port_stat_set32(unit, port, stat_arr[stix],
+               value_arr[stix]));
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int
+bcm_petra_port_stat_set(int unit, bcm_gport_t port, bcm_port_stat_t stat, 
+                      uint64 val)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unavaliable")));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int
+bcm_petra_port_stat_set32(int unit, bcm_gport_t port, 
+                        bcm_port_stat_t stat, uint32 val)
+{
+    int     rv = BCM_E_NONE;
+    uint64  val64;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    COMPILER_64_SET(val64, 0, val);
+
+    rv = bcm_petra_port_stat_set(unit, port, stat, val64);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_fault_get
+ * Purpose:
+ *      Get link fault type. 
+ * Parameters:
+ *      unit -  (IN)  BCM device number 
+ *      port -  (IN)  Device or logical port number .
+ *      flags - (OUT) Flags to indicate fault type 
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_fault_get(int unit, bcm_port_t port, uint32 *flags)
+{
+    int rv;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(flags);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    if (BCM_PBMP_MEMBER(PBMP_SFI_ALL(unit), gport_info.local_port)) {
+        rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_fabric_link_fault_get, (unit, gport_info.local_port, flags));
+        BCMDNX_IF_ERR_EXIT(rv);
+    } else if (BCM_PBMP_MEMBER(PBMP_PORT_ALL(unit), gport_info.local_port)) {
+        rv = MBCM_DPP_SOC_DRIVER_CALL(unit, mbcm_dpp_port_fault_get, (unit, gport_info.local_port, flags));
+        BCMDNX_IF_ERR_EXIT(rv);
+    } else  {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("bcm_petra_port_fault_get port %d is invalid"),port));
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN; 
+}
+
+/*
+ * Set the encapsulation to port mapping from encap_id to port.
+ * Currently used only for egress multicast mapping of outlif to local port.
+ */
+int bcm_petra_port_encap_map_set(
+    int unit,           /* input device */
+    uint32 flags,       /* currently unused */
+    bcm_if_t encap_id,  /* input cud/outlif */
+    bcm_gport_t port)   /* input (local egress) port */
+{
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    if (encap_id < 0 || encap_id > SOC_PETRAB_MAX_CUD) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Invalid egress encapsulation ID for mapping: 0x%x, should be between 0 and 0x%x."),
+          encap_id, SOC_PETRAB_MAX_CUD));
+    }
+
+    /* Derive local port */
+    if (BCM_GPORT_IS_TRILL_PORT(port))  {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("Trill port cannot be mapped to from outlif; only local ports can be mapped to.")));
+    }
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+    BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_mult_cud_to_port_map_set,(unit, encap_id, gport_info.local_port)));
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Get the encapsulation to port mapping from encap_id.
+ * Currently used only for egress multicast mapping of outlif to local port.
+ */
+int bcm_petra_port_encap_map_get(
+    int unit,           /* input device */
+    uint32 flags,       /* currently unused */
+    bcm_if_t encap_id,  /* input cud/outlif */
+    bcm_gport_t *port)  /* output (local egress) port */
+{
+    SOC_TMC_FAP_PORT_ID local_port = 0;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    BCMDNX_NULL_CHECK(port);
+
+    if (encap_id < 0 || encap_id > SOC_PETRAB_MAX_CUD) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Invalid egress encapsulation ID for mapping: 0x%x, should be between 0 and 0x%x."),
+          encap_id, SOC_PETRAB_MAX_CUD));
+    }
+
+    BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_mult_cud_to_port_map_get,(unit, encap_id, &local_port)));
+    BCM_GPORT_LOCAL_SET(*port, local_port);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/* Find a free local port and allocate on specified core and interface */
+int
+_bcm_petra_port_find_free_port_and_allocate(int unit, bcm_core_t core, bcm_port_if_t interface, int with_id, bcm_port_t *port)
+{
+    uint32 tchannel, is_valid, tm_port;
+    soc_port_t port_i;
+    soc_port_if_t interface_i;
+    soc_pbmp_t phy_ports, ports_bm;
+    uint8 channels[SOC_DPP_MAX_NOF_CHANNELS] = {0};
+    uint8 tm_ports[SOC_MAX_NUM_PORTS] = {0};
+    bcm_core_t core_i;
+    int found = 0;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_valid_ports_get(unit, 0, &ports_bm));
+
+    /* first loop over reserved ports */  
+    SOC_PBMP_ITER(SOC_DPP_CONFIG(unit)->arad->reserved_ports, port_i)
+    {
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_valid_port_get(unit, port_i, &is_valid));
+        if (!is_valid) {
+            (*port) = port_i;
+            found = 1;
+            break;
+        }
+    }
+
+    /* find free port */
+    if (!found) {
+        if(!with_id) {
+            for(port_i = 0;  port_i < SOC_MAX_NUM_PORTS ; port_i++) {
+                if(!SOC_PBMP_MEMBER(ports_bm, port_i)) {
+                    (*port) = port_i;
+                    break;
+                }
+            }
+        }
+    }
+
+    /* Map used channels and tm_ports */
+    SOC_PBMP_ITER(ports_bm, port_i){
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_interface_type_get(unit, port_i, &interface_i));
+        if(interface == interface_i) {
+            BCMDNX_IF_ERR_EXIT(soc_port_sw_db_channel_get(unit, port_i, &tchannel));
+            channels[tchannel] = 1;
+        }
+
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_tm_port_get(unit, port_i, &tm_port, &core_i));
+        if(core == core_i) {
+            tm_ports[tm_port] = 1;
+        }
+    }
+
+    /* find the first free channel */
+    for (tchannel = 0; tchannel < SOC_DPP_MAX_NOF_CHANNELS && channels[tchannel]; ++tchannel); 
+    if (tchannel >= SOC_DPP_MAX_NOF_CHANNELS) { /* if all channels are taken */
+        BCMDNX_ERR_EXIT_MSG(SOC_E_RESOURCE, (_BSL_BCM_MSG("No free channel for operation")));
+    }
+
+    /* first loop over reserved ports */  
+    found = 0;
+    SOC_PBMP_ITER(SOC_DPP_CONFIG(unit)->arad->reserved_tm_ports[core], tm_port)
+    {
+        if (!tm_ports[tm_port]) {
+            found = 1;
+            break;
+        }
+    }
+
+    if(!found) {
+        if(SOC_IS_ARADPLUS_AND_BELOW(unit)) {
+            tm_port = *port;
+        } else {
+            for (tm_port = 0; tm_port < SOC_MAX_NUM_PORTS && tm_ports[tm_port]; ++tm_port); 
+            if (tm_port >= SOC_MAX_NUM_PORTS) { /* if all tm ports are taken */
+                BCMDNX_ERR_EXIT_MSG(SOC_E_RESOURCE, (_BSL_BCM_MSG("No free tm port for operation")));
+            }
+        }
+    }
+   
+    /* Add to DB */
+    SOC_PBMP_CLEAR(phy_ports);
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_port_add(unit, core, *port, tchannel, 0, interface, phy_ports));
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_tm_port_set(unit, *port, tm_port));
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_pp_port_set(unit, *port, tm_port));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_dfe_port_rate_egress_pps_set
+ * Description:
+ *      packets per second shaper
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      pps - Rate in packet per second. A value of zero disables rate limiting (full speed).
+ *      burst - Maximum burst size .
+ * Returns:
+ *      BCM_E_XXX
+ */
+
+int 
+bcm_petra_port_rate_egress_pps_set(
+    int unit, 
+    bcm_port_t port, 
+    uint32 pps, 
+    uint32 burst)
+{
+    uint32 soc_sand_rv;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /*verify*/
+    /*Supports only by ARAD+*/
+    if (SOC_IS_ARAD_B1_AND_BELOW(unit))
+    {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Feature Unavailable")));
+    }
+
+    /*Supported only by fabric ports*/
+    if (!SOC_PORT_VALID(unit, port)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("invalid port")));
+    }
+    if (!BCM_PBMP_MEMBER(PBMP_SFI_ALL(unit), port))
+    {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("API do not supprted by port %d"), port));
+    }
+    
+
+    /*config shaper*/
+    soc_sand_rv = MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_rate_egress_pps_set,(unit, port, pps, burst));
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+exit:
+    BCMDNX_FUNC_RETURN; 
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_rate_egress_pps_set
+ * Description:
+ *      packets per second shaper
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      pps (out)- Rate in packet per second. A value of zero disables rate limiting (full speed).
+ *      burst(out) - Maximum burst size.
+ * Returns:
+ *      BCM_E_XXX
+ */
+int 
+bcm_petra_port_rate_egress_pps_get(
+    int unit, 
+    bcm_port_t port, 
+    uint32 *pps, 
+    uint32 *burst)
+{
+    uint32 soc_sand_rv;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /*verify*/
+    /*Supports only by ARAD+*/
+    if (SOC_IS_ARAD_B1_AND_BELOW(unit))
+    {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Feature Unavailable")));
+    }
+
+    /*Supported only by fabric ports*/
+    if (!SOC_PORT_VALID(unit, port)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("invalid port")));
+    }
+    if (!BCM_PBMP_MEMBER(PBMP_SFI_ALL(unit), port))
+    {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("API do not supprted by port %d"), port));
+    }
+
+    
+    BCMDNX_NULL_CHECK(pps);
+    BCMDNX_NULL_CHECK(burst);
+
+    /*get shaper info*/
+    soc_sand_rv = MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_rate_egress_pps_get,(unit, port, pps, burst));
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    if (*burst == 0 || *pps == 0) {
+        *pps = 0;
+        *burst = 0;
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN; 
+}
+
+int bcm_petra_port_egress_set(int unit, bcm_port_t port, int modid, bcm_pbmp_t pbmp) 
+{
+#ifdef BCM_ARAD_SUPPORT
+    uint32 base_q_pair, flags, tchannel;
+    soc_port_t egr_port, port_i;
+    soc_port_if_t interface, interface_i;
+    soc_pbmp_t phy_ports, ports_bm;
+    uint32 num_of_lanes, num_of_lanes_i;
+    uint32 first_phy_port, first_phy_port_i;
+    uint8 channels[SOC_DPP_MAX_NOF_CHANNELS] = {0};
+    bcm_gport_t uc_gport, uc_gport_i;
+    bcm_gport_t mc_gport, mc_gport_i;
+    bcm_gport_t local_gport, local_gport_i;
+    bcm_cos_queue_t offset;
+    bcm_cosq_egress_multicast_config_t config;
+    int ipriority, idp;
+    int rv;
+    int core=0;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* Get the port information */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_flags_get(unit, port, &flags));
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_base_q_pair_get(unit, port, &base_q_pair));
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_interface_type_get(unit, port, &interface));
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_phy_ports_get(unit, port, &phy_ports));
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_num_lanes_get(unit, port, &num_of_lanes));
+
+    /* Map used channels */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_valid_ports_get(unit, 0, &ports_bm));
+    SOC_PBMP_ITER(ports_bm, port_i){
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_interface_type_get(unit, port_i, &interface_i));
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_num_lanes_get(unit, port_i, &num_of_lanes_i));
+        if(interface == interface_i && num_of_lanes_i == num_of_lanes) {
+            if(num_of_lanes_i != 0) {
+                BCMDNX_IF_ERR_EXIT(soc_port_sw_db_first_phy_port_get(unit, port, &first_phy_port));
+                BCMDNX_IF_ERR_EXIT(soc_port_sw_db_first_phy_port_get(unit, port_i, &first_phy_port_i));
+            } else {
+                first_phy_port = 0xFFFFFFFF;
+                first_phy_port_i = first_phy_port;
+            }
+            if(first_phy_port == first_phy_port_i) {
+                BCMDNX_IF_ERR_EXIT(soc_port_sw_db_channel_get(unit, port_i, &tchannel));
+                channels[tchannel] = 1;
+            }
+        }
+    }
+    for (tchannel = 0; tchannel < SOC_DPP_MAX_NOF_CHANNELS && channels[tchannel]; ++tchannel); /* find the first free channel */
+    if (tchannel >= SOC_DPP_MAX_NOF_CHANNELS) { /* if all channels are taken */
+        BCMDNX_ERR_EXIT_MSG(SOC_E_RESOURCE, (_BSL_BCM_MSG("No free channel for operation")));
+    }
+
+    SOC_PBMP_ITER(pbmp, egr_port) {
+
+        /* Add to DB */
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_port_add(unit, core, egr_port, tchannel, flags, interface, phy_ports));
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_tm_port_set(unit, egr_port, egr_port));
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_pp_port_set(unit, egr_port, egr_port));
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_base_q_pair_set(unit, egr_port, base_q_pair));
+
+        /* Set TM port */
+        BCMDNX_IF_ERR_EXIT(arad_egr_dsp_pp_to_base_q_pair_set(unit, core, egr_port, base_q_pair));
+
+        /* Set PP port */
+        BCMDNX_IF_ERR_EXIT(arad_port_to_pp_port_map_set_unsafe(unit, egr_port, ARAD_PORT_DIRECTION_BOTH));
+    }
+
+    BCM_COSQ_GPORT_UCAST_EGRESS_QUEUE_SET(uc_gport, port);
+    BCM_COSQ_GPORT_MCAST_EGRESS_QUEUE_SET(mc_gport, port);
+    BCM_GPORT_LOCAL_SET(local_gport, port);
+
+    SOC_PBMP_ITER(pbmp, port_i) {
+        for(ipriority = 0 ; ipriority<DPP_DEVICE_COSQ_ING_NOF_TC ; ipriority++) {
+            for(idp = 0; idp<DPP_DEVICE_COSQ_ING_NOF_DP ; idp++) {
+                
+                /* UC Queues */
+                BCM_COSQ_GPORT_UCAST_EGRESS_QUEUE_SET(uc_gport_i, port_i);
+                rv = bcm_petra_cosq_gport_egress_map_get(unit, uc_gport, ipriority, idp, &offset);
+                BCMDNX_IF_ERR_EXIT(rv);
+                rv = bcm_petra_cosq_gport_egress_map_set(unit, uc_gport_i, ipriority, idp, offset);
+                BCMDNX_IF_ERR_EXIT(rv);
+
+                /* MC Queues */
+                BCM_COSQ_GPORT_MCAST_EGRESS_QUEUE_SET(mc_gport_i, port_i);
+                rv = bcm_petra_cosq_gport_egress_map_get(unit, mc_gport, ipriority, idp, &offset);
+                BCMDNX_IF_ERR_EXIT(rv);
+                rv = bcm_petra_cosq_gport_egress_map_set(unit, mc_gport_i, ipriority, idp, offset);
+                BCMDNX_IF_ERR_EXIT(rv);
+
+                /* MC SP */
+                BCM_GPORT_LOCAL_SET(local_gport_i, port_i);
+                rv = bcm_petra_cosq_gport_egress_multicast_config_get(unit, local_gport, ipriority, idp, BCM_COSQ_MULTICAST_SCHEDULED, &config);
+                BCMDNX_IF_ERR_EXIT(rv);
+                rv = bcm_petra_cosq_gport_egress_multicast_config_set(unit, local_gport_i, ipriority, idp, BCM_COSQ_MULTICAST_SCHEDULED, &config);
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+        }
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+#else
+    return BCM_E_UNAVAIL;
+#endif
+}
+
+int bcm_petra_port_egress_get(int unit, bcm_port_t port, int modid, bcm_pbmp_t *pbmp) 
+{
+    return BCM_E_UNAVAIL;
+}
+
+int
+bcm_petra_port_cable_diag(
+    int unit,
+    bcm_port_t port,
+    bcm_port_cable_diag_t *status)
+{
+    int rv;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(status);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    rv = (MBCM_DPP_SOC_DRIVER_CALL(unit,mbcm_dpp_port_cable_diag,(unit, gport_info.local_port, status)));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+STATIC int
+_bcm_petra_port_control_lanes_get(int unit, bcm_port_t port, int* value)
+{
+    _bcm_dpp_gport_info_t   gport_info;
+    uint32 is_valid, lane_count;
+    bcm_port_if_t intf;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    /*check port is valid*/
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_valid_port_get(unit, gport_info.local_port, &is_valid));
+    if(!is_valid) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("Invalid port %d"), gport_info.local_port));
+    }
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_interface_type_get(unit, gport_info.local_port, &intf));
+
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_num_lanes_get(unit, gport_info.local_port, &lane_count));
+    *value = lane_count;
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/***************************************************************/
+/***************************************************************/
+/************        PORT DYNAMIC APIs         *****************/
+/***************************************************************/
+/***************************************************************/
+
+int bcm_petra_port_add(int unit, bcm_port_t port, uint32 flags, bcm_port_interface_info_t *interface_info, bcm_port_mapping_info_t *mapping_info)  
+{
+    uint32      is_valid, out_port_priority, tm_port, pp_port, first_header_size, first_phy_port, interface_max_rate;
+    uint32      temp_flags = 0;
+    uint32      mirror_profile, nof_lanes, nof_channels, kbits_sec_max_get, dummy1, dummy2;
+    int         i, core, base_q_pair, curr_q_pair, mc_reserved_pds, header_type, is_channelized, speed;
+    int         is_tm_src_syst_port_ext_present, is_tm_pph_present_enabled, is_stag_enabled, is_snoop_enabled, is_tm_ing_shaping_enabled;
+    bcm_pbmp_t  phy_ports;
+    bcm_gport_t gport, fap_port;
+    bcm_cosq_threshold_t         threshold;
+    soc_port_t  port_i, master_port;
+    bcm_pbmp_t pbmp, okay;
+    bcm_cosq_gport_info_t gport_info; 
+    SOC_TMC_EGR_PORT_SHAPER_MODE shaper_mode;
+    uint32      prog_editor_profile;
+    SOC_TMC_PORT_PP_PORT_INFO    conf;
+    SOC_PPD_PORT_INFO            port_info;
+    SOC_SAND_SUCCESS_FAILURE     success;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* can't add new port in case port is valid*/
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_valid_port_get(unit, port, &is_valid));    
+    if (is_valid) 
+    {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("Port is is already added and set")));
+    }
+
+    /* configure counter mapping and num of lanes according to interface type */
+    switch(interface_info->interface) {
+        case SOC_PORT_IF_XFI:
+        case SOC_PORT_IF_SGMII:
+            nof_lanes = 1;
+            temp_flags |= SOC_PORT_FLAGS_NETWORK_INTERFACE;
+            /*counter map*/
+            SOC_CONTROL(unit)->counter_map[port] = &SOC_CTR_DMA_MAP(unit, SOC_CTR_TYPE_XE);
+            break;
+
+        case SOC_PORT_IF_CPU:
+            nof_lanes = 1;
+            if (interface_info->phy_port != 0) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("interface not supported on port %d"), port));
+            }
+            /*counter map*/
+            SOC_CONTROL(unit)->counter_map[port] = &SOC_CTR_DMA_MAP(unit, SOC_CTR_TYPE_CPU);
+            break;
+
+        case SOC_PORT_IF_RXAUI:
+            nof_lanes = 2;
+            temp_flags |= SOC_PORT_FLAGS_NETWORK_INTERFACE;
+
+            if ((interface_info->phy_port-1)%nof_lanes != 0) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("interface not supported on port %d"), port));
+            }
+            /*counter map*/
+            SOC_CONTROL(unit)->counter_map[port] = &SOC_CTR_DMA_MAP(unit, SOC_CTR_TYPE_XE);
+            break;
+
+        case SOC_PORT_IF_DNX_XAUI:
+        case SOC_PORT_IF_XLAUI2:
+        case SOC_PORT_IF_XLAUI:
+            if (interface_info->interface == SOC_PORT_IF_XLAUI2) {
+                nof_lanes = 2;
+            } else {
+                nof_lanes = 4;
+            }
+            temp_flags |= SOC_PORT_FLAGS_NETWORK_INTERFACE;
+            if ((interface_info->phy_port-1)%nof_lanes != 0) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("interface not supported on port %d"), port));
+            }
+            /*counter map*/
+            SOC_CONTROL(unit)->counter_map[port] = &SOC_CTR_DMA_MAP(unit, SOC_CTR_TYPE_XE);
+            break;
+
+        case SOC_PORT_IF_QSGMII:
+            nof_lanes = 1;
+            temp_flags |= SOC_PORT_FLAGS_NETWORK_INTERFACE;
+            /*counter map*/
+            SOC_CONTROL(unit)->counter_map[port] = &SOC_CTR_DMA_MAP(unit, SOC_CTR_TYPE_GE);
+            break;
+
+        case SOC_PORT_IF_ILKN:
+            /* if this first ILKN port, then num_lanes should be 1, otherwise, get the current num_lanes */
+            BCMDNX_IF_ERR_EXIT(soc_port_sw_db_port_from_interface_type_get(unit, interface_info->interface, interface_info->phy_port, &port_i));
+            if (port_i != SOC_MAX_NUM_PORTS) {
+                BCMDNX_IF_ERR_EXIT(soc_port_sw_db_num_lanes_get(unit, port_i, &nof_lanes));                   
+            } else {
+                nof_lanes = interface_info->num_lanes;
+            }
+            temp_flags |= SOC_PORT_FLAGS_NETWORK_INTERFACE;
+            if (SOC_IS_ARADPLUS_AND_BELOW(unit)) {
+                if ((interface_info->phy_port != 1) && (interface_info->phy_port != 17) && (!((SOC_IS_ARADPLUS(unit)) && (interface_info->phy_port == 11)))) {
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("interface not supported on port %d"), port));
+                }
+            }
+            /*counter map*/
+            SOC_CONTROL(unit)->counter_map[port] = NULL;
+            break;
+
+        case SOC_PORT_IF_CAUI:
+            /* if this first CAUI port, then num_lanes should be 10, otherwise, get the current num_lanes */
+            BCMDNX_IF_ERR_EXIT(soc_port_sw_db_port_from_interface_type_get(unit, interface_info->interface, interface_info->phy_port, &port_i));
+            if (port_i != SOC_MAX_NUM_PORTS) {
+                BCMDNX_IF_ERR_EXIT(soc_port_sw_db_num_lanes_get(unit, port_i, &nof_lanes));                   
+            } else {
+                nof_lanes = interface_info->num_lanes;
+            }
+            temp_flags |= SOC_PORT_FLAGS_NETWORK_INTERFACE;
+            if (SOC_IS_ARADPLUS_AND_BELOW(unit)) {
+                if ((interface_info->phy_port != 1) && (interface_info->phy_port != 17)) {
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("interface not supported on port %d"), port));
+                }
+            } else { /* SOC_IS_JERICHO */
+                if ((interface_info->phy_port > 29) || ((interface_info->phy_port-1)%4 != 0)) {
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("interface not supported on port %d"), port));
+                }
+            }
+            /*counter map*/
+            SOC_CONTROL(unit)->counter_map[port] = &SOC_CTR_DMA_MAP(unit, SOC_CTR_TYPE_CE);
+            break;
+
+        case SOC_PORT_IF_RCY:
+        case SOC_PORT_IF_ERP:
+        case SOC_PORT_IF_OLP:
+        case SOC_PORT_IF_OAMP:
+            nof_lanes = 0;
+            break;
+
+        default:
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Interface %d isn't supported"), interface_info->interface));
+            break;
+    }
+
+    /* set is_stat_if */
+    if (SOC_IS_ARADPLUS_AND_BELOW(unit)) {
+        if((interface_info->phy_port >= 29) && (interface_info->phy_port <= 32)) {
+            temp_flags |= SOC_PORT_FLAGS_STAT_INTERFACE;
+        }
+    }
+    
+    BCM_PBMP_CLEAR(phy_ports);
+    if (flags & BCM_PORT_ADD_USE_PHY_PBMP) { /* phy ports are given in phy_pbmp */
+        BCM_PBMP_ASSIGN(phy_ports, interface_info->phy_pbmp);
+    } else {
+        for (i = 0; i < nof_lanes; i++) { /* set phy_ports according to phy_port and num_lanes */
+            BCM_PBMP_PORT_ADD(phy_ports, interface_info->phy_port+i); 
+        }
+    }
+    
+    /*set new port configuration*/
+    core = mapping_info->core;
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_port_validate_and_add(unit, core, port, mapping_info->channel, temp_flags, 
+                                    interface_info->interface, phy_ports));
+
+    /* allocate egress interface */
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_egr_queuing_egr_interface_alloc, (unit,  port)));
+
+    /* set protocol offset */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_first_phy_port_get(unit, port, &first_phy_port));
+    if (interface_info->interface == SOC_PORT_IF_ILKN || interface_info->interface == SOC_PORT_IF_CAUI) {
+        if (SOC_IS_ARADPLUS_AND_BELOW(unit)) {
+            if (first_phy_port == 1) {
+                BCMDNX_IF_ERR_EXIT(soc_port_sw_db_protocol_offset_set(unit, port, 0, 0));
+            } else {
+                BCMDNX_IF_ERR_EXIT(soc_port_sw_db_protocol_offset_set(unit, port, 0, 1));
+            }
+        } else { /* SOC_IS_JERICHO */
+            if (interface_info->interface == SOC_PORT_IF_ILKN) {
+                BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_port_protocol_offset_verify, (unit,  port, interface_info->interface_id)));
+                BCMDNX_IF_ERR_EXIT(soc_port_sw_db_protocol_offset_set(unit, port, 0, interface_info->interface_id));
+            }
+            if (interface_info->interface == SOC_PORT_IF_CAUI) {
+                BCMDNX_IF_ERR_EXIT(soc_port_sw_db_protocol_offset_set(unit, port, 0, ((first_phy_port-1)/4)));
+            }
+        }
+    } 
+
+    /* set number of priorities */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_out_port_priority_set(unit, port, mapping_info->num_priorities));
+
+    /* set tm port */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_tm_port_set(unit, port, mapping_info->tm_port));
+    pp_port = tm_port = mapping_info->tm_port;
+
+    /* set pp port */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_pp_port_set(unit, port, mapping_info->tm_port));
+
+    /* set padding size */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_runt_pad_set(unit, port, 0));
+
+    /* set shaper mode */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_shaper_mode_set(unit,port,SOC_TMC_EGR_PORT_SHAPER_DATA_MODE));
+
+    /* first Header size*/
+    first_header_size = soc_property_port_get(unit, port, spn_FIRST_HEADER_SIZE, 0);
+    /* start: this section is added for CPU port, should be removed after validation */
+    if (interface_info->interface == BCM_PORT_IF_CPU) 
+    {
+        first_header_size += SOC_DPP_ARAD_INJECTED_HEADER_SIZE_BYTES_PTCH_2;
+    }
+    /* end: this section is added for CPU port, should be removed after validation */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_frst_hdr_sz_set(unit, port, first_header_size));
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_parser_nof_bytes_to_remove_set, (unit, core, mapping_info->tm_port, first_header_size)));
+
+
+    /* PP fc types*/
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_fc_type_set(unit, port, SOC_TMC_PORTS_FC_TYPE_NONE));
+
+    /* PP flags */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_pp_port_flags_set(unit, port, 0));
+
+    /* PP mirror profile */
+    mirror_profile = soc_property_port_get(unit, port, spn_MIRROR_PROFILE, 0);
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_mirror_profile_set(unit,port,mirror_profile));
+
+    /* PP src port extention */
+    is_tm_src_syst_port_ext_present = 0;
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_tm_src_syst_port_ext_present_set(unit, port, is_tm_src_syst_port_ext_present));
+
+    /* PP pph enable */
+    is_tm_pph_present_enabled = 0;
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_tm_pph_present_en_set(unit,port,is_tm_pph_present_enabled));
+
+    /* PP stag enable */
+    is_stag_enabled = soc_property_port_get(unit, port, spn_STAG_ENABLE, 0);
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_stag_enabled_set(unit,port,is_stag_enabled));
+
+    /* PP snoop enable */
+    is_snoop_enabled = soc_property_port_get(unit, port, spn_SNOOP_ENABLE, 0);
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_snoop_enabled_set(unit,port,is_snoop_enabled));
+
+    /* PP tm ing shaping enabled */
+    is_tm_ing_shaping_enabled = 0;
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_tm_ing_shaping_enabled_set(unit, port, is_tm_ing_shaping_enabled));
+
+
+    /* Search for suitable PS and corresponded base_q_pair. */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_out_port_priority_get(unit, port, &out_port_priority));
+    if (flags & BCM_PORT_ADD_BASE_Q_PAIR_WITH_ID) {
+        base_q_pair = mapping_info->base_q_pair;
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_ps_db_alloc_binding_ps_with_id, (unit, port, out_port_priority, base_q_pair)));         
+    } else {
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_ps_db_find_free_binding_ps, (unit, port, out_port_priority, &base_q_pair)));
+    }
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_base_q_pair_set(unit,port,base_q_pair));
+
+    /* Map local port to base_q_pair */
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_egr_dsp_pp_to_base_q_pair_set, (unit, core, tm_port, base_q_pair)));
+    
+    /* Set port priorities */
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_egr_dsp_pp_priorities_mode_set, (unit, core, tm_port, out_port_priority)));
+
+    /* Set egress port shaper mode */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_shaper_mode_get(unit,port,&shaper_mode));
+    BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_egr_dsp_pp_shaper_mode_set, (unit, core, tm_port, shaper_mode)));
+
+    /* set program editor profile */
+    /* go over all q-pairs */
+    prog_editor_profile  = 5; /* REMOVE_SYSTEM_HEADER_WITH_USER_HEADER */
+    for (curr_q_pair = base_q_pair; curr_q_pair < base_q_pair + out_port_priority; curr_q_pair++) 
+    {
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_egr_prog_editor_profile_set, (unit,  core, curr_q_pair,prog_editor_profile)));
+    }
+
+    /* init tc/dp map */
+    BCMDNX_IF_ERR_EXIT(_bcm_petra_cosq_gport_egress_map_init(unit, port));   
+
+    /* init port fc cgm thresholds */
+    if (!(flags & BCM_PORT_ADD_CGM_AUTO_ADJUST_DISABLE)) {
+        BCMDNX_IF_ERR_EXIT(_bcm_petra_cosq_fc_port_threshold_init(unit, port, &mc_reserved_pds, 1));
+
+        /* increment sp0 reserved pds */
+        gport = 0; /* global threshold*/
+        threshold.flags = BCM_COSQ_THRESHOLD_MULTICAST_SP0 | BCM_COSQ_THRESHOLD_EGRESS | BCM_COSQ_THRESHOLD_DROP;
+        threshold.type = bcmCosqThresholdAvailablePacketDescriptors;
+        BCMDNX_IF_ERR_EXIT(bcm_petra_cosq_gport_threshold_get(unit, gport, -1, &threshold));
+        threshold.value += (mc_reserved_pds*out_port_priority);
+        BCMDNX_IF_ERR_EXIT(bcm_petra_cosq_gport_threshold_set(unit, gport, -1, &threshold)); 
+    }
+
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_num_of_channels_get(unit, port, &nof_channels));
+    if (SOC_IS_ARADPLUS_AND_BELOW(unit)) {
+        if (interface_info->interface == BCM_PORT_IF_CAUI && nof_channels == 1) {
+            BCMDNX_IF_ERR_EXIT(soc_pm_port_clp_reset(unit, port)); 
+        } else if (interface_info->interface == BCM_PORT_IF_ILKN) {
+            if(soc_arad_is_device_ilkn_disabled(unit, 0)) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Device is ILKN disabled.\n")));
+            }
+        }
+    }
+
+    /* set reference clock for ports in channelized NIFs */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_master_channel_get(unit, port, &master_port));
+    if (nof_channels>1) 
+    {
+        if (SOC_IS_ARADPLUS_AND_BELOW(unit)) {
+            INT_PHY_SW_STATE(unit, port) = INT_PHY_SW_STATE(unit, master_port);
+            EXT_PHY_SW_STATE(unit, port) = EXT_PHY_SW_STATE(unit, master_port);
+            sal_memcpy(&SOC_PHY_INFO(unit, port),&SOC_PHY_INFO(unit, master_port),sizeof(soc_phy_info_t));
+        }
+
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_ports_reference_clock_set, (unit, port)));
+    }
+
+    /* set lane speed. */
+    if (nof_channels == 1) {
+        speed = soc_property_port_get(unit, port, spn_PORT_INIT_SPEED, -1);
+        if (speed == -1) {
+            SOCDNX_IF_ERR_EXIT(soc_pm_default_speed_get(unit, port, &speed));
+        }
+
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_speed_set(unit, port, speed));
+    }
+
+    /* set is_channelized port sw db indication */
+    if (flags & BCM_PORT_ADD_CONFIG_CHANNELIZED || interface_info->interface == SOC_PORT_IF_ILKN) {  
+        is_channelized = TRUE;
+    }  else {
+        is_channelized = FALSE;
+    }
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_channelized_port_set(unit, port, is_channelized));
+
+    /* add HR */
+    BCMDNX_IF_ERR_EXIT(_bcm_petra_cosq_hr_handle(unit, port, 1));
+
+    /*port to IF mapping*/
+    BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_port_to_interface_map_set, (unit, port, FALSE /* unmap */)));
+
+    if (nof_channels == 1) {
+        /* init FQP/PQP calendars for new interface */
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_egr_q_nif_cal_set,(unit)));
+
+        /* EGQ IF to E2E IF mapping */
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_sch_e2e_interface_allocate, (unit,  port)));
+    }
+
+    /* set default header type */
+    header_type = BCM_SWITCH_PORT_HEADER_TYPE_ETH;
+    BCMDNX_IF_ERR_EXIT(bcm_petra_switch_control_port_set(unit, port,  bcmSwitchPortHeaderType, header_type));
+
+    /* egress queueing configuration update */
+    /*1. Disable Higher bandwidth requests for ports above 100g or higher*/
+    /*2. Enable for any other port*/
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_egr_q_fqp_scheduler_config, (unit)));
+
+    
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_pp_port_get(unit, port, &pp_port, &core));
+    BCM_SAND_IF_ERR_EXIT(soc_ppd_port_info_get(unit,core,pp_port,&port_info));
+
+    port_info.enable_same_interfac_filter = TRUE;
+    port_info.same_interface_filter_skip = FALSE;
+    port_info.initial_action_profile.trap_code = _BCM_PETRA_UD_DFLT_TRAP;
+    BCM_SAND_IF_ERR_EXIT(soc_ppd_port_info_set(unit,core,pp_port,&port_info));
+    /* end default port info set*/ 
+
+
+    /*PP port configuration {*/
+    SOC_TMC_PORT_PP_PORT_INFO_clear(&conf);
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_fc_type_get(unit, port, &conf.fc_type));
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_pp_port_flags_get(unit, port, &conf.flags));
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_mirror_profile_get(unit, port, &conf.mirror_profile));
+
+    conf.is_tm_pph_present_enabled = is_tm_pph_present_enabled;
+    conf.is_tm_src_syst_port_ext_present = is_tm_src_syst_port_ext_present;
+    conf.is_stag_enabled = is_stag_enabled;
+    conf.is_snoop_enabled = is_snoop_enabled;
+    conf.is_tm_ing_shaping_enabled = is_tm_ing_shaping_enabled;
+    conf.first_header_size = first_header_size;
+    conf.header_type = header_type;
+    conf.header_type_out = header_type;
+    
+    BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_port_pp_port_set, (unit, core, pp_port, &conf,&success)));
+
+    /*PP port configuration }*/
+    BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_port_to_pp_port_map_set, (unit, port, SOC_TMC_PORT_DIRECTION_INCOMING)));
+    /* in case this is the first port added on the interface, then probe the physical interface */
+    if (nof_channels == 1 || SOC_PBMP_MEMBER(SOC_INFO(unit).cmic_bitmap, port)) {
+        if (flags & BCM_PORT_ADD_HIGH_GIG) {
+            BCMDNX_IF_ERR_EXIT(bcm_petra_port_encap_set(unit, port, BCM_PORT_ENCAP_HIGIG));
+        }
+
+        if (is_channelized) {
+            /* by default dual mode is used */
+            BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_single_cal_mode_set(unit, port, FALSE));
+        } else {
+            BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_single_cal_mode_set(unit, port, TRUE));
+        }
+
+        /*Fast port enable*/
+        if (interface_info->interface == BCM_PORT_IF_ILKN) { 
+            BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_egr_q_fast_port_set, (unit, port, 1, 1)));
+        } else if (interface_info->interface == BCM_PORT_IF_CAUI) {
+            BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_egr_q_fast_port_set, (unit, port, 0, 1)));
+        } else {
+            BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_egr_q_fast_port_set, (unit, port, 0, 0)));
+        }
+
+        /* probe new port */       
+        if (!(flags & BCM_PORT_ADD_DONT_PROBE)) {
+            BCM_PBMP_CLEAR(pbmp); 
+            BCM_PBMP_CLEAR(okay);
+            BCM_PBMP_PORT_ADD(pbmp, port);
+            BCMDNX_IF_ERR_EXIT(bcm_petra_port_probe(unit, pbmp, &okay));
+        }
+    }
+
+
+    /* set interface shaper for non channelized interfaces */
+    if (!is_channelized) {
+
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_interface_rate_get(unit, port, &interface_max_rate));
+
+        /* set EGQ interface bandwidth */
+        gport_info.in_gport = port;
+        BCMDNX_IF_ERR_EXIT(bcm_petra_cosq_gport_handle_get(unit,bcmCosqGportTypeLocalPort,&gport_info));
+        BCMDNX_IF_ERR_EXIT(bcm_petra_fabric_port_get(unit,gport_info.out_gport,0,&fap_port));
+
+        BCMDNX_IF_ERR_EXIT(bcm_petra_cosq_gport_bandwidth_get(unit,fap_port,0,&dummy1,&kbits_sec_max_get,&dummy2));
+        if ((kbits_sec_max_get + interface_max_rate*1000) <= SOC_TMC_IF_MAX_RATE_KBPS_ARAD(unit)) {
+            BCMDNX_IF_ERR_EXIT(bcm_petra_cosq_gport_bandwidth_set(unit,fap_port,0,0,(kbits_sec_max_get + interface_max_rate*1000),0));
+        } else {
+            BCMDNX_IF_ERR_EXIT(bcm_petra_cosq_gport_bandwidth_set(unit,fap_port,0,0,SOC_TMC_IF_MAX_RATE_KBPS_ARAD(unit),0));
+        }
+
+
+        /*set sch bandwidth*/
+        gport_info.in_gport = port;
+        BCMDNX_IF_ERR_EXIT(bcm_cosq_gport_handle_get(unit,bcmCosqGportTypeE2EPort,&gport_info));
+        BCMDNX_IF_ERR_EXIT(bcm_petra_fabric_port_get(unit,gport_info.out_gport,0,&fap_port));
+
+        BCMDNX_IF_ERR_EXIT(bcm_petra_cosq_gport_bandwidth_get(unit,fap_port,0,&dummy1,&kbits_sec_max_get,&dummy2));
+        if ((kbits_sec_max_get + interface_max_rate*1000) <= SOC_TMC_IF_MAX_RATE_KBPS_ARAD(unit)) {
+            BCMDNX_IF_ERR_EXIT(bcm_petra_cosq_gport_bandwidth_set(unit,fap_port,0,0,(kbits_sec_max_get + interface_max_rate*1000),0));
+        } else {
+            BCMDNX_IF_ERR_EXIT(bcm_petra_cosq_gport_bandwidth_set(unit,fap_port,0,0,SOC_TMC_IF_MAX_RATE_KBPS_ARAD(unit),0));
+        }
+
+    }
+
+    /* set egress compensation */
+    BCM_COSQ_GPORT_UCAST_EGRESS_QUEUE_SET(gport, port);
+    BCMDNX_IF_ERR_EXIT(bcm_petra_cosq_control_set(unit, gport, 0, bcmCosqControlPacketLengthAdjust, -2));
+
+exit:
+    /* set back to invalid */
+    if (BCM_FUNC_ERROR)
+    {
+        soc_port_sw_db_is_valid_port_set(unit, port, 0);
+    }
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int bcm_petra_port_get(int unit, bcm_port_t port, uint32 *flags, bcm_port_interface_info_t *interface_info, bcm_port_mapping_info_t *mapping_info) 
+{
+    bcm_pbmp_t phy_ports;
+    int is_channelized;
+    _bcm_dpp_gport_info_t   gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+    port = gport_info.local_port;
+
+    BCM_PBMP_CLEAR(phy_ports);
+    *flags = 0;
+
+    /* get tm port and core */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_tm_port_get(unit, port, &mapping_info->tm_port, &mapping_info->core));
+            
+    /* get number of priorities */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_out_port_priority_get(unit, port, &mapping_info->num_priorities));
+
+    /* get interface type */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_interface_type_get(unit, port, &(interface_info->interface)));
+
+    /* get num of lanes */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_num_lanes_get(unit, port, &(interface_info->num_lanes)));
+
+    /* get channel id */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_channel_get(unit, port, &(mapping_info->channel)));
+
+    /* get bsae queue pair */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_base_q_pair_get(unit, port, &(mapping_info->base_q_pair)));
+
+    /* get first physical port and phy_pbmp */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_phy_ports_get(unit, port, &phy_ports));
+    BCM_PBMP_ITER(phy_ports, interface_info->phy_port) { break; }
+    BCM_PBMP_ASSIGN(interface_info->phy_pbmp ,phy_ports);
+
+    /* get is channelized port indication */
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_channelized_port_get(unit, port, &is_channelized));
+    if (is_channelized) {
+        *flags |= BCM_PORT_ADD_CONFIG_CHANNELIZED;
+    }
+
+    /* get interface id */
+    if (interface_info->interface == BCM_PORT_IF_ILKN || interface_info->interface == BCM_PORT_IF_CAUI) {
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_protocol_offset_get(unit, port, 0, &interface_info->interface_id)); 
+    } else {
+        interface_info->interface_id = 0;
+    }
+
+exit:
+    _DCMN_BCM_WARM_BOOT_API_TEST_MODE_SKIP_WB_SEQUENCE(unit);
+    BCMDNX_FUNC_RETURN; 
+}
+
+int bcm_petra_port_remove(int unit, bcm_port_t port, uint32 flags) 
+{
+    uint32           is_valid, is_master, counter_flags, dummy1, dummy2, cal_id, kbits_sec_max_get;
+    bcm_port_if_t    interface;
+    int              core, old_profile, new_profile, is_last, is_allocated;
+    int              base_q_pair, profile, rv, counter_interval, is_channelized;
+    uint32           tm_port, nof_channels;
+    bcm_gport_t      gport;
+    bcm_pbmp_t       pbmp, detached, counter_pbmp;
+    soc_port_t       next_master;
+    bcm_dpp_cosq_egress_queue_mapping_info_t egr_queue_mapping_info;
+    bcm_dpp_cosq_egress_thresh_key_info_t    thresh_info;
+    bcm_cosq_gport_info_t                    gport_info;
+    SOC_SAND_OCC_BM_PTR                      cals_occ;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (BCM_PBMP_MEMBER(SOC_PORT_DISABLED_BITMAP(unit, all), port)) {
+        BCMDNX_ERR_EXIT_MSG(SOC_E_PORT, (_BSL_BCM_MSG("Port %d is invalid"),port));
+    }
+
+    /*check port not already defined*/
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_valid_port_get(unit, port, &is_valid));
+    if(!is_valid) {
+        BCMDNX_ERR_EXIT_MSG(SOC_E_PORT, (_BSL_BCM_MSG("Port %d is invalid"),port));
+    }
+
+    /* validate port bw is 0 before it's removed */
+    gport_info.in_gport = port;
+    BCMDNX_IF_ERR_EXIT(bcm_petra_cosq_gport_handle_get(unit,bcmCosqGportTypeLocalPort,&gport_info));
+    BCMDNX_IF_ERR_EXIT(bcm_petra_cosq_gport_bandwidth_get(unit,gport_info.out_gport,0,&dummy1,&kbits_sec_max_get,&dummy2));
+    if (kbits_sec_max_get != 0) {
+        LOG_ERROR(BSL_LS_BCM_PORT,
+                  (BSL_META_U(unit,
+                              "unit(%d): Can't remove port if its bandwidth isn't 0\n"), unit)); 
+        BCMDNX_IF_ERR_EXIT(BCM_E_CONFIG);
+    }
+
+    /* flush ports queue to make sure no packets are left in the queue */
+    BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_action_cmd_cosq_flush,(unit,port,FALSE)));
+
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_channelized_port_get(unit, port, &is_channelized));
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_tm_port_get(unit, port, &tm_port, &core)); 
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_num_of_channels_get(unit, port, &nof_channels));
+
+    /* in case this is the last port added on the interface, then detach the physical interface */
+    if (nof_channels == 1 || SOC_PBMP_MEMBER(SOC_INFO(unit).cmic_bitmap, port)) {
+        BCM_PBMP_CLEAR(pbmp); 
+        BCM_PBMP_CLEAR(detached);
+        BCM_PBMP_PORT_ADD(pbmp, port);
+        BCMDNX_IF_ERR_EXIT(bcm_petra_port_detach(unit, pbmp, &detached));
+    }
+    else { /* disasble linkscan*/
+        BCMDNX_IF_ERR_EXIT(bcm_petra_port_linkscan_set(unit, port, BCM_LINKSCAN_MODE_NONE));
+    }
+
+    /* release channelized calendars in case this is the last channelized port removed */
+    if (nof_channels == 1 && is_channelized) { 
+        cals_occ = arad_sw_db_egr_channelized_cals_occ_get(unit, core);
+
+        /* high priority cal */
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_high_priority_cal_get(unit, port, &cal_id));
+        if (cal_id != INVALID_CALENDAR) {
+            BCM_SAND_IF_ERR_EXIT(soc_sand_occ_bm_occup_status_set(cals_occ, cal_id, FALSE));
+            BCMDNX_IF_ERR_EXIT(soc_port_sw_db_high_priority_cal_set(unit, port, INVALID_CALENDAR));
+        }
+
+        /* low priority cal */
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_low_priority_cal_get(unit, port, &cal_id));
+        if (cal_id != INVALID_CALENDAR) {
+            BCM_SAND_IF_ERR_EXIT(soc_sand_occ_bm_occup_status_set(cals_occ, cal_id, FALSE));
+            BCMDNX_IF_ERR_EXIT(soc_port_sw_db_low_priority_cal_set(unit, port, INVALID_CALENDAR));
+        }                    
+    }
+
+    if (SOC_IS_ARADPLUS_AND_BELOW(unit)) {
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_interface_type_get(unit, port, &interface));
+        if (interface == SOC_PORT_IF_CAUI && nof_channels == 1) {
+            BCMDNX_IF_ERR_EXIT(soc_pm_port_clp_reset(unit, port)); 
+        }
+    }
+
+    /* unset egress compensation */
+    BCM_COSQ_GPORT_UCAST_EGRESS_QUEUE_SET(gport, port);
+    BCMDNX_IF_ERR_EXIT(bcm_petra_cosq_control_set(unit, gport, 0, bcmCosqControlPacketLengthAdjust, 0));
+
+    /* release egress port cls */
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_am_template_egress_port_discount_cls_free(unit, core, tm_port, &is_last));
+
+    /* release HR */
+    _bcm_petra_cosq_hr_handle(unit, port, 0);
+
+    /* release tc/dp mapping resources */ 
+    sal_memset(&egr_queue_mapping_info,0x0,sizeof(bcm_dpp_cosq_egress_queue_mapping_info_t));  
+    BCMDNX_IF_ERR_EXIT(_bcm_petra_cosq_gport_egress_queue_mapping_hw_get(unit,DPP_COSQ_PB_EGR_QUEUE_DEFAULT_PROFILE_MAP,core,&egr_queue_mapping_info));
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_am_template_egress_queue_mapping_exchange(unit,tm_port,core,&egr_queue_mapping_info,&old_profile,&is_last,&new_profile,&is_allocated));
+
+    /* start - init port cgm thresholds */
+    sal_memset(&thresh_info,0x0,sizeof(bcm_dpp_cosq_egress_thresh_key_info_t));
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_am_template_cosq_egr_thresh_data_get(unit,core,port,&thresh_info));
+    profile = SOC_DPP_DEFS_GET(unit, cosq_egr_default_thresh_type);
+    BCMDNX_IF_ERR_EXIT(_bcm_petra_cosq_egress_thresh_entry_get(unit,core,profile,&thresh_info));
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_am_template_cosq_egr_thresh_exchange(unit,core,port,&thresh_info,&old_profile,&is_last,&new_profile,&is_allocated)); 
+
+    /* end - init port cgm thresholds */
+
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_base_q_pair_get(unit,port,(uint32 *)(&base_q_pair)));
+
+    /* int cgm interface to default */
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit ,mbcm_dpp_egr_q_cgm_interface_set, (unit, core, tm_port, ARAD_EGQ_IFC_DEF_VAL)));
+
+    /* set cos_map_profile to 0 */
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_egr_q_profile_map_set, (unit, core, tm_port, 0)));
+
+    /* PCT and PPCT cgm_port_profile init to default */
+    BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_egr_ofp_thresh_type_set,(unit, core, tm_port, SOC_TMC_EGR_PORT_THRESH_TYPE_15)));
+
+    /* set TM port to invalid base_q_pair */
+    BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_egr_dsp_pp_to_base_q_pair_set,(unit, core, tm_port, ARAD_EGR_INVALID_BASE_Q_PAIR)));
+
+    /* unmap port */
+    BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_port_to_interface_map_set, (unit, port, TRUE /* unmap */)));
+
+    if (nof_channels == 1) {
+        /* init FQP/PQP when interface is removed */
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_egr_q_nif_cal_set,(unit)));
+
+        /* free EGQ IF to E2E IF mapping */
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_sch_e2e_interface_deallocate, (unit,  port)));
+    }
+    
+    /* free egress interface */
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_egr_queuing_egr_interface_free, (unit, port)));
+
+    /* release base q pair (PS) */
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_ps_db_release_binding_ps, (unit, port, base_q_pair)));
+
+    /* in case port is channelized and the removed port is master port, stop counter thread and update with new counter pbmp with new master port*/
+    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_is_master_get(unit, port, &is_master));
+    if((nof_channels > 1 && is_master && !SOC_PBMP_MEMBER(SOC_INFO(unit).cmic_bitmap, port)) || 
+       (SOC_DPP_CONFIG(unit)->arad->init.ports.ilkn_counters_mode == soc_arad_stat_ilkn_counters_mode_packets_per_channel)) {
+        BCMDNX_IF_ERR_EXIT(soc_port_sw_db_next_master_get(unit, port, &next_master));
+        BCMDNX_IF_ERR_EXIT(soc_counter_status(unit, &counter_flags, &counter_interval, &counter_pbmp));
+        soc_counter_stop(unit);
+        SOC_PBMP_PORT_REMOVE(counter_pbmp, port);
+        if (SOC_DPP_CONFIG(unit)->arad->init.ports.ilkn_counters_mode != soc_arad_stat_ilkn_counters_mode_packets_per_channel) {
+            SOC_PBMP_PORT_ADD(counter_pbmp, next_master);
+        }
+        /* map next master port to counter */
+        switch(interface) {
+            case SOC_PORT_IF_XFI:
+            case SOC_PORT_IF_SGMII:
+                SOC_CONTROL(unit)->counter_map[next_master] = &SOC_CTR_DMA_MAP(unit, SOC_CTR_TYPE_XE);
+                break;
+
+            case SOC_PORT_IF_CPU:
+                SOC_CONTROL(unit)->counter_map[next_master] = &SOC_CTR_DMA_MAP(unit, SOC_CTR_TYPE_CPU);
+                break;
+
+            case SOC_PORT_IF_RXAUI:
+                SOC_CONTROL(unit)->counter_map[next_master] = &SOC_CTR_DMA_MAP(unit, SOC_CTR_TYPE_XE);
+                break;
+
+            case SOC_PORT_IF_DNX_XAUI:
+            case SOC_PORT_IF_XLAUI:
+            case SOC_PORT_IF_XLAUI2:
+                SOC_CONTROL(unit)->counter_map[next_master] = &SOC_CTR_DMA_MAP(unit, SOC_CTR_TYPE_XE);
+                break;
+
+            case SOC_PORT_IF_QSGMII:
+                SOC_CONTROL(unit)->counter_map[next_master] = &SOC_CTR_DMA_MAP(unit, SOC_CTR_TYPE_GE);
+                break;
+
+            case SOC_PORT_IF_ILKN:
+                if (SOC_DPP_CONFIG(unit)->arad->init.ports.ilkn_counters_mode != soc_arad_stat_ilkn_counters_mode_packets_per_channel) {
+                    SOC_CONTROL(unit)->counter_map[next_master] = NULL;
+                }
+                break;
+
+            case SOC_PORT_IF_CAUI:
+                SOC_CONTROL(unit)->counter_map[next_master] = &SOC_CTR_DMA_MAP(unit, SOC_CTR_TYPE_CE);
+                break;
+
+            case SOC_PORT_IF_RCY:
+            case SOC_PORT_IF_ERP:
+            case SOC_PORT_IF_OLP:
+            case SOC_PORT_IF_OAMP:
+                break;
+
+            default:
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Interface %d isn't supported"), interface));
+                break;
+        }
+
+        BCMDNX_IF_ERR_EXIT(soc_counter_start(unit, counter_flags, counter_interval, counter_pbmp));
+    }
+
+    if (SOC_IS_ARADPLUS_AND_BELOW(unit)) {
+        if (nof_channels > 1) {
+            if (is_master) {
+                BCMDNX_IF_ERR_EXIT(soc_port_sw_db_next_master_get(unit, port, &next_master));
+                if(INT_PHY_SW_STATE(unit, port) != NULL) {
+                    INT_PHY_SW_STATE(unit, port)->port = next_master;
+                }
+
+                if(EXT_PHY_SW_STATE(unit, port) != NULL) {
+                    EXT_PHY_SW_STATE(unit, port)->port = next_master;
+                }
+            }
+
+            INT_PHY_SW_STATE(unit, port) = NULL;
+            EXT_PHY_SW_STATE(unit, port) = NULL;
+
+            sal_memset(&SOC_PHY_INFO(unit, port), 0, sizeof(soc_phy_info_t));
+        }
+    }
+
+    /* remove port from db, pause Linkscan thread before port removal to avoid Linkscan port validity check failure */
+    BCMDNX_IF_ERR_EXIT(_bcm_linkscan_pause(unit)); 
+    rv = soc_port_sw_db_port_remove(unit, port);
+    BCMDNX_IF_ERR_EXIT(_bcm_linkscan_continue(unit));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+
+    /* reset counter map*/
+    SOC_CONTROL(unit)->counter_map[port] = NULL;
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/***************************************************************/
+/***************************************************************/
+/************           PORT PP APIs           *****************/
+/***************************************************************/
+/***************************************************************/
+
+/* fix tag format when the outer tag is priority */
+STATIC int 
+bcm_petra_tpid_profile_priority_fix(
+      int unit, 
+      SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT tag_format, 
+      SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT *fixed_tag_format,
+      SOC_SAND_PP_VLAN_TAG_TYPE              *priority_tag_type
+    )
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(fixed_tag_format);
+    BCMDNX_NULL_CHECK(priority_tag_type);
+
+    switch(tag_format) {
+        case SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_C_TAG:
+        case SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_TAG:
+            *fixed_tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_PRIORITY_TAG;
+        break;
+        case SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_C_C_TAG:
+        case SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_C_TAG:
+            *fixed_tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_PRIORITY_C_TAG;
+        break;
+        case SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_C_S_TAG:
+        case SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_S_TAG:
+            *fixed_tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_PRIORITY_S_TAG;
+        break;
+        default:
+            *fixed_tag_format = tag_format;
+    }
+
+    switch(tag_format) {
+    case SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_C_TAG:
+    case SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_C_C_TAG:
+    case SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_C_S_TAG:
+        *priority_tag_type = SOC_SAND_PP_VLAN_TAG_TYPE_CTAG;
+        break;
+    case SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_TAG:
+    case SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_C_TAG:
+    case SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_S_TAG:
+        *priority_tag_type = SOC_SAND_PP_VLAN_TAG_TYPE_STAG;
+        break;
+    default:
+        *priority_tag_type = SOC_SAND_PP_VLAN_TAG_TYPE_STAG;
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int bcm_petra_tpid_profile_info_set(
+      int unit, int port_profile, _bcm_petra_tpid_profile_t profile_type, int accept_mode, _bcm_petra_dtag_mode_t dtag_mode, _bcm_petra_ac_key_map_type_t ac_key_map_type, uint8 cep_port, uint8 evb_port
+    )
+{
+    SOC_PPD_L2_LIF_AC_KEY_QUALIFIER
+        ac_key_qual;
+    int is_mim_mode = 0, is_tagged, is_double_tagged=0, drop_prio = 0;
+    SOC_PPD_LLP_PARSE_INFO
+        prs_nfo;
+    unsigned int soc_sand_dev_id;
+    uint32 soc_sand_rv;
+    SOC_PPD_LLP_PARSE_PACKET_FORMAT_INFO
+        pkt_frmt_info;
+    SOC_PPD_L2_LIF_AC_MAP_KEY_TYPE
+        key_mapping;
+    int rv = BCM_E_NONE;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    soc_sand_dev_id = (unit);
+
+    SOC_PPD_L2_LIF_AC_KEY_QUALIFIER_clear(&ac_key_qual);
+    SOC_PPD_LLP_PARSE_INFO_clear(&prs_nfo);
+
+    /* check if this is MiM mode */
+    if (_BCM_DPP_PORT_DISCARD_MODE_IS_MIM(accept_mode)) {
+        is_mim_mode = 1;
+        _BCM_DPP_PORT_DISCARD_MODE_MIM_REMOVE(accept_mode);
+    }
+
+    /* check if this is outer prio drop mode */
+    if (_BCM_DPP_PORT_DISCARD_MODE_IS_OUTER_PRIO(accept_mode)) {
+        drop_prio = 1;
+        _BCM_DPP_PORT_DISCARD_MODE_OUTER_PRIO_REMOVE(accept_mode);
+    }
+
+    ac_key_qual.port_profile = port_profile;
+    for(prs_nfo.outer_tpid = SOC_PPD_LLP_PARSE_TPID_INDEX_NONE; prs_nfo.outer_tpid < SOC_PPD_NOF_LLP_PARSE_TPID_INDEXS; ++prs_nfo.outer_tpid) {
+        for(prs_nfo.inner_tpid = SOC_PPD_LLP_PARSE_TPID_INDEX_NONE; prs_nfo.inner_tpid < SOC_PPD_NOF_LLP_PARSE_TPID_INDEXS; ++prs_nfo.inner_tpid) {
+            for (prs_nfo.is_outer_prio = FALSE; prs_nfo.is_outer_prio <= TRUE; ++prs_nfo.is_outer_prio) {
+
+                /* not valid combination (outer is none, and inner exists), skip it*/
+                if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_NONE && (prs_nfo.inner_tpid != SOC_PPD_LLP_PARSE_TPID_INDEX_NONE|| prs_nfo.is_outer_prio)) {
+                    continue;
+                }
+                is_double_tagged = 0;
+                ac_key_qual.pkt_parse_info.is_outer_prio = prs_nfo.is_outer_prio;
+                ac_key_qual.pkt_parse_info.outer_tpid = prs_nfo.outer_tpid;
+                ac_key_qual.pkt_parse_info.inner_tpid = prs_nfo.inner_tpid;
+                
+                soc_sand_rv = soc_ppd_llp_parse_packet_format_info_get(soc_sand_dev_id, port_profile, &prs_nfo,&pkt_frmt_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                /* set tag format according to profile type and found TPIDs */
+                /* packet with I-tag is not considered tagged */ 
+                switch (profile_type) {
+                    case _bcm_petra_tpid_profile_none: /* no tags */
+                        pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_NONE;
+                    break;
+                    case _bcm_petra_tpid_profile_outer: /* one outer */
+                        if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID1) {
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_TAG;
+                        }
+                        else{
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_NONE;
+                        }
+                    break;
+                    case _bcm_petra_tpid_profile_outer_inner: /* outer/inner */
+                        if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID1 && prs_nfo.inner_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID2) { /* double tag */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_C_TAG;
+                            /* set lookup for this porofile to be PVV*/
+                            is_double_tagged = 1;
+                        }
+                        else if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID1) {  /* one-s-tag */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_TAG;
+                        }
+                        else{ /* rest untagged, or find tpid2 as outer */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_NONE;
+                        }
+                    break;
+                    case _bcm_petra_tpid_profile_outer_inner_c_tag: /* outer/inner - different is that in case TPID2 is alone act as C_TAG */
+                        if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID1 && prs_nfo.inner_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID2) { /* double tag */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_C_TAG;
+                            /* set lookup for this porofile to be PVV*/
+                            is_double_tagged = 1;
+                        }
+                        else if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID1) {  /* one-s-tag */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_TAG;
+                        }
+                        else if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID2) {  /* one-c-tag */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_C_TAG;
+                        }
+                        else{ /* rest untagged, or find tpid2 as outer */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_NONE;
+                        }
+                    break;
+                    case _bcm_petra_tpid_profile_outer_inner_same: /* outer/inner equal*/
+                        if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID1 && prs_nfo.inner_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID1) { /* double tag */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_C_TAG;
+                            /* set lookup for this porofile to be PVV*/
+                            is_double_tagged = 1;
+                        }
+                        else if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID1) {  /* one-s-tag */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_TAG;
+                        }
+                        else{ /* rest untagged, or find tpid2 as outer */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_NONE;
+                        }
+                    break;
+                case _bcm_petra_tpid_profile_outer_inner_same2: /* outer/inner equal*/
+                    if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID2 && prs_nfo.inner_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID2) { /* double tag */
+                        pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_C_TAG;
+                        /* set lookup for this porofile to be PVV*/
+                        is_double_tagged = 1;
+                    }
+                    else if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID2) {  /* one-s-tag */
+                        pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_TAG;
+                    }
+                    else{ /* rest untagged, or find tpid2 as outer */
+                        pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_NONE;
+                    }
+                break;
+                    case _bcm_petra_tpid_profile_outer_inner2: /* outer/inner2 (inner can show alone (as outer)) */
+                        if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID1 && prs_nfo.inner_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID2) { /* double tag */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_C_TAG;
+                            /* set lookup for this porofile to be PVV*/
+                            is_double_tagged = 1;
+                        }
+                        else if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID1) {  /* one-s-tag */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_TAG;
+                        }
+                        else if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID2) {  /* one-c-tag */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_TAG;
+                        }
+                        else{ /* rest untagged, or find tpid2 as outer */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_NONE;
+                        }
+                    break;
+                case _bcm_petra_tpid_profile_inner_outer2: /* inner/outer2 (inner can show alone (as outer)) */
+                    if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID2 && prs_nfo.inner_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID1) { /* double tag */
+                        pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_C_TAG;
+                        /* set lookup for this porofile to be PVV*/
+                        is_double_tagged = 1;
+                    }
+                    else if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID2) {  /* one-s-tag */
+                        pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_TAG;
+                    }
+                    else if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID1) {  /* one-c-tag */
+                        pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_TAG;
+                    }
+                    else{ /* rest untagged, or find tpid2 as outer */
+                        pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_NONE;
+                    }
+                break;
+
+                case _bcm_petra_tpid_profile_outer_outer: /* outer/outer  */
+                        if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID1 || prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID2) { /* any of the tags show */
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_TAG;
+                        }
+                        else{ /* rest untagged*/
+                            pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_NONE;
+                        }
+                    break;
+                case _bcm_petra_tpid_profile_outer_c_tag:
+                    if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_NONE || prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_NONE) { /* untag */
+                        pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_NONE;
+                        is_tagged = 0;
+                    }
+                    else{ /* rest untagged*/
+                        pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_C_TAG;/* c-tagged*/
+                        is_tagged = 1;
+                    }
+
+                    break;
+                case _bcm_petra_tpid_profile_outer_trill_fgl: /* In case TPID1 appear then S-Tag , in case TPID2 appear , must be outer and inner to be TPID2 */
+                    if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID1) { /* Single tag */
+                        pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_TAG;                        
+                    }
+                    else if(prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID2 && prs_nfo.inner_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID2) {  /* both TPIDs are FGL */
+                        pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_C_TAG;
+                        is_double_tagged = 1;
+                    }
+                    else if (prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_TPID2) {
+                        pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_C_TAG; /* Single tag */
+                    }
+                    else{ /* rest untagged*/
+                        pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_NONE;
+                    }
+
+                    break;
+
+                    default:
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("profile_type %d not supported"), profile_type));
+                }
+
+                /* accept mode */
+                is_tagged = !(pkt_frmt_info.tag_format == SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_NONE);
+
+                /* if this is CEP port (customer port, identify only C-tag) */
+                if( cep_port && profile_type == _bcm_petra_tpid_profile_outer_c_tag && (is_tagged || is_double_tagged)) {
+                    /* considered as single tagged*/
+                    is_double_tagged = 0;
+                    /* tag format is C-tag */
+                    pkt_frmt_info.tag_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_C_TAG;
+                }
+
+                if (evb_port && 
+                    profile_type == _bcm_petra_tpid_profile_outer_inner_c_tag && 
+                    (pkt_frmt_info.tag_format == SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_S_TAG)) {
+                    pkt_frmt_info.initial_c_tag = TRUE;
+                }
+    
+                switch (accept_mode) {
+                    case BCM_PORT_DISCARD_ALL:
+                        pkt_frmt_info.action_trap_code = SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_DROP;
+                    break;
+                    case BCM_PORT_DISCARD_NONE:
+                        pkt_frmt_info.action_trap_code = SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_ACCEPT;
+                    break;
+                    case BCM_PORT_DISCARD_UNTAG:
+                        pkt_frmt_info.action_trap_code = (is_tagged)?SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_ACCEPT:SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_DROP;
+                    break;
+                    case BCM_PORT_DISCARD_TAG:
+                        pkt_frmt_info.action_trap_code = (!is_tagged)?SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_ACCEPT:SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_DROP;
+                    break;
+                    default:
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("accept_mode %d not supported"), accept_mode));
+                }
+
+                if(drop_prio && prs_nfo.is_outer_prio) {
+                    pkt_frmt_info.action_trap_code = SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_DROP;
+                }
+
+                if (is_mim_mode && prs_nfo.outer_tpid != SOC_PPD_LLP_PARSE_TPID_INDEX_ISID_TPID && prs_nfo.inner_tpid != SOC_PPD_LLP_PARSE_TPID_INDEX_ISID_TPID) {
+                    /* drop all packets without I-Tag */
+                    pkt_frmt_info.action_trap_code = SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_DROP;
+                }
+
+                /* fix tag format for priority */
+                if(prs_nfo.is_outer_prio) {
+                    rv = bcm_petra_tpid_profile_priority_fix(unit,pkt_frmt_info.tag_format,&pkt_frmt_info.tag_format,&pkt_frmt_info.priority_tag_type);
+                    BCMDNX_IF_ERR_EXIT(rv);
+                }
+
+                soc_sand_rv = soc_ppd_llp_parse_packet_format_info_set(soc_sand_dev_id, port_profile, &prs_nfo,&pkt_frmt_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                if (SOC_IS_PETRAB(unit)) {                    
+                    /* first lookup key, if port handle double tagged ,and packet parser identify double tag then lookup is PVV otherwise PV */
+                    if (is_double_tagged && (dtag_mode == _bcm_petra_dtag_mode_accept)) {
+                        if ((ac_key_map_type == _bcm_petra_ac_key_map_type_normal) || 
+                            ((prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_NONE) && 
+                             (prs_nfo.inner_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_NONE))) {
+                            key_mapping = SOC_PPD_L2_LIF_AC_MAP_KEY_TYPE_PORT_VLAN_VLAN;
+                        }
+                        else {
+                            key_mapping = SOC_PPD_L2_LIF_AC_MAP_KEY_TYPE_PORT_COMP_VLAN_COMP_VLAN;
+                        }
+                    }
+                    else {
+                        if ((ac_key_map_type == _bcm_petra_ac_key_map_type_normal) || 
+                            ((prs_nfo.outer_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_NONE) && 
+                             (prs_nfo.inner_tpid == SOC_PPD_LLP_PARSE_TPID_INDEX_NONE))) {
+                            key_mapping = SOC_PPD_L2_LIF_AC_MAP_KEY_TYPE_PORT_VLAN;
+                        }
+                        else {
+                            key_mapping = SOC_PPD_L2_LIF_AC_MAP_KEY_TYPE_PORT_COMP_VLAN;
+                        }
+                    }
+                    soc_sand_rv = soc_ppd_l2_lif_ac_map_key_set(soc_sand_dev_id, &ac_key_qual, key_mapping);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                }
+           }
+        }
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+STATIC int
+_bcm_dpp_port_is_evb_port(
+       int unit, bcm_port_t port, uint8 *evb_port)
+{
+    bcm_error_t rv;
+    int evb_value;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (!SOC_DPP_CONFIG(unit)->pp.evb_enable) {
+        *evb_port = FALSE;
+        BCM_EXIT;
+    }
+
+    /* 
+     * Is EVB port
+     */ 
+    rv = bcm_petra_port_control_get(unit, port, bcmPortControlEvbType, &evb_value);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    *evb_port = (evb_value == bcmPortEvbTypeUplinkAccess) ? TRUE:FALSE;
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int
+_bcm_petra_port_discard_extend_dtag_mode_get(
+    int unit,
+    bcm_port_t port,
+    _bcm_petra_dtag_mode_t *dtag_mode)
+{
+   int rv = BCM_E_NONE;
+   int accept_mode, core;
+   _bcm_petra_tpid_profile_t profile_type;
+   _bcm_petra_dtag_mode_t temp_dtag_mode;
+   _bcm_petra_ac_key_map_type_t ac_key_map_type;
+   SOC_PPD_PORT soc_ppd_port_i;
+   _bcm_dpp_gport_info_t   gport_info;
+
+   BCMDNX_INIT_FUNC_DEFS;
+
+   /* Retrive local PP ports */
+   rv = _bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info); 
+   BCMDNX_IF_ERR_EXIT(rv);
+   
+   rv = MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, gport_info.local_port, &soc_ppd_port_i, &core));
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   /* get old data (profile_type) */
+   rv =  _bcm_dpp_am_template_tpid_profile_data_get(unit, soc_ppd_port_i, core, &profile_type, &accept_mode, &temp_dtag_mode, &ac_key_map_type);
+   BCMDNX_IF_ERR_EXIT(rv);
+  
+   *dtag_mode = temp_dtag_mode;
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+int 
+_bcm_petra_port_discard_extend_set(
+    int unit, 
+    SOC_PPD_PORT soc_ppd_port_i, 
+    _bcm_petra_tpid_profile_t profile_type,
+    int accept_mode,
+    _bcm_petra_dtag_mode_t dtag_mode,
+    _bcm_petra_ac_key_map_type_t ac_key_map_type)
+{
+    int soc_sand_dev_id = unit, soc_sand_rv = 0;
+    int rv = BCM_E_NONE;
+    SOC_PPD_PORT_INFO port_info;
+    int last_appear,old_tpid_profile,new_tpid_profile, first_appear;
+    uint8 evb_port;
+    uint32  pp_port;
+    int     core;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    soc_sand_dev_id = (unit);
+
+    /* API not supported for parsing ADVANCED mode, other API should be used in stead */
+    _BCM_DPP_TPID_PARSE_ADVANCED_MODE_API_UNAVAIL(unit);
+
+    SOC_PPD_PORT_INFO_clear(&port_info);
+
+    rv = MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, soc_ppd_port_i, &pp_port, &core));
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if (accept_mode > _BCM_DPP_PORT_DISCARD_MODE_MAX) {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("accept_mode %d is above max value %d"),accept_mode,_BCM_DPP_PORT_DISCARD_MODE_MAX-1));
+    }
+
+    rv = _bcm_dpp_port_is_evb_port(unit, soc_ppd_port_i, &evb_port);
+    BCMDNX_IF_ERR_EXIT(rv);
+   
+    /* Remove old, and add new mode */
+    rv = _bcm_dpp_am_template_tpid_profile_exchange(unit, pp_port, core, profile_type, accept_mode, dtag_mode, ac_key_map_type, &old_tpid_profile, &last_appear, &new_tpid_profile, &first_appear);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+
+    if (first_appear) {
+      /* check if this cep port */
+      soc_sand_rv = soc_ppd_port_info_get(soc_sand_dev_id,core,pp_port,&port_info);
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+      rv = bcm_petra_tpid_profile_info_set(unit, new_tpid_profile, profile_type, accept_mode, dtag_mode, ac_key_map_type, port_info.port_type == SOC_SAND_PP_PORT_L2_TYPE_CEP, evb_port);
+      BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    if (old_tpid_profile != new_tpid_profile) {
+      /* update port profile */
+      soc_sand_rv = soc_ppd_port_info_get(soc_sand_dev_id,core, pp_port,&port_info);
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+      port_info.port_profile = new_tpid_profile;
+
+      soc_sand_rv = soc_ppd_port_info_set(soc_sand_dev_id,core,pp_port,&port_info);
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+int
+_bcm_petra_port_discard_extend_dtag_mode_set(
+    int unit,
+    bcm_port_t port,
+    _bcm_petra_dtag_mode_t dtag_mode)
+{
+   int port_i;
+   int rv = BCM_E_NONE;
+   int accept_mode, core;
+   _bcm_petra_tpid_profile_t profile_type;
+   _bcm_petra_dtag_mode_t temp_dtag_mode;
+   _bcm_petra_ac_key_map_type_t ac_key_map_type;
+   SOC_PPD_PORT soc_ppd_port_i;
+   _bcm_dpp_gport_info_t   gport_info;
+   BCMDNX_INIT_FUNC_DEFS;
+
+   if (dtag_mode >= _bcm_petra_dtag_mode_count) {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("dtag_mode %d is above max value %d"),dtag_mode,_bcm_petra_dtag_mode_count));
+   }
+
+   /* Retrive local PP ports */
+   rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+        rv = MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core));
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        /* get old data (profile_type) */
+        rv =  _bcm_dpp_am_template_tpid_profile_data_get(unit, soc_ppd_port_i, core, &profile_type, &accept_mode, &temp_dtag_mode, &ac_key_map_type);
+        BCMDNX_IF_ERR_EXIT(rv);
+        
+        /* Exchange in case of update and commit */
+        rv = _bcm_petra_port_discard_extend_set(unit, port_i, profile_type, accept_mode, dtag_mode, ac_key_map_type);
+        BCMDNX_IF_ERR_EXIT(rv);
+   }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+int 
+_bcm_petra_port_discard_extend_mode_set(
+    int unit, 
+    bcm_port_t port, 
+    int mode)
+{
+   int port_i;
+   int rv = BCM_E_NONE;
+   int accept_mode, core;
+   _bcm_petra_tpid_profile_t profile_type;
+   _bcm_petra_dtag_mode_t dtag_mode;   
+   _bcm_petra_ac_key_map_type_t ac_key_map_type;
+   SOC_PPD_PORT soc_ppd_port_i;
+   int is_mim_port = 0;
+   _bcm_dpp_gport_info_t   gport_info;
+   BCMDNX_INIT_FUNC_DEFS;
+
+   if (mode > _BCM_DPP_PORT_DISCARD_MODE_MAX) {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("mode %d is above max value %d"),mode,_BCM_DPP_PORT_DISCARD_MODE_MAX-1));
+   }
+
+   /* Retrive local PP ports */
+   rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info);
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+        rv = MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core));
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        rv = bcm_petra_port_control_get(unit, port_i, bcmPortControlMacInMac, &is_mim_port);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        /* 
+         * Special case for MIM: 
+         * Set MIM mode.
+         * For MIM ports, discard tag mode means discard all packets that do not contain I-TPID on the packet.
+         */
+        if (is_mim_port && mode == BCM_PORT_DISCARD_TAG) {
+            mode = BCM_PORT_DISCARD_NONE;
+            /* set the MiM bit, to change the mode into MiM mode. */
+            _BCM_DPP_PORT_DISCARD_MODE_MIM_SET(mode);
+        }
+
+        /* get old data (profile_type) */
+        rv =  _bcm_dpp_am_template_tpid_profile_data_get(unit, soc_ppd_port_i, core, &profile_type, &accept_mode, &dtag_mode, &ac_key_map_type);
+        BCMDNX_IF_ERR_EXIT(rv);
+        
+        /* Exchange in case of update and commit */
+        rv = _bcm_petra_port_discard_extend_set(unit, port_i, profile_type, mode, dtag_mode, ac_key_map_type);
+        BCMDNX_IF_ERR_EXIT(rv);
+   }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+/* Set the inlif profile according to kind. */
+/* When ARAD_PP_L2_LIF_PROFILE_TYPE_USER is given the basic/advanced mode is auto detected. */
+STATIC int _bcm_petra_port_inlif_profile_set(
+   const int unit, 
+   const bcm_port_t port, 
+   const uint32 arg, 
+   const SOC_OCC_MGMT_INLIF_APP kind,
+
+   /* Allocated lif_info */
+   SOC_PPD_LIF_ENTRY_INFO *lif_info)
+{
+  int rv = BCM_E_NONE;
+  int global_lif_id, local_lif_id;
+  int fec_id;
+  int is_local;
+  uint32 * mapped_val_p = NULL;
+  int soc_sand_dev_id = (unit);
+  uint32 soc_sand_rv;
+
+  BCMDNX_INIT_FUNC_DEFS;
+
+  BCM_DPP_UNIT_CHECK(unit);
+  /* See if LIF */
+  rv = _bcm_dpp_gport_to_global_and_local_lif(unit,
+                             port,
+                             &global_lif_id,
+                             &local_lif_id,
+                             NULL,
+                             &fec_id,
+                             &is_local);
+  if ((BCM_E_NONE == rv) && (local_lif_id != _BCM_GPORT_ENCAP_ID_LIF_INVALID)) {
+    /* LIF found - update the entry */
+    
+
+    /* Get the info */
+    soc_sand_rv = soc_ppd_lif_table_entry_get(soc_sand_dev_id, local_lif_id, lif_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    /*Combine the unmasked part with the new masked part */
+    switch (lif_info->type) {
+    case SOC_PPC_LIF_ENTRY_TYPE_AC:
+    case SOC_PPD_LIF_ENTRY_TYPE_FIRST_AC_IN_GROUP:
+    case SOC_PPC_LIF_ENTRY_TYPE_MIDDLE_AC_IN_GROUP:
+        mapped_val_p = &lif_info->value.ac.lif_profile;
+        break;
+    case SOC_PPD_LIF_ENTRY_TYPE_PWE:
+        mapped_val_p = &lif_info->value.pwe.lif_profile;
+        break;
+    case SOC_PPD_LIF_ENTRY_TYPE_IP_TUNNEL_RIF:
+        mapped_val_p = &lif_info->value.ip_term_info.lif_profile;
+        break;
+    case SOC_PPD_LIF_ENTRY_TYPE_MPLS_TUNNEL_RIF:
+        mapped_val_p = &lif_info->value.mpls_term_info.lif_profile;
+        break;
+    default:
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Erro: No InLif profile for given lif type")));
+    }
+
+    soc_sand_rv = MBCM_PP_DRIVER_CALL(unit, mbcm_pp_occ_mgmt_app_set, (unit, SOC_OCC_MGMT_TYPE_INLIF, kind, arg, mapped_val_p));
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+
+    /* Update the entry */
+    soc_sand_rv = soc_ppd_lif_table_entry_update(soc_sand_dev_id, local_lif_id, lif_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+  }
+
+exit:
+  BCMDNX_FUNC_RETURN;
+}
+
+/* Get the (part of) inlif profile according to kind. */
+/* When ARAD_PP_L2_LIF_PROFILE_TYPE_USER is given the basic/advanced mode is auto detected. */
+/* The value of the type is returned in arg. */
+/* port must be a lif. */
+STATIC int _bcm_petra_port_inlif_profile_get(
+   const int unit, 
+   const bcm_port_t port, 
+   uint32 *arg, 
+   const SOC_OCC_MGMT_INLIF_APP kind,
+
+   /* Allocated lif_info */
+   SOC_PPD_LIF_ENTRY_INFO *lif_info)
+{
+  int rv = BCM_E_NONE;
+  int lif_id;
+  int fec_id;
+  int is_local;
+  uint32 mapped_val;
+  int soc_sand_dev_id = (unit);
+  uint32 soc_sand_rv;
+  
+  BCMDNX_INIT_FUNC_DEFS;
+
+  /* See if LIF */
+  rv = _bcm_dpp_gport_to_global_and_local_lif(unit,
+                             port,
+                             NULL,
+                             &lif_id,
+                             NULL,
+                             &fec_id,
+                             &is_local);
+  if ((BCM_E_NONE == rv) && (lif_id != _BCM_GPORT_ENCAP_ID_LIF_INVALID)) {
+    /* LIF found - update the entry */
+
+    soc_sand_rv = soc_ppd_lif_table_entry_get(soc_sand_dev_id, lif_id, lif_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    mapped_val = 0;
+    switch (lif_info->type) {
+    case SOC_PPC_LIF_ENTRY_TYPE_AC:
+    case SOC_PPD_LIF_ENTRY_TYPE_FIRST_AC_IN_GROUP:
+    case SOC_PPC_LIF_ENTRY_TYPE_MIDDLE_AC_IN_GROUP:
+        mapped_val = lif_info->value.ac.lif_profile;
+        break;
+    case SOC_PPD_LIF_ENTRY_TYPE_PWE:
+        mapped_val = lif_info->value.pwe.lif_profile;
+        break;
+    case SOC_PPD_LIF_ENTRY_TYPE_IP_TUNNEL_RIF:
+        mapped_val = lif_info->value.ip_term_info.lif_profile;
+        break;
+    case SOC_PPD_LIF_ENTRY_TYPE_MPLS_TUNNEL_RIF:
+        mapped_val = lif_info->value.mpls_term_info.lif_profile;
+        break;
+    default:
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Erro: No InLif profile for given lif type")));
+    }
+
+    soc_sand_rv = (MBCM_PP_DRIVER_CALL(unit,mbcm_pp_occ_mgmt_app_get,(unit, SOC_OCC_MGMT_TYPE_INLIF, kind, &mapped_val, arg)));
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+  }
+
+exit:
+  BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+_bcm_petra_pp_port_control_set(int unit, bcm_port_t port,
+                           bcm_port_control_t type, int value)
+{
+    int rv = BCM_E_NONE, core;
+    uint32    soc_sand_rv;
+    int is_local;
+    bcm_port_t port_ndx = 0;
+    SOC_PPD_PORT soc_ppd_port;
+    SOC_PPD_PORT_INFO  port_info;
+    SOC_PPD_LIF_ENTRY_INFO *lif_info = NULL;
+    SOC_SAND_SUCCESS_FAILURE success = SOC_SAND_FAILURE_UNKNOWN_ERR;
+    SOC_PPD_EG_FILTER_PORT_INFO eg_port_info;
+    SOC_PPD_LLP_SA_AUTH_PORT_INFO sa_auth_port_info;
+    _bcm_petra_port_mact_mgmt_action_profile_t action_profile;
+    int old_template = 0, new_template = 0;
+    int is_last = 0, is_new = 0 ;
+    SOC_PPD_FRWRD_MACT_PORT_INFO frwrd_mact_port_info;
+    SOC_PPD_LIF_ID lif_id;
+    uint8 found;
+    SOC_PPD_L2_LIF_AC_INFO ac_info;
+#ifdef  BCM_ARAD_SUPPORT
+    SOC_TMC_PORT_PP_PORT_INFO pp_port_info;
+    uint32 soc_tm_port = 0;
+    SOC_TMC_PORT_HEADER_TYPE header_type_incoming, header_type_outgoing;    
+#endif
+    SOC_PPD_FP_CONTROL_INFO
+       ctrl_info;
+    SOC_PPD_FP_CONTROL_INDEX
+       ctrl_indx;
+    SOC_SAND_SUCCESS_FAILURE
+        failure_indication;
+    _bcm_dpp_gport_info_t   gport_info;
+    uint32 operations;
+    BCMDNX_INIT_FUNC_DEFS;
+ 
+    /* In case of vlan isolation. ask for system port */
+    operations = (type == bcmPortControlPrivateVlanIsolate) ? _BCM_DPP_GPORT_TO_PHY_OP_RETRIVE_SYS_PORT : 0;
+
+    if (type != bcmPortControlOamDefaultProfile) {
+        
+        rv = _bcm_dpp_gport_to_phy_port(unit, port, operations, &gport_info);
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    if (SOC_DPP_PP_ENABLE(unit)) {
+
+        switch (type)
+        {
+          /* controls can be only on one*/
+          case bcmPortControlMpls:
+          case bcmPortControlIP4:
+          case bcmPortControlIP6:
+          case bcmPortControlIP4Mcast:
+          case bcmPortControlIP6Mcast:
+              if(value != 1) {
+                  rv = BCM_E_UNAVAIL;
+              }
+          break;
+          /* controls can be only on zero */
+          case bcmPortControlDoNotCheckVlan:
+              if(value != 0) {
+                  rv = BCM_E_UNAVAIL;
+              }
+          break;
+          case bcmPortControlFcoeFabricId:
+              if(!SOC_DPP_CONFIG(unit)->pp.fcoe_enable ){
+                  rv = BCM_E_UNAVAIL;
+              } else {
+                  if (value > BCM_DPP_MAX_FCOE_VFT_VALUE) {
+                      BCM_SAND_IF_ERR_EXIT(BCM_E_PARAM);
+                  }
+                  soc_ppd_port = 0;
+                  BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                      BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+                      break;
+                  }
+                  SOC_PPD_FP_CONTROL_INDEX_clear(&ctrl_indx);
+                  SOC_PPD_FP_CONTROL_INFO_clear(&ctrl_info);
+                  ctrl_indx.val_ndx = soc_ppd_port;
+                  ctrl_indx.type = SOC_PPD_FP_CONTROL_TYPE_FLP_PP_PORT_DATA;
+                  value = value << 1; /* one bit is reserved to zero in the vft header */
+                  ctrl_info.val[0] = value;
+                  soc_sand_rv = soc_ppd_fp_control_set(unit,core,&ctrl_indx,&ctrl_info,&failure_indication);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                  SOC_SAND_IF_FAIL_RETURN(failure_indication);
+              }
+          break;
+         case bcmPortControlFcoeNetworkPort:
+            soc_ppd_port = 0;
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+                break;
+            }            
+            soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port, &port_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+            if (port_info.is_n_port == (!value)){
+                break;
+            }else{
+                port_info.is_n_port = (!value);
+                soc_sand_rv = soc_ppd_port_info_set(unit, core, soc_ppd_port, &port_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+            }
+           break;
+          case bcmPortControlMacInMac:
+
+              /* make sure MiM is enabled on the device */
+              MIM_INIT(unit);
+
+              if (value == 0 || value == 1) { /* disable/enable MiM */ 
+                  SOC_PPD_L2_LIF_AC_KEY ac_key;
+
+                  BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                      BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                      soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port, &port_info);
+                      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                      port_info.is_pbp = SOC_SAND_NUM2BOOL(value);
+                      port_info.orientation = (SOC_SAND_NUM2BOOL(value)) ? SOC_SAND_PP_HUB_SPOKE_ORIENTATION_HUB:SOC_SAND_PP_HUB_SPOKE_ORIENTATION_SPOKE;
+ 
+                      /* set default egress AC */
+                      if (SOC_IS_ARAD(unit)) {
+                          if (value == 1) { /* Enable MiM */
+                              /* set out lif is default, set it to MIM default out lif */
+                              if (port_info.dflt_egress_ac == 0) {
+                                  /* point by default to the mim_out_ac */
+                                  port_info.dflt_egress_ac = __dpp_mim_global_out_ac_get(unit);                          
+                              }
+                          }
+                          else { /* Disable MiM */
+                              /* set out lif is default, set it to L2 default out lif */
+                              if (port_info.dflt_egress_ac == __dpp_mim_global_out_ac_get(unit)) {                              
+                                  port_info.dflt_egress_ac = 0;   
+                              }
+                          }
+                      }
+
+                      soc_sand_rv = soc_ppd_port_info_set(unit, core, soc_ppd_port, &port_info);
+                      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                      /* prepare ac_key for lif entry */
+                      SOC_PPD_L2_LIF_AC_KEY_clear(&ac_key);
+                      ac_key.key_type = SOC_PPD_L2_LIF_AC_MAP_KEY_TYPE_PORT;
+                      ac_key.vlan_domain = soc_ppd_port; /* key value is the port_id */
+                      ac_key.core_id = core;
+                      /* Get LIF ID */
+                      SOC_PPD_L2_LIF_AC_INFO_clear(&ac_info);
+                      soc_sand_rv = soc_ppd_l2_lif_ac_get(unit, &ac_key, &lif_id, &ac_info, &found);
+                      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                      if (value == 1) { /* enable MiM */
+
+                          /* Assumption is that if the user has set a default LIF different from the default one in SOC properties,
+                             they know what they're doing. In that case, don't change the default LIF for the port. */
+                          if (lif_id == SOC_DPP_CONFIG(unit)->pp.local_lif_index_simple)
+                          {                              
+                              if (SOC_IS_PETRAB(unit)) {
+                                  ac_info.vsid                        = 0x3fff; /* VSI = -1: VSI is equal to initial-VID */
+                              }
+                              else { /* ARAD VSI assignment mode */
+                                  /* B-VSI = B-VID + 4 upper bits set (base) */
+                                  ac_info.vsid                        = _BCM_DPP_VLAN_TO_BVID(0);
+                                  ac_info.vsi_assignment_mode         = SOC_PPC_VSI_EQ_IN_VID_PLUS_VSI_BASE;
+                              }
+
+                              ac_info.service_type = SOC_PPD_L2_LIF_AC_SERVICE_TYPE_MP;
+                              ac_info.default_frwrd.default_frwd_type = SOC_PPD_L2_LIF_DFLT_FRWRD_SRC_VSI;
+                              ac_info.default_frwrd.default_forwarding.type = SOC_PPD_FRWRD_DECISION_TYPE_UC_PORT;
+                              ac_info.default_frwrd.default_forwarding.dest_id = soc_ppd_port;
+                              ac_info.learn_record.learn_type = SOC_PPD_L2_LIF_AC_LEARN_INFO;
+                              ac_info.learn_record.learn_info.type = SOC_PPD_FRWRD_DECISION_TYPE_UC_PORT;
+                              ac_info.learn_record.learn_info.additional_info.outlif.type = SOC_PPD_OUTLIF_ENCODE_TYPE_AC;
+                              ac_info.orientation = SOC_SAND_PP_HUB_SPOKE_ORIENTATION_SPOKE;
+
+                              soc_sand_rv = soc_ppd_l2_lif_ac_add(unit, &ac_key, SOC_DPP_CONFIG(unit)->pp.mim_local_lif_ndx, &ac_info, &success);
+                              BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                              SOC_SAND_IF_FAIL_RETURN(success);
+                          }                 
+                      }
+                      else { /* disable MiM */
+
+                          /* if the user has set a default LIF different than the default LIF in SOC properties, don't change the
+                             default LIF for the port. */
+                          if (lif_id == SOC_DPP_CONFIG(unit)->pp.mim_local_lif_ndx) {
+                              BCMDNX_ALLOC(lif_info, sizeof(SOC_PPD_LIF_ENTRY_INFO), "_bcm_petra_pp_port_control_set.lif_info"); 
+                              if (lif_info == NULL) {
+                                  BCMDNX_ERR_EXIT_MSG(BCM_E_MEMORY, (_BSL_BCM_MSG("Memory allocation failure")));
+                              }
+                              /* get LIF=0 info */
+                              soc_sand_rv = soc_ppd_lif_table_entry_get(unit, 0, lif_info);
+                              BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                              /* update existing lif entry */
+                              soc_sand_rv = soc_ppd_l2_lif_ac_add(unit, &ac_key, 0, &(lif_info->value.ac), &success);
+                              BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                              SOC_SAND_IF_FAIL_EXIT(success);
+                          }
+                      }
+                  }
+              }
+              else {
+                  BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("invalid value %d"), value));
+              }
+              break;  
+#ifdef BCM_CMICM_SUPPORT  
+        case bcmPortControlL2Move:
+          {
+            if (SOC_IS_ARAD(unit)) {
+              if ((SOC_MAC_LIMIT_PER_TUNNEL_ENABLE_GET(unit)) && SOC_DPP_CONFIG(unit)->pp.pon_application_enable) {
+                if (value == 0 || value == 1) {
+                  if (_BCM_DPP_GPORT_INFO_IS_LAG(gport_info)) {
+                    rv = shr_llm_msg_mac_move_set(unit, gport_info.sys_port, value);
+                    BCMDNX_IF_ERR_EXIT(rv);
+                  } else {
+                    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                      rv = soc_port_sw_db_local_to_tm_port_get(unit, port_ndx, &soc_ppd_port, &core);
+                      BCMDNX_IF_ERR_EXIT(rv);
+                      rv = shr_llm_msg_mac_move_set(unit, soc_ppd_port, value);
+                      BCMDNX_IF_ERR_EXIT(rv);
+                    }
+                  }
+                } else {
+                  BCMDNX_ERR_EXIT_MSG(_SHR_E_PARAM, (_BSL_BCM_MSG("invalid value %d"), value));
+                }
+              }
+            }
+          }
+          break;
+#endif
+        case bcmPortControlDiscardMacSaAction:
+          {
+
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+              BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+              
+              SOC_PPD_FRWRD_MACT_PORT_INFO_clear(&frwrd_mact_port_info);
+
+              /* Convert flags to action profile */
+              if (value == BCM_PORT_CONTROL_DISCARD_MACSA_NONE) {
+                action_profile = _bcm_petra_port_mact_mgmt_action_profile_none;
+              } else if (value == BCM_PORT_CONTROL_DISCARD_MACSA_TRAP) {
+                action_profile = _bcm_petra_port_mact_mgmt_action_profile_trap;
+              } else if (value == BCM_PORT_CONTROL_DISCARD_MACSA_DROP) {
+                action_profile = _bcm_petra_port_mact_mgmt_action_profile_drop;
+              } else if (value == (BCM_PORT_CONTROL_DISCARD_MACSA_DROP | BCM_PORT_CONTROL_DISCARD_MACSA_TRAP)) {
+                action_profile = _bcm_petra_port_mact_mgmt_action_profile_trap_and_drop;
+              } else {           
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: bcmPortControlDiscardMacSaAction failed, given incorrect value %d unit %d"), FUNCTION_NAME(), value, unit));
+              }
+              rv = _bcm_dpp_am_template_port_mact_sa_drop_exchange(unit,core,soc_ppd_port,&action_profile,&old_template,&is_last,&new_template,&is_new);
+              BCMDNX_IF_ERR_EXIT(rv);
+
+              if (old_template != new_template)
+              {
+                /* Set mapping in HW */
+                soc_sand_rv = soc_ppd_frwrd_mact_port_info_get(unit,core,soc_ppd_port,&frwrd_mact_port_info);
+                rv = handle_sand_result(soc_sand_rv); 
+                if (rv == BCM_E_NONE) { 
+                  /* All OK go on */
+                  frwrd_mact_port_info.sa_drop_action_profile = new_template;
+                  soc_sand_rv = soc_ppd_frwrd_mact_port_info_set(unit,core,soc_ppd_port,&frwrd_mact_port_info);
+                  rv = handle_sand_result(soc_sand_rv);
+                } 
+
+                if (rv != BCM_E_NONE) {
+                  /* Roll back there is a fail in the process of commit. */
+                  rv = _bcm_dpp_am_template_port_mact_sa_drop_exchange(unit,core,soc_ppd_port,&action_profile,&old_template,&is_last,&new_template,&is_new);
+                  BCMDNX_IF_ERR_EXIT(rv);
+
+                  BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("%s: sa drop failed on SW set rv %d, unit %d"),FUNCTION_NAME(), rv, unit)); /* returns BCM_E_NONE */
+                }            
+              }
+            }
+          }
+          break;
+        case bcmPortControlUnknownMacDaAction:
+          {
+
+            /* Petra-B only */
+            if (!SOC_IS_PETRAB(unit)) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Petra-B only"))); 
+            }
+
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+              BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+              
+              SOC_PPD_FRWRD_MACT_PORT_INFO_clear(&frwrd_mact_port_info);
+
+              /* Convert flags to action profile */
+              if (value == BCM_PORT_CONTROL_UNKNOWN_MACDA_NONE) {
+                action_profile = _bcm_petra_port_mact_mgmt_action_profile_none;
+              } else if (value == BCM_PORT_CONTROL_UNKNOWN_MACDA_TRAP) {
+                action_profile = _bcm_petra_port_mact_mgmt_action_profile_trap;
+              } else if (value == BCM_PORT_CONTROL_UNKNOWN_MACDA_DROP) {
+                action_profile = _bcm_petra_port_mact_mgmt_action_profile_drop;
+              } else if (value == (BCM_PORT_CONTROL_UNKNOWN_MACDA_DROP | BCM_PORT_CONTROL_UNKNOWN_MACDA_TRAP)) {
+                action_profile = _bcm_petra_port_mact_mgmt_action_profile_trap_and_drop;
+              } else {           
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: bcmPortControlDiscardMacSaAction failed, given incorrect value %d unit %d"), FUNCTION_NAME(), value, unit));
+              }
+              rv = _bcm_dpp_am_template_port_mact_da_unknown_exchange(unit,core,soc_ppd_port,&action_profile,&old_template,&is_last,&new_template,&is_new);
+              BCMDNX_IF_ERR_EXIT(rv);
+
+              if (old_template != new_template)
+              {
+                /* Set mapping in HW */
+                soc_sand_rv = soc_ppd_frwrd_mact_port_info_get(unit,core,soc_ppd_port,&frwrd_mact_port_info);
+                rv = handle_sand_result(soc_sand_rv); 
+                if (rv == BCM_E_NONE) { 
+                  /* All OK go on */
+                  frwrd_mact_port_info.da_unknown_action_profile = new_template;
+                  soc_sand_rv = soc_ppd_frwrd_mact_port_info_set(unit,core,soc_ppd_port,&frwrd_mact_port_info);
+                  rv = handle_sand_result(soc_sand_rv);
+                } 
+
+                if (rv != BCM_E_NONE) {
+                  /* Roll back there is a fail in the process of commit. */
+                  rv = _bcm_dpp_am_template_port_mact_da_unknown_exchange(unit,core,soc_ppd_port,&action_profile,&old_template,&is_last,&new_template,&is_new);
+                  BCMDNX_IF_ERR_EXIT(rv);
+
+                  BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("%s: sa drop failed on SW set rv %d, unit %d"),FUNCTION_NAME(), rv, unit)); /* returns BCM_E_NONE */
+                }   
+              }
+            }
+          }
+          break;
+        case bcmPortControlPrivateVlanIsolate:
+          {
+            SOC_PPD_EG_FILTER_PVLAN_PORT_TYPE pvlan_type;
+            SOC_SAND_PP_SYS_PORT_ID pp_sys_port;
+            SOC_TMC_DEST_INFO tm_dest_info;
+
+            if (!SOC_DPP_CONFIG(unit)->pp.pvlan_enable) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("pvlan_enable not enabled")));
+            }              
+
+            /* Convert value to pvlan type */
+            if (value == 0) {           
+                pvlan_type = SOC_PPD_EG_FILTER_PVLAN_PORT_TYPE_COMMUNITY;
+            } else if (value == 1){
+                pvlan_type = SOC_PPD_EG_FILTER_PVLAN_PORT_TYPE_ISOLATED;
+            } else if (value == 2){
+                pvlan_type = SOC_PPD_EG_FILTER_PVLAN_PORT_TYPE_PROMISCUOUS;
+            } else {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("pvlan value is invalid")));
+            }
+
+            soc_sand_SAND_PP_SYS_PORT_ID_clear(&pp_sys_port);
+            SOC_TMC_DEST_INFO_clear(&tm_dest_info);
+
+            rv = _bcm_dpp_gport_to_tm_dest_info(unit,port,&tm_dest_info);
+            BCMDNX_IF_ERR_EXIT(rv);
+
+            if(tm_dest_info.type == SOC_TMC_DEST_TYPE_SYS_PHY_PORT) {
+                pp_sys_port.sys_port_type = SOC_SAND_PP_SYS_PORT_TYPE_SINGLE_PORT;
+                pp_sys_port.sys_id = tm_dest_info.id;
+            }
+            else if(tm_dest_info.type == SOC_TMC_DEST_TYPE_LAG) {
+                pp_sys_port.sys_port_type = SOC_SAND_PP_SYS_PORT_TYPE_LAG;
+                pp_sys_port.sys_id = tm_dest_info.id;
+            }
+            else{
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("tm_dest_info.type %d is invalid"), tm_dest_info.type));
+            }
+            BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, gport_info.local_port, &soc_ppd_port, &core)));
+            
+            soc_sand_rv = soc_ppd_eg_filter_pvlan_port_type_set(unit,&pp_sys_port,pvlan_type);
+            SOC_SAND_IF_ERROR_RETURN(soc_sand_rv);
+          }
+          break;
+        
+        case bcmPortControlBridge: 
+          {
+            SOC_PPD_EG_FILTER_PORT_INFO eg_port_info;
+
+            if (BCM_GPORT_IS_VLAN_PORT(port)) {
+              int simple_mode = soc_property_get(unit, spn_BCM886XX_LOGICAL_INTERFACE_BRIDGE_FILTER_ENABLE, 0);
+
+              BCMDNX_ALLOC(lif_info, sizeof(SOC_PPD_LIF_ENTRY_INFO), "_bcm_petra_pp_port_control_set.lif_info");
+              if (lif_info == NULL) {        
+                BCMDNX_ERR_EXIT_MSG(BCM_E_MEMORY, (_BSL_BCM_MSG("failed to allocate memory")));
+              }
+
+              if (value < 0 || value > 1) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid arg (may only be 0 or 1)")));
+              }
+
+              /* User value == 0 means disable, however the bit itself signifies disable if set for soc layer.*/
+              /* Flip the values. */
+              value = (value == 0) ? 1 : 0;
+
+              if (simple_mode) {
+
+                /* Simple mode -- Enable proper bit in inlif profile. */
+                /* 1 - disable, 0 - enable*/
+                rv = _bcm_petra_port_inlif_profile_set(unit, port, value, SOC_OCC_MGMT_INLIF_APP_SIMPLE_SAME_INTERFACE, lif_info);
+                BCMDNX_IF_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("failed setting the inlif profile")));
+
+              } else {
+
+#ifdef BCM_88660_A0
+                if (SOC_IS_ARADPLUS(unit)) {
+                  /* Advanced mode */
+                  /* Get the inlif profile and disable same if for it. */
+                  uint32 mask;
+                  SOC_PPC_EG_FILTER_GLOBAL_INFO info;
+                  uint32 inlif_profile;
+
+                  /* We take the user inlif profile (whichever part of the whole it is) and disable same i/f filter for it. */
+                  /* This is done only for the 2 lsbs (since only those are passed to egress) */
+                  rv = _bcm_petra_port_inlif_profile_get(unit, port, &inlif_profile, SOC_OCC_MGMT_APP_USER, lif_info);
+                  BCMDNX_IF_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("failed getting the inlif profile")));
+
+                  BCMDNX_VERIFY(inlif_profile <= BCM_PORT_INLIF_PROFILE_MAX);
+                  inlif_profile &= BCM_PORT_INLIF_PROFILE_PASSED_TO_EGRESS_MASK;
+
+                  mask = (1 << inlif_profile);
+                  SOC_PPC_EG_FILTER_GLOBAL_INFO_clear(&info);
+                  soc_sand_rv = soc_ppd_eg_filter_global_info_get(unit, &info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                  /* 0 - Enable same i/f. */
+                  if (value == 0) {
+                    info.in_lif_profile_disable_same_interface_filter_bitmap &= ~mask;
+                  } else {
+                    info.in_lif_profile_disable_same_interface_filter_bitmap |= mask;
+                  }
+
+                  soc_sand_rv = soc_ppd_eg_filter_global_info_set(unit, &info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                }
+#endif /* BCM_88660_A0 */
+
+              }
+
+            } else {
+                BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+
+                  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                  SOC_PPD_EG_FILTER_PORT_INFO_clear(&eg_port_info);                
+                  soc_sand_rv = soc_ppd_eg_filter_port_info_get(unit, core, soc_ppd_port, &eg_port_info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                  if (value == 1) {
+                      eg_port_info.filter_mask |= SOC_PPD_EG_FILTER_PORT_ENABLE_SAME_INTERFACE;
+                  } else if (value == 0) {
+                      eg_port_info.filter_mask &= ~SOC_PPD_EG_FILTER_PORT_ENABLE_SAME_INTERFACE;
+                  } else {
+                      BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid value %d"),value));
+                  }
+                  soc_sand_rv = soc_ppd_eg_filter_port_info_set(unit, core, soc_ppd_port, &eg_port_info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                }
+            }
+          }
+          break;
+        case bcmPortControlFloodBroadcastGroup:
+        case bcmPortControlFloodUnknownMcastGroup:
+        case bcmPortControlFloodUnknownUcastGroup:
+          {
+            /* Flooding per Port (or LIF) is ARAD only functionality */
+            if (SOC_IS_ARAD(unit)) {
+                int is_lif_flooding = FALSE;
+                int is_port_flooding = FALSE;
+                int lif_index = 0;
+                bcm_multicast_t bc, mc, uc;
+                int gport_type, gport_val;
+                int fec_id;
+                
+                rv = _bcm_dpp_gport_parse(unit,port,&gport_type, &gport_val, NULL);
+                BCMDNX_IF_ERR_EXIT(rv);
+
+                if (gport_type == _BCM_DPP_GPORT_TYPE_SIMPLE) {
+                    /* Flooding is per port */
+                    is_port_flooding = TRUE;      
+                } else {
+                    /* VLAN or MPLS Port GPORT - retreive LIF index directly */
+                    if (BCM_GPORT_IS_VLAN_PORT(port) || BCM_GPORT_IS_MPLS_PORT(port)) {
+                        is_lif_flooding = TRUE;
+                        rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, &lif_index, NULL, &fec_id, &is_local);
+                        BCMDNX_IF_ERR_EXIT(rv);
+
+                        if (!is_local) {
+                          /* API is releavant only for local configuration */
+                          BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unexpected lif index. should be local only")));
+                        }
+                    }
+                }
+
+                rv = _bcm_petra_vlan_flooding_per_lif_get(unit, port, lif_index, is_port_flooding,
+                                     is_lif_flooding, &uc, &mc, &bc);                
+                BCMDNX_IF_ERR_EXIT(rv);
+
+                /* Offset only */
+                switch (type) {
+                case bcmPortControlFloodBroadcastGroup:
+                  bc = value;
+                  break;
+                case bcmPortControlFloodUnknownMcastGroup:
+                  mc = value;
+                  break;
+                case bcmPortControlFloodUnknownUcastGroup:
+                  uc = value;
+                  break;
+                /* We mast the default - without the default - compilation error */
+                /* coverity[dead_error_begin] */
+                default:
+                  BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("unexpected type")));
+                  break;
+                }
+
+                /* Set flooding */
+                rv = _bcm_petra_vlan_flooding_per_lif_set(unit, port, lif_index, is_port_flooding,
+                                     is_lif_flooding, uc, mc, bc);
+                BCMDNX_IF_ERR_EXIT(rv);
+            } else {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Flooding per port is not supported for this device")));
+            }
+          }
+          break;
+        case bcmPortControlTrillDesignatedVlan: 
+          {
+              uint8                                     accept;
+              SOC_SAND_PP_VLAN_ID                       vid;
+              int                                       update = 0;
+              BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+
+                  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                  if (SOC_IS_ARAD(unit)) {
+                      uint32 trill_disable_designated_vlan_check;
+                      int local_lif_index = 0;
+                      SOC_PPD_LIF_ID lif_index_o = 0;
+                      SOC_PPD_L2_LIF_AC_KEY ac_key;
+
+                      trill_disable_designated_vlan_check = soc_property_get(unit, spn_TRILL_DESIGNATED_VLAN_CHECK_DISABLE, 0);
+                      if ((!trill_disable_designated_vlan_check) && ((SOC_DPP_CONFIG(unit))->trill.designated_vlan_inlif_enable)) {
+                          soc_sand_rv = soc_ppd_llp_filter_designated_vlan_get(unit, core, soc_ppd_port, &vid, 
+                                                                        &accept);
+                          BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                          if ((vid != 0) && (vid != value)) {
+                              update = 1;
+                          }
+
+                          local_lif_index = SOC_DPP_STATE(unit)->trill_state->trill_global_in_lif;
+                          if ((local_lif_index != -1) && (vid != value)) {
+                              soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port, &port_info);
+                              BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                              if (update) {
+                                  SOC_PPD_L2_LIF_AC_KEY_clear(&ac_key);
+                                  ac_key.vlan_domain = port_info.vlan_domain;
+                                  ac_key.key_type = SOC_PPD_L2_LIF_AC_MAP_KEY_TYPE_TRILL_DESIGNATED_VLAN;
+                                  ac_key.outer_vid = vid;
+                                  ac_key.core_id = core;
+                                  soc_sand_rv = soc_ppd_l2_lif_ac_remove(unit, &ac_key, &lif_index_o);
+                                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                              }
+
+                              SOC_PPD_L2_LIF_AC_KEY_clear(&ac_key);
+                              ac_key.vlan_domain = port_info.vlan_domain;
+                              ac_key.key_type = SOC_PPD_L2_LIF_AC_MAP_KEY_TYPE_TRILL_DESIGNATED_VLAN;
+                              ac_key.outer_vid = value;
+                              ac_key.core_id = core;
+
+                              SOC_PPD_L2_LIF_AC_INFO_clear(&ac_info);
+
+                              ac_info.use_lif = 1;
+                              ac_info.service_type = SOC_PPD_L2_LIF_AC_SERVICE_TYPE_MP;
+                              ac_info.orientation  = SOC_SAND_PP_HUB_SPOKE_ORIENTATION_SPOKE;
+                              ac_info.vsid         = value;
+                              ac_info.learn_record.learn_type = SOC_PPD_L2_LIF_AC_LEARN_SYS_PORT;
+                              ac_info.default_frwrd.default_frwd_type = SOC_PPD_L2_LIF_DFLT_FRWRD_SRC_VSI;
+                              ac_info.global_lif = SOC_DPP_STATE(unit)->trill_state->trill_global_in_lif;
+
+                              soc_sand_rv = soc_ppd_l2_lif_ac_add(unit, &ac_key, local_lif_index, &ac_info, &success);
+                              BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                              SOC_SAND_IF_FAIL_RETURN(success);
+                          }
+                      }
+                  }
+                  soc_sand_rv = soc_ppd_llp_filter_designated_vlan_set(unit, core, soc_ppd_port, value, 
+                                                                TRUE, &success);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                  SOC_SAND_IF_FAIL_RETURN(success);
+              }        
+          }
+          break;
+        case bcmPortControlL2SaAuthenticaion:
+        {
+            
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+                SOC_PPD_LLP_SA_AUTH_PORT_INFO_clear(&sa_auth_port_info);
+                sa_auth_port_info.sa_auth_enable = (value!=0)?TRUE:FALSE;
+                soc_sand_rv = soc_ppd_llp_sa_auth_port_info_set(unit, core, soc_ppd_port, &sa_auth_port_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+            }
+        }
+        break;
+        case bcmPortControlLocalSwitching:
+          {
+            int lif_id, fec_id, is_local;
+            SOC_PPD_LIF_ENTRY_INFO lif_info;
+
+            if (SOC_DPP_CONFIG(unit)->pp.local_switching_enable == 0) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("soc property local_switch_enable is disable")));
+            }
+
+            rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, &lif_id, NULL, &fec_id, &is_local);
+            BCMDNX_IF_ERR_EXIT(rv);
+            
+            if (!is_local) {
+                /* API is releavant only for local configuration */
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unexpected lif index. should be local only")));
+            }
+         
+            soc_sand_rv = soc_ppd_lif_table_entry_get(unit, lif_id, &lif_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+            if (lif_info.type != SOC_PPC_LIF_ENTRY_TYPE_AC) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Invalid lif index.")));
+            }
+
+            if (value == 1){
+                /* Enable local switching in AC */
+                lif_info.value.ac.cos_profile |= SOC_PPD_LIF_AC_LOCAL_SWITCHING_COS_PROFILE;
+            }else {
+                /* Disable local switching in AC */
+                lif_info.value.ac.cos_profile &= ~SOC_PPD_LIF_AC_LOCAL_SWITCHING_COS_PROFILE;
+            }
+                
+            /* update existing lif entry */
+            soc_sand_rv = soc_ppd_lif_table_entry_update(unit, lif_id, &lif_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+          }
+          break;
+        case bcmPortControlTrill: 
+          {
+              SOC_PPD_LLP_VID_ASSIGN_PORT_INFO              vid_assign_port_info;
+              int                                           lif_id;
+              
+              BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+              
+                BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                if (value && ((SOC_DPP_CONFIG(unit))->trill.designated_vlan_inlif_enable)) {
+                    lif_id = SOC_DPP_STATE(unit)->trill_state->trill_global_in_lif;
+                    if (lif_id == -1) {
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_CONFIG, (_BSL_BCM_MSG("In case of trill designated VLAN inlif enabled, trill ports all should set the specific lif IDs")));
+                    }
+                }
+       
+                soc_sand_rv = soc_ppd_llp_vid_assign_port_info_get(unit, core, soc_ppd_port, &vid_assign_port_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        
+                if (SOC_IS_PETRAB(unit)) { 
+                    soc_sand_rv = soc_ppd_llp_sa_auth_port_info_get(unit, core, soc_ppd_port, &sa_auth_port_info);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                }
+        
+                soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port, &port_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                vid_assign_port_info.enable_sa_based = value;
+
+                if (SOC_IS_PETRAB(unit)) { 
+                    sa_auth_port_info.sa_auth_enable = value;
+                }
+
+                if (value) {
+
+                    soc_sand_rv = soc_ppd_llp_vid_assign_port_info_set(unit, core, soc_ppd_port, &vid_assign_port_info);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                    if (SOC_IS_PETRAB(unit)) { 
+                        soc_sand_rv = soc_ppd_llp_sa_auth_port_info_set(unit, core, soc_ppd_port, &sa_auth_port_info);
+                        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);  
+                    }
+                    
+                    port_info.vlan_translation_profile = (port_info.vlan_translation_profile == SOC_PPC_PORT_DEFINED_VT_PROFILE_USE_INITIAL_VID) ? \
+                        SOC_PPD_PORT_DEFINED_VT_PROFILE_TRILL_USE_INITIAL_VID:SOC_PPD_PORT_DEFINED_VT_PROFILE_TRILL;
+                } else {
+                    if (SOC_IS_PETRAB(unit)) { 
+                        soc_sand_rv = soc_ppd_llp_sa_auth_port_info_set(unit, core, soc_ppd_port, &sa_auth_port_info);
+                        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);  
+                    }
+
+                    soc_sand_rv = soc_ppd_llp_vid_assign_port_info_set(unit, core, soc_ppd_port, &vid_assign_port_info);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+
+                    port_info.vlan_translation_profile = (port_info.vlan_translation_profile == SOC_PPC_PORT_DEFINED_VT_PROFILE_TRILL_USE_INITIAL_VID) ? \
+                        SOC_PPD_PORT_DEFINED_VT_PROFILE_USE_INITIAL_VID: SOC_PPD_PORT_DEFINED_VT_PROFILE_DEFAULT;
+                }
+                soc_sand_rv = soc_ppd_port_info_set(unit, core, soc_ppd_port, &port_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+            }
+          }
+          break;
+        case bcmPortControlMplsExplicitNullEnable: 
+          {
+          
+            if (!SOC_DPP_CONFIG(unit)->pp.explicit_null_support) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Explicit null is not supported")));
+            }
+
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port, &port_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                if (value) {
+                  port_info.vlan_translation_profile = (port_info.vlan_translation_profile == SOC_PPC_PORT_DEFINED_VT_PROFILE_IGNORE_2ND_TAG) ? \
+                        SOC_PPC_PORT_DEFINED_VT_PROFILE_IGNORE_2ND_TAG_EXPLICIT_NULL: SOC_PPC_PORT_DEFINED_VT_PROFILE_EXPLICIT_NULL;
+                  port_info.tunnel_termination_profile = SOC_PPC_PORT_DEFINED_TT_PROFILE_EXPLICIT_NULL;
+                } else {
+                  port_info.vlan_translation_profile = (port_info.vlan_translation_profile == SOC_PPC_PORT_DEFINED_VT_PROFILE_IGNORE_2ND_TAG_EXPLICIT_NULL) ? \
+                        SOC_PPC_PORT_DEFINED_VT_PROFILE_IGNORE_2ND_TAG: SOC_PPC_PORT_DEFINED_VT_PROFILE_DEFAULT;
+                  port_info.tunnel_termination_profile = SOC_PPC_PORT_DEFINED_TT_PROFILE_DEFAULT;
+                }
+                
+
+
+                soc_sand_rv = soc_ppd_port_info_set(unit, core, soc_ppd_port, &port_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+            }
+          }
+          break;
+        case bcmPortControlPreservePacketPriority: 
+          {
+              uint8                                     transmit_outer_tag;
+
+              transmit_outer_tag = (value != 0);
+              BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+
+                  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                  soc_sand_rv = soc_ppd_eg_vlan_edit_port_vlan_transmit_outer_tag_set(unit, core, soc_ppd_port, 0, transmit_outer_tag);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+              }
+          }
+          break;
+        case bcmPortControlMplsFRREnable:
+        case bcmPortControlMplsContextSpecificLabelEnable:
+          {
+
+              if (SOC_IS_PETRAB(unit)) {
+                  BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("FRR, Coupling is not supported for this device")));
+              }
+
+              BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+
+                  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                  soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port, &port_info);
+
+                  if (value) { /* In case of enable */
+                    switch (port_info.vlan_translation_profile) {
+                    case SOC_PPD_PORT_DEFINED_VT_PROFILE_DOUBLE_TAG_PRIORITY_INITIAL_VID:
+                        if (SOC_DPP_CONFIG(unit)->pp.mpls_databases[0] != 0) { /* MPLS (and FRR) on Double lookup avaiable in case MPLS is in ISEM-A only */
+                           BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("FRR and Double lookup is not enabled in case MPLS Database is in ISEM-B"))); 
+                        }                        
+                        port_info.vlan_translation_profile = SOC_PPD_PORT_DEFINED_VT_PROFILE_FRR_COUPLING_DOUBLE_TAG_PRIORITY_USE_INITIAL_VID;
+                        break;
+                    case SOC_PPD_PORT_DEFINED_VT_PROFILE_DOUBLE_TAG_PRIORITY:
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("FRR and Double lookup is not enabled in case Port does not support initial-vid only"))); 
+                        break;
+                    case SOC_PPD_PORT_DEFINED_VT_PROFILE_TRILL:
+                    case SOC_PPD_PORT_DEFINED_VT_PROFILE_TRILL_USE_INITIAL_VID:
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Port can not support Trill and FRR-Coupling functionality")));
+                        break;
+                    case SOC_PPD_PORT_DEFINED_VT_PROFILE_USE_INITIAL_VID: /* Support both ignore initial vid and FRR-Coupling */
+                        port_info.vlan_translation_profile = SOC_PPD_PORT_DEFINED_VT_PROFILE_FRR_COUPLING_USE_INITIAL_VID;
+                        break;   
+                    default:
+                        port_info.vlan_translation_profile = SOC_PPD_PORT_DEFINED_VT_PROFILE_FRR_COUPLING;
+                        break;
+                    }
+
+                    switch (port_info.tunnel_termination_profile) {
+                    default:
+                        port_info.tunnel_termination_profile = SOC_PPD_PORT_DEFINED_TT_PROFILE_FRR_COUPLING;
+                        break;
+                    } 
+                                     
+                  } else { /* In case of disable */
+                    switch (port_info.vlan_translation_profile) {
+                    case SOC_PPD_PORT_DEFINED_VT_PROFILE_FRR_COUPLING_USE_INITIAL_VID: /* Disable FRR-Coupling for initial VID */
+                        port_info.vlan_translation_profile = SOC_PPD_PORT_DEFINED_VT_PROFILE_USE_INITIAL_VID;
+                        break;                    
+                    case SOC_PPD_PORT_DEFINED_VT_PROFILE_FRR_COUPLING: 
+                        port_info.vlan_translation_profile = SOC_PPD_PORT_DEFINED_VT_PROFILE_DEFAULT;
+                        break;   
+                    case SOC_PPD_PORT_DEFINED_VT_PROFILE_FRR_COUPLING_DOUBLE_TAG_PRIORITY_USE_INITIAL_VID:
+                        port_info.vlan_translation_profile = SOC_PPD_PORT_DEFINED_VT_PROFILE_DOUBLE_TAG_PRIORITY_INITIAL_VID;
+                        break;
+                    default:
+                        /* Don't touch */
+                        break;
+                    }  
+
+                    switch (port_info.tunnel_termination_profile) {                    
+                    case SOC_PPD_PORT_DEFINED_TT_PROFILE_FRR_COUPLING:
+                        port_info.tunnel_termination_profile = SOC_PPD_PORT_DEFINED_TT_PROFILE_DEFAULT;
+                        break;
+                    default:
+                        /* Don't touch */
+                        break;
+                    }  
+                  }                  
+                  
+                  soc_sand_rv = soc_ppd_port_info_set(unit, core, soc_ppd_port, &port_info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+              }
+          }
+          break;
+        case bcmPortControlEgressFilterDisable:
+          {
+
+              /* verify value */
+              if (value & ~(BCM_PORT_CONTROL_FILTER_DISABLE_UNKNOWN_DA_UC | BCM_PORT_CONTROL_FILTER_DISABLE_UNKNOWN_DA_MC | BCM_PORT_CONTROL_FILTER_DISABLE_DA_BC)) {
+                  BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("unit %d, Invalid value parameter 0x%x"), unit, value));
+              }
+
+              /* API supports multiple ports, but in this case only the first port will be handled */
+              BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+                
+                  soc_sand_rv = soc_ppd_eg_filter_port_info_get(unit, core, soc_ppd_port, &eg_port_info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                  /* Enable all filters */
+                  eg_port_info.filter_mask |= (SOC_PPD_EG_FILTER_PORT_ENABLE_UC_UNKNOW_DA | SOC_PPD_EG_FILTER_PORT_ENABLE_MC_UNKNOW_DA | SOC_PPD_EG_FILTER_PORT_ENABLE_BC_UNKNOW_DA);
+
+                  /* Remove per indication */
+                  if (value & BCM_PORT_CONTROL_FILTER_DISABLE_UNKNOWN_DA_UC) {
+                      eg_port_info.filter_mask &= ~SOC_PPD_EG_FILTER_PORT_ENABLE_UC_UNKNOW_DA;
+                  }
+
+                  if (value & BCM_PORT_CONTROL_FILTER_DISABLE_UNKNOWN_DA_MC) {
+                      eg_port_info.filter_mask &= ~SOC_PPD_EG_FILTER_PORT_ENABLE_MC_UNKNOW_DA;
+                  }
+
+                  if (value & BCM_PORT_CONTROL_FILTER_DISABLE_DA_BC) {
+                      eg_port_info.filter_mask &= ~SOC_PPD_EG_FILTER_PORT_ENABLE_BC_UNKNOW_DA;
+                  }
+
+                  soc_sand_rv = soc_ppd_eg_filter_port_info_set(unit, core, soc_ppd_port, &eg_port_info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+              }
+          }
+          break;
+          case bcmPortControlOverlayRecycle:
+          {
+              SOC_TMC_PORTS_PROGRAMS_INFO programs_info;
+
+              SOC_TMC_PORTS_PROGRAMS_INFO_clear(&programs_info);
+
+              if (SOC_IS_PETRAB(unit)) {
+                  rv = BCM_E_UNAVAIL;       
+                  break;
+              }
+
+#ifdef  BCM_ARAD_SUPPORT
+              if (SOC_IS_ARAD(unit)) {
+                  BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                      if (IS_RCY_PORT(unit,port_ndx)) {
+                          
+                          BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+                                             
+                          SOC_TMC_PORT_PP_PORT_INFO_clear(&pp_port_info);
+                          BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_pp_port_get,(unit, core, soc_ppd_port, &pp_port_info)));
+
+                          /* If header_type is INGECTED_2(PP)*/
+                          soc_sand_rv = arad_port_header_type_get(unit, core, soc_ppd_port, &header_type_incoming, &header_type_outgoing); 
+                          BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                          if ((header_type_incoming == SOC_TMC_PORT_HEADER_TYPE_INJECTED_2) || (header_type_incoming == SOC_TMC_PORT_HEADER_TYPE_INJECTED_2_PP)) {
+                              pp_port_info.flags |= SOC_TMC_PORT_PP_PORT_RCY_OVERLAY_PTCH;
+
+                              BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_pp_port_set,(unit, core, soc_ppd_port, &pp_port_info, &success)));
+                              SOC_SAND_IF_FAIL_RETURN(success);
+                          }
+
+                          BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_tm_port_get(unit, port_ndx, &soc_tm_port, &core));
+
+                          /* Set other programs profiles */                      
+                          BCM_SAND_IF_ERR_EXIT(arad_ports_programs_info_get(unit, soc_tm_port, &programs_info));
+                          programs_info.ptc_vt_profile  = ARAD_PORTS_VT_PROFILE_OVERLAY_RCY;
+                          programs_info.ptc_tt_profile  = ARAD_PORTS_TT_PROFILE_OVERLAY_RCY;
+                          programs_info.ptc_flp_profile = ARAD_PORTS_FLP_PROFILE_OVERLAY_RCY;
+						
+						  if ( soc_property_port_suffix_num_get(unit, port_ndx, -1,spn_CUSTOM_FEATURE,"rpf_failing_recycle_enable", FALSE)==1 ) {
+							  programs_info.ptc_vt_profile  = ARAD_PORTS_VT_PROFILE_NONE;
+							  programs_info.ptc_tt_profile  = ARAD_PORTS_TT_PROFILE_PON;
+							  programs_info.ptc_flp_profile = ARAD_PORTS_FLP_PROFILE_NONE;
+						  }
+						                          
+                          if (SOC_IS_JERICHO(unit) && (SOC_DPP_CONFIG(unit)->trill.mode)) {
+                            programs_info.en_trill_mc_in_two_path = value;
+                          }
+                          BCM_SAND_IF_ERR_EXIT(arad_ports_programs_info_set(unit, soc_tm_port, &programs_info));
+
+                      } else {
+                          BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Port must be Recycle port")));
+                      }
+                  }
+              }
+#endif
+          }
+          break;
+          case bcmPortControlEvbType:
+          {
+              SOC_PPD_LLP_TRAP_PORT_INFO  llp_trap_port_info;
+              SOC_PPD_PORT soc_ppd_port;
+              bcm_port_t port_ndx;
+
+              if (SOC_IS_PETRAB(unit)) {
+                  BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unavailable")));
+              }
+
+              BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+                
+                  soc_sand_rv = soc_ppd_llp_trap_port_info_get(unit, core, soc_ppd_port, &llp_trap_port_info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                
+                  if (value == bcmPortEvbTypeUplinkAccess) {
+                      llp_trap_port_info.trap_enable_mask &= ~SOC_PPD_LLP_TRAP_PORT_ENABLE_SAME_INTERFACE; /* In case of EVB ingress same interface filter must be disabled so we can send packets from VEPA to VEPA */
+                  } else {
+                      /* other ports or when port EVB is disabled enable again same interface */
+                      llp_trap_port_info.trap_enable_mask |= SOC_PPD_LLP_TRAP_PORT_ENABLE_SAME_INTERFACE;
+                  }
+
+                  soc_sand_rv = soc_ppd_llp_trap_port_info_set(unit, core, soc_ppd_port, &llp_trap_port_info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                  soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port, &port_info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                  port_info.vlan_translation_profile = (value == bcmPortEvbTypeUplinkAccess) ? \
+                    SOC_PPD_PORT_DEFINED_VT_PROFILE_EVB:SOC_PPD_PORT_DEFINED_VT_PROFILE_DEFAULT;
+                  soc_sand_rv = soc_ppd_port_info_set(unit, core, soc_ppd_port, &port_info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+              }
+
+              
+                             
+          }
+          break;
+        case bcmPortControlVMac:
+            {
+                SOC_PPD_LIF_ENTRY_INFO lif_info;
+                int fec_id = 0, tunnel_id = 0, limit = 0;
+                uint32 vmac_enable_in_ac = 0;
+                bcm_vlan_port_t vlan_port;
+                bcm_module_t mod_id;
+                /* Disable/enable VMAC in gport */
+                if (SOC_IS_ARAD(unit)) {
+                    if (!(SOC_DPP_CONFIG(unit)->pp.vmac_enable)) {
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Can't configure vmac enable/disable base gport when vmac_enable is 0")));
+                    }
+
+                    if (value != SOC_PPD_LIF_AC_VAMC_COS_PROFILE_DISABLE &&
+                        value != SOC_PPD_LIF_AC_VAMC_COS_PROFILE_ENABLE) {
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Invalid value.")));
+                    }
+                    SOC_PPD_LIF_ENTRY_INFO_clear(&lif_info);
+                    rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, (int*)&lif_id, NULL, &fec_id, &is_local);
+                    BCMDNX_IF_ERR_EXIT(rv);
+
+                    if (!is_local) {
+                        /* API is releavant only for local configuration */
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unexpected lif index. should be local only")));
+                    }
+
+                    soc_sand_rv = soc_ppd_lif_table_entry_get(unit, lif_id, &lif_info);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                    if (lif_info.type != SOC_PPD_LIF_ENTRY_TYPE_AC) {
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Invalid lif index.")));
+                    }
+
+                    soc_sand_rv = soc_sand_bitstream_get_field(&(lif_info.value.ac.cos_profile),
+                                                               SOC_PPD_LIF_AC_VAMC_COS_PROFILE_LSB,
+                                                               SOC_PPD_LIF_AC_VAMC_COS_PROFILE_LSB_NOF_BITS,
+                                                               &vmac_enable_in_ac);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                    /* Set vmac from disable to enable or
+                     * Set vmac from enable to disable
+                     */
+                    if ((value && (!vmac_enable_in_ac)) ||
+                        (!value && vmac_enable_in_ac)){
+                        soc_sand_rv = soc_sand_bitstream_set_field(&(lif_info.value.ac.cos_profile),
+                                                                   SOC_PPD_LIF_AC_VAMC_COS_PROFILE_LSB,
+                                                                   SOC_PPD_LIF_AC_VAMC_COS_PROFILE_LSB_NOF_BITS,
+                                                                   value);
+                        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                        /* update existing lif entry */
+                        soc_sand_rv = soc_ppd_lif_table_entry_update(unit, lif_id, &lif_info);
+                        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                        BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+                        if (_BCM_PPD_IS_PON_PP_PORT(gport_info.local_port) && IS_PON_PORT(unit, gport_info.local_port)) {
+                            /* Update mac limit in sw db */
+                            bcm_vlan_port_t_init(&vlan_port);
+                            rv = _bcm_dpp_in_lif_ac_match_get(unit, &vlan_port, lif_id);
+                            BCMDNX_IF_ERR_EXIT(rv);
+                            tunnel_id = vlan_port.match_tunnel_value;
+
+                            /* Remove all only if value old is different than value new */
+                            BCMDNX_IF_ERR_EXIT(bcm_petra_stk_my_modid_get(unit, &mod_id));
+
+                            rv = bcm_petra_l2_addr_delete_by_port(unit, mod_id, port, BCM_L2_DELETE_STATIC);
+                            BCMDNX_IF_ERR_EXIT(rv);
+
+                            soc_sand_rv = soc_ppd_frwrd_mact_tunnel_mac_limit_info_get(unit, gport_info.local_port, tunnel_id, &limit);
+                            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                            /* Clear MAC limit when switch between vmac and mac limit */
+                            if (value) {
+                                limit = SOC_PPD_FRWRD_MACT_LEARN_VMAC_LIMIT;
+                            } else {
+                                limit = 0;
+                            }
+                            soc_sand_rv = soc_ppd_frwrd_mact_tunnel_mac_limit_info_set(unit, gport_info.local_port, tunnel_id, limit);
+                            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                        }
+                    }
+                } else {
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("VMAC function per port is not supported for this device")));
+                }
+            }
+            break;
+            case bcmPortControlErspanEnable:
+            {
+                if (SOC_IS_ARAD_B1_AND_BELOW(unit)) {
+                    if (value < 0 || value > 1) {
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid arg (may only be 0 or 1)")));
+                    }
+                
+                    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                        /* port can do ERSPAN or RSPAN/SPAN but not both,
+                           setting appropriate ERSPAN/SPAN prge_profile program selection in port profile */
+                        soc_sand_rv = soc_ppd_eg_encap_port_erspan_set(unit, core, soc_ppd_port, value);
+                        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                    }
+
+                } else {
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Enable/Disable ERSPAN is  supported only for ARAD B1 and below")));
+                }
+            }
+            break;
+
+        case bcmPortControlOamDefaultProfile:
+            {
+                uint32 oam_lif_profile_mode;
+                SOC_PPD_LIF_ENTRY_INFO lif_entry;
+                uint32 inlif_profile;
+                uint32 limit;
+                if (SOC_IS_ARADPLUS(unit)) {
+
+                    oam_lif_profile_mode = soc_property_get(unit, spn_BCM886XX_OAM_DEFAULT_PROFILE, 0);
+                    switch (oam_lif_profile_mode) {
+                    case 0:  /* Advanced mode */
+                        rv = _bcm_petra_port_inlif_profile_get(unit, port, &inlif_profile, SOC_OCC_MGMT_APP_USER, &lif_entry);
+                        BCMDNX_IF_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("failed getting the inlif profile")));
+
+                        BCMDNX_VERIFY(inlif_profile <= BCM_PORT_INLIF_PROFILE_MAX);
+
+                        rv = MBCM_PP_DRIVER_CALL(unit, mbcm_pp_oam_inlif_profile_map_set,(unit, inlif_profile, value));
+                        BCMDNX_IF_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("Failed to set a map from inlif profile to oam profile")));
+                        break;
+                    case 1:  /* Simple mode - 1 bit */
+                    case 2:  /* Simple mode - 2 bits */
+                        limit = (1<<oam_lif_profile_mode);
+                        if ((value < 0) || (value >= limit)) {
+                            BCMDNX_ERR_EXIT_MSG(BCM_E_CONFIG, (_BSL_BCM_MSG("Lif profile value out of bounds for oam profile")));
+                        }
+                        _bcm_petra_port_inlif_profile_set(unit, port, value, SOC_OCC_MGMT_INLIF_APP_OAM, &lif_entry);
+                        break;
+                    default:
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_CONFIG, (_BSL_BCM_MSG("OAM default profile mode unsupported (profile = %d)"), oam_lif_profile_mode));
+                    }
+                }
+                else {
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_CONFIG, (_BSL_BCM_MSG("OAM default profile is not supported for this device")));
+                }
+            }
+            break;
+        case bcmPortControlMplsEncapsulateExtendedLabel:
+            {
+                if (SOC_IS_JERICHO(unit))  {
+                    if (soc_property_get(unit, spn_ROO_EXTENSION_LABEL_ENCAPSULATION, 0)) {
+                        SOC_PPD_EG_ENCAP_ENTRY_INFO encap_entry_info[SOC_PPD_NOF_EG_ENCAP_EEP_TYPES];
+                        uint32 next_eep[SOC_PPD_NOF_EG_ENCAP_EEP_TYPES], nof_entries = 0, out_lif_id = 0;
+                        _bcm_lif_type_e lif_usage;
+
+                        rv = _bcm_dpp_lif_usage_get(unit, -1, out_lif_id, NULL, &lif_usage);
+                        BCMDNX_IF_ERR_EXIT(rv);
+
+                        if (lif_usage != _bcmDppLifTypeMplsTunnel) {
+                            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Currently only MPLS tunnel outlif supported")));
+                        }
+
+                        soc_sand_rv = soc_ppd_eg_encap_entry_get(unit,SOC_PPD_EG_ENCAP_EEP_TYPE_TUNNEL_EEP, out_lif_id, 1, \
+                                                                 encap_entry_info, next_eep, &nof_entries);
+                        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                        soc_sand_rv = MBCM_PP_DRIVER_CALL(unit, mbcm_pp_occ_mgmt_app_set, \
+                                      (unit, SOC_OCC_MGMT_TYPE_OUTLIF, SOC_OCC_MGMT_OUTLIF_APP_MPLS_ENCAPSULATE_EXTENDED_LABEL, 1,
+                                          &(encap_entry_info->entry_val.mpls_encap_info.outlif_profile)));
+                        BCMDNX_IF_ERR_EXIT(soc_sand_rv);
+
+                        /* add encap entry, set outlif profile additional encapsulation bit */
+                        soc_sand_rv = soc_ppd_eg_encap_mpls_entry_add(unit, out_lif_id, &(encap_entry_info->entry_val.mpls_encap_info), next_eep[0]);
+                        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                    } else {
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, \
+                        (_BSL_BCM_MSG("Currently bcmPortControlMplsEncapsulateExtendedLabel is supported only for ROO_EXTENSION_LABEL_ENCAPSULATION")));
+                    }
+                } else {
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_CONFIG, (_BSL_BCM_MSG("bcmPortControlMplsEncapsulateExtendedLabel is supported for jericho and above")));
+                }
+
+
+            }
+            break;
+        default:  
+          rv = BCM_E_UNAVAIL;       
+          break;
+        }
+    } else {
+        rv = BCM_E_UNAVAIL;
+    }
+
+    BCMDNX_IF_ERR_EXIT(rv);
+exit:
+    BCM_FREE(lif_info);
+    BCMDNX_FUNC_RETURN;
+}
+
+
+STATIC int
+_bcm_petra_global_control_set(int unit, bcm_port_control_t type, int value) {
+    int soc_sand_rv, soc_sand_dev_id;
+    SOC_PPD_LLP_COS_GLBL_INFO glbl_info;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    soc_sand_dev_id = (unit);
+
+    /* Global type check */
+    switch (type) {  
+      case bcmPortControlDropPrecedence:
+          if ((value < 0) || (value > 3)) {
+              BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Drop Precedence value is out of range. Range is 0-3")));
+          }
+          SOC_PPD_LLP_COS_GLBL_INFO_clear(&glbl_info);
+          glbl_info.default_dp = value;
+
+          soc_sand_rv = soc_ppd_llp_cos_glbl_info_set(soc_sand_dev_id, &glbl_info);
+          BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+          break;
+
+      case bcmPortControlFcoeFabricSel:
+        if((value != bcmPortFcoeVsanSelectVft) && (value != bcmPortFcoeVsanSelectOuterVlan)){
+            BCM_SAND_IF_ERR_EXIT(BCM_E_PARAM);
+        }
+        else {
+            if (value == bcmPortFcoeVsanSelectOuterVlan) {
+                value = TRUE;
+            }
+            soc_sand_rv = (MBCM_PP_DRIVER_CALL(unit,mbcm_pp_frwrd_fcf_vsan_mode_set,(unit, value)));
+            BCMDNX_IF_ERR_EXIT(soc_sand_rv);
+        }
+        break;
+      default:  
+          BCM_ERR_EXIT_NO_MSG(BCM_E_UNAVAIL);       
+          break;
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+_bcm_petra_pp_port_control_get(int unit, bcm_port_t port,
+                            bcm_port_control_t type, int *value)
+{
+    int rv = BCM_E_NONE;
+    uint32 soc_sand_rv;
+    int core;
+    int is_local;
+    SOC_PPD_PORT soc_ppd_port;
+    bcm_port_t port_ndx;
+    _bcm_petra_port_mact_mgmt_action_profile_t action_profile;
+    SOC_PPD_PORT_INFO port_info;
+    SOC_PPD_EG_FILTER_PORT_INFO eg_port_info;
+    SOC_PPD_LIF_ENTRY_INFO lif_info;
+    SOC_PPD_FP_CONTROL_INFO
+       ctrl_info;
+    SOC_PPD_FP_CONTROL_INDEX
+       ctrl_indx;
+    _bcm_dpp_gport_info_t   gport_info;
+    uint32 sys_port, operations;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* In case of vlan isolation. ask for system port */
+    operations = (type == bcmPortControlPrivateVlanIsolate) ? _BCM_DPP_GPORT_TO_PHY_OP_RETRIVE_SYS_PORT : 0;
+    
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, operations, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    sys_port = gport_info.sys_port;
+    
+    /* Check for PP controls */
+    if (SOC_DPP_PP_ENABLE(unit)) {
+      switch (type)
+      {
+      /* controls can be only on one*/
+      case bcmPortControlMpls:
+      case bcmPortControlIP4:
+      case bcmPortControlIP6:
+      case bcmPortControlIP4Mcast:
+      case bcmPortControlIP6Mcast:
+            *value = 1;
+            break;
+      /* controls can be only on zero */
+      case bcmPortControlDoNotCheckVlan:
+            *value = 0;
+            break;
+      case bcmPortControlFcoeFabricId:
+
+          if(!SOC_DPP_CONFIG(unit)->pp.fcoe_enable ){
+              rv = BCM_E_UNAVAIL;
+          } else{
+              soc_ppd_port = 0;
+                  BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                      BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+                      break;
+                  }
+                  SOC_PPD_FP_CONTROL_INDEX_clear(&ctrl_indx);
+                  SOC_PPD_FP_CONTROL_INFO_clear(&ctrl_info);
+                  ctrl_indx.val_ndx = soc_ppd_port;
+                  ctrl_indx.type = SOC_PPD_FP_CONTROL_TYPE_FLP_PP_PORT_DATA;
+                  soc_sand_rv = soc_ppd_fp_control_get(unit,SOC_CORE_INVALID,&ctrl_indx,&ctrl_info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                  (*value) = ctrl_info.val[0];
+                  (*value) = (*value)>>1;
+          }
+          break;
+      case bcmPortControlFcoeNetworkPort:
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+                soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port, &port_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                (*value) = (!port_info.is_n_port);
+                break;
+            }            
+           break;
+      case bcmPortControlMacInMac:
+      {
+
+          /* API supports multiple ports, but in this case only the first port will be handled */
+          BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+              BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+              /* return whether port is PBP */
+              soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port, &port_info);
+              BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+              *value = SOC_SAND_BOOL2NUM(port_info.is_pbp);
+              break;
+          }
+          break;
+      }   
+#ifdef BCM_CMICM_SUPPORT  
+      case bcmPortControlL2Move: 
+        {
+          uint32 val;
+          
+          if (SOC_IS_ARAD(unit)) {
+            if ((SOC_MAC_LIMIT_PER_TUNNEL_ENABLE_GET(unit)) && SOC_DPP_CONFIG(unit)->pp.pon_application_enable) {
+              if (_BCM_DPP_GPORT_INFO_IS_LAG(gport_info)) {
+                rv = shr_llm_msg_mac_move_get(unit, sys_port, &val);
+                BCMDNX_IF_ERR_EXIT(rv);
+                *value = val;
+              } else {
+                BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                  rv = soc_port_sw_db_local_to_tm_port_get(unit, port_ndx, &soc_ppd_port, &core);
+                  BCMDNX_IF_ERR_EXIT(rv);
+                  rv = shr_llm_msg_mac_move_get(unit, soc_ppd_port, &val);
+                  BCMDNX_IF_ERR_EXIT(rv);
+                  *value = val;
+                }
+              }
+            }
+          }
+        }        
+        break;  
+#endif
+      case bcmPortControlDiscardMacSaAction:
+      {
+
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+              BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+              
+              rv = _bcm_dpp_am_template_port_mact_sa_drop_data_get(unit,core,soc_ppd_port,&action_profile);
+              BCMDNX_IF_ERR_EXIT(rv);
+              
+              /* Convert action profile to value */
+              switch (action_profile)
+              {
+                    case _bcm_petra_port_mact_mgmt_action_profile_none:
+                        *value = BCM_PORT_CONTROL_DISCARD_MACSA_NONE;
+                        break;
+                  case _bcm_petra_port_mact_mgmt_action_profile_trap:
+                    *value = BCM_PORT_CONTROL_DISCARD_MACSA_TRAP;
+                    break;
+                  case _bcm_petra_port_mact_mgmt_action_profile_drop:
+                    *value = BCM_PORT_CONTROL_DISCARD_MACSA_DROP;
+                    break;
+                  case _bcm_petra_port_mact_mgmt_action_profile_trap_and_drop:
+                    *value = BCM_PORT_CONTROL_DISCARD_MACSA_DROP | BCM_PORT_CONTROL_DISCARD_MACSA_TRAP;
+                    break;
+                  default:
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("%s: bcmPortControlDiscardMacSaAction failed, given incorrect action profile %d for port %d unit %d"), FUNCTION_NAME(), action_profile, port, unit));
+                    break;
+              }              
+              break;
+            }
+         }
+        break;
+      case bcmPortControlUnknownMacDaAction:
+        {
+
+            /* Petra-B only */
+            if (!SOC_IS_PETRAB(unit)) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Petra-B only"))); 
+            }
+
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+              BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+              
+              rv = _bcm_dpp_am_template_port_mact_da_unknown_data_get(unit,core,soc_ppd_port,&action_profile);
+              BCMDNX_IF_ERR_EXIT(rv);
+              
+              /* Convert action profile to value */
+              switch (action_profile)
+              {
+                    case _bcm_petra_port_mact_mgmt_action_profile_none:
+                        *value = BCM_PORT_CONTROL_UNKNOWN_MACDA_NONE;
+                        break;
+                  case _bcm_petra_port_mact_mgmt_action_profile_trap:
+                    *value = BCM_PORT_CONTROL_UNKNOWN_MACDA_TRAP;
+                    break;
+                  case _bcm_petra_port_mact_mgmt_action_profile_drop:
+                    *value = BCM_PORT_CONTROL_UNKNOWN_MACDA_DROP;
+                    break;
+                  case _bcm_petra_port_mact_mgmt_action_profile_trap_and_drop:
+                    *value = BCM_PORT_CONTROL_UNKNOWN_MACDA_DROP | BCM_PORT_CONTROL_UNKNOWN_MACDA_TRAP;
+                    break;
+                  default:
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("%s: bcmPortControlUnknownMacDaAction failed, given incorrect action profile %d for port %d unit %d"), FUNCTION_NAME(), action_profile, port, unit));
+                      break;
+              }              
+              break;
+            }
+        }
+        break;
+      case bcmPortControlPrivateVlanIsolate:
+        {
+            SOC_SAND_PP_SYS_PORT_ID pp_sys_port;
+            SOC_PPD_EG_FILTER_PVLAN_PORT_TYPE pvlan_type;
+            SOC_TMC_DEST_INFO tm_dest_info;
+
+            if (!SOC_DPP_CONFIG(unit)->pp.pvlan_enable) {
+              BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("pvlan_enable isn't enabled")));
+            }
+
+            soc_sand_SAND_PP_SYS_PORT_ID_clear(&pp_sys_port);
+            SOC_TMC_DEST_INFO_clear(&tm_dest_info);
+
+            rv = _bcm_dpp_gport_to_tm_dest_info(unit,port,&tm_dest_info);
+            BCMDNX_IF_ERR_EXIT(rv);
+
+            if(tm_dest_info.type == SOC_TMC_DEST_TYPE_SYS_PHY_PORT) {
+                pp_sys_port.sys_port_type = SOC_SAND_PP_SYS_PORT_TYPE_SINGLE_PORT;
+                pp_sys_port.sys_id = tm_dest_info.id;
+            }
+            else if(tm_dest_info.type == SOC_TMC_DEST_TYPE_LAG) {
+                pp_sys_port.sys_port_type = SOC_SAND_PP_SYS_PORT_TYPE_LAG;
+                pp_sys_port.sys_id = tm_dest_info.id;
+            }
+            else{
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid type %d"),tm_dest_info.type));
+            }
+              
+            BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, gport_info.local_port, &soc_ppd_port, &core)));
+            soc_sand_rv = soc_ppd_eg_filter_pvlan_port_type_get(unit,&pp_sys_port,&pvlan_type);
+            SOC_SAND_IF_ERROR_RETURN(soc_sand_rv);
+
+            /* Convert pvlan type to value */
+            if (pvlan_type == SOC_PPD_EG_FILTER_PVLAN_PORT_TYPE_ISOLATED) {            
+              *value = 1;
+            } else if (pvlan_type == SOC_PPD_EG_FILTER_PVLAN_PORT_TYPE_PROMISCUOUS){
+              *value = 2;
+            } else {
+              *value = 0;
+            }
+          }
+        break;
+      case bcmPortControlBridge:
+        {
+          if (BCM_GPORT_IS_VLAN_PORT(port)) {
+            /* Same interface according to incoming-LIF */
+            int simple_mode = soc_property_get(unit, spn_BCM886XX_LOGICAL_INTERFACE_BRIDGE_FILTER_ENABLE, 0);
+
+            if (simple_mode) {
+              /* Simple mode -- Get proper bit in inlif profile. */
+              rv = _bcm_petra_port_inlif_profile_get(unit, port, (uint32*)value, SOC_OCC_MGMT_INLIF_APP_SIMPLE_SAME_INTERFACE, &lif_info);
+              BCMDNX_IF_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("failed getting the inlif profile")));
+
+              *value = (*value == 0) ? 1 : 0;
+            } else {
+
+              *value = 0;
+#ifdef BCM_88660_A0
+              if (SOC_IS_ARADPLUS(unit)) {
+                /* Advanced mode */
+                uint32 mask;
+                SOC_PPC_EG_FILTER_GLOBAL_INFO info;
+                uint32 inlif_profile;
+
+                /* We take the user inlif profile (whichever part of the whole it is) and check its mask. */
+                rv = _bcm_petra_port_inlif_profile_get(unit, port, &inlif_profile, SOC_OCC_MGMT_APP_USER, &lif_info);
+                BCMDNX_IF_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("failed getting the inlif profile")));
+
+                BCMDNX_VERIFY(inlif_profile <= BCM_PORT_INLIF_PROFILE_MAX);
+
+                mask = (1 << inlif_profile);
+
+                SOC_PPC_EG_FILTER_GLOBAL_INFO_clear(&info);
+                soc_sand_rv = soc_ppd_eg_filter_global_info_get(unit, &info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                *value  = (info.in_lif_profile_disable_same_interface_filter_bitmap & mask) ? 1 : 0;
+
+              }
+#endif /* BCM_88660_A0 */
+            }
+
+          } else {
+            /* Same interface pruning filter settings */
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+
+              BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+              SOC_PPD_EG_FILTER_PORT_INFO_clear(&eg_port_info);                
+              soc_sand_rv = soc_ppd_eg_filter_port_info_get(unit, core, soc_ppd_port, &eg_port_info);
+              BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+              if (eg_port_info.filter_mask & SOC_PPD_EG_FILTER_PORT_ENABLE_SAME_INTERFACE) {
+                  *value = 1;
+              } else {
+                  *value = 0;
+              }
+            }
+          }
+        }
+        break;
+        case bcmPortControlFloodBroadcastGroup:
+        case bcmPortControlFloodUnknownMcastGroup:
+        case bcmPortControlFloodUnknownUcastGroup:
+          {
+            /* Flooding per Port (or LIF) is ARAD only functionality */
+            if (SOC_IS_ARAD(unit)) {
+                int is_lif_flooding = FALSE;
+                int is_port_flooding = FALSE;
+                int lif_index = 0;
+                int gport_type, gport_val;
+                int fec_id;
+                bcm_gport_t uc, mc, bc;
+                
+                rv = _bcm_dpp_gport_parse(unit,port,&gport_type, &gport_val, NULL);
+                BCMDNX_IF_ERR_EXIT(rv);
+
+                if (gport_type == _BCM_DPP_GPORT_TYPE_SIMPLE) {
+                    /* Flooding is per port */
+                    is_port_flooding = TRUE;      
+                } else {
+                    /* VLAN or MPLS Port GPORT - retreive LIF index directly */
+                    if (BCM_GPORT_IS_VLAN_PORT(port) || BCM_GPORT_IS_MPLS_PORT(port)) {
+                        is_lif_flooding = TRUE;
+                        rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, &lif_index, NULL, &fec_id, &is_local);
+                        BCMDNX_IF_ERR_EXIT(rv);
+
+                        if (!is_local) {
+                          /* API is releavant only for local configuration */
+                          BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unexpected lif index. should be local only")));
+                        }
+                    }
+                }
+
+                rv = _bcm_petra_vlan_flooding_per_lif_get(unit, port, lif_index, is_port_flooding,
+                                     is_lif_flooding, &uc, &mc, &bc);                
+                BCMDNX_IF_ERR_EXIT(rv);
+
+                /* Retreive information according to type */
+                switch (type) {
+                case bcmPortControlFloodBroadcastGroup:
+                  *value = bc;
+                  break;
+                case bcmPortControlFloodUnknownMcastGroup:
+                  *value = mc;
+                  break;
+                case bcmPortControlFloodUnknownUcastGroup:
+                  *value = uc;
+                  break;
+                /* must have default. Otherwise, compilation error */
+                /* coverity[dead_error_begin : FALSE] */
+                default:
+                  BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("Unexpected type control")));
+                }
+                
+                BCMDNX_IF_ERR_EXIT(rv);
+                _BCM_MULTICAST_GROUP_SET(*value, _BCM_MULTICAST_TYPE_L2, *value);
+            } else {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Flooding per port is not supported for this device")));
+            }
+          }
+          break;
+          case bcmPortControlMplsFRREnable:
+          case bcmPortControlMplsContextSpecificLabelEnable:
+          {
+              if (SOC_IS_PETRAB(unit)) {
+                  BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("FRR, Coupling is not supported for this device")));
+              }
+
+              BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+
+                  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                  soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port, &port_info);
+
+                  *value = (port_info.vlan_translation_profile == SOC_PPD_PORT_DEFINED_VT_PROFILE_FRR_COUPLING_USE_INITIAL_VID 
+                           || port_info.vlan_translation_profile == SOC_PPD_PORT_DEFINED_VT_PROFILE_FRR_COUPLING) ? 1:0;                  
+                  break;
+              }
+          }
+          break;
+        case bcmPortControlMplsExplicitNullEnable: 
+        {
+            if (!SOC_DPP_CONFIG(unit)->pp.explicit_null_support) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Explicit null is not supported")));
+            }
+
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+
+                  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                  soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port, &port_info);
+
+                  *value = port_info.tunnel_termination_profile == SOC_PPC_PORT_DEFINED_TT_PROFILE_EXPLICIT_NULL;                           
+                  break;
+              }
+        }
+        break;
+
+      case bcmPortControlPreservePacketPriority: 
+        {
+            uint8                                     transmit_outer_tag;
+
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+
+                BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                soc_sand_rv = soc_ppd_eg_vlan_edit_port_vlan_transmit_outer_tag_get(unit, core, soc_ppd_port, 0, &transmit_outer_tag);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                *value = transmit_outer_tag;
+                break;
+            }
+        }
+        break;
+        case bcmPortControlTrillDesignatedVlan: 
+          {
+              uint8                                     accept;
+              SOC_SAND_PP_VLAN_ID                       vid;
+              BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+
+                  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                  soc_sand_rv = soc_ppd_llp_filter_designated_vlan_get(unit, core, soc_ppd_port, &vid, 
+                                                                &accept);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                  *value = (int)vid;
+              }
+        
+          }
+          break;
+         case bcmPortControlL2SaAuthenticaion: 
+          {
+              SOC_PPD_LLP_SA_AUTH_PORT_INFO                 port_auth_info;
+              
+              BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+
+                  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                  soc_sand_rv = soc_ppd_llp_sa_auth_port_info_get(unit, core, soc_ppd_port, &port_auth_info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);                 
+
+                  *value = (port_auth_info.sa_auth_enable) ? 1:0;
+              }
+        
+          }
+          break;
+        case bcmPortControlLocalSwitching:
+          {
+            int lif_id, fec_id, is_local;
+            if (SOC_DPP_CONFIG(unit)->pp.local_switching_enable == 0) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("soc property local_switch_enable is disable")));
+            }
+
+            rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, &lif_id, NULL, &fec_id, &is_local);
+            BCMDNX_IF_ERR_EXIT(rv);
+            
+            if (!is_local) {
+                /* API is releavant only for local configuration */
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unexpected lif index. should be local only")));
+            }
+      
+            soc_sand_rv = soc_ppd_lif_table_entry_get(unit, lif_id, &lif_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+            if (lif_info.type != SOC_PPC_LIF_ENTRY_TYPE_AC) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Invalid lif index.")));
+            }
+
+            *value = ((lif_info.value.ac.cos_profile & SOC_PPD_LIF_AC_LOCAL_SWITCHING_COS_PROFILE) ? 1: 0);
+          }
+          break;
+        case bcmPortControlTrill: 
+          {
+              
+              BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+              
+                  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                  soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port, &port_info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                  *value = (int)(port_info.vlan_translation_profile == SOC_PPD_PORT_DEFINED_VT_PROFILE_TRILL || port_info.vlan_translation_profile == SOC_PPD_PORT_DEFINED_VT_PROFILE_TRILL_USE_INITIAL_VID);
+                  break;
+              }
+          }
+          break;
+        case bcmPortControlEgressFilterDisable:
+        {
+
+              /* only the first port will be handled */
+              BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+  
+                  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+                
+                  soc_sand_rv = soc_ppd_eg_filter_port_info_get(unit, core, soc_ppd_port, &eg_port_info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                  *value = 0; /* All enable */
+
+                  /* Remove per indication */
+                  if (!(eg_port_info.filter_mask & SOC_PPD_EG_FILTER_PORT_ENABLE_UC_UNKNOW_DA)) {
+                      *value |= BCM_PORT_CONTROL_FILTER_DISABLE_UNKNOWN_DA_UC;
+                  }
+
+                  if (!(eg_port_info.filter_mask & SOC_PPD_EG_FILTER_PORT_ENABLE_MC_UNKNOW_DA)) {
+                      *value |= BCM_PORT_CONTROL_FILTER_DISABLE_UNKNOWN_DA_MC;
+                  }
+
+                  if (!(eg_port_info.filter_mask & SOC_PPD_EG_FILTER_PORT_ENABLE_BC_UNKNOW_DA)) {
+                      *value |= BCM_PORT_CONTROL_FILTER_DISABLE_DA_BC;
+                  }
+
+                  break;
+              }
+        }
+        break;
+        case bcmPortControlOverlayRecycle:
+        {
+#ifdef  BCM_ARAD_SUPPORT
+              uint32 soc_tm_port;
+              SOC_TMC_PORTS_PROGRAMS_INFO programs_info;
+#endif
+      
+              if (SOC_IS_PETRAB(unit)) {
+                  rv = BCM_E_UNAVAIL;       
+                  break;
+              }
+
+#ifdef  BCM_ARAD_SUPPORT    
+              if (SOC_IS_ARAD(unit)) {
+                SOC_TMC_PORTS_PROGRAMS_INFO_clear(&programs_info);
+
+                /* only the first port will be handled */
+                BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+                    BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_tm_port_get(unit, port_ndx, &soc_tm_port, &core));
+
+                    BCM_SAND_IF_ERR_EXIT(arad_ports_programs_info_get(unit, soc_tm_port, &programs_info));
+                    *value = (programs_info.ptc_tt_profile == ARAD_PORTS_TT_PROFILE_OVERLAY_RCY) ? 1:0;
+                    break;        
+                }
+              }
+#endif
+        }
+        break;
+        case bcmPortControlEvbType:
+        {
+            SOC_PPD_LLP_TRAP_PORT_INFO llp_trap_port_info;
+
+            if (SOC_IS_PETRAB(unit)) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unavailable")));
+            }
+
+            /* only the first port will be handled */
+            BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+
+                BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                soc_sand_rv = soc_ppd_llp_trap_port_info_get(unit, core, soc_ppd_port, &llp_trap_port_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                if (llp_trap_port_info.trap_enable_mask & SOC_PPD_LLP_TRAP_PORT_ENABLE_SAME_INTERFACE){
+                    *value = bcmPortEvbTypeNone;
+                } else {
+                    *value = bcmPortEvbTypeUplinkAccess;
+                }
+                break;
+            }
+        }
+        break;
+        case bcmPortControlVMac:
+          {
+              int fec_id = 0;
+              uint32 vmac_enable_in_ac = 0;
+              int lif_id;
+              /* Disable/enable VMAC in gport */
+              if (SOC_IS_ARAD(unit)) {
+                  if (!(SOC_DPP_CONFIG(unit)->pp.vmac_enable)) {
+                      BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Can't configure vmac enable/disable base gport when vmac_enable is 0")));
+                  }
+
+                  SOC_PPD_LIF_ENTRY_INFO_clear(&lif_info);
+                  rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, (int*)&lif_id, NULL, &fec_id, &is_local);
+                  BCMDNX_IF_ERR_EXIT(rv);
+
+                  if (!is_local) {
+                      /* API is releavant only for local configuration */
+                      BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unexpected lif index. should be local only")));
+                  }
+
+                  soc_sand_rv = soc_ppd_lif_table_entry_get(unit, lif_id, &lif_info);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                  if (lif_info.type != SOC_PPD_LIF_ENTRY_TYPE_AC) {
+                      BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Invalid lif index.")));
+                  }
+
+                  soc_sand_rv = soc_sand_bitstream_get_field(&(lif_info.value.ac.cos_profile),
+                                                             SOC_PPD_LIF_AC_VAMC_COS_PROFILE_LSB,
+                                                             SOC_PPD_LIF_AC_VAMC_COS_PROFILE_LSB_NOF_BITS,
+                                                             &vmac_enable_in_ac);
+                  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                  *value = vmac_enable_in_ac;
+              } else {
+                  BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("VMAC function per port is not supported for this device")));
+              }
+          }
+
+        break;
+          case bcmPortControlErspanEnable:
+          {
+              if (SOC_IS_ARAD_B1_AND_BELOW(unit)) {
+                  uint8   is_erspan;
+
+                  BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_ndx) {
+
+                      BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_ndx, &soc_ppd_port, &core)));
+
+                      /* port can do ERSPAN or RSPAN/SPAN but not both,
+                         gettting whether ERSPAN prrogram enabled acording to prge_profile program selection in port profile */
+                      soc_sand_rv = soc_ppd_eg_encap_port_erspan_get(unit, core, soc_ppd_port, &is_erspan);
+                      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                      *value = is_erspan;
+                      break;
+                  }
+              } else {
+                  BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Enable/Disable ERSPAN is  supported only for ARAD B1 and below")));
+              }
+          }
+          break;
+        case bcmPortControlOamDefaultProfile:
+            {
+                uint32 oam_lif_profile_mode;
+                SOC_PPD_LIF_ENTRY_INFO lif_entry;
+                uint32 inlif_profile;
+                uint32 oam_trap_profile;
+                if (SOC_IS_ARADPLUS(unit)) {
+
+                    oam_lif_profile_mode = soc_property_get(unit, spn_BCM886XX_OAM_DEFAULT_PROFILE, 0);
+                    switch (oam_lif_profile_mode) {
+                    case 0:  /* Advanced mode */
+                        rv = _bcm_petra_port_inlif_profile_get(unit, port, &inlif_profile, SOC_OCC_MGMT_APP_USER, &lif_entry);
+                        BCMDNX_IF_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("failed getting the inlif profile")));
+
+                        BCMDNX_VERIFY(inlif_profile <= BCM_PORT_INLIF_PROFILE_MAX);
+
+                        rv = MBCM_PP_DRIVER_CALL(unit, mbcm_pp_oam_inlif_profile_map_get,(unit, inlif_profile, &oam_trap_profile));
+                        BCMDNX_IF_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("Failed to set a map from inlif profile to oam profile")));
+                        break;
+                    case 1:  /* Simple mode - 1 bit */
+                    case 2:  /* Simple mode - 2 bits */
+                        _bcm_petra_port_inlif_profile_get(unit, port, &oam_trap_profile, SOC_OCC_MGMT_INLIF_APP_OAM, &lif_entry);
+                        break;
+                    default:
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_CONFIG, (_BSL_BCM_MSG("OAM default profile mode unsupported (profile = %d)"), oam_lif_profile_mode));
+                    }
+                    *value = (int)oam_trap_profile;
+                }
+            }
+            break;
+        case bcmPortControlMplsEncapsulateExtendedLabel:
+            {
+                if (SOC_IS_JERICHO(unit))  {
+                    if (soc_property_get(unit, spn_ROO_EXTENSION_LABEL_ENCAPSULATION, 0)) {
+                        SOC_PPD_EG_ENCAP_ENTRY_INFO encap_entry_info[SOC_PPD_NOF_EG_ENCAP_EEP_TYPES];
+                        uint32 next_eep[SOC_PPD_NOF_EG_ENCAP_EEP_TYPES], nof_entries = 0, out_lif_id = 0;
+                        _bcm_lif_type_e lif_usage;
+
+                        rv = _bcm_dpp_lif_usage_get(unit, -1, out_lif_id, NULL, &lif_usage);
+                        BCMDNX_IF_ERR_EXIT(rv);
+
+                        if (lif_usage != _bcmDppLifTypeMplsTunnel) {
+                            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Currently only MPLS tunnel outlif supported")));
+                        }
+
+                        soc_sand_rv = soc_ppd_eg_encap_entry_get(unit,SOC_PPD_EG_ENCAP_EEP_TYPE_TUNNEL_EEP, out_lif_id, 1, \
+                                                                 encap_entry_info, next_eep, &nof_entries);
+                        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                        soc_sand_rv = MBCM_PP_DRIVER_CALL(unit, mbcm_pp_occ_mgmt_app_get, \
+                                      (unit, SOC_OCC_MGMT_TYPE_OUTLIF, SOC_OCC_MGMT_OUTLIF_APP_MPLS_ENCAPSULATE_EXTENDED_LABEL,
+                                          &(encap_entry_info->entry_val.mpls_encap_info.outlif_profile), (uint32*)value));
+                        BCMDNX_IF_ERR_EXIT(soc_sand_rv);
+
+                    } else {
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, \
+                        (_BSL_BCM_MSG("Currently bcmPortControlMplsEncapsulateExtendedLabel is supported only for ROO_EXTENSION_LABEL_ENCAPSULATION")));
+                    }
+                } else {
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_CONFIG, (_BSL_BCM_MSG("bcmPortControlMplsEncapsulateExtendedLabel is supported for jericho and above")));
+                }
+            }
+            break;
+      default:
+          rv = BCM_E_UNAVAIL;
+          break;
+      }
+    } else {
+      rv = BCM_E_UNAVAIL;
+    }
+    BCMDNX_IF_ERR_EXIT(rv);
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+_bcm_petra_global_control_get(int unit, bcm_port_control_t type, int *value)
+{
+    int soc_sand_rv;
+    SOC_PPD_LLP_COS_GLBL_INFO glbl_info;
+    int curr_val = 0;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* Global type check */
+    switch (type) {  
+    case bcmPortControlDropPrecedence:
+        SOC_PPD_LLP_COS_GLBL_INFO_clear(&glbl_info);
+        soc_sand_rv = soc_ppd_llp_cos_glbl_info_get(unit, &glbl_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        *value = glbl_info.default_dp;
+        break;
+
+    case bcmPortControlFcoeFabricSel:
+        soc_sand_rv = (MBCM_PP_DRIVER_CALL(unit,mbcm_pp_frwrd_fcf_vsan_mode_get,(unit, &curr_val)));
+        BCMDNX_IF_ERR_EXIT(soc_sand_rv);
+        if(curr_val == TRUE){
+            (*value) = bcmPortFcoeVsanSelectOuterVlan;
+        } else {
+            (*value) = curr_val;
+        }
+        break;
+
+      default:  
+          BCM_ERR_EXIT_NO_MSG(BCM_E_UNAVAIL);       
+          break;
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+    
+
+#ifdef BCM_ARAD_SUPPORT
+
+int
+bcm_arad_port_qcn_config_set(int unit, bcm_gport_t port, bcm_port_congestion_config_t *config)
+{
+    int rv = BCM_E_NONE;
+    int i;
+    bcm_port_t otm_port;
+    uint32 soc_sand_rc = 0, soc_sand_dev_id; 
+    ARAD_CNM_CP_PACKET_INFO info;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    soc_sand_dev_id = (unit);
+
+    info.ftmh_tc = config->traffic_class;
+    info.ftmh_dp = config->color;
+    info.ether_type = config->ethertype;
+    info.pdu_version = config->version;
+    info.pdu_reserved_v = config->reserved_v;
+
+    if(config->flags & BCM_PORT_CONGESTION_CONFIG_DEST_PORT_VALID &&
+       config->dst_port != BCM_GPORT_TYPE_NONE &&
+       config->dst_port != BCM_GPORT_INVALID)
+    {
+      /* OTM port is specified */
+      rv = bcm_petra_port_local_get(unit, config->dst_port, &otm_port);
+      BCMDNX_IF_ERR_EXIT(rv);
+
+      info.ftmh_otm_port = (uint32)otm_port;
+    }
+    else
+    {
+      /* OTM will be taken from IFP mapping */
+      info.ftmh_otm_port = -1;
+    }
+
+    /* Get source port from given GPort */
+    if(config->src_port == BCM_GPORT_TYPE_NONE || config->src_port == BCM_GPORT_INVALID)
+    {
+      /* SRC port taken from original packet */
+      info.ftmh_src_port = -1;
+    }
+    else
+    {
+      /* SRC port is specified */
+      rv = bcm_petra_port_local_get(unit, config->src_port, &otm_port);
+      BCMDNX_IF_ERR_EXIT(rv);
+
+      info.ftmh_src_port = otm_port;
+    }
+
+    /* The SOC_SAND MAC address is little-endian */
+    for (i = 0; i < SOC_SAND_PP_MAC_ADDRESS_NOF_U8; ++i) {
+        info.mac_sa.address[i] = config->src_mac[SOC_SAND_PP_MAC_ADDRESS_NOF_U8 - i - 1];
+    }
+
+    /* VLAN */
+    if(BCM_VLAN_VALID(config->vlan))
+    {
+      info.has_vlan_config = 1;
+      info.vlan_priority = config->pri;
+      info.vlan_cfi = config->cfi;
+      info.vlan_id = config->vlan;
+    } else {
+      info.has_vlan_config = 0;
+    }
+
+    info.vlan_edit_command_with_cn_tag = 0;
+    info.vlan_edit_command_without_cn_tag = 0;
+
+    soc_sand_rc = arad_cnm_cp_packet_set(soc_sand_dev_id, &info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rc);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_arad_port_qcn_config_get(int unit, bcm_gport_t port, bcm_port_congestion_config_t *config)
+{
+    int i;
+    uint32 soc_sand_rc = 0, soc_sand_dev_id; 
+    bcm_module_t    my_modid;
+    ARAD_CNM_CP_PACKET_INFO info;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    soc_sand_dev_id = (unit);
+    BCMDNX_IF_ERR_EXIT(bcm_petra_stk_my_modid_get(unit, &my_modid));
+
+    soc_sand_rc = arad_cnm_cp_packet_get(soc_sand_dev_id, &info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rc);
+
+    config->traffic_class = info.ftmh_tc;
+    config->ethertype = info.ether_type;
+    config->version = info.pdu_version;
+    config->reserved_v = info.pdu_reserved_v;
+
+    /* Handle OTM Port */
+    if(info.ftmh_otm_port == -1)
+    {
+      /* OTM will be taken from IFP mapping */
+      config->dst_port = BCM_GPORT_TYPE_NONE;
+    }
+    else
+    {
+      /* OTM port is specified */
+      config->flags |= BCM_PORT_CONGESTION_CONFIG_DEST_PORT_VALID;
+      SOC_GPORT_MODPORT_SET(config->dst_port, my_modid, info.ftmh_otm_port);
+    }
+    
+
+    /* Set Gport (must be MODPORT) from source port */
+    if(info.ftmh_src_port == -1)
+    {
+      /* SRC port taken from original packet */
+      config->src_port = BCM_GPORT_TYPE_NONE;
+    }
+    else
+    {
+      /* SRC port is specified */
+      SOC_GPORT_MODPORT_SET(config->src_port, my_modid, info.ftmh_src_port);
+    }
+    
+    /* The SOC_SAND MAC address is little-endian */
+    for (i = 0; i < SOC_SAND_PP_MAC_ADDRESS_NOF_U8; ++i) {
+        config->src_mac[SOC_SAND_PP_MAC_ADDRESS_NOF_U8 - i - 1] = info.mac_sa.address[i];
+    }
+
+    /* VLAN */
+    if(info.has_vlan_config)
+    {
+      config->vlan = info.vlan_id;
+      config->cfi = info.vlan_cfi;
+      config->pri = info.vlan_priority;
+    }
+    else
+    {
+      config->vlan = BCM_VLAN_INVALID;
+      config->cfi = 0;
+      config->pri = 0;
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+#endif /* BCM_ARAD_SUPPORT */
+
+int
+bcm_petra_port_congestion_config_set(int unit, bcm_gport_t port,
+                                           bcm_port_congestion_config_t *config)
+{
+    int         rv = BCM_E_NONE;
+    bcm_port_t  local_port;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    /* Handle CNM / QCN Configuration */
+    if((config->flags & BCM_PORT_CONGESTION_CONFIG_QCN) && (config->flags & BCM_PORT_CONGESTION_CONFIG_TX))
+    {
+#ifdef BCM_ARAD_SUPPORT
+      if(SOC_IS_ARAD(unit))
+      {
+        rv = bcm_arad_port_qcn_config_set(unit, port, config);
+        BCMDNX_IF_ERR_EXIT(rv);
+      }
+#endif
+    }
+    else
+    {
+      rv = bcm_petra_port_local_get(unit, port, &local_port);
+      BCMDNX_IF_ERR_EXIT(rv);
+
+      rv = bcm_petra_port_pause_addr_set(unit, local_port, config->src_mac);
+      BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_congestion_config_get(int unit, bcm_gport_t port,
+                                           bcm_port_congestion_config_t *config)
+{
+    int         rv = BCM_E_NONE;
+    int         restore_flags;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    restore_flags = config->flags;
+    sal_memset(config, 0, sizeof(bcm_port_congestion_config_t));
+    config->flags = restore_flags;
+
+    /* Handle CNM / QCN Configuration */
+    if((config->flags & BCM_PORT_CONGESTION_CONFIG_QCN) && (config->flags & BCM_PORT_CONGESTION_CONFIG_TX))
+    {
+#ifdef BCM_ARAD_SUPPORT
+      if(SOC_IS_ARAD(unit))
+      {
+        rv = bcm_arad_port_qcn_config_get(unit, port, config);
+        BCMDNX_IF_ERR_EXIT(rv);
+      }
+#endif
+    }
+    else
+    {
+      config->flags = 0; /* clear it for now */
+      rv = bcm_petra_port_pause_addr_get(unit, port, config->src_mac);
+      BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+
+#define _BCM_DPP_MAX_DSCP_VAL   (255)
+
+/* globals */
+
+/* default learn flags per port*/
+#define BCM_PETRA_PORT_LEARN_DFLT_FLGS (BCM_PORT_LEARN_ARL|BCM_PORT_LEARN_FWD)
+
+/*  mark as invalid flags in given trap */
+#define BCM_PETRA_PORT_LEARN_INVALID_FLGS (0Xf)
+
+/* when COS mapping has several tables, this table is used*/
+#define BCM_PETRA_PORT_COS_TBL_INDX (0)
+
+/* Default entry for PORT CFI COLOR */
+#define BCM_PETRA_PORT_CFI_COLOR_GLOBAL_ENTRY (0)
+
+int
+bcm_petra_port_untagged_vlan_set(int unit, bcm_port_t port, bcm_vlan_t vid)
+{
+    SOC_PPD_LLP_VID_ASSIGN_PORT_INFO port_info;
+    uint32                           rv, soc_sand_rv;
+    SOC_PPD_PORT                     soc_ppd_port;
+    bcm_port_t                       port_i;
+    int                              core;
+    _bcm_dpp_gport_info_t            gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if (!BCM_VLAN_VALID(vid)) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Given invalid VLAN")));
+    }
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+    
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port, &core)));
+
+        SOC_PPD_LLP_VID_ASSIGN_PORT_INFO_clear(&port_info);
+        soc_sand_rv = soc_ppd_llp_vid_assign_port_info_get(unit, core, soc_ppd_port, &port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        port_info.pvid = vid; 
+        soc_sand_rv = soc_ppd_llp_vid_assign_port_info_set(unit, core, soc_ppd_port, &port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    }
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_untagged_vlan_get(int unit, bcm_port_t port, bcm_vlan_t *vid)
+{
+    SOC_PPD_LLP_VID_ASSIGN_PORT_INFO port_info;
+    uint32                           rv ,soc_sand_rv;
+    SOC_PPD_PORT                     soc_ppd_port;
+    bcm_port_t                       port_i;
+    int                              core;
+    _bcm_dpp_gport_info_t            gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+    
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port, &core)));
+
+        SOC_PPD_LLP_VID_ASSIGN_PORT_INFO_clear(&port_info);
+        soc_sand_rv = soc_ppd_llp_vid_assign_port_info_get(unit, core, soc_ppd_port, &port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        
+        *vid = port_info.pvid;
+        break;
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_untagged_priority_set(int unit, bcm_port_t port, int priority)
+{
+   SOC_PPD_LLP_COS_PORT_INFO port_info;
+   int port_i, core;
+   int soc_sand_rv = 0;
+   int rv = BCM_E_NONE;
+   SOC_PPD_PORT soc_ppd_port;
+   _bcm_dpp_gport_info_t gport_info;
+   BCMDNX_INIT_FUNC_DEFS;
+
+   _BCM_DPP_SWITCH_API_START(unit);
+   BCM_DPP_UNIT_CHECK(unit);
+   /* verify parameters */
+   if(priority > SOC_SAND_PP_TC_MAX) {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: Port %d priority %d out of range, unit %d"),FUNCTION_NAME(), port, priority, unit));
+   }
+
+   /* Retrive local PP ports */
+   rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+
+       BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port, &core)));
+
+       soc_sand_rv = soc_ppd_llp_cos_port_info_get(unit, core, soc_ppd_port, &port_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+       port_info.default_tc = priority;
+
+       soc_sand_rv = soc_ppd_llp_cos_port_info_set(unit, core, soc_ppd_port, &port_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+   }
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+   BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_untagged_priority_get(int unit, bcm_port_t port, int *priority)
+{
+   SOC_PPD_LLP_COS_PORT_INFO port_info;
+   int port_i;
+   int soc_sand_rv = 0;
+   int rv = BCM_E_NONE, core;
+   SOC_PPD_PORT soc_ppd_port;
+   _bcm_dpp_gport_info_t gport_info;
+   BCMDNX_INIT_FUNC_DEFS;
+
+   BCM_DPP_UNIT_CHECK(unit);
+
+   /* Retrive local PP ports */
+   rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info);
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+
+       BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port, &core)));
+
+       soc_sand_rv = soc_ppd_llp_cos_port_info_get(unit, core, soc_ppd_port, &port_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+       *priority = port_info.default_tc;
+
+       break;
+   }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_cfi_color_set
+ * Purpose:
+ *      Specify the color selection for the given CFI.
+ * Parameters:
+ *      unit -  StrataSwitch PCI device unit number (driver internal).
+ *      port -  Port to configure
+ *      cfi -   Canonical format indicator (TRUE/FALSE) 
+ *      color - color assigned to packets with indicated CFI.
+ * Returns:
+ *      BCM_E_NONE - Success.
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_cfi_color_set(int unit, bcm_port_t port,
+                           int cfi, bcm_color_t color)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    unsigned int soc_sand_dev_id;
+    uint32 soc_sand_rv, tbl_index, entry_index;
+    int dp;    
+    SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO entry;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+    SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO_clear(&entry);
+
+    /* In dune devices, mapping is device wide. Port must be of -1 */
+    if(port != -1) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("%s: global configuration, port(%d) has to be -1, unit %d"),FUNCTION_NAME(), port, unit));
+    }
+
+    /* Verify cfi & color */
+    if ((cfi != 0) && (cfi != 1)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid cfi %d"), cfi));
+    }
+
+    rv = _bcm_petra_port_color_encode(unit,color,&dp);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    soc_sand_dev_id = (unit);
+
+    /* set entry. table index is always 0 (Global table) */
+    tbl_index = BCM_PETRA_PORT_CFI_COLOR_GLOBAL_ENTRY;
+
+    /* Entry index = CFI. entry.value1 = DP */
+    entry_index = cfi;    
+    entry.value1 = dp;
+
+    soc_sand_rv = soc_ppd_llp_cos_mapping_table_entry_set(soc_sand_dev_id,SOC_PPD_LLP_COS_MAPPING_TABLE_DE_TO_DP,tbl_index,entry_index,&entry);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_cfi_color_get
+ * Purpose:
+ *      Get the color selection for the given CFI.
+ * Parameters:
+ *      unit -  StrataSwitch PCI device unit number (driver internal).
+ *      port -  Port to configure
+ *      cfi -   Canonical format indicator (TRUE/FALSE) 
+ *      color - (OUT) color assigned to packets with indicated CFI.
+ * Returns:
+ *      BCM_E_NONE - Success.
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_cfi_color_get(int unit, bcm_port_t port,
+                           int cfi, bcm_color_t *color)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    unsigned int soc_sand_dev_id;
+    uint32 soc_sand_rv, tbl_index, entry_index;
+    SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO entry;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO_clear(&entry);
+
+    BCMDNX_NULL_CHECK(color);
+
+    /* In dune devices, mapping is device wide. Port must be of -1 */
+    if(port != -1) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("%s: global configuration, port(%d) has to be -1, unit %d"),FUNCTION_NAME(), port, unit));
+    }
+
+    /* Verify cfi */
+    if ((cfi != 0) && (cfi != 1)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid cfi %d"), cfi));
+    }
+
+    soc_sand_dev_id = (unit);
+
+    /* get entry. table index is always 0 (Global table) */
+    tbl_index = BCM_PETRA_PORT_CFI_COLOR_GLOBAL_ENTRY;
+
+    /* Entry index = CFI. entry.value1 = DP */
+    entry_index = cfi;
+    
+    soc_sand_rv = soc_ppd_llp_cos_mapping_table_entry_get(soc_sand_dev_id,SOC_PPD_LLP_COS_MAPPING_TABLE_DE_TO_DP,tbl_index,entry_index,&entry);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    rv = _bcm_petra_port_color_decode(unit,entry.value1,color);
+    BCMDNX_IF_ERR_EXIT(rv);
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/* map color to hw value DP*/
+int 
+_bcm_petra_port_color_encode(
+    int unit,
+    bcm_color_t color,
+    int *dp)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (color < 0) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid color %d"), color));
+    }
+
+    switch(color) {
+    case bcmColorGreen:
+        *dp = _BCM_DPP_COLOR_GREEN;
+        break;
+    case bcmColorYellow:
+        *dp = _BCM_DPP_COLOR_YELLOW;
+        break;
+    case bcmColorRed:
+        *dp = _BCM_DPP_COLOR_RED;
+        break;
+    case bcmColorBlack:
+        *dp = _BCM_DPP_COLOR_BLACK;
+        break;
+    default:
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid color %d"),color));
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/* map hw value DP to color*/
+int 
+_bcm_petra_port_color_decode(
+    int unit,
+    int dp,
+    bcm_color_t *color)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (dp < 0) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid dp %d"), dp));
+    }
+
+    switch(dp) {
+    case _BCM_DPP_COLOR_GREEN:
+        *color = bcmColorGreen;
+        break;
+    case _BCM_DPP_COLOR_YELLOW:
+        *color = bcmColorYellow;
+        break;
+    case _BCM_DPP_COLOR_RED:
+        *color = bcmColorRed;
+        break;
+    case _BCM_DPP_COLOR_BLACK:
+        *color = bcmColorBlack;
+        break;
+    default:
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid dp %d"),dp));
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+
+
+static int _Bcm_dpp_port_map_nof_tbls[_BCM_DPP_PORT_MAP_MAX_NOF_TBLS] = {4,4,2,2,2,0,0,0};
+static int _Bcm_dpp_port_map_nof_entries[_BCM_DPP_PORT_MAP_MAX_NOF_TBLS] = {8,8,256,2,2,0,0,0};
+
+/* Common vlan domain (6b value). All ports will be on this vlan domain, so when doing
+ * simply bridging, in-AC will be common_vd*vid */
+
+     
+#define _BCM_DPP_PORT_MAP_TBL_IN_USE_GET(unit, type, tbl_indx, in_use)   \
+      _rv = _bcm_dpp_wb_port_map_tbl_use_get(unit, &in_use, type, tbl_indx); \
+      if (_rv != BCM_E_NONE) { \
+        BCMDNX_ERR_EXIT_MSG(_rv, (_BSL_BCM_MSG("%s: get map_tbl_use failed, unit %d"),FUNCTION_NAME(), unit)); \
+      }
+      
+#define _BCM_DPP_PORT_MAP_TBL_IN_USE_SET(unit, type, tbl_indx, in_use)   \
+      _rv = _bcm_dpp_wb_port_map_tbl_use_set(unit, in_use, type, tbl_indx); \
+      if (_rv != BCM_E_NONE) { \
+        BCMDNX_ERR_EXIT_MSG(_rv, (_BSL_BCM_MSG("%s: set map_tbl_use failed, unit %d"),FUNCTION_NAME(), unit)); \
+      }
+
+
+
+#define _BCM_DPP_SNOOP_CMD_TO_CPU (1)
+
+
+
+
+/* 0,1,2,3: PV*/
+/* 3,4,5,6: PVV*/
+/* Forward indication for defines */
+#define _BCM_DPP_PP_FWD_NONE (0x1)
+#define _BCM_DPP_PP_FWD_DROP (0x2)
+#define _BCM_DPP_PP_FWD_CPU  (0x4)
+
+STATIC int
+  _bcm_petra_port_pp_trap_code_get_and_clear(int unit,
+                                             SOC_PPD_TRAP_CODE trap_code, 
+                                             SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO *trap_info,
+                                             SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO *snoop_action) 
+{
+  uint32 soc_sand_rv, soc_sand_dev_id;
+  bcm_error_t rv = BCM_E_NONE;
+
+  BCMDNX_INIT_FUNC_DEFS;
+  soc_sand_dev_id = (unit);
+
+  SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO_clear(trap_info);
+  SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO_clear(snoop_action);
+  soc_sand_rv = soc_ppd_trap_frwrd_profile_info_get(soc_sand_dev_id,trap_code,trap_info);
+  rv = handle_sand_result(soc_sand_rv);
+  if (rv != BCM_E_NONE) {
+    BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("%s: trap code %d failed obtain trap info, unit %d"),FUNCTION_NAME(), trap_code, unit));
+  }
+  soc_sand_rv = soc_ppd_trap_snoop_profile_info_get(soc_sand_dev_id,trap_code,snoop_action);
+  rv = handle_sand_result(soc_sand_rv);
+  if (rv != BCM_E_NONE) {
+    BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("%s: trap code %d failed obtain snoop info, unit %d"),FUNCTION_NAME(), trap_code, unit));
+  }
+exit:
+  BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+  _bcm_petra_port_pp_trap_code_fwd_set(int unit,
+                                       SOC_PPD_TRAP_CODE trap_code, 
+                                       uint32 fwd_indication,
+                                       SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO *trap_info,
+                                       SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO *snoop_action) 
+{
+
+  uint32 soc_sand_rv;
+
+  BCMDNX_INIT_FUNC_DEFS;
+  unit = (unit);
+
+  if (fwd_indication == _BCM_DPP_PP_FWD_DROP) {
+    trap_info->strength = (SOC_DPP_CONFIG(unit)->pp.default_trap_strength);
+    trap_info->bitmap_mask |= SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_DEST;
+    SOC_PPD_FRWRD_DECISION_DROP_SET(unit, &(trap_info->dest_info.frwrd_dest), soc_sand_rv);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+  } else if (fwd_indication == _BCM_DPP_PP_FWD_CPU) {
+    trap_info->strength = (SOC_DPP_CONFIG(unit)->pp.default_trap_strength);
+    trap_info->bitmap_mask |= SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_DEST;
+    SOC_PPD_FRWRD_DECISION_LOCAL_CPU_SET(unit, &(trap_info->dest_info.frwrd_dest), soc_sand_rv);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    trap_info->dest_info.frwrd_dest.dest_id = _BCM_DPP_CPU_DEST_PORT;
+  } else {
+    /* _BCM_PORT_PP_FWD_NONE */
+    trap_info->bitmap_mask &= ~SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_DEST;
+  }
+
+  BCM_EXIT;
+exit:
+  BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+  _bcm_petra_port_pp_trap_code_trap_set(int unit,
+                                       SOC_PPD_TRAP_CODE trap_code, 
+                                       int is_trap,
+                                       SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO *trap_info,
+                                       SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO *snoop_action) 
+{
+  uint32 soc_sand_rv, soc_sand_dev_id;
+  bcm_error_t rv = BCM_E_NONE;
+
+  BCMDNX_INIT_FUNC_DEFS;
+  soc_sand_dev_id = (unit);
+
+  if (is_trap) {
+    snoop_action->strength = (SOC_DPP_CONFIG(unit)->pp.default_snoop_strength);
+    snoop_action->snoop_cmnd = _BCM_DPP_SNOOP_CMD_TO_CPU;
+  } else {
+    snoop_action->strength = 0;
+  }
+  soc_sand_rv = soc_ppd_trap_snoop_profile_info_set(soc_sand_dev_id,trap_code,snoop_action);
+  rv = handle_sand_result(soc_sand_rv);
+  if (rv != BCM_E_NONE) {
+    BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("%s: set snoop profile trap code %d failed, unit %d"),FUNCTION_NAME(), trap_code, unit));
+  }
+exit:
+  BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+  _bcm_petra_port_pp_trap_code_mact_trap_info_set(int unit,
+                                       SOC_PPD_FRWRD_MACT_TRAP_TYPE trap_type,
+                                       SOC_PPD_TRAP_CODE trap_code,    
+                                       _bcm_petra_port_mact_mgmt_action_profile_t action_profile_ndx,
+                                       SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO *trap_info,
+                                       SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO *snoop_action) 
+{
+  uint32 soc_sand_rv, soc_sand_dev_id;
+  bcm_error_t rv = BCM_E_NONE;
+  SOC_PPD_ACTION_PROFILE action_profile;
+
+  BCMDNX_INIT_FUNC_DEFS;
+  soc_sand_dev_id = (unit);
+
+  SOC_PPD_ACTION_PROFILE_clear(&action_profile);
+
+  action_profile.frwrd_action_strength = trap_info->strength;
+  action_profile.snoop_action_strength = snoop_action->strength;
+  action_profile.trap_code = trap_code;
+  soc_sand_rv = soc_ppd_frwrd_mact_trap_info_set(soc_sand_dev_id, trap_type, action_profile_ndx, &action_profile);
+  rv = handle_sand_result(soc_sand_rv);
+  if (rv != BCM_E_NONE) {
+    BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("%s: set frwrd mact trap info for trap code %d failed, unit %d"),FUNCTION_NAME(), trap_code, unit));
+  }
+exit:
+  BCMDNX_FUNC_RETURN;
+}
+
+STATIC int
+  _bcm_petra_port_trap_default_set(int unit,
+                                   bcm_port_t port)
+{
+    uint32 soc_sand_rv, soc_sand_dev_id;
+    SOC_PPD_PORT soc_ppd_port;
+    SOC_PPD_PORT_INFO port_info;
+    int core;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port, &soc_ppd_port, &core)));
+
+    soc_sand_dev_id = (unit);
+    soc_sand_rv = soc_ppd_port_info_get(soc_sand_dev_id,core,soc_ppd_port,&port_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    port_info.initial_action_profile.trap_code = _BCM_PETRA_UD_DFLT_TRAP;
+    soc_sand_rv = soc_ppd_port_info_set(soc_sand_dev_id,core,soc_ppd_port,&port_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+_bcm_petra_port_traps_init(int unit)
+{
+    /* traps */
+    SOC_PPD_TRAP_CODE
+    trap_code;
+    SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO
+    trap_info;
+    SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO
+    snoop_action;
+    
+    uint32 soc_sand_rv;
+    int rv = BCM_E_NONE, core;
+    SOC_PPD_EG_FILTER_PORT_INFO eg_filter_port_info;
+    bcm_port_t port;
+    SOC_PPD_PORT_INFO port_info;
+    SOC_PPD_PORT soc_ppd_port;
+    pbmp_t ports_map;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    unit = (unit);
+
+    /* init drop trap to drop packets*/
+    trap_code = SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_DROP;
+    soc_sand_rv = soc_ppd_trap_frwrd_profile_info_get(unit,trap_code,&trap_info);
+    rv = handle_sand_result(soc_sand_rv);
+    trap_info.strength = (SOC_DPP_CONFIG(unit)->pp.default_trap_strength);
+    trap_info.dest_info.frwrd_dest.dest_id = 0;
+    SOC_PPD_FRWRD_DECISION_DROP_SET(unit, &(trap_info.dest_info.frwrd_dest), soc_sand_rv);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    trap_info.bitmap_mask |= SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_DEST;
+    soc_sand_rv = soc_ppd_trap_frwrd_profile_info_set(unit,trap_code,&trap_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    /* drop packet that came from the same interface (ingress filter) */
+    trap_code = SOC_PPD_TRAP_CODE_SAME_INTERFACE;
+    soc_sand_rv = soc_ppd_trap_frwrd_profile_info_get(unit,trap_code,&trap_info);
+    rv = handle_sand_result(soc_sand_rv);
+    trap_info.strength = (SOC_DPP_CONFIG(unit)->pp.default_trap_strength);
+    trap_info.dest_info.frwrd_dest.dest_id = 0;
+    SOC_PPD_FRWRD_DECISION_DROP_SET(unit, &(trap_info.dest_info.frwrd_dest), soc_sand_rv);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    trap_info.bitmap_mask |= SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_DEST;
+    soc_sand_rv = soc_ppd_trap_frwrd_profile_info_set(unit,trap_code,&trap_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);    
+
+    /* SA-drop to drop packet */
+    trap_code = SOC_PPD_TRAP_CODE_SA_DROP_1;
+    soc_sand_rv = soc_ppd_trap_frwrd_profile_info_set(unit,trap_code,&trap_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    /* set last user define trap code to drop packets */
+    trap_code = _BCM_PETRA_UD_DROP_TRAP;
+    soc_sand_rv = soc_ppd_trap_frwrd_profile_info_set(unit,trap_code,&trap_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    if (SOC_IS_ARAD(unit)) {
+        /* 1+1 protection failover drop */
+        trap_code = SOC_PPD_TRAP_CODE_LIF_PROTECT_PATH_INVALID;
+        soc_sand_rv = soc_ppd_trap_frwrd_profile_info_set(unit,trap_code,&trap_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    }
+
+    /* init accept trap to NOP */
+    trap_code = SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_ACCEPT;
+    soc_sand_rv = soc_ppd_trap_frwrd_profile_info_get(unit,trap_code,&trap_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    trap_info.dest_info.frwrd_dest.dest_id = 0;
+    SOC_PPD_FRWRD_DECISION_DROP_SET(unit, &(trap_info.dest_info.frwrd_dest), soc_sand_rv);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    
+    trap_info.strength = 0; /* as this just to accept, no drop here, VTT default strength*/
+    trap_info.bitmap_mask &= ~SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_DEST;
+    soc_sand_rv = soc_ppd_trap_frwrd_profile_info_set(unit,trap_code,&trap_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    /* drop packet that came from the same interface (eg filter) */
+   BCM_PBMP_ASSIGN(ports_map, PBMP_E_ALL(unit));
+   BCM_PBMP_ITER(ports_map, port) {
+
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port, &soc_ppd_port, &core)));
+
+        soc_sand_rv =soc_ppd_eg_filter_port_info_get(unit,core,soc_ppd_port,&eg_filter_port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        
+        eg_filter_port_info.filter_mask |= (SOC_PPD_EG_FILTER_PORT_ENABLE_MTU|SOC_PPD_EG_FILTER_PORT_ENABLE_SAME_INTERFACE|SOC_PPD_EG_FILTER_PORT_ENABLE_SPLIT_HORIZON);
+        soc_sand_rv =soc_ppd_eg_filter_port_info_set(unit,core,soc_ppd_port,&eg_filter_port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        
+        soc_sand_rv = soc_ppd_port_info_get(unit,core,soc_ppd_port,&port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    
+        port_info.enable_same_interfac_filter = TRUE;
+        port_info.same_interface_filter_skip = FALSE;
+        port_info.initial_action_profile.trap_code = _BCM_PETRA_UD_DFLT_TRAP;
+        soc_sand_rv = soc_ppd_port_info_set(unit,core,soc_ppd_port,&port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);    
+
+    }
+   /* 
+    * set TM ports to default trap profile
+    * all TM ports 
+    * RCY ports 
+    * CPU TM ports 
+    */
+    BCM_PBMP_ASSIGN(ports_map, PBMP_PORT_ALL(unit));
+    BCM_PBMP_OR(ports_map, SOC_INFO(unit).cmic_bitmap);
+    BCM_PBMP_OR(ports_map, PBMP_RCY_ALL(unit));
+    BCM_PBMP_REMOVE(ports_map, PBMP_SFI_ALL(unit));
+    BCM_PBMP_REMOVE(ports_map, PBMP_E_ALL(unit));
+    BCM_PBMP_ITER(ports_map, port) {
+        soc_sand_rv = _bcm_petra_port_trap_default_set(unit, port);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    }
+
+    /* Init Traps for Mact-Mgmt that is PBP-SA-DROP & DA-Not-Found  { */
+    /* Used in Port Control bcmPortControlDiscardMacsaAction, bcmPortControlUnknownMacDaAction */
+
+    if (SOC_IS_PETRAB(unit))
+    {
+      /* DA NOT found - Petra-B only */
+      /* Init Traps to NONE i.e. No trap effect, switch packet (fwd) */
+      trap_code = SOC_PPD_TRAP_CODE_DA_NOT_FOUND_0 + _bcm_petra_port_mact_mgmt_action_profile_none;
+      rv = _bcm_petra_port_pp_trap_code_get_and_clear(unit,trap_code,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+      rv = _bcm_petra_port_pp_trap_code_fwd_set(unit,trap_code,_BCM_DPP_PP_FWD_NONE,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+      rv = _bcm_petra_port_pp_trap_code_trap_set(unit,trap_code,FALSE,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+      rv = _bcm_petra_port_pp_trap_code_mact_trap_info_set(unit,SOC_PPD_FRWRD_MACT_TRAP_TYPE_DA_UNKNOWN,trap_code,_bcm_petra_port_mact_mgmt_action_profile_none,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+
+      /* Init Traps to DROP i.e. Only Drop packets */
+      trap_code = SOC_PPD_TRAP_CODE_DA_NOT_FOUND_0 + _bcm_petra_port_mact_mgmt_action_profile_drop;
+      rv = _bcm_petra_port_pp_trap_code_get_and_clear(unit,trap_code,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+      rv = _bcm_petra_port_pp_trap_code_fwd_set(unit,trap_code,_BCM_DPP_PP_FWD_DROP,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+      rv = _bcm_petra_port_pp_trap_code_trap_set(unit,trap_code,FALSE,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+      rv = _bcm_petra_port_pp_trap_code_mact_trap_info_set(unit,SOC_PPD_FRWRD_MACT_TRAP_TYPE_DA_UNKNOWN,trap_code,_bcm_petra_port_mact_mgmt_action_profile_drop,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+
+      /* Init Traps to TRAP & DROP i.e. Forward packet to CPU */
+      trap_code = SOC_PPD_TRAP_CODE_DA_NOT_FOUND_0 + _bcm_petra_port_mact_mgmt_action_profile_trap;
+      rv = _bcm_petra_port_pp_trap_code_get_and_clear(unit,trap_code,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+      rv = _bcm_petra_port_pp_trap_code_fwd_set(unit,trap_code,_BCM_DPP_PP_FWD_DROP,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+      rv = _bcm_petra_port_pp_trap_code_trap_set(unit,trap_code,TRUE,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+      rv = _bcm_petra_port_pp_trap_code_mact_trap_info_set(unit,SOC_PPD_FRWRD_MACT_TRAP_TYPE_DA_UNKNOWN,trap_code,_bcm_petra_port_mact_mgmt_action_profile_trap,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+
+      /* Init Traps to TRAP i.e. Drop packet and Copy packet to CPU (snooping) */
+      trap_code = SOC_PPD_TRAP_CODE_DA_NOT_FOUND_0 + _bcm_petra_port_mact_mgmt_action_profile_trap_and_drop;
+      rv = _bcm_petra_port_pp_trap_code_get_and_clear(unit,trap_code,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+      rv = _bcm_petra_port_pp_trap_code_fwd_set(unit,trap_code,_BCM_DPP_PP_FWD_NONE,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+      rv = _bcm_petra_port_pp_trap_code_trap_set(unit,trap_code,TRUE,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+      rv = _bcm_petra_port_pp_trap_code_mact_trap_info_set(unit,SOC_PPD_FRWRD_MACT_TRAP_TYPE_DA_UNKNOWN,trap_code,_bcm_petra_port_mact_mgmt_action_profile_trap_and_drop,&trap_info,&snoop_action);
+      BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    /* Init Traps to NONE i.e. No trap effect, switch packet (fwd) */
+    trap_code = SOC_PPD_TRAP_CODE_SA_DROP_0 + _bcm_petra_port_mact_mgmt_action_profile_none;
+    rv = _bcm_petra_port_pp_trap_code_get_and_clear(unit,trap_code,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+    rv = _bcm_petra_port_pp_trap_code_fwd_set(unit,trap_code,_BCM_DPP_PP_FWD_NONE,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+    rv = _bcm_petra_port_pp_trap_code_trap_set(unit,trap_code,FALSE,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+    rv = _bcm_petra_port_pp_trap_code_mact_trap_info_set(unit,SOC_PPD_FRWRD_MACT_TRAP_TYPE_SA_DROP,trap_code,_bcm_petra_port_mact_mgmt_action_profile_none,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* Init Traps to DROP i.e. Only Drop packets */
+    trap_code = SOC_PPD_TRAP_CODE_SA_DROP_0 + _bcm_petra_port_mact_mgmt_action_profile_drop;
+    rv = _bcm_petra_port_pp_trap_code_get_and_clear(unit,trap_code,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+    rv = _bcm_petra_port_pp_trap_code_fwd_set(unit,trap_code,_BCM_DPP_PP_FWD_DROP,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+    rv = _bcm_petra_port_pp_trap_code_trap_set(unit,trap_code,FALSE,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+    rv = _bcm_petra_port_pp_trap_code_mact_trap_info_set(unit,SOC_PPD_FRWRD_MACT_TRAP_TYPE_SA_DROP,trap_code,_bcm_petra_port_mact_mgmt_action_profile_drop,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    
+
+    /* Init Traps to TRAP & DROP i.e. Forward packet to CPU */
+    trap_code = SOC_PPD_TRAP_CODE_SA_DROP_0 + _bcm_petra_port_mact_mgmt_action_profile_trap;
+    rv = _bcm_petra_port_pp_trap_code_get_and_clear(unit,trap_code,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+    rv = _bcm_petra_port_pp_trap_code_fwd_set(unit,trap_code,_BCM_DPP_PP_FWD_DROP,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+    rv = _bcm_petra_port_pp_trap_code_trap_set(unit,trap_code,TRUE,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+    rv = _bcm_petra_port_pp_trap_code_mact_trap_info_set(unit,SOC_PPD_FRWRD_MACT_TRAP_TYPE_SA_DROP,trap_code,_bcm_petra_port_mact_mgmt_action_profile_trap,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    
+
+    /* Init Traps to TRAP i.e. Drop packet and Copy packet to CPU (snooping) */
+    trap_code = SOC_PPD_TRAP_CODE_SA_DROP_0 + _bcm_petra_port_mact_mgmt_action_profile_trap_and_drop;
+    rv = _bcm_petra_port_pp_trap_code_get_and_clear(unit,trap_code,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+    rv = _bcm_petra_port_pp_trap_code_fwd_set(unit,trap_code,_BCM_DPP_PP_FWD_NONE,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+    rv = _bcm_petra_port_pp_trap_code_trap_set(unit,trap_code,TRUE,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+    rv = _bcm_petra_port_pp_trap_code_mact_trap_info_set(unit,SOC_PPD_FRWRD_MACT_TRAP_TYPE_SA_DROP,trap_code,_bcm_petra_port_mact_mgmt_action_profile_trap_and_drop,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* Init Traps for Mact-Mgmt that is PBP-SA-DROP & DA-Not-Found  } */
+
+
+    /* Init Traps for Mact-Mgmt when SA-not-found { */
+
+    /* 0 LEARN and forward */
+    trap_code = SOC_PPD_TRAP_CODE_SA_NOT_FOUND_0;
+    /* do nothing */
+
+    /* 1 LEARN and drop */
+    trap_code = SOC_PPD_TRAP_CODE_SA_NOT_FOUND_2;
+    rv = _bcm_petra_port_pp_trap_code_fwd_set(unit,trap_code,_BCM_DPP_PP_FWD_DROP,&trap_info,&snoop_action);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* 2 don't LEARN and Forward */
+    trap_code = SOC_PPD_TRAP_CODE_SA_NOT_FOUND_1;
+    soc_sand_rv = soc_ppd_trap_frwrd_profile_info_get(unit,trap_code,&trap_info);
+    rv = handle_sand_result(soc_sand_rv);
+    trap_info.processing_info.enable_learning = 0;
+    trap_info.strength = SOC_DPP_CONFIG(unit)->pp.default_trap_strength;
+    soc_sand_rv = soc_ppd_trap_frwrd_profile_info_set(unit,trap_code,&trap_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    /* 3 don't LEARN and Drop */
+    trap_code = SOC_PPD_TRAP_CODE_SA_NOT_FOUND_3;
+    soc_sand_rv = soc_ppd_trap_frwrd_profile_info_get(unit,trap_code,&trap_info);
+    rv = handle_sand_result(soc_sand_rv);
+    trap_info.processing_info.enable_learning = 0;
+    trap_info.strength = (SOC_DPP_CONFIG(unit)->pp.default_trap_strength);
+    trap_info.dest_info.frwrd_dest.dest_id = 0;
+    SOC_PPD_FRWRD_DECISION_DROP_SET(unit, &(trap_info.dest_info.frwrd_dest), soc_sand_rv);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    trap_info.bitmap_mask |= SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_DEST;
+    soc_sand_rv = soc_ppd_trap_frwrd_profile_info_set(unit,trap_code,&trap_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+typedef enum _bcm_petra_tpid_op_e{
+    _bcm_petra_tpid_op_outer_set=0,
+    _bcm_petra_tpid_op_outer_add,
+    _bcm_petra_tpid_op_outer_delete,
+    _bcm_petra_tpid_op_outer_delete_all,
+    _bcm_petra_tpid_op_inner_set,
+    _bcm_petra_tpid_op_inner_remove,
+    _bcm_petra_tpid_op_outer_add_order /* this mode is for advanced mode, when called in port then change 
+                                        _bcm_petra_tpid_profile_none -> _bcm_petra_tpid_profile_outer -> _bcm_petra_tpid_profile_outer_inner -> ERROR
+    */
+} _bcm_petra_tpid_op_t;
+
+
+
+/* given port, return TPID values assigned on this port */
+STATIC int
+_bcm_petra_port_assigned_tpids_get(
+       int unit, SOC_PPD_PORT ppd_port_id, uint16 tpids[_BCM_PETRA_PORT_NOF_TPID_VALS], uint32 *nof_tpids
+    )
+{
+   SOC_PPD_PORT_INFO port_info;
+   uint32 tpid_indx=0;
+   SOC_PPD_LLP_PARSE_TPID_VALUES tpid_vals;
+   SOC_PPD_LLP_PARSE_TPID_PROFILE_INFO tpid_profile_info;
+   int soc_sand_dev_id, soc_sand_rv = 0;
+   uint32  pp_port;
+   int     core;
+   /* Retrive local PP ports */
+  BCMDNX_INIT_FUNC_DEFS;
+
+
+  *nof_tpids = 0;
+  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, ppd_port_id, &pp_port, &core)));
+
+  soc_sand_dev_id = (unit);
+ /* get TPID values */
+  soc_sand_rv = soc_ppd_llp_parse_tpid_values_get(soc_sand_dev_id, &tpid_vals);
+  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+ /*
+  * check wether this port used TPIDs already
+  */
+  /* get por tpid profile */
+  soc_sand_rv = soc_ppd_port_info_get(soc_sand_dev_id,core,pp_port,&port_info);
+  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+  /* get profie TPIDS */
+  soc_sand_rv = soc_ppd_llp_parse_tpid_profile_info_get(soc_sand_dev_id,port_info.tpid_profile,&tpid_profile_info);
+  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+  tpids[tpid_indx++] = tpid_vals.tpid_vals[tpid_profile_info.tpid1.index];
+  tpids[tpid_indx++] = tpid_vals.tpid_vals[tpid_profile_info.tpid2.index];
+
+  /* get MIM TPID */
+  tpids[tpid_indx++] = tpid_vals.tpid_vals[4];
+  *nof_tpids = tpid_indx;
+
+  LOG_VERBOSE(BSL_LS_BCM_PORT,
+              (BSL_META_U(unit,
+                          "port_assigned_tpids_get: port=%d tpid1=0x%x tpid2=0x%x tpid3=0x%x\n"),
+               ppd_port_id, tpids[0], tpids[1],tpids[2]));
+
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+/* given
+    -  port and two TPIDs values (port_tpid_class) 
+    -  TPIDs assigned on port from _bcm_petra_port_assigned_tpids_get
+   return
+    - relevant TPID indexes to be used in tag structure
+ 
+    2.  TPID outer/inner:
+        a.  Given port,TPID1 and array of <TPID indexes >
+            i.  0: if TPID = BCM_PORT_TPID_CLASS_TPID_INVALID
+            ii. {0,1,2,3}: if TPID = BCM_PORT_TPID_CLASS_TPID_ANY
+            iii.1: TPID = first TPID of port TPID profile
+            iv. 2: TPID = second TPID of port TPID profile
+        v.  3: TPID = MIM TPID
+        vi. Error otherwise
+
+ */
+
+
+STATIC int
+_bcm_petra_port_tpid_indexes_get(
+       int unit, SOC_PPD_PORT ppd_port_id, uint32 tpid_val, uint16 *tpid_vals, uint32 nof_tpid_vals,
+       /* out */ uint16 tpid_indexes[_BCM_PETRA_PORT_NOF_TPID_VALS], uint32 *nof_tpid_indexes
+    )
+{
+   uint32 tpid_indx=0;
+   uint32 tpid_val_indx=0;
+
+  /* Retrive local PP ports */
+  BCMDNX_INIT_FUNC_DEFS;
+
+
+  *nof_tpid_indexes = 0;
+  /* invalid ==> no TPID found */
+  if (tpid_val == BCM_PORT_TPID_CLASS_TPID_INVALID) {
+      tpid_indexes[tpid_indx++] = 0;
+      *nof_tpid_indexes = tpid_indx;
+      BCM_EXIT;
+  }
+
+  /* any ==> ALL */
+  if (tpid_val == BCM_PORT_TPID_CLASS_TPID_ANY) {
+      tpid_indexes[tpid_indx++] = 0;
+      tpid_indexes[tpid_indx++] = 1;
+      tpid_indexes[tpid_indx++] = 2;
+      tpid_indexes[tpid_indx++] = 3;
+      *nof_tpid_indexes = tpid_indx;
+      BCM_EXIT;
+  }
+
+  for (tpid_val_indx = 0; tpid_val_indx < nof_tpid_vals; ++tpid_val_indx) {
+      if (tpid_val == tpid_vals[tpid_val_indx]) {
+          /* +1: as 0 means no TPID, 1 means TPID 0, etc.. */
+          tpid_indexes[tpid_indx++] = tpid_val_indx+1;
+          *nof_tpid_indexes = tpid_indx;
+          LOG_VERBOSE(BSL_LS_BCM_PORT,
+                      (BSL_META_U(unit,
+                                  "tpid_indexes_get: u=%d p=0x%x *Num:%d indx1=0x%x indx2=0x%x indx3=0x%x indx4=0x%x\n"),
+                       unit, ppd_port_id, *nof_tpid_indexes, tpid_indexes[0], tpid_indexes[1],tpid_indexes[2],tpid_indexes[3]));
+          BCM_EXIT;
+      }
+  }
+  /* user specify explicit TPID value that is not assigned in port */
+  BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("TPID:0x%08x is not assigned in port:0x%08x"), tpid_val,ppd_port_id));
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+/* map bcm tpid_class to PPD LLP_PARSE */
+STATIC int
+_bcm_petra_port_tpid_class_info_to_ppd(
+       int unit,
+       bcm_port_tpid_class_t *tpid_class,
+       SOC_PPD_LLP_PARSE_PACKET_FORMAT_INFO *pkt_frmt_info
+    )
+{
+  /* Retrive local PP ports */
+  BCMDNX_INIT_FUNC_DEFS;
+
+  SOC_PPD_LLP_PARSE_PACKET_FORMAT_INFO_clear(pkt_frmt_info);
+
+  pkt_frmt_info->priority_tag_type = SOC_SAND_PP_VLAN_TAG_TYPE_NONE;
+  pkt_frmt_info->dlft_edit_command_id = tpid_class->vlan_translation_action_id;
+  pkt_frmt_info->dflt_edit_pcp_profile = tpid_class->vlan_translation_qos_map_id;
+
+  if (tpid_class->flags & BCM_PORT_TPID_CLASS_DISCARD) {
+      pkt_frmt_info->action_trap_code = SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_DROP;
+  }
+  else{
+      pkt_frmt_info->action_trap_code = SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_ACCEPT;
+  }
+  pkt_frmt_info->tag_format = tpid_class->tag_format_class_id;
+
+  
+  if (tpid_class->flags & BCM_PORT_TPID_CLASS_INNER_C) {
+      pkt_frmt_info->flags = SOC_PPD_LLP_PARSE_FLAGS_INNER_C;
+  }
+  if (tpid_class->flags & BCM_PORT_TPID_CLASS_OUTER_C) {
+      pkt_frmt_info->flags = SOC_PPD_LLP_PARSE_FLAGS_OUTER_C;
+  }
+
+   BCMDNX_FUNC_RETURN;
+}
+
+
+/* map bcm tpid_class from PPD LLP_PARSE */
+STATIC int
+_bcm_petra_port_tpid_class_info_from_ppd(
+       int unit,
+       bcm_port_tpid_class_t *tpid_class,
+       SOC_PPD_LLP_PARSE_PACKET_FORMAT_INFO *pkt_frmt_info
+    )
+{
+  /* Retrive local PP ports */
+  BCMDNX_INIT_FUNC_DEFS;
+
+  /* clear old data (except "key" data) */
+  tpid_class->flags &= ~(BCM_PORT_TPID_CLASS_DISCARD|BCM_PORT_TPID_CLASS_OUTER_C|BCM_PORT_TPID_CLASS_INNER_C);
+
+  tpid_class->vlan_translation_action_id = pkt_frmt_info->dlft_edit_command_id;
+  tpid_class->vlan_translation_qos_map_id = pkt_frmt_info->dflt_edit_pcp_profile;
+  tpid_class->tag_format_class_id = pkt_frmt_info->tag_format;
+
+  if (pkt_frmt_info->action_trap_code == SOC_PPD_TRAP_CODE_ACCEPTABLE_FRAME_TYPE_DROP) {
+      tpid_class->flags |= BCM_PORT_TPID_CLASS_DISCARD;
+  }
+  
+  if (pkt_frmt_info->flags == SOC_PPD_LLP_PARSE_FLAGS_INNER_C) {
+      tpid_class->flags |= BCM_PORT_TPID_CLASS_INNER_C;
+  }
+  if (pkt_frmt_info->flags == SOC_PPD_LLP_PARSE_FLAGS_OUTER_C) {
+      tpid_class->flags |= BCM_PORT_TPID_CLASS_OUTER_C;
+  }
+
+   BCMDNX_FUNC_RETURN;
+}
+
+/* given bcm_port_tpid_class_t,
+   compress data into bitmap to be used in template management
+   assume compress buffer data is less than 32 bit
+ 
+    0:0  PcpDeiProfile  This is the port-based PCP-DEI mapping profile.
+    6:1  Ivec  This is the port-based ingress VLAN edit command. 19:16  
+    10:7 IncomingTagStructure  Used together with the VLAN-Edit-Profile 
+    11:11 discard
+    12:12: outer-cep
+    13:13 inner-cep
+ 
+    where:
+    PcpDeiProfile  = qos_map_id
+    Ivec = vlan_translation_action_id
+    IncomingTagStructure = bcm_port_tag_format_class_t 
+    Discard = BCM_PORT_TPID_CLASS_DISCARD 
+    Outer cep: BCM_PORT_TPID_CLASS_OUTER_C 
+    Inner cep: BCM_PORT_TPID_CLASS_INNER_C 
+
+ */
+STATIC int
+_bcm_petra_port_tpid_class_info_compress_get(
+       int unit,
+       bcm_port_tpid_class_t *tpid_class,
+       uint32 *buff
+    )
+{
+   uint32 tmp_val = 0;
+   uint32 buff_val;
+
+  /* Retrive local PP ports */
+  BCMDNX_INIT_FUNC_DEFS;
+
+  *buff = 0;
+  buff_val = 0;
+
+  /* 13:13 inner-cep */
+  tmp_val = (tpid_class->flags & BCM_PORT_TPID_CLASS_INNER_C)?1:0;
+  buff_val |= tmp_val<<13; 
+
+  /* 12:12 outer-cep */
+  tmp_val = (tpid_class->flags & BCM_PORT_TPID_CLASS_OUTER_C)?1:0;
+  buff_val |= tmp_val<<12;
+
+  /* 11:11 discard */
+  tmp_val = (tpid_class->flags & BCM_PORT_TPID_CLASS_DISCARD)?1:0;
+  buff_val |= tmp_val<<11;
+
+  /* 10:7 IncomingTagStructure */
+  tmp_val = tpid_class->tag_format_class_id;
+  buff_val |= tmp_val<<7;
+
+  /* 6:1  Ivec */
+  tmp_val = tpid_class->vlan_translation_action_id;
+  buff_val |= tmp_val<<1;
+
+  /* 0:0  PcpDeiProfile  */
+  tmp_val = tpid_class->vlan_translation_qos_map_id;
+  buff_val |= tmp_val;
+  
+  *buff = buff_val;
+  LOG_VERBOSE(BSL_LS_BCM_PORT,
+              (BSL_META_U(unit,
+                          "tpid_class_info_compress_get: buff_val=0x%x\n"),
+               buff_val));
+   BCMDNX_FUNC_RETURN;
+}
+
+
+STATIC int
+_bcm_petra_port_tpid_tag_structure_to_index(
+       int unit,
+       SOC_PPD_LLP_PARSE_INFO *prs_nfo,
+       uint32 *index
+    )
+{
+    
+  /* Retrive local PP ports */
+  BCMDNX_INIT_FUNC_DEFS;
+
+  *index = prs_nfo->outer_tpid << 3;
+  *index |= prs_nfo->is_outer_prio << 2;
+  *index |= prs_nfo->inner_tpid;
+
+   BCMDNX_FUNC_RETURN;
+}
+ 
+
+
+/* update the tpid_class_buffer to include tag_strucutre_buff in the given tag_strucutre_index
+   tpid_class_buffer will be used as profile data in template manager
+ */
+STATIC int
+_bcm_petra_port_tpid_class_info_buffer_update(
+       int unit,
+       uint32 tag_strucutre_index,  /* actualy tag-structure (output of parser */
+       uint32 tag_strucutre_buff,    /* change data */
+       _bcm_dpp_port_tpid_class_info_t *tpid_class_buffer
+    )
+{
+  /* Retrive local PP ports */
+  BCMDNX_INIT_FUNC_DEFS;
+
+
+  SHR_BITCOPY_RANGE(
+                    tpid_class_buffer->buff,
+                    _BCM_DPP_PORT_TPID_CLASS_BITS_PER_TAG_STRCT*tag_strucutre_index,
+                    &tag_strucutre_buff,
+                    0,
+                    _BCM_DPP_PORT_TPID_CLASS_BITS_PER_TAG_STRCT);
+
+
+   BCMDNX_FUNC_RETURN;
+}
+
+
+int
+bcm_petra_port_pp_init(int unit)
+{  
+    uint32 trap_indx = 0;
+    SOC_TMC_ACTION_CMD_SNOOP_MIRROR_INFO snp_to_cpu;
+
+    /*SOC_TMC_ACTION_CMD_SNOOP_INFO snoop_tmp;*/
+
+    bcm_dpp_snoop_t snoop_tmp;
+
+    uint32 snoop_indx = 0;
+    uint32 idx;
+    int soc_sand_rv = 0;
+    int rv = BCM_E_NONE;
+    _bcm_petra_tpid_profile_t profile_type;
+    _bcm_petra_dtag_mode_t dtag_mode;
+    _bcm_petra_ac_key_map_type_t ac_key_map_type;
+    bcm_dpp_user_defined_traps_t ud_trap_info;   
+    int accept_mode;
+    uint32 tag_buff;
+    int port_i, gport;   
+    bcm_port_tpid_class_t port_tpid_class;
+    int template_init_id;
+    SOC_PPD_LLP_PARSE_INFO prs_nfo;
+    _bcm_petra_port_mact_mgmt_action_profile_t action_profile;
+    _bcm_dpp_port_tpid_class_info_t tpid_class_init_data;
+    _bcm_dpp_port_tpid_class_acceptable_frame_type_info_t 
+        tpid_class_acceptable_frame_info;
+
+
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    if (SOC_DPP_PP_ENABLE(unit)) {
+        /* by default all PORTS points to tpid profile 0 and accept untagged only*/
+        profile_type = _bcm_petra_tpid_profile_none;
+
+        accept_mode = BCM_PORT_DISCARD_TAG;
+        dtag_mode = _bcm_petra_dtag_mode_accept;
+        ac_key_map_type = _bcm_petra_ac_key_map_type_normal;
+
+        if (!SOC_WARM_BOOT(unit)) {
+#ifdef BCM_ARAD_SUPPORT     
+            /* reset WB state */    
+            rv = soc_dpp_wb_engine_state_init_port(unit);   
+            BCMDNX_IF_ERR_EXIT(rv);   
+#endif
+            rv = _bcm_dpp_port_tpid_class_acceptable_frame_type_info_t_clear(unit, &tpid_class_acceptable_frame_info);
+            BCMDNX_IF_ERR_EXIT(rv);
+
+            rv = _bcm_dpp_am_template_tpid_profile_init(unit,0,profile_type,accept_mode,dtag_mode, ac_key_map_type);
+            BCMDNX_IF_ERR_EXIT(rv);
+            if(_BCM_DPP_TPID_PARSE_ADVANCED_MODE(unit)) {
+                bcm_port_tpid_class_t_init(&port_tpid_class);
+                /* 3. calculate new buffer data for this tag class */
+                rv = _bcm_petra_port_tpid_class_info_compress_get(
+                        unit,
+                        &port_tpid_class,
+                        &tag_buff
+                     );
+                BCMDNX_IF_ERR_EXIT(rv);
+
+                SOC_PPD_LLP_PARSE_INFO_clear(&prs_nfo);
+
+                /* run over all relevant tag strucutres */
+                for(prs_nfo.outer_tpid = SOC_PPD_LLP_PARSE_TPID_INDEX_NONE; prs_nfo.outer_tpid < SOC_PPD_NOF_LLP_PARSE_TPID_INDEXS; ++prs_nfo.outer_tpid) {
+                    for(prs_nfo.inner_tpid = SOC_PPD_LLP_PARSE_TPID_INDEX_NONE; prs_nfo.inner_tpid < SOC_PPD_NOF_LLP_PARSE_TPID_INDEXS; ++prs_nfo.inner_tpid) {
+                        for (prs_nfo.is_outer_prio = FALSE; prs_nfo.is_outer_prio <= TRUE; ++prs_nfo.is_outer_prio) {
+                            /* map parser result to index in buffer */
+                            rv = _bcm_petra_port_tpid_tag_structure_to_index(unit,&prs_nfo,&idx);
+                            BCMDNX_IF_ERR_EXIT(rv);
+
+                            /* update data in buffer */
+                            rv = _bcm_petra_port_tpid_class_info_buffer_update(unit,idx,tag_buff,&tpid_class_init_data);
+                            BCMDNX_IF_ERR_EXIT(rv);
+                        }
+                    }
+                }
+
+            /* update data in buffer */
+            rv = _bcm_dpp_am_template_port_tpid_class_init(unit,0,&tpid_class_init_data);
+            BCMDNX_IF_ERR_EXIT(rv);
+
+            /* get data from tpid class info and fill egress tpid class info acceptable
+               frame type*/
+            _bcm_dpp_port_tpid_class_info_t_to_bcm_dpp_port_tpid_class_acceptable_frame_type_info_t(unit, &tpid_class_init_data, &tpid_class_acceptable_frame_info);
+
+            /* update date in buffer */
+            rv = _bcm_dpp_am_template_port_tpid_class_egress_acceptable_frame_type_init(unit, 0, &tpid_class_acceptable_frame_info);
+            }
+        }
+    }
+
+    /* by default all points to entry 0 */
+    SOC_TMC_ACTION_CMD_SNOOP_INFO_clear(&(snoop_tmp.snoop_action_info));
+    snoop_tmp.snoop_action_info.prob = (uint32)-1;
+    snoop_tmp.snoop_unique = _BCM_DPP_TRAP_PREVENT_SWAPPING;
+
+    snoop_indx = 0;
+    rv = _bcm_dpp_am_template_snoop_cmd_init(unit,snoop_indx,&snoop_tmp);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    ud_trap_info.snoop_cmd = 0;
+    SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO_clear(&(ud_trap_info.trap));
+    ud_trap_info.ud_unique = _BCM_DPP_TRAP_PREVENT_SWAPPING; 
+    ud_trap_info.gport_trap_id = 0;
+
+    rv = _bcm_dpp_am_template_user_defined_traps_init(unit,_BCM_PETRA_UD_DFLT_TRAP - SOC_PPC_TRAP_CODE_USER_DEFINED_0,&ud_trap_info);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    for(idx=0; idx < _BCM_PETRA_PORT_LEARN_NOF_TRAPS; ++idx) {
+
+        _DPP_PORT_TRAP_TO_FLAG_SET(unit, idx, (idx == trap_indx) ? BCM_PETRA_PORT_LEARN_DFLT_FLGS : BCM_PETRA_PORT_LEARN_INVALID_FLGS);
+
+    }
+
+    /* set snoop command '_BCM_DPP_SNOOP_CMD_TO_CPU' to send packet to CPU*/
+    
+    if (!SOC_IS_JERICHO(unit)) 
+    {
+        if (!SOC_WARM_BOOT(unit)) {
+         
+            SOC_TMC_ACTION_CMD_SNOOP_INFO_clear(&snp_to_cpu);
+
+            snp_to_cpu.cmd.dest_id.type = SOC_TMC_DEST_TYPE_SYS_PHY_PORT;
+            snp_to_cpu.cmd.dest_id.id = _BCM_DPP_CPU_DEST_PORT;
+            snp_to_cpu.prob = 1023;
+            snp_to_cpu.size = SOC_TMC_ACTION_CMD_SIZE_BYTES_ALL_PCKT;
+            soc_sand_rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_action_cmd_snoop_set,(unit,_BCM_DPP_SNOOP_CMD_TO_CPU,&snp_to_cpu)));
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        }
+    }
+
+    if (SOC_DPP_PP_ENABLE(unit)) {
+        if (!SOC_WARM_BOOT(unit)) {
+            /*
+             * init traps
+             */
+            rv = _bcm_petra_port_traps_init(unit);
+            BCMDNX_IF_ERR_EXIT(rv);
+        }
+
+        /*
+         * init SW states, mapping tables
+         */
+
+        /* profile 0 is used*/
+        for(idx = 0; idx < _bcm_dpp_port_map_type_count; ++idx ) {
+            _BCM_DPP_PORT_MAP_TBL_IN_USE_SET(unit, idx, 0, TRUE);
+        }
+
+        /* allocate SW databases*/
+        if (!SOC_WARM_BOOT(unit)) {
+
+            if (!_BCM_DPP_TPID_PARSE_ADVANCED_MODE(unit)) {
+                /* set all ports to accept untagged packets only */
+                BCM_PBMP_ITER(PBMP_E_ALL(unit),port_i){
+                    BCM_GPORT_LOCAL_SET(gport,port_i);
+                    rv = bcm_petra_port_discard_set(unit,gport,BCM_PORT_DISCARD_TAG);
+                    BCMDNX_IF_ERR_EXIT(rv);
+                }
+            }
+        }
+
+        /* Init TRAPs Mact mgmt SA-Drop, Unknown-DA. Init to forward (NONE) */
+        template_init_id = _bcm_petra_port_mact_mgmt_action_profile_none;
+        action_profile = _bcm_petra_port_mact_mgmt_action_profile_none;
+        rv = _bcm_dpp_am_template_port_mact_sa_drop_init(unit,template_init_id,&action_profile);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        if (SOC_IS_PETRAB(unit))
+        {
+            rv = _bcm_dpp_am_template_port_mact_da_unknown_init(unit,template_init_id,&action_profile);
+            BCMDNX_IF_ERR_EXIT(rv);
+        }
+    }
+
+    if (_BCM_DPP_TPID_PARSE_ADVANCED_MODE(unit)) {
+        rv = soc_dpp_wb_engine_init_buffer(unit,SOC_DPP_WB_ENGINE_BUFFER_ARAD_PORT);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+
+    }
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * find map-profile for the given port/s
+ */
+int 
+_bcm_petra_port_map_alloc_profile(
+    int unit, 
+    int type,
+    bcm_pbmp_t pbmp_local_ports, 
+    int flags, 
+    int modified_entry_indx,
+    SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO    *new_entry_val,
+    int *profile,
+    int *new_profile
+    )
+{
+   SOC_PPD_LLP_COS_PORT_INFO    cos_port_info;
+   int found_first=FALSE, port_idx, my_profile=0xffff;
+   int tbl_indx,nof_tbls,nof_entries,entry_indx;
+   int reuse_profile = TRUE, reuse_self = TRUE;
+   int soc_sand_dev_id = unit, soc_sand_rv = 0;
+   int rv = BCM_E_NONE;
+   SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO    entry , my_entry;
+   SOC_PPD_LLP_COS_MAPPING_TABLE map_table_type = 0;
+   SOC_PPD_PORT soc_ppd_port_idx;
+   bcm_port_t port_from_ppd;
+   int map_tbl_use, core;
+   soc_port_t  ether_port;
+
+   BCMDNX_INIT_FUNC_DEFS;
+   soc_sand_dev_id = (unit);
+
+   *new_profile = FALSE;
+   BCM_PBMP_ITER(pbmp_local_ports, port_idx) {
+       BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_idx, &soc_ppd_port_idx, &core)));
+
+       soc_sand_rv = soc_ppd_llp_cos_port_info_get(soc_sand_dev_id,core,soc_ppd_port_idx,&cos_port_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+       if(!found_first) {
+       switch (type) {
+           case _bcm_dpp_port_map_type_up_to_dp:
+           my_profile = cos_port_info.l2_info.tbls_select.up_to_dp_index;
+           map_table_type = SOC_PPD_LLP_COS_MAPPING_TABLE_UP_TO_DP;
+           break;
+           case _bcm_dpp_port_map_type_in_up_to_tc_and_de:
+           my_profile = cos_port_info.l2_info.tbls_select.in_up_to_tc_and_de_index;
+           map_table_type = SOC_PPD_LLP_COS_MAPPING_TABLE_UP_TO_DE_TC;
+           break;
+           default:
+           BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: unknown port map type %d, unit %d"),FUNCTION_NAME(), type, unit));
+       }
+       found_first = TRUE;
+       }
+       /* all ports in the group must has same profile*/
+       else if (found_first &&
+      (cos_port_info.l2_info.tbls_select.up_to_dp_index != my_profile) &&
+      (cos_port_info.l2_info.tbls_select.in_up_to_tc_and_de_index != my_profile)) {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: all ports in the group must has same profile, unit %d"),FUNCTION_NAME(), unit));
+       }
+   }
+
+   /*pbmp is empty*/
+   if(!found_first) {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("pbmp is empty")));
+   }
+
+   nof_tbls = _Bcm_dpp_port_map_nof_tbls[type];
+   nof_entries = _Bcm_dpp_port_map_nof_entries[type];
+
+   /* check if there is table with new mapping, if so reuse it*/
+   for(tbl_indx = 0; tbl_indx < nof_tbls; ++tbl_indx) {
+       /* skip self compare 
+       if(my_profile == tbl_indx) {
+       continue;
+       }*/
+       reuse_profile = TRUE;
+
+       for(entry_indx = 0; entry_indx < nof_entries; ++entry_indx) {
+
+           if(entry_indx != modified_entry_indx) {
+               soc_sand_rv = soc_ppd_llp_cos_mapping_table_entry_get(soc_sand_dev_id,
+                                     map_table_type,
+                                     my_profile,
+                                     entry_indx,&my_entry);
+               BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+           }
+           else
+           {
+               sal_memcpy(&my_entry,new_entry_val,sizeof(SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO));
+           }
+
+           soc_sand_rv = soc_ppd_llp_cos_mapping_table_entry_get(soc_sand_dev_id,
+                                 map_table_type,
+                                 tbl_indx,
+                                 entry_indx,&entry);
+           BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+           if(sal_memcmp(&my_entry,&entry,sizeof(SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO)))
+           {
+               reuse_profile = FALSE;
+               break;
+           }
+       }
+       if(reuse_profile) {
+           *profile = tbl_indx;
+           break;
+       }
+   }
+
+   /* check if my profile is used only be me, if so reuse it */
+   /* if already move to another profile check i was last, so the profile is not longer in use*/
+   PBMP_E_ITER(unit, ether_port) {
+       BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, ether_port, &soc_ppd_port_idx, &core)));
+
+       soc_sand_rv = soc_ppd_llp_cos_port_info_get(soc_sand_dev_id,core,soc_ppd_port_idx,&cos_port_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+       /* for port uses this profile is it part of the group */
+       if(found_first && 
+        ((cos_port_info.l2_info.tbls_select.up_to_dp_index == my_profile) ||
+         (cos_port_info.l2_info.tbls_select.in_up_to_tc_and_de_index == my_profile))) 
+       {
+           port_from_ppd = ether_port;
+           if (!BCM_PBMP_MEMBER(pbmp_local_ports,port_from_ppd)) {
+               reuse_self = FALSE;
+               break;
+           }
+       }
+   }
+
+   /* if move to another profile (tbl_indx), and old profile (my_profile) not in use any more */
+   if(reuse_profile && reuse_self && my_profile != tbl_indx) {
+       _BCM_DPP_PORT_MAP_TBL_IN_USE_SET(unit, type, my_profile, FALSE);
+       BCM_EXIT;
+   }
+
+   /* the profile is used only by me, then can be resued*/
+   if(reuse_self) {
+       *profile = my_profile;
+       BCMDNX_IF_ERR_EXIT(rv);
+       BCM_EXIT;
+   }
+
+   /* If an existing profile is identical, can be reused*/
+   if(reuse_profile) {
+       *profile = tbl_indx;
+
+       /* Mark the table as used if it's not already */
+       _BCM_DPP_PORT_MAP_TBL_IN_USE_GET(unit, type, tbl_indx, map_tbl_use);       
+       if(!map_tbl_use) {
+           _BCM_DPP_PORT_MAP_TBL_IN_USE_SET(unit, type, tbl_indx, TRUE);
+       }
+
+       BCMDNX_IF_ERR_EXIT(rv);
+       BCM_EXIT;
+   }
+
+
+   /* if arrive here then allocate new-table */
+   for(tbl_indx = 0; tbl_indx < nof_tbls; ++tbl_indx) {
+       _BCM_DPP_PORT_MAP_TBL_IN_USE_GET(unit, type, tbl_indx, map_tbl_use);       
+       if(!map_tbl_use) {
+           _BCM_DPP_PORT_MAP_TBL_IN_USE_SET(unit, type, tbl_indx, TRUE);
+           *new_profile = TRUE;
+           *profile = tbl_indx;
+           break;
+       }
+   }
+   if(*new_profile) {
+       /* copy mapping from old to new table */
+       for(entry_indx = 0; entry_indx < nof_entries; ++entry_indx) {
+       /* set value from old table */
+       if(entry_indx != modified_entry_indx) {
+           soc_sand_rv = soc_ppd_llp_cos_mapping_table_entry_get(soc_sand_dev_id,
+                                 map_table_type,
+                                 my_profile,
+                                 entry_indx,&my_entry);
+           BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+       }
+       else
+       {
+           sal_memcpy(&my_entry,new_entry_val,sizeof(SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO));
+       }
+       /* set into new table */
+       soc_sand_rv = soc_ppd_llp_cos_mapping_table_entry_set(soc_sand_dev_id,
+                             map_table_type,
+                             tbl_indx,
+                             entry_indx,&my_entry);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+       }
+
+       BCMDNX_IF_ERR_EXIT(rv);
+       BCM_EXIT;
+   }
+
+   /* if arrive here then not available */
+   BCMDNX_ERR_EXIT_MSG(BCM_E_FULL, (_BSL_BCM_MSG("not available")));
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      _bcm_dpp_port_class_set_split_horizon
+ * Purpose:
+ *      Setting of auxilary table split horizon value for given lif
+ * Parameters:
+ *      unit - Unit #.
+ *      port - port #.
+ *      class_id - in Arad:
+ *                 1 for HUB
+ *                 0 for SPOKE (in Arad)
+ *  
+ *                 in Jericho:
+ *                 0-3 
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int
+_bcm_dpp_port_class_set_split_horizon(
+   int unit,
+   bcm_port_t port,
+   uint32 class_id,
+   int is_ingress) 
+{
+    int lif_id = 0, out_lif_id = 0, fec_id = 0, is_local = 0;
+    uint32 soc_sand_rv = 0;
+    int rv = BCM_E_NONE;
+
+    BCMDNX_INIT_FUNC_DEFS
+
+    if (!SOC_IS_JERICHO(unit) && !(SOC_IS_ARAD(unit) && SOC_DPP_CONFIG(unit)->arad->pp_op_mode.split_horizon_filter_enable)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_FAIL, (_BSL_BCM_MSG("Split horizon filter is not enabled")));
+    }
+
+    if (soc_property_get(unit, spn_SPLIT_HORIZON_FORWARDING_GROUPS_MODE, 1)) {
+        if (class_id > 3) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_FAIL, (_BSL_BCM_MSG("if SPLIT_HORIZON_FORWARDING_GROUPS_MODE is enabled, class_id should be 0-3")));
+        }
+    } else {
+        if (class_id > 1) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_FAIL, (_BSL_BCM_MSG("if SPLIT_HORIZON_FORWARDING_GROUPS_MODE is disabled, class_id should be 0-1")));
+        }
+    }
+
+
+    if (is_ingress) {
+        SOC_PPD_LIF_ENTRY_INFO lif_info;
+
+        rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, &lif_id, NULL, &fec_id, &is_local);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        if (!is_local) {
+            /* API is releavant only for local configuration */
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unexpected lif index. should be local only")));
+        }
+
+        soc_sand_rv = soc_ppd_lif_table_entry_get(unit, lif_id, &lif_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        if (lif_info.type == SOC_PPC_LIF_ENTRY_TYPE_AC) {
+            if (class_id == 0){
+                lif_info.value.ac.orientation = SOC_SAND_PP_HUB_SPOKE_ORIENTATION_SPOKE;
+            }else {
+                lif_info.value.ac.orientation = SOC_SAND_PP_HUB_SPOKE_ORIENTATION_HUB;
+            }
+        } else if (lif_info.type == SOC_PPC_LIF_ENTRY_TYPE_MPLS_TUNNEL_RIF){
+            if (SOC_IS_JERICHO(unit) && soc_property_get(unit, spn_SPLIT_HORIZON_FORWARDING_GROUPS_MODE, 1)) {
+                lif_info.value.mpls_term_info.orientation = (class_id & 2) >> 1;
+                soc_sand_rv = MBCM_PP_DRIVER_CALL(unit, mbcm_pp_occ_mgmt_app_set,
+                                  (unit, SOC_OCC_MGMT_TYPE_INLIF, SOC_OCC_MGMT_INLIF_APP_ORIENTATION, (class_id & 1),
+                                      &(lif_info.value.mpls_term_info.lif_profile)));
+                BCMDNX_IF_ERR_EXIT(soc_sand_rv);
+            } else {
+                if (class_id == 0){
+                    lif_info.value.mpls_term_info.orientation = SOC_SAND_PP_HUB_SPOKE_ORIENTATION_SPOKE;
+                }else {
+                    lif_info.value.mpls_term_info.orientation = SOC_SAND_PP_HUB_SPOKE_ORIENTATION_HUB;
+                }
+            }
+
+            /* update existing lif entry */
+            soc_sand_rv = soc_ppd_lif_table_entry_update(unit, lif_id, &lif_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        } else {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Invalid lif index.")));
+        }
+
+    } else { /* egress */
+
+        rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, NULL, &out_lif_id, &fec_id, &is_local);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        if (!is_local) {
+            /* API is releavant only for local configuration */
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unexpected lif index. should be local only")));
+        }  
+
+        if (SOC_IS_JERICHO(unit)) {
+            SOC_PPD_EG_ENCAP_ENTRY_INFO
+                encap_entry_info[SOC_PPD_NOF_EG_ENCAP_EEP_TYPES];
+            uint32 
+                next_eep[SOC_PPD_NOF_EG_ENCAP_EEP_TYPES],
+                nof_entries;
+            _bcm_lif_type_e lif_usage;
+            uint32 outlif_profile = 0; 
+
+            BCMDNX_IF_ERR_EXIT(_bcm_dpp_lif_usage_get(unit, -1, out_lif_id, NULL, &lif_usage));
+            if ((lif_usage != _bcmDppLifTypeMplsTunnel)
+                && (lif_usage != _bcmDppLifTypeLinkLayer)
+                && (lif_usage != _bcmDppLifTypeIpTunnel)){
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Currently only MPLS tunnel outlif LL outlif and IPv4 tunnel outLif are supported")));
+            }
+
+            /* get encap entry */
+            soc_sand_rv = soc_ppd_eg_encap_entry_get(
+                unit,
+                SOC_PPD_EG_ENCAP_EEP_TYPE_TUNNEL_EEP, out_lif_id, 1,
+                encap_entry_info, next_eep, &nof_entries);
+            SOC_SAND_IF_ERR_RETURN(soc_sand_rv);
+
+
+            soc_sand_rv = MBCM_PP_DRIVER_CALL(unit, mbcm_pp_occ_mgmt_app_set,
+                              (unit, SOC_OCC_MGMT_TYPE_OUTLIF, SOC_OCC_MGMT_OUTLIF_APP_ORIENTATION, class_id,
+                                  &outlif_profile));
+            BCMDNX_IF_ERR_EXIT(soc_sand_rv);
+
+            /* add mpls encap entry */
+            if (lif_usage == _bcmDppLifTypeMplsTunnel) {
+                encap_entry_info->entry_val.mpls_encap_info.outlif_profile = outlif_profile; 
+                soc_sand_rv =
+                    soc_ppd_eg_encap_mpls_entry_add(unit, out_lif_id, &(encap_entry_info->entry_val.mpls_encap_info), next_eep[0]);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+            } 
+            /* add LL encap entry */
+            else if (lif_usage == _bcmDppLifTypeLinkLayer) {
+                encap_entry_info->entry_val.ll_info.outlif_profile = outlif_profile; 
+                soc_sand_rv =
+                    soc_ppd_eg_encap_ll_entry_add(unit, out_lif_id, &(encap_entry_info->entry_val.ll_info)); 
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+            }
+            /* add Ip Tunnel encap entry */
+            else if (lif_usage == _bcmDppLifTypeIpTunnel) {
+                encap_entry_info->entry_val.ipv4_encap_info.outlif_profile = outlif_profile; 
+                soc_sand_rv = 
+                    soc_ppd_eg_encap_ipv4_entry_add(unit, out_lif_id, &(encap_entry_info->entry_val.ipv4_encap_info), next_eep[0]); 
+            }
+
+        } else {
+            if (class_id == 0) {
+                soc_sand_rv = soc_ppd_eg_filter_split_horizon_out_lif_orientation_set(unit, out_lif_id, SOC_SAND_PP_HUB_SPOKE_ORIENTATION_SPOKE);
+            } else {
+                soc_sand_rv = soc_ppd_eg_filter_split_horizon_out_lif_orientation_set(unit, out_lif_id, SOC_SAND_PP_HUB_SPOKE_ORIENTATION_HUB);
+            }
+            SOC_SAND_IF_ERR_EXIT(soc_sand_rv);
+        }
+    }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      _bcm_dpp_port_class_get_split_horizon
+ * Purpose:
+ *      Getting of auxilary table split horizon value for given lif
+ * Parameters:
+ *      unit - Unit #.
+ *      port - port #.
+ *      class_id - 1 for HUB
+ *                 0 for SPOKE
+ *                 (out)
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_XXX
+ */
+int 
+_bcm_dpp_port_class_get_split_horizon(
+    int unit, 
+    bcm_port_t port, 
+    uint32 *class_id)
+{
+
+    int out_lif_id, fec_id, is_local;
+    SOC_SAND_PP_HUB_SPOKE_ORIENTATION orientation;
+    uint32 soc_sand_rv = 0;
+    int rv;
+
+    BCMDNX_INIT_FUNC_DEFS
+
+    if (!SOC_IS_JERICHO(unit) && !(SOC_IS_ARAD(unit) && SOC_DPP_CONFIG(unit)->arad->pp_op_mode.split_horizon_filter_enable)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_FAIL, (_BSL_BCM_MSG("Split horizon filter is not enabled")));
+    }
+
+    rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, NULL, &out_lif_id, &fec_id, &is_local);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if (!is_local) {
+        /* API is releavant only for local configuration */
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unexpected lif index. should be local only")));
+    }
+
+    if (SOC_IS_JERICHO(unit)) {
+        if (soc_property_get(unit, spn_SPLIT_HORIZON_FORWARDING_GROUPS_MODE, 1)) {
+            uint32 outlif_profile = 0; 
+
+            SOC_PPD_EG_ENCAP_ENTRY_INFO
+                encap_entry_info[SOC_PPD_NOF_EG_ENCAP_EEP_TYPES];
+            uint32 
+                next_eep[SOC_PPD_NOF_EG_ENCAP_EEP_TYPES],
+                nof_entries;
+            _bcm_lif_type_e lif_usage;
+
+            BCMDNX_IF_ERR_EXIT(_bcm_dpp_lif_usage_get(unit, -1, out_lif_id, NULL, &lif_usage));
+            if ((lif_usage != _bcmDppLifTypeMplsTunnel)
+                && (lif_usage != _bcmDppLifTypeLinkLayer)
+                && (lif_usage != _bcmDppLifTypeIpTunnel)){
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Currently only MPLS tunnel outlif LL outlif and IPv4 tunnel outLif are supported")));
+            }
+
+            soc_sand_rv = soc_ppd_eg_encap_entry_get(
+                unit,
+                SOC_PPD_EG_ENCAP_EEP_TYPE_TUNNEL_EEP, out_lif_id, 1,
+                encap_entry_info, next_eep, &nof_entries);
+            SOC_SAND_IF_ERR_RETURN(soc_sand_rv);
+
+            /* get outlif profile according to lif type */
+            if (lif_usage == _bcmDppLifTypeMplsTunnel) {
+                outlif_profile = encap_entry_info->entry_val.mpls_encap_info.outlif_profile; 
+            } 
+            else if (lif_usage == _bcmDppLifTypeLinkLayer) {
+                outlif_profile = encap_entry_info->entry_val.ll_info.outlif_profile; 
+            }
+            else if (lif_usage == _bcmDppLifTypeIpTunnel) {
+                outlif_profile = encap_entry_info->entry_val.ipv4_encap_info.outlif_profile; 
+            }
+
+            soc_sand_rv = MBCM_PP_DRIVER_CALL(unit, mbcm_pp_occ_mgmt_app_get,
+                              (unit, SOC_OCC_MGMT_TYPE_OUTLIF, SOC_OCC_MGMT_OUTLIF_APP_ORIENTATION,
+                                  &outlif_profile, class_id));
+            BCMDNX_IF_ERR_EXIT(soc_sand_rv);
+
+        } else {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_DISABLED, (_BSL_BCM_MSG(
+               "cannot get split horizon class id when soc property split_horizon_forwarding_groups_mode is unset")));
+        }
+    } else {
+        soc_sand_rv = soc_ppd_eg_filter_split_horizon_out_lif_orientation_get(unit, out_lif_id, &orientation);
+        SOC_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        *class_id = ((orientation == SOC_SAND_PP_HUB_SPOKE_ORIENTATION_SPOKE) ? 0 : 1);
+    }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_port_class_get(
+    int unit, 
+    bcm_port_t port, 
+    bcm_port_class_t pclass, 
+    uint32 *class_id)
+{
+   int port_i;
+
+   int soc_sand_dev_id = unit, soc_sand_rv = 0;
+   int rv = BCM_E_NONE;
+   SOC_PPD_FP_CONTROL_INDEX
+       ctrl_indx;
+   SOC_PPD_FP_CONTROL_INFO
+       ctrl_info;
+   SOC_PPD_PORT_INFO port_info;
+   SOC_PPD_PORT soc_ppd_port;
+   SOC_PPD_LIF_ENTRY_INFO *lif_info = NULL;
+   _BCM_GPORT_PHY_PORT_INFO *phy_port = NULL;
+   int lif_id, core;
+   int fec_id;
+   int is_local;
+   _bcm_dpp_gport_info_t gport_info;
+   BCMDNX_INIT_FUNC_DEFS;
+
+   soc_sand_dev_id = (unit);
+
+   *class_id = 0;
+   /* For Field (LIF-Profile), the gport can be LIF and not port */
+   switch (pclass) {
+       case bcmPortClassFieldIngressPacketProcessing:
+       case bcmPortClassFieldIngress:
+           /* See if LIF */
+           rv = _bcm_dpp_gport_to_global_and_local_lif(unit,
+                             port,
+                             NULL,
+                             &lif_id,
+                             NULL,
+                             &fec_id,
+                             &is_local);
+           if ((BCM_E_NONE == rv) && (lif_id != _BCM_GPORT_ENCAP_ID_LIF_INVALID)) {
+             /* LIF found - update the entry */
+             
+
+             BCMDNX_ALLOC(lif_info, sizeof(SOC_PPD_LIF_ENTRY_INFO), "bcm_petra_port_class_get.lif_info");
+             if (lif_info == NULL) {        
+               BCMDNX_ERR_EXIT_MSG(BCM_E_MEMORY, (_BSL_BCM_MSG("failed to allocate memory")));
+             }
+             rv = _bcm_petra_port_inlif_profile_get(unit, port, class_id, SOC_OCC_MGMT_APP_USER, lif_info);
+             BCMDNX_IF_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("error getting the inlif profile")));
+             BCM_EXIT;
+           }
+           break;
+   case bcmPortClassL2Lookup:
+            /* If not Arad*/
+            if (!(SOC_IS_ARAD(unit))) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("L2 Lookup class type supported only for Arad")));
+            }
+
+            /* Verify that the port is of type port-vlan */
+            if (!(BCM_GPORT_IS_VLAN_PORT(port))) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Wrong port parameter - Not port-vlan type")));
+            }
+
+            /* Get the SW DB for the LIF */
+            rv = _bcm_dpp_sw_db_hash_vlan_find(unit,
+                                               &port,
+                                               (shr_htb_data_t*)(void *)&phy_port,
+                                               FALSE);        
+            if (!phy_port || BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Not existing port supplied - %d"), port));
+            }
+
+            /* Validate the type to be ring */
+            if (phy_port->type != _BCM_DPP_GPORT_IN_TYPE_RING) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Port %d is not part of a L2 Lookup group"), port));
+            }
+
+            /* Get the failover id (class id) based on the fec id */
+            DPP_FAILOVER_L2_LOOKUP_SET(*class_id, phy_port->phy_gport);
+
+            BCM_EXIT;
+   case bcmPortClassForwardEgress:
+            /* Only MPLS Tunnel is supported */
+            if (BCM_GPORT_IS_TUNNEL(port)) {
+                   rv = _bcm_dpp_port_class_get_split_horizon(unit, port, class_id);
+                   BCMDNX_IF_ERR_EXIT(rv);
+
+                   BCM_EXIT;
+             }
+             break;
+   default:
+       /* continue */
+       break;
+   }
+
+   /* Retrive local PP ports */
+   rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info);
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+       BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port, &core)));
+       switch (pclass) {
+       case bcmPortClassFieldEgressPacketProcessing:
+       case bcmPortClassFieldEgress:
+       case bcmPortClassFieldIngressPacketProcessing:
+       case bcmPortClassFieldIngress:
+       case bcmPortClassFieldLookup:
+           /* class range test in ppd */
+           SOC_PPD_FP_CONTROL_INDEX_clear(&ctrl_indx);
+           ctrl_indx.val_ndx = soc_ppd_port;
+           if (SOC_IS_ARAD(unit)) {
+               switch (pclass) {
+                   case bcmPortClassFieldEgressPacketProcessing:
+                       ctrl_indx.type = SOC_PPD_FP_CONTROL_TYPE_EGR_PP_PORT_DATA;
+                       break;
+                   case bcmPortClassFieldEgress:
+                       ctrl_indx.type = SOC_PPD_FP_CONTROL_TYPE_EGR_TM_PORT_DATA;
+                       break;
+                   case bcmPortClassFieldLookup:
+                       if(SOC_DPP_CONFIG(unit)->pp.fcoe_enable){
+                               BCMDNX_IF_ERR_EXIT(BCM_E_UNAVAIL);
+                           }
+                       ctrl_indx.type = SOC_PPD_FP_CONTROL_TYPE_FLP_PP_PORT_DATA;
+                       break;
+                   case bcmPortClassFieldIngressPacketProcessing:
+                       ctrl_indx.type = SOC_PPD_FP_CONTROL_TYPE_ING_PP_PORT_DATA;
+                       break;
+                   case bcmPortClassFieldIngress:
+                       ctrl_indx.type = SOC_PPD_FP_CONTROL_TYPE_ING_TM_PORT_DATA;
+                       break;
+                   /* must default. Otherwise, compilations error */
+                   /* coverity[dead_error_begin]*/
+                   default:
+                       break;
+               }
+           }
+           else if (SOC_IS_PETRAB(unit) && 
+                    ((pclass == bcmPortClassFieldEgress) || (pclass == bcmPortClassFieldEgress))) {
+               /* no differentiation between both classes. No data per TM-Port */
+               ctrl_indx.type = SOC_PPD_FP_CONTROL_TYPE_EGR_PP_PORT_DATA;
+           }
+           else {
+               BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: class type %d is out of range, unit %d"),FUNCTION_NAME(), pclass, unit));
+           }
+           soc_sand_rv = soc_ppd_fp_control_get(soc_sand_dev_id,core,&ctrl_indx,&ctrl_info);
+           BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+               *class_id = ctrl_info.val[0];
+           break;
+
+        case bcmPortClassId:
+           /* Get the VLAN Domain = Port class */
+           soc_sand_rv = soc_ppd_port_info_get(soc_sand_dev_id, core, soc_ppd_port, &port_info);
+           BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+           *class_id = port_info.vlan_domain;
+          break;
+
+        case bcmPortClassForwardIngress:
+         {
+            int lif_id, out_lif_id, fec_id, is_local;
+            int soc_sand_dev_id;
+            SOC_PPD_LIF_ENTRY_INFO lif_info;
+          
+            rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, &lif_id, &out_lif_id, &fec_id, &is_local);
+            BCMDNX_IF_ERR_EXIT(rv);
+            
+            if (!is_local) {
+                /* API is releavant only for local configuration */
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unexpected lif index. should be local only")));
+            }
+
+            soc_sand_dev_id = (unit);            
+            soc_sand_rv = soc_ppd_lif_table_entry_get(soc_sand_dev_id, lif_id, &lif_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+            if (lif_info.type != SOC_PPC_LIF_ENTRY_TYPE_AC) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Invalid lif index.")));
+            }
+            
+            *class_id = ((lif_info.value.ac.orientation == SOC_SAND_PP_HUB_SPOKE_ORIENTATION_SPOKE) ? 0 : 1);
+         }
+         break;
+
+       case bcmPortClassForwardEgress:
+         {
+               rv = _bcm_dpp_port_class_get_split_horizon(unit, port, class_id);
+               BCMDNX_IF_ERR_EXIT(rv);
+         }
+         break;
+
+       case bcmPortClassFieldIngressVlanTranslation:
+           {
+               soc_dpp_config_pp_t *dpp_pp;
+               dpp_pp = &(SOC_DPP_CONFIG(unit))->pp;
+
+               /* This port class is releveant only if tunnel termination key is {sip, dip, port property, next protocol} */
+               if (!SOC_IS_ARAD(unit) || !(dpp_pp->ipv4_tunnel_term_bitmap_enable & (SOC_DPP_IP_TUNNEL_TERM_DB_DIP_SIP_NEXT_PROTOCOL))) {
+                   BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("IPv4 tunnel mode must include dip_sip_port_next_protocol to change port class.")));
+               }
+
+               rv = MBCM_PP_DRIVER_CALL(unit, mbcm_pp_port_property_get, (unit, core, soc_ppd_port, soc_ppc_port_property_vlan_translation, class_id));
+               BCMDNX_IF_ERR_EXIT(rv);
+           }
+           break;
+
+            case bcmPortClassFieldIngressTunnelTerminated:
+           {
+               /* This port class is releveant only for FCoE */
+               if (!SOC_DPP_CONFIG(unit)->pp.fcoe_enable) {
+                   BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("applicable only when FCoE is enabled.")));
+               }
+
+               rv = MBCM_PP_DRIVER_CALL(unit, mbcm_pp_port_property_get, (unit, core, soc_ppd_port, soc_ppc_port_property_tunnel_termination, class_id));
+               BCMDNX_IF_ERR_EXIT(rv);
+           }           
+           break;
+           
+           case bcmPortClassProgramEditorEgressPacketProcessing:
+           
+           {
+               rv = arad_egr_prog_editor_pp_pct_var_get(unit, port_i, class_id);
+               BCMDNX_IF_ERR_EXIT(rv);
+           }
+           break;
+
+        default:
+           BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("%s: Not supported flag. Supported flags: bcmPortClassFieldEgress, bcmPortClassId, unit %d"),FUNCTION_NAME(), unit));
+       }
+       BCM_EXIT; /* return info of first*/
+   }
+exit:
+    BCM_FREE(lif_info);
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+_bcm_petra_port_class_nof_vlan_domains_count(
+    int unit, 
+    uint32 class_id,
+    int *nof_pp_ports)
+{
+   int local_port;
+   int soc_sand_dev_id = unit, soc_sand_rv = 0;
+   SOC_PPD_PORT_INFO port_info;
+   int core = SOC_CORE_INVALID;
+   SOC_PPD_PORT soc_ppd_port = 0;
+
+   BCMDNX_INIT_FUNC_DEFS;
+
+   soc_sand_dev_id = (unit);
+
+   /* Loop on the PP-Ports */
+   *nof_pp_ports = 0;
+   for (local_port = 0; local_port < SOC_DPP_DEFS_GET(unit, nof_pp_ports); local_port++) {
+       /* Get the VLAN Domain = Port class */
+       SOC_PPD_PORT_INFO_clear(&port_info);
+
+       BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, local_port, &soc_ppd_port, &core)));
+
+       soc_sand_rv = soc_ppd_port_info_get(soc_sand_dev_id, core, soc_ppd_port, &port_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+       if (class_id == port_info.vlan_domain) {
+           *nof_pp_ports = *nof_pp_ports + 1;
+       }
+   }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_port_class_set(
+    int unit, 
+    bcm_port_t port, 
+    bcm_port_class_t pclass, 
+    uint32 class_id)
+{
+   int port_i;
+   int soc_sand_rv = 0;
+   int rv = BCM_E_NONE;
+   SOC_PPD_FP_CONTROL_INDEX
+       ctrl_indx;
+   SOC_PPD_FP_CONTROL_INFO
+       ctrl_info;
+   SOC_SAND_SUCCESS_FAILURE       failure_indication;
+   SOC_PPD_PORT_INFO port_info;
+   uint32 class_id_previous;
+   SOC_PPD_PORT soc_ppd_port_i;
+   uint32 failover_fec_id;
+   int global_lif_id, local_lif_id, fec_id;
+   int is_local;
+   SOC_PPD_LIF_ENTRY_INFO *lif_info = NULL;
+   SOC_PPD_FRWRD_FEC_ENTRY_INFO     hw_fec_working_entry_info, hw_fec_protection_entry_info,
+                                    hw_current_ring_fec_working_entry_info;
+   SOC_PPD_FRWRD_FEC_PROTECT_INFO   protect_info;
+   uint8                            fec_success;
+   SOC_PPD_FRWRD_FEC_PROTECT_TYPE   protect_type;
+   int is_de_associate = FALSE, core;
+   _BCM_GPORT_PHY_PORT_INFO *phy_port = NULL;
+   _bcm_dpp_gport_info_t gport_info;
+   BCMDNX_INIT_FUNC_DEFS;
+
+   BCM_DPP_UNIT_CHECK(unit);
+   _BCM_DPP_SWITCH_API_START(unit);
+
+    BCMDNX_ALLOC(lif_info, sizeof(SOC_PPD_LIF_ENTRY_INFO), "bcm_petra_port_class_set.lif_info");
+    if (lif_info == NULL) {        
+        BCMDNX_ERR_EXIT_MSG(BCM_E_MEMORY, (_BSL_BCM_MSG("failed to allocate memory")));
+    }
+
+   /* For Field (LIF-Profile), the gport can be LIF and not port */
+   switch (pclass) {
+       case bcmPortClassFieldIngressPacketProcessing:
+       case bcmPortClassFieldIngress:
+
+           /* See if LIF */
+           rv = _bcm_dpp_gport_to_global_and_local_lif(unit,
+                                port,
+                                &global_lif_id,
+                                &local_lif_id,
+                                NULL,
+                                &fec_id,
+                                &is_local);
+           if ((BCM_E_NONE == rv) && (local_lif_id != _BCM_GPORT_ENCAP_ID_LIF_INVALID)) {
+             /* LIF found - update the entry */
+             
+
+             rv = _bcm_petra_port_inlif_profile_set(unit, port, class_id, SOC_OCC_MGMT_APP_USER, lif_info);
+             BCMDNX_IF_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("error setting the inlif profile")));
+             BCM_EXIT;
+           }
+           break;
+
+           /* Association and de association of a LIF to and from a failover group
+              in case of Ring Protection. The associated LIF forwarding destination
+              is set to the failover group FEC, which in turn, is being set to the
+              physical port of the associated gport. The LIF learning info is
+              updated to the group FEC.
+              Common initial stages:
+              1. LIF and failover id validation.
+              2. Get the original forwarding data from the SW DB
+              3. Get the lif_id from the gport. */
+        case bcmPortClassL2Lookup:
+            /* If not Arad*/
+            if (!(SOC_IS_ARAD(unit))) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("L2 Lookup class type supported only for Arad")));
+            }
+
+            /* Verify that the port is of type port-vlan */
+            if (!(BCM_GPORT_IS_VLAN_PORT(port))) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Wrong port parameter - Not port-vlan type")));
+            }
+
+            /* Get a fec id from the class id */
+            DPP_FAILOVER_TYPE_RESET(failover_fec_id, class_id);
+
+            /* Verify that failover id (class id) is either a de associate value or an L2 Lookup
+               group */
+            if (DPP_FAILOVER_IS_L2_LOOKUP(class_id)) {
+                /* May add a FEC existance test */
+            }
+            else if (class_id == BCM_DPP_CLASS_ID_NO_CLASS) {
+                is_de_associate = TRUE;
+            }
+            else {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Wrong class id parameter - Not L2 Lookup type")));
+            }
+
+            /* Get the gport original SW DB data from the hash table */
+            rv = _bcm_dpp_sw_db_hash_vlan_find(unit,
+                                               &port,
+                                               (shr_htb_data_t*)(void *)&phy_port,
+                                               FALSE);        
+            if (!phy_port || BCM_FAILURE(rv)) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Not existing port supplied")));
+            }
+
+            /* Get the LIF from the gport in order to assign the FEC learning to the LIF */
+            rv = _bcm_dpp_gport_to_global_and_local_lif(unit,
+                                       port,
+                                       &global_lif_id,
+                                       &local_lif_id,
+                                       NULL,
+                                       &fec_id,
+                                       &is_local);
+            if ((rv != BCM_E_NONE) || (local_lif_id == _BCM_GPORT_ENCAP_ID_LIF_INVALID)) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("No valid LIF for gport")));
+            }
+
+            /* Perform the port to group association sequence:
+               1. Set the forwarding destination for the FEC according to the
+                  SW DB of the associated LIF.
+               2. Update the LIF learning info with the failover group FEC. */
+            if (is_de_associate == FALSE) {
+
+                /* In case of a LIF, Get the FEC destination from the gport SW DB */
+                SOC_PPD_FRWRD_FEC_ENTRY_INFO_clear(&hw_fec_working_entry_info);
+                if (phy_port->type == _BCM_DPP_GPORT_IN_TYPE_AC) {
+                    rv = _bcm_dpp_gport_to_sand_pp_dest(unit, port, &(hw_fec_working_entry_info.dest));
+                    BCMDNX_IF_ERR_EXIT(rv);
+                }
+                /* In case of a Ring LIF, Get the FEC destination from current FEC destination */
+                else if (phy_port->type == _BCM_DPP_GPORT_IN_TYPE_RING) {
+                    /* Get the data for the FEC entry that is pointed by the gport */
+                    soc_sand_rv = soc_ppd_frwrd_fec_entry_get(unit,
+                                                              phy_port->phy_gport,
+                                                              &protect_type,
+                                                              &hw_current_ring_fec_working_entry_info,
+                                                              &hw_fec_protection_entry_info,
+                                                              &protect_info);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                    sal_memcpy(&(hw_fec_working_entry_info.dest), &(hw_current_ring_fec_working_entry_info.dest),
+                               sizeof(hw_fec_working_entry_info.dest));
+                }
+                /* Verify that the port is an AC port or an already associated port */
+                else {
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Port type is not supported for L2 Lookup grouping")));
+                }
+
+                /* Set FEC entry values, other than the sys-port destination */
+                hw_fec_working_entry_info.type = SOC_PPC_FEC_TYPE_SIMPLE_DEST;
+                SOC_PPD_FRWRD_FEC_ENTRY_INFO_clear(&hw_fec_protection_entry_info);
+                SOC_PPD_FRWRD_FEC_PROTECT_INFO_clear(&protect_info);
+                protect_type = SOC_PPC_FRWRD_FEC_PROTECT_TYPE_NONE;
+
+                /* Set the HW FEC entry */
+                soc_sand_rv = soc_ppd_frwrd_fec_entry_add(unit,
+                                                          failover_fec_id,
+                                                          protect_type,
+                                                          &hw_fec_working_entry_info,
+                                                          &hw_fec_protection_entry_info,
+                                                          &protect_info,
+                                                          &fec_success);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                /* Get the LIF info that includes the learning info in order to update the LIF HW with
+                   the learning info. Applicable only for local LIFs. */
+                if (is_local) {
+                    soc_sand_rv = soc_ppd_lif_table_entry_get(unit, local_lif_id, lif_info);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                    /* Set the update values as long as the learning isn't disabled */
+                    if (!(lif_info->value.ac.learn_record.learn_type == SOC_PPC_L2_LIF_AC_LEARN_DISABLE)) {
+                        lif_info->value.ac.learn_record.learn_type = SOC_PPC_L2_LIF_AC_LEARN_INFO;
+                        lif_info->value.ac.learn_record.learn_info.type = SOC_PPC_FRWRD_DECISION_TYPE_FEC;
+                        lif_info->value.ac.learn_record.learn_info.dest_id = failover_fec_id;
+                    }
+
+                    /* Update the LIF entry */
+                    soc_sand_rv = soc_ppd_lif_table_entry_update(unit, local_lif_id, lif_info);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                }
+
+                /* Update the gport SW DB to RING group values */
+                rv = _bcm_dpp_sw_db_hash_vlan_find(unit,
+                                                   &port,
+                                                   (shr_htb_data_t*)(void *)&phy_port,
+                                                   TRUE);        
+                if (!phy_port || BCM_FAILURE(rv)) {
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Not existing port supplied")));
+                }
+
+                phy_port->type = _BCM_DPP_GPORT_IN_TYPE_RING;
+                phy_port->phy_gport = failover_fec_id;
+
+                rv = _bcm_dpp_sw_db_hash_vlan_insert(unit,
+                                                     &port,
+                                                     phy_port);   
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+            /* Perform the port from group de association sequence:
+               1. Get physical port from the FEC entry.
+               2. Update the LIF learning info to the original physical port
+                  that was retrieved from the FEC.
+               3. Update the SW DB forwarding destination to the original
+                  physical port that was retrieved from the FEC. */
+            else {
+                /* Verify that the port is an already associated port */
+                if (phy_port->type != _BCM_DPP_GPORT_IN_TYPE_RING) {
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Port type is not of type L2 Lookup")));
+                }
+
+                /* Get the data for the FEC entry that is pointed by the gport */
+                soc_sand_rv = soc_ppd_frwrd_fec_entry_get(unit,
+                                                          phy_port->phy_gport,
+                                                          &protect_type,
+                                                          &hw_fec_working_entry_info,
+                                                          &hw_fec_protection_entry_info,
+                                                          &protect_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                /* Get the LIF info that includes the learning info in order to reset the LIF HW
+                   learning info. Applicable only for local LIFs. */
+                if (is_local) {
+                    soc_sand_rv = soc_ppd_lif_table_entry_get(unit, local_lif_id, lif_info);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                }
+
+                /* Get the port dest id via the FEC Entry */
+                soc_sand_rv = soc_ppd_sand_dest_to_fwd_decision(unit,
+                                                                &(hw_fec_working_entry_info.dest),
+                                                                &(lif_info->value.ac.learn_record.learn_info));
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                /* Set the update values for a local LIF as long as the learning isn't disabled */
+                if (is_local) {
+                    if (!(lif_info->value.ac.learn_record.learn_type == SOC_PPC_L2_LIF_AC_LEARN_DISABLE)) {
+
+                        /* Set the learn type according to the retrieved learn info. For UC_FLOW retain
+                           the INFO learn type */
+                        if ((lif_info->value.ac.learn_record.learn_info.type == SOC_PPC_FRWRD_DECISION_TYPE_UC_PORT) ||
+                            (lif_info->value.ac.learn_record.learn_info.type == SOC_PPC_FRWRD_DECISION_TYPE_UC_LAG)) {
+                            lif_info->value.ac.learn_record.learn_type = SOC_PPC_L2_LIF_AC_LEARN_SYS_PORT;
+                        }
+
+                        /* Update the LIF entry */
+                        soc_sand_rv = soc_ppd_lif_table_entry_update(unit, local_lif_id, lif_info);
+                        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                    }
+                }
+
+                /* Update the gport SW DB to the original physical port. First, get the current entry. */
+                rv = _bcm_dpp_sw_db_hash_vlan_find(unit,
+                                                   &port,
+                                                   (shr_htb_data_t*)(void *)&phy_port,
+                                                   TRUE);        
+                if (!phy_port || BCM_FAILURE(rv)) {
+                    BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Not existing port supplied")));
+                }
+
+                /* Format the SW DB entry. The physical gport is taken from the FEC entry. */
+                phy_port->type = _BCM_DPP_GPORT_IN_TYPE_AC;
+                rv = _bcm_dpp_gport_from_sand_pp_dest(unit, &(phy_port->phy_gport), &(hw_fec_working_entry_info.dest));
+                BCMDNX_IF_ERR_EXIT(rv);
+
+                /* Insert the updated destination to the SW DB */
+                rv = _bcm_dpp_sw_db_hash_vlan_insert(unit,
+                                                     &port,
+                                                     phy_port);
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+
+            BCM_EXIT;
+       case bcmPortClassForwardEgress:
+             /* only MPLS Tunnel, LL and IP tunnel are supported */
+             if (BCM_GPORT_IS_TUNNEL(port)) {
+               rv = _bcm_dpp_port_class_set_split_horizon(unit, port, class_id,0);
+               BCMDNX_IF_ERR_EXIT(rv);
+
+                BCM_EXIT;
+             }
+             break;
+        default:
+            /* continue */
+            break;
+    }
+
+   /* Retrieve local PP ports */
+   rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+       BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+       switch (pclass) {
+           case bcmPortClassFieldEgressPacketProcessing:
+           case bcmPortClassFieldEgress:
+           case bcmPortClassFieldIngressPacketProcessing:
+           case bcmPortClassFieldIngress:
+           case bcmPortClassFieldLookup:
+               /* class range test in ppd */
+               SOC_PPD_FP_CONTROL_INDEX_clear(&ctrl_indx);
+               ctrl_indx.val_ndx = soc_ppd_port_i;
+               if (SOC_IS_ARAD(unit)) {
+                   switch (pclass) {
+                       case bcmPortClassFieldEgressPacketProcessing:
+                           ctrl_indx.type = SOC_PPD_FP_CONTROL_TYPE_EGR_PP_PORT_DATA;
+                           break;
+                       case bcmPortClassFieldEgress:
+                           ctrl_indx.type = SOC_PPD_FP_CONTROL_TYPE_EGR_TM_PORT_DATA;
+                           break;
+                       case bcmPortClassFieldLookup:
+                           if(SOC_DPP_CONFIG(unit)->pp.fcoe_enable){
+                               BCMDNX_IF_ERR_EXIT(BCM_E_UNAVAIL);
+                           }
+                           ctrl_indx.type = SOC_PPD_FP_CONTROL_TYPE_FLP_PP_PORT_DATA;
+                           break;
+                       case bcmPortClassFieldIngressPacketProcessing:
+                           ctrl_indx.type = SOC_PPD_FP_CONTROL_TYPE_ING_PP_PORT_DATA;
+                           break;
+                       case bcmPortClassFieldIngress:
+                           ctrl_indx.type = SOC_PPD_FP_CONTROL_TYPE_ING_TM_PORT_DATA;
+                           break;
+                       /* must default. Otherwise, compilations error */
+                       /* coverity[dead_error_begin:FALSE]*/
+                       default:
+                           break;
+                   }
+               }
+               else if (SOC_IS_PETRAB(unit) && 
+                        ((pclass == bcmPortClassFieldEgress) || (pclass == bcmPortClassFieldEgress))) {
+                   /* no differentiation between both classes. No data per TM-Port */
+                   ctrl_indx.type = SOC_PPD_FP_CONTROL_TYPE_EGR_PP_PORT_DATA;
+               }
+               else {
+                   BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: class type %d is out of range, unit %d"),FUNCTION_NAME(), pclass, unit));
+               }
+               SOC_PPD_FP_CONTROL_INFO_clear(&ctrl_info);
+               ctrl_info.val[0] = class_id;
+               soc_sand_rv = soc_ppd_fp_control_set(unit,core,&ctrl_indx,&ctrl_info,&failure_indication);
+               BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+               SOC_SAND_IF_FAIL_EXIT(failure_indication);
+           break;
+
+         case bcmPortClassId:
+           /* Get the previous VLAN Domain = Port class */
+           rv = bcm_petra_port_class_get(unit, port_i, pclass, &class_id_previous);
+           BCMDNX_IF_ERR_EXIT(rv);
+
+           /* Do nothing for the same VLAN-Domain */
+           if (class_id_previous == class_id) {
+             BCM_EXIT;
+           }
+
+           if (class_id >= SOC_DPP_DEFS_GET(unit, nof_vlan_domains)) {
+             BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: class id %d is out of range, unit %d"),FUNCTION_NAME(), class_id, unit));
+           }
+
+           /* Set the new VLAN Domain */
+           SOC_PPD_PORT_INFO_clear(&port_info);
+           soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port_i, &port_info);
+           BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+           port_info.vlan_domain = class_id;
+           soc_sand_rv = soc_ppd_port_info_set(unit, core, soc_ppd_port_i, &port_info);
+           BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+         break;
+         
+       case bcmPortClassForwardIngress:
+         {
+               rv = _bcm_dpp_port_class_set_split_horizon(unit, port, class_id,1);
+               BCMDNX_IF_ERR_EXIT(rv);
+         }
+         break;
+
+       case bcmPortClassForwardEgress:
+         {
+               rv = _bcm_dpp_port_class_set_split_horizon(unit, port, class_id,0);
+               BCMDNX_IF_ERR_EXIT(rv);
+         }
+         break;
+
+       case bcmPortClassFieldIngressVlanTranslation:
+           {
+               soc_dpp_config_pp_t *dpp_pp;
+               dpp_pp = &(SOC_DPP_CONFIG(unit))->pp;
+
+               /* This port class is releveant only if tunnel termination key is {sip, dip, port property, next protocol} */
+               if (!SOC_IS_ARAD(unit) || !(dpp_pp->ipv4_tunnel_term_bitmap_enable & (SOC_DPP_IP_TUNNEL_TERM_DB_DIP_SIP_NEXT_PROTOCOL))) {
+                   BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("IPv4 tunnel mode must include dip_sip_port_next_protocol to change port class.")));
+               }
+
+               if (class_id > SOC_PPC_PORT_PROPERTY_VLAN_TRANSLATION_MAX) {
+                   BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Class id is too high. Value should be between 0 and %d"), SOC_PPC_PORT_PROPERTY_VLAN_TRANSLATION_MAX));
+               }
+
+               /* After all input was validated, write to HW. */
+               rv = MBCM_PP_DRIVER_CALL(unit, mbcm_pp_port_property_set, (unit, core, soc_ppd_port_i, soc_ppc_port_property_vlan_translation, class_id));
+               BCMDNX_IF_ERR_EXIT(rv);
+           }
+           break;
+
+         case bcmPortClassFieldIngressTunnelTerminated:
+           {
+               /* only for FCoE */
+               if (!SOC_DPP_CONFIG(unit)->pp.fcoe_enable) {
+                   BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("applicable only when FCoE is enabled.")));
+               }
+
+               if (class_id > SOC_PPC_PORT_PROPERTY_VLAN_TRANSLATION_MAX) {
+                   BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Class id is too high. Value should be between 0 and %d"), SOC_PPC_PORT_PROPERTY_VLAN_TRANSLATION_MAX));
+               }
+
+               /* After all input was validated, write to HW. */
+               rv = MBCM_PP_DRIVER_CALL(unit, mbcm_pp_port_property_set, (unit, core, soc_ppd_port_i, soc_ppc_port_property_tunnel_termination, class_id));
+               BCMDNX_IF_ERR_EXIT(rv);
+           }
+           break;
+
+       case bcmPortClassProgramEditorEgressPacketProcessing:
+           {
+               rv = arad_egr_prog_editor_pp_pct_var_set(unit, port_i, class_id);
+               BCMDNX_IF_ERR_EXIT(rv);
+           }
+           break;
+
+       default:
+           BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("%s: Not supported flag. Supported flags: bcmPortClassFieldEgress, bcmPortClassId, unit %d"),FUNCTION_NAME(), unit));
+       }
+   }
+exit:
+    BCM_FREE(lif_info);
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_port_sample_trap_set(
+    int unit, 
+    bcm_port_t port, 
+    int ingress_rate, 
+    int egress_rate,
+    bcm_port_t egr_port, 
+    int enable
+   )
+{
+    int port_i;
+    int trap_indx;
+    bcm_dpp_user_defined_traps_t ud_trap_info;
+    SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO   snoop_action;
+    int first_appear, last_appear;
+    SOC_PPD_PORT_INFO port_info;
+    int soc_sand_rv = 0;
+    int rv = BCM_E_NONE;
+    int snoop_cmd = 0, core;
+    bcm_dpp_snoop_t snoop_info, old_snoop_data;
+    SOC_PPD_PORT soc_ppd_port_i;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+    
+    sal_memset(&ud_trap_info,0x0,sizeof(bcm_dpp_user_defined_traps_t));
+
+    SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO_clear(&(ud_trap_info.trap));
+
+    SOC_TMC_ACTION_CMD_SNOOP_INFO_clear(&snoop_info.snoop_action_info);
+    SOC_TMC_ACTION_CMD_SNOOP_INFO_clear(&old_snoop_data.snoop_action_info);
+    /*Use for sync*/
+    snoop_info.snoop_unique = _BCM_DPP_TRAP_PREVENT_SWAPPING;
+    old_snoop_data.snoop_unique = _BCM_DPP_TRAP_PREVENT_SWAPPING;
+
+    SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO_clear(&snoop_action);
+
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_RETRIVE_SYS_PORT, &gport_info);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* if disable sampling and trapping */
+    if(ingress_rate == 0 && !enable) {
+         BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+            BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+            soc_sand_rv = soc_ppd_port_info_get(unit,core,soc_ppd_port_i,&port_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    
+            /* if already both are disabled skip */
+            if(port_info.initial_action_profile.frwrd_action_strength != 0) {
+                port_info.initial_action_profile.frwrd_action_strength = 0;
+                /* remove trap code usage */
+                /* _BCM_PETRA_UD_DFLT_TRAP - SOC_PPC_TRAP_CODE_USER_DEFINED_0 */
+                ud_trap_info.snoop_cmd = 0;
+                SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO_clear(&(ud_trap_info.trap));
+                /*is useded for sync*/
+                ud_trap_info.ud_unique = _BCM_DPP_TRAP_PREVENT_SWAPPING; 
+                ud_trap_info.gport_trap_id = 0;
+                rv = _bcm_dpp_am_template_user_defined_trap_exchange(unit, port_i, &ud_trap_info, NULL, &last_appear, &trap_indx, &first_appear);
+                port_info.initial_action_profile.trap_code = trap_indx + SOC_PPD_TRAP_CODE_USER_DEFINED_0;
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+    
+    
+            if(port_info.initial_action_profile.snoop_action_strength != 0) {
+                /* reset both strength */
+                port_info.initial_action_profile.snoop_action_strength = 0;
+                SOC_TMC_ACTION_CMD_SNOOP_INFO_clear(&snoop_info.snoop_action_info);
+                /*Use for sync*/
+                snoop_info.snoop_unique = _BCM_DPP_TRAP_PREVENT_SWAPPING;
+                rv = _bcm_dpp_am_template_snoop_cmd_exchange(unit,port_i,&snoop_info,NULL, NULL, &snoop_cmd, &first_appear);
+                BCMDNX_IF_ERR_EXIT(rv);
+            }
+
+            soc_sand_rv = soc_ppd_port_info_set(unit,core,soc_ppd_port_i,&port_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    
+        }
+        /* done if disable both */
+        BCM_EXIT;
+    }
+
+
+
+    if(enable) {
+        if (BCM_GPORT_IS_TRAP(egr_port)){
+            if(ingress_rate != 0) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("unit(%d): invalid state: ingress_rate is diffrent than 0, while working with gport trap"), unit));
+            }
+        }
+        else{
+            /* map egr_port to forwardig decision */
+            rv = _bcm_dpp_gport_to_fwd_decision(unit,egr_port,&(ud_trap_info.trap.dest_info.frwrd_dest));
+            BCMDNX_IF_ERR_EXIT(rv);
+
+            /* enable destination changing */
+            ud_trap_info.trap.bitmap_mask = SOC_PPD_TRAP_ACTION_PROFILE_OVERWRITE_DEST;
+            /* control so not filtered anyway*/
+            ud_trap_info.trap.processing_info.is_control = TRUE;
+            /* trapped to maintain system headers */
+            ud_trap_info.trap.processing_info.is_trap = TRUE;
+        }
+    }
+
+    if(ingress_rate) {
+
+        snoop_info.snoop_action_info.prob = ingress_rate;
+        snoop_info.snoop_action_info.size = _BCM_DPP_SNOOP_SIZE;
+        snoop_info.snoop_action_info.cmd.dest_id.type = SOC_TMC_DEST_TYPE_SYS_PHY_PORT;
+        snoop_info.snoop_action_info.cmd.dest_id.id = _BCM_DPP_SNOOP_DEST;
+
+       /* Allocate for first port only */
+       BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) { 
+ 
+           rv =  _bcm_dpp_am_template_snoop_cmd_data_get(
+                    unit,
+                    port_i,
+                    &old_snoop_data
+                );
+          BCMDNX_IF_ERR_EXIT(rv);
+
+          
+           rv = _bcm_dpp_am_template_snoop_cmd_exchange(unit,port_i,&snoop_info,NULL, NULL, &snoop_cmd, &first_appear);
+           BCMDNX_IF_ERR_EXIT(rv);      
+
+           snoop_cmd += 2; /* 0 and 1 are reserved */
+
+           
+           if (SOC_IS_JERICHO(unit)) {
+               continue;
+           }
+
+           if(first_appear) {
+               soc_sand_rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_action_cmd_snoop_set,(unit,snoop_cmd, &snoop_info.snoop_action_info)));
+               /* if fail, due to fail in params range remove from template manage and exit */
+               if( handle_sand_result(soc_sand_rv) != BCM_E_NONE)
+               {
+                   rv = _bcm_dpp_am_template_snoop_cmd_exchange(unit,port_i,&old_snoop_data,NULL, NULL, &snoop_cmd, &first_appear);
+                   BCMDNX_IF_ERR_EXIT(rv);      
+           
+               }
+               BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+           }
+            snoop_action.snoop_cmnd = snoop_cmd;
+            /* Settings are for first port setting needed */
+            /*break;*/
+        }
+    }
+
+
+    /* convert trap-info into buffer */
+    ud_trap_info.snoop_cmd = snoop_cmd;
+
+
+    /*  update trap-code */
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+        soc_sand_rv = soc_ppd_port_info_get(unit,core,soc_ppd_port_i,&port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        if (BCM_GPORT_IS_TRAP(egr_port)) {
+            SOC_PPD_TRAP_CODE ppd_trap_code;
+
+            port_info.initial_action_profile.frwrd_action_strength = BCM_GPORT_TRAP_GET_STRENGTH(egr_port);
+            rv = _bcm_rx_ppd_trap_code_from_trap_id(unit, BCM_GPORT_TRAP_GET_ID(egr_port), &ppd_trap_code);
+            BCMDNX_IF_ERR_EXIT(rv);
+            port_info.initial_action_profile.trap_code = ppd_trap_code;
+            port_info.initial_action_profile.snoop_action_strength = BCM_GPORT_TRAP_GET_SNOOP_STRENGTH(egr_port);
+        }
+        else{/* not trap */
+            /*is useded for sync*/
+            ud_trap_info.ud_unique = _BCM_DPP_TRAP_PREVENT_SWAPPING; 
+            rv = _bcm_dpp_am_template_user_defined_trap_exchange(unit, port_i, &ud_trap_info, NULL, &last_appear, &trap_indx, &first_appear);
+            
+            if (!SOC_IS_JERICHO(unit)) {
+                if (rv != BCM_E_NONE && ingress_rate) {
+                    /* revert snoop command since user define trap returned error. Revert is needed only when ingress_rate is != 0 */
+                    rv = _bcm_dpp_am_template_snoop_cmd_exchange(unit,port_i,&old_snoop_data,NULL, NULL, &snoop_cmd, &first_appear);
+                    BCMDNX_IF_ERR_EXIT(rv);
+                    soc_sand_rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_action_cmd_snoop_set,(unit,snoop_cmd, &old_snoop_data.snoop_action_info)));
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                }
+            }
+
+            BCMDNX_IF_ERR_EXIT(rv);
+
+            if(enable && first_appear) {
+                soc_sand_rv = soc_ppd_trap_frwrd_profile_info_set(unit,trap_indx+SOC_PPD_TRAP_CODE_USER_DEFINED_0,&(ud_trap_info.trap));
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+            }
+            if(ingress_rate && first_appear) {
+                soc_sand_rv = soc_ppd_trap_snoop_profile_info_set(unit,trap_indx+SOC_PPD_TRAP_CODE_USER_DEFINED_0,&snoop_action);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+            }
+
+            if(ingress_rate) {
+                port_info.initial_action_profile.snoop_action_strength = (SOC_DPP_CONFIG(unit)->pp.default_snoop_strength);
+                port_info.initial_action_profile.trap_code = trap_indx + SOC_PPD_TRAP_CODE_USER_DEFINED_0;
+            }
+            if(enable) {
+                port_info.initial_action_profile.frwrd_action_strength = (SOC_DPP_CONFIG(unit)->pp.default_trap_strength);
+                port_info.initial_action_profile.trap_code = trap_indx + SOC_PPD_TRAP_CODE_USER_DEFINED_0;
+            }
+        }
+
+        soc_sand_rv = soc_ppd_port_info_set(unit,core,soc_ppd_port_i,&port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    }
+
+    BCMDNX_IF_ERR_EXIT(rv);
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_force_forward_get(
+    int unit, 
+    bcm_port_t port, 
+    bcm_port_t *egr_port, 
+    int *enabled)
+{
+    int port_i;
+    SOC_PPD_TRAP_FRWRD_ACTION_PROFILE_INFO   trap;
+    SOC_PPD_PORT_INFO port_info;
+    int soc_sand_rv = 0;
+    int rv = BCM_E_NONE, core;
+    SOC_PPD_PORT soc_ppd_port_i;
+    bcm_gport_t eg_gport;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_RETRIVE_SYS_PORT, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+        soc_sand_rv = soc_ppd_port_info_get(unit,core,soc_ppd_port_i,&port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    
+        /* check if disable */
+        if(port_info.initial_action_profile.frwrd_action_strength == 0) {
+            *enabled = 0;
+            *egr_port = BCM_GPORT_TYPE_NONE;
+            BCM_EXIT;
+        }
+    
+        *enabled = 1;
+    
+        soc_sand_rv = soc_ppd_trap_frwrd_profile_info_get(unit,port_info.initial_action_profile.trap_code,&trap);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    
+        /* map egr_port to forwardig decision */
+        rv = _bcm_dpp_gport_from_fwd_decision(unit,egr_port,&(trap.dest_info.frwrd_dest));
+        
+        /* translate the gport to phy port */
+        eg_gport = *egr_port;
+
+        if (!BCM_GPORT_IS_MCAST(eg_gport)) {
+            rv = bcm_petra_port_local_get(unit, eg_gport, egr_port);
+            BCMDNX_IF_ERR_EXIT(rv); /* return first info*/
+        }
+        
+        BCM_EXIT;
+    }
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int 
+bcm_petra_port_sample_rate_get(
+    int unit, 
+    bcm_port_t port, 
+    int *ingress_rate, 
+    int *egress_rate)
+{
+    int port_i, core; 
+    SOC_PPD_PORT_INFO
+       port_info;    
+    int soc_sand_rv = 0;
+    int rv = BCM_E_NONE;
+    SOC_PPD_TRAP_SNOOP_ACTION_PROFILE_INFO snoop_action_info;
+    SOC_TMC_ACTION_CMD_SNOOP_MIRROR_INFO          snoop_info;
+    SOC_PPD_PORT soc_ppd_port_i;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    *egress_rate = 0;
+
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_RETRIVE_SYS_PORT, &gport_info);
+    BCMDNX_IF_ERR_EXIT(rv);   
+    
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) { 
+       
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+        soc_sand_rv = soc_ppd_port_info_get(unit,core,soc_ppd_port_i,&port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        rv = handle_sand_result(soc_sand_rv);
+    
+        /* check if disable */
+        if(port_info.initial_action_profile.snoop_action_strength == 0) {
+            *ingress_rate = 0;
+             BCMDNX_IF_ERR_EXIT(rv);
+             BCM_EXIT;
+        }
+   
+        soc_sand_rv = soc_ppd_trap_snoop_profile_info_get(unit,port_info.initial_action_profile.trap_code,&snoop_action_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        if(snoop_action_info.snoop_cmnd == 0) {
+            *ingress_rate = 0;
+             BCMDNX_IF_ERR_EXIT(rv);
+             BCM_EXIT;
+        }
+        soc_sand_rv = (MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_action_cmd_snoop_get,(unit,snoop_action_info.snoop_cmnd,&snoop_info)));
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        rv = handle_sand_result(soc_sand_rv);
+
+        /* map egr_port to forwardig decision */
+
+        /* The MBCM_DPP_DRIVER_CALL initializing the required varible */ 
+        /* coverity[uninit_use:FALSE] */
+        *ingress_rate = snoop_info.prob;
+        BCMDNX_IF_ERR_EXIT(rv); /* return first info*/
+        BCM_EXIT;
+    }
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_port_force_forward_set(
+    int unit, 
+    bcm_port_t port, 
+    bcm_port_t egr_port, 
+    int enable)
+{
+    int rv = BCM_E_NONE;
+    int ingress_rate, egress_rate;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    rv = bcm_petra_port_sample_rate_get(unit,port,&ingress_rate,&egress_rate);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+
+    if((ingress_rate!=0) && (BCM_GPORT_IS_TRAP(egr_port))) {
+        ingress_rate = 0; /* using trap-gport then snooping is set as part of trap configuration */
+    }
+
+    rv = bcm_petra_port_sample_trap_set(unit,port,ingress_rate,egress_rate,egr_port, enable);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+int
+bcm_petra_port_force_dest_set(int unit, 
+            bcm_gport_t gport, 
+            bcm_port_dest_info_t *dest_info)
+{
+  int rv = BCM_E_NONE;
+  int soc_sand_rv = 0;
+  uint32 pp_port = 0;
+  SOC_TMC_PORTS_FORWARDING_HEADER_INFO pfh_info;
+  int port_i = 0, core;
+ 
+  BCMDNX_INIT_FUNC_DEFS;
+  BCM_DPP_UNIT_CHECK(unit);
+  _BCM_DPP_SWITCH_API_START(unit);
+
+#ifdef  BCM_ARAD_SUPPORT
+    if (SOC_IS_ARAD(unit)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Not supported for ARAD")));
+    } 
+#endif /* BCM_ARAD_SUPPORT */
+
+  SOC_TMC_PORTS_FORWARDING_HEADER_INFO_clear(&pfh_info);
+
+  if (BCM_GPORT_IS_LOCAL(gport)) {
+    port_i = BCM_GPORT_LOCAL_GET(gport);
+  } else if (BCM_GPORT_IS_MODPORT(gport)) {
+    port_i = BCM_GPORT_MODPORT_PORT_GET(gport);
+  } else if (IS_PORT(unit, gport)) {
+    port_i = gport;
+  } else {
+    LOG_ERROR(BSL_LS_BCM_PORT,
+              (BSL_META_U(unit,
+                          "unit(%d): Invalid gport type input to bcm_petra_force_dest_get()\n"), unit)); 
+    BCMDNX_IF_ERR_EXIT(BCM_E_PARAM);
+  }
+
+  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &pp_port, &core)));
+
+  soc_sand_rv = MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_forwarding_header_get,(unit, pp_port, &pfh_info));
+  rv = handle_sand_result(soc_sand_rv);
+  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+  pfh_info.dp = dest_info->dp;
+  pfh_info.tr_cls = dest_info->priority;
+
+  if (BCM_GPORT_IS_SYSTEM_PORT(dest_info->gport)) {
+    pfh_info.destination.id = BCM_GPORT_SYSTEM_PORT_ID_GET(dest_info->gport);
+    pfh_info.destination.type = SOC_TMC_DEST_TYPE_SYS_PHY_PORT; 
+  } else if (BCM_GPORT_IS_UCAST_QUEUE_GROUP(dest_info->gport)) {
+    pfh_info.destination.id = BCM_GPORT_UNICAST_QUEUE_GROUP_QID_GET(dest_info->gport);
+    pfh_info.destination.type = SOC_TMC_DEST_TYPE_QUEUE; 
+  } else if (BCM_GPORT_IS_MCAST(dest_info->gport)) {
+    pfh_info.destination.id = BCM_GPORT_MCAST_GET(dest_info->gport);
+    pfh_info.destination.type = SOC_TMC_DEST_TYPE_MULTICAST; 
+  } else {
+    BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: dest port gport(0x%x) type unsupported, unit %d"),FUNCTION_NAME(), gport, unit));
+  }
+  soc_sand_rv = MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_forwarding_header_set,(unit, pp_port, &pfh_info));
+  rv = handle_sand_result(soc_sand_rv);
+  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+ 
+  BCMDNX_IF_ERR_EXIT(rv);
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+  BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_force_dest_get(int unit, 
+            bcm_gport_t gport, 
+            bcm_port_dest_info_t *dest_info)
+{
+  int port_i = 0, core;
+  int soc_sand_rv = 0;
+  uint32 pp_port = 0;
+  SOC_TMC_PORTS_FORWARDING_HEADER_INFO pfh_info;
+ 
+  BCMDNX_INIT_FUNC_DEFS;
+  SOC_TMC_PORTS_FORWARDING_HEADER_INFO_clear(&pfh_info);
+
+  if (BCM_GPORT_IS_LOCAL(gport)) {
+    port_i = BCM_GPORT_LOCAL_GET(gport);
+  } else if (BCM_GPORT_IS_MODPORT(gport)) {
+    port_i = BCM_GPORT_MODPORT_PORT_GET(gport);
+  } else if (IS_PORT(unit, gport)) {
+    port_i = gport;
+  } else {
+    BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("unit(%d): Invalid gport type input to bcm_petra_force_dest_get()"), unit));
+  }
+  BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &pp_port, &core)));
+
+  soc_sand_rv = MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_forwarding_header_get,(unit, pp_port, &pfh_info));
+  BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+  dest_info->dp = pfh_info.dp;
+  dest_info->priority = pfh_info.tr_cls;
+
+  if (pfh_info.destination.type == SOC_TMC_DEST_TYPE_SYS_PHY_PORT) {
+    BCM_GPORT_SYSTEM_PORT_ID_SET(dest_info->gport, pfh_info.destination.id);
+  } else if (pfh_info.destination.type == SOC_TMC_DEST_TYPE_QUEUE) {
+    BCM_GPORT_UNICAST_QUEUE_GROUP_SET(dest_info->gport, pfh_info.destination.id);
+  } else if ( pfh_info.destination.type == SOC_TMC_DEST_TYPE_MULTICAST) {
+    BCM_GPORT_MCAST_SET(dest_info->gport, pfh_info.destination.id);
+  } else {
+    BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("%s: dest port dest type(%d) unsupported, unit %d"), FUNCTION_NAME(), pfh_info.destination.type, unit));
+  } 
+exit:
+  BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_port_sample_rate_set(
+    int unit, 
+    bcm_port_t port, 
+    int ingress_rate, 
+    int egress_rate
+)
+{
+    int rv = BCM_E_NONE;
+    int enable, egr_port;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_RETRIVE_SYS_PORT, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if(egress_rate != 0) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("%s: egress rate %d has to be zero, unit %d"),FUNCTION_NAME(), egress_rate, unit));
+    }
+
+   /*
+    * ingress rate is checked in driver
+    */
+
+    rv = bcm_petra_port_force_forward_get(unit,port,&egr_port,&enable);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if((enable) && (ingress_rate!=0) && (BCM_GPORT_IS_TRAP(egr_port))) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("unit(%d): Invalid state: enable is true, ingress_rate diffrent than 0 and working with gport trap"), unit));
+    }
+
+    rv = bcm_petra_port_sample_trap_set(unit,port,ingress_rate,egress_rate,egr_port, enable);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/* global mapping and not per port */
+/* for C-tag packets */
+int 
+bcm_petra_port_priority_color_get(
+    int unit, 
+    bcm_port_t port, 
+    int prio, 
+    bcm_color_t *color)
+{
+    int port_i;
+    SOC_PPD_LLP_COS_PORT_INFO    cos_port_info;
+    SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO    map_entry;
+    int tbl_indx, core;
+    int soc_sand_rv = 0;
+    int rv = BCM_E_NONE;
+    SOC_PPD_PORT soc_ppd_port_i;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCM_DPP_VLAN_CHK_PRIO(unit, prio);
+
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+        soc_sand_rv = soc_ppd_llp_cos_port_info_get(unit,core,soc_ppd_port_i,&cos_port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    
+        tbl_indx = cos_port_info.l2_info.tbls_select.up_to_dp_index;
+        soc_sand_rv = soc_ppd_llp_cos_mapping_table_entry_get(unit,SOC_PPD_LLP_COS_MAPPING_TABLE_UP_TO_DP,tbl_indx,prio,&map_entry);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    
+        rv = _bcm_petra_port_color_decode(unit,map_entry.value1,color);
+        BCMDNX_IF_ERR_EXIT(rv);
+    
+        break; /* return first */
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+int 
+bcm_petra_port_priority_color_set(
+    int unit, 
+    bcm_port_t port, 
+    int prio, 
+    bcm_color_t color)
+{
+   int core;
+   SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO    new_entry;
+   int profile, dp, new_profile;
+   int soc_sand_rv = 0,port_idx;
+   int rv = BCM_E_NONE;
+   SOC_PPD_LLP_COS_PORT_INFO cos_port_info;
+   SOC_PPD_PORT soc_ppd_port_idx;
+   _bcm_dpp_gport_info_t gport_info;
+   BCMDNX_INIT_FUNC_DEFS;
+
+   BCM_DPP_UNIT_CHECK(unit);
+   _BCM_DPP_SWITCH_API_START(unit);
+
+   BCM_DPP_VLAN_CHK_PRIO(unit, prio);
+   
+   rv = _bcm_petra_port_color_encode(unit,color,&dp);
+   BCMDNX_IF_ERR_EXIT(rv);
+  
+   SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO_clear(&new_entry);
+   new_entry.value1 = dp;
+
+    /* Retrive local PP ports */
+   rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   rv = _bcm_petra_port_map_alloc_profile(unit, _bcm_dpp_port_map_type_up_to_dp, gport_info.pbmp_local_ports, 0, prio, &new_entry, &profile, &new_profile);
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   /* set entry in allocated profile */
+   soc_sand_rv = soc_ppd_llp_cos_mapping_table_entry_set(unit,SOC_PPD_LLP_COS_MAPPING_TABLE_UP_TO_DP,profile,prio,&new_entry);
+   BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+   /* make ports point to this profile */
+   BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_idx) {
+       BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_idx, &soc_ppd_port_idx, &core)));
+
+       soc_sand_rv = soc_ppd_llp_cos_port_info_get(unit,core,soc_ppd_port_idx,&cos_port_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+       cos_port_info.l2_info.tbls_select.up_to_dp_index = profile;
+       soc_sand_rv = soc_ppd_llp_cos_port_info_set(unit,core, soc_ppd_port_idx,&cos_port_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+   }
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+  BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      _bcm_petra_port_discard_convert_in_lif_to_state
+ * Description:
+ *      Convert an In-LIF Protection-Pointer value to an In-LIF discard state.
+ * Parameters:
+ *      unit - (IN) Device number
+ *      protection_pointer - (IN) The In-LIF Protection-Pointer value
+ * Return Value:
+ *      The In-LIF discard state
+ */
+int _bcm_petra_port_discard_convert_in_lif_to_state(
+   int unit, 
+   int protection_pointer)
+{
+    /* Return the discard state according to the Protection-Pointer value */
+    return ((protection_pointer == _BCM_PROTECTION_POINTER_INVALID) ? TRUE : FALSE); 
+}
+
+
+/*
+ * Function:
+ *      _bcm_petra_port_discard_out_lif_get
+ * Description:
+ *      Retrieves the discard state of an Out-LIF.
+ * Parameters:
+ *      unit - (IN) Device number
+ *      out_lif_index - (IN) The Out-LIF for which to retrieve the discard state
+ *      discard_state - (OUT) Returned Out-LIF discard state
+ * Return Value:
+ *      BCM_E_XXX
+ */
+STATIC int 
+_bcm_petra_port_discard_out_lif_get(
+    int unit, 
+    int out_lif_index,
+    uint32 *discard_state)
+{
+    uint32 soc_sand_rv;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* update LIF attribute */
+    soc_sand_rv = soc_ppd_eg_encap_lif_field_get(unit, out_lif_index, SOC_PPD_EG_ENCAP_ENTRY_UPDATE_DROP, discard_state);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      _bcm_petra_port_discard_mode_to_lif_state
+ * Description:
+ *      Determines the discard state for both In-LIF & Out-LIF
+ *      according to the supplied discard mode value.
+ * Parameters:
+ *      unit - (IN) Device number
+ *      mode - (IN) Discard mode value
+ *      is_in_lif_discard -  (OUT) Returned In-LIF discard state
+ *      is_out_lif_discard - (OUT) Returned Out-LIF discard state
+ * Return Value:
+ *      BCM_E_XXX
+ */
+STATIC
+int _bcm_petra_port_discard_mode_to_lif_state(
+   int unit,
+   int mode,
+   uint8 *is_in_lif_discard,
+   uint8 *is_out_lif_discard)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* Determine the In-LIF & Out-LIF discard state */
+    switch (mode) {
+    case BCM_PORT_DISCARD_NONE:
+        *is_in_lif_discard = FALSE;
+        *is_out_lif_discard = FALSE;
+        break;
+    case BCM_PORT_DISCARD_ALL:
+        *is_in_lif_discard = TRUE;
+        *is_out_lif_discard = TRUE;
+        break;
+    case BCM_PORT_DISCARD_INGRESS:
+        *is_in_lif_discard = TRUE;
+        *is_out_lif_discard = FALSE;
+        break;
+    case BCM_PORT_DISCARD_EGRESS:
+        *is_in_lif_discard = FALSE;
+        *is_out_lif_discard = TRUE;
+        break;
+    default:
+        /* Unsupported mode values */
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: Mode #%d is invalid for LIF discard"),FUNCTION_NAME(), mode));
+    }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      _bcm_petra_port_discard_lif_state_to_mode
+ * Description:
+ *      Determines discard mode state according to both the In-LIF & Out-LIF discard states
+ *      discard states.
+ * Parameters:
+ *      unit - (IN) Device number
+ *      is_in_lif_discard -  (IN) In-LIF Discard mode value
+ *      is_out_lif_discard - (IN) Out-LIF Discard mode value
+ *      mode - (OUT) Returned discard mode
+ * Return Value:
+ *      BCM_E_XXX
+ */
+STATIC
+int _bcm_petra_port_discard_lif_state_to_mode(
+   int unit,
+   uint8 is_in_lif_discard,
+   uint8 is_out_lif_discard,
+   int *mode)
+{
+    if (is_in_lif_discard) {
+        *mode = (is_out_lif_discard) ? BCM_PORT_DISCARD_ALL : BCM_PORT_DISCARD_INGRESS;
+    } else {
+        *mode = (is_out_lif_discard) ? BCM_PORT_DISCARD_EGRESS : BCM_PORT_DISCARD_NONE;
+    }
+
+    return BCM_E_NONE;
+}
+
+
+/*
+ * Function:
+ *      _bcm_petra_port_discard_in_lif_get
+ * Description:
+ *      Retrieve In-LIF discard operation.
+ * Parameters:
+ *      unit -         (IN) Device number
+ *      in_lif_index - (IN) The In-LIF that the discard operation will be performed on
+ *      in_lif_entry_info -  (OUT) returned In-LIF information
+ *      Protection-Pointer - (OUT) Returned In-LIF Protection-Pointer
+ * Return Value:
+ *      BCM_E_XXX
+ */
+STATIC 
+int _bcm_petra_port_discard_in_lif_get(
+   int unit,
+   int in_lif_index,
+   SOC_PPD_LIF_ENTRY_INFO *in_lif_entry_info,
+   int32 *protection_pointer)
+{
+    uint32 soc_sand_rv;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* Get the In-LIF discard state from the HW */
+    SOC_PPD_LIF_ENTRY_INFO_clear(in_lif_entry_info);
+    soc_sand_rv = soc_ppd_lif_table_entry_get(unit, in_lif_index, in_lif_entry_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    /* The In-LIF discard state is the In-LIF Protection-Pointer. Format it from the In-LIF struct */
+    switch (in_lif_entry_info->type) {
+    case SOC_PPC_LIF_ENTRY_TYPE_AC:
+    case ARAD_PP_LIF_ENTRY_TYPE_FIRST_AC_IN_GROUP:
+    case ARAD_PP_LIF_ENTRY_TYPE_MIDDLE_AC_IN_GROUP:
+        *protection_pointer = in_lif_entry_info->value.ac.protection_pointer;
+        break;
+    case SOC_PPC_LIF_ENTRY_TYPE_PWE:
+        *protection_pointer = in_lif_entry_info->value.pwe.protection_pointer;
+        break;
+    case SOC_PPC_LIF_ENTRY_TYPE_ISID:
+        *protection_pointer = in_lif_entry_info->value.isid.protection_pointer;
+        break;
+    case SOC_PPC_LIF_ENTRY_TYPE_IP_TUNNEL_RIF:
+        *protection_pointer = in_lif_entry_info->value.ip_term_info.protection_pointer;
+        break;
+    case SOC_PPC_LIF_ENTRY_TYPE_MPLS_TUNNEL_RIF:
+        *protection_pointer = in_lif_entry_info->value.mpls_term_info.protection_pointer;
+        break;
+    case SOC_PPC_LIF_ENTRY_TYPE_TRILL_NICK:
+        *protection_pointer = in_lif_entry_info->value.trill.protection_pointer;
+        break;
+    default:
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unsupported In-LIF type %d for discard operation on In-LIF %d"),
+                                          in_lif_entry_info->type, in_lif_index));
+    }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+
+
+int 
+_bcm_petra_port_discard_extend_get(
+    int unit, 
+    bcm_port_t port, 
+    int *mode)
+{
+   int port_i, core;
+   int rv = BCM_E_NONE;
+   _bcm_petra_tpid_profile_t profile_type;   
+   SOC_PPD_PORT soc_ppd_port_i;
+   _bcm_petra_dtag_mode_t dtag_mode;
+   _bcm_petra_ac_key_map_type_t ac_key_map_type;
+   _bcm_dpp_gport_info_t gport_info;
+   BCMDNX_INIT_FUNC_DEFS;
+
+   /* Retrive local PP ports */
+   rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+       BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+       /* get old data*/
+       rv =  _bcm_dpp_am_template_tpid_profile_data_get(unit, soc_ppd_port_i, core, &profile_type, mode, &dtag_mode, &ac_key_map_type);
+       BCMDNX_IF_ERR_EXIT(rv);
+       
+       break; /* return size for first*/
+   }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_petra_port_discard_get
+ * Description:
+ *      Retrieves the port discard state.
+ *      Supports LIFs and physical ports.
+ * Parameters:
+ *      unit - (IN) Device number
+ *      port - (IN) gport of a LIF or a physical port
+ *      mode - (OUT) Returned Discard mode value
+ * Return Value:
+ *      BCM_E_XXX
+ */
+int bcm_petra_port_discard_get(
+    int unit, 
+    bcm_port_t port, 
+    int *mode)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    int gport_type, gport_val, in_lif_index, out_lif_index, is_local,
+        protection_pointer;
+    uint32 in_lif_discard_state = FALSE, out_lif_discard_state = FALSE;
+    SOC_PPD_LIF_ENTRY_INFO in_lif_entry_info;
+    
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+
+    /* Determine if it's physical port or LIF configuration according to the gport type */
+   rv = _bcm_dpp_gport_parse(unit,port,&gport_type, &gport_val, NULL);
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   /* It's a LIF gport, if it's not a physical port. */
+   if (gport_type != _BCM_DPP_GPORT_TYPE_SIMPLE) {
+
+        /* Convert the gport to LIF IDs and verify that it's a local object
+           that represent an In-LIF/Out-LIF */
+        rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, &in_lif_index, &out_lif_index, NULL, &is_local);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        if (!is_local) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("No local LIF for port discard get from gport %d"), port));
+        }
+
+        /* If there's no valid In-LIF/Out-LIF */
+        if ((in_lif_index == _BCM_GPORT_ENCAP_ID_LIF_INVALID) && (out_lif_index == _BCM_GPORT_ENCAP_ID_LIF_INVALID))
+        {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("No valid LIF for gport %d"), port));
+        }
+   
+        /* Retrieve the In-LIF discard state */
+        if (in_lif_index != _BCM_GPORT_ENCAP_ID_LIF_INVALID) {
+
+            /* Get the In-LIF HW discard info */
+            rv = _bcm_petra_port_discard_in_lif_get(unit, in_lif_index, &in_lif_entry_info, &protection_pointer);
+            BCMDNX_IF_ERR_EXIT(rv);
+
+            /* Convert the In-LIF Protection-Pointer value to a discard state */
+            in_lif_discard_state = _bcm_petra_port_discard_convert_in_lif_to_state(unit, protection_pointer);
+        }
+
+        /* Retrieve the Out-LIF discard state */
+        if (out_lif_index != _BCM_GPORT_ENCAP_ID_LIF_INVALID) {
+
+            /* Get the Out-LIF HW discard info */
+            rv = _bcm_petra_port_discard_out_lif_get(unit, out_lif_index, &out_lif_discard_state);
+            BCMDNX_IF_ERR_EXIT(rv);
+        }
+
+        /* Build a discard state from the In-LIF and Out-LIF discard states */
+        rv = _bcm_petra_port_discard_lif_state_to_mode(unit, in_lif_discard_state, out_lif_discard_state, mode);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        BCM_EXIT;
+   }
+
+   /* Get the discard state for physical ports when not in Advanced VLAN edit mode. */
+    _BCM_DPP_TPID_PARSE_ADVANCED_MODE_API_UNAVAIL(unit);
+    rv = _bcm_petra_port_discard_extend_get(unit,port,mode);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if (_BCM_DPP_PORT_DISCARD_MODE_IS_MIM(*mode)) {
+       /* if MiM bit is set - remove it */
+       _BCM_DPP_PORT_DISCARD_MODE_MIM_REMOVE(*mode);
+    }
+
+    if (_BCM_DPP_PORT_DISCARD_MODE_IS_OUTER_PRIO(*mode)) {
+       /* if OuterPrio bit is set - remove it */
+       _BCM_DPP_PORT_DISCARD_MODE_OUTER_PRIO_REMOVE(*mode);
+    }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      _bcm_petra_port_discard_in_lif_validate
+ * Description:
+ *      Validate the In-LIF discard operation.
+ *      Disallows an In-LIF discard operation for an In-LIF that uses the
+ *      Ingress Protection scheme.
+ * Parameters:
+ *      unit -         (IN) Device number
+ *      in_lif_index - (IN) The In-LIF that the discard operation will be performed on
+ *      is_in_lif_discard - (IN) The discard operation for the In-LIF
+ *      cur_protection_pointer - (IN) The In-LIF Protection-Pointer value
+ *      validation_code -   (OUT) Returned validation code:
+ *              BCM_E_NONE - Operation allowed
+ *              BCM_E_DISABLED - The In-LIF uses the Ingress Protection scheme
+ *              BCM_E_EXISTS - No discard value change
+ * Return Value:
+ *      BCM_E_XXX
+ */
+STATIC 
+int _bcm_petra_port_discard_in_lif_validate(
+   int unit,
+   int in_lif_index,
+   uint8 is_in_lif_discard,
+   int cur_protection_pointer,
+   bcm_error_t *validation_code)
+{
+    int cur_discard_state;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    *validation_code = BCM_E_NONE;
+
+    /* Convert the current In-LIF Protection-Pointer value to a discard state */
+    cur_discard_state = _bcm_petra_port_discard_convert_in_lif_to_state(unit, cur_protection_pointer);
+
+    /* If the current Protection-Pointer value is as required - No need to actualy perform an operation */
+    if (cur_discard_state == is_in_lif_discard) {
+        *validation_code = BCM_E_EXISTS;
+        LOG_DEBUG(BSL_LS_BCM_PORT,
+                 (BSL_META_U(unit, "No discard operation set to HW for In-LIF %d as there's no discard value change (%d)\n"),
+                 in_lif_index, cur_discard_state));
+        BCM_EXIT;
+    }
+
+    /* Disallow if the In-LIF is used for Ingress Protection. i.e. the Protection-Pointer was set from the default value */
+    if (is_in_lif_discard && (cur_discard_state != _BCM_PROTECTION_POINTER_DEFAULT)) {
+        *validation_code = BCM_E_DISABLED;
+        LOG_INFO(BSL_LS_BCM_PORT,
+                 (BSL_META_U(unit, "In-LIF discard operation not performed for In-LIF %d - The Protection-Pointer (%d) is used for Ingress Protection\n"),
+                             in_lif_index, cur_protection_pointer));
+         BCM_EXIT;
+    }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      _bcm_petra_port_discard_in_lif_set
+ * Description:
+ *      Set the In-LIF discard indication to the required state.
+ *      The In-LIF Protection-Pointer is set according to the discard state.
+ *  
+ * Parameters:
+ *      unit -         (IN) Device number
+ *      in_lif_index - (IN) The In-LIF that the discard operation will be performed on
+ *      is_in_lif_discard - (IN) The discard operation for the In-LIF Protection
+ *      in_lif_entry_info - (IN) The In-LIF current information
+ * Return Value:
+ *      BCM_E_XXX
+ */
+STATIC 
+int _bcm_petra_port_discard_in_lif_set(
+   int unit,
+   int in_lif_index,
+   uint8 is_in_lif_discard,
+   SOC_PPD_LIF_ENTRY_INFO *in_lif_entry_info)
+{
+    int32 new_protection_pointer;
+    uint32 soc_sand_rv;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* Determine the required value for the In-LIF Protectio-Pointer */
+    new_protection_pointer = (is_in_lif_discard) ? _BCM_PROTECTION_POINTER_INVALID : _BCM_PROTECTION_POINTER_DEFAULT;
+
+    /* Format the Protection-Pointer value accrding to the retrieved In-LIF type */
+    switch (in_lif_entry_info->type) {
+    case SOC_PPC_LIF_ENTRY_TYPE_AC:
+    case ARAD_PP_LIF_ENTRY_TYPE_FIRST_AC_IN_GROUP:
+    case ARAD_PP_LIF_ENTRY_TYPE_MIDDLE_AC_IN_GROUP:
+        in_lif_entry_info->value.ac.protection_pointer = new_protection_pointer;
+        break;
+    case SOC_PPC_LIF_ENTRY_TYPE_PWE:
+        in_lif_entry_info->value.pwe.protection_pointer = new_protection_pointer;
+        break;
+    case SOC_PPC_LIF_ENTRY_TYPE_ISID:
+        in_lif_entry_info->value.isid.protection_pointer = new_protection_pointer;
+        break;
+    case SOC_PPC_LIF_ENTRY_TYPE_IP_TUNNEL_RIF:
+        in_lif_entry_info->value.ip_term_info.protection_pointer = new_protection_pointer;
+        break;
+    case SOC_PPC_LIF_ENTRY_TYPE_MPLS_TUNNEL_RIF:
+        in_lif_entry_info->value.mpls_term_info.protection_pointer = new_protection_pointer;
+        break;
+    case SOC_PPC_LIF_ENTRY_TYPE_TRILL_NICK:
+        in_lif_entry_info->value.trill.protection_pointer = new_protection_pointer;
+        break;
+    default:
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unsupported In-LIF type %d for discard operation on In-LIF %d"),
+                                          in_lif_entry_info->type, in_lif_index));
+    }
+
+    /* Set the Protecion-Pointer to the HW */
+    soc_sand_rv = soc_ppd_lif_table_entry_update(unit, in_lif_index, in_lif_entry_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+   
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      _bcm_petra_port_discard_out_lif_set
+ * Description:
+ *      Set the Out-LIF discard indication to the required state.
+ *      The Out-LIF entry drop bit is set according to the discard state.
+ *  
+ * Parameters:
+ *      unit -          (IN) Device number
+ *      out_lif_index - (IN) The Out-LIF that the drop operation will be performed on
+ *      is_out_lif_drop -  (IN) The drop operation for the Out-LIF Protection
+ * Return Value:
+ *      BCM_E_XXX
+ */
+STATIC 
+int _bcm_petra_port_discard_out_lif_set(
+   int unit,
+   int out_lif_index,
+   uint8 is_out_lif_drop)
+{
+    uint32 soc_sand_rv;
+    BCMDNX_INIT_FUNC_DEFS;
+
+   /* Update the Out-LIF attribute */
+   soc_sand_rv = soc_ppd_eg_encap_next_outlif_update(unit, out_lif_index, SOC_PPD_EG_ENCAP_ENTRY_UPDATE_DROP, is_out_lif_drop);
+   BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_petra_port_discard_set
+ * Description:
+ *      Set a gport discard state to discard or pass.
+ *      For In-LIF, the Protection-Pointer is used for the discard.
+ *      For Out-LIF, the entry drop bit is set according to the discard state.
+ *  
+ * Parameters:
+ *      unit - (IN) Device number
+ *      port - (IN) gport of a LIF or a physical port
+ *      mode - (IN) Discard mode value
+ * Return Value:
+ *      BCM_E_XXX
+ */
+int 
+bcm_petra_port_discard_set(
+    int unit, 
+    bcm_port_t port, 
+    int mode)
+{
+    int gport_type, gport_val;
+    int in_lif_index, out_lif_index, is_local, cur_protection_pointer;
+    int rv;
+    bcm_error_t in_lif_validation_code = BCM_E_NONE;
+    SOC_PPD_LIF_ENTRY_INFO in_lif_entry_info;
+    uint8 is_in_lif_discard, is_out_lif_discard;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    /* Determine if it's physical port or LIF configuration according to the gport type */
+    rv = _bcm_dpp_gport_parse(unit, port, &gport_type, &gport_val, NULL);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* It's a LIF gport, if it's not a physical port.
+       Get the LIF IDs from the gport, validate and call dedicated functions to perform the operation */
+    if (gport_type != _BCM_DPP_GPORT_TYPE_SIMPLE) {
+
+        /* Convert the gport to LIF IDs and verify that it's a local object
+           that represent an In-LIF/Out-LIF */
+        rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, &in_lif_index, &out_lif_index, NULL, &is_local);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        if (!is_local) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("No local LIF for port discard set to gport %d"), port));
+        }
+
+        /* Validate and determine the required discard states according to the specified mode parameter value */
+        rv = _bcm_petra_port_discard_mode_to_lif_state(unit, mode, &is_in_lif_discard, &is_out_lif_discard);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        /* Perform object specific retrieval and validations */
+        if (in_lif_index != _BCM_GPORT_ENCAP_ID_LIF_INVALID) {
+
+            /* Get the In-LIF HW discard info and perform validations */
+            rv = _bcm_petra_port_discard_in_lif_get(unit, in_lif_index, &in_lif_entry_info, &cur_protection_pointer);
+            BCMDNX_IF_ERR_EXIT(rv);
+
+            /* Validate the In-LIF discard info operation */
+            rv = _bcm_petra_port_discard_in_lif_validate(unit, in_lif_index, is_in_lif_discard, cur_protection_pointer, &in_lif_validation_code);
+            BCMDNX_IF_ERR_EXIT(rv);
+        } 
+
+        /* Perform the In-LIF discard operation in case the validation was approved */
+        if ((in_lif_validation_code == BCM_E_NONE) && (in_lif_index != _BCM_GPORT_ENCAP_ID_LIF_INVALID)) {
+            rv = _bcm_petra_port_discard_in_lif_set(unit, in_lif_index, is_in_lif_discard, &in_lif_entry_info);
+            BCMDNX_IF_ERR_EXIT(rv);
+        }
+
+        /* Perform the Out-LIF discard operation */
+        if (out_lif_index != _BCM_GPORT_ENCAP_ID_LIF_INVALID) {
+            rv = _bcm_petra_port_discard_out_lif_set(unit, out_lif_index, is_out_lif_discard);
+            BCMDNX_IF_ERR_EXIT(rv);
+        }
+
+        /* If no operation was valid for both In-LIF & Out-LIF */
+        if (((in_lif_validation_code == BCM_E_DISABLED) || (in_lif_index == _BCM_GPORT_ENCAP_ID_LIF_INVALID)) &&
+            (out_lif_index == _BCM_GPORT_ENCAP_ID_LIF_INVALID))
+        {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Discard operation invalid for gport %d"), port));
+        }
+
+        BCM_EXIT;
+    }
+
+    /* Set the discard state for physical ports when not in Advanced VLAN edit mode. */
+    _BCM_DPP_TPID_PARSE_ADVANCED_MODE_API_UNAVAIL(unit);
+    BCMDNX_IF_ERR_EXIT(_bcm_petra_port_discard_extend_mode_set(unit, port, mode));
+
+exit:
+     _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_port_dscp_map_mode_get(
+    int unit, 
+    bcm_port_t port, 
+    int *mode)
+{
+    SOC_PPD_LLP_COS_PORT_INFO    cos_port_info;
+    int port_i, core;
+    int soc_sand_rv = 0;
+    int rv = BCM_E_NONE;
+    SOC_PPD_PORT soc_ppd_port_i;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(mode);
+
+    /* Retrive local PP ports */
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+        soc_sand_rv = soc_ppd_llp_cos_port_info_get(unit,core,soc_ppd_port_i,&cos_port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        
+        /* Translate port information to mode */
+        if (cos_port_info.l3_info.use_ip_qos && cos_port_info.l2_info.ignore_pkt_pcp_for_tc) {
+            /* Map TC from Packet TOS always either the packet is untagged or not */
+            *mode = BCM_PORT_DSCP_MAP_ALL;
+        } else if (!cos_port_info.l3_info.use_ip_qos && !cos_port_info.l2_info.ignore_pkt_pcp_for_tc) {
+            /* Map TC from Packet PCP and for untagged packets have a default TC. */
+            *mode = BCM_PORT_DSCP_MAP_NONE;
+        } else if (!cos_port_info.l3_info.use_ip_qos && cos_port_info.l2_info.ignore_pkt_pcp_for_tc) {
+            /* Map TC from default TC (no looking at PCP or TOS) */
+            *mode = BCM_PORT_DSCP_MAP_DEFAULT;
+        } else if (cos_port_info.l3_info.use_ip_qos && !cos_port_info.l2_info.ignore_pkt_pcp_for_tc) {
+            /* Map TC from Packet TOS when packet is untagged. */
+            *mode = BCM_PORT_DSCP_MAP_UNTAGGED_ONLY;
+        } else {
+            /* Not suppose to come here */
+            BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("%s: not supported retreive from port information to mode. use_ip_qos: %d, ignore_pkt_pcp_for_tc: %d, unit %d"),FUNCTION_NAME(), 
+                      cos_port_info.l3_info.use_ip_qos, cos_port_info.l2_info.ignore_pkt_pcp_for_tc, unit));
+        }
+        
+        break; /* return size for first*/
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_port_dscp_map_mode_set(
+    int unit, 
+    bcm_port_t port, 
+    int mode)
+{
+    SOC_PPD_LLP_COS_PORT_INFO    cos_port_info;
+    int port_i, core;
+    int soc_sand_rv = 0;
+    int rv = BCM_E_NONE;
+    SOC_PPD_PORT soc_ppd_port_i;
+    _bcm_dpp_gport_info_t gport_info;
+    bcm_pbmp_t pbmp_local_ports;
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    if(mode == BCM_PORT_DSCP_MAP_ZERO) {
+      BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("%s: not supported mode %d, unit %d"),FUNCTION_NAME(), mode, unit));
+    }
+
+    BCM_PBMP_CLEAR(pbmp_local_ports);
+
+    /* Retrive local PP ports */
+    if (port == -1) {  
+      BCM_PBMP_ASSIGN(pbmp_local_ports, PBMP_E_ALL(unit));
+    } else {
+      rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+      BCMDNX_IF_ERR_EXIT(rv);
+
+      BCM_PBMP_ASSIGN(pbmp_local_ports, gport_info.pbmp_local_ports);
+    }
+
+    switch(mode) {
+        case BCM_PORT_DSCP_MAP_NONE:
+        case BCM_PORT_DSCP_MAP_ALL:
+        case BCM_PORT_DSCP_MAP_DEFAULT:
+        case BCM_PORT_DSCP_MAP_UNTAGGED_ONLY:
+      break;        
+        default:
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid mode %d"), mode));
+    }
+
+    BCM_PBMP_ITER(pbmp_local_ports, port_i) {
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+        soc_sand_rv = soc_ppd_llp_cos_port_info_get(unit,core,soc_ppd_port_i,&cos_port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        
+        
+        if (mode == BCM_PORT_DSCP_MAP_ALL) {
+            /* Map TC from Packet TOS always either the packet is untagged or not */
+
+            /* Enable TOS */            
+            cos_port_info.l3_info.use_ip_qos = TRUE;
+            /* Disable PCP */
+            cos_port_info.l2_info.ignore_pkt_pcp_for_tc = TRUE;
+
+        } else if (mode == BCM_PORT_DSCP_MAP_NONE) {
+            /* Map TC from Packet PCP and for untagged packets have a default TC. */
+
+            /* Disable TOS */
+            cos_port_info.l3_info.use_ip_qos = FALSE;
+            /* Enable PCP */
+            cos_port_info.l2_info.ignore_pkt_pcp_for_tc = FALSE;
+        } else if (mode == BCM_PORT_DSCP_MAP_DEFAULT) {
+            /* Map TC from default TC (no looking at PCP or TOS) */
+
+            /* Disable TOS */
+            cos_port_info.l3_info.use_ip_qos = FALSE;
+            /* Disable PCP */
+            cos_port_info.l2_info.ignore_pkt_pcp_for_tc = TRUE;
+        } else {
+            /* BCM_PORT_DSCP_MAP_UNTAGGED_ONLY */
+            /* Map TC from Packet TOS when packet is untagged. */
+
+            /* Enable TOS */
+            cos_port_info.l3_info.use_ip_qos = TRUE;
+            /* Enable PCP */
+            cos_port_info.l2_info.ignore_pkt_pcp_for_tc = FALSE;
+        }
+        
+        soc_sand_rv = soc_ppd_llp_cos_port_info_set(unit,core, soc_ppd_port_i,&cos_port_info);
+         BCM_SAND_IF_ERR_EXIT(soc_sand_rv);           
+    }
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_port_dscp_map_set(
+    int unit, 
+    bcm_port_t port, 
+    int srccp, 
+    int mapcp, 
+    int prio)
+{
+    int rv = BCM_E_NONE;    
+    int port_i, core;
+    SOC_PPD_PORT soc_ppd_port;
+    _bcm_dpp_gport_info_t gport_info;
+    SOC_PPD_LLP_COS_PORT_INFO port_info;
+    int soc_sand_dev_id = unit, soc_sand_rv = 0;
+    int dp = 0;
+    int srccp_ndx;
+    int tbl_ndx = 0;
+    SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO    entry;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if(mapcp != srccp && srccp !=-1) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: srccp !=  mapcp not supported, unit %d"),FUNCTION_NAME(), unit));
+    }
+
+    if(srccp > _BCM_DPP_MAX_DSCP_VAL ) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: srccp is out of range %d, unit %d"),FUNCTION_NAME(), srccp, unit));
+    }
+
+    dp = 0x01; /* preserve and default */
+    if (prio < 0) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: prio out of range  %d, unit %d"),FUNCTION_NAME(), prio, unit));
+    }
+    if (prio & BCM_PRIO_BLACK) {
+        dp = 0x03;  /* Black */
+        prio &= ~BCM_PRIO_BLACK;
+    } else if (prio & BCM_PRIO_RED) {
+        dp = 0x02;  /* Red */
+        prio &= ~BCM_PRIO_RED;
+    } else if (prio & BCM_PRIO_YELLOW) {
+        dp = 0x01;  /* Yellow  */
+        prio &= ~BCM_PRIO_YELLOW;
+    } else if (prio & BCM_PRIO_GREEN) {
+        dp = 0x00;  /* Green  */
+        prio &= ~BCM_PRIO_GREEN;
+    }    
+    
+    if (prio & BCM_PRIO_SECONDARY) {
+        tbl_ndx = 1;
+        prio &= ~BCM_PRIO_SECONDARY;
+    }   
+   
+    if ((prio & BCM_PRIO_MASK) > BCM_PRIO_MAX) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: out of range prio value %d, unit %d"),FUNCTION_NAME(), prio & BCM_PRIO_MASK, unit));
+    }
+
+    if ((prio & ~BCM_PRIO_MAX)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: not supported bits in prio value %d, unit %d"),FUNCTION_NAME(), prio & ~BCM_PRIO_MASK, unit));
+    }
+    
+    /* The logic is as below:
+        *     if (port == -1) 
+        *         do the global mapping from TOS to TC,DP
+        *     else 
+        *        do the port profile mapping
+        */
+    if (port == -1) {
+        /* Map IPV4 and IPV6 */
+        SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO_clear(&entry);
+        entry.value1 = dp;
+        entry.value2 = prio & BCM_PRIO_MASK;
+        entry.valid = TRUE;
+
+    if (srccp != -1) {
+      soc_sand_rv = soc_ppd_llp_cos_mapping_table_entry_set(soc_sand_dev_id,
+        SOC_PPD_LLP_COS_MAPPING_TABLE_IPV4_TOS_TO_DP_TC_VALID,
+        tbl_ndx,
+        srccp,&entry);
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+      soc_sand_rv = soc_ppd_llp_cos_mapping_table_entry_set(soc_sand_dev_id,
+        SOC_PPD_LLP_COS_MAPPING_TABLE_IPV6_TC_TO_DP_TC_VALID,
+        tbl_ndx,
+        srccp,&entry);
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    }
+    else{
+      for (srccp_ndx = 0; srccp_ndx < 256; srccp_ndx++)
+      {
+        soc_sand_rv = soc_ppd_llp_cos_mapping_table_entry_set(soc_sand_dev_id,
+          SOC_PPD_LLP_COS_MAPPING_TABLE_IPV4_TOS_TO_DP_TC_VALID,
+          tbl_ndx,
+          srccp_ndx,&entry);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+            soc_sand_rv = soc_ppd_llp_cos_mapping_table_entry_set(soc_sand_dev_id,
+              SOC_PPD_LLP_COS_MAPPING_TABLE_IPV6_TC_TO_DP_TC_VALID,
+              tbl_ndx,
+              srccp_ndx,&entry);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+          }
+        }
+    } else {    
+        /* Retrive local PP ports */
+        rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+        BCMDNX_IF_ERR_EXIT(rv);  
+
+        /* Set the In-PP-Port. TC-DP-TOS-Index */
+        BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+
+           BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port, &core)));
+
+           soc_sand_rv = soc_ppd_llp_cos_port_info_get(unit, core, soc_ppd_port, &port_info);
+           BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+           port_info.l3_info.ip_qos_to_tc_index = tbl_ndx;
+
+           soc_sand_rv = soc_ppd_llp_cos_port_info_set(unit, core, soc_ppd_port, &port_info);
+           BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+       }  
+    }     
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_port_dscp_map_get(
+    int unit, 
+    bcm_port_t port, 
+    int srccp, 
+    int *mapcp, 
+    int *prio)
+{
+    int rv = BCM_E_NONE;    
+    int port_i, core;
+    SOC_PPD_PORT soc_ppd_port;
+    _bcm_dpp_gport_info_t gport_info;
+    SOC_PPD_LLP_COS_PORT_INFO port_info;
+    int soc_sand_dev_id = unit, soc_sand_rv = 0;
+    int dp = 0;
+    int act_srccp = srccp;
+    int tbl_ndx = 0;
+    SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO    entry;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    /* check input parameters*/
+
+    BCMDNX_NULL_CHECK(mapcp);
+    BCMDNX_NULL_CHECK(prio);
+
+    if (srccp < -1 || srccp > _BCM_DPP_MAX_DSCP_VAL) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Invalid srccp %d"), srccp));
+    }
+
+    if(srccp == -1){
+      act_srccp = 0;
+    }
+
+    *mapcp = srccp;
+    
+    /* The logic is as below:
+        *     if (port == -1) 
+        *         get the global mapping from TOS to TC,DP
+        *     else 
+        *        get the port profile mapping
+        */
+    if (port == -1) {        
+        if (*prio & BCM_PRIO_SECONDARY) {
+            tbl_ndx = 1;
+            *prio &= ~BCM_PRIO_SECONDARY;
+        }   
+        /* global get of port 1. Enough to get only from IPV6 */
+        soc_sand_rv = soc_ppd_llp_cos_mapping_table_entry_get(soc_sand_dev_id,
+                              SOC_PPD_LLP_COS_MAPPING_TABLE_IPV6_TC_TO_DP_TC_VALID,
+                              tbl_ndx,
+                              act_srccp,&entry);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+
+        if (!entry.valid) {
+            *prio = -1;
+            BCM_EXIT;
+        }
+
+        *prio = entry.value2;
+        dp = entry.value1;
+        
+        if (dp == 0x03) {
+            *prio |= BCM_PRIO_BLACK;  /* Black */
+        } else if (dp == 0x02) {
+            *prio |= BCM_PRIO_RED;  /* Red  */
+        } else if (dp == 0x01) {
+            *prio |= BCM_PRIO_YELLOW;  /* Yellow  */
+        } else if (dp == 0x0) {
+            *prio |= BCM_PRIO_GREEN;  /* Green */
+        }
+        
+        if (tbl_ndx == 1) {
+            *prio |= BCM_PRIO_SECONDARY; /*Secondary */
+        }        
+    } else {    
+        /* Retrive local PP ports */
+        rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+        BCMDNX_IF_ERR_EXIT(rv);  
+
+        /* Get the In-PP-Port. TC-DP-TOS-Index */
+        BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+
+            BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port, &core)));
+
+            soc_sand_rv = soc_ppd_llp_cos_port_info_get(unit, core, soc_ppd_port, &port_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+            tbl_ndx = port_info.l3_info.ip_qos_to_tc_index;
+
+            if (tbl_ndx == 1) {
+                *prio = BCM_PRIO_SECONDARY; /*Secondary */
+            } else if (tbl_ndx > 1) {
+                *prio = -1;
+            }        
+        }  
+    }     
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/* This API works only in PP mode */
+int 
+bcm_petra_port_l3_mtu_get(
+    int unit, 
+    bcm_port_t port, 
+    int *size)
+{
+    SOC_PPD_PORT_INFO port_info;
+    int port_i, core;
+    int soc_sand_rv = 0;
+    int rv = BCM_E_NONE;
+    SOC_PPD_PORT soc_ppd_port_i;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* Retrive local PP ports */
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+      BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+      soc_sand_rv = soc_ppd_port_info_get(unit,core,soc_ppd_port_i,&port_info);
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+      *size = port_info.mtu;
+      break; /* return size for first*/
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/* This API works only in PP mode */
+int 
+bcm_petra_port_l3_mtu_set(
+    int unit, 
+    bcm_port_t port, 
+    int size)
+{
+    SOC_PPD_PORT_INFO
+    port_info;
+    int port_i, core;
+    int soc_sand_rv = 0;
+    int rv = BCM_E_NONE;
+    SOC_PPD_PORT soc_ppd_port_i;
+    _bcm_dpp_gport_info_t gport_info;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    /* Retrive local PP ports */
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+      BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+      soc_sand_rv = soc_ppd_port_info_get(unit,core,soc_ppd_port_i,&port_info);
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+      port_info.mtu = size;
+      soc_sand_rv = soc_ppd_port_info_set(unit,core,soc_ppd_port_i,&port_info);
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    }
+   
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * given flags, map to the trap code to be used to acheive these flags.
+ */
+STATIC 
+ int bcm_petra_port_learn_flags_to_trap_code(
+     int unit,
+     uint32 flags
+ )
+{
+    /* learn and forward */
+    if((flags & BCM_PORT_LEARN_FWD) && (flags & BCM_PORT_LEARN_ARL)) {
+        return SOC_PPD_TRAP_CODE_SA_NOT_FOUND_0;
+    }
+
+    /* neither: drop and don't learn*/
+    if((flags & (BCM_PORT_LEARN_ARL|BCM_PORT_LEARN_FWD)) == 0) {
+        return SOC_PPD_TRAP_CODE_SA_NOT_FOUND_3;
+    }
+    /* only learn */
+    if((flags & BCM_PORT_LEARN_FWD) == 0) {
+        return SOC_PPD_TRAP_CODE_SA_NOT_FOUND_2;
+    }
+    /* only forward */
+    if((flags & BCM_PORT_LEARN_ARL) == 0) {
+        return SOC_PPD_TRAP_CODE_SA_NOT_FOUND_1;
+    }
+
+    return SOC_PPD_TRAP_CODE_SA_NOT_FOUND_0;
+}
+
+/*
+ * map from trap code to learn_flags.
+ */
+STATIC 
+ int bcm_petra_port_learn_flags_from_trap_code(
+     int unit,
+     uint32 trap_code,
+     uint32 *flags
+ )
+{
+    *flags = 0;
+    switch(trap_code) {
+    case SOC_PPD_TRAP_CODE_SA_NOT_FOUND_0:
+        *flags = BCM_PORT_LEARN_FWD|BCM_PORT_LEARN_ARL;
+        break;
+    case SOC_PPD_TRAP_CODE_SA_NOT_FOUND_1:
+        *flags = BCM_PORT_LEARN_FWD;
+        break;
+    case SOC_PPD_TRAP_CODE_SA_NOT_FOUND_2:
+        *flags = BCM_PORT_LEARN_ARL;
+        break;
+    case SOC_PPD_TRAP_CODE_SA_NOT_FOUND_3:
+        *flags = 0;
+        break;
+    default:
+        return BCM_E_INTERNAL;
+    }
+    return BCM_E_NONE;
+}
+
+/*
+* given ppd-port return which flags this port is mapping to
+*/
+STATIC int 
+_bcm_petra_pp_port_flags_get(
+    int unit,
+    int port_i,
+    uint32 *flags)
+{
+    SOC_PPD_FRWRD_MACT_PORT_INFO
+    mact_port_info;
+    uint32
+      soc_sand_rv;
+    int soc_sand_dev_id = unit;
+    SOC_PPD_PORT soc_ppd_port_i;
+    int rv = BCM_E_NONE, core;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    soc_sand_dev_id = (unit);
+
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+    soc_sand_rv = soc_ppd_frwrd_mact_port_info_get(soc_sand_dev_id,core,soc_ppd_port_i,&mact_port_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    
+    rv = bcm_petra_port_learn_flags_from_trap_code(
+        unit,
+        mact_port_info.sa_unknown_action_profile + SOC_PPD_TRAP_CODE_SA_NOT_FOUND_0,
+        flags
+    );
+    BCMDNX_IF_ERR_EXIT(rv);
+
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+
+STATIC int 
+_bcm_petra_gport_lif_learn_get(
+    int unit, 
+    bcm_port_t port, 
+    uint32 *flags)
+{
+    int rv = BCM_E_NONE;
+    uint8 learn_enable;
+    int lif_index, fec_id, is_local;
+    SOC_PPD_LIF_ENTRY_INFO lif_info;
+    uint32
+      soc_sand_rv;
+    int soc_sand_dev_id = unit;
+
+   BCMDNX_INIT_FUNC_DEFS;
+
+   soc_sand_dev_id = (unit);
+   *flags = 0;
+
+   /* map gport to LIF */
+   rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, &lif_index, NULL, &fec_id, &is_local);
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   if (!is_local) {
+     /* API is releavant only for local configuration */
+     BCM_EXIT;
+   }
+
+   /* update LIF attribute */
+   soc_sand_rv = soc_ppd_lif_table_entry_get(soc_sand_dev_id,lif_index,&lif_info);
+   BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+   if(lif_info.type & (SOC_PPC_LIF_ENTRY_TYPE_AC|SOC_PPD_LIF_ENTRY_TYPE_FIRST_AC_IN_GROUP|SOC_PPC_LIF_ENTRY_TYPE_MIDDLE_AC_IN_GROUP)){
+       learn_enable = lif_info.value.ac.learn_record.learn_type != SOC_PPD_L2_LIF_AC_LEARN_DISABLE;
+   }
+   else if(lif_info.type & SOC_PPD_LIF_ENTRY_TYPE_PWE){
+       learn_enable = lif_info.value.pwe.learn_record.enable_learning != SOC_PPD_L2_LIF_AC_LEARN_DISABLE;
+   }
+   else if(lif_info.type & SOC_PPD_LIF_ENTRY_TYPE_IP_TUNNEL_RIF){
+       learn_enable = lif_info.value.ip_term_info.learn_enable;
+   }
+   else if(lif_info.type & SOC_PPD_LIF_ENTRY_TYPE_MPLS_TUNNEL_RIF){
+       learn_enable = lif_info.value.mpls_term_info.learn_enable;
+   }
+   else if(lif_info.type & SOC_PPD_LIF_ENTRY_TYPE_ISID){
+       learn_enable = lif_info.value.isid.learn_enable;
+   }
+   else{
+       BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("%s: cannot enable learning for this LIF type"), FUNCTION_NAME()));
+   }
+
+   /* for gport lif, destination is forwarding */
+   *flags |= BCM_PORT_LEARN_FWD;
+   if(learn_enable) {
+       *flags |= BCM_PORT_LEARN_ARL;
+   }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_port_learn_get(
+    int unit, 
+    bcm_port_t port, 
+    uint32 *flags)
+{
+    int port_i;
+    int gport_type, gport_val;
+    int rv = BCM_E_NONE;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    rv = _bcm_dpp_gport_parse(unit,port,&gport_type, &gport_val, NULL);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* if the supplied gport is not simple (i.e. it;s a LIF) handle it in special function*/
+    if (gport_type != _BCM_DPP_GPORT_TYPE_SIMPLE) {
+        rv = _bcm_petra_gport_lif_learn_get(unit,port,flags);
+        BCMDNX_IF_ERR_EXIT(rv);
+        BCM_EXIT;
+    }
+
+    /* Retrive local PP ports */
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+       *flags = 0;
+       rv = _bcm_petra_pp_port_flags_get(unit,port_i,flags);
+       BCMDNX_IF_ERR_EXIT(rv);
+       /* if not using trap code, then flags as in default*/
+       if(*flags == 0xf ) {
+           *flags = BCM_PETRA_PORT_LEARN_DFLT_FLGS;
+       }
+       break; /* get flags for first */
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_port_learn_modify(
+    int unit, 
+    bcm_port_t port, 
+    uint32 add, 
+    uint32 remove)
+{
+    uint32 flags;
+    SOC_PPD_PORT port_i;
+    SOC_PPD_FRWRD_MACT_PORT_INFO mact_port_info;
+    uint32 sa_unknown_action_profile;
+    int soc_sand_rv = 0;
+    SOC_PPD_PORT_INFO port_info;
+    int learn_enable;
+    int rv = BCM_E_NONE;
+    int core = SOC_CORE_INVALID;
+    SOC_PPD_PORT soc_ppd_port = 0;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    if((add & (~(BCM_PORT_LEARN_ARL|BCM_PORT_LEARN_FWD))) != 0 ) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: unsupported learn flags %x"),FUNCTION_NAME(), add));
+    } 
+
+    /* nothing to do */
+    if(add == 0  && remove == 0) {
+        BCM_EXIT;
+    }
+
+    /* Retrive local PP ports */
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+        /* get */
+        flags = 0;
+
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port, &core)));
+
+        rv = _bcm_petra_pp_port_flags_get(unit,port_i,&flags);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        /* update */
+        flags |= add;
+        flags &= ~remove;
+
+        /* set */
+        sa_unknown_action_profile = bcm_petra_port_learn_flags_to_trap_code(unit,flags) - SOC_PPD_TRAP_CODE_SA_NOT_FOUND_0;
+
+        /* Set new port-trap mapping */
+        soc_sand_rv = soc_ppd_frwrd_mact_port_info_get(unit,core,soc_ppd_port,&mact_port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        mact_port_info.sa_unknown_action_profile = sa_unknown_action_profile;
+        soc_sand_rv = soc_ppd_frwrd_mact_port_info_set(unit,core,soc_ppd_port,&mact_port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        /* port info setting */
+
+        /* new learn status */
+        learn_enable = (flags & BCM_PORT_LEARN_ARL)?1:0;
+
+        /* update learn info if required */
+        soc_sand_rv = soc_ppd_port_info_get(unit,core,soc_ppd_port,&port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        if (port_info.enable_learning != learn_enable) {
+            port_info.enable_learning = learn_enable;
+            soc_sand_rv = soc_ppd_port_info_set(unit,core,soc_ppd_port,&port_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        }
+
+    }
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * control the handling of packet with unknown SA. 
+ *   action can be to:
+ *      - drop/forward packet.
+ *      - learn/not learn SA.
+ *  
+ * port can be: 
+ *    - local pp port.
+ *    - local gport (AC, PWE,...)
+ */
+STATIC int 
+_bcm_petra_gport_lif_learn_set(
+    int unit, 
+    bcm_port_t port, 
+    uint32 flags)
+{
+    int rv = BCM_E_NONE;
+    uint8 learn_enable;
+    int lif_index, fec_id, is_local;
+    SOC_PPD_LIF_ENTRY_INFO *lif_info = NULL;
+    uint32
+      soc_sand_rv;
+    int soc_sand_dev_id = unit;
+    int learn_gport = 0;
+    SOC_PPD_FRWRD_DECISION_INFO* learn_info_ptr = NULL;
+
+   BCMDNX_INIT_FUNC_DEFS;
+
+   soc_sand_dev_id = (unit);
+
+   /* only learn disable/enable suport packet has to be forward */
+   if((flags & (~(BCM_PORT_LEARN_ARL|BCM_PORT_LEARN_FWD))) != 0 ) {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("%s: unsupported learn flags %x"),FUNCTION_NAME(), flags));
+   } 
+
+   /* packet forwarding cannot be change according to learn event */
+   if(!(flags & BCM_PORT_LEARN_FWD)) {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("%s: unsupported learn flags %x, FWD has to be present for LIF learn control "),FUNCTION_NAME(), flags));
+   } 
+
+   learn_enable = (flags & BCM_PORT_LEARN_ARL) != 0;
+
+   /* map gport to LIF */
+   rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, &lif_index, NULL, &fec_id, &is_local);
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   if (!is_local) {
+     /* API is releavant only for local configuration */
+     BCM_EXIT;
+   }
+
+    BCMDNX_ALLOC(lif_info, sizeof(SOC_PPD_LIF_ENTRY_INFO), "_bcm_petra_gport_lif_learn_set.lif_info");
+    if (lif_info == NULL) {        
+        BCMDNX_ERR_EXIT_MSG(BCM_E_MEMORY, (_BSL_BCM_MSG("failed to allocate memory")));
+    }
+
+   /* update LIF attribute */
+   soc_sand_rv = soc_ppd_lif_table_entry_get(soc_sand_dev_id,lif_index, lif_info);
+   BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+   if(lif_info->type & (SOC_PPC_LIF_ENTRY_TYPE_AC|SOC_PPD_LIF_ENTRY_TYPE_FIRST_AC_IN_GROUP|SOC_PPC_LIF_ENTRY_TYPE_MIDDLE_AC_IN_GROUP)){
+
+       if(lif_info->value.ac.service_type != SOC_PPD_L2_LIF_AC_SERVICE_TYPE_MP && learn_enable) {
+           BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("%s: cannot enable learning for P2P service "), FUNCTION_NAME()));
+       }
+       lif_info->value.ac.learn_record.learn_type = (learn_enable)?SOC_PPD_L2_LIF_AC_LEARN_INFO:SOC_PPD_L2_LIF_AC_LEARN_DISABLE;
+       
+       if (learn_enable) {
+           learn_info_ptr = &lif_info->value.ac.learn_record.learn_info;
+       }
+   }
+   else if(lif_info->type & SOC_PPD_LIF_ENTRY_TYPE_PWE){
+       if(lif_info->value.pwe.service_type != SOC_PPD_L2_LIF_PWE_SERVICE_TYPE_MP && learn_enable) {
+           BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("%s: cannot enable learning for P2P service "), FUNCTION_NAME()));
+       }
+       lif_info->value.pwe.learn_record.enable_learning = (learn_enable)?SOC_PPD_L2_LIF_AC_LEARN_INFO:SOC_PPD_L2_LIF_AC_LEARN_DISABLE;
+       if (learn_enable) {
+           learn_info_ptr = &lif_info->value.pwe.learn_record.learn_info;
+       }
+   }
+   else if(lif_info->type & SOC_PPD_LIF_ENTRY_TYPE_IP_TUNNEL_RIF){
+       lif_info->value.ip_term_info.learn_enable = learn_enable;
+        /* Update froward decision information if learn is enabled  */
+       if (learn_enable) {
+           learn_info_ptr = &lif_info->value.ip_term_info.learn_record;
+       }
+   }
+   else if(lif_info->type & SOC_PPD_LIF_ENTRY_TYPE_MPLS_TUNNEL_RIF){
+       lif_info->value.mpls_term_info.learn_enable = learn_enable;
+   }
+   else if(lif_info->type & SOC_PPD_LIF_ENTRY_TYPE_ISID){
+       lif_info->value.isid.learn_enable = learn_enable;
+   }
+   else if(lif_info->type & SOC_PPD_LIF_ENTRY_TYPE_TRILL_NICK){
+       lif_info->value.trill.learn_enable = learn_enable;
+   }
+   else{
+       BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("%s: cannot enable learning for this LIF type"), FUNCTION_NAME()));
+   }
+
+   /* 
+     *  HW save this information from the learning information. Depends on LIF type we can try to retreive learn information if exist
+     *  Type          | Learn information
+     *  AC            | Take from learn record in case learning is done per AC
+     *  PWE           | Take once PWE learn is enabled
+     *  IP Tunnel RIF | Take once IP tunnel learn is enabled
+     */
+   if (learn_enable && (learn_info_ptr != NULL)) {
+       learn_gport = _bcm_dpp_in_lif_match_learn_gport_get(unit, lif_index);
+       SOC_PPD_FRWRD_DECISION_INFO_clear(learn_info_ptr);
+       rv = _bcm_dpp_gport_to_fwd_decision(unit,learn_gport, learn_info_ptr);
+       BCMDNX_IF_ERR_EXIT(rv);
+   }
+
+   /* update LIF attribute */
+   soc_sand_rv = soc_ppd_lif_table_entry_update(soc_sand_dev_id,lif_index, lif_info);
+   BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+exit:
+    BCM_FREE(lif_info);
+   BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * control the handling of packet with unknown SA. 
+ *   action can be to:
+ *      - drop/forward packet.
+ *      - learn/not learn SA.
+ *  
+ * port can be: 
+ *    - local pp port.
+ *    - local gport (AC, PWE,...)
+ */
+int 
+bcm_petra_port_learn_set(
+    int unit, 
+    bcm_port_t port, 
+    uint32 flags)
+{
+    int rv = BCM_E_NONE;
+    SOC_PPD_FRWRD_MACT_PORT_INFO mact_port_info;
+    uint32 soc_sand_rv;
+    SOC_PPD_PORT port_i;
+    int gport_type, gport_val;
+    uint32 sa_unknown_action_profile;
+    SOC_PPD_PORT_INFO port_info;
+    int learn_enable;
+    _bcm_dpp_gport_info_t gport_info;
+    int core = SOC_CORE_INVALID;
+    SOC_PPD_PORT soc_ppd_port = 0;
+
+
+   BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+    /* only ARL and FWD is supported */
+
+   /*       Flags
+    *  ARL      FWD     |     ACTION            | TRAP CODE
+    *   V        V      |  learn & Forward      | bcmRxTrapL2Learn0
+    *   X        V      |  don't learn & Forward| bcmRxTrapL2Learn1
+    *   V        X      |  learn & Drop         | bcmRxTrapL2Learn2
+    *   X        X      |  don't learn & Drop   | bcmRxTrapL2Learn3
+    */
+
+   rv = _bcm_dpp_gport_parse(unit,port, &gport_type, &gport_val, NULL);
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   /* if the supplied gport is not simple (i.e. it;s a LIF) handle it in special function*/
+   if (gport_type != _BCM_DPP_GPORT_TYPE_SIMPLE) {
+       rv = _bcm_petra_gport_lif_learn_set(unit,port,flags);
+       BCMDNX_IF_ERR_EXIT(rv);
+       BCM_EXIT;
+   }
+    /* to get trap/snoop instead drop use  bcm_petra_rx_trap_set with relevant trap code */
+    if((flags & (~(BCM_PORT_LEARN_ARL|BCM_PORT_LEARN_FWD))) != 0 ) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("%s: unsupported learn flags %x"),FUNCTION_NAME(), flags));
+    } 
+
+    /* Retrive local PP ports */
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    sa_unknown_action_profile = bcm_petra_port_learn_flags_to_trap_code(unit,flags) - SOC_PPD_TRAP_CODE_SA_NOT_FOUND_0;
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port, &core)));
+
+        /* Set new port-trap mapping */
+        soc_sand_rv = soc_ppd_frwrd_mact_port_info_get(unit,core,soc_ppd_port,&mact_port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        mact_port_info.sa_unknown_action_profile = sa_unknown_action_profile;
+        soc_sand_rv = soc_ppd_frwrd_mact_port_info_set(unit,core,soc_ppd_port,&mact_port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        /* port info setting */
+        /* new learn status */
+        learn_enable = (flags & BCM_PORT_LEARN_ARL)?1:0;
+        /* update learn info if required */
+        soc_sand_rv = soc_ppd_port_info_get(unit,core,soc_ppd_port,&port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        if (port_info.enable_learning != learn_enable) {
+            port_info.enable_learning = learn_enable;
+            soc_sand_rv = soc_ppd_port_info_set(unit,core,soc_ppd_port,&port_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        }
+    }
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+   BCMDNX_FUNC_RETURN;
+}
+
+int bcm_petra_port_policer_get(
+    int unit, 
+    bcm_port_t port, 
+    bcm_policer_t *policer_id)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_IF_ERR_EXIT(bcm_petra_policer_port_get(unit, port, policer_id));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/* Set the Policer ID accociated for the specified physical port. */
+int bcm_petra_port_policer_set(
+    int unit, 
+    bcm_port_t port, 
+    bcm_policer_t policer_id)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    BCMDNX_IF_ERR_EXIT(bcm_petra_policer_port_set(unit, port, policer_id));
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_stp_set
+ * Purpose:
+ *      Set the spanning tree state for a port.
+ *      All STGs containing all VLANs containing the port are updated.
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      port - StrataSwitch port number.
+ *      stp_state - State to place port in, one of BCM_PORT_STP_xxx.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_INTERNAL
+ * Notes:
+ *      BCM_LOCK is taken so that the current list of VLANs
+ *      can't change during the operation.
+ */
+
+int
+bcm_petra_port_stp_set(int unit, bcm_port_t port, int stp_state)
+{
+    bcm_stg_t           *list = NULL;
+    int                 count = 0, i;
+    int                 rv = BCM_E_NONE;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    /* BCM_LOCK(unit); */
+
+    rv = bcm_petra_stg_list(unit, &list, &count);
+
+    if (rv == BCM_E_UNAVAIL) {
+        if (stp_state == BCM_STG_STP_FORWARD) {
+            rv = BCM_E_NONE;
+        } else {
+            rv = BCM_E_PARAM;
+        }
+    } else if (BCM_SUCCESS(rv)) {
+        for (i = 0; i < count; i++) {
+            if ((rv = bcm_petra_stg_stp_set(unit, list[i], 
+                                          port, stp_state)) < 0) {
+                break;
+            }
+        }
+        
+        bcm_petra_stg_list_destroy(unit, list, count);
+    }
+
+    /* BCM_UNLOCK(unit); */
+
+    LOG_VERBOSE(BSL_LS_BCM_PORT,
+                (BSL_META_U(unit,
+                            "port %d, state %d rv %d"), port, stp_state, rv));
+
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_stp_get
+ * Purpose:
+ *      Get the spanning tree state for a port in the default STG.
+ * Parameters:
+ *      unit - StrataSwitch unit number.
+ *      port - StrataSwitch port number.
+ *      stp_state - Pointer where state stored.
+ * Returns:
+ *      BCM_E_NONE
+ *      BCM_E_INTERNAL
+ */
+
+int
+bcm_petra_port_stp_get(int unit, bcm_port_t port, int *stp_state)
+{
+    int stg_defl, rv;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    rv = bcm_petra_stg_default_get(unit, &stg_defl);
+    if (rv >= 0) {
+        rv = bcm_petra_stg_stp_get(unit, stg_defl, port, stp_state);
+    } else if (rv == BCM_E_UNAVAIL) {   /* FABRIC switches, etc */
+        *stp_state = BCM_STG_STP_FORWARD;
+        rv = BCM_E_NONE;
+    }
+
+    LOG_DEBUG(BSL_LS_BCM_PORT,
+              (BSL_META_U(unit,
+                          "port %d, state %d rv %d"), port, *stp_state, rv));
+
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/* 
+ * allocate tpid value
+ */
+int
+bcm_petra_port_tpid_val_alloc(
+       int unit, uint16 tpid[_BCM_PETRA_NOF_TPIDS_PER_PORT], int nof_tpids, int tpid_indx[_BCM_PETRA_NOF_TPIDS_PER_PORT]
+    )
+{
+    int indx, nof_values=0, vals_indx, tpid_i = 0;
+    int soc_sand_dev_id = unit, soc_sand_rv = 0;
+    uint16 used_tpid_vals[_BCM_PORT_NOF_TPID_VALS + 1] = {0}; /* '0' Can be included as a TPID value in unallocatd TPID Profiles */
+    uint16 tpid_val;
+    SOC_PPD_LLP_PARSE_TPID_VALUES
+    tpid_vals;
+    int new_val;
+    int tpid_found[_BCM_PETRA_NOF_TPIDS_PER_PORT] = {0};
+    int nof_filled = 0;
+    int rv, old_profile, new_profile, is_last, is_allocated;
+    bcm_dpp_vlan_egress_edit_profile_info_t mapping_profile;
+    SOC_PPD_EG_VLAN_EDIT_COMMAND_KEY command_key;
+    SOC_PPD_EG_VLAN_EDIT_COMMAND_INFO command_info;
+    SOC_PPD_EG_AC_INFO ac_info;
+    SOC_PPD_AC_ID mim_local_out_ac;
+    int tpid_count;
+    int vlan_format;
+    
+    BCMDNX_INIT_FUNC_DEFS;
+    soc_sand_dev_id = (unit);
+
+    /* check if such TPID already exist */
+    soc_sand_rv = soc_ppd_llp_parse_tpid_values_get(soc_sand_dev_id,&tpid_vals);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    LOG_VERBOSE(BSL_LS_BCM_PORT,
+                (BSL_META_U(unit,
+                            "allocate tpid values: for tpid[0]=%d tpid[1]=%d nof_tpids=%d \n"),
+                 tpid[0], tpid[1], nof_tpids));
+
+    
+    for(indx = 0; indx < SOC_PPD_LLP_PARSE_NOF_TPID_VALS - 1; ++indx) {
+
+        for(tpid_i = 0 ; tpid_i < nof_tpids && nof_filled < nof_tpids;  ++tpid_i) {
+            if(tpid_vals.tpid_vals[indx] == tpid[tpid_i] )
+            {
+                tpid_indx[tpid_i] = indx;
+                tpid_found[tpid_i] = 1;
+                ++nof_filled;
+                /* mark it as in use */
+                used_tpid_vals[nof_values++] = tpid[tpid_i];
+            }
+        }
+    }
+
+    /* done?*/
+    if(nof_filled == nof_tpids) {
+        LOG_DEBUG(BSL_LS_BCM_PORT,
+                  (BSL_META_U(unit,
+                              "TPIDs already exist\n")));
+        BCM_EXIT;
+    }
+
+    /* go over existing tpid-profiles and check which is in use */
+    for(indx = 0; indx < _BCM_PORT_NOF_TPID_PROFILES*2; ++indx) {
+        _BCM_PETRA_PORT_TPID_COUNT_GET(unit, indx/_BCM_PORT_NOF_TPID_PROFILES, indx % _BCM_PORT_NOF_TPID_PROFILES, tpid_count);
+         if(tpid_count != 0) {
+            new_val = 1;
+            _BCM_PETRA_PORT_TPID_GET(unit, indx/_BCM_PORT_NOF_TPID_PROFILES, indx % _BCM_PORT_NOF_TPID_PROFILES, tpid_val);
+    
+            /* check if new different value */
+            for(vals_indx= 0; vals_indx < nof_values; ++vals_indx) {
+                if(tpid_val == used_tpid_vals[vals_indx]){
+                    new_val = 0;
+                    break;
+                }
+            }
+            if(new_val) {
+                used_tpid_vals[nof_values++] = tpid_val;
+            }
+        }
+    }
+
+    /* now check if there is tpid-entry not in use */
+    for(indx = 0; (indx < SOC_PPD_LLP_PARSE_NOF_TPID_VALS - 1) && (nof_filled < nof_tpids); ++indx) {
+        for(vals_indx= 0; vals_indx < nof_values && nof_filled < nof_tpids; ++vals_indx) {
+            if(tpid_vals.tpid_vals[indx] == used_tpid_vals[vals_indx]){
+                break;
+            }
+        }
+        /* found unused index */
+        if(vals_indx == nof_values) {
+            /* fill it */
+            for(tpid_i = 0 ; tpid_i < nof_tpids;  ++tpid_i) {
+                if(tpid_found[tpid_i] != 1)
+                {
+                    tpid_vals.tpid_vals[indx] = tpid[tpid_i];
+                    tpid_found[tpid_i] = 1;
+                    tpid_indx[tpid_i] = indx;
+                    ++nof_filled;
+                    break;
+                }
+            }
+        }   
+    }
+
+    if(nof_filled == nof_tpids) {
+        soc_sand_rv = soc_ppd_llp_parse_tpid_values_set(soc_sand_dev_id, &tpid_vals);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        if (MIM_IS_INIT(unit) && SOC_DPP_IS_VLAN_TRANSLATE_MODE_NORMAL(unit)) {
+
+            mim_local_out_ac = SOC_DPP_CONFIG(unit)->pp.mim_local_out_ac;
+
+            /* go over tpids to find if one of them is the B-tag tpid */
+            for (tpid_i = 0; tpid_i < _BCM_PORT_NOF_TPID_VALS; ++tpid_i) {
+                if (tpid_vals.tpid_vals[tpid_i] == BCM_PETRA_MIM_BTAG_TPID) {
+                    break;
+                }
+            }
+            if (tpid_i != _BCM_PORT_NOF_TPID_VALS) { /* B-tag tpid was found */
+
+                _bcm_dpp_vlan_egress_edit_profile_info_t_init(&mapping_profile);
+                rv = _bcm_dpp_am_template_vlan_edit_profile_eg_mapping_data_get(unit, mim_local_out_ac, &mapping_profile);
+                BCMDNX_IF_ERR_EXIT(rv);
+
+                vlan_format = SOC_SAND_PP_ETHERNET_FRAME_VLAN_FORMAT_NONE;
+
+                /* get a profile to config vlan_edit_command */
+                mapping_profile.evec[vlan_format].tags_to_remove = 0;
+                mapping_profile.evec[vlan_format].outer_tag.tpid_index = tpid_i;
+                if (SOC_IS_PETRAB(unit)) {
+                    mapping_profile.evec[vlan_format].outer_tag.vid_source = SOC_PPD_EG_VLAN_EDIT_TAG_VID_SRC_ENCAP_INFO;
+                }
+                else {
+                    mapping_profile.evec[vlan_format].outer_tag.vid_source = SOC_PPD_EG_VLAN_EDIT_TAG_VID_SRC_VSI;
+                }
+                   
+                rv = _bcm_dpp_am_template_vlan_edit_profile_eg_mapping_exchange(unit, mim_local_out_ac, &mapping_profile, &old_profile, &is_last, 
+                                                                                    &new_profile, &is_allocated);
+                BCMDNX_IF_ERR_EXIT(rv);
+
+                /* set vlan_edit_command for encapsulation of B-tag */
+                SOC_PPD_EG_VLAN_EDIT_COMMAND_KEY_clear(&command_key);
+
+                command_key.edit_profile = new_profile;
+                command_key.tag_format = vlan_format;
+
+                soc_sand_rv = soc_ppd_eg_vlan_edit_command_info_get(soc_sand_dev_id, &command_key, &command_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                command_info.tags_to_remove = 0;
+                if (SOC_IS_ARAD(unit)) {
+                    command_info.outer_tag.vid_source = SOC_PPD_EG_VLAN_EDIT_TAG_VID_SRC_VSI;
+                }
+                else {
+                    command_info.outer_tag.vid_source = SOC_PPD_EG_VLAN_EDIT_TAG_VID_SRC_ENCAP_INFO;
+                }
+                command_info.outer_tag.tpid_index = tpid_i; /* B-tag tpid */
+                command_info.outer_tag.pcp_dei_source = SOC_PPD_EG_VLAN_EDIT_TAG_PCP_DEI_SRC_MAP;
+                command_info.inner_tag.vid_source = SOC_PPD_EG_VLAN_EDIT_TAG_VID_SRC_EMPTY;
+                command_info.inner_tag.pcp_dei_source = SOC_PPD_EG_VLAN_EDIT_TAG_PCP_DEI_NONE;
+
+                soc_sand_rv = soc_ppd_eg_vlan_edit_command_info_set(soc_sand_dev_id, &command_key, &command_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                /* if not default, set AC to point at new profile */
+                if (new_profile != 0) {
+                    soc_sand_rv = soc_ppd_eg_ac_info_get(soc_sand_dev_id, mim_local_out_ac, &ac_info);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                    ac_info.edit_info.edit_profile = new_profile;
+
+                    soc_sand_rv = soc_ppd_eg_ac_info_set(soc_sand_dev_id, mim_local_out_ac, &ac_info);
+                    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                }
+            }
+        }
+
+        BCM_EXIT;
+    }
+
+    /* didn't manage to allocate */
+    BCMDNX_ERR_EXIT_MSG(BCM_E_FULL, (_BSL_BCM_MSG("didn't manage to allocate")));
+
+exit:
+    LOG_VERBOSE(BSL_LS_BCM_PORT,
+                (BSL_META_U(unit,
+                            "allocate tpid values: at indexes %d %d\n"),
+                 tpid_indx[0],tpid_indx[1]));
+
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/* 
+ * Search for exact match TPID profile
+ */
+int
+bcm_petra_port_tpid_profile_exact_match_search(int unit, int indx, uint16 tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT], int nof_tpids, int inner_only, int* is_exact_match)
+{
+  int tpid_count1;
+  int tpid_count0;
+  uint16 tpid1;
+  uint16 tpid0;    
+  
+  BCMDNX_INIT_FUNC_DEFS;
+
+  *is_exact_match = 0;
+  /* full double match */
+  if(nof_tpids == 2) {
+      _BCM_PETRA_PORT_TPID_COUNT_GET(unit, 0, indx, tpid_count0);
+      _BCM_PETRA_PORT_TPID_COUNT_GET(unit, 1, indx, tpid_count1);
+      _BCM_PETRA_PORT_TPID_GET(unit, 0, indx, tpid0);
+      _BCM_PETRA_PORT_TPID_GET(unit, 1, indx, tpid1);
+
+      if( (tpid0 == tpids[0] && tpid_count0 !=0 ) && (tpid1 == tpids[1] && tpid_count1 !=0 )) {
+          *is_exact_match = 1;          
+      }
+  }
+  /* full one match */
+  if(nof_tpids == 1) {
+      _BCM_PETRA_PORT_TPID_COUNT_GET(unit, inner_only, indx, tpid_count0);
+      _BCM_PETRA_PORT_TPID_GET(unit, inner_only, indx, tpid0);
+
+      /* Whether inner_only is set or not, tpids[0] always represent the first TPID */
+      if( (tpid0 == tpids[0] && tpid_count0 !=0 ) ) {
+          *is_exact_match = 1;          
+      }
+  }
+
+exit:
+  BCMDNX_FUNC_RETURN;       
+}
+
+/* 
+ * Search for first match TPID profile
+ */
+int
+bcm_petra_port_tpid_profile_first_match_search(int unit, int indx, uint16 tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT], int nof_tpids, int inner_only, int* is_first_match)
+{
+  int tpid_count0;
+  uint16 tpid0; 
+  
+  BCMDNX_INIT_FUNC_DEFS;
+   
+
+  *is_first_match = 0;
+
+  if(nof_tpids == 1) {
+     _BCM_PETRA_PORT_TPID_COUNT_GET(unit, 0, indx, tpid_count0);
+     _BCM_PETRA_PORT_TPID_GET(unit, 0, indx, tpid0);
+     if (tpid0 == tpids[0] && tpid_count0 != 0 ) {     
+         *is_first_match = 1;
+     }
+  }
+
+exit:
+  BCMDNX_FUNC_RETURN;       
+}
+
+/* 
+ * Search for exact match TPID profile in opposite direction.
+ */
+int
+bcm_petra_port_tpid_profile_opposite_match_search(int unit, int indx, uint16 tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT], int nof_tpids, int inner_only, int* is_exact_match)
+{
+  int tpid_count1;
+  int tpid_count0;
+  uint16 tpid1;
+  uint16 tpid0;    
+  int index_opp;
+  
+  BCMDNX_INIT_FUNC_DEFS;
+
+  *is_exact_match = 0;
+  /* Full double match in opposite direction */
+  if(nof_tpids == 2) {
+      _BCM_PETRA_PORT_TPID_COUNT_GET(unit, 0, indx, tpid_count0);
+      _BCM_PETRA_PORT_TPID_COUNT_GET(unit, 1, indx, tpid_count1);
+      _BCM_PETRA_PORT_TPID_GET(unit, 0, indx, tpid0);
+      _BCM_PETRA_PORT_TPID_GET(unit, 1, indx, tpid1);
+
+      if( (tpid0 == tpids[1] && tpid_count0 !=0 ) && (tpid1 == tpids[0] && tpid_count1 !=0 )) {
+          *is_exact_match = 1;          
+      }
+  }
+
+  /* full one match in opposite direction */
+  if(nof_tpids == 1) {
+      index_opp = (inner_only == 0) ? 1 : 0;
+      _BCM_PETRA_PORT_TPID_COUNT_GET(unit, index_opp, indx, tpid_count0);
+      _BCM_PETRA_PORT_TPID_GET(unit, index_opp, indx, tpid0);
+
+      if( (tpid0 == tpids[0] && tpid_count0 !=0 ) ) {
+          *is_exact_match = 1;        
+      }
+  }
+
+exit:
+  BCMDNX_FUNC_RETURN;       
+}
+
+
+/* 
+ * Given a pair of similar TPIDs, look for the TPID at any of the Profile TPIDs.
+ */
+int
+bcm_petra_port_tpid_profile_similar_match_search(int unit, int tpid_profile_idx, uint16 tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT], int nof_tpids, int inner_only, int* is_match)
+{
+    int outer_tpid_count, inner_tpid_count;
+    uint16 outer_tpid, inner_tpid;
+  
+    BCMDNX_INIT_FUNC_DEFS;
+
+    *is_match = 0;
+
+    /* The check is applicable only if the suuplied outer and inner TPIDs are similar */
+    if ((nof_tpids == 2) && (tpids[0] == tpids[1])) {
+
+        /* Get the TPID data for the given TPID profile */
+        _BCM_PETRA_PORT_TPID_COUNT_GET(unit, 0, tpid_profile_idx, outer_tpid_count);
+        _BCM_PETRA_PORT_TPID_COUNT_GET(unit, 1, tpid_profile_idx, inner_tpid_count);
+        _BCM_PETRA_PORT_TPID_GET(unit, 0, tpid_profile_idx, outer_tpid);
+        _BCM_PETRA_PORT_TPID_GET(unit, 1, tpid_profile_idx, inner_tpid);
+
+        if (((tpids[0] == outer_tpid) && outer_tpid_count) || 
+            ((tpids[0] == inner_tpid) && inner_tpid_count)) {
+          *is_match = 1;          
+        }
+    }
+
+exit:
+  BCMDNX_FUNC_RETURN;       
+}
+
+
+/*
+ * assign tpid profile, for the given tpid values
+ */
+int
+bcm_petra_port_tpid_profile_alloc(
+       int unit, uint16 tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT], int nof_tpids, int inner_only, int *tpid_profile
+    )
+{
+   int d_match_indx=0, part_match_indx=0, first_empty_indx=0, indx;
+   int d_match_valid=0, part_match_valid=0, first_empty_valid=0;
+   int tpid_indx[_BCM_PETRA_NOF_TPIDS_PER_PORT] = {0};
+   uint16 alloc_tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT] = {0};
+   int soc_sand_dev_id = unit, soc_sand_rv = 0;
+   int rv = BCM_E_NONE;
+   SOC_PPD_LLP_PARSE_TPID_PROFILE_INFO 
+       tpid_profile_info;
+   int tpid_count;
+   int tpid_count0;
+   int tpid_count1;
+   uint16 tpid;
+
+   BCMDNX_INIT_FUNC_DEFS;
+   soc_sand_dev_id = (unit);   
+   LOG_VERBOSE(BSL_LS_BCM_PORT,
+               (BSL_META_U(unit,
+                           "allocate tpid profile for tpid[0]=0x%08x tpid[1]=0x%08x nof_tpids=%d inner_only=%d\n"),
+                tpids[0], tpids[1], nof_tpids, inner_only));
+
+   for(indx = 0; indx < _BCM_PORT_NOF_TPID_PROFILES; ++indx) {
+
+       rv = bcm_petra_port_tpid_profile_exact_match_search(unit,indx,tpids,nof_tpids,inner_only,&d_match_valid);
+       BCMDNX_IF_ERR_EXIT(rv);
+
+       if (d_match_valid) {
+          /* full double match or one match */
+          d_match_indx = indx;
+          break;
+       }
+       
+       /* if already found partial match, skip below checks*/
+       if(part_match_valid) {
+           continue;
+       }
+
+       /* partial match and second part is empty use it*/
+       _BCM_PETRA_PORT_TPID_COUNT_GET(unit, 1, indx, tpid_count1);
+       _BCM_PETRA_PORT_TPID_COUNT_GET(unit, 0, indx, tpid_count0);
+
+       if(nof_tpids == 2 && tpid_count1 == 0)
+       {
+          _BCM_PETRA_PORT_TPID_GET(unit, 0, indx, tpid);          
+          _BCM_PETRA_PORT_TPID_COUNT_GET(unit, 0, indx, tpid_count);
+           if( (tpid == tpids[0] && tpid_count != 0 ) ) {
+               part_match_indx = indx;
+               part_match_valid = 1;
+           }
+       }
+       
+
+       /* if already found empty, skip below check*/
+       if(first_empty_valid) {
+           continue;
+       }
+
+       if( tpid_count0 == 0 && tpid_count1 == 0) {
+           first_empty_indx = indx;
+           first_empty_valid = 1;
+       }
+   }
+
+   /* use best match from the above*/
+
+   if(d_match_valid) {
+       *tpid_profile = d_match_indx;
+       LOG_VERBOSE(BSL_LS_BCM_PORT,
+                   (BSL_META_U(unit,
+                               "exact match TPID-profile =%d\n"),
+                    *tpid_profile));
+       BCM_EXIT;
+   }
+   else if(part_match_valid) {
+       *tpid_profile = part_match_indx;
+       /* alloc missing TPID */
+       alloc_tpids[0] = tpids[1];
+       rv = bcm_petra_port_tpid_val_alloc(unit, alloc_tpids, 1,tpid_indx);
+       BCMDNX_IF_ERR_EXIT(rv);       
+       _BCM_PETRA_PORT_TPID_SET(unit, 1, *tpid_profile, tpids[1]);
+       LOG_VERBOSE(BSL_LS_BCM_PORT,
+                   (BSL_META_U(unit,
+                               "reuse profile =%d\n, set tpid=0x%08x as tpid2"),
+                    *tpid_profile,tpids[1]));
+
+       /* set TPID profile */
+       soc_sand_rv = soc_ppd_llp_parse_tpid_profile_info_get(soc_sand_dev_id,*tpid_profile,&tpid_profile_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+       tpid_profile_info.tpid2.index = tpid_indx[0];
+       soc_sand_rv = soc_ppd_llp_parse_tpid_profile_info_set(soc_sand_dev_id,*tpid_profile,&tpid_profile_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+   }
+   else if(first_empty_valid){
+
+       *tpid_profile = first_empty_indx;
+       LOG_VERBOSE(BSL_LS_BCM_PORT,
+                   (BSL_META_U(unit,
+                               "use empty profile =%d\n"),
+                    *tpid_profile));
+
+       /* found empty place allocate it */
+       SOC_PPD_LLP_PARSE_TPID_PROFILE_INFO_clear(&tpid_profile_info);
+       tpid_profile_info.tpid1.type = SOC_SAND_PP_VLAN_TAG_TYPE_ANY;
+       tpid_profile_info.tpid2.type = SOC_SAND_PP_VLAN_TAG_TYPE_ANY;
+       /* alloc missing TPID/s */
+       alloc_tpids[0] = (inner_only)?tpids[1]:tpids[0];
+       alloc_tpids[1] = tpids[1];
+       rv = bcm_petra_port_tpid_val_alloc(unit, alloc_tpids, nof_tpids, tpid_indx);
+       BCMDNX_IF_ERR_EXIT(rv);
+       _BCM_PETRA_PORT_TPID_SET(unit, inner_only, *tpid_profile, tpids[0]);
+
+       if (!inner_only) {
+           tpid_profile_info.tpid1.index = tpid_indx[0];
+       }
+       else
+       {
+           tpid_profile_info.tpid2.index = tpid_indx[0];
+       }
+       
+       if(nof_tpids == 2) {
+           /* mark as allocated above is in use*/
+           tpid_profile_info.tpid2.index = tpid_indx[1];
+           _BCM_PETRA_PORT_TPID_SET(unit, 1, *tpid_profile, tpids[1]);
+
+       }
+
+       LOG_VERBOSE(BSL_LS_BCM_PORT,
+                   (BSL_META_U(unit,
+                               "set tpid-profile =%d, with TPID1 = %d, TPID2= %d "),
+                    *tpid_profile,tpid_profile_info.tpid1.index, tpid_profile_info.tpid2.index));
+
+       /* set TPID profile */
+       soc_sand_rv = soc_ppd_llp_parse_tpid_profile_info_set(soc_sand_dev_id,*tpid_profile,&tpid_profile_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+   }
+   else
+   {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_FULL, (_BSL_BCM_MSG("Can't allocate tpid profile")));
+   }
+   
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+int
+bcm_petra_port_tpid_new_tpids_calc(int unit, int entity, 
+                                   uint16 old_tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT], int nof_old_tpids, _bcm_petra_tpid_profile_t old_profile_type,
+                                   _bcm_petra_tpid_op_t oper, uint16 new_tpid,
+                                   uint16 new_tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT], int *nof_new_tpids, _bcm_petra_tpid_profile_t *new_profile_type,
+                                   uint8 cep_port,
+                                   uint8 evb_port /* Port that support both S and C-tags */
+
+                                   
+    )
+{
+    int two_outers;
+    BCMDNX_INIT_FUNC_DEFS;
+    /* assume no changes */
+    new_tpids[0] = old_tpids[0];
+    new_tpids[1] = old_tpids[1];
+    *new_profile_type = old_profile_type;
+    *nof_new_tpids = nof_old_tpids;
+
+
+    LOG_VERBOSE(BSL_LS_BCM_PORT,
+                (BSL_META_U(unit,
+                            "Port %d old values: \n nof_tpids:%d old_tpids[0]:0x%08x old_tpids[1]:0x%08x profile:%d\n"),
+                 entity, nof_old_tpids, old_tpids[0], old_tpids[1],old_profile_type));
+
+    LOG_VERBOSE(BSL_LS_BCM_PORT,
+                (BSL_META_U(unit,
+                            "Operation: %d tpid:0x%08x\n"),
+                 oper, new_tpid));
+
+    /* set inner */
+    if(oper == _bcm_petra_tpid_op_inner_set) {
+        if(nof_old_tpids == 0) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_CONFIG, (_BSL_BCM_MSG("%s: set inner TPID for entity %d before setting outer-TPID , unit %d"),FUNCTION_NAME(), entity, unit));
+        }
+        if(_BCM_DPP_TPID_PARSE_ADVANCED_MODE(unit)) {
+            /* outer/inner*/
+            *new_profile_type = _bcm_petra_tpid_profile_outer_inner;
+            *nof_new_tpids = 2;
+            new_tpids[0] = old_tpids[0];
+            new_tpids[1] = new_tpid;
+        }
+        else if(old_profile_type == _bcm_petra_tpid_profile_outer_outer) {
+            if(old_tpids[0] == new_tpid) {
+                *new_profile_type = _bcm_petra_tpid_profile_inner_outer2;
+                new_tpids[0] = old_tpids[0];
+                new_tpids[1] = old_tpids[1];
+                *nof_new_tpids = 2;
+                BCM_EXIT;
+            }
+            else if(old_tpids[1] == new_tpid) {
+                if (evb_port) {
+                    *new_profile_type = _bcm_petra_tpid_profile_outer_inner_c_tag;
+                } else {
+                    *new_profile_type = _bcm_petra_tpid_profile_outer_inner2;
+                }
+                new_tpids[0] = old_tpids[0];
+                new_tpids[1] = old_tpids[1];
+                *nof_new_tpids = 2;
+                BCM_EXIT;
+            }
+            else
+            {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("%s: set 2nd outer TPID for entity %d that already includes outer/inner, unit %d"),FUNCTION_NAME(), entity, unit));
+            }
+        }
+        else /* one outer / one inner */
+        {
+            if(old_tpids[0] == new_tpid) {
+                *new_profile_type = _bcm_petra_tpid_profile_outer_inner_same;
+            }
+            else if (SOC_DPP_CONFIG(unit)->trill.mode == SOC_PPD_TRILL_MODE_FGL &&
+                     new_tpid == _BCM_PETRA_TRILL_NATIVE_TPID){
+                *new_profile_type = _bcm_petra_tpid_profile_outer_trill_fgl;
+            } else {
+                *new_profile_type = _bcm_petra_tpid_profile_outer_inner;
+            }
+            /* outer/inner*/
+            *nof_new_tpids = 2;
+            new_tpids[0] = old_tpids[0];
+            new_tpids[1] = new_tpid;
+        }
+    }
+    else if(oper == _bcm_petra_tpid_op_outer_set) {
+        new_tpids[0] = new_tpid;
+        if(nof_old_tpids == 0) {
+            *nof_new_tpids = 1;
+            *new_profile_type = (cep_port && !_BCM_DPP_TPID_PARSE_ADVANCED_MODE(unit))?_bcm_petra_tpid_profile_outer_c_tag:_bcm_petra_tpid_profile_outer;
+        }
+        else
+        {
+            *nof_new_tpids = nof_old_tpids;
+            *new_profile_type = old_profile_type;
+            if(old_tpids[1] == new_tpid && !_BCM_DPP_TPID_PARSE_ADVANCED_MODE(unit)) {
+                *new_profile_type = _bcm_petra_tpid_profile_outer_inner_same;
+            }
+
+        }
+    }
+    else if(oper == _bcm_petra_tpid_op_outer_add) {
+        if(nof_old_tpids == 0) {
+             new_tpids[0] = new_tpid;
+             *new_profile_type = (cep_port)?_bcm_petra_tpid_profile_outer_c_tag:_bcm_petra_tpid_profile_outer;
+        }
+        else if(nof_old_tpids == 1) {
+            new_tpids[0] = old_tpids[0];
+            new_tpids[1] = new_tpid;
+            if (SOC_DPP_CONFIG(unit)->trill.mode == SOC_PPD_TRILL_MODE_FGL &&
+                     new_tpid == _BCM_PETRA_TRILL_NATIVE_TPID) {
+                *new_profile_type = _bcm_petra_tpid_profile_outer_trill_fgl;
+            } else {
+            *new_profile_type = _bcm_petra_tpid_profile_outer_outer;
+            }
+        }
+        else{   /* if(nof_old_tpids >= _BCM_PETRA_NOF_TPIDS_PER_PORT)*/
+            /* if new_tpid equal to inner, it's possible */
+            if (old_profile_type == _bcm_petra_tpid_profile_outer_inner && new_tpid == old_tpids[1]) {
+                if (evb_port) {
+                    *new_profile_type = _bcm_petra_tpid_profile_outer_inner_c_tag;
+                } else {
+                    *new_profile_type = _bcm_petra_tpid_profile_outer_inner2;
+                }
+                BCM_EXIT;
+            }
+            if (old_profile_type == _bcm_petra_tpid_profile_inner_outer && new_tpid == old_tpids[0]) {
+                *new_profile_type = _bcm_petra_tpid_profile_inner_outer2;
+                BCM_EXIT;
+            }
+            if (old_profile_type == _bcm_petra_tpid_profile_outer_trill_fgl && (new_tpid == old_tpids[0] || new_tpid == old_tpids[1])) {
+                *new_profile_type = _bcm_petra_tpid_profile_outer_trill_fgl;
+                BCM_EXIT;
+            }
+            BCMDNX_ERR_EXIT_MSG(BCM_E_FULL, (_BSL_BCM_MSG("%s: cannot add more than two TPID values on same entity %d, unit %d"),FUNCTION_NAME(), entity, unit));
+        }
+        *nof_new_tpids = nof_old_tpids + 1;
+    }
+
+    else if(oper == _bcm_petra_tpid_op_outer_add_order) {
+        if(nof_old_tpids == 0) {
+             new_tpids[0] = new_tpid;
+             *new_profile_type = _bcm_petra_tpid_profile_outer;
+        }
+        else if(nof_old_tpids == 1) {
+            new_tpids[0] = old_tpids[0];
+            new_tpids[1] = new_tpid;
+            if (SOC_DPP_CONFIG(unit)->trill.mode == SOC_PPD_TRILL_MODE_FGL &&
+                     new_tpid == _BCM_PETRA_TRILL_NATIVE_TPID) {
+                *new_profile_type = _bcm_petra_tpid_profile_outer_trill_fgl;
+            } else {
+            *new_profile_type = _bcm_petra_tpid_profile_outer_inner;
+            }
+        }
+        else{ 
+            BCMDNX_ERR_EXIT_MSG(BCM_E_FULL, (_BSL_BCM_MSG("%s: cannot add more than two TPID values on same port %d, unit %d"),FUNCTION_NAME(), entity, unit));
+        }
+        *nof_new_tpids = nof_old_tpids + 1;
+    }
+    
+    else if(oper == _bcm_petra_tpid_op_outer_delete) {
+        /* no tpids on the port */
+        if(nof_old_tpids == 0) {
+            *nof_new_tpids = 0;
+            *new_profile_type = _bcm_petra_tpid_profile_none;
+            BCM_EXIT;
+        }
+    
+        two_outers = (old_profile_type == _bcm_petra_tpid_profile_outer_outer);
+    
+        /* remove first */
+        if(old_tpids[0] == new_tpid) {
+            if(!two_outers) { /* if the remain is inner only, then also remove it*/
+                *nof_new_tpids = 0;
+                *new_profile_type = _bcm_petra_tpid_profile_none;
+            }
+            else
+            {
+                new_tpids[0] = old_tpids[1];
+                *nof_new_tpids = nof_old_tpids - 1;
+            }
+        }
+        /* the second is outer, if equal remove it */
+        else if(two_outers && old_tpids[1] == new_tpid) {
+            new_tpids[0] = old_tpids[0];
+            *nof_new_tpids = nof_old_tpids - 1;
+        }
+        else /* nothing was removed */
+        {
+            new_tpids[0] = old_tpids[0];
+            new_tpids[1] = old_tpids[1];
+            *nof_new_tpids = nof_old_tpids;
+        }
+    }
+    else if(oper == _bcm_petra_tpid_op_outer_delete_all) {
+        *nof_new_tpids = 0; /* also if there inner, it's not valid to remain with inner only*/
+        *new_profile_type = _bcm_petra_tpid_profile_none;
+    } 
+
+exit:
+    LOG_VERBOSE(BSL_LS_BCM_PORT,
+                (BSL_META_U(unit,
+                            "Port %d new values: \n nof_tpids:%d new_tpids[0]:0x%08x new_tpids[1]:0x%08x profile:%d\n"),
+                 entity, *nof_new_tpids, new_tpids[0], new_tpids[1],*new_profile_type));
+
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      _bcm_dpp_port_update_tpid_counters
+ * Purpose:
+ *      Update the usage counter for TPIDs that are stored per TPID-Profile
+ *      (Outer,Inner - 0,1).
+ *      The update retrieves the current counter value for each TPID in the
+ *      TPID-Profile and modifies it with the supplied change value.
+ * Parameters:
+ *      unit    - (IN) Device Number
+ *      tpid_profile - (IN) TPID-Profile number
+ *      nof_tpids  - (IN) Number of relevant TPIDs in the TPID-Profile
+ *      tpid_counter_modify_type - (IN) The type of the required TPID counter
+ *          modification. This type is also the value by which the counters will
+ *          be modified.
+ *              
+ * Returns:
+ *      BCM_E_XXX
+ */
+int _bcm_dpp_port_update_tpid_counters(
+        int unit,
+        int tpid_profile,
+        int nof_tpids,
+        _bcm_dpp_tpid_counter_modify_type_t tpid_counter_modify_type)
+{
+    int tpid_count;
+    BCMDNX_INIT_FUNC_DEFS
+
+    if (nof_tpids >= 1) {
+        _BCM_PETRA_PORT_TPID_COUNT_GET(unit, 0, tpid_profile, tpid_count);
+        tpid_count += tpid_counter_modify_type;
+        _BCM_PETRA_PORT_TPID_COUNT_SET(unit, 0, tpid_profile, tpid_count);
+    }
+
+    if (nof_tpids >= 2) {
+        _BCM_PETRA_PORT_TPID_COUNT_GET(unit, 1, tpid_profile, tpid_count);
+        tpid_count += tpid_counter_modify_type;
+        _BCM_PETRA_PORT_TPID_COUNT_SET(unit, 1, tpid_profile, tpid_count);     
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      _bcm_dpp_tpid_profile_modify
+ * Purpose: 
+ *      Perform a TPID-Profile modification for a Port/LIF.
+ *      The function accepts the TPID-Profile and NOF relevant TPIDs for the
+ *      current Port/LIF TPID-Profile and the requested TPIDs.
+ *      It returns the newly selected TPID-Profile (May not change).
+ *      The participating TPID-Profiles are updated accordingly in the HW and
+ *      in the SW DBs, as well as the Global TPIDs.
+ *      NOTE: The TPID-Profile of the Port/LIF isn't updated in this function.
+ * Parameters:
+ *      unit    - (IN) Device Number
+ *      new_tpids - (IN) Pointer to the selected TPIDs for the Port/LIF
+ *      nof_new_tpids - (IN) Number of selected TPIDs for the Port/LIF
+ *      cur_tpid_profile - (IN) Current TPID-Profile for the Port/LIF
+ *      nof_cur_tpids - (IN) NOF relevant TPIDs in the current TPID-Profile 
+ *      new_tpid_profile - (OUT) The returned new TPID-Profile 
+ *
+ * Returns:
+ *      BCM_E_XXX - The expected errors are only from the TPID-Profile
+ *      allocation process that is performed by bcm_petra_port_tpid_profile_alloc().
+ */
+int _bcm_dpp_tpid_profile_modify(
+        int unit,
+        uint16 *new_tpids,
+        int nof_new_tpids,
+        uint32 cur_tpid_profile,
+        int nof_cur_tpids,
+        int *new_tpid_profile)
+{
+    int rv, alloc_rv;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* Initiate the TPID Profile so we can distinguish a failed profile allocation */
+    *new_tpid_profile = _BCM_DPP_PORT_DFLT_TPID_PROFILE;
+
+    /* Decrement the SW DB reference counters for the TPIDs of the current TPID-Profile.
+       This is currently required prior to calling bcm_petra_port_tpid_profile_alloc as the
+       later assumes the current TPID profile was already removed. */
+    rv = _bcm_dpp_port_update_tpid_counters(unit, cur_tpid_profile, nof_cur_tpids, bcmDppTpidCounterModifyTypeDecrement);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* If there are TPIDs to associate, look for an appropriate TPID-Profile in the HW */
+    if(nof_new_tpids > 0) {
+        /* Use a complicated logic to find a TPID-Profile that matches the supplied TPIDs or
+           allocate a new TPID-Profile. Update the HW with new TPID-Profiles and device TPIDs */
+        alloc_rv = bcm_petra_port_tpid_profile_alloc(unit, new_tpids, nof_new_tpids, FALSE, (int *)new_tpid_profile);
+
+        
+        /* On failure, perform TPID SW counters rollback */
+        if (alloc_rv != BCM_E_NONE)
+        {
+            rv = _bcm_dpp_port_update_tpid_counters(unit, cur_tpid_profile, nof_cur_tpids, bcmDppTpidCounterModifyTypeIncrement);
+            *new_tpid_profile = _BCM_DPP_TPID_PROFILE_INVALID;
+            BCMDNX_ERR_EXIT_MSG(alloc_rv, (_BSL_BCM_MSG("TPID-Profile allocation failed")));
+        }
+
+        /* Increment the SW DB reference counters for the TPIDs of the selected TPID-Profile. */
+        rv = _bcm_dpp_port_update_tpid_counters(unit, *new_tpid_profile, nof_new_tpids, bcmDppTpidCounterModifyTypeIncrement);
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+
+STATIC int
+_bcm_petra_port_tpid_profile_update(
+       int unit, bcm_port_t port, uint16 tpid, _bcm_petra_tpid_op_t oper
+    )
+{
+   int port_i;
+   SOC_PPD_PORT_INFO port_info;
+   SOC_PPD_LLP_PARSE_TPID_PROFILE_INFO tpid_profile_info;
+   uint16 old_tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT] = {0};
+   uint16 new_tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT] = {0}; 
+   int nof_new_tpids,nof_old_tpids;
+   int soc_sand_rv = 0;
+   int rv = BCM_E_NONE;
+   int tpid_profile, accept_mode;
+   _bcm_petra_tpid_profile_t old_profile_type, new_profile_type, profile_type;
+   _bcm_petra_dtag_mode_t dtag_mode;   
+   _bcm_petra_ac_key_map_type_t ac_key_map_type;
+   int last_appear,first_appear;
+   int old_tpid_profile, new_tpid_profile;
+   SOC_PPD_PORT soc_ppd_port_i;
+   uint8 evb_port,tmp;
+   int core;
+   _bcm_dpp_gport_info_t gport_info;
+   BCMDNX_INIT_FUNC_DEFS;
+
+   /* Retrive local PP ports */
+   rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+     BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+     /*
+      * check wether this port used TPIDs already
+      */
+      soc_sand_rv = soc_ppd_port_info_get(unit,core,soc_ppd_port_i,&port_info);
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        /* clean all old usages*/
+      soc_sand_rv = soc_ppd_llp_parse_tpid_profile_info_get(unit,port_info.tpid_profile,&tpid_profile_info);
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+
+      if (!_BCM_DPP_TPID_PARSE_ADVANCED_MODE(unit)) {
+          rv =  _bcm_dpp_am_template_tpid_profile_data_get(unit, soc_ppd_port_i, core, &profile_type, &accept_mode, &dtag_mode, &ac_key_map_type);
+          BCMDNX_IF_ERR_EXIT(rv);
+      }
+      else{
+         /* get number of tpids */
+          tmp = 0;
+          rv = SOC_DPP_WB_ENGINE_GET_ARR(unit, 
+                                          SOC_DPP_WB_ENGINE_VAR_PORT_NUM_TPIDS,
+                                          &tmp,
+                                          soc_ppd_port_i);
+          BCMDNX_IF_ERR_EXIT(rv);
+
+          profile_type = tmp;
+
+      }
+      old_profile_type = profile_type;
+
+      /* according to profile, what is the number of used TPIDs and what is the usage of each*/
+      if(old_profile_type == _bcm_petra_tpid_profile_none) {
+          nof_old_tpids = 0;
+      }
+      else if(old_profile_type == _bcm_petra_tpid_profile_outer) {
+          nof_old_tpids = 1;
+      }
+      else{
+        nof_old_tpids = 2;
+      }
+
+      _BCM_PETRA_PORT_TPID_GET(unit, 0, port_info.tpid_profile, old_tpids [0]);
+      _BCM_PETRA_PORT_TPID_GET(unit, 1, port_info.tpid_profile, old_tpids [1]);
+
+      rv = _bcm_dpp_port_is_evb_port(unit, port_i, &evb_port);
+      BCMDNX_IF_ERR_EXIT(rv);
+
+      rv = bcm_petra_port_tpid_new_tpids_calc(unit, port_i, old_tpids, nof_old_tpids, old_profile_type, oper, tpid, new_tpids, &nof_new_tpids,&new_profile_type,port_info.port_type == SOC_SAND_PP_PORT_L2_TYPE_CEP,evb_port);
+      BCMDNX_IF_ERR_EXIT(rv);
+
+      /* in advance mode, TPID setting doesn't affect port-LLVP profile */
+      if(!_BCM_DPP_TPID_PARSE_ADVANCED_MODE(unit)) {
+          /* Allocate new TPID profile */
+          /* Remove old, and add new */
+          rv = _bcm_dpp_am_template_tpid_profile_exchange(unit,soc_ppd_port_i,core,new_profile_type,accept_mode,dtag_mode,ac_key_map_type,&old_tpid_profile,&last_appear,&new_tpid_profile,&first_appear);
+          BCMDNX_IF_ERR_EXIT(rv);
+
+          port_info.port_profile = new_tpid_profile;
+          LOG_VERBOSE(BSL_LS_BCM_PORT,
+                      (BSL_META_U(unit,
+                                  "new Port profile %d\n"),
+                       new_tpid_profile));
+      }
+
+      /* Match the selected TPIDs with a TPID Profile and update the HW and SW DB accordingly.
+         Retrieve the allocated TPID-Profile. */
+      rv =_bcm_dpp_tpid_profile_modify(unit, new_tpids, nof_new_tpids, port_info.tpid_profile, nof_old_tpids, &tpid_profile);
+
+      
+      /* On failure, perform LLVP Port-Profile rollback in standard VLAN-Edit mode */
+      if ((rv != BCM_E_NONE) && (tpid_profile == _BCM_DPP_TPID_PROFILE_INVALID)) {
+          /* IN Standard VLAN-Edit mode, TPID setting affects the port-LLVP profile as well */
+          if(!_BCM_DPP_TPID_PARSE_ADVANCED_MODE(unit)) {
+  
+              /* remove new, add old */
+              BCMDNX_IF_ERR_EXIT(_bcm_dpp_am_template_tpid_profile_exchange(unit,soc_ppd_port_i,core,profile_type,accept_mode,dtag_mode,ac_key_map_type,
+                                                                            &old_tpid_profile,&last_appear,&new_tpid_profile,&first_appear));          
+          }
+          BCMDNX_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("TPID-Profile modify failed")));
+     }
+      /* If the TPID Profile matching was successful, Update the LLVP Port-Profile in Standard VLAN-Edit mode and
+         update the Port HW with new TPID Profile. */
+      if(nof_new_tpids > 0) {
+
+          /* In advanced VLAN-Edit mode, TPID setting doesn't affect port-LLVP profile */
+          if(!_BCM_DPP_TPID_PARSE_ADVANCED_MODE(unit)) {
+              port_info.port_profile = new_tpid_profile;
+          }
+
+          /* update the port TPID-Profile */
+          if (port_info.tpid_profile != tpid_profile) {
+              port_info.tpid_profile = tpid_profile;
+          }         
+    
+          /* update the port tpid profile*/
+          port_info.tpid_profile = tpid_profile;
+
+          /* Increment the SW DB reference counters for the TPIDs of the selected TPID-Profile. */
+          rv = _bcm_dpp_port_update_tpid_counters(unit, port_info.tpid_profile, nof_new_tpids, bcmDppTpidCounterModifyTypeIncrement);
+          BCMDNX_IF_ERR_EXIT(rv);
+      }
+
+      /* Refer to default tpid-profile when delete all tpid from port */
+      if (!nof_new_tpids && (new_profile_type == _bcm_petra_tpid_profile_none)) {
+          port_info.tpid_profile = _BCM_DPP_PORT_DFLT_TPID_PROFILE;
+      }
+
+      soc_sand_rv = soc_ppd_port_info_set(unit,core,soc_ppd_port_i,&port_info);
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+     /*
+      * get accept mode for this port
+      
+      rv = bcm_petra_port_discard_get(unit,port,&accept_mode);
+      BCM_IF_ERROR_RETURN(rv);*/
+
+
+      if (!_BCM_DPP_TPID_PARSE_ADVANCED_MODE(unit)) {
+          rv = bcm_petra_tpid_profile_info_set(unit, port_info.port_profile, new_profile_type, accept_mode, dtag_mode, ac_key_map_type, port_info.port_type == SOC_SAND_PP_PORT_L2_TYPE_CEP,evb_port);
+          BCMDNX_IF_ERR_EXIT(rv);
+      }
+      else {
+          /* store how many TPID are set on port */
+          tmp = (uint8)new_profile_type;
+          rv = SOC_DPP_WB_ENGINE_SET_ARR(unit, 
+                                          SOC_DPP_WB_ENGINE_VAR_PORT_NUM_TPIDS,
+                                          &tmp,
+                                          soc_ppd_port_i);
+          BCMDNX_IF_ERR_EXIT(rv);
+      }
+
+      break;
+
+   }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+
+
+/* 
+ * Update TPID profile for PWE/I-SID LIF
+ */
+STATIC int
+_bcm_petra_tpid_profile_update(
+       int unit, int lif_id, uint16 tpid, _bcm_petra_tpid_op_t oper
+    )
+{   
+    bcm_error_t rv = BCM_E_NONE;
+    int soc_sand_dev_id = unit, soc_sand_rv = 0;
+    SOC_PPD_LIF_ENTRY_INFO *lif_entry_info = 0;
+    int tpid_profile = 0, new_tpid_profile;
+    _bcm_petra_tpid_profile_t old_profile_type, lif_tpid_type, new_profile_type;
+    uint16 old_tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT] = {0};
+    uint16 new_tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT] = {0}; 
+    int nof_new_tpids,nof_old_tpids;
+    int is_pwe = 0;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* Retreive old tpid profile tpids and nof_tpids */
+    BCMDNX_ALLOC(lif_entry_info, sizeof(SOC_PPD_LIF_ENTRY_INFO), "_bcm_petra_tpid_profile_update.lif_entry_info");
+    if (lif_entry_info == NULL) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_MEMORY, (_BSL_BCM_MSG("Memory allocation failure")));
+    }
+
+    /* Retreive lif profile */
+    soc_sand_rv = soc_ppd_lif_table_entry_get(soc_sand_dev_id, lif_id, lif_entry_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    if ((lif_entry_info->type != SOC_PPD_LIF_ENTRY_TYPE_PWE) && (lif_entry_info->type != SOC_PPD_LIF_ENTRY_TYPE_ISID)) {
+        /* LIF is not PWE nor I-SID */
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unexpected lif id. Must be of type PWE or I-SID")));
+    }
+
+    /* Retreive tpid type */
+    rv = _bcm_dpp_in_lif_match_tpid_type_get(unit, &lif_tpid_type, lif_id);
+    BCMDNX_IF_ERR_EXIT(rv);
+    is_pwe = (lif_entry_info->type == SOC_PPD_LIF_ENTRY_TYPE_PWE) ? 1 : 0;
+
+
+    if (lif_tpid_type != _bcm_petra_tpid_profile_none) { /* PWE/I-SID use an assigned tpid profile */
+        if (is_pwe) {
+            tpid_profile = lif_entry_info->value.pwe.tpid_profile_index;
+        }
+        else { /* I-SID */
+            tpid_profile = lif_entry_info->value.isid.tpid_profile_index;  
+        }
+        
+        nof_old_tpids = (lif_tpid_type == _bcm_petra_tpid_profile_outer) ? 1 : 2;
+        _BCM_PETRA_PORT_TPID_GET(unit, 0, tpid_profile, old_tpids[0]);
+        _BCM_PETRA_PORT_TPID_GET(unit, 1, tpid_profile, old_tpids[1]);
+    } else { 
+        tpid_profile = 0; /* Doesn't matter */
+        nof_old_tpids = 0;
+    }
+
+    old_profile_type = lif_tpid_type;   
+    
+    /* Calculate the required TPIDs of the TPID-Profile based on the TPIDs in the TPID-Profile and the requested operation */
+    rv = bcm_petra_port_tpid_new_tpids_calc(unit, lif_id, old_tpids, nof_old_tpids, old_profile_type, oper, tpid, new_tpids, &nof_new_tpids, &new_profile_type,FALSE,FALSE);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* Match the selected TPIDs with a TPID Profile and update the HW and SW DB accordingly.
+       Retrieve the allocated TPID-Profile. */
+    rv =_bcm_dpp_tpid_profile_modify(unit, new_tpids, nof_new_tpids, tpid_profile, nof_old_tpids, &new_tpid_profile);
+    BCMDNX_IF_ERR_EXIT(rv);  
+
+    /* Set PWE/I-SID assocation */
+    rv = _bcm_dpp_in_lif_match_tpid_type_set(unit, new_profile_type, lif_id);
+    BCMDNX_IF_ERR_EXIT(rv);  
+
+    /* Update lif profile */
+    if (is_pwe) {
+        lif_entry_info->value.pwe.tpid_profile_index = new_tpid_profile;
+    }
+    else {
+        lif_entry_info->value.isid.tpid_profile_index = new_tpid_profile;
+    }
+
+    soc_sand_rv = soc_ppd_lif_table_entry_update(soc_sand_dev_id, lif_id, lif_entry_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+exit:
+    BCM_FREE(lif_entry_info);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+* given port, and new TPID and operation to perform on port, 
+* adding/removing/setting outer/inner TPID 
+* allocate TPID value, TPID-profile, port-profile, and set Port with these profiles 
+*/
+int
+bcm_petra_port_tpid_profile_update(
+       int unit, bcm_port_t port, uint16 tpid, _bcm_petra_tpid_op_t oper
+    )
+{
+   int rv = BCM_E_NONE;
+   int gport_type, gport_val;
+
+   BCMDNX_INIT_FUNC_DEFS;   
+
+   /* 
+     *  if port is gport (PWE/I-SID) then
+     *  map gport --> lif
+     *  update lif with tpid-profile
+     */
+   /* 
+   *  API can handle:
+   *  1. Incoming port (physical PP port)
+   *  2. PWE (P2P or MP) - user must set port to be a logical gport
+   *  3. I-SID
+   */
+   rv = _bcm_dpp_gport_parse(unit,port,&gport_type, &gport_val, NULL);
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   if (gport_type == _BCM_DPP_GPORT_TYPE_SIMPLE) { /* Phy port */
+       /* port update */
+       rv = _bcm_petra_port_tpid_profile_update(unit, port, tpid, oper);
+       BCMDNX_IF_ERR_EXIT(rv);
+   } else { /* PWE or I-SID*/
+       int lif_id, fec_id;
+       int is_local;
+
+       rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, NULL, &lif_id, NULL, &fec_id, &is_local);
+       BCMDNX_IF_ERR_EXIT(rv);
+
+       if (!is_local) {
+           /* API is releavant only for local configuration */
+           BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Unexpected lif index. should be local only")));
+       }
+       
+       /* pwe/I-SID update */
+       rv = _bcm_petra_tpid_profile_update(unit, lif_id, tpid, oper);
+       BCMDNX_IF_ERR_EXIT(rv);                
+      } 
+      
+exit:
+      BCMDNX_FUNC_RETURN;
+}
+
+/*
+* given a lif, search a tpid profile for the given tpid 
+* and update the lif tpid profile index 
+* if no tpid profile is found, return error 
+*/
+int
+_bcm_petra_mim_tpid_profile_update(
+       int unit, int lif, uint16 tpid
+    )
+{
+    return _bcm_petra_tpid_profile_update(unit, lif, tpid, _bcm_petra_tpid_op_outer_set);
+}
+/*
+ * Function:
+ *      bcm_petra_port_tpid_vals_get
+ * Description:
+ *      Get the the tpids and tpids type associated with the given port
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      tpid - Tag Protocol ID
+ * Return Value:_
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_tpid_vals_get(int unit, bcm_port_t port, uint16 tpid[_BCM_PETRA_NOF_TPIDS_PER_PORT], _bcm_petra_tpid_profile_t *tpid_type )
+{
+   int port_i, core;
+   SOC_PPD_PORT_INFO port_info;
+   int rv = BCM_E_NONE;
+   _bcm_petra_tpid_profile_t profile_type;
+   _bcm_petra_dtag_mode_t dtag_mode;
+   int accept_mode;
+   uint8 tmp;
+   _bcm_petra_ac_key_map_type_t ac_key_map_type;
+   SOC_PPD_PORT soc_ppd_port_i;
+   int soc_sand_rv;
+   _bcm_dpp_gport_info_t gport_info;
+   BCMDNX_INIT_FUNC_DEFS;
+
+   SOC_PPD_PORT_INFO_clear(&port_info);
+
+   /* Retrive local PP ports */
+   rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+   BCMDNX_IF_ERR_EXIT(rv);
+
+   BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+      BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+      if (!_BCM_DPP_TPID_PARSE_ADVANCED_MODE(unit)) {
+          rv = _bcm_dpp_am_template_tpid_profile_data_get(unit, soc_ppd_port_i, core, &profile_type, &accept_mode, &dtag_mode, &ac_key_map_type);
+          BCMDNX_IF_ERR_EXIT(rv);
+      }
+      else{
+          /* get number of tpids */
+          tmp = 0;
+          rv = SOC_DPP_WB_ENGINE_GET_ARR(unit, 
+                                          SOC_DPP_WB_ENGINE_VAR_PORT_NUM_TPIDS,
+                                          &tmp,
+                                          soc_ppd_port_i);
+          BCMDNX_IF_ERR_EXIT(rv);
+          profile_type = tmp;
+      }
+
+      soc_sand_rv = soc_ppd_port_info_get(unit,core,soc_ppd_port_i,&port_info);
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+      *tpid_type = profile_type;
+
+      _BCM_PETRA_PORT_TPID_GET(unit, 0, port_info.tpid_profile, tpid [0]);
+      _BCM_PETRA_PORT_TPID_GET(unit, 1, port_info.tpid_profile, tpid [1]);
+
+      break;
+   }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      _bcm_fb_port_tpid_get
+ * Description:
+ *      Get the default Tag Protocol ID for a port.
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      tpid - Tag Protocol ID
+ * Return Value:
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_tpid_get(int unit, bcm_port_t port, uint16 *tpid)
+{
+    uint16 tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT] = {0};
+    _bcm_petra_tpid_profile_t tpid_type;
+    int rv = BCM_E_NONE;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    rv = bcm_petra_port_tpid_vals_get(unit,port,tpids,&tpid_type);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if(tpid_type == _bcm_petra_tpid_profile_none) {
+        *tpid = 0;
+    }
+    else
+    {
+        *tpid = tpids[0];
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_petra_port_tpid_set
+ * Description:
+ *      Set the default Tag Protocol ID for a port.
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      tpid - Tag Protocol ID
+ * Return Value:
+ *      BCM_E_XXX
+ */
+
+int
+bcm_petra_port_tpid_set(int unit, bcm_port_t port, uint16 tpid)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+    
+    BCMDNX_IF_ERR_EXIT(bcm_petra_port_tpid_profile_update(unit,port,tpid,_bcm_petra_tpid_op_outer_set));  
+      
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_tpid_add
+ * Description:
+ *      Add allowed TPID for a port.
+ * Parameters:
+ *      unit         - (IN) Device number
+ *      port         - (IN) Port number
+ *      tpid         - (IN) Tag Protocol ID
+ *      color_select - (IN) Color mode for TPID
+ * Return Value:
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_tpid_add(int unit, bcm_port_t port, 
+            uint16 tpid, int color_select)
+{
+  BCMDNX_INIT_FUNC_DEFS;
+
+  BCM_DPP_UNIT_CHECK(unit);
+  _BCM_DPP_SWITCH_API_START(unit);
+
+  LOG_VERBOSE(BSL_LS_BCM_PORT,
+              (BSL_META_U(unit,
+                          "\n\nCall bcm_petra_port_tpid_add: Port %d tpid:0x%08x\n"),
+               port, tpid));
+
+
+  /* check if color_select is valid */  
+  if (color_select != 0)
+  {
+      BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid color_select %d"), color_select));
+  }  
+  if (_BCM_DPP_TPID_PARSE_ADVANCED_MODE(unit)) {
+      BCMDNX_IF_ERR_EXIT(bcm_petra_port_tpid_profile_update(unit,port,tpid,_bcm_petra_tpid_op_outer_add_order));
+  }
+  else {
+      BCMDNX_IF_ERR_EXIT(bcm_petra_port_tpid_profile_update(unit,port,tpid,_bcm_petra_tpid_op_outer_add));
+  }
+
+exit:
+  _BCM_DPP_SWITCH_API_END(unit);
+  BCMDNX_FUNC_RETURN;
+}
+
+
+int
+_bcm_petra_port_is_tpid_attached_to_port(int unit, bcm_port_t port, uint16 tpid,int *is_exist)
+{
+  int rv;
+  uint16 attached_tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT] = {0};
+  _bcm_petra_tpid_profile_t tpid_type;
+
+  BCMDNX_INIT_FUNC_DEFS;
+  rv = bcm_petra_port_tpid_vals_get(unit, port, attached_tpids, &tpid_type);
+  BCMDNX_IF_ERR_EXIT(rv);
+
+    switch (tpid_type) {
+        case _bcm_petra_tpid_profile_outer:
+            *is_exist = (tpid == attached_tpids[0]);
+            break;
+
+        case _bcm_petra_tpid_profile_outer_inner:
+            *is_exist = (tpid == attached_tpids[0]);
+            break;
+
+        case _bcm_petra_tpid_profile_outer_inner2:
+        case _bcm_petra_tpid_profile_inner_outer2:
+        case _bcm_petra_tpid_profile_outer_inner_c_tag:
+        case _bcm_petra_tpid_profile_outer_trill_fgl:
+            *is_exist = (tpid == attached_tpids[0] || tpid == attached_tpids[1]);
+            break;
+  
+        case _bcm_petra_tpid_profile_outer_outer:
+            *is_exist = (tpid == attached_tpids[0] || tpid == attached_tpids[1]);
+            break;
+
+        case _bcm_petra_tpid_profile_none:
+            *is_exist = 0;
+            break;
+
+        default:
+            *is_exist = 0;
+            BCMDNX_ERR_EXIT_MSG(BCM_E_CONFIG, (_BSL_BCM_MSG("invalid tpid_type %d"),tpid_type));
+            break;
+  }
+
+exit:
+  BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_petra_port_tpid_delete
+ * Description:
+ *      Delete allowed TPID for a port.
+ * Parameters:
+ *      unit - (IN) Device number
+ *      port - (IN) Port number
+ *      tpid - (IN) Tag Protocol ID
+ * Return Value:
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_tpid_delete(int unit, bcm_port_t port, uint16 tpid)
+{
+  int rv;
+  int is_exist = 0;  
+
+  BCMDNX_INIT_FUNC_DEFS;
+  BCM_DPP_UNIT_CHECK(unit);
+  _BCM_DPP_SWITCH_API_START(unit);
+
+  /* check if the tpid is attached to the port */ 
+  _BCM_DPP_TPID_PARSE_ADVANCED_MODE_API_UNAVAIL(unit);
+
+  rv = _bcm_petra_port_is_tpid_attached_to_port(unit, port, tpid, &is_exist);
+  BCMDNX_IF_ERR_EXIT(rv);
+  if (!is_exist)
+  {
+      BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("tpid isn't attached to the port")));
+  } 
+    
+  BCMDNX_IF_ERR_EXIT(bcm_petra_port_tpid_profile_update(unit,port,tpid,_bcm_petra_tpid_op_outer_delete));
+
+exit:
+  _BCM_DPP_SWITCH_API_END(unit);
+  BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_tpid_delete_all
+ * Description:
+ *      Delete all allowed TPID for a port.
+ * Parameters:
+ *      unit - (IN) Device number
+ *      port - (IN) Port number
+ * Return Value:
+ *      BCM_E_XXX
+ */
+int 
+bcm_petra_port_tpid_delete_all(int unit, bcm_port_t port)
+{
+    uint32
+        rv;
+    bcm_port_tpid_class_t
+        port_tpid_class;
+    int gport_type, gport_val;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    LOG_DEBUG(BSL_LS_BCM_PORT,
+              (BSL_META_U(unit,
+                          "\n\nCall bcm_petra_port_tpid_delete_all: Port:%d\n"),
+               port));
+
+    rv = bcm_petra_port_tpid_profile_update(unit,port,0,_bcm_petra_tpid_op_outer_delete_all);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* in advance mode, reset port to default LLVP profile, nothing is tagged */
+    if (_BCM_DPP_TPID_PARSE_ADVANCED_MODE(unit)) {
+        /* Parse the gport */
+        rv = _bcm_dpp_gport_parse(unit, port, &gport_type, &gport_val, NULL);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        if (gport_type == _BCM_DPP_GPORT_TYPE_SIMPLE) { /* defined only for Phy port */
+            bcm_port_tpid_class_t_init(&port_tpid_class);
+            port_tpid_class.port = port;
+            port_tpid_class.tpid1 = BCM_PORT_TPID_CLASS_TPID_ANY;
+            port_tpid_class.tpid2 = BCM_PORT_TPID_CLASS_TPID_ANY;
+            rv = bcm_port_tpid_class_set(unit, &port_tpid_class);
+            BCMDNX_IF_ERR_EXIT(rv);
+        }
+    }
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_petra_port_inner_tpid_set
+ * Purpose:
+ *      Set the expected TPID for the inner tag in double-tagging mode.
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      tpid - Tag Protocol ID
+ * Returns:
+ *      BCM_E_NONE - Success.
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_inner_tpid_set(int unit, bcm_port_t port, uint16 tpid)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+   BCMDNX_IF_ERR_EXIT(bcm_petra_port_tpid_profile_update(unit,port,tpid,_bcm_petra_tpid_op_inner_set));
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_inner_tpid_get
+ * Purpose:
+ *      Get the expected TPID for the inner tag in double-tagging mode.
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      tpid - (OUT) Tag Protocol ID
+ * Returns:
+ *      BCM_E_NONE - Success.
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_inner_tpid_get(int unit, bcm_port_t port, uint16 *tpid)
+{
+    uint16 tpids[_BCM_PETRA_NOF_TPIDS_PER_PORT] = {0};
+    _bcm_petra_tpid_profile_t tpid_type;
+    int rv = BCM_E_NONE;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    rv = bcm_petra_port_tpid_vals_get(unit,port,tpids,&tpid_type);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* the inner tpid of VLAN format S_C_tag came from TPID2 */
+    if(tpid_type == _bcm_petra_tpid_profile_outer_inner || 
+       tpid_type == _bcm_petra_tpid_profile_outer_inner2 || 
+       tpid_type == _bcm_petra_tpid_profile_outer_inner_same ||
+       tpid_type == _bcm_petra_tpid_profile_outer_inner_c_tag || 
+       tpid_type == _bcm_petra_tpid_profile_outer_trill_fgl) {
+        *tpid = tpids[1];
+    }
+    else if(tpid_type == _bcm_petra_tpid_profile_inner_outer2) {
+        *tpid = tpids[0];
+    }
+    else
+    {
+        *tpid = 0;
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_tpid_class_set
+ * Purpose:
+ *      Set VLAN tag classification for a port. Given identified TPIDs on
+ *      packet set tag-classifier
+ * Parameters:
+ *      unit - Device number
+ *      tpid_class - Pointer to a TPID class structure that includes the port
+ *          and the data to set.
+ * Returns:
+ *      BCM_E_NONE - Success.
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_tpid_class_set(int unit, bcm_port_tpid_class_t *tpid_class)
+{
+    uint16 port_tpids[_BCM_DPP_MAX_NOF_USABLE_TPIDS_PER_PORT]; 
+    uint16 port_tpid_indexes[2][_BCM_PETRA_PORT_NOF_TPID_VALS]; /* 0 for TPID1 , 1 for TPID2*/
+    uint32 port_tpid_nof_indexes[2];
+    uint32 priority_types[2], nof_prirority_types=0;
+    uint32 indx1,indx2,indx3;
+    uint32 tag_stcture_indx;
+    uint32 tag_buff;
+    SOC_PPD_LLP_PARSE_INFO
+        prs_nfo;
+    SOC_PPD_LLP_PARSE_PACKET_FORMAT_INFO
+        pkt_frmt_info;
+    _bcm_dpp_port_tpid_class_info_t 
+        tpid_class_buffer;
+    _bcm_dpp_port_tpid_class_acceptable_frame_type_info_t 
+        tpid_class_acceptable_frame_info;
+    int old_template,is_last, new_template,is_first;
+    SOC_PPD_PORT_INFO port_info;
+    int local_port;
+    SOC_PPD_PORT soc_ppd_port_i;
+    int rv = BCM_E_NONE;
+    uint32 nof_tpids;
+    int soc_sand_rv, core;
+    SOC_PPD_EG_FILTER_PORT_INFO eg_filter_port_info;
+    uint8 eg_filter_port_accept;
+    uint8 is_ingress;
+    uint8 is_egress;
+    _bcm_dpp_gport_info_t gport_info;
+    uint32 buffer_lcl[1];
+    BCMDNX_INIT_FUNC_DEFS;
+    
+    _BCM_DPP_TPID_PARSE_ADVANCED_MODE_CHECK(unit);
+
+    LOG_DEBUG(BSL_LS_BCM_PORT,
+             (BSL_META_U(unit,
+                         "\n\nCall bcm_petra_port_tpid_class_set: Port %d tpid1:0x%08x  tpid2:0x%08x tag_format:%d\n"),
+              tpid_class->port, tpid_class->tpid1, tpid_class->tpid2, tpid_class->tag_format_class_id));
+
+    _bcm_dpp_port_tpid_class_acceptable_frame_type_info_t_clear(unit , &tpid_class_acceptable_frame_info);
+
+    /* Verify that untagged packets are classified only to tag format 0 */
+    if ((tpid_class->tpid1 == BCM_PORT_TPID_CLASS_TPID_INVALID) && (tpid_class->tpid2 == BCM_PORT_TPID_CLASS_TPID_INVALID) &&
+        (tpid_class->tag_format_class_id != 0)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_CONFIG, (_BSL_BCM_MSG("Untagged packets can be classified only to tag format 0")));
+    }
+
+    /* map gport to ppd-port */
+    rv = _bcm_dpp_gport_to_phy_port(unit, tpid_class->port, 0, &gport_info);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* get first port */
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, gport_info.local_port, &soc_ppd_port_i, &core)));
+
+    /* 2. get port associated TPIDs */
+    rv = _bcm_petra_port_assigned_tpids_get(unit, gport_info.local_port, port_tpids, &nof_tpids);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* get port info */
+    soc_sand_rv = soc_ppd_port_info_get(unit,core,soc_ppd_port_i,&port_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    /* 2. calc TPID indexes for given two TPIDs (to be found on packet) */
+    rv = _bcm_petra_port_tpid_indexes_get(
+       unit, soc_ppd_port_i, tpid_class->tpid1, port_tpids, nof_tpids,
+       /* out */ port_tpid_indexes[0], &port_tpid_nof_indexes[0]
+    );
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    rv = _bcm_petra_port_tpid_indexes_get(
+       unit, soc_ppd_port_i, tpid_class->tpid2, port_tpids, nof_tpids,
+       /* out */ port_tpid_indexes[1], &port_tpid_nof_indexes[1]
+    );
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* get priority indexes */
+    if (tpid_class->flags & BCM_PORT_TPID_CLASS_OUTER_IS_PRIO) {
+        priority_types[0] = 1; 
+        nof_prirority_types = 1;
+    }
+    else if (tpid_class->flags & BCM_PORT_TPID_CLASS_OUTER_NOT_PRIO) {
+        priority_types[0] = 0; 
+        nof_prirority_types = 1;
+    }
+    else {
+        priority_types[0] = 0;
+        priority_types[1] = 1;
+        nof_prirority_types = 2;
+    }
+
+    /* 3. calculate new buffer data for this tag class */
+    rv = _bcm_petra_port_tpid_class_info_compress_get(
+            unit,
+            tpid_class,
+            &tag_buff
+         );
+    BCMDNX_IF_ERR_EXIT(rv);
+    
+    is_ingress = (tpid_class->flags & BCM_PORT_TPID_CLASS_EGRESS_ONLY) ? FALSE : TRUE;
+    is_egress = (tpid_class->flags & BCM_PORT_TPID_CLASS_INGRESS_ONLY)? FALSE : TRUE;
+    
+    SOC_PPD_LLP_PARSE_INFO_clear(&prs_nfo);
+
+    if (is_ingress) {
+        /* read old buffer this port used */
+        rv = _bcm_dpp_am_template_port_tpid_class_data_get(unit, gport_info.local_port,&tpid_class_buffer);
+        BCMDNX_IF_ERR_EXIT(rv);
+        
+        /* run over all relevant tag strucutres */
+        for(indx1 = 0; indx1 < port_tpid_nof_indexes[0]; ++indx1) {
+            for(indx2 = 0; indx2 < port_tpid_nof_indexes[1]; ++indx2) {
+                for(indx3 = 0; indx3 < nof_prirority_types; ++indx3) {
+                    prs_nfo.outer_tpid = port_tpid_indexes[0][indx1];
+                    prs_nfo.inner_tpid = port_tpid_indexes[1][indx2];
+                    prs_nfo.is_outer_prio = priority_types[indx3];
+                    /* map parser result to index in buffer */
+                    rv = _bcm_petra_port_tpid_tag_structure_to_index(unit,&prs_nfo,&tag_stcture_indx);
+                    BCMDNX_IF_ERR_EXIT(rv);
+        
+                    /* update data in buffer */
+                    rv = _bcm_petra_port_tpid_class_info_buffer_update(unit,tag_stcture_indx,tag_buff,&tpid_class_buffer);
+                    BCMDNX_IF_ERR_EXIT(rv);
+                }
+            }
+        }
+        
+        /* now buffer ready with all information allocate port profile match this buffer */
+        rv = _bcm_dpp_am_template_port_tpid_class_exchange(unit,0,gport_info.local_port,&tpid_class_buffer,&old_template,&is_last,&new_template,&is_first);
+        BCMDNX_IF_ERR_EXIT(rv);
+        
+        LOG_INFO(BSL_LS_BCM_PORT,
+                 (BSL_META_U(unit,
+                             "new port.llvp-profile is %d\n"),
+                  new_template));
+        
+        /* if new profile write to hardware */
+        if (is_first) {
+        
+            /* this is new prt-LLVP profile need to configure it
+               1. first part is copy from old profile, then overwrite with new changes
+             */
+            if (new_template != old_template) {
+                for(prs_nfo.outer_tpid = SOC_PPD_LLP_PARSE_TPID_INDEX_NONE; prs_nfo.outer_tpid < SOC_PPD_NOF_LLP_PARSE_TPID_INDEXS; ++prs_nfo.outer_tpid) {
+                    for(prs_nfo.inner_tpid = SOC_PPD_LLP_PARSE_TPID_INDEX_NONE; prs_nfo.inner_tpid < SOC_PPD_NOF_LLP_PARSE_TPID_INDEXS; ++prs_nfo.inner_tpid) {
+                        for (prs_nfo.is_outer_prio = FALSE; prs_nfo.is_outer_prio <= TRUE; ++prs_nfo.is_outer_prio) {
+                            soc_sand_rv = soc_ppd_llp_parse_packet_format_info_get(unit, old_template, &prs_nfo,&pkt_frmt_info);
+                            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                            
+                            /* ppd call*/
+                            soc_sand_rv = soc_ppd_llp_parse_packet_format_info_set(unit, new_template, &prs_nfo,&pkt_frmt_info);
+                            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                        }
+                    }
+                }
+            }
+        
+            /* map bcm info to PPD LLP_PARSE info */
+            rv = _bcm_petra_port_tpid_class_info_to_ppd(
+                    unit,
+                    tpid_class,
+                    &pkt_frmt_info
+            );
+            BCMDNX_IF_ERR_EXIT(rv);
+        
+           /* now change port-profile x tag structure in HW */
+            /* run over all relevant tag strucutres */
+            for(indx1 = 0; indx1 < port_tpid_nof_indexes[0]; ++indx1) {
+                for(indx2 = 0; indx2 < port_tpid_nof_indexes[1]; ++indx2) {
+                    for(indx3 = 0; indx3 < nof_prirority_types; ++indx3) {
+                        prs_nfo.outer_tpid = port_tpid_indexes[0][indx1];
+                        prs_nfo.inner_tpid = port_tpid_indexes[1][indx2];
+                        prs_nfo.is_outer_prio = priority_types[indx3];
+                        /* ppd call*/
+                        soc_sand_rv = soc_ppd_llp_parse_packet_format_info_set(unit, new_template, &prs_nfo,&pkt_frmt_info);
+                        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                    }
+                }
+            }
+        }
+        
+        /* make port use this profile */
+       port_info.port_profile = new_template;
+       soc_sand_rv = soc_ppd_port_info_set(unit,core,soc_ppd_port_i,&port_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    }
+
+    /* update egress acceptable frame port profile */
+    if (is_egress) {    
+        /* read old buffer this port used */
+        rv = _bcm_dpp_am_template_port_tpid_class_egress_acceptable_frame_type_data_get(unit,gport_info.local_port,&tpid_class_acceptable_frame_info);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        /* run over all relevant tag strucutres */
+        for(indx1 = 0; indx1 < port_tpid_nof_indexes[0]; ++indx1) {
+            for(indx2 = 0; indx2 < port_tpid_nof_indexes[1]; ++indx2) {
+                for(indx3 = 0; indx3 < nof_prirority_types; ++indx3) {
+                    prs_nfo.outer_tpid = port_tpid_indexes[0][indx1];
+                    prs_nfo.inner_tpid = port_tpid_indexes[1][indx2];
+                    prs_nfo.is_outer_prio = priority_types[indx3];
+                    /* map parser result to index in buffer */
+                    rv = _bcm_petra_port_tpid_tag_structure_to_index(unit,&prs_nfo,&tag_stcture_indx);
+                    BCMDNX_IF_ERR_EXIT(rv);
+
+                    *buffer_lcl = tpid_class_acceptable_frame_info.buffer;
+                    if (tpid_class->flags & BCM_PORT_TPID_CLASS_DISCARD) {
+                        SHR_BITSET(buffer_lcl, tag_stcture_indx);
+                    } else {
+                        SHR_BITCLR(buffer_lcl, tag_stcture_indx);
+                    }
+                    tpid_class_acceptable_frame_info.buffer = *buffer_lcl;
+                }
+            }
+        }
+
+        /* decide on egress acceptable frame port profile */
+        rv = _bcm_dpp_am_template_port_tpid_class_egress_acceptable_frame_type_exchange(unit, 
+                                                                                 0,
+                                                                                 gport_info.local_port, 
+                                                                                 &tpid_class_acceptable_frame_info, 
+                                                                                 &old_template,
+                                                                                 &is_last,
+                                                                                 &new_template,
+                                                                                 &is_first);
+        BCMDNX_IF_ERR_EXIT(rv);
+        /* map parser result to index in buffer */
+        /* if new profile write to hardware */
+        if (is_first) {
+            /* 1. first part is copy from old profile, then overwrite with new changes */
+            /* update for all frame types */
+            if (new_template != old_template) {
+                for(prs_nfo.outer_tpid = SOC_PPD_LLP_PARSE_TPID_INDEX_NONE; prs_nfo.outer_tpid < SOC_PPD_NOF_LLP_PARSE_TPID_INDEXS; ++prs_nfo.outer_tpid) {
+                    for(prs_nfo.inner_tpid = SOC_PPD_LLP_PARSE_TPID_INDEX_NONE; prs_nfo.inner_tpid < SOC_PPD_NOF_LLP_PARSE_TPID_INDEXS; ++prs_nfo.inner_tpid) {
+                        for (prs_nfo.is_outer_prio = FALSE; prs_nfo.is_outer_prio <= TRUE; ++prs_nfo.is_outer_prio) {
+                            /* get "egress acceptable frame filter" from old profile */
+                            soc_sand_rv = soc_ppd_eg_filter_port_acceptable_frames_get(unit, old_template, &prs_nfo, &eg_filter_port_accept);
+                            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                            /* update with "egress acceptable frame filter" for new profile */
+                            soc_sand_rv =  soc_ppd_eg_filter_port_acceptable_frames_set(unit, new_template, port_info.port_profile, &prs_nfo, eg_filter_port_accept);
+                            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                        }
+                    }
+                }
+            }
+
+            /* now change port-profile x tag structure in HW */
+            /* run over all relevant tag structures */
+            for(indx1 = 0; indx1 < port_tpid_nof_indexes[0]; ++indx1) {
+                for(indx2 = 0; indx2 < port_tpid_nof_indexes[1]; ++indx2) {
+                    for(indx3 = 0; indx3 < nof_prirority_types; ++indx3) {
+                        prs_nfo.outer_tpid = port_tpid_indexes[0][indx1];
+                        prs_nfo.inner_tpid = port_tpid_indexes[1][indx2];
+                        prs_nfo.is_outer_prio = priority_types[indx3];
+
+                        /* get "egress acceptable frame filter" from buffer */
+                        rv = _bcm_petra_port_tpid_tag_structure_to_index(unit,&prs_nfo,&tag_stcture_indx);
+                        BCMDNX_IF_ERR_EXIT(rv);
+                        /* for the tag structure, if the bit is 1 it means we need to drop.  */
+                        *buffer_lcl = tpid_class_acceptable_frame_info.buffer;
+                        eg_filter_port_accept = !(SHR_BITGET(buffer_lcl, tag_stcture_indx));
+
+                        /* ppd call*/
+                        soc_sand_rv = soc_ppd_eg_filter_port_acceptable_frames_set(unit, (uint32)new_template, port_info.port_profile, &prs_nfo, eg_filter_port_accept);
+                        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                    }
+                }
+            }
+        }
+
+
+        /* make port use this profile */
+        BCM_PBMP_ITER(gport_info.pbmp_local_ports, local_port) {
+            BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, local_port, &soc_ppd_port_i, &core)));
+
+            soc_sand_rv = soc_ppd_eg_filter_port_info_get(unit, core, soc_ppd_port_i, &eg_filter_port_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+            eg_filter_port_info.acceptable_frames_profile  = new_template;
+            soc_sand_rv  = soc_ppd_eg_filter_port_info_set(unit,core,soc_ppd_port_i, &eg_filter_port_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        }
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_petra_port_tpid_class_get
+ * Purpose:
+ *      Get VLAN tag classification from a port
+ * Parameters:
+ *      unit - Device number
+ *      tpid_class - Pointer to a TPID class structure that includes the port
+ *          and the retrieved data.
+ * Returns:
+ *      BCM_E_NONE - Success.
+ *      BCM_E_XXX
+ */
+int
+bcm_petra_port_tpid_class_get(int unit, bcm_port_tpid_class_t *tpid_class)
+{
+    uint16 port_tpids[_BCM_DPP_MAX_NOF_USABLE_TPIDS_PER_PORT]; 
+    uint16 port_tpid_indexes[2][_BCM_PETRA_PORT_NOF_TPID_VALS]; /* 0 for TPID1 , 1 for TPID2*/
+    uint32 port_tpid_nof_indexes[2];
+    uint32 priority_types[2], nof_prirority_types=0;
+    uint32 indx1,indx2,indx3;
+    SOC_PPD_LLP_PARSE_INFO
+        prs_nfo;
+    SOC_PPD_LLP_PARSE_PACKET_FORMAT_INFO
+        pkt_frmt_info,prev_pkt_frmt_info;
+    SOC_PPD_PORT_INFO port_info;
+    uint8
+        has_prev = 0;
+    int local_port;
+    SOC_PPD_PORT soc_ppd_port_i;
+    int rv = BCM_E_NONE;
+    uint32 nof_tpids; 
+    int soc_sand_rv, core;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    _BCM_DPP_TPID_PARSE_ADVANCED_MODE_CHECK(unit);
+
+    /* 1. verify parameters */
+    if (tpid_class->flags & (BCM_PORT_TPID_CLASS_INGRESS_ONLY|BCM_PORT_TPID_CLASS_EGRESS_ONLY)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Flags not supported")));
+    }
+
+    /* map gport to ppd-port */
+    rv = _bcm_dpp_gport_to_phy_port(unit, tpid_class->port, 0, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+
+
+    /* get first port */
+    DPP_PBMP_SINGLE_PORT_GET(gport_info.pbmp_local_ports, local_port);
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, local_port, &soc_ppd_port_i, &core)));
+
+    /* 2. get port associated TPIDs */
+    rv = _bcm_petra_port_assigned_tpids_get(unit, local_port, port_tpids, &nof_tpids);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+
+    /* 2. calc TPID indexes for given two TPIDs (to be found on packet) */
+    rv = _bcm_petra_port_tpid_indexes_get(
+       unit, soc_ppd_port_i, tpid_class->tpid1, port_tpids, nof_tpids,
+       /* out */ port_tpid_indexes[0], &port_tpid_nof_indexes[0]
+    );
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    rv = _bcm_petra_port_tpid_indexes_get(
+       unit, soc_ppd_port_i, tpid_class->tpid2, port_tpids, nof_tpids,
+       /* out */ port_tpid_indexes[1], &port_tpid_nof_indexes[1]
+    );
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* get priority indexes */
+    if (tpid_class->flags & BCM_PORT_TPID_CLASS_OUTER_IS_PRIO) {
+        priority_types[0] = 1; 
+        nof_prirority_types = 1;
+    }
+    else if (tpid_class->flags & BCM_PORT_TPID_CLASS_OUTER_NOT_PRIO) {
+        priority_types[0] = 0; 
+        nof_prirority_types = 1;
+    }
+    else {
+        priority_types[0] = 0;
+        priority_types[1] = 1;
+        nof_prirority_types = 2;
+    }
+
+    soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port_i, &port_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    SOC_PPD_LLP_PARSE_INFO_clear(&prs_nfo);
+    SOC_PPD_LLP_PARSE_PACKET_FORMAT_INFO_clear(&pkt_frmt_info);
+
+    /* run over all relevant tag strucutres */
+    for(indx1 = 0; indx1 < port_tpid_nof_indexes[0]; ++indx1) {
+        for(indx2 = 0; indx2 < port_tpid_nof_indexes[1]; ++indx2) {
+            for(indx3 = 0; indx3 < nof_prirority_types; ++indx3) {
+                prs_nfo.outer_tpid = port_tpid_indexes[0][indx1];
+                prs_nfo.inner_tpid = port_tpid_indexes[1][indx2];
+                prs_nfo.is_outer_prio = priority_types[indx3];
+                /* ppd call*/
+                soc_sand_rv = soc_ppd_llp_parse_packet_format_info_get(unit, port_info.port_profile, &prs_nfo,&pkt_frmt_info);
+                BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+                if (has_prev) {
+                    /* if caller require status of non-unique entry then return error if not all match */
+                    if(!sal_memcmp(&prev_pkt_frmt_info, &pkt_frmt_info, sizeof(SOC_PPD_LLP_PARSE_PACKET_FORMAT_INFO))){
+                        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Ambiguity: Get params <port,TPID1,TPID2, prio> refer to several entries not all match info"))); 
+                    }
+                }
+                has_prev = 1;
+                sal_memcpy(&prev_pkt_frmt_info, &pkt_frmt_info, sizeof(SOC_PPD_LLP_PARSE_PACKET_FORMAT_INFO));
+            }
+        }
+    }
+
+    /* now map PPD to BCM */
+    rv = _bcm_petra_port_tpid_class_info_from_ppd(unit,tpid_class,&pkt_frmt_info);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_petra_port_dtag_mode_set
+ * Description:
+ *      Set the double-tagging mode of a port.
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      mode - Double-tagging mode, one of:
+ *              BCM_PORT_DTAG_MODE_INTERNAL        Service Provider port
+ *              BCM_PORT_DTAG_MODE_EXTERNAL        Customer port
+ * Return Value:
+ *      BCM_E_XXX
+ */
+
+int
+bcm_petra_port_dtag_mode_set(int unit, bcm_port_t port, int mode)
+{
+    int port_i;
+    int soc_sand_rv = 0;
+    int rv = BCM_E_NONE, core;
+    SOC_PPD_PORT_INFO port_info;
+    SOC_PPD_PORT soc_ppd_port_i;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    /* Verify mode */
+    if (mode != BCM_PORT_DTAG_MODE_INTERNAL && mode != BCM_PORT_DTAG_MODE_EXTERNAL) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Device support customer or service port")));
+    }
+
+    /* Retrive local PP ports */
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+        soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port_i, &port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        port_info.port_type = (mode == BCM_PORT_DTAG_MODE_EXTERNAL) ? SOC_SAND_PP_PORT_L2_TYPE_CEP:
+            SOC_SAND_PP_PORT_L2_TYPE_VBP;
+
+        /* for CEP port learn only TM destination, without Logical interface */
+        port_info.is_learn_ac = (port_info.port_type != SOC_SAND_PP_PORT_L2_TYPE_CEP);
+
+        soc_sand_rv = soc_ppd_port_info_set(unit, core, soc_ppd_port_i, &port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    }
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+   BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_dtag_mode_get
+ * Description:
+ *      Return the current double-tagging mode of a port.
+ * Parameters:
+ *      unit - Device number
+ *      port - Port number
+ *      mode - (OUT) Double-tagging mode
+ * Return Value:
+ *      BCM_E_XXX
+ */
+
+int
+bcm_petra_port_dtag_mode_get(int unit, bcm_port_t port, int *mode)
+{
+    int soc_sand_rv = 0;
+    int rv = BCM_E_NONE, core;
+    SOC_PPD_PORT_INFO port_info;
+    SOC_PPD_PORT soc_ppd_port_i;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+
+    /* Verify mode */
+    if (mode == NULL) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("mode pointer is NULL")));
+    }
+
+    /* Retrive local PP ports */
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+    
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, gport_info.local_port, &soc_ppd_port_i, &core)));
+
+    soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port_i, &port_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    *mode = (port_info.port_type == SOC_SAND_PP_PORT_L2_TYPE_CEP) ? BCM_PORT_DTAG_MODE_EXTERNAL: BCM_PORT_DTAG_MODE_INTERNAL;
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_vlan_member_get
+ * Description:
+ *      Return filter mode for a port.
+ * Parameters:
+ *      unit - StrataSwitch PCI device unit number (driver internal).
+ *      port - Port number to operate on
+ *      flags - (OUT) Filter mode, one of BCM_PORT_VLAN_MEMBER_xxx. 
+ * Returns:
+ *      BCM_E_NONE              Success.
+ *      BCM_E_INTERNAL          Chip access failure.
+ */
+int 
+bcm_petra_port_vlan_member_get(
+    int unit, 
+    bcm_port_t port, 
+    uint32 *flags)
+{
+   int port_i, core;
+   int soc_sand_rv = 0;
+   int rv = BCM_E_NONE;
+   SOC_PPD_EG_FILTER_PORT_INFO
+       eg_filter_port_info;
+   SOC_PPD_PORT soc_ppd_port_i;
+   SOC_PPD_LLP_TRAP_PORT_INFO llp_trap_port_info;
+   _bcm_dpp_gport_info_t gport_info;
+   BCMDNX_INIT_FUNC_DEFS;
+
+   if (flags == NULL) {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_INIT, (_BSL_BCM_MSG("Null param: flags")));
+   }
+
+   *flags = 0;
+
+   /* ingress filtering always enabled */
+   if (SOC_IS_PETRAB(unit)){
+       *flags |= BCM_PORT_VLAN_MEMBER_INGRESS;
+   }
+
+   /* Retrive local PP ports */
+   rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+   BCMDNX_IF_ERR_EXIT(rv);
+
+
+   BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+       BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+       soc_sand_rv  = soc_ppd_eg_filter_port_info_get(unit, core, soc_ppd_port_i, &eg_filter_port_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+       /* egress filtering is enabled */
+       if (eg_filter_port_info.filter_mask & SOC_PPD_EG_FILTER_PORT_ENABLE_VSI_MEMBERSHIP) {
+           *flags |= BCM_PORT_VLAN_MEMBER_EGRESS;
+       }
+
+       /* for  ARAD ingress membership check is configurable */
+       if (SOC_IS_ARAD(unit)) {       
+           soc_sand_rv = soc_ppd_llp_trap_port_info_get(unit, core, soc_ppd_port_i, &llp_trap_port_info);
+           BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+           if (llp_trap_port_info.trap_enable_mask & SOC_PPD_LLP_TRAP_PORT_ENABLE_ING_VLAN_MEMBERSHIP){
+               *flags |= BCM_PORT_VLAN_MEMBER_INGRESS;
+           }
+       }
+
+       break;
+   }
+
+exit:
+   BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_petra_port_vlan_member_set
+ * Description:
+ *      Set ingress and egress filter mode for a port.
+ * Parameters:
+ *      unit - unit number 
+ *      port - Port number to operate on
+ *      flags - BCM_PORT_VLAN_MEMBER_xxx.
+ * Returns:
+ *      BCM_E_NONE              Success.
+ *      BCM_E_INTERNAL          Chip access failure.
+ */
+
+int 
+bcm_petra_port_vlan_member_set(
+    int unit, 
+    bcm_port_t port, 
+    uint32 flags)
+{
+   int port_i, core;
+   int soc_sand_rv = 0;
+   int rv = BCM_E_NONE;
+   SOC_PPD_EG_FILTER_PORT_INFO eg_filter_port_info;
+   SOC_PPD_PORT soc_ppd_port_i;
+   SOC_PPD_LLP_TRAP_PORT_INFO llp_trap_port_info;
+   _bcm_dpp_gport_info_t gport_info;
+   BCMDNX_INIT_FUNC_DEFS;
+   BCM_DPP_UNIT_CHECK(unit);
+   _BCM_DPP_SWITCH_API_START(unit);
+
+   /* verify paramters Petra-B does not support vlan member ingress */
+   if (SOC_IS_PETRAB(unit) && (flags & BCM_PORT_VLAN_MEMBER_INGRESS)) {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("BCM_PORT_VLAN_MEMBER_INGRESS flag not supported on this device")));
+   }
+
+   SOC_PPD_EG_FILTER_PORT_INFO_clear(&eg_filter_port_info);
+   SOC_PPD_LLP_TRAP_PORT_INFO_clear(&llp_trap_port_info);
+
+   /* Retrive local PP ports */
+   rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+   BCMDNX_IF_ERR_EXIT(rv);
+
+
+   BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+       BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+       /* Ingress only avaiable for ARAD */
+       if (SOC_IS_ARAD(unit)) {       
+           soc_sand_rv = soc_ppd_llp_trap_port_info_get(unit, core, soc_ppd_port_i, &llp_trap_port_info);
+           BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+           if (flags & BCM_PORT_VLAN_MEMBER_INGRESS) {
+              llp_trap_port_info.trap_enable_mask |= SOC_PPD_LLP_TRAP_PORT_ENABLE_ING_VLAN_MEMBERSHIP;
+           } else {
+              llp_trap_port_info.trap_enable_mask &= ~SOC_PPD_LLP_TRAP_PORT_ENABLE_ING_VLAN_MEMBERSHIP;
+           }
+           soc_sand_rv = soc_ppd_llp_trap_port_info_set(unit, core, soc_ppd_port_i, &llp_trap_port_info);
+           BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+       }
+       
+       /* Egress */
+       soc_sand_rv  = soc_ppd_eg_filter_port_info_get(unit, core, soc_ppd_port_i, &eg_filter_port_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+       /* egress filtering is enabled */
+       if (flags & BCM_PORT_VLAN_MEMBER_EGRESS) {
+           eg_filter_port_info.filter_mask |= SOC_PPD_EG_FILTER_PORT_ENABLE_VSI_MEMBERSHIP;
+       }
+       else
+       {
+           eg_filter_port_info.filter_mask &= ~SOC_PPD_EG_FILTER_PORT_ENABLE_VSI_MEMBERSHIP;
+       }
+       soc_sand_rv  = soc_ppd_eg_filter_port_info_set(unit, core, soc_ppd_port_i, &eg_filter_port_info);
+       BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+   }
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+   BCMDNX_FUNC_RETURN;
+}
+
+typedef enum _outer_tpid_type_e {
+   _outer_tpid_type_none=0,
+   _outer_tpid_type_port_outer,
+   _outer_tpid_type_port_inner,
+   _outer_tpid_type_ISID,
+   _outer_tpid_type_count      
+} _outer_tpid_type_t;
+
+/*
+ * Function:
+ *      bcm_petra_port_vlan_priority_map_set
+ * Description:
+ *      Define the mapping of incomming port, packet priority, and cfi bit to
+ *      switch internal priority and color.
+ * Parameters:
+ *      unit         - (IN) Device number
+ *      port         - (IN) Port number
+ *      pkt_pri      - (IN) Packet priority
+ *      cfi          - (IN) Packet CFI
+ *      internal_pri - (IN) Internal priority
+ *      color        - (IN) color
+ * Return Value:
+ *      BCM_E_XXX
+ * Note:
+ *      This API programs only the mapping table. 
+ */
+int
+bcm_petra_port_vlan_priority_map_set(int unit, 
+                     bcm_port_t port, 
+                     int pkt_pri,
+                     int cfi, 
+                     int internal_pri, bcm_color_t color)
+{
+    int soc_sand_rv = 0, rv = BCM_E_NONE;
+    int port_i, dp, core;
+    SOC_PPD_LLP_COS_PORT_INFO    cos_port_info;
+    SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO new_entry;
+    int profile, new_profile;
+    SOC_PPD_PORT soc_ppd_port_i;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    if (port == -1) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("invalid port")));
+    }
+
+    if ((cfi != 0)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("CFI must be set to 0. Not used in API")));
+    }
+
+    if (color > 1) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, 
+           (_BSL_BCM_MSG("color parameter referes to DEI which is between 0-1. Mapping refers when packet is s-tagged.\n In case user wants to set dp it needs to map also dei to dp by api bcm_petra_port_cfi_color_set")));
+    }
+
+    BCM_DPP_VLAN_CHK_PRIO(unit, pkt_pri);
+    BCM_DPP_VLAN_CHK_PRIO(unit, internal_pri);
+
+    rv = _bcm_petra_port_color_encode(unit,color,&dp);
+    BCMDNX_IF_ERR_EXIT(rv);
+    
+    SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO_clear(&new_entry);
+    new_entry.value1 = dp;
+    new_entry.value2 = internal_pri;
+
+    rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info); 
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    rv = _bcm_petra_port_map_alloc_profile(unit, 
+                       _bcm_dpp_port_map_type_in_up_to_tc_and_de, 
+                       gport_info.pbmp_local_ports, 0, pkt_pri, 
+                       &new_entry, &profile, &new_profile);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* set entry in allocated profile */
+    soc_sand_rv = soc_ppd_llp_cos_mapping_table_entry_set(unit,
+                          SOC_PPD_LLP_COS_MAPPING_TABLE_UP_TO_DE_TC,
+                          profile,pkt_pri,&new_entry);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {        
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+        soc_sand_rv = soc_ppd_llp_cos_port_info_get(unit,core,soc_ppd_port_i,&cos_port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    
+        cos_port_info.l2_info.tbls_select.in_up_to_tc_and_de_index = profile;
+        
+        soc_sand_rv = soc_ppd_llp_cos_port_info_set(unit,core,soc_ppd_port_i,&cos_port_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    }
+
+    BCMDNX_IF_ERR_EXIT(rv);
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_vlan_priority_map_get
+ * Description:
+ *      Get the mapping of incomming port, packet priority, and cfi bit to
+ *      switch internal priority and color.
+ * Parameters:
+ *      unit         - (IN) Device number
+ *      port         - (IN) Port number
+ *      pkt_pri      - (IN) Packet priority
+ *      cfi          - (IN) Packet CFI
+ *      internal_pri - (OUT) Internal priority
+ *      color        - (OUT) color
+ * Return Value:
+ *      BCM_E_XXX
+ * Note:
+ *      This API programs only the mapping table. 
+ */
+int
+bcm_petra_port_vlan_priority_map_get(int unit, 
+                     bcm_port_t port, 
+                     int pkt_pri,
+                     int cfi, 
+                     int *internal_pri, 
+                     bcm_color_t *color)
+{
+    int port_i, core;
+    SOC_PPD_LLP_COS_PORT_INFO    cos_port_info;
+    SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO    map_entry;
+    int tbl_indx = 0;
+    SOC_PPD_PORT soc_ppd_port_i;
+    _bcm_dpp_gport_info_t gport_info;
+    uint32 map_entry_found = 0;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_NULL_CHECK(internal_pri);
+    BCMDNX_NULL_CHECK(color);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info));
+
+    if ((cfi != 0) && (cfi != 1)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid cfi %d"), cfi));
+    }
+
+    BCM_DPP_VLAN_CHK_PRIO(unit, pkt_pri);
+    
+    *internal_pri = -1;
+    *color = -1;
+
+    SOC_PPD_LLP_COS_MAPPING_TABLE_ENTRY_INFO_clear(&map_entry);
+
+    BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+        BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+        BCM_SAND_IF_ERR_EXIT(soc_ppd_llp_cos_port_info_get(unit,core,soc_ppd_port_i,&cos_port_info));
+  
+        tbl_indx = cos_port_info.l2_info.tbls_select.in_up_to_tc_and_de_index;
+
+        BCM_SAND_IF_ERR_EXIT(soc_ppd_llp_cos_mapping_table_entry_get(unit,
+                     SOC_PPD_LLP_COS_MAPPING_TABLE_UP_TO_DE_TC,
+                     tbl_indx,
+                     pkt_pri,
+                     &map_entry));
+        map_entry_found = 1;
+        break;
+    }
+
+    if (map_entry_found) {
+        *internal_pri = map_entry.value2;
+        BCMDNX_IF_ERR_EXIT(_bcm_petra_port_color_decode(unit,map_entry.value1,color));
+    } else {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("invalid port %d"), port));
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/* VLAN compression will be implemented in the future */
+int 
+bcm_petra_port_vlan_vector_set(
+    int unit, 
+    bcm_gport_t port_id, 
+    bcm_vlan_vector_t vlan_vec)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unavaliable")));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int 
+bcm_petra_port_vlan_vector_get(
+    int unit, 
+    bcm_gport_t port_id, 
+    bcm_vlan_vector_t vlan_vec)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("Unavaliable")));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+#ifdef BCM_WARM_BOOT_SUPPORT_SW_DUMP
+int
+_bcm_dpp_port_sw_dump(int unit)
+{
+    uint32 i, j, rc;
+    int map_tbl_use;
+    int flags;
+    uint16 tpid;
+    int tpid_count;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    /* Make sure the port module is initialized */
+    _DPP_PORT_INIT_CHECK(unit);
+
+    LOG_CLI((BSL_META_U(unit,
+                        "\nPORT:")));
+    LOG_CLI((BSL_META_U(unit,
+                        "\n-----")));
+
+    LOG_CLI((BSL_META_U(unit,
+                        "\n\nmap_tbl_in_use:\n")));
+
+    for(i = 0; i < _bcm_dpp_port_map_type_count; i++) {
+
+        for(j = 0; j < _BCM_PORT_NOF_TPID_PROFILES; j++) {
+            _BCM_DPP_PORT_MAP_TBL_IN_USE_GET(unit, i, j, map_tbl_use);
+
+            if(FALSE != map_tbl_use) {
+                LOG_CLI((BSL_META_U(unit,
+                                    "  (%d, %d) %s\n"), 
+                         i,
+                         j,
+                         map_tbl_use ? "TRUE" : "FALSE"));
+            }
+        }
+    }
+
+
+    LOG_CLI((BSL_META_U(unit,
+                        "\n\ntrap_to_flag:\n")));
+
+    for(i = 0; i < _BCM_PETRA_PORT_LEARN_NOF_TRAPS; i++) {
+        _DPP_PORT_TRAP_TO_FLAG_GET(unit, i, flags);
+        
+        if(BCM_PETRA_PORT_LEARN_INVALID_FLGS != flags) {
+            LOG_CLI((BSL_META_U(unit,
+                                "  (%d) 0x%02x\n"),
+                     i, 
+                     flags));
+        }
+        
+    }
+
+
+    LOG_CLI((BSL_META_U(unit,
+                        "\n\ntpid_profile:\n")));
+
+    for(i = 0; i < _DPP_AM_TEMPLATE_TPID_PROFILE_COUNT; i++) {
+
+        uint32 ref_count, data;
+
+        rc = _bcm_dpp_am_template_tpid_profile_ref_get(unit, i, &ref_count);
+        if (rc != BCM_E_NONE) {
+            ref_count = 0;
+            rc = BCM_E_NONE;
+        }                                
+
+        if(ref_count != 0) {
+            _bcm_petra_tpid_profile_t profile_type;
+            _bcm_petra_dtag_mode_t dtag_mode;
+            _bcm_petra_ac_key_map_type_t ac_key_map_type;
+            int accept_mode;
+
+            rc = _bcm_dpp_am_template_tpid_profile_tdata_get(unit, i, &(data));
+            BCMDNX_IF_ERR_EXIT(rc);
+
+            profile_type = (data >> _DPP_AM_TEMPLATE_PORT_TAG_TYPE_SHIFT)  & _DPP_AM_TEMPLATE_PORT_TAG_TYPE_MASK;
+            dtag_mode    = (data >> _DPP_AM_TEMPLATE_PORT_DTAG_MODE_SHIFT) & _DPP_AM_TEMPLATE_PORT_DTAG_MODE_MASK;
+            accept_mode  = (data >> _DPP_AM_TEMPLATE_PORT_ACC_MODE_SHIFT)  & _DPP_AM_TEMPLATE_PORT_ACC_MODE_MASK;
+            ac_key_map_type  = (data >> _DPP_AM_TEMPLATE_PORT_AC_KEY_MAP_TYPE_SHIFT)  & _DPP_AM_TEMPLATE_PORT_AC_KEY_MAP_TYPE_MASK;
+
+            LOG_CLI((BSL_META_U(unit,
+                                "  (%d) ref %6d profile_type %1d dtag_mode %1d accept_mode %10d ac_key_map_type %10d\n"),
+                     i,
+                     ref_count,
+                     profile_type,
+                     dtag_mode,
+                     accept_mode,
+                     ac_key_map_type));
+        }        
+    }
+
+    if (PORT_PP_IS_INIT(unit))
+    {
+        LOG_CLI((BSL_META_U(unit,
+                            "\n\ntpids:\n")));
+
+        for(i = 0; i < _BCM_PETRA_NOF_TPIDS_PER_PORT; i++) {
+        
+            for(j = 0; j < _BCM_PORT_NOF_TPID_PROFILES; j++) {
+                _BCM_PETRA_PORT_TPID_GET(unit, i, j, tpid);
+                _BCM_PETRA_PORT_TPID_COUNT_GET(unit, i, j, tpid_count);
+
+                if(0 != tpid_count ||
+                   0 != tpid) {
+                    LOG_CLI((BSL_META_U(unit,
+                                        "  (%d, %d) id %6d cnt %13d\n"), 
+                             i,
+                             j,
+                             tpid,
+                             tpid_count));
+                }
+            }
+        }
+    }
+
+    LOG_CLI((BSL_META_U(unit,
+                        "\n")));
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+#endif /* BCM_WARM_BOOT_SUPPORT_SW_DUMP */
+
+
+/* Add service classifications(tunnel-port-ids) per pon port. */
+int bcm_petra_port_pon_tunnel_add(
+    int unit, 
+    bcm_gport_t pon_port, 
+    uint32 flags, 
+    bcm_gport_t *tunnel_port_id)
+{
+    int rv = BCM_E_NONE;    
+    uint32 soc_sand_rv;
+    uint32 soc_ppd_port;
+    int core;
+    uint32 profile_alloc_flag=0;
+    uint16 pon_channel_profile, offset;
+    bcm_gport_t pon_pp_port;
+    SOC_PPD_PORT_INFO port_info;
+    SOC_TMC_PORT_PP_PORT_INFO pp_port_info;
+    SOC_SAND_SUCCESS_FAILURE failure_indication;
+    _bcm_dpp_gport_info_t gport_info;
+    uint32 nof_channels = 0;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+    BCMDNX_NULL_CHECK(tunnel_port_id);
+
+    if(SOC_IS_PETRAB(unit))
+    {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_petra_port_pon_tunnel_add is not supported in Petra-B")));
+    }
+
+    pon_channel_profile = *tunnel_port_id;
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, pon_port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info));
+
+    /* It's not necessary to add default profile. */
+    if (pon_channel_profile == _BCM_PPD_PON_CHANNEL_DEFAULT_PROFILE) {
+        *tunnel_port_id = gport_info.local_port;
+        BCM_EXIT;
+    }
+
+    if (!_BCM_PPD_IS_PON_PP_PORT(gport_info.local_port) || !IS_PON_PORT(unit,_BCM_PPD_GPORT_PON_TO_PHY_PORT(gport_info.local_port))) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("Can not add tunnel to a non PON port")));
+    }
+
+    if (SOC_DPP_CONFIG(unit)->pp.pon_port_channelization_enable) {
+        nof_channels = SOC_DPP_CONFIG(unit)->pp.pon_port_channelization_num;
+        offset = _BCM_PPD_GPORT_PON_PP_PORT_CHANNEL_PROFILE_OFFSET(nof_channels);
+    } else {
+        offset = _BCM_PPD_GPORT_PON_PP_PORT_CHANNEL_PROFILE_DEFAULT_OFFSET;
+    }
+
+    /* if local_port is not a channelized port, alloc PON channel(LLID) profile */
+    if (gport_info.local_port == _BCM_PPD_GPORT_PON_TO_PHY_PORT(gport_info.local_port)) {
+        if (flags & BCM_PORT_PON_TUNNEL_WITH_ID)
+        {
+            if (pon_channel_profile >= _BCM_PPD_NOF_PON_CHANNEL_PROFILE(nof_channels)) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("PON channel profile range is 0~15")));
+            }
+            
+            rv = bcm_dpp_am_pon_channel_profile_is_alloced(unit, pon_channel_profile);
+            if (rv == BCM_E_NOT_FOUND) {
+                profile_alloc_flag |=  SHR_RES_ALLOC_WITH_ID;            
+                BCMDNX_IF_ERR_EXIT(bcm_dpp_am_pon_channel_profile_alloc(unit, profile_alloc_flag, &pon_channel_profile));
+            }
+        }
+        else
+        {
+            BCMDNX_IF_ERR_EXIT(bcm_dpp_am_pon_channel_profile_alloc(unit, profile_alloc_flag, &pon_channel_profile));
+        }
+    }
+    /* Get PON PP port from PON physical port and PON channel profile */
+    pon_pp_port = _BCM_PPD_GPORT_PON_CHANNEL_PROFILE_TO_PON_PP_PORT(gport_info.local_port, pon_channel_profile, offset);
+
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, gport_info.local_port, &soc_ppd_port, &core)));
+
+    BCMDNX_IF_ERR_EXIT(_bcm_petra_port_find_free_port_and_allocate(unit, core, SOC_PORT_IF_NOCXN, 1, &pon_pp_port));
+
+    /* copy port configuration from local port to PON PP port */
+    SOC_PPD_PORT_INFO_clear(&port_info);
+    soc_sand_rv = soc_ppd_port_info_get(unit,core,soc_ppd_port,&port_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    soc_sand_rv = soc_ppd_port_info_set(unit,core,soc_ppd_port,&port_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv); 
+
+    /* copy pp port configuration from local port to PON pp port */
+    SOC_TMC_PORT_PP_PORT_INFO_clear(&pp_port_info);
+    BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_pp_port_get,(unit, core, soc_ppd_port, &pp_port_info)));
+
+    BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_port_pp_port_set,(unit, core, pon_pp_port, &pp_port_info, &failure_indication)));
+    SOC_SAND_IF_FAIL_RETURN(failure_indication);
+
+    *tunnel_port_id = pon_pp_port;
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/* Remove service classifications(tunnel-port-ids) per pon port. */
+int bcm_petra_port_pon_tunnel_remove(
+    int unit, 
+    bcm_gport_t tunnel_port_id)
+{
+    int rv = BCM_E_NONE;
+    uint16 pon_channel_profile, offset;
+    uint32 nof_channels = 0;
+    uint32 local_port;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    if(SOC_IS_PETRAB(unit))
+    {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_petra_port_pon_tunnel_remove is not supported in Petra-B")));
+    }
+
+    if (SOC_DPP_CONFIG(unit)->pp.pon_port_channelization_enable) {
+        nof_channels = SOC_DPP_CONFIG(unit)->pp.pon_port_channelization_num;
+        offset = _BCM_PPD_GPORT_PON_PP_PORT_CHANNEL_PROFILE_OFFSET(nof_channels);
+    } else {
+        offset = _BCM_PPD_GPORT_PON_PP_PORT_CHANNEL_PROFILE_DEFAULT_OFFSET;
+    }
+
+    pon_channel_profile = _BCM_PPD_GPORT_PON_PP_PORT_TO_CHANNEL_PROFILE(tunnel_port_id, offset);
+    if (pon_channel_profile == _BCM_PPD_PON_CHANNEL_DEFAULT_PROFILE) {
+        BCM_EXIT; /* It's not necessary to remove default profile. */
+    }
+
+    local_port = _BCM_PPD_GPORT_PON_TO_LOCAL_PORT(tunnel_port_id, offset);
+
+    /* if local_port is not a channelized port, dealloc PON channel(LLID) profile */
+    if (local_port == _BCM_PPD_GPORT_PON_TO_PHY_PORT(tunnel_port_id)) {
+        rv = bcm_dpp_am_pon_channel_profile_is_alloced(unit, pon_channel_profile);
+        if (rv == BCM_E_NOT_FOUND) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("PON channel profile is not allocated")));
+        }
+    }
+    BCMDNX_IF_ERR_EXIT(bcm_dpp_am_pon_channel_profile_dealloc(unit, pon_channel_profile));
+
+    SOC_IF_ERROR_RETURN(soc_port_sw_db_port_remove(unit, tunnel_port_id));
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+/* Set the tunnel id to the service class mapping. */
+int bcm_petra_port_pon_tunnel_map_set(
+    int unit, 
+    bcm_gport_t pon_port, 
+    bcm_tunnel_id_t tunnel_id, 
+    bcm_gport_t tunnel_port_id)
+{
+    int core;    
+    SOC_PPD_PORT soc_ppd_port;
+    _bcm_dpp_gport_info_t gport_info;
+    SOC_TMC_PORTS_PON_TUNNEL_INFO info;
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    if(SOC_IS_PETRAB(unit))
+    {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_petra_port_pon_tunnel_map_set is not supported in Petra-B")));
+    }
+    
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, pon_port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+    if (!_BCM_PPD_IS_PON_PP_PORT(gport_info.local_port) || !IS_PON_PORT(unit,_BCM_PPD_GPORT_PON_TO_PHY_PORT(gport_info.local_port))) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("Can not add tunnel to a non PON port")));
+    }
+
+    if (tunnel_id >= 2016) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Tunnel-IDs 2016-2047 can not use")));
+    }
+
+    SOC_TMC_PORTS_PON_TUNNEL_INFO_clear(&info);
+    info.pp_port = tunnel_port_id;
+
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, _BCM_PPD_GPORT_PON_TO_PHY_PORT(gport_info.local_port), &soc_ppd_port, &core)));
+
+    /* Set the Mapping between tunnel_ID and PON PP port  */
+    BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_ports_pon_tunnel_info_set,(unit, soc_ppd_port, tunnel_id, &info)));
+
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/* Get the tunnel id to the service class mapping. */
+int bcm_petra_port_pon_tunnel_map_get(
+    int unit, 
+    bcm_gport_t pon_port, 
+    bcm_tunnel_id_t tunnel_id, 
+    bcm_gport_t *tunnel_port_id)
+{
+    int core;    
+    SOC_PPD_PORT soc_ppd_port;
+    SOC_TMC_PORTS_PON_TUNNEL_INFO info;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;    
+
+    BCMDNX_NULL_CHECK(tunnel_port_id);
+
+    if(SOC_IS_PETRAB(unit))
+    {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_petra_port_pon_tunnel_map_get is not supported in Petra-B")));
+    }
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, pon_port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+    if (!_BCM_PPD_IS_PON_PP_PORT(gport_info.local_port) || !IS_PON_PORT(unit,_BCM_PPD_GPORT_PON_TO_PHY_PORT(gport_info.local_port))) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("Can not add tunnel to a non PON port")));
+    }
+
+    if (tunnel_id >= 2016) {        
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG(" Tunnel-IDs (2016~2047) can not use")));
+    }
+
+    BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, _BCM_PPD_GPORT_PON_TO_PHY_PORT(gport_info.local_port), &soc_ppd_port, &core)));
+
+    SOC_TMC_PORTS_PON_TUNNEL_INFO_clear(&info);
+    /* Get PON PP port from PON tunnel_ID */
+    BCM_SAND_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit,mbcm_dpp_ports_pon_tunnel_info_get,(unit, soc_ppd_port, tunnel_id, &info)));
+
+    *tunnel_port_id = info.pp_port;
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_encap_config_set
+ * Purpose:
+ *      Configre 88650l2C3 feature
+ * Parameters:
+ *      unit - unit number.
+ *      port - port number
+ *      encap_config - encapsulation information
+ * Returns:
+ *      BCM_E_NONE - success (or already initialized)
+ *      BCM_E_INTERNAL- failed to write internal tables entries
+ *      BCM_E_UNAVAIL - feature unavaliable
+ * Notes:
+ */ 
+int
+bcm_petra_port_encap_config_set(
+    int unit, 
+    bcm_gport_t gport, 
+    bcm_port_encap_config_t *encap_config)
+{
+#ifdef BCM_ARAD_SUPPORT
+    int soc_sand_dev_id;
+#endif
+    BCMDNX_INIT_FUNC_DEFS;
+
+    _BCM_DPP_SWITCH_API_START(unit);
+    BCM_DPP_UNIT_CHECK(unit);    
+    BCMDNX_NULL_CHECK(encap_config);  
+          
+    if(SOC_IS_PETRAB(unit))
+    {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_petra_port_encap_config_set is not supported in Petra-B")));
+    }    
+    switch (encap_config->encap)
+    {
+    case BCM_PORT_ENCAP_IEEE:
+        /*L2 encapsulation*/
+        if (!soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "88650L23C", 0) && !BCM_GPORT_IS_TUNNEL(gport)) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_petra_port_encap_config_set is not enabled")));
+        }
+        break;
+    default:
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_petra_port_encap_config_set unsupported encapsuation type")));
+    }
+
+#ifdef BCM_ARAD_SUPPORT
+    soc_sand_dev_id = (unit);
+    {
+        SOC_TMC_FAP_PORT_ID         port_ndx;
+        SOC_TMC_L2_ENCAP_INFO       info;
+        SOC_PPD_EG_ENCAP_DATA_INFO data_info;
+        int rv = BCM_E_NONE;
+        int local_port, local_lif, global_lif;
+        int i, core;   
+        uint32 pp_port_var, mac_lsb,mac_msb;
+        uint64 prge_var;
+
+		if(BCM_GPORT_IS_TUNNEL(gport)){
+
+            SOC_PPC_EG_ENCAP_DATA_INFO_clear(&data_info);    
+         
+            rv = _bcm_dpp_gport_to_global_and_local_lif(unit,gport,&global_lif,NULL,&local_lif,NULL,NULL);
+            BCMDNX_IF_ERR_EXIT(rv);
+
+            SOC_PPD_EG_ENCAP_DATA_L2_ENCAP_EXTERNAL_CPU_FORMAT_SET(unit, encap_config->vlan, encap_config->oui_ethertype, encap_config->dst_mac, &data_info);
+
+            rv = soc_ppd_eg_encap_data_lif_entry_add(unit, local_lif, &data_info, FALSE, 0);
+            BCM_SAND_IF_ERR_EXIT(rv);
+
+           /*SA MAC # TPID*/
+            mac_msb = ((uint32)(encap_config->src_mac[0])<<24)|
+                      ((uint32)(encap_config->src_mac[1])<<16)|
+                      ((uint32)(encap_config->src_mac[2])<<8)|
+                      ((uint32)(encap_config->src_mac[3]));
+            mac_lsb = ((uint32)(encap_config->src_mac[4])<<24)|((uint32)(encap_config->src_mac[5])<<16);
+
+            COMPILER_64_SET(prge_var, mac_msb,mac_lsb | (encap_config->tpid & 0xFFFF) );
+
+            pp_port_var = (uint32)encap_config->dst_mac[0]<<16 | (uint32)encap_config->dst_mac[1]<<8 |(uint32)encap_config->dst_mac[2];
+
+            rv = arad_egr_prog_l2_encap_external_cpu_program_info_set(unit,pp_port_var,prge_var);
+            BCMDNX_IF_ERR_EXIT(rv);
+		}
+		else{
+
+    		SOC_TMC_L2_ENCAP_INFO_clear(&info);
+            info.eth_type=encap_config->oui_ethertype;
+            info.tpid = encap_config->tpid;
+            info.vlan = encap_config->vlan;
+            for (i=0;i<6;i++)
+            {
+                info.da[i]=encap_config->dst_mac[i];
+                info.sa[i]=encap_config->src_mac[i];
+            }
+			rv = bcm_petra_port_local_get(unit, gport, &local_port);
+			BCMDNX_IF_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_encap_config_set unable to extract local port infomraiton")));
+			BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_tm_port_get(unit, local_port, &port_ndx, &core));
+			rv = arad_port_encap_config_set(soc_sand_dev_id,core,port_ndx,&info);
+            if (rv != 0)
+            {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("bcm_petra_port_encap_config_set Internal error")));
+            }
+
+		}
+
+    }
+#else
+    BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_petra_port_encap_config_set is not supported in non ARAD devices")));
+#endif
+    
+exit:
+    _BCM_DPP_SWITCH_API_END(unit);
+    BCMDNX_FUNC_RETURN;
+}
+/*
+ * Function:
+ *      bcm_petra_port_encap_config_get
+ * Purpose:
+ *      Configre 88650l2C3 feature
+ * Parameters:
+ *      unit - unit number.
+ *      port - port number
+ *      encap_config - encapsulation information
+ * Returns:
+ *      BCM_E_NONE - success (or already initialized)
+ *      BCM_E_INTERNAL- failed to write internal tables entries
+ *      BCM_E_UNAVAIL - feature unavaliable
+ * Notes:
+ */ 
+int
+bcm_petra_port_encap_config_get(
+    int unit, 
+    bcm_gport_t gport, 
+    bcm_port_encap_config_t *encap_config)
+{
+
+#ifdef BCM_ARAD_SUPPORT
+   int soc_sand_dev_id;
+#endif
+   BCMDNX_INIT_FUNC_DEFS;
+
+   BCM_DPP_UNIT_CHECK(unit);    
+   BCMDNX_NULL_CHECK(encap_config);  
+
+   if(SOC_IS_PETRAB(unit))
+   {
+       BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_petra_port_encap_config_get is not supported in Petra-B")));
+   }    
+   switch (encap_config->encap)
+   {
+   case BCM_PORT_ENCAP_IEEE:
+       /*L2 encapsulation*/
+       if (!soc_property_suffix_num_get(unit, -1, spn_CUSTOM_FEATURE, "88650L23C", 0) && !BCM_GPORT_IS_TUNNEL(gport)) {
+           BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_petra_port_encap_config_get is not enabled")));
+       }
+       break;
+   default:
+       BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_petra_port_encap_config_get unsupported encapsuation type")));
+   }
+
+#ifdef BCM_ARAD_SUPPORT
+   soc_sand_dev_id = (unit);
+   {
+       uint32                      port_ndx;
+       SOC_TMC_L2_ENCAP_INFO       info;
+       int rv;
+       int local_port,local_lif,global_lif;
+       int i, core;
+       SOC_PPD_EG_ENCAP_ENTRY_INFO
+        encap_entry_info[SOC_PPD_NOF_EG_ENCAP_EEP_TYPES];
+       SOC_PPC_EG_ENCAP_DATA_INFO *data_info;
+       uint32
+        pp_port_var,    
+        next_eep[SOC_PPD_NOF_EG_ENCAP_EEP_TYPES],
+        nof_entries;
+       uint64 prge_var;
+
+       if(BCM_GPORT_IS_TUNNEL(gport)){
+
+           rv = _bcm_dpp_gport_to_global_and_local_lif(unit,gport,&global_lif,NULL,&local_lif,NULL,NULL);
+           BCMDNX_IF_ERR_EXIT(rv);
+
+           rv = soc_ppd_eg_encap_entry_get(unit, SOC_PPD_EG_ENCAP_EEP_TYPE_TUNNEL_EEP, local_lif, 1, encap_entry_info, next_eep, &nof_entries);
+           SOC_SAND_IF_ERR_RETURN(rv);
+
+           data_info=&(encap_entry_info[0].entry_val.data_info);
+
+           rv = arad_egr_prog_l2_encap_external_cpu_program_info_get(unit,&pp_port_var,&prge_var);
+           BCMDNX_IF_ERR_EXIT(rv);
+
+           encap_config->tpid = (COMPILER_64_LO(prge_var)) & 0xFFFF;
+           encap_config->dst_mac[0]=(pp_port_var>>16) &0xFF;
+           encap_config->dst_mac[1]=(pp_port_var>>8) &0xFF;
+           encap_config->dst_mac[2]=(pp_port_var) &0xFF;
+
+           encap_config->src_mac[0]=(COMPILER_64_HI(prge_var)>>24) & 0xFF;
+           encap_config->src_mac[1]=(COMPILER_64_HI(prge_var)>>16) & 0xFF;
+           encap_config->src_mac[2]=(COMPILER_64_HI(prge_var)>>8) & 0xFF;
+           encap_config->src_mac[3]=(COMPILER_64_HI(prge_var)) & 0xFF;
+           encap_config->src_mac[4]=(COMPILER_64_LO(prge_var)>>24) & 0xFF;
+           encap_config->src_mac[5]=(COMPILER_64_LO(prge_var)>>16) & 0xFF;
+
+           SOC_PPD_EG_ENCAP_DATA_L2_ENCAP_EXTERNAL_CPU_FORMAT_GET(unit, encap_config->vlan, encap_config->oui_ethertype, encap_config->dst_mac, data_info);
+
+       }else
+       {
+       
+           rv = bcm_petra_port_local_get(unit, gport, &local_port);
+           BCMDNX_IF_ERR_EXIT_MSG(rv, (_BSL_BCM_MSG("bcm_petra_port_encap_config_get unable to extract local port infomraiton")));
+           BCMDNX_IF_ERR_EXIT(soc_port_sw_db_local_to_tm_port_get(unit, local_port, &port_ndx, &core));
+
+           SOC_TMC_L2_ENCAP_INFO_clear(&info);
+           rv = arad_port_encap_config_get(soc_sand_dev_id,core,port_ndx,&info);
+           if (rv != 0)
+           {
+               BCMDNX_ERR_EXIT_MSG(BCM_E_INTERNAL, (_BSL_BCM_MSG("bcm_petra_port_encap_config_get Internal error")));
+           }
+           encap_config->oui_ethertype = info.eth_type;
+           encap_config->tpid = info.tpid;
+           encap_config->vlan = info.vlan;
+           for (i=0;i<6;i++)
+           {
+               encap_config->dst_mac[i] = info.da[i];
+               encap_config->src_mac[i] = info.sa[i];
+           }
+
+       } 
+
+   }
+#else
+   BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_petra_port_encap_config_set is not supported in non ARAD devices")));
+#endif
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_timesync_config_set
+ * Purpose:
+ *      set 1588 protocol configuaion for port 
+ * Parameters:
+ *      unit - (IN) unit number.
+ *      port - (IN) port number
+ *      config_count - (IN) config_array size 
+ *      config_array - (IN) 1588 port configuration
+ * Returns:
+ *      BCM_E_NONE - success 
+ *      BCM_E_PARAM - parameter not supported
+ *      BCM_E_UNAVAIL - feature unavaliable
+ * Notes:
+ *
+ * Disable port 1588 configuration  - config_count = 0
+ * Enable  port 1588 configuration  - config_count = 1 
+ *                       config_array->flags =
+ *                       BCM_PORT_TIMESYNC_DEFAULT            mast be on 
+ *                       BCM_PORT_TIMESYNC_ONE_STEP_TIMESTAMP when one step Tranparent clock (TC) is enabled system updates the 
+ *                                                            correction field in 1588 Event 1588 messages.    
+ *                       BCM_PORT_TIMESYNC_TWO_STEP_TIMESTAMP when step step Tranparent clock (TC) is enabled system records the 
+ *                                                            1588 Event 1588 messages TX time.    
+ *                         1588 event messages:
+ *                           1. SYNC
+ *                           2. DELAY_REQ
+ *                           3. PDELAY_REQ
+ *                           4. PDELAY_RESP
+ *                       config_array->pkt_drop, config_array->pkt_tocpu - bit masks indicating wehter to forward (drop-0,tocpu-0), 
+ *                       drop(drop-1) or trap(tocpu-1) the packet
+ *
+ *
+ */ 
+int
+bcm_petra_port_timesync_config_set(int unit, bcm_port_t port, int config_count,
+                                  bcm_port_timesync_config_t *config_array)
+{  
+    int soc_sand_rv;
+    int port_i, core;    
+    SOC_PPD_PORT soc_ppd_port;
+    int rv; 
+    SOC_PPD_PTP_PORT_INFO new_profile_data;
+    SOC_PPD_PTP_IN_PP_PORT_PROFILE new_profile_ndx;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+    
+
+    if (soc_feature(unit, soc_feature_timesync_support)) {
+
+        SOC_PPC_PTP_PORT_INFO_clear(&new_profile_data);
+
+        /* Sanity */
+        if(0 != config_count && 1 != config_count) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("config_count != 0 && config_count != 1")));
+        }
+        else if(1 == config_count && NULL == config_array) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("config_array == NULL")));
+            
+        }
+        else if(1 == config_count) {
+            
+            /* Verify valid values */
+            if (!(config_array->flags & BCM_PORT_TIMESYNC_DEFAULT)) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("parameters not supported, BCM_PORT_TIMESYNC_DEFAULT must be on")));
+            }
+
+            if (config_array->flags & BCM_PORT_TIMESYNC_MPLS) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("BCM_PORT_TIMESYNC_MPLS flag is not supported")));
+            }
+
+            if (config_array->pkt_drop & config_array->pkt_tocpu) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("same bit should not turned on in pkt_drop & pkt_tocpu")));
+            }
+
+            if (config_array->flags & BCM_PORT_TIMESYNC_ONE_STEP_TIMESTAMP &&
+                config_array->flags & BCM_PORT_TIMESYNC_TWO_STEP_TIMESTAMP) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("one step & two step flags should not be enabled simultaniesly")));
+            }
+
+            /* values mapping: BCM -> SOC */
+            new_profile_data.ptp_enabled = 1; 
+
+            if (config_array->flags & BCM_PORT_TIMESYNC_ONE_STEP_TIMESTAMP) {
+                new_profile_data.flags |= SOC_PPD_PTP_PORT_TIMESYNC_ONE_STEP_TIMESTAMP;
+            }
+            if (config_array->flags & BCM_PORT_TIMESYNC_TWO_STEP_TIMESTAMP) {
+                new_profile_data.flags |= SOC_PPD_PTP_PORT_TIMESYNC_TWO_STEP_TIMESTAMP;
+            }
+            new_profile_data.pkt_drop    = config_array->pkt_drop;
+            new_profile_data.pkt_tocpu   = config_array->pkt_tocpu;
+        }
+        else if(0 == config_count) {
+            new_profile_data.ptp_enabled = 0;
+        }
+
+
+        rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+
+            BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port, &core)));
+
+            /* set SW state - allocation manager */
+            rv = _bcm_dpp_am_template_ptp_port_profile_exchange(unit, soc_ppd_port, &new_profile_data, &new_profile_ndx);
+            BCMDNX_IF_ERR_EXIT(rv);
+
+            /* and update HW */
+            soc_sand_rv = soc_ppd_ptp_port_set(unit, soc_ppd_port, &new_profile_data, new_profile_ndx);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        }
+
+    } else {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("1588 is not supported for this device")));
+    }
+
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_petra_port_timesync_config_get
+ * Purpose:
+ *      get 1588 protocol port configuaion
+ * Parameters:
+ *      unit - (IN) unit number.
+ *      port - (IN) port number
+ *      array_size   - (IN) config_array size 
+ *      config_array - (OUT) 1588 port configuration
+ *      config_count - (OUT) config_array size 
+ * Returns:
+ *      BCM_E_NONE - success 
+ *      BCM_E_PARAM - parameter not supported
+ *      BCM_E_UNAVAIL - feature unavaliable
+ * Notes:
+ *
+ * output will be the follwing:
+ * when port 1588 configuration Disabled - *array_count = 0
+ * when port 1588 configuration Enabled  - *array_count = 1, config_array is set with the port configuration
+ *
+ *  
+ */ 
+int
+bcm_petra_port_timesync_config_get(int unit, bcm_port_t port, int array_size,
+                                  bcm_port_timesync_config_t *config_array, 
+                                  int *array_count)
+{                                                                                
+    int soc_sand_rv;
+    int port_i, core;    
+    SOC_PPD_PORT soc_ppd_port;
+    SOC_PPD_PTP_PORT_INFO profile_data;
+    SOC_PPD_PTP_IN_PP_PORT_PROFILE profile_ndx;
+    int rv;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+    
+    /* Check for array_count */
+    if ((NULL == array_count) ||
+        (array_size > 0 && NULL == config_array)) {
+        return BCM_E_PARAM;
+    }
+
+
+    if (soc_feature(unit, soc_feature_timesync_support)) {
+
+        SOC_PPC_PTP_PORT_INFO_clear(&profile_data);
+
+        rv = _bcm_dpp_gport_to_phy_port(unit, port, 0, &gport_info);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+
+            BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port, &core)));
+
+            /* get profile index from HW */
+            soc_sand_rv = soc_ppd_ptp_port_get(unit, soc_ppd_port, &profile_ndx);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+
+            /* and profile data from SW state */
+            rv = _bcm_dpp_am_template_ptp_port_profile_tdata_get(unit, profile_ndx, &profile_data);
+            BCMDNX_IF_ERR_EXIT(rv);
+
+
+            if(0 == profile_data.ptp_enabled) {
+
+                *array_count = 0;
+
+            } else {
+
+                if (array_size < 1) {
+                    return BCM_E_PARAM;
+                }
+
+                bcm_port_timesync_config_t_init(config_array);
+
+                *array_count = 1;
+
+                config_array->flags |= BCM_PORT_TIMESYNC_DEFAULT;
+
+                /* values mapping: SOC -> BCM */
+                if (profile_data.flags & SOC_PPD_PTP_PORT_TIMESYNC_ONE_STEP_TIMESTAMP) {
+                    config_array->flags |= BCM_PORT_TIMESYNC_ONE_STEP_TIMESTAMP;
+                }
+                if (profile_data.flags & SOC_PPD_PTP_PORT_TIMESYNC_TWO_STEP_TIMESTAMP) {
+                    config_array->flags |= BCM_PORT_TIMESYNC_TWO_STEP_TIMESTAMP;
+                }
+
+                config_array->pkt_drop  = profile_data.pkt_drop;
+                config_array->pkt_tocpu = profile_data.pkt_tocpu;
+            
+            }
+
+            break;
+
+        }
+    } else {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("1588 is not supported for this device")));
+    }
+
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      _bcm_petra_port_convert_match_criteria_to_vlan_port_match_criteria
+ * Purpose:
+ *      Convert match criteria to VLAN port match criteria
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      match - (IN) Match information
+ *      vlan_port - (OUT) VLAN port structure
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int _bcm_petra_port_convert_match_criteria_to_vlan_port_match_criteria(
+    int unit,
+    bcm_port_match_t match,
+    bcm_vlan_port_match_t *vlan_port_match)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    switch (match) {
+    case BCM_PORT_MATCH_PORT:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT;
+        break;
+    case BCM_PORT_MATCH_PORT_INITIAL_VLAN:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_INITIAL_VLAN;
+        break;
+    case BCM_PORT_MATCH_PORT_PCP_VLAN:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_PCP_VLAN;
+        break;
+    case BCM_PORT_MATCH_PORT_PCP_VLAN_STACKED:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_PCP_VLAN_STACKED;
+        break;
+    case BCM_PORT_MATCH_PORT_PON_TUNNEL:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_TUNNEL;
+        break;
+    case BCM_PORT_MATCH_PORT_PON_TUNNEL_PCP:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_TUNNEL_PCP;
+        break;
+    case BCM_PORT_MATCH_PORT_PON_TUNNEL_PCP_VLAN:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_TUNNEL_PCP_VLAN;
+        break;
+    case BCM_PORT_MATCH_PORT_PON_TUNNEL_PCP_VLAN_ETHERTYPE:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_TUNNEL_PCP_VLAN_ETHERTYPE;
+        break;
+    case BCM_PORT_MATCH_PORT_PON_TUNNEL_PCP_VLAN_STACKED:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_TUNNEL_PCP_VLAN_STACKED;
+        break;
+    case BCM_PORT_MATCH_PORT_PON_TUNNEL_PCP_VLAN_VLAN_ETHERTYPE:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_TUNNEL_PCP_VLAN_VLAN_ETHERTYPE;
+        break;
+    case BCM_PORT_MATCH_PORT_PON_TUNNEL_VLAN:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_TUNNEL_VLAN;
+        break;
+    case BCM_PORT_MATCH_PORT_PON_TUNNEL_ETHERTYPE:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_TUNNEL_ETHERTYPE;
+        break;
+    case BCM_PORT_MATCH_PORT_PON_TUNNEL_VLAN_STACKED:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_TUNNEL_VLAN_STACKED;
+        break;
+    case BCM_PORT_MATCH_PORT_PON_TUNNEL_VLAN_STACKED_ETHERTYPE:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_TUNNEL_VLAN_STACKED_ETHERTYPE;
+        break;
+    case BCM_PORT_MATCH_PORT_VLAN:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_VLAN;
+        break;
+    case BCM_PORT_MATCH_PORT_VLAN_STACKED:    
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_VLAN_STACKED;
+        break;
+    case BCM_PORT_MATCH_PORT_UNTAGGED:
+        *vlan_port_match = BCM_VLAN_PORT_MATCH_PORT_UNTAGGED;
+        break;
+    case BCM_PORT_MATCH_COUNT:
+    case BCM_PORT_MATCH_INVALID:
+    case BCM_PORT_MATCH_LABEL:
+    case BCM_PORT_MATCH_LABEL_PORT:
+    case BCM_PORT_MATCH_LABEL_VLAN:
+    case BCM_PORT_MATCH_PORT_VLAN_RANGE:
+    case BCM_PORT_MATCH_TUNNEL_VLAN_SRCMAC:
+    default:
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("Invalid match parameter 0x%x"),match));
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      _bcm_petra_port_convert_match_to_vlan_port
+ * Purpose:
+ *      Convert match to VLAN port structure
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      port - (IN) vlan_port_id
+ *      match - (IN) Match information
+ *      vlan_port - (OUT) VLAN port structure
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int _bcm_petra_port_convert_match_to_vlan_port(
+    int unit,
+    bcm_gport_t vlan_port_id,
+    bcm_port_match_info_t *match,
+    bcm_vlan_port_t *vlan_port)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    BCMDNX_INIT_FUNC_DEFS;
+    
+    vlan_port->vlan_port_id = vlan_port_id;
+    vlan_port->port = match->port;
+    vlan_port->match_vlan = (match->flags & BCM_PORT_MATCH_EGRESS_ONLY) ? (match->match_inner_vlan):(match->match_vlan);
+    vlan_port->match_inner_vlan = match->match_inner_vlan;
+    vlan_port->match_ethertype = match->match_ethertype;
+    vlan_port->match_pcp = match->match_pcp;
+    vlan_port->match_tunnel_value = match->match_pon_tunnel;    
+    vlan_port->vsi = match->match_vlan;
+    vlan_port->flags = 0;
+
+    rv = _bcm_petra_port_convert_match_criteria_to_vlan_port_match_criteria(unit, match->match, &vlan_port->criteria);
+    BCMDNX_IF_ERR_EXIT(rv);
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      bcm_port_match_ingress_add
+ * Purpose:
+ *      Add an Ingress match to an existing port
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      port - (IN) Port or gport
+ *      lif - (IN) LIF ID 
+ *      match - (IN) Match criteria
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+_bcm_petra_port_match_ingress_add(
+    int unit, 
+    bcm_gport_t port,
+    int lif_id,
+    bcm_port_match_info_t *match)
+{
+    SOC_PPD_L2_LIF_AC_KEY  in_ac_key;
+    SOC_PPD_L2_LIF_AC_INFO ac_info;
+    SOC_PPD_LIF_ENTRY_INFO *lif_entry_info = NULL;
+    unsigned int soc_sand_dev_id;
+    SOC_PPD_LIF_ID lif_id_tmp;
+    uint32 soc_sand_rv;
+    SOC_SAND_SUCCESS_FAILURE failure_indication;
+    uint8 found;
+    bcm_error_t rv;
+    bcm_vlan_port_t vlan_port;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    soc_sand_dev_id = (unit);
+
+    rv = _bcm_petra_port_convert_match_to_vlan_port(unit, port, match, &vlan_port);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+
+    rv = _bcm_dpp_gport_fill_ac_key(unit, &vlan_port, BCM_GPORT_VLAN_PORT, &in_ac_key);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* look up existing entry */
+    soc_sand_rv = soc_ppd_l2_lif_ac_get(soc_sand_dev_id, &in_ac_key, &lif_id_tmp, &ac_info, &found);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    /* In case of port match an entry is always found as it's a static table */
+    if (found && (match->match != BCM_PORT_MATCH_PORT)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_EXISTS, (_BSL_BCM_MSG("match already exist")));
+    }    
+
+    BCMDNX_ALLOC(lif_entry_info, sizeof(SOC_PPD_LIF_ENTRY_INFO), "_bcm_petra_port_match_ingress_add.lif_entry_info");
+    if (lif_entry_info == NULL) {        
+        BCMDNX_ERR_EXIT_MSG(BCM_E_MEMORY, (_BSL_BCM_MSG("failed to allocate memory")));
+    }
+    /* Add this match entry */
+    /* Retreive LIF information */
+    soc_sand_rv = soc_ppd_lif_table_entry_get(soc_sand_dev_id, lif_id, lif_entry_info);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+#if BCM_DPP_PORT_MATCH_LIF_LEARNT /* match add should not be called in case LIF is learnt */
+    if (lif_entry_info->value.ac.learn_record.learn_type != SOC_PPD_L2_LIF_AC_LEARN_SYS_PORT &&
+        lif_entry_info->value.ac.learn_record.learn_type != SOC_PPD_L2_LIF_AC_LEARN_DISABLE) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("match failed since LIF should not be enabled learn")));
+    }
+#endif
+    
+    /* Add match */
+    soc_sand_rv = soc_ppd_l2_lif_ac_add(soc_sand_dev_id, &in_ac_key, lif_id, &(lif_entry_info->value.ac) ,&failure_indication);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    SOC_SAND_IF_FAIL_EXIT(failure_indication);
+
+exit:
+    BCM_FREE(lif_entry_info);
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_port_match_egress_add
+ * Purpose:
+ *      Add an Egress match to an existing port
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      port - (IN) Port or gport
+ *      lif - (IN) LIF ID 
+ *      match - (IN) Match criteria
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+_bcm_petra_port_match_egress_add(
+    int unit, 
+    bcm_gport_t port, 
+    int lif_id,
+    bcm_port_match_info_t *match)
+{
+    SOC_PPD_EG_AC_VBP_KEY vbp_key;
+    SOC_PPD_EG_AC_CEP_PORT_KEY cep_key;
+    SOC_PPD_PORT_INFO port_info;
+    uint8 is_cep = 0;
+    bcm_vlan_port_t vlan_port;
+    SOC_PPD_LIF_ID out_lif_id_tmp;
+    SOC_PPD_EG_AC_INFO eg_ac_info;
+    int core;
+    SOC_PPD_PORT soc_ppd_port_i;
+    bcm_port_t port_i;
+    uint32 soc_sand_rv;
+    bcm_error_t rv;
+    uint8 is_cep_lookup = 1;
+    uint8 found;
+    SOC_SAND_SUCCESS_FAILURE failure_indication;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    SOC_PPD_EG_AC_CEP_PORT_KEY_clear(&cep_key);
+    SOC_PPD_EG_AC_VBP_KEY_clear(&vbp_key);    
+
+    rv = _bcm_petra_port_convert_match_to_vlan_port(unit, port, match, &vlan_port);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, vlan_port.port, 0, &gport_info)); 
+
+    if (!_BCM_DPP_GPORT_INFO_IS_LOCAL_PORT(gport_info)) { /* Nothing to do here */
+        BCM_EXIT;
+    }
+
+    /* 
+     * In case match is only PORT (and VSI is invalid) then Set Default-Port-Out-AC
+     */
+    if (vlan_port.criteria == BCM_VLAN_PORT_MATCH_PORT && vlan_port.vsi == BCM_VLAN_ALL) {
+
+        BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+            BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+            soc_sand_rv = soc_ppd_port_info_get(unit,core,soc_ppd_port_i,&port_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+                    
+            if (port_info.dflt_egress_ac) {
+                BCMDNX_ERR_EXIT_MSG(BCM_E_EXISTS, (_BSL_BCM_MSG("match already exist")));
+            }
+        
+            port_info.dflt_egress_ac = lif_id;
+
+            soc_sand_rv = soc_ppd_port_info_set(unit,core,soc_ppd_port_i,&port_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        }
+    } else {        
+
+        rv = _bcm_dpp_gport_fill_out_ac_key(unit, &vlan_port, &is_cep, &vbp_key, &cep_key);
+        BCMDNX_IF_ERR_EXIT(rv);
+
+        /* CEP lookup is done in case port is CEP and match is untagged (PORT or PORT_INITIAL_VID) */
+        is_cep_lookup = (is_cep) && (match->match != BCM_PORT_MATCH_PORT) && (match->match != BCM_PORT_MATCH_PORT_INITIAL_VLAN);
+
+        /* Get out ac id */
+        if (!is_cep_lookup) {
+            soc_sand_rv = soc_ppd_eg_ac_port_vsi_info_get(unit, &vbp_key, &out_lif_id_tmp, &eg_ac_info, &found);               
+        } else {
+            soc_sand_rv = soc_ppd_eg_ac_port_cvid_info_get(unit, &cep_key, &out_lif_id_tmp, &eg_ac_info, &found);                
+        }
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        if (found) {
+            BCMDNX_ERR_EXIT_MSG(BCM_E_EXISTS, (_BSL_BCM_MSG("match already exist")));
+        }
+
+        soc_sand_rv = soc_ppd_eg_ac_info_get(unit, lif_id, &eg_ac_info);
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+        if (!is_cep_lookup) {
+            soc_sand_rv = soc_ppd_eg_ac_port_vsi_info_add(unit, lif_id, &vbp_key, &eg_ac_info, &failure_indication);               
+        } else {
+            soc_sand_rv = soc_ppd_eg_ac_port_cvid_info_add(unit, lif_id, &cep_key, &eg_ac_info, &failure_indication);                
+        }
+       
+        BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        SOC_SAND_IF_FAIL_RETURN(failure_indication);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      _bcm_petra_port_match_verify
+ * Purpose:
+ *      Verify parameters for bcm_port_match_* APIs
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      port - (IN) Port or gport
+ *      match - (IN) Match criteria
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int
+_bcm_petra_port_match_verify(
+    int unit, 
+    bcm_gport_t port, 
+    bcm_port_match_info_t *match)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (match == NULL) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("match must be a valid pointer")));
+    }
+
+    if ((match->flags & BCM_PORT_MATCH_INGRESS_ONLY) && (match->flags & BCM_PORT_MATCH_EGRESS_ONLY)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("bcm_petra_port_match do not support both INGRESS and EGRESS only flags set ")));
+    }
+
+    if (!(match->flags & (BCM_PORT_MATCH_INGRESS_ONLY | BCM_PORT_MATCH_EGRESS_ONLY))) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("INGRESS_ONLY or EGRESS_ONLY needs to be set")));
+    }
+
+    if (!(BCM_GPORT_IS_VLAN_PORT(port))) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PORT, (_BSL_BCM_MSG("API bcm_petra_port_match receive VLAN port only")));
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_match_add
+ * Purpose:
+ *      Add a match to an existing port
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      port - (IN) Port or gport
+ *      match - (IN) Match criteria
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+bcm_petra_port_match_add(
+    int unit, 
+    bcm_gport_t port, 
+    bcm_port_match_info_t *match)
+{
+    _bcm_lif_type_e usage, out_lif_usage, in_lif_usage;
+    int global_lif, in_lif_id, out_lif_id;
+    int is_local;
+    bcm_error_t rv = BCM_E_NONE;
+    
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    rv = _bcm_petra_port_match_verify(unit, port, match);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* Get the LIF - InLIF or OutLIF */
+    rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, &global_lif, &in_lif_id, &out_lif_id, NULL ,&is_local);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if (!is_local) {
+        BCM_EXIT;
+    }
+
+    /* The flags are either INGRESS_ONLY or EGRESS_ONLY */
+    if (match->flags & BCM_PORT_MATCH_INGRESS_ONLY) {
+        out_lif_id = _BCM_GPORT_ENCAP_ID_LIF_INVALID;
+    } else {
+        in_lif_id = _BCM_GPORT_ENCAP_ID_LIF_INVALID;
+    }
+    if ((in_lif_id == _BCM_GPORT_ENCAP_ID_LIF_INVALID) && (out_lif_id == _BCM_GPORT_ENCAP_ID_LIF_INVALID)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("API bcm_petra_port_match_add received invalid VLAN port")));
+    }
+
+    /* Verify the type is VLAN for the relevant LIF */
+    rv = _bcm_dpp_lif_usage_get(unit, in_lif_id, out_lif_id, &in_lif_usage, &out_lif_usage);
+    BCMDNX_IF_ERR_EXIT(rv);
+    usage = (in_lif_id == _BCM_GPORT_ENCAP_ID_LIF_INVALID) ? out_lif_usage : in_lif_usage;
+
+    if (usage != _bcmDppLifTypeVlan) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("API bcm_petra_port_match_add receive invalid VLAN port type")));
+    }
+
+    /* Call the appropriate Ingress or Egress match add function */
+    if (in_lif_id != _BCM_GPORT_ENCAP_ID_LIF_INVALID) {
+        rv = _bcm_petra_port_match_ingress_add(unit, port, in_lif_id, match);
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    if (out_lif_id != _BCM_GPORT_ENCAP_ID_LIF_INVALID) {
+        rv = _bcm_petra_port_match_egress_add(unit, port, out_lif_id, match);
+        BCMDNX_IF_ERR_EXIT(rv);
+    }    
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int
+_bcm_petra_port_is_original_match(
+    int unit,
+    int lif_id,
+    bcm_vlan_port_t *vlan_port,
+    bcm_port_match_info_t *match,
+    uint8 *is_original_match)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    bcm_vlan_port_t vlan_port_tmp;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    *is_original_match = 1;
+
+    bcm_vlan_port_t_init(&vlan_port_tmp);
+
+    /* There's no original match for Egress only LIFs, since Egress only LIF creation is allowed only without
+       a valid key */
+    if ((SOC_DPP_ENCAP_TYPE_GET(vlan_port->vlan_port_id) == _DPP_ENCAP_ID_LIF_VAL) && SOC_DPP_ENCAP_ID_IS_EGRESS_ONLY(vlan_port->vlan_port_id)) {
+        *is_original_match = 0;
+        BCM_EXIT;
+    }
+
+    rv = _bcm_dpp_in_lif_ac_match_get(unit, &vlan_port_tmp, lif_id);
+    BCMDNX_IF_ERR_EXIT(rv);
+    
+    if (match->flags & BCM_PORT_MATCH_INGRESS_ONLY) {
+        /* Verify match key between vlan port tmp and vlan port */
+        if (vlan_port_tmp.criteria != vlan_port->criteria ||
+            vlan_port_tmp.match_vlan != vlan_port->match_vlan ||
+            vlan_port_tmp.match_inner_vlan != vlan_port->match_inner_vlan ||
+            vlan_port_tmp.match_tunnel_value != vlan_port->match_tunnel_value ||
+            vlan_port_tmp.match_ethertype != vlan_port->match_ethertype ||
+            vlan_port_tmp.match_pcp != vlan_port->match_pcp ||
+            vlan_port_tmp.port != vlan_port->port) {
+            *is_original_match = 0;
+        }
+    }
+
+    if (match->flags & BCM_PORT_MATCH_EGRESS_ONLY) {
+        /* Verify match key between vlan port tmp and vlan port */
+        if (vlan_port_tmp.vsi != vlan_port->vsi ||
+            vlan_port_tmp.match_inner_vlan != vlan_port->match_inner_vlan ||
+            vlan_port_tmp.port != vlan_port->port) {
+            *is_original_match = 0;
+        }
+    }
+
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      _bcm_petra_port_match_ingress_delete
+ * Purpose:
+ *      Remove an Ingress match from an existing port
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      port - (IN) Port or gport
+ *      lif_id - (IN) Logical Interface ID 
+ *      match - (IN) Match criteria
+ * Returns:
+ *      BCM_E_xxx
+ * Notes: 
+ *      Removal of the original match (original i.e. from bcm_petra_vlan_port_create)
+ *      is not currently supported.
+ */
+
+int 
+_bcm_petra_port_match_ingress_delete(
+    int unit, 
+    bcm_gport_t port,
+    int lif_id,
+    bcm_port_match_info_t *match)
+{
+    SOC_PPD_L2_LIF_AC_KEY  in_ac_key;
+    SOC_PPD_L2_LIF_AC_INFO ac_info;
+    unsigned int soc_sand_dev_id;
+    SOC_PPD_LIF_ID lif_id_tmp;
+    uint32 soc_sand_rv;
+    uint8 found;
+    bcm_error_t rv;
+    bcm_vlan_port_t vlan_port;
+    uint8 is_original_match;
+
+    BCMDNX_INIT_FUNC_DEFS;
+
+    soc_sand_dev_id = (unit);
+
+    rv = _bcm_petra_port_convert_match_to_vlan_port(unit, port, match, &vlan_port);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+
+
+    rv = _bcm_dpp_gport_fill_ac_key(unit, &vlan_port, BCM_GPORT_VLAN_PORT, &in_ac_key);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* look up existing entry */
+    soc_sand_rv = soc_ppd_l2_lif_ac_get(soc_sand_dev_id, &in_ac_key, &lif_id_tmp, &ac_info, &found);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+    if (!found) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("match does not exist")));
+    }    
+
+
+    /* 
+     * Verify if this match is similiar to original SW DB match for this VLAN port
+     */ 
+    rv = _bcm_petra_port_is_original_match(unit, lif_id, &vlan_port, match, &is_original_match);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if (is_original_match) {
+        /* Clean original match SW DB */
+        /* Will be supported in a later stage */
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("currently API does not support original match removal")));  
+    }
+
+
+    /* Remove this match entry without removing LIF */    
+    /* NULL indicates do not remove also LIF */
+    soc_sand_rv = soc_ppd_l2_lif_ac_remove(soc_sand_dev_id, &in_ac_key, NULL);
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+    
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+
+/*
+ * Function:
+ *      _bcm_petra_port_match_egress_delete
+ * Purpose:
+ *      Remove an Egress match from an existing port
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      port - (IN) Port or gport
+ *      lif_id - (IN) Logical Interface ID 
+ *      match - (IN) Match criteria
+ * Returns:
+ *      BCM_E_xxx
+ * Notes: 
+ *      Removal of the original match (original i.e. from bcm_petra_vlan_port_create)
+ *      is not currently supported.
+ */
+
+int 
+_bcm_petra_port_match_egress_delete(
+    int unit, 
+    bcm_gport_t port,
+    int lif_id,
+    bcm_port_match_info_t *match)
+{
+    SOC_PPD_EG_AC_VBP_KEY vbp_key;
+    SOC_PPD_EG_AC_CEP_PORT_KEY cep_key;
+    uint8 is_cep_lookup = 1, is_cep = 0;
+    bcm_vlan_port_t vlan_port;
+    SOC_PPD_LIF_ID out_lif_id_tmp;
+    SOC_PPD_EG_AC_INFO eg_ac_info;
+    int core;
+    SOC_PPD_PORT soc_ppd_port_i;
+    SOC_PPD_PORT_INFO port_info;
+    bcm_port_t port_i;
+    uint32 soc_sand_rv = SOC_SAND_OK;
+    bcm_error_t rv;
+    uint8 found;
+    uint8 is_original_match;
+    _bcm_dpp_gport_info_t gport_info;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    SOC_PPD_EG_AC_CEP_PORT_KEY_clear(&cep_key);
+    SOC_PPD_EG_AC_VBP_KEY_clear(&vbp_key);
+
+    rv = _bcm_petra_port_convert_match_to_vlan_port(unit, port, match, &vlan_port);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* 
+     * In case match is only PORT (and VSI is invalid) then Set Default-Port-Out-AC
+     */
+    if (vlan_port.criteria == BCM_VLAN_PORT_MATCH_PORT && vlan_port.vsi == BCM_VLAN_ALL) {
+        BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, vlan_port.port, 0, &gport_info)); 
+
+        BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+            BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+                        
+            soc_sand_rv = soc_ppd_port_info_get(unit, core, soc_ppd_port_i, &port_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        
+            out_lif_id_tmp = port_info.dflt_egress_ac;                 
+
+            if (!out_lif_id_tmp) {
+              BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("match does not exist")));
+            }
+        }
+    } else {
+      rv = _bcm_dpp_gport_fill_out_ac_key(unit, &vlan_port, &is_cep, &vbp_key, &cep_key);
+      BCMDNX_IF_ERR_EXIT(rv);
+
+      /* CEP lookup is done in case port is CEP and match is untagged (PORT) */
+      is_cep_lookup = (is_cep) && (match->match != BCM_PORT_MATCH_PORT) && (match->match != BCM_PORT_MATCH_PORT_INITIAL_VLAN);
+
+      /* Get out ac id */
+      if (!is_cep_lookup) {
+          soc_sand_rv = soc_ppd_eg_ac_port_vsi_info_get(unit, &vbp_key, &out_lif_id_tmp, &eg_ac_info, &found);               
+      } else {
+          soc_sand_rv = soc_ppd_eg_ac_port_cvid_info_get(unit, &cep_key, &out_lif_id_tmp, &eg_ac_info, &found);                
+      }
+      BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+      if (!found) {
+          BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("match does not exist")));
+      }
+    }
+
+    /* 
+     * Verify if this match is similiar to original SW DB match for this VLAN port
+     */ 
+    rv = _bcm_petra_port_is_original_match(unit, lif_id, &vlan_port, match, &is_original_match);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if (is_original_match) {
+        /* Clean original match SW DB */
+        /* Will be supported in a later stage */
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("currently API does not support original match removal")));  
+    }
+
+    if (vlan_port.criteria == BCM_VLAN_PORT_MATCH_PORT && vlan_port.vsi == BCM_VLAN_ALL) {
+        /* Return to default SDK egress AC */
+        BCM_PBMP_ITER(gport_info.pbmp_local_ports, port_i) {
+            BCMDNX_IF_ERR_EXIT(MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_local_to_pp_port_get, (unit, port_i, &soc_ppd_port_i, &core)));
+
+            port_info.dflt_egress_ac = 0;
+            soc_sand_rv = soc_ppd_port_info_set(unit, core, soc_ppd_port_i, &port_info);
+            BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+        }
+    } else {
+        if (!is_cep_lookup) {
+            soc_sand_rv = soc_ppd_eg_ac_port_vsi_info_remove(unit, &vbp_key, &out_lif_id_tmp);               
+        } else {
+            soc_sand_rv = soc_ppd_eg_ac_port_cvid_info_remove(unit, &cep_key, &out_lif_id_tmp);                
+        }
+    }
+   
+    BCM_SAND_IF_ERR_EXIT(soc_sand_rv);
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_match_delete
+ * Purpose:
+ *      Remove a match from an existing port
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      port - (IN) Port or gport
+ *      match - (IN) Match criteria
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+bcm_petra_port_match_delete(
+    int unit, 
+    bcm_gport_t port, 
+    bcm_port_match_info_t *match)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    _bcm_lif_type_e usage, out_lif_usage, in_lif_usage;
+    int global_lif_id, in_lif_id, out_lif_id;
+    int is_local;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    rv = _bcm_petra_port_match_verify(unit, port, match);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    /* Get the LIF - InLIF or OutLIF */
+    rv = _bcm_dpp_gport_to_global_and_local_lif(unit, port, &global_lif_id, &in_lif_id, &out_lif_id, NULL ,&is_local);
+    BCMDNX_IF_ERR_EXIT(rv);
+
+    if (!is_local) {
+        BCM_EXIT;
+    }
+
+    /* The flags are either INGRESS_ONLY or EGRESS_ONLY */
+    if (match->flags & BCM_PORT_MATCH_INGRESS_ONLY) {
+        out_lif_id = _BCM_GPORT_ENCAP_ID_LIF_INVALID;
+    } else {
+        in_lif_id = _BCM_GPORT_ENCAP_ID_LIF_INVALID;
+    }
+    if ((in_lif_id == _BCM_GPORT_ENCAP_ID_LIF_INVALID) && (out_lif_id == _BCM_GPORT_ENCAP_ID_LIF_INVALID)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("API bcm_petra_port_match_delete received invalid VLAN port")));
+    }
+
+    /* Verify the type is VLAN for the relevant LIF */
+    rv = _bcm_dpp_lif_usage_get(unit, in_lif_id, out_lif_id, &in_lif_usage, &out_lif_usage);
+    BCMDNX_IF_ERR_EXIT(rv);
+    usage = (in_lif_id == _BCM_GPORT_ENCAP_ID_LIF_INVALID) ? out_lif_usage : in_lif_usage;
+
+    if (usage != _bcmDppLifTypeVlan) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_NOT_FOUND, (_BSL_BCM_MSG("API bcm_petra_port_match_delete received invalid VLAN port type")));
+    }
+
+    /* Call the appropriate Ingress or Egress match delete function */
+    if (in_lif_id != _BCM_GPORT_ENCAP_ID_LIF_INVALID) {
+        rv = _bcm_petra_port_match_ingress_delete(unit, port, in_lif_id, match);
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    if (out_lif_id != _BCM_GPORT_ENCAP_ID_LIF_INVALID) {
+        rv = _bcm_petra_port_match_egress_delete(unit, port, out_lif_id, match);
+        BCMDNX_IF_ERR_EXIT(rv);
+    }    
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_match_replace
+ * Purpose:
+ *      Replace an old match with a new one for an existing port
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      port - (IN) Port or gport
+ *      old_match - (IN) Old match criteria
+ *      new_match - (IN) New match criteria
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+bcm_petra_port_match_replace(
+    int unit, 
+    bcm_gport_t port, 
+    bcm_port_match_info_t *old_match, 
+    bcm_port_match_info_t *new_match)
+{
+    bcm_error_t rv = BCM_E_NONE;
+    BCMDNX_INIT_FUNC_DEFS;
+
+    if (new_match != NULL) {
+        rv = bcm_petra_port_match_add(unit, port, new_match);
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+    if (old_match != NULL) {
+        rv = bcm_petra_port_match_delete(unit, port, old_match);
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_match_multi_get
+ * Purpose:
+ *      Get all the matches for an existing port
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      port - (IN) Port or gport
+ *      size - (IN) Number of elements in match array
+ *      match_array - (OUT) Match array
+ *      count - (OUT) Match count
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+bcm_petra_port_match_multi_get(
+    int unit, 
+    bcm_gport_t port, 
+    int size, 
+    bcm_port_match_info_t *match_array, 
+    int *count)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_petra_port_match_multi_get not supported ")));
+
+exit:
+    BCMDNX_FUNC_RETURN;    
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_match_set
+ * Purpose:
+ *      Assign a set of matches to an existing port
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      port - (IN) Port or gport
+ *      size - (IN) Number of elements in match array
+ *      match_array - (IN) Match array
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+/* Generic port match attribute structure */
+int 
+bcm_petra_port_match_set(
+    int unit, 
+    bcm_gport_t port, 
+    int size, 
+    bcm_port_match_info_t *match_array)
+{
+    int i;
+    bcm_error_t rv = BCM_E_NONE;
+
+    BCMDNX_INIT_FUNC_DEFS;
+    
+    if (size <= 0) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("size must be higher than 0 ")));
+    }
+
+    if (match_array == NULL) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("match_array is invalid")));
+    }
+
+    /* Add every single match */
+    for (i = 0; i < size; i++) {
+        rv = bcm_petra_port_match_add(unit, port, match_array + i);
+        BCMDNX_IF_ERR_EXIT(rv);
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;      
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_match_delete_all
+ * Purpose:
+ *      Delete all matches for an existing port
+ * Parameters:
+ *      unit - (IN) Unit number.
+ *      port - (IN) Port or gport
+ * Returns:
+ *      BCM_E_xxx
+ * Notes:
+ */
+int 
+bcm_petra_port_match_delete_all(
+    int unit, 
+    bcm_gport_t port)
+{
+    BCMDNX_INIT_FUNC_DEFS;
+
+    BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_petra_port_match_delete_all not supported ")));
+
+exit:
+    BCMDNX_FUNC_RETURN;  
+}
+
+/*
+ * init acceptable frame type buffer 
+ * 
+ */
+ int _bcm_dpp_port_tpid_class_acceptable_frame_type_info_t_clear(int unit, _bcm_dpp_port_tpid_class_acceptable_frame_type_info_t *tpid_class_acceptable_frame_info) {
+  BCMDNX_INIT_FUNC_DEFS;
+  BCMDNX_NULL_CHECK(tpid_class_acceptable_frame_info);
+  sal_memset(tpid_class_acceptable_frame_info, 0x0, sizeof(_bcm_dpp_port_tpid_class_acceptable_frame_type_info_t));
+
+exit:
+    BCMDNX_FUNC_RETURN; 
+ }
+
+
+/* 
+ * convert _bcm_dpp_port_tpid_class_info_t to _bcm_dpp_port_tpid_class_acceptable_frame_type_info_t
+ */
+void _bcm_dpp_port_tpid_class_info_t_to_bcm_dpp_port_tpid_class_acceptable_frame_type_info_t(
+   int unit, 
+   _bcm_dpp_port_tpid_class_info_t *tpid_class_info, 
+   _bcm_dpp_port_tpid_class_acceptable_frame_type_info_t *tpid_class_acceptable_frame_info) 
+{
+    int tag_structure_id;
+    uint32 acceptable_frame_bit;
+    uint32 buffer_lcl[1];
+
+    /* get "acceptable frame" from "tpid class info" for each tag structure (32) and set it in "tpid class acceptable frame info" */
+
+    /* get SOC_PPD_NOF_LLP_PARSE_TPID_INDEXS*SOC_PPD_NOF_LLP_PARSE_TPID_INDEXS*2 = 32 */
+    for(tag_structure_id = 0; tag_structure_id < SOC_PPD_NOF_LLP_PARSE_TPID_INDEXS*SOC_PPD_NOF_LLP_PARSE_TPID_INDEXS*2; tag_structure_id++) {
+        /* get the acceptable frame info bit for tag structure id*/
+        acceptable_frame_bit = SHR_BITGET(tpid_class_info->buff, tag_structure_id * _BCM_DPP_PORT_TPID_CLASS_INFO_BUF_NOF_U32 + 11);  
+        if (acceptable_frame_bit) {
+            /* update accpetable frame for tag structure */
+            *buffer_lcl = tpid_class_acceptable_frame_info->buffer;
+            SHR_BITSET(buffer_lcl, tag_structure_id);
+            tpid_class_acceptable_frame_info->buffer = *buffer_lcl;
+        }
+    }
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_extender_mapping_info_set
+ * Purpose:
+ *      Configure port extender mapping from different inputs to Local pp port
+ * Parameters:
+ *      unit - (IN) unit number.
+ *      flags - (IN) BCM_PORT_EXTENDER_MAPPING_XXXX
+ *      type - (IN) type of mapping info
+ *      mapping_info - (IN) mapping info (PON port+tunnel id/VLAN/user define value)
+ * Returns:
+ *      BCM_E_NONE - success (or already initialized)
+ *      BCM_E_INTERNAL- failed to write internal tables entries
+ *      BCM_E_UNAVAIL - feature unavaliable
+ * Notes:
+ */
+int bcm_petra_port_extender_mapping_info_set(
+    int unit, 
+    uint32 flags, 
+    bcm_port_extender_mapping_type_t type, 
+    bcm_port_extender_mapping_info_t *mapping_info)
+{
+    int rv = 0;
+    _bcm_dpp_gport_info_t gport_info;
+    SOC_TMC_PORTS_APPLICATION_MAPPING_INFO info;
+    
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+    BCMDNX_NULL_CHECK(mapping_info);
+
+    if (SOC_IS_PETRAB(unit)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_port_extender_mapping_info_set is not supported in Petra-B")));
+    }
+
+    if (flags & BCM_PORT_EXTENDER_MAPPING_INGRESS) {
+        switch(type) {
+            case bcmPortExtenderMappingTypePonTunnel:
+                rv = bcm_petra_port_pon_tunnel_map_set(unit, mapping_info->phy_port, mapping_info->tunnel_id, mapping_info->pp_port);
+                break;
+        
+            case bcmPortExtenderMappingTypePortVlan:
+                BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, mapping_info->phy_port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+                info.type = SOC_TMC_PORTS_APPLICATION_MAPPING_TYPE_PP_PORT_EXTENDER;
+                info.value.pp_port_ext.index = mapping_info->vlan;
+
+                rv = (MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_ports_application_mapping_info_get, (unit, gport_info.local_port, &info)));
+                BCMDNX_IF_ERR_EXIT(rv);
+        
+                info.value.pp_port_ext.pp_port = mapping_info->pp_port;
+                rv = (MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_ports_application_mapping_info_set, (unit, gport_info.local_port, &info)));
+                BCMDNX_IF_ERR_EXIT(rv);
+                break;
+        
+            case bcmPortExtenderMappingTypeUserDefineValue:                
+                BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, mapping_info->phy_port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+                info.type = SOC_TMC_PORTS_APPLICATION_MAPPING_TYPE_PP_PORT_EXTENDER;
+                info.value.pp_port_ext.index = mapping_info->user_define_value;
+                rv = (MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_ports_application_mapping_info_get, (unit, gport_info.local_port, &info)));
+                BCMDNX_IF_ERR_EXIT(rv);
+
+                info.value.pp_port_ext.pp_port = mapping_info->pp_port;
+                rv = (MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_ports_application_mapping_info_set, (unit, gport_info.local_port, &info)));
+                BCMDNX_IF_ERR_EXIT(rv);
+                break;
+                
+            default:
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("type of mapping_info is not supported.\n")));
+                break;
+        }
+    }
+
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+/*
+ * Function:
+ *      bcm_petra_port_extender_mapping_info_get
+ * Purpose:
+ *      Get port extender mapping info (Local pp port) from inputs
+ * Parameters:
+ *      unit - (IN) unit number.
+ *      flags - (IN) BCM_PORT_EXTENDER_MAPPING_XXXX
+ *      type - (IN) type of mapping info
+ *      mapping_info - (INOUT) mapping info (PON port+tunnel id/VLAN/user define value)
+ * Returns:
+ *      BCM_E_NONE - success (or already initialized)
+ *      BCM_E_INTERNAL- failed to write internal tables entries
+ *      BCM_E_UNAVAIL - feature unavaliable
+ * Notes:
+ */
+int bcm_petra_port_extender_mapping_info_get(
+    int unit, 
+    uint32 flags, 
+    bcm_port_extender_mapping_type_t type, 
+    bcm_port_extender_mapping_info_t *mapping_info)
+{
+    int rv = 0;
+    _bcm_dpp_gport_info_t gport_info;
+    SOC_TMC_PORTS_APPLICATION_MAPPING_INFO info;
+    
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+    BCMDNX_NULL_CHECK(mapping_info);
+
+    if (SOC_IS_PETRAB(unit)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_port_extender_mapping_info_get is not supported in Petra-B")));
+    }
+
+    if (flags & BCM_PORT_EXTENDER_MAPPING_INGRESS) {
+        switch(type) {
+            case bcmPortExtenderMappingTypePonTunnel:
+                rv = bcm_petra_port_pon_tunnel_map_get(unit, mapping_info->phy_port, mapping_info->tunnel_id, &mapping_info->pp_port);
+                break;
+
+            case bcmPortExtenderMappingTypePortVlan:
+                BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, mapping_info->phy_port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+                info.type = SOC_TMC_PORTS_APPLICATION_MAPPING_TYPE_PP_PORT_EXTENDER;
+                info.value.pp_port_ext.index = mapping_info->vlan;
+                rv = (MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_ports_application_mapping_info_get, (unit, gport_info.local_port, &info)));
+                BCMDNX_IF_ERR_EXIT(rv);
+
+                mapping_info->pp_port = info.value.pp_port_ext.pp_port;
+                break;
+
+            case bcmPortExtenderMappingTypeUserDefineValue:
+                BCMDNX_IF_ERR_EXIT(_bcm_dpp_gport_to_phy_port(unit, mapping_info->phy_port, _BCM_DPP_GPORT_TO_PHY_OP_LOCAL_IS_MANDATORY, &gport_info)); 
+
+                info.type = SOC_TMC_PORTS_APPLICATION_MAPPING_TYPE_PP_PORT_EXTENDER;
+                info.value.pp_port_ext.index = mapping_info->user_define_value;
+                rv = (MBCM_DPP_DRIVER_CALL(unit, mbcm_dpp_ports_application_mapping_info_get, (unit, gport_info.local_port, &info)));
+                BCMDNX_IF_ERR_EXIT(rv);
+
+                mapping_info->pp_port = info.value.pp_port_ext.pp_port;
+                break;
+                
+            default:
+                BCMDNX_ERR_EXIT_MSG(BCM_E_PARAM, (_BSL_BCM_MSG("type of mapping_info is not supported.\n")));
+                break;
+        }
+    }
+    
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+int bcm_petra_port_wide_data_set(
+    int unit, 
+    bcm_gport_t gport, 
+    uint32 flags, 
+    uint64 data)
+{
+    int soc_rc, lif_id, rv;
+    int map_flags;
+    uint8 is_ingress = FALSE;
+    
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    if (!SOC_IS_JERICHO(unit)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_port_wide_data_set is not supported in this device")));
+    }
+
+    is_ingress = (flags & BCM_PORT_WIDE_DATA_INGRESS ) ? TRUE : FALSE ; 
+    map_flags =  (flags & BCM_PORT_WIDE_DATA_INGRESS ) ? _BCM_DPP_GLOBAL_LIF_MAPPING_INGRESS : _BCM_DPP_GLOBAL_LIF_MAPPING_EGRESS ; 
+ 
+    /*Gport is Global LIF - map to local LIF */
+    rv = _bcm_dpp_global_lif_mapping_global_to_local_get(unit, map_flags , gport, &lif_id);
+    BCMDNX_IF_ERR_EXIT(rv);
+    
+    /*Call the SOC API for writing the additional data*/
+    soc_rc = (MBCM_PP_DRIVER_CALL(unit,mbcm_pp_lif_additional_data_set,(unit,lif_id, is_ingress, data)));
+    BCMDNX_IF_ERR_EXIT(soc_rc); 
+        
+exit:
+    BCMDNX_FUNC_RETURN;
+ 
+}
+
+/* Get additional data for a wide LIF. */
+int bcm_petra_port_wide_data_get(
+    int unit, 
+    bcm_gport_t gport, 
+    uint32 flags, 
+    uint64 *data)
+{
+    int soc_rc, lif_id, rv;
+    int map_flags;
+    uint8 is_ingress = FALSE;
+    
+    BCMDNX_INIT_FUNC_DEFS;
+    BCM_DPP_UNIT_CHECK(unit);
+    _BCM_DPP_SWITCH_API_START(unit);
+
+    if (!SOC_IS_JERICHO(unit)) {
+        BCMDNX_ERR_EXIT_MSG(BCM_E_UNAVAIL, (_BSL_BCM_MSG("bcm_port_wide_data_set is not supported in this device")));
+    }
+
+    is_ingress = (flags & BCM_PORT_WIDE_DATA_INGRESS ) ? TRUE : FALSE ; 
+    map_flags =  (flags & BCM_PORT_WIDE_DATA_INGRESS ) ? _BCM_DPP_GLOBAL_LIF_MAPPING_INGRESS : _BCM_DPP_GLOBAL_LIF_MAPPING_EGRESS ; 
+ 
+    /*Gport is Global LIF - map to local LIF */
+    rv = _bcm_dpp_global_lif_mapping_global_to_local_get(unit, map_flags , gport, &lif_id);
+    BCMDNX_IF_ERR_EXIT(rv);
+    
+    /*Call the SOC API for reading the additional data*/
+    soc_rc = (MBCM_PP_DRIVER_CALL(unit,mbcm_pp_lif_additional_data_get,(unit,lif_id, is_ingress, data)));
+    BCMDNX_IF_ERR_EXIT(soc_rc); 
+        
+exit:
+    BCMDNX_FUNC_RETURN;
+}
+
+#undef _ERR_MSG_MODULE_NAME
+

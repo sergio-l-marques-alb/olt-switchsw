@@ -1,0 +1,7772 @@
+/*
+ *         
+ * $Id: furia_cfg_seq.c 2014/04/02 palanivk Exp $
+ * 
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$ 
+ *         
+ *     
+ *
+ */
+
+/* 
+ * Includes
+ */
+#include <phymod/phymod.h>
+#include <phymod/phymod_diagnostics.h>
+/* Implementation of the interface defined here */
+#include "falcon_furia_src/falcon_furia_internal.h"
+#include "falcon_furia_src/falcon_furia_functions.h"
+#include "furia_cfg_seq.h"
+#include "furia_reg_access.h"
+#include "furia_address_defines.h"
+/*
+ *  Defines
+ */
+#define PHYMOD_INTERFACE_SIDE_SHIFT        31
+
+/* 
+ *  Types
+ */
+
+/*
+ *  Macros
+ */
+/*
+ *  Global Variables
+ */
+
+/*
+ *  Functions
+ */
+int _furia_get_ref_clock_freq_in_mhz(FURIA_REF_CLK_E ref_clk_freq);
+STATIC int _furia_get_pll_divider(FALCON_PLL_MODE_E pll_mode);
+STATIC uint16_t _furia_get_link_type(phymod_interface_t intf, uint32_t speed);
+STATIC uint16_t _furia_get_phy_type(phymod_interface_t intf, uint32_t higig_mode);
+STATIC int _furia_config_clk_scaler_val(const phymod_access_t *pa, FURIA_REF_CLK_E ref_clk_freq);
+STATIC int _furia_phymod_to_furia_type_ref_clk_freq(phymod_ref_clk_t ref_clk, FURIA_REF_CLK_E *ref_clk_freq);
+STATIC int _furia_get_pll_mode(phymod_ref_clk_t ref_clk, uint32_t speed, uint32_t higig, FALCON_PLL_MODE_E *pll_mode);
+STATIC int furia_get_pkg_idx(uint32_t chip_id, int *pkg_idx);
+STATIC int _furia_config_clk_scaler_without_m0_reset(const phymod_access_t *pa, FURIA_REF_CLK_E ref_clk_freq);
+STATIC int _furia_get_pkg_lane(uint32_t phy_id, uint32_t chip_id, uint32_t die_lane, uint32_t lane_index, uint32_t *pkg_lane);
+int _furia_fw_enable(const phymod_access_t* pa);
+STATIC int _furia_cfg_an_master_lane_get(const phymod_access_t *pa, uint32_t *an_master_lane) ;
+STATIC int _furia_set_intf_type(const phymod_access_t *pa, uint32_t phymod_interface_type, int lane_index);
+STATIC int _furia_set_module_command(const phymod_access_t *pa, uint16_t xfer_addr,
+                               uint32_t slv_addr, unsigned char xfer_cnt, FURIA_I2CM_CMD_E cmd); 
+
+/*
+ * Functions for Manipulating Chip/Port Cfg Descriptors
+ */
+
+/*
+ * Functions for Programming the Chip
+ */
+
+/**   Get Revision ID 
+ *    This function retrieves Revision ID from PHY chip
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *
+ *    @param rev_id            Revision ID retrieved from the chip
+ */
+int furia_rev_id(const phymod_access_t *pa, uint32_t *rev_id) 
+{
+    FUR_MISC_CTRL_CHIP_REVISION_t chip_revision;
+    PHYMOD_MEMSET(&chip_revision, 0 , sizeof(FUR_MISC_CTRL_CHIP_REVISION_t));
+
+    /* Read the chip revision from register */
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MISC_CTRL_chip_revision_Adr,\
+                                &chip_revision.data)); 
+    *rev_id = chip_revision.fields.chip_rev;
+    return PHYMOD_E_NONE;
+}
+
+/**   Get Chip ID 
+ *    This function retrieves Chip ID from PHY chip
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *
+ *    @return chip_id           Chip id retrieved from the chip
+ */
+uint32_t _furia_get_chip_id(const phymod_access_t *pa) 
+{
+    uint32_t chip_id = 0;
+    FUR_MISC_CTRL_CHIP_REVISION_t chip_revision;
+    FUR_MISC_CTRL_CHIP_ID_t chip_id_t;
+    PHYMOD_MEMSET(&chip_revision, 0 , sizeof(FUR_MISC_CTRL_CHIP_REVISION_t));
+    PHYMOD_MEMSET(&chip_id_t, 0 , sizeof(FUR_MISC_CTRL_CHIP_ID_t));
+    
+    /* Read upper bits of chip id */ 
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MISC_CTRL_chip_revision_Adr,\
+                                &chip_revision.data)); 
+    chip_id = chip_revision.fields.chip_id_19_16;
+    /* Read lower 16 bits of chip id */
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MISC_CTRL_chip_id_Adr,\
+                                &chip_id_t.data)); 
+    chip_id = ( (chip_id << 16) | 
+                 (chip_id_t.fields.chip_id_15_0));
+    return(chip_id);
+}
+
+
+/**   Reset Chip 
+ *    This function is used to reset entire chip 
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int _furia_chip_reset (const phymod_access_t *pa) 
+{
+    FUR_GEN_CNTRLS_GEN_CONTROL1_t gen_cntrl1;
+    PHYMOD_MEMSET(&gen_cntrl1, 0 , sizeof(FUR_GEN_CNTRLS_GEN_CONTROL1_t));
+   
+    /* Read General control1 Reg */ 
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+         FUR_GEN_CNTRLS_gen_control1_Adr,\
+         &gen_cntrl1.data));
+
+    /* update bit field for hard reset */
+    gen_cntrl1.fields.resetb = 0;
+
+    /* Write to General control1 Reg */
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+         FUR_GEN_CNTRLS_gen_control1_Adr,\
+         gen_cntrl1.data));
+    return PHYMOD_E_NONE;
+}	
+	
+/**   Reset Register 
+ *    This function is used to perform register reset 
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int _furia_register_rst (const phymod_access_t *pa) 
+{
+    FUR_GEN_CNTRLS_GEN_CONTROL1_t gen_cntrl1;
+    PHYMOD_MEMSET(&gen_cntrl1, 0 , sizeof(FUR_GEN_CNTRLS_GEN_CONTROL1_t));
+
+    /* Read General control1 Reg */
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_GEN_CNTRLS_gen_control1_Adr,\
+                                &gen_cntrl1.data));
+
+    /* Update bit field for register reset */ 
+    gen_cntrl1.fields.reg_rstb = 0;
+
+    /* Write to General control1 Reg */
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_GEN_CNTRLS_gen_control1_Adr,\
+                                 gen_cntrl1.data));
+    return PHYMOD_E_NONE;
+}
+
+/**   Configure PRBS generator 
+ *    This function is used to configure PRBS generator with user provided
+ *    polynomial and invert data information 
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param flags              Flags for prbs
+ *    @param prbs_mode          User specified polynomial
+ *                              0 - PRBS7
+ *                              1 - PRBS9
+ *                              2 - PRBS11    
+ *                              3 - PRBS15
+ *                              4 - PRBS23
+ *                              5 - PRBS31
+ *                              6 - PRBS58
+ * 
+ *    @param prbs_inv           User specified invert data config
+ *                              0 - do not invert PRBS data  
+ *                              1 - invert PRBS data  
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_prbs_config_set(const phymod_access_t *pa,
+                        uint32_t flags,
+                        enum srds_prbs_polynomial_enum prbs_mode,
+                        uint32_t prbs_inv)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+     
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = FURIA_IF_BCAST_SET(chip_id, lane_map) ? BROADCAST : pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else { 
+                sys_en = pkg_ln_des->sideB;
+            }
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+            if (FURIA_IF_TX_SIDE(chip_id, pkg_side)) {
+                if((flags == 0) || (flags == PHYMOD_PRBS_DIRECTION_TX)){
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_config_tx_prbs(pa, prbs_mode, (uint8_t)prbs_inv)); 
+                }
+            } 
+
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                if((flags == 0) || (flags == PHYMOD_PRBS_DIRECTION_RX)) {
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_config_rx_prbs(pa, prbs_mode, PRBS_INITIAL_SEED_HYSTERESIS, (uint8_t)prbs_inv)); 
+                }
+            }
+            if (FURIA_IF_BCAST_SET(chip_id, lane_map)) {
+                    break;
+            }
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;  
+}
+
+/**   Get PRBS generator configuration 
+ *    This function is used to retrieve PRBS generator configuration from 
+ *    the chip 
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param flags              Flags for prbs
+ *    @param prbs_mode          Configured Polynomial retrieved from chip 
+ *    @param prbs_inv           Configured invert data retrieved from chip
+ *                              0 - do not invert PRBS data  
+ *                              1 - invert PRBS data  
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_prbs_config_get(const phymod_access_t *pa,
+                        uint32_t flags,
+                        enum srds_prbs_polynomial_enum *prbs_mode,
+                        uint32_t *prbs_inv)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t chip_id = 0;
+    uint32_t acc_flags = 0;
+    uint8_t prbs_invert = 0;
+    enum srds_prbs_checker_mode_enum prbs_checker_mode = 0; 
+    *prbs_inv = 0;
+    *prbs_mode = 0; 
+
+    /* Get the lane map from phymod access */ 
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Get lane descriptor from package lane */
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            /* Get sys_en, wr_lane, rd_lane using lane descriptor */
+            if (pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA; 
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            } 
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            if (FURIA_IF_TX_SIDE(chip_id, pkg_side)) {
+                if((flags == 0) || (flags == PHYMOD_PRBS_DIRECTION_TX)){
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_get_tx_prbs_config(pa, prbs_mode, &prbs_invert));
+                    *prbs_inv = prbs_invert;
+                }
+            }
+
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                if((flags == 0) || (flags == PHYMOD_PRBS_DIRECTION_RX)) {
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_get_rx_prbs_config(pa, prbs_mode, &prbs_checker_mode, &prbs_invert));
+                    *prbs_inv = prbs_invert;
+                }
+            } 
+            break;
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;  
+}
+
+
+/**   Get PRBS lock and error status 
+ *    This function is used to retrieve PRBS lock, loss of lock and error counts
+ *    from the chip 
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param lock_status        PRBS lock status denotes PRBS generator and 
+ *                              checker are locked to same polynomial data
+ *    @param lock_loss          Loss of lock denotes PRBS generator and checker
+ *                              are not in sync   
+ *    @param error_count        PRBS error count retrieved from chip
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_prbs_status_get(const phymod_access_t *pa,
+                                uint32_t *lock_status,
+                                uint32_t *lock_loss,
+                                uint32_t *error_count)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0; 
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0; 
+    uint32_t acc_flags = 0;
+    uint8_t chk_lock = 0;  
+    uint8_t loss_of_lock = 0;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    uint32_t per_lane_err_count = 0;
+    *lock_status = 1;
+    *lock_loss = 1;
+    *error_count = 0;
+    
+     
+
+    /* Get the lane map from phymod access */ 
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            /* Get sys_en, wr_lane, rd_lane using lane descriptor */
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+         
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+            
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                PHYMOD_IF_ERR_RETURN(falcon_furia_prbs_chk_lock_state(pa, &chk_lock));
+                *lock_status &= chk_lock;
+                PHYMOD_IF_ERR_RETURN(falcon_furia_prbs_err_count_state(pa, &per_lane_err_count, &loss_of_lock));
+                *error_count |= per_lane_err_count;
+                *lock_loss &= loss_of_lock;
+            } 
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+/**   Enable PRBS generator and PRBS checker 
+ *    This function is used to enable or disable PRBS generator and PRBS checker
+ *    as requested by the user  
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param flags              Flags for prbs
+ *    @param enable              Enable or disable as specified by the user
+ *                              1 - Enable
+ *                              0 - Disable 
+ * 
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_prbs_enable_set(const phymod_access_t *pa, uint32_t flags, uint32_t enable)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint8_t ena_dis = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    TLB_RX_PRBS_CHK_CONFIG_t prbs_chk_config;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    uint32_t acc_flags = 0; 
+    PHYMOD_MEMSET(&prbs_chk_config, 0 , sizeof(TLB_RX_PRBS_CHK_CONFIG_t));
+    
+    ena_dis = enable ? 1 : 0;
+
+
+ 
+    /* Get the lane map from phymod access */ 
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            /* Get sys_en, wr_lane, rd_lane using lane descriptor */
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+       
+           
+            wr_lane = FURIA_IF_BCAST_SET(chip_id, lane_map) ? BROADCAST : pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                if((flags == 0) || (flags == PHYMOD_PRBS_DIRECTION_RX)) {
+                    if(enable) {
+                        /* Read PRBS Checker Control Register */
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TLB_RX_prbs_chk_config_Adr,\
+                                                    &prbs_chk_config.data));
+
+                        /* Update the field PRBS checker clock enable. */
+                        prbs_chk_config.fields.prbs_chk_clk_en_frc_on = 1;
+
+                        /* Write to PRBS Checker Control Register */
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TLB_RX_prbs_chk_config_Adr,\
+                                                     prbs_chk_config.data));
+                    }
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_rx_prbs_en(pa, ena_dis));
+ 
+                    if(!enable) {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TLB_RX_prbs_chk_config_Adr,\
+                                                    &prbs_chk_config.data));
+
+                        /* Update the field PRBS checker clock enable. */
+                        prbs_chk_config.fields.prbs_chk_clk_en_frc_on = 0;
+
+                        /* Write to PRBS Checker Control Register */
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TLB_RX_prbs_chk_config_Adr,\
+                                                     prbs_chk_config.data));
+                    }
+                }
+            }
+
+            if (FURIA_IF_TX_SIDE(chip_id, pkg_side)) {
+                if((flags == 0) || (flags == PHYMOD_PRBS_DIRECTION_TX)) {
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_tx_prbs_en(pa, ena_dis));
+                }
+            }
+            if(FURIA_IF_BCAST_SET(chip_id, lane_map)) {
+                break;
+            } 
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+/**   Get Enable status of PRBS generator and PRBS checker 
+ *    This function is used to retrieve the enable status of PRBS generator and
+ *    PRBS checker
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param flags              Flags for prbs
+ *    @param enable              Enable or disable read from chip 
+ *                              1 - Enable
+ *                              0 - Disable 
+ * 
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_prbs_enable_get(const phymod_access_t *pa, uint32_t flags, uint32_t *enable)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint8_t gen_en = 0;
+    uint8_t chk_en = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    gen_en = 0;
+    chk_en = 0; 
+    *enable = 0; 
+    /* Get the lane map from phymod access */ 
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Get lane descriptor from package lane */
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+        
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            if (FURIA_IF_TX_SIDE(chip_id, pkg_side)) {
+                if((flags == 0) || (flags == PHYMOD_PRBS_DIRECTION_TX)) {
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_get_tx_prbs_en(pa, &gen_en));
+                    *enable = gen_en;
+                }
+            }
+
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                if((flags == 0) || (flags == PHYMOD_PRBS_DIRECTION_RX)) {
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_get_rx_prbs_en(pa, &chk_en));
+                    *enable = chk_en;
+                }
+            } 
+            break;
+        }
+    }
+    /* Set the slice register to default */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    if(flags == 0) {
+        if(gen_en && chk_en) {
+            *enable = 1;
+        } else {
+            *enable = 0;
+        }
+    }
+   
+    return PHYMOD_E_NONE;
+}
+
+/**   Get  link status of PHY 
+ *    This function is used to retrieve the link status of PHY chip
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *
+ *    @param link_status        link status of the PHY 
+ *                              1 - Up 
+ *                              0 - Down 
+ * 
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_link_status(const phymod_access_t *pa,
+                                   uint32_t *link_status) 
+{
+    int lane_map = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0; 
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint8_t rx_pmd_lock = 0;
+    uint32_t fcpcs_lock = 1;
+    uint16_t fcpcs_chkr_mode = 0;
+    int pkg_side = 0;
+    uint32_t acc_flags = 0; 
+    LINE_RX_PMA_DP_MAIN_CTRL_t line_rx_dp_main_ctrl;
+    LINE_RX_PMA_DP_MAIN_CTRL_PCS_MODE_t tmp_main_ctrl_mode;
+    SYS_RX_PMA_DP_MAIN_CTRL_t sys_rx_dp_main_ctrl;
+    LINE_RX_PMA_DP_LIVE_STATUS_FC_MODE_t          line_rx_pma_dp_live_status_fc_mode;
+    LINE_RX_PMA_DP_LIVE_STATUS_PCS_MODE_t         line_rx_pma_dp_live_status_pcs_mode;
+    SYS_RX_PMA_DP_LIVE_STATUS_FC_MODE_t          sys_rx_pma_dp_live_status_fc_mode;
+    SYS_RX_PMA_DP_LIVE_STATUS_PCS_MODE_t         sys_rx_pma_dp_live_status_pcs_mode;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    PHYMOD_MEMSET(&line_rx_dp_main_ctrl, 0 , sizeof(LINE_RX_PMA_DP_MAIN_CTRL_t));
+    PHYMOD_MEMSET(&tmp_main_ctrl_mode, 0 , sizeof(LINE_RX_PMA_DP_MAIN_CTRL_PCS_MODE_t));
+    PHYMOD_MEMSET(&sys_rx_dp_main_ctrl, 0 , sizeof(SYS_RX_PMA_DP_MAIN_CTRL_t));
+    PHYMOD_MEMSET(&line_rx_pma_dp_live_status_fc_mode, 0 , sizeof(LINE_RX_PMA_DP_LIVE_STATUS_FC_MODE_t));
+    PHYMOD_MEMSET(&line_rx_pma_dp_live_status_pcs_mode, 0 , sizeof(LINE_RX_PMA_DP_LIVE_STATUS_PCS_MODE_t));
+    PHYMOD_MEMSET(&sys_rx_pma_dp_live_status_fc_mode, 0 , sizeof(SYS_RX_PMA_DP_LIVE_STATUS_FC_MODE_t));
+    PHYMOD_MEMSET(&sys_rx_pma_dp_live_status_pcs_mode, 0 , sizeof(SYS_RX_PMA_DP_LIVE_STATUS_PCS_MODE_t));
+    
+    *link_status = 1;
+    /* Get the lane map from phymod access */ 
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            /* Get sys_en, wr_lane, rd_lane using lane descriptor */
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else { 
+                sys_en = pkg_ln_des->sideB;
+            }
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                PHYMOD_IF_ERR_RETURN
+                    (falcon_furia_pmd_lock_status(pa, &rx_pmd_lock));
+                if(sys_en == LINE) {
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                &line_rx_dp_main_ctrl.data));
+                    tmp_main_ctrl_mode.data = line_rx_dp_main_ctrl.data; 
+                } else {
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                &sys_rx_dp_main_ctrl.data)); 
+                    tmp_main_ctrl_mode.data = line_rx_dp_main_ctrl.data; 
+                }
+                    
+                if(!tmp_main_ctrl_mode.fields.link_mon_en) {
+                    *link_status &= rx_pmd_lock;
+                } else {
+                    if(sys_en == LINE) {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_live_status_Adr,\
+                                                    &line_rx_pma_dp_live_status_pcs_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_live_status_Adr,\
+                                                    &line_rx_pma_dp_live_status_fc_mode.data));
+                    } else {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_live_status_Adr,\
+                                                    &sys_rx_pma_dp_live_status_pcs_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_live_status_Adr,\
+                                                    &sys_rx_pma_dp_live_status_fc_mode.data));
+                    }
+
+                    if(tmp_main_ctrl_mode.fields.link_mon_mode_frcval == 0x0)                    {
+                        fcpcs_chkr_mode = PCS49_1x10G;
+                    }
+                    if(tmp_main_ctrl_mode.fields.link_mon_mode_frcval == 0x1) {
+                        if(tmp_main_ctrl_mode.fields.mode_50g) {
+                            fcpcs_chkr_mode = PCS82_2x25G;
+                        } else if(tmp_main_ctrl_mode.fields.mode_100g) {
+                            fcpcs_chkr_mode = PCS82_4x25G;
+                        } else {
+                            fcpcs_chkr_mode = PCS82_4x10G;
+                        }
+                    } 
+                    if(tmp_main_ctrl_mode.fields.link_mon_mode_frcval == 0x2) {
+                        fcpcs_chkr_mode = FC4;
+                    }
+                    if(tmp_main_ctrl_mode.fields.link_mon_mode_frcval == 0x3) {
+                        fcpcs_chkr_mode = FC8;
+                    }
+
+                    switch (fcpcs_chkr_mode) {
+                        case PCS49_1x10G :
+                        case PCS82_4x10G :
+                        case FC16 :
+                        case FC32 :
+                        case PCS82_2x25G :
+                        case PCS82_4x25G :
+                            if(sys_en == LINE) {
+                                fcpcs_lock &= line_rx_pma_dp_live_status_pcs_mode.fields.pcs_status;
+                            } else {
+                                fcpcs_lock &= sys_rx_pma_dp_live_status_pcs_mode.fields.pcs_status;
+                            }
+                        break;
+                        case FC4 :
+                        case FC8 :
+                            if(sys_en == LINE) {
+                                fcpcs_lock = line_rx_pma_dp_live_status_fc_mode.fields.wsyn_link_fail;
+                            } else {
+                                fcpcs_lock = sys_rx_pma_dp_live_status_fc_mode.fields.wsyn_link_fail;
+                            }
+                        break;
+                    }
+                    *link_status &= fcpcs_lock;
+                }
+            } 
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+/**   Set config mode 
+ *    This function is used to set the operating mode of the PHY
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param config             Pointer to phy interface config sturcuture 
+ * 
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_set_config_mode(const phymod_access_t *pa,
+                       const phymod_phy_inf_config_t* config)
+{
+    IEEE_AN_BLK0_AN_CONTROL_REGISTER_t an_ctrl_reg;
+    FUR_MISC_CTRL_UDMS_PHY_t udms_phy;
+    FUR_MISC_CTRL_UDMS_LINK_t udms_link;
+    FUR_GEN_CNTRLS_FIRMWARE_ENABLE_t fw_enable_reg;
+    LINE_RX_PMA_DP_MAIN_CTRL_t line_rx_dp_main_ctrl;
+    SYS_RX_PMA_DP_MAIN_CTRL_t sys_rx_dp_main_ctrl;
+    LINE_RX_PMA_DP_MAIN_CTRL_PCS_MODE_t tmp_main_ctrl_mode;
+    FUR_GEN_CNTRLS_gpreg13_t gen_ctrl_gpreg13;
+    uint16_t phy_type;
+    uint16_t link_type;
+    int lane_map = 0;
+    int lane_map_saved = 0;
+    int lane_index = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    uint32_t acc_flags = 0;
+    int pkg_side = 0;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    FURIA_REF_CLK_E ref_clk_freq = REF_CLK_INVALID;
+    FALCON_PLL_MODE_E pll_mode = PLL_MODE_INVALID;
+    phymod_interface_t actual_intf = 0;
+    uint32_t actual_speed = 0;
+    phymod_ref_clk_t actual_ref_clk;
+    uint32_t actual_interface_modes = 0;
+    uint8_t fw_enable = 0;
+    uint8_t retry_count = 5;
+    phymod_access_t l_pa;
+    uint32_t curr_intf[MAX_NUM_LANES] = {0,};
+    uint32_t curr_speed[MAX_NUM_LANES] = {0,};
+    int wr_lane = 0;
+    int rd_lane = 0;
+    int sys_en = 0;
+    uint32_t higig_mode = 0;
+    PHYMOD_MEMSET(&an_ctrl_reg, 0 , sizeof(IEEE_AN_BLK0_AN_CONTROL_REGISTER_t));
+    PHYMOD_MEMSET(&udms_phy, 0 , sizeof(FUR_MISC_CTRL_UDMS_PHY_t));
+    PHYMOD_MEMSET(&udms_link, 0 , sizeof(FUR_MISC_CTRL_UDMS_LINK_t));
+    PHYMOD_MEMSET(&fw_enable_reg, 0 , sizeof(FUR_GEN_CNTRLS_FIRMWARE_ENABLE_t));
+    PHYMOD_MEMSET(&line_rx_dp_main_ctrl, 0 , sizeof(LINE_RX_PMA_DP_MAIN_CTRL_t));
+    PHYMOD_MEMSET(&sys_rx_dp_main_ctrl, 0 , sizeof(SYS_RX_PMA_DP_MAIN_CTRL_t));
+    PHYMOD_MEMSET(&tmp_main_ctrl_mode, 0 , sizeof(LINE_RX_PMA_DP_MAIN_CTRL_PCS_MODE_t));
+    /* Get a copy of phymod access */
+    PHYMOD_MEMCPY(&l_pa, pa, sizeof(phymod_access_t));
+    /* Get CHIP ID */
+    chip_id = _furia_get_chip_id(pa);
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    lane_map_saved = lane_map;
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+
+    if (FURIA_IS_SIMPLEX(chip_id) && lane_map != 0xFF) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_PARAM, (_PHYMOD_MSG("1:Wrong Lanemap param")));
+    }
+    if (pkg_side == SIDE_B) {
+        if (FURIA_IS_SIMPLEX(chip_id)) {
+            PHYMOD_RETURN_WITH_ERR(PHYMOD_E_PARAM, (_PHYMOD_MSG("Wrong Package side specified, Package side must be 0 for simplex packages(Tx side)")));
+        }
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    FUR_GEN_CNTRLS_gpreg13_Adr,\
+                                    &gen_ctrl_gpreg13.data));
+        if ((config->interface_type == phymodInterfaceKR) ||
+            (config->interface_type == phymodInterfaceKR4)) {  
+            gen_ctrl_gpreg13.fields.phy_type_sys = 0; /* Backplane modes */
+        }
+        if (/*(config->interface_type == phymodInterfaceCAUI4) ||
+            (config->interface_type == phymodInterfaceXLAUI4) ||*/
+            (config->interface_type == phymodInterfaceXFI)) {
+            gen_ctrl_gpreg13.fields.phy_type_sys = 1; /* PCB trace for
+chip to chip module */
+        }
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     FUR_GEN_CNTRLS_gpreg13_Adr,\
+                                     gen_ctrl_gpreg13.data));
+        PHYMOD_IF_ERR_RETURN(_furia_fw_enable(pa));
+        return PHYMOD_E_NONE;
+    }
+    /* Wait for firmware to ready before config to be changed */
+    PHYMOD_IF_ERR_RETURN
+         (READ_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                 &fw_enable_reg.data));
+    fw_enable = fw_enable_reg.fields.fw_enable_val;
+
+
+     while((fw_enable != 0) && (retry_count)) {
+         PHYMOD_IF_ERR_RETURN
+             (READ_FURIA_PMA_PMD_REG(pa,\
+                                     FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                     &fw_enable_reg.data));
+         fw_enable = fw_enable_reg.fields.fw_enable_val;
+         PHYMOD_USLEEP(200000);
+         retry_count--;
+     }
+
+     if(!retry_count) {
+         PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("1:config failed, micro controller is busy..")));
+     }
+ 
+
+    higig_mode = PHYMOD_INTF_MODES_HIGIG_GET(config);
+    /* Read current mode configurations from registers */ 
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        l_pa.lane_mask = 0x1 << lane_index;
+        PHYMOD_IF_ERR_RETURN
+            (furia_get_config_mode(&l_pa, &actual_intf, &actual_speed, &actual_ref_clk, &actual_interface_modes));
+        curr_intf[lane_index] = actual_intf;
+        curr_speed[lane_index] = actual_speed;
+    }
+
+
+    if (FURIA_IS_DUPLEX(chip_id)) {
+        if ((curr_speed[0] == SPEED_10G || curr_speed[0] == SPEED_20G) ||
+            (curr_speed[1] == SPEED_10G || curr_speed[1] == SPEED_20G) ||
+            (curr_speed[2] == SPEED_10G || curr_speed[2] == SPEED_20G) ||
+            (curr_speed[3] == SPEED_10G || curr_speed[3] == SPEED_20G)) {
+            if((config->data_rate == SPEED_25G || config->data_rate == SPEED_50G) && (lane_map != BROADCAST)) {
+                PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Unsupported mode")));
+            }
+        }
+
+        if ((curr_speed[0] == SPEED_25G || curr_speed[0] == SPEED_50G) ||
+            (curr_speed[1] == SPEED_25G || curr_speed[1] == SPEED_50G) ||
+            (curr_speed[2] == SPEED_25G || curr_speed[2] == SPEED_50G) ||
+            (curr_speed[3] == SPEED_25G || curr_speed[3] == SPEED_50G)) {
+            if((config->data_rate == SPEED_10G || config->data_rate == SPEED_20G) && (lane_map != BROADCAST)) {
+                PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Unsupported mode")));
+            }
+        }
+
+        if(((config->data_rate == SPEED_100G || config->data_rate == SPEED_40G) && 
+             (config->interface_type == phymodInterfaceSR4 ||
+              config->interface_type == phymodInterfaceKR4 ||
+              config->interface_type == phymodInterfaceCR4 ||
+              config->interface_type == phymodInterfaceLR4)) && (lane_map != BROADCAST)) {
+            PHYMOD_RETURN_WITH_ERR(PHYMOD_E_PARAM, (_PHYMOD_MSG("2:Wrong Lanemap param")));
+        }
+    
+        if((config->data_rate == SPEED_50G || config->data_rate == SPEED_20G ||
+            config->data_rate == SPEED_40G) &&
+            (config->interface_type == phymodInterfaceKR2) && 
+            (lane_map != MULTICAST01 && lane_map != MULTICAST23 && lane_map != BROADCAST)) {
+            PHYMOD_RETURN_WITH_ERR(PHYMOD_E_PARAM, (_PHYMOD_MSG("3:Wrong Lanemap param")));
+        }
+    } 
+   
+    if (FURIA_IS_SIMPLEX(chip_id)) {
+        if((config->data_rate == SPEED_40G || 
+            config->data_rate == SPEED_50G ||
+            config->data_rate == SPEED_100G) ||
+            (config->interface_type == phymodInterfaceSR4 ||
+             config->interface_type == phymodInterfaceKR4 ||
+             config->interface_type == phymodInterfaceCR4 ||
+             config->interface_type == phymodInterfaceLR4 ||
+             config->interface_type == phymodInterfaceKR2)) {
+            PHYMOD_RETURN_WITH_ERR(PHYMOD_E_PARAM, (_PHYMOD_MSG("3:Unsupported speed and interface")));
+        }
+    } 
+    /*perform phymod to furia enum conversion */
+    PHYMOD_IF_ERR_RETURN (
+       _furia_phymod_to_furia_type_ref_clk_freq(config->ref_clock, &ref_clk_freq));
+    /*Set the ref_clk freq before programming phy type and link type */ 
+    PHYMOD_IF_ERR_RETURN (
+       _furia_config_clk_scaler_without_m0_reset(pa, ref_clk_freq));
+    phy_type = _furia_get_phy_type(config->interface_type, higig_mode);
+    link_type = _furia_get_link_type(config->interface_type, config->data_rate);
+
+
+    /* Disable autonegotiation on all the PHY lanes */
+    lane_map = FURIA_IS_DUPLEX(chip_id) ? 0xF : 0xFF;
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = FURIA_IF_BCAST_SET(chip_id, lane_map) ? BROADCAST : pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else { 
+                sys_en = pkg_ln_des->sideB;
+            }
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+            /* Force AN disable since mode is configured using UDMS*/ 
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        IEEE_AN_BLK0_an_control_register_Adr,\
+                                        &an_ctrl_reg.data));
+           /* Update auto_negotiationenable bit field */
+           an_ctrl_reg.fields.auto_negotiationenable = 0;
+
+           /* Write to AN control register */
+           PHYMOD_IF_ERR_RETURN
+               (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                        IEEE_AN_BLK0_an_control_register_Adr,\
+                                        an_ctrl_reg.data));
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        IEEE_AN_BLK0_an_control_register_Adr,\
+                                        &an_ctrl_reg.data));
+            if (FURIA_IF_BCAST_SET(chip_id, lane_map)) {
+                break;
+            }
+        }
+    }
+    
+    /* Program udms_en=1 */
+    /* Read UDMS PHY Type Register */
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MISC_CTRL_udms_phy_Adr,\
+                                &udms_phy.data));
+ 
+    /* Update the field udms enable */
+    udms_phy.fields.udms_en = 1;
+    /* Update udms_phy_type */ 
+    udms_phy.fields.udms_phy_type = phy_type;
+
+    /* Write to UDMS PHY Type Register */
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_MISC_CTRL_udms_phy_Adr,\
+                                 udms_phy.data));
+
+    /* Read the link type Register*/
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MISC_CTRL_udms_link_Adr,\
+                                &udms_link.data));
+
+    if(
+       (curr_intf[0] == phymodInterfaceKR4 &&
+        curr_intf[1] == phymodInterfaceKR4 &&
+        curr_intf[2] == phymodInterfaceKR4 &&
+        curr_intf[3] == phymodInterfaceKR4) ||
+       (curr_intf[0] == phymodInterfaceCR4 &&
+        curr_intf[1] == phymodInterfaceCR4 &&
+        curr_intf[2] == phymodInterfaceCR4 &&
+        curr_intf[3] == phymodInterfaceCR4) ||
+       (curr_intf[0] == phymodInterfaceLR4 &&
+        curr_intf[1] == phymodInterfaceLR4 &&
+        curr_intf[2] == phymodInterfaceLR4 &&
+        curr_intf[3] == phymodInterfaceLR4) ||
+       (curr_intf[0] == phymodInterfaceSR4 &&
+        curr_intf[1] == phymodInterfaceSR4 &&
+        curr_intf[2] == phymodInterfaceSR4 &&
+        curr_intf[3] == phymodInterfaceSR4)
+       ) {
+        lane_map = FURIA_IS_DUPLEX(chip_id) ? 0xF : 0xFF;
+    } else {
+        lane_map = lane_map_saved;
+    }
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            /* Update the field udms enable */
+            if (pkg_ln_des->die_lane_num == 0) {
+                udms_link.fields.udms_ln0_lnk_type = link_type;
+            }
+            if (pkg_ln_des->die_lane_num == 1) {
+                udms_link.fields.udms_ln1_lnk_type = link_type;
+            }
+            if (pkg_ln_des->die_lane_num == 2) {
+                udms_link.fields.udms_ln2_lnk_type = link_type;
+            }
+            if (pkg_ln_des->die_lane_num == 3) {
+                udms_link.fields.udms_ln3_lnk_type = link_type;
+            }
+            /* Update the General purpose register with default interface types
+               This GPReg is used as a software database
+               0 - LR type interfaces 
+               1 - SR type interfaces
+               2 - ER type interfaces
+               3 - KR type interfaces
+            */
+            PHYMOD_IF_ERR_RETURN
+                (_furia_set_intf_type(pa, config->interface_type, lane_index));
+        }
+    }
+    /* Program the Link Type Register with link type*/
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_MISC_CTRL_udms_link_Adr,\
+                                 udms_link.data));
+    /* Set the PLL value based on ref clock and speed */ 
+    PHYMOD_IF_ERR_RETURN(
+        _furia_get_pll_mode(config->ref_clock, config->data_rate, higig_mode, &pll_mode));
+
+    PHYMOD_IF_ERR_RETURN(
+        _furia_config_pll_div(pa, pll_mode, ref_clk_freq));
+    /*Wait for fw_enable to go low  before setting fw_enable_val*/
+    retry_count = 5;
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                &fw_enable_reg.data));
+    fw_enable_reg.fields.fw_enable_val = 1;
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                 fw_enable_reg.data));
+    /*Wait for fw_enable to go low */
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                &fw_enable_reg.data));
+    fw_enable = fw_enable_reg.fields.fw_enable_val;
+
+    while((fw_enable != 0) && (retry_count)) {
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                    &fw_enable_reg.data));
+        fw_enable = fw_enable_reg.fields.fw_enable_val;
+        PHYMOD_USLEEP(200000);
+        retry_count--; 
+    }
+
+    if(!retry_count) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("config failed, micro controller is busy..")));
+    }
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            l_pa.lane_mask = 0x1 << lane_index;
+            PHYMOD_IF_ERR_RETURN
+                (furia_get_config_mode(&l_pa, &actual_intf, &actual_speed, &actual_ref_clk, &actual_interface_modes));
+            if((config->interface_type == actual_intf) &&
+               (config->data_rate == actual_speed) &&
+               (config->ref_clock == actual_ref_clk)) {
+                /* Update the General purpose register with default interface types
+                   This GPReg is used as a software database
+                   0 - LR type interfaces 
+                   1 - SR type interfaces
+                   2 - ER type interfaces
+                   3 - KR type interfaces
+                */
+                PHYMOD_IF_ERR_RETURN
+                    (_furia_set_intf_type(pa, actual_intf, lane_index));
+            } else {
+                /* Update the General purpose register with default interface types
+                   This GPReg is used as a software database
+                   0 - LR type interfaces 
+                   1 - SR type interfaces
+                   2 - ER type interfaces
+                   3 - KR type interfaces
+                */
+                PHYMOD_IF_ERR_RETURN
+                    (_furia_set_intf_type(pa, curr_intf[lane_index], lane_index));
+                PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Set config failed")));
+            }
+        }
+    }
+    return PHYMOD_E_NONE;
+}
+ 
+/**   Get config mode 
+ *    This function is used to retrieve the operating mode of the PHY
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param intf               Interface type 
+ *    @param speed              Speed val retrieved from PHY 
+ *    @param ref_clk            Reference clock 
+ *    @param interface_modes    Supported interface modes
+ * 
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_get_config_mode(const phymod_access_t *pa,
+                       phymod_interface_t *intf,
+                       uint32_t *speed,
+                       phymod_ref_clk_t *ref_clk,
+                       uint32_t *interface_modes)
+{
+    IEEE_AN_BLK0_AN_CONTROL_REGISTER_t an_ctrl_reg;
+    FUR_MISC_CTRL_PHY_TYPE_STATUS_t udms_phy;
+    FUR_MISC_CTRL_LINK_TYPE_STATUS_t udms_link;
+    FUR_GEN_CNTRLS_GEN_CONTROL3_t gen_ctrl_3;
+    FUR_GEN_CNTRLS_gpreg13_t gen_ctrl_gpreg13;
+    furia_an_ability_t an_ability; 
+    FUR_GEN_CNTRLS_micro_sync_7_t gen_ctrls_intf_type;
+    uint32_t logic_to_phy_ln0_map = 0; 
+    uint16_t master_lane_num = 0;
+    int lane_map = 0;
+    uint16_t phy_type = 0;
+    uint16_t link_type = 0;
+    uint16_t saved_intf = 0;
+    uint16_t ref_clk_scaler_val = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    int lane_index = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    uint32_t acc_flags = 0;
+    int pkg_side = 0;
+    *speed = 0;
+    *intf = 0;
+    *ref_clk = 0; 
+    PHYMOD_MEMSET(&an_ctrl_reg, 0 , sizeof(IEEE_AN_BLK0_AN_CONTROL_REGISTER_t));
+    PHYMOD_MEMSET(&udms_phy, 0 , sizeof(FUR_MISC_CTRL_PHY_TYPE_STATUS_t));
+    PHYMOD_MEMSET(&udms_link, 0 , sizeof(FUR_MISC_CTRL_LINK_TYPE_STATUS_t));
+    PHYMOD_MEMSET(&gen_ctrl_3, 0 , sizeof(FUR_GEN_CNTRLS_GEN_CONTROL3_t));
+    PHYMOD_MEMSET(&an_ability, 0 , sizeof(furia_an_ability_t));
+    PHYMOD_MEMSET(&gen_ctrls_intf_type, 0 , sizeof(FUR_GEN_CNTRLS_micro_sync_7_t));
+
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                IEEE_AN_BLK0_an_control_register_Adr,\
+                                &an_ctrl_reg.data));
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    /* Get the link type and phy type from udms reg if AN is not on */ 
+    if (!an_ctrl_reg.fields.auto_negotiationenable) {
+        /* Read UDMS PHY Type Register */
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    FUR_MISC_CTRL_phy_type_status_Adr,\
+                                    &udms_phy.data));
+        /* Read the link type Register*/
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    FUR_MISC_CTRL_link_type_status_Adr,\
+                                    &udms_link.data));
+        for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+            if (((lane_map >> lane_index) & 1) == 0x1) {
+                pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+                PHYMOD_NULL_CHECK(pkg_ln_des);
+                /* Update the field udms enable */
+                if (pkg_ln_des->die_lane_num == 0) {
+                    phy_type = udms_phy.fields.ln0_phy_status;
+                    link_type = udms_link.fields.ln0_lnk_status;
+                }
+                if (pkg_ln_des->die_lane_num == 1) {
+                    phy_type = udms_phy.fields.ln1_phy_status;
+                    link_type = udms_link.fields.ln1_lnk_status;
+                }
+                if (pkg_ln_des->die_lane_num == 2) {
+                    phy_type = udms_phy.fields.ln2_phy_status;
+                    link_type = udms_link.fields.ln2_lnk_status;
+                }
+                if (pkg_ln_des->die_lane_num == 3) {
+                    phy_type = udms_phy.fields.ln3_phy_status;
+                    link_type = udms_link.fields.ln3_lnk_status;
+                }
+                /* Get the interface type from GPReg 
+                   This GPReg is used as a software database
+                   0 - LR type interfaces 
+                   1 - SR type interfaces
+                   2 - ER type interfaces
+                   3 - KR type interfaces
+                */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            FUR_GEN_CNTRLS_micro_sync_7_Adr,\
+                                            &gen_ctrls_intf_type.data));
+                switch (lane_index) {
+                    case 0:
+                        saved_intf = gen_ctrls_intf_type.fields.intf_type_ln0;
+                    break;
+                    case 1:
+                        saved_intf = gen_ctrls_intf_type.fields.intf_type_ln1;
+                    break;
+                    case 2:
+                        saved_intf = gen_ctrls_intf_type.fields.intf_type_ln2;
+                    break;
+                    case 3:
+                        saved_intf = gen_ctrls_intf_type.fields.intf_type_ln3;
+                    break;
+                    case 4:
+                        saved_intf = gen_ctrls_intf_type.fields.intf_type_ln4;
+                    break;
+                    case 5:
+                        saved_intf = gen_ctrls_intf_type.fields.intf_type_ln5;
+                    break;
+                    case 6:
+                        saved_intf = gen_ctrls_intf_type.fields.intf_type_ln6;
+                    break;
+                    case 7:
+                        saved_intf = gen_ctrls_intf_type.fields.intf_type_ln7;
+                    break;
+                    /*
+                     * COVERITY
+                     * This default is unreachable. It is kept intentionally as a defensive 
+                     * default for future development.
+                     */
+                    /* coverity[dead_error_begin] */
+                    default:
+                    break;
+                }
+            }
+        }
+    } else {
+        PHYMOD_IF_ERR_RETURN
+            (_furia_autoneg_ability_get(pa, &an_ability));
+       
+        if((an_ability.cl73_adv.an_base_speed == FURIA_CL73_100GBASE_KR4) ||
+           (an_ability.cl73_adv.an_base_speed == FURIA_CL73_100GBASE_CR4)||
+           (an_ability.cl73_adv.an_base_speed == FURIA_CL73_40GBASE_KR4) ||
+           (an_ability.cl73_adv.an_base_speed == FURIA_CL73_40GBASE_CR4)) {    
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa, 0x8a08,  &logic_to_phy_ln0_map));
+            master_lane_num = logic_to_phy_ln0_map & 0x3;
+            switch(master_lane_num) {
+                case 0:
+                    link_type = udms_link.fields.ln0_lnk_status;
+                break;
+                case 1:
+                    link_type = udms_link.fields.ln1_lnk_status;
+                break;
+                case 2:
+                    link_type = udms_link.fields.ln2_lnk_status;
+                break;
+                case 3:
+                    link_type = udms_link.fields.ln3_lnk_status;
+                break;
+            }
+        } else {
+            for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+                if (((lane_map >> lane_index) & 1) == 0x1) {
+                    pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+                    PHYMOD_NULL_CHECK(pkg_ln_des);
+                    switch(pkg_ln_des->die_lane_num) {
+                        case 0:
+                            link_type = udms_link.fields.ln0_lnk_status;
+                        break;
+                        case 1:
+                            link_type = udms_link.fields.ln1_lnk_status;
+                        break;
+                        case 2:
+                            link_type = udms_link.fields.ln2_lnk_status;
+                        break;
+                        case 3:
+                            link_type = udms_link.fields.ln3_lnk_status;
+                        break;
+                    }
+                }
+            }
+        }
+        /* Get the interface type from GPReg 
+           This GPReg is used as a software database
+           0 - LR type interfaces 
+           1 - SR type interfaces
+           2 - ER type interfaces
+           3 - KR type interfaces
+        */
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    FUR_GEN_CNTRLS_micro_sync_7_Adr,\
+                                    &gen_ctrls_intf_type.data));
+        switch (lane_index) {
+            case 0:
+                saved_intf = gen_ctrls_intf_type.fields.intf_type_ln0;
+            break;
+            case 1:
+                saved_intf = gen_ctrls_intf_type.fields.intf_type_ln1;
+            break;
+            case 2:
+                saved_intf = gen_ctrls_intf_type.fields.intf_type_ln2;
+            break;
+            case 3:
+                saved_intf = gen_ctrls_intf_type.fields.intf_type_ln3;
+            break;
+            case 4:
+                saved_intf = gen_ctrls_intf_type.fields.intf_type_ln4;
+            break;
+            case 5:
+                saved_intf = gen_ctrls_intf_type.fields.intf_type_ln5;
+            break;
+            case 6:
+                saved_intf = gen_ctrls_intf_type.fields.intf_type_ln6;
+            break;
+            case 7:
+                saved_intf = gen_ctrls_intf_type.fields.intf_type_ln7;
+            break;
+            default:
+            break;
+        }
+    }
+
+    
+    switch(phy_type) {
+        case 0x0:
+            switch(link_type) {
+                case 0x1:
+                    *speed = SPEED_1G;
+                    *intf = phymodInterfaceKX;
+                break;
+                case 0x2:
+                    *speed = SPEED_10G;
+                    *intf = phymodInterfaceKR;
+                break;
+                case 0x3:
+                    *speed = SPEED_40G;
+                    *intf = phymodInterfaceKR4;
+                break;
+                case 0x4:
+                    *speed = SPEED_100G;
+                    *intf = phymodInterfaceKR4;
+                break;
+                case 0x5:
+                     *speed = SPEED_20G;
+                     *intf = phymodInterfaceKR2;
+                break;
+                case 0x6:
+                    *speed = SPEED_20G;
+                    *intf = phymodInterfaceKR;
+                break;
+                case 0x7:
+                    *speed = SPEED_40G;
+                    *intf = phymodInterfaceKR2;
+                break;
+                case 0x8:
+                    *speed = SPEED_25G;
+                    *intf = phymodInterfaceKR;
+                break;
+                case 0x9:
+                    *speed = SPEED_50G;
+                    *intf = phymodInterfaceKR2;
+                break;
+                default:
+                break;
+
+           }
+        break;
+        case 0x1:
+            switch(link_type) {
+                case 0x1:
+                    switch (saved_intf) {
+                        case 0:
+                            *intf = phymodInterfaceLR;
+                        break;
+                        case 1:
+                            *intf = phymodInterfaceSR;
+                        break;
+                        /*case 2:
+                            *intf = phymodInterfaceER;
+                        break;*/
+                    }
+                    *speed = SPEED_10G;
+                break;
+                case 0x2:
+                    *speed = SPEED_40G;
+                    *intf = phymodInterfaceCR4;
+                break;
+                case 0x3:
+                    switch (saved_intf) {
+                        case 0:
+                            *intf = phymodInterfaceLR4;
+                        break;
+                        case 1:
+                            *intf = phymodInterfaceSR4;
+                        break;
+                        /*case 2:
+                            *intf = phymodInterfaceER4;
+                        break;*/
+                    }
+                    *speed = SPEED_40G;
+                break;
+                case 0x4:
+                    *speed = SPEED_100G;
+                    *intf = phymodInterfaceLR4;
+                break;
+                case 0x5:
+                    *speed = SPEED_100G;
+                    *intf = phymodInterfaceCR4;
+                break;
+                case 0x6:
+                    *speed = SPEED_20G;
+                    *intf = phymodInterfaceLR;
+                break;
+                case 0x7:
+                    *speed = SPEED_25G;
+                    *intf = phymodInterfaceLR;
+                break;
+                default:
+                break;
+            }
+        break;
+        case 0x4:
+            switch(link_type) {
+                case 0x1:
+                    switch (saved_intf) {
+                        case 0:
+                            *intf = phymodInterfaceLR;
+                            *speed = SPEED_10G;
+                        break;
+                        case 1:
+                            *intf = phymodInterfaceSR;
+                            *speed = SPEED_10G;
+                        break;
+                        /*case 2:
+                            *intf = phymodInterfaceER;
+                            *speed = SPEED_10G;
+                        break;*/
+                        case 3:
+                            *intf = phymodInterfaceKX;
+                            *speed = SPEED_1G;
+                        break;
+                    }
+                break;
+                case 0x2:
+                    switch (saved_intf) {
+                        case 3:
+                            *intf = phymodInterfaceKR;
+                            *speed = SPEED_10G;
+                        break;
+                        default:
+                            *intf = phymodInterfaceCR4;
+                            *speed = SPEED_40G;
+                        break;
+                    }
+                break;
+                case 0x3:
+                    switch (saved_intf) {
+                        case 0:
+                            *intf = phymodInterfaceLR4;
+                        break;
+                        case 1:
+                            *intf = phymodInterfaceSR4;
+                        break;
+                        /*case 2:
+                            *intf = phymodInterfaceER4;
+                        break;*/
+                        case 3:
+                            *intf = phymodInterfaceKR4;
+                        break;
+                    }
+                    *speed = SPEED_40G;
+                break;
+                case 0x4:
+                    switch (saved_intf) {
+                        case 0:
+                            *intf = phymodInterfaceLR4;
+                        break;
+                        /*case 2:
+                            *intf = phymodInterfaceER4;
+                        break;*/
+                        case 3:
+                            *intf = phymodInterfaceKR4;
+                        break;
+                    }
+                    *speed = SPEED_100G;
+                break;
+                case 0x5:
+                    switch (saved_intf) {
+                        case 3:
+                            *intf = phymodInterfaceKR2;
+                            *speed = SPEED_20G;
+                        break;
+                        default:
+                            *intf = phymodInterfaceCR4;
+                            *speed = SPEED_100G;
+                        break;
+                    }
+                break;
+                case 0x6:
+                    switch (saved_intf) {
+                        case 0:
+                            *intf = phymodInterfaceLR;
+                        break;
+                        /*case 2:
+                            *intf = phymodInterfaceER;
+                        break;*/
+                        case 3:
+                            *intf = phymodInterfaceKR;
+                        break;
+                    }
+                    *speed = SPEED_20G;
+                break;
+                case 0x7:
+                    switch (saved_intf) {
+                        case 0:
+                            *intf = phymodInterfaceLR;
+                            *speed = SPEED_25G;
+                        break;
+                        /*case 2:
+                            *intf = phymodInterfaceER;
+                            *speed = SPEED_25G;
+                        break;*/
+                        case 3:
+                            *intf = phymodInterfaceKR2;
+                            *speed = SPEED_40G;
+                        break;
+                    }
+                break;
+                case 0x8:
+                    if (saved_intf == 3) {
+                        *intf = phymodInterfaceKR;
+                        *speed = SPEED_25G;
+                    }
+                break;
+                case 0x9:
+                    if (saved_intf == 3) {
+                        *intf = phymodInterfaceKR2;
+                        *speed = SPEED_50G;
+                    }
+                break;
+                default:
+                break;
+        }
+        default:
+        break;
+    } 
+
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_GEN_CNTRLS_gen_control3_Adr,\
+                                &gen_ctrl_3.data));
+
+      if(gen_ctrl_3.fields.clock_scaler_frc) {
+          ref_clk_scaler_val = gen_ctrl_3.fields.clock_scaler_frcval;
+      } else {
+          ref_clk_scaler_val = gen_ctrl_3.fields.clock_scaler_code;
+      }
+
+    switch(ref_clk_scaler_val) {
+        case 0x0:
+            *ref_clk = phymodRefClk174Mhz;
+        break;
+        case 0x1:
+            *ref_clk = phymodRefClk161Mhz;
+        break;
+        case 0x2:
+            *ref_clk = phymodRefClk156Mhz;
+        break;
+        case 0x3:
+            *ref_clk = phymodRefClk125Mhz;
+        break;
+        case 0x4:
+            *ref_clk = phymodRefClk106Mhz;
+        break;
+        default:
+        break;
+    }
+
+    if (phy_type == 0x4) {
+        *interface_modes = 1;
+    } else {
+        *interface_modes = 0;
+    }
+ 
+
+    if (pkg_side == SIDE_B) {
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    FUR_GEN_CNTRLS_gpreg13_Adr,\
+                                    &gen_ctrl_gpreg13.data));
+        switch (gen_ctrl_gpreg13.fields.phy_type_sys) {
+            case 0:
+                switch (*speed) {
+                    case SPEED_10G:
+                        *intf = phymodInterfaceKR;
+                    break;
+                    case SPEED_40G:
+                    case SPEED_100G:
+                        *intf = phymodInterfaceKR4;
+                    break;
+                }
+            break;
+            case 1:
+                switch (*speed) {
+                    case SPEED_10G:
+                        *intf = phymodInterfaceXFI;
+                    break;
+                    /*case SPEED_40G:
+                        *intf = phymodInterfaceXLAUI4;
+                    break;
+                    case SPEED_100G:
+                        *intf = phymodInterfaceCAUI4;
+                    break;*/
+                }
+            break;
+        }
+    }
+    return PHYMOD_E_NONE;
+}
+
+
+/**   Config PLL divider 
+ *    This function is used to configure PLL divider 
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param pll_mode           PLL mode  
+ *    @param ref_clk_freq       Ref clk freq type 
+ * 
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int _furia_config_pll_div(const phymod_access_t *pa, FALCON_PLL_MODE_E pll_mode, FURIA_REF_CLK_E ref_clk_freq)
+{
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    int side_index = 0;
+    /* For Falcon speedup */
+    int vco_stime   = 5;
+    int pfreq_dtime = 100;
+    int retry       = 100;
+    int rescal_cntr = 0;
+    int vco_freq = 0;
+    PLL_CAL_COM_CTL_7_t pll_ctrl_7;
+    AMS_COM_PLL_CONTROL_1_t ams_pll_ctrl_1;
+    PLL_CAL_COM_CTL_5_t pll_ctrl_5;
+    PLL_CAL_COM_CTL_0_t pll_ctrl_0;
+    PLL_CAL_COM_CTL_1_t pll_ctrl_1;
+    PLL_CAL_COM_CTL_2_t pll_ctrl_2;  
+    PHYMOD_MEMSET(&pll_ctrl_7, 0 , sizeof(PLL_CAL_COM_CTL_7_t));
+    PHYMOD_MEMSET(&ams_pll_ctrl_1, 0 , sizeof(AMS_COM_PLL_CONTROL_1_t));
+    PHYMOD_MEMSET(&pll_ctrl_5, 0 , sizeof(PLL_CAL_COM_CTL_5_t));
+    PHYMOD_MEMSET(&pll_ctrl_0, 0 , sizeof(PLL_CAL_COM_CTL_0_t));
+    PHYMOD_MEMSET(&pll_ctrl_1, 0 , sizeof(PLL_CAL_COM_CTL_1_t));
+    PHYMOD_MEMSET(&pll_ctrl_2, 0 , sizeof(PLL_CAL_COM_CTL_2_t));
+
+    /* Get vco_freq */
+    vco_freq = _furia_get_pll_divider(pll_mode) * _furia_get_ref_clock_freq_in_mhz((FURIA_REF_CLK_E)ref_clk_freq);
+    vco_freq /= 100;
+    for(side_index = 0; side_index < 2; side_index ++) {
+        /* Set PLL div */
+        wr_lane = 1 << 0;
+        rd_lane = 0;
+        if(side_index == 0) {
+            sys_en = SIDE_A;
+        } else {
+            sys_en = SIDE_B;
+        } 
+        /* Program the slice register */
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+        /* Program pll_mode */
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    PLL_CAL_COM_CTL_7_Adr,\
+                                    &pll_ctrl_7.data));
+        pll_ctrl_7.fields.pll_mode = pll_mode;
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     PLL_CAL_COM_CTL_7_Adr,\
+                                     pll_ctrl_7.data));
+
+        /* enable VCO2 - 15-18G */
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    AMS_COM_PLL_CONTROL_1_Adr,\
+                                    &ams_pll_ctrl_1.data));
+        if(vco_freq < 19000) {
+            ams_pll_ctrl_1.fields.ams_pll_vco2_15g = 1;
+        } else {
+            ams_pll_ctrl_1.fields.ams_pll_vco2_15g = 0;
+        }
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     AMS_COM_PLL_CONTROL_1_Adr,\
+                                     ams_pll_ctrl_1.data));
+
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    PLL_CAL_COM_CTL_5_Adr,\
+                                    &pll_ctrl_5.data));
+        pll_ctrl_5.fields.refclk_divcnt = 6250;
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     PLL_CAL_COM_CTL_5_Adr,\
+                                     pll_ctrl_5.data));
+
+        /* Added for simulations speed ups Micro Arch Document Falcon Core Startup Seq */
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    PLL_CAL_COM_CTL_0_Adr,\
+                                    &pll_ctrl_0.data));
+        pll_ctrl_0.fields.vco_start_time = vco_stime;
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     PLL_CAL_COM_CTL_0_Adr,\
+                                     pll_ctrl_0.data));
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    PLL_CAL_COM_CTL_1_Adr,\
+                                    &pll_ctrl_1.data));
+        pll_ctrl_1.fields.pre_freq_det_time = pfreq_dtime;
+        pll_ctrl_1.fields.retry_time = retry;
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     PLL_CAL_COM_CTL_1_Adr,\
+                                     pll_ctrl_1.data));
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    PLL_CAL_COM_CTL_2_Adr,\
+                                    &pll_ctrl_2.data));
+        pll_ctrl_2.fields.res_cal_cntr = rescal_cntr;
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     PLL_CAL_COM_CTL_2_Adr,\
+                                     pll_ctrl_2.data));
+    }
+    /* Set the slice register with default values */
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE; 
+}
+
+/**   Set Tx Rx polarity 
+ *    This function is used to set Tx Rx polarity of a single lane
+ *    or multiple lanes 
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param tx_polarity        Tx polarity 
+ *    @param rx_polarity        Rx polarity 
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_tx_rx_polarity_set (const phymod_access_t *pa, uint32_t tx_polarity, uint32_t rx_polarity)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    TLB_RX_TLB_RX_MISC_CONFIG_t rx_misc_config;
+    TLB_TX_TLB_TX_MISC_CONFIG_t tx_misc_config;
+    PHYMOD_MEMSET(&rx_misc_config, 0 , sizeof(TLB_RX_TLB_RX_MISC_CONFIG_t));
+    PHYMOD_MEMSET(&tx_misc_config, 0 , sizeof(TLB_TX_TLB_TX_MISC_CONFIG_t));
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+   
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = FURIA_IF_BCAST_SET(chip_id, lane_map) ? BROADCAST : pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+ 
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            if (FURIA_IF_TX_SIDE(chip_id, pkg_side)) {
+                /* Read Tx misc config register */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            TLB_TX_tlb_tx_misc_config_Adr,\
+                                            &tx_misc_config.data));
+
+                /* Update bit fields for polarity inversion */
+                tx_misc_config.fields.tx_pmd_dp_invert = tx_polarity;
+                
+                /* Write to Tx misc config register */
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                             TLB_TX_tlb_tx_misc_config_Adr,\
+                                             tx_misc_config.data));
+            } 
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                /* Read Rx misc config register */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            TLB_RX_tlb_rx_misc_config_Adr,\
+                                            &rx_misc_config.data));
+
+                /* Update bit fields for polarity inversion */
+                rx_misc_config.fields.rx_pmd_dp_invert = rx_polarity;
+             
+                /* Write to Rx misc config register */
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                             TLB_RX_tlb_rx_misc_config_Adr,\
+                                             rx_misc_config.data));
+            } 
+            if (FURIA_IF_BCAST_SET(chip_id, lane_map)) {
+                break;
+            }
+        }
+    }
+    /* Set the slice register with default values */
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+
+    return PHYMOD_E_NONE;
+}
+
+/**   Get Tx Rx polarity 
+ *    This function is used to get Tx Rx polarity of a specific lane
+ *    specified by user 
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param tx_polarity        Tx polarity 
+ *    @param rx_polarity        Rx polarity 
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_tx_rx_polarity_get (const phymod_access_t *pa, uint32_t *tx_polarity, uint32_t *rx_polarity)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    TLB_RX_TLB_RX_MISC_CONFIG_t rx_misc_config;
+    TLB_TX_TLB_TX_MISC_CONFIG_t tx_misc_config;
+    PHYMOD_MEMSET(&rx_misc_config, 0 , sizeof(TLB_RX_TLB_RX_MISC_CONFIG_t));
+    PHYMOD_MEMSET(&tx_misc_config, 0 , sizeof(TLB_TX_TLB_TX_MISC_CONFIG_t));
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+    *tx_polarity = 0;
+    *rx_polarity = 0;
+   
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+  
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            if (FURIA_IF_TX_SIDE(chip_id, pkg_side)) {
+                /* Read Tx misc config register */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            TLB_TX_tlb_tx_misc_config_Adr,\
+                                            &tx_misc_config.data));
+
+                /* Update bit fields for polarity inversion */
+                *tx_polarity = tx_misc_config.fields.tx_pmd_dp_invert ;
+            } 
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                /* Read Rx misc config register */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            TLB_RX_tlb_rx_misc_config_Adr,\
+                                            &rx_misc_config.data));
+
+                /* Update bit fields for polarity inversion */
+                *rx_polarity = rx_misc_config.fields.rx_pmd_dp_invert;
+            } 
+            break;
+        }
+    }
+    /* Set the slice register with default values */
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+
+    return PHYMOD_E_NONE;
+}
+
+/**  PMD lock get 
+ *    
+ *    @param pa                 Pointer to phymod access structure
+ *    @param rx_seq_done        RX sew done status
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_pmd_lock_get(const phymod_access_t *pa, uint32_t *rx_seq_done) 
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0; 
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint8_t rx_pmd_lock = 1;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    *rx_seq_done = 1;
+    /* Get the lane map from phymod access */ 
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            /* Get sys_en, wr_lane, rd_lane using lane descriptor */
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else { 
+                sys_en = pkg_ln_des->sideB;
+            }
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                PHYMOD_IF_ERR_RETURN
+                    (falcon_furia_pmd_lock_status(pa, &rx_pmd_lock));
+                *rx_seq_done &= rx_pmd_lock;
+            }
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+
+/**  Tx Rx power get 
+ *    
+ *    
+ *    @param pa                 Pointer to phymod access structure
+ *    @param power_tx           TX Power 
+ *    @param power_rx           RX Power 
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_tx_rx_power_get(const phymod_access_t *pa, uint32_t *power_tx, uint32_t *power_rx)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    CKRST_CTRL_RPTR_LANE_CLK_RESET_N_POWERDOWN_CONTROL_t rst_pwdn_ctrl;
+    uint32_t acc_flags = 0; 
+    *power_tx = 0;
+    *power_rx = 0;
+    PHYMOD_MEMSET(&rst_pwdn_ctrl, 0 , sizeof(CKRST_CTRL_RPTR_LANE_CLK_RESET_N_POWERDOWN_CONTROL_t));
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else { 
+                sys_en = pkg_ln_des->sideB;
+            }
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            CKRST_CTRL_RPTR_LANE_CLK_RESET_N_POWERDOWN_CONTROL_Adr,\
+                                            &rst_pwdn_ctrl.data));
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                /* power down Tx*/
+                *power_tx = rst_pwdn_ctrl.fields.ln_tx_s_pwrdn ? 0 : 1;
+            } 
+                *power_rx = rst_pwdn_ctrl.fields.ln_rx_s_pwrdn ? 0 : 1 ;
+            } 
+            break;
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+
+/**  Rx Power Set 
+ *    
+ *    
+ *    @param pa                 Pointer to phymod access structure
+ *    @param tx_rx              TX_RX Value
+ *    @param enable             Set 1 to enable 
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_tx_rx_power_set(const phymod_access_t *pa, uint8_t tx_rx, uint32_t enable) 
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    CKRST_CTRL_RPTR_LANE_CLK_RESET_N_POWERDOWN_CONTROL_t rst_pwdn_ctrl;
+    uint32_t acc_flags = 0; 
+    PHYMOD_MEMSET(&rst_pwdn_ctrl, 0 , sizeof(CKRST_CTRL_RPTR_LANE_CLK_RESET_N_POWERDOWN_CONTROL_t));
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    enable = enable ? 0 : 1;
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            rd_lane = pkg_ln_des->slice_rd_val;
+            wr_lane = FURIA_IF_BCAST_SET(chip_id, lane_map) ? BROADCAST : pkg_ln_des->slice_wr_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            if (FURIA_IF_TX_SIDE(chip_id, pkg_side)) {
+                /* power down Tx*/
+                if(!tx_rx) { 
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                CKRST_CTRL_RPTR_LANE_CLK_RESET_N_POWERDOWN_CONTROL_Adr,\
+                                                &rst_pwdn_ctrl.data));
+                    rst_pwdn_ctrl.fields.ln_tx_s_pwrdn = enable;
+
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 CKRST_CTRL_RPTR_LANE_CLK_RESET_N_POWERDOWN_CONTROL_Adr,\
+                                                 rst_pwdn_ctrl.data));
+                }
+            } 
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                if(tx_rx) {
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                CKRST_CTRL_RPTR_LANE_CLK_RESET_N_POWERDOWN_CONTROL_Adr,\
+                                                &rst_pwdn_ctrl.data));
+                    rst_pwdn_ctrl.fields.ln_rx_s_pwrdn = enable;
+
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 CKRST_CTRL_RPTR_LANE_CLK_RESET_N_POWERDOWN_CONTROL_Adr,\
+                                                 rst_pwdn_ctrl.data));
+                }
+            } 
+            if (FURIA_IF_BCAST_SET(chip_id, lane_map)) {
+                break;
+            }
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+int furia_loopback_set(const phymod_access_t *pa,
+                       phymod_loopback_mode_t loopback,
+                       uint32_t enable)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int other_sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    uint32_t acc_flags = 0;
+    int retry_count = 5;
+    DSC_C_RX_PI_CONTROL_t pi_ctrl; 
+    DSC_C_CDR_CONTROL_2_t cd_ctrl_2;
+    TX_PI_RPTR_TX_PI_CONTROL_0_t pi_ctrl_0;
+    TX_PI_RPTR_TX_PI_CONTROL_5_t pi_ctrl_5;
+    TLB_RX_DIG_LPBK_CONFIG_t dig_lpbk_cfg;
+    FUR_GEN_CNTRLS_FIRMWARE_ENABLE_t fw_enable;
+    PHYMOD_MEMSET(&pi_ctrl, 0 , sizeof(DSC_C_RX_PI_CONTROL_t));
+    PHYMOD_MEMSET(&cd_ctrl_2, 0 , sizeof(DSC_C_CDR_CONTROL_2_t));
+    PHYMOD_MEMSET(&pi_ctrl_0, 0 , sizeof(TX_PI_RPTR_TX_PI_CONTROL_0_t));
+    PHYMOD_MEMSET(&pi_ctrl_5, 0 , sizeof(TX_PI_RPTR_TX_PI_CONTROL_5_t));
+    PHYMOD_MEMSET(&dig_lpbk_cfg, 0 , sizeof(TLB_RX_DIG_LPBK_CONFIG_t));
+    PHYMOD_MEMSET(&fw_enable, 0 , sizeof(FUR_GEN_CNTRLS_FIRMWARE_ENABLE_t));
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            if(lane_map == 0xF) {
+                wr_lane = BROADCAST;
+            } else {
+                wr_lane = pkg_ln_des->slice_wr_val;
+            }
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+            other_sys_en = (sys_en == SIDE_A) ? SIDE_B : SIDE_A;
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            switch (loopback) {
+                case phymodLoopbackGlobal:
+                    return PHYMOD_E_UNAVAIL;
+                break;
+                case phymodLoopbackRemotePMD:
+                    if(enable) {
+                        PHYMOD_IF_ERR_RETURN(falcon_furia_rmt_lpbk_from_nl(pa));
+                    } else {
+                        PHYMOD_IF_ERR_RETURN(falcon_furia_nl_from_rmt_lpbk(pa));
+                    }
+                break;
+                case phymodLoopbackRemotePCS:
+                    return PHYMOD_E_UNAVAIL;
+                break;
+                case phymodLoopbackGlobalPMD:
+                    if(enable) {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                                    &fw_enable.data));
+
+                        while(fw_enable.fields.fw_enable_val != 0 && retry_count){
+                            PHYMOD_IF_ERR_RETURN
+                                (READ_FURIA_PMA_PMD_REG(pa,\
+                                                        FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                                        &fw_enable.data));
+                            PHYMOD_USLEEP(200000);
+                            retry_count --;
+                        } 
+                        if(!retry_count) {
+                            PHYMOD_RETURN_WITH_ERR(PHYMOD_E_FAIL, (_PHYMOD_MSG("Digital loopback configuration failed...")));
+                        }  
+                        
+                        /* Enable digital loopback */
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TLB_RX_dig_lpbk_config_Adr,\
+                                                    &dig_lpbk_cfg.data));
+                        dig_lpbk_cfg.fields.dig_lpbk_en = 1;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TLB_RX_dig_lpbk_config_Adr,\
+                                                     dig_lpbk_cfg.data));
+                        /* Set firmware enable */
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                                    &fw_enable.data));
+                        fw_enable.fields.fw_enable_val = 1;
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                                     fw_enable.data));
+                        retry_count = 5; 
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                                    &fw_enable.data));
+                        while(fw_enable.fields.fw_enable_val != 0 && retry_count){
+                            PHYMOD_IF_ERR_RETURN
+                                (READ_FURIA_PMA_PMD_REG(pa,\
+                                                        FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                                        &fw_enable.data));
+                            PHYMOD_USLEEP(200000);
+                            retry_count --;
+                        } 
+                        if(!retry_count) {
+                            PHYMOD_RETURN_WITH_ERR(PHYMOD_E_FAIL, (_PHYMOD_MSG("Digital loopback configuration failed...")));
+                        }  
+                        /* Enable digital loopback */
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TLB_RX_dig_lpbk_config_Adr,\
+                                                    &dig_lpbk_cfg.data));
+                        dig_lpbk_cfg.fields.dig_lpbk_en = 1;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TLB_RX_dig_lpbk_config_Adr,\
+                                                     dig_lpbk_cfg.data));
+                    } else {
+                        retry_count = 5; 
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                                    &fw_enable.data));
+                        while(fw_enable.fields.fw_enable_val != 0 && retry_count){
+                            PHYMOD_IF_ERR_RETURN
+                                (READ_FURIA_PMA_PMD_REG(pa,\
+                                                        FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                                        &fw_enable.data));
+
+                            PHYMOD_USLEEP(200000);
+                            retry_count--;
+                        } 
+                        if(!retry_count) {
+                            PHYMOD_RETURN_WITH_ERR(PHYMOD_E_FAIL, (_PHYMOD_MSG("Digital loopback configuration failed...")));
+                        }  
+                        /* Program Other Falcon (one which is not doing digital loopback) */
+                        /* Program the slice register */
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_SLICE_REG(pa, other_sys_en, wr_lane, rd_lane));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    DSC_C_cdr_control_2_Adr,\
+                                                    &cd_ctrl_2.data));
+                        cd_ctrl_2.fields.tx_pi_loop_timing_src_sel = 0;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     DSC_C_cdr_control_2_Adr,\
+                                                     cd_ctrl_2.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TX_PI_RPTR_tx_pi_control_5_Adr,\
+                                                    &pi_ctrl_5.data));
+                        pi_ctrl_5.fields.tx_pi_repeater_mode_en = 0;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TX_PI_RPTR_tx_pi_control_5_Adr,\
+                                                     pi_ctrl_5.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TX_PI_RPTR_tx_pi_control_0_Adr,\
+                                                    &pi_ctrl_0.data));
+                        pi_ctrl_0.fields.tx_pi_en = 0;
+                        pi_ctrl_0.fields.tx_pi_jitter_filter_en = 0;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TX_PI_RPTR_tx_pi_control_0_Adr,\
+                                                     pi_ctrl_0.data));
+                        /* Program Falcon (one which is doing digital loopback) */
+                        /* Program the slice register */
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TX_PI_RPTR_tx_pi_control_5_Adr,\
+                                                    &pi_ctrl_5.data));
+                        pi_ctrl_5.fields.tx_pi_repeater_mode_en = 0;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TX_PI_RPTR_tx_pi_control_5_Adr,\
+                                                     pi_ctrl_5.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TX_PI_RPTR_tx_pi_control_0_Adr,\
+                                                    &pi_ctrl_0.data));
+                        pi_ctrl_0.fields.tx_pi_en = 0;
+                        pi_ctrl_0.fields.tx_pi_jitter_filter_en = 0;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TX_PI_RPTR_tx_pi_control_0_Adr,\
+                                                     pi_ctrl_0.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TLB_RX_dig_lpbk_config_Adr,\
+                                                    &dig_lpbk_cfg.data));
+                        dig_lpbk_cfg.fields.dig_lpbk_en = 0;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TLB_RX_dig_lpbk_config_Adr,\
+                                                     dig_lpbk_cfg.data));
+                        /* Set firmware enable */
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                                    &fw_enable.data));
+                        fw_enable.fields.fw_enable_val = 1;
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                                     fw_enable.data));
+                    }
+                break;
+                default :
+                break;
+            }
+
+        }
+        if(lane_map == 0xF) {
+            break;
+        }
+    }
+
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            if(lane_map == 0xF) {
+                wr_lane = BROADCAST;
+            } else {
+                wr_lane = pkg_ln_des->slice_wr_val;
+            }
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+            other_sys_en = (sys_en == SIDE_A) ? SIDE_B : SIDE_A;
+
+            switch (loopback) {
+                case phymodLoopbackGlobal:
+                    return PHYMOD_E_UNAVAIL;
+                break;
+                case phymodLoopbackRemotePMD:
+                    if(enable) {
+                        PHYMOD_IF_ERR_RETURN(falcon_furia_rmt_lpbk_from_nl(pa));
+                    } else {
+                        PHYMOD_IF_ERR_RETURN(falcon_furia_nl_from_rmt_lpbk(pa));
+                    }
+                break;
+                case phymodLoopbackRemotePCS:
+                    return PHYMOD_E_UNAVAIL;
+                break;
+                case phymodLoopbackGlobalPMD:
+                    if(enable) {
+                        /* Program Other Falcon (one which is not doing digital loopback) */
+                        /* Program the slice register */
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_SLICE_REG(pa, other_sys_en, wr_lane, rd_lane));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    DSC_C_rx_pi_control_Adr,\
+                                                    &pi_ctrl.data));
+                        pi_ctrl.fields.rx_pi_manual_mode = 0;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     DSC_C_rx_pi_control_Adr,\
+                                                     pi_ctrl.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    DSC_C_cdr_control_2_Adr,\
+                                                    &cd_ctrl_2.data));
+                        cd_ctrl_2.fields.tx_pi_loop_timing_src_sel = 1;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     DSC_C_cdr_control_2_Adr,\
+                                                     cd_ctrl_2.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TX_PI_RPTR_tx_pi_control_0_Adr,\
+                                                    &pi_ctrl_0.data));
+                        pi_ctrl_0.fields.tx_pi_en = 0;
+                        pi_ctrl_0.fields.tx_pi_jitter_filter_en = 0;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TX_PI_RPTR_tx_pi_control_0_Adr,\
+                                                     pi_ctrl_0.data));
+
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TX_PI_RPTR_tx_pi_control_5_Adr,\
+                                                    &pi_ctrl_5.data));
+                        pi_ctrl_5.fields.tx_pi_repeater_mode_en = 0;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TX_PI_RPTR_tx_pi_control_5_Adr,\
+                                                     pi_ctrl_5.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TX_PI_RPTR_tx_pi_control_0_Adr,\
+                                                    &pi_ctrl_0.data));
+                        pi_ctrl_0.fields.tx_pi_en = 1;
+                        pi_ctrl_0.fields.tx_pi_jitter_filter_en = 1;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TX_PI_RPTR_tx_pi_control_0_Adr,\
+                                                     pi_ctrl_0.data));
+
+                        /* Program Falcon (one which is doing digital loopback) */
+                        /* Program the slice register */
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TX_PI_RPTR_tx_pi_control_5_Adr,\
+                                                    &pi_ctrl_5.data));
+                        pi_ctrl_5.fields.tx_pi_repeater_mode_en = 1;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TX_PI_RPTR_tx_pi_control_5_Adr,\
+                                                     pi_ctrl_5.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TX_PI_RPTR_tx_pi_control_0_Adr,\
+                                                    &pi_ctrl_0.data));
+                        pi_ctrl_0.fields.tx_pi_en = 1;
+                        pi_ctrl_0.fields.tx_pi_jitter_filter_en = 1;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TX_PI_RPTR_tx_pi_control_0_Adr,\
+                                                     pi_ctrl_0.data));
+
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    TLB_RX_dig_lpbk_config_Adr,\
+                                                    &dig_lpbk_cfg.data));
+                        dig_lpbk_cfg.fields.dig_lpbk_en = 1;
+
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     TLB_RX_dig_lpbk_config_Adr,\
+                                                     dig_lpbk_cfg.data));
+                        PHYMOD_USLEEP(50);
+                    }
+                break;
+                default :
+                break;
+            }
+
+        }
+        if(lane_map == 0xF) {
+            break;
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+int furia_loopback_get(const phymod_access_t *pa,
+                       phymod_loopback_mode_t loopback,
+                       uint32_t* enable)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    uint8_t ena_dis = 0;
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+  
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                switch (loopback) {
+                    case phymodLoopbackGlobal :
+                        return PHYMOD_E_UNAVAIL;
+                    break;
+                    case phymodLoopbackRemotePMD :
+                        PHYMOD_IF_ERR_RETURN(falcon_furia_rmt_lpbk_get(pa, &ena_dis));
+                        *enable = ena_dis;
+                    break;
+                    case phymodLoopbackRemotePCS :
+                        return PHYMOD_E_UNAVAIL;
+                    break;
+                    case phymodLoopbackGlobalPMD :
+                        PHYMOD_IF_ERR_RETURN(falcon_furia_dig_lpbk_get(pa, &ena_dis));
+                        *enable = ena_dis;
+                    break;
+                    default :
+                    break;
+                }
+            break;
+        }
+    }
+    /* Set the slice register with default values */
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+int furia_reset_set(const phymod_access_t *pa,
+                    phymod_reset_mode_t reset_mode,
+                    phymod_reset_direction_t direction)
+{
+    if((reset_mode == phymodResetModeSoft) &&
+       (direction == phymodResetDirectionIn)) { 
+        PHYMOD_IF_ERR_RETURN
+            (_furia_chip_reset(pa));
+    }
+    return PHYMOD_E_NONE;
+}
+
+int furia_tx_set(const phymod_access_t *pa,
+                 const phymod_tx_t* tx)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    uint32_t acc_flags = 0;
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = FURIA_IF_BCAST_SET(chip_id, lane_map) ? BROADCAST : pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            PHYMOD_IF_ERR_RETURN
+                (falcon_furia_write_tx_afe(pa, TX_AFE_PRE, tx->pre));
+            PHYMOD_IF_ERR_RETURN
+                (falcon_furia_write_tx_afe(pa, TX_AFE_MAIN, tx->main));
+            PHYMOD_IF_ERR_RETURN
+                (falcon_furia_write_tx_afe(pa, TX_AFE_POST1, tx->post));
+            PHYMOD_IF_ERR_RETURN
+                (falcon_furia_write_tx_afe(pa, TX_AFE_POST2, tx->post2));
+            PHYMOD_IF_ERR_RETURN
+                (falcon_furia_write_tx_afe(pa, TX_AFE_POST3, tx->post3));
+            PHYMOD_IF_ERR_RETURN
+                (falcon_furia_write_tx_afe(pa, TX_AFE_AMP, tx->amp));
+        }
+        if(lane_map == 0xF) {
+            break;
+        }
+    }
+
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+int furia_tx_get(const phymod_access_t *pa,
+                 phymod_tx_t* tx)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+   
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+  
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            if (FURIA_IF_TX_SIDE(chip_id, pkg_side)) {
+                PHYMOD_IF_ERR_RETURN
+                    (falcon_furia_read_tx_afe(pa, TX_AFE_PRE, &tx->pre));
+                PHYMOD_IF_ERR_RETURN
+                    (falcon_furia_read_tx_afe(pa, TX_AFE_MAIN, &tx->main));
+                PHYMOD_IF_ERR_RETURN
+                    (falcon_furia_read_tx_afe(pa, TX_AFE_POST1, &tx->post));
+                PHYMOD_IF_ERR_RETURN
+                    (falcon_furia_read_tx_afe(pa, TX_AFE_POST2, &tx->post2));
+                PHYMOD_IF_ERR_RETURN
+                    (falcon_furia_read_tx_afe(pa, TX_AFE_POST3, &tx->post3));
+                PHYMOD_IF_ERR_RETURN
+                    (falcon_furia_read_tx_afe(pa, TX_AFE_AMP, &tx->amp));
+            } 
+            break;
+        }
+    }
+    /* Set the slice register with default values */
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+int furia_rx_set(const phymod_access_t *pa,
+                 const phymod_rx_t* rx)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    uint32_t acc_flags = 0; 
+    uint32_t i = 0;
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = FURIA_IF_BCAST_SET(chip_id, lane_map) ? BROADCAST : pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            /*params check*/
+            for (i = 0 ; i < PHYMOD_NUM_DFE_TAPS; i++){
+                if(rx->dfe[i].enable && (rx->num_of_dfe_taps > PHYMOD_NUM_DFE_TAPS)) {
+                    PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("illegal number of DFEs to set")));
+                }
+            }
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                /*vga set*/
+                if (rx->vga.enable) {
+                    /* first stop the rx adaption */
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_stop_rx_adaptation(pa, 1));
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_write_rx_afe(pa, RX_AFE_VGA, rx->vga.value));
+                } else {
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_stop_rx_adaptation(pa, 0));
+                }
+
+                /*dfe set*/
+                for (i = 0 ; i < PHYMOD_NUM_DFE_TAPS; i++){
+                    if(rx->dfe[i].enable){
+                        PHYMOD_IF_ERR_RETURN(falcon_furia_stop_rx_adaptation(pa, 1));
+                        PHYMOD_IF_ERR_RETURN(falcon_furia_write_rx_afe(pa, RX_AFE_DFE1+i, rx->dfe[i].value));
+                    } else {
+                        PHYMOD_IF_ERR_RETURN(falcon_furia_stop_rx_adaptation(pa, 0));
+                    }
+                }
+
+                /*peaking filter set*/
+                if(rx->peaking_filter.enable){
+                    /* first stop the rx adaption */
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_stop_rx_adaptation(pa, 1));
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_write_rx_afe(pa, RX_AFE_PF, rx->peaking_filter.value));
+                } else {
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_stop_rx_adaptation(pa, 0));
+                }
+
+                if(rx->low_freq_peaking_filter.enable){
+                    /* first stop the rx adaption */
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_stop_rx_adaptation(pa, 1));
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_write_rx_afe(pa, RX_AFE_PF2, rx->low_freq_peaking_filter.value));
+                } else {
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_stop_rx_adaptation(pa, 0));
+                }
+            } 
+            if (FURIA_IF_BCAST_SET(chip_id, lane_map)) {
+                break;
+            }
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+
+int furia_rx_get(const phymod_access_t *pa,
+                 phymod_rx_t* rx)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    uint32_t i = 0;
+    int8_t dfe;
+    int8_t vga;
+    int8_t pf;
+    int8_t low_freq_pf;
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+   
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+  
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                rx->num_of_dfe_taps = PHYMOD_NUM_DFE_TAPS; 
+                PHYMOD_IF_ERR_RETURN(falcon_furia_read_rx_afe(pa, RX_AFE_VGA, &vga));
+                rx->vga.value = vga;
+
+                /*dfe get*/
+                for (i = 0 ; i < PHYMOD_NUM_DFE_TAPS; i++){
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_read_rx_afe(pa, (RX_AFE_DFE1+i), &dfe));
+                    rx->dfe[i].value = dfe;
+                }
+
+                /*peaking filter get*/
+                PHYMOD_IF_ERR_RETURN(falcon_furia_read_rx_afe(pa, RX_AFE_PF, &pf));
+                rx->peaking_filter.value = pf;
+                PHYMOD_IF_ERR_RETURN(falcon_furia_read_rx_afe(pa, RX_AFE_PF2, &low_freq_pf));
+                rx->low_freq_peaking_filter.value = low_freq_pf;
+            }
+            break;
+        }
+    }
+    /* Set the slice register with default values */
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+
+int furia_tx_lane_control_set(const phymod_access_t *pa,
+                              phymod_phy_tx_lane_control_t tx_control)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    SYS_TX_PMA_DP_SOFT_RST_t sys_tx_dp_soft_rst;
+    LINE_TX_PMA_DP_SOFT_RST_t line_tx_dp_soft_rst; 
+    PHYMOD_MEMSET(&sys_tx_dp_soft_rst, 0 , sizeof(SYS_TX_PMA_DP_SOFT_RST_t));
+    PHYMOD_MEMSET(&line_tx_dp_soft_rst, 0 , sizeof(LINE_TX_PMA_DP_SOFT_RST_t));
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+    switch(tx_control) {
+        case phymodTxReset:
+            for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+                if (((lane_map >> lane_index) & 1) == 0x1) {
+                    pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+                    PHYMOD_NULL_CHECK(pkg_ln_des);
+                    wr_lane = FURIA_IF_BCAST_SET(chip_id, lane_map) ? BROADCAST : pkg_ln_des->slice_wr_val;
+                    rd_lane = pkg_ln_des->slice_rd_val;
+                    if(pkg_side == SIDE_A) {
+                        sys_en = pkg_ln_des->sideA;
+                    } else {
+                        sys_en = pkg_ln_des->sideB;
+                    }
+                    /* Program the slice register */
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                    if (FURIA_IF_TX_SIDE(chip_id, pkg_side)) {
+                        /* Asserting datapath reset */
+                        if (sys_en == LINE) {
+                            PHYMOD_IF_ERR_RETURN
+                                (READ_FURIA_PMA_PMD_REG(pa,\
+                                                        LINE_TX_PMA_DP_soft_rst_Adr,\
+                                                        &line_tx_dp_soft_rst.data));
+                            line_tx_dp_soft_rst.fields.rstb_frc = 1;
+                            PHYMOD_IF_ERR_RETURN
+                                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                         LINE_TX_PMA_DP_soft_rst_Adr,\
+                                                         line_tx_dp_soft_rst.data));
+                            /* Releasing datapath reset */
+                            PHYMOD_IF_ERR_RETURN
+                                (READ_FURIA_PMA_PMD_REG(pa,\
+                                                        LINE_TX_PMA_DP_soft_rst_Adr,\
+                                                        &line_tx_dp_soft_rst.data));
+                            line_tx_dp_soft_rst.fields.rstb = 1;
+                            PHYMOD_IF_ERR_RETURN
+                                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                         LINE_TX_PMA_DP_soft_rst_Adr,\
+                                                         line_tx_dp_soft_rst.data));
+                            PHYMOD_IF_ERR_RETURN
+                                (READ_FURIA_PMA_PMD_REG(pa,\
+                                                        LINE_TX_PMA_DP_soft_rst_Adr,\
+                                                        &line_tx_dp_soft_rst.data));
+                            line_tx_dp_soft_rst.fields.rstb_frc = 0;
+                                PHYMOD_IF_ERR_RETURN
+                                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                             LINE_TX_PMA_DP_soft_rst_Adr,\
+                                                             line_tx_dp_soft_rst.data));
+                    } else {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_TX_PMA_DP_soft_rst_Adr,\
+                                                    &sys_tx_dp_soft_rst.data));
+                        sys_tx_dp_soft_rst.fields.rstb_frc = 1;
+                        PHYMOD_IF_ERR_RETURN
+                           (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_TX_PMA_DP_soft_rst_Adr,\
+                                                    sys_tx_dp_soft_rst.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_TX_PMA_DP_soft_rst_Adr,\
+                                                    &sys_tx_dp_soft_rst.data));
+                        sys_tx_dp_soft_rst.fields.rstb = 1;
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     SYS_TX_PMA_DP_soft_rst_Adr,\
+                                                     sys_tx_dp_soft_rst.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_TX_PMA_DP_soft_rst_Adr,\
+                                                    &sys_tx_dp_soft_rst.data));
+                        sys_tx_dp_soft_rst.fields.rstb_frc = 0;
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     SYS_TX_PMA_DP_soft_rst_Adr,\
+                                                     sys_tx_dp_soft_rst.data));
+                    }
+                }
+                if (FURIA_IF_BCAST_SET(chip_id, lane_map)) {
+                    break;
+                }
+            }
+        }
+    break;
+    case phymodTxTrafficDisable:
+    case phymodTxTrafficEnable:
+        return PHYMOD_E_UNAVAIL;
+    break;
+    case phymodTxSquelchOn:
+        for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+            if (((lane_map >> lane_index) & 1) == 0x1) {
+                pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+                PHYMOD_NULL_CHECK(pkg_ln_des);
+                wr_lane = FURIA_IF_BCAST_SET(chip_id, lane_map) ? BROADCAST : pkg_ln_des->slice_wr_val;
+                rd_lane = pkg_ln_des->slice_rd_val;
+                if(pkg_side == SIDE_A) {
+                    sys_en = pkg_ln_des->sideA;
+                } else {
+                    sys_en = pkg_ln_des->sideB;
+                }
+                /* Program the slice register */
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                if (FURIA_IF_TX_SIDE(chip_id, pkg_side)) {
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_tx_disable(pa, 1));
+                } 
+                if (FURIA_IF_BCAST_SET(chip_id, lane_map)) {
+                    break;;
+                }
+            }
+        }
+        break;
+
+        case phymodTxSquelchOff:
+        for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+            if (((lane_map >> lane_index) & 1) == 0x1) {
+                pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+                PHYMOD_NULL_CHECK(pkg_ln_des);
+                wr_lane = FURIA_IF_BCAST_SET(chip_id, lane_map) ? BROADCAST : pkg_ln_des->slice_wr_val;
+                rd_lane = pkg_ln_des->slice_rd_val;
+                if(pkg_side == SIDE_A) {
+                    sys_en = pkg_ln_des->sideA;
+                } else {
+                    sys_en = pkg_ln_des->sideB;
+                }
+                /* Program the slice register */
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                if (FURIA_IF_TX_SIDE(chip_id, pkg_side)) {
+                    PHYMOD_IF_ERR_RETURN(falcon_furia_tx_disable(pa, 0)); 
+                } 
+                if (FURIA_IF_BCAST_SET(chip_id, lane_map)) {
+                    break;;
+                }
+            }
+        }
+        break;
+        default:
+        break; 
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+int furia_tx_lane_control_get(const phymod_access_t *pa,
+                              phymod_phy_tx_lane_control_t* tx_control)
+{
+    int lane_map = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0; 
+    int pkg_side = 0;
+    int sys_en = 0;
+    int wr_lane = 0;
+    int rd_lane = 0;
+    uint8_t tx_dis_rd_val = 0;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    switch(*tx_control) {
+        case phymodTxReset:
+        case phymodTxTrafficDisable:
+        case phymodTxTrafficEnable:
+            return PHYMOD_E_UNAVAIL;
+        case phymodTxSquelchOn:
+            for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+                if (((lane_map >> lane_index) & 1) == 0x1) {
+                    pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+                    PHYMOD_NULL_CHECK(pkg_ln_des);
+                    rd_lane = pkg_ln_des->slice_rd_val;
+                    wr_lane = pkg_ln_des->slice_wr_val;
+                    if(pkg_side == SIDE_A) {
+                        sys_en = pkg_ln_des->sideA;
+                    } else {
+                        sys_en = pkg_ln_des->sideB;
+                    }
+                    /* Program the slice register */
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                    if ((FURIA_IS_SIMPLEX(chip_id) && (pkg_side == SIDE_A)) ||
+                        (FURIA_IS_DUPLEX(chip_id))) {
+                        PHYMOD_IF_ERR_RETURN(falcon_furia_tx_disable_get(pa, &tx_dis_rd_val));
+                        *tx_control = tx_dis_rd_val ? 1 : 0;
+                    } 
+                    break;
+                }
+            }
+        break;
+        case phymodTxSquelchOff:
+            for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+                if (((lane_map >> lane_index) & 1) == 0x1) {
+                    pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+                    PHYMOD_NULL_CHECK(pkg_ln_des);
+                    if(pkg_side == SIDE_A) {
+                        sys_en = pkg_ln_des->sideA;
+                    } else {
+                        sys_en = pkg_ln_des->sideB;
+                    }
+                    /* Program the slice register */
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                    if (FURIA_IF_TX_SIDE(chip_id, pkg_side)) {
+                        PHYMOD_IF_ERR_RETURN(falcon_furia_tx_disable_get(pa, &tx_dis_rd_val));
+                        *tx_control = (tx_dis_rd_val == 0) ? 1 : 0;
+                    }
+                    break;
+                }
+            }
+        break;
+        default:
+        break; 
+    }
+    return PHYMOD_E_NONE;
+}
+
+int furia_rx_lane_control_set(const phymod_access_t *pa,
+                              phymod_phy_rx_lane_control_t rx_control)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    LINE_RX_PMA_DP_MAIN_CTRL_t line_rx_dp_main_ctrl;
+    SIGDET_SIGDET_CTRL_1_t sigdet_ctrl; 
+    SYS_RX_PMA_DP_main_ctrl_t sys_rx_dp_main_ctrl;
+    PHYMOD_MEMSET(&line_rx_dp_main_ctrl, 0 , sizeof(LINE_RX_PMA_DP_MAIN_CTRL_t));
+    PHYMOD_MEMSET(&sys_rx_dp_main_ctrl, 0 , sizeof(SYS_RX_PMA_DP_main_ctrl_t));
+    PHYMOD_MEMSET(&sigdet_ctrl, 0 , sizeof(SIGDET_SIGDET_CTRL_1_t));
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    switch(rx_control) {
+        case phymodRxReset:
+            for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+                if (((lane_map >> lane_index) & 1) == 0x1) {
+                    /* Configure Tx side(SIDE_A) first*/
+                    pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+                    PHYMOD_NULL_CHECK(pkg_ln_des);
+                    wr_lane = FURIA_IF_BCAST_SET(chip_id, lane_map) ? BROADCAST : pkg_ln_des->slice_wr_val;
+                    rd_lane = pkg_ln_des->slice_rd_val;
+                    if(pkg_side == SIDE_A) {
+                        sys_en = pkg_ln_des->sideA;
+                    } else {
+                        sys_en = pkg_ln_des->sideB;
+                    }
+                    /* Program the slice register */
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                    if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                        if(sys_en == LINE) {
+                            /* Program the slice register */
+                            PHYMOD_IF_ERR_RETURN
+                                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                            /* Asserting datapath reset */
+                            PHYMOD_IF_ERR_RETURN
+                                (READ_FURIA_PMA_PMD_REG(pa,\
+                                                        LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                        &line_rx_dp_main_ctrl.data));
+                            line_rx_dp_main_ctrl.fields.rstb_frc = 1;
+                            PHYMOD_IF_ERR_RETURN
+                                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                         LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                         line_rx_dp_main_ctrl.data));
+                            /* Releasing datapath reset */
+                            PHYMOD_IF_ERR_RETURN
+                                (READ_FURIA_PMA_PMD_REG(pa,\
+                                                        LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                        &line_rx_dp_main_ctrl.data));
+                            line_rx_dp_main_ctrl.fields.rstb = 1;
+                            PHYMOD_IF_ERR_RETURN
+                                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                         LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                         line_rx_dp_main_ctrl.data));
+                            PHYMOD_IF_ERR_RETURN
+                                (READ_FURIA_PMA_PMD_REG(pa,\
+                                                        LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                        &line_rx_dp_main_ctrl.data));
+                            line_rx_dp_main_ctrl.fields.rstb_frc = 0;
+                            PHYMOD_IF_ERR_RETURN
+                                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                         LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                         line_rx_dp_main_ctrl.data));
+                        } else { 
+                            /* Program the slice register */
+                            PHYMOD_IF_ERR_RETURN
+                                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                            PHYMOD_IF_ERR_RETURN
+                                (READ_FURIA_PMA_PMD_REG(pa,\
+                                                        SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                        &sys_rx_dp_main_ctrl.data));
+                            sys_rx_dp_main_ctrl.fields.rstb_frc = 1;
+                            PHYMOD_IF_ERR_RETURN
+                                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                         SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                         sys_rx_dp_main_ctrl.data));
+                            /* Releasing datapath reset */
+                            PHYMOD_IF_ERR_RETURN
+                                (READ_FURIA_PMA_PMD_REG(pa,\
+                                                        SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                        &sys_rx_dp_main_ctrl.data));
+                            sys_rx_dp_main_ctrl.fields.rstb = 1;
+                            PHYMOD_IF_ERR_RETURN
+                                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                         SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                         sys_rx_dp_main_ctrl.data));
+                            PHYMOD_IF_ERR_RETURN
+                                (READ_FURIA_PMA_PMD_REG(pa,\
+                                                        SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                        &sys_rx_dp_main_ctrl.data));
+                            sys_rx_dp_main_ctrl.fields.rstb_frc = 0;
+                            PHYMOD_IF_ERR_RETURN
+                                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                         SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                         sys_rx_dp_main_ctrl.data));
+                        }
+                    }
+                    if (FURIA_IF_BCAST_SET(chip_id, lane_map)) {
+                        break;
+                    } 
+                }
+            }
+        break;
+        case phymodRxSquelchOn:
+            for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+                if (((lane_map >> lane_index) & 1) == 0x1) {
+                    /* Configure Tx side(SIDE_A) first*/
+                    pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+                    PHYMOD_NULL_CHECK(pkg_ln_des);
+                    wr_lane = FURIA_IF_BCAST_SET(chip_id, lane_map) ? BROADCAST : pkg_ln_des->slice_wr_val;
+                    rd_lane = pkg_ln_des->slice_rd_val;
+                    if(pkg_side == SIDE_A) {
+                        sys_en = pkg_ln_des->sideA;
+                    } else {
+                        sys_en = pkg_ln_des->sideB;
+                    }
+                    /* Program the slice register */
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                    if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SIGDET_SIGDET_CTRL_1_Adr,\
+                                                    &sigdet_ctrl.data));
+                        sigdet_ctrl.fields.signal_detect_frc = 1;
+                        sigdet_ctrl.fields.signal_detect_frc_val = 0;
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     SIGDET_SIGDET_CTRL_1_Adr,\
+                                                     sigdet_ctrl.data));
+                    }    
+                    if (FURIA_IF_BCAST_SET(chip_id, lane_map)) {
+                        break;
+                    }
+                }
+            }
+        break;
+        case phymodRxSquelchOff:
+            for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+                if (((lane_map >> lane_index) & 1) == 0x1) {
+                    /* Configure Tx side(SIDE_A) first*/
+                    pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+                    PHYMOD_NULL_CHECK(pkg_ln_des);
+                    wr_lane = FURIA_IF_BCAST_SET(chip_id, lane_map) ? BROADCAST : pkg_ln_des->slice_wr_val;
+                    rd_lane = pkg_ln_des->slice_rd_val;
+                    if(pkg_side == SIDE_A) {
+                        sys_en = pkg_ln_des->sideA;
+                    } else {
+                        sys_en = pkg_ln_des->sideB;
+                    }
+                    /* Program the slice register */
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                    if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SIGDET_SIGDET_CTRL_1_Adr,\
+                                                    &sigdet_ctrl.data));
+                        sigdet_ctrl.fields.signal_detect_frc = 1;
+                        sigdet_ctrl.fields.signal_detect_frc_val = 1;
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     SIGDET_SIGDET_CTRL_1_Adr,\
+                                                     sigdet_ctrl.data));
+                    }
+                    if (FURIA_IF_BCAST_SET(chip_id, lane_map)) {
+                        break;
+                    }
+                }
+            }
+        break;
+        default:
+        break;
+    }
+
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+int furia_rx_lane_control_get(const phymod_access_t *pa,
+                              phymod_phy_rx_lane_control_t* rx_control)
+{
+    int lane_map = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    SIGDET_SIGDET_CTRL_1_t sigdet_ctrl; 
+    PHYMOD_MEMSET(&sigdet_ctrl, 0 , sizeof(SIGDET_SIGDET_CTRL_1_t));
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+    switch(*rx_control) {
+        case phymodRxReset: 
+            return PHYMOD_E_UNAVAIL;
+        case phymodRxSquelchOn:
+            for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+                if (((lane_map >> lane_index) & 1) == 0x1) {
+                    pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+                    PHYMOD_NULL_CHECK(pkg_ln_des);
+                    wr_lane = pkg_ln_des->slice_wr_val;
+                    rd_lane = pkg_ln_des->slice_rd_val;
+                    if(pkg_side == SIDE_A) {
+                        sys_en = pkg_ln_des->sideA;
+                    } else {
+                        sys_en = pkg_ln_des->sideB;
+                    }
+                    /* Program the slice register */
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                    if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SIGDET_SIGDET_CTRL_1_Adr,\
+                                                    &sigdet_ctrl.data));
+                       *rx_control = sigdet_ctrl.fields.signal_detect_frc_val ? 0 : 1; 
+                    } 
+                }
+            }
+        break;
+        case phymodRxSquelchOff:
+            for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+                if (((lane_map >> lane_index) & 1) == 0x1) {
+                    pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+                    PHYMOD_NULL_CHECK(pkg_ln_des);
+                    wr_lane = pkg_ln_des->slice_wr_val;
+                    rd_lane = pkg_ln_des->slice_rd_val;
+                    if(pkg_side == SIDE_A) {
+                        sys_en = pkg_ln_des->sideA;
+                    } else {
+                        sys_en = pkg_ln_des->sideB;
+                    }
+                    /* Program the slice register */
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+                    if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SIGDET_SIGDET_CTRL_1_Adr,\
+                                                    &sigdet_ctrl.data));
+                        *rx_control = sigdet_ctrl.fields.signal_detect_frc_val ? 1 : 0; 
+                    } 
+                }
+            }
+        break;
+        default:
+        break;
+    }
+    return PHYMOD_E_NONE;
+}
+
+int furia_lane_cross_switch_map_set(const phymod_access_t *pa,
+                            const uint32_t *tx_source_array)
+{
+    uint32_t chip_id = 0;
+    uint32_t tx_die_lane = 0;
+    uint32_t rx_die_lane = 0;
+    uint32_t num_lanes = 0;
+    uint32_t acc_flags = 0; 
+    int pkg_side = 0;
+    int lane_index = 0;
+    int sys_en = 0;
+    const FURIA_PKG_LANE_CFG_t* tx_pkg_ln_des = NULL;
+    const FURIA_PKG_LANE_CFG_t* rx_pkg_ln_des = NULL;
+    SYS_RX_PMA_DP_DP_CTRL_t sys_rx_dp_ctrl;
+    LINE_RX_PMA_DP_DP_CTRL_t line_rx_dp_ctrl;
+    PHYMOD_MEMSET(&sys_rx_dp_ctrl, 0 , sizeof(SYS_RX_PMA_DP_DP_CTRL_t));
+    PHYMOD_MEMSET(&line_rx_dp_ctrl, 0 , sizeof(LINE_RX_PMA_DP_DP_CTRL_t));
+    
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+    for (lane_index = 0; lane_index < num_lanes; lane_index++) {
+        /* Set Swap configuration with newly supplied dst_lane*/
+        tx_pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+        PHYMOD_NULL_CHECK(tx_pkg_ln_des);
+        tx_die_lane = tx_pkg_ln_des->die_lane_num;
+        rx_pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, tx_source_array[lane_index]);
+        PHYMOD_NULL_CHECK(rx_pkg_ln_des);
+        rx_die_lane = rx_pkg_ln_des->die_lane_num;
+        if(pkg_side == SIDE_A) {
+            sys_en = tx_pkg_ln_des->sideA;
+        } else { 
+            sys_en = tx_pkg_ln_des->sideB;
+        }
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_SLICE_REG(pa, sys_en, 1<< tx_die_lane, tx_die_lane));
+        if (FURIA_IF_TX_SIDE(chip_id, pkg_side)) {
+            if (sys_en == LINE) {
+                /* Select system Rx as specified in Line Tx array */
+                /* SYS_RX_PMA_DP_dp_ctrl */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            SYS_RX_PMA_DP_dp_ctrl_Adr,\
+                                            &sys_rx_dp_ctrl.data));
+                sys_rx_dp_ctrl.fields.out_sel = rx_die_lane;
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                             SYS_RX_PMA_DP_dp_ctrl_Adr,\
+                                             sys_rx_dp_ctrl.data));
+            } else {
+                /* Select Line Rx as specified in System Tx array */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            LINE_RX_PMA_DP_dp_ctrl_Adr,\
+                                            &line_rx_dp_ctrl.data));
+                line_rx_dp_ctrl.fields.out_sel = rx_die_lane;
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                             LINE_RX_PMA_DP_dp_ctrl_Adr,\
+                                             line_rx_dp_ctrl.data));
+            }
+            glb_tx_source_array[pa->addr][lane_index] = tx_source_array[lane_index];
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+int furia_lane_cross_switch_map_get(const phymod_access_t *pa, uint32_t* tx_source_array)
+{
+    uint32_t chip_id = 0;
+    uint32_t tx_die_lane = 0;
+    uint32_t rx_die_lane = 0;
+    uint32_t rx_pkg_lane = 0;
+    uint32_t num_lanes = 0;
+    uint32_t acc_flags = 0; 
+    int pkg_side = 0;
+    int lane_index = 0;
+    int sys_en = 0;
+    const FURIA_PKG_LANE_CFG_t* tx_pkg_ln_des = NULL;
+    SYS_RX_PMA_DP_DP_CTRL_t sys_rx_dp_ctrl;
+    LINE_RX_PMA_DP_DP_CTRL_t line_rx_dp_ctrl;
+    PHYMOD_MEMSET(&sys_rx_dp_ctrl, 0 , sizeof(SYS_RX_PMA_DP_DP_CTRL_t));
+    PHYMOD_MEMSET(&line_rx_dp_ctrl, 0 , sizeof(LINE_RX_PMA_DP_DP_CTRL_t));
+    
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+    for (lane_index = 0; lane_index < num_lanes; lane_index++) {
+        /* Set Swap configuration with newly supplied dst_lane*/
+        tx_pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+        PHYMOD_NULL_CHECK(tx_pkg_ln_des);
+        tx_die_lane = tx_pkg_ln_des->die_lane_num;
+        if(pkg_side == SIDE_A) {
+            sys_en = tx_pkg_ln_des->sideA;
+        } else { 
+            sys_en = tx_pkg_ln_des->sideB;
+        }
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_SLICE_REG(pa, sys_en, 1<< tx_die_lane, tx_die_lane));
+        if (FURIA_IF_TX_SIDE(chip_id, pkg_side)) {
+            if (sys_en == LINE) {
+                /* Select system Rx as specified in Line Tx array */
+                /* SYS_RX_PMA_DP_dp_ctrl */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            SYS_RX_PMA_DP_dp_ctrl_Adr,\
+                                            &sys_rx_dp_ctrl.data));
+                rx_die_lane = sys_rx_dp_ctrl.fields.out_sel;
+                _furia_get_pkg_lane(pa->addr, chip_id, rx_die_lane, lane_index, &rx_pkg_lane);
+                tx_source_array[lane_index] = rx_pkg_lane;
+            } else {
+                /* Select Line Rx as specified in System Tx array */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            LINE_RX_PMA_DP_dp_ctrl_Adr,\
+                                            &line_rx_dp_ctrl.data));
+                rx_die_lane = line_rx_dp_ctrl.fields.out_sel;
+                _furia_get_pkg_lane(pa->addr, chip_id, rx_die_lane, lane_index, &rx_pkg_lane);
+                tx_source_array[lane_index] = rx_pkg_lane;
+            }
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+
+int furia_force_tx_training_set(const phymod_access_t *pa, uint32_t enable)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0;
+    uint16_t die_lane_num = 0;
+    FUR_GEN_CNTRLS_gpreg12_t gen_ctrls_gpreg12;
+    FUR_GEN_CNTRLS_gpreg11_t gen_ctrls_gpreg11;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    PHYMOD_MEMSET(&gen_ctrls_gpreg12, 0 , sizeof(FUR_GEN_CNTRLS_gpreg12_t));
+    PHYMOD_MEMSET(&gen_ctrls_gpreg11, 0 , sizeof(FUR_GEN_CNTRLS_gpreg11_t));
+    /* Get the lane map from phymod access */ 
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+    if(FURIA_IS_SIMPLEX(chip_id)) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Force Tx training is not applicable for simplex packages")));
+    }
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Get lane descriptor from package lane */
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            die_lane_num = pkg_ln_des->die_lane_num;
+            if(pkg_side == SIDE_A) {
+                /* Read GPReg12 */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            FUR_GEN_CNTRLS_gpreg12_Adr,\
+                                            &gen_ctrls_gpreg12.data));
+                if(enable) {
+                    gen_ctrls_gpreg12.fields.en_frc_tx_trng_line |= (1 << die_lane_num);
+                } else {
+                    gen_ctrls_gpreg12.fields.en_frc_tx_trng_line &= ~(1 << die_lane_num);
+                }
+
+                /* Write to GPReg12 */
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                             FUR_GEN_CNTRLS_gpreg12_Adr,\
+                                             gen_ctrls_gpreg12.data));
+            } else {
+                /* Read GPReg11 */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            FUR_GEN_CNTRLS_gpreg11_Adr,\
+                                            &gen_ctrls_gpreg11.data));
+                if(enable) { 
+                    gen_ctrls_gpreg11.fields.en_frc_tx_trng_sys |= (1 << die_lane_num);
+                } else {
+                    gen_ctrls_gpreg11.fields.en_frc_tx_trng_sys &= ~(1 << die_lane_num);
+                }
+                /* Write to GPReg11 */
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                             FUR_GEN_CNTRLS_gpreg11_Adr,\
+                                             gen_ctrls_gpreg11.data));
+            }
+        }
+    }
+    /* Set firmware enable */
+    PHYMOD_IF_ERR_RETURN
+        (_furia_fw_enable(pa));
+    return PHYMOD_E_NONE;
+}
+int furia_force_tx_training_get(const phymod_access_t *pa, uint32_t *enable)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0;
+    uint16_t die_lane_num = 0;
+    FUR_GEN_CNTRLS_gpreg12_t gen_ctrls_gpreg12;
+    FUR_GEN_CNTRLS_gpreg11_t gen_ctrls_gpreg11;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    PHYMOD_MEMSET(&gen_ctrls_gpreg12, 0 , sizeof(FUR_GEN_CNTRLS_gpreg12_t));
+    PHYMOD_MEMSET(&gen_ctrls_gpreg11, 0 , sizeof(FUR_GEN_CNTRLS_gpreg11_t));
+    /* Get the lane map from phymod access */ 
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+    if(FURIA_IS_SIMPLEX(chip_id)) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Force Tx training is not applicable for simplex packages")));
+    }
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Get lane descriptor from package lane */
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            die_lane_num = pkg_ln_des->die_lane_num;
+            if(pkg_side == SIDE_A) {
+                /* Read GPReg12 */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            FUR_GEN_CNTRLS_gpreg12_Adr,\
+                                            &gen_ctrls_gpreg12.data));
+                *enable = (gen_ctrls_gpreg12.fields.en_frc_tx_trng_line >> die_lane_num) & 1;
+            } else {
+                /* Read GPReg11 */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            FUR_GEN_CNTRLS_gpreg11_Adr,\
+                                            &gen_ctrls_gpreg11.data));
+                *enable = (gen_ctrls_gpreg11.fields.en_frc_tx_trng_sys >> die_lane_num) & 1;
+            }
+        }
+    }
+    return PHYMOD_E_NONE;
+}
+
+int furia_force_tx_training_status_get(const phymod_access_t *pa, phymod_cl72_status_t* status)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0;
+    CL93N72_IEEE_TX_CL93N72IT_BASE_R_PMD_STATUS_REGISTER_151_t cl93_72_status; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    PHYMOD_MEMSET(&cl93_72_status, 0 , sizeof(CL93N72_IEEE_TX_CL93N72IT_BASE_R_PMD_STATUS_REGISTER_151_t));
+    /* Get the lane map from phymod access */ 
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+    if(FURIA_IS_SIMPLEX(chip_id)) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Force Tx training is not applicable for simplex packages")));
+    }
+    /* Read Tx Training enable status */
+    PHYMOD_IF_ERR_RETURN
+        (furia_force_tx_training_get(pa, &status->enabled));
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Get lane descriptor from package lane */
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+        
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            CL93n72_IEEE_TX_cl93n72it_BASE_R_PMD_status_register_151_Adr,\
+                                            &cl93_72_status.data));
+                /* Extract Tx training status*/
+                status->locked = (!cl93_72_status.fields.cl93n72_ieee_training_failure) && (cl93_72_status.fields.cl93n72_ieee_receiver_status);
+                break;
+            }
+        }
+    /* Set the slice register to default */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+/**  Get Package index 
+ *    
+ *    
+ *
+ *    @param chip_id            Chip id of furia device
+ *    @param pkg_idx            Furia package
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+STATIC int furia_get_pkg_idx(uint32_t chip_id, int *pkg_idx)
+{
+    int index = 0;
+    for (index = 0; index < MAX_NUM_PACKAGES; index ++) {
+        if(glb_package_array[index] != NULL) {
+           if(glb_package_array[index]->chip_id == chip_id) {
+               *pkg_idx = index;
+               break;
+           } 
+        } 
+    }
+    if(index >= MAX_NUM_PACKAGES) {
+        return PHYMOD_E_LIMIT; 
+    }
+    return PHYMOD_E_NONE; 
+}
+
+/**   Get lane descriptor 
+ *    This function is used to retrieve lane descriptor from package lane 
+ *    
+ *    @param chip_id            Chip id of furia device
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param pkg_lane           Package lane number
+ *
+ *    @return pkg_ln_des        Lane descriptor structure contains the info
+ *                              about package lane and die lane mapping 
+ */
+const FURIA_PKG_LANE_CFG_t* _furia_pkg_ln_des(uint32_t chip_id, const phymod_access_t *pa, int pkg_lane)
+{
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    int pkg_idx;
+    
+    if ((pa->addr & 1) == 1) {
+        if(FURIA_IS_SIMPLEX(chip_id)) {
+            pkg_lane = pkg_lane + 8; 
+        } else {
+            pkg_lane = pkg_lane + 4;
+        }
+    }  
+    /* Get the package index */
+    if (!furia_get_pkg_idx(chip_id, &pkg_idx)) {
+        pkg_ln_des = glb_package_array[pkg_idx] + pkg_lane;
+    }
+    return pkg_ln_des; 
+}  
+ 
+STATIC int _furia_get_pkg_lane(uint32_t phy_id, uint32_t chip_id, uint32_t die_lane, uint32_t lane_index, uint32_t *pkg_lane)
+{
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    int pkg_idx = 0;
+    uint16_t i = 0;
+    uint16_t start_index = 0;
+    uint16_t max_lanes = 0; 
+    if(!furia_get_pkg_idx(chip_id, &pkg_idx)) {
+        if ((phy_id & 1) == 1) {
+            if(FURIA_IS_SIMPLEX(chip_id)) {
+                start_index = 8;
+                max_lanes = 8;
+            } else {
+                start_index = 4;
+                max_lanes = 4;
+            }
+        } else {
+            if(FURIA_IS_SIMPLEX(chip_id)) {
+                start_index = 0;
+                max_lanes = 8; 
+            } else {
+                start_index = 0;
+                max_lanes = 4;
+            }
+        }  
+    }
+    for(i = start_index; i < (start_index + max_lanes); i++) {
+        pkg_ln_des = glb_package_array[pkg_idx] + i;
+        if(pkg_ln_des->die_lane_num == die_lane) {
+            if (FURIA_IS_SIMPLEX(chip_id)) {
+                if (pkg_ln_des->pkg_lane_num == glb_tx_source_array[phy_id][lane_index]) {
+                    *pkg_lane = pkg_ln_des->pkg_lane_num;
+                    if ((phy_id & 1) == 1) {
+                        *pkg_lane -= 8;
+                    }
+                    break;
+                } else {
+                    continue;
+                }
+            } else {
+                *pkg_lane = pkg_ln_des->pkg_lane_num;
+                if ((phy_id & 1) == 1) {
+                    *pkg_lane -= 4;
+                }
+                break;
+            }
+            break;
+        }
+    }
+    if(i >= (start_index + max_lanes)) {
+        return PHYMOD_E_FAIL;
+    }
+   
+    return PHYMOD_E_NONE; 
+}
+
+/**   Get ref clock frequency
+ *    This function returns ref_clk_freq from ref clock freq type 
+ *
+ *    @param ref_clk_freq  Ref clk type 
+ * 
+ *    @return freq         Ref clk freq  in Mhz based on ref clk freq type
+ */
+int _furia_get_ref_clock_freq_in_mhz(FURIA_REF_CLK_E ref_clk_freq) 
+{
+    int freq = 0; 
+    if (ref_clk_freq == REF_CLK_106p25MHz) {
+        freq = 10625;
+    } else if (ref_clk_freq == REF_CLK_174p703125MHz) { /* 174.703125 Mhz */
+        freq = 17470;
+    } else if (ref_clk_freq == REF_CLK_156p25Mhz) { /* 156.25 Mhz */
+        freq = 15625;
+    } else if (ref_clk_freq == REF_CLK_125Mhz) { /* 125 Mhz */
+        freq = 1250;
+    } else if (ref_clk_freq == REF_CLK_156p637Mhz) { /* 156.637 Mhz */
+        freq = 15663;
+    } else if (ref_clk_freq == REF_CLK_161p1328125Mhz) { /* 161.1328125 Mhz */
+        freq = 16113;
+    } else if (ref_clk_freq == REF_CLK_168p04Mhz) { /* 168.04 Mhz */
+        freq = 16804;
+    } else if (ref_clk_freq == REF_CLK_172p64Mhz) { /* 172.64 Mhz */
+        freq = 17264;
+    } else {
+        PHYMOD_RETURN_WITH_ERR
+            (PHYMOD_E_PARAM,
+            (_PHYMOD_MSG(" Ref clk is not supported by furia")));
+    }
+    return(freq);
+}
+
+/**   Config clk scaler  
+ *    This function is used to program clk scaler 
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param ref_clk_freq       Furia ref clk type 
+ *  
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+STATIC int _furia_config_clk_scaler_val(const phymod_access_t *pa, FURIA_REF_CLK_E ref_clk_freq) 
+{
+    uint16_t clock_scaler_code = 0;
+    FUR_GEN_CNTRLS_GEN_CONTROL3_t gen_ctrl_3;
+    PHYMOD_MEMSET(&gen_ctrl_3, 0 , sizeof(FUR_GEN_CNTRLS_GEN_CONTROL3_t));
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_GEN_CNTRLS_gen_control3_Adr,\
+                                &gen_ctrl_3.data));
+    gen_ctrl_3.fields.clock_sclr_lock = 0x1;
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_GEN_CNTRLS_gen_control3_Adr,\
+                                 gen_ctrl_3.data));
+    switch (ref_clk_freq) {
+        case REF_CLK_106p25MHz:
+            clock_scaler_code = 0x4;
+        break;
+        case REF_CLK_174p703125MHz:
+            clock_scaler_code = 0x0; 
+        break;
+        case REF_CLK_156p25Mhz:
+            clock_scaler_code = 0x2;
+        break;
+        case REF_CLK_125Mhz:
+            clock_scaler_code = 0x3;
+        break;
+        case REF_CLK_161p1328125Mhz:
+            clock_scaler_code = 0x1;
+        break;
+        default:
+            PHYMOD_RETURN_WITH_ERR
+                    (PHYMOD_E_PARAM,
+                    (_PHYMOD_MSG(" This Ref Clock is not supported by Furia")));
+
+        break;   
+
+    }
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_GEN_CNTRLS_gen_control3_Adr,\
+                                &gen_ctrl_3.data));
+
+    gen_ctrl_3.fields.clock_scaler_code = clock_scaler_code;
+
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_GEN_CNTRLS_gen_control3_Adr,\
+                                 gen_ctrl_3.data));
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_GEN_CNTRLS_gen_control3_Adr,\
+                                &gen_ctrl_3.data));
+    gen_ctrl_3.fields.clock_sclr_lock = 0x0;
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_GEN_CNTRLS_gen_control3_Adr,\
+                                 gen_ctrl_3.data));
+    return PHYMOD_E_NONE;
+}
+
+/**   Get PLL divider 
+ *    This function is used to retrieve the pll divder value from 
+ *    pll mode 
+ *
+ *    @param pll_mode                 PLL mode 
+ *    @return divider           PLL divider value calculated using pll mode 
+ */
+STATIC int _furia_get_pll_divider(FALCON_PLL_MODE_E pll_mode) 
+{
+    int divider = 0;
+    if (pll_mode == PLL_MODE_64) {
+        divider = 64;
+    } else if (pll_mode == PLL_MODE_66) {
+        divider = 66;
+    } else if (pll_mode == PLL_MODE_80) {
+        divider = 80;
+    } else if (pll_mode == PLL_MODE_96) {
+        divider = 96;
+    } else if (pll_mode == PLL_MODE_120) {
+        divider = 120;
+    } else if (pll_mode == PLL_MODE_128) {
+        divider = 128;
+    } else if (pll_mode == PLL_MODE_132) {
+        divider = 132;
+    } else if (pll_mode == PLL_MODE_140) {
+        divider = 140;
+    } else if (pll_mode == PLL_MODE_160) {
+        divider = 160;
+    } else if (pll_mode == PLL_MODE_165) {
+        divider = 165;
+    } else if (pll_mode == PLL_MODE_168) {
+        divider = 168;
+    } else if (pll_mode == PLL_MODE_170) {
+        divider = 170;
+    } else if (pll_mode == PLL_MODE_175) {
+        divider = 175;
+    } else if (pll_mode == PLL_MODE_180) {
+        divider = 180;
+    } else if (pll_mode == PLL_MODE_184) {
+        divider = 184;
+    } else if (pll_mode == PLL_MODE_200) {
+        divider = 200;
+    } else if (pll_mode == PLL_MODE_224) {
+        divider = 224;
+    } else if (pll_mode == PLL_MODE_264) {
+        divider = 264;
+    } else {
+        PHYMOD_RETURN_WITH_ERR
+            (PHYMOD_E_PARAM,
+            (_PHYMOD_MSG(" PLL mode is not supported by furia")));
+    }
+    return(divider);
+}
+
+
+/**   Get PHY type 
+ *    This function is used to retrieve the PHY type
+ *    based on the interface value. 
+ *
+ *    @param intf               Interface type
+ *    @param higig_mode         Higig mode            
+ * 
+ *    @return phy_type          PHY type calculated based on interface  
+ */
+STATIC uint16_t _furia_get_phy_type(phymod_interface_t intf, uint32_t higig_mode)
+{
+    uint16_t phy_type = 0;
+    switch (intf) {
+        case phymodInterfaceSR:
+        case phymodInterfaceCX:
+        case phymodInterfaceCX2:
+        case phymodInterfaceCX4:
+        case phymodInterfaceCR:
+        case phymodInterfaceCR2:
+        case phymodInterfaceCR4:
+        case phymodInterfaceCR10:
+        case phymodInterfaceLR4:
+        case phymodInterfaceLR:
+        case phymodInterfaceSR4:
+            phy_type = 0x1;
+        break;
+        case phymodInterfaceKX:
+        case phymodInterfaceKX4:
+        case phymodInterfaceKR:
+        case phymodInterfaceKR2:
+        case phymodInterfaceKR4:
+            phy_type = 0x0;
+        break;
+        default:
+        break;
+    }
+
+    if (higig_mode) {
+        phy_type = 0x4; 
+    }
+
+    return phy_type;
+}
+
+/**   Get link type 
+ *    This function is used to retrieve the operating mode of the PHY
+ *
+ *    @param intf               Phymod interface type
+ *    @param speed              User specified speed 
+ * 
+ *    @return link_type         Link type calculated based on intf and speed 
+ */
+STATIC uint16_t _furia_get_link_type(phymod_interface_t intf, uint32_t speed)
+{
+    uint16_t link_type = 0; 
+    switch (intf) {
+        case phymodInterfaceKX:
+        case phymodInterfaceSR:
+            link_type = 0x1;
+        break;
+        case phymodInterfaceKR:
+            if (speed == SPEED_10G) {
+                link_type = 0x2;
+            } else if (speed == SPEED_20G) {
+                link_type = 0x6;
+            } else {
+                link_type = 0x8;
+            }    
+        break;
+        case phymodInterfaceLR:
+            if (speed == SPEED_10G) {
+                link_type = 0x1;
+            } else if (speed == SPEED_20G) {
+                link_type = 0x6;
+            } else {
+                link_type = 0x7;
+            }
+        break;
+        case phymodInterfaceCR4:
+            if (speed == SPEED_100G) {
+                link_type = 0x5;
+            } else {
+                link_type = 0x2;
+            }
+        break;
+        case phymodInterfaceKR4:
+        case phymodInterfaceLR4:
+        case phymodInterfaceSR4:
+            if (speed == SPEED_100G) {
+                link_type = 0x4;
+            } else {
+                link_type = 0x3;
+            }
+        break;
+        case phymodInterfaceKR2:
+            if (speed == SPEED_20G) {
+                link_type = 0x5;
+            } else if (speed == SPEED_40G) {
+                link_type = 0x7;
+            } else {
+                link_type = 0x9;
+            }
+        break;
+        default:
+        break;
+    }
+    return link_type;
+}
+
+/**   Get furia ref clk type 
+ *    This function is used to convert the phymod ref clk type to 
+ *    furia ref clk type 
+ *
+ *    @param ref_clk            Phymod ref clk type 
+ *    @param ref_clk_freq       Furia ref clk type  
+ * 
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+STATIC int _furia_phymod_to_furia_type_ref_clk_freq(phymod_ref_clk_t ref_clk, FURIA_REF_CLK_E *ref_clk_freq)
+{
+    switch (ref_clk) {
+        case phymodRefClk156Mhz:
+           *ref_clk_freq = REF_CLK_156p25Mhz;
+        break;
+        case phymodRefClk125Mhz:
+            *ref_clk_freq = REF_CLK_125Mhz;
+        break;
+        case phymodRefClk106Mhz:
+            *ref_clk_freq = REF_CLK_106p25MHz;
+        break;
+        case phymodRefClk161Mhz:
+            *ref_clk_freq = REF_CLK_161p1328125Mhz;
+        break;
+        case phymodRefClk174Mhz:
+            *ref_clk_freq = REF_CLK_174p703125MHz;
+        break;
+        default:
+            PHYMOD_RETURN_WITH_ERR(PHYMOD_E_PARAM,
+                                   (_PHYMOD_MSG(" This Ref Clock is not supported by Furia")));
+        break;
+    }
+    return PHYMOD_E_NONE;
+}
+
+/**   Get the PLL mode 
+ *    This function calculates pll mode based on the refclock & speed 
+ *    @param ref_clk            PHYMOD ref clk frequency
+ *    @param speed              speed specified by user
+ *    @param pll_mode           pll mode calculated based on ref clk and speed
+ *    @param higig_mode         Higig mode 
+ * 
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+STATIC int _furia_get_pll_mode(phymod_ref_clk_t ref_clk, uint32_t speed, uint32_t higig_mode, FALCON_PLL_MODE_E *pll_mode) {
+    switch (ref_clk) {
+        case phymodRefClk156Mhz:
+            switch(speed) {
+                case SPEED_100G:
+                case SPEED_50G:
+                case SPEED_25G:
+                    if (higig_mode) {
+                       *pll_mode = PLL_MODE_175;
+                    } else {
+                       *pll_mode = PLL_MODE_165;
+                    }
+                break;
+                case SPEED_40G:
+                case SPEED_20G:
+                case SPEED_10G:
+                    if (higig_mode) {
+                        *pll_mode = PLL_MODE_140;
+                    } else {
+                        *pll_mode = PLL_MODE_132;
+                    }
+                break;
+                case SPEED_1G:
+                    *pll_mode = PLL_MODE_132;
+                break;
+                default:
+                break;
+            } 
+        break;
+        case phymodRefClk125Mhz:
+            switch(speed) {
+                case SPEED_23G:
+                    *pll_mode = PLL_MODE_184;
+                break;
+                case SPEED_15G:
+                    *pll_mode = PLL_MODE_120;
+                break;
+                case SPEED_12P5G:
+                    *pll_mode = PLL_MODE_200;
+                break;
+                case SPEED_11P5G:
+                    *pll_mode = PLL_MODE_184;
+                break;
+                case SPEED_7P5G:
+                    *pll_mode = PLL_MODE_120;
+                default:
+                break;
+            } 
+        break;
+        case phymodRefClk106Mhz:
+            switch(speed) {
+                case SPEED_28G:
+                    *pll_mode = PLL_MODE_264;
+                break;
+                case SPEED_14G:
+                    *pll_mode = PLL_MODE_264;
+                break;
+                case SPEED_8P5G:
+                    *pll_mode = PLL_MODE_160;
+                break;
+                case SPEED_4P25G:
+                    *pll_mode = PLL_MODE_160;
+                break;
+                default:
+                break;
+            } 
+        break;
+        case phymodRefClk161Mhz:
+            switch(speed) {
+                case SPEED_100G:
+                case SPEED_50G:
+                case SPEED_25G:
+                    *pll_mode = PLL_MODE_160;
+                break;
+                case SPEED_40G:
+                case SPEED_20G:
+                case SPEED_10G:
+                    *pll_mode = PLL_MODE_128;
+                break;
+                case SPEED_1G:
+                    *pll_mode = PLL_MODE_128;
+                break;
+                default:
+                break;
+            } 
+        break;
+        default:
+        break;
+    }
+    return PHYMOD_E_NONE;
+}
+
+
+STATIC int _furia_config_clk_scaler_without_m0_reset(const phymod_access_t *pa, FURIA_REF_CLK_E ref_clk_freq)
+{
+    FUR_MICRO_BOOT_BOOT_POR_t micro_boot_por;
+    FUR_GEN_CNTRLS_BOOT_t gen_ctrl_boot;
+    int retry_count = 5;
+    PHYMOD_MEMSET(&micro_boot_por, 0 , sizeof(FUR_MICRO_BOOT_BOOT_POR_t));
+    PHYMOD_MEMSET(&gen_ctrl_boot, 0 , sizeof(FUR_GEN_CNTRLS_BOOT_t));
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MICRO_BOOT_boot_por_Adr,\
+                                &micro_boot_por.data));
+    if((micro_boot_por.fields.serboot == 1) && (micro_boot_por.fields.spi_port_used == 1)) {
+        while(((micro_boot_por.fields.mst_dwld_done == 0) || (micro_boot_por.fields.slv_dwld_done == 0)) && (retry_count)) {
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MICRO_BOOT_boot_por_Adr,\
+                                        &micro_boot_por.data));
+            PHYMOD_USLEEP(200000);
+            retry_count--; 
+        }
+        if(!retry_count) {
+            PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("config failed, micro controller is busy..")));
+        } 
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    FUR_GEN_CNTRLS_boot_Adr,\
+                                    &gen_ctrl_boot.data));
+        retry_count = 5;
+        while((gen_ctrl_boot.fields.serboot_busy == 1) && (retry_count)) {
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_GEN_CNTRLS_boot_Adr,\
+                                        &gen_ctrl_boot.data));
+            PHYMOD_USLEEP(200000);
+            retry_count--;
+        }
+        if(!retry_count) {
+            PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("config failed, micro controller is busy with firmware download..")));
+        }
+    } 
+   _furia_config_clk_scaler_val(pa, ref_clk_freq);
+    return PHYMOD_E_NONE;
+}
+
+int _furia_fw_enable(const phymod_access_t* pa)
+{
+    FUR_GEN_CNTRLS_FIRMWARE_ENABLE_t fw_enable_reg;
+    uint8_t fw_enable = 0;
+    uint8_t retry_count = 5;
+    PHYMOD_MEMSET(&fw_enable_reg, 0 , sizeof(FUR_GEN_CNTRLS_FIRMWARE_ENABLE_t));
+    /* Wait for firmware to ready before config to be changed */
+    PHYMOD_IF_ERR_RETURN
+         (READ_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                 &fw_enable_reg.data));
+    fw_enable = fw_enable_reg.fields.fw_enable_val;
+
+    while((fw_enable != 0) && (retry_count)) {
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                    &fw_enable_reg.data));
+        fw_enable = fw_enable_reg.fields.fw_enable_val;
+        PHYMOD_USLEEP(200000);
+        retry_count--;
+    }
+
+    if(!retry_count) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("1:config failed, micro controller is busy..")));
+    }
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                &fw_enable_reg.data));
+    fw_enable_reg.fields.fw_enable_val = 1;
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                 fw_enable_reg.data));
+    return PHYMOD_E_NONE;
+}
+
+int _furia_autoneg_set(const phymod_access_t* pa, const phymod_autoneg_control_t* an)
+{
+    int lane_map = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0; 
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0; 
+    uint32_t an_master_lane = 0, pkg_lane = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    IEEE_AN_BLK0_AN_CONTROL_REGISTER_t an_control;
+    FUR_MISC_CTRL_UDMS_PHY_t udms_phy;
+    PHYMOD_MEMSET(&an_control, 0 , sizeof(IEEE_AN_BLK0_AN_CONTROL_REGISTER_t));
+    PHYMOD_MEMSET(&udms_phy, 0 , sizeof(FUR_MISC_CTRL_UDMS_PHY_t));
+    
+    /* Get the lane map from phymod access */ 
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    if(FURIA_IS_SIMPLEX(chip_id)) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Autoneg feature is not applicable for simplex packages")));
+    }
+
+    /* Program udms_en=0 */
+    /* Read UDMS PHY Type Register */
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MISC_CTRL_udms_phy_Adr,\
+                                &udms_phy.data));
+ 
+    /* Update the field udms disable*/
+    udms_phy.fields.udms_en = (an->enable) ? 0 : 1;
+    /* Write to UDMS PHY Type Register */
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_MISC_CTRL_udms_phy_Adr,\
+                                 udms_phy.data));
+
+    num_lanes = 4;
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if ((lane_map >> lane_index) & 1) {
+            an_master_lane ++;
+        }
+    }
+    if (an_master_lane > 1) {
+        an_master_lane = 0;
+        PHYMOD_IF_ERR_RETURN(
+            _furia_cfg_an_master_lane_get(pa, &an_master_lane));
+
+        /* Doing this because for 10G we need lane index not lane MAP*/
+        PHYMOD_IF_ERR_RETURN(
+           _furia_get_pkg_lane(pa->addr, chip_id, an_master_lane, 0, &pkg_lane));
+        lane_map = (1 << pkg_lane);
+    }
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            /* Get sys_en, wr_lane, rd_lane using lane descriptor */
+            sys_en = pkg_ln_des->sideA;
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_AN_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+            if (an->an_mode == phymod_AN_MODE_CL73) {
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_AN_REG(pa,\
+                                            IEEE_AN_BLK0_an_control_register_Adr,\
+                                            &an_control.data));
+                an_control.fields.auto_negotiationenable = an->enable;
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_AN_REG(pa,\
+                                             IEEE_AN_BLK0_an_control_register_Adr,\
+                                             an_control.data));
+            } else {
+                return PHYMOD_E_PARAM;
+            }
+            break;
+        }
+    }
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_AN_SLICE_REG(pa, 0, 1, 0));
+
+    PHYMOD_IF_ERR_RETURN(
+            _furia_fw_enable(pa));
+
+    return PHYMOD_E_NONE;
+}
+
+int _furia_autoneg_get(const phymod_access_t* pa, phymod_autoneg_control_t* an, uint32_t *an_done)
+{
+    int lane_map = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0; 
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    uint32_t an_master_lane =0, pkg_lane = 0;
+    int lane_index = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    IEEE_AN_BLK0_AN_CONTROL_REGISTER_t an_control;
+    IEEE_AN_BLK0_AN_STATUS_REGISTER_t an_sts;
+    PHYMOD_MEMSET(&an_control, 0 , sizeof(IEEE_AN_BLK0_AN_CONTROL_REGISTER_t));
+    PHYMOD_MEMSET(&an_sts, 0 , sizeof(IEEE_AN_BLK0_AN_STATUS_REGISTER_t));
+    
+    /* Get the lane map from phymod access */ 
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    if(FURIA_IS_SIMPLEX(chip_id)) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Autoneg feature is not applicable for simplex packages")));
+    }
+
+    num_lanes = 4;
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if ((lane_map >> lane_index) & 1) {
+            an_master_lane ++;
+        }
+    }
+    if (an_master_lane > 1) {
+        an_master_lane = 0;
+        PHYMOD_IF_ERR_RETURN(
+            _furia_cfg_an_master_lane_get(pa, &an_master_lane));
+
+        /* Doing this because for 10G we need lane index not lane MAP*/
+        PHYMOD_IF_ERR_RETURN(
+           _furia_get_pkg_lane(pa->addr, chip_id, an_master_lane, 0, &pkg_lane));
+        lane_map = (1 << pkg_lane);
+    }
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            /* Get sys_en, wr_lane, rd_lane using lane descriptor */
+            sys_en = pkg_ln_des->sideA;
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_AN_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+            PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_AN_REG(pa, IEEE_AN_BLK0_an_control_register_Adr,  
+                                     &an_control.data));
+            an->enable = an_control.fields.auto_negotiationenable;
+            an->an_mode = phymod_AN_MODE_CL73;
+            PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_AN_REG(pa, IEEE_AN_BLK0_an_status_register_Adr,  
+                                     &an_sts.data));
+            *an_done = an_sts.fields.auto_negotiationcomplete;
+            break;
+        }
+    }
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_AN_SLICE_REG(pa, 0, 1, 0));
+
+    return PHYMOD_E_NONE;
+}
+int _furia_autoneg_ability_get (const phymod_access_t* pa, furia_an_ability_t *an_ability)
+{
+    int lane_map = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0; 
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0; 
+    uint32_t an_master_lane = 0, pkg_lane = 0;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    IEEE_AN_BLK1_an_advertisement_1_register_t adv1;
+    IEEE_AN_BLK1_an_advertisement_2_register_t adv2;
+    IEEE_AN_BLK1_an_advertisement_3_register_t adv3;
+    PHYMOD_MEMSET(&adv1, 0 , sizeof(IEEE_AN_BLK1_an_advertisement_1_register_t));
+    PHYMOD_MEMSET(&adv2, 0 , sizeof(IEEE_AN_BLK1_an_advertisement_2_register_t));
+    PHYMOD_MEMSET(&adv3, 0 , sizeof(IEEE_AN_BLK1_an_advertisement_3_register_t));
+    
+    /* Get the lane map from phymod access */ 
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    if(FURIA_IS_SIMPLEX(chip_id)) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Autoneg feature is not applicable for simplex packages")));
+    }
+
+    num_lanes = 4;
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if ((lane_map >> lane_index) & 1) {
+            an_master_lane ++;
+        }
+    }
+    if (an_master_lane > 1) {
+        an_master_lane = 0;
+        PHYMOD_IF_ERR_RETURN(
+            _furia_cfg_an_master_lane_get(pa, &an_master_lane));
+
+        /* Doing this because for 10G we need lane index not lane MAP*/
+        PHYMOD_IF_ERR_RETURN(
+           _furia_get_pkg_lane(pa->addr, chip_id, an_master_lane, 0, &pkg_lane));
+        lane_map = (1 << pkg_lane);
+    }
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            /* Get sys_en, wr_lane, rd_lane using lane descriptor */
+            sys_en = pkg_ln_des->sideA;
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_AN_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+            PHYMOD_IF_ERR_RETURN 
+                (READ_FURIA_AN_REG(pa, IEEE_AN_BLK1_an_advertisement_3_register_Adr,  
+                                     &adv3.data));
+            an_ability->cl73_adv.an_fec = adv3.fields.fec_requested;
+            PHYMOD_IF_ERR_RETURN 
+                (READ_FURIA_AN_REG(pa, IEEE_AN_BLK1_an_advertisement_2_register_Adr,  
+                                     &adv2.data));
+            an_ability->cl73_adv.an_base_speed = adv2.fields.techability;
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_AN_REG(pa, IEEE_AN_BLK1_an_advertisement_1_register_Adr,  
+                                     &adv1.data));
+            an_ability->cl73_adv.an_pause = adv1.fields.pause;
+            break;
+        }
+    }
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_AN_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+int _furia_autoneg_remote_ability_get (const phymod_access_t* pa, phymod_autoneg_ability_t* an_ability_get)
+{
+    int lane_map = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0; 
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0; 
+    uint32_t an_master_lane = 0, pkg_lane =0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    
+    IEEE_AN_BLK1_an_lp_base_page_ability_2_reg_t adv2;
+    IEEE_AN_BLK1_an_lp_base_page_ability_1_reg_t adv1;
+
+    PHYMOD_MEMSET(&adv1, 0 , sizeof(IEEE_AN_BLK1_an_advertisement_1_register_t));
+    PHYMOD_MEMSET(&adv2, 0 , sizeof(IEEE_AN_BLK1_an_advertisement_2_register_t));
+    
+    /* Get the lane map from phymod access */ 
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    if(FURIA_IS_SIMPLEX(chip_id)) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Autoneg feature is not applicable for simplex packages")));
+    }
+
+    num_lanes = 4;
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if ((lane_map >> lane_index) & 1) {
+            an_master_lane ++;
+        }
+    }
+    if (an_master_lane > 1) {
+        an_master_lane = 0;
+        PHYMOD_IF_ERR_RETURN(
+            _furia_cfg_an_master_lane_get(pa, &an_master_lane));
+        /* Doing this because for 10G we need lane index not lane MAP*/
+        PHYMOD_IF_ERR_RETURN(
+           _furia_get_pkg_lane(pa->addr, chip_id, an_master_lane, 0, &pkg_lane));
+        lane_map = (1 << pkg_lane);
+    }
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            /* Get sys_en, wr_lane, rd_lane using lane descriptor */
+            sys_en = pkg_ln_des->sideA;
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_AN_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            PHYMOD_IF_ERR_RETURN(
+            READ_FURIA_AN_REG(pa, IEEE_AN_BLK1_an_lp_base_page_ability_2_reg_Adr, &adv2.data));
+            an_ability_get->an_cap = (adv2.data & 0xFFE0) >> 5;
+
+            PHYMOD_IF_ERR_RETURN(
+            READ_FURIA_AN_REG(pa, IEEE_AN_BLK1_an_lp_base_page_ability_1_reg_Adr, &adv1.data));
+            if (adv1.data & 0x400) {
+                PHYMOD_AN_CAP_ASYM_PAUSE_SET(an_ability_get);
+            } else if (adv1.data & 0x800) {
+                PHYMOD_AN_CAP_SYMM_PAUSE_SET(an_ability_get);
+            }
+            break;
+        }
+    }
+
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_AN_SLICE_REG(pa, 0, 1, 0));
+
+    return PHYMOD_E_NONE;
+}
+
+int _furia_autoneg_ability_set (const phymod_access_t* pa, furia_an_ability_t *an_ability)
+{
+    int lane_map = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0; 
+    uint32_t chip_id = 0, an_master_lane = 0, pkg_lane = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    IEEE_AN_BLK1_an_advertisement_1_register_t adv1;
+    IEEE_AN_BLK1_an_advertisement_2_register_t adv2;
+    IEEE_AN_BLK1_an_advertisement_3_register_t adv3;
+ 
+    PHYMOD_MEMSET(&adv1, 0, sizeof(IEEE_AN_BLK1_an_advertisement_1_register_t));
+    PHYMOD_MEMSET(&adv2, 0, sizeof(IEEE_AN_BLK1_an_advertisement_2_register_t));
+    PHYMOD_MEMSET(&adv3, 0, sizeof(IEEE_AN_BLK1_an_advertisement_3_register_t));
+   
+    /* Get the lane map from phymod access */ 
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    if(FURIA_IS_SIMPLEX(chip_id)) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Autoneg feature is not applicable for simplex packages")));
+    }
+    num_lanes = 4;
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if ((lane_map >> lane_index) & 1) {
+            an_master_lane ++;
+        }
+    }
+    if (an_master_lane > 1) {
+        an_master_lane = 0;
+        PHYMOD_IF_ERR_RETURN(
+            _furia_cfg_an_master_lane_get(pa, &an_master_lane));
+
+        /* Doing this because for 10G we need lane index not lane MAP*/
+        PHYMOD_IF_ERR_RETURN(
+           _furia_get_pkg_lane(pa->addr, chip_id, an_master_lane, 0, &pkg_lane));
+        lane_map = (1 << pkg_lane);
+    }
+    
+    for (lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+
+            /* Get sys_en, wr_lane, rd_lane using lane descriptor */
+            sys_en = pkg_ln_des->sideA;
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_AN_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_AN_REG(pa,\
+                                        IEEE_AN_BLK1_an_advertisement_3_register_Adr,\
+                                        &adv3.data));
+            adv3.fields.fec_requested = an_ability->cl73_adv.an_fec; 
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_AN_REG(pa,\
+                                         IEEE_AN_BLK1_an_advertisement_3_register_Adr,\
+                                         adv3.data));
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_AN_REG(pa,\
+                                        IEEE_AN_BLK1_an_advertisement_2_register_Adr,\
+                                        &adv2.data));
+            adv2.fields.techability = an_ability->cl73_adv.an_base_speed;
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_AN_REG(pa,\
+                                         IEEE_AN_BLK1_an_advertisement_2_register_Adr,\
+                                         adv2.data));
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_AN_REG(pa,\
+                                        IEEE_AN_BLK1_an_advertisement_1_register_Adr,\
+                                        &adv1.data));
+            adv1.fields.pause = an_ability->cl73_adv.an_pause;
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_AN_REG(pa,\
+                                         IEEE_AN_BLK1_an_advertisement_1_register_Adr,\
+                                         adv1.data));
+            break;
+        }
+    }
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_AN_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+int furia_display_eye_scan(const phymod_access_t *pa)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+     
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            PHYMOD_DIAG_OUT((" eyescan for lane = %d\n",     lane_index));
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                PHYMOD_IF_ERR_RETURN
+                    (falcon_furia_display_lane_state_hdr(pa));
+                PHYMOD_IF_ERR_RETURN
+                    (falcon_furia_display_lane_state(pa)); 
+                PHYMOD_IF_ERR_RETURN
+                    (falcon_furia_display_eye_scan(pa));
+            } 
+        }
+    }
+    return PHYMOD_E_NONE;
+}
+
+int furia_pll_sequencer_restart(const phymod_access_t *pa, phymod_sequencer_operation_t operation)
+{
+    int pkg_side = 0;
+    uint32_t acc_flags = 0; 
+    uint32_t chip_id = 0;
+    LINE_FALCON_IF_SOFT_MODE0_t line_falcon_soft_mode0;
+    LINE_FALCON_IF_C_AND_R_CNTL_t line_falcon_c_and_r_ctrl;
+    SYS_FALCON_IF_SOFT_MODE0_t    sys_falcon_soft_mode0;
+    SYS_FALCON_IF_C_AND_R_CNTL_t  sys_falcon_c_and_r_ctrl;
+    PHYMOD_MEMSET(&line_falcon_soft_mode0, 0 , sizeof(LINE_FALCON_IF_SOFT_MODE0_t));
+    PHYMOD_MEMSET(&line_falcon_c_and_r_ctrl, 0 , sizeof(LINE_FALCON_IF_C_AND_R_CNTL_t));
+    PHYMOD_MEMSET(&sys_falcon_soft_mode0, 0 , sizeof(SYS_FALCON_IF_SOFT_MODE0_t));
+    PHYMOD_MEMSET(&sys_falcon_c_and_r_ctrl, 0 , sizeof(SYS_FALCON_IF_C_AND_R_CNTL_t));
+   
+    /* Get the lane map from phymod access */
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    switch(operation) {
+        case phymodSeqOpStop:
+        case phymodSeqOpStart:
+            return PHYMOD_E_UNAVAIL; 
+        case phymodSeqOpRestart:
+            if((FURIA_IS_DUPLEX(chip_id) && pkg_side == LINE) ||
+               (FURIA_IS_SIMPLEX(chip_id))) {
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            LINE_FALCON_IF_soft_mode0_Adr,\
+                                            &line_falcon_soft_mode0.data));
+                line_falcon_soft_mode0.fields.software_mode_pmd_core_dp_h_rstb = 1;
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                             LINE_FALCON_IF_soft_mode0_Adr,\
+                                             line_falcon_soft_mode0.data));
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            LINE_FALCON_IF_c_and_r_cntl_Adr,\
+                                            &line_falcon_c_and_r_ctrl.data));
+                line_falcon_c_and_r_ctrl.fields.pmd_core_dp_h_rstb = 0;
+                line_falcon_c_and_r_ctrl.fields.pmd_core_dp_h_rstb = 1;
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                             LINE_FALCON_IF_c_and_r_cntl_Adr,\
+                                             line_falcon_c_and_r_ctrl.data));
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            LINE_FALCON_IF_soft_mode0_Adr,\
+                                            &line_falcon_soft_mode0.data));
+                line_falcon_soft_mode0.fields.software_mode_pmd_core_dp_h_rstb = 0;
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                             LINE_FALCON_IF_soft_mode0_Adr,\
+                                             line_falcon_soft_mode0.data));
+            } 
+            if((FURIA_IS_DUPLEX(chip_id) && pkg_side == SYS) ||
+                (FURIA_IS_SIMPLEX(chip_id))) {
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            SYS_FALCON_IF_soft_mode0_Adr,\
+                                            &sys_falcon_soft_mode0.data));
+                sys_falcon_soft_mode0.fields.software_mode_pmd_core_dp_h_rstb = 1;
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                             SYS_FALCON_IF_soft_mode0_Adr,\
+                                             sys_falcon_soft_mode0.data));
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            SYS_FALCON_IF_c_and_r_cntl_Adr,\
+                                            &sys_falcon_c_and_r_ctrl.data));
+                sys_falcon_c_and_r_ctrl.fields.pmd_core_dp_h_rstb = 0;
+                sys_falcon_c_and_r_ctrl.fields.pmd_core_dp_h_rstb = 1;
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                             SYS_FALCON_IF_c_and_r_cntl_Adr,\
+                                             sys_falcon_c_and_r_ctrl.data));
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            SYS_FALCON_IF_soft_mode0_Adr,\
+                                            &sys_falcon_soft_mode0.data));
+                sys_falcon_soft_mode0.fields.software_mode_pmd_core_dp_h_rstb = 0;
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                             SYS_FALCON_IF_soft_mode0_Adr,\
+                                             sys_falcon_soft_mode0.data));
+            }
+        break;
+        default:
+        break;
+    }
+    return PHYMOD_E_NONE;
+}
+int furia_fec_enable_set(const phymod_access_t *pa, uint32_t enable)
+{
+    FUR_MISC_CTRL_MODE_DEC_FRC_t dec_frc;
+    FUR_MISC_CTRL_MODE_DEC_FRC_VAL_t dec_frc_val;
+    uint32_t chip_id = 0;
+    PHYMOD_MEMSET(&dec_frc, 0 , sizeof(FUR_MISC_CTRL_MODE_DEC_FRC_t));
+    PHYMOD_MEMSET(&dec_frc_val, 0 , sizeof(FUR_MISC_CTRL_MODE_DEC_FRC_VAL_t));
+
+    chip_id = _furia_get_chip_id(pa);
+    if(FURIA_IS_SIMPLEX(chip_id)) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("FEC is not applicable for simplex packages")));
+    }
+
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MISC_CTRL_mode_dec_frc_val_Adr,\
+                                &dec_frc_val.data));
+    dec_frc_val.fields.rg_cl91_enabled_frc_val = enable ? 1 : 0;
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_MISC_CTRL_mode_dec_frc_val_Adr,\
+                                 dec_frc_val.data));
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MISC_CTRL_mode_dec_frc_Adr,\
+                                &dec_frc.data));
+    dec_frc.fields.rg_cl91_enabled_frc = 1;
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_MISC_CTRL_mode_dec_frc_Adr,\
+                                 dec_frc.data));
+    return PHYMOD_E_NONE;
+}
+int furia_fec_enable_get(const phymod_access_t *pa, uint32_t* enable)
+{
+    FUR_MISC_CTRL_MODE_DEC_FRC_t dec_frc;
+    FUR_MISC_CTRL_MODE_DEC_FRC_VAL_t dec_frc_val;
+    uint32_t chip_id = 0;
+
+    PHYMOD_MEMSET(&dec_frc, 0 , sizeof(FUR_MISC_CTRL_MODE_DEC_FRC_t));
+    PHYMOD_MEMSET(&dec_frc_val, 0 , sizeof(FUR_MISC_CTRL_MODE_DEC_FRC_VAL_t));
+
+    chip_id = _furia_get_chip_id(pa);
+    if(FURIA_IS_SIMPLEX(chip_id)) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("FEC is not applicable for simplex packages")));
+    }
+
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MISC_CTRL_mode_dec_frc_val_Adr,\
+                                    &dec_frc_val.data));
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MISC_CTRL_mode_dec_frc_Adr,\
+                                &dec_frc.data));
+    if(dec_frc_val.fields.rg_cl91_enabled_frc_val &&
+       dec_frc.fields.rg_cl91_enabled_frc) {
+        *enable = 1;
+    } else {
+        *enable = 0;
+    } 
+    return PHYMOD_E_NONE;
+}
+int _furia_phy_status_dump(const phymod_access_t *pa)
+{
+    int pkg_side = 0;
+    int sys_en = 0;
+    int wr_lane = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    int lane_map = 0;
+    uint32_t acc_flags = 0;
+    uint8_t trace_mem[768];
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    PHYMOD_DIAG_OUT((" ***************************************\n"));
+    PHYMOD_DIAG_OUT((" ******* PHY status dump for PHY ID:%d ********\n", pa->addr));
+    PHYMOD_DIAG_OUT((" ***************************************\n"));
+    /* Program the slice register */
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, pkg_side, 1, 0));
+    PHYMOD_DIAG_OUT((" ***************************************\n"));
+    PHYMOD_DIAG_OUT((" ******* PHY status dump for side:%d ********\n", pkg_side));
+    PHYMOD_DIAG_OUT((" ***************************************\n"));
+    PHYMOD_IF_ERR_RETURN(falcon_furia_display_core_config(pa));
+    PHYMOD_IF_ERR_RETURN(falcon_furia_display_core_state(pa));
+    
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index); 
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else {
+                sys_en = pkg_ln_des->sideB;
+            }
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+            PHYMOD_IF_ERR_RETURN
+                (falcon_furia_display_lane_state_hdr(pa));
+            PHYMOD_IF_ERR_RETURN(falcon_furia_display_lane_state(pa));
+            PHYMOD_IF_ERR_RETURN(falcon_furia_display_lane_config(pa));
+       }
+    }
+    PHYMOD_IF_ERR_RETURN(falcon_furia_read_event_log(pa, trace_mem, 2));
+    return PHYMOD_E_NONE;
+}
+int _furia_phy_diagnostics_get(const phymod_access_t *pa, phymod_phy_diagnostics_t* diag)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    falcon_furia_lane_state_st state;
+
+    PHYMOD_MEMSET(&state, 0 , sizeof(falcon_furia_lane_state_st));
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+     
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else { 
+                sys_en = pkg_ln_des->sideB;
+            }
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+            PHYMOD_IF_ERR_RETURN
+                (_falcon_furia_read_lane_state(pa, &state));
+            diag->signal_detect = state.sig_det;
+            diag->osr_mode = state.osr_mode.tx_rx;
+            diag->rx_lock = state.rx_lock;
+            diag->tx_ppm = state.tx_ppm;
+            diag->clk90_offset = state.clk90;
+            diag->clkp1_offset = state.clkp1;
+            diag->p1_lvl = state.p1_lvl;
+            diag->dfe1_dcd = state.dfe1_dcd;
+            diag->dfe2_dcd = state.dfe2_dcd;
+            diag->slicer_offset.offset_pe = state.pe;           
+            diag->slicer_offset.offset_ze = state.ze;           
+            diag->slicer_offset.offset_me = state.me;           
+            diag->slicer_offset.offset_po = state.po;           
+            diag->slicer_offset.offset_zo = state.zo;           
+            diag->slicer_offset.offset_mo = state.mo; 
+            diag->eyescan.heye_left = state.heye_left;
+            diag->eyescan.heye_right = state.heye_right;
+            diag->eyescan.veye_upper = state.veye_upper;
+            diag->eyescan.veye_lower = state.veye_lower;
+            diag->link_time = state.link_time;
+            diag->pf_main = state.pf_main;
+            diag->pf_hiz = state.pf_hiz;
+            diag->pf_bst = state.pf_bst;
+            diag->pf2_ctrl = state.pf2_ctrl;
+            diag->vga = state.vga;
+            diag->dc_offset = state.dc_offset;
+            diag->p1_lvl_ctrl = state.p1_lvl_ctrl;
+            diag->dfe1 = state.dfe1;
+            diag->dfe2 = state.dfe2;
+            diag->dfe3 = state.dfe3;
+            diag->dfe4 = state.dfe4;
+            diag->dfe5 = state.dfe5;
+            diag->dfe6 = state.dfe6;
+            diag->txfir_pre = state.txfir_pre;
+            diag->txfir_main = state.txfir_main;
+            diag->txfir_post1 = state.txfir_post1;
+            diag->txfir_post2 = state.txfir_post2;
+            diag->txfir_post3 = state.txfir_post3;
+            diag->br_pd_en = state.br_pd_en;
+            break;
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+/** Get bit postion for give interrupt type.
+ *
+ * @param intr_type Select the interrupt type.
+ * @param bit_pos   Select bits position of interrupt
+ * @param int_grp   Select interrupt group 
+ *
+ * Return val:  [7:0]  = interrupt bit postion in interrupt control register.
+ *              [31:8] = Interrupt group.
+ *                       0 - m0_type
+ *                       1 - sys falcon
+ *                       2 - line falcon
+ *                       3 - rx
+ *                       4 - tx
+ */
+
+int  _furia_get_intr_reg (FURIA_INTR_TYPE_E intr_type, uint32_t *bit_pos, uint32_t *int_grp) {
+    switch (intr_type)  {
+        case INT_M0_SLV_SYSRESET_REQ:          
+            *bit_pos =  0;
+            *int_grp =  0; 
+        break;
+        case INT_M0_MST_SYSRESET_REQ:
+            *bit_pos =  1;
+            *int_grp =  0;
+        break;
+        case INT_M0_SLV_LOCKUP:
+            *bit_pos =  2;
+            *int_grp =  0;
+        break;
+        case INT_M0_MST_LOCKUP:
+            *bit_pos =  3;
+            *int_grp =  0;
+        break;
+        case INT_M0_SLV_MISC_INTR:
+            *bit_pos =  4;
+            *int_grp =  0;
+        break;
+        case INT_M0_MST_MISC_INTR:
+            *bit_pos =  5;
+            *int_grp =  0;
+        break;
+        case INT_M0_SLV_MSGOUT_INTR:
+            *bit_pos =  6;
+            *int_grp =  0;
+        break;
+        case INT_M0_MST_MSGOUT_INTR:
+            *bit_pos =  7;
+            *int_grp =  0;
+        break;
+        case INT_M0_SLV_DED:
+            *bit_pos =  8;
+            *int_grp =  0;
+        break;
+        case INT_M0_SLV_SEC:
+            *bit_pos =  9;
+            *int_grp =  0;
+        break;
+        case INT_M0_MST_DED:
+            *bit_pos = 10;
+            *int_grp =  0;
+        break;
+        case INT_M0_MST_SEC:
+            *bit_pos = 11;
+            *int_grp =  0;
+        break;
+        case INT_SYS_1GCDR_LOCK_LOST:
+            *bit_pos =  0;
+            *int_grp =  1;
+        break;                                                                       
+        case INT_SYS_1GCDR_LOCK_FOUND:
+            *bit_pos =  1;
+            *int_grp =  1;
+        break;                                                                       
+        case INT_SYS_PMD_LOCK_LOST:
+            *bit_pos =  2;
+            *int_grp =  1; 
+        break;
+        case INT_SYS_PMD_LOCK_FOUND:
+            *bit_pos =  3;
+            *int_grp =  1;
+        break;
+        case INT_SYS_RX_SIGDET_LOST:
+            *bit_pos =  4;
+            *int_grp =  1; 
+        break;                                                                       
+        case INT_SYS_RX_SIGDET_FOUND:
+            *bit_pos =  5;
+            *int_grp =  1;
+        break;                                                                       
+        case INT_SYS_PLL_LOCK_LOST:
+            *bit_pos =  6;
+            *int_grp =  1;
+        break;
+        case INT_SYS_PLL_LOCK_FOUND: 
+            *bit_pos =  7;
+            *int_grp =  1;
+        break;
+        case INT_SYS_PMI_ARB_WDOG_EXP:
+            *bit_pos =  8;
+            *int_grp =  1;
+        break;                                                                       
+        case INT_SYS_PMI_M0_WDOG_EXP:
+            *bit_pos =  9;
+            *int_grp =  1;
+        break;
+        case INT_LINE_1GCDR_LOCK_LOST:
+            *bit_pos =  0;
+            *int_grp =  2;
+        break;                                                                       
+        case INT_LINE_1GCDR_LOCK_FOUND:
+            *bit_pos =  1;
+            *int_grp =  2; 
+        break;                                                                       
+        case INT_LINE_PMD_LOCK_LOST:
+            *bit_pos =  2;
+            *int_grp =  2;
+        break;
+        case INT_LINE_PMD_LOCK_FOUND: 
+            *bit_pos =  3;   
+            *int_grp =  2;
+        break;
+        case INT_LINE_RX_SIGDET_LOST:
+            *bit_pos =  4;
+            *int_grp =  2;
+        break;                                                                       
+        case INT_LINE_RX_SIGDET_FOUND:
+            *bit_pos =  5;
+            *int_grp =  2;
+        break;                                                                       
+        case INT_LINE_PLL_LOCK_LOST:   
+            *bit_pos =  6;
+            *int_grp =  2;
+        break;
+        case INT_LINE_PLL_LOCK_FOUND: 
+            *bit_pos =  7;
+            *int_grp =  2;
+        break;
+        case INT_LINE_PMI_ARB_WDOG_EXP:
+            *bit_pos =  8;
+            *int_grp =  2; 
+        break;                                                                       
+        case INT_LINE_PMI_M0_WDOG_EXP:  
+            *bit_pos =  9;
+            *int_grp =  2;
+        break;
+        case INT_CL91_RX_ALIGN_LOST:
+            *bit_pos =  0;
+            *int_grp =  3;
+        break;                                                                       
+        case INT_CL91_RX_ALIGN_FOUND:
+            *bit_pos =  1;
+            *int_grp =  3; 
+        break;                                                                       
+        case INT_CL73_AN_RESTARTED:
+            *bit_pos =  2;
+            *int_grp =  3;
+        break;
+        case INT_CL73_AN_COMPLETE:
+             *bit_pos =  3;
+             *int_grp =  3;
+        break;                                                                       
+        case INT_LINE_RX_PCSFC_MON_LOCK_LOST:
+            *bit_pos =  4;
+            *int_grp =  3;
+        break;
+        case INT_LINE_RX_PCSFC_MON_LOCK_FOUND:
+            *bit_pos =  5;
+            *int_grp =  3;
+        break;
+        case INT_SYS_TX_FIFOERR:
+            *bit_pos =  6;
+            *int_grp =  3;
+        break;                                                                       
+        case INT_LINE_RX_FIFOERR: 
+            *bit_pos =  7;
+            *int_grp =  3;
+        break;
+        case INT_CL73_AN_RESTARTED_3:
+            *bit_pos =  8;
+            *int_grp =  3;
+        break;                                                                       
+        case INT_CL73_AN_RESTARTED_2:
+            *bit_pos =  9;
+            *int_grp =  3;
+        break;
+        case INT_CL73_AN_RESTARTED_1:
+            *bit_pos = 10;
+            *int_grp =  3;
+        break;                                                                       
+        case INT_CL73_AN_RESTARTED_0:
+            *bit_pos = 11;
+            *int_grp =  3;
+        break;
+        case INT_CL73_AN_COMPLETE_3:
+            *bit_pos = 12;
+            *int_grp =  3;
+        break;                                                                       
+        case INT_CL73_AN_COMPLETE_2:
+            *bit_pos = 13;
+            *int_grp =  3;
+        break;
+        case INT_CL73_AN_COMPLETE_1:
+            *bit_pos = 14;
+            *int_grp =  3;
+        break;                                                                       
+        case INT_CL73_AN_COMPLETE_0:
+            *bit_pos = 15;
+            *int_grp =  3;
+        break;
+        case INT_CL91_TX_ALIGN_LOST: 
+            *bit_pos = 16;
+            *int_grp =  4;
+        break;                                                                       
+        case INT_CL91_TX_ALIGN_FOUND: 
+            *bit_pos =  1;
+            *int_grp =  4; 
+        break;                                                                       
+        case INT_ONEG_INBAND_MSG_LOST:
+            *bit_pos =  2;
+            *int_grp =  4; 
+        break;
+        case INT_ONEG_INBAND_MSG_FOUND:
+            *bit_pos =  3;
+            *int_grp =  4;
+        break;
+        case INT_SYS_RX_PCSFC_MON_LOCK_LOST: 
+            *bit_pos =  4;
+            *int_grp =  4;
+        break;                                                                       
+        case INT_SYS_RX_PCSFC_MON_LOCK_FOUND:
+            *bit_pos =  5;
+            *int_grp =  4;
+        break;                                                                       
+        case INT_LINE_TX_FIFOERR: 
+            *bit_pos =  6;
+            *int_grp =  4;
+        break;
+        case INT_SYS_RX_FIFOERR:
+            *bit_pos =  7;
+            *int_grp =  4;
+        break;
+    }
+    return PHYMOD_E_NONE; 
+}
+
+int furia_ext_intr_status_get(const phymod_access_t *pa, uint32_t intr_type, uint32_t* intr_status)
+{
+    uint32_t intr_grp = 0;
+    uint32_t bit_pos = 0;
+    uint32_t rd_data = 0;
+    FUR_MISC_CTRL_M0_EIPR_t m0_eipr;
+    FUR_MISC_CTRL_SF_EIPR_t sf_eipr;
+    FUR_MISC_CTRL_LF_EIPR_t lf_eipr;
+    FUR_MISC_CTRL_RX_EIPR_t rx_eipr;
+    FUR_MISC_CTRL_TX_EIPR_t tx_eipr;
+
+    PHYMOD_MEMSET(&m0_eipr, 0 , sizeof(FUR_MISC_CTRL_M0_EIPR_t));
+    PHYMOD_MEMSET(&sf_eipr, 0 , sizeof(FUR_MISC_CTRL_SF_EIPR_t));
+    PHYMOD_MEMSET(&lf_eipr, 0 , sizeof(FUR_MISC_CTRL_LF_EIPR_t));
+    PHYMOD_MEMSET(&rx_eipr, 0 , sizeof(FUR_MISC_CTRL_RX_EIPR_t));
+    PHYMOD_MEMSET(&tx_eipr, 0 , sizeof(FUR_MISC_CTRL_TX_EIPR_t));
+
+    _furia_get_intr_reg(intr_type, &bit_pos, &intr_grp);
+
+    switch(intr_grp) {
+        case 0:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_m0_eipr_Adr,\
+                                        &m0_eipr.data));
+            rd_data = m0_eipr.data;
+        break;
+        case 1:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_sf_eipr_Adr,\
+                                        &sf_eipr.data));
+            rd_data = sf_eipr.data;
+        break;
+        case 2:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_lf_eipr_Adr,\
+                                        &lf_eipr.data));
+            rd_data = lf_eipr.data;
+        break;
+        case 3:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_rx_eipr_Adr,\
+                                        &rx_eipr.data));
+            rd_data = rx_eipr.data;
+        break;
+        case 4:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_tx_eipr_Adr,\
+                                        &tx_eipr.data));
+            rd_data = tx_eipr.data;
+        break;
+        default:
+        break;
+    }
+
+    *intr_status = (rd_data & (0x1 << bit_pos)) ? 1 : 0;
+    return PHYMOD_E_NONE;
+}
+
+int furia_ext_intr_enable_set(const phymod_access_t *pa, uint32_t intr_type, uint32_t enable) 
+{
+    FUR_MISC_CTRL_M0_EIMR_t m0_eimr;
+    FUR_MISC_CTRL_SF_EIMR_t sf_eimr;
+    FUR_MISC_CTRL_LF_EIMR_t lf_eimr;
+    FUR_MISC_CTRL_RX_EIMR_t rx_eimr;
+    FUR_MISC_CTRL_TX_EIMR_t tx_eimr;
+    uint32_t intr_grp = 0;
+    uint32_t bit_pos = 0;
+    uint32_t intr_mask = 0;
+    PHYMOD_MEMSET(&m0_eimr, 0 , sizeof(FUR_MISC_CTRL_M0_EIMR_t));
+    PHYMOD_MEMSET(&sf_eimr, 0 , sizeof(FUR_MISC_CTRL_SF_EIMR_t));
+    PHYMOD_MEMSET(&lf_eimr, 0 , sizeof(FUR_MISC_CTRL_LF_EIMR_t));
+    PHYMOD_MEMSET(&rx_eimr, 0 , sizeof(FUR_MISC_CTRL_RX_EIMR_t));
+    PHYMOD_MEMSET(&tx_eimr, 0 , sizeof(FUR_MISC_CTRL_TX_EIMR_t));
+
+    _furia_get_intr_reg(intr_type, &bit_pos, &intr_grp);
+
+    intr_mask = enable ? (0x1 << bit_pos) : (~(0x1 << bit_pos));
+    switch(intr_grp) {
+        case 0:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_m0_eimr_Adr,\
+                                        &m0_eimr.data));
+            m0_eimr.data = enable ? (intr_mask | m0_eimr.data) : (intr_mask & m0_eimr.data);
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                         FUR_MISC_CTRL_m0_eimr_Adr,\
+                                         m0_eimr.data));
+        break;
+        case 1:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_sf_eimr_Adr,\
+                                        &sf_eimr.data));
+            sf_eimr.data = enable ? (intr_mask | sf_eimr.data) : (intr_mask & sf_eimr.data);
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                         FUR_MISC_CTRL_sf_eimr_Adr,\
+                                         sf_eimr.data));
+        break;
+        case 2:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_lf_eimr_Adr,\
+                                        &lf_eimr.data));
+            lf_eimr.data = enable ? (intr_mask | lf_eimr.data) : (intr_mask & lf_eimr.data);
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                         FUR_MISC_CTRL_lf_eimr_Adr,\
+                                         lf_eimr.data));
+        break;
+        case 3:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_rx_eimr_Adr,\
+                                        &rx_eimr.data));
+            rx_eimr.data = enable ? (intr_mask | rx_eimr.data) : (intr_mask & rx_eimr.data);
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                         FUR_MISC_CTRL_rx_eimr_Adr,\
+                                         rx_eimr.data));
+        break;
+        case 4:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_tx_eimr_Adr,\
+                                        &tx_eimr.data));
+            tx_eimr.data = enable ? (intr_mask | tx_eimr.data) : (intr_mask & tx_eimr.data);
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                         FUR_MISC_CTRL_tx_eimr_Adr,\
+                                         tx_eimr.data));
+        break;
+        default:
+        break;
+    }
+    return PHYMOD_E_NONE;
+}
+
+int furia_ext_intr_enable_get(const phymod_access_t *pa, uint32_t intr_type, uint32_t* enable) 
+{
+    FUR_MISC_CTRL_M0_EIMR_t m0_eimr;
+    FUR_MISC_CTRL_SF_EIMR_t sf_eimr;
+    FUR_MISC_CTRL_LF_EIMR_t lf_eimr;
+    FUR_MISC_CTRL_RX_EIMR_t rx_eimr;
+    FUR_MISC_CTRL_TX_EIMR_t tx_eimr;
+    uint32_t intr_grp = 0;
+    uint32_t bit_pos = 0;
+    uint32_t intr_mask = 0;
+    uint16_t rd_data = 0;
+    PHYMOD_MEMSET(&m0_eimr, 0 , sizeof(FUR_MISC_CTRL_M0_EIMR_t));
+    PHYMOD_MEMSET(&sf_eimr, 0 , sizeof(FUR_MISC_CTRL_SF_EIMR_t));
+    PHYMOD_MEMSET(&lf_eimr, 0 , sizeof(FUR_MISC_CTRL_LF_EIMR_t));
+    PHYMOD_MEMSET(&rx_eimr, 0 , sizeof(FUR_MISC_CTRL_RX_EIMR_t));
+    PHYMOD_MEMSET(&tx_eimr, 0 , sizeof(FUR_MISC_CTRL_TX_EIMR_t));
+
+    _furia_get_intr_reg(intr_type, &bit_pos, &intr_grp);
+    intr_mask = 0x1 << bit_pos;
+
+    switch(intr_grp) {
+        case 0:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_m0_eimr_Adr,\
+                                        &m0_eimr.data));
+            rd_data = m0_eimr.data;
+        break;
+        case 1:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_sf_eimr_Adr,\
+                                        &sf_eimr.data));
+            rd_data = sf_eimr.data;
+        break;
+        case 2:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_lf_eimr_Adr,\
+                                        &lf_eimr.data));
+            rd_data = lf_eimr.data;
+        break;
+        case 3:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_rx_eimr_Adr,\
+                                        &rx_eimr.data));
+            rd_data = rx_eimr.data;
+        break;
+        case 4:
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MISC_CTRL_tx_eimr_Adr,\
+                                        &tx_eimr.data));
+            rd_data = tx_eimr.data;
+        break;
+        default:
+        break;
+    }
+    *enable = (rd_data & intr_mask) ? 1 : 0;
+    return PHYMOD_E_NONE;
+}
+
+int furia_ext_intr_status_clear(const phymod_access_t *pa, uint32_t intr_type)
+{
+    uint32_t intr_grp = 0;
+    uint32_t bit_pos = 0;
+    uint32_t intr_mask = 0;
+
+    _furia_get_intr_reg(intr_type, &bit_pos, &intr_grp);
+    intr_mask = 0x1 << bit_pos;     
+
+    switch(intr_grp) {
+        case 0:
+         PHYMOD_IF_ERR_RETURN
+             (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     FUR_MISC_CTRL_m0_eisr_Adr,\
+                                     intr_mask));
+        break;
+        case 1:
+         PHYMOD_IF_ERR_RETURN
+             (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     FUR_MISC_CTRL_sf_eisr_Adr,\
+                                     intr_mask));
+        break;
+        case 2:
+         PHYMOD_IF_ERR_RETURN
+             (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                      FUR_MISC_CTRL_lf_eisr_Adr,\
+                                      intr_mask));
+        break;
+        case 3:
+         PHYMOD_IF_ERR_RETURN
+             (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     FUR_MISC_CTRL_rx_eisr_Adr,\
+                                     intr_mask));
+        break;
+        case 4:
+         PHYMOD_IF_ERR_RETURN
+             (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     FUR_MISC_CTRL_tx_eisr_Adr,\
+                                     intr_mask));
+        break;
+        default:
+        break;
+    }
+    return PHYMOD_E_NONE;    
+}
+int furia_fc_pcs_chkr_enable_set(const phymod_access_t *pa, uint32_t fcpcs_chkr_mode, uint32_t enable)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    LINE_RX_PMA_DP_MAIN_CTRL_t line_rx_dp_main_ctrl;
+    SYS_RX_PMA_DP_MAIN_CTRL_t sys_rx_dp_main_ctrl;
+    LINE_RX_PMA_DP_MAIN_CTRL_PCS_MODE_t tmp_main_ctrl_mode;
+    PHYMOD_MEMSET(&line_rx_dp_main_ctrl, 0 , sizeof(LINE_RX_PMA_DP_MAIN_CTRL_t));
+    PHYMOD_MEMSET(&sys_rx_dp_main_ctrl, 0 , sizeof(SYS_RX_PMA_DP_MAIN_CTRL_t));
+    PHYMOD_MEMSET(&tmp_main_ctrl_mode, 0 , sizeof(LINE_RX_PMA_DP_MAIN_CTRL_PCS_MODE_t));
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+     
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = FURIA_IF_BCAST_SET(chip_id, lane_map) ? BROADCAST : pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else { 
+                sys_en = pkg_ln_des->sideB;
+            }
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                if(sys_en == LINE) {
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                &line_rx_dp_main_ctrl.data));
+                    tmp_main_ctrl_mode.data = line_rx_dp_main_ctrl.data; 
+                } else {
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                &sys_rx_dp_main_ctrl.data)); 
+                    tmp_main_ctrl_mode.data = sys_rx_dp_main_ctrl.data; 
+                }
+            }
+            tmp_main_ctrl_mode.fields.link_mon_en = 0;
+            tmp_main_ctrl_mode.fields.link_mon_mode_frc = 0;
+            tmp_main_ctrl_mode.fields.link_mon_mode_frcval = 0;
+            tmp_main_ctrl_mode.fields.ber_dis = 0;
+            tmp_main_ctrl_mode.fields.mode_50g = 0;
+            tmp_main_ctrl_mode.fields.mode_100g = 0;
+            tmp_main_ctrl_mode.fields.logic_lane = 0;
+            tmp_main_ctrl_mode.fields.pcs_mon_frc = 0;
+
+            if(enable) {
+                switch (fcpcs_chkr_mode) {
+                    case PCS49_1x10G :
+                        tmp_main_ctrl_mode.fields.link_mon_en = 1;
+                        tmp_main_ctrl_mode.fields.link_mon_mode_frc = 1;
+                        tmp_main_ctrl_mode.fields.link_mon_mode_frcval = 0x0; /* CL49 */
+                    break;
+                    case PCS82_4x10G :
+                    case FC16 :
+                    case FC32 :
+                        tmp_main_ctrl_mode.fields.link_mon_en = 1;
+                        tmp_main_ctrl_mode.fields.link_mon_mode_frc = 1;
+                        tmp_main_ctrl_mode.fields.link_mon_mode_frcval = 0x1; /* CL82 with 1-PCS lane per 1-phy-lane */
+                    break;
+                    case PCS82_2x25G :
+                        tmp_main_ctrl_mode.fields.link_mon_en = 1;
+                        tmp_main_ctrl_mode.fields.link_mon_mode_frc = 1;
+                        tmp_main_ctrl_mode.fields.link_mon_mode_frcval = 0x1; /* CL82 */
+                        tmp_main_ctrl_mode.fields.mode_50g = 1; /* 2-PCS lanes per phy-lane */
+                        tmp_main_ctrl_mode.fields.pcs_mon_frc = 1;
+                    break;
+                    case PCS82_4x25G :
+                        tmp_main_ctrl_mode.fields.link_mon_en = 1;
+                        tmp_main_ctrl_mode.fields.link_mon_mode_frc = 1;
+                        tmp_main_ctrl_mode.fields.link_mon_mode_frcval = 0x1; /* CL82 */
+                        tmp_main_ctrl_mode.fields.mode_100g = 1; /* 5-PCS lanes per phy-lane */
+                        tmp_main_ctrl_mode.fields.pcs_mon_frc = 1;
+                    break;
+                    case FC4 :
+                        tmp_main_ctrl_mode.fields.link_mon_en = 1;
+                        tmp_main_ctrl_mode.fields.link_mon_mode_frc = 1;
+                        tmp_main_ctrl_mode.fields.link_mon_mode_frcval = 0x2; /* FC4 */
+                    break;
+                    case FC8 :
+                        tmp_main_ctrl_mode.fields.link_mon_en = 1;
+                        tmp_main_ctrl_mode.fields.link_mon_mode_frc = 1;
+                        tmp_main_ctrl_mode.fields.link_mon_mode_frcval = 0x3; /* FC8 */
+                    break;
+                    default:
+                    break;
+                }
+            } else {
+                tmp_main_ctrl_mode.fields.link_mon_en = 0;
+            }
+            if ((FURIA_IS_SIMPLEX(chip_id) && (pkg_side == SIDE_B)) ||
+                (FURIA_IS_DUPLEX(chip_id))) {
+                if(sys_en == LINE) {
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                 tmp_main_ctrl_mode.data));
+                } else {
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                 tmp_main_ctrl_mode.data)); 
+                }
+            }
+
+            if (FURIA_IF_BCAST_SET(chip_id, lane_map)) {
+                break;
+            }
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;  
+}
+int furia_fc_pcs_chkr_enable_get(const phymod_access_t *pa, uint32_t fcpcs_chkr_mode, uint32_t* enable)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    LINE_RX_PMA_DP_MAIN_CTRL_t line_rx_dp_main_ctrl;
+    SYS_RX_PMA_DP_MAIN_CTRL_t sys_rx_dp_main_ctrl;
+    LINE_RX_PMA_DP_MAIN_CTRL_PCS_MODE_t tmp_main_ctrl_mode;
+    PHYMOD_MEMSET(&line_rx_dp_main_ctrl, 0 , sizeof(LINE_RX_PMA_DP_MAIN_CTRL_t));
+    PHYMOD_MEMSET(&sys_rx_dp_main_ctrl, 0 , sizeof(SYS_RX_PMA_DP_MAIN_CTRL_t));
+    PHYMOD_MEMSET(&tmp_main_ctrl_mode, 0 , sizeof(LINE_RX_PMA_DP_MAIN_CTRL_PCS_MODE_t));
+
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+     
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else { 
+                sys_en = pkg_ln_des->sideB;
+            }
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            if (FURIA_IS_DUPLEX(chip_id)) {
+                if(pkg_side == SIDE_A || pkg_side == SIDE_B) {
+                    if(sys_en == LINE) {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                    &line_rx_dp_main_ctrl.data));
+                        tmp_main_ctrl_mode.data = line_rx_dp_main_ctrl.data; 
+                    } else {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                    &sys_rx_dp_main_ctrl.data)); 
+                        tmp_main_ctrl_mode.data = sys_rx_dp_main_ctrl.data; 
+                    }
+                }
+            } else {
+                if(pkg_side == SIDE_B) {
+                    if(sys_en == LINE) {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                    &line_rx_dp_main_ctrl.data)); 
+                        tmp_main_ctrl_mode.data = line_rx_dp_main_ctrl.data; 
+                    } else {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                    &sys_rx_dp_main_ctrl.data)); 
+                        tmp_main_ctrl_mode.data = sys_rx_dp_main_ctrl.data; 
+                    }
+                }
+            }
+
+            switch (fcpcs_chkr_mode) {
+                case PCS49_1x10G :
+                    if(tmp_main_ctrl_mode.fields.link_mon_en &&
+                       tmp_main_ctrl_mode.fields.link_mon_mode_frc &&
+                       tmp_main_ctrl_mode.fields.link_mon_mode_frcval == 0) {
+                        *enable = 1;
+                    } else {
+                        *enable = 0;
+                    }
+                break;
+                case PCS82_4x10G :
+                case FC16 :
+                case FC32 :
+                    if(tmp_main_ctrl_mode.fields.link_mon_en &&
+                       tmp_main_ctrl_mode.fields.link_mon_mode_frc &&
+                       tmp_main_ctrl_mode.fields.link_mon_mode_frcval) {
+                        *enable = 1;
+                    } else {
+                        *enable = 0;
+                    }
+                break;
+                case PCS82_2x25G :
+                    if(tmp_main_ctrl_mode.fields.link_mon_en &&
+                       tmp_main_ctrl_mode.fields.link_mon_mode_frc &&
+                       tmp_main_ctrl_mode.fields.link_mon_mode_frcval &&
+                       tmp_main_ctrl_mode.fields.mode_50g &&
+                       tmp_main_ctrl_mode.fields.pcs_mon_frc) {
+                         *enable = 1;
+                    } else {
+                        *enable = 0;
+                    }
+                break;
+                case PCS82_4x25G :
+                    if(tmp_main_ctrl_mode.fields.link_mon_en &&
+                       tmp_main_ctrl_mode.fields.link_mon_mode_frc &&
+                       tmp_main_ctrl_mode.fields.link_mon_mode_frcval &&
+                       tmp_main_ctrl_mode.fields.mode_100g &&
+                       tmp_main_ctrl_mode.fields.pcs_mon_frc) {
+                        *enable = 1;
+                    } else {
+                        *enable = 0;
+                    }
+                break;
+                case FC4 :
+                    if(tmp_main_ctrl_mode.fields.link_mon_en &&
+                       tmp_main_ctrl_mode.fields.link_mon_mode_frc &&
+                       tmp_main_ctrl_mode.fields.link_mon_mode_frcval == 0x2) {
+                        *enable = 1;
+                    } else {
+                        *enable = 0;
+                    }
+                break;
+                case FC8 :
+                    if(tmp_main_ctrl_mode.fields.link_mon_en &&
+                       tmp_main_ctrl_mode.fields.link_mon_mode_frc &&
+                       tmp_main_ctrl_mode.fields.link_mon_mode_frcval == 0x3) {
+                        *enable = 1;
+                    } else {
+                        *enable = 0;
+                    } 
+                break;
+                default:
+                break;
+            }
+            break;
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+int furia_fc_pcs_chkr_status_get(const phymod_access_t *pa, uint32_t* lock_status, uint32_t* lock_lost_lh, uint32_t* error_count)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0;
+    uint16_t fcpcs_chkr_mode = 0;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    LINE_RX_PMA_DP_MAIN_CTRL_t line_rx_dp_main_ctrl;
+    LINE_RX_PMA_DP_MAIN_CTRL_PCS_MODE_t tmp_main_ctrl_mode;
+    SYS_RX_PMA_DP_MAIN_CTRL_t sys_rx_dp_main_ctrl;
+    LINE_RX_PMA_DP_CL82_BER_COUNT_MSB_t           line_rx_pma_dp_cl82_ber_cnt_msb;
+    SYS_RX_PMA_DP_CL82_BER_COUNT_MSB_t            sys_rx_pma_dp_cl82_ber_cnt_msb;
+    LINE_RX_PMA_DP_LATCHED_STATUS_FC_MODE_t       line_rx_pma_dp_latched_status_fc_mode;
+    LINE_RX_PMA_DP_LATCHED_STATUS_PCS_MODE_t      line_rx_pma_dp_latched_status_pcs_mode;
+    LINE_RX_PMA_DP_CL49_LATCHED_STATUS_FC_MODE_t  line_rx_pma_dp_cl49_latched_status_fc_mode;
+    LINE_RX_PMA_DP_CL49_LATCHED_STATUS_PCS_MODE_t line_rx_pma_dp_cl49_latched_status_pcs_mode;
+    LINE_RX_PMA_DP_LIVE_STATUS_FC_MODE_t          line_rx_pma_dp_live_status_fc_mode;
+    LINE_RX_PMA_DP_LIVE_STATUS_PCS_MODE_t         line_rx_pma_dp_live_status_pcs_mode;
+    SYS_RX_PMA_DP_LATCHED_STATUS_FC_MODE_t        sys_rx_pma_dp_latched_status_fc_mode;
+    SYS_RX_PMA_DP_LATCHED_STATUS_PCS_MODE_t       sys_rx_pma_dp_latched_status_pcs_mode;
+    SYS_RX_PMA_DP_CL49_LATCHED_STATUS_FC_MODE_t  sys_rx_pma_dp_cl49_latched_status_fc_mode;
+    SYS_RX_PMA_DP_CL49_LATCHED_STATUS_PCS_MODE_t sys_rx_pma_dp_cl49_latched_status_pcs_mode;
+    SYS_RX_PMA_DP_LIVE_STATUS_FC_MODE_t          sys_rx_pma_dp_live_status_fc_mode;
+    SYS_RX_PMA_DP_LIVE_STATUS_PCS_MODE_t         sys_rx_pma_dp_live_status_pcs_mode;
+
+    *error_count = 0;
+    PHYMOD_MEMSET(&line_rx_dp_main_ctrl, 0 , sizeof(LINE_RX_PMA_DP_MAIN_CTRL_t));
+    PHYMOD_MEMSET(&tmp_main_ctrl_mode, 0 , sizeof(LINE_RX_PMA_DP_MAIN_CTRL_PCS_MODE_t));
+    PHYMOD_MEMSET(&sys_rx_dp_main_ctrl, 0 , sizeof(SYS_RX_PMA_DP_MAIN_CTRL_t));
+    PHYMOD_MEMSET(&line_rx_pma_dp_cl82_ber_cnt_msb, 0 , sizeof(LINE_RX_PMA_DP_CL82_BER_COUNT_MSB_t));
+    PHYMOD_MEMSET(&sys_rx_pma_dp_cl82_ber_cnt_msb, 0 , sizeof(SYS_RX_PMA_DP_CL82_BER_COUNT_MSB_t));
+    PHYMOD_MEMSET(&line_rx_pma_dp_latched_status_fc_mode, 0 , sizeof(LINE_RX_PMA_DP_LATCHED_STATUS_FC_MODE_t));
+    PHYMOD_MEMSET(&line_rx_pma_dp_latched_status_pcs_mode, 0 , sizeof(LINE_RX_PMA_DP_LATCHED_STATUS_PCS_MODE_t));
+    PHYMOD_MEMSET(&line_rx_pma_dp_cl49_latched_status_fc_mode, 0 , sizeof(LINE_RX_PMA_DP_CL49_LATCHED_STATUS_FC_MODE_t));
+    PHYMOD_MEMSET(&line_rx_pma_dp_cl49_latched_status_pcs_mode, 0 , sizeof(LINE_RX_PMA_DP_CL49_LATCHED_STATUS_PCS_MODE_t));
+    PHYMOD_MEMSET(&line_rx_pma_dp_live_status_fc_mode, 0 , sizeof(LINE_RX_PMA_DP_LIVE_STATUS_FC_MODE_t));
+    PHYMOD_MEMSET(&line_rx_pma_dp_live_status_pcs_mode, 0 , sizeof(LINE_RX_PMA_DP_LIVE_STATUS_PCS_MODE_t));
+    PHYMOD_MEMSET(&sys_rx_pma_dp_latched_status_fc_mode, 0 , sizeof(SYS_RX_PMA_DP_LATCHED_STATUS_FC_MODE_t));
+    PHYMOD_MEMSET(&sys_rx_pma_dp_latched_status_pcs_mode, 0 , sizeof(SYS_RX_PMA_DP_LATCHED_STATUS_PCS_MODE_t));
+    PHYMOD_MEMSET(&sys_rx_pma_dp_cl49_latched_status_fc_mode, 0 , sizeof(SYS_RX_PMA_DP_CL49_LATCHED_STATUS_FC_MODE_t));
+    PHYMOD_MEMSET(&sys_rx_pma_dp_cl49_latched_status_pcs_mode, 0 , sizeof(SYS_RX_PMA_DP_CL49_LATCHED_STATUS_PCS_MODE_t));
+    PHYMOD_MEMSET(&sys_rx_pma_dp_live_status_fc_mode, 0 , sizeof(SYS_RX_PMA_DP_LIVE_STATUS_FC_MODE_t));
+    PHYMOD_MEMSET(&sys_rx_pma_dp_live_status_pcs_mode, 0 , sizeof(SYS_RX_PMA_DP_LIVE_STATUS_PCS_MODE_t));
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+     
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else { 
+                sys_en = pkg_ln_des->sideB;
+            }
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            if (FURIA_IS_DUPLEX(chip_id)) {
+                if(pkg_side == SIDE_A || pkg_side == SIDE_B) {
+                    if(sys_en == LINE) {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                    &line_rx_dp_main_ctrl.data));
+                        tmp_main_ctrl_mode.data = line_rx_dp_main_ctrl.data; 
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_cl49_latched_status_Adr,\
+                                                    &line_rx_pma_dp_cl49_latched_status_pcs_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_cl49_latched_status_Adr,\
+                                                    &line_rx_pma_dp_cl49_latched_status_fc_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_cl82_ber_count_MSB_Adr,\
+                                                    &line_rx_pma_dp_cl82_ber_cnt_msb.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_live_status_Adr,\
+                                                    &line_rx_pma_dp_live_status_pcs_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_live_status_Adr,\
+                                                    &line_rx_pma_dp_live_status_fc_mode.data));
+                    } else {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                    &sys_rx_dp_main_ctrl.data)); 
+                        tmp_main_ctrl_mode.data = sys_rx_dp_main_ctrl.data; 
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                    &sys_rx_pma_dp_latched_status_pcs_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_cl49_latched_status_Adr,\
+                                                    &sys_rx_pma_dp_cl49_latched_status_pcs_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_cl49_latched_status_Adr,\
+                                                    &sys_rx_pma_dp_cl49_latched_status_fc_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_cl82_ber_count_MSB_Adr,\
+                                                    &sys_rx_pma_dp_cl82_ber_cnt_msb.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_live_status_Adr,\
+                                                    &sys_rx_pma_dp_live_status_pcs_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_live_status_Adr,\
+                                                    &sys_rx_pma_dp_live_status_fc_mode.data));
+                    }
+                }
+            } else {
+                if(pkg_side == SIDE_B) {
+                    if(sys_en == LINE) {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                    &line_rx_dp_main_ctrl.data)); 
+                        tmp_main_ctrl_mode.data = line_rx_dp_main_ctrl.data; 
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_cl49_latched_status_Adr,\
+                                                    &line_rx_pma_dp_cl49_latched_status_pcs_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_cl49_latched_status_Adr,\
+                                                    &line_rx_pma_dp_cl49_latched_status_fc_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_cl82_ber_count_MSB_Adr,\
+                                                    &line_rx_pma_dp_cl82_ber_cnt_msb.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_live_status_Adr,\
+                                                    &line_rx_pma_dp_live_status_pcs_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    LINE_RX_PMA_DP_live_status_Adr,\
+                                                    &line_rx_pma_dp_live_status_fc_mode.data));
+                    } else {
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                    &sys_rx_dp_main_ctrl.data)); 
+                        tmp_main_ctrl_mode.data = sys_rx_dp_main_ctrl.data; 
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                    &sys_rx_pma_dp_latched_status_pcs_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_cl49_latched_status_Adr,\
+                                                    &sys_rx_pma_dp_cl49_latched_status_pcs_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_cl49_latched_status_Adr,\
+                                                    &sys_rx_pma_dp_cl49_latched_status_fc_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_cl82_ber_count_MSB_Adr,\
+                                                    &sys_rx_pma_dp_cl82_ber_cnt_msb.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_live_status_Adr,\
+                                                    &sys_rx_pma_dp_live_status_pcs_mode.data));
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    SYS_RX_PMA_DP_live_status_Adr,\
+                                                    &sys_rx_pma_dp_live_status_fc_mode.data));
+                    }
+                }
+            }
+
+            if(!tmp_main_ctrl_mode.fields.link_mon_en) {
+                return PHYMOD_E_CONFIG;
+            } else {
+                if(tmp_main_ctrl_mode.fields.link_mon_mode_frcval == 0x0)                    {
+                    fcpcs_chkr_mode = PCS49_1x10G;
+                }
+                if(tmp_main_ctrl_mode.fields.link_mon_mode_frcval == 0x1) {
+                    if(tmp_main_ctrl_mode.fields.mode_50g) {
+                        fcpcs_chkr_mode = PCS82_2x25G;
+                    } else if(tmp_main_ctrl_mode.fields.mode_100g) {
+                        fcpcs_chkr_mode = PCS82_4x25G;
+                    } else {
+                        fcpcs_chkr_mode = PCS82_4x10G;
+                    }
+                } 
+                if(tmp_main_ctrl_mode.fields.link_mon_mode_frcval == 0x2) {
+                    fcpcs_chkr_mode = FC4;
+                }
+                if(tmp_main_ctrl_mode.fields.link_mon_mode_frcval == 0x3) {
+                    fcpcs_chkr_mode = FC8;
+                }
+            } 
+
+            switch (fcpcs_chkr_mode) {
+                case PCS49_1x10G :
+                case PCS82_4x10G :
+                case FC16 :
+                case FC32 :
+                case PCS82_2x25G :
+                case PCS82_4x25G :
+                    if (FURIA_IS_DUPLEX(chip_id)) {
+                        if(pkg_side == SIDE_A || pkg_side == SIDE_B) {
+                            if(sys_en == LINE) {
+                                *lock_status &= line_rx_pma_dp_live_status_pcs_mode.fields.pcs_status;
+                                *lock_lost_lh &= line_rx_pma_dp_latched_status_pcs_mode.fields.pcs_status_ll;
+                                *error_count |= (line_rx_pma_dp_cl82_ber_cnt_msb.data << 6) + line_rx_pma_dp_cl49_latched_status_pcs_mode.fields.ber_count;
+                            } else {
+                                *lock_status &= sys_rx_pma_dp_live_status_pcs_mode.fields.pcs_status;
+                                *lock_lost_lh &= sys_rx_pma_dp_latched_status_pcs_mode.fields.pcs_status_ll;
+                                *error_count |= (sys_rx_pma_dp_cl82_ber_cnt_msb.data << 6) + sys_rx_pma_dp_cl49_latched_status_pcs_mode.fields.ber_count;
+                            }
+                        }
+                    } else {
+                        if(pkg_side == SIDE_B) {
+                            if(sys_en == LINE) {
+                                *lock_status &= line_rx_pma_dp_live_status_pcs_mode.fields.pcs_status;
+                                *lock_lost_lh &= line_rx_pma_dp_latched_status_pcs_mode.fields.pcs_status_ll;
+                                *error_count |= (line_rx_pma_dp_cl82_ber_cnt_msb.data << 6) + line_rx_pma_dp_cl49_latched_status_pcs_mode.fields.ber_count;
+                            } else {
+                                *lock_status &= sys_rx_pma_dp_live_status_pcs_mode.fields.pcs_status;
+                                *lock_lost_lh &= sys_rx_pma_dp_latched_status_pcs_mode.fields.pcs_status_ll;
+                                *error_count |= (sys_rx_pma_dp_cl82_ber_cnt_msb.data << 6) + sys_rx_pma_dp_cl49_latched_status_pcs_mode.fields.ber_count;
+                            }
+                        }
+                    }
+                break;
+                case FC4 :
+                case FC8 :
+                    if (FURIA_IS_DUPLEX(chip_id)) {
+                        if(pkg_side == SIDE_A || pkg_side == SIDE_B) {
+                            if(sys_en == LINE) {
+                                *lock_status &= line_rx_pma_dp_live_status_fc_mode.fields.wsyn_link_fail;
+                                *lock_lost_lh &= line_rx_pma_dp_latched_status_fc_mode.fields.wsyn_link_fail_lh;
+                                *error_count |= (line_rx_pma_dp_cl82_ber_cnt_msb.data << 6) + line_rx_pma_dp_cl49_latched_status_pcs_mode.fields.ber_count;
+                            } else {
+                                *lock_status &= sys_rx_pma_dp_live_status_fc_mode.fields.wsyn_link_fail;
+                                *lock_lost_lh &= sys_rx_pma_dp_latched_status_fc_mode.fields.wsyn_link_fail_lh;
+                                *error_count |= (sys_rx_pma_dp_cl82_ber_cnt_msb.data << 6) + line_rx_pma_dp_cl49_latched_status_pcs_mode.fields.ber_count;
+                            }
+                        }
+                    } else {
+                        if(pkg_side == SIDE_B) {
+                            if(sys_en == LINE) {
+                                *lock_status &= line_rx_pma_dp_live_status_fc_mode.fields.wsyn_link_fail;
+                                *lock_lost_lh &= line_rx_pma_dp_latched_status_fc_mode.fields.wsyn_link_fail_lh;
+                                *error_count |= (line_rx_pma_dp_cl82_ber_cnt_msb.data << 6) + line_rx_pma_dp_cl49_latched_status_pcs_mode.fields.ber_count;
+                            } else {
+                                *lock_status &= sys_rx_pma_dp_live_status_fc_mode.fields.wsyn_link_fail;
+                                *lock_lost_lh &= sys_rx_pma_dp_latched_status_fc_mode.fields.wsyn_link_fail_lh;
+                                *error_count |= (sys_rx_pma_dp_cl82_ber_cnt_msb.data << 6) + line_rx_pma_dp_cl49_latched_status_pcs_mode.fields.ber_count;
+                            }
+                        }
+                    }
+                break;
+                default:
+                break;
+            }
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+int _furia_core_rptr_rtmr_mode_set(const phymod_access_t* pa, uint32_t rptr_rtmr_mode)
+{
+    int lane_map = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint16_t die_lane_num = 0;
+    uint32_t enable = 0;
+    uint8_t fw_enable = 0;
+    uint8_t retry_count = 5;
+    FUR_GEN_CNTRLS_gpreg12_t gen_ctrls_gpreg12;
+    FUR_GEN_CNTRLS_gpreg11_t gen_ctrls_gpreg11;
+    FUR_GEN_CNTRLS_FIRMWARE_ENABLE_t fw_enable_reg;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    PHYMOD_MEMSET(&gen_ctrls_gpreg12, 0 , sizeof(FUR_GEN_CNTRLS_gpreg12_t));
+    PHYMOD_MEMSET(&gen_ctrls_gpreg11, 0 , sizeof(FUR_GEN_CNTRLS_gpreg11_t));
+    PHYMOD_MEMSET(&fw_enable_reg, 0 , sizeof(FUR_GEN_CNTRLS_FIRMWARE_ENABLE_t));
+
+    
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    enable = (rptr_rtmr_mode == 1) ? 1 : 0;
+
+    /*Wait for fw_enable to go low  before setting fw_enable_val*/
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                &fw_enable_reg.data));
+    fw_enable = fw_enable_reg.fields.fw_enable_val;
+
+    while((fw_enable != 0) && (retry_count)) {
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                    &fw_enable_reg.data));
+        fw_enable = fw_enable_reg.fields.fw_enable_val;
+        PHYMOD_USLEEP(200000);
+        retry_count--;
+    }
+
+    lane_map = FURIA_IS_SIMPLEX(chip_id) ? 0xFF : 0xF;
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Get lane descriptor from package lane */
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            die_lane_num = pkg_ln_des->die_lane_num;
+            if(FURIA_IS_SIMPLEX(chip_id)) {
+                if(pkg_ln_des->sideA == LINE) {
+                    /* Read GPReg12 */
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                FUR_GEN_CNTRLS_gpreg12_Adr,\
+                                                &gen_ctrls_gpreg12.data));
+                    if(enable) {
+                        gen_ctrls_gpreg12.fields.en_tx_rptr_mode_sys2line |= (1 << die_lane_num);
+                    } else {
+                        gen_ctrls_gpreg12.fields.en_tx_rptr_mode_sys2line &= ~(1 << die_lane_num);
+                    }
+                    /* Write GPReg12 */
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                FUR_GEN_CNTRLS_gpreg12_Adr,\
+                                                gen_ctrls_gpreg12.data));
+                } else {
+                    /* Read GPReg11 */
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                FUR_GEN_CNTRLS_gpreg11_Adr,\
+                                                &gen_ctrls_gpreg11.data));
+                    if(enable) {
+                        gen_ctrls_gpreg11.fields.en_tx_rptr_mode_line2sys |= (1 << die_lane_num);
+                    } else {
+                        gen_ctrls_gpreg11.fields.en_tx_rptr_mode_line2sys &= ~(1 << die_lane_num);
+                    }
+                    /* Write GPReg11 */
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                FUR_GEN_CNTRLS_gpreg11_Adr,\
+                                                gen_ctrls_gpreg11.data));
+                }
+            } else {
+                /* Read GPReg12 */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            FUR_GEN_CNTRLS_gpreg12_Adr,\
+                                            &gen_ctrls_gpreg12.data));
+                /* Read GPReg11 */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            FUR_GEN_CNTRLS_gpreg11_Adr,\
+                                            &gen_ctrls_gpreg11.data));
+                if(enable) {
+                    gen_ctrls_gpreg12.fields.en_tx_rptr_mode_sys2line |= (1 << die_lane_num);
+                    gen_ctrls_gpreg11.fields.en_tx_rptr_mode_line2sys |= (1 << die_lane_num);
+                } else {
+                    gen_ctrls_gpreg12.fields.en_tx_rptr_mode_sys2line &= ~(1 << die_lane_num);
+                    gen_ctrls_gpreg11.fields.en_tx_rptr_mode_line2sys &= ~(1 << die_lane_num);
+                }
+                /* Write GPReg12 */
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                             FUR_GEN_CNTRLS_gpreg12_Adr,\
+                                             gen_ctrls_gpreg12.data));
+                /* Write GPReg11 */
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                            FUR_GEN_CNTRLS_gpreg11_Adr,\
+                                            gen_ctrls_gpreg11.data));
+            }
+        }
+    }
+    /* Set firmware enable */
+    PHYMOD_IF_ERR_RETURN
+        (_furia_fw_enable(pa));
+    return PHYMOD_E_NONE;
+}
+
+int _furia_core_avddtxdrv_config_set(const phymod_core_access_t* core, uint32_t avdd_txdrv)
+{
+    uint32_t avdd_txdrv_val = 0;
+    uint32_t side_index = 0;
+    LINE_FALCON_IF_c_and_r_cntl_t line_c_and_r_cntl;
+    SYS_FALCON_IF_c_and_r_cntl_t sys_c_and_r_cntl;
+    const phymod_access_t *pa = &core->access;
+    
+    if (avdd_txdrv == phymodTxInputVoltageDefault) {
+       avdd_txdrv_val = 0;
+    } else if (avdd_txdrv == phymodTxInputVoltage1p00) {
+       avdd_txdrv_val = 1;
+    } else {
+       avdd_txdrv_val = 0;
+    }
+    
+    PHYMOD_MEMSET(&line_c_and_r_cntl, 0 , sizeof(LINE_FALCON_IF_c_and_r_cntl_t));
+    PHYMOD_MEMSET(&sys_c_and_r_cntl, 0 , sizeof(SYS_FALCON_IF_c_and_r_cntl_t));
+    for(side_index = 0; side_index < 2; side_index ++) {
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    SYS_FALCON_IF_c_and_r_cntl_Adr,\
+                                    &sys_c_and_r_cntl.data));
+        sys_c_and_r_cntl.fields.tx_drv_hv_disable = avdd_txdrv_val;
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     SYS_FALCON_IF_c_and_r_cntl_Adr,\
+                                     sys_c_and_r_cntl.data));
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    LINE_FALCON_IF_c_and_r_cntl_Adr,\
+                                    &line_c_and_r_cntl.data));
+        line_c_and_r_cntl.fields.tx_drv_hv_disable = avdd_txdrv_val;
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     LINE_FALCON_IF_c_and_r_cntl_Adr,\
+                                     line_c_and_r_cntl.data));
+    }
+    return PHYMOD_E_NONE;
+}
+
+int _furia_phy_reset_set(const phymod_access_t *pa, const phymod_phy_reset_t* reset)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_t pwrdwn_ctrl;
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            if((FURIA_IS_DUPLEX(chip_id) && lane_map == 0xF) ||
+               (FURIA_IS_SIMPLEX(chip_id) && lane_map == 0xFF)){
+                wr_lane = BROADCAST;
+            } else {
+                wr_lane = pkg_ln_des->slice_wr_val;
+            }
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else { 
+                sys_en = pkg_ln_des->sideB;
+            }
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+            if ((FURIA_IS_SIMPLEX(chip_id) && pkg_side == SIDE_A) ||
+                (FURIA_IS_DUPLEX(chip_id))) {
+                /* TX AFE Lane Reset */
+                switch (reset->tx) {
+                    /* In Reset */
+                    case phymodResetDirectionIn:
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                    &pwrdwn_ctrl.data));
+                        pwrdwn_ctrl.fields.afe_tx_reset_frc_val = 1;
+                        pwrdwn_ctrl.fields.afe_tx_reset_frc = 1;
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                     pwrdwn_ctrl.data));
+
+                    break;
+                    /* Out Reset */
+                    case phymodResetDirectionOut:
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                    &pwrdwn_ctrl.data));
+                        pwrdwn_ctrl.fields.afe_tx_reset_frc_val = 0;
+                        pwrdwn_ctrl.fields.afe_tx_reset_frc = 1;
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                     pwrdwn_ctrl.data));
+                    break;
+                    /* Toggle Reset */
+                    case phymodResetDirectionInOut:
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                    &pwrdwn_ctrl.data));
+                        pwrdwn_ctrl.fields.afe_tx_reset_frc_val = 1;
+                        pwrdwn_ctrl.fields.afe_tx_reset_frc = 1;
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                     pwrdwn_ctrl.data));
+                        PHYMOD_USLEEP(10);
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                    &pwrdwn_ctrl.data));
+                        pwrdwn_ctrl.fields.afe_tx_reset_frc_val = 0;
+                        pwrdwn_ctrl.fields.afe_tx_reset_frc = 1;
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                     pwrdwn_ctrl.data));
+                    break;
+                    default:
+                    break;
+                }
+            }
+            if ((FURIA_IS_SIMPLEX(chip_id) && pkg_side == SIDE_B) ||
+                (FURIA_IS_DUPLEX(chip_id))) {
+                /* RX AFE Lane Reset */
+                switch (reset->rx) {
+                    /* In Reset */
+                    case phymodResetDirectionIn:
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                    &pwrdwn_ctrl.data));
+                        pwrdwn_ctrl.fields.afe_rx_reset_frc_val = 1;
+                        pwrdwn_ctrl.fields.afe_rx_reset_frc = 1;
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                     pwrdwn_ctrl.data));
+
+                    break;
+                    /* Out Reset */
+                    case phymodResetDirectionOut:
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                    &pwrdwn_ctrl.data));
+                        pwrdwn_ctrl.fields.afe_rx_reset_frc_val = 0;
+                        pwrdwn_ctrl.fields.afe_rx_reset_frc = 1;
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                     pwrdwn_ctrl.data));
+                    break;
+                    /* Toggle Reset */
+                    case phymodResetDirectionInOut:
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                    &pwrdwn_ctrl.data));
+                        pwrdwn_ctrl.fields.afe_rx_reset_frc_val = 1;
+                        pwrdwn_ctrl.fields.afe_rx_reset_frc = 1;
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                     pwrdwn_ctrl.data));
+                        PHYMOD_USLEEP(10);
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                    &pwrdwn_ctrl.data));
+                        pwrdwn_ctrl.fields.afe_rx_reset_frc_val = 0;
+                        pwrdwn_ctrl.fields.afe_rx_reset_frc = 1;
+                        PHYMOD_IF_ERR_RETURN
+                            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                     CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                     pwrdwn_ctrl.data));
+                    break;
+                    default:
+                    break;
+                }
+                        PHYMOD_IF_ERR_RETURN
+                            (READ_FURIA_PMA_PMD_REG(pa,\
+                                                    CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                                    &pwrdwn_ctrl.data));
+            }
+            if((FURIA_IS_DUPLEX(chip_id) && lane_map == 0xF) ||
+               (FURIA_IS_SIMPLEX(chip_id) && lane_map == 0xFF)){
+                break;
+            }
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+int _furia_phy_reset_get(const phymod_access_t *pa, phymod_phy_reset_t* reset)
+{
+    int lane_map = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint32_t acc_flags = 0; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_t pwrdwn_ctrl;
+
+    /* Get the lane map from phymod access */
+    lane_map = PHYMOD_ACC_LANE_MASK(pa);
+    acc_flags = PHYMOD_ACC_FLAGS(pa);
+    FURIA_GET_IF_SIDE(acc_flags, pkg_side);
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = BROADCAST;
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else { 
+                sys_en = pkg_ln_des->sideB;
+            }
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+            
+            if ((FURIA_IS_SIMPLEX(chip_id) && pkg_side == SIDE_A) ||
+                (FURIA_IS_DUPLEX(chip_id))) {
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                            &pwrdwn_ctrl.data));
+                if (pwrdwn_ctrl.fields.afe_tx_reset_frc_val == 0) {
+                    /* Out of Reset */
+                    reset->tx = phymodResetDirectionOut;
+                } else {
+                    /* In Reset */
+                    reset->tx = phymodResetDirectionIn;
+                }
+            }
+            if (FURIA_IF_RX_SIDE(chip_id, pkg_side)) {
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            CKRST_CTRL_RPTR_LANE_AFE_RESET_PWRDWN_CONTROL_CONTROL_Adr,\
+                                            &pwrdwn_ctrl.data));
+
+                if(pwrdwn_ctrl.fields.afe_rx_reset_frc_val == 0) {
+                    /* Out of Reset */
+                    reset->rx = phymodResetDirectionOut;
+                } else {
+                    /* In Reset */
+                    reset->rx = phymodResetDirectionIn;
+                }
+            }
+            break;  
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+int furia_gpio_config_set(const phymod_access_t *pa, int pin_no, phymod_gpio_mode_t gpio_mode)
+{
+    FUR_PAD_CTRL_GPIO_1_CONTROL_t pad_ctrl_gpio_ctrl;
+
+    if (pin_no > 4) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Furia has only 5 GPIOs (0 - 4)")));
+    }
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                (pin_no*2) + FUR_PAD_CTRL_gpio_0_control_Adr,\
+                                &pad_ctrl_gpio_ctrl.data));
+    switch (gpio_mode) {
+      case phymodGpioModeDisabled:
+          return PHYMOD_E_NONE;
+      case phymodGpioModeOutput:
+          pad_ctrl_gpio_ctrl.fields.oeb = 0;
+      break;     
+      case phymodGpioModeInput:
+          pad_ctrl_gpio_ctrl.fields.oeb = 1;
+      break;    
+      default:
+          return PHYMOD_E_PARAM;
+    }
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                (pin_no*2) + FUR_PAD_CTRL_gpio_0_control_Adr,\
+                                 pad_ctrl_gpio_ctrl.data));
+    return PHYMOD_E_NONE;
+}
+
+int furia_gpio_config_get(const phymod_access_t *pa, int pin_no, phymod_gpio_mode_t* gpio_mode)
+{
+    FUR_PAD_CTRL_GPIO_1_CONTROL_t pad_ctrl_gpio_ctrl;
+  
+    *gpio_mode = 0;
+    if (pin_no > 4) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Furia has only 5 GPIOs (0 - 4)")));
+    }
+
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                (pin_no*2) + FUR_PAD_CTRL_gpio_0_control_Adr,\
+                                &pad_ctrl_gpio_ctrl.data));
+    
+    switch(pad_ctrl_gpio_ctrl.fields.oeb) {
+        case 0:
+            *gpio_mode = phymodGpioModeOutput; 
+        break;
+        case 1:
+            *gpio_mode = phymodGpioModeInput; 
+        break;
+        default:
+        break;
+    }
+
+    return PHYMOD_E_NONE;
+}
+
+int furia_gpio_pin_value_set(const phymod_access_t *pa, int pin_no, int value)
+{
+    FUR_PAD_CTRL_GPIO_1_CONTROL_t pad_ctrl_gpio_ctrl;
+
+    if (pin_no > 4) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Furia has only 5 GPIOs (0 - 4)")));
+    }
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                (pin_no*2) + FUR_PAD_CTRL_gpio_0_control_Adr,\
+                                &pad_ctrl_gpio_ctrl.data));
+
+    pad_ctrl_gpio_ctrl.fields.ibof = 1;
+    pad_ctrl_gpio_ctrl.fields.out_frcval = value ? 1 : 0;
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                (pin_no*2) + FUR_PAD_CTRL_gpio_0_control_Adr,\
+                                 pad_ctrl_gpio_ctrl.data));
+    return PHYMOD_E_NONE;
+}
+int furia_gpio_pin_value_get(const phymod_access_t *pa, int pin_no, int* value)
+{
+    FUR_PAD_CTRL_GPIO_1_STATUS_t pad_sts_gpio;
+    *value = 0;
+   
+    if (pin_no > 4) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Furia has only 5 GPIOs (0 - 4)")));
+    }
+
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                ((pin_no*2)+1) + FUR_PAD_CTRL_gpio_0_control_Adr,\
+                                &pad_sts_gpio.data));
+    *value = pad_sts_gpio.fields.din;
+    return PHYMOD_E_NONE;
+}
+
+int furia_module_write(const phymod_access_t *pa, uint32_t slv_addr, uint32_t start_addr,
+                       uint32_t no_of_bytes, const uint8_t *write_data)
+{
+    uint32_t index = 0;
+    uint32_t lower_page_bytes = 0;
+    uint32_t upper_page_bytes = 0;
+    uint32_t upper_page_flag = 0;
+    uint32_t lower_page_flag = 0;
+    uint32_t lower_page_start_addr = 0;
+    uint32_t upper_page_start_addr = 0;
+    FUR_MISC_CTRL_DEBUG_CTRL_t  debug_ctrl;
+    if(start_addr > 255) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_PARAM, (_PHYMOD_MSG("Invalid start address")));
+    }
+    /* SET qsfp_mode=1 */
+    
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MISC_CTRL_DEBUG_CTRL_Adr,\
+                                &debug_ctrl.data));
+    debug_ctrl.fields.qsfp_mode = 1;
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_MISC_CTRL_DEBUG_CTRL_Adr,\
+                                 debug_ctrl.data));
+    if(no_of_bytes == 0) {
+        /* Perform module controller reset and FLUSH */
+        PHYMOD_IF_ERR_RETURN
+            (_furia_set_module_command(pa, 0, 0, 0, FURIA_FLUSH));
+        return PHYMOD_E_NONE;
+    }
+    /* if requested number of bytes are not within the boundary (0- 255) 
+     * need to calculate what maximum number of bytes can be taken into
+     * account for reading or writing to module 
+     */
+    if ((no_of_bytes+start_addr) >= 256) {
+        no_of_bytes = 255-start_addr+ 1;
+    }
+
+    /* To determine page to be written is lower page or upper page or 
+     * both lower and upper page
+     */
+    if ((start_addr+no_of_bytes-1) > 127) {
+        /* lower page */
+        if (start_addr <= 127) {
+            lower_page_bytes = 127-start_addr+1;
+            lower_page_flag = 1;
+            lower_page_start_addr = start_addr;
+        } 
+        /* upper page */
+        if ((start_addr+no_of_bytes) > 127) {
+            upper_page_flag = 1;
+            upper_page_bytes = no_of_bytes-lower_page_bytes;
+            if(start_addr > 128) {
+                upper_page_start_addr = start_addr;
+            } else {
+                upper_page_start_addr = 128;
+            }
+        }
+    } else { /* only lower page */
+        lower_page_bytes = no_of_bytes;
+        lower_page_flag = 1;
+        lower_page_start_addr = start_addr;
+    }
+
+    
+    /* Wtite data to NVRAM */
+    for (index = 0; index < no_of_bytes; index++) {
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     FUR_MODULE_CNTRL_RAM_NVR0_Adr+start_addr+index,\
+                                     write_data[index]));
+    
+    }
+   
+    if(lower_page_flag) { 
+        PHYMOD_IF_ERR_RETURN
+            (_furia_set_module_command(pa, 0, 0, 0, FURIA_FLUSH));
+        for (index = 0; index < (lower_page_bytes/4); index ++) {
+            PHYMOD_IF_ERR_RETURN
+                (_furia_set_module_command(pa, FUR_MODULE_CNTRL_RAM_NVR0_Adr+lower_page_start_addr+(4*index), lower_page_start_addr+(4*index), 3, FURIA_I2C_WRITE));
+        }
+        if ((lower_page_bytes%4) > 0) {
+            PHYMOD_IF_ERR_RETURN
+                (_furia_set_module_command(pa, FUR_MODULE_CNTRL_RAM_NVR0_Adr+lower_page_start_addr+(4*index), lower_page_start_addr+(4*index), ((lower_page_bytes%4)-1), FURIA_I2C_WRITE));
+        }
+        lower_page_flag = 0;
+    }   
+   
+    if(upper_page_flag) {
+        PHYMOD_IF_ERR_RETURN
+            (_furia_set_module_command(pa, 0, 0, 0, FURIA_FLUSH));
+        for (index = 0; index < (upper_page_bytes/4); index++) {
+            PHYMOD_IF_ERR_RETURN
+                (_furia_set_module_command(pa, (FUR_MODULE_CNTRL_RAM_NVR0_Adr+upper_page_start_addr+(4*index)), upper_page_start_addr+(4*index), 3, FURIA_I2C_WRITE));
+        }
+        if ((upper_page_bytes%4) > 0) {
+            PHYMOD_IF_ERR_RETURN
+                (_furia_set_module_command(pa, (FUR_MODULE_CNTRL_RAM_NVR0_Adr+upper_page_start_addr+(4*index)), upper_page_start_addr+(4*index), ((upper_page_bytes%4)-1), FURIA_I2C_WRITE));
+        }
+        upper_page_flag = 0;
+    }
+
+    return PHYMOD_E_NONE;
+}
+
+int furia_module_read(const phymod_access_t *pa, uint32_t slv_addr, uint32_t start_addr,
+                      uint32_t no_of_bytes, uint8_t *read_data)
+{
+    uint32_t index = 0;
+    uint32_t rd_data = 0;
+    uint32_t lower_page_bytes = 0;
+    uint32_t upper_page_bytes = 0;
+    uint32_t upper_page_flag = 0;
+    uint32_t lower_page_start_addr = 0;
+    uint32_t upper_page_start_addr = 0;
+    uint32_t lower_page_flag = 0;
+    FUR_MISC_CTRL_DEBUG_CTRL_t  debug_ctrl;
+    /* SET qsfp_mode=1 */
+    
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MISC_CTRL_DEBUG_CTRL_Adr,\
+                                &debug_ctrl.data));
+    debug_ctrl.fields.qsfp_mode = 1;
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_MISC_CTRL_DEBUG_CTRL_Adr,\
+                                 debug_ctrl.data));
+    if(start_addr > 255) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_PARAM, (_PHYMOD_MSG("Invalid start address")));
+    }
+    if(no_of_bytes == 0) {
+        /* Perform module controller reset and FLUSH */
+        PHYMOD_IF_ERR_RETURN
+            (_furia_set_module_command(pa, 0, 0, 0, FURIA_FLUSH));
+        return PHYMOD_E_NONE;
+    }
+    if ((no_of_bytes+start_addr) >= 256) {
+        no_of_bytes = 255-start_addr+1;
+    }
+
+    /* To determine page to be written is lower page or upper page or 
+     * both lower and upper page
+     */
+    if ((start_addr+no_of_bytes-1) > 127) {
+        /* lower page */
+        if (start_addr <= 127) {
+            lower_page_bytes = 127-start_addr+1;
+            lower_page_flag = 1;
+            lower_page_start_addr = start_addr;
+        } 
+        /* upper page */
+        if ((start_addr+no_of_bytes) > 127) {
+            upper_page_flag = 1;
+            upper_page_bytes = no_of_bytes-lower_page_bytes;
+            if(start_addr > 128) {
+                upper_page_start_addr = start_addr;
+            } else {
+                upper_page_start_addr = 128;
+            }
+        }
+    } else { /* only lower page */
+        lower_page_bytes = no_of_bytes;
+        lower_page_flag = 1;
+        lower_page_start_addr = start_addr;
+    }
+
+
+    if (lower_page_flag) {
+        PHYMOD_IF_ERR_RETURN
+            (_furia_set_module_command(pa, 0, 0, 0, FURIA_FLUSH));
+        PHYMOD_IF_ERR_RETURN
+            (_furia_set_module_command(pa, FUR_MODULE_CNTRL_RAM_NVR0_Adr+lower_page_start_addr, lower_page_start_addr, lower_page_bytes-1, FURIA_RANDOM_ADDRESS_READ));
+        lower_page_flag = 0;
+    }
+ 
+    
+    if (upper_page_flag) {
+        PHYMOD_IF_ERR_RETURN
+            (_furia_set_module_command(pa, 0, 0, 0, FURIA_FLUSH));
+        PHYMOD_IF_ERR_RETURN
+            (_furia_set_module_command(pa, FUR_MODULE_CNTRL_RAM_NVR0_Adr+upper_page_start_addr, upper_page_start_addr, upper_page_bytes-1, FURIA_RANDOM_ADDRESS_READ));
+        upper_page_flag = 0;
+    }
+    /* Read data from NVRAM */
+    for (index = 0; index < no_of_bytes; index++) {
+       PHYMOD_IF_ERR_RETURN
+           (READ_FURIA_PMA_PMD_REG(pa,\
+                                   FUR_MODULE_CNTRL_RAM_NVR0_Adr+start_addr+index,\
+                                   &rd_data));
+       read_data[index] = (unsigned char) (rd_data & 0xff);
+    
+    }
+    return PHYMOD_E_NONE;
+}
+
+int _furia_set_module_command(const phymod_access_t *pa, uint16_t xfer_addr,
+                               uint32_t slv_addr, unsigned char xfer_cnt, FURIA_I2CM_CMD_E cmd) {
+    FUR_MODULE_CNTRL_STATUS_t mctrl_status;
+    uint16_t retry_count = 0;
+    uint32_t wait_timeout_us = 0;
+    /* ((2*100))/20 
+     * where 100 us is the worst case byte transfer time 
+     */
+    wait_timeout_us = 20;
+    retry_count = (xfer_cnt + 1) * 20;
+
+    if (cmd == FURIA_FLUSH) {
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     FUR_MODULE_CNTRL_CONTROL_Adr,\
+                                     0xC000));
+    } else {
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     FUR_MODULE_CNTRL_XFER_ADDR_Adr,\
+                                     xfer_addr));
+        PHYMOD_IF_ERR_RETURN
+            (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                     FUR_MODULE_CNTRL_XFER_COUNT_Adr,\
+                                     xfer_cnt));
+        if (cmd == FURIA_CURRENT_ADDRESS_READ) {
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                         FUR_MODULE_CNTRL_CONTROL_Adr,\
+                                         0x8001));
+        } else if (cmd == FURIA_RANDOM_ADDRESS_READ ) {
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                         FUR_MODULE_CNTRL_ADDRESS_Adr,\
+                                         slv_addr));
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                         FUR_MODULE_CNTRL_CONTROL_Adr,\
+                                         0x8003));
+        } else {
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                         FUR_MODULE_CNTRL_ADDRESS_Adr,\
+                                         slv_addr));
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                         FUR_MODULE_CNTRL_CONTROL_Adr,\
+                                         0x8022));
+        }
+    }
+    
+    if ((cmd == FURIA_CURRENT_ADDRESS_READ) ||
+        (cmd == FURIA_RANDOM_ADDRESS_READ) ||   
+        (cmd == FURIA_I2C_WRITE)) { 
+        do {
+            PHYMOD_IF_ERR_RETURN
+                (READ_FURIA_PMA_PMD_REG(pa,\
+                                        FUR_MODULE_CNTRL_STATUS_Adr,\
+                                        &mctrl_status.data));
+            PHYMOD_USLEEP(wait_timeout_us);
+        } while((mctrl_status.fields.xaction_done == 0) && --retry_count);
+        if(!retry_count) {
+            PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Module controller: I2C transaction failed..")));
+        }
+    }
+    return PHYMOD_E_NONE;
+}
+
+int _furia_cfg_fw_ull_dp(const phymod_core_access_t* core, uint32_t ull_dp_enable) {
+    int lane_map = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    uint16_t die_lane_num = 0;
+    uint32_t enable = 0;
+    uint8_t fw_enable = 0;
+    uint8_t retry_count = 5;
+    FUR_GEN_CNTRLS_gpreg12_t gen_ctrls_gpreg12;
+    FUR_GEN_CNTRLS_gpreg11_t gen_ctrls_gpreg11;
+    FUR_GEN_CNTRLS_FIRMWARE_ENABLE_t fw_enable_reg;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    const phymod_access_t *pa = &core->access;
+    
+    PHYMOD_MEMSET(&gen_ctrls_gpreg12, 0 , sizeof(FUR_GEN_CNTRLS_gpreg12_t));
+    PHYMOD_MEMSET(&gen_ctrls_gpreg11, 0 , sizeof(FUR_GEN_CNTRLS_gpreg11_t));
+    PHYMOD_MEMSET(&fw_enable_reg, 0 , sizeof(FUR_GEN_CNTRLS_FIRMWARE_ENABLE_t));
+
+  
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+
+    enable = (ull_dp_enable == 1) ? 1 : 0;
+
+    /*Wait for fw_enable to go low  before setting fw_enable_val*/
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                &fw_enable_reg.data));
+    fw_enable = fw_enable_reg.fields.fw_enable_val;
+
+    while((fw_enable != 0) && (retry_count)) {
+        PHYMOD_IF_ERR_RETURN
+            (READ_FURIA_PMA_PMD_REG(pa,\
+                                    FUR_GEN_CNTRLS_firmware_enable_Adr,\
+                                    &fw_enable_reg.data));
+        fw_enable = fw_enable_reg.fields.fw_enable_val;
+        PHYMOD_USLEEP(200000);
+        retry_count--;
+    }
+
+    lane_map = FURIA_IS_SIMPLEX(chip_id) ? 0xFF : 0xF;
+
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Get lane descriptor from package lane */
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            die_lane_num = pkg_ln_des->die_lane_num;
+            if(FURIA_IS_SIMPLEX(chip_id)) {
+                if(pkg_ln_des->sideA == LINE) {
+                    /* Read GPReg12 */
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                FUR_GEN_CNTRLS_gpreg12_Adr,\
+                                                &gen_ctrls_gpreg12.data));
+                    if(enable) {
+                        gen_ctrls_gpreg12.fields.en_ull_dp_sys2line |= (1 << die_lane_num);
+                    } else {
+                        gen_ctrls_gpreg12.fields.en_ull_dp_sys2line &= ~(1 << die_lane_num);
+                    }
+                    /* Write GPReg12 */
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                FUR_GEN_CNTRLS_gpreg12_Adr,\
+                                                gen_ctrls_gpreg12.data));
+                } else {
+                    /* Read GPReg11 */
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                FUR_GEN_CNTRLS_gpreg11_Adr,\
+                                                &gen_ctrls_gpreg11.data));
+                    if(enable) {
+                        gen_ctrls_gpreg11.fields.en_ull_dp_line2sys |= (1 << die_lane_num);
+                    } else {
+                        gen_ctrls_gpreg11.fields.en_ull_dp_line2sys &= ~(1 << die_lane_num);
+                    }
+                    /* Write GPReg11 */
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                FUR_GEN_CNTRLS_gpreg11_Adr,\
+                                                gen_ctrls_gpreg11.data));
+                }
+            } else {
+                /* Read GPReg12 */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            FUR_GEN_CNTRLS_gpreg12_Adr,\
+                                            &gen_ctrls_gpreg12.data));
+                /* Read GPReg11 */
+                PHYMOD_IF_ERR_RETURN
+                    (READ_FURIA_PMA_PMD_REG(pa,\
+                                            FUR_GEN_CNTRLS_gpreg11_Adr,\
+                                            &gen_ctrls_gpreg11.data));
+                if(enable) {
+                    gen_ctrls_gpreg12.fields.en_ull_dp_sys2line |= (1 << die_lane_num);
+                    gen_ctrls_gpreg11.fields.en_ull_dp_line2sys |= (1 << die_lane_num);
+                } else {
+                    gen_ctrls_gpreg12.fields.en_ull_dp_sys2line &= ~(1 << die_lane_num);
+                    gen_ctrls_gpreg11.fields.en_ull_dp_line2sys &= ~(1 << die_lane_num);
+                }
+                /* Write GPReg12 */
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                             FUR_GEN_CNTRLS_gpreg12_Adr,\
+                                             gen_ctrls_gpreg12.data));
+                /* Write GPReg11 */
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                            FUR_GEN_CNTRLS_gpreg11_Adr,\
+                                            gen_ctrls_gpreg11.data));
+            }
+        }
+    }
+    /* Set firmware enable */
+    PHYMOD_IF_ERR_RETURN
+        (_furia_fw_enable(pa));
+    return PHYMOD_E_NONE;
+}
+
+int _furia_cfg_an_master_lane(const phymod_core_access_t* core, uint32_t an_master_lane) 
+{
+    uint16_t die_lane_num = 0;
+    uint32_t chip_id = 0;
+    FUR_MISC_CTRL_LOGIC_TO_PHY_LN0_MAP_t logic_to_phy_ln0_map;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    const phymod_access_t *pa = &core->access;
+    PHYMOD_MEMSET(&logic_to_phy_ln0_map, 0 , sizeof(FUR_MISC_CTRL_LOGIC_TO_PHY_LN0_MAP_t));
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    /* Get lane descriptor from package lane */
+    pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, an_master_lane);
+    PHYMOD_NULL_CHECK(pkg_ln_des);
+    die_lane_num = pkg_ln_des->die_lane_num;
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MISC_CTRL_logic_to_phy_ln0_map_Adr,\
+                                &logic_to_phy_ln0_map.data));
+    logic_to_phy_ln0_map.fields.single_pmd_prt1_ln0_on_pl = die_lane_num;
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                 FUR_MISC_CTRL_logic_to_phy_ln0_map_Adr,\
+                                 logic_to_phy_ln0_map.data));
+    return PHYMOD_E_NONE;
+}
+
+STATIC int _furia_cfg_an_master_lane_get(const phymod_access_t *pa, uint32_t *an_master_lane) 
+{
+    FUR_MISC_CTRL_LOGIC_TO_PHY_LN0_MAP_t logic_to_phy_ln0_map;
+    PHYMOD_MEMSET(&logic_to_phy_ln0_map, 0 , sizeof(FUR_MISC_CTRL_LOGIC_TO_PHY_LN0_MAP_t));
+
+    /* Get the chip id */
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_MISC_CTRL_logic_to_phy_ln0_map_Adr,\
+                                &logic_to_phy_ln0_map.data));
+    *an_master_lane = logic_to_phy_ln0_map.fields.single_pmd_prt1_ln0_on_pl;
+
+    return PHYMOD_E_NONE;
+}
+
+int _furia_pcs_monitor_enable_set(const phymod_core_access_t* core, int enable) {
+    uint32_t chip_id = 0;
+    int pkg_side = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    LINE_RX_PMA_DP_MAIN_CTRL_t line_rx_dp_main_ctrl;
+    SYS_RX_PMA_DP_MAIN_CTRL_t sys_rx_dp_main_ctrl;
+    LINE_RX_PMA_DP_MAIN_CTRL_PCS_MODE_t tmp_main_ctrl_mode;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    const phymod_access_t *pa = &core->access;
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    /* Disable PCS monitor on all the PHY lanes */
+    for(pkg_side = 0; pkg_side <= SIDE_B; pkg_side++) {
+        for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+            /* Configure Tx side(SIDE_A) first*/
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            wr_lane = pkg_ln_des->slice_wr_val;
+            rd_lane = pkg_ln_des->slice_rd_val;
+            if(pkg_side == SIDE_A) {
+                sys_en = pkg_ln_des->sideA;
+            } else { 
+                sys_en = pkg_ln_des->sideB;
+            }
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+            if ((FURIA_IS_SIMPLEX(chip_id) && pkg_side == SIDE_B) ||
+                (FURIA_IS_DUPLEX(chip_id))) {
+                if(sys_en == LINE) {
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                &line_rx_dp_main_ctrl.data));
+                    tmp_main_ctrl_mode.data = line_rx_dp_main_ctrl.data; 
+                    tmp_main_ctrl_mode.fields.link_mon_en = enable;
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 LINE_RX_PMA_DP_main_ctrl_Adr,\
+                                                 tmp_main_ctrl_mode.data));
+                } else {
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                &sys_rx_dp_main_ctrl.data)); 
+                    tmp_main_ctrl_mode.data = sys_rx_dp_main_ctrl.data; 
+                    tmp_main_ctrl_mode.fields.link_mon_en = enable;
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 SYS_RX_PMA_DP_main_ctrl_Adr,\
+                                                 tmp_main_ctrl_mode.data)); 
+                }
+            } 
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+STATIC int _furia_set_intf_type(const phymod_access_t *pa, uint32_t phymod_interface_type, int lane_index) {
+    FUR_GEN_CNTRLS_micro_sync_7_t gen_ctrls_intf_type;
+    PHYMOD_MEMSET(&gen_ctrls_intf_type, 0 , sizeof(FUR_GEN_CNTRLS_micro_sync_7_t));
+    PHYMOD_IF_ERR_RETURN
+        (READ_FURIA_PMA_PMD_REG(pa,\
+                                FUR_GEN_CNTRLS_micro_sync_7_Adr,\
+                                &gen_ctrls_intf_type.data));
+    switch (phymod_interface_type) {
+        case phymodInterfaceLR:
+        case phymodInterfaceLR4:
+            switch (lane_index) {
+                case 0:
+                    gen_ctrls_intf_type.fields.intf_type_ln0 = 0;
+                break;
+                case 1:
+                    gen_ctrls_intf_type.fields.intf_type_ln1 = 0;
+                break;
+                case 2:
+                    gen_ctrls_intf_type.fields.intf_type_ln2 = 0;
+                break;
+                case 3:
+                    gen_ctrls_intf_type.fields.intf_type_ln3 = 0;
+                break;
+                case 4:
+                    gen_ctrls_intf_type.fields.intf_type_ln4 = 0;
+                break;
+                case 5:
+                    gen_ctrls_intf_type.fields.intf_type_ln5 = 0;
+                break;
+                case 6:
+                    gen_ctrls_intf_type.fields.intf_type_ln6 = 0;
+                break;
+                case 7:
+                    gen_ctrls_intf_type.fields.intf_type_ln7 = 0;
+                break;
+                default:
+                break;
+            }
+        break;
+        case phymodInterfaceSR:
+        case phymodInterfaceSR4:
+            switch (lane_index) {
+                case 0:
+                    gen_ctrls_intf_type.fields.intf_type_ln0 = 1;
+                break;
+                case 1:
+                    gen_ctrls_intf_type.fields.intf_type_ln1 = 1;
+                break;
+                case 2:
+                    gen_ctrls_intf_type.fields.intf_type_ln2 = 1;
+                break;
+                case 3:
+                    gen_ctrls_intf_type.fields.intf_type_ln3 = 1;
+                break;
+                case 4:
+                    gen_ctrls_intf_type.fields.intf_type_ln4 = 1;
+                break;
+                case 5:
+                    gen_ctrls_intf_type.fields.intf_type_ln5 = 1;
+                break;
+                case 6:
+                    gen_ctrls_intf_type.fields.intf_type_ln6 = 1;
+                break;
+                case 7:
+                    gen_ctrls_intf_type.fields.intf_type_ln7 = 1;
+                break;
+                default:
+                break;
+            }
+            break;
+        /*case phymodInterfaceER:
+        case phymodInterfaceER4:
+            switch (lane_index) {
+                case 0:
+                    gen_ctrls_intf_type.fields.intf_type_ln0 = 2;
+                break;
+                case 1:
+                    gen_ctrls_intf_type.fields.intf_type_ln1 = 2;
+                break;
+                case 2:
+                    gen_ctrls_intf_type.fields.intf_type_ln2 = 2;
+                break;
+                case 3:
+                    gen_ctrls_intf_type.fields.intf_type_ln3 = 2;
+                break;
+                case 4:
+                    gen_ctrls_intf_type.fields.intf_type_ln4 = 2;
+                break;
+                case 5:
+                    gen_ctrls_intf_type.fields.intf_type_ln5 = 2;
+                break;
+                case 6:
+                    gen_ctrls_intf_type.fields.intf_type_ln6 = 2;
+                break;
+                case 7:
+                    gen_ctrls_intf_type.fields.intf_type_ln7 = 2;
+                break;
+                default:
+                break;
+            }
+            break;*/
+        case phymodInterfaceKX:
+        case phymodInterfaceKR:
+        case phymodInterfaceKR2:
+        case phymodInterfaceKR4:
+            switch (lane_index) {
+                case 0:
+                    gen_ctrls_intf_type.fields.intf_type_ln0 = 3;
+                break;
+                case 1:
+                    gen_ctrls_intf_type.fields.intf_type_ln1 = 3;
+                break;
+                case 2:
+                    gen_ctrls_intf_type.fields.intf_type_ln2 = 3;
+                break;
+                case 3:
+                    gen_ctrls_intf_type.fields.intf_type_ln3 = 3;
+                break;
+                case 4:
+                    gen_ctrls_intf_type.fields.intf_type_ln4 = 3;
+                break;
+                case 5:
+                    gen_ctrls_intf_type.fields.intf_type_ln5 = 3;
+                break;
+                case 6:
+                    gen_ctrls_intf_type.fields.intf_type_ln6 = 3;
+                break;
+                case 7:
+                    gen_ctrls_intf_type.fields.intf_type_ln7 = 3;
+                break;
+                default:
+                break;
+            }
+        break;
+        default:
+        break; 
+    }
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                FUR_GEN_CNTRLS_micro_sync_7_Adr,\
+                                gen_ctrls_intf_type.data));
+    return PHYMOD_E_NONE;
+}
+
+void _furia_get_reg_val_from_sync_type(uint32_t ptr_sync, uint32_t *reg_val)
+{
+    switch (ptr_sync) {
+        case 0: 
+            *reg_val = 0;
+            break;
+        case 1:
+            *reg_val = 1;
+            break;
+        case 2:
+            *reg_val = 3;
+            break;
+        case 3:
+            *reg_val = 2;
+            break;
+        case 4:
+            *reg_val = 6;
+            break;
+        case 5:
+            *reg_val = 7;
+            break;
+        case 6:
+            *reg_val = 0xF;
+            break;
+        case 7:
+            *reg_val = 0xe;
+            break;
+        case 8:
+            *reg_val = 0xa;
+            break;
+        case 9:
+            *reg_val = 0xb;
+            break;
+        case 10:
+            *reg_val = 0x9;
+            break;
+        case 11:
+            *reg_val = 0x8;
+            break;
+        default :
+            *reg_val = 0;
+            break;
+    }
+
+}
+int _furia_core_cfg_pfifo_4_max_ieee_input_skew(const phymod_access_t* pa, uint32_t tx_ptr_sync, uint32_t rx_ptr_sync)
+{
+    int lane_map = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    int wr_lane = 0;
+    int sys_en = 0;
+    int rd_lane = 0;
+    int side_index = 0;
+    LINE_RX_PMA_DP_DP_CTRL_t line_rx_pma_dp_ctrl;
+    LINE_TX_PMA_DP_CTRL_t    line_tx_pma_dp_ctrl;
+    SYS_RX_PMA_DP_DP_CTRL_t  sys_rx_pma_dp_ctrl;
+    SYS_TX_PMA_DP_CTRL_t     sys_tx_pma_dp_ctrl;
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    uint32_t rx_ptr_sync_reg_val = 0;
+    uint32_t tx_ptr_sync_reg_val = 0;
+    PHYMOD_MEMSET(&line_rx_pma_dp_ctrl, 0 , sizeof(LINE_RX_PMA_DP_DP_CTRL_t));
+    PHYMOD_MEMSET(&line_tx_pma_dp_ctrl, 0 , sizeof(LINE_TX_PMA_DP_CTRL_t));
+    PHYMOD_MEMSET(&sys_rx_pma_dp_ctrl, 0 , sizeof(SYS_RX_PMA_DP_DP_CTRL_t));
+    PHYMOD_MEMSET(&sys_tx_pma_dp_ctrl, 0 , sizeof(SYS_TX_PMA_DP_CTRL_t));
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    num_lanes = FURIA_IS_SIMPLEX(chip_id) ? 8 : 4;
+
+    lane_map = FURIA_IS_SIMPLEX(chip_id) ? 0xFF : 0xF;
+    _furia_get_reg_val_from_sync_type(tx_ptr_sync, &tx_ptr_sync_reg_val); 
+    _furia_get_reg_val_from_sync_type(rx_ptr_sync, &rx_ptr_sync_reg_val); 
+
+    for (side_index = 0; side_index < 2; side_index++) { 
+        for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+            if (((lane_map >> lane_index) & 1) == 0x1) {
+                /* Get lane descriptor from package lane */
+                pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+                PHYMOD_NULL_CHECK(pkg_ln_des);
+                if(side_index == SIDE_A) {
+                    sys_en = pkg_ln_des->sideA;
+                } else {
+                    sys_en = pkg_ln_des->sideB;
+                }
+
+                wr_lane = pkg_ln_des->slice_wr_val;
+                rd_lane = pkg_ln_des->slice_rd_val;
+
+                /* Program the slice register */
+                PHYMOD_IF_ERR_RETURN
+                    (WRITE_FURIA_SLICE_REG(pa, sys_en, wr_lane, rd_lane));
+
+                if(sys_en == LINE) {
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                LINE_RX_PMA_DP_dp_ctrl_Adr,\
+                                                &line_rx_pma_dp_ctrl.data));
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                LINE_TX_PMA_DP_ctrl_Adr,\
+                                                &line_tx_pma_dp_ctrl.data));
+                    line_rx_pma_dp_ctrl.fields.ptr_sync = rx_ptr_sync_reg_val;
+                    line_tx_pma_dp_ctrl.fields.ptr_sync = tx_ptr_sync_reg_val;
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 LINE_RX_PMA_DP_dp_ctrl_Adr,\
+                                                 line_rx_pma_dp_ctrl.data));
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 LINE_TX_PMA_DP_ctrl_Adr,\
+                                                 line_tx_pma_dp_ctrl.data));
+                } else {
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                SYS_RX_PMA_DP_dp_ctrl_Adr,\
+                                                &sys_rx_pma_dp_ctrl.data));
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                SYS_TX_PMA_DP_ctrl_Adr,\
+                                                &sys_tx_pma_dp_ctrl.data));
+                    sys_rx_pma_dp_ctrl.fields.ptr_sync = rx_ptr_sync_reg_val;
+                    sys_tx_pma_dp_ctrl.fields.ptr_sync = tx_ptr_sync_reg_val;
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 SYS_RX_PMA_DP_dp_ctrl_Adr,\
+                                                 sys_rx_pma_dp_ctrl.data));
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 SYS_TX_PMA_DP_ctrl_Adr,\
+                                                 sys_tx_pma_dp_ctrl.data));
+
+                }
+            }
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+    return PHYMOD_E_NONE;
+}
+
+
+int _furia_core_cfg_hcd_link_status_criteria(const phymod_access_t *pa, uint32_t hcd_link_criteria)
+{
+    int lane_map = 0;
+    uint32_t chip_id = 0;
+    int num_lanes = 0;
+    int lane_index = 0;
+    int wr_lane = 0;
+    int rd_lane = 0;
+    uint32_t an_master_lane = 0;
+    RX_ANA_REGS_ANARXCONTROL3_t an_rx_ctrl3;
+    FUR_MISC_CTRL_FURIA_QSFI_MISC_t qsfi_misc; 
+    const FURIA_PKG_LANE_CFG_t* pkg_ln_des = NULL;
+    
+    PHYMOD_MEMSET(&an_rx_ctrl3, 0 , sizeof(RX_ANA_REGS_ANARXCONTROL3_t));
+    PHYMOD_MEMSET(&qsfi_misc, 0 , sizeof(FUR_MISC_CTRL_FURIA_QSFI_MISC_t));
+
+    /* Get the chip id */
+    chip_id = _furia_get_chip_id(pa);
+
+    if (FURIA_IS_SIMPLEX(chip_id)) {
+        PHYMOD_RETURN_WITH_ERR(PHYMOD_E_CONFIG, (_PHYMOD_MSG("Autoneg feature is not applicable for simplex packages")));
+    }
+    num_lanes = 4;
+    lane_map = pa->lane_mask; 
+
+    for(lane_index = 0; lane_index < num_lanes; lane_index++) {
+        if (((lane_map >> lane_index) & 1) == 0x1) {
+            /* Get lane descriptor from package lane */
+            pkg_ln_des = _furia_pkg_ln_des(chip_id, pa, lane_index);
+            PHYMOD_NULL_CHECK(pkg_ln_des);
+            if (lane_map == 0xF) {
+                PHYMOD_IF_ERR_RETURN(
+                    _furia_cfg_an_master_lane_get(pa, &an_master_lane));
+                wr_lane = 1 << an_master_lane;
+                rd_lane = an_master_lane;
+            } else {
+                wr_lane = pkg_ln_des->slice_wr_val;
+                rd_lane = pkg_ln_des->slice_rd_val;
+            } 
+
+            /* Program the slice register */
+            PHYMOD_IF_ERR_RETURN
+                (WRITE_FURIA_SLICE_REG(pa, LINE, wr_lane, rd_lane));
+
+
+            switch(hcd_link_criteria) {
+                case FURIA_HCD_LINK_REG_WR:
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                RX_ANA_REGS_anaRxControl3_Adr,\
+                                                &an_rx_ctrl3.data));
+                    an_rx_ctrl3.fields.link_en_force_sm = 1;
+                    an_rx_ctrl3.fields.link_en_r= 1;
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 RX_ANA_REGS_anaRxControl3_Adr,\
+                                                 an_rx_ctrl3.data));
+                break;
+                case FURIA_HCD_LINK_KR_BLOCK_LOCK:
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                RX_ANA_REGS_anaRxControl3_Adr,\
+                                                &an_rx_ctrl3.data));
+                    an_rx_ctrl3.fields.link_en_force_sm = 0;
+                    an_rx_ctrl3.fields.use_kr_block_lock_sm = 1;
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 RX_ANA_REGS_anaRxControl3_Adr,\
+                                                 an_rx_ctrl3.data));
+                break;
+                case FURIA_HCD_LINK_KR4_BLOCK_LOCK:
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                RX_ANA_REGS_anaRxControl3_Adr,\
+                                                &an_rx_ctrl3.data));
+                    an_rx_ctrl3.fields.link_en_force_sm = 0;
+                    an_rx_ctrl3.fields.use_kr_block_lock_sm = 0;
+                    an_rx_ctrl3.fields.use_kr4_block_lock_sm = 1;
+
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 RX_ANA_REGS_anaRxControl3_Adr,\
+                                                 an_rx_ctrl3.data));
+                break;
+                case FURIA_HCD_LINK_KR4_PMD_LOCK:
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                RX_ANA_REGS_anaRxControl3_Adr,\
+                                                &an_rx_ctrl3.data));
+                    an_rx_ctrl3.fields.link_en_force_sm = 0;
+                    an_rx_ctrl3.fields.use_kr_block_lock_sm = 0;
+                    an_rx_ctrl3.fields.use_kr4_block_lock_sm = 0;
+                    an_rx_ctrl3.fields.use_kr4_pmd_lock_sm = 1;
+
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 RX_ANA_REGS_anaRxControl3_Adr,\
+                                                 an_rx_ctrl3.data));
+                break;
+                case FURIA_HCD_LINK_EXT_PCS:
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                RX_ANA_REGS_anaRxControl3_Adr,\
+                                                &an_rx_ctrl3.data));
+                    an_rx_ctrl3.fields.link_en_force_sm = 0;
+                    an_rx_ctrl3.fields.use_kr_block_lock_sm = 0;
+                    an_rx_ctrl3.fields.use_kr4_block_lock_sm = 0;
+                    an_rx_ctrl3.fields.use_kr4_pmd_lock_sm = 0;
+
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 RX_ANA_REGS_anaRxControl3_Adr,\
+                                                 an_rx_ctrl3.data));
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                FUR_MISC_CTRL_furia_qsfi_misc_Adr,\
+                                                &qsfi_misc.data));
+                    qsfi_misc.fields.ext_pcs_link_en = 1;
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 FUR_MISC_CTRL_furia_qsfi_misc_Adr,\
+                                                 qsfi_misc.data));
+                break;
+                default:
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                RX_ANA_REGS_anaRxControl3_Adr,\
+                                                &an_rx_ctrl3.data));
+                    an_rx_ctrl3.fields.link_en_force_sm = 0;
+                    an_rx_ctrl3.fields.use_kr_block_lock_sm = 0;
+                    an_rx_ctrl3.fields.use_kr4_block_lock_sm = 0;
+                    an_rx_ctrl3.fields.use_kr4_pmd_lock_sm = 0;
+
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 RX_ANA_REGS_anaRxControl3_Adr,\
+                                                 an_rx_ctrl3.data));
+                    PHYMOD_IF_ERR_RETURN
+                        (READ_FURIA_PMA_PMD_REG(pa,\
+                                                FUR_MISC_CTRL_furia_qsfi_misc_Adr,\
+                                                &qsfi_misc.data));
+                    qsfi_misc.fields.ext_pcs_link_en = 0;
+                    PHYMOD_IF_ERR_RETURN
+                        (WRITE_FURIA_PMA_PMD_REG(pa,\
+                                                 FUR_MISC_CTRL_furia_qsfi_misc_Adr,\
+                                                 qsfi_misc.data));
+                break;
+            }
+
+        }
+        if (lane_map == 0xF) {
+            break;
+        }
+    }
+    /* Set the slice register with default values */ 
+    PHYMOD_IF_ERR_RETURN
+        (WRITE_FURIA_SLICE_REG(pa, 0, 1, 0));
+
+    return PHYMOD_E_NONE;
+}

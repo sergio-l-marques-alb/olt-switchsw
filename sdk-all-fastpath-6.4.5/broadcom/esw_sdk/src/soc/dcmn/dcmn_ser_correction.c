@@ -1,0 +1,334 @@
+/*
+ * $Id:$
+ *
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ */
+
+
+#ifdef _ERR_MSG_MODULE_NAME
+#error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+#define _ERR_MSG_MODULE_NAME BSL_BCM_INTR
+
+
+
+#include <shared/bsl.h>
+#include <soc/dcmn/error.h>
+
+#include <soc/error.h>
+
+/* 
+ *  include  
+ */ 
+
+#include <sal/core/libc.h>
+#include <sal/core/alloc.h>
+#include <shared/bitop.h>
+
+#include <bcm/error.h>
+
+#include <soc/dcmn/dcmn_ser_correction.h>
+
+
+
+
+
+
+
+STATIC soc_error_t print_data(
+                       int unit,
+                       const uint32 len_bits,
+                       const uint8 *data,
+                       const char *data_name)
+{
+  uint32 i;
+  char *buf;
+
+  SOCDNX_INIT_FUNC_DEFS;
+ 
+  buf = sal_alloc(len_bits+1,"");
+  SOCDNX_NULL_CHECK(buf);
+  *buf ='\0';
+  for (i=0;i<len_bits;i++) {
+      sal_strncat(buf, data[i] ? "1" : "0", len_bits+1 - sal_strlen(buf) - 1);
+  }
+
+
+  cli_out("%s(l2m):%s\n",data_name,buf);
+  sal_free(buf);
+
+exit:
+    SOCDNX_FUNC_RETURN;
+
+}
+STATIC int get_ecc_bit_len(uint32 data_len_bits)
+{
+    uint32 ecc_len_bits;
+    int pow;
+    for (ecc_len_bits=0,pow=1;pow<(ecc_len_bits+data_len_bits+1);ecc_len_bits++,pow<<=1) {
+    }
+    return ecc_len_bits;
+}
+
+
+STATIC void data2bits(const uint32 data_len_bits,const uint32 *data,uint8 *bits)
+{
+
+    int j,i,start,end;
+    int data_len_words = data_len_bits/(8*sizeof(uint32)) + (data_len_bits%(8*sizeof(uint32)) ? 1 : 0);
+
+    for (j=0,i=0;i<data_len_words;i++) {
+
+        end = (i==(data_len_words-1) && (data_len_bits%(8*sizeof(uint32))) ? (data_len_bits%(8*sizeof(uint32))) : 8*sizeof(uint32));
+        for (start=0;start<end;start++,j++) {
+            bits[j] = (1<<start) & data[i] ? 1 : 0;
+        }
+    }
+}
+
+
+STATIC void bits2data(const uint32 data_len_bits, uint32 *data,const uint8 *bits)
+{
+
+    int j,i,start,end;
+    int data_len_words = data_len_bits/(8*sizeof(uint32)) + (data_len_bits%(8*sizeof(uint32)) ? 1 : 0);
+
+    for (j=0,i=0;i<data_len_words;i++) {
+        data[i]=0;
+
+        end = (i==(data_len_words-1) && (data_len_bits%(8*sizeof(uint32))) ? (data_len_bits%(8*sizeof(uint32))) : 8*sizeof(uint32));
+        for (start=0;start<end;start++,j++) {
+            data[i] |= (bits[j] ? (1<<start) : 0);
+        }
+    }
+
+}
+
+STATIC   soc_error_t interleave_data_ecc(
+        int unit,
+        const uint32 data_len_bits,
+        const uint8 *data, 
+        const uint8 *ecc)
+{
+    uint32 ecc_len_bits = get_ecc_bit_len(data_len_bits);
+    uint32 total_len_bits = data_len_bits + ecc_len_bits;
+    char *buf,*buf4;
+    char buf2[12],buf3[12];
+    int count;
+    uint32 i,j,k,pos[1];
+
+    SOCDNX_INIT_FUNC_DEFS;
+
+    buf = sal_alloc(ecc_len_bits*5 + data_len_bits*3+1,"");
+    buf4 = sal_alloc(ecc_len_bits*5 + data_len_bits*3+1,"");
+    SOCDNX_NULL_CHECK(buf);
+    SOCDNX_NULL_CHECK(buf4);
+
+    *buf = '\0';
+    *buf4 = '\0';
+
+    for (i=0,j=0,k=0;i<total_len_bits;i++) {
+        *pos = i+1;
+        SHR_BITCOUNT_RANGE(pos,count,0,sizeof(uint32)*8);
+        /* on ecc bit position(power of 2)*/
+        if (count==1) {
+            sal_sprintf(buf2,"-(%d)-",ecc[k]);
+            sal_sprintf(buf3,"(%2d) ",*pos);
+            k++;
+        }
+        else {
+            sal_sprintf(buf2,"-%d-",data[j]);
+            sal_sprintf(buf3,"%2d ",*pos);
+            j++;
+        }
+        sal_strncat(buf, buf2, ecc_len_bits*5 + data_len_bits*3+1 - sal_strlen(buf) - 1);
+        sal_strncat(buf4, buf3, ecc_len_bits*5 + data_len_bits*3+1 - sal_strlen(buf4) - 1);
+
+    }
+    cli_out("interleave daya,ecc%s\n",buf);
+    cli_out("                   %s\n",buf4);
+exit:
+    SOCDNX_FREE(buf); 
+    SOCDNX_FREE(buf4); 
+    SOCDNX_FUNC_RETURN;
+}
+STATIC uint8 calc_parity(
+        const uint32 data_len_bits,
+        const uint8 *data)
+{
+    uint8 parity=0;
+    uint32 i;
+    for (i=0;i<data_len_bits;i++) {
+        parity ^= data[i];
+    }
+
+    return parity;
+}
+
+soc_error_t ecc_correction(
+        int unit,
+        const uint32 data_len_bits,
+        uint32 *data, 
+        uint32 *ecc)
+{
+
+    uint32 ecc_len_bits = get_ecc_bit_len(data_len_bits);
+    uint8 *data_bits = sal_alloc(data_len_bits,"");
+    uint8 *ecc_bits = sal_alloc(ecc_len_bits,"");
+    uint8 *calc_ecc_bits = sal_alloc(ecc_len_bits,"");
+    uint32 total_len_bits = data_len_bits + ecc_len_bits;
+    uint32 i,j,k,l;
+    int count;
+    uint32 bit1;
+    uint32 index=0;
+    uint32 pos[1];
+    uint32 bits_for_count[1];
+    uint8 parity;
+
+    SOCDNX_INIT_FUNC_DEFS;
+    SOCDNX_NULL_CHECK(data_bits);
+    SOCDNX_NULL_CHECK(ecc_bits);
+    SOCDNX_NULL_CHECK(calc_ecc_bits);
+
+    sal_memset(calc_ecc_bits,0,ecc_len_bits);
+
+    data2bits(data_len_bits, data, data_bits); 
+    data2bits(ecc_len_bits+1,ecc,ecc_bits);
+    parity = ecc_bits[ecc_len_bits];
+
+    if ( parity == calc_parity(data_len_bits,data_bits) ) {
+        cli_out("Cant Correct cause parity doesnt changeds\n"); 
+        SOC_EXIT;
+    }
+    SOCDNX_IF_ERR_EXIT(print_data(unit,data_len_bits, data_bits, "input    data"));
+    SOCDNX_IF_ERR_EXIT(print_data(unit, ecc_len_bits, ecc_bits,  "input    ecc"));
+    /* calculating the expected ecc*/
+    for (i=0,j=0;i<total_len_bits;i++) {
+        /* we start from 1*/
+        *pos = i+1;
+        SHR_BITCOUNT_RANGE(pos,count,0,sizeof(uint32)*8);
+        /* on ecc bit position(power of 2)*/
+        if (count==1) {
+            continue;
+        }
+        /*extract current bit from data*/
+        bit1 = data_bits[j];
+        if (bit1) {
+            /*  loop over all the ecc bits belong to current bit(the positions of binary representation of pos(i+1) )*/
+            for (l=0,k=1;k<*pos;k<<=1,l++) {
+                if (!(k & *pos)) {
+                    continue;
+                }
+                /* xor the current ecc bit at pos l with the current data bit at pos j*/
+                calc_ecc_bits[l] ^= 1;
+            }
+        }
+
+        /* advance to next data bit*/
+        j++;
+
+
+    }
+    SOCDNX_IF_ERR_EXIT(interleave_data_ecc(unit, data_len_bits,data_bits,ecc_bits));
+    SOCDNX_IF_ERR_EXIT(interleave_data_ecc(unit, data_len_bits,data_bits,calc_ecc_bits));
+
+    /* calc number of diffs between input ecc to calculated ecc*/
+    for (i=0,count=0;i<ecc_len_bits;i++) {
+        if (ecc_bits[i]!=calc_ecc_bits[i]) {
+            *pos = i;
+            count++;
+        }
+    }
+    if (!count) {
+        cli_out("no error found\n"); 
+        SOC_EXIT;
+    }
+
+    if (count==1) {
+        cli_out("the error bit is in ecc field at pos %d\n",*pos); 
+        bits2data(ecc_len_bits,ecc,calc_ecc_bits);
+        SOCDNX_IF_ERR_EXIT(print_data(unit, ecc_len_bits, calc_ecc_bits, "correct  ecc"));
+        cli_out("corrected value %x\n",ecc[0]); 
+        SOC_EXIT;
+    }
+ /* calculate thoe position of the faulse bit in the interleaved bit array*/
+    for (i=0;i<ecc_len_bits;i++) {
+        if (ecc_bits[i] ==  calc_ecc_bits[i]) {
+            continue;
+        }
+        index += (1<<i);
+    }
+
+    /* fix to original index(subtract all location of power 2) from index*/
+    for (i=4,j=3;i<index;i<<=1,j++) {
+    }
+
+    j=-1;
+    for (i=0;i<=index;i++) {
+        *bits_for_count = i;
+        SHR_BITCOUNT_RANGE(bits_for_count,count,0,sizeof(uint32)*8);
+        /* on ecc bit position(power of 2)*/
+        if (count<=1) {
+            continue;
+        }
+        j++;
+    }
+    index =j;
+    /* correct the errornous bit*/
+
+    data_bits[index] = !data_bits[index];
+    SOCDNX_IF_ERR_EXIT(print_data(unit, data_len_bits, data_bits, "corrcted data"));
+
+    SOCDNX_IF_ERR_EXIT(print_data(unit, ecc_len_bits, calc_ecc_bits, "calc     ecc"));
+
+    bits2data(data_len_bits,data,data_bits);
+    cli_out("corrected data value %x\n",data[0]); 
+
+exit:
+    sal_free(calc_ecc_bits);
+    sal_free(data_bits);
+    SOCDNX_FREE(ecc_bits);
+    SOCDNX_FUNC_RETURN;
+}
+
+

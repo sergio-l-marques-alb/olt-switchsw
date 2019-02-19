@@ -1,0 +1,631 @@
+/* 
+ * $Id: cint_l3vpn.c, v 1.00 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$ 
+ * 
+ * 
+ * The below CINT demonstrates MPLS L3VPN which show BCM886XX being PE-based L3VPN.    
+ * Available for 88660_A0 and above.                                                                             
+ * MPLS L3VPN model consists of three kind of devices:                                                                                                               
+ * 1. Customer Edge device (CE): Resides on customer network and connected with one or more interfaces to provide edge device.                                       
+ * The CE is not familiar with the existance of VPN and not with the MPLS core application.                                                                          
+ * 2. Provide Edge device (PE): Resides on service provider network and connects to one or more CEs.                                                                 
+ * PE is responsible on receiving and sending traffic from / to the MPLS network between the CE and P.                                                               
+ * PE is in charge of all the VPN processing.                                                                                                                        
+ * 3. Provider device (P): Backbone router on a service provider network. Only in charge of the MPLS network in the backbone and not familir with the VPN processing.
+ * It may be that PE device will fucntional as P for other VPN processing of not directly connected CE to MPLS backbone.                                             
+ *                                                                                                                                                                   
+ * In the CINT below we show BCM886XX as a PE device.                                                                                                                
+ * Terminology compared between BCM SDK (and Dune Arch) to L3VPN network:                                                                                            
+ * 1. Site (IP address or group of IPs) in PE device usually being termed as IP route address or IP host address (in case of exact match)                            
+ * 2. VPN instance - different routes may belong to VPN instances. Each VPN instance usually maintain its own routing table.                                         
+ *  VPN instance is usually implemented by VRF object. VRF is a set by the RIF interface (L3 interface).                                                             
+ * 3. VC label, VLAN - The identification of VPN instance is usually being handled by VLAN from the CE side or by VC label from the MPLS core side.                  
+ *  VC label is usually implemented by a regular LSP label in BCM SDK. bcm_mpls_tunnel_terminator_create in charge of the termination part                           
+ * and bcm_mpls_tunnel_initaitor_create in charge of the encapsulation part.                                                                                         
+ * We note that there is no need to use MPLS_PORT for this functionality as we don't need to learn nor to maintain any L2VPN properties.                             
+ *  VLAN usually may provide from CE side the VRF by:                                                                                                                
+ *  (a) A premiliary lookup of Port x VLAN which creates AC-LIF                                                                                                      
+ * (b) AC-LIF is only used for RIF mapped (and so VRF mapped).                                                                                                       
+ *  In case RIF is equal to VLAN user may drop AC-LIF creation and relay on Port default AC-LIF.                                                                     
+ * Port default AC-LIF is set on init and provide the capability of mapping RIF directly form VLAN.                                                                  
+ *  For more information on VLAN - RIF model mappings please see cint_ip_route_explicit_rif.c                                                                        
+ * 
+ * The device can function also as IP-GRE core application instead of MPLS but in cint_l3vpn we focused on MPLS core
+ * 
+ * 
+ * The below BCM SDK settings try to provide L3VPN example topology and traffic examples show UC, MC packet scenarios in this network topology:
+ * BCM> cint utility/cint_utils_mpls.c 
+ * BCM> cint cint_qos.c 
+ * BCM> cint utility/cint_utils_l3.c
+ * BCM> cint cint_mpls_lsr.c 
+ * BCM> cint cint_ip_route.c 
+ * BCM> cint cint_l3vpn.c
+ * BCM> cint
+ * cint> int inP = 201;
+ * cint> int outP = 202;
+ * cint> l3vpn_run_defaults_with_ports(unit, inP, outP);
+ * 
+ *
+ *
+ *
+ * 
+ * Traffic:
+ *   - UC packets:
+ *     - Packet Incoming from access side to mpls network: CE1->P1
+ *     - Packet Incoming from MPLS network to access side.
+ *     - Packet is IP routed in access side. 
+ *     - Packet is routed in MPLS network
+ * 
+ * 
+ *   - MC packets:
+ *     - Packet Incoming from MPLS network, to P2, CE1. (Bud node)
+ *     - Packet Incoming from MPLS network, to PE2 (Continue)
+ *     - Packet Incoming from MPLS network, to CE1, CE2 (Leaf node)
+ *     - Packet Incoming from access side, to CE2, P1
+ * 
+ * 
+ *  Traffic from RouterCE1 to RouterP
+ * 
+ *  Routing to overlay: host10 to host90
+ *  Purpose: - check mpls & vc encapsulations, check new ethernet header
+ * 
+ *    Send:                                           
+ *             ----------------------------------------
+ *        eth: |    DA       |     SA          | VLAN |
+ *             ----------------------------------------
+ *             | routerPE1_mac | routerCE1_mac |  v1  |  
+ *             ----------------------------------------
+ *                 -------------------------- 
+ *             ip: |   SIP     | DIP        | 
+ *                 --------------------------
+ *                 | host10_ip |  host90_ip | 
+ *                 -------------------------- 
+ *    Receive:
+ *             -------------------------------------
+ *        eth: |    DA       |     SA      | VLAN  |
+ *             -------------------------------------
+ *             | routerP_mac | routerPE1_mac |  v2 |  
+ *             -------------------------------------  
+ *        mpls:   --------------------------   
+ *                |   LABEL   | LABEL      |   
+ *                --------------------------             
+ *                | MPLS LABEL|  VC_LABEL  |          
+ *                --------------------------             
+ *                          -------------------------- 
+ *                      ip: |   SIP     | DIP        | 
+ *                          -------------------------- 
+ *                          | host10_ip |  host90_ip | 
+ *                          --------------------------  
+ *  
+ * 
+ * 
+ * 
+ *   Traffic from RouterP2 to RouterCE1
+ *   
+ *   Tunnel termination, ip routing: host91 to host 11
+ *   Purpose: - check mpls and vc label termination, check new ethernet header
+ * 
+ *    Send:  
+ *             -------------------------------------
+ *        eth: |    DA         |   SA      | VLAN  |
+ *             -------------------------------------
+ *             | routerPE1_mac | routerP_mac |  v2 |  
+ *             -------------------------------------  
+ *        mpls:   --------------------------   
+ *                |   LABEL   | LABEL      |   
+ *                --------------------------             
+ *                | MPLS LABEL|  VC_LABEL  |          
+ *                --------------------------             
+ *                          -------------------------- 
+ *                      ip: |   SIP     | DIP        | 
+ *                          -------------------------- 
+ *                          | host81_ip |  host11_ip | 
+ *                          --------------------------      
+ *   
+ *    Receive:  
+ *             ----------------------------------------
+ *        eth: |    DA         |   SA          | VLAN |
+ *             ----------------------------------------
+ *             | routerCE1_mac | routerPE1_mac |  v1  |  
+ *             ----------------------------------------
+ *                 -------------------------- 
+ *             ip: |   SIP     | DIP        | 
+ *                 --------------------------
+ *                 | host81_ip |  host11_ip | 
+ *                 --------------------------    
+ *   
+ *   
+ *   
+ *   Traffic from RouterCE2 to RouterCE1
+ * 
+ *   ip routing: host21 to host 11
+ * 
+ *    Send:  
+ *             ----------------------------------------
+ *        eth: |    DA         |   SA          | VLAN |
+ *             ----------------------------------------
+ *             | routerPE1_mac | routerCE2_mac |  v1  |  
+ *             ----------------------------------------
+ *                 -------------------------- 
+ *             ip: |   SIP     | DIP        | 
+ *                 --------------------------
+ *                 | host21_ip |  host11_ip | 
+ *                 --------------------------
+ * 
+ *    Receive:  
+ *             ----------------------------------------
+ *        eth: |    DA         |   SA          | VLAN |
+ *             ----------------------------------------
+ *             | routerCE1_mac | routerPE1_mac |  v1  |  
+ *             ----------------------------------------
+ *                 -------------------------- 
+ *             ip: |   SIP     | DIP        | 
+ *                 --------------------------
+ *                 | host21_ip |  host11_ip | 
+ *                 --------------------------
+ * 
+ * 
+ * 
+ *   Traffic from RouterP2 to RouterP3
+ *   
+ *   mpls Tunnel swap
+ *   Purpose: - check swap mpls, check new ethernet header
+ * 
+ *    Send:  
+ *             -------------------------------------
+ *        eth: |    DA         |   SA      | VLAN  |
+ *             -------------------------------------
+ *             | routerPE1_mac | routerPE2_mac |  v2 |  
+ *             -------------------------------------  
+ *        mpls:   --------------------------   
+ *                |   LABEL   | LABEL      |   
+ *                --------------------------             
+ *                | MPLS LABEL|  VC_LABEL  |          
+ *                --------------------------             
+ *                          -------------------------- 
+ *                      ip: |   SIP     | DIP        | 
+ *                          -------------------------- 
+ *                          | host81_ip |  host11_ip | 
+ *                          --------------------------      
+   */
+
+
+struct cint_l3vpn_info_s {
+    int ce_port; /* access port */
+    int p_port; /* provider port */
+    uint8 my_mac[6]; /* my mac of the router */
+    uint8 next_hop_to_P1_mac[6]; /* next hop to P1 for mpls tunnel */
+    uint8 next_hop_to_P2_mac[6]; /* next hop to P2 for mpls tunnel */
+    uint8 ce1_mac[6]; /* next hop for routing to customer edge */
+    int vlan_access_CE1; /* vlan in access network. For CE1. */
+    int vlan_access_CE2; /* vlan in access network. For CE2 */
+    int vlan_to_vpn_P1; /*   vlan in core network. For P1 */
+    int vlan_to_vpn_P2; /* vlan in core network. For P2  */
+    int vlan_to_vpn_P1_hi_fec; /* vlan in core network. For P1 for hi-fec implementation */
+
+    uint8 enable_hierarchical_fec; /* add VC label and mpls tunnels using hierarchical fec. 
+                                      If disabled, only create mpls tunnels using 1 fec */
+
+    bcm_mpls_label_t mpls_label_to_access;  /* mpls label in access direction. Label to terminate */
+    bcm_mpls_label_t mpls_in_label_swap;    /* mpls label in network provider. Label to swap with mpls_eg_label_swap */
+    bcm_mpls_label_t mpls_eg_label_swap;    /* mpls label in network provider. swap label mpls_in_label_swap */
+
+};
+
+int verbose1 = 1;
+cint_l3vpn_info_s l3vpn_info;
+
+void 
+l3vpn_info_init(int unit, 
+                        int ce_port,
+                        int p_port,
+                        uint8* my_mac,
+                        uint8* next_hop_to_P1_mac,
+                        uint8* next_hop_to_P2_mac,
+                        uint8* ce1_mac,
+                        int vlan_access_CE1,
+                        int vlan_access_CE2,
+                        int vlan_to_vpn_P1,
+                        int vlan_to_vpn_P2, 
+                        int vlan_to_vpn_P1_hi_fec,
+                        uint8 enable_hierarchical_fec, 
+                        bcm_mpls_label_t mpls_label_to_access, 
+                        bcm_mpls_label_t mpls_in_label_swap, 
+                        bcm_mpls_label_t mpls_eg_label_swap) {
+
+    int rv; 
+
+    l3vpn_info.ce_port = ce_port; 
+    l3vpn_info.p_port = p_port; 
+    sal_memcpy(l3vpn_info.my_mac, my_mac, 6);
+    sal_memcpy(l3vpn_info.next_hop_to_P1_mac, next_hop_to_P1_mac, 6);
+    sal_memcpy(l3vpn_info.next_hop_to_P2_mac, next_hop_to_P2_mac, 6);
+    sal_memcpy(l3vpn_info.ce1_mac, ce1_mac, 6);
+    l3vpn_info.vlan_access_CE1       = vlan_access_CE1; 
+    l3vpn_info.vlan_access_CE2      = vlan_access_CE2; 
+    l3vpn_info.vlan_to_vpn_P1          = vlan_to_vpn_P1; 
+    l3vpn_info.vlan_to_vpn_P2         = vlan_to_vpn_P2; 
+    l3vpn_info.vlan_to_vpn_P1_hi_fec  = vlan_to_vpn_P1_hi_fec; 
+    l3vpn_info.enable_hierarchical_fec = enable_hierarchical_fec; 
+    l3vpn_info.mpls_label_to_access    = mpls_label_to_access; 
+    l3vpn_info.mpls_in_label_swap      = mpls_in_label_swap; 
+    l3vpn_info.mpls_eg_label_swap      = mpls_eg_label_swap; 
+}
+
+int 
+l3vpn_run(int unit) {
+    int rv; 
+    int vrf = 0;
+
+    mpls__egress_tunnel_utils_s mpls_tunnel_properties;
+
+    if (verbose1) {
+        printf("l3vpn_run create vswitch\n");
+    }
+
+    /** Routing Interfaces **/ 
+    int ing_intf;  /* interface_id for ingress router interface */
+    int egr_intf;  /* interface_id for egress router interface */
+
+
+    /* create ingress router instance for access packets:  
+     * - create a bridge instance with vsi = vlan
+     * - create flooding MC group for bridge instance
+     * - add port to vlan
+     * - create router instance
+     * - create incoming router interface and outgoing interface */
+    rv = create_l3_intf(unit, 
+                    0,   /* flags */
+                    1,   /* open vlan */
+                    l3vpn_info.ce_port,  /* port at access side */
+                    l3vpn_info.vlan_to_vpn_P1,    /* vlan */
+                    vrf,       
+                    l3vpn_info.my_mac, /* my mac */
+                    &ing_intf); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, create_l3_intf\n");
+    }
+
+    /* create egress router instance for access packets */ 
+    rv = create_l3_intf(unit, 
+                        0,   /* flags */
+                        1,   /* open vlan */
+                        l3vpn_info.p_port, 
+                        l3vpn_info.vlan_to_vpn_P2,    /* vlan */
+                        vrf, 
+                        l3vpn_info.my_mac,         /* my mac */
+                        &egr_intf);     /* l3 interface id */
+    if (rv != BCM_E_NONE) {
+        printf("Error, create_l3_intf\n");
+    }
+
+    /** tunnels **/
+
+    /* create tunnels: to build 2 mpls headers (mpls label and VC label) */
+    int tunnel_id = 0;
+
+    mpls_tunnel_properties.label_in = 200;
+	mpls_tunnel_properties.label_out = 400;
+	mpls_tunnel_properties.next_pointer_intf = egr_intf;
+	
+	printf("Trying to create tunnel initiator\n");
+	rv = mpls__create_tunnel_initiator__set(unit, &mpls_tunnel_properties);
+	if (rv != BCM_E_NONE) {
+       printf("Error, in mpls__create_tunnel_initiator__set\n");
+       return rv;
+    }
+
+    tunnel_id = mpls_tunnel_properties.tunnel_id;
+
+    if (verbose1) {
+        printf("Configured mpls tunnels\n");
+    }
+
+    /* create LL for tunnel. Link the tunnel with the LL,
+       return fec pointer to VC label tunnel */
+    int fec; 
+    bcm_if_t encap_id; 
+
+    rv = create_l3_egress(unit, 
+                          0,   /* flags */
+                          l3vpn_info.p_port, /* outgoing port */
+                          l3vpn_info.vlan_to_vpn_P2,   /* outgoing vlan */
+                          tunnel_id, /* 2 mpls labels tunnel id*/
+                          l3vpn_info.next_hop_to_P1_mac, /* next hop destination mac address */
+                          &fec, 
+                          &encap_id);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in create_l3_egress\n");
+        return rv;
+    }
+
+    if (verbose1) {
+        printf("Configured LL: %d\n", encap_id);
+    }
+
+    /* tunnel termination: terminate 2 mpls headers (mpls label and VC label) */
+    rv = mpls_add_term_entry(unit, l3vpn_info.mpls_label_to_access, 0); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mpls_add_term_entry for label %x \n", l3vpn_info.mpls_label_to_access);
+        return rv;
+    }
+
+    /* tunnel termination: terminate 2 mpls headers (mpls label and VC label) */
+    /* vc label is 200 (see create_tunnel_initiator function, where the vc label is encapsulated) */
+    rv = mpls_add_term_entry(unit, 0xc8, 0); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mpls_add_term_entry for label %x \n", l3vpn_info.mpls_label_to_access);
+        return rv;
+    }
+
+    if (verbose1) {
+        printf("Configured tunnel termination for labels %x %x \n", l3vpn_info.mpls_label_to_access, 0xc8);
+    }
+
+    /* create tunnels using hierarchical fec:
+           build 2  mpls headers (mpls label and VC label) */
+    int hi_fec = 0; 
+    if (l3vpn_info.enable_hierarchical_fec) {
+        int cascaded_fec = 0; 
+
+        if (verbose1) {
+            printf("create heriarchical fec\n");
+        }
+
+        tunnel_id = 0;
+
+        mpls_tunnel_properties.tunnel_id = 0;
+        mpls_tunnel_properties.label_in = 200;
+		mpls_tunnel_properties.label_out = 0;
+		mpls_tunnel_properties.next_pointer_intf = egr_intf;
+	
+        /* create 1 mpls tunnel: mpls label */	
+		printf("Trying to create tunnel initiator\n");
+		rv = mpls__create_tunnel_initiator__set(unit, &mpls_tunnel_properties);
+		if (rv != BCM_E_NONE) {
+           printf("Error, in mpls__create_tunnel_initiator__set\n");
+           return rv;
+        }
+
+        tunnel_id = mpls_tunnel_properties.tunnel_id;
+
+        if (verbose1) {
+            printf("hierarchical fec: create mpls tunnel: mpls label \n");
+        }
+
+        /* create cascaded fec for mpls */
+        encap_id = 0;
+        rv = create_l3_egress(unit,
+                              BCM_L3_CASCADED, /* flags */
+                              l3vpn_info.p_port, /* outgoing port */
+                              l3vpn_info.vlan_to_vpn_P1_hi_fec,   /* outgoing vlan */
+                              tunnel_id,  /* mpls tunnel id */
+                              l3vpn_info.next_hop_to_P1_mac, /* next hop destination mac address */
+                              &cascaded_fec, 
+                              &encap_id); 
+        if (rv != BCM_E_NONE) {
+            printf("Error, in create_l3_egress\n");
+            return rv;
+        }
+
+        if (verbose1) {
+            printf("hierarchical fec: Configured LL: %d\n", encap_id);
+        }
+
+        /* create 1 mpls tunnel: VC label */
+        tunnel_id = 0;
+
+        mpls_tunnel_properties.tunnel_id = 0;
+        mpls_tunnel_properties.label_in = 200;
+		mpls_tunnel_properties.label_out = 0;
+		mpls_tunnel_properties.next_pointer_intf = egr_intf;
+	
+		printf("Trying to create tunnel initiator\n");
+		rv = mpls__create_tunnel_initiator__set(unit, &mpls_tunnel_properties);
+		if (rv != BCM_E_NONE) {
+           printf("Error, in mpls__create_tunnel_initiator__set\n");
+           return rv;
+        }
+
+		tunnel_id = mpls_tunnel_properties.tunnel_id;
+
+        if (verbose1) {
+            printf("hierarchical fec: create mpls tunnel: vc label \n");
+        }
+
+
+        /* 
+         * create additional fec for vc label:
+         * which point to cascaded fec:
+         * - FEC contains another fec: to build the mpls tunnel
+         *                outlif: build the vc tunnel
+         * Note: No need to build LL encapsulation here, since LL is already built at cascaded fec. 
+         */
+
+        /* get fwd group from cascaded fec */
+        int fwd_group_cascaded_fec; 
+        BCM_GPORT_FORWARD_PORT_SET(fwd_group_cascaded_fec, cascaded_fec); 
+        if (verbose1) {
+            printf("hierarchical fec: BCM_GPORT_FORWARD_PORT_SET: %x\n", fwd_group_cascaded_fec);
+        }
+
+        encap_id = 0; 
+        rv = create_l3_egress(unit,
+                              BCM_L3_INGRESS_ONLY,  /* flags */
+                              fwd_group_cascaded_fec, /* fec */
+                              l3vpn_info.vlan_to_vpn_P1_hi_fec,   /* not used for ingress only */
+                              tunnel_id,  /* vc tunnel id */
+                              l3vpn_info.next_hop_to_P1_mac, /* not used for ingress only */
+                              &hi_fec, 
+                              &encap_id); 
+        if (rv != BCM_E_NONE) {
+            printf("Error, in create_l3_egress\n");
+            return rv;
+        }
+    }
+
+    /** ip routing at access network **/
+
+    /* create LL for access routing. after tunnel termination (for P to CE)
+                                    or for simple routing from CE1 to CE2*/
+
+    int fec_access_routing; 
+    encap_id = 0; 
+    rv = create_l3_egress(unit,                                    
+                          0,   /* flags */                 
+                          l3vpn_info.ce_port,   /* outgoing port */
+                          l3vpn_info.vlan_to_vpn_P1,   /* outgoing vlan */
+                          0,   /* tunnel id*/
+                          l3vpn_info.ce1_mac,  /* next hop destination mac address */
+                          &fec_access_routing,    
+                          &encap_id); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, in create_l3_egress for access routing\n");
+        return rv;
+    }
+
+    /** mpls routing at provider network **/
+
+    /* create LL for P2 */
+    int fec_to_p2; 
+    encap_id = 0; 
+    rv = create_l3_egress(unit,                                    
+                          0,   /* flags */                 
+                          l3vpn_info.p_port,   /* outgoing port */
+                          l3vpn_info.vlan_to_vpn_P2,   /* outgoing vlan */
+                          0,   /* tunnel id*/
+                          l3vpn_info.next_hop_to_P2_mac,  /* next hop destination mac address */
+                          &fec_to_p2,    
+                          &encap_id); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, in create_l3_egress for access routing\n");
+        return rv;
+    }
+
+    /* perform mpls swap */
+    rv = mpls_add_switch_entry(unit, 
+                          l3vpn_info.mpls_in_label_swap , /* incoming label to swap */
+                          l3vpn_info.mpls_eg_label_swap,  /* new label */
+                          fec_to_p2); /* new LL */
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mpls_add_switch_entry \n");
+        return rv;
+    }
+
+
+    /** add routing entry to provider network and to customer network **/
+
+    int route = 0x5A5A5A5A; /* 90.90.90.90 */
+    int mask  = 0xfffffff0; 
+
+    /* to provider network. */
+
+    /* Add route to host90 */
+    rv = add_route(unit, route, mask , vrf, fec); 
+
+    /* for hierarchical fec. Add route to host99  */
+    if (l3vpn_info.enable_hierarchical_fec) {
+        route = 0x63636363; 
+        rv = add_route(unit, route, mask , vrf, hi_fec); 
+    }
+
+    /* to customer network */
+
+    /* add route to host11 */
+    route = 0x0B0B0B0B ; /* 11.11.11.11 */ 
+    mask  = 0xfffffff0; 
+    rv = add_route(unit, route, mask, vrf, fec_access_routing); 
+
+
+    return rv; 
+}
+
+
+
+
+
+int 
+l3vpn_run_defaults_with_ports(int unit, int accessPort, int networkPort) {
+
+    uint8 my_mac[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8 next_hop_to_P1_mac[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8 next_hop_to_P2_mac[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; 
+    uint8 ce1_mac[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+    my_mac[5] = 0x55; 
+    next_hop_to_P1_mac[5] = 0x12; 
+    next_hop_to_P2_mac[5] = 0x34; 
+    ce1_mac[4] = 0xce; 
+    ce1_mac[5] = 0x1; 
+
+    l3vpn_info_init(unit,
+                            accessPort, /* access port  */
+                            networkPort, /* provider port */
+                            my_mac, /* my mac of the router */
+                            next_hop_to_P1_mac, /* next hop to P1 for mpls tunnel */
+                            next_hop_to_P2_mac, /* next hop to P2 for mpls tunnel */
+                            ce1_mac, /* next hop for routing to customer edge CE1 */
+                            10, /* vlan in access network. For CE1. */
+                            20, /* vlan in access network. For CE2 */
+                            30, /* vlan in core network. For P1 */
+                            40, /* vlan in core network. For P2 */
+                            50, /* vlan in core network. For P1 for hi-fec */   
+                            0,  /* also create tunnels using hi-fec */
+                            1000, /* mpls label to terminate */
+                            100, /* mpls label in network provider. Label to swap with mpls_eg_label_swap */
+                            101  /* mpls label in network provider. swap label mpls_in_label_swap */        
+                            ); 
+
+    return l3vpn_run(unit);
+}
+
+
+
+
+int 
+l3vpn_run_with_defaults(int unit) {
+
+    return l3vpn_run_defaults_with_ports(unit, 
+                                                 201, /* access port  */
+                                                 202 /* provider port */); 
+}

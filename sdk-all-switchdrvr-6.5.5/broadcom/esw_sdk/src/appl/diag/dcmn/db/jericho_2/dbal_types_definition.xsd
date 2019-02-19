@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           elementFormDefault="qualified">
+           
+<xs:include schemaLocation="dbal_fields_enumerator.xsd"/>        
+
+    <xs:attributeGroup name="NameAttr">
+        <xs:attribute name="Name">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                    <xs:maxLength value="30"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="FieldInTableAttr">
+        <xs:attribute name="Name" type="FieldNamesEnum"/>
+        <xs:attribute name="Size" type="xs:nonNegativeInteger" use="optional" />
+        <xs:attribute name="Offset" type="xs:nonNegativeInteger" use="optional" />
+    </xs:attributeGroup>
+    
+    <xs:attributeGroup name="LogicalTableTypeAttr">
+        <xs:attribute name="Type">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="EM"/>
+                    <xs:enumeration value="TCAM"/>
+                    <xs:enumeration value="DIRECT"/>
+                    <xs:enumeration value="LPM"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:attributeGroup>
+    
+    <xs:attributeGroup name="CondAttr">
+        <xs:attribute name="Type">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="BIGGER_THAN"/>
+                    <xs:enumeration value="LOWER_THAN"/>
+                    <xs:enumeration value="EQUAL_TO"/>
+                    <xs:enumeration value="IS_EVEN"/>
+                    <xs:enumeration value="IS_ODD"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Value" type="xs:integer" />
+    </xs:attributeGroup>
+
+    <xs:attributeGroup name="OffsetAttr">
+        <xs:attribute name="EncodeType">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="NONE"/>
+                    <xs:enumeration value="HARD_VALUE"/>
+                    <xs:enumeration value="MULTIPLE"/>
+                    <xs:enumeration value="DIVIDE"/>
+                    <xs:enumeration value="MODULO"/>
+                    <xs:enumeration value="PARTIAL_KEY"/>
+                    <xs:enumeration value="BOOL"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Field" type="xs:string" use="optional"/>
+        <xs:attribute name="Value" type="xs:integer" use="optional"/>
+    </xs:attributeGroup>
+   
+   <xs:attributeGroup name="HwFieldAttr">
+        <xs:attribute name="Name">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                    <xs:maxLength value="30"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Offset" type="xs:integer" use="optional"/>
+    </xs:attributeGroup>
+
+    <xs:simpleType name="LabelListType">
+        <xs:list>
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="L2"/>
+                    <xs:enumeration value="L3"/>
+                    <xs:enumeration value="MPLS"/>
+                    <xs:enumeration value="FCOE"/>
+                    <xs:enumeration value="ALL"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:list>
+    </xs:simpleType>
+
+    <xs:complexType name="CroeModeType">
+        <xs:attribute name="Mode">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="DPC"/>
+                    <xs:enumeration value="SBC"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:simpleType name="PhyDbType">
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="TCAM"/>
+            <xs:enumeration value="LPM"/>
+            <xs:enumeration value="ISEM_1"/>
+            <xs:enumeration value="INLIF_1"/>
+            <xs:enumeration value="IVSI"/>
+            <xs:enumeration value="ISEM_2"/>
+            <xs:enumeration value="INLIF_2"/>
+            <xs:enumeration value="ISEM_3"/>
+            <xs:enumeration value="INLIF_3"/>
+            <xs:enumeration value="LEM"/>
+            <xs:enumeration value="IOEM_0"/>
+            <xs:enumeration value="IOEM_1"/>
+            <xs:enumeration value="MAP"/>
+            <xs:enumeration value="FEC_1"/>
+            <xs:enumeration value="FEC_2"/>
+            <xs:enumeration value="FEC_3"/>
+            <xs:enumeration value="MC_ID"/>
+            <xs:enumeration value="GLEM_0"/>
+            <xs:enumeration value="GLEM_1"/>
+            <xs:enumeration value="LL_1"/>
+            <xs:enumeration value="LL_2"/>
+            <xs:enumeration value="LL_3"/>
+            <xs:enumeration value="LL_4"/>
+            <xs:enumeration value="EEDB_1"/>
+            <xs:enumeration value="EEDB_2"/>
+            <xs:enumeration value="EEDB_3"/>
+            <xs:enumeration value="EEDB_4"/>
+            <xs:enumeration value="EOEM_0"/>
+            <xs:enumeration value="EOEM_1"/>
+            <xs:enumeration value="ESEM"/>
+            <xs:enumeration value="EVSI"/>
+            <xs:enumeration value="EXEM_1"/>
+            <xs:enumeration value="EXEM_2"/>
+            <xs:enumeration value="EXEM_3"/>
+            <xs:enumeration value="EXEM_4"/>
+            <xs:enumeration value="RMEP"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="MemoryType">
+        <xs:sequence>
+            <xs:element name="ArrayOffset" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attributeGroup ref="OffsetAttr"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="EntryOffset" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attributeGroup ref="OffsetAttr"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="HwField" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attributeGroup ref="HwFieldAttr"/>
+                </xs:complexType>
+            </xs:element>                      
+            <xs:element name="DataOffset" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attributeGroup ref="OffsetAttr"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="NameAttr"/>
+    </xs:complexType>
+    
+    <xs:complexType name="RegisterType">
+        <xs:sequence>
+            <xs:element name="ArrayOffset" minOccurs="0" maxOccurs="1">
+                <xs:complexType>
+                    <xs:attributeGroup ref="OffsetAttr"/>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="HwField">
+                <xs:complexType>
+                    <xs:attributeGroup ref="HwFieldAttr"/>
+                </xs:complexType>
+            </xs:element>                      
+            <xs:element name="DataOffset">
+                <xs:complexType>
+                    <xs:attributeGroup ref="OffsetAttr"/>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+        <xs:attributeGroup ref="NameAttr"/>
+    </xs:complexType>
+</xs:schema>
+

@@ -1,0 +1,224 @@
+/*
+ * $Id: alpm.h,v 1.10 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ * trie data structure for ALPM
+ */
+
+#define ALPM_IPV4_BKT_COUNT             24
+#define ALPM_IPV6_64_BKT_COUNT          16
+#define ALPM_IPV6_128_BKT_COUNT         8
+#define ALPM_RAW_BKT_COUNT_DW           8   /* Double Wide */
+#define ALPM_RAW_BKT_COUNT              4
+
+#define SOC_ALPM_V6_SCALE_CHECK(u, v6) \
+    ((v6) \
+     && !soc_alpm_mode_get((u)) && !SOC_URPF_STATUS_GET((u)))
+
+#define SOC_ALPM_RPF_SRC_DISCARD        (1)
+#define SOC_ALPM_LOOKUP_HIT             (1 << 31)
+#define SOC_ALPM_DELETE_ALL             (1 << 30)
+
+#define SOC_ALPM_BKT_ENTRY_TO_IDX(idx)  (((idx) >> 2) & 0x3FFF)
+/* given bucket index shift left to bucket entry idx position */
+#define SOC_ALPM_BKT_IDX_TO_ENTRY(idx)  ((idx) << 2)
+
+/* size of individual l3 defip tcam in no. of entries */
+#define SOC_L3_DEFIP_TCAM_SIZE          0x400
+
+/* size of individual l3_defip tcam in no. of bits to represent size */
+#define SOC_L3_DEFIP_TCAM_SIZE_SHIFT    10
+
+/* for TD2 this is: ((addr << 1) & ~0x7ff) + (addr & 0x3ff) */
+#define SOC_ALPM_128_ADDR_LWR(addr) \
+    ((((addr) << 1) & ~(2*SOC_L3_DEFIP_TCAM_SIZE - 1)) + \
+    ((addr) & (SOC_L3_DEFIP_TCAM_SIZE - 1)))
+
+#define SOC_ALPM_128_ADDR_UPR(addr) \
+    (SOC_ALPM_128_ADDR_LWR((addr)) + SOC_L3_DEFIP_TCAM_SIZE)
+
+/* get pair tcam index given underlying defip index */
+#define SOC_ALPM_128_DEFIP_TO_PAIR(idx) \
+    (((idx) & (SOC_L3_DEFIP_TCAM_SIZE - 1)) + \
+    (((idx) >> 1) & ~(SOC_L3_DEFIP_TCAM_SIZE - 1)))
+
+#define SOC_ALPM_RAW_BUCKET_SIZE(u, v6)  \
+    (SOC_ALPM_V6_SCALE_CHECK((u), (v6))? \
+     ALPM_RAW_BKT_COUNT_DW :             \
+     ALPM_RAW_BKT_COUNT)
+
+#define SOC_ALPM_RAW_INDEX_DECODE(u, v6, alpm_index, raw_id, ent_id)\
+do {                                                                \
+    (raw_id) = (alpm_index) % SOC_ALPM_RAW_BUCKET_SIZE((u), (v6));  \
+    (ent_id) = (alpm_index) >> 16;                                  \
+} while (0)
+
+/* for ALPM debug show */
+#define SOC_ALPM_DEBUG_SHOW_FLAG_PVT    (1U << 0)
+#define SOC_ALPM_DEBUG_SHOW_FLAG_BKT    (1U << 1)
+#define SOC_ALPM_DEBUG_SHOW_FLAG_BKTUSG (1U << 2)
+#define SOC_ALPM_DEBUG_SHOW_FLAG_CNT    (1U << 3)
+#define SOC_ALPM_DEBUG_SHOW_FLAG_INTDBG (1U << 4)
+#define SOC_ALPM_DEBUG_SHOW_FLAG_ALL    (~0U)
+
+extern int soc_alpm_init(int u);
+extern int soc_alpm_deinit(int u);
+extern int soc_alpm_insert(int u, void *entry_data, uint32 src_flags, 
+                           int bkt_idx, int pivot_info); 
+extern int soc_alpm_warmboot_lpm_reinit(int, int, int, void *);
+extern int soc_alpm_warmboot_lpm_reinit_done(int);
+extern int soc_alpm_warmboot_bucket_bitmap_set(int, int, int);
+extern int soc_alpm_warmboot_pivot_add(int, int, void *, int, int);
+extern int soc_alpm_warmboot_prefix_insert(int, int, void *, void *, 
+                                           int, int, int);
+extern int soc_alpm_128_warmboot_lpm_reinit(int, int, int, void *);
+extern int soc_alpm_128_warmboot_lpm_reinit_done(int);
+extern int soc_alpm_128_warmboot_bucket_bitmap_set(int, int, int);
+extern int soc_alpm_128_warmboot_pivot_add(int, int, void *, int, int);
+extern int soc_alpm_128_warmboot_prefix_insert(int, int, void *, void *,
+                                               int, int, int);
+extern int soc_alpm_debug_show(int u, int vrf_id, uint32 flags);
+#ifdef ALPM_WARM_BOOT_DEBUG
+extern void soc_alpm_lpm_sw_dump(int);
+extern void soc_alpm_128_warmboot_lpm_sw_dump(int);
+#endif
+extern int soc_alpm_delete(int u, void *entry_data, int bkt_idx, 
+                           int pivot_info); 
+extern int soc_alpm_lookup(int u, void *key_data,
+                           void *e, /* return entry data if found */
+                           int *index_ptr, int *cookie);
+extern int soc_alpm_find_best_match(int u, void *key_data, void *e, 
+                                    int *index_ptr, int do_urpf);
+extern int soc_alpm_128_insert(int u, void *entry_data, uint32 src_flags,
+                               int bkt_idx, int pivot_info); 
+extern int soc_alpm_128_delete(int u, void *entry_data, int bkt_idx, 
+                               int pivot_info); 
+extern int soc_alpm_128_lookup(int u, void *key_data,
+                               void *e, /* return entry data if found */
+                               int *index_ptr, int *cookie);
+extern int soc_alpm_128_find_best_match(int u, void *key_data, void *e,    
+                                        int *index_ptr, int do_urpf);
+extern int soc_alpm_urpf_enable(int unit, int enable);
+extern int soc_alpm_ipmc_war(int unit, int install);
+extern int soc_alpm_128_ipmc_war(int unit, int install);
+
+extern int soc_alpm_lpm_ip4entry0_to_0(int u, void *src, void *dst, int copy_hit);
+extern int soc_alpm_lpm_ip4entry1_to_1(int u, void *src, void *dst, int copy_hit);
+extern int soc_alpm_lpm_ip4entry0_to_1(int u, void *src, void *dst, int copy_hit);
+extern int soc_alpm_lpm_ip4entry1_to_0(int u, void *src, void *dst, int copy_hit);
+extern int soc_alpm_lpm_vrf_get(int unit, void *lpm_entry, int *vrf, 
+                                int *mem_vrf);
+extern int soc_alpm_128_lpm_vrf_get(int unit, void *lpm_entry, int *vrf, 
+                                    int *mem_vrf);
+extern int soc_alpm_mode_get(int u);
+
+/* For Tomahawk */
+#define SOC_TH_ALPM_SCALE_CHECK(u, v6) \
+    ((l3_alpm_ipv4_double_wide[(u)] || (v6)) && \
+     (!soc_th_alpm_mode_get((u)) && !SOC_URPF_STATUS_GET((u))))
+
+extern int l3_alpm_ipv4_double_wide[SOC_MAX_NUM_DEVICES];
+
+extern int soc_th_alpm_warmboot_lpm_reinit(int, int, int, void *);
+extern int soc_th_alpm_warmboot_lpm_reinit_done(int);
+extern int soc_th_alpm_warmboot_bucket_bitmap_set(int, int, int, int);
+extern int soc_th_alpm_warmboot_pivot_add(int, int, void *, int, int);
+extern int soc_th_alpm_warmboot_prefix_insert(int, int, void *, void *, 
+                                              int, int, int);
+extern int soc_th_alpm_128_warmboot_lpm_reinit(int, int, int, void *);
+extern int soc_th_alpm_128_warmboot_lpm_reinit_done(int);
+extern int soc_th_alpm_128_warmboot_bucket_bitmap_set(int, int, int, int);
+extern int soc_th_alpm_128_warmboot_pivot_add(int, int, void *, int, int);
+extern int soc_th_alpm_128_warmboot_prefix_insert(int, int, void *, void *,
+                                                  int, int, int);
+extern int soc_th_alpm_delete(int u, void *entry_data, int bkt_idx, 
+                              int pivot_info); 
+extern int soc_th_alpm_lookup(int u, void *key_data,
+                              void *e, /* return entry data if found */
+                              int *index_ptr, int *cookie);
+extern int soc_th_alpm_128_insert(int u, void *entry_data, uint32 src_flags,
+                                  int bkt_idx, int pivot_info); 
+extern int soc_th_alpm_128_delete(int u, void *entry_data, int bkt_idx, 
+                                  int pivot_info); 
+extern int soc_th_alpm_128_lookup(int u, void *key_data,
+                                  void *e, /* return entry data if found */
+                                  int *index_ptr, int *cookie);
+extern int soc_th_alpm_urpf_enable(int unit, int enable);
+
+extern int soc_th_alpm_mode_get(int u);
+extern int soc_th_alpm_lpm_vrf_get(int unit, void *lpm_entry, int *vrf, 
+                                   int *mem_vrf);
+extern int soc_th_alpm_128_lpm_vrf_get(int unit, void *lpm_entry, 
+                                       int *vrf, int *mem_vrf);
+extern int soc_th_alpm_init(int u);
+extern int soc_th_alpm_deinit(int u);
+extern int soc_th_alpm_insert(int u, void *entry_data, uint32 src_flags, 
+                              int bkt_idx, int pivot_info); 
+extern int soc_th_alpm_lpm_ip4entry0_to_0(int u, void *src, 
+                                          void *dst, int copy_hit);
+extern int soc_th_alpm_lpm_ip4entry1_to_1(int u, void *src, void *dst, 
+                                          int copy_hit);
+extern int soc_th_alpm_lpm_ip4entry0_to_1(int u, void *src, void *dst, 
+                                          int copy_hit);
+extern int soc_th_alpm_lpm_ip4entry1_to_0(int u, void *src, void *dst, 
+                                          int copy_hit);
+extern void soc_th_alpm_lpm_state_dump(int u);
+extern int soc_th_alpm_debug_show(int u, int vrf_id, uint32 flags);
+extern int soc_th_alpm_find_best_match(int u, void *key_data, void *e, 
+                                       int *index_ptr, int do_urpf);
+extern int soc_th_alpm_128_find_best_match(int u, void *key_data, void *e,    
+                                           int *index_ptr, int do_urpf);
+
+/* ALPM Sanity Checker */
+extern int soc_alpm_bucket_sanity_check(int, soc_mem_t, int);
+extern int soc_alpm_pivot_sanity_check(int, soc_mem_t, int);
+extern int soc_alpm_128_bucket_sanity_check(int, soc_mem_t, int);
+extern int soc_alpm_128_pivot_sanity_check(int, soc_mem_t, int);
+
+extern int soc_th_alpm_bucket_sanity_check(int, soc_mem_t, int);
+extern int soc_th_alpm_pivot_sanity_check(int, soc_mem_t, int);
+extern int soc_th_alpm_128_bucket_sanity_check(int, soc_mem_t, int);
+extern int soc_th_alpm_128_pivot_sanity_check(int, soc_mem_t, int);
+
+extern int soc_alpm_ipmc_war(int unit, int install); 
+extern int soc_alpm_128_ipmc_war(int unit, int install);
+

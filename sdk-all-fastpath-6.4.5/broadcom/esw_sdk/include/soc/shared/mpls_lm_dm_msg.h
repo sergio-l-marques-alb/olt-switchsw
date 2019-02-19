@@ -1,0 +1,339 @@
+/* 
+ * $Id: mpls_lm_dm_msg.h,v 1.14 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File:    mpls_lm_dm_msg.h
+ * Purpose: MPLS_LM_DM Messages definitions common to SDK and uKernel.
+ *
+ *          Messages between SDK and uKernel.
+ */
+
+#ifndef   _SOC_SHARED_MPLS_LM_DM_MSG_H_
+#define   _SOC_SHARED_MPLS_LM_DM_MSG_H_
+
+#ifdef BCM_UKERNEL
+  /* Build for uKernel not SDK */
+  #include "sdk_typedefs.h"
+#else
+  #include <sal/types.h>
+#endif
+
+#include <soc/shared/mos_msg_common.h>
+#include <soc/shared/mpls_lm_dm_pkt.h>
+/* #include <shared/mpls_lm_dm.h> */
+
+
+
+/*****************************************
+ * MPLS_LM_DM uController Error codes
+ */
+typedef enum shr_mpls_lm_dm_uc_error_e {
+    SHR_MPLS_LM_DM_UC_E_NONE = 0,
+    SHR_MPLS_LM_DM_UC_E_INTERNAL,
+    SHR_MPLS_LM_DM_UC_E_MEMORY,
+    SHR_MPLS_LM_DM_UC_E_PARAM,
+    SHR_MPLS_LM_DM_UC_E_RESOURCE,
+    SHR_MPLS_LM_DM_UC_E_EXISTS,
+    SHR_MPLS_LM_DM_UC_E_NOT_FOUND,
+    SHR_MPLS_LM_DM_UC_E_UNAVAIL,
+    SHR_MPLS_LM_DM_UC_E_VERSION,
+    SHR_MPLS_LM_DM_UC_E_INIT
+} shr_mpls_lm_dm_uc_error_t;
+
+/********************************
+ * MPLS_LM_DM Control Messages
+ *
+ *   SDK Host <--> uController
+ */
+
+/*
+ * The MPLS_LM_DM Encapsulation is maintained in the uKernel
+ * It contains the encapsulation for all current MPLS_LM_DM sessions.
+ *
+ * A MPLS_LM_DM encapsulation currently includes:
+ *     L2 + [MPLS-TP]
+ *     DMAC + SMAC + VLAN*2 + MPLS_ETH_TYPE + 3*MPLS_LABELS + ACH_HEADER
+ *     6 + 6 + 4*2 + 2 + 3*4 + 2 = 36
+ *
+ * A MPLS_LM_DM encapsulation does NOT include the MPLS_LM_DM PDU (MPLS_LM_DM Control Packet).
+ * This is built by the uKernel side.
+ *
+ */
+#define SHR_MPLS_LM_DM_MAX_ENCAP_LENGTH     36
+
+/*
+ * MPLS_LM_DM Initialization control message
+ */
+typedef struct shr_mpls_lm_dm_msg_ctrl_init_s {
+    uint32  num_sessions;        /* Max number of MPLS_LM_DM sessions */
+    uint32  rx_channel;          /* Local RX DMA channel (0..3) */
+} shr_mpls_lm_dm_msg_ctrl_init_t;
+
+#if 0
+/*
+ * MPLS_LM_DM Session Set control message
+ */
+typedef struct shr_mpls_lm_dm_msg_ctrl_sess_enable_s {
+    uint32  sess_id;
+    uint32  flags;
+    uint16  remote_mep_id;
+    uint8   enable;
+} shr_mpls_lm_dm_msg_ctrl_sess_enable_t;
+
+
+/*
+ * MPLS_LM_DM Session delete control message
+ */
+typedef struct shr_mpls_lm_dm_msg_ctrl_sess_delete_s {
+    uint32  sess_id;
+} shr_mpls_lm_dm_msg_ctrl_sess_delete_t;
+
+/*
+ * MPLS_LM_DM Session Set control message
+ */
+typedef struct shr_mpls_lm_dm_msg_ctrl_sess_set_s {
+    uint32  sess_id;
+    uint32  flags;
+    uint8   passive;
+    uint8   mel;    /* MEG level */
+    uint16  mep_id;
+    uint8   meg_id[SHR_MPLS_LM_DM_MEG_ID_LENGTH];
+    uint32  period;
+    uint32  encap_length;  /* MPLS_LM_DM encapsulation length */
+    uint8   encap_data[SHR_MPLS_LM_DM_MAX_ENCAP_LENGTH];  /* Encapsulation data */
+    uint32  tx_port;
+    uint32  tx_cos;
+    uint32  tx_pri;
+    uint32  tx_qnum;
+    uint32  mpls_label;
+    uint32  if_num;
+    uint32  lm_counter_index;
+} shr_mpls_lm_dm_msg_ctrl_sess_set_t;
+
+
+/*
+ * MPLS_LM_DM Session Get control message
+ */
+typedef struct shr_mpls_lm_dm_msg_ctrl_sess_get_s {
+    uint32   sess_id;
+    uint8    enable;
+    uint8    passive;
+    uint8    local_demand;
+    uint8    remote_demand;
+    uint8    local_sess_state;
+    uint8    remote_sess_state;
+    uint8    mel;
+    uint16   mep_id;
+    uint8    meg_id[SHR_MPLS_LM_DM_MEG_ID_LENGTH];
+    uint32   period;
+    uint8    encap_type;    /* Raw, UDP-IPv4/IPv6, used for UDP checksum */
+    uint32   encap_length;  /* MPLS_LM_DM encapsulation length */
+    uint8    encap_data[SHR_MPLS_LM_DM_MAX_ENCAP_LENGTH];  /* Encapsulation data */
+    uint32   tx_port;
+    uint32   tx_cos;
+    uint32   tx_pri;
+    uint32   tx_qnum;
+} shr_mpls_lm_dm_msg_ctrl_sess_get_t;
+#endif
+
+
+/*
+ * MPLS_LM_DM Statistics control messages (Request/Reply)
+ */
+typedef struct shr_mpls_lm_dm_msg_ctrl_stat_req_s {
+    uint32  sess_id;    /* MPLS_LM_DM session (endpoint) id */
+    uint32  clear;      /* Clear stats */
+} shr_mpls_lm_dm_msg_ctrl_stat_req_t;
+
+typedef struct shr_mpls_lm_dm_msg_ctrl_stat_reply_s {
+    uint32  sess_id;           /* MPLS_LM_DM session (endpoint) id */
+    uint32  packets_in;        /* Total packets in */
+    uint32  packets_out;       /* Total packets out */
+    uint32  packets_drop;      /* Total packets drop */
+    uint32  packets_auth_drop; /* Packets drop due to authentication failure */
+} shr_mpls_lm_dm_msg_ctrl_stat_reply_t;
+
+/*
+ * MPLS_LM_DM Loss Measurement add
+ */
+typedef struct shr_mpls_lm_dm_msg_ctrl_loss_add_s {
+    uint32  flags;
+    uint32  sess_id;    /* MPLS_LM_DM session (endpoint) id */
+    uint32  period;
+    uint32  int_pri;
+    uint8   pkt_pri;
+    uint16  l2_encap_length; /* L2 Encap Lenght */
+    uint8   l2_encap_data[SHR_MPLS_LM_DM_MAX_ENCAP_LENGTH]; /* L2 Encap Data */
+    /* OLP (L2 + OAM) Encap Data */
+    uint8   olp_encap_data[MPLS_LM_DM_OLP_HDR_LEN]; 
+} shr_mpls_lm_dm_msg_ctrl_loss_add_t;
+
+/*
+ * MPLS_LM_DM Loss Measurement delete
+ */
+typedef struct shr_mpls_lm_dm_msg_ctrl_loss_delete_s {
+    uint32  flags;
+    uint32  sess_id;    /* MPLS_LM_DM session (endpoint) id */
+} shr_mpls_lm_dm_msg_ctrl_loss_delete_t;
+
+/*
+ * MPLS_LM_DM Loss Measurement get
+ */
+typedef struct shr_mpls_lm_dm_msg_ctrl_loss_get_s {
+    uint32  flags;
+    uint32  sess_id;    /* MPLS_LM_DM session (endpoint) id */
+} shr_mpls_lm_dm_msg_ctrl_loss_get_t;
+
+/*
+ * MPLS_LM_DM Loss Measurement get
+ */
+typedef struct shr_mpls_lm_dm_msg_ctrl_loss_data_s {
+    uint32  flags;
+    uint32  sess_id;    /* MPLS_LM_DM session (endpoint) id */
+    uint32  period;
+    uint32  loss_threshold;             
+    uint32  loss_nearend;               
+    uint32  loss_farend;    
+    uint32  tx_nearend;            
+    uint32  rx_nearend;              
+    uint32  tx_farend;               
+    uint32  rx_farend;               
+    uint32  rx_oam_packets;          
+    uint32  tx_oam_packets;          
+    uint32  int_pri;
+    uint8   pkt_pri;         
+} shr_mpls_lm_dm_msg_ctrl_loss_data_t;
+
+/*
+ * MPLS_LM_DM Delay Measurement add
+ */
+typedef struct shr_mpls_lm_dm_msg_ctrl_delay_add_s {
+    uint32  flags;
+    uint32  sess_id;    /* MPLS_LM_DM session (endpoint) id */
+    uint32  period;
+    uint32  int_pri;    
+    uint8   pkt_pri;         
+    uint8   dm_format;
+    uint16  l2_encap_length; /* L2 Encap Lenght */
+    uint8   l2_encap_data[SHR_MPLS_LM_DM_MAX_ENCAP_LENGTH]; /* L2 Encap Data */
+    uint8   olp_encap_data[MPLS_LM_DM_OLP_HDR_LEN]; 
+} shr_mpls_lm_dm_msg_ctrl_delay_add_t;
+
+/*
+ * MPLS_LM_DM Delay Measurement delete
+ */
+typedef struct shr_mpls_lm_dm_msg_ctrl_delay_delete_s {
+    uint32  flags;
+    uint32  sess_id;    /* MPLS_LM_DM session (endpoint) id */
+} shr_mpls_lm_dm_msg_ctrl_delay_delete_t;
+
+/*
+ * MPLS_LM_DM Delay Measurement get
+ */
+typedef struct shr_mpls_lm_dm_msg_ctrl_delay_get_s {
+    uint32  flags;
+    uint32  sess_id;    /* MPLS_LM_DM session (endpoint) id */
+}shr_mpls_lm_dm_msg_ctrl_delay_get_t;
+
+/*
+ * MPLS_LM_DM Delay Measurement get
+ */
+typedef struct shr_mpls_lm_dm_msg_ctrl_delay_data_s {
+    uint32  flags;
+    uint32  sess_id;    /* MPLS_LM_DM session (endpoint) id */
+    uint32  period;
+    uint32  delay_seconds;
+    uint32  delay_nanoseconds;
+    uint32  txf_seconds;  
+    uint32  txf_nanoseconds;
+    uint32  rxf_seconds;
+    uint32  rxf_nanoseconds;
+    uint32  txb_seconds;
+    uint32  txb_nanoseconds;
+    uint32  rxb_seconds;
+    uint32  rxb_nanoseconds;
+    uint32  rx_oam_packets;
+    uint32  tx_oam_packets; 
+    uint32  int_pri;    
+    uint8   pkt_pri;         
+    uint8   dm_format;         
+}shr_mpls_lm_dm_msg_ctrl_delay_data_t;
+
+
+/*
+ * MPLS_LM_DM control messages
+ */
+typedef union shr_mpls_lm_dm_msg_ctrl_s {
+    shr_mpls_lm_dm_msg_ctrl_init_t          init;
+    shr_mpls_lm_dm_msg_ctrl_stat_req_t      stat_req;
+    shr_mpls_lm_dm_msg_ctrl_stat_reply_t    stat_reply;
+    shr_mpls_lm_dm_msg_ctrl_loss_add_t      loss_add;
+    shr_mpls_lm_dm_msg_ctrl_loss_delete_t   loss_del;
+    shr_mpls_lm_dm_msg_ctrl_loss_get_t      loss_get;
+    shr_mpls_lm_dm_msg_ctrl_loss_data_t     loss_data;
+    shr_mpls_lm_dm_msg_ctrl_delay_add_t     delay_add;
+    shr_mpls_lm_dm_msg_ctrl_delay_delete_t  delay_del;
+    shr_mpls_lm_dm_msg_ctrl_delay_get_t     delay_get;
+    shr_mpls_lm_dm_msg_ctrl_delay_data_t    delay_data;
+} shr_mpls_lm_dm_msg_ctrl_t;
+
+
+/****************************************
+ * MPLS_LM_DM event message
+ */
+#define MPLS_LM_DM_BTE_EVENT_STATE                      0x0001
+
+
+/*
+ *  The MPLS_LM_DM event message is defined as a short message (use mos_msg_data_t).
+ *
+ *  The fields of mos_msg_data_t are used as followed:
+ *      mclass   (uint8)  - MOS_MSG_CLASS_MPLS_LM_DM_EVENT
+ *      subclass (uint8)  - Unused
+ *      len      (uint16) - MPLS_LM_DM Session ID
+ *      data     (uint32) - Events mask
+ */
+typedef mos_msg_data_t  mpls_lm_dm_msg_event_t;
+
+
+#endif /* _SOC_SHARED_MPLS_LM_DM_MSG_H_ */

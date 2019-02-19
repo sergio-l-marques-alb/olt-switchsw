@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+           elementFormDefault="qualified">
+
+<xs:include schemaLocation="dbal_types_definition.xsd"/>        
+
+    <xs:element name="FieldDbCatalog">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Field" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="OneLineDescription" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="FieldLabels" type="LabelListType" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="Parent"  type="ParentType" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="DefaultValue" type="xs:integer" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="Encoding" minOccurs="0" maxOccurs="1">
+                                <xs:complexType>
+                                    <xs:attributeGroup ref="EncodeAttr"/>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                        <xs:attributeGroup ref="FieldDefinitionAttr"/>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+        
+        
+        <xs:unique name="UniqueField">
+        	<xs:selector xpath="Field"/>
+        	<xs:field xpath="@Name"/>
+        </xs:unique>
+    </xs:element>
+
+    <xs:complexType name="ParentType">
+        <xs:attribute name="Name">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                    <xs:maxLength value="20"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:complexType>
+
+    <xs:attributeGroup name="FieldDefinitionAttr">
+        <xs:attribute name="Name">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:minLength value="1"/>
+                    <xs:maxLength value="20"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Size" type="xs:positiveInteger"/>
+        <xs:attribute name="Type">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="BOOL"/>
+                    <xs:enumeration value="INT32"/>
+                    <xs:enumeration value="UINT32"/>
+                    <xs:enumeration value="IP"/>
+                    <xs:enumeration value="ARRAY8"/>
+                    <xs:enumeration value="ARRAY32"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+    </xs:attributeGroup>
+    
+    <xs:attributeGroup name="EncodeAttr">
+        <xs:attribute name="EncodeType">
+            <xs:simpleType>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="BOOL"/>
+                    <xs:enumeration value="MODULE"/>
+                    <xs:enumeration value="DEVIDE"/>
+                    <xs:enumeration value="MULTIPLE"/>
+                    <xs:enumeration value="PREFIX"/>
+                    <xs:enumeration value="SUFFIX"/>
+                    <xs:enumeration value="PARENT_FIELD"/>
+                    <xs:enumeration value="SUBTRACT"/>
+                    <xs:enumeration value="PARATIAL_KEY"/>
+                </xs:restriction>
+            </xs:simpleType>
+        </xs:attribute>
+        <xs:attribute name="Param1" type="xs:integer"/>
+        <xs:attribute name="Param2" type="xs:integer"/>
+    </xs:attributeGroup>
+    
+</xs:schema>

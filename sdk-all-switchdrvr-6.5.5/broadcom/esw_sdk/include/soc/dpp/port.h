@@ -1,0 +1,76 @@
+/*
+ * $Id: port.h Exp $
+ * $Copyright: Copyright 2016 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ */
+
+#ifndef _SOC_DPP_PORT_H
+#define _SOC_DPP_PORT_H
+
+/*!
+ * @struct soc_dpp_pm_entry_s
+ * @brief This struct contains information about pm in pml table
+ */
+typedef struct soc_dpp_pm_entry_s {
+    int is_qsgmii;
+    int is_valid;
+    int pml_instance;
+    int phy_id;
+} soc_dpp_pm_entry_t;
+
+typedef struct soc_dpp_port_prd_config_s
+{
+    uint32 untagged_pcp;
+} soc_dpp_port_prd_config_t;
+
+#ifdef BCM_88675_A0
+#define SOC_DPP_IS_ILKN_PORT_OVER_FABRIC(unit, ilkn_if_id) \
+        ((ilkn_if_id == 4 && SOC_DPP_CONFIG(unit)->jer->nif.ilkn_over_fabric[0]) ||  \
+        (ilkn_if_id == 5 && SOC_DPP_CONFIG(unit)->jer->nif.ilkn_over_fabric[1]))
+#define SOC_DPP_FIRST_FABRIC_PHY_PORT(unit) 192
+#else 
+#define SOC_DPP_IS_ILKN_PORT_OVER_FABRIC(unit, ilkn_if_id) 0
+#define SOC_DPP_FIRST_FABRIC_PHY_PORT(unit) 0
+#endif
+
+#endif /* _SOC_DPP_PORT_H */
+

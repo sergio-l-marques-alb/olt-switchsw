@@ -1,0 +1,121 @@
+#/*----------------------------------------------------------------------
+#* $Id: parallel_detect.soc $
+#* $Copyright: Copyright 2012 Broadcom Corporation.
+#* This program is the proprietary software of Broadcom Corporation
+#* and/or its licensors, and may only be used, duplicated, modified
+#* or distributed pursuant to the terms and conditions of a separate,
+#* written license agreement executed between you and Broadcom
+#* (an "Authorized License").  Except as set forth in an Authorized
+#* License, Broadcom grants no license (express or implied), right
+#* to use, or waiver of any kind with respect to the Software, and
+#* Broadcom expressly reserves all rights in and to the Software
+#* and all intellectual property rights therein.  IF YOU HAVE
+#* NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+#* IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+#* ALL USE OF THE SOFTWARE.  
+#*  
+#* Except as expressly set forth in the Authorized License,
+#*  
+#* 1.     This program, including its structure, sequence and organization,
+#* constitutes the valuable trade secrets of Broadcom, and you shall use
+#* all reasonable efforts to protect the confidentiality thereof,
+#* and to use this information only in connection with your use of
+#* Broadcom integrated circuit products.
+#*  
+#* 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+#* PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+#* REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+#* OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+#* DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+#* NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+#* ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+#* CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+#* OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+#* 
+#* 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+#* BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+#* INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+#* ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+#* TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+#* POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+#* THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+#* WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+#* ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+#*
+#* Broadcom Corporation
+#* Proprietary and Confidential information
+#* All rights reserved
+#* This source file is the property of Broadcom Corporation, and
+#* may not be copied or distributed in any isomorphic form without the
+#* prior written consent of Broadcom Corporation.
+#*---------------------------------------------------------------------
+#* File       : parallel_detect.soc
+#* Description: parallel detect testing soc script
+#*---------------------------------------------------------------------*/
+
+#09.03
+#BCM.0> config
+#   serdes_fiber_pref_xe4=1
+#   serdes_fiber_pref_xe5=1
+#   serdes_1000x_at_6250_vco_xe=1
+#   pbmp_xport_xe=0x3fc4444
+#   pci_delay_val13=0x83000000
+#   os=unix
+#   pci_override_dev=0x8406
+#   pci_delay_val=0x0f00d711
+#   parity_enable=0
+#   pci_delay_val0=0x840601
+#   pci_delay_val1=0x478180a
+#   pci_delay_val2=0x6064d0
+#   serdes_fiber_pref=0
+#   pci_delay_val3=0x600650
+#   pci_delay_val4=0x101fe1
+#   pci_delay_val6=0xff0
+#   pci_delay_val7=0x54400000
+#   bcm53400_init_port_config=2
+#   pci_delay_val8=0x4
+
+
+#working PD to 1G
+init all
+phy xe4 0x6c050 0x001c
+phy xe8 0x6c050 0x001c
+phy xe4 0x0c188 0x2
+port xe8 speed=1000
+port xe4 an=t adv=10g
+phy xe4 0x0c1ac 
+
+
+#working PD to 1G-cl37
+config add phy_an_c37_xe8=1
+config add phy_an_c73_xe8=0
+init all
+phy xe4 0x6c050 0x001c
+phy xe8 0x6c050 0x001c
+port xe8 an=t adv=1000full
+port xe4 an=t adv=10g
+phy xe4 0x0c188 0x2
+phy xe4 0x0c181 0x1c16
+phy xe4 0x0c180 0x0
+phy xe4 0x0c180 0x101
+#check PD status bit 07: PD Done, bit 01: PD in progress
+phy xe4 0x0c1ac
+#bit 8 should be set to indicate pc_cl37_completed
+phy xe4 0x0c1ac
+
+#Working PD to 10GXAUI
+#xe0/xe1 are both xaui ports
+init all
+phy xe0 0x6c050 0x001c
+phy xe1 0x6c050 0x001c
+phy xe0 0x0c188 0x3
+port xe1 speed=10000
+port xe0 an=t adv=10g
+phy xe0 0x9000 0x6008
+phy xe0 0x0c180 0x0
+phy xe0 0x0c180 0x101
+#check PD status bit 07: PD Done, bit 01: PD in progress
+phy xe0 0x0c1ac
+
+
+

@@ -1,0 +1,216 @@
+/*
+ * $Id: sbx_ddr_cmds.c,v 1.3 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File:        sbx_ddr_cmds.c
+ * Purpose:     Handles DDR commands for SBX devices
+ * Requires:
+ */
+
+#include <shared/bsl.h>
+
+#include <sal/core/libc.h>
+#include <shared/alloc.h>
+#include <soc/defs.h>
+#include <soc/cm.h>
+#include <appl/diag/shell.h>
+#include <appl/diag/system.h>
+#include <appl/diag/cmdlist.h>
+#include <appl/diag/sbx/sbx.h>
+
+#if defined(BCM_SIRIUS_SUPPORT) || defined(BCM_CALADAN3_SUPPORT)
+
+char cmd_sbx_ddr_mem_write_usage[] = "\n"
+" DDRMemWrite ci<n> range=0xstart-[0xend] data=0xdata\n"
+" DDRMemWrite ci0,ci1 range=0x0\n"
+" DDRMemWrite ci9 range=0x0-0x100"
+"\n";
+
+
+cmd_result_t
+cmd_sbx_ddr_mem_write(int unit, args_t *a)
+{
+#ifdef BCM_SIRIUS_SUPPORT
+  if (SOC_IS_SIRIUS(unit)) {
+      return cmd_sbx_sirius_ddr_mem_write(unit, a);
+  }
+#endif
+#ifdef BCM_CALADAN3_SUPPORT
+  if (SOC_IS_CALADAN3(unit)) {
+      return cmd_ddr_mem_write(unit, a);
+  }
+#endif
+  cli_out("\nCommand is not supported on this device");
+  return CMD_OK;
+} 
+
+
+char cmd_sbx_ddr_mem_read_usage[] = "\n"
+" DDRMemRead ci<n> range=0xstart-[0xend]\n"
+" DDRMemRead ci0,ci1 range=0x0\n"
+" DDRMemRead ci9 range=0x0-0x100"
+"\n";
+
+cmd_result_t
+cmd_sbx_ddr_mem_read(int unit, args_t *a)
+{
+#ifdef BCM_SIRIUS_SUPPORT
+  if (SOC_IS_SIRIUS(unit)) {
+      return cmd_sbx_sirius_ddr_mem_read(unit, a);
+  }
+#endif
+#ifdef BCM_CALADAN3_SUPPORT
+  if (SOC_IS_CALADAN3(unit)) {
+      return cmd_ddr_mem_read(unit, a);
+  }
+#endif
+  cli_out("\nCommand is not supported on this device");
+  return CMD_OK;
+} 
+
+
+char cmd_sbx_ddr_phy_read_usage[] = "\n"
+" DDRPhyRead ci (all)\n"
+" DDRPhyRead ci0     \n"
+" DDRPhyRead ci0,ci1 \n";
+
+
+/* for debug */
+cmd_result_t
+cmd_sbx_ddr_phy_read(int unit, args_t *a)
+{
+#ifdef BCM_SIRIUS_SUPPORT
+  if (SOC_IS_SIRIUS(unit)) {
+      return cmd_sbx_sirius_ddr_phy_read(unit, a);
+  }
+#endif
+#ifdef BCM_CALADAN3_SUPPORT
+  if (SOC_IS_CALADAN3(unit)) {
+      return cmd_ddr_phy_read(unit, a);
+  }
+#endif
+  cli_out("\nCommand is not supported on this device");
+  return CMD_OK;
+}
+
+char cmd_sbx_ddr_phy_write_usage[] = "\n"
+" DDRPhyWrite ci<n> block=<block> offset=<0xoffset> data=<0xdata>\n"
+" Examples: Write to all ci's bytelane0\n"
+" DDRPhyWrite ci block=1 offset=0x040 data=0x0\n"
+" Write to ci0,1 bytelane0\n"
+" DDRPhyWrite ci0,ci1 block=1 offset=0x040 data=0x0\n"
+" <block> = 0,1,2 (addr_ctrl,bytelane0,bytelane1)\n";
+
+/* for debug */
+cmd_result_t
+cmd_sbx_ddr_phy_write(int unit, args_t *a)
+{
+#ifdef BCM_SIRIUS_SUPPORT
+  if (SOC_IS_SIRIUS(unit)) {
+      return cmd_sbx_sirius_ddr_phy_write(unit, a);
+  }
+#endif
+#ifdef BCM_CALADAN3_SUPPORT
+  if (SOC_IS_CALADAN3(unit)) {
+      return cmd_ddr_phy_write(unit, a);
+  }
+#endif
+  cli_out("\nCommand is not supported on this device");
+  return CMD_OK;
+}
+
+char cmd_sbx_ddr_phy_tune_usage[] = "\n"
+" Only on sirius device:\n"
+#ifndef COMPILER_STRING_CONST_LIMIT
+"   DDRPhyTune ci (all) tuning_mode=<0-6> read_vdl=<0-63> read_en_vdl=<0-63> addr_vdl=<0-63> write_vdl=<0-63> verify_mode=<0-1>\n"
+"   verify_mode = 1 (default) use indirect memory read/write to verify if setting works\n"
+"   verify_mode = 0 use ddr functional tests to verify if setting works\n"
+"   verify_mode = 0 is much slower than verify_mode = 1 and detect more wrong settings\n"
+" Only on caladan3:\n"
+"   DDRPhyTune ci0[,ci<2n>] PhyType=<p> CtlType=<c> [SaveCfg=1] [RestoreCfg=1]\n"
+" Tune all CIs on caladan3:\n"
+"   DDRPhyTune ci0,ci2,ci4,ci6,ci8,c10,c12,c14 PhyType=3 CtlType=3\n"
+#endif
+;
+
+/* for debug */
+cmd_result_t
+cmd_sbx_ddr_phy_tune(int unit, args_t *a)
+{
+#ifdef BCM_SIRIUS_SUPPORT
+  if (SOC_IS_SIRIUS(unit)) {
+      return cmd_sbx_sirius_ddr_phy_tune(unit, a);
+  }
+#endif
+#ifdef BCM_CALADAN3_SUPPORT
+  if (SOC_IS_CALADAN3(unit)) {
+      return cmd_ddr_phy_tune(unit, a);
+  }
+#endif
+  cli_out("\nCommand is not supported on this device");
+  return CMD_OK;
+}
+
+char cmd_sbx_ddr_phy_tune_auto_usage[] = "\n"
+" DDRPhyTuneAuto ci tread_en=<tread_en> verify_mode=<0-1>\n"
+" DDRPhyTuneAuto ci tread_en=13\n"
+" Will Tune for tread_en windows for <tread_en> and <tread_en+1> \n"
+" optimal soc parameters are printed to screen for each ci interface\n"
+" verify_mode = 1 (default) use indirect memory read/write to verify if setting works\n"
+" verify_mode = 0 use ddr functional tests to verify if setting works\n"
+" verify_mode = 0 is much slower than verify_mode = 1 and detect more wrong settings\n";
+
+cmd_result_t
+cmd_sbx_ddr_phy_tune_auto(int unit, args_t *a)
+{
+#ifdef BCM_SIRIUS_SUPPORT
+  if (SOC_IS_SIRIUS(unit)) {
+      return cmd_sbx_sirius_ddr_phy_tune(unit, a);
+  }
+#endif
+  cli_out("\nCommand is not supported on this device");
+  return CMD_OK;
+}
+
+
+#endif /* BCM_SIRIUS_SUPPORT || BCM_CALADAN3_SUPPORT */

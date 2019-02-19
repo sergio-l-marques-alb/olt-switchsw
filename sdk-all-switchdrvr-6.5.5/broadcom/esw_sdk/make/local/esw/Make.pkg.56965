@@ -1,0 +1,21 @@
+# Filename Make.pkg.56965
+FEATURE_LIST=PTP CINT L3 I2C BCMX BCMX_DIAG MEM_SCAN EDITLINE BCM_SAL_PROFILE CUSTOMER TEST CHASSIS MSTP RCPU PTP KNET
+BCM_PTL_SPT = 1
+
+BCM_56965_A0 = 1
+
+CFGFLAGS += -DBCM_WARM_BOOT_SUPPORT
+CFGFLAGS += -DBCM_WARM_BOOT_SUPPORT_SW_DUMP
+CFGFLAGS += -DALPM_ENABLE
+
+# workspace:system=56965  
+# vxworks65:system=56965  buildDir=systems/vxworks/gto             cpu=gto
+# linux-user:system=56965 buildDir=systems/linux/user/gto          cpu=gto
+# linux26wrs-user:system=56965 buildDir=systems/linux/user/gto-2_6 cpu=gto
+# linux37-user:system=56965 buildDir=systems/linux/user/gtr-3_7    cpu=gtr
+# linux37-user:system=56965 buildDir=systems/linux/user/wrx-3_7 cpu=WRX
+# workspace30:system=56965
+# linux26wrs30-user:system=56965 buildDir=systems/linux/user/gto-2_6 cpu=gto
+# linux36-user:system=56965 buildDir=systems/linux/user/rsx-3_6      cpu=rsx
+# linux-user:system=56965 buildDir=systems/linux/user/xlr-3_14       cpu=XLR
+

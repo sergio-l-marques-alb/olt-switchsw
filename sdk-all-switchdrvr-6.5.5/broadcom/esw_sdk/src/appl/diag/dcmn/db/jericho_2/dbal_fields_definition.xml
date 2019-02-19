@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Fields DB:
+    This xml contains the fields DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+    1. Each field should be an element inside the FieldDbCatalog
+    2. The basic parameters {Name,Size,Type} should be specify as fields attributes with the following format - <Field Name="" Size="" Type="">
+        Name - Up to 64 characters
+        Size - Positive integer
+        Type (printing type) - one of the following options BOOL/INT32/UINT32/IP/ARRAY8/ARRAY32
+    3. FieldLabels (required) - list of (at least 1): L2,L3,MPLS,FCOE,ALL
+       Indicates the label(s) associated with the field
+    4. Optional parameters (at the following order): 
+        * Parent - Name of another field
+        * DefaultValue - Integer
+        * Encoding - field encoding in the following format - <Encoding EncodeType="" Param1="" Param2="">
+            EncodeType - one of the follwing options BOOL/MODULE/DEVIDE/MULTIPLE/PREFIX/SUFFIX/PARENT_FIELD/SUBTRACT/PARATIAL_KEY
+            Param1 - integer
+            Param2 - integer
+-->
+
+<FieldDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="dbal_fields_definition.xsd">
+
+    <Field Name="EMPTY" Size="1" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>ALL</FieldLabels>
+    </Field>
+
+    <Field Name="IPV4" Size="32" Type="IP">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L3</FieldLabels>
+    </Field>
+
+    <Field Name="VRF" Size="17" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L3</FieldLabels>
+    </Field>
+
+    <Field Name="IPV6" Size="128" Type="ARRAY8">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L3</FieldLabels>
+    </Field>
+
+    <Field Name="L2_MAC" Size="48" Type="ARRAY8">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="CORE_ID" Size="32" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>ALL</FieldLabels>
+        <DefaultValue>-1</DefaultValue>
+    </Field>
+
+    <Field Name="DESTINATION" Size="21" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3 MPLS</FieldLabels>
+        <Encoding EncodeType="PARENT_FIELD" Param1="0" Param2="0"/>
+    </Field>
+
+    <Field Name="FEC" Size="20" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3 MPLS</FieldLabels>
+        <Parent Name="DESTINATION"/>
+        <Encoding EncodeType="PREFIX" Param1="8" Param2="15"/>
+    </Field>
+
+    <Field Name="MC_ID" Size="19" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3 MPLS</FieldLabels>
+        <Parent Name="DESTINATION"/>
+        <Encoding EncodeType="PREFIX" Param1="3" Param2="16"/>
+    </Field>
+
+    <Field Name="FLOW_ID" Size="19" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3 MPLS</FieldLabels>
+        <Parent Name="DESTINATION"/>
+        <Encoding EncodeType="PREFIX" Param1="2" Param2="17"/>
+    </Field>
+
+    <Field Name="PORT_ID" Size="15" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3 MPLS</FieldLabels>
+        <Parent Name="DESTINATION"/>
+        <Encoding EncodeType="PREFIX" Param1="24" Param2="15"/>
+    </Field>
+
+    <Field Name="STP_TOPOLOGY_ID" Size="8" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+        <Encoding EncodeType="SUBTRACT" Param1="1" Param2="0"/>
+    </Field>
+
+    <Field Name="ENABLE_MY_MAC" Size="1" Type="BOOL">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+        <Encoding EncodeType="BOOL" Param1="0" Param2="0"/>
+    </Field>
+
+    <Field Name="PROFILE_INGRESS" Size="32" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="FID" Size="15" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="IN_PORT" Size="9" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3</FieldLabels>
+    </Field>
+
+    <Field Name="C_VLAN" Size="12" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="IN_LIF" Size="20" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3</FieldLabels>
+    </Field>
+
+    <Field Name="S_VLAN" Size="12" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="GLOB_IN_LIF" Size="22" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3</FieldLabels>
+    </Field>
+
+    <Field Name="OAM_LIF_SET" Size="1" Type="BOOL">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3</FieldLabels>
+    </Field>
+
+    <Field Name="OUT_LIF" Size="22" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3</FieldLabels>
+    </Field>
+
+    <Field Name="OUT_LIF_PROFILE" Size="4" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3</FieldLabels>
+    </Field>
+
+    <Field Name="IN_LIF_PROFILE" Size="8" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3</FieldLabels>
+    </Field>
+
+    <Field Name="VLAN_EDIT_PROFILE" Size="5" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="VLAN_EDIT_VID_1" Size="12" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="VLAN_EDIT_VID_2" Size="12" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+    
+    <Field Name="ENTRY_GROUPING" Size="4" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="MAC_STRENGTH" Size="2" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="AGING" Size="1" Type="BOOL">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="VSI" Size="17" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="ACTION_PROFILE" Size="1" Type="BOOL">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="NWK_QOS_IDX" Size="4" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="LAYER_TYPE" Size="5" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="QOS_MODEL" Size="1" Type="BOOL">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="QOS_PROFILE" Size="8" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="ENCAP_DEST" Size="24" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="VLAN_ID" Size="12" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3</FieldLabels>
+    </Field>
+
+    <Field Name="PP_PORT_MEMBER" Size="256" Type="ARRAY32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3</FieldLabels>
+    </Field>
+
+    <Field Name="PP_PORT" Size="8" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>ALL</FieldLabels>
+    </Field>
+
+    <Field Name="VLAN_DOMAIN" Size="9" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="PORT_VID" Size="12" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>ALL</FieldLabels>
+    </Field>
+
+    <Field Name="STG_ID" Size="8" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>ALL</FieldLabels>
+    </Field>
+
+    <Field Name="STP_STATE" Size="2" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>ALL</FieldLabels>
+    </Field>
+
+    <Field Name="DEFAULT_AC_PROF" Size="4" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="VSI_PROFILE" Size="6" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="PROPAGATION_PROF" Size="3" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="DA_NOT_FOUND_DEST" Size="21" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="MY_MAC" Size="10" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="MY_MAC_PREFIX" Size="6" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+    
+    <Field Name="STAT_OBJECT_PROF" Size="16" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2</FieldLabels>
+    </Field>
+
+    <Field Name="VRID_BITMAP" Size="5" Type="UINT32">
+        <OneLineDescription></OneLineDescription>
+        <FieldLabels>L2 L3 MPLS</FieldLabels>
+    </Field>
+
+</FieldDbCatalog>
