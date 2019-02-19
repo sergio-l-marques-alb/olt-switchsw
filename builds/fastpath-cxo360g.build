@@ -1,8 +1,0 @@
-#!/bin/sh
-
-export MODULE=fastpath-cxp360g
-export PLATFORMS="CXO360G-MX"
-
-export APPLICATION=fastpath
-
-. ./fastpath.build $1

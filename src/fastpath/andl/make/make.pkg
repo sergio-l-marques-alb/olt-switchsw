@@ -1,9 +1,0 @@
-# Add targets that are categorized as object-only for linkable object builds.
-#
-# Note: This is included conditionally, since the file is deleted when a
-#       linkable object build is generated.  An exception is when ANDL 
-#       (and any related vendor SDK) is being distributed in source form,
-#       in which case the .objdist file is retained for the build.
-#
--include $(FP_ROOT)/andl/make/make.pkg.objdist
-
