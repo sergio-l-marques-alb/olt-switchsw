@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
-<FastPathXML>
-  <misc version="1.0">
-    <error name="ISDP_NOT_ENABLED" output="\n Error! ISDP not enabled."/>
-  </misc>
-</FastPathXML>
