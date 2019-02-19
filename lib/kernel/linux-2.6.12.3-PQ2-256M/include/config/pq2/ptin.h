@@ -1,1 +1,0 @@
-#define CONFIG_PQ2_PTIN 1
