@@ -1,7 +1,0 @@
-The following FastPath files were updated in order to support SDK 5.9.2:
-
-FastPath_6.3.0.2-esw-xgs4-gto/RELEASE_6.3.0.2-FastPath-Ent-esw-xgs4-gto-LR-CSxw-IQH/andl/hapi/esw/usl/ipmcast/l7_usl_bcm_ipmcast.c
-FastPath_6.3.0.2-esw-xgs4-gto/RELEASE_6.3.0.2-FastPath-Ent-esw-xgs4-gto-LR-CSxw-IQH/andl/hapi/esw/usl/stacking_binds/broad_hpc_binds.c
-FastPath_6.3.0.2-esw-xgs4-gto/RELEASE_6.3.0.2-FastPath-Ent-esw-xgs4-gto-LR-CSxw-IQH/andl/hapi/esw/usl/switching/l7_usl_bcm_l2.c
-FastPath_6.3.0.2-esw-xgs4-gto/RELEASE_6.3.0.2-FastPath-Ent-esw-xgs4-gto-LR-CSxw-IQH/andl/hapi/esw/usl/switching/l7_usl_l2mc_db.c
-
