@@ -1,0 +1,348 @@
+/*
+ * $Id: cint_ecn_example.c,v 1.6 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * ECN Example script
+ *
+ */
+
+/* 
+Forwarding example: 
+-------------------  
+1) run:
+cint cint_ip_route.c 
+cint cint_qos_l3_rif_cos.c 
+cint cint_field_ecn_cni_extract.c 
+cint cint_multi_device_utils.c 
+cint cint_ecn_example.c
+cint 
+ecn_basic_example(0, <in_port>, <out_port>); 
+ 
+This will enable ECN on the device and set extraction of ECN (capable and congestion bits). 
+It will also configure IPV4 forwarding. 
+
+run traffic: 
+    ethernet header with DA 0:c:0:2:0:0 and vlan tag id 1
+    and IPV4 header with DIP 127.255.255.3 and TOS 24/27
+expected: 
+    ethernet header with DA 0:0:0:0:cd:1d, SA 0:c:0:2:0:0 and vlan tag id 100
+    and IPV4 header TOS 24/27 (respectively)
+ 
+2) run: 
+ecn_congestion_set(0, <out_port>); 
+ 
+Now congestion is configured for every packet that is sent to out_port.  
+
+run traffic: 
+    ethernet header with DA 0:0:0:0:0:33 and vlan tag id 200
+    MPLS header with label 6000 and exp 1/2 
+    ethernet header with DA 0:c:0:2:0:0 and vlan tag id 1
+    and IPV4 header with DIP 127.255.255.3 and TOS 9/10
+expected: 
+    ethernet header with DA 0:0:0:0:0:44 and vlan tag id 400
+    and MPLS header with label 1000 and exp 3 
+    ethernet header with DA 0:0:0:0:cd:1d, SA 0:c:0:2:0:0 and vlan tag id 100
+    and IPV4 header TOS 11
+ 
+ 
+Encapsulation example: 
+---------------------- 
+1) run: 
+cint cint_qos.c 
+cint cint_mpls_lsr.c 
+cint cint_ecn_example.c 
+cint 
+ecn_mpls_encap_example(0, <in_port>, <out_port>); 
+ 
+run traffic: 
+    ethernet header with DA 0:0:0:0:0:11 and vlan tag id 20
+    IPV4 header with TOS 0-2
+ 
+expected: 
+    ethernet header with DA 0:0:0:0:0:44 and vlan tag id 400
+    and MPLS header with label 1000 and exp 3
+    ethernet header with DA 0:0:0:0:0:11 and vlan tag id 20
+    IPV4 header with TOS 3
+*/
+
+
+/* 
+ * Enable ECN on the device and set extraction of ECN (capable and congestion bits) 
+ * Add IPV4 route 
+ */
+int ecn_basic_example(int unit, int in_port, int out_port){
+
+    int rv;
+    int flags;
+
+    /* Enable ECN on the device */
+    rv = bcm_cosq_discard_get(unit, &flags);
+    if (rv != BCM_E_NONE) {
+        printf("Error, bcm_cosq_discard_get\n");
+        return rv;
+    }
+    rv = bcm_cosq_discard_set(unit, flags | BCM_COSQ_DISCARD_MARK_CONGESTION);
+    if (rv != BCM_E_NONE) {
+        printf("Error, bcm_cosq_discard_set with flag BCM_COSQ_DISCARD_MARK_CONGESTION\n");
+        return rv;
+    }
+
+    /* Set the rules to extract the ECN value (2 bits) */
+    rv = ecn_extract_example(unit);
+    if (rv != BCM_E_NONE) {
+        printf("Error, ecn_extract_example\n");
+        return rv;
+    }
+
+    /* Add IPV4 route and send to out_port */
+    return basic_example(&unit, 1, in_port, out_port);
+}
+
+/* 
+ * Configures congestion for every packet that is sent to out_port
+ */
+int ecn_congestion_set(int unit, int out_port){
+
+    int rv;
+    bcm_cosq_gport_discard_t ecn_config;
+    bcm_gport_t base_q;
+    bcm_cos_queue_t cosq = 0;
+
+    /* configure ECN for a VOQ */
+    bcm_cosq_gport_discard_t_init(&ecn_config);
+    BCM_GPORT_UNICAST_QUEUE_GROUP_SET(base_q, 24 + (out_port * 8));
+    ecn_config.flags = BCM_COSQ_DISCARD_MARK_CONGESTION | BCM_COSQ_DISCARD_BUFFER_DESC /* queue size in BDs */; 
+
+    rv = bcm_cosq_gport_discard_get(unit, base_q, cosq, &ecn_config);
+    if (rv != BCM_E_NONE) {
+        printf("Error, bcm_cosq_gport_discard_get\n");
+        return rv;
+    }
+
+    /* change max size configuration */
+    ecn_config.ecn_thresh = 0;  /* size of queue in bytes to mark congestion. */
+    rv = bcm_cosq_gport_discard_set(unit, base_q, cosq, &ecn_config);
+    if (rv != BCM_E_NONE) {
+        printf("Error, bcm_cosq_gport_discard_set with ecn_thresh %d\n", ecn_config.ecn_thresh);
+        return rv;
+    }
+
+    return rv;
+}
+
+/*
+ * create l3 interface - egress
+ */
+int 
+create_l3_egress_qos(int unit, uint32 flags, int port, int vlan, int ingress_intf, bcm_mac_t nh_mac_addr, int qos_id, int *intf, int *encap_id) {
+
+    int rc;
+    bcm_l3_egress_t l3eg;
+    bcm_l3_egress_t_init(&l3eg);
+    
+    bcm_if_t l3egid;
+    
+    int mod;
+    int test_failover_id = 0;
+    int test_failover_intf_id = 0;
+    
+    l3eg.intf = ingress_intf;
+    
+    bcm_stk_modid_get(unit, &mod);
+    sal_memcpy(l3eg.mac_addr, nh_mac_addr, 6);
+    l3eg.vlan   = vlan;
+    l3eg.module = mod;
+    l3eg.port   = port;
+    l3eg.failover_id = test_failover_id;
+    l3eg.failover_if_id = test_failover_intf_id;
+    l3eg.qos_map_id = qos_id;
+    l3eg.encap_id = *encap_id;
+    l3egid = *intf; 
+    
+    rc = bcm_l3_egress_create(unit, flags, &l3eg, &l3egid);
+    print unit;
+    print rc;
+    
+    *encap_id = l3eg.encap_id;
+    *intf = l3egid;    
+    
+    return rc;
+}
+
+/* 
+ * Configure MPLS encapsulation 
+ * and and Egress Remark profile mapping of in-DSCP,DP to out-DSCP 
+ */
+int ecn_mpls_encap_example(int unit, int in_port, int out_port){
+
+    int rv;
+    int CINT_NO_FLAGS = 0;
+    int eg_qos_id = 2;
+    int dscp, dp;
+    bcm_qos_map_t l3_ing_map, l3_eg_map, l2_map;
+    int ing_intf; /* in-Rif */
+    int ing_intf_out; /* out-Rif */
+    int egress_intf; /* FEC */
+    int encap_id;
+    int mpls_termination_label_index_enable;
+    bcm_pbmp_t pbmp;
+    bcm_mpls_port_t mpls_port;   
+    bcm_l2_addr_t l2addr;
+    bcm_mac_t my_mac = {0x00, 0x00, 0x00, 0x00, 0x00, 0x33};
+    bcm_mac_t inner_mac = {0x00, 0x00, 0x00, 0x00, 0x00, 0x11};
+    bcm_mac_t next_hop_mac = {0x00, 0x00, 0x00, 0x00, 0x00, 0x44};
+    bcm_mpls_vpn_config_t vpn_info;
+
+    bcm_mpls_vpn_config_t_init(&vpn_info);
+    
+    /* incomming params */ 
+    int in_vlan = 200;
+    int in_label = 6000;
+    int inner_vlan = 20;
+
+    /* egress atrributes */
+    int out_label = 1000;    
+    int out_vlan = 400;
+
+    vpn_info.vpn = 5000;
+    vpn_info.flags = BCM_MPLS_VPN_VPLS|BCM_MPLS_VPN_WITH_ID; 
+    vpn_info.broadcast_group = vpn_info.vpn;
+    vpn_info.unknown_multicast_group = vpn_info.vpn;
+    vpn_info.unknown_unicast_group = vpn_info.vpn;
+    rv = bcm_mpls_vpn_id_create(unit, vpn_info);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_mpls_vpn_id_create\n");
+        return rv;
+    }
+
+
+    /* L3 interface for incoming mpls rounting */
+    rv = create_l3_intf(unit, CINT_NO_FLAGS, in_port, in_vlan, my_mac, &ing_intf);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in create_l3_intf\n");
+        return rv;
+    }
+
+    /* Create QOS (Remark) profile ID */
+    rv = bcm_qos_map_create(unit, BCM_QOS_MAP_EGRESS, &eg_qos_id);
+    if (rv != BCM_E_NONE) {
+        printf("Error, create QoS ID, bcm_qos_map_create with flag BCM_QOS_MAP_EGRESS\n");
+        return rv;
+    }
+    printf("created Remark-profile-id =0x%08x, \n", eg_qos_id);
+
+    /* set QoS 1:1 mapping for L3 in egress: map Out-DSCP-EXP = In-DSCP-EXP (IPv4 TOS) */
+    for (dscp = 0; dscp < 8; dscp++) {
+        printf("\n");
+        printf("dscp=%d \n", dscp);
+        printf("\n");
+        for (dp = 0; dp < 3; dp++) {
+            bcm_qos_map_t_init(&l3_eg_map);
+            l3_eg_map.color = dp; /* Set internal color (DP) */
+            l3_eg_map.int_pri = dscp; /* in-DSCP-EXP (TOS) */
+            l3_eg_map.remark_int_pri = dscp; /* in-DSCP-EXP */
+            l3_eg_map.dscp = dscp; /* out-DSCP */
+            l3_eg_map.exp = dscp; /* out-EXP */
+
+            rv = bcm_qos_map_add(unit, BCM_QOS_MAP_L2 | BCM_QOS_MAP_ENCAP, l3_eg_map, eg_qos_id);
+            if (rv != BCM_E_NONE) {
+                printf("Error, set egress QoS mapping, bcm_qos_map_add, dscp=%d \n", dscp);
+                return rv;
+            }
+        }
+    }
+    printf("Set egress QoS mapping for L3\n");
+
+    /* L3 interface for outgoing mpls routing: Associate Out-RIF to QOS profile ID */
+    rv = create_l3_intf(unit, CINT_NO_FLAGS, out_port, out_vlan, my_mac, &ing_intf_out); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, create ingress interface-1, in_port=%d, \n", in_port);
+    }
+    printf("End of create_l3_intf_qos\n");
+   
+    /* Allocate an Egress object (FEC) that will point to MPLS tunnel (LL) and will be associated to the QOS (Remark) profile */
+    rv = create_l3_egress_qos(unit, CINT_NO_FLAGS, out_port, out_vlan, ing_intf_out, next_hop_mac, eg_qos_id, &egress_intf, &encap_id); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, create egress object\n");
+        return rv;
+    }
+    printf("Created FEC: %d\n", egress_intf);
+
+    /* create MPLS port, for termination of the MPLS header */
+    bcm_mpls_port_t_init(&mpls_port);
+    mpls_port.criteria = BCM_MPLS_PORT_MATCH_LABEL;
+    mpls_port.match_label = in_label;
+    mpls_port.egress_tunnel_if = egress_intf; /* FEC */
+    mpls_port.flags = BCM_MPLS_PORT_EGRESS_TUNNEL;
+    mpls_port.port = in_port;
+    mpls_port.egress_label.label = out_label;
+
+    /* read mpls index soc property */
+    mpls_termination_label_index_enable = soc_property_get(unit , "mpls_termination_label_index_enable",0);
+	if (mpls_termination_label_index_enable) {
+		BCM_MPLS_INDEXED_LABEL_SET(&mpls_port.match_label,in_label,1);
+	}
+
+    /* Create multipoint mpls port */
+    rv = bcm_mpls_port_add(unit, vpn_info.vpn, &mpls_port);
+    if (rv != BCM_E_NONE) {
+        printf("Error, bcm_mpls_port_add\n");
+        print rv;
+        return rv;
+    }
+
+    /* Add Static entry 00:00:00:00:00:11 points to MPLS PORT encapsulation*/    
+    l2addr.flags = BCM_L2_STATIC;
+    bcm_l2_addr_t_init(&l2addr, inner_mac, vpn_info.vpn);
+    l2addr.port = mpls_port.mpls_port_id;
+    rv = bcm_l2_addr_add(unit, &l2addr);
+    if (rv != BCM_E_NONE) {
+        printf("Error, bcm_l2_addr_add\n");
+        print rv;
+        return rv;
+    }
+
+
+    return rv;
+}
+

@@ -1,0 +1,485 @@
+/*
+ *         
+ * $Id: furia_cfg_seq.h 2014/04/02 palanivk Exp $
+ * 
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$  
+ *         
+ *     
+ *
+ */
+#ifndef __FURIA_CFG_SEQ_H__
+#define __FURIA_CFG_SEQ_H__
+
+/* 
+ * Includes
+ */
+#include "furia_pkg_cfg.h"
+#include "furia_types.h"
+
+#include "furia_micro_seq.h"
+#include "furia_regs_structs.h"
+#include "common/srds_api_enum.h"
+#include <phymod/phymod.h>
+#include <phymod/phymod_diagnostics.h>
+/*
+ *  Functions for Furia                            
+ */
+
+/*
+ *  Defines
+ */
+
+/* 
+ *  Types
+ */
+
+/*
+ *  Macros
+ */
+#define GET_ARRAY_SIZE(array) (sizeof(array)/sizeof(array[0]))
+#define FURIA_IS_SIMPLEX(devid)\
+((devid) == FURIA_ID_82208 ||\
+ (devid) == FURIA_ID_82212 ||\
+ (devid) == FURIA_ID_82216   \
+)
+
+#define FURIA_IS_DUPLEX(devid)\
+((devid) == FURIA_ID_82071 ||\
+ (devid) == FURIA_ID_82070 ||\
+ (devid) == FURIA_ID_82073 ||\
+ (devid) == FURIA_ID_82072 ||\
+ (devid) == FURIA_ID_82380 ||\
+ (devid) == FURIA_ID_82381 ||\
+ (devid) == FURIA_ID_82314 ||\
+ (devid) == FURIA_ID_82315   \
+)
+
+
+#define FURIA_GET_IF_SIDE(_FLAGS, _SIDE) \
+{                                                      \
+    if(((_FLAGS >> PHYMOD_INTERFACE_SIDE_SHIFT) & 0x1) == 0x1) {   \
+        _SIDE = SIDE_B;                                 \
+    } else {                                            \
+        _SIDE = SIDE_A;                                 \
+    }                                                   \
+}
+ 
+#define INTERFACE(phy_id, lane_index)               glb_interface[phy_id][lane_index]
+
+/*
+ *  Global Variables
+ */
+
+/*
+ *  Functions
+ */
+
+/*
+ *  Functions for Manipulating Chip/Port Cfg Descriptors
+ */
+
+/*
+ * Functions
+ */
+
+/*
+ *  Functions for Manipulating Chip/Port Cfg Descriptors
+ */
+
+/**   Get Revision ID 
+ *    This function retrieves Revision ID from PHY chip
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *
+ *    @return rev_id            Revision ID retrieved from the chip
+ */
+uint16_t _furia_get_rev_id(const phymod_access_t *pa);
+
+/**   Get Chip ID 
+ *    This function retrieves Chip ID from PHY chip
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *
+ *    @return chip_id           Chip id retrieved from the chip
+ */
+uint32_t _furia_get_chip_id(const phymod_access_t *pa);
+
+/**   Reset Chip 
+ *    This function is used to reset entire chip 
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int _furia_chip_reset(const phymod_access_t *pa);	
+	
+/**   Reset Register 
+ *    This function is used to perform register reset 
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int _furia_register_rst(const phymod_access_t *pa);
+
+
+/**   Configure PRBS generator 
+ *    This function is used to configure PRBS generator with user provided
+ *    polynomial and invert data information 
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param flags              Flags to prbs config 
+ *    @param prbs_mode          User specified polynomial
+ *                              0 - PRBS7
+ *                              1 - PRBS9
+ *                              2 - PRBS11    
+ *                              3 - PRBS15
+ *                              4 - PRBS23
+ *                              5 - PRBS31
+ *                              6 - PRBS58
+ * 
+ *    @param prbs_inv           User specified invert data config
+ *                              0 - do not invert PRBS data  
+ *                              1 - invert PRBS data  
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_prbs_config_set(const phymod_access_t *pa,
+                        uint32_t flags,
+                        enum srds_prbs_polynomial_enum prbs_mode,
+                        uint32_t prbs_inv);
+
+
+/**   Enable PRBS generator and PRBS checker 
+ *    This function is used to enable or disable PRBS generator and PRBS checker
+ *    as requested by the user  
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param flags              Flags to prbs config 
+ *    @param enable             Enable or disable as specified by the user
+ *                              1 - Enable
+ *                              0 - Disable 
+ * 
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_prbs_enable_set(const phymod_access_t *pa, uint32_t flags, uint32_t enable);
+
+/**   Get Enable status of PRBS generator and PRBS checker 
+ *    This function is used to retrieve the enable status of PRBS generator and
+ *    PRBS checker
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param flags              Flags to prbs config 
+ *    @param *enable            Enable or disable read from chip 
+ *                              1 - Enable
+ *                              0 - Disable 
+ * 
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_prbs_enable_get(const phymod_access_t *pa, uint32_t flags, uint32_t *enable);
+
+/**   Get PRBS checker configuration 
+ *    This function is used to retrieve PRBS checker configuration from 
+ *    the chip 
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param flags              Flags to prbs config 
+ *    @param prbs_mode          Configured Polynomial retrieved from chip 
+ *    @param prbs_inv           Configured invert data retrieved from chip
+ *                              0 - do not invert PRBS data  
+ *                              1 - invert PRBS data  
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_prbs_config_get(const phymod_access_t *pa,
+                         uint32_t flags, 
+                         enum srds_prbs_polynomial_enum *prbs_mode,
+                         uint32_t *prbs_inv);
+ 
+
+/**   Get PRBS lock and error status 
+ *    This function is used to retrieve PRBS lock, loss of lock and error counts
+ *    from the chip 
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param lock_status        PRBS lock status denotes PRBS generator and 
+ *                              checker are locked to same polynomial data
+ *    @param lock_loss          Loss of lock denotes PRBS generator and checker
+ *                              are not in sync   
+ *    @param error_count        PRBS error count retrieved from chip
+ *
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_prbs_status_get(const phymod_access_t *pa,
+                                uint32_t *lock_status,
+                                uint32_t *lock_loss,
+                                uint32_t *error_count);
+
+/**   Get lane descriptor 
+ *    This function is used to retrieve lane descriptor from package lane 
+ *
+ *    @param chip_id         chip id number 
+ *    @param pa             Pointer to phymod access structure 
+ *    @param pkg_lane       Package lane number 
+ *
+ *    @return pkg_ln_des    Lane descriptor structure contains the info
+ *                              about package lane and die lane mapping 
+ */
+const struct _FURIA_PKG_LANE_CFG_S* _furia_pkg_ln_des(uint32_t chip_id, const phymod_access_t *pa, int pkg_lane);
+
+/**   Get  link status of PHY 
+ *    This function is used to retrieve the link status of PHY chip
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *
+ *    @param link_status        link status of the PHY 
+ *                              1 - Up 
+ *                              0 - Down 
+ * 
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_chk_phy_link_mode_status(const phymod_access_t *pa,
+                                   uint32_t *link_status); 
+
+/**   Set config mode 
+ *    This function is used to set the operating mode of the PHY
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param intf               Interface specified by user 
+ *    @param speed              Speed val as specified by user  
+ *    @param ref_clk            Reference clock frequency to set 
+ *                              the PHY into specified interface 
+ *                              and speed
+ * 
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_set_config_mode(const phymod_access_t *pa,
+                          phymod_interface_t intf,
+                          uint32_t speed,
+                          phymod_ref_clk_t ref_clk);
+
+/**   Get config mode 
+ *    This function is used to retrieve the operating mode of the PHY
+ *
+ *    @param pa                 Pointer to phymod access structure 
+ *    @param intf               Interface type 
+ *    @param speed              Speed val retrieved from PHY 
+ *    @param ref_clk            Reference clock frequency to set 
+ *                              the PHY into specified interface 
+ *                              and speed
+ *    @param interface_modes    mode which is currently unused
+ * 
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int furia_get_config_mode(const phymod_access_t *pa,
+                       phymod_interface_t *intf,
+                       uint32_t *speed,
+                       phymod_ref_clk_t *ref_clk,
+                       uint32_t *interface_modes);
+
+/**   Get phymod interface type from pma type 
+ *    This function is used to retrieve PHYMOD interface type from pma_type
+ *
+ *    @param pma_type           pma type read from mode register 
+ *    @param intf               PHYMOD interface type 
+ *    @param speed              Speed val 
+ * 
+ *    @return PHYMOD_E_NONE     successful function execution 
+ */
+int _furia_get_phymod_interface_type(uint16_t pma_type,
+                                     phymod_interface_t *intf,
+                                     uint32_t *speed);
+
+/**   Get pma type from interface and speed 
+ *    This function is used to get the pma type from interface and speed. 
+ *    This pma type will be programmed to mode register for different PHY modes 
+ *
+ *    @param intf               PHYMOD interface type 
+ *    @param speed              Speed val 
+ * 
+ *    @return pma_typeselection pma type calculated with interface and speed 
+ */
+uint16_t _furia_get_pma_type_selection(phymod_interface_t intf, uint32_t speed);
+
+
+int furia_tx_rx_polarity_set (const phymod_access_t *pa,
+                              uint32_t tx_polarity,
+                              uint32_t rx_polarity);
+
+
+int furia_tx_rx_polarity_get (const phymod_access_t *pa,
+                              uint32_t *tx_polarity,
+                              uint32_t *rx_polarity);
+int furia_tx_squelch(const phymod_access_t *pa,
+                     uint32_t enable); 
+int furia_tx_disable(const phymod_access_t *pa,
+                      uint32_t enable); 
+int furia_pmd_lock_get(const phymod_access_t *pa,
+                       uint32_t *rx_seq_done); 
+int furia_enable_set(const phymod_access_t *pa,
+                     uint32_t enable); 
+int furia_rev_id(const phymod_access_t *pa,
+                 uint32_t *rev_id); 
+int furia_rx_power_down(const phymod_access_t *pa,
+                        uint32_t enable); 
+int furia_tx_power_down(const phymod_access_t *pa,
+                         uint32_t enable); 
+int furia_tx_rx_power_get(const phymod_access_t *pa,
+                          uint32_t *power_tx,
+                          uint32_t *power_rx);
+int furia_link_status(const phymod_access_t *pa,
+                      uint32_t *link_status);
+int furia_tx_rx_power_set(const phymod_access_t *pa,
+                          uint8_t tx_rx,
+                          uint32_t enable);
+int furia_loopback_set(const phymod_access_t *pa,
+                       phymod_loopback_mode_t loopback,
+                       uint32_t enable);
+int furia_loopback_get(const phymod_access_t *pa,
+                       phymod_loopback_mode_t loopback,
+                       uint32_t* enable);
+
+int furia_reset_set(const phymod_access_t *pa,
+                    phymod_reset_mode_t reset_mode,
+                    phymod_reset_direction_t direction);
+
+int furia_tx_set(const phymod_access_t *pa,
+                 const phymod_tx_t* tx);
+
+int furia_tx_get(const phymod_access_t *pa,
+                 phymod_tx_t* tx);
+int furia_rx_set(const phymod_access_t *pa,
+                 const phymod_rx_t* rx);
+int furia_rx_get(const phymod_access_t *pa,
+                 phymod_rx_t* rx);
+
+int furia_tx_lane_control_set(const phymod_access_t *pa,
+                              uint32_t enable);
+
+int furia_rx_lane_control_set(const phymod_access_t *pa,
+                              uint32_t enable);  
+int furia_lane_swap_set(const phymod_access_t* phy,
+                            uint32_t src_lane,
+                            uint32_t dst_lane);
+int furia_lane_swap_get(const phymod_access_t *pa,
+                        uint32_t src_lane,
+                        uint32_t *mapped_to);
+int furia_die_lane_swap_set(const phymod_access_t* phy,
+                            uint32_t *swap_array);
+int furia_die_lane_swap_get(const phymod_access_t *pa,
+                            uint32_t *swap_array);
+int furia_force_tx_training_set(const phymod_access_t *pa,
+                                uint32_t enable);
+int furia_force_tx_training_get(const phymod_access_t *pa,
+                                uint32_t *enable);
+int furia_force_tx_training_status_get(const phymod_access_t *pa,
+                                       uint32_t *enabled,
+                                       uint32_t *training_failure,
+                                       uint32_t *trained);
+typedef enum {
+    FURIA_CL73_NO_TECH = 0,
+    FURIA_CL73_1000BASE_KX = 0x1,
+    FURIA_CL73_10GBASE_KX4 = 0x2,
+    FURIA_CL73_10GBASE_KR = 0x4,
+    FURIA_CL73_40GBASE_KR4 = 0x8,
+    FURIA_CL73_40GBASE_CR4 = 0x10,
+    FURIA_CL73_100GBASE_CR10 = 0x20,
+    FURIA_CL73_100GBASE_KP4 = 0x40,
+    FURIA_CL73_100GBASE_KR4 = 0x80,
+    FURIA_CL73_100GBASE_CR4 = 0x100
+}furia_cl73_speed_t;
+
+typedef enum {
+    FURIA_NO_PAUSE = 0,  
+    FURIA_ASYM_PAUSE,
+    FURIA_SYMM_PAUSE,
+    FURIA_ASYM_SYMM_PAUSE,  
+    FURIA_AN_PAUSE_COUNT
+}furia_an_pause_t;
+
+typedef struct FURIA_an_adv_ability_s{
+  furia_cl73_speed_t an_base_speed; 
+  furia_an_pause_t an_pause; 
+  uint16_t an_fec; 
+  uint16_t an_hg2; 
+}furia_an_adv_ability_t;
+
+typedef struct FURIA_an_ability_s {
+  furia_an_adv_ability_t cl73_adv; /*includes cl73 related */
+} furia_an_ability_t;
+
+int _furia_autoneg_set(const phymod_access_t* pa, 
+                       const phymod_autoneg_control_t* an);
+int _furia_autoneg_get(const phymod_access_t* pa, 
+                       phymod_autoneg_control_t* an, 
+                       uint32_t *an_done);
+int _furia_autoneg_ability_get (const phymod_access_t* pa, 
+                                furia_an_ability_t *an_ablity);
+int _furia_autoneg_ability_set (const phymod_access_t* pa, 
+                                furia_an_ability_t *an_ablity);
+int _furia_config_pll_div(const phymod_access_t *pa, FALCON_PLL_MODE_E pll_mode, FURIA_REF_CLK_E ref_clk_freq);
+
+int furia_display_eye_scan(const phymod_access_t *pa);
+int furia_pll_sequencer_restart(const phymod_access_t *pa, phymod_sequencer_operation_t operation);
+int furia_fec_enable_set(const phymod_access_t *pa, uint32_t enable);
+int furia_fec_enable_get(const phymod_access_t *pa, uint32_t* enable);
+int _furia_phy_status_dump(const phymod_access_t *pa);
+int _furia_core_diagnostics_get(const phymod_access_t *pa, phymod_core_diagnostics_t* diag);
+int _furia_phy_diagnostics_get(const phymod_access_t *pa, phymod_phy_diagnostics_t* diag);
+int furia_pmd_info_dump(const phymod_access_t *pa, char* type);
+int furia_pcs_info_dump(const phymod_access_t *pa, char* type); 
+int furia_ext_intr_status_get(const phymod_access_t *pa, uint32_t intr_type, uint32_t* intr_status);
+int furia_ext_intr_enable_set(const phymod_access_t *pa, uint32_t intr_type, uint32_t enable); 
+int furia_ext_intr_enable_get(const phymod_access_t *pa, uint32_t intr_type, uint32_t* enable); 
+int furia_ext_intr_status_clear(const phymod_access_t *pa, uint32_t intr_type);
+int furia_fc_pcs_chkr_enable_set(const phymod_access_t *pa, uint32_t fcpcs_chkr_mode, uint32_t enable);
+int furia_fc_pcs_chkr_enable_get(const phymod_access_t *pa, uint32_t fcpcs_chkr_mode, uint32_t* enable);
+int furia_fc_pcs_chkr_status_get(const phymod_access_t *pa, uint32_t* lock_status, uint32_t* lock_lost_lh, uint32_t* error_count);
+#ifdef SERDES_API_FLOATING_POINT 
+int furia_eye_margin_proj(const phymod_access_t *pa, double rate, uint8_t ber_scan_mode, uint8_t timer_control, uint8_t max_error_control);
+#else 
+int furia_eye_margin_proj(const phymod_access_t *pa, int rate, uint8_t ber_scan_mode, uint8_t timer_control, uint8_t max_error_control);
+#endif
+int _furia_core_rptr_rtmr_mode_set(const phymod_core_access_t* core,
+uint32_t rptr_rtmr_mode);
+#endif

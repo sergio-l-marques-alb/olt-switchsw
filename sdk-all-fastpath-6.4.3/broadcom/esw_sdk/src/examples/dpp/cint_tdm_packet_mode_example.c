@@ -1,0 +1,292 @@
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~OTN/TDM Applications~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+/* $Id: cint_tdm_packet_mode_example.c,v 1.3 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$ 
+ *  
+ * File: cint_tdm_packet_mode_example.c 
+ * Purpose: Example shows setup configuration of TDM packet mode example. 
+ *  
+ * These modes are for devices that are dedicated to support both Data packets and OTN/TDM traffic only.
+ * Packet mode is often used when expected TDM traffic consist of packet sizes that are higher than 256 (in ARAD) / 128 (in Petra-B)
+ * 
+ * For each port to be supported as TDM packet mode, following soc properties should be set:
+ * config add tm_port_header_type_<port_id> = TDM_RAW
+ * 
+ * On Standard application of TDM, each stream traffic is like a "pipe" where there is a static connection
+ * between source-port and destination-port. Both Source and destination ports should be of TDM type.
+ * In case header_type is set to TDM_RAW , packet is treated as without header i.e. user should set a static forwarding from
+ * source port to destination port.
+ *  
+ * Application Sequence:
+ *  1.  Set static forwarding on TDM ports
+ *  2.  For each VOQ (UCAST or MCAST) that TDM traffic is going through it, user should set the following settings
+ *      o    Set Queue type to be PUSH_QUEUE 
+ *      o    In ARAD (only), set Queue signature to be of TDM priority (3).
+ *
+ * The CINT gives the ability to set port static forwarding and VOQ settings.
+ *  o   Unicast settings:
+ *      o   Set static forwarding configuration
+ *      o   Set matching VOQ configuration
+ *           
+ *  o   Multicast settings:
+ *      o   Set static forwarding configuration
+ *      o   Set matching FMQ configuration
+ *      o   Set multicast configuration
+ */
+
+/* Open a MC group to a set of destination ports */
+int open_egress_mc_group(int unit, int mc_group_id, int *dest_local_port_id, int *cud, int num_of_ports){
+    bcm_error_t rv = BCM_E_NONE;
+    bcm_cosq_gport_info_t gport_info;
+    bcm_gport_t dest_gport;
+    bcm_cosq_gport_type_t gport_type;
+    int flags;
+    bcm_multicast_t mc_group = mc_group_id;
+    int i = 0;
+    int len = num_of_ports;
+    
+    gport_type = bcmCosqGportTypeLocalPort; 
+
+    rv = bcm_multicast_destroy(unit, mc_group);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mc bcm_multicast_destroy \n");
+        return rv;
+    }
+
+    /* Create an Egress MC group */
+    flags = BCM_MULTICAST_EGRESS_GROUP | BCM_MULTICAST_WITH_ID ;
+    rv = bcm_multicast_create(unit, flags, mc_group);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mc create, flags $flags mc_group $mc_group \n");
+        return rv;
+    }
+
+    /* Add each port in the array to the group */
+    for(i=0; i<len ; i++) {
+        BCM_GPORT_LOCAL_SET(gport_info.in_gport,dest_local_port_id[i]); 
+        rv = bcm_cosq_gport_handle_get(unit,gport_type,&gport_info);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in handle get, gport_type $gport_type \n");
+            return rv;
+        }
+        
+        dest_gport  = gport_info.out_gport;
+        rv = bcm_multicast_egress_add(unit, mc_group, dest_gport, cud[i]);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in mc egress add, mc_group $mc_group dest_gport $dest_gport \n");
+            return rv;
+        }
+    }
+
+    if (verbose) {
+      printf("tdm_packet_mode_open_egress_mc_group: gport MC_group(0x%08x), number of ports %d \n", mc_group, num_of_ports);
+    }
+    
+    return rv;
+}
+
+int static_fwd_dest_set(int unit, bcm_gport_t gport, int destination, int enable) {
+  bcm_error_t rv = BCM_E_NONE;
+
+  rv = bcm_port_force_forward_set(unit, gport, destination, enable);
+  if (rv != BCM_E_NONE) {
+    printf("Error, in bcm_port_force_forward_set, gport $gport, destination $destination \n");
+    return rv;
+  }
+
+  if (verbose) {
+    printf("static_fwd_dest_set: gport(0x%08x) --> destination 0x%x\n", gport, destination);
+  }
+
+  return rv;
+}
+
+int tdm_packet_mode_queue_settings (int unit, int base_voq_id, int cosq) {
+    int rv;
+    int type;
+    int gport;
+    int mode;
+
+    /* Set Push queue */
+    mode = BCM_COSQ_DELAY_TOLERANCE_10G_LOW_DELAY;
+    BCM_GPORT_UNICAST_QUEUE_GROUP_SET(gport,base_voq_id);
+    rv = bcm_cosq_gport_sched_set(unit, gport, cosq, mode, 0);
+    if (rv != BCM_E_NONE) {
+      printf("Error, in bcm_cosq_gport_sched_set \n");
+      return rv;
+    }
+
+    /* Set Queue Signature */
+    mode = 3; /* TDM always 3 */
+    rv = bcm_cosq_control_set(unit, gport, cosq, bcmCosqControlHeaderUpdateField, mode);
+    if (rv != BCM_E_NONE) {
+      printf("Error, in bcm_cosq_control_set \n");
+      return rv;
+    }
+
+    /* High priority range */
+
+
+    if (verbose) {
+      printf("tdm_packet_mode_queue_settings: gport VOQ(0x%08x) \n", gport);
+    }
+
+    return rv;
+}
+
+/* UC TDM Packet mode Example:
+ * This example can configure a UC to destination port.
+ * The FTMH will be appended in the ingress, and removed in the egress.
+ * It also sets the Cells Size Range: 70 to 120
+ * src_local_port_id = Incoming BCM local port id.
+ * destination_port_id = Outgoing BCM local port id. 
+ * voq_id = VOQ ID that matched to Outgoing BCM local port id 
+ * Remarks: 
+ *  We assume that Scheduling Scheme and mapping Systemport to VOQ to MODPORT already been set 
+ */
+int tdm_packet_mode_uc_example (int unit, int src_local_port_id, int destination_port_id, int voq_id) {
+    int gport;
+    int rv;
+    int start_range;
+    int end_range;
+    
+    /* Set static forwarding */
+    rv = static_fwd_dest_set(unit, src_local_port_id, destination_port_id, 1);
+    if (rv != BCM_E_NONE) {
+      printf("Error, in static_fwd_dest_set \n");
+      return rv;
+    }
+
+    /* Set matched VOQ settings */
+    rv = tdm_packet_mode_queue_settings(unit, voq_id, 0);
+    if (rv != BCM_E_NONE) {
+      printf("Error, in tdm_packet_mode_queue_settings \n");
+      return rv;
+    }
+
+    /* Per Queue */
+    /* High priority Queues */
+    /* bit per queue */
+    /* Example: all high priority. Ohter way to set high priority only on the TDM related queues */
+    bcm_cosq_gport_priority_profile_t profile;
+    BCM_COSQ_PRI_PROFILE_SET_ALL(profile);
+    start_range = voq_id - (voq_id % 64);  
+    end_range = start_range + 63;    
+    rv = bcm_cosq_priority_profile_set(unit,3,64,&profile); /* count must be 64 for DNX devices */
+    if (rv != BCM_E_NONE) {
+      printf("Error, in tdm_packet_mode_queue_settings \n");
+      return rv;
+    }
+    rv = bcm_cosq_priority_set(unit,start_range,end_range,3);
+    if (rv != BCM_E_NONE) {
+      printf("Error, in tdm_packet_mode_queue_settings \n");
+      return rv;
+    }
+
+
+    return rv;
+}   
+
+/* UC TDM Packet mode Example:
+ * This example can configure a UC to destination port.
+ * The FTMH will be appended in the ingress, and removed in the egress.
+ * It also sets the Cells Size Range: 70 to 120
+ * src_local_port_id = Incoming BCM local port id.
+ * destination_port_id = Outgoing BCM local port id. 
+ * voq_id = VOQ ID that matched to Outgoing BCM local port id 
+ * Remarks: 
+ *  We assume that Scheduling Scheme and mapping Systemport to VOQ to MODPORT already been set 
+ */
+int tdm_packet_mode_mc_example (int unit, int src_local_port_id, int mc_id) {
+    int gport;
+    int rv;
+    int mc_cuds[3] = {0};
+    int mc_ports[3];
+    int mcast_gport;
+    int multicast_1k_region_base = 0;
+    int multicast_1k_region_max = 1023;
+    int voq_id = 32 + (src_local_port_id - 1) * 8; /*A calculation base on the BCM Application*/
+    BCM_GPORT_MCAST_SET(mcast_gport, mc_id); 
+
+    /* Set static forwarding */
+    rv = static_fwd_dest_set(unit, src_local_port_id, mcast_gport, 1);
+    if (rv != BCM_E_NONE) {
+      printf("Error, in static_fwd_dest_set \n");
+      return rv;
+    }
+
+    /* Set matched VOQ settings, always zero for TDM Packet mode Multicast */
+    rv = tdm_packet_mode_queue_settings(unit,voq_id , 0);
+    if (rv != BCM_E_NONE) {
+      printf("Error, in tdm_packet_mode_queue_settings \n");
+      return rv;
+    }
+
+    /* An example */
+    mc_ports[0] = src_local_port_id;
+    mc_ports[1] = 14;
+    mc_ports[2] = 15;
+
+    rv = open_egress_mc_group(unit, mc_id, mc_ports, mc_cuds, 3);
+    if (rv != BCM_E_NONE) {
+      printf("Error, in open_egress_mc_group \n");
+      return rv;
+    }
+
+    return rv;
+}  
+/*PetraB examples*/
+int run_example_tdm_packet_mode_uc_example(int unit) {    
+    return tdm_packet_mode_uc_example(unit,1,2,54);
+}
+
+int run_example_tdm_packet_mode_mc_example(int unit) {
+    return tdm_packet_mode_mc_example(unit,1,2);
+}
+
+/* Run automatic main */
+/* run_example_tdm_packet_mode_uc_example(unit);*/
+/* run_example_tdm_packet_mode_mc_example(unit);*/
+int verbose = 1;
+    
+    

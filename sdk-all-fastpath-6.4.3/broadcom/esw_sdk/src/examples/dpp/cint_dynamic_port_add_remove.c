@@ -1,0 +1,622 @@
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~NIF: Interface Configuration~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+/* $Id: cint_interface_configuration.c,v 1.1 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$ 
+ *  
+ * File:        cint_dynamic_port_add_remove.c
+ * Purpose:     Example of simple Egress transmit scheduling setup 
+ *  
+ * Example includes:
+ *  o     Removing one port configuration 
+ *  o     Adding one port configuration 
+ *  o     Removing several ports and Adding several new ports configuration
+ *  o     Changing number of lanes for a given port
+ *
+ * It is assumed diag_init is executed.
+ * 
+ * To remove one port configuration follow following steps:
+ * 
+ * 1) detach port
+ * 2) remove port configuration
+ * 3) add new port configuration
+ * 4) probe new port
+ * 
+ * NOTE: If you detach first lane port that was previously initialized and do not probe that port,
+ *       the speeds of the following lanes may be effected unexpectedly.
+ * 
+ * Usage Example:
+ * The example below will remove port 100 and add Ethernet XFI port on first physical lane 20 with port id 101.
+ *
+ * int rv;
+ * bcm_port_mapping_info_t mapping_info;
+ * bcm_port_interface_info_t interface_info;
+ *
+ *
+ * rv = remove_port_full_example(unit, 100, 0);
+ * if (rv != BCM_E_NONE) {
+ *     printf("Error, in remove_port_full_example\n");
+ *     return rv;
+ * }
+ * 
+ * mapping_info.channel = 0;
+ * mapping_info.core = 0;
+ * mapping_info.tm_port = 100;
+ * mapping_info.num_priorities = 8;
+ * interface_info.phy_port = 20;
+ * interface_info.interface = BCM_PORT_IF_XFI;
+ *
+ * rv = add_port_full_example(unit, 101 , mapping_info, interface_info, 0, BCM_SWITCH_PORT_HEADER_TYPE_TM ,FALSE);
+ * if (rv != BCM_E_NONE) {
+ *     printf("Error, in add_port_full_example\n");
+ *     return rv;
+ * } 
+ *
+ */
+
+ 
+ /* 
+ * Function:
+ *      remove_port
+ * Purpose:
+ *      Reconfigure single port
+ * Parameters:
+ *      unit            - (IN)  Unit number.
+ *      port            - (IN)  Logical port # - must be a port which already defined by 'ucode_port' soc property.
+ *      flags           - (IN)  flags
+ * Returns:
+ *      BCM_E_NONE     No Error  
+ *      BCM_E_XXX      Error occurred
+ *  
+ *  
+ * Assumes port is valid and initialized 
+ *  
+ * 1) detach given port 
+ * 2) remove port configuration 
+ */
+int remove_port(int unit, int port, uint32 flags){
+    int rv;
+
+    /*Disable rx los application*/
+    /*Remove ports from rx_los application - do not check error for case rx los application is not used*/
+    rx_los_port_enable(unit, port, 0, 0);
+
+    
+    /* remove port configuration */
+    rv = bcm_port_remove(unit, port, flags);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_port_remove\n");
+        return rv;
+    }
+    
+    return BCM_E_NONE;
+}
+
+/* 
+ * Function:
+ *      add_port
+ * Purpose:
+ *      Reconfigure single port
+ * Parameters:
+ *      unit            - (IN)  Unit number.
+ *      port            - (IN)  Logical port # - must be a port which already defined by 'ucode_port' soc property.
+ *	    mapping_info    - (IN)	Logical port mapping info
+ *	    interface_info  - (IN)	physical port info
+ *      flags           - (IN)  flags
+ *      is_hg           - (IN)  Is higig port
+ * Returns:
+ *      BCM_E_NONE     No Error  
+ *      BCM_E_XXX      Error occurred
+ *  
+ *  
+ *  
+ * 2) remove port configuration 
+ * 3) add new port configuration 
+ * 4) probe new port
+ * 5) enable rx los
+ * 6) set header type to header_type = BCM_SWITCH_PORT_HEADER_TYPE_TM/BCM_SWITCH_PORT_HEADER_TYPE_ETH/BCM_SWITCH_PORT_HEADER_TYPE_TDM/BCM_SWITCH_PORT_HEADER_TYPE_TDM_RAW
+ */
+int add_port(int unit, int port, bcm_port_mapping_info_t mapping_info, bcm_port_interface_info_t interface_info, uint32 flags, int header_type, int is_hg){
+    int rv;
+    
+    /* add new port configuration */
+    rv = bcm_port_add(unit, port, flags, &interface_info, &mapping_info); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_port_add\n");
+        return rv;
+    }
+
+    /* enable port */
+    rv = bcm_port_enable_set(unit, port, 1);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_port_enable_get. port=$port\n");
+        return rv;
+    }
+    
+    /* reset maximum port speed */
+    rv = bcm_port_speed_set(unit, port, 0);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_port_speed_set. port=$port speed=0\n");
+        return rv;
+    }
+
+    if ((interface_info.interface == BCM_PORT_IF_XLAUI) && !is_hg) {
+        rv = bcm_port_speed_set(unit, port, 40000);
+    }
+
+    /* set header type */
+    rv = bcm_switch_control_port_set(unit, port,  bcmSwitchPortHeaderType, header_type);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_switch_control_port_set. port=$port header_type=$header_type\n");
+        return rv;
+    }
+    /*rx loss application*/
+    /*Add ports to rx_los application - do not check error for case rx los application is not used*/
+    rx_los_port_enable(unit, port, 1, 0);	
+    
+    return BCM_E_NONE;
+}
+
+
+
+/* Function:
+ *      change_nof_lanes
+ * Purpose:
+ *      Reconfigure port number of lanes
+ */
+int change_nof_lanes(int unit, int port, int nof_lanes){
+    bcm_pbmp_t pbmp, detached, okay;
+    int rv, enable;
+    
+    /* save default enable mode */
+    rv = bcm_port_enable_get(unit, port, &enable);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_port_enable_get. port=$port");
+        return rv;
+    }
+    
+    /* detach given port */
+    BCM_PBMP_CLEAR(pbmp); 
+    BCM_PBMP_CLEAR(detached);
+    BCM_PBMP_CLEAR(okay);
+    BCM_PBMP_PORT_ADD(pbmp,port);
+
+    /*Remove ports from rx_los application - do not check error for case rx los application is not used*/
+    rx_los_port_enable(unit, port, 0, 0);
+
+    rv = bcm_port_detach(unit, pbmp, &detached); 
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_port_detach. pbmp=$pbmp\n");
+        return rv;
+    }
+    
+    /* set number of lanes*/
+    rv = bcm_port_control_set(unit, port, bcmPortControlLanes, nof_lanes);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_port_control_set. type=bcmPortControlLanes, value=$nof_lanes");
+        return rv;
+    }
+    
+    /* probe port */
+    rv = bcm_port_probe(unit, pbmp, &okay);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_port_probe. pbmp=$pbmp\n");
+        return rv;
+    }
+    
+    /* set port enable */
+    rv = bcm_port_enable_set(unit, port, enable);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_port_enable_get. port=$port");
+        return rv;
+    }
+
+    /*Add ports to rx_los application - do not check error for case rx los application is not used*/
+    rx_los_port_enable(unit, port, 1, 0);
+    
+    return BCM_E_NONE;
+}
+
+/* Function:
+ *      config_ports_rate
+ * Purpose:
+ *      Reconfigure shapers, header_type is relevant only in case of is_port_add is TRUE
+ */
+int config_ports_rate(int unit, bcm_pbmp_t pbmp, int kbits_sec_max, int header_type ,int is_port_add)
+{
+    int                   rv;
+    int                   port;
+    bcm_gport_t           fap_port;
+    int                   tc_i;
+    bcm_cosq_gport_info_t gport_info;   
+    bcm_port_interface_info_t interface_info;
+    bcm_port_mapping_info_t   mapping_info;
+    int                   local_port_speed, new_interface_speed, interface_rate;
+    int                   kbits_sec_max_get, port_phy_speed, is_channelized;
+    int                   dummy1 = 0,dummy2 = 0;
+    uint32                flags;
+
+    BCM_PBMP_ITER(pbmp, port) /*configure each port in pbmp*/
+    {
+        gport_info.cosq=0;
+        gport_info.in_gport=port;
+    
+        /* get port priorities */
+        rv = bcm_port_get(unit, port, &flags, &interface_info, &mapping_info);
+        if (rv != BCM_E_NONE) {
+            printf("Error, bcm_cosq_gport_bandwidth_set,unit $unit gport: %x, $rv\n",gport_info.out_gport);
+            return rv;
+        }
+
+        is_channelized = (flags & BCM_PORT_ADD_CONFIG_CHANNELIZED) ? 1 : 0;
+
+        if(mapping_info.num_priorities==8) {/*for 8 priorities ser TCG bandwidth*/
+            /*EGQ TCG bandwidth*/
+            rv=bcm_cosq_gport_handle_get(unit,bcmCosqGportTypeLocalPortTCG,gport_info);
+            if (rv != BCM_E_NONE) {
+                printf("Error, bcm_cosq_gport_handle_get,unit $unit port: $port , gport_type %x, $rv\n", bcmCosqGportTypeLocalPortTCG);
+                return rv;
+            }
+            rv=bcm_cosq_gport_bandwidth_set(unit,gport_info.out_gport,0,0,kbits_sec_max,0);
+            if (rv != BCM_E_NONE) {
+                printf("Error, bcm_cosq_gport_bandwidth_set,unit $unit gport: %x, $rv\n",gport_info.out_gport);
+                return rv;
+            }
+            /*sch TCG bandwidth */
+            if(is_port_add && !(header_type == BCM_SWITCH_PORT_HEADER_TYPE_TDM || header_type==BCM_SWITCH_PORT_HEADER_TYPE_TDM_RAW))
+            {
+                rv=bcm_cosq_gport_handle_get(unit,bcmCosqGportTypeE2EPortTCG,gport_info);
+                if (rv != BCM_E_NONE) {
+                    printf("Error, bcm_cosq_gport_handle_get,unit $unit port: $port ,gport_type %x, $rv\n", bcmCosqGportTypeE2EPortTCG);
+                    return rv;
+                }
+                rv=bcm_cosq_gport_bandwidth_set(unit,gport_info.out_gport,0,0,kbits_sec_max,0);
+                if (rv != BCM_E_NONE) {
+                    printf("Error, bcm_cosq_gport_bandwidth_set,unit $unit gport: %x, $rv\n",gport_info.out_gport);
+                    return rv;
+                }
+            }
+        }
+        /*EGQ TC bandwidth */
+        rv=bcm_cosq_gport_handle_get(unit,bcmCosqGportTypeLocalPortTC,gport_info);
+        if (rv != BCM_E_NONE) {
+            printf("Error, bcm_cosq_gport_handle_get,unit $unit port: $port ,gport_type %x, $rv\n", bcmCosqGportTypeLocalPortTC);
+            return rv;
+        }
+        for (tc_i=0;tc_i<mapping_info.num_priorities;++tc_i) 
+        {/*for each tc set bandwidth*/
+            rv = bcm_cosq_gport_bandwidth_set(unit,gport_info.out_gport,tc_i,0,kbits_sec_max,0);
+            if (rv != BCM_E_NONE) {
+                printf("Error, bcm_cosq_gport_bandwidth_set,unit $unit gport: %x, tc: %d,$rv\n",gport_info.out_gport,tc_i);
+                return rv;
+            }
+        }
+        /*sch TC bandwidth */
+        if(is_port_add && !(header_type == BCM_SWITCH_PORT_HEADER_TYPE_TDM || header_type==BCM_SWITCH_PORT_HEADER_TYPE_TDM_RAW))
+        {
+            rv=bcm_cosq_gport_handle_get(unit,bcmCosqGportTypeE2EPortTC,gport_info);
+            if (rv != BCM_E_NONE) {
+                printf("Error, bcm_cosq_gport_handle_get,unit $unit port: $port ,gport_type %x, $rv\n", bcmCosqGportTypeE2EPortTC);
+                return rv;
+            }
+            for (tc_i=0;tc_i<mapping_info.num_priorities;++tc_i) {
+                /*for each tc set bandwidth*/
+                rv = bcm_cosq_gport_bandwidth_set(unit,gport_info.out_gport,tc_i,0,kbits_sec_max,0);
+                if (rv != BCM_E_NONE) {
+                    printf("Error, bcm_cosq_gport_bandwidth_set,unit $unit gport: %x, tc: %d,$rv\n",gport_info.out_gport,tc_i);
+                    return rv;
+                }
+            }
+        }
+
+        /*set EGQ bandwidth */
+        rv=bcm_cosq_gport_handle_get(unit,bcmCosqGportTypeLocalPort,gport_info);
+        if (rv != BCM_E_NONE) {
+            printf("Error, bcm_cosq_gport_handle_get,unit $unit port: $port ,gport_type %x, $rv\n", bcmCosqGportTypeLocalPort);
+            return rv;
+        }
+        rv = bcm_cosq_gport_bandwidth_get(unit,gport_info.out_gport,0,&dummy1,&local_port_speed,&dummy2);
+        if (rv != BCM_E_NONE) {
+            printf("Error, bcm_cosq_gport_bandwidth_get,unit $unit fap gport: %x, $rv\n", fap_port);
+            return rv;
+        }
+        /*set EGQ interface bandwidth*/
+        rv = bcm_fabric_port_get(unit,gport_info.out_gport,0,&fap_port);
+        if (rv != BCM_E_NONE) {
+            printf("Error, bcm_fabric_port_get,unit $unit gport: %x, $rv\n",gport_info.out_gport);
+            return rv;
+        }
+
+        /*set EGQ interface bandwidth: setting non-chanellized interface is done to set the whole calender, not to one interface*/
+        /*translate to port rate*/
+        rv = bcm_cosq_gport_bandwidth_get(unit,fap_port,0,&dummy1,&kbits_sec_max_get,&dummy2);
+        if (rv != BCM_E_NONE) {
+            printf("Error, bcm_cosq_gport_bandwidth_get,unit $unit fap gport: %x, $rv\n", fap_port);
+            return rv;
+        }
+
+
+        if (is_port_add) 
+        {
+            rv = bcm_port_speed_get(unit, port, &port_phy_speed);
+            if (rv != BCM_E_NONE) {
+                printf("Error, bcm_port_speed_set,unit $unit gport: %x, $rv\n", bcm_port_speed_get);
+                return rv;
+            }
+            if (is_channelized) {
+                if (interface_info.interface == BCM_PORT_IF_ILKN) {
+                    interface_rate = port_phy_speed*interface_info.num_lanes*1000;
+                } else {
+                    interface_rate = port_phy_speed*1000;
+                }
+                if ((kbits_sec_max_get + kbits_sec_max) <= (interface_rate /* maximal interface speed */)) {
+                    rv = bcm_cosq_gport_bandwidth_set(unit,fap_port,0,0,(kbits_sec_max_get + kbits_sec_max),0);
+                    if (rv != BCM_E_NONE) {
+                        printf("Error, bcm_cosq_gport_bandwidth_set,unit $unit fap gport: %x, $rv\n", fap_port);
+                        return rv;
+                    } 
+                }
+                else
+                {
+                    rv = bcm_cosq_gport_bandwidth_set(unit,fap_port,0,0,(interface_rate /* maximal interface speed */),0);
+                    if (rv != BCM_E_NONE) {
+                        printf("Error, bcm_cosq_gport_bandwidth_set,unit $unit fap gport: %x, $rv\n", fap_port);
+                        return rv;
+                    } 
+                }
+            }
+        }
+        /*set EGQ bandwidth */
+        rv=bcm_cosq_gport_handle_get(unit,bcmCosqGportTypeLocalPort,gport_info);
+        if (rv != BCM_E_NONE) {
+            printf("Error, bcm_cosq_gport_handle_get,unit $unit port: $port ,gport_type %x, $rv\n", bcmCosqGportTypeLocalPort);
+            return rv;
+        }
+        rv=bcm_cosq_gport_bandwidth_set(unit,gport_info.out_gport,0,0,kbits_sec_max,0);
+        if (rv != BCM_E_NONE) {
+            printf("Error, bcm_cosq_gport_bandwidth_set,unit $unit gport: %x, $rv\n",gport_info.out_gport);
+            return rv;
+        }
+        if (!is_port_add) 
+        {
+            if (is_channelized) {
+                new_interface_speed = kbits_sec_max_get - local_port_speed;
+                new_interface_speed = (new_interface_speed<0) ? 0 : new_interface_speed;
+                rv = bcm_cosq_gport_bandwidth_set(unit,fap_port,0,0,new_interface_speed,0);
+                if (rv != BCM_E_NONE) {
+                    printf("Error, bcm_cosq_gport_bandwidth_set,unit $unit fap gport: %x, $rv\n", fap_port);
+                    return rv;
+                }
+            }
+        }
+
+        /*set sch bandwidth*/
+        if(is_port_add && !(header_type == BCM_SWITCH_PORT_HEADER_TYPE_TDM || header_type==BCM_SWITCH_PORT_HEADER_TYPE_TDM_RAW))
+        {
+            rv=bcm_cosq_gport_handle_get(unit,bcmCosqGportTypeE2EPort,gport_info);
+            if (rv != BCM_E_NONE) {
+                printf("Error, bcm_cosq_gport_handle_get,unit $unit port: $port ,gport_type %x, $rv\n", bcmCosqGportTypeE2EPort);
+                return rv;
+            }
+            rv=bcm_cosq_gport_bandwidth_set(unit,gport_info.out_gport,0,0,kbits_sec_max,0);
+            if (rv != BCM_E_NONE) {
+                printf("Error, bcm_cosq_gport_bandwidth_set,unit $unit gport: %x, $rv\n",gport_info.out_gport);
+                return rv;
+            }
+        }
+
+        /*set sch interface bandwidth*/
+        if(is_port_add && !(header_type == BCM_SWITCH_PORT_HEADER_TYPE_TDM || header_type==BCM_SWITCH_PORT_HEADER_TYPE_TDM_RAW))
+        {
+            rv = bcm_fabric_port_get(unit,gport_info.out_gport,0,&fap_port);
+            if (rv != BCM_E_NONE) {
+                printf("Error, bcm_fabric_port_get,unit $unit gport: %x, $rv\n",gport);
+                return rv;
+            }
+
+            rv = bcm_port_speed_get(unit, port, &port_phy_speed);
+            if (rv != BCM_E_NONE) {
+                printf("Error, bcm_port_speed_set,unit $unit gport: %x, $rv\n", bcm_port_speed_get);
+                return rv;
+            }
+            if (is_channelized) {
+                if (interface_info.interface == BCM_PORT_IF_ILKN) {
+                    interface_rate = port_phy_speed*interface_info.num_lanes*1000;
+                } else {
+                    interface_rate = port_phy_speed*1000;
+                }
+                if ((kbits_sec_max_get + kbits_sec_max) <= (interface_rate /* maximal interface speed */)) {
+                    rv = bcm_cosq_gport_bandwidth_set(unit,fap_port,0,0,(kbits_sec_max_get + kbits_sec_max),0);
+                    if (rv != BCM_E_NONE) {
+                        printf("Error, bcm_cosq_gport_bandwidth_set,unit $unit fap gport: %x, $rv\n", fap_port);
+                        return rv;
+                    } 
+                }
+                else
+                {
+                    rv = bcm_cosq_gport_bandwidth_set(unit,fap_port,0,0,(interface_rate /* maximal interface speed */),0);
+                    if (rv != BCM_E_NONE) {
+                        printf("Error, bcm_cosq_gport_bandwidth_set,unit $unit fap gport: %x, $rv\n", fap_port);
+                        return rv;
+                    } 
+                }
+            }
+        }
+    }
+    return BCM_E_NONE;
+}
+
+
+
+ /* 
+ * Function:
+ *      remove_port_full_example
+ * Purpose:
+ *      Reconfigure single port
+ * Parameters:
+ *      unit            - (IN)  Unit number.
+ *      port            - (IN)  Logical port # - must be a port which already defined by 'ucode_port' soc property.
+ *      flags           - (IN)  flags
+ * Returns:
+ *      BCM_E_NONE     No Error  
+ *      BCM_E_XXX      Error occurred
+ *  
+ *  
+ * Assumes port is valid and initialized 
+ *  
+ * 1) configure rates 
+ * 2) detach given port 
+ * 3) remove port configuration 
+ */
+int remove_port_full_example(int unit, int port, uint32 flags)
+{
+    int                   rv = BCM_E_NONE;
+    bcm_pbmp_t 			  pbmp_remove;
+
+    BCM_PBMP_CLEAR(pbmp_remove);
+    BCM_PBMP_PORT_ADD(pbmp_remove,port);
+
+    /* stage 1, set rates to 0 */ 
+    rv = config_ports_rate(unit,pbmp_remove,0,0,FALSE); /*Before removing the port: set all the ports to be deleted rates to zero */
+    if (rv != BCM_E_NONE) {
+        printf("Error, in config_ports_rate\n");
+        return rv;
+    }
+
+    /* stage 2, detach and remove port configuration */
+    rv = remove_port(unit, port, flags);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in remove_port\n");
+        return rv;
+    }
+
+    return BCM_E_NONE;
+}
+
+
+/* 
+ * Function:
+ *      add_port_full_example
+ * Purpose:
+ *      Full example to add port and set relevant shapers
+ * Parameters:
+ *      unit            - (IN)  Unit number.
+ *      port            - (IN)  Logical port to add.
+ *      flags           - (IN)
+ *      mapping_info    - (IN)	Logical port mapping info
+ *      interface_info  - (IN)	physical port info    
+ * Returns:
+ *      BCM_E_NONE     No Error  
+ *      BCM_E_XXX      Error occurred 
+ *  
+ * stage 1: Add  new port configuration
+ * stage 2: Set port rate 
+ *  
+ *  
+ */
+
+int 
+add_port_full_example(int unit, bcm_port_t port ,bcm_port_mapping_info_t mapping_info,  bcm_port_interface_info_t interface_info, int flags, int header_type ,int is_hg)
+{
+    bcm_pbmp_t            pbmp_add;
+    int                   max_rate_to_set, nof_lanes;
+    int                   rv = BCM_E_NONE;
+
+    BCM_PBMP_CLEAR(pbmp_add);       
+    BCM_PBMP_PORT_ADD(pbmp_add,port);
+
+    /* stage 1 */
+    rv = add_port(unit, port, mapping_info, interface_info, flags, header_type, is_hg);
+    if (rv != BCM_E_NONE) {
+        printf("Error, add_port\n");
+        return rv;
+    }
+
+    switch (interface_info.interface) 
+    {
+        case BCM_PORT_IF_SGMII:/*1G*/
+            max_rate_to_set=1*1000000;
+            break;
+        case BCM_PORT_IF_CAUI:/*100G*/
+            max_rate_to_set=100*1000000;
+            break;
+        case BCM_PORT_IF_RXAUI:/*10G*/
+            max_rate_to_set=10*1000000;
+            break;  
+        case BCM_PORT_IF_XFI:/*10G*/
+            max_rate_to_set=10*1000000;
+            break;
+        case BCM_PORT_IF_XLAUI:/*40G*/
+            max_rate_to_set=40*1000000;
+            break;
+        case BCM_PORT_IF_ILKN:/*nof_lanes*10G*/
+            rv = bcm_port_control_get(unit, port, bcmPortControlLanes, nof_lanes);
+            if (rv != BCM_E_NONE) {
+                printf("Error, in bcm_port_control_set. type=bcmPortControlLanes, value=$nof_lanes");
+                return rv;
+            }
+            max_rate_to_set=nof_lanes*10*1000000;
+            break;
+        case BCM_PORT_IF_XAUI:/*40G*/
+            max_rate_to_set=40*1000000;
+            break;
+        case BCM_PORT_IF_CPU:/*1G*/
+            max_rate_to_set=1*1000000;
+            break; 
+        default:
+            printf("Unsupported interface: $interface_info.interface\n");
+            return BCM_E_PARAM; 
+            break;
+    }
+
+    /* stage 2 */
+    rv = config_ports_rate(unit,pbmp_add,max_rate_to_set,header_type,TRUE);/*After reconfiguring the port: set the added port rate to its speed*/
+    if (rv != BCM_E_NONE) {
+        printf("Error, config_ports_rate, rate: $max_rate_to_set\n");
+        return rv;
+    }
+
+    return BCM_E_NONE;
+}
+
+
+

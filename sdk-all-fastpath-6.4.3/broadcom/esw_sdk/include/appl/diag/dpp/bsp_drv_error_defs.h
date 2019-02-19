@@ -1,0 +1,203 @@
+/* $Id: bsp_drv_error_defs.h,v 1.3 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+
+
+#ifndef __BSP_DRV_ERR_DEFS_H_INCLUDED__
+/* { */
+#define __BSP_DRV_ERR_DEFS_H_INCLUDED__
+
+#ifdef  __cplusplus
+extern "C" {
+#endif
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+
+#if !DUNE_BCM
+  #include "DuneDriver/SAND/Utils/include/sand_os_interface.h"
+  #include "DuneDriver/SAND/Management/include/sand_error_code.h"
+  #include "pub/include/utils_defx.h"
+#endif
+/* } */
+
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+#define BSP_DRV_SILENT TRUE
+#define BSP_DRV_NOT_SILENT !BSP_DRV_SILENT
+
+/* } */
+
+/*************
+ *  MACROS   *
+ *************/
+/* { */
+#define BSP_DRV_BOOT_FUNC_VALIDATE(e_func_name, e_err_code) \
+{                                         \
+  if (e_func_name == NULL)                \
+  {                                       \
+    BSP_DRV_SET_ERR_AND_EXIT(e_err_code)  \
+  }                                       \
+}
+
+#define BSP_DRV_ERR_IF_NULL(e_ptr_, e_err_code) \
+{                                         \
+  if (e_ptr_ == NULL)                     \
+  {                                       \
+    BSP_DRV_SET_ERR_AND_EXIT(e_err_code)  \
+  }                                       \
+}
+
+
+#define BSP_DRV_GEN_SVR_ERR(e_err_str, e_proc_name, e_err_code) \
+    gen_err(FALSE,FALSE,0,0,e_err_str, e_proc_name, SVR_ERR,\
+              e_err_code, TRUE, 0, 601, FALSE)
+
+
+#define BSP_DRV_INIT_ERR_DEFS(e_proc_name, e_silent_flag)  \
+  unsigned int m_ret = 0;                 \
+  unsigned int m_silent_flag;             \
+  char* m_proc_name = e_proc_name;        \
+  m_silent_flag = e_silent_flag;
+
+#define BSP_DRV_SET_ERR_AND_EXIT(e_err_code)  \
+{                                           \
+  m_ret = e_err_code;                       \
+  goto exit ;                               \
+}
+
+#define BSP_DRV_PRINT_ERR_MSG(e_err_msg)   \
+{                                                       \
+  if (!m_silent_flag)                                   \
+  {                                                     \
+    d_printf(                                     \
+            "\n\r--> ERROR: %s\n\r", e_err_msg);        \
+  }                                                     \
+}
+
+#define BSP_DRV_PRINT_MSG(e_msg)           \
+{                                                       \
+  if (!m_silent_flag)                                   \
+  {                                                     \
+    d_printf(                                     \
+            "\n\r--> %s\n\r", e_msg);                   \
+  }                                                     \
+}
+
+
+#define BSP_DRV_EXIT_IF_ERR(e_sand_err,e_err_code) \
+{                                         \
+  m_ret = soc_sand_get_error_code_from_error_word(e_sand_err); \
+  if(m_ret != 0)                          \
+  {                                       \
+    m_ret = e_err_code ;                  \
+    goto exit ;                           \
+  }                                       \
+}
+
+
+/*
+ * Macro to handle procedure call which returns standard soc_sand
+ * error code and, in case of error, sets error code, performs an exit function and quits.
+ * Assumes local variables: ret, error_id, soc_sand_err
+ * Assumes label: exit
+ */
+#define BSP_DRV_EXIT_AND_PRINT_IF_ERR(e_result, e_err_code, e_err_msg)     \
+  m_ret = soc_sand_get_error_code_from_error_word(e_result);\
+  if (SOC_SAND_OK != m_ret)                                 \
+  {                                                     \
+   /*                                                   \
+    * Error detected. Quit with error.                  \
+    */                                                  \
+    BSP_DRV_PRINT_ERR_MSG(e_err_msg)       \
+                                                        \
+    goto exit ;                                         \
+  }
+
+
+#define BSP_DRV_EXIT_AND_PRINT_ERR    \
+{                                     \
+  if (m_ret && !(m_silent_flag))      \
+    {                                 \
+      d_printf(\
+        "\n\r    + %-60s -- ERROR %u.\n\r",m_proc_name, m_ret);\
+    }                                 \
+    return m_ret;                     \
+}
+
+/* } */
+
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+
+/* } */
+
+/*************
+ * GLOBALS   *
+ *************/
+/* { */
+
+/* } */
+
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+/* } */
+
+#ifdef  __cplusplus
+}
+#endif
+
+
+/* } __BSP_DRV_ERR_DEFS_H_INCLUDED__*/
+#endif
+
+

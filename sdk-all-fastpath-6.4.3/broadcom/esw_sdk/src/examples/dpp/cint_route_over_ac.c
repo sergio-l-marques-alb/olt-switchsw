@@ -1,0 +1,473 @@
+/* $Id: cint_route_over_ac.c,v 1.10 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ * 
+ * 
+ * **************************************************************************************************************************************************
+ * 
+ *  
+ * Network diagram
+ *  
+ *  
+ *                          --------------------------------------
+ *                         |                                      |
+ *                         |                                      | 
+ *                         |               ROUTER                 |
+ *                         |                                      | 
+ *                         |   ---------               ------     |
+ *                         |  |  VSIx   |             | VSIy |    | 
+ *                         |   ---------               ------     |
+ *                         |    |     |                  |        |
+ *                         |    | RIF1|              RIF2|        |
+ *                         |____|_____|__________________|________|
+ *                              |     |                  |
+ *                              |     |                  |
+ *                          host1    host2             host3
+ *                         <10,100>  <20>             <30,300>
+ * 
+ *                         <x,y> - x is outer vlan
+ *                                 y is inner vlan
+ * 
+ * Default values:
+ * VLAN values are in diagramm
+ * Host1   -   MAC: 00:00:11:11:11:11
+ *             IP:  11.11.11.11
+ * Host2   -   MAC: 00:00:22:22:22:22
+ *             IP:  22.22.22.22
+ * Host3   -   MAC: 00:00:33:33:33:33
+ *             IP:  33.33.33.33
+ * PORT1(RIF1) - MAC: 00:11:00:00:01:11
+ * PORT2(RIF2) - MAC: 00:11:00:00:02:22
+ * 
+ * run:
+ * cd   ../../../../src/examples/dpp
+ * cint utility/cint_utils_global.c
+ * cint utility/cint_utils_port.c
+ * cint utility/cint_utils_l2.c
+ * cint utility/cint_utils_l3.c
+ * cint utility/cint_utils_vlan.c
+ * cint cint_port_tpid.c
+ * cint_route_over_ac.c
+ * cint
+ * route_over_ac_with_ports__start_run(0,port1,port2);
+ * 
+ * All default values could be re-written with initialization of the global structure 'g_route_over_ac', before calliing the main  function 
+ * In order to re-write only part of values, call 'route_over_ac_struct_get(route_over_ac_s)' function and re-write values, 
+ * prior calling the main function
+ * 
+ * ##############    Scenario #1    #######################
+ *
+ *  Traffic from Host3 to Host1
+ *  Testing routing over ac between two AC's that belong to different VSI's
+ *  
+ *    Send:                                           
+ *              ---------------------------------------------   
+ *        eth: |    DA     |     SA      |   VLAN-O | VLAN-I |
+ *              ---------------------------------------------
+ *             |  RIF2_mac | host3_mac   |    30    |  300   |
+ *              ---------------------------------------------
+ * 
+ *                  ----------------------- 
+ *             ip: |   SIP     | DIP       | 
+ *                  ----------------------- 
+ *                 | host3_ip  |  host1_ip | 
+ *                  ----------------------- 
+ *    Receive:
+ *              ---------------------------------------------   
+ *        eth: |    DA     |     SA      |   VLAN-O | VLAN-I |
+ *              ---------------------------------------------
+ *             | host1_mac |  RIF1_mac   |    10    |  100   |
+ *              ---------------------------------------------
+ * 
+ *                  ----------------------- 
+ *             ip: |   SIP     | DIP       | 
+ *                  ----------------------- 
+ *                 | host3_ip  |  host1_ip | 
+ *                  ----------------------- 
+ * 
+ *                                                                                                           
+ */
+
+
+
+/* **************************************************************************************************
+  --------------          Global Variables Definition and Initialization  START     -----------------
+ **************************************************************************************************** */
+int ROUTE_OVER_AC_NUM_OF_RIFS              = 2;
+int ROUTE_OVER_AC_NUM_OF_HOSTS             = 3;
+int ROUTE_OVER_AC_NUM_OF_VLAN_ACTIONS      = 4;
+int ROUTE_OVER_AC_NUM_OF_VLAN_EDIT_ENTRIES = 4;
+
+/* Struct that define main host attributes*/
+struct host_route_over_ac_s{
+    bcm_mac_t mac;          /* host mac */
+    uint32 ipv4_address;    /* IPv4 address of host*/
+    bcm_gport_t gport;      /* gport - for internal use no need to initialize*/
+    int vlan_o;             /* outer vlan  */
+    int vlan_i;             /* inner vlan  */
+    int vlan_edit_profile;  /* vlan editing profile */    
+    int fec;                /* allocated FEC         - for internal use no need to initialize*/
+    int outLif;             /* allocated outLif      - for internal use no need to initialize*/
+    int encap_id;           /* encapsulation ID(ARP) - for internal use no need to initialize*/
+};
+
+/* Struct that define main RIF attributes */
+struct rif_route_over_ac_s{
+    int sys_port;    
+    int vsi;                /* vsi */
+    bcm_mac_t my_lsb_mac;   /* 12 lsb bits of MAC on rif*/
+
+};
+
+/*  Main Struct  */
+struct route_over_ac_s{
+    host_route_over_ac_s  host_def[ROUTE_OVER_AC_NUM_OF_HOSTS];   /* host_def[0] - used for host1
+                                                                     host_def[1] - used for host2
+                                                                     host_def[2] - used for host3 */ 
+    rif_route_over_ac_s  rif_def[ROUTE_OVER_AC_NUM_OF_RIFS ];     /* rif_def[0]  - used for rif1
+                                                                     rif_def[1]  - used for rif2 */   
+    bcm_mac_t global_mac;        /* 36 msb bits of global MAC*/
+    int vrf;                     /* vrf */
+
+    vlan_action_utils_s  vlan_action[ROUTE_OVER_AC_NUM_OF_VLAN_ACTIONS]; /* vlan actions for vlan editing*/
+
+    vlan_edit_utils_s    vlan_edit_entry[ROUTE_OVER_AC_NUM_OF_VLAN_EDIT_ENTRIES]; /* vlan editing entries*/
+};
+
+
+/* Global struct initialization*/
+route_over_ac_s g_route_over_ac = {   /*               host MAC                 | host ipv4 address |  gport  |   vlan_o | vlan_i  |  edit profile  |  fec |outLiF | encap_id  */  
+                                        { { {0x00, 0x00, 0x11, 0x11, 0x11, 0x11},    0x11111111     ,    -1   ,     10   ,  100    ,        10      ,   -1  , -1    ,    -1},                                                                                                                                                           
+                                          { {0x00, 0x00, 0x22, 0x22, 0x22, 0x22},    0x22222222     ,    -1   ,     20   ,    0    ,        11      ,   -1  , -1    ,    -1},                                                                                                                                                           
+                                          { {0x00, 0x00, 0x33, 0x33, 0x33, 0x33},    0x33333333     ,    -1   ,     30   ,  300    ,        10      ,   -1  , -1    ,    -1}},
+                                      /*  sys_port  |   vsi   |  my_lsb_mac */
+                                        { {13       ,    11   , { 0x00, 0x00, 0x00, 0x00, 0x01, 0x11 }},
+                                          {14       ,    22   , { 0x00, 0x00, 0x00, 0x00, 0x02, 0x22 }}},   
+                                          g_l2_global_mac_utils, /* global mac taken from cint_utils_l2.c only 36 MSB bits are relevant*/
+                                          15  /*vrf*/,
+                                      /*    action id | outer tpid |     outer action     | inner tpid |  inner action   */       /* used when packet come: */
+                                         { {   5      ,   0x9100   , bcmVlanActionReplace ,   0x8100   , bcmVlanActionAdd    },   /*    from host with 1 vlan tag  and forwarded to host with 2 vlan tags */
+                                           {   6      ,   0x8100   , bcmVlanActionReplace ,      0     , bcmVlanActionDelete },   /*    from host with 2 vlan tags and forwarded to host with 1 vlan tag  */
+                                           {   7      ,   0x9100   , bcmVlanActionReplace ,   0x8100   , bcmVlanActionReplace},   /*    from host with 2 vlan tags and forwarded to host with 2 vlan tags */
+                                           {   8      ,   0x8100   , bcmVlanActionReplace ,      0     , bcmVlanActionNone   }},  /*    from host with 1 vlan tag  and forwarded to host with 1 vlan tag  */
+                                     /*      edit profile |  tag format | action id  */ 
+                                          { {    10       ,     2       ,     5      },
+                                            {    10       ,     6       ,     7      },
+                                            {    11       ,     2       ,     6      },
+                                            {    11       ,     6       ,     8      }}};
+/* **************************************************************************************************
+  --------------          Global  Variables Definitions and Initialization  END       ---------------
+ **************************************************************************************************** */
+/* Initialization of main struct
+ * This function allow to re-write default values or to leave default values without changes
+ *
+ * INPUT: 
+ *   params: new values for g_route_over_ac
+ */
+int route_over_ac_init(int unit, route_over_ac_s *param){
+
+    if (param != NULL) {
+       sal_memcpy(&g_route_over_ac, param, sizeof(g_route_over_ac));
+    }
+
+    advanced_vlan_translation_mode = soc_property_get(unit , "bcm886xx_vlan_translate_mode",0);
+
+    if (!advanced_vlan_translation_mode ) {
+        return BCM_E_PARAM;
+    }
+
+    return BCM_E_NONE;
+}
+
+/* 
+ * Return route_over_ac default value   
+ */
+void route_over_ac_struct_get(int unit, route_over_ac_s *param){
+
+    sal_memcpy( param, &g_route_over_ac, sizeof(g_route_over_ac));
+
+    return;
+}
+
+/* This function runs the main test function with given ports
+ *  
+ * INPUT: unit     - unit
+ *        port1  - port for host1 and host2 
+ *        port2  - port for host3
+ */
+int route_over_ac_with_ports__start_run(int unit,  int port1, int port2){
+ 
+    route_over_ac_s param;
+
+    route_over_ac_struct_get(unit, &param);
+
+    param.rif_def[RIF_1].sys_port = port1;
+    param.rif_def[RIF_2].sys_port = port2;
+   
+    return route_over_ac__start_run(unit, &param);
+}
+
+
+int route_over_ac__start_run(int unit, route_over_ac_s *param)
+{
+
+    int i;
+    int rv;
+    
+    rv = global__chip_type__get(unit);
+    if (rv != JERICHO) {
+        printf("Error, supported on Jericho device only.");
+        return BCM_E_PARAM;
+    }
+    /* Initializing global parameters*/
+    rv = route_over_ac_init(unit, param);
+        
+    if (rv != BCM_E_NONE) {
+        printf("Error, in route_over_ac_init\n");
+        return rv;
+    }
+
+    /* set VLAN domain to each port */
+    for (i=0; i< ROUTE_OVER_AC_NUM_OF_RIFS; i++) {
+        rv = port__vlan_domain__set(unit, g_route_over_ac.rif_def[i].sys_port,  g_route_over_ac.rif_def[i].sys_port);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in port__vlan_domain__set, port=%d, \n", g_route_over_ac.rif_def[i].sys_port);
+            return rv;
+        }
+    }
+
+    /* set TPIDs for both ports and create tag formats(bcm_port_tpid_class_set in */
+    /* Tag formats that created are: */
+    /*                               tag_fomat     tpid1      tpid2   */
+    /*                                   2         0x8100      any    */
+    /*                                   3         0x9100      any    */
+    /*                                   6         0x8100      0x9100 */
+    
+    for (i=0; i< ROUTE_OVER_AC_NUM_OF_RIFS; i++) {
+        port__tpid__set(unit, g_route_over_ac.rif_def[i].sys_port);
+        if (rv != BCM_E_NONE) {
+            printf("Error, port_tpid_set with port_1\n");
+            print rv;
+            return rv;
+        }
+    }
+
+    /* set global MAC(36 MSB bits)*/
+    rv = l2__global_mac__set(unit, g_route_over_ac.global_mac);
+    if (rv != BCM_E_NONE) {
+         printf("Error, setting global my-MAC");
+    }
+   
+
+/* ****************************************************************** */
+/*                  Create rif and setting mac for PORT's             */
+/* ****************************************************************** */
+
+    for (i=0; i< ROUTE_OVER_AC_NUM_OF_RIFS; i++) {
+        rv = route_over_ac_rif_mac_create(unit, i);
+        if (rv != BCM_E_NONE) {
+          printf("Fail  route_over_ac_rif_mac_create for rif index %d ", i);
+          return rv;
+        }
+    }
+
+/* ****************************************************************** */
+/*  Create l2 logical interface, egress object and add route          */
+/* ****************************************************************** */
+     rv = route_over_ac_l2_l3_create(unit,RIF_1,HOST_1);
+     if (rv != BCM_E_NONE) {
+          printf("Fail  route_over_ac_l2_l3_create for rif index %d, host index", RIF_1, HOST_1);
+          return rv;
+     }
+
+     rv = route_over_ac_l2_l3_create(unit,RIF_1,HOST_2);
+     if (rv != BCM_E_NONE) {
+          printf("Fail  route_over_ac_l2_l3_create for rif index %d, host index", RIF_1, HOST_2);
+          return rv;
+     }
+
+     rv = route_over_ac_l2_l3_create(unit,RIF_2,HOST_3);
+     if (rv != BCM_E_NONE) {
+          printf("Fail  route_over_ac_l2_l3_create for rif index %d, host index", RIF_2, HOST_3);
+          return rv;
+     }
+
+
+/* ****************************************************************** */
+/*                           VLAN editing                             */
+/* ****************************************************************** */
+    /* set TPIDs for both ports and create tag formats(bcm_port_tpid_class_set in */
+    /* Tag formats that created are: */
+    /*                               tag_fomat     tpid1      tpid2   */
+    /*                                   2         0x8100      any    */
+    /*                                   3         0x9100      any    */
+    /*                                   6         0x8100      0x9100 */
+
+
+    /* Fill OutLif (EEDB entry)*/
+    for (i=0; i< ROUTE_OVER_AC_NUM_OF_HOSTS; i++){     
+         rv = vlan__port_translation__set(unit, g_route_over_ac.host_def[i].vlan_o, 
+                                                g_route_over_ac.host_def[i].vlan_i, 
+                                                g_route_over_ac.host_def[i].gport, 
+                                                g_route_over_ac.host_def[i].vlan_edit_profile,
+                                                0); 
+         if (rv != BCM_E_NONE) {
+               printf("Fail  route_over_ac_host_translation_set for host %d ", (i+1));
+               return rv;
+         }
+     }
+
+    
+    /* Define actions*/
+    for (i=0; i< ROUTE_OVER_AC_NUM_OF_VLAN_ACTIONS; i++){
+        rv = vlan__translate_action_with_id__set(unit, g_route_over_ac.vlan_action[i].action_id,                                                  
+                                                       g_route_over_ac.vlan_action[i].o_tpid,   
+                                                       g_route_over_ac.vlan_action[i].o_action, 
+                                                       g_route_over_ac.vlan_action[i].i_tpid,   
+                                                       g_route_over_ac.vlan_action[i].i_action, 
+                                                       0);                                                 
+
+        if (rv != BCM_E_NONE) {
+              printf("Fail  vlan__translate_action_with_id__set for action %d ", (i+1));
+              return rv;
+        }
+    }
+
+
+
+    /* Set translation action - connect tag format and edit profile with action*/
+    for (i=0; i< ROUTE_OVER_AC_NUM_OF_VLAN_EDIT_ENTRIES; i++){        
+            
+        rv = vlan__translate_action_class__set(unit, g_route_over_ac.vlan_edit_entry[i].action_id,
+                                                     g_route_over_ac.vlan_edit_entry[i].edit_profile,
+                                                     g_route_over_ac.vlan_edit_entry[i].tag_format,
+                                                     0);
+
+        if (rv != BCM_E_NONE) {
+            printf("Fail  vlan__egress_translate_action_class__set vlan edit profile %d  ", (i+1));
+            return rv;
+        }
+    }
+
+    return rv;
+}
+           
+/* Fuction create rif and setting mac*/
+int route_over_ac_rif_mac_create(int unit, int rif_index)
+{
+    int rv;
+
+    /* Create L3 Interface */
+    rv = l3__intf_rif_with_id__create(unit, g_route_over_ac.global_mac,
+                                            g_route_over_ac.rif_def[rif_index].my_lsb_mac, 
+                                            g_route_over_ac.rif_def[rif_index].vsi);
+    if (rv != BCM_E_NONE) {
+          printf("Fail  l3__intf_rif__create");
+          return rv;
+    }
+
+    /* Set my_mac (12 LSB bits)*/
+    rv = l2__my_mac_ipv4_vsi__set(unit, g_route_over_ac.rif_def[rif_index].my_lsb_mac,
+                                        g_route_over_ac.rif_def[rif_index].vsi);
+    if (rv != BCM_E_NONE) {
+          printf("Fail  l2__my_mac_ipv4_vsi__set: rif(%d) ", g_route_over_ac.rif_def[rif_index].sys_port);
+          return rv;
+    }
+
+    return rv;
+}
+           
+int route_over_ac_l2_l3_create(int unit, int rif_index, int host_index)
+{
+    int rv;
+
+    if (g_route_over_ac.host_def[host_index].vlan_i != -1) {
+        /* Create non protected l2 logical interface according <port,vlan,vlan>*/
+        rv = l2__fec_forward_group_port_vlan_vlan__create(unit,  g_route_over_ac.rif_def[rif_index].sys_port,
+                                                                 g_route_over_ac.host_def[host_index].vlan_o,
+                                                                 g_route_over_ac.host_def[host_index].vlan_i,
+                                                                 g_route_over_ac.rif_def[rif_index].vsi,
+                                                                &g_route_over_ac.host_def[host_index].fec,   
+                                                                &g_route_over_ac.host_def[host_index].outLif);
+    }
+    else{
+        /* Create non protected l2 logical interface according <port,vlan>*/
+        rv = l2__fec_forward_group_port_vlan__create(unit,  g_route_over_ac.rif_def[rif_index].sys_port,
+                                                            g_route_over_ac.host_def[host_index].vlan_o,                                                            
+                                                            g_route_over_ac.rif_def[rif_index].vsi,
+                                                           &g_route_over_ac.host_def[host_index].fec,   
+                                                           &g_route_over_ac.host_def[host_index].outLif);
+    }
+
+
+    g_route_over_ac.host_def[host_index].gport = g_route_over_ac.host_def[host_index].fec;
+
+    if (rv != BCM_E_NONE) {
+          printf("Fail  l2__non_protection_port_vlan_vlan__create ");
+          return rv;
+    }
+
+    /* Create egress object without allocation FEC(FEC was allocated in l2__fec_port_vlan_vlan__create function)*/
+    rv = l3__egress_only_encap__create(unit, g_route_over_ac.rif_def[rif_index].sys_port,
+                                       0,
+                                       g_route_over_ac.rif_def[rif_index].vsi,
+                                       g_route_over_ac.host_def[host_index].mac,
+                                      &g_route_over_ac.host_def[host_index].encap_id);
+    if (rv != BCM_E_NONE) {
+          printf("Fail  l3__egress_only__create ");
+          return rv;
+    }
+
+     /* Add route to host table */
+     rv = l3__ipv4_route_to_overlay_host__add(unit, g_route_over_ac.host_def[host_index].ipv4_address,
+                                                    g_route_over_ac.vrf,
+                                                    g_route_over_ac.host_def[host_index].encap_id,
+                                                    g_route_over_ac.rif_def[rif_index].vsi,
+                                                    g_route_over_ac.host_def[host_index].fec);
+     if (rv != BCM_E_NONE) {
+          printf("Fail  l3__ipv4_route_host__add ");
+          return rv;
+    }
+
+    return rv;
+}
+

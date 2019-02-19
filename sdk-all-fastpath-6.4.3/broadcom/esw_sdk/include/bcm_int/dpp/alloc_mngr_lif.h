@@ -1,0 +1,265 @@
+/*
+ * $Id: alloc_mngr_lif.h,v 1.45 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File:        alloc_mngr_lif.h
+ * Purpose:     Resource allocation for lif.
+ *
+ */
+
+#ifndef  INCLUDE_ALLOC_MNGR_LIF_H
+#define  INCLUDE_ALLOC_MNGR_LIF_H
+
+/* Global variables used when module is not arad.*/
+#define BCM_ARAD_OPTIMIZE_MEMORY_ALLOCATION (0)
+
+#define DPP_AM_RES_ID_IS_EGRESS_LIF(_unit, _res_id) \
+    (SOC_IS_ARAD(unit) ? (_res_id >= dpp_res_arad_pool_egress_encap_bank_start && _res_id < dpp_res_arad_pool_egress_encap_bank_end) : 0)
+	
+#define DPP_AM_RES_ID_IS_INGRESS_LIF(_unit, _res_id)	\
+    (SOC_IS_ARAD(unit) ? (_res_id >= dpp_res_arad_pool_ingress_lif_bank_start && _res_id < dpp_res_arad_pool_ingress_lif_bank_end) : 0)
+    
+#define DPP_AM_RES_ID_IS_LIF(_unit, _res_id)	\
+    (DPP_AM_RES_ID_IS_EGRESS_LIF(_unit, _res_id) || DPP_AM_RES_ID_IS_INGRESS_LIF(_unit, _res_id))
+
+#define DPP_AM_RES_LIF_SKIP_WARMBOOT(_unit, _res_id) \
+    (DPP_AM_RES_ID_IS_LIF(_unit, _res_id) && BCM_ARAD_OPTIMIZE_MEMORY_ALLOCATION)
+    
+
+/* Module only used if chip is arad and above (no PETRAB)*/
+#ifdef BCM_ARAD_SUPPORT
+
+#include <bcm_int/dpp/alloc_mngr_shr.h>
+
+/* Sync LIF start definiations { */
+#define _BCM_DPP_AM_SYNC_LIF_INGRESS (1 << 0)
+#define _BCM_DPP_AM_SYNC_LIF_EGRESS (1 << 1)
+
+#define _BCM_DPP_AM_INGRESS_LIF_NOF_ENTRIES_PER_BANK (SOC_IS_JERICHO(unit) ? (8*1024) : (4*1024))
+#define _BCM_DPP_AM_INGRESS_LIF_BANK_LOW_ID(bank_id) (bank_id*_BCM_DPP_AM_INGRESS_LIF_NOF_ENTRIES_PER_BANK)
+#define _BCM_DPP_AM_INGRESS_LIF_POOL_ID_TO_BANK_ID(pool_id) (pool_id - dpp_res_arad_pool_ingress_lif_bank_start)
+
+#define _BCM_DPP_AM_EGRESS_ENCAP_NOF_ENTRIES_PER_BANK (SOC_IS_JERICHO(unit) ? (8*1024) : (4*1024))
+#define _BCM_DPP_AM_EGRESS_ENCAP_BANK_LOW_ID(bank_id) (bank_id*_BCM_DPP_AM_EGRESS_ENCAP_NOF_ENTRIES_PER_BANK)
+#define _BCM_DPP_AM_EGRESS_ENCAP_POOL_ID_TO_BANK_ID(pool_id) (pool_id - dpp_res_arad_pool_egress_encap_bank_start + bank_id)
+
+
+typedef enum bcm_dpp_am_egress_encap_app_e{
+    bcm_dpp_am_egress_encap_app_pwe=0,
+    bcm_dpp_am_egress_encap_app_mpls_tunnel,
+    bcm_dpp_am_egress_encap_app_second_mpls_tunnel,
+    bcm_dpp_am_egress_encap_app_out_ac,
+    bcm_dpp_am_egress_encap_app_3_tags_data,
+    bcm_dpp_am_egress_encap_app_3_tags_out_ac,
+    bcm_dpp_am_egress_encap_app_linker_layer, /* ROO Linker-layer */
+    bcm_dpp_am_egress_encap_app_ip_tunnel_roo /* ROO ip tunnel */
+} bcm_dpp_am_egress_encap_app_t;
+
+typedef struct bcm_dpp_am_egress_encap_alloc_info_s {
+  _dpp_am_res_t         pool_id; /* Indication on pool id */
+  /* Indication needed on application in case pool id refers to more than one application */
+  bcm_dpp_am_egress_encap_app_t application_type; 
+} bcm_dpp_am_egress_encap_alloc_info_t;
+
+typedef enum bcm_dpp_am_ingress_lif_app_e{
+    bcm_dpp_am_ingress_lif_app_ingress_ac=0,
+    bcm_dpp_am_ingress_lif_app_ingress_isid,    
+    bcm_dpp_am_ingress_lif_app_mpls_term,
+    bcm_dpp_am_ingress_lif_app_mpls_term_indexed_1,
+    bcm_dpp_am_ingress_lif_app_mpls_term_indexed_2,
+    bcm_dpp_am_ingress_lif_app_mpls_term_indexed_3,
+    bcm_dpp_am_ingress_lif_app_mpls_term_indexed_1_2,
+    bcm_dpp_am_ingress_lif_app_mpls_term_indexed_1_3,
+    bcm_dpp_am_ingress_lif_app_mpls_frr_inrif_port_term_indexed_1,    
+    bcm_dpp_am_ingress_lif_app_mpls_frr_inrif_port_term_indexed_3,
+    bcm_dpp_am_ingress_lif_app_mpls_frr_term,
+    bcm_dpp_am_ingress_lif_app_mpls_term_explicit_null,
+    bcm_dpp_am_ingress_lif_app_ip_term,
+    bcm_dpp_am_ingress_lif_app_trill_nick,
+    bcm_dpp_am_ingress_lif_app_vpn_ac
+} bcm_dpp_am_ingress_lif_app_t;
+
+typedef struct bcm_dpp_am_ingress_lif_alloc_info_s {
+  _dpp_am_res_t         pool_id; /* Indication on pool id */
+  /* Indication needed on application in case pool id refers to more than one application */
+  bcm_dpp_am_ingress_lif_app_t application_type;
+} bcm_dpp_am_ingress_lif_alloc_info_t;
+
+typedef struct bcm_dpp_am_sync_lif_alloc_info_s {
+  uint32 sync_flags;
+  bcm_dpp_am_ingress_lif_alloc_info_t ingress_lif;
+  bcm_dpp_am_egress_encap_alloc_info_t egress_lif;
+} bcm_dpp_am_sync_lif_alloc_info_t;
+
+
+
+uint32 
+_bcm_dpp_am_egress_encap_alloc(int unit, bcm_dpp_am_egress_encap_alloc_info_t* allocation_info, uint32 flags, int count, int* object);
+
+uint32 
+_bcm_dpp_am_egress_encap_alloc_align(int unit, bcm_dpp_am_egress_encap_alloc_info_t* allocation_info, uint32 flags, int align, int offset, int count, int* object);
+
+uint32 
+_bcm_dpp_am_egress_encap_dealloc(int unit, bcm_dpp_am_egress_encap_alloc_info_t* allocation_info, int count, int object);
+
+int
+_bcm_dpp_am_egress_encap_is_allocated(int unit, bcm_dpp_am_egress_encap_alloc_info_t* allocation_info, int count, int object);
+
+uint32 
+_bcm_dpp_am_ingress_lif_alloc(int unit, bcm_dpp_am_ingress_lif_alloc_info_t* allocation_info, uint32 flags, int count, int* object);
+
+uint32 
+_bcm_dpp_am_ingress_lif_dealloc(int unit, bcm_dpp_am_ingress_lif_alloc_info_t* allocation_info, int count, int object);
+
+int    
+_bcm_dpp_am_ingress_lif_is_allocated(int unit, bcm_dpp_am_ingress_lif_alloc_info_t* allocation_info, int count, int object);
+
+uint32 
+_bcm_dpp_am_sync_lif_alloc(int unit, bcm_dpp_am_sync_lif_alloc_info_t* allocation_info, uint32 flags, int count, int* object);
+
+uint32 
+_bcm_dpp_am_sync_lif_alloc_align(int unit, bcm_dpp_am_sync_lif_alloc_info_t* allocation_info, uint32 flags, int align, int offset, int count, int* object);
+
+uint32 
+_bcm_dpp_am_sync_lif_dealloc(int unit, bcm_dpp_am_sync_lif_alloc_info_t* allocation_info, int count, int object);
+
+uint32
+_bcm_dpp_am_ingress_lif_init(int unit);
+
+uint32
+_bcm_dpp_am_ingress_lif_deinit(int unit);
+
+uint32
+_bcm_dpp_am_egress_encap_sw_state_init(int unit);
+
+uint32
+_bcm_dpp_am_egress_encap_init(int unit);
+
+uint32
+_bcm_dpp_am_egress_encap_deinit(int unit);
+
+uint32
+_bcm_dpp_am_sync_lif_init(int unit);
+
+uint32      
+_bcm_dpp_am_sync_lif_deinit(int unit);
+
+/** GLOBAL LIF ALLOCATION - START **/
+
+#define _BCM_DPP_AM_MAX_NOF_GLOBAL_LIFS (256 * 1024)
+
+#define _BCM_DPP_AM_GLOBAL_LIF_NOF_ENTRIES_PER_BANK (4*1024)
+
+#define _BCM_DPP_AM_MAX_NOF_GLOBAL_LIF_BANKS (_BCM_DPP_AM_MAX_NOF_GLOBAL_LIFS / _BCM_DPP_AM_GLOBAL_LIF_NOF_ENTRIES_PER_BANK)
+
+#define _BCM_DPP_AM_GLOBAL_LIF_EGRESS_RES_ID_START(_unit) (dpp_res_arad_pool_ingress_lif_bank_end)
+
+#define _BCM_DPP_AM_GLOBAL_LIF_EGRESS_RES_ID_END(_unit) (_BCM_DPP_AM_GLOBAL_LIF_EGRESS_RES_ID_START(_unit) + _BCM_DPP_AM_MAX_NOF_GLOBAL_LIF_BANKS)
+
+#define _BCM_DPP_AM_GLOBAL_LIF_INGRESS_RES_ID_START(_unit) (_BCM_DPP_AM_GLOBAL_LIF_EGRESS_RES_ID_END(_unit))
+
+#define _BCM_DPP_AM_GLOBAL_LIF_INGRESS_RES_ID_END(_unit) (_BCM_DPP_AM_GLOBAL_LIF_INGRESS_RES_ID_START(_unit) + _BCM_DPP_AM_MAX_NOF_GLOBAL_LIF_BANKS)
+
+#define _BCM_DPP_AM_RES_ID_IS_EGRESS_GLOBAL_LIF(_unit, _res_id) (((_res_id) >= _BCM_DPP_AM_GLOBAL_LIF_EGRESS_RES_ID_START(_unit)) \
+                                                    && ((_res_id) < _BCM_DPP_AM_GLOBAL_LIF_EGRESS_RES_ID_END(_unit)))
+
+#define _BCM_DPP_AM_RES_ID_IS_INGRESS_GLOBAL_LIF(_unit, _res_id) (((_res_id) >= _BCM_DPP_AM_GLOBAL_LIF_INGRESS_RES_ID_START(_unit)) \
+                                                    && ((_res_id) < _BCM_DPP_AM_GLOBAL_LIF_INGRESS_RES_ID_END(_unit)))
+
+#define _BCM_DPP_AM_GLOBAL_LIF_INGRESS_BANK_LOW_ID(bank_id) ((bank_id) * _BCM_DPP_AM_GLOBAL_LIF_NOF_ENTRIES_PER_BANK)
+#define _BCM_DPP_AM_GLOBAL_LIF_INGRESS_LIF_RES_ID_TO_BANK_ID(_unit, _res_id) ((_res_id) - _BCM_DPP_AM_GLOBAL_LIF_INGRESS_RES_ID_START(_unit))
+
+#define _BCM_DPP_AM_GLOBAL_LIF_EGRESS_BANK_LOW_ID(bank_id) ((bank_id) * _BCM_DPP_AM_GLOBAL_LIF_NOF_ENTRIES_PER_BANK)
+
+#define _BCM_DPP_AM_GLOBAL_LIF_EGRESS_LIF_RES_ID_TO_BANK_ID(_unit, _res_id) ((_res_id) - _BCM_DPP_AM_GLOBAL_LIF_EGRESS_RES_ID_START(_unit))
+
+#define _BCM_DPP_AM_GLOBAL_LIF_EGRESS_LEGAL_BANKS_START(_unit) (1) 
+
+#define _BCM_DPP_AM_GLOBAL_LIF_ID_IS_LEGAL(_unit, _global_lif_id)                                 \
+        (((_global_lif_id) < _BCM_DPP_AM_MAX_NOF_GLOBAL_LIFS)                                       \
+        && ((_global_lif_id) >= 0))
+
+
+typedef enum bcm_dpp_am_global_lif_bank_type_e {
+    bcm_dpp_am_global_lif_bank_type_none,               /* This bank is legal, and no entries are allocated in it. */
+    bcm_dpp_am_global_lif_bank_type_invalid,            /* This bank can't be used for global lifs */
+    bcm_dpp_am_global_lif_bank_type_sync,               /* A sync entry has been allocated in this bank, and every fentry in it is 
+                                                            allocated (or deallocated) in both ingress and egress. */
+    bcm_dpp_am_global_lif_bank_type_allocated,          /* A none sync entry has been allocated in this bank. */
+    bcm_dpp_am_global_lif_bank_type_count
+} bcm_dpp_am_global_lif_bank_type_t;
+
+
+uint32 
+_bcm_dpp_am_global_lif_init(int unit);
+
+
+uint32
+_bcm_dpp_am_global_sync_lif_internal_alloc(int unit, uint32 flags, int *global_lif);
+
+uint32
+_bcm_dpp_am_global_sync_lif_internal_dealloc(int unit, int global_lif);
+
+uint32
+_bcm_dpp_am_global_egress_lif_internal_alloc(int unit, uint32 flags, int *global_lif);
+
+uint32             
+_bcm_dpp_am_global_egress_lif_internal_is_alloced(int unit, int global_lif);
+
+uint32             
+_bcm_dpp_am_global_egress_lif_internal_dealloc(int unit, int global_lif);
+
+uint32
+_bcm_dpp_am_global_ingress_lif_internal_alloc(int unit, uint32 flags, int *global_lif);
+
+uint32             
+_bcm_dpp_am_global_ingress_lif_internal_is_alloced(int unit, int global_lif);
+
+uint32             
+_bcm_dpp_am_global_ingress_lif_internal_dealloc(int unit, int global_lif);
+
+
+#endif
+
+#endif /*INCLUDE_ALLOC_MNGR_LIF_H*/
+

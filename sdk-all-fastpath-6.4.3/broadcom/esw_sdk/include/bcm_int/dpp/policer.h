@@ -1,0 +1,125 @@
+/*
+ * $Id: policer.h,v 1.7 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File:        policer.h
+ * Purpose:     policer internal definitions to the BCM library.
+ */
+
+#ifndef   _BCM_INT_DPP_POLICER_H_
+#define   _BCM_INT_DPP_POLICER_H_
+
+
+/* 
+ * format meter id 
+ * 0-12: meter/policer id 
+ * 13: group (for meter) 
+ * 29: type 0:meter 1:ethernet-policer , 
+ *     needed as same APIs and ID used for both meter types
+ * Notes: 
+ *    - meter type: has to be zero, as pointer by FP 
+ */
+
+
+/* type: 0:meter 1:ethernet-policer */
+#define _DPP_POLICER_METER_TYPE_SHIFT(__unit)  (29)
+/* group: 0 or 1 */
+#define _DPP_POLICER_METER_GROUP_SHIFT(__unit)  (SOC_IS_PETRAB(__unit) ? 13 : 15)
+
+/* 13 for meter group */
+#define _DPP_POLICER_METER_GROUP_MASK(__unit)  (1 << _DPP_POLICER_METER_GROUP_SHIFT(__unit))
+/* 29 for meter type*/
+#define _DPP_POLICER_METER_TYPE_MASK(__unit)  (1 << _DPP_POLICER_METER_TYPE_SHIFT(__unit))
+/* 0 -12. for meter id */
+#define _DPP_POLICER_METER_ID_MASK(__unit)  (_DPP_POLICER_METER_GROUP_MASK(__unit) - 1)
+
+
+#define _DPP_POLICER_ID_TO_GROUP(__unit , __meter_id)    (((__meter_id) & _DPP_POLICER_METER_GROUP_MASK(__unit)) >> _DPP_POLICER_METER_GROUP_SHIFT(__unit))
+#define _DPP_POLICER_ID_TO_METER(__unit, __meter_id)    ((__meter_id) & _DPP_POLICER_METER_ID_MASK(__unit))
+#define _DPP_POLICER_ID_FROM_METER_GROUP(__unit, __meter, __group)   (((__group) << _DPP_POLICER_METER_GROUP_SHIFT(__unit))|__meter)
+
+#define _DPP_POLICER_NOF_POLICERS (8)
+#define _DPP_POLICER_MAX_POLICER_ID (_DPP_POLICER_NOF_POLICERS - 1)
+#define _DPP_POLICER_MIN_POLICER_ID  (1)
+
+
+
+/* 
+* sw state for meter/police
+*/  
+
+
+/* for each bcm-policer used dpp_policers*/
+typedef struct _dpp_policer_info_s {
+    bcm_policer_group_mode_t mode;
+} _dpp_policer_group_info_t;
+
+/* dpp policers status */
+
+typedef struct _dpp_policer_state_s {
+    sal_mutex_t lock;
+    _dpp_policer_group_info_t policer_group[_DPP_POLICER_NOF_POLICERS];
+} _dpp_policer_state_t;
+
+
+#define _DPP_POLICER_MAX_KBITS_SEC_UNLIMITED (0xffffffff)
+
+
+extern _dpp_policer_state_t *_dpp_policer_state[BCM_MAX_NUM_UNITS];
+
+/* map port to policer group */
+int bcm_petra_policer_port_set(
+    int unit, 
+    bcm_port_t port, 
+    bcm_policer_t policer_id);
+    
+/* return policer group assigned to port */
+int bcm_petra_policer_port_get(
+    int unit, 
+    bcm_port_t port, 
+    bcm_policer_t *policer_id);
+    
+extern int
+bcm_petra_policer_detach(int unit);
+
+#endif /* _BCM_INT_DPP_POLICER_H_ */

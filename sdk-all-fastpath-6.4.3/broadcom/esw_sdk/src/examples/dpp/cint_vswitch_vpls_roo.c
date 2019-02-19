@@ -1,0 +1,1023 @@
+/*~~~~~~~~~~~~~~~~~~~~~~~Mulitpoint VPLS Service~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+/* $Id: cint_vswitch_vpls_roo.c,v 1.22 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ *
+ * File: cint_vswitch_vpls_roo.c
+ * Purpose: Example of Open Multi-Point VPLS service with PWE-ECMP configuration,
+ *          Routing over PWE and Bridging over PWE (using the same HW objects)
+ *          The attached ports can be attachment circuits or PWEs.
+ * BCM88660 supports only Bridging over PWE
+ * BCM88675 supports both Bridging over PWE and Routing over PWE
+ *
+ *
+ * Attachment circuit (AC): Ethernet port attached to the service based on port-vlan-vlan, 
+ *                          connect from access side. 
+ * 
+ * For this service, multiple logical ports can be attached where each logical port can be:
+ *
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~    
+ * |                                             . . .       . . .                                       |
+ * |                                           .       .   .       .                                     |
+ * |                                       . .    +---------+     .   . .                                |
+ * |                                     .        |         |  /\   .     .                              |
+ * |                                   .          |   PE3   |  \\          .                             |
+ * |                                   .       /\ |   OEBR  |/\ \\         .                             |
+ * |                                    .      // +---------+\\  \\       .                              |
+ * |                                   .      //              \\  +------+ .                             |
+ * |                                  . +------+               \\ |TUNNEL| .                             |
+ * |                                 .  |TUNNEL|                \\+------+.                              |
+ * |                                 .  +------+                 \\  \\    .          . . .              |
+ * |                  . .            .    //                      \\  \\    .      . .      .     .  .   |
+ * |             .  .     . .       .    /\/    +------------+    \/\ \/\   .     . +-------+ . .   .    | 
+ * |    . .   .   +----+     .  +---------+ <---| - - - - - -|---- +---------+   .  |Routec |       .    |
+ * |  .     .     |UNIa|--------|         | ----| - - - - - -|---> |         |----- +-------+ +----+ .   |           
+ * |  .  +------+ +----+     .  |   PE1   |     |    MPLS    |     |   PE2   |----------------|UNId|   . |
+ * |   . |Routeb| --------------|  OEBR   | <---| - TUNNEL- -|---- |   OEBR  |--- +----+      +----+   . |
+ * | .   +------+            .  +---------+ ----| - - - - - -|---> +---------+  . |UNIe|             .   |
+ * |.            Native       .      .     . .  +------------+              .  .  +----+   Native   .    |
+ * | .     .       .     . . .         . .     .       .       .    .      .    .      .       .     .   |
+ * |   . .   . . .   . .                         . . .   . . .   . .  . . .      . . .   . . .   . .     |
+ * |                                                                                                     |
+ * |      +---------------------+    +--------------------------------------+  +-----------------+       |
+ * |      |  Ethr   | IP | Data |    | Ethr | MPLS | PWE | Ethr | IP | Data |  | Ethr |IP | Data |       |
+ * |      +---------------------+    +--------------------------------------+  +-----------------+       | 
+ * |                                                                                                     |
+ * |                      +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+      |
+ * |                      | Figure : Multipoing VPLS Service Attachment in Routing Overlay Netowrk|      |
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *                                                                                                           
+ *  This CINT configures a provider edge as shown in Figure 14.                                              
+ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+ *  |  Access-P1: Access port, defined on port1 with outer-VID10 and inner-VID20 |
+ *  |                                                                            |
+ *  |                                                                            |
+ *  |                                                                            |
+ *  |                                                                            |
+ *  |                                              .  .  . .  . .  .   .         |
+ *  |       . .   . . .                           .                     .        |
+ *  |   . .     .       .                        . TUNNELS:(1982,1000)   .       |
+ *  |  . +--+             .                      . (ECMP)  (1982,1001)   .       |
+ *  | .  |  |----------------------- +---------+    .      (1982,1002)   .       |
+ *  | .  +--+  Access-P1<1,10,20>    |         |    .          ...       .       |
+ *  |  .                   .         |   PE1   @     .     (1982,1010)  .        |
+ *  | .                     .        | OEBR    |\     .               .          |
+ *  | .                    .         +---------+ \  .                   .        |             
+ *  |  .                 .                .       \ .                    .       |
+ *  |    .               .                  .     +-----------------------+  .   |      
+ *  |     .   NATIVE   .                     .  <-|---PWE(2010,in_port)---|-   . |
+ *  |       . .  . . .                     .     -|---PWE(1982,out_port)--|->  . |
+ *  |                                      .      +-----------------------+ .    |
+ *  |                                      .            \            .           |
+ *  |                                        .           \PWE-1  . .             |
+ *  |                                          .       .  @    .                 |
+ *  |                                            . . .   . . .                   |      
+ *  |            +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+                 |
+ *  |            | Figure 14: CINT Provider Edge Configuration |                 |
+ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ * Explanation:
+ *  -   Access-P1: Access port, defined on port 1 with outer-VID 10 and inner-VID 20.
+ *  -   PWE-1: network port with incoming VC = 2010, egress-VC set on ECMP with PWE lablel 1982 and tunnels 1000-1010 and 1500-1510.
+ *  -   For access ports outer-Tag TPID is 0x8100 and inner Tag TPID is 0x9100.
+ *  -   Access-P1 refer to the logical interface (attachment circuit).
+ *  -   PWE1 refers to MPLS network ports.
+ *  -   P1 refers to the physical ports PWE1 are attached to.
+ *
+ *	 Following figure shows HW model for Routing (and bridging) over PWE:
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *|                                           Ingress-Egress                           |
+ *|                                                  |                                 |
+ *|                                  LB                                                |
+ *|                                                  |                  EEDB           |
+ *| +-------+ ECMP-    +------+PWE-MPLS-FEC+------+     +----+     +----------+        |
+ *| |       |  PWE-MPLS|      |----------->|      |  |  |    |---->|PWE, MPLS |- |     |                              
+ *| | MACT  | -------->| ECMP |----------->| FEC  |---->|GLEM|     |----------|  |     | 
+ *| |       |          |      |----------->|      |  |  |    |  ---|- - - - - - -      | 
+ *| +-------+          +------+            +------+     +----+  |  |          |        |
+ *|                                                             |  |          |        | 
+ *|                                                             |->|----------|        |
+ *|                                                                |Link-Layer|        |  
+ *|                                                                +----------+        |
+ *|                                                                                    |        
+ *-------------------------------------------------------------------------------------|
+ *
+ * Bridge Headers:
+ *  
+ *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+ *   |  | DA |SA||TIPD1 |Prio|VID||  MPLS         ||   PWE    ||Eth||Data | |
+ *   |  |0:11|  ||0x8100|    |100||Label:1500-1510||Lable:2010||   ||     | | 
+ *   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+ *   |                +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+             |
+ *   |                | Figure 15: Packets Received from PWE1 |             |  
+ *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+ * 
+ *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+ *   |  | DA |SA||TIPD1 |Prio|VID||  MPLS         ||   PWE    ||Eth||Data   | |
+ *   |  |0:11|  ||0x8100|    |100||Label:1500-1510||Lable:1982||   ||       | | 
+ *   |  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+ *   |                +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+               |
+ *   |                | Figure 15: Packets Transmitted to PWE1|               |  
+ *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 
+ * Access side packets:
+ * 
+ *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *   |                       tag1                 tag2                           |
+ *   |   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+ *   |   | DA | SA || TIPD1 | Prio | VID || TIPD2 | Prio | VID ||    Data    |   |
+ *   |   |    |    || 0x8100|      | 10  || 0x9100|      | 20  ||            |   |
+ *   |   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+   |
+ *   |        +~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+       |
+ *   |        | Figure 18: Packets Received/Transmitted on Access Port 1 |       |
+ *   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~  
+ *
+ * Calling sequence:
+ *  -   Port TPIDs setting:
+ *      -   For P1 set outer TPID to 0x8100 and no inner TPID (using cint_port_tpid.c).
+ *  -    Create LL egress object interface (on egress). 
+ *      -    Packet routed to this egress-object is forwarded to P1 tunneled with the L3-interface VID and MAC.
+ *      -    Calls bcm_l2_egress_create() (for routing over PWE)
+ *           Call bcm_l3_egress_create() (for bridging over PWE)
+ *  -   Add AC and MPLS-ports to the VSI.
+ *      -   vswitch_vpls_add_access_port_1 creates attachment circuit and add them to the Vswitch and 
+ *          update the Multicast group.
+ *      -   vswitch_vpls_add_network_port_1 creates PWE and add them to the VSI and update the 
+ *          multicast group.
+ *          - PWE is added in the calls: INGRESS_ONLY configures the ingress object (temination+learning)
+ *                                       EGRESS_ONLY configures the egress onject (encapsulation)
+ *                                       FORWARDING_GROUP configured the FEC
+ *                                       mpls_port_id must be the same for ingress and egress so that split horizon filter will work.
+ *          - PWE egress interface is egress object created above.
+ *          - After creating several forwarding groups, connect them into one ecmp object.
+ *          -    Packet routed to above interface is tunneled into PWE ECMP, where tunnels are set according to 
+ *               load balancing to the values 1000-1010 and 1500-1510. (these will be created later)
+ *  -   Set up MPLS tunnels. Refer to mpls_tunnels_config().
+ *      -   Set MPLS L2 termination (on ingress).
+ *          -    MPLS packets arriving with DA 00:00:00:00:00:11 and VID 100 causes L2 termination.  
+ *          -    Calls bcm_l2_tunnel_add().
+ *      -   Add pop entries to MPLS switch.
+ *          -    MPLS packet arriving from the MPLS network side with labels 1000-1010 or 1500-1510 the label/s 
+ *               are popped (refer to mpls_add_pop_entry).
+ *          -    Calls bcm_mpls_tunnel_switch_create().
+ *          -    Create MPLS L3 interface (on egress).
+ *          -    Packet routed to this L3 interface is set with this MAC. 
+ *          -    Calls bcm_l3_intf_create().
+ *      -   Create MPLS tunnels pointed by the MPLS-ports.
+ *          -    Tunnel inteface of the MPLS label is created on the same entry as the mpls_port.
+ *          -    Calls bcm_mpls_tunnel_initiator_get() and then bcm_mpls_tunnel_initiator_create().  
+ *  -   Create multipoint VSI #6202 (refer to vswitch_vpls_vpn_create).
+ *      -   calling bcm_mpls_vpn_id_create().
+ *          -    You has to supply VPN ID and multicast groups. For this purpose, the following flags have 
+ *               to be present BCM_MPLS_VPN_VPLS|BCM_MPLS_VPN_WITH_ID.
+ *          Note that uc/mc/bc group have the same value as VSI. Another option is to set uc_group = VSI, 
+ *          and mc = uc + 4k, and bc = mc + 4k.
+ *      -   Use open_ingress_mc_group() to open multicast group for flooding.
+ *          -    Multicast group ID is equal to VPN ID.
+ *  -   Create Native Routing Interface (for routing over PWE only)
+ *      -   create_l3_intf create native routing interface. 
+ *      -   create_l3_egress create fec for native routing. (hierarchical fec: point to MPLS tunnel FEC): 
+ *          Build native ethernet link layer with vlan 700
+ * 
+ * Traffic:
+ *  Flooding packets incoming from MPLS network:
+ *  Send the following packet, where the DA of the inner Ethernet is unknown on VSI.
+ *
+ *  Flooding Packets Incoming from MPLS Network same as Packets Received from PWE1, see Figure 15
+ *
+ *  -   Packet is flooded (as DA is not known):
+ *      -   Packet is received. 
+ *          -    In access P1: physical port P1 with VLAN tag1: VID =10, VLAN tag2: VLAN ID = 20.  
+ *          Note that the packet is not received on PWE1 due to split-horizon filtering. 
+ *          A packet received from HUB is not flooded back to HUB.
+ *  -   The SA of the packet is learned 6202.
+ *      -   Call l2_print_mact(unit) to print MAC table content.
+ *
+ *  Flooding packets incoming access side.
+ *  -   Send Ethernet packet from access-P1:
+ *      -   Any SA
+ *      -   Unknown DA
+ *      -   VLAN tag1: VLAN tag type 0x8100, VID =10
+ *      -   VLAN tag2: VLAN tag type 0x9100, VID =20 
+ *
+ *  Flooding Packets from Incoming Access Side same as Packets Received/Transmitted 
+ *  on Access Port 1, see Figure 18.
+ * 
+ *  -   Packet is flooded (as DA is not known).
+ *      -   Packet is received: 
+ *          -   On physical port P1:
+ *              -  PWE1: With VC label. MPLS tunnels in multicast come from only one ECMP entry, in this case the first {1000,1500},
+ *              as configured by the multicast table configuration.
+ *          Note that the packet is not received on access P1, as packet was injected 
+ *          from this logical port, that is, hair-pin filtering.
+ *  -   The SA of the packet is learned on VSI 6202.
+ *      -   Call l2_print_mact(unit) to print MAC table content. 
+ *
+ * Sending to known DA
+ *  -   Send Ethernet packet from any logical interface PWE or Access port with known DA on VSI 6202 
+ *      the packet will be forwarded to the specific logical port with required editing.
+ *
+ * Remarks:
+ *  -   For this application at least two ports are needed, one for access side and one for MPLS network side
+ *  -   User can statically add entry to the MACT pointing to a gport using 
+ *      vswitch_add_l2_addr_to_gport(unit, gport_id)
+ *  -   Set verbose = 1/0 to show/hide informative prints
+ *  -   Calling vswitch_vpls_roo_run() as is more than one time would fail because this call will try open same 
+ *      VPN twice,  to avoid this user should set vswitch_vpls_info_1.vpn_id different value in order to 
+ *      open new service.
+ *
+ * To Activate Above Settings Run:
+ *      BCM> cint examples/dpp/cint_port_tpid.c
+ *      BCM> cint examples/dpp/cint_advanced_vlan_translation_mode.c
+ *      BCM> cint examples/dpp/cint_qos.c
+ *      BCM> cint examples/dpp/cint_mpls_lsr.c
+ *      BCM> cint examples/dpp/cint_vswitch_metro_mp.c
+ *      BCM> cint examples/dpp/cint_vswitch_vpls.c
+ *      BCM> cint examples/dpp/cint_vswitch_vpls_roo.c
+ *      BCM> cint examples/dpp/cint_system_vswitch_encoding.c
+ *      BCM> cint
+ *      cint> int rv;
+ *      cint> rv = vswitch_vpls_roo_run_with_defaults(unit); 
+ * 
+ * Script adjustment:
+ *  User can adjust the following attribute of the application
+ *  -   vpn_id:             VPN id to create 
+ *  -   ac_in_port:         accesss port: physical port connect to customer 
+ *  -   pwe_in_port:        network port: physical port connect to MPLs network (for incoming packets)
+ *  -   pwe_out_port:       network port: physical port connect to MPLs network (for outgoing packets) 
+ *  -   in_vc_label:        incomming VC label 
+ *  -   eg_vc_label:        egress VC label 
+ *  -   in_tunnel_label:       inner tunnel label 
+ *  -   ecmp_size:          number of members in ECMP
+ *  -   out_to_core_vlan:   vlan on the PWE outgoing packets
+ *  -   enable_routing_over_pwe: enable routing over pwe. If disabled, bridging over pwe. To enable from Jericho devices. 
+ *
+ */
+
+
+
+struct cint_vswitch_vpls_roo_info_s {
+    int ecmp_size;
+    /* tunnels info */
+    int in_tunnel_label[10];
+    bcm_if_t pwe_encap_id[10];
+	
+    /* After ecmp_hashing_main is run successfully, this will contain the ECMP object that was created. */
+    /* Only works with the bcm_l3_egress_ecmp_* interfaces.*/
+    bcm_l3_egress_ecmp_t ecmp;
+    /* After ecmp_hashing_main is run successfully, this will contain the FEC objects that were created. */
+    bcm_if_t fec_intfs[10]; /* FECs */	
+    bcm_if_t ll_intfs[10]; /* LLs, can be different per PWE outlif. In this example using only one */	
+    int ll_intf_id; /* LL interface id */
+
+    int out_to_core_vlan; /* vlan in Core direction.  for vpls LL */
+    int first_pwe_outlif; /* outlifs are configured with id in this mode. */
+
+    uint8 enable_routing_over_pwe; /* enable routing over pwe. If disabled, bridging over pwe */
+
+    int native_out_to_core_vlan; /* vlan in Core direction. For native LL */
+
+    uint8 mac[6]; /* next hop for vlpls LL */
+    uint8 native_mac[6]; /* next hop for native LL */
+};
+
+cint_vswitch_vpls_roo_info_s vswitch_vpls_roo_info;
+
+
+
+void
+vswitch_vpls_roo_info_init(int unit, int ac_port, int pwe_in_port, int pwe_out_port, int ac_port1_outer_vlan, int ac_port1_inner_vlan,
+                       int ac_port2_outer_vlan, int ac_port2_inner_vlan, int vpn_id, uint8 enable_routing_over_pwe) {
+    int rv; 
+    int i;
+
+    int is_jericho; 
+    rv = is_jericho(unit, is_jericho); 
+    if (rv != BCM_E_NONE) {
+		printf("Error, is_jericho \n");
+	}
+
+
+    vswitch_vpls_roo_info.enable_routing_over_pwe = enable_routing_over_pwe;  
+
+    if (!is_jericho && vswitch_vpls_roo_info.enable_routing_over_pwe) {
+        printf("Error, routing over pwe is supported only from Jericho \n");
+        return rv;
+    }
+
+    vswitch_vpls_roo_info.ecmp_size = 10;
+    vswitch_vpls_roo_info.out_to_core_vlan = 200;
+
+    if (is_jericho) {
+        vswitch_vpls_roo_info.first_pwe_outlif = 0x8000;  
+    } else {
+        vswitch_vpls_roo_info.first_pwe_outlif = 0x5000;    
+    }
+
+    vswitch_vpls_roo_info.native_out_to_core_vlan = 700; 
+
+    for (i=0; i<6; i++) {
+        vswitch_vpls_roo_info.mac[i] = 0;
+    }
+    vswitch_vpls_roo_info.mac[5] = 0x55;
+
+    for (i=0; i<6; i++) {
+        vswitch_vpls_roo_info.native_mac[i] = 0;
+    }
+    vswitch_vpls_roo_info.native_mac[5] = 0x99;
+
+    
+
+    /* VPN id to create */
+    if (vpn_id < 0) {
+        vswitch_vpls_info_1.vpn_id = default_vpn_id;
+    } else {
+        vswitch_vpls_info_1.vpn_id = vpn_id; 
+    }
+
+    /* incomming packet attributes */
+    vswitch_vpls_info_1.ac_in_port = ac_port;
+    vswitch_vpls_info_1.pwe_in_port = pwe_in_port;
+    vswitch_vpls_info_1.pwe_out_port = pwe_out_port;
+    vswitch_vpls_info_1.in_vc_label = 2010;
+    vswitch_vpls_info_1.eg_vc_label = 1982;
+
+    /* tunnel info */
+    for (i=0; i<vswitch_vpls_roo_info.ecmp_size; i++) {
+        vswitch_vpls_roo_info.in_tunnel_label[i] = 1000+i;
+    }
+    
+    vswitch_vpls_info_1.ac_port1_outer_vlan = ac_port1_outer_vlan;
+    vswitch_vpls_info_1.ac_port1_inner_vlan = ac_port1_inner_vlan;
+    vswitch_vpls_info_1.ac_port2_outer_vlan = ac_port2_outer_vlan;
+    vswitch_vpls_info_1.ac_port2_inner_vlan = ac_port2_inner_vlan;
+    if (verbose1) {
+        printf("vswitch_vpls_roo_info_init %d\n", vswitch_vpls_info_1.vpn_id);
+    }
+
+    vswitch_vpls_info_1.access_index_1 = 2;
+    vswitch_vpls_info_1.access_index_2 = 3;
+    vswitch_vpls_info_1.access_index_3 = 3;
+
+    /* set mpls tunneling information with default values */
+    mpls_lsr_init(vswitch_vpls_info_1.pwe_in_port, vswitch_vpls_info_1.pwe_out_port, 0x11, 0x22, 0/*in_label*/, 0/*out_label*/, 100, 200, 0);
+    mpls_lsr_info_1.eg_port = vswitch_vpls_info_1.pwe_out_port;
+
+}
+
+/* This function receives PWE pointer and MPLS tunnel strucutre and add them to the same EEDB entry */
+int
+vswitch_vpls_roo_fill_egress_encap_pwe_entry_with_additional_mpls_tunnel(int unit, int pwe_encap_id, bcm_mpls_egress_label_t * tunnel_label) 
+{
+
+    int rv;
+    bcm_mpls_egress_label_t label_array[2];
+    int label_count;
+
+    /* For each PWE EEDB entry, add MPLS label in the same entry */
+    bcm_mpls_egress_label_t_init(&label_array[0]);
+    bcm_mpls_egress_label_t_init(&label_array[1]);
+
+    rv = bcm_mpls_tunnel_initiator_get(unit, pwe_encap_id, 1, &label_array, &label_count);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_mpls_tunnel_initiator_get\n");
+        return rv;
+    }
+
+    label_count = 2;
+    /* PWE label - leaving as is */
+    label_array[0].flags |= BCM_MPLS_EGRESS_LABEL_WITH_ID | BCM_MPLS_EGRESS_LABEL_REPLACE;
+    /* Add MPLS label in the second place in the same EEDB entry */
+    label_array[1].flags |= BCM_MPLS_EGRESS_LABEL_WITH_ID | BCM_MPLS_EGRESS_LABEL_REPLACE;
+    label_array[1].flags |= tunnel_label->flags;
+    label_array[1].tunnel_id = tunnel_label->tunnel_id;
+    label_array[1].l3_intf_id = tunnel_label->l3_intf_id;
+    label_array[1].label = tunnel_label->label;
+    label_array[1].ttl = tunnel_label->ttl;
+
+    rv = bcm_mpls_tunnel_initiator_create(unit, 0, label_count, label_array);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_mpls_tunnel_initiator_create\n");
+        return rv;
+    }
+
+    if (verbose1) {
+        printf("Labels: %d, %d, Tunnel id: %d\n", label_array[0].label, label_array[1].label, label_array[0].tunnel_id);
+    }
+
+    /* update entry with the LL pointer */
+    /* Routing Over PWE */
+    if (vswitch_vpls_roo_info.enable_routing_over_pwe) {
+        /* In ROO, the overlay LL encapsulation is built with a different API call 
+           (bcm_l2_egress_create instead of bcm_l3_egress create) */
+        bcm_l2_egress_t l2_egress_overlay; 
+        bcm_l2_egress_t_init(&l2_egress_overlay);
+        l2_egress_overlay.flags = BCM_L2_EGRESS_REPLACE | BCM_L2_EGRESS_WITH_ID; 
+
+        l2_egress_overlay.dest_mac   = vswitch_vpls_roo_info.mac;  /* next hop. default: {0x00, 0x00, 0x00, 0x00, 0xcd, 0x1d} */
+        l2_egress_overlay.src_mac    = mpls_lsr_info_1.my_mac;  /* my-mac */
+        l2_egress_overlay.outer_vlan = vswitch_vpls_roo_info.out_to_core_vlan; /* PCP DEI (0) + outer_vlan (200=0xC8)  */
+        l2_egress_overlay.ethertype  = 0x8847;       /* ethertype for MPLS */
+        l2_egress_overlay.outer_tpid = 0x8100;      /* outer tpid */
+        l2_egress_overlay.l3_intf  =  tunnel_label->tunnel_id;  /* tunnel interface */
+        l2_egress_overlay.encap_id =  vswitch_vpls_roo_info.ll_intfs[0]; 
+        bcm_l2_egress_create(unit, &l2_egress_overlay);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in bcm_l2_egress_create\n");
+            return rv;
+        }
+    } 
+    /* bridging Over PWE */
+    else {
+        rv = create_l3_egress(unit, BCM_L3_EGRESS_ONLY|BCM_L3_WITH_ID|BCM_L3_KEEP_DSTMAC|BCM_L3_KEEP_VLAN|BCM_L3_REPLACE, vswitch_vpls_info_1.pwe_out_port,vswitch_vpls_roo_info.out_to_core_vlan, 
+                              tunnel_label->tunnel_id, vswitch_vpls_roo_info.mac, &vswitch_vpls_roo_info.ll_intf_id, &vswitch_vpls_roo_info.ll_intfs[0]);                                          
+        if (rv != BCM_E_NONE) {                                                                                                                                                                    
+            printf("Error, in create_l3_egress\n");                                                                                                                                                
+            return rv;                                                                                                                                                                             
+        }                                                                                                                                                                                          
+    }
+
+    return rv;
+}
+
+/* 
+ * This function configures MPLS tunnels on already existing PWE encapsulation DB entries.
+ */
+int
+mpls_tunnels_config(int unit){
+
+
+    int CINT_NO_FLAGS = 0;
+    int ingress_intf;
+    int encap_id[10];
+    bcm_mpls_egress_label_t mpls_tunnel_label;
+    int label_count;
+    bcm_pbmp_t pbmp;
+    int rv;
+    int is_arad_plus;
+    int label_for_pop_entry_in;
+    int i;
+
+    rv = is_arad_plus(unit, &is_arad_plus);
+    if (rv < 0) {
+        printf("Error checking whether the device is arad+.\n");
+        print rv;
+        return rv;
+    }
+    
+    /* open vlan */
+    if (verbose1) {
+        printf("open vlan %d\n", mpls_lsr_info_1.in_vid);
+    }
+    rv = bcm_vlan_create(unit, mpls_lsr_info_1.in_vid);
+    if (rv < 0) {
+        printf("Error in bcm_vlan_create.\n");
+        print rv;
+        return rv;
+    }
+
+    /* add vlan to pwe_port */
+    BCM_PBMP_CLEAR(pbmp);
+    BCM_PBMP_PORT_ADD(pbmp, mpls_lsr_info_1.eg_port);
+
+    rv = bcm_vlan_port_add(unit, mpls_lsr_info_1.in_vid, pbmp, pbmp);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in bcm_vlan_port_add, vlan=%d, \n", vlan);
+        return rv;
+    }
+    
+    /* l2 termination for mpls routing: packet received on those VID MAC will be L2 terminated  */
+    rv = create_l3_intf(unit, CINT_NO_FLAGS, mpls_lsr_info_1.in_port, mpls_lsr_info_1.in_vid, mpls_lsr_info_1.my_mac, &ingress_intf);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in create_l3_intf\n");
+        return rv;
+    }
+
+    /*  create ingress object, packet will be routed to */
+    rv = create_l3_intf(unit, CINT_NO_FLAGS, mpls_lsr_info_1.eg_port, mpls_lsr_info_1.eg_vid, mpls_lsr_info_1.my_mac, &ingress_intf);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in create_l3_intf\n");
+        return rv;
+    }
+
+    for (i = 0; i < vswitch_vpls_roo_info.ecmp_size; i++) {
+
+        bcm_mpls_egress_label_t_init(&mpls_tunnel_label);
+
+        if (!is_arad_plus || pipe_mode_exp_set) {
+            mpls_tunnel_label.flags |= BCM_MPLS_EGRESS_LABEL_EXP_SET;
+        } else {
+            mpls_tunnel_label.flags |= BCM_MPLS_EGRESS_LABEL_EXP_COPY;
+        }
+        mpls_tunnel_label.tunnel_id = vswitch_vpls_roo_info.pwe_encap_id[i];
+        mpls_tunnel_label.l3_intf_id = ingress_intf; /* here should be the overlay */
+        mpls_tunnel_label.label = vswitch_vpls_roo_info.in_tunnel_label[i];
+        mpls_tunnel_label.ttl = 40;
+
+        vswitch_vpls_roo_fill_egress_encap_pwe_entry_with_additional_mpls_tunnel(unit, vswitch_vpls_roo_info.pwe_encap_id[i], &mpls_tunnel_label);
+    }
+    
+    for (i = 0; i < vswitch_vpls_roo_info.ecmp_size; i++) {
+        /* add switch entries to pop MPLS labels  */
+        if (mpls_termination_label_index_enable) {
+            BCM_MPLS_INDEXED_LABEL_SET(&label_for_pop_entry_in, vswitch_vpls_roo_info.in_tunnel_label[i], 1);
+        }
+        else {
+            label_for_pop_entry_in = vswitch_vpls_roo_info.in_tunnel_label[i];
+        }
+        
+        rv = mpls_add_pop_entry(unit,label_for_pop_entry_in);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in mpls_add_pop_entry\n");
+            return rv;
+        }
+    }
+   
+    return rv;
+}
+
+/* 
+ * Configure mpls port INGRESS attributes: InLif and learning information
+ */
+int
+vswitch_vpls_ingress_mpls_port_create(int unit){
+    int rv;
+    bcm_mpls_port_t mpls_port_1;
+    int modid;
+    int modport;
+    bcm_gport_t egress_mpls_port_id;
+    int i;
+    int fec_id, fec_forwarding_group; 
+
+    /* 
+     *  Ingress_only
+     */
+    bcm_mpls_port_t_init(&mpls_port_1);
+    mpls_port_1.flags = BCM_MPLS_PORT_NETWORK|BCM_MPLS_PORT_EGRESS_TUNNEL|BCM_MPLS_PORT_WITH_ID|BCM_MPLS_PORT_ENCAP_WITH_ID;
+    mpls_port_1.flags2 = BCM_MPLS_PORT2_INGRESS_ONLY; /* Indicate we only create PWE-In-LIF allocation */
+
+    /* Set parameters for ingress mpls port */
+    mpls_port_1.criteria = BCM_MPLS_PORT_MATCH_LABEL;
+    if (mpls_termination_label_index_enable) {
+        BCM_MPLS_INDEXED_LABEL_SET(&mpls_port_1.match_label, vswitch_vpls_info_1.in_vc_label, vswitch_vpls_info_1.access_index_2);
+    }
+    else {
+        mpls_port_1.match_label = vswitch_vpls_info_1.in_vc_label;
+    }
+
+    mpls_port_1.port = BCM_GPORT_INVALID; /* Port is not required for PWE-InLIF */
+    mpls_port_1.egress_tunnel_if = 0; /* PWE In-LIF for the case of FORWARD_GROUP do not care about MPLS egress_if. It is not part of learning information. */
+    /* Converting PWE-MPLS-ECMP-IF to forwarding group mpls-port gport encoidng */
+    fec_id = encode_gport_id_to_resource_val(vswitch_vpls_roo_info.ecmp.ecmp_intf);
+    system_aux_fec_to_forwarding_group(fec_id, &fec_forwarding_group); /* converting to forwarding group encoding */
+    BCM_GPORT_MPLS_PORT_ID_SET(mpls_port_1.failover_port_id, fec_forwarding_group); /* Learning - PWE ECMP (forwarding froup) */
+
+    /* Only one inlif is configured. It should be equal to one of the Outlifs to get same-interface filtering (Multicast group member) */
+    BCM_GPORT_MPLS_PORT_ID_SET(mpls_port_1.mpls_port_id, vswitch_vpls_roo_info.first_pwe_outlif); 
+    mpls_port_1.encap_id = vswitch_vpls_roo_info.first_pwe_outlif;
+
+    rv = bcm_mpls_port_add(unit, vswitch_vpls_shared_info_1.vpn, &mpls_port_1);
+    if (rv != BCM_E_NONE) {
+        printf("Error, bcm_mpls_port_add\n");
+        return rv;
+    }
+
+    if (verbose1) {
+        printf("INGRESS: add port 0x%08x to vpn \n\r", mpls_port_1.mpls_port_id);
+    }
+
+    /* handle of the created gport */
+    network_port_id = mpls_port_1.mpls_port_id;
+
+        
+    return rv;   
+}
+
+/* 
+ * Configure mpls port EGRESS attributes: OutLif
+ */
+int
+vswitch_vpls_egress_mpls_port_create(int unit){
+    int rv;
+    bcm_mpls_port_t mpls_port_1;
+    int modid;
+    int modport;
+    bcm_gport_t egress_mpls_port_id;
+    int i;
+    
+    /* 
+     *  Egress only
+     */
+    bcm_mpls_port_t_init(&mpls_port_1);
+    mpls_port_1.flags = BCM_MPLS_PORT_NETWORK|BCM_MPLS_PORT_EGRESS_TUNNEL | BCM_MPLS_PORT_WITH_ID | BCM_MPLS_PORT_ENCAP_WITH_ID;
+    mpls_port_1.flags2 = BCM_MPLS_PORT2_EGRESS_ONLY; /* Indicate creation of PWE Out-LIF only */
+
+    /* Set parameters for egress mpls port */
+    if (pwe_cw) {
+        mpls_port_1.flags |= BCM_MPLS_PORT_CONTROL_WORD;
+    }
+    mpls_port_1.port = BCM_GPORT_INVALID; /* Port is not required for PWE-OutLIF */
+    /* egress label parameters for pwe encapsulation configuration */
+    mpls_port_1.egress_label.label = vswitch_vpls_info_1.eg_vc_label;
+    mpls_port_1.egress_label.ttl = 10;
+    mpls_port_1.egress_label.flags = BCM_MPLS_EGRESS_LABEL_TTL_SET;
+
+    for (i = 0; i < vswitch_vpls_roo_info.ecmp_size; i++) {
+        /* encap id is the outlif */
+        mpls_port_1.encap_id = vswitch_vpls_roo_info.first_pwe_outlif + 2*i;
+
+        /* mpls_port_id is the outlif id encapsulated as MPLS_PORT */
+        BCM_GPORT_MPLS_PORT_ID_SET(mpls_port_1.mpls_port_id, mpls_port_1.encap_id);
+
+        mpls_port_1.egress_tunnel_if = vswitch_vpls_roo_info.ll_intfs[0]/*For ROO this should be the LL*/;
+
+        if (verbose1) {
+            printf("ADDING MPLS PORT EGRESS: mpls_port_id: %d, encap_id: %d\n", mpls_port_1.mpls_port_id, mpls_port_1.encap_id);
+        }
+
+        rv = bcm_mpls_port_add(unit, 0, &mpls_port_1);
+        if (rv != BCM_E_NONE) {
+            printf("Error, bcm_mpls_port_add\n");
+            return rv;
+        }
+        if (verbose1) {
+            printf("EGRESS: add port 0x%08x to vpn \n\r", mpls_port_1.mpls_port_id);
+        }
+
+        if (i==0) {
+            egress_mpls_port_id = mpls_port_1.mpls_port_id; /* save this port for multicast */
+        }
+
+        vswitch_vpls_interface_encap_id_set(mpls_port_1.encap_id, &vswitch_vpls_roo_info.pwe_encap_id[i]);
+    }
+    
+
+    /* update Multicast table */
+    bcm_stk_modid_get(unit, &modid);
+    BCM_GPORT_MODPORT_SET(modport, modid, vswitch_vpls_info_1.pwe_in_port);
+    /* Adding egress mpls port to multicast because when egress and ingress are configured separately the multicast should point to the outlif */
+
+    rv = multicast_mpls_port_add(unit, vswitch_vpls_shared_info_1.vpn, modport, egress_mpls_port_id);
+    if (rv != BCM_E_NONE) {
+        printf("Error, multicast_mpls_port_add\n");
+        return rv;
+    }
+    if(verbose1){
+        printf("add port   0x%08x to multicast \n\r",egress_mpls_port_id);
+    }     
+    
+    return rv;
+}
+
+/* 
+ * Configure mpls port FORWARD GROUP attributes: FEC
+ */
+int
+vswitch_vpls_forward_group_mpls_port_create(int unit){
+    int rv;
+    bcm_mpls_port_t mpls_port_1;
+    int i;
+    int fec_id, fec_forwarding_group; 
+    
+     /* 
+     *  Forwarding groups (FEC) 
+     */
+    bcm_mpls_port_t_init(&mpls_port_1);
+    mpls_port_1.flags = BCM_MPLS_PORT_NETWORK|BCM_MPLS_PORT_EGRESS_TUNNEL|BCM_MPLS_PORT_ENCAP_WITH_ID;
+
+    /* Set parameters for egress mpls port */
+    mpls_port_1.flags |= BCM_MPLS_PORT_FORWARD_GROUP; 
+    /* Routing Over PWE */
+    if (vswitch_vpls_roo_info.enable_routing_over_pwe) {
+        mpls_port_1.flags2 |BCM_MPLS_PORT2_CASCADED;
+    }
+    mpls_port_1.egress_label.label = 0; /* No need for egress label when configuring forwarding group */
+    mpls_port_1.port = vswitch_vpls_info_1.pwe_in_port;
+
+    for (i = 0; i < vswitch_vpls_roo_info.ecmp_size; i++) {
+        mpls_port_1.encap_id = vswitch_vpls_roo_info.first_pwe_outlif + 2*i;
+        BCM_ENCAP_REMOTE_SET(mpls_port_1.encap_id); /* in forwarding group remote bit should always be set */
+
+        mpls_port_1.egress_tunnel_if = vswitch_vpls_roo_info.pwe_encap_id[i]; /* this is the outlif, configured by mpls_port with EGRESS_ONLY flag set */
+
+        if (verbose1) {
+            printf("now adding fec BCM_MPLS_PORT_FORWARD_GROUP: add port 0x%08x to vpn \n\r", mpls_port_1.mpls_port_id);
+        }
+
+        rv = bcm_mpls_port_add(unit, 0, &mpls_port_1);
+        if (rv != BCM_E_NONE) {
+            printf("Error, bcm_mpls_port_add\n");
+            return rv;
+        }
+        if (verbose1) {
+            printf("FEC: add fec 0x%08x \n\r", mpls_port_1.mpls_port_id);
+        }
+
+        vswitch_vpls_roo_info.fec_intfs[i] = encode_gport_id_to_resource_val(BCM_GPORT_MPLS_PORT_ID_GET(mpls_port_1.mpls_port_id));
+        rv = system_fec_to_fec_id(unit, &vswitch_vpls_roo_info.fec_intfs[i]); /* Fix encoding to be FEC */
+
+        if (rv != BCM_E_NONE) {
+            printf("Error, bcm_mpls_port_add\n");
+            return rv;
+        }
+    }
+        
+    return rv;    
+}
+
+
+
+/*
+ * Create mpls-port: created using separate ingress, egress and forwarding group calls 
+ * Also creates ECMP group. 
+ */
+int
+vswitch_vpls_add_network_port_1(int unit){
+    int rv;
+
+    rv = vswitch_vpls_egress_mpls_port_create(unit);
+    if (rv != BCM_E_NONE) {
+        printf("vswitch_vpls_egress_mpls_port_create failed: %d \n", rv);
+        return rv;
+    }
+
+    rv = vswitch_vpls_forward_group_mpls_port_create(unit);
+    if (rv != BCM_E_NONE) {
+        printf("vswitch_vpls_forward_group_mpls_port_create failed: %d \n", rv);
+        return rv;
+    }
+
+    /* Create ECMP. The members are mpls port forwarding groups */
+    bcm_l3_egress_ecmp_t_init(&vswitch_vpls_roo_info.ecmp);
+    vswitch_vpls_roo_info.ecmp.max_paths = vswitch_vpls_roo_info.ecmp_size;
+
+    /* create an ECMP, containing the FEC entries */
+    rv = bcm_l3_egress_ecmp_create(unit, &vswitch_vpls_roo_info.ecmp, vswitch_vpls_roo_info.ecmp_size, vswitch_vpls_roo_info.fec_intfs);
+    if (rv != BCM_E_NONE) {
+        printf("bcm_l3_egress_ecmp_create failed: %d \n", rv);
+        return rv;
+    }
+
+    rv = vswitch_vpls_ingress_mpls_port_create(unit);
+    if (rv != BCM_E_NONE) {
+        printf("vswitch_vpls_ingress_mpls_port_create failed: %d \n", rv);
+        return rv;
+    }
+        
+    return rv;
+}
+
+/* 
+ * This function ctrates VPLS ROO configuration. 
+ * In contrary to the known VPLS sequence, here we first create LL, then mpls_port and only afterwards the MPLS tunnels.
+ */
+int
+vswitch_vpls_roo_run(int unit){
+
+    int nof_outer_tpids;
+    int nof_inner_tpids;
+    bcm_mpls_vpn_config_t vpn_info;
+    bcm_mpls_port_t mpls_port_1;
+    bcm_vlan_t  vpn;
+    int rv;
+    int trap_code;
+    bcm_rx_trap_config_t trap_config;
+    int native_ingress_intf; /* l3_intf for native routing. */
+    int CINT_NO_FLAGS = 0;
+
+    /* init values */
+  
+    /* set ports to identify double tags packets */
+
+    mpls_termination_label_index_enable = soc_property_get(unit , "mpls_termination_label_index_enable",0);
+    if (pwe_cw) {
+        rv = bcm_switch_control_set(unit, bcmSwitchMplsPWControlWord, pwe_cw);
+        if (rv != BCM_E_NONE) {
+            printf("Error, bcm_switch_control_set\n");
+            return rv;
+        }
+    }
+  
+    if (verbose1) {
+        printf("vswitch_vpls_roo_run %d\n", vswitch_vpls_info_1.vpn_id);
+    }
+
+    port_tpid_init(vswitch_vpls_info_1.pwe_in_port,1,0);
+    rv = port_tpid_set(unit);
+    if (rv != BCM_E_NONE) {
+        printf("Error, port_tpid_set\n");
+        return rv;
+    }
+    
+    port_tpid_init(vswitch_vpls_info_1.ac_in_port,1,1);
+    rv = port_tpid_set(unit);
+    if (rv != BCM_E_NONE) {
+        printf("Error, port_tpid_set\n");
+        return rv;
+    }
+
+    /* In advanced vlan translation mode, the default ingress/ egress actions and mapping
+        are not configured. This is here to compensate. */
+    if (advanced_vlan_translation_mode) {
+        rv = vlan_translation_default_mode_init(unit);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in vlan_translation_default_mode_init\n");
+            return rv;
+        }
+    }
+   
+    /* Init vlan */  
+    init_vlan(unit,vswitch_vpls_info_1.ac_port1_outer_vlan);
+    init_vlan(unit,vswitch_vpls_info_1.ac_port1_inner_vlan);
+    init_vlan(unit,vswitch_vpls_info_1.ac_port2_outer_vlan);
+    init_vlan(unit,vswitch_vpls_info_1.ac_port2_inner_vlan);
+
+    if (verbose1) {
+        printf("vswitch_vpls_roo_run create vswitch\n");
+    }
+    /* create vswitch */
+    rv = vswitch_vpls_vpn_create(unit, vswitch_vpls_info_1.vpn_id);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in vswitch_vpls_vpn_create\n");
+        return rv;
+    }
+
+    /* create LL for VPLS tunnel */
+    /* Routing Over PWE */
+    if (vswitch_vpls_roo_info.enable_routing_over_pwe) {
+        /* In ROO, the overlay LL encapsulation is built with a different API call 
+           (bcm_l2_egress_create instead of bcm_l3_egress create) */
+        bcm_l2_egress_t l2_egress_overlay; 
+        bcm_l2_egress_t_init(&l2_egress_overlay);
+
+        l2_egress_overlay.dest_mac   = vswitch_vpls_roo_info.mac;  /* next hop. default: {0x00, 0x00, 0x00, 0x00, 0xcd, 0x1d} */
+        l2_egress_overlay.src_mac    = mpls_lsr_info_1.my_mac;  /* my-mac */
+        l2_egress_overlay.outer_vlan = vswitch_vpls_roo_info.out_to_core_vlan; /* PCP DEI (0) + outer_vlan (200=0xC8)  */
+        l2_egress_overlay.ethertype  = 0x8847;       /* ethertype for MPLS */
+        l2_egress_overlay.outer_tpid = 0x8100;      /* outer tpid */
+        bcm_l2_egress_create(unit, &l2_egress_overlay);
+        if (rv != BCM_E_NONE) {
+            printf("Error, in bcm_l2_egress_create\n");
+            return rv;
+        }
+        vswitch_vpls_roo_info.ll_intfs[0] = l2_egress_overlay.encap_id;  
+    } 
+    /* switching over PWE */
+    else {
+       rv = create_l3_egress(unit, BCM_L3_EGRESS_ONLY, vswitch_vpls_info_1.pwe_out_port,vswitch_vpls_roo_info.out_to_core_vlan,
+                              /*tunnel_id*/0, vswitch_vpls_roo_info.mac, &vswitch_vpls_roo_info.ll_intf_id, &vswitch_vpls_roo_info.ll_intfs[0]);
+       if (rv != BCM_E_NONE) {
+           printf("Error, in create_l3_egress\n");
+           return rv;
+       }
+    }
+
+    if (verbose1) {
+        printf("Configured LL: %d\n", vswitch_vpls_roo_info.ll_intfs[0]);
+    }
+
+    /* Routing Over PWE */
+    if (vswitch_vpls_roo_info.enable_routing_over_pwe) {
+        /* Create native router interface */
+        rv = create_l3_intf(unit, 
+                            CINT_NO_FLAGS, 
+                            0, 
+                            vswitch_vpls_info_1.vpn_id,    /* vlan: use vpls vpn */
+                            mpls_lsr_info_1.my_mac,        /* native my mac */
+                            &native_ingress_intf); 
+        if (rv != BCM_E_NONE) {
+            printf("Error, create_l3_intf\n");
+        }
+    }
+
+    bcm_if_t native_intf; 
+    int native_ll_intf_id;
+
+    /* For ROO first the MPLS PORT should be configured and only then the MPLS TUNNEL */
+    if (verbose1) {
+        printf("vswitch_vpls_roo_run add vlan access port\n");
+    }
+    /* add mpls access port */
+    rv = vswitch_vpls_add_access_port_1(unit, -1/*second_unit*/, &vswitch_vpls_info_1.access_port_id);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in vswitch_vpls_add_access_port_1\n");
+        return rv;
+    }
+
+    if (verbose1) {
+        printf("vswitch_vpls_roo_run add mpls network port\n");
+    }
+    /* add mpls network port */
+    rv = vswitch_vpls_add_network_port_1(unit);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in vswitch_vpls_add_network_port_1\n");
+        return rv;
+    }
+
+    if (verbose1) {
+        printf("vswitch_vpls_roo_run add mpls tunnel\n");
+    }
+
+    /* configure MPLS tunnels */
+    rv  = mpls_tunnels_config(unit);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mpls_tunnels_config\n");
+        return rv;
+    }
+
+    /* Routing Over PWE */
+    if (vswitch_vpls_roo_info.enable_routing_over_pwe) {
+        /* From Jericho, support hierachical fec:
+         * create additional fec for native routing. 
+         * create fec which point to cascaded fec:
+         * - create outLif using next hop 
+         * - FEC contains another FEC: to build overlay  
+         * -              outLif and outRif: to build native LL.
+         */
+        rv = create_l3_egress(unit, 
+                              0, /* flags */
+                              network_port_id, /* fec-id */
+                              vswitch_vpls_roo_info.native_out_to_core_vlan, /* native out-vlan */
+                              native_ingress_intf,  /* l3-intf */
+                              vswitch_vpls_roo_info.native_mac,  /* next hop */
+                              &native_ll_intf_id, 
+                              &native_intf); 
+        if (rv != BCM_E_NONE) {
+           printf("Error, in create_l3_egress\n");
+        }
+    }
+
+
+    return rv;
+}
+
+
+
+int
+vswitch_vpls_roo_run_with_defaults(int unit){
+
+    rv = mpls_pipe_mode_exp_set(unit);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mpls_pipe_mode_exp_set\n");
+        return rv;
+    }
+
+    vswitch_vpls_roo_info_init(unit, 1,13,13,10,20,15,30,620, 0);
+    return vswitch_vpls_roo_run(unit);
+}
+
+int
+vswitch_vpls_roo_run_with_defaults_dvapi(int unit, int acP, int pweP){
+    int rv = BCM_E_NONE;
+
+    rv = mpls_pipe_mode_exp_set(unit);
+    if (rv != BCM_E_NONE) {
+        printf("Error, in mpls_pipe_mode_exp_set\n");
+        return rv;
+    }
+    vswitch_vpls_roo_info_init(unit, acP,pweP,pweP,10,20,15,30,620, 0);
+    return vswitch_vpls_roo_run(unit);
+}
+

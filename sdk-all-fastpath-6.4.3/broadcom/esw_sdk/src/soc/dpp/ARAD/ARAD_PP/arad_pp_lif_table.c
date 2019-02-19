@@ -1,0 +1,825 @@
+#include <soc/mcm/memregs.h>
+#if defined(BCM_88650_A0)
+/* $Id: arad_pp_lif_table.c,v 1.20 Broadcom SDK $
+ * $Copyright: Copyright 2012 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+
+#ifdef _ERR_MSG_MODULE_NAME
+  #error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+
+#include <soc/mem.h>
+#define _ERR_MSG_MODULE_NAME BSL_SOC_LIF
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+#include <shared/bsl.h>
+#include <soc/dcmn/error.h>
+
+#include <soc/dpp/SAND/Utils/sand_header.h>
+
+#include <soc/dpp/SAND/Management/sand_general_macros.h>
+#include <soc/dpp/SAND/Management/sand_error_code.h>
+#include <soc/dpp/SAND/Utils/sand_os_interface.h>
+
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_framework.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_lif_table.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_frwrd_trill.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_lif.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_rif.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_general.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_sw_db.h>
+
+
+/* } */
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+
+#define ARAD_PP_LIF_TABLE_ENTRIES_TYPE_BM_MAX                    (SOC_SAND_U32_MAX)
+
+/* } */
+/*************
+ * MACROS    *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * GLOBALS   *
+ *************/
+/* { */
+
+CONST STATIC SOC_PROCEDURE_DESC_ELEMENT
+  Arad_pp_procedure_desc_element_lif_table[] =
+{
+  /*
+   * Auto generated. Do not edit following section {
+   */
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_GET_BLOCK),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_GET_BLOCK_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_GET_BLOCK_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_GET_BLOCK_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_ENTRY_GET),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_ENTRY_GET_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_ENTRY_GET_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_ENTRY_GET_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_ENTRY_UPDATE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_ENTRY_UPDATE_PRINT),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_ENTRY_UPDATE_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_ENTRY_UPDATE_VERIFY),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_ENTRY_ACCESSED_INFO_GET),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_ENTRY_ACCESSED_INFO_GET_UNSAFE),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_GET_PROCS_PTR),
+  SOC_PROCEDURE_DESC_ELEMENT_DEF(ARAD_PP_LIF_TABLE_GET_ERRS_PTR),
+  /*
+   * } Auto generated. Do not edit previous section.
+   */
+
+
+
+  /*
+   * Last element. Do no touch.
+   */
+  SOC_PROCEDURE_DESC_ELEMENT_DEF_LAST
+};
+
+CONST STATIC SOC_ERROR_DESC_ELEMENT
+  Arad_pp_error_desc_element_lif_table[] =
+{
+  /*
+   * Auto generated. Do not edit following section {
+   */
+  {
+    ARAD_PP_LIF_TABLE_TYPE_OUT_OF_RANGE_ERR,
+    "ARAD_PP_LIF_TABLE_TYPE_OUT_OF_RANGE_ERR",
+    "The parameter 'type' is out of range. \n\r "
+    "The range is: 0 - ARAD_PP_NOF_LIF_ENTRY_TYPES-1.\n\r ",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  {
+    ARAD_PP_LIF_TABLE_ENTRIES_TYPE_BM_OUT_OF_RANGE_ERR,
+    "ARAD_PP_LIF_TABLE_ENTRIES_TYPE_BM_OUT_OF_RANGE_ERR",
+    "The parameter 'entries_type_bm' is out of range. \n\r "
+    "The range is: 0 - SOC_SAND_U32_MAX.\n\r ",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  {
+    ARAD_PP_LIF_TABLE_ENTRY_UPDATE_TYPE_MISMATCH_ERR,
+    "ARAD_PP_LIF_TABLE_ENTRY_UPDATE_TYPE_MISMATCH_ERR",
+    "when update entry using arad_pp_lif_table_entry_update_unsafe. \n\r "
+    "information type has to be same as entry type.\n\r ",
+    SOC_SAND_SVR_ERR,
+    FALSE
+  },
+  
+  /*
+   * } Auto generated. Do not edit previous section.
+   */
+
+  /*
+   * Last element. Do no touch.
+   */
+SOC_ERR_DESC_ELEMENT_DEF_LAST
+};
+
+/* } */
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+uint32
+  arad_pp_lif_table_init_unsafe(
+    SOC_SAND_IN  int                                 unit
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+
+  SOC_SAND_TODO_IMPLEMENT_WARNING;
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_lif_table_init_unsafe()", 0, 0);
+}
+
+
+
+/*********************************************************************
+*     Traverse the LIF Table entries (in specified range), and
+ *     retrieve entries that match the given rule.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_lif_table_get_block_unsafe(
+    SOC_SAND_IN  int                                     unit,
+    SOC_SAND_IN  ARAD_PP_LIF_TBL_TRAVERSE_MATCH_RULE             *rule,
+    SOC_SAND_INOUT SOC_SAND_TABLE_BLOCK_RANGE                      *block_range,
+    SOC_SAND_OUT ARAD_PP_LIF_ENTRY_INFO                          *entries_array,
+    SOC_SAND_OUT uint32                                      *nof_entries
+  )
+{
+  uint32
+    entry_ndx,
+    entries_to_scan,
+    nof_valid_entries = 0;
+  ARAD_PP_LIF_TABLE_ENTRY_ACCESSED_INFO
+    accessed_info;
+  uint8
+    match=FALSE;
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_LIF_TABLE_GET_BLOCK_UNSAFE);
+
+  SOC_SAND_CHECK_NULL_INPUT(rule);
+  SOC_SAND_CHECK_NULL_INPUT(block_range);
+  SOC_SAND_CHECK_NULL_INPUT(entries_array);
+  SOC_SAND_CHECK_NULL_INPUT(nof_entries);
+
+  *nof_entries = 0;
+
+  /*
+   *	First verification on the block iteration
+   */
+  if (block_range->iter > SOC_DPP_DEFS_GET(unit, nof_local_lifs) - 1)
+  {
+    ARAD_PP_DO_NOTHING_AND_EXIT;
+  }
+
+  entries_to_scan = block_range->entries_to_scan;
+
+  if (entries_to_scan == SOC_SAND_TBL_ITER_SCAN_ALL)
+  {
+    entries_to_scan = SOC_DPP_DEFS_GET(unit, nof_local_lifs);
+  }
+  
+
+  for (entry_ndx = block_range->iter; entry_ndx < block_range->iter + entries_to_scan; ++entry_ndx)
+  {
+    if (nof_valid_entries >= block_range->entries_to_act || entry_ndx > SOC_DPP_DEFS_GET(unit, nof_local_lifs) - 1)
+    {
+      /*
+       *	No need to go further, maximal number of entries have been found
+       */
+      break;
+    }
+
+    res = arad_pp_lif_table_entry_get_unsafe(
+            unit,
+            entry_ndx,
+            &entries_array[nof_valid_entries]
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+
+    if (entries_array[nof_valid_entries].type & rule->entries_type_bm)
+    {
+      if (rule->accessed_only)
+      {
+        res = arad_pp_lif_table_entry_accessed_info_get_unsafe(unit,entry_ndx,FALSE,&accessed_info);
+        SOC_SAND_CHECK_FUNC_RESULT(res, 15, exit);
+        if (accessed_info.accessed)
+        {
+          match = TRUE;
+        }
+        else
+        {
+          match = FALSE;
+        }
+      }
+      else
+      {
+        match = TRUE;
+      }
+    }
+    else
+    {
+      match = FALSE;
+    }
+    if (match)
+    {
+      ++nof_valid_entries;
+    }
+  }
+  *nof_entries = nof_valid_entries;
+  block_range->iter = entry_ndx;
+  if (block_range->iter > SOC_DPP_DEFS_GET(unit, nof_local_lifs) - 1)
+  {
+    SOC_SAND_TBL_ITER_SET_END(&(block_range->iter));
+  }
+
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_lif_table_get_block_unsafe()", 0, 0);
+}
+
+uint32
+  arad_pp_lif_table_get_block_verify(
+    SOC_SAND_IN  int                                     unit,
+    SOC_SAND_IN  ARAD_PP_LIF_TBL_TRAVERSE_MATCH_RULE             *rule,
+    SOC_SAND_INOUT SOC_SAND_TABLE_BLOCK_RANGE                        *block_range
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_LIF_TABLE_GET_BLOCK_VERIFY);
+
+  ARAD_PP_STRUCT_VERIFY(ARAD_PP_LIF_TBL_TRAVERSE_MATCH_RULE, rule, 10, exit);
+  /* ARAD_PP_STRUCT_VERIFY(SOC_SAND_TABLE_BLOCK_RANGE, block_range, 20, exit); */
+
+  SOC_SAND_TODO_IMPLEMENT_WARNING;
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_lif_table_get_block_verify()", 0, 0);
+}
+
+/*********************************************************************
+*     Enable updating LIF table entry attribute, without
+ *     accessing the LIF KEY.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_lif_table_entry_get_unsafe(
+    SOC_SAND_IN  int                                     unit,
+    SOC_SAND_IN  ARAD_PP_LIF_ID                                  lif_ndx,
+    SOC_SAND_OUT ARAD_PP_LIF_ENTRY_INFO                          *lif_entry_info
+  )
+{
+  ARAD_PP_LIF_ENTRY_TYPE
+    entry_type;
+  uint8
+    found;
+  ARAD_PP_LIF_ID
+    lif_ndex = lif_ndx;
+  uint32
+    res = SOC_SAND_OK;
+  ARAD_PP_RIF_IP_TERM_KEY
+    term_key;
+  ARAD_PP_SYS_VSI_ID
+      vsi_index;
+  uint32
+      sub_type;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_LIF_TABLE_ENTRY_GET_UNSAFE);
+
+  SOC_SAND_CHECK_NULL_INPUT(lif_entry_info);
+
+  ARAD_PP_LIF_ENTRY_INFO_clear(lif_entry_info);
+  ARAD_PP_RIF_IP_TERM_KEY_clear(&term_key);
+
+  res = arad_pp_sw_db_lif_table_entry_use_get(
+          unit,
+          lif_ndx,
+          &entry_type,
+          &sub_type
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+  lif_entry_info->type = entry_type;
+  lif_entry_info->index = lif_ndx;
+  switch (entry_type)
+  {
+    case ARAD_PP_LIF_ENTRY_TYPE_AC:
+    case ARAD_PP_LIF_ENTRY_TYPE_FIRST_AC_IN_GROUP:
+    case ARAD_PP_LIF_ENTRY_TYPE_MIDDLE_AC_IN_GROUP:
+      res = arad_pp_l2_lif_ac_get_internal_unsafe(
+              unit,
+              NULL,
+              TRUE,
+              &lif_ndex,
+              &(lif_entry_info->value.ac),
+              &found
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+    break;
+    case ARAD_PP_LIF_ENTRY_TYPE_PWE:
+      res = arad_pp_l2_lif_pwe_get_internal_unsafe(
+              unit,
+              0,
+              TRUE,
+              &lif_ndex,
+              &(lif_entry_info->value.pwe),
+              &found
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+    break;
+    case ARAD_PP_LIF_ENTRY_TYPE_IP_TUNNEL_RIF:
+      res = arad_pp_rif_ip_tunnel_term_get_internal_unsafe(
+              unit,
+              &term_key,
+              TRUE,
+              &lif_ndex,
+              &(lif_entry_info->value.ip_term_info),
+              &(lif_entry_info->value.rif),
+              &found
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+    break;
+    case ARAD_PP_LIF_ENTRY_TYPE_MPLS_TUNNEL_RIF:
+      res = arad_pp_rif_mpls_label_map_get_internal_unsafe(
+              unit,
+              NULL,
+              TRUE,
+              &lif_ndex,
+              &(lif_entry_info->value.mpls_term_info),
+              &(lif_entry_info->value.rif),
+              &found
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+    break;
+    case ARAD_PP_LIF_ENTRY_TYPE_ISID:
+      res = arad_pp_l2_lif_isid_get_internal_unsafe(
+              unit,
+              NULL,
+              TRUE,
+              &lif_ndex,
+              &vsi_index,
+              &(lif_entry_info->value.isid),
+              &found
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+    break;
+    case ARAD_PP_LIF_ENTRY_TYPE_TRILL_NICK:
+      res = arad_pp_l2_lif_trill_uc_get_internal_unsafe(
+               unit,
+               0,
+               TRUE,
+               &lif_ndex,
+               &(lif_entry_info->value.trill),
+               &found);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 21, exit);
+    break;
+    default:
+      break;
+  }
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_lif_table_entry_get_unsafe()", lif_ndx, 0);
+}
+
+uint32
+  arad_pp_lif_table_entry_get_verify(
+    SOC_SAND_IN  int                                     unit,
+    SOC_SAND_IN  ARAD_PP_LIF_ID                              lif_ndx
+  )
+{
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_LIF_TABLE_ENTRY_GET_VERIFY);
+
+  SOC_SAND_ERR_IF_ABOVE_NOF(lif_ndx, SOC_DPP_DEFS_GET(unit, nof_local_lifs), ARAD_PP_LIF_ID_OUT_OF_RANGE_ERR, 10, exit);
+
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_lif_table_entry_get_verify()", lif_ndx, 0);
+}
+
+/*********************************************************************
+*     Enable updating LIF table entry attribute, without
+ *     accessing the LIF KEY.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_lif_table_entry_update_unsafe(
+    SOC_SAND_IN  int                                     unit,
+    SOC_SAND_IN  ARAD_PP_LIF_ID                                  lif_ndx,
+    SOC_SAND_IN  ARAD_PP_LIF_ENTRY_INFO                          *lif_entry_info
+  )
+{
+  ARAD_PP_LIF_ENTRY_TYPE
+    entry_type;
+  SOC_SAND_SUCCESS_FAILURE
+    success;
+  ARAD_PP_RIF_IP_TERM_KEY
+    term_key;
+  ARAD_PP_MPLS_LABEL_RIF_KEY
+    mpls_term_key;
+  ARAD_PP_LIF_ID
+    lif_indx=lif_ndx;
+  uint8
+    found;
+  uint32
+    res = SOC_SAND_OK;
+  ARAD_PP_L2_LIF_ISID_INFO
+      tmp_isid;
+  ARAD_PP_SYS_VSI_ID
+      vsi_index;
+  uint32
+      sub_type;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_LIF_TABLE_ENTRY_UPDATE_UNSAFE);
+
+  SOC_SAND_CHECK_NULL_INPUT(lif_entry_info);
+
+  ARAD_PP_RIF_IP_TERM_KEY_clear(&term_key);
+  
+  res = arad_pp_sw_db_lif_table_entry_use_get(
+          unit,
+          lif_ndx,
+          &entry_type,
+          &sub_type
+        );
+  SOC_SAND_CHECK_FUNC_RESULT(res, 05, exit);
+
+  /* Verify: entry type consistent. In case of empty configure as user wants */
+  if (entry_type != lif_entry_info->type && entry_type != ARAD_PP_LIF_ENTRY_TYPE_EMPTY)
+  {
+    SOC_SAND_SET_ERROR_CODE(ARAD_PP_LIF_TABLE_ENTRY_UPDATE_TYPE_MISMATCH_ERR, 10, exit);
+  }
+
+  switch (lif_entry_info->type)
+  {
+    case ARAD_PP_LIF_ENTRY_TYPE_AC:
+    case ARAD_PP_LIF_ENTRY_TYPE_FIRST_AC_IN_GROUP:
+    case ARAD_PP_LIF_ENTRY_TYPE_MIDDLE_AC_IN_GROUP:
+      res = arad_pp_l2_lif_ac_add_internal_unsafe(
+              unit,
+              NULL,
+              TRUE,
+              lif_ndx,
+              &(lif_entry_info->value.ac),
+              &success
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+    break;
+    case ARAD_PP_LIF_ENTRY_TYPE_PWE:
+      res = arad_pp_l2_lif_pwe_add_internal_unsafe(
+              unit,
+              0,
+              TRUE,
+              lif_ndx,
+              &(lif_entry_info->value.pwe),
+              &success
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 30, exit);
+    break;
+    case ARAD_PP_LIF_ENTRY_TYPE_IP_TUNNEL_RIF:
+
+      /* get before set, as term is not updated */
+
+      res = arad_pp_rif_ip_tunnel_term_add_internal_unsafe(
+              unit,
+              &term_key,
+              TRUE,
+              lif_ndx,
+              &(lif_entry_info->value.ip_term_info),
+              &(lif_entry_info->value.rif),
+              &success
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 40, exit);
+    break;
+    case ARAD_PP_LIF_ENTRY_TYPE_MPLS_TUNNEL_RIF:
+
+      res = arad_pp_rif_mpls_label_map_add_internal_unsafe(
+              unit,
+              &mpls_term_key,
+              TRUE,
+              lif_ndx,
+              &(lif_entry_info->value.mpls_term_info),
+              &(lif_entry_info->value.rif),
+              &success
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 50, exit);
+    break;
+    case ARAD_PP_LIF_ENTRY_TYPE_ISID:
+      /* get before set, as isid->vsi mapping is not updated */
+      res = arad_pp_l2_lif_isid_get_internal_unsafe(
+              unit,
+              NULL,
+              TRUE,
+              &lif_indx,
+              &vsi_index,
+              &(tmp_isid),
+              &found
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 60, exit);
+
+      res = arad_pp_l2_lif_isid_add_internal_unsafe(
+              unit,
+              vsi_index,
+              NULL,
+              TRUE,
+              lif_ndx,
+              &(lif_entry_info->value.isid),
+              &success
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 70, exit);
+      break;
+  case ARAD_PP_LIF_ENTRY_TYPE_TRILL_NICK:
+      res = arad_pp_l2_lif_trill_add_internal_unsafe(
+          unit,
+          0,
+          TRUE,
+          lif_ndx,
+          &(lif_entry_info->value.trill),
+          &success);
+      SOC_SAND_CHECK_FUNC_RESULT(res, 75, exit);
+      break;
+    case ARAD_PP_LIF_ENTRY_TYPE_EMPTY:
+      res = arad_pp_sw_db_lif_table_entry_use_set(
+              unit,
+              lif_ndx,
+              ARAD_PP_LIF_ENTRY_TYPE_EMPTY,
+              0
+            );
+      SOC_SAND_CHECK_FUNC_RESULT(res, 80, exit);
+    default:
+      break;
+  }
+  
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_lif_table_entry_update_unsafe()", lif_ndx, 0);
+}
+
+uint32
+  arad_pp_lif_table_entry_update_verify(
+    SOC_SAND_IN  int                                     unit,
+    SOC_SAND_IN  ARAD_PP_LIF_ID                              lif_ndx,
+    SOC_SAND_IN  ARAD_PP_LIF_ENTRY_INFO                          *lif_entry_info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_LIF_TABLE_ENTRY_UPDATE_VERIFY);
+
+  SOC_SAND_ERR_IF_ABOVE_NOF(lif_ndx, SOC_DPP_DEFS_GET(unit, nof_local_lifs), ARAD_PP_LIF_ID_OUT_OF_RANGE_ERR, 10, exit);
+  res = ARAD_PP_LIF_ENTRY_INFO_verify(unit, lif_entry_info);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+  SOC_SAND_TODO_IMPLEMENT_WARNING;
+  ARAD_PP_DO_NOTHING_AND_EXIT;
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_lif_table_entry_update_verify()", lif_ndx, 0);
+}
+
+/*********************************************************************
+*     GET access status
+ *     the LIF entry.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+uint32
+  arad_pp_lif_table_entry_accessed_info_get_unsafe(
+    SOC_SAND_IN  int                              unit,
+    SOC_SAND_IN  ARAD_PP_LIF_ID                           lif_ndx,
+    SOC_SAND_IN  uint8                              clear_access_stat,
+    SOC_SAND_OUT ARAD_PP_LIF_TABLE_ENTRY_ACCESSED_INFO    *accessed_info
+  )
+{
+  uint32
+    tmp,
+    entry_indx,
+    data;
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(ARAD_PP_LIF_TABLE_ENTRY_ACCESSED_INFO_GET_UNSAFE);
+
+  SOC_SAND_CHECK_NULL_INPUT(accessed_info);
+
+  SOC_SAND_ERR_IF_ABOVE_NOF(lif_ndx, SOC_DPP_DEFS_GET(unit, nof_local_lifs), ARAD_PP_LIF_ID_OUT_OF_RANGE_ERR, 5, exit);
+
+  ARAD_PP_LIF_TABLE_ENTRY_ACCESSED_INFO_clear(accessed_info);
+
+  entry_indx = lif_ndx /32;
+
+  res = READ_IHP_LIF_ACCESSEDm(unit,
+                               entry_indx/SOC_DPP_IMP_DEFS_GET(unit, ihp_lif_accessed_nof_lines),
+                               MEM_BLOCK_ANY,
+                               entry_indx % SOC_DPP_IMP_DEFS_GET(unit, ihp_lif_accessed_nof_lines),
+                               &data);
+  SOC_SAND_SOC_CHECK_FUNC_RESULT(res, 5, exit);
+
+  /* was entry accessed */
+
+  tmp = SOC_SAND_GET_BIT(data,(lif_ndx) % 32);
+  accessed_info->accessed = SOC_SAND_NUM2BOOL(tmp);
+
+  /* clear accessed bit if needed*/
+  if (clear_access_stat)
+  {
+    tmp = 0;
+    res = soc_sand_set_field(
+            &(data),
+            lif_ndx % 32,
+            lif_ndx % 32,
+            tmp
+          );
+    SOC_SAND_CHECK_FUNC_RESULT(res, 20, exit);
+
+    res = WRITE_IHP_LIF_ACCESSEDm(unit,
+                                  entry_indx/SOC_DPP_IMP_DEFS_GET(unit, ihp_lif_accessed_nof_lines),
+                                  MEM_BLOCK_ANY,
+                                  entry_indx % SOC_DPP_IMP_DEFS_GET(unit, ihp_lif_accessed_nof_lines),
+                                  &data);
+    SOC_SAND_SOC_CHECK_FUNC_RESULT(res, 55, exit);
+  }
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in arad_pp_lif_table_entry_accessed_info_get_unsafe()", lif_ndx, 0);
+}
+
+/*********************************************************************
+*     Get the pointer to the list of procedures of the
+ *     arad_pp_api_lif_table module.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+CONST SOC_PROCEDURE_DESC_ELEMENT*
+  arad_pp_lif_table_get_procs_ptr(void)
+{
+  return Arad_pp_procedure_desc_element_lif_table;
+}
+/*********************************************************************
+*     Get the pointer to the list of errors of the
+ *     arad_pp_api_lif_table module.
+ *     Details: in the H file. (search for prototype)
+*********************************************************************/
+CONST SOC_ERROR_DESC_ELEMENT*
+  arad_pp_lif_table_get_errs_ptr(void)
+{
+  return Arad_pp_error_desc_element_lif_table;
+}
+
+uint32
+  ARAD_PP_LIF_ENTRY_PER_TYPE_INFO_verify(
+    SOC_SAND_IN  int                                unit,
+    SOC_SAND_IN  ARAD_PP_LIF_ENTRY_PER_TYPE_INFO    *info,
+    SOC_SAND_IN  ARAD_PP_LIF_ENTRY_TYPE             type
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  switch (type)
+  {
+  case ARAD_PP_LIF_ENTRY_TYPE_AC:
+  case ARAD_PP_LIF_ENTRY_TYPE_FIRST_AC_IN_GROUP:
+  case ARAD_PP_LIF_ENTRY_TYPE_MIDDLE_AC_IN_GROUP:
+    ARAD_PP_STRUCT_VERIFY(ARAD_PP_L2_LIF_AC_INFO, &(info->ac), 10, exit);
+  break;
+  case ARAD_PP_LIF_ENTRY_TYPE_PWE:
+    ARAD_PP_STRUCT_VERIFY(ARAD_PP_L2_LIF_PWE_INFO, &(info->pwe), 11, exit);
+  break;
+  case ARAD_PP_LIF_ENTRY_TYPE_ISID:
+    ARAD_PP_STRUCT_VERIFY(ARAD_PP_L2_LIF_ISID_INFO, &(info->isid), 12, exit);
+  break;
+  case ARAD_PP_LIF_ENTRY_TYPE_IP_TUNNEL_RIF:
+  case ARAD_PP_LIF_ENTRY_TYPE_MPLS_TUNNEL_RIF:
+    res = ARAD_PP_RIF_INFO_verify(unit, &(info->rif));
+    SOC_SAND_CHECK_FUNC_RESULT(res, 13, exit);
+  break;
+  case ARAD_PP_LIF_ENTRY_TYPE_TRILL_NICK:
+    ARAD_PP_STRUCT_VERIFY(ARAD_PP_L2_LIF_TRILL_INFO, &(info->trill), 14, exit);
+  break;
+  default:
+    break;
+  }
+
+  SOC_SAND_MAGIC_NUM_VERIFY(info);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in ARAD_PP_LIF_ENTRY_PER_TYPE_INFO_verify()",0,0);
+}
+
+uint32
+  ARAD_PP_LIF_ENTRY_INFO_verify(
+    SOC_SAND_IN  int                     unit,
+    SOC_SAND_IN  ARAD_PP_LIF_ENTRY_INFO *info
+  )
+{
+  uint32
+    res = SOC_SAND_OK;
+
+  SOC_SAND_INIT_ERROR_DEFINITIONS(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  res = ARAD_PP_LIF_ENTRY_PER_TYPE_INFO_verify(unit, &(info->value),info->type);
+  SOC_SAND_CHECK_FUNC_RESULT(res, 10, exit);
+    
+  SOC_SAND_ERR_IF_ABOVE_NOF(info->index, SOC_DPP_DEFS_GET(unit, nof_local_lifs), ARAD_PP_LIF_ID_OUT_OF_RANGE_ERR, 12, exit);
+
+  SOC_SAND_MAGIC_NUM_VERIFY(info);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in ARAD_PP_LIF_ENTRY_INFO_verify()",0,0);
+}
+
+uint32
+  ARAD_PP_LIF_TBL_TRAVERSE_MATCH_RULE_verify(
+    SOC_SAND_IN  ARAD_PP_LIF_TBL_TRAVERSE_MATCH_RULE *info
+  )
+{
+  SOC_SAND_INIT_ERROR_DEFINITIONS_NO_DEVID(0);
+  SOC_SAND_CHECK_NULL_INPUT(info);
+
+  SOC_SAND_ERR_IF_ABOVE_MAX(info->entries_type_bm, ARAD_PP_LIF_TABLE_ENTRIES_TYPE_BM_MAX, ARAD_PP_LIF_TABLE_ENTRIES_TYPE_BM_OUT_OF_RANGE_ERR, 10, exit);
+
+  SOC_SAND_MAGIC_NUM_VERIFY(info);
+
+exit:
+  SOC_SAND_EXIT_AND_SEND_ERROR("error in ARAD_PP_LIF_TBL_TRAVERSE_MATCH_RULE_verify()",0,0);
+}
+
+/* } */
+
+#include <soc/dpp/SAND/Utils/sand_footer.h>
+
+
+#endif /* of #if defined(BCM_88650_A0) */
+
