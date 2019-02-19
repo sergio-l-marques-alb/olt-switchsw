@@ -1,8 +1,0 @@
-ext4_common.c:1477:5:ext4fs_read_inode	64	static
-ext4_common.c:1506:10:read_allocated_block	56	static
-ext4_common.c:1847:6:ext4fs_close	16	static
-ext4_common.c:1877:5:ext4fs_iterate_dir	128	dynamic
-ext4_common.c:2036:12:ext4fs_find_file1	96	dynamic
-ext4_common.c:2136:5:ext4fs_find_file	40	static
-ext4_common.c:2160:5:ext4fs_open	32	static
-ext4_common.c:2191:5:ext4fs_mount	24	static

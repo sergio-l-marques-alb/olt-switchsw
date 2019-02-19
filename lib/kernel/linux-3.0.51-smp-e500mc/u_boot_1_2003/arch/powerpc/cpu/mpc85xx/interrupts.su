@@ -1,5 +1,0 @@
-interrupts.c:39:5:interrupt_init_cpu	24	static
-interrupts.c:103:1:irq_install_handler	8	static
-interrupts.c:109:1:irq_free_handler	8	static
-interrupts.c:114:6:timer_interrupt_cpu	8	static
-interrupts.c:122:5:do_irqinfo	8	static

@@ -1,7 +1,0 @@
-cpu.c:172:18:identify_cpu	16	static
-cpu.c:188:5:cpu_mask	16	static
-cpu.c:207:5:cpu_numcores	8	static
-cpu.c:226:5:is_core_valid	16	static
-cpu.c:231:5:probecpu	16	static
-cpu.c:245:5:fixup_cpu	16	static
-cpu.c:261:5:cpu_eth_init	8	static

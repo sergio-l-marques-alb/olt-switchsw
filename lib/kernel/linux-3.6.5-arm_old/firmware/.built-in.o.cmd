@@ -1,1 +1,0 @@
-cmd_firmware/built-in.o :=  /home/devtools/dev-bcm-ldk/3.4.7-RC4/iproc/buildroot/output/host/usr/bin/arm-linux-ld -EL    -r -o firmware/built-in.o firmware/tigon/tg3.bin.gen.o firmware/tigon/tg3_tso.bin.gen.o firmware/tigon/tg3_tso5.bin.gen.o 

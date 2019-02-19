@@ -1,4 +1,0 @@
-speed.c:39:6:get_sys_info	112	static
-speed.c:385:5:get_clocks	56	static
-speed.c:463:7:get_bus_freq	8	static
-speed.c:472:7:get_ddr_freq	8	static
