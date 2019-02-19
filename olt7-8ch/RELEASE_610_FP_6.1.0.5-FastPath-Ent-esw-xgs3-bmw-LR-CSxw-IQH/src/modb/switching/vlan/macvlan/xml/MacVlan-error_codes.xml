@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<!DOCTYPE FastPathXML SYSTEM "misc.dtd">
-<FastPathXML>
-  <misc version="1.0">
-    <error name="VLAN_MAC_ADD_FAILURE" output="\n Error! Failed to add MAC Address."/>
-     <error name="VLAN_MAC_DEL_FAILURE" output="\n Error! Failed to delete MAC Address."/>
-  </misc>
-</FastPathXML>
-
