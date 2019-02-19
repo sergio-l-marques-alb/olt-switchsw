@@ -1,0 +1,1391 @@
+#include <shared/bsl.h>
+#include <soc/mcm/memregs.h> 
+#if defined(BCM_88675_A0)
+/* $Id: jer_pp_metering.c,v 1.0 Broadcom SDK $
+ * $Copyright: Copyright 2015 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+
+#ifdef _ERR_MSG_MODULE_NAME
+  #error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+
+#define _ERR_MSG_MODULE_NAME BSL_SOC_METERING
+#include <shared/bsl.h>
+#include <shared/swstate/access/sw_state_access.h>
+#include <soc/dcmn/error.h>
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+
+#include <soc/dpp/SAND/Utils/sand_header.h>
+
+#include <soc/dpp/SAND/Management/sand_general_macros.h>
+#include <soc/dpp/SAND/Management/sand_error_code.h>
+#include <soc/dpp/SAND/Utils/sand_os_interface.h>
+#include <soc/dpp/SAND/Utils/sand_framework.h>
+
+#include <soc/dpp/JER/jer_ingress_traffic_mgmt.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_metering.h>
+#include <soc/dpp/ARAD/arad_sw_db.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_sw_db.h>
+#include <soc/dpp/drv.h>
+
+/* } */
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+/* These are the possible colors for the MRPS.
+   The in color and out color are chosen from/according
+   to these. The committed bucket is considered the 'green'
+   bucket, while the excess bucket is considered the
+   'yellow' bucket. There is no 'red' bucket.*/
+typedef enum {
+  JER_PP_MTR_PCD_COL_GREEN     = 0,
+  JER_PP_MTR_PCD_COL_INVALID   = 1,
+  JER_PP_MTR_PCD_COL_YELLOW    = 2,
+  JER_PP_MTR_PCD_COL_RED       = 3,
+  JER_PP_MTR_PCD_NOF_COLS      = 4
+} jer_pp_mtr_pcd_col_t;
+
+#define JER_PP_ETH_POLICER_MEM_BLOCK(unit, core_id)    	MTRPS_EM_BLOCK(unit, core_id)
+#define JER_PP_ETH_POLICER_MEMORY(unit, memory)			MTRPS_EM_##memory
+#define JER_PP_MTR_PCD_MCDA_COL_LSB                1
+#define JER_PP_MTR_PCD_MCDB_COL_LSB                4
+#define JER_PP_MTR_PCD_COL_NOF_BITS                2
+
+#define	JER_PP_MTR_VAL_EXP_MNT_EQ_CONST_MULTI_BS			1
+#define	JER_PP_MTR_PROFILE_VAL_EXP_MNT_EQ_CONST_MNT_INC_BS	64
+#define	JER_PP_MTR_PROFILE_VAL_EXP_MNT_EQ_CONST_MNT_DIV_IR	125
+#define	JER_PP_MTR_PROFILE_VAL_EXP_MNT_EQ_CONST_MNT_INC_IR	0
+/* The number of PCDs is dependent on the input bits (there are 6) */
+#define JER_PP_ETH_POLICER_PCD_OPT_NUM                         64
+/* } */
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+uint32
+  jer_pp_metering_init_mrps_config(
+		SOC_SAND_IN int unit
+  )
+{
+uint32
+	range_mode,
+	reg_val,
+	reg_val_a,
+	reg_val_b;
+uint8
+    sharing_mode;
+int
+	core_index;
+ 
+	SOCDNX_INIT_FUNC_DEFS;
+
+	range_mode = SOC_DPP_CONFIG(unit)->meter.meter_range_mode;
+	sharing_mode = SOC_DPP_CONFIG(unit)->meter.sharing_mode;
+
+	/* Global configuration*/
+	SOCDNX_IF_ERR_EXIT(soc_reg32_get(unit, MRPS_GLBL_CFGr, 0, 0, &reg_val));
+	
+	/* Init MCDs */
+	soc_reg_field_set(unit, MRPS_GLBL_CFGr, &reg_val, MCDA_INITf, 0);
+	soc_reg_field_set(unit, MRPS_GLBL_CFGr, &reg_val, MCDB_INITf, 0);
+
+	/* Hierarchical Mode disabled by default */
+	soc_reg_field_set(unit, MRPS_GLBL_CFGr, &reg_val, HIERARCHICAL_MODEf, 0);
+
+	/* Set PacketModeEn to allow for meters with packet/sec rates */
+    soc_reg_field_set(unit, MRPS_GLBL_CFGr, &reg_val, PACKET_MODE_ENf, 1);
+
+	/* Check Range Mode and Sharing mode fit*/
+	if (SOC_DPP_CORE_MODE_IS_SINGLE_CORE(unit) && !ARAD_PP_MTR_IS_SINGLE_CORE(unit) ){
+		/*Single core device, Two MRPS cores*/
+		if (64 == range_mode && ARAD_PP_MTR_SHARING_MODE_PARALLEL != sharing_mode) {
+			SOCDNX_EXIT_WITH_ERR(SOC_E_PARAM, (_BSL_SOCDNX_MSG("Policer Sharing Mode have to be PARALLEL with Ingress Count 64.")));
+		}
+		if (128 == range_mode && ARAD_PP_MTR_SHARING_MODE_NONE != sharing_mode) {
+			SOCDNX_EXIT_WITH_ERR(SOC_E_PARAM, (_BSL_SOCDNX_MSG("Policer Sharing Mode have to be NONE with Ingress Count 128.")));
+		}
+	}
+	else { /* dual device cores (with two mrps cores) or single core device with single mrps core */
+		if (32 == range_mode && ARAD_PP_MTR_SHARING_MODE_NONE == sharing_mode) {
+			SOCDNX_EXIT_WITH_ERR(SOC_E_PARAM, (_BSL_SOCDNX_MSG("Policer Sharing Mode can't be NONE with Ingress Count 32.")));
+		}
+		if (64 == range_mode && ARAD_PP_MTR_SHARING_MODE_NONE != sharing_mode) {
+			SOCDNX_EXIT_WITH_ERR(SOC_E_PARAM, (_BSL_SOCDNX_MSG("Policer Sharing Mode have to be NONE with Ingress Count 64.")));
+		}
+	}
+
+	/* Enable the PCD map for Parallel and Serial modes */
+	soc_reg_field_set(unit, MRPS_GLBL_CFGr, &reg_val, PCD_MAP_ENf, (ARAD_PP_MTR_SHARING_MODE_NONE == sharing_mode) ? 0 : 1);
+
+	/*
+		Device core mode | Meters | McqSizeSel | MrpsSecondPtrEn | McdSecondPtrEn | McqMcdsParallel |
+	    -----------------|--------|------------|-----------------|----------------|-----------------|																					   |
+		Single           | 2x64   |     0      |       1         |      1         |       1         |
+		-----------------|--------|------------|-----------------|----------------|-----------------|
+		Single           | 1x128  |     1      |       0         |      1         |       1         |
+		-----------------|--------|------------|-----------------|----------------|-----------------|
+		Dual             | 2x2x32 |     0      |       1         |      1         |   SharingMode   |
+		-----------------|--------|------------|-----------------|----------------|-----------------|
+		Dual             | 2x64   |     1      |       1         |      0         |       1         |
+	*/
+	if (SOC_DPP_CORE_MODE_IS_SINGLE_CORE(unit) && !ARAD_PP_MTR_IS_SINGLE_CORE(unit)) {
+		/* single device core with two mrps cores*/
+		soc_reg_field_set(unit, MRPS_GLBL_CFGr, &reg_val, MCQ_SIZE_SELf, (128 == range_mode)? 1 : 0);
+		soc_reg_field_set(unit, MRPS_GLBL_CFGr, &reg_val, MRPS_SECOND_PTR_ENf, (64 == range_mode)? 1 : 0);
+		soc_reg_field_set(unit, MRPS_GLBL_CFGr, &reg_val, MCD_SECOND_PTR_ENf, 1);
+		soc_reg_field_set(unit, MRPS_GLBL_CFGr, &reg_val, MCQ_MCDS_PARALLELf, 1);
+
+	} else {
+		/* dual device cores (with two mrps cores) or single core device with single mrps core */
+		soc_reg_field_set(unit, MRPS_GLBL_CFGr, &reg_val, MCQ_SIZE_SELf, (64 == range_mode)? 1 : 0);
+		soc_reg_field_set(unit, MRPS_GLBL_CFGr, &reg_val, MRPS_SECOND_PTR_ENf, 1);
+		soc_reg_field_set(unit, MRPS_GLBL_CFGr, &reg_val, MCD_SECOND_PTR_ENf, (32 == range_mode)? 1 : 0);
+		soc_reg_field_set(unit, MRPS_GLBL_CFGr, &reg_val, MCQ_MCDS_PARALLELf, 
+						  (64 == range_mode || ARAD_PP_MTR_SHARING_MODE_PARALLEL == sharing_mode) ? 1 : 0);
+	}
+
+	/* MEF 10.3 disabled by default */
+	soc_reg_field_set(unit, MRPS_GLBL_CFGr, &reg_val, MEF_10_DOT_3_ENf, 0);
+
+	ARAD_PP_MTR_CORES_ITER(core_index){
+		SOCDNX_IF_ERR_EXIT(soc_reg32_set(unit, MRPS_GLBL_CFGr, core_index, 0, reg_val));
+	}
+
+	reg_val_a = 0;
+	reg_val_b = 0;
+
+	/* Enable leaky buckets Update */
+	soc_reg_field_set(unit, MRPS_MCDA_CFGr, &reg_val_a, MCDA_TIMER_ENf, 1);
+	soc_reg_field_set(unit, MRPS_MCDB_CFGr, &reg_val_b, MCDB_TIMER_ENf, 1);
+
+	/* Enable leaky buckets Refresh */
+	soc_reg_field_set(unit, MRPS_MCDA_CFGr, &reg_val_a, MCDA_REFRESH_ENf, 1);
+	soc_reg_field_set(unit, MRPS_MCDB_CFGr, &reg_val_b, MCDB_REFRESH_ENf, 1);
+
+	/* Enable LFR */
+	soc_reg_field_set(unit, MRPS_MCDA_CFGr, &reg_val_a, MCDA_CBL_RND_MODE_ENf, 1);
+	soc_reg_field_set(unit, MRPS_MCDB_CFGr, &reg_val_b, MCDB_CBL_RND_MODE_ENf, 1);
+
+	/* Set default values to the rest */
+	soc_reg_field_set(unit, MRPS_MCDA_CFGr, &reg_val_a, MCDA_ERR_COMP_ENABLEf, 1);
+	soc_reg_field_set(unit, MRPS_MCDB_CFGr, &reg_val_b, MCDB_ERR_COMP_ENABLEf, 1);
+
+	soc_reg_field_set(unit, MRPS_MCDA_CFGr, &reg_val_a, MCDA_RND_RANGEf, 3);
+	soc_reg_field_set(unit, MRPS_MCDB_CFGr, &reg_val_b, MCDB_RND_RANGEf, 3);
+
+	soc_reg_field_set(unit, MRPS_MCDA_CFGr, &reg_val_a, MCDA_BUBBLE_RATEf, 0xff);
+	soc_reg_field_set(unit, MRPS_MCDB_CFGr, &reg_val_b, MCDB_BUBBLE_RATEf, 0xff);
+
+	ARAD_PP_MTR_CORES_ITER(core_index){
+		SOCDNX_IF_ERR_EXIT(soc_reg32_set(unit, MRPS_MCDA_CFGr, core_index, 0, reg_val_a));
+		SOCDNX_IF_ERR_EXIT(soc_reg32_set(unit, MRPS_MCDB_CFGr, core_index, 0, reg_val_b));
+	}
+
+	reg_val_a = 0;
+	reg_val_b = 0;
+
+	/* Set default values for refresh quartet index range */
+	soc_reg_field_set(unit, MRPS_MCDA_REFRESH_CFGr, &reg_val_a, MCDA_REFRESH_START_INDEXf, 0);
+	soc_reg_field_set(unit, MRPS_MCDB_REFRESH_CFGr, &reg_val_b, MCDB_REFRESH_START_INDEXf, 0);
+
+	soc_reg_field_set(unit, MRPS_MCDA_REFRESH_CFGr, &reg_val_a, MCDA_REFRESH_END_INDEXf, 0x1fff);
+	soc_reg_field_set(unit, MRPS_MCDB_REFRESH_CFGr, &reg_val_b, MCDB_REFRESH_END_INDEXf, 0x1fff);
+
+	ARAD_PP_MTR_CORES_ITER(core_index){
+		SOCDNX_IF_ERR_EXIT(soc_reg32_set(unit, MRPS_MCDA_REFRESH_CFGr, core_index, 0, reg_val_a));
+		SOCDNX_IF_ERR_EXIT(soc_reg32_set(unit, MRPS_MCDB_REFRESH_CFGr, core_index, 0, reg_val_b));
+	}
+
+	reg_val_a = 0;
+	reg_val_b = 0;
+
+	/* Enable wrap prevention */
+	soc_reg_field_set(unit, MRPS_MCDA_WRAP_INDEXr, &reg_val_a, MCDA_WRAP_INT_ENf, 1);
+	soc_reg_field_set(unit, MRPS_MCDB_WRAP_INDEXr, &reg_val_b, MCDB_WRAP_INT_ENf, 1);
+
+	ARAD_PP_MTR_CORES_ITER(core_index){
+		SOCDNX_IF_ERR_EXIT(soc_reg32_set(unit, MRPS_MCDA_WRAP_INDEXr, core_index, 0, reg_val_a));
+		SOCDNX_IF_ERR_EXIT(soc_reg32_set(unit, MRPS_MCDB_WRAP_INDEXr, core_index, 0, reg_val_b));
+	}
+	
+	/* Init PCD for Parallel and Serial modes */
+	if (sharing_mode != ARAD_PP_MTR_SHARING_MODE_NONE) {
+		SOCDNX_SAND_IF_ERR_EXIT(arad_pp_metering_pcd_init(unit, sharing_mode));
+	}
+
+exit:
+  SOCDNX_FUNC_RETURN;
+}
+
+uint32
+  jer_pp_metering_init_mrpsEm_config(
+		SOC_SAND_IN int unit
+  )
+{
+uint32
+	reg_val,
+	reg_val_a,
+	reg_val_b;
+int
+	core_index;
+ 
+	SOCDNX_INIT_FUNC_DEFS;
+
+	/* Global configuration*/
+	SOCDNX_IF_ERR_EXIT(soc_reg32_get(unit, MTRPS_EM_GLBL_CFGr, 0, 0, &reg_val));
+
+	/* Init MCDs */
+	soc_reg_field_set(unit, MTRPS_EM_GLBL_CFGr, &reg_val, MCDA_INITf, 0);
+	soc_reg_field_set(unit, MTRPS_EM_GLBL_CFGr, &reg_val, MCDB_INITf, 0);
+
+	/* Hierarchical Mode disabled by default */
+	soc_reg_field_set(unit, MTRPS_EM_GLBL_CFGr, &reg_val, HIERARCHICAL_MODEf, 0);
+
+	/* Set PacketModeEn to allow for meters with packet/sec rates */
+    soc_reg_field_set(unit, MTRPS_EM_GLBL_CFGr, &reg_val, PACKET_MODE_ENf, 1);
+
+	/* Enable the PCD map for Parallel and Serial modes */
+	soc_reg_field_set(unit, MTRPS_EM_GLBL_CFGr, &reg_val, PCD_MAP_ENf, 1);
+
+	soc_reg_field_set(unit, MTRPS_EM_GLBL_CFGr, &reg_val, MCQ_SIZE_SELf, 0);
+	soc_reg_field_set(unit, MTRPS_EM_GLBL_CFGr, &reg_val, MRPS_SECOND_PTR_ENf, 1);
+	soc_reg_field_set(unit, MTRPS_EM_GLBL_CFGr, &reg_val, MCD_SECOND_PTR_ENf, 1);
+	soc_reg_field_set(unit, MTRPS_EM_GLBL_CFGr, &reg_val, MCQ_MCDS_PARALLELf, 1);	/* has to be 1 - Eth meter works only in parallel*/
+
+	ARAD_PP_MTR_CORES_ITER(core_index){
+		SOCDNX_IF_ERR_EXIT(soc_reg32_set(unit, MTRPS_EM_GLBL_CFGr, core_index, 0, reg_val));
+	}
+
+	reg_val_a = 0;
+	reg_val_b = 0;
+
+	/* Enable leaky buckets Update */
+	soc_reg_field_set(unit, MTRPS_EM_MCDA_CFGr, &reg_val_a, MCDA_TIMER_ENf, 1);
+	soc_reg_field_set(unit, MTRPS_EM_MCDB_CFGr, &reg_val_b, MCDB_TIMER_ENf, 1);
+
+	/* Enable leaky buckets Refresh */
+	soc_reg_field_set(unit, MTRPS_EM_MCDA_CFGr, &reg_val_a, MCDA_REFRESH_ENf, 1);
+	soc_reg_field_set(unit, MTRPS_EM_MCDB_CFGr, &reg_val_b, MCDB_REFRESH_ENf, 1);
+
+	/* Enable LFR */
+	soc_reg_field_set(unit, MTRPS_EM_MCDA_CFGr, &reg_val_a, MCDA_CBL_RND_MODE_ENf, 1);
+	soc_reg_field_set(unit, MTRPS_EM_MCDB_CFGr, &reg_val_b, MCDB_CBL_RND_MODE_ENf, 1);
+
+	/* Enable LFR */
+	soc_reg_field_set(unit, MTRPS_EM_MCDA_CFGr, &reg_val_a, MCDA_EBL_RND_MODE_ENf, 1);
+	soc_reg_field_set(unit, MTRPS_EM_MCDB_CFGr, &reg_val_b, MCDB_EBL_RND_MODE_ENf, 1);
+
+	/* Set default values to the rest */
+	soc_reg_field_set(unit, MTRPS_EM_MCDA_CFGr, &reg_val_a, MCDA_ERR_COMP_ENABLEf, 1);
+	soc_reg_field_set(unit, MTRPS_EM_MCDB_CFGr, &reg_val_b, MCDB_ERR_COMP_ENABLEf, 1);
+
+	soc_reg_field_set(unit, MTRPS_EM_MCDA_CFGr, &reg_val_a, MCDA_RND_RANGEf, 3);
+	soc_reg_field_set(unit, MTRPS_EM_MCDB_CFGr, &reg_val_b, MCDB_RND_RANGEf, 3);
+
+	soc_reg_field_set(unit, MTRPS_EM_MCDA_CFGr, &reg_val_a, MCDA_BUBBLE_RATEf, 0xff);
+	soc_reg_field_set(unit, MTRPS_EM_MCDB_CFGr, &reg_val_b, MCDB_BUBBLE_RATEf, 0xff);
+
+	ARAD_PP_MTR_CORES_ITER(core_index){
+		SOCDNX_IF_ERR_EXIT(soc_reg32_set(unit, MTRPS_EM_MCDA_CFGr, core_index, 0, reg_val_a));
+		SOCDNX_IF_ERR_EXIT(soc_reg32_set(unit, MTRPS_EM_MCDB_CFGr, core_index, 0, reg_val_b));
+	}
+
+	reg_val_a = 0;
+	reg_val_b = 0;
+
+	/* Set default values for refresh quartet index range */
+	soc_reg_field_set(unit, MTRPS_EM_MCDA_REFRESH_CFGr, &reg_val_a, MCDA_REFRESH_START_INDEXf, 0);
+	soc_reg_field_set(unit, MTRPS_EM_MCDB_REFRESH_CFGr, &reg_val_b, MCDB_REFRESH_START_INDEXf, 0);
+
+	soc_reg_field_set(unit, MTRPS_EM_MCDA_REFRESH_CFGr, &reg_val_a, MCDA_REFRESH_END_INDEXf, 0x13f);
+	soc_reg_field_set(unit, MTRPS_EM_MCDB_REFRESH_CFGr, &reg_val_b, MCDB_REFRESH_END_INDEXf, 0x13f);
+
+	ARAD_PP_MTR_CORES_ITER(core_index){
+		SOCDNX_IF_ERR_EXIT(soc_reg32_set(unit, MTRPS_EM_MCDA_REFRESH_CFGr, core_index, 0, reg_val_a));
+		SOCDNX_IF_ERR_EXIT(soc_reg32_set(unit, MTRPS_EM_MCDB_REFRESH_CFGr, core_index, 0, reg_val_b));
+	}
+
+	reg_val_a = 0;
+	reg_val_b = 0;
+
+	/* Enable wrap prevention */
+	soc_reg_field_set(unit, MTRPS_EM_MCDA_WRAP_INDEXr, &reg_val_a, MCDA_WRAP_INT_ENf, 1);
+	soc_reg_field_set(unit, MTRPS_EM_MCDB_WRAP_INDEXr, &reg_val_b, MCDB_WRAP_INT_ENf, 1);
+
+	ARAD_PP_MTR_CORES_ITER(core_index){
+		SOCDNX_IF_ERR_EXIT(soc_reg32_set(unit, MTRPS_EM_MCDA_WRAP_INDEXr, core_index, 0, reg_val_a));
+		SOCDNX_IF_ERR_EXIT(soc_reg32_set(unit, MTRPS_EM_MCDB_WRAP_INDEXr, core_index, 0, reg_val_b));
+	}
+	
+exit:
+  SOCDNX_FUNC_RETURN;
+}
+
+uint32 
+  jer_pp_eth_policer_pcd_init(
+     SOC_SAND_IN int unit)
+{
+	uint32
+		/* Per meter color*/
+		mcda_mtr_color,
+		mcdb_mtr_color,	
+		/* Final color decision for this PCD address*/
+		final_color, 
+		/* Update colors*/
+		mcda_update_color,
+		mcdb_update_color,
+		addr_idx,
+		pcd_line;
+	uint32
+		res;
+	soc_mem_t
+		mem = MTRPS_EM_PCD_MAPm;
+	int
+		core_index;
+
+	SOCDNX_INIT_FUNC_DEFS;
+
+	/* Fill PCD table*/
+	for (addr_idx = 0; addr_idx < JER_PP_ETH_POLICER_PCD_OPT_NUM; addr_idx++) {
+
+		mcda_mtr_color = mcdb_mtr_color = 0;
+		mcda_update_color = mcdb_update_color = final_color = 0;
+
+		/* Get the meter color from address. */
+        SHR_BITCOPY_RANGE(&(mcda_mtr_color), 0, &addr_idx, 
+                          JER_PP_MTR_PCD_MCDA_COL_LSB, JER_PP_MTR_PCD_COL_NOF_BITS);
+		SHR_BITCOPY_RANGE(&(mcdb_mtr_color), 0, &addr_idx, 
+                          JER_PP_MTR_PCD_MCDB_COL_LSB, JER_PP_MTR_PCD_COL_NOF_BITS);
+
+		/* Meter Validity-
+			1. Arad+
+			The table is used only when both pointers are valid.
+			2. Jericho
+			The table is used even if one of the pointers is invalid. In this case, its color will be 'invalid',
+			and the output color should be the other meter color.
+		 
+			Color Resolution-
+			1. final color will be green only if all the valid policers color are green.
+		    update color of the valid policers will be green in this case.
+		 
+		    2. any other case will cause red/invalid final and update colors for the valid/invalid policers correspondingly
+		*/
+
+		if ((mcda_mtr_color == JER_PP_MTR_PCD_COL_INVALID) && (mcdb_mtr_color == JER_PP_MTR_PCD_COL_INVALID)) {
+			final_color = JER_PP_MTR_PCD_COL_GREEN;
+			mcda_update_color = mcdb_update_color = JER_PP_MTR_PCD_COL_INVALID;
+		}
+		else if (mcda_mtr_color == JER_PP_MTR_PCD_COL_INVALID) {
+			if (mcdb_mtr_color == JER_PP_MTR_PCD_COL_GREEN) {
+				final_color = mcdb_update_color = JER_PP_MTR_PCD_COL_GREEN;
+			}else{
+				final_color = mcdb_update_color = JER_PP_MTR_PCD_COL_RED;
+			}
+			mcda_update_color = JER_PP_MTR_PCD_COL_INVALID;
+		}
+		else if (mcdb_mtr_color == JER_PP_MTR_PCD_COL_INVALID) {
+			if (mcda_mtr_color == JER_PP_MTR_PCD_COL_GREEN) {
+				final_color = mcda_update_color = JER_PP_MTR_PCD_COL_GREEN;
+			}else{
+				final_color = mcda_update_color = JER_PP_MTR_PCD_COL_RED;
+			}
+			mcdb_update_color = JER_PP_MTR_PCD_COL_INVALID;
+		}
+		else if ((mcda_mtr_color == JER_PP_MTR_PCD_COL_GREEN) && (mcdb_mtr_color == JER_PP_MTR_PCD_COL_GREEN)) {
+			final_color = mcda_update_color = mcdb_update_color = JER_PP_MTR_PCD_COL_GREEN;
+		}
+		else {
+			final_color = mcda_update_color = mcdb_update_color = JER_PP_MTR_PCD_COL_RED;
+		}
+
+		/* Set bucket update and out color to final color*/
+		pcd_line = 0;
+		soc_mem_field32_set(unit, mem, &pcd_line, MCDA_UPDATE_COLORf, mcda_update_color);
+		soc_mem_field32_set(unit, mem, &pcd_line, MCDB_UPDATE_COLORf, mcdb_update_color);
+		soc_mem_field32_set(unit, mem, &pcd_line, OUT_COLORf, final_color);
+
+		/* Write entry to table*/
+		ARAD_PP_MTR_CORES_ITER(core_index){
+			res = soc_mem_write(unit, mem, JER_PP_ETH_POLICER_MEM_BLOCK(unit, core_index), addr_idx, &pcd_line); 
+			SOCDNX_IF_ERR_EXIT(res);
+		}
+	}
+
+exit:
+	SOCDNX_FUNC_RETURN;
+}
+
+uint32
+  jer_pp_metering_init(
+		SOC_SAND_IN int unit
+  )
+{
+  uint32
+	res,
+	eth_mtr_profile_multiset_key = 0x0,
+    eth_mtr_profile_multiset_ndx = 0x0;
+  uint8
+    eth_mtr_profile_multiset_first_appear = 0x0;
+
+  SOC_SAND_SUCCESS_FAILURE
+    eth_mtr_profile_multiset_success = SOC_SAND_SUCCESS;
+  ARAD_IDR_ETHERNET_METER_PROFILES_TBL_DATA
+    profile_tbl_data = {0};
+
+	SOCDNX_INIT_FUNC_DEFS;
+
+	/*Init MRPS-In-DP and DP maps*/
+	SOCDNX_IF_ERR_EXIT(jer_itm_setup_dp_map(unit));
+
+	/* Set the FTMH DP source to always be the output of the DP map. */
+	/* When both meters are invalid(!!! in Arad+ it was required both should be valid), the meter DP will be the In-DP. */
+	SOCDNX_IF_ERR_EXIT(soc_reg_above_64_field32_modify(unit, IDR_STATIC_CONFIGURATIONr, IDR_BLOCK(unit), 0, FTMH_DP_OVERWRITEf, 1));
+
+	SOCDNX_IF_ERR_EXIT(jer_pp_metering_init_mrps_config(unit));
+
+	/*Eth. Policers SOC init*/
+	SOCDNX_IF_ERR_EXIT(jer_pp_metering_init_mrpsEm_config(unit));
+	SOCDNX_IF_ERR_EXIT(jer_pp_eth_policer_pcd_init(unit));
+
+	/* set multiset 0 - so Only 31 policers are available */
+	arad_pp_mtr_eth_policer_profile_key_get(
+		unit,
+		profile_tbl_data,
+		&eth_mtr_profile_multiset_key
+		);
+
+	res = arad_sw_db_multiset_add(
+		unit,
+		ARAD_PP_SW_DB_MULTI_SET_ETH_POLICER_ETH_METER_PROFILE,
+		&eth_mtr_profile_multiset_key,
+		&eth_mtr_profile_multiset_ndx,
+		&eth_mtr_profile_multiset_first_appear,
+		&eth_mtr_profile_multiset_success
+		);
+	SOCDNX_SAND_IF_ERR_EXIT(res);
+
+	res = arad_sw_db_multiset_add(
+		unit,
+		ARAD_PP_SW_DB_MULTI_SET_ETH_POLICER_ETH_METER_PROFILE_1,
+		&eth_mtr_profile_multiset_key,
+		&eth_mtr_profile_multiset_ndx,
+		&eth_mtr_profile_multiset_first_appear,
+		&eth_mtr_profile_multiset_success
+		);
+	SOCDNX_SAND_IF_ERR_EXIT(res);
+exit:
+  SOCDNX_FUNC_RETURN;
+}
+
+soc_error_t
+  soc_jer_pp_mtr_policer_global_sharing_get(
+    int                         unit,
+	int                         core_id,
+	int        					meter_id,
+	int							meter_id_group,
+	uint32* 					global_sharing_ptr
+)
+{
+	unsigned int 			soc_sand_dev_id;
+    uint32					soc_sand_rv;
+	uint32 					mem_val[2];
+	int mem,index;
+
+	SOCDNX_INIT_FUNC_DEFS;
+	SOCDNX_NULL_CHECK(global_sharing_ptr);
+	soc_sand_dev_id = (unit);
+
+	/* get whether the 4 meters are in hierarchical mode */
+	mem = (meter_id_group == 0) ? MRPS_MCDA_PRFSELm : MRPS_MCDB_PRFSELm;
+
+	index = meter_id / 4;
+
+	/* get the entry */
+	soc_sand_rv = soc_mem_read(soc_sand_dev_id, mem, MRPS_BLOCK(unit, core_id), index, mem_val);
+	SOCDNX_IF_ERR_EXIT(soc_sand_rv);
+
+	/* get the global_sharing */
+	soc_mem_field_get(soc_sand_dev_id, mem, mem_val, GLOBAL_SHARINGf, global_sharing_ptr);
+exit:
+	SOCDNX_FUNC_RETURN;
+}
+
+soc_error_t
+  soc_jer_pp_mtr_policer_global_sharing_set(
+    int                         unit,
+	int                         core_id,
+	int        					meter_id,
+	int							meter_group,
+	uint32* 					global_sharing_ptr
+)
+{
+	unsigned int 			soc_sand_dev_id;
+    uint32					soc_sand_rv;
+	uint32 					mem_val[2];
+	int mem,index;
+
+	SOCDNX_INIT_FUNC_DEFS;
+	SOCDNX_NULL_CHECK(global_sharing_ptr);
+	soc_sand_dev_id = (unit);
+
+	/* get whether the 4 meters are in hierarchical mode */
+	mem = (meter_group == 0) ? MRPS_MCDA_PRFSELm : MRPS_MCDB_PRFSELm;
+	
+	index = meter_id / 4;
+
+	/* get the entry */
+	soc_sand_rv = soc_mem_read(soc_sand_dev_id, mem, MRPS_BLOCK(unit, core_id), index, mem_val); 
+	SOCDNX_IF_ERR_EXIT(soc_sand_rv);
+
+	/* set the global_sharing */
+	soc_mem_field_set(soc_sand_dev_id, mem, mem_val, GLOBAL_SHARINGf, global_sharing_ptr);
+
+	soc_sand_rv = soc_mem_write(soc_sand_dev_id, mem, MRPS_BLOCK(unit, core_id), index, mem_val); 
+	SOCDNX_IF_ERR_EXIT(soc_sand_rv);
+
+exit:
+	SOCDNX_FUNC_RETURN;
+}
+
+uint32
+  jer_pp_mtr_eth_policer_params_set(
+    SOC_SAND_IN  int                         	unit,
+    SOC_SAND_IN  ARAD_PP_PORT                   port_ndx,
+	SOC_SAND_IN  int                   			core_id,
+	SOC_SAND_IN  ARAD_PP_MTR_ETH_TYPE           eth_type_ndx,
+    SOC_SAND_IN  ARAD_PP_MTR_BW_PROFILE_INFO    *policer_info
+  )
+{
+  unsigned int
+	soc_sand_dev_id;
+  uint32
+	res,
+	profile,
+	write_access_enable,
+	
+	config_tbl_entry,
+	config_array_index,
+    status_tbl_offset,
+    prfSel_tbl_offset,
+	prfSel_tbl_entry,
+	bckLvl_tbl_offset,
+	bckLvl_tbl_entry;
+
+  soc_reg_above_64_val_t
+	eth_mtr_bck_lvl_above_64_val,
+    eth_mtr_prfCfg_above_64_val;
+  uint32
+	backet_init_val = 0,
+	eth_mtr_prfSel_val = 0,
+	eth_mtr_config_val = 0;
+
+  soc_mem_t
+	eth_mtr_prfSel_mem,
+	eth_mtr_config_mem,
+	eth_mtr_prfCfg_0_mem,
+	eth_mtr_prfCfg_1_mem,
+	eth_mtr_prfCfg_fields_mem,
+	eth_mtr_bck_lvl_mem;
+
+  int
+	cir, cbs;
+  uint8
+	info_enable;
+
+/* SW DB varaiables */
+	/* multiset ARAD_PP_..._PROFILE is the multiset of the 1st core policers
+	   multiset ARAD_PP_..._PROFILE_1 is the multiset of the 2nd core policers
+	*/
+  uint32
+	multiset_index = core_id == 0 ? ARAD_PP_SW_DB_MULTI_SET_ETH_POLICER_ETH_METER_PROFILE : ARAD_PP_SW_DB_MULTI_SET_ETH_POLICER_ETH_METER_PROFILE_1;
+  uint32
+	eth_mtr_profile_multiset_key = 0x0,
+    eth_mtr_profile_multiset_ndx = 0x0;
+  uint8
+    eth_mtr_profile_multiset_first_appear = 0x0,
+    eth_mtr_profile_multiset_last_appear = 0x0,
+    sw_db_enable_bit;
+
+  SOC_SAND_SUCCESS_FAILURE
+    eth_mtr_profile_multiset_success = SOC_SAND_SUCCESS;
+  ARAD_IDR_ETHERNET_METER_PROFILES_TBL_DATA
+    profile_tbl_data;
+
+  uint32
+	profile_field[4] = {PROFILE_0f, PROFILE_1f, PROFILE_2f, PROFILE_3f};
+  uint32
+	cbl_bucket_fld[4]= {CBL_0f	  , CBL_1f    , CBL_2f    , CBL_3f};
+
+	SOCDNX_INIT_FUNC_DEFS;
+	SOCDNX_NULL_CHECK(policer_info);
+	SOC_REG_ABOVE_64_CLEAR(eth_mtr_prfCfg_above_64_val);
+	SOC_REG_ABOVE_64_CLEAR(eth_mtr_bck_lvl_above_64_val);
+	info_enable = SOC_SAND_BOOL2NUM_INVERSE(policer_info->disable_cir);
+
+	soc_sand_dev_id = (unit);
+	eth_mtr_prfSel_mem 			= MTRPS_EM_MCDA_PRFSELm;
+	eth_mtr_prfCfg_fields_mem 	= MTRPS_EM_MCDA_PRFCFG_SHARING_DISm; /* using prf cfg 1 because of sharing flag is disabled on eth. meter*/
+    eth_mtr_prfCfg_0_mem 		= MTRPS_EM_MCDA_PRFCFG_0m;
+	eth_mtr_prfCfg_1_mem 		= MTRPS_EM_MCDA_PRFCFG_1m;
+	eth_mtr_config_mem 			= IDR_ETHERNET_METER_CONFIGm;
+	eth_mtr_bck_lvl_mem			= MTRPS_EM_MCDA_DYNAMICm;
+
+	config_array_index = core_id;
+	status_tbl_offset = config_tbl_entry  = port_ndx * ARAD_PP_NOF_MTR_ETH_TYPES + eth_type_ndx;
+	/*
+	    below: divide and modulu by 4.
+	    the profile selection table format is:
+							offset
+			-------------------------------------------------------------
+			| policer 0   | policer 1    | policer 2    | policer 3     |
+		e	--------------------------------------------------------------
+		n		.			.					.				.
+		t		.			.					.				.
+		r		.			.					.				.
+		y	-------------------------------------------------------------
+			| policer 4k  | policer 4k+1 | policer 4k+2 | policer 4k+3  |
+			-------------------------------------------------------------
+	*/
+	bckLvl_tbl_entry  = prfSel_tbl_entry  = config_tbl_entry >> 2;  /* /4 */
+	bckLvl_tbl_offset = prfSel_tbl_offset = config_tbl_entry & 0x3; /* %4 */
+
+	/* Get values from tables */  
+	res = soc_mem_read(soc_sand_dev_id, eth_mtr_prfSel_mem, MTRPS_EM_BLOCK(unit, core_id), prfSel_tbl_entry, (void*)&eth_mtr_prfSel_val);
+	SOCDNX_IF_ERR_EXIT(res);
+
+	res = soc_mem_array_read(soc_sand_dev_id, eth_mtr_config_mem, config_array_index, MEM_BLOCK_ANY, config_tbl_entry, (void*)&eth_mtr_config_val);
+	SOCDNX_IF_ERR_EXIT(res);
+
+	profile = soc_mem_field32_get(unit, eth_mtr_prfSel_mem, (void*)&eth_mtr_prfSel_val, profile_field[prfSel_tbl_offset]);
+
+	res = arad_sw_db_multiset_get_enable_bit(
+			unit,
+			core_id,
+			status_tbl_offset,
+			&sw_db_enable_bit
+			);
+	SOCDNX_SAND_IF_ERR_EXIT(res);
+
+    if (sw_db_enable_bit == TRUE)
+	{
+		/*profile is enable remove from multiset*/
+		res = arad_sw_db_multiset_remove_by_index(
+			unit,
+			multiset_index,
+			profile,
+			&eth_mtr_profile_multiset_last_appear
+			);
+		SOCDNX_SAND_IF_ERR_EXIT(res);
+    }
+ 
+	cir = policer_info->cir;
+	cbs = policer_info->cbs;
+	if (policer_info->is_packet_mode)
+	{
+		/* In packet mode we need to halve the rate. */
+		/* 
+		* Explanation: 
+		* In regular mode, HW units are bytes, user units are kbits
+		* so, rate_to_exp_mnt translte it by multiply by 128,
+		* rate = user_rate * 128 (1024/8)
+		* 
+		* For packet mode, are packets, user units 1/64 packet
+		* Therefore for packet mode we need to take the rate and multiply it by 64.
+		* packet_rate = user_rate * 64 
+		*  
+		* Finally if we want to use the rate_to_exp_mnt function for packet mode, we need to use half the user_rate for
+		* the function:
+		* rate_to_exp_mnt rate = (user_rate / 2) * 128 = user_rate * 64 = packet_rate
+		*/
+		cir /= ARAD_PP_MTR_PACKET_MODE_CORRECTION;
+		cbs /= ARAD_PP_MTR_PACKET_MODE_CORRECTION;
+	}
+
+	/* cir is enable fill profile table */
+	if (info_enable == TRUE)
+	{
+		/* transfer user values (cir, cbs) to mnt, exp and res */
+		res = arad_pp_mtr_profile_rate_to_res_exp_mnt(
+			unit,
+			cir,
+			&profile_tbl_data.meter_resolution,
+			&profile_tbl_data.rate_mantissa,
+			&profile_tbl_data.rate_exp
+			);
+		SOCDNX_SAND_IF_ERR_EXIT(res);
+
+		/* res also affects the burst: actual-burst = user-burst << res */
+		res = arad_pp_mtr_bs_val_to_exp_mnt(
+			unit, 
+			cbs,
+			&profile_tbl_data.burst_exp,
+			&profile_tbl_data.burst_mantissa
+			);
+		SOCDNX_SAND_IF_ERR_EXIT(res);
+
+		profile_tbl_data.packet_mode = SOC_SAND_BOOL2NUM(policer_info->is_packet_mode);
+		profile_tbl_data.color_blind = policer_info->color_mode == SOC_PPC_MTR_COLOR_MODE_BLIND ? 1 : 0;
+		
+		arad_pp_mtr_eth_policer_profile_key_get(
+			unit,
+			profile_tbl_data,
+			&eth_mtr_profile_multiset_key
+			);
+    
+		res = arad_sw_db_multiset_add(
+			unit,
+			multiset_index,
+			&eth_mtr_profile_multiset_key,
+			&eth_mtr_profile_multiset_ndx,
+			&eth_mtr_profile_multiset_first_appear,
+			&eth_mtr_profile_multiset_success
+			);
+		SOCDNX_SAND_IF_ERR_EXIT(res);
+
+		if (eth_mtr_profile_multiset_success != SOC_SAND_SUCCESS)
+		{ 
+			/* We already remove the old profile of this port from the multiset list
+			   So, if from any reason we couldn't add the new profile to the multiset
+			   we write again the old one (by reading it from the HW first
+			*/
+			res = soc_mem_read(soc_sand_dev_id, eth_mtr_prfCfg_0_mem, MEM_BLOCK_ANY, profile, (void*)eth_mtr_prfCfg_above_64_val);
+			SOCDNX_IF_ERR_EXIT(res);
+
+			profile_tbl_data.rate_mantissa 	  = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_MANTf);
+			profile_tbl_data.rate_exp 		  = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_MANT_EXPf);
+			profile_tbl_data.burst_mantissa   = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CBS_MANT_64f);
+			profile_tbl_data.burst_exp 		  = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CBS_EXPONENTf);
+			profile_tbl_data.packet_mode 	  = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, PACKET_MODEf);
+			profile_tbl_data.meter_resolution = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_REV_EXP_2f);
+			profile_tbl_data.color_blind 	  = SOC_SAND_BOOL2NUM_INVERSE(soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, COLOR_AWAREf));
+
+			arad_pp_mtr_eth_policer_profile_key_get(
+				unit,
+				profile_tbl_data,
+				&eth_mtr_profile_multiset_key
+				);
+
+			res = arad_sw_db_multiset_add(
+				unit,
+				multiset_index,
+				&eth_mtr_profile_multiset_key,
+				&eth_mtr_profile_multiset_ndx,
+				&eth_mtr_profile_multiset_first_appear,
+				&eth_mtr_profile_multiset_success
+				);
+			SOCDNX_SAND_IF_ERR_EXIT(res);
+
+			/* ERR MSG due to fail to add the new profile */
+			/*SOC_SAND_SET_ERROR_CODE(ARAD_PP_MTR_ETH_POLICER_ADD_FAIL_ERR, 100, exit);*/
+		}
+	}
+
+	/* Set sw_db enable bit */
+	res = arad_pp_sw_db_eth_policer_config_status_bit_set(
+		unit,
+		core_id,
+		status_tbl_offset,
+		info_enable
+		);
+
+	SOCDNX_IF_ERR_EXIT(res);
+
+	/* Set profile table - if first */
+	if (
+		(eth_mtr_profile_multiset_first_appear == 0x1) || 											/* Set profile table - if first */
+		((eth_mtr_profile_multiset_last_appear == 0x1) && (eth_mtr_profile_multiset_ndx != profile))/* Set profile table - if last */
+		)
+	{
+		soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, RESET_CIRf, policer_info->disable_cir);
+		soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_MANTf, profile_tbl_data.rate_mantissa);
+		soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_MANT_EXPf, profile_tbl_data.rate_exp);
+		soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CBS_MANT_64f, profile_tbl_data.burst_mantissa);
+		soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CBS_EXPONENTf, profile_tbl_data.burst_exp);
+		soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, PACKET_MODEf, profile_tbl_data.packet_mode);
+		soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_REV_EXP_2f, profile_tbl_data.meter_resolution);
+		soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, COLOR_AWAREf, (uint32)SOC_SAND_BOOL2NUM_INVERSE(profile_tbl_data.color_blind));
+
+		res = soc_mem_write(soc_sand_dev_id, eth_mtr_prfCfg_0_mem, MTRPS_EM_BLOCK(unit, core_id), eth_mtr_profile_multiset_ndx, (void*)eth_mtr_prfCfg_above_64_val); 
+		SOCDNX_IF_ERR_EXIT(res);
+		res = soc_mem_write(soc_sand_dev_id, eth_mtr_prfCfg_1_mem, MTRPS_EM_BLOCK(unit, core_id), eth_mtr_profile_multiset_ndx, (void*)eth_mtr_prfCfg_above_64_val); 
+		SOCDNX_IF_ERR_EXIT(res);
+	}
+
+	/* Set pointer in plfSel table */
+	soc_mem_field32_set(unit, eth_mtr_prfSel_mem, (void*)&eth_mtr_prfSel_val, profile_field[prfSel_tbl_offset],eth_mtr_profile_multiset_ndx);
+	res = soc_mem_write(soc_sand_dev_id, eth_mtr_prfSel_mem, MTRPS_EM_BLOCK(unit, core_id), prfSel_tbl_entry, (void*)&eth_mtr_prfSel_val);
+	SOCDNX_IF_ERR_EXIT(res);
+
+	/* clear CBL from remaining tokens from previous profiles */
+	/* a. check if we have write access for dynamic memory, if not- take it*/
+	soc_reg32_get(unit, IDR_ENABLE_DYNAMIC_MEMORY_ACCESSr, MTRPS_EM_BLOCK(unit,core_id), 0, (void*)&write_access_enable);
+	if (0 == write_access_enable) {
+		res = soc_reg32_set(unit, IDR_ENABLE_DYNAMIC_MEMORY_ACCESSr, core_id, 0, 1);
+		SOCDNX_IF_ERR_EXIT(res);
+	}
+
+	/* b. set matching CBL to -8193 (compensate for LFSR)*/
+	res = soc_mem_read(soc_sand_dev_id, eth_mtr_bck_lvl_mem, MTRPS_EM_BLOCK(unit, core_id), bckLvl_tbl_entry, (void*)eth_mtr_bck_lvl_above_64_val); 
+	SOCDNX_IF_ERR_EXIT(res);
+
+	backet_init_val = 0x7FDFFF;
+	soc_mem_field32_set(unit, eth_mtr_bck_lvl_mem, (void*)eth_mtr_bck_lvl_above_64_val, cbl_bucket_fld[bckLvl_tbl_offset],backet_init_val);
+
+	res = soc_mem_write(soc_sand_dev_id, eth_mtr_bck_lvl_mem, MTRPS_EM_BLOCK(unit, core_id), bckLvl_tbl_entry, (void*)eth_mtr_bck_lvl_above_64_val);
+	SOCDNX_IF_ERR_EXIT(res);
+
+	/* c. if we took write access, disable it*/
+	if (0 == write_access_enable) {
+		res = soc_reg32_set(unit, IDR_ENABLE_DYNAMIC_MEMORY_ACCESSr, core_id, 0, 0);
+		SOCDNX_IF_ERR_EXIT(res);
+	}
+
+	/* Set the validity bit in the eth. meter config table */
+	soc_mem_field32_set(unit, eth_mtr_config_mem, &eth_mtr_config_val, ETHERNET_METER_PROFILE_VALIDf, info_enable);
+	res = soc_mem_array_write(soc_sand_dev_id, eth_mtr_config_mem, config_array_index, MEM_BLOCK_ANY, config_tbl_entry, (void*)&eth_mtr_config_val);
+	SOCDNX_IF_ERR_EXIT(res);
+
+exit:
+	SOCDNX_FUNC_RETURN;
+}
+
+uint32
+  jer_pp_mtr_eth_policer_params_get(
+    SOC_SAND_IN  int                        	unit,
+    SOC_SAND_IN  ARAD_PP_PORT                   port_ndx,
+	SOC_SAND_IN  int                   			core_id,
+    SOC_SAND_IN  ARAD_PP_MTR_ETH_TYPE           eth_type_ndx,
+    SOC_SAND_OUT ARAD_PP_MTR_BW_PROFILE_INFO    *policer_info
+  )
+{
+  unsigned int
+	soc_sand_dev_id;
+  uint32
+	res,
+	profile,
+    status_tbl_offset,
+    prfSel_tbl_offset,
+	prfSel_tbl_entry;
+
+  soc_reg_above_64_val_t
+    eth_mtr_prfCfg_above_64_val;
+  uint32
+	eth_mtr_prfSel_val;
+
+  int
+	eth_mtr_prfSel_mem,
+	eth_mtr_prfCfg_fields_mem,
+    eth_mtr_prfCfg_mem;
+
+  uint8
+    sw_db_enable_bit;
+
+  ARAD_IDR_ETHERNET_METER_PROFILES_TBL_DATA
+    profile_tbl_data;
+
+uint32
+	profile_field[4] = {PROFILE_0f, PROFILE_1f, PROFILE_2f, PROFILE_3f};
+
+	SOCDNX_INIT_FUNC_DEFS;
+	SOCDNX_NULL_CHECK(policer_info);
+	
+	soc_sand_dev_id = (unit);
+	eth_mtr_prfSel_mem 			= MTRPS_EM_MCDA_PRFSELm;
+	eth_mtr_prfCfg_fields_mem 	= MTRPS_EM_MCDA_PRFCFG_SHARING_DISm; /* using prf cfg 1 because of sharing flag is disabled on eth. meter*/
+	eth_mtr_prfCfg_mem 			= MTRPS_EM_MCDA_PRFCFG_0m; /* using prf cfg 1 because of sharing flag is disabled on eth. meter*/
+
+	status_tbl_offset = port_ndx * ARAD_PP_NOF_MTR_ETH_TYPES + eth_type_ndx;
+	/*
+	    below: divide and modulu by 4.
+	    the profile selection table format is:
+							offset
+			-------------------------------------------------------------
+			| policer 0   | policer 1    | policer 2    | policer 3     |
+		e	--------------------------------------------------------------
+		n		.			.					.				.
+		t		.			.					.				.
+		r		.			.					.				.
+		y	-------------------------------------------------------------
+			| policer 4k  | policer 4k+1 | policer 4k+2 | policer 4k+3  |
+			-------------------------------------------------------------
+	*/
+	prfSel_tbl_entry  = status_tbl_offset >> 2;  /* /4 */
+	prfSel_tbl_offset = status_tbl_offset & 0x3; /* %4 */
+
+	/* Get pointers from prfSel table*/
+	res = soc_mem_read(soc_sand_dev_id, eth_mtr_prfSel_mem, MTRPS_EM_BLOCK(unit, core_id), prfSel_tbl_entry, &eth_mtr_prfSel_val);
+	SOCDNX_IF_ERR_EXIT(res);
+
+	profile = soc_mem_field32_get(unit, eth_mtr_prfSel_mem, &eth_mtr_prfSel_val, profile_field[prfSel_tbl_offset]);
+
+	res = arad_sw_db_multiset_get_enable_bit(
+			unit,
+			core_id,
+			status_tbl_offset,
+			&sw_db_enable_bit
+			);
+	SOCDNX_SAND_IF_ERR_EXIT(res);
+
+	if (sw_db_enable_bit == TRUE) {
+		/* Get committed mnt, exp values from prfCfg table */
+		res = soc_mem_read(soc_sand_dev_id, eth_mtr_prfCfg_mem, MTRPS_EM_BLOCK(unit, core_id), profile, (void*)eth_mtr_prfCfg_above_64_val);
+		SOCDNX_IF_ERR_EXIT(res);
+
+		profile_tbl_data.rate_mantissa 	  = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_MANTf);
+		profile_tbl_data.rate_exp 	 	  = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_MANT_EXPf);
+		profile_tbl_data.burst_mantissa   = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CBS_MANT_64f);
+		profile_tbl_data.burst_exp 		  = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CBS_EXPONENTf);
+		profile_tbl_data.packet_mode 	  = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, PACKET_MODEf);
+		profile_tbl_data.meter_resolution = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_REV_EXP_2f);
+		profile_tbl_data.color_blind 	  = SOC_SAND_BOOL2NUM_INVERSE(soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, COLOR_AWAREf));
+
+		/* calculate the policer_info parameters from the HW read values */
+		policer_info->is_packet_mode = SOC_SAND_NUM2BOOL(profile_tbl_data.packet_mode);
+		policer_info->color_mode 	 = profile_tbl_data.color_blind ? SOC_PPC_MTR_COLOR_MODE_BLIND : SOC_PPC_MTR_COLOR_MODE_AWARE;
+		policer_info->disable_cir 	 = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, RESET_CIRf);
+
+		res = arad_pp_mtr_ir_val_from_reverse_exp_mnt(
+			unit,
+			profile_tbl_data.meter_resolution,
+			profile_tbl_data.rate_exp,
+			profile_tbl_data.rate_mantissa,
+			&policer_info->cir
+			);
+		SOCDNX_SAND_IF_ERR_EXIT(res);
+
+		res = soc_sand_compute_complex_to_mnt_exp(
+			profile_tbl_data.burst_mantissa,
+			profile_tbl_data.burst_exp,
+			JER_PP_MTR_VAL_EXP_MNT_EQ_CONST_MULTI_BS,
+			JER_PP_MTR_PROFILE_VAL_EXP_MNT_EQ_CONST_MNT_INC_BS,
+			&policer_info->cbs
+			);
+		SOCDNX_SAND_IF_ERR_EXIT(res);
+
+		/* For packet mode, the h/w rates are half what the calculation expects (see
+		 * arad_pp_mtr_eth_policer_params_set_unsafe), so we must double them. */
+		if (policer_info->is_packet_mode)
+		{
+			policer_info->cir *= ARAD_PP_MTR_PACKET_MODE_CORRECTION;
+			policer_info->cbs *= ARAD_PP_MTR_PACKET_MODE_CORRECTION;
+		}
+	}else{
+		policer_info->cbs = 0;
+		policer_info->cir = 0;
+		policer_info->color_mode = 0;
+		policer_info->is_packet_mode = 0;
+		policer_info->color_mode = 0;
+	}
+exit:
+	SOCDNX_FUNC_RETURN;
+}
+
+uint32
+	jer_pp_mtr_eth_policer_glbl_profile_set(
+	   SOC_SAND_IN int       						unit,
+	   SOC_SAND_IN int		                		policer_ndx,
+	   SOC_SAND_IN ARAD_PP_MTR_BW_PROFILE_INFO    	*policer_info
+	)
+{
+  unsigned int
+	soc_sand_dev_id;
+  uint32
+	res;
+  uint8
+	glbl_info_enable;
+
+  uint32
+	prfCfg_tbl_entry,
+	prfSel_tbl_offset,
+	prfSel_tbl_entry;
+
+  soc_reg_above_64_val_t
+	eth_mtr_prfCfg_above_64_val;
+  uint32
+	eth_mtr_prfSel_val = 0;
+
+  soc_mem_t
+	eth_mtr_prfSel_mem,
+	eth_mtr_prfCfg_fields_mem,
+	eth_mtr_prfCfg_0_mem,
+	eth_mtr_prfCfg_1_mem;
+
+	ARAD_IDR_ETHERNET_METER_PROFILES_TBL_DATA
+	profile_tbl_data;
+
+  uint32
+    profile_field[4] = {PROFILE_0f, PROFILE_1f, PROFILE_2f, PROFILE_3f};
+
+	SOCDNX_INIT_FUNC_DEFS;
+	SOCDNX_NULL_CHECK(policer_info);
+	SOC_REG_ABOVE_64_CLEAR(eth_mtr_prfCfg_above_64_val);
+	glbl_info_enable = SOC_SAND_BOOL2NUM_INVERSE(policer_info->disable_cir);
+
+	soc_sand_dev_id = (unit);
+	eth_mtr_prfSel_mem 	 		= MTRPS_EM_MCDB_PRFSELm;
+	eth_mtr_prfCfg_fields_mem 	= MTRPS_EM_MCDA_PRFCFG_SHARING_DISm; /* using prf cfg 1 because of sharing flag is disabled on eth. meter*/
+	eth_mtr_prfCfg_0_mem 		= MTRPS_EM_MCDB_PRFCFG_0m; 			 /* using prf cfg 1 because of sharing flag is disabled on eth. meter*/
+	eth_mtr_prfCfg_1_mem 		= MTRPS_EM_MCDB_PRFCFG_1m; 			 /* using prf cfg 1 because of sharing flag is disabled on eth. meter*/
+
+	prfCfg_tbl_entry   = policer_ndx;
+	/*
+	  below: divide and modulu by 4.
+	  the profile selection table format is:
+						  offset
+	e	--------------------------------------------------------------
+	n	  | policer 0   | policer 1    | policer 2    | policer 3     |
+	t	--------------------------------------------------------------
+	r	  | policer 4   | policer 5    | policer 6    | policer 7     |
+	y 	--------------------------------------------------------------
+	*/
+	prfSel_tbl_entry  = prfCfg_tbl_entry >> 2;  /* /4 */
+	prfSel_tbl_offset = prfCfg_tbl_entry & 0x3; /* %4 */
+
+	/* Get values from tables */  
+	res = soc_mem_read(soc_sand_dev_id, eth_mtr_prfSel_mem, MTRPS_EM_BLOCK(unit, 0), prfSel_tbl_entry, (void*)&eth_mtr_prfSel_val);
+	SOCDNX_IF_ERR_EXIT(res);
+
+	/* transfer user values (cir, cbs) to mnt, exp and res */
+	res = arad_pp_mtr_profile_rate_to_res_exp_mnt(
+	   unit,
+	   policer_info->cir,
+	   &profile_tbl_data.meter_resolution,
+	   &profile_tbl_data.rate_mantissa,
+	   &profile_tbl_data.rate_exp
+	   );
+	SOCDNX_SAND_IF_ERR_EXIT(res);
+
+	/* res also affects the burst: actual-burst = user-burst << res */
+	res = arad_pp_mtr_bs_val_to_exp_mnt(
+		unit, 
+		policer_info->cbs,
+		&profile_tbl_data.burst_exp,
+		&profile_tbl_data.burst_mantissa
+		);
+	SOCDNX_SAND_IF_ERR_EXIT(res);
+
+	res = arad_pp_sw_db_eth_policer_config_status_bit_set(
+		unit,
+		0,
+		ARAD_PP_SW_DB_MULTI_SET_ETH_POLICER_CONFIG_METER_PROFILE_NOF_MEMBER_BIT + policer_ndx,
+		glbl_info_enable
+	);
+	SOCDNX_SAND_IF_ERR_EXIT(res);
+	/* Jericho has 2 cores. for now, database for both cores is identical.
+	   In the future, we might consider change the bcm API and control each core's DB individually
+	*/
+/*	res = arad_pp_sw_db_eth_policer_config_status_bit_set(
+		unit,
+		ARAD_PP_SW_DB_MULTI_SET_ETH_POLICER_ETH_METER_PROFILE_1,
+		ARAD_PP_SW_DB_MULTI_SET_ETH_POLICER_CONFIG_METER_PROFILE_NOF_MEMBER_BIT + policer_ndx,
+		glbl_info_enable
+	);
+	SOCDNX_SAND_IF_ERR_EXIT(res); */
+
+	profile_tbl_data.packet_mode = SOC_SAND_BOOL2NUM(policer_info->is_packet_mode);
+	profile_tbl_data.color_blind = policer_info->color_mode == SOC_PPC_MTR_COLOR_MODE_BLIND ? 1 : 0;
+	/* If the mode is color blind then all policers are color blind. */
+	if (soc_property_get(unit, spn_RATE_COLOR_BLIND, 0) || policer_info->color_mode == SOC_PPC_MTR_COLOR_MODE_BLIND) {
+	  profile_tbl_data.color_blind = 1;
+	}
+	
+	/* write to MRPS_EM prfCfg table*/
+	soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, RESET_CIRf, policer_info->disable_cir);
+	soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_MANTf, profile_tbl_data.rate_mantissa);
+	soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_MANT_EXPf, profile_tbl_data.rate_exp);
+	soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CBS_MANT_64f, profile_tbl_data.burst_mantissa);
+	soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CBS_EXPONENTf, profile_tbl_data.burst_exp);
+	soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, PACKET_MODEf, profile_tbl_data.packet_mode);
+	soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_REV_EXP_2f, profile_tbl_data.meter_resolution);
+	soc_mem_field32_set(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, COLOR_AWAREf, (uint32)SOC_SAND_BOOL2NUM_INVERSE(profile_tbl_data.color_blind));
+
+	res = soc_mem_write(soc_sand_dev_id, eth_mtr_prfCfg_0_mem, MTRPS_EM_BLOCK(unit, 0), prfCfg_tbl_entry, (void*)eth_mtr_prfCfg_above_64_val); 
+	SOCDNX_IF_ERR_EXIT(res);
+
+	res = soc_mem_write(soc_sand_dev_id, eth_mtr_prfCfg_0_mem, MTRPS_EM_BLOCK(unit, 1), prfCfg_tbl_entry, (void*)eth_mtr_prfCfg_above_64_val); 
+	SOCDNX_IF_ERR_EXIT(res);
+
+	res = soc_mem_write(soc_sand_dev_id, eth_mtr_prfCfg_1_mem, MTRPS_EM_BLOCK(unit, 0), prfCfg_tbl_entry, (void*)eth_mtr_prfCfg_above_64_val); 
+	SOCDNX_IF_ERR_EXIT(res);
+
+	res = soc_mem_write(soc_sand_dev_id, eth_mtr_prfCfg_1_mem, MTRPS_EM_BLOCK(unit, 1), prfCfg_tbl_entry, (void*)eth_mtr_prfCfg_above_64_val); 
+	SOCDNX_IF_ERR_EXIT(res);
+
+	/* Set pointer in plfSel table */
+	soc_mem_field32_set(unit, eth_mtr_prfSel_mem, &eth_mtr_prfSel_val, profile_field[prfSel_tbl_offset],policer_ndx);
+	res = soc_mem_write(soc_sand_dev_id, eth_mtr_prfSel_mem, MTRPS_EM_BLOCK(unit, 0), prfSel_tbl_entry, (void*)&eth_mtr_prfSel_val);
+	SOCDNX_IF_ERR_EXIT(res);
+
+	res = soc_mem_write(soc_sand_dev_id, eth_mtr_prfSel_mem, MTRPS_EM_BLOCK(unit, 1), prfSel_tbl_entry, (void*)&eth_mtr_prfSel_val);
+	SOCDNX_IF_ERR_EXIT(res);
+exit:
+	SOCDNX_FUNC_RETURN;
+}
+
+uint32  
+  jer_pp_mtr_eth_policer_glbl_profile_get(
+	 SOC_SAND_IN  int                      		unit,
+	 SOC_SAND_IN  uint32                      	glbl_profile_idx,
+	 SOC_SAND_OUT ARAD_PP_MTR_BW_PROFILE_INFO 	*policer_info
+  )
+{
+  unsigned int
+	soc_sand_dev_id;
+  uint32
+	res,
+	profile;
+  uint8
+	sw_db_enable_bit;
+
+  uint32
+	prfCfg_tbl_entry,
+	prfSel_tbl_offset,
+	prfSel_tbl_entry;
+
+  soc_reg_above_64_val_t
+	eth_mtr_prfCfg_above_64_val;
+  uint32
+	eth_mtr_prfSel_val = 0;
+
+  soc_mem_t
+	eth_mtr_prfSel_mem,
+	eth_mtr_prfCfg_fields_mem,
+	eth_mtr_prfCfg_mem;
+
+	ARAD_IDR_ETHERNET_METER_PROFILES_TBL_DATA
+	profile_tbl_data;
+
+  uint32
+    profile_field[4] = {PROFILE_0f, PROFILE_1f, PROFILE_2f, PROFILE_3f};
+
+	SOCDNX_INIT_FUNC_DEFS;
+	SOCDNX_NULL_CHECK(policer_info);
+	SOC_REG_ABOVE_64_CLEAR(eth_mtr_prfCfg_above_64_val);
+	ARAD_PP_MTR_BW_PROFILE_INFO_clear(policer_info);
+
+	soc_sand_dev_id = (unit);
+	eth_mtr_prfSel_mem 			= MTRPS_EM_MCDB_PRFSELm;
+	eth_mtr_prfCfg_fields_mem 	= MTRPS_EM_MCDA_PRFCFG_SHARING_DISm; /* using prf cfg 1 because of sharing flag is disabled on eth. meter*/
+	eth_mtr_prfCfg_mem 			= MTRPS_EM_MCDB_PRFCFG_0m; 			 /* using prf cfg 1 because of sharing flag is disabled on eth. meter*/
+
+	prfCfg_tbl_entry = glbl_profile_idx;
+	/*
+	    below: divide and modulu by 4.
+	    the profile selection table format is:
+							offset
+			-------------------------------------------------------------
+			| policer 0   | policer 1    | policer 2    | policer 3     |
+		e	--------------------------------------------------------------
+		n		.			.					.				.
+		t		.			.					.				.
+		r		.			.					.				.
+		y	-------------------------------------------------------------
+			| policer 4k  | policer 4k+1 | policer 4k+2 | policer 4k+3  |
+			-------------------------------------------------------------
+	*/
+	prfSel_tbl_entry  = prfCfg_tbl_entry >> 2;  /* /4 */
+	prfSel_tbl_offset = prfCfg_tbl_entry & 0x3; /* %4 */
+
+	/* Get pointers from prfSel table*/
+	res = soc_mem_read(soc_sand_dev_id, eth_mtr_prfSel_mem, MTRPS_EM_BLOCK(unit, 0), prfSel_tbl_entry, &eth_mtr_prfSel_val);
+	SOCDNX_IF_ERR_EXIT(res);
+
+	profile = soc_mem_field32_get(unit, eth_mtr_prfSel_mem, &eth_mtr_prfSel_val, profile_field[prfSel_tbl_offset]);
+
+	/* Get committed mnt, exp values from prfCfg table */
+	res = soc_mem_read(soc_sand_dev_id, eth_mtr_prfCfg_mem, MTRPS_EM_BLOCK(unit, 0), profile, (void*)eth_mtr_prfCfg_above_64_val);
+	SOCDNX_IF_ERR_EXIT(res);
+
+	res = arad_sw_db_multiset_get_enable_bit(
+			unit,
+			0,
+			ARAD_PP_SW_DB_MULTI_SET_ETH_POLICER_CONFIG_METER_PROFILE_NOF_MEMBER_BIT + prfCfg_tbl_entry,
+			&sw_db_enable_bit
+			);
+	SOCDNX_SAND_IF_ERR_EXIT(res);
+
+	if (sw_db_enable_bit == TRUE) {
+		profile_tbl_data.rate_mantissa 	  = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_MANTf);
+		profile_tbl_data.rate_exp 	 	  = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_MANT_EXPf);
+		profile_tbl_data.burst_mantissa   = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CBS_MANT_64f);
+		profile_tbl_data.burst_exp 		  = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CBS_EXPONENTf);
+		profile_tbl_data.packet_mode 	  = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, PACKET_MODEf);
+		profile_tbl_data.meter_resolution = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, CIR_REV_EXP_2f);
+		profile_tbl_data.color_blind 	  = SOC_SAND_BOOL2NUM_INVERSE(soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, COLOR_AWAREf));
+
+		/* calculate the policer_info parameters from the HW read values */
+		policer_info->is_packet_mode = SOC_SAND_NUM2BOOL(profile_tbl_data.packet_mode);
+		policer_info->color_mode 	 = profile_tbl_data.color_blind ? SOC_PPC_MTR_COLOR_MODE_BLIND : SOC_PPC_MTR_COLOR_MODE_AWARE;
+		policer_info->disable_cir 	 = soc_mem_field32_get(unit, eth_mtr_prfCfg_fields_mem, (void*)eth_mtr_prfCfg_above_64_val, RESET_CIRf);
+
+		res = arad_pp_mtr_ir_val_from_reverse_exp_mnt(
+			unit,
+			profile_tbl_data.meter_resolution,
+			profile_tbl_data.rate_exp,
+			profile_tbl_data.rate_mantissa,
+			&policer_info->cir
+			);
+		SOCDNX_SAND_IF_ERR_EXIT(res);
+
+		res = soc_sand_compute_complex_to_mnt_exp(
+			profile_tbl_data.burst_mantissa,
+			profile_tbl_data.burst_exp,
+			JER_PP_MTR_VAL_EXP_MNT_EQ_CONST_MULTI_BS,
+			JER_PP_MTR_PROFILE_VAL_EXP_MNT_EQ_CONST_MNT_INC_BS,
+			&policer_info->cbs
+			);
+		SOCDNX_SAND_IF_ERR_EXIT(res);
+
+		/* For packet mode, the h/w rates are half what the calculation expects (see
+		 * arad_pp_mtr_eth_policer_params_set_unsafe), so we must double them. */
+		if (policer_info->is_packet_mode)
+		{
+			policer_info->cir *= ARAD_PP_MTR_PACKET_MODE_CORRECTION;
+			policer_info->cbs *= ARAD_PP_MTR_PACKET_MODE_CORRECTION;
+		}
+	}else{
+		policer_info->cbs = 0;
+		policer_info->cir = 0;
+		policer_info->color_mode = 0;
+		policer_info->is_packet_mode = 0;
+		policer_info->color_mode = 0;
+	}
+
+ exit:
+	 SOCDNX_FUNC_RETURN;
+}
+
+uint32  
+  jer_pp_mtr_eth_policer_glbl_profile_map_set(
+    SOC_SAND_IN  int                  	unit,
+	SOC_SAND_IN  int                  	core_id,
+    SOC_SAND_IN  ARAD_PP_PORT           port_ndx,
+    SOC_SAND_IN  ARAD_PP_MTR_ETH_TYPE   eth_type_ndx,
+    SOC_SAND_IN  uint32                 glbl_profile_idx
+  )
+{
+  unsigned int 
+	soc_sand_dev_id;
+  uint32
+	res,
+    config_tbl_entry,
+	eth_mtr_config_val,
+    glbl_mtr_ptr_val;
+
+  soc_mem_t
+	eth_mtr_config_mem;
+  int
+	config_array_index;
+
+	SOCDNX_INIT_FUNC_DEFS;
+
+	soc_sand_dev_id = (unit);
+	config_array_index = core_id;
+	config_tbl_entry   = port_ndx * ARAD_PP_NOF_MTR_ETH_TYPES + eth_type_ndx;
+	eth_mtr_config_mem = IDR_ETHERNET_METER_CONFIGm;
+
+	/* Get pointers from config table*/
+	res = soc_mem_array_read(soc_sand_dev_id, eth_mtr_config_mem, config_array_index, MEM_BLOCK_ANY, config_tbl_entry, (void*)&eth_mtr_config_val);
+	SOCDNX_IF_ERR_EXIT(res);
+
+	glbl_mtr_ptr_val = glbl_profile_idx;
+	/* Set the validity bit in the eth. meter config table */
+	soc_mem_field32_set(unit, eth_mtr_config_mem, &eth_mtr_config_val, GLOBAL_METER_PROFILEf, glbl_mtr_ptr_val);
+	soc_mem_field32_set(unit, eth_mtr_config_mem, &eth_mtr_config_val, GLOBAL_METER_PROFILE_VALIDf, 1);
+	res = soc_mem_array_write(soc_sand_dev_id, eth_mtr_config_mem, config_array_index, MEM_BLOCK_ANY, config_tbl_entry, (void*)&eth_mtr_config_val);
+	SOCDNX_IF_ERR_EXIT(res);
+  
+exit:
+	SOCDNX_FUNC_RETURN;
+}
+
+uint32  
+  jer_pp_mtr_eth_policer_glbl_profile_map_get(
+	 SOC_SAND_IN  int                  	unit,
+	 SOC_SAND_IN  int                  	core_id,
+	 SOC_SAND_IN  ARAD_PP_PORT          port_ndx,
+	 SOC_SAND_IN  ARAD_PP_MTR_ETH_TYPE  eth_type_ndx,
+	 SOC_SAND_OUT uint32                *glbl_profile_idx
+   )
+ {
+  unsigned int 
+	soc_sand_dev_id;
+  uint32
+	res,
+	config_tbl_entry,
+	eth_mtr_config_val,
+	glbl_mtr_ptr_val;
+
+  soc_mem_t
+	eth_mtr_config_mem;
+  int
+	config_array_index;
+
+	SOCDNX_INIT_FUNC_DEFS;
+	SOCDNX_NULL_CHECK(glbl_profile_idx);
+
+	soc_sand_dev_id = (unit);
+	config_array_index = core_id;
+	config_tbl_entry   = port_ndx * ARAD_PP_NOF_MTR_ETH_TYPES + eth_type_ndx;
+	eth_mtr_config_mem = IDR_ETHERNET_METER_CONFIGm;
+
+   /* Get pointers from config table*/
+   res = soc_mem_array_read(soc_sand_dev_id, eth_mtr_config_mem, config_array_index, MEM_BLOCK_ANY, config_tbl_entry, (void*)&eth_mtr_config_val);
+   SOCDNX_IF_ERR_EXIT(res);
+
+   soc_mem_field_get(unit, eth_mtr_config_mem, &eth_mtr_config_val, GLOBAL_METER_PROFILEf, &glbl_mtr_ptr_val);
+   *glbl_profile_idx = glbl_mtr_ptr_val;
+
+ exit:
+	 SOCDNX_FUNC_RETURN;
+ }
+
+/* } */
+
+#endif /*BCM_88675_A0*/

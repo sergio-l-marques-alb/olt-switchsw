@@ -1,0 +1,671 @@
+/* $Id: arad_pmf_low_level_fem_tag.h,v 1.17 Broadcom SDK $
+ * $Copyright: Copyright 2015 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+
+#ifndef __ARAD_PMF_LOW_LEVEL_FEM_TAG_INCLUDED__
+/* { */
+#define __ARAD_PMF_LOW_LEVEL_FEM_TAG_INCLUDED__
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+
+#include <soc/dpp/SAND/Utils/sand_header.h>
+
+#include <soc/dpp/SAND/Management/sand_general_macros.h>
+#include <soc/dpp/SAND/Management/sand_error_code.h>
+
+#include <soc/dpp/ARAD/arad_pmf_low_level.h>
+#include <soc/dpp/ARAD/arad_pmf_low_level_db.h>
+#include <soc/dpp/ARAD/arad_api_framework.h>
+#include <soc/dpp/TMC/tmc_api_pmf_low_level_fem_tag.h>
+
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_api_fp.h>
+
+#include <soc/dpp/PPC/ppc_api_fp.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_flp_init.h>
+
+/* } */
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+
+
+
+#define ARAD_PMF_FEM_ACTION_TYPE_DEST                     SOC_PPC_FP_ACTION_TYPE_DEST
+#define ARAD_PMF_FEM_ACTION_TYPE_DP                       SOC_PPC_FP_ACTION_TYPE_DP
+#define ARAD_PMF_FEM_ACTION_TYPE_TC                       SOC_PPC_FP_ACTION_TYPE_TC
+#define ARAD_PMF_FEM_ACTION_TYPE_TRAP                     SOC_PPC_FP_ACTION_TYPE_TRAP
+#define ARAD_PMF_FEM_ACTION_TYPE_TRAP_REDUCED             SOC_PPC_FP_ACTION_TYPE_TRAP_REDUCED
+#define ARAD_PMF_FEM_ACTION_TYPE_SNP                      SOC_PPC_FP_ACTION_TYPE_SNP
+#define ARAD_PMF_FEM_ACTION_TYPE_MIRROR                   SOC_PPC_FP_ACTION_TYPE_MIRROR
+#define ARAD_PMF_FEM_ACTION_TYPE_MIR_DIS                  SOC_PPC_FP_ACTION_TYPE_MIR_DIS
+#define ARAD_PMF_FEM_ACTION_TYPE_EXC_SRC                  SOC_PPC_FP_ACTION_TYPE_EXC_SRC
+#define ARAD_PMF_FEM_ACTION_TYPE_IS                       SOC_PPC_FP_ACTION_TYPE_IS
+#define ARAD_PMF_FEM_ACTION_TYPE_METER                    SOC_PPC_FP_ACTION_TYPE_METER
+#define ARAD_PMF_FEM_ACTION_TYPE_COUNTER                  SOC_PPC_FP_ACTION_TYPE_COUNTER
+#define ARAD_PMF_FEM_ACTION_TYPE_STAT                     SOC_PPC_FP_ACTION_TYPE_VSQ_PTR
+#define ARAD_PMF_FEM_ACTION_TYPE_OUTLIF                   SOC_PPC_FP_ACTION_TYPE_OUTLIF
+#define ARAD_PMF_FEM_ACTION_TYPE_2ND_PASS_DATA            SOC_PPC_FP_ACTION_TYPE_CHANGE_KEY
+#define ARAD_PMF_FEM_ACTION_TYPE_2ND_PASS_PGM             SOC_PPC_FP_ACTION_TYPE_2ND_PASS_PGM
+#define ARAD_PMF_FEM_ACTION_TYPE_NOP                      SOC_PPC_FP_ACTION_TYPE_NOP
+#define ARAD_NOF_PMF_FEM_ACTION_TYPES                     SOC_PPC_NOF_FP_ACTION_TYPES_ARAD
+typedef SOC_PPC_FP_ACTION_TYPE		                            ARAD_PMF_FEM_ACTION_TYPE;
+
+#define ARAD_PMF_FEM_BIT_LOC_TYPE_CST                     SOC_TMC_PMF_FEM_BIT_LOC_TYPE_CST
+#define ARAD_PMF_FEM_BIT_LOC_TYPE_KEY                     SOC_TMC_PMF_FEM_BIT_LOC_TYPE_KEY
+#define ARAD_PMF_FEM_BIT_LOC_TYPE_MAP_DATA                SOC_TMC_PMF_FEM_BIT_LOC_TYPE_MAP_DATA
+#define ARAD_NOF_PMF_FEM_BIT_LOC_TYPES                    SOC_TMC_NOF_PMF_FEM_BIT_LOC_TYPES
+typedef SOC_TMC_PMF_FEM_BIT_LOC_TYPE                           ARAD_PMF_FEM_BIT_LOC_TYPE;
+
+typedef SOC_TMC_PMF_FEM_INPUT_SRC_ARAD                         ARAD_PMF_FEM_INPUT_SRC_ARAD;
+typedef SOC_TMC_PMF_FES_INPUT_INFO                             ARAD_PMF_FES_INPUT_INFO;
+typedef SOC_TMC_PMF_FEM_INPUT_INFO                             ARAD_PMF_FEM_INPUT_INFO;
+typedef SOC_TMC_PMF_FEM_NDX                                    ARAD_PMF_FEM_NDX;
+typedef SOC_TMC_PMF_FEM_SELECTED_BITS_INFO                     ARAD_PMF_FEM_SELECTED_BITS_INFO;
+typedef SOC_TMC_PMF_FEM_ACTION_FORMAT_MAP_INFO                 ARAD_PMF_FEM_ACTION_FORMAT_MAP_INFO;
+typedef SOC_TMC_PMF_FEM_BIT_LOC                                ARAD_PMF_FEM_BIT_LOC;
+typedef SOC_TMC_PMF_FEM_ACTION_FORMAT_INFO                     ARAD_PMF_FEM_ACTION_FORMAT_INFO;
+
+#define ARAD_PMF_FEM_TM_ACTION_FORMAT_NDX_DEFAULT (1)
+#define ARAD_PMF_FEM_ACTION_DEFAULT_DEST_1        (1)
+#define ARAD_PMF_FEM_FTMH_ACTION_FORMAT_NDX       (1)
+#define ARAD_PMF_FEM_ETH_ACTION_FORMAT_NDX        (2)
+#define ARAD_PMF_FEM_ACTION_DEFAULT_NOP_3         (3)
+
+
+/* } */
+/*************
+ * MACROS    *
+ *************/
+/* { */
+
+/* } */
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+
+typedef struct
+{
+    /*
+     *  Egress Action type
+     */
+    SOC_PPC_FP_ACTION_TYPE    action_type;
+
+    uint32 msb;
+    uint32 lsb;
+    uint32 base0;
+    uint32 base1;
+
+    /* TCAM Action table attributes */
+    uint32 lsb_hw;
+    uint32 size;
+} ARAD_PMF_FEM_ACTION_EGRESS_SIGNAL;
+
+
+/* } */
+/*************
+ * GLOBALS   *
+ *************/
+
+extern CONST soc_mem_t Arad_pmf_fem_map_tbl[];
+extern CONST soc_field_t Arad_pmf_fem_map_field_select_field[];
+
+/* { */
+
+/* } */
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+/* Reference table for fields filling */
+uint32 
+     arad_pmf_fem_map_tbl_reference(
+        SOC_SAND_IN  int                         unit,
+        SOC_SAND_IN  uint32                      fem_type,
+        SOC_SAND_OUT soc_mem_t                   *mem
+     );
+
+/* Get the array size */
+uint32
+  arad_pmf_fem_action_type_array_size_get_unsafe(
+      SOC_SAND_IN  int                            unit
+  );
+
+/* Get the array element attributes */
+uint32
+  arad_pmf_fem_action_type_array_element_get_unsafe(
+      SOC_SAND_IN  int                            unit,
+      SOC_SAND_IN  uint32                            table_line,
+      SOC_SAND_IN  uint32                            sub_index
+  );
+
+/* Get the attributes of the egress actions */
+uint32
+  arad_pmf_fem_action_egress_info_get(
+      SOC_SAND_IN  int                           unit,
+      SOC_SAND_IN  SOC_PPC_FP_ACTION_TYPE               action_type,
+      SOC_SAND_OUT uint8                             *is_found,
+      SOC_SAND_OUT ARAD_PMF_FEM_ACTION_EGRESS_SIGNAL *action_egress_info
+  );
+
+uint32
+  arad_pmf_low_level_fem_tag_init_unsafe(
+    SOC_SAND_IN  int                                 unit
+  );
+
+uint32
+    arad_pmf_fem_action_elk_result_size_update(int unit, int res_sizes[ARAD_PP_FLP_KBP_MAX_NUMBER_OF_RESULTS]);
+
+/* given FP action reurn number of bits in this action*/
+uint32
+  arad_pmf_db_fes_action_size_get_unsafe(
+      SOC_SAND_IN  int                            unit,
+      SOC_SAND_IN  SOC_PPC_FP_ACTION_TYPE     action_type,
+      SOC_SAND_IN  ARAD_FP_DATABASE_STAGE            stage,
+      SOC_SAND_OUT uint32                 *action_size,
+      SOC_SAND_OUT uint32                 *action_lsb_egress
+  );
+
+/* Retrieve the SW action from the HW value */
+uint32
+  arad_pmf_db_action_type_get_unsafe(
+    SOC_SAND_IN  int                 unit,
+    SOC_SAND_IN  uint32                 action_type_hw,
+    SOC_SAND_OUT  uint8                    *is_found,
+    SOC_SAND_OUT ARAD_PMF_FEM_ACTION_TYPE *action_type_sw
+  );
+
+uint32
+  arad_pmf_fem_output_size_get(
+    SOC_SAND_IN  int            unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX   *fem_ndx,
+    SOC_SAND_OUT uint32            *output_size_in_bits
+  );
+
+/*********************************************************************
+* NAME:
+ *   arad_pmf_db_fem_input_set_unsafe
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Select the input for each Field Extraction MACRO. The FEM
+ *   processes the PCL results, and extracts possible actions
+ *   to be applied on the packet. INPUT SOC_SAND_IN
+ *   SOC_PPD_PMF_LKP_PROFILE *lkp_profile_ndx - Lookup-Profile
+ *   information (id and cycle). SOC_SAND_IN uint32 *fem_ndx -
+ *   FEM (Field Extraction Macro) Index. Range: 0 - 7.
+ *   (Arad-B) SOC_SAND_IN SOC_PPD_PMF_FEM_INPUT_INFO *info - FEM
+ *   input parameters: the FEM-Program-Id and the FEM-Input
+ *   source. RETURNS OK or Error indicationREMARKS None.
+ * INPUT:
+ *   SOC_SAND_IN  int                            unit -
+ *     Identifier of the device to access.
+ *   SOC_SAND_IN  ARAD_PMF_LKP_PROFILE                *lkp_profile_ndx -
+ *     SOC_SAND_IN SOC_PPD_PMF_LKP_PROFILE *lkp_profile_ndx
+ *   SOC_SAND_IN  uint32                            fem_ndx -
+ *     SOC_SAND_IN uint32 fem_ndx
+ *   SOC_SAND_IN  ARAD_PMF_FEM_INPUT_INFO             *info -
+ *     FUNCTION Select the input for each Field Extraction
+ *     MACRO. The FEM processes the PCL results, and extracts
+ *     possible actions to be applied on the packet. INPUT
+ *     SOC_SAND_IN SOC_PPD_PMF_LKP_PROFILE *lkp_profile_ndx -
+ *     Lookup-Profile information (id and cycle). SOC_SAND_IN
+ *     uint32 *fem_ndx - FEM (Field Extraction Macro) Index.
+ *     Range: 0 - 7. (Arad-B) SOC_SAND_IN SOC_PPD_PMF_FEM_INPUT_INFO
+ *     *info - FEM input parameters: the FEM-Program-Id and the
+ *     FEM-Input source.
+ * REMARKS:
+ *   None.
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  arad_pmf_db_fem_input_set_unsafe(
+    SOC_SAND_IN  int                  unit,
+    SOC_SAND_IN  uint32			        pmf_pgm_ndx,
+    SOC_SAND_IN  uint8			        is_fes,
+    SOC_SAND_IN  uint32                  fem_fes_ndx,
+    SOC_SAND_IN  ARAD_PMF_FEM_INPUT_INFO   *info
+  );
+
+uint32
+  arad_pmf_db_fem_input_set_verify(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  uint32			        pmf_pgm_ndx,
+    SOC_SAND_IN  uint8			        is_fes,
+    SOC_SAND_IN  uint32                  fem_fes_ndx,
+    SOC_SAND_IN  ARAD_PMF_FEM_INPUT_INFO             *info
+  );
+
+uint32
+  arad_pmf_db_fem_input_get_verify(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  uint32			        pmf_pgm_ndx,
+    SOC_SAND_IN  uint8			        is_fes,
+    SOC_SAND_IN  uint32                  fem_fes_ndx
+  );
+
+/*********************************************************************
+*     Gets the configuration set by the
+ *     "arad_pmf_db_fem_input_set_unsafe" API.
+ *     Refer to "arad_pmf_db_fem_input_set_unsafe" API for
+ *     details.
+*********************************************************************/
+uint32
+  arad_pmf_db_fem_input_get_unsafe(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  uint32			        pmf_pgm_ndx,
+    SOC_SAND_IN  uint8			        is_fes,
+    SOC_SAND_IN  uint32                  fem_fes_ndx,
+    SOC_SAND_OUT ARAD_PMF_FEM_INPUT_INFO             *info
+  );
+
+/* Get the user-header sizes in bits */
+uint32
+  arad_pmf_db_fes_user_header_sizes_get(
+      SOC_SAND_IN  int                  unit,
+      SOC_SAND_OUT uint32                 *user_header_0_size,
+      SOC_SAND_OUT uint32                 *user_header_1_size,
+      SOC_SAND_OUT uint32                 *user_header_egress_pmf_offset_0,
+      SOC_SAND_OUT uint32                 *user_header_egress_pmf_offset_1
+  );
+
+/* Set the FES attributes except the input */
+uint32
+  arad_pmf_db_fes_set_unsafe(
+    SOC_SAND_IN  int                  unit,
+    SOC_SAND_IN  uint32			        pmf_pgm_ndx,
+    SOC_SAND_IN  uint32                  fem_fes_ndx,
+    SOC_SAND_IN  ARAD_PMF_FES_INPUT_INFO   *info
+  );
+
+uint32
+  arad_pmf_db_fes_set_verify(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  uint32			        pmf_pgm_ndx,
+    SOC_SAND_IN  uint32                  fem_fes_ndx,
+    SOC_SAND_IN  ARAD_PMF_FES_INPUT_INFO             *info
+  );
+
+uint32
+  arad_pmf_db_fes_get_verify(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  uint32			        pmf_pgm_ndx,
+    SOC_SAND_IN  uint32                  fem_fes_ndx
+  );
+
+uint32
+  arad_pmf_db_fes_get_unsafe(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  uint32			        pmf_pgm_ndx,
+    SOC_SAND_IN  uint32                  fem_fes_ndx,
+    SOC_SAND_OUT ARAD_PMF_FES_INPUT_INFO             *info
+  );
+
+uint32
+  arad_pmf_db_fes_move_unsafe(
+    SOC_SAND_IN  int                  unit,
+    SOC_SAND_IN  uint32			         pmf_pgm_ndx,
+    SOC_SAND_IN  uint32                  from_fem_fes_ndx,
+    SOC_SAND_IN  uint32                  to_fem_fes_ndx,
+    SOC_SAND_IN  ARAD_PMF_FES            *fes_info
+  );
+
+
+/*********************************************************************
+* NAME:
+ *   arad_pmf_fem_select_bits_set_unsafe
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Set the location of 4 bits from the FEM-key that select
+ *   the performed action format for this key (configure the
+ *   Select-4-bits table).
+ * INPUT:
+ *   SOC_SAND_IN  int                            unit -
+ *     Identifier of the device to access.
+ *   SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx -
+ *     FEM Index.
+ *   SOC_SAND_IN  uint32                            fem_pgm_ndx -
+ *     FEM-Program-Id. Is set with the FEM input source. Range:
+ *     0 - 3. (Arad-B)
+ *   SOC_SAND_IN  ARAD_PMF_FEM_SELECTED_BITS_INFO     *info -
+ *     Bits to select from the FEM-Key.
+ * REMARKS:
+ *   None.
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  arad_pmf_fem_select_bits_set_unsafe(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx,
+    SOC_SAND_IN  uint32                            fem_pgm_ndx,
+    SOC_SAND_IN  ARAD_PMF_FEM_SELECTED_BITS_INFO     *info
+  );
+
+uint32
+  arad_pmf_fem_select_bits_set_verify(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx,
+    SOC_SAND_IN  uint32                            fem_pgm_ndx,
+    SOC_SAND_IN  ARAD_PMF_FEM_SELECTED_BITS_INFO     *info
+  );
+
+uint32
+  arad_pmf_fem_select_bits_get_verify(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx,
+    SOC_SAND_IN  uint32                            fem_pgm_ndx
+  );
+
+/*********************************************************************
+*     Gets the configuration set by the
+ *     "arad_pmf_fem_select_bits_set_unsafe" API.
+ *     Refer to "arad_pmf_fem_select_bits_set_unsafe" API for
+ *     details.
+*********************************************************************/
+uint32
+  arad_pmf_fem_select_bits_get_unsafe(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx,
+    SOC_SAND_IN  uint32                            fem_pgm_ndx,
+    SOC_SAND_OUT ARAD_PMF_FEM_SELECTED_BITS_INFO     *info
+  );
+
+/*********************************************************************
+* NAME:
+ *   arad_pmf_fem_action_format_map_set_unsafe
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Set the location of 4 bits from the FEM-key that select
+ *   the performed action format for this key (configure the
+ *   Select-4-bits table).
+ * INPUT:
+ *   SOC_SAND_IN  int                            unit -
+ *     Identifier of the device to access.
+ *   SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx -
+ *     FEM Index.
+ *   SOC_SAND_IN  uint32                            fem_pgm_ndx -
+ *     FEM-Program-Id. Is set with the FEM input source. Range:
+ *     0 - 3. (Arad-B)
+ *   SOC_SAND_IN  uint32                            selected_bits_ndx -
+ *     Value of the selected-bits with
+ *     soc_ppd_pmf_fem_select_bits_set() API. Range: 0 - 15.
+ *     (Arad-B)
+ *   SOC_SAND_IN  ARAD_PMF_FEM_ACTION_FORMAT_MAP_INFO *info -
+ *     Action-format-Id and the Map-Data.
+ * REMARKS:
+ *   None.
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  arad_pmf_fem_action_format_map_set_unsafe(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx,
+    SOC_SAND_IN  uint32                            fem_pgm_ndx,
+    SOC_SAND_IN  uint32                            selected_bits_ndx,
+    SOC_SAND_IN  ARAD_PMF_FEM_ACTION_FORMAT_MAP_INFO *info
+  );
+
+uint32
+  arad_pmf_fem_action_format_map_set_verify(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx,
+    SOC_SAND_IN  uint32                            fem_pgm_ndx,
+    SOC_SAND_IN  uint32                            selected_bits_ndx,
+    SOC_SAND_IN  ARAD_PMF_FEM_ACTION_FORMAT_MAP_INFO *info
+  );
+
+uint32
+  arad_pmf_fem_action_format_map_get_verify(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx,
+    SOC_SAND_IN  uint32                            fem_pgm_ndx,
+    SOC_SAND_IN  uint32                            selected_bits_ndx
+  );
+
+/*********************************************************************
+*     Gets the configuration set by the
+ *     "arad_pmf_fem_action_format_map_set_unsafe" API.
+ *     Refer to "arad_pmf_fem_action_format_map_set_unsafe"
+ *     API for details.
+*********************************************************************/
+uint32
+  arad_pmf_fem_action_format_map_get_unsafe(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx,
+    SOC_SAND_IN  uint32                            fem_pgm_ndx,
+    SOC_SAND_IN  uint32                            selected_bits_ndx,
+    SOC_SAND_OUT ARAD_PMF_FEM_ACTION_FORMAT_MAP_INFO *info
+  );
+
+/*********************************************************************
+* NAME:
+ *   arad_pmf_fem_action_format_set_unsafe
+ * TYPE:
+ *   PROC
+ * FUNCTION:
+ *   Configure the format of the each action done by the
+ *   Field Extraction Macro. Each FEM can perform up to four
+ *   different actions.
+ * INPUT:
+ *   SOC_SAND_IN  int                            unit -
+ *     Identifier of the device to access.
+ *   SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx -
+ *     FEM Index.
+ *   SOC_SAND_IN  uint32                            action_fomat_ndx -
+ *     Action-Format-Id. Range: 0 - 3. (Arad-B)
+ *   SOC_SAND_IN  ARAD_PMF_FEM_ACTION_FORMAT_INFO     *info -
+ *     Parameters of the Action Format: its type, its
+ *     base-value and the field extraction location.
+ * REMARKS:
+ *   None.
+ * RETURNS:
+ *   OK or ERROR indication.
+*********************************************************************/
+uint32
+  arad_pmf_fem_action_format_set_unsafe(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx,
+    SOC_SAND_IN  uint32                            action_fomat_ndx,
+    SOC_SAND_IN  ARAD_PMF_FEM_ACTION_FORMAT_INFO     *info
+  );
+
+uint32
+  arad_pmf_fem_action_format_set_verify(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx,
+    SOC_SAND_IN  uint32                            action_fomat_ndx,
+    SOC_SAND_IN  ARAD_PMF_FEM_ACTION_FORMAT_INFO     *info
+  );
+
+uint32
+  arad_pmf_fem_action_format_get_verify(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx,
+    SOC_SAND_IN  uint32                            action_fomat_ndx
+  );
+
+/*********************************************************************
+*     Gets the configuration set by the
+ *     "arad_pmf_fem_action_format_set_unsafe" API.
+ *     Refer to "arad_pmf_fem_action_format_set_unsafe" API
+ *     for details.
+*********************************************************************/
+uint32
+  arad_pmf_fem_action_format_get_unsafe(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX                    *fem_ndx,
+    SOC_SAND_IN  uint32                            action_fomat_ndx,
+    SOC_SAND_OUT ARAD_PMF_FEM_ACTION_FORMAT_INFO     *info
+  );
+
+
+uint32
+  ARAD_PMF_FEM_INPUT_INFO_verify(
+     SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_INPUT_INFO *info
+  );
+
+uint32
+  ARAD_PMF_FES_INPUT_INFO_verify(
+    SOC_SAND_IN  int                            unit,
+    SOC_SAND_IN  ARAD_PMF_FES_INPUT_INFO *info
+  );
+
+uint32
+  ARAD_PMF_FEM_NDX_verify(
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX *info
+  );
+
+uint32
+  ARAD_PMF_FEM_SELECTED_BITS_INFO_verify(
+    SOC_SAND_IN  ARAD_PMF_FEM_SELECTED_BITS_INFO *info
+  );
+
+uint32
+  ARAD_PMF_FEM_ACTION_FORMAT_MAP_INFO_verify(
+    SOC_SAND_IN  ARAD_PMF_FEM_ACTION_FORMAT_MAP_INFO *info
+  );
+
+uint32
+  ARAD_PMF_FEM_BIT_LOC_verify(
+    SOC_SAND_IN  ARAD_PMF_FEM_BIT_LOC *info
+  );
+
+uint32
+  ARAD_PMF_FEM_ACTION_FORMAT_INFO_verify(
+    SOC_SAND_IN  int                             unit,
+    SOC_SAND_IN  ARAD_PMF_FEM_ACTION_FORMAT_INFO *info
+  );
+
+void
+  ARAD_PMF_FEM_INPUT_INFO_clear(
+    SOC_SAND_OUT ARAD_PMF_FEM_INPUT_INFO *info
+  );
+
+void
+  ARAD_PMF_FES_INPUT_INFO_clear(
+    SOC_SAND_OUT ARAD_PMF_FES_INPUT_INFO *info
+  );
+
+void
+  ARAD_PMF_FEM_NDX_clear(
+    SOC_SAND_OUT ARAD_PMF_FEM_NDX *info
+  );
+
+void
+  ARAD_PMF_FEM_SELECTED_BITS_INFO_clear(
+    SOC_SAND_OUT ARAD_PMF_FEM_SELECTED_BITS_INFO *info
+  );
+
+void
+  ARAD_PMF_FEM_ACTION_FORMAT_MAP_INFO_clear(
+    SOC_SAND_OUT ARAD_PMF_FEM_ACTION_FORMAT_MAP_INFO *info
+  );
+
+void
+  ARAD_PMF_FEM_BIT_LOC_clear(
+    SOC_SAND_OUT ARAD_PMF_FEM_BIT_LOC *info
+  );
+
+void
+  ARAD_PMF_FEM_ACTION_FORMAT_INFO_clear(
+    SOC_SAND_OUT ARAD_PMF_FEM_ACTION_FORMAT_INFO *info
+  );
+
+#if ARAD_DEBUG_IS_LVL1
+const char*
+  ARAD_PMF_FEM_BIT_LOC_TYPE_to_string(
+    SOC_SAND_IN  ARAD_PMF_FEM_BIT_LOC_TYPE enum_val
+  );
+
+void
+  ARAD_PMF_FEM_INPUT_INFO_print(
+    SOC_SAND_IN  ARAD_PMF_FEM_INPUT_INFO *info
+  );
+
+void
+  ARAD_PMF_FEM_NDX_print(
+    SOC_SAND_IN  ARAD_PMF_FEM_NDX *info
+  );
+
+void
+  ARAD_PMF_FEM_SELECTED_BITS_INFO_print(
+    SOC_SAND_IN  ARAD_PMF_FEM_SELECTED_BITS_INFO *info
+  );
+
+void
+  ARAD_PMF_FEM_ACTION_FORMAT_MAP_INFO_print(
+    SOC_SAND_IN  ARAD_PMF_FEM_ACTION_FORMAT_MAP_INFO *info
+  );
+
+void
+  ARAD_PMF_FEM_BIT_LOC_print(
+    SOC_SAND_IN  ARAD_PMF_FEM_BIT_LOC *info
+  );
+
+void
+  ARAD_PMF_FEM_ACTION_FORMAT_INFO_print(
+    SOC_SAND_IN  ARAD_PMF_FEM_ACTION_FORMAT_INFO *info
+  );
+
+#endif /* ARAD_DEBUG_IS_LVL1 */
+
+/* } */
+
+#include <soc/dpp/SAND/Utils/sand_footer.h>
+
+/* } __ARAD_PMF_LOW_LEVEL_FEM_TAG_INCLUDED__*/
+#endif
+
+
+

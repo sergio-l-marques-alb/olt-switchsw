@@ -1,0 +1,1426 @@
+diff -rpN --unified=5 phy_original/phy5464.c phy/phy5464.c
+--- phy_original/phy5464.c	2013-03-07 17:50:30.000000000 +0000
++++ phy/phy5464.c	2013-04-09 17:30:25.000000000 +0100
+@@ -9,10 +9,15 @@
+ 
+ #include <soc/phy.h>
+ #include <soc/phy/phyctrl.h>
+ #include <soc/phy/drv.h>
+ 
++#ifdef LVL7_FIXUP
++#include "sysapi_hpc.h"
++#include "hpc_phy.h"
++#endif
++
+ #include "phydefs.h"      /* Must include before other phy related includes */
+ 
+ #if defined(INCLUDE_PHY_5464_ESW)
+ #include "phyconfig.h"    /* Must be the first phy include after phydefs.h */
+ 
+@@ -98,10 +103,14 @@ STATIC int
+ _phy_5464_medium_check(int unit, soc_port_t port, int *medium)
+ {
+     phy_ctrl_t        *pc;    /* PHY state */
+     uint16             tmp;    /* Temp variable */
+     int                copper; /* Copper medium is active */
++#if (defined(LVL7_FIXUP) && \
++    (defined(LVL7_ALPHA8245) || defined(LVL7_DNI8541)))
++static int              fiberCnt[2][24];
++#endif
+ 
+     pc    = EXT_PHY_SW_STATE(unit, port);
+     /* Read Mode Register (0x1c shadow 11111) */
+     SOC_IF_ERROR_RETURN
+         (READ_PHY5464_MODE_CTRLr(unit, pc, &tmp));
+@@ -115,11 +124,26 @@ _phy_5464_medium_check(int unit, soc_por
+         } else {
+             if (pc->fiber.preferred) {
+                 /* 0x10 Fiber Signal Detect
+                  * 0x20 Copper Energy Detect
+                  */
++#if (defined(LVL7_FIXUP) && \
++    (defined(LVL7_ALPHA8245) || defined(LVL7_DNI8541)))
++                copper = TRUE;
++                if ((tmp & 0x10) == 0x10) {
++                    fiberCnt[unit][port]++;
++                    /* Require multiple detections so as not to prematurely    */
++                    /* disable the copper transmitter because of a transition. */
++                    if (fiberCnt[unit][port] > 5) {
++                        copper = FALSE;
++                    }
++                } else {
++                    fiberCnt[unit][port] = 0;
++                }
++#else
+                 copper = ((tmp & 0x30) == 0x20); 
++#endif
+             } else {
+                 copper = ((tmp & 0x20) == 0x20);
+             }
+         }
+     }
+@@ -1185,10 +1209,17 @@ phy_5464_link_get(int unit, soc_port_t p
+             copper_transmit = (*link) ? 0x2000 : 0; 
+         }
+         SOC_IF_ERROR_RETURN
+             (MODIFY_PHY5464_MII_ECRr(unit, pc, copper_transmit, 0x2000));
+     }
++#ifdef LVL7_FIXUP 
++    /* alok relook*/
++    if (soc_property_get(unit, spn_LED_MODE_CUST, 0))
++    {
++      (void)sysapiHpcLedModeCustomization(unit, (int)port, *link);
++    }
++#endif
+ 
+     if (DPRINTF_ENABLE && soc_cm_debug_check(DK_VERBOSE)) {
+         DPRINTF("phy_5464_link_get: u=%d p=%d mode=%s%s%s link=%d\n",
+                 unit, port,
+                 PHY_COPPER_MODE(unit, port) ? "C" : "",
+@@ -2986,10 +3017,14 @@ phy_5464_shadow_dump(int unit, soc_port_
+     int         i;
+     phy_ctrl_t *pc;
+ 
+     pc       = EXT_PHY_SW_STATE(unit, port);
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     /* Register 0x18 Shadows */
+     for (i = 0; i <= 7; i++) {
+         WRITE_PHY_REG(unit, pc, 0x18, (i << 12) | 0x7);
+         READ_PHY_REG(unit, pc, 0x18, &tmp);
+         if ((tmp & ~7) == 0x0000) {
+@@ -3015,14 +3050,64 @@ phy_5464_shadow_dump(int unit, soc_port_
+         if (tmp  == 0x0000) {
+             continue;
+         }
+         soc_cm_print("0x17[0x%x]=0x%04x\n", i, tmp);
+     }
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+ }
+ 
+ #endif /* BROADCOM_DEBUG */
+ 
++#ifdef LVL7_FIXUP
++/*
++ * Function:    
++ *      phy_5464_link_up
++ * Purpose:     
++ *      Performs tasks on link up.
++ * Parameters:
++ *      unit - StrataSwitch unit #.
++ *      port - StrataSwitch port #. 
++ * Returns:     
++ *      SOC_E_XXX
++ * Notes:
++ *      sees link up.
++ */
++STATIC int
++phy_5464_link_up(int unit, soc_port_t port)
++{
++    int an, an_done;
++
++    SOC_DEBUG_PRINT((DK_PHY,
++                     "phy_5464_link_up: u=%d p=%d \n",
++                     unit, port));
++
++    /* For copper mode only */
++    if (PHY_FLAGS_TST(unit, port, PHY_FLAGS_COPPER)) {
++        /* Get the an status */
++        SOC_IF_ERROR_RETURN
++            (phy_5464_autoneg_get(unit, port, &an, &an_done));
++
++        /* If an is diabled and link up happens then enable PHY 
++        ** as on combp ports it does not happen 
++        */
++        if (an == FALSE) {
++
++            SOC_IF_ERROR_RETURN
++               (soc_phyctrl_notify(unit, port, phyEventResume, PHY_STOP_PHY_DIS));
++
++            SOC_DEBUG_PRINT((DK_PHY,
++                     "phy_5464_link_up: Resume PHY_STOP_PHY_DIS for u=%d p=%d \n",
++                     unit, port));
++        }
++    }
++    return SOC_E_NONE;
++}
++#endif /* LVL7_FIXUP */
++
+ /*
+  * Variable:    phy_5464drv_ge
+  * Purpose:     PHY driver for 5464
+  */
+ 
+@@ -3047,11 +3132,15 @@ phy_driver_t phy_5464drv_ge = {
+     phy_5464_lb_set,
+     phy_5464_lb_get,
+     phy_5464_interface_set,
+     phy_5464_interface_get,
+     phy_5464_ability_get,
+-    NULL,                       /* Link up event */
++#ifdef LVL7_FIXUP
++    phy_5464_link_up,          /* Link up event */
++#else 
++    NULL,
++#endif
+     phy_5464_link_down,
+     phy_5464_mdix_set,
+     phy_5464_mdix_get,
+     phy_5464_mdix_status_get,
+     phy_5464_medium_config_set,
+diff -rpN --unified=5 phy_original/phy54680.c phy/phy54680.c
+--- phy_original/phy54680.c	2013-03-07 17:50:30.000000000 +0000
++++ phy/phy54680.c	2013-04-09 17:30:25.000000000 +0100
+@@ -999,10 +999,16 @@ phy_54680_enable_set(int unit, soc_port_
+     power_down = (enable) ? 0 : MII_CTRL_PD;
+ 
+     SOC_IF_ERROR_RETURN
+         (MODIFY_PHY54680_MII_CTRLr(unit, pc, power_down, MII_CTRL_PD));
+ 
++#ifdef LVL7_FIXUP
++        if (soc_property_port_get(unit, port, spn_PORT_SUPER_ISOLATE, 0) != 0) {
++            SOC_IF_ERROR_RETURN
++                (MODIFY_PHY54680_MII_POWER_CTRLr(unit, pc, 0, 0x20));
++        }
++#endif
+     if (!enable) {
+         if ((PHY_FLAGS_TST(unit, port, PHY_FLAGS_EEE_CAPABLE)) &&
+            (((pc->phy_rev & 0x4) == 0x0) || /* A0,A1,B0,B1 */
+             (PHY_IS_BCM53125(pc) && pc->phy_rev == 0x4) ||
+             (PHY_IS_BCM53128(pc) && pc->phy_rev == 0x4) ||
+diff -rpN --unified=5 phy_original/phy8706.c phy/phy8706.c
+--- phy_original/phy8706.c	2013-03-07 17:50:31.000000000 +0000
++++ phy/phy8706.c	2013-04-09 17:30:25.000000000 +0100
+@@ -62,10 +62,13 @@
+ #include <soc/phy/phyctrl.h>
+ #include <soc/phy/drv.h>
+ 
+ #include "phydefs.h"      /* Must include before other phy related includes */
+ 
++///LTX for printf
++#include <stdio.h>
++
+ #if defined(INCLUDE_PHY_8706)
+ #include "phyconfig.h"    /* Must be the first phy include after phydefs.h */
+ #include "phyident.h"
+ #include "phyreg.h"
+ #include "phynull.h"
+@@ -540,10 +543,13 @@ _8727_rom_load_war(int unit, int port, p
+ #endif
+ 
+ STATIC int
+ _8726_rom_load(int unit, int port, phy_ctrl_t *pc)
+ {
++	printf("LTX: aborting _8726_rom_load\n");
++    return SOC_E_NONE;
++
+     SOC_IF_ERROR_RETURN
+         (WRITE_PHY8706_PMA_PMD_REG(unit, pc, 0xca85, 0x0001));
+     sal_usleep(1000);
+ 
+     SOC_IF_ERROR_RETURN
+@@ -570,10 +576,14 @@ _8726_rom_load(int unit, int port, phy_c
+ }
+ 
+ STATIC int
+ _8747_rom_load(int unit, int port, phy_ctrl_t *pc)
+ {
++//	printf("LTX: aborting _8747_rom_load\n");
++//    return SOC_E_NONE;
++
++
+     uint16  phy_addr;
+     int i;
+ 
+     phy_addr = pc->phy_id & 0xfffc;
+ 
+@@ -581,11 +591,12 @@ _8747_rom_load(int unit, int port, phy_c
+         /* Disable SPI for all ports, return value ignored on purpose */
+         pc->write(unit, phy_addr+i,SOC_PHY_CLAUSE45_ADDR(1, 0xc843), 0x000f);
+         pc->write(unit, phy_addr+i,SOC_PHY_CLAUSE45_ADDR(1, 0xc840), 0x000C);
+ 
+         /* Set bit SPI Download (15), SER Boot (14) And SPI Port Enable (0) In C848, SPI_PORT_CTRL */
+-        pc->write(unit, phy_addr+i,SOC_PHY_CLAUSE45_ADDR(1, 0xc848), 0xC0F1);
++//        pc->write(unit, phy_addr+i,SOC_PHY_CLAUSE45_ADDR(1, 0xc848), 0xC0F1);
++        pc->write(unit, phy_addr+i,SOC_PHY_CLAUSE45_ADDR(1, 0xc848), 0x80F1);
+     }
+ 
+     /* Place Micro in reset */
+     SOC_IF_ERROR_RETURN
+         (WRITE_PHY8706_PMA_PMD_REG(unit, pc, 0xca10, 0x018f));
+@@ -708,12 +719,17 @@ phy_8706_init(int unit, soc_port_t port)
+ 
+     pc = EXT_PHY_SW_STATE(unit, port);
+     
+     PHY_FLAGS_SET(unit, port,  PHY_FLAGS_FIBER | PHY_FLAGS_C45);
+ 
+-    phy_ext_rom_boot = soc_property_port_get(unit, port, 
+-                                            spn_PHY_EXT_ROM_BOOT, 1);
++    ///LTX
++//    phy_ext_rom_boot = soc_property_port_get(unit, port,
++//                                            spn_PHY_EXT_ROM_BOOT, 1);
++    phy_ext_rom_boot=1;
++
++
++
+     SOC_IF_ERROR_RETURN
+         (READ_PHY8706_PMA_PMD_REG(unit, pc, MII_PHY_ID1_REG, &phyid1));
+ 
+ #ifdef BCM8727_MICROCODE_LOAD_WAR
+     if ((phyid1 != PHY_ID1_8727) || (!phy_ext_rom_boot))
+@@ -1177,10 +1193,20 @@ phy_8706_init(int unit, soc_port_t port)
+             /* Initialize the next Device */
+             PHYDRV_CALL_NOARG(pc,PHY_INIT);
+         }
+     }
+ 
++    ///LTX
++
++    printf("LTX: Hacking phy_8706_init to enable tx on address 0xc800\n");
++
++    (PHY8706_REG_WRITE(unit, pc,
++                      SOC_PHY_CLAUSE45_ADDR(PHY8706_C45_DEV_PMA_PMD,
++                                            0xC800),
++                      0xFF00));
++
++
+     /* Enable Squelch */
+     SOC_IF_ERROR_RETURN(_phy_8706_squelch_enable(unit, port, TRUE));
+ 
+  
+     return SOC_E_NONE;
+@@ -1737,10 +1763,11 @@ phy_8706_ability_local_get(int unit, soc
+     ability->speed_full_duplex  = SOC_PA_SPEED_1000MB;
+                                                                                
+     switch(pc->speed_max) {
+         case 10000:
+         default:
++//        	printf("LTX: phy_8706_ability_local_get setting full duplex to SOC_PA_SPEED_10GB\n");
+             ability->speed_full_duplex |= SOC_PA_SPEED_10GB;
+             break;
+     }
+                                                                                
+     ability->pause     = SOC_PA_PAUSE | SOC_PA_PAUSE_ASYMM; 
+@@ -1807,14 +1834,19 @@ _phy_8706_link_get(int unit, soc_port_t 
+             (READ_PHY8706_PCS_STATr(unit, pc, &pcs_mii_stat));
+ 
+         SOC_IF_ERROR_RETURN
+             (READ_PHY8706_PMA_PMD_STATr(unit, pc, &pma_mii_stat));
+ 
++//        printf("LTX: pcs_mii_stat= 0x%X\n", pcs_mii_stat);
++//        printf("LTX: pma_mii_stat= 0x%X\n", pma_mii_stat);
++
+         link_stat = pma_mii_stat & pcs_mii_stat;
+ 
+         *link = (link_stat == 0xffff) ? FALSE :
+                 (link_stat & MII_STAT_LA) ? TRUE : FALSE;
++//        printf("LTX: link on port %d is %s\n", port, (link_stat & MII_STAT_LA) ? "UP" : "DOWN");
++
+     } else {
+         /* in 1G mode, the PMA/PMD and PCS status register's link bit always
+          * show link down.
+          */
+         SOC_IF_ERROR_RETURN
+@@ -1846,15 +1878,19 @@ _phy_5942_link_get(int unit, soc_port_t 
+         (READ_PHY8706_PHYXS_GP_STATUS_XGXSSTATUS1r(unit, pc, &xgxsstatus1));
+ 
+     SOC_IF_ERROR_RETURN
+         (READ_PHY8706_PHYXS_GP_STATUS_STATUS1000X1r(unit, pc, &status1000x1));
+ 
++//    printf("LTX: _phy_5942_link_get on port %d  XGXSSTATUS1r = 0x%X\n", port, xgxsstatus1);
++//    printf("LTX: _phy_5942_link_get on port %d  STATUS1000X1r= 0x%X\n", port, status1000x1);
++
+     if (xgxsstatus1 == 0xffff) {
+       *link = 0;
+     } else {
+       *link =  ((xgxsstatus1 & (1U << 9)) | (status1000x1 & (1U << 1))) ? 1 : 0;
+     }
++//    printf("LTX: _phy_5942_link_get  link on port %d is %s\n", port, ((xgxsstatus1 & (1U << 9)) | (status1000x1 & (1U << 1))) ? "UP" : "DOWN");
+ 
+     soc_cm_debug(DK_PHY | DK_VERBOSE,
+          "_phy_5942_link_get: u=%d port%d: link:%s\n",
+          unit, port, *link ? "Up": "Down");
+ 
+@@ -1863,11 +1899,13 @@ _phy_5942_link_get(int unit, soc_port_t 
+ 
+ 
+ STATIC int
+ phy_8706_link_get(int unit, soc_port_t port, int *link)
+ {
+-    phy_ctrl_t *pc; 
++    phy_ctrl_t *pc;
++
++//    printf("LTX: phy_8706_link_get called for port %d\n", port);
+ 
+     pc = EXT_PHY_SW_STATE(unit, port);
+ 
+     if (link == NULL) {
+         return SOC_E_NONE;
+@@ -2132,10 +2170,11 @@ phy_8706_lb_set(int unit, soc_port_t por
+     SOC_IF_ERROR_RETURN
+         (_phy_8706_squelch_enable(unit, port, enable ? FALSE : TRUE));
+ 
+     if (PHY_IS_BCM5942(pc)) {
+         SOC_IF_ERROR_RETURN
++//        (_phy_8706_lb_set(unit, port, enable));
+             (_phy_5942_lb_set(unit, port, enable));
+     } else {
+         SOC_IF_ERROR_RETURN
+             (_phy_8706_lb_set(unit, port, enable));
+     }
+@@ -2918,13 +2957,16 @@ _phy_8706_speed_set(int unit, soc_port_t
+     /* need to set the internal phy's speed accordingly */
+ 
+     if (NULL != int_pc) {
+         if (PHY_IS_BCM5942(pc)) {
+             SOC_IF_ERROR_RETURN
+-                (PHY_INTERFACE_SET(int_pc->pd, unit, port, SOC_PORT_IF_SFI));
++//            (PHY_INTERFACE_SET(int_pc->pd, unit, port, SOC_PORT_IF_XFI));
++                (PHY_INTERFACE_SET(int_pc->pd, unit, port, SOC_PORT_IF_XFI));
++            printf("LTX: internal phy on port %d set to SOC_PORT_IF_XFI\n", port);
+             SOC_IF_ERROR_RETURN
+                 (PHY_AUTO_NEGOTIATE_SET (int_pc->pd, unit, port, 0));
++            printf("LTX: internal phy on port %d set to AUTONEG OFF\n", port);
+         }
+         rv = PHY_SPEED_SET(int_pc->pd, unit, port, speed);
+     }
+ 
+ #if 0
+@@ -2938,10 +2980,14 @@ _phy_8706_speed_set(int unit, soc_port_t
+ 
+ STATIC int
+ phy_8706_speed_set(int unit, soc_port_t port, int speed)
+ {
+     phy_ctrl_t  *pc;
++    printf("LTX: Called phy_8706_speed_set for port %d\n", port);
++
++//    return SOC_E_NONE;
++
+ 
+     pc = EXT_PHY_SW_STATE(unit, port);
+ 
+     SOC_IF_ERROR_RETURN
+         (_phy_8706_speed_set (unit, port, speed));
+@@ -3134,10 +3180,25 @@ _phy_8747_firmware_ram_set(int unit, int
+         soc_cm_print("_phy8706_mdio_firmware_download, bad cksum: p=%d, cksum=0x%x\n",
+                     port,data16);
+         return SOC_E_FAIL;
+     }
+ 
++    ///LTX
++//    printf("LTX: Will hack _phy_8747_firmware_ram_set to configure port speed, autoneg and internal phy interface...\n");
++//    if (PHY_IS_BCM5942(pc)) {
++//        SOC_IF_ERROR_RETURN
++////            (PHY_INTERFACE_SET(int_pc->pd, unit, port, SOC_PORT_IF_XFI));
++//            (PHY_INTERFACE_SET(int_pc->pd, unit, port, SOC_PORT_IF_XFI));
++//        printf("LTX: internal phy on port %d set to SOC_PORT_IF_XFI\n", port);
++//        SOC_IF_ERROR_RETURN
++//            (PHY_AUTO_NEGOTIATE_SET (int_pc->pd, unit, port, 0));
++//        printf("LTX: internal phy on port %d set to AUTONEG OFF\n", port);
++//    }
++//    PHY_SPEED_SET(int_pc->pd, unit, port, speed);
++    ///LTX end
++
++
+     return SOC_E_NONE;
+ }
+ 
+ /*
+  * Function:
+@@ -4282,10 +4343,14 @@ phy_8706_probe(int unit, phy_ctrl_t *pc)
+ 
+     case PHY_BCM8747_MODEL:
+         if (soc_property_port_get(unit, pc->port, spn_PORT_PHY_MODE_REVERSE, 0)) {
+             pi->phy_name = "BCM5942";
+             PHY_FLAGS_SET(pc->unit, pc->port, PHY_FLAGS_SECONDARY_SERDES);
++//            ///ltx: hack to set the speed
++//            phy_8706_speed_set(unit, pc->port, 10000);
++//            ///
++
+         }
+     break;
+ 
+     default:
+     break;
+diff -rpN --unified=5 phy_original/phyident.c phy/phyident.c
+--- phy_original/phyident.c	2013-03-07 17:50:31.000000000 +0000
++++ phy/phyident.c	2013-07-09 18:14:17.000000000 +0100
+@@ -140,12 +140,17 @@ static int _chk_unicore(int unit, soc_po
+                         soc_phy_table_t *my_entry,
+                         uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi);
+ #endif /* INCLUDE_PHY_XGXS6 */
+ 
+ #if defined(INCLUDE_PHY_8706)
++#ifdef LVL7_FIXUP
++ int _chk_8706(int unit, soc_port_t port, soc_phy_table_t *my_entry,
++			   uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi);
++#else
+ static int _chk_8706(int unit, soc_port_t port, soc_phy_table_t *my_entry,
+                      uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi);
++#endif
+ #endif /* INCLUDE_PHY_8706 */
+ 
+ #if defined(INCLUDE_PHY_8072)
+ static int _chk_8072(int unit, soc_port_t port, soc_phy_table_t *my_entry,
+                      uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi);
+@@ -4762,11 +4767,15 @@ _chk_sfp_phy(int unit, soc_port_t port, 
+     }
+     return FALSE;
+ }
+ 
+ #if defined(INCLUDE_PHY_8706)
+-static int
++#ifndef LVL7_FIXUP
++static 
++#endif
++int
++//static int
+ _chk_8706(int unit, soc_port_t port, soc_phy_table_t *my_entry,
+              uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi)
+ {
+     if (my_entry->myNum == _phy_ident_type_get(phy_id0, phy_id1) ||
+         soc_property_port_get(unit, port, spn_PHY_8706, FALSE)) {
+@@ -5710,10 +5719,35 @@ _ext_phy_probe(int unit, soc_port_t port
+                 ext_pc->phy_rev = rev_id;
+             }
+ #endif /* BCM_NORTHSTAR_SUPPORT */
+ 
+             PHY_FLAGS_SET(unit, port, PHY_FLAGS_EXTERNAL_PHY);
++#ifdef LVL7_FIXUP
++#if L7_FEAT_SF10GBT
++            /* SDK only provides a way to configure a single phy address for 
++             * each port, whereas some of the customer boxes have different
++             * phy addresses for same port. So we use the custom driver 
++             * (registered in FP application) checkphy fuction to look for
++             * device ids at the secondary phy addresses, and return SUCESS
++             * if match is successful). _ext_phy_probe() uses two pointer 
++             * variables - pi and ext_pc. We manage to run our own custom 
++             * _check_phy function, which does the OUI check for us. But 
++             * our requirement is to change the phy addresses and other 
++             * parameters maintained in structures pointed to by pi 
++             * (soc_phy_info_t) and ext_pc(phy_ctrl_t), in  case the match 
++             * is successful.  We don't have a way to do that unless we run 
++             * our custom function below, or SDK functions are re-designed 
++             * to facilitate this operation.
++             */
++            soc_phy_cust_t* fixPhySet = NULL;
++            if (phy_table[i]->cookie != NULL)
++            {
++              fixPhySet = (soc_phy_cust_t*)(phy_table[i]->cookie);
++              (fixPhySet->custPhySettings)(unit, port, phy_table[i], pi, ext_pc);
++            }
++#endif
++#endif
+ 
+             break;
+             }
+         }
+     }
+diff -rpN --unified=5 phy_original/phyreg.c phy/phyreg.c
+--- phy_original/phyreg.c	2013-03-07 17:50:31.000000000 +0000
++++ phy/phyreg.c	2013-04-09 17:30:25.000000000 +0100
+@@ -59,10 +59,19 @@
+ 
+ #include "phydefs.h"      /* Must include before other phy related includes */
+ 
+ #include "phyreg.h"
+ 
++#ifdef LVL7_FIXUP
++#include "sysapi_hpc.h"
++#include "hpc_phy.h"
++
++#undef SOC_IF_ERROR_RETURN
++#define SOC_IF_ERROR_RETURN(op) \
++    do { int __rv__; if ((__rv__ = (op)) < 0) {HPC_PHY_SHADOW_REG_UNLOCK(unit); return(__rv__);} } while(0)
++#endif
++
+ #define _SOC_PHY_REG_DIRECT \
+         ((SOC_PHY_REG_1000X << 1) | (SOC_PHY_REG_1000X >> 1))
+ 
+ int 
+ phy_reg_modify(int unit, phy_ctrl_t *pc, uint32 reg_addr,
+@@ -72,10 +81,14 @@ phy_reg_modify(int unit, phy_ctrl_t *pc,
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     reg_data = reg_data & reg_mask;
+ 
+     SOC_IF_ERROR_RETURN
+         (READ_PHY_REG(unit, pc, reg_addr, &tmp));
+     otmp = tmp;
+@@ -84,18 +97,26 @@ phy_reg_modify(int unit, phy_ctrl_t *pc,
+ 
+     if (otmp != tmp) {
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, reg_addr, tmp));
+     }
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return SOC_E_NONE;
+ }
+ int 
+ phy_reg_fe_read(int unit, phy_ctrl_t *pc, uint16 reg_bank,
+                 uint8 reg_addr, uint16 *data)
+ {
+     uint16 test_reg;
+   
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     if (reg_bank) {
+         SOC_IF_ERROR_RETURN
+             (READ_PHY_REG(unit, pc, 0x1f, &test_reg));
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 0x1f, test_reg | 0x0080));
+@@ -106,10 +127,14 @@ phy_reg_fe_read(int unit, phy_ctrl_t *pc
+             (WRITE_PHY_REG(unit, pc, 0x1f, test_reg));
+     } else {
+         SOC_IF_ERROR_RETURN
+             (READ_PHY_REG(unit, pc, reg_addr, data));
+     }
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return SOC_E_NONE;
+ }
+ 
+ int 
+ phy_reg_fe_write(int unit, phy_ctrl_t *pc, uint16 reg_bank, 
+@@ -119,10 +144,14 @@ phy_reg_fe_write(int unit, phy_ctrl_t *p
+  
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+  
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     if (reg_bank) {
+         SOC_IF_ERROR_RETURN
+             (READ_PHY_REG(unit, pc, 0x1f, &test_reg));
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 0x1f, test_reg | 0x0080));
+@@ -133,10 +162,14 @@ phy_reg_fe_write(int unit, phy_ctrl_t *p
+             (WRITE_PHY_REG(unit, pc, 0x1f, test_reg));
+     } else {
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, reg_addr, data));
+     }
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return SOC_E_NONE;
+ }
+ 
+ int 
+ phy_reg_fe_modify(int unit, phy_ctrl_t *pc, uint16 reg_bank, 
+@@ -146,10 +179,14 @@ phy_reg_fe_modify(int unit, phy_ctrl_t *
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+   
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     if (reg_bank) {
+         SOC_IF_ERROR_RETURN
+             (READ_PHY_REG(unit, pc, 0x1f, &test_reg));
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 0x1f, test_reg | 0x0080));
+@@ -161,10 +198,14 @@ phy_reg_fe_modify(int unit, phy_ctrl_t *
+     } else {
+         SOC_IF_ERROR_RETURN
+             (MODIFY_PHY_REG(unit, pc, reg_addr, data, mask));
+     }
+  
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return SOC_E_NONE;
+ }
+ 
+ int
+ phy_reg_ge_read(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
+@@ -172,10 +213,14 @@ phy_reg_ge_read(int unit, phy_ctrl_t *pc
+ {
+     int     rv;
+ 
+     rv       = SOC_E_NONE;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     if (flags & SOC_PHY_REG_1000X) {
+         if (reg_addr <= 0x000f) {
+             uint16 blk_sel;
+ 
+             /* Map 1000X page */
+@@ -241,10 +286,14 @@ phy_reg_ge_read(int unit, phy_ctrl_t *pc
+         }
+         if (SOC_SUCCESS(rv)) {
+             rv = READ_PHY_REG(unit, pc, reg_addr, data);
+         }
+     } 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     if (SOC_FAILURE(rv)) {
+         SOC_DEBUG_PRINT((DK_ERR, "phy_reg_ge_read failed:"
+                         " u=%d phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
+                         " rv=%d\n", unit, pc->phy_id, reg_bank, reg_addr, rv)); 
+     }
+@@ -261,10 +310,14 @@ phy_reg_ge_write(int unit, phy_ctrl_t *p
+         return SOC_E_NONE;
+     }
+ 
+     rv       = SOC_E_NONE;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     if (flags & SOC_PHY_REG_1000X) {
+         if (reg_addr <= 0x000f) {
+             uint16 blk_sel;
+ 
+             /* Map 1000X page */
+@@ -332,10 +385,14 @@ phy_reg_ge_write(int unit, phy_ctrl_t *p
+         if (SOC_SUCCESS(rv)) {
+             rv = WRITE_PHY_REG(unit, pc, reg_addr, data);
+         }
+     } 
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     if (SOC_FAILURE(rv)) {
+         SOC_DEBUG_PRINT((DK_ERR, "phy_reg_ge_write failed:"
+                         " u=%d phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
+                         " rv=%d\n", unit, pc->phy_id, reg_bank, reg_addr, rv)); 
+     }
+@@ -353,10 +410,14 @@ phy_reg_ge_modify(int unit, phy_ctrl_t *
+         return SOC_E_NONE;
+     }
+ 
+     rv       = SOC_E_NONE;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     if (flags & SOC_PHY_REG_1000X) {
+         if (reg_addr <= 0x000f) {
+             uint16 blk_sel;
+ 
+             /* Map 1000X page */
+@@ -430,10 +491,14 @@ phy_reg_ge_modify(int unit, phy_ctrl_t *
+         if (SOC_SUCCESS(rv)) {
+             rv = MODIFY_PHY_REG(unit, pc, reg_addr, data, mask);
+         }
+     } 
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     if (SOC_FAILURE(rv)) {
+         SOC_DEBUG_PRINT((DK_ERR, "phy_reg_ge_modify failed:"
+                         " u=%d phy_id=0x%2x reg_bank=0x%04x reg_addr=0x%02x "
+                         " rv=%d\n", unit, pc->phy_id, reg_bank, reg_addr, rv)); 
+     }
+@@ -512,10 +577,14 @@ phy_reg_xge_write(int unit, phy_ctrl_t *
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)) {
+         return rv;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     {
+         switch(reg_addr) {
+         /* Map shadow registers */
+         case 0xfff5:
+             SOC_IF_ERROR_RETURN
+@@ -557,10 +626,14 @@ phy_reg_xge_write(int unit, phy_ctrl_t *
+         if (SOC_SUCCESS(rv)) {
+             rv = WRITE_PHY_REG(unit, pc, SOC_PHY_CLAUSE45_ADDR(dev_addr, reg_addr), data);
+         }
+     } 
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     if (SOC_FAILURE(rv)) {
+         SOC_DEBUG_PRINT((DK_ERR, "phy_reg_ge_write failed:"
+                         " u=%d phy_id=0x%2x dev_addr=0x%02x reg_bank=0x%04x reg_addr=0x%02x "
+                         " rv=%d\n", unit, pc->phy_id, dev_addr, reg_bank, reg_addr, rv)); 
+     }
+@@ -574,10 +647,14 @@ phy_reg_xge_modify(int unit, phy_ctrl_t 
+ {
+     int     rv;
+ 
+     rv       = SOC_E_NONE;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     {
+         switch(reg_addr) {
+         /* Map shadow registers */
+         case 0xfff5:
+             SOC_IF_ERROR_RETURN
+@@ -628,10 +705,14 @@ phy_reg_xge_modify(int unit, phy_ctrl_t 
+         if (SOC_SUCCESS(rv)) {
+             rv = MODIFY_PHY_REG(unit, pc, SOC_PHY_CLAUSE45_ADDR(dev_addr, reg_addr), data, mask);
+         }
+     } 
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     if (SOC_FAILURE(rv)) {
+         SOC_DEBUG_PRINT((DK_ERR, "phy_reg_ge_modify failed:"
+                         " u=%d phy_id=0x%2x dev_addr=0x%02x reg_bank=0x%04x reg_addr=0x%02x "
+                         " rv=%d\n", unit, pc->phy_id, dev_addr, reg_bank, reg_addr, rv)); 
+     }
+@@ -644,10 +725,14 @@ phy_reg_serdes_read(int unit, phy_ctrl_t
+ { 
+     int    rv; 
+  
+     rv     = SOC_E_NONE; 
+  
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+ #ifdef INCLUDE_PHY_XGXS6
+     if (soc_feature(unit, soc_feature_xgxs_v6)) { 
+         if ((reg_bank != 0) || (reg_addr >= 0x0010)) { 
+             reg_bank = 0x300 + (reg_bank << 4); 
+         } 
+@@ -658,10 +743,14 @@ phy_reg_serdes_read(int unit, phy_ctrl_t
+  
+     if (SOC_SUCCESS(rv)) { 
+         rv = READ_PHY_REG(unit, pc, reg_addr, phy_rd_data);  
+     } 
+  
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv; 
+ }
+ 
+ int
+ phy_reg_serdes_write(int unit, phy_ctrl_t *pc, uint16 reg_bank, 
+@@ -673,10 +762,14 @@ phy_reg_serdes_write(int unit, phy_ctrl_
+         return SOC_E_NONE;
+     }
+ 
+     rv     = SOC_E_NONE;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+ #ifdef INCLUDE_PHY_XGXS6
+     if (soc_feature(unit, soc_feature_xgxs_v6)) {
+         if ((reg_bank != 0) || (reg_addr >= 0x0010)) {
+             reg_bank = 0x300 + (reg_bank << 4);
+         }
+@@ -687,10 +780,14 @@ phy_reg_serdes_write(int unit, phy_ctrl_
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = WRITE_PHY_REG(unit, pc, reg_addr, phy_wr_data);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ int
+ phy_reg_serdes_modify(int unit, phy_ctrl_t *pc,
+@@ -703,10 +800,14 @@ phy_reg_serdes_modify(int unit, phy_ctrl
+         return SOC_E_NONE;
+     }
+ 
+     rv     = SOC_E_NONE;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+ #ifdef INCLUDE_PHY_XGXS6
+     if (soc_feature(unit, soc_feature_xgxs_v6)) {
+         if ((reg_bank != 0) || (reg_addr >= 0x0010)) {
+             reg_bank = 0x300 + (reg_bank << 4);
+         }
+@@ -717,26 +818,38 @@ phy_reg_serdes_modify(int unit, phy_ctrl
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = MODIFY_PHY_REG(unit, pc, reg_addr, phy_mo_data, phy_mo_mask);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ #if defined(INCLUDE_PHY_XGXS)
+ int 
+ phy_reg_xgxs_read(int unit, phy_ctrl_t *pc, uint16 reg_bank,
+                            uint8 reg_addr, uint16 *data)
+ {
+     int    rv;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     rv = WRITE_PHY_REG(unit, pc, 0x1f, reg_bank);
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = READ_PHY_REG(unit, pc, reg_addr, data);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ int 
+ phy_reg_xgxs_write(int unit, phy_ctrl_t *pc, uint16 reg_bank,
+@@ -746,16 +859,24 @@ phy_reg_xgxs_write(int unit, phy_ctrl_t 
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     rv = WRITE_PHY_REG(unit, pc, 0x1f, reg_bank);
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = WRITE_PHY_REG(unit, pc, reg_addr, data);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ int 
+ phy_reg_xgxs_modify(int unit, phy_ctrl_t *pc, uint16 reg_bank,
+@@ -765,16 +886,24 @@ phy_reg_xgxs_modify(int unit, phy_ctrl_t
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     rv = WRITE_PHY_REG(unit, pc, 0x1f, reg_bank);
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = MODIFY_PHY_REG(unit, pc, reg_addr, data, mask);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ #endif /* INCLUDE_PHY_XGXS */
+ 
+ #if defined(INCLUDE_PHY_XGXS6)
+@@ -784,10 +913,14 @@ phy_reg_xgxs6_read(int unit, phy_ctrl_t 
+ {
+     int    rv;
+ 
+     rv     = SOC_E_NONE;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     if (reg_addr < 0x10) {
+         /* Select between SerDes and XAUI mapping */
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 0x1f, 0x0000));
+         SOC_IF_ERROR_RETURN
+@@ -802,10 +935,14 @@ phy_reg_xgxs6_read(int unit, phy_ctrl_t 
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = READ_PHY_REG(unit, pc, reg_addr, data);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ int 
+ phy_reg_xgxs6_write(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
+@@ -815,10 +952,14 @@ phy_reg_xgxs6_write(int unit, phy_ctrl_t
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     rv     = SOC_E_NONE;
+ 
+     if (reg_addr < 0x10) {
+         /* Select between SerDes and XAUI mapping */
+         SOC_IF_ERROR_RETURN
+@@ -835,10 +976,14 @@ phy_reg_xgxs6_write(int unit, phy_ctrl_t
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = WRITE_PHY_REG(unit, pc, reg_addr, data);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ int 
+ phy_reg_xgxs6_modify(int unit, phy_ctrl_t *pc, uint32 flags, uint16 reg_bank,
+@@ -848,10 +993,14 @@ phy_reg_xgxs6_modify(int unit, phy_ctrl_
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     rv     = SOC_E_NONE;
+ 
+     if (reg_addr < 0x10) {
+         /* Select between SerDes and XAUI mapping */
+         SOC_IF_ERROR_RETURN
+@@ -868,10 +1017,14 @@ phy_reg_xgxs6_modify(int unit, phy_ctrl_
+ 
+     if (SOC_SUCCESS(rv)) {
+         rv = MODIFY_PHY_REG(unit, pc, reg_addr, data, mask);
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ #endif /* INCLUDE_PHY_XGXS6 */
+ 
+ STATIC int 
+@@ -879,10 +1032,14 @@ _phy_reg_aer_cl45_read(int unit, phy_ctr
+                  uint16 *data)
+ {
+     uint16 phy_reg_addr;
+     int    cl45_devid;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     phy_reg_addr = PHY_AER_REG_ADDR_CL45_REGAD(reg_addr);
+     cl45_devid   = PHY_AER_REG_ADDR_CL45_DEVID(reg_addr);
+ 
+     if (PHY_AER_REG_ADDR_LANE_NUM(reg_addr)) {
+         /* write the lane number to the AER if lane specific */
+@@ -900,10 +1057,15 @@ _phy_reg_aer_cl45_read(int unit, phy_ctr
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 
+                 SOC_PHY_CLAUSE45_ADDR(cl45_devid,PHY_AER_REG),
+                 0));
+     }
++
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return SOC_E_NONE;
+ }
+ 
+ STATIC int 
+ _phy_reg_aer_cl45_write(int unit, phy_ctrl_t *pc, uint32 reg_addr,
+@@ -914,10 +1076,14 @@ _phy_reg_aer_cl45_write(int unit, phy_ct
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     phy_reg_addr = PHY_AER_REG_ADDR_CL45_REGAD(reg_addr);
+     cl45_devid = PHY_AER_REG_ADDR_CL45_DEVID(reg_addr);
+ 
+     if (PHY_AER_REG_ADDR_LANE_NUM(reg_addr)) {
+         /* write the lane number to the AER if lane specific */
+@@ -935,10 +1101,15 @@ _phy_reg_aer_cl45_write(int unit, phy_ct
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 
+                 SOC_PHY_CLAUSE45_ADDR(cl45_devid,PHY_AER_REG),
+                 0));
+     }
++
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return SOC_E_NONE;
+ }
+ 
+ STATIC int 
+ _phy_reg_aer_cl45_modify(int unit, phy_ctrl_t *pc, uint32 reg_addr,
+@@ -949,10 +1120,14 @@ _phy_reg_aer_cl45_modify(int unit, phy_c
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     phy_reg_addr = PHY_AER_REG_ADDR_CL45_REGAD(reg_addr);
+     cl45_devid = PHY_AER_REG_ADDR_CL45_DEVID(reg_addr);
+ 
+     if (PHY_AER_REG_ADDR_LANE_NUM(reg_addr)) {
+         /* write the lane number to the AER if lane specific */
+@@ -970,10 +1145,15 @@ _phy_reg_aer_cl45_modify(int unit, phy_c
+         SOC_IF_ERROR_RETURN
+             (WRITE_PHY_REG(unit, pc, 
+                 SOC_PHY_CLAUSE45_ADDR(cl45_devid,PHY_AER_REG),
+                 0));
+     }
++
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return SOC_E_NONE;
+ }
+ 
+ STATIC int 
+ _phy_reg_aer_cl22_read(int unit, phy_ctrl_t *pc, uint32 reg_addr,
+@@ -984,10 +1164,14 @@ _phy_reg_aer_cl22_read(int unit, phy_ctr
+     uint16 phy_reg_addr;
+     int    rv;
+ 
+     rv     = SOC_E_UNAVAIL;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     phy_reg_aer  = PHY_AER_REG_ADDR_AER(reg_addr);
+     phy_reg_blk  = PHY_AER_REG_ADDR_BLK(reg_addr);
+     phy_reg_addr = PHY_AER_REG_ADDR_REGAD(reg_addr);
+     if (phy_reg_aer == 0) {
+         rv = WRITE_PHY_REG(unit, pc, 0x1f, phy_reg_blk);
+@@ -1021,10 +1205,14 @@ _phy_reg_aer_cl22_read(int unit, phy_ctr
+         }
+         if (SOC_SUCCESS(rv)) {
+             rv = WRITE_PHY_REG(unit, pc, 0x1f, 0x0);
+         }
+     }
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ STATIC int 
+ _phy_reg_aer_cl22_write(int unit, phy_ctrl_t *pc, uint32 reg_addr,
+@@ -1037,10 +1225,14 @@ _phy_reg_aer_cl22_write(int unit, phy_ct
+ 
+     if (SOC_WARM_BOOT(unit) || SOC_IS_RELOADING(unit)){
+         return SOC_E_NONE;
+     }
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     rv     = SOC_E_UNAVAIL;
+ 
+     phy_reg_aer  = PHY_AER_REG_ADDR_AER(reg_addr);
+     phy_reg_blk  = PHY_AER_REG_ADDR_BLK(reg_addr);
+     phy_reg_addr = PHY_AER_REG_ADDR_REGAD(reg_addr);
+@@ -1073,10 +1265,14 @@ _phy_reg_aer_cl22_write(int unit, phy_ct
+         }
+         if (SOC_SUCCESS(rv)) {
+             rv = WRITE_PHY_REG(unit, pc, 0x1e, 0);
+         }
+     }
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ }
+ 
+ STATIC int 
+ _phy_reg_aer_cl22_modify(int unit, phy_ctrl_t *pc, uint32 reg_addr,
+@@ -1091,10 +1287,14 @@ _phy_reg_aer_cl22_modify(int unit, phy_c
+         return SOC_E_NONE;
+     }
+ 
+     rv     = SOC_E_UNAVAIL;
+ 
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_LOCK(unit);
++#endif
++
+     phy_reg_aer  = PHY_AER_REG_ADDR_AER(reg_addr);
+     phy_reg_blk  = PHY_AER_REG_ADDR_BLK(reg_addr);
+     phy_reg_addr = PHY_AER_REG_ADDR_REGAD(reg_addr);
+     if (phy_reg_aer == 0) {
+         /* Only support AER = 0 for now */
+@@ -1126,10 +1326,14 @@ _phy_reg_aer_cl22_modify(int unit, phy_c
+         if (SOC_SUCCESS(rv)) {
+             rv = WRITE_PHY_REG(unit, pc, 0x1e, 0);
+         }
+ 
+     }
++#ifdef LVL7_FIXUP
++    HPC_PHY_SHADOW_REG_UNLOCK(unit);
++#endif
++
+     return rv;
+ 
+ }
+ 
+ int
+diff -rpN --unified=5 phy_original/serdescombo65.c phy/serdescombo65.c
+--- phy_original/serdescombo65.c	2013-03-07 17:50:31.000000000 +0000
++++ phy/serdescombo65.c	2013-04-09 17:30:25.000000000 +0100
+@@ -1230,11 +1230,15 @@ phy_combo65_medium_config_get(int unit, 
+     switch (medium) {
+     case SOC_PORT_MEDIUM_FIBER:
+         sal_memcpy(cfg, &pc->fiber, sizeof (*cfg));
+         return SOC_E_NONE;
+     default:
++#ifdef LVL7_FIXUP
++        return SOC_E_UNAVAIL;
++#else
+         return SOC_E_PARAM;
++#endif
+     }
+ }
+ 
+ /*
+  * Function:
+diff -rpN --unified=5 phy_original/wc40.c phy/wc40.c
+--- phy_original/wc40.c	2013-03-07 17:50:31.000000000 +0000
++++ phy/wc40.c	2013-10-17 19:48:07.167719590 +0100
+@@ -61,10 +61,14 @@
+ #include <soc/phy/phyctrl.h>
+ #include <soc/phy/drv.h>
+ 
+ #include "phydefs.h"      /* Must include before other phy related includes */
+ 
++#include <stdio.h>        /* PTin added: WC40 */
++
++#define PTIN_PRBS_ALWAYS_CL49 1
++
+ #if defined(INCLUDE_XGXS_WC40)
+ #include "phyconfig.h"     /* Must include before other phy related includes */
+ #include "phyreg.h"
+ #include "phyfege.h"
+ #include "phynull.h"
+@@ -7100,21 +7104,25 @@ STATIC int
+ _phy_wc40_control_prbs_enable_set(int unit, soc_port_t port, 
+                                           uint32 enable)
+ {
+     uint16      data16;
+     uint16      mask16;
++    #if (!PTIN_PRBS_ALWAYS_CL49)
+     int an;
+     int an_done;
++    #endif
+     soc_port_if_t intf;
+     int prbs_lanes = 0;
+     int lane;
+     phy_ctrl_t *pc = INT_PHY_SW_STATE(unit, port);
+ 
+     /* If mode is autoneg KR/KR4, do it thru CL49 PRBS and configure KR forced mode and disable autoneg
+      * This way the FIR settings negotiated thru CL72 is preserved
+      */
+ 
++    /* PTin modified: PRBS */
++    #if (!PTIN_PRBS_ALWAYS_CL49)
+     if (DEV_CTRL_PTR(pc)->prbs.type != WC40_PRBS_TYPE_CL49) {
+         SOC_IF_ERROR_RETURN
+             (phy_wc40_an_get(unit,port,&an,&an_done));
+ 
+         if (an && an_done) {
+@@ -7124,10 +7132,16 @@ _phy_wc40_control_prbs_enable_set(int un
+             if ((intf == SOC_PORT_IF_KR) || (intf == SOC_PORT_IF_KR4) ) {
+                 DEV_CTRL_PTR(pc)->prbs.type = WC40_PRBS_TYPE_CL49;
+             }
+         }
+     }
++    #else
++    /* check interface */
++    SOC_IF_ERROR_RETURN
++        (phy_wc40_interface_get(unit,port,&intf));
++    DEV_CTRL_PTR(pc)->prbs.type = WC40_PRBS_TYPE_CL49;
++    #endif
+ 
+     if (DEV_CTRL_PTR(pc)->prbs.type == WC40_PRBS_TYPE_CL49) {
+         SOC_IF_ERROR_RETURN
+             (phy_wc40_interface_get(unit,port,&intf));
+ 
+@@ -7142,10 +7156,15 @@ _phy_wc40_control_prbs_enable_set(int un
+                     (WRITE_WC40_PCS_IEEE2BLK_PCS_TPCONTROLr(unit, pc, 0x00, 0));
+             }
+             DEV_CTRL_PTR(pc)->prbs.type = 0;
+         } 
+ 
++        /* PTin added: PRBS */
++        #if (PTIN_PRBS_ALWAYS_CL49)
++        if (intf==SOC_PORT_IF_KR4 || intf==SOC_PORT_IF_KR)
++        {
++        #endif
+         if (intf == SOC_PORT_IF_KR4) {
+             SOC_IF_ERROR_RETURN
+                 (MODIFY_WC40_SERDESDIGITAL_MISC1r(unit, pc, 0x00, 
+                       enable? 0x11: 0, 
+                       SERDESDIGITAL_MISC1_FORCE_SPEED_MASK));
+@@ -7195,10 +7214,21 @@ _phy_wc40_control_prbs_enable_set(int un
+                                       MII_CTRL_AE | MII_CTRL_RAN));
+ 
+         SOC_IF_ERROR_RETURN
+             (READ_WC40_AN_IEEE0BLK_AN_IEEECONTROL1r(unit, pc, 0x00, 
+                                           &data16));
++
++        /* PTin added: PRBS */
++        #if (PTIN_PRBS_ALWAYS_CL49)
++        }
++        else if (enable)
++        {
++          SOC_IF_ERROR_RETURN
++              (WRITE_WC40_PCS_IEEE2BLK_PCS_TPCONTROLr(unit, pc, 0x00, WC40_PRBS_CL49_POLY31));
++        }
++        #endif
++
+         /* not to enable PRBS here. Once PRBS is enabled, the link will go down.
+          * Autoneg will be restarted by link partner and Tx settings will be lost.
+          * It will be enabled in get function when first time called 
+          */ 
+         return SOC_E_NONE;
+@@ -9369,10 +9399,12 @@ phy_wc40_firmware_load(int unit, int por
+         (READ_WC40_UC_INFO_B1_VERSIONr(unit, pc, 0x00, &ver));
+ 
+     SOC_DEBUG_PRINT((DK_VERBOSE,
+                "WC40 : uC RAM download success: u=%d p=%d ver=%x", unit, port,ver));
+ 
++    printf("WC40 : uC RAM download success: u=%d p=%d ver=%x\r\n", unit, port,ver);   /* PTin added: WC40 */
++
+     if (!no_cksum) {
+         SOC_DEBUG_PRINT((DK_VERBOSE,
+                " cksum=0x%x\n", cksum));
+     } else {
+         SOC_DEBUG_PRINT((DK_VERBOSE, "\n"));
+diff -rpN --unified=5 phy_original/wc40_config.c phy/wc40_config.c
+--- phy_original/wc40_config.c	2013-03-07 17:50:31.000000000 +0000
++++ phy/wc40_config.c	2013-04-09 17:30:25.000000000 +0100
+@@ -319,21 +319,21 @@ phy_wc40_config_init(phy_ctrl_t *pc)
+     } else {
+         pCfg->fiber_pref = FALSE;
+     }
+ 
+     if (PHY_INDEPENDENT_LANE_MODE(unit, port)) {
+-        pCfg->cl73an     = WC40_CL73_AND_CL73BAM; /*WC40_CL73_WO_CL73BAM; */
++        pCfg->cl73an     = WC40_CL73_AUTONEG_MODE; /*WC40_CL73_AND_CL73BAM;*/     /* PTin modified: WC40 */
+     } else {
+        if (IS_HG_PORT(unit, port)) {
+            pCfg->cl73an     = FALSE;
+        } else {
+-           pCfg->cl73an     = WC40_CL73_AND_CL73BAM;
++           pCfg->cl73an     = WC40_CL73_AUTONEG_MODE; /*WC40_CL73_AND_CL73BAM;*/  /* PTin modified: WC40 */
+        }
+     }
+    
+     /* Default setting for CL37 */ 
+-    pCfg->cl37an     = WC40_CL37_AND_CL37BAM; 
++    pCfg->cl37an     = WC40_CL73_AUTONEG_MODE; /*WC40_CL73_AND_CL73BAM;*/         /* PTin modified: WC40 */
+ 
+     if ((PHY_FIBER_MODE(unit, port) && !PHY_EXTERNAL_MODE(unit, port)) ||
+         PHY_PASSTHRU_MODE(unit, port) ||
+         PHY_SGMII_AUTONEG_MODE(unit, port)) {
+         pCfg->pdetect1000x = TRUE;
+diff -rpN --unified=5 phy_original/wc40_extra.h phy/wc40_extra.h
+--- phy_original/wc40_extra.h	2013-03-07 17:50:31.000000000 +0000
++++ phy/wc40_extra.h	2013-04-09 17:30:25.000000000 +0100
+@@ -219,10 +219,11 @@
+ #define WC40_CL73_KR2_WAR         5
+ #define WC40_CL73_KR2_CUSTOM   4
+ #define WC40_CL73_KR2          3
+ #define WC40_CL73_WO_CL73BAM   2
+ #define WC40_CL73_AND_CL73BAM  1
++#define WC40_CL73_AUTONEG_MODE WC40_CL73_WO_CL73BAM /* PTin added: WC40 */
+ 
+ #define WC40_CL37_WO_CL37BAM   2
+ #define WC40_CL37_AND_CL37BAM  1
+ 
+ /* KR2 control */
+Binary files phy_original/wcmod.tgz and phy/wcmod.tgz differ

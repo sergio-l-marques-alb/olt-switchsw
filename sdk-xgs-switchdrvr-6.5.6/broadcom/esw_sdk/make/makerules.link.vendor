@@ -1,0 +1,35 @@
+# Broadcom vendor SDK build rules included by ipl package.
+#
+
+# Define list of kernel modules to use.
+#
+# Note: Caller must set up $(out_kmod) and $(out_target) for use here.
+#       Example:
+#                 out_kmod   := $(FP_BASE)/$(OUT_KMOD)
+#                 out_target := $(FP_BASE)/$(OUT_TARGET)
+#
+ifeq (1,$(BLD_L7_TARGETOS_LINUX))
+  kernelobjs := $(addprefix $(out_target)/,$(filter %.ko,$(L7_MODULE_LIST)))
+endif
+
+kmod_file = $(patsubst $(out_target)/%,$(out_kmod)/%,$@)
+
+
+ifneq (,$(COPYING_MSG))
+  copying_msg1 = $(COPYING_MSG) "$(notdir $(kmod_file)) to $(patsubst %/,%,$(subst ../,,$(dir $@)))"
+endif
+
+
+# Put out an error message if the kernel modules do not exist in the output target directory.
+#
+ifneq (,$(strip $(kernelobjs)))
+  $(kernelobjs):
+	@if [ ! -s $(kmod_file) ] ;\
+	then \
+		$(echo) "Error: The $(kmod_file) file is missing." ; \
+		$(echo) "  (This should have been built during 'bldlib' processing.)" ; \
+		exit 60 ; \
+	fi
+	$(copying_msg1)
+	$(DBG) cp -f $(kmod_file) $@
+endif

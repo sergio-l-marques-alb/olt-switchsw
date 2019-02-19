@@ -1,0 +1,9 @@
+# Make.chip.ea
+FEATURE_LIST=BCMX BCMX_DIAG INTR CINT BSAFE ATPTRANS_SOCKET L3 I2C MEM_SCAN EDITLINE TELNET DRIVERS CHASSIS TEST BCM_SAL_PROFILE RCPU DUNE_UI MSTP
+
+BCM_PTL_SPT=1
+BCM_53600_A0=1
+BCM_TK371X_A0=1
+
+# workspace:system=ea
+# linux26wrs-user:system=ea   buildDir=systems/linux/user/keystone-2_6 cpu=keybe

@@ -1,0 +1,280 @@
+mruas@vxcomp-ubuntu:~/repositorio/svn/lib/broadcom-sdk-xgs/sdk-xgs-switchdrvr-6.4.8/broadcom/esw_sdk$ patch -p1 < ../sdk-xgs-6.4.3.patch
+patching file include/appl/diag/cmdlist.h
+Hunk #2 succeeded at 265 (offset 10 lines).
+patching file include/appl/stktask/attach.h
+patching file include/bcm/custom.h
+patching file include/bcm/field.h
+Hunk #1 succeeded at 4604 (offset 973 lines).
+patching file include/bcm/types.h
+patching file include/bcm/vlan.h
+Hunk #1 succeeded at 2176 (offset 43 lines).
+patching file include/bcm_int/esw/link.h
+patching file include/bcm_int/esw/triumph2.h
+Hunk #1 succeeded at 109 (offset 15 lines).
+patching file include/sal/core/alloc.h
+patching file include/sal/core/boot.h
+patching file include/sdk_custom_config.h
+patching file include/shared/alloc.h
+patching file include/shared/bslext.h
+patching file include/soc/arl.h
+Hunk #1 succeeded at 50 (offset -2 lines).
+patching file include/soc/defs.h
+patching file include/soc/drv_if.h
+patching file include/soc/field.h
+patching file include/soc/i2c.h
+patching file include/soc/macipadr.h
+patching file include/soc/mcm/allenum.h
+Hunk #1 succeeded at 306 (offset 3 lines).
+patching file include/soc/phy.h
+Hunk #1 succeeded at 684 (offset 8 lines).
+patching file include/soc/property.h
+Hunk #1 succeeded at 489 (offset 23 lines).
+Hunk #2 succeeded at 2527 (offset 81 lines).
+patching file make/Make.config
+Hunk #2 succeeded at 604 (offset -9 lines).
+Hunk #3 succeeded at 649 (offset -9 lines).
+Hunk #4 succeeded at 919 (offset -2 lines).
+Hunk #5 succeeded at 942 (offset -2 lines).
+Hunk #6 succeeded at 1179 (offset 2 lines).
+patching file make/Makefile.linux-gto-2_6
+patching file make/Makefile.linux-kernel-3_0
+patching file make/Make.linux
+patching file make/Make.local.xgs3
+patching file make/Make.local.xgs4
+patching file make/Make.local.xgs5
+patching file make/make.pkg.vendor
+patching file make/makerules.link.vendor
+patching file make/makerules.pkg.vendor
+patching file make/make.sdk
+patching file make/Make.tools
+patching file src/appl/cputrans/atp.c
+Hunk #1 succeeded at 3885 (offset 5 lines).
+patching file src/appl/diag/cint/sal_cint_data.c
+patching file src/appl/diag/cmdlist.c
+Hunk #1 succeeded at 678 (offset 17 lines).
+patching file src/appl/diag/config_bcm.c
+patching file src/appl/diag/esw/counter.c
+Hunk #1 succeeded at 112 (offset 1 line).
+Hunk #2 succeeded at 190 (offset 1 line).
+patching file src/appl/diag/esw/hash.c
+patching file src/appl/diag/helixmem_soc.c
+patching file src/appl/diag/Makefile
+patching file src/appl/diag/rc_soc.c
+patching file src/appl/diag/robo/counter.c
+Hunk #1 succeeded at 82 (offset 1 line).
+Hunk #2 succeeded at 153 (offset 1 line).
+patching file src/appl/diag/shell.c
+Hunk #1 succeeded at 733 (offset 29 lines).
+Hunk #2 succeeded at 843 (offset 29 lines).
+Hunk #3 succeeded at 926 (offset 29 lines).
+Hunk #4 succeeded at 970 (offset 29 lines).
+Hunk #5 succeeded at 1007 (offset 29 lines).
+Hunk #6 succeeded at 1063 (offset 29 lines).
+Hunk #7 succeeded at 3462 (offset 53 lines).
+Hunk #8 succeeded at 6506 (offset 247 lines).
+Hunk #9 succeeded at 6601 (offset 247 lines).
+Hunk #10 succeeded at 6620 (offset 247 lines).
+Hunk #11 succeeded at 6714 (offset 247 lines).
+patching file src/appl/diag/system.c
+Hunk #1 succeeded at 82 (offset 8 lines).
+Hunk #2 succeeded at 1883 (offset 9 lines).
+Hunk #3 succeeded at 1988 (offset 9 lines).
+patching file src/appl/diag/tksdiag.c
+patching file src/appl/discover/disc_int.h
+patching file src/appl/stktask/brd_common.c
+Hunk #1 succeeded at 481 (offset 86 lines).
+Hunk #2 succeeded at 506 (offset 86 lines).
+patching file src/appl/stktask/topo_brd.c
+patching file src/appl/stktask/topology.c
+patching file src/bcm/common/rx.c
+Hunk #1 succeeded at 4639 (offset 331 lines).
+patching file src/bcm/common/tx.c
+Hunk #1 succeeded at 2234 (offset 55 lines).
+patching file src/bcm/dispatch.c
+Hunk #1 succeeded at 8971 (offset 744 lines).
+patching file src/bcm/esw/enduro/hashing.c
+patching file src/bcm/esw/enduro/vlan.c
+Hunk #1 succeeded at 831 (offset 7 lines).
+patching file src/bcm/esw/field.c
+Hunk #1 succeeded at 37742 (offset 3528 lines).
+Hunk #2 succeeded at 37944 (offset 3546 lines).
+patching file src/bcm/esw/firebolt/vlan.c
+Hunk #1 succeeded at 5251 (offset 259 lines).
+patching file src/bcm/esw/link.c
+Hunk #1 succeeded at 1241 (offset 127 lines).
+Hunk #2 succeeded at 3303 (offset 361 lines).
+patching file src/bcm/esw/multicast.c
+Hunk #1 succeeded at 106 (offset 8 lines).
+Hunk #2 succeeded at 2962 (offset 380 lines).
+patching file src/bcm/esw/port.c
+Hunk #1 succeeded at 6638 (offset 3674 lines).
+Hunk #2 succeeded at 6720 (offset 3678 lines).
+Hunk #3 succeeded at 15053 (offset 4263 lines).
+Hunk #4 succeeded at 27497 (offset 5738 lines).
+patching file src/bcm/esw/stat.c
+Hunk #1 succeeded at 1034 (offset 10 lines).
+patching file src/bcm/esw/switch.c
+Hunk #1 succeeded at 3605 (offset 1021 lines).
+Hunk #2 succeeded at 3816 (offset 1021 lines).
+patching file src/bcm/esw/trident/cosq.c
+Hunk #1 succeeded at 4770 (offset 84 lines).
+patching file src/bcm/esw/trident/hashing.c
+patching file src/bcm/esw/trident2/hashing.c
+patching file src/bcm/esw/triumph2/cosq.c
+patching file src/bcm/esw/triumph2/vlan.c
+Hunk #1 succeeded at 907 (offset 291 lines).
+Hunk #2 succeeded at 1487 (offset 379 lines).
+patching file src/bcm/esw/triumph2/wlan.c
+Hunk #1 succeeded at 825 (offset 3 lines).
+Hunk #2 succeeded at 1540 (offset 3 lines).
+Hunk #3 succeeded at 1616 (offset 3 lines).
+Hunk #4 succeeded at 1681 (offset 3 lines).
+Hunk #5 succeeded at 1991 (offset 3 lines).
+Hunk #6 succeeded at 2138 (offset 11 lines).
+Hunk #7 succeeded at 2331 (offset 11 lines).
+Hunk #8 succeeded at 2350 (offset 11 lines).
+Hunk #9 succeeded at 2461 (offset 11 lines).
+patching file src/bcm/esw/triumph3/hashing.c
+patching file src/bcm/esw/triumph3/ipmc.c
+Hunk #1 succeeded at 6996 (offset 2830 lines).
+patching file src/bcm/esw/triumph3/oam.c
+Hunk #1 succeeded at 4469 (offset 33 lines).
+Hunk #2 succeeded at 4570 (offset 33 lines).
+patching file src/bcm/esw/trx/vlan.c
+Hunk #1 succeeded at 1459 (offset 54 lines).
+Hunk #2 succeeded at 7825 (offset 740 lines).
+patching file src/bcm/esw/vlan.c
+Hunk #1 succeeded at 5863 (offset 126 lines).
+Hunk #2 succeeded at 5934 (offset 162 lines).
+Hunk #3 succeeded at 5967 (offset 162 lines).
+Hunk #4 succeeded at 6037 (offset 197 lines).
+Hunk #5 succeeded at 6068 (offset 197 lines).
+Hunk #6 succeeded at 6134 (offset 232 lines).
+patching file src/bcm/rpc/rpc.c
+Hunk #1 succeeded at 303 (offset -1 lines).
+patching file src/bcmx/bcmx.c
+Hunk #1 succeeded at 1857 (offset 3 lines).
+patching file src/bcmx/custom.c
+patching file src/bcmx/mcast.c
+patching file src/sal/appl/editline/sysunix.c
+patching file src/sal/appl/linux/sal.c
+patching file src/sal/core/linux/thread.c
+Hunk #1 succeeded at 190 (offset 6 lines).
+patching file src/sal/core/unix/alloc.c
+Hunk #2 succeeded at 377 (offset 31 lines).
+Hunk #3 succeeded at 461 (offset 39 lines).
+patching file src/sal/core/unix/boot.c
+patching file src/sal/core/unix/thread.c
+Hunk #1 succeeded at 81 (offset 1 line).
+Hunk #2 succeeded at 149 (offset 1 line).
+Hunk #3 succeeded at 224 (offset 1 line).
+Hunk #4 succeeded at 244 (offset 1 line).
+Hunk #5 succeeded at 333 (offset 1 line).
+Hunk #6 succeeded at 359 (offset 1 line).
+Hunk #7 succeeded at 403 (offset 1 line).
+Hunk #8 succeeded at 420 (offset 1 line).
+Hunk #9 succeeded at 441 (offset 1 line).
+Hunk #10 succeeded at 475 (offset 1 line).
+Hunk #11 succeeded at 492 (offset 1 line).
+Hunk #12 succeeded at 528 (offset 1 line).
+patching file src/shared/bsl.c
+patching file src/soc/common/cm.c
+Hunk #2 succeeded at 6599 (offset 723 lines).
+Hunk #3 succeeded at 6678 (offset 729 lines).
+Hunk #4 succeeded at 6700 (offset 730 lines).
+Hunk #5 succeeded at 6840 (offset 740 lines).
+patching file src/soc/common/dma.c
+Hunk #1 succeeded at 96 (offset 18 lines).
+Hunk #2 succeeded at 1773 (offset -292 lines).
+patching file src/soc/common/mem.c
+Hunk #1 succeeded at 16652 (offset 2536 lines).
+patching file src/soc/esw/drv.c
+Hunk #1 succeeded at 146 (offset 7 lines).
+Hunk #2 succeeded at 6131 (offset 454 lines).
+Hunk #3 succeeded at 6714 (offset 547 lines).
+Hunk #4 succeeded at 14096 (offset 1531 lines).
+patching file src/soc/esw/hash.c
+Hunk #1 succeeded at 1392 (offset 24 lines).
+Hunk #2 succeeded at 1573 (offset 26 lines).
+patching file src/soc/esw/l2xmsg.c
+Hunk #1 succeeded at 1397 (offset 2 lines).
+patching file src/soc/esw/trident.c
+Hunk #1 succeeded at 8017 (offset 253 lines).
+patching file src/soc/i2c/bus.c
+patching file src/soc/phy/hl65.c
+patching file src/soc/phy/phy5464.c
+Hunk #5 succeeded at 3252 (offset 77 lines).
+Hunk #6 succeeded at 3288 (offset 77 lines).
+Hunk #7 succeeded at 3370 (offset 77 lines).
+patching file src/soc/phy/phy54680.c
+Hunk #1 succeeded at 1244 (offset 5 lines).
+patching file src/soc/phy/phy8706.c
+Hunk #4 succeeded at 889 (offset 161 lines).
+Hunk #5 succeeded at 1376 (offset 161 lines).
+Hunk #6 succeeded at 2397 (offset 206 lines).
+Hunk #7 succeeded at 3192 (offset 211 lines).
+Hunk #8 succeeded at 3219 (offset 211 lines).
+patching file src/soc/phy/phyident.c
+Hunk #1 succeeded at 169 (offset 9 lines).
+Hunk #2 succeeded at 5462 (offset 137 lines).
+Hunk #3 succeeded at 6503 (offset 170 lines).
+patching file src/soc/phy/phyreg.c
+patching file src/soc/phy/serdescombo65.c
+patching file src/soc/phy/wc40.c
+Hunk #2 succeeded at 5462 (offset 22 lines).
+Hunk #3 succeeded at 6689 (offset 25 lines).
+Hunk #4 succeeded at 7034 (offset 57 lines).
+Hunk #5 succeeded at 7648 (offset 58 lines).
+Hunk #6 succeeded at 7806 (offset 58 lines).
+Hunk #7 succeeded at 7834 (offset 58 lines).
+Hunk #8 succeeded at 7858 (offset 58 lines).
+Hunk #9 succeeded at 7916 (offset 58 lines).
+Hunk #10 succeeded at 10357 (offset 105 lines).
+patching file src/soc/phy/wc40_config.c
+patching file src/soc/phy/wc40_extra.h
+patching file src/soc/phy/wcmod/include/wcmod_main.h
+patching file src/soc/phy/wcmod/src/wcmod.c
+Hunk #1 succeeded at 73 (offset 1 line).
+Hunk #2 succeeded at 3721 (offset 35 lines).
+Hunk #3 succeeded at 6500 (offset 141 lines).
+Hunk #4 succeeded at 7093 (offset 141 lines).
+Hunk #5 succeeded at 7729 (offset 156 lines).
+Hunk #6 succeeded at 8095 (offset 189 lines).
+Hunk #7 succeeded at 8824 (offset 198 lines).
+patching file src/soc/phy/wcmod/src/wcmod_cfg_seq.c
+Hunk #1 succeeded at 6288 (offset 10 lines).
+Hunk #2 succeeded at 6321 (offset 18 lines).
+Hunk #3 succeeded at 6386 (offset 18 lines).
+patching file src/soc/phy/wcmod/src/wcmod_phyreg.c
+patching file systems/bde/linux/kernel/linux-kernel-bde.c
+Hunk #1 succeeded at 144 (offset 10 lines).
+Hunk #2 succeeded at 168 (offset 15 lines).
+Hunk #3 succeeded at 560 (offset 15 lines).
+Hunk #4 succeeded at 613 (offset 15 lines).
+Hunk #5 succeeded at 1700 (offset 504 lines).
+Hunk #6 succeeded at 2050 (offset 504 lines).
+Hunk #7 succeeded at 2069 (offset 504 lines).
+Hunk #8 succeeded at 2170 (offset 504 lines).
+Hunk #9 succeeded at 2234 (offset 514 lines).
+Hunk #10 succeeded at 2426 (offset 531 lines).
+Hunk #11 succeeded at 2566 (offset 186 lines).
+Hunk #12 succeeded at 2972 (offset 201 lines).
+Hunk #13 succeeded at 3024 (offset 212 lines).
+Hunk #14 succeeded at 3809 (offset 218 lines).
+Hunk #15 succeeded at 4358 (offset 219 lines).
+Hunk #16 succeeded at 4411 (offset 219 lines).
+Hunk #17 succeeded at 4464 (offset 219 lines).
+patching file systems/bde/linux/kernel/Makefile.24
+patching file systems/bde/linux/kernel/Makefile.26
+patching file systems/bde/linux/kernel/Makefile.kbde
+patching file systems/bde/linux/shared/Makefile
+patching file systems/bde/linux/user/kernel/Makefile.24
+patching file systems/bde/linux/user/kernel/Makefile.26
+patching file systems/bde/linux/user/kernel/Makefile.ubde
+patching file systems/linux/kernel/modules/include/lkm.h
+patching file systems/linux/user/fastpath-2_6/Makefile
+patching file systems/linux/user/fastpath-3_6/Makefile
+patching file systems/linux/user/fastpath_common/bdecreate.c
+patching file systems/linux/user/fastpath_common/Makefile
+patching file systems/linux/user/fastpath_common/Makefile.fastpath
+mruas@vxcomp-ubuntu:~/repositorio/svn/lib/broadcom-sdk-xgs/sdk-xgs-switchdrvr-6.4.8/broadcom/esw_sdk$ 

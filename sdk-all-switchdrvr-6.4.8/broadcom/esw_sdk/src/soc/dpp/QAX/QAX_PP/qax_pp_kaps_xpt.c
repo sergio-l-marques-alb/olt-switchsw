@@ -1,0 +1,540 @@
+/* $Id: qax_pp_kaps_xpt.c, hagayco Exp $
+ * $Copyright: Copyright 2015 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+ * $
+*/
+
+#include <soc/mem.h>
+
+#if defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030)
+
+#ifdef _ERR_MSG_MODULE_NAME
+  #error "_ERR_MSG_MODULE_NAME redefined"
+#endif
+
+#define _ERR_MSG_MODULE_NAME BSL_SOC_FORWARD
+#include <soc/mem.h>
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+#include <shared/bsl.h>
+#include <soc/dcmn/error.h>
+#include <soc/dpp/ARAD/arad_general.h>
+#include <soc/dpp/ARAD/arad_kbp.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_sw_db.h>
+
+#include <soc/dpp/JER/JER_PP/jer_pp_kaps.h>
+#include <soc/dpp/JER/JER_PP/jer_pp_kaps_xpt.h>
+
+#include <soc/dpp/JER/JER_PP/jer_pp_kaps_entry_mgmt.h>
+
+#include <soc/dpp/SAND/Management/sand_low_level.h>
+
+/* } */
+
+/*************
+ * DEFINES   *
+ *************/
+/* { */
+
+/*#define QAX_KAPS_XPT_PRINTS_ENABLED*/
+
+#define QAX_KAPS_MAX_UINT32_WIDTH 16
+
+#define RPB_CAM_BIST_CONTROL_OFFSET   0x2a
+#define RPB_CAM_BIST_STATUS_OFFSET    0x2b
+#define RPB_GLOBAL_CONFIG_OFFSET      0x21
+
+
+#define BB_GLOBAL_CONFIG_OFFSET       0x21
+
+/* } */
+
+/*************
+ *  MACROS   *
+ *************/
+/* { */
+
+
+/* } */
+
+/*************
+ * TYPE DEFS *
+ *************/
+/* { */
+
+typedef enum
+{
+    RPB_FIRST_BLK_ID   = 1,
+    RPB_0_BLK_ID       = RPB_FIRST_BLK_ID,
+    RPB_1_BLK_ID,
+    RPB_LAST_BLK_ID    = RPB_1_BLK_ID,
+    BB_FIRST_BLK_ID,
+    BB_0_BLK_ID        = BB_FIRST_BLK_ID,
+    BB_1_BLK_ID,
+    BB_2_BLK_ID,
+    BB_3_BLK_ID,
+    BB_4_BLK_ID,
+    BB_5_BLK_ID,
+    BB_6_BLK_ID,
+    BB_7_BLK_ID,
+    BB_8_BLK_ID,
+    BB_9_BLK_ID,
+    BB_10_BLK_ID,
+    BB_11_BLK_ID,
+    BB_12_BLK_ID,
+    BB_13_BLK_ID,
+    BB_14_BLK_ID,
+    BB_15_BLK_ID,
+    BB_LAST_BLK_ID     = BB_15_BLK_ID,
+
+    KAPS_BLK_ID_LAST
+
+} KAPS_BLK_IDS;
+
+/* } */
+
+/*************
+ * GLOBALS   *
+ *************/
+/* { */
+
+/* } */
+
+/*************
+ * FUNCTIONS *
+ *************/
+/* { */
+
+kbp_status qax_pp_kaps_search(void *xpt,
+                                     uint8_t *key,
+                                     enum kaps_search_interface search_interface,
+                                     struct kaps_search_result *kaps_result)
+{
+    int rv = KBP_OK,
+        unit;
+    uint32  func,
+        i = 0,j,k;
+    uint32 mem_array[QAX_KAPS_MAX_UINT32_WIDTH];
+    uint32 mem_index = 0;
+
+    unit = ((JER_KAPS_XPT*)xpt)->jer_data.unit;
+    func = KAPS_FUNC3;
+
+    for (k = 0; k < JER_KAPS_KEY_BUFFER_NOF_BYTES/4; k++) {
+        mem_array[mem_index] = 0;
+        for(j=0; j<4; j++) {
+            mem_array[mem_index] |= key[i] << (3-j)*8;
+            i++;
+        }
+        mem_index++;
+    }
+    mem_array[mem_index] = 0;
+    mem_array[mem_index] = func << 30;
+
+    rv = soc_mem_array_write(unit, KAPS_RPB_TCAM_CPU_CMDm, search_interface, KAPS_BLOCK(unit), 0 /*offset*/, mem_array);
+    if (rv != SOC_SAND_OK) {
+        LOG_CLI((BSL_META_U(0,"%s(), soc_mem_array_write failed.\n"),FUNCTION_NAME()));
+        return KBP_INTERNAL_ERROR;
+    }
+
+    rv = soc_mem_array_read(unit, KAPS_RPB_TCAM_CPU_REPLYm, search_interface, KAPS_BLOCK(unit), 0 /*offset*/, mem_array);
+    if (rv != SOC_SAND_OK) {
+        LOG_CLI((BSL_META_U(0,"%s(), soc_mem_array_read failed.\n"),FUNCTION_NAME()));
+        return KBP_INTERNAL_ERROR;
+    }
+
+    kaps_result->match_len = mem_array[0] >> 24;
+    kaps_result->ad_value[2]= (mem_array[1]);
+    kaps_result->ad_value[1]= (mem_array[1] >> 8);
+    kaps_result->ad_value[0]= (mem_array[1] >> 16) & 0xFF; /* 4 msbits out of 20 bits total */
+
+#ifdef QAX_KAPS_XPT_PRINTS_ENABLED
+    LOG_CLI((BSL_META_U(0,"%s()\n"), FUNCTION_NAME()));
+#endif
+    return rv;
+}
+
+kbp_status qax_kaps_register_read(void *xpt, uint32_t offset, uint32_t nbytes, uint8_t *bytes)
+{
+    int rv = KBP_OK,
+        unit;
+    uint32 reg_val;
+
+    unit = ((JER_KAPS_XPT*)xpt)->jer_data.unit;
+    if ((offset == 0) && (nbytes == 4) && (bytes != NULL)) {
+        /* Get the kaps revision register */
+        rv = soc_reg32_get(unit, KAPS_KAPS_REVISIONr, KAPS_BLOCK(unit), 0 /*index*/, &reg_val);
+        if (rv != SOC_SAND_OK) {
+            LOG_CLI((BSL_META_U(0,"%s(), soc_reg32_get failed.\n"),FUNCTION_NAME()));
+            return KBP_INTERNAL_ERROR;
+        }
+        bytes[0] = reg_val >> 24; bytes[1] = reg_val >> 16; bytes[2] = reg_val >> 8; bytes[3] = reg_val;
+    } else {
+        LOG_CLI((BSL_META_U(0,"%s() only supports reading the KapsRevision register.\n"),FUNCTION_NAME()));
+        return KBP_INTERNAL_ERROR;
+    }
+    return rv;
+}
+
+kbp_status qax_kaps_register_write(void *xpt, uint32_t offset, uint32_t nbytes, uint8_t *bytes)
+{
+    LOG_CLI((BSL_META_U(0,"%s() is not supported.\n"),FUNCTION_NAME()));
+    return KBP_INTERNAL_ERROR;
+}
+
+STATIC
+kbp_status qax_kaps_translate_blk_func_offset_to_mem_reg(uint8 blk_id,
+                                                         uint32 func,
+                                                         uint32 offset,
+                                                         soc_mem_t *mem,
+                                                         soc_reg_t *reg,
+                                                         uint32 *array_index)
+{
+    uint32 rv = KBP_OK;
+
+    *mem = INVALIDm;
+    *reg = INVALIDr;
+    *array_index = 0;
+
+    if (blk_id >= RPB_FIRST_BLK_ID && blk_id <= RPB_LAST_BLK_ID) {
+        *array_index = blk_id - RPB_FIRST_BLK_ID;
+        switch (func)
+        {
+           case KAPS_FUNC0:
+               if (offset == RPB_CAM_BIST_CONTROL_OFFSET) {
+                   *reg = KAPS_RPB_CAM_BIST_CONTROLr;
+               } else if (offset == RPB_CAM_BIST_STATUS_OFFSET) {
+                   *reg = KAPS_RPB_CAM_BIST_STATUSr;
+               } else if (offset == RPB_GLOBAL_CONFIG_OFFSET) {
+                   *reg = KAPS_RPB_GLOBAL_CONFIGr;
+               } else{
+                   LOG_CLI((BSL_META_U(0, "%s():  unsupported RPB register offset: %d\n"),
+                                    FUNCTION_NAME(), offset));
+                   rv = KBP_INTERNAL_ERROR;
+               }
+               break;
+
+            case KAPS_FUNC1:
+               *mem = KAPS_RPB_TCAM_CPU_COMMANDm;
+               break;
+
+            case KAPS_FUNC4:
+                *mem = KAPS_RPB_ADSm;
+                break;
+
+            default:
+               LOG_CLI((BSL_META_U(0, "%s():  RPB, unsupported func: %d\n"),
+                                    FUNCTION_NAME(), func));
+               rv = KBP_INTERNAL_ERROR;
+               break;
+        }
+
+
+    } else if (blk_id >= BB_FIRST_BLK_ID && blk_id <= BB_LAST_BLK_ID) {
+        *array_index = blk_id - BB_FIRST_BLK_ID;
+        switch (func)
+        {
+           case KAPS_FUNC0:
+               if (offset == BB_GLOBAL_CONFIG_OFFSET) {
+                   *reg = KAPS_BB_GLOBAL_CONFIGr;
+               } else{
+                   LOG_CLI((BSL_META_U(0, "%s():  unsupported BB register offset: %d\n"),
+                                    FUNCTION_NAME(), offset));
+                   rv = KBP_INTERNAL_ERROR;
+               }
+               break;
+
+            case KAPS_FUNC1:
+               *mem = KAPS_BUCKET_MAP_MEMORYm;
+               break;
+            case KAPS_FUNC2:
+            case KAPS_FUNC5:
+               *mem = KAPS_BUCKET_MEMORYm;
+               break;
+
+            default:
+               LOG_CLI((BSL_META_U(0, "%s():  BB, unsupported func: %d\n"),
+                                    FUNCTION_NAME(), func));
+               rv = KBP_INTERNAL_ERROR;
+               break;
+        }
+    } else {
+        LOG_CLI((BSL_META_U(0,"%s(), unrecognized blk_id = %d.\n"),FUNCTION_NAME(), blk_id));
+        /*return KBP_INTERNAL_ERROR;*/  
+    }
+
+    return rv;
+}
+
+kbp_status qax_pp_kaps_write_command(void *xpt,
+                                     uint8 blk_id,
+                                     uint32 cmd,
+                                     uint32 func,
+                                     uint32 offset,
+                                     uint32 nbytes,
+                                     uint8 *bytes)
+{
+    int rv = KBP_OK,
+        unit;
+    soc_mem_t mem;
+    soc_reg_t reg;
+    uint32 reg_val;
+    uint32 array_index;
+    uint32 mem_array[QAX_KAPS_MAX_UINT32_WIDTH];
+    uint32 mem_index;
+    uint32 i = 0, j, k;
+
+#ifdef QAX_KAPS_XPT_PRINTS_ENABLED
+    LOG_CLI((BSL_META_U(0,"%s() start\n nbytes: %d, bytes: 0x"),FUNCTION_NAME(), nbytes));
+    for (j = 0; j < nbytes; j++) {
+        LOG_CLI((BSL_META_U(0,"%02X "),bytes[j]));
+    }
+    LOG_CLI((BSL_META_U(0,"\n")));
+    LOG_CLI((BSL_META_U(0, "%s():  blk_id: %d, cmd: %d, func: %d, offset: %d, nbytes: %d\n"),
+                         FUNCTION_NAME(), blk_id, cmd, func, offset, nbytes));
+#endif
+
+    unit = ((JER_KAPS_XPT*)xpt)->jer_data.unit;
+
+    rv = qax_kaps_translate_blk_func_offset_to_mem_reg(blk_id, func, offset, &mem, &reg, &array_index);
+    if (rv != KBP_OK) {
+        LOG_CLI((BSL_META_U(0,"%s(), qax_kaps_translate_blk_func_offset_to_mem_reg failed.\n"),FUNCTION_NAME()));
+        return KBP_INTERNAL_ERROR;
+    }
+#ifdef QAX_KAPS_XPT_PRINTS_ENABLED
+    LOG_CLI((BSL_META_U(0,"%s(): mem: %s, reg: %s, array_index: %d. \n"),
+             FUNCTION_NAME(), SOC_MEM_NAME(unit, mem), SOC_REG_NAME(unit,reg), array_index));
+    for (j = 0; j < nbytes; j++) {
+        LOG_CLI((BSL_META_U(0,"%02X "),bytes[j]));
+    }
+    LOG_CLI((BSL_META_U(0,"\n")));
+#endif
+
+    if (mem != INVALIDm) {
+        /* Write to memory */
+
+        /* Convert from uint8 to uint32 */
+        mem_index = 0;
+        if (nbytes%4 > 0) {
+            mem_array[mem_index] = 0;
+            for (i = 0; i < nbytes%4; i++) {
+                mem_array[mem_index] |= bytes[i] << (nbytes%4-1-i)*8;
+            }
+            mem_index++;
+        }
+        for (k = 0; k < nbytes/4; k++) {
+            mem_array[mem_index] = 0;
+            for(j=0; j<4; j++) {
+                mem_array[mem_index] |= bytes[i] << (3-j)*8;
+                i++;
+            }
+            mem_index++;
+        }
+
+        
+        /*
+        rv = soc_mem_array_write(unit, mem, array_index, KAPS_BLOCK(unit), offset, mem_array);
+        if (rv != SOC_SAND_OK) {
+            LOG_CLI((BSL_META_U(0,"%s(), soc_mem_array_write failed.\n"),FUNCTION_NAME()));
+            return KBP_INTERNAL_ERROR;
+        }
+        */
+
+    } else if (reg != INVALIDr) {
+        /* Write to a register */
+        /* Assuming only registers up to 32 bits*/
+        reg_val = (uint32) bytes[0] << 24 | (uint32) bytes[1] << 16 | (uint32) bytes[2] << 8 | (uint32) bytes[3];
+
+        rv = soc_reg32_set(unit, reg, KAPS_BLOCK(unit), array_index, reg_val);
+        if (rv != SOC_SAND_OK) {
+            LOG_CLI((BSL_META_U(0,"%s(), soc_reg32_set failed.\n"),FUNCTION_NAME()));
+            return KBP_INTERNAL_ERROR;
+        }
+
+    } else {
+        LOG_CLI((BSL_META_U(0,"%s(), both mem and reg are invalid.\n"),FUNCTION_NAME()));
+        /*return KBP_INTERNAL_ERROR;*/ 
+    }
+
+
+#ifdef QAX_KAPS_XPT_PRINTS_ENABLED
+    LOG_CLI((BSL_META_U(0,"%s() end\n"),FUNCTION_NAME()));
+#endif
+
+    return rv;
+}
+
+kbp_status qax_pp_kaps_read_command(void *xpt,
+                                           uint32 blk_id,
+                                           uint32 cmd,
+                                           uint32 func,
+                                           uint32 offset,
+                                           uint32 nbytes,
+                                           uint8 *bytes)
+{
+    int rv = KBP_OK,
+        unit;
+    soc_mem_t mem;
+    soc_reg_t reg;
+    uint32 reg_val;
+    uint32 array_index;
+    uint32 mem_array[QAX_KAPS_MAX_UINT32_WIDTH];
+    uint32 mem_index;
+    uint32 i = 0, j, k;
+
+#ifdef QAX_KAPS_XPT_PRINTS_ENABLED
+    LOG_CLI((BSL_META_U(0,"%s() start\n nbytes: %d, bytes: 0x"),FUNCTION_NAME(), nbytes));
+    for (j = 0; j < nbytes; j++) {
+        LOG_CLI((BSL_META_U(0,"%02X "),bytes[j]));
+    }
+    LOG_CLI((BSL_META_U(0,"\n")));
+    LOG_CLI((BSL_META_U(0, "%s():  blk_id: %d, cmd: %d, func: %d, offset: %d, nbytes: %d\n"),
+                         FUNCTION_NAME(), blk_id, cmd, func, offset, nbytes));
+#endif
+
+    unit = ((JER_KAPS_XPT*)xpt)->jer_data.unit;
+
+    rv = qax_kaps_translate_blk_func_offset_to_mem_reg(blk_id, func, offset, &mem, &reg, &array_index);
+    if (rv != KBP_OK) {
+        LOG_CLI((BSL_META_U(0,"%s(), qax_kaps_translate_blk_func_offset_to_mem_reg failed.\n"),FUNCTION_NAME()));
+        return KBP_INTERNAL_ERROR;
+    }
+
+#ifdef QAX_KAPS_XPT_PRINTS_ENABLED
+    LOG_CLI((BSL_META_U(0,"%s(): mem: %s, reg: %s, array_index: %d. \n"),
+             FUNCTION_NAME(), SOC_MEM_NAME(unit, mem), SOC_REG_NAME(unit,reg), array_index));
+    for (j = 0; j < nbytes; j++) {
+        LOG_CLI((BSL_META_U(0,"%02X "),bytes[j]));
+    }
+    LOG_CLI((BSL_META_U(0,"\n")));
+#endif
+
+    if (mem != INVALIDm) {
+        /* Read from memory */
+        rv = soc_mem_array_read(unit, mem, array_index, KAPS_BLOCK(unit), offset, mem_array);
+        if (rv != SOC_SAND_OK) {
+            LOG_CLI((BSL_META_U(0,"%s(), soc_mem_array_read failed.\n"),FUNCTION_NAME()));
+            return KBP_INTERNAL_ERROR;
+        }
+
+        /* Convert from uint32 to uint8 */
+        mem_index = 0;
+        if (nbytes%4 > 0) {
+            for (i = 0; i < nbytes%4; i++) {
+                bytes[i] = mem_array[mem_index] >> ((nbytes%4-1-i)*8);
+            }
+            mem_index++;
+        }
+        for (k = 0; k < nbytes/4; k++) {
+            for(j=0; j<4; j++) {
+                bytes[i] = mem_array[mem_index] >> (3-j)*8;
+                i++;
+            }
+            mem_index++;
+        }
+    } else if (reg != INVALIDr) {
+        /* Read from a register */
+        /* Assuming only registers up to 32 bits*/
+        rv = soc_reg32_get(unit, reg, KAPS_BLOCK(unit), array_index, &reg_val);
+        if (rv != SOC_SAND_OK) {
+            LOG_CLI((BSL_META_U(0,"%s(), soc_reg32_get failed.\n"),FUNCTION_NAME()));
+            return KBP_INTERNAL_ERROR;
+        }
+        bytes[0] = reg_val >> 24; bytes[1] = reg_val >> 16; bytes[2] = reg_val >> 8; bytes[3] = reg_val;
+
+    } else {
+        LOG_CLI((BSL_META_U(0,"%s(), both mem and reg are invalid.\n"),FUNCTION_NAME()));
+        return KBP_INTERNAL_ERROR;
+    }
+
+
+
+
+#ifdef QAX_KAPS_XPT_PRINTS_ENABLED
+    LOG_CLI((BSL_META_U(0,"%s() end\n"),FUNCTION_NAME()));
+#endif
+
+    return rv;
+}
+
+kbp_status qax_pp_kaps_command(void *xpt,
+                               enum kaps_cmd cmd,
+                               enum kaps_func func,
+                               uint32_t blk_nr,
+                               uint32_t row_nr,
+                               uint32_t nbytes,
+                               uint8_t *bytes)
+{
+    int rv = KBP_OK;
+
+    switch (cmd)
+    {
+       case KAPS_CMD_READ:
+           rv = qax_pp_kaps_read_command(xpt, blk_nr, cmd, func, row_nr, nbytes, bytes);
+           break;
+
+       case KAPS_CMD_WRITE:
+           rv = qax_pp_kaps_write_command(xpt, blk_nr, cmd, func, row_nr, nbytes, bytes);
+           break;
+
+       case KAPS_CMD_EXTENDED:
+           LOG_CLI((BSL_META_U(0, "%s():  IBC interface disabled, redundant command: %d\n"), FUNCTION_NAME(), cmd));
+           break;
+
+       default:
+           LOG_CLI((BSL_META_U(0, "%s():  unsupported cmd: %d\n"),
+                                FUNCTION_NAME(), cmd));
+           rv = KBP_INTERNAL_ERROR;
+           break;
+    }
+
+    return rv;
+}
+
+/* } */
+
+#include <soc/dpp/SAND/Utils/sand_footer.h>
+
+#endif /* defined(BCM_88675_A0) && defined(INCLUDE_KBP) && !defined(BCM_88030) */

@@ -1,0 +1,325 @@
+/* $Id: jer_pp_metering.h,v 1.0 Broadcom SDK $
+ * $Copyright: Copyright 2015 Broadcom Corporation.
+ * This program is the proprietary software of Broadcom Corporation
+ * and/or its licensors, and may only be used, duplicated, modified
+ * or distributed pursuant to the terms and conditions of a separate,
+ * written license agreement executed between you and Broadcom
+ * (an "Authorized License").  Except as set forth in an Authorized
+ * License, Broadcom grants no license (express or implied), right
+ * to use, or waiver of any kind with respect to the Software, and
+ * Broadcom expressly reserves all rights in and to the Software
+ * and all intellectual property rights therein.  IF YOU HAVE
+ * NO AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE
+ * IN ANY WAY, AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE
+ * ALL USE OF THE SOFTWARE.  
+ *  
+ * Except as expressly set forth in the Authorized License,
+ *  
+ * 1.     This program, including its structure, sequence and organization,
+ * constitutes the valuable trade secrets of Broadcom, and you shall use
+ * all reasonable efforts to protect the confidentiality thereof,
+ * and to use this information only in connection with your use of
+ * Broadcom integrated circuit products.
+ *  
+ * 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS
+ * PROVIDED "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES,
+ * REPRESENTATIONS OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY,
+ * OR OTHERWISE, WITH RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY
+ * DISCLAIMS ANY AND ALL IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY,
+ * NONINFRINGEMENT, FITNESS FOR A PARTICULAR PURPOSE, LACK OF VIRUSES,
+ * ACCURACY OR COMPLETENESS, QUIET ENJOYMENT, QUIET POSSESSION OR
+ * CORRESPONDENCE TO DESCRIPTION. YOU ASSUME THE ENTIRE RISK ARISING
+ * OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+ * 
+ * 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL
+ * BROADCOM OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL,
+ * INCIDENTAL, SPECIAL, INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER
+ * ARISING OUT OF OR IN ANY WAY RELATING TO YOUR USE OF OR INABILITY
+ * TO USE THE SOFTWARE EVEN IF BROADCOM HAS BEEN ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN EXCESS OF
+ * THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR USD 1.00,
+ * WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING
+ * ANY FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.$
+*/
+
+
+#ifndef __JER_PP_METERING_INCLUDED__
+/* { */
+#define __JER_PP_METERING_INCLUDED__
+
+/*************
+ * INCLUDES  *
+ *************/
+/* { */
+#include <soc/dpp/SAND/Utils/sand_header.h>
+#include <soc/dpp/SAND/Utils/sand_framework.h> 
+#include <soc/error.h>
+#include <soc/dpp/ARAD/ARAD_PP/arad_pp_metering.h>
+
+/*********************************************************************
+* NAME:
+*     jer_pp_metering_init
+* FUNCTION:
+*     Initialization of the Jericho metering.
+* INPUT:
+*  SOC_SAND_IN  int                 unit -
+*     Identifier of the device to access.
+* RETURNS:
+*   OK or ERROR indication.
+* REMARKS:
+*   Called as part of the initialization sequence.
+*********************************************************************/
+uint32
+  jer_pp_metering_init(
+    SOC_SAND_IN  int  unit
+  );
+
+/*********************************************************************
+* NAME:
+*     jer_pp_metering_init_mrps_config
+* FUNCTION:
+*     Global configuration of the Jericho MRPS metering.
+* INPUT:
+*  SOC_SAND_IN  int                 unit -
+*     Identifier of the device to access.
+* RETURNS:
+*   OK or ERROR indication.
+* REMARKS:
+*   Called as part of the initialization sequence.
+*********************************************************************/
+
+uint32
+  jer_pp_metering_init_mrps_config(
+		SOC_SAND_IN int unit
+  );
+/*********************************************************************
+* NAME:
+*     jer_pp_metering_init_mrpsEm_config
+* FUNCTION:
+*     Global configuration of the Jericho MRPS_EM Eth. Policer.
+* INPUT:
+*  SOC_SAND_IN  int                 unit -
+*     Identifier of the device to access.
+* RETURNS:
+*   OK or ERROR indication.
+* REMARKS:
+*   Called as part of the initialization sequence.
+*********************************************************************/
+uint32
+  jer_pp_metering_init_mrpsEm_config(
+		SOC_SAND_IN int unit
+  );
+
+/*********************************************************************
+* NAME:
+*     jer_pp_Eth_policer_pcd_init
+* FUNCTION:
+*     Global configuration of the Jericho MRPS_EM PCD MAP table Eth. Policer.
+* INPUT:
+*  SOC_SAND_IN  int                 unit -
+*     Identifier of the device to access.
+* RETURNS:
+*   OK or ERROR indication.
+* REMARKS:
+*   Called as part of the initialization sequence.
+*********************************************************************/
+uint32 
+  jer_pp_eth_policer_pcd_init(
+     SOC_SAND_IN int unit
+  );
+
+/*********************************************************************
+* NAME:
+*     soc_jer_pp_mtr_policer_global_sharing_get
+* FUNCTION:
+*     gets the global_sharing rate flag with respect to GLOBAL_SHARINGf
+* INPUT:
+*   int                         unit				- Identifier of the device to access
+*   int                         core_id				- specify meter core - for MRPS block
+*	int        					meter_id			- specify meter id
+*	int							meter_group			- specify meter memory section
+*	uint32* 					global_sharing_ptr
+* RETURNS:
+*   OK or ERROR indication.
+* REMARKS:
+*   Called as part of the reading info sequence.
+*   Called from the mbcm_pp dispatcher.
+*********************************************************************/
+soc_error_t
+  soc_jer_pp_mtr_policer_global_sharing_get(
+    int                         unit,
+	int                         core_id,
+	int        					meter_id,
+	int							meter_group,
+	uint32* 					global_sharing_ptr
+);
+
+/*********************************************************************
+* NAME:
+*     soc_jer_pp_mtr_policer_global_sharing_set
+* FUNCTION:
+*     sets the global_sharing rate flag with respect to GLOBAL_SHARINGf
+* INPUT:
+*   int                         unit				- Identifier of the device to access
+*   int                         core_id				- specify meter core - for MRPS block
+*	int        					meter_id			- specify meter id
+*	int							meter_group			- specify meter memory section
+*	uint32* 					global_sharing_ptr
+* RETURNS:
+*   OK or ERROR indication.
+* REMARKS:
+*   Called as part of the reading info sequence.
+*   Called from the mbcm_pp dispatcher.
+*********************************************************************/
+soc_error_t
+  soc_jer_pp_mtr_policer_global_sharing_set(
+    int                         unit,
+	int                         core_id,
+	int        					meter_id,
+	int							meter_group,
+	uint32* 					global_sharing_ptr
+);
+
+/*********************************************************************
+* NAME:
+*     jer_pp_mtr_eth_policer_params_set
+* FUNCTION:
+*     sets the local Eth. policer on a specific port
+* INPUT:
+*   int                         	unit				- Identifier of the device to access
+*   ARAD_PP_PORT                    port_ndx			- specify port index to meter
+*	ARAD_PP_MTR_ETH_TYPE        	eth_type_ndx		- specify packet's type to meter
+*	ARAD_PP_MTR_BW_PROFILE_INFO		policer_info		- specify Eth. policer parameters
+* RETURNS:
+*   OK or ERROR indication.
+* REMARKS:
+*   Called as part of the reading info sequence.
+*   Called from bcm_petra_rate_bandwidth_set().
+*********************************************************************/
+uint32
+  jer_pp_mtr_eth_policer_params_set(
+    SOC_SAND_IN  int                                    unit,
+    SOC_SAND_IN  ARAD_PP_PORT                           port_ndx,
+	SOC_SAND_IN  int                   					core_id,
+	SOC_SAND_IN  ARAD_PP_MTR_ETH_TYPE                   eth_type_ndx,
+    SOC_SAND_IN  ARAD_PP_MTR_BW_PROFILE_INFO            *policer_info
+  );
+
+/*********************************************************************
+* NAME:
+*     jer_pp_mtr_eth_policer_params_get
+* FUNCTION:
+*     gets the local Eth. policer on a specific port
+* INPUT:
+*   int                         	unit				- Identifier of the device to access
+*   ARAD_PP_PORT                    port_ndx			- specify port index to meter
+*	ARAD_PP_MTR_ETH_TYPE        	eth_type_ndx		- specify packet's type to meter
+* OUTPUT:
+*	ARAD_PP_MTR_BW_PROFILE_INFO		*policer_info		- specify Eth. policer parameters
+* RETURNS:
+*   OK or ERROR indication.
+*********************************************************************/
+uint32
+  jer_pp_mtr_eth_policer_params_get(
+    SOC_SAND_IN  int                        	unit,
+    SOC_SAND_IN  ARAD_PP_PORT                   port_ndx,
+	SOC_SAND_IN  int                   			core_id,
+	SOC_SAND_IN  ARAD_PP_MTR_ETH_TYPE           eth_type_ndx,
+    SOC_SAND_OUT ARAD_PP_MTR_BW_PROFILE_INFO    *policer_info
+  );
+
+/*********************************************************************
+* NAME:
+*     jer_pp_mtr_eth_policer_params_get
+* FUNCTION:
+*     gets the local Eth. policer on a specific port
+* INPUT:
+*   int                         	unit				- Identifier of the device to access
+*   ARAD_PP_PORT                    port_ndx			- specify port index to meter
+*	ARAD_PP_MTR_ETH_TYPE        	eth_type_ndx		- specify packet's type to meter
+* OUTPUT:
+*	ARAD_PP_MTR_BW_PROFILE_INFO		*policer_info		- specify Eth. policer parameters
+* RETURNS:
+*   OK or ERROR indication.
+*********************************************************************/
+uint32
+  jer_pp_mtr_eth_policer_glbl_profile_set(
+	int       						unit,
+	int		                		policer_ndx,
+	ARAD_PP_MTR_BW_PROFILE_INFO    	*policer_info
+  );
+
+/*********************************************************************
+* NAME:
+*     jer_pp_mtr_eth_policer_params_get
+* FUNCTION:
+*     gets the local Eth. policer on a specific port
+* INPUT:
+*   int                         	unit				- Identifier of the device to access
+*   ARAD_PP_PORT                    port_ndx			- specify port index to meter
+*	ARAD_PP_MTR_ETH_TYPE        	eth_type_ndx		- specify packet's type to meter
+* OUTPUT:
+*	ARAD_PP_MTR_BW_PROFILE_INFO		*policer_info		- specify Eth. policer parameters
+* RETURNS:
+*   OK or ERROR indication.
+*********************************************************************/
+uint32  
+  jer_pp_mtr_eth_policer_glbl_profile_get(
+	 SOC_SAND_IN  int                      		unit,
+	 SOC_SAND_IN  uint32                      	glbl_profile_idx,
+	 SOC_SAND_OUT ARAD_PP_MTR_BW_PROFILE_INFO 	*policer_info
+  );
+
+/*********************************************************************
+* NAME:
+*     jer_pp_mtr_eth_policer_params_get
+* FUNCTION:
+*     gets the local Eth. policer on a specific port
+* INPUT:
+*   int                         	unit				- Identifier of the device to access
+*   ARAD_PP_PORT                    port_ndx			- specify port index to meter
+*	ARAD_PP_MTR_ETH_TYPE        	eth_type_ndx		- specify packet's type to meter
+* OUTPUT:
+*	ARAD_PP_MTR_BW_PROFILE_INFO		*policer_info		- specify Eth. policer parameters
+* RETURNS:
+*   OK or ERROR indication.
+*********************************************************************/
+uint32  
+  jer_pp_mtr_eth_policer_glbl_profile_map_set(
+	 SOC_SAND_IN  int                  	unit,
+	 SOC_SAND_IN  int                  	core_id,
+	 SOC_SAND_IN  ARAD_PP_PORT           port_ndx,
+	 SOC_SAND_IN  ARAD_PP_MTR_ETH_TYPE   eth_type_ndx,
+	 SOC_SAND_IN  uint32                 glbl_profile_idx
+  );
+
+/*********************************************************************
+* NAME:
+*     jer_pp_mtr_eth_policer_params_get
+* FUNCTION:
+*     gets the local Eth. policer on a specific port
+* INPUT:
+*   int                         	unit				- Identifier of the device to access
+*   ARAD_PP_PORT                    port_ndx			- specify port index to meter
+*	ARAD_PP_MTR_ETH_TYPE        	eth_type_ndx		- specify packet's type to meter
+* OUTPUT:
+*	ARAD_PP_MTR_BW_PROFILE_INFO		*policer_info		- specify Eth. policer parameters
+* RETURNS:
+*   OK or ERROR indication.
+*********************************************************************/
+uint32  
+  jer_pp_mtr_eth_policer_glbl_profile_map_get(
+	 SOC_SAND_IN  int                  	unit,
+	 SOC_SAND_IN  int                  	core_id,
+	 SOC_SAND_IN  ARAD_PP_PORT          port_ndx,
+	 SOC_SAND_IN  ARAD_PP_MTR_ETH_TYPE  eth_type_ndx,
+	 SOC_SAND_OUT uint32                *glbl_profile_idx
+   );
+
+/* } */
+
+#include <soc/dpp/SAND/Utils/sand_footer.h>
+
+/* } __JER_PP_METERING_INCLUDED__*/
+#endif
+
