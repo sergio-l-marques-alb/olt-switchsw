@@ -1,1 +1,0 @@
-#define CONFIG_HDLC_FR 1

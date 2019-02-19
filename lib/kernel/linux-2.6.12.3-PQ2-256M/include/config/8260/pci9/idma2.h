@@ -1,1 +1,0 @@
-#undef CONFIG_8260_PCI9_IDMA2

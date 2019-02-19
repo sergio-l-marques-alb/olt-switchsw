@@ -1,4 +1,0 @@
-kernel/arch/arm/plat-iproc/../../../../../bcmdrivers/usbd/bcm_udc_dwc.ko
-kernel/crypto/aes_generic.ko
-kernel/crypto/ansi_cprng.ko
-kernel/drivers/usb/gadget/g_mass_storage.ko

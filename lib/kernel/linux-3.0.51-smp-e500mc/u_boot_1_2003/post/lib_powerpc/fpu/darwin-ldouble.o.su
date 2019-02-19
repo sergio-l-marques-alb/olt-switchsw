@@ -1,3 +1,0 @@
-darwin-ldouble.c:71:13:__gcc_qadd	56	static
-darwin-ldouble.c:106:13:__gcc_qsub	8	static
-darwin-ldouble.c:111:13:__gcc_qmul	56	static

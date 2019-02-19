@@ -1,1 +1,0 @@
-#undef CONFIG_IDE_8xx_DIRECT
