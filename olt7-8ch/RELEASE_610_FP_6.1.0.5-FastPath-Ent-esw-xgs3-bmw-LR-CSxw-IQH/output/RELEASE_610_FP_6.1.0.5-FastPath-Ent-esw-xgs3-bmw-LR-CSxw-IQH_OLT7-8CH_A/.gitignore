@@ -1,4 +1,5 @@
-/ipl
-/target
-/objects
-/libs
+ipl/
+libs/
+objects/
+system/
+target/
