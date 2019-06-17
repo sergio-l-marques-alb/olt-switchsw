@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Fields Types DB:
+    This xml contains the fields types DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+    According to:d88547d
+    DB Rules:
+    *********
+-->
+
+<FieldTypesDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="field_types_schema.xsd">
+
+    <FieldType Name="FABRIC_PIPE_ID" Size="2" Print="UINT32">
+        <OneLineDescription>Fabric pipe number</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+                <MaxValue Value="DNX_DATA.fabric.pipes.max_nof_pipes-1" />
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FABRIC_CONTEXT_ID" Size="2" Print="UINT32">
+        <OneLineDescription>Fabric context number</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+                <MaxValue Value="2" />
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FABRIC_LINK_ID" Size="7" Print="UINT32">
+        <OneLineDescription>Fabric link id</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+                <MaxValue Value="DNX_DATA.fabric.links.max_link_id" />
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+    <FieldType Name="FABRIC_PRIORITY" Size="DNX_DATA.fabric.dbal.priority_bits_nof" Print="UINT32">
+        <OneLineDescription>Fabric cell priority</OneLineDescription>
+        <FieldDbInterface>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <ValueRestricts>
+                <MaxValue Value="DNX_DATA.fabric.cell.nof_priorities-1" />
+            </ValueRestricts>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="FABRIC_DTQ_MODE" Size="2" Print="ENUM">
+        <OneLineDescription>DTQ mode definition</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="SINGLE_QUEUE" Description="Single queue"/>
+                <EnumVal Name="UC_MC" Description="Unicast/Multicast"/>
+                <EnumVal Name="UC_HPMC_LPMC" Description="Unicast/High Priority Multicast/Low Priority Multicast"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="SINGLE_QUEUE" Value="0"/>
+                <EnumVal Name="UC_MC" Value="1"/>
+                <EnumVal Name="UC_HPMC_LPMC" Value="2"/>
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="FABRIC_PCP_MODE" Size="2" Print="ENUM">
+        <OneLineDescription>Packet Cell Packing mode</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="NO_PACKING" Description="No packing"/>
+                <EnumVal Name="SIMPLE" Description="Simple packing"/>
+                <EnumVal Name="CONTINUOUS" Description="Continuous packing"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="NO_PACKING" Value="0"/>
+                <EnumVal Name="SIMPLE" Value="1"/>
+                <EnumVal Name="CONTINUOUS" Value="2"/>
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+     <FieldType Name="FABRIC_WFQ_FIFO" Size="3" Print="ENUM">
+        <OneLineDescription>WFQ FIFO</OneLineDescription>
+        <FieldDbInterface>
+            <EnumValues>
+                <EnumVal Name="FABRIC_PIPE_0" Description="Fabric pipe 0 FIFO"/>
+                <EnumVal Name="FABRIC_PIPE_1" Description="Fabric pipe 1 FIFO"/>
+                <EnumVal Name="FABRIC_PIPE_2" Description="Fabric pipe 2 FIFO"/>
+                <EnumVal Name="LOCAL_UC" Description="Local unicast FIFO"/>
+                <EnumVal Name="MESH_MC" Description="Mesh multicast FIFO"/>
+            </EnumValues>
+        </FieldDbInterface>
+        <FieldToPhyDbMapping>
+            <EnumValueMapping>
+                <EnumVal Name="FABRIC_PIPE_0" Value="0"/>
+                <EnumVal Name="FABRIC_PIPE_1" Value="1"/>
+                <EnumVal Name="FABRIC_PIPE_2" Value="2"/>
+                <EnumVal Name="LOCAL_UC" Value="3"/>
+                <EnumVal Name="MESH_MC" Value="4"/>
+             </EnumValueMapping>
+        </FieldToPhyDbMapping>
+    </FieldType>
+
+</FieldTypesDbCatalog>

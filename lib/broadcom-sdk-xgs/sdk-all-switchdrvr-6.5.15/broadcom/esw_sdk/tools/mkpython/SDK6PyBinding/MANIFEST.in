@@ -1,0 +1,11 @@
+# Include the license file
+include LICENSE.txt
+
+# Include support mk file for SDK6
+include sdk6.mk
+
+# Include the SDK6 files
+recursive-include sdk6 *.py *c *.h
+
+# Include the SDK6 files
+recursive-exclude sdk6 *.pyc *o *.so

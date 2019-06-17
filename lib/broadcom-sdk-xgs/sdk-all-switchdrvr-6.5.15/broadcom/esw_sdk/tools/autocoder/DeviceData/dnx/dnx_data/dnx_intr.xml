@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="intr" bsl_flag="BSL_LS_BCMDNX_INTR">
+    <includes>
+        <include>soc/dnxc/intr.h</include>
+    </includes>
+    <sub_module name="general" doc="General interrupt information.">
+        <defines>
+        </defines>
+        <numerics>
+             <numeric name="nof_interrupts" doc="Number of interrupts in the device."></numeric>
+             <numeric name="polled_irq_mode" doc="Are interrupts supported polling mode."></numeric>
+             <numeric name="polled_irq_priority" doc="The priority of IRQ polling thread."></numeric>
+             <numeric name="polled_irq_delay" doc="The minimum delay between IRQ polls."></numeric>
+
+             <numeric name="table_dma_enable" doc="Enable/disable table DMA operations."></numeric>
+             <numeric name="tdma_timeout_usec" doc="Table DMA operation timeout."></numeric>
+             <numeric name="tdma_intr_enable" doc="Table DMA done is interrupt driven or by polling."> </numeric>
+             <numeric name="tslam_dma_enable" doc="Enable/disable tslam DMA operations."></numeric>
+             <numeric name="tslam_timeout_usec" doc="Tslam DMA operation timeout."></numeric>
+             <numeric name="tslam_intr_enable" doc="Tslam DMA done is interrupt driven or by polling."> </numeric>
+             <numeric name="schan_timeout_usec" doc="Schan operation timeout."> </numeric>
+             <numeric name="schan_intr_enable" doc="Schan operation done is interrupt driven or by polling."></numeric>
+             <numeric name="miim_timeout_usec" doc="MIM operation timeout."></numeric>
+             <numeric name="miim_intr_enable" doc="MIM operation done is interrupt driver or by polling."></numeric>
+        </numerics>
+
+        <features>
+        </features>
+
+        <tables>
+            <table name="active_on_init" doc="interrupt active on init">
+                <key name="offset" doc="active interrupt offset"></key>
+                <value name="intr" type="uint32" doc="interrupt ident"></value>
+            </table>
+            <table name="disable_on_init" doc="interrupt disabled on init">
+                <key name="offset" doc="disable interrupt offset"></key>
+                <value name="intr" type="uint32" doc="interrupt ident"></value>
+            </table>
+            <table name="disable_print_on_init" doc="interrupt disable print on init">
+                <key name="offset" doc="disable print on init offset"></key>
+                <value name="intr" type="uint32" doc="interrupt ident"></value>
+            </table>
+            
+            <table name="block_intr_field_mapping" doc="block to intr field mapping">
+                <key name="offset" doc="block to intr field mapping"></key>
+                <value name="intr" type="uint32" doc="intr field"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="ser" doc="SER handle information.">
+        <defines>
+        </defines>
+        <numerics>
+        </numerics>
+        <features>
+        </features>
+        <tables>
+            <table name="mem_mask" doc="memory need masked">
+                <key name="index" doc="memory masked index"></key>
+                <value name="reg" type="soc_reg_t" doc="register name for  memory mask"></value>
+                <value name="field" type="soc_field_t" doc="If field defined - will set just the specified field"></value>
+                <value name="mode" type="dnxc_mem_mask_mode_e" doc="Register field should be set value, 0 or 1"></value>
+            </table>
+            <table name="xor_mem" doc="XOR memory information">
+                <key name="index" doc="XOR memory index"></key>
+                <value name="mem" type="soc_mem_t" doc="xor memory name"></value>
+                <value name="sram_banks_bits" type="int" doc="SRAM bank wide bits"></value>
+                <value name="entry_used_bits" type="int" doc="Entry number address wide for each bank"></value>
+            </table>
+        </tables>
+    </sub_module>
+
+</device_data>

@@ -1,0 +1,409 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" device="jer2_a0"  module="nif">
+    <includes>
+        <include>bcm/port.h</include>
+        <include>soc/portmod/portmod.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_fabric.h</include>
+        <include>soc/dnx/dnx_data/auto_generated/dnx_data_device.h</include>
+        <include>soc/dnxc/legacy/dnxc_port.h</include>
+    </includes>
+
+    <sub_module name="global">
+        <defines>
+            <define name="nof_lcplls" value="2"></define>
+        </defines>
+
+        <tables>
+            <table name="pll_phys">
+                <key name="lcpll" size="DATA(nif, global, nof_lcplls)"></key>
+                <value name="min_phy_id" default="0"></value>
+                <value name="max_phy_id" default="0"></value>
+                <entries>
+                    <entry lcpll="0" min_phy_id="0" max_phy_id="47"></entry>
+                    <entry lcpll="1" min_phy_id="48" max_phy_id="95"></entry>
+                </entries>
+            </table>
+        </tables>
+
+        <numerics>
+            <numeric name="start_tx_threshold_global" value="-1">
+                <property name="custom_feature" method="suffix_range" range_min="0" range_max="0x3fff" suffix="start_tx_threshold">
+                    <doc>
+                        Start TX threshold controls how many 64B words will be accumulated in the MLF before starting to transmit
+                    </doc>
+                </property>
+            </numeric>
+        </numerics>
+        
+        <tables>
+            <table name="start_tx_threshold_table">
+                <key name="idx" size="8"></key>
+                <value name="speed" default="0"></value>
+                <value name="start_thr" default="0"></value>
+                <entries>
+                    <entry idx="0" speed="10000" start_thr="8"></entry>
+                    <entry idx="1" speed="20000" start_thr="8"></entry>
+                    <entry idx="2" speed="25000" start_thr="8"></entry>
+                    <entry idx="3" speed="40000" start_thr="8"></entry>
+                    <entry idx="4" speed="50000" start_thr="8"></entry>
+                    <entry idx="5" speed="100000" start_thr="8"></entry>
+                    <entry idx="6" speed="200000" start_thr="10"></entry>
+                    <entry idx="7" speed="400000" start_thr="10"></entry>
+                </entries>                
+            </table>
+        </tables>
+        
+    </sub_module>
+    <sub_module name="phys">
+        <defines>
+            <define name="nof_phys" value="96"></define>
+            <define name="nof_phys_per_core" value="DATA(nif,phys,nof_phys)/DATA(device, general, max_nof_cores)"></define>
+            <define name="nof_pms" value="12"></define>
+            <define name="vco_div" value="20"></define>
+        </defines>
+
+        <tables>
+            <table name="general">
+                <!-- FIXME: SDK-115221 temporary number - until NIF SDD -->
+                <value name="supported_phys" default="0xffffffff, 0xffffffff, 0xffffffff"></value>
+            </table>
+            <table name="polarity">
+                <key name="lane_index" size="DATA(nif,phys,nof_phys)"></key>
+                <value name="tx_polarity"  default="0">
+                 <property name="phy_tx_polarity_flip" method="suffix_enable" suffix="phy">
+                        <doc>
+                            Flips PHY TX polarity if enabled
+                            phy_tx_polarity_flip_#lane# = 0 / 1
+                        </doc>
+                    </property>
+                </value>
+                <value name="rx_polarity"  default="0">
+                 <property name="phy_rx_polarity_flip" method="suffix_enable" suffix="phy">
+                        <doc>
+                            Flips PHY RX polarity if enabled
+                            phy_tx_polarity_flip_#lane# = 0 / 1
+                        </doc>
+                    </property>
+                </value>
+            </table>
+            <table name="core_phys_map">
+                <key name="core_index" size="2"></key>
+                <value name="phys" default="0x0"></value>
+                <entries>
+                    <entry core_index="0" phys="0xFFFFFFFF,0x0000FFFF,0x00000000"></entry>
+                    <entry core_index="1" phys="0x00000000,0xFFFF0000,0xFFFFFFFF"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="ilkn">
+        <features>
+            <feature name="is_supported"></feature>
+        </features>
+
+        <defines>
+            <define name="ilkn_unit_nof" value="2"></define>
+            <define name="ilkn_unit_if_nof" value="1"></define>
+            <define name="ilkn_if_nof" value="DATA(nif, ilkn, ilkn_unit_nof) * DATA(nif, ilkn, ilkn_unit_if_nof)"></define>
+            <define name="lanes_max_nof" value="24"></define>
+            <define name="lanes_allowed_nof" value="16"></define>
+            <define name="ilkn_over_eth_pms_max" value="2"></define>
+            <define name="segments_max_nof" value="4"></define>
+            <define name="watermark_high" value="3"></define>
+            <define name="watermark_low" value="4"></define>
+            <define name="pms_nof" value="3"></define>
+            <define name="fmac_bus_size" value="70"></define>
+        </defines>
+        <tables>
+            <table name="phys" init_only="1">
+                <key name="ilkn_id" size="2"></key>
+                <value name="bitmap" default="0">
+                    <property name="ilkn_lanes" method="suffix_pbmp" suffix="">
+                        <doc>
+                            ilkn_lanes_#ilkn_id#=#bitmap#
+                            The bitmap parameter is up to 24 bits. 
+                            When a bit is set, the equivalent lane (PHY) is used for the corresponding port. 
+                            The ilkn_id parameter is the ILKN interface ID in the range 0-1.
+                        </doc>
+                    </property>
+                </value>
+            </table>
+
+            <table name="supported_phys">
+                <key name="ilkn_id" size="2"></key>
+                <value name="is_supported" default="0"></value>
+                <value name="max_phys" default="0"></value>
+                <value name="nif_phys" default="0"></value>
+                <value name="fabric_phys" default="0"></value>
+                <entries>
+                    <entry ilkn_id="0" is_supported="1" max_phys="24" nif_phys="0x00ffffff"                         fabric_phys="0x00ffffff"></entry>
+                    <entry ilkn_id="1" is_supported="1" max_phys="24" nif_phys="0x00000000, 0xffff0000, 0x000000ff" fabric_phys="0x00000000, 0xff000000, 0x0000ffff"></entry>
+                </entries>
+            </table>
+            
+            <table name="supported_core">
+                <key name="ilkn_id" size="2"></key>
+                <value name="core" default="-1"></value>
+                <entries>
+                    <entry ilkn_id="0" core="0"></entry>
+                    <entry ilkn_id="1" core="1"></entry>
+                </entries>
+            </table>
+
+            <table name="properties">
+                <key name="ilkn_id" size="2"></key>
+                <value name="burst_max" default="256">
+                    <property name="ilkn_burst_max" method="suffix_range" suffix="" range_min="256" range_max="256">
+                        <doc>
+                            Configure ILKN BurstMax per ILKN id.
+                            in Jer2 the only supported value is 256.
+                        </doc>
+                    </property>
+                </value>
+                <value name="burst_short" default="32">
+                    <property name="ilkn_burst_short" method="suffix_range" suffix="" range_min="32" range_max="128">
+                        <doc>
+                            Configure ILKN BurstShort per ILKN id.
+                            supported values: 32, 64... BurstMax / 2.
+                            default: 32.
+                        </doc>
+                    </property>
+                </value>
+                <value name="burst_min" default="32">
+                    <property name="ilkn_burst_min" method="suffix_range" suffix="" range_min="32" range_max="128">
+                        <doc>
+                            Configure ILKN BurstMin per ILKN id.
+                            supported values: BurstShort... BurstMax / 2.
+                            default: burstShort.
+                        </doc>
+                    </property>
+                </value>
+                <value name="metaframe_period" default="2048">
+                    <property name="ilkn_metaframe_sync_period" method="suffix_range" suffix="" range_min="64" range_max="16384">
+                        <doc>
+                            Configure ILKN Metaframe priod per ILKN id.
+                            supported values: 64 - 16K.
+                            default: 2048.
+                        </doc>
+                    </property>
+                </value>
+                <value name="is_over_fabric" default="0">
+                    <property name="use_fabric_links_for_ilkn_nif" method="suffix_only_enable" suffix="ilkn">
+                        <doc>
+                            Configure the ILKN IF to work over Fabric links instead of NIF.
+                            default = 0;
+                        </doc>
+                    </property>
+                </value>
+            </table>
+    
+            <table name="nif_pms">
+                <key name="pm_id" size="12"></key>
+                <value name="dispatch_type" default="portmodDispatchTypeCount"></value>
+                <value name="first_phy" default="-1"></value>
+                <entries>
+                    <entry pm_id="0" dispatch_type="portmodDispatchTypePm8x50" first_phy="0"></entry>
+                    <entry pm_id="1" dispatch_type="portmodDispatchTypePm8x50" first_phy="8"></entry>
+                    <entry pm_id="2" dispatch_type="portmodDispatchTypePm8x50" first_phy="16"></entry>
+                    <entry pm_id="6" dispatch_type="portmodDispatchTypePm8x50" first_phy="48"></entry>
+                    <entry pm_id="7" dispatch_type="portmodDispatchTypePm8x50" first_phy="56"></entry>
+                    <entry pm_id="8" dispatch_type="portmodDispatchTypePm8x50" first_phy="64"></entry>
+                </entries>
+            </table>
+
+            <table name="fabric_pms">
+                <key name="pm_id" size="14"></key>
+                <value name="dispatch_type" default="portmodDispatchTypeCount"></value>
+                <value name="first_phy" default="-1"></value>
+                <entries>
+                    <entry pm_id="0" dispatch_type="portmodDispatchTypePm8x50_fabric" first_phy="0"></entry>
+                    <entry pm_id="1" dispatch_type="portmodDispatchTypePm8x50_fabric" first_phy="8"></entry>
+                    <entry pm_id="2" dispatch_type="portmodDispatchTypePm8x50_fabric" first_phy="16"></entry>
+                    <entry pm_id="7" dispatch_type="portmodDispatchTypePm8x50_fabric" first_phy="56"></entry>
+                    <entry pm_id="8" dispatch_type="portmodDispatchTypePm8x50_fabric" first_phy="64"></entry>
+                    <entry pm_id="9" dispatch_type="portmodDispatchTypePm8x50_fabric" first_phy="72"></entry>
+                </entries>
+            </table>
+
+            <table name="ilkn_pms">
+                <key name="ilkn_id" size="2"></key>
+                <value name="nif_pm_ids" default="-1"></value>
+                <value name="fabric_pm_ids" default="-1"></value>
+                <entries>
+                    <entry ilkn_id="0" nif_pm_ids="0,1,2" fabric_pm_ids="0,1,2"></entry>
+                    <entry ilkn_id="1" nif_pm_ids="6,7,8" fabric_pm_ids="7,8,9"></entry>
+                </entries>
+            </table>
+
+        </tables>
+    </sub_module>
+
+    <sub_module name="eth">
+        <defines>
+            <define name="cdu_nof" value="12"></define>
+            <define name="cdum_nof" value="2"></define>
+            <define name="cdu_pms_nof" value="1"></define>
+            <define name="cdu_nof_per_core" value="6"></define>
+            <define name="cdu_lanes_nof" value="8"></define>
+            <define name="cdu_mac_nof" value="2"></define>
+            <define name="mac_lanes_nof" value="4"></define>
+            <define name="cdu_logical_fifo_nof" value="16"></define>
+            <define name="cdu_memory_entries_nof" value="1024"></define>
+            <define name="priority_group_nof_entries_min" value="4"></define>
+            <define name="priority_groups_nof" value="2"></define>
+            <define name="pad_size_min" value="64"></define>
+            <define name="pad_size_max" value="96"></define>
+            <define name="packet_size_max" value="0x3fff"></define>
+            <define name="an_max_nof_abilities" value="20"></define>
+        </defines>
+
+        <tables>
+            <table name="pm_properties">
+                <key name="pm_index" size="12"></key>
+                <value name="phys" default="0x0"></value>
+                <value name="tvco_pll_index" default="0x1"></value>
+                <entries>
+                    <entry pm_index="0" phys="0x000000FF,0x00000000,0x00000000" tvco_pll_index="1"></entry>
+                    <entry pm_index="1" phys="0x0000FF00,0x00000000,0x00000000" tvco_pll_index="1"></entry>
+                    <entry pm_index="2" phys="0x00FF0000,0x00000000,0x00000000" tvco_pll_index="1"></entry>
+                    <entry pm_index="3" phys="0xFF000000,0x00000000,0x00000000" tvco_pll_index="1"></entry>
+                    <entry pm_index="4" phys="0x00000000,0x000000FF,0x00000000" tvco_pll_index="1"></entry>
+                    <entry pm_index="5" phys="0x00000000,0x0000FF00,0x00000000" tvco_pll_index="1"></entry>
+                    <entry pm_index="6" phys="0x00000000,0x00FF0000,0x00000000" tvco_pll_index="1"></entry>
+                    <entry pm_index="7" phys="0x00000000,0xFF000000,0x00000000" tvco_pll_index="1"></entry>
+                    <entry pm_index="8" phys="0x00000000,0x00000000,0x000000FF" tvco_pll_index="1"></entry>
+                    <entry pm_index="9" phys="0x00000000,0x00000000,0x0000FF00" tvco_pll_index="1"></entry>
+                    <entry pm_index="10" phys="0x00000000,0x00000000,0x00FF0000" tvco_pll_index="1"></entry>
+                    <entry pm_index="11" phys="0x00000000,0x00000000,0xFF000000" tvco_pll_index="1"></entry>
+                </entries>
+            </table>
+            <table name="cdu_pm_map">
+                <key name="cdu_index" size="12"></key>
+                <value name="pms" default="-1"></value>
+                <entries>
+                    <entry cdu_index="0" pms="0"></entry>
+                    <entry cdu_index="1" pms="1"></entry>
+                    <entry cdu_index="2" pms="2"></entry>
+                    <entry cdu_index="3" pms="3"></entry>
+                    <entry cdu_index="4" pms="4"></entry>
+                    <entry cdu_index="5" pms="5"></entry>
+                    <entry cdu_index="6" pms="6"></entry>
+                    <entry cdu_index="7" pms="7"></entry>
+                    <entry cdu_index="8" pms="8"></entry>
+                    <entry cdu_index="9" pms="9"></entry>
+                    <entry cdu_index="10" pms="10"></entry>
+                    <entry cdu_index="11" pms="11"></entry>
+                </entries>
+            </table>
+            <table name="max_speed">
+                <key name="lane_num" size="9"></key>
+                <value name="speed" default="0"></value>
+                <entries>
+                    <entry lane_num="1" speed="50000"></entry>
+                    <entry lane_num="2" speed="100000"></entry>
+                    <entry lane_num="4" speed="200000"></entry>
+                    <entry lane_num="8" speed="400000"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+
+    <sub_module name="prd" doc="Priority Drop module">
+        <defines>
+            <define name="nof_control_frames" value="4"></define>
+            <define name="nof_ether_type_codes" value="16"></define>
+            <define name="nof_tcam_entries" value="32"></define>
+            <define name="nof_mpls_special_labels" value="4"></define>
+            <define name="nof_priorities" value="4"></define>
+            <define name="custom_ether_type_code_min" value="1"></define>
+            <define name="custom_ether_type_code_max" value="6"></define>
+        </defines>
+ 
+        <numerics>
+        </numerics>
+
+        <features>
+        </features>
+ 
+        <tables>
+            <table name="ether_type">
+                <key name="ether_type_code" size="16"></key>
+                <value name="ether_type_size" default="0"></value>
+                <value name="ether_type_name" default="no name"></value>
+                <entries>
+                    <entry ether_type_code="0" ether_type_name="No Match" ether_type_size="0"></entry>
+                    <entry ether_type_code="1" ether_type_name="Configurable 1" ether_type_size="0"></entry>
+                    <entry ether_type_code="2" ether_type_name="Configurable 2" ether_type_size="0"></entry>
+                    <entry ether_type_code="3" ether_type_name="Configurable 3" ether_type_size="0"></entry>
+                    <entry ether_type_code="4" ether_type_name="Configurable 4" ether_type_size="0"></entry>
+                    <entry ether_type_code="5" ether_type_name="Configurable 5" ether_type_size="0"></entry>
+                    <entry ether_type_code="6" ether_type_name="Configurable 6" ether_type_size="0"></entry>
+                    <entry ether_type_code="7" ether_type_name="Configurable 7" ether_type_size="0"></entry>
+                    <entry ether_type_code="8" ether_type_name="TRILL" ether_type_size="6"></entry>
+                    <entry ether_type_code="9" ether_type_name="Control Frame" ether_type_size="0"></entry>
+                    <entry ether_type_code="10" ether_type_name="ARP" ether_type_size="28"></entry>
+                    <entry ether_type_code="11" ether_type_name="CFM" ether_type_size="4"></entry>
+                    <entry ether_type_code="12" ether_type_name="FCoE" ether_type_size="36"></entry>
+                    <entry ether_type_code="13" ether_type_name="IPv4" ether_type_size="20"></entry>
+                    <entry ether_type_code="14" ether_type_name="IPv6" ether_type_size="40"></entry>
+                    <entry ether_type_code="15" ether_type_name="MPLS" ether_type_size="0"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    <sub_module name="portmod" doc="information required for portmod.">
+        <defines>
+            <define name="pm_types_nof" value="3"></define>
+        </defines>
+ 
+        <numerics>
+        </numerics>
+
+        <features>
+        </features>
+ 
+        <tables>
+            <table name="pm_types_and_interfaces">
+                <key name="index" size="DNX_DATA_MAX_NIF_PORTMOD_PM_TYPES_NOF"></key>
+                <value name="type" default="0"></value>
+                <value name="instances" default="0"></value>
+                <entries>
+                    <entry index="0" type="portmodDispatchTypePm8x50" instances="dnx_data_nif.eth.cdu_nof_get(unit)"></entry>
+                    <entry index="1" type="portmodDispatchTypePmOsILKN_50G" instances="dnx_data_nif.ilkn.ilkn_unit_nof_get(unit)"></entry>
+                    <entry index="2" type="portmodDispatchTypePm8x50_fabric" instances="dnx_data_fabric.blocks.nof_pms_get(unit)"></entry> 
+                </entries>
+            </table>
+            <table name="pm_supported_features">
+                <key name="pm_index" size="12"></key>
+                <value name="is_pam4_support" default="0"></value>
+                <value name="is_400g_support" default="0"></value>
+                <value name="is_25g_support" default="0"></value>
+                <entries>
+                    <entry pm_index="0" is_pam4_support="1" is_400g_support="1" is_25g_support="1"></entry>
+                    <entry pm_index="1" is_pam4_support="1" is_400g_support="1" is_25g_support="1"></entry>
+                    <entry pm_index="2" is_pam4_support="1" is_400g_support="1" is_25g_support="1"></entry>
+                    <entry pm_index="3" is_pam4_support="1" is_400g_support="1" is_25g_support="1"></entry>
+                    <entry pm_index="4" is_pam4_support="1" is_400g_support="1" is_25g_support="1"></entry>
+                    <entry pm_index="5" is_pam4_support="1" is_400g_support="1" is_25g_support="1"></entry>
+                    <entry pm_index="6" is_pam4_support="1" is_400g_support="1" is_25g_support="1"></entry>
+                    <entry pm_index="7" is_pam4_support="1" is_400g_support="1" is_25g_support="1"></entry>
+                    <entry pm_index="8" is_pam4_support="1" is_400g_support="1" is_25g_support="1"></entry>
+                    <entry pm_index="9" is_pam4_support="1" is_400g_support="1" is_25g_support="1"></entry>
+                    <entry pm_index="10" is_pam4_support="1" is_400g_support="1" is_25g_support="1"></entry>
+                    <entry pm_index="11" is_pam4_support="1" is_400g_support="1" is_25g_support="1"></entry>
+                </entries>
+            </table>
+        </tables>
+    </sub_module>
+    
+    <sub_module name="schedulder" doc="data about NIF schedulder">
+        <defines>
+           <define name="rate_per_cdu_bit" value="100000"></define>
+           <define name="rate_per_rmc_bit" value="50000"></define>
+           <define name="nof_cdu_bits" value="4"></define>
+           <define name="nof_rmc_bits" value="4"></define>
+        </defines>
+    </sub_module>
+    
+</device_data>

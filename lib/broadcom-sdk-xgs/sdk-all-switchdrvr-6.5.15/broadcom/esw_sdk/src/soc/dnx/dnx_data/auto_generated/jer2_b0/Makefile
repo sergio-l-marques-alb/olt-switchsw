@@ -1,0 +1,20 @@
+#
+# $Id: Makefile,v 1.4 Broadcom SDK $
+# $Copyright: (c) 2018 Broadcom.
+# Broadcom Proprietary and Confidential. All rights reserved.$
+#
+# Makefile for dnx/dnx_data/auto_generated/jer2_b0 subdirectory
+#
+
+LOCALDIR = src/soc/dnx/dnx_data/auto_generated/jer2_b0
+
+include ${SDK}/make/Make.config
+
+
+include ${SDK}/make/Make.subdirs
+
+lib = libsoc_dnxdnxdataagjer2b0
+
+include ${SDK}/make/Make.lib
+
+include ${SDK}/make/Make.depend

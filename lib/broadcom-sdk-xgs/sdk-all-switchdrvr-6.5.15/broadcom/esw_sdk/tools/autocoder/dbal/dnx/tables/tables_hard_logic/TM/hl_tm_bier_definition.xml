@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="BIER_ING_TABLE">
+        <OneLineDescription>ingress BIER data base</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BFR_ID" MaxValue="8191" Size="15" Type="UINT"/>
+                <Field Name="BASE" MinValue="1" MaxValue="1" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="BITSTR" Size="256" Type="BITMAP"/>
+                <Field Name="CUD"/>
+                <Field Name="DESTINATION"/>
+                <Field Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC" />
+            <FieldMapping>
+                <Field Name="BITSTR">
+                    <Access>
+                        <Memory Name="MTM_MCDBm">
+                            <ArrayOffset Formula="BASE+BFR_ID/DNX_DATA.bier.params.bank_entries+BFR_ID/8192" />
+                            <EntryOffset Formula="BFR_ID%DNX_DATA.bier.params.bank_entries" />
+                            <HwField Name="DATAf" />
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CUD">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BIER_ING_INFOm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="BFR_ID%DNX_DATA.bier.params.bfr_entry_size*64" />
+                            </Alias>
+                            <ArrayOffset Formula="BASE+BFR_ID/8192*DNX_DATA.bier.params.bundle_nof_banks+DNX_DATA.bier.params.bundle_nof_banks_net" />
+                            <EntryOffset Formula="BFR_ID%8192/DNX_DATA.bier.params.bfr_entry_size" />
+                            <HwField Name="EEDB_POINTERf" />
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DESTINATION">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BIER_ING_INFOm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="BFR_ID%DNX_DATA.bier.params.bfr_entry_size*64" />
+                            </Alias>
+                            <ArrayOffset Formula="BASE+BFR_ID/8192*DNX_DATA.bier.params.bundle_nof_banks+DNX_DATA.bier.params.bundle_nof_banks_net" />
+                            <EntryOffset Formula="BFR_ID%8192/DNX_DATA.bier.params.bfr_entry_size" />
+                            <HwField Name="DESTINATIONf" />
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VALID">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BIER_ING_INFOm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="BFR_ID%DNX_DATA.bier.params.bfr_entry_size*64" />
+                            </Alias>
+                            <ArrayOffset Formula="BASE+BFR_ID/8192*DNX_DATA.bier.params.bundle_nof_banks+DNX_DATA.bier.params.bundle_nof_banks_net" />
+                            <EntryOffset Formula="BFR_ID%8192/DNX_DATA.bier.params.bfr_entry_size" />
+                            <HwField Name="VALIDf" />
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="BIER_EGR_0_TABLE">
+        <OneLineDescription>egress BIER data base</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BFR_ID" MaxValue="8191" Size="15" Type="UINT"/>
+                <Field Name="BASE" MinValue="1" MaxValue="1" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="BITSTR" Size="256" Type="BITMAP"/>
+                <Field Name="CUD"/>
+                <Field Name="TCM"/>
+                <Field Name="EGRESS_DESTINATION"/>
+                <Field Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC" />
+            <FieldMapping>
+                <Field Name="BITSTR">
+                    <Access>
+                        <Memory Name="MTM_MCDBm">
+                            <ArrayOffset Formula="BASE+BFR_ID/DNX_DATA.bier.params.bank_entries+BFR_ID/8192" />
+                            <EntryOffset Formula="BFR_ID%DNX_DATA.bier.params.bank_entries" />
+                            <HwField Name="DATAf" />
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CUD">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BIER_EGR_INFOm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="BFR_ID%DNX_DATA.bier.params.bfr_entry_size*64" />
+                            </Alias>
+                            <ArrayOffset Formula="BASE+BFR_ID/8192*DNX_DATA.bier.params.bundle_nof_banks+DNX_DATA.bier.params.bundle_nof_banks_net" />
+                            <EntryOffset Formula="BFR_ID%8192/DNX_DATA.bier.params.bfr_entry_size" />
+                            <HwField Name="EEDB_POINTERf" />
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCM">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BIER_EGR_INFOm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="BFR_ID%DNX_DATA.bier.params.bfr_entry_size*64" />
+                            </Alias>
+                            <ArrayOffset Formula="BASE+BFR_ID/8192*DNX_DATA.bier.params.bundle_nof_banks+DNX_DATA.bier.params.bundle_nof_banks_net" />
+                            <EntryOffset Formula="BFR_ID%8192/DNX_DATA.bier.params.bfr_entry_size" />
+                            <HwField Name="TCMf" />
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_DESTINATION">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BIER_EGR_INFOm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="BFR_ID%DNX_DATA.bier.params.bfr_entry_size*64" />
+                            </Alias>
+                            <ArrayOffset Formula="BASE+BFR_ID/8192*DNX_DATA.bier.params.bundle_nof_banks+DNX_DATA.bier.params.bundle_nof_banks_net" />
+                            <EntryOffset Formula="BFR_ID%8192/DNX_DATA.bier.params.bfr_entry_size" />
+                            <HwField Name="DESTINATIONf" />
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VALID">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BIER_EGR_INFOm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="BFR_ID%DNX_DATA.bier.params.bfr_entry_size*64" />
+                            </Alias>
+                            <ArrayOffset Formula="BASE+BFR_ID/8192*DNX_DATA.bier.params.bundle_nof_banks+DNX_DATA.bier.params.bundle_nof_banks_net" />
+                            <EntryOffset Formula="BFR_ID%8192/DNX_DATA.bier.params.bfr_entry_size" />
+                            <HwField Name="VALIDf" />
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="BIER_EGR_1_TABLE">
+        <OneLineDescription>egress BIER data base</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BFR_ID" MaxValue="8191" Size="15" Type="UINT"/>
+                <Field Name="BASE" MinValue="1" MaxValue="1" Size="5" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="BITSTR" Size="256" Type="BITMAP"/>
+                <Field Name="CUD"/>
+                <Field Name="TCM"/>
+                <Field Name="EGRESS_DESTINATION"/>
+                <Field Name="VALID" Type="BOOL"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC" />
+            <FieldMapping>
+                <Field Name="BITSTR">
+                    <Access>
+                        <Memory Name="MTM_MCDBm">
+                            <ArrayOffset Formula="BASE+BFR_ID/DNX_DATA.bier.params.bank_entries+BFR_ID/8192" />
+                            <EntryOffset Formula="BFR_ID%DNX_DATA.bier.params.bank_entries" />
+                            <HwField Name="DATAf" />
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="CUD">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BIER_EGR_INFOm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="BFR_ID%DNX_DATA.bier.params.bfr_entry_size*64" />
+                            </Alias>
+                            <ArrayOffset Formula="BASE+BFR_ID/8192*DNX_DATA.bier.params.bundle_nof_banks+DNX_DATA.bier.params.bundle_nof_banks_net" />
+                            <EntryOffset Formula="BFR_ID%8192/DNX_DATA.bier.params.bfr_entry_size" />
+                            <HwField Name="EEDB_POINTERf" />
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="TCM">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BIER_EGR_INFOm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="BFR_ID%DNX_DATA.bier.params.bfr_entry_size*64" />
+                            </Alias>
+                            <ArrayOffset Formula="BASE+BFR_ID/8192*DNX_DATA.bier.params.bundle_nof_banks+DNX_DATA.bier.params.bundle_nof_banks_net" />
+                            <EntryOffset Formula="BFR_ID%8192/DNX_DATA.bier.params.bfr_entry_size" />
+                            <HwField Name="TCMf" />
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_DESTINATION">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BIER_EGR_INFOm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="BFR_ID%DNX_DATA.bier.params.bfr_entry_size*64" />
+                            </Alias>
+                            <ArrayOffset Formula="BASE+BFR_ID/8192*DNX_DATA.bier.params.bundle_nof_banks+DNX_DATA.bier.params.bundle_nof_banks_net" />
+                            <EntryOffset Formula="BFR_ID%8192/DNX_DATA.bier.params.bfr_entry_size" />
+                            <HwField Name="DESTINATIONf" />
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="VALID">
+                    <Access>
+                        <Memory Name="MTM_MCDB_FORMAT_BIER_EGR_INFOm">
+                            <Alias Name="MTM_MCDBm">
+                                <DataOffset Formula="BFR_ID%DNX_DATA.bier.params.bfr_entry_size*64" />
+                            </Alias>
+                            <ArrayOffset Formula="BASE+BFR_ID/8192*DNX_DATA.bier.params.bundle_nof_banks+DNX_DATA.bier.params.bundle_nof_banks_net" />
+                            <EntryOffset Formula="BFR_ID%8192/DNX_DATA.bier.params.bfr_entry_size" />
+                            <HwField Name="VALIDf" />
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="BIER_OFFSETS">
+        <OneLineDescription>multicast group status</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+            <Result>
+                <Field Name="INGRESS_CORE_0_OFFSET" Size="19" Type="UINT"/>
+                <Field Name="INGRESS_CORE_1_OFFSET" Size="19" Type="UINT" Valid="DNX_DATA.device.general.nof_cores/2"/>
+                <Field Name="EGRESS_CORE_0_OFFSET" Size="19" Type="UINT"/>
+                <Field Name="EGRESS_CORE_1_OFFSET" Size="19" Type="UINT" Valid="DNX_DATA.device.general.nof_cores/2"/>
+                <Field Name="ETPP_CORE_0_OFFSET" Size="19" Type="UINT"/>
+                <Field Name="ETPP_CORE_1_OFFSET" Size="19" Type="UINT" Valid="DNX_DATA.device.general.nof_cores/2"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC" />
+            <FieldMapping>
+                <Field Name="INGRESS_CORE_0_OFFSET" Device="J2A0,J2B0">
+                    <Access>
+                        <Register Name="MTM_ING_MCDB_BIER_OFFSETr">
+                            <HwField Name="ING_0_MCDB_BIER_OFFSETf" />
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="INGRESS_CORE_1_OFFSET" Device="J2A0,J2B0">
+                    <Access>
+                        <Register Name="MTM_ING_MCDB_BIER_OFFSETr">
+                            <HwField Name="ING_1_MCDB_BIER_OFFSETf" />
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_CORE_0_OFFSET" Device="J2A0,J2B0">
+                    <Access>
+                        <Register Name="MTM_EGR_MCDB_BIER_OFFSETr">
+                            <HwField Name="EGR_0_MCDB_BIER_OFFSETf" />
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="EGRESS_CORE_1_OFFSET" Device="J2A0,J2B0">
+                    <Access>
+                        <Register Name="MTM_EGR_MCDB_BIER_OFFSETr">
+                            <HwField Name="EGR_1_MCDB_BIER_OFFSETf" />
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ETPP_CORE_0_OFFSET" Device="J2A0,J2B0">
+                    <Access>
+                        <Register Name="MTM_EQP_MCDB_BIER_OFFSETr">
+                            <HwField Name="EQP_0_MCDB_BIER_OFFSETf" />
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ETPP_CORE_1_OFFSET" Device="J2A0,J2B0">
+                    <Access>
+                        <Register Name="MTM_EQP_MCDB_BIER_OFFSETr">
+                            <HwField Name="EQP_1_MCDB_BIER_OFFSETf" />
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

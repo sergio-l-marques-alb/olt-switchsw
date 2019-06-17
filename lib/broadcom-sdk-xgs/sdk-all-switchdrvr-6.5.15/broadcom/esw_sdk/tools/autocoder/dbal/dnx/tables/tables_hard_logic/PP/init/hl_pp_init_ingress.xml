@@ -1,0 +1,871 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+<AppDB Name="INGRESS_LBP_GLOBAL">
+    <OneLineDescription>Ingress LBP Global Configurations Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+        <Result>
+            <Field Name="PPH_RESERVED_BITS_SIZE" Size="2" Type="UINT" Description="Valid values are 0-3, bit resolution"/>
+            <Field Name="PPH_OUT_LIF_SIZE" Size="5" Type="UINT" Description="Valid values are 16-23, bit resolution"/>
+            <Field Name="PPH_IN_LIF_SIZE" Size="5" Type="UINT" Description="Valid values are 16-22, bit resolution"/>
+            <Field Name="PPH_IN_LIF_PROFILE_SIZE" Size="4" Type="UINT" Description="Valid values are 4-8, bit resolution"/>
+            <Field Name="PPH_FWD_LAYER_IDX_SIZE" Size="2" Type="UINT" Description="Valid values are 1-3, bit resolution"/>
+            <Field Name="PPH_FWD_LAYER_ADDITIONAL_INFO_SIZE" Size="3" Type="UINT" Description="Valid values are 0-4, bit resolution"/>
+            <Field Name="PPH_FWD_DOMAIN_SIZE" Size="5" Type="UINT" Description="Valid values are 16-18, bit resolution"/>
+            <Field Name="PPH_END_OF_PACKET_EDITING_SIZE" Size="2" Type="UINT" Description="Valid values are 0-3, bit resolution"/>
+            <Field Name="FTMH_TM_DESTINATION_EXT_PRESENT" Type="BOOL" Description="FTMH destination extension present"/>
+            <Field Name="SLB_LEARN_PAYLOAD_START_BIT" Size="6" Type="UINT" Description="Start bit on learn_payload for address to ElephantTrapCfg and SlbCfg tables"/>
+            <Field Name="ELEPHANT_TRAP_LEARN_PAYLOAD_START_BIT" Size="5" Type="UINT" Description="Start bit on learn_payload for address to ElephantTrapCfg and SlbCfg tables"/>
+            <Field Name="OUT_RIF_SIZE" Type="UINT" Size="15" Description="Max value of Out-RIFs"/>
+            <Field Name="JR_MODE_ADD_UDH_BASE" Type="BOOL"  Description="UDH BASE present"/>
+            <Field Name="JR_MODE_UDH_SIZE_COMPENSATION_ENABLE" Type="BOOL" Description="Compensate UDH size in sytem header"/>
+            <Field Name="ENABLE_FHEI_WITH_IN_LIF_PROFILE" Type="BOOL" Description="enable fhei with inlif_profile"/>
+        </Result>
+        <TableLabels>L3</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <FieldMapping>
+                 <Field Name="PPH_RESERVED_BITS_SIZE">
+                        <Access>
+                                <Register Name="IPPD_LBP_HEADER_CONFIGr">
+                                        <ArrayOffset Formula="0"/>
+                                        <HwField Name="PPH_RESERVED_BITS_SIZEf"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PPH_OUT_LIF_SIZE">
+                        <Access>
+                                <Register Name="IPPD_LBP_HEADER_CONFIGr">
+                                        <ArrayOffset Formula="0"/>
+                                        <HwField Name="PPH_OUT_LIF_SIZEf"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PPH_IN_LIF_SIZE">
+                        <Access>
+                                <Register Name="IPPD_LBP_HEADER_CONFIGr">
+                                        <ArrayOffset Formula="0"/>
+                                        <HwField Name="PPH_IN_LIF_SIZEf"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PPH_IN_LIF_PROFILE_SIZE">
+                        <Access>
+                                <Register Name="IPPD_LBP_HEADER_CONFIGr">
+                                        <ArrayOffset Formula="0"/>
+                                        <HwField Name="PPH_IN_LIF_PROFILE_SIZEf"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PPH_FWD_LAYER_IDX_SIZE">
+                        <Access>
+                                <Register Name="IPPD_LBP_HEADER_CONFIGr">
+                                        <ArrayOffset Formula="0"/>
+                                        <HwField Name="PPH_FWD_LAYER_IDX_SIZEf"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PPH_FWD_LAYER_ADDITIONAL_INFO_SIZE">
+                        <Access>
+                                <Register Name="IPPD_LBP_HEADER_CONFIGr">
+                                        <ArrayOffset Formula="0"/>
+                                        <HwField Name="PPH_FWD_LAYER_ADDITIONAL_INFO_SIZEf"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PPH_FWD_DOMAIN_SIZE">
+                        <Access>
+                                <Register Name="IPPD_LBP_HEADER_CONFIGr">
+                                        <ArrayOffset Formula="0"/>
+                                        <HwField Name="PPH_FWD_DOMAIN_SIZEf"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PPH_END_OF_PACKET_EDITING_SIZE">
+                        <Access>
+                                <Register Name="IPPD_LBP_HEADER_CONFIGr">
+                                        <ArrayOffset Formula="0"/>
+                                        <HwField Name="PPH_END_OF_PACKET_EDITING_SIZEf"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="FTMH_TM_DESTINATION_EXT_PRESENT">
+                        <Access>
+                                <Register Name="IPPD_LBP_HEADER_CONFIGr">
+                                        <ArrayOffset Formula="0"/>
+                                        <HwField Name="FTMH_TM_DESTINATION_EXT_PRESENTf"/>
+                                </Register>
+                        </Access>
+                </Field>
+                 <Field Name="SLB_LEARN_PAYLOAD_START_BIT">
+                        <Access>
+                                <Register Name="IPPD_LBP_GENERAL_CONFIG_0r">
+                                        <ArrayOffset Formula="0"/>
+                                        <HwField Name="SLB_LEARN_CFG_START_BITf"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="ELEPHANT_TRAP_LEARN_PAYLOAD_START_BIT">
+                        <Access>
+                                <Register Name="IPPD_LBP_GENERAL_CONFIG_0r">
+                                        <ArrayOffset Formula="0"/>
+                                        <HwField Name="ELEPHANT_TRAP_LEARN_CFG_START_BITf"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="OUT_RIF_SIZE">
+                        <Access>
+                                <Register Name="IPPD_OUT_RIF_RANGEr">
+                                        <HwField Name="OUT_RIF_RANGEf"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="JR_MODE_ADD_UDH_BASE">
+                        <Access>
+                                <Register Name="IPPD_LBP_GENERAL_CONFIG_0r">
+                                        <HwField Name="USER_HEADER_ADD_UDH_BASEf"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="JR_MODE_UDH_SIZE_COMPENSATION_ENABLE">
+                        <Access>
+                                <Register Name="IPPD_LBP_GENERAL_CONFIG_0r">
+                                        <HwField Name="UDH_SIZE_SYSTEM_HEADER_COMPENSATIONf"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="ENABLE_FHEI_WITH_IN_LIF_PROFILE">
+                        <Access>
+                                <Register Name="IPPD_LBP_GENERAL_CONFIG_0r">
+                                        <HwField Name="ENABLE_FHEI_WITH_IN_LIF_PROFILEf"/>
+                                </Register>
+                        </Access>
+                </Field>
+        </FieldMapping>
+    </AppToPhyDbMapping>
+</AppDB>
+
+
+<AppDB Name="INGRESS_LBP_VLAN_EDITING">
+    <OneLineDescription>Ingress LBP VLAN Editing Configurations Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VLAN_EDIT_CMD_INDEX"/>
+            </Key>
+        <Result>
+            <Field Name="PPH_FHEI_IVE_SIZE_TYPE"  Type="FHEI_SIZE"/>
+         </Result>
+        <TableLabels>L3</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <FieldMapping>
+                <Field Name="PPH_FHEI_IVE_SIZE_TYPE">
+                        <Access>
+                                <Register Name="IPPD_PPH_FHEI_IVE_SIZEr">
+                                        <ArrayOffset Formula="0"/>
+                                        <HwField Name="PPH_FHEI_IVE_SIZEf"/>
+                                        <DataOffset Formula="KEY*PPH_FHEI_IVE_SIZE_TYPE"/>
+                                </Register>
+                        </Access>
+                </Field>
+        </FieldMapping>
+    </AppToPhyDbMapping>
+</AppDB>
+
+    <AppDB Name="INGRESS_VTT_GLOBAL">
+        <OneLineDescription>Ingress VTT Global Configurations Table</OneLineDescription>
+            <AccessMethod>HARD_LOGIC</AccessMethod>
+            <Maturity Level="HIGH"/>
+            <AppDbInterface Type="DIRECT">
+                <Key>
+                </Key>
+            <Result>
+                <Field Name="NATIVE_ETH_STAGE_VTE" Type="BOOL" Description="Select whether to process native (inner) ETH at VTE or VTD"/>
+                <Field Name="FORCE_VEC_FROM_LIF" Type="BOOL" Description="Force getting the IVEC command from the lif entry"/>
+                <Field Name="VTE_IVEC_ACCESS_ENABLE" Type="BOOL" Description="Enable accessing IVEC from VTE stage"/>
+                <Field Name="SECOND_VSI_LOOKUP_SEL" Type="BOOL" Description="Select whether to process second vsi lookup at stage VTD or VTE"/>
+                <Field Name="SEXEM_INTERFACE_0_SEL" Type="BOOL" Description="Select SEXEM access for interface 0 between vtt stage 1 to vird My-Mac (0 means vtt)"/>
+                <Field Name="SEXEM_INTERFACE_1_SEL" Type="BOOL" Description="Select SEXEM aceess for interface 1 between vtt stage 2 to vird My-Mac (0 means vtt)"/>
+                <Field Name="SEXEM_INTERFACE_2_SEL" Type="BOOL" Description="Select SEXEM aceess for interface 2 between vtt stage 2 to vird My-Mac (0 means vtt)"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                    <Field Name="NATIVE_ETH_STAGE_VTE">
+                        <Access>
+                            <Register Name="IPPA_IP_STAGE_SELr">
+                                <HwField Name="IP_STAGE_SELf"/>
+                            </Register>
+                        </Access>
+                    </Field>
+                    <Field Name="FORCE_VEC_FROM_LIF">
+                        <Access>
+                            <Register Name="IPPA_VTT_GENERAL_CONFIGS_0r">
+                                <HwField Name="FORCE_VEC_FROM_LIFf"/>
+                            </Register>
+                        </Access>
+                        <Access>
+                            <Register Name="IPPF_VTT_GENERAL_CONFIGS_0r">
+                                <HwField Name="FORCE_VEC_FROM_LIFf"/>
+                            </Register>
+                        </Access>
+                    </Field>
+                    <Field Name="VTE_IVEC_ACCESS_ENABLE">
+                        <Access>
+                            <Register Name="IPPA_VTB_ETHERNET_PROC_STAGE_SELr">
+                                <HwField Name="IVEC_SELf"/>
+                            </Register>
+                        </Access>
+                    </Field>
+                    <Field Name="SECOND_VSI_LOOKUP_SEL">
+                        <Access>
+                            <Register Name="IPPA_VTB_ETHERNET_PROC_STAGE_SELr">
+                                <HwField Name="SECOND_VSI_LKUP_SELf"/>
+                            </Register>
+                        </Access>
+                    </Field>
+                    <Field Name="SEXEM_INTERFACE_0_SEL">
+                        <Access>
+                            <Register Name="IPPF_VTT_GENERAL_CONFIGS_0r">
+                                <HwField Name="VTT_SEXEM_IF_0_SELECTf"/>
+                            </Register>
+                        </Access>
+                    </Field>
+                    <Field Name="SEXEM_INTERFACE_1_SEL">
+                        <Access>
+                            <Register Name="IPPF_VTT_GENERAL_CONFIGS_0r">
+                                <HwField Name="VTT_SEXEM_IF_1_SELECTf"/>
+                            </Register>
+                        </Access>
+                    </Field>
+                    <Field Name="SEXEM_INTERFACE_2_SEL">
+                        <Access>
+                            <Register Name="IPPA_VTT_GENERAL_CONFIGS_0r">
+                                <HwField Name="VTT_SEXEM_IF_2_SELECTf"/>
+                            </Register>
+                        </Access>
+                    </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FODO_ASSIGNMENT_MODE_MAPPING">
+      <OneLineDescription>Forwarding-Domain mapping table to profile</OneLineDescription>
+          <AccessMethod>HARD_LOGIC</AccessMethod>
+          <Maturity Level="HIGH"/>
+      <AppDbInterface Type="DIRECT">
+        <Key>
+          <Field Name="PD_RESULT_TYPE"       Size="3"/>
+          <Field Name="FODO_ASSIGNMENT_MODE" Size="2" Type="FORWARD_DOMAIN_ASSIGNMENT_MODE"/>
+        </Key>
+        <Result>
+          <Field Name="FODO_ASSIGNMENT_PROFILE" Type="FORWARD_DOMAIN_ASSIGNMENT_MODE" Size="2" Description="currently FODO_ASSIGNMENT_MODE is 1:1 mapping to FODO_ASSIGNMENT_PROFILE"/>
+        </Result>
+        <TableLabels>L2 L3</TableLabels>
+      </AppDbInterface>
+      <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <FieldMapping>
+          <Field Name="FODO_ASSIGNMENT_PROFILE">
+            <Access>
+              <Register Name="IPPA_FWD_DOMAIN_MASK_PROFILE_MAPr">
+                <ArrayOffset Formula="3"/>
+                <DataOffset Formula="KEY*FODO_ASSIGNMENT_PROFILE"/>
+              </Register>
+            </Access>
+            <Access>
+              <Register Name="IPPA_FWD_DOMAIN_MASK_PROFILE_MAPr">
+                <ArrayOffset Formula="4"/>
+                <DataOffset Formula="KEY*FODO_ASSIGNMENT_PROFILE"/>
+              </Register>
+            </Access>
+            <Access>
+              <Register Name="IPPF_FWD_DOMAIN_MASK_PROFILE_MAPr">
+                <DataOffset Formula="KEY*FODO_ASSIGNMENT_PROFILE"/>
+              </Register>
+            </Access>
+          </Field>
+        </FieldMapping>
+      </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FODO_ASSIGNMENT_PROFILE">
+      <OneLineDescription>Forwarding-Domain Profile configuration table</OneLineDescription>
+          <AccessMethod>HARD_LOGIC</AccessMethod>
+          <Maturity Level="HIGH"/>
+      <AppDbInterface Type="DIRECT">
+        <Key>
+          <Field Name="FODO_ASSIGNMENT_PROFILE" Type="FORWARD_DOMAIN_ASSIGNMENT_MODE" Size="2"/>
+        </Key>
+        <Result>
+          <Field Name="FODO_BASE_MASK" Size="18" Type="UINT" Description="Mask FODO, property of the LIF"/>
+          <Field Name="PD_RESULT_MASK" Size="18" Type="UINT" Description="Mask the result of SEM lookup"/>
+        </Result>
+        <TableLabels>L3</TableLabels>
+      </AppDbInterface>
+      <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <FieldMapping>
+          <Field Name="FODO_BASE_MASK">
+            <Access>
+              <Register Name="IPPA_FWD_DOMAIN_MASKSr">
+                <ArrayOffset Formula="3"/>
+                <DataOffset Formula="KEY*RESULT"/>
+              </Register>
+            </Access>
+            <Access>
+              <Register Name="IPPA_FWD_DOMAIN_MASKSr">
+                <ArrayOffset Formula="4"/>
+                <DataOffset Formula="KEY*RESULT"/>
+              </Register>
+            </Access>
+            <Access>
+              <Register Name="IPPF_FWD_DOMAIN_MASKSr">
+                <DataOffset Formula="KEY*RESULT"/>
+              </Register>
+            </Access>
+          </Field>
+          <Field Name="PD_RESULT_MASK">
+            <Access>
+              <Register Name="IPPA_FWD_DOMAIN_MASKSr">
+                <ArrayOffset Formula="3"/>
+                <DataOffset Formula="KEY*RESULT+FODO_BASE_MASK"/>
+              </Register>
+            </Access>
+            <Access>
+              <Register Name="IPPA_FWD_DOMAIN_MASKSr">
+                <ArrayOffset Formula="4"/>
+                <DataOffset Formula="KEY*RESULT+FODO_BASE_MASK"/>
+              </Register>
+            </Access>
+            <Access>
+              <Register Name="IPPF_FWD_DOMAIN_MASKSr">
+                <DataOffset Formula="KEY*RESULT+FODO_BASE_MASK"/>
+              </Register>
+            </Access>
+          </Field>
+        </FieldMapping>
+      </AppToPhyDbMapping>
+    </AppDB>
+
+<AppDB Name="INGRESS_PER_LAYER_PROTOCOL">
+    <OneLineDescription>Ingress Parser Protocols Configurations Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="LAYER_TYPES"/>
+            </Key>
+        <Result>
+            <Field Name="PROTOCOL_ETH_ENABLE"  Size="1" Type="BOOL" Description="Indicates for each Forwarding_layer_type if is ethernet"/>
+            <Field Name="PROTOCOL_ARP_ENABLE"  Size="1" Type="BOOL" Description="Indicates for each Forwarding_layer_type if it is ARP"/>
+            <Field Name="PROTOCOL_ETH_MINUS_ONE_ENABLE"  Size="1" Type="BOOL" Description="Indicates for each protocol_type ON fwd_layer_idx-1 if is ethernet"/>
+            <Field Name="PROTOCOL_IP_ENABLE" Size="1" Type="BOOL" Description="Indicates for each Forwarding_layer_type if is ip"/>
+            <Field Name="PROTOCOL_IPV4_ENABLE" Size="1" Type="BOOL" Description="Indicates for each Forwarding_layer_type if is ipv4"/>
+            <Field Name="PROTOCOL_IPV6_ENABLE" Size="1" Type="BOOL" Description="Indicates for each Forwarding_layer_type if is ipv6"/>
+            <Field Name="PROTOCOL_MIM_ENABLE" Size="1" Type="BOOL" Description="Indicates for each Forwarding_layer_type if is mim"/>
+            <Field Name="PROTOCOL_MPLS_ENABLE" Size="1" Type="BOOL" Description="Indicates for each Forwarding_layer_type if is mpls"/>
+            <Field Name="PROTOCOL_UDP_ENABLE" Size="1" Type="BOOL" Description="Indicates for each Forwarding_layer_type if is udp"/>
+            <Field Name="PROTOCOL_BFD_SINGLE_HOP_ENABLE" Size="1" Type="BOOL" Description="Indicates for each Forwarding_layer_type if is BFD single hop"/>
+            <Field Name="PROTOCOL_BFD_MULTI_HOP_ENABLE" Size="1" Type="BOOL" Description="Indicates for each Forwarding_layer_type if is BFD multi hop"/>
+            <Field Name="PROTOCOL_ICMPV6_ENABLE" Size="1" Type="BOOL" Description="Indicates for each Forwarding_layer_type if is ICMPV6"/>
+            <Field Name="PROTOCOL_IGMP_ENABLE" Size="1" Type="BOOL" Description="Indicates for each Forwarding_layer_type if is IGPM"/>
+            <Field Name="PROTOCOL_8021_X_2_ENABLE" Size="1" Type="BOOL" Description="Indicates for each Forwarding_layer_type if is 8021_X_2"/>
+            <Field Name="PROTOCOL_ICMP_ENABLE" Size="1" Type="BOOL" Description="Indicates for each Forwarding_layer_type if is ICMP"/>
+            <Field Name="PROTOCOL_BIER_MPLS_ENABLE" Size="1" Type="BOOL" Description="Enable BIER processing in IPMF1"/>
+        </Result>
+        <TableLabels>L3</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <FieldMapping>
+                <Field Name="PROTOCOL_ETH_ENABLE">
+                        <Access>
+                                <Register Name="IPPD_IS_ETHERNETr">
+                                        <HwField Name="IS_ETHERNETf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                        <Access>
+                                <Register GroupName="INGRESS_CFG_PROTOCOL_IS_ETH">
+                                        <HwField Name="CFG_PROTOCOL_IS_ETHf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                        <Access>
+                                <Register Name="IPPB_IS_ETHERNET_VALr">
+                                        <HwField Name="IS_ETHERNET_VALf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PROTOCOL_ETH_MINUS_ONE_ENABLE">
+                        <Access>
+                                <Register Name="IPPC_EGRESS_PARSING_INDEXr">
+                                        <HwField Name="MAP_FWD_MINUS_1f"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PROTOCOL_ARP_ENABLE">
+                        <Access>
+                                <Register Name="IPPB_IS_ARP_VALr">
+                                        <HwField Name="IS_ARP_VALf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PROTOCOL_IP_ENABLE">
+                        <Access>
+                                <Register Name="IPPD_IS_IPr">
+                                        <HwField Name="IS_IPf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                        <Access>
+                                <Register Name="IPPC_EGRESS_PARSING_INDEXr">
+                                        <HwField Name="MAP_FWDf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                 <Field Name="PROTOCOL_IPV4_ENABLE">
+                        <Access>
+                                <Register GroupName="INGRESS_CFG_PROTOCOL_IS_IPV4">
+                                        <HwField Name="CFG_PROTOCOL_IS_IPV4f"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                        <Access>
+                                <Register Name="IPPB_IS_IPV4_VALr">
+                                        <HwField Name="IS_IPV4_VALf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                 <Field Name="PROTOCOL_IPV6_ENABLE">
+                        <Access>
+                                <Register GroupName="INGRESS_CFG_PROTOCOL_IS_IPV6">
+                                        <HwField Name="CFG_PROTOCOL_IS_IPV6f"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                        <Access>
+                                <Register Name="IPPB_IS_IPV6_VALr">
+                                        <HwField Name="IS_IPV6_VALf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                 <Field Name="PROTOCOL_MIM_ENABLE">
+                        <Access>
+                                <Register GroupName="INGRESS_CFG_PROTOCOL_IS_MAC_IN_MAC">
+                                        <HwField Name="CFG_PROTOCOL_IS_MAC_IN_MACf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                 <Field Name="PROTOCOL_MPLS_ENABLE">
+                        <Access>
+                                <Register Name="IPPB_IS_MPLS_VALr">
+                                        <HwField Name="IS_MPLS_VALf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                        <Access>
+                                <Register GroupName="INGRESS_CFG_PROTOCOL_IS_MPLS">
+                                        <HwField Name="CFG_PROTOCOL_IS_MPLSf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                        <Access>
+                                <Register Name="IPPB_MPLS_LAYER_IDENTIFICATION_BITMAP_CFGr">
+                                        <HwField Name="MPLS_LAYER_IDENTIFICATION_BITMAPf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                 <Field Name="PROTOCOL_UDP_ENABLE">
+                        <Access>
+                                <Register Name="IPPB_IS_UDP_VALr">
+                                        <HwField Name="IS_UDP_VALf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PROTOCOL_BFD_SINGLE_HOP_ENABLE">
+                        <Access>
+                                <Register Name="IPPB_IS_LAYER_PROTOCOL_BFD_ONE_HOP_VALr">
+                                        <HwField Name="IS_LAYER_PROTOCOL_BFD_ONE_HOP_VALf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PROTOCOL_BFD_MULTI_HOP_ENABLE">
+                        <Access>
+                                <Register Name="IPPB_IS_LAYER_PROTOCOL_BFD_M_HOP_VALr">
+                                        <HwField Name="IS_LAYER_PROTOCOL_BFD_M_HOP_VALf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PROTOCOL_ICMPV6_ENABLE">
+                        <Access>
+                                <Register Name="IPPB_IS_ICMPV6_VALr">
+                                        <HwField Name="IS_ICMPV6_VALf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PROTOCOL_IGMP_ENABLE">
+                        <Access>
+                                <Register Name="IPPB_IS_IGMP_VALr">
+                                        <HwField Name="IS_IGMP_VALf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PROTOCOL_8021_X_2_ENABLE">
+                        <Access>
+                                <Register Name="IPPB_IS_8021_X_2_VALr">
+                                        <HwField Name="IS_8021_X_2_VALf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PROTOCOL_ICMP_ENABLE">
+                        <Access>
+                                <Register Name="IPPB_IS_ICMP_VALr">
+                                        <HwField Name="IS_ICMP_VALf"/>
+                                        <DataOffset Formula="KEY"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="PROTOCOL_BIER_MPLS_ENABLE">
+	                    <Access>
+	                        <Register Name="IPPC_BIER_CFGr">
+	                            <HwField Name="PMF_PROTOCOL_IS_BIER_MPLSf"/>
+	                            <DataOffset Formula="KEY"/>
+	                        </Register>
+	                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_MAP_PARSING_CTX_LAYER_PROTOCOL">
+    <OneLineDescription>Ingress map parsing context to layer protocol</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IRPP_2ND_PARSER_PARSER_CONTEXT"/>
+            </Key>
+        <Result>
+            <Field Name="LAYER_TYPES_BEFORE" Type="LAYER_TYPES" Description="Layer types mapping before speculative parse validation."/>
+            <Field Name="LAYER_TYPES_AFTER" Type="LAYER_TYPES" Description="Layer types mapping after speculative parse validation."/>
+        </Result>
+        <TableLabels>L3</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="LAYER_TYPES_BEFORE">
+                        <Access>
+                                <Register Name="IPPF_MAP_PARSER_CTX_TO_PROTOCOLr">
+                                        <HwField Name="MAP_PARSER_CTX_TO_PROTOCOL_VECf"/>
+                                        <DataOffset Formula="KEY*LAYER_TYPES_BEFORE"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="LAYER_TYPES_AFTER">
+                        <Access>
+                                <Register Name="IPPA_MAP_PARSER_CTX_TO_PROTOCOLr">
+                                        <HwField Name="MAP_PARSER_CTX_TO_PROTOCOL_VECf"/>
+                                        <DataOffset Formula="KEY*LAYER_TYPES_AFTER"/>
+                                </Register>
+                        </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_GLOBAL_CONFIGURATION" Valid="DNX_DATA.dev_init.general.data_path_hw">
+    <OneLineDescription>Ingress Global Configurations Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+        <Result>
+            <Field Name="DATA_PATH_ENABLE" Type="BOOL" Description="If set, IHP data path is enabled. Otherwise IHP data path is disabled and packets are not accepted."/>
+            <Field Name="FLP_FULL_THRESHOLD"/>
+        </Result>
+        <TableLabels>L3</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="DATA_PATH_ENABLE">
+                        <Access>
+                                <Register Name="IPPE_IPP_ENABLERSr">
+                                        <HwField Name="FIELD_0_0f"/>
+                                </Register>
+                        </Access>
+                </Field>
+                <Field Name="FLP_FULL_THRESHOLD">
+                        <Access>
+                                <Register Name="IPPB_FLP_GENERAL_CFGr">
+                                        <HwField Name="EGW_FULL_THRESHOLDf"/>
+                                </Register>
+                        </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+
+    <AppDB Name="INGRESS_ETHERNET_TERMINATION_ACTION">
+        <OneLineDescription>VTT Ethernet Termination mapping table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="IS_MY_MAC" Size="1"/>
+                <Field Name="IS_ROUTING_ENABLE" Size="1"/>
+                <Field Name="PACKET_IS_COMPATIBLE_MC" Size="1"/>
+                <Field Name="PTC_PROFILE" />
+                <Field Name="IS_CONTEXT_L3_LIF" Size="1"/>
+            </Key>
+            <Result>
+                <Field Name="IS_INGRESS_TERMINATION_TRAP_ENABLE" Size="1" Type="TRAP_ENABLE"/>
+                <Field Name="IS_LAYER_TERMINATION" Size="1"/>
+            </Result>
+        <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IS_INGRESS_TERMINATION_TRAP_ENABLE">
+                    <Access>
+                        <Register GroupName="INGRESS_VTT_ETHERNET_TERMINATION_ACTION">
+                            <DataOffset Formula="KEY*RESULT"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="IS_LAYER_TERMINATION">
+                    <Access>
+                        <Register GroupName="INGRESS_VTT_ETHERNET_TERMINATION_ACTION">
+                            <DataOffset Formula="KEY*RESULT+IS_INGRESS_TERMINATION_TRAP_ENABLE"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_ITPP_GENERAL_CFG">
+    <OneLineDescription>Ingress ITPP General Configuration Table</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+            </Key>
+        <Result>
+            <Field Name="PD_CUD_INVALID_VALUE" Type="UINT" Size="32" Description="If CUD is equal to cud-invalid-value, vaule then cud is invalid"/>
+            <Field Name="ENABLE_TERMINATION" Type="BOOL" Description="If set, Networks header termination is enabled"/>
+         </Result>
+        <TableLabels>L3</TableLabels>
+    </AppDbInterface>
+    <AppToPhyDbMapping>
+        <CoreMode Mode="SBC"/>
+        <FieldMapping>
+            <Field Name="PD_CUD_INVALID_VALUE">
+                <Access>
+                    <Register GroupName="INGRESS_ITPP_GENERAL_CFG">
+                        <HwField Name="PD_CUD_INVALID_VALUEf"/>
+                    </Register>
+                </Access>
+            </Field>
+            <Field Name="ENABLE_TERMINATION">
+                <Access>
+                    <Register GroupName="INGRESS_ITPP_GENERAL_CFG">
+                        <HwField Name="ENABLE_TERMINATIONf"/>
+                    </Register>
+                </Access>
+            </Field>
+        </FieldMapping>
+    </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_FORWARDING_ADDITIONAL_INFO">
+        <OneLineDescription>The table maps FAI to unknown address(BUM traffic)</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FORWARDING_ADDITIONAL_INFO"/>
+            </Key>
+            <Result>
+                <Field Name="BUM_TRAFFIC_ENABLE" Type="BOOL" Description="Enable/disable BUM Traffic"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="BUM_TRAFFIC_ENABLE">
+                    <Access>
+                        <Register Name="IPPD_ADDITIONAL_INFO_TO_UNKNOWN_ADDRESS_MAPr">
+                            <HwField Name="ADDITIONAL_INFO_TO_UNKNOWN_ADDRESS_MAPf"/>
+                            <DataOffset Formula="KEY"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="ITPP_TERMINATE_NETWORK_HEADERS">
+        <OneLineDescription>The table enables netwrok headers terminarion</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TM_PROFILE"/>
+                <Field Name="FORWARD_STRENGTH" Type="BOOL"/>
+                <Field Name="FORWARDING_ADDITIONAL_INFO"/>
+            </Key>
+            <Result>
+                <Field Name="ITPP_TERMINATE_NETWORK_HEADERS" Type="BOOL" Description="Enable/disable network headers termination"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ITPP_TERMINATE_NETWORK_HEADERS">
+                    <Access>
+                        <Register Name="IPPD_ITPP_TERMINATE_NETWORK_HEADERSr">
+                            <HwField Name="ITPP_TERMINATE_NETWORK_HEADERSf"/>
+                            <DataOffset Formula="KEY"/>
+                        </Register>
+                    </Access>
+                    <Access>
+                        <Register GroupName="ITPP_MAPPING_FWD_INFO_TO_EN_TERM">
+                            <HwField Name="EN_TERM_UP_TO_PARSING_OFFSETf"/>
+                            <DataOffset Formula="KEY"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_PER_TRAP_CONTEXT_ENABLE">
+        <OneLineDescription>Enable trap per context</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FWD2_CONTEXT_ID"/>
+            </Key>
+            <Result>
+                <Field Name="SAME_INTERFACE" Type="BOOL" Description="Enable Same interface Filter per context"/>
+                <Field Name="FWD_CONTEXT_SAME_INTERFACE_FILTER" Size="2" Description="Same interface Filter Profile per context"/>
+                <Field Name="UC_LOOSE_RPF" Type="BOOL" Description="Enable UC_LOOSE_RPF Filter per context"/>
+                <Field Name="UC_STRICT_RPF" Type="BOOL" Description="Enable UC_STRICT_RPF per context"/>
+                <Field Name="MC_EXPLICIT_RPF" Type="BOOL" Description="Enable MC_EXPLICIT_RPF per context"/>
+                <Field Name="MC_EXPLICIT_RPF_ECMP" Type="BOOL" Description="Enable MC_EXPLICIT_RPF_ECMP per context"/>
+                <Field Name="MC_SIP_BASED_RPF" Type="BOOL" Description="Enable MC_SIP_BASED_RPF per context"/>
+                <Field Name="FACILITY_INVALID" Type="BOOL" Description="Enable FACILITY_INVALID per context"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+            <Field Name="SAME_INTERFACE">
+                    <Access>
+                        <Memory Name="IPPD_PER_TRAP_CONTEXT_ENABLEm">
+                            <HwField Name="SAME_INTERACEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FWD_CONTEXT_SAME_INTERFACE_FILTER"> 
+                    <Access>
+                        <Memory Name="IPPD_CONTEXT_PROFILE_TABLEm">
+                            <HwField Name="CONTEXT_PROFILEf"/>
+                        </Memory>
+                    </Access>
+                </Field>                    
+                <Field Name="UC_LOOSE_RPF">
+                    <Access>
+                        <Memory Name="IPPD_PER_TRAP_CONTEXT_ENABLEm">
+                            <HwField Name="UC_LOOSE_RPFf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="UC_STRICT_RPF">
+                    <Access>
+                        <Memory Name="IPPD_PER_TRAP_CONTEXT_ENABLEm">
+                            <HwField Name="UC_STRICT_RPFf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MC_EXPLICIT_RPF">
+                    <Access>
+                        <Memory Name="IPPD_PER_TRAP_CONTEXT_ENABLEm">
+                            <HwField Name="MC_EXPLICIT_RPFf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MC_EXPLICIT_RPF_ECMP">
+                    <Access>
+                        <Memory Name="IPPD_PER_TRAP_CONTEXT_ENABLEm">
+                            <HwField Name="MC_EXPLICIT_RPF_ECMPf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MC_SIP_BASED_RPF">
+                    <Access>
+                        <Memory Name="IPPD_PER_TRAP_CONTEXT_ENABLEm">
+                            <HwField Name="MC_SIP_BASED_RPFf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FACILITY_INVALID">
+                    <Access>
+                        <Memory Name="IPPD_PER_TRAP_CONTEXT_ENABLEm">
+                            <HwField Name="FACILITY_INVALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>
+

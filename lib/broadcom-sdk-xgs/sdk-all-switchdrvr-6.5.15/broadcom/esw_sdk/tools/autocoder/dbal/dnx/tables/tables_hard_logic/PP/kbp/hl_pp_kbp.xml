@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="KBP_OPCODE_MAPPING">
+        <OneLineDescription>Indicates the mapping of iFWD2 and ACL contexts to KBP Opcode ID </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FWD2_CONTEXT_ID"/>
+                <Field Name="ACL_CONTEXT"/>
+            </Key>
+            <Result>
+                <Field Name="KBP_OPCODE_ID" />
+            </Result>
+            <TableLabels>KBP KBP_MNGM</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="KBP_OPCODE_ID">
+                    <Access instanceIndex="ALL">
+                        <Memory Name="IPPB_ELK_OPCODE_MAPPING_MEMm">
+                            <HwField Name="OPCODEf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>

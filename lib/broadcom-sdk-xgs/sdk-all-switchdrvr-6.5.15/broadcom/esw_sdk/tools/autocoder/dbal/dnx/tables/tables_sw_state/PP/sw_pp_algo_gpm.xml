@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL GPM SW state:
+    This xml contains the sw staate logical DB for the DBAL.
+    ******************************************************
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../sw_state_schema.xsd">
+
+    <AppDB Name="L2_GPORT_TO_FORWARDING_SW_INFO">
+        <OneLineDescription>sw state gport to pre-FEC forwarding resolution</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="L2_LOGICAL_GPORT" Type="GPORT"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="DEST_ONLY" Description="Destination"/>
+                    <Field Name="DESTINATION"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="DEST_OUTLIF" Description="Destination and outlif"/>
+                    <Field Name="DESTINATION"/>
+                    <Field Name="GLOB_OUT_LIF"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="DEST_EEI" Description="Destination with EEI"/>
+                    <Field Name="DESTINATION"/>
+                    <Field Name="EEI"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.lif.in_lif.all_local_inlif_hash_sw_size"/>
+
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="L2_FORWARDING_SW_INFO_TO_GPORT">
+        <OneLineDescription>pre-FEC forwarding resolution to sw state gport</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="DBAL_RESULT_TYPE" Size="2" Type="UINT"/>
+                <Field Name="DESTINATION"/>
+                <Field Name="GLOB_OUT_LIF"/>
+                <Field Name="EEI"/>
+            </Key>
+            <Result>
+                <Field Name="L2_LOGICAL_GPORT" Type="GPORT"/>
+            </Result>
+            <TableLabels>L2</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="PHYDB.INLIF1/DNX_DATA.lif.in_lif.inlif_minimum_index_size+DNX_DATA.Device.general.max_nof_cores*PHYDB.INLIF2/DNX_DATA.lif.in_lif.inlif_minimum_index_size"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="INGRESS_GPORT_TO_VLAN_PORT_INFO_SW">
+        <OneLineDescription>sw state gport to vlan port databases</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="GPORT"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="VIRTUAL_NATIVE_AC" Description="Native AC vlan translation for PWE tagged mode"/>
+                    <Field Name="LOCAL_IN_LIF" Type="IN_LIF"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="OUTER_AC" Description="Outer AC DB, save conf flags for entry type get in DB"/>
+                    <Field Name="INGRESS_STAT_ENABLED_FLAG" Type="BOOL"/>
+                    <Field Name="INGRESS_WIDE_ENABLE_FLAG" Type="BOOL"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>L2 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.lif.in_lif.dpc_local_inlif_hash_sw_size"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+<!-- Tables related to 'virtual egress pointed' object - START -->
+
+    <AppDB Name="EGRESS_LIF_TO_EGRESS_POINTED_MAP_SW">
+        <OneLineDescription>sw state mapping of 'egress lif's to 'egress_pointed' objects</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <!-- Create a hash table (type = EM) -->
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="LOCAL_OUT_LIF" Type="OUT_LIF"/>
+            </Key>
+            <Result>
+                <Field Name="VIRTUAL_EGRESS_POINTED"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.l3.egr_pointed.nof_egr_pointed_ids"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="EGRESS_POINTED_TO_EGRESS_LIF_MAP_SW">
+        <OneLineDescription>sw state mapping of 'egress_pointed' objects to 'egress lif's</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="VIRTUAL_EGRESS_POINTED"/>
+            </Key>
+            <Result>
+                <Field Name="LOCAL_OUT_LIF" Type="OUT_LIF"/>
+            </Result>
+            <TableLabels>L3</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.l3.egr_pointed.nof_egr_pointed_ids"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+<!-- Tables related to 'virtual egress pointed' object - END -->
+
+    <AppDB Name="EGRESS_VIRTUAL_GPORT_TO_MATCH_INFO_SW">
+        <OneLineDescription>sw state gport to lookup key for Eg. databases</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="GPORT"/>
+            </Key>
+            <MultipleResults>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="ESEM_NATIVE_AC" Description="Native AC vlan translation for PWE tagged mode"/>
+                    <Field Name="LOCAL_OUT_LIF" Type="OUT_LIF"/>
+                    <Field Name="FODO_VSI"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="ESEM_AC" Description="ESEM AC vlan translation"/>
+                    <Field Name="FODO_VSI"/>
+                    <Field Name="OUTER_VLAN_ID" Type="VLAN_ID"/>
+                    <Field Name="GPORT" Description="The PORT ID, can be a GPORT encoded"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="ESEM_NAMESPACE_VSI" Description="ESEM L2 FODO"/>
+                    <Field Name="FODO_VSI"/>
+                    <Field Name="NETWORK_DOMAIN" Size="24" Type="UINT"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="2" Value="ESEM_NAMESPACE_PORT" Description="ESEM Port based"/>
+                    <Field Name="GPORT" Description="The SYSTEM PORT ID, should be GPORT encoded as SYSTEM_PORT"/>
+                    <Field Name="NAMESPACE" Size="9" Type="UINT"/>
+                </Result>
+            </MultipleResults>
+            <TableLabels>L2 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="32768"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="LOCAL_SBC_INLIF_INFO_SW">
+        <OneLineDescription>software information per ingress local lif </OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="LOCAL_IN_LIF" Type="IN_LIF"/>
+            </Key>
+            <Result>
+                <Field Name="DBAL_APP_DB_NAME" Type="DBAL_TABLE"/>
+                <Field Name="DBAL_RESULT_TYPE" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>L2 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.lif.in_lif.sbc_local_inlif_hash_sw_size"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="LOCAL_DPC_INLIF_INFO_SW">
+        <OneLineDescription>software information per ingress local lif </OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="LOCAL_IN_LIF" Type="IN_LIF"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="DBAL_APP_DB_NAME" Type="DBAL_TABLE"/>
+                <Field Name="DBAL_RESULT_TYPE" Size="32" Type="UINT"/>
+            </Result>
+            <TableLabels>L2 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <TableProperties Size="DNX_DATA.lif.in_lif.dpc_local_inlif_hash_sw_size"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    
+    <AppDB Name="LOCAL_OUT_LIF_INFO_SW">
+        <OneLineDescription>software information per egress local lif </OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="LOCAL_OUT_LIF" Type="OUT_LIF"/>
+            </Key>
+            <Result>
+                <Field Name="DBAL_APP_DB_NAME" Type="DBAL_TABLE"/>
+                <Field Name="DBAL_RESULT_TYPE" Type="UINT"/>
+            </Result>
+            <TableLabels>L2 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.lif.out_lif.nof_local_out_lifs"/>
+        </AppToPhyDbMapping>
+    </AppDB>    
+
+   <AppDB Name="LOCAL_SBC_IN_LIF_MATCH_INFO_SW">
+        <OneLineDescription>match information per local lif </OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="LOCAL_LIF" Type="IN_LIF"/>
+            </Key>
+            <MultipleResults>
+                <!-- Vlan port result types must always be first, and always in the same order as in LOCAL_SBC_IN_LIF_MATCH_INFO_SW><-->
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_AC_VLAN_PORT_NONE" Description="match AC: none,"/>
+                    <Field Name="GPORT"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_AC_VLAN_PORT_PORT" Description="match AC: port"/>
+                    <Field Name="GPORT"/>
+                    <Field Name="LAYER_TYPE" Size="5" Type="LAYER_TYPES"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_AC_VLAN_PORT_PORT_VLAN" Description="match AC: port-vlan"/>
+                    <Field Name="GPORT"/>
+                    <Field Name="OUTER_VLAN_ID" Type="VLAN_ID"/>
+                    <Field Name="LAYER_TYPE" Size="5" Type="LAYER_TYPES"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_AC_VLAN_PORT_PORT_CVLAN" Description="match AC: port-cvlan"/>
+                    <Field Name="GPORT"/>
+                    <Field Name="OUTER_VLAN_ID" Type="VLAN_ID"/>
+                    <Field Name="LAYER_TYPE" Size="5" Type="LAYER_TYPES"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_AC_VLAN_PORT_PORT_VLAN_VLAN" Description="match AC: port-vlan-vlan"/>
+                    <Field Name="GPORT"/>
+                    <Field Name="INNER_VLAN_ID" Type="VLAN_ID"/>
+                    <Field Name="OUTER_VLAN_ID" Type="VLAN_ID"/>
+                    <Field Name="LAYER_TYPE" Size="5" Type="LAYER_TYPES"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="BCM_VLAN_PORT_MATCH_PORT_PCP_VLAN" Description="match AC: port-vlan-pcp"/>
+                    <Field Name="GPORT"/>
+                    <Field Name="OUTER_VLAN_ID" Type="VLAN_ID"/>
+                    <Field Name="LAYER_TYPE" Size="5" Type="LAYER_TYPES"/>
+                    <Field Name="PCP"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="BCM_VLAN_PORT_MATCH_PORT_PCP_VLAN_STACKED" Description="match AC: port-vlan-vlan-pcp"/>
+                    <Field Name="GPORT"/>
+                    <Field Name="INNER_VLAN_ID" Type="VLAN_ID"/>
+                    <Field Name="OUTER_VLAN_ID" Type="VLAN_ID"/>
+                    <Field Name="LAYER_TYPE" Size="5" Type="LAYER_TYPES"/>
+                    <Field Name="PCP"/>
+                </Result>
+                <!-- Vlan port result types must always be first, and always in the same order as in LOCAL_SBC_IN_LIF_MATCH_INFO_SW><-->
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_VD_E_CID_C_VLAN" Description="match VLAN_DOMAIN,E_CID and C_VLAN"/>
+                    <Field Name="VLAN_DOMAIN"/>
+                    <Field Name="E_CID"/>
+                    <Field Name="C_VLAN_ID" Type="VLAN_ID"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_VD_E_CID_S_VLAN" Description="match VLAN_DOMAIN,E_CID and S_VLAN"/>
+                    <Field Name="VLAN_DOMAIN"/>
+                    <Field Name="E_CID"/>
+                    <Field Name="S_VLAN" Type="VLAN_ID"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_VD_E_CID_S_VLAN_C_VLAN" Description="match VLAN_DOMAIN,E_CID and S_VLAN+C_VLAN"/>
+                    <Field Name="VLAN_DOMAIN"/>
+                    <Field Name="E_CID"/>
+                    <Field Name="S_VLAN" Type="VLAN_ID"/>
+                    <Field Name="C_VLAN" Type="VLAN_ID"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_AC_VLAN_PORT_PORT_UNTAGGED" Description="match AC: port_untagged"/>
+                    <Field Name="GPORT"/>
+                    <Field Name="LAYER_TYPE" Size="5" Type="LAYER_TYPES"/>
+                </Result>
+
+            </MultipleResults>
+            <TableLabels>LIF</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.lif.in_lif.sbc_local_inlif_hash_sw_size"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="LOCAL_DPC_IN_LIF_MATCH_INFO_SW">
+        <OneLineDescription>match information per local lif </OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="LOCAL_LIF" Type="IN_LIF"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <MultipleResults>
+                <!-- Vlan port result types must always be first, and always in the same order as in LOCAL_SBC_IN_LIF_MATCH_INFO_SW><-->
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_AC_VLAN_PORT_NONE" Description="match AC: none,"/>
+                    <Field Name="GPORT"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_AC_VLAN_PORT_PORT" Description="match AC: port"/>
+                    <Field Name="GPORT"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_AC_VLAN_PORT_PORT_VLAN" Description="match AC: port-vlan"/>
+                    <Field Name="GPORT"/>
+                    <Field Name="OUTER_VLAN_ID" Type="VLAN_ID"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_AC_VLAN_PORT_PORT_CVLAN" Description="match AC: port-cvlan"/>
+                    <Field Name="GPORT"/>
+                    <Field Name="OUTER_VLAN_ID" Type="VLAN_ID"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_AC_VLAN_PORT_PORT_VLAN_VLAN" Description="match AC: port-vlan-vlan"/>
+                    <Field Name="GPORT"/>
+                    <Field Name="INNER_VLAN_ID" Type="VLAN_ID"/>
+                    <Field Name="OUTER_VLAN_ID" Type="VLAN_ID"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="BCM_VLAN_PORT_MATCH_PORT_PCP_VLAN" Description="match AC: port-vlan-pcp"/>
+                    <Field Name="GPORT"/>
+                    <Field Name="OUTER_VLAN_ID" Type="VLAN_ID"/>
+                    <Field Name="LAYER_TYPE" Size="5" Type="LAYER_TYPES"/>
+                    <Field Name="PCP"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="BCM_VLAN_PORT_MATCH_PORT_PCP_VLAN_STACKED" Description="match AC: port-vlan-vlan-pcp"/>
+                    <Field Name="GPORT"/>
+                    <Field Name="INNER_VLAN_ID" Type="VLAN_ID"/>
+                    <Field Name="OUTER_VLAN_ID" Type="VLAN_ID"/>
+                    <Field Name="LAYER_TYPE" Size="5" Type="LAYER_TYPES"/>
+                    <Field Name="PCP"/>
+                </Result>
+                <!-- Vlan port result types must always be first, and always in the same order as in LOCAL_SBC_IN_LIF_MATCH_INFO_SW><-->
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_LABEL" Description="match mpls label"/>
+                    <Field Name="MPLS_LABEL"/>
+                    <Field Name="SERVICE_TAGGED" Type="BOOL"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_LABEL_BOS" Description="match mpls: label and BOS bit"/>
+                    <Field Name="MPLS_LABEL"/>
+                    <Field Name="BOS"/>
+                    <Field Name="SERVICE_TAGGED" Type="BOOL"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_LABEL_CTX_LABEL" Description="match mpls: 2 labels"/>
+                    <Field Name="MPLS_LABEL"/>
+                    <Field Name="CTX_MPLS_LABEL" Type="MPLS_LABEL"/>
+                    <Field Name="SERVICE_TAGGED" Type="BOOL"/>
+                </Result>
+                <Result>
+                    <Field Name="RESULT_TYPE" Size="4" Value="MATCH_LABEL_L3_INTF" Description="match mpls: label and context interface"/>
+                    <Field Name="MPLS_LABEL"/>
+                    <Field Name="L3_INTF" Type="UINT" Description="Context L3 interface ID"/>
+                    <Field Name="SERVICE_TAGGED" Type="BOOL"/>
+                </Result>
+                
+            </MultipleResults>
+            <TableLabels>LIF MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <TableProperties Size="DNX_DATA.lif.in_lif.dpc_local_inlif_hash_sw_size"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+     <AppDB Name="LIF_TABLES_RESULT_TYPE_SORTED">
+        <OneLineDescription>All LIF table result types per table, sorted by increasing entry size</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="DBAL_TABLE"/>
+            </Key>
+            <Result>
+                <Field Name="SORTED_RESULT_TYPES" Type="UINT" NofInstances="DNX_DATA.lif.lif_table_manager.max_nof_result_types" Description="table result types sorted by increasing entry size"/>
+            </Result>
+            <TableLabels>L2 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.lif.lif_table_manager.max_nof_lif_tables"/>
+        </AppToPhyDbMapping>
+    </AppDB>  
+
+     <AppDB Name="LIF_TABLE_MANAGER_VALID_FIELDS_PER_OUT_LIF_TABLE">
+        <OneLineDescription>For each lif created in out lif table, we store the valid field indices that it contains</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="LOCAL_OUT_LIF" Type="OUT_LIF"/>
+            </Key>
+            <Result>
+                <Field Name="FIELDS_BMP" Type="ARRAY32" Size="64" Description="bitmap which signals the fields that wer set on this result type"/>
+            </Result>
+            <TableLabels>L2 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <TableProperties Size="DNX_DATA.lif.out_lif.nof_local_out_lifs"/>
+        </AppToPhyDbMapping>
+    </AppDB> 
+
+     <AppDB Name="LIF_TABLE_MANAGER_VALID_FIELDS_PER_IN_LIF_TABLE">
+        <OneLineDescription>For each lif created in in lif table, we store the valid field indices that it contains</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="EM">
+            <Key>
+                <Field Name="LOCAL_IN_LIF" Type="IN_LIF"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="FIELDS_BMP" Type="ARRAY32" Size="64" Description="bitmap which signals the fields that wer set on this result type"/>
+            </Result>
+            <TableLabels>L2 MPLS</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="DPC"/>
+            <TableProperties Size="DNX_DATA.lif.in_lif.all_local_inlif_hash_sw_size"/>
+        </AppToPhyDbMapping>
+    </AppDB> 
+    
+</AppDbCatalog>
+

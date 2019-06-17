@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../hard_logic_schema.xsd">
+
+    <AppDB Name="KLEAP_IPMF1_KBR_INFO">
+        <OneLineDescription>Indicates per Context per KBR the KBR info - FFC and AppDB configured</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FIELD_KEY" MaxValue="4"/>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+            </Key>
+            <Result>
+                <Field Name="APP_DB_ID"/>
+                <Field Name="FFC_BITMAP" Size="64" Type="BITMAP"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping> 
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FFC_BITMAP">
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Enum="A"/>
+                        <Memory Name="IPPC_PMF_KBR_PASS_1m">
+                            <EntryOffset Formula="FIELD_PMF_CTX_ID"/>
+                            <HwField Name="KEY_A_FFC_VALIDSf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Enum="B"/>
+                        <Memory Name="IPPC_PMF_KBR_PASS_1m">
+                            <EntryOffset Formula="FIELD_PMF_CTX_ID"/>
+                            <HwField Name="KEY_B_FFC_VALIDSf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Enum="C"/>
+                        <Memory Name="IPPC_PMF_KBR_PASS_1m">
+                            <EntryOffset Formula="FIELD_PMF_CTX_ID"/>
+                            <HwField Name="KEY_C_FFC_VALIDSf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Enum="D"/>
+                        <Memory Name="IPPC_PMF_KBR_PASS_1m">
+                            <EntryOffset Formula="FIELD_PMF_CTX_ID"/>
+                            <HwField Name="KEY_D_FFC_VALIDSf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Enum="E"/>
+                        <Memory Name="IPPC_PMF_KBR_PASS_1m">
+                            <EntryOffset Formula="FIELD_PMF_CTX_ID"/>
+                            <HwField Name="KEY_E_FFC_VALIDSf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="APP_DB_ID">
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Enum="A"/>
+                        <Memory Name="IPPC_PMF_KBR_PASS_1m">
+                            <EntryOffset Formula="FIELD_PMF_CTX_ID"/>
+                            <HwField Name="KEY_A_APP_DBf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Enum="B"/>
+                        <Memory Name="IPPC_PMF_KBR_PASS_1m">
+                            <EntryOffset Formula="FIELD_PMF_CTX_ID"/>
+                            <HwField Name="KEY_B_APP_DBf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Enum="C"/>
+                        <Memory Name="IPPC_PMF_KBR_PASS_1m">
+                            <EntryOffset Formula="FIELD_PMF_CTX_ID"/>
+                            <HwField Name="KEY_C_APP_DBf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Enum="D"/>
+                        <Memory Name="IPPC_PMF_KBR_PASS_1m">
+                            <EntryOffset Formula="FIELD_PMF_CTX_ID"/>
+                            <HwField Name="KEY_D_APP_DBf"/>
+                        </Memory>
+                    </Access>
+                    <Access>
+                        <KeyCondition Field="FIELD_KEY" Type="EQUAL_TO" Enum="E"/>
+                        <Memory Name="IPPC_PMF_KBR_PASS_1m">
+                            <EntryOffset Formula="FIELD_PMF_CTX_ID"/>
+                            <HwField Name="KEY_E_APP_DBf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="KLEAP_IPMF1_FFC_INSTRUCTION">
+        <OneLineDescription>Indicates per Context per KBR the KBR info - FFC and AppDB configured</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FFC_IDX" Type="UINT" Size="6"/>
+                <Field Name="FIELD_PMF_CTX_ID"/>
+            </Key>
+            <Result>
+                <Field Name="IPMF1_FFC_INSTRUCTION"/>
+            </Result>
+            <TableLabels>FIELD</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="IPMF1_FFC_INSTRUCTION">
+                    <Access>
+                        <Memory Name="IPPC_PMF_KEY_GEN_PASS_1m"> 
+                            <EntryOffset Formula="FIELD_PMF_CTX_ID"/>
+                            <DataOffset Formula="FFC_IDX*RESULT"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

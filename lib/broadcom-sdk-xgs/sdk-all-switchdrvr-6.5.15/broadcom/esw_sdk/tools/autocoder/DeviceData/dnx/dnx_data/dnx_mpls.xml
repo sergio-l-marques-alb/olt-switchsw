@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<device_data lib="dnx_data" module="mpls" bsl_flag="BSL_LS_BCMDNX_MPLS">
+    <sub_module name="general" doc="general mpls constants">
+        
+        <features>
+        </features>
+        
+        <defines>
+            <define name="nof_mpls_termination_profiles" doc="Number of MPLS Termination Profiles"></define>
+            <define name="nof_mpls_push_profiles" doc="JR mode Number of MPLS Push Profiles"></define>
+            <define name="nof_bits_mpls_label" doc="Specifies number of bits used to represent an MPLS label"></define>
+            <define name="log_nof_mpls_range_elements"
+                     doc="Specifies number of bits used to represent number of available elements on any of mpls-range tables"></define>
+            <define name="nof_mpls_range_elements"
+                     doc="Specifies number of available elements on any of mpls-range tables"></define>
+             <define name="mpls_special_label_encap_handling"
+                     doc="Indicates whether special labels should be handled separatly"></define>
+             <define name="mpls_control_word_supported"
+                     doc="Indicates whether control word non-zero values supported."></define>
+        </defines>
+
+        <numerics>
+        </numerics>
+        
+        <tables>
+        </tables>
+    </sub_module>
+</device_data>

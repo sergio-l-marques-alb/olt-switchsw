@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL sw tables Logical Tables:
+    This xml contains the sw tables logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xsi:noNamespaceSchemaLocation="../../sw_state_schema.xsd">
+
+    <AppDB Name="STACK_MODID_TO_DOMAIN_SW_STATE">
+        <OneLineDescription>This table stores module id to domain id mapping sw state</OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="MODULE_ID" Size="11" Type="UINT"/>
+                <Field Name="DOMAIN_ID" Size="4" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="EXIST" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>STACK</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="STACK_DOMAIN_TO_STACK_TRUNK_SW_STATE">
+        <OneLineDescription>This table stores stack trunk to domain id mapping sw state. </OneLineDescription>
+        <AccessMethod>SW_STATE</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="DOMAIN_ID" Size="4" Type="UINT"/>
+                <Field Name="STK_TGID" Size="11" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="EXIST" Size="1" Type="BOOL"/>
+            </Result>
+            <TableLabels>STACK</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+</AppDbCatalog>
+

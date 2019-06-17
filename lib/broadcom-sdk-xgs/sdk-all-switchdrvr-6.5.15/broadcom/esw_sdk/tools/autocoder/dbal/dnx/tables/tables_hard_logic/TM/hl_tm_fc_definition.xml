@@ -1,0 +1,2215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    ******************************************************
+    DBAL Hard-Logic Logical Tables:
+    This xml contains the hard-logic logical DB for the DBAL.
+    The data is loaded to the device during init process
+    ******************************************************
+
+    DB Rules:
+    *********
+-->
+
+<AppDbCatalog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../hard_logic_schema.xsd">
+
+    <AppDB Name="FC_GEN_GLB_RCS_PFC_EN">
+        <OneLineDescription>Mapping configuration of CGM global resources indication to PFC bitmap</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="GLB_RCS"/>
+                <Field Name="GLB_PRIO" Type="BOOL"/>
+                <Field Name="NIF_PORT"/>
+                <Field Name="NIF_PRIORITY" Size="3" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL" Description="PFC enable."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Memory Name="CFC_GLB_RSC_CGM_MAPm">
+                            <EntryOffset Formula="GLB_RCS*2+GLB_PRIO"/>
+                            <!--FIXME: SDK-112205 JER2 DBAL - use key size in the formula -->
+                            <HwField Name="BITMAPf"/>
+                            <DataOffset Formula="NIF_PORT*8+NIF_PRIORITY"/>
+                            <!--FIXME: SDK-112205 JER2 DBAL - use key size in the formula -->
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_GEN_GLB_RCS_RCY_EN">
+        <OneLineDescription>Mapping configuration of CGM global resources indication to Recycle bitmap</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="GLB_RCS"/>
+                <Field Name="GLB_PRIO" Type="BOOL"/>
+                <Field Name="QPAIR"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL" Description="Recycle enable."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Memory Name="CFC_GLB_RSC_CGM_MAPm">
+                            <EntryOffset Formula="GLB_RCS*2+GLB_PRIO+14"/>
+                            <!--FIXME: SDK-112205 JER2 DBAL - use key size in the formula -->
+                            <HwField Name="BITMAPf"/>
+                            <DataOffset Formula="QPAIR"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_GEN_GLB_RCS_OOB_EN">
+        <OneLineDescription>Mapping configuration of CGM global resources indication to OOB bitmap</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="GLB_RCS"/>
+                <Field Name="GLB_PRIO" Type="BOOL"/>
+                <Field Name="CAL_IDX" Size="9" Type="UINT"/>
+                <Field Name="OOB_IF" Type="BOOL"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL" Description="OOB enable."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Memory Name="CFC_GLB_RSC_CGM_MAPm">
+                            <EntryOffset Formula="GLB_RCS*2+GLB_PRIO+28"/>
+                            <!--FIXME: SDK-112205 JER2 DBAL - use key size in the formula -->
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="BITMAPf"/>
+                            <DataOffset Formula="CAL_IDX"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_GEN_GLB_RCS_LLFC_EN">
+        <OneLineDescription>High-priority global resource to NIF LLFC mapping.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="GLB_RCS"/>
+                <Field Name="NIF_PORT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL" Description="LLFC enable."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS" Type="EQUAL_TO" Enum="SRAM"/>
+                        <Register Name="CFC_GLB_RSC_SRAM_CGM_TO_NIF_LLFC_HP_MAPr">
+                            <HwField Name="GLB_RSC_SRAM_CGM_TO_NIF_LLFC_HP_MAPf"/>
+                            <DataOffset Formula="NIF_PORT"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS" Type="EQUAL_TO" Enum="SRAM0"/>
+                        <Register Name="CFC_GLB_RSC_POOL_0_CGM_TO_NIF_LLFC_HP_MAPr">
+                            <HwField Name="GLB_RSC_POOL_0_CGM_TO_NIF_LLFC_SRAM_HP_MAPf"/>
+                            <DataOffset Formula="NIF_PORT"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS" Type="EQUAL_TO" Enum="SRAM1"/>
+                        <Register Name="CFC_GLB_RSC_POOL_1_CGM_TO_NIF_LLFC_HP_MAPr">
+                            <HwField Name="GLB_RSC_POOL_1_CGM_TO_NIF_LLFC_SRAM_HP_MAPf"/>
+                            <DataOffset Formula="NIF_PORT"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS" Type="EQUAL_TO" Enum="DRAM"/>
+                        <Register Name="CFC_GLB_RSC_DRAM_CGM_TO_NIF_LLFC_HP_MAPr">
+                            <HwField Name="GLB_RSC_DRAM_CGM_TO_NIF_LLFC_HP_MAPf"/>
+                            <DataOffset Formula="NIF_PORT"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS" Type="EQUAL_TO" Enum="DRAM0"/>
+                        <Register Name="CFC_GLB_RSC_POOL_0_CGM_TO_NIF_LLFC_HP_MAPr">
+                            <HwField Name="GLB_RSC_POOL_0_CGM_TO_NIF_LLFC_DRAM_HP_MAPf"/>
+                            <DataOffset Formula="NIF_PORT"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS" Type="EQUAL_TO" Enum="DRAM1"/>
+                        <Register Name="CFC_GLB_RSC_POOL_1_CGM_TO_NIF_LLFC_HP_MAPr">
+                            <HwField Name="GLB_RSC_POOL_1_CGM_TO_NIF_LLFC_DRAM_HP_MAPf"/>
+                            <DataOffset Formula="NIF_PORT"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS" Type="EQUAL_TO" Enum="HDRM"/>
+                        <Register Name="CFC_GLB_RSC_HDRM_CGM_TO_NIF_LLFC_HP_MAPr">
+                            <HwField Name="GLB_RSC_HDRM_CGM_TO_NIF_LLFC_HP_MAPf"/>
+                            <DataOffset Formula="NIF_PORT"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_GEN_CAT2_PFC_EN">
+        <OneLineDescription>Mapping configuration of category2 and TC VSQs to 384 PFC bitmap presented to the NIF.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CAT2_PRIO" Size="3" Type="UINT"/>
+                <Field Name="NIF_PORT"/>
+                <Field Name="NIF_PRIORITY" Size="3" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL" Description="PFC enable."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Memory Name="CFC_CAT_2_TC_CGM_MAP_NIFm">
+                            <EntryOffset Formula="CAT2_PRIO"/>
+                            <HwField Name="BITMAPf"/>
+                            <DataOffset Formula="NIF_PORT*8+NIF_PRIORITY"/>
+                            <!--FIXME: SDK-112205 JER2 DBAL - use key size in the formula -->
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_GEN_CAT2_OOB_EN">
+        <OneLineDescription>Mapping configuration of category2 and TC VSQs to 512 OOB bitmap presented to the NIF.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CAT2_PRIO" Size="3" Type="UINT"/>
+                <Field Name="CAL_IDX" Size="9" Type="UINT"/>
+                <Field Name="OOB_IF" Type="BOOL"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL" Description="PFC enable."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Memory Name="CFC_CFC_MEMORY_0m">
+                            <EntryOffset Formula="CAT2_PRIO"/>
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="ITEM_0_511f"/>
+                            <DataOffset Formula="CAL_IDX"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_GEN_OOB_MAP">
+        <OneLineDescription>Mapping of the SPI/HCFC/ILKN-OOB-TX calendar channels to the possible generated FC indications.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OOB_IF" Type="BOOL"/>
+                <Field Name="OOB_IDX" Size="9" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="FC_INDEX" Type="UINT" Size="11" Description="The index to one of the generated FC indications that should be mapped to current calendar channel."/>
+                <Field Name="FC_SRC_SEL" Type="FC_GEN_SOURCE" Description="The type of FC that the FC_INDEX refers to."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="FC_SRC_SEL">
+                    <Access>
+                        <Memory Name="CFC_OOB_TX_CALm">
+                            <EntryOffset Formula="OOB_IDX"/>
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="FC_SRC_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="FC_INDEX">
+                    <Access>
+                        <Memory Name="CFC_OOB_TX_CALm">
+                            <EntryOffset Formula="OOB_IDX"/>
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="FC_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_REC_PFC_MAP">
+        <OneLineDescription>Maping NIF PFC signal to EGQ PFC signal.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="NIF_PORT"/>
+                <Field Name="NIF_PRIORITY" Size="3" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="MAP_VAL" Type="UINT" Size="9" Description="MAP_SEL is 1'b0: Index to 1 of 512 EGQ PFC; MAP_SEL is 1'b1: Index to 1 of 16 generifc PFC bitmaps."/>
+                <Field Name="MAP_SEL" Type="UINT"  Size="1" Description="Select between the following: 1'b0: PFC; 1'b1: Generic PFC bitmap."/>
+                <Field Name="MAP_VALID" Type="BOOL" Description="Entry valid bit. If unset, PFC index is masked."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAP_VAL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="INDEX_0f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_SEL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="SELECT_0f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VALID">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="VALID_0f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VAL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="INDEX_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_SEL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="SELECT_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VALID">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="VALID_1f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VAL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="2"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="INDEX_2f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_SEL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="2"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="SELECT_2f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VALID">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="2"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="VALID_2f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VAL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="3"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="INDEX_3f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_SEL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="3"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="SELECT_3f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VALID">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="3"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="VALID_3f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VAL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="4"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="INDEX_4f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_SEL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="4"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="SELECT_4f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VALID">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="4"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="VALID_4f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VAL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="5"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="INDEX_5f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_SEL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="5"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="SELECT_5f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VALID">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="5"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="VALID_5f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VAL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="6"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="INDEX_6f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_SEL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="6"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="SELECT_6f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VALID">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="6"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="VALID_6f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VAL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="7"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="INDEX_7f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_SEL">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="7"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="SELECT_7f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VALID">
+                    <Access>
+                        <KeyCondition Field="NIF_PRIORITY" Type="EQUAL_TO" Value="7"/>
+                        <Memory Name="CFC_NIF_PFC_MAPm">
+                            <EntryOffset Formula="NIF_PORT"/>
+                            <HwField Name="VALID_7f"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_REC_VSQ_TO_RCY_MAP">
+        <OneLineDescription>Mapping 32 recycle VSQ to Qpair/port and general purpose bitmap</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="RCY_INDEX" Size="5" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="MAP_VAL" Type="UINT" Size="9" Description="MAP_SEL is 3'b000:   - Index to 1 of 512 EGQ PFC; MAP_SEL is 3`b001/3'b010/3'd011:   - Port starting index; MAP_SEL is 3'b100:   - Index to 1 of 32 generifc PFC bitmaps."/>
+                <Field Name="MAP_SEL" Type="UINT"  Size="3" Description="Select between the following: 3'b000: PFC 3'b001: Port (2 priority) 3'b010: Port (4 priority) 3'b011: Port (8 priority) 3'b100: Generic PFC bitmap."/>
+                <Field Name="MAP_VALID" Type="BOOL" Description="Entry valid bit. If unset, VSQ index is masked."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="MAP_VAL">
+                    <Access>
+                        <Memory Name="CFC_RCL_VSQ_CGM_MAPm">
+                            <EntryOffset Formula="RCY_INDEX"/>
+                            <HwField Name="INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_SEL">
+                    <Access>
+                        <Memory Name="CFC_RCL_VSQ_CGM_MAPm">
+                            <EntryOffset Formula="RCY_INDEX"/>
+                            <HwField Name="SELECTf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="MAP_VALID">
+                    <Access>
+                        <Memory Name="CFC_RCL_VSQ_CGM_MAPm">
+                            <EntryOffset Formula="RCY_INDEX"/>
+                            <HwField Name="VALIDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_REC_OOB_CAL_MAP">
+        <OneLineDescription>Mapping of the OOB-RX received FC status frames</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CAL_IF" Type="BOOL"/>
+                <Field Name="CAL_IDX" Size="9" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="MAP_VAL" Type="UINT" Size="11" Description="The index to one of the destinations FC indications that should be mapped from the current calendar channel."/>
+                <Field Name="DEST_SEL" Type="FC_REC_SOURCE" Description="Defines the type of FC that MAP_VAL refers to"/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAP_VAL">
+                    <Access>
+                        <Memory Name="CFC_OOB_RX_CALm">
+                            <EntryOffset Formula="CAL_IDX"/>
+                            <BlockIndex Formula="CAL_IF"/>
+                            <HwField Name="FC_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DEST_SEL">
+                    <Access>
+                        <Memory Name="CFC_OOB_RX_CALm">
+                            <EntryOffset Formula="CAL_IDX"/>
+                            <BlockIndex Formula="CAL_IF"/>
+                            <HwField Name="FC_DST_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_REC_COE_CAL_MAP">
+        <OneLineDescription>Mapping of the PP-RX received FC status frames</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CAL_IF" Type="BOOL"/>
+                <Field Name="CAL_IDX" Size="9" Type="UINT"/>
+            </Key>
+            <Result>
+                <Field Name="MAP_VAL" Type="UINT" Size="11" Description="The index to one of the destinations FC indications that should be mapped from the current calendar channel."/>
+                <Field Name="DEST_SEL" Type="FC_REC_SOURCE" Description="Defines the type of FC that MAP_VAL refers to"/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="MAP_VAL">
+                    <Access>
+                        <Memory Name="CFC_ILKN_PP_RX_4_CALm">
+                            <EntryOffset Formula="CAL_IDX"/>
+                            <BlockIndex Formula="CAL_IF"/>
+                            <HwField Name="FC_INDEXf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DEST_SEL">
+                    <Access>
+                        <Memory Name="CFC_ILKN_PP_RX_4_CALm">
+                            <EntryOffset Formula="CAL_IDX"/>
+                            <BlockIndex Formula="CAL_IF"/>
+                            <HwField Name="FC_DST_SELf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_RX_CPU_MAP">
+        <OneLineDescription>CMIC RX flow control mapping to PFC (CMIC to EGQ).</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CPU_CHAN" Size="6" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="QPAIR" Description="Q-pair mapped to the specified CPU channel."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="QPAIR">
+                    <Access>
+                        <Register Name="CFC_CMIC_RX_FC_MAPr">
+                            <HwField Name="CMIC_RX_FC_MAPf"/>
+                            <DataOffset Formula="CPU_CHAN*9"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    
+    <AppDB Name="FC_RX_CPU_MASK">
+        <OneLineDescription>CMIC RX flow control Mask (CMIC to EGQ) of generated CMIC vector..</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CPU_CHAN" Size="6" Type="UINT"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL" Description="Enable reception of flow control for the specified CPU channel."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="CFC_CMIC_RX_FC_MASKr">
+                            <HwField Name="CMIC_RX_FC_MASKf"/>
+                            <DataOffset Formula="CPU_CHAN"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_GENERIC_BITMAP">
+        <OneLineDescription>Generic PFC mapping bitmaps. Shared by different sources for generating more than one PFC flow control presented to the EGQ.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="BMP_IDX" Size="5" Type="UINT"/>
+                <Field Name="QPAIR"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL" Description="Q-pair mapped to the specified CPU channel."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <Register Name="CFC_PFC_GENERIC_BITMAPr">
+                            <ArrayOffset Formula="BMP_IDX"/>
+                            <HwField Name="PFC_GENERIC_BITMAP_Nf"/>
+                            <DataOffset Formula="QPAIR"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_GLB_RSC_MASKS">
+        <OneLineDescription>Global resource masking.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="GLB_PRIO" Type="BOOL"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_ENABLE" Type="BOOL" Description="Global resource masking bit 0 - LP mask, bit 1 - HP mask"/>
+                <Field Name="SRAM_ENABLE" Type="BOOL" Description="Global resource masking bit 0 - LP mask, bit 1 - HP mask"/>
+                <Field Name="DRAM_POOL_0_ENABLE" Type="BOOL" Description="Global resource masking bit 0 - LP mask, bit 1 - HP mask"/>
+                <Field Name="DRAM_POOL_1_ENABLE" Type="BOOL" Description="Global resource masking bit 0 - LP mask, bit 1 - HP mask"/>
+                <Field Name="SRAM_POOL_0_ENABLE" Type="BOOL" Description="Global resource masking bit 0 - LP mask, bit 1 - HP mask"/>
+                <Field Name="SRAM_POOL_1_ENABLE" Type="BOOL" Description="Global resource masking bit 0 - LP mask, bit 1 - HP mask"/>
+                <Field Name="HDRM_ENABLE" Type="BOOL" Description="Global resource masking bit 0 - LP mask, bit 1 - HP mask"/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="DRAM_ENABLE">
+                    <Access>
+                        <Register Name="CFC_GLB_RSC_CGM_MASKr">
+                            <HwField Name="GLB_RSC_DRAM_MASKf"/>
+                            <DataOffset Formula="GLB_PRIO"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_ENABLE">
+                    <Access>
+                        <Register Name="CFC_GLB_RSC_CGM_MASKr">
+                            <HwField Name="GLB_RSC_SRAM_MASKf"/>
+                            <DataOffset Formula="GLB_PRIO"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_POOL_0_ENABLE">
+                    <Access>
+                        <Register Name="CFC_GLB_RSC_CGM_MASKr">
+                            <HwField Name="GLB_RSC_DRAM_POOL_0_MASKf"/>
+                            <DataOffset Formula="GLB_PRIO"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_POOL_1_ENABLE">
+                    <Access>
+                        <Register Name="CFC_GLB_RSC_CGM_MASKr">
+                            <HwField Name="GLB_RSC_DRAM_POOL_1_MASKf"/>
+                            <DataOffset Formula="GLB_PRIO"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_POOL_0_ENABLE">
+                    <Access>
+                        <Register Name="CFC_GLB_RSC_CGM_MASKr">
+                            <HwField Name="GLB_RSC_SRAM_POOL_0_MASKf"/>
+                            <DataOffset Formula="GLB_PRIO"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_POOL_1_ENABLE">
+                    <Access>
+                        <Register Name="CFC_GLB_RSC_CGM_MASKr">
+                            <HwField Name="GLB_RSC_SRAM_POOL_1_MASKf"/>
+                            <DataOffset Formula="GLB_PRIO"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="HDRM_ENABLE">
+                    <Access>
+                        <Register Name="CFC_GLB_RSC_CGM_MASKr">
+                            <HwField Name="GLB_RSC_HDRM_MASKf"/>
+                            <DataOffset Formula="GLB_PRIO"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_CAT2_TC_MAP_PFC_ENA">
+        <OneLineDescription>Enable mapping configuration of category2 and TC VSQs to a 512b configured PFC bitmap sent to the NIF. - VSQs 16-23.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="TC"/>            
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="ENABLE" Type="BOOL"  Description="Enable mapping configuration mapping of connection class of category2 and TC VSQs to a 512b configured PFC bitmap sent to the NIF, "/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="TC" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CFC_CAT_2_TC_MAP_NIF_ENAr">
+                            <HwField Name="CAT_2_TC_0_MAP_NIF_ENAf"/>
+                        </Register>
+                    </Access>
+               </Field>
+               <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="TC" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CFC_CAT_2_TC_MAP_NIF_ENAr">
+                            <HwField Name="CAT_2_TC_1_MAP_NIF_ENAf"/>
+                        </Register>
+                    </Access>
+               </Field>
+               <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="TC" Type="EQUAL_TO" Value="2"/>
+                        <Register Name="CFC_CAT_2_TC_MAP_NIF_ENAr">
+                            <HwField Name="CAT_2_TC_2_MAP_NIF_ENAf"/>
+                        </Register>
+                    </Access>
+               </Field>
+               <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="TC" Type="EQUAL_TO" Value="3"/>
+                        <Register Name="CFC_CAT_2_TC_MAP_NIF_ENAr">
+                            <HwField Name="CAT_2_TC_3_MAP_NIF_ENAf"/>
+                        </Register>
+                    </Access>
+               </Field>
+               <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="TC" Type="EQUAL_TO" Value="4"/>
+                        <Register Name="CFC_CAT_2_TC_MAP_NIF_ENAr">
+                            <HwField Name="CAT_2_TC_4_MAP_NIF_ENAf"/>
+                        </Register>
+                    </Access>
+               </Field>
+               <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="TC" Type="EQUAL_TO" Value="5"/>
+                        <Register Name="CFC_CAT_2_TC_MAP_NIF_ENAr">
+                            <HwField Name="CAT_2_TC_5_MAP_NIF_ENAf"/>
+                        </Register>
+                    </Access>
+               </Field>
+               <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="TC" Type="EQUAL_TO" Value="6"/>
+                        <Register Name="CFC_CAT_2_TC_MAP_NIF_ENAr">
+                            <HwField Name="CAT_2_TC_6_MAP_NIF_ENAf"/>
+                        </Register>
+                    </Access>
+               </Field>
+               <Field Name="ENABLE">
+                    <Access>
+                        <KeyCondition Field="TC" Type="EQUAL_TO" Value="7"/>
+                        <Register Name="CFC_CAT_2_TC_MAP_NIF_ENAr">
+                            <HwField Name="CAT_2_TC_7_MAP_NIF_ENAf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_OOB_PARAMETERS">
+        <OneLineDescription>Parameters to configure OOB flow control.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OOB_IF" Type="BOOL"/>
+            </Key>
+            <Result>
+                <Field Name="OOB_RX_RSTN" Type="BOOL" Description="Out-Of-Band PAD Configuration for ILKN and SPI4 - Resets OOB-RX interface 0"/>
+                <Field Name="OOB_TX_RSTN" Type="BOOL" Description="Out-Of-Band PAD Configuration for ILKN and SPI4 - Resets OOB-TX interface 0"/>
+                <Field Name="OOB_RX_MODE" Type="BOOL" Description="Out-Of-Band PAD Configuration for ILKN and SPI4 - Selects between ILKN and SPI4 on OOB-RX interface 0"/>
+                <Field Name="OOB_TX_MODE" Type="BOOL" Description="Out-Of-Band PAD Configuration for ILKN and SPI4 - Selects between ILKN and SPI4 on OOB-TX interface 0"/>
+                <Field Name="OOB_TX_OUT_SPEED" Type="UINT" Size="3" Description="Set out frequency of OOB-TX interface 0."/>
+                <Field Name="OOB_TX_OUT_PHASE" Type="UINT" Size="5" Description="Out-Of-Band PAD Configuration for ILKN and SPI4 - Defines number of shifts in 1/2 core clock of TX_CLK."/>
+                <Field Name="OOB_TX_OUT_ROUGH_PHASE" Type="UINT" Size="4" Description="Defines interface 0 Transmit Stat clock edge core clock shifting in addition to the settings in OobTx0OutPhase."/>
+                <Field Name="ILKN_OOB_TX_EN" Type="BOOL" Description="ILKN-OOB-TX-0 Flow-Control is enable."/>
+                <Field Name="ILKN_OOB_TX_CAL_LEN" Type="UINT" Size="9" Description="ILKN-TX-0 TX calendar length minus 1 Note: settings for OOB flow control."/>
+                <Field Name="ILKN_OOB_RX_FC_POLARITY" Type="BOOL" Description="Set polarity for ILKN-OOB FC indications of ILKN-RX-0. If unset than FC indications match Interlaken definition, otherwise FC indications are inverted"/>
+                <Field Name="ILKN_OOB_TX_FC_POLARITY" Type="BOOL" Description="Set polarity for ILKN-OOB FC indications of ILKN-TX-0. If unset than FC indications match Interlaken definition, otherwise FC indications are inverted"/>
+                <Field Name="SPI_OOB_TX_EN" Type="BOOL" Description="Enable SPI-OOB-TX-0."/>
+                <Field Name="SPI_OOB_TX_CAL_LEN" Type="UINT" Size="10" Description="Status transmit (OOB) calendar length. Defines the number of SPI-OOB-TX-0 channels in a single calendar."/>
+                <Field Name="SPI_OOB_TX_CAL_M" Type="UINT" Size="4" Description="Status transmit (SPI-OOB-TX-0) calendar-M.  The number of calendar repetitions within a status frame."/>
+                <Field Name="SPI_OOB_POLARITY" Type="BOOL" Description="Set polarity for SPI4-OOB FC indications of interface 0. If unset than FC indications match SPI4 definition, otherwise FC indications are inverted."/>
+                <Field Name="ILKN_OOB_RX_EN" Type="BOOL" Description="If set, ILKN-OOB-RX-0 Flow-Control is enabled"/>
+                <Field Name="ILKN_OOB_RX_CAL_LEN" Type="UINT" Size="9" Description="ILKN-RX-0 calendar length minus 1 Notes:  * Affects only on OOB flow control * Can be updated only when OobRx0Rstn is negated."/>
+                <Field Name="SPI_OOB_RX_EN" Type="BOOL" Description="Enable SPI4 Out-Of-Band flow-control receive on OOB-RX interface 0"/>
+                <Field Name="SPI_OOB_RX_CAL_LEN" Type="UINT" Size="10" Description="Status SPI-OOB-RX-0 calendar length. Defines the number of channels in a single calendar."/>
+                <Field Name="SPI_OOB_RX_CAL_M" Type="UINT" Size="4" Description="Status SPI-OOB-RX-0 calendar-M.  The number of calendar repetitions within a status frame."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OOB_RX_RSTN">
+                    <Access>
+                        <Register Name="CFC_OOB_PAD_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="OOB_RX_RSTNf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OOB_TX_RSTN">
+                    <Access>
+                        <Register Name="CFC_OOB_PAD_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="OOB_TX_RSTNf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OOB_RX_MODE">
+                    <Access>
+                        <Register Name="CFC_OOB_PAD_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="OOB_RX_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OOB_TX_MODE">
+                    <Access>
+                        <Register Name="CFC_OOB_PAD_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="OOB_TX_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OOB_TX_OUT_SPEED">
+                    <Access>
+                        <Register Name="CFC_OOB_PAD_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="OOB_TX_OUT_SPEEDf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OOB_TX_OUT_PHASE">
+                    <Access>
+                        <Register Name="CFC_OOB_PAD_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="OOB_TX_OUT_PHASEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OOB_TX_OUT_ROUGH_PHASE">
+                    <Access>
+                        <Register Name="CFC_OOB_PAD_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="OOB_TX_OUT_ROUGH_PHASEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_OOB_TX_EN">
+                    <Access>
+                        <Register Name="CFC_ILKN_TX_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="ILKN_OOB_TX_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_OOB_TX_CAL_LEN">
+                    <Access>
+                        <Register Name="CFC_ILKN_TX_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="ILKN_OOB_TX_CAL_LENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_OOB_RX_FC_POLARITY">
+                    <Access>
+                        <Register Name="CFC_ILKN_OOB_POLARITY_CFGr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="ILKN_OOB_RX_FC_POLARITYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_OOB_TX_FC_POLARITY">
+                    <Access>
+                        <Register Name="CFC_ILKN_OOB_POLARITY_CFGr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="ILKN_OOB_TX_FC_POLARITYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SPI_OOB_TX_EN">
+                    <Access>
+                        <Register Name="CFC_SPI_OOB_TX_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="SPI_OOB_TX_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SPI_OOB_TX_CAL_LEN">
+                    <Access>
+                        <Register Name="CFC_SPI_OOB_TX_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="SPI_OOB_TX_CAL_LENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SPI_OOB_TX_CAL_M">
+                    <Access>
+                        <Register Name="CFC_SPI_OOB_TX_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="SPI_OOB_TX_CAL_Mf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SPI_OOB_POLARITY">
+                    <Access>
+                        <Register Name="CFC_SPI_OOB_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="SPI_OOB_POLARITYf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_OOB_RX_EN">
+                    <Access>
+                        <Register Name="CFC_ILKN_RX_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="ILKN_OOB_RX_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_OOB_RX_CAL_LEN">
+                    <Access>
+                        <Register Name="CFC_ILKN_RX_CONFIGURATIONr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="ILKN_OOB_RX_CAL_LENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SPI_OOB_RX_EN">
+                    <Access>
+                        <Register Name="CFC_SPI_OOB_RX_CONFIGURATION_0r">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="SPI_OOB_RX_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SPI_OOB_RX_CAL_LEN">
+                    <Access>
+                        <Register Name="CFC_SPI_OOB_RX_CONFIGURATION_0r">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="SPI_OOB_RX_CAL_LENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SPI_OOB_RX_CAL_M">
+                    <Access>
+                        <Register Name="CFC_SPI_OOB_RX_CONFIGURATION_0r">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="SPI_OOB_RX_CAL_Mf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_COE_PARAMETERS">
+        <OneLineDescription>Parameters to configure COE flow control.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="COE_IF" Type="BOOL"/>
+            </Key>
+            <Result>
+                <Field Name="PP_INB_ENB" Type="BOOL" Description="Enable PP inband FC (both modes)"/>
+                <Field Name="PP_COE_MODE" Type="BOOL" Description="0' - Pause, '1' - PFC"/>
+                <Field Name="PP_COE_TICK_MHZ" Type="UINT" Size="13" Description="N-1 - where N number of clocks for pause counters decrement"/>
+                <Field Name="COE_VID_OFFSET" Type="UINT" Size="5" Description="Offset in bytes from start of packet for VID 8b lsb"/>
+                <Field Name="COE_DATA_OFFSET" Type="UINT" Size="5" Description="Offset in bytes from after Ethernet Frame for CoE FC 64b data"/>
+                <Field Name="COE_MAC_ADDRESS" Type="L2_MAC" Size="48" Description="MAC that identifies COE"/>
+                <Field Name="COE_ETHER_TYPE" Type="UINT" Size="16" Description="EtherType that identifies COE"/>
+                <Field Name="COE_CONTROL_OPCODE" Type="UINT" Size="16" Description="ControlOpcode that identifies COE"/>
+                <Field Name="COE_RX_EN" Type="BOOL" Description="If set, COE Flow-Control is enabled"/>
+                <Field Name="COE_RX_CAL_LEN" Type="UINT" Size="9" Description="COE calendar length minus 1."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="PP_INB_ENB">
+                    <Access>
+                        <Register Name="CFC_PP_INBANDr">
+                            <BlockIndex Formula="COE_IF"/>
+                            <HwField Name="PP_INB_ENBf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PP_COE_MODE">
+                    <Access>
+                        <Register Name="CFC_PP_INBANDr">
+                            <BlockIndex Formula="COE_IF"/>
+                            <HwField Name="PP_COE_MODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PP_COE_TICK_MHZ">
+                    <Access>
+                        <Register Name="CFC_PP_INBANDr">
+                            <BlockIndex Formula="COE_IF"/>
+                            <HwField Name="PP_COE_TICKf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COE_VID_OFFSET">
+                    <Access>
+                        <Register Name="IPPF_COE_CFGSr">
+                            <BlockIndex Formula="COE_IF"/>
+                            <HwField Name="COE_VID_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COE_DATA_OFFSET">
+                    <Access>
+                        <Register Name="IPPF_COE_CFGSr">
+                            <BlockIndex Formula="COE_IF"/>
+                            <HwField Name="COE_DATA_OFFSETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COE_MAC_ADDRESS">
+                    <Access>
+                        <Register Name="IPPF_COE_CFGSr">
+                            <BlockIndex Formula="COE_IF"/>
+                            <HwField Name="COE_MAC_ADDRESSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COE_ETHER_TYPE">
+                    <Access>
+                        <Register Name="IPPF_COE_CFGSr">
+                            <BlockIndex Formula="COE_IF"/>
+                            <HwField Name="COE_ETHER_TYPEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COE_CONTROL_OPCODE">
+                    <Access>
+                        <Register Name="IPPF_COE_CFGSr">
+                            <BlockIndex Formula="COE_IF"/>
+                            <HwField Name="COE_CONTROL_OPCODEf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COE_RX_EN">
+                    <Access>
+                        <Register Name="CFC_ILKN_RX_CONFIGURATIONr">
+                            <BlockIndex Formula="COE_IF"/>
+                            <HwField Name="ILKN_INB_RX_4_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="COE_RX_CAL_LEN">
+                    <Access>
+                        <Register Name="CFC_PP_INBANDr">
+                            <BlockIndex Formula="COE_IF"/>
+                            <HwField Name="PP_INB_CAL_LENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FC_COE_VID_CHANNEL_ID_MAP">
+        <OneLineDescription>CoE Map VID to Channel ID </OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="VID" Type="VLAN_ID" MaxValue="1023"/>
+                <Field Name="COE_IF" Type="BOOL"/>
+            </Key>
+            <Result>
+                <Field Name="COE_CHANNEL_ID" Type="UINT" Size="8" Description="Channel-ID to access CFC."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="COE_CHANNEL_ID">
+                    <Access>
+                        <Memory Name="IPPF_COE_CHANNEL_IDm">
+                            <EntryOffset Formula="VID"/>
+                            <BlockIndex Formula="COE_IF"/>
+                            <HwField Name="CHANNEL_IDf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_CFC_ENABLERS">
+        <OneLineDescription>CFC Enable bits.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="CFC_EN" Type="BOOL" Description="CFC disabled prevents flow-control (present X-On) indications to all destinations. Note: In this state, the CFC does not present them to the destinations and mask all incoming flow control"/>
+                <Field Name="GLB_RSC_TO_RCL_PFC_HP_CFG" Type="BOOL" Description="If High-Priority global resource flow control indication is received by the Cgm (STE), CFC will generate flow control to the EGQ according to GlbRscCgm0/1Map"/>
+                <Field Name="GLB_RSC_TO_RCL_PFC_LP_CFG" Type="BOOL" Description="If Low-Priority global resource flow control indication is received by the Cgm (STE), CFC will generate flow control to the EGQ according to GlbRscCgm0/1Map"/>
+                <Field Name="GLB_RSC_TO_EGQ_RCL_PFC_EN" Type="BOOL" Description=" If set, enables flow control generation to the recycle PFCs in the EGQ by the high and low global resource flow control."/>
+                <Field Name="SPI_OOB_RX_TO_EGQ_PORT_EN" Type="BOOL" Description=" If set, enables port flow control generation through the SPI-OOB-RX using the 256 PFC."/>
+                <Field Name="SPI_OOB_RX_TO_EGQ_PFC_EN" Type="BOOL" Description=" If set, enables PFC generation through the SPI-OOB-RX."/>
+                <Field Name="SPI_OOB_RX_TO_GEN_PFC_EN" Type="BOOL" Description=" If set, enables mapping SPI-OOB calendar entry to one of the generic PFC through the SPI-OOB-RX."/>
+                <Field Name="ILKN_RX_TO_EGQ_PORT_EN" Type="BOOL" Description="If set, enables port flow control generation through the ILKN-OOB-RX using the 256 PFC."/>
+                <Field Name="ILKN_RX_TO_EGQ_PFC_EN" Type="BOOL" Description="If set, enables PFC generation through the ILKN-OOB-RX."/>
+                <Field Name="ILKN_RX_TO_GEN_PFC_EN" Type="BOOL" Description=" If set, enables mapping ILKN calendar entry to one of the generic PFC through the ILKN-RX."/>
+                <Field Name="ILKN_RX_TO_NIF_FAST_LLFC_EN" Type="BOOL" Description=" If set, enables fast link-level FC received from ILKN and forwarded to NIF (stops NIF Tx)."/>
+                <Field Name="PP_ILKN_RX_TO_EGQ_PORT_EN" Type="BOOL" Description=" If set, enables port flow control generation through the ILKN-OOB-RX using the 256 PFC."/>
+                <Field Name="PP_ILKN_RX_TO_EGQ_PFC_EN" Type="BOOL" Description=" If set, enables PFC generation through the ILKN-OOB-RX"/>
+                <Field Name="PP_ILKN_RX_TO_GEN_PFC_EN" Type="BOOL" Description=" If set, enables mapping ILKN calendar entry to one of the generic PFC through the ILKN-RX"/>
+                <Field Name="PP_ILKN_RX_TO_NIF_FAST_LLFC_EN" Type="BOOL" Description=" If set, enables fast link-level FC received from ILKN and forwarded to NIF (stops NIF Tx)"/>
+                <Field Name="GLB_RSC_TO_NIF_LLFC_EN" Type="BOOL" Description=" If set, link-level NIF's FCs will be asserted when High-priority global resource FC is asserted "/>
+                <Field Name="GLB_RSC_TO_NIF_PFC_EN" Type="BOOL" Description=" If set, NIF's PFCs will be asserted when High-priority global resource FC is asserted"/>
+                <Field Name="LLFC_VSQ_TO_NIF_EN" Type="BOOL" Description=" If set, enables the VSQ assigned to the link level flow control to be presented to the NIF"/>
+                <Field Name="PFC_VSQ_TO_NIF_EN" Type="BOOL" Description="Con If set, enables the VSQ assigned to the PFC flow control to be presented to the NIF"/>
+                <Field Name="SPI_OOB_RX_TO_NIF_FAST_LLFC_EN" Type="BOOL" Description=" If set, enables fast link-level FC received from SPI OOB and forwarded to NIF (stops NIF Tx)"/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="CFC_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="CFC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GLB_RSC_TO_RCL_PFC_HP_CFG">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="GLB_RSC_TO_RCL_PFC_HP_CFGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GLB_RSC_TO_RCL_PFC_LP_CFG">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="GLB_RSC_TO_RCL_PFC_LP_CFGf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GLB_RSC_TO_EGQ_RCL_PFC_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="GLB_RSC_TO_EGQ_RCL_PFC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SPI_OOB_RX_TO_EGQ_PORT_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="SPI_OOB_RX_TO_EGQ_PORT_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SPI_OOB_RX_TO_EGQ_PFC_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="SPI_OOB_RX_TO_EGQ_PFC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SPI_OOB_RX_TO_GEN_PFC_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="SPI_OOB_RX_TO_GEN_PFC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_RX_TO_EGQ_PORT_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="ILKN_RX_TO_EGQ_PORT_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_RX_TO_EGQ_PFC_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="ILKN_RX_TO_EGQ_PFC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_RX_TO_GEN_PFC_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="ILKN_RX_TO_GEN_PFC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_RX_TO_NIF_FAST_LLFC_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="ILKN_RX_TO_NIF_FAST_LLFC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PP_ILKN_RX_TO_EGQ_PORT_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="PP_ILKN_RX_TO_EGQ_PORT_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PP_ILKN_RX_TO_EGQ_PFC_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="PP_ILKN_RX_TO_EGQ_PFC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PP_ILKN_RX_TO_GEN_PFC_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="PP_ILKN_RX_TO_GEN_PFC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PP_ILKN_RX_TO_NIF_FAST_LLFC_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="PP_ILKN_RX_TO_NIF_FAST_LLFC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GLB_RSC_TO_NIF_LLFC_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="GLB_RSC_TO_NIF_LLFC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="GLB_RSC_TO_NIF_PFC_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="GLB_RSC_TO_NIF_PFC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="LLFC_VSQ_TO_NIF_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="LLFC_VSQ_TO_NIF_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PFC_VSQ_TO_NIF_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="PFC_VSQ_TO_NIF_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SPI_OOB_RX_TO_NIF_FAST_LLFC_EN">
+                    <Access>
+                        <Register Name="CFC_CFC_ENABLERSr">
+                            <HwField Name="SPI_OOB_RX_TO_NIF_FAST_LLFC_ENf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+
+    <AppDB Name="FC_GLB_RCS_TOTAL_THS">
+        <OneLineDescription>Global HP and LP flow control based on total free recourse (DRAM, SRAM).</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="GLB_RCS_PRIO" Type="BOOL"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_BDBS_TOTAL_TH_SET" Type="UINT" Size="13" Description="Free DRAM-BDBs set threshold.Flow control will be set when free resources are lower than configured threshold."/>
+                <Field Name="DRAM_BDBS_TOTAL_TH_CLR" Type="UINT" Size="13" Description="Free DRAM-BDBs clear threshold.Flow control will be cleared when free resources are higher than configured threshold."/>
+                <Field Name="SRAM_BUFFERS_TOTAL_TH_SET" Type="UINT" Size="12" Description="Free SRAM-Buffers set threshold.Flow control will be set when free resources are lower than configured threshold."/>
+                <Field Name="SRAM_BUFFERS_TOTAL_TH_CLR" Type="UINT" Size="12" Description="Free SRAM-Buffers clear threshold.Flow control will be cleared when free resources are higher than configured threshold."/>
+                <Field Name="SRAM_PDBS_TOTAL_TH_SET" Type="UINT" Size="12" Description="Free SRAM-PDBs set threshold.Flow control will be set when free resources are lower than configured threshold."/>
+                <Field Name="SRAM_PDBS_TOTAL_TH_CLR" Type="UINT" Size="12" Description="Free SRAM-PDBs clear threshold.Flow control will be cleared when free resources are higher than configured threshold."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="DRAM_BDBS_TOTAL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CGM_TOTAL_DRAM_RSRC_FLOW_CONTROL_THSr">
+                            <HwField Name="TOTAL_DRAM_BDBS_FC_HP_TH_SETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_BDBS_TOTAL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CGM_TOTAL_DRAM_RSRC_FLOW_CONTROL_THSr">
+                            <HwField Name="TOTAL_DRAM_BDBS_FC_LP_TH_SETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_BDBS_TOTAL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CGM_TOTAL_DRAM_RSRC_FLOW_CONTROL_THSr">
+                            <HwField Name="TOTAL_DRAM_BDBS_FC_HP_TH_CLRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_BDBS_TOTAL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CGM_TOTAL_DRAM_RSRC_FLOW_CONTROL_THSr">
+                            <HwField Name="TOTAL_DRAM_BDBS_FC_LP_TH_CLRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_BUFFERS_TOTAL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CGM_TOTAL_SRAM_RSRC_FLOW_CONTROL_THSr">
+                            <HwField Name="TOTAL_SRAM_BUFFERS_FC_HP_TH_SETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_BUFFERS_TOTAL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CGM_TOTAL_SRAM_RSRC_FLOW_CONTROL_THSr">
+                            <HwField Name="TOTAL_SRAM_BUFFERS_FC_LP_TH_SETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_BUFFERS_TOTAL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CGM_TOTAL_SRAM_RSRC_FLOW_CONTROL_THSr">
+                            <HwField Name="TOTAL_SRAM_BUFFERS_FC_HP_TH_CLRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_BUFFERS_TOTAL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CGM_TOTAL_SRAM_RSRC_FLOW_CONTROL_THSr">
+                            <HwField Name="TOTAL_SRAM_BUFFERS_FC_LP_TH_CLRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_PDBS_TOTAL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CGM_TOTAL_SRAM_RSRC_FLOW_CONTROL_THSr">
+                            <HwField Name="TOTAL_SRAM_PDBS_FC_HP_TH_SETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_PDBS_TOTAL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CGM_TOTAL_SRAM_RSRC_FLOW_CONTROL_THSr">
+                            <HwField Name="TOTAL_SRAM_PDBS_FC_LP_TH_SETf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_PDBS_TOTAL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0"/>
+                        <Register Name="CGM_TOTAL_SRAM_RSRC_FLOW_CONTROL_THSr">
+                            <HwField Name="TOTAL_SRAM_PDBS_FC_HP_TH_CLRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_PDBS_TOTAL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1"/>
+                        <Register Name="CGM_TOTAL_SRAM_RSRC_FLOW_CONTROL_THSr">
+                            <HwField Name="TOTAL_SRAM_PDBS_FC_LP_TH_CLRf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+      </AppDB>
+      <AppDB Name="FC_GLB_RCS_PER_POOL_THS">
+        <OneLineDescription>Global flow control based on free recourse in pool (DRAM, SRAM).</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+                <Field Name="GLB_RCS_PRIO" Type="BOOL"/>
+                <Field Name="GLB_RCS_POOL" Type="BOOL"/>
+            </Key>
+            <Result>
+                <Field Name="DRAM_WORDS_PER_POOL_TH_SET" Type="UINT" Size="24" Description="Free DRAM-Words set threshold for specified pool.Flow control will be set when free resources are lower than configured threshold."/>
+                <Field Name="DRAM_WORDS_PER_POOL_TH_CLR" Type="UINT" Size="24" Description="Free DRAM-Words clear threshold for specified pool.Flow control will be cleared when free resources are higher than configured threshold."/>
+                <Field Name="SRAM_BUFFERS_PER_POOL_TH_SET" Type="UINT" Size="20" Description="Free SRAM-Buffers set threshold for specified pool.Flow control will be set when free resources are lower than configured threshold."/>
+                <Field Name="SRAM_BUFFERS_PER_POOL_TH_CLR" Type="UINT" Size="20" Description="Free SRAM-Buffers clear threshold for specified pool.Flow control will be cleared when free resources are higher than configured threshold."/>
+                <Field Name="SRAM_PDS_PER_POOL_TH_SET" Type="UINT" Size="13" Description="Free SRAM-PDs set threshold for specified pool.Flow control will be set when free resources are lower than configured threshold."/>
+                <Field Name="SRAM_PDS_PER_POOL_TH_CLR" Type="UINT" Size="13" Description="Free SRAM-PDs clear threshold for specified pool.Flow control will be cleared when free resources are higher than configured threshold."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="DRAM_WORDS_PER_POOL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="0"/>
+                            <HwField Name="WORDS_SET_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_WORDS_PER_POOL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="1"/>
+                            <HwField Name="WORDS_SET_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_WORDS_PER_POOL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="2"/>
+                            <HwField Name="WORDS_SET_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_WORDS_PER_POOL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="3"/>
+                            <HwField Name="WORDS_SET_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_WORDS_PER_POOL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="0"/>
+                            <HwField Name="WORDS_CLR_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_WORDS_PER_POOL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="1"/>
+                            <HwField Name="WORDS_CLR_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_WORDS_PER_POOL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="2"/>
+                            <HwField Name="WORDS_CLR_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="DRAM_WORDS_PER_POOL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="3"/>
+                            <HwField Name="WORDS_CLR_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_BUFFERS_PER_POOL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="0"/>
+                            <HwField Name="SRAM_BUFFERS_SET_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_BUFFERS_PER_POOL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="1"/>
+                            <HwField Name="SRAM_BUFFERS_SET_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_BUFFERS_PER_POOL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="2"/>
+                            <HwField Name="SRAM_BUFFERS_SET_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_BUFFERS_PER_POOL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="3"/>
+                            <HwField Name="SRAM_BUFFERS_SET_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_BUFFERS_PER_POOL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="0"/>
+                            <HwField Name="SRAM_BUFFERS_CLR_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_BUFFERS_PER_POOL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="1"/>
+                            <HwField Name="SRAM_BUFFERS_CLR_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_BUFFERS_PER_POOL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="2"/>
+                            <HwField Name="SRAM_BUFFERS_CLR_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_BUFFERS_PER_POOL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="3"/>
+                            <HwField Name="SRAM_BUFFERS_CLR_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_PDS_PER_POOL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="0"/>
+                            <HwField Name="SRAM_PDS_SET_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_PDS_PER_POOL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="1"/>
+                            <HwField Name="SRAM_PDS_SET_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_PDS_PER_POOL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="2"/>
+                            <HwField Name="SRAM_PDS_SET_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_PDS_PER_POOL_TH_SET">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="3"/>
+                            <HwField Name="SRAM_PDS_SET_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_PDS_PER_POOL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="0"/>
+                            <HwField Name="SRAM_PDS_CLR_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_PDS_PER_POOL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="1" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="1"/>
+                            <HwField Name="SRAM_PDS_CLR_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_PDS_PER_POOL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="0"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="2"/>
+                            <HwField Name="SRAM_PDS_CLR_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+                <Field Name="SRAM_PDS_PER_POOL_TH_CLR">
+                    <Access>
+                        <KeyCondition Field="GLB_RCS_PRIO" Type="EQUAL_TO" Value="0" />
+                        <KeyCondition Field="GLB_RCS_POOL" Type="EQUAL_TO" Value="1"/>
+                        <Memory Name="CGM_PB_VSQ_POOL_FC_THm">
+                            <EntryOffset Formula="3"/>
+                            <HwField Name="SRAM_PDS_CLR_THf"/>
+                        </Memory>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB> 
+    <AppDB Name="FC_GLB_RCS_HDRM_THS">
+       <OneLineDescription>Global flow control based on total free recourse (HDRM).</OneLineDescription>
+       <AccessMethod>HARD_LOGIC</AccessMethod>
+       <Maturity Level="HIGH"/>
+       <AppDbInterface Type="DIRECT">
+           <Key>
+                <Field Name="CORE_ID"/>
+           </Key>
+           <Result>                
+               <Field Name="HDRM_BUFFERS_TOTAL_TH_SET" Type="UINT" Size="13" Description="Free SRAM-PDs Headroom Buffers set threshold.Flow control will be set when free resources are lower than configured threshold."/>
+               <Field Name="HDRM_BUFFERS_TOTAL_TH_CLR" Type="UINT" Size="13" Description="Free SRAM-PDs Headroom Buffers clear threshold.Flow control will be cleared when free resources are higher than configured threshold."/>
+               <Field Name="HDRM_PDS_TOTAL_TH_SET" Type="UINT" Size="13" Description="Free SRAM-PDs Headroom PDBs set threshold.Flow control will be set when free resources are lower than configured threshold."/>
+               <Field Name="HDRM_PDS_TOTAL_TH_CLR" Type="UINT" Size="13" Description="Free SRAM-PDs Headroom PDBs clear threshold.Flow control will be cleared when free resources are higher than configured threshold."/>
+           </Result>
+           <TableLabels>FC</TableLabels>
+       </AppDbInterface>
+       <AppToPhyDbMapping>
+           <CoreMode Mode="DPC"/>
+           <FieldMapping>
+               <Field Name="HDRM_BUFFERS_TOTAL_TH_SET">
+                   <Access>
+                       <Register Name="CGM_SRAM_HDRM_RSRC_FLOW_CONTROL_THSr">
+                           <HwField Name="HDRM_SRAM_BUFFERS_FC_TH_SETf"/>
+                       </Register>
+                   </Access>
+               </Field>
+               <Field Name="HDRM_BUFFERS_TOTAL_TH_CLR">
+                   <Access>
+                       <Register Name="CGM_SRAM_HDRM_RSRC_FLOW_CONTROL_THSr">
+                           <HwField Name="HDRM_SRAM_BUFFERS_FC_TH_CLRf"/>
+                       </Register>
+                   </Access>
+               </Field>
+               <Field Name="HDRM_PDS_TOTAL_TH_SET">
+                   <Access>
+                       <Register Name="CGM_SRAM_HDRM_RSRC_FLOW_CONTROL_THSr">
+                           <HwField Name="HDRM_SRAM_PDS_FC_TH_SETf"/>
+                       </Register>
+                   </Access>
+               </Field>
+               <Field Name="HDRM_PDS_TOTAL_TH_CLR">
+                   <Access>
+                       <Register Name="CGM_SRAM_HDRM_RSRC_FLOW_CONTROL_THSr">
+                           <HwField Name="HDRM_SRAM_PDS_FC_TH_CLRf"/>
+                       </Register>
+                   </Access>
+               </Field>
+           </FieldMapping>
+       </AppToPhyDbMapping>
+     </AppDB>
+
+    <AppDB Name="FC_STATUS_SELECT">
+        <OneLineDescription>For different types of flow control, selact the indications to be presented by the status registers and get the status of the received Flow control indications.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="PFC_STATUS_SEL" Type="UINT" Size="3" Description="Select 64 of 384 PFC statuses to be presented."/>
+                <Field Name="NIF_PFC_STATUS_SEL" Type="UINT" Size="4" Description="Select 64 of 384 PFC statuses received by the NIF to be presented."/>
+                <Field Name="VSQ_ABCD_STATUS_SEL" Type="UINT" Size="4" Description="Select the flow control indications to be presented out of the VSQ groups A - D. Received flow controls (Status)."/>
+                <Field Name="VSQ_LLFC_STATUS_SEL" Type="UINT" Size="3" Description="Select the flow control indications to be presented out of the VSQ group E (LLFC). Received flow controls (Status)."/>
+                <Field Name="VSQ_PFC_STATUS_SEL" Type="UINT" Size="4" Description="Select the flow control indications to be presented out of the VSQ group F (PFC). Received flow controls (Status)."/>
+                <Field Name="OOB_RX_PFC_SEL" Type="UINT" Size="4" Description="Select 64 of 1024(512 per core)  PFC statuses received by SPI-OOB-RX-0 to be presented."/>
+                <Field Name="OOB_RX_PFC_SRC_SEL" Type="BOOL" Description="Select between all PFC statuses received sources by SPI-OOB-RX-0 to be presented: 1'b0 - PFC based 1'b1 - Port based."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="PFC_STATUS_SEL">
+                    <Access>
+                        <Register Name="CFC_PFC_STATUS_SELr">
+                            <HwField Name="PFC_STATUS_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NIF_PFC_STATUS_SEL">
+                    <Access>
+                        <Register Name="CFC_NIF_PFC_STATUS_SELr">
+                            <HwField Name="NIF_PFC_STATUS_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VSQ_ABCD_STATUS_SEL">
+                    <Access>
+                        <Register Name="CFC_CGM_VSQ_FC_STATUS_SELr">
+                            <HwField Name="CGM_VSQ_GRPS_ABCD_FC_STATUS_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VSQ_LLFC_STATUS_SEL">
+                    <Access>
+                        <Register Name="CFC_CGM_VSQ_FC_STATUS_SELr">
+                            <HwField Name="CGM_VSQ_LLFC_STATUS_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VSQ_PFC_STATUS_SEL">
+                    <Access>
+                        <Register Name="CFC_CGM_VSQ_FC_STATUS_SELr">
+                            <HwField Name="CGM_VSQ_PFC_STATUS_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OOB_RX_PFC_SEL">
+                    <Access>
+                        <Register Name="CFC_SPI_OOB_RX_PFC_SELr">
+                            <HwField Name="SPI_OOB_RX_PFC_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OOB_RX_PFC_SRC_SEL">
+                    <Access>
+                        <Register Name="CFC_SPI_OOB_RX_PFC_SELr">
+                            <HwField Name="SPI_OOB_RX_PFC_SRC_SELf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FC_STATUS">
+        <OneLineDescription>For Non-OOB flow control, get the status of the received Flow control indications.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="AF_NIF_STATUS" Permission="READONLY" Type="ARRAY32" Size="48" Description="Present Almost full status indications received by the NIF interface."/>
+                <Field Name="PFC_STATUS" Permission="READONLY" Type="ARRAY32" Size="64" Description="Present PFC based flow control status indications. 64 bits are selected by PFC_STATUS_SEL"/>
+                <Field Name="NIF_PFC_STATUS" Permission="READONLY" Type="ARRAY32" Size="64" Description="Present PFC based flow control status indications received by the NIF interface. 64 bits are selected by NIF_PFC_STATUS_SEL"/>
+                <Field Name="VSQ_ABCD_STATUS" Permission="READONLY" Type="ARRAY32" Size="64" Description="Present 64 of the 712 VSQs flow controls generated by the Cgm-VSQ (STE). 64 bits are selected by VSQ_ABCD_STATUS_SEL"/>
+                <Field Name="VSQ_LLFC_STATUS" Permission="READONLY" Type="ARRAY32" Size="32" Description="Present 32 of the 52 link level VSQs flow controls generated by Cgm-VSQ (STE). 32 bits are selected by VSQ_LLFC_STATUS_SEL"/>
+                <Field Name="VSQ_PFC_STATUS" Permission="READONLY" Type="ARRAY32" Size="64" Description="Present 64 of the 384 PFC VSQs flow controls generated by the Cgm-VSQ (STE). 64 bits are selected by VSQ_PFC_STATUS_SEL"/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+            <Field Name="AF_NIF_STATUS">
+                    <Access>
+                        <Register Name="CFC_NIF_AF_FC_STATUSr">
+                            <HwField Name="NIF_AF_FC_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="PFC_STATUS">
+                    <Access>
+                        <Register Name="CFC_PFC_STATUSr">
+                            <HwField Name="EGQ_PFC_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="NIF_PFC_STATUS">
+                    <Access>
+                        <Register Name="CFC_NIF_PFC_STATUSr">
+                            <HwField Name="NIF_PFC_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VSQ_ABCD_STATUS">
+                    <Access>
+                        <Register Name="CFC_CGM_VSQ_GRPS_ABCD_FC_STATUSr">
+                            <HwField Name="CGM_VSQ_GRPS_ABCD_FC_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VSQ_LLFC_STATUS">
+                    <Access>
+                        <Register Name="CFC_CGM_VSQ_LLFC_STATUSr">
+                            <HwField Name="CGM_VSQ_LLFC_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="VSQ_PFC_STATUS">
+                    <Access>
+                        <Register Name="CFC_CGM_VSQ_PFC_STATUSr">
+                            <HwField Name="CGM_VSQ_PFC_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FC_GLB_RSC_STATUS">
+        <OneLineDescription>For different types of flow control, selact the indications to be presented by the status registers and get the status of the received Flow control indications.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="FC_INDEX" Type="UINT" Size="4" MaxValue="12"/>
+                <Field Name="CORE_ID"/>
+            </Key>
+            <Result>
+                <Field Name="STATUS" Type="ARRAY32" Permission="READONLY" Size="1" Description="Present Flow Control indications generated by the Global resources.."/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="DPC"/>
+            <FieldMapping>
+                <Field Name="STATUS">
+                    <Access>
+                        <KeyCondition Field="FC_INDEX" Type="EQUAL_TO" Value="0"></KeyCondition>
+                        <Register Name="CFC_CGM_GLBL_FC_STATUSr">
+                            <HwField Name="GLB_RSC_DRAM_FC_LPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS">
+                    <Access>
+                        <KeyCondition Field="FC_INDEX" Type="EQUAL_TO" Value="1"></KeyCondition>
+                        <Register Name="CFC_CGM_GLBL_FC_STATUSr">
+                            <HwField Name="GLB_RSC_DRAM_FC_HPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS">
+                    <Access>
+                        <KeyCondition Field="FC_INDEX" Type="EQUAL_TO" Value="2"></KeyCondition>
+                        <Register Name="CFC_CGM_GLBL_FC_STATUSr">
+                            <HwField Name="GLB_RSC_SRAM_FC_LPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS">
+                    <Access>
+                        <KeyCondition Field="FC_INDEX" Type="EQUAL_TO" Value="3"></KeyCondition>
+                        <Register Name="CFC_CGM_GLBL_FC_STATUSr">
+                            <HwField Name="GLB_RSC_SRAM_FC_HPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS">
+                    <Access>
+                        <KeyCondition Field="FC_INDEX" Type="EQUAL_TO" Value="4"></KeyCondition>
+                        <Register Name="CFC_CGM_GLBL_FC_STATUSr">
+                            <HwField Name="GLB_RSC_DRAM_POOL_0_FC_LPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS">
+                    <Access>
+                        <KeyCondition Field="FC_INDEX" Type="EQUAL_TO" Value="5"></KeyCondition>
+                        <Register Name="CFC_CGM_GLBL_FC_STATUSr">
+                            <HwField Name="GLB_RSC_DRAM_POOL_0_FC_HPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS">
+                    <Access>
+                        <KeyCondition Field="FC_INDEX" Type="EQUAL_TO" Value="6"></KeyCondition>
+                        <Register Name="CFC_CGM_GLBL_FC_STATUSr">
+                            <HwField Name="GLB_RSC_DRAM_POOL_1_FC_LPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS">
+                    <Access>
+                        <KeyCondition Field="FC_INDEX" Type="EQUAL_TO" Value="7"></KeyCondition>
+                        <Register Name="CFC_CGM_GLBL_FC_STATUSr">
+                            <HwField Name="GLB_RSC_DRAM_POOL_1_FC_HPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS">
+                    <Access>
+                        <KeyCondition Field="FC_INDEX" Type="EQUAL_TO" Value="8"></KeyCondition>
+                        <Register Name="CFC_CGM_GLBL_FC_STATUSr">
+                            <HwField Name="GLB_RSC_SRAM_POOL_0_FC_LPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS">
+                    <Access>
+                        <KeyCondition Field="FC_INDEX" Type="EQUAL_TO" Value="9"></KeyCondition>
+                        <Register Name="CFC_CGM_GLBL_FC_STATUSr">
+                            <HwField Name="GLB_RSC_SRAM_POOL_0_FC_HPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS">
+                    <Access>
+                        <KeyCondition Field="FC_INDEX" Type="EQUAL_TO" Value="10"></KeyCondition>
+                        <Register Name="CFC_CGM_GLBL_FC_STATUSr">
+                            <HwField Name="GLB_RSC_SRAM_POOL_1_FC_LPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS">
+                    <Access>
+                        <KeyCondition Field="FC_INDEX" Type="EQUAL_TO" Value="11"></KeyCondition>
+                        <Register Name="CFC_CGM_GLBL_FC_STATUSr">
+                            <HwField Name="GLB_RSC_SRAM_POOL_1_FC_HPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="STATUS">
+                    <Access>
+                        <KeyCondition Field="FC_INDEX" Type="EQUAL_TO" Value="12"></KeyCondition>
+                        <Register Name="CFC_CGM_GLBL_FC_STATUSr">
+                            <HwField Name="GLB_RSC_HDRM_FC_HPf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+    <AppDB Name="FC_OOB_STATUS">
+        <OneLineDescription>For different OOB flow control, get the status of the received Flow control indications.</OneLineDescription>
+        <AccessMethod>HARD_LOGIC</AccessMethod>
+        <Maturity Level="HIGH"/>
+        <AppDbInterface Type="DIRECT">
+            <Key>
+                <Field Name="OOB_IF" Type="BOOL"/>
+            </Key>
+            <Result>
+                <Field Name="OOB_RX_PFC_STATUS" Permission="READONLY" Type="ARRAY32" Size="64" Description="Present PFC based flow control status indications received by SPI-OOB-RX-0. 64 bits are selected by OOB_RX_PFC_SEL"/>
+                <Field Name="OOB_RX_LLFC_STATUS" Permission="READONLY" Type="ARRAY32" Size="104" Description="Present Link level FC based flow control status indications received by SPI-OOB-RX-0."/>
+                <Field Name="OOB_RX_GEN_PFC_STATUS" Permission="READONLY" Type="ARRAY32" Size="32" Description="Present Generic PFC bitmap index indications received by SPI-OOB-RX-0."/>
+                <Field Name="ILKN_OOB_RX_FC_STATUS" Permission="READONLY" Type="ARRAY32" Size="512" Description="Present OOB Flow control status indications received by ILKN-OOB-RX-0. Count according settings of ILKN-RX-0 CFC_ILKN_RX_CONFIGURATION"/>
+                <Field Name="ILKN_PP_RX_FC_STATUS" Permission="READONLY" Type="ARRAY32" Size="512" Description="Present InB Flow control status indications received by ILKN-INB-RX-3 Count according settings of ILKN-RX-3 CFC_ILKN_RX_CONFIGURATION"/>
+            </Result>
+            <TableLabels>FC</TableLabels>
+        </AppDbInterface>
+        <AppToPhyDbMapping>
+            <CoreMode Mode="SBC"/>
+            <FieldMapping>
+                <Field Name="OOB_RX_PFC_STATUS">
+                    <Access>
+                        <Register Name="CFC_SPI_OOB_RX_PFC_STATUSr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="SPI_OOB_RX_PFC_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OOB_RX_LLFC_STATUS">
+                    <Access>
+                        <Register Name="CFC_SPI_OOB_RX_LLFC_STATUSr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="SPI_OOB_RX_LLFC_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="OOB_RX_GEN_PFC_STATUS">
+                    <Access>
+                        <Register Name="CFC_SPI_OOB_RX_GEN_PFC_STATUSr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="SPI_OOB_RX_GEN_PFC_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_OOB_RX_FC_STATUS">
+                    <Access>
+                        <Register Name="CFC_ILKN_OOB_RX_FC_STATUSr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="ILKN_OOB_RX_FC_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+                <Field Name="ILKN_PP_RX_FC_STATUS">
+                    <Access>
+                        <Register Name="CFC_ILKN_PP_RX_4_FC_STATUSr">
+                            <BlockIndex Formula="OOB_IF"/>
+                            <HwField Name="ILKN_PP_RX_4_FC_STATUSf"/>
+                        </Register>
+                    </Access>
+                </Field>
+            </FieldMapping>
+        </AppToPhyDbMapping>
+    </AppDB>
+</AppDbCatalog>
+
