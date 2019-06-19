@@ -639,7 +639,7 @@ typedef struct sal_int64_s  { int u64_w[2]; } sal_int64_t;
 #if defined(COMPILER_WILL_USE_STATIC) || (defined(COMPILER_HAS_STATIC) && !defined(BROADCOM_DEBUG))
 #  define STATIC    static
 # else
-#  define STATIC static /* PTin corrected */
+#  define STATIC 
 # endif
 #endif /* !STATIC */
 
