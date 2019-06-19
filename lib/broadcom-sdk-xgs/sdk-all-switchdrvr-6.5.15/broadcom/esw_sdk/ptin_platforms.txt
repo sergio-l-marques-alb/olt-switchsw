@@ -7,6 +7,7 @@
 ./make/Makefile.linux-kernel-2_6
 ./make/Makefile.linux-cxo2t4-e500mc-3_x
 ./make/Makefile.linux-cxo2t2-arm64-3_x
+./make/Makefile.linux-ae48ge-4_x
 ./make/Makefile.linux-e500-2_6
 ./make/Makefile.linux-e500mc-2_6
 ./make/Makefile.linux-helixarm-2_6
