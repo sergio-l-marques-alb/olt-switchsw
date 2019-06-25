@@ -141,8 +141,13 @@ static int _chk_unicore(int unit, soc_port_t port,
 #endif /* INCLUDE_PHY_XGXS6 */
 
 #if defined(INCLUDE_PHY_8706)
+#ifdef LVL7_FIXUP
+ int _chk_8706(int unit, soc_port_t port, soc_phy_table_t *my_entry,
+			   uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi);
+#else
 static int _chk_8706(int unit, soc_port_t port, soc_phy_table_t *my_entry,
                      uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi);
+#endif
 #endif /* INCLUDE_PHY_8706 */
 
 #if defined(INCLUDE_PHY_8072)
@@ -5236,7 +5241,11 @@ _chk_sfp_phy(int unit, soc_port_t port, soc_phy_table_t *my_entry,
 }
 
 #if defined(INCLUDE_PHY_8706)
-static int
+#ifndef LVL7_FIXUP
+static 
+#endif
+int
+//static int
 _chk_8706(int unit, soc_port_t port, soc_phy_table_t *my_entry,
              uint16 phy_id0, uint16 phy_id1, soc_phy_info_t *pi)
 {

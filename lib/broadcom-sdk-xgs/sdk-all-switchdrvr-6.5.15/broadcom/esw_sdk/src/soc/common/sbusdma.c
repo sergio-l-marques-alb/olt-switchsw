@@ -54,6 +54,8 @@
 #define RD_DMA_STAT_CLR                  3
 #endif 
 
+#include <stdio.h>
+
 typedef struct soc_sbusdma_reg_s {
     soc_sbusdma_reg_drv_t drv;
     soc_sbusdma_cmic_ch_t  ch;

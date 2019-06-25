@@ -266,6 +266,7 @@ _bcm_link_fault_get(int unit, int port, int *fault)
 {
     int rv, speed;
     uint32 flags;
+    int value;
 
 #ifdef BCM_DNX_SUPPORT
     if (SOC_IS_DNX(unit)) {
@@ -298,6 +299,19 @@ _bcm_link_fault_get(int unit, int port, int *fault)
     if (BCM_FAILURE(rv)) {
         return rv;
     }
+
+    #if 1
+    /* PTin added: clear not necessary flags */
+    if (bcm_port_control_get(unit, port, bcmPortControlLinkFaultLocal, &value) != BCM_E_NONE || value ==0)
+    {
+      flags &= ~((uint32) BCM_PORT_FAULT_LOCAL);
+    }
+    if (bcm_port_control_get(unit, port, bcmPortControlLinkFaultRemote, &value) != BCM_E_NONE || value == 0)
+    {
+      flags &= ~((uint32)BCM_PORT_FAULT_REMOTE);
+    }
+    #endif
+
     if (flags & BCM_PORT_FAULT_REMOTE) {
         *fault = TRUE;
     }
