@@ -30,6 +30,15 @@
 #include "l7_productspecs.h"
 #include "l7_platformspecs.h"
 
+/**************************************************************** 
+ * Default PATHS
+ ****************************************************************/
+
+#define FILESYSTEM_LOG_PATH     "/var/log/switchdrvr/"
+#define FILESYSTEM_SCRIPTS_PATH "/usr/local/ptin/sbin/"
+#define FILESYSTEM_VAR_PATH     "/usr/local/ptin/sbin/"
+#define FILESYSTEM_SBIN_PATH    "/usr/local/ptin/sbin/"
+#define FILESYSTEM_TMP_PATH     "/tmp/"
 
 /*********************************************************************
 **  Start of Base paramters 
