@@ -733,11 +733,11 @@ void hapiBroadUspGet(L7_uint32 cpuId, L7_int32 unit, L7_int32 port, DAPI_t *dapi
 void hapiBroadLogicalUspGet(L7_int32 unit, L7_int32 port, DAPI_t *dapi_g, DAPI_USP_t *usp);
 
 void hapiBroadCpuTxRxInit(DAPI_t *dapi_g);
-void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g);
-void hapiBroadBpduTxTask(L7_uint32 numArgs, DAPI_t *dapi_g);
+void hapiBroadReceiveTask(DAPI_t *dapi_g, L7_uint32 numArgs);
+void hapiBroadBpduTxTask(DAPI_t *dapi_g, L7_uint32 numArgs);
 #ifdef L7_METRO_FLEX_PACKAGE
 #ifdef L7_DOT1AD_PACKAGE
-void hapiBroadPduTransmitTask(L7_uint32 numArgs, DAPI_t *dapi_g);
+void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs);
 L7_RC_t hapiBroadRxProtoSnoopModify(BROAD_PKT_RX_MSG_t *pktRxMsg,DAPI_t *dapi_g);
 #endif
 #endif

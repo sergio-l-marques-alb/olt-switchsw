@@ -215,7 +215,7 @@ L7_RC_t dtlStartTask(L7_uint32 *taskId)
     return(L7_ERROR);
   }
 
-  *taskId = osapiTaskCreate("dtlTask",dtlTask,0,L7_NULLPTR,
+  *taskId = osapiTaskCreate("dtlTask", dtlTask, L7_NULLPTR, 0,
                             dtlSidTaskStackSizeGet(),
                             dtlSidTaskPriorityGet(),    //80,//dtlSidTaskPriorityGet(),     //PTIn modified
                             dtlSidTaskSliceGet());  //1);//dtlSidTaskSliceGet());
@@ -244,7 +244,7 @@ L7_RC_t dtlStartTask(L7_uint32 *taskId)
     return L7_ERROR;
   }
 
-  dtlAddrTask = osapiTaskCreate("dtlAddrTask",dtlTaskAddr,0,L7_NULLPTR,
+  dtlAddrTask = osapiTaskCreate("dtlAddrTask", dtlTaskAddr, L7_NULLPTR, 0,
                                 dtlSidTaskStackSizeGet(),
                                 dtlSidTaskPriorityGet(),
                                 dtlSidTaskSliceGet());

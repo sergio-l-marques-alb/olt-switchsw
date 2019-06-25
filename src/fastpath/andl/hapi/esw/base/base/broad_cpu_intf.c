@@ -627,7 +627,7 @@ void hapiBroadCpuTxRxInit(DAPI_t *dapi_g)
   }
 
   /* spawn BPDU sender task */
-  if (osapiTaskCreate("hapiBpduTxTask",hapiBroadBpduTxTask,1,dapi_g, L7_DEFAULT_STACK_SIZE,
+  if (osapiTaskCreate("hapiBpduTxTask",hapiBroadBpduTxTask, dapi_g, 1, L7_DEFAULT_STACK_SIZE,
                        L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
     L7_LOG_ERROR(0);
@@ -648,7 +648,7 @@ void hapiBroadCpuTxRxInit(DAPI_t *dapi_g)
   }
 
   /* spawn L2 Protocol Tunnel task */
-  if (osapiTaskCreate("hapiPduTransmitTask",hapiBroadPduTransmitTask,1,dapi_g, L7_DEFAULT_STACK_SIZE,
+  if (osapiTaskCreate("hapiPduTransmitTask",hapiBroadPduTransmitTask, dapi_g, 1, L7_DEFAULT_STACK_SIZE,
                        L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)
   {
     L7_LOG_ERROR(0);
@@ -666,7 +666,7 @@ void hapiBroadCpuTxRxInit(DAPI_t *dapi_g)
   }
 
   /* spawn RX task */
-  if (osapiTaskCreate("hapiRxTask",hapiBroadReceiveTask,1,dapi_g, L7_DEFAULT_STACK_SIZE,
+  if (osapiTaskCreate("hapiRxTask",hapiBroadReceiveTask, dapi_g, 1, L7_DEFAULT_STACK_SIZE,
                       L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)  //80,1) == L7_ERROR) //L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)     //PTIn modified
   {
     L7_LOG_ERROR(0);
@@ -3457,7 +3457,7 @@ void rxStats(int clear)
 * @end
 *
 *********************************************************************/
-void hapiBroadReceiveTask(L7_uint32 numArgs, DAPI_t *dapi_g)
+void hapiBroadReceiveTask(DAPI_t *dapi_g, L7_uint32 numArgs)
 {
   L7_netBufHandle      frameHdl=L7_NULL;
   L7_uint32            frameLen;
@@ -4749,7 +4749,7 @@ L7_BOOL hapiBroadReceivePdu(L7_netBufHandle frameHdl,
 * @end
 *
 *********************************************************************/
-void hapiBroadBpduTxTask(L7_uint32 numArgs, DAPI_t *dapi_g)
+void hapiBroadBpduTxTask(DAPI_t *dapi_g, L7_uint32 numArgs)
 {
   BROAD_TX_BPDU_MSG_t    bpdu_msg;
   bcmx_lplist_t          lplist;
@@ -6313,7 +6313,7 @@ void hapiBroadTagRemove(L7_uchar8 *pkt, L7_uint32 *frameLen)
 * @end
 *
 *********************************************************************/
-void hapiBroadPduTransmitTask(L7_uint32 numArgs, DAPI_t *dapi_g)
+void hapiBroadPduTransmitTask(DAPI_t *dapi_g, L7_uint32 numArgs)
 {
   BROAD_TX_PDU_MSG_t              pdu_msg;
   bcm_pkt_t                       bcm_pkt;

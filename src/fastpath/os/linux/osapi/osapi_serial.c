@@ -47,5 +47,5 @@ static void osapiSerialDevshellTask (void)
 
 void osapiDevshellTaskInit (void)
 {
-  osapiTaskCreate ("serialInput", (void *) osapiSerialDevshellTask, 0, L7_NULLPTR, 16 * 1024, 5, 0);
+  osapiTaskCreate ("serialInput", (void *) osapiSerialDevshellTask, L7_NULLPTR, 0, 16 * 1024, 5, 0);
 }

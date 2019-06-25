@@ -450,8 +450,7 @@ L7_RC_t ssltListenTaskStartup(ssltSecureTypes_t secureType)
   }
   taskId = (L7_uint32)osapiTaskCreate(taskName,
                                       (void *)ssltListenTask,
-                                      argc,
-                                      argv,
+                                      argv, argc,
                                       L7_DEFAULT_STACK_SIZE,
                                       L7_DEFAULT_TASK_PRIORITY,
                                       L7_DEFAULT_TASK_SLICE);
@@ -588,8 +587,7 @@ void ssltListenReady(BIO *rdy_acc, ssltSecureTypes_t secureType)
     /* Create a task to handle the SSLT Connection */
     taskId = (L7_uint32)osapiTaskCreate("ssltConnTask",
                                         (void *)ssltConnectionTask,
-                                        argc,
-                                        argv,
+                                        argv, argc, 
                                         L7_DEFAULT_STACK_SIZE,
                                         L7_DEFAULT_TASK_PRIORITY,
                                         L7_DEFAULT_TASK_SLICE);
@@ -630,7 +628,7 @@ void ssltListenReady(BIO *rdy_acc, ssltSecureTypes_t secureType)
 * @end
 *
 *********************************************************************/
-void ssltListenTask(int argc, L7_uint32 *argv[])
+void ssltListenTask(L7_uint32 *argv[], int argc)
 {
   ssltSecureTypes_t secureType = SSLT_SECURE_ADMIN;
   BIO* acc = L7_NULL;
@@ -822,7 +820,7 @@ void ssltListenTask(int argc, L7_uint32 *argv[])
 * @end
 *
 *********************************************************************/
-void ssltListenTask(int argc, L7_uint32 *argv[])
+void ssltListenTask(L7_uint32 *argv[], int argc)
 {
   ssltSecureTypes_t secureType = SSLT_SECURE_ADMIN;
   BIO* acc = L7_NULL;
@@ -970,7 +968,7 @@ void ssltListenTask(int argc, L7_uint32 *argv[])
 *
 *********************************************************************/
 
-void ssltConnectionTask(int argc, L7_uint32 *argv[])
+void ssltConnectionTask(L7_uint32 *argv[], int argc)
 {
   ssltSecureTypes_t secureType = SSLT_SECURE_ADMIN;
   SSL *ssl = L7_NULL;

@@ -2912,7 +2912,7 @@ unsigned short osapi_inet_cksum(char *buf, int size)
 
 }
 
-int osapi_ping_rx(int argc, void *argv[])
+int osapi_ping_rx(void *argv[], int argc)
 {
 
   int rc, sock, fromlen, ip_hdrlen;
@@ -3059,7 +3059,7 @@ L7_uint32 osapiPingTimed(L7_char8 *hostName, L7_int32 numPackets, L7_uint32 msWa
 
   /* start receive task */
   if ((rx_task_id = osapiTaskCreate("osapi_ping_rx", osapi_ping_rx,
-                                    4, &rx_args,
+                                    &rx_args, 4,
                                     L7_DEFAULT_STACK_SIZE,
                                     L7_DEFAULT_TASK_PRIORITY,
                                     L7_DEFAULT_TASK_SLICE)) == L7_ERROR)

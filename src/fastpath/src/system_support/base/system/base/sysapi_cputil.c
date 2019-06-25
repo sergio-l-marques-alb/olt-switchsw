@@ -1517,8 +1517,7 @@ L7_RC_t sysapiCpuUtilTaskStart ()
 
     cpuUtilMonitorTaskPtr = osapiTaskCreate("cpuUtilMonitorTask",
                                             osapiCpuUtilMonitorTask,
-                                            2,
-                                            &argv,
+                                            &argv, 2,
                                             L7_DEFAULT_STACK_SIZE,
                                             90, //1,                     //PTIn modified
                                             1);

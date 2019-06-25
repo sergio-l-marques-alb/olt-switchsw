@@ -698,7 +698,7 @@ L7_RC_t rlimThreadCreate(void)
   }
 
   rlimOpData->procTaskHandle = osapiTaskCreate(RLIM_PROC_TASK, rlimProcTask,
-                                               L7_NULL, L7_NULLPTR,
+                                               L7_NULLPTR, L7_NULL,
                                                L7_DEFAULT_STACK_SIZE,
                                                L7_DEFAULT_TASK_PRIORITY,
                                                L7_DEFAULT_TASK_SLICE);
@@ -721,7 +721,7 @@ L7_RC_t rlimThreadCreate(void)
   }
 
   rlimOpData->cnfgrTaskHandle = osapiTaskCreate(RLIM_CNFGR_TASK, rlimCnfgrTask,
-                                                L7_NULL, L7_NULLPTR,
+                                                L7_NULLPTR, L7_NULL,
                                                 L7_DEFAULT_STACK_SIZE,
                                                 L7_DEFAULT_TASK_PRIORITY,
                                                 L7_DEFAULT_TASK_SLICE);

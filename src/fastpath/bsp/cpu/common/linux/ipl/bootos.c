@@ -311,8 +311,8 @@ int fp_main(int argc, char *argv[])
    */
   startupStatusTaskID = osapiTaskCreate("startupStatus",
                         (VOIDFUNCPTR)startupStatusTask,
-                        0,
                         L7_NULLPTR,
+                        0,
                         L7_DEFAULT_STACK_SIZE,
                         L7_TASK_PRIORITY_LEVEL(0),
                         L7_DEFAULT_TASK_SLICE);
@@ -328,8 +328,8 @@ int fp_main(int argc, char *argv[])
    */
   osapiTaskCreate( "LM75monitor",
                    ( VOIDFUNCPTR )LM75MonitorTask,
-                   0,
                    L7_NULLPTR,
+                   0,
                    L7_DEFAULT_STACK_SIZE,
                    L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
                    L7_DEFAULT_TASK_SLICE);
@@ -1060,8 +1060,8 @@ int main(int argc, char *argv[], char *envp[])
 #endif
      osapiTaskCreate ("fp_main_task",
                         ( VOIDFUNCPTR )fp_main,
-                        0,
                         L7_NULLPTR,
+                        0,
                         L7_DEFAULT_STACK_SIZE,
                         L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
                         L7_DEFAULT_TASK_SLICE);

@@ -81,7 +81,7 @@ static void hapiBroadL3AsyncTunnelNhopDelete(BROAD_L3_NH_ENTRY_t *pTunNhop,
 * @end
 *
 *******************************************************************************/
-void hapiBroadL3AsyncTask(L7_uint32 num_args, DAPI_t *dapi_g)
+void hapiBroadL3AsyncTask(DAPI_t *dapi_g, L7_uint32 num_args)
 {
   /* This task is typically woken up when L3 entries are queued to work lists. 
    * Note that, work can be queued because of DAPI L3 command or L2 events

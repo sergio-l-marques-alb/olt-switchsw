@@ -238,7 +238,7 @@ static L7_RC_t dhcpsProcessingTaskCreate(void)
   /* Create mapping layer thread */
   dhcpsProcTaskHandle = osapiTaskCreate(DHCPS_PROC_TASK,
       dhcpsProcTask,
-      L7_NULL, L7_NULLPTR,
+      L7_NULLPTR, L7_NULL,
       L7_DEFAULT_STACK_SIZE,
       L7_DEFAULT_TASK_PRIORITY,
       L7_DEFAULT_TASK_SLICE);

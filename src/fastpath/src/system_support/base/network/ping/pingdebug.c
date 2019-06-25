@@ -41,7 +41,7 @@ L7_RC_t pingCallback1( void *ctxt, L7_ushort16 seqNo, L7_uint32 rtt )
 
 unsigned short handles[16];
 
-void *syncPingTest( int argc, void *argv[] )
+void *syncPingTest( void *argv[], int argc )
 {
     unsigned short handle;
     pingSessionResp_t resp;
@@ -114,7 +114,7 @@ static L7_RC_t traceRouteCallbackFn1( void *param, L7_ushort16 handle,
   return L7_SUCCESS;
 }
 
-void *syncTraceRouteTest( int argc, void *argv[] )
+void *syncTraceRouteTest( void *argv[], int argc )
 {
     unsigned short handle;
     traceRouteResp_t resp;
@@ -211,7 +211,7 @@ traceRouteRandomTest()
             rxArgs[0] = req1;
 
             if ((taskHandle =  osapiTaskCreate( "cliTraceRouteAsync", 
-                        syncTraceRouteTest, 1, &rxArgs, L7_DEFAULT_STACK_SIZE,
+                        syncTraceRouteTest, &rxArgs, 1, L7_DEFAULT_STACK_SIZE,
                         L7_DEFAULT_TASK_PRIORITY,
                         L7_DEFAULT_TASK_SLICE)) == L7_FAILURE)
             {
@@ -325,7 +325,7 @@ randomPingTest()
             rxArgs[0] = req1;
 
             if ((taskHandle =  osapiTaskCreate( "cliPingSessionAsync", 
-                        syncPingTest, 1, &rxArgs, L7_DEFAULT_STACK_SIZE,
+                        syncPingTest, &rxArgs, 1, L7_DEFAULT_STACK_SIZE,
                         L7_DEFAULT_TASK_PRIORITY,
                         L7_DEFAULT_TASK_SLICE)) == L7_FAILURE)
             {
@@ -416,7 +416,7 @@ pingStartSync( pingSessionReq_t *req )
     rxArgs[0] = req1;
 
     if ((taskHandle =  osapiTaskCreate( "cliTraceRouteAsync", 
-            syncTraceRouteTest, 1, &rxArgs, L7_DEFAULT_STACK_SIZE,
+            syncTraceRouteTest, &rxArgs, 1, L7_DEFAULT_STACK_SIZE,
             L7_DEFAULT_TASK_PRIORITY, L7_DEFAULT_TASK_SLICE)) == L7_FAILURE)
     {
        SYSAPI_PRINTF( SYSAPI_APPLICATION_LOGGING_ALWAYS,

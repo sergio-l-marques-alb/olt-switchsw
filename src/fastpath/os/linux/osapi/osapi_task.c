@@ -365,7 +365,7 @@ void *osapi_task_wrapper(void *arg)
   pthread_setspecific(osapi_name_key, (void *)(task->name));
   pthread_setspecific(osapi_signal_key, (void *)&(task->signal_lock));
 
-  (*((void (*)(int, void *))(task->entry)))(task->argc, task->argv);
+  (*((void (*)(void *, int))(task->entry)))(task->argv, task->argc);
 
   /*
   Remove this task from task list
@@ -445,8 +445,8 @@ void *osapi_task_wrapper(void *arg)
 *************************************************************************/
 L7_int32  osapiTaskCreate( L7_char8 *task_name,
                            void *task_entry,
-                           L7_uint32 argc,
                            void *argv,
+                           L7_uint32 argc,
                            L7_uint32 stack_size,
                            L7_uint32 priority,
                            L7_uint32 time_slice )
@@ -2095,7 +2095,7 @@ static unsigned int getCpuTime(char *taskStatFileName)
 * @end
 *
 *********************************************************************/
-void osapiCpuUtilMonitorTask(L7_ulong32 numArgs, L7_uint32 *argv )
+void osapiCpuUtilMonitorTask(L7_uint32 *argv, L7_ulong32 numArgs)
 {
   L7_char8          taskStatFileName[40];
   osapi_task_t     *curTask;

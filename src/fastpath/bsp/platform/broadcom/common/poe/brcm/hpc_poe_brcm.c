@@ -5753,7 +5753,7 @@ static L7_RC_t hpcBrcmPoeSystemDownloadProgressIndicate(SYSAPI_POE_MSG_t *msg)
 * @end
 *
 *******************************************************************************/
-static L7_RC_t hpcBrcmPoeFirmwareUpgradeTask(L7_uint32 args, L7_uint32 *argv)
+static L7_RC_t hpcBrcmPoeFirmwareUpgradeTask(L7_uint32 *argv, L7_uint32 args)
 {
   L7_uint32 offset = L7_NULL;
   L7_uchar8 outBuf[BSC_MSG_LEN];
@@ -5848,7 +5848,7 @@ static L7_RC_t hpcBrcmPoeFirmwareUpgradeTask(L7_uint32 args, L7_uint32 *argv)
   return L7_SUCCESS;
 }
 
-static L7_RC_t hpcBrcmPoeFirmwareDownloadTask(L7_uint32 args, L7_uint32 *argv)
+static L7_RC_t hpcBrcmPoeFirmwareDownloadTask(L7_uint32 *argv, L7_uint32 args)
 {
 #define POE_DOWNLOAD_MAX_OUT_BUF_SIZE  36
 #define POE_DOWNLOAD_DATA_BYTES_IN_PKT 32
@@ -5990,8 +5990,7 @@ L7_RC_t hpcBrcmPoeFirmwareUpgradeBegin(L7_uint32 cardIndex)
   /* The priority of the task that does Firmware download should be the highest */
   if (L7_ERROR == osapiTaskCreate(fw_upgrd_task_name,
                                   hpcBrcmPoeFirmwareUpgradeTask,
-                                  1,
-                                  &card_id,
+                                  &card_id, 1,
                                   L7_DEFAULT_STACK_SIZE,
                                   L7_TASK_PRIORITY_LEVEL(1),
                                   L7_DEFAULT_TASK_SLICE))
@@ -6031,8 +6030,7 @@ L7_RC_t hpcBrcmPoeFirmwareDownloadBegin(L7_uint32 cardIndex)
   /* The priority of the task that does Firmware download should be the highest */
   if (L7_ERROR == osapiTaskCreate(fw_dwnld_task_name,
                                   hpcBrcmPoeFirmwareDownloadTask,
-                                  1,
-                                  &card_id,
+                                  &card_id, 1,
                                   L7_DEFAULT_STACK_SIZE,
                                   L7_TASK_PRIORITY_LEVEL(1),
                                   L7_DEFAULT_TASK_SLICE))
@@ -6361,8 +6359,7 @@ static L7_RC_t hpcBrcmPoeInitPhase2(L7_uint32 cardIndex)
   {
       poeMonitorTaskId = osapiTaskCreate("poe_monitor",
                                          hpcBrcmPoeMonitorTask,
-                                         0,
-                                         L7_NULLPTR,
+                                         L7_NULLPTR, 0,
                                          L7_DEFAULT_STACK_SIZE,
                                          L7_TASK_PRIORITY_LEVEL(L7_DEFAULT_TASK_PRIORITY),
                                          L7_DEFAULT_TASK_SLICE);

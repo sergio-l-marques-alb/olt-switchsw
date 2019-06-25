@@ -42,7 +42,7 @@ L7_uint32           sshdEvTaskId;
 int                 sshd_exited = 1;
 
 extern void         sshd_set_global_protolevel(int protoLevel);
-extern int          sshd_main(int argc, char *argv[]);
+extern int          sshd_main(char *argv[], int argc);
 extern void         sshd_doquit(int reason);
 extern void         sshd_undoquit(void);
 
@@ -206,7 +206,7 @@ sshdListenTaskStartup(void)
         osapiSnprintf(taskName,sizeof("sshd"), "%s", "sshd" );
         sshd_argv[0] = "sshd"; /* doesn't matter */
         taskId = (L7_uint32)osapiTaskCreate(taskName, (void *)sshd_main,
-                                            1, sshd_argv,
+                                            sshd_argv, 1,
                                             L7_DEFAULT_STACK_SIZE,
                                             L7_DEFAULT_TASK_PRIORITY,
                                             L7_DEFAULT_TASK_SLICE);
@@ -350,7 +350,7 @@ L7_RC_t sshdListenTaskRefresh(void)
   return rc;
 }
 
-static void sshdEventKeyGenTask(L7_uint32 numargs, L7_uint32 *argv )
+static void sshdEventKeyGenTask(L7_uint32 *argv, L7_uint32 numargs)
 {
   sshdKeyType_t keyType = argv[0];
   L7_uint32 length = argv[1];
@@ -388,7 +388,7 @@ static L7_RC_t sshdEventKeyGenerate(sshdKeyType_t keyType,
   keyGenArgv[1] = length;
 
   keyGenTaskId = (L7_uint32)osapiTaskCreate("sshdEventKeyGenTask", (void *)sshdEventKeyGenTask,
-                                            2, keyGenArgv,
+                                            keyGenArgv, 2,
                                             sshdSidDefaultStackSize(),
                                             sshdSidDefaultTaskPriority(),
                                             sshdSidDefaultTaskSlice());

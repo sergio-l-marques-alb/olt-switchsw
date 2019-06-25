@@ -1998,7 +1998,7 @@ void printMaxTxTime(int reset)
   }
   fflush(stdout);
 }
-void hapiBroadDebugPktSendTask(L7_uint32 numArgs, DAPI_t *dapi_g)
+void hapiBroadDebugPktSendTask(DAPI_t *dapi_g, L7_uint32 numArgs)
 {
   bcm_pkt_t                pkt;
   bcm_pkt_blk_t            pkt_blk;
@@ -2174,7 +2174,7 @@ int hapiBroadDebugPktSendStart(int unit, int slot, int port, int vlan_id, int pk
 
   if (first_time)
   {
-    if (osapiTaskCreate("hapiTxTask",hapiBroadDebugPktSendTask,1,dapi_g, L7_DEFAULT_STACK_SIZE,
+    if (osapiTaskCreate("hapiTxTask",hapiBroadDebugPktSendTask, dapi_g, 1, L7_DEFAULT_STACK_SIZE,
                         L7_DEFAULT_TASK_PRIORITY,L7_DEFAULT_TASK_SLICE) == L7_ERROR)
     {
         L7_LOG_ERROR(0);

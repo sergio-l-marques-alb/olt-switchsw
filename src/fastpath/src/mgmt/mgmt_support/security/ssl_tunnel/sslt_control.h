@@ -91,10 +91,9 @@ void ssltTask(void);
 
 L7_RC_t ssltListenTaskStartup(ssltSecureTypes_t secureType);
 
-void ssltListenTask(int argc, L7_uint32 *argv[]);
+void ssltListenTask(L7_uint32 *argv[], int argc);
 
-void ssltConnectionTask(int argc,
-                        L7_uint32 *argv[]);
+void ssltConnectionTask(L7_uint32 *argv[], int argc);
 
 L7_RC_t ssltIssueCmd(L7_uint32 event,
                      void *data);

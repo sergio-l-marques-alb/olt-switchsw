@@ -2848,7 +2848,7 @@ void osapiMiscInit(void)
 #ifdef LVL7_DEBUG_BREAKIN
 /* PTin removed: serial port */
 #if (L7_SERIAL_COM_ATTR)
-  osapiTaskCreate("serialInput", (void *)osapiInputTask, 0, L7_NULLPTR, 16*1024, 5, 0);
+  osapiTaskCreate("serialInput", (void *)osapiInputTask, L7_NULLPTR, 0, 16*1024, 5, 0);
 #endif
 #endif
 }
