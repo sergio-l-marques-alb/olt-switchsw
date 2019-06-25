@@ -1,0 +1,446 @@
+Index: fastpath/andl/hapi/esw/ptin/ptin_hapi.c
+===================================================================
+--- fastpath/andl/hapi/esw/ptin/ptin_hapi.c	(revision 7321)
++++ fastpath/andl/hapi/esw/ptin/ptin_hapi.c	(working copy)
+@@ -5532,20 +5532,38 @@ L7_RC_t hapiBroadSystemInstallPtin_postI
+   }
+    
+ #endif
+ 
+ #if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+ 
+-  PT_LOG_ERR(LOG_CTX_STARTUP, "Error commiting policy");
++  PT_LOG_INFO(LOG_CTX_STARTUP, "Special code for AG16GA");
+ 
++#if 0
+   rc = ag16ga_bck_static_switching();
+ 
+   rc |= ag16ga_frontal_static_switching();
+ 
+   return rc; 
+ 
++#else
++  rc = ag16ga_xlate_init();
++  if (rc != L7_SUCCESS)
++  {
++    PT_LOG_ERR(LOG_CTX_STARTUP,"Error initializing translations for AG16GA");
++    return rc;
++  }
++  
++  rc = ag16ga_xconnect_init();
++  if (rc != L7_SUCCESS)
++  {
++    PT_LOG_ERR(LOG_CTX_STARTUP,"Error initializing translations for AG16GA");
++    return rc;
++  }
++
++  return L7_SUCCESS;
++#endif
+ #endif
+ 
+ #if (PTIN_BOARD_IS_GPON)
+   /* For TG16G, IPTV traffic (downstream direction) is going to egress with an extra inner tag with the UNI-VLAN.
+      At egressing is important to guarantee PBIT value of outer vlan is null: Multicast GEM of OLTD only deals with pbit=0 */
+   {
+@@ -5922,12 +5940,209 @@ L7_RC_t ag16ga_frontal_static_switching(
+ 
+   }
+ 
+   return L7_SUCCESS;
+ }
+ 
++L7_RC_t ag16ga_xlate_init(void)
++{
++  int vid_base, vid_new, port, i;
++  bcm_gport_t gport;
++  bcm_port_t bcm_port;
++  bcm_vlan_action_set_t action;
++  bcm_error_t rv;
++
++  /* BCK ports */
++  for (port = PTIN_SYSTEM_N_PONS; port < (PTIN_SYSTEM_N_PORTS - 1); port++)
++  {
++    /* Validate port */
++    if (hapi_ptin_bcmPort_get(port, &bcm_port) != L7_SUCCESS)
++    {
++      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm_port of port %d", port);
++      return L7_FAILURE;
++    }
++
++    /* First key: First do a lookup for port + outerVlan + innerVlan.
++       Second key: If failed do a second lookup for port + outerVlan */
++    if ( ((rv=bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanPortTranslateKeyFirst , bcmVlanTranslateKeyPortOuter)) != BCM_E_NONE) ||
++         ((rv=bcm_vlan_control_port_set( bcm_unit, bcm_port, bcmVlanPortTranslateKeySecond, bcmVlanTranslateKeyPortOuter)) != BCM_E_NONE) )
++    {
++      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation keys (rv=%d)", rv);
++      return L7_FAILURE;
++    }
++
++    /* Enable ingress and egress translations.
++       Also, drop packets that do not fullfil any translation entry. */
++    if ( ((rv=bcm_vlan_control_port_set(bcm_unit, bcm_port, bcmVlanTranslateIngressEnable,   1)) != BCM_E_NONE) ||
++         ((rv=bcm_vlan_control_port_set(bcm_unit, bcm_port, bcmVlanTranslateIngressMissDrop, 1)) != BCM_E_NONE) /*||
++         ((rv=bcm_vlan_control_port_set(bcm_unit, bcm_port, bcmVlanTranslateEgressEnable,    1)) != BCM_E_NONE) ||
++         ((rv=bcm_vlan_control_port_set(bcm_unit, bcm_port, bcmVlanTranslateEgressMissDrop,  1)) != BCM_E_NONE)*/ )
++    {
++      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting translation enables");
++      return L7_FAILURE;
++    }
++
++    /* 4 PONs for each backplane interface */
++    for (i = 0; i < 4; i++)
++    {
++      vid_base = 1024*i;
++      vid_new  = (port-PTIN_SYSTEM_N_PONS)*4 + i + 1;
++
++      bcm_vlan_action_set_t_init(&action);
++
++      /* VLAN actions */
++      action.dt_outer      = bcmVlanActionAdd;
++      action.dt_inner      = bcmVlanActionNone;
++      action.ot_outer      = bcmVlanActionAdd;
++      action.ot_inner      = bcmVlanActionNone;
++      action.new_outer_vlan= vid_new;
++
++      BCM_GPORT_LOCAL_SET(gport, bcm_port);
++
++      PT_LOG_INFO(LOG_CTX_HAPI, "Configuring bcm_port %u / gport 0x%x with vid %u..%u => %u", bcm_port, gport, vid_base, vid_base+1024-1, vid_new);
++
++      rv = bcm_vlan_translate_action_range_add(bcm_unit, gport, vid_base, vid_base+1024-1, BCM_VLAN_INVALID, BCM_VLAN_INVALID, &action);
++
++      if (rv == BCM_E_EXISTS)
++      {
++        PT_LOG_WARN(LOG_CTX_HAPI, "Entry already exists: %d (\"%s\")", rv, bcm_errmsg(rv));
++        return L7_ALREADY_CONFIGURED;
++      }
++      else if (rv == BCM_E_FULL)
++      {
++        PT_LOG_ERR(LOG_CTX_HAPI, "Translation resources exhausted: rv=%d (%s)", rv, bcm_errmsg(rv));
++        return L7_NO_RESOURCES;
++      }
++      else if (rv != BCM_E_NONE)
++      {
++        PT_LOG_ERR(LOG_CTX_HAPI, "Error calling bcm_vlan_translate_action_range_add function: %d (\"%s\")", rv, bcm_errmsg(rv));
++        return L7_FAILURE;
++      }
++
++      PT_LOG_INFO(LOG_CTX_HAPI, "Success configuring bcm_port %u / gport %u with vid %u..%u => %u", bcm_port, gport, vid_base, vid_base+1024-1, vid_new);
++    }
++  }
++
++  PT_LOG_INFO(LOG_CTX_HAPI, "Translations configured\r\n");
++
++  return L7_SUCCESS;
++}
++
++
++L7_RC_t ag16ga_xconnect_init(void)
++{
++  bcm_vlan_t  vlanId;
++  int port_back, port_pon;
++  bcm_gport_t gport1, gport2;
++  bcm_port_t  bcm_port1, bcm_port2;
++  bcm_vlan_control_vlan_t control;
++  bcm_pbmp_t ubmp, pbmp;
++  bcm_error_t rv;
++
++  /* 4 PONs for each backplane interface */
++  for (vlanId = 1; vlanId <= 16; vlanId++)
++  {
++    port_back = PTIN_SYSTEM_N_PONS + (vlanId-1) / 4;
++    port_pon  = vlanId - 1;
++
++    /* Validate port */
++    if (hapi_ptin_bcmPort_get(port_pon, &bcm_port1) != L7_SUCCESS)
++    {
++      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm_port of port %d", port_pon);
++      return L7_FAILURE;
++    }
++    if (hapi_ptin_bcmPort_get(port_back, &bcm_port2) != L7_SUCCESS)
++    {
++      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting bcm_port of port %d", port_back);
++      return L7_FAILURE;
++    }
++
++    /* Get gports */
++    BCM_GPORT_LOCAL_SET(gport1, bcm_port1);
++    BCM_GPORT_LOCAL_SET(gport2, bcm_port2);
++
++    /* Set Crossconnect mode */
++
++    bcm_vlan_control_vlan_t_init(&control);
++
++    rv = bcm_vlan_control_vlan_get(bcm_unit, vlanId, &control);
++    if (rv != BCM_E_NONE)
++    {
++      PT_LOG_ERR(LOG_CTX_HAPI, "Error getting vlan control structure! rv=%d (%s)\r\n", rv, bcm_errmsg(rv));
++      return L7_FAILURE;
++    }
++
++    control.flags |= BCM_VLAN_LEARN_DISABLE;
++    control.forwarding_mode = bcmVlanForwardSingleCrossConnect;
++
++    rv = bcm_vlan_control_vlan_set(bcm_unit, vlanId, control);
++    if (rv != BCM_E_NONE)
++    {
++      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_control_vlan_set(vlanID=%u): error=%d (%s)", vlanId, rv, bcm_errmsg(rv));
++      return L7_FAILURE;
++    }
++
++    /* Set default VLAN on PON ports */
++    rv = bcm_port_untagged_vlan_set(bcm_unit, bcm_port1, vlanId);
++    if (rv != BCM_E_NONE)
++    {
++      PT_LOG_ERR(LOG_CTX_HAPI, "Error default VLAN %u to bcm_port %u: error=%d (%s)", vlanId, bcm_port1, rv, bcm_errmsg(rv));
++      return L7_FAILURE;
++    }
++
++    /* Always add the default VLAN on PON ports */
++    rv = bcm_port_dtag_mode_set(bcm_unit, bcm_port1, BCM_PORT_DTAG_MODE_EXTERNAL);
++    if (rv != BCM_E_NONE)
++    {
++      PT_LOG_ERR(LOG_CTX_HAPI, "Error setting customer type to bcm_port %u: error=%d (%s)", bcm_port1, rv, bcm_errmsg(rv));
++      return L7_FAILURE;
++    }
++    if ((vlanId-1) % 4 == 0)
++    {
++      rv = bcm_port_dtag_mode_set(bcm_unit, bcm_port2, BCM_PORT_DTAG_MODE_INTERNAL);
++      if (rv != BCM_E_NONE)
++      {
++        PT_LOG_ERR(LOG_CTX_HAPI, "Error setting NNI type to bcm_port %u: error=%d (%s)", bcm_port1, rv, bcm_errmsg(rv));
++        return L7_FAILURE;
++      }
++    }
++    
++    /* Add ports to VLAN table */
++    BCM_PBMP_CLEAR(pbmp);
++    BCM_PBMP_CLEAR(ubmp);
++    BCM_PBMP_PORT_ADD(pbmp, bcm_port1);
++    BCM_PBMP_PORT_ADD(pbmp, bcm_port2);
++    BCM_PBMP_PORT_ADD(ubmp, bcm_port1);
++    BCM_PBMP_PORT_ADD(ubmp, bcm_port2);
++
++    rv = bcm_vlan_port_add(bcm_unit, vlanId, pbmp, ubmp);
++    if (rv != BCM_E_NONE)
++    {
++      PT_LOG_ERR(LOG_CTX_HAPI, "Error adding bcm_port %u and %u to VLAN Id %u: %d (%s)",
++                 bcm_port1, bcm_port2, vlanId, rv, bcm_errmsg(rv));
++      return L7_FAILURE;
++    }
++
++    /* Configure crossconnects */
++    rv = bcm_vlan_cross_connect_add(bcm_unit, vlanId, BCM_VLAN_INVALID, gport1, gport2);
++    if (rv != BCM_E_NONE)
++    {
++      PT_LOG_ERR(LOG_CTX_HAPI, "Error with bcm_vlan_cross_connect_add: %d (%s)", rv, bcm_errmsg(rv));
++      return L7_FAILURE;
++    }
++
++    PT_LOG_INFO(LOG_CTX_HAPI, "Created crossconnect between port %u/bcm_port %u/gport 0x%x <-> port %u/bcm_port %u/gport 0x%x, VLAN %u",
++                port_back, bcm_port1, gport1, port_pon, bcm_port2, gport2, vlanId);
++  }
++
++  PT_LOG_INFO(LOG_CTX_HAPI, "Crossconnects configured\r\n");
++
++  return L7_SUCCESS;
++}
++
++
+ L7_RC_t teste_case3(void)
+ {
+   L7_RC_t     rc;
+   BROAD_POLICY_t      policyId;
+   BROAD_POLICY_RULE_t ruleId;
+   L7_uint32 prio, class_id, class_mask;
+Index: fastpath/andl/hapi/esw/ptin/ptin_hapi.h
+===================================================================
+--- fastpath/andl/hapi/esw/ptin/ptin_hapi.h	(revision 7321)
++++ fastpath/andl/hapi/esw/ptin/ptin_hapi.h	(working copy)
+@@ -449,9 +449,12 @@ extern L7_RC_t ag16ga_bck_static_switchi
+  * @author Rui Fernandes (19/06/2018)
+  * 
+  * @return L7_RC_t 
+  */
+ extern L7_RC_t ag16ga_frontal_static_switching();
+ 
++extern L7_RC_t ag16ga_xlate_init(void);
++
++extern L7_RC_t ag16ga_xconnect_init(void);
+ 
+ #endif /*_PTIN_HAPI_H */
+ 
+Index: fastpath/andl/hapi/esw/ptin/ptin_hapi_xlate.c
+===================================================================
+--- fastpath/andl/hapi/esw/ptin/ptin_hapi_xlate.c	(revision 7321)
++++ fastpath/andl/hapi/esw/ptin/ptin_hapi_xlate.c	(working copy)
+@@ -1,7 +1,6 @@
+-#include <bcm/error.h>
+ #include <bcmx/vlan.h>
+ #include <bcmx/port.h>
+ 
+ #include "broad_policy.h"
+ #include "ptin_hapi_xlate.h"
+ #include "logger.h"
+Index: fastpath/andl/hapi/esw/switching/broad_l2_std.c
+===================================================================
+--- fastpath/andl/hapi/esw/switching/broad_l2_std.c	(revision 7321)
++++ fastpath/andl/hapi/esw/switching/broad_l2_std.c	(working copy)
+@@ -1575,21 +1575,17 @@ L7_RC_t hapiBroadIntfDoubleVlanTagConfig
+     /*Check to see if the last port enabled for DTAG just got disabled*/
+     if ((dtagPortCount == 1) &&
+              (dapiCmd->cmdData.doubleVlanTagConfig.enable == L7_FALSE) &&
+              (hapiPortPtr->dtag_mode == L7_TRUE))
+     {
+ 
+-#if PTIN_BOARD == PTIN_BOARD_AG16GA
+-      rv = usl_bcmx_dvlan_mode_set(HAPI_BROAD_DTAG_MODE_INTERNAL);
+-#else
+       rv = usl_bcmx_dvlan_mode_set(HAPI_BROAD_DTAG_MODE_NONE);
+-#endif
+-        if (L7_BCMX_OK(rv) != L7_TRUE)
+-        {
+-          return L7_FAILURE;
+-        }
++      if (L7_BCMX_OK(rv) != L7_TRUE)
++      {
++         return L7_FAILURE;
++      }
+ #if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
+       if(hapiBroadRoboVariantCheck() == __BROADCOM_53115_ID)
+       {
+          if (hapiBroadRoboDoubleVlanDenyRule(dapi_g,L7_FALSE)!= L7_SUCCESS)
+          {
+             SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+@@ -1709,16 +1705,12 @@ static L7_RC_t hapiBroadPortDoubleVlanTa
+       /*
+        *  Make it an uplink port
+        */
+         dtagMode = HAPI_BROAD_DTAG_MODE_INTERNAL;
+     }
+ 
+-#if PTIN_BOARD == PTIN_BOARD_AG16GA
+-    dtagMode = HAPI_BROAD_DTAG_MODE_INTERNAL; /* rigid configurations to all the ports*/
+-#endif
+-
+     rc = usl_bcmx_port_dtag_mode_set(hapiPortPtr->bcmx_lport, dtagMode);
+ 
+     if (L7_BCMX_OK(rc) != L7_TRUE)
+     {
+       SYSAPI_PRINTF( SYSAPI_LOGGING_HAPI_ERROR,
+                      "\n%s %d: In %s call to 'bcmx_port_dtag_mode_set' - FAILED : %d\n",
+Index: fastpath/src/application/base/doublevlantag/dvlantag_cfg.c
+===================================================================
+--- fastpath/src/application/base/doublevlantag/dvlantag_cfg.c	(revision 7321)
++++ fastpath/src/application/base/doublevlantag/dvlantag_cfg.c	(working copy)
+@@ -310,12 +310,17 @@ L7_RC_t dvlantagApplyConfigData()
+ L7_RC_t dvlantagApplyIntfConfigData(L7_uint32 intIfNum)
+ {
+   DVLANTAG_INTF_CFG_t *pCfg;
+   L7_uint32 cfgIndex = dvlantagMapTbl[intIfNum];
+   L7_uint32 tmp;
+ 
++#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
++  PT_LOG_WARN(LOG_CTX_INTF, "dtlDvlantagIntfApply not applied to intIfNum %u", intIfNum);
++  return L7_SUCCESS;
++#endif
++
+   if (dvlantagIntfIsConfigurable(intIfNum, &pCfg) != L7_TRUE)
+     return L7_SUCCESS;
+ 
+   if (dvlantagIntfIsAcquired(intIfNum))
+     return L7_SUCCESS;
+ 
+Index: fastpath/src/application/base/doublevlantag/dvlantag_ih.c
+===================================================================
+--- fastpath/src/application/base/doublevlantag/dvlantag_ih.c	(revision 7321)
++++ fastpath/src/application/base/doublevlantag/dvlantag_ih.c	(working copy)
+@@ -492,12 +492,17 @@ L7_RC_t dvlantagConfigPortApply(L7_uint3
+                 L7_uint32 etherValMask,
+                 L7_uint32 custId)
+ {
+   L7_RC_t        rc = L7_FAILURE;
+   DVLANTAG_DTL_t dTag;
+ 
++#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
++  PT_LOG_WARN(LOG_CTX_INTF, "dtlDvlantagIntfApply not applied to intIfNum %u (mode %u)", intIfNum, mode);
++  return L7_SUCCESS;
++#endif
++
+   dTag.mode = mode;
+   dTag.custId = custId;
+   dTag.etherMask = etherValMask;
+   dTag.etherType = 0x8100;
+   dTag.etherType =  dvlantagCfg->etherType[0];
+ #if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
+Index: fastpath/src/application/ptin/base/ptin_intf.c
+===================================================================
+--- fastpath/src/application/ptin/base/ptin_intf.c	(revision 7321)
++++ fastpath/src/application/ptin/base/ptin_intf.c	(working copy)
+@@ -345,22 +345,20 @@ L7_RC_t ptin_intf_post_init(void)
+         PT_LOG_CRITIC(LOG_CTX_INTF, "Failed to set DAI-trust mode for port# %u", i);
+         return L7_FAILURE;
+       }
+     }
+   #endif
+ 
+-#if (PTIN_BOARD == PTIN_BOARD_AG16GA)
+-    rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_DISABLE);  
+-#else
+-	rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_ENABLE);
+-#endif
++#if (PTIN_BOARD != PTIN_BOARD_AG16GA)
++    rc = usmDbDvlantagIntfModeSet(1, map_port2intIfNum[i], L7_ENABLE);
+     if (rc != L7_SUCCESS)
+     {
+       PT_LOG_CRITIC(LOG_CTX_INTF, "Failed to enable DVLAN mode on port# %u", i);
+       return L7_FAILURE;
+     }
++#endif
+ 
+     rc = usmDbDvlantagIntfEthertypeSet(1, map_port2intIfNum[i], PTIN_TPID_OUTER_DEFAULT, L7_TRUE);
+     if ((rc != L7_SUCCESS) && (rc != L7_ALREADY_CONFIGURED))
+     {
+       PT_LOG_CRITIC(LOG_CTX_INTF, "Failed to configure default TPID 0x%04X on port# %u (rc = %d)", PTIN_TPID_OUTER_DEFAULT, i, rc);
+       return L7_FAILURE;
+@@ -712,20 +710,22 @@ L7_RC_t ptin_intf_portExt_set(const ptin
+       PT_LOG_ERR(LOG_CTX_INTF, "Error applying Priority %u", mefExt->defPrio);
+       return L7_FAILURE;
+     }
+   }
+ 
+   /* Double tag mode set */
++#if (PTIN_BOARD != PTIN_BOARD_AG16GA)
+   if (mefExt->Mask & MSG_HWPORTEXT_MASK_DTAG_ALL2ONE_BUNDLE)
+   {
+     if (usmDbDvlantagIntfModeSet(1, intIfNum, mefExt->dtag_all2one_bundle == 0) != L7_SUCCESS)
+     {
+       PT_LOG_ERR(LOG_CTX_INTF, "Error applying doubletag property (%u)", mefExt->dtag_all2one_bundle);
+       return L7_FAILURE;
+     }
+   }
++#endif
+   
+   if (mefExt->Mask & PTIN_HWPORTEXT_MASK_ACCEPTABLE_FRAME_TYPES)
+   {
+     //rc = usmDbQportsEnableIngressFilteringSet(unit, intIfNum, L7_ENABLE);
+     if ( (mefExt->acceptable_frame_types != L7_DOT1Q_ADMIT_ALL)               && 
+          (mefExt->acceptable_frame_types != L7_DOT1Q_ADMIN_ONLY_VLAN_TAGGED)  && 
+Index: fastpath/src/application/ptin/base/ptin_msg.c
+===================================================================
+--- fastpath/src/application/ptin/base/ptin_msg.c	(revision 7321)
++++ fastpath/src/application/ptin/base/ptin_msg.c	(working copy)
+@@ -16658,13 +16658,13 @@ L7_RC_t ptin_msg_mirror(ipc_msg *inbuffe
+       if(rc != L7_SUCCESS)
+       {
+         PT_LOG_ERR(LOG_CTX_MSG, "Some error occurred (%d)", rc);     
+       } 
+ 
+       usmDbDvlantagIntfModeSet(0, listDstPorts[0], 0 /* service provider double tag mode*/);  
+-        PT_LOG_ERR(LOG_CTX_MSG, "listDstPorts[0] (%d)", listDstPorts[0]);
++      PT_LOG_ERR(LOG_CTX_MSG, "listDstPorts[0] (%d)", listDstPorts[0]);
+       usmDbDvlantagIntfModeSet(0, listDstPorts[0], 1 /* service provider double tag mode*/);
+     }
+   }
+ 
+   PT_LOG_TRACE(LOG_CTX_MSG, "Return value is %u",rc_global);
+   return rc_global;
