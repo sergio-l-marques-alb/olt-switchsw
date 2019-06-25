@@ -1633,7 +1633,7 @@ int ptin_vlan_stat_get(bcm_vlan_t vlanId, bcm_cos_t cos, bcm_vlan_stat_t stat)
 }
 
 // Perfis 'a VLAN: feature unavailable!
-
+#if 0
 int ptin_vlan_policer_policer_set(int port, bcm_vlan_t vlanId, uint32 cir, uint32 eir)
 {
   int error;
@@ -1667,7 +1667,7 @@ int ptin_vlan_policer_policer_set(int port, bcm_vlan_t vlanId, uint32 cir, uint3
 
   return error;
 }
-
+#endif
 
 int ptin_vp_gpon(L7_uint32 pon_port, L7_uint32 network_port, L7_int s_vid, L7_int c_vid)
 {
