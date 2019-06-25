@@ -1,0 +1,269 @@
+Index: fastpath/src/l7public/common/ptin/ptin_globaldefs_olt1t0f.h
+===================================================================
+--- fastpath/src/l7public/common/ptin/ptin_globaldefs_olt1t0f.h	(revision 7321)
++++ fastpath/src/l7public/common/ptin/ptin_globaldefs_olt1t0f.h	(working copy)
+@@ -1,12 +1,14 @@
+ #ifndef _PTIN_GLOBALDEFS_OLT1T0F_H
+ #define _PTIN_GLOBALDEFS_OLT1T0F_H
+ 
+ /* Kernel information */
+ //extern L7_uint olt1t0f_config_mode;
+ 
++#define BOARD_OLT1T0F_HW_V3
++
+ /* If SSM is not supported, comment this line */
+ #define SYNC_SSM_IS_SUPPORTED
+ 
+ #define __Y1731_802_1ag_OAM_ETH__
+ #define APS_CCM_hapiBroadReceive_2_callback_SHORTCUT
+ 
+Index: fastpath/bsp/platform/broadcom/broadcom/xgs5/hpc/sysbrds.c
+===================================================================
+--- fastpath/bsp/platform/broadcom/broadcom/xgs5/hpc/sysbrds.c	(revision 7321)
++++ fastpath/bsp/platform/broadcom/broadcom/xgs5/hpc/sysbrds.c	(working copy)
+@@ -1853,13 +1853,13 @@ L7_RC_t hpcBoardWCinit_bcm56640(void)
+  * Initialize WCs
+  * 
+  * @return L7_rc_t : L7_SUCCESS / L7_FAILURE
+  */
+ L7_RC_t hpcBoardWCinit_bcm56450(void)
+ {
+-  #if (PTIN_BOARD == PTIN_BOARD_TT04SXG)
++#if (PTIN_BOARD == PTIN_BOARD_TT04SXG)
+ 
+     PT_LOG_NOTICE(LOG_CTX_STARTUP,"Katana2: Applying mode 6");
+ 
+     /* Enable Mode 6 for TT04SXG */
+     if (sal_config_set(spn_BCM5645X_CONFIG, "6") != 0)
+       return(L7_FAILURE);
+@@ -1877,13 +1877,13 @@ L7_RC_t hpcBoardWCinit_bcm56450(void)
+      * exchanged through the bcm_port_encap_set API.
+      */
+     /* XE ports are bcm_port 25(32), 27, 33 and 36(34) */
+     if (sal_config_set(spn_PBMP_XPORT_XE, "0x925E000000") != 0)
+       return(L7_FAILURE);
+ 
+-  #elif (PTIN_BOARD == PTIN_BOARD_TG16GF) || (PTIN_BOARD == PTIN_BOARD_AG16GA)
++#elif (PTIN_BOARD == PTIN_BOARD_TG16GF) || (PTIN_BOARD == PTIN_BOARD_AG16GA)
+ 
+     PT_LOG_NOTICE(LOG_CTX_STARTUP,"Katana2: Applying mode 5");
+ 
+     /* Enable Mode 5 for OLT1T0F */
+     if (sal_config_set(spn_BCM5645X_CONFIG, "5") != 0)
+       return(L7_FAILURE);
+@@ -1911,82 +1911,79 @@ L7_RC_t hpcBoardWCinit_bcm56450(void)
+      * exchanged through the bcm_port_encap_set API.
+      */
+     /* XE ports are bcm_port 25(32), 27, 33 and 36(34) */
+     if (sal_config_set(spn_PBMP_XPORT_XE, "0x120A000000") != 0)
+       return(L7_FAILURE);
+ 
+-  #elif (PTIN_BOARD == PTIN_BOARD_OLT1T0F)
+-    #if 0
+-    L7_uint32 slot_mode[PTIN_SYS_SLOTS_MAX];
+-    SYSAPI_HPC_PORT_DESCRIPTOR_t port_descriptor = { L7_PORT_DESC_BCOM_1G_NO_AN };
+-
+-    if (hpcConfigWCmap_read(WC_MAP_FILE, slot_mode) == L7_SUCCESS &&
+-        slot_mode[0] == WC_SLOT_MODE_4x1G)
++#elif (PTIN_BOARD == PTIN_BOARD_OLT1T0F)
++ #ifdef BOARD_OLT1T0F_HW_V3
+     {
+-      PT_LOG_NOTICE(LOG_CTX_STARTUP,"Katana2: Applying mode 2");
+-
+-      olt1t0f_config_mode = WC_SLOT_MODE_4x1G;
++      PT_LOG_NOTICE(LOG_CTX_STARTUP,"Katana2: Applying mode 4");
+ 
+       /* Enable Mode 5 for OLT1T0F */
+-      if (sal_config_set(spn_BCM5645X_CONFIG, "2") != 0)
++      if (sal_config_set(spn_BCM5645X_CONFIG, "4") != 0)
++        return(L7_FAILURE);
++
++      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_1", "0x3210") != 0)
++        return(L7_FAILURE);
++      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_5", "0x3210") != 0)
++        return(L7_FAILURE);
++      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_9", "0x3210") != 0)
++        return(L7_FAILURE);
++      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_13", "0x3210") != 0)
+         return(L7_FAILURE);
+ 
+-      if (sal_config_set(spn_PORTGROUP"_27", "4") != 0)
++      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_21", "0x0231") != 0)
+         return(L7_FAILURE);
+-      if (sal_config_set(spn_PORTGROUP"_28", "4") != 0)
++      if (sal_config_set(spn_XGXS_TX_LANE_MAP"_21", "0x2130") != 0)
++        return(L7_FAILURE);
++
++      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_27", "0x3012") != 0)
++        return(L7_FAILURE);
++      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_28", "0x3012") != 0)
+         return(L7_FAILURE);
+ 
+       /* External memory configuration: All physical ports associated to external memory */
+-      /* 1-16 (PON); 25, 27, 33, 36 (BCK) */
++      /* 1-16 (PON); 27,25,33,36 (10G); 28-31 (1G) */
+       //if (sal_config_set(spn_PBMP_EXT_MEM, "0") != 0)
+-      if (sal_config_set(spn_PBMP_EXT_MEM, "0x07f801fffe") != 0)
++      if (sal_config_set(spn_PBMP_EXT_MEM, "0x259e001fe") != 0)
+         return(L7_FAILURE);
+ 
+       /* XE ports are bcm_port 25(32), 27, 33 and 36(34) */
+-      if (sal_config_set(spn_PBMP_XPORT_XE,"0x0000000000") != 0)
++      if (sal_config_set(spn_PBMP_XPORT_XE,"0x258000000") != 0)
+         return(L7_FAILURE);
+-
+-      /* Correct bcm_port ids */
+-      dapiBroadPhysicalCardEntry_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1.slotMap[13].bcm_port = 32;
+-      dapiBroadPhysicalCardEntry_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1.slotMap[15].bcm_port = 34;
+-      /* Change default speed to 1G */
+-      hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[12] = port_descriptor;
+-      hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[13] = port_descriptor;
+-      hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[14] = port_descriptor;
+-      hpcPortInfoTable_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[15] = port_descriptor;
+     }
+-    else
+-    #endif
++ #else /*BOARD_OLT1T0F_HW_V3*/
+     {
+       //olt1t0f_config_mode = WC_SLOT_MODE_4x10G;
+ 
+       PT_LOG_NOTICE(LOG_CTX_STARTUP,"Katana2: Applying mode 5");
+ 
+       /* Enable Mode 5 for OLT1T0F */
+       if (sal_config_set(spn_BCM5645X_CONFIG, "5") != 0)
+         return(L7_FAILURE);
+ 
++      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_1", "0x3210") != 0)
++        return(L7_FAILURE);
++      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_5", "0x3210") != 0)
++        return(L7_FAILURE);
++      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_9", "0x3210") != 0)
++        return(L7_FAILURE);
++      if (sal_config_set(spn_XGXS_RX_LANE_MAP"_13", "0x3210") != 0)
++        return(L7_FAILURE);
++
+       /* External memory configuration: All physical ports associated to external memory */
+       /* 1-16 (PON); 27,25,33,36 (10G); 28-31 (1G) */
+       //if (sal_config_set(spn_PBMP_EXT_MEM, "0") != 0)
+       if (sal_config_set(spn_PBMP_EXT_MEM, "0x12fa01fffe") != 0)
+         return(L7_FAILURE);
+ 
+       /* XE ports are bcm_port 25(32), 27, 33 and 36(34) */
+       if (sal_config_set(spn_PBMP_XPORT_XE,"0x120a000000") != 0)
+         return(L7_FAILURE);
+     }
+-
+-    if (sal_config_set(spn_XGXS_RX_LANE_MAP"_1", "0x3210") != 0)
+-      return(L7_FAILURE);
+-    if (sal_config_set(spn_XGXS_RX_LANE_MAP"_5", "0x3210") != 0)
+-      return(L7_FAILURE);
+-    if (sal_config_set(spn_XGXS_RX_LANE_MAP"_9", "0x3210") != 0)
+-      return(L7_FAILURE);
+-    if (sal_config_set(spn_XGXS_RX_LANE_MAP"_13", "0x3210") != 0)
+-      return(L7_FAILURE);
+-
+-  #endif
++ #endif /*BOARD_OLT1T0F_HW_V3*/
++#endif
+ 
+     return L7_SUCCESS;
+ }
+ 
+Index: fastpath/bsp/platform/broadcom/broadcom/xgs5/hpc/broad_cards.c
+===================================================================
+--- fastpath/bsp/platform/broadcom/broadcom/xgs5/hpc/broad_cards.c	(revision 7321)
++++ fastpath/bsp/platform/broadcom/broadcom/xgs5/hpc/broad_cards.c	(working copy)
+@@ -1140,12 +1140,31 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSl
+ 
+ /* PTin added: new switch 56450 (Katana2) - OLT1T0F */
+ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_12_GIG_4_TENGIG_1_GS_56450_REV_1[] =
+ /* slotNum  portNum bcm_cpuunit bcm_port portName *
+  * -------  ------- ----------- -------- -------- */
+ {
++#ifdef BOARD_OLT1T0F_HW_V3
++{       0,       0,          0,       1,       "" }, /* 2.5G ETH */
++{       0,       1,          0,       2,       "" },
++{       0,       2,          0,       3,       "" },
++{       0,       3,          0,       4,       "" },
++{       0,       4,          0,       5,       "" },
++{       0,       5,          0,       6,       "" },
++{       0,       6,          0,       7,       "" },
++{       0,       7,          0,       8,       "" },
++{       0,       8,          0,      21,       "" }, /* 1G ETH */
++{       0,       9,          0,      22,       "" },
++{       0,      10,          0,      23,       "" },
++{       0,      11,          0,      24,       "" },
++{       0,      12,          0,      27,       "" }, /* 10G ETH */
++{       0,      13,          0,      33,       "" },
++{       0,      14,          0,      28,       "" },
++{       0,      15,          0,      30,       "" },
++{       0,      16,          0,      40,       "" }, /* GS port for FPGA */
++#else
+ {       0,       0,          0,       1,       "" }, /* 2.5G ETH */
+ {       0,       1,          0,       2,       "" },
+ {       0,       2,          0,       3,       "" },
+ {       0,       3,          0,       4,       "" },
+ {       0,       4,          0,       5,       "" },
+ {       0,       5,          0,       6,       "" },
+@@ -1157,12 +1176,13 @@ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSl
+ {       0,      11,          0,      31,       "" },
+ {       0,      12,          0,      27,       "" }, /* 10G ETH */
+ {       0,      13,          0,      25,       "" },
+ {       0,      14,          0,      33,       "" },
+ {       0,      15,          0,      36,       "" },
+ {       0,      16,          0,      40,       "" }, /* GS port for FPGA */
++#endif
+ };
+ 
+ /* PTin added: new switch 56450 (Katana2) - TG16GF && AG16GA */
+ HAPI_CARD_SLOT_MAP_t dapiBroadBaseCardSlotMap_CARD_BROAD_16_GIG_4_TENGIG_1_GS_56450_REV_1[] =
+ /* slotNum  portNum bcm_cpuunit bcm_port portName *
+  * -------  ------- ----------- -------- -------- */
+Index: fastpath/andl/hapi/esw/base/base/broad_hpc_drv.c
+===================================================================
+--- fastpath/andl/hapi/esw/base/base/broad_hpc_drv.c	(revision 7321)
++++ fastpath/andl/hapi/esw/base/base/broad_hpc_drv.c	(working copy)
+@@ -3423,28 +3423,34 @@ extern int soc_robo_mmu_init(int );
+ #else
+   SYSTEM_INIT_CHECK(bcm_linkscan_enable_set(unit, usec), "Linkscan enable");
+ #endif
+ 
+   /* For katana2, expand XE ports to 4x1G ports regarding to PON and front 1G ports */
+ #if (PTIN_BOARD == PTIN_BOARD_OLT1T0F || PTIN_BOARD == PTIN_BOARD_TG16GF || PTIN_BOARD == PTIN_BOARD_AG16GA)
+-  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 1, bcmPortControlLanes, 4),  "Port xe0(1) lanes 4");
+-  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 5, bcmPortControlLanes, 4),  "Port xe0(5) lanes 4");
+-  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 9, bcmPortControlLanes, 4),  "Port xe0(9) lanes 4");
+-  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 13, bcmPortControlLanes, 4), "Port xe0(13) lanes 4");
++  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 1, bcmPortControlLanes, 4),  "Port ge0(1) lanes 4");
++  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 5, bcmPortControlLanes, 4),  "Port ge4(5) lanes 4");
++  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 9, bcmPortControlLanes, 4),  "Port ge8(9) lanes 4");
++  SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 13, bcmPortControlLanes, 4), "Port ge12(13) lanes 4");
+ 
+-  if (soc_property_get(unit, spn_BCM5645X_CONFIG, 2) == 2)
++  if (soc_property_get(unit, spn_BCM5645X_CONFIG, 5) == 4)
+   {
+-    /* OLT1T0F in mode 2 */
+-    SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 27, bcmPortControlLanes, 4), "Port xe4(27) lanes 4");
+-    SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 28, bcmPortControlLanes, 4), "Port xe4(28) lanes 4");
++    /* OLT1T0F in mode 4 */
++    SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 17, bcmPortControlLanes, 4), "Port ge16(17) lanes 4");
++    SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 21, bcmPortControlLanes, 4), "Port ge20(21) lanes 4");
+   }
+-  else
++  else if (soc_property_get(unit, spn_BCM5645X_CONFIG, 5) == 5)
+   {
+     /* OLT1T0F/TG16GF in mode 5 */
+     SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 28, bcmPortControlLanes, 4), "Port xe2(28) lanes 4");
+   }
++  else if (soc_property_get(unit, spn_BCM5645X_CONFIG, 5) == 2)
++  {
++    /* OLT1T0F in mode 2 */
++    SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 27, bcmPortControlLanes, 4), "Port xe4(27) lanes 4");
++    SYSTEM_INIT_CHECK(bcm_port_control_set(unit, 28, bcmPortControlLanes, 4), "Port xe4(28) lanes 4");
++  }
+ #endif
+ 
+   PT_LOG_INFO(LOG_CTX_STARTUP, "systemInit Finished!");
+ 
+ done:
+   if (msg != NULL) {
