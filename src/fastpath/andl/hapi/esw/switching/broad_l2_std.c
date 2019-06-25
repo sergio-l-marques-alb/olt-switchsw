@@ -60,7 +60,8 @@
 #else
 #include "bcm_int/esw/draco.h"
 #endif
-#include "bcm_int/robo/l2.h"
+/* PTin removed: robo */
+//#include "bcm_int/robo/l2.h"
 #include "bcm_int/esw/firebolt.h"
 /* PTin removed: SDK 6.3.0 */
 #if (SDK_VERSION_IS >= SDK_VERSION(6,0,0,0))
@@ -73,7 +74,8 @@
 #include "l7_usl_bcmx_port.h"
 #include "l7_usl_api.h"
 #include "bcm/auth.h"
-#include "bcm_int/robo/auth.h"
+/* PTin removed: robo */
+//#include "bcm_int/robo/auth.h"
 #include "osapi_support.h"
 #include "dot1s_exports.h"
 #if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)

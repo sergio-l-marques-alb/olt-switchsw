@@ -53,7 +53,8 @@
 #include "soc/macipadr.h"
 #include "soc/mem.h"
 #include "soc/cm.h"
-#include "soc/robo.h"
+/* PTin removed: robo */
+//#include "soc/robo.h"
 
 #include "bcmx/l2.h"
 #include "bcmx/port.h"
@@ -277,11 +278,13 @@ L7_RC_t hapiBroadStdPortInit(DAPI_PORT_t *dapiPortPtr)
 *********************************************************************/
 void hapiBroadMirrorEnable (void)
 {
-  int rv;
+  //int rv;
   bcm_chip_family_t board_family;
 
   hapiBroadGetSystemBoardFamily(&board_family);
 
+  /* PTin removed: robo */
+#if 0
   if(board_family == BCM_FAMILY_ROBO)
   {
     rv = bcmx_mirror_mode_set(BCM_MIRROR_L2);
@@ -301,16 +304,19 @@ void hapiBroadMirrorEnable (void)
       L7_LOG_ERROR(rv);
     }
   }
+#endif
 }
 
 
 static void hapiBroadMirrorDisable (void)
 {
-  int rv;
+  //int rv;
   bcm_chip_family_t board_family;
 
   hapiBroadGetSystemBoardFamily(&board_family);
 
+  /* PTin removed: robo */
+#if 0
   if(board_family == BCM_FAMILY_ROBO)
   {
     rv = bcmx_mirror_mode_set(BCM_MIRROR_DISABLE);
@@ -319,6 +325,7 @@ static void hapiBroadMirrorDisable (void)
        L7_LOG_ERROR(rv);
     }
   }
+#endif
 }
 
 /*********************************************************************
@@ -2397,9 +2404,12 @@ L7_RC_t hapiBroadGetSystemBoardFamily(bcm_chip_family_t *board_family)
     case __BROADCOM_56820_ID:
       *board_family = BCM_FAMILY_SCORPION;
       break;
+    /* PTin removed: robo */
+#if 0
     case __BROADCOM_53115_ID:
        *board_family = BCM_FAMILY_ROBO;
        break;
+#endif
     case __BROADCOM_56843_ID:  /* PTin added: new switch 56843 (Trident) */
       *board_family = BCM_FAMILY_TRIDENT;
       break;

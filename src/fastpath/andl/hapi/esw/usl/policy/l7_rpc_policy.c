@@ -21,7 +21,8 @@
 #include "dapi.h"
 #include "broad_policy_types.h"
 #include "broad_group_bcm.h"
-#include "broad_cfp_bcm.h"
+/* PTin removed: robo */
+//#include "broad_cfp_bcm.h"
 #include "hpc_hw_api.h"
 #include "l7_rpc_policy.h"
 #include "l7_usl_policy_db.h"
@@ -219,9 +220,9 @@ L7_RC_t l7_rpc_server_policy_handler(L7_uint32 tid,
 
 int custom_policy_init()
 {
-  int rv;
+  int rv = L7_SUCCESS;
   int i;
-  L7_BOOL isRobo = L7_FALSE;
+  //L7_BOOL isRobo = L7_FALSE;
   L7_BOOL xgs3 = L7_FALSE;
 
   for (i = 0; i < bde->num_devices(BDE_SWITCH_DEVICES); i++)
@@ -230,19 +231,22 @@ int custom_policy_init()
     {
       xgs3 = L7_TRUE;
     }
+#if 0
     if (SOC_IS_ROBO(i))
     {
       isRobo = L7_TRUE;
     }
-
+#endif
   }
 
 //hapiBroadDebugPolicyEnable(0xFFFFFFFF); /* PTin added: policy debug */
+#if 0
   if (isRobo == L7_TRUE)
   {
     rv = l7_bcm_cfp_policy_init();
   }
-  else
+#endif
+  if (xgs3 == L7_TRUE)
   {
     rv = l7_bcm_policy_init();
   }
@@ -976,10 +980,13 @@ int usl_bcm_policy_create(BROAD_POLICY_t policy, BROAD_POLICY_ENTRY_t *policyInf
           tmpRv = l7_bcm_policy_create(i, policy, policyInfo, L7_TRUE);
           RPC_DEBUG_PRINT("%s(%d) Policy-%d, return %d\r\n",__FUNCTION__,__LINE__,policy,tmpRv);
         }
+        /* PTin removed: robo */
+#if 0
         else if (SOC_IS_ROBO(i))
         {
           tmpRv = l7_bcm_cfp_policy_create(i, policy, policyInfo, L7_TRUE);
         }
+#endif
         if (tmpRv < rv)
           rv = tmpRv;
       }
@@ -1022,10 +1029,13 @@ int usl_bcm_policy_destroy(BROAD_POLICY_t policy)
       {
         tmpRv = l7_bcm_policy_destroy(i, policy);
       }
+      /* PTin removed: robo */
+#if 0
       else if (SOC_IS_ROBO(i))
       {
         tmpRv = l7_bcm_cfp_policy_destroy(i, policy);
       }
+#endif
       if (tmpRv < rv)
         rv = tmpRv;
     }
@@ -1069,11 +1079,14 @@ int usl_bcm_policy_apply_all(BROAD_POLICY_t policyId)
         policyCreateFunc   = l7_bcm_policy_create;
         policyApplyAllFunc = l7_bcm_policy_apply_all;
       }
+      /* PTin removed: robo */
+#if 0
       else if (SOC_IS_ROBO(unit))
       {
         policyCreateFunc   = l7_bcm_cfp_policy_create;
         policyApplyAllFunc = l7_bcm_cfp_policy_apply_all;
       }
+#endif
       else
       {
         return BCM_E_FAIL;
@@ -1156,10 +1169,13 @@ int usl_bcm_policy_remove_all(BROAD_POLICY_t policy)
       {
         tmpRv = l7_bcm_policy_remove_all(i, policy);
       }
+      /* PTin removed: robo */
+#if 0
       else if (SOC_IS_ROBO(i))
       {
         tmpRv = l7_bcm_cfp_policy_remove_all(i, policy);
       }
+#endif
       if (tmpRv < rv)
         rv = tmpRv;
     }
@@ -1202,11 +1218,14 @@ int usl_bcm_policy_port_apply(L7_uint32      unit,
     policyCreateFunc = l7_bcm_policy_create;
     policyApplyFunc  = l7_bcm_policy_apply;
   }
+  /* PTin removed: robo */
+#if 0
   else if (SOC_IS_ROBO(unit))
   {
     policyCreateFunc = l7_bcm_cfp_policy_create;
     policyApplyFunc  = l7_bcm_cfp_policy_apply;
   }
+#endif
   else
   {
     return BCM_E_FAIL;
@@ -1296,10 +1315,13 @@ int usl_bcm_policy_port_remove(L7_uint32      unit,
     {
       rv = l7_bcm_policy_remove(unit, policyId, port);
     }
+    /* PTin removed: robo */
+#if 0
     else if (SOC_IS_ROBO(unit))
     {
       rv = l7_bcm_cfp_policy_remove(unit, policyId, port);
     }
+#endif
   }
 
   if ((L7_BCMX_OK(rv) == L7_TRUE) && 
@@ -1348,10 +1370,13 @@ int usl_bcm_policy_stats_get(BROAD_POLICY_t  policyId,
     {
       tmpRv = l7_bcm_policy_stats(i, policyId, ruleId, rpc_resp->buf, &rpc_resp->data_len);
     }
+    /* PTin removed: robo */
+#if 0
     else if (SOC_IS_ROBO(i))
     {
       tmpRv = l7_bcm_cfp_policy_stats(i, policyId, ruleId, rpc_resp->buf, &rpc_resp->data_len);
     }
+#endif
     if (tmpRv < rv)
       rv = tmpRv;
   }
@@ -1381,10 +1406,13 @@ int usl_bcm_policy_counter_clear(BROAD_POLICY_t policy)
     {
       tmpRv = l7_bcm_policy_counter_clear(i, policy);
     }
+    /* PTin removed: robo */
+#if 0
     else if (SOC_IS_ROBO(i))
     {
       tmpRv = l7_bcm_cfp_policy_counter_clear(i, policy);
     }
+#endif
     if (tmpRv < rv)
       rv = tmpRv;
   }
@@ -1424,10 +1452,13 @@ void usl_bcm_policy_dataplane_cleanup(L7_uint32 policy, L7_uint32 rule, L7_uint3
     {
       l7_bcm_policy_dataplane_cleanup(i, policy, rule, cpu_modid, cpu_modport);
     }
+    /* PTin removed: robo */
+#if 0
     else if (SOC_IS_ROBO(i))
     {
       l7_bcm_cfp_policy_dataplane_cleanup(i, policy, rule, cpu_modid, cpu_modport);
     }
+#endif
   }
 }
 
@@ -1472,10 +1503,13 @@ int usl_bcm_policy_rule_status_set(BROAD_POLICY_t      policyId,
         {
           rv = l7_bcm_policy_rule_status_set(i, policyId, rule, status);
         }
+        /* PTin removed: robo */
+#if 0
         else if (SOC_IS_ROBO(i))
         {
           /* Not Supported for ROBO */
         }
+#endif
     }
     
   }

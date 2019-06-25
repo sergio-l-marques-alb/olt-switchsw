@@ -1216,7 +1216,7 @@ L7_RC_t hapiBroadDebugMemoryDump(L7_int32 memtype, L7_uint32 unit, L7_int32 copy
           printf("0x%08x ", entry[i]);
       }
       else
-        soc_mem_entry_dump(unit, mem, entry);
+        soc_mem_entry_dump(unit, mem, entry, 0x0 /*Flags*/);
 
       printf("\n");
     }
@@ -1720,7 +1720,7 @@ L7_RC_t hapiBroadDebugVlanTable(L7_uint32 unit)
     }
     printf("\n");
 
-    soc_mem_entry_dump(unit, mem, entry);
+    soc_mem_entry_dump(unit, mem, entry, 0x0 /*Flags*/);
 
     printf("\n");
   }
@@ -2998,11 +2998,11 @@ void driverWvTraceSet(void)
   trgOff();
   trgAdd(L7_TRACE_TRIGGER_DRIVER_UNIT_FAIL_START, TRG_ENABLE, TRG_CTX_ANY, 0, 0,
           TRIGGER_COND_NO, 0, 0, 0, 0,
-          1, NULL, TRG_ACT_WV_START, (FUNCPTR)wvEvtLogStart, TRUE, 0);
+          1, NULL, TRG_ACT_WV_START, (L7_FUNCPTR)wvEvtLogStart, TRUE, 0);
 
   trgAdd(L7_TRACE_TRIGGER_DRIVER_UNIT_FAIL_END, TRG_ENABLE, TRG_CTX_ANY, 0, 0,
           TRIGGER_COND_NO, 0, 0, 0, 0,
-          1, NULL, TRG_ACT_WV_STOP, (FUNCPTR)wvEvtLogStop, TRUE, 0);
+          1, NULL, TRG_ACT_WV_STOP, (L7_FUNCPTR)wvEvtLogStop, TRUE, 0);
   trgOn();
 }
 
