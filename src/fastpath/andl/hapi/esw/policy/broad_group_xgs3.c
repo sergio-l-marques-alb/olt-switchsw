@@ -1601,7 +1601,8 @@ static int _policy_super_qset_init_ifp(int unit)
            SOC_IS_VALKYRIE2(unit)||
            SOC_IS_TRIDENT(unit)  || /* PTin added: new switch 56843 (Trident) */
            SOC_IS_TRIUMPH3(unit) || /* PTin added: new switch 5664x and 5634x (Triumph3 and Helix4) */
-           SOC_IS_KATANA2(unit)     /* PTin added: new switch 5645x (Katana2) */
+           SOC_IS_KATANA2(unit)  || /* PTin added: new switch 5645x (Katana2) */
+           SOC_IS_GREYHOUND2(unit)  /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
          )
       {
         rv = _policy_super_qset_add(unit, &l2l3l4Xgs4ClassIdQsetDef, applicable_policy_types);
@@ -1677,8 +1678,10 @@ static int _policy_super_qset_init_ifp(int unit)
   /* PTin added: new switch 56843 (Trident) */
   /* PTin added: new switch 5664x (Triumph3) */
   /* PTin added: new switch 5645x (Katana2) */
-  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit) ||
-      SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
+  /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+  if (SOC_IS_TRIUMPH2(unit)  || SOC_IS_APOLLO(unit)     || SOC_IS_ENDURO(unit)   ||
+      SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit)    || SOC_IS_TRIUMPH3(unit) ||
+      SOC_IS_KATANA2(unit)   || SOC_IS_GREYHOUND2(unit))
   {
     if (SOC_IS_TRIDENT(unit))
       PT_LOG_WARN(LOG_CTX_MISC, "Using systemQsetTriumph2Def for TRIDENT family!");
@@ -1868,15 +1871,16 @@ static int _policy_super_qset_init(int unit)
 
 static int _policy_action_map_init(int unit)
 {
-  if ((SOC_IS_TR_VL(unit)) ||
-      (SOC_IS_SCORPION(unit)) || 
-      (SOC_IS_TRIUMPH2(unit)) || 
-      (SOC_IS_APOLLO(unit)) ||
-      (SOC_IS_ENDURO(unit)) ||
+  if ((SOC_IS_TR_VL(unit))     ||
+      (SOC_IS_SCORPION(unit))  || 
+      (SOC_IS_TRIUMPH2(unit))  || 
+      (SOC_IS_APOLLO(unit))    ||
+      (SOC_IS_ENDURO(unit))    ||
       (SOC_IS_VALKYRIE2(unit)) ||
-      (SOC_IS_TRIDENT(unit)) ||     /* PTin added: new switch 56843 (Trident) */
-      (SOC_IS_TRIUMPH3(unit)) ||    /* PTin added: new switch 5664x (Triumph3) */
-      (SOC_IS_KATANA2(unit))        /* PTin added: new switch 5645x (Katana2) */
+      (SOC_IS_TRIDENT(unit))   ||    /* PTin added: new switch 56843 (Trident) */
+      (SOC_IS_TRIUMPH3(unit))  ||    /* PTin added: new switch 5664x (Triumph3) */
+      (SOC_IS_KATANA2(unit))   ||    /* PTin added: new switch 5645x (Katana2) */
+      (SOC_IS_GREYHOUND2(unit))      /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
      )
   {
     /* Modify action maps for certain actions. */
@@ -2499,8 +2503,10 @@ int _policy_group_calc_qset(int                             unit,
                   /* PTin added: new switch 56689 (Valkyrie2) */
                   /* PTin added: new switch 5664x (Triumph3) */
                   /* PTin added: new switch 5645x (Katana2) */
-                  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) ||
-                      SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
+                  /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+                  if (SOC_IS_TRIUMPH2(unit)  || SOC_IS_APOLLO(unit)     || SOC_IS_ENDURO(unit) ||
+                      SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIUMPH3(unit)   ||
+                      SOC_IS_KATANA2(unit)   || SOC_IS_GREYHOUND2(unit))
                   {
                     /* TunnelTerminated not supported in IFP, so check for TunnelType instead. */
                     BCM_FIELD_QSET_ADD(resourceReq->qsetAgg, bcmFieldQualifyTunnelType);
@@ -3505,8 +3511,10 @@ static int _policy_group_lookupstatus_qualify(int unit, bcm_field_entry_t entry,
     /* PTin added: new switch 56689 (Valkyrie2) */
     /* PTin added: new switch 5664x (Triumph3) */
     /* PTin added: new switch 5645x (Katana2) */
-    if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_ENDURO(unit) || SOC_IS_VALKYRIE2(unit) ||
-        SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
+    /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+    if (SOC_IS_TRIUMPH2(unit)  || SOC_IS_APOLLO(unit)     || SOC_IS_ENDURO(unit) ||
+        SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIUMPH3(unit)   ||
+        SOC_IS_KATANA2(unit)   || SOC_IS_GREYHOUND2(unit))
     {
       /* TunnelTerminated not supported in IFP, use TunnelType instead. */
       BCM_IF_ERROR_RETURN
@@ -4187,14 +4195,15 @@ int hapiBroadPolicyFirstAclDsGroupGet(int unit)
   /* Although Scorpion, TR2, and Apollo support intraslice doublewide mode,
      their system qsets end up using doublewide mode. */
   if (_policy_supports_intraslice_doublewide_mode(unit) && 
-      !SOC_IS_SCORPION(unit) && 
-      !SOC_IS_TRIUMPH2(unit) && 
-      !SOC_IS_APOLLO(unit) &&
-      !SOC_IS_ENDURO(unit) &&
+      !SOC_IS_SCORPION(unit)  && 
+      !SOC_IS_TRIUMPH2(unit)  && 
+      !SOC_IS_APOLLO(unit)    &&
+      !SOC_IS_ENDURO(unit)    &&
       !SOC_IS_VALKYRIE2(unit) &&
-      !SOC_IS_TRIDENT(unit) &&      /* PTin added: new switch 56843 (Trident) */
-      !SOC_IS_TRIUMPH3(unit) &&     /* PTin added: new switch 5664x (Triumph3) */
-      !SOC_IS_KATANA2(unit)         /* PTin added: new switch 5645x (Katana2) */
+      !SOC_IS_TRIDENT(unit)   &&   /* PTin added: new switch 56843 (Trident) */
+      !SOC_IS_TRIUMPH3(unit)  &&   /* PTin added: new switch 5664x (Triumph3) */
+      !SOC_IS_KATANA2(unit)   &&   /* PTin added: new switch 5645x (Katana2) */
+      !SOC_IS_GREYHOUND2(unit)     /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
      )
   {
     /* System rules in slice 0. */
@@ -4553,15 +4562,16 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
     {
     case BROAD_POLICY_STAGE_LOOKUP:
       if (SOC_IS_FIREBOLT2(unit) ||
-          SOC_IS_TR_VL(unit) ||
-          SOC_IS_SCORPION(unit) || 
-          SOC_IS_TRIUMPH2(unit) || 
-          SOC_IS_APOLLO(unit)   ||
-          SOC_IS_ENDURO(unit)   ||
+          SOC_IS_TR_VL(unit)     ||
+          SOC_IS_SCORPION(unit)  || 
+          SOC_IS_TRIUMPH2(unit)  || 
+          SOC_IS_APOLLO(unit)    ||
+          SOC_IS_ENDURO(unit)    ||
           SOC_IS_VALKYRIE2(unit) ||
-          SOC_IS_TRIDENT(unit)  ||      /* PTin added: new switch 56843 (Trident) */
-          SOC_IS_TRIUMPH3(unit) ||      /* PTin added: new switch 5664x (Triumph3) */
-          SOC_IS_KATANA2(unit)          /* PTin added: new switch 5645x (Katana2) */
+          SOC_IS_TRIDENT(unit)   ||     /* PTin added: new switch 56843 (Trident) */
+          SOC_IS_TRIUMPH3(unit)  ||     /* PTin added: new switch 5664x (Triumph3) */
+          SOC_IS_KATANA2(unit)   ||     /* PTin added: new switch 5645x (Katana2) */
+          SOC_IS_GREYHOUND2(unit)       /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
          )
         total_slices = 4;
       else  
@@ -4572,14 +4582,21 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
       {
         total_slices = 8;
       }
-      else if ((SOC_IS_FIREBOLT(unit)  || 
-          SOC_IS_FIREBOLT2(unit) ||
-          SOC_IS_TR_VL(unit) ||
-          SOC_IS_RAVEN(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
-          SOC_IS_TRIUMPH3(unit) ||      /* PTin added: new switch 5664x (Triumph3) */
-          SOC_IS_KATANA2(unit))         /* PTin added: new switch 5645x (Katana2) */
-           && !SOC_IS_TRIDENT(unit))    /* PTin added: new switch 56843 (Trident) */
+      /* PTin added: new switch 56843 (Trident) */
+      else if (SOC_IS_TRIDENT(unit))
+      {
+          total_slices = 10;
+      }
+      /* PTin end */
+      else if (SOC_IS_FIREBOLT(unit)  || SOC_IS_FIREBOLT2(unit) || SOC_IS_TR_VL(unit)  ||
+               SOC_IS_RAVEN(unit)     || SOC_IS_TRIUMPH2(unit)  || SOC_IS_APOLLO(unit) ||
+               SOC_IS_VALKYRIE2(unit) ||
+               SOC_IS_TRIUMPH3(unit)  ||    /* PTin added: new switch 5664x (Triumph3) */
+               SOC_IS_KATANA2(unit)   ||    /* PTin added: new switch 5645x (Katana2) */
+               SOC_IS_GREYHOUND2(unit))     /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+      {
           total_slices = 16;
+      }
       else if (SOC_IS_RAPTOR(unit) || SOC_IS_HAWKEYE(unit)) 
       { 
         /* Note tcam_slices only counts internal slices. */
@@ -4595,12 +4612,6 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
       {
         total_slices = 12;
       }
-      /* PTin added: new switch 56843 (Trident) */
-      else if (SOC_IS_TRIDENT(unit))
-      {
-          total_slices = 10;
-      }
-      /* PTin end */
       else
       {
         total_slices = 8;
@@ -4616,7 +4627,8 @@ int _policy_group_total_slices(int unit, BROAD_POLICY_STAGE_t policyStage)
           SOC_IS_VALKYRIE2(unit) ||
           SOC_IS_TRIDENT(unit)   || /* PTin added: new switch 56843 (Trident) */
           SOC_IS_TRIUMPH3(unit)  || /* PTin added: new switch 5664x (Triumph3) */
-          SOC_IS_KATANA2(unit)      /* PTin added: new switch 5645x (Katana2) */
+          SOC_IS_KATANA2(unit)   || /* PTin added: new switch 5645x (Katana2) */
+          SOC_IS_GREYHOUND2(unit)   /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
          )
         total_slices = 4;
       else  
@@ -4645,7 +4657,8 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
         SOC_IS_VALKYRIE2(unit) ||
         SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch 56843 (Trident) */
         SOC_IS_TRIUMPH3(unit)  ||   /* PTin added: new switch 5664x (Triumph3) */
-        SOC_IS_KATANA2(unit)        /* PTin added: new switch 5645x (Katana2) */
+        SOC_IS_KATANA2(unit)   ||   /* PTin added: new switch 5645x (Katana2) */
+        SOC_IS_GREYHOUND2(unit)     /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
        )
     {
       supported = L7_TRUE;
@@ -4666,7 +4679,8 @@ L7_BOOL policy_stage_supported(int unit, BROAD_POLICY_STAGE_t policyStage)
         SOC_IS_VALKYRIE2(unit) ||
         SOC_IS_TRIDENT(unit)   ||   /* PTin added: new switch 56843 (Trident) */
         SOC_IS_TRIUMPH3(unit)  ||   /* PTin added: new switch 5664x (Triumph3) */
-        SOC_IS_KATANA2(unit)        /* PTin added: new switch 5645x (Katana2) */
+        SOC_IS_KATANA2(unit)   ||   /* PTin added: new switch 5645x (Katana2) */
+        SOC_IS_GREYHOUND2(unit)     /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
        )
     {
       supported = L7_TRUE;

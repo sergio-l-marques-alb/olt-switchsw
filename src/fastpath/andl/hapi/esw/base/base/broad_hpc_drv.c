@@ -633,6 +633,17 @@ int hapiBroadCpuCosqRateSet(int unit, int cosq, int rate, BROAD_CPU_RATE_LIMIT_T
         }
         else
 #endif /* KATANA2 */
+#if defined (BCM_GREYHOUND2_SUPPORT)
+        /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+        if (SOC_IS_GREYHOUND2(unit))
+        {
+          extern int bcm_gh2_cosq_port_pps_set(int unit, bcm_port_t port,
+                                               bcm_cos_queue_t cosq, int pps);   
+
+          rv = bcm_gh2_cosq_port_pps_set(unit, CMIC_PORT(unit), cosq, rate);
+        }
+        else
+#endif /* KATANA2 */
 #if defined (BCM_TRIDENT_SUPPORT)
         /* PTin added: new switch 56843 (Trident) */
         if (SOC_IS_TRIDENT(unit)) {
@@ -1362,8 +1373,11 @@ void hpcHardwareDefaultConfigApply(void)
         /* PTin added: new switch 56689 (Valkyrie2) */
         /* PTin added: new switch 5664x (Triumph3) */
         /* PTin added: new switch 56843 (Trident) */
-        if (SOC_IS_FB_FX_HX(i) || SOC_IS_TR_VL(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) || SOC_IS_TRIDENT(i) ||
-            SOC_IS_TRIUMPH3(i) || SOC_IS_KATANA2(i))
+        /* PTin added: new switch 56450 (Katana2) */
+        /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+        if (SOC_IS_FB_FX_HX(i)  || SOC_IS_TR_VL(i)   || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) ||
+            SOC_IS_VALKYRIE2(i) || SOC_IS_TRIDENT(i) || SOC_IS_TRIUMPH3(i) ||
+            SOC_IS_KATANA2(i)   || SOC_IS_GREYHOUND2(i))
         {
           /* 
            * XGS3 does not suffer from the same problem that caused us to map 7 -> 6
@@ -1386,9 +1400,11 @@ void hpcHardwareDefaultConfigApply(void)
 #endif
 
         /* PTin added: debug/test new switch */
-        if (SOC_IS_TRIDENT(i) || SOC_IS_KATANA2(i))
+        /* PTin added: new switch 56450 (Katana2) */
+        /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+        if (SOC_IS_TRIDENT(i) || SOC_IS_KATANA2(i) || SOC_IS_GREYHOUND2(i))
         {
-          PT_LOG_NOTICE(LOG_CTX_MISC, "bcm_cosq_port_mapping_set invoked for priority %u (of %u)",priority,L7_MAX_CFG_QUEUES_PER_PORT);
+          PT_LOG_NOTICE(LOG_CTX_MISC, "bcm_cosq_port_mapping_set invoked for priority %u (of %u)", priority, L7_MAX_CFG_QUEUES_PER_PORT);
           PBMP_PORT_ITER (i, port)
           {
             rv = bcm_cosq_port_mapping_set(i, port, priority, cosq);
@@ -1645,8 +1661,10 @@ void hpcHardwareDefaultConfigApply(void)
         /* PTin added: new switch 56689 (Valkyrie2) */
         /* PTin added: new switch 5664x (Triumph3) */
         /* PTin removed: new switch 56843 (Trident) */
+        /* PTin added: new switch 56450 (Katana2) */
+        /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
         else if (SOC_IS_TR_VL(i) || SOC_IS_SCORPION(i) || SOC_IS_TRIUMPH2(i) || SOC_IS_APOLLO(i) || SOC_IS_VALKYRIE2(i) /*|| SOC_IS_TRIDENT(i)*/ ||
-                 SOC_IS_TRIUMPH3(i) || SOC_IS_KATANA2(i))
+                 SOC_IS_TRIUMPH3(i) || SOC_IS_KATANA2(i) || SOC_IS_GREYHOUND2(i))
         {
           bcm_rx_reasons_t reason, no_reason;
           int              internal_priority;
@@ -1727,8 +1745,11 @@ void hpcHardwareDefaultConfigApply(void)
         /* PTin added: new switch 56689 (Valkyrie2) */
         /* PTin added: new switch 5664x (Triumph3) */
         /* PTin added: new switch 56843 (Trident) */
-        if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i) &&
-            !SOC_IS_TRIUMPH3(i) && !SOC_IS_KATANA2(i))
+        /* PTin added: new switch 56450 (Katana2) */
+        /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+        if (!SOC_IS_TR_VL(i)     && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) &&
+            !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i)  && !SOC_IS_TRIUMPH3(i) &&
+            !SOC_IS_KATANA2(i)   && !SOC_IS_GREYHOUND2(i))
         {
           /* This priority is used for packets that are copied to the CPU with a classifier, 
           ** and for IP traffic destined to the CPU due to IP address in the frames or
@@ -1779,8 +1800,11 @@ void hpcHardwareDefaultConfigApply(void)
         /* PTin added: new switch 56689 (Valkyrie2) */
         /* PTin added: new switch 5664x (Triumph3) */
         /* PTin added: new switch 56843 (Trident) */
-        if (!SOC_IS_TR_VL(i) && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) && !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i) &&
-            !SOC_IS_TRIUMPH3(i) && !SOC_IS_KATANA2(i))
+        /* PTin added: new switch 56450 (Katana2) */
+        /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+        if (!SOC_IS_TR_VL(i)     && !SOC_IS_SCORPION(i) && !SOC_IS_TRIUMPH2(i) && !SOC_IS_APOLLO(i) &&
+            !SOC_IS_VALKYRIE2(i) && !SOC_IS_TRIDENT(i)  && !SOC_IS_TRIUMPH3(i) &&
+            !SOC_IS_KATANA2(i)   && !SOC_IS_GREYHOUND2(i))
         {
           /* Send unknown SA frames to the CPU with priority 0.
           */

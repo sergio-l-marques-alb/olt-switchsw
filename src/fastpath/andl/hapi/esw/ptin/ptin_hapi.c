@@ -3603,7 +3603,12 @@ L7_RC_t hapi_ptin_counters_read(ptin_HWEthRFC2819_PortStatistics_t *portStats)
       return L7_FAILURE;
     }
   }
-  else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
+  /* PTin added: new switch 5664x (Triumph3) */
+  /* PTin added: new switch 56843 (Trident) */
+  /* PTin added: new switch 56450 (Katana2) */
+  /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+  else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit) ||
+           SOC_IS_KATANA2(unit) || SOC_IS_GREYHOUND2(unit))
   {
     /* Rx counters */
     soc_counter_get(unit, port, RMTUEr, 0, &mtuePkts);                              /* Packets > MTU bytes (good and bad) */
@@ -3813,7 +3818,12 @@ L7_RC_t hapi_ptin_counters_clear(L7_uint phyPort)
       return L7_FAILURE;
     }
   }
-  else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
+  /* PTin added: new switch 5664x (Triumph3) */
+  /* PTin added: new switch 56843 (Trident) */
+  /* PTin added: new switch 56450 (Katana2) */
+  /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+  else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit) ||
+           SOC_IS_KATANA2(unit) || SOC_IS_GREYHOUND2(unit))
   {
     /* Rx counters */
     soc_counter_set(unit, port, RMTUEr, 0, 0);
@@ -4018,7 +4028,12 @@ L7_RC_t hapi_ptin_counters_activity_get(ptin_HWEth_PortsActivity_t *portsActivit
         return L7_FAILURE;
       }
     }
-    else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
+    /* PTin added: new switch 5664x (Triumph3) */
+    /* PTin added: new switch 56843 (Trident) */
+    /* PTin added: new switch 56450 (Katana2) */
+    /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+    else if (SOC_IS_TRIDENT(unit) || SOC_IS_TRIUMPH3(unit) ||
+             SOC_IS_KATANA2(unit) || SOC_IS_GREYHOUND2(unit))
     {
       if (portsActivity->activity_mask & PTIN_PORTACTIVITY_MASK_RX_ACTIVITY) {
         soc_counter_get_rate(unit, port_remap, RBYTr , 0, &rate);

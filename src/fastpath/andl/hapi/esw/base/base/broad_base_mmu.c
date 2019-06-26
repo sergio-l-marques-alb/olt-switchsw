@@ -860,8 +860,10 @@ hapiBroadPgInit(int unit, pg_cosmap_t *cosmap,int num_cos,
         /* PTin added: new switch 5664x (Triumph3) */
         /* PTin added: new switch 56843 (Trident) */
         /* PTin added: new switch 56450 (Katana2) */
-        if (SOC_IS_APOLLO(unit) || SOC_IS_TRIUMPH2(unit) || SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit) ||
-            SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
+        /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+        if (SOC_IS_APOLLO(unit)    || SOC_IS_TRIUMPH2(unit) ||
+            SOC_IS_VALKYRIE2(unit) || SOC_IS_TRIDENT(unit)  || SOC_IS_TRIUMPH3(unit) ||
+            SOC_IS_KATANA2(unit)   || SOC_IS_GREYHOUND2(unit))
         {
             soc_reg_field_set(unit, PORT_PRI_GRP0r, &rval1, PRI7_GRPf, cosmap[i].pg);
         } else {
@@ -4406,6 +4408,7 @@ L7_RC_t hapiBroadMmuConfigModify(L7_uint32 unit)
   else
 #endif /* TRIUMPH3 */
 #ifdef BCM_KATANA2_SUPPORT
+  /* PTin added: new switch 56450 (Katana2) */
   if (SOC_IS_KATANA2(unit))
   {
     // TODO
@@ -4413,6 +4416,15 @@ L7_RC_t hapiBroadMmuConfigModify(L7_uint32 unit)
   }
   else
 #endif /* KATANA2 */
+#ifdef BCM_GREYHOUND2_SUPPORT
+  /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+  if (SOC_IS_GREYHOUND2(unit))
+  {
+    // TODO
+    PT_LOG_WARN(LOG_CTX_MISC, "hapiBroadGreyhound2MmuModify() is NOT IMPLEMENTED!");
+  }
+  else
+#endif /* GREYHOUND2 */
 #ifdef BCM_ENDURO_SUPPORT
   if (SOC_IS_ENDURO(unit))
   {
@@ -4520,6 +4532,11 @@ int hapiBroadMmuPauseSet(int unit,int mode)
   else if (SOC_IS_KATANA2(unit))
   {
     PT_LOG_WARN(LOG_CTX_MISC, "hapiBroadMmuKatana2PauseSet() is not implemented!");
+  }
+  /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+  else if (SOC_IS_GREYHOUND2(unit))
+  {
+    PT_LOG_WARN(LOG_CTX_MISC, "hapiBroadMmuGreyhound2PauseSet() is not implemented!");
   }
   else if (SOC_IS_TR_VL(unit))
   {

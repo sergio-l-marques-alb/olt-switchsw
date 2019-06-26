@@ -1592,8 +1592,17 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
       totalmem = 46080;
     }
     /* OLT1T0F/TG16GF board */
+    /* PTin added: new switch 56450 (Katana2) */
     else if (SOC_IS_KATANA2(unit))
     {
+      cellsize = 768;     /* Cell size for external memory */
+      totalmem = 256000;  /* Considering 6x2Gbit external memory */
+    }
+    /* AE48GE board */
+    /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+    else if (SOC_IS_GREYHOUND2(unit))
+    {
+      /* FIXME AE48GE: Check these values */
       cellsize = 768;     /* Cell size for external memory */
       totalmem = 256000;  /* Considering 6x2Gbit external memory */
     }
@@ -1621,7 +1630,9 @@ static uint32 l7_port_wred_percent_to_bytes(int unit, uint8 percent)
       totalmem = 16383;
     }
 
-    if (SOC_IS_KATANA2(unit))
+    /* PTin added: new switch 56450 (Katana2) */
+    /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+    if (SOC_IS_KATANA2(unit) || SOC_IS_GREYHOUND2(unit))
     {
       /* Katana2 have 4K queues (56450-DS106-RDS.pdf) */
       conversion_factor = totalmem / (1 + 2 * (NUM_PORT(unit)-1));
@@ -1672,7 +1683,9 @@ int usl_bcm_port_wred_set(int unit, bcm_port_t port,
         /* Initialize flags */
         discardParams.flags = 0;
 
-        if (SOC_IS_KATANA2(unit))
+        /* PTin added: new switch 56450 (Katana2) */
+        /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+        if (SOC_IS_KATANA2(unit) || SOC_IS_GREYHOUND2(unit))
         {
           /* Configure in cell units (no flags assigned) */
         }

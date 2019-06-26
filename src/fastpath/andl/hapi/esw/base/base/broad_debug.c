@@ -390,9 +390,12 @@ void hapiBroadDebugHelp()
 
 void hapiBroadDebugSpecial(L7_ushort16 unit)
 {
-  /* PTin added: new switch 56843 (Triumph3) */
-  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit) || SOC_IS_VALKYRIE2(unit) ||
-      SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit))
+  /* PTin added: new switch 56689 (Valkyrie2) */
+  /* PTin added: new switch 5664x (Triumph3) */
+  /* PTin added: new switch 56450 (Katana2) */
+  /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+  if (SOC_IS_TRIUMPH2(unit) || SOC_IS_APOLLO(unit)  || SOC_IS_VALKYRIE2(unit) ||
+      SOC_IS_TRIUMPH3(unit) || SOC_IS_KATANA2(unit) || SOC_IS_GREYHOUND2(unit))
   {
       uint64 egr_val_64;
       uint32 bitmap;

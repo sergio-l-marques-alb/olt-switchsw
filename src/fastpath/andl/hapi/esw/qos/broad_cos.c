@@ -1618,7 +1618,10 @@ static L7_RC_t hapiBroadQosCosWredApply(DAPI_USP_t *usp)
 	  /* For XGS4, we are just disabling WRED in-chip, so the parameters 
 	     don't matter. If we want to support configurable tail-drop, 
 	     add BCM_COSQ_DISCARD_ENABLE to the flags. */
-            if (SOC_IS_KATANA2(hapiPortPtr->bcm_unit))
+            /* PTin added: new switch 56450 (Katana2) */
+            /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
+            if (SOC_IS_KATANA2(hapiPortPtr->bcm_unit) ||
+                SOC_IS_GREYHOUND2(hapiPortPtr->bcm_unit))
             {
               parms.flags[cosIndex] = BCM_COSQ_DISCARD_ENABLE; 
             }
