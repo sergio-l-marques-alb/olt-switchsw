@@ -1485,9 +1485,10 @@ L7_RC_t hapiBroadIntfDoubleVlanTagConfig(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *
 
   if (hapiBroadGetSystemBoardFamily(&board_family) == L7_SUCCESS)
   {
-    if ( (board_family == BCM_FAMILY_TRIUMPH) ||
+    if ( (board_family == BCM_FAMILY_TRIUMPH)  ||
          (board_family == BCM_FAMILY_TRIUMPH2) ||
-         (board_family == BCM_FAMILY_SCORPION) /* Scorpion has DVLAN capabilities similar to Triumph. */
+         (board_family == BCM_FAMILY_TRIDENT)  || /* Trident has DVLAN capabilities similar to Triumph. */
+         (board_family == BCM_FAMILY_SCORPION)    /* Scorpion has DVLAN capabilities similar to Triumph. */
         )
     {
       isTriumphFamily = L7_TRUE;
@@ -1670,9 +1671,10 @@ static L7_RC_t hapiBroadPortDoubleVlanTagConfig(DAPI_USP_t *usp,
 
   if (hapiBroadGetSystemBoardFamily(&board_family) == L7_SUCCESS)
   {
-    if ( (board_family == BCM_FAMILY_TRIUMPH) ||
+    if ( (board_family == BCM_FAMILY_TRIUMPH)  ||
          (board_family == BCM_FAMILY_TRIUMPH2) ||
-         (board_family == BCM_FAMILY_SCORPION) /* Scorpion has DVLAN capabilities similar to Triumph. */
+         (board_family == BCM_FAMILY_TRIDENT)  || /* Trident has DVLAN capabilities similar to Triumph. */
+         (board_family == BCM_FAMILY_SCORPION)    /* Scorpion has DVLAN capabilities similar to Triumph. */
         )
     {
       isTriumphFamily = L7_TRUE;

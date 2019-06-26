@@ -1535,8 +1535,9 @@ L7_RC_t hapiBroadSend(DAPI_USP_t *usp, DAPI_CMD_t cmd, void *data, DAPI_t *dapi_
 
         if (hapiBroadGetSystemBoardFamily(&board_family) == L7_SUCCESS)
         {
-           if ( (board_family == BCM_FAMILY_TRIUMPH) ||
-                (board_family == BCM_FAMILY_TRIUMPH2)
+           if ( (board_family == BCM_FAMILY_TRIUMPH)  ||
+                (board_family == BCM_FAMILY_TRIUMPH2) ||
+                (board_family == BCM_FAMILY_TRIDENT)  || /* Trident has DVLAN capabilities similar to Triumph. */
               )
            {
              if (*(L7_ushort16 *)&bcm_pkt.pkt_data->data[14] == osapiHtons(0)) /* It an untagged PKt */
@@ -3637,10 +3638,11 @@ void hapiBroadReceiveTask(DAPI_t *dapi_g, L7_uint32 numArgs)
     else if ((board_family == BCM_FAMILY_FIREBOLT) ||
              (board_family == BCM_FAMILY_BRADLEY)  ||
              (board_family == BCM_FAMILY_TRIUMPH)  ||
-             (board_family == BCM_FAMILY_TRIUMPH2)  ||
-             (board_family == BCM_FAMILY_SCORPION)  ||
-             /*(board_family == BCM_FAMILY_ROBO)      ||*/  /* PTin removed: robo */
-             (board_family == BCM_FAMILY_TRIDENT))          /* PTin added: new switch 56843 (Trident) */
+             (board_family == BCM_FAMILY_TRIUMPH2) ||
+             (board_family == BCM_FAMILY_SCORPION) ||
+             /*(board_family == BCM_FAMILY_ROBO)   ||*/  /* PTin removed: robo */
+             (board_family == BCM_FAMILY_TRIDENT)  /* PTin added: new switch 56843 (Trident) */
+            )
     {
       L7_BOOL fwdFrame = L7_TRUE;
 
@@ -4180,8 +4182,9 @@ L7_BOOL hapiBroadReceivePdu(L7_netBufHandle frameHdl,
       /* This logic is written based on Triumph platform behaviour */
        if (hapiBroadGetSystemBoardFamily(&board_family) == L7_SUCCESS)
        {
-         if ( (board_family == BCM_FAMILY_TRIUMPH) ||
-              (board_family == BCM_FAMILY_TRIUMPH2)
+         if ( (board_family == BCM_FAMILY_TRIUMPH)  ||
+              (board_family == BCM_FAMILY_TRIUMPH2) ||
+              (board_family == BCM_FAMILY_TRIDENT)  || /* Trident has DVLAN capabilities similar to Triumph. */
              )
          {
            isTriumphFamily = L7_TRUE;

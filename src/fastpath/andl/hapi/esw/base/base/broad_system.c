@@ -2390,16 +2390,13 @@ L7_RC_t hapiBroadGetSystemBoardFamily(bcm_chip_family_t *board_family)
     case __BROADCOM_56624_ID:
     case __BROADCOM_56680_ID:
     case __BROADCOM_56334_ID:
+    case __BROADCOM_56685_ID:   /* PTin added: new switch 56689 (Valkyrie2) */
+    case __BROADCOM_56170_ID:   /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
       *board_family = BCM_FAMILY_TRIUMPH;
       break;
     case __BROADCOM_56634_ID:
     case __BROADCOM_56524_ID:
     case __BROADCOM_56636_ID:
-    case __BROADCOM_56685_ID:   /* PTin added: new switch 56689 (Valkyrie2) */
-    case __BROADCOM_56640_ID:   /* PTin added: new switch 5664x (Triumph3) */
-    case __BROADCOM_56340_ID:   /* PTin added: new switch 56340 (Helix4) */
-    case __BROADCOM_56450_ID:   /* PTin added: new switch 56450 (Katana2) */
-    case __BROADCOM_56170_ID:   /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
       *board_family = BCM_FAMILY_TRIUMPH2;
       break;
     case __BROADCOM_56820_ID:
@@ -2411,7 +2408,10 @@ L7_RC_t hapiBroadGetSystemBoardFamily(bcm_chip_family_t *board_family)
        *board_family = BCM_FAMILY_ROBO;
        break;
 #endif
-    case __BROADCOM_56843_ID:  /* PTin added: new switch 56843 (Trident) */
+    case __BROADCOM_56843_ID:   /* PTin added: new switch 56843 (Trident) */
+    case __BROADCOM_56640_ID:   /* PTin added: new switch 5664x (Triumph3) */
+    case __BROADCOM_56450_ID:   /* PTin added: new switch 56450 (Katana2) */
+    case __BROADCOM_56340_ID:   /* PTin added: new switch 56340 (Helix4) */
       *board_family = BCM_FAMILY_TRIDENT;
       break;
   default:
@@ -2694,7 +2694,10 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
       To fix this problem, we need to install protocol snooping rules at higher
       priority compared to DOT1AD rules.*/
     if((hapiBroadRoboVariantCheck() ==  __BROADCOM_53115_ID) ||
-       (board_family == BCM_FAMILY_TRIUMPH) || (board_family == BCM_FAMILY_TRIUMPH2))
+       (board_family == BCM_FAMILY_TRIUMPH)  ||
+       (board_family == BCM_FAMILY_TRIUMPH2) ||
+       (board_family == BCM_FAMILY_TRIDENT)  || /* Trident has DVLAN capabilities similar to Triumph. */
+      )
     {
       if (mldSnoopId == BROAD_POLICY_INVALID)
       {
@@ -2705,7 +2708,10 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
         {
           rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_DOT1AD_SNOOP);
         }
-        else if((board_family == BCM_FAMILY_TRIUMPH) || (board_family == BCM_FAMILY_TRIUMPH2))
+        else if((board_family == BCM_FAMILY_TRIUMPH)  ||
+                (board_family == BCM_FAMILY_TRIUMPH2) ||
+                (board_family == BCM_FAMILY_TRIDENT)  || /* Trident has DVLAN capabilities similar to Triumph. */
+               )
         {
           rc = hapiBroadPolicyCreate(BROAD_POLICY_TYPE_SYSTEM);
         }
@@ -2961,7 +2967,10 @@ L7_RC_t hapiBroadConfigMldFilter(L7_BOOL enableFilter,DAPI_t *dapi_g)
   {
 #if defined(L7_METRO_PACKAGE) && defined(L7_DOT1AD_PACKAGE)
     if((hapiBroadRoboVariantCheck() ==  __BROADCOM_53115_ID) ||
-       (board_family == BCM_FAMILY_TRIUMPH) || (board_family == BCM_FAMILY_TRIUMPH2))
+       (board_family == BCM_FAMILY_TRIUMPH)  ||
+       (board_family == BCM_FAMILY_TRIUMPH2) ||
+       (board_family == BCM_FAMILY_TRIDENT) /* Trident has DVLAN capabilities similar to Triumph. */
+      )
     {
       if (mldSnoopId != BROAD_POLICY_INVALID )
       {
