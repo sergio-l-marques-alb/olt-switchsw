@@ -2399,6 +2399,7 @@ L7_RC_t hapiBroadGetSystemBoardFamily(bcm_chip_family_t *board_family)
     case __BROADCOM_56640_ID:   /* PTin added: new switch 5664x (Triumph3) */
     case __BROADCOM_56340_ID:   /* PTin added: new switch 56340 (Helix4) */
     case __BROADCOM_56450_ID:   /* PTin added: new switch 56450 (Katana2) */
+    case __BROADCOM_56170_ID:   /* PTin added: new switch 56170 (Hurricane3-MG/Greyhound2) */
       *board_family = BCM_FAMILY_TRIUMPH2;
       break;
     case __BROADCOM_56820_ID:
